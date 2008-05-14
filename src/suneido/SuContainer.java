@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SuContainer extends SuValue {
-	private ArrayList<SuValue> vec = new ArrayList<SuValue>();
-	private HashMap<SuValue, SuValue> map = new HashMap<SuValue,SuValue>();
+	ArrayList<SuValue> vec = new ArrayList<SuValue>();
+	HashMap<SuValue, SuValue> map = new HashMap<SuValue,SuValue>();
 	
 	public void append(SuValue value) {
 		vec.add(value);
