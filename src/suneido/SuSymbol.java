@@ -9,6 +9,8 @@ public class SuSymbol extends SuString {
 	
 	final public static int CALL = SuSymbol.symbol("<call>").symnum();
 	final public static int DEFAULT = SuSymbol.symbol("Default").symnum();
+	final public static int EACH = SuSymbol.symbol("<each>").symnum();
+	final public static int NAMED = SuSymbol.symbol("<named>").symnum();
 
 	public static SuSymbol symbol(String s) {
 		return names.containsKey(s)

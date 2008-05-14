@@ -8,6 +8,8 @@ public class SuNumber extends SuValue {
 	public final static MathContext mc = new MathContext(16);
 	public final static BigDecimal INT_MIN = new BigDecimal(Integer.MIN_VALUE);
 	public final static BigDecimal INT_MAX = new BigDecimal(Integer.MAX_VALUE);
+	public final static SuNumber ZERO = new SuNumber(0);
+	public final static SuNumber ONE = new SuNumber(1);
 	
 	public SuNumber(int n) {
 		this.n = new BigDecimal(n);
