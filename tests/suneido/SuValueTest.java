@@ -9,6 +9,7 @@ public class SuValueTest {
 	@Test
 	public void compareTo() {
 		SuValue[] values = {
+				SuBoolean.FALSE, SuBoolean.TRUE, 
 				SuInteger.ZERO, new SuNumber(123), new SuInteger(456), new SuNumber(789),
 				SuString.EMPTY, new SuString("abc"), new SuString("def"),
 				new SuContainer() };
