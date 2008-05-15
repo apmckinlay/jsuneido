@@ -1,5 +1,10 @@
 package suneido;
 
+/**
+ * Suneido string class - simple wrapper for Java String
+ * @author Andrew McKinlay
+ *
+ */
 public class SuString extends SuValue {
 	private String s;
 	final public static SuString EMPTY = new SuString("");
@@ -8,6 +13,11 @@ public class SuString extends SuValue {
 		this.s = s;
 	}
 	
+	/**
+	 * @param member Converted to an integer zero-based position in the string.
+	 * @return An SuString containing the single character at the position, 
+	 * 			or "" if the position is out of range.
+	 */
 	@Override
 	public SuValue getdata(SuValue member) {
 		if (! member.is_numeric())
@@ -20,13 +30,16 @@ public class SuString extends SuValue {
 
 	@Override
 	public int integer() {
+		String t = s;
 		int radix = 10;
-		if (s.startsWith("0x") || s.startsWith("0X"))
+		if (s.startsWith("0x") || s.startsWith("0X")) {
 			radix = 16;
+			t = s.substring(2);
+		}
 		else if (s.startsWith("0"))
 			radix = 8;
 		try {
-			return Integer.parseInt(s, radix);
+			return Integer.parseInt(t, radix);
 		} catch (NumberFormatException e) {
 			return 0;
 		}

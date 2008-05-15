@@ -13,10 +13,10 @@ public class SuStringTest {
 	
 	@Test
 	public void integer() {
-		String[] cases = {"0", "1", "123", "0x0", "010" };
-		int results[] = { 0, 1, 123, 0, 8 };
+		String[] cases = {"0", "1", "123", "0x0", "0xf", "010" };
+		int results[] = { 0, 1, 123, 0, 15, 8 };
 		for (int i = 0; i < cases.length; ++i)
-			assertEquals(new SuString(cases[i]).integer(), results[i]);
+			assertEquals(results[i], new SuString(cases[i]).integer());
 	}
 	
 	@Test
@@ -50,6 +50,15 @@ public class SuStringTest {
 		for (String c : cases) {
 			assertEquals(new SuString(c).number(), new SuNumber(c));
 		}
+	}
+	
+	@Test
+	public void getdata() {
+		SuString s = new SuString("hello world");
+		int[] offsets = { -1, 0, 1, 10, 11, 999 };
+		String[] results = { "", "h", "e", "d", "", "" };
+		for (int i = 0; i < offsets.length; ++i)
+			assertEquals(results[i], s.getdata(new SuInteger(offsets[i])).toString());
 	}
 }
 
