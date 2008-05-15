@@ -8,6 +8,12 @@ public class SuContainer extends SuValue {
 	ArrayList<SuValue> vec = new ArrayList<SuValue>();
 	HashMap<SuValue, SuValue> map = new HashMap<SuValue,SuValue>();
 	
+	public SuContainer() {
+	}
+	public SuContainer(SuContainer c) {
+		merge(c);
+	}
+	
 	public void append(SuValue value) {
 		vec.add(value);
 		// check for migration from map to vec
@@ -18,6 +24,10 @@ public class SuContainer extends SuValue {
 			vec.add(map.get(num));
 			map.remove(num);
 		}
+	}
+	public void merge(SuContainer c) {
+		vec.addAll(c.vec);
+		map.putAll(c.map);
 	}
 	
 	@Override

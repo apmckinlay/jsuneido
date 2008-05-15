@@ -7,10 +7,14 @@ public class SuSymbol extends SuString {
 	static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
 	static HashMap<String, Integer> names = new HashMap<String, Integer>();
 	
-	final public static int CALL = SuSymbol.symbol("<call>").symnum();
-	final public static int DEFAULT = SuSymbol.symbol("Default").symnum();
-	final public static int EACH = SuSymbol.symbol("<each>").symnum();
-	final public static int NAMED = SuSymbol.symbol("<named>").symnum();
+	final public static SuSymbol CALL = SuSymbol.symbol("<call>");
+	final public static SuSymbol DEFAULT = SuSymbol.symbol("Default");
+	final public static SuSymbol EACH = SuSymbol.symbol("<each>");
+	final public static SuSymbol NAMED = SuSymbol.symbol("<named>");
+	final public static int CALLi = CALL.symnum();
+	final public static int DEFAULTi = DEFAULT.symnum();
+	final public static int EACHi = EACH.symnum();
+	final public static int NAMEDi = NAMED.symnum();
 
 	public static SuSymbol symbol(String s) {
 		return names.containsKey(s)
