@@ -12,6 +12,9 @@ public abstract class SuValue {
 		return getClass().getName().substring(10); // strip Suneido.Su
 	}
 	
+	/**
+	 * @return true for SuInteger and SuNumber, false otherwise
+	 */
 	public boolean is_numeric() {
 		return false;
 	}

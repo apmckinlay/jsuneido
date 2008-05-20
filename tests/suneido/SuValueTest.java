@@ -39,18 +39,18 @@ public class SuValueTest {
 		int j = y.integer();
 		SuValue z;
 		z = x.add(y);
-		assert z instanceof SuNumber;
+		assert z.is_numeric();
 		assertEquals(new SuNumber(i + j), z);
 		z = x.sub(y);
-		assert z instanceof SuNumber;
+		assert z.is_numeric();
 		assertEquals(new SuNumber(i - j), z);
 		z = x.mul(y);
-		assert z instanceof SuNumber;
+		assert z.is_numeric();
 		assertEquals(new SuNumber(i * j), z);
 		if (j == 0)
 			return ; // skip divide by zero
 		z = x.div(y);
-		assert z instanceof SuNumber;
+		assert z.is_numeric();
 		assertEquals(new SuNumber(new BigDecimal(i).divide(new BigDecimal(j), SuNumber.mc)), z);
 	}
 }

@@ -106,4 +106,7 @@ public class SuContainer extends SuValue {
 		} else
 			return null != map.remove(key);
 	}
+	public int vecsize() {
+		return vec.size();
+	}
 }
