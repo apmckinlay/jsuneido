@@ -17,9 +17,12 @@ public class SuSymbol extends SuString {
 	final public static int NAMEDi = NAMED.symnum();
 
 	public static SuSymbol symbol(String s) {
-		return names.containsKey(s)
-			? symbols.get(names.get(s))
-			: new SuSymbol(s);
+		if (names.containsKey(s))
+			return symbols.get(names.get(s));
+		SuSymbol symbol = new SuSymbol(s);
+		names.put(s, symbols.size());
+		symbols.add(symbol);
+		return symbol;
 	}
 	
 	private int num;

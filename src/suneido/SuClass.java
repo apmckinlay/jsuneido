@@ -20,7 +20,7 @@ public class SuClass extends SuValue {
 	
 	/**
 	 * Implements Suneido's argument handling.
-	 * Called by invoke2 of generated sub-classes.
+	 * Called at the start of generated sub-class methods.
 	 *  
 	 * @param nlocals	The number of local variables required, including parameters.
 	 * @param args		The arguments as an SuValue array.<br />
@@ -34,9 +34,12 @@ public class SuClass extends SuValue {
 	 */
 	public SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
 		SuValue[] locals = new SuValue[nlocals];
-		if ((params[0] == SuSymbol.EACHi)) {
-			// optimize function (@params) (@args)
+		if (args.length == 0)
+			return locals;
+		if (params.length > 0 && params[0] == SuSymbol.EACHi) {
+			// function (@params)
 			if (args[0] == SuSymbol.EACH && args.length == 2)
+				// optimize function (@params) (@args)
 				locals[0] = new SuContainer((SuContainer) args[1]);
 			else {
 				SuContainer c = new SuContainer();
@@ -46,15 +49,14 @@ public class SuClass extends SuValue {
 						c.putdata(args[i + 1], args[i + 2]);
 						i += 2;
 					}
-					else if (args[i] == SuSymbol.EACH) {
-						c.merge((SuContainer) args[i + 2]);
-						i += 2;
-					}
+					else if (args[i] == SuSymbol.EACH)
+						c.merge((SuContainer) args[++i]);
 					else
 						c.vec.add(args[i]);
 				}
 			}
 		} else {
+			assert nlocals >= params.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i] == SuSymbol.NAMED) {
@@ -64,9 +66,9 @@ public class SuClass extends SuValue {
 					// else ignore named arg not matching param
 					i += 2;
 				}
-				else if (args[i] != SuSymbol.EACH) {
-					SuContainer c = (SuContainer) args[i + 2];
-					if (c.size() > nlocals - li)
+				else if (args[i] == SuSymbol.EACH) {
+					SuContainer c = (SuContainer) args[++i];
+					if (c.vecsize() > nlocals - li)
 						throw new SuException("too many arguments");
 					for (SuValue x : c.vec)
 						locals[li++] = x;
@@ -75,7 +77,6 @@ public class SuClass extends SuValue {
 						if (x != null)
 							locals[j] = x;
 					}
-					i += 2;
 				}
 				else
 					locals[li++] = args[i];
@@ -85,5 +86,5 @@ public class SuClass extends SuValue {
 	}
 
 	//TODO handle @+1 args
-	//TODO add test for massage
+	//TODO check for missing arguments (but what about defaults?)
 }
