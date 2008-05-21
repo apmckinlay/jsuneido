@@ -8,16 +8,22 @@ import static org.junit.Assert.*;
 public class SuValueTest {
 	@Test
 	public void compareTo() {
+		SuContainer c1 = new SuContainer();
+		c1.append(SuInteger.ZERO);
+		SuContainer c2 = new SuContainer();
+		c2.append(SuInteger.ZERO);
+		c2.append(SuInteger.ONE);
+		SuContainer c3 = new SuContainer();
+		c3.append(SuInteger.ONE);
 		SuValue[] values = {
-				SuBoolean.FALSE, SuBoolean.TRUE, 
-				SuInteger.ZERO, new SuNumber(123), new SuInteger(456), new SuNumber(789),
-				SuString.EMPTY, new SuString("abc"), new SuString("def"),
-				new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
-				new SuContainer(), new SuClass() };
+			SuBoolean.FALSE, SuBoolean.TRUE, 
+			SuInteger.ZERO, new SuNumber(123), new SuInteger(456), new SuNumber(789),
+			SuString.EMPTY, new SuString("abc"), new SuString("def"),
+			new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
+			new SuContainer(), c1, c2, c3, new SuClass() };
 		for (int i = 0; i < values.length; ++i)
 			for (int j = 0; j < values.length; ++j)
-				assertEquals(Integer.signum(i - j), values[i].compareTo(values[j]));
-		
+				assertEquals(Integer.signum(i - j), Integer.signum(values[i].compareTo(values[j])));
 		SuValue x = new SuClass();
 		SuValue y = new SuClass();
 		assertEquals(Integer.signum(x.hashCode() - y.hashCode()), x.compareTo(y));
