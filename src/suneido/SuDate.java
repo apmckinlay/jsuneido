@@ -43,10 +43,8 @@ public class SuDate extends SuValue {
 		int ord = order() - value.order();
 		if (ord != 0)
 			return ord < 0 ? -1 : +1;
-		return -value.compareToDate(this);
-	}
-	public int compareToDate(SuDate d) {
-		return date.compareTo(d.date);
+		// if order the same, value must be a date
+		return date.compareTo(((SuDate) value).date);
 	}
 	
 	@Override

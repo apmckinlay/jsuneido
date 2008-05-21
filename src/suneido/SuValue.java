@@ -13,10 +13,11 @@ public abstract class SuValue {
 	}
 	
 	/**
-	 * @return true for SuInteger and SuNumber, false otherwise
+	 * Used by SuContainer.
+	 * @return value if integer, -1 otherwise
 	 */
-	public boolean is_numeric() {
-		return false;
+	public int index() {
+		return -1;
 	}
 	public int integer() {
 		throw new SuException("can't convert " + typeName() + " to integer");
@@ -25,6 +26,15 @@ public abstract class SuValue {
 		throw new SuException("can't convert " + typeName() + " to number");
 	}
 	public abstract String toString();
+	
+	/**
+	 * This is a default implementation,
+	 * it should be overridden if there is a "natural" ordering, e.g. numbers, strings, dates
+	 * Orders first by order(), then by hashCode.
+	 * <p>WARNING: will return 0 for different objects if they happen to have the same hashCode.
+	 * @param value
+	 * @return 0, -1, or +1
+	 */
 	public int compareTo(SuValue value) {
 		if (this == value)
 			return 0;
@@ -35,10 +45,7 @@ public abstract class SuValue {
 		return ord < 0 ? -1 : ord > 0 ? +1 : 0;			
 	}
 	public int compareToInt(SuInteger i) {
-		return Integer.signum(order() - i.order());
-	}
-	public int compareToDate(SuDate d) {
-		return Integer.signum(order() - d.order());
+		throw new SuException("should not reach here");
 	}
 
 	protected enum Order { BOOLEAN, NUMBER, STRING, DATE, CONTAINER, OTHER };

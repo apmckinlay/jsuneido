@@ -7,8 +7,11 @@ public class SuSymbolTest {
 	@Test
 	public void test() {
 		SuSymbol hello = SuSymbol.symbol("hello");
-		assert hello == SuSymbol.symbol("hello");
+		assertSame(hello, SuSymbol.symbol("hello"));
+		assertEquals(hello, SuSymbol.symbol("hello"));
 		assertEquals(new SuString("hello"), hello);
-		assert hello == SuSymbol.symbol(hello.symnum());
+		assertEquals(hello, new SuString("hello"));
+		assertSame(hello, SuSymbol.symbol(hello.symnum()));
+		assertFalse(hello.equals(SuSymbol.symbol("Hello")));
 	}
 }

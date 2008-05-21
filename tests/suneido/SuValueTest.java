@@ -12,10 +12,16 @@ public class SuValueTest {
 				SuBoolean.FALSE, SuBoolean.TRUE, 
 				SuInteger.ZERO, new SuNumber(123), new SuInteger(456), new SuNumber(789),
 				SuString.EMPTY, new SuString("abc"), new SuString("def"),
-				new SuContainer() };
+				new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
+				new SuContainer(), new SuClass() };
 		for (int i = 0; i < values.length; ++i)
 			for (int j = 0; j < values.length; ++j)
 				assertEquals(Integer.signum(i - j), values[i].compareTo(values[j]));
+		
+		SuValue x = new SuClass();
+		SuValue y = new SuClass();
+		assertEquals(Integer.signum(x.hashCode() - y.hashCode()), x.compareTo(y));
+		assertEquals(Integer.signum(y.hashCode() - x.hashCode()), y.compareTo(x));
 	}
 	
 	@Test
@@ -39,18 +45,33 @@ public class SuValueTest {
 		int j = y.integer();
 		SuValue z;
 		z = x.add(y);
-		assert z.is_numeric();
 		assertEquals(new SuNumber(i + j), z);
 		z = x.sub(y);
-		assert z.is_numeric();
 		assertEquals(new SuNumber(i - j), z);
 		z = x.mul(y);
-		assert z.is_numeric();
 		assertEquals(new SuNumber(i * j), z);
 		if (j == 0)
 			return ; // skip divide by zero
 		z = x.div(y);
-		assert z.is_numeric();
 		assertEquals(new SuNumber(new BigDecimal(i).divide(new BigDecimal(j), SuNumber.mc)), z);
+	}
+	
+	@Test(expected=SuException.class)
+	public void call1() {
+		SuValue x = SuInteger.ZERO;
+		x.invoke(SuSymbol.CALLi);
+	}
+	@Test(expected=SuException.class)
+	public void call2() {
+		SuValue x = SuInteger.ZERO;
+		x.invoke(SuSymbol.EACHi);
+	}
+	@Test(expected=SuException.class)
+	public void getdata() {
+		SuInteger.ZERO.getdata(SuSymbol.CALL);
+	}
+	@Test(expected=SuException.class)
+	public void putdata() {
+		SuString.EMPTY.putdata(SuSymbol.CALL, SuInteger.ZERO);
 	}
 }

@@ -20,8 +20,6 @@ public class SuString extends SuValue {
 	 */
 	@Override
 	public SuValue getdata(SuValue member) {
-		if (! member.is_numeric())
-			throw new SuException("strings subscripts must be integers");
 		int i = member.integer();
 		return 0 <= i && i < s.length()
 			? new SuString(s.substring(i, i + 1))
@@ -41,7 +39,7 @@ public class SuString extends SuValue {
 		try {
 			return Integer.parseInt(t, radix);
 		} catch (NumberFormatException e) {
-			return 0;
+			return super.integer();
 		}
 	}
 	

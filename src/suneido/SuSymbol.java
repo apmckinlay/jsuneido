@@ -50,8 +50,10 @@ public class SuSymbol extends SuString {
 
 	@Override
 	public boolean equals(Object value) {
-		if (value instanceof SuSymbol)
-			return value == this;
+		if (value == this)
+			return true;
+		else if (value instanceof SuSymbol)
+			return false;
 		else
 			return super.equals(value);
 	}
