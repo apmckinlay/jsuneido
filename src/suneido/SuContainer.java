@@ -85,12 +85,21 @@ public class SuContainer extends SuValue {
 		return vec.equals(c.vec) && map.equals(c.map);
 		//TODO handle stack overflow from self-reference
 	}
-//	@Override
-//	public int compareTo(SuValue value) {
-//		int ord = order() - value.order();
-//		return ord < 0 ? -1 : ord > 0 ? +1 :
-//			 vec.compareTo(((SuContainer) value).vec);
-//	}
+	
+	@Override
+	public int compareTo(SuValue value) {
+		if (value == this)
+			return 0;
+		int ord = order() - value.order();
+		if (ord != 0)
+			return ord < 0 ? -1 : +1;
+		SuContainer other = (SuContainer) value;
+		for (int i = 0; i < vec.size() && i < other.vec.size(); ++i)
+			if (0 != (ord = vec.get(i).compareTo(other.vec.get(i))))
+				return ord;
+		return vec.size() - other.vec.size();	
+		//TODO handle stack overflow from self-reference
+	}
 	@Override
 	public int order() {
 		return Order.CONTAINER.ordinal();
