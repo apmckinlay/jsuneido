@@ -14,5 +14,6 @@ public class SuNumberTest {
 		assertEquals(new SuInteger(n), big);
 		String huge = "12345678901234567890.123456789";
 		assertEquals(new SuNumber(huge).toString(), huge);
+		assertFalse(new SuNumber("1.5").equals(new SuInteger(1)));
 	}
 }

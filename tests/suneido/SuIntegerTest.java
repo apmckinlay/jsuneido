@@ -7,11 +7,6 @@ public class SuIntegerTest {
 	static SuInteger si = new SuInteger(123);
 	
 	@Test
-	public void is_integer() {
-		assertTrue(si.is_numeric());
-	}
-	
-	@Test
 	public void integer() {
 		assertEquals(si.integer(), 123);
 	}

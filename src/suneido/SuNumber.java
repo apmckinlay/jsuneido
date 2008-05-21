@@ -22,6 +22,10 @@ public class SuNumber extends SuValue {
 	}
 
 	@Override
+	public int index() {
+		return integer();
+	}
+	@Override
 	public int integer() {
 		if (n.compareTo(INT_MIN) == -1)
 			return Integer.MIN_VALUE;
@@ -35,11 +39,6 @@ public class SuNumber extends SuValue {
 		return this;
 	}
 	
-	@Override
-	public boolean is_numeric() {
-		return true;
-	}
-
 	@Override
 	public String toString() {
 		return n.toString();

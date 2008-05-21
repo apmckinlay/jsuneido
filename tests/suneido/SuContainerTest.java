@@ -76,11 +76,6 @@ public class SuContainerTest {
 	}
 	
 	@Test
-	public void is_integer() {
-		assertFalse(new SuContainer().is_numeric());
-	}
-	
-	@Test
 	public void erase() {
 		SuContainer c = new SuContainer();
 		assertFalse(c.erase(SuInteger.ZERO));

@@ -10,17 +10,17 @@ public class SuInteger extends SuValue {
 	}
 
 	@Override
-	public int integer() {
+	public int index() {
 		return n;
 	}
 	@Override
+	public int integer() {
+		return n;
+	}
+	
+	@Override
 	public SuNumber number() {
 		return new SuNumber(n);
-	}
-
-	@Override
-	public boolean is_numeric() {
-		return true;
 	}
 
 	@Override

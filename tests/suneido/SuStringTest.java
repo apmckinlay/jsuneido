@@ -7,11 +7,6 @@ public class SuStringTest {
 	static SuString ss = new SuString("hello world");
 	
 	@Test
-	public void is_number() {
-		assertFalse(ss.is_numeric());
-	}
-	
-	@Test
 	public void integer() {
 		String[] cases = {"0", "1", "123", "0x0", "0xf", "010" };
 		int results[] = { 0, 1, 123, 0, 15, 8 };

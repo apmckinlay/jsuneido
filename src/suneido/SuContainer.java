@@ -32,7 +32,7 @@ public class SuContainer extends SuValue {
 	
 	@Override
 	public void putdata(SuValue key, SuValue value) {
-		int i = key.is_numeric() ? key.integer() : -1;
+		int i = key.index();
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
@@ -43,12 +43,10 @@ public class SuContainer extends SuValue {
 	
 	@Override
 	public SuValue getdata(SuValue key) {
-		if (key.is_numeric()) {
-			int i = key.integer();
-			if (0 <= i && i < vec.size())
-				return vec.get(i);
-		}
-		return map.get(key);
+		int i = key.index();
+		return 0 <= i && i < vec.size()
+			? vec.get(i)
+			: map.get(key);
 	}
 	
 	public int size() {
@@ -99,7 +97,7 @@ public class SuContainer extends SuValue {
 	}
 	
 	public boolean erase(SuValue key) {
-		int i = key.is_numeric() ? key.integer() : -1;
+		int i = key.index();
 		if (0 <= i && i < vec.size()) {
 			vec.remove(i);
 			return true;

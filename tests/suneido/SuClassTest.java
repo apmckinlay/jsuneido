@@ -1,7 +1,5 @@
 package suneido;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -58,7 +56,6 @@ public class SuClassTest extends SuClass {
 		SuValue[] args3 = { SuSymbol.EACH, c, SuSymbol.EACH, c2 };
 		SuValue[] locals1 = { i };
 		SuValue[] locals2 = { i, s };
-		SuValue[] locals3 = { s };
 		SuValue[] locals4 = { c };
 		SuValue[] locals5 = { c3 };
 		SuValue[] locals6 = { s, null };
