@@ -3,7 +3,7 @@ package suneido;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class SuNumberTest {
+public class SuDecimalTest {
 	@Test
 	public void test() {
 		int n = 1234567890;
