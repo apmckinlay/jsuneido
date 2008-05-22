@@ -18,8 +18,8 @@ public class SuBooleanTest {
 	
 	@Test
 	public void number_test() {
-		assertEquals(SuNumber.ONE, SuBoolean.TRUE.number());
-		assertEquals(SuNumber.ZERO, SuBoolean.FALSE.number());
+		assertEquals(SuDecimal.ONE, SuBoolean.TRUE.number());
+		assertEquals(SuDecimal.ZERO, SuBoolean.FALSE.number());
 	}
 	
 	@Test

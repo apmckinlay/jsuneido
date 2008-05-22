@@ -1,6 +1,6 @@
 package suneido;
 
-public class SuInteger extends SuValue {
+public class SuInteger extends SuNumeric {
 	private int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
@@ -19,8 +19,8 @@ public class SuInteger extends SuValue {
 	}
 	
 	@Override
-	public SuNumber number() {
-		return new SuNumber(n);
+	public SuDecimal number() {
+		return new SuDecimal(n);
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class SuInteger extends SuValue {
 	public boolean equals(Object value) {
 		if (value instanceof SuInteger)
 			return n == ((SuInteger) value).n;
-		if (value instanceof SuNumber)
+		if (value instanceof SuDecimal)
 			return value.equals(this); // SuNumber
 		return false;
 	}
@@ -88,5 +88,14 @@ public class SuInteger extends SuValue {
 	@Override
 	public SuValue uminus() {
 		return new SuInteger(-n);
+	}
+
+	@Override
+	protected long unscaled() {
+		return n;
+	}
+	@Override
+	protected int scale() {
+		return 0;
 	}
 }

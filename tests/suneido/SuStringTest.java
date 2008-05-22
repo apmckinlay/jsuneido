@@ -43,7 +43,7 @@ public class SuStringTest {
 	public void numbergood() {
 		String[] cases = {"0", "1", "123", "-456", "123.456" };
 		for (String c : cases) {
-			assertEquals(new SuString(c).number(), new SuNumber(c));
+			assertEquals(new SuString(c).number(), new SuDecimal(c));
 		}
 	}
 	

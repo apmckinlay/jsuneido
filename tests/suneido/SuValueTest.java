@@ -1,6 +1,7 @@
 package suneido;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -17,7 +18,7 @@ public class SuValueTest {
 		c3.append(SuInteger.ONE);
 		SuValue[] values = {
 			SuBoolean.FALSE, SuBoolean.TRUE, 
-			SuInteger.ZERO, new SuNumber(123), new SuInteger(456), new SuNumber(789),
+			SuInteger.ZERO, new SuDecimal(123), new SuInteger(456), new SuDecimal(789),
 			SuString.EMPTY, new SuString("abc"), new SuString("def"),
 			new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
 			new SuContainer(), c1, c2, c3, new SuClass() };
@@ -36,7 +37,7 @@ public class SuValueTest {
 		SuValue[] values = new SuValue[ints.length * 3];
 		for (int i = 0; i < ints.length; ++i) {
 			values[3 * i] = new SuInteger(ints[i]);
-			values[3 * i + 1] = new SuNumber(ints[i]);
+			values[3 * i + 1] = new SuDecimal(ints[i]);
 			values[3 * i + 2] = new SuString(Integer.toString(ints[i]));
 		}
 		for (SuValue x : values) {
@@ -51,15 +52,15 @@ public class SuValueTest {
 		int j = y.integer();
 		SuValue z;
 		z = x.add(y);
-		assertEquals(new SuNumber(i + j), z);
+		assertEquals(new SuDecimal(i + j), z);
 		z = x.sub(y);
-		assertEquals(new SuNumber(i - j), z);
+		assertEquals(new SuDecimal(i - j), z);
 		z = x.mul(y);
-		assertEquals(new SuNumber(i * j), z);
+		assertEquals(new SuDecimal(i * j), z);
 		if (j == 0)
 			return ; // skip divide by zero
 		z = x.div(y);
-		assertEquals(new SuNumber(new BigDecimal(i).divide(new BigDecimal(j), SuNumber.mc)), z);
+		assertEquals(new SuDecimal(new BigDecimal(i).divide(new BigDecimal(j), SuDecimal.mc)), z);
 	}
 	
 	@Test(expected=SuException.class)
@@ -79,5 +80,24 @@ public class SuValueTest {
 	@Test(expected=SuException.class)
 	public void putdata() {
 		SuString.EMPTY.putdata(SuSymbol.CALL, SuInteger.ZERO);
+	}
+	
+	@Test
+	public void pack() {
+		SuValue[] values = {
+			SuBoolean.FALSE, SuBoolean.TRUE, 
+			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, new SuInteger(123),
+			SuString.EMPTY, new SuString("abc") };
+		for (SuValue x : values) {
+System.out.println("value: " + x);
+			ByteBuffer buf = ByteBuffer.allocate(x.packsize());
+			x.pack(buf);
+buf.position(0);
+for (int i = 0; i < buf.limit(); ++i)
+System.out.println((int) (buf.get(i) & 0xff));
+			buf.position(0);
+			SuValue y = SuValue.unpack(buf);
+			assertEquals(x, y);
+		}
 	}
 }

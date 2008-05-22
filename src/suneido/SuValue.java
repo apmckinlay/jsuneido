@@ -1,6 +1,51 @@
 package suneido;
 
+import java.nio.ByteBuffer;
+
 public abstract class SuValue {
+	public abstract String toString();
+
+	// sequence must match Order
+	class Pack {
+		static final byte FALSE = 0;
+		static final byte TRUE = 1;
+		static final byte MINUS = 2;
+		static final byte PLUS = 3;
+		static final byte STRING = 4;
+		static final byte DATE = 5;
+		static final byte OBJECT = 6;
+		static final byte RECORD = 7;
+		static final byte FUNCTION = 8;
+		static final byte CLASS = 9;
+	}
+	
+	public /*abstract*/ int packsize() {
+		return 0;
+	}
+	public /*abstract*/ void pack(ByteBuffer buf) {
+	}
+	public static SuValue unpack(ByteBuffer buf) {
+		if (buf.limit() == 0)
+			return SuString.EMPTY;
+		switch (buf.get(buf.position())) {
+		case Pack.FALSE :
+			return SuBoolean.FALSE;
+		case Pack.TRUE :
+			return SuBoolean.TRUE;
+		case Pack.MINUS :
+		case Pack.PLUS :
+			return SuDecimal.unpack1(buf);
+		case Pack.STRING :
+			return SuString.unpack1(buf);
+//		case Pack.DATE :
+//			return SuDate.unpack1(buf);
+//		case Pack.CLASS :
+//			return SuClass.unpack1(buf);
+		default :
+			throw SuException.unreachable();
+		}
+	}
+	
 	public SuValue getdata(SuValue member) {
 		throw new SuException(typeName() + " does not support get");
 	}
@@ -22,10 +67,9 @@ public abstract class SuValue {
 	public int integer() {
 		throw new SuException("can't convert " + typeName() + " to integer");
 	}
-	public SuNumber number() {
+	public SuDecimal number() {
 		throw new SuException("can't convert " + typeName() + " to number");
 	}
-	public abstract String toString();
 	
 	/**
 	 * This is a default implementation,
@@ -45,7 +89,7 @@ public abstract class SuValue {
 		return ord < 0 ? -1 : ord > 0 ? +1 : 0;			
 	}
 	public int compareToInt(SuInteger i) {
-		throw new SuException("should not reach here");
+		throw SuException.unreachable();
 	}
 
 	protected enum Order { BOOLEAN, NUMBER, STRING, DATE, CONTAINER, OTHER };
@@ -59,7 +103,7 @@ public abstract class SuValue {
 	protected SuValue addInt(SuInteger x) {
 		return number().addInt(x);
 	}
-	protected SuValue addNum(SuNumber x) {
+	protected SuValue addNum(SuDecimal x) {
 		return number().addNum(x);
 	}
 	
@@ -69,7 +113,7 @@ public abstract class SuValue {
 	protected SuValue subInt(SuInteger x) {
 		return number().subInt(x);
 	}
-	protected SuValue subNum(SuNumber x) {
+	protected SuValue subNum(SuDecimal x) {
 		return number().subNum(x);
 	}
 	
@@ -79,7 +123,7 @@ public abstract class SuValue {
 	protected SuValue mulInt(SuInteger x) {
 		return number().mulInt(x);
 	}
-	protected SuValue mulNum(SuNumber x) {
+	protected SuValue mulNum(SuDecimal x) {
 		return number().mulNum(x);
 	}
 	
@@ -89,7 +133,7 @@ public abstract class SuValue {
 	protected SuValue divInt(SuInteger x) {
 		return number().divInt(x);
 	}
-	protected SuValue divNum(SuNumber x) {
+	protected SuValue divNum(SuDecimal x) {
 		return number().divNum(x);
 	}
 	

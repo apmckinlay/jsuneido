@@ -1,5 +1,7 @@
 package suneido;
 
+import java.nio.ByteBuffer;
+
 public class SuBoolean extends SuValue {
 	private boolean b;
 	
@@ -19,8 +21,8 @@ public class SuBoolean extends SuValue {
 		return b ? 1 : 0;
 	}
 	@Override
-	public SuNumber number() {
-		return b ? SuNumber.ONE : SuNumber.ZERO;
+	public SuDecimal number() {
+		return b ? SuDecimal.ONE : SuDecimal.ZERO;
 	}
 	
 	@Override
@@ -35,5 +37,14 @@ public class SuBoolean extends SuValue {
 	@Override
 	public int order() {
 		return Order.BOOLEAN.ordinal();
+	}
+
+	@Override
+	public int packsize() {
+		return 1;
+	}
+	@Override
+	public void pack(ByteBuffer buf) {
+		buf.put(b ? Pack.TRUE : Pack.FALSE);
 	}
 }
