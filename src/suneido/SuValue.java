@@ -27,14 +27,14 @@ public abstract class SuValue {
 	public static SuValue unpack(ByteBuffer buf) {
 		if (buf.limit() == 0)
 			return SuString.EMPTY;
-		switch (buf.get(buf.position())) {
+		switch (buf.get(0)) {
 		case Pack.FALSE :
 			return SuBoolean.FALSE;
 		case Pack.TRUE :
 			return SuBoolean.TRUE;
 		case Pack.MINUS :
 		case Pack.PLUS :
-			return SuDecimal.unpack1(buf);
+			return SuNumber.unpack1(buf);
 		case Pack.STRING :
 			return SuString.unpack1(buf);
 //		case Pack.DATE :
