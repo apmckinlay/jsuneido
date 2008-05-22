@@ -1,5 +1,8 @@
 package suneido;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+
 /**
  * Suneido string class - simple wrapper for Java String
  * @author Andrew McKinlay
@@ -44,9 +47,9 @@ public class SuString extends SuValue {
 	}
 	
 	@Override
-	public SuNumber number() {
+	public SuDecimal number() {
 		try {
-			return new SuNumber(s);
+			return new SuDecimal(s);
 		} catch (NumberFormatException e) {
 			return super.number();
 		}
@@ -78,5 +81,36 @@ public class SuString extends SuValue {
 	@Override
 	public int order() {
 		return Order.STRING.ordinal();
+	}
+
+	@Override
+	public int packsize() {
+		int n = s.length();
+		return n == 0 ? 0 : 1 + n; 
+	}
+
+	@Override
+	public void pack(ByteBuffer buf) {
+		if (s.length() == 0)
+			return ;
+		buf.put(Pack.STRING);
+		try {
+			buf.put(s.getBytes("US-ASCII"));
+		} catch (UnsupportedEncodingException e) {
+			throw new SuException("can't pack string", e);
+		}
+	}
+
+	public static SuValue unpack1(ByteBuffer buf) {
+		if (buf.limit() <= 1)
+			return EMPTY;
+		buf.get(); // skip STRING
+		byte[] bytes = new byte[buf.remaining()];
+		buf.get(bytes);
+		try {
+			return new SuString(new String(bytes, "US-ASCII"));
+		} catch (UnsupportedEncodingException e) {
+			throw new SuException("can't unpack string", e);
+		}
 	}
 }
