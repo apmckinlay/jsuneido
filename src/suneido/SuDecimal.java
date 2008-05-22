@@ -1,10 +1,12 @@
 package suneido;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 
 public class SuDecimal extends SuNumber {
 	private BigDecimal n;
+	private boolean stripped = false;
 	public final static MathContext mc = new MathContext(16);
 	public final static BigDecimal INT_MIN = new BigDecimal(Integer.MIN_VALUE);
 	public final static BigDecimal INT_MAX = new BigDecimal(Integer.MAX_VALUE);
@@ -16,6 +18,9 @@ public class SuDecimal extends SuNumber {
 	}
 	public SuDecimal(long n) {
 		this.n = new BigDecimal(n);
+	}
+	public SuDecimal(long n, int s) {
+		this.n = new BigDecimal(BigInteger.valueOf(n), s);
 	}
 	public SuDecimal(String s) {
 		this.n = new BigDecimal(s); // may throw NumberFormatException
@@ -44,17 +49,24 @@ public class SuDecimal extends SuNumber {
 	
 	@Override
 	public String toString() {
+		strip();
 		return n.toString();
 	}
 		
 	/**
-	 * Note that two BigDecimal objects that are numerically equal but differ in scale
-	 * (like 2.0 and 2.00) will generally not  have the same hash code. 
+	 * Need to strip because two BigDecimal objects that are numerically equal
+	 * but differ in scale (like 2.0 and 2.00) may not  have the same hash code. 
 	 */ 
 	@Override
 	public int hashCode() {
-// TODO ensure stripTrailingZeros is always done
+		strip();
 		return n.hashCode();
+	}
+	private void strip() {
+		if (! stripped) {
+			n = n.stripTrailingZeros();
+			stripped = true;
+		}
 	}
 	@Override
 	public boolean equals(Object value) {
@@ -145,48 +157,12 @@ public class SuDecimal extends SuNumber {
 	
 	@Override
 	protected long unscaled() {
-		return n.stripTrailingZeros().unscaledValue().longValue();
-	}
-	protected int packsize2() {
-		n = n.stripTrailingZeros();
-		int scale = n.scale();
-		
-		return 2; // TODO packsize
+		strip();
+		return n.unscaledValue().longValue();
 	}
 	@Override
 	protected int scale() {
-		return n.stripTrailingZeros().scale();
-	}
-		
-//		BigDecimal x = n.stripTrailingZeros();
-//		
-//		int e = -x.scale() + x.precision();
-//		if (e > 0)
-//			e += 3;
-//		e = e / 4;
-//		buf.put((byte) (e + 128));
-		
-	
-	public static void main(String args[]) {
-		String[] values = { "1", "1.1", "10", "123", "1000", "9999", "10002", "100020003", "100020000", ".0001", ".1", ".9999" };
-		for (String i : values) {
-			BigDecimal n = new BigDecimal(i).stripTrailingZeros();
-			
-			int e = -n.scale() + n.precision();
-			if (e > 0)
-				e += 3;
-			e /= 4;
-			
-			n = n.movePointLeft(e * 4);
-			System.out.println(i + " " + n);
-			while (+1 == n.compareTo(BigDecimal.ZERO)) {
-				n = n.movePointRight(4);
-				System.out.println(n.shortValue());
-				n = n.subtract(new BigDecimal(n.shortValue()));
-			}
-
-//			System.out.println(i + " scale " + n.scale() + " precision " + n.precision() + 
-//					" sp " + (-n.scale() + n.precision()) + " e " + e);
-		}
+		strip();
+		return n.scale();
 	}
 }
