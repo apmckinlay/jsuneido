@@ -46,11 +46,8 @@ public abstract class SuNumber extends SuValue {
 		if (n < 0)
 			n = -n;
 		int e = -scale();
-		while ((e % 4) != 0) {
+		for (; (e % 4) != 0; --e)
 			n *= 10;
-			--e;
-		}
-//System.out.print("\tunscaled " + n + " scale " + -e);
 		e = e / 4 + packshorts(n);
 		buf.put((byte) (e + 128));
 		packLong(buf, n);
