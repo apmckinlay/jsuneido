@@ -1,6 +1,6 @@
 package suneido;
 
-public class SuInteger extends SuNumeric {
+public class SuInteger extends SuNumber {
 	private int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);

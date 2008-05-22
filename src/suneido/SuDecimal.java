@@ -3,7 +3,7 @@ package suneido;
 import java.math.BigDecimal;
 import java.math.MathContext;
 
-public class SuDecimal extends SuNumeric {
+public class SuDecimal extends SuNumber {
 	private BigDecimal n;
 	public final static MathContext mc = new MathContext(16);
 	public final static BigDecimal INT_MIN = new BigDecimal(Integer.MIN_VALUE);
