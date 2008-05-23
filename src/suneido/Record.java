@@ -62,7 +62,7 @@ public class Record {
 	ByteBuffer get(int i) {
 		if (i >= getNfields())
 			return ByteBuffer.allocate(0);
-		int start = rep.getOffset(i)
+		int start = rep.getOffset(i);
 		buf.position(start);
 		ByteBuffer result = buf.slice();
 		int end = rep.getOffset(i - 1);
