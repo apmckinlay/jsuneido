@@ -9,13 +9,13 @@ import java.util.ArrayList;
  * @author Andrew McKinlay
  */
 public class MemRecord {
-	private ArrayList<byte[]> values;
+	private ArrayList<byte[]> values = new ArrayList<byte[]>();
 	
 	void add(byte[] data) {
 		values.add(data);
 	}
 	byte[] get(int i) {
-		return values.get(i);
+		return i < values.size() ? values.get(i) : new byte[0];
 	}
 	
 	/**
@@ -37,7 +37,7 @@ public class MemRecord {
 	 * @return	The BufRecord used to store into buf.
 	 */
 	BufRecord store(ByteBuffer buf) {
-		BufRecord r = new BufRecord(buf);
+		BufRecord r = new BufRecord(buf, bufsize());
 		for (byte[] each : values)
 			r.add(each);
 		return r;

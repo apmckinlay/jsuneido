@@ -1,6 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
+import static suneido.Suneido.verify;
 
 /**
  * Used by database to store field values.
@@ -30,8 +31,22 @@ public class BufRecord {
 		final static int SIZE = 3;		// byte, short, or int <= type
 	}
 	
+	/**
+	 * Create a new BufRecord, allocating a new ByteBuffer
+	 * @param sz The required size, including both data and offsets
+	 */
 	BufRecord(int sz) {
-		buf = ByteBuffer.allocate(sz);
+		this(ByteBuffer.allocate(sz), sz);
+	}
+	
+	/**
+	 * Create a new BufRecord using a supplied ByteBuffer.
+	 * @param buf
+	 * @param sz The size of the buffer. Used to determine the required representation.
+	 */
+	BufRecord(ByteBuffer buf, int sz) {
+		verify(buf.limit() >= sz);
+		this.buf = buf;
 		if (sz < 0x100)
 			setType(Type.BYTE);
 		else if (sz < 0x10000)
@@ -39,17 +54,28 @@ public class BufRecord {
 		else
 			setType(Type.INT);
 		init();
+		setSize(sz);
 	}
+	
+	/**
+	 * Create a BufRecord on an existing ByteBuffer in BufRecord format.
+	 * @param buf Must be in BufRecord format.
+	 */
 	BufRecord(ByteBuffer buf) {
 		this.buf = buf;
 		init();
 	}
 	private void init() {
 		switch (getType()) {
-		case Type.BYTE :	rep = new ByteRep();
-		case Type.SHORT :	rep = new ShortRep();
-		case Type.INT :		rep = new IntRep();
+		case Type.BYTE :	rep = new ByteRep(); break ;
+		case Type.SHORT :	rep = new ShortRep(); break ;
+		case Type.INT :		rep = new IntRep(); break ;
+		default :			throw SuException.unreachable();
 		}
+	}
+	
+	public ByteBuffer getBuf() {
+		return buf;
 	}
 	
 	void add(byte[] data) {
@@ -79,6 +105,7 @@ public class BufRecord {
 		size = 1 /* type */ + 2 /* nfields */ + e /* size */ + nfields * e + datasize;
 		if (size < 0x10000)
 			return size;
+		e = 4;
 		return 1 /* type */ + 2 /* nfields */ + e /* size */ + nfields * e + datasize;
 	}
 	
