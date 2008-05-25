@@ -12,8 +12,7 @@ public class Suneido {
 	 */
 	public static void verify(boolean expr) {
 		if (! expr)
-			throw new SuException(new Throwable().getStackTrace()[1] + 
-					" assertion failed");
+			throw new SuException(stackTrace() + " assertion failed");
 	}
 
 	/**
@@ -24,7 +23,11 @@ public class Suneido {
 	 */
 	public static void verify(boolean expr, String msg) {
 		if (! expr)
-			throw new SuException(new Throwable().getStackTrace()[1] + 
-					" assertion failed - " + msg);
+			throw new SuException(stackTrace() + " assertion failed - " + msg);
+	}
+	
+	private static String stackTrace() {
+		StackTraceElement[] t = new Throwable().getStackTrace();
+		return t.length >= 2 ? t[1].toString() : "";
 	}
 }
