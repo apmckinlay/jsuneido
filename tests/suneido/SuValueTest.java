@@ -89,12 +89,8 @@ public class SuValueTest {
 			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, new SuInteger(123),
 			SuString.EMPTY, new SuString("abc") };
 		for (SuValue x : values) {
-System.out.println("value: " + x);
 			ByteBuffer buf = ByteBuffer.allocate(x.packsize());
 			x.pack(buf);
-buf.position(0);
-for (int i = 0; i < buf.limit(); ++i)
-System.out.println((int) (buf.get(i) & 0xff));
 			buf.position(0);
 			SuValue y = SuValue.unpack(buf);
 			assertEquals(x, y);
