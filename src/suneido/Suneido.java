@@ -28,6 +28,6 @@ public class Suneido {
 	
 	private static String stackTrace() {
 		StackTraceElement[] t = new Throwable().getStackTrace();
-		return t.length >= 2 ? t[1].toString() : "";
+		return t.length >= 3 ? t[2].toString() : "";
 	}
 }
