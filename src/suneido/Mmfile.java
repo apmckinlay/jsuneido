@@ -31,6 +31,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	final private static int FILEHDR = 8; // should be multiple of align
 	final private static byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
 	final private static int FILESIZE_OFFSET = 4;
+	final private static int BEGIN_OFFSET = FILEHDR + HEADER;
 	final private static byte FILLER = 0;
 	private static enum MmCheck { OK, ERR, EOF };
 	
@@ -258,9 +259,15 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	byte type(ByteBuffer bb) {
 		return (byte) (bb.getInt(0) & (ALIGN - 1));
 	}
+	long end_offset() {
+		return file_size + HEADER;
+	}
 	
+	public Iterator<ByteBuffer> iterator() {
+		return new MmfileIterator();
+	}
 	private class MmfileIterator implements Iterator<ByteBuffer> {
-		private long offset = FILEHDR + HEADER;
+		private long offset = BEGIN_OFFSET;
 		private boolean err = false;
 		
 		public boolean hasNext() {
@@ -279,13 +286,57 @@ public class Mmfile implements Iterable<ByteBuffer> {
 					err = true;
 					// fall thru
 				case EOF :
-					offset = file_size + HEADER; // eof or bad block
+					offset = end_offset(); // eof or bad block
 					return ByteBuffer.allocate(0);
 				}
 			} while (type(p) == FILLER);
 		return adr(p);
 		}
+		public void remove() {
+			throw SuException.unreachable();
+		}
+		public boolean corrupt() {
+			return err;
+		}
+		public long offset() {
+			return offset;
+		}
+	}
 
+	public Iterator<ByteBuffer> reverse_iterator() {
+		return new MmfileReverseIterator();
+	}
+	private class MmfileReverseIterator implements Iterator<ByteBuffer> {
+		private long offset = end_offset();
+		private boolean err = false;
+		
+		public boolean hasNext() {
+			return offset > FILEHDR + OVERHEAD;
+		}
+
+		public ByteBuffer next() {
+			do {
+				offset -= OVERHEAD;
+				int n = adr(offset).getInt() ^ (int) offset;
+				if (n > chunk_size || n > offset) {
+					err = true;
+					offset = BEGIN_OFFSET;
+					return ByteBuffer.allocate(0);
+				}
+				offset -= n;
+				switch (check(offset)) {
+				case OK :
+					break ;
+				case ERR :
+					err = true;
+					// fall thru
+				case EOF :
+					offset = BEGIN_OFFSET; // eof or bad block
+					return ByteBuffer.allocate(0);
+				}
+			} while (type(offset) == FILLER);
+		return adr(offset);
+		}
 		public void remove() {
 			throw SuException.unreachable();
 		}
@@ -297,10 +348,6 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		}
 	}
 	
-	public Iterator<ByteBuffer> iterator() {
-		return new MmfileIterator();
-	}
-
 //    public static void main(String[] args) throws Exception {
 //    	RandomAccessFile f = new RandomAccessFile("tmp", "rw");
 //    	f.seek(3L * 1024 * 1024 * 1024);
