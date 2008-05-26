@@ -20,12 +20,12 @@ public class BufRecord {
 	private Rep rep;
 	private ByteBuffer buf;
 	
-	class Type {
+	private static class Type {
 		final static byte BYTE = 'c';
 		final static byte SHORT = 's';
 		final static byte INT = 'l';
 	}
-	class Offset {
+	private static class Offset {
 		final static int TYPE = 0;		// byte
 		final static int NFIELDS = 1;	// short
 		final static int SIZE = 3;		// byte, short, or int <= type

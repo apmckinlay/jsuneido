@@ -1,7 +1,5 @@
 package suneido;
 
-import com.sun.tools.javadoc.Messager.ExitJavadoc;
-
 public class Suneido {
 	public static void main(String args[]) {
 		System.out.println("hello world");
