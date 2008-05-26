@@ -14,12 +14,12 @@ import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
 
 public class Mmfile implements Iterable<ByteBuffer> {
-	final static int HEADER = 4;	// size | type
-	final static int TRAILER = 4;	// size ^ adr
+	final static int HEADER = 4;	// contains size | type
+	final static int TRAILER = 4;	// contains size ^ adr
 	final static int OVERHEAD = HEADER + TRAILER;
 	/**
-	 * must be a power of 2
-	 * must be big enough to allow space for types
+	 * ALLIGN must be a power of 2
+	 * and big enough to allow space for types
 	 * e.g. align of 8 = 3 bits for type = 8 types
 	 */
 	final private static int ALIGN = 8;
@@ -156,7 +156,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		verify(t < ALIGN);
 		long offset = file_size + HEADER;
 		file_size += n + OVERHEAD;
-		set_file_size(file_size);	// record new file size
+		set_file_size(file_size);
 		ByteBuffer p = adr(offset - HEADER);
 		p.putInt(0, n | t); // header
 		p.putInt(HEADER + n, n ^ (int) (offset + n)); // trailer
@@ -166,6 +166,13 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 	
+	public void unalloc(int n) {
+		verify(n == last_alloc);
+		n = align(n);
+		file_size -= n + OVERHEAD;
+		set_file_size(file_size);
+	}
+
 	public ByteBuffer adr(long offset) {
 		verify(offset >= 0);
 		verify(offset < file_size);
@@ -261,27 +268,21 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		}
 
 		public ByteBuffer next() {
-System.out.println("next");
 			long p;
 			do {
-System.out.println("offset " + offset);
 				p = offset;
 				offset += length(p) + OVERHEAD;
 				switch (check(p)) {
 				case OK :
-System.out.println("OK");
 					break ;
 				case ERR :
-System.out.println("ERR");
 					err = true;
 					// fall thru
 				case EOF :
-System.out.println("EOF");
 					offset = file_size + HEADER; // eof or bad block
 					return ByteBuffer.allocate(0);
 				}
 			} while (type(p) == FILLER);
-System.out.println("=> " + p);
 		return adr(p);
 		}
 
