@@ -2,6 +2,7 @@ package suneido;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -55,6 +56,15 @@ public class MmfileTest {
 				b.get(x);
 				assertArrayEquals(data[i], x);
 				++i;
+			}
+			
+			i = 1;
+			for (Iterator<ByteBuffer> iter = mmf.reverse_iterator(); iter.hasNext(); --i) {
+System.out.println(i);
+				ByteBuffer b = iter.next();
+				byte[] x = new byte[data[i].length];
+				b.get(x);
+				assertArrayEquals(data[i], x);
 			}
 		} finally {
 			mmf.close();
