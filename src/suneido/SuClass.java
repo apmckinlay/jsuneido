@@ -85,6 +85,6 @@ public class SuClass extends SuValue {
 		return locals;
 	}
 
-	//TODO handle @+1 args
+	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1
 	//TODO check for missing arguments (but what about defaults?)
 }
