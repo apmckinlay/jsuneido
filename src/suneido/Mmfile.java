@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
-
+ 
 public class Mmfile implements Iterable<ByteBuffer> {
 	final static int HEADER = 4;	// contains size | type
 	final static int TRAILER = 4;	// contains size ^ adr
