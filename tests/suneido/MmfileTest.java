@@ -60,7 +60,6 @@ public class MmfileTest {
 			
 			i = 1;
 			for (Iterator<ByteBuffer> iter = mmf.reverse_iterator(); iter.hasNext(); --i) {
-System.out.println(i);
 				ByteBuffer b = iter.next();
 				byte[] x = new byte[data[i].length];
 				b.get(x);
@@ -73,7 +72,7 @@ System.out.println(i);
 	
 	@AfterClass
 	public static void cleanup() {
-		for (int i = 1; i <= 2; ++i)
+		for (int i = 1; i <= 3; ++i)
 			new File("tmp" + i).delete();
 	}
 }
