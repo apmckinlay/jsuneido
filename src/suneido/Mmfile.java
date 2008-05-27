@@ -9,7 +9,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Iterator;
- 
+
 import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
 
