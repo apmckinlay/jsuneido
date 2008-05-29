@@ -4,6 +4,11 @@ public class SuInteger extends SuNumber {
 	private int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
+	public static SuInteger[] smallints = new SuInteger[256];
+	public static void init() {
+		for (int i = 0; i < 256; ++i)
+			smallints[i] = new SuInteger(i - 128);
+	}
 	
 	public SuInteger(int n) {
 		this.n = n;
@@ -64,7 +69,10 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue addInt(SuInteger x) {
-		return new SuInteger(x.n + n);
+		int result = x.n + n;
+		return -128 <= result && result < 128
+			? smallints[result + 128]
+			: new SuInteger(result);
 	}
 
 	@Override
@@ -73,7 +81,10 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue subInt(SuInteger x) {
-		return new SuInteger(x.n - n);
+		int result = x.n - n;
+		return -128 <= result && result < 128
+			? smallints[result + 128]
+			: new SuInteger(result);
 	}
 
 	@Override
@@ -82,8 +93,13 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue mulInt(SuInteger x) {
-		return new SuInteger(x.n * n);
+		int result = x.n * n;
+		return -128 <= result && result < 128
+			? smallints[result + 128]
+			: new SuInteger(result);
 	}
+	
+	// div is handled by SuDecimal
 
 	@Override
 	public SuValue uminus() {
