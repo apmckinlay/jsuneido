@@ -1,9 +1,13 @@
 package suneido;
 
+import java.util.Random;
+
 public class SuInteger extends SuNumber {
 	private int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
+	
+	//TODO better way to init smallints
 	public static SuInteger[] smallints = new SuInteger[256];
 	public static void init() {
 		for (int i = 0; i < 256; ++i)
@@ -114,4 +118,26 @@ public class SuInteger extends SuNumber {
 	protected int scale() {
 		return 0;
 	}
+	
+//	public static void main(String args[]) {
+//		SuInteger.init();
+//		SuValue y;
+//		for (int j = 0; j < 10; ++j) {
+//			Random gen = new Random(1234567);
+//			long t = System.currentTimeMillis();
+//			for (int i = 0; i < 100 * 1000 * 1000; ++i) {
+//				y = new SuInteger(gen.nextInt(100));
+//			}
+//			long base = System.currentTimeMillis() - t;
+//			
+//			SuValue x = new SuInteger(0);
+//			t = System.currentTimeMillis();
+//			for (int i = 0; i < 100 * 1000 * 1000; ++i) {
+//				y = new SuInteger(gen.nextInt(100));
+//				x = x.add(y); x = x.add(y); x = x.sub(y); x = x.sub(y); 
+//			}
+//			System.out.println(System.currentTimeMillis() - t - base);
+//		}
+//		System.out.println("done");
+//	}
 }

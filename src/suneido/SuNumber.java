@@ -1,6 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public abstract class SuNumber extends SuValue {
 	protected abstract long unscaled();
@@ -86,24 +87,22 @@ public abstract class SuNumber extends SuValue {
 		return n;
 	}
 
-	public static void main(String args[]) {
-		String[] values = { 
-				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
-				".12", ".1", ".01", ".001", ".0001", ".00010002", ".00001"
-				};
-		for (String s : values) {
-			SuNumber n = new SuDecimal(s);
-			int ps = n.packsize();
-			System.out.print(n);
-//			System.out.print("\tunscaled " + n.unscaled() + " scale " + n.scale());
-			ByteBuffer buf = ByteBuffer.allocate(ps);
-			n.pack(buf);
-			for (int i = 0; i < ps; ++i)
-				System.out.print(" " + (int) (buf.get(i) & 0xff));
-			SuValue x = unpack1(buf);
-			System.out.print(" " + x.typeName() + " " + x);
-			System.out.println("");
-			
-		}
-	}
+//	public static void main(String args[]) {
+//		String[] values = { 
+//				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
+//				".12", ".1", ".01", ".001", ".0001", ".00010002", ".00001"
+//				};
+//		for (String s : values) {
+//			SuNumber n = new SuDecimal(s);
+//			int ps = n.packsize();
+//			System.out.print(n);
+//			ByteBuffer buf = ByteBuffer.allocate(ps);
+//			n.pack(buf);
+//			for (int i = 0; i < ps; ++i)
+//				System.out.print(" " + (int) (buf.get(i) & 0xff));
+//			SuValue x = unpack1(buf);
+//			System.out.print(" " + x.typeName() + " " + x);
+//			System.out.println("");			
+//		}
+//	}
 }

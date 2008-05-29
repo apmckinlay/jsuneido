@@ -86,7 +86,7 @@ public class BufRecord {
 		buf.position(offset);
 		buf.put(data);
 	}
-	ByteBuffer get(int i) {
+	public ByteBuffer get(int i) {
 		if (i >= getNfields())
 			return ByteBuffer.allocate(0);
 		int start = rep.getOffset(i);
@@ -95,6 +95,25 @@ public class BufRecord {
 		int end = rep.getOffset(i - 1);
 		result.limit(end - start);
 		return result;
+	}
+	public byte[] getBytes(int i) {
+		if (i >= getNfields())
+			return new byte[0];
+		int start = rep.getOffset(i);
+		int end = rep.getOffset(i - 1);
+		byte[] result = new byte[end - start];
+		buf.position(start);
+		buf.get(result);
+		return result;
+	}
+	/**
+	 * @param i The index of the field to get the size of.
+	 * @return The size of the i'th field.
+	 */
+	public int size(int i) {
+		if (i >= getNfields())
+			return 0;
+		return rep.getOffset(i - 1) - rep.getOffset(i);
 	}
 	public static int bufsize(int nfields, int datasize) {
 		int e = 1;
