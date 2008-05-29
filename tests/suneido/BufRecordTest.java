@@ -8,31 +8,31 @@ import static org.junit.Assert.*;
 public class BufRecordTest {
 	@Test
 	public void test() {
-		byte[] b = new byte[] { 1, 2, 3, 4 };
+		byte[] data = new byte[] { 1, 2, 3, 4 };
 		
 		for (int sz : new int[] { 100, 1000, 100000 }) {
 			BufRecord r = new BufRecord(sz);
 			assertEquals(sz, r.getSize());
 			
+			assertEquals(0, r.size(0));
 			ByteBuffer bb = r.get(0);
 			assertEquals(0, bb.limit());
+			assertEquals(0, r.getBytes(0).length);
 			
-			r.add(b);
+			r.add(data);
+			assertEquals(4, r.size(0));
 			bb = r.get(0);
 			assertEquals(4, bb.limit());
-			byte[] b2 = new byte[4];
-			bb.get(b2);
-			assertArrayEquals(b, b2);
+			byte[] b = new byte[4];
+			bb.get(b);
+			assertArrayEquals(data, b);
+			assertArrayEquals(data, r.getBytes(0));
 			
 			ByteBuffer buf = r.getBuf();
-			bb = r.get(0);
-			assertEquals(4, bb.limit());
-			b2 = new byte[4];
-			bb.get(b2);
-			assertArrayEquals(b, b2);
+			assertEquals(4, r.size(0));
+			assertArrayEquals(data, r.getBytes(0));
 			r = new BufRecord(buf);
-			bb = r.get(1);
-			assertEquals(0, bb.limit());
+			assertEquals(0, r.size(1));
 		}
 	}
 	
