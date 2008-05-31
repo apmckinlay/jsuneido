@@ -1,10 +1,21 @@
 package suneido;
 
-//import java.util.HashMap;
+import java.util.HashMap;
 
+/**
+ * The Java base class for Suneido classes.
+ * The Java class hierarchy is "flat".
+ * All compiled Suneido classes derive directly from SuClass.
+ * Suneido inheritance is handled by invoke.
+ * A Suneido class with "no" parent calls super.invoke2 from it's invoke2 default
+ * else it calls Globals.get(parent).invoke2
+ * There is one instance that is the class value,
+ * and other instances for the instances of the class.
+ * Class data is stored in the class instance m.
+ * Instance data is stored in the instance m.
+ */
 public class SuClass extends SuValue {
-	
-//	private HashMap<SuValue,SuValue> m;
+	private HashMap<SuValue,SuValue> m;
 
 	@Override
 	public String toString() {
