@@ -3,9 +3,15 @@ package suneido;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Stores symbol names and instances.
+ * Class is used as a singleton via static.
+ * Also used as instances of symbols.
+ * @author Andrew McKinlay
+ */
 public class SuSymbol extends SuString {
-	static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
-	static HashMap<String, Integer> names = new HashMap<String, Integer>();
+	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
+	private static HashMap<String, Integer> names = new HashMap<String, Integer>();
 	
 	final public static SuSymbol CALL = SuSymbol.symbol("<call>");
 	final public static SuSymbol DEFAULT = SuSymbol.symbol("Default");
@@ -15,6 +21,7 @@ public class SuSymbol extends SuString {
 	final public static int DEFAULTi = DEFAULT.symnum();
 	final public static int EACHi = EACH.symnum();
 	final public static int NAMEDi = NAMED.symnum();
+	
 	final public static int SUBSTR = 100;
 	final public static int I = 101;
 	final public static int N = 102;
@@ -28,6 +35,12 @@ public class SuSymbol extends SuString {
 		return symbol;
 	}
 	
+	public static SuSymbol symbol(int num) {
+		return symbols.get(num);
+	}
+	
+	// instance stuff ===============================================
+	
 	private int num;
 	private int hash;
 	
@@ -40,10 +53,6 @@ public class SuSymbol extends SuString {
 	
 	public int symnum() {
 		return num;
-	}
-	
-	public static SuSymbol symbol(int num) {
-		return symbols.get(num);
 	}
 	
 	@Override
