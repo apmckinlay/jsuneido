@@ -1,6 +1,6 @@
 package suneido;
 
-import java.util.Random;
+// import java.util.Random;
 
 public class SuInteger extends SuNumber {
 	private int n;
@@ -14,7 +14,14 @@ public class SuInteger extends SuNumber {
 			smallints[i] = new SuInteger(i - 128);
 	}
 	
-	public SuInteger(int n) {
+	public static SuInteger from(int n) {
+if (smallints[0] == null) init();
+		return -128 <= n && n < 128
+			? smallints[n + 128]
+			: new SuInteger(n);
+	}
+	
+	private SuInteger(int n) {
 		this.n = n;
 	}
 
@@ -73,10 +80,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue addInt(SuInteger x) {
-		int result = x.n + n;
-		return -128 <= result && result < 128
-			? smallints[result + 128]
-			: new SuInteger(result);
+		return from(x.n + n);
 	}
 
 	@Override
@@ -85,10 +89,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue subInt(SuInteger x) {
-		int result = x.n - n;
-		return -128 <= result && result < 128
-			? smallints[result + 128]
-			: new SuInteger(result);
+		return from(x.n - n);
 	}
 
 	@Override
@@ -97,10 +98,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue mulInt(SuInteger x) {
-		int result = x.n * n;
-		return -128 <= result && result < 128
-			? smallints[result + 128]
-			: new SuInteger(result);
+		return from(x.n * n);
 	}
 	
 	// div is handled by SuDecimal

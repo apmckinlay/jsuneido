@@ -15,6 +15,9 @@ public class SuSymbol extends SuString {
 	final public static int DEFAULTi = DEFAULT.symnum();
 	final public static int EACHi = EACH.symnum();
 	final public static int NAMEDi = NAMED.symnum();
+	final public static int SUBSTR = 100;
+	final public static int I = 101;
+	final public static int N = 102;
 
 	public static SuSymbol symbol(String s) {
 		if (names.containsKey(s))
