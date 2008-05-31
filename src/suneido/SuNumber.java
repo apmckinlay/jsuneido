@@ -1,7 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-import java.util.Random;
+//import java.util.Random;
 
 public abstract class SuNumber extends SuValue {
 	protected abstract long unscaled();
@@ -76,7 +76,7 @@ public abstract class SuNumber extends SuValue {
 		if (buf.get(0) == Pack.MINUS)
 			n = -n;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
-			return new SuInteger((int) n);
+			return SuInteger.from((int) n);
 		else
 			return new SuDecimal(n, s);
 	}

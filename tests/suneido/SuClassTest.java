@@ -3,40 +3,42 @@ package suneido;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class SuClassTest extends SuClass {
-	public SuValue invoke2(int method, SuValue[] args) {
-		switch (method) {
-		case 1234:
-			return method1(args);
-		case 5678:
-			return method2(args);
-		default:
-			return super.invoke2(method, args);
+public class SuClassTest {
+	static class TestClass extends SuClass {
+		public SuValue invoke2(SuValue self, int method, SuValue[] args) {
+			switch (method) {
+			case 1234:
+				return TestClass.method1(self, args);
+			case 5678:
+				return TestClass.method2(self, args);
+			default:
+				return super.invoke2(self, method, args);
+			}
 		}
-	}
-	public SuValue method1(SuValue[] args) {
-		return SuString.EMPTY;
-	}
-	public SuValue method2(SuValue[] args) {
-		return SuInteger.ZERO;
+		public static SuValue method1(SuValue self, SuValue[] args) {
+			return SuString.EMPTY;
+		}
+		public static SuValue method2(SuValue self, SuValue[] args) {
+			return SuInteger.ZERO;
+		}
 	}
 	
 	@Test
 	public void test() {
-		SuValue c = new SuClassTest();
+		SuValue c = new TestClass();
 		assertEquals(SuString.EMPTY, c.invoke(1234));
 		assertEquals(SuInteger.ZERO, c.invoke(5678));		
 	}
 	
 	@Test(expected=SuException.class)
 	public void unknown() {
-		new SuClassTest().invoke(9999);
+		new TestClass().invoke(9999);
 	}
 	
 	@Test
-	public void massage_test() {
+	public void massage() {
 		SuValue[] empty = new SuValue[0];
-		SuValue i = new SuInteger(123);
+		SuValue i = SuInteger.from(123);
 		SuValue s = new SuString("hello");
 		SuSymbol a = SuSymbol.symbol("a");
 		SuSymbol x = SuSymbol.symbol("x");
@@ -61,29 +63,29 @@ public class SuClassTest extends SuClass {
 		SuValue[] locals6 = { s, null };
 		
 		// function () () => []
-		assertArrayEquals(empty, massage(0, new SuValue[0]));
-		assertArrayEquals(new SuValue[1], massage(1, empty));
+		assertArrayEquals(empty, SuClass.massage(0, new SuValue[0]));
+		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty));
 		// function (@args) () => []
-		assertArrayEquals(empty, massage(0, empty, SuSymbol.EACHi));
-		assertArrayEquals(new SuValue[1], massage(1, empty, SuSymbol.EACHi));
+		assertArrayEquals(empty, SuClass.massage(0, empty, SuSymbol.EACHi));
+		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty, SuSymbol.EACHi));
 		// function (@args) (123, a: "hello") => [[123, a: "hello]]
-		assertArrayEquals(locals4, massage(1, args1, SuSymbol.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args1, SuSymbol.EACHi));
 		// function (@args) (@(123, a: "hello")) => [[123, a: "hello]]
-		assertArrayEquals(locals4, massage(1, args2, SuSymbol.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args2, SuSymbol.EACHi));
 		// function (@args) (@(123, a: "hello"), @("hello", x: 123))
 		//		=> [[123, "hello", a: "hello", x: 123]]
-		assertArrayEquals(locals5, massage(1, args3, SuSymbol.EACHi));
+		assertArrayEquals(locals5, SuClass.massage(1, args3, SuSymbol.EACHi));
 		// function (x) (123, a: "hello") => [123]
-		assertArrayEquals(locals1, massage(1, args1, x.symnum()));
+		assertArrayEquals(locals1, SuClass.massage(1, args1, x.symnum()));
 		// function (x, a) (123, a: "hello") => [123]
-		assertArrayEquals(locals2, massage(2, args1, x.symnum(), a.symnum()));	
+		assertArrayEquals(locals2, SuClass.massage(2, args1, x.symnum(), a.symnum()));	
 		// function (a, x) (123, a: "hello") => ["hello", null]
-		assertArrayEquals(locals6, massage(2, args1, a.symnum(), x.symnum()));
+		assertArrayEquals(locals6, SuClass.massage(2, args1, a.symnum(), x.symnum()));
 		// function (x, a) (@(123, a: "hello")) => [123, "hello"]
-		assertArrayEquals(locals2, massage(2, args2, x.symnum(), a.symnum()));
+		assertArrayEquals(locals2, SuClass.massage(2, args2, x.symnum(), a.symnum()));
 		// function (x, a) (@(123, a: "hello")) => too many arguments
 		try {
-			massage(1, args3, x.symnum());
+			SuClass.massage(1, args3, x.symnum());
 			fail();
 		} catch (SuException e) { }
 	}

@@ -2,6 +2,9 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import static java.lang.Math.min;
+import static java.lang.Math.max;
+
 
 /**
  * Suneido string class - simple wrapper for Java String
@@ -83,6 +86,7 @@ public class SuString extends SuValue {
 		return Order.STRING.ordinal();
 	}
 
+	// packing ======================================================
 	@Override
 	public int packsize() {
 		int n = s.length();
@@ -112,5 +116,34 @@ public class SuString extends SuValue {
 		} catch (UnsupportedEncodingException e) {
 			throw new SuException("can't unpack string", e);
 		}
+	}
+	
+	// methods ======================================================
+	
+	// TODO program that finds all the method symbols in the source
+	// and creates a file to initialize them all
+	// since they have to be constant ints for switches
+	
+	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
+		switch (method) {
+		case SuSymbol.SUBSTR :
+			return substr(args);
+		default:
+			return super.invoke2(method, args);
+		}
+	}
+	private SuValue substr(SuValue[] args) {
+		final int[] params = new int[] { SuSymbol.I, SuSymbol.N };
+		args = SuClass.massage(2, args, params);
+		int len = s.length();		
+		int i = args[0].integer();
+		if (i < 0)
+			i += len;
+		i = max(0, min(i, len - 1));
+		int n = args[1] == null ? len : args[1].integer();
+		if (n < 0)
+			n += len - i;
+		n = max(0, min(n, len - i));
+		return new SuString(s.substring(i, i + n));
 	}
 }

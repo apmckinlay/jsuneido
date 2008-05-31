@@ -1,5 +1,7 @@
 package suneido;
 
+//import java.util.HashMap;
+
 public class SuClass extends SuValue {
 	
 //	private HashMap<SuValue,SuValue> m;
@@ -9,13 +11,13 @@ public class SuClass extends SuValue {
 		return "a Suneido class";
 	}
 
-	public SuValue invoke(int method, SuValue ... args) {
-		return invoke2(method, args);
+	public SuValue invoke(SuValue self, int method, SuValue ... args) {
+		return invoke2(self, method, args);
 	}
-	public SuValue invoke2(int method, SuValue[] args) {
-		if (method == SuSymbol.DEFAULTi)
-			throw unknown_method(method);
-		return invoke2(SuSymbol.DEFAULTi, args);
+	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
+		return method == SuSymbol.DEFAULTi
+			? super.invoke2(self, method, args)
+			: invoke2(self, SuSymbol.DEFAULTi, args);
 	}
 	
 	/**
@@ -32,7 +34,7 @@ public class SuClass extends SuValue {
 	 * 					No other params are allowed with EACH.
 	 * @return	The locals SuValue array initialized from args.
 	 */
-	public SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
+	public static SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
 		SuValue[] locals = new SuValue[nlocals];
 		if (args.length == 0)
 			return locals;
