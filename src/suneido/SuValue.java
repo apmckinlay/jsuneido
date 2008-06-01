@@ -145,7 +145,7 @@ public abstract class SuValue {
 		return invoke2(this, method, args);
 	}
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		throw method == SuSymbol.CALLi
+		throw method == Symbols.CALLi
 			? new SuException("can't call " + typeName())
 			: unknown_method(method);
 	}
@@ -157,6 +157,6 @@ public abstract class SuValue {
 		throw unknown_method(method);
 	}
 	public SuException unknown_method(int method) {
-		return new SuException("unknown method " + typeName() + SuSymbol.symbol(method));
+		return new SuException("unknown method " + typeName() + Symbols.symbol(method));
 	}
 }

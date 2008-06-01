@@ -60,9 +60,9 @@ public class SuStringTest {
 	public void substr() {
 		SuValue s = new SuString("hello world");
 		assertEquals(new SuString("hello"), 
-				s.invoke(SuSymbol.SUBSTR, SuInteger.ZERO, SuInteger.from(5)));
+				s.invoke(Symbols.SUBSTR, SuInteger.ZERO, SuInteger.from(5)));
 		assertEquals(new SuString("world"),
-				s.invoke(SuSymbol.SUBSTR, SuInteger.from(6)));
+				s.invoke(Symbols.SUBSTR, SuInteger.from(6)));
 	}
 }
 
