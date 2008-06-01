@@ -9,7 +9,7 @@ public class SuMethodTest {
 	public void test() {
 		SuValue x = new TestClass();
 		SuValue m = new SuMethod(x, 5678);
-		SuValue result = m.invoke(SuSymbol.CALLi);
+		SuValue result = m.invoke(Symbols.CALLi);
 		assertEquals(SuInteger.ZERO, result);
 	}
 }

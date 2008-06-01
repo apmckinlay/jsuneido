@@ -67,20 +67,20 @@ public class SuValueTest {
 	@Test(expected=SuException.class)
 	public void call1() {
 		SuValue x = SuInteger.ZERO;
-		x.invoke(SuSymbol.CALLi);
+		x.invoke(Symbols.CALLi);
 	}
 	@Test(expected=SuException.class)
 	public void call2() {
 		SuValue x = SuInteger.ZERO;
-		x.invoke(SuSymbol.EACHi);
+		x.invoke(Symbols.EACHi);
 	}
 	@Test(expected=SuException.class)
 	public void getdata() {
-		SuInteger.ZERO.getdata(SuSymbol.CALL);
+		SuInteger.ZERO.getdata(Symbols.CALL);
 	}
 	@Test(expected=SuException.class)
 	public void putdata() {
-		SuString.EMPTY.putdata(SuSymbol.CALL, SuInteger.ZERO);
+		SuString.EMPTY.putdata(Symbols.CALL, SuInteger.ZERO);
 	}
 	
 	@Test

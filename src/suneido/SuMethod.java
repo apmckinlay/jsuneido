@@ -17,14 +17,14 @@ public class SuMethod extends SuValue {
 	
 	@Override
 	public SuValue invoke(int method, SuValue ... args) {
-		return method == SuSymbol.CALLi
+		return method == Symbols.CALLi
 			? instance.invoke2(this.method, args)
 			: super.invoke2(method, args);
 	}
 
 	@Override
 	public String toString() {
-		return instance.toString() + "." + SuSymbol.symbol(method);
+		return instance.toString() + "." + Symbols.symbol(method);
 	}
 
 }

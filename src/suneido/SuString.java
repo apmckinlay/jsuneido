@@ -126,14 +126,14 @@ public class SuString extends SuValue {
 	
 	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
 		switch (method) {
-		case SuSymbol.SUBSTR :
+		case Symbols.SUBSTR :
 			return substr(args);
 		default:
 			return super.invoke2(method, args);
 		}
 	}
 	private SuValue substr(SuValue[] args) {
-		final int[] params = new int[] { SuSymbol.I, SuSymbol.N };
+		final int[] params = new int[] { Symbols.I, Symbols.N };
 		args = SuClass.massage(2, args, params);
 		int len = s.length();		
 		int i = args[0].integer();

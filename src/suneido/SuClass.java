@@ -26,9 +26,9 @@ public class SuClass extends SuValue {
 		return invoke2(self, method, args);
 	}
 	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
-		return method == SuSymbol.DEFAULTi
+		return method == Symbols.DEFAULTi
 			? super.invoke2(self, method, args)
-			: invoke2(self, SuSymbol.DEFAULTi, args);
+			: invoke2(self, Symbols.DEFAULTi, args);
 	}
 	
 	/**
@@ -49,20 +49,20 @@ public class SuClass extends SuValue {
 		SuValue[] locals = new SuValue[nlocals];
 		if (args.length == 0)
 			return locals;
-		if (params.length > 0 && params[0] == SuSymbol.EACHi) {
+		if (params.length > 0 && params[0] == Symbols.EACHi) {
 			// function (@params)
-			if (args[0] == SuSymbol.EACH && args.length == 2)
+			if (args[0] == Symbols.EACH && args.length == 2)
 				// optimize function (@params) (@args)
 				locals[0] = new SuContainer((SuContainer) args[1]);
 			else {
 				SuContainer c = new SuContainer();
 				locals[0] = c;
 				for (int i = 0; i < args.length; ++i) {
-					if (args[i] == SuSymbol.NAMED) {
+					if (args[i] == Symbols.NAMED) {
 						c.putdata(args[i + 1], args[i + 2]);
 						i += 2;
 					}
-					else if (args[i] == SuSymbol.EACH)
+					else if (args[i] == Symbols.EACH)
 						c.merge((SuContainer) args[++i]);
 					else
 						c.vec.add(args[i]);
@@ -72,21 +72,21 @@ public class SuClass extends SuValue {
 			assert nlocals >= params.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
-				if (args[i] == SuSymbol.NAMED) {
+				if (args[i] == Symbols.NAMED) {
 					for (int j = 0; j < params.length; ++j)
-						if (SuSymbol.symbol(params[j]) == args[i + 1])
+						if (Symbols.symbol(params[j]) == args[i + 1])
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
 				}
-				else if (args[i] == SuSymbol.EACH) {
+				else if (args[i] == Symbols.EACH) {
 					SuContainer c = (SuContainer) args[++i];
 					if (c.vecsize() > nlocals - li)
 						throw new SuException("too many arguments");
 					for (SuValue x : c.vec)
 						locals[li++] = x;
 					for (int j = 0; j < params.length; ++j) {
-						SuValue x = c.map.get(SuSymbol.symbol(params[j]));
+						SuValue x = c.map.get(Symbols.symbol(params[j]));
 						if (x != null)
 							locals[j] = x;
 					}

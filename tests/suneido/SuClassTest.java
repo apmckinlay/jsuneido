@@ -2,6 +2,7 @@ package suneido;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static suneido.Symbols.SuSymbol;
 
 public class SuClassTest {
 	static class TestClass extends SuClass {
@@ -40,8 +41,8 @@ public class SuClassTest {
 		SuValue[] empty = new SuValue[0];
 		SuValue i = SuInteger.from(123);
 		SuValue s = new SuString("hello");
-		SuSymbol a = SuSymbol.symbol("a");
-		SuSymbol x = SuSymbol.symbol("x");
+		SuSymbol a = Symbols.symbol("a");
+		SuSymbol x = Symbols.symbol("x");
 		SuContainer c = new SuContainer();
 		c.append(i);
 		c.putdata(a, s);
@@ -53,9 +54,9 @@ public class SuClassTest {
 		c3.append(s);
 		c3.putdata(a, s);
 		c3.putdata(x, i);
-		SuValue[] args1 = { i, SuSymbol.NAMED, a, s };
-		SuValue[] args2 = { SuSymbol.EACH, c };
-		SuValue[] args3 = { SuSymbol.EACH, c, SuSymbol.EACH, c2 };
+		SuValue[] args1 = { i, Symbols.NAMED, a, s };
+		SuValue[] args2 = { Symbols.EACH, c };
+		SuValue[] args3 = { Symbols.EACH, c, Symbols.EACH, c2 };
 		SuValue[] locals1 = { i };
 		SuValue[] locals2 = { i, s };
 		SuValue[] locals4 = { c };
@@ -66,15 +67,15 @@ public class SuClassTest {
 		assertArrayEquals(empty, SuClass.massage(0, new SuValue[0]));
 		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty));
 		// function (@args) () => []
-		assertArrayEquals(empty, SuClass.massage(0, empty, SuSymbol.EACHi));
-		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty, SuSymbol.EACHi));
+		assertArrayEquals(empty, SuClass.massage(0, empty, Symbols.EACHi));
+		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty, Symbols.EACHi));
 		// function (@args) (123, a: "hello") => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args1, SuSymbol.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args1, Symbols.EACHi));
 		// function (@args) (@(123, a: "hello")) => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args2, SuSymbol.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args2, Symbols.EACHi));
 		// function (@args) (@(123, a: "hello"), @("hello", x: 123))
 		//		=> [[123, "hello", a: "hello", x: 123]]
-		assertArrayEquals(locals5, SuClass.massage(1, args3, SuSymbol.EACHi));
+		assertArrayEquals(locals5, SuClass.massage(1, args3, Symbols.EACHi));
 		// function (x) (123, a: "hello") => [123]
 		assertArrayEquals(locals1, SuClass.massage(1, args1, x.symnum()));
 		// function (x, a) (123, a: "hello") => [123]
