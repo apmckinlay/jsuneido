@@ -124,17 +124,18 @@ public class SuString extends SuValue {
 	// and creates a file to initialize them all
 	// since they have to be constant ints for switches
 	
-	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
+	@Override
+	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		switch (method) {
 		case Symbols.SUBSTR :
 			return substr(args);
 		default:
-			return super.invoke2(method, args);
+			return super.invoke(method, args);
 		}
 	}
 	private SuValue substr(SuValue[] args) {
 		final int[] params = new int[] { Symbols.I, Symbols.N };
-		args = SuClass.massage(2, args, params);
+		args = SuClass.massage(args, params);
 		int len = s.length();		
 		int i = args[0].integer();
 		if (i < 0)

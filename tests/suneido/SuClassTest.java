@@ -6,14 +6,15 @@ import static suneido.Symbols.SuSymbol;
 
 public class SuClassTest {
 	static class TestClass extends SuClass {
-		public SuValue invoke2(SuValue self, int method, SuValue[] args) {
+		@Override
+		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
 			case 1234:
 				return TestClass.method1(self, args);
 			case 5678:
 				return TestClass.method2(self, args);
 			default:
-				return super.invoke2(self, method, args);
+				return super.invoke(self, method, args);
 			}
 		}
 		public static SuValue method1(SuValue self, SuValue[] args) {

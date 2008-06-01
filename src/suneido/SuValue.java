@@ -141,21 +141,15 @@ public abstract class SuValue {
 		return number().uminus();
 	}
 	
-	public SuValue invoke(int method, SuValue ... args) {
-		return invoke2(this, method, args);
-	}
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		throw method == Symbols.CALLi
 			? new SuException("can't call " + typeName())
 			: unknown_method(method);
 	}
-	public SuValue invoke2(int method, SuValue[] args) {
-		return invoke2(this, method, args);
+	public SuValue invoke(int method, SuValue ... args) {
+		return invoke(this, method, args);
 	}
-	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
-		//TODO base methods for all value
-		throw unknown_method(method);
-	}
+
 	public SuException unknown_method(int method) {
 		return new SuException("unknown method " + typeName() + Symbols.symbol(method));
 	}
