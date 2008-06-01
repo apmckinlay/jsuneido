@@ -22,13 +22,11 @@ public class SuClass extends SuValue {
 		return "a Suneido class";
 	}
 
+	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		return invoke2(self, method, args);
-	}
-	public SuValue invoke2(SuValue self, int method, SuValue[] args) {
 		return method == Symbols.DEFAULTi
-			? super.invoke2(self, method, args)
-			: invoke2(self, Symbols.DEFAULTi, args);
+			? super.invoke(self, method, args)
+			: invoke(self, Symbols.DEFAULTi, args);
 	}
 	
 	/**
@@ -46,10 +44,21 @@ public class SuClass extends SuValue {
 	 * @return	The locals SuValue array initialized from args.
 	 */
 	public static SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
+		boolean params_each = params.length > 0 && params[0] == Symbols.EACHi;
+		
+		// "fast" path - when possible, avoid alloc and just return args
+		if (nlocals <= args.length && ! params_each)
+			for (int i = 0; ; ++i)
+				if (i >= args.length)
+					return args;
+				else if (args[i] == Symbols.EACH || args[i] != Symbols.NAMED)
+					break ;
+
+		// "slow" path - alloc and copy into locals
 		SuValue[] locals = new SuValue[nlocals];
 		if (args.length == 0)
 			return locals;
-		if (params.length > 0 && params[0] == Symbols.EACHi) {
+		if (params_each) {
 			// function (@params)
 			if (args[0] == Symbols.EACH && args.length == 2)
 				// optimize function (@params) (@args)
@@ -96,6 +105,9 @@ public class SuClass extends SuValue {
 			}
 		}
 		return locals;
+	}
+	public static SuValue[] massage(final SuValue[] args, final int ... params) {
+		return massage(params.length, args, params);
 	}
 
 	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1

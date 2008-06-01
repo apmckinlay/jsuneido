@@ -18,8 +18,8 @@ public class SuMethod extends SuValue {
 	@Override
 	public SuValue invoke(int method, SuValue ... args) {
 		return method == Symbols.CALLi
-			? instance.invoke2(this.method, args)
-			: super.invoke2(method, args);
+			? instance.invoke(this.method, args)
+			: super.invoke(method, args);
 	}
 
 	@Override
