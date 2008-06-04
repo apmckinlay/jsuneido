@@ -9,9 +9,9 @@ public class SuClassTest {
 		@Override
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
-			case 1234:
+			case Symbols.SUBSTR:
 				return TestClass.method1(self, args);
-			case 5678:
+			case Symbols.SIZE:
 				return TestClass.method2(self, args);
 			default:
 				return super.invoke(self, method, args);
@@ -28,13 +28,13 @@ public class SuClassTest {
 	@Test
 	public void test() {
 		SuValue c = new TestClass();
-		assertEquals(SuString.EMPTY, c.invoke(1234));
-		assertEquals(SuInteger.ZERO, c.invoke(5678));		
+		assertEquals(SuString.EMPTY, c.invoke(Symbols.SUBSTR));
+		assertEquals(SuInteger.ZERO, c.invoke(Symbols.SIZE));		
 	}
 	
 	@Test(expected=SuException.class)
 	public void unknown() {
-		new TestClass().invoke(9999);
+		new TestClass().invoke(Symbols.CALLi);
 	}
 	
 	@Test

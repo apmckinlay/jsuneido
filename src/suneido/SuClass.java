@@ -47,7 +47,7 @@ public class SuClass extends SuValue {
 		boolean params_each = params.length > 0 && params[0] == Symbols.EACHi;
 		
 		// "fast" path - when possible, avoid alloc and just return args
-		if (nlocals <= args.length && ! params_each)
+		if (nlocals == args.length && ! params_each)
 			for (int i = 0; ; ++i)
 				if (i >= args.length)
 					return args;
@@ -88,12 +88,13 @@ public class SuClass extends SuValue {
 					// else ignore named arg not matching param
 					i += 2;
 				}
-				else if (args[i] == Symbols.EACH) {
+				else if (args[i] == Symbols.EACH || args[i] == Symbols.EACH1) {
+					int start = args[i] == Symbols.EACH ? 0 : 1;
 					SuContainer c = (SuContainer) args[++i];
-					if (c.vecsize() > nlocals - li)
+					if (c.vecsize() - start > nlocals - li)
 						throw new SuException("too many arguments");
-					for (SuValue x : c.vec)
-						locals[li++] = x;
+					for (int j = start; j < c.vecsize(); ++j)
+						locals[li++] = c.vec.get(j);
 					for (int j = 0; j < params.length; ++j) {
 						SuValue x = c.map.get(Symbols.symbol(params[j]));
 						if (x != null)

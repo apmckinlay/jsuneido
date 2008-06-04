@@ -1,6 +1,7 @@
 package suneido;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -10,20 +11,38 @@ import java.util.HashMap;
  */
 public class Symbols {
 	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
-	private static HashMap<String, Integer> names = new HashMap<String, Integer>();
+	private static HashMap<String, Integer> names= new HashMap<String, Integer>();
 	
-	final public static SuSymbol CALL = Symbols.symbol("<call>");
-	final public static SuSymbol DEFAULT = Symbols.symbol("Default");
-	final public static SuSymbol EACH = Symbols.symbol("<each>");
-	final public static SuSymbol NAMED = Symbols.symbol("<named>");
-	final public static int CALLi = CALL.symnum();
-	final public static int DEFAULTi = DEFAULT.symnum();
-	final public static int EACHi = EACH.symnum();
-	final public static int NAMEDi = NAMED.symnum();
+	public static SuSymbol CALL = init("<call>");
+	public static SuSymbol DEFAULT = init("Default");
+	final public static SuSymbol EACH = init("<each>");
+	final public static SuSymbol EACH1 = init("<each1>");
+	final public static SuSymbol NAMED = init("<named>");
+	final public static int CALLi = 0;
+	final public static int DEFAULTi = 1;
+	final public static int EACHi = 2;
+	final public static int EACH1i = 3;
+	final public static int NAMEDi = 4;
+	final public static int SUBSTR = 5;
+	final public static int I = 6;
+	final public static int N = 7;
+	final public static int SIZE = 8;
 	
-	final public static int SUBSTR = 100;
-	final public static int I = 101;
-	final public static int N = 102;
+	private static SuSymbol init(String s) {
+		SuSymbol sym = new SuSymbol(s, symbols.size());
+		names.put(s, symbols.size());
+		symbols.add(sym);
+		if (symbols.size() == 5)
+			init_more();
+		return sym;
+	}
+	
+	private static void init_more() {
+		for (String s : new String[] { "Substr", "i", "n", "Size" }) {
+			names.put(s, symbols.size());
+			symbols.add(new SuSymbol(s, symbols.size()));
+		}
+	}
 
 	public static SuSymbol symbol(String s) {
 		if (names.containsKey(s))
@@ -33,6 +52,9 @@ public class Symbols {
 		names.put(s, num);
 		symbols.add(symbol);
 		return symbol;
+	}
+	public static int symnum(String s) {
+		return symbol(s).symnum();
 	}
 	
 	public static SuSymbol symbol(int num) {
@@ -66,6 +88,20 @@ public class Symbols {
 				return false;
 			else
 				return super.equals(value);
+		}
+		
+		/**
+		 * symbol(value, ...) is treated as value.symbol(...)
+		 */
+		@Override
+		public SuValue invoke(SuValue self, int method, SuValue ... args) {
+			if (method == Symbols.CALLi) {
+				method = num;
+				self = args[0];
+				SuValue[] newargs = Arrays.copyOfRange(args, 1, args.length);
+				return self.invoke(self, method, newargs);
+			} else
+				return super.invoke(self, method, args);
 		}
 	}	
 }

@@ -5,11 +5,9 @@ import java.nio.ByteBuffer;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
 
-
 /**
  * Suneido string class - simple wrapper for Java String
  * @author Andrew McKinlay
- *
  */
 public class SuString extends SuValue {
 	private String s;
@@ -129,8 +127,10 @@ public class SuString extends SuValue {
 		switch (method) {
 		case Symbols.SUBSTR :
 			return substr(args);
+		case Symbols.SIZE :
+			return size(args);
 		default:
-			return super.invoke(method, args);
+			return super.invoke(self, method, args);
 		}
 	}
 	private SuValue substr(SuValue[] args) {
@@ -146,5 +146,9 @@ public class SuString extends SuValue {
 			n += len - i;
 		n = max(0, min(n, len - i));
 		return new SuString(s.substring(i, i + n));
+	}
+	
+	private SuValue size(SuValue[] args) {
+		return SuInteger.from(s.length());
 	}
 }
