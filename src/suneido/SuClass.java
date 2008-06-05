@@ -1,21 +1,17 @@
 package suneido;
 
-import java.util.HashMap;
+//import java.util.HashMap;
 
 /**
  * The Java base class for Suneido classes.
  * The Java class hierarchy is "flat".
  * All compiled Suneido classes derive directly from SuClass.
  * Suneido inheritance is handled by invoke.
- * A Suneido class with "no" parent calls super.invoke2 from it's invoke2 default
+ * A Suneido class with "no" parent calls super.invoke from its invoke's default
  * else it calls Globals.get(parent).invoke2
- * There is one instance that is the class value,
- * and other instances for the instances of the class.
- * Class data is stored in the class instance m.
- * Instance data is stored in the instance m.
  */
 public class SuClass extends SuValue {
-	private HashMap<SuValue,SuValue> m;
+//	private HashMap<SuValue,SuValue> m;
 
 	@Override
 	public String toString() {
@@ -24,9 +20,16 @@ public class SuClass extends SuValue {
 
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		return method == Symbols.DEFAULTi
-			? super.invoke(self, method, args)
-			: invoke(self, Symbols.DEFAULTi, args);
+		// CALLi => create instance (if class doesn't implement CallClass)
+		if (method != Symbols.DEFAULTi) {
+			// if method not found
+			// add method to beginning of args and call Default
+			SuValue newargs[] = new SuValue[1 + args.length];
+			System.arraycopy(args, 0, newargs, 1, args.length);
+			newargs[0] = Symbols.symbol(method);
+			return invoke(self, Symbols.DEFAULTi, newargs);
+		} else
+			throw new SuException("unknown method " + typeName() + "." + args[0]);
 	}
 	
 	/**
