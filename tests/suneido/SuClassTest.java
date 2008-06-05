@@ -120,7 +120,7 @@ public class SuClassTest {
 		assertEquals(SuInteger.from(99), instance.invoke(Symbols.SIZE));
 	}
 	static class SubClass extends SuClass {
-		final static int parent = Globals.num("DefaultClass"); // global index
+		final static int parent = Globals.num("DefaultClass");
 		@Override
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
