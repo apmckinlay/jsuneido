@@ -118,6 +118,7 @@ public class SuClassTest {
 		assertTrue(instance instanceof SuInstance);
 		assertEquals(subClass, ((SuInstance) instance).myclass);
 		assertEquals(SuInteger.from(99), instance.invoke(Symbols.SIZE));
+		assertEquals(SuString.EMPTY, instance.invoke(Symbols.SUBSTR));
 	}
 	static class SubClass extends SuClass {
 		final static int parent = Globals.num("DefaultClass");
