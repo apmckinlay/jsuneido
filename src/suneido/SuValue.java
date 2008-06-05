@@ -152,6 +152,9 @@ public abstract class SuValue {
 	}
 
 	public SuException unknown_method(int method) {
-		return new SuException("unknown method " + typeName() + "." + Symbols.symbol(method));
+		return unknown_method(Symbols.symbol(method));
+	}
+	public SuException unknown_method(SuValue method) {
+		return new SuException("unknown method " + typeName() + "." + method);
 	}
 }
