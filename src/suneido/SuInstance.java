@@ -2,19 +2,27 @@ package suneido;
 
 import java.util.HashMap;
 
+/**
+ * The class for instances of Suneido classes.
+ * @author Andrew McKinlay
+ */
 public class SuInstance extends SuValue {
-	private SuClass parent;
+	/*private*/ SuValue myclass;
 	private HashMap<SuValue,SuValue> m;
 	
-	SuInstance(SuClass parent) {
-		this.parent = parent;
+	SuInstance(SuValue myclass) {
+		this.myclass = myclass;
 	}
 	
+	/**
+	 * Delegates to its parent SuClass instance.
+	 */
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		if (method == Symbols.CALLi)
 			method = Symbols.CALL_INSTANCE;
-		return parent.invoke(self, method, args);
+		//TODO generic instance methods
+		return myclass.invoke(self, method, args);
 	}
 
 	@Override
