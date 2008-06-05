@@ -13,11 +13,11 @@ public class Symbols {
 	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
 	private static HashMap<String, Integer> names= new HashMap<String, Integer>();
 	
-	public static SuSymbol CALL = init("<call>");
-	public static SuSymbol DEFAULT = init("Default");
-	final public static SuSymbol EACH = init("<each>");
-	final public static SuSymbol EACH1 = init("<each1>");
-	final public static SuSymbol NAMED = init("<named>");
+	final public static SuSymbol CALL = symbol("<call>");
+	final public static SuSymbol DEFAULT = symbol("Default");
+	final public static SuSymbol EACH = symbol("<each>");
+	final public static SuSymbol EACH1 = symbol("<each1>");
+	final public static SuSymbol NAMED = symbol("<named>");
 	final public static int CALLi = 0;
 	final public static int DEFAULTi = 1;
 	final public static int EACHi = 2;
@@ -27,23 +27,14 @@ public class Symbols {
 	final public static int I = 6;
 	final public static int N = 7;
 	final public static int SIZE = 8;
+	final public static int CALL_INSTANCE = 9;
+	final public static int CALL_CLASS = 10;
 	
-	private static SuSymbol init(String s) {
-		SuSymbol sym = new SuSymbol(s, symbols.size());
-		names.put(s, symbols.size());
-		symbols.add(sym);
-		if (symbols.size() == 5)
-			init_more();
-		return sym;
+	static {
+		for (String s : new String[] { "Substr", "i", "n", "Size", "<call_instance>", "<call_class>" }) 
+			symbol(s);
 	}
 	
-	private static void init_more() {
-		for (String s : new String[] { "Substr", "i", "n", "Size" }) {
-			names.put(s, symbols.size());
-			symbols.add(new SuSymbol(s, symbols.size()));
-		}
-	}
-
 	public static SuSymbol symbol(String s) {
 		if (names.containsKey(s))
 			return symbols.get(names.get(s));

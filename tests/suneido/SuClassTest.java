@@ -91,4 +91,26 @@ public class SuClassTest {
 			fail();
 		} catch (SuException e) { }
 	}
+	
+	static class DefaultClass extends SuClass {
+		public SuValue[] args;
+		@Override
+		public SuValue invoke(SuValue self, int method, SuValue ... args) {
+			switch (method) {
+			case Symbols.DEFAULTi:
+				this.args = args;
+				return null;
+			default:
+				return super.invoke(self, method, args);
+			}
+		}
+	}
+	@Test
+	public void test_default() {
+		DefaultClass dc = new DefaultClass();
+		dc.invoke(Symbols.SUBSTR);
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR) }, dc.args);
+		dc.invoke(Symbols.SUBSTR, SuInteger.ONE);
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR), SuInteger.ONE }, dc.args);
+	}
 }

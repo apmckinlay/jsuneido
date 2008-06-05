@@ -20,6 +20,10 @@ public class SuClass extends SuValue {
 
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
+		if (method == Symbols.CALLi)
+			method = Symbols.CALL_CLASS;
+		else if (method == Symbols.CALL_INSTANCE)
+			method = Symbols.CALLi;
 		// CALLi => create instance (if class doesn't implement CallClass)
 		if (method != Symbols.DEFAULTi) {
 			// if method not found
@@ -29,7 +33,7 @@ public class SuClass extends SuValue {
 			newargs[0] = Symbols.symbol(method);
 			return invoke(self, Symbols.DEFAULTi, newargs);
 		} else
-			throw new SuException("unknown method " + typeName() + "." + args[0]);
+			throw unknown_method(args[0]);
 	}
 	
 	/**
