@@ -92,25 +92,43 @@ public class SuClassTest {
 		} catch (SuException e) { }
 	}
 	
+	@Test
+	public void test_new() {
+		DefaultClass dc = new DefaultClass();
+		SuValue instance = dc.invoke(Symbols.INSTANTIATE);
+		assertEquals(SuString.EMPTY, instance.invoke(Symbols.SUBSTR));
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR) }, dc.args);
+		instance.invoke(Symbols.SUBSTR, SuInteger.ONE);
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR), SuInteger.ONE }, dc.args);
+	}
 	static class DefaultClass extends SuClass {
 		public SuValue[] args;
 		@Override
-		public SuValue invoke(SuValue self, int method, SuValue ... args) {
-			switch (method) {
-			case Symbols.DEFAULTi:
-				this.args = args;
-				return null;
-			default:
-				return super.invoke(self, method, args);
-			}
+		public SuValue methodDefault(SuValue self, SuValue[] args) {
+			this.args = args;
+			return SuString.EMPTY;
 		}
 	}
+	
 	@Test
-	public void test_default() {
-		DefaultClass dc = new DefaultClass();
-		dc.invoke(Symbols.SUBSTR);
-		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR) }, dc.args);
-		dc.invoke(Symbols.SUBSTR, SuInteger.ONE);
-		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR), SuInteger.ONE }, dc.args);
+	public void test_inheritance() {
+		Globals.set(Globals.num("DefaultClass"), new DefaultClass());
+		SuValue subClass = new SubClass();
+		SuValue instance = subClass.invoke(Symbols.INSTANTIATE);
+		assertTrue(instance instanceof SuInstance);
+		assertEquals(subClass, ((SuInstance) instance).myclass);
+		assertEquals(SuInteger.from(99), instance.invoke(Symbols.SIZE));
+	}
+	static class SubClass extends SuClass {
+		final static int parent = Globals.num("DefaultClass"); // global index
+		@Override
+		public SuValue invoke(SuValue self, int method, SuValue ... args) {
+			switch (method) {
+			case Symbols.SIZE :
+				return SuInteger.from(99);
+			default :
+				return Globals.get(parent).invoke(self, method, args);
+			}
+		}
 	}
 }

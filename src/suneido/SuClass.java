@@ -1,9 +1,7 @@
 package suneido;
 
-//import java.util.HashMap;
-
 /**
- * The Java base class for Suneido classes.
+ * The Java base class for compiled Suneido classes.
  * The Java class hierarchy is "flat".
  * All compiled Suneido classes derive directly from SuClass.
  * Suneido inheritance is handled by invoke.
@@ -11,7 +9,7 @@ package suneido;
  * else it calls Globals.get(parent).invoke2
  */
 public class SuClass extends SuValue {
-//	private HashMap<SuValue,SuValue> m;
+	//TODO handle static data members
 
 	@Override
 	public String toString() {
@@ -24,16 +22,31 @@ public class SuClass extends SuValue {
 			method = Symbols.CALL_CLASS;
 		else if (method == Symbols.CALL_INSTANCE)
 			method = Symbols.CALLi;
-		// CALLi => create instance (if class doesn't implement CallClass)
-		if (method != Symbols.DEFAULTi) {
+		
+		switch (method) {
+		case Symbols.CALLi : // default for call class is instantiate
+		case Symbols.INSTANTIATE :
+			SuInstance x = new SuInstance(self);
+			methodNew(x, args); // a "known" method so we can bypass invoke
+			return x;
+		case Symbols.NEW :
+			massage(args, new int[0]);
+			return null;
+		default :
 			// if method not found
 			// add method to beginning of args and call Default
 			SuValue newargs[] = new SuValue[1 + args.length];
 			System.arraycopy(args, 0, newargs, 1, args.length);
 			newargs[0] = Symbols.symbol(method);
-			return invoke(self, Symbols.DEFAULTi, newargs);
-		} else
-			throw unknown_method(args[0]);
+			return methodDefault(self, newargs);
+		}
+	}
+	
+	public void methodNew(SuInstance x, SuValue[] args) {
+		// default does nothing
+	}
+	public SuValue methodDefault(SuValue self, SuValue[] args) {
+		throw unknown_method(args[0]);
 	}
 	
 	/**

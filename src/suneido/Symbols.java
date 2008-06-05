@@ -29,10 +29,14 @@ public class Symbols {
 	final public static int SIZE = 8;
 	final public static int CALL_INSTANCE = 9;
 	final public static int CALL_CLASS = 10;
+	final public static int INSTANTIATE = 11;
+	final public static int NEW = 12;
 	
 	static {
-		for (String s : new String[] { "Substr", "i", "n", "Size", "<call_instance>", "<call_class>" }) 
+		for (String s : new String[] { "Substr", "i", "n", "Size", 
+				"<call_instance>", "<call_class>", "<instantiate>" }) 
 			symbol(s);
+		assert symbol(CALL_CLASS).symnum() == CALL_CLASS;
 	}
 	
 	public static SuSymbol symbol(String s) {
