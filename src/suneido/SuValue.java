@@ -146,6 +146,7 @@ public abstract class SuValue {
 			? new SuException("can't call " + typeName())
 			: unknown_method(method);
 	}
+	
 	public SuValue invoke(int method, SuValue ... args) {
 		return invoke(this, method, args);
 	}
