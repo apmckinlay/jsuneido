@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
+import static suneido.Symbols.*;
 
 /**
  * Suneido string class - simple wrapper for Java String
@@ -125,16 +126,16 @@ public class SuString extends SuValue {
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		switch (method) {
-		case Symbols.SUBSTR :
+		case Num.SUBSTR :
 			return substr(args);
-		case Symbols.SIZE :
+		case Num.SIZE :
 			return size(args);
 		default:
 			return super.invoke(self, method, args);
 		}
 	}
 	private SuValue substr(SuValue[] args) {
-		final int[] params = new int[] { Symbols.I, Symbols.N };
+		final int[] params = new int[] { Num.I, Num.N };
 		args = SuClass.massage(args, params);
 		int len = s.length();		
 		int i = args[0].integer();

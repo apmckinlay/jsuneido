@@ -1,5 +1,7 @@
 package suneido;
 
+import static suneido.Symbols.*;
+
 /**
  * The Java base class for compiled Suneido classes.
  * The Java class hierarchy is "flat".
@@ -18,18 +20,18 @@ public class SuClass extends SuValue {
 
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		if (method == Symbols.CALLi)
-			method = Symbols.CALL_CLASS;
-		else if (method == Symbols.CALL_INSTANCE)
-			method = Symbols.CALLi;
+		if (method == Num.CALL)
+			method = Num.CALL_CLASS;
+		else if (method == Num.CALL_INSTANCE)
+			method = Num.CALL;
 		
 		switch (method) {
-		case Symbols.CALLi : // default for call class is instantiate
-		case Symbols.INSTANTIATE :
+		case Num.CALL : // default for call class is instantiate
+		case Num.INSTANTIATE :
 			SuInstance x = new SuInstance(self);
 			methodNew(x, args); // a "known" method so we can bypass invoke
 			return x;
-		case Symbols.NEW :
+		case Num.NEW :
 			massage(args, new int[0]);
 			return null;
 		default :
@@ -64,14 +66,14 @@ public class SuClass extends SuValue {
 	 * @return	The locals SuValue array initialized from args.
 	 */
 	public static SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
-		boolean params_each = params.length > 0 && params[0] == Symbols.EACHi;
+		boolean params_each = params.length > 0 && params[0] == Num.EACH;
 		
 		// "fast" path - when possible, avoid alloc and just return args
 		if (nlocals == args.length && ! params_each)
 			for (int i = 0; ; ++i)
 				if (i >= args.length)
 					return args;
-				else if (args[i] == Symbols.EACH || args[i] != Symbols.NAMED)
+				else if (args[i] == Sym.EACH || args[i] != Sym.NAMED)
 					break ;
 
 		// "slow" path - alloc and copy into locals
@@ -80,18 +82,18 @@ public class SuClass extends SuValue {
 			return locals;
 		if (params_each) {
 			// function (@params)
-			if (args[0] == Symbols.EACH && args.length == 2)
+			if (args[0] == Sym.EACH && args.length == 2)
 				// optimize function (@params) (@args)
 				locals[0] = new SuContainer((SuContainer) args[1]);
 			else {
 				SuContainer c = new SuContainer();
 				locals[0] = c;
 				for (int i = 0; i < args.length; ++i) {
-					if (args[i] == Symbols.NAMED) {
+					if (args[i] == Sym.NAMED) {
 						c.putdata(args[i + 1], args[i + 2]);
 						i += 2;
 					}
-					else if (args[i] == Symbols.EACH)
+					else if (args[i] == Sym.EACH)
 						c.merge((SuContainer) args[++i]);
 					else
 						c.vec.add(args[i]);
@@ -101,15 +103,15 @@ public class SuClass extends SuValue {
 			assert nlocals >= params.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
-				if (args[i] == Symbols.NAMED) {
+				if (args[i] == Sym.NAMED) {
 					for (int j = 0; j < params.length; ++j)
 						if (Symbols.symbol(params[j]) == args[i + 1])
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
 				}
-				else if (args[i] == Symbols.EACH || args[i] == Symbols.EACH1) {
-					int start = args[i] == Symbols.EACH ? 0 : 1;
+				else if (args[i] == Sym.EACH || args[i] == Sym.EACH1) {
+					int start = args[i] == Sym.EACH ? 0 : 1;
 					SuContainer c = (SuContainer) args[++i];
 					if (c.vecsize() - start > nlocals - li)
 						throw new SuException("too many arguments");

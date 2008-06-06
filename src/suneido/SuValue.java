@@ -142,7 +142,7 @@ public abstract class SuValue {
 	}
 	
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		throw method == Symbols.CALLi
+		throw method == Symbols.Num.CALL
 			? new SuException("can't call " + typeName())
 			: unknown_method(method);
 	}

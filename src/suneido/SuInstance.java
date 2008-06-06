@@ -1,6 +1,7 @@
 package suneido;
 
 import java.util.HashMap;
+import static suneido.Symbols.*;
 
 /**
  * The class for instances of Suneido classes.
@@ -19,8 +20,8 @@ public class SuInstance extends SuValue {
 	 */
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		if (method == Symbols.CALLi)
-			method = Symbols.CALL_INSTANCE;
+		if (method == Num.CALL)
+			method = Num.CALL_INSTANCE;
 		//TODO generic instance methods
 		return myclass.invoke(self, method, args);
 	}
