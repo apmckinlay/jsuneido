@@ -34,7 +34,7 @@ public class SuClassTest {
 	
 	@Test(expected=SuException.class)
 	public void unknown() {
-		new TestClass().invoke(Num.CALL);
+		new TestClass().invoke(Symbols.symnum("Foo"));
 	}
 	
 	@Test

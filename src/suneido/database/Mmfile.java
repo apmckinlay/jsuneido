@@ -1,4 +1,4 @@
-package suneido;
+package suneido.database;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,6 +9,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import suneido.SuException;
 
 import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
@@ -33,6 +35,10 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	final private static int FILESIZE_OFFSET = 4;
 	final private static int BEGIN_OFFSET = FILEHDR + HEADER;
 	final private static byte FILLER = 0;
+	final public static byte DATA = 1;
+	final public static byte COMMIT = 2;
+	final public static byte SESSION = 3;
+	final public static byte OTHER = 4;
 	private static enum MmCheck { OK, ERR, EOF };
 	
 	// these are only overridden for tests
@@ -126,12 +132,19 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		// so file size will be rounded up to chunk size
 	}
 	
+	public static int offsetToInt(long offset) {
+		return (int) (offset >> SHIFT);
+	}
+	public static long intToOffset(int i) {
+		return (i & 0xffffffffL) << SHIFT;
+	}
+	
 	private long get_file_size() {
-		return (adr(FILESIZE_OFFSET).getInt() & 0xffffffffL) << SHIFT;
+		return intToOffset(adr(FILESIZE_OFFSET).getInt());
 	}
 	private void set_file_size(long size) {
 		verify((size % ALIGN) == 0);
-		adr(FILESIZE_OFFSET).putInt((int) (size >> SHIFT));
+		adr(FILESIZE_OFFSET).putInt(offsetToInt(size));
 	}
 	
 	public long size() {
@@ -247,21 +260,26 @@ public class Mmfile implements Iterable<ByteBuffer> {
 			return MmCheck.ERR;
 		return MmCheck.OK;
 	}
-	int length(long offset) {
+	public int length(long offset) {
 		return length(adr(offset - HEADER));
 	}
-	int length(ByteBuffer bb) {
+	private int length(ByteBuffer bb) {
 		return bb.getInt(0)& ~(ALIGN - 1);
 	}
-	byte type(long offset) {
+	private byte type(long offset) {
 		return type(adr(offset - HEADER));
 	}
-	byte type(ByteBuffer bb) {
+	private byte type(ByteBuffer bb) {
 		return (byte) (bb.getInt(0) & (ALIGN - 1));
 	}
-	long end_offset() {
+	private long end_offset() {
 		return file_size + HEADER;
 	}
+	
+	long first() {
+		return file_size <= FILEHDR ? 0 : FILEHDR + HEADER;
+	}
+
 	
 	public Iterator<ByteBuffer> iterator() {
 		return new MmfileIterator();

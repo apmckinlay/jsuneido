@@ -19,12 +19,7 @@ public class SuClass extends SuValue {
 	}
 
 	@Override
-	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		if (method == Num.CALL)
-			method = Num.CALL_CLASS;
-		else if (method == Num.CALL_INSTANCE)
-			method = Num.CALL;
-		
+	public SuValue invoke(SuValue self, int method, SuValue ... args) {		
 		switch (method) {
 		case Num.CALL : // default for call class is instantiate
 		case Num.INSTANTIATE :

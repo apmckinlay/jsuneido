@@ -1,7 +1,8 @@
-package suneido;
+package suneido.database;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+
 
 /**
  * Used to create a record in memory

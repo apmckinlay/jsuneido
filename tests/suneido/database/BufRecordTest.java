@@ -1,8 +1,10 @@
-package suneido;
+package suneido.database;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
+
+import suneido.database.BufRecord;
 import static org.junit.Assert.*;
 
 public class BufRecordTest {
