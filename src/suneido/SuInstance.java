@@ -17,6 +17,11 @@ public class SuInstance extends SuValue {
 	
 	/**
 	 * Delegates to its parent SuClass instance.
+	 * Converts CALL to CALL_INSTANCE to differentiate from CALL_CLASS.
+	 * Would be simpler to translate CALL to CALL_CLASS instead
+	 * but there's no easy place to do this.
+	 * So compiler has to compile Call as CALL_INSTANCE
+	 * and CallClass as CALL.
 	 */
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {

@@ -1,6 +1,8 @@
-package suneido;
+package suneido.database;
 
 import java.nio.ByteBuffer;
+
+import suneido.SuException;
 import static suneido.Suneido.verify;
 
 /**

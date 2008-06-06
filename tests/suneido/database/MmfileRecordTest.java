@@ -1,8 +1,12 @@
-package suneido;
+package suneido.database;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import org.junit.Test;
+
+import suneido.database.BufRecord;
+import suneido.database.MemRecord;
+import suneido.database.Mmfile;
 import static org.junit.Assert.*;
 
 public class MmfileRecordTest {

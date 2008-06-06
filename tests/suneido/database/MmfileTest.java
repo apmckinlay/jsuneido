@@ -1,12 +1,13 @@
-package suneido;
+package suneido.database;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.AfterClass;
+import suneido.*;
+import suneido.database.Mmfile;
 
 // use different file names in case of delayed finalization
 public class MmfileTest {
