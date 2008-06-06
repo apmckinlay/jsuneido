@@ -1,6 +1,5 @@
 package suneido.database;
 
-import static suneido.database.Mmfile.*;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
@@ -13,7 +12,7 @@ public class Database {
 	private int clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
-	class TN {
+	static class TN {
 		final static private int TABLES = 0;
 		final static private int COLUMNS = 1;
 		final static private int INDEXES = 2;
