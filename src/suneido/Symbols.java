@@ -13,30 +13,35 @@ public class Symbols {
 	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
 	private static HashMap<String, Integer> names= new HashMap<String, Integer>();
 	
-	final public static SuSymbol CALL = symbol("<call>");
-	final public static SuSymbol DEFAULT = symbol("Default");
-	final public static SuSymbol EACH = symbol("<each>");
-	final public static SuSymbol EACH1 = symbol("<each1>");
-	final public static SuSymbol NAMED = symbol("<named>");
-	final public static int CALLi = 0;
-	final public static int DEFAULTi = 1;
-	final public static int EACHi = 2;
-	final public static int EACH1i = 3;
-	final public static int NAMEDi = 4;
-	final public static int SUBSTR = 5;
-	final public static int I = 6;
-	final public static int N = 7;
-	final public static int SIZE = 8;
-	final public static int CALL_INSTANCE = 9;
-	final public static int CALL_CLASS = 10;
-	final public static int INSTANTIATE = 11;
-	final public static int NEW = 12;
+	public static class Sym {
+		final public static SuSymbol CALL = symbol("<call>");
+		final public static SuSymbol DEFAULT = symbol("Default");
+		final public static SuSymbol EACH = symbol("<each>");
+		final public static SuSymbol EACH1 = symbol("<each1>");
+		final public static SuSymbol NAMED = symbol("<named>");
+	}
+	public static class Num {
+		final public static int CALL = 0;
+		final public static int DEFAULT = 1;
+		final public static int EACH = 2;
+		final public static int EACH1 = 3;
+		final public static int NAMED = 4;
+		final public static int SUBSTR = 5;
+		final public static int I = 6;
+		final public static int N = 7;
+		final public static int SIZE = 8;
+		final public static int CALL_INSTANCE = 9;
+		final public static int CALL_CLASS = 10;
+		final public static int INSTANTIATE = 11;
+		final public static int NEW = 12;
+	}
 	
 	static {
+		SuSymbol x = Sym.CALL; // force initialization
 		for (String s : new String[] { "Substr", "i", "n", "Size", 
-				"<call_instance>", "<call_class>", "<instantiate>" }) 
+				"<call_instance>", "<call_class>", "<instantiate>", "New" }) 
 			symbol(s);
-		assert symbol(CALL_CLASS).symnum() == CALL_CLASS;
+		assert symbol(Num.NEW).symnum() == Num.NEW;
 	}
 	
 	public static SuSymbol symbol(String s) {
@@ -90,7 +95,7 @@ public class Symbols {
 		 */
 		@Override
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
-			if (method == Symbols.CALLi) {
+			if (method == Num.CALL) {
 				method = num;
 				self = args[0];
 				SuValue[] newargs = Arrays.copyOfRange(args, 1, args.length);

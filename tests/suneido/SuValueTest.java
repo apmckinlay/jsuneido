@@ -2,9 +2,9 @@ package suneido;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static suneido.Symbols.*;
 
 public class SuValueTest {
 	@Test
@@ -67,20 +67,20 @@ public class SuValueTest {
 	@Test(expected=SuException.class)
 	public void call1() {
 		SuValue x = SuInteger.ZERO;
-		x.invoke(Symbols.CALLi);
+		x.invoke(Num.CALL);
 	}
 	@Test(expected=SuException.class)
 	public void call2() {
 		SuValue x = SuInteger.ZERO;
-		x.invoke(Symbols.EACHi);
+		x.invoke(Num.EACH);
 	}
 	@Test(expected=SuException.class)
 	public void getdata() {
-		SuInteger.ZERO.getdata(Symbols.CALL);
+		SuInteger.ZERO.getdata(Sym.CALL);
 	}
 	@Test(expected=SuException.class)
 	public void putdata() {
-		SuString.EMPTY.putdata(Symbols.CALL, SuInteger.ZERO);
+		SuString.EMPTY.putdata(Sym.CALL, SuInteger.ZERO);
 	}
 	
 	@Test

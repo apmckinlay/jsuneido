@@ -2,16 +2,16 @@ package suneido;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static suneido.Symbols.SuSymbol;
+import static suneido.Symbols.*;
 
 public class SuClassTest {
 	static class TestClass extends SuClass {
 		@Override
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
-			case Symbols.SUBSTR:
+			case Num.SUBSTR:
 				return TestClass.method1(self, args);
-			case Symbols.SIZE:
+			case Num.SIZE:
 				return TestClass.method2(self, args);
 			default:
 				return super.invoke(self, method, args);
@@ -28,13 +28,13 @@ public class SuClassTest {
 	@Test
 	public void test() {
 		SuValue c = new TestClass();
-		assertEquals(SuString.EMPTY, c.invoke(Symbols.SUBSTR));
-		assertEquals(SuInteger.ZERO, c.invoke(Symbols.SIZE));		
+		assertEquals(SuString.EMPTY, c.invoke(Num.SUBSTR));
+		assertEquals(SuInteger.ZERO, c.invoke(Num.SIZE));		
 	}
 	
 	@Test(expected=SuException.class)
 	public void unknown() {
-		new TestClass().invoke(Symbols.CALLi);
+		new TestClass().invoke(Num.CALL);
 	}
 	
 	@Test
@@ -55,9 +55,9 @@ public class SuClassTest {
 		c3.append(s);
 		c3.putdata(a, s);
 		c3.putdata(x, i);
-		SuValue[] args1 = { i, Symbols.NAMED, a, s };
-		SuValue[] args2 = { Symbols.EACH, c };
-		SuValue[] args3 = { Symbols.EACH, c, Symbols.EACH, c2 };
+		SuValue[] args1 = { i, Sym.NAMED, a, s };
+		SuValue[] args2 = { Sym.EACH, c };
+		SuValue[] args3 = { Sym.EACH, c, Sym.EACH, c2 };
 		SuValue[] locals1 = { i };
 		SuValue[] locals2 = { i, s };
 		SuValue[] locals4 = { c };
@@ -68,15 +68,15 @@ public class SuClassTest {
 		assertArrayEquals(empty, SuClass.massage(0, new SuValue[0]));
 		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty));
 		// function (@args) () => []
-		assertArrayEquals(empty, SuClass.massage(0, empty, Symbols.EACHi));
-		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty, Symbols.EACHi));
+		assertArrayEquals(empty, SuClass.massage(0, empty, Num.EACH));
+		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty, Num.EACH));
 		// function (@args) (123, a: "hello") => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args1, Symbols.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args1, Num.EACH));
 		// function (@args) (@(123, a: "hello")) => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args2, Symbols.EACHi));
+		assertArrayEquals(locals4, SuClass.massage(1, args2, Num.EACH));
 		// function (@args) (@(123, a: "hello"), @("hello", x: 123))
 		//		=> [[123, "hello", a: "hello", x: 123]]
-		assertArrayEquals(locals5, SuClass.massage(1, args3, Symbols.EACHi));
+		assertArrayEquals(locals5, SuClass.massage(1, args3, Num.EACH));
 		// function (x) (123, a: "hello") => [123]
 		assertArrayEquals(locals1, SuClass.massage(1, args1, x.symnum()));
 		// function (x, a) (123, a: "hello") => [123]
@@ -95,11 +95,11 @@ public class SuClassTest {
 	@Test
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
-		SuValue instance = dc.invoke(Symbols.INSTANTIATE);
-		assertEquals(SuString.EMPTY, instance.invoke(Symbols.SUBSTR));
-		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR) }, dc.args);
-		instance.invoke(Symbols.SUBSTR, SuInteger.ONE);
-		assertArrayEquals(new SuValue[] { Symbols.symbol(Symbols.SUBSTR), SuInteger.ONE }, dc.args);
+		SuValue instance = dc.invoke(Num.INSTANTIATE);
+		assertEquals(SuString.EMPTY, instance.invoke(Num.SUBSTR));
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Num.SUBSTR) }, dc.args);
+		instance.invoke(Num.SUBSTR, SuInteger.ONE);
+		assertArrayEquals(new SuValue[] { Symbols.symbol(Num.SUBSTR), SuInteger.ONE }, dc.args);
 	}
 	static class DefaultClass extends SuClass {
 		public SuValue[] args;
@@ -114,18 +114,18 @@ public class SuClassTest {
 	public void test_inheritance() {
 		Globals.set(Globals.num("DefaultClass"), new DefaultClass());
 		SuValue subClass = new SubClass();
-		SuValue instance = subClass.invoke(Symbols.INSTANTIATE);
+		SuValue instance = subClass.invoke(Num.INSTANTIATE);
 		assertTrue(instance instanceof SuInstance);
 		assertEquals(subClass, ((SuInstance) instance).myclass);
-		assertEquals(SuInteger.from(99), instance.invoke(Symbols.SIZE));
-		assertEquals(SuString.EMPTY, instance.invoke(Symbols.SUBSTR));
+		assertEquals(SuInteger.from(99), instance.invoke(Num.SIZE));
+		assertEquals(SuString.EMPTY, instance.invoke(Num.SUBSTR));
 	}
 	static class SubClass extends SuClass {
 		final static int parent = Globals.num("DefaultClass");
 		@Override
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
-			case Symbols.SIZE :
+			case Num.SIZE :
 				return SuInteger.from(99);
 			default :
 				return Globals.get(parent).invoke(self, method, args);

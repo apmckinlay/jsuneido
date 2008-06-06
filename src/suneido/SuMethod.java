@@ -1,5 +1,7 @@
 package suneido;
 
+import static suneido.Symbols.*;
+
 /**
  * SuMethod makes methods first class values.
  * It binds the method and the instance it "came from".
@@ -17,7 +19,7 @@ public class SuMethod extends SuValue {
 	
 	@Override
 	public SuValue invoke(int method, SuValue ... args) {
-		return method == Symbols.CALLi
+		return method == Num.CALL
 			? instance.invoke(this.method, args)
 			: super.invoke(method, args);
 	}

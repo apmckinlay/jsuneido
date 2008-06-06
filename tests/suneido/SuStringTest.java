@@ -2,6 +2,7 @@ package suneido;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static suneido.Symbols.*;
 
 public class SuStringTest {
 	static SuString ss = new SuString("hello world");
@@ -60,9 +61,9 @@ public class SuStringTest {
 	public void substr() {
 		SuValue s = new SuString("hello world");
 		assertEquals(new SuString("hello"), 
-				s.invoke(Symbols.SUBSTR, SuInteger.ZERO, SuInteger.from(5)));
+				s.invoke(Num.SUBSTR, SuInteger.ZERO, SuInteger.from(5)));
 		assertEquals(new SuString("world"),
-				s.invoke(Symbols.SUBSTR, SuInteger.from(6)));
+				s.invoke(Num.SUBSTR, SuInteger.from(6)));
 	}
 }
 
