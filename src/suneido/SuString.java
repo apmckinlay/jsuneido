@@ -134,9 +134,9 @@ public class SuString extends SuValue {
 			return super.invoke(self, method, args);
 		}
 	}
+	private static int[] substr_params = new int[] { Num.I, Num.N };
 	private SuValue substr(SuValue[] args) {
-		final int[] params = new int[] { Num.I, Num.N };
-		args = SuClass.massage(args, params);
+		args = SuClass.massage(args, substr_params);
 		int len = s.length();		
 		int i = args[0].integer();
 		if (i < 0)

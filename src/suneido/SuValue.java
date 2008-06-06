@@ -6,7 +6,7 @@ public abstract class SuValue {
 	public abstract String toString();
 
 	// sequence must match Order
-	class Pack {
+	static class Pack {
 		static final byte FALSE = 0;
 		static final byte TRUE = 1;
 		static final byte MINUS = 2;
