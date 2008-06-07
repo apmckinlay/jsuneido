@@ -9,7 +9,7 @@ public class Database {
 	private Mmfile mmf;
 	private DbHdr dbhdr;
 	private boolean loading = false;
-	private int clock = 1;
+//	private int clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	static class TN {
@@ -19,22 +19,18 @@ public class Database {
 		final static private int VIEWS = 3;
 	}
 	private final static int VERSION = 1;
-	
-	public Database(String filename) {
-		this(filename, false);
-	}
-	public Database(String filename, boolean create) {		
-		boolean existed = new File(filename).canRead();
-		mmf = new Mmfile(filename, create);
-//		if (existed && ! check_shutdown(mmf)) {
+
+	public Database(String filename, Mode mode) {		
+		mmf = new Mmfile(filename, mode);
+//		if (mode == Mode.OPEN && ! check_shutdown(mmf)) {
 //			mmf.close();
 //			if (0 != fork_rebuild())
 //				fatal("Database not rebuilt, unable to start");
-//			mmf = new Mmfile(file, create);
+//			mmf = new Mmfile(filename, mode);
 //			verify(check_shutdown(mmf));
 //		}
 //		dest = new IndexDest(mmf);
-		if (! existed) {
+		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;
 			create();
 			output_type = Mmfile.DATA;

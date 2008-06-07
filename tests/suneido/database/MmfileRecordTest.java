@@ -13,7 +13,7 @@ public class MmfileRecordTest {
 	@Test
 	public void test() {
 		new File("tmp1").delete();
-		Mmfile mmf = new Mmfile("tmp1", true);
+		Mmfile mmf = new Mmfile("tmp1", Mode.CREATE);
 		try {
 			MemRecord mr = new MemRecord();
 			byte[] data1 = new byte[] { 1, 2, 3, 4 };
@@ -25,7 +25,7 @@ public class MmfileRecordTest {
 			mr.store(bb);
 			mmf.close();
 			
-			mmf = new Mmfile("tmp1");
+			mmf = new Mmfile("tmp1", Mode.OPEN);
 			bb = mmf.iterator().next();
 			BufRecord br = new BufRecord(bb);
 			assertArrayEquals(data1, br.getBytes(0));
