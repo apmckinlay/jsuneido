@@ -14,17 +14,17 @@ public class MmfileTest {
 	@Test(expected=SuException.class)
 	public void cantopen() {
 		new File("tmp1").delete();
-		new Mmfile("tmp1");
+		new Mmfile("tmp1", Mode.OPEN);
 	}
 	
 	@Test
 	public void create_open() {
 		new File("tmp2").delete();
-		Mmfile mmf = new Mmfile("tmp2", true);
+		Mmfile mmf = new Mmfile("tmp2", Mode.CREATE);
 		assertEquals(8, mmf.size());
 		mmf.close();
 		
-		mmf = new Mmfile("tmp2");
+		mmf = new Mmfile("tmp2", Mode.OPEN);
 		assertEquals(8, mmf.size());
 		mmf.close();
 	}
@@ -32,7 +32,7 @@ public class MmfileTest {
 	@Test
 	public void read_write() {
 		new File("tmp3").delete();
-		Mmfile mmf = new Mmfile("tmp3", true);
+		Mmfile mmf = new Mmfile("tmp3", Mode.CREATE);
 		try {
 			long offset[] = new long[2];
 			offset[0] = mmf.alloc(16, (byte) 1);

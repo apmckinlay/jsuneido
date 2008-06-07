@@ -55,12 +55,9 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	private int hand = 0;
 	private int last_alloc = 0;
 	
-	public Mmfile(String filename) {
-		this(filename, false);
-	}
-	public Mmfile(String filename, boolean create) {
+	public Mmfile(String filename, Mode mode) {
 		File file = new File(filename);
-		if (! create && (! file.canRead() || ! file.canWrite()))
+		if (mode == Mode.OPEN && (! file.canRead() || ! file.canWrite()))
 			throw new SuException("can't open " + filename);
 		try {
 			fin = new RandomAccessFile(file, "rw");

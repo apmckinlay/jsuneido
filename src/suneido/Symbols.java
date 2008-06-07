@@ -37,17 +37,19 @@ public class Symbols {
 	}
 	
 	static {
-		SuSymbol x = Sym.CALL; // force initialization
-		for (String s : new String[] { "Substr", "i", "n", "Size", 
+		for (String s : new String[] { "<call>", "Default", "<each>", "<each1>", "<named>",
+				"Substr", "i", "n", "Size", 
 				"<call_instance>", "<call_class>", "<instantiate>", "New" }) 
 			symbol(s);
 		assert symbol(Num.NEW).symnum() == Num.NEW;
 	}
 	
 	public static SuSymbol symbol(String s) {
+System.out.println("symbol " + s);
 		if (names.containsKey(s))
 			return symbols.get(names.get(s));
 		int num = symbols.size();
+System.out.println("=> " + num);
 		SuSymbol symbol = new SuSymbol(s, num);
 		names.put(s, num);
 		symbols.add(symbol);
