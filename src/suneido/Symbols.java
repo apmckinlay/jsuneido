@@ -37,7 +37,8 @@ public class Symbols {
 	}
 	
 	static {
-		for (String s : new String[] { "<call>", "Default", "<each>", "<each1>", "<named>",
+		for (String s : new String[] { 
+				"<call>", "Default", "<each>", "<each1>", "<named>",
 				"Substr", "i", "n", "Size", 
 				"<call_instance>", "<call_class>", "<instantiate>", "New" }) 
 			symbol(s);
