@@ -45,11 +45,9 @@ public class Symbols {
 	}
 	
 	public static SuSymbol symbol(String s) {
-System.out.println("symbol " + s);
 		if (names.containsKey(s))
 			return symbols.get(names.get(s));
 		int num = symbols.size();
-System.out.println("=> " + num);
 		SuSymbol symbol = new SuSymbol(s, num);
 		names.put(s, num);
 		symbols.add(symbol);
