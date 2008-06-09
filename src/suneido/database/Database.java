@@ -9,7 +9,7 @@ public class Database {
 	private Mmfile mmf;
 	private DbHdr dbhdr;
 	private boolean loading = false;
-//	private int clock = 1;
+//	private long clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	static class TN {
