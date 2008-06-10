@@ -32,31 +32,33 @@ public class BufRecord {
 		final static int NFIELDS = 1;	// short
 		final static int SIZE = 3;		// byte, short, or int <= type
 	}
+	public enum Mode { INIT };
 	
 	/**
 	 * Create a new BufRecord, allocating a new ByteBuffer
 	 * @param sz The required size, including both data and offsets
 	 */
-	BufRecord(int sz) {
-		this(ByteBuffer.allocate(sz), sz);
+	BufRecord(int size) {
+		this(ByteBuffer.allocate(size), size);
 	}
 	
 	/**
 	 * Create a new BufRecord using a supplied ByteBuffer.
 	 * @param buf
-	 * @param sz The size of the buffer. Used to determine the required representation.
+	 * @param size The size of the buffer. Used to determine the required representation.
 	 */
-	BufRecord(ByteBuffer buf, int sz) {
-		verify(buf.limit() >= sz);
+	BufRecord(ByteBuffer buf, int size) {
+		verify(size <= buf.limit());
 		this.buf = buf;
-		if (sz < 0x100)
+		if (size < 0x100)
 			setType(Type.BYTE);
-		else if (sz < 0x10000)
+		else if (size < 0x10000)
 			setType(Type.SHORT);
 		else
 			setType(Type.INT);
 		init();
-		setSize(sz);
+		setSize(size);
+		setNfields(0);
 	}
 	
 	/**
@@ -73,19 +75,22 @@ public class BufRecord {
 		case Type.SHORT :	rep = new ShortRep(); break ;
 		case Type.INT :		rep = new IntRep(); break ;
 		default :			throw SuException.unreachable();
-		}
+	}
 	}
 	
 	public ByteBuffer getBuf() {
 		return buf;
 	}
 	
-	void add(byte[] data) {
+	public int alloc(int len) {
 		int n = getNfields();
-		int offset = rep.getOffset(n - 1) - data.length;
+		int offset = rep.getOffset(n - 1) - len;
 		rep.setOffset(n, offset);
 		setNfields(n + 1);
-		buf.position(offset);
+		return offset;
+	}
+	public void add(byte[] data) {
+		buf.position(alloc(data.length));
 		buf.put(data);
 	}
 	public ByteBuffer get(int i) {
@@ -103,10 +108,14 @@ public class BufRecord {
 			return new byte[0];
 		int start = rep.getOffset(i);
 		int end = rep.getOffset(i - 1);
+		verify(end - start < Short.MAX_VALUE);
 		byte[] result = new byte[end - start];
 		buf.position(start);
 		buf.get(result);
 		return result;
+	}
+	public int size() {
+		return getSize();
 	}
 	/**
 	 * @param i The index of the field to get the size of.

@@ -1,6 +1,7 @@
 package suneido.database;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -18,8 +19,10 @@ public class DatabaseTest {
 		db.close();
 		
 		db = new Database("tmp1", Mode.OPEN);
-		assertEquals(1234, db.adr(offset).getInt());
-		BufRecord br = new BufRecord(db.adr(offset + 4));
+		ByteBuffer bb = db.adr(offset);
+		assertEquals(1234, bb.getInt());
+		bb.position(4);
+		BufRecord br = new BufRecord(bb.slice());
 		assertArrayEquals(b, br.getBytes(0));
 	}
 	

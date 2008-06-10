@@ -73,7 +73,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		verify(file_size >= 0);
 		if (file_size == 0) {
 			set_file_size(file_size = FILEHDR);
-			adr(0).put(magic);
+			buf(0).put(magic);
 		} else {
 			String err = checkfile();
 			if (err != "")
@@ -82,7 +82,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	}
 	private String checkfile() {
 		byte[] buf = new byte[4];
-		adr(0).get(buf);
+		buf(0).get(buf);
 		if (! Arrays.equals(buf, magic))
 			return "bad magic";
 		if (file_size >= (long) MB_MAX_DB * 1024 * 1024)
@@ -137,11 +137,11 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	}
 	
 	private long get_file_size() {
-		return intToOffset(adr(FILESIZE_OFFSET).getInt());
+		return intToOffset(buf(FILESIZE_OFFSET).getInt());
 	}
 	private void set_file_size(long size) {
 		verify((size % ALIGN) == 0);
-		adr(FILESIZE_OFFSET).putInt(offsetToInt(size));
+		buf(FILESIZE_OFFSET).putInt(offsetToInt(size));
 	}
 	
 	public long size() {
@@ -168,7 +168,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		long offset = file_size + HEADER;
 		file_size += n + OVERHEAD;
 		set_file_size(file_size);
-		ByteBuffer p = adr(offset - HEADER);
+		ByteBuffer p = buf(offset - HEADER);
 		p.putInt(0, n | t); // header
 		p.putInt(HEADER + n, n ^ (int) (offset + n)); // trailer
 		return offset;
@@ -185,6 +185,11 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	}
 
 	public ByteBuffer adr(long offset) {
+		ByteBuffer buf = buf(offset);
+		buf.limit(length(offset));
+		return buf;
+	}
+	private ByteBuffer buf(long offset) {
 		verify(offset >= 0);
 		verify(offset < file_size);
 		int chunk = (int) (offset / chunk_size);
@@ -247,7 +252,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	private MmCheck check(long offset) {
 		if (offset >= file_size + HEADER)
 			return MmCheck.EOF;
-		ByteBuffer p = adr(offset - HEADER);
+		ByteBuffer p = buf(offset - HEADER);
 		int n = length(p);
 		if (n > chunk_size)
 			return MmCheck.ERR;
@@ -258,13 +263,13 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		return MmCheck.OK;
 	}
 	public int length(long offset) {
-		return length(adr(offset - HEADER));
+		return length(buf(offset - HEADER));
 	}
 	private int length(ByteBuffer bb) {
 		return bb.getInt(0)& ~(ALIGN - 1);
 	}
 	private byte type(long offset) {
-		return type(adr(offset - HEADER));
+		return type(buf(offset - HEADER));
 	}
 	private byte type(ByteBuffer bb) {
 		return (byte) (bb.getInt(0) & (ALIGN - 1));
@@ -332,7 +337,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		public ByteBuffer next() {
 			do {
 				offset -= OVERHEAD;
-				int n = adr(offset).getInt() ^ (int) offset;
+				int n = buf(offset).getInt() ^ (int) offset;
 				if (n > chunk_size || n > offset) {
 					err = true;
 					offset = BEGIN_OFFSET;
