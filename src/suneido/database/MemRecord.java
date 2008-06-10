@@ -27,7 +27,7 @@ public class MemRecord {
 		int size = 0;
 		for (byte[] each : values)
 			size += each.length;
-		return BufRecord.bufsize(values.size(), size);
+		return BufRecord.bufSize(values.size(), size);
 	}
 	
 	/**

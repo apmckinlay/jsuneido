@@ -40,7 +40,7 @@ public class SuBoolean extends SuValue {
 	}
 
 	@Override
-	public int packsize() {
+	public int packSize() {
 		return 1;
 	}
 	@Override

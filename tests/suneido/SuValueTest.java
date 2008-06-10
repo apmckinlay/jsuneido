@@ -90,7 +90,7 @@ public class SuValueTest {
 			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, SuInteger.from(123),
 			SuString.EMPTY, new SuString("abc") };
 		for (SuValue x : values) {
-			ByteBuffer buf = ByteBuffer.allocate(x.packsize());
+			ByteBuffer buf = ByteBuffer.allocate(x.packSize());
 			x.pack(buf);
 			buf.position(0);
 			SuValue y = SuValue.unpack(buf);
