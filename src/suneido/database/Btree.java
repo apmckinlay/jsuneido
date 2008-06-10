@@ -3,26 +3,24 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 
-public class Btree <LeafSlots extends Slots, TreeSlots extends Slots, Key, Dest extends Destination> {
+public class Btree {
 	final public static int MAXLEVELS = 20;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
 	enum Insert { OK, DUP, FULL };	// return values for insert
 	
-	private Dest dest;
+	private Destination dest;
 	private long root_;
 	private int treelevels;	// not including leaves
 	private int nnodes;
 	private long modified = 0;
-	private Slots.Factory<LeafSlots> leafFactory;
-	private Slots.Factory<TreeSlots> treeFactory;
 
-	public Btree(Dest dest) {
+	public Btree(Destination dest) {
 		this.dest = dest;
 		root_ = 0;
 		treelevels = 0;
 		nnodes = 0;
 	}
-	public Btree(Dest dest, long root, int treelevels, int nnodes) {
+	public Btree(Destination dest, long root, int treelevels, int nnodes) {
 		this.dest = dest;
 		verify(root >= 0); 
 		root_ = root;
@@ -33,31 +31,31 @@ public class Btree <LeafSlots extends Slots, TreeSlots extends Slots, Key, Dest 
 	}
 	
 	private class LeafNode {
-		LeafSlots slots;
+		Slots slots;
 		
-		LeafNode(LeafSlots slots) {
+		LeafNode(Slots slots) {
 			this.slots = slots;
 			setNext(0);
 			setPrev(0);
 			}
-		Insert insert(LeafSlots.Slot x)
+		Insert insert(Slot x)
 			{
 			int slot = slots.lower_bound(x);
-			if (slot < slots.end() && slots.get(slot) == x)
+			if (slot < slots.size() && slots.get(slot) == x)
 				return Insert.DUP;
 			else if (! slots.insert(slot, x))
 				return Insert.FULL;
 			return Insert.OK;
 			}
-		boolean erase(LeafSlots.Slot x)
+		boolean erase(Slot x)
 			{
 			int slot = slots.lower_bound(x);
-			if (slot == slots.end() || slots.get(slot) != x)
+			if (slot == slots.size() || slots.get(slot) != x)
 				return false;
 			slots.erase(slot);
 			return true;
 			}
-		long split(LeafSlots.Slot x, long off)
+		long split(Slot x, long off)
 			{
 			// variable split
 			int percent = 50;
@@ -66,13 +64,13 @@ public class Btree <LeafSlots extends Slots, TreeSlots extends Slots, Key, Dest 
 			else if (x.compareTo(slots.back()) > 0)
 				percent = 25;
 			long leftoff = dest.alloc(NODESIZE);
-			LeafSlots leftslots = leafFactory.create(dest.adr(leftoff));
+			Slots leftslots = new Slots(dest.adr(leftoff));
 			LeafNode left = new LeafNode(leftslots);
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first half of right keys to left
-			left.slots.append(slots, 0, slots.end() - nright);
-			slots.erase(0, slots.end() - nright);
+			left.slots.append(slots, 0, slots.size() - nright);
+			slots.erase(0, slots.size() - nright);
 			// maintain linked list of leaves
 			left.setPrev(prev());
 			left.setNext(off);

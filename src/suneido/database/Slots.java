@@ -2,34 +2,56 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-public abstract class Slots {
-	protected ByteBuffer buf;
-
-	public abstract static class Slot {
-		abstract int compareTo(Slot other);
-	}
-	public abstract static class Factory <T> {
-		abstract T create(ByteBuffer buf);
-	}
+public class Slots {
+	final private static int NEXT_OFFSET = 0;
+	final private static int PREV_OFFSET = 4;
+	final private static int REC_OFFSET = 8;
+	final protected static int BUFSIZE = Btree.NODESIZE - 8;
+	
+	private ByteBuffer buf;
+	private BufRecord rec;
 	
 	public Slots(ByteBuffer buf) {
 		this.buf = buf;
+		buf.position(REC_OFFSET);
+		rec = new BufRecord(buf.slice());
 	}
 
-	abstract public boolean empty();
-	abstract public int size();
-	abstract public int end();
-	abstract public Slot front();
-	abstract public Slot back();
-	abstract public Slot get(int i);
-	abstract public boolean insert(int i, Slot slot);
-	abstract public void append(Slots slots, int begin, int end);
-	abstract public void erase(int i);
-	abstract public void erase(Slot slot);
-	abstract public void erase(int begin, int end);
+	public boolean empty() {
+		return rec.size() == 0;
+	}
+	public int size() {
+		return rec.size();
+	}
+	public Slot front() {
+		return get(0);
+	}
+	public Slot back() {
+		return get(size() - 1);
+	}
+	public Slot get(int i) {
+		return null;
+	}
+	public boolean insert(int i, Slot slot) {
+		return true;
+	}
+	public void append(Slot slot) {
+		int pos = rec.alloc(slot.bufsize());
+		buf.position(REC_OFFSET + pos);
+		buf.put(slot.buf);
+	}
+	public void append(Slots slots, int begin, int end) {
+		for (int i = begin; i < end; ++i) {
+			append(slots.get(i));
+		}
+	}
+	public void erase(int i) {
+	}
+	public void erase(Slot slot) {
+	}
+	public void erase(int begin, int end) {
+	}
 	
-	final private static int NEXT_OFFSET = Btree.NODESIZE - 4;
-	final private static int PREV_OFFSET = Btree.NODESIZE - 8;
 	public long next() {
 		return buf.getLong(NEXT_OFFSET);
 	}
