@@ -2,6 +2,13 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Collection of {@link Slot}'s for a {@link Btree} node,
+ * plus next and prev addresses (offsets in the database).
+ * Next and prev are stored at the start of the buffer
+ * followed by a {@link BufRecord} holding the slots.
+ * @author Andrew McKinlay
+ */
 public class Slots {
 	final private static int NEXT_OFFSET = 0;
 	final private static int PREV_OFFSET = 4;
@@ -18,10 +25,10 @@ public class Slots {
 	}
 
 	public boolean empty() {
-		return rec.size() == 0;
+		return rec.bufSize() == 0;
 	}
 	public int size() {
-		return rec.size();
+		return rec.bufSize();
 	}
 	public Slot front() {
 		return get(0);
@@ -36,9 +43,7 @@ public class Slots {
 		return true;
 	}
 	public void append(Slot slot) {
-		int pos = rec.alloc(slot.bufsize());
-		buf.position(REC_OFFSET + pos);
-		buf.put(slot.buf);
+		rec.add(slot);
 	}
 	public void append(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {

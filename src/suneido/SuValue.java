@@ -2,7 +2,7 @@ package suneido;
 
 import java.nio.ByteBuffer;
 
-public abstract class SuValue {
+public abstract class SuValue implements Packable {
 	public abstract String toString();
 
 	// sequence must match Order
@@ -19,10 +19,11 @@ public abstract class SuValue {
 		static final byte CLASS = 9;
 	}
 	
-	public /*abstract*/ int packsize() {
-		return 0;
+	public int packSize() {
+		throw new SuException(typeName() + " cannot be stored");
 	}
-	public /*abstract*/ void pack(ByteBuffer buf) {
+	public void pack(ByteBuffer buf) {
+		throw new SuException(typeName() + " cannot be stored");
 	}
 	public static SuValue unpack(ByteBuffer buf) {
 		if (buf.limit() == 0)

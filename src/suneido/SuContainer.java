@@ -1,5 +1,6 @@
 package suneido;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,5 +116,15 @@ public class SuContainer extends SuValue {
 	}
 	public int vecsize() {
 		return vec.size();
+	}
+	@Override
+	public void pack(ByteBuffer buf) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public int packSize() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

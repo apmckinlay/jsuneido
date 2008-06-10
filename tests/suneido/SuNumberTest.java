@@ -14,7 +14,7 @@ public class SuNumberTest {
 				};
 		for (String s : values) {
 			SuValue x = new SuDecimal(s);
-			ByteBuffer buf = ByteBuffer.allocate(x.packsize());
+			ByteBuffer buf = ByteBuffer.allocate(x.packSize());
 			x.pack(buf);
 			SuValue y = SuValue.unpack(buf);
 			assertEquals(x, y);

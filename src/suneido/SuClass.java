@@ -2,6 +2,8 @@ package suneido;
 
 import static suneido.Symbols.*;
 
+import java.nio.ByteBuffer;
+
 /**
  * The Java base class for compiled Suneido classes.
  * The Java class hierarchy is "flat".

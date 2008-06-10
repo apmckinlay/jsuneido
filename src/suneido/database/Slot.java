@@ -3,30 +3,33 @@ package suneido.database;
 import java.nio.ByteBuffer;
 
 /**
- * Wrapper for a ByteBuffer.
- * First part is always a key as a BufRecord.
- * If tree slot, then end of buffer is a long address.
- * Comparisons are by initial key only.
+ * Holds an index node "slot" while in memory.
+ * Comparisons are by key only. (not addresses)
+ * Used with {@link Slots}
  * @author Andrew McKinlay
- *
  */
-class Slot {
-	ByteBuffer buf;
+public class Slot implements suneido.Packable, Comparable<Slot> {
+	public final BufRecord key;
+	public final long[] adrs;
 	
-	public Slot(ByteBuffer buf) {
-		this.buf = buf;
+	public Slot(BufRecord key, long ... adrs) {
+		this.key = key;
+		this.adrs = adrs;
 	}
 	
 	public int compareTo(Slot other) {
-		return 0; //TODO
+		return key.compareTo(other.key);
 	}
-	public BufRecord key() {
-		return new BufRecord(buf);
+	
+	public int packSize() {
+		return key.packSize() + 4 * adrs.length;
 	}
-	public long adr() {
-		return buf.getLong(buf.limit() - 4);
+	public void pack(ByteBuffer buf) {
+		key.pack(buf);
+		for (long adr : adrs)
+			buf.putLong(adr);
 	}
-	public int bufsize() {
-		return buf.limit();
+	public static Slot unpack(ByteBuffer buf) {
+		return null; //TODO
 	}
 }
