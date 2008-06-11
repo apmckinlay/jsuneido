@@ -76,9 +76,14 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		}
 	}
 	
+	// add's ========================================================
+	
 	public void add(byte[] data) {
 		buf.position(alloc(data.length));
 		buf.put(data);
+	}
+	public void add(ByteBuffer src) {
+		add(src, 0, src.limit());
 	}
 	public void add(ByteBuffer src, int pos, int len) {
 		buf.position(alloc(len));
@@ -97,6 +102,31 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		setNfields(n + 1);
 		return offset;
 	}
+
+	public boolean insert(int at, Packable x) {
+		int len = x.packSize();
+		if (len > rep.avail())
+			return false;
+		int n = getNfields();
+		// insert into heap
+		moveLeft(rep.getOffset(n - 1), rep.getOffset(at - 1), len);
+		// insert into offsets
+		// adjust offsets after it (after because heap grows down)
+		rep.insert1(at, n, len);
+		int pos = rep.getOffset(at - 1) - len;
+		rep.setOffset(at, pos);
+		buf.position(pos);
+		x.pack(buf);
+		setNfields(n + 1);
+		return true;
+	}
+	private void moveLeft(int start, int end, int amount) {
+		for (int i = start; i < end; ++i)
+			buf.put(i - amount, buf.get(i));
+	}
+
+	// get's ========================================================
+	
 	private final static ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 	public ByteBuffer get(int i) {
 		if (i >= getNfields())
@@ -202,12 +232,15 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		return rep.getOffset(-1);
 	}
 	
-	/**
-	 * A "strategy" object to avoid switching on type.
-	 */
+	// "strategy" object to avoid switching on type.
 	private abstract class Rep {
 		abstract void setOffset(int i, int offset);
 		abstract int getOffset(int i);
+		abstract int avail(); // allows for new items offset
+		private void insert1(int start, int end, int adjust) {
+			for (; end > start; --end)
+				setOffset(end, getOffset(end - 1) - adjust);
+		}
 	}
 	private class ByteRep extends Rep {
 		void setOffset(int i, int sz) {
@@ -216,6 +249,10 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		int getOffset(int i) {
 			return buf.get(Offset.SIZE + i + 1);
 		}
+		int avail() {
+			int n = getNfields();
+			return getOffset(n - 1) - (1 /*type*/ + 2 /*nfields*/ + 1 /*byte*/ * (n + 2));
+			}
 	}
 	private class ShortRep extends Rep {
 		void setOffset(int i, int sz) {
@@ -224,6 +261,10 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		int getOffset(int i) {
 			return buf.getShort(Offset.SIZE + 2 * (i + 1));
 		}
+		int avail() {
+			int n = getNfields();
+			return getOffset(n - 1) - (1 /*type*/ + 2 /*nfields*/ + 2 /*short*/ * (n + 2));
+			}
 	}
 	private class IntRep extends Rep {
 		void setOffset(int i, int sz) {
@@ -232,10 +273,39 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		int getOffset(int i) {
 			return buf.getInt(Offset.SIZE + 4 * (i + 1));
 		}
+		int avail() {
+			int n = getNfields();
+			return getOffset(n - 1) - (1 /* type */ + 2 /* nfields */ + 4 /*int*/ * (n + 2));
+			}
 	}
 
-	public int compareTo(BufRecord other) {
-		// TODO Auto-generated method stub
-		return 0;
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof BufRecord
+				? 0 == compareTo((BufRecord) other)
+				: false;
+	}
+
+	public int compareTo(BufRecord rec) {
+		if (this == rec)
+			return 0;
+		int n = Math.min(size(), rec.size());
+		for (int i = 0; i < n; ++i) {
+			int cmp = compare1(i, rec);
+			if (cmp != 0)
+				return cmp;
+		}
+		return size() - rec.size();
+	}
+	private int compare1(int fld, BufRecord rec) {
+		buf.position(rep.getOffset(fld));
+		rec.buf.position(rec.rep.getOffset(fld));
+		int n = Math.min(fieldSize(fld), rec.fieldSize(fld));
+		for (int i = 0; i < n; ++i) {
+			int cmp = buf.get() - rec.buf.get();
+			if (cmp != 0)
+				return cmp;
+		}
+		return fieldSize(fld) - rec.fieldSize(fld);
 	}
 }

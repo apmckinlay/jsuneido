@@ -11,9 +11,9 @@ import java.nio.ByteBuffer;
  */
 public class Slots {
 	final private static int NEXT_OFFSET = 0;
-	final private static int PREV_OFFSET = 4;
-	final private static int REC_OFFSET = 8;
-	final protected static int BUFSIZE = Btree.NODESIZE - 8;
+	final private static int PREV_OFFSET = 8;
+	final private static int REC_OFFSET = 16;
+	final protected static int BUFREC_SIZE = Btree.NODESIZE - 16;
 	
 	private ByteBuffer buf;
 	private BufRecord rec;
@@ -21,15 +21,19 @@ public class Slots {
 	public Slots(ByteBuffer buf) {
 		this.buf = buf;
 		buf.position(REC_OFFSET);
-		rec = new BufRecord(buf.slice());
+		rec = new BufRecord(buf.slice(), BUFREC_SIZE);
 	}
 
 	public boolean empty() {
-		return rec.bufSize() == 0;
+		return rec.size() == 0;
 	}
+	/**
+	 * @return The number of slots currently stored.
+	 */
 	public int size() {
-		return rec.bufSize();
+		return rec.size();
 	}
+	
 	public Slot front() {
 		return get(0);
 	}
@@ -37,25 +41,28 @@ public class Slots {
 		return get(size() - 1);
 	}
 	public Slot get(int i) {
-		return null;
+		return Slot.unpack(rec.get(i));
 	}
-	public boolean insert(int i, Slot slot) {
-		return true;
-	}
-	public void append(Slot slot) {
+	
+	public void add(Slot slot) {
 		rec.add(slot);
 	}
-	public void append(Slots slots, int begin, int end) {
+	public void add(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {
-			append(slots.get(i));
+			rec.add(slots.rec.get(i));
 		}
 	}
+	
+	public boolean insert(int i, Slot slot) {
+		return rec.insert(i, slot);
+	}
+	
 	public void erase(int i) {
-	}
+	} //TODO
 	public void erase(Slot slot) {
-	}
+	} //TODO
 	public void erase(int begin, int end) {
-	}
+	} //TODO
 	
 	public long next() {
 		return buf.getLong(NEXT_OFFSET);
@@ -70,14 +77,24 @@ public class Slots {
 		buf.putLong(PREV_OFFSET, value);
 	}
 
+	/**
+	 * Used to avoid instantiating a Slots object just to set next.
+	 * @param buf
+	 * @param value
+	 */
 	public static void setBufNext(ByteBuffer buf, long value) {
 		buf.putLong(NEXT_OFFSET, value);
 	}
+	/**
+	 * Used to avoid instantiating a Slots object just to set next.
+	 * @param buf
+	 * @param value
+	 */
 	public static void setBufPrev(ByteBuffer buf, long value) {
 		buf.putLong(PREV_OFFSET, value);
 	}
 	
 	public int lower_bound(Slot slot) {
-		return 0;
+		return 0; //TODO
 	}
 }

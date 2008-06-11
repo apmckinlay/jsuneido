@@ -64,23 +64,16 @@ public class Symbols {
 		
 	static class SuSymbol extends SuString {
 		private int num;
-		private int hash;
 		
 		private SuSymbol(String s, int num) {
 			super(s);
 			this.num = num;
-			hash = s.hashCode();
 		}
 		
 		public int symnum() {
 			return num;
 		}
 		
-		@Override
-		public int hashCode() {
-			return hash;
-		}
-
 		@Override
 		public boolean equals(Object value) {
 			if (value == this)

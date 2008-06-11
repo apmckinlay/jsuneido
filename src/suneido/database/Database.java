@@ -3,7 +3,6 @@ package suneido.database;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
-import java.io.File;
 
 public class Database {
 	private Mmfile mmf;
