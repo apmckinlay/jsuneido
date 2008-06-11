@@ -69,7 +69,7 @@ public class Btree {
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first half of right keys to left
-			left.slots.append(slots, 0, slots.size() - nright);
+			left.slots.add(slots, 0, slots.size() - nright);
 			slots.erase(0, slots.size() - nright);
 			// maintain linked list of leaves
 			left.setPrev(prev());
