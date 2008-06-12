@@ -7,17 +7,18 @@ public class SuInteger extends SuNumber {
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
 	
-	//TODO better way to init smallints
-	public static SuInteger[] smallints = new SuInteger[256];
-	public static void init() {
-		for (int i = 0; i < 256; ++i)
-			smallints[i] = new SuInteger(i - 128);
+	// lazy initialization as per Effective Java 
+	private static class SmallInts {
+		static SuInteger[] vals = new SuInteger[256];
+		static {
+			for (int i = 0; i < 256; ++i)
+				vals[i] = new SuInteger(i - 128);
+		}	
 	}
 	
 	public static SuInteger from(int n) {
-if (smallints[0] == null) init();
 		return -128 <= n && n < 128
-			? smallints[n + 128]
+			? SmallInts.vals[n + 128]
 			: new SuInteger(n);
 	}
 	

@@ -1,17 +1,13 @@
 package suneido.database;
 
-import java.io.File;
 import java.util.Iterator;
-
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import suneido.SuException;
-
 public class BtreeTest {
 	@Test
-	public void test1() {
-		Slot[] keys = { SlotTest.make1("a"), SlotTest.make1("m"), SlotTest.make1("z") };
+	public void one_leaf() {
+		Slot[] keys = { SlotTest.make("a"), SlotTest.make("m"), SlotTest.make("z") };
 		Btree bt = new Btree(new DestMem());
 		assertTrue(bt.insert(keys[1]));
 		assertFalse(bt.insert(keys[1]));
@@ -23,5 +19,19 @@ public class BtreeTest {
 			assertEquals(key, iter.next());
 		}
 		assertFalse(iter.hasNext());
+	}
+	
+//	@Test
+//	public void split() {
+//		Btree bt = new Btree(new DestMem());
+//		for (int i = 0; i < 100; ++i)
+//			assertTrue(bt.insert(SlotTest.make(i)));
+//		int n = 0;
+//		for (Slot slot : bt)
+//			assertEquals(n++, slot.key.getLong(1));
+//	}
+
+	public static void main(String args[]) {
+		new BtreeTest().one_leaf();
 	}
 }

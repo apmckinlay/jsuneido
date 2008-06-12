@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 
 import suneido.Packable;
 import suneido.SuException;
+import suneido.SuNumber;
 import static suneido.Suneido.verify;
 
 /**
@@ -75,8 +76,19 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		default :			throw SuException.unreachable();
 		}
 	}
+	
+	public String toString() {
+		return "BufRecord type " + (char) getType() + " nfields " + getNfields() + " size " + getSize();
+	}
+	
 	ByteBuffer getBuf() {
 		return buf;
+	}
+	
+	public BufRecord dup() {
+		ByteBuffer dst = ByteBuffer.allocate(packSize());
+		pack(dst);
+		return new BufRecord(dst);
 	}
 	
 	// add's ========================================================
@@ -126,6 +138,21 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		for (int i = start; i < end; ++i)
 			buf.put(i - amount, buf.get(i));
 	}
+	
+	public void remove(int at) {
+		int n = getNfields();
+		int len = fieldSize(at);
+		// remove from heap
+		moveRight(rep.getOffset(n - 1), rep.getOffset(at), len);
+		// remove from offsets
+		// adjust offsets after it (after because heap grows down)
+		rep.remove1(at, n, len);
+		setNfields(n - 1);
+	}
+	private void moveRight(int start, int end, int amount) {
+		for (int i = end - 1; i >= start; --i)
+			buf.put(i + amount, buf.get(i));
+	}
 
 	// get's ========================================================
 	
@@ -149,11 +176,19 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		return result;
 	}
 	
+	public long getLong(int i) {
+		return SuNumber.unpackLong(get(i));
+	}
+	
 	/**
 	 * @return The number of fields in the BufRecord.
 	 */
 	public int size() {
 		return getNfields();
+	}
+	
+	public boolean isEmpty() {
+		return size() == 0;
 	}
 	
 	/**
@@ -239,8 +274,12 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		abstract int getOffset(int i);
 		abstract int avail(); // allows for new items offset
 		private void insert1(int start, int end, int adjust) {
-			for (; end > start; --end)
-				setOffset(end, getOffset(end - 1) - adjust);
+			for (int i = end; i > start; --i)
+				setOffset(i, getOffset(i - 1) - adjust);
+		}
+		private void remove1(int start, int end, int adjust) {
+			for (int i = start; i < end; ++i)
+				setOffset(i, getOffset(i + 1) + adjust);
 		}
 	}
 	private class ByteRep extends Rep {

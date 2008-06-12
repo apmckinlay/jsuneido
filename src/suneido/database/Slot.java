@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
  * Holds an index node "slot" while in memory.
  * Comparisons are by key only. (not addresses)
  * Used with {@link Slots}
+ * Addresses (file offsets) are stored as int's
+ * by aligning and shifting right.
  * @author Andrew McKinlay
  */
 public class Slot implements suneido.Packable, Comparable<Slot> {
@@ -28,12 +30,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	}
 	
 	public int packSize() {
-		return key.packSize() + 8 * adrs.length;
+		return key.packSize() + 4 * adrs.length;
 	}
 	public void pack(ByteBuffer buf) {
 		key.pack(buf);
 		for (long adr : adrs)
-			buf.putLong(adr);
+			buf.putInt(Mmfile.offsetToInt(adr));
 	}
 	/**
 	 * 
@@ -43,11 +45,11 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	 */
 	public static Slot unpack(ByteBuffer buf) {
 		BufRecord key = new BufRecord(buf);
-		int nadrs = (buf.limit() - key.bufSize()) / 8;
+		int nadrs = (buf.limit() - key.bufSize()) / 4;
 		long[] adrs = new long[nadrs];
 		buf.position(key.bufSize());
 		for (int i = 0; i < nadrs; ++i)
-			adrs[i] = buf.getLong();
+			adrs[i] = Mmfile.intToOffset(buf.getInt());
 		return new Slot(key, adrs);
 	}
 	

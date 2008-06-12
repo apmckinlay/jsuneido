@@ -9,11 +9,11 @@ public class DestMem extends Destination {
 	@Override
 	public long alloc(int size) {
 		nodes.add(ByteBuffer.allocate(size));
-		return nodes.size(); // start at one not zero
+		return nodes.size() << Mmfile.SHIFT; // start at one not zero
 	}
 	
 	@Override
 	public ByteBuffer adr(long offset) {
-		return nodes.get((int) offset - 1);
+		return nodes.get((int) (offset >> Mmfile.SHIFT) - 1);
 	}
 }

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import suneido.SuInteger;
 import suneido.SuString;
 
 public class SlotTest {
@@ -17,11 +18,11 @@ public class SlotTest {
 		slot = new Slot(r);
 		assertEquals(r.packSize(), slot.packSize());
 		
-		slot = new Slot(r, 123);
-		assertEquals(r.packSize() + 8, slot.packSize());
+		slot = new Slot(r, 1200);
+		assertEquals(r.packSize() + 4, slot.packSize());
 
-		slot = new Slot(r, 123, 456);
-		assertEquals(r.packSize() + 16, slot.packSize());
+		slot = new Slot(r, 1200, 3400);
+		assertEquals(r.packSize() + 8, slot.packSize());
 
 		ByteBuffer buf = ByteBuffer.allocate(slot.packSize());
 		slot.pack(buf);
@@ -30,12 +31,20 @@ public class SlotTest {
 		assertArrayEquals(slot.adrs, slot2.adrs);
 		}
 	
-	public static Slot make1(String ... args) {
+	public static Slot make(String ... args) {
 		if (args.length == 0)
 			args = new String[] { "hello" };
 		BufRecord r = new BufRecord(100);
 		for (String s : args)
 			r.add(new SuString(s));
+		return new Slot(r);
+	}
+	
+	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
+	public static Slot make(int num) {
+		BufRecord r = new BufRecord(100);
+		r.add(filler);
+		r.add(SuInteger.from(num));
 		return new Slot(r);
 	}
 	

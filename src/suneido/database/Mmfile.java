@@ -27,7 +27,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	final private static int ALIGN = 8;
 	final private static int MB_PER_CHUNK = 4;
 	final private static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
-	final private static int SHIFT = 2;
+	final public static int SHIFT = 2;
 	final private static int MB_MAX_DB = 16 * 1024; // 16 gb
 	final private static int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
 	final private static int FILEHDR = 8; // should be multiple of align
