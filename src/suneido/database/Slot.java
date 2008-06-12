@@ -17,6 +17,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 		this.adrs = adrs;
 	}
 	
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof Slot
+			? 0 == compareTo((Slot) other)
+			: false;
+	}
 	public int compareTo(Slot other) {
 		return key.compareTo(other.key);
 	}

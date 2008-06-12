@@ -13,7 +13,8 @@ public class Slots {
 	final private static int NEXT_OFFSET = 0;
 	final private static int PREV_OFFSET = 8;
 	final private static int REC_OFFSET = 16;
-	final protected static int BUFREC_SIZE = Btree.NODESIZE - 16;
+	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
+	enum Mode { INIT };
 	
 	private ByteBuffer buf;
 	private BufRecord rec;
@@ -21,9 +22,14 @@ public class Slots {
 	public Slots(ByteBuffer buf) {
 		this.buf = buf;
 		buf.position(REC_OFFSET);
+		rec = new BufRecord(buf.slice());
+	}
+	public Slots(ByteBuffer buf, Mode mode) {
+		this.buf = buf;
+		buf.position(REC_OFFSET);
 		rec = new BufRecord(buf.slice(), BUFREC_SIZE);
 	}
-
+	
 	public boolean empty() {
 		return rec.size() == 0;
 	}
@@ -58,7 +64,7 @@ public class Slots {
 	}
 	
 	public void erase(int i) {
-	} //TODO
+	} //TODO 
 	public void erase(Slot slot) {
 	} //TODO
 	public void erase(int begin, int end) {
@@ -94,7 +100,47 @@ public class Slots {
 		buf.putLong(PREV_OFFSET, value);
 	}
 	
+	/**
+	 * Based on C++ STL code.
+	 * @param slot
+	 * @return The <u>first</u> position where slot could be inserted
+	 * without changing the ordering.
+	 */
 	public int lower_bound(Slot slot) {
-		return 0; //TODO
+		int first = 0;
+		int len = size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (get(middle).compareTo(slot) < 0) {
+				first = middle + 1;
+				len = len - half - 1;
+			}
+			else
+				len = half;
+		}
+		return first;
+	}
+
+	/**
+	 * Based on C++ STL code.
+	 * @param slot
+	 * @return The <u>last</u> position where slot could be inserted
+	 * without changing the ordering.
+	 */
+	public int upper_bound(Slot slot) {
+		int first = 0;
+		int len = size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (slot.compareTo(get(middle)) < 0)
+				len = half;
+			else {
+				first = middle + 1;
+				len = len - half - 1;
+			}
+		}
+		return first;
 	}
 }
