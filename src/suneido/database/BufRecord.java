@@ -78,7 +78,10 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	}
 	
 	public String toString() {
-		return "BufRecord type " + (char) getType() + " nfields " + getNfields() + " size " + getSize();
+		String s = "BufRecord type " + (char) getType() + " nfields " + getNfields() + " size " + getSize() + " offsets";
+		for (int i = 0; i < getNfields(); ++i)
+			s += " " + rep.getOffset(i);
+		return s;
 	}
 	
 	ByteBuffer getBuf() {
@@ -140,14 +143,15 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	}
 	
 	public void remove(int at) {
+		remove(at, at + 1);
+	}
+	public void remove(int begin, int end) {
 		int n = getNfields();
-		int len = fieldSize(at);
-		// remove from heap
-		moveRight(rep.getOffset(n - 1), rep.getOffset(at), len);
-		// remove from offsets
-		// adjust offsets after it (after because heap grows down)
-		rep.remove1(at, n, len);
-		setNfields(n - 1);
+		verify(begin <= end && 0 <= begin && end <= n);
+		int len = rep.getOffset(begin - 1) - rep.getOffset(end - 1);
+		moveRight(rep.getOffset(n - 1), rep.getOffset(end - 1), len);
+		rep.remove(n, begin, end, len);
+		setNfields(n - (end - begin));
 	}
 	private void moveRight(int start, int end, int amount) {
 		for (int i = end - 1; i >= start; --i)
@@ -277,9 +281,9 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 			for (int i = end; i > start; --i)
 				setOffset(i, getOffset(i - 1) - adjust);
 		}
-		private void remove1(int start, int end, int adjust) {
-			for (int i = start; i < end; ++i)
-				setOffset(i, getOffset(i + 1) + adjust);
+		private void remove(int n, int start, int end, int adjust) {
+			for (int i = start; end < n; ++i)
+				setOffset(i, getOffset(end++) + adjust);
 		}
 	}
 	private class ByteRep extends Rep {

@@ -143,6 +143,13 @@ public class BufRecordTest {
 	}
 	
 	@Test
+	public void remove_range() {
+		BufRecord r = make(data, data2, data, data2);
+		r.remove(1,3);
+		assertEquals(make(data, data2), r);
+	}
+	
+	@Test
 	public void dup() {
 		BufRecord r = make(data, data2);
 		assertEquals(r, r.dup());
@@ -164,5 +171,9 @@ public class BufRecordTest {
 		for (byte[] bs : args)
 			r.add(bs);
 		return r;
+	}
+
+	public static void main(String args[]) {
+		new BufRecordTest().remove_range();
 	}
 }
