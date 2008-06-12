@@ -1,7 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-//import java.util.Random;
+import static suneido.Suneido.verify;
 
 public abstract class SuNumber extends SuValue {
 	protected abstract long unscaled();
@@ -51,9 +51,9 @@ public abstract class SuNumber extends SuValue {
 			n *= 10;
 		e = e / 4 + packshorts(n);
 		buf.put((byte) (e + 128));
-		packLong(buf, n);
+		packLongPart(buf, n);
 	}
-	private void packLong(ByteBuffer buf, long n) {
+	private void packLongPart(ByteBuffer buf, long n) {
 		short sh[] = new short[4];
 		int i;
 		for (i = 0; n != 0; ++i) {
@@ -68,7 +68,7 @@ public abstract class SuNumber extends SuValue {
 		if (buf.limit() <= 1)
 			return SuInteger.ZERO;
 		int s = (int) (buf.get(1) & 0xff) - 128;
-		long n = unpackLong(buf);
+		long n = unpackLongPart(buf);
 		s = -(s - packshorts(n)) * 4;
 		if (-10 <= s && s < 0)
 			for (; s < 0; ++s)
@@ -80,11 +80,21 @@ public abstract class SuNumber extends SuValue {
 		else
 			return new SuDecimal(n, s);
 	}
-	private static long unpackLong(ByteBuffer buf) {
+	private static long unpackLongPart(ByteBuffer buf) {
 		long n = 0;
 		for (int i = 2; i < buf.limit(); i += 2)
 			n = n * 10000 + buf.getShort(i);
 		return n;
+	}
+	
+	/**
+	 * <b>Warning:</b> This <u>ignores</u> any scale.
+	 * @param buf
+	 * @return
+	 */
+	public static long unpackLong(ByteBuffer buf) {
+		verify(buf.get(0) == Pack.PLUS || buf.get(0) == Pack.MINUS);
+		return unpackLongPart(buf);
 	}
 
 //	public static void main(String args[]) {

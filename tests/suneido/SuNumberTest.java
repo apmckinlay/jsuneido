@@ -3,6 +3,8 @@ package suneido;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
+
+import suneido.database.SlotTest;
 import static org.junit.Assert.*;
 
 public class SuNumberTest {
@@ -19,5 +21,13 @@ public class SuNumberTest {
 			SuValue y = SuValue.unpack(buf);
 			assertEquals(x, y);
 		}
+	}
+	
+	@Test
+	public void test() {
+		SuInteger num = SuInteger.from(34);
+		ByteBuffer buf = ByteBuffer.allocate(num.packSize());
+		num.pack(buf);
+		assertEquals(34, SuNumber.unpackLong(buf));
 	}
 }

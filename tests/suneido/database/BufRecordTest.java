@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import suneido.SuInteger;
 import suneido.SuString;
 import suneido.SuValue;
 import suneido.database.BufRecord;
@@ -110,9 +111,7 @@ public class BufRecordTest {
 	
 	@Test
 	public void insert() {
-		BufRecord r = new BufRecord(40);
-		r.add(data);
-		r.add(data2);
+		BufRecord r = make(data, data2); 
 		assertArrayEquals(data, r.getBytes(0));
 		assertArrayEquals(data2, r.getBytes(1));
 		assertFalse(r.insert(1,
@@ -130,9 +129,40 @@ public class BufRecordTest {
 		assertEquals(s, SuValue.unpack(r.get(0)));
 	}
 	
-	public static BufRecord make1() {
+	@Test
+	public void remove() {
+		BufRecord r = make(data2, data2, data, data);
+		r.remove(2); // middle
+		assertEquals(make(data2, data2, data), r);
+		r.remove(0); // first
+		assertEquals(make(data2, data), r);
+		r.remove(1); // last
+		assertEquals(make(data2), r);
+		r.remove(0);
+		assertTrue(r.isEmpty());
+	}
+	
+	@Test
+	public void dup() {
+		BufRecord r = make(data, data2);
+		assertEquals(r, r.dup());
+	}
+	
+	@Test
+	public void unpackLong() {
 		BufRecord r = new BufRecord(40);
-		r.add(data);
+		r.add(SuInteger.from(0));
+		r.add(SuInteger.from(1234));
+		assertEquals(0, r.getLong(0));
+		assertEquals(1234, r.getLong(1));
+	}
+	
+	public static BufRecord make(byte[] ... args) {
+		if (args.length == 0)
+			args = new byte[][] { data };
+		BufRecord r = new BufRecord(40);
+		for (byte[] bs : args)
+			r.add(bs);
 		return r;
 	}
 }

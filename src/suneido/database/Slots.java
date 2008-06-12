@@ -2,35 +2,46 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
+//TODO store addresses as int
+
 /**
  * Collection of {@link Slot}'s for a {@link Btree} node,
  * plus next and prev addresses (offsets in the database).
  * Next and prev are stored at the start of the buffer
  * followed by a {@link BufRecord} holding the slots.
+ * Addresses (file offsets) are stored as int's
+ * by aligning and shifting right.
  * @author Andrew McKinlay
  */
 public class Slots {
 	final private static int NEXT_OFFSET = 0;
-	final private static int PREV_OFFSET = 8;
-	final private static int REC_OFFSET = 16;
+	final private static int PREV_OFFSET = 4;
+	final private static int REC_OFFSET = 8;
 	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
-	enum Mode { INIT };
 	
 	private ByteBuffer buf;
 	private BufRecord rec;
 	
 	public Slots(ByteBuffer buf) {
-		this.buf = buf;
-		buf.position(REC_OFFSET);
-		rec = new BufRecord(buf.slice());
+		this(buf, Mode.OPEN);
 	}
 	public Slots(ByteBuffer buf, Mode mode) {
 		this.buf = buf;
 		buf.position(REC_OFFSET);
-		rec = new BufRecord(buf.slice(), BUFREC_SIZE);
+		if (mode == Mode.OPEN)
+			rec = new BufRecord(buf.slice());
+		else { // mode == CREATE
+			setNext(0);
+			setPrev(0);
+			rec = new BufRecord(buf.slice(), BUFREC_SIZE);
+		}
 	}
 	
-	public boolean empty() {
+	public String toString() {
+		return "Slots next " + next() + " prev " + prev() + " " + rec;
+	}
+
+	public boolean isEmpty() {
 		return rec.size() == 0;
 	}
 	/**
@@ -63,24 +74,29 @@ public class Slots {
 		return rec.insert(i, slot);
 	}
 	
-	public void erase(int i) {
-	} //TODO 
-	public void erase(Slot slot) {
-	} //TODO
-	public void erase(int begin, int end) {
-	} //TODO
+	public void remove(int i) {
+		rec.remove(i);
+	}
+	public void remove(int begin, int end) {
+		//PERF should be one BufRecord operation
+		for (int i = end - 1; i >= begin; --i)
+			rec.remove(i);
+	} 
+	public void removeLast() {
+		remove(size() - 1);
+	}
 	
 	public long next() {
-		return buf.getLong(NEXT_OFFSET);
+		return Mmfile.intToOffset(buf.getInt(NEXT_OFFSET));
 	}
 	public long prev() {
-		return buf.getLong(PREV_OFFSET);
+		return Mmfile.intToOffset(buf.getInt(PREV_OFFSET));
 	}
 	public void setNext(long value) {
-		buf.putLong(NEXT_OFFSET, value);
+		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
 	}
 	public void setPrev(long value) {
-		buf.putLong(PREV_OFFSET, value);
+		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
 
 	/**
