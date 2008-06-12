@@ -10,12 +10,11 @@ import suneido.SuValue;
 import suneido.database.BufRecord;
 
 public class BufRecordTest {
-	final byte[] data = new byte[] { 1, 2, 3, 4 };
-	final byte[] data2 = new byte[] { 5, 6 };
+	final static byte[] data = new byte[] { 1, 2, 3, 4 };
+	final static byte[] data2 = new byte[] { 5, 6 };
 	
 	@Test
 	public void test() {
-		
 		for (int sz : new int[] { 100, 1000, 100000 }) {
 			BufRecord r = new BufRecord(sz);
 			assertEquals(sz, r.bufSize());
@@ -55,6 +54,11 @@ public class BufRecordTest {
 		SuString s = new SuString("hello");
 		r.add(s);
 		assertEquals(s, SuValue.unpack(r.get(0)));
+		SuString s2 = new SuString("world");
+		r.add(s2);
+		assertEquals(s, SuValue.unpack(r.get(0)));
+		assertEquals(s2, SuValue.unpack(r.get(1)));
+
 	}
 	
 	@Test
@@ -124,5 +128,11 @@ public class BufRecordTest {
 		assertEquals(s, SuValue.unpack(r.get(0)));
 		r.insert(1, s); // insert at end (same as add)
 		assertEquals(s, SuValue.unpack(r.get(0)));
+	}
+	
+	public static BufRecord make1() {
+		BufRecord r = new BufRecord(40);
+		r.add(data);
+		return r;
 	}
 }

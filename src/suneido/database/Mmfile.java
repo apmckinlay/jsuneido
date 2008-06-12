@@ -313,7 +313,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		return adr(p);
 		}
 		public void remove() {
-			throw SuException.unreachable();
+			throw new UnsupportedOperationException();
 		}
 		public boolean corrupt() {
 			return err;

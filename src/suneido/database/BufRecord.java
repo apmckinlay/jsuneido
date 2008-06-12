@@ -75,6 +75,9 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		default :			throw SuException.unreachable();
 		}
 	}
+	ByteBuffer getBuf() {
+		return buf;
+	}
 	
 	// add's ========================================================
 	
@@ -87,9 +90,8 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	}
 	public void add(ByteBuffer src, int pos, int len) {
 		buf.position(alloc(len));
-		src.position(pos);
-		while (len-- > 0)
-			buf.put(src.get());
+		for (int i = 0; i < len; ++i)
+			buf.put(src.get(pos + i));
 	}
 	public void add(Packable x) {
 		buf.position(alloc(x.packSize()));
@@ -199,17 +201,16 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		return bufSize(n, datasize);
 		}
 	public void pack(ByteBuffer dst) {
-		int len = getSize();
 		int packsize = packSize();
-		if (len == packsize) {
+		if (getSize() == packsize) {
 			// already "compacted" so just bulk copy
-			buf.position(0);
-			for (int i = 0; i < len; ++i)
-				dst.put(buf.get());
+			for (int i = 0; i < packsize; ++i)
+				dst.put(buf.get(i));
 		} else {
-			BufRecord dstRec = new BufRecord(dst, packsize);
+			BufRecord dstRec = new BufRecord(dst.slice(), packsize);
 			for (int i = 0; i < getNfields(); ++i)
 				dstRec.add(buf, rep.getOffset(i), fieldSize(i));
+			dst.position(dst.position() + packsize);
 		}
 	}
 	
