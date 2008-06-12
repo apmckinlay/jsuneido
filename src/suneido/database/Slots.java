@@ -78,9 +78,7 @@ public class Slots {
 		rec.remove(i);
 	}
 	public void remove(int begin, int end) {
-		//PERF should be one BufRecord operation
-		for (int i = end - 1; i >= begin; --i)
-			rec.remove(i);
+		rec.remove(begin, end);
 	} 
 	public void removeLast() {
 		remove(size() - 1);
