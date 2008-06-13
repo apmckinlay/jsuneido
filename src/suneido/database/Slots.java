@@ -2,8 +2,6 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-//TODO store addresses as int
-
 /**
  * Collection of {@link Slot}'s for a {@link Btree} node,
  * plus next and prev addresses (offsets in the database).
