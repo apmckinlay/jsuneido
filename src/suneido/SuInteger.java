@@ -47,7 +47,7 @@ public class SuInteger extends SuNumber {
 		
 	@Override
 	public int hashCode() {
-		return new Integer(n).hashCode();
+		return Integer.valueOf(n).hashCode();
 	}
 	@Override
 	public boolean equals(Object value) {
@@ -68,7 +68,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override 
 	public int compareToInt(SuInteger i) {
-		return new Integer(n).compareTo(i.n);
+		return Integer.valueOf(n).compareTo(i.n);
 	}
 	@Override
 	public int order() {

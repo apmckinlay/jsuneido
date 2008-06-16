@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.database.SlotTest;
 import static org.junit.Assert.*;
 
 public class SuNumberTest {
