@@ -24,14 +24,14 @@ public class BtreeTest {
 	@Test
 	public void split() {
 		Btree bt = new Btree(new DestMem());
-		for (int i = 0; i < 100; ++i)
+		for (int i = 0; i < 130; ++i)
 			assertTrue(bt.insert(SlotTest.make(i)));
 		int n = 0;
 		for (Slot slot : bt)
 			assertEquals(n++, slot.key.getLong(1));
 	}
 
-//	public static void main(String args[]) {
-//		new BtreeTest().one_leaf();
-//	}
+	public static void main(String args[]) {
+		new BtreeTest().split();
+	}
 }
