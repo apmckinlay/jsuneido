@@ -212,7 +212,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		verify(fm[chunk] == null);
 		for (int tries = 0; ; ++tries) {		
 			try {
-				fm[chunk] = fc.map(FileChannel.MapMode.READ_WRITE, chunk * chunk_size, chunk_size);
+				fm[chunk] = fc.map(FileChannel.MapMode.READ_WRITE, (long) chunk * chunk_size, chunk_size);
 				return ;
 			} catch (IOException e) {
 				if (tries > 10)

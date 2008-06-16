@@ -9,7 +9,7 @@ import static suneido.Symbols.*;
  */
 public class SuInstance extends SuValue {
 	/*private*/ SuValue myclass;
-	private HashMap<SuValue,SuValue> m;
+	private HashMap<SuValue,SuValue> m = new HashMap<SuValue, SuValue>();
 	
 	SuInstance(SuValue myclass) {
 		this.myclass = myclass;
