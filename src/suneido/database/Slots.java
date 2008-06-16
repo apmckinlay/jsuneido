@@ -89,10 +89,10 @@ public class Slots {
 		return Mmfile.intToOffset(buf.getInt(PREV_OFFSET));
 	}
 	public void setNext(long value) {
-		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
+		setBufNext(buf, value);
 	}
 	public void setPrev(long value) {
-		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
+		setBufPrev(buf, value);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class Slots {
 	 * @param value
 	 */
 	public static void setBufNext(ByteBuffer buf, long value) {
-		buf.putLong(NEXT_OFFSET, value);
+		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
 	}
 	/**
 	 * Used to avoid instantiating a Slots object just to set next.
@@ -109,7 +109,7 @@ public class Slots {
 	 * @param value
 	 */
 	public static void setBufPrev(ByteBuffer buf, long value) {
-		buf.putLong(PREV_OFFSET, value);
+		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
 	
 	/**

@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import suneido.Packable;
 import suneido.SuException;
 import suneido.SuNumber;
+import suneido.SuValue;
 import static suneido.Suneido.verify;
 
 /**
@@ -168,6 +169,10 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		ByteBuffer result = buf.slice();
 		result.limit(fieldSize(i));
 		return result;
+	}
+	
+	public SuValue getValue(int i) {
+		return SuValue.unpack(get(i));
 	}
 	
 	private final static byte[] NO_BYTES = new byte[0];

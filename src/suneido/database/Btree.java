@@ -39,7 +39,7 @@ public class Btree implements Iterable<Slot> {
 		int i; 
 		for (i = 0; i < treelevels; ++i)
 			{
-			nodes[i] = new TreeNode(dest.adr(off));
+			nodes[i] = new TreeNode(off);
 			off = nodes[i].find(x.key);
 			}
 		LeafNode leaf = new LeafNode(off);
@@ -50,7 +50,7 @@ public class Btree implements Iterable<Slot> {
 			return status == Insert.OK;
 		// split
 		++modified;
-		LeafNode left = leaf.split(x, off);
+		LeafNode left = leaf.split(x);
 		++nnodes;
 		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 ? left.insert(x) : leaf.insert(x)));
 		BufRecord key = left.slots.back().key.dup();
@@ -60,10 +60,12 @@ public class Btree implements Iterable<Slot> {
 		for (--i; i >= 0; --i)
 			{
 			if (nodes[i].insert(key, off))
+{ print();
 				return true;
+}
 			// else split
 			left.adr = nodes[i].split(key);
-			TreeNode tleft = new TreeNode(dest.adr(left.adr));
+			TreeNode tleft = new TreeNode(left.adr);
 			++nnodes;
 			verify(tleft.slots.back().key.compareTo(key) < 0 ? nodes[i].insert(key, off) : tleft.insert(key, off));
 			key = tleft.slots.back().key.dup();
@@ -72,17 +74,60 @@ public class Btree implements Iterable<Slot> {
 			off = left.adr;
 			}
 		newRoot(key, off);
+print();
 		return true ;
 	}
 	private void newRoot(BufRecord key, long off) {
 		long roff = dest.alloc(NODESIZE);
-		TreeNode r = new TreeNode(dest.adr(roff), Mode.CREATE);
+		TreeNode r = new TreeNode(roff, Mode.CREATE);
 		++nnodes;
 		r.insert(key, off);
 		r.setNext(root_);
 		root_ = roff;
 		++treelevels;
 		verify(treelevels < MAXLEVELS);
+	}
+
+	boolean erase(BufRecord key) {
+		TreeNode[] nodes = new TreeNode[MAXLEVELS];
+	
+		// search down the tree
+		long off = root();
+		int i;
+		for (i = 0; i < treelevels; ++i)
+			{
+			nodes[i] = new TreeNode(off);
+			off = nodes[i].find(key);
+			}
+		// erase the key and data from the leaf
+		LeafNode leaf = new LeafNode(off);
+		if (! leaf.erase(new Slot(key)))
+			return false;
+		if (! leaf.isEmpty() || treelevels == 0)
+			return true;	// this is the usual path
+		leaf.unlink();
+		--nnodes;
+		++modified;
+		// erase empty nodes up the tree as necessary
+		for (--i; i > 0; --i)
+			{
+			nodes[i].erase(key);
+			if (! nodes[i].isEmpty())
+				return true;
+			--nnodes;
+			}
+		nodes[0].erase(key);
+		off = root_;
+		for (; treelevels > 0; --treelevels)
+			{
+			TreeNode node = new TreeNode(off);
+			if (node.slots.size() > 0)
+				break ;
+			off = node.next();
+			--nnodes;
+			}
+		root_ = off;
+		return true;
 	}
 
 	private class LeafNode {
@@ -113,7 +158,7 @@ public class Btree implements Iterable<Slot> {
 			slots.remove(slot);
 			return true;
 			}
-		LeafNode split(Slot x, long off)
+		LeafNode split(Slot x)
 			{
 			// variable split
 			int percent = 50;
@@ -129,7 +174,7 @@ public class Btree implements Iterable<Slot> {
 			slots.remove(0, slots.size() - nright);
 			// maintain linked list of leaves
 			left.setPrev(prev());
-			left.setNext(off);
+			left.setNext(adr);
 			setPrev(left.adr); 
 			if (left.prev() != 0)
 				Slots.setBufNext(dest.adr(left.prev()), left.adr);
@@ -161,23 +206,24 @@ public class Btree implements Iterable<Slot> {
 	private class TreeNode {
 		Slots slots;
 		
-		TreeNode(ByteBuffer buf) {
-			this(buf, Mode.OPEN);
+		TreeNode(long adr) {
+			this(adr, Mode.OPEN);
 		}
-		TreeNode(ByteBuffer buf, Mode mode) {
-			slots = new Slots(buf, mode);
+		TreeNode(long adr, Mode mode) {
+			slots = new Slots(dest.adr(adr), mode);
 		}
 		
 		// returns false if no room
 		boolean insert(BufRecord key, long off) {
-			int slot = slots.lower_bound(new Slot(key));
-			verify(slot == slots.size() || slots.get(slot).key != key); // no dups
-			return slots.insert(slot, new Slot(key, off));
+			Slot slot = new Slot(key, off);
+			int i = slots.lower_bound(slot);
+			verify(i == slots.size() || ! slots.get(i).key.equals(key)); // no dups
+			return slots.insert(i, slot);
 		}
 		long find(BufRecord key)
 			{
-			int slot = slots.lower_bound(new Slot(key));
-			return slot < slots.size() ? slots.get(slot).adrs[0] : slots.next();
+			int i = slots.lower_bound(new Slot(key));
+			return i < slots.size() ? slots.get(i).adrs[0] : slots.next();
 			}
 		void erase(BufRecord key) {
 			// NOTE: erases the first key >= key
@@ -200,7 +246,7 @@ public class Btree implements Iterable<Slot> {
 			else if (key.compareTo(slots.back().key) > 0)
 				percent = 25;
 			long leftoff = dest.alloc(NODESIZE);
-			TreeNode left = new TreeNode(dest.adr(leftoff)); // create new treenode
+			TreeNode left = new TreeNode(leftoff); // create new treenode
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first part of right keys to left
@@ -211,6 +257,10 @@ public class Btree implements Iterable<Slot> {
 		boolean isEmpty() { 
 			return slots.isEmpty() && slots.next() == 0;
 			}
+
+		long next() {
+			return slots.next(); 
+		}
 		void setNext(long next) {
 			slots.setNext(next);
 		}
@@ -230,7 +280,7 @@ public class Btree implements Iterable<Slot> {
 	public Iterator<Slot> iterator() {
 		long off = root();
 		for (int i = 0; i < treelevels; ++i)
-			off = new TreeNode(dest.adr(off)).slots.front().adrs[0];
+			off = new TreeNode(off).slots.front().adrs[0];
 		LeafNode leaf = new LeafNode(off);
 		if (off == root() && leaf.isEmpty())
 			return new Iter();
@@ -283,5 +333,47 @@ public class Btree implements Iterable<Slot> {
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
+	}
+	
+	void print() {
+		print(0, 0);
+	}
+	void print(long off, int level) {
+		if (off == 0)
+			off = root();
+		if (level < treelevels)
+			{
+			TreeNode tn = new TreeNode(off);
+			int i = 0;
+			for (; i < tn.slots.size(); ++i)
+				{
+				print(tn.slots.get(i).adrs[0], level + 1);
+				for (int j = 0; j < level; ++j)
+					System.out.print("    ");
+				System.out.println(i + ": " + tn.slots.get(i).key.getValue(1));
+				}
+			if (i == 0)
+				{
+				for (int j = 0; j < level; ++j)
+					System.out.print("    ");
+				System.out.println("-o-");
+				}
+			print(tn.next(), level + 1);
+			}
+		else
+			{
+			LeafNode ln = new LeafNode(off);
+			for (int j = 0; j < level; ++j)
+				System.out.print("    ");
+			System.out.print(ln.prev() + "<<" + ln.adr + ">>" + ln.next() + "  " );
+			int i = 0;
+			for (; i < ln.slots.size(); ++i)
+				System.out.print(ln.slots.get(i).key.getValue(1) + " ");
+			System.out.println("");
+			if (level == 0 && i == 0)
+				System.out.print("- empty -");
+			}
+		if (level == 0)
+			{ System.out.println(""); }
 	}
 }
