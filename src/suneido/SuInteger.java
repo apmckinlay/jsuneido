@@ -16,7 +16,7 @@ public class SuInteger extends SuNumber {
 		}	
 	}
 	
-	public static SuInteger from(int n) {
+	public static SuInteger valueOf(int n) {
 		return -128 <= n && n < 128
 			? SmallInts.vals[n + 128]
 			: new SuInteger(n);
@@ -81,7 +81,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue addInt(SuInteger x) {
-		return from(x.n + n);
+		return valueOf(x.n + n);
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue subInt(SuInteger x) {
-		return from(x.n - n);
+		return valueOf(x.n - n);
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class SuInteger extends SuNumber {
 	}
 	@Override
 	protected SuValue mulInt(SuInteger x) {
-		return from(x.n * n);
+		return valueOf(x.n * n);
 	}
 	
 	// div is handled by SuDecimal

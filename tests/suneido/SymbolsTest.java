@@ -23,6 +23,6 @@ public class SymbolsTest {
 		SuSymbol substr = Symbols.symbol("Substr");
 		assertEquals(Num.SUBSTR, substr.symnum());
 		assertEquals(new SuString("world"), 
-				substr.invoke(Num.CALL, s, SuInteger.from(6)));
+				substr.invoke(Num.CALL, s, SuInteger.valueOf(6)));
 	}
 }

@@ -4,7 +4,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class SuIntegerTest {
-	static SuInteger si = SuInteger.from(123);
+	static SuInteger si = SuInteger.valueOf(123);
 	
 	@Test
 	public void integer() {
@@ -23,6 +23,6 @@ public class SuIntegerTest {
 		
 	@Test
 	public void equals() {
-		assertEquals(si, SuInteger.from(123));
+		assertEquals(si, SuInteger.valueOf(123));
 	}
 }
