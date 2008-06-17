@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 public class Btree implements Iterable<Slot> {
 	final public static int MAXLEVELS = 20;
+	final public static int TREENODE_PREV = Integer.MAX_VALUE & ~3;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
 	enum Insert { OK, DUP, FULL };	// return values for insert
 	
@@ -35,19 +36,58 @@ public class Btree implements Iterable<Slot> {
 	public int nnodes() {
 		return nnodes;
 	}
+	public boolean isEmpty() {
+		if (nnodes == 0)
+			return true;
+		if (treelevels > 0)
+			return false;
+		verify(nnodes == 1);
+		LeafNode leaf = new LeafNode(root());
+		return leaf.isEmpty();
+	}
+	/**
+	 * @return true if the structure is valid, false if not.
+	 * Can be used via assert(isValid()) to avoid overhead in production.
+	 */
+	public boolean isValid() {
+		return isValid(root(), 0);
+	}
+	private boolean isValid(long adr, int level) { //TODO check links
+		if (level < treelevels)
+			{
+			TreeNode tn = new TreeNode(adr);
+			if (! tn.isValid())
+				return false;
+			int i = 0;
+			for (; i < tn.slots.size(); ++i)
+				{
+				if (! isValid(tn.slots.get(i).adrs[0], level + 1))
+					return false;
+				}
+			if (! isValid(tn.next(), level + 1))
+				return false;
+			}
+		else
+			{
+			LeafNode ln = new LeafNode(adr);
+			if (! ln.isValid())
+				return false;
+			}
+		return true;
+	}
 
 	boolean insert(Slot x) { // returns false for duplicate key
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 	
 		// search down the tree
-		long off = root();
+		long adr = root();
 		int i; 
 		for (i = 0; i < treelevels; ++i)
 			{
-			nodes[i] = new TreeNode(off);
-			off = nodes[i].find(x.key);
+			nodes[i] = new TreeNode(adr);
+			adr = nodes[i].find(x.key);
 			}
-		LeafNode leaf = new LeafNode(off);
+		LeafNode leaf = new LeafNode(adr);
 	
 		// insert the key & data into the leaf
 		Insert status = leaf.insert(x);
@@ -59,24 +99,23 @@ public class Btree implements Iterable<Slot> {
 		++nnodes;
 		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 ? left.insert(x) : leaf.insert(x)));
 		BufRecord key = left.slots.back().key.dup();
-		off = left.adr; 
+		adr = left.adr; 
 	
 		// insert up the tree as necessary
 		for (--i; i >= 0; --i)
 			{
-			if (nodes[i].insert(key, off))
+			if (nodes[i].insert(key, adr))
 				return true;
 			// else split
-			left.adr = nodes[i].split(key);
-			TreeNode tleft = new TreeNode(left.adr);
+			TreeNode tleft = nodes[i].split(key);
 			++nnodes;
-			verify(tleft.slots.back().key.compareTo(key) < 0 ? nodes[i].insert(key, off) : tleft.insert(key, off));
+			verify(tleft.slots.back().key.compareTo(key) < 0 ? nodes[i].insert(key, adr) : tleft.insert(key, adr));
 			key = tleft.slots.back().key.dup();
 			tleft.setNext(tleft.slots.back().adrs[0]);
 			tleft.slots.removeLast();
-			off = left.adr;
+			adr = tleft.adr;
 			}
-		newRoot(key, off);
+		newRoot(key, adr);
 		return true ;
 	}
 	private void newRoot(BufRecord key, long off) {
@@ -142,6 +181,7 @@ public class Btree implements Iterable<Slot> {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			slots = new Slots(dest.adr(adr), mode);
+			assert(isValid());
 		}
 		Insert insert(Slot x)
 			{
@@ -203,16 +243,37 @@ public class Btree implements Iterable<Slot> {
 		void setPrev(long prev) {
 			slots.setPrev(prev);
 		}
+		
+		boolean isValid() {
+			if (prev() == TREENODE_PREV)
+				return false;
+			int n = slots.size();
+			if (n <= 1)
+				return true;
+			Slot prev = slots.get(0);
+			for (int i = 1; i < n; ++i) {
+				Slot x = slots.get(i);
+				if (prev.compareTo(slots.get(i)) >= 0)
+					return false;
+				prev = x;
+			}
+			return true;
+		}
 	}
 	
 	private class TreeNode {
 		Slots slots;
+		long adr;
 		
 		TreeNode(long adr) {
 			this(adr, Mode.OPEN);
 		}
 		TreeNode(long adr, Mode mode) {
 			slots = new Slots(dest.adr(adr), mode);
+			this.adr = adr;
+			if (mode == Mode.CREATE)
+				slots.setPrev(TREENODE_PREV);
+			assert(isValid());
 		}
 		
 		// returns false if no room
@@ -241,7 +302,7 @@ public class Btree implements Iterable<Slot> {
 			}
 			slots.remove(slot);
 		}
-		long split(BufRecord key) {
+		TreeNode split(BufRecord key) {
 			int percent = 50;
 			if (key.compareTo(slots.front().key) < 0)
 				percent = 75;
@@ -254,7 +315,7 @@ public class Btree implements Iterable<Slot> {
 			// move first part of right keys to left
 			left.slots.add(slots, 0, slots.size() - nright);
 			slots.remove(0, slots.size() - nright);
-			return leftoff;
+			return left;
 			}
 		boolean isEmpty() { 
 			return slots.isEmpty() && slots.next() == 0;
@@ -266,7 +327,25 @@ public class Btree implements Iterable<Slot> {
 		void setNext(long next) {
 			slots.setNext(next);
 		}
-	}
+
+		boolean isValid() {
+			if (slots.prev() != TREENODE_PREV)
+				return false;
+			int n = slots.size();
+			if (n > 0 && next() == 0)
+				return false;
+			if (n <= 1)
+				return true;
+			Slot prev = slots.get(0);
+			for (int i = 1; i < n; ++i) {
+				Slot x = slots.get(i);
+				if (prev.compareTo(slots.get(i)) >= 0)
+					return false;
+				prev = x;
+			}
+			return true;
+		}
+}
 	
 	public long root() {
 		if (root_ == 0)
@@ -280,13 +359,13 @@ public class Btree implements Iterable<Slot> {
 		return root_;
 	}
 	public Iterator<Slot> iterator() {
-		long off = root();
+		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
-			off = new TreeNode(off).slots.front().adrs[0];
-		LeafNode leaf = new LeafNode(off);
-		if (off == root() && leaf.isEmpty())
+			adr = new TreeNode(adr).slots.front().adrs[0];
+		LeafNode leaf = new LeafNode(adr);
+		if (adr == root() && leaf.isEmpty())
 			return new Iter();
-		return new Iter(off, leaf.slots.front());
+		return new Iter(adr, leaf.slots.front());
 	}
 	private class Iter implements Iterator<Slot> {
 		long adr; // offset of current node
@@ -338,15 +417,14 @@ public class Btree implements Iterable<Slot> {
 		}
 	}
 	
-	void print() {
-		print(0, 0);
+	public void print() {
+		print(root(), 0);
 	}
-	void print(long off, int level) {
-		if (off == 0)
-			off = root();
+	private void print(long adr, int level) {
 		if (level < treelevels)
 			{
-			TreeNode tn = new TreeNode(off);
+			System.out.println(adr + ":");
+			TreeNode tn = new TreeNode(adr);
 			int i = 0;
 			for (; i < tn.slots.size(); ++i)
 				{
@@ -365,7 +443,7 @@ public class Btree implements Iterable<Slot> {
 			}
 		else
 			{
-			LeafNode ln = new LeafNode(off);
+			LeafNode ln = new LeafNode(adr);
 			for (int j = 0; j < level; ++j)
 				System.out.print("    ");
 			System.out.print(ln.prev() + "<<" + ln.adr + ">>" + ln.next() + "  " );
