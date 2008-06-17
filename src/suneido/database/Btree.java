@@ -1,7 +1,6 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 public class Btree implements Iterable<Slot> {
@@ -29,6 +28,12 @@ public class Btree implements Iterable<Slot> {
 		this.treelevels = treelevels;
 		verify(nnodes > 0);
 		this.nnodes = nnodes;
+	}
+	public int treelevels() {
+		return treelevels;
+	}
+	public int nnodes() {
+		return nnodes;
 	}
 
 	boolean insert(Slot x) { // returns false for duplicate key
@@ -60,9 +65,7 @@ public class Btree implements Iterable<Slot> {
 		for (--i; i >= 0; --i)
 			{
 			if (nodes[i].insert(key, off))
-{ print();
 				return true;
-}
 			// else split
 			left.adr = nodes[i].split(key);
 			TreeNode tleft = new TreeNode(left.adr);
@@ -74,7 +77,6 @@ public class Btree implements Iterable<Slot> {
 			off = left.adr;
 			}
 		newRoot(key, off);
-print();
 		return true ;
 	}
 	private void newRoot(BufRecord key, long off) {
@@ -246,7 +248,7 @@ print();
 			else if (key.compareTo(slots.back().key) > 0)
 				percent = 25;
 			long leftoff = dest.alloc(NODESIZE);
-			TreeNode left = new TreeNode(leftoff); // create new treenode
+			TreeNode left = new TreeNode(leftoff, Mode.CREATE); // create new treenode
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first part of right keys to left
@@ -293,6 +295,7 @@ print();
 		
 		Iter() {
 			adr = 0; // end
+			cur_is_next = false;
 		}
 		Iter(long adr, Slot slot) {
 			this.adr = adr;

@@ -150,6 +150,6 @@ public class SuString extends SuValue {
 	}
 	
 	private SuValue size(SuValue[] args) {
-		return SuInteger.from(s.length());
+		return SuInteger.valueOf(s.length());
 	}
 }

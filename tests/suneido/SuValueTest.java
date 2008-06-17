@@ -18,7 +18,7 @@ public class SuValueTest {
 		c3.append(SuInteger.ONE);
 		SuValue[] values = {
 			SuBoolean.FALSE, SuBoolean.TRUE, 
-			SuInteger.ZERO, new SuDecimal(123), SuInteger.from(456), new SuDecimal(789),
+			SuInteger.ZERO, new SuDecimal(123), SuInteger.valueOf(456), new SuDecimal(789),
 			SuString.EMPTY, new SuString("abc"), new SuString("def"),
 			new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
 			new SuContainer(), c1, c2, c3, new SuClass() };
@@ -36,7 +36,7 @@ public class SuValueTest {
 		int[] ints = { 0, 1, -1, 123, -123 };
 		SuValue[] values = new SuValue[ints.length * 3];
 		for (int i = 0; i < ints.length; ++i) {
-			values[3 * i] = SuInteger.from(ints[i]);
+			values[3 * i] = SuInteger.valueOf(ints[i]);
 			values[3 * i + 1] = new SuDecimal(ints[i]);
 			values[3 * i + 2] = new SuString(Integer.toString(ints[i]));
 		}
@@ -86,7 +86,7 @@ public class SuValueTest {
 	public void pack() {
 		SuValue[] values = {
 			SuBoolean.FALSE, SuBoolean.TRUE, 
-			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, SuInteger.from(123),
+			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, SuInteger.valueOf(123),
 			SuString.EMPTY, new SuString("abc") };
 		for (SuValue x : values) {
 			ByteBuffer buf = ByteBuffer.allocate(x.packSize());

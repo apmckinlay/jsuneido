@@ -10,10 +10,10 @@ public class SuDecimalTest {
 		SuDecimal big = new SuDecimal(n);
 		assertEquals(big, big);
 		assertEquals(big, new SuDecimal(n));
-		assertEquals(big, SuInteger.from(n));
-		assertEquals(SuInteger.from(n), big);
+		assertEquals(big, SuInteger.valueOf(n));
+		assertEquals(SuInteger.valueOf(n), big);
 		String huge = "12345678901234567890.123456789";
 		assertEquals(new SuDecimal(huge).toString(), huge);
-		assertFalse(new SuDecimal("1.5").equals(SuInteger.from(1)));
+		assertFalse(new SuDecimal("1.5").equals(SuInteger.valueOf(1)));
 	}
 }

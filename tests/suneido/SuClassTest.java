@@ -40,7 +40,7 @@ public class SuClassTest {
 	@Test
 	public void massage() {
 		SuValue[] empty = new SuValue[0];
-		SuValue i = SuInteger.from(123);
+		SuValue i = SuInteger.valueOf(123);
 		SuValue s = new SuString("hello");
 		SuSymbol a = Symbols.symbol("a");
 		SuSymbol x = Symbols.symbol("x");
@@ -117,7 +117,7 @@ public class SuClassTest {
 		SuValue instance = subClass.invoke(Num.INSTANTIATE);
 		assertTrue(instance instanceof SuInstance);
 		assertEquals(subClass, ((SuInstance) instance).myclass);
-		assertEquals(SuInteger.from(99), instance.invoke(Num.SIZE));
+		assertEquals(SuInteger.valueOf(99), instance.invoke(Num.SIZE));
 		assertEquals(SuString.EMPTY, instance.invoke(Num.SUBSTR));
 	}
 	static class SubClass extends SuClass {
@@ -126,7 +126,7 @@ public class SuClassTest {
 		public SuValue invoke(SuValue self, int method, SuValue ... args) {
 			switch (method) {
 			case Num.SIZE :
-				return SuInteger.from(99);
+				return SuInteger.valueOf(99);
 			default :
 				return Globals.get(parent).invoke(self, method, args);
 			}

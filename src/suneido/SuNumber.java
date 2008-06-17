@@ -76,7 +76,7 @@ public abstract class SuNumber extends SuValue {
 		if (buf.get(0) == Pack.MINUS)
 			n = -n;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
-			return SuInteger.from((int) n);
+			return SuInteger.valueOf((int) n);
 		else
 			return new SuDecimal(n, s);
 	}

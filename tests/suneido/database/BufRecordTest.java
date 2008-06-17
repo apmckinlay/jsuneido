@@ -158,8 +158,8 @@ public class BufRecordTest {
 	@Test
 	public void unpackLong() {
 		BufRecord r = new BufRecord(40);
-		r.add(SuInteger.from(0));
-		r.add(SuInteger.from(1234));
+		r.add(SuInteger.valueOf(0));
+		r.add(SuInteger.valueOf(1234));
 		assertEquals(0, r.getLong(0));
 		assertEquals(1234, r.getLong(1));
 	}
@@ -172,8 +172,30 @@ public class BufRecordTest {
 			r.add(bs);
 		return r;
 	}
-
-	public static void main(String args[]) {
-		new BufRecordTest().remove_range();
+	
+	@Test
+	public void bytecmp() {
+		byte x = 3;
+		byte y = (byte) 130;
+		assertEquals(130, (y & 0xff));
+		assertTrue(x < (y & 0xff));
 	}
+	
+	@Test
+	public void order() {
+		SuValue values[] = { SuInteger.valueOf(0), SuInteger.valueOf(70), SuInteger.valueOf(140),
+				SuInteger.valueOf(9999), SuInteger.valueOf(10001) };
+		BufRecord prev = null;
+		for (SuValue x : values) {
+			BufRecord rec = new BufRecord(100);
+			rec.add(x);
+			if (prev != null)
+				assertTrue(rec.compareTo(prev) > 0);
+			prev = rec;
+		}
+	}
+
+//	public static void main(String args[]) {
+//		new BufRecordTest().remove_range();
+//	}
 }

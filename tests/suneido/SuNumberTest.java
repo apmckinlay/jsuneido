@@ -24,7 +24,7 @@ public class SuNumberTest {
 	
 	@Test
 	public void test() {
-		SuInteger num = SuInteger.from(34);
+		SuInteger num = SuInteger.valueOf(34);
 		ByteBuffer buf = ByteBuffer.allocate(num.packSize());
 		num.pack(buf);
 		assertEquals(34, SuNumber.unpackLong(buf));

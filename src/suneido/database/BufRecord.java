@@ -351,7 +351,7 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		rec.buf.position(rec.rep.getOffset(fld));
 		int n = Math.min(fieldSize(fld), rec.fieldSize(fld));
 		for (int i = 0; i < n; ++i) {
-			int cmp = buf.get() - rec.buf.get();
+			int cmp = (buf.get() & 0xff) - (rec.buf.get() & 0xff);
 			if (cmp != 0)
 				return cmp;
 		}

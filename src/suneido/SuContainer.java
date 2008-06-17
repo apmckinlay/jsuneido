@@ -19,7 +19,7 @@ public class SuContainer extends SuValue {
 		vec.add(value);
 		// check for migration from map to vec
 		while (true) {
-			SuValue num = SuInteger.from(vec.size());
+			SuValue num = SuInteger.valueOf(vec.size());
 			if (! map.containsKey(num))
 				break ;
 			vec.add(map.get(num));

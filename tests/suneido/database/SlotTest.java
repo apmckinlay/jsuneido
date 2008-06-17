@@ -40,14 +40,6 @@ public class SlotTest {
 		return new Slot(r);
 	}
 	
-	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
-	public static Slot make(int num) {
-		BufRecord r = new BufRecord(100);
-		r.add(filler);
-		r.add(SuInteger.from(num));
-		return new Slot(r);
-	}
-	
 	public static void printBuf(ByteBuffer buf) {
 		String s = "";
 		for (int j = 0; j < buf.limit(); ++j)

@@ -7,8 +7,8 @@ public class SuContainerTest {
 	@Test
 	public void add_put() {
 		SuContainer c = new SuContainer();
-		SuValue[] i = { SuInteger.from(12), SuInteger.from(34),
-			SuInteger.from(56), SuInteger.from(78) };
+		SuValue[] i = { SuInteger.valueOf(12), SuInteger.valueOf(34),
+			SuInteger.valueOf(56), SuInteger.valueOf(78) };
 		SuValue[] s = { new SuString("ab"), new SuString("cd"),
 			new SuString("ef"), new SuString("gh") };
 		
@@ -26,11 +26,11 @@ public class SuContainerTest {
 		assertEquals(i[1], c.getdata(s[0]));
 		assertEquals("[12, ab: 34]", c.toString());
 		
-		c.putdata(SuInteger.from(2), s[1]);
+		c.putdata(SuInteger.valueOf(2), s[1]);
 		assertEquals(3, c.size());
 		assertEquals(i[0], c.getdata(SuInteger.ZERO));
 		assertEquals(i[1], c.getdata(s[0]));
-		assertEquals(s[1], c.getdata(SuInteger.from(2)));
+		assertEquals(s[1], c.getdata(SuInteger.valueOf(2)));
 		assertEquals("[12, 2: cd, ab: 34]", c.toString());
 		
 		c.putdata(SuInteger.ONE, s[2]);
@@ -49,22 +49,22 @@ public class SuContainerTest {
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 		
-		one.append(SuInteger.from(123));
+		one.append(SuInteger.valueOf(123));
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 		
-		two.append(SuInteger.from(123));
+		two.append(SuInteger.valueOf(123));
 		assertEquals(one, two);
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 		
-		one.putdata(new SuString("abc"), SuInteger.from(456));
+		one.putdata(new SuString("abc"), SuInteger.valueOf(456));
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 		
-		two.putdata(new SuString("abc"), SuInteger.from(456));
+		two.putdata(new SuString("abc"), SuInteger.valueOf(456));
 		assert one.equals(two);
 		assert two.equals(one);
 		assertEquals(one.hashCode(), two.hashCode());
