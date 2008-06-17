@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.TreeSet;
 
 import org.junit.Test;
 
@@ -16,10 +17,13 @@ public class BtreeTest {
 	public void one_leaf() {
 		Slot[] keys = { SlotTest.make("a"), SlotTest.make("m"), SlotTest.make("z") };
 		Btree bt = new Btree(new DestMem());
+		assertTrue(bt.isEmpty());
+		assertFalse(bt.iterator().hasNext());
 		assertTrue(bt.insert(keys[1]));
 		assertFalse(bt.insert(keys[1]));
 		assertTrue(bt.insert(keys[0]));
 		assertTrue(bt.insert(keys[2]));
+		assertFalse(bt.isEmpty());
 		Iterator<Slot> iter = bt.iterator();
 		for (Slot key : keys) {
 			assertTrue(iter.hasNext());
@@ -29,27 +33,67 @@ public class BtreeTest {
 	}
 	
 	@Test
-	public void split() {
-		Destination dest = new DestMem();
-		Btree bt = new Btree(dest);
-		final int N = 100;
-		ArrayList<Integer> v = new ArrayList<Integer>();
-		for (int i = 0; i < N; ++i)
-			v.add(i);
-		// set seed so test is reproducible
-		// seed chosen to cover both 25% and 75% splits
-		Random rnd = new Random(1);
-		Collections.shuffle(v, rnd);
-		for (int i : v)
-			assertTrue(bt.insert(make(i)));
-		bt = new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());		
+	public void test() {
+		Btree bt = maketree(100);		
+		assertFalse(bt.isEmpty());
 		int n = 0;
 		for (Slot slot : bt)
 			assertEquals(n++, slot.key.getLong(1));
+		assertEquals(100, n);
+		
+		assertFalse(bt.erase(make(999)));
+		ArrayList<Integer> v = shuffled(100, 123);
+		for (int i : v)
+			bt.erase(make(i));
+		assertFalse(bt.erase(make(33)));
+		assertTrue(bt.isEmpty());
+		assertFalse(bt.iterator().hasNext());
+		}
+	
+	@Test
+	public void random() {
+		TreeSet<Integer> ts = new TreeSet<Integer>();
+		Btree bt = new Btree(new DestMem());
+		Random rnd = new Random(123);
+		final int N = 1000;
+		for (int i = 0; i < N; ++i) {
+			int x = rnd.nextInt(100);
+			if ((rnd.nextInt() & 1) == 0)
+				assertEquals(ts.add(x), bt.insert(new Slot(make(x))));				
+			else
+				assertEquals(ts.remove(x), bt.erase(make(x)));
+		}
+		Iterator<Slot> iter = bt.iterator();
+		for (int x : ts) {
+			assertTrue(iter.hasNext());
+			assertEquals(x, iter.next().key.getLong(1));
+		}
+		assertFalse(iter.hasNext());
+	}
+	
+	private Btree maketree(final int N) {
+		Destination dest = new DestMem();
+		Btree bt = new Btree(dest);
+		// seed chosen to cover both 25% and 75% splits
+		ArrayList<Integer> v = shuffled(N, 1);
+		for (int i : v)
+			assertTrue(bt.insert(new Slot(make(i))));
+		
+		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
+	}
+
+	private ArrayList<Integer> shuffled(final int N, int seed) {
+		ArrayList<Integer> v = new ArrayList<Integer>();
+		for (int i = 0; i < N; ++i)
+			v.add(i);
+		// set seed so reproducible
+		Random rnd = new Random(seed);
+		Collections.shuffle(v, rnd);
+		return v;
 	}
 
 	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
-	public static Slot make(int num) {
+	public static BufRecord make(int num) {
 		BufRecord r = new BufRecord(1000);
 		r.add(filler);
 		r.add(SuInteger.valueOf(num));
@@ -62,10 +106,10 @@ public class BtreeTest {
 		r.add(filler);
 		r.add(filler);
 		r.add(filler);
-		return new Slot(r);
-	}
+		return r;
+	}	
 	
 	public static void main(String args[]) {
-		new BtreeTest().split();
+		new BtreeTest().test();
 	}
 }
