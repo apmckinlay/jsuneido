@@ -113,6 +113,10 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		buf.position(alloc(x.packSize()));
 		x.pack(buf);
 	}
+	public void addMax() {
+		buf.position(alloc(1));
+		buf.put((byte) 0x7f);
+	}
 	private int alloc(int len) {
 		int n = getNfields();
 		int offset = rep.getOffset(n - 1) - len;

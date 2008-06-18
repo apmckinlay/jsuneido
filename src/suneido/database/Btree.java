@@ -179,6 +179,56 @@ public class Btree implements Iterable<Slot> {
 		root_ = off;
 		return true;
 	}
+	
+	public float rangefrac(BufRecord from, BufRecord to) {
+		// from is inclusive, end is exclusive
+		if (treelevels == 0)
+			{
+			LeafNode node = new LeafNode(root());
+			if (node.isEmpty())
+				return 0;
+			Slots slots = node.slots;
+			int org = slots.lower_bound(new Slot(from));
+			int end = slots.lower_bound(new Slot(to));
+			return (float) (end - org) / slots.size();
+			}
+		else
+			{
+			TreeNode node = new TreeNode(root());
+			Slots slots = node.slots;
+			int org = slots.lower_bound(new Slot(from));
+			long fromadr = org < slots.size() ? slots.get(org).adrs[0] : node.next();
+			int end = slots.lower_bound(new Slot(to));
+			long toadr = end < slots.size() ? slots.get(end).adrs[0] : node.next();
+			int n = slots.size() + 1;
+			if (n > 20)
+				return (float) (end - org) / n;
+			// not enough keys in root, look at next level
+			float pernode = (float) 1 / n;
+			float result = keyfracpos(toadr, to, 1, (float) end / n, pernode) -
+				keyfracpos(fromadr, from, 1, (float) org / n, pernode);
+			return result < 0 ? 0 : result;
+			}
+	}
+	private float keyfracpos(long adr, BufRecord key,
+		int level,		// to determine if tree or leaf
+		float start,	// the fraction into the file where this node starts
+		float nodefrac) {	// the fraction of the file under this node
+		if (level < treelevels)
+			{
+			TreeNode node = new TreeNode(adr);
+			Slots slots = node.slots;
+			int i = slots.lower_bound(new Slot(key));
+			return start + (nodefrac * i) / slots.size();
+			}
+		else
+			{
+			LeafNode node = new LeafNode(adr);
+			Slots slots = node.slots;
+			int i = slots.lower_bound(new Slot(key));
+			return start + (nodefrac * i) / slots.size();
+			}
+		}
 
 	private class LeafNode {
 		Slots slots;
@@ -203,10 +253,10 @@ public class Btree implements Iterable<Slot> {
 			}
 		boolean erase(Slot x)
 			{
-			int slot = slots.lower_bound(x);
-			if (slot == slots.size() || ! slots.get(slot).equals(x))
+			int i = slots.lower_bound(x);
+			if (i >= slots.size() || ! slots.get(i).equals(x))
 				return false;
-			slots.remove(slot);
+			slots.remove(i);
 			return true;
 			}
 		LeafNode split(Slot x)
@@ -445,7 +495,7 @@ public class Btree implements Iterable<Slot> {
 				print(tn.slots.get(i).adrs[0], level + 1);
 				for (int j = 0; j < level; ++j)
 					System.out.print("    ");
-				System.out.println(i + ": " + tn.slots.get(i).key.getValue(1));
+				System.out.println(i + ": " + tn.slots.get(i).key.getValue(0));
 				}
 			if (i == 0)
 				{
@@ -463,7 +513,7 @@ public class Btree implements Iterable<Slot> {
 			System.out.print(ln.prev() + "<<" + ln.adr + ">>" + ln.next() + "  " );
 			int i = 0;
 			for (; i < ln.slots.size(); ++i)
-				System.out.print(ln.slots.get(i).key.getValue(1) + " ");
+				System.out.print(ln.slots.get(i).key.getValue(0) + " ");
 			System.out.println("");
 			if (level == 0 && i == 0)
 				System.out.print("- empty -");

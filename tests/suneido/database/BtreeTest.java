@@ -40,29 +40,18 @@ public class BtreeTest {
 		assertFalse(bt.isEmpty());
 		int n = 0;
 		for (Slot slot : bt)
-			assertEquals(n++, slot.key.getLong(1));
+			assertEquals(n++, slot.key.getLong(0));
 		assertEquals(100, n);
 		
-		assertFalse(bt.erase(make(999)));
+		assertFalse(bt.erase(makerec(999)));
 		ArrayList<Integer> v = shuffled(100, 123);
 		for (int i : v)
-			bt.erase(make(i));
-		assertFalse(bt.erase(make(33)));
+			assertTrue("erasing " + i, bt.erase(makerec(i)));
+		assertFalse(bt.erase(makerec(33)));
 		assertTrue(bt.isEmpty());
 		assertFalse(bt.iterator().hasNext());
 		assertTrue(bt.isValid());
 		}
-	private Btree maketree(final int N) {
-		Destination dest = new DestMem();
-		Btree bt = new Btree(dest);
-		// seed chosen to cover both 25% and 75% splits
-		ArrayList<Integer> v = shuffled(N, 1);
-		for (int i : v)
-			assertTrue(bt.insert(new Slot(make(i))));
-		assertTrue(bt.isValid());
-		
-		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
-	}
 	
 	@Test
 	public void random() {
@@ -73,18 +62,75 @@ public class BtreeTest {
 		for (int i = 0; i < N; ++i) {
 			int x = rnd.nextInt(100);
 			if ((rnd.nextInt() & 1) == 0)
-				assertEquals(ts.add(x), bt.insert(new Slot(make(x))));				
+				assertEquals(ts.add(x), bt.insert(new Slot(makerec(x))));				
 			else
-				assertEquals(ts.remove(x), bt.erase(make(x)));
+				assertEquals(ts.remove(x), bt.erase(makerec(x)));
 			if (i % 10 == 0)
 				assertTrue(bt.isValid());
 		}
 		Iterator<Slot> iter = bt.iterator();
 		for (int x : ts) {
 			assertTrue(iter.hasNext());
-			assertEquals(x, iter.next().key.getLong(1));
+			assertEquals(x, iter.next().key.getLong(0));
 		}
 		assertFalse(iter.hasNext());
+	}
+		
+	@Test
+	public void rangefrac_onelevel() {
+		Btree bt = new Btree(new DestMem());
+		assertfeq(0, bt.rangefrac(makerec(10, 0), makerec(20, 0)));
+		
+		bt = maketree(100, 0);
+	
+		assertEquals(0, bt.treelevels());
+	
+		assertfeq(1, bt.rangefrac(makerec(0, 0), endkey(99)));
+		assertfeq(1, bt.rangefrac(emptykey, endkey(99)));
+		assertfeq((float) .2, bt.rangefrac(emptykey, endkey(20)));
+		assertfeq(1, bt.rangefrac(makerec(0, 0), endkey(999)));
+		assertfeq(1, bt.rangefrac(emptykey, endkey(999)));
+		assertfeq((float) .1, bt.rangefrac(makerec(10, 0), makerec(20, 0)));
+		assertfeq((float) .01, bt.rangefrac(makerec(20, 0), endkey(20)));
+		assertfeq(0, bt.rangefrac(emptykey, emptykey));
+		assertfeq(0, bt.rangefrac(makerec(999, 0), endkey(999)));
+	}
+	private BufRecord endkey(int i) {
+		BufRecord r = makerec(i, 0);
+		r.addMax();
+		return r;
+	}
+	@Test
+	public void rangefrac_multilevel() {
+		Btree bt = maketree(100);
+		assertEquals(2, bt.treelevels());
+	
+		assertfeq(1, bt.rangefrac(makerec(0), endkey(99)));
+		assertfeq((float) .1, bt.rangefrac(makerec(20), makerec(30)));
+		assertfeq((float) .2, bt.rangefrac(makerec(0), makerec(20)));
+		assertfeq((float) .01, bt.rangefrac(makerec(20), endkey(20)));
+		assertfeq(0, bt.rangefrac(emptykey, emptykey));
+		assertfeq(0, bt.rangefrac(makerec(999), endkey(999)));
+	}
+	private void assertfeq(float x, float y) {
+		assertEquals(x, y, .05);
+	}
+	final private static BufRecord emptykey = new BufRecord(10);
+
+	final private static int NFILLER = 10;
+	private Btree maketree(final int N) {
+		return maketree(N, NFILLER);
+	}
+	private Btree maketree(final int N, int nfiller) {
+		Destination dest = new DestMem();
+		Btree bt = new Btree(dest);
+		// seed chosen to cover both 25% and 75% splits
+		ArrayList<Integer> v = shuffled(N, 1);
+		for (int i : v)
+			assertTrue(bt.insert(new Slot(makerec(i, nfiller))));
+		assertTrue(bt.isValid());
+		
+		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
 	}
 	
 	private ArrayList<Integer> shuffled(final int N, int seed) {
@@ -97,24 +143,19 @@ public class BtreeTest {
 		return v;
 	}
 
-	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
-	public static BufRecord make(int num) {
-		BufRecord r = new BufRecord(1000);
-		r.add(filler);
-		r.add(SuInteger.valueOf(num));
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		r.add(filler);
-		return r;
-	}	
-	
-	public static void main(String args[]) {
-		new BtreeTest().test();
+	private static BufRecord makerec(int num) {
+		return makerec(num, NFILLER);
 	}
+	private static BufRecord makerec(int num, int nfiller) {
+		BufRecord r = new BufRecord(1000);
+		r.add(SuInteger.valueOf(num));
+		for (int i = 0; i < nfiller; ++i)
+			r.add(filler);
+		return r;
+	}
+	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
+	
+//	public static void main(String args[]) {
+//		new BtreeTest().test();
+//	}
 }
