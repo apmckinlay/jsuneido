@@ -17,12 +17,14 @@ public class BtreeTest {
 	public void one_leaf() {
 		Slot[] keys = { SlotTest.make("a"), SlotTest.make("m"), SlotTest.make("z") };
 		Btree bt = new Btree(new DestMem());
+		assertTrue(bt.isValid());
 		assertTrue(bt.isEmpty());
 		assertFalse(bt.iterator().hasNext());
 		assertTrue(bt.insert(keys[1]));
 		assertFalse(bt.insert(keys[1]));
 		assertTrue(bt.insert(keys[0]));
 		assertTrue(bt.insert(keys[2]));
+		assertTrue(bt.isValid());
 		assertFalse(bt.isEmpty());
 		Iterator<Slot> iter = bt.iterator();
 		for (Slot key : keys) {
@@ -48,7 +50,19 @@ public class BtreeTest {
 		assertFalse(bt.erase(make(33)));
 		assertTrue(bt.isEmpty());
 		assertFalse(bt.iterator().hasNext());
+		assertTrue(bt.isValid());
 		}
+	private Btree maketree(final int N) {
+		Destination dest = new DestMem();
+		Btree bt = new Btree(dest);
+		// seed chosen to cover both 25% and 75% splits
+		ArrayList<Integer> v = shuffled(N, 1);
+		for (int i : v)
+			assertTrue(bt.insert(new Slot(make(i))));
+		assertTrue(bt.isValid());
+		
+		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
+	}
 	
 	@Test
 	public void random() {
@@ -62,6 +76,8 @@ public class BtreeTest {
 				assertEquals(ts.add(x), bt.insert(new Slot(make(x))));				
 			else
 				assertEquals(ts.remove(x), bt.erase(make(x)));
+			if (i % 10 == 0)
+				assertTrue(bt.isValid());
 		}
 		Iterator<Slot> iter = bt.iterator();
 		for (int x : ts) {
@@ -71,17 +87,6 @@ public class BtreeTest {
 		assertFalse(iter.hasNext());
 	}
 	
-	private Btree maketree(final int N) {
-		Destination dest = new DestMem();
-		Btree bt = new Btree(dest);
-		// seed chosen to cover both 25% and 75% splits
-		ArrayList<Integer> v = shuffled(N, 1);
-		for (int i : v)
-			assertTrue(bt.insert(new Slot(make(i))));
-		
-		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
-	}
-
 	private ArrayList<Integer> shuffled(final int N, int seed) {
 		ArrayList<Integer> v = new ArrayList<Integer>();
 		for (int i = 0; i < N; ++i)

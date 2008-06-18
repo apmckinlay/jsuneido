@@ -50,9 +50,12 @@ public class Btree implements Iterable<Slot> {
 	 * Can be used via assert(isValid()) to avoid overhead in production.
 	 */
 	public boolean isValid() {
-		return isValid(root(), 0);
+		long[] links = new long[] { 0, -1 };
+		return isValid(root(), 0, links) 
+			&& links[1] == 0; // final next should be 0
 	}
-	private boolean isValid(long adr, int level) { //TODO check links
+	// links is checked and then set by each leaf node
+	private boolean isValid(long adr, int level, long[] links) {
 		if (level < treelevels)
 			{
 			TreeNode tn = new TreeNode(adr);
@@ -61,17 +64,23 @@ public class Btree implements Iterable<Slot> {
 			int i = 0;
 			for (; i < tn.slots.size(); ++i)
 				{
-				if (! isValid(tn.slots.get(i).adrs[0], level + 1))
+				if (! isValid(tn.slots.get(i).adrs[0], level + 1, links))
 					return false;
 				}
-			if (! isValid(tn.next(), level + 1))
+			if (! isValid(tn.next(), level + 1, links))
 				return false;
 			}
 		else
 			{
 			LeafNode ln = new LeafNode(adr);
+			if (links[0] != ln.prev())
+				return false; // our prev is wrong
+			if (links[1] != -1 && links[1] != adr)
+				return false; // previous leaf node's next was wrong
 			if (! ln.isValid())
 				return false;
+			links[0] = adr;
+			links[1] = ln.next();
 			}
 		return true;
 	}
@@ -363,8 +372,11 @@ public class Btree implements Iterable<Slot> {
 		for (int i = 0; i < treelevels; ++i)
 			adr = new TreeNode(adr).slots.front().adrs[0];
 		LeafNode leaf = new LeafNode(adr);
-		if (adr == root() && leaf.isEmpty())
+		verify(leaf.prev() == 0);
+		if (adr == root() && leaf.isEmpty()) {
+			verify(leaf.next() == 0);
 			return new Iter();
+		}
 		return new Iter(adr, leaf.slots.front());
 	}
 	private class Iter implements Iterator<Slot> {
@@ -423,6 +435,8 @@ public class Btree implements Iterable<Slot> {
 	private void print(long adr, int level) {
 		if (level < treelevels)
 			{
+			for (int j = 0; j < level; ++j)
+				System.out.print("    ");
 			System.out.println(adr + ":");
 			TreeNode tn = new TreeNode(adr);
 			int i = 0;
