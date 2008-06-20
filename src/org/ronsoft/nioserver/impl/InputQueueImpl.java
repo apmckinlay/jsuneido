@@ -41,6 +41,11 @@ class InputQueueImpl implements InputQueue
 	{
 		return (buffer == null) || (buffer.position () == 0);
 	}
+	
+	public synchronized int available()
+	{
+		return buffer == null ? 0 : buffer.position();
+	}
 
 	public synchronized int indexOf (byte b)
 	{
