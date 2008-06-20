@@ -110,16 +110,16 @@ public class StandardAcceptor
 	{
 		running = false;
 
-		for (Iterator it = threads.iterator(); it.hasNext();) {
-			Thread thread = (Thread) it.next();
+		for (Iterator<Thread> it = threads.iterator(); it.hasNext();) {
+			Thread thread = it.next();
 
 			if ((thread != null) && (thread.isAlive())) {
 				thread.interrupt();
 			}
 		}
 
-		for (Iterator it = threads.iterator(); it.hasNext();) {
-			Thread thread = (Thread) it.next();
+		for (Iterator<Thread> it = threads.iterator(); it.hasNext();) {
+			Thread thread = it.next();
 
 			try {
 				thread.join();
