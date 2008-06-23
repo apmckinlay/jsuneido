@@ -2,7 +2,6 @@ package suneido.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.TreeSet;
 
@@ -19,19 +18,20 @@ public class BtreeTest {
 		Btree bt = new Btree(new DestMem());
 		assertTrue(bt.isValid());
 		assertTrue(bt.isEmpty());
-		assertFalse(bt.iterator().hasNext());
+		assertTrue(bt.first().eof());
 		assertTrue(bt.insert(keys[1]));
 		assertFalse(bt.insert(keys[1]));
 		assertTrue(bt.insert(keys[0]));
 		assertTrue(bt.insert(keys[2]));
 		assertTrue(bt.isValid());
 		assertFalse(bt.isEmpty());
-		Iterator<Slot> iter = bt.iterator();
+		Btree.Iter iter = bt.first();
 		for (Slot key : keys) {
-			assertTrue(iter.hasNext());
-			assertEquals(key, iter.next());
+			assertFalse(iter.eof());
+			assertEquals(key, iter.cur());
+			iter.next();
 		}
-		assertFalse(iter.hasNext());
+		assertTrue(iter.eof());
 	}
 	
 	@Test
@@ -39,8 +39,8 @@ public class BtreeTest {
 		Btree bt = maketree(100);		
 		assertFalse(bt.isEmpty());
 		int n = 0;
-		for (Slot slot : bt)
-			assertEquals(n++, slot.key.getLong(0));
+		for (Btree.Iter iter = bt.first(); ! iter.eof(); iter.next())
+			assertEquals(n++, iter.cur().key.getLong(0));
 		assertEquals(100, n);
 		
 		assertFalse(bt.erase(makerec(999)));
@@ -49,7 +49,7 @@ public class BtreeTest {
 			assertTrue("erasing " + i, bt.erase(makerec(i)));
 		assertFalse(bt.erase(makerec(33)));
 		assertTrue(bt.isEmpty());
-		assertFalse(bt.iterator().hasNext());
+		assertTrue(bt.first().eof());
 		assertTrue(bt.isValid());
 		}
 	
@@ -68,12 +68,22 @@ public class BtreeTest {
 			if (i % 10 == 0)
 				assertTrue(bt.isValid());
 		}
-		Iterator<Slot> iter = bt.iterator();
+		Btree.Iter iter = bt.first();
 		for (int x : ts) {
-			assertTrue(iter.hasNext());
-			assertEquals(x, iter.next().key.getLong(0));
+			assertFalse(iter.eof());
+			assertEquals(x, iter.cur().key.getLong(0));
+			iter.next();
 		}
-		assertFalse(iter.hasNext());
+		assertTrue(iter.eof());
+
+		iter = bt.last();
+		for (int x : ts.descendingSet()) {
+			assertFalse(iter.eof());
+System.out.println(x + " cur " + iter.cur().key.getLong(0));
+			assertEquals(x, iter.cur().key.getLong(0));
+			iter.prev();
+		}
+		assertTrue(iter.eof());
 	}
 		
 	@Test
