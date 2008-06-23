@@ -14,12 +14,18 @@ public class Btree {
 	private int nnodes;
 	private long modified = 0;
 
+	/*
+	 * Create a new btree.
+	 */
 	public Btree(Destination dest) {
 		this.dest = dest;
 		root_ = 0;
 		treelevels = 0;
 		nnodes = 0;
 	}
+	/*
+	 * Open an existing btree.
+	 */
 	public Btree(Destination dest, long root, int treelevels, int nnodes) {
 		this.dest = dest;
 		verify(root >= 0); 
@@ -41,8 +47,7 @@ public class Btree {
 		if (treelevels > 0)
 			return false;
 		verify(nnodes == 1);
-		LeafNode leaf = new LeafNode(root());
-		return leaf.isEmpty();
+		return new LeafNode(root()).isEmpty();
 	}
 	/**
 	 * @return true if the structure is valid, false if not.
@@ -423,10 +428,8 @@ public class Btree {
 			adr = new TreeNode(adr).slots.front().adrs[0];
 		LeafNode leaf = new LeafNode(adr);
 		verify(leaf.prev() == 0);
-		if (adr == root() && leaf.isEmpty()) {
-			verify(leaf.next() == 0);
+		if (adr == root() && leaf.isEmpty())
 			return new Iter();
-		}
 		return new Iter(adr, leaf.slots.front());
 	}
 	public Iter last() {
@@ -435,11 +438,12 @@ public class Btree {
 			adr = new TreeNode(adr).slots.next();
 		LeafNode leaf = new LeafNode(adr);
 		verify(leaf.next() == 0);
-		if (adr == root() && leaf.isEmpty()) {
-			verify(leaf.next() == 0);
+		if (adr == root() && leaf.isEmpty())
 			return new Iter();
-		}
 		return new Iter(adr, leaf.slots.back());
+	}
+	public Iter locate(BufRecord key) {
+		return new Iter(key);
 	}
 	public class Iter {
 		long adr; // offset of current node
@@ -453,19 +457,28 @@ public class Btree {
 			this.adr = adr;
 			cur = slot;
 		}
+		private Iter(BufRecord key) {
+			seek(key);
+		}
 		
 		public boolean eof() {
 			return adr == 0;
+		}
+		public void seteof() {
+			adr = 0;
 		}
 		
 		public Slot cur() {
 			return cur;
 		}
+		public BufRecord key() {
+			return cur.key;
+		}
 		
-		//TODO copy/dup cur in next & prev ?
-		public void next() {
+		//TODO copy/dup cur in next & prev & seek ?
+		public Iter next() {
 			if (adr == 0)
-				return ;
+				return this;
 //			if (modified != valid && ! seek(cur.key))
 //				return ;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
@@ -474,10 +487,11 @@ public class Btree {
 				cur = leaf.slots.get(t);
 			else if ((adr = leaf.next()) != 0)
 				cur = new LeafNode(adr).slots.front();
+			return this;
 		}
-		public void prev() {
+		public Iter prev() {
 			if (adr == 0)
-				return ;
+				return this;
 //			if (bt->modified > valid)
 //				seek(cur.key);
 			LeafNode leaf = new LeafNode(adr);
@@ -486,6 +500,29 @@ public class Btree {
 				cur = leaf.slots.get(--t);
 			else if ((adr = leaf.prev()) != 0)
 				cur = new LeafNode(adr).slots.back();
+			return this;
+		}
+		public boolean seek(BufRecord key) {
+			adr = root();
+			for (int i = 0; i < treelevels; ++i)
+				adr = new TreeNode(adr).find(key);
+			LeafNode leaf = new LeafNode(adr);
+			if (treelevels == 0 && leaf.slots.size() == 0) {
+				adr = 0; // empty btree
+				return false;
+			}
+			int t = leaf.slots.lower_bound(new Slot(key));
+//			valid = modified;
+			boolean found;
+			if (t == leaf.slots.size()) {
+				cur = leaf.slots.get(--t);
+				next();
+				found = false;
+			} else {
+				found = (key == leaf.slots.get(t).key);
+				cur = leaf.slots.get(t);
+			}
+			return found;
 		}
 	}
 	

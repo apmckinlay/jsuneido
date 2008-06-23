@@ -194,8 +194,21 @@ public class BufRecordTest {
 			prev = rec;
 		}
 	}
+	
+	@Test
+	public void hasPrefix() {
+		BufRecord rec = new BufRecord(100);
+		BufRecord pre = new BufRecord(100);
+		assertTrue(rec.hasPrefix(pre));
+		pre.add(SuInteger.valueOf(6));
+		assertFalse(rec.hasPrefix(pre));
+		rec.add(SuInteger.valueOf(6));
+		assertTrue(rec.hasPrefix(pre));
+		rec.add(SuInteger.valueOf(99));
+		assertTrue(rec.hasPrefix(pre));
+	}
 
 //	public static void main(String args[]) {
-//		new BufRecordTest().remove_range();
+//		new BufRecordTest().hasPrefix();
 //	}
 }

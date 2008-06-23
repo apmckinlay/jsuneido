@@ -22,6 +22,7 @@ import static suneido.Suneido.verify;
  *
  */
 public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
+	public final static BufRecord EMPTYREC = new BufRecord(4);
 	private Rep rep;
 	private ByteBuffer buf;
 	
@@ -113,6 +114,13 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 		buf.position(alloc(x.packSize()));
 		x.pack(buf);
 	}
+	public void add(int x) {
+		buf.position(alloc(4));
+		buf.putInt(x);
+	}
+	public void addMmoffset(long n) {
+		add(Mmfile.offsetToInt(n));
+	}
 	public void addMax() {
 		buf.position(alloc(1));
 		buf.put((byte) 0x7f);
@@ -191,6 +199,32 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	
 	public long getLong(int i) {
 		return SuNumber.unpackLong(get(i));
+	}
+	
+	public long getMmoffset(int i) {
+		buf.position(rep.getOffset(i));
+		return Mmfile.intToOffset(buf.getInt());
+	}
+	
+	boolean hasPrefix(BufRecord r) {
+		for (int i = 0; i < r.size(); ++i)
+			if (! get(i).equals(r.get(i)))
+				return false;
+		return true;
+	}
+	boolean prefixgt(BufRecord r) {
+		int n = Math.min(size(), r.size());
+		for (int i = 0; i < n; ++i) {
+			int cmp = get(i).compareTo(r.get(i));
+			if (cmp > 0)
+				return cmp > 0;
+	}
+	// prefix equal
+	return false;
+	}
+	
+	void reuse(int n) {
+		setNfields(n);
 	}
 	
 	/**

@@ -14,6 +14,11 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public final BufRecord key;
 	public final long[] adrs;
 	
+	public Slot() {
+		key = BufRecord.EMPTYREC;
+		adrs = new long[0];
+	}
+	
 	public Slot(BufRecord key, long ... adrs) {
 		this.key = key;
 		this.adrs = adrs;
@@ -59,5 +64,9 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 		for (long adr : adrs)
 			s += " " + adr;
 		return s;
+	}
+	
+	public boolean isEmpty() {
+		return key.isEmpty();
 	}
 }
