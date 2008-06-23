@@ -1,9 +1,8 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
-import java.util.Iterator;
 
-public class Btree implements Iterable<Slot> {
+public class Btree {
 	final public static int MAXLEVELS = 20;
 	final public static int TREENODE_PREV = Integer.MAX_VALUE & ~3;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
@@ -417,7 +416,8 @@ public class Btree implements Iterable<Slot> {
 		verify(root_ >= 0);
 		return root_;
 	}
-	public Iterator<Slot> iterator() {
+	
+	public Iter first() {
 		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
 			adr = new TreeNode(adr).slots.front().adrs[0];
@@ -429,38 +429,43 @@ public class Btree implements Iterable<Slot> {
 		}
 		return new Iter(adr, leaf.slots.front());
 	}
-	private class Iter implements Iterator<Slot> {
+	public Iter last() {
+		long adr = root();
+		for (int i = 0; i < treelevels; ++i)
+			adr = new TreeNode(adr).slots.next();
+		LeafNode leaf = new LeafNode(adr);
+		verify(leaf.next() == 0);
+		if (adr == root() && leaf.isEmpty()) {
+			verify(leaf.next() == 0);
+			return new Iter();
+		}
+		return new Iter(adr, leaf.slots.back());
+	}
+	public class Iter {
 		long adr; // offset of current node
 		Slot cur;
-		boolean cur_is_next; 
 		
-		Iter() {
-			adr = 0; // end
-			cur_is_next = false;
+		private Iter() { // end
+			adr = 0;
+			cur = null;
 		}
-		Iter(long adr, Slot slot) {
+		private Iter(long adr, Slot slot) {
 			this.adr = adr;
 			cur = slot;
-			cur_is_next = true;
 		}
 		
-		public boolean hasNext() {
-			if (adr == 0)
-				return false;
-			if (cur_is_next)
-				return true;
-			advance();
-			return adr != 0;
+		public boolean eof() {
+			return adr == 0;
 		}
-
-		public Slot next() {
-			verify(cur_is_next);
-			cur_is_next = false;
+		
+		public Slot cur() {
 			return cur;
 		}
 		
-		public void advance() {
-			cur_is_next = true;
+		//TODO copy/dup cur in next & prev ?
+		public void next() {
+			if (adr == 0)
+				return ;
 //			if (modified != valid && ! seek(cur.key))
 //				return ;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
@@ -468,14 +473,19 @@ public class Btree implements Iterable<Slot> {
 			if (t < leaf.slots.size())
 				cur = leaf.slots.get(t);
 			else if ((adr = leaf.next()) != 0)
-				{
-				leaf = new LeafNode(adr);
-				cur = leaf.slots.front();
-				}
+				cur = new LeafNode(adr).slots.front();
 		}
-
-		public void remove() {
-			throw new UnsupportedOperationException();
+		public void prev() {
+			if (adr == 0)
+				return ;
+//			if (bt->modified > valid)
+//				seek(cur.key);
+			LeafNode leaf = new LeafNode(adr);
+			int t = leaf.slots.lower_bound(cur);
+			if (t > 0)
+				cur = leaf.slots.get(--t);
+			else if ((adr = leaf.prev()) != 0)
+				cur = new LeafNode(adr).slots.back();
 		}
 	}
 	

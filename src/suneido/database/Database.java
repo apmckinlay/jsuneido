@@ -7,15 +7,15 @@ import java.util.zip.Adler32;
 public class Database {
 	private Mmfile mmf;
 	private DbHdr dbhdr;
-	private boolean loading = false;
+//	private boolean loading = false;
 //	private long clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	static class TN {
 		final static private int TABLES = 0;
-		final static private int COLUMNS = 1;
+//		final static private int COLUMNS = 1;
 		final static private int INDEXES = 2;
-		final static private int VIEWS = 3;
+//		final static private int VIEWS = 3;
 	}
 	private final static int VERSION = 1;
 
@@ -38,7 +38,7 @@ public class Database {
 		}
 	}
 	private void create() {
-		loading = true;
+//		loading = true;
 		
 		dbhdr = new DbHdr(adr(alloc(DbHdr.SIZE, Mmfile.OTHER)), TN.INDEXES + 1, VERSION);
 
