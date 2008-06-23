@@ -16,4 +16,9 @@ public class DestMem extends Destination {
 	public ByteBuffer adr(long offset) {
 		return nodes.get((int) (offset >> Mmfile.SHIFT) - 1);
 	}
+
+	@Override
+	public long size() {
+		return (nodes.size() + 1) >> Mmfile.SHIFT;
+	}
 }

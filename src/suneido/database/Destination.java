@@ -8,4 +8,6 @@ abstract public class Destination {
 	
 	abstract public ByteBuffer adr(long offset);
 	
+	abstract public long size();
+	
 }

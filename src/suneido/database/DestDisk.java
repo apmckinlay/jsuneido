@@ -18,4 +18,9 @@ public class DestDisk extends Destination {
 	public ByteBuffer adr(long offset) {
 		return mmf.adr(offset);
 	}
+
+	@Override
+	public long size() {
+		return mmf.size();
+	}
 }

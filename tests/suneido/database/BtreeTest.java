@@ -6,10 +6,10 @@ import java.util.Random;
 import java.util.TreeSet;
 
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import suneido.SuInteger;
 import suneido.SuString;
-import static org.junit.Assert.*;
 
 public class BtreeTest {
 	@Test
@@ -19,6 +19,8 @@ public class BtreeTest {
 		assertTrue(bt.isValid());
 		assertTrue(bt.isEmpty());
 		assertTrue(bt.first().eof());
+		assertTrue(bt.last().eof());
+		assertTrue(bt.locate(makerec(50)).eof());
 		assertTrue(bt.insert(keys[1]));
 		assertFalse(bt.insert(keys[1]));
 		assertTrue(bt.insert(keys[0]));
@@ -32,17 +34,42 @@ public class BtreeTest {
 			iter.next();
 		}
 		assertTrue(iter.eof());
+		iter.next();
+		iter.prev();
+		assertTrue(iter.eof());
 	}
 	
 	@Test
 	public void test() {
 		Btree bt = maketree(100);		
 		assertFalse(bt.isEmpty());
+		Btree.Iter iter;
 		int n = 0;
-		for (Btree.Iter iter = bt.first(); ! iter.eof(); iter.next())
+		for (iter = bt.first(); ! iter.eof(); iter.next())
 			assertEquals(n++, iter.cur().key.getLong(0));
 		assertEquals(100, n);
+		n = 100;
+		for (iter = bt.last(); ! iter.eof(); iter.prev())
+			assertEquals(--n, iter.cur().key.getLong(0));
+		assertEquals(0, n);
 		
+		for (int i = 0; i < 100; ++i)
+			assertEquals(i, bt.locate(makerec(i)).cur().key.getLong(0));
+		
+		iter = bt.locate(makerec(33));
+		iter.next();
+		assertEquals(34, iter.cur().key.getLong(0));
+		
+		iter = bt.locate(makerec(66));
+		iter.prev();
+		assertEquals(65, iter.cur().key.getLong(0));
+		
+		iter = bt.locate(BufRecord.EMPTYREC);
+		assertEquals(0, iter.cur().key.getLong(0));
+		
+		iter = bt.locate(makerec(101));
+		assertEquals(99, iter.cur().key.getLong(0));
+
 		assertFalse(bt.erase(makerec(999)));
 		ArrayList<Integer> v = shuffled(100, 123);
 		for (int i : v)
@@ -79,7 +106,6 @@ public class BtreeTest {
 		iter = bt.last();
 		for (int x : ts.descendingSet()) {
 			assertFalse(iter.eof());
-System.out.println(x + " cur " + iter.cur().key.getLong(0));
 			assertEquals(x, iter.cur().key.getLong(0));
 			iter.prev();
 		}

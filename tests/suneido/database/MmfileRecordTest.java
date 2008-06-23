@@ -10,10 +10,11 @@ import suneido.database.Mmfile;
 import static org.junit.Assert.*;
 
 public class MmfileRecordTest {
+	private final static String file = "MmfileRecordTest";
 	@Test
 	public void test() {
-		new File("tmp1").delete();
-		Mmfile mmf = new Mmfile("tmp1", Mode.CREATE);
+		new File(file).delete();
+		Mmfile mmf = new Mmfile(file, Mode.CREATE);
 		try {
 			MemRecord mr = new MemRecord();
 			byte[] data1 = new byte[] { 1, 2, 3, 4 };
@@ -25,14 +26,14 @@ public class MmfileRecordTest {
 			mr.store(bb);
 			mmf.close();
 			
-			mmf = new Mmfile("tmp1", Mode.OPEN);
+			mmf = new Mmfile(file, Mode.OPEN);
 			bb = mmf.iterator().next();
 			BufRecord br = new BufRecord(bb);
 			assertArrayEquals(data1, br.getBytes(0));
 			assertArrayEquals(data2, br.getBytes(1));
 		} finally {
 			mmf.close();
-			new File("tmp1").delete();
+			new File(file).delete();
 		}
 	}
 }
