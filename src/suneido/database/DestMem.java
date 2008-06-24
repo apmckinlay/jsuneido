@@ -19,6 +19,6 @@ public class DestMem extends Destination {
 
 	@Override
 	public long size() {
-		return (nodes.size() + 1) >> Mmfile.SHIFT;
+		return (nodes.size() + 1) << Mmfile.SHIFT;
 	}
 }

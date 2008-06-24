@@ -64,7 +64,7 @@ public class BtreeTest {
 		iter.prev();
 		assertEquals(65, iter.cur().key.getLong(0));
 		
-		iter = bt.locate(BufRecord.EMPTYREC);
+		iter = bt.locate(BufRecord.MINREC);
 		assertEquals(0, iter.cur().key.getLong(0));
 		
 		iter = bt.locate(makerec(101));
@@ -191,7 +191,7 @@ public class BtreeTest {
 	}
 	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
 	
-//	public static void main(String args[]) {
-//		new BtreeTest().test();
-//	}
+	public static void main(String args[]) {
+		new BtreeTest().random();
+	}
 }

@@ -22,7 +22,8 @@ import static suneido.Suneido.verify;
  *
  */
 public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
-	public final static BufRecord EMPTYREC = new BufRecord(4);
+	public final static BufRecord MINREC = new BufRecord(4);
+	public final static BufRecord MAXREC = new BufRecord(7).addMax();
 	private Rep rep;
 	private ByteBuffer buf;
 	
@@ -91,9 +92,13 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	}
 	
 	public BufRecord dup() {
-		ByteBuffer dst = ByteBuffer.allocate(packSize());
-		pack(dst);
-		return new BufRecord(dst);
+		return dup(0);
+	}
+	public BufRecord dup(int extra) {
+		BufRecord dst = new BufRecord(packSize() + extra);
+		for (int i = 0; i < getNfields(); ++i)
+			dst.add(buf, rep.getOffset(i), fieldSize(i));
+		return dst;
 	}
 	
 	// add's ========================================================
@@ -121,11 +126,13 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	public void addMmoffset(long n) {
 		add(Mmfile.offsetToInt(n));
 	}
-	public void addMax() {
+	public BufRecord addMax() {
 		buf.position(alloc(1));
 		buf.put((byte) 0x7f);
+		return this;
 	}
 	private int alloc(int len) {
+		verify(len <= rep.avail());
 		int n = getNfields();
 		int offset = rep.getOffset(n - 1) - len;
 		rep.setOffset(n, offset);
