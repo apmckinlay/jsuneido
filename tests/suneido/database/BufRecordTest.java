@@ -43,10 +43,10 @@ public class BufRecordTest {
 	
 	@Test
 	public void bufsize() {
-		assertEquals(4, BufRecord.bufSize(0, 0));
-		assertEquals(10, BufRecord.bufSize(1, 5));
-		assertEquals(1205, BufRecord.bufSize(100, 1000));
-		assertEquals(104007, BufRecord.bufSize(1000, 100000));
+		assertEquals(4, BufRecord.packSize(0, 0));
+		assertEquals(10, BufRecord.packSize(1, 5));
+		assertEquals(1205, BufRecord.packSize(100, 1000));
+		assertEquals(104007, BufRecord.packSize(1000, 100000));
 	}
 	
 	@Test

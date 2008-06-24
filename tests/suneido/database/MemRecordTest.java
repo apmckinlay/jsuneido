@@ -12,7 +12,7 @@ public class MemRecordTest {
 	@Test
 	public void test() {
 		MemRecord r = new MemRecord();
-		assertEquals(4, r.bufsize());
+		assertEquals(4, r.packSize());
 		
 		assertArrayEquals(new byte[0], r.get(0));
 		
@@ -22,10 +22,11 @@ public class MemRecordTest {
 		
 		assertArrayEquals(new byte[0], r.get(1));
 		
-		assertEquals(9, r.bufsize());
+		assertEquals(9, r.packSize());
 		
-		ByteBuffer buf = ByteBuffer.allocate(r.bufsize());
-		BufRecord br = r.store(buf);
+		ByteBuffer buf = ByteBuffer.allocate(r.packSize());
+		r.pack(buf);
+		BufRecord br = new BufRecord(buf);
 		ByteBuffer bb = br.get(0);
 		assertEquals(4, bb.limit());
 		byte[] b2 = new byte[4];
