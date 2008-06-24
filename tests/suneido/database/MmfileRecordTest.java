@@ -21,9 +21,9 @@ public class MmfileRecordTest {
 			mr.add(data1);
 			byte[] data2 = new byte[] { 4, 3, 2, 1 };
 			mr.add(data2);
-			long offset = mmf.alloc(mr.bufsize(), (byte) 1);
+			long offset = mmf.alloc(mr.packSize(), (byte) 1);
 			ByteBuffer bb = mmf.adr(offset);
-			mr.store(bb);
+			mr.pack(bb);
 			mmf.close();
 			
 			mmf = new Mmfile(file, Mode.OPEN);

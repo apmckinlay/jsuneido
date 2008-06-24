@@ -19,23 +19,26 @@ public class Index {
 	/**
 	 * Create a new index.
 	 */
-	public Index(Destination dest, Visibility vis, boolean iskey, boolean unique) {
-		this.dest = dest;
-		this.vis = vis;
+	public Index(Destination dest, Visibility vis, int tblnum, String index, boolean iskey, boolean unique) {
+		init(dest, vis, tblnum, index, iskey, unique);
 		bt = new Btree(dest);
-		this.iskey = iskey;
-		this.unique = unique;
 	}
 	/**
 	 * Open an existing index.
 	 */
-	public Index(Destination dest, Visibility vis, boolean iskey, boolean unique,
+	public Index(Destination dest, Visibility vis, int tblnum, String index, boolean iskey, boolean unique,
 			long root, int treelevels, int nnodes) {
+		init(dest, vis, tblnum, index, iskey, unique);
+		bt = new Btree(dest, root, treelevels, nnodes);
+	}
+	private void init(Destination dest, Visibility vis, int tblnum,
+			String index, boolean iskey, boolean unique) {
 		this.dest = dest;
 		this.vis = vis;
-		bt = new Btree(dest, root, treelevels, nnodes);
 		this.iskey = iskey;
 		this.unique = unique;
+		this.tblnum = tblnum;
+		this.index = index;
 	}
 	
 	boolean insert(int tran, Slot x) {

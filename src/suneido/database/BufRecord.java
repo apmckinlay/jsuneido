@@ -267,7 +267,7 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	 * @param datasize The total size of the field data.
 	 * @return The minimum required buffer size.
 	 */
-	public static int bufSize(int nfields, int datasize) {
+	public static int packSize(int nfields, int datasize) {
 		int e = 1;
 		int size = 1 /* type */ + 2 /* nfields */ + e /* size */ + nfields * e + datasize;
 		if (size < 0x100)
@@ -287,7 +287,7 @@ public class BufRecord implements suneido.Packable, Comparable<BufRecord> {
 	public int packSize() {
 		int n = getNfields();
 		int datasize = getSize() - rep.getOffset(n-1);
-		return bufSize(n, datasize);
+		return packSize(n, datasize);
 		}
 	public void pack(ByteBuffer dst) {
 		int packsize = packSize();

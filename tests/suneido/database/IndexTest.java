@@ -18,21 +18,21 @@ public class IndexTest {
 	
 	@Test
 	public void normal() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), false, false);
+		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, false);
 		assertTrue(ix.insert(0, makeslot(123)));
 		assertTrue(ix.insert(0, makeslot(123)));
 	}
 	
 	@Test
 	public void key() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), true, false);
+		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", true, false);
 		assertTrue(ix.insert(0, makeslot()));
 		assertFalse(ix.insert(0, makeslot()));
 	}
 
 	@Test
 	public void unique() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), false, true);
+		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, true);
 		assertTrue(ix.insert(0, makeslot()));
 		assertTrue(ix.insert(0, makeslot()));
 		
@@ -42,7 +42,7 @@ public class IndexTest {
 	
 	@Test
 	public void next_prev() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), false, false);
+		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, false);
 		int i;
 		for (i = 0; i < 100; ++i)
 			ix.insert(0, makeslot(i));
