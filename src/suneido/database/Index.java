@@ -13,6 +13,8 @@ public class Index {
 	Btree bt;
 	boolean iskey;
 	boolean unique;
+	int tblnum;
+	String index;
 	
 	/**
 	 * Create a new index.
@@ -60,7 +62,7 @@ public class Index {
 	}
 	
 	Slot find(int tran, BufRecord key) {
-		Iter iter = begin(tran, key);
+		Iter iter = iter(tran, key).next();
 		if (iter.eof())
 			return new Slot();
 		Slot cur = iter.cur();
@@ -77,8 +79,14 @@ public class Index {
 		return true;
 	}
 	
-	Iter begin(int tran, BufRecord key) {
-		return new Iter(tran, key, key).next(); 
+	Iter iter(int tran) {
+		return new Iter(tran, BufRecord.MINREC, BufRecord.MAXREC); 
+	}
+	Iter iter(int tran, BufRecord key) {
+		return new Iter(tran, key, key); 
+	}
+	Iter iter(int tran, BufRecord from, BufRecord to) {
+		return new Iter(tran, from, to); 
 	}
 	
 	public class Iter {
@@ -87,13 +95,14 @@ public class Index {
 		BufRecord to;
 		boolean rewound = true;
 		Btree.Iter iter;
-//		TranRead tranread;
+		TranRead tranread;
 		long prevsize = Long.MAX_VALUE;
 		
 		Iter(int tran, BufRecord from, BufRecord to) {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
+			tranread = vis.read_act(tran, tblnum, index);
 		}
 		
 		boolean eof() {
@@ -106,13 +115,12 @@ public class Index {
 
 		Iter next() {
 			boolean first = true;
-			BufRecord prevkey = BufRecord.EMPTYREC;
+			BufRecord prevkey = BufRecord.MINREC;
 			if (rewound)
 				{
 				iter = bt.locate(from);
 				rewound = false;
-//				if (tranread)
-//					tranread->org = from;
+				tranread.org = from;
 				}
 			else if (! iter.eof())
 				{
@@ -127,29 +135,24 @@ public class Index {
 				iter.seteof();
 			if (! iter.eof() && (iskey || first || ! eq(iter.key(), prevkey)))
 				prevsize = dest.size();
-//			if (tranread != null)
-//				{
-//				if (iter.eof())
-//					tranread.end = to;
-//				else if (iter.key() > tranread.end)
-//					tranread.end = iter.key();
-//				}
+			if (iter.eof())
+				tranread.end = to;
+			else if (iter.key().compareTo(tranread.end) > 0)
+				tranread.end = iter.key();
 			return this;
 		}
 
 		Iter prev() {
 			if (rewound) {
-				BufRecord key = to.dup();
-				key.addMax();
-				iter = bt.locate(key);
+				iter = bt.locate(to.dup(8).addMax());
 				if (iter.eof())
 					iter = bt.last();
 				else
 					while (! iter.eof() && iter.key().prefixgt(to))
 						iter.prev();
 				rewound = false;
-//				if (tranread)
-//				tranread.end = to;
+				if (tranread != null)
+					tranread.end = to;
 			}	
 			else if (! iter.eof())
 				iter.prev();
@@ -158,12 +161,10 @@ public class Index {
 			prevsize = dest.size();
 			if (! iter.eof() && iter.key().compareTo(from) < 0)
 				iter.seteof();
-//			if (tranread) {
-//			if (iter.eof())
-//			tranread.org = from;
-//			else if (iter.key() < tranread->org)
-//			tranread->org = iter->key;
-//			}
+			if (iter.eof())
+				tranread.org = from;
+			else if (iter.key().compareTo(tranread.org) < 0)
+				tranread.org = iter.key();
 			return this;
 		}
 

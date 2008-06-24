@@ -448,6 +448,7 @@ public class Btree {
 	public class Iter {
 		long adr; // offset of current node
 		Slot cur;
+		long valid = modified;
 		
 		private Iter() { // end
 			adr = 0;
@@ -479,8 +480,8 @@ public class Btree {
 		public Iter next() {
 			if (adr == 0)
 				return this;
-//			if (modified != valid && ! seek(cur.key))
-//				return ;	// key has been erased so we're on the next one
+			if (modified != valid && ! seek(cur.key))
+				return this;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
 			int t = leaf.slots.upper_bound(cur);
 			if (t < leaf.slots.size())
@@ -492,8 +493,8 @@ public class Btree {
 		public Iter prev() {
 			if (adr == 0)
 				return this;
-//			if (bt->modified > valid)
-//				seek(cur.key);
+			if (modified != valid)
+				seek(cur.key);
 			LeafNode leaf = new LeafNode(adr);
 			int t = leaf.slots.lower_bound(cur);
 			if (t > 0)
@@ -512,7 +513,7 @@ public class Btree {
 				return false;
 			}
 			int t = leaf.slots.lower_bound(new Slot(key));
-//			valid = modified;
+			valid = modified;
 			boolean found;
 			if (t == leaf.slots.size()) {
 				cur = leaf.slots.get(--t);

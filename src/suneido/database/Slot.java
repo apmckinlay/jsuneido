@@ -15,7 +15,7 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public final long[] adrs;
 	
 	public Slot() {
-		key = BufRecord.EMPTYREC;
+		key = BufRecord.MINREC;
 		adrs = new long[0];
 	}
 	
