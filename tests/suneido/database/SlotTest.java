@@ -11,7 +11,7 @@ public class SlotTest {
 	@Test
 	public void test() {
 		Slot slot;
-		BufRecord r = new BufRecord(100);
+		Record r = new Record(100);
 		r.add(new SuString("hello"));
 		
 		slot = new Slot(r);
@@ -33,7 +33,7 @@ public class SlotTest {
 	public static Slot make(String ... args) {
 		if (args.length == 0)
 			args = new String[] { "hello" };
-		BufRecord r = new BufRecord(100);
+		Record r = new Record(100);
 		for (String s : args)
 			r.add(new SuString(s));
 		return new Slot(r);

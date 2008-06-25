@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
  * Collection of {@link Slot}'s for a {@link Btree} node,
  * plus next and prev addresses (offsets in the database).
  * Next and prev are stored at the start of the buffer
- * followed by a {@link BufRecord} holding the slots.
+ * followed by a {@link Record} holding the slots.
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right.
  * @author Andrew McKinlay
@@ -18,7 +18,7 @@ public class Slots {
 	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
 	
 	private ByteBuffer buf;
-	private BufRecord rec;
+	private Record rec;
 	
 	public Slots(ByteBuffer buf) {
 		this(buf, Mode.OPEN);
@@ -27,11 +27,11 @@ public class Slots {
 		this.buf = buf;
 		buf.position(REC_OFFSET);
 		if (mode == Mode.OPEN)
-			rec = new BufRecord(buf.slice());
+			rec = new Record(buf.slice());
 		else { // mode == CREATE
 			setNext(0);
 			setPrev(0);
-			rec = new BufRecord(buf.slice(), BUFREC_SIZE);
+			rec = new Record(buf.slice(), BUFREC_SIZE);
 		}
 	}
 	

@@ -45,7 +45,7 @@ public class Index {
 //		if (lower)
 //			lower_key(x.key);
 		if (iskey || (unique && ! empty(x.key))) {
-			BufRecord key = x.key;
+			Record key = x.key;
 			key.reuse(key.size() - 1); // strip off record address
 			boolean dup = ! find(tran, key).isEmpty();
 			key.reuse(key.size() + 1); // put is back
@@ -55,16 +55,16 @@ public class Index {
 		return bt.insert(x);		
 	}
 	
-	boolean erase(BufRecord key) {
+	boolean erase(Record key) {
 		return bt.erase(key);
 	}
 	
-	float rangefrac(BufRecord from, BufRecord to) {
+	float rangefrac(Record from, Record to) {
 		float f = bt.rangefrac(from, to);
 		return f < .001 ? (float) .001 : f;
 	}
 	
-	Slot find(int tran, BufRecord key) {
+	Slot find(int tran, Record key) {
 		Iter iter = iter(tran, key).next();
 		if (iter.eof())
 			return new Slot();
@@ -72,7 +72,7 @@ public class Index {
 		return cur.key.hasPrefix(key) ? cur : new Slot();
 	}
 
-	private boolean empty(BufRecord key) {
+	private boolean empty(Record key) {
 		int n = key.size() - 1; // - 1 to ignore record address at end
 		if (n <= 0)
 			return true;
@@ -83,25 +83,25 @@ public class Index {
 	}
 	
 	Iter iter(int tran) {
-		return new Iter(tran, BufRecord.MINREC, BufRecord.MAXREC); 
+		return new Iter(tran, Record.MINREC, Record.MAXREC); 
 	}
-	Iter iter(int tran, BufRecord key) {
+	Iter iter(int tran, Record key) {
 		return new Iter(tran, key, key); 
 	}
-	Iter iter(int tran, BufRecord from, BufRecord to) {
+	Iter iter(int tran, Record from, Record to) {
 		return new Iter(tran, from, to); 
 	}
 	
 	public class Iter {
 		int tran;
-		BufRecord from;
-		BufRecord to;
+		Record from;
+		Record to;
 		boolean rewound = true;
 		Btree.Iter iter;
 		TranRead tranread;
 		long prevsize = Long.MAX_VALUE;
 		
-		Iter(int tran, BufRecord from, BufRecord to) {
+		Iter(int tran, Record from, Record to) {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
@@ -118,7 +118,7 @@ public class Index {
 
 		Iter next() {
 			boolean first = true;
-			BufRecord prevkey = BufRecord.MINREC;
+			Record prevkey = Record.MINREC;
 			if (rewound)
 				{
 				iter = bt.locate(from);
@@ -178,7 +178,7 @@ public class Index {
 	/**
 	 * @return True if the records are equal not including the last field.
 	 */
-	private static boolean eq(BufRecord r1, BufRecord r2) {
+	private static boolean eq(Record r1, Record r2) {
 		int n = r1.size() - 1;
 		if (n != r2.size() - 1)
 			return false;
@@ -188,7 +188,7 @@ public class Index {
 		return true;
 	}
 
-	private long mmoffset(BufRecord key) {
+	private long mmoffset(Record key) {
 		return key.getMmoffset(key.size() - 1);
 	}
 }

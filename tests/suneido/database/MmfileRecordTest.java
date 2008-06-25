@@ -4,8 +4,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import org.junit.Test;
 
-import suneido.database.BufRecord;
-import suneido.database.MemRecord;
+import suneido.database.Record;
 import suneido.database.Mmfile;
 import static org.junit.Assert.*;
 
@@ -16,7 +15,7 @@ public class MmfileRecordTest {
 		new File(file).delete();
 		Mmfile mmf = new Mmfile(file, Mode.CREATE);
 		try {
-			MemRecord mr = new MemRecord();
+			Record mr = new Record(100);
 			byte[] data1 = new byte[] { 1, 2, 3, 4 };
 			mr.add(data1);
 			byte[] data2 = new byte[] { 4, 3, 2, 1 };
@@ -28,7 +27,7 @@ public class MmfileRecordTest {
 			
 			mmf = new Mmfile(file, Mode.OPEN);
 			bb = mmf.iterator().next();
-			BufRecord br = new BufRecord(bb);
+			Record br = new Record(bb);
 			assertArrayEquals(data1, br.getBytes(0));
 			assertArrayEquals(data2, br.getBytes(1));
 		} finally {

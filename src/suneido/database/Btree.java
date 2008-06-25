@@ -111,7 +111,7 @@ public class Btree {
 		LeafNode left = leaf.split(x);
 		++nnodes;
 		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 ? left.insert(x) : leaf.insert(x)));
-		BufRecord key = left.slots.back().key.dup();
+		Record key = left.slots.back().key.dup();
 		adr = left.adr; 
 	
 		// insert up the tree as necessary
@@ -131,7 +131,7 @@ public class Btree {
 		newRoot(key, adr);
 		return true ;
 	}
-	private void newRoot(BufRecord key, long off) {
+	private void newRoot(Record key, long off) {
 		long roff = dest.alloc(NODESIZE);
 		TreeNode r = new TreeNode(roff, Mode.CREATE);
 		++nnodes;
@@ -142,7 +142,7 @@ public class Btree {
 		verify(treelevels < MAXLEVELS);
 	}
 
-	boolean erase(BufRecord key) {
+	boolean erase(Record key) {
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 	
 		// search down the tree
@@ -184,7 +184,7 @@ public class Btree {
 		return true;
 	}
 	
-	public float rangefrac(BufRecord from, BufRecord to) {
+	public float rangefrac(Record from, Record to) {
 		// from is inclusive, end is exclusive
 		if (treelevels == 0)
 			{
@@ -214,7 +214,7 @@ public class Btree {
 			return result < 0 ? 0 : result;
 			}
 	}
-	private float keyfracpos(long adr, BufRecord key,
+	private float keyfracpos(long adr, Record key,
 		int level,		// to determine if tree or leaf
 		float start,	// the fraction into the file where this node starts
 		float nodefrac) {	// the fraction of the file under this node
@@ -340,18 +340,18 @@ public class Btree {
 		}
 		
 		// returns false if no room
-		boolean insert(BufRecord key, long off) {
+		boolean insert(Record key, long off) {
 			Slot slot = new Slot(key, off);
 			int i = slots.lower_bound(slot);
 			verify(i == slots.size() || ! slots.get(i).key.equals(key)); // no dups
 			return slots.insert(i, slot);
 		}
-		long find(BufRecord key)
+		long find(Record key)
 			{
 			int i = slots.lower_bound(new Slot(key));
 			return i < slots.size() ? slots.get(i).adrs[0] : slots.next();
 			}
-		void erase(BufRecord key) {
+		void erase(Record key) {
 			// NOTE: erases the first key >= key
 			// this is so Btree erase can use target key
 			if (slots.size() == 0) {
@@ -365,7 +365,7 @@ public class Btree {
 			}
 			slots.remove(slot);
 		}
-		TreeNode split(BufRecord key) {
+		TreeNode split(Record key) {
 			int percent = 50;
 			if (key.compareTo(slots.front().key) < 0)
 				percent = 75;
@@ -442,7 +442,7 @@ public class Btree {
 			return new Iter();
 		return new Iter(adr, leaf.slots.back());
 	}
-	public Iter locate(BufRecord key) {
+	public Iter locate(Record key) {
 		return new Iter(key);
 	}
 	public class Iter {
@@ -458,7 +458,7 @@ public class Btree {
 			this.adr = adr;
 			cur = slot;
 		}
-		private Iter(BufRecord key) {
+		private Iter(Record key) {
 			seek(key);
 		}
 		
@@ -472,7 +472,7 @@ public class Btree {
 		public Slot cur() {
 			return cur;
 		}
-		public BufRecord key() {
+		public Record key() {
 			return cur.key;
 		}
 		
@@ -503,7 +503,7 @@ public class Btree {
 				cur = new LeafNode(adr).slots.back();
 			return this;
 		}
-		public boolean seek(BufRecord key) {
+		public boolean seek(Record key) {
 			adr = root();
 			for (int i = 0; i < treelevels; ++i)
 				adr = new TreeNode(adr).find(key);
