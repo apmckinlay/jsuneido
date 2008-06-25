@@ -320,10 +320,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		return packSize(n, datasize);
 		}
 	public void pack(ByteBuffer dst) {
-		copyTo(dst, packSize());
-	}
-
-	private void copyTo(ByteBuffer dst, int dstsize) {
+		int dstsize = packSize();
 		if (getSize() == dstsize) {
 			// already "compacted" so just bulk copy
 			for (int i = 0; i < dstsize; ++i)
@@ -337,7 +334,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 			dst.position(dst.position() + dstsize);
 		}
 	}
-	
+
 	private void setType(byte t) {
 		buf.put(Offset.TYPE, t);
 	}
