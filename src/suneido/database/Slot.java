@@ -11,15 +11,15 @@ import java.nio.ByteBuffer;
  * @author Andrew McKinlay
  */
 public class Slot implements suneido.Packable, Comparable<Slot> {
-	public final BufRecord key;
+	public final Record key;
 	public final long[] adrs;
 	
 	public Slot() {
-		key = BufRecord.MINREC;
+		key = Record.MINREC;
 		adrs = new long[0];
 	}
 	
-	public Slot(BufRecord key, long ... adrs) {
+	public Slot(Record key, long ... adrs) {
 		this.key = key;
 		this.adrs = adrs;
 	}
@@ -49,7 +49,7 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	 * @return A new Slot containing the values from the buffer.
 	 */
 	public static Slot unpack(ByteBuffer buf) {
-		BufRecord key = new BufRecord(buf);
+		Record key = new Record(buf);
 		int nadrs = (buf.limit() - key.bufSize()) / 4;
 		long[] adrs = new long[nadrs];
 		buf.position(key.bufSize());

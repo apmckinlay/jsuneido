@@ -12,7 +12,7 @@ public class DatabaseTest {
 	public void create_open() {
 		new File("tmp1").delete();
 		Database db = new Database("tmp1", Mode.CREATE);
-		MemRecord r = new MemRecord();
+		Record r = new Record(100);
 		byte[] b = new byte[] { 1, 2, 3, 4 };
 		r.add(b);
 		long offset = db.output(1234, r);
@@ -22,7 +22,7 @@ public class DatabaseTest {
 		ByteBuffer bb = db.adr(offset);
 		assertEquals(1234, bb.getInt());
 		bb.position(4);
-		BufRecord br = new BufRecord(bb.slice());
+		Record br = new Record(bb.slice());
 		assertArrayEquals(b, br.getBytes(0));
 	}
 	

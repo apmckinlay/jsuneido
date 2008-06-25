@@ -64,7 +64,7 @@ public class BtreeTest {
 		iter.prev();
 		assertEquals(65, iter.cur().key.getLong(0));
 		
-		iter = bt.locate(BufRecord.MINREC);
+		iter = bt.locate(Record.MINREC);
 		assertEquals(0, iter.cur().key.getLong(0));
 		
 		iter = bt.locate(makerec(101));
@@ -131,8 +131,8 @@ public class BtreeTest {
 		assertfeq(0, bt.rangefrac(emptykey, emptykey));
 		assertfeq(0, bt.rangefrac(makerec(999, 0), endkey(999)));
 	}
-	private BufRecord endkey(int i) {
-		BufRecord r = makerec(i, 0);
+	private Record endkey(int i) {
+		Record r = makerec(i, 0);
 		r.addMax();
 		return r;
 	}
@@ -151,7 +151,7 @@ public class BtreeTest {
 	private void assertfeq(float x, float y) {
 		assertEquals(x, y, .05);
 	}
-	final private static BufRecord emptykey = new BufRecord(10);
+	final private static Record emptykey = new Record(10);
 
 	final private static int NFILLER = 10;
 	private Btree maketree(final int N) {
@@ -179,11 +179,11 @@ public class BtreeTest {
 		return v;
 	}
 
-	private static BufRecord makerec(int num) {
+	private static Record makerec(int num) {
 		return makerec(num, NFILLER);
 	}
-	private static BufRecord makerec(int num, int nfiller) {
-		BufRecord r = new BufRecord(1000);
+	private static Record makerec(int num, int nfiller) {
+		Record r = new Record(1000);
 		r.add(SuInteger.valueOf(num));
 		for (int i = 0; i < nfiller; ++i)
 			r.add(filler);

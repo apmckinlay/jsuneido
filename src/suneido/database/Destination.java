@@ -2,12 +2,12 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-abstract public class Destination {
+interface Destination {
 
-	abstract public long alloc(int size);
+	long alloc(int size);
 	
-	abstract public ByteBuffer adr(long offset);
+	ByteBuffer adr(long offset);
 	
-	abstract public long size();
+	long size();
 	
 }

@@ -60,15 +60,15 @@ public class IndexTest {
 
 	private DestMem dest;
 	private Slot makeslot(int ... args) {
-		BufRecord r = new BufRecord(100);
+		Record r = new Record(100);
 		for (int i : args)
 			r.add(SuInteger.valueOf(i));
 		r.addMmoffset(dest.alloc(0));
 		return new Slot(r);
 	}
 	
-	private BufRecord makekey(int ... args) {
-		BufRecord r = new BufRecord(100);
+	private Record makekey(int ... args) {
+		Record r = new Record(100);
 		for (int i : args)
 			r.add(SuInteger.valueOf(i));
 		return r;

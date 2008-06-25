@@ -3,21 +3,22 @@ package suneido.database;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
+import static suneido.Suneido.verify;
 
-public class Database implements Visibility {
+public class Database implements Visibility, Destination {
 	private Mmfile mmf;
 	private DbHdr dbhdr;
 	private boolean loading = false;
 //	private long clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
-	private Destination dest;
 	private static class TN {
 		final static private int TABLES = 0;
-//		final static private int COLUMNS = 1;
+		final static private int COLUMNS = 1;
 		final static private int INDEXES = 2;
-//		final static private int VIEWS = 3;
+		final static private int VIEWS = 3;
 	}
+	public final static int SCHEMA_TRAN = 0;
 	private final static int VERSION = 1;
 	private Index tables_index;
 	private Index tblnum_index;
@@ -36,7 +37,6 @@ public class Database implements Visibility {
 //			mmf = new Mmfile(filename, mode);
 //			verify(check_shutdown(mmf));
 //		}
-		dest = new DestDisk(mmf);
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;
 			create();
@@ -51,11 +51,11 @@ public class Database implements Visibility {
 		dbhdr = new DbHdr(adr(alloc(DbHdr.SIZE, Mmfile.OTHER)), TN.INDEXES + 1, VERSION);
 
 		// tables
-		tables_index = new Index(dest, this, TN.TABLES, "tablename", true, false);
-		tblnum_index = new Index(dest, this, TN.TABLES, "table", true, false);
+		tables_index = new Index(this, this, TN.TABLES, "tablename", true, false);
+		tblnum_index = new Index(this, this, TN.TABLES, "table", true, false);
 		table_record(TN.TABLES, "tables", 3, 5);
-//		table_record(TN.COLUMNS, "columns", 17, 3);
-//		table_record(TN.INDEXES, "indexes", 5, 9);
+		table_record(TN.COLUMNS, "columns", 17, 3);
+		table_record(TN.INDEXES, "indexes", 5, 9);
 //		hdr->next_table = TN.INDEXES + 1;
 
 		// columns
@@ -99,24 +99,13 @@ public class Database implements Visibility {
 		dbhdr.update();
 	}
 	void table_record(int tblnum, String tblname, int nrows, int nextfield) {
-//		Record r = new MemRecord();
-//		r.addval(tblnum);
-//		r.addval(tblname);
-//		r.addval(nextfield);
-//		r.addval(nrows);
-//		r.addval(100);	
-//		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
-//		long at = output(TN.TABLES, r);
-//		Record key1;
-//		key1.addval(tblnum);
-//		key1.addmmoffset(at);
-//		verify(tblnum_index.insert(schema_tran, Vslot(key1)));
-//		Record key2;
-//		key2.addval(tblname);
-//		key2.addmmoffset(at);
-//		verify(tables_index.insert(schema_tran, Vslot(key2)));
+		Record r = new Record();
+		r.add(tblnum).add(tblname).add(nextfield).add(nrows).add(100);
+		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		long at = output(TN.TABLES, r);
+		verify(tblnum_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblnum).addMmoffset(at))));
+		verify(tables_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblname).addMmoffset(at))));
 		}
-
 
 	void open() {
 		dbhdr = new DbHdr(adr(mmf.first()));
@@ -142,26 +131,28 @@ public class Database implements Visibility {
 		mmf.close();
 	}
 
-	long output(int tblnum, MemRecord r) {
+	long output(int tblnum, Record r) {
 		int n = r.packSize();
 		long offset = alloc(4 + n, output_type);
 		ByteBuffer p = adr(offset);
 		p.putInt(tblnum);
-		p = adr(offset + 4);
-		r.pack(adr(offset + 4));
+		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
 		if (output_type == Mmfile.DATA && tblnum != TN.TABLES && tblnum != TN.INDEXES)
-			checksum(p, 4 + n);
+			checksum(adr(offset + 4), 4 + n);
 		return offset;
 	}
-	long alloc(int n) { 
+	public long alloc(int n) { 
 		return alloc(n, Mmfile.OTHER);
 	}
 	long alloc(int n, byte type) { 
 		return mmf.alloc(n, type);
 	}
-	ByteBuffer adr(long offset) {
+	public ByteBuffer adr(long offset) {
 		return mmf.adr(offset);
+	}
+	public long size() {
+		return mmf.size();
 	}
 	
 	static byte[] bytes = new byte[256];
