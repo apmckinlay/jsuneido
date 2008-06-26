@@ -19,7 +19,7 @@ public class DatabaseTest {
 		db.close();
 		
 		db = new Database("tmp1", Mode.OPEN);
-		ByteBuffer bb = db.adr(offset);
+		ByteBuffer bb = db.adr(offset - 4);
 		assertEquals(1234, bb.getInt());
 		bb.position(4);
 		Record br = new Record(bb.slice());
@@ -30,5 +30,8 @@ public class DatabaseTest {
 	public static void cleanup() {
 		for (int i = 1; i <= 1; ++i)
 			new File("tmp" + i).delete();
+	}
+	public static void main(String args[]) {
+		new DatabaseTest().create_open();
 	}
 }

@@ -216,7 +216,7 @@ public class RecordTest {
 		rec.add(SuInteger.valueOf(99));
 		assertTrue(rec.hasPrefix(pre));
 	}
-
+	
 //	public static void main(String args[]) {
 //		new BufRecordTest().hasPrefix();
 //	}

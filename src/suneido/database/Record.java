@@ -30,6 +30,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	public final static Record MAXREC = new Record(7).addMax();
 	private Rep rep;
 	private ByteBuffer buf;
+	private long dboffset = 0;
 	private boolean growable = false;
 	
 	private static class Type {
@@ -83,6 +84,11 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		this.buf = buf;
 		init();
 	}
+	public Record(ByteBuffer buf, long dboffset) {
+		this.buf = buf;
+		this.dboffset = dboffset;
+		init();
+	}
 	private void init() {
 		switch (getType()) {
 		case Type.BYTE :	rep = new ByteRep(); break ;
@@ -97,6 +103,24 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		for (int i = 0; i < getNfields(); ++i)
 			s += " " + rep.getOffset(i);
 		return s;
+	}
+	
+	public Object toObject() {
+		return dboffset == 0 ? array() : Integer.valueOf(Mmfile.offsetToInt(dboffset));
+	}
+	private byte[] array() {
+		byte[] array;
+		int bufSize = bufSize();
+		if (buf.hasArray() && buf.arrayOffset() == 0 && (array = buf.array()).length == bufSize)
+			return array;
+		array = new byte[bufSize];
+		buf.get(array, 0, bufSize);
+		return array;
+	}
+	public static Record fromObject(Mmfile mmf, Object ob) {
+		return ob instanceof Integer
+			? new Record(mmf.adr(Mmfile.intToOffset((Integer) ob)))
+			: new Record(ByteBuffer.wrap((byte[]) ob));
 	}
 	
 	ByteBuffer getBuf() {
