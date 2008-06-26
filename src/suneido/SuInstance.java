@@ -5,7 +5,11 @@ import static suneido.Symbols.*;
 
 /**
  * The class for instances of Suneido classes.
+ * Contains a HashMap of instance variable (members).
+ * @see SuClass
+ * @see SuMethod
  * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuInstance extends SuValue {
 	/*private*/ SuValue myclass;

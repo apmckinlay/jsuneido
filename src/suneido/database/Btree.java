@@ -2,9 +2,16 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
+/**
+ * Btree implementation. 
+ * Uses {@link Slots} to store nodes.
+ * @see Index
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small>
+ */
 public class Btree {
 	final public static int MAXLEVELS = 20;
-	final public static int TREENODE_PREV = Integer.MAX_VALUE & ~3;
+	final public static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
 	enum Insert { OK, DUP, FULL };	// return values for insert
 	

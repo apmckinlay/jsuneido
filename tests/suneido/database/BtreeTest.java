@@ -183,7 +183,7 @@ public class BtreeTest {
 		return makerec(num, NFILLER);
 	}
 	private static Record makerec(int num, int nfiller) {
-		Record r = new Record(1000);
+		Record r = new Record();
 		r.add(SuInteger.valueOf(num));
 		for (int i = 0; i < nfiller; ++i)
 			r.add(filler);
@@ -192,6 +192,6 @@ public class BtreeTest {
 	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
 	
 	public static void main(String args[]) {
-		new BtreeTest().random();
+		new BtreeTest().test();
 	}
 }

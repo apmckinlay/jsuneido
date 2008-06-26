@@ -2,6 +2,10 @@ package suneido;
 
 // import java.util.Random;
 
+/**
+ * Wrapper for a Java int.
+ * @see SuDecimal
+ */
 public class SuInteger extends SuNumber {
 	private int n;
 	final public static SuInteger ZERO = new SuInteger(0);

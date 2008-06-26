@@ -2,6 +2,11 @@ package suneido;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Base class for Suneido data types.
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public abstract class SuValue implements Packable {
 	public abstract String toString();
 	

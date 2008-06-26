@@ -7,8 +7,9 @@ import static java.lang.Math.max;
 import static suneido.Symbols.*;
 
 /**
- * Suneido string class - simple wrapper for Java String
+ * Wrapper for Java String
  * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuString extends SuValue {
 	private String s;
