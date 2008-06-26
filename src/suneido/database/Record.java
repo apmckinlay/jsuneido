@@ -11,9 +11,9 @@ import suneido.SuValue;
 import static suneido.Suneido.verify;
 
 /**
- * Stores an array of Packable in a ByteBuffer.
- * Used by Database to store records containing field values.
- * Used by Slots to store Btree nodes.
+ * Stores an array of {@link Packable} in a ByteBuffer.
+ * Used by {@link Database} to store records containing field values.
+ * Used by {@link Slots} for {@link Btree} nodes.
  * Provides a "view" onto a ByteBuffer.
  * <p>Format is:<br>
  * - one byte type = 'c', 's', 'l'<br>
@@ -23,7 +23,7 @@ import static suneido.Suneido.verify;
  * size and array elements are of the type 
  * 
  * @author Andrew McKinlay
- *
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Record implements suneido.Packable, Comparable<Record> {
 	public final static Record MINREC = new Record(4);
@@ -51,7 +51,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	
 	/**
 	 * Create a new BufRecord, allocating a new ByteBuffer
-	 * @param sz The required size, including both data and offsets
+	 * @param size The required size, including both data and offsets
 	 */
 	public Record(int size) {
 		this(ByteBuffer.allocate(size), size);

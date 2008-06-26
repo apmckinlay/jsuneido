@@ -8,8 +8,9 @@ import java.nio.ByteBuffer;
  * Next and prev are stored at the start of the buffer
  * followed by a {@link Record} holding the slots.
  * Addresses (file offsets) are stored as int's
- * by aligning and shifting right.
+ * by aligning and shifting right. (See {@link Mmfile})
  * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Slots {
 	final private static int NEXT_OFFSET = 0;

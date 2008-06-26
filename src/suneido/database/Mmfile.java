@@ -14,7 +14,21 @@ import suneido.SuException;
 
 import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
- 
+
+/**
+ * Memory mapped file access using Java NIO.
+ * Maps in 4mb chunks.
+ * A maximum of 1gb is mapped at any one time.
+ * Chunks are unmapped as necessary roughly LRU using a clock method.
+ * Individual blocks must fit in a single chunk.
+ * Blocks are aligned on 8 byte boundaries
+ * allowing offsets to be shifted right to fit in 32 bit int's.
+ * Alignment also allows storing a type in the low bits of the block size.
+ * Since offsets are stored shifted as int's
+ * maximum file size is 32gb (max unsigned int (4gb) << 3). * 
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class Mmfile implements Iterable<ByteBuffer> {
 	final static int HEADER = 4;	// contains size | type
 	final static int TRAILER = 4;	// contains size ^ adr
@@ -24,11 +38,11 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	 * and big enough to allow space for types
 	 * e.g. align of 8 = 3 bits for type = 8 types
 	 */
-	final private static int ALIGN = 8;
+	final public static int ALIGN = 8;
+	final public static int SHIFT = 3;
 	final private static int MB_PER_CHUNK = 4;
 	final private static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
-	final public static int SHIFT = 2;
-	final private static int MB_MAX_DB = 16 * 1024; // 16 gb
+	final private static int MB_MAX_DB = 32 * 1024; // 32 gb
 	final private static int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
 	final private static int FILEHDR = 8; // should be multiple of align
 	final private static byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
@@ -127,6 +141,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		// should truncate file but probably can't
 		// since memory mappings won't all be finalized
 		// so file size will be rounded up to chunk size
+		// this is handled when re-opening
 	}
 	
 	public static int offsetToInt(long offset) {
@@ -148,7 +163,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		return file_size;
 	}
 	
-	public long alloc(int n, byte t) {
+	public long alloc(int n, byte type) {
 		verify(n < chunk_size);
 		last_alloc = n;
 		n = align(n);
@@ -160,16 +175,16 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		verify(remaining >= OVERHEAD);
 		if (remaining < n + OVERHEAD)
 			{
-			verify(t != FILLER); // type 0 is filler, filler should always fit
+			verify(type != FILLER); // type 0 is filler, filler should always fit
 			alloc(remaining - OVERHEAD, FILLER);
 			verify(file_size / chunk_size == chunk + 1);
 			}
-		verify(t < ALIGN);
+		verify(type < ALIGN);
 		long offset = file_size + HEADER;
 		file_size += n + OVERHEAD;
 		set_file_size(file_size);
 		ByteBuffer p = buf(offset - HEADER);
-		p.putInt(0, n | t); // header
+		p.putInt(0, n | type); // header
 		p.putInt(HEADER + n, n ^ (int) (offset + n)); // trailer
 		return offset;
 	}

@@ -9,6 +9,10 @@ import static suneido.Symbols.*;
  * Suneido inheritance is handled by invoke.
  * A Suneido class with "no" parent calls super.invoke from its invoke's default
  * else it calls Globals.get(parent).invoke2
+ * @see SuMethod
+ * @see SuInstance
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuClass extends SuValue {
 	//TODO handle static data members

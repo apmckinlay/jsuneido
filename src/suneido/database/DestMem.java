@@ -3,6 +3,10 @@ package suneido.database;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+/**
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class DestMem implements Destination {
 	private ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();
 	

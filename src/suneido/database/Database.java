@@ -8,6 +8,12 @@ import suneido.SuBoolean;
 import suneido.SuException;
 import static suneido.Suneido.verify;
 
+/**
+ * Implements the Suneido database.
+ * Uses {@link Mmfile} and {@link Index}.
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class Database implements Destination {
 	private Mmfile mmf;
 	private Dbhdr dbhdr;

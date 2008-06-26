@@ -7,7 +7,9 @@ import java.util.HashMap;
 /**
  * Stores symbol names and instances.
  * Maps names to symbol number (index).
+ * Stores instances of private SuSymbol class.
  * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Symbols {
 	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();

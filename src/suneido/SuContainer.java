@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Suneido's single container type.
+ * Combines an extendable array plus a hash map.
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class SuContainer extends SuValue {
 	ArrayList<SuValue> vec = new ArrayList<SuValue>();
 	HashMap<SuValue, SuValue> map = new HashMap<SuValue,SuValue>();

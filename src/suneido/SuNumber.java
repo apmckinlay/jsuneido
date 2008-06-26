@@ -3,6 +3,10 @@ package suneido;
 import java.nio.ByteBuffer;
 import static suneido.Suneido.verify;
 
+/**
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public abstract class SuNumber extends SuValue {
 	protected abstract long unscaled();
 	
@@ -90,7 +94,7 @@ public abstract class SuNumber extends SuValue {
 	/**
 	 * <b>Warning:</b> This <u>ignores</u> any scale.
 	 * @param buf
-	 * @return
+	 * @return The long value.
 	 */
 	public static long unpackLong(ByteBuffer buf) {
 		verify(buf.get(0) == Pack.PLUS || buf.get(0) == Pack.MINUS);

@@ -9,6 +9,7 @@ import static suneido.Suneido.verify;
  * Similar to SuSymbols but simpler because there is no extra type.
  * Uses the class itelf as a singleton by making everything static.
  * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Globals {
 	private static HashMap<String,Integer> names = new HashMap<String,Integer>();
