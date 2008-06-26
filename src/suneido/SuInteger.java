@@ -46,6 +46,11 @@ public class SuInteger extends SuNumber {
 	}
 		
 	@Override
+	public String string() {
+		return "" + n;
+	}
+		
+	@Override
 	public int hashCode() {
 		return Integer.valueOf(n).hashCode();
 	}

@@ -11,8 +11,8 @@ import suneido.SuValue;
 import suneido.database.Record;
 
 public class RecordTest {
-	final static byte[] data = new byte[] { 1, 2, 3, 4 };
-	final static byte[] data2 = new byte[] { 5, 6 };
+	final static String data = "abc";
+	final static String data2 = "x";
 	
 	@Test
 	public void grow() {
@@ -20,7 +20,7 @@ public class RecordTest {
 		r.add(data);
 		assertEquals(1, r.size());
 		assertEquals(4, r.fieldSize(0));
-		assertArrayEquals(data, r.getBytes(0));
+		assertEquals(data, r.getString(0));
 
 		assertTrue(Record.MINREC.isEmpty());
 	}
@@ -33,22 +33,20 @@ public class RecordTest {
 			assertEquals(0, r.size());
 			
 			assertEquals(0, r.fieldSize(0));
-			ByteBuffer bb = r.get(0);
+			ByteBuffer bb = r.getraw(0);
 			assertEquals(0, bb.limit());
-			assertEquals(0, r.getBytes(0).length);
+			assertEquals(0, r.getraw(0).limit());
 			
 			r.add(data);
 			assertEquals(1, r.size());
 			assertEquals(4, r.fieldSize(0));
-			bb = r.get(0);
+			bb = r.getraw(0);
 			assertEquals(4, bb.limit());
-			byte[] b = new byte[4];
-			bb.get(b);
-			assertArrayEquals(data, b);
-			assertArrayEquals(data, r.getBytes(0));
+			assertEquals(data, SuValue.unpack(bb).string());
+			assertEquals(data, r.getString(0));
 			
 			assertEquals(4, r.fieldSize(0));
-			assertArrayEquals(data, r.getBytes(0));
+			assertEquals(data, r.getString(0));
 		}
 	}
 	
@@ -62,14 +60,14 @@ public class RecordTest {
 	
 	@Test
 	public void addPackable() {
-		Record r = new Record(500);
+		Record r = new Record();
 		SuString s = new SuString("hello");
 		r.add(s);
-		assertEquals(s, SuValue.unpack(r.get(0)));
+		assertEquals(s, SuValue.unpack(r.getraw(0)));
 		SuString s2 = new SuString("world");
 		r.add(s2);
-		assertEquals(s, SuValue.unpack(r.get(0)));
-		assertEquals(s2, SuValue.unpack(r.get(1)));
+		assertEquals(s, SuValue.unpack(r.getraw(0)));
+		assertEquals(s2, SuValue.unpack(r.getraw(1)));
 
 	}
 	
@@ -90,11 +88,11 @@ public class RecordTest {
 		Record r2 = new Record(buf);
 		assertEquals(r.packSize(), r2.packSize());
 		assertEquals(r2.bufSize(), r2.packSize());
-		assertArrayEquals(data, r2.getBytes(0));
+		assertEquals(data, r2.getString(0));
 		
 		ByteBuffer buf2 = ByteBuffer.allocate(r2.packSize());
 		r2.pack(buf2);
-		assertEquals(buf, buf2);
+		assertEquals(buf.position(0), buf2.position(0));
 	}
 	
 	@Test
@@ -123,21 +121,21 @@ public class RecordTest {
 	@Test
 	public void insert() {
 		Record r = make(data, data2); 
-		assertArrayEquals(data, r.getBytes(0));
-		assertArrayEquals(data2, r.getBytes(1));
-		assertFalse(r.insert(1,
-				new SuString("hellooooooooooooooooooooooooooooooooooooooo")));
+		assertEquals(data, r.getString(0));
+		assertEquals(data2, r.getString(1));
 		SuString s = new SuString("hello");
 		assertTrue(r.insert(1, s));
-		assertArrayEquals(data, r.getBytes(0));
-		assertEquals(s, SuValue.unpack(r.get(1)));
-		assertArrayEquals(data2, r.getBytes(2));
+		assertEquals(data, r.getString(0));
+		assertEquals(s, SuValue.unpack(r.getraw(1)));
+		assertEquals(data2, r.getString(2));
 		
-		r = new Record(100);
+		r = new Record(40);
 		r.insert(0, s); // insert at beginning
-		assertEquals(s, SuValue.unpack(r.get(0)));
+		assertEquals(s, SuValue.unpack(r.getraw(0)));
 		r.insert(1, s); // insert at end (same as add)
-		assertEquals(s, SuValue.unpack(r.get(0)));
+		assertEquals(s, SuValue.unpack(r.getraw(0)));
+		assertFalse(r.insert(1,
+				new SuString("hellooooooooooooooooooooooooooooooooooooooo")));
 	}
 	
 	@Test
@@ -175,12 +173,12 @@ public class RecordTest {
 		assertEquals(1234, r.getLong(1));
 	}
 	
-	public static Record make(byte[] ... args) {
+	public static Record make(String ... args) {
 		if (args.length == 0)
-			args = new byte[][] { data };
-		Record r = new Record(40);
-		for (byte[] bs : args)
-			r.add(bs);
+			args = new String[] { data };
+		Record r = new Record();
+		for (String s : args)
+			r.add(s);
 		return r;
 	}
 	

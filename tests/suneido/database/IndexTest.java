@@ -6,33 +6,23 @@ import suneido.SuInteger;
 import static org.junit.Assert.*;
 
 public class IndexTest {
-	private static class Visible implements Visibility {
-		public boolean visible(int tran, long adr) {
-			return true;
-		}
-		public TranRead read_act(int tran, int tblnum, String index) {
-			// TODO Auto-generated method stub
-			return new TranRead(tblnum, index);
-		}
-	}
-	
 	@Test
 	public void normal() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, false);
+		Index ix = new Index(dest = new DestMem(), 0, "", false, false);
 		assertTrue(ix.insert(0, makeslot(123)));
 		assertTrue(ix.insert(0, makeslot(123)));
 	}
 	
 	@Test
 	public void key() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", true, false);
+		Index ix = new Index(dest = new DestMem(), 0, "", true, false);
 		assertTrue(ix.insert(0, makeslot()));
 		assertFalse(ix.insert(0, makeslot()));
 	}
 
 	@Test
 	public void unique() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, true);
+		Index ix = new Index(dest = new DestMem(), 0, "", false, true);
 		assertTrue(ix.insert(0, makeslot()));
 		assertTrue(ix.insert(0, makeslot()));
 		
@@ -42,7 +32,7 @@ public class IndexTest {
 	
 	@Test
 	public void next_prev() {
-		Index ix = new Index(dest = new DestMem(), new Visible(), 0, "", false, false);
+		Index ix = new Index(dest = new DestMem(), 0, "", false, false);
 		int i;
 		for (i = 0; i < 100; ++i)
 			ix.insert(0, makeslot(i));
@@ -62,7 +52,7 @@ public class IndexTest {
 	private Slot makeslot(int ... args) {
 		Record r = new Record(100);
 		for (int i : args)
-			r.add(SuInteger.valueOf(i));
+			r.add(i);
 		r.addMmoffset(dest.alloc(0));
 		return new Slot(r);
 	}
@@ -70,7 +60,7 @@ public class IndexTest {
 	private Record makekey(int ... args) {
 		Record r = new Record(100);
 		for (int i : args)
-			r.add(SuInteger.valueOf(i));
+			r.add(i);
 		return r;
 	}
 

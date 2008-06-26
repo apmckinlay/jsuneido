@@ -4,6 +4,10 @@ import java.nio.ByteBuffer;
 
 public abstract class SuValue implements Packable {
 	public abstract String toString();
+	
+	public String string() {
+		throw new SuException(typeName() + " cannot be converted to string");
+	}
 
 	// sequence must match Order
 	static class Pack {

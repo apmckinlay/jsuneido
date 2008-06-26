@@ -8,7 +8,6 @@ import static suneido.Suneido.verify;
  * @author Andrew McKinlay
  */
 public class Index {
-	Visibility vis; // normally provided by database
 	Destination dest;
 	Btree bt;
 	boolean iskey;
@@ -19,26 +18,35 @@ public class Index {
 	/**
 	 * Create a new index.
 	 */
-	public Index(Destination dest, Visibility vis, int tblnum, String index, boolean iskey, boolean unique) {
-		init(dest, vis, tblnum, index, iskey, unique);
+	public Index(Destination dest, int tblnum, String index, boolean iskey, boolean unique) {
+		init(dest, tblnum, index, iskey, unique);
 		bt = new Btree(dest);
 	}
 	/**
 	 * Open an existing index.
 	 */
-	public Index(Destination dest, Visibility vis, int tblnum, String index, boolean iskey, boolean unique,
+	public Index(Destination dest, int tblnum, String index, boolean iskey, boolean unique,
 			long root, int treelevels, int nnodes) {
-		init(dest, vis, tblnum, index, iskey, unique);
+		init(dest, tblnum, index, iskey, unique);
 		bt = new Btree(dest, root, treelevels, nnodes);
 	}
-	private void init(Destination dest, Visibility vis, int tblnum,
+	private void init(Destination dest, int tblnum,
 			String index, boolean iskey, boolean unique) {
 		this.dest = dest;
-		this.vis = vis;
 		this.iskey = iskey;
 		this.unique = unique;
 		this.tblnum = tblnum;
 		this.index = index;
+	}
+	
+	long root() {
+		return bt.root();
+	}
+	int nnodes() {
+		return bt.nnodes();
+	}
+	int treelevels() {
+		return bt.treelevels();
 	}
 	
 	boolean insert(int tran, Slot x) {
@@ -105,7 +113,7 @@ public class Index {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
-			tranread = vis.read_act(tran, tblnum, index);
+			tranread = dest.read_act(tran, tblnum, index);
 		}
 		
 		boolean eof() {
@@ -131,9 +139,9 @@ public class Index {
 				first = false;
 				iter.next();
 				}
-			while (! iter.eof() && 
-				(mmoffset(iter.key()) >= prevsize || ! visible()))
-				iter.next();
+//			while (! iter.eof() && 
+//				(mmoffset(iter.key()) >= prevsize || ! visible()))
+//				iter.next();
 			if (! iter.eof() && iter.key().prefixgt(to))
 				iter.seteof();
 			if (! iter.eof() && (iskey || first || ! eq(iter.key(), prevkey)))
@@ -172,7 +180,7 @@ public class Index {
 		}
 
 		private boolean visible() {
-			return vis.visible(tran, mmoffset(iter.key()));
+			return dest.visible(tran, mmoffset(iter.key()));
 		}
 	}
 	/**
@@ -183,7 +191,7 @@ public class Index {
 		if (n != r2.size() - 1)
 			return false;
 		for (int i = 0; i < n; ++i)
-			if (r1.get(i) != r2.get(i))
+			if (r1.getraw(i) != r2.getraw(i))
 				return false;
 		return true;
 	}

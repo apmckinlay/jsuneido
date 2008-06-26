@@ -13,7 +13,7 @@ public class DatabaseTest {
 		new File("tmp1").delete();
 		Database db = new Database("tmp1", Mode.CREATE);
 		Record r = new Record(100);
-		byte[] b = new byte[] { 1, 2, 3, 4 };
+		String b = "hello";
 		r.add(b);
 		long offset = db.output(1234, r);
 		db.close();
@@ -23,7 +23,7 @@ public class DatabaseTest {
 		assertEquals(1234, bb.getInt());
 		bb.position(4);
 		Record br = new Record(bb.slice());
-		assertArrayEquals(b, br.getBytes(0));
+		assertEquals(b, br.getString(0));
 	}
 	
 	@AfterClass

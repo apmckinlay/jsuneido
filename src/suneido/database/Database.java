@@ -3,20 +3,28 @@ package suneido.database;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
+
+import suneido.SuBoolean;
+import suneido.SuException;
 import static suneido.Suneido.verify;
 
-public class Database implements Visibility, Destination {
+public class Database implements Destination {
 	private Mmfile mmf;
-	private DbHdr dbhdr;
+	private Dbhdr dbhdr;
 	private boolean loading = false;
 //	private long clock = 1;
 	private Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private static class TN {
-		final static private int TABLES = 0;
-		final static private int COLUMNS = 1;
-		final static private int INDEXES = 2;
-		final static private int VIEWS = 3;
+		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
+	}
+	private static class FKMODE {
+		final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2, CASCADE = 3;
+	}
+	private static class I {
+		final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, 
+			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5, 
+			ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	}
 	public final static int SCHEMA_TRAN = 0;
 	private final static int VERSION = 1;
@@ -45,50 +53,50 @@ public class Database implements Visibility, Destination {
 			open();
 		}
 	}
+	
 	private void create() {
 		loading = true;
 		
-		dbhdr = new DbHdr(adr(alloc(DbHdr.SIZE, Mmfile.OTHER)), TN.INDEXES + 1, VERSION);
-
+		long dbhdr_at = alloc(Dbhdr.SIZE, Mmfile.OTHER);
+		
 		// tables
-		tables_index = new Index(this, this, TN.TABLES, "tablename", true, false);
-		tblnum_index = new Index(this, this, TN.TABLES, "table", true, false);
+		tables_index = new Index(this, TN.TABLES, "tablename", true, false);
+		tblnum_index = new Index(this, TN.TABLES, "table", true, false);
 		table_record(TN.TABLES, "tables", 3, 5);
 		table_record(TN.COLUMNS, "columns", 17, 3);
 		table_record(TN.INDEXES, "indexes", 5, 9);
-//		hdr->next_table = TN.INDEXES + 1;
 
 		// columns
-//		columns_index = new Index(this, TN.COLUMNS, "table,column", true);
-//		columns_record(TN.TABLES, "table", 0);
-//		columns_record(TN.TABLES, "tablename", 1);
-//		columns_record(TN.TABLES, "nextfield", 2);
-//		columns_record(TN.TABLES, "nrows", 3);
-//		columns_record(TN.TABLES, "totalsize", 4);
-//
-//		columns_record(TN.COLUMNS, "table", 0);
-//		columns_record(TN.COLUMNS, "column", 1);
-//		columns_record(TN.COLUMNS, "field", 2);
-//
-//		columns_record(TN.INDEXES, "table", 0);
-//		columns_record(TN.INDEXES, "columns", 1);
-//		columns_record(TN.INDEXES, "key", 2);
-//		columns_record(TN.INDEXES, "fktable", 3);
-//		columns_record(TN.INDEXES, "fkcolumns", 4);
-//		columns_record(TN.INDEXES, "fkmode", 5);
-//		columns_record(TN.INDEXES, "root", 6);
-//		columns_record(TN.INDEXES, "treelevels", 7);
-//		columns_record(TN.INDEXES, "nnodes", 8);
+		columns_index = new Index(this, TN.COLUMNS, "table,column", true, false);
+		columns_record(TN.TABLES, "table", 0);
+		columns_record(TN.TABLES, "tablename", 1);
+		columns_record(TN.TABLES, "nextfield", 2);
+		columns_record(TN.TABLES, "nrows", 3);
+		columns_record(TN.TABLES, "totalsize", 4);
+
+		columns_record(TN.COLUMNS, "table", 0);
+		columns_record(TN.COLUMNS, "column", 1);
+		columns_record(TN.COLUMNS, "field", 2);
+
+		columns_record(TN.INDEXES, "table", 0);
+		columns_record(TN.INDEXES, "columns", 1);
+		columns_record(TN.INDEXES, "key", 2);
+		columns_record(TN.INDEXES, "fktable", 3);
+		columns_record(TN.INDEXES, "fkcolumns", 4);
+		columns_record(TN.INDEXES, "fkmode", 5);
+		columns_record(TN.INDEXES, "root", 6);
+		columns_record(TN.INDEXES, "treelevels", 7);
+		columns_record(TN.INDEXES, "nnodes", 8);
 
 		// indexes
-//		indexes_index = new Index(this, TN.INDEXES, "table,columns", true);
-//		fkey_index = new Index(this, TN.INDEXES, "fktable,fkcolumns", false);
-//		indexes_record(tables_index);
-//		indexes_record(tblnum_index);
-//		indexes_record(columns_index);
-//		// output indexes indexes last
-//		dbhdr.indexes = indexes_record(indexes_index);
-//		indexes_record(fkey_index);
+		indexes_index = new Index(this, TN.INDEXES, "table,columns", true, false);
+		fkey_index = new Index(this, TN.INDEXES, "fktable,fkcolumns", false, false);
+		indexes_record(tables_index);
+		indexes_record(tblnum_index);
+		indexes_record(columns_index);
+		// output indexes indexes last
+		long indexes_adr = indexes_record(indexes_index);
+		indexes_record(fkey_index);
 
 		// views
 //		add_table("views");
@@ -96,9 +104,9 @@ public class Database implements Visibility, Destination {
 //		add_column("views", "view_definition");
 //		add_index("views", "view_name", true);
 		
-		dbhdr.update();
+		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
 	}
-	void table_record(int tblnum, String tblname, int nrows, int nextfield) {
+	private void table_record(int tblnum, String tblname, int nrows, int nextfield) {
 		Record r = new Record();
 		r.add(tblnum).add(tblname).add(nextfield).add(nrows).add(100);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
@@ -106,13 +114,43 @@ public class Database implements Visibility, Destination {
 		verify(tblnum_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblnum).addMmoffset(at))));
 		verify(tables_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblname).addMmoffset(at))));
 		}
-
+	private void columns_record(int tblnum, String column, int field) {
+		Record r = new Record();
+		r.add(tblnum);
+		r.add(column);
+		r.add(field);
+		long at = output(TN.COLUMNS, r);
+		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
+		verify(columns_index.insert(SCHEMA_TRAN, new Slot(key)));
+	}
+	private long indexes_record(Index index) {
+		Record r = new Record()
+			.add(index.tblnum)
+			.add(index.index)
+			.add(index.iskey ? SuBoolean.TRUE : SuBoolean.FALSE)
+			.add("") // fktable
+			.add("") // fkcolumns
+			.add(FKMODE.BLOCK);
+		indexInfo(r, index);
+		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		long at = output(TN.INDEXES, r);
+		Record key1 = new Record().add(index.tblnum).add(index.index).addMmoffset(at);
+		verify(indexes_index.insert(SCHEMA_TRAN, new Slot(key1)));
+		Record key2 = new Record().add("").add("").addMmoffset(at);
+		verify(fkey_index.insert(SCHEMA_TRAN, new Slot(key2)));
+		return at;
+	}
+	private void indexInfo(Record r, Index index) {
+		r.reuse(I.ROOT);
+		r.addMmoffset(index.root());
+		r.add(index.treelevels());
+		r.add(index.nnodes());
+	}
+	
 	void open() {
-		dbhdr = new DbHdr(adr(mmf.first()));
-//		if (mmf.length(dbhdr()) < sizeof (Dbhdr) || dbhdr.version != DB_VERSION)
-//			fatal("incompatible database\n\nplease dump with the old exe and load with the new one");
+		dbhdr = new Dbhdr();
 //		new (adr(alloc(sizeof (Session), MM_SESSION))) Session(Session::STARTUP);
-//		mmf->sync();
+//		mmf.sync();
 //		indexes_index = mkindex(ckroot(Record(input(dbhdr.indexes))));
 //		
 //		Record r = find(schema_tran, indexes_index, key(TN.INDEXES, "table,columns"));
@@ -124,6 +162,22 @@ public class Database implements Visibility, Destination {
 //		fkey_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.INDEXES, "fktable,fkcolumns"))));
 		// WARNING: any new indexes added here must also be added in get_table
 	}
+//	Index mkindex(Record r) {
+//		String columns = r.getstr(I.COLUMNS).str();
+//		boolean lower = has_prefix(columns, "lower:");
+//		if (lower)
+//			columns += 6;
+//		return new Index(this,
+//			r.getInt(I.TBLNUM),
+//			columns,
+//			r.getMmoffset(I.ROOT),
+//			r.getInt(I.TREELEVELS), 
+//			r.getInt(I.NNODES), 
+//			r.getval(I.KEY) == SuTrue,
+//			r.getval(I.KEY).gcstr() == "u",
+//			lower
+//			);
+//	}
 
 
 	public void close() {
@@ -164,32 +218,33 @@ public class Database implements Visibility, Destination {
 		}
 	}
 	
-	private static class DbHdr {
+	private class Dbhdr {
 		static final int SIZE = 4 + 4 + 4;
 		ByteBuffer buf;		
 		int next_table;
 		long indexes;
-		int version;
 		
-		DbHdr(ByteBuffer buf) {
-			this.buf = buf;
-			buf.position(0);
+		// create
+		Dbhdr(long at, long indexes_adr) {
+			verify(at == mmf.first());
+			buf = adr(at);
+			buf.putInt(next_table = TN.INDEXES + 1);
+			buf.putInt(Mmfile.offsetToInt(indexes = indexes_adr));
+			buf.putInt(VERSION);
+		}
+		// open
+		Dbhdr() {
+			long at = mmf.first();
+			if (mmf.length(at) < SIZE)
+				throw new SuException("invalid database");
+			buf = adr(mmf.first());
 			next_table = buf.getInt();
 			indexes = Mmfile.intToOffset(buf.getInt());
-			version = buf.getInt();
+			int version = buf.getInt();
+			if (version != VERSION)
+				throw new SuException("invalid database");
 		}
-		DbHdr(ByteBuffer buf, int next_table, int version) {
-			this.buf = buf;
-			this.next_table = next_table;
-			this.indexes = 0;
-			this.version = version;
-		}
-		void update() {
-			buf.position(0);
-			buf.putInt(next_table);
-			buf.putInt(Mmfile.offsetToInt(indexes));
-			buf.putInt(version);
-		}
+		
 	}
 
 	public TranRead read_act(int tran, int tblnum, String index) {
