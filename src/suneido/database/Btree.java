@@ -543,7 +543,7 @@ public class Btree {
 				print(tn.slots.get(i).adrs[0], level + 1);
 				for (int j = 0; j < level; ++j)
 					System.out.print("    ");
-				System.out.println(i + ": " + tn.slots.get(i).key.getValue(0));
+				System.out.println(i + ": " + tn.slots.get(i).key.get(0));
 				}
 			if (i == 0)
 				{
@@ -561,7 +561,7 @@ public class Btree {
 			System.out.print(ln.prev() + "<<" + ln.adr + ">>" + ln.next() + "  " );
 			int i = 0;
 			for (; i < ln.slots.size(); ++i)
-				System.out.print(ln.slots.get(i).key.getValue(0) + " ");
+				System.out.print(ln.slots.get(i).key.get(0) + " ");
 			System.out.println("");
 			if (level == 0 && i == 0)
 				System.out.print("- empty -");

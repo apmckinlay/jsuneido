@@ -4,13 +4,16 @@ import java.nio.ByteBuffer;
 
 import suneido.Packable;
 import suneido.SuException;
+import suneido.SuInteger;
 import suneido.SuNumber;
 import suneido.SuString;
 import suneido.SuValue;
 import static suneido.Suneido.verify;
 
 /**
- * Used by database to store field values.
+ * Stores an array of Packable in a ByteBuffer.
+ * Used by Database to store records containing field values.
+ * Used by Slots to store Btree nodes.
  * Provides a "view" onto a ByteBuffer.
  * <p>Format is:<br>
  * - one byte type = 'c', 's', 'l'<br>
@@ -112,11 +115,6 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	
 	// add's ========================================================
 	
-	public Record add(byte[] data) {
-		alloc(data.length);
-		buf.put(data);
-		return this;
-	}
 	public Record add(ByteBuffer src) {
 		add(src, 0, src.limit());
 		return this;
@@ -132,24 +130,30 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		x.pack(buf);
 		return this;
 	}
-	public Record add(int x) {
-		alloc(4);
-		buf.putInt(x);
-		return this;
-	}
+	/** convenience method */
 	public Record add(String s) {
-		add(new SuString(s));
-		return this;
+		//PERF could bypass SuString instance
+		return add(new SuString(s));
 	}
+	/** convenience method */
+	public Record add(int x) {
+		//PERF could bypass SuInteger instance
+		return add(SuInteger.valueOf(x));
+	}
+	/** convenience method */
 	public Record addMmoffset(long n) {
-		add(Mmfile.offsetToInt(n));
-		return this;
+		return add(Mmfile.offsetToInt(n));
 	}
 	public Record addMax() {
 		alloc(1);
 		buf.put((byte) 0x7f);
 		return this;
 	}
+	/**
+	 * Adds a new uninitialized field of the specified length and
+	 * and sets the buffer position to it.
+	 * Grows the buffer if required and the record is growable.
+	 */
 	public int alloc(int len) {
 		if (rep.avail() < len)
 			grow(len);
@@ -211,7 +215,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	// get's ========================================================
 	
 	private final static ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
-	public ByteBuffer get(int i) {
+	public ByteBuffer getraw(int i) {
 		if (i >= getNfields())
 			return EMPTY_BUF;
 		buf.position(rep.getOffset(i));
@@ -220,39 +224,38 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		return result;
 	}
 	
-	public SuValue getValue(int i) {
-		return SuValue.unpack(get(i));
+	public SuValue get(int i) {
+		return SuValue.unpack(getraw(i));
 	}
 	
-	private final static byte[] NO_BYTES = new byte[0];
-	public byte[] getBytes(int i) {
-		if (i >= getNfields())
-			return NO_BYTES;
-		byte[] result = new byte[fieldSize(i)];
-		buf.position(rep.getOffset(i));
-		buf.get(result);
-		return result;
+	public String getString(int i) {
+		//PERF could bypass SuValue instance if SuString
+		return get(i).string();
 	}
 	
 	public long getLong(int i) {
-		return SuNumber.unpackLong(get(i));
+		return SuNumber.unpackLong(getraw(i));
+	}
+	public int getInt(int i) {
+		long n = SuNumber.unpackLong(getraw(i));
+		assert(Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE);
+		return (int) n;
 	}
 	
 	public long getMmoffset(int i) {
-		buf.position(rep.getOffset(i));
-		return Mmfile.intToOffset(buf.getInt());
+		return Mmfile.intToOffset(getInt(i));
 	}
 	
 	boolean hasPrefix(Record r) {
 		for (int i = 0; i < r.size(); ++i)
-			if (! get(i).equals(r.get(i)))
+			if (! getraw(i).equals(r.getraw(i)))
 				return false;
 		return true;
 	}
 	boolean prefixgt(Record r) {
 		int n = Math.min(size(), r.size());
 		for (int i = 0; i < n; ++i) {
-			int cmp = get(i).compareTo(r.get(i));
+			int cmp = getraw(i).compareTo(r.getraw(i));
 			if (cmp > 0)
 				return cmp > 0;
 	}
@@ -373,7 +376,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 			buf.put(Offset.SIZE + i + 1, (byte) sz);
 		}
 		int getOffset(int i) {
-			return buf.get(Offset.SIZE + i + 1);
+			return buf.get(Offset.SIZE + i + 1) & 0xff;
 		}
 		int avail() {
 			int n = getNfields();
@@ -385,7 +388,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 			buf.putShort(Offset.SIZE + 2 * (i + 1), (short) sz);
 		}
 		int getOffset(int i) {
-			return buf.getShort(Offset.SIZE + 2 * (i + 1));
+			return buf.getShort(Offset.SIZE + 2 * (i + 1)) & 0xffff;
 		}
 		int avail() {
 			int n = getNfields();

@@ -18,4 +18,12 @@ public class DestMem implements Destination {
 	public long size() {
 		return (nodes.size() + 1) << Mmfile.SHIFT;
 	}
+	
+	public boolean visible(int tran, long adr) {
+		return true;
+	}
+	
+	public TranRead read_act(int tran, int tblnum, String index) {
+		return new TranRead(tblnum, index);
+	}
 }

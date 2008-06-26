@@ -60,7 +60,7 @@ public class SuContainer extends SuValue {
 		for (SuValue x : vec)
 			s += x + ", ";
 		for (Map.Entry<SuValue,SuValue> e : map.entrySet())
-			s += e.getKey() + ": " + e.getValue() + ", ";
+			s += e.getKey().string() + ": " + e.getValue() + ", ";
 		if (s.length() >= 2)
 			s = s.substring(0, s.length() - 2);
 		return "[" + s + "]";

@@ -31,14 +31,14 @@ public class SuContainerTest {
 		assertEquals(i[0], c.getdata(SuInteger.ZERO));
 		assertEquals(i[1], c.getdata(s[0]));
 		assertEquals(s[1], c.getdata(SuInteger.valueOf(2)));
-		assertEquals("[12, 2: cd, ab: 34]", c.toString());
+		assertEquals("[12, 2: 'cd', ab: 34]", c.toString());
 		
 		c.putdata(SuInteger.ONE, s[2]);
 		assertEquals(4, c.size());
 		assertEquals(i[0], c.getdata(SuInteger.ZERO));
 		assertEquals(i[1], c.getdata(s[0]));
 		assertEquals(s[2], c.getdata(SuInteger.ONE));
-		assertEquals("[12, ef, cd, ab: 34]", c.toString());
+		assertEquals("[12, 'ef', 'cd', ab: 34]", c.toString());
 	}
 	
 	@Test

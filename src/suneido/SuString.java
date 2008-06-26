@@ -18,6 +18,11 @@ public class SuString extends SuValue {
 		this.s = s;
 	}
 	
+	@Override
+	public String string() {
+		return s;
+	}
+	
 	/**
 	 * @param member Converted to an integer zero-based position in the string.
 	 * @return An SuString containing the single character at the position, 
@@ -59,7 +64,7 @@ public class SuString extends SuValue {
 
 	@Override
 	public String toString() {
-		return s;
+		return "'" + s + "'"; //TODO smarter quoting/escaping
 	}
 
 	@Override

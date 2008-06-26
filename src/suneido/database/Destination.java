@@ -10,4 +10,8 @@ interface Destination {
 	
 	long size();
 	
+	TranRead read_act(int tran, int tblnum, String index);
+
+	boolean visible(int tran, long adr);
+
 }

@@ -56,7 +56,7 @@ public class Slots {
 		return get(size() - 1);
 	}
 	public Slot get(int i) {
-		return Slot.unpack(rec.get(i));
+		return Slot.unpack(rec.getraw(i));
 	}
 	
 	public void add(Slot slot) {
@@ -64,7 +64,7 @@ public class Slots {
 	}
 	public void add(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {
-			rec.add(slots.rec.get(i));
+			rec.add(slots.rec.getraw(i));
 		}
 	}
 	
