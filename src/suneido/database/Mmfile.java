@@ -39,7 +39,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	 * e.g. align of 8 = 3 bits for type = 8 types
 	 */
 	final public static int ALIGN = 8;
-	final public static int SHIFT = 3;
+	final public static int SHIFT = 2;
 	final private static int MB_PER_CHUNK = 4;
 	final private static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
 	final private static int MB_MAX_DB = 32 * 1024; // 32 gb
@@ -201,7 +201,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 
 	public ByteBuffer adr(long offset) {
 		ByteBuffer buf = buf(offset);
-		buf.limit(length(offset));
+//		buf.limit(length(offset));
 		return buf;
 	}
 	private ByteBuffer buf(long offset) {

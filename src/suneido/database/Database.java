@@ -6,6 +6,8 @@ import java.util.zip.Adler32;
 
 import suneido.SuBoolean;
 import suneido.SuException;
+import suneido.SuString;
+import suneido.SuValue;
 import static suneido.Suneido.verify;
 
 /**
@@ -157,8 +159,8 @@ public class Database implements Destination {
 		dbhdr = new Dbhdr();
 //		new (adr(alloc(sizeof (Session), MM_SESSION))) Session(Session::STARTUP);
 //		mmf.sync();
-//		indexes_index = mkindex(ckroot(Record(input(dbhdr.indexes))));
-//		
+		indexes_index = mkindex(input(dbhdr.indexes));
+		
 //		Record r = find(schema_tran, indexes_index, key(TN.INDEXES, "table,columns"));
 //		verify(! nil(r) && r.off() == indexes);
 //		
@@ -168,22 +170,29 @@ public class Database implements Destination {
 //		fkey_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.INDEXES, "fktable,fkcolumns"))));
 		// WARNING: any new indexes added here must also be added in get_table
 	}
-//	Index mkindex(Record r) {
-//		String columns = r.getstr(I.COLUMNS).str();
-//		boolean lower = has_prefix(columns, "lower:");
+	private final static SuString UNIQUE = new SuString("u");
+	Index mkindex(Record r) {
+		String columns = r.getString(I.COLUMNS);
+//		boolean lower = columns.startsWith("lower:");
 //		if (lower)
 //			columns += 6;
-//		return new Index(this,
-//			r.getInt(I.TBLNUM),
-//			columns,
-//			r.getMmoffset(I.ROOT),
-//			r.getInt(I.TREELEVELS), 
-//			r.getInt(I.NNODES), 
-//			r.getval(I.KEY) == SuTrue,
-//			r.getval(I.KEY).gcstr() == "u",
-//			lower
-//			);
-//	}
+		SuValue key = r.get(I.KEY);
+		long root = r.getMmoffset(I.ROOT);
+		verify(root != 0);
+		return new Index(this,
+			r.getInt(I.TBLNUM),
+			columns,
+			key == SuBoolean.TRUE,
+			key.equals(UNIQUE),
+			root,
+			r.getInt(I.TREELEVELS), 
+			r.getInt(I.NNODES)
+			);
+	}
+	private Record input(long adr) {
+		verify(adr != 0);
+		return new Record(mmf.adr(adr), adr);
+	}
 
 
 	public void close() {
@@ -199,8 +208,8 @@ public class Database implements Destination {
 		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
 		if (output_type == Mmfile.DATA && tblnum != TN.TABLES && tblnum != TN.INDEXES)
-			checksum(adr(offset + 4), 4 + n);
-		return offset;
+			checksum(p, 4 + n);
+		return offset + 4; //offset of record i.e. past tblnum
 	}
 	public long alloc(int n) { 
 		return alloc(n, Mmfile.OTHER);
@@ -232,6 +241,7 @@ public class Database implements Destination {
 		
 		// create
 		Dbhdr(long at, long indexes_adr) {
+System.out.println("create indexes " + indexes_adr);
 			verify(at == mmf.first());
 			buf = adr(at);
 			buf.putInt(next_table = TN.INDEXES + 1);
@@ -246,6 +256,7 @@ public class Database implements Destination {
 			buf = adr(mmf.first());
 			next_table = buf.getInt();
 			indexes = Mmfile.intToOffset(buf.getInt());
+System.out.println("open indexes " + indexes);
 			int version = buf.getInt();
 			if (version != VERSION)
 				throw new SuException("invalid database");
