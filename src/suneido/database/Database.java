@@ -241,7 +241,6 @@ public class Database implements Destination {
 		
 		// create
 		Dbhdr(long at, long indexes_adr) {
-System.out.println("create indexes " + indexes_adr);
 			verify(at == mmf.first());
 			buf = adr(at);
 			buf.putInt(next_table = TN.INDEXES + 1);
@@ -256,7 +255,6 @@ System.out.println("create indexes " + indexes_adr);
 			buf = adr(mmf.first());
 			next_table = buf.getInt();
 			indexes = Mmfile.intToOffset(buf.getInt());
-System.out.println("open indexes " + indexes);
 			int version = buf.getInt();
 			if (version != VERSION)
 				throw new SuException("invalid database");
