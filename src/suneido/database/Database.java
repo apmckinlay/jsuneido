@@ -161,13 +161,13 @@ public class Database implements Destination {
 //		mmf.sync();
 		indexes_index = mkindex(input(dbhdr.indexes));
 		
-//		Record r = find(schema_tran, indexes_index, key(TN.INDEXES, "table,columns"));
-//		verify(! nil(r) && r.off() == indexes);
-//		
-//		tables_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.TABLES, "tablename"))));
-//		tblnum_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.TABLES, "table"))));
-//		columns_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.COLUMNS, "table,column"))));
-//		fkey_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN.INDEXES, "fktable,fkcolumns"))));
+		Record r = find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES, "table,columns"));
+		verify(! r.isEmpty() && r.off() == dbhdr.indexes);
+		
+		tables_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES, "tablename")));
+		tblnum_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES, "table")));
+		columns_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.COLUMNS, "table,column")));
+		fkey_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES, "fktable,fkcolumns")));
 		// WARNING: any new indexes added here must also be added in get_table
 	}
 	private final static SuString UNIQUE = new SuString("u");
@@ -192,6 +192,13 @@ public class Database implements Destination {
 	private Record input(long adr) {
 		verify(adr != 0);
 		return new Record(mmf.adr(adr), adr);
+	}
+	private Record key(int tblnum, String columns) {
+		return new Record().add(tblnum).add(columns);
+	}
+	private Record find(int tran, Index index, Record key) {
+		Slot slot = index.find(tran, key);
+		return slot.isEmpty() ? Record.MINREC : input(slot.keyadr());
 	}
 
 

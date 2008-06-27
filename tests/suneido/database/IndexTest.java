@@ -64,7 +64,7 @@ public class IndexTest {
 		return r;
 	}
 
-	public static void main(String args[]) {
-		new IndexTest().next_prev();
-	}
+//	public static void main(String args[]) {
+//		new IndexTest().next_prev();
+//	}
 }

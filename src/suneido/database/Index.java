@@ -53,7 +53,7 @@ public class Index {
 	boolean insert(int tran, Slot x) {
 //		if (lower)
 //			lower_key(x.key);
-		if (iskey || (unique && ! empty(x.key))) {
+		if (iskey || (unique && ! isEmpty(x.key))) {
 			Record key = x.key;
 			key.reuse(key.size() - 1); // strip off record address
 			boolean dup = ! find(tran, key).isEmpty();
@@ -81,7 +81,7 @@ public class Index {
 		return cur.key.hasPrefix(key) ? cur : new Slot();
 	}
 
-	private boolean empty(Record key) {
+	private boolean isEmpty(Record key) {
 		int n = key.size() - 1; // - 1 to ignore record address at end
 		if (n <= 0)
 			return true;
@@ -140,9 +140,9 @@ public class Index {
 				first = false;
 				iter.next();
 				}
-//			while (! iter.eof() && 
-//				(mmoffset(iter.key()) >= prevsize || ! visible()))
-//				iter.next();
+			while (! iter.eof() && 
+				(iter.cur().keyadr() >= prevsize || ! visible()))
+				iter.next();
 			if (! iter.eof() && iter.key().prefixgt(to))
 				iter.seteof();
 			if (! iter.eof() && (iskey || first || ! eq(iter.key(), prevkey)))
@@ -181,7 +181,7 @@ public class Index {
 		}
 
 		private boolean visible() {
-			return dest.visible(tran, mmoffset(iter.key()));
+			return dest.visible(tran, iter.cur().keyadr());
 		}
 	}
 	/**
@@ -195,9 +195,5 @@ public class Index {
 			if (r1.getraw(i) != r2.getraw(i))
 				return false;
 		return true;
-	}
-
-	private long mmoffset(Record key) {
-		return key.getMmoffset(key.size() - 1);
 	}
 }
