@@ -1,6 +1,8 @@
 package suneido.database;
 
 import static java.lang.Math.min;
+import static suneido.Suneido.verify;
+
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
 
@@ -8,32 +10,39 @@ import suneido.SuBoolean;
 import suneido.SuException;
 import suneido.SuString;
 import suneido.SuValue;
-import static suneido.Suneido.verify;
 
 /**
- * Implements the Suneido database.
- * Uses {@link Mmfile} and {@link Index}.
+ * Implements the Suneido database. Uses {@link Mmfile} and {@link Index}.
+ * 
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ *         <p>
+ *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ *         Licensed under GPLv2.</small>
+ *         </p>
  */
 public class Database implements Destination {
-	private Mmfile mmf;
+	private final Mmfile mmf;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
-//	private long clock = 1;
-	private Adler32 cksum = new Adler32();
+	// private long clock = 1;
+	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
+
 	private static class TN {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
+
 	private static class FKMODE {
-		final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2, CASCADE = 3;
+		final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2,
+				CASCADE = 3;
 	}
+
 	private static class I {
-		final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, 
-			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5, 
-			ROOT = 6, TREELEVELS = 7, NNODES = 8;
+		final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
+				FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7,
+				NNODES = 8;
 	}
+
 	public final static int SCHEMA_TRAN = 0;
 	private final static int VERSION = 1;
 	private Index tables_index;
@@ -44,15 +53,15 @@ public class Database implements Destination {
 	// used by get_view
 	private Index views_index;
 
-	public Database(String filename, Mode mode) {		
+	public Database(String filename, Mode mode) {
 		mmf = new Mmfile(filename, mode);
-//		if (mode == Mode.OPEN && ! check_shutdown(mmf)) {
-//			mmf.close();
-//			if (0 != fork_rebuild())
-//				fatal("Database not rebuilt, unable to start");
-//			mmf = new Mmfile(filename, mode);
-//			verify(check_shutdown(mmf));
-//		}
+		// if (mode == Mode.OPEN && ! check_shutdown(mmf)) {
+		// mmf.close();
+		// if (0 != fork_rebuild())
+		// fatal("Database not rebuilt, unable to start");
+		// mmf = new Mmfile(filename, mode);
+		// verify(check_shutdown(mmf));
+		// }
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;
 			create();
@@ -61,12 +70,12 @@ public class Database implements Destination {
 			open();
 		}
 	}
-	
+
 	private void create() {
 		loading = true;
-		
+
 		long dbhdr_at = alloc(Dbhdr.SIZE, Mmfile.OTHER);
-		
+
 		// tables
 		tables_index = new Index(this, TN.TABLES, "tablename", true, false);
 		tblnum_index = new Index(this, TN.TABLES, "table", true, false);
@@ -97,8 +106,10 @@ public class Database implements Destination {
 		columns_record(TN.INDEXES, "nnodes", 8);
 
 		// indexes
-		indexes_index = new Index(this, TN.INDEXES, "table,columns", true, false);
-		fkey_index = new Index(this, TN.INDEXES, "fktable,fkcolumns", false, false);
+		indexes_index = new Index(this, TN.INDEXES, "table,columns", true,
+				false);
+		fkey_index = new Index(this, TN.INDEXES, "fktable,fkcolumns", false,
+				false);
 		indexes_record(tables_index);
 		indexes_record(tblnum_index);
 		indexes_record(columns_index);
@@ -107,21 +118,26 @@ public class Database implements Destination {
 		indexes_record(fkey_index);
 
 		// views
-//		add_table("views");
-//		add_column("views", "view_name");
-//		add_column("views", "view_definition");
-//		add_index("views", "view_name", true);
-		
+		// add_table("views");
+		// add_column("views", "view_name");
+		// add_column("views", "view_definition");
+		// add_index("views", "view_name", true);
+
 		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
 	}
-	private void table_record(int tblnum, String tblname, int nrows, int nextfield) {
+
+	private void table_record(int tblnum, String tblname, int nrows,
+			int nextfield) {
 		Record r = new Record();
 		r.add(tblnum).add(tblname).add(nextfield).add(nrows).add(100);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		long at = output(TN.TABLES, r);
-		verify(tblnum_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblnum).addMmoffset(at))));
-		verify(tables_index.insert(SCHEMA_TRAN, new Slot(new Record().add(tblname).addMmoffset(at))));
-		}
+		verify(tblnum_index.insert(SCHEMA_TRAN, new Slot(new Record().add(
+				tblnum).addMmoffset(at))));
+		verify(tables_index.insert(SCHEMA_TRAN, new Slot(new Record().add(
+				tblname).addMmoffset(at))));
+	}
+
 	private void columns_record(int tblnum, String column, int field) {
 		Record r = new Record();
 		r.add(tblnum);
@@ -131,79 +147,83 @@ public class Database implements Destination {
 		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
 		verify(columns_index.insert(SCHEMA_TRAN, new Slot(key)));
 	}
+
 	private long indexes_record(Index index) {
-		Record r = new Record()
-			.add(index.tblnum)
-			.add(index.index)
-			.add(index.iskey ? SuBoolean.TRUE : SuBoolean.FALSE)
-			.add("") // fktable
-			.add("") // fkcolumns
-			.add(FKMODE.BLOCK);
+		Record r = new Record().add(index.tblnum).add(index.index).add(
+				index.iskey ? SuBoolean.TRUE : SuBoolean.FALSE).add("") // fktable
+				.add("") // fkcolumns
+				.add(FKMODE.BLOCK);
 		indexInfo(r, index);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		long at = output(TN.INDEXES, r);
-		Record key1 = new Record().add(index.tblnum).add(index.index).addMmoffset(at);
+		Record key1 = new Record().add(index.tblnum).add(index.index)
+				.addMmoffset(at);
 		verify(indexes_index.insert(SCHEMA_TRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
 		verify(fkey_index.insert(SCHEMA_TRAN, new Slot(key2)));
 		return at;
 	}
+
 	private void indexInfo(Record r, Index index) {
 		r.reuse(I.ROOT);
 		r.addMmoffset(index.root());
 		r.add(index.treelevels());
 		r.add(index.nnodes());
 	}
-	
+
 	void open() {
 		dbhdr = new Dbhdr();
-//		new (adr(alloc(sizeof (Session), MM_SESSION))) Session(Session::STARTUP);
-//		mmf.sync();
+		// new (adr(alloc(sizeof (Session), MM_SESSION)))
+		// Session(Session::STARTUP);
+		// mmf.sync();
 		indexes_index = mkindex(input(dbhdr.indexes));
-		
-		Record r = find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES, "table,columns"));
-		verify(! r.isEmpty() && r.off() == dbhdr.indexes);
-		
-		tables_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES, "tablename")));
-		tblnum_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES, "table")));
-		columns_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.COLUMNS, "table,column")));
-		fkey_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES, "fktable,fkcolumns")));
+
+		Record r = find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES,
+				"table,columns"));
+		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
+
+		tables_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES,
+				"tablename")));
+		tblnum_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES,
+				"table")));
+		columns_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(
+				TN.COLUMNS, "table,column")));
+		fkey_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES,
+				"fktable,fkcolumns")));
 		// WARNING: any new indexes added here must also be added in get_table
 	}
+
 	private final static SuString UNIQUE = new SuString("u");
+
 	Index mkindex(Record r) {
 		String columns = r.getString(I.COLUMNS);
-//		boolean lower = columns.startsWith("lower:");
-//		if (lower)
-//			columns += 6;
+		// boolean lower = columns.startsWith("lower:");
+		// if (lower)
+		// columns += 6;
 		SuValue key = r.get(I.KEY);
 		long root = r.getMmoffset(I.ROOT);
 		verify(root != 0);
-		return new Index(this,
-			r.getInt(I.TBLNUM),
-			columns,
-			key == SuBoolean.TRUE,
-			key.equals(UNIQUE),
-			root,
-			r.getInt(I.TREELEVELS), 
-			r.getInt(I.NNODES)
-			);
+		return new Index(this, r.getInt(I.TBLNUM), columns,
+				key == SuBoolean.TRUE, key.equals(UNIQUE), root, r
+						.getInt(I.TREELEVELS), r.getInt(I.NNODES));
 	}
+
 	private Record input(long adr) {
 		verify(adr != 0);
 		return new Record(mmf.adr(adr), adr);
 	}
+
 	private Record key(int tblnum, String columns) {
 		return new Record().add(tblnum).add(columns);
 	}
+
 	private Record find(int tran, Index index, Record key) {
 		Slot slot = index.find(tran, key);
 		return slot.isEmpty() ? Record.MINREC : input(slot.keyadr());
 	}
 
-
 	public void close() {
-//		shutdown();
+		// shutdown();
 		mmf.close();
 	}
 
@@ -214,24 +234,30 @@ public class Database implements Destination {
 		p.putInt(tblnum);
 		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
-		if (output_type == Mmfile.DATA && tblnum != TN.TABLES && tblnum != TN.INDEXES)
+		if (output_type == Mmfile.DATA && tblnum != TN.TABLES
+				&& tblnum != TN.INDEXES)
 			checksum(p, 4 + n);
-		return offset + 4; //offset of record i.e. past tblnum
+		return offset + 4; // offset of record i.e. past tblnum
 	}
-	public long alloc(int n) { 
+
+	public long alloc(int n) {
 		return alloc(n, Mmfile.OTHER);
 	}
-	long alloc(int n, byte type) { 
+
+	long alloc(int n, byte type) {
 		return mmf.alloc(n, type);
 	}
+
 	public ByteBuffer adr(long offset) {
 		return mmf.adr(offset);
 	}
+
 	public long size() {
 		return mmf.size();
 	}
-	
+
 	static byte[] bytes = new byte[256];
+
 	void checksum(ByteBuffer buf, int len) {
 		for (int i = 0; i < len; i += bytes.length) {
 			int n = min(bytes.length, len - i);
@@ -239,13 +265,13 @@ public class Database implements Destination {
 			cksum.update(bytes, 0, n);
 		}
 	}
-	
+
 	private class Dbhdr {
 		static final int SIZE = 4 + 4 + 4;
-		ByteBuffer buf;		
+		ByteBuffer buf;
 		int next_table;
 		long indexes;
-		
+
 		// create
 		Dbhdr(long at, long indexes_adr) {
 			verify(at == mmf.first());
@@ -254,6 +280,7 @@ public class Database implements Destination {
 			buf.putInt(Mmfile.offsetToInt(indexes = indexes_adr));
 			buf.putInt(VERSION);
 		}
+
 		// open
 		Dbhdr() {
 			long at = mmf.first();
@@ -266,13 +293,14 @@ public class Database implements Destination {
 			if (version != VERSION)
 				throw new SuException("invalid database");
 		}
-		
+
 	}
 
 	public TranRead read_act(int tran, int tblnum, String index) {
 		// TODO Auto-generated method stub
 		return new TranRead(tblnum, index);
 	}
+
 	public boolean visible(int tran, long adr) {
 		// TODO Auto-generated method stub
 		return true;
