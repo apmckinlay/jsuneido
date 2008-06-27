@@ -70,4 +70,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public boolean isEmpty() {
 		return key.isEmpty();
 	}
+	
+	/**
+	 * @return The address at the end of the key.
+	 * (not from adrs)
+	 */
+	public long keyadr() {
+		return key.getMmoffset(key.size() - 1);
+	}
 }

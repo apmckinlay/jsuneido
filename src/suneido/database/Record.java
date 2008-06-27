@@ -123,8 +123,9 @@ public class Record implements suneido.Packable, Comparable<Record> {
 			: new Record(ByteBuffer.wrap((byte[]) ob));
 	}
 	
-	ByteBuffer getBuf() {
-		return buf;
+	public long off() {
+		verify(dboffset != 0); // should only be called on database records
+		return dboffset;
 	}
 	
 	public Record dup() {
