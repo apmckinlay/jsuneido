@@ -5,16 +5,19 @@ import java.util.ArrayList;
 
 /**
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ *         <p>
+ *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ *         Licensed under GPLv2.</small>
+ *         </p>
  */
 public class DestMem implements Destination {
-	private ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();
-	
+	private final ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();
+
 	public long alloc(int size) {
 		nodes.add(ByteBuffer.allocate(size));
 		return nodes.size() << Mmfile.SHIFT; // start at one not zero
 	}
-	
+
 	public ByteBuffer adr(long offset) {
 		return nodes.get((int) (offset >> Mmfile.SHIFT) - 1);
 	}
@@ -22,12 +25,17 @@ public class DestMem implements Destination {
 	public long size() {
 		return (nodes.size() + 1) << Mmfile.SHIFT;
 	}
-	
+
 	public boolean visible(int tran, long adr) {
 		return true;
 	}
-	
+
 	public TranRead read_act(int tran, int tblnum, String index) {
 		return new TranRead(tblnum, index);
+	}
+
+	public Record input(long adr) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

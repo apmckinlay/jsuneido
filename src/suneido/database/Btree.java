@@ -5,7 +5,7 @@ import static suneido.Suneido.verify;
 /**
  * Btree implementation. 
  * Uses {@link Slots} to store nodes.
- * @see Index
+ * @see BtreeIndex
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small>
  */
