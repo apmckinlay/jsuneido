@@ -1,7 +1,7 @@
 package suneido.database;
 
 /**
- * Stores the range of keys that was read by an {@link Index} iterator.
+ * Stores the range of keys that was read by an {@link BtreeIndex} iterator.
  * Used to validate transactions.
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>

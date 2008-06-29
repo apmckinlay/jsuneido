@@ -8,21 +8,21 @@ import static org.junit.Assert.*;
 public class IndexTest {
 	@Test
 	public void normal() {
-		Index ix = new Index(dest = new DestMem(), 0, "", false, false);
+		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, false);
 		assertTrue(ix.insert(0, makeslot(123)));
 		assertTrue(ix.insert(0, makeslot(123)));
 	}
 	
 	@Test
 	public void key() {
-		Index ix = new Index(dest = new DestMem(), 0, "", true, false);
+		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", true, false);
 		assertTrue(ix.insert(0, makeslot()));
 		assertFalse(ix.insert(0, makeslot()));
 	}
 
 	@Test
 	public void unique() {
-		Index ix = new Index(dest = new DestMem(), 0, "", false, true);
+		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, true);
 		assertTrue(ix.insert(0, makeslot()));
 		assertTrue(ix.insert(0, makeslot()));
 		
@@ -32,12 +32,12 @@ public class IndexTest {
 	
 	@Test
 	public void next_prev() {
-		Index ix = new Index(dest = new DestMem(), 0, "", false, false);
+		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, false);
 		int i;
 		for (i = 0; i < 100; ++i)
 			ix.insert(0, makeslot(i));
 		
-		Index.Iter iter = ix.iter(0, makekey(40), makekey(60));
+		BtreeIndex.Iter iter = ix.iter(0, makekey(40), makekey(60));
 		for (i = 40; i <= 60; ++i)
 			assertEquals(i, iter.next().cur().key.getLong(0));
 		assertTrue(iter.next().eof());
