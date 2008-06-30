@@ -2,6 +2,7 @@ package suneido.database;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -14,16 +15,16 @@ public class DatabaseTest {
 	Database db;
 
 	@Test
-	public void create_open() {
-		new File("tmp1").delete();
-		db = new Database("tmp1", Mode.CREATE);
+	public void test() {
+		new File("databasetest").delete();
+		db = new Database("databasetest", Mode.CREATE);
 		String b = "hello";
 		Record r = new Record().add(b);
 		long offset = db.output(1234, r);
 		// db.add_any_record(0, tbl, r);
 		db.close();
 
-		db = new Database("tmp1", Mode.OPEN);
+		db = new Database("databasetest", Mode.OPEN);
 		Record r2 = db.input(offset);
 		assertEquals(r, r2);
 
@@ -31,11 +32,30 @@ public class DatabaseTest {
 		assertEquals(1234, bb.getInt());
 
 		Table tbl = db.getTable("indexes");
-		System.out.println(tbl);
-		System.out.println(db.getTable(2));
+		assertEquals("indexes", tbl.name);
 		assertSame(tbl, db.getTable(2));
 
 		db.addTable("test");
+		db.getTable("test");
+
+		db.addColumn("test", "a");
+		db.addColumn("test", "b");
+
+		db.addIndex("test", "a", true, "", "", 0, false, false);
+
+		tbl = db.getTable("test");
+		assertEquals(2, tbl.columns.size());
+		assertEquals(1, tbl.indexes.size());
+
+		r = new Record().add("12").add("34");
+		db.add_any_record(0, "test", r);
+
+		Index idx = tbl.indexes.first();
+		BtreeIndex.Iter iter = idx.btreeIndex.iter(0).next();
+		r2 = iter.data();
+		assertEquals(r, r2);
+		iter.next();
+		assertTrue(iter.eof());
 	}
 
 	@After
@@ -46,8 +66,7 @@ public class DatabaseTest {
 
 	@AfterClass
 	public static void cleanup() {
-		for (int i = 1; i <= 1; ++i)
-			new File("tmp" + i).delete();
+		new File("databasetest").delete();
 	}
 
 	// public static void main(String args[]) {

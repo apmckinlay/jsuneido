@@ -19,8 +19,7 @@ public class Index {
 	// Fkey fksrc;
 	// ArrayList<Fkey> fkdsts;
 
-	public Index(String table, Record r, String columns, short[] colnums,
-			BtreeIndex btreeIndex) {
+	public Index(Record r, String columns, short[] colnums, BtreeIndex btreeIndex) {
 		this.btreeIndex = btreeIndex;
 		this.rec = r;
 		this.columns = columns;
@@ -36,7 +35,8 @@ public class Index {
 		Record r = new Record()
 				.add(btreeIndex.tblnum)
 				.add(btreeIndex.index)
-				.add(btreeIndex.iskey ? SuBoolean.TRUE : SuBoolean.FALSE)
+				.add(btreeIndex.iskey ? SuBoolean.TRUE :
+						btreeIndex.unique ? UNIQUE : SuBoolean.FALSE)
 				.add("") // fktable
 				.add("") // fkcolumns
 				.add(BLOCK);

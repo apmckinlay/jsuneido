@@ -28,4 +28,8 @@ public class Indexes implements Iterable<Index> {
 	public Index first() {
 		return indexes.get(0);
 	}
+
+	public int size() {
+		return indexes.size();
+	}
 }
