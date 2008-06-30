@@ -24,8 +24,8 @@ public class Table {
 	public void sortColumns() {
 		columns.sort();
 	}
-	public void addIndex(Idx idx) {
-		indexes.add(idx);
+	public void addIndex(Index index) {
+		indexes.add(index);
 	}
 
 	public boolean hasColumn(String name) {
@@ -62,7 +62,7 @@ public class Table {
 	public boolean hasIndex(String columns) {
 		return indexes.hasIndex(columns);
 	}
-	public Idx firstIndex() {
+	public Index firstIndex() {
 		return indexes.first();
 	}
 
