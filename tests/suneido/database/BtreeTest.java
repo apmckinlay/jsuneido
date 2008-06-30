@@ -70,11 +70,11 @@ public class BtreeTest {
 		iter = bt.locate(makerec(101));
 		assertEquals(99, iter.cur().key.getLong(0));
 
-		assertFalse(bt.erase(makerec(999)));
+		assertFalse(bt.remove(makerec(999)));
 		ArrayList<Integer> v = shuffled(100, 123);
 		for (int i : v)
-			assertTrue("erasing " + i, bt.erase(makerec(i)));
-		assertFalse(bt.erase(makerec(33)));
+			assertTrue("erasing " + i, bt.remove(makerec(i)));
+		assertFalse(bt.remove(makerec(33)));
 		assertTrue(bt.isEmpty());
 		assertTrue(bt.first().eof());
 		assertTrue(bt.isValid());
@@ -91,7 +91,7 @@ public class BtreeTest {
 			if ((rnd.nextInt() & 1) == 0)
 				assertEquals(ts.add(x), bt.insert(new Slot(makerec(x))));				
 			else
-				assertEquals(ts.remove(x), bt.erase(makerec(x)));
+				assertEquals(ts.remove(x), bt.remove(makerec(x)));
 			if (i % 10 == 0)
 				assertTrue(bt.isValid());
 		}

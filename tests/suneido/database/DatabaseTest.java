@@ -53,10 +53,10 @@ public class DatabaseTest {
 		assertEquals(2, tbl.columns.size());
 		assertEquals(1, tbl.indexes.size());
 
-		r = new Record().add("12").add("34");
+		r = new Record().add(12).add(34);
 		t = Transaction.readwrite();
 		try {
-			db.add_any_record(t, "test", r);
+			db.addRecord(t, "test", r);
 		} finally {
 			assertTrue(t.complete());
 		}
@@ -72,6 +72,15 @@ public class DatabaseTest {
 		r2 = iter.data();
 		assertEquals(r, r2);
 		iter.next();
+		assertTrue(iter.eof());
+
+		t = Transaction.readwrite();
+		try {
+			db.removeRecord(t, "test", "a", new Record().add(12));
+		} finally {
+			assertTrue(t.complete());
+		}
+		iter = idx.btreeIndex.iter(NULLTRAN).next();
 		assertTrue(iter.eof());
 	}
 

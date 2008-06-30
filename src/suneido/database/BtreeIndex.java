@@ -73,8 +73,8 @@ public class BtreeIndex {
 		return bt.insert(x);
 	}
 
-	boolean erase(Record key) {
-		return bt.erase(key);
+	boolean remove(Record key) {
+		return bt.remove(key);
 	}
 
 	float rangefrac(Record from, Record to) {

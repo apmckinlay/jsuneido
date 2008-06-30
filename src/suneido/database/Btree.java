@@ -96,7 +96,7 @@ public class Btree {
 		return true;
 	}
 
-	boolean insert(Slot x) { // returns false for duplicate key
+	public boolean insert(Slot x) { // returns false for duplicate key
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 	
 		// search down the tree
@@ -149,7 +149,7 @@ public class Btree {
 		verify(treelevels < MAXLEVELS);
 	}
 
-	boolean erase(Record key) {
+	public boolean remove(Record key) {
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 	
 		// search down the tree

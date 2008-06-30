@@ -329,7 +329,20 @@ public class Database implements Destination {
 		}
 	}
 
-	public void add_any_record(Transaction tran, String table, Record r) {
+	public void addRecord(Transaction tran, String table, Record r) {
+		if (is_system_table(table))
+			throw new SuException("add record: can't add records to system table: " + table);
+		add_any_record(tran, table, r);
+	}
+
+	private boolean is_system_table(String table) {
+		return	table.equals("tables") ||
+				table.equals("columns") ||
+				table.equals("indexes") ||
+				table.equals("views");
+	}
+
+	private void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
 		}
 	private void add_any_record(Transaction tran, Table tbl, Record r) {
@@ -364,7 +377,7 @@ public class Database implements Destination {
 					if (j == i)
 						break;
 					key = r.project(j.colnums, adr);
-					verify(j.btreeIndex.erase(key));
+					verify(j.btreeIndex.remove(key));
 				}
 				throw new SuException("duplicate key: " + i.columns + " = "
 						+ key + " in " + tbl.name);
@@ -377,6 +390,54 @@ public class Database implements Destination {
 		tbl.update(); // update tables record
 	}
 
+	public void removeRecord(Transaction tran, String table, String index, Record key) {
+		if (is_system_table(table))
+			throw new SuException("delete record: can't delete records from system table: " + table);
+		remove_any_record(tran, table, index, key);
+	}
+	
+	private void remove_any_record(Transaction tran, String table, String index, Record key) {
+		Table tbl = ck_getTable(table);
+		// lookup key in given index
+		Index idx = tbl.indexes.find(index);
+		verify(idx != null);
+		Record rec = find(tran, idx.btreeIndex, key);
+		if (rec == null)
+			throw new SuException("delete record: can't find record in " + table);
+		remove_any_record(tran, tbl, rec);
+	}
+
+	public void remove_any_record(Transaction tran, Table tbl, Record r) {
+		if (tran.isReadonly())
+			throw new SuException("can't delete from read-only transaction in " + tbl.name);
+		verify(tbl != null);
+		verify(r != null);
+	
+//		if (char* fktblname = fkey_target_block(tran, tbl, r))
+//			throw new SuException("delete record from " + tbl->name + " blocked by foreign key from " + fktblname);
+	
+		if (! tran.delete_act(tbl.num, r.off()))
+			throw new SuException("delete record from " + tbl.name + " transaction conflict: " + tran.conflict());
+	
+remove_index_entries(tbl, r);
+
+		--tbl.nrecords;
+		tbl.totalsize -= r.bufSize();
+		tbl.update(); // update tables record
+	
+		if (! loading)
+			tbl.user_trigger(tran, r, Record.MINREC);
+	}
+
+	private void remove_index_entries(Table tbl, Record r) {
+		long off = r.off();
+		for (Index i : tbl.indexes) {
+			Record key = r.project(i.colnums, off);
+			verify(i.btreeIndex.remove(key));
+			i.update(); // update indexes record from index
+		}
+	}
+	
 	long output(int tblnum, Record r) {
 		int n = r.packSize();
 		long offset = alloc(4 + n, output_type);
