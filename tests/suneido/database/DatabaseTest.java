@@ -36,20 +36,30 @@ public class DatabaseTest {
 		assertEquals("indexes", tbl.name);
 		assertSame(tbl, db.getTable(2));
 
-		db.addTable(NULLTRAN, "test");
-		db.getTable("test");
-
-		db.addColumn(NULLTRAN, "test", "a");
-		db.addColumn(NULLTRAN, "test", "b");
-
-		db.addIndex(NULLTRAN, "test", "a", true, "", "", 0, false, false);
+		Transaction t = Transaction.readwrite();
+		try {
+			db.addTable(t, "test");
+			db.getTable("test");
+	
+			db.addColumn(t, "test", "a");
+			db.addColumn(t, "test", "b");
+	
+			db.addIndex(t, "test", "a", true, "", "", 0, false, false);
+		} finally {
+			assertTrue(t.complete());
+		}
 
 		tbl = db.getTable("test");
 		assertEquals(2, tbl.columns.size());
 		assertEquals(1, tbl.indexes.size());
 
 		r = new Record().add("12").add("34");
-		db.add_any_record(NULLTRAN, "test", r);
+		t = Transaction.readwrite();
+		try {
+			db.add_any_record(t, "test", r);
+		} finally {
+			assertTrue(t.complete());
+		}
 
 		db.close();
 		db = new Database("databasetest", Mode.OPEN);
