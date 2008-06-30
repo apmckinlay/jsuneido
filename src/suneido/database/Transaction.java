@@ -10,6 +10,7 @@ import static suneido.Suneido.verify;
 public class Transaction {
 	private final boolean readonly;
 	protected boolean ended = false;
+	private String conflict = "";
 	public static final Transaction NULLTRAN = new NullTransaction();
 	
 	private Transaction(boolean readonly) {
@@ -42,10 +43,11 @@ public class Transaction {
 		verify(! ended);
 	}
 	
-	public void delete_act(int tblnum, long adr) {
+	public boolean delete_act(int tblnum, long adr) {
 		// TODO Auto-generated method stub
 		verify(! readonly);
 		verify(! ended);
+		return true;
 	}
 
 	public boolean visible(long adr) {
@@ -63,6 +65,10 @@ public class Transaction {
 		verify(! ended);
 		ended = true;
 		// TODO
+	}
+	
+	public String conflict() {
+		return conflict;
 	}
 
 	private static class NullTransaction extends Transaction {
