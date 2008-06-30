@@ -22,7 +22,7 @@ import suneido.SuValue;
  * - size (also referenced as offset[-1])<br>
  * - array of offsets<br>
  * size and array elements are of the type
- * 
+ *
  * @author Andrew McKinlay
  *         <p>
  *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -57,7 +57,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 
 	/**
 	 * Create a new BufRecord, allocating a new ByteBuffer
-	 * 
+	 *
 	 * @param size
 	 *            The required size, including both data and offsets
 	 */
@@ -68,7 +68,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 
 	/**
 	 * Create a new BufRecord using a supplied ByteBuffer.
-	 * 
+	 *
 	 * @param buf
 	 * @param size
 	 *            The size of the buffer. Used to determine the required
@@ -90,7 +90,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 
 	/**
 	 * Create a BufRecord on an existing ByteBuffer in BufRecord format.
-	 * 
+	 *
 	 * @param buf
 	 *            Must be in BufRecord format.
 	 */
@@ -378,7 +378,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 
 	/**
 	 * Used by MemRecord
-	 * 
+	 *
 	 * @param nfields
 	 *            The number of fields.
 	 * @param datasize
@@ -449,6 +449,9 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		return rep.getOffset(-1);
 	}
 
+	public Record project(short[] fields) {
+		return project(fields, 0);
+	}
 	public Record project(short[] fields, long adr) {
 		Record r = new Record();
 		for (int i : fields)

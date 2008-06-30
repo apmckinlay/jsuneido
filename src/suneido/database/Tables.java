@@ -5,8 +5,8 @@ import static suneido.Suneido.verify;
 import java.util.HashMap;
 
 public class Tables {
-	private HashMap<Integer, Table> bynum;
-	private HashMap<String, Table> byname;
+	private final HashMap<Integer, Table> bynum = new HashMap<Integer, Table>();
+	private final HashMap<String, Table> byname = new HashMap<String, Table>();
 
 	public void add(Table tbl) {
 		bynum.put(tbl.num, tbl);

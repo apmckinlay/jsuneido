@@ -24,8 +24,8 @@ public class BtreeIndex {
 	 * Create a new index.
 	 */
 	public BtreeIndex(Destination dest, int tblnum, String index,
-			boolean iskey, boolean unique) {
-		init(dest, tblnum, index, iskey, unique);
+			boolean isKey, boolean unique) {
+		init(dest, tblnum, index, isKey, unique);
 		bt = new Btree(dest);
 	}
 
