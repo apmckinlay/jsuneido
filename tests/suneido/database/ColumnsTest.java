@@ -13,12 +13,12 @@ public class ColumnsTest {
 		columns.add(new Column("a", (short) 1));
 		columns.add(new Column("b", (short) 2));
 		columns.add(new Column("c", (short) 3));
-		assertArrayEquals(new short[] { 3, 2 }, columns.commaToNums("c,b"));
+		assertArrayEquals(new short[] { 3, 2 }, columns.nums("c,b"));
 	}
 
 	@Test(expected = SuException.class)
 	public void column_not_found() {
-		new Columns().commaToNums("a,b");
+		new Columns().nums("a,b");
 	}
 
 }

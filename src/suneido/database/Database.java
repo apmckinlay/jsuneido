@@ -6,14 +6,11 @@ import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
 
-import suneido.SuBoolean;
 import suneido.SuException;
-import suneido.SuString;
-import suneido.SuValue;
 
 /**
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
- * 
+ *
  * @author Andrew McKinlay
  *         <p>
  *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -24,7 +21,7 @@ public class Database implements Destination {
 	private final Mmfile mmf;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
-	// private long clock = 1;
+	private long clock = 1;
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
@@ -33,34 +30,14 @@ public class Database implements Destination {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
 
-	private static class FKMODE {
-		final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2,
-				CASCADE = 3;
-	}
-
-	private static class I {
-		final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
-				FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7,
-				NNODES = 8;
-	}
-
-	private static class T {
-		final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
-				TOTALSIZE = 4;
-	}
-
-	private static class C {
-		final static int TBLNUM = 0, COLUMN = 1, FLDNUM = 2;
-	}
-
 	private static class V {
 		final static int NAME = 0, DEFINITION = 1;
 	}
 
 	public final static int SCHEMA_TRAN = 0;
 	private final static int VERSION = 1;
-	private BtreeIndex tables_index;
-	private BtreeIndex tblnum_index;
+	private BtreeIndex tablename_index;
+	private BtreeIndex tablenum_index;
 	private BtreeIndex columns_index;
 	private BtreeIndex indexes_index;
 	private BtreeIndex fkey_index;
@@ -91,46 +68,43 @@ public class Database implements Destination {
 		long dbhdr_at = alloc(Dbhdr.SIZE, Mmfile.OTHER);
 
 		// tables
-		tables_index = new BtreeIndex(this, TN.TABLES, "tablename", true, false);
-		tblnum_index = new BtreeIndex(this, TN.TABLES, "table", true, false);
-		table_record(TN.TABLES, "tables", 3, 5);
-		table_record(TN.COLUMNS, "columns", 17, 3);
-		table_record(TN.INDEXES, "indexes", 5, 9);
+		tablename_index = new BtreeIndex(this, TN.TABLES, "tablename", true, false);
+		tablenum_index = new BtreeIndex(this, TN.TABLES, "table", true, false);
+		createTable("tables", TN.TABLES, 5, 3);
+		createTable("columns", TN.COLUMNS, 3, 17);
+		createTable("indexes", TN.INDEXES, 9, 5);
 
 		// columns
-		columns_index = new BtreeIndex(this, TN.COLUMNS, "table,column", true,
-				false);
-		columns_record(TN.TABLES, "table", 0);
-		columns_record(TN.TABLES, "tablename", 1);
-		columns_record(TN.TABLES, "nextfield", 2);
-		columns_record(TN.TABLES, "nrows", 3);
-		columns_record(TN.TABLES, "totalsize", 4);
+		columns_index = new BtreeIndex(this, TN.COLUMNS, "table,column", true, false);
+		createColumn(TN.TABLES, "table", 0);
+		createColumn(TN.TABLES, "tablename", 1);
+		createColumn(TN.TABLES, "nextfield", 2);
+		createColumn(TN.TABLES, "nrows", 3);
+		createColumn(TN.TABLES, "totalsize", 4);
 
-		columns_record(TN.COLUMNS, "table", 0);
-		columns_record(TN.COLUMNS, "column", 1);
-		columns_record(TN.COLUMNS, "field", 2);
+		createColumn(TN.COLUMNS, "table", 0);
+		createColumn(TN.COLUMNS, "column", 1);
+		createColumn(TN.COLUMNS, "field", 2);
 
-		columns_record(TN.INDEXES, "table", 0);
-		columns_record(TN.INDEXES, "columns", 1);
-		columns_record(TN.INDEXES, "key", 2);
-		columns_record(TN.INDEXES, "fktable", 3);
-		columns_record(TN.INDEXES, "fkcolumns", 4);
-		columns_record(TN.INDEXES, "fkmode", 5);
-		columns_record(TN.INDEXES, "root", 6);
-		columns_record(TN.INDEXES, "treelevels", 7);
-		columns_record(TN.INDEXES, "nnodes", 8);
+		createColumn(TN.INDEXES, "table", 0);
+		createColumn(TN.INDEXES, "columns", 1);
+		createColumn(TN.INDEXES, "key", 2);
+		createColumn(TN.INDEXES, "fktable", 3);
+		createColumn(TN.INDEXES, "fkcolumns", 4);
+		createColumn(TN.INDEXES, "fkmode", 5);
+		createColumn(TN.INDEXES, "root", 6);
+		createColumn(TN.INDEXES, "treelevels", 7);
+		createColumn(TN.INDEXES, "nnodes", 8);
 
 		// indexes
-		indexes_index = new BtreeIndex(this, TN.INDEXES, "table,columns", true,
-				false);
-		fkey_index = new BtreeIndex(this, TN.INDEXES, "fktable,fkcolumns",
-				false, false);
-		indexes_record(tables_index);
-		indexes_record(tblnum_index);
-		indexes_record(columns_index);
+		indexes_index = new BtreeIndex(this, TN.INDEXES, "table,columns", true, false);
+		fkey_index = new BtreeIndex(this, TN.INDEXES, "fktable,fkcolumns", false, false);
+		createIndex(tablename_index);
+		createIndex(tablenum_index);
+		createIndex(columns_index);
 		// output indexes indexes last
-		long indexes_adr = indexes_record(indexes_index);
-		indexes_record(fkey_index);
+		long indexes_adr = createIndex(indexes_index);
+		createIndex(fkey_index);
 
 		// views
 		// add_table("views");
@@ -141,37 +115,23 @@ public class Database implements Destination {
 		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
 	}
 
-	private void table_record(int tblnum, String tblname, int nrows,
-			int nextfield) {
-		Record r = new Record();
-		r.add(tblnum).add(tblname).add(nextfield).add(nrows).add(100);
-		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
-		long at = output(TN.TABLES, r);
-		verify(tblnum_index.insert(SCHEMA_TRAN, new Slot(new Record().add(
-				tblnum).addMmoffset(at))));
-		verify(tables_index.insert(SCHEMA_TRAN, new Slot(new Record().add(
-				tblname).addMmoffset(at))));
+	private void createTable(String name, int num, int nextfield, int nrecords) {
+		long at = output(TN.TABLES,
+				Table.record(name, num, nextfield, nrecords));
+		verify(tablenum_index.insert(SCHEMA_TRAN,
+				new Slot(new Record().add(num).addMmoffset(at))));
+		verify(tablename_index.insert(SCHEMA_TRAN,
+				new Slot(new Record().add(name).addMmoffset(at))));
 	}
 
-	private void columns_record(int tblnum, String column, int field) {
-		Record r = new Record();
-		r.add(tblnum);
-		r.add(column);
-		r.add(field);
-		long at = output(TN.COLUMNS, r);
+	private void createColumn(int tblnum, String column, int field) {
+		long at = output(TN.COLUMNS, Column.record(tblnum, column, field));
 		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
 		verify(columns_index.insert(SCHEMA_TRAN, new Slot(key)));
 	}
 
-	private long indexes_record(BtreeIndex btreeIndex) {
-		Record r = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
-				.add(btreeIndex.iskey ? SuBoolean.TRUE : SuBoolean.FALSE).add(
-						"") // fktable
-				.add("") // fkcolumns
-				.add(FKMODE.BLOCK);
-		indexInfo(r, btreeIndex);
-		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
-		long at = output(TN.INDEXES, r);
+	private long createIndex(BtreeIndex btreeIndex) {
+		long at = output(TN.INDEXES, Idx.record(btreeIndex));
 		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
 				.addMmoffset(at);
 		verify(indexes_index.insert(SCHEMA_TRAN, new Slot(key1)));
@@ -180,47 +140,26 @@ public class Database implements Destination {
 		return at;
 	}
 
-	private void indexInfo(Record r, BtreeIndex btreeIndex) {
-		r.reuse(I.ROOT);
-		r.addMmoffset(btreeIndex.root());
-		r.add(btreeIndex.treelevels());
-		r.add(btreeIndex.nnodes());
-	}
-
 	void open() {
 		dbhdr = new Dbhdr();
 		Session.startup(mmf);
 		mmf.sync();
-		indexes_index = mkindex(input(dbhdr.indexes));
+		indexes_index = Idx.btreeIndex(this, input(dbhdr.indexes));
 
-		Record r = find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES,
-				"table,columns"));
+		Record r = find(SCHEMA_TRAN, indexes_index,
+				key(TN.INDEXES, "table,columns"));
 		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
 
-		tables_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES,
-				"tablename")));
-		tblnum_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.TABLES,
-				"table")));
-		columns_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(
-				TN.COLUMNS, "table,column")));
-		fkey_index = mkindex(find(SCHEMA_TRAN, indexes_index, key(TN.INDEXES,
-				"fktable,fkcolumns")));
+		tablename_index = btreeIndex(TN.TABLES, "tablename");
+		tablenum_index = btreeIndex(TN.TABLES, "table");
+		columns_index = btreeIndex(TN.COLUMNS, "table,column");
+		fkey_index = btreeIndex(TN.INDEXES, "fktable,fkcolumns");
 		// WARNING: any new indexes added here must also be added in get_table
 	}
 
-	private final static SuString UNIQUE = new SuString("u");
-
-	BtreeIndex mkindex(Record r) {
-		String columns = r.getString(I.COLUMNS);
-		// boolean lower = columns.startsWith("lower:");
-		// if (lower)
-		// columns += 6;
-		SuValue key = r.get(I.KEY);
-		long root = r.getMmoffset(I.ROOT);
-		verify(root != 0);
-		return new BtreeIndex(this, r.getInt(I.TBLNUM), columns,
-				key == SuBoolean.TRUE, key.equals(UNIQUE), root, r
-						.getInt(I.TREELEVELS), r.getInt(I.NNODES));
+	private BtreeIndex btreeIndex(int table_num, String columns) {
+		return Idx.btreeIndex(this, find(SCHEMA_TRAN, indexes_index, key(
+				table_num, columns)));
 	}
 
 	public Record input(long adr) {
@@ -242,7 +181,7 @@ public class Database implements Destination {
 
 	private Record find(int tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
-		return slot.isEmpty() ? Record.MINREC : input(slot.keyadr());
+		return slot.isEmpty() ? null : input(slot.keyadr());
 	}
 
 	public void close() {
@@ -250,86 +189,146 @@ public class Database implements Destination {
 		mmf.close();
 	}
 
-	Table ck_get_table(String table) {
-		Table tbl = get_table(table);
+	void addTable(String table) {
+		if (tableExists(table))
+			throw new SuException("add table: table already exists: " + table);
+		int tblnum = dbhdr.next_table++;
+		Record r = Table.record(table, tblnum, 0, 0);
+		add_any_record(SCHEMA_TRAN, "tables", r);
+		table_create_act(tblnum);
+	}
+
+	void addColumn(String table, String column) {
+		Table tbl = ck_getTable(table);
+
+		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1 : tbl.nextfield;
+		if (! column.equals("-")) { // addition of deleted field used by dump/load
+			column = column.toLowerCase();
+			if (tbl.hasColumn(column))
+				throw new SuException("add column: column already exists: " + column + " in " + table);
+			Record rec = Column.record(tbl.num, column, fldnum);
+			add_any_record(SCHEMA_TRAN, "columns", rec);
+			}
+		if (fldnum >= 0) {
+			++tbl.nextfield;
+			tbl.update();
+			}
+		tables.remove(table);
+	}
+
+	void addIndex(String table, String columns, boolean isKey, String fktable,
+			String fkcolumns, int fkmode, boolean unique, boolean lower) {
+		Table tbl = ck_getTable(table);
+		short[] colnums = tbl.columns.nums(columns);
+		if (tbl.hasIndex(columns))
+			throw new SuException("add index: index already exists: " + columns + " in " + table);
+		BtreeIndex index = new BtreeIndex(this, tbl.num, columns, isKey, unique);
+
+		if (tbl.hasIndexes() && tbl.hasRecords())
+			{
+			// insert existing records
+			Idx idx = tbl.firstIndex();
+			Table fktbl = getTable(fktable);
+			for (BtreeIndex.Iter iter = idx.btreeIndex.iter(SCHEMA_TRAN).next(); ! iter.eof(); iter.next())
+				{
+				Record r = iter.data();
+				// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
+				// r.project(colnums)))
+				// throw new SuException("add index: blocked by foreign key: " +
+				// columns + " in " + table);
+				Record key = r.project(colnums, iter.cur().keyadr());
+				if (! index.insert(SCHEMA_TRAN, new Slot(key)))
+					throw new SuException("add index: duplicate key: " + columns + " = " + key + " in " + table);
+				}
+			}
+
+		Record r = Idx.record(index);
+		add_any_record(SCHEMA_TRAN, "indexes", r);
+		tbl.addIndex(new Idx(table, r, columns, colnums, index));
+
+		if (fktable != "")
+			tables.remove(fktable); // update target
+	}
+
+	Table ck_getTable(String table) {
+		Table tbl = getTable(table);
 		if (tbl == null)
 			throw new SuException("nonexistent table: " + table);
 		return tbl;
 	}
 
-	Table get_table(String table) {
+	boolean tableExists(String table) {
+		return getTable(table) != null;
+	}
+
+	Table getTable(String table) {
 		// if the table has already been read, return it
 		Table tbl = tables.get(table);
 		if (tbl != null) {
 			verify(tbl.name == table);
 			return tbl;
 		}
-		return get_table(find(SCHEMA_TRAN, tables_index, key(table)));
+		return getTable(find(SCHEMA_TRAN, tablename_index, key(table)));
 	}
 
-	Table get_table(int tblnum) {
+	Table getTable(int tblnum) {
 		// if the table has already been read, return it
 		Table tbl = tables.get(tblnum);
 		if (tbl != null) {
 			verify(tbl.num == tblnum);
 			return tbl;
 		}
-		return get_table(find(SCHEMA_TRAN, tblnum_index, key(tblnum)));
+		return getTable(find(SCHEMA_TRAN, tablenum_index, key(tblnum)));
 	}
 
-	Table get_table(Record table_rec) {
+	Table getTable(Record table_rec) {
 		if (table_rec == null)
 			return null; // table not found
-		String table = table_rec.getString(T.TABLE);
 
-		BtreeIndex.Iter iter;
-		Record tblkey = key(table_rec.getInt(T.TBLNUM));
+		Table table = new Table(table_rec);
+
+		Record tblkey = key(table.num);
 
 		// columns
-		Columns columns = new Columns();
-		for (iter = columns_index.iter(SCHEMA_TRAN, tblkey).next(); !iter.eof(); iter
-				.next()) {
-			Record r = iter.data();
-			String column = r.getString(C.COLUMN);
-			short colnum = r.getShort(C.FLDNUM);
-			columns.add(new Column(column, colnum));
-		}
-		columns.sort();
+		for (BtreeIndex.Iter iter = columns_index.iter(SCHEMA_TRAN, tblkey)
+				.next();
+				!iter.eof(); iter.next())
+			table.addColumn(new Column(iter.data()));
+		table.sortColumns();
 
 		// have to do this before indexes since they may need it
-		Table tbl = new Table(table_rec, columns, new Indexes());
-		tables.add(tbl);
 
 		// indexes
-		Indexes idxs = new Indexes();
-		// for (iter = indexes_index.begin(SCHEMA_TRAN, tblkey); !iter.eof();
-		// ++iter) {
-		// Record r = iter.data();
-		// String columns = r.getString(I.COLUMNS);// .to_heap();
-		// if (columns.startsWith("lower:"))
-		// columns = columns.substring(6);
-		// short[] colnums = comma_to_nums(cols, columns);
-		// verify(colnums != null);
-		// // make sure to use the same index for the system tables
-		// Index index;
-		// if (table == "tables" && columns == "tablename")
-		// index = tables_index;
-		// else if (table == "tables" && columns == "table")
-		// index = tblnum_index;
-		// else if (table == "columns" && columns == "table,column")
-		// index = columns_index;
-		// else if (table == "indexes" && columns == "table,columns")
-		// index = indexes_index;
-		// else if (table == "indexes" && columns == "fktable,fkcolumns")
-		// index = fkey_index;
-		// else
-		// index = mkindex(r);
-		// idxs.add(new Idx(table, r, columns, colnums, index));
-		// }
-		tbl.indexes = idxs;
-		return tbl;
+		for (BtreeIndex.Iter iter = indexes_index.iter(SCHEMA_TRAN, tblkey)
+				.next(); !iter.eof(); iter
+				.next()) {
+			Record r = iter.data();
+			String cols = Idx.getColumns(r);
+			// make sure to use the same index for the system tables
+			BtreeIndex index;
+			if (table.name.equals("tables") && cols == "tablename")
+				index = tablename_index;
+			else if (table.name.equals("tables") && cols.equals("table"))
+				index = tablenum_index;
+			else if (table.name.equals("columns") && cols.equals("table,column"))
+				index = columns_index;
+			else if (table.name.equals("indexes") && cols.equals("table,columns"))
+				index = indexes_index;
+			else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
+				index = fkey_index;
+			else
+				index = Idx.btreeIndex(this, r);
+			table.addIndex(new Idx(table.name, r, cols, table.columns
+					.nums(cols),
+					index));
+		}
+		tables.add(table);
+		return table;
 	}
 
+	void add_any_record(int tran, String table, Record r) {
+		add_any_record(tran, ck_getTable(table), r);
+		}
 	void add_any_record(int tran, Table tbl, Record r) {
 		// if (tran != SCHEMA_TRAN && ck_get_tran(tran).type != READWRITE)
 		// throw new SuException("can't output from read-only transaction to " +
@@ -345,30 +344,29 @@ public class Database implements Destination {
 		if (tbl.num > TN.VIEWS && r.size() > tbl.nextfield)
 			throw new SuException("output: record has more fields (" + r.size()
 					+ ") than " + tbl.name + " should (" + tbl.nextfield + ")");
-		long off = output(tbl.num, r);
+		long adr = output(tbl.num, r);
 		try {
-			add_index_entries(tran, tbl, r);
+			add_index_entries(tran, tbl, r, adr);
 		} finally {
 			if (tran == SCHEMA_TRAN)
-				delete_act(tran, tbl.num, off);
+				delete_act(tran, tbl.num, adr);
 		}
-		create_act(tran, tbl.num, off);
+		create_act(tran, tbl.num, adr);
 
 		if (!loading)
 			tbl.user_trigger(tran, Record.MINREC, r);
 	}
 
-	void add_index_entries(int tran, Table tbl, Record r) {
-		long off = r.off();
-		for (Index i : tbl.indexes) {
-			Record key = r.project(i.colnums, off);
+	void add_index_entries(int tran, Table tbl, Record r, long adr) {
+		for (Idx i : tbl.indexes) {
+			Record key = r.project(i.colnums, adr);
 			// handle insert failing due to duplicate key
 			if (!i.btreeIndex.insert(tran, new Slot(key))) {
 				// delete from previous indexes
-				for (Index j : tbl.indexes) {
+				for (Idx j : tbl.indexes) {
 					if (j == i)
 						break;
-					key = r.project(j.colnums, off);
+					key = r.project(j.colnums, adr);
 					verify(j.btreeIndex.erase(key));
 				}
 				throw new SuException("duplicate key: " + i.columns + " = "
@@ -389,8 +387,8 @@ public class Database implements Destination {
 		p.putInt(tblnum);
 		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
-		if (output_type == Mmfile.DATA && tblnum != TN.TABLES
-				&& tblnum != TN.INDEXES)
+		if (output_type == Mmfile.DATA &&
+				tblnum != TN.TABLES	&& tblnum != TN.INDEXES)
 			checksum(p, 4 + n);
 		return offset + 4; // offset of record i.e. past tblnum
 	}
@@ -451,6 +449,11 @@ public class Database implements Destination {
 
 	}
 
+	void table_create_act(int tblnum) {
+		++clock;
+//		table_created[tblnum] = clock;
+		++clock;
+		}
 	public TranRead read_act(int tran, int tblnum, String index) {
 		// TODO Auto-generated method stub
 		return new TranRead(tblnum, index);

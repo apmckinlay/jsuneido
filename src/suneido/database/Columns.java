@@ -17,19 +17,30 @@ public class Columns {
 		Collections.sort(columns);
 	}
 
-	public short[] commaToNums(String s) {
+	public short[] nums(String s) {
 		String[] names = s.split(",");
 		short[] nums = new short[names.length];
 		int n = 0;
 		for (String name : names)
-			nums[n++] = find(name).num;
+			nums[n++] = ck_find(name).num;
 		return nums;
 	}
 
+	private Column ck_find(String name) {
+		Column c = find(name);
+		if (c == null)
+			throw new SuException("column not found: " + name);
+		return c;
+	}
+
 	private Column find(String name) {
-		for (Column col : columns)
-			if (name.equals(col.name))
-				return col;
-		throw new SuException("column not found: " + name);
+		for (Column c : columns)
+			if (name.equals(c.name))
+				return c;
+		return null;
+	}
+
+	public boolean hasColumn(String name) {
+		return find(name) != null;
 	}
 }
