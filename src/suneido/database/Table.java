@@ -2,6 +2,11 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
+/**
+ * 
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class Table {
 	private final Record record;
 	public final String name;
