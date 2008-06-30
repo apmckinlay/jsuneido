@@ -21,10 +21,10 @@ public class DatabaseTest {
 		String b = "hello";
 		Record r = new Record().add(b);
 		long offset = db.output(1234, r);
-		// db.add_any_record(0, tbl, r);
-		db.close();
 
+		db.close();
 		db = new Database("databasetest", Mode.OPEN);
+
 		Record r2 = db.input(offset);
 		assertEquals(r, r2);
 
@@ -49,6 +49,12 @@ public class DatabaseTest {
 
 		r = new Record().add("12").add("34");
 		db.add_any_record(0, "test", r);
+
+		db.close();
+		db = new Database("databasetest", Mode.OPEN);
+
+		tbl = db.getTable("test");
+		assertEquals(1, tbl.nrecords);
 
 		Index idx = tbl.indexes.first();
 		BtreeIndex.Iter iter = idx.btreeIndex.iter(0).next();

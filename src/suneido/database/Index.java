@@ -6,10 +6,10 @@ import suneido.SuString;
 import suneido.SuValue;
 
 public class Index {
-	public BtreeIndex btreeIndex;
-	Record rec;
-	String columns;
-	short[] colnums;
+	private final Record rec;
+	public final String columns;
+	public final short[] colnums;
+	public final BtreeIndex btreeIndex;
 	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2,
@@ -19,11 +19,12 @@ public class Index {
 	// Fkey fksrc;
 	// ArrayList<Fkey> fkdsts;
 
-	public Index(Record r, String columns, short[] colnums, BtreeIndex btreeIndex) {
-		this.btreeIndex = btreeIndex;
-		this.rec = r;
+	public Index(Record rec, String columns, short[] colnums, BtreeIndex btreeIndex) {
+		this.rec = rec;
+		verify(rec.off() != 0);
 		this.columns = columns;
 		this.colnums = colnums;
+		this.btreeIndex = btreeIndex;
 	}
 
 	public void update() {

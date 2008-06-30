@@ -1,22 +1,26 @@
 package suneido.database;
 
+import static suneido.Suneido.verify;
+
 public class Table {
-	public String name;
-	public int num;
+	private final Record record;
+	public final String name;
+	public final int num;
+	public final Columns columns = new Columns();
+	public final Indexes indexes = new Indexes();
 	public int nextfield;
 	public int nrecords;
 	public int totalsize;
-	public final Columns columns = new Columns();
-	public final Indexes indexes = new Indexes();
 	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
 			TOTALSIZE = 4;
 
-	public Table(Record r) {
-		num = r.getInt(TBLNUM);
-		name = r.getString(TABLE);
-		nextfield = r.getInt(NEXTFIELD);
-		nrecords = r.getInt(NROWS);
-		totalsize = r.getInt(TOTALSIZE);
+	public Table(Record record) {
+		this.record = record;
+		num = record.getInt(TBLNUM);
+		name = record.getString(TABLE);
+		nextfield = record.getInt(NEXTFIELD);
+		nrecords = record.getInt(NROWS);
+		totalsize = record.getInt(TOTALSIZE);
 	}
 	public void addColumn(Column column) {
 		columns.add(column);
@@ -42,7 +46,9 @@ public class Table {
 	}
 
 	public void update() {
-		// TODO Auto-generated method stub
+		verify(record.off() != 0);
+		record.reuse(NEXTFIELD);
+		record.add(nextfield).add(nrecords).add(totalsize);
 	}
 
 	public static Record record(String name, int num, int nextfield, int nrecords) {
