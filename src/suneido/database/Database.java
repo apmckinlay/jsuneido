@@ -2,6 +2,7 @@ package suneido.database;
 
 import static java.lang.Math.min;
 import static suneido.Suneido.verify;
+import static suneido.database.Transaction.NULLTRAN;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
@@ -34,7 +35,6 @@ public class Database implements Destination {
 //		final static int NAME = 0, DEFINITION = 1;
 //	}
 
-	public final static Transaction NO_TRAN = null;
 	private final static int VERSION = 1;
 	private BtreeIndex tablename_index;
 	private BtreeIndex tablenum_index;
@@ -118,25 +118,25 @@ public class Database implements Destination {
 	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
 		long at = output(TN.TABLES,
 				Table.record(name, num, nextfield, nrecords));
-		verify(tablenum_index.insert(NO_TRAN,
+		verify(tablenum_index.insert(NULLTRAN,
 				new Slot(new Record().add(num).addMmoffset(at))));
-		verify(tablename_index.insert(NO_TRAN,
+		verify(tablename_index.insert(NULLTRAN,
 				new Slot(new Record().add(name).addMmoffset(at))));
 	}
 
 	private void createSchemaColumn(int tblnum, String column, int field) {
 		long at = output(TN.COLUMNS, Column.record(tblnum, column, field));
 		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
-		verify(columns_index.insert(NO_TRAN, new Slot(key)));
+		verify(columns_index.insert(NULLTRAN, new Slot(key)));
 	}
 
 	private long createSchemaIndex(BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, Index.record(btreeIndex));
 		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
 				.addMmoffset(at);
-		verify(indexes_index.insert(NO_TRAN, new Slot(key1)));
+		verify(indexes_index.insert(NULLTRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
-		verify(fkey_index.insert(NO_TRAN, new Slot(key2)));
+		verify(fkey_index.insert(NULLTRAN, new Slot(key2)));
 		return at;
 	}
 
@@ -146,7 +146,7 @@ public class Database implements Destination {
 		mmf.sync();
 		indexes_index = Index.btreeIndex(this, input(dbhdr.indexes));
 
-		Record r = find(NO_TRAN, indexes_index,
+		Record r = find(NULLTRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
 		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
 
@@ -158,7 +158,7 @@ public class Database implements Destination {
 	}
 
 	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return Index.btreeIndex(this, find(NO_TRAN, indexes_index, key(
+		return Index.btreeIndex(this, find(NULLTRAN, indexes_index, key(
 				table_num, columns)));
 	}
 
@@ -195,7 +195,6 @@ public class Database implements Destination {
 		int tblnum = dbhdr.next_table++;
 		Record r = Table.record(table, tblnum, 0, 0);
 		add_any_record(tran, "tables", r);
-		table_create_act(tblnum);
 	}
 
 	void addColumn(Transaction tran, String table, String column) {
@@ -350,7 +349,7 @@ public class Database implements Destination {
 					+ ") than " + tbl.name + " should (" + tbl.nextfield + ")");
 		long adr = output(tbl.num, r);
 		add_index_entries(tran, tbl, r, adr);
-		create_act(tran, tbl.num, adr);
+		tran.create_act(tbl.num, adr);
 
 		if (!loading)
 			tbl.user_trigger(tran, Record.MINREC, r);
@@ -448,28 +447,4 @@ public class Database implements Destination {
 
 	}
 
-	void table_create_act(int tblnum) {
-		++clock;
-//		table_created[tblnum] = clock;
-		++clock;
-		}
-	public TranRead read_act(Transaction tran, int tblnum, String index) {
-		// TODO Auto-generated method stub
-		return new TranRead(tblnum, index);
-	}
-
-	private void delete_act(Transaction tran, int num, long off) {
-		// TODO Auto-generated method stub
-
-	}
-
-	private void create_act(Transaction tran, int num, long off) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public boolean visible(Transaction tran, long adr) {
-		// TODO Auto-generated method stub
-		return true;
-	}
 }

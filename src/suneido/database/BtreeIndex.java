@@ -125,7 +125,7 @@ public class BtreeIndex {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
-			tranread = dest.read_act(tran, tblnum, index);
+			tranread = tran.read_act(tblnum, index);
 		}
 
 		boolean eof() {
@@ -194,7 +194,7 @@ public class BtreeIndex {
 		}
 
 		private boolean visible() {
-			return dest.visible(tran, iter.cur().keyadr());
+			return tran.visible(iter.cur().keyadr());
 		}
 	}
 

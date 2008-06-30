@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.database.Transaction.NULLTRAN;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -35,20 +36,20 @@ public class DatabaseTest {
 		assertEquals("indexes", tbl.name);
 		assertSame(tbl, db.getTable(2));
 
-		db.addTable(null, "test");
+		db.addTable(NULLTRAN, "test");
 		db.getTable("test");
 
-		db.addColumn(null, "test", "a");
-		db.addColumn(null, "test", "b");
+		db.addColumn(NULLTRAN, "test", "a");
+		db.addColumn(NULLTRAN, "test", "b");
 
-		db.addIndex(null, "test", "a", true, "", "", 0, false, false);
+		db.addIndex(NULLTRAN, "test", "a", true, "", "", 0, false, false);
 
 		tbl = db.getTable("test");
 		assertEquals(2, tbl.columns.size());
 		assertEquals(1, tbl.indexes.size());
 
 		r = new Record().add("12").add("34");
-		db.add_any_record(null, "test", r);
+		db.add_any_record(NULLTRAN, "test", r);
 
 		db.close();
 		db = new Database("databasetest", Mode.OPEN);
@@ -57,7 +58,7 @@ public class DatabaseTest {
 		assertEquals(1, tbl.nrecords);
 
 		Index idx = tbl.indexes.first();
-		BtreeIndex.Iter iter = idx.btreeIndex.iter(null).next();
+		BtreeIndex.Iter iter = idx.btreeIndex.iter(NULLTRAN).next();
 		r2 = iter.data();
 		assertEquals(r, r2);
 		iter.next();
