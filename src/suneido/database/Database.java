@@ -140,7 +140,7 @@ public class Database implements Destination {
 		return at;
 	}
 
-	void open() {
+	private void open() {
 		dbhdr = new Dbhdr();
 		Session.startup(mmf);
 		mmf.sync();
@@ -189,7 +189,7 @@ public class Database implements Destination {
 		mmf.close();
 	}
 
-	void addTable(Transaction tran, String table) {
+	public void addTable(Transaction tran, String table) {
 		if (tableExists(table))
 			throw new SuException("add table: table already exists: " + table);
 		int tblnum = dbhdr.next_table++;
@@ -197,7 +197,7 @@ public class Database implements Destination {
 		add_any_record(tran, "tables", r);
 	}
 
-	void addColumn(Transaction tran, String table, String column) {
+	public void addColumn(Transaction tran, String table, String column) {
 		Table tbl = ck_getTable(table);
 
 		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1 : tbl.nextfield;
@@ -215,7 +215,7 @@ public class Database implements Destination {
 		tables.remove(table);
 	}
 
-	void addIndex(Transaction tran, String table, String columns, boolean isKey, String fktable,
+	public void addIndex(Transaction tran, String table, String columns, boolean isKey, String fktable,
 			String fkcolumns, int fkmode, boolean unique, boolean lower) {
 		Table tbl = ck_getTable(table);
 		short[] colnums = tbl.columns.nums(columns);
@@ -248,14 +248,14 @@ public class Database implements Destination {
 			tables.remove(fktable); // update target
 	}
 
-	Table ck_getTable(String table) {
+	public Table ck_getTable(String table) {
 		Table tbl = getTable(table);
 		if (tbl == null)
 			throw new SuException("nonexistent table: " + table);
 		return tbl;
 	}
 
-	boolean tableExists(String table) {
+	private boolean tableExists(String table) {
 		return getTable(table) != null;
 	}
 
@@ -329,13 +329,12 @@ public class Database implements Destination {
 		}
 	}
 
-	void add_any_record(Transaction tran, String table, Record r) {
+	public void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
 		}
-	void add_any_record(Transaction tran, Table tbl, Record r) {
-		// if (tran != SCHEMA_TRAN && ck_get_tran(tran).type != READWRITE)
-		// throw new SuException("can't output from read-only transaction to " +
-		// tbl.name);
+	private void add_any_record(Transaction tran, Table tbl, Record r) {
+		if (tran.isReadonly())
+			throw new SuException("can't output from read-only transaction to " + tbl.name);
 		verify(tbl != null);
 		verify(!tbl.indexes.isEmpty());
 
@@ -444,7 +443,6 @@ public class Database implements Destination {
 			if (version != VERSION)
 				throw new SuException("invalid database");
 		}
-
 	}
 
 }

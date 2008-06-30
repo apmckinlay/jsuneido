@@ -66,7 +66,7 @@ public class BtreeIndex {
 			Record key = x.key;
 			key.reuse(key.size() - 1); // strip off record address
 			boolean dup = !find(tran, key).isEmpty();
-			key.reuse(key.size() + 1); // put is back
+			key.reuse(key.size() + 1); // put it back
 			if (dup)
 				return false;
 		}

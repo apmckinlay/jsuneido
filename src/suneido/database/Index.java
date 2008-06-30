@@ -34,7 +34,9 @@ public class Index {
 
 	public void update() {
 		verify(record.off() != 0);
-		indexInfo(record, btreeIndex);
+		// treelevels and root should not change without nnodes changing
+		if (record.getInt(NNODES) != btreeIndex.nnodes())
+			indexInfo(record, btreeIndex);
 	}
 
 	public static Record record(BtreeIndex btreeIndex) {
