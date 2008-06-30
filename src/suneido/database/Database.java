@@ -242,11 +242,10 @@ public class Database implements Destination {
 				}
 			}
 
-		Record r = Index.record(index);
-		add_any_record(SCHEMA_TRAN, "indexes", r);
-		tbl.addIndex(new Index(table, r, columns, colnums, index));
+		add_any_record(SCHEMA_TRAN, "indexes", Index.record(index));
+		tables.remove(table);
 
-		if (fktable != "")
+		if (!fktable.equals(""))
 			tables.remove(fktable); // update target
 	}
 
@@ -265,7 +264,7 @@ public class Database implements Destination {
 		// if the table has already been read, return it
 		Table tbl = tables.get(table);
 		if (tbl != null) {
-			verify(tbl.name == table);
+			verify(tbl.name.equals(table));
 			return tbl;
 		}
 		return getTable(find(SCHEMA_TRAN, tablename_index, key(table)));
@@ -306,7 +305,7 @@ public class Database implements Destination {
 			String cols = Index.getColumns(r);
 			// make sure to use the same index for the system tables
 			BtreeIndex index;
-			if (table.name.equals("tables") && cols == "tablename")
+			if (table.name.equals("tables") && cols.equals("tablename"))
 				index = tablename_index;
 			else if (table.name.equals("tables") && cols.equals("table"))
 				index = tablenum_index;
@@ -318,9 +317,8 @@ public class Database implements Destination {
 				index = fkey_index;
 			else
 				index = Index.btreeIndex(this, r);
-			table.addIndex(new Index(table.name, r, cols, table.columns
-					.nums(cols),
-					index));
+			table.addIndex(new Index(r, cols, table.columns
+					.nums(cols), index));
 		}
 		tables.add(table);
 		return table;

@@ -43,4 +43,8 @@ public class Columns {
 	public boolean hasColumn(String name) {
 		return find(name) != null;
 	}
+
+	public int size() {
+		return columns.size();
+	}
 }
