@@ -59,7 +59,7 @@ public class BtreeIndex {
 		return bt.treelevels();
 	}
 
-	boolean insert(int tran, Slot x) {
+	boolean insert(Transaction tran, Slot x) {
 		// if (lower)
 		// lower_key(x.key);
 		if (iskey || (unique && !isEmpty(x.key))) {
@@ -82,7 +82,7 @@ public class BtreeIndex {
 		return f < .001 ? (float) .001 : f;
 	}
 
-	Slot find(int tran, Record key) {
+	Slot find(Transaction tran, Record key) {
 		Iter iter = iter(tran, key).next();
 		if (iter.eof())
 			return new Slot();
@@ -100,20 +100,20 @@ public class BtreeIndex {
 		return true;
 	}
 
-	Iter iter(int tran) {
+	Iter iter(Transaction tran) {
 		return new Iter(tran, Record.MINREC, Record.MAXREC);
 	}
 
-	Iter iter(int tran, Record key) {
+	Iter iter(Transaction tran, Record key) {
 		return new Iter(tran, key, key);
 	}
 
-	Iter iter(int tran, Record from, Record to) {
+	Iter iter(Transaction tran, Record from, Record to) {
 		return new Iter(tran, from, to);
 	}
 
 	public class Iter {
-		int tran;
+		Transaction tran;
 		Record from;
 		Record to;
 		boolean rewound = true;
@@ -121,7 +121,7 @@ public class BtreeIndex {
 		TranRead tranread;
 		long prevsize = Long.MAX_VALUE;
 
-		Iter(int tran, Record from, Record to) {
+		Iter(Transaction tran, Record from, Record to) {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;

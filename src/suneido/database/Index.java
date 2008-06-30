@@ -6,7 +6,7 @@ import suneido.SuString;
 import suneido.SuValue;
 
 public class Index {
-	private final Record rec;
+	private final Record record;
 	public final String columns;
 	public final short[] colnums;
 	public final BtreeIndex btreeIndex;
@@ -19,17 +19,17 @@ public class Index {
 	// Fkey fksrc;
 	// ArrayList<Fkey> fkdsts;
 
-	public Index(Record rec, String columns, short[] colnums, BtreeIndex btreeIndex) {
-		this.rec = rec;
-		verify(rec.off() != 0);
+	public Index(Record record, String columns, short[] colnums, BtreeIndex btreeIndex) {
+		this.record = record;
+		verify(record.off() != 0);
 		this.columns = columns;
 		this.colnums = colnums;
 		this.btreeIndex = btreeIndex;
 	}
 
 	public void update() {
-		// TODO Auto-generated method stub
-
+		verify(record.off() != 0);
+		indexInfo(record, btreeIndex);
 	}
 
 	public static Record record(BtreeIndex btreeIndex) {

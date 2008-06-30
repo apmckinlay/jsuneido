@@ -2,32 +2,31 @@ package suneido.database;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
 import static org.junit.Assert.*;
 
-public class IndexTest {
+public class IndexTest { 
 	@Test
 	public void normal() {
 		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, false);
-		assertTrue(ix.insert(0, makeslot(123)));
-		assertTrue(ix.insert(0, makeslot(123)));
+		assertTrue(ix.insert(null, makeslot(123)));
+		assertTrue(ix.insert(null, makeslot(123)));
 	}
 	
 	@Test
 	public void key() {
 		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", true, false);
-		assertTrue(ix.insert(0, makeslot()));
-		assertFalse(ix.insert(0, makeslot()));
+		assertTrue(ix.insert(null, makeslot()));
+		assertFalse(ix.insert(null, makeslot()));
 	}
 
 	@Test
 	public void unique() {
 		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, true);
-		assertTrue(ix.insert(0, makeslot()));
-		assertTrue(ix.insert(0, makeslot()));
+		assertTrue(ix.insert(null, makeslot()));
+		assertTrue(ix.insert(null, makeslot()));
 		
-		assertTrue(ix.insert(0, makeslot(12, 34)));
-		assertFalse(ix.insert(0, makeslot(12, 34)));
+		assertTrue(ix.insert(null, makeslot(12, 34)));
+		assertFalse(ix.insert(null, makeslot(12, 34)));
 	}
 	
 	@Test
@@ -35,14 +34,14 @@ public class IndexTest {
 		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, false);
 		int i;
 		for (i = 0; i < 100; ++i)
-			ix.insert(0, makeslot(i));
+			ix.insert(null, makeslot(i));
 		
-		BtreeIndex.Iter iter = ix.iter(0, makekey(40), makekey(60));
+		BtreeIndex.Iter iter = ix.iter(null, makekey(40), makekey(60));
 		for (i = 40; i <= 60; ++i)
 			assertEquals(i, iter.next().cur().key.getLong(0));
 		assertTrue(iter.next().eof());
 		
-		iter = ix.iter(0, makekey(40), makekey(60));
+		iter = ix.iter(null, makekey(40), makekey(60));
 		for (i = 60; i >= 40; --i)
 			assertEquals(i, iter.prev().cur().key.getLong(0));
 		assertTrue(iter.prev().eof());

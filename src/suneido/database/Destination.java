@@ -21,9 +21,9 @@ public interface Destination {
 
 	long size();
 
-	TranRead read_act(int tran, int tblnum, String index);
+	TranRead read_act(Transaction tran, int tblnum, String index);
 
-	boolean visible(int tran, long adr);
+	boolean visible(Transaction tran, long adr);
 
 	Record input(long adr);
 

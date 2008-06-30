@@ -26,11 +26,11 @@ public class DestMem implements Destination {
 		return (nodes.size() + 1) << Mmfile.SHIFT;
 	}
 
-	public boolean visible(int tran, long adr) {
+	public boolean visible(Transaction tran, long adr) {
 		return true;
 	}
 
-	public TranRead read_act(int tran, int tblnum, String index) {
+	public TranRead read_act(Transaction tran, int tblnum, String index) {
 		return new TranRead(tblnum, index);
 	}
 

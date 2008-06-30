@@ -41,7 +41,7 @@ public class Table {
 		return "Table('" + name + "', " + num + ")";
 	}
 
-	public void user_trigger(int tran, Record norec, Record r) {
+	public void user_trigger(Transaction tran, Record norec, Record r) {
 		// TODO Auto-generated method stub
 	}
 

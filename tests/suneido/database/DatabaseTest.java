@@ -35,20 +35,20 @@ public class DatabaseTest {
 		assertEquals("indexes", tbl.name);
 		assertSame(tbl, db.getTable(2));
 
-		db.addTable("test");
+		db.addTable(null, "test");
 		db.getTable("test");
 
-		db.addColumn("test", "a");
-		db.addColumn("test", "b");
+		db.addColumn(null, "test", "a");
+		db.addColumn(null, "test", "b");
 
-		db.addIndex("test", "a", true, "", "", 0, false, false);
+		db.addIndex(null, "test", "a", true, "", "", 0, false, false);
 
 		tbl = db.getTable("test");
 		assertEquals(2, tbl.columns.size());
 		assertEquals(1, tbl.indexes.size());
 
 		r = new Record().add("12").add("34");
-		db.add_any_record(0, "test", r);
+		db.add_any_record(null, "test", r);
 
 		db.close();
 		db = new Database("databasetest", Mode.OPEN);
@@ -57,7 +57,7 @@ public class DatabaseTest {
 		assertEquals(1, tbl.nrecords);
 
 		Index idx = tbl.indexes.first();
-		BtreeIndex.Iter iter = idx.btreeIndex.iter(0).next();
+		BtreeIndex.Iter iter = idx.btreeIndex.iter(null).next();
 		r2 = iter.data();
 		assertEquals(r, r2);
 		iter.next();

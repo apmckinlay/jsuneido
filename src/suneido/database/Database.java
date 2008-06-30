@@ -30,11 +30,11 @@ public class Database implements Destination {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
 
-	private static class V {
-		final static int NAME = 0, DEFINITION = 1;
-	}
+//	private static class V {
+//		final static int NAME = 0, DEFINITION = 1;
+//	}
 
-	public final static int SCHEMA_TRAN = 0;
+	public final static Transaction NO_TRAN = null;
 	private final static int VERSION = 1;
 	private BtreeIndex tablename_index;
 	private BtreeIndex tablenum_index;
@@ -42,7 +42,7 @@ public class Database implements Destination {
 	private BtreeIndex indexes_index;
 	private BtreeIndex fkey_index;
 	// used by get_view
-	private BtreeIndex views_index;
+//	private BtreeIndex views_index;
 
 	public Database(String filename, Mode mode) {
 		mmf = new Mmfile(filename, mode);
@@ -70,41 +70,41 @@ public class Database implements Destination {
 		// tables
 		tablename_index = new BtreeIndex(this, TN.TABLES, "tablename", true, false);
 		tablenum_index = new BtreeIndex(this, TN.TABLES, "table", true, false);
-		createTable("tables", TN.TABLES, 5, 3);
-		createTable("columns", TN.COLUMNS, 3, 17);
-		createTable("indexes", TN.INDEXES, 9, 5);
+		createSchemaTable("tables", TN.TABLES, 5, 3);
+		createSchemaTable("columns", TN.COLUMNS, 3, 17);
+		createSchemaTable("indexes", TN.INDEXES, 9, 5);
 
 		// columns
 		columns_index = new BtreeIndex(this, TN.COLUMNS, "table,column", true, false);
-		createColumn(TN.TABLES, "table", 0);
-		createColumn(TN.TABLES, "tablename", 1);
-		createColumn(TN.TABLES, "nextfield", 2);
-		createColumn(TN.TABLES, "nrows", 3);
-		createColumn(TN.TABLES, "totalsize", 4);
+		createSchemaColumn(TN.TABLES, "table", 0);
+		createSchemaColumn(TN.TABLES, "tablename", 1);
+		createSchemaColumn(TN.TABLES, "nextfield", 2);
+		createSchemaColumn(TN.TABLES, "nrows", 3);
+		createSchemaColumn(TN.TABLES, "totalsize", 4);
 
-		createColumn(TN.COLUMNS, "table", 0);
-		createColumn(TN.COLUMNS, "column", 1);
-		createColumn(TN.COLUMNS, "field", 2);
+		createSchemaColumn(TN.COLUMNS, "table", 0);
+		createSchemaColumn(TN.COLUMNS, "column", 1);
+		createSchemaColumn(TN.COLUMNS, "field", 2);
 
-		createColumn(TN.INDEXES, "table", 0);
-		createColumn(TN.INDEXES, "columns", 1);
-		createColumn(TN.INDEXES, "key", 2);
-		createColumn(TN.INDEXES, "fktable", 3);
-		createColumn(TN.INDEXES, "fkcolumns", 4);
-		createColumn(TN.INDEXES, "fkmode", 5);
-		createColumn(TN.INDEXES, "root", 6);
-		createColumn(TN.INDEXES, "treelevels", 7);
-		createColumn(TN.INDEXES, "nnodes", 8);
+		createSchemaColumn(TN.INDEXES, "table", 0);
+		createSchemaColumn(TN.INDEXES, "columns", 1);
+		createSchemaColumn(TN.INDEXES, "key", 2);
+		createSchemaColumn(TN.INDEXES, "fktable", 3);
+		createSchemaColumn(TN.INDEXES, "fkcolumns", 4);
+		createSchemaColumn(TN.INDEXES, "fkmode", 5);
+		createSchemaColumn(TN.INDEXES, "root", 6);
+		createSchemaColumn(TN.INDEXES, "treelevels", 7);
+		createSchemaColumn(TN.INDEXES, "nnodes", 8);
 
 		// indexes
 		indexes_index = new BtreeIndex(this, TN.INDEXES, "table,columns", true, false);
 		fkey_index = new BtreeIndex(this, TN.INDEXES, "fktable,fkcolumns", false, false);
-		createIndex(tablename_index);
-		createIndex(tablenum_index);
-		createIndex(columns_index);
+		createSchemaIndex(tablename_index);
+		createSchemaIndex(tablenum_index);
+		createSchemaIndex(columns_index);
 		// output indexes indexes last
-		long indexes_adr = createIndex(indexes_index);
-		createIndex(fkey_index);
+		long indexes_adr = createSchemaIndex(indexes_index);
+		createSchemaIndex(fkey_index);
 
 		// views
 		// add_table("views");
@@ -115,28 +115,28 @@ public class Database implements Destination {
 		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
 	}
 
-	private void createTable(String name, int num, int nextfield, int nrecords) {
+	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
 		long at = output(TN.TABLES,
 				Table.record(name, num, nextfield, nrecords));
-		verify(tablenum_index.insert(SCHEMA_TRAN,
+		verify(tablenum_index.insert(NO_TRAN,
 				new Slot(new Record().add(num).addMmoffset(at))));
-		verify(tablename_index.insert(SCHEMA_TRAN,
+		verify(tablename_index.insert(NO_TRAN,
 				new Slot(new Record().add(name).addMmoffset(at))));
 	}
 
-	private void createColumn(int tblnum, String column, int field) {
+	private void createSchemaColumn(int tblnum, String column, int field) {
 		long at = output(TN.COLUMNS, Column.record(tblnum, column, field));
 		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
-		verify(columns_index.insert(SCHEMA_TRAN, new Slot(key)));
+		verify(columns_index.insert(NO_TRAN, new Slot(key)));
 	}
 
-	private long createIndex(BtreeIndex btreeIndex) {
+	private long createSchemaIndex(BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, Index.record(btreeIndex));
 		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
 				.addMmoffset(at);
-		verify(indexes_index.insert(SCHEMA_TRAN, new Slot(key1)));
+		verify(indexes_index.insert(NO_TRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
-		verify(fkey_index.insert(SCHEMA_TRAN, new Slot(key2)));
+		verify(fkey_index.insert(NO_TRAN, new Slot(key2)));
 		return at;
 	}
 
@@ -146,7 +146,7 @@ public class Database implements Destination {
 		mmf.sync();
 		indexes_index = Index.btreeIndex(this, input(dbhdr.indexes));
 
-		Record r = find(SCHEMA_TRAN, indexes_index,
+		Record r = find(NO_TRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
 		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
 
@@ -158,7 +158,7 @@ public class Database implements Destination {
 	}
 
 	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return Index.btreeIndex(this, find(SCHEMA_TRAN, indexes_index, key(
+		return Index.btreeIndex(this, find(NO_TRAN, indexes_index, key(
 				table_num, columns)));
 	}
 
@@ -179,7 +179,7 @@ public class Database implements Destination {
 		return new Record().add(s);
 	}
 
-	private Record find(int tran, BtreeIndex btreeIndex, Record key) {
+	private Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
 		return slot.isEmpty() ? null : input(slot.keyadr());
 	}
@@ -189,16 +189,16 @@ public class Database implements Destination {
 		mmf.close();
 	}
 
-	void addTable(String table) {
+	void addTable(Transaction tran, String table) {
 		if (tableExists(table))
 			throw new SuException("add table: table already exists: " + table);
 		int tblnum = dbhdr.next_table++;
 		Record r = Table.record(table, tblnum, 0, 0);
-		add_any_record(SCHEMA_TRAN, "tables", r);
+		add_any_record(tran, "tables", r);
 		table_create_act(tblnum);
 	}
 
-	void addColumn(String table, String column) {
+	void addColumn(Transaction tran, String table, String column) {
 		Table tbl = ck_getTable(table);
 
 		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1 : tbl.nextfield;
@@ -207,7 +207,7 @@ public class Database implements Destination {
 			if (tbl.hasColumn(column))
 				throw new SuException("add column: column already exists: " + column + " in " + table);
 			Record rec = Column.record(tbl.num, column, fldnum);
-			add_any_record(SCHEMA_TRAN, "columns", rec);
+			add_any_record(tran, "columns", rec);
 			}
 		if (fldnum >= 0) {
 			++tbl.nextfield;
@@ -216,7 +216,7 @@ public class Database implements Destination {
 		tables.remove(table);
 	}
 
-	void addIndex(String table, String columns, boolean isKey, String fktable,
+	void addIndex(Transaction tran, String table, String columns, boolean isKey, String fktable,
 			String fkcolumns, int fkmode, boolean unique, boolean lower) {
 		Table tbl = ck_getTable(table);
 		short[] colnums = tbl.columns.nums(columns);
@@ -228,8 +228,8 @@ public class Database implements Destination {
 			{
 			// insert existing records
 			Index idx = tbl.firstIndex();
-			Table fktbl = getTable(fktable);
-			for (BtreeIndex.Iter iter = idx.btreeIndex.iter(SCHEMA_TRAN).next(); ! iter.eof(); iter.next())
+//			Table fktbl = getTable(fktable);
+			for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next(); ! iter.eof(); iter.next())
 				{
 				Record r = iter.data();
 				// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
@@ -237,12 +237,12 @@ public class Database implements Destination {
 				// throw new SuException("add index: blocked by foreign key: " +
 				// columns + " in " + table);
 				Record key = r.project(colnums, iter.cur().keyadr());
-				if (! index.insert(SCHEMA_TRAN, new Slot(key)))
+				if (! index.insert(tran, new Slot(key)))
 					throw new SuException("add index: duplicate key: " + columns + " = " + key + " in " + table);
 				}
 			}
 
-		add_any_record(SCHEMA_TRAN, "indexes", Index.record(index));
+		add_any_record(tran, "indexes", Index.record(index));
 		tables.remove(table);
 
 		if (!fktable.equals(""))
@@ -260,74 +260,80 @@ public class Database implements Destination {
 		return getTable(table) != null;
 	}
 
-	Table getTable(String table) {
+	public Table getTable(String table) {
 		// if the table has already been read, return it
 		Table tbl = tables.get(table);
 		if (tbl != null) {
 			verify(tbl.name.equals(table));
 			return tbl;
 		}
-		return getTable(find(SCHEMA_TRAN, tablename_index, key(table)));
+		return getTable(tablename_index, key(table));
 	}
 
-	Table getTable(int tblnum) {
+	public Table getTable(int tblnum) {
 		// if the table has already been read, return it
 		Table tbl = tables.get(tblnum);
 		if (tbl != null) {
 			verify(tbl.num == tblnum);
 			return tbl;
 		}
-		return getTable(find(SCHEMA_TRAN, tablenum_index, key(tblnum)));
+		return getTable(tablenum_index, key(tblnum));
 	}
 
-	Table getTable(Record table_rec) {
-		if (table_rec == null)
-			return null; // table not found
-
-		Table table = new Table(table_rec);
-
-		Record tblkey = key(table.num);
-
-		// columns
-		for (BtreeIndex.Iter iter = columns_index.iter(SCHEMA_TRAN, tblkey)
-				.next();
-				!iter.eof(); iter.next())
-			table.addColumn(new Column(iter.data()));
-		table.sortColumns();
-
-		// have to do this before indexes since they may need it
-
-		// indexes
-		for (BtreeIndex.Iter iter = indexes_index.iter(SCHEMA_TRAN, tblkey)
-				.next(); !iter.eof(); iter
-				.next()) {
-			Record r = iter.data();
-			String cols = Index.getColumns(r);
-			// make sure to use the same index for the system tables
-			BtreeIndex index;
-			if (table.name.equals("tables") && cols.equals("tablename"))
-				index = tablename_index;
-			else if (table.name.equals("tables") && cols.equals("table"))
-				index = tablenum_index;
-			else if (table.name.equals("columns") && cols.equals("table,column"))
-				index = columns_index;
-			else if (table.name.equals("indexes") && cols.equals("table,columns"))
-				index = indexes_index;
-			else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
-				index = fkey_index;
-			else
-				index = Index.btreeIndex(this, r);
-			table.addIndex(new Index(r, cols, table.columns
-					.nums(cols), index));
+	private Table getTable(BtreeIndex bi, Record key) {
+		Transaction tran = Transaction.readonly();
+		try {
+			Record table_rec = find(tran, bi, key);
+			if (table_rec == null)
+				return null; // table not found
+	
+			Table table = new Table(table_rec);
+	
+			Record tblkey = key(table.num);
+	
+			// columns
+			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey)
+					.next();
+					!iter.eof(); iter.next())
+				table.addColumn(new Column(iter.data()));
+			table.sortColumns();
+	
+			// have to do this before indexes since they may need it
+	
+			// indexes
+			for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey)
+					.next(); !iter.eof(); iter
+					.next()) {
+				Record r = iter.data();
+				String cols = Index.getColumns(r);
+				// make sure to use the same index for the system tables
+				BtreeIndex index;
+				if (table.name.equals("tables") && cols.equals("tablename"))
+					index = tablename_index;
+				else if (table.name.equals("tables") && cols.equals("table"))
+					index = tablenum_index;
+				else if (table.name.equals("columns") && cols.equals("table,column"))
+					index = columns_index;
+				else if (table.name.equals("indexes") && cols.equals("table,columns"))
+					index = indexes_index;
+				else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
+					index = fkey_index;
+				else
+					index = Index.btreeIndex(this, r);
+				table.addIndex(new Index(r, cols, table.columns
+						.nums(cols), index));
+			}
+			tables.add(table);
+			return table;
+		} finally {
+			tran.complete();
 		}
-		tables.add(table);
-		return table;
 	}
 
-	void add_any_record(int tran, String table, Record r) {
+	void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
 		}
-	void add_any_record(int tran, Table tbl, Record r) {
+	void add_any_record(Transaction tran, Table tbl, Record r) {
 		// if (tran != SCHEMA_TRAN && ck_get_tran(tran).type != READWRITE)
 		// throw new SuException("can't output from read-only transaction to " +
 		// tbl.name);
@@ -343,19 +349,14 @@ public class Database implements Destination {
 			throw new SuException("output: record has more fields (" + r.size()
 					+ ") than " + tbl.name + " should (" + tbl.nextfield + ")");
 		long adr = output(tbl.num, r);
-		try {
-			add_index_entries(tran, tbl, r, adr);
-		} finally {
-			if (tran == SCHEMA_TRAN)
-				delete_act(tran, tbl.num, adr);
-		}
+		add_index_entries(tran, tbl, r, adr);
 		create_act(tran, tbl.num, adr);
 
 		if (!loading)
 			tbl.user_trigger(tran, Record.MINREC, r);
 	}
 
-	void add_index_entries(int tran, Table tbl, Record r, long adr) {
+	void add_index_entries(Transaction tran, Table tbl, Record r, long adr) {
 		for (Index i : tbl.indexes) {
 			Record key = r.project(i.colnums, adr);
 			// handle insert failing due to duplicate key
@@ -452,22 +453,22 @@ public class Database implements Destination {
 //		table_created[tblnum] = clock;
 		++clock;
 		}
-	public TranRead read_act(int tran, int tblnum, String index) {
+	public TranRead read_act(Transaction tran, int tblnum, String index) {
 		// TODO Auto-generated method stub
 		return new TranRead(tblnum, index);
 	}
 
-	private void delete_act(int tran, int num, long off) {
+	private void delete_act(Transaction tran, int num, long off) {
 		// TODO Auto-generated method stub
 
 	}
 
-	private void create_act(int tran, int num, long off) {
+	private void create_act(Transaction tran, int num, long off) {
 		// TODO Auto-generated method stub
 
 	}
 
-	public boolean visible(int tran, long adr) {
+	public boolean visible(Transaction tran, long adr) {
 		// TODO Auto-generated method stub
 		return true;
 	}
