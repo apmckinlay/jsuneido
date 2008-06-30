@@ -5,7 +5,7 @@ import suneido.SuBoolean;
 import suneido.SuString;
 import suneido.SuValue;
 
-public class Idx {
+public class Index {
 	public BtreeIndex btreeIndex;
 	Record rec;
 	String columns;
@@ -19,7 +19,7 @@ public class Idx {
 	// Fkey fksrc;
 	// ArrayList<Fkey> fkdsts;
 
-	public Idx(String table, Record r, String columns, short[] colnums,
+	public Index(String table, Record r, String columns, short[] colnums,
 			BtreeIndex btreeIndex) {
 		this.btreeIndex = btreeIndex;
 		this.rec = r;

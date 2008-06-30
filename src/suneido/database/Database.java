@@ -131,7 +131,7 @@ public class Database implements Destination {
 	}
 
 	private long createIndex(BtreeIndex btreeIndex) {
-		long at = output(TN.INDEXES, Idx.record(btreeIndex));
+		long at = output(TN.INDEXES, Index.record(btreeIndex));
 		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
 				.addMmoffset(at);
 		verify(indexes_index.insert(SCHEMA_TRAN, new Slot(key1)));
@@ -144,7 +144,7 @@ public class Database implements Destination {
 		dbhdr = new Dbhdr();
 		Session.startup(mmf);
 		mmf.sync();
-		indexes_index = Idx.btreeIndex(this, input(dbhdr.indexes));
+		indexes_index = Index.btreeIndex(this, input(dbhdr.indexes));
 
 		Record r = find(SCHEMA_TRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
@@ -158,7 +158,7 @@ public class Database implements Destination {
 	}
 
 	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return Idx.btreeIndex(this, find(SCHEMA_TRAN, indexes_index, key(
+		return Index.btreeIndex(this, find(SCHEMA_TRAN, indexes_index, key(
 				table_num, columns)));
 	}
 
@@ -227,7 +227,7 @@ public class Database implements Destination {
 		if (tbl.hasIndexes() && tbl.hasRecords())
 			{
 			// insert existing records
-			Idx idx = tbl.firstIndex();
+			Index idx = tbl.firstIndex();
 			Table fktbl = getTable(fktable);
 			for (BtreeIndex.Iter iter = idx.btreeIndex.iter(SCHEMA_TRAN).next(); ! iter.eof(); iter.next())
 				{
@@ -242,9 +242,9 @@ public class Database implements Destination {
 				}
 			}
 
-		Record r = Idx.record(index);
+		Record r = Index.record(index);
 		add_any_record(SCHEMA_TRAN, "indexes", r);
-		tbl.addIndex(new Idx(table, r, columns, colnums, index));
+		tbl.addIndex(new Index(table, r, columns, colnums, index));
 
 		if (fktable != "")
 			tables.remove(fktable); // update target
@@ -303,7 +303,7 @@ public class Database implements Destination {
 				.next(); !iter.eof(); iter
 				.next()) {
 			Record r = iter.data();
-			String cols = Idx.getColumns(r);
+			String cols = Index.getColumns(r);
 			// make sure to use the same index for the system tables
 			BtreeIndex index;
 			if (table.name.equals("tables") && cols == "tablename")
@@ -317,8 +317,8 @@ public class Database implements Destination {
 			else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
 				index = fkey_index;
 			else
-				index = Idx.btreeIndex(this, r);
-			table.addIndex(new Idx(table.name, r, cols, table.columns
+				index = Index.btreeIndex(this, r);
+			table.addIndex(new Index(table.name, r, cols, table.columns
 					.nums(cols),
 					index));
 		}
@@ -358,12 +358,12 @@ public class Database implements Destination {
 	}
 
 	void add_index_entries(int tran, Table tbl, Record r, long adr) {
-		for (Idx i : tbl.indexes) {
+		for (Index i : tbl.indexes) {
 			Record key = r.project(i.colnums, adr);
 			// handle insert failing due to duplicate key
 			if (!i.btreeIndex.insert(tran, new Slot(key))) {
 				// delete from previous indexes
-				for (Idx j : tbl.indexes) {
+				for (Index j : tbl.indexes) {
 					if (j == i)
 						break;
 					key = r.project(j.colnums, adr);

@@ -3,14 +3,14 @@ package suneido.database;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class Indexes implements Iterable<Idx> {
-	private final ArrayList<Idx> indexes = new ArrayList<Idx>();
+public class Indexes implements Iterable<Index> {
+	private final ArrayList<Index> indexes = new ArrayList<Index>();
 
-	public void add(Idx idx) {
-		indexes.add(idx);
+	public void add(Index index) {
+		indexes.add(index);
 	}
 
-	public Iterator<Idx> iterator() {
+	public Iterator<Index> iterator() {
 		return indexes.iterator();
 	}
 
@@ -19,13 +19,13 @@ public class Indexes implements Iterable<Idx> {
 	}
 
 	public boolean hasIndex(String columns) {
-		for (Idx idx : indexes)
-			if (idx.columns.equals(columns))
+		for (Index index : indexes)
+			if (index.columns.equals(columns))
 				return true;
 		return false;
 	}
 
-	public Idx first() {
+	public Index first() {
 		return indexes.get(0);
 	}
 }
