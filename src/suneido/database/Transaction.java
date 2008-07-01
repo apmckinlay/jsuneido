@@ -33,6 +33,11 @@ public class Transaction implements Comparable<Transaction> {
 		this.num = num;
 	}
 
+	@Override
+	public String toString() {
+		return "Transaction " + num + " time " + t + " asof " + asof;
+	}
+
 	public boolean isReadonly() {
 		return readonly;
 	}
