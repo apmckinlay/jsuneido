@@ -26,7 +26,7 @@ public class Database implements Destination {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
-	private final Transactions trans = new Transactions();
+	private final Transactions trans = new Transactions(this);
 
 	private static class TN {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
@@ -450,15 +450,19 @@ public class Database implements Destination {
 		if (! tran.delete_act(tbl.num, r.off()))
 			throw new SuException("delete record from " + tbl.name + " transaction conflict: " + tran.conflict());
 
-// TODO should be in finalize
-remove_index_entries(tbl, r);
-
 		--tbl.nrecords;
 		tbl.totalsize -= r.bufSize();
 		tbl.update(); // update tables record
 
 		if (! loading)
 			tbl.user_trigger(tran, r, Record.MINREC);
+	}
+
+	// called by Transaction.finish
+	public void remove_index_entries(int tblnum, long off) {
+		Table table = getTable(tblnum);
+		if (table != null)
+			remove_index_entries(table, input(off));
 	}
 
 	private void remove_index_entries(Table tbl, Record r) {
@@ -537,5 +541,4 @@ remove_index_entries(tbl, r);
 				throw new SuException("invalid database");
 		}
 	}
-
 }
