@@ -1,26 +1,45 @@
 package suneido.database;
 
+import static suneido.Suneido.verify;
+
+import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class Transactions {
+	public final Database db;
 	private long clock = 0;
+	private int nextNum = 0;
+	private final HashMap<Integer, Transaction> trans = new HashMap<Integer, Transaction>();
 	private final HashMap<Long,Long> created = new HashMap<Long,Long>();	// record address -> create time
 	private final HashMap<Long,TranDelete> deleted = new HashMap<Long,TranDelete>();	// record address -> delete time
+	private final ArrayDeque<Transaction> finals = new ArrayDeque<Transaction>();
 
 	public static final long FUTURE = Long.MAX_VALUE;
 	public static final long UNCOMMITTED = Long.MAX_VALUE / 2;
 	public static final long PAST = Long.MIN_VALUE;
 
+	Transactions(Database db) {
+		this.db = db;
+	}
+
 	public Transaction readonlyTran() {
-		return new Transaction(this, true, ++clock);
+		return newTran(true);
 	}
 
 	public Transaction readwriteTran() {
-		return new Transaction(this, false, ++clock);
+		return newTran(false);
+	}
+
+	private Transaction newTran(boolean readonly) {
+		int num = ++nextNum;
+		Transaction tran = new Transaction(this, readonly, clock(), num);
+		trans.put(num, tran);
+		return tran;
 	}
 
 	public long clock() {
-		return clock;
+		return ++clock;
 	}
 
 	long create_time(long off) {
@@ -35,12 +54,13 @@ public class Transactions {
 
 	/**
 	 * Finalize any update transactions that are older than the oldest
-	 * outstanding read transaction.
-	 * 
-	 * @return false if exception, otherwise true
+	 * outstanding transaction.
 	 */
-	public boolean cleanup() {
-		return true; // TODO
+	private void finalization() {
+		long oldest = (trans.isEmpty() ? FUTURE :
+			Collections.min(trans.values()).asof());
+		while (!finals.isEmpty() && finals.peekFirst().asof() < oldest)
+			finals.removeFirst().finalization();
 	}
 
 	public void putCreated(long adr, long t) {
@@ -68,5 +88,34 @@ public class Transactions {
 			this.t = t;
 			this.time = t + UNCOMMITTED;
 		}
+	}
+
+	public void completed(Transaction tran) {
+		verify(trans.remove(tran.num) != null);
+		finalization();
+	}
+
+	public void addFinal(Transaction tran) {
+		finals.add(tran);
+	}
+
+	public void updateCreated(long off, long commit_time) {
+		Long t = created.get(off);
+		verify(t != null && t > UNCOMMITTED);
+		created.put(off, commit_time);
+	}
+
+	public void updateDeleted(long off, long commit_time) {
+		TranDelete td = deleted.get(off);
+		verify(td != null && td.time > UNCOMMITTED);
+		td.time = commit_time;
+	}
+
+	public void removeCreated(long off) {
+		verify(created.remove(off) != null);
+	}
+
+	public void removeDeleted(long off) {
+		verify(deleted.remove(off) != null);
 	}
 }
