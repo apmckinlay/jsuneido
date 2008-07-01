@@ -1,6 +1,10 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
+import static suneido.database.Transactions.*;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  *
@@ -8,25 +12,22 @@ import static suneido.Suneido.verify;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Transaction {
+	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
 	private String conflict = "";
+	private long t;
+	private long asof;
+	private final Deque<TranRead> reads = new ArrayDeque<TranRead>();
+	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 	
-	private Transaction(boolean readonly) {
+	public Transaction(Transactions trans, boolean readonly, long clock) {
+		this.trans = trans;
 		this.readonly = readonly;
+		t = asof = clock;
 	}
 
-	public static Transaction readonly() {
-		// TODO Auto-generated method stub
-		return new Transaction(true);
-	}
-	
-	public static Transaction readwrite() {
-		// TODO Auto-generated method stub
-		return new Transaction(false);
-	}
-	
 	public boolean isReadonly() {
 		return readonly;
 	}
@@ -38,21 +39,36 @@ public class Transaction {
 	}
 	
 	public void create_act(int tblnum, long adr) {
-		// TODO Auto-generated method stub
 		verify(! readonly);
 		verify(! ended);
+		trans.create_act(tblnum, adr, t);
 	}
 	
 	public boolean delete_act(int tblnum, long adr) {
-		// TODO Auto-generated method stub
 		verify(! readonly);
 		verify(! ended);
+		if (! trans.delete_act(tblnum, adr, t)) {
+			conflict = "deleted"; // TODO write_conflict(tblnum, adr, td);
+			asof = FUTURE;
+			return false;
+		}
 		return true;
 	}
 
 	public boolean visible(long adr) {
-		// TODO
-		return true;
+		long ct = trans.create_time(adr);
+		if (ct > UNCOMMITTED)
+			{
+			if (ct - UNCOMMITTED != t)
+				return false;
+			}
+		else if (ct > asof)
+			return false;
+
+		long dt = trans.delete_time(adr);
+		if (dt > UNCOMMITTED)
+			return dt - UNCOMMITTED != t;
+		return dt >= asof;
 	}
 
 	public boolean complete() {
@@ -73,7 +89,7 @@ public class Transaction {
 
 	private static class NullTransaction extends Transaction {
 		private NullTransaction() {
-			super(true);
+			super(null, true, 0);
 		}
 		public boolean visible(long adr) {
 			return true;

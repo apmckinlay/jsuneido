@@ -36,7 +36,7 @@ public class DatabaseTest {
 		assertEquals("indexes", tbl.name);
 		assertSame(tbl, db.getTable(2));
 
-		Transaction t = Transaction.readwrite();
+		Transaction t = db.readwriteTran();
 		try {
 			db.addTable(t, "test");
 			db.getTable("test");
@@ -54,7 +54,7 @@ public class DatabaseTest {
 		assertEquals(1, tbl.indexes.size());
 
 		r = new Record().add(12).add(34);
-		t = Transaction.readwrite();
+		t = db.readwriteTran();
 		try {
 			db.addRecord(t, "test", r);
 		} finally {
@@ -74,7 +74,7 @@ public class DatabaseTest {
 		iter.next();
 		assertTrue(iter.eof());
 
-		t = Transaction.readwrite();
+		t = db.readwriteTran();
 		try {
 			db.removeRecord(t, "test", "a", new Record().add(12));
 		} finally {

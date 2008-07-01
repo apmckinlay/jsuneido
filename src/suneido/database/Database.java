@@ -26,6 +26,7 @@ public class Database implements Destination {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
+	private final Transactions trans = new Transactions();
 
 	private static class TN {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
@@ -156,7 +157,6 @@ public class Database implements Destination {
 		fkey_index = btreeIndex(TN.INDEXES, "fktable,fkcolumns");
 		// WARNING: any new indexes added here must also be added in get_table
 	}
-
 	private BtreeIndex btreeIndex(int table_num, String columns) {
 		return Index.btreeIndex(this, find(NULLTRAN, indexes_index, key(
 				table_num, columns)));
@@ -187,6 +187,13 @@ public class Database implements Destination {
 	public void close() {
 		Session.shutdown(mmf);
 		mmf.close();
+	}
+	
+	public Transaction readonlyTran() {
+		return trans.readonlyTran();
+	}
+	public Transaction readwriteTran() {
+		return trans.readwriteTran();
 	}
 
 	public void addTable(Transaction tran, String table) {
@@ -280,7 +287,7 @@ public class Database implements Destination {
 	}
 
 	private Table getTable(BtreeIndex bi, Record key) {
-		Transaction tran = Transaction.readonly();
+		Transaction tran = trans.readonlyTran();
 		try {
 			Record table_rec = find(tran, bi, key);
 			if (table_rec == null)
@@ -418,7 +425,8 @@ public class Database implements Destination {
 	
 		if (! tran.delete_act(tbl.num, r.off()))
 			throw new SuException("delete record from " + tbl.name + " transaction conflict: " + tran.conflict());
-	
+
+// TODO should be in finalize
 remove_index_entries(tbl, r);
 
 		--tbl.nrecords;
