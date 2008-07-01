@@ -22,7 +22,7 @@ public class Database implements Destination {
 	private final Mmfile mmf;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
-	private long clock = 1;
+	private final long clock = 1;
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
@@ -188,7 +188,7 @@ public class Database implements Destination {
 		Session.shutdown(mmf);
 		mmf.close();
 	}
-	
+
 	public Transaction readonlyTran() {
 		return trans.readonlyTran();
 	}
@@ -196,15 +196,21 @@ public class Database implements Destination {
 		return trans.readwriteTran();
 	}
 
-	public void addTable(Transaction tran, String table) {
+	public void addTable(String table) {
 		if (tableExists(table))
 			throw new SuException("add table: table already exists: " + table);
 		int tblnum = dbhdr.next_table++;
-		Record r = Table.record(table, tblnum, 0, 0);
-		add_any_record(tran, "tables", r);
+		Transaction tran = readwriteTran();
+		try {
+			Record r = Table.record(table, tblnum, 0, 0);
+			add_any_record(tran, "tables", r);
+			tran.complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
 	}
 
-	public void addColumn(Transaction tran, String table, String column) {
+	public void addColumn(String table, String column) {
 		Table tbl = ck_getTable(table);
 
 		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1 : tbl.nextfield;
@@ -212,47 +218,67 @@ public class Database implements Destination {
 			column = column.toLowerCase();
 			if (tbl.hasColumn(column))
 				throw new SuException("add column: column already exists: " + column + " in " + table);
-			Record rec = Column.record(tbl.num, column, fldnum);
-			add_any_record(tran, "columns", rec);
+			Transaction tran = readwriteTran();
+			try {
+				Record rec = Column.record(tbl.num, column, fldnum);
+				add_any_record(tran, "columns", rec);
+				tran.complete();
+			} finally {
+				tran.abortIfNotComplete();
 			}
+		}
 		if (fldnum >= 0) {
 			++tbl.nextfield;
 			tbl.update();
-			}
+		}
 		tables.remove(table);
 	}
 
-	public void addIndex(Transaction tran, String table, String columns, boolean isKey, String fktable,
-			String fkcolumns, int fkmode, boolean unique, boolean lower) {
+	public void addIndex(String table, String columns,
+			boolean isKey, boolean unique, boolean lower,
+			String fktable,	String fkcolumns, int fkmode) {
 		Table tbl = ck_getTable(table);
 		short[] colnums = tbl.columns.nums(columns);
 		if (tbl.hasIndex(columns))
 			throw new SuException("add index: index already exists: " + columns + " in " + table);
 		BtreeIndex index = new BtreeIndex(this, tbl.num, columns, isKey, unique);
 
-		if (tbl.hasIndexes() && tbl.hasRecords())
-			{
-			// insert existing records
-			Index idx = tbl.firstIndex();
-//			Table fktbl = getTable(fktable);
-			for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next(); ! iter.eof(); iter.next())
-				{
-				Record r = iter.data();
-				// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
-				// r.project(colnums)))
-				// throw new SuException("add index: blocked by foreign key: " +
-				// columns + " in " + table);
-				Record key = r.project(colnums, iter.cur().keyadr());
-				if (! index.insert(tran, new Slot(key)))
-					throw new SuException("add index: duplicate key: " + columns + " = " + key + " in " + table);
-				}
-			}
+		Transaction tran = readwriteTran();
+		try {
+			insertExistingRecords(tran, columns, tbl, colnums, index);
 
-		add_any_record(tran, "indexes", Index.record(index));
+			add_any_record(tran, "indexes", Index.record(index));
+			tran.complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
 		tables.remove(table);
 
 		if (!fktable.equals(""))
 			tables.remove(fktable); // update target
+	}
+
+	private void insertExistingRecords(Transaction tran, String columns,
+			Table table, short[] colnums, BtreeIndex index) {
+		if (!table.hasIndexes() || !table.hasRecords())
+			return ;
+		// insert existing records
+		Index idx = table.firstIndex();
+		// Table fktbl = getTable(fktable);
+		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next(); !iter
+				.eof(); iter
+				.next()) {
+			Record r = iter.data();
+			// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
+			// r.project(colnums)))
+			// throw new
+			// SuException("add index: blocked by foreign key: " +
+			// columns + " in " + table);
+			Record key = r.project(colnums, iter.cur().keyadr());
+			if (!index.insert(tran, new Slot(key)))
+				throw new SuException("add index: duplicate key: " + columns
+						+ " = " + key + " in " + table.name);
+		}
 	}
 
 	public Table ck_getTable(String table) {
@@ -292,20 +318,18 @@ public class Database implements Destination {
 			Record table_rec = find(tran, bi, key);
 			if (table_rec == null)
 				return null; // table not found
-	
+
 			Table table = new Table(table_rec);
-	
+
 			Record tblkey = key(table.num);
-	
+
 			// columns
 			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey)
 					.next();
 					!iter.eof(); iter.next())
 				table.addColumn(new Column(iter.data()));
 			table.sortColumns();
-	
-			// have to do this before indexes since they may need it
-	
+
 			// indexes
 			for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey)
 					.next(); !iter.eof(); iter
@@ -402,7 +426,7 @@ public class Database implements Destination {
 			throw new SuException("delete record: can't delete records from system table: " + table);
 		remove_any_record(tran, table, index, key);
 	}
-	
+
 	private void remove_any_record(Transaction tran, String table, String index, Record key) {
 		Table tbl = ck_getTable(table);
 		// lookup key in given index
@@ -419,10 +443,10 @@ public class Database implements Destination {
 			throw new SuException("can't delete from read-only transaction in " + tbl.name);
 		verify(tbl != null);
 		verify(r != null);
-	
+
 //		if (char* fktblname = fkey_target_block(tran, tbl, r))
 //			throw new SuException("delete record from " + tbl->name + " blocked by foreign key from " + fktblname);
-	
+
 		if (! tran.delete_act(tbl.num, r.off()))
 			throw new SuException("delete record from " + tbl.name + " transaction conflict: " + tran.conflict());
 
@@ -432,7 +456,7 @@ remove_index_entries(tbl, r);
 		--tbl.nrecords;
 		tbl.totalsize -= r.bufSize();
 		tbl.update(); // update tables record
-	
+
 		if (! loading)
 			tbl.user_trigger(tran, r, Record.MINREC);
 	}
@@ -445,7 +469,7 @@ remove_index_entries(tbl, r);
 			i.update(); // update indexes record from index
 		}
 	}
-	
+
 	long output(int tblnum, Record r) {
 		int n = r.packSize();
 		long offset = alloc(4 + n, output_type);
