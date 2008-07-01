@@ -56,7 +56,7 @@ public class DatabaseTest {
 			assertTrue(t.complete());
 		}
 
-		 db.close();
+		db.close();
 		db = new Database("databasetest", Mode.OPEN);
 
 		tbl = db.getTable("test");
