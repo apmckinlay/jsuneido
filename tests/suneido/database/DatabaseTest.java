@@ -1,9 +1,9 @@
 package suneido.database;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Transaction.NULLTRAN;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static suneido.database.Transaction.NULLTRAN;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -37,17 +37,13 @@ public class DatabaseTest {
 		assertSame(tbl, db.getTable(2));
 
 		Transaction t = db.readwriteTran();
-		try {
-			db.addTable(t, "test");
-			db.getTable("test");
-	
-			db.addColumn(t, "test", "a");
-			db.addColumn(t, "test", "b");
-	
-			db.addIndex(t, "test", "a", true, "", "", 0, false, false);
-		} finally {
-			assertTrue(t.complete());
-		}
+		db.addTable("test");
+		db.ck_getTable("test");
+
+		db.addColumn("test", "a");
+		db.addColumn("test", "b");
+
+		db.addIndex("test", "a", true, false, false, "", "", 0);
 
 		tbl = db.getTable("test");
 		assertEquals(2, tbl.columns.size());
@@ -95,7 +91,7 @@ public class DatabaseTest {
 		new File("databasetest").delete();
 	}
 
-	// public static void main(String args[]) {
-	// new DatabaseTest().create_open();
-	// }
+	 public static void main(String args[]) {
+		new DatabaseTest().test();
+	}
 }
