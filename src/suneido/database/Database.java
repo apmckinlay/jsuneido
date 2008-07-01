@@ -185,6 +185,7 @@ public class Database implements Destination {
 	}
 
 	public void close() {
+		trans.shutdown();
 		Session.shutdown(mmf);
 		mmf.close();
 	}

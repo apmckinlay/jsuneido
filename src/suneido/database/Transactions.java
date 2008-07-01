@@ -118,4 +118,9 @@ public class Transactions {
 	public void removeDeleted(long off) {
 		verify(deleted.remove(off) != null);
 	}
+
+	public void shutdown() {
+		// TODO Auto-generated method stub
+
+	}
 }
