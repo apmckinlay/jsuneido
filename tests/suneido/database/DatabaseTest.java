@@ -64,7 +64,7 @@ public class DatabaseTest {
 
 		Index idx = tbl.indexes.first();
 		BtreeIndex.Iter iter = idx.btreeIndex.iter(NULLTRAN).next();
-		r2 = iter.data();
+		r2 = db.input(iter.keyadr());
 		assertEquals(r, r2);
 		iter.next();
 		assertTrue(iter.eof());

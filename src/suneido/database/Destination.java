@@ -21,6 +21,4 @@ public interface Destination {
 
 	long size();
 
-	Record input(long adr);
-
 }
