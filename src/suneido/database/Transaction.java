@@ -120,7 +120,7 @@ public class Transaction implements Comparable<Transaction> {
 	 * @return true if all the reads are still valid, false if any conflict
 	 */
 	private boolean validate_reads() {
-		// TODO merge overlapping reads (add org to TranRead.compareTo)
+		// PERF merge overlapping reads (add org to TranRead.compareTo)
 		int cur_tblnum = -1;
 		String cur_index = "";
 		short[] colnums = null;
