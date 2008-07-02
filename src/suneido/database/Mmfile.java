@@ -31,13 +31,19 @@ import suneido.SuException;
  *         </p>
  */
 public class Mmfile implements Iterable<ByteBuffer> {
+	private RandomAccessFile fin;
+	private FileChannel fc;
+	private long file_size;
+	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
+	private final boolean[] recently_used = new boolean[MAX_CHUNKS];
+	private int chunks_mapped = 0;
+	private int hi_chunk = 0;
+	private int hand = 0;
+	private int last_alloc = 0;
+
 	final static int HEADER = 4; // contains size | type
 	final static int TRAILER = 4; // contains size ^ adr
 	final static int OVERHEAD = HEADER + TRAILER;
-	/**
-	 * ALLIGN must be a power of 2 and big enough to allow space for types e.g.
-	 * align of 8 = 3 bits for type = 8 types
-	 */
 	final public static int ALIGN = 8;
 	final public static int SHIFT = 2;
 	final private static int MB_PER_CHUNK = 4;
@@ -62,20 +68,19 @@ public class Mmfile implements Iterable<ByteBuffer> {
 	private int chunk_size = MB_PER_CHUNK * 1024 * 1024;
 	private int max_chunks_mapped = MAX_CHUNKS_MAPPED;
 
-	private RandomAccessFile fin;
-	private FileChannel fc;
-	private long file_size;
-	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
-	private final boolean[] recently_used = new boolean[MAX_CHUNKS];
-	private int chunks_mapped = 0;
-	private int hi_chunk = 0;
-	private int hand = 0;
-	private int last_alloc = 0;
 
 	public Mmfile(String filename, Mode mode) {
 		File file = new File(filename);
-		if (mode == Mode.OPEN && (!file.canRead() || !file.canWrite()))
-			throw new SuException("can't open " + filename);
+		switch (mode) {
+		case CREATE :
+			if (file.exists())
+				verify(file.delete());
+			break;
+		case OPEN :
+			if (!file.canRead() || !file.canWrite())
+				throw new SuException("can't open " + filename);
+			break;
+		}
 		try {
 			fin = new RandomAccessFile(file, "rw");
 		} catch (FileNotFoundException e) {
@@ -138,6 +143,7 @@ public class Mmfile implements Iterable<ByteBuffer> {
 		Arrays.fill(fm, null); // might help gc
 		try {
 			fc.close();
+			fin.close();
 		} catch (IOException e) {
 			throw new SuException("can't close database file");
 		}
