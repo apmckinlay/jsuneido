@@ -58,6 +58,7 @@ public class Transactions {
 	 * outstanding transaction.
 	 */
 	private void finalization() {
+		// PERF use a priority queue to quickly get smallest asof
 		long oldest = (trans.isEmpty() ? FUTURE :
 			Collections.min(trans.values()).asof());
 		while (!finals.isEmpty() && finals.peekFirst().asof() < oldest)
