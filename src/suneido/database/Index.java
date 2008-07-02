@@ -54,7 +54,7 @@ public class Index {
 	}
 
 	private static void indexInfo(Record r, BtreeIndex btreeIndex) {
-		r.reuse(ROOT);
+		r.truncate(ROOT);
 		r.addMmoffset(btreeIndex.root());
 		r.add(btreeIndex.treelevels());
 		r.add(btreeIndex.nnodes());

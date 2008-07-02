@@ -52,7 +52,7 @@ public class Table {
 
 	public void update() {
 		verify(record.off() != 0);
-		record.reuse(NEXTFIELD);
+		record.truncate(NEXTFIELD);
 		record.add(nextfield).add(nrecords).add(totalsize);
 	}
 

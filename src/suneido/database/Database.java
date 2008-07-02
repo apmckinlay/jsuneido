@@ -31,9 +31,9 @@ public class Database implements Destination {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
 
-//	private static class V {
-//		final static int NAME = 0, DEFINITION = 1;
-//	}
+	//	private static class V {
+	//		final static int NAME = 0, DEFINITION = 1;
+	//	}
 
 	private final static int VERSION = 1;
 	private BtreeIndex tablename_index;
@@ -42,7 +42,7 @@ public class Database implements Destination {
 	private BtreeIndex indexes_index;
 	private BtreeIndex fkey_index;
 	// used by get_view
-//	private BtreeIndex views_index;
+	//	private BtreeIndex views_index;
 
 	public Database(String filename, Mode mode) {
 		mmf = new Mmfile(filename, mode);
@@ -57,9 +57,8 @@ public class Database implements Destination {
 			output_type = Mmfile.OTHER;
 			create();
 			output_type = Mmfile.DATA;
-		} else {
+		} else
 			open();
-		}
 	}
 
 	private void create() {
@@ -133,7 +132,7 @@ public class Database implements Destination {
 	private long createSchemaIndex(BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, Index.record(btreeIndex));
 		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
-				.addMmoffset(at);
+		.addMmoffset(at);
 		verify(indexes_index.insert(NULLTRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
 		verify(fkey_index.insert(NULLTRAN, new Slot(key2)));
@@ -157,11 +156,24 @@ public class Database implements Destination {
 		// WARNING: any new indexes added here must also be added in get_table
 	}
 	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return Index.btreeIndex(this, find(NULLTRAN, indexes_index, key(
-				table_num, columns)));
+		return Index.btreeIndex(this,
+				find(NULLTRAN, indexes_index, key(table_num, columns)));
 	}
 
-	public Record input(long adr) {
+	long output(int tblnum, Record r) {
+		int n = r.packSize();
+		long offset = alloc(4 + n, output_type);
+		ByteBuffer p = adr(offset);
+		p.putInt(tblnum);
+		r.pack(p);
+		// don't checksum tables or indexes records because they get updated
+		if (output_type == Mmfile.DATA && tblnum != TN.TABLES
+				&& tblnum != TN.INDEXES)
+			checksum(p, 4 + n);
+		return offset + 4; // offset of record i.e. past tblnum
+	}
+
+	Record input(long adr) {
 		verify(adr != 0);
 		return new Record(mmf.adr(adr), adr);
 	}
@@ -180,7 +192,7 @@ public class Database implements Destination {
 
 	private Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
-		return slot.isEmpty() ? null : input(slot.keyadr());
+		return slot == null ? null : input(slot.keyadr());
 	}
 
 	public void close() {
@@ -266,8 +278,8 @@ public class Database implements Destination {
 		Index idx = table.firstIndex();
 		// Table fktbl = getTable(fktable);
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next(); !iter
-				.eof(); iter
-				.next()) {
+		.eof(); iter
+		.next()) {
 			Record r = input(iter.keyadr());
 			// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
 			// r.project(colnums)))
@@ -326,7 +338,7 @@ public class Database implements Destination {
 			// columns
 			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey)
 					.next();
-					!iter.eof(); iter.next())
+			!iter.eof(); iter.next())
 				table.addColumn(new Column(input(iter.keyadr())));
 			table.sortColumns();
 
@@ -368,14 +380,14 @@ public class Database implements Destination {
 
 	private boolean is_system_table(String table) {
 		return	table.equals("tables") ||
-				table.equals("columns") ||
-				table.equals("indexes") ||
-				table.equals("views");
+		table.equals("columns") ||
+		table.equals("indexes") ||
+		table.equals("views");
 	}
 
 	private void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
-		}
+	}
 	private void add_any_record(Transaction tran, Table tbl, Record r) {
 		if (tran.isReadonly())
 			throw new SuException("can't output from read-only transaction to " + tbl.name);
@@ -444,8 +456,8 @@ public class Database implements Destination {
 		verify(tbl != null);
 		verify(r != null);
 
-//		if (char* fktblname = fkey_target_block(tran, tbl, r))
-//			throw new SuException("delete record from " + tbl->name + " blocked by foreign key from " + fktblname);
+		//		if (char* fktblname = fkey_target_block(tran, tbl, r))
+		//			throw new SuException("delete record from " + tbl->name + " blocked by foreign key from " + fktblname);
 
 		if (! tran.delete_act(tbl.num, r.off()))
 			throw new SuException("delete record from " + tbl.name + " transaction conflict: " + tran.conflict());
@@ -458,8 +470,31 @@ public class Database implements Destination {
 			tbl.user_trigger(tran, r, Record.MINREC);
 	}
 
-	// called by Transaction.finish
-	public void remove_index_entries(int tblnum, long off) {
+	// used by Transaction.abort
+	void undoAdd(int tblnum, long off) {
+		Table table = getTable(tblnum);
+		if (table == null)
+			return;
+		Record r = input(off);
+		remove_index_entries(table, r);
+		--table.nrecords;
+		table.totalsize -= r.bufSize();
+		table.update();
+	}
+
+	// used by Transaction.abort
+	void undoDelete(int tblnum, long off) {
+		Table table = getTable(tblnum);
+		if (table == null)
+			return;
+		// undo tables record update
+		++table.nrecords;
+		table.totalsize += input(off).bufSize();
+		table.update();
+	}
+
+	// used by Transaction.finalization
+	void remove_index_entries(int tblnum, long off) {
 		Table table = getTable(tblnum);
 		if (table != null)
 			remove_index_entries(table, input(off));
@@ -472,19 +507,6 @@ public class Database implements Destination {
 			verify(i.btreeIndex.remove(key));
 			i.update(); // update indexes record from index
 		}
-	}
-
-	long output(int tblnum, Record r) {
-		int n = r.packSize();
-		long offset = alloc(4 + n, output_type);
-		ByteBuffer p = adr(offset);
-		p.putInt(tblnum);
-		r.pack(p);
-		// don't checksum tables or indexes records because they get updated
-		if (output_type == Mmfile.DATA &&
-				tblnum != TN.TABLES	&& tblnum != TN.INDEXES)
-			checksum(p, 4 + n);
-		return offset + 4; // offset of record i.e. past tblnum
 	}
 
 	public long alloc(int n) {

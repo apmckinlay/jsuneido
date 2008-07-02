@@ -5,6 +5,7 @@ import static suneido.Suneido.verify;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Transactions {
 	public final Database db;
@@ -90,12 +91,14 @@ public class Transactions {
 		}
 	}
 
-	public void completed(Transaction tran) {
+	public void ended(Transaction tran) {
 		verify(trans.remove(tran.num) != null);
 		finalization();
 	}
 
 	public void addFinal(Transaction tran) {
+		// finals should be sorted
+		verify(finals.isEmpty() || tran.asof() > finals.peekLast().asof());
 		finals.add(tran);
 	}
 
@@ -122,5 +125,31 @@ public class Transactions {
 	public void shutdown() {
 		// TODO Auto-generated method stub
 
+	}
+
+	public String anyConflicts(long asof, int tblnum, short[] colnums,
+			Record from,
+			Record to) {
+		Iterator<Transaction> iter = finals.descendingIterator();
+		while (iter.hasNext()) {
+			Transaction t = iter.next();
+			if (t.asof() <= asof)
+				break;
+			for (TranWrite tw : t.writes) {
+				if (tw.tblnum != tblnum)
+					continue ;
+				Record rec = db.input(tw.off);
+				Record key = rec.project(colnums);
+				if (key.inRange(from, to))
+					return read_conflict(t, tblnum, from, to, key);
+			}
+		}
+		return "";
+	}
+
+	private String read_conflict(Transaction t, int tblnum, Record from,
+			Record to, Record key) {
+		// TODO Auto-generated method stub
+		return "read conflict";
 	}
 }

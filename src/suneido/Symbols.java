@@ -14,7 +14,7 @@ import java.util.HashMap;
 public class Symbols {
 	private static ArrayList<SuSymbol> symbols = new ArrayList<SuSymbol>();
 	private static HashMap<String, Integer> names= new HashMap<String, Integer>();
-	
+
 	public static class Sym {
 		final public static SuSymbol CALL = symbol("<call>");
 		final public static SuSymbol DEFAULT = symbol("Default");
@@ -37,16 +37,16 @@ public class Symbols {
 		final public static int INSTANTIATE = 11;
 		final public static int NEW = 12;
 	}
-	
+
 	static {
-		for (String s : new String[] { 
+		for (String s : new String[] {
 				"<call>", "Default", "<each>", "<each1>", "<named>",
-				"Substr", "i", "n", "Size", 
-				"<call_instance>", "<call_class>", "<instantiate>", "New" }) 
+				"Substr", "i", "n", "Size",
+				"<call_instance>", "<call_class>", "<instantiate>", "New" })
 			symbol(s);
 		assert symbol(Num.NEW).symnum() == Num.NEW;
 	}
-	
+
 	public static SuSymbol symbol(String s) {
 		if (names.containsKey(s))
 			return symbols.get(names.get(s));
@@ -59,23 +59,23 @@ public class Symbols {
 	public static int symnum(String s) {
 		return symbol(s).symnum();
 	}
-	
+
 	public static SuSymbol symbol(int num) {
 		return symbols.get(num);
 	}
-		
-	static class SuSymbol extends SuString {
-		private int num;
-		
+
+	public static class SuSymbol extends SuString {
+		private final int num;
+
 		private SuSymbol(String s, int num) {
 			super(s);
 			this.num = num;
 		}
-		
+
 		public int symnum() {
 			return num;
 		}
-		
+
 		@Override
 		public boolean equals(Object value) {
 			if (value == this)
@@ -85,7 +85,7 @@ public class Symbols {
 			else
 				return super.equals(value);
 		}
-		
+
 		/**
 		 * symbol(value, ...) is treated as value.symbol(...)
 		 */
@@ -99,5 +99,5 @@ public class Symbols {
 			} else
 				return super.invoke(self, method, args);
 		}
-	}	
+	}
 }

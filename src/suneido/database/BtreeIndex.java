@@ -64,10 +64,9 @@ public class BtreeIndex {
 		// lower_key(x.key);
 		if (iskey || (unique && !isEmpty(x.key))) {
 			Record key = x.key;
-			key.reuse(key.size() - 1); // strip off record address
-			boolean dup = !find(tran, key).isEmpty();
-			key.reuse(key.size() + 1); // put it back
-			if (dup)
+			// TODO avoid dup - maybe some kind of slice/view
+			key = key.dup().truncate(key.size() - 1); // strip record address
+			if (find(tran, key) != null)
 				return false;
 		}
 		return bt.insert(x);
@@ -85,9 +84,9 @@ public class BtreeIndex {
 	public Slot find(Transaction tran, Record key) {
 		Iter iter = iter(tran, key).next();
 		if (iter.eof())
-			return new Slot();
+			return null;
 		Slot cur = iter.cur();
-		return cur.key.hasPrefix(key) ? cur : new Slot();
+		return cur.key.hasPrefix(key) ? cur : null;
 	}
 
 	private boolean isEmpty(Record key) {
@@ -136,7 +135,7 @@ public class BtreeIndex {
 			verify(!rewound);
 			return iter.cur();
 		}
-		
+
 		public long keyadr() {
 			return cur().keyadr();
 		}
