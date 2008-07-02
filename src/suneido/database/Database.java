@@ -22,7 +22,6 @@ public class Database implements Destination {
 	private final Mmfile mmf;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
-	private final long clock = 1;
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
@@ -269,7 +268,7 @@ public class Database implements Destination {
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next(); !iter
 				.eof(); iter
 				.next()) {
-			Record r = iter.data();
+			Record r = input(iter.keyadr());
 			// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
 			// r.project(colnums)))
 			// throw new
@@ -328,14 +327,14 @@ public class Database implements Destination {
 			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey)
 					.next();
 					!iter.eof(); iter.next())
-				table.addColumn(new Column(iter.data()));
+				table.addColumn(new Column(input(iter.keyadr())));
 			table.sortColumns();
 
 			// indexes
 			for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey)
 					.next(); !iter.eof(); iter
 					.next()) {
-				Record r = iter.data();
+				Record r = input(iter.keyadr());
 				String cols = Index.getColumns(r);
 				// make sure to use the same index for the system tables
 				BtreeIndex index;

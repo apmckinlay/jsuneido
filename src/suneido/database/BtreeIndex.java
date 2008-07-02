@@ -47,19 +47,19 @@ public class BtreeIndex {
 		this.index = index;
 	}
 
-	long root() {
+	public long root() {
 		return bt.root();
 	}
 
-	int nnodes() {
+	public int nnodes() {
 		return bt.nnodes();
 	}
 
-	int treelevels() {
+	public int treelevels() {
 		return bt.treelevels();
 	}
 
-	boolean insert(Transaction tran, Slot x) {
+	public boolean insert(Transaction tran, Slot x) {
 		// if (lower)
 		// lower_key(x.key);
 		if (iskey || (unique && !isEmpty(x.key))) {
@@ -73,16 +73,16 @@ public class BtreeIndex {
 		return bt.insert(x);
 	}
 
-	boolean remove(Record key) {
+	public boolean remove(Record key) {
 		return bt.remove(key);
 	}
 
-	float rangefrac(Record from, Record to) {
+	public float rangefrac(Record from, Record to) {
 		float f = bt.rangefrac(from, to);
 		return f < .001 ? (float) .001 : f;
 	}
 
-	Slot find(Transaction tran, Record key) {
+	public Slot find(Transaction tran, Record key) {
 		Iter iter = iter(tran, key).next();
 		if (iter.eof())
 			return new Slot();
@@ -100,15 +100,15 @@ public class BtreeIndex {
 		return true;
 	}
 
-	Iter iter(Transaction tran) {
+	public Iter iter(Transaction tran) {
 		return new Iter(tran, Record.MINREC, Record.MAXREC);
 	}
 
-	Iter iter(Transaction tran, Record key) {
+	public Iter iter(Transaction tran, Record key) {
 		return new Iter(tran, key, key);
 	}
 
-	Iter iter(Transaction tran, Record from, Record to) {
+	public Iter iter(Transaction tran, Record from, Record to) {
 		return new Iter(tran, from, to);
 	}
 
@@ -121,28 +121,27 @@ public class BtreeIndex {
 		TranRead tranread;
 		long prevsize = Long.MAX_VALUE;
 
-		Iter(Transaction tran, Record from, Record to) {
+		private Iter(Transaction tran, Record from, Record to) {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
 			tranread = tran.read_act(tblnum, index);
 		}
 
-		boolean eof() {
+		public boolean eof() {
 			return iter.eof();
 		}
 
-		Slot cur() {
+		public Slot cur() {
 			verify(!rewound);
 			return iter.cur();
 		}
-
-		Record data() {
-			verify(!rewound);
-			return dest.input(cur().keyadr());
+		
+		public long keyadr() {
+			return cur().keyadr();
 		}
 
-		Iter next() {
+		public Iter next() {
 			boolean first = true;
 			Record prevkey = Record.MINREC;
 			if (rewound) {
@@ -168,7 +167,7 @@ public class BtreeIndex {
 			return this;
 		}
 
-		Iter prev() {
+		public Iter prev() {
 			if (rewound) {
 				iter = bt.locate(to.dup(8).addMax());
 				if (iter.eof())

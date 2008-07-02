@@ -26,8 +26,4 @@ public class DestMem implements Destination {
 		return (nodes.size() + 1) << Mmfile.SHIFT;
 	}
 
-	public Record input(long adr) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
