@@ -3,7 +3,7 @@ package suneido.database;
 import static suneido.Suneido.verify;
 
 /**
- * Btree implementation. 
+ * Btree implementation.
  * Uses {@link Slots} to store nodes.
  * @see BtreeIndex
  * @author Andrew McKinlay
@@ -14,8 +14,8 @@ public class Btree {
 	final public static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
 	enum Insert { OK, DUP, FULL };	// return values for insert
-	
-	private Destination dest;
+
+	private final Destination dest;
 	private long root_;
 	private int treelevels;	// not including leaves
 	private int nnodes;
@@ -35,7 +35,7 @@ public class Btree {
 	 */
 	public Btree(Destination dest, long root, int treelevels, int nnodes) {
 		this.dest = dest;
-		verify(root >= 0); 
+		verify(root >= 0);
 		root_ = root;
 		verify(0 <= treelevels && treelevels < MAXLEVELS);
 		this.treelevels = treelevels;
@@ -62,7 +62,7 @@ public class Btree {
 	 */
 	public boolean isValid() {
 		long[] links = new long[] { 0, -1 };
-		return isValid(root(), 0, links) 
+		return isValid(root(), 0, links)
 			&& links[1] == 0; // final next should be 0
 	}
 	// links is checked and then set by each leaf node
@@ -98,17 +98,17 @@ public class Btree {
 
 	public boolean insert(Slot x) { // returns false for duplicate key
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
-	
+
 		// search down the tree
 		long adr = root();
-		int i; 
+		int i;
 		for (i = 0; i < treelevels; ++i)
 			{
 			nodes[i] = new TreeNode(adr);
 			adr = nodes[i].find(x.key);
 			}
 		LeafNode leaf = new LeafNode(adr);
-	
+
 		// insert the key & data into the leaf
 		Insert status = leaf.insert(x);
 		if (status != Insert.FULL)
@@ -119,8 +119,8 @@ public class Btree {
 		++nnodes;
 		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 ? left.insert(x) : leaf.insert(x)));
 		Record key = left.slots.back().key.dup();
-		adr = left.adr; 
-	
+		adr = left.adr;
+
 		// insert up the tree as necessary
 		for (--i; i >= 0; --i)
 			{
@@ -139,7 +139,7 @@ public class Btree {
 		return true ;
 	}
 	private void newRoot(Record key, long off) {
-		long roff = dest.alloc(NODESIZE);
+		long roff = dest.alloc(NODESIZE, Mmfile.OTHER);
 		TreeNode r = new TreeNode(roff, Mode.CREATE);
 		++nnodes;
 		r.insert(key, off);
@@ -151,7 +151,7 @@ public class Btree {
 
 	public boolean remove(Record key) {
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
-	
+
 		// search down the tree
 		long off = root();
 		int i;
@@ -190,7 +190,7 @@ public class Btree {
 		root_ = off;
 		return true;
 	}
-	
+
 	public float rangefrac(Record from, Record to) {
 		// from is inclusive, end is exclusive
 		if (treelevels == 0)
@@ -244,7 +244,7 @@ public class Btree {
 	private class LeafNode {
 		Slots slots;
 		long adr;
-		
+
 		LeafNode(long adr) {
 			this(adr, Mode.OPEN);
 		}
@@ -278,7 +278,8 @@ public class Btree {
 				percent = 75;
 			else if (x.compareTo(slots.back()) > 0)
 				percent = 25;
-			LeafNode left = new LeafNode(dest.alloc(NODESIZE), Mode.CREATE);
+			LeafNode left = new LeafNode(dest.alloc(NODESIZE, Mmfile.OTHER),
+					Mode.CREATE);
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first half of right keys to left
@@ -287,7 +288,7 @@ public class Btree {
 			// maintain linked list of leaves
 			left.setPrev(prev());
 			left.setNext(adr);
-			setPrev(left.adr); 
+			setPrev(left.adr);
 			if (left.prev() != 0)
 				Slots.setBufNext(dest.adr(left.prev()), left.adr);
 			return left;
@@ -302,7 +303,7 @@ public class Btree {
 			return slots.isEmpty();
 		}
 		long next() {
-			return slots.next(); 
+			return slots.next();
 		}
 		long prev() {
 			return slots.prev();
@@ -313,7 +314,7 @@ public class Btree {
 		void setPrev(long prev) {
 			slots.setPrev(prev);
 		}
-		
+
 		boolean isValid() {
 			if (prev() == TREENODE_PREV)
 				return false;
@@ -330,11 +331,11 @@ public class Btree {
 			return true;
 		}
 	}
-	
+
 	private class TreeNode {
 		Slots slots;
 		long adr;
-		
+
 		TreeNode(long adr) {
 			this(adr, Mode.OPEN);
 		}
@@ -345,7 +346,7 @@ public class Btree {
 				slots.setPrev(TREENODE_PREV);
 			assert(isValid());
 		}
-		
+
 		// returns false if no room
 		boolean insert(Record key, long off) {
 			Slot slot = new Slot(key, off);
@@ -378,7 +379,7 @@ public class Btree {
 				percent = 75;
 			else if (key.compareTo(slots.back().key) > 0)
 				percent = 25;
-			long leftoff = dest.alloc(NODESIZE);
+			long leftoff = dest.alloc(NODESIZE, Mmfile.OTHER);
 			TreeNode left = new TreeNode(leftoff, Mode.CREATE); // create new treenode
 			int n = slots.size();
 			int nright = (n * percent) / 100;
@@ -387,12 +388,12 @@ public class Btree {
 			slots.remove(0, slots.size() - nright);
 			return left;
 			}
-		boolean isEmpty() { 
+		boolean isEmpty() {
 			return slots.isEmpty() && slots.next() == 0;
 			}
 
 		long next() {
-			return slots.next(); 
+			return slots.next();
 		}
 		void setNext(long next) {
 			slots.setNext(next);
@@ -416,19 +417,19 @@ public class Btree {
 			return true;
 		}
 }
-	
+
 	public long root() {
 		if (root_ == 0)
 			{
 			verify(nnodes == 0);
 			++nnodes;
-			root_ = dest.alloc(NODESIZE);
+			root_ = dest.alloc(NODESIZE, Mmfile.OTHER);
 			new Slots(dest.adr(root_), Mode.CREATE);
 			}
 		verify(root_ >= 0);
 		return root_;
 	}
-	
+
 	public Iter first() {
 		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
@@ -456,7 +457,7 @@ public class Btree {
 		long adr; // offset of current node
 		Slot cur;
 		long valid = modified;
-		
+
 		private Iter() { // end
 			adr = 0;
 			cur = null;
@@ -468,21 +469,21 @@ public class Btree {
 		private Iter(Record key) {
 			seek(key);
 		}
-		
+
 		public boolean eof() {
 			return adr == 0;
 		}
 		public void seteof() {
 			adr = 0;
 		}
-		
+
 		public Slot cur() {
 			return cur;
 		}
 		public Record key() {
 			return cur.key;
 		}
-		
+
 		//TODO copy/dup cur in next & prev & seek ?
 		public Iter next() {
 			if (adr == 0)
@@ -533,7 +534,7 @@ public class Btree {
 			return found;
 		}
 	}
-	
+
 	public void print() {
 		print(root(), 0);
 	}

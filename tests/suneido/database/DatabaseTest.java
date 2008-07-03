@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,31 +12,33 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.SuException;
-
 public class DatabaseTest {
-	File file = null;
-	Database db = null;
+	// File file = null;
+	DestMem dest;
+	Database db;
 
 	@Before
-	public void open() throws IOException {
-		file = File.createTempFile("mmf", null);
-		db = new Database(file.getCanonicalPath(), Mode.CREATE);
+	public void open() {
+		// file = File.createTempFile("mmf", null);
+		// db = new Database(file.getCanonicalPath(), Mode.CREATE);
+		dest = new DestMem();
+		db = new Database(dest, Mode.CREATE);
 	}
 
 	@After
 	public void close() {
-		db.close();
-		file.delete();
+		// db.close();
+		// file.delete();
 	}
 
 	private void reopen() {
 		db.close();
-		try {
-			db = new Database(file.getCanonicalPath(), Mode.OPEN);
-		} catch (IOException e) {
-			throw new SuException("can't reopen", e);
-		}
+		db = new Database(dest, Mode.OPEN);
+		// try {
+		// db = new Database(file.getCanonicalPath(), Mode.OPEN);
+		// } catch (IOException e) {
+		// throw new SuException("can't reopen", e);
+		// }
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class DatabaseTest {
 	}
 
 	@Test
-	public void abort() {
+	public void abort() { // TODO aborted delete
 		makeTable();
 
 		Transaction t1 = db.readwriteTran();
@@ -143,6 +143,8 @@ public class DatabaseTest {
 		assertEquals(0, get(t3).size());
 		t3.ck_complete();
 	}
+
+	// TODO add index to table with existing records
 
 	@Test
 	public void validate_reads() {
@@ -198,7 +200,7 @@ public class DatabaseTest {
 		return recs;
 	}
 
-	//	 public static void main(String args[]) {
-	//		new DatabaseTest().test();
-	//	}
+	// public static void main(String args[]) {
+	// new DatabaseTest().output_input();
+	// }
 }

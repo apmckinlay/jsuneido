@@ -18,8 +18,8 @@ import suneido.SuException;
  *         Licensed under GPLv2.</small>
  *         </p>
  */
-public class Database implements Destination {
-	private final Mmfile mmf;
+public class Database {
+	private final Destination dest;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
 	private final Adler32 cksum = new Adler32();
@@ -45,7 +45,16 @@ public class Database implements Destination {
 	//	private BtreeIndex views_index;
 
 	public Database(String filename, Mode mode) {
-		mmf = new Mmfile(filename, mode);
+		dest = new Mmfile(filename, mode);
+		init(mode);
+	}
+
+	public Database(Destination dest, Mode mode) {
+		this.dest = dest;
+		init(mode);
+	}
+
+	private void init(Mode mode) {
 		// if (mode == Mode.OPEN && ! check_shutdown(mmf)) {
 		// mmf.close();
 		// if (0 != fork_rebuild())
@@ -67,14 +76,16 @@ public class Database implements Destination {
 		long dbhdr_at = alloc(Dbhdr.SIZE, Mmfile.OTHER);
 
 		// tables
-		tablename_index = new BtreeIndex(this, TN.TABLES, "tablename", true, false);
-		tablenum_index = new BtreeIndex(this, TN.TABLES, "table", true, false);
+		tablename_index = new BtreeIndex(dest, TN.TABLES, "tablename", true,
+				false);
+		tablenum_index = new BtreeIndex(dest, TN.TABLES, "table", true, false);
 		createSchemaTable("tables", TN.TABLES, 5, 3);
 		createSchemaTable("columns", TN.COLUMNS, 3, 17);
 		createSchemaTable("indexes", TN.INDEXES, 9, 5);
 
 		// columns
-		columns_index = new BtreeIndex(this, TN.COLUMNS, "table,column", true, false);
+		columns_index = new BtreeIndex(dest, TN.COLUMNS, "table,column", true,
+				false);
 		createSchemaColumn(TN.TABLES, "table", 0);
 		createSchemaColumn(TN.TABLES, "tablename", 1);
 		createSchemaColumn(TN.TABLES, "nextfield", 2);
@@ -96,8 +107,10 @@ public class Database implements Destination {
 		createSchemaColumn(TN.INDEXES, "nnodes", 8);
 
 		// indexes
-		indexes_index = new BtreeIndex(this, TN.INDEXES, "table,columns", true, false);
-		fkey_index = new BtreeIndex(this, TN.INDEXES, "fktable,fkcolumns", false, false);
+		indexes_index = new BtreeIndex(dest, TN.INDEXES, "table,columns", true,
+				false);
+		fkey_index = new BtreeIndex(dest, TN.INDEXES, "fktable,fkcolumns",
+				false, false);
 		createSchemaIndex(tablename_index);
 		createSchemaIndex(tablenum_index);
 		createSchemaIndex(columns_index);
@@ -141,9 +154,9 @@ public class Database implements Destination {
 
 	private void open() {
 		dbhdr = new Dbhdr();
-		Session.startup(mmf);
-		mmf.sync();
-		indexes_index = Index.btreeIndex(this, input(dbhdr.indexes));
+		Session.startup(dest);
+		dest.sync();
+		indexes_index = Index.btreeIndex(dest, input(dbhdr.indexes));
 
 		Record r = find(NULLTRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
@@ -156,7 +169,7 @@ public class Database implements Destination {
 		// WARNING: any new indexes added here must also be added in get_table
 	}
 	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return Index.btreeIndex(this,
+		return Index.btreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
 	}
 
@@ -175,7 +188,7 @@ public class Database implements Destination {
 
 	Record input(long adr) {
 		verify(adr != 0);
-		return new Record(mmf.adr(adr), adr);
+		return new Record(adr(adr), adr);
 	}
 
 	private Record key(int tblnum, String columns) {
@@ -197,8 +210,8 @@ public class Database implements Destination {
 
 	public void close() {
 		trans.shutdown();
-		Session.shutdown(mmf);
-		mmf.close();
+		Session.shutdown(dest);
+		dest.close();
 	}
 
 	public Transaction readonlyTran() {
@@ -253,7 +266,7 @@ public class Database implements Destination {
 		short[] colnums = tbl.columns.nums(columns);
 		if (tbl.hasIndex(columns))
 			throw new SuException("add index: index already exists: " + columns + " in " + table);
-		BtreeIndex index = new BtreeIndex(this, tbl.num, columns, isKey, unique);
+		BtreeIndex index = new BtreeIndex(dest, tbl.num, columns, isKey, unique);
 
 		Transaction tran = readwriteTran();
 		try {
@@ -361,7 +374,7 @@ public class Database implements Destination {
 				else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
 					index = fkey_index;
 				else
-					index = Index.btreeIndex(this, r);
+					index = Index.btreeIndex(dest, r);
 				table.addIndex(new Index(r, cols, table.columns
 						.nums(cols), index));
 			}
@@ -509,28 +522,21 @@ public class Database implements Destination {
 		}
 	}
 
-	public long alloc(int n) {
-		return alloc(n, Mmfile.OTHER);
-	}
-
-	long alloc(int n, byte type) {
-		return mmf.alloc(n, type);
+	public long alloc(int n, byte type) {
+		return dest.alloc(n, type);
 	}
 
 	public ByteBuffer adr(long offset) {
-		return mmf.adr(offset);
-	}
-
-	public long size() {
-		return mmf.size();
+		return dest.adr(offset);
 	}
 
 	static byte[] bytes = new byte[256];
 
 	void checksum(ByteBuffer buf, int len) {
+		buf.position(0);
 		for (int i = 0; i < len; i += bytes.length) {
 			int n = min(bytes.length, len - i);
-			buf.get(bytes, i, n);
+			buf.get(bytes, 0, n);
 			cksum.update(bytes, 0, n);
 		}
 	}
@@ -543,7 +549,7 @@ public class Database implements Destination {
 
 		// create
 		Dbhdr(long at, long indexes_adr) {
-			verify(at == mmf.first());
+			verify(at == dest.first());
 			buf = adr(at);
 			buf.putInt(next_table = TN.INDEXES + 1);
 			buf.putInt(Mmfile.offsetToInt(indexes = indexes_adr));
@@ -552,10 +558,10 @@ public class Database implements Destination {
 
 		// open
 		Dbhdr() {
-			long at = mmf.first();
-			if (mmf.length(at) < SIZE)
+			long at = dest.first();
+			if (dest.length(at) < SIZE)
 				throw new SuException("invalid database");
-			buf = adr(mmf.first());
+			buf = adr(dest.first());
 			next_table = buf.getInt();
 			indexes = Mmfile.intToOffset(buf.getInt());
 			int version = buf.getInt();
