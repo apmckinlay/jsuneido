@@ -202,10 +202,10 @@ public class Database implements Destination {
 	}
 
 	public Transaction readonlyTran() {
-		return trans.readonlyTran();
+		return Transaction.readonly(trans);
 	}
 	public Transaction readwriteTran() {
-		return trans.readwriteTran();
+		return Transaction.readwrite(trans);
 	}
 
 	public void addTable(String table) {
@@ -325,7 +325,7 @@ public class Database implements Destination {
 	}
 
 	private Table getTable(BtreeIndex bi, Record key) {
-		Transaction tran = trans.readonlyTran();
+		Transaction tran = readonlyTran();
 		try {
 			Record table_rec = find(tran, bi, key);
 			if (table_rec == null)

@@ -26,25 +26,18 @@ public class Transactions {
 		this.db = db;
 	}
 
-	public Transaction readonlyTran() {
-		return newTran(true);
-	}
-
-	public Transaction readwriteTran() {
-		return newTran(false);
-	}
-
-	private Transaction newTran(boolean readonly) {
-		int num = ++nextNum;
-		Transaction tran = new Transaction(this, readonly, clock(), num);
-		trans.put(num, tran);
+	public void addTran(Transaction tran) {
+		trans.put(tran.num, tran);
 		trans2.add(tran);
 		verify(trans.size() == trans2.size());
-		return tran;
 	}
 
 	public long clock() {
 		return ++clock;
+	}
+
+	public int nextNum() {
+		return ++nextNum;
 	}
 
 	/**
