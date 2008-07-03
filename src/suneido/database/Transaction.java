@@ -12,9 +12,13 @@ import java.util.Deque;
 import suneido.SuException;
 
 /**
+ * Handles a single transaction, either readonly or readwrite.
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ *         <p>
+ *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ *         Licensed under GPLv2.</small>
+ *         </p>
  */
 public class Transaction implements Comparable<Transaction> {
 	private final Transactions trans;
@@ -28,11 +32,27 @@ public class Transaction implements Comparable<Transaction> {
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
-	public Transaction(Transactions trans, boolean readonly, long clock, int num) {
+	public static Transaction readonly(Transactions trans) {
+		return new Transaction(trans, true);
+	}
+
+	public static Transaction readwrite(Transactions trans) {
+		return new Transaction(trans, false);
+	}
+
+	private Transaction(Transactions trans, boolean readonly) {
 		this.trans = trans;
 		this.readonly = readonly;
-		t = asof = clock;
-		this.num = num;
+		t = asof = trans.clock();
+		this.num = trans.nextNum();
+		trans.addTran(this);
+	}
+
+	// used by NullTransaction
+	private Transaction() {
+		trans = null;
+		readonly = true;
+		t = asof = num = 0;
 	}
 
 	@Override
@@ -238,9 +258,6 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	private static class NullTransaction extends Transaction {
-		private NullTransaction() {
-			super(null, true, 0, 0);
-		}
 		@Override
 		public boolean visible(long adr) {
 			return true;
