@@ -65,8 +65,8 @@ public class Transaction implements Comparable<Transaction> {
 	public boolean delete_act(int tblnum, long adr) {
 		verify(! readonly);
 		verify(! ended);
-		String c;
-		if ("" != (c = trans.deleteConflict(adr))) {
+		String c = trans.deleteConflict(adr);
+		if (!c.equals("")) {
 			conflict = c;
 			asof = FUTURE;
 			return false;
@@ -96,7 +96,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	public boolean complete() {
 		verify(! ended);
-		if (conflict != "") {
+		if (!conflict.equals("")) {
 			abort();
 			return false;
 		}
