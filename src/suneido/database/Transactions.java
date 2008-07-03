@@ -6,12 +6,14 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 
 public class Transactions {
 	public final Database db;
 	private long clock = 0;
 	private int nextNum = 0;
 	private final HashMap<Integer, Transaction> trans = new HashMap<Integer, Transaction>();
+	private final PriorityQueue<Transaction> trans2 = new PriorityQueue<Transaction>();
 	private final HashMap<Long,Long> created = new HashMap<Long,Long>();	// record address -> create time
 	private final HashMap<Long,TranDelete> deleted = new HashMap<Long,TranDelete>();	// record address -> delete time
 	private final ArrayDeque<Transaction> finals = new ArrayDeque<Transaction>();
@@ -36,6 +38,8 @@ public class Transactions {
 		int num = ++nextNum;
 		Transaction tran = new Transaction(this, readonly, clock(), num);
 		trans.put(num, tran);
+		trans2.add(tran);
+		verify(trans.size() == trans2.size());
 		return tran;
 	}
 
@@ -43,24 +47,14 @@ public class Transactions {
 		return ++clock;
 	}
 
-	long create_time(long off) {
-		Long t = created.get(off);
-		return t == null ? PAST : t;
-	}
-
-	long delete_time(long off) {
-		TranDelete td = deleted.get(off);
-		return td == null ? FUTURE : td.time;
-	}
-
 	/**
 	 * Finalize any update transactions that are older than the oldest
 	 * outstanding transaction.
 	 */
 	private void finalization() {
-		// PERF use a priority queue to quickly get smallest asof
-		long oldest = (trans.isEmpty() ? FUTURE :
-			Collections.min(trans.values()).asof());
+		long oldest = trans.isEmpty() ? FUTURE : trans2.peek().asof();
+		assert trans.isEmpty()
+				|| oldest == Collections.min(trans.values()).asof();
 		while (!finals.isEmpty() && finals.peekFirst().asof() < oldest)
 			finals.removeFirst().finalization();
 	}
@@ -69,8 +63,38 @@ public class Transactions {
 		created.put(adr, UNCOMMITTED + t);
 	}
 
+	long create_time(long off) {
+		Long t = created.get(off);
+		return t == null ? PAST : t;
+	}
+
+	public void updateCreated(long off, long commit_time) {
+		Long t = created.get(off);
+		verify(t != null && t > UNCOMMITTED);
+		created.put(off, commit_time);
+	}
+
+	public void removeCreated(long off) {
+		verify(created.remove(off) != null);
+	}
+
 	public void putDeleted(long adr, long t) {
 		deleted.put(adr, new TranDelete(t));
+	}
+
+	public void updateDeleted(long off, long commit_time) {
+		TranDelete td = deleted.get(off);
+		verify(td != null && td.time > UNCOMMITTED);
+		td.time = commit_time;
+	}
+
+	public void removeDeleted(long off) {
+		verify(deleted.remove(off) != null);
+	}
+
+	long delete_time(long off) {
+		TranDelete td = deleted.get(off);
+		return td == null ? FUTURE : td.time;
 	}
 
 	public String deleteConflict(long adr) {
@@ -94,6 +118,8 @@ public class Transactions {
 
 	public void ended(Transaction tran) {
 		verify(trans.remove(tran.num) != null);
+		verify(trans2.remove(tran));
+		verify(trans.size() == trans2.size());
 		finalization();
 	}
 
@@ -103,29 +129,12 @@ public class Transactions {
 		finals.add(tran);
 	}
 
-	public void updateCreated(long off, long commit_time) {
-		Long t = created.get(off);
-		verify(t != null && t > UNCOMMITTED);
-		created.put(off, commit_time);
-	}
-
-	public void updateDeleted(long off, long commit_time) {
-		TranDelete td = deleted.get(off);
-		verify(td != null && td.time > UNCOMMITTED);
-		td.time = commit_time;
-	}
-
-	public void removeCreated(long off) {
-		verify(created.remove(off) != null);
-	}
-
-	public void removeDeleted(long off) {
-		verify(deleted.remove(off) != null);
-	}
-
+	/**
+	 * abort all outstanding transactions
+	 */
 	public void shutdown() {
-		// TODO Auto-generated method stub
-
+		for (Transaction tran : trans.values())
+			tran.abort();
 	}
 
 	public String anyConflicts(long asof, int tblnum, short[] colnums,
