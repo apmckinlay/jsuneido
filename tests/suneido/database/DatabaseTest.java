@@ -13,22 +13,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class DatabaseTest {
-	// File file = null;
 	DestMem dest;
 	Database db;
 
 	@Before
 	public void open() {
-		// file = File.createTempFile("mmf", null);
-		// db = new Database(file.getCanonicalPath(), Mode.CREATE);
 		dest = new DestMem();
 		db = new Database(dest, Mode.CREATE);
 	}
 
 	@After
 	public void close() {
-		// db.close();
-		// file.delete();
+		db.close();
 	}
 
 	private void reopen() {
@@ -90,61 +86,90 @@ public class DatabaseTest {
 
 	@Test
 	public void visibility() {
-		makeTable();
+		makeTable(3);
 
-		Record r = new Record().add(12).add(34);
-
-		Transaction t1 = db.readwriteTran();
-		db.addRecord(t1, "test", r);
-
-		// uncommitted ARE visible to their transaction
-		assertEquals(1, get(t1).size());
+		Transaction t1 = add_remove();
 
 		// uncommitted NOT visible to other transactions
 		Transaction t2 = db.readonlyTran();
-		assertEquals(0, get(t2).size());
+		checkBefore(t2);
 		Transaction t3 = db.readwriteTran();
-		assertEquals(0, get(t3).size());
+		checkBefore(t3);
 
 		t1.ck_complete();
 
 		// committed updates visible to later transactions
 		Transaction t4 = db.readonlyTran();
-		assertEquals(1, get(t4).size());
-		t4.ck_complete();
+		checkAfter(t4);
 		Transaction t5 = db.readwriteTran();
-		assertEquals(1, get(t5).size());
+		checkAfter(t5);
 		t5.ck_complete();
 
-		// transactions see data as of their start time
-		assertEquals(0, get(t2).size());
+		// earlier transactions still don't see changes
+		// (transactions see data as of their start time)
+		checkBefore(t2);
 		t2.ck_complete();
-		assertEquals(0, get(t3).size());
-		t3.ck_complete();
+		checkBefore(t3);
 	}
 
 	@Test
-	public void abort() { // TODO aborted delete
-		makeTable();
+	public void abort() {
+		makeTable(3);
 
-		Transaction t1 = db.readwriteTran();
-		db.addRecord(t1, "test", record(0));
-		t1.abort();
+		Transaction t1 = add_remove();
+		t1.abort(); // should abort outstanding transactions
 
 		// aborted updates not visible
-		Transaction t2 = db.readonlyTran();
-		assertEquals(0, get(t2).size());
-		t2.ck_complete();
+		checkBefore();
 
 		reopen();
 
 		// aborted updates not visible
-		Transaction t3 = db.readonlyTran();
-		assertEquals(0, get(t3).size());
-		t3.ck_complete();
+		checkBefore();
 	}
 
-	// TODO add index to table with existing records
+	private Transaction add_remove() {
+		Transaction t = db.readwriteTran();
+		db.addRecord(t, "test", record(99));
+		db.removeRecord(t, "test", "a", new Record().add(1));
+		checkAfter(t); // uncommitted ARE visible to their transaction
+		return t;
+	}
+
+	private void checkBefore() {
+		Transaction t = db.readonlyTran();
+		checkBefore(t);
+		t.ck_complete();
+	}
+
+	private void checkBefore(Transaction t) {
+		List<Record> recs = get(t);
+		assertEquals(3, recs.size());
+		for (int i = 0; i < 3; ++i)
+			assertEquals(record(i), recs.get(i));
+	}
+	private void checkAfter(Transaction t) {
+		List<Record> recs = get(t);
+		assertEquals(3, recs.size());
+		assertEquals(record(0), recs.get(0));
+		assertEquals(record(2), recs.get(1));
+		assertEquals(record(99), recs.get(2));
+	}
+
+	// add index to table with existing records
+	@Test
+	public void add_index() {
+		makeTable(3);
+		db.addColumn("test", "c");
+		db.addIndex("test", "c", false, false, false, "", "", 0);
+		Transaction t = db.readonlyTran();
+		Table table = db.getTable("test");
+		Index index = table.indexes.find("c");
+		int i = 0;
+		BtreeIndex.Iter iter = index.btreeIndex.iter(t).next();
+		for (; !iter.eof(); iter.next())
+			assertEquals(record(i++), db.input(iter.keyadr()));
+	}
 
 	@Test
 	public void validate_reads() {
@@ -161,6 +186,10 @@ public class DatabaseTest {
 		db.addRecord(t, "test", record(99));
 		assertFalse(t.complete());
 	}
+
+	// TODO delete conflict
+
+	// support methods ==============================================
 
 	private void makeTable() {
 		makeTable(0);
@@ -200,7 +229,4 @@ public class DatabaseTest {
 		return recs;
 	}
 
-	// public static void main(String args[]) {
-	// new DatabaseTest().output_input();
-	// }
 }

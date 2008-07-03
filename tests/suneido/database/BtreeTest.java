@@ -1,12 +1,15 @@
 package suneido.database;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.TreeSet;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import suneido.SuInteger;
 import suneido.SuString;
@@ -14,7 +17,8 @@ import suneido.SuString;
 public class BtreeTest {
 	@Test
 	public void one_leaf() {
-		Slot[] keys = { SlotTest.make("a"), SlotTest.make("m"), SlotTest.make("z") };
+		Slot[] keys = { SlotsTest.make("a"), SlotsTest.make("m"),
+				SlotsTest.make("z") };
 		Btree bt = new Btree(new DestMem());
 		assertTrue(bt.isValid());
 		assertTrue(bt.isEmpty());
@@ -38,10 +42,10 @@ public class BtreeTest {
 		iter.prev();
 		assertTrue(iter.eof());
 	}
-	
+
 	@Test
 	public void test() {
-		Btree bt = maketree(100);		
+		Btree bt = maketree(100);
 		assertFalse(bt.isEmpty());
 		Btree.Iter iter;
 		int n = 0;
@@ -52,21 +56,21 @@ public class BtreeTest {
 		for (iter = bt.last(); ! iter.eof(); iter.prev())
 			assertEquals(--n, iter.cur().key.getLong(0));
 		assertEquals(0, n);
-		
+
 		for (int i = 0; i < 100; ++i)
 			assertEquals(i, bt.locate(makerec(i)).cur().key.getLong(0));
-		
+
 		iter = bt.locate(makerec(33));
 		iter.next();
 		assertEquals(34, iter.cur().key.getLong(0));
-		
+
 		iter = bt.locate(makerec(66));
 		iter.prev();
 		assertEquals(65, iter.cur().key.getLong(0));
-		
+
 		iter = bt.locate(Record.MINREC);
 		assertEquals(0, iter.cur().key.getLong(0));
-		
+
 		iter = bt.locate(makerec(101));
 		assertEquals(99, iter.cur().key.getLong(0));
 
@@ -79,7 +83,7 @@ public class BtreeTest {
 		assertTrue(bt.first().eof());
 		assertTrue(bt.isValid());
 		}
-	
+
 	@Test
 	public void random() {
 		TreeSet<Integer> ts = new TreeSet<Integer>();
@@ -89,7 +93,7 @@ public class BtreeTest {
 		for (int i = 0; i < N; ++i) {
 			int x = rnd.nextInt(100);
 			if ((rnd.nextInt() & 1) == 0)
-				assertEquals(ts.add(x), bt.insert(new Slot(makerec(x))));				
+				assertEquals(ts.add(x), bt.insert(new Slot(makerec(x))));
 			else
 				assertEquals(ts.remove(x), bt.remove(makerec(x)));
 			if (i % 10 == 0)
@@ -111,16 +115,16 @@ public class BtreeTest {
 		}
 		assertTrue(iter.eof());
 	}
-		
+
 	@Test
 	public void rangefrac_onelevel() {
 		Btree bt = new Btree(new DestMem());
 		assertfeq(0, bt.rangefrac(makerec(10, 0), makerec(20, 0)));
-		
+
 		bt = maketree(100, 0);
-	
+
 		assertEquals(0, bt.treelevels());
-	
+
 		assertfeq(1, bt.rangefrac(makerec(0, 0), endkey(99)));
 		assertfeq(1, bt.rangefrac(emptykey, endkey(99)));
 		assertfeq((float) .2, bt.rangefrac(emptykey, endkey(20)));
@@ -140,7 +144,7 @@ public class BtreeTest {
 	public void rangefrac_multilevel() {
 		Btree bt = maketree(100);
 		assertEquals(2, bt.treelevels());
-	
+
 		assertfeq(1, bt.rangefrac(makerec(0), endkey(99)));
 		assertfeq((float) .1, bt.rangefrac(makerec(20), makerec(30)));
 		assertfeq((float) .2, bt.rangefrac(makerec(0), makerec(20)));
@@ -165,10 +169,10 @@ public class BtreeTest {
 		for (int i : v)
 			assertTrue(bt.insert(new Slot(makerec(i, nfiller))));
 		assertTrue(bt.isValid());
-		
+
 		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
 	}
-	
+
 	private ArrayList<Integer> shuffled(final int N, int seed) {
 		ArrayList<Integer> v = new ArrayList<Integer>();
 		for (int i = 0; i < N; ++i)
@@ -190,7 +194,7 @@ public class BtreeTest {
 		return r;
 	}
 	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
-	
+
 	public static void main(String args[]) {
 		new BtreeTest().test();
 	}
