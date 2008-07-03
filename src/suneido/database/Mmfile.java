@@ -23,14 +23,14 @@ import suneido.SuException;
  * in 32 bit int's. Alignment also allows storing a type in the low bits of the
  * block size. Since offsets are stored shifted as int's maximum file size is
  * 32gb (max unsigned int (4gb) << 3). *
- * 
+ *
  * @author Andrew McKinlay
  *         <p>
  *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
  *         Licensed under GPLv2.</small>
  *         </p>
  */
-public class Mmfile implements Iterable<ByteBuffer> {
+public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	private RandomAccessFile fin;
 	private FileChannel fc;
 	private long file_size;
