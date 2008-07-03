@@ -4,9 +4,11 @@ import static suneido.Suneido.verify;
 import static suneido.database.Transactions.FUTURE;
 import static suneido.database.Transactions.UNCOMMITTED;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
 
 import suneido.SuException;
@@ -199,11 +201,31 @@ public class Transaction implements Comparable<Transaction> {
 			}
 		asof = commit_time;
 		trans.addFinal(this);
-		writeCommitRecord(ncreates, ndeletes);
+		// writeCommitRecord(ncreates, ndeletes); TODO
 	}
 
 	private void writeCommitRecord(int ncreates, int ndeletes) {
-		// TODO writeCommitRecord
+		// if (ndeletes == 0 && ncreates == 0 && cksum == checksum(0, 0, 0))
+		// return;
+		int n = 4 /* num */+ 4 /* ncreates */+ 4 /* ndeletes */+
+				4 * (ncreates + ndeletes);
+		ByteBuffer buf = trans.db.adr(trans.db.alloc(n, Mmfile.COMMIT));
+		buf.position(4); // leave room for checksum
+		buf.putLong(new Date().getTime());
+		buf.putInt(num);
+		buf.putInt(ncreates);
+		buf.putInt(ndeletes);
+		for (TranWrite tw : writes)
+			if (tw.type == TranWrite.Type.CREATE)
+				buf.putInt(Mmfile.offsetToInt(tw.off));
+		for (TranWrite tw : writes)
+			if (tw.type == TranWrite.Type.DELETE)
+				buf.putInt(Mmfile.offsetToInt(tw.off));
+		// include commit in checksum, but don't include checksum itself
+		// checksum((char*) commit + sizeof (long), mmf->length(commit) - sizeof
+		// (long));
+		// commit->cksum = cksum;
+		// cksum = ::checksum(0, 0, 0); // reset
 	}
 
 	/**
