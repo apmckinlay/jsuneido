@@ -15,10 +15,7 @@ import suneido.SuException;
  * Handles a single transaction, either readonly or readwrite.
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Transaction implements Comparable<Transaction> {
 	private final Transactions trans;
@@ -26,7 +23,8 @@ public class Transaction implements Comparable<Transaction> {
 	protected boolean ended = false;
 	private String conflict = "";
 	private final long t;
-	private long asof;
+	private long asof; // not final because updated when readwrite tran commits
+
 	public final int num;
 	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
@@ -45,7 +43,7 @@ public class Transaction implements Comparable<Transaction> {
 		this.readonly = readonly;
 		t = asof = trans.clock();
 		this.num = trans.nextNum();
-		trans.addTran(this);
+		trans.add(this);
 	}
 
 	// used by NullTransaction
@@ -66,6 +64,10 @@ public class Transaction implements Comparable<Transaction> {
 
 	public long asof() {
 		return asof;
+	}
+
+	public String conflict() {
+		return conflict;
 	}
 
 	public TranRead read_act(int tblnum, String index) {
@@ -96,15 +98,17 @@ public class Transaction implements Comparable<Transaction> {
 		return true;
 	}
 
+	// used by {@link BtreeIndex} to determine if records are visible to a
+	// transaction
 	public boolean visible(long adr) {
-		long ct = trans.create_time(adr);
+		long ct = trans.createTime(adr);
 		if (ct > UNCOMMITTED) {
 			if (ct - UNCOMMITTED != t)
 				return false;
 		} else if (ct > asof)
 			return false;
 
-		long dt = trans.delete_time(adr);
+		long dt = trans.deleteTime(adr);
 		if (dt > UNCOMMITTED)
 			return dt - UNCOMMITTED != t;
 		return dt >= asof;
@@ -127,16 +131,16 @@ public class Transaction implements Comparable<Transaction> {
 			}
 			completeReadwrite();
 		}
-		trans.ended(this);
+		trans.remove(this);
 		ended = true;
 		return true;
 	}
 
 	/**
-	 * Pretty ugly -
-	 *	for each read
-	 * 		for each final tran with asof > ours
-	 * 			for each tran write
+	 * Checks if any of the records this transaction read have been modified
+	 * since then. (stale read) Pretty ugly - for each read for each final tran
+	 * with asof > ours for each tran write
+	 * 
 	 * @return true if all the reads are still valid, false if any conflict
 	 */
 	private boolean validate_reads() {
@@ -198,33 +202,31 @@ public class Transaction implements Comparable<Transaction> {
 		// TODO Auto-generated method stub
 	}
 
-	public boolean finalization() {
-		int n = 0;
+	/**
+	 * Called by {@link Transactions}. Removes created and deleted records.
+	 * Physically removes index entries. ({@link Database.removeRecord} just
+	 * calls delete_act.)
+	 */
+	public void finalization() {
 		for (TranWrite tw : writes)
-			try {
-				switch (tw.type) {
-				case CREATE:
-					trans.removeCreated(tw.off);
-					break;
-				case DELETE:
-					trans.removeDeleted(tw.off);
-					trans.db.remove_index_entries(tw.tblnum, tw.off);
-					break;
-				default:
-					throw SuException.unreachable();
-				}
-				++n;
-			} finally {
-				--n;
+			switch (tw.type) {
+			case CREATE:
+				trans.removeCreated(tw.off);
+				break;
+			case DELETE:
+				trans.removeDeleted(tw.off);
+				trans.db.remove_index_entries(tw.tblnum, tw.off);
+				break;
+			default:
+				throw SuException.unreachable();
 			}
-			return n == 0;
 	}
 
 	public void abort() {
 		verify(! ended);
 		if (!readonly)
 			abortReadwrite();
-		trans.ended(this);
+		trans.remove(this);
 		ended = true;
 	}
 
@@ -247,10 +249,6 @@ public class Transaction implements Comparable<Transaction> {
 	public void abortIfNotComplete() {
 		if (!ended)
 			abort();
-	}
-
-	public String conflict() {
-		return conflict;
 	}
 
 	public int compareTo(Transaction other) {

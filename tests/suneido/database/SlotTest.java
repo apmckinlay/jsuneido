@@ -1,9 +1,11 @@
 package suneido.database;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import suneido.SuString;
 
@@ -30,19 +32,4 @@ public class SlotTest {
 		assertArrayEquals(slot.adrs, slot2.adrs);
 		}
 	
-	public static Slot make(String ... args) {
-		if (args.length == 0)
-			args = new String[] { "hello" };
-		Record r = new Record(100);
-		for (String s : args)
-			r.add(new SuString(s));
-		return new Slot(r);
-	}
-	
-	public static void printBuf(ByteBuffer buf) {
-		String s = "";
-		for (int j = 0; j < buf.limit(); ++j)
-			s += " " + buf.get(j);
-		System.out.println("limit " + buf.limit() + " buf" + s);
-	}
 }

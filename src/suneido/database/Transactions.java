@@ -8,6 +8,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
+/**
+ * Manages transactions.
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ */
 public class Transactions {
 	public final Database db;
 	private long clock = 0;
@@ -26,18 +31,36 @@ public class Transactions {
 		this.db = db;
 	}
 
-	public void addTran(Transaction tran) {
-		trans.put(tran.num, tran);
-		trans2.add(tran);
-		verify(trans.size() == trans2.size());
-	}
-
 	public long clock() {
 		return ++clock;
 	}
 
 	public int nextNum() {
 		return ++nextNum;
+	}
+
+	public void add(Transaction tran) {
+		trans.put(tran.num, tran);
+		trans2.add(tran);
+		verify(trans.size() == trans2.size());
+	}
+
+	public void addFinal(Transaction tran) {
+		// finals should be sorted
+		verify(finals.isEmpty() || tran.asof() > finals.peekLast().asof());
+		finals.add(tran);
+	}
+
+	/**
+	 * Remove Transaction from outstanding.
+	 * Called by {@link Transaction.complete} and {@link Transaction.abort}.
+	 * @param tran
+	 */
+	public void remove(Transaction tran) {
+		verify(trans.remove(tran.num) != null);
+		verify(trans2.remove(tran));
+		verify(trans.size() == trans2.size());
+		finalization();
 	}
 
 	/**
@@ -52,54 +75,47 @@ public class Transactions {
 			finals.removeFirst().finalization();
 	}
 
+	// track creation time of records ===============================
 	public void putCreated(long adr, long t) {
 		created.put(adr, UNCOMMITTED + t);
 	}
-
-	long create_time(long off) {
+	long createTime(long off) {
 		Long t = created.get(off);
 		return t == null ? PAST : t;
 	}
-
 	public void updateCreated(long off, long commit_time) {
 		Long t = created.get(off);
 		verify(t != null && t > UNCOMMITTED);
 		created.put(off, commit_time);
 	}
-
 	public void removeCreated(long off) {
 		verify(created.remove(off) != null);
 	}
 
+	// track deletion time of records ===============================
 	public void putDeleted(long adr, long t) {
 		deleted.put(adr, new TranDelete(t));
 	}
-
 	public void updateDeleted(long off, long commit_time) {
 		TranDelete td = deleted.get(off);
 		verify(td != null && td.time > UNCOMMITTED);
 		td.time = commit_time;
 	}
-
 	public void removeDeleted(long off) {
 		verify(deleted.remove(off) != null);
 	}
-
-	long delete_time(long off) {
+	long deleteTime(long off) {
 		TranDelete td = deleted.get(off);
 		return td == null ? FUTURE : td.time;
 	}
-
 	public String deleteConflict(long adr) {
 		TranDelete td = deleted.get(adr);
 		return td == null ? "" : write_conflict(td);
 	}
-
 	private String write_conflict(TranDelete td) {
 		// TODO Auto-generated method stub
 		return "delete conflict";
 	}
-
 	private static class TranDelete {
 		long t;
 		long time;
@@ -109,25 +125,12 @@ public class Transactions {
 		}
 	}
 
-	public void ended(Transaction tran) {
-		verify(trans.remove(tran.num) != null);
-		verify(trans2.remove(tran));
-		verify(trans.size() == trans2.size());
-		finalization();
-	}
-
-	public void addFinal(Transaction tran) {
-		// finals should be sorted
-		verify(finals.isEmpty() || tran.asof() > finals.peekLast().asof());
-		finals.add(tran);
-	}
-
 	/**
-	 * abort all outstanding transactions
+	 * aborts all outstanding transactions
 	 */
 	public void shutdown() {
-		for (Transaction tran : trans.values())
-			tran.abort();
+		while (!trans2.isEmpty())
+			trans2.peek().abort();
 	}
 
 	public String anyConflicts(long asof, int tblnum, short[] colnums,
