@@ -31,6 +31,7 @@ public class Database {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
 
+	// TODO views
 	//	private static class V {
 	//		final static int NAME = 0, DEFINITION = 1;
 	//	}
@@ -310,6 +311,8 @@ public class Database {
 	// TODO removeColumn
 	// TODO removeIndex
 	// TODO renameTable
+	// TODO renameColumn
+	// TODO updateRecord
 
 	public Table ck_getTable(String table) {
 		Table tbl = getTable(table);
