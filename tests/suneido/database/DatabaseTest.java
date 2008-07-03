@@ -3,6 +3,7 @@ package suneido.database;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import suneido.SuException;
 
 public class DatabaseTest {
 	DestMem dest;
@@ -185,9 +188,49 @@ public class DatabaseTest {
 		// need to do a write or else it won't validate_reads
 		db.addRecord(t, "test", record(99));
 		assertFalse(t.complete());
+		assertTrue(t.conflict().contains("read conflict"));
 	}
 
-	// TODO delete conflict
+	@Test
+	public void delete_conflict() {
+		makeTable(5);
+
+		// deleting different records doesn't conflict
+		Transaction t1 = db.readwriteTran();
+		db.removeRecord(t1, "test", "a", new Record().add(1));
+		Transaction t2 = db.readwriteTran();
+		db.removeRecord(t2, "test", "a", new Record().add(2));
+		t2.ck_complete();
+		t1.ck_complete();
+
+		// deleting the same record conflicts
+		t1 = db.readwriteTran();
+		db.removeRecord(t1, "test", "a", new Record().add(4));
+		t2 = db.readwriteTran();
+		try {
+			db.removeRecord(t2, "test", "a", new Record().add(4));
+			assertTrue(false);
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("delete conflict"));
+		}
+		t1.ck_complete();
+		assertFalse(t2.complete());
+		assertTrue(t2.conflict().contains("delete conflict"));
+	}
+
+	@Test
+	public void add_conflict() {
+		makeTable();
+
+		Transaction t1 = db.readwriteTran();
+		db.addRecord(t1, "test", record(99));
+		Transaction t2 = db.readwriteTran();
+		db.addRecord(t2, "test", record(99));
+		t1.ck_complete();
+		assertFalse(t2.complete());
+		assertTrue(t2.conflict().contains("read conflict"));
+		// read conflict due to dup check read
+	}
 
 	// support methods ==============================================
 

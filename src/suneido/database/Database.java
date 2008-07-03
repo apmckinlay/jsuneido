@@ -306,6 +306,11 @@ public class Database {
 		}
 	}
 
+	// TODO removeTable
+	// TODO removeColumn
+	// TODO removeIndex
+	// TODO renameTable
+
 	public Table ck_getTable(String table) {
 		Table tbl = getTable(table);
 		if (tbl == null)
