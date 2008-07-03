@@ -76,16 +76,6 @@ public class Symbols {
 			return num;
 		}
 
-		@Override
-		public boolean equals(Object value) {
-			if (value == this)
-				return true;
-			else if (value instanceof Symbols)
-				return false;
-			else
-				return super.equals(value);
-		}
-
 		/**
 		 * symbol(value, ...) is treated as value.symbol(...)
 		 */

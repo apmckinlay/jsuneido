@@ -145,7 +145,7 @@ public class Transaction implements Comparable<Transaction> {
 				to = to.dup().truncate(nidxcols);
 
 			conflict = trans.anyConflicts(asof, tr.tblnum, colnums, from, to);
-			if (conflict != "")
+			if (!conflict.equals(""))
 				return false;
 		}
 		reads.clear(); // no longer needed
