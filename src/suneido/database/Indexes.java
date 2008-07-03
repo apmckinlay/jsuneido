@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -40,5 +40,12 @@ public class Indexes implements Iterable<Index> {
 
 	public int size() {
 		return indexes.size();
+	}
+
+	public Index firstKey() {
+		for (Index index : indexes)
+			if (index.iskey())
+				return index;
+		return null;
 	}
 }

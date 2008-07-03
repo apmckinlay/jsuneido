@@ -24,6 +24,7 @@ public class Transaction implements Comparable<Transaction> {
 	private String conflict = "";
 	private final long t;
 	private long asof; // not final because updated when readwrite tran commits
+	String sessionId = "session";
 
 	public final int num;
 	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
@@ -87,13 +88,13 @@ public class Transaction implements Comparable<Transaction> {
 	public boolean delete_act(int tblnum, long adr) {
 		verify(! readonly);
 		verify(! ended);
-		String c = trans.deleteConflict(adr);
+		String c = trans.deleteConflict(tblnum, adr);
 		if (!c.equals("")) {
 			conflict = c;
 			asof = FUTURE;
 			return false;
 		}
-		trans.putDeleted(adr, t);
+		trans.putDeleted(this, adr, t);
 		writes.add(TranWrite.delete(tblnum, adr, trans.clock()));
 		return true;
 	}
@@ -138,9 +139,11 @@ public class Transaction implements Comparable<Transaction> {
 
 	/**
 	 * Checks if any of the records this transaction read have been modified
-	 * since then. (stale read) Pretty ugly - for each read for each final tran
-	 * with asof > ours for each tran write
-	 * 
+	 * since then. (stale read)
+	 * Pretty ugly -
+	 *	for each read
+	 *		for each final tran with asof > ours
+	 *			for each tran write
 	 * @return true if all the reads are still valid, false if any conflict
 	 */
 	private boolean validate_reads() {
@@ -168,7 +171,8 @@ public class Transaction implements Comparable<Transaction> {
 			if (to.size() > nidxcols)
 				to = to.dup().truncate(nidxcols);
 
-			conflict = trans.anyConflicts(asof, tr.tblnum, colnums, from, to);
+			conflict = trans.anyConflicts(asof, tr.tblnum, colnums, from, to,
+					tr.index);
 			if (!conflict.equals(""))
 				return false;
 		}
@@ -199,7 +203,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	private void writeCommitRecord(int ncreates, int ndeletes) {
-		// TODO Auto-generated method stub
+		// TODO writeCommitRecord
 	}
 
 	/**

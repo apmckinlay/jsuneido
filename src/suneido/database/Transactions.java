@@ -93,8 +93,8 @@ public class Transactions {
 	}
 
 	// track deletion time of records ===============================
-	public void putDeleted(long adr, long t) {
-		deleted.put(adr, new TranDelete(t));
+	public void putDeleted(Transaction tran, long adr, long t) {
+		deleted.put(adr, new TranDelete(tran, t));
 	}
 	public void updateDeleted(long off, long commit_time) {
 		TranDelete td = deleted.get(off);
@@ -108,25 +108,39 @@ public class Transactions {
 		TranDelete td = deleted.get(off);
 		return td == null ? FUTURE : td.time;
 	}
-	public String deleteConflict(long adr) {
+	public String deleteConflict(int tblnum, long adr) {
 		TranDelete td = deleted.get(adr);
-		return td == null ? "" : write_conflict(td);
-	}
-	private String write_conflict(TranDelete td) {
-		// TODO Auto-generated method stub
-		return "delete conflict";
+		if (td == null)
+			return "";
+		StringBuilder sb = new StringBuilder("delete conflict with ");
+		sb.append(td.tran.sessionId);
+		sb.append(" transaction ").append(td.tran.num);
+		sb.append(" table: ");
+		Table tbl = db.getTable(tblnum);
+		if (tbl != null)
+			{
+			sb.append(tbl.name);
+			Index index = tbl.indexes.firstKey();
+			sb.append(" index: ").append(index.columns).append(" key ")
+					.append(db.input(adr).project(index.colnums));
+			}
+		else
+			sb.append(tblnum);
+		return sb.toString();
 	}
 	private static class TranDelete {
+		Transaction tran;
 		long t;
 		long time;
-		TranDelete(long t) {
+		TranDelete(Transaction tran, long t) {
+			this.tran = tran;
 			this.t = t;
 			this.time = t + UNCOMMITTED;
 		}
 	}
 
 	/**
-	 * aborts all outstanding transactions
+	 * abort all outstanding transactions
 	 */
 	public void shutdown() {
 		while (!trans2.isEmpty())
@@ -134,8 +148,7 @@ public class Transactions {
 	}
 
 	public String anyConflicts(long asof, int tblnum, short[] colnums,
-			Record from,
-			Record to) {
+			Record from, Record to, String index) {
 		Iterator<Transaction> iter = finals.descendingIterator();
 		while (iter.hasNext()) {
 			Transaction t = iter.next();
@@ -147,15 +160,27 @@ public class Transactions {
 				Record rec = db.input(tw.off);
 				Record key = rec.project(colnums);
 				if (key.inRange(from, to))
-					return read_conflict(t, tblnum, from, to, key);
+					return readConflict(t, tblnum, index, from, to, key,
+							tw.type.toString());
 			}
 		}
 		return "";
 	}
 
-	private String read_conflict(Transaction t, int tblnum, Record from,
-			Record to, Record key) {
-		// TODO Auto-generated method stub
-		return "read conflict";
+	private String readConflict(Transaction t, int tblnum, String index,
+			Record from, Record to, Record key, String type) {
+		StringBuilder sb = new StringBuilder("read conflict with ");
+		sb.append(t.sessionId);
+		sb.append("transaction ").append(t.num);
+		sb.append(" table: ");
+		Table tbl = db.getTable(tblnum);
+		if (tbl == null)
+			sb.append(tblnum);
+		else
+			sb.append(tbl.name);
+		sb.append(" index: ").append(index).append(" from ").append(from)
+				.append(" to ").append(to).append(" key ").append(key)
+				.append(" ").append(type);
+		return sb.toString();
 	}
 }

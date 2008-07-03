@@ -6,7 +6,7 @@ import suneido.SuString;
 import suneido.SuValue;
 
 /**
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -78,5 +78,9 @@ public class Index {
 		if (columns.startsWith("lower:"))
 			columns = columns.substring(6);
 		return columns;
+	}
+
+	public boolean iskey() {
+		return btreeIndex.iskey;
 	}
 }

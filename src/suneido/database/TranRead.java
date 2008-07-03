@@ -9,8 +9,9 @@ package suneido.database;
 public class TranRead implements Comparable<TranRead> {
 	int tblnum;
 	String index;
-	Record org = Record.MINREC;
-	Record end = Record.MAXREC;
+	// empty range:
+	Record org = Record.MAXREC;
+	Record end = Record.MINREC;
 
 	TranRead(int tblnum, String index) {
 		this.tblnum = tblnum;
