@@ -1,7 +1,8 @@
 package suneido;
 
 import java.util.HashMap;
-import static suneido.Symbols.*;
+
+import suneido.Symbols.Num;
 
 /**
  * The class for instances of Suneido classes.
@@ -13,12 +14,12 @@ import static suneido.Symbols.*;
  */
 public class SuInstance extends SuValue {
 	/*private*/ SuValue myclass;
-	private HashMap<SuValue,SuValue> m = new HashMap<SuValue, SuValue>();
-	
+	private final HashMap<SuValue,SuValue> m = new HashMap<SuValue, SuValue>();
+
 	SuInstance(SuValue myclass) {
 		this.myclass = myclass;
 	}
-	
+
 	/**
 	 * Delegates to its parent SuClass instance.
 	 * Converts CALL to CALL_INSTANCE to differentiate from CALL_CLASS.
@@ -40,10 +41,12 @@ public class SuInstance extends SuValue {
 		return "a Suneido instance";
 	}
 
+	@Override
 	public SuValue getdata(SuValue member) {
 		return m.get(member);
 	}
-	
+
+	@Override
 	public void putdata(SuValue member, SuValue value) {
 		m.put(member, value);
 	}
