@@ -186,6 +186,22 @@ public class Database {
 			checksum(p, 4 + n);
 		return offset + 4; // offset of record i.e. past tblnum
 	}
+	void checksum(ByteBuffer buf, int len) {
+		buf.position(0);
+		for (int i = 0; i < len; i += bytes.length) {
+			int n = min(bytes.length, len - i);
+			buf.get(bytes, 0, n);
+			cksum.update(bytes, 0, n);
+		}
+	}
+
+	void resetChecksum() {
+		cksum.reset();
+	}
+
+	int getChecksum() {
+		return (int) cksum.getValue();
+	}
 
 	Record input(long adr) {
 		verify(adr != 0);
@@ -539,15 +555,6 @@ public class Database {
 	}
 
 	static byte[] bytes = new byte[256];
-
-	void checksum(ByteBuffer buf, int len) {
-		buf.position(0);
-		for (int i = 0; i < len; i += bytes.length) {
-			int n = min(bytes.length, len - i);
-			buf.get(bytes, 0, n);
-			cksum.update(bytes, 0, n);
-		}
-	}
 
 	private class Dbhdr {
 		static final int SIZE = 4 + 4 + 4;
