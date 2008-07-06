@@ -25,8 +25,8 @@ public class Index {
 			CASCADE = 3;
 	private final static SuString UNIQUE = new SuString("u");
 
-	ForeignKey fksrc;
-	ArrayList<ForeignKey> fkdsts;
+	ForeignKey fksrc = null;
+	ArrayList<ForeignKey> fkdsts = new ArrayList<ForeignKey>();
 
 	public Index(Record record, String columns, short[] colnums, BtreeIndex btreeIndex) {
 		this.record = record;
@@ -42,16 +42,17 @@ public class Index {
 		if (record.getInt(NNODES) != btreeIndex.nnodes())
 			indexInfo(record, btreeIndex);
 	}
-
 	public static Record record(BtreeIndex btreeIndex) {
+		return record(btreeIndex, null, null, 0);
+	}
+	public static Record record(BtreeIndex btreeIndex, String fktable,
+			String fkcolumns, int fkmode) {
 		Record r = new Record()
 				.add(btreeIndex.tblnum)
 				.add(btreeIndex.index)
 				.add(btreeIndex.iskey ? SuBoolean.TRUE :
 						btreeIndex.unique ? UNIQUE : SuBoolean.FALSE)
-				.add("") // fktable
-				.add("") // fkcolumns
-				.add(BLOCK);
+				.add(fktable).add(fkcolumns).add(fkmode);
 		indexInfo(r, btreeIndex);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
@@ -89,8 +90,9 @@ public class Index {
 	}
 
 	static class ForeignKey {
-		ForeignKey() {
-		}
+		String table;
+		String columns;
+		int mode;
 
 		ForeignKey(String table, String columns, int mode) {
 			this.table = table;
@@ -98,9 +100,5 @@ public class Index {
 			this.columns = columns.startsWith("lower:") ? columns.substring(6)
 					: columns;
 		}
-
-		String table;
-		String columns;
-		int mode;
 	}
 }

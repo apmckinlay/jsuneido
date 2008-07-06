@@ -134,29 +134,19 @@ public class DatabaseTest {
 	private Transaction add_remove() {
 		Transaction t = db.readwriteTran();
 		db.addRecord(t, "test", record(99));
-		db.removeRecord(t, "test", "a", new Record().add(1));
+		db.removeRecord(t, "test", "a", key(1));
 		checkAfter(t); // uncommitted ARE visible to their transaction
 		return t;
 	}
 
 	private void checkBefore() {
-		Transaction t = db.readonlyTran();
-		checkBefore(t);
-		t.ck_complete();
+		check(0, 1, 2);
 	}
-
 	private void checkBefore(Transaction t) {
-		List<Record> recs = get(t);
-		assertEquals(3, recs.size());
-		for (int i = 0; i < 3; ++i)
-			assertEquals(record(i), recs.get(i));
+		check(t, 0, 1, 2);
 	}
 	private void checkAfter(Transaction t) {
-		List<Record> recs = get(t);
-		assertEquals(3, recs.size());
-		assertEquals(record(0), recs.get(0));
-		assertEquals(record(2), recs.get(1));
-		assertEquals(record(99), recs.get(2));
+		check(t, 0, 2, 99);
 	}
 
 	// add index to table with existing records
@@ -164,7 +154,7 @@ public class DatabaseTest {
 	public void add_index() {
 		makeTable(3);
 		db.addColumn("test", "c");
-		db.addIndex("test", "c", false, false, false, "", "", 0);
+		db.addIndex("test", "c", false, false);
 		Transaction t = db.readonlyTran();
 		Table table = db.getTable("test");
 		Index index = table.getIndex("c");
@@ -182,7 +172,7 @@ public class DatabaseTest {
 		get(t);
 
 		Transaction t2 = db.readwriteTran();
-		db.removeRecord(t2, "test", "a", new Record().add(1));
+		db.removeRecord(t2, "test", "a", key(1));
 		t2.ck_complete();
 
 		// need to do a write or else it won't validate_reads
@@ -197,18 +187,18 @@ public class DatabaseTest {
 
 		// deleting different records doesn't conflict
 		Transaction t1 = db.readwriteTran();
-		db.removeRecord(t1, "test", "a", new Record().add(1));
+		db.removeRecord(t1, "test", "a", key(1));
 		Transaction t2 = db.readwriteTran();
-		db.removeRecord(t2, "test", "a", new Record().add(2));
+		db.removeRecord(t2, "test", "a", key(2));
 		t2.ck_complete();
 		t1.ck_complete();
 
 		// deleting the same record conflicts
 		t1 = db.readwriteTran();
-		db.removeRecord(t1, "test", "a", new Record().add(4));
+		db.removeRecord(t1, "test", "a", key(4));
 		t2 = db.readwriteTran();
 		try {
-			db.removeRecord(t2, "test", "a", new Record().add(4));
+			db.removeRecord(t2, "test", "a", key(4));
 			assertTrue(false);
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("delete conflict"));
@@ -232,6 +222,18 @@ public class DatabaseTest {
 		// read conflict due to dup check read
 	}
 
+	@Test
+	public void update() {
+		makeTable(3);
+		Transaction t = db.readwriteTran();
+		db.updateRecord(t, "test", "a", key(1), record(5));
+		checkBefore();
+		t.ck_complete();
+		check(0, 2, 5);
+	}
+
+	// TODO foreign keys
+
 	// support methods ==============================================
 
 	private void makeTable() {
@@ -242,8 +244,8 @@ public class DatabaseTest {
 		db.addTable("test");
 		db.addColumn("test", "a");
 		db.addColumn("test", "b");
-		db.addIndex("test", "a", true, false, false, "", "", 0);
-		db.addIndex("test", "b,a", false, false, false, "", "", 0);
+		db.addIndex("test", "a", true, false);
+		db.addIndex("test", "b,a", false, false);
 
 		Transaction t = db.readwriteTran();
 		for (int i = 0; i < nrecords; ++i)
@@ -255,13 +257,16 @@ public class DatabaseTest {
 		return new Record().add(i).add("more stuff");
 	}
 
+	private Record key(int i) {
+		return new Record().add(i);
+	}
+
 	private List<Record> get() {
 		Transaction tran = db.readonlyTran();
 		List<Record> recs = get(tran);
 		tran.ck_complete();
 		return recs;
 	}
-
 	private List<Record> get(Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
 		Table tbl = db.getTable("test");
@@ -270,6 +275,19 @@ public class DatabaseTest {
 		for (; !iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));
 		return recs;
+	}
+
+	private void check(int... values) {
+		Transaction t = db.readonlyTran();
+		check(t, values);
+		t.ck_complete();
+	}
+
+	private void check(Transaction t, int... values) {
+		List<Record> recs = get(t);
+		assertEquals(values.length, recs.size());
+		for (int i = 0; i < values.length; ++i)
+			assertEquals(record(values[i]), recs.get(i));
 	}
 
 }

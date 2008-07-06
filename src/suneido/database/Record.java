@@ -194,7 +194,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	/** convenience method */
 	public Record add(String s) {
 		// PERF could bypass SuString instance
-		return add(new SuString(s));
+		return s == null ? addMin() : add(new SuString(s));
 	}
 
 	/** convenience method */
