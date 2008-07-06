@@ -24,10 +24,10 @@ public class Indexes implements Iterable<Index> {
 	}
 
 	public boolean hasIndex(String columns) {
-		return find(columns) != null;
+		return get(columns) != null;
 	}
 
-	public Index find(String columns) {
+	public Index get(String columns) {
 		for (Index index : indexes)
 			if (columns.equals(index.columns))
 				return index;

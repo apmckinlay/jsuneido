@@ -79,7 +79,7 @@ public class Transactions {
 	public void putCreated(long adr, long t) {
 		created.put(adr, UNCOMMITTED + t);
 	}
-	long createTime(long off) {
+	public long createTime(long off) {
 		Long t = created.get(off);
 		return t == null ? PAST : t;
 	}
@@ -101,10 +101,10 @@ public class Transactions {
 		verify(td != null && td.time > UNCOMMITTED);
 		td.time = commit_time;
 	}
-	public void removeDeleted(long off) {
-		verify(deleted.remove(off) != null);
+	public void removeDeleted(Transaction tran, long off) {
+		verify(deleted.remove(off).tran == tran);
 	}
-	long deleteTime(long off) {
+	public long deleteTime(long off) {
 		TranDelete td = deleted.get(off);
 		return td == null ? FUTURE : td.time;
 	}

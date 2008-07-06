@@ -167,7 +167,7 @@ public class DatabaseTest {
 		db.addIndex("test", "c", false, false, false, "", "", 0);
 		Transaction t = db.readonlyTran();
 		Table table = db.getTable("test");
-		Index index = table.indexes.find("c");
+		Index index = table.getIndex("c");
 		int i = 0;
 		BtreeIndex.Iter iter = index.btreeIndex.iter(t).next();
 		for (; !iter.eof(); iter.next())

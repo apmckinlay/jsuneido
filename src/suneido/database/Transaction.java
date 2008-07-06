@@ -101,6 +101,14 @@ public class Transaction implements Comparable<Transaction> {
 		return true;
 	}
 
+	public void undo_delete_act(int tblnum, long adr) {
+		verify(!readonly);
+		trans.removeDeleted(this, adr);
+		TranWrite tw = writes.removeLast();
+		verify(tw.type == TranWrite.Type.DELETE && tw.tblnum == tblnum
+				&& tw.off == adr);
+	}
+
 	// used by {@link BtreeIndex} to determine if records are visible to a
 	// transaction
 	public boolean visible(long adr) {
@@ -238,7 +246,7 @@ public class Transaction implements Comparable<Transaction> {
 				trans.removeCreated(tw.off);
 				break;
 			case DELETE:
-				trans.removeDeleted(tw.off);
+				trans.removeDeleted(this, tw.off);
 				trans.db.remove_index_entries(tw.tblnum, tw.off);
 				break;
 			default:
@@ -262,7 +270,7 @@ public class Transaction implements Comparable<Transaction> {
 				trans.db.undoAdd(tw.tblnum, tw.off);
 				break;
 			case DELETE:
-				trans.removeDeleted(tw.off);
+				trans.removeDeleted(this, tw.off);
 				trans.db.undoDelete(tw.tblnum, tw.off);
 				break;
 			default:
