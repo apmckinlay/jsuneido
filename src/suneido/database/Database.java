@@ -14,10 +14,7 @@ import suneido.SuException;
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Database {
 	private final Destination dest;
@@ -257,17 +254,19 @@ public class Database {
 		}
 	}
 
-	public void addColumn(String table, String column) {
-		Table tbl = ck_getTable(table);
+	public void addColumn(String tablename, String column) {
+		Table table = ck_getTable(tablename);
 
-		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1 : tbl.nextfield;
+		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1
+				: table.nextfield;
 		if (! column.equals("-")) { // addition of deleted field used by dump/load
 			column = column.toLowerCase();
-			if (tbl.hasColumn(column))
-				throw new SuException("add column: column already exists: " + column + " in " + table);
+			if (table.hasColumn(column))
+				throw new SuException("add column: column already exists: "
+						+ column + " in " + tablename);
 			Transaction tran = readwriteTran();
 			try {
-				Record rec = Column.record(tbl.num, column, fldnum);
+				Record rec = Column.record(table.num, column, fldnum);
 				add_any_record(tran, "columns", rec);
 				tran.complete();
 			} finally {
@@ -275,51 +274,57 @@ public class Database {
 			}
 		}
 		if (fldnum >= 0) {
-			++tbl.nextfield;
-			tbl.update();
+			++table.nextfield;
+			table.update();
 		}
-		tables.remove(table);
+		tables.remove(tablename);
 	}
 
-	public void addIndex(String table, String columns,
+	public void addIndex(String tablename, String columns,
+			boolean isKey, boolean unique) {
+		addIndex(tablename, columns, isKey, unique, false, null, null, 0);
+	}
+
+	public void addIndex(String tablename, String columns,
 			boolean isKey, boolean unique, boolean lower,
 			String fktable,	String fkcolumns, int fkmode) {
-		Table tbl = ck_getTable(table);
-		short[] colnums = tbl.columns.nums(columns);
-		if (tbl.hasIndex(columns))
-			throw new SuException("add index: index already exists: " + columns + " in " + table);
-		BtreeIndex index = new BtreeIndex(dest, tbl.num, columns, isKey, unique);
+		Table table = ck_getTable(tablename);
+		short[] colnums = table.columns.nums(columns);
+		if (table.hasIndex(columns))
+			throw new SuException("add index: index already exists: " + columns
+					+ " in " + tablename);
+		BtreeIndex index = new BtreeIndex(dest, table.num, columns, isKey,
+				unique);
 
 		Transaction tran = readwriteTran();
 		try {
-			insertExistingRecords(tran, columns, tbl, colnums, index);
+			insertExistingRecords(tran, columns, table, colnums,
+					fktable, fkcolumns, index);
 
-			add_any_record(tran, "indexes", Index.record(index));
+			add_any_record(tran, "indexes",
+					Index.record(index, fktable, fkcolumns, fkmode));
 			tran.complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
-		tables.remove(table);
+		tables.remove(tablename);
 
-		if (!fktable.equals(""))
+		if (fktable != null)
 			tables.remove(fktable); // update target
 	}
 
 	private void insertExistingRecords(Transaction tran, String columns,
-			Table table, short[] colnums, BtreeIndex index) {
+			Table table, short[] colnums, String fktable, String fkcolumns,
+			BtreeIndex index) {
 		if (!table.hasIndexes() || !table.hasRecords())
 			return ;
-		// insert existing records
 		Index idx = table.firstIndex();
-		// Table fktbl = getTable(fktable);
+		Table fktbl = getTable(fktable);
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
 				!iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
-			// if (fkey_source_block(SCHEMA_TRAN, fktbl, fkcolumns,
-			// r.project(colnums)))
-			// throw new
-			// SuException("add index: blocked by foreign key: " +
-			// columns + " in " + table);
+			fkey_source_block1(tran, fktbl, fkcolumns, rec.project(colnums),
+					"add index to " + table.name);
 			Record key = rec.project(colnums, iter.cur().keyadr());
 			if (!index.insert(tran, new Slot(key)))
 				throw new SuException("add index: duplicate key: " + columns
@@ -345,14 +350,14 @@ public class Database {
 		return getTable(table) != null;
 	}
 
-	public Table getTable(String table) {
+	public Table getTable(String tablename) {
 		// if the table has already been read, return it
-		Table tbl = tables.get(table);
-		if (tbl != null) {
-			verify(tbl.name.equals(table));
-			return tbl;
+		Table table = tables.get(tablename);
+		if (table != null) {
+			verify(table.name.equals(tablename));
+			return table;
 		}
-		return getTable(tablename_index, key(table));
+		return getTable(tablename_index, key(tablename));
 	}
 
 	public Table getTable(int tblnum) {
@@ -435,49 +440,45 @@ public class Database {
 	private void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
 	}
-	private void add_any_record(Transaction tran, Table tbl, Record r) {
+	private void add_any_record(Transaction tran, Table table, Record rec) {
 		if (tran.isReadonly())
-			throw new SuException("can't output from read-only transaction to " + tbl.name);
-		verify(tbl != null);
-		verify(!tbl.indexes.isEmpty());
-
-		String cols;
-		if (!loading && null != (cols = fkey_source_block(tran, tbl, r)))
-			throw new SuException("add record: blocked by foreign key: " + cols
-					+ " in " + tbl.name);
-
-		if (tbl.num > TN.VIEWS && r.size() > tbl.nextfield)
-			throw new SuException("output: record has more fields (" + r.size()
-					+ ") than " + tbl.name + " should (" + tbl.nextfield + ")");
-		long adr = output(tbl.num, r);
-		add_index_entries(tran, tbl, r, adr);
-		tran.create_act(tbl.num, adr);
+			throw new SuException("can't output from read-only transaction to "
+					+ table.name);
+		verify(table != null);
+		verify(!table.indexes.isEmpty());
 
 		if (!loading)
-			tbl.user_trigger(tran, Record.MINREC, r);
+			fkey_source_block(tran, table, rec, "add record to " + table.name);
+
+		long adr = output(table.num, rec);
+		add_index_entries(tran, table, rec, adr);
+		tran.create_act(table.num, adr);
+
+		if (!loading)
+			table.user_trigger(tran, Record.MINREC, rec);
 	}
 
-	void add_index_entries(Transaction tran, Table tbl, Record r, long adr) {
-		for (Index i : tbl.indexes) {
-			Record key = r.project(i.colnums, adr);
+	void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
+		for (Index i : table.indexes) {
+			Record key = rec.project(i.colnums, adr);
 			// handle insert failing due to duplicate key
 			if (!i.btreeIndex.insert(tran, new Slot(key))) {
 				// delete from previous indexes
-				for (Index j : tbl.indexes) {
+				for (Index j : table.indexes) {
 					if (j == i)
 						break;
-					key = r.project(j.colnums, adr);
+					key = rec.project(j.colnums, adr);
 					verify(j.btreeIndex.remove(key));
 				}
 				throw new SuException("duplicate key: " + i.columns + " = "
-						+ key + " in " + tbl.name);
+						+ key + " in " + table.name);
 			}
 			i.update(); // update indexes record from index
 		}
 
-		++tbl.nrecords;
-		tbl.totalsize += r.bufSize();
-		tbl.update(); // update tables record
+		++table.nrecords;
+		table.totalsize += rec.bufSize();
+		table.update(); // update tables record
 	}
 
 	// update record ================================================
@@ -503,7 +504,7 @@ public class Database {
 	}
 
 	long update_record(Transaction tran, Table table, Record oldrec,
-			Record newrec, boolean block) {
+			Record newrec, boolean srcblock) {
 		if (tran.isReadonly())
 			throw new SuException("can't update from read-only transaction in "
 					+ table.name);
@@ -517,18 +518,18 @@ public class Database {
 
 		// check foreign keys
 		for (Index i : table.indexes) {
-			if (i.fksrc.table == "" && i.fkdsts == null)
+			if ((!srcblock || i.fksrc == null) && i.fkdsts.isEmpty())
 				continue; // no foreign keys for this index
 			Record oldkey = oldrec.project(i.colnums);
 			Record newkey = newrec.project(i.colnums);
 			if (oldkey.equals(newkey))
 				continue;
-			String ftblname = i.fksrc.table;
-			if ((block && fkey_source_block(tran, getTable(i.fksrc.table),
-					i.fksrc.columns, newkey)) ||
-					null != fkey_target_block(tran, i, oldkey, newkey))
-				throw new SuException("update record in " + table.name
-						+ " blocked by foreign key in " + ftblname);
+			if (srcblock && i.fksrc != null)
+				fkey_source_block1(tran, getTable(i.fksrc.table), i.fksrc.columns,
+						newkey, "update record in " + table.name);
+			else
+				fkey_target_block1(tran, i, oldkey, newkey,
+						"update record in " + table.name);
 		}
 
 		if (!tran.delete_act(table.num, oldoff))
@@ -558,75 +559,6 @@ public class Database {
 
 		table.user_trigger(tran, oldrec, newrec);
 		return newoff;
-	}
-
-	private String fkey_source_block(Transaction tran, Table table, Record rec) {
-		for (Index index : table.indexes)
-			if (index.fksrc.table != ""
-					&& fkey_source_block(tran, getTable(index.fksrc.table),
-							index.fksrc.columns, rec.project(index.colnums)))
-				return index.fksrc.columns;
-		return null;
-	}
-
-	private boolean fkey_source_block(Transaction tran, Table fktbl,
-			String fkcolumns, Record key) {
-		if (fkcolumns == "" || key.allEmpty())
-			return false;
-		if (fktbl == null)
-			return true;
-		Index fkidx = fktbl.getIndex(fkcolumns);
-		if (fkidx == null || find(tran, fkidx, key) == null)
-			return true;
-		return false;
-	}
-
-	private String fkey_target_block(Transaction tran, Index index,
-			Record key, Record newkey) {
-		if (key.allEmpty())
-			return null;
-		for (Index.ForeignKey fk : index.fkdsts) {
-			Table fktbl = getTable(fk.table);
-			Index fkidx = getIndex(fktbl, fk.columns);
-			if (fkidx == null)
-				continue ;
-			BtreeIndex.Iter iter = fkidx.btreeIndex.iter(tran, key).next();
-			if (newkey == null && (fk.mode & Index.CASCADE_DELETES) != 0)
-				for (; ! iter.eof(); iter.next())
-					cascade_delete(tran, fktbl, iter);
-			else if (newkey != null && (fk.mode & Index.CASCADE_UPDATES) != 0)
-				for (; !iter.eof(); iter.next())
-					cascade_update(tran, newkey, fktbl, iter, fkidx.colnums);
-			else // blocking
-				if (! iter.eof())
-					return fktbl.name;
-			}
-		return null;
-	}
-
-	private void cascade_update(Transaction tran, Record newkey, Table fktbl,
-			BtreeIndex.Iter iter, short[] colnums) {
-		Record oldrec = input(iter.keyadr());
-		Record newrec = new Record();
-		for (int i = 0; i < oldrec.size(); ++i) {
-			int j = 0;
-			for (; j < colnums.length && colnums[j] != i; ++j)
-				;
-			if (j >= colnums.length)
-				newrec.add(oldrec.get(i));
-			else
-				newrec.add(newkey.get(j));
-		}
-		update_record(tran, fktbl, oldrec, newrec, false);
-	}
-
-	private void cascade_delete(Transaction tran, Table fktbl,
-			BtreeIndex.Iter iter) {
-		Record r = input(iter.keyadr());
-		remove_any_record(tran, fktbl, r);
-		iter.reset_prevsize();
-		// need to reset prevsize in case trigger updates other lines
-		// otherwise iter doesn't "see" the updated lines
 	}
 
 	// remove record ================================================
@@ -660,8 +592,7 @@ public class Database {
 		verify(table != null);
 		verify(rec != null);
 
-		//		if (char* fktblname = fkey_target_block(tran, tbl, r))
-		//			throw new SuException("delete record from " + tbl->name + " blocked by foreign key from " + fktblname);
+		fkey_target_block(tran, table, rec, "delete from " + table.name);
 
 		if (!tran.delete_act(table.num, rec.off()))
 			throw new SuException("delete record from " + table.name
@@ -671,8 +602,79 @@ public class Database {
 		table.totalsize -= rec.bufSize();
 		table.update(); // update tables record
 
-		if (! loading)
+		if (!loading)
 			table.user_trigger(tran, rec, Record.MINREC);
+	}
+
+	// foreign keys =================================================
+
+	private void fkey_source_block(Transaction tran, Table table, Record rec, String action) {
+		for (Index index : table.indexes)
+			if (index.fksrc != null)
+				fkey_source_block1(tran, getTable(index.fksrc.table),
+						index.fksrc.columns, rec.project(index.colnums), action);
+	}
+
+	private void fkey_source_block1(Transaction tran, Table fktbl,
+			String fkcolumns, Record key, String action) {
+		if (fkcolumns == "" || key.allEmpty())
+			return;
+		Index fkidx = getIndex(fktbl, fkcolumns);
+		if (fkidx == null || find(tran, fkidx, key) == null)
+			throw new SuException(action + " blocked by foreign key to " + fktbl.name + " ");
+	}
+
+	void fkey_target_block(Transaction tran, Table tbl, Record r, String action) {
+		for (Index i : tbl.indexes)
+			fkey_target_block1(tran, i, r.project(i.colnums), null, action);
+	}
+
+	private void fkey_target_block1(Transaction tran, Index index, Record key,
+			Record newkey, String action) {
+		if (key.allEmpty())
+			return;
+		for (Index.ForeignKey fk : index.fkdsts) {
+			Table fktbl = getTable(fk.table);
+			Index fkidx = getIndex(fktbl, fk.columns);
+			if (fkidx == null)
+				continue ;
+			BtreeIndex.Iter iter = fkidx.btreeIndex.iter(tran, key).next();
+			if (newkey == null && (fk.mode & Index.CASCADE_DELETES) != 0)
+				for (; ! iter.eof(); iter.next())
+					cascade_delete(tran, fktbl, iter);
+			else if (newkey != null && (fk.mode & Index.CASCADE_UPDATES) != 0)
+				for (; !iter.eof(); iter.next())
+					cascade_update(tran, newkey, fktbl, iter, fkidx.colnums);
+			else // blocking
+				if (! iter.eof())
+					throw new SuException(action + " blocked by foreign key in "
+						+ fktbl.name);
+			}
+	}
+
+	private void cascade_update(Transaction tran, Record newkey, Table fktbl,
+			BtreeIndex.Iter iter, short[] colnums) {
+		Record oldrec = input(iter.keyadr());
+		Record newrec = new Record();
+		for (int i = 0; i < oldrec.size(); ++i) {
+			int j = 0;
+			for (; j < colnums.length && colnums[j] != i; ++j)
+				;
+			if (j >= colnums.length)
+				newrec.add(oldrec.get(i));
+			else
+				newrec.add(newkey.get(j));
+		}
+		update_record(tran, fktbl, oldrec, newrec, false);
+	}
+
+	private void cascade_delete(Transaction tran, Table fktbl,
+			BtreeIndex.Iter iter) {
+		Record r = input(iter.keyadr());
+		remove_any_record(tran, fktbl, r);
+		iter.reset_prevsize();
+		// need to reset prevsize in case trigger updates other lines
+		// otherwise iter doesn't "see" the updated lines
 	}
 
 	// used by Transaction.abort
