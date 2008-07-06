@@ -3,7 +3,7 @@ package suneido.database;
 import static suneido.Suneido.verify;
 
 /**
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -62,6 +62,7 @@ public class Table {
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
 	}
+
 	public boolean hasIndexes() {
 		return !indexes.isEmpty();
 	}
@@ -73,8 +74,12 @@ public class Table {
 	public boolean hasIndex(String columns) {
 		return indexes.hasIndex(columns);
 	}
+
 	public Index firstIndex() {
 		return indexes.first();
 	}
 
+	public Index getIndex(String columns) {
+		return indexes.get(columns);
+	}
 }

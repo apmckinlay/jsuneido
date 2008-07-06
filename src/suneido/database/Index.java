@@ -1,6 +1,9 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
+
+import java.util.ArrayList;
+
 import suneido.SuBoolean;
 import suneido.SuString;
 import suneido.SuValue;
@@ -17,12 +20,13 @@ public class Index {
 	public final BtreeIndex btreeIndex;
 	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
-	final static int BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2,
+	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
+			CASCADE_DELETES = 2,
 			CASCADE = 3;
 	private final static SuString UNIQUE = new SuString("u");
 
-	// Fkey fksrc;
-	// ArrayList<Fkey> fkdsts;
+	ForeignKey fksrc;
+	ArrayList<ForeignKey> fkdsts;
 
 	public Index(Record record, String columns, short[] colnums, BtreeIndex btreeIndex) {
 		this.record = record;
@@ -82,5 +86,21 @@ public class Index {
 
 	public boolean iskey() {
 		return btreeIndex.iskey;
+	}
+
+	static class ForeignKey {
+		ForeignKey() {
+		}
+
+		ForeignKey(String table, String columns, int mode) {
+			this.table = table;
+			this.mode = mode;
+			this.columns = columns.startsWith("lower:") ? columns.substring(6)
+					: columns;
+		}
+
+		String table;
+		String columns;
+		int mode;
 	}
 }

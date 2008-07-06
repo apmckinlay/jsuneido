@@ -363,6 +363,13 @@ public class Record implements suneido.Packable, Comparable<Record> {
 		return size() == 0;
 	}
 
+	public boolean allEmpty() {
+		for (int i = size() - 1; i >= 0; --i)
+			if (fieldSize(i) != 0)
+				return false;
+		return true;
+	}
+
 	/**
 	 * @param i
 	 *            The index of the field to get the size of.

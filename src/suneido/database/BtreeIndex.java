@@ -5,7 +5,7 @@ import static suneido.Suneido.verify;
 /**
  * Wraps a {@link Btree} to implement database table indexes. Adds transaction
  * stuff.
- * 
+ *
  * @author Andrew McKinlay
  *         <p>
  *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -138,6 +138,10 @@ public class BtreeIndex {
 
 		public long keyadr() {
 			return cur().keyadr();
+		}
+
+		void reset_prevsize() {
+			prevsize = Long.MAX_VALUE;
 		}
 
 		public Iter next() {
