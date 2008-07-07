@@ -2,11 +2,12 @@ package suneido.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import suneido.SuException;
 
 /**
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -51,5 +52,12 @@ public class Columns {
 
 	public int size() {
 		return columns.size();
+	}
+
+	public List<String> names() {
+		ArrayList<String> list = new ArrayList<String>();
+		for (Column c : columns)
+			list.add(c.name);
+		return list;
 	}
 }

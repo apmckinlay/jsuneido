@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import suneido.database.Record;
+import suneido.database.Transaction;
 
 public abstract class Query {
 	QueryCache cache = new QueryCache();
@@ -14,11 +15,11 @@ public abstract class Query {
 		NEXT, PREV
 	};
 
-	static int update(int tran, Query qq, List<String> c, List<Expr> e) {
+	static int update(Transaction tran, Query qq, List<String> c, List<Expr> e) {
 		return 0; // TODO
 	}
 
-	abstract void set_transaction(int tran);
+	abstract void setTransaction(Transaction tran);
 
 	// iteration
 	abstract Header header();
@@ -45,13 +46,16 @@ public abstract class Query {
 
 	abstract void close();
 
-	//protected:
 	@Override
 	public abstract String toString();
+
 	abstract List<String> columns();
+
 	abstract List<List<String>> keys();
-	Query transform()
-	{ return this; }
+
+	Query transform() {
+		return this;
+	}
 	double optimize(List<String> index, List<String> needs, List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		return 0; // TODO
 	}

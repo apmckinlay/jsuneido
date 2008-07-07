@@ -1,7 +1,9 @@
 package suneido.database;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -47,5 +49,20 @@ public class Indexes implements Iterable<Index> {
 			if (index.iskey())
 				return index;
 		return null;
+	}
+
+	public List<List<String>> columns() {
+		ArrayList<List<String>> list = new ArrayList<List<String>>();
+		for (Index index : indexes)
+			list.add(Arrays.asList(index.columns.split(",")));
+		return list;
+	}
+
+	public List<List<String>> keysColumns() {
+		ArrayList<List<String>> list = new ArrayList<List<String>>();
+		for (Index index : indexes)
+			if (index.iskey())
+				list.add(Arrays.asList(index.columns.split(",")));
+		return list;
 	}
 }

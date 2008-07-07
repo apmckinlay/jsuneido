@@ -1,5 +1,11 @@
 package suneido.database.query;
 
-public class Row {
+import suneido.database.Record;
 
+public class Row {
+	private final Record[] records;
+
+	Row(Record... records) {
+		this.records = records;
+	}
 }
