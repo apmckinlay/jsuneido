@@ -6,40 +6,13 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuException;
 
-public class DatabaseTest {
-	DestMem dest;
-	Database db;
-
-	@Before
-	public void open() {
-		dest = new DestMem();
-		db = new Database(dest, Mode.CREATE);
-	}
-
-	@After
-	public void close() {
-		db.close();
-	}
-
-	private void reopen() {
-		db.close();
-		db = new Database(dest, Mode.OPEN);
-		// try {
-		// db = new Database(file.getCanonicalPath(), Mode.OPEN);
-		// } catch (IOException e) {
-		// throw new SuException("can't reopen", e);
-		// }
-	}
-
+public class DatabaseTest extends TestBase {
 	@Test
 	public void output_input() {
 		Record r = new Record().add("hello");
@@ -233,61 +206,5 @@ public class DatabaseTest {
 	}
 
 	// TODO foreign keys
-
-	// support methods ==============================================
-
-	private void makeTable() {
-		makeTable(0);
-	}
-
-	private void makeTable(int nrecords) {
-		db.addTable("test");
-		db.addColumn("test", "a");
-		db.addColumn("test", "b");
-		db.addIndex("test", "a", true, false);
-		db.addIndex("test", "b,a", false, false);
-
-		Transaction t = db.readwriteTran();
-		for (int i = 0; i < nrecords; ++i)
-			db.addRecord(t, "test", record(i));
-		t.ck_complete();
-	}
-
-	private Record record(int i) {
-		return new Record().add(i).add("more stuff");
-	}
-
-	private Record key(int i) {
-		return new Record().add(i);
-	}
-
-	private List<Record> get() {
-		Transaction tran = db.readonlyTran();
-		List<Record> recs = get(tran);
-		tran.ck_complete();
-		return recs;
-	}
-	private List<Record> get(Transaction tran) {
-		List<Record> recs = new ArrayList<Record>();
-		Table tbl = db.getTable("test");
-		Index idx = tbl.indexes.first();
-		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
-		for (; !iter.eof(); iter.next())
-			recs.add(db.input(iter.keyadr()));
-		return recs;
-	}
-
-	private void check(int... values) {
-		Transaction t = db.readonlyTran();
-		check(t, values);
-		t.ck_complete();
-	}
-
-	private void check(Transaction t, int... values) {
-		List<Record> recs = get(t);
-		assertEquals(values.length, recs.size());
-		for (int i = 0; i < values.length; ++i)
-			assertEquals(record(values[i]), recs.get(i));
-	}
 
 }

@@ -24,6 +24,7 @@ public class Database {
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
 	private final Transactions trans = new Transactions(this);
+	public static Database theDB;
 
 	private static class TN {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
@@ -201,7 +202,7 @@ public class Database {
 		return (int) cksum.getValue();
 	}
 
-	Record input(long adr) {
+	public Record input(long adr) {
 		verify(adr != 0);
 		return new Record(adr(adr), adr);
 	}

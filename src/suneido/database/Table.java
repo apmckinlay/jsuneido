@@ -2,6 +2,8 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
+import java.util.List;
+
 /**
  *
  * @author Andrew McKinlay
@@ -81,5 +83,18 @@ public class Table {
 
 	public Index getIndex(String columns) {
 		return indexes.get(columns);
+	}
+
+	public boolean singleton() {
+		return indexes.first().columns.equals("");
+	}
+	public List<String> columnNames() {
+		return columns.names();
+	}
+	public List<List<String>> indexesColumns() {
+		return indexes.columns();
+	}
+	public List<List<String>> keysColumns() {
+		return indexes.keysColumns();
 	}
 }
