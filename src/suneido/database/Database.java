@@ -5,6 +5,8 @@ import static suneido.Suneido.verify;
 import static suneido.database.Transaction.NULLTRAN;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
@@ -41,8 +43,7 @@ public class Database {
 	private BtreeIndex columns_index;
 	private BtreeIndex indexes_index;
 	private BtreeIndex fkey_index;
-	// used by get_view
-	//	private BtreeIndex views_index;
+	private BtreeIndex views_index;
 
 	public Database(String filename, Mode mode) {
 		dest = new Mmfile(filename, mode);
@@ -118,13 +119,15 @@ public class Database {
 		long indexes_adr = createSchemaIndex(indexes_index);
 		createSchemaIndex(fkey_index);
 
-		// views
-		// add_table("views");
-		// add_column("views", "view_name");
-		// add_column("views", "view_definition");
-		// add_index("views", "view_name", true);
-
 		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
+
+		loading = false;
+
+		// views
+		addTable("views");
+		addColumn("views", "view_name");
+		addColumn("views", "view_definition");
+		addIndex("views", "view_name", true);
 	}
 
 	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
@@ -281,9 +284,8 @@ public class Database {
 		tables.remove(tablename);
 	}
 
-	public void addIndex(String tablename, String columns,
-			boolean isKey, boolean unique) {
-		addIndex(tablename, columns, isKey, unique, false, null, null, 0);
+	public void addIndex(String tablename, String columns, boolean isKey) {
+		addIndex(tablename, columns, isKey, false, false, null, null, 0);
 	}
 
 	public void addIndex(String tablename, String columns,
@@ -322,7 +324,7 @@ public class Database {
 		Index idx = table.firstIndex();
 		Table fktbl = getTable(fktable);
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
-				!iter.eof(); iter.next()) {
+		!iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
 			fkey_source_block1(tran, fktbl, fkcolumns, rec.project(colnums),
 					"add index to " + table.name);
@@ -383,8 +385,7 @@ public class Database {
 			Record tblkey = key(table.num);
 
 			// columns
-			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey)
-					.next();
+			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
 			!iter.eof(); iter.next())
 				table.addColumn(new Column(input(iter.keyadr())));
 			table.sortColumns();
@@ -410,13 +411,28 @@ public class Database {
 				else
 					index = Index.btreeIndex(dest, r);
 				table.addIndex(new Index(r, cols, table.columns
-						.nums(cols), index));
+						.nums(cols),
+						index, getForeignKeys(tran, table, cols)));
 			}
 			tables.add(table);
 			return table;
 		} finally {
 			tran.complete();
 		}
+	}
+
+	// find foreign keys pointing to this index
+	private List<Record> getForeignKeys(Transaction tran, Table table,
+			String columns) {
+		List<Record> records = new ArrayList<Record>();
+		for (BtreeIndex.Iter iter = fkey_index.iter(tran,
+				key(table.name, columns)).next(); !iter.eof(); iter.next())
+			records.add(input(iter.keyadr()));
+		return records;
+	}
+
+	private Record key(String name, String columns) {
+		return new Record().add(name).add(columns);
 	}
 
 	private Index getIndex(Table table, String indexcolumns) {
@@ -510,11 +526,6 @@ public class Database {
 			throw new SuException("can't update from read-only transaction in "
 					+ table.name);
 
-		if (table.num > TN.VIEWS && newrec.size() > table.nextfield)
-			throw new SuException("update: record has more fields ("
-					+ newrec.size() + ") than " + table.name + " should ("
-					+ table.nextfield + ")");
-
 		long oldoff = oldrec.off();
 
 		// check foreign keys
@@ -526,11 +537,11 @@ public class Database {
 			if (oldkey.equals(newkey))
 				continue;
 			if (srcblock && i.fksrc != null)
-				fkey_source_block1(tran, getTable(i.fksrc.table), i.fksrc.columns,
+				fkey_source_block1(tran, getTable(i.fksrc.tablename),
+						i.fksrc.columns,
 						newkey, "update record in " + table.name);
-			else
-				fkey_target_block1(tran, i, oldkey, newkey,
-						"update record in " + table.name);
+			fkey_target_block1(tran, i, oldkey, newkey, "update record in "
+					+ table.name);
 		}
 
 		if (!tran.delete_act(table.num, oldoff))
@@ -569,7 +580,7 @@ public class Database {
 		if (is_system_table(tablename))
 			throw new SuException(
 					"delete record: can't delete records from system table: "
-							+ tablename);
+					+ tablename);
 		remove_any_record(tran, tablename, index, key);
 	}
 
@@ -612,7 +623,7 @@ public class Database {
 	private void fkey_source_block(Transaction tran, Table table, Record rec, String action) {
 		for (Index index : table.indexes)
 			if (index.fksrc != null)
-				fkey_source_block1(tran, getTable(index.fksrc.table),
+				fkey_source_block1(tran, getTable(index.fksrc.tablename),
 						index.fksrc.columns, rec.project(index.colnums), action);
 	}
 
@@ -635,7 +646,7 @@ public class Database {
 		if (key.allEmpty())
 			return;
 		for (Index.ForeignKey fk : index.fkdsts) {
-			Table fktbl = getTable(fk.table);
+			Table fktbl = getTable(fk.tblnum);
 			Index fkidx = getIndex(fktbl, fk.columns);
 			if (fkidx == null)
 				continue ;
@@ -649,8 +660,8 @@ public class Database {
 			else // blocking
 				if (! iter.eof())
 					throw new SuException(action + " blocked by foreign key in "
-						+ fktbl.name);
-			}
+							+ fktbl.name);
+		}
 	}
 
 	private void cascade_update(Transaction tran, Record newkey, Table fktbl,

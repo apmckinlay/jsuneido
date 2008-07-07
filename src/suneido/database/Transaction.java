@@ -74,22 +74,27 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	public TranRead read_act(int tblnum, String index) {
-		verify(! ended);
+		notEnded();
 		TranRead tr = new TranRead(tblnum, index);
 		reads.add(tr);
 		return tr;
 	}
 
+	private void notEnded() {
+		if (ended)
+			throw new SuException("cannot use ended transaction");
+	}
+
 	public void create_act(int tblnum, long adr) {
 		verify(! readonly);
-		verify(! ended);
+		notEnded();
 		trans.putCreated(adr, t);
 		writes.add(TranWrite.create(tblnum, adr, trans.clock()));
 	}
 
 	public boolean delete_act(int tblnum, long adr) {
 		verify(! readonly);
-		verify(! ended);
+		notEnded();
 		String c = trans.deleteConflict(tblnum, adr);
 		if (!c.equals("")) {
 			conflict = c;
@@ -130,7 +135,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	public boolean complete() {
-		verify(! ended);
+		notEnded();
 		if (!conflict.equals("")) {
 			abort();
 			return false;
@@ -255,7 +260,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	public void abort() {
-		verify(! ended);
+		notEnded();
 		if (!readonly)
 			abortReadwrite();
 		trans.remove(this);

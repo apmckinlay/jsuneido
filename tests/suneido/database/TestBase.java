@@ -13,7 +13,7 @@ public class TestBase {
 	protected Database db;
 
 	@Before
-	public void open() {
+	public void create() {
 		dest = new DestMem();
 		db = new Database(dest, Mode.CREATE);
 	}
@@ -26,11 +26,6 @@ public class TestBase {
 	protected void reopen() {
 		db.close();
 		db = new Database(dest, Mode.OPEN);
-		// try {
-		// db = new Database(file.getCanonicalPath(), Mode.OPEN);
-		// } catch (IOException e) {
-		// throw new SuException("can't reopen", e);
-		// }
 	}
 
 	protected void makeTable() {
@@ -41,8 +36,8 @@ public class TestBase {
 		db.addTable("test");
 		db.addColumn("test", "a");
 		db.addColumn("test", "b");
-		db.addIndex("test", "a", true, false);
-		db.addIndex("test", "b,a", false, false);
+		db.addIndex("test", "a", true);
+		db.addIndex("test", "b,a", false);
 
 		Transaction t = db.readwriteTran();
 		for (int i = 0; i < nrecords; ++i)
@@ -54,20 +49,27 @@ public class TestBase {
 		return new Record().add(i).add("more stuff");
 	}
 
+	protected Record record(int... values) {
+		Record r = new Record();
+		for (int i : values)
+			r.add(i);
+		return r;
+	}
+
 	protected Record key(int i) {
 		return new Record().add(i);
 	}
 
-	protected List<Record> get() {
+	protected List<Record> get(String tablename) {
 		Transaction tran = db.readonlyTran();
-		List<Record> recs = get(tran);
+		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
 	}
 
-	protected List<Record> get(Transaction tran) {
+	protected List<Record> get(String tablename, Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
-		Table tbl = db.getTable("test");
+		Table tbl = db.getTable(tablename);
 		Index idx = tbl.indexes.first();
 		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
 		for (; !iter.eof(); iter.next())
@@ -82,7 +84,7 @@ public class TestBase {
 	}
 
 	protected void check(Transaction t, int... values) {
-		List<Record> recs = get(t);
+		List<Record> recs = get("test", t);
 		assertEquals(values.length, recs.size());
 		for (int i = 0; i < values.length; ++i)
 			assertEquals(record(values[i]), recs.get(i));
