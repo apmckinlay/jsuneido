@@ -2,6 +2,7 @@ package suneido.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import suneido.SuException;
@@ -11,7 +12,7 @@ import suneido.SuException;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class Columns {
+public class Columns implements Iterable<Column> {
 	private final ArrayList<Column> columns = new ArrayList<Column>();
 
 	public void add(Column column) {
@@ -39,7 +40,7 @@ public class Columns {
 		return c;
 	}
 
-	private Column find(String name) {
+	public Column find(String name) {
 		for (Column c : columns)
 			if (name.equals(c.name))
 				return c;
@@ -59,5 +60,9 @@ public class Columns {
 		for (Column c : columns)
 			list.add(c.name);
 		return list;
+	}
+
+	public Iterator<Column> iterator() {
+		return columns.iterator();
 	}
 }

@@ -31,11 +31,9 @@ public class Database {
 	private static class TN {
 		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
 	}
-
-	// TODO views
-	//	private static class V {
-	//		final static int NAME = 0, DEFINITION = 1;
-	//	}
+	private static class V {
+		final static int NAME = 0, DEFINITION = 1;
+	}
 
 	private final static int VERSION = 1;
 	private BtreeIndex tablename_index;
@@ -128,6 +126,7 @@ public class Database {
 		addColumn("views", "view_name");
 		addColumn("views", "view_definition");
 		addIndex("views", "view_name", true);
+		views_index = btreeIndex(TN.VIEWS, "view_name");
 	}
 
 	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
@@ -170,6 +169,7 @@ public class Database {
 		columns_index = btreeIndex(TN.COLUMNS, "table,column");
 		fkey_index = btreeIndex(TN.INDEXES, "fktable,fkcolumns");
 		// WARNING: any new indexes added here must also be added in get_table
+		views_index = btreeIndex(TN.VIEWS, "view_name");
 	}
 	private BtreeIndex btreeIndex(int table_num, String columns) {
 		return Index.btreeIndex(dest,
@@ -244,6 +244,8 @@ public class Database {
 		return Transaction.readwrite(trans);
 	}
 
+	// tables =======================================================
+
 	public void addTable(String table) {
 		if (tableExists(table))
 			throw new SuException("add table: table already exists: " + table);
@@ -257,6 +259,29 @@ public class Database {
 			tran.abortIfNotComplete();
 		}
 	}
+
+	public void removeTable(String tablename) {
+		if (is_system_table(tablename))
+			throw new SuException("drop: can't destroy system table: "
+					+ tablename);
+		Table table = ck_getTable(tablename);
+		Transaction tran = readwriteTran();
+		try {
+			for (Index index : table.indexes)
+				removeIndex(tran, table, index.columns);
+			for (Column column : table.columns)
+				removeColumn(tran, table, column.name);
+			remove_any_record(tran, "tables", "tablename", key(tablename));
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+		tables.remove(tablename);
+	}
+
+	// TODO renameTable
+
+	// columns ======================================================
 
 	public void addColumn(String tablename, String column) {
 		Table table = ck_getTable(tablename);
@@ -284,6 +309,41 @@ public class Database {
 		tables.remove(tablename);
 	}
 
+	public void removeColumn(String tablename, String name) {
+		if (is_system_column(tablename, name))
+			throw new SuException("delete column: can't delete system column: "
+					+ name + " from " + tablename);
+
+		Table tbl = ck_getTable(tablename);
+
+		if (tbl.columns.find(name) == null)
+			throw new SuException("delete column: nonexistent column: " + name
+					+ " in " + tablename);
+
+		for (Index index : tbl.indexes)
+			if (index.hasColumn(name))
+				throw new SuException(
+						"delete column: can't delete column used in index: "
+						+ name + " in " + tablename);
+
+		Transaction tran = readwriteTran();
+		try {
+			removeColumn(tran, tbl, name);
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+		tables.remove(tablename);
+	}
+
+	private void removeColumn(Transaction tran, Table tbl, String name) {
+		remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
+	}
+
+	// TODO renameColumn
+
+	// indexes ======================================================
+
 	public void addIndex(String tablename, String columns, boolean isKey) {
 		addIndex(tablename, columns, isKey, false, false, null, null, 0);
 	}
@@ -303,7 +363,6 @@ public class Database {
 		try {
 			insertExistingRecords(tran, columns, table, colnums,
 					fktable, fkcolumns, index);
-
 			add_any_record(tran, "indexes",
 					Index.record(index, fktable, fkcolumns, fkmode));
 			tran.complete();
@@ -335,12 +394,32 @@ public class Database {
 		}
 	}
 
-	// TODO removeTable
-	// TODO removeColumn
-	// TODO removeIndex
+	public void removeIndex(String tablename, String columns) {
+		if (is_system_index(tablename, columns))
+			throw new SuException("delete index: can't delete system index: "
+					+ columns + " from " + tablename);
+		Table tbl = ck_getTable(tablename);
+		if (tbl.indexes.size() == 1)
+			throw new SuException("delete index: can't delete last index from "
+					+ tablename);
+		Transaction tran = readwriteTran();
+		try {
+			removeIndex(tran, tbl, columns);
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+		tables.remove(tablename);
+	}
 
-	// TODO renameTable
-	// TODO renameColumn
+	private void removeIndex(Transaction tran, Table tbl, String columns) {
+		if (!tbl.indexes.hasIndex(columns))
+			throw new SuException("delete index: nonexistent index: " + columns
+					+ " in " + tbl.name);
+
+		remove_any_record(tran, "indexes", "table,columns",
+				key(tbl.num, columns));
+	}
 
 	public Table ck_getTable(String table) {
 		Table tbl = getTable(table);
@@ -439,6 +518,40 @@ public class Database {
 		return table == null ? null : table.getIndex(indexcolumns);
 	}
 
+	// views ========================================================
+
+	public void add_view(String table, String definition) {
+		Transaction tran = readwriteTran();
+		try {
+			add_any_record(tran, "views",
+					new Record().add(table).add(definition));
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+	}
+
+	public String getView(String viewname) {
+		Record rec;
+		Transaction tran = readonlyTran();
+		try {
+			rec = find(tran, views_index, key(viewname));
+		} finally {
+			tran.complete();
+		}
+		return rec == null ? "" : rec.getString(V.DEFINITION);
+	}
+
+	public void removeView(String viewname) {
+		Transaction tran = readwriteTran();
+		try {
+			remove_any_record(tran, "views", "view_name", key(viewname));
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+	}
+
 	// add record ===================================================
 
 	public void addRecord(Transaction tran, String table, Record r) {
@@ -448,10 +561,24 @@ public class Database {
 	}
 
 	private boolean is_system_table(String table) {
-		return	table.equals("tables") ||
-		table.equals("columns") ||
-		table.equals("indexes") ||
-		table.equals("views");
+		return table.equals("tables") || table.equals("columns")
+		|| table.equals("indexes") || table.equals("views");
+	}
+
+	private boolean is_system_column(String table, String column) {
+		return (table.equals("tables") && (column.equals("table")
+				|| column.equals("nrows") || column.equals("totalsize")))
+				|| (table.equals("columns") && (column.equals("table")
+						|| column.equals("column") || column.equals("field")))
+						|| (table.equals("indexes") && (column.equals("table")
+								|| column.equals("columns") || column.equals("root")
+								|| column.equals("treelevels") || column.equals("nnodes")));
+	}
+
+	private boolean is_system_index(String table, String columns) {
+		return (table.equals("tables") && columns.equals("table"))
+		|| (table.equals("columns") && columns.equals("table,column"))
+		|| (table.equals("indexes") && columns.equals("table,columns"));
 	}
 
 	private void add_any_record(Transaction tran, String table, Record r) {

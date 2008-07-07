@@ -328,4 +328,6 @@ public class DatabaseTest extends TestBase {
 		assertEquals(record(11, 111), recs.get(1));
 	}
 
+	// TODO add/get/remove views
+	// TODO remove column/index/table
 }
