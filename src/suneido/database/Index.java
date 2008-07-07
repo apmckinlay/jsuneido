@@ -132,7 +132,11 @@ public class Index {
 		@Override
 		public String toString() {
 			return "ForeignKey(" + (tablename == null ? tblnum : tablename)
-					+ ", " + columns + ", " + mode + ")";
+			+ ", " + columns + ", " + mode + ")";
 		}
+	}
+
+	public boolean hasColumn(String name) {
+		return ("," + columns + ",").contains("," + name + ",");
 	}
 }
