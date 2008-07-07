@@ -11,8 +11,10 @@ import java.util.List;
 import org.junit.Test;
 
 import suneido.SuException;
+import suneido.database.Index.ForeignKey;
 
 public class DatabaseTest extends TestBase {
+
 	@Test
 	public void output_input() {
 		Record r = new Record().add("hello");
@@ -49,7 +51,7 @@ public class DatabaseTest extends TestBase {
 		tbl = db.getTable("test");
 		assertEquals(1, tbl.nrecords);
 
-		List<Record> recs = get();
+		List<Record> recs = get("test");
 		assertEquals(1, recs.size());
 		assertEquals(r, recs.get(0));
 
@@ -57,7 +59,7 @@ public class DatabaseTest extends TestBase {
 		db.removeRecord(t, "test", "a", new Record().add(12));
 		t.ck_complete();
 
-		assertEquals(0, get().size());
+		assertEquals(0, get("test").size());
 	}
 
 	@Test
@@ -127,7 +129,7 @@ public class DatabaseTest extends TestBase {
 	public void add_index() {
 		makeTable(3);
 		db.addColumn("test", "c");
-		db.addIndex("test", "c", false, false);
+		db.addIndex("test", "c", false);
 		Transaction t = db.readonlyTran();
 		Table table = db.getTable("test");
 		Index index = table.getIndex("c");
@@ -142,7 +144,7 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 
 		Transaction t = db.readwriteTran();
-		get(t);
+		get("test", t);
 
 		Transaction t2 = db.readwriteTran();
 		db.removeRecord(t2, "test", "a", key(1));
@@ -205,6 +207,125 @@ public class DatabaseTest extends TestBase {
 		check(0, 2, 5);
 	}
 
-	// TODO foreign keys
+	@Test
+	public void foreign_key_addRecord() {
+		makeTable(3);
+
+		db.addTable("test2");
+		db.addColumn("test2", "a");
+		db.addColumn("test2", "f1");
+		db.addColumn("test2", "f2");
+		db.addIndex("test2", "a", true);
+		db.addIndex("test2", "f1", false, false, false,
+				"test", "a", Index.BLOCK);
+		db.addIndex("test2", "f2", false, false, false,
+				"test", "a", Index.BLOCK);
+
+		Table table = db.getTable("test2");
+		ForeignKey fk = table.indexes.get("f1").fksrc;
+		assertEquals("test", fk.tablename);
+		assertEquals("a", fk.columns);
+		assertEquals(0, fk.mode);
+
+		Transaction t1 = db.readwriteTran();
+		db.addRecord(t1, "test2", record(10, 1, 2));
+		shouldBlock(t1, record(11, 5, 1));
+		shouldBlock(t1, record(11, 1, 5));
+
+		try {
+			db.removeRecord(t1, "test", "a", key(1));
+			assertTrue(false);
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("blocked by foreign key"));
+		}
+		t1.ck_complete();
+	}
+	private void shouldBlock(Transaction t1, Record rec) {
+		try {
+			db.addRecord(t1, "test2", rec);
+			assertTrue(false);
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("blocked by foreign key"));
+		}
+	}
+
+	@Test
+	public void foreign_key_addIndex() {
+		makeTable(3);
+
+		db.addTable("test2");
+		db.addColumn("test2", "a");
+		db.addColumn("test2", "f1");
+		db.addColumn("test2", "f2");
+		db.addIndex("test2", "a", true);
+
+		Transaction t1 = db.readwriteTran();
+		db.addRecord(t1, "test2", record(10, 1, 5));
+		t1.ck_complete();
+
+		db.addIndex("test2", "f1", false, false, false, "test", "a",
+				Index.BLOCK);
+
+		try {
+			db.addIndex("test2", "f2", false, false, false, "test", "a",
+					Index.BLOCK);
+			assertTrue(false);
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("blocked by foreign key"));
+		}
+	}
+
+	@Test
+	public void foreign_key_cascade_deletes() {
+		makeTable(3);
+
+		db.addTable("test2");
+		db.addColumn("test2", "a");
+		db.addColumn("test2", "f");
+		db.addIndex("test2", "a", true);
+		db.addIndex("test2", "f", false, false, false, "test", "a",
+				Index.CASCADE_DELETES);
+
+		Transaction t1 = db.readwriteTran();
+		db.addRecord(t1, "test2", record(10, 1));
+		db.addRecord(t1, "test2", record(11, 1));
+		t1.ck_complete();
+
+		Transaction t2 = db.readwriteTran();
+		db.removeRecord(t2, "test", "a", key(1));
+		t2.ck_complete();
+		assertEquals(0, get("test2").size());
+	}
+
+	@Test
+	public void foreign_key_cascade_updates() {
+		makeTable(3);
+
+		db.addTable("test2");
+		db.addColumn("test2", "a");
+		db.addColumn("test2", "f");
+		db.addIndex("test2", "a", true);
+		db.addIndex("test2", "f", false, false, false, "test", "a",
+				Index.CASCADE_UPDATES);
+
+		Table table = db.getTable("test");
+		ForeignKey fk = table.getIndex("a").fkdsts.get(0);
+		assertEquals(db.getTable("test2").num, fk.tblnum);
+		assertEquals("f", fk.columns);
+		assertEquals(Index.CASCADE_UPDATES, fk.mode);
+
+		Transaction t1 = db.readwriteTran();
+		db.addRecord(t1, "test2", record(10, 1));
+		db.addRecord(t1, "test2", record(11, 1));
+		t1.ck_complete();
+
+		Transaction t2 = db.readwriteTran();
+		db.updateRecord(t2, "test", "a", key(1), record(111));
+		t2.ck_complete();
+		List<Record> recs = get("test2");
+		assertEquals(2, recs.size());
+		assertEquals(record(10, 111), recs.get(0));
+		assertEquals(record(11, 111), recs.get(1));
+	}
 
 }
