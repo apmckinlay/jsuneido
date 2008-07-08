@@ -330,4 +330,11 @@ public class DatabaseTest extends TestBase {
 
 	// TODO add/get/remove views
 	// TODO remove column/index/table
+
+	@Test
+	public void schema() {
+		assertEquals(
+				"(table,tablename,nextfield,nrows,totalsize) key(table) key(tablename)",
+				db.schema("tables"));
+	}
 }
