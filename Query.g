@@ -3,28 +3,7 @@ grammar Query;
 options {
 	language = Java;
 }
-
-input   :  query ;
-
-admin : 'create' ID schema
-    | 'ensure' ID schema
-    | 'alter' ID alter
-    | 'rename' ID 'to' ID
-    | ('drop'|'delete') ID
-    ;
-  
-schema  : columns (key|index)*;
-
-columns : '(' ID (','? ID)* ')' ;
-
-key   : 'key' columns ('in' ID columns? ('cascade' 'updates'?)?)? ;
-
-index : 'index' ('unique'|'lower')* columns ;
-
-alter : ('create'|'delete') schema
-    | 'rename' ID 'to' ID
-    ;
-  
+ 
 query : source op* ;
 
 source  : ID
@@ -41,6 +20,8 @@ op    : 'sort' 'reverse'? cols
     | 'extend' extend (',' extend)*
     | 'where' expr
     ;
+
+columns : '(' ID (','? ID)* ')' ;
 
 cols  : ID (','? ID)* ;
 
