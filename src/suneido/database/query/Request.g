@@ -7,11 +7,11 @@ tokens {
 	COLUMNS;
 }
 
-@header {
-}
+@header { package suneido.database.query; }
+@lexer::header { package suneido.database.query; }
 
 @members {
-interface Emit {
+public interface IRequest {
 	void create(String table, Schema schema);
 	void ensure(String table, Schema schema);
 	void alter_create(String table, Schema schema);
@@ -20,7 +20,7 @@ interface Emit {
 	void rename(String from, String to);
 	void drop(String table);
 }
-static class EmitPrint implements Emit {
+static class PrintRequest implements IRequest {
 	public void create(String table, Schema schema) {
 		System.out.println("addTable(" + table + ")");
 		schema(schema);
@@ -41,7 +41,7 @@ static class EmitPrint implements Emit {
 		for (String col : schema.columns)
 			System.out.println("addColumn(" + col + ")");
 		for (Index index : schema.indexes) {
-			System.out.print("addIndex(" + index.columns + ", " + index.iskey);
+			System.out.print("addIndex(" + index.columns + ", " + index.isKey + index.isUnique);
 			if (index.in != null)
 				System.out.print(", " + index.in.table + ", " + index.in.columns + ", " + index.in.mode);
 			System.out.println(")");
@@ -58,18 +58,20 @@ static class EmitPrint implements Emit {
 		System.out.println("removeTable(" + table + ")");
 	}
 }
-Emit emit = new EmitPrint();
+public IRequest iRequest = new PrintRequest();
 
 static class Schema {
 	List<String> columns;
 	List<Index> indexes = new ArrayList<Index>();
 }
 static class Index {
-	boolean iskey = false;
+	boolean isKey = false;
+	boolean isUnique = false;
 	List<String> columns;
 	In in;
-	Index(boolean iskey, List<String> columns, In in) {
-		this.iskey = iskey;
+	Index(boolean isKey, boolean isUnique, List<String> columns, In in) {
+		this.isKey = isKey;
+		this.isUnique = isUnique;
 		this.columns = columns;
 		this.in = in;
 	}
@@ -98,19 +100,19 @@ request
 	scope { Schema schema; }
 	@init { $request::schema = new Schema(); }
 	: 'create' ID schema
-		{ emit.create($ID.text, $request::schema); }
+		{ iRequest.create($ID.text, $request::schema); }
 	| 'ensure' ID partial
-		{ emit.ensure($ID.text, $request::schema); }
+		{ iRequest.ensure($ID.text, $request::schema); }
 	| 'alter' ID 'rename' renames
-		{ emit.alter_rename($ID.text, $renames.list); }
+		{ iRequest.alter_rename($ID.text, $renames.list); }
     | 'alter' ID 'create' partial
-    	{ emit.alter_create($ID.text, $request::schema); }
+    	{ iRequest.alter_create($ID.text, $request::schema); }
     | 'alter' ID 'delete' partial
-    	{ emit.alter_delete($ID.text, $request::schema); }
+    	{ iRequest.alter_delete($ID.text, $request::schema); }
     | rename
-    	{ emit.rename($rename.from, $rename.to); }
+    	{ iRequest.rename($rename.from, $rename.to); }
     | ('drop'|'delete') ID
-    	{ emit.drop($ID.text); }
+    	{ iRequest.drop($ID.text); }
     ;
   
 schema	: schema_columns (key|index)* ;
@@ -128,11 +130,11 @@ column[List<String> list]
 	:	ID { list.add($ID.text); } ;
 	
 key	: 'key' columns in? 
-		{ $request::schema.indexes.add(new Index(true, $columns.list, $in.in)); }
+		{ $request::schema.indexes.add(new Index(true, false, $columns.list, $in.in)); }
 	;
 
-index : 'index' ('unique'|'lower')? columns in? 
-		{ $request::schema.indexes.add(new Index(false, $columns.list, $in.in)); }
+index : 'index' (u='unique' | 'lower')? columns in? 
+		{ $request::schema.indexes.add(new Index(false, $u != null, $columns.list, $in.in)); }
 	;
 
 in returns [In in]
