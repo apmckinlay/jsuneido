@@ -10,6 +10,7 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
 import suneido.SuException;
+import suneido.database.Table;
 import suneido.database.query.RequestParser.IRequest;
 import suneido.database.query.RequestParser.Index;
 import suneido.database.query.RequestParser.Rename;
@@ -41,9 +42,18 @@ public class Request {
 			schema(table, schema);
 		}
 
-		public void ensure(String table, Schema schema) {
-			System.out.println("ensure " + table);
-			// schema(table, schema);
+		public void ensure(String tablename, Schema schema) {
+			Table table = theDB.ck_getTable(tablename);
+			for (String col : schema.columns)
+				if (!table.hasColumn(col))
+					theDB.addColumn(tablename, col);
+			for (Index index : schema.indexes) {
+				String cols = listToCommas(index.columns);
+				if (!table.hasIndex(cols))
+					theDB.addIndex(tablename, cols,
+						index.isKey, index.isUnique, false, index.in.table,
+						listToCommas(index.in.columns), index.in.mode);
+			}
 		}
 
 		public void alter_create(String table, Schema schema) {
@@ -51,37 +61,35 @@ public class Request {
 		}
 
 		public void alter_delete(String table, Schema schema) {
-			System.out.println("alter delete " + table);
-			// schema(table, schema);
+			for (String col : schema.columns)
+				theDB.removeColumn(table, col);
+			for (Index index : schema.indexes) {
+				theDB.removeIndex(table, listToCommas(index.columns));
+			}
 		}
 
 		private void schema(String table, Schema schema) {
-			if (schema.columns != null)
-				for (String col : schema.columns)
-					theDB.addColumn(table, col);
+			for (String col : schema.columns)
+				theDB.addColumn(table, col);
 			for (Index index : schema.indexes) {
 				theDB.addIndex(table, listToCommas(index.columns),
-						index.isKey, index.isUnique, false, "", "", 0);
-				// TODO foreign keys
-				// if (index.in != null)
-				// System.out.print(", " + index.in.table + ", "
-				// + index.in.columns + ", " + index.in.mode);
-				// System.out.println(")");
+						index.isKey, index.isUnique, false,
+						index.in.table,
+						listToCommas(index.in.columns), index.in.mode);
 			}
 		}
 
 		public void alter_rename(String table, List<Rename> renames) {
-			for (Rename r : renames)
-				System.out.println("renameColumn(" + table + ", " + r.from
-						+ ", " + r.to + ")");
+			// for (Rename r : renames)
+			// theDB.renameColumn(table, r.from, r.to);
 		}
 
 		public void rename(String from, String to) {
-			System.out.println("renameTable(" + from + ", " + to + ")");
+			// theDB.renameTable(from, to);
 		}
 
 		public void drop(String table) {
-			// theDB.removeTable(table);
+			theDB.removeTable(table);
 		}
 
 	}

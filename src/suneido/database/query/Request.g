@@ -7,7 +7,10 @@ tokens {
 	COLUMNS;
 }
 
-@header { package suneido.database.query; }
+@header {
+package suneido.database.query;
+import java.util.Collections;
+}
 @lexer::header { package suneido.database.query; }
 
 @members {
@@ -61,22 +64,24 @@ static class PrintRequest implements IRequest {
 public IRequest iRequest = new PrintRequest();
 
 static class Schema {
-	List<String> columns;
+	List<String> columns = Collections.EMPTY_LIST;
 	List<Index> indexes = new ArrayList<Index>();
 }
 static class Index {
 	boolean isKey = false;
 	boolean isUnique = false;
 	List<String> columns;
-	In in;
+	In in = In.nil;
 	Index(boolean isKey, boolean isUnique, List<String> columns, In in) {
 		this.isKey = isKey;
 		this.isUnique = isUnique;
 		this.columns = columns;
-		this.in = in;
+		if (in != null)
+			this.in = in;
 	}
 }
 static class In {
+	static final In nil = new In(null, Collections.EMPTY_LIST, 0);
 	String table;
 	List<String> columns;
 	int mode;
