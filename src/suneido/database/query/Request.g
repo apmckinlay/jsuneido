@@ -104,19 +104,19 @@ static class Rename {
 request 
 	scope { Schema schema; }
 	@init { $request::schema = new Schema(); }
-	: 'create' ID schema
+	: CREATE ID schema
 		{ iRequest.create($ID.text, $request::schema); }
-	| 'ensure' ID partial
+	| ENSURE ID partial
 		{ iRequest.ensure($ID.text, $request::schema); }
-	| 'alter' ID 'rename' renames
+	| ALTER ID RENAME renames
 		{ iRequest.alter_rename($ID.text, $renames.list); }
-    | 'alter' ID 'create' partial
+    | ALTER ID CREATE partial
     	{ iRequest.alter_create($ID.text, $request::schema); }
-    | 'alter' ID 'delete' partial
+    | ALTER ID (DROP|DELETE) partial
     	{ iRequest.alter_delete($ID.text, $request::schema); }
     | rename
     	{ iRequest.rename($rename.from, $rename.to); }
-    | ('drop'|'delete') ID
+    | (DROP|DELETE) ID
     	{ iRequest.drop($ID.text); }
     ;
   
@@ -134,16 +134,16 @@ columns returns [List<String> list]
 column[List<String> list]
 	:	ID { list.add($ID.text); } ;
 	
-key	: 'key' columns in? 
+key	: KEY columns in? 
 		{ $request::schema.indexes.add(new Index(true, false, $columns.list, $in.in)); }
 	;
 
-index : 'index' (u='unique' | 'lower')? columns in? 
+index : INDEX (u=UNIQUE | LOWER)? columns in? 
 		{ $request::schema.indexes.add(new Index(false, $u != null, $columns.list, $in.in)); }
 	;
 
 in returns [In in]
-	:	'in' ID columns? (c='cascade' u='updates'?)? 
+	:	IN ID columns? (c=CASCADE u=UPDATES ?)? 
 		{
 		int mode = 0;
 		if ($u != null)
@@ -163,9 +163,24 @@ rename1[List<Rename> list]
 	;
     
 rename 	 returns [String from, String to]
-	:	'rename' f=ID 'to' t=ID 
+	:	RENAME f=ID TO t=ID 
 		{ $from = $f.text; $to = $t.text; }
 	;
+	
+CREATE	: ('c'|'C')('r'|'R')('e'|'E')('a'|'A')('t'|'T')('e'|'E') ;
+ENSURE	: ('e'|'E')('n'|'N')('s'|'S')('u'|'U')('r'|'R')('e'|'E') ;
+DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
+DROP	: ('d'|'D')('r'|'R')('o'|'O')('p'|'P') ;
+ALTER	: ('a'|'A')('l'|'L')('t'|'T')('e'|'E')('r'|'R') ;
+RENAME	: ('r'|'R')('e'|'E')('n'|'N')('a'|'A')('m'|'M')('e'|'E') ;
+IN		: ('i'|'I')('n'|'N') ;
+TO		: ('t'|'T')('o'|'O') ;
+UNIQUE	: ('u'|'U')('n'|'N')('i'|'I')('q'|'Q')('u'|'U')('e'|'E') ;
+LOWER	: ('l'|'L')('o'|'O')('w'|'W')('e'|'E')('r'|'R') ;
+CASCADE	: ('c'|'C')('a'|'A')('s'|'S')('c'|'C')('a'|'A')('d'|'D')('e'|'E') ;
+UPDATES	: ('u'|'U')('p'|'P')('d'|'D')('a'|'A')('t'|'T')('e'|'E')('s'|'S') ;
+INDEX	: ('i'|'I')('n'|'N')('d'|'D')('e'|'E')('x'|'X') ;
+KEY		: ('k'|'K')('e'|'E')('y'|'Y') ;
 
 ID    : ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 

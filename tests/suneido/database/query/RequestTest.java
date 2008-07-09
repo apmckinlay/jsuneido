@@ -16,7 +16,7 @@ public class RequestTest extends TestBase {
 		Request.execute("create test " + schema);
 		assertEquals(schema, db.schema("test"));
 
-		Request.execute("ensure test (c,d,e) key(a) index(b,c)");
+		Request.execute("ensure test (c,d,e) KEY(a) INDEX(b,c)");
 		schema = "(a,b,c,d,e) key(a) index(b,c)";
 		assertEquals(schema, db.schema("test"));
 
@@ -24,7 +24,7 @@ public class RequestTest extends TestBase {
 		Request.execute("alter test create" + extra);
 		assertEquals(schema + extra, db.schema("test"));
 
-		Request.execute("alter test delete index(c)");
+		Request.execute("ALTER test DROP index(c)");
 		assertEquals(schema, db.schema("test"));
 
 		Request.execute("drop test");
