@@ -29,12 +29,19 @@ public class Table {
 		nrecords = record.getInt(NROWS);
 		totalsize = record.getInt(TOTALSIZE);
 	}
+	@Override
+	public String toString() {
+		return "Table('" + name + "', " + num + ")";
+	}
+
 	public void addColumn(Column column) {
 		columns.add(column);
 	}
+
 	public void sortColumns() {
 		columns.sort();
 	}
+
 	public void addIndex(Index index) {
 		indexes.add(index);
 	}
@@ -43,9 +50,8 @@ public class Table {
 		return columns.hasColumn(name);
 	}
 
-	@Override
-	public String toString() {
-		return "Table('" + name + "', " + num + ")";
+	public Column getColumn(String name) {
+		return columns.find(name);
 	}
 
 	public void user_trigger(Transaction tran, Record norec, Record r) {

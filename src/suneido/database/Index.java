@@ -11,7 +11,7 @@ import suneido.SuValue;
 
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
- * 
+ *
  * @author Andrew McKinlay
  *         <p>
  *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -32,8 +32,8 @@ public class Index {
 	ForeignKey fksrc = null;
 	ArrayList<ForeignKey> fkdsts = new ArrayList<ForeignKey>();
 
-	public Index(Record record, String columns, short[] colnums, BtreeIndex btreeIndex,
-			List<Record> fkdstrecs) {
+	public Index(Record record, String columns, short[] colnums,
+			BtreeIndex btreeIndex, List<Record> fkdstrecs) {
 		this.record = record;
 		verify(record.off() != 0);
 		this.columns = columns;
@@ -66,10 +66,10 @@ public class Index {
 	public static Record record(BtreeIndex btreeIndex, String fktable,
 			String fkcolumns, int fkmode) {
 		Record r = new Record()
-		.add(btreeIndex.tblnum)
-		.add(btreeIndex.index)
-		.add(btreeIndex.iskey ? SuBoolean.TRUE :
-			btreeIndex.unique ? UNIQUE : SuBoolean.FALSE)
+			.add(btreeIndex.tblnum)
+			.add(btreeIndex.indexColumns)
+			.add(btreeIndex.iskey ? SuBoolean.TRUE :
+				btreeIndex.unique ? UNIQUE : SuBoolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
 		indexInfo(r, btreeIndex);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize

@@ -7,10 +7,8 @@ import static suneido.Suneido.verify;
  * stuff.
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
 	Destination dest;
@@ -18,7 +16,7 @@ public class BtreeIndex {
 	boolean iskey;
 	boolean unique;
 	int tblnum;
-	String index;
+	String indexColumns;
 
 	/**
 	 * Create a new index.
@@ -44,7 +42,7 @@ public class BtreeIndex {
 		this.iskey = iskey;
 		this.unique = unique;
 		this.tblnum = tblnum;
-		this.index = index;
+		this.indexColumns = index;
 	}
 
 	public long root() {
@@ -124,7 +122,7 @@ public class BtreeIndex {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
-			tranread = tran.read_act(tblnum, index);
+			tranread = tran.read_act(tblnum, indexColumns);
 		}
 
 		public boolean eof() {
