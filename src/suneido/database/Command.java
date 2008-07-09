@@ -1,8 +1,12 @@
 package suneido.database;
 
+import static suneido.database.Util.bufferToString;
+
 import java.nio.ByteBuffer;
 
 import org.ronsoft.nioserver.OutputQueue;
+
+import suneido.database.query.Request;
 
 /**
  * Implements the server protocol commands.
@@ -11,19 +15,15 @@ import org.ronsoft.nioserver.OutputQueue;
  */
 public enum Command {
 	BADCMD {
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra, OutputQueue outputQueue) {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
 			badcmd.position(0);
 			outputQueue.enqueue(badcmd);
 			return line;
-		}	
-	},
-	LIBGET {
-		@Override public int extra(ByteBuffer buf) {
-			return 1;
 		}
 	},
-	GET {
-	},
+	LIBGET, GET,
 	GET1,
 	OUTPUT,
 	UPDATE,
@@ -35,11 +35,18 @@ public enum Command {
 	CLOSE,
 	QUERY,
 	REQUEST,
-	ADMIN,
+	ADMIN {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			Request.execute(bufferToString(line));
+			return OK;
+		}
+	},
 	LIBRARIES,
 	EXPLAIN,
 	REWIND,
-	ERASE, 
+	ERASE,
 	COMMIT,
 	ABORT,
 	TIMESTAMP,
@@ -59,7 +66,7 @@ public enum Command {
 	FINAL,
 	LOG,
 	KILL;
-	
+
 	/**
 	 * @param buf A ByteBuffer containing the command line.
 	 * @return The amount of "extra" data required by the command in the buffer.
@@ -70,6 +77,7 @@ public enum Command {
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra, OutputQueue outputQueue) {
 		return line; //TODO just echo for now
 	}
-	private final static ByteBuffer badcmd = 
+	private final static ByteBuffer badcmd =
 		ByteBuffer.wrap("ERR bad command: ".getBytes());
+	private final static ByteBuffer OK = ByteBuffer.wrap("OK\r\n".getBytes());
 }

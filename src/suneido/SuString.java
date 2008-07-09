@@ -1,10 +1,13 @@
 package suneido;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static suneido.database.Util.bufferToString;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import static java.lang.Math.min;
-import static java.lang.Math.max;
-import static suneido.Symbols.*;
+
+import suneido.Symbols.Num;
 
 /**
  * Wrapper for Java String
@@ -12,29 +15,29 @@ import static suneido.Symbols.*;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuString extends SuValue {
-	private String s;
+	private final String s;
 	final public static SuString EMPTY = new SuString("");
-	
+
 	public SuString(String s) {
 		this.s = s;
 	}
-	
+
 	@Override
 	public String string() {
 		return s;
 	}
-	
+
 	/**
 	 * @param member Converted to an integer zero-based position in the string.
-	 * @return An SuString containing the single character at the position, 
+	 * @return An SuString containing the single character at the position,
 	 * 			or "" if the position is out of range.
 	 */
 	@Override
 	public SuValue getdata(SuValue member) {
 		int i = member.integer();
 		return 0 <= i && i < s.length()
-			? new SuString(s.substring(i, i + 1))
-			: EMPTY;
+		? new SuString(s.substring(i, i + 1))
+		: EMPTY;
 	}
 
 	@Override
@@ -53,7 +56,7 @@ public class SuString extends SuValue {
 			return super.integer();
 		}
 	}
-	
+
 	@Override
 	public SuDecimal number() {
 		try {
@@ -95,7 +98,7 @@ public class SuString extends SuValue {
 	@Override
 	public int packSize() {
 		int n = s.length();
-		return n == 0 ? 0 : 1 + n; 
+		return n == 0 ? 0 : 1 + n;
 	}
 
 	@Override
@@ -114,21 +117,15 @@ public class SuString extends SuValue {
 		if (buf.limit() <= 1)
 			return EMPTY;
 		buf.get(); // skip STRING
-		byte[] bytes = new byte[buf.remaining()];
-		buf.get(bytes);
-		try {
-			return new SuString(new String(bytes, "US-ASCII"));
-		} catch (UnsupportedEncodingException e) {
-			throw new SuException("can't unpack string", e);
-		}
+		return new SuString(bufferToString(buf));
 	}
-	
+
 	// methods ======================================================
-	
+
 	// TODO program that finds all the method symbols in the source
 	// and creates a file to initialize them all
 	// since they have to be constant ints for switches
-	
+
 	@Override
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		switch (method) {
@@ -143,7 +140,7 @@ public class SuString extends SuValue {
 	private static int[] substr_params = new int[] { Num.I, Num.N };
 	private SuValue substr(SuValue[] args) {
 		args = SuClass.massage(args, substr_params);
-		int len = s.length();		
+		int len = s.length();
 		int i = args[0].integer();
 		if (i < 0)
 			i += len;
@@ -154,7 +151,7 @@ public class SuString extends SuValue {
 		n = max(0, min(n, len - i));
 		return new SuString(s.substring(i, i + n));
 	}
-	
+
 	private SuValue size(SuValue[] args) {
 		return SuInteger.valueOf(s.length());
 	}
