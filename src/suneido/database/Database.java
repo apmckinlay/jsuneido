@@ -3,6 +3,8 @@ package suneido.database;
 import static java.lang.Math.min;
 import static suneido.Suneido.verify;
 import static suneido.database.Transaction.NULLTRAN;
+import static suneido.database.Util.commasToList;
+import static suneido.database.Util.listToCommas;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -146,7 +148,7 @@ public class Database {
 
 	private long createSchemaIndex(BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, Index.record(btreeIndex));
-		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.index)
+		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.indexColumns)
 		.addMmoffset(at);
 		verify(indexes_index.insert(NULLTRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
@@ -279,7 +281,28 @@ public class Database {
 		tables.remove(tablename);
 	}
 
-	// TODO renameTable
+	public void renameTable(String oldname, String newname) {
+		if (oldname.equals(newname))
+			return ;
+
+		Table tbl = ck_getTable(oldname);
+		if (is_system_table(oldname))
+			throw new SuException("rename table: can't rename system table: " + oldname);
+		if (null != getTable(newname))
+			throw new SuException("rename table: table already exists: " + newname);
+
+		Transaction tran = readwriteTran();
+		try {
+			update_any_record(tran, "tables", "table", key(tbl.num),
+				Table.record(newname, tbl.num, tbl.nextfield, tbl.nrecords));
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+
+		tables.remove(oldname);
+
+	}
 
 	// columns ======================================================
 
@@ -340,7 +363,44 @@ public class Database {
 		remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
 	}
 
-	// TODO renameColumn
+	public void renameColumn(String table, String oldname, String newname) {
+		if (oldname == newname)
+			return ;
+
+		Table tbl = ck_getTable(table);
+		if (is_system_column(table, oldname))
+			throw new SuException("rename column: can't rename system column: " + oldname + " in " + table);
+
+		Column col = tbl.getColumn(oldname);
+		if (col == null)
+			throw new SuException("rename column: nonexistent column: " + oldname + " in " + table);
+		if (tbl.hasColumn(newname))
+			throw new SuException("rename column: column already exists: " + newname + " in " + table);
+
+		Transaction tran = readwriteTran();
+		try {
+			add_any_record(tran, "columns",
+					Column.record(tbl.num, newname, col.num));
+			remove_any_record(tran, "columns", "table,column", key(tbl.num, oldname));
+
+			// update any indexes that include this column
+			for (Index idx : tbl.indexes) {
+				List<String> cols = commasToList(idx.columns);
+				int i = Util.find(cols, oldname);
+				if (i < 0)
+					continue ; // this index doesn't contain the column
+				cols.set(i, newname);
+				idx.btreeIndex.indexColumns = listToCommas(cols);
+				add_any_record(tran, "indexes",
+						Index.record(idx.btreeIndex)); // TODO foreign key
+				remove_any_record(tran, "indexes", "table,columns", key(tbl.num, idx.columns));
+				}
+			tran.ck_complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+		tables.remove(table);
+	}
 
 	// indexes ======================================================
 
