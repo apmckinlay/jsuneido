@@ -80,12 +80,12 @@ public class Request {
 		}
 
 		public void alter_rename(String table, List<Rename> renames) {
-			// for (Rename r : renames)
-			// theDB.renameColumn(table, r.from, r.to);
+			for (Rename r : renames)
+				theDB.renameColumn(table, r.from, r.to);
 		}
 
 		public void rename(String from, String to) {
-			// theDB.renameTable(from, to);
+			theDB.renameTable(from, to);
 		}
 
 		public void drop(String table) {
