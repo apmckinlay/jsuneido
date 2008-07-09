@@ -158,7 +158,7 @@ renames returns [List<Rename> list]
 	@init { list = new ArrayList<Rename>(); }
 	: rename1[list] (',' rename1[list] )* ;
 rename1[List<Rename> list]
-	:	f=ID 'to' t=ID 
+	:	f=ID TO t=ID 
 		{ list.add(new Rename($f.text, $t.text)); }
 	;
     

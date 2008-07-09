@@ -27,7 +27,19 @@ public class RequestTest extends TestBase {
 		Request.execute("ALTER test DROP index(c)");
 		assertEquals(schema, db.schema("test"));
 
-		Request.execute("drop test");
+		Request.execute("alter test rename b to bb");
+		schema = "(a,bb,c,d,e) key(a) index(bb,c)";
+		assertEquals(schema, db.schema("test"));
+
+		Request.execute("alter test drop (d,e)");
+		schema = "(a,bb,c) key(a) index(bb,c)";
+		assertEquals(schema, db.schema("test"));
+
+		Request.execute("RENAME test TO tmp");
+		assertEquals(schema, db.schema("tmp"));
 		assertNull(db.getTable("test"));
+
+		Request.execute("drop tmp");
+		assertNull(db.getTable("tmp"));
 	}
 }

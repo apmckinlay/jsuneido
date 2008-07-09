@@ -108,8 +108,8 @@ public class Database {
 		createSchemaColumn(TN.INDEXES, "nnodes", 8);
 
 		// indexes
-		indexes_index = new BtreeIndex(dest, TN.INDEXES, "table,columns", true,
-				false);
+		indexes_index = new BtreeIndex(dest, TN.INDEXES, "table,columns",
+				true, false);
 		fkey_index = new BtreeIndex(dest, TN.INDEXES, "fktable,fkcolumns",
 				false, false);
 		createSchemaIndex(tablename_index);
@@ -369,19 +369,22 @@ public class Database {
 
 		Table tbl = ck_getTable(table);
 		if (is_system_column(table, oldname))
-			throw new SuException("rename column: can't rename system column: " + oldname + " in " + table);
+			throw new SuException("rename column: can't rename system column: "
+					+ oldname + " in " + table);
 
 		Column col = tbl.getColumn(oldname);
 		if (col == null)
-			throw new SuException("rename column: nonexistent column: " + oldname + " in " + table);
+			throw new SuException("rename column: nonexistent column: " 
+					+ oldname + " in " + table);
 		if (tbl.hasColumn(newname))
-			throw new SuException("rename column: column already exists: " + newname + " in " + table);
+			throw new SuException("rename column: column already exists: " 
+					+ newname + " in " + table);
 
 		Transaction tran = readwriteTran();
 		try {
-			add_any_record(tran, "columns",
+			update_any_record(tran, "columns", "table,column", 
+					key(tbl.num, oldname),
 					Column.record(tbl.num, newname, col.num));
-			remove_any_record(tran, "columns", "table,column", key(tbl.num, oldname));
 
 			// update any indexes that include this column
 			for (Index idx : tbl.indexes) {
@@ -391,9 +394,8 @@ public class Database {
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);
 				idx.btreeIndex.indexColumns = listToCommas(cols);
-				add_any_record(tran, "indexes",
-						Index.record(idx.btreeIndex)); // TODO foreign key
-				remove_any_record(tran, "indexes", "table,columns", key(tbl.num, idx.columns));
+				update_any_record(tran, "indexes", "table,columns", 
+						key(tbl.num, idx.columns), idx.record());
 				}
 			tran.ck_complete();
 		} finally {

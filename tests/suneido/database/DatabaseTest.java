@@ -330,6 +330,7 @@ public class DatabaseTest extends TestBase {
 
 	// TODO add/get/remove views
 	// TODO remove column/index/table
+	// TODO rename column/table
 
 	@Test
 	public void schema() {
