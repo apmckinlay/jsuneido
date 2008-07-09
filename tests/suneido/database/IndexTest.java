@@ -8,6 +8,8 @@ import static suneido.database.Transaction.NULLTRAN;
 import org.junit.Test;
 
 public class IndexTest {
+	private DestMem dest;
+
 	@Test
 	public void normal() {
 		BtreeIndex ix = new BtreeIndex(dest = new DestMem(), 0, "", false, false);
@@ -50,7 +52,6 @@ public class IndexTest {
 		assertTrue(iter.prev().eof());
 	}
 
-	private DestMem dest;
 	private Slot makeslot(int ... args) {
 		Record r = new Record(100);
 		for (int i : args)

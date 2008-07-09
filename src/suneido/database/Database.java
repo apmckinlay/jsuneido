@@ -519,42 +519,7 @@ public class Database {
 	}
 
 	public String schema(String table) {
-		Table tbl = ck_getTable(table);
-		StringBuilder sb = new StringBuilder();
-
-		// fields
-		sb.append("(");
-		for (String f : tbl.columnNames())
-			if (! f.equals("-"))
-				sb.append(f).append(",");
-//		for (String f : get_rules(table))
-//			{
-//			gcstring str(f->str()); // copy
-//			char* s = str.str();
-//			*s = toupper(*s);
-		// sb.append(s).append(",");
-//			}
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append(")");
-
-		// indexes
-		for (Index ix : tbl.indexes) {
-			if (ix.iskey())
-				sb.append(" key");
-			else
-				sb.append(" index").append(ix.btreeIndex.unique ? " unique" : "");
-			sb.append("(").append(ix.columns).append(")");
-			if (ix.fksrc != null && !ix.fksrc.tablename.equals("")) {
-				sb.append(" in ").append(ix.fksrc.tablename);
-				if (! ix.fksrc.columns.equals(ix.columns))
-					sb.append("(").append(ix.fksrc.columns).append(")");
-				if (ix.fksrc.mode == Index.CASCADE)
-					sb.append(" cascade");
-				else if (ix.fksrc.mode == Index.CASCADE_UPDATES)
-					sb.append(" cascade update");
-			}
-		}
-		return sb.toString();
+		return ck_getTable(table).schema();
 	}
 
 	// views ========================================================
