@@ -22,6 +22,7 @@ public interface IRequest {
 	void alter_rename(String table, List<Rename> renames);
 	void rename(String from, String to);
 	void drop(String table);
+	void error(String msg);
 }
 static class PrintRequest implements IRequest {
 	public void create(String table, Schema schema) {
@@ -59,6 +60,9 @@ static class PrintRequest implements IRequest {
 	}
 	public void drop(String table) {
 		System.out.println("removeTable(" + table + ")");
+	}
+	public void error(String msg) {
+		System.out.println(msg);
 	}
 }
 public IRequest iRequest = new PrintRequest();
@@ -98,6 +102,9 @@ static class Rename {
 		this.from = from;
 		this.to = to;
 	}
+}
+public void emitErrorMessage(String msg) {
+	iRequest.error(msg);
 }
 }
 

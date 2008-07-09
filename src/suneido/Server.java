@@ -1,9 +1,11 @@
 package suneido;
 
+import static suneido.database.Mode.CREATE;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.io.*;
 
 import org.ronsoft.nioserver.BufferFactory;
 import org.ronsoft.nioserver.ChannelFacade;
@@ -15,6 +17,8 @@ import org.ronsoft.nioserver.impl.NioDispatcher;
 import org.ronsoft.nioserver.impl.StandardAcceptor;
 
 import suneido.database.Command;
+import suneido.database.Database;
+import suneido.database.DestMem;
 
 /**
  * Using org.ronsoft.nioserver -
@@ -29,12 +33,12 @@ public class Server {
 		BufferFactory bufFactory = new DumbBufferFactory (1024);
 		NioDispatcher dispatcher = new NioDispatcher (executor, bufFactory);
 		StandardAcceptor acceptor = new StandardAcceptor (port, dispatcher,
-			new GenericInputHandlerFactory(Handler.class));
+				new GenericInputHandlerFactory(Handler.class));
 
 		dispatcher.start();
 		acceptor.newThread();
 	}
-	
+
 	/**
 	 *  If I understand correctly, a given handler instance
 	 *  will only be running in single thread at any one time,
@@ -46,7 +50,7 @@ public class Server {
 		Command cmd = null;
 		ByteBuffer extra = null;
 		int nExtra = -1;
-		
+
 		public ByteBuffer nextMessage(ChannelFacade channelFacade) {
 			InputQueue inputQueue = channelFacade.inputQueue();
 			if (line == null) { // starting state = waiting for newline
@@ -62,7 +66,7 @@ public class Server {
 				extra = inputQueue.dequeueBytes(nExtra);
 				return line;
 			}
-			return null;			
+			return null;
 		}
 		private static Command getCmd(ByteBuffer buf) {
 			try {
@@ -73,8 +77,9 @@ public class Server {
 		}
 		private static String firstWord(ByteBuffer buf) {
 			String s = "";
-			for (int i = 0; i < buf.limit(); ++i) {
-				char c = (char) buf.get(i);
+			buf.position(0);
+			while (buf.remaining() > 0) {
+				char c = (char) buf.get();
 				if (c == ' ' || c == '\r' || c == '\n')
 					break ;
 				s += c;
@@ -82,10 +87,19 @@ public class Server {
 			return s;
 		}
 		public void handleInput(ByteBuffer message, ChannelFacade channelFacade) {
-			ByteBuffer output = cmd.execute(line, extra, channelFacade.outputQueue());
-			if (output != null)
+			ByteBuffer output;
+			try {
+				output = cmd.execute(line, extra, channelFacade.outputQueue());
+			} catch (Throwable e) {
+				e.printStackTrace();
+				output = ByteBuffer.wrap(
+						("ERR " + e.toString() + "\r\n").getBytes());
+			}
+			if (output != null) {
+				output.position(0);
 				channelFacade.outputQueue().enqueue(output);
-			line = extra = null; 
+			}
+			line = extra = null;
 			cmd = null;
 			nExtra = -1;
 		}
@@ -111,6 +125,7 @@ public class Server {
 	}
 
 	public static void main(String[] args) throws IOException {
+		Database.theDB = new Database(new DestMem(), CREATE);
 		start(3456);
 	}
 }

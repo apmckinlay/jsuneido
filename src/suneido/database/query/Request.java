@@ -18,9 +18,11 @@ import suneido.database.query.RequestParser.Schema;
 
 /**
  * Parse and execute database "requests" to create, alter, or remove tables.
- * Uses the ANTLR grammer in {@Query.g}.
+ * Uses the ANTLR grammer in {Request.g}.
+ * 
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Request {
 	public static void execute(String s) {
@@ -51,8 +53,8 @@ public class Request {
 				String cols = listToCommas(index.columns);
 				if (!table.hasIndex(cols))
 					theDB.addIndex(tablename, cols,
-						index.isKey, index.isUnique, false, index.in.table,
-						listToCommas(index.in.columns), index.in.mode);
+							index.isKey, index.isUnique, false, index.in.table,
+							listToCommas(index.in.columns), index.in.mode);
 			}
 		}
 
@@ -63,20 +65,18 @@ public class Request {
 		public void alter_delete(String table, Schema schema) {
 			for (String col : schema.columns)
 				theDB.removeColumn(table, col);
-			for (Index index : schema.indexes) {
+			for (Index index : schema.indexes)
 				theDB.removeIndex(table, listToCommas(index.columns));
-			}
 		}
 
 		private void schema(String table, Schema schema) {
 			for (String col : schema.columns)
 				theDB.addColumn(table, col);
-			for (Index index : schema.indexes) {
+			for (Index index : schema.indexes)
 				theDB.addIndex(table, listToCommas(index.columns),
 						index.isKey, index.isUnique, false,
 						index.in.table,
 						listToCommas(index.in.columns), index.in.mode);
-			}
 		}
 
 		public void alter_rename(String table, List<Rename> renames) {
@@ -90,6 +90,10 @@ public class Request {
 
 		public void drop(String table) {
 			theDB.removeTable(table);
+		}
+
+		public void error(String msg) {
+			throw new SuException("syntax error: " + msg);
 		}
 
 	}
