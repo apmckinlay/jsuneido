@@ -1,4 +1,4 @@
-package suneido;
+package suneido.database.server;
 
 import static suneido.database.Mode.CREATE;
 
@@ -16,7 +16,6 @@ import org.ronsoft.nioserver.impl.GenericInputHandlerFactory;
 import org.ronsoft.nioserver.impl.NioDispatcher;
 import org.ronsoft.nioserver.impl.StandardAcceptor;
 
-import suneido.database.Command;
 import suneido.database.Database;
 import suneido.database.DestMem;
 

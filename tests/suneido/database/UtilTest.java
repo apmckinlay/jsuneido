@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.Util;
+import suneido.Util;
 
 
 public class UtilTest {

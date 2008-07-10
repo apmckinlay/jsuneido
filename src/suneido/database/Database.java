@@ -2,9 +2,9 @@ package suneido.database;
 
 import static java.lang.Math.min;
 import static suneido.Suneido.verify;
+import static suneido.Util.commasToList;
+import static suneido.Util.listToCommas;
 import static suneido.database.Transaction.NULLTRAN;
-import static suneido.database.Util.commasToList;
-import static suneido.database.Util.listToCommas;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
+import suneido.Util;
 
 /**
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
