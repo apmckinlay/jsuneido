@@ -2,7 +2,7 @@ package suneido;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static suneido.database.Util.bufferToString;
+import static suneido.Util.bufferToString;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;

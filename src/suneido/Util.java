@@ -1,11 +1,10 @@
-package suneido.database;
+package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-import suneido.SuException;
 
 /**
  * Miscellaneous functions.
