@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido;
 
 import static org.junit.Assert.assertEquals;
 

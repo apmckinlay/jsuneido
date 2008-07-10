@@ -13,7 +13,7 @@ import suneido.database.Transaction;
 
 public class QueryTable extends Query {
 	private final String table;
-	private final Table tbl;
+	private Table tbl;
 	private int choice;
 	private boolean first = true;
 	private boolean rewound = true;
@@ -23,15 +23,13 @@ public class QueryTable extends Query {
 	private Transaction tran;
 	private SuValue trigger;
 	private List<Integer> flds;
-	private final boolean singleton; // i.e. key()
+	private boolean singleton; // i.e. key()
 	private List<String> idx;
 	private BtreeIndex.Iter iter;
 
 
 	public QueryTable(String tablename) {
 		table = tablename;
-		tbl = theDB.ck_getTable(table);
-		singleton = tbl.singleton();
 	}
 
 	@Override
@@ -128,6 +126,8 @@ public class QueryTable extends Query {
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		// TODO optimize2
+		tbl = theDB.ck_getTable(table);
+		singleton = tbl.singleton();
 		idx = indexes().get(0);
 		return 10;
 	}

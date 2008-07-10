@@ -4,22 +4,41 @@ options {
 	language = Java;
 }
  
-query : source op* ;
+@header {
+package suneido.database.query;
+}
+@lexer::header { package suneido.database.query; }
 
-source  : ID
+// need this extra rule 
+// because ANTLR wants a start rule that is not referenced anywhere
+query returns [Query result] 
+	:	query2 
+    	{ $result = $query2.result; }
+	;
+
+query2 returns [Query result] 
+	: source op* sort?
+    	{ $result = $source.result; } // TEMPORARY
+	;
+
+source returns [Query result]
+	: ID
+		{ $result = new QueryTable($ID.text); }
     | 'history' '(' ID ')'
-    | '(' query ')'
+    | '(' query2 ')'
+    	{ $result = $query2.result; }
     ;
 
-op    : 'sort' 'reverse'? cols
-    | ('project'|'remove') cols
+op	: ('project'|'remove') cols
     | 'rename' (ID 'to' ID) (',' ID 'to' ID)*
-    | ('join'|'leftjoin') ('by' columns)? source
+    | ('join'|'leftjoin') ('by' '(' cols ')')? source
     | ('union'|'times'|'difference'|'intersect') source
     | 'summarize' summary (',' summary)*
     | 'extend' extend (',' extend)*
     | 'where' expr
     ;
+    
+sort : 'sort' 'reverse'? cols ;
 
 columns : '(' ID (','? ID)* ')' ;
 
@@ -34,7 +53,7 @@ extend  : ID '=' expr ;
 expr  : or ('?' expr ':' expr)? ;
 or    : and (OR and)* ;
 and   : in (AND in)* ;
-in    : bitor ('in' '(' const (','? const)* ')')? ;
+in    : bitor ('in' '(' constant (','? constant)* ')')? ;
 bitor : bitxor ('|' bitxor)* ;
 bitxor  : bitand ('^' bitand)* ;
 bitand  : is ('&' is)* ;
@@ -45,17 +64,17 @@ add   : mul (('+'|'-'|'$') mul)* ;
 mul   : unary (('*'|'/'|'%') unary)* ;
 unary : ('-'|'+'|'~'|NOT)? term ;
 term  : ID
-    | const
+    | constant
     | '(' expr ')'
     ;
-const : NUM
+constant : NUM
     | STRING
     | '[' members ']'
     | '#' '(' members ')'
     | '#' '{' members '}'
     ;
 members : member (',' member)* ;
-member  : const
+member  : constant
     | '(' members ')'
     | '{' members '}'
     | ID ':' member

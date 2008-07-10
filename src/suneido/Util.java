@@ -2,13 +2,14 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
 /**
  * Miscellaneous functions.
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
@@ -45,4 +46,24 @@ public class Util {
 		}
 	}
 
+	public static <T> boolean subset(List<T> x, List<T> y) {
+		for (T t : y)
+			if (!x.contains(t))
+				return false;
+		return true;
+	}
+
+	public static List<String> set_union(List<String> x, List<String> y) {
+		if (x.size() < y.size()) {
+			List<String> tmp = x;
+			x = y;
+			y = tmp;
+		}
+		List<String> result = new ArrayList<String>(x);
+		for (String s : y) {
+			if (!result.contains(s))
+				result.add(s);
+		}
+		return result;
+	}
 }
