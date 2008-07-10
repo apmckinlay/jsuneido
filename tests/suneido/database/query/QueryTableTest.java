@@ -17,6 +17,7 @@ public class QueryTableTest extends TestBase {
 		makeTable(3);
 
 		QueryTable qt = new QueryTable("test");
+		qt.optimize2(null, null, null, false, false); // TEMPORARY
 		Transaction t = db.readonlyTran();
 		qt.setTransaction(t);
 		Row row = qt.get(NEXT);
