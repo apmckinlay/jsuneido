@@ -11,6 +11,12 @@ import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
+/**
+ * Base class for query operation classes.
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * Licensed under GPLv2.</small></p>
+ */
 public abstract class Query {
 	private final QueryCache cache = new QueryCache();
 	private boolean willneed_tempindex;
