@@ -14,17 +14,17 @@ import suneido.database.Transaction;
 /**
  * Base class for query operation classes.
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public abstract class Query {
 	private final QueryCache cache = new QueryCache();
 	private boolean willneed_tempindex;
 	private List<String> tempindex;
-	enum Dir {
+	protected enum Dir {
 		NEXT, PREV
 	};
-	private final static List<String> noFields = Collections.emptyList();
+	protected final static List<String> noFields = Collections.emptyList();
 	// cost of writing index relative to reading data
 	private final static int WRITE_FACTOR = 4;
 	// minimal penalty for changing order of operations

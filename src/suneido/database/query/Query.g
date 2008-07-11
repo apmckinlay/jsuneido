@@ -12,13 +12,13 @@ package suneido.database.query;
 // need this extra rule 
 // because ANTLR wants a start rule that is not referenced anywhere
 query returns [Query result] 
-	:	query2 
-    	{ $result = $query2.result; }
+	: query2 sort[$query2.result]?
+    	{ $result = $sort.result == null ? $query2.result : $sort.result; }
 	;
-
-query2 returns [Query result] 
-	: source op* sort?
-    	{ $result = $source.result; } // TEMPORARY
+	
+query2 returns [Query result]
+	: source op[$source.result]*
+    	{ $result = $op.result == null ? $source.result : $op.result; } 
 	;
 
 source returns [Query result]
@@ -29,7 +29,8 @@ source returns [Query result]
     	{ $result = $query2.result; }
     ;
 
-op	: ('project'|'remove') cols
+op[Query source] returns [Query result]
+	: ('project'|'remove') cols
     | 'rename' (ID 'to' ID) (',' ID 'to' ID)*
     | ('join'|'leftjoin') ('by' '(' cols ')')? source
     | ('union'|'times'|'difference'|'intersect') source
@@ -38,11 +39,18 @@ op	: ('project'|'remove') cols
     | 'where' expr
     ;
     
-sort : 'sort' 'reverse'? cols ;
+sort[Query source] returns [Query result]
+	: 'sort' r='reverse'? cols
+		 { $result = new QuerySort($source, $r != null, $cols.list); }
+	;
 
-columns : '(' ID (','? ID)* ')' ;
+columns : '(' cols ')' ;
 
-cols  : ID (','? ID)* ;
+cols returns [List<String> list]  
+	@init { list = new ArrayList<String>(); }
+	: i=ID { list.add($i.text); } 
+		(','? j=ID { list.add($j.text); }
+		)* ;
 
 summary : ID
     | (ID '=')? ('total'|'average'|'max'|'min'|'count'|'list') ID
