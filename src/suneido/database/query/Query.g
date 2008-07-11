@@ -16,8 +16,14 @@ query returns [Query result]
     	{ $result = $sort.result == null ? $query2.result : $sort.result; }
 	;
 	
+sort[Query source] returns [Query result]
+	: 'sort' r='reverse'? cols
+		 { $result = new QuerySort($source, $r != null, $cols.list); }
+	;
+
 query2 returns [Query result]
-	: source op[$source.result]*
+	scope { Query source; }
+	: source { $query2::source = $source.result; } op*
     	{ $result = $op.result == null ? $source.result : $op.result; } 
 	;
 
@@ -29,9 +35,9 @@ source returns [Query result]
     	{ $result = $query2.result; }
     ;
 
-op[Query source] returns [Query result]
+op returns [Query result]
 	: ('project'|'remove') cols
-    | 'rename' (ID 'to' ID) (',' ID 'to' ID)*
+    | rename
     | ('join'|'leftjoin') ('by' '(' cols ')')? source
     | ('union'|'times'|'difference'|'intersect') source
     | 'summarize' summary (',' summary)*
@@ -39,11 +45,18 @@ op[Query source] returns [Query result]
     | 'where' expr
     ;
     
-sort[Query source] returns [Query result]
-	: 'sort' r='reverse'? cols
-		 { $result = new QuerySort($source, $r != null, $cols.list); }
+rename returns [Query result]
+	scope { List<String> froms, tos; }
+	@init { froms = new ArrayList<String>(); tos = new ArrayList<String>(); }
+	: 'rename' rename1 (',' rename1)*
+		{ $result = new QueryRename($query2::source, $rename::froms, $rename::tos); }
 	;
-
+    
+rename1
+	: f=ID 'to' t=ID
+		{ $froms.add($f.text); $tos.add($t.text); }
+	;
+    
 columns : '(' cols ')' ;
 
 cols returns [List<String> list]  
