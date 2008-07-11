@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -25,8 +26,10 @@ public class Util {
 		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
-	public static List<String> commasToList(String commas) {
-		return Arrays.asList(commas.split(","));
+	public static List<String> commasToList(String s) {
+		if (s.equals(""))
+			return Collections.emptyList();
+		return Arrays.asList(s.split(","));
 	}
 
 	public static int find(List<String> list, String value) {
@@ -46,13 +49,11 @@ public class Util {
 		}
 	}
 
-	public static <T> boolean subset(List<T> x, List<T> y) {
-		for (T t : y)
-			if (!x.contains(t))
-				return false;
-		return true;
-	}
-
+	/**
+	 * @return A new list containing all the values from x and y. x is copied as
+	 *         is, so if it has duplicates they are retained. Duplicates from y
+	 *         are not retained.
+	 */
 	public static List<String> set_union(List<String> x, List<String> y) {
 		if (x.size() < y.size()) {
 			List<String> tmp = x;
@@ -60,10 +61,9 @@ public class Util {
 			y = tmp;
 		}
 		List<String> result = new ArrayList<String>(x);
-		for (String s : y) {
+		for (String s : y)
 			if (!result.contains(s))
 				result.add(s);
-		}
 		return result;
 	}
 }

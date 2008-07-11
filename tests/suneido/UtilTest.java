@@ -1,14 +1,14 @@
 package suneido;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-
-import suneido.Util;
-
 
 public class UtilTest {
 	@Test
@@ -22,5 +22,62 @@ public class UtilTest {
 		assertEquals("one,two", Util.listToCommas(list));
 		list.add("three");
 		assertEquals("one,two,three", Util.listToCommas(list));
+	}
+
+	@Test
+	public void commasToList() {
+		assertTrue(Util.commasToList("").isEmpty());
+		List<String> list = new ArrayList<String>();
+		list.add("abc");
+		assertEquals(list, Util.commasToList("abc"));
+		list.add("def");
+		assertEquals(list, Util.commasToList("abc,def"));
+		list.add("ghi");
+		assertEquals(list, Util.commasToList("abc,def,ghi"));
+	}
+
+	@Test
+	public void find() {
+		List<String> list = new ArrayList<String>();
+		assertEquals(-1, Util.find(list, "hello"));
+		list.add("abc");
+		assertEquals(-1, Util.find(list, "hello"));
+		assertEquals(0, Util.find(list, "abc"));
+		list.add("def");
+		list.add("ghi");
+		assertEquals(-1, Util.find(list, "hello"));
+		assertEquals(0, Util.find(list, "abc"));
+		assertEquals(1, Util.find(list, "def"));
+		assertEquals(2, Util.find(list, "ghi"));
+	}
+
+	@Test
+	public void bufferToString() {
+		String s = "hello world";
+		ByteBuffer buf = ByteBuffer.wrap(s.getBytes());
+		assertEquals(s, Util.bufferToString(buf));
+	}
+
+	@Test
+	public void set_union() {
+		List<String> x = new ArrayList<String>();
+		List<String> y = new ArrayList<String>();
+		List<String> list = new ArrayList<String>();
+		assertEquals(list, Util.set_union(x, y));
+		x.add("abc");
+		list.add("abc");
+		assertEquals(list, Util.set_union(x, y));
+		assertEquals(list, Util.set_union(y, x));
+		y.add("def");
+		list.add("def");
+		assertSetEquals(list, Util.set_union(x, y));
+		assertSetEquals(list, Util.set_union(y, x));
+		x.add("def");
+		assertSetEquals(list, Util.set_union(x, y));
+		assertSetEquals(list, Util.set_union(y, x));
+	}
+	private void assertSetEquals(List<String> x, List<String> y) {
+		Collections.sort(y);
+		assertEquals(x, y);
 	}
 }
