@@ -2,7 +2,6 @@ package suneido.database.query;
 
 import static suneido.Suneido.verify;
 import static suneido.Util.set_union;
-import static suneido.Util.subset;
 
 import java.util.Collections;
 import java.util.List;
@@ -88,7 +87,7 @@ public abstract class Query {
 	double optimize(List<String> index, List<String> needs, List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (is_cursor || index.isEmpty())
 			return optimize1(index, needs, firstneeds, is_cursor, freeze);
-		if (!subset(columns(), index))
+		if (!columns().containsAll(index))
 			return IMPOSSIBLE;
 
 		// use existing index
@@ -156,7 +155,7 @@ public abstract class Query {
 
 	private boolean isUnique(List<String> tempindex) {
 		for (List<String> k : keys())
-			if (subset(tempindex, k))
+			if (tempindex.containsAll(k))
 				return true;
 		return false;
 	}
