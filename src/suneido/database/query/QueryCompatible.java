@@ -1,9 +1,71 @@
 package suneido.database.query;
 
+import static java.util.Collections.disjoint;
+import static suneido.Util.union;
+
+import java.util.List;
+
+import suneido.SuString;
+import suneido.database.Record;
+
 public abstract class QueryCompatible extends Query2 {
-	String disjoint;
+	protected List<String> ki;
+	protected List<String> allcols;
+	protected Header hdr1, hdr2;
+	protected String disjoint;
 
 	QueryCompatible(Query source1, Query source2) {
 		super(source1, source2);
+		allcols = union(source.columns(), source2.columns());
+		List<Fixed> fixed1 = source.fixed();
+		List<Fixed> fixed2 = source2.fixed();
+		for (Fixed f1 : fixed1)
+			for (Fixed f2 : fixed2)
+				if (f1.field.equals(f2.field) && disjoint(f1.values, f2.values)) {
+					disjoint = f1.field;
+					return ;
+				}
+		List<String> cols2 = source2.columns();
+		for (Fixed f1 : fixed1)
+			if (!cols2.contains(f1.field)
+					&& !f1.values.contains(SuString.EMPTY)) {
+				disjoint = f1.field;
+				return ;
+				}
+		List<String> cols1 = source.columns();
+		for (Fixed f2 : fixed2)
+			if (!cols1.contains(f2.field)
+					&& !f2.values.contains(SuString.EMPTY)) {
+				disjoint = f2.field;
+				return ;
+				}
 	}
+
+	boolean isdup(Row row) {
+		if (disjoint != "")
+			return false;
+
+		// test if row is in source2
+		if (hdr1 == null) {
+			hdr1 = source.header();
+			hdr2 = source2.header();
+		}
+		Record key = row.project(hdr1, ki);
+		source2.select(ki, key);
+		Row row2 = source2.get(Dir.NEXT);
+		if (row2 == null)
+			return false;
+		return equal(row, row2);
+	}
+
+	boolean equal(Row r1, Row r2) {
+		if (disjoint != "")
+			return false;
+
+		for (String col : allcols)
+			if (r1.getraw(hdr1, col) != r2.getraw(hdr2, col))
+				return false;
+		return true;
+	}
+
 }

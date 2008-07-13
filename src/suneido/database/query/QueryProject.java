@@ -204,7 +204,7 @@ public class QueryProject extends Query1 {
 				c.source2 = new QueryProject(c.source2, flds);
 				return source.transform();
 			}
-			}
+		}
 		// split project over product/join
 		else if (source instanceof QueryProduct) {
 			QueryProduct x = (QueryProduct) source;
@@ -213,7 +213,7 @@ public class QueryProject extends Query1 {
 			x.source2 = new QueryProject(x.source2, intersect(flds, x.source2
 					.columns()));
 			moved = true;
-			}
+		}
 		else if (source instanceof QueryJoin) {
 			QueryJoin j = (QueryJoin) source;
 			if (flds.containsAll(j.joincols)) {
