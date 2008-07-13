@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.database.Database.theDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ public class TestBase {
 	@Before
 	public void create() {
 		dest = new DestMem();
-		db = new Database(dest, Mode.CREATE);
+		theDB = db = new Database(dest, Mode.CREATE);
 	}
 
 	@After
