@@ -30,6 +30,8 @@ public class QueryTable extends Query {
 
 	public QueryTable(String tablename) {
 		table = tablename;
+		tbl = theDB.ck_getTable(table);
+		singleton = indexes().get(0).isEmpty();
 	}
 
 	@Override

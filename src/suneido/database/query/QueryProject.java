@@ -40,22 +40,19 @@ public class QueryProject extends Query1 {
 		this(source, flds, false);
 	}
 
-	QueryProject(Query source, List<String> flds, boolean allbut) {
+	QueryProject(Query source, List<String> args, boolean allbut) {
 		super(source);
-		this.flds = flds;
 
 		List<String> columns = source.columns();
-		if (! columns.containsAll(flds))
+		if (! columns.containsAll(args))
 			throw new SuException("project: nonexistent column(s): "
-					+ difference(flds, columns));
-		if (allbut)
-			flds = difference(columns, flds);
-		else
-			flds = removeDups(flds);
+					+ difference(args, columns));
+		flds = allbut
+			? difference(columns, args)
+			: removeDups(args);
 
 		// include dependencies (_deps)
-		for (String f : flds)
-			{
+		for (String f : flds) {
 			String deps = f + "_deps";
 			if (columns.contains(deps) && !flds.contains(deps))
 				flds.add(deps);
@@ -118,124 +115,117 @@ public class QueryProject extends Query1 {
 	}
 
 	@Override
-	Query transform()
-	{
-	boolean moved = false;
-	// remove projects of all fields
-	if (flds == source.columns())
-		return source.transform();
-	// combine projects
-	if (source instanceof QueryProject) {
-		QueryProject p = (QueryProject) source;
-		flds = intersect(flds, p.flds);
-		source = p.source;
-		return transform();
-	}
-	// move projects before renames, renaming
-	else if (source instanceof QueryRename) {
-		QueryRename r = (QueryRename) source;
-		// remove renames not in project
-		List<String> new_from = new ArrayList<String>();
-		List<String> new_to = new ArrayList<String>();
-		List<String> f = r.from();
-		List<String> t = r.to();
-		for (int i = 0; i < f.size(); ++i)
-			if (flds.contains(t.get(i))) {
-				new_from.add(f.get(i));
-				new_to.add(t.get(i));
-			}
-		r.setFrom(new_from);
-		r.setTo(new_to);
-
-		// rename fields
-			List<String> new_fields = new ArrayList<String>();
-		for (String fld : flds) {
-			int i = t.indexOf(fld);
-			new_fields.add(i == -1 ? fld : f.get(i));
+	Query transform() {
+		boolean moved = false;
+		// remove projects of all fields
+		if (flds == source.columns())
+			return source.transform();
+		// combine projects
+		if (source instanceof QueryProject) {
+			QueryProject p = (QueryProject) source;
+			flds = intersect(flds, p.flds);
+			source = p.source;
+			return transform();
 		}
-		flds = new_fields;
+		// move projects before renames, renaming
+		else if (source instanceof QueryRename) {
+			QueryRename r = (QueryRename) source;
+			// remove renames not in project
+			List<String> new_from = new ArrayList<String>();
+			List<String> new_to = new ArrayList<String>();
+			List<String> f = r.from();
+			List<String> t = r.to();
+			for (int i = 0; i < f.size(); ++i)
+				if (flds.contains(t.get(i))) {
+					new_from.add(f.get(i));
+					new_to.add(t.get(i));
+				}
+			r.setFrom(new_from);
+			r.setTo(new_to);
 
-		source = r.source;
-		r.source = this;
-		return r.transform();
-	}
-	// move projects before extends
-	else if (source instanceof QueryExtend) {
-		QueryExtend e = (QueryExtend) source;
-		// remove portions of extend not included in project
-		List<String> new_flds = new ArrayList<String>();
-		List<Expr> new_exprs = new ArrayList<Expr>();
-		for (int i = 0; i < e.flds.size(); ++i)
-			if (flds.contains(e.flds.get(i))) {
-				new_flds.add(e.flds.get(i));
-				new_exprs.add(e.exprs.get(i));
-			}
-		List<String> orig_flds = e.flds;
-		e.flds = new_flds;
-		List<Expr> orig_exprs = e.exprs;
-		e.exprs = new_exprs;
-
-		// project must include all fields required by extend
-		List<String> eflds = new ArrayList<String>();
-		for (Expr ex : e.exprs)
-			addUnique(eflds, ex.fields());
-		if (flds.containsAll(eflds)) {
-			// remove extend fields from project
+			// rename fields
 			List<String> new_fields = new ArrayList<String>();
-			for (String f : flds)
-				if (!e.flds.contains(f))
-					new_fields.add(f);
+			for (String fld : flds) {
+				int i = t.indexOf(fld);
+				new_fields.add(i == -1 ? fld : f.get(i));
+			}
 			flds = new_fields;
 
-			source = e.source;
-			e.source = this;
-			return e.transform();
-			}
-		e.flds = orig_flds;
-		e.exprs = orig_exprs;
+			source = r.source;
+			r.source = this;
+			return r.transform();
 		}
-	// distribute project over union/intersect (NOT difference)
-	else if (source instanceof QueryCompatible
-		&& ! (source instanceof QueryDifference)) {
-		QueryCompatible c = (QueryCompatible) source;
-		if (c.disjoint != "" && ! flds.contains(c.disjoint))
-			{
-			List<String> flds2 = new ArrayList<String>(flds);
+		// move projects before extends
+		else if (source instanceof QueryExtend) {
+			QueryExtend e = (QueryExtend) source;
+			// remove portions of extend not included in project
+			List<String> new_flds = new ArrayList<String>();
+			List<Expr> new_exprs = new ArrayList<Expr>();
+			for (int i = 0; i < e.flds.size(); ++i)
+				if (flds.contains(e.flds.get(i))) {
+					new_flds.add(e.flds.get(i));
+					new_exprs.add(e.exprs.get(i));
+				}
+			List<String> orig_flds = e.flds;
+			e.flds = new_flds;
+			List<Expr> orig_exprs = e.exprs;
+			e.exprs = new_exprs;
+
+			// project must include all fields required by extend
+			List<String> eflds = new ArrayList<String>();
+			for (Expr ex : e.exprs)
+				addUnique(eflds, ex.fields());
+			if (flds.containsAll(eflds)) {
+				// remove extend fields from project
+				List<String> new_fields = new ArrayList<String>();
+				for (String f : flds)
+					if (!e.flds.contains(f))
+						new_fields.add(f);
+				flds = new_fields;
+
+				source = e.source;
+				e.source = this;
+				return e.transform();
+			}
+			e.flds = orig_flds;
+			e.exprs = orig_exprs;
+			}
+		// distribute project over union/intersect (NOT difference)
+		else if (source instanceof QueryCompatible
+				&& !(source instanceof QueryDifference)) {
+			QueryCompatible c = (QueryCompatible) source;
+			if (c.disjoint != "" && !flds.contains(c.disjoint)) {
+				List<String> flds2 = new ArrayList<String>(flds);
 				flds2.add(c.disjoint);
-			c.source = new QueryProject(c.source, flds2);
-			c.source2 = new QueryProject(c.source2, flds2);
+				c.source = new QueryProject(c.source, flds2);
+				c.source2 = new QueryProject(c.source2, flds2);
+			} else {
+				c.source = new QueryProject(c.source, flds);
+				c.source2 = new QueryProject(c.source2, flds);
+				return source.transform();
 			}
-		else
-			{
-			c.source = new QueryProject(c.source, flds);
-			c.source2 = new QueryProject(c.source2, flds);
-			return source.transform();
 			}
-		}
-	// split project over product/join
+		// split project over product/join
 		else if (source instanceof QueryProduct) {
 			QueryProduct x = (QueryProduct) source;
-			x.source = new QueryProject(x.source,
-					intersect(flds, x.source.columns()));
-			x.source2 = new QueryProject(x.source2,
-					intersect(flds, x.source2.columns()));
-		moved = true;
-		}
-	else if (source instanceof QueryJoin) {
-		QueryJoin j = (QueryJoin) source;
-		if (flds.containsAll(j.joincols))
-			{
-			j.source = new QueryProject(j.source,
-					intersect(flds, j.source
-						.columns()));
-			j.source2 = new QueryProject(j.source2,
-					intersect(flds,
-						j.source2.columns()));
+			x.source = new QueryProject(x.source, intersect(flds, x.source
+					.columns()));
+			x.source2 = new QueryProject(x.source2, intersect(flds, x.source2
+					.columns()));
 			moved = true;
 			}
+		else if (source instanceof QueryJoin) {
+			QueryJoin j = (QueryJoin) source;
+			if (flds.containsAll(j.joincols)) {
+				j.source = new QueryProject(j.source, intersect(flds, j.source
+						.columns()));
+				j.source2 = new QueryProject(j.source2, intersect(flds,
+						j.source2.columns()));
+				moved = true;
+			}
 		}
-	source = source.transform();
-	return moved ? source : this;
+		source = source.transform();
+		return moved ? source : this;
 	}
 
 	@Override
