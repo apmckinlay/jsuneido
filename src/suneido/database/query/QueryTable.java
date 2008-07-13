@@ -38,10 +38,6 @@ public class QueryTable extends Query {
 	}
 
 	@Override
-	void close() {
-	}
-
-	@Override
 	List<String> columns() {
 		return tbl.columnNames();
 	}
@@ -100,12 +96,6 @@ public class QueryTable extends Query {
 
 	@Override
 	Header header() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<String> key_index(List<String> needs) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -5,16 +5,11 @@ import java.util.List;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
-public class TempIndex1 extends Query {
+public class TempIndex1 extends Query1 {
 
-	public TempIndex1(Query query, List<String> tempindex, boolean unique) {
+	public TempIndex1(Query source, List<String> tempindex, boolean unique) {
+		super(source);
 		// TODO Auto-generated constructor stub
-	}
-
-	@Override
-	void close() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -43,12 +38,6 @@ public class TempIndex1 extends Query {
 
 	@Override
 	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<String> key_index(List<String> needs) {
 		// TODO Auto-generated method stub
 		return null;
 	}

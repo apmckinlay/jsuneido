@@ -1,5 +1,8 @@
 package suneido.database.query;
 
-public class Expr {
+import java.util.List;
 
+public abstract class Expr {
+
+	public abstract List<String> fields();
 }
