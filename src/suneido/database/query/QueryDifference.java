@@ -10,9 +10,18 @@ public class QueryDifference extends QueryCompatible {
 	}
 
 	@Override
+	public String toString() {
+		String s = "(" + source + ") MINUS";
+		if (disjoint != null)
+			s += "-DISJOINT";
+		if (ki != null)
+			s += "^" + ki;
+		return s + " (" + source2 + ")";
+	}
+
+	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+		return source.columns();
 	}
 
 	@Override
@@ -23,38 +32,27 @@ public class QueryDifference extends QueryCompatible {
 
 	@Override
 	Header header() {
-		// TODO Auto-generated method stub
-		return null;
+		return source.header();
 	}
 
 	@Override
 	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
+		return source.indexes();
 	}
 
 	@Override
 	List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
+		return source.keys();
 	}
 
 	@Override
 	void rewind() {
-		// TODO Auto-generated method stub
-
+		source.rewind();
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
+		source.select(index, from, to);
 	}
 
 }

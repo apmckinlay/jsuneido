@@ -41,7 +41,13 @@ op returns [Query result]
     | rename
     	{ $result = $rename.result; }
     | (JOIN|LEFTJOIN) (BY '(' cols ')')? source
-    | (UNION|TIMES|DIFFERENCE|INTERSECT) source
+    | UNION source
+    	{ $result = new QueryUnion($query2::source, $source.result); }
+    | TIMES source
+    	{ $result = new QueryProduct($query2::source, $source.result); }
+    | MINUS source
+     	{ $result = new QueryDifference($query2::source, $source.result); }
+    | INTERSECT source
     | SUMMARIZE summary (',' summary)*
     | EXTEND extend (',' extend)*
     | WHERE expr
@@ -114,7 +120,7 @@ TOTAL	: ('t'|'T')('o'|'O')('t'|'T')('a'|'A')('l'|'L') ;
 SORT	: ('s'|'S')('o'|'O')('r'|'R')('t'|'T') ;
 PROJECT	: ('p'|'P')('r'|'R')('o'|'O')('j'|'J')('e'|'E')('c'|'C')('t'|'T') ;
 MAX		: ('m'|'M')('a'|'A')('x'|'X') ;
-DIFFERENCE	: ('d'|'D')('i'|'I')('f'|'F')('f'|'F')('e'|'E')('r'|'R')('e'|'E')('n'|'N')('c'|'C')('e'|'E') ;
+MINUS	: ('m'|'M')('i'|'I')('n'|'N')('u'|'U')('s'|'S') ;
 INTERSECT	: ('i'|'I')('n'|'N')('t'|'T')('e'|'E')('r'|'R')('s'|'S')('e'|'E')('c'|'C')('t'|'T') ;
 TO		: ('t'|'T')('o'|'O') ;
 LIST	: ('l'|'L')('i'|'I')('s'|'S')('t'|'T') ;
