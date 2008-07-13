@@ -105,21 +105,9 @@ public class QuerySort extends Query1 {
 	}
 
 	@Override
-	void close() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	int columnsize() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	@Override
-	List<String> key_index(List<String> needs) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

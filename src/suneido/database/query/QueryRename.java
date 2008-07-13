@@ -37,7 +37,21 @@ public class QueryRename extends Query1 {
 		String s = source.toString() + " RENAME ";
 		for (int i = 0; i < from.size(); ++i)
 			s += from.get(i) + " to " + to.get(i) + ", ";
-		return s.substring(0, s.length() - 1);
+		return s.substring(0, s.length() - 2);
+	}
+
+	public List<String> from() {
+		return from;
+	}
+	public List<String> to() {
+		return to;
+	}
+	public void setFrom(List<String> from) {
+		this.from = from;
+	}
+
+	public void setTo(List<String> to) {
+		this.to = to;
 	}
 
 	@Override
@@ -137,12 +151,6 @@ public class QueryRename extends Query1 {
 
 	boolean erase(String index, Record key) {
 		return false; // TODO
-	}
-
-	@Override
-	List<String> key_index(List<String> needs) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

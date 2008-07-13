@@ -3,25 +3,19 @@ package suneido.database.query;
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 
-public class TempIndexN extends Query1 {
+public class QueryExtend extends Query2 {
+	List<String> flds;
+	List<Expr> exprs;
 
-	public TempIndexN(Query source, List<String> tempindex, boolean unique) {
-		super(source);
-		// TODO Auto-generated constructor stub
+	QueryExtend(Query source1, Query source2) {
+		super(source1, source2);
 	}
 
 	@Override
 	List<String> columns() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	int columnsize() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
@@ -49,25 +43,6 @@ public class TempIndexN extends Query1 {
 	}
 
 	@Override
-	double nrecords() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	int recordsize() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	void rewind() {
 		// TODO Auto-generated method stub
 
@@ -80,15 +55,8 @@ public class TempIndexN extends Query1 {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

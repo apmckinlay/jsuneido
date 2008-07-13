@@ -5,7 +5,7 @@ import java.util.List;
 import suneido.database.Transaction;
 
 public abstract class Query1 extends Query {
-	Query source;
+	protected Query source;
 
 	Query1(Query source) {
 		this.source = source;
@@ -99,12 +99,6 @@ public abstract class Query1 extends Query {
 			if (f.field == field && f.values.size() == 1)
 				return true;
 		return false;
-	}
-
-
-	@Override
-	void close() {
-		source.close();
 	}
 
 }

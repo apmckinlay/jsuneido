@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.set_union;
+import static suneido.Util.union;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +29,7 @@ public abstract class Query {
 	// minimal penalty for changing order of operations
 	private final static int OUT_OF_ORDER = 10;
 	// allow for adding impossibles together
-	private final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
+	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
 	static Query query(String s, boolean is_cursor) {
 		return query_setup(ParseQuery.parse(s), is_cursor);
@@ -72,8 +72,6 @@ public abstract class Query {
 		return false;
 	}
 
-	abstract void close();
-
 	@Override
 	public abstract String toString();
 
@@ -97,7 +95,7 @@ public abstract class Query {
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
 		cost2 = optimize1(noFields, needs, firstneeds.isEmpty() ? firstneeds
-				: set_union(firstneeds, index), is_cursor, false)
+				: union(firstneeds, index), is_cursor, false)
 				+ nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
@@ -137,7 +135,20 @@ public abstract class Query {
 
 	abstract double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze);
-	abstract List<String> key_index(List<String> needs);
+
+	protected List<String> key_index(List<String> needs) {
+		List<String> best_index = null;
+		double best_cost = IMPOSSIBLE;
+		for (List<String> key : keys()) {
+			double cost = optimize(key, needs, noFields, false, false);
+			if (cost < best_cost) {
+				best_cost = cost;
+				best_index = key;
+			}
+		}
+		return best_index;
+	}
+
 	// estimated result sizes
 	abstract double nrecords();
 	abstract int recordsize();

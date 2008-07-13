@@ -54,16 +54,50 @@ public class Util {
 	 *         is, so if it has duplicates they are retained. Duplicates from y
 	 *         are not retained.
 	 */
-	public static List<String> set_union(List<String> x, List<String> y) {
-		if (x.size() < y.size()) {
-			List<String> tmp = x;
-			x = y;
-			y = tmp;
-		}
-		List<String> result = new ArrayList<String>(x);
+	public static List<String> union(List<String> x, List<String> y) {
+		return x.size() > y.size()
+				? addUnique(new ArrayList<String>(x), y)
+				: addUnique(new ArrayList<String>(y), x);
+	}
+
+	public static List<String> addUnique(List<String> x, List<String> y) {
 		for (String s : y)
+			if (!x.contains(s))
+				x.add(s);
+		return x;
+	}
+
+	public static List<String> removeDups(List<String> x) {
+		List<String> result = new ArrayList<String>();
+		for (String s : x)
 			if (!result.contains(s))
 				result.add(s);
 		return result;
 	}
+
+	public static List<String> difference(List<String> x, List<String> y) {
+		List<String> result = new ArrayList<String>();
+		for (String s : x)
+			if (!y.contains(s))
+				result.add(s);
+		return result;
+	}
+
+	public static List<String> intersect(List<String> x, List<String> y) {
+		List<String> result = new ArrayList<String>();
+		for (String s : x)
+			if (y.contains(s))
+				result.add(s);
+		return result;
+	}
+
+	public static boolean prefix_set(List<String> list, List<String> set) {
+		int n = set.size();
+		int i = 0;
+		for (String s : list)
+			if (i >= n || ! set.contains(s))
+				break ;
+		return i == n;
+	}
+
 }

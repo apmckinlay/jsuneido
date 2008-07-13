@@ -63,18 +63,18 @@ public class UtilTest {
 		List<String> x = new ArrayList<String>();
 		List<String> y = new ArrayList<String>();
 		List<String> list = new ArrayList<String>();
-		assertEquals(list, Util.set_union(x, y));
+		assertEquals(list, Util.union(x, y));
 		x.add("abc");
 		list.add("abc");
-		assertEquals(list, Util.set_union(x, y));
-		assertEquals(list, Util.set_union(y, x));
+		assertEquals(list, Util.union(x, y));
+		assertEquals(list, Util.union(y, x));
 		y.add("def");
 		list.add("def");
-		assertSetEquals(list, Util.set_union(x, y));
-		assertSetEquals(list, Util.set_union(y, x));
+		assertSetEquals(list, Util.union(x, y));
+		assertSetEquals(list, Util.union(y, x));
 		x.add("def");
-		assertSetEquals(list, Util.set_union(x, y));
-		assertSetEquals(list, Util.set_union(y, x));
+		assertSetEquals(list, Util.union(x, y));
+		assertSetEquals(list, Util.union(y, x));
 	}
 	private void assertSetEquals(List<String> x, List<String> y) {
 		Collections.sort(y);

@@ -8,13 +8,14 @@ import org.junit.Test;
 public class ParseQueryTest {
 	@Test
 	public void test() {
-		Query q = ParseQuery.parse("test");
-		assertEquals("test", q.toString());
-
-		q = ParseQuery.parse("(test)");
-		assertEquals("test", q.toString());
-
-		q = ParseQuery.parse("test sort a,b");
-		assertEquals("test SORT a,b", q.toString());
+		String[] cases = {
+				"test",
+				"test SORT a,b",
+				"test SORT REVERSE a,b",
+				"test RENAME a to aa, b to bb",
+				"test RENAME a to aa, b to bb SORT a,b"
+		};
+		for (String s : cases)
+			assertEquals(s, ParseQuery.parse(s).toString());
 	}
 }
