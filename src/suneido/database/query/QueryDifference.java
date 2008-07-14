@@ -2,8 +2,6 @@ package suneido.database.query;
 
 import java.util.List;
 
-import suneido.database.Record;
-
 public class QueryDifference extends QueryCompatible {
 	QueryDifference(Query source1, Query source2) {
 		super(source1, source2);
@@ -31,11 +29,6 @@ public class QueryDifference extends QueryCompatible {
 	}
 
 	@Override
-	Header header() {
-		return source.header();
-	}
-
-	@Override
 	List<List<String>> indexes() {
 		return source.indexes();
 	}
@@ -43,16 +36,6 @@ public class QueryDifference extends QueryCompatible {
 	@Override
 	List<List<String>> keys() {
 		return source.keys();
-	}
-
-	@Override
-	void rewind() {
-		source.rewind();
-	}
-
-	@Override
-	void select(List<String> index, Record from, Record to) {
-		source.select(index, from, to);
 	}
 
 }

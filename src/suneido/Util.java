@@ -56,12 +56,19 @@ public class Util {
 	 */
 	public static List<String> union(List<String> x, List<String> y) {
 		return x.size() > y.size()
-				? addUnique(new ArrayList<String>(x), y)
+		? addUnique(new ArrayList<String>(x), y)
 				: addUnique(new ArrayList<String>(y), x);
 	}
 
-	public static List<String> addUnique(List<String> x, List<String> y) {
-		for (String s : y)
+	public static List<List<String>> union2(List<List<String>> x,
+			List<List<String>> y) {
+		return x.size() > y.size()
+		? addUnique(new ArrayList<List<String>>(x),
+				y) : addUnique(new ArrayList<List<String>>(y), x);
+	}
+
+	public static <T> List<T> addUnique(List<T> x, List<T> y) {
+		for (T s : y)
 			if (!x.contains(s))
 				x.add(s);
 		return x;
@@ -86,6 +93,15 @@ public class Util {
 	public static List<String> intersect(List<String> x, List<String> y) {
 		List<String> result = new ArrayList<String>();
 		for (String s : x)
+			if (y.contains(s))
+				result.add(s);
+		return result;
+	}
+
+	public static List<List<String>> intersect2(List<List<String>> x,
+			List<List<String>> y) {
+		List<List<String>> result = new ArrayList<List<String>>();
+		for (List<String> s : x)
 			if (y.contains(s))
 				result.add(s);
 		return result;

@@ -26,7 +26,8 @@ public class ParseQueryTest extends TestBase {
 				"test REMOVE a", "test PROJECT b",
 				"(test) TIMES (test2)", null,
 				"(test) MINUS (compat)", null,
-				"(test) UNION (compat)", null
+				"(test) UNION (compat)", null,
+				"(test) INTERSECT (compat)", null
 
 		};
 		for (int i = 0; i < cases.length; i += 2) {
