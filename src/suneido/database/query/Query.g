@@ -48,6 +48,7 @@ op returns [Query result]
     | MINUS source
      	{ $result = new QueryDifference($query2::source, $source.result); }
     | INTERSECT source
+     	{ $result = new Intersect($query2::source, $source.result); }
     | SUMMARIZE summary (',' summary)*
     | EXTEND extend (',' extend)*
     | WHERE expr

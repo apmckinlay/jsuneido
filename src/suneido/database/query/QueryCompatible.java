@@ -31,14 +31,14 @@ public abstract class QueryCompatible extends Query2 {
 					&& !f1.values.contains(SuString.EMPTY)) {
 				disjoint = f1.field;
 				return ;
-				}
+			}
 		List<String> cols1 = source.columns();
 		for (Fixed f2 : fixed2)
 			if (!cols1.contains(f2.field)
 					&& !f2.values.contains(SuString.EMPTY)) {
 				disjoint = f2.field;
 				return ;
-				}
+			}
 	}
 
 	boolean isdup(Row row) {
@@ -66,6 +66,21 @@ public abstract class QueryCompatible extends Query2 {
 			if (r1.getraw(hdr1, col) != r2.getraw(hdr2, col))
 				return false;
 		return true;
+	}
+
+	@Override
+	Header header() {
+		return source.header();
+	}
+
+	@Override
+	void rewind() {
+		source.rewind();
+	}
+
+	@Override
+	void select(List<String> index, Record from, Record to) {
+		source.select(index, from, to);
 	}
 
 }
