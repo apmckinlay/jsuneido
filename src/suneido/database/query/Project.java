@@ -15,7 +15,7 @@ import java.util.List;
 import suneido.SuException;
 import suneido.database.Record;
 
-public class QueryProject extends Query1 {
+public class Project extends Query1 {
 	private List<String> flds;
 
 	enum Strategy {
@@ -36,11 +36,11 @@ public class QueryProject extends Query1 {
 	// DestMem td;
 	private List<String> via;
 
-	QueryProject(Query source, List<String> flds) {
+	Project(Query source, List<String> flds) {
 		this(source, flds, false);
 	}
 
-	QueryProject(Query source, List<String> args, boolean allbut) {
+	Project(Query source, List<String> args, boolean allbut) {
 		super(source);
 
 		List<String> columns = source.columns();
@@ -121,15 +121,15 @@ public class QueryProject extends Query1 {
 		if (flds == source.columns())
 			return source.transform();
 		// combine projects
-		if (source instanceof QueryProject) {
-			QueryProject p = (QueryProject) source;
+		if (source instanceof Project) {
+			Project p = (Project) source;
 			flds = intersect(flds, p.flds);
 			source = p.source;
 			return transform();
 		}
 		// move projects before renames, renaming
-		else if (source instanceof QueryRename) {
-			QueryRename r = (QueryRename) source;
+		else if (source instanceof Rename) {
+			Rename r = (Rename) source;
 			// remove renames not in project
 			List<String> new_from = new ArrayList<String>();
 			List<String> new_to = new ArrayList<String>();
@@ -156,8 +156,8 @@ public class QueryProject extends Query1 {
 			return r.transform();
 		}
 		// move projects before extends
-		else if (source instanceof QueryExtend) {
-			QueryExtend e = (QueryExtend) source;
+		else if (source instanceof Extend) {
+			Extend e = (Extend) source;
 			// remove portions of extend not included in project
 			List<String> new_flds = new ArrayList<String>();
 			List<Expr> new_exprs = new ArrayList<Expr>();
@@ -191,35 +191,35 @@ public class QueryProject extends Query1 {
 			e.exprs = orig_exprs;
 			}
 		// distribute project over union/intersect (NOT difference)
-		else if (source instanceof QueryCompatible
-				&& !(source instanceof QueryDifference)) {
-			QueryCompatible c = (QueryCompatible) source;
+		else if (source instanceof Compatible
+				&& !(source instanceof Difference)) {
+			Compatible c = (Compatible) source;
 			if (c.disjoint != "" && !flds.contains(c.disjoint)) {
 				List<String> flds2 = new ArrayList<String>(flds);
 				flds2.add(c.disjoint);
-				c.source = new QueryProject(c.source, flds2);
-				c.source2 = new QueryProject(c.source2, flds2);
+				c.source = new Project(c.source, flds2);
+				c.source2 = new Project(c.source2, flds2);
 			} else {
-				c.source = new QueryProject(c.source, flds);
-				c.source2 = new QueryProject(c.source2, flds);
+				c.source = new Project(c.source, flds);
+				c.source2 = new Project(c.source2, flds);
 				return source.transform();
 			}
 		}
 		// split project over product/join
-		else if (source instanceof QueryProduct) {
-			QueryProduct x = (QueryProduct) source;
-			x.source = new QueryProject(x.source, intersect(flds, x.source
+		else if (source instanceof Product) {
+			Product x = (Product) source;
+			x.source = new Project(x.source, intersect(flds, x.source
 					.columns()));
-			x.source2 = new QueryProject(x.source2, intersect(flds, x.source2
+			x.source2 = new Project(x.source2, intersect(flds, x.source2
 					.columns()));
 			moved = true;
 		}
-		else if (source instanceof QueryJoin) {
-			QueryJoin j = (QueryJoin) source;
+		else if (source instanceof Join) {
+			Join j = (Join) source;
 			if (flds.containsAll(j.joincols)) {
-				j.source = new QueryProject(j.source, intersect(flds, j.source
+				j.source = new Project(j.source, intersect(flds, j.source
 						.columns()));
-				j.source2 = new QueryProject(j.source2, intersect(flds,
+				j.source2 = new Project(j.source2, intersect(flds,
 						j.source2.columns()));
 				moved = true;
 			}

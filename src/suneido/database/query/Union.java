@@ -4,7 +4,7 @@ import java.util.List;
 
 import suneido.database.Record;
 
-public class QueryUnion extends QueryCompatible {
+public class Union extends Compatible {
 	Strategy strategy;
 	boolean first = true;
 	Row empty1;
@@ -28,7 +28,7 @@ public class QueryUnion extends QueryCompatible {
 	};
 
 
-	QueryUnion(Query source1, Query source2) {
+	Union(Query source1, Query source2) {
 		super(source1, source2);
 	}
 

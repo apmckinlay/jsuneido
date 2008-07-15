@@ -5,7 +5,7 @@ import static suneido.Suneido.verify;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QueryCache {
+public class Cache {
 	List<CacheEntry> entries = new ArrayList<CacheEntry>();
 
 	public void add(List<String> index, List<String> needs, List<String> firstneeds, double cost) {

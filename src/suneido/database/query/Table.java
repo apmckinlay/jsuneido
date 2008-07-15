@@ -8,12 +8,11 @@ import java.util.List;
 import suneido.SuValue;
 import suneido.database.BtreeIndex;
 import suneido.database.Record;
-import suneido.database.Table;
 import suneido.database.Transaction;
 
-public class QueryTable extends Query {
+public class Table extends Query {
 	private final String table;
-	private Table tbl;
+	private suneido.database.Table tbl;
 	private int choice;
 	private boolean first = true;
 	private boolean rewound = true;
@@ -28,7 +27,7 @@ public class QueryTable extends Query {
 	private BtreeIndex.Iter iter;
 
 
-	public QueryTable(String tablename) {
+	public Table(String tablename) {
 		table = tablename;
 		tbl = theDB.ck_getTable(table);
 		singleton = indexes().get(0).isEmpty();

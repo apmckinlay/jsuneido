@@ -1,25 +1,15 @@
 package suneido.database.query;
 
-import static suneido.Util.intersect;
-
 import java.util.List;
 
-import suneido.SuException;
 import suneido.database.Record;
 
-public class QueryProduct extends Query2 {
-	private final boolean first = true;
+public class Extend extends Query2 {
+	List<String> flds;
+	List<Expr> exprs;
 
-	QueryProduct(Query source1, Query source2) {
+	Extend(Query source1, Query source2) {
 		super(source1, source2);
-		List<String> dups = intersect(source1.columns(), source2.columns());
-		if (!dups.isEmpty())
-			throw new SuException("product: common columns not allowed: " + dups);
-	}
-
-	@Override
-	public String toString() {
-		return "(" + source + ") TIMES (" + source2 + ")";
 	}
 
 	@Override
@@ -62,5 +52,11 @@ public class QueryProduct extends Query2 {
 	void select(List<String> index, Record from, Record to) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

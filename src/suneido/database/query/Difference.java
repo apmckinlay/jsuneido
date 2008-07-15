@@ -2,8 +2,8 @@ package suneido.database.query;
 
 import java.util.List;
 
-public class QueryDifference extends QueryCompatible {
-	QueryDifference(Query source1, Query source2) {
+public class Difference extends Compatible {
+	Difference(Query source1, Query source2) {
 		super(source1, source2);
 	}
 

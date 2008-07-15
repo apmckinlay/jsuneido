@@ -7,7 +7,7 @@ import static suneido.Util.union2;
 import java.util.Collections;
 import java.util.List;
 
-public class Intersect extends QueryCompatible {
+public class Intersect extends Compatible {
 	Intersect(Query source1, Query source2) {
 		super(source1, source2);
 	}
