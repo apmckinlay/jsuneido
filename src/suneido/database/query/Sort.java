@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class Sort extends Query1 {
 			s += " SORT ";
 			if (reverse)
 				s += "REVERSE ";
-			s += listToCommas(segs);
+			s += listToParens(segs);
 		}
 		return s;
 	}

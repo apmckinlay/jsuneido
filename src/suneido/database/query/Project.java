@@ -3,7 +3,7 @@ package suneido.database.query;
 import static suneido.Util.addUnique;
 import static suneido.Util.difference;
 import static suneido.Util.intersect;
-import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
 import static suneido.Util.prefix_set;
 import static suneido.Util.removeDups;
 import static suneido.database.query.Row.Eof;
@@ -68,8 +68,8 @@ public class Project extends Query1 {
 		String[] st = { "", "-COPY", "-SEQ", "-LOOKUP" };
 		String s = source.toString() + " PROJECT" + st[strategy.ordinal()];
 		if (via != null)
-			s += "^" + listToCommas(via);
-		return s + " " + listToCommas(flds);
+			s += "^" + listToParens(via);
+		return s + " " + listToParens(flds);
 	}
 
 	private boolean hasKey(Query source, List<String> flds) {

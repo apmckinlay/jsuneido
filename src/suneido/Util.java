@@ -26,6 +26,10 @@ public class Util {
 		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
+	public static String listToParens(List<String> list) {
+		return "(" + listToCommas(list) + ")";
+	}
+
 	public static List<String> commasToList(String s) {
 		if (s.equals(""))
 			return Collections.emptyList();
