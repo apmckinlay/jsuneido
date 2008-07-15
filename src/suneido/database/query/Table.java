@@ -92,7 +92,8 @@ public class Table extends Query {
 		hdr = header();
 		ix = (idx == null || singleton
 			? tbl.firstIndex()
-			: tbl.getIndex(listToCommas(idx))).btreeIndex;
+			: tbl
+				.getIndex(listToCommas(idx))).btreeIndex;
 	}
 
 	@Override

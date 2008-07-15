@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Util.intersect;
-import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
 import static suneido.Util.set_eq;
 
 import java.util.List;
@@ -53,7 +53,7 @@ public class Join extends Query2 {
 	@Override
 	public String toString() {
 		return "(" + source + ") " + name() + " " + type.name + " on "
-				+ listToCommas(joincols)
+				+ listToParens(joincols)
 				+ " (" + source2 + ")";
 	}
 

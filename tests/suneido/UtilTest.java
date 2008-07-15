@@ -12,16 +12,16 @@ import org.junit.Test;
 
 public class UtilTest {
 	@Test
-	public void listToCommas() {
-		assertEquals("", Util.listToCommas(null));
+	public void listToParens() {
+		assertEquals("()", Util.listToParens(null));
 		List<String> list = new ArrayList<String>();
-		assertEquals("", Util.listToCommas(list));
+		assertEquals("()", Util.listToParens(list));
 		list.add("one");
-		assertEquals("one", Util.listToCommas(list));
+		assertEquals("(one)", Util.listToParens(list));
 		list.add("two");
-		assertEquals("one,two", Util.listToCommas(list));
+		assertEquals("(one,two)", Util.listToParens(list));
 		list.add("three");
-		assertEquals("one,two,three", Util.listToCommas(list));
+		assertEquals("(one,two,three)", Util.listToParens(list));
 	}
 
 	@Test

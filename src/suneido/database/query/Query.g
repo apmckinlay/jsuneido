@@ -53,7 +53,8 @@ op returns [Query result]
      	{ $result = new Difference($query2::source, $source.result); }
     | INTERSECT source
      	{ $result = new Intersect($query2::source, $source.result); }
-    | SUMMARIZE summary (',' summary)*
+    | summarize
+    	{ $result = $summarize.result; }
     | EXTEND extend (',' extend)*
     | WHERE expr
     ;
@@ -78,9 +79,35 @@ cols returns [List<String> list]
 	: i=ID { list.add($i.text); } 
 		(','? j=ID { list.add($j.text); }
 		)* ;
-
-summary : ID
-    | (ID '=')? (TOTAL|AVERAGE|MAX|MIN|COUNT|LIST) ID
+		
+summarize returns [Query result]
+	scope { List<String> by; List<String> cols;
+			List<String> funcs; List<String> on; }
+	@init { 
+		$summarize::by = new ArrayList<String>(); 
+		$summarize::cols = new ArrayList<String>(); 
+		$summarize::funcs = new ArrayList<String>(); 
+		$summarize::on = new ArrayList<String>(); 
+	}
+	: SUMMARIZE summary (',' summary)*
+		{ $result = new Summarize($query2::source, $summarize::by, 
+			$summarize::cols, $summarize::funcs, $summarize::on); }
+	;
+summary 
+	: ID
+		{ $summarize::by.add($ID.text); }
+    | (ID '=')? COUNT
+    	{
+    	$summarize::cols.add($ID == null ? null : $ID.text);
+    	$summarize::funcs.add("count");
+ 		$summarize::on.add(null);
+    	}
+    | (c=ID '=')? f=(TOTAL|AVERAGE|MAX|MIN|LIST) o=ID
+    	{
+    	$summarize::cols.add($c == null ? null : $c.text);
+    	$summarize::funcs.add($f.text);
+		$summarize::on.add($o.text);
+    	}
     ;
   
 extend  : ID '=' expr ;
