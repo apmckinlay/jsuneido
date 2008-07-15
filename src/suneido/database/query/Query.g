@@ -18,7 +18,7 @@ query returns [Query result]
 	
 sort[Query source] returns [Query result]
 	: SORT r=REVERSE ? cols
-		 { $result = new QuerySort($source, $r != null, $cols.list); }
+		 { $result = new Sort($source, $r != null, $cols.list); }
 	;
 
 query2 returns [Query result]
@@ -29,7 +29,7 @@ query2 returns [Query result]
 
 source returns [Query result]
 	: ID
-		{ $result = new QueryTable($ID.text); }
+		{ $result = new Table($ID.text); }
     | HISTORY '(' ID ')'
     | '(' query2 ')'
     	{ $result = $query2.result; }
@@ -37,16 +37,16 @@ source returns [Query result]
 
 op returns [Query result]
 	: (p=PROJECT|REMOVE) cols
-		{ $result = new QueryProject($query2::source, $cols.list, $p == null); }
+		{ $result = new Project($query2::source, $cols.list, $p == null); }
     | rename
     	{ $result = $rename.result; }
     | (JOIN|LEFTJOIN) (BY '(' cols ')')? source
     | UNION source
-    	{ $result = new QueryUnion($query2::source, $source.result); }
+    	{ $result = new Union($query2::source, $source.result); }
     | TIMES source
-    	{ $result = new QueryProduct($query2::source, $source.result); }
+    	{ $result = new Product($query2::source, $source.result); }
     | MINUS source
-     	{ $result = new QueryDifference($query2::source, $source.result); }
+     	{ $result = new Difference($query2::source, $source.result); }
     | INTERSECT source
      	{ $result = new Intersect($query2::source, $source.result); }
     | SUMMARIZE summary (',' summary)*
@@ -59,7 +59,7 @@ rename returns [Query result]
 	@init { $rename::froms = new ArrayList<String>(); 
 		$rename::tos = new ArrayList<String>(); }
 	: RENAME rename1 (',' rename1)*
-		{ $result = new QueryRename($query2::source, $rename::froms, $rename::tos); }
+		{ $result = new Rename($query2::source, $rename::froms, $rename::tos); }
 	;
     
 rename1

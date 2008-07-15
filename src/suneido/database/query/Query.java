@@ -17,7 +17,7 @@ import suneido.database.Transaction;
  * Licensed under GPLv2.</small></p>
  */
 public abstract class Query {
-	private final QueryCache cache = new QueryCache();
+	private final Cache cache = new Cache();
 	private boolean willneed_tempindex;
 	private List<String> tempindex;
 	protected enum Dir {

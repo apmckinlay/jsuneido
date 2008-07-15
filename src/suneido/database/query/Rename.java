@@ -5,11 +5,11 @@ import java.util.List;
 
 import suneido.database.Record;
 
-public class QueryRename extends Query1 {
+public class Rename extends Query1 {
 	private List<String> from;
 	private List<String> to;
 
-	QueryRename(Query source, List<String> from, List<String> to) {
+	Rename(Query source, List<String> from, List<String> to) {
 		super(source);
 		this.from = from;
 		this.to = to;
@@ -60,8 +60,8 @@ public class QueryRename extends Query1 {
 		if (from.isEmpty())
 			return source.transform();
 		// combine Renames
-		if (source instanceof QueryRename) {
-			QueryRename r = (QueryRename) source;
+		if (source instanceof Rename) {
+			Rename r = (Rename) source;
 			List<String> from2 = new ArrayList<String>();
 			List<String> to2 = new ArrayList<String>();
 			for (int i = 0; i < from.size(); ++i)

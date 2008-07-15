@@ -7,13 +7,13 @@ import org.junit.Test;
 import suneido.database.TestBase;
 import suneido.database.Transaction;
 
-public class QueryTableTest extends TestBase {
+public class TableTest extends TestBase {
 
 	@Test
 	public void test() {
 		makeTable(3);
 
-		QueryTable qt = new QueryTable("test");
+		Table qt = new Table("test");
 		qt.optimize2(null, null, null, false, false); // TEMPORARY
 		Transaction t = db.readonlyTran();
 		qt.setTransaction(t);

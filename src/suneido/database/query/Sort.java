@@ -8,12 +8,12 @@ import java.util.List;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
-public class QuerySort extends Query1 {
+public class Sort extends Query1 {
 	private final boolean reverse;
 	private final List<String> segs;
 	boolean indexed;
 
-	QuerySort(Query source, boolean reverse, List<String> segs) {
+	Sort(Query source, boolean reverse, List<String> segs) {
 		super(source);
 		this.reverse = reverse;
 		this.segs = segs;

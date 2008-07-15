@@ -4,10 +4,10 @@ import java.util.List;
 
 import suneido.database.Record;
 
-public class QueryJoin extends Query2 {
+public class Join extends Query2 {
 	List<String> joincols;
 
-	QueryJoin(Query source1, Query source2) {
+	Join(Query source1, Query source2) {
 		super(source1, source2);
 	}
 

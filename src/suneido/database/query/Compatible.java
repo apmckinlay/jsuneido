@@ -8,13 +8,13 @@ import java.util.List;
 import suneido.SuString;
 import suneido.database.Record;
 
-public abstract class QueryCompatible extends Query2 {
+public abstract class Compatible extends Query2 {
 	protected List<String> ki;
 	protected List<String> allcols;
 	protected Header hdr1, hdr2;
 	protected String disjoint;
 
-	QueryCompatible(Query source1, Query source2) {
+	Compatible(Query source1, Query source2) {
 		super(source1, source2);
 		allcols = union(source.columns(), source2.columns());
 		List<Fixed> fixed1 = source.fixed();
