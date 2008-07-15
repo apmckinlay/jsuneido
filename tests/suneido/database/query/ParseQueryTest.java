@@ -13,6 +13,7 @@ public class ParseQueryTest extends TestBase {
 		makeTable();
 		makeTable("test2", "x", "y");
 		makeTable("compat", "a", "b");
+		makeTable("joinable", "x", "y", "a");
 
 		String[] cases = {
 				"test", null,
@@ -27,7 +28,10 @@ public class ParseQueryTest extends TestBase {
 				"(test) TIMES (test2)", null,
 				"(test) MINUS (compat)", null,
 				"(test) UNION (compat)", null,
-				"(test) INTERSECT (compat)", null
+				"(test) INTERSECT (compat)", null,
+				"history(test)", null,
+				"(test) JOIN (joinable)", "(test) JOIN 1:n on a (joinable)",
+				"(test) LEFTJOIN (joinable)", "(test) LEFTJOIN 1:n on a (joinable)"
 
 		};
 		for (int i = 0; i < cases.length; i += 2) {
