@@ -1,11 +1,11 @@
 package suneido;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -77,7 +77,25 @@ public class UtilTest {
 		assertSetEquals(list, Util.union(y, x));
 	}
 	private void assertSetEquals(List<String> x, List<String> y) {
-		Collections.sort(y);
-		assertEquals(x, y);
+		assertTrue(Util.set_eq(x, y));
+	}
+
+	@Test
+	public void set_eq() {
+		List<String> x = new ArrayList<String>();
+		List<String> y = new ArrayList<String>();
+		assertTrue(Util.set_eq(x, y));
+		x.add("a");
+		assertFalse(Util.set_eq(x, y));
+		assertFalse(Util.set_eq(y, x));
+		y.add("b");
+		assertFalse(Util.set_eq(x, y));
+		assertFalse(Util.set_eq(y, x));
+		x.add("b");
+		assertFalse(Util.set_eq(x, y));
+		assertFalse(Util.set_eq(y, x));
+		y.add("a");
+		assertTrue(Util.set_eq(x, y));
+		assertTrue(Util.set_eq(y, x));
 	}
 }

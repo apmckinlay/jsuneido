@@ -107,13 +107,21 @@ public class Util {
 		return result;
 	}
 
-	public static boolean prefix_set(List<String> list, List<String> set) {
+	public static <T> boolean prefix_set(List<T> list, List<T> set) {
 		int n = set.size();
 		int i = 0;
-		for (String s : list)
+		for (T s : list)
 			if (i >= n || ! set.contains(s))
 				break ;
 		return i == n;
+	}
+
+	public static <T> boolean set_eq(List<T> x, List<T> y) {
+		int n = 0;
+		for (T s : x)
+			if (y.contains(s))
+				++n;
+		return n == x.size() && n == y.size();
 	}
 
 }

@@ -31,6 +31,7 @@ source returns [Query result]
 	: ID
 		{ $result = new Table($ID.text); }
     | HISTORY '(' ID ')'
+    	{ $result = new History($ID.text); }
     | '(' query2 ')'
     	{ $result = $query2.result; }
     ;
@@ -40,7 +41,10 @@ op returns [Query result]
 		{ $result = new Project($query2::source, $cols.list, $p == null); }
     | rename
     	{ $result = $rename.result; }
-    | (JOIN|LEFTJOIN) (BY '(' cols ')')? source
+    | JOIN (BY '(' cols ')')? source
+    	{ $result = new Join($query2::source, $source.result, $cols.list); }
+    | LEFTJOIN (BY '(' cols ')')? source
+    	{ $result = new LeftJoin($query2::source, $source.result, $cols.list); }
     | UNION source
     	{ $result = new Union($query2::source, $source.result); }
     | TIMES source
