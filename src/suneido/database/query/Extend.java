@@ -1,16 +1,63 @@
 package suneido.database.query;
 
+import static suneido.Util.addUnique;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.union;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
-public class Extend extends Query2 {
-	List<String> flds;
-	List<Expr> exprs;
+public class Extend extends Query1 {
+	private final List<String> rules;
+	List<String> flds; // modified by Project.transform
+	List<Expr> exprs; // modified by Project.transform
+	private List<String> eflds;
 
-	Extend(Query source1, Query source2) {
-		super(source1, source2);
+	Extend(Query source, List<String> flds, List<Expr> exprs,
+			List<String> rules) {
+		super(source);
+		this.flds = flds;
+		this.exprs = exprs;
+		this.rules = rules;
+//		init();
+	}
+
+	private void init() {
+		List<String> srccols = source.columns();
+
+		List<String> dups = intersect(srccols, flds);
+		if (!dups.isEmpty())
+			throw new SuException("extend: column(s) already exist: " + dups);
+
+		eflds = new ArrayList<String>();
+		for (Expr e : exprs)
+			addUnique(eflds, e.fields());
+
+		List<String> avail = union(union(srccols, rules), flds);
+		List<String> invalid = difference(eflds, avail);
+		if (!invalid.isEmpty())
+			throw new SuException("extend: invalid column(s) in expressions: "
+					+ invalid);
+	}
+
+	@Override
+	public String toString() {
+		String s = source + " EXTEND ";
+		String sep = "";
+		for (String f : rules) {
+			s += sep + f;
+			sep = ", ";
+		}
+		for (int i = 0; i < flds.size(); ++i) {
+			s += sep + flds.get(i) + " = " + exprs.get(i);
+			sep = ", ";
+		}
+		return s;
 	}
 
 	@Override
@@ -53,11 +100,5 @@ public class Extend extends Query2 {
 	void select(List<String> index, Record from, Record to) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }
