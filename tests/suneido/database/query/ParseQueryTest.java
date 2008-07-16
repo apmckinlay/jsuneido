@@ -57,6 +57,8 @@ public class ParseQueryTest extends TestBase {
 				"test WHERE (a or b or c)", null,
 				"test WHERE (a ? b : 5)", null,
 				"test WHERE (a in (2,3,4))", null,
+				"test EXTEND Z, x = 12, y = (b + c), f = fn(), g = fn(1), h = fn(1,2,3)",
+					null,
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];

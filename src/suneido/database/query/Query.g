@@ -60,7 +60,8 @@ op returns [Query result]
      	{ $result = new Intersect($query2::source, $source.result); }
     | summarize
     	{ $result = $summarize.result; }
-    | EXTEND extend (',' extend)*
+    | extend
+    	{ $result = $extend.result; }
     | WHERE expr
     	{ $result = new Select($query2::source, $expr.expr); }
     ;
@@ -78,8 +79,6 @@ rename1
 		{ $rename::froms.add($f.text); $rename::tos.add($t.text); }
 	;
     
-columns : '(' cols ')' ;
-
 cols returns [List<String> list]  
 	@init { list = new ArrayList<String>(); }
 	: i=ID { list.add($i.text); } 
@@ -89,12 +88,10 @@ cols returns [List<String> list]
 summarize returns [Query result]
 	scope { List<String> by; List<String> cols;
 			List<String> funcs; List<String> on; }
-	@init { 
-		$summarize::by = new ArrayList<String>(); 
-		$summarize::cols = new ArrayList<String>(); 
-		$summarize::funcs = new ArrayList<String>(); 
-		$summarize::on = new ArrayList<String>(); 
-	}
+	@init { $summarize::by = new ArrayList<String>(); 
+			$summarize::cols = new ArrayList<String>(); 
+			$summarize::funcs = new ArrayList<String>(); 
+			$summarize::on = new ArrayList<String>(); }
 	: SUMMARIZE summary (',' summary)*
 		{ $result = new Summarize($query2::source, $summarize::by, 
 			$summarize::cols, $summarize::funcs, $summarize::on); }
@@ -115,8 +112,22 @@ summary
 		$summarize::on.add($o.text);
     	}
     ;
-  
-extend  : ID '=' expr ;
+
+extend returns [Query result]
+	scope { List<String> fields; List<Expr> exprs; List<String> rules; }
+	@init { $extend::fields = new ArrayList<String>();
+			$extend::exprs = new ArrayList<Expr>();
+			$extend::rules = new ArrayList<String>(); }
+	: EXTEND extend1 (',' extend1 )*
+		{ $result = new Extend($query2::source, $extend::fields, $extend::exprs, 
+			$extend::rules); } 
+	;
+
+extend1
+	: ID (a='=' expr)?
+		{ if ($a == null) $extend::rules.add($ID.text);
+			else { $extend::fields.add($ID.text); $extend::exprs.add($expr.expr); } } 
+	;
   
 expr returns [Expr expr]  
 	: or
@@ -200,18 +211,21 @@ unary returns [Expr expr]
 	: o=('-'|'+'|'~'|NOT)? term
 		{ $expr = $o == null ? $term.expr : new UnOp($o.text, $term.expr); } 
 	;
-term returns [Expr expr]  
+term returns [Expr expr]
 	: ID
 		{ $expr = Identifier.valueOf($text); }
-	| ID '(' args ')'
+	| ID '('
+		{ $expr = new FunCall($ID.text); } 
+	  ( e1=expr
+	  	{ ((FunCall) $expr).add($e1.expr); }
+	  (',' e2=expr
+	  	{ ((FunCall) $expr).add($e2.expr); }
+	  )* )? ')'
     | constant
     	{ $expr = new Constant($constant.value); }
     | '(' expr ')'
     	{ $expr = $expr.expr; }
     ;
-args
-	: expr (',' expr)*
-	;
 constant returns [SuValue value]  
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
