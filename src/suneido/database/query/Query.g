@@ -6,6 +6,7 @@ options {
  
 @header {
 package suneido.database.query;
+
 import suneido.database.query.expr.*;
 import suneido.SuNumber;
 import suneido.SuString;
