@@ -14,6 +14,7 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
+import suneido.database.query.expr.Expr;
 
 public class Project extends Query1 {
 	private List<String> flds;

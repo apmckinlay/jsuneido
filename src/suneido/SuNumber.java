@@ -1,7 +1,8 @@
 package suneido;
 
-import java.nio.ByteBuffer;
 import static suneido.Suneido.verify;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author Andrew McKinlay
@@ -9,7 +10,7 @@ import static suneido.Suneido.verify;
  */
 public abstract class SuNumber extends SuValue {
 	protected abstract long unscaled();
-	
+
 	/**
 	 * Used by packsize and pack.
 	 * @return Same as BigDecimal scale.
@@ -18,8 +19,8 @@ public abstract class SuNumber extends SuValue {
 	 * e.g. 1 => 0, 123 => 0, 1000 => -3, 1.1 => 1
 	 */
 	protected abstract int scale();
-	
-	/** 
+
+	/**
 	 * @return The number of bytes needed to pack the number.
 	 * Zero takes 1 byte,
 	 * otherwise, 1 byte for tag/sign, 1 byte for exponent,
@@ -33,9 +34,9 @@ public abstract class SuNumber extends SuValue {
 	private static int packshorts(long n) {
 		return n < 100000000L
 			? n < 10000 ? 1 : 2
-			: n < 1000000000000L ? 3 : 4; 
+			: n < 1000000000000L ? 3 : 4;
 	}
-	
+
 	/**
 	 * Serialize/marshal into a ByteBuffer.
 	 * An unsigned byte array compare should give same ordering as original values.
@@ -65,13 +66,13 @@ public abstract class SuNumber extends SuValue {
 			n /= 10000;
 		}
 		while (--i >= 0)
-			buf.putShort(sh[i]);		
+			buf.putShort(sh[i]);
 	}
-	
+
 	public static SuValue unpack1(ByteBuffer buf) {
 		if (buf.limit() <= 1)
 			return SuInteger.ZERO;
-		int s = (int) (buf.get(1) & 0xff) - 128;
+		int s = (buf.get(1) & 0xff) - 128;
 		long n = unpackLongPart(buf);
 		s = -(s - packshorts(n)) * 4;
 		if (-10 <= s && s < 0)
@@ -90,7 +91,7 @@ public abstract class SuNumber extends SuValue {
 			n = n * 10000 + buf.getShort(i);
 		return n;
 	}
-	
+
 	/**
 	 * <b>Warning:</b> This <u>ignores</u> any scale.
 	 * @param buf
@@ -101,8 +102,20 @@ public abstract class SuNumber extends SuValue {
 		return unpackLongPart(buf);
 	}
 
+	public static SuNumber valueOf(String s) {
+		if (s.startsWith("0x"))
+			return SuInteger.valueOf(Integer.parseInt(s.substring(2), 16));
+		else if (s.startsWith("0"))
+			return SuInteger.valueOf(Integer.parseInt(s, 8));
+		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
+				&& s.indexOf("E") == -1 && s.length() < 10)
+			return SuInteger.valueOf(Integer.parseInt(s));
+		else
+			return new SuDecimal(s);
+	}
+
 //	public static void main(String args[]) {
-//		String[] values = { 
+//		String[] values = {
 //				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
 //				".12", ".1", ".01", ".001", ".0001", ".00010002", ".00001"
 //				};
@@ -116,7 +129,7 @@ public abstract class SuNumber extends SuValue {
 //				System.out.print(" " + (int) (buf.get(i) & 0xff));
 //			SuValue x = unpack1(buf);
 //			System.out.print(" " + x.typeName() + " " + x);
-//			System.out.println("");			
+//			System.out.println("");
 //		}
 //	}
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
+import suneido.database.query.expr.Expr;
 
 /**
  * Base class for query operation classes.

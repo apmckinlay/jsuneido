@@ -6,6 +6,10 @@ options {
  
 @header {
 package suneido.database.query;
+import suneido.database.query.expr.*;
+import suneido.SuNumber;
+import suneido.SuString;
+import suneido.SuValue;
 }
 @lexer::header { package suneido.database.query; }
 
@@ -57,6 +61,7 @@ op returns [Query result]
     	{ $result = $summarize.result; }
     | EXTEND extend (',' extend)*
     | WHERE expr
+    	{ $result = new Select($query2::source, $expr.expr); }
     ;
     
 rename returns [Query result]
@@ -112,31 +117,112 @@ summary
   
 extend  : ID '=' expr ;
   
-expr  : or ('?' expr ':' expr)? ;
-or    : and (OR and)* ;
-and   : in (AND in)* ;
-in    : bitor ('in' '(' constant (','? constant)* ')')? ;
-bitor : bitxor ('|' bitxor)* ;
-bitxor  : bitand ('^' bitand)* ;
-bitand  : is ('&' is)* ;
-is    : cmp ((IS|'=') cmp)* ;
-cmp   : shift (('<'|'<='|'>='|'>') shift)* ;
-shift : add (('<<'|'>>') add)* ;
-add   : mul (('+'|'-'|'$') mul)* ;
-mul   : unary (('*'|'/'|'%') unary)* ;
-unary : ('-'|'+'|'~'|NOT)? term ;
-term  : ID
+expr returns [Expr expr]  
+	: or
+		{ $expr = $or.expr; } 
+	  ('?' x=expr ':' y=expr
+	  	{ $expr = new TriOp($expr, $x.expr, $y.expr); }
+	  )?;
+or returns [Expr expr]  
+    : x=and
+    	{ $expr = $x.expr; }
+      (OR y=and 
+    	{ $expr = new Or().add($x.expr).add($y.expr); }
+      (OR z=and
+      	{ ((Multi) $expr).add($z.expr); }
+      )*)? ;
+and returns [Expr expr]  
+	: x=in
+    	{ $expr = $x.expr; }
+	  (AND y=in
+		{ $expr = new And().add($x.expr).add($y.expr); }
+	  (AND z=in
+      	{ ((Multi) $expr).add($z.expr); }
+	  )*)? ;
+in returns [Expr expr]  
+    : bitor
+    	{ $expr = $bitor.expr; } 
+      ('in' '(' x=constant
+      	{ $expr = new In($expr).add($x.value); } 
+      (','? y=constant
+      	{ ((In) $expr).add($y.value); }
+      )* ')' )? ;
+bitor returns [Expr expr]  
+	: x=bitxor 
+   		{ $expr = $x.expr; } 
+	  (o='|' y=bitxor
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  )* ;
+bitxor returns [Expr expr]  
+	: x=bitand 
+   		{ $expr = $x.expr; } 
+	  (o='^' y=bitand
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  )* ;
+bitand returns [Expr expr]  
+	: x=is 
+   		{ $expr = $x.expr; } 
+	  (o='&' y=is
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  )* ;
+is returns [Expr expr]  
+    : x=cmp 
+   		{ $expr = $x.expr; } 
+      (o=(IS|'=') y=cmp
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+      )* ;
+cmp returns [Expr expr]  
+   : x=shift 
+   		{ $expr = $x.expr; } 
+     (o=('<'|'<='|'>='|'>') y=shift
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     )* ;
+shift returns [Expr expr]  
+	: x=add 
+   		{ $expr = $x.expr; } 
+	  (o=('<<'|'>>') y=add
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  )* ;
+add returns [Expr expr]  
+   : x=mul
+   		{ $expr = $x.expr; } 
+     (o=('+'|'-'|'$') y=mul
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     )* ;
+mul returns [Expr expr]  
+   : x=unary
+   		{ $expr = $x.expr; }
+     (o=('*'|'/'|'%') y=unary
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     )* ;
+unary returns [Expr expr]  
+	: o=('-'|'+'|'~'|NOT)? term
+		{ $expr = $o == null ? $term.expr : new UnOp($o.text, $term.expr); } 
+	;
+term returns [Expr expr]  
+	: ID
+		{ $expr = Identifier.valueOf($text); }
+	| ID '(' args ')'
     | constant
+    	{ $expr = new Constant($constant.value); }
     | '(' expr ')'
+    	{ $expr = $expr.expr; }
     ;
-constant : NUM
+args
+	: expr (',' expr)*
+	;
+constant returns [SuValue value]  
+	: NUM
+		{ $value = SuNumber.valueOf($text); }
     | STRING
+    	{ $value = new SuString($text); }
     | '[' members ']'
     | '#' '(' members ')'
     | '#' '{' members '}'
     ;
 members : member (',' member)* ;
-member  : constant
+member  
+	: constant
     | '(' members ')'
     | '{' members '}'
     | ID ':' member
@@ -193,4 +279,5 @@ fragment
 DIG   : '0'..'9' ;
 fragment
 EXP   : ('e'|'E')('0'..'9')+ ;
+
 

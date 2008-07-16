@@ -17,16 +17,16 @@ import java.util.List;
  */
 public class Util {
 
-	public static String listToCommas(List<String> list) {
+	public static <T> String listToCommas(List<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
 		StringBuilder sb = new StringBuilder();
-		for (String s : list)
-			sb.append(s).append(",");
+		for (T x : list)
+			sb.append(x).append(",");
 		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
-	public static String listToParens(List<String> list) {
+	public static <T> String listToParens(List<T> list) {
 		return "(" + listToCommas(list) + ")";
 	}
 
