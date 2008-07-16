@@ -3,14 +3,26 @@ package suneido.database.query;
 import java.util.List;
 
 import suneido.database.Record;
+import suneido.database.query.expr.And;
 import suneido.database.query.expr.Expr;
 
-public class Extend extends Query2 {
-	List<String> flds;
-	List<Expr> exprs;
+public class Select extends Query1 {
+	private final Expr expr;
 
-	Extend(Query source1, Query source2) {
-		super(source1, source2);
+	public Select(Query source, Expr expr) {
+		super(source);
+		// expr = expr.fold();
+		if (!(expr instanceof And))
+			expr = new And().add(expr);
+		// if (!source.columns().containsAll(expr.fields()))
+		// throw new SuException("select: nonexistent columns: "
+		// + listToParens(difference(expr.fields(), source.columns())));
+		this.expr = expr;
+	}
+
+	@Override
+	public String toString() {
+		return source + " WHERE " + expr;
 	}
 
 	@Override
@@ -55,9 +67,4 @@ public class Extend extends Query2 {
 
 	}
 
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

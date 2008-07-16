@@ -7,25 +7,25 @@ package suneido;
  * @see SuDecimal
  */
 public class SuInteger extends SuNumber {
-	private int n;
+	private final int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
-	
-	// lazy initialization as per Effective Java 
+
+	// lazy initialization as per Effective Java
 	private static class SmallInts {
 		static SuInteger[] vals = new SuInteger[256];
 		static {
 			for (int i = 0; i < 256; ++i)
 				vals[i] = new SuInteger(i - 128);
-		}	
+		}
 	}
-	
+
 	public static SuInteger valueOf(int n) {
 		return -128 <= n && n < 128
 			? SmallInts.vals[n + 128]
 			: new SuInteger(n);
 	}
-	
+
 	private SuInteger(int n) {
 		this.n = n;
 	}
@@ -38,7 +38,7 @@ public class SuInteger extends SuNumber {
 	public int integer() {
 		return n;
 	}
-	
+
 	@Override
 	public SuDecimal number() {
 		return new SuDecimal(n);
@@ -48,12 +48,12 @@ public class SuInteger extends SuNumber {
 	public String toString() {
 		return "" + n;
 	}
-		
+
 	@Override
 	public String string() {
 		return "" + n;
 	}
-		
+
 	@Override
 	public int hashCode() {
 		return Integer.valueOf(n).hashCode();
@@ -75,7 +75,7 @@ public class SuInteger extends SuNumber {
 			return ord < 0 ? -1 : +1;
 		return -value.compareToInt(this);
 	}
-	@Override 
+	@Override
 	public int compareToInt(SuInteger i) {
 		return Integer.valueOf(n).compareTo(i.n);
 	}
@@ -110,7 +110,7 @@ public class SuInteger extends SuNumber {
 	protected SuValue mulInt(SuInteger x) {
 		return valueOf(x.n * n);
 	}
-	
+
 	// div is handled by SuDecimal
 
 	@Override
@@ -126,7 +126,7 @@ public class SuInteger extends SuNumber {
 	protected int scale() {
 		return 0;
 	}
-	
+
 //	public static void main(String args[]) {
 //		SuInteger.init();
 //		SuValue y;
@@ -137,12 +137,12 @@ public class SuInteger extends SuNumber {
 //				y = new SuInteger(gen.nextInt(100));
 //			}
 //			long base = System.currentTimeMillis() - t;
-//			
+//
 //			SuValue x = new SuInteger(0);
 //			t = System.currentTimeMillis();
 //			for (int i = 0; i < 100 * 1000 * 1000; ++i) {
 //				y = new SuInteger(gen.nextInt(100));
-//				x = x.add(y); x = x.add(y); x = x.sub(y); x = x.sub(y); 
+//				x = x.add(y); x = x.add(y); x = x.sub(y); x = x.sub(y);
 //			}
 //			System.out.println(System.currentTimeMillis() - t - base);
 //		}
