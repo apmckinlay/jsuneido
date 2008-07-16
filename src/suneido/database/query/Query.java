@@ -62,7 +62,7 @@ public abstract class Query {
 	abstract void rewind();
 	abstract Row get(Dir dir);
 	List<Fixed> fixed() {
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 
 	// updating
