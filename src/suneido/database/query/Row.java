@@ -5,15 +5,13 @@ import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuContainer;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.Header.Which;
 
 public class Row {
-	private final Record[] data;
+	final Record[] data;
 	long recadr = 0; // if Row contains single update-able record, this is its
 						// address
 	Transaction tran = null;

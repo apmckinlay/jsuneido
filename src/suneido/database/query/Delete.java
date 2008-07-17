@@ -1,5 +1,7 @@
 package suneido.database.query;
 
+import static suneido.database.Database.theDB;
+import suneido.SuException;
 import suneido.database.Transaction;
 
 
@@ -16,8 +18,15 @@ public class Delete extends QueryAction {
 
 	@Override
 	int execute(Transaction tran) {
-		// TODO Auto-generated method stub
-		return 0;
+		Query q = source.setup();
+		if (!q.updateable())
+			throw new SuException("delete: query not updateable");
+		q.setTransaction(tran);
+		Row row;
+		int n = 0;
+		for (; null != (row = q.get(Dir.NEXT)); ++n)
+			theDB.removeRecord(tran, row.data[1].off());
+		return n;
 	}
 
 }
