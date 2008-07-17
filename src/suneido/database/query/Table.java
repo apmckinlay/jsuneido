@@ -19,8 +19,8 @@ public class Table extends Query {
 	private Keyrange sel;
 	private Header hdr;
 	private BtreeIndex ix;
-	private Transaction tran;
-	private SuValue trigger;
+	private Transaction tran = null;
+	private final SuValue trigger = null;
 	private List<Integer> flds;
 	private boolean singleton; // i.e. key()
 	private List<String> idx;
@@ -55,8 +55,17 @@ public class Table extends Query {
 
 	@Override
 	int columnsize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return recordsize() / columns().size();
+	}
+
+	@Override
+	int recordsize() {
+		return tbl.nrecords == 0 ? 0 : tbl.totalsize / tbl.nrecords;
+	}
+
+	@Override
+	double nrecords() {
+		return tbl.nrecords;
 	}
 
 	@Override
@@ -100,18 +109,6 @@ public class Table extends Query {
 	Header header() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	double nrecords() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	int recordsize() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override

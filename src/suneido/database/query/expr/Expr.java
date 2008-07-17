@@ -17,7 +17,7 @@ public abstract class Expr {
 		return this;
 	}
 
-	public Expr replace(List<String> from, List<String> to) {
+	public Expr replace(List<String> from, List<Expr> to) {
 		return this;
 	}
 }

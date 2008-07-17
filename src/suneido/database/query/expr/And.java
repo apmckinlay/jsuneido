@@ -1,6 +1,16 @@
 package suneido.database.query.expr;
 
+import java.util.List;
+
 public class And extends Multi {
+
+	public And() {
+		super();
+	}
+
+	public And(List<Expr> exprs) {
+		super(exprs);
+	}
 
 	@Override
 	public String toString() {

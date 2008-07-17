@@ -19,6 +19,12 @@ import suneido.SuValue;
 query returns [Query result] 
 	: query2 sort[$query2.result]?
     	{ $result = $sort.result == null ? $query2.result : $sort.result; }
+    | insert
+    	{ $result = $insert.result; }
+    | update
+    	{ $result = $update.result; }
+    | DELETE query2
+    	{ $result = new Delete($query2.result); }
 	;
 	
 sort[Query source] returns [Query result]
@@ -26,6 +32,30 @@ sort[Query source] returns [Query result]
 		 { $result = new Sort($source, $r != null, $cols.list); }
 	;
 
+insert returns [Query result]
+	scope { List<String> fields; List<Expr> exprs; }
+	@init { $insert::fields = new ArrayList<String>(); 
+			$insert::exprs = new ArrayList<Expr>(); }
+	: INSERT '{' field (','? field )* '}' INTO query2
+		{ $result = new Insert($query2.result, $insert::fields, $insert::exprs); }
+	;
+field returns [String id, Expr expr]
+	:	ID ':' expr
+			{ $insert::fields.add($ID.text); $insert::exprs.add($expr.expr); }
+	;
+
+update returns [Query result]
+	scope { List<String> fields; List<Expr> exprs; }
+	@init { $update::fields = new ArrayList<String>();
+			$update::exprs = new ArrayList<Expr>(); }
+	: UPDATE query2 SET set (',' set )*
+		{ $result = new Update($query2.result, $update::fields, $update::exprs); } 
+	;
+set
+	: ID '=' expr
+		{ $update::fields.add($ID.text); $update::exprs.add($expr.expr); } 
+	;
+  
 query2 returns [Query result]
 	scope { Query source; }
 	: source { $query2::source = $source.result; } op*
@@ -273,6 +303,11 @@ REVERSE	: ('r'|'R')('e'|'E')('v'|'V')('e'|'E')('r'|'R')('s'|'S')('e'|'E') ;
 MIN		: ('m'|'M')('i'|'I')('n'|'N') ;
 AVERAGE	: ('a'|'A')('v'|'V')('e'|'E')('r'|'R')('a'|'A')('g'|'G')('e'|'E') ;
 IN		: ('i'|'I')('n'|'N') ;
+INSERT	: ('i'|'I')('n'|'N')('s'|'S')('e'|'E')('r'|'R')('t'|'T') ;
+INTO	: ('i'|'I')('n'|'N')('t'|'T')('o'|'O') ;
+UPDATE	: ('u'|'U')('p'|'P')('d'|'D')('a'|'A')('t'|'T')('e'|'E') ;
+SET		: ('s'|'S')('e'|'E')('t'|'T') ;
+DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
 
 ID    : ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 

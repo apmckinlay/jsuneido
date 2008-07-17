@@ -18,6 +18,12 @@ public class Difference extends Compatible {
 	}
 
 	@Override
+	Query transform() {
+		// remove disjoint difference
+		return disjoint == "" ? super.transform() : source.transform();
+	}
+
+	@Override
 	List<String> columns() {
 		return source.columns();
 	}

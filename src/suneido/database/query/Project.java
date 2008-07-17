@@ -6,7 +6,6 @@ import static suneido.Util.intersect;
 import static suneido.Util.listToParens;
 import static suneido.Util.prefix_set;
 import static suneido.Util.removeDups;
-import static suneido.database.query.Row.Eof;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -317,8 +316,8 @@ public class Project extends Query1 {
 			// output the first of each group
 			// i.e. skip over rows the same as previous output
 			do
-				if (Eof == (row = source.get(Dir.NEXT)))
-					return Eof;
+				if (null == (row = source.get(Dir.NEXT)))
+					return null;
 			while (!rewound && hdr.equal(row, currow));
 			rewound = false;
 			prevrow = currow;
@@ -334,8 +333,8 @@ public class Project extends Query1 {
 			rewound = false;
 			do
 			{
-				if (Eof == (row = prevrow))
-					return Eof;
+				if (null == (row = prevrow))
+					return null;
 				prevrow = source.get(Dir.PREV);
 			}
 			while (hdr.equal(row, prevrow));
@@ -354,7 +353,7 @@ public class Project extends Query1 {
 				buildLookupIndex();
 		}
 		Row row;
-		while (Eof != (row = source.get(dir))) {
+		while (null != (row = source.get(dir))) {
 			//			Record key = row_to_key(hdr, row, flds);
 			//			VVtree::iterator iter = idx.find(key);
 			//			if (iter == idx.end())
@@ -378,13 +377,13 @@ public class Project extends Query1 {
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
-		return Eof;
+		return null;
 	}
 
 	private void buildLookupIndex() {
 		Row row;
 		// pre-build the index
-		while (Eof != (row = source.get(Dir.NEXT))) {
+		while (null != (row = source.get(Dir.NEXT))) {
 			//			Record key = row_to_key(hdr, row, flds);
 			//			Vdata data(row.data);
 			//			for (List<Record> rs = row.data; ! nil(rs); ++rs)

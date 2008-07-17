@@ -4,7 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Multi extends Expr {
-	protected final List<Expr> exprs = new ArrayList<Expr>();
+	public final List<Expr> exprs;
+
+	public Multi() {
+		exprs = new ArrayList<Expr>();
+	}
+
+	public Multi(List<Expr> exprs) {
+		this.exprs = exprs;
+	}
 
 	public Multi add(Expr e) {
 		assert e != null;

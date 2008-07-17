@@ -1,8 +1,10 @@
 package suneido.database.query;
 
 import static suneido.Util.addUnique;
+import static suneido.Util.concat;
 import static suneido.Util.difference;
 import static suneido.Util.intersect;
+import static suneido.Util.nil;
 import static suneido.Util.union;
 
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
-	private final List<String> rules;
+	List<String> rules;
 	List<String> flds; // modified by Project.transform
 	List<Expr> exprs; // modified by Project.transform
 	private List<String> eflds;
@@ -58,6 +60,24 @@ public class Extend extends Query1 {
 			sep = ", ";
 		}
 		return s;
+	}
+
+	@Override
+	Query transform() {
+		// remove empty Extends
+		if (nil(flds) && nil(rules))
+			return source.transform();
+		// combine Extends
+		if (source instanceof Extend) {
+			Extend e = (Extend) source;
+			flds = concat(e.flds, flds);
+			exprs = concat(e.exprs, exprs);
+			rules = union(e.rules, rules);
+			source = e.source;
+			init();
+			return transform();
+			}
+		return super.transform();
 	}
 
 	@Override
