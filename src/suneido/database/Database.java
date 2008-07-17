@@ -584,7 +584,7 @@ public class Database {
 		return new Record().add(name).add(columns);
 	}
 
-	private Index getIndex(Table table, String indexcolumns) {
+	public Index getIndex(Table table, String indexcolumns) {
 		return table == null ? null : table.getIndex(indexcolumns);
 	}
 

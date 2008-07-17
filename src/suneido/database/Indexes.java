@@ -46,7 +46,7 @@ public class Indexes implements Iterable<Index> {
 
 	public Index firstKey() {
 		for (Index index : indexes)
-			if (index.iskey())
+			if (index.isKey())
 				return index;
 		return null;
 	}
@@ -61,7 +61,7 @@ public class Indexes implements Iterable<Index> {
 	public List<List<String>> keysColumns() {
 		ArrayList<List<String>> list = new ArrayList<List<String>>();
 		for (Index index : indexes)
-			if (index.iskey())
+			if (index.isKey())
 				list.add(Arrays.asList(index.columns.split(",")));
 		return list;
 	}

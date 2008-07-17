@@ -5,9 +5,7 @@ import static suneido.Suneido.verify;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuBoolean;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
@@ -48,7 +46,7 @@ public class Index {
 
 	@Override
 	public String toString() {
-		return "Index(" + columns + ")" + (iskey() ? ", key" : "")
+		return "Index(" + columns + ")" + (isKey() ? ", key" : "")
 				+ (btreeIndex.unique ? "unique" : "");
 	}
 
@@ -58,16 +56,16 @@ public class Index {
 		if (record.getInt(NNODES) != btreeIndex.nnodes())
 			indexInfo(record, btreeIndex);
 	}
-	
+
 	public Record record() {
 		ForeignKey fk = fksrc == null ? ForeignKey.NIL : fksrc;
 		return Index.record(btreeIndex, fk.tablename, fk.columns, fk.mode);
 	}
-	
+
 	public static Record record(BtreeIndex btreeIndex) {
 		return record(btreeIndex, null, null, 0);
 	}
-	public static Record record(BtreeIndex btreeIndex, 
+	public static Record record(BtreeIndex btreeIndex,
 			String fktable, String fkcolumns, int fkmode) {
 		Record r = new Record()
 			.add(btreeIndex.tblnum)
@@ -107,8 +105,12 @@ public class Index {
 		return columns;
 	}
 
-	public boolean iskey() {
+	public boolean isKey() {
 		return btreeIndex.iskey;
+	}
+
+	public boolean isLower() {
+		return false; // TODO
 	}
 
 	static class ForeignKey {
@@ -116,7 +118,7 @@ public class Index {
 		int tblnum; // used by fkdsts
 		String columns;
 		int mode;
-		
+
 		static final ForeignKey NIL = new ForeignKey("", "", 0);
 
 		ForeignKey(String tablename, String columns, int mode) {
