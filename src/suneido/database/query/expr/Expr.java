@@ -9,5 +9,15 @@ public abstract class Expr {
 
 	public abstract List<String> fields();
 
-	// public abstract Expr fold();
+	public Expr fold() {
+		return this;
+	}
+
+	public Expr rename(List<String> from, List<String> to) {
+		return this;
+	}
+
+	public Expr replace(List<String> from, List<String> to) {
+		return this;
+	}
 }

@@ -1,11 +1,12 @@
 package suneido.database.query.expr;
 
+import java.util.Collections;
 import java.util.List;
 
 import suneido.SuValue;
 
 public class Constant extends Expr {
-	private final SuValue value;
+	final SuValue value;
 
 	public Constant(SuValue value) {
 		this.value = value;
@@ -18,8 +19,7 @@ public class Constant extends Expr {
 
 	@Override
 	public List<String> fields() {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptyList();
 	}
 
 }
