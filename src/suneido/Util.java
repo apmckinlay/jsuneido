@@ -2,10 +2,7 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -120,6 +117,78 @@ public class Util {
 		List<T> result = new ArrayList<T>(x);
 		result.addAll(y);
 		return result;
+	}
+
+	public static <T> List<T> list(T a) {
+		return Collections.singletonList(a);
+	}
+	public static <T> List<T> list(T a, T b) {
+		List<T> list = new ArrayList<T>(2);
+		list.add(a);
+		list.add(b);
+		return list;
+	}
+	public static <T> List<T> list(T a, T b, T c) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		return list;
+	}
+
+	public static <T> List<T> list(T a, T b, T c, T d) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		list.add(d);
+		return list;
+	}
+
+	public static <T> List<T> list(T a, T b, T c, T d, T e) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		list.add(d);
+		list.add(e);
+		return list;
+	}
+
+	public static <T> List<T> list(T a, T b, T c, T d, T e, T f) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		list.add(d);
+		list.add(e);
+		list.add(f);
+		return list;
+	}
+
+	public static <T> List<T> list(T a, T b, T c, T d, T e, T f, T g) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		list.add(d);
+		list.add(e);
+		list.add(f);
+		list.add(g);
+		return list;
+	}
+
+	public static <T> List<T> list(T a, T b, T c, T d, T e, T f, T g, T h) {
+		List<T> list = new ArrayList<T>(3);
+		list.add(a);
+		list.add(b);
+		list.add(c);
+		list.add(d);
+		list.add(e);
+		list.add(f);
+		list.add(g);
+		list.add(h);
+		return list;
 	}
 
 }

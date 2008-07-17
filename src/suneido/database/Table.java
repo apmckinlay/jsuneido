@@ -2,6 +2,7 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,7 +95,7 @@ public class Table {
 	public boolean singleton() {
 		return indexes.first().columns.equals("");
 	}
-	public List<String> columnNames() {
+	public List<String> get_columns() {
 		return columns.names();
 	}
 	public List<List<String>> indexesColumns() {
@@ -104,12 +105,31 @@ public class Table {
 		return indexes.keysColumns();
 	}
 
+	/**
+	 * @return The physical fields. 1:1 match with records.
+	 */
+	public List<String> get_fields() {
+		List<String> list = new ArrayList<String>();
+		int i = 0;
+		for (Column cs : columns) {
+			if (cs.num < 0)
+				continue; // skip rules
+			for (; i < cs.num; ++i)
+				list.add("-");
+			list.add(cs.name);
+			++i;
+		}
+		for (; i < nextfield; ++i)
+			list.add("-");
+		return list;
+	}
+
 	public String schema() {
 		StringBuilder sb = new StringBuilder();
 
 		// fields
 		sb.append("(");
-		for (String col : columnNames())
+		for (String col : get_columns())
 			if (!col.equals("-"))
 				sb.append(col).append(",");
 		// for (String f : get_rules(table))
@@ -124,7 +144,7 @@ public class Table {
 
 		// indexes
 		for (Index index : indexes) {
-			if (index.iskey())
+			if (index.isKey())
 				sb.append(" key");
 			else
 				sb.append(" index").append(

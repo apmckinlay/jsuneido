@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.listToCommas;
+import static suneido.Util.*;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public class Table extends Query {
 
 	@Override
 	List<String> columns() {
-		return tbl.columnNames();
+		return tbl.get_columns();
 	}
 
 	@Override
@@ -108,8 +108,11 @@ public class Table extends Query {
 
 	@Override
 	Header header() {
-		// TODO Auto-generated method stub
-		return null;
+		Index i = nil(idx) || singleton ? null
+				: theDB.getIndex(tbl, listToCommas(idx));
+		boolean lower = i != null && i.isLower();
+		List<String> index = singleton || lower ? noFields : idx;
+		return new Header(list(index, tbl.get_fields()), tbl.get_columns());
 	}
 
 	@Override
