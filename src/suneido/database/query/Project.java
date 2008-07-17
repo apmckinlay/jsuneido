@@ -20,7 +20,12 @@ public class Project extends Query1 {
 	private List<String> flds;
 
 	enum Strategy {
-		NONE, COPY, SEQUENTIAL, LOOKUP
+		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ"), LOOKUP("-LOOKUP");
+		public String name;
+
+		Strategy(String name) {
+			this.name = name;
+		}
 	};
 
 	private Strategy strategy = Strategy.NONE;
@@ -49,15 +54,15 @@ public class Project extends Query1 {
 			throw new SuException("project: nonexistent column(s): "
 					+ difference(args, columns));
 		flds = allbut
-			? difference(columns, args)
-			: removeDups(args);
+		? difference(columns, args)
+				: removeDups(args);
 
 		// include dependencies (_deps)
 		for (String f : flds) {
 			String deps = f + "_deps";
 			if (columns.contains(deps) && !flds.contains(deps))
 				flds.add(deps);
-			}
+		}
 
 		// check if project contain candidate key
 		if (hasKey(source, flds))
@@ -66,8 +71,7 @@ public class Project extends Query1 {
 
 	@Override
 	public String toString() {
-		String[] st = { "", "-COPY", "-SEQ", "-LOOKUP" };
-		String s = source.toString() + " PROJECT" + st[strategy.ordinal()];
+		String s = source.toString() + " PROJECT" + strategy.name;
 		if (via != null)
 			s += "^" + listToParens(via);
 		return s + " " + listToParens(flds);
@@ -190,7 +194,7 @@ public class Project extends Query1 {
 			}
 			e.flds = orig_flds;
 			e.exprs = orig_exprs;
-			}
+		}
 		// distribute project over union/intersect (NOT difference)
 		else if (source instanceof Compatible
 				&& !(source instanceof Difference)) {
@@ -240,7 +244,7 @@ public class Project extends Query1 {
 		double best_cost = IMPOSSIBLE;
 		List<List<String>> idxs = index.isEmpty() ? source.indexes()
 				: Collections.singletonList(index);
-		for (List<String> ix : idxs) {
+		for (List<String> ix : idxs)
 			// TODO: take fixed into account
 			if (prefix_set(ix, flds)) {
 				double cost = source.optimize1(ix, needs, firstneeds,
@@ -250,7 +254,6 @@ public class Project extends Query1 {
 					best_index = ix;
 				}
 			}
-		}
 		if (best_index == null) {
 			if (is_cursor)
 				return IMPOSSIBLE;
@@ -286,20 +289,18 @@ public class Project extends Query1 {
 	@Override
 	Row get(Dir dir)
 	{
-	if (strategy == Strategy.COPY)
-		return source.get(dir);
+		if (strategy == Strategy.COPY)
+			return source.get(dir);
 
-	if (first)
+		if (first)
 		{
-		first = false;
-		hdr = header();
-		if (strategy == Strategy.LOOKUP)
-			{
-//			idx = new VVtree(td = new TempDest);
-			indexed = false;
-			}
+			first = false;
+			hdr = header();
+			if (strategy == Strategy.LOOKUP)
+				//			idx = new VVtree(td = new TempDest);
+				indexed = false;
 		}
-	switch (strategy) {
+		switch (strategy) {
 		case SEQUENTIAL:
 			return getSequential(dir);
 		case LOOKUP:
@@ -318,7 +319,7 @@ public class Project extends Query1 {
 			do
 				if (Eof == (row = source.get(Dir.NEXT)))
 					return Eof;
-				while (!rewound && hdr.equal(row, currow));
+			while (!rewound && hdr.equal(row, currow));
 			rewound = false;
 			prevrow = currow;
 			currow = row;
@@ -332,12 +333,12 @@ public class Project extends Query1 {
 				prevrow = source.get(Dir.PREV);
 			rewound = false;
 			do
-				{
+			{
 				if (Eof == (row = prevrow))
 					return Eof;
 				prevrow = source.get(Dir.PREV);
-				}
-				while (hdr.equal(row, prevrow));
+			}
+			while (hdr.equal(row, prevrow));
 			// output the last row of a group
 			currow = row;
 			return row;
@@ -354,26 +355,26 @@ public class Project extends Query1 {
 		}
 		Row row;
 		while (Eof != (row = source.get(dir))) {
-//			Record key = row_to_key(hdr, row, flds);
-//			VVtree::iterator iter = idx.find(key);
-//			if (iter == idx.end())
-//				{
-//				for (List<Record> rs = row.data; ! nil(rs); ++rs)
-//					td.addref(rsptr());
-//				Vdata data(row.data);
-//				verify(idx.insert(VVslot(key, data)));
-//				return row;
-//				}
-//			else
-//				{
-//				Vdata d = iterdata;
-//				Records rs;
-//				for (int i = dn - 1; i >= 0; --i)
-//					rs.add(Record::from_int(dr[i], theDB().mmf));
-//				Row i.row(rs);
-//				if (row == i.row)
-//					return row;
-//				}
+			//			Record key = row_to_key(hdr, row, flds);
+			//			VVtree::iterator iter = idx.find(key);
+			//			if (iter == idx.end())
+			//				{
+			//				for (List<Record> rs = row.data; ! nil(rs); ++rs)
+			//					td.addref(rsptr());
+			//				Vdata data(row.data);
+			//				verify(idx.insert(VVslot(key, data)));
+			//				return row;
+			//				}
+			//			else
+			//				{
+			//				Vdata d = iterdata;
+			//				Records rs;
+			//				for (int i = dn - 1; i >= 0; --i)
+			//					rs.add(Record::from_int(dr[i], theDB().mmf));
+			//				Row i.row(rs);
+			//				if (row == i.row)
+			//					return row;
+			//				}
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
@@ -384,12 +385,12 @@ public class Project extends Query1 {
 		Row row;
 		// pre-build the index
 		while (Eof != (row = source.get(Dir.NEXT))) {
-//			Record key = row_to_key(hdr, row, flds);
-//			Vdata data(row.data);
-//			for (List<Record> rs = row.data; ! nil(rs); ++rs)
-//				td.addref(rs.ptr());
-//			// insert will only succeed on first of dups
-//			idx.insert(VVslot(key, data));
+			//			Record key = row_to_key(hdr, row, flds);
+			//			Vdata data(row.data);
+			//			for (List<Record> rs = row.data; ! nil(rs); ++rs)
+			//				td.addref(rs.ptr());
+			//			// insert will only succeed on first of dups
+			//			idx.insert(VVslot(key, data));
 		}
 		source.rewind();
 		indexed = true;
@@ -398,10 +399,9 @@ public class Project extends Query1 {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		source.select(index, from, to);
-		if (strategy == Strategy.LOOKUP && (sel.org != from || sel.end != to)) {
+		if (strategy == Strategy.LOOKUP && (sel.org != from || sel.end != to))
 			// idx = new VVtree(td = new DestMem());
 			indexed = false;
-		}
 		sel.org = from;
 		sel.end = to;
 		rewound = true;

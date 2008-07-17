@@ -1,11 +1,12 @@
 package suneido.database.query.expr;
 
+import java.util.Collections;
 import java.util.List;
 
 import suneido.SuBoolean;
 
 public class Identifier extends Expr {
-	private final String s;
+	private final String ident;
 
 	public static Expr valueOf(String s) {
 		if (s.equals("true"))
@@ -16,19 +17,18 @@ public class Identifier extends Expr {
 			return new Identifier(s);
 	}
 
-	public Identifier(String s) {
-		this.s = s;
+	public Identifier(String ident) {
+		this.ident = ident;
 	}
 
 	@Override
 	public String toString() {
-		return s;
+		return ident;
 	}
 
 	@Override
 	public List<String> fields() {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.singletonList(ident);
 	}
 
 }
