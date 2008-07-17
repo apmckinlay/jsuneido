@@ -68,7 +68,6 @@ public class Table extends Query {
 
 	@Override
 	Row get(Dir dir) {
-		System.out.println("get " + dir);
 		if (first) {
 			first = false;
 			iterate_setup(dir);
@@ -90,7 +89,6 @@ public class Table extends Query {
 			throw unreachable();
 		}
 		if (iter.eof()) {
-			System.out.println("eof");
 			rewound = true;
 			return null;
 		}
@@ -102,7 +100,6 @@ public class Table extends Query {
 	}
 
 	private void iterate_setup(Dir dir) {
-		System.out.println("iterate_setup");
 		hdr = header();
 		ix = (idx == null || singleton
 			? tbl.firstIndex()
