@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
+import static suneido.Util.nil;
 import static suneido.Util.union;
 
 import java.util.Collections;
@@ -33,11 +34,14 @@ public abstract class Query {
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
 	static Query query(String s, boolean is_cursor) {
-		return query_setup(ParseQuery.parse(s), is_cursor);
+		return ParseQuery.parse(s).setup(is_cursor);
 	}
 
-	static Query query_setup(Query q, boolean is_cursor) {
-		q = q.transform();
+	Query setup() {
+		return setup(false);
+	}
+	Query setup(boolean is_cursor) {
+		Query q = transform();
 		if (q.optimize(noFields, q.columns(), noFields, is_cursor, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");
 		q = q.addindex();
@@ -83,7 +87,8 @@ public abstract class Query {
 	Query transform() {
 		return this;
 	}
-	double optimize(List<String> index, List<String> needs, List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (is_cursor || index.isEmpty())
 			return optimize1(index, needs, firstneeds, is_cursor, freeze);
 		if (!columns().containsAll(index))
@@ -157,7 +162,7 @@ public abstract class Query {
 
 	// used to insert TempIndex nodes
 	Query addindex() { // redefined by Query1 and Query2
-		if (tempindex.isEmpty())
+		if (nil(tempindex))
 			return this;
 		if (header().size() > 2)
 			return new TempIndexN(this, tempindex, isUnique(tempindex));

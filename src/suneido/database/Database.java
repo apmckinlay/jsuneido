@@ -375,15 +375,15 @@ public class Database {
 
 		Column col = tbl.getColumn(oldname);
 		if (col == null)
-			throw new SuException("rename column: nonexistent column: " 
+			throw new SuException("rename column: nonexistent column: "
 					+ oldname + " in " + table);
 		if (tbl.hasColumn(newname))
-			throw new SuException("rename column: column already exists: " 
+			throw new SuException("rename column: column already exists: "
 					+ newname + " in " + table);
 
 		Transaction tran = readwriteTran();
 		try {
-			update_any_record(tran, "columns", "table,column", 
+			update_any_record(tran, "columns", "table,column",
 					key(tbl.num, oldname),
 					Column.record(tbl.num, newname, col.num));
 
@@ -395,7 +395,7 @@ public class Database {
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);
 				idx.btreeIndex.indexColumns = listToCommas(cols);
-				update_any_record(tran, "indexes", "table,columns", 
+				update_any_record(tran, "indexes", "table,columns",
 						key(tbl.num, idx.columns), idx.record());
 				}
 			tran.ck_complete();
@@ -484,15 +484,15 @@ public class Database {
 				key(tbl.num, columns));
 	}
 
-	public Table ck_getTable(String table) {
-		Table tbl = getTable(table);
-		if (tbl == null)
-			throw new SuException("nonexistent table: " + table);
-		return tbl;
-	}
-
 	private boolean tableExists(String table) {
 		return getTable(table) != null;
+	}
+
+	public Table ck_getTable(String tablename) {
+		Table tbl = getTable(tablename);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tablename);
+		return tbl;
 	}
 
 	public Table getTable(String tablename) {
@@ -503,6 +503,13 @@ public class Database {
 			return table;
 		}
 		return getTable(tablename_index, key(tablename));
+	}
+
+	public Table ck_getTable(int tblnum) {
+		Table tbl = getTable(tblnum);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tblnum);
+		return tbl;
 	}
 
 	public Table getTable(int tblnum) {
@@ -768,6 +775,14 @@ public class Database {
 	}
 
 	// remove record ================================================
+
+	public void removeRecord(Transaction tran, long recadr) {
+		verify(recadr > 0);
+		int tblnum = adr(recadr - 4).getInt(0);
+		Table tbl = ck_getTable(tblnum);
+		remove_any_record(tran, tbl, input(recadr));
+
+	}
 
 	public void removeRecord(Transaction tran, String tablename, String index,
 			Record key) {

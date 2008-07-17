@@ -1,14 +1,13 @@
 package suneido.database.query;
 
+import static suneido.SuException.unreachable;
 import static suneido.Util.listToCommas;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.SuValue;
-import suneido.database.BtreeIndex;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 
 public class Table extends Query {
 	private final String table;
@@ -25,7 +24,6 @@ public class Table extends Query {
 	private boolean singleton; // i.e. key()
 	private List<String> idx;
 	private BtreeIndex.Iter iter;
-
 
 	public Table(String tablename) {
 		table = tablename;
@@ -70,6 +68,7 @@ public class Table extends Query {
 
 	@Override
 	Row get(Dir dir) {
+		System.out.println("get " + dir);
 		if (first) {
 			first = false;
 			iterate_setup(dir);
@@ -83,10 +82,15 @@ public class Table extends Query {
 		switch (dir) {
 		case NEXT :
 			iter.next();
+			break;
 		case PREV :
 			iter.prev();
+			break;
+		default:
+			throw unreachable();
 		}
 		if (iter.eof()) {
+			System.out.println("eof");
 			rewound = true;
 			return null;
 		}
@@ -94,15 +98,15 @@ public class Table extends Query {
 
 		// TODO
 
-		return new Row(r);
+		return new Row(iter.cur().key, r);
 	}
 
 	private void iterate_setup(Dir dir) {
+		System.out.println("iterate_setup");
 		hdr = header();
 		ix = (idx == null || singleton
 			? tbl.firstIndex()
-			: tbl
-				.getIndex(listToCommas(idx))).btreeIndex;
+			: tbl.getIndex(listToCommas(idx))).btreeIndex;
 	}
 
 	@Override
@@ -135,7 +139,11 @@ public class Table extends Query {
 	@Override
 	void setTransaction(Transaction tran) {
 		this.tran = tran;
-		// iter.setTransaction(tran);
+	}
+
+	@Override
+	boolean updateable() {
+		return true;
 	}
 
 }
