@@ -1,35 +1,45 @@
 package suneido.database.query;
 
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.nil;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.SuException;
 import suneido.database.Record;
 
 public class Rename extends Query1 {
-	private List<String> from;
-	private List<String> to;
+	List<String> from;
+	List<String> to;
 
 	Rename(Query source, List<String> from, List<String> to) {
 		super(source);
 		this.from = from;
 		this.to = to;
-		// Fields src = source.columns();
-//		if (! subset(src, from))
-//			except("rename: nonexistent column(s): " << difference(from, src));
-//		Fields dups = intersect(src, to);
-//		if (! nil(dups))
-//			except("rename: column(s) already exist: " << dups);
-//
-//		// also rename dependencies (_deps)
-//		for (Fields fs = from, ts = to; ! nil(fs); ++fs, ++ts)
-//			{
-//			gcstring deps(*fs + "_deps");
-//			if (src.member(deps))
-//				{
-//				from.push(deps);
-//				to.push(*ts + "_deps");
-//				}
-//			}
+		List<String> src = source.columns();
+		if (!src.containsAll(from))
+			throw new SuException("rename: nonexistent column(s): "
+					+ difference(from, src));
+		List<String> dups = intersect(src, to);
+		if (!nil(dups))
+			throw new SuException("rename: column(s) already exist: " + dups);
+
+		// also rename dependencies
+		boolean copies = false;
+		for (int i = 0; i < from.size(); ++i) {
+			String deps = from.get(i) + "_deps";
+			if (src.contains(deps)) {
+				if (!copies) {
+					from = new ArrayList<String>(from);
+					to = new ArrayList<String>(to);
+					copies = true;
+				}
+				from.add(deps);
+				to.add(to.get(i) + "_deps");
+			}
+		}
 	}
 
 	@Override
@@ -57,7 +67,7 @@ public class Rename extends Query1 {
 	@Override
 	Query transform() {
 		// remove empty Renames
-		if (from.isEmpty())
+		if (nil(from))
 			return source.transform();
 		// combine Renames
 		if (source instanceof Rename) {

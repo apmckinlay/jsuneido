@@ -1,22 +1,65 @@
 package suneido.database.query;
 
+import static suneido.Suneido.verify;
+import static suneido.Util.intersect;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import suneido.Symbols;
+
 public class Header {
+	List<List<String>> flds;
+	List<String> cols;
+	private int[] fldsyms;
+	private int timestamp = 0;
+
+	public Header(List<List<String>> flds, List<String> cols) {
+		this.flds = flds;
+		this.cols = cols;
+	}
 
 	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
+		return flds.size();
+	}
+
+	public Header project(List<String> fields) {
+		List<List<String>> newhdr = new ArrayList<List<String>>();
+		for (List<String> fs : flds) {
+			List<String> newflds = new ArrayList<String>();
+			for (String g : fs)
+				newflds.add(fields.contains(g) ? g : "-");
+			newhdr.add(newflds);
+		}
+		List<String> newcols = intersect(cols, fields);
+		return new Header(newhdr, newcols);
 	}
 
 	public Header rename(List<String> from, List<String> to) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Header project(List<String> flds) {
-		// TODO Auto-generated method stub
-		return null;
+		int i;
+		List<List<String>> newhdr = new ArrayList<List<String>>();
+		for (List<String> f : flds)
+			{
+			if (intersect(from, f).isEmpty())
+				newhdr.add(f);
+			else
+				{
+				List<String> newflds = new ArrayList<String>();
+				for (String g : f)
+					if (-1 == (i = from.indexOf(g)))
+						newflds.add(g);
+					else
+						newflds.add(to.get(i));
+				newhdr.add(newflds);
+				}
+			}
+		List<String> newcols = new ArrayList<String>();
+		for (String c : cols)
+			if (-1 == (i = from.indexOf(c)))
+				newcols.add(c);
+			else
+				newcols.add(to.get(i));
+		return new Header(newhdr, newcols);
 	}
 
 	public boolean equal(Row r1, Row r2) {
@@ -27,8 +70,95 @@ public class Header {
 	}
 
 	public List<String> columns() {
-		// TODO Auto-generated method stub
+		return cols;
+	}
+
+	List<String> fields() {
+		// NOTE: this includes deleted fields - important for output
+		if (size() == 1)
+			return flds.get(0);
+		if (size() == 2)
+			return flds.get(1);
+		verify(size() % 2 == 0);
+		List<String> fields = new ArrayList<String>();
+		// WARNING: assumes "real" data is in every other (odd) record
+		for (int i = 1; i < flds.size(); i += 2) {
+			for (String f : flds.get(i))
+				if (f.equals("-") || !fields.contains(f))
+					fields.add(f);
+		}
+		return fields;
+	}
+
+	List<String> rules() {
+		List<String> rules = new ArrayList<String>();
+		for (String c : cols)
+			if (!inflds(flds, c))
+				rules.add(c);
+		return rules;
+	}
+
+	// schema is all the columns with the rules capitalized
+	public List<String> schema() {
+		List<String> schema = fields();
+		for (String c : cols)
+			if (!inflds(flds, c)) {
+				String s = c.substring(0, 1).toUpperCase() + c.substring(1);
+				schema.add(s);
+			}
+		return schema;
+	}
+
+	public int[] output_fldsyms() {
+		if (fldsyms == null) {
+			// WARNING: this depends on flds[1] being the actual fields
+			List<String> flds1 = flds.get(1);
+			int n = flds1.size();
+			fldsyms = new int[n];
+			for (int i = 0; i < n; ++i)
+				fldsyms[i] = flds1.get(i) == "-" ? -1
+						: Symbols.symnum(flds1.get(i));
+		}
+		return fldsyms;
+	}
+
+	public int timestamp_field() {
+		if (timestamp == 0) {
+			timestamp = -1; // no timestamp
+			for (String f : flds.get(1))
+				if (f.endsWith("_TS")) {
+					timestamp = Symbols.symnum(f);
+					break;
+				}
+		}
+		return timestamp;
+	}
+
+	static boolean inflds(List<List<String>> flds, String field) {
+		for (List<String> f : flds)
+			if (f.contains(field))
+				return true;
+		return false;
+	}
+
+	Which find(String col) {
+		int ri;
+		int di = 0;
+		for (List<String> f : flds) {
+			if (-1 != (ri = f.indexOf(col)))
+				return new Which(di, ri);
+			++di;
+		}
 		return null;
 	}
 
+	static class Which {
+		int di; // index into flds
+		int ri; // index into flds[i]
+
+		Which(int di, int ri) {
+			this.di = di;
+			this.ri = ri;
+		}
+	}
 }

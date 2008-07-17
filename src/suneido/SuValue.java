@@ -8,8 +8,9 @@ import java.nio.ByteBuffer;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public abstract class SuValue implements Packable {
+	@Override
 	public abstract String toString();
-	
+
 	public String string() {
 		throw new SuException(typeName() + " cannot be converted to string");
 	}
@@ -27,7 +28,12 @@ public abstract class SuValue implements Packable {
 		static final byte FUNCTION = 8;
 		static final byte CLASS = 9;
 	}
-	
+
+	public ByteBuffer pack() {
+		ByteBuffer buf = ByteBuffer.allocate(packSize());
+		pack(buf);
+		return buf;
+	}
 	public int packSize() {
 		throw new SuException(typeName() + " cannot be stored");
 	}
@@ -55,18 +61,18 @@ public abstract class SuValue implements Packable {
 			throw SuException.unreachable();
 		}
 	}
-	
+
 	public SuValue getdata(SuValue member) {
 		throw new SuException(typeName() + " does not support get");
 	}
-	
+
 	public void putdata(SuValue member, SuValue value) {
 		throw new SuException(typeName() + " does not support put");
 	}
 	public String typeName() {
 		return getClass().getName().substring(10); // strip Suneido.Su
 	}
-	
+
 	/**
 	 * Used by SuContainer.
 	 * @return value if integer, -1 otherwise
@@ -80,7 +86,7 @@ public abstract class SuValue implements Packable {
 	public SuDecimal number() {
 		throw new SuException("can't convert " + typeName() + " to number");
 	}
-	
+
 	/**
 	 * This is a default implementation,
 	 * it should be overridden if there is a "natural" ordering, e.g. numbers, strings, dates
@@ -96,7 +102,7 @@ public abstract class SuValue implements Packable {
 		if (ord != 0)
 			return ord < 0 ? -1 : +1;
 		ord = hashCode() - value.hashCode(); // default ordering
-		return ord < 0 ? -1 : ord > 0 ? +1 : 0;			
+		return ord < 0 ? -1 : ord > 0 ? +1 : 0;
 	}
 	public int compareToInt(SuInteger i) {
 		throw SuException.unreachable();
@@ -106,7 +112,7 @@ public abstract class SuValue implements Packable {
 	public int order() {
 		return Order.OTHER.ordinal();
 	}
-	
+
 	public SuValue add(SuValue x) {
 		return addNum(x.number());
 	}
@@ -116,7 +122,7 @@ public abstract class SuValue implements Packable {
 	protected SuValue addNum(SuDecimal x) {
 		return number().addNum(x);
 	}
-	
+
 	public SuValue sub(SuValue x) {
 		return x.number().subNum(number());
 	}
@@ -126,7 +132,7 @@ public abstract class SuValue implements Packable {
 	protected SuValue subNum(SuDecimal x) {
 		return number().subNum(x);
 	}
-	
+
 	public SuValue mul(SuValue x) {
 		return mulNum(x.number());
 	}
@@ -136,7 +142,7 @@ public abstract class SuValue implements Packable {
 	protected SuValue mulNum(SuDecimal x) {
 		return number().mulNum(x);
 	}
-	
+
 	public SuValue div(SuValue x) {
 		return x.number().divNum(number());
 	}
@@ -146,17 +152,17 @@ public abstract class SuValue implements Packable {
 	protected SuValue divNum(SuDecimal x) {
 		return number().divNum(x);
 	}
-	
+
 	public SuValue uminus() {
 		return number().uminus();
 	}
-	
+
 	public SuValue invoke(SuValue self, int method, SuValue ... args) {
 		throw method == Symbols.Num.CALL
 			? new SuException("can't call " + typeName())
 			: unknown_method(method);
 	}
-	
+
 	public SuValue invoke(int method, SuValue ... args) {
 		return invoke(this, method, args);
 	}

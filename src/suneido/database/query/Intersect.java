@@ -1,8 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Util.intersect;
-import static suneido.Util.intersect2;
-import static suneido.Util.union2;
+import static suneido.Util.union;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,12 +34,12 @@ public class Intersect extends Compatible {
 
 	@Override
 	List<List<String>> indexes() {
-		return union2(source.indexes(), source2.indexes());
+		return union(source.indexes(), source2.indexes());
 	}
 
 	@Override
 	List<List<String>> keys() {
-		List<List<String>> k = intersect2(source.keys(), source2.keys());
+		List<List<String>> k = intersect(source.keys(), source2.keys());
 		return k == null ? Collections.singletonList(columns()) : k;
 	}
 

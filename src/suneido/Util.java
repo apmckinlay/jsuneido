@@ -58,17 +58,10 @@ public class Util {
 	 *         is, so if it has duplicates they are retained. Duplicates from y
 	 *         are not retained.
 	 */
-	public static List<String> union(List<String> x, List<String> y) {
+	public static <T> List<T> union(List<T> x, List<T> y) {
 		return x.size() > y.size()
-		? addUnique(new ArrayList<String>(x), y)
-				: addUnique(new ArrayList<String>(y), x);
-	}
-
-	public static List<List<String>> union2(List<List<String>> x,
-			List<List<String>> y) {
-		return x.size() > y.size()
-		? addUnique(new ArrayList<List<String>>(x),
-				y) : addUnique(new ArrayList<List<String>>(y), x);
+		? addUnique(new ArrayList<T>(x), y)
+				: addUnique(new ArrayList<T>(y), x);
 	}
 
 	public static <T> List<T> addUnique(List<T> x, List<T> y) {
@@ -78,34 +71,25 @@ public class Util {
 		return x;
 	}
 
-	public static List<String> removeDups(List<String> x) {
-		List<String> result = new ArrayList<String>();
-		for (String s : x)
+	public static <T> List<T> removeDups(List<T> x) {
+		List<T> result = new ArrayList<T>();
+		for (T s : x)
 			if (!result.contains(s))
 				result.add(s);
 		return result;
 	}
 
-	public static List<String> difference(List<String> x, List<String> y) {
-		List<String> result = new ArrayList<String>();
-		for (String s : x)
+	public static <T> List<T> difference(List<T> x, List<T> y) {
+		List<T> result = new ArrayList<T>();
+		for (T s : x)
 			if (!y.contains(s))
 				result.add(s);
 		return result;
 	}
 
-	public static List<String> intersect(List<String> x, List<String> y) {
-		List<String> result = new ArrayList<String>();
-		for (String s : x)
-			if (y.contains(s))
-				result.add(s);
-		return result;
-	}
-
-	public static List<List<String>> intersect2(List<List<String>> x,
-			List<List<String>> y) {
-		List<List<String>> result = new ArrayList<List<String>>();
-		for (List<String> s : x)
+	public static <T> List<T> intersect(List<T> x, List<T> y) {
+		List<T> result = new ArrayList<T>();
+		for (T s : x)
 			if (y.contains(s))
 				result.add(s);
 		return result;
@@ -126,6 +110,16 @@ public class Util {
 			if (y.contains(s))
 				++n;
 		return n == x.size() && n == y.size();
+	}
+
+	public static <T> boolean nil(List<T> x) {
+		return x == null || x.isEmpty();
+	}
+
+	public static <T> List<T> concat(List<T> x, List<T> y) {
+		List<T> result = new ArrayList<T>(x);
+		result.addAll(y);
+		return result;
 	}
 
 }
