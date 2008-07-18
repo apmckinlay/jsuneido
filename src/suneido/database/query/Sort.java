@@ -100,8 +100,8 @@ public class Sort extends Query1 {
 	}
 
 	@Override
-	boolean output(Record r) {
-		return source.output(r);
+	void output(Record r) {
+		source.output(r);
 	}
 
 	@Override

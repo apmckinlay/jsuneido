@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public abstract class SuValue implements Packable {
+public abstract class SuValue implements Packable, Comparable<SuValue> {
 	@Override
 	public abstract String toString();
 

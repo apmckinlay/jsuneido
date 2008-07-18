@@ -1,15 +1,8 @@
 package suneido.database.query;
 
-import static suneido.Util.addUnique;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.listToParens;
-import static suneido.Util.prefix_set;
-import static suneido.Util.removeDups;
+import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -413,9 +406,9 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	boolean output(Record r) {
+	void output(Record r) {
 		ckmodify("output");
-		return source.output(r);
+		source.output(r);
 	}
 
 	void ckmodify(String action) {

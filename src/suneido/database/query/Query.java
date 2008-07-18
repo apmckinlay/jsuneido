@@ -73,8 +73,8 @@ public abstract class Query {
 	boolean updateable() {
 		return false;
 	}
-	boolean output(Record record) {
-		return false;
+	void output(Record record) {
+		throw new SuException("can't output to this query");
 	}
 
 	@Override
