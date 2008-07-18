@@ -7,12 +7,28 @@ options {
 @header {
 package suneido.database.query;
 
+import suneido.*;
 import suneido.database.query.expr.*;
-import suneido.SuNumber;
-import suneido.SuString;
-import suneido.SuValue;
 }
 @lexer::header { package suneido.database.query; }
+
+@members {
+	protected void mismatch(IntStream input, int ttype, BitSet follow)
+		throws RecognitionException {
+		throw new MismatchedTokenException(ttype, input);
+	}
+	public void recoverFromMismatchedSet(IntStream input, 
+		RecognitionException e, BitSet follow)
+		throws RecognitionException {
+		throw e;
+	}
+}
+
+@rulecatch {
+	catch (RecognitionException e) {
+		throw e;
+	}
+}
 
 // need this extra rule 
 // because ANTLR wants a start rule that is not referenced anywhere
@@ -33,15 +49,14 @@ sort[Query source] returns [Query result]
 	;
 
 insert returns [Query result]
-	scope { List<String> fields; List<Expr> exprs; }
-	@init { $insert::fields = new ArrayList<String>(); 
-			$insert::exprs = new ArrayList<Expr>(); }
-	: INSERT '{' field (','? field )* '}' INTO query2
-		{ $result = new Insert($query2.result, $insert::fields, $insert::exprs); }
+	scope { SuContainer record; }
+	@init { $insert::record = new SuContainer(); }
+	: INSERT ('{'|'['|'(') field (','? field )* ('}'|']'|')') INTO query2
+		{ $result = new Insert($query2.result, $insert::record); }
 	;
-field returns [String id, Expr expr]
-	:	ID ':' expr
-			{ $insert::fields.add($ID.text); $insert::exprs.add($expr.expr); }
+field
+	:	ID ':' constant
+			{ $insert::record.putdata($ID.text, $constant.value); }
 	;
 
 update returns [Query result]
@@ -260,7 +275,7 @@ constant returns [SuValue value]
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
     | STRING
-    	{ $value = new SuString($text); }
+    	{ $value = new SuString($text.substring(1, $text.length() - 1)); }
     | '[' members ']'
     | '#' '(' members ')'
     | '#' '{' members '}'

@@ -1,8 +1,6 @@
 package suneido.database.query;
 
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.nil;
+import static suneido.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,8 +149,8 @@ public class Rename extends Query1 {
 	}
 
 	@Override
-	boolean output(Record r) {
-		return source.output(r);
+	void output(Record r) {
+		source.output(r);
 	}
 
 	boolean update(String index, Record key, Record newrec) {

@@ -146,4 +146,9 @@ public class Table extends Query {
 		return true;
 	}
 
+	@Override
+	void output(Record r) {
+		theDB.addRecord(tran, table, r);
+	}
+
 }
