@@ -107,4 +107,9 @@ public class Summarize extends Query1 {
 
 	}
 
+	@Override
+	boolean updateable() {
+		return false; // override Query1 source->updateable
+	}
+
 }
