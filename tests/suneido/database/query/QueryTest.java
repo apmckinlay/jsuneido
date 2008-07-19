@@ -2,7 +2,7 @@ package suneido.database.query;
 
 import org.junit.Test;
 
-public class QueryTest {
+public class QueryTest extends suneido.database.TestBase {
 	@Test
 	public void test() {
 		makeDB();
@@ -82,16 +82,14 @@ public class QueryTest {
 		req("insert { date: #20010102 } into dates");
 		req("insert { date: #20010301 } into dates");
 		req("insert { date: #20010401 } into dates");
-
 	}
 
-	private void adm(String string) {
-		// TODO Auto-generated method stub
-
+	private void adm(String s) {
+		Request.execute(s);
 	}
 
-	private void req(String string) {
-		// TODO Auto-generated method stub
-
+	private void req(String s) {
+		QueryAction q = (QueryAction) ParseQuery.parse(s);
+		q.execute();
 	}
 }

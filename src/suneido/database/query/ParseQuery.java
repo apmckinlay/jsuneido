@@ -1,8 +1,6 @@
 package suneido.database.query;
 
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.runtime.CommonTokenStream;
-import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.*;
 
 import suneido.SuException;
 

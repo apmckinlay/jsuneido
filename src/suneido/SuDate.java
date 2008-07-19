@@ -1,8 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.text.*;
 import java.util.Date;
 
 /**
@@ -12,8 +11,13 @@ import java.util.Date;
  */
 public class SuDate extends SuValue {
 	private Date date;
+	final public static SimpleDateFormat yyyymmdd = new SimpleDateFormat(
+			"yyyyMMdd");
 	final public static SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
-	
+	static {
+		formatter.setLenient(false);
+	}
+
 	public SuDate() {
 		date = new Date();
 	}
@@ -21,27 +25,55 @@ public class SuDate extends SuValue {
 		if (s.startsWith("#"))
 			s = s.substring(1);
 		try {
-			date = (Date)formatter.parse(s);
+			date = formatter.parse(s);
 		} catch (ParseException e) {
 			throw new SuException("can't convert to date");
 		}
 	}
+	public SuDate(Date date) {
+		this.date = date;
+	}
+
+	public static SuDate literal(String s) {
+		if (s.startsWith("#"))
+			s = s.substring(1);
+		if (s.length() < 8 || 18 < s.length())
+			return null;
+		if (s.length() == 8)
+			s += ".";
+		if (s.length() < 18)
+			s = (s + "000000000").substring(0, 18);
+		ParsePosition pos = new ParsePosition(0);
+		Date date = formatter.parse(s, pos);
+		if (date == null || pos.getIndex() != 18)
+			return null;
+		return new SuDate(date);
+	}
 
 	@Override
 	public String toString() {
-		return "#" + formatter.format(date);
+		String s = "#" + formatter.format(date);
+		if (s.endsWith("000000000"))
+			return s.substring(0, 9);
+		if (s.endsWith("00000"))
+			return s.substring(0, 14);
+		if (s.endsWith("000"))
+			return s.substring(0, 16);
+		return s;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return date.hashCode();
 	}
+
 	@Override
 	public boolean equals(Object value) {
 		return value instanceof SuDate
 			? date.equals(((SuDate) value).date)
 			: false;
 	}
+
 	@Override
 	public int compareTo(SuValue value) {
 		if (value == this)
@@ -52,19 +84,24 @@ public class SuDate extends SuValue {
 		// if order the same, value must be a date
 		return date.compareTo(((SuDate) value).date);
 	}
-	
+
 	@Override
 	public int order() {
 		return Order.DATE.ordinal();
 	}
+
 	@Override
 	public void pack(ByteBuffer buf) {
-		// TODO Auto-generated method stub
-		
+		buf.put(Pack.DATE);
+		buf.putLong(date.getTime());
 	}
 	@Override
 	public int packSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 9;
+	}
+
+	public static SuDate unpack1(ByteBuffer buf) {
+		long date = buf.getLong(1);
+		return new SuDate(new Date(date));
 	}
 }
