@@ -276,6 +276,12 @@ constant returns [SuValue value]
 		{ $value = SuNumber.valueOf($text); }
     | STRING
     	{ $value = new SuString($text.substring(1, $text.length() - 1)); }
+    | DATE
+    	{ 
+    	$value = SuDate.literal($text);
+    	if ($value == null)
+    		throw new SuException("invalid date: " + $text); 
+    	}
     | '[' members ']'
     | '#' '(' members ')'
     | '#' '{' members '}'
@@ -324,7 +330,9 @@ UPDATE	: ('u'|'U')('p'|'P')('d'|'D')('a'|'A')('t'|'T')('e'|'E') ;
 SET		: ('s'|'S')('e'|'E')('t'|'T') ;
 DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
 
-ID    : ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
+ID		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
+
+DATE	: '#' ('1'..'2')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9') ;
 
 WS    : (' '|'\t'|'\r'|'\n')+ {skip();} ; // ignore whitespace
 COMMENT : '/*' .* '*/' {skip();} ; // ignore comments
