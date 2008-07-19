@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Util.intersect;
+import static suneido.Util.union;
 
 import java.util.List;
 
@@ -19,13 +20,12 @@ public class Product extends Query2 {
 
 	@Override
 	public String toString() {
-		return "(" + source + ") TIMES (" + source2 + ")";
+		return "(" + source + " TIMES " + source2 + ")";
 	}
 
 	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+		return union(source.columns(), source2.columns());
 	}
 
 	@Override

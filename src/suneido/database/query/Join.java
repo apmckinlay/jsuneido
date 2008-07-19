@@ -1,9 +1,10 @@
 package suneido.database.query;
 
-import static suneido.Util.intersect;
-import static suneido.Util.listToParens;
-import static suneido.Util.set_eq;
+import static suneido.SuException.unreachable;
+import static suneido.Suneido.verify;
+import static suneido.Util.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
@@ -52,9 +53,9 @@ public class Join extends Query2 {
 
 	@Override
 	public String toString() {
-		return "(" + source + ") " + name() + " " + type.name + " on "
+		return "(" + source + " " + name() + " " + type.name + " on "
 				+ listToParens(joincols)
-				+ " (" + source2 + ")";
+				+ " " + source2 + ")";
 	}
 
 	protected String name() {
@@ -67,8 +68,7 @@ public class Join extends Query2 {
 
 	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+		return union(source.columns(), source2.columns());
 	}
 
 	@Override
@@ -91,8 +91,27 @@ public class Join extends Query2 {
 
 	@Override
 	List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
+		switch (type) {
+		case ONE_ONE :
+			return union(source.keys(), source2.keys());
+		case ONE_N :
+			return source2.keys();
+		case N_ONE :
+			return source.keys();
+		case N_N :
+			return keypairs();
+		default :
+			throw unreachable();
+		}
+	}
+
+	private List<List<String>> keypairs() {
+		List<List<String>> keys = new ArrayList<List<String>>();
+		for (List<String> k1 : source.keys())
+			for (List<String> k2 : source2.keys())
+				addUnique(keys, union(k1, k2));
+		verify(!nil(keys));
+		return keys;
 	}
 
 	@Override

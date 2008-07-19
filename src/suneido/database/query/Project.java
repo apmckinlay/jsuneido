@@ -44,7 +44,7 @@ public class Project extends Query1 {
 		List<String> columns = source.columns();
 		if (! columns.containsAll(args))
 			throw new SuException("project: nonexistent column(s): "
-					+ difference(args, columns));
+					+ listToParens(difference(args, columns)));
 		flds = allbut
 		? difference(columns, args)
 				: removeDups(args);
@@ -55,10 +55,6 @@ public class Project extends Query1 {
 			if (columns.contains(deps) && !flds.contains(deps))
 				flds.add(deps);
 		}
-
-		// check if project contain candidate key
-		if (hasKey(source, flds))
-			strategy = Strategy.COPY;
 	}
 
 	@Override
@@ -66,7 +62,7 @@ public class Project extends Query1 {
 		String s = source.toString() + " PROJECT" + strategy.name;
 		if (via != null)
 			s += "^" + listToParens(via);
-		return s + " " + listToParens(flds);
+		return s + " " + listToCommas(flds);
 	}
 
 	private boolean hasKey(Query source, List<String> flds) {
@@ -115,8 +111,9 @@ public class Project extends Query1 {
 	Query transform() {
 		boolean moved = false;
 		// remove projects of all fields
-		if (flds == source.columns())
+		if (set_eq(flds, source.columns())) {
 			return source.transform();
+		}
 		// combine projects
 		if (source instanceof Project) {
 			Project p = (Project) source;
@@ -188,10 +185,9 @@ public class Project extends Query1 {
 			e.exprs = orig_exprs;
 		}
 		// distribute project over union/intersect (NOT difference)
-		else if (source instanceof Compatible
-				&& !(source instanceof Difference)) {
+		else if (source instanceof Union || source instanceof Intersect) {
 			Compatible c = (Compatible) source;
-			if (c.disjoint != "" && !flds.contains(c.disjoint)) {
+			if (c.disjoint != null && !flds.contains(c.disjoint)) {
 				List<String> flds2 = new ArrayList<String>(flds);
 				flds2.add(c.disjoint);
 				c.source = new Project(c.source, flds2);
@@ -202,22 +198,23 @@ public class Project extends Query1 {
 				return source.transform();
 			}
 		}
-		// split project over product/join
+		// split project over product
 		else if (source instanceof Product) {
 			Product x = (Product) source;
-			x.source = new Project(x.source, intersect(flds, x.source
-					.columns()));
+			x.source = new Project(x.source,
+					intersect(flds, x.source.columns()));
 			x.source2 = new Project(x.source2, intersect(flds, x.source2
 					.columns()));
 			moved = true;
 		}
+		// split project over join
 		else if (source instanceof Join) {
 			Join j = (Join) source;
 			if (flds.containsAll(j.joincols)) {
-				j.source = new Project(j.source, intersect(flds, j.source
-						.columns()));
-				j.source2 = new Project(j.source2, intersect(flds,
-						j.source2.columns()));
+				j.source = new Project(j.source,
+						intersect(flds, j.source.columns()));
+				j.source2 = new Project(j.source2,
+						intersect(flds, j.source2.columns()));
 				moved = true;
 			}
 		}
@@ -228,8 +225,12 @@ public class Project extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		if (strategy == Strategy.COPY)
+
+		// check if project contain candidate key
+		if (hasKey(source, flds)) {
+			strategy = Strategy.COPY;
 			return source.optimize(index, needs, firstneeds, is_cursor, freeze);
+		}
 
 		// look for index containing result key columns as prefix
 		List<String> best_index = null;

@@ -1,11 +1,6 @@
 package suneido.database.query;
 
-import static suneido.Util.addUnique;
-import static suneido.Util.concat;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.nil;
-import static suneido.Util.union;
+import static suneido.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,8 +77,7 @@ public class Extend extends Query1 {
 
 	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+		return union(source.columns(), union(flds, rules));
 	}
 
 	@Override

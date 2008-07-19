@@ -73,8 +73,12 @@ set
   
 query2 returns [Query result]
 	scope { Query source; }
-	: source { $query2::source = $source.result; } op*
-    	{ $result = $op.result == null ? $source.result : $op.result; } 
+	: source 
+		{ $query2::source = $source.result; }
+	  (op 
+	  	{ $query2::source = $op.result; } 
+	  )*
+    	{ $result = $query2::source; } 
 	;
 
 source returns [Query result]
@@ -226,7 +230,7 @@ is returns [Expr expr]
     : x=cmp 
    		{ $expr = $x.expr; } 
       (o=(IS|'=') y=cmp
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+		{ $expr = new BinOp("=", $expr, $y.expr); } 
       )* ;
 cmp returns [Expr expr]  
    : x=shift 

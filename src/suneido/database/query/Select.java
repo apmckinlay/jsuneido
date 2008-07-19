@@ -1,21 +1,25 @@
 package suneido.database.query;
-import static suneido.Util.concat;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.nil;
+import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuString;
 import suneido.database.Record;
-import suneido.database.query.expr.And;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.*;
 
 public class Select extends Query1 {
 	private And expr;
+	private final boolean first = true; // used and then reset by optimize, then used again by next
+	private final boolean rewound = true;
+	private boolean newrange;
+	private final boolean conflicting = false;
+	boolean fixdone;
+	List<Fixed> fix;
+	private List<String> required_index;
+	private final List<String> source_index = null; // may have extra stuff on
+													// the end, or be
+										// missing fields that are fixed
+	List<List<String>> filter = null;
 
 	public Select(Query source, Expr expr) {
 		super(source);
@@ -30,7 +34,16 @@ public class Select extends Query1 {
 
 	@Override
 	public String toString() {
-		return source + " WHERE " + expr;
+		String s = source + " WHERE";
+		if (conflicting)
+			return s + " nothing";
+		if (! nil(source_index))
+			s += "^" + source_index;
+		if (! nil(filter))
+			s += "%" + filter;
+		if (! nil(expr.exprs))
+			s += " " + expr;
+		return s;
 	}
 
 	@Override
@@ -42,7 +55,7 @@ public class Select extends Query1 {
 		// combine selects
 		if (source instanceof Select) {
 			Select s = (Select) source;
-			expr = new And(concat(expr.exprs, s.expr.exprs));
+			expr = new And(concat(s.expr.exprs, expr.exprs));
 			source = s.source;
 			return transform();
 		}
@@ -191,31 +204,7 @@ public class Select extends Query1 {
 	}
 
 	@Override
-	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	Row get(Dir dir) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	Header header() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> keys() {
 		// TODO Auto-generated method stub
 		return null;
 	}

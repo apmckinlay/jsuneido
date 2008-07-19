@@ -9,12 +9,12 @@ public class Difference extends Compatible {
 
 	@Override
 	public String toString() {
-		String s = "(" + source + ") MINUS";
+		String s = "(" + source + " MINUS";
 		if (disjoint != null)
 			s += "-DISJOINT";
 		if (ki != null)
 			s += "^" + ki;
-		return s + " (" + source2 + ")";
+		return s + " " + source2 + ")";
 	}
 
 	@Override
