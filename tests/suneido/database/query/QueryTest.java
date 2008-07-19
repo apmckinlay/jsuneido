@@ -1,11 +1,18 @@
 package suneido.database.query;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 public class QueryTest extends suneido.database.TestBase {
 	@Test
 	public void test() {
 		makeDB();
+		for (String[] c : transforms) {
+			System.out.println(c[0]);
+			Query q = ParseQuery.parse(c[0]).transform();
+			assertEquals(c[1], q.toString());
+		}
 	}
 
 	private void makeDB() {
@@ -92,4 +99,78 @@ public class QueryTest extends suneido.database.TestBase {
 		QueryAction q = (QueryAction) ParseQuery.parse(s);
 		q.execute();
 	}
+
+	private static String[][] transforms = {
+		// combine extend's
+		{ "customer extend a = 5 extend b = 6",
+			"customer EXTEND a = 5, b = 6" },
+		// combine project's
+		{ "customer project id, name project id",
+			"customer PROJECT id" },
+		// combine rename's
+		{ "customer rename id to x rename name to y",
+			"customer RENAME id to x, name to y" },
+		// combine where's
+		{ "customer where a = 5 where b = 6",
+			"customer WHERE ((a = 5) and (b = 6))" },
+
+		// remove projects of all fields
+		{ "customer project id, city, name",
+			"customer" },
+		// remove disjoint difference
+		{ "(customer where id = 3) minus (customer where id = 5)",
+			"customer WHERE (id = 3)" },
+
+		// move project before rename
+		{ "customer rename id to num, name to nom project num, city",
+			"customer PROJECT id,city RENAME id to num" },
+		// move project before rename & remove empty rename
+		{ "customer rename id to num, name to nom project city",
+			"customer PROJECT city" },
+		// move project before extend
+		{ "customer extend a = 5, b = 6 project id, a, name",
+			"customer PROJECT id,name EXTEND a = 5" },
+		// ... but not if extend uses fields not in project
+		{ "customer extend a = city, b = 6 project id, a, name",
+			"customer EXTEND a = city, b = 6 PROJECT id,a,name" },
+		// move project before extend & remove empty extend
+		{ "customer extend a = 5, b = 6 project id, name",
+			"customer PROJECT id,name" },
+		// move where before rename
+		{ "trans where cost = 200 rename cost to x where id is 5",
+			"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
+		// move where before extend
+		{ "trans where cost = 200 extend x = 1 where id is 5",
+			"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+
+		// distribute project over union
+		{ "(hist union trans) project item, cost",
+			"(hist PROJECT item,cost UNION trans PROJECT item,cost)" },
+		// split project over product
+		{ "(customer times inven) project city, item, id",
+			"(customer PROJECT city,id TIMES inven PROJECT item)" },
+		// split project over join
+		{ "(trans join customer) project city, item, id",
+			"(trans PROJECT item,id JOIN n:1 on (id) customer PROJECT city,id)" },
+		// ... but only if project includes join fields
+		{ "(trans join customer) project city, item",
+			"(trans JOIN n:1 on (id) customer) PROJECT city,item" },
+	};
+
+	private static String[][] cases = {
+	// 0
+			{
+					"(((task join co)) join (cus where abbrev = 'a'))",
+					"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum))) JOIN n:1 on (cnum) (cus^(cnum) WHERE^(cnum))",
+					"tnum	signed	cnum	abbrev	name\n"
+							+ "100	990101	1	\"a\"	\"axon\"\n"
+							+ "104	990103	1	\"a\"	\"axon\"\n" },
+
+			// 1
+			{
+					"((task join (co where signed = 990103)) join (cus where abbrev = 'a'))",
+					"((co^(tnum) WHERE^(tnum)) JOIN 1:1 on (tnum) (task^(tnum))) JOIN n:1 on (cnum) (cus^(cnum) WHERE^(cnum))",
+					"tnum	signed	cnum	abbrev	name\n"
+							+ "104	990103	1	\"a\"	\"axon\"\n" }, };
+
 }

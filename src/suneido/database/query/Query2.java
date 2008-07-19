@@ -10,8 +10,9 @@ public abstract class Query2 extends Query1 {
 	}
 
 	@Override
-	Query transform() { // also defined by Query2
+	Query transform() {
 		source = source.transform();
+		source2 = source2.transform();
 		return this;
 	}
 

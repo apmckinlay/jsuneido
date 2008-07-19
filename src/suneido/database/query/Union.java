@@ -34,14 +34,14 @@ public class Union extends Compatible {
 
 	@Override
 	public String toString() {
-		String s = "(" + source + ") UNION";
+		String s = "(" + source + " UNION";
 		if (disjoint != null)
 			s += "-DISJOINT (" + disjoint + ")";
 		else if (strategy != null)
 			s += (strategy == Strategy.MERGE ? "-MERGE" : "-LOOKUP");
 		if (ki != null)
 			s += "^" + ki;
-		return s + " (" + source2 + ")";
+		return s + " " + source2 + ")";
 	}
 
 	@Override

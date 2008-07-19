@@ -11,12 +11,8 @@ import java.util.Date;
  */
 public class SuDate extends SuValue {
 	private Date date;
-	final public static SimpleDateFormat yyyymmdd = new SimpleDateFormat(
-			"yyyyMMdd");
 	final public static SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
-	static {
-		formatter.setLenient(false);
-	}
+	static { formatter.setLenient(false); }
 
 	public SuDate() {
 		date = new Date();
@@ -90,6 +86,7 @@ public class SuDate extends SuValue {
 		return Order.DATE.ordinal();
 	}
 
+	// WARNING: this packed format is NOT compatible with cSuneido
 	@Override
 	public void pack(ByteBuffer buf) {
 		buf.put(Pack.DATE);

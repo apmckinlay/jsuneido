@@ -68,6 +68,12 @@ public class Util {
 		return x;
 	}
 
+	public static <T> List<T> addUnique(List<T> list, T x) {
+		if (!list.contains(x))
+			list.add(x);
+		return list;
+	}
+
 	public static <T> List<T> removeDups(List<T> x) {
 		List<T> result = new ArrayList<T>();
 		for (T s : x)

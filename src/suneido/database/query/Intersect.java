@@ -13,12 +13,12 @@ public class Intersect extends Compatible {
 
 	@Override
 	public String toString() {
-		String s = "(" + source + ") INTERSECT";
+		String s = "(" + source + " INTERSECT";
 		if (disjoint != null)
 			s += "-DISJOINT";
 		if (ki != null)
 			s += "^" + ki;
-		return s + " (" + source2 + ")";
+		return s + " " + source2 + ")";
 	}
 
 	@Override

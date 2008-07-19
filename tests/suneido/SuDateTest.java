@@ -2,6 +2,8 @@ package suneido;
 
 import static org.junit.Assert.*;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Test;
 
 public class SuDateTest {
@@ -36,5 +38,13 @@ public class SuDateTest {
 				"#20010203.123456", "#20010203.123456789" };
 		for (String s : cases)
 			assertEquals(s, SuDate.literal(s).toString());
+	}
+
+	@Test
+	public void pack() {
+		SuDate d = SuDate.literal("20010203");
+		ByteBuffer buf = d.pack();
+		SuDate e = (SuDate) SuValue.unpack(buf);
+		assertEquals(d, e);
 	}
 }

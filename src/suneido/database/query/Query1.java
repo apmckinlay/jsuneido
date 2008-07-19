@@ -17,7 +17,7 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	Query transform() { // also defined by Query2
+	Query transform() {
 		source = source.transform();
 		return this;
 	}
@@ -58,6 +58,26 @@ public abstract class Query1 extends Query {
 	@Override
 	List<Fixed> fixed() {
 		return source.fixed();
+	}
+
+	@Override
+	List<String> columns() {
+		return source.columns();
+	}
+
+	@Override
+	List<List<String>> keys() {
+		return source.keys();
+	}
+
+	@Override
+	List<List<String>> indexes() {
+		return source.indexes();
+	}
+
+	@Override
+	Header header() {
+		return source.header();
 	}
 
 	void best_prefixed(List<List<String>> indexes, List<String> by,
