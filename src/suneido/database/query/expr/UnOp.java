@@ -23,8 +23,7 @@ public class UnOp extends Expr {
 
 	@Override
 	public List<String> fields() {
-		// TODO Auto-generated method stub
-		return null;
+		return expr.fields();
 	}
 
 	@Override

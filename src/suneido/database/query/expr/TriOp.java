@@ -1,5 +1,7 @@
 package suneido.database.query.expr;
 
+import static suneido.Util.union;
+
 import java.util.List;
 
 public class TriOp extends Expr {
@@ -20,8 +22,7 @@ public class TriOp extends Expr {
 
 	@Override
 	public List<String> fields() {
-		// TODO Auto-generated method stub
-		return null;
+		return union(expr.fields(), union(iftrue.fields(), iffalse.fields()));
 	}
 
 }

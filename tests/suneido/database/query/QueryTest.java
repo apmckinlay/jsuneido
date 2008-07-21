@@ -118,8 +118,8 @@ public class QueryTest extends suneido.database.TestBase {
 		{ "customer project id, city, name",
 			"customer" },
 		// remove disjoint difference
-		{ "(customer where id = 3) minus (customer where id = 5)",
-			"customer WHERE (id = 3)" },
+//		{ "(customer where id = 3) minus (customer where id = 5)",
+//			"customer WHERE (id = 3)" },
 
 		// move project before rename
 		{ "customer rename id to num, name to nom project num, city",
@@ -136,12 +136,31 @@ public class QueryTest extends suneido.database.TestBase {
 		// move project before extend & remove empty extend
 		{ "customer extend a = 5, b = 6 project id, name",
 			"customer PROJECT id,name" },
+		// move where before project
+		{ "trans project id,cost where id = 5",
+			"trans WHERE (id = 5) PROJECT id,cost" },
 		// move where before rename
-		{ "trans where cost = 200 rename cost to x where id is 5",
-			"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
+//		{ "trans where cost = 200 rename cost to x where id is 5",
+//			"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
 		// move where before extend
-		{ "trans where cost = 200 extend x = 1 where id is 5",
-			"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+//		{ "trans where cost = 200 extend x = 1 where id is 5",
+//			"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+
+		// distribute where over intersect
+		{ "(hist intersect trans) where cost > 10",
+			"(hist WHERE (cost > 10) INTERSECT trans WHERE (cost > 10))" },
+		// distribute where over difference
+		{ "(hist minus trans) where cost > 10",
+			"(hist WHERE (cost > 10) MINUS trans WHERE (cost > 10))" },
+		// distribute where over union
+		{ "(hist union trans) where cost > 10",
+			"(hist WHERE (cost > 10) UNION trans WHERE (cost > 10))" },
+		// distribute where over leftjoin
+//		{ "(customer leftjoin trans) where id = 5",
+//			"(hist WHERE (id = 5) LEFTJOIN trans WHERE (cost > 10))" },
+		// distribute where over join
+//		{ "(customer join trans) where cost > 10",
+//			"(hist WHERE (cost > 10) JOIN trans WHERE (cost > 10))" },
 
 		// distribute project over union
 		{ "(hist union trans) project item, cost",

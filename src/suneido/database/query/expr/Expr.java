@@ -20,4 +20,13 @@ public abstract class Expr {
 	public Expr replace(List<String> from, List<Expr> to) {
 		return this;
 	}
+
+	public boolean is_term(List<String> fields) {
+		return false; // TODO override appropriately
+	}
+
+	public boolean isfield(List<String> fields) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -1,11 +1,21 @@
 package suneido.database.query;
-import static suneido.Util.*;
+import static suneido.Util.concat;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.nil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuString;
+import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.*;
+import suneido.database.query.expr.And;
+import suneido.database.query.expr.BinOp;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.Identifier;
 
 public class Select extends Query1 {
 	private And expr;
@@ -17,8 +27,8 @@ public class Select extends Query1 {
 	List<Fixed> fix;
 	private List<String> required_index;
 	private final List<String> source_index = null; // may have extra stuff on
-													// the end, or be
-										// missing fields that are fixed
+	// the end, or be
+	// missing fields that are fixed
 	List<List<String>> filter = null;
 
 	public Select(Query source, Expr expr) {
@@ -44,6 +54,27 @@ public class Select extends Query1 {
 		if (! nil(expr.exprs))
 			s += " " + expr;
 		return s;
+	}
+
+	@Override
+	List<Fixed> fixed() {
+		if (fix != null)
+			return fix;
+		fix = new ArrayList<Fixed>();
+		List<String> fields = source.columns();
+		for (Expr e : expr.exprs)
+			if (e.is_term(fields) && e instanceof BinOp) {
+				// TODO: handle IN
+				BinOp binop = (BinOp) e;
+				if (binop.op.equals("=")) {
+					String field = ((Identifier) binop.left).ident;
+					SuValue value = ((Constant) binop.right).value;
+					fix.add(new Fixed(field, value));
+				}
+			}
+		fix = Fixed.combine(fix, source.fixed());
+System.out.println("fix " + fix);
+		return fix;
 	}
 
 	@Override
@@ -121,6 +152,7 @@ public class Select extends Query1 {
 			Difference q = (Difference) source;
 			q.source = new Select(q.source, expr);
 			q.source2 = new Select(q.source2, project(q.source2));
+			System.out.println("moved " + q);
 			moved = true;
 		}
 		// distribute select over union
@@ -160,6 +192,7 @@ public class Select extends Query1 {
 			moved = distribute(j);
 		}
 		source = source.transform();
+		System.out.println("source " + source);
 		return moved ? source : this;
 	}
 
@@ -191,7 +224,7 @@ public class Select extends Query1 {
 			}
 			if (! used)
 				common.add(e);
-			}
+		}
 		if (! nil(src1))
 			q2.source = new Select(q2.source, new And(src1));
 		if (! nil(src2))

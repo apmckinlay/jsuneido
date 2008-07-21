@@ -5,6 +5,7 @@ import java.util.List;
 public class Difference extends Compatible {
 	Difference(Query source1, Query source2) {
 		super(source1, source2);
+System.out.println("Difference disjoint " + disjoint);
 	}
 
 	@Override
@@ -20,7 +21,7 @@ public class Difference extends Compatible {
 	@Override
 	Query transform() {
 		// remove disjoint difference
-		return disjoint == "" ? super.transform() : source.transform();
+		return disjoint == null ? super.transform() : source.transform();
 	}
 
 	@Override
