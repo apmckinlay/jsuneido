@@ -229,8 +229,8 @@ bitand returns [Expr expr]
 is returns [Expr expr]  
     : x=cmp 
    		{ $expr = $x.expr; } 
-      (o=(IS|'=') y=cmp
-		{ $expr = new BinOp("=", $expr, $y.expr); } 
+      (o=(IS|'='|'=~'|'!~') y=cmp
+		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
       )* ;
 cmp returns [Expr expr]  
    : x=shift 

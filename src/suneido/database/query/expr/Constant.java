@@ -6,7 +6,7 @@ import java.util.List;
 import suneido.SuValue;
 
 public class Constant extends Expr {
-	final SuValue value;
+	public final SuValue value;
 
 	public Constant(SuValue value) {
 		this.value = value;

@@ -6,7 +6,7 @@ import java.util.List;
 import suneido.SuBoolean;
 
 public class Identifier extends Expr {
-	private final String ident;
+	public final String ident;
 
 	public static Expr valueOf(String s) {
 		if (s.equals("true"))
@@ -31,4 +31,8 @@ public class Identifier extends Expr {
 		return Collections.singletonList(ident);
 	}
 
+	@Override
+	public boolean isfield(List<String> fields) {
+		return fields.contains(ident);
+	}
 }
