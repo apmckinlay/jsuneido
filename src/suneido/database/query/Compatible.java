@@ -17,7 +17,6 @@ public abstract class Compatible extends Query2 {
 	Compatible(Query source1, Query source2) {
 		super(source1, source2);
 		allcols = union(source.columns(), source2.columns());
-System.out.println("allcols " + allcols);
 		List<Fixed> fixed1 = source.fixed();
 		List<Fixed> fixed2 = source2.fixed();
 		for (Fixed f1 : fixed1)
