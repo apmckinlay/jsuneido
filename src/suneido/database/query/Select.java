@@ -142,7 +142,6 @@ public class Select extends Query1 {
 			Difference q = (Difference) source;
 			q.source = new Select(q.source, expr);
 			q.source2 = new Select(q.source2, project(q.source2));
-			System.out.println("moved " + q);
 			moved = true;
 		}
 		// distribute select over union
@@ -182,7 +181,6 @@ public class Select extends Query1 {
 			moved = distribute(j);
 		}
 		source = source.transform();
-		System.out.println("source " + source);
 		return moved ? source : this;
 	}
 
