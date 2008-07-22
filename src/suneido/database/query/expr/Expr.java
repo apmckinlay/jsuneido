@@ -21,12 +21,11 @@ public abstract class Expr {
 		return this;
 	}
 
-	public boolean is_term(List<String> fields) {
+	public boolean isTerm(List<String> fields) {
 		return false; // TODO override appropriately
 	}
 
-	public boolean isfield(List<String> fields) {
-		// TODO Auto-generated method stub
+	public boolean isField(List<String> fields) {
 		return false;
 	}
 }

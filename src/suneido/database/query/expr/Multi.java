@@ -41,7 +41,7 @@ public abstract class Multi extends Expr {
 		return f;
 	}
 
-	protected Expr fold_exprs(Constant ignore, Constant target) {
+	protected Expr foldExprs(Constant ignore, Constant target) {
 		// iterate reverse to simplify deleting
 		for (int i = exprs.size() - 1; i >= 0; --i) {
 			Expr e = exprs.get(i).fold();

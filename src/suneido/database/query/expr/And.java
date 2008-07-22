@@ -19,7 +19,7 @@ public class And extends Multi {
 
 	@Override
 	public Expr fold() {
-		return fold_exprs(Constant.TRUE, Constant.FALSE);
+		return foldExprs(Constant.TRUE, Constant.FALSE);
 	}
 
 }
