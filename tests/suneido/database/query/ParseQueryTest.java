@@ -40,7 +40,7 @@ public class ParseQueryTest extends TestBase {
 				"(test LEFTJOIN 1:n on (a) joinable)",
 			"test SUMMARIZE b, count, total a, x = max b",
 				"test SUMMARIZE (b) count, total a, x = max b",
-			"test WHERE not a", null,
+			"test WHERE !a", null,
 			"test WHERE (a * 5)", null,
 			"test WHERE (a - 5)", null,
 			"test WHERE (a >> 2)", null,

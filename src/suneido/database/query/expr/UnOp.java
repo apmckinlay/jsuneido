@@ -1,24 +1,30 @@
 package suneido.database.query.expr;
 
+import static suneido.SuException.unreachable;
+
 import java.util.List;
 
-import suneido.SuBoolean;
-import suneido.SuException;
-import suneido.SuInteger;
-import suneido.SuValue;
+import suneido.*;
 
 public class UnOp extends Expr {
-	private final String op;
+	private final Op op;
 	private final Expr expr;
+	public enum Op {
+		PLUS("+"), MINUS("-"), NOT("!"), BITNOT("~");
+		public String name;
+		Op(String name) {
+			this.name = name;
+		}
+	}
 
-	public UnOp(String op, Expr expr) {
+	public UnOp(Op op, Expr expr) {
 		this.op = op;
 		this.expr = expr;
 	}
 
 	@Override
 	public String toString() {
-		return op + (op.equals("not") ? " " : "") + expr;
+		return op.name + expr;
 	}
 
 	@Override
@@ -35,18 +41,17 @@ public class UnOp extends Expr {
 	}
 
 	SuValue eval2(SuValue x) {
-		switch (op.charAt(0)) {
-		case '!':
-		case 'n':
+		switch (op) {
+		case NOT:
 			return x == SuBoolean.FALSE ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case '~':
+		case BITNOT:
 			return SuInteger.valueOf(~x.integer());
-		case '+':
+		case PLUS:
 			return x;
-		case '-':
+		case MINUS:
 			return x.uminus();
 		default:
-			throw new SuException("invalid UnOp type");
+			throw unreachable();
 		}
 	}
 }

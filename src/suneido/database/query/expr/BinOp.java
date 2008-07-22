@@ -10,7 +10,7 @@ public class BinOp extends Expr {
 	public Expr left;
 	public Expr right;
 	public enum Op {
-		IS("="), ISNT("!="), LT("<"), LTE("<="), GT(">"), GTE(">="), 
+		IS("="), ISNT("!="), LT("<"), LTE("<="), GT(">"), GTE(">="),
 		MATCH("=~"), MATCHNOT("!~"),
 		ADD("+"), SUB("-"), MUL("*"), DIV("/"), MOD("%"), CAT("$"),
 		LSHIFT("<<"), RSHIFT(">>"), BITAND("&"), BITOR("|"), BITXOR("^");
@@ -18,7 +18,7 @@ public class BinOp extends Expr {
 		Op(String name) {
 			this.name = name;
 		}
-	};
+	}
 
 	public BinOp(Op op, Expr left, Expr right) {
 		this.op = op;
@@ -26,12 +26,10 @@ public class BinOp extends Expr {
 		this.right = right;
 	}
 
-
 	@Override
 	public String toString() {
 		return "(" + left + " " + op.name + " " + right + ")";
 	}
-
 
 	@Override
 	public List<String> fields() {
