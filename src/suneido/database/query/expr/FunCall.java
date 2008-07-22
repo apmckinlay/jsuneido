@@ -14,4 +14,10 @@ public class FunCall extends Multi {
 		return fname + listToParens(exprs);
 	}
 
+	@Override
+	public Expr fold() {
+		for (int i = 0; i < exprs.size(); ++i)
+			exprs.set(i, exprs.get(i).fold());
+		return this;
+	}
 }

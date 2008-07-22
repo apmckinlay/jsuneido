@@ -42,29 +42,17 @@ public abstract class Multi extends Expr {
 	}
 
 	protected Expr fold_exprs(Constant ignore, Constant target) {
-		Expr x = checkFold(ignore, target);
-		if (x != null)
-			return x;
-		List<Expr> new_exprs = new ArrayList<Expr>();
-		for (Expr e : exprs) {
-			Expr new_e = e.fold();
-			if (new_e != ignore)
-				new_exprs.add(new_e);
-		}
-		exprs = new_exprs;
-		return exprs.isEmpty() ? ignore : this;
-	}
-	private Expr checkFold(Constant ignore, Constant target) {
-		for (Expr e : exprs) {
-			if (e == ignore)
-				return null;
-			Expr new_e = e.fold();
-			if (new_e == target)
+		// iterate reverse to simplify deleting
+		for (int i = exprs.size() - 1; i >= 0; --i) {
+			Expr e = exprs.get(i).fold();
+			if (e == target)
 				return target;
-			if (new_e != e)
-				return null;
+			else if (e == ignore)
+				exprs.remove(i);
+			else
+				exprs.set(i, e);
 		}
-		return this;
+		return exprs.isEmpty() ? ignore : this;
 	}
 
 }

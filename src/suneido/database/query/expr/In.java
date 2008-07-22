@@ -9,7 +9,7 @@ import suneido.SuValue;
 import suneido.database.Record;
 
 public class In extends Expr {
-	private final Expr expr;
+	private Expr expr;
 	private final List<SuValue> values = new ArrayList<SuValue>();
 	private final Record packed = new Record();
 
@@ -25,12 +25,25 @@ public class In extends Expr {
 
 	@Override
 	public String toString() {
-		return "(" + expr + " in " + listToParens(values) + ")";
+		return expr + " in " + listToParens(values);
 	}
 
 	@Override
 	public List<String> fields() {
 		return expr.fields();
+	}
+
+	@Override
+	public Expr fold() {
+		expr = expr.fold();
+		if (expr instanceof Constant) {
+			SuValue x = ((Constant) expr).value;
+			for (SuValue y : values)
+				if (x.equals(y))
+					return Constant.TRUE;
+			return Constant.FALSE;
+		}
+		return this;
 	}
 
 	@Override
