@@ -63,7 +63,8 @@ public class BinOp extends Expr {
 		case GTE :	return x.compareTo(y) >= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
 		case ADD :	return x.add(y);
 		case SUB :	return x.sub(y);
-		case CAT :	return new SuString(x.string() + y.string());
+		case CAT:
+			return SuString.valueOf(x.string() + y.string());
 		case MUL :	return x.mul(y);
 		case DIV :	return x.div(y);
 		case MOD :	return SuInteger.valueOf(x.integer() % y.integer());

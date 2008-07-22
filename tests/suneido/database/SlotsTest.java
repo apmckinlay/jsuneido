@@ -76,7 +76,7 @@ public class SlotsTest {
 			args = new String[] { "hello" };
 		Record r = new Record(100);
 		for (String s : args)
-			r.add(new SuString(s));
+			r.add(SuString.valueOf(s));
 		return new Slot(r);
 	}
 }

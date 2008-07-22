@@ -18,7 +18,11 @@ public class SuString extends SuValue {
 	private final String s;
 	final public static SuString EMPTY = new SuString("");
 
-	public SuString(String s) {
+	public static SuString valueOf(String s) {
+		return s.equals("") ? EMPTY : new SuString(s);
+	}
+
+	protected SuString(String s) {
 		this.s = s;
 	}
 

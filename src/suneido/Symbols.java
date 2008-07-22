@@ -1,8 +1,6 @@
 package suneido;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Stores symbol names and instances.
@@ -70,6 +68,14 @@ public class Symbols {
 		private SuSymbol(String s, int num) {
 			super(s);
 			this.num = num;
+		}
+
+		@Override
+		public boolean equals(Object value) {
+			if (value instanceof SuSymbol)
+				return this == value;
+			else
+				return super.equals(value);
 		}
 
 		public int symnum() {
