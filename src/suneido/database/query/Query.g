@@ -257,8 +257,8 @@ mul returns [Expr expr]
 		{ $expr = new BinOp($mulop.op, $expr, $y.expr); } 
      )* ;
 unary returns [Expr expr]  
-	: o=('-'|'+'|'~'|NOT)? term
-		{ $expr = $o == null ? $term.expr : new UnOp($o.text, $term.expr); } 
+	: unop? term
+		{ $expr = ($unop.op == null) ? $term.expr : new UnOp($unop.op, $term.expr); } 
 	;
 term returns [Expr expr]
 	: ID
@@ -323,6 +323,12 @@ mulop returns [BinOp.Op op]
 	: '*' { $op = BinOp.Op.MUL; }
 	| '/' { $op = BinOp.Op.DIV; }
 	| '%' { $op = BinOp.Op.MOD; }
+	;
+unop returns [UnOp.Op op]
+	: '+' { $op = UnOp.Op.PLUS; }
+	| '-' { $op = UnOp.Op.MINUS; }
+	| NOT { $op = UnOp.Op.NOT; }
+	| '~' { $op = UnOp.Op.BITNOT; }
 	;
 
 IS    : '=='|(('i'|'I')('s'|'S')) ;
