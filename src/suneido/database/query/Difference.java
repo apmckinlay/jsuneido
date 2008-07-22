@@ -5,7 +5,6 @@ import java.util.List;
 public class Difference extends Compatible {
 	Difference(Query source1, Query source2) {
 		super(source1, source2);
-System.out.println("Difference disjoint " + disjoint);
 	}
 
 	@Override
