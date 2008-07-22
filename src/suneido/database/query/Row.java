@@ -43,7 +43,7 @@ public class Row {
 		if (w != null)
 			return getraw(w);
 		// else rule
-		SuValue val = surec().getdata(new SuString(col));
+		SuValue val = surec().getdata(SuString.valueOf(col));
 		return val.pack();
 	}
 

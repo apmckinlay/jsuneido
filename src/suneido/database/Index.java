@@ -23,7 +23,7 @@ public class Index {
 		FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
 		CASCADE_DELETES = 2, CASCADE = 3;
-	private final static SuString UNIQUE = new SuString("u");
+	private final static SuString UNIQUE = SuString.valueOf("u");
 
 	ForeignKey fksrc = null;
 	ArrayList<ForeignKey> fkdsts = new ArrayList<ForeignKey>();

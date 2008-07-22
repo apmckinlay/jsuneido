@@ -1,16 +1,12 @@
 package suneido.database;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 
 public class RecordTest {
 	final static String data = "abc";
@@ -63,10 +59,10 @@ public class RecordTest {
 	@Test
 	public void addPackable() {
 		Record r = new Record();
-		SuString s = new SuString("hello");
+		SuString s = SuString.valueOf("hello");
 		r.add(s);
 		assertEquals(s, SuValue.unpack(r.getraw(0)));
-		SuString s2 = new SuString("world");
+		SuString s2 = SuString.valueOf("world");
 		r.add(s2);
 		assertEquals(s, SuValue.unpack(r.getraw(0)));
 		assertEquals(s2, SuValue.unpack(r.getraw(1)));
@@ -125,7 +121,7 @@ public class RecordTest {
 		Record r = make(data, data2);
 		assertEquals(data, r.getString(0));
 		assertEquals(data2, r.getString(1));
-		SuString s = new SuString("hello");
+		SuString s = SuString.valueOf("hello");
 		assertTrue(r.insert(1, s));
 		assertEquals(data, r.getString(0));
 		assertEquals(s, SuValue.unpack(r.getraw(1)));
@@ -136,7 +132,8 @@ public class RecordTest {
 		assertEquals(s, SuValue.unpack(r.getraw(0)));
 		r.insert(1, s); // insert at end (same as add)
 		assertEquals(s, SuValue.unpack(r.getraw(0)));
-		assertFalse(r.insert(1, new SuString(
+		assertFalse(r.insert(1, SuString
+				.valueOf(
 				"hellooooooooooooooooooooooooooooooooooooooo")));
 	}
 

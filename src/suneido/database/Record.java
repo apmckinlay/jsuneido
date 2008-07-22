@@ -4,12 +4,7 @@ import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
 
-import suneido.Packable;
-import suneido.SuException;
-import suneido.SuInteger;
-import suneido.SuNumber;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 
 /**
  * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
@@ -194,7 +189,7 @@ public class Record implements suneido.Packable, Comparable<Record> {
 	/** convenience method */
 	public Record add(String s) {
 		// PERF could bypass SuString instance
-		return s == null ? addMin() : add(new SuString(s));
+		return s == null ? addMin() : add(SuString.valueOf(s));
 	}
 
 	/** convenience method */

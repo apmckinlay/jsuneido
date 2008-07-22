@@ -1,13 +1,8 @@
 package suneido.database;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.junit.Test;
 
@@ -193,7 +188,8 @@ public class BtreeTest {
 			r.add(filler);
 		return r;
 	}
-	final private static SuString filler = new SuString("hellooooooooooooooooooooooooooooooooooooooooooo");
+	final private static SuString filler = SuString
+			.valueOf("hellooooooooooooooooooooooooooooooooooooooooooo");
 
 	public static void main(String args[]) {
 		new BtreeTest().test();

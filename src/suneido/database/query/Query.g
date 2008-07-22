@@ -287,7 +287,7 @@ constant returns [SuValue value]
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
     | STRING
-    	{ $value = new SuString($text.substring(1, $text.length() - 1)); }
+    	{ $value = SuString.valueOf($text.substring(1, $text.length() - 1)); }
     | DATE
     	{ 
     	$value = SuDate.literal($text);

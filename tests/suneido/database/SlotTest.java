@@ -14,11 +14,11 @@ public class SlotTest {
 	public void test() {
 		Slot slot;
 		Record r = new Record(100);
-		r.add(new SuString("hello"));
-		
+		r.add(SuString.valueOf("hello"));
+
 		slot = new Slot(r);
 		assertEquals(r.packSize(), slot.packSize());
-		
+
 		slot = new Slot(r, 1200);
 		assertEquals(r.packSize() + 4, slot.packSize());
 
@@ -31,5 +31,5 @@ public class SlotTest {
 		assertEquals(slot.key, slot2.key);
 		assertArrayEquals(slot.adrs, slot2.adrs);
 		}
-	
+
 }
