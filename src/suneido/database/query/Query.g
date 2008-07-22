@@ -211,50 +211,50 @@ in returns [Expr expr]
 bitor returns [Expr expr]  
 	: x=bitxor 
    		{ $expr = $x.expr; } 
-	  (o='|' y=bitxor
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  ('|' y=bitxor
+		{ $expr = new BinOp(BinOp.Op.BITOR, $expr, $y.expr); } 
 	  )* ;
 bitxor returns [Expr expr]  
 	: x=bitand 
    		{ $expr = $x.expr; } 
-	  (o='^' y=bitand
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  ('^' y=bitand
+		{ $expr = new BinOp(BinOp.Op.BITXOR, $expr, $y.expr); } 
 	  )* ;
 bitand returns [Expr expr]  
 	: x=is 
    		{ $expr = $x.expr; } 
-	  (o='&' y=is
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  ('&' y=is
+		{ $expr = new BinOp(BinOp.Op.BITAND, $expr, $y.expr); } 
 	  )* ;
 is returns [Expr expr]  
     : x=cmp 
    		{ $expr = $x.expr; } 
-      (o=(IS|'='|'=~'|'!~') y=cmp
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+      (isop y=cmp
+		{ $expr = new BinOp($isop.op, $expr, $y.expr); } 
       )* ;
 cmp returns [Expr expr]  
    : x=shift 
    		{ $expr = $x.expr; } 
-     (o=('<'|'<='|'>='|'>') y=shift
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     (cmpop y=shift
+		{ $expr = new BinOp($cmpop.op, $expr, $y.expr); } 
      )* ;
 shift returns [Expr expr]  
 	: x=add 
    		{ $expr = $x.expr; } 
-	  (o=('<<'|'>>') y=add
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+	  (shiftop y=add
+		{ $expr = new BinOp($shiftop.op, $expr, $y.expr); } 
 	  )* ;
 add returns [Expr expr]  
    : x=mul
    		{ $expr = $x.expr; } 
-     (o=('+'|'-'|'$') y=mul
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     (addop y=mul
+		{ $expr = new BinOp($addop.op, $expr, $y.expr); } 
      )* ;
 mul returns [Expr expr]  
    : x=unary
    		{ $expr = $x.expr; }
-     (o=('*'|'/'|'%') y=unary
-		{ $expr = new BinOp($o.text, $expr, $y.expr); } 
+     (mulop y=unary
+		{ $expr = new BinOp($mulop.op, $expr, $y.expr); } 
      )* ;
 unary returns [Expr expr]  
 	: o=('-'|'+'|'~'|NOT)? term
@@ -297,6 +297,33 @@ member
     | '{' members '}'
     | ID ':' member
     ;
+    
+isop returns [BinOp.Op op]
+	: (IS|'=') { $op = BinOp.Op.IS; } 
+	| '!=' { $op = BinOp.Op.ISNT; }
+	| '=~' { $op = BinOp.Op.MATCH; }
+	| '!~' { $op = BinOp.Op.MATCHNOT; }
+	;
+cmpop returns [BinOp.Op op]
+	: '<' { $op = BinOp.Op.LT; }
+	| '<=' { $op = BinOp.Op.LTE; }
+	| '>' { $op = BinOp.Op.GT; }
+	| '>=' { $op = BinOp.Op.GTE; } 
+	;
+shiftop returns [BinOp.Op op]
+	: '<<' { $op = BinOp.Op.LSHIFT; }
+	| '>>' { $op = BinOp.Op.RSHIFT; }
+	;
+addop returns [BinOp.Op op]
+	: '+' { $op = BinOp.Op.ADD; }
+	| '-' { $op = BinOp.Op.SUB; }
+	| '$' { $op = BinOp.Op.CAT; }
+	;
+mulop returns [BinOp.Op op]
+	: '*' { $op = BinOp.Op.MUL; }
+	| '/' { $op = BinOp.Op.DIV; }
+	| '%' { $op = BinOp.Op.MOD; }
+	;
 
 IS    : '=='|(('i'|'I')('s'|'S')) ;
 ISNT  : '!='|(('i'|'I')('s'|'S')('n'|'N')('t'|'T')) ;

@@ -1,21 +1,12 @@
 package suneido.database.query;
-import static suneido.Util.concat;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.nil;
+import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuString;
 import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.And;
-import suneido.database.query.expr.BinOp;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
-import suneido.database.query.expr.Identifier;
+import suneido.database.query.expr.*;
 
 public class Select extends Query1 {
 	private And expr;
@@ -66,14 +57,13 @@ public class Select extends Query1 {
 			if (e.is_term(fields) && e instanceof BinOp) {
 				// TODO: handle IN
 				BinOp binop = (BinOp) e;
-				if (binop.op.equals("=")) {
+				if (binop.op == BinOp.Op.IS) {
 					String field = ((Identifier) binop.left).ident;
 					SuValue value = ((Constant) binop.right).value;
 					fix.add(new Fixed(field, value));
 				}
 			}
 		fix = Fixed.combine(fix, source.fixed());
-System.out.println("fix " + fix);
 		return fix;
 	}
 

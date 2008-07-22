@@ -1,18 +1,26 @@
 package suneido.database.query.expr;
 
+import static suneido.SuException.unreachable;
 import static suneido.Util.union;
 
 import java.util.List;
 
 public class BinOp extends Expr {
-	public final String op;
-	public final Expr left;
-	public final Expr right;
+	public Op op;
+	public Expr left;
+	public Expr right;
 	public enum Op {
-		IS, ISNT, MATCH, MATCHNOT, LT, LTE, GT, GTE
+		IS("="), ISNT("!="), LT("<"), LTE("<="), GT(">"), GTE(">="), 
+		MATCH("=~"), MATCHNOT("!~"),
+		ADD("+"), SUB("-"), MUL("*"), DIV("/"), MOD("%"), CAT("$"),
+		LSHIFT("<<"), RSHIFT(">>"), BITAND("&"), BITOR("|"), BITXOR("^");
+		public String name;
+		Op(String name) {
+			this.name = name;
+		}
 	};
 
-	public BinOp(String op, Expr left, Expr right) {
+	public BinOp(Op op, Expr left, Expr right) {
 		this.op = op;
 		this.left = left;
 		this.right = right;
@@ -21,7 +29,7 @@ public class BinOp extends Expr {
 
 	@Override
 	public String toString() {
-		return "(" + left + " " + op + " " + right + ")";
+		return "(" + left + " " + op.name + " " + right + ")";
 	}
 
 
@@ -30,30 +38,25 @@ public class BinOp extends Expr {
 		return union(left.fields(), right.fields());
 	}
 
-	//	@Override
-	//	public boolean is_term(List<String> fields) {
-	//		// NOTE: MATCH and MATCHNOT are NOT terms
-	//		if (! (op.equals("=") || op.equals("!=") ||
-	//				op == I_LT || op == I_LTE || op == I_GT || op == I_GTE))
-	//			return false;
-	//		if (left->isfield(fields) && dynamic_cast<Constant*>(right))
-	//			return true;
-	//		if (dynamic_cast<Constant*>(left) && right->isfield(fields))
-	//		{
-	//			std::swap(left, right);
-	//			switch (op)
-	//			{
-	//			case I_LT : op = I_GT; break ;
-	//			case I_LTE : op = I_GTE; break ;
-	//			case I_GT : op = I_LT; break ;
-	//			case I_GTE : op = I_LTE; break ;
-	//			case I_IS : case I_ISNT : break ;
-	//			default :
-	//				unreachable();
-	//			}
-	//			return true;
-	//		}
-	//		return false;
-	//	}
+	@Override
+	public boolean is_term(List<String> fields) {
+		if (op.ordinal() > Op.GTE.ordinal())
+			return false;
+		if (left.isfield(fields) && right instanceof Constant)
+			return true;
+		if (left instanceof Constant && right.isfield(fields)) {
+			Expr tmp = left; left = right; right = tmp;
+			switch (op) {
+			case LT : op = Op.GT; break ;
+			case LTE : op = Op.GTE; break ;
+			case GT : op = Op.LT; break ;
+			case GTE : op = Op.LTE; break ;
+			case IS : case ISNT : break ;
+			default : throw unreachable();
+			}
+			return true;
+		}
+		return false;
+	}
 
 }

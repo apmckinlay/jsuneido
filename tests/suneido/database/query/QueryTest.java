@@ -9,7 +9,7 @@ public class QueryTest extends suneido.database.TestBase {
 	public void test() {
 		makeDB();
 		for (String[] c : transforms) {
-			System.out.println(c[0]);
+			// System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]).transform();
 			assertEquals(c[1], q.toString());
 		}
@@ -118,8 +118,14 @@ public class QueryTest extends suneido.database.TestBase {
 		{ "customer project id, city, name",
 			"customer" },
 		// remove disjoint difference
-//		{ "(customer where id = 3) minus (customer where id = 5)",
-//			"customer WHERE (id = 3)" },
+		{ "(customer where id = 3) minus (customer where id = 5)",
+			"customer WHERE (id = 3)" },
+		// remove empty extends
+		{ "customer extend zone = 3 project id, city",
+			"customer PROJECT id,city" },
+		// remove empty renames
+		{ "customer rename name to nom project id, city",
+			"customer PROJECT id,city" },
 
 		// move project before rename
 		{ "customer rename id to num, name to nom project num, city",
@@ -140,11 +146,14 @@ public class QueryTest extends suneido.database.TestBase {
 		{ "trans project id,cost where id = 5",
 			"trans WHERE (id = 5) PROJECT id,cost" },
 		// move where before rename
-//		{ "trans where cost = 200 rename cost to x where id is 5",
-//			"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
+		{ "trans where cost = 200 rename cost to x where id is 5",
+			"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
 		// move where before extend
-//		{ "trans where cost = 200 extend x = 1 where id is 5",
-//			"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+		{ "trans where cost = 200 extend x = 1 where id is 5",
+			"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+		// move where before summarize
+		{ "hist summarize id, total cost where id = 3 and total_cost > 10",
+			"hist WHERE (id = 3) SUMMARIZE (id) total cost WHERE (total_cost > 10)" },
 
 		// distribute where over intersect
 		{ "(hist intersect trans) where cost > 10",
@@ -156,11 +165,17 @@ public class QueryTest extends suneido.database.TestBase {
 		{ "(hist union trans) where cost > 10",
 			"(hist WHERE (cost > 10) UNION trans WHERE (cost > 10))" },
 		// distribute where over leftjoin
-//		{ "(customer leftjoin trans) where id = 5",
-//			"(hist WHERE (id = 5) LEFTJOIN trans WHERE (cost > 10))" },
+		{ "(customer leftjoin trans) where id = 5",
+			"(customer WHERE (id = 5) LEFTJOIN 1:n on (id) trans)" },
+		// distribute where over leftjoin
+		{ "(customer leftjoin trans) where id = 5 and item = 3",
+			"(customer WHERE (id = 5) LEFTJOIN 1:n on (id) trans) WHERE (item = 3)" },
 		// distribute where over join
-//		{ "(customer join trans) where cost > 10",
-//			"(hist WHERE (cost > 10) JOIN trans WHERE (cost > 10))" },
+		{ "(customer join trans) where cost > 10 and city =~ 'toon'",
+			"(customer WHERE (city =~ 'toon') JOIN 1:n on (id) trans WHERE (cost > 10))" },
+		// distribute where over product
+			{ "(customer times inven) where qty > 10 and city =~ 'toon'",
+					"(customer WHERE (city =~ 'toon') TIMES inven WHERE (qty > 10))" },
 
 		// distribute project over union
 		{ "(hist union trans) project item, cost",
