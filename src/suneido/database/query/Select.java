@@ -3,13 +3,12 @@ import static suneido.Util.*;
 
 import java.util.*;
 
-import suneido.SuString;
 import suneido.SuValue;
 import suneido.database.Record;
 import suneido.database.query.expr.*;
 
 public class Select extends Query1 {
-	private And expr;
+	private Multi expr;
 	private final boolean first = true; // used and then reset by optimize, then used again by next
 	private final boolean rewound = true;
 	private boolean newrange;
@@ -30,7 +29,7 @@ public class Select extends Query1 {
 		// if (!source.columns().containsAll(expr.fields()))
 		// throw new SuException("select: nonexistent columns: "
 		// + listToParens(difference(expr.fields(), source.columns())));
-		this.expr = (And) expr;
+		this.expr = (Multi) expr;
 	}
 
 	@Override
@@ -184,14 +183,13 @@ public class Select extends Query1 {
 		return moved ? source : this;
 	}
 
-	static final Expr empty_string = new Constant(SuString.EMPTY);
-
 	private Expr project(Query q) {
 		List<String> srcflds = q.columns();
 		List<String> exprflds = expr.fields();
 		List<String> missing = difference(exprflds, srcflds);
 		return expr.replace(missing,
-				Collections.nCopies(missing.size(), empty_string));
+				Collections.nCopies(missing.size(),
+				(Expr) Constant.EMPTY));
 	}
 
 	private boolean distribute(Query2 q2) {

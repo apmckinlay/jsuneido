@@ -7,4 +7,9 @@ public class Or extends Multi {
 		return super.toString(" or ");
 	}
 
+	@Override
+	public Expr fold() {
+		return fold_exprs(Constant.FALSE, Constant.TRUE);
+	}
+
 }

@@ -36,7 +36,7 @@ public class UnOp extends Expr {
 	public Expr fold() {
 		Expr new_expr = expr.fold();
 		if (new_expr instanceof Constant)
-			return new Constant(eval2(((Constant) new_expr).value));
+			return Constant.valueOf(eval2(((Constant) new_expr).value));
 		return new_expr == expr ? this : new UnOp(op, new_expr);
 	}
 
