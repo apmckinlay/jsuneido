@@ -25,7 +25,7 @@ public class Identifier extends Expr {
 	}
 
 	@Override
-	public boolean isfield(List<String> fields) {
+	public boolean isField(List<String> fields) {
 		return fields.contains(ident);
 	}
 }

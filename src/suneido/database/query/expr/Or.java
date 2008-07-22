@@ -9,7 +9,7 @@ public class Or extends Multi {
 
 	@Override
 	public Expr fold() {
-		return fold_exprs(Constant.FALSE, Constant.TRUE);
+		return foldExprs(Constant.FALSE, Constant.TRUE);
 	}
 
 }

@@ -47,7 +47,7 @@ public class In extends Expr {
 	}
 
 	@Override
-	public boolean is_term(List<String> fields) {
-		return expr.isfield(fields);
+	public boolean isTerm(List<String> fields) {
+		return expr.isField(fields);
 	}
 }

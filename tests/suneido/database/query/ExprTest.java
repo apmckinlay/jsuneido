@@ -1,9 +1,10 @@
 package suneido.database.query;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static suneido.Util.list;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -52,9 +53,20 @@ public class ExprTest {
 				"1 + 2 in (2,3,4)", "true",
 				"3 * 4 in (2,3,4)", "false",
 			};
-			for (int i = 0; i < cases.length; i += 2) {
-				Expr e = ParseQuery.expr(cases[i]);
-				assertEquals(cases[i + 1], e.fold().toString());
-			}
+		for (int i = 0; i < cases.length; i += 2) {
+			Expr e = ParseQuery.expr(cases[i]);
+			assertEquals(cases[i + 1], e.fold().toString());
+		}
+	}
+
+	@Test
+	public void isTerm() {
+		List<String> fields = list("a", "b", "c");
+		String truecases[] = new String[] { "a = 5", "5 > b", "b in (3,4,5)" };
+		for (String s : truecases)
+			assertTrue(s, ParseQuery.expr(s).isTerm(fields));
+		String falsecases[] = new String[] { "a", "d = 5", "c =~ 'x'" };
+		for (String s : falsecases)
+			assertFalse(s, ParseQuery.expr(s).isTerm(fields));
 	}
 }

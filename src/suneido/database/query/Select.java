@@ -53,7 +53,7 @@ public class Select extends Query1 {
 		fix = new ArrayList<Fixed>();
 		List<String> fields = source.columns();
 		for (Expr e : expr.exprs)
-			if (e.is_term(fields) && e instanceof BinOp) {
+			if (e.isTerm(fields) && e instanceof BinOp) {
 				// TODO: handle IN
 				BinOp binop = (BinOp) e;
 				if (binop.op == BinOp.Op.IS) {

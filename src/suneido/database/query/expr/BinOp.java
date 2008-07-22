@@ -85,12 +85,12 @@ public class BinOp extends Expr {
 	}
 
 	@Override
-	public boolean is_term(List<String> fields) {
+	public boolean isTerm(List<String> fields) {
 		if (op.ordinal() > Op.GTE.ordinal())
 			return false;
-		if (left.isfield(fields) && right instanceof Constant)
+		if (left.isField(fields) && right instanceof Constant)
 			return true;
-		if (left instanceof Constant && right.isfield(fields)) {
+		if (left instanceof Constant && right.isField(fields)) {
 			Expr tmp = left; left = right; right = tmp;
 			switch (op) {
 			case LT : op = Op.GT; break ;
