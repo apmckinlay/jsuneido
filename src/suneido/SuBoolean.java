@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuBoolean extends SuValue {
-	private boolean b;
-	
+	private final boolean b;
+
 	final public static SuBoolean TRUE = new SuBoolean(true);
 	final public static SuBoolean FALSE = new SuBoolean(false);
-	
+
 	private SuBoolean(boolean b) {
 		this.b = b;
 	}
@@ -28,7 +28,7 @@ public class SuBoolean extends SuValue {
 	public SuDecimal number() {
 		return b ? SuDecimal.ONE : SuDecimal.ZERO;
 	}
-	
+
 	@Override
 	public int compareTo(SuValue value) {
 		if (value == this)
@@ -50,5 +50,9 @@ public class SuBoolean extends SuValue {
 	@Override
 	public void pack(ByteBuffer buf) {
 		buf.put(b ? Pack.TRUE : Pack.FALSE);
+	}
+
+	public SuValue not() {
+		return b ? FALSE : TRUE;
 	}
 }

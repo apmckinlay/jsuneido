@@ -17,4 +17,9 @@ public class And extends Multi {
 		return super.toString(" and ");
 	}
 
+	@Override
+	public Expr fold() {
+		return fold_exprs(Constant.TRUE, Constant.FALSE);
+	}
+
 }

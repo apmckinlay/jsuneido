@@ -178,6 +178,10 @@ extend1
 			else { $extend::fields.add($ID.text); $extend::exprs.add($expr.expr); } } 
 	;
   
+// for testing
+expression returns [Expr expression]  
+	: expr { $expression = $expr.expr; } ; 
+		
 expr returns [Expr expr]  
 	: or
 		{ $expr = $or.expr; } 
@@ -270,8 +274,12 @@ term returns [Expr expr]
 	  (',' e2=expr
 	  	{ ((FunCall) $expr).add($e2.expr); }
 	  )* )? ')'
+	| TRUE
+		{ $expr = Constant.TRUE; }
+	| FALSE
+		{ $expr = Constant.FALSE; }
     | constant
-    	{ $expr = new Constant($constant.value); }
+    	{ $expr = Constant.valueOf($constant.value); }
     | '(' expr ')'
     	{ $expr = $expr.expr; }
     ;
@@ -366,6 +374,8 @@ INTO	: ('i'|'I')('n'|'N')('t'|'T')('o'|'O') ;
 UPDATE	: ('u'|'U')('p'|'P')('d'|'D')('a'|'A')('t'|'T')('e'|'E') ;
 SET		: ('s'|'S')('e'|'E')('t'|'T') ;
 DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
+TRUE	: ('t'|'T')('r'|'R')('u'|'U')('e'|'E') ;
+FALSE	: ('f'|'F')('a'|'A')('l'|'L')('s'|'S')('e'|'E') ;
 
 ID		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 

@@ -56,9 +56,7 @@ public class Util {
 	 *         are not retained.
 	 */
 	public static <T> List<T> union(List<T> x, List<T> y) {
-		return x.size() > y.size()
-		? addUnique(new ArrayList<T>(x), y)
-				: addUnique(new ArrayList<T>(y), x);
+		return addUnique(new ArrayList<T>(x), y);
 	}
 
 	public static <T> List<T> addUnique(List<T> x, List<T> y) {

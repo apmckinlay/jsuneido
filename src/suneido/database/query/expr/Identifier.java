@@ -3,18 +3,11 @@ package suneido.database.query.expr;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuBoolean;
-
 public class Identifier extends Expr {
 	public final String ident;
 
 	public static Expr valueOf(String s) {
-		if (s.equals("true"))
-			return new Constant(SuBoolean.TRUE);
-		else if (s.equals("false"))
-			return new Constant(SuBoolean.FALSE);
-		else
-			return new Identifier(s);
+		return new Identifier(s);
 	}
 
 	public Identifier(String ident) {
