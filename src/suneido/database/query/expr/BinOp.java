@@ -42,15 +42,14 @@ public class BinOp extends Expr {
 
 	@Override
 	public Expr fold() {
-		Expr new_left = left.fold();
-		Expr new_right = right.fold();
-		if (new_left instanceof Constant && new_right instanceof Constant) {
-			Constant kx = (Constant) new_left;
-			Constant ky = (Constant) new_right;
+		left = left.fold();
+		right = right.fold();
+		if (left instanceof Constant && right instanceof Constant) {
+			Constant kx = (Constant) left;
+			Constant ky = (Constant) right;
 			return Constant.valueOf(eval2(kx.value, ky.value));
 		}
-		return new_left == left && new_right == right ? this :
-			new BinOp(op, new_left, new_right);
+		return this;
 	}
 
 	private SuValue eval2(SuValue x, SuValue y) {
@@ -63,8 +62,7 @@ public class BinOp extends Expr {
 		case GTE :	return x.compareTo(y) >= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
 		case ADD :	return x.add(y);
 		case SUB :	return x.sub(y);
-		case CAT:
-			return SuString.valueOf(x.string() + y.string());
+		case CAT: 	return SuString.valueOf(x.string() + y.string());
 		case MUL :	return x.mul(y);
 		case DIV :	return x.div(y);
 		case MOD :	return SuInteger.valueOf(x.integer() % y.integer());
@@ -73,13 +71,13 @@ public class BinOp extends Expr {
 		case BITAND :	return SuInteger.valueOf(x.integer() & y.integer());
 		case BITOR :	return SuInteger.valueOf(x.integer() | y.integer());
 		case BITXOR:	return SuInteger.valueOf(x.integer() ^ y.integer());
-		// TODO convert from Suneido regex and cache compiled patterns
 		case MATCH :	return matches(x.string(), y.string());
 		case MATCHNOT : return matches(x.string(), y.string()).not();
 		default : 	throw unreachable();
 		}
 	}
 
+	// TODO convert from Suneido regex and cache compiled patterns
 	private SuBoolean matches(String s, String rx) {
 		Pattern pattern = Pattern.compile(rx);
 		Matcher matcher = pattern.matcher(s);

@@ -8,7 +8,7 @@ import suneido.*;
 
 public class UnOp extends Expr {
 	private final Op op;
-	private final Expr expr;
+	private Expr expr;
 	public enum Op {
 		PLUS("+"), MINUS("-"), NOT("!"), BITNOT("~");
 		public String name;
@@ -34,10 +34,10 @@ public class UnOp extends Expr {
 
 	@Override
 	public Expr fold() {
-		Expr new_expr = expr.fold();
-		if (new_expr instanceof Constant)
-			return Constant.valueOf(eval2(((Constant) new_expr).value));
-		return new_expr == expr ? this : new UnOp(op, new_expr);
+		expr = expr.fold();
+		if (expr instanceof Constant)
+			return Constant.valueOf(eval2(((Constant) expr).value));
+		return this;
 	}
 
 	SuValue eval2(SuValue x) {

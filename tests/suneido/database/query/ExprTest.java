@@ -33,6 +33,7 @@ public class ExprTest {
 		String cases[] = new String[] {
 				"a", "a",
 				"f(a,b)", "f(a,b)",
+				"f(1 + 2,  3 - 4)", "f(3,-1)",
 				"123", "123",
 				"not true", "false",
 				"12 + 34", "46",
@@ -47,6 +48,9 @@ public class ExprTest {
 				"false or 1 > 2 or false",
 				"false", "false or 1 < 2 or false", "true",
 				"a or 1 > 2 or false", "a",
+				"1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)",
+				"1 + 2 in (2,3,4)", "true",
+				"3 * 4 in (2,3,4)", "false",
 			};
 			for (int i = 0; i < cases.length; i += 2) {
 				Expr e = ParseQuery.expr(cases[i]);
