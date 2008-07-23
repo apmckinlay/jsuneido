@@ -5,7 +5,9 @@ import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuString;
+import suneido.SuValue;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.Header.Which;
@@ -13,7 +15,7 @@ import suneido.database.query.Header.Which;
 public class Row {
 	final Record[] data;
 	long recadr = 0; // if Row contains single update-able record, this is its
-						// address
+	// address
 	Transaction tran = null;
 	SuContainer surec = null;
 
@@ -25,6 +27,14 @@ public class Row {
 		data = new Record[] { record };
 		this.recadr = recadr;
 		verify(recadr > 0);
+	}
+
+	@Override
+	public String toString() {
+		String s = "";
+		for (Record r : data)
+			s += r.toString();
+		return s;
 	}
 
 	public ByteBuffer getraw(Header hdr, String col) {

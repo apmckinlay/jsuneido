@@ -4,7 +4,9 @@ import static suneido.SuException.unreachable;
 
 import java.util.List;
 
-import suneido.*;
+import suneido.SuBoolean;
+import suneido.SuInteger;
+import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 
@@ -42,6 +44,11 @@ public class UnOp extends Expr {
 		return this;
 	}
 
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		return eval2(expr.eval(hdr, row));
+	}
+
 	SuValue eval2(SuValue x) {
 		switch (op) {
 		case NOT:
@@ -58,7 +65,13 @@ public class UnOp extends Expr {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
-		return eval2(expr.eval(hdr, row));
+	public void rename(List<String> from, List<String> to) {
+		expr.rename(from, to);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		expr = expr.replace(from, to);
+		return this;
 	}
 }

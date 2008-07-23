@@ -17,13 +17,9 @@ public abstract class Expr {
 		return this;
 	}
 
-	public Expr rename(List<String> from, List<String> to) {
-		return this;
-	}
+	public abstract void rename(List<String> from, List<String> to);
 
-	public Expr replace(List<String> from, List<Expr> to) {
-		return this;
-	}
+	public abstract Expr replace(List<String> from, List<Expr> to);
 
 	public boolean isTerm(List<String> fields) {
 		return false; // TODO override appropriately

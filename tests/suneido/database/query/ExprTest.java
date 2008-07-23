@@ -1,6 +1,8 @@
 package suneido.database.query;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.Util.list;
 
 import java.util.Collections;
@@ -8,20 +10,21 @@ import java.util.List;
 
 import org.junit.Test;
 
+import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
 public class ExprTest {
 	@Test
 	public void fields() {
 		Object cases[] = new Object[] {
-			"123", Collections.emptyList(),
-			"a", list("a"),
-			"-a", list("a"),
-			"a + b", list("a", "b"),
-			"a ? b : c", list("a", "b", "c"),
-			"a and b and c", list("a", "b", "c"),
-			"a or b or c", list("a", "b", "c"),
-			"f(a, b)", list("a", "b"),
+				"123", Collections.emptyList(),
+				"a", list("a"),
+				"-a", list("a"),
+				"a + b", list("a", "b"),
+				"a ? b : c", list("a", "b", "c"),
+				"a and b and c", list("a", "b", "c"),
+				"a or b or c", list("a", "b", "c"),
+				"f(a, b)", list("a", "b"),
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr((String) cases[i]);
@@ -52,7 +55,7 @@ public class ExprTest {
 				"1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)",
 				"1 + 2 in (2,3,4)", "true",
 				"3 * 4 in (2,3,4)", "false",
-			};
+		};
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr(cases[i]);
 			assertEquals(cases[i + 1], e.fold().toString());
@@ -68,5 +71,39 @@ public class ExprTest {
 		String falsecases[] = new String[] { "a", "d = 5", "c =~ 'x'" };
 		for (String s : falsecases)
 			assertFalse(s, ParseQuery.expr(s).isTerm(fields));
+	}
+
+	@Test
+	public void eval() {
+		String cases[] = new String[] {
+				"a + 10", "11",
+				"a + -1", "0",
+				"10 - b", "8",
+				"b + c", "5",
+				"d + c + b + a", "10",
+				"d $ a", "'41'",
+				"b * c", "6",
+				"d / b", "2",
+				"d % 3", "1",
+				"a + b = c", "true",
+				"a = 1", "true",
+				"b != 2", "false",
+				"a is 2", "false",
+				"9 > d", "true",
+				"c <= 3", "true",
+				"b > 2", "false",
+				"b > a", "true",
+				"d in (3,4,5)", "true",
+		};
+		Header hdr = new Header(list(list("a"), list("a", "b", "c", "d")),
+				list("a", "b", "c", "d"));
+		Record key = new Record().add(1);
+		Record rec = new Record().add(1).add(2).add(3).add(4);
+		Row row = new Row(key, rec);
+		for (int i = 0; i < cases.length; i += 2) {
+			Expr e = ParseQuery.expr(cases[i]);
+			assertEquals(e.toString(), cases[i + 1], e.eval(hdr, row)
+					.toString());
+		}
 	}
 }

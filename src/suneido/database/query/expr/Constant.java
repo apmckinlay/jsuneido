@@ -4,7 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.*;
+import suneido.SuBoolean;
+import suneido.SuInteger;
+import suneido.SuString;
+import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 
@@ -50,6 +53,15 @@ public class Constant extends Expr {
 	@Override
 	public SuValue eval(Header hdr, Row row) {
 		return value;
+	}
+
+	@Override
+	public void rename(List<String> from, List<String> to) {
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		return this;
 	}
 
 }

@@ -1,11 +1,21 @@
 package suneido.database.query;
-import static suneido.Util.*;
+import static suneido.Util.concat;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.nil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.*;
+import suneido.database.query.expr.And;
+import suneido.database.query.expr.BinOp;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.Identifier;
+import suneido.database.query.expr.Multi;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -89,9 +99,9 @@ public class Select extends Query1 {
 		// move selects before renames
 		else if (source instanceof Rename) {
 			Rename r = (Rename) source;
-			Expr new_expr = expr.rename(r.to, r.from);
+			expr.rename(r.to, r.from);
 			source = r.source;
-			r.source = (new_expr == expr ? this : new Select(source, new_expr));
+			r.source = this;
 			return r.transform();
 		}
 		// move select before extend, unless it depends on rules
@@ -189,7 +199,7 @@ public class Select extends Query1 {
 		List<String> missing = difference(exprflds, srcflds);
 		return expr.replace(missing,
 				Collections.nCopies(missing.size(),
-				(Expr) Constant.EMPTY));
+						(Expr) Constant.EMPTY));
 	}
 
 	private boolean distribute(Query2 q2) {
