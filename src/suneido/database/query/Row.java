@@ -61,4 +61,12 @@ public class Row {
 		Which w = hdr.find(col);
 		return w == null || w.di >= data.length ? null : w;
 	}
+
+	public SuValue getval(Header hdr, String col) {
+		Which w = find(hdr, col);
+		if (w != null || !hdr.cols.contains(col))
+			return SuValue.unpack(getraw(w));
+		// else rule
+		return surec().getdata(SuString.valueOf(col));
+	}
 }

@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
-
 public class RegexTest {
 
 	@Test

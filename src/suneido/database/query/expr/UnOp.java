@@ -5,6 +5,8 @@ import static suneido.SuException.unreachable;
 import java.util.List;
 
 import suneido.*;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
 
 public class UnOp extends Expr {
 	private final Op op;
@@ -53,5 +55,10 @@ public class UnOp extends Expr {
 		default:
 			throw unreachable();
 		}
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		return eval2(expr.eval(hdr, row));
 	}
 }

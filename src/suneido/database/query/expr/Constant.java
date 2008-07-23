@@ -1,17 +1,21 @@
 package suneido.database.query.expr;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
 import suneido.*;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
 
 public class Constant extends Expr {
+	public final SuValue value;
+	public final ByteBuffer packed;
 	public static final Constant TRUE = new Constant(SuBoolean.TRUE);
 	public static final Constant FALSE = new Constant(SuBoolean.FALSE);
 	public static final Constant EMPTY = new Constant(SuString.EMPTY);
 	public static final Constant ZERO = new Constant(SuInteger.ZERO);
 	public static final Constant ONE = new Constant(SuInteger.ONE);
-	public final SuValue value;
 
 	public static Constant valueOf(SuValue value) {
 		if (value == SuBoolean.TRUE)
@@ -30,6 +34,7 @@ public class Constant extends Expr {
 
 	private Constant(SuValue value) {
 		this.value = value;
+		packed = value.pack();
 	}
 
 	@Override
@@ -40,6 +45,11 @@ public class Constant extends Expr {
 	@Override
 	public List<String> fields() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		return value;
 	}
 
 }
