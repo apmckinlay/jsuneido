@@ -4,8 +4,6 @@ import static suneido.SuException.unreachable;
 import static suneido.Util.union;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import suneido.*;
 
@@ -79,9 +77,7 @@ public class BinOp extends Expr {
 
 	// TODO convert from Suneido regex and cache compiled patterns
 	private SuBoolean matches(String s, String rx) {
-		Pattern pattern = Pattern.compile(rx);
-		Matcher matcher = pattern.matcher(s);
-		return matcher.find() ? SuBoolean.TRUE : SuBoolean.FALSE;
+		return Regex.contains(s, rx) ? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
 	@Override
