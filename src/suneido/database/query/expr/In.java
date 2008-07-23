@@ -14,6 +14,7 @@ import suneido.database.query.Row;
 
 public class In extends Expr {
 	private Expr expr;
+	private Boolean isterm = null;
 	private final List<SuValue> values = new ArrayList<SuValue>();
 	private final Record packed = new Record();
 
@@ -52,7 +53,10 @@ public class In extends Expr {
 
 	@Override
 	public SuValue eval(Header hdr, Row row) {
-		if (isTerm(hdr.columns())) {
+		// once we're eval'ing it is safe to cache isTerm
+		if (isterm == null)
+			isterm = isTerm(hdr.columns());
+		if (isterm) {
 			Identifier id = (Identifier) expr;
 			ByteBuffer value = row.getraw(hdr, id.ident);
 			for (ByteBuffer v : packed)
@@ -70,5 +74,16 @@ public class In extends Expr {
 			if (x.equals(y))
 				return SuBoolean.TRUE;
 		return SuBoolean.FALSE;
+	}
+
+	@Override
+	public void rename(List<String> from, List<String> to) {
+		expr.rename(from, to);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		expr = expr.replace(from, to);
+		return this;
 	}
 }

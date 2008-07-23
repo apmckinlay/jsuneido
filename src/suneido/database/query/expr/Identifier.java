@@ -8,7 +8,7 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 
 public class Identifier extends Expr {
-	public final String ident;
+	public String ident;
 
 	public static Expr valueOf(String s) {
 		return new Identifier(s);
@@ -36,5 +36,18 @@ public class Identifier extends Expr {
 	@Override
 	public SuValue eval(Header hdr, Row row) {
 		return row.getval(hdr, ident);
+	}
+
+	@Override
+	public void rename(List<String> from, List<String> to) {
+		int i = from.indexOf(ident);
+		if (i != -1)
+			ident = to.get(i);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		int i = from.indexOf(ident);
+		return i == -1 ? this : to.get(i);
 	}
 }

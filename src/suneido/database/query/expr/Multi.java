@@ -55,4 +55,16 @@ public abstract class Multi extends Expr {
 		return exprs.isEmpty() ? ignore : this;
 	}
 
+	@Override
+	public void rename(List<String> from, List<String> to) {
+		for (Expr expr : exprs)
+			expr.rename(from, to);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		for (int i = 0; i < exprs.size(); ++i)
+			exprs.set(i, exprs.get(i).replace(from, to));
+		return this;
+	}
 }

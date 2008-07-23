@@ -2,7 +2,10 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -193,6 +196,18 @@ public class Util {
 		list.add(g);
 		list.add(h);
 		return list;
+	}
+
+	public static boolean equal(ByteBuffer x, ByteBuffer y) {
+		x.position(0);
+		y.position(0);
+		return x.equals(y);
+	}
+
+	public static int compare(ByteBuffer x, ByteBuffer y) {
+		x.position(0);
+		y.position(0);
+		return x.compareTo(y);
 	}
 
 }

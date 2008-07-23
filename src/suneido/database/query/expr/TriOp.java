@@ -48,4 +48,18 @@ public class TriOp extends Expr {
 			return iffalse.eval(hdr, row);
 	}
 
+	@Override
+	public void rename(List<String> from, List<String> to) {
+		expr.rename(from, to);
+		iftrue.rename(from, to);
+		iffalse.rename(from, to);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		expr = expr.replace(from, to);
+		iftrue = iftrue.replace(from, to);
+		iffalse = iffalse.replace(from, to);
+		return this;
+	}
 }
