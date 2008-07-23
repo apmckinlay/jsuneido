@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static suneido.Util.list;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -104,6 +105,44 @@ public class ExprTest {
 			Expr e = ParseQuery.expr(cases[i]);
 			assertEquals(e.toString(), cases[i + 1], e.eval(hdr, row)
 					.toString());
+		}
+	}
+
+	@Test
+	public void rename() {
+		String cases[] = new String[] {
+				"a = 1", "(a = 1)",
+				"y", "yy",
+				"a + x < y * b", "((a + xx) < (yy * b))",
+				"a and z and b", "(a and zz and b)",
+				"z < 6 ? x : a + y", "((zz < 6) ? xx : (a + yy))"
+		};
+		List<String> from = list("x", "y", "z");
+		List<String> to = list("xx", "yy", "zz");
+		for (int i = 0; i < cases.length; i += 2) {
+			Expr e = ParseQuery.expr(cases[i]);
+			e.rename(from, to);
+			assertEquals(e.toString(), cases[i + 1], e.toString());
+		}
+	}
+
+	@Test
+	public void replace() {
+		String cases[] = new String[] {
+				"a = 1", "(a = 1)",
+				"y", "yy",
+				"a + x < y * b", "((a + (1 + x)) < (yy * b))",
+				"a and z and b", "(a and '' and b)",
+				"z < 6 ? x : a + y", "(('' < 6) ? (1 + x) : (a + yy))"
+		};
+		List<String> from = list("x", "y", "z");
+		List<Expr> to = new ArrayList<Expr>();
+		for (String s : list("1 + x", "yy", "''"))
+			to.add(ParseQuery.expr(s));
+		for (int i = 0; i < cases.length; i += 2) {
+			Expr e = ParseQuery.expr(cases[i]);
+			assertEquals(e.toString(), cases[i + 1],
+					e.replace(from, to).toString());
 		}
 	}
 }
