@@ -2,6 +2,10 @@ package suneido.database.query.expr;
 
 import java.util.List;
 
+import suneido.SuValue;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
+
 public abstract class Expr {
 
 	@Override
@@ -28,4 +32,7 @@ public abstract class Expr {
 	public boolean isField(List<String> fields) {
 		return false;
 	}
+
+	public abstract SuValue eval(Header hdr, Row row);
+
 }

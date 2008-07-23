@@ -4,6 +4,11 @@ import static suneido.Util.union;
 
 import java.util.List;
 
+import suneido.SuBoolean;
+import suneido.SuValue;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
+
 public class TriOp extends Expr {
 	private Expr expr;
 	private Expr iftrue;
@@ -33,6 +38,14 @@ public class TriOp extends Expr {
 		if (expr instanceof Constant)
 			return expr == Constant.TRUE ? iftrue : iffalse;
 		return this;
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		if (expr.eval(hdr, row) == SuBoolean.TRUE)
+			return iftrue.eval(hdr, row);
+		else
+			return iffalse.eval(hdr, row);
 	}
 
 }

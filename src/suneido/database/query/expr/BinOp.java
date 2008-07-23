@@ -3,9 +3,12 @@ package suneido.database.query.expr;
 import static suneido.SuException.unreachable;
 import static suneido.Util.union;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import suneido.*;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
 
 public class BinOp extends Expr {
 	public Op op;
@@ -99,6 +102,29 @@ public class BinOp extends Expr {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		if (isTerm(hdr.columns())) {
+			Identifier id = (Identifier) left;
+			ByteBuffer field = row.getraw(hdr, id.ident);
+			Constant c = (Constant) right;
+			ByteBuffer value = c.packed;
+			boolean result;
+			switch (op) {
+			case IS :	result = field.equals(value); break;
+			case ISNT :	result = ! field.equals(value); break;
+			case LT :	result = field.compareTo(value) < 0; break;
+			case LTE :	result = field.compareTo(value) <= 0; break;
+			case GT :	result = field.compareTo(value) > 0; break;
+			case GTE :	result = field.compareTo(value) >= 0; break;
+			default :	throw unreachable();
+			}
+			return result ? SuBoolean.TRUE : SuBoolean.FALSE;
+		}
+	else
+		return eval2(left.eval(hdr, row), right.eval(hdr, row));
 	}
 
 }

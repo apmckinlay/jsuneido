@@ -3,6 +3,10 @@ package suneido.database.query.expr;
 import java.util.Collections;
 import java.util.List;
 
+import suneido.SuValue;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
+
 public class Identifier extends Expr {
 	public final String ident;
 
@@ -27,5 +31,10 @@ public class Identifier extends Expr {
 	@Override
 	public boolean isField(List<String> fields) {
 		return fields.contains(ident);
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		return row.getval(hdr, ident);
 	}
 }

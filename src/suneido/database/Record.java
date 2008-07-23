@@ -1,8 +1,10 @@
 package suneido.database;
 
+import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import suneido.*;
 
@@ -24,7 +26,8 @@ import suneido.*;
  *         Licensed under GPLv2.</small>
  *         </p>
  */
-public class Record implements suneido.Packable, Comparable<Record> {
+public class Record
+		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
 	public final static Record MINREC = new Record(4);
 	public final static Record MAXREC = new Record(7).addMax();
 	private Rep rep;
@@ -575,5 +578,25 @@ public class Record implements suneido.Packable, Comparable<Record> {
 
 	public boolean inRange(Record from, Record to) {
 		return compareTo(from) >= 0 && compareTo(to) <= 0;
+	}
+
+	public Iterator<ByteBuffer> iterator() {
+		return new Iter();
+	}
+
+	private class Iter implements Iterator<ByteBuffer> {
+		int i = 0;
+
+		public boolean hasNext() {
+			return i < size();
+		}
+
+		public ByteBuffer next() {
+			return getraw(i++);
+		}
+
+		public void remove() {
+			throw unreachable();
+		}
 	}
 }

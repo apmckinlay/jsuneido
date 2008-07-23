@@ -2,6 +2,11 @@ package suneido.database.query.expr;
 
 import java.util.List;
 
+import suneido.SuBoolean;
+import suneido.SuValue;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
+
 public class And extends Multi {
 
 	public And() {
@@ -20,6 +25,14 @@ public class And extends Multi {
 	@Override
 	public Expr fold() {
 		return foldExprs(Constant.TRUE, Constant.FALSE);
+	}
+
+	@Override
+	public SuValue eval(Header hdr, Row row) {
+		for (Expr e : exprs)
+			if (e.eval(hdr, row) != SuBoolean.TRUE)
+				return SuBoolean.FALSE;
+		return SuBoolean.TRUE;
 	}
 
 }
