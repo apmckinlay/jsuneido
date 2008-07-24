@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static suneido.database.query.Query.noFields;
 import static suneido.database.query.Query.Dir.NEXT;
 
 import org.junit.Test;
@@ -14,7 +15,7 @@ public class TableTest extends TestBase {
 		makeTable(3);
 
 		Table qt = new Table("test");
-		qt.optimize2(null, null, null, false, false); // TEMPORARY
+		qt.optimize2(noFields, noFields, noFields, false, false); // TEMPORARY
 		Transaction t = db.readonlyTran();
 		qt.setTransaction(t);
 		Row row = qt.get(NEXT);
