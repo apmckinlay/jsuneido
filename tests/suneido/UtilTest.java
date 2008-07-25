@@ -1,8 +1,6 @@
 package suneido;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -34,21 +32,6 @@ public class UtilTest {
 		assertEquals(list, Util.commasToList("abc,def"));
 		list.add("ghi");
 		assertEquals(list, Util.commasToList("abc,def,ghi"));
-	}
-
-	@Test
-	public void find() {
-		List<String> list = new ArrayList<String>();
-		assertEquals(-1, Util.find(list, "hello"));
-		list.add("abc");
-		assertEquals(-1, Util.find(list, "hello"));
-		assertEquals(0, Util.find(list, "abc"));
-		list.add("def");
-		list.add("ghi");
-		assertEquals(-1, Util.find(list, "hello"));
-		assertEquals(0, Util.find(list, "abc"));
-		assertEquals(1, Util.find(list, "def"));
-		assertEquals(2, Util.find(list, "ghi"));
 	}
 
 	@Test

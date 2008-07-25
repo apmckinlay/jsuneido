@@ -20,16 +20,16 @@ import suneido.database.query.expr.Expr;
  */
 public abstract class Query {
 	private final Cache cache = new Cache();
-	private boolean willneed_tempindex;
+	protected boolean willneed_tempindex;
 	private List<String> tempindex;
 	protected enum Dir {
 		NEXT, PREV
 	};
 	protected final static List<String> noFields = Collections.emptyList();
 	// cost of writing index relative to reading data
-	private final static int WRITE_FACTOR = 4;
+	protected final static int WRITE_FACTOR = 4;
 	// minimal penalty for changing order of operations
-	private final static int OUT_OF_ORDER = 10;
+	protected final static int OUT_OF_ORDER = 10;
 	// allow for adding impossibles together
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 

@@ -62,6 +62,89 @@ public class Join extends Query2 {
 		return "JOIN";
 	}
 
+	@Override
+	double optimize2(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		List<String> needs1 = intersect(source.columns(), needs);
+		List<String> needs2 = intersect(source2.columns(), needs);
+		verify(union(needs1, needs2).size() == needs.size());
+
+		double cost1 = opt(source, source2, type, index, needs1, needs2,
+				is_cursor, false);
+		double cost2 = can_swap()
+			? opt(source2, source, reverse(type), index,
+				needs2, needs1, is_cursor, false)
+				+ OUT_OF_ORDER
+			: IMPOSSIBLE;
+		double cost = Math.min(cost1, cost2);
+		if (cost >= IMPOSSIBLE)
+			return IMPOSSIBLE;
+		if (freeze) {
+			if (cost2 < cost1) {
+				Query t1 = source;
+				source = source2;
+				source2 = t1;
+				List<String> t2 = needs1;
+				needs1 = needs2;
+				needs2 = t2;
+				type = reverse(type);
+			}
+			opt(source, source2, type, index, needs1, needs2, is_cursor, true);
+		}
+		return cost;
+	}
+
+	private double opt(Query src1, Query src2, Type typ, List<String> index,
+			List<String> needs1, List<String> needs2, boolean is_cursor,
+			boolean freeze) {
+		// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
+		double SELECT_COST = 1000;
+
+		// always have to read all of source 1
+		double cost1 = src1
+				.optimize(index, needs1, joincols, is_cursor, freeze);
+
+		double nrecs1 = src1.nrecords();
+		double nrecs2 = src2.nrecords();
+
+		// for each of source 1, select on source2
+		cost1 += nrecs1 * SELECT_COST;
+
+		// cost of reading all of source 2
+		double cost2 = src2.optimize(joincols, needs2, noFields, is_cursor,
+				freeze);
+
+		if (src2.willneed_tempindex)
+			return cost1 + cost2;
+
+		double nrecs;
+		switch (typ) {
+		case ONE_ONE:
+			nrecs = Math.min(nrecs1, nrecs2);
+			break;
+		case N_ONE:
+			nrecs = nrecs1;
+			break;
+		case ONE_N:
+			nrecs = nrecs2;
+			break;
+		case N_N:
+			nrecs = nrecs1 * nrecs2;
+			break;
+		default:
+			throw unreachable();
+		}
+		// guestimate 0...nrecs => nrecs / 2
+		cost2 *= nrecs <= 0 || nrecs2 <= 0 ? 0 : (nrecs / 2) / nrecs2;
+
+		return cost1 + cost2;
+	}
+
+	private static Type reverse(Type type) {
+		return type == Type.ONE_N ? Type.N_ONE
+				: type == Type.N_ONE ? Type.ONE_N : type;
+	}
+
 	protected boolean can_swap() {
 		return true;
 	}
@@ -72,21 +155,27 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	Row get(Dir dir) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	Header header() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
+		switch (type) {
+		case ONE_ONE:
+			return union(source.indexes(), source2.indexes());
+		case ONE_N:
+			return source2.indexes();
+		case N_ONE:
+			return source.indexes();
+		case N_N:
+			// union of indexes that don't include joincols
+			List<List<String>> idxs = new ArrayList<List<String>>();
+			for (List<String> i : source.indexes())
+				if (nil(intersect(i, joincols)))
+					idxs.add(i);
+			for (List<String> i : source2.indexes())
+				if (nil(intersect(i, joincols)))
+					addUnique(idxs, i);
+			return idxs;
+		default:
+			throw unreachable();
+		}
 	}
 
 	@Override
@@ -115,15 +204,53 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	void rewind() {
-		// TODO Auto-generated method stub
+	double nrecords() {
+		switch (type) {
+		case ONE_ONE:
+			return Math.min(source.nrecords(), source2.nrecords()) / 2;
+		case ONE_N:
+			return source.nrecords() / 2;
+		case N_ONE:
+			return source2.nrecords() / 2;
+		case N_N:
+			return (source.nrecords() * source2.nrecords()) / 2;
+		default:
+			throw unreachable();
+		}
+	}
 
+	@Override
+	int recordsize() {
+		// TODO shouldn't be total, maybe count common fields
+		return source.recordsize() + source2.recordsize();
+	}
+
+	@Override
+	List<Fixed> fixed() {
+		// TODO I think this is wrong - should be intersect?
+		return union(source.fixed(), source2.fixed());
+	}
+
+	@Override
+	Header header() {
+		// TODO header
+		return null;
+	}
+
+	@Override
+	Row get(Dir dir) {
+		// TODO get
+		return null;
+	}
+
+	@Override
+	void rewind() {
+		// TODO rewind
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
-
+		// TODO select
 	}
 
 }

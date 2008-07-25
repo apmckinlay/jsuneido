@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
@@ -21,7 +20,7 @@ public class Extend extends Query1 {
 		this.flds = flds;
 		this.exprs = exprs;
 		this.rules = rules;
-//		init();
+		init();
 	}
 
 	private void init() {
@@ -76,43 +75,37 @@ public class Extend extends Query1 {
 	}
 
 	@Override
+	double optimize2(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		if (!nil(intersect(index, flds)))
+			return IMPOSSIBLE;
+		List<String> extendfields = union(flds, rules);
+		// NOTE: optimize1 to bypass tempindex
+		return source.optimize1(index,
+			union(difference(eflds, extendfields), difference(needs, extendfields)),
+			difference(firstneeds, extendfields), is_cursor, freeze);
+	}
+
+	@Override
 	List<String> columns() {
 		return union(source.columns(), union(flds, rules));
 	}
 
 	@Override
+	int recordsize() {
+		return source.recordsize() + flds.size() * columnsize();
+	}
+
+	@Override
 	Row get(Dir dir) {
-		// TODO Auto-generated method stub
+		// TODO get
 		return null;
 	}
 
 	@Override
 	Header header() {
-		// TODO Auto-generated method stub
+		// TODO header
 		return null;
 	}
 
-	@Override
-	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	void rewind() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
-
-	}
 }

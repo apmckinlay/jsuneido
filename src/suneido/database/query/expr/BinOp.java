@@ -1,8 +1,6 @@
 package suneido.database.query.expr;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.compare;
-import static suneido.Util.equal;
 import static suneido.Util.union;
 
 import java.nio.ByteBuffer;
@@ -123,12 +121,12 @@ public class BinOp extends Expr {
 			ByteBuffer value = c.packed;
 			boolean result;
 			switch (op) {
-			case IS :	result = equal(field, value); break;
-			case ISNT :	result = ! equal(field, value); break;
-			case LT :	result = compare(field, value) < 0; break;
-			case LTE :	result = compare(field, value) <= 0; break;
-			case GT :	result = compare(field, value) > 0; break;
-			case GTE :	result = compare(field, value) >= 0; break;
+			case IS :	result = field.equals(value); break;
+			case ISNT :	result = ! field.equals(value); break;
+			case LT :	result = field.compareTo(value) < 0; break;
+			case LTE :	result = field.compareTo(value) <= 0; break;
+			case GT :	result = field.compareTo(value) > 0; break;
+			case GTE :	result = field.compareTo(value) >= 0; break;
 			default :	throw unreachable();
 			}
 			return result ? SuBoolean.TRUE : SuBoolean.FALSE;

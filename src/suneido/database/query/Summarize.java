@@ -1,12 +1,13 @@
 package suneido.database.query;
 
-import static suneido.Util.difference;
-import static suneido.Util.listToParens;
+import static suneido.Util.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
+import suneido.database.query.Query.Dir;
 
 public class Summarize extends Query1 {
 	private final List<String> by;
@@ -66,45 +67,97 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
+	double optimize2(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		List<String> srcneeds = union(remove(on, ""), difference(needs, cols));
+
+		if (strategy == Strategy.COPY)
+			return source.optimize(index, srcneeds, by, is_cursor, freeze);
+
+		List<List<String>> indexes;
+		if (nil(index))
+			indexes = source.indexes();
+		else {
+			List<Fixed> fixed = source.fixed();
+			indexes = new ArrayList<List<String>>();
+			for (List<String> idx : source.indexes())
+				if (prefixed(idx, index, fixed))
+					indexes.add(idx);
+		}
+		Best best = best_prefixed(indexes, by, srcneeds, is_cursor);
+		if (nil(best.index) && nil(index)) {
+			best.index = by;
+			best.cost = source.optimize(by, srcneeds, noFields, is_cursor,
+					false);
+		}
+		if (nil(best.index))
+			return IMPOSSIBLE;
+		if (!freeze)
+			return best.cost;
+		via = best.index;
+		return source.optimize(best.index, srcneeds, noFields, is_cursor,
+				freeze);
+	}
+
+	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
+		return union(by, cols);
+	}
+
+	@Override
+	List<List<String>> indexes() {
+		if (strategy == Strategy.COPY)
+			return source.indexes();
+		else {
+			List<List<String>> idxs = new ArrayList<List<String>>();
+			for (List<String> src : source.indexes())
+				if (prefix_set(src, by))
+					idxs.add(src);
+			return idxs;
+		}
+	}
+
+	@Override
+	List<List<String>> keys() {
+		List<List<String>> keys = new ArrayList<List<String>>();
+		for (List<String> k : source.keys())
+			if (by.containsAll(k))
+				keys.add(k);
+		if (nil(keys))
+			keys.add(by);
+		return keys;
+	}
+
+	@Override
+	double nrecords() {
+		return source.nrecords() / 2;
+	}
+
+	@Override
+	int recordsize() {
+		return by.size() * source.columnsize() + cols.size() * 8;
+	}
+
+	@Override
+	Header header() {
+		// TODO header
 		return null;
 	}
 
 	@Override
 	Row get(Dir dir) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	Header header() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> keys() {
-		// TODO Auto-generated method stub
+		// TODO get
 		return null;
 	}
 
 	@Override
 	void rewind() {
-		// TODO Auto-generated method stub
-
+		// TODO rewind
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
-
+		// TODO select
 	}
 
 	@Override

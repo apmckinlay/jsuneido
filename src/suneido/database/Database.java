@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
-import suneido.Util;
 
 /**
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
@@ -390,7 +389,7 @@ public class Database {
 			// update any indexes that include this column
 			for (Index idx : tbl.indexes) {
 				List<String> cols = commasToList(idx.columns);
-				int i = Util.find(cols, oldname);
+				int i = cols.indexOf(oldname);
 				if (i < 0)
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);

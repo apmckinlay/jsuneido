@@ -55,7 +55,7 @@ public class ParseQueryTest extends TestBase {
 			"test WHERE (a ? b : 5)", null,
 			"test WHERE a in (2,3,4)",
 				null,
-			"test EXTEND Z, x = 12, y = (b + c), f = fn(), g = fn(1), h = fn(1,2,3)",
+			"test EXTEND Z, x = 12, y = (b + a), f = fn(), g = fn(1), h = fn(1,2,3)",
 				null,
 			"DELETE test WHERE (a = 5)", null,
 			"UPDATE test SET a=5, b=3", null,
@@ -64,7 +64,7 @@ public class ParseQueryTest extends TestBase {
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];
 			String expect = cases[i + 1] == null ? s : cases[i + 1];
-			assertEquals(expect, ParseQuery.parse(s).toString());
+			assertEquals(s, expect, ParseQuery.parse(s).toString());
 		}
 	}
 

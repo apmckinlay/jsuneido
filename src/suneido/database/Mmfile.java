@@ -3,10 +3,7 @@ package suneido.database;
 import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -59,6 +56,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	final public static byte COMMIT = 2;
 	final public static byte SESSION = 3;
 	final public static byte OTHER = 4;
+	private final static ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 
 	private static enum MmCheck {
 		OK, ERR, EOF
@@ -348,7 +346,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 					// fall thru
 				case EOF:
 					offset = end_offset(); // eof or bad block
-					return ByteBuffer.allocate(0);
+					return EMPTY_BUF;
 				}
 			} while (type(p) == FILLER);
 			return adr(p);
@@ -386,7 +384,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 				if (n > chunk_size || n > offset) {
 					err = true;
 					offset = BEGIN_OFFSET;
-					return ByteBuffer.allocate(0);
+					return EMPTY_BUF;
 				}
 				offset -= n;
 				switch (check(offset)) {
@@ -397,7 +395,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 					// fall thru
 				case EOF:
 					offset = BEGIN_OFFSET; // eof or bad block
-					return ByteBuffer.allocate(0);
+					return EMPTY_BUF;
 				}
 			} while (type(offset) == FILLER);
 			return adr(offset);
