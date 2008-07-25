@@ -286,11 +286,13 @@ public class Record
 
 	// get's ========================================================
 
-	private final static ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
+	public final static ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
+	public final static ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0,
+			(byte) 0x7f).asReadOnlyBuffer();
 
 	public ByteBuffer getraw(int i) {
 		if (i >= getNfields())
-			return EMPTY_BUF;
+			return MIN_FIELD;
 		buf.position(rep.getOffset(i));
 		ByteBuffer result = buf.slice();
 		result.limit(fieldSize(i));

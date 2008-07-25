@@ -1,5 +1,8 @@
 package suneido.database.query;
 
+import static suneido.Util.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.database.Record;
@@ -51,7 +54,7 @@ public class Union extends Compatible {
 
 	@Override
 	Row get(Dir dir) {
-		// TODO Auto-generated method stub
+		// TODO get
 		return null;
 	}
 
@@ -63,25 +66,49 @@ public class Union extends Compatible {
 
 	@Override
 	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO: there are more possible indexes
+		return intersect(
+			intersect(source.keys(), source.indexes()),
+			intersect(source2.keys(), source2.indexes()));
 	}
 
 	@Override
 	List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
+		if (disjoint != "") {
+			List<List<String>> kin = intersect_prefix(source.keys(), source2
+					.keys());
+			if (!nil(kin)) {
+				List<List<String>> kout = new ArrayList<List<String>>();
+				for (List<String> k : kin)
+					kout.add(k.contains(disjoint) ? k : concat(k,
+							list(disjoint)));
+				return kout;
+			}
+		}
+		return list(source.columns());
+	}
+
+	private List<List<String>> intersect_prefix(List<List<String>> keys1,
+			List<List<String>> keys2) {
+		List<List<String>> kout = new ArrayList<List<String>>();
+		for (List<String> k1 : keys1)
+			for (List<String> k2 : keys2)
+				if (prefix(k1, k2))
+					addUnique(kout, k1);
+				else if (prefix(k2, k1))
+					addUnique(kout, k2);
+		return kout;
 	}
 
 	@Override
 	void rewind() {
-		// TODO Auto-generated method stub
+		// TODO rewind
 
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
+		// TODO select
 
 	}
 

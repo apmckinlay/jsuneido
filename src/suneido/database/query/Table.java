@@ -1,24 +1,19 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.difference;
-import static suneido.Util.list;
-import static suneido.Util.listToCommas;
-import static suneido.Util.nil;
+import static suneido.Suneido.verify;
+import static suneido.Util.*;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.BtreeIndex;
-import suneido.database.Index;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 
 public class Table extends Query {
 	private final String table;
-	private suneido.database.Table tbl;
+	/* package */suneido.database.Table tbl;
 	private int choice;
 	private boolean first = true;
 	private boolean rewound = true;
@@ -45,7 +40,7 @@ public class Table extends Query {
 
 	@Override
 	List<String> columns() {
-		return tbl.get_columns();
+		return tbl.getColumns();
 	}
 
 	@Override
@@ -65,12 +60,104 @@ public class Table extends Query {
 
 	@Override
 	int recordsize() {
-		return tbl.nrecords == 0 ? 0 : tbl.totalsize / tbl.nrecords;
+		return tbl.nrecords() == 0 ? 0 : tbl.totalsize / tbl.nrecords();
 	}
 
 	@Override
 	double nrecords() {
-		return tbl.nrecords;
+		return tbl.nrecords();
+	}
+
+	@Override
+	double optimize2(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		tbl = theDB.ck_getTable(table);
+		singleton = tbl.singleton();
+
+		if (!columns().containsAll(needs))
+			throw new SuException("Table::optimize columns does not contain: "
+					+ difference(needs, columns()));
+		if (!columns().containsAll(index))
+			return IMPOSSIBLE;
+
+		List<List<String>> idxs = indexes();
+		if (nil(idxs))
+			return IMPOSSIBLE;
+		if (singleton) {
+			idx = nil(index) ? idxs.get(0) : index;
+			return recordsize();
+		}
+		double cost1 = IMPOSSIBLE;
+		double cost2 = IMPOSSIBLE;
+		double cost3 = IMPOSSIBLE;
+		List<String> idx1, idx2 = null, idx3 = null;
+
+		if (!nil(idx1 = match(idxs, index, needs)))
+			// index found that meets all needs
+			cost1 = nrecords() * keysize(idx1); // cost of reading index
+		if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
+			// index found that meets firstneeds
+			// assume this means we only have to read 75% of data
+			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
+					nrecords() * keysize(idx2); // cost of reading index
+		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
+			cost3 = nrecords() * recordsize() + // cost of reading data
+					nrecords() * keysize(idx3); // cost of reading index
+
+		double cost;
+		if (cost1 <= cost2 && cost1 <= cost3) {
+			cost = cost1;
+			idx = idx1;
+		} else if (cost2 <= cost1 && cost2 <= cost3) {
+			cost = cost2;
+			idx = idx2;
+		} else {
+			cost = cost3;
+			idx = idx3;
+		}
+
+		return cost;
+	}
+
+	private static List<String> match(List<List<String>> idxs,
+			List<String> index, List<String> needs) {
+		List<String> best = null;
+		int bestremainder = 9999;
+		for (List<String> idx : idxs) {
+			int i;
+			for (i = 0; i < idx.size() && i < index.size(); ++i)
+				if (!idx.get(i).equals(index.get(i)))
+					break;
+			if (i < index.size() || !idx.containsAll(needs))
+				continue;
+			int remainder = idx.size();
+			if (remainder < bestremainder) {
+				best = idx;
+				bestremainder = remainder;
+			}
+		}
+		return best;
+	}
+
+	int keysize(List<String> index) {
+		int nrecs = tbl.nrecords();
+		if (nrecs == 0)
+			return 0;
+		Index idx = tbl.getIndex(listToCommas(index));
+		verify(idx != null);
+		int nnodes = idx.nnodes();
+		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
+		return (nnodes * nodesize) / nrecs;
+	}
+
+	/* package */void select_index(List<String> index) {
+		// used by Select::optimize
+		idx = index;
+	}
+
+	@Override
+	void setTransaction(Transaction tran) {
+		this.tran = tran;
 	}
 
 	@Override
@@ -101,7 +188,7 @@ public class Table extends Query {
 		}
 		Record r = theDB.input(iter.keyadr());
 
-		// TODO
+		// TODO get
 
 		return new Row(iter.cur().key, r);
 	}
@@ -119,85 +206,7 @@ public class Table extends Query {
 				: theDB.getIndex(tbl, listToCommas(idx));
 		boolean lower = i != null && i.isLower();
 		List<String> index = singleton || lower ? noFields : idx;
-		return new Header(list(index, tbl.get_fields()), tbl.get_columns());
-	}
-
-	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		tbl = theDB.ck_getTable(table);
-		singleton = tbl.singleton();
-
-		// TODO optimize2
-
-		if (!columns().containsAll(needs))
-			throw new SuException("Table::optimize columns does not contain: "
-					+ difference(needs, columns()));
-		if (!columns().containsAll(index))
-			return IMPOSSIBLE;
-		List<List<String>> idxs = indexes();
-		if (nil(idxs))
-			return IMPOSSIBLE;
-		if (singleton) {
-			idx = nil(index) ? idxs.get(0) : index;
-			return recordsize();
-		}
-		double cost1 = IMPOSSIBLE;
-		double cost2 = IMPOSSIBLE;
-		double cost3 = IMPOSSIBLE;
-		List<String> idx1, idx2 = null, idx3 = null;
-
-		if (!nil(idx1 = match(idxs, index, needs)))
-			// index found that meets all needs
-			cost1 = nrecords() * keysize(idx1); // cost of reading index
-		if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
-			// index found that meets firstneeds
-			// assume this means we only have to read 75% of data
-			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx2); // cost of reading index
-		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
-			cost3 = nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx3); // cost of reading index
-
-		double cost;
-		if (cost1 <= cost2 && cost1 <= cost3) {
-			cost = cost1;
-			idx = idx1;
-		} else if (cost2 <= cost1 && cost2 <= cost3) {
-			cost = cost2;
-			idx = idx2;
-		} else {
-			cost = cost3;
-			idx = idx3;
-		}
-
-		return cost;
-	}
-
-	private double keysize(List<String> idx1) {
-		// TODO Auto-generated method stub
-		return 1;
-	}
-
-	private static List<String> match(List<List<String>> idxs,
-			List<String> index,
-			List<String> needs) {
-		List<String> best = null;
-		int bestremainder = 9999;
-		for (List<String> idx : idxs) {
-			int i;
-			for (i = 0; i < idx.size() && i < index.size(); ++i)
-				if (!idx.get(i).equals(index.get(i)))
-					break;
-			if (i < index.size() || !idx.containsAll(needs))
-				continue;
-			int remainder = idx.size();
-			if (remainder < bestremainder) {
-				best = idx;
-				bestremainder = remainder;
-			}
-		}
-		return best;
+		return new Header(list(index, tbl.getFields()), tbl.getColumns());
 	}
 
 	@Override
@@ -207,13 +216,8 @@ public class Table extends Query {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO Auto-generated method stub
+		// TODO select
 
-	}
-
-	@Override
-	void setTransaction(Transaction tran) {
-		this.tran = tran;
 	}
 
 	@Override
@@ -224,6 +228,11 @@ public class Table extends Query {
 	@Override
 	void output(Record r) {
 		theDB.addRecord(tran, table, r);
+	}
+
+	public int indexsize(List<String> index) {
+		Index idx = tbl.getIndex(listToCommas(index));
+		return idx.nnodes() * Btree.NODESIZE;
 	}
 
 }

@@ -98,11 +98,13 @@ public class Rename extends Query1 {
 		return new_fields;
 	}
 
-
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		return 0; // TODO
+		// NOTE: optimize1 to bypass tempindex
+		return source.optimize1(rename_fields(index, to, from), rename_fields(
+				needs, to, from), rename_fields(firstneeds, to, from),
+				is_cursor, freeze);
 	}
 
 	@Override
@@ -154,11 +156,11 @@ public class Rename extends Query1 {
 	}
 
 	boolean update(String index, Record key, Record newrec) {
-		return false; // TODO
+		return false; // TODO update
 	}
 
 	boolean erase(String index, Record key) {
-		return false; // TODO
+		return false; // TODO erase
 	}
 
 }

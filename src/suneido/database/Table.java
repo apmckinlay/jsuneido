@@ -55,6 +55,14 @@ public class Table {
 		return columns.find(name);
 	}
 
+	public int nrecords() {
+		return nrecords;
+	}
+
+	public int totalsize() {
+		return totalsize;
+	}
+
 	public void user_trigger(Transaction tran, Record norec, Record r) {
 		// TODO Auto-generated method stub
 	}
@@ -95,7 +103,7 @@ public class Table {
 	public boolean singleton() {
 		return indexes.first().columns.equals("");
 	}
-	public List<String> get_columns() {
+	public List<String> getColumns() {
 		return columns.names();
 	}
 	public List<List<String>> indexesColumns() {
@@ -108,7 +116,7 @@ public class Table {
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */
-	public List<String> get_fields() {
+	public List<String> getFields() {
 		List<String> list = new ArrayList<String>();
 		int i = 0;
 		for (Column cs : columns) {
@@ -129,7 +137,7 @@ public class Table {
 
 		// fields
 		sb.append("(");
-		for (String col : get_columns())
+		for (String col : getColumns())
 			if (!col.equals("-"))
 				sb.append(col).append(",");
 		// for (String f : get_rules(table))

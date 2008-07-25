@@ -13,10 +13,10 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 
 public class In extends Expr {
-	private Expr expr;
+	public Expr expr;
 	private Boolean isterm = null;
 	private final List<SuValue> values = new ArrayList<SuValue>();
-	private final Record packed = new Record();
+	public final Record packed = new Record();
 
 	public In(Expr expr) {
 		this.expr = expr;

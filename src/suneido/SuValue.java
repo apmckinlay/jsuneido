@@ -32,6 +32,7 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public ByteBuffer pack() {
 		ByteBuffer buf = ByteBuffer.allocate(packSize());
 		pack(buf);
+		buf.position(0);
 		return buf;
 	}
 	public int packSize() {

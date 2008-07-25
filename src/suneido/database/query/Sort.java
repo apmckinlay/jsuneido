@@ -6,7 +6,6 @@ import static suneido.Util.listToCommas;
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class Sort extends Query1 {
 	private final boolean reverse;
@@ -37,11 +36,6 @@ public class Sort extends Query1 {
 	}
 
 	@Override
-	void rewind() {
-		source.rewind();
-	}
-
-	@Override
 	Row get(Dir dir) {
 		return source.get(reverse ? (dir == Dir.NEXT ? Dir.PREV : Dir.NEXT)
 				: dir);
@@ -52,20 +46,18 @@ public class Sort extends Query1 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		verify(index.isEmpty());
 		// look for index containing requested index as prefix (using fixed)
-		List<String> best_index = segs;
-		double best_cost = source.optimize(segs, needs, firstneeds, is_cursor,
-				false);
-		best_prefixed(source.indexes(), segs, needs, is_cursor, best_index,
-				best_cost);
+		Best best = best_prefixed(source.indexes(), segs, needs, is_cursor);
+		double cost = source.optimize(segs, needs, firstneeds, is_cursor, false);
+		if (cost < best.cost)
+			best.index = segs;
 
 		if (!freeze)
-			return best_cost;
-		if (best_index == segs)
+			return best.cost;
+		if (best.index == segs)
 			return source.optimize(segs, needs, firstneeds, is_cursor, true);
 		else
 			// NOTE: optimize1 to avoid tempindex
-			return source.optimize1(best_index, needs, firstneeds, is_cursor,
-					true);
+			return source.optimize1(best.index, needs, firstneeds, is_cursor, true);
 	}
 
 	@Override
@@ -77,35 +69,6 @@ public class Sort extends Query1 {
 	@Override
 	List<String> ordering() {
 		return segs;
-	}
-
-	@Override
-	void output(Record r) {
-		source.output(r);
-	}
-
-	@Override
-	int columnsize() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	double nrecords() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	int recordsize() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	void setTransaction(Transaction tran) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

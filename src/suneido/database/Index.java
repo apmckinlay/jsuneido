@@ -113,6 +113,10 @@ public class Index {
 		return false; // TODO
 	}
 
+	public int nnodes() {
+		return btreeIndex.nnodes();
+	}
+
 	static class ForeignKey {
 		String tablename; // used by fksrc
 		int tblnum; // used by fkdsts
@@ -146,5 +150,9 @@ public class Index {
 
 	public boolean hasColumn(String name) {
 		return ("," + columns + ",").contains("," + name + ",");
+	}
+
+	public float rangefrac(Record org, Record end) {
+		return btreeIndex.rangefrac(org, end);
 	}
 }

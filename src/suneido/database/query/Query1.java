@@ -2,6 +2,7 @@ package suneido.database.query;
 
 import java.util.List;
 
+import suneido.database.Record;
 import suneido.database.Transaction;
 
 public abstract class Query1 extends Query {
@@ -80,22 +81,43 @@ public abstract class Query1 extends Query {
 		return source.header();
 	}
 
-	void best_prefixed(List<List<String>> indexes, List<String> by,
-			List<String> needs, boolean is_cursor, List<String> best_index,
-			double best_cost) {
+	@Override
+	void rewind() {
+		source.rewind();
+	}
+
+	@Override
+	void output(Record r) {
+		source.output(r);
+	}
+
+	@Override
+	void select(List<String> index, Record from, Record to) {
+		source.select(index, from, to);
+	}
+
+	protected static class Best {
+		double cost = IMPOSSIBLE;
+		List<String> index;
+	}
+
+	protected Best best_prefixed(List<List<String>> indexes, List<String> by,
+			List<String> needs, boolean is_cursor) {
+		Best best = new Best();
 		List<Fixed> fixed = source.fixed();
 		for (List<String> ix : indexes)
 			if (prefixed(ix, by, fixed)) {
 				// NOTE: optimize1 to bypass tempindex
 				double cost = source.optimize1(ix, needs, noFields, is_cursor,
 						false);
-				if (cost < best_cost) {
-					best_cost = cost;
-					best_index = ix;
+				if (cost < best.cost) {
+					best.cost = cost;
+					best.index = ix;
 				}
 			}
+		return best;
 	}
-	private static boolean prefixed(List<String> index, List<String> order,
+	protected static boolean prefixed(List<String> index, List<String> order,
 			List<Fixed> fixed) {
 		int i = 0, o = 0;
 		int in = index.size(), on = order.size();

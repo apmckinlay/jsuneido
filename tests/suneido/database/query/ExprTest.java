@@ -103,8 +103,8 @@ public class ExprTest {
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr(cases[i]);
-			assertEquals(e.toString(), cases[i + 1], e.eval(hdr, row)
-					.toString());
+			assertEquals(e.toString(), cases[i + 1], 
+					e.eval(hdr, row).toString());
 		}
 	}
 

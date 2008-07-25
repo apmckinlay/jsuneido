@@ -2,10 +2,7 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -34,13 +31,6 @@ public class Util {
 		if (s.equals(""))
 			return Collections.emptyList();
 		return Arrays.asList(s.split(","));
-	}
-
-	public static int find(List<String> list, String value) {
-		for (int i = 0; i < list.size(); ++i)
-			if (list.get(i).equals(value))
-				return i;
-		return -1;
 	}
 
 	public static String bufferToString(ByteBuffer buf) {
@@ -99,6 +89,15 @@ public class Util {
 		return result;
 	}
 
+	public static <T> boolean prefix(List<T> x, List<T> y) {
+		if (y.size() > x.size())
+			return false;
+		for (int i = 0; i < y.size(); ++i)
+			if (!x.get(i).equals(y.get(i)))
+				return false;
+		return true;
+	}
+
 	public static <T> boolean prefix_set(List<T> list, List<T> set) {
 		int n = set.size();
 		int i = 0;
@@ -126,6 +125,14 @@ public class Util {
 		return result;
 	}
 
+	public static <T> List<T> remove(List<T> list, T x) {
+		List<T> result = new ArrayList<T>();
+		for (T y : list)
+			if (!y.equals(x))
+				result.add(y);
+		return result;
+	}
+
 	public static <T> List<T> list(T a) {
 		return Collections.singletonList(a);
 	}
@@ -144,7 +151,7 @@ public class Util {
 	}
 
 	public static <T> List<T> list(T a, T b, T c, T d) {
-		List<T> list = new ArrayList<T>(3);
+		List<T> list = new ArrayList<T>(4);
 		list.add(a);
 		list.add(b);
 		list.add(c);
@@ -153,7 +160,7 @@ public class Util {
 	}
 
 	public static <T> List<T> list(T a, T b, T c, T d, T e) {
-		List<T> list = new ArrayList<T>(3);
+		List<T> list = new ArrayList<T>(5);
 		list.add(a);
 		list.add(b);
 		list.add(c);
@@ -163,7 +170,7 @@ public class Util {
 	}
 
 	public static <T> List<T> list(T a, T b, T c, T d, T e, T f) {
-		List<T> list = new ArrayList<T>(3);
+		List<T> list = new ArrayList<T>(6);
 		list.add(a);
 		list.add(b);
 		list.add(c);
@@ -174,7 +181,7 @@ public class Util {
 	}
 
 	public static <T> List<T> list(T a, T b, T c, T d, T e, T f, T g) {
-		List<T> list = new ArrayList<T>(3);
+		List<T> list = new ArrayList<T>(7);
 		list.add(a);
 		list.add(b);
 		list.add(c);
@@ -186,7 +193,7 @@ public class Util {
 	}
 
 	public static <T> List<T> list(T a, T b, T c, T d, T e, T f, T g, T h) {
-		List<T> list = new ArrayList<T>(3);
+		List<T> list = new ArrayList<T>(8);
 		list.add(a);
 		list.add(b);
 		list.add(c);
@@ -196,18 +203,6 @@ public class Util {
 		list.add(g);
 		list.add(h);
 		return list;
-	}
-
-	public static boolean equal(ByteBuffer x, ByteBuffer y) {
-		x.position(0);
-		y.position(0);
-		return x.equals(y);
-	}
-
-	public static int compare(ByteBuffer x, ByteBuffer y) {
-		x.position(0);
-		y.position(0);
-		return x.compareTo(y);
 	}
 
 }

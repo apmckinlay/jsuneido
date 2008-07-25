@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static suneido.SuException.unreachable;
 import static suneido.Util.*;
 
 import java.util.*;
@@ -10,16 +11,6 @@ import suneido.database.query.expr.Expr;
 
 public class Project extends Query1 {
 	private List<String> flds;
-
-	enum Strategy {
-		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ"), LOOKUP("-LOOKUP");
-		public String name;
-
-		Strategy(String name) {
-			this.name = name;
-		}
-	};
-
 	private Strategy strategy = Strategy.NONE;
 	private boolean first = true;
 	private Header hdr;
@@ -33,6 +24,14 @@ public class Project extends Query1 {
 	private Row currow;
 	// DestMem td;
 	private List<String> via;
+	enum Strategy {
+		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ"), LOOKUP("-LOOKUP");
+		public String name;
+
+		Strategy(String name) {
+			this.name = name;
+		}
+	};
 
 	Project(Query source, List<String> flds) {
 		this(source, flds, false);
@@ -240,6 +239,7 @@ public class Project extends Query1 {
 		for (List<String> ix : idxs)
 			// TODO: take fixed into account
 			if (prefix_set(ix, flds)) {
+				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
 						is_cursor, false);
 				if (cost < best_cost) {
@@ -247,7 +247,7 @@ public class Project extends Query1 {
 					best_index = ix;
 				}
 			}
-		if (best_index == null) {
+		if (nil(best_index)) {
 			if (is_cursor)
 				return IMPOSSIBLE;
 			if (freeze)
@@ -280,13 +280,11 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	Row get(Dir dir)
-	{
+	Row get(Dir dir) {
 		if (strategy == Strategy.COPY)
 			return source.get(dir);
 
-		if (first)
-		{
+		if (first) {
 			first = false;
 			hdr = header();
 			if (strategy == Strategy.LOOKUP)
@@ -299,7 +297,7 @@ public class Project extends Query1 {
 		case LOOKUP:
 			return getLookup(dir);
 		default:
-			throw SuException.unreachable();
+			throw unreachable();
 		}
 	}
 
