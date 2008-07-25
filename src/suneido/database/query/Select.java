@@ -2,16 +2,36 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.Util.addUnique;
+import static suneido.Util.concat;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.list;
+import static suneido.Util.listToCommas;
+import static suneido.Util.nil;
+import static suneido.Util.remove;
+import static suneido.Util.union;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.*;
+import suneido.database.query.expr.And;
+import suneido.database.query.expr.BinOp;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.Identifier;
+import suneido.database.query.expr.In;
+import suneido.database.query.expr.Multi;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -243,12 +263,14 @@ public class Select extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+System.out.println("optimize2");
 		if (optFirst) {
 			select_needs = expr.fields();
 			tbl = source instanceof Table ? (Table) source : null;
 		}
 		if (tbl == null || // source isnt a Table
 				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
+System.out.println("not on table");
 			optFirst = false;
 			required_index = source_index = index;
 			return source.optimize(index, union(needs, select_needs), union(
@@ -284,13 +306,16 @@ public class Select extends Query1 {
 	}
 
 	private void optimize_setup() {
+System.out.println("optimize_setup");
 		fixed(); // calc before altering expr
 
 		theindexes = tbl.indexes();
 
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
+System.out.println("cmps " + cmps);
 		isels = new HashMap<String, Iselect>();
 		cmps_to_isels(cmps);
+System.out.println("isels " + isels);
 		possible = new ArrayList<List<String>>();
 		identify_possible();
 		ffracs = new HashMap<String, Double>();
@@ -300,14 +325,14 @@ public class Select extends Query1 {
 
 		// TODO: should be frac of complete select, not just indexes
 		nrecs = (int) (datafrac(theindexes) * tbl.nrecords() + .5); // .5 to
-																	// round
+		// round
 	}
 	private List<Cmp> extract_cmps() {
 		List<Cmp> cmps = new ArrayList<Cmp>();
 		List<String> fields = tbl.tbl.getFields();
 		for (Iterator<Expr> iter = expr.exprs.iterator(); iter.hasNext();) {
 			Expr expr = iter.next();
-			if (expr.isTerm(fields)) {
+			if (expr.isTerm(fields))
 				if (expr instanceof In) {
 					In in = (In) expr;
 					Identifier id = (Identifier) in.expr;
@@ -322,7 +347,6 @@ public class Select extends Query1 {
 						iter.remove();
 					}
 				}
-			}
 		}
 		return cmps;
 	}
@@ -351,19 +375,19 @@ public class Select extends Query1 {
 			isel.and_with(r);
 
 			String ident = cmp.ident;
-			if (!(end = iter.hasNext()))
+			if (!(end = !iter.hasNext()))
 				cmp = iter.next();
-			if (end || cmp.ident != ident)
-				{
+			if (end || cmp.ident != ident) {
 				// end of group
 				if (isel.none())
 					{ nrecs = 0; conflicting = true; return ; }
-				Collections.sort(isel.values);
+				if (isel.values != null)
+					Collections.sort(isel.values);
 				if (! isel.all())
 					isels.put(cmp.ident, isel);
 				isel = new Iselect();
-				}
 			}
+		}
 	}
 	private void identify_possible() {
 		// possible = indexes with isels
@@ -442,7 +466,7 @@ public class Select extends Query1 {
 		for (Iselect isel : iselects) {
 			verify(! isel.none());
 			if (isel.one())
-				{ }
+			{ }
 			else if (isel.type == IselType.RANGE)
 				break ;
 			else { // set - recurse through values
@@ -500,7 +524,7 @@ public class Select extends Query1 {
 				break ;
 			} else
 				unreachable();
-			}
+		}
 		return tbl.tbl.getIndex(listToCommas(index)).rangefrac(org, end);
 	}
 
@@ -540,8 +564,8 @@ public class Select extends Query1 {
 		double index_read_cost = ifracs.get(primary) * tbl.indexsize(primary);
 
 		double data_frac = primary.containsAll(prior_needs)
-				&& primary.containsAll(select_needs)
-				? 0 : datafrac(list(primary));
+		&& primary.containsAll(select_needs)
+		? 0 : datafrac(list(primary));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
 
@@ -553,7 +577,7 @@ public class Select extends Query1 {
 		if (nil(available))
 			return primary_cost;
 		double primary_index_cost = ifracs.get(primary)
-				* tbl.indexsize(primary);
+		* tbl.indexsize(primary);
 		double best_cost = primary_cost;
 		filter = new ArrayList<List<String>>();
 		while (true) {
@@ -590,11 +614,11 @@ public class Select extends Query1 {
 		for (List<String> f : filter) {
 			double n = tbl.nrecords() * ifracs.get(f);
 			filter_cost += n * tbl.keysize(f) + // read cost
-					n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
+			n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
 		}
 
 		return data_frac * tbl.tbl.totalsize() + primary_index_cost
-				+ filter_cost;
+		+ filter_cost;
 	}
 
 	// determine whether a set of indexes includes a set of fields
@@ -606,7 +630,7 @@ public class Select extends Query1 {
 					continue outer;
 			return false; // field not found in any index
 		}
-		return true;
+	return true;
 	}
 
 	// end of optimize ==============================================
@@ -664,14 +688,20 @@ public class Select extends Query1 {
 		public int compareTo(Cmp other) {
 			return ident.compareTo(other.ident);
 		}
+
+		@Override
+		public String toString() {
+			return "Cmp " + ident + " " + op.name + valueToString(value)
+					+ valuesToString(values);
+		}
 	}
 
 	enum IselType { RANGE, VALUES };
 	private static class Iselect {
 		IselType type = IselType.RANGE;
 		// range
-		Point org;
-		Point end;
+		Point org = new Point();
+		Point end = new Point();
 		// set
 		List<ByteBuffer> values;
 
@@ -699,10 +729,10 @@ public class Select extends Query1 {
 					org = r.org;
 				if (r.end.compareTo(end) < 0)
 					end = r.end;
-			} else if (type == IselType.VALUES && r.type == IselType.VALUES) {
+			} else if (type == IselType.VALUES && r.type == IselType.VALUES)
 				// both sets
 				values = intersect(values, r.values);
-			} else {
+			else {
 				// set and range
 				if (type == IselType.VALUES) {
 					org = r.org;
@@ -730,6 +760,12 @@ public class Select extends Query1 {
 		boolean equals(Iselect y) {
 			return org.equals(y.org) && end.equals(y.end);
 		}
+
+		@Override
+		public String toString() {
+			return "Isel " + type + " " + org + " .. " + end
+					+ valuesToString(values);
+		}
 	}
 	private static class Point implements Comparable<Point> {
 		ByteBuffer x;
@@ -743,5 +779,23 @@ public class Select extends Query1 {
 			int cmp = x.compareTo(p.x);
 			return cmp == 0 ? d - p.d : cmp;
 		}
+
+		@Override
+		public String toString() {
+			return "Point " + (x == null ? "null" : valueToString(x)) + ","	+ d;
+		}
+	}
+
+	private static String valueToString(ByteBuffer value) {
+		return value.equals(MIN_FIELD) ? "min"
+				: value.equals(MAX_FIELD) ? "max"
+				: SuValue.unpack(value).toString();
+	}
+	private static String valuesToString(List<ByteBuffer> values) {
+		String s = "";
+		if (values != null)
+			for (ByteBuffer b : values)
+				s += " " + valueToString(b);
+		return s;
 	}
 }

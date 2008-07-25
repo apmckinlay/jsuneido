@@ -2,14 +2,22 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.Util.difference;
+import static suneido.Util.list;
+import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
+import static suneido.Util.nil;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.*;
+import suneido.database.Btree;
+import suneido.database.BtreeIndex;
+import suneido.database.Index;
+import suneido.database.Record;
+import suneido.database.Transaction;
 
 public class Table extends Query {
 	private final String table;
@@ -35,7 +43,7 @@ public class Table extends Query {
 
 	@Override
 	public String toString() {
-		return table + (idx == null ? "" : "^" + idx);
+		return table + (idx == null ? "" : "^" + listToParens(idx));
 	}
 
 	@Override
@@ -99,10 +107,10 @@ public class Table extends Query {
 			// index found that meets firstneeds
 			// assume this means we only have to read 75% of data
 			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-					nrecords() * keysize(idx2); // cost of reading index
+			nrecords() * keysize(idx2); // cost of reading index
 		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
 			cost3 = nrecords() * recordsize() + // cost of reading data
-					nrecords() * keysize(idx3); // cost of reading index
+			nrecords() * keysize(idx3); // cost of reading index
 
 		double cost;
 		if (cost1 <= cost2 && cost1 <= cost3) {
