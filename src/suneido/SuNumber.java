@@ -70,9 +70,9 @@ public abstract class SuNumber extends SuValue {
 	}
 
 	public static SuValue unpack1(ByteBuffer buf) {
-		if (buf.limit() <= 1)
+		if (buf.remaining() == 0)
 			return SuInteger.ZERO;
-		int s = (buf.get(1) & 0xff) - 128;
+		int s = (buf.get() & 0xff) - 128;
 		long n = unpackLongPart(buf);
 		s = -(s - packshorts(n)) * 4;
 		if (-10 <= s && s < 0)
@@ -87,8 +87,8 @@ public abstract class SuNumber extends SuValue {
 	}
 	private static long unpackLongPart(ByteBuffer buf) {
 		long n = 0;
-		for (int i = 2; i < buf.limit(); i += 2)
-			n = n * 10000 + buf.getShort(i);
+		while (buf.remaining() > 0)
+			n = n * 10000 + buf.getShort();
 		return n;
 	}
 
@@ -98,7 +98,11 @@ public abstract class SuNumber extends SuValue {
 	 * @return The long value.
 	 */
 	public static long unpackLong(ByteBuffer buf) {
-		verify(buf.get(0) == Pack.PLUS || buf.get(0) == Pack.MINUS);
+		byte b = buf.get();
+		verify(b == Pack.PLUS || b == Pack.MINUS);
+		if (buf.remaining() == 0)
+			return 0;
+		buf.get(); // skip scale/exponent
 		return unpackLongPart(buf);
 	}
 

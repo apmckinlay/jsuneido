@@ -98,7 +98,7 @@ public class SuDate extends SuValue {
 	}
 
 	public static SuDate unpack1(ByteBuffer buf) {
-		long date = buf.getLong(1);
+		long date = buf.getLong();
 		return new SuDate(new Date(date));
 	}
 }

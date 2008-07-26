@@ -17,6 +17,7 @@ public class SuNumberTest {
 			SuValue x = new SuDecimal(s);
 			ByteBuffer buf = ByteBuffer.allocate(x.packSize());
 			x.pack(buf);
+			buf.position(0);
 			SuValue y = SuValue.unpack(buf);
 			assertEquals(x, y);
 		}
@@ -27,6 +28,7 @@ public class SuNumberTest {
 		SuInteger num = SuInteger.valueOf(34);
 		ByteBuffer buf = ByteBuffer.allocate(num.packSize());
 		num.pack(buf);
+		buf.position(0);
 		assertEquals(34, SuNumber.unpackLong(buf));
 	}
 

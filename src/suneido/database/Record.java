@@ -300,6 +300,7 @@ public class Record
 	}
 
 	public SuValue get(int i) {
+		// PERF could bypass getraw slice by setting/restoring position & limit
 		return SuValue.unpack(getraw(i));
 	}
 
@@ -309,16 +310,19 @@ public class Record
 	}
 
 	public long getLong(int i) {
+		// PERF could bypass getraw slice by setting/restoring position & limit
 		return SuNumber.unpackLong(getraw(i));
 	}
 
 	public int getInt(int i) {
+		// PERF could bypass getraw slice by setting/restoring position & limit
 		long n = SuNumber.unpackLong(getraw(i));
 		assert (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE);
 		return (int) n;
 	}
 
 	public short getShort(int i) {
+		// PERF could bypass getraw slice by setting/restoring position & limit
 		long n = SuNumber.unpackLong(getraw(i));
 		assert (Short.MIN_VALUE <= n && n <= Short.MAX_VALUE);
 		return (short) n;

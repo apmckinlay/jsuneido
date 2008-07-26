@@ -2,36 +2,16 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.addUnique;
-import static suneido.Util.concat;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.list;
-import static suneido.Util.listToCommas;
-import static suneido.Util.nil;
-import static suneido.Util.remove;
-import static suneido.Util.union;
+import static suneido.Util.*;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.And;
-import suneido.database.query.expr.BinOp;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
-import suneido.database.query.expr.Identifier;
-import suneido.database.query.expr.In;
-import suneido.database.query.expr.Multi;
+import suneido.database.query.expr.*;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -74,9 +54,9 @@ public class Select extends Query1 {
 		if (conflicting)
 			return s + " nothing";
 		if (! nil(source_index))
-			s += "^" + source_index;
+			s += "^" + listToParens(source_index);
 		if (! nil(filter))
-			s += "%" + filter;
+			s += "%" + listToParens(filter);
 		if (! nil(expr.exprs))
 			s += " " + expr;
 		return s;
@@ -263,8 +243,10 @@ public class Select extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-System.out.println("optimize2");
+System.out.println("optimize2 index " + index + " needs " + needs +
+" firstneeds " + firstneeds + (freeze ? " FREEZE" : ""));
 		if (optFirst) {
+			prior_needs = needs;
 			select_needs = expr.fields();
 			tbl = source instanceof Table ? (Table) source : null;
 		}
@@ -289,6 +271,7 @@ System.out.println("not on table");
 		filter = null;
 
 		double cost = choose_primary(index);
+System.out.println("primary " + primary);
 		if (nil(primary))
 			return IMPOSSIBLE;
 
@@ -308,20 +291,24 @@ System.out.println("not on table");
 	private void optimize_setup() {
 System.out.println("optimize_setup");
 		fixed(); // calc before altering expr
+System.out.println("fixed " + fix);
 
 		theindexes = tbl.indexes();
 
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
-System.out.println("cmps " + cmps);
 		isels = new HashMap<String, Iselect>();
 		cmps_to_isels(cmps);
 System.out.println("isels " + isels);
+if (conflicting) System.out.println("CONFLICTING");
 		possible = new ArrayList<List<String>>();
 		identify_possible();
+System.out.println("possible " + possible);
 		ffracs = new HashMap<String, Double>();
 		calc_field_fracs();
-		ifracs = new IdentityHashMap<List<String>, Double>();
+System.out.println("ffracs " + ffracs);
+		ifracs = new HashMap<List<String>, Double>();
 		calc_index_fracs();
+System.out.println("ifracs " + ifracs);
 
 		// TODO: should be frac of complete select, not just indexes
 		nrecs = (int) (datafrac(theindexes) * tbl.nrecords() + .5); // .5 to
@@ -549,9 +536,11 @@ System.out.println("isels " + isels);
 		// find index that satisfies required index with least cost
 		double best_cost = IMPOSSIBLE;
 		for (List<String> idx : theindexes) {
+System.out.println("idx " + idx);
 			if (!prefixed(idx, index, fixed()))
 				continue;
 			double cost = primarycost(idx);
+System.out.println("primarycost " + idx + " = " + cost);
 			if (cost < best_cost) {
 				primary = idx;
 				best_cost = cost;
@@ -561,23 +550,21 @@ System.out.println("isels " + isels);
 	}
 
 	private double primarycost(List<String> idx) {
-		double index_read_cost = ifracs.get(primary) * tbl.indexsize(primary);
+		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
 
-		double data_frac = primary.containsAll(prior_needs)
-		&& primary.containsAll(select_needs)
-		? 0 : datafrac(list(primary));
+		double data_frac = idx.containsAll(prior_needs)
+				&& idx.containsAll(select_needs) ? 0 : datafrac(list(idx));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
-
 		return index_read_cost + data_read_cost;
 	}
 
 	private double choose_filter(double primary_cost) {
+System.out.println("primary_cost " + primary_cost);
 		List<List<String>> available = remove(possible, primary);
 		if (nil(available))
 			return primary_cost;
-		double primary_index_cost = ifracs.get(primary)
-		* tbl.indexsize(primary);
+		double primary_index_cost = ifracs.get(primary)	* tbl.indexsize(primary);
 		double best_cost = primary_cost;
 		filter = new ArrayList<List<String>>();
 		while (true) {
@@ -586,6 +573,7 @@ System.out.println("isels " + isels);
 			for (List<String> idx : available) {
 				filter.set(0, idx);
 				double cost = costwith(filter, primary_index_cost);
+System.out.println("costwith " + filter + " = " + cost);
 				if (cost < best_cost) {
 					best_cost = cost;
 					best_filter = idx;
@@ -595,6 +583,7 @@ System.out.println("isels " + isels);
 				break; // can't reduce cost by adding another filter
 			filter.set(0, best_filter);
 		}
+		filter.remove(0);
 		return best_cost;
 	}
 
@@ -613,12 +602,12 @@ System.out.println("isels " + isels);
 		double filter_cost = 0;
 		for (List<String> f : filter) {
 			double n = tbl.nrecords() * ifracs.get(f);
-			filter_cost += n * tbl.keysize(f) + // read cost
-			n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
+			filter_cost += n * tbl.keysize(f) // read cost
+					+ n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
 		}
 
-		return data_frac * tbl.tbl.totalsize() + primary_index_cost
-		+ filter_cost;
+		return data_frac * tbl.tbl.totalsize()
+				+ primary_index_cost + filter_cost;
 	}
 
 	// determine whether a set of indexes includes a set of fields
@@ -723,6 +712,7 @@ System.out.println("isels " + isels);
 			return true;
 		}
 		void and_with(Iselect r) {
+			System.out.println("and " + this + " " + r);
 			if (type == IselType.RANGE && r.type == IselType.RANGE) {
 				// both ranges
 				if (r.org.compareTo(org) > 0)
@@ -747,6 +737,7 @@ System.out.println("isels " + isels);
 				end.x = MIN_FIELD; // empty range
 				type = IselType.VALUES;
 			}
+			System.out.println(" => " + this);
 		}
 		boolean all() {
 			return org.x == MIN_FIELD && org.d == 0 && end.x == MAX_FIELD;
@@ -789,7 +780,7 @@ System.out.println("isels " + isels);
 	private static String valueToString(ByteBuffer value) {
 		return value.equals(MIN_FIELD) ? "min"
 				: value.equals(MAX_FIELD) ? "max"
-				: SuValue.unpack(value).toString();
+				: SuValue.toString(value);
 	}
 	private static String valuesToString(List<ByteBuffer> values) {
 		String s = "";
