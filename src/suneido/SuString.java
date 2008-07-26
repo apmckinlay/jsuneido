@@ -118,9 +118,8 @@ public class SuString extends SuValue {
 	}
 
 	public static SuValue unpack1(ByteBuffer buf) {
-		if (buf.remaining() <= 1)
+		if (buf.remaining() == 0)
 			return EMPTY;
-		buf.get(); // skip STRING
 		return new SuString(bufferToString(buf));
 	}
 

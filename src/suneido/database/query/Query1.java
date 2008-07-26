@@ -134,7 +134,7 @@ public abstract class Query1 extends Query {
 		}
 		while (o < on && isfixed(fixed, order.get(o)))
 			++o;
-		return o < on;
+		return o >= on;
 	}
 	private static boolean isfixed(List<Fixed> fixed, String field) {
 		for (Fixed f : fixed)

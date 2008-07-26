@@ -42,9 +42,9 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		throw new SuException(typeName() + " cannot be stored");
 	}
 	public static SuValue unpack(ByteBuffer buf) {
-		if (buf.limit() == 0)
+		if (buf.remaining() == 0)
 			return SuString.EMPTY;
-		switch (buf.get(0)) {
+		switch (buf.get()) {
 		case Pack.FALSE :
 			return SuBoolean.FALSE;
 		case Pack.TRUE :
@@ -56,11 +56,16 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			return SuString.unpack1(buf);
 		case Pack.DATE:
 			return SuDate.unpack1(buf);
-//		case Pack.CLASS :
-//			return SuClass.unpack1(buf);
+		// TODO unpack other types
 		default :
 			throw SuException.unreachable();
 		}
+	}
+	public static String toString(ByteBuffer buf) {
+		buf.mark();
+		SuValue x = unpack(buf);
+		buf.reset();
+		return x.toString();
 	}
 
 	public SuValue getdata(SuValue member) {
