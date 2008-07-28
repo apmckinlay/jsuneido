@@ -1,9 +1,19 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.*;
+import static suneido.Util.addUnique;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
+import static suneido.Util.nil;
+import static suneido.Util.prefix_set;
+import static suneido.Util.removeDups;
+import static suneido.Util.set_eq;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -110,9 +120,8 @@ public class Project extends Query1 {
 	Query transform() {
 		boolean moved = false;
 		// remove projects of all fields
-		if (set_eq(flds, source.columns())) {
+		if (set_eq(flds, source.columns()))
 			return source.transform();
-		}
 		// combine projects
 		if (source instanceof Project) {
 			Project p = (Project) source;
@@ -242,6 +251,7 @@ public class Project extends Query1 {
 				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
 						is_cursor, false);
+System.out.println("cost of " + ix + " = " + cost);
 				if (cost < best_cost) {
 					best_cost = cost;
 					best_index = ix;

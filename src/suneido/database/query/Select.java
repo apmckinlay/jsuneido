@@ -2,16 +2,36 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.Util.addUnique;
+import static suneido.Util.concat;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.list;
+import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
+import static suneido.Util.nil;
+import static suneido.Util.remove;
+import static suneido.Util.union;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import suneido.SuValue;
 import suneido.database.Record;
-import suneido.database.query.expr.*;
+import suneido.database.query.expr.And;
+import suneido.database.query.expr.BinOp;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.Identifier;
+import suneido.database.query.expr.In;
+import suneido.database.query.expr.Multi;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -246,7 +266,7 @@ public class Select extends Query1 {
 System.out.println("optimize2 index " + index + " needs " + needs +
 " firstneeds " + firstneeds + (freeze ? " FREEZE" : ""));
 		if (optFirst) {
-			prior_needs = needs;
+			prior_needs = noFields; // needs;
 			select_needs = expr.fields();
 			tbl = source instanceof Table ? (Table) source : null;
 		}
@@ -552,8 +572,9 @@ System.out.println("primarycost " + idx + " = " + cost);
 	private double primarycost(List<String> idx) {
 		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
 
-		double data_frac = idx.containsAll(prior_needs)
-				&& idx.containsAll(select_needs) ? 0 : datafrac(list(idx));
+		double data_frac = idx.containsAll(select_needs)
+			? idx.containsAll(prior_needs) ? 0 : .5 * datafrac(list(idx))
+			: datafrac(list(idx));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
 		return index_read_cost + data_read_cost;
@@ -590,13 +611,13 @@ System.out.println("costwith " + filter + " = " + cost);
 	private final static int FILTER_KEYSIZE = 10;
 
 	private double costwith(List<List<String>> filter, double primary_index_cost) {
-		double data_frac;
+		// PERF avoid copying filter
 		List<List<String>> all = new ArrayList<List<String>>(filter);
 		all.add(primary);
-		if (includes(list(primary), prior_needs) && includes(all, select_needs))
-			data_frac = 0;
-		else
-			data_frac = datafrac(all);
+		
+		double data_frac = primary.containsAll(select_needs)
+			? includes(all, select_needs) ? 0 : .5 * datafrac(all)
+			: datafrac(all);			
 
 		// approximate filter cost independent of order of filters
 		double filter_cost = 0;
@@ -613,6 +634,8 @@ System.out.println("costwith " + filter + " = " + cost);
 	// determine whether a set of indexes includes a set of fields
 	// like containsAll, but set of indexes is list of lists
 	private boolean includes(List<List<String>> indexes, List<String> fields) {
+		if (indexes.size() == 1)
+			return indexes.get(0).containsAll(fields);
 		outer: for (String field : fields) {
 			for (List<String> index : indexes)
 				if (index.contains(field))
