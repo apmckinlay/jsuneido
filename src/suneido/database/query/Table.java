@@ -111,6 +111,8 @@ public class Table extends Query {
 		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
 			cost3 = nrecords() * recordsize() + // cost of reading data
 			nrecords() * keysize(idx3); // cost of reading index
+System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
+	+ idx3 + " = " + cost3);
 
 		double cost;
 		if (cost1 <= cost2 && cost1 <= cost3) {
@@ -155,7 +157,8 @@ public class Table extends Query {
 		verify(idx != null);
 		int nnodes = idx.nnodes();
 		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
-		return (nnodes * nodesize) / nrecs;
+		return (nnodes * nodesize) / nrecs + index.size();
+		// add index.size() to favor shorter indexes
 	}
 
 	/* package */void select_index(List<String> index) {

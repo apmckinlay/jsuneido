@@ -2,7 +2,10 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -102,9 +105,9 @@ public class Util {
 		int n = set.size();
 		int i = 0;
 		for (T s : list)
-			if (i >= n || ! set.contains(s))
+			if (i++ >= n || !set.contains(s))
 				break ;
-		return i == n;
+		return i >= n;
 	}
 
 	public static <T> boolean set_eq(List<T> x, List<T> y) {
