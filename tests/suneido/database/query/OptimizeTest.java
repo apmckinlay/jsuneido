@@ -96,11 +96,14 @@ public class OptimizeTest extends TestBase {
 		{ "trans minus hist",
 			"(trans^(date,item,id) MINUS^(date,item,id) hist^(date,item,id))" },
 
-		{ "hist intersect trans",
-			"(hist^(date,item,id) INTERSECT^(date,item,id) trans^(date,item,id))" },
-
 		{ "trans intersect hist",
 			"(trans^(date,item,id) INTERSECT^(date,item,id) hist^(date,item,id))" },
+
+		{ "hist2 intersect trans",
+			"(trans^(date,item,id) INTERSECT^(date) hist2^(date))" },
+
+		{ "(hist where item = 1) intersect (trans where item = 2)",
+			"(hist WHERE (item = 1) INTERSECT-DISJOINT(item) trans WHERE (item = 2))" },
 
 		{ "(trans union trans) intersect (hist union hist)",
 			"((trans^(date,item,id) " +
