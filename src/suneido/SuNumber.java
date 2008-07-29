@@ -29,7 +29,14 @@ public abstract class SuNumber extends SuValue {
 	@Override
 	public int packSize() {
 		long n = unscaled();
-		return n == 0 ? 1 : 2 + 2 * packshorts(n);
+		if (n == 0)
+			return 1;
+		if (n < 0)
+			n = -n;
+		int e = -scale();
+		for (; (e % 4) != 0; --e)
+			n *= 10;
+		return 2 + 2 * packshorts(n);
 	}
 	private static int packshorts(long n) {
 		return n < 100000000L

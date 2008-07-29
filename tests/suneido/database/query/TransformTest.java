@@ -15,7 +15,7 @@ public class TransformTest extends TestBase {
 	}
 
 	private static String[][] transforms = {
-	// combine extend's
+			// combine extend's
 			{ "customer extend a = 5 extend b = 6",
 					"customer EXTEND a = 5, b = 6" },
 			// combine project's
@@ -65,7 +65,8 @@ public class TransformTest extends TestBase {
 					"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
 			// move where before summarize
 			{ "hist summarize id, total cost where id = 3 and total_cost > 10",
-					"hist WHERE (id = 3) SUMMARIZE (id) total cost WHERE (total_cost > 10)" },
+					"hist WHERE (id = 3) SUMMARIZE (id) total_cost = total cost "
+							+ "WHERE (total_cost > 10)" },
 
 			// distribute where over intersect
 			{ "(hist intersect trans) where cost > 10",

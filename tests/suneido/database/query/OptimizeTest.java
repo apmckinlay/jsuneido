@@ -72,11 +72,8 @@ public class OptimizeTest extends TestBase {
 		{ "inven rename item to part rename qty to onhand",
 			"inven^(item) RENAME item to part, qty to onhand" },
 
-		{ "customer times inven",
-			"(customer^(id) TIMES inven^(item))" },
-
-		{ "inven times customer",
-			"(inven^(item) TIMES customer^(id))" },
+		{ "inven rename qty to x where x > 4",
+			"inven^(item) WHERE^(item) RENAME qty to x" },
 
 		{ "hist union trans",
 			"(hist^(date,item,id) UNION-MERGE^(date,item,id) trans^(date,item,id))" },
@@ -105,21 +102,97 @@ public class OptimizeTest extends TestBase {
 		{ "trans intersect hist",
 			"(trans^(date,item,id) INTERSECT^(date,item,id) hist^(date,item,id))" },
 
-		{ "(trans union trans) intersect (hist union hist)", 
+		{ "(trans union trans) intersect (hist union hist)",
 			"((trans^(date,item,id) " +
 				"UNION-MERGE^(date,item,id) trans^(date,item,id)) " +
 				"INTERSECT^(date,item,id,cost) (hist^(date,item,id) " +
 				"UNION-MERGE^(date,item,id) hist^(date,item,id)) " +
 				"TEMPINDEXN(date,item,id,cost) unique)" },
 
-//		{ "(trans minus hist) union (trans intersect hist)", 
-//				"((trans^(date,item,id) " +
-//				"MINUS^(date,item,id) hist^(date,item,id)) " +
-//				"UNION-MERGE^(date,item,id) (trans^(date,item,id)) " +
-//				"INTERSECT^(date,item,id) hist^(date,item,id)))" },
-					
+		{ "(trans minus hist) union (trans intersect hist)",
+				"((trans^(date,item,id) " +
+				"MINUS^(date,item,id) hist^(date,item,id)) " +
+				"UNION-MERGE^(date,item,id) (trans^(date,item,id) " +
+				"INTERSECT^(date,item,id) hist^(date,item,id)))" },
+
+		{ "customer times inven",
+			"(customer^(id) TIMES inven^(item))" },
+
+		{ "inven times customer",
+			"(inven^(item) TIMES customer^(id))" },
+
+		{ "(customer times inven) join trans",
+			"((customer^(id) TIMES inven^(item)) JOIN 1:n on (id,item) " +
+				"trans^(date,item,id) TEMPINDEX1(id,item))" },
+
+		{ "hist join customer",
+			"(hist^(date,item,id) JOIN n:1 on (id) customer^(id))" },
+
+		{ "customer join hist",
+			"(hist^(date,item,id) JOIN n:1 on (id) customer^(id))" },
+
+		{ "trans join inven",
+			"(inven^(item) JOIN 1:n on (item) trans^(item))" },
+
 		{ "task join co",
 			"(co^(tnum) JOIN 1:1 on (tnum) task^(tnum))", "" },
+
+		{ "(trans union trans) join (inven union inven)",
+			"((trans^(date,item,id) " +
+				"UNION-MERGE^(date,item,id) trans^(date,item,id)) " +
+				"JOIN n:n on (item) (inven^(item) " +
+				"UNION-MERGE^(item) inven^(item)))" },
+
+		{ "customer join alias",
+			"(alias^(id) JOIN 1:1 on (id) customer^(id))" },
+
+		{ "customer join supplier",
+			"(customer^(id) JOIN n:n on (name,city) supplier^(city) " +
+				"TEMPINDEX1(name,city))" },
+
+		{ "trans join customer join inven",
+			"(inven^(item) JOIN 1:n on (item) (trans^(item) " +
+				"JOIN n:1 on (id) customer^(id)))" },
+
+		{ "(trans join customer) union (hist join customer)",
+			"((trans^(date,item,id) JOIN n:1 on (id) customer^(id)) " +
+				"UNION-MERGE^(date,item,id) (hist^(date,item,id) " +
+				"JOIN n:1 on (id) customer^(id)))" },
+
+		{ "(trans join customer) intersect (hist join customer)",
+			"((trans^(date,item,id) JOIN n:1 on (id) customer^(id)) " +
+				"INTERSECT^(date,item,id) (hist^(date,item,id) " +
+				"JOIN n:1 on (id) customer^(id)))" },
+
+		{ "(((task join co)) join (cus where abbrev = 'a'))",
+			"((co^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+
+		{ "((task join (co where signed = 990103)) join (cus where abbrev = 'a'))",
+			"((co^(tnum) WHERE^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+
+		{ "inven leftjoin trans",
+					"(inven^(item) LEFTJOIN 1:n on (item) trans^(item))" },
+
+			{ "customer leftjoin hist2",
+					"(customer^(id) LEFTJOIN 1:n on (id) hist2^(id))" },
+
+			{ "customer leftjoin hist2 sort date",
+					"(customer^(id) LEFTJOIN 1:n on (id) hist2^(id)) TEMPINDEXN(date)" },
+
+		{ "inven where qty + 1 > 5",
+			"inven^(item) WHERE^(item) ((qty + 1) > 5)" },
+
+		{ "trans where \"mousee\" = item $ id",
+			"trans^(date,item,id) " +
+				"WHERE^(date,item,id) ('mousee' = (item $ id))" },
+
+		{ "inven where qty + 1 in (3,8)",
+			"inven^(item) WHERE^(item) (qty + 1) in (3,8)" },
+
+		{ "inven where qty + 1 in (33)",
+			"inven^(item) WHERE^(item) (qty + 1) in (33)" },
 
 		{ "trans where cost=100",
 			"trans^(item) WHERE^(item)" },
@@ -133,13 +206,39 @@ public class OptimizeTest extends TestBase {
 		{ "hist where cost =~ 5",
 			"hist^(date) WHERE^(date) (cost =~ 5)", "" },
 
-		{ "(((task join co)) join (cus where abbrev = 'a'))",
-			"((co^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+		{ "trans extend x = cost * 1.1",
+			"trans^(item) EXTEND x = (cost * 1.1)" },
 
-		{ "((task join (co where signed = 990103)) join (cus where abbrev = 'a'))",
-			"((co^(tnum) WHERE^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+		{ "trans extend x = 1 extend y = 2",
+			"trans^(item) EXTEND x = 1, y = 2" },
+
+		{ "trans extend x = 1 extend y = 2 extend z = 3",
+			"trans^(item) EXTEND x = 1, y = 2, z = 3" },
+
+		{ "hist extend x = item $ id",
+			"hist^(date) EXTEND x = (item $ id)" },
+
+		{ "inven extend x = -qty sort x",
+			"inven^(item) EXTEND x = -qty TEMPINDEXN(x)" },
+
+		{ "inven extend x = (qty = 2 ? 222 : qty)",
+			"inven^(item) EXTEND x = ((qty = 2) ? 222 : qty)" },
+
+		{ "inven extend x = qty where x > 4",
+			"inven^(item) WHERE^(item) EXTEND x = qty" },
+
+		{ "trans summarize item, total cost",
+			"trans^(item) SUMMARIZE ^(item) (item) total_cost = total cost" },
+
+		{ "trans summarize item, x = total cost",
+			"trans^(item) SUMMARIZE ^(item) (item) x = total cost" },
+
+		{ "trans summarize total cost",
+			"trans^(item) SUMMARIZE-COPY total_cost = total cost" },
+
+		{ "(inven leftjoin trans) where date = 960204",
+			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +
+				"WHERE (date = 960204)" },
 
 	};
 

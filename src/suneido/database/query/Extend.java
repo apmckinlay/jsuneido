@@ -13,6 +13,7 @@ public class Extend extends Query1 {
 	List<String> flds; // modified by Project.transform
 	List<Expr> exprs; // modified by Project.transform
 	private List<String> eflds;
+	private Header hdr = null;
 
 	Extend(Query source, List<String> flds, List<Expr> exprs,
 			List<String> rules) {
@@ -104,8 +105,10 @@ public class Extend extends Query1 {
 
 	@Override
 	Header header() {
-		// TODO header
-		return null;
+		if (hdr == null)
+			hdr = Header.add(source.header(),
+					new Header(list(noFields, flds), union(flds, rules)));
+		return hdr;
 	}
 
 }

@@ -10,15 +10,12 @@ public class SuNumberTest {
 	@Test
 	public void pack() {
 		String[] values = {
-				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
-				".12", ".1", ".01", ".001", ".0001", ".00010002", ".00001"
-				};
+				"1", "10", "123", "1000", "9999", "10000", "10002",
+				"100020000", "100020003", "1000200030004", ".12", ".1", ".01",
+				".001", ".0001", ".00010002", ".00001", "1.1" };
 		for (String s : values) {
 			SuValue x = new SuDecimal(s);
-			ByteBuffer buf = ByteBuffer.allocate(x.packSize());
-			x.pack(buf);
-			buf.position(0);
-			SuValue y = SuValue.unpack(buf);
+			SuValue y = SuValue.unpack(x.pack());
 			assertEquals(x, y);
 		}
 	}

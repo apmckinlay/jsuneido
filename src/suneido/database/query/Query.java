@@ -89,10 +89,10 @@ public abstract class Query {
 	}
 	double optimize(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-System.out.println("optimize " + this);
-System.out.println("    index=" + index + " needs=" + needs
-	+ " firstneeds=" + firstneeds + (is_cursor ? " cursor" : "")
-	+ (freeze ? " FREEZE" : ""));
+//System.out.println("optimize " + this);
+//System.out.println("    index=" + index + " needs=" + needs
+//	+ " firstneeds=" + firstneeds + (is_cursor ? " cursor" : "")
+//	+ (freeze ? " FREEZE" : ""));
 		if (is_cursor || nil(index))
 			return optimize1(index, needs, firstneeds, is_cursor, freeze);
 		if (!columns().containsAll(index))
@@ -110,7 +110,7 @@ System.out.println("    index=" + index + " needs=" + needs
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
 		verify(cost2 >= 0);
-System.out.println("cost1 " + cost1 + ", cost2 " + cost2);
+//System.out.println("cost1 " + cost1 + ", cost2 " + cost2);
 
 		double cost = Math.min(cost1, cost2);
 		willneed_tempindex = (cost2 < cost1);
@@ -147,8 +147,6 @@ System.out.println("cost1 " + cost1 + ", cost2 " + cost2);
 			List<String> firstneeds, boolean is_cursor, boolean freeze);
 
 	protected List<String> key_index(List<String> needs) {
-System.out.println("key_index " + this);
-System.out.println("    keys " + keys());
 		List<String> best_index = Collections.emptyList();
 		double best_cost = IMPOSSIBLE;
 		for (List<String> key : keys()) {
@@ -158,7 +156,6 @@ System.out.println("    keys " + keys());
 				best_index = key;
 			}
 		}
-System.out.println("key_index => " + best_index);
 		return best_index;
 	}
 
@@ -180,7 +177,11 @@ System.out.println("key_index => " + best_index);
 	private boolean isUnique(List<String> tempindex) {
 		for (List<String> k : keys())
 			if (tempindex.containsAll(k))
+			{
+				System.out.println("addindex " + tempindex + " containsAll "
+						+ k);
 				return true;
+			}
 		return false;
 	}
 }

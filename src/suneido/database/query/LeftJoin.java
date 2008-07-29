@@ -1,5 +1,7 @@
 package suneido.database.query;
 
+import static suneido.SuException.unreachable;
+
 import java.util.List;
 
 public class LeftJoin extends Join {
@@ -17,4 +19,22 @@ public class LeftJoin extends Join {
 		return false;
 	}
 
+	@Override
+	List<List<String>> keys() {
+		switch (type) {
+		case ONE_ONE:
+		case N_ONE:
+			return source.keys();
+		case ONE_N:
+		case N_N:
+			return keypairs();
+		default:
+			throw unreachable();
+		}
+	}
+
+	@Override
+	double nrecords() {
+		return source.nrecords();
+	}
 }
