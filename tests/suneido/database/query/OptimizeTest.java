@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class QueryTest extends TestBase {
+public class OptimizeTest extends TestBase {
 	@Test
 	public void test() {
 		for (String[] c : cases) {
