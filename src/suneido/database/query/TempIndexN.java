@@ -1,70 +1,36 @@
 package suneido.database.query;
 
+import static suneido.Util.*;
+
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class TempIndexN extends Query1 {
+	private final List<String> order;
+	private final boolean unique;
 
-	public TempIndexN(Query source, List<String> tempindex, boolean unique) {
+	public TempIndexN(Query source, List<String> order, boolean unique) {
 		super(source);
-		// TODO Auto-generated constructor stub
+		this.order = order;
+		this.unique = unique;
 	}
 
 	@Override
-	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+	public String toString() {
+		return source.toString() + " TEMPINDEXN" + listToParens(order)
+				+ (unique ? " unique" : "");
 	}
 
 	@Override
-	int columnsize() {
-		// TODO Auto-generated method stub
-		return 0;
+	List<List<String>> indexes() {
+		return list(unique ? order : concat(order, list("-")));
 	}
 
 	@Override
 	Row get(Dir dir) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	Header header() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	double nrecords() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	int recordsize() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
@@ -77,18 +43,6 @@ public class TempIndexN extends Query1 {
 	void select(List<String> index, Record from, Record to) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	void setTransaction(Transaction tran) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

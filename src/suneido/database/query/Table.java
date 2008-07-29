@@ -2,22 +2,14 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.difference;
-import static suneido.Util.list;
-import static suneido.Util.listToCommas;
-import static suneido.Util.listToParens;
-import static suneido.Util.nil;
+import static suneido.Util.*;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.Btree;
-import suneido.database.BtreeIndex;
-import suneido.database.Index;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 
 public class Table extends Query {
 	private final String table;
@@ -111,8 +103,8 @@ public class Table extends Query {
 		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
 			cost3 = nrecords() * recordsize() + // cost of reading data
 			nrecords() * keysize(idx3); // cost of reading index
-System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
-	+ idx3 + " = " + cost3);
+//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
+//	+ idx3 + " = " + cost3);
 
 		double cost;
 		if (cost1 <= cost2 && cost1 <= cost3) {
@@ -159,6 +151,12 @@ System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
 		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
 		return (nnodes * nodesize) / nrecs + index.size();
 		// add index.size() to favor shorter indexes
+	}
+
+	public int indexsize(List<String> index) {
+		Index idx = tbl.getIndex(listToCommas(index));
+		return idx.nnodes() == 1 ? index.size() * 100 : idx.nnodes()
+				* Btree.NODESIZE;
 	}
 
 	/* package */void select_index(List<String> index) {
@@ -239,11 +237,6 @@ System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
 	@Override
 	void output(Record r) {
 		theDB.addRecord(tran, table, r);
-	}
-
-	public int indexsize(List<String> index) {
-		Index idx = tbl.getIndex(listToCommas(index));
-		return idx.nnodes() * Btree.NODESIZE;
 	}
 
 }

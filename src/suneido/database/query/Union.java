@@ -37,14 +37,103 @@ public class Union extends Compatible {
 
 	@Override
 	public String toString() {
-		String s = "(" + source + " UNION";
-		if (disjoint != null)
-			s += "-DISJOINT (" + disjoint + ")";
-		else if (strategy != null)
-			s += (strategy == Strategy.MERGE ? "-MERGE" : "-LOOKUP");
-		if (ki != null)
-			s += "^" + ki;
-		return s + " " + source2 + ")";
+		return toString("UNION", strategy == null ? ""
+				: strategy == Strategy.MERGE ? "-MERGE" : "-LOOKUP");
+	}
+
+	@Override
+	double optimize2(List<String> index, List<String> needs,
+			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		List<String> cols1 = source.columns();
+		List<String> needs1 = intersect(needs, cols1);
+		List<String> cols2 = source2.columns();
+		List<String> needs2 = intersect(needs, cols2);
+		if (!nil(index)) {
+			// if not disjoint then index must also be a key
+			if (disjoint == null &&
+				(! source.keys().contains(index) || ! source2.keys().contains(index)))
+				return IMPOSSIBLE;
+			if (freeze) {
+				ki = index;
+				strategy = Strategy.MERGE;
+			}
+			return source.optimize(index, needs1, noFields, is_cursor, freeze) +
+				source2.optimize(index, needs2, noFields, is_cursor, freeze);
+		} else if (disjoint != null) {
+			if (freeze)
+				strategy = Strategy.LOOKUP;
+			return source.optimize(noFields, needs1, noFields, is_cursor, freeze) +
+				source2.optimize(noFields, needs2, noFields, is_cursor, freeze);
+		} else {
+			// merge if you can read both sources by common key index
+			List<List<String>> keyidxs = intersect(
+				intersect(source.keys(), source.indexes()),
+				intersect(source2.keys(), source2.indexes()));
+			List<String> merge_key = null;
+			double merge_cost = IMPOSSIBLE;
+			for (List<String> k : keyidxs) {
+				// NOTE: optimize1 to avoid tempindex
+				double cost = source.optimize1(k, needs1, noFields, is_cursor, false) +
+					source2.optimize1(k, needs2, noFields, is_cursor, false);
+				if (cost < merge_cost) {
+					merge_key = k;
+					merge_cost = cost;
+				}
+			}
+			// lookup on source2
+			List<String> ki2 = null;
+			double cost1 = IMPOSSIBLE;
+			for (List<String> k : source2.keys()) {
+				List<String> needs1_k = union(needs1, intersect(cols1, k));
+				double cost =
+					2 * source.optimize(noFields, needs1, needs1_k, is_cursor, false) +
+					source2.optimize(k, needs2, noFields, is_cursor, false);
+				if (cost < cost1) {
+					ki2 = k;
+					cost1 = cost;
+				}
+			}
+			// lookup on source1
+			List<String> ki1 = null;
+			double cost2 = IMPOSSIBLE;
+			for (List<String> k : source.keys()) {
+				List<String> needs2_k = union(needs2, intersect(cols2, k));
+				double cost =
+					2 * source2.optimize(noFields, needs2, needs2_k, is_cursor, false) +
+					source.optimize(k, needs1, noFields, is_cursor, false) + OUT_OF_ORDER;
+				if (cost < cost2) {
+					ki1 = k;
+					cost2 = cost;
+				}
+			}
+
+			double cost = Math.min(merge_cost, Math.min(cost1, cost2));
+			if (cost >= IMPOSSIBLE)
+				return IMPOSSIBLE;
+			if (freeze) {
+				if (merge_cost <= cost1 && merge_cost <= cost2) {
+					strategy = Strategy.MERGE;
+					ki = merge_key;
+					// NOTE: optimize1 to bypass tempindex
+					source.optimize1(ki, needs1, noFields, is_cursor, true);
+					source2.optimize1(ki, needs2, noFields, is_cursor, true);
+				} else {
+					strategy = Strategy.LOOKUP;
+					if (cost2 < cost1) {
+						Query t1 = source; source = source2; source2 = t1;
+						List<String> t2 = needs1; needs1 = needs2; needs2 = t2;
+						t2 = ki1; ki1 = ki2; ki2 = t2;
+						t2 = cols1; cols1 = cols2; cols2 = t2;
+					}
+					ki = ki2;
+					List<String> needs1_k = union(needs1, intersect(cols1, ki));
+					// NOTE: optimize1 to bypass tempindex
+					source.optimize1(noFields, needs1, needs1_k, is_cursor, true);
+					source2.optimize(ki, needs2, noFields, is_cursor, true);
+				}
+			}
+			return cost;
+		}
 	}
 
 	@Override
@@ -60,8 +149,7 @@ public class Union extends Compatible {
 
 	@Override
 	Header header() {
-		// TODO Auto-generated method stub
-		return null;
+		return Header.add(source.header(), source2.header());
 	}
 
 	@Override
@@ -74,9 +162,8 @@ public class Union extends Compatible {
 
 	@Override
 	List<List<String>> keys() {
-		if (disjoint != "") {
-			List<List<String>> kin = intersect_prefix(source.keys(), source2
-					.keys());
+		if (disjoint != null) {
+			List<List<String>> kin = intersect_prefix(source.keys(), source2.keys());
 			if (!nil(kin)) {
 				List<List<String>> kout = new ArrayList<List<String>>();
 				for (List<String> k : kin)
@@ -97,6 +184,7 @@ public class Union extends Compatible {
 					addUnique(kout, k1);
 				else if (prefix(k2, k1))
 					addUnique(kout, k2);
+System.out.println("intersect_prefix " + keys1 + " & " + keys2 + " => " + kout);
 		return kout;
 	}
 
