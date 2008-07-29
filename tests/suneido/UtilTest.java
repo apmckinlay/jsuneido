@@ -1,8 +1,6 @@
 package suneido;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static suneido.Util.list;
 
 import java.nio.ByteBuffer;
@@ -89,12 +87,15 @@ public class UtilTest {
 	public void prefix_set() {
 		assertTrue(Util.prefix_set(list("a", "b", "c"), new ArrayList<String>()));
 		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("b")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("c")));
+		assertFalse(Util.prefix_set(list("a", "b", "c"), list("b")));
+		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c")));
 		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a", "b")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("c", "a")));
+		assertTrue(Util.prefix_set(list("a", "b", "c"), list("b", "a")));
+		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c", "a")));
 		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a", "b", "c")));
 		assertTrue(Util.prefix_set(list("a", "b", "c"), list("c", "a", "b")));
 		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c", "a", "d")));
+		assertFalse(Util.prefix_set(list("a"), list("b")));
+		assertFalse(Util.prefix_set(list("a"), list("b", "a")));
 	}
 }

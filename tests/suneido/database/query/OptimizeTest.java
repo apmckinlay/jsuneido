@@ -51,11 +51,11 @@ public class OptimizeTest extends TestBase {
 		{ "hist project date,item",
 			"hist^(date,item,id) PROJECT-SEQ^(date,item,id) date,item" },
 
-//		{ "customer project city",
-//			"customer^(id) PROJECT-LOOKUP city" },
-//
-//		{ "customer project id,city project city",
-//			"customer^(id) PROJECT-LOOKUP city" },
+		{ "customer project city",
+			"customer^(id) PROJECT-LOOKUP city" },
+
+		{ "customer project id,city project city",
+			"customer^(id) PROJECT-LOOKUP city" },
 
 		{ "task join co",
 			"(co^(tnum) JOIN 1:1 on (tnum) task^(tnum))", "" },

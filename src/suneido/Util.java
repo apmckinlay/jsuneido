@@ -2,10 +2,7 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -102,12 +99,13 @@ public class Util {
 	}
 
 	public static <T> boolean prefix_set(List<T> list, List<T> set) {
-		int n = set.size();
-		int i = 0;
-		for (T s : list)
-			if (i++ >= n || !set.contains(s))
-				break ;
-		return i >= n;
+		int set_size = set.size();
+		if (list.size() < set_size)
+			return false;
+		for (int i = 0; i < set_size; ++i)
+			if (!set.contains(list.get(i)))
+				return false;
+		return true;
 	}
 
 	public static <T> boolean set_eq(List<T> x, List<T> y) {
