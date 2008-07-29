@@ -89,7 +89,11 @@ public abstract class Query {
 	}
 	double optimize(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		if (is_cursor || index.isEmpty())
+System.out.println("optimize " + this);
+System.out.println("    index=" + index + " needs=" + needs
+	+ " firstneeds=" + firstneeds + (is_cursor ? " cursor" : "")
+	+ (freeze ? " FREEZE" : ""));
+		if (is_cursor || nil(index))
 			return optimize1(index, needs, firstneeds, is_cursor, freeze);
 		if (!columns().containsAll(index))
 			return IMPOSSIBLE;
@@ -100,12 +104,13 @@ public abstract class Query {
 		// tempindex
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
-		cost2 = optimize1(noFields, needs, firstneeds.isEmpty() ? firstneeds
+		cost2 = optimize1(noFields, needs, nil(firstneeds) ? firstneeds
 				: union(firstneeds, index), is_cursor, false)
 				+ nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
 		verify(cost2 >= 0);
+System.out.println("cost1 " + cost1 + ", cost2 " + cost2);
 
 		double cost = Math.min(cost1, cost2);
 		willneed_tempindex = (cost2 < cost1);
@@ -116,8 +121,7 @@ public abstract class Query {
 			cost = IMPOSSIBLE;
 		else if (cost1 <= cost2)
 			optimize1(index, needs, firstneeds, is_cursor, true);
-		else // cost2 < cost1
-		{
+		else { // cost2 < cost1
 			tempindex = index;
 			optimize1(noFields, needs, index, is_cursor, true);
 		}
@@ -143,7 +147,9 @@ public abstract class Query {
 			List<String> firstneeds, boolean is_cursor, boolean freeze);
 
 	protected List<String> key_index(List<String> needs) {
-		List<String> best_index = null;
+System.out.println("key_index " + this);
+System.out.println("    keys " + keys());
+		List<String> best_index = Collections.emptyList();
 		double best_cost = IMPOSSIBLE;
 		for (List<String> key : keys()) {
 			double cost = optimize(key, needs, noFields, false, false);
@@ -152,6 +158,7 @@ public abstract class Query {
 				best_index = key;
 			}
 		}
+System.out.println("key_index => " + best_index);
 		return best_index;
 	}
 

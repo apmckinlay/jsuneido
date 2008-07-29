@@ -13,12 +13,7 @@ public class Intersect extends Compatible {
 
 	@Override
 	public String toString() {
-		String s = "(" + source + " INTERSECT";
-		if (disjoint != null)
-			s += "-DISJOINT";
-		if (ki != null)
-			s += "^" + ki;
-		return s + " " + source2 + ")";
+		return toString("INTERSECT");
 	}
 
 	@Override
@@ -33,14 +28,12 @@ public class Intersect extends Compatible {
 
 		List<String> ki2 = source2.key_index(needs2);
 		List<String> needs1_k = intersect(cols1, ki2);
-		double cost1 = source.optimize(index, needs1, needs1_k, is_cursor,
-				false)
+		double cost1 = source.optimize(index, needs1, needs1_k, is_cursor, false)
 				+ source2.optimize(ki2, needs2, noFields, is_cursor, false);
 
 		List<String> ki1 = source.key_index(needs1);
 		List<String> needs2_k = intersect(cols2, ki1);
-		double cost2 = source2.optimize(index, needs2, needs2_k, is_cursor,
-				false)
+		double cost2 = source2.optimize(index, needs2, needs2_k, is_cursor, false)
 				+ source.optimize(ki1, needs1, noFields, is_cursor, false)
 				+ OUT_OF_ORDER;
 
@@ -49,18 +42,10 @@ public class Intersect extends Compatible {
 			return IMPOSSIBLE;
 		if (freeze) {
 			if (cost2 < cost1) {
-				Query t1 = source;
-				source = source2;
-				source2 = t1;
-				List<String> t2 = needs1;
-				needs1 = needs2;
-				needs2 = t2;
-				t2 = needs1;
-				needs1_k = needs2_k;
-				needs2_k = t2;
-				t2 = ki1;
-				ki1 = ki2;
-				ki2 = t2;
+				Query t1 = source; source = source2; source2 = t1;
+				List<String> t2 = needs1; needs1 = needs2; needs2 = t2;
+				t2 = needs1_k; needs1_k = needs2_k; needs2_k = t2;
+				t2 = ki1; ki1 = ki2; ki2 = t2;
 			}
 			ki = ki2;
 			source.optimize(index, needs1, needs1_k, is_cursor, true);

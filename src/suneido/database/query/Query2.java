@@ -17,6 +17,12 @@ public abstract class Query2 extends Query1 {
 	}
 
 	@Override
+	Query addindex() {
+		source2 = source2.addindex();
+		return super.addindex();
+	}
+
+	@Override
 	boolean updateable() {
 		return false;
 	}

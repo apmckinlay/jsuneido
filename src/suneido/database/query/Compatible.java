@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static java.util.Collections.disjoint;
+import static suneido.Util.listToParens;
 import static suneido.Util.union;
 
 import java.util.List;
@@ -41,8 +42,23 @@ public abstract class Compatible extends Query2 {
 			}
 	}
 
+	public String toString(String name) {
+		return toString(name, "");
+	}
+
+	public String toString(String name, String strategy) {
+		String s = "(" + source + " " + name;
+		if (disjoint != null)
+			s += "-DISJOINT(" + disjoint + ")";
+		else
+			s += strategy;
+		if (ki != null)
+			s += "^" + listToParens(ki);
+		return s + " " + source2 + ")";
+	}
+
 	boolean isdup(Row row) {
-		if (disjoint != "")
+		if (disjoint != null)
 			return false;
 
 		// test if row is in source2
@@ -59,7 +75,7 @@ public abstract class Compatible extends Query2 {
 	}
 
 	boolean equal(Row r1, Row r2) {
-		if (disjoint != "")
+		if (disjoint != null)
 			return false;
 
 		for (String col : allcols)
