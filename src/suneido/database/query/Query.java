@@ -177,11 +177,7 @@ public abstract class Query {
 	private boolean isUnique(List<String> tempindex) {
 		for (List<String> k : keys())
 			if (tempindex.containsAll(k))
-			{
-				System.out.println("addindex " + tempindex + " containsAll "
-						+ k);
 				return true;
-			}
 		return false;
 	}
 }
