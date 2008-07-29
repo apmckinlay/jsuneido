@@ -1,19 +1,9 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.addUnique;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.listToCommas;
-import static suneido.Util.listToParens;
-import static suneido.Util.nil;
-import static suneido.Util.prefix_set;
-import static suneido.Util.removeDups;
-import static suneido.Util.set_eq;
+import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -135,15 +125,15 @@ public class Project extends Query1 {
 			// remove renames not in project
 			List<String> new_from = new ArrayList<String>();
 			List<String> new_to = new ArrayList<String>();
-			List<String> f = r.from();
-			List<String> t = r.to();
+			List<String> f = r.from;
+			List<String> t = r.to;
 			for (int i = 0; i < f.size(); ++i)
 				if (flds.contains(t.get(i))) {
 					new_from.add(f.get(i));
 					new_to.add(t.get(i));
 				}
-			r.setFrom(new_from);
-			r.setTo(new_to);
+			r.from = new_from;
+			r.to = new_to;
 
 			// rename fields
 			List<String> new_fields = new ArrayList<String>();

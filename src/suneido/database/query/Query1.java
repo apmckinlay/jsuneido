@@ -13,11 +13,6 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	boolean updateable() {
-		return source.updateable();
-	}
-
-	@Override
 	Query transform() {
 		source = source.transform();
 		return this;
@@ -84,6 +79,11 @@ public abstract class Query1 extends Query {
 	@Override
 	void rewind() {
 		source.rewind();
+	}
+
+	@Override
+	boolean updateable() {
+		return source.updateable();
 	}
 
 	@Override

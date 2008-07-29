@@ -48,20 +48,6 @@ public class Rename extends Query1 {
 		return s.substring(0, s.length() - 2);
 	}
 
-	public List<String> from() {
-		return from;
-	}
-	public List<String> to() {
-		return to;
-	}
-	public void setFrom(List<String> from) {
-		this.from = from;
-	}
-
-	public void setTo(List<String> to) {
-		this.to = to;
-	}
-
 	@Override
 	Query transform() {
 		// remove empty Renames
