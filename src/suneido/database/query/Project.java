@@ -238,11 +238,9 @@ public class Project extends Query1 {
 		for (List<String> ix : idxs)
 			// TODO: take fixed into account
 			if (prefix_set(ix, flds)) {
-System.out.println("prefix_set " + ix + " " + flds);
 				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
 						is_cursor, false);
-System.out.println("cost of " + ix + " = " + cost);
 				if (cost < best_cost) {
 					best_cost = cost;
 					best_index = ix;

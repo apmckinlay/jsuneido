@@ -8,7 +8,7 @@ public class OptimizeTest extends TestBase {
 	@Test
 	public void test() {
 		for (String[] c : cases) {
-			System.out.println("CASE " + c[0]);
+			// System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]).setup();
 			assertEquals(c[0], c[1], q.toString());
 		}

@@ -184,7 +184,6 @@ public class Union extends Compatible {
 					addUnique(kout, k1);
 				else if (prefix(k2, k1))
 					addUnique(kout, k2);
-System.out.println("intersect_prefix " + keys1 + " & " + keys2 + " => " + kout);
 		return kout;
 	}
 
