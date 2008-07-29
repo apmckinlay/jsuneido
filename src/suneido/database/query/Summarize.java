@@ -7,7 +7,6 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
-import suneido.database.query.Query.Dir;
 
 public class Summarize extends Query1 {
 	private final List<String> by;
@@ -38,6 +37,10 @@ public class Summarize extends Query1 {
 
 		if (by.isEmpty() || by_contains_key())
 			strategy = Strategy.COPY;
+
+		for (int i = 0; i < cols.size(); ++i)
+			if (cols.get(i) == null && on.get(i) != null)
+				cols.set(i, funcs.get(i) + "_" + on.get(i));
 	}
 
 	boolean by_contains_key() {

@@ -12,7 +12,7 @@ import suneido.database.Record;
 
 public class Join extends Query2 {
 	List<String> joincols;
-	private Type type;
+	protected Type type;
 
 	enum Type {
 		NONE(""), ONE_ONE("1:1"), ONE_N("1:n"), N_ONE("n:1"), N_N("n:n");
@@ -194,7 +194,7 @@ public class Join extends Query2 {
 		}
 	}
 
-	private List<List<String>> keypairs() {
+	protected List<List<String>> keypairs() {
 		List<List<String>> keys = new ArrayList<List<String>>();
 		for (List<String> k1 : source.keys())
 			for (List<String> k2 : source2.keys())
@@ -233,8 +233,7 @@ public class Join extends Query2 {
 
 	@Override
 	Header header() {
-		// TODO header
-		return null;
+		return Header.add(source.header(), source2.header());
 	}
 
 	@Override
