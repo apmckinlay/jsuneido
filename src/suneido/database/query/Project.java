@@ -1,9 +1,19 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.*;
+import static suneido.Util.addUnique;
+import static suneido.Util.difference;
+import static suneido.Util.intersect;
+import static suneido.Util.listToCommas;
+import static suneido.Util.listToParens;
+import static suneido.Util.nil;
+import static suneido.Util.prefix_set;
+import static suneido.Util.removeDups;
+import static suneido.Util.set_eq;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -309,11 +319,10 @@ public class Project extends Query1 {
 			do
 				if (null == (row = source.get(Dir.NEXT)))
 					return null;
-			while (!rewound && hdr.equal(row, currow));
+				while (!rewound && hdr.equal(row, currow));
 			rewound = false;
 			prevrow = currow;
 			currow = row;
-			// output the first row of a new group
 			return row;
 		case PREV:
 			// output the last of each group

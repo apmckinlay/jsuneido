@@ -45,17 +45,31 @@ public class ExecuteTest extends TestBase {
 	}
 
 	private static String[][] cases = {
-		{ "customer",
+		{
+					"customer", // table
 			"id	name	city\n" +
 			"'a'	'axon'	'saskatoon'\n" +
 			"'c'	'calac'	'calgary'\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n" },
-		{ "customer sort city",
+		{
+					"customer sort city", // tempindex1
 			"id	name	city\n" +
 			"'c'	'calac'	'calgary'\n" +
 			"'a'	'axon'	'saskatoon'\n" +
 			"'i'	'intercon'	'saskatoon'\n" +
 			"'e'	'emerald'	'vancouver'\n" },
+		{
+					"customer project id,city", // copy
+			"id	city\n" +
+			"'a'	'saskatoon'\n" +
+			"'c'	'calgary'\n" +
+			"'e'	'vancouver'\n" +
+			"'i'	'saskatoon'\n" },
+		{ "trans project item", // sequential
+			"item\n" +
+			"'disk'\n" +
+			"'eraser'\n" +
+			"'mouse'\n" },
 	};
 }
