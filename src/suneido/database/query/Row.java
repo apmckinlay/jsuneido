@@ -10,7 +10,6 @@ import suneido.SuString;
 import suneido.SuValue;
 import suneido.database.Record;
 import suneido.database.Transaction;
-import suneido.database.query.Header.Which;
 
 public class Row {
 	final Record[] data;
@@ -68,8 +67,12 @@ public class Row {
 	}
 
 	Which find(Header hdr, String col) {
-		Which w = hdr.find(col);
-		return w == null || w.di >= data.length ? null : w;
+		int j;
+		for (int i = 0; i < data.length; ++i)
+			if (data[i] != null && !data[i].isEmpty()
+					&& -1 != (j = hdr.flds.get(i).indexOf(col)))
+				return new Which(i, j);
+		return null;
 	}
 
 	public SuValue getval(Header hdr, String col) {
@@ -79,4 +82,15 @@ public class Row {
 		// else rule
 		return surec().getdata(SuString.valueOf(col));
 	}
+
+	static class Which {
+		int di; // index into flds
+		int ri; // index into flds[i]
+
+		Which(int di, int ri) {
+			this.di = di;
+			this.ri = ri;
+		}
+	}
+
 }

@@ -22,7 +22,7 @@ public abstract class Query {
 	private final Cache cache = new Cache();
 	protected boolean willneed_tempindex;
 	private List<String> tempindex;
-	protected enum Dir {
+	public enum Dir {
 		NEXT, PREV
 	};
 	protected final static List<String> noFields = Collections.emptyList();

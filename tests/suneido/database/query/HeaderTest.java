@@ -8,8 +8,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.query.Header.Which;
-
 public class HeaderTest {
 	@Test
 	public void test() {
@@ -24,14 +22,6 @@ public class HeaderTest {
 		assertEquals(list("me", "no"), hdr.rules());
 		assertEquals(list("a", "b", "c", "x", "y", "z", "Me", "No"),
 				hdr.schema());
-
-		assertEquals(null, hdr.find("d"));
-		Which w = hdr.find("b");
-		assertEquals(1, w.di);
-		assertEquals(1, w.ri);
-		w = hdr.find("z");
-		assertEquals(3, w.di);
-		assertEquals(2, w.ri);
 
 		hdr = hdr.rename(list("x", "b"), list("xx", "bb"));
 		assertEquals(list("a", "bb", "me", "c", "xx", "no", "y", "z"), hdr.cols);
