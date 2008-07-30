@@ -8,7 +8,7 @@ import suneido.database.TestBase;
 
 //TODO parse object constants
 
-public class ParseQueryTest extends TestBase {
+public class ParseTest extends TestBase {
 	@Test
 	public void test() {
 		makeTable();

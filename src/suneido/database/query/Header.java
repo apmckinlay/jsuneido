@@ -1,7 +1,9 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.Util.concat;
+import static suneido.Util.intersect;
+import static suneido.Util.union;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,6 @@ public class Header {
 		int i;
 		List<List<String>> newhdr = new ArrayList<List<String>>();
 		for (List<String> f : flds)
-			{
 			if (intersect(from, f).isEmpty())
 				newhdr.add(f);
 			else
@@ -52,7 +53,6 @@ public class Header {
 						newflds.add(to.get(i));
 				newhdr.add(newflds);
 				}
-			}
 		List<String> newcols = new ArrayList<String>();
 		for (String c : cols)
 			if (-1 == (i = from.indexOf(c)))
@@ -82,11 +82,10 @@ public class Header {
 		verify(size() % 2 == 0);
 		List<String> fields = new ArrayList<String>();
 		// WARNING: assumes "real" data is in every other (odd) record
-		for (int i = 1; i < flds.size(); i += 2) {
+		for (int i = 1; i < flds.size(); i += 2)
 			for (String f : flds.get(i))
 				if (f.equals("-") || !fields.contains(f))
 					fields.add(f);
-		}
 		return fields;
 	}
 
@@ -139,27 +138,6 @@ public class Header {
 			if (f.contains(field))
 				return true;
 		return false;
-	}
-
-	Which find(String col) {
-		int ri;
-		int di = 0;
-		for (List<String> f : flds) {
-			if (-1 != (ri = f.indexOf(col)))
-				return new Which(di, ri);
-			++di;
-		}
-		return null;
-	}
-
-	static class Which {
-		int di; // index into flds
-		int ri; // index into flds[i]
-
-		Which(int di, int ri) {
-			this.di = di;
-			this.ri = ri;
-		}
 	}
 
 	public static Header add(Header x, Header y) {
