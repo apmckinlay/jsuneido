@@ -51,6 +51,12 @@ public class ExecuteTest extends TestBase {
 			"'c'	'calac'	'calgary'\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n" },
+		{ "trans",
+			"item	id	cost	date\n" +
+			"'disk'	'a'	100	970101\n" +
+			"'eraser'	'c'	150	970201\n" +
+			"'mouse'	'e'	200	960204\n" +
+			"'mouse'	'c'	200	970101\n" },
 		{ "customer sort city", // tempindex1
 			"id	name	city\n" +
 			"'c'	'calac'	'calgary'\n" +
@@ -67,5 +73,17 @@ public class ExecuteTest extends TestBase {
 			"'saskatoon'\n" +
 			"'calgary'\n" +
 			"'vancouver'\n" },
+		{ "trans extend newcost = cost * 1.1",
+			"item	id	cost	date	newcost\n" +
+			"'disk'	'a'	100	970101	110\n" +
+			"'eraser'	'c'	150	970201	165\n" +
+			"'mouse'	'e'	200	960204	220\n" +
+			"'mouse'	'c'	200	970101	220\n" },
+		{ "trans extend x = cost * 1.1, y = x $ '*'",
+			"item	id	cost	date	x	y\n" +
+			"'disk'	'a'	100	970101	110	'110*'\n" +
+			"'eraser'	'c'	150	970201	165	'165*'\n" +
+			"'mouse'	'e'	200	960204	220	'220*'\n" +
+			"'mouse'	'c'	200	970101	220	'220*'\n" },
 	};
 }
