@@ -5,9 +5,7 @@ import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuContainer;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
@@ -91,6 +89,26 @@ public class Row {
 			this.di = di;
 			this.ri = ri;
 		}
+	}
+
+	/**
+	 * Used by TempIndex and Project
+	 *
+	 * @return An array of either Long for database records, or ByteBuffer for
+	 *         in-memory records (e.g. from Extend)
+	 */
+	public Object[] getRefs() {
+		Object[] refs = new Object[data.length];
+		for (int i = 0; i < data.length; ++i)
+			refs[i] = data[i].getRef();
+		return refs;
+	}
+
+	public static Row fromRefs(Object[] refs) {
+		Record[] data = new Record[refs.length];
+		for (int i = 0; i < data.length; ++i)
+			data[i] = Record.fromRef(refs[i]);
+		return new Row(data);
 	}
 
 }

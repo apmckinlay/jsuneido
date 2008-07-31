@@ -1,30 +1,24 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.list;
-import static suneido.Util.listToParens;
-import static suneido.Util.prefix;
-import static suneido.database.Database.theDB;
+import static suneido.Util.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-import suneido.SuException;
 import suneido.database.Record;
 
-public class TempIndex1 extends Query1 {
+public class TempIndex extends Query1 {
 	private final List<String> order;
 	private final boolean unique;
 	private boolean first = true;
 	private boolean rewound = true;
 	private Header hdr = null;
-	private TreeMap<Record,Long> map = null;
-	private Map.Entry<Record, Long> cur;
+	private TreeMap<Record, Object[]> map = null;
+	private Map.Entry<Record, Object[]> cur;
 	private Record selFrom = Record.MINREC;
 	private Record selTo = Record.MAXREC;
 
-	public TempIndex1(Query source, List<String> order, boolean unique) {
+	public TempIndex(Query source, List<String> order, boolean unique) {
 		super(source);
 		this.order = order;
 		this.unique = unique;
@@ -32,7 +26,7 @@ public class TempIndex1 extends Query1 {
 
 	@Override
 	public String toString() {
-		return source.toString() + " TEMPINDEX1" + listToParens(order)
+		return source.toString() + " TEMPINDEX" + listToParens(order)
 				+ (unique ? " unique" : "");
 	}
 
@@ -66,7 +60,7 @@ public class TempIndex1 extends Query1 {
 			}
 
 		// TODO: put iter->key into row
-		return new Row(null, theDB.input(cur.getValue()));
+		return Row.fromRefs(cur.getValue());
 	}
 
 	private boolean outsideSelect(Record key) {
@@ -75,31 +69,15 @@ public class TempIndex1 extends Query1 {
 
 	private void iterate_setup(Dir dir) {
 		Header srchdr = source.header();
-		map = new TreeMap<Record,Long>();
+		map = new TreeMap<Record, Object[]>();
 		Row row;
 		for (int num = 0; null != (row = source.get(Dir.NEXT)); ++num)
 			{
-			Record key = unique
-				? row_to_key(srchdr, row, order)
-				: row_to_key(srchdr, row, order, num);
-			// WARNING: assumes data is always second in row
-			verify(null == map.put(key, row.data[1].off()));
+			Record key = row.project(srchdr, order);
+			if (!unique)
+				key.add(num);
+			verify(null == map.put(key, row.getRefs()));
 			}
-	}
-
-	private Record row_to_key(Header hdr, Row row, List<String> flds, int num) {
-		Record key = row_to_key(hdr, row, flds);
-		key.add(num);
-		return key;
-	}
-
-	private Record row_to_key(Header hdr, Row row, List<String> flds) {
-		Record key = new Record();
-		for (String f : flds)
-			key.add(row.getrawval(hdr, f));
-		if (key.bufSize() > 4000)
-			throw new SuException("index entry size > 4000: " + flds);
-		return key;
 	}
 
 	@Override

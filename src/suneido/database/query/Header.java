@@ -1,9 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.concat;
-import static suneido.Util.intersect;
-import static suneido.Util.union;
+import static suneido.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,4 +141,5 @@ public class Header {
 	public static Header add(Header x, Header y) {
 		return new Header(concat(x.flds, y.flds), union(x.cols, y.cols));
 	}
+
 }

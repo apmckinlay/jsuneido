@@ -110,7 +110,7 @@ public class OptimizeTest extends TestBase {
 				"UNION-MERGE^(date,item,id) trans^(date,item,id)) " +
 				"INTERSECT^(date,item,id,cost) (hist^(date,item,id) " +
 				"UNION-MERGE^(date,item,id) hist^(date,item,id)) " +
-				"TEMPINDEXN(date,item,id,cost) unique)" },
+				"TEMPINDEX(date,item,id,cost) unique)" },
 
 		{ "(trans minus hist) union (trans intersect hist)",
 				"((trans^(date,item,id) " +
@@ -126,7 +126,7 @@ public class OptimizeTest extends TestBase {
 
 		{ "(customer times inven) join trans",
 			"((customer^(id) TIMES inven^(item)) JOIN 1:n on (id,item) " +
-				"trans^(date,item,id) TEMPINDEX1(id,item))" },
+				"trans^(date,item,id) TEMPINDEX(id,item))" },
 
 		{ "hist join customer",
 			"(hist^(date,item,id) JOIN n:1 on (id) customer^(id))" },
@@ -151,7 +151,7 @@ public class OptimizeTest extends TestBase {
 
 		{ "customer join supplier",
 			"(customer^(id) JOIN n:n on (name,city) supplier^(city) " +
-				"TEMPINDEX1(name,city))" },
+				"TEMPINDEX(name,city))" },
 
 		{ "trans join customer join inven",
 			"(inven^(item) JOIN 1:n on (item) (trans^(item) " +
@@ -176,13 +176,13 @@ public class OptimizeTest extends TestBase {
 				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
 
 		{ "inven leftjoin trans",
-					"(inven^(item) LEFTJOIN 1:n on (item) trans^(item))" },
+			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item))" },
 
-			{ "customer leftjoin hist2",
+		{ "customer leftjoin hist2",
 					"(customer^(id) LEFTJOIN 1:n on (id) hist2^(id))" },
 
-			{ "customer leftjoin hist2 sort date",
-					"(customer^(id) LEFTJOIN 1:n on (id) hist2^(id)) TEMPINDEXN(date)" },
+		{ "customer leftjoin hist2 sort date",
+					"(customer^(id) LEFTJOIN 1:n on (id) hist2^(id)) TEMPINDEX(date)" },
 
 		{ "inven where qty + 1 > 5",
 			"inven^(item) WHERE^(item) ((qty + 1) > 5)" },
@@ -222,7 +222,7 @@ public class OptimizeTest extends TestBase {
 			"hist^(date) EXTEND x = (item $ id)" },
 
 		{ "inven extend x = -qty sort x",
-			"inven^(item) EXTEND x = -qty TEMPINDEXN(x)" },
+			"inven^(item) EXTEND x = -qty TEMPINDEX(x)" },
 
 		{ "inven extend x = (qty = 2 ? 222 : qty)",
 			"inven^(item) EXTEND x = ((qty = 2) ? 222 : qty)" },

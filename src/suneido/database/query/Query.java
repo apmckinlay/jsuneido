@@ -166,12 +166,8 @@ public abstract class Query {
 
 	// used to insert TempIndex nodes
 	Query addindex() { // redefined by Query1 and Query2
-		if (nil(tempindex))
-			return this;
-		if (header().size() > 2)
-			return new TempIndexN(this, tempindex, isUnique(tempindex));
-		else
-			return new TempIndex1(this, tempindex, isUnique(tempindex));
+		return nil(tempindex) ? this
+				: new TempIndex(this, tempindex, isUnique(tempindex));
 	}
 
 	private boolean isUnique(List<String> tempindex) {
