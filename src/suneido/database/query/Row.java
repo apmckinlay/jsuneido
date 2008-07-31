@@ -26,6 +26,12 @@ public class Row {
 		verify(recadr > 0);
 	}
 
+	public Row(Row row, Record... recs) {
+		data = new Record[row.data.length + recs.length];
+		System.arraycopy(row.data, 0, data, 0, row.data.length);
+		System.arraycopy(recs, 0, data, row.data.length, recs.length);
+	}
+
 	@Override
 	public String toString() {
 		String s = "";

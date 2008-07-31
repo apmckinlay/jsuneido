@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
@@ -99,8 +100,16 @@ public class Extend extends Query1 {
 
 	@Override
 	Row get(Dir dir) {
-		// TODO get
-		return null;
+		if (hdr == null)
+			header();
+		Row row = source.get(dir);
+		if (row == null)
+			return null;
+		Record results = new Record();
+		row = new Row(row, null, results);
+		for (int i = 0; i < flds.size(); ++i)
+			results.add(exprs.get(i).eval(hdr, row));
+		return row;
 	}
 
 	@Override
