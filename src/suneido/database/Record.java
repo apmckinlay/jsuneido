@@ -2,6 +2,7 @@ package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
+import static suneido.database.Database.theDB;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -604,5 +605,15 @@ public class Record
 		public void remove() {
 			throw unreachable();
 		}
+	}
+
+	public Object getRef() {
+		return dboffset == 0 ? buf : dboffset;
+	}
+
+	public static Record fromRef(Object ref) {
+		return ref instanceof Long
+				? theDB.input((Long) ref)
+				: new Record((ByteBuffer) ref);
 	}
 }

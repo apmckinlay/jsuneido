@@ -1,19 +1,10 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.addUnique;
-import static suneido.Util.difference;
-import static suneido.Util.intersect;
-import static suneido.Util.listToCommas;
-import static suneido.Util.listToParens;
-import static suneido.Util.nil;
-import static suneido.Util.prefix_set;
-import static suneido.Util.removeDups;
-import static suneido.Util.set_eq;
+import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -25,7 +16,7 @@ public class Project extends Query1 {
 	private boolean first = true;
 	private Header hdr;
 	// used by LOOKUP
-	// VVtree idx = null;
+	private TreeMap<Record, Object[]> map = null;
 	private Keyrange sel;
 	private boolean rewound = true;
 	private boolean indexed;
@@ -55,7 +46,7 @@ public class Project extends Query1 {
 			throw new SuException("project: nonexistent column(s): "
 					+ listToParens(difference(args, columns)));
 		flds = allbut
-		? difference(columns, args)
+				? difference(columns, args)
 				: removeDups(args);
 
 		// include dependencies (_deps)
@@ -297,7 +288,7 @@ public class Project extends Query1 {
 			first = false;
 			hdr = header();
 			if (strategy == Strategy.LOOKUP)
-				//			idx = new VVtree(td = new TempDest);
+				map = new TreeMap<Record, Object[]>();
 				indexed = false;
 		}
 		switch (strategy) {
@@ -331,13 +322,11 @@ public class Project extends Query1 {
 			if (rewound)
 				prevrow = source.get(Dir.PREV);
 			rewound = false;
-			do
-			{
+			do {
 				if (null == (row = prevrow))
 					return null;
 				prevrow = source.get(Dir.PREV);
-			}
-			while (hdr.equal(row, prevrow));
+			} while (hdr.equal(row, prevrow));
 			// output the last row of a group
 			currow = row;
 			return row;
@@ -354,42 +343,41 @@ public class Project extends Query1 {
 		}
 		Row row;
 		while (null != (row = source.get(dir))) {
-			//			Record key = row_to_key(hdr, row, flds);
-			//			VVtree::iterator iter = idx.find(key);
-			//			if (iter == idx.end())
-			//				{
-			//				for (List<Record> rs = row.data; ! nil(rs); ++rs)
-			//					td.addref(rsptr());
-			//				Vdata data(row.data);
-			//				verify(idx.insert(VVslot(key, data)));
-			//				return row;
-			//				}
-			//			else
-			//				{
-			//				Vdata d = iterdata;
-			//				Records rs;
-			//				for (int i = dn - 1; i >= 0; --i)
-			//					rs.add(Record::from_int(dr[i], theDB().mmf));
-			//				Row i.row(rs);
-			//				if (row == i.row)
-			//					return row;
-			//				}
+			Record key = row.project(hdr, flds);
+			Object[] data = map.get(key);
+			if (data == null) {
+				map.put(key, row.getRefs());
+				return row;
+			} else if (equal(data, row.getRefs()))
+				return row;
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
 		return null;
+	}
+	private boolean equal(Object[] refs1, Object[] refs2) {
+		if (refs1.length != refs2.length)
+			return false;
+		for (int i = 0; i < refs1.length; ++i)
+			if (!equal(refs1[i], refs2[i]))
+				return false;
+		return true;
+	}
+	private boolean equal(Object ref1, Object ref2) {
+		if (ref1 == ref2)
+			return true;
+		if (ref1 instanceof ByteBuffer && ref2 instanceof ByteBuffer)
+			return ((ByteBuffer) ref1).equals(ref2);
+		return false;
 	}
 
 	private void buildLookupIndex() {
 		Row row;
 		// pre-build the index
 		while (null != (row = source.get(Dir.NEXT))) {
-			//			Record key = row_to_key(hdr, row, flds);
-			//			Vdata data(row.data);
-			//			for (List<Record> rs = row.data; ! nil(rs); ++rs)
-			//				td.addref(rs.ptr());
-			//			// insert will only succeed on first of dups
-			//			idx.insert(VVslot(key, data));
+			Record key = row.project(hdr, flds);
+			if (null == map.get(key))
+				map.put(key, row.getRefs());
 		}
 		source.rewind();
 		indexed = true;
