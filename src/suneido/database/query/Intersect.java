@@ -77,8 +77,12 @@ public class Intersect extends Compatible {
 
 	@Override
 	Row get(Dir dir) {
-		// TODO get
-		return null;
+		if (disjoint != null)
+			return null;
+		Row row;
+		while (null != (row = source.get(dir)) && !isdup(row))
+			;
+		return row;
 	}
 
 }
