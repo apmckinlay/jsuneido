@@ -10,7 +10,8 @@ import suneido.SuException;
 import suneido.database.Record;
 
 public class Product extends Query2 {
-	private boolean first = true;
+	private boolean rewound = true;
+	private Row row1 = null;
 
 	Product(Query source1, Query source2) {
 		super(source1, source2);
@@ -85,20 +86,33 @@ public class Product extends Query2 {
 
 	@Override
 	void rewind() {
-		first = true;
+		rewound = true;
 		source.rewind();
 		source2.rewind();
 	}
 
 	@Override
 	Row get(Dir dir) {
-		// TODO get
-		return null;
+		Row row2 = source2.get(dir);
+		if (rewound) {
+			rewound = false;
+			row1 = source.get(dir);
+			if (row1 == null || row2 == null)
+				return null;
+		}
+		if (row2 == null) {
+			row1 = source.get(dir);
+			if (row1 == null)
+				return null;
+			source2.rewind();
+			row2 = source2.get(dir);
+		}
+		return new Row(row1, row2);
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		first = true;
+		rewound = true;
 		source.select(index, from, to);
 		source2.rewind();
 	}
