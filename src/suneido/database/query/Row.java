@@ -77,7 +77,7 @@ public class Row {
 
 	private SuContainer surec() {
 		if (surec == null)
-			surec = new SuContainer(); // TODO
+			surec = new SuContainer(); // TODO surec
 		return surec;
 	}
 
@@ -99,7 +99,7 @@ public class Row {
 		if (w != null || !hdr.cols.contains(col))
 			return SuValue.unpack(getraw(w));
 		// else rule
-		return surec().getdata(SuString.valueOf(col));
+		return SuString.EMPTY; // TODO surec().getdata(SuString.valueOf(col));
 	}
 
 	static class Which {
