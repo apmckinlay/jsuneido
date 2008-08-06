@@ -146,5 +146,18 @@ public class ExecuteTest extends TestBase {
 			"'c'	'trical'	'calac'	'calgary'\n" },
 		{ "customer join supplier",
 			"id	name	city	supplier\n" },
+		{ "inven leftjoin trans",
+			"item	qty	id	cost	date\n" +
+			"'disk'	5	'a'	100	970101\n" +
+			"'mouse'	2	'e'	200	960204\n" +
+			"'mouse'	2	'c'	200	970101\n" +
+			"'pencil'	7	''	''	''\n" },
+		{ "customer leftjoin hist2",
+			"id	name	city	date	item	cost\n" +
+			"'a'	'axon'	'saskatoon'	970101	'disk'	100\n" +
+			"'c'	'calac'	'calgary'	''	''	''\n" +
+			"'e'	'emerald'	'vancouver'	970102	'disk'	200\n" +
+			"'e'	'emerald'	'vancouver'	970103	'pencil'	300\n" +
+			"'i'	'intercon'	'saskatoon'	''	''	''\n" },
 	};
 }

@@ -254,7 +254,7 @@ public class Join extends Query2 {
 		}
 	}
 
-	private boolean next_row1(Dir dir) {
+	protected boolean next_row1(Dir dir) {
 		if (null == (row1 = source.get(dir)))
 			return false;
 		Record key = row1.project(hdr1, joincols);
@@ -262,7 +262,7 @@ public class Join extends Query2 {
 		return true;
 	}
 
-	private boolean should_output(Row row) {
+	protected boolean should_output(Row row) {
 		return row != null;
 	}
 

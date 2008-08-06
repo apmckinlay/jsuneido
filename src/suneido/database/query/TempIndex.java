@@ -12,7 +12,6 @@ public class TempIndex extends Query1 {
 	private final boolean unique;
 	private boolean first = true;
 	private boolean rewound = true;
-	private Header hdr = null;
 	private TreeMap<Record, Object[]> map = null;
 	private Map.Entry<Record, Object[]> cur;
 	private final Keyrange sel = new Keyrange();
@@ -38,7 +37,6 @@ public class TempIndex extends Query1 {
 	Row get(Dir dir) {
 		if (first) {
 			first = false;
-			hdr = header();
 			iterate_setup(dir);
 		}
 		if (rewound) {
