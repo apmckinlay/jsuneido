@@ -125,10 +125,26 @@ public class ExecuteTest extends TestBase {
 		{ "hist union hist2", // lookup
 			"date	item	id	cost\n" +
 			"970102	'disk'	'e'	200\n" +
-			"970101	'disk'	'a'	100\n"
-							+
+			"970101	'disk'	'a'	100\n" +
 			"970101	'disk'	'e'	200\n" +
 			"970102	'mouse'	'c'	200\n" +
 			"970103	'pencil'	'e'	300\n" },
+		{ "hist join customer",
+			"date	item	id	cost	name	city\n" +
+			"970101	'disk'	'a'	100	'axon'	'saskatoon'\n" +
+			"970101	'disk'	'e'	200	'emerald'	'vancouver'\n" +
+			"970102	'mouse'	'c'	200	'calac'	'calgary'\n" +
+			"970103	'pencil'	'e'	300	'emerald'	'vancouver'\n" },
+		{ "trans join inven",
+			"item	qty	id	cost	date\n" +
+			"'disk'	5	'a'	100	970101\n" +
+			"'mouse'	2	'e'	200	960204\n" +
+			"'mouse'	2	'c'	200	970101\n" },
+		{ "customer join alias",
+			"id	name2	name	city\n" +
+			"'a'	'abc'	'axon'	'saskatoon'\n" +
+			"'c'	'trical'	'calac'	'calgary'\n" },
+		{ "customer join supplier",
+			"id	name	city	supplier\n" },
 	};
 }

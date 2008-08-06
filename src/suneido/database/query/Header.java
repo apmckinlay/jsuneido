@@ -19,6 +19,11 @@ public class Header {
 		this.cols = cols;
 	}
 
+	public Header(Header x, Header y) {
+		this.flds = concat(x.flds, y.flds);
+		this.cols = union(x.cols, y.cols);
+	}
+
 	public int size() {
 		return flds.size();
 	}
@@ -136,10 +141,6 @@ public class Header {
 			if (f.contains(field))
 				return true;
 		return false;
-	}
-
-	public static Header add(Header x, Header y) {
-		return new Header(concat(x.flds, y.flds), union(x.cols, y.cols));
 	}
 
 }

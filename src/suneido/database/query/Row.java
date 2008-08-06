@@ -27,9 +27,9 @@ public class Row {
 		verify(recadr > 0);
 	}
 
-	public Row(int n, Record r) {
+	public Row(int n) {
 		data = new Record[n];
-		Arrays.fill(data, r);
+		Arrays.fill(data, Record.MINREC);
 	}
 
 	// used by Project

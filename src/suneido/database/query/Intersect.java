@@ -76,6 +76,11 @@ public class Intersect extends Compatible {
 	}
 
 	@Override
+	public Header header() {
+		return source.header();
+	}
+
+	@Override
 	Row get(Dir dir) {
 		if (disjoint != null)
 			return null;

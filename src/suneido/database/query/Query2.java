@@ -35,4 +35,9 @@ public abstract class Query2 extends Query1 {
 		source2.setTransaction(tran);
 	}
 
+	@Override
+	public Header header() {
+		return new Header(source.header(), source2.header());
+	}
+
 }

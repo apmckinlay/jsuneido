@@ -115,7 +115,7 @@ public class Extend extends Query1 {
 	@Override
 	Header header() {
 		if (hdr == null)
-			hdr = Header.add(source.header(),
+			hdr = new Header(source.header(),
 					new Header(list(noFields, flds), union(flds, rules)));
 		return hdr;
 	}

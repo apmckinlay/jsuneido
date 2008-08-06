@@ -161,7 +161,7 @@ public class Select extends Query1 {
 		}
 		// distribute select over union
 		else if (source instanceof Union) {
-			Union q = (Union) source;
+			Query2 q = (Query2) source;
 			q.source = new Select(q.source, project(q.source));
 			q.source2 = new Select(q.source2, project(q.source2));
 			moved = true;

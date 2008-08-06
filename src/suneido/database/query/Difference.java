@@ -42,6 +42,11 @@ public class Difference extends Compatible {
 	}
 
 	@Override
+	public Header header() {
+		return source.header();
+	}
+
+	@Override
 	Row get(Dir dir) {
 		Row row;
 		while (null != (row = source.get(dir)) && isdup(row))
