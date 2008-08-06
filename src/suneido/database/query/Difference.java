@@ -43,8 +43,10 @@ public class Difference extends Compatible {
 
 	@Override
 	Row get(Dir dir) {
-		// TODO get
-		return null;
+		Row row;
+		while (null != (row = source.get(dir)) && isdup(row))
+			;
+		return row;
 	}
 
 }

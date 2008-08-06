@@ -79,7 +79,7 @@ public abstract class Compatible extends Query2 {
 			return false;
 
 		for (String col : allcols)
-			if (r1.getraw(hdr1, col) != r2.getraw(hdr2, col))
+			if (!r1.getraw(hdr1, col).equals(r2.getraw(hdr2, col)))
 				return false;
 		return true;
 	}
