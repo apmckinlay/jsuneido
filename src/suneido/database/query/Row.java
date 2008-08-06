@@ -26,10 +26,19 @@ public class Row {
 		verify(recadr > 0);
 	}
 
+	// used by Project
 	public Row(Row row, Record... recs) {
 		data = new Record[row.data.length + recs.length];
 		System.arraycopy(row.data, 0, data, 0, row.data.length);
 		System.arraycopy(recs, 0, data, row.data.length, recs.length);
+	}
+
+	public Row(Row row1, Row row2) {
+		data = new Record[row1.data.length + row2.data.length];
+		System.arraycopy(row1.data, 0, data, 0, row1.data.length);
+		System
+				.arraycopy(row2.data, 0, data, row1.data.length,
+						row2.data.length);
 	}
 
 	@Override

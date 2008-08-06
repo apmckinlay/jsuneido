@@ -1,5 +1,7 @@
 package suneido.database.query;
 
+import suneido.database.Transaction;
+
 
 public abstract class Query2 extends Query1 {
 	Query source2;
@@ -25,6 +27,12 @@ public abstract class Query2 extends Query1 {
 	@Override
 	boolean updateable() {
 		return false;
+	}
+
+	@Override
+	void setTransaction(Transaction tran) {
+		super.setTransaction(tran);
+		source2.setTransaction(tran);
 	}
 
 }

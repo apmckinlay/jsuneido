@@ -85,5 +85,19 @@ public class ExecuteTest extends TestBase {
 			"'eraser'	'c'	150	970201	165	'165*'\n" +
 			"'mouse'	'e'	200	960204	220	'220*'\n" +
 			"'mouse'	'c'	200	970101	220	'220*'\n" },
+		{ "customer times inven",
+			"id	name	city	item	qty\n" +
+			"'a'	'axon'	'saskatoon'	'disk'	5\n" +
+			"'a'	'axon'	'saskatoon'	'mouse'	2\n" +
+			"'a'	'axon'	'saskatoon'	'pencil'	7\n" +
+			"'c'	'calac'	'calgary'	'disk'	5\n" +
+			"'c'	'calac'	'calgary'	'mouse'	2\n" +
+			"'c'	'calac'	'calgary'	'pencil'	7\n" +
+			"'e'	'emerald'	'vancouver'	'disk'	5\n" +
+			"'e'	'emerald'	'vancouver'	'mouse'	2\n" +
+			"'e'	'emerald'	'vancouver'	'pencil'	7\n" +
+			"'i'	'intercon'	'saskatoon'	'disk'	5\n" +
+			"'i'	'intercon'	'saskatoon'	'mouse'	2\n" +
+			"'i'	'intercon'	'saskatoon'	'pencil'	7\n" },
 	};
 }
