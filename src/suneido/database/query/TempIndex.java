@@ -15,8 +15,7 @@ public class TempIndex extends Query1 {
 	private Header hdr = null;
 	private TreeMap<Record, Object[]> map = null;
 	private Map.Entry<Record, Object[]> cur;
-	private Record selFrom = Record.MINREC;
-	private Record selTo = Record.MAXREC;
+	private final Keyrange sel = new Keyrange();
 
 	public TempIndex(Query source, List<String> order, boolean unique) {
 		super(source);
@@ -45,15 +44,15 @@ public class TempIndex extends Query1 {
 		if (rewound) {
 			rewound = false;
 			if (dir == Dir.NEXT)
-				cur = map.ceilingEntry(selFrom);
+				cur = map.ceilingEntry(sel.org);
 			else
-				cur = map.floorEntry(selTo);
+				cur = map.floorEntry(sel.end);
 		}
 		else if (dir == Dir.NEXT)
 			cur = map.higherEntry(cur.getKey());
 		else // dir == PREV
 			cur = map.lowerEntry(cur.getKey());
-		if (cur == null || outsideSelect(cur.getKey()))
+		if (cur == null || !sel.contains(cur.getKey()))
 			{
 			rewound = true;
 			return null;
@@ -61,10 +60,6 @@ public class TempIndex extends Query1 {
 
 		// TODO: put iter->key into row
 		return Row.fromRefs(cur.getValue());
-	}
-
-	private boolean outsideSelect(Record key) {
-		return key.compareTo(selFrom) < 0 || key.compareTo(selTo) > 0;
 	}
 
 	private void iterate_setup(Dir dir) {
@@ -88,8 +83,8 @@ public class TempIndex extends Query1 {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		verify(prefix(order, index));
-		selFrom = from;
-		selTo = to;
+		sel.org = from;
+		sel.end = to;
 		rewound = true;
 	}
 

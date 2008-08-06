@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static suneido.SuException.unreachable;
 import static suneido.Util.*;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class Union extends Compatible {
 	boolean first = true;
 	Row empty1;
 	Row empty2;
-	Keyrange sel;
+	Keyrange sel = new Keyrange();
 	// for LOOKUP
 	boolean in1; // true while processing first source
 	// for MERGE
@@ -142,19 +143,8 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	Row get(Dir dir) {
-		// TODO get
-		return null;
-	}
-
-	@Override
-	Header header() {
-		return Header.add(source.header(), source2.header());
-	}
-
-	@Override
 	List<List<String>> indexes() {
-		// TODO: there are more possible indexes
+		// NOTE: there are more possible indexes
 		return intersect(
 			intersect(source.keys(), source.indexes()),
 			intersect(source2.keys(), source2.indexes()));
@@ -188,20 +178,139 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	void rewind() {
-		// TODO rewind
+	double nrecords() {
+		return (source.nrecords() + source2.nrecords()) / 2;
+	}
 
+	@Override
+	Header header() {
+		return Header.add(source.header(), source2.header());
+	}
+
+	@Override
+	Row get(Dir dir) {
+		if (first) {
+			empty1 = new Row(source.header().size(), Record.MINREC);
+			empty2 = new Row(source2.header().size(), Record.MINREC);
+		}
+		switch (strategy) {
+		case LOOKUP :
+			return getLookup(dir);
+		case MERGE :
+			return getMerge(dir);
+		default:
+			throw unreachable();
+		}
+	}
+
+	private Row getLookup(Dir dir) {
+		if (first)
+			first = false;
+		if (rewound) {
+			rewound = false;
+			in1 = (dir == Dir.NEXT);
+		}
+		Row row;
+		for (;;) {
+			if (in1) {
+				while (null != (row = source.get(dir)) && isdup(row))
+					;
+				if (row != null)
+					return new Row(row, empty2);
+				if (dir == Dir.PREV)
+					return null;
+				in1 = false;
+				if (disjoint == null)
+					source2.select(ki, sel.org, sel.end);
+			} else { // source2
+				row = source2.get(dir);
+				if (row != null)
+					return new Row(empty1, row);
+				if (dir == Dir.NEXT)
+					return null;
+				in1 = true;
+				source.rewind();
+			}
+		}
+	}
+
+	private Row getMerge(Dir dir) {
+		if (first) {
+			first = false;
+			hdr1 = source.header();
+			hdr2 = source2.header();
+		}
+
+		// read from the appropriate source(s)
+		if (rewound) {
+			rewound = false;
+			if (null != (row1 = source.get(dir)))
+				key1 = row1.project(hdr1, ki);
+			if (null != (row2 = source2.get(dir)))
+				key2 = row2.project(hdr2, ki);
+		} else {
+			// curkey is required for changing direction
+			if (src1 || before(dir, key1, 1, curkey, 2)) {
+				if (key1.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
+					source.select(ki, sel.org, sel.end);
+				row1 = source.get(dir);
+				key1 = (row1 == null
+						? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
+						: row1.project(hdr1, ki));
+			}
+			if (src2 || before(dir, key2, 2, curkey, 1)) {
+				if (key2.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
+					source2.select(ki, sel.org, sel.end);
+				row2 = source2.get(dir);
+				key2 = (row2 == null
+						? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
+						: row2.project(hdr2, ki));
+			}
+		}
+
+		src1 = src2 = false;
+		if (row1 == null && row2 == null) {
+			curkey = key1;
+			src1 = true;
+			return null;
+		} else if (row1 != null && row2 != null && equal(row1, row2)) {
+			// rows same so return either one
+			curkey = key1;
+			src1 = src2 = true;
+			return new Row(row1, empty2);
+		} else if (row1 != null
+				&& (row2 == null || before(dir, key1, 1, key2, 2))) {
+			curkey = key1;
+			src1 = true;
+			return new Row(row1, empty2);
+		} else {
+			curkey = key2;
+			src2 = true;
+			return new Row(empty1, row2);
+		}
+	}
+
+	private boolean before(Dir dir, Record key1, int src1, Record key2, int src2) {
+		if (key1.equals(key2))
+			return dir == Dir.NEXT ? src1 < src2 : src1 > src2;
+		else
+			return dir == Dir.NEXT ? key1.compareTo(key2) < 0 : key1.compareTo(key2) > 0;
+	}
+
+	@Override
+	void rewind() {
+		rewound = true;
+		source.rewind();
+		source2.select(ki, sel.org, sel.end);
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO select
-
-	}
-
-	@Override
-	double nrecords() {
-		return (source.nrecords() + source2.nrecords()) / 2;
+		sel.org = from;
+		sel.end = to;
+		rewound = true;
+		source.select(index, from, to);
+		source2.select(index, from, to);
 	}
 
 }

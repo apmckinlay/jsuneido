@@ -62,6 +62,7 @@ public abstract class Query {
 	}
 	abstract void select(List<String> index, Record from, Record to);
 	void select(List<String> index, Record key) {
+		select(index, key, key);
 	}
 	abstract void rewind();
 	abstract Row get(Dir dir);

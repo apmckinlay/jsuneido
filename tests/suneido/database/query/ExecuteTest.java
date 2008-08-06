@@ -14,7 +14,7 @@ public class ExecuteTest extends TestBase {
 	@Test
 	public void test() {
 		for (String[] c : cases) {
-			// System.out.println("CASE " + c[0]);
+			System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]).setup();
 			Transaction t = theDB.readonlyTran();
 			try {
@@ -45,12 +45,18 @@ public class ExecuteTest extends TestBase {
 	}
 
 	private static String[][] cases = {
-		{ "customer", // table
+		{ "customer",
 			"id	name	city\n" +
 			"'a'	'axon'	'saskatoon'\n" +
 			"'c'	'calac'	'calgary'\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n" },
+		{ "hist",
+			"date	item	id	cost\n" +
+			"970101	'disk'	'a'	100\n" +
+			"970101	'disk'	'e'	200\n" +
+			"970102	'mouse'	'c'	200\n" +
+			"970103	'pencil'	'e'	300\n" },
 		{ "trans",
 			"item	id	cost	date\n" +
 			"'disk'	'a'	100	970101\n" +
@@ -99,5 +105,30 @@ public class ExecuteTest extends TestBase {
 			"'i'	'intercon'	'saskatoon'	'disk'	5\n" +
 			"'i'	'intercon'	'saskatoon'	'mouse'	2\n" +
 			"'i'	'intercon'	'saskatoon'	'pencil'	7\n" },
+		{ "trans intersect hist",
+			"item	id	cost	date\n" +
+			"'disk'	'a'	100	970101\n" },
+		{ "trans minus hist",
+			"item	id	cost	date\n" +
+			"'mouse'	'e'	200	960204\n" +
+			"'mouse'	'c'	200	970101\n" +
+			"'eraser'	'c'	150	970201\n" },
+		{ "trans union hist", // merge
+			"item	id	cost	date\n" +
+			"'mouse'	'e'	200	960204\n" +
+			"'disk'	'a'	100	970101\n" +
+			"'disk'	'e'	200	970101\n" +
+			"'mouse'	'c'	200	970101\n" +
+			"'mouse'	'c'	200	970102\n" +
+			"'pencil'	'e'	300	970103\n" +
+			"'eraser'	'c'	150	970201\n" },
+		{ "hist union hist2", // lookup
+			"date	item	id	cost\n" +
+			"970102	'disk'	'e'	200\n" +
+			"970101	'disk'	'a'	100\n"
+							+
+			"970101	'disk'	'e'	200\n" +
+			"970102	'mouse'	'c'	200\n" +
+			"970103	'pencil'	'e'	300\n" },
 	};
 }

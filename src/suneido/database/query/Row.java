@@ -3,6 +3,7 @@ package suneido.database.query;
 import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 import suneido.*;
@@ -24,6 +25,11 @@ public class Row {
 		data = new Record[] { record };
 		this.recadr = recadr;
 		verify(recadr > 0);
+	}
+
+	public Row(int n, Record r) {
+		data = new Record[n];
+		Arrays.fill(data, r);
 	}
 
 	// used by Project

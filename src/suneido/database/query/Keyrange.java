@@ -34,4 +34,9 @@ public class Keyrange {
 	public int hashCode() {
 		return org.hashCode() + end.hashCode();
 	}
+
+	public boolean contains(Record key) {
+		return org.compareTo(key) <= 0 && end.compareTo(key) >= 0;
+	}
+
 }

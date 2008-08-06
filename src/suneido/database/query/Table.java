@@ -2,35 +2,23 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.difference;
-import static suneido.Util.list;
-import static suneido.Util.listToCommas;
-import static suneido.Util.listToParens;
-import static suneido.Util.nil;
+import static suneido.Util.*;
 import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.SuException;
-import suneido.SuValue;
-import suneido.database.Btree;
-import suneido.database.BtreeIndex;
-import suneido.database.Index;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 
 public class Table extends Query {
 	private final String table;
 	/* package */suneido.database.Table tbl;
-	private int choice;
 	private boolean first = true;
 	private boolean rewound = true;
-	private Keyrange sel;
+	private final Keyrange sel = new Keyrange();
 	private Header hdr;
 	private BtreeIndex ix;
 	private Transaction tran = null;
-	private final SuValue trigger = null;
-	private List<Integer> flds;
 	private boolean singleton; // i.e. key()
 	private List<String> idx;
 	private BtreeIndex.Iter iter;
@@ -51,13 +39,13 @@ public class Table extends Query {
 				List<String> firstneeds, boolean is_cursor, boolean freeze) {
 			tbl = theDB.ck_getTable(table);
 			singleton = tbl.singleton();
-	
+
 			if (!columns().containsAll(needs))
 				throw new SuException("Table::optimize columns does not contain: "
 						+ difference(needs, columns()));
 			if (!columns().containsAll(index))
 				return IMPOSSIBLE;
-	
+
 			List<List<String>> idxs = indexes();
 			if (nil(idxs))
 				return IMPOSSIBLE;
@@ -69,7 +57,7 @@ public class Table extends Query {
 			double cost2 = IMPOSSIBLE;
 			double cost3 = IMPOSSIBLE;
 			List<String> idx1, idx2 = null, idx3 = null;
-	
+
 			if (!nil(idx1 = match(idxs, index, needs)))
 				// index found that meets all needs
 				cost1 = nrecords() * keysize(idx1); // cost of reading index
@@ -83,7 +71,7 @@ public class Table extends Query {
 				nrecords() * keysize(idx3); // cost of reading index
 	//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
 	//	+ idx3 + " = " + cost3);
-	
+
 			double cost;
 			if (cost1 <= cost2 && cost1 <= cost3) {
 				cost = cost1;
@@ -95,7 +83,7 @@ public class Table extends Query {
 				cost = cost3;
 				idx = idx3;
 			}
-	
+
 			return cost;
 		}
 
@@ -203,11 +191,14 @@ public class Table extends Query {
 			rewound = true;
 			return null;
 		}
-		Record r = theDB.input(iter.keyadr());
+		Row row = new Row(iter.cur().key, theDB.input(iter.keyadr()));
 
-		// TODO get
+		if (singleton && !sel.contains(row.project(hdr, idx))) {
+			rewound = true;
+			return null;
+		}
 
-		return new Row(iter.cur().key, r);
+		return row;
 	}
 
 	private void iterate_setup(Dir dir) {
@@ -233,8 +224,10 @@ public class Table extends Query {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO select
-
+		verify(prefix(idx, index));
+		sel.org = from;
+		sel.end = to;
+		rewound = true;
 	}
 
 	@Override
