@@ -183,15 +183,10 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	Header header() {
-		return Header.add(source.header(), source2.header());
-	}
-
-	@Override
 	Row get(Dir dir) {
 		if (first) {
-			empty1 = new Row(source.header().size(), Record.MINREC);
-			empty2 = new Row(source2.header().size(), Record.MINREC);
+			empty1 = new Row(source.header().size());
+			empty2 = new Row(source2.header().size());
 		}
 		switch (strategy) {
 		case LOOKUP :
@@ -211,7 +206,7 @@ public class Union extends Compatible {
 			in1 = (dir == Dir.NEXT);
 		}
 		Row row;
-		for (;;) {
+		while (true) {
 			if (in1) {
 				while (null != (row = source.get(dir)) && isdup(row))
 					;

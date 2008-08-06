@@ -62,11 +62,6 @@ public class Product extends Query2 {
 	}
 
 	@Override
-	Header header() {
-		return Header.add(source.header(), source2.header());
-	}
-
-	@Override
 	List<List<String>> indexes() {
 		return union(source.indexes(), source2.indexes());
 	}

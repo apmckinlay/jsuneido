@@ -13,6 +13,12 @@ import suneido.database.Record;
 public class Join extends Query2 {
 	List<String> joincols;
 	protected Type type;
+	Header hdr1;
+	Row row1;
+	Row row2;
+	short[] cols1;
+	short[] cols2;
+	Row empty2;
 
 	enum Type {
 		NONE(""), ONE_ONE("1:1"), ONE_N("1:n"), N_ONE("n:1"), N_N("n:n");
@@ -221,35 +227,55 @@ public class Join extends Query2 {
 
 	@Override
 	int recordsize() {
-		// TODO shouldn't be total, maybe count common fields
 		return source.recordsize() + source2.recordsize();
 	}
 
 	@Override
 	List<Fixed> fixed() {
-		// TODO I think this is wrong - should be intersect?
 		return union(source.fixed(), source2.fixed());
 	}
 
 	@Override
-	Header header() {
-		return Header.add(source.header(), source2.header());
+	Row get(Dir dir) {
+		if (hdr1 == null) {
+			hdr1 = source.header();
+			empty2 = new Row(source2.header().size());
+		}
+		while (true) {
+			if (row2 == null && !next_row1(dir))
+				return null;
+			row2 = source2.get(dir);
+			if (should_output(row2)) {
+				if (row2 != null)
+					assert (row1.project(hdr1, joincols).equals(
+							row2.project(source2.header(), joincols)));
+				return new Row(row1, row2 == null ? empty2 : row2);
+			}
+		}
 	}
 
-	@Override
-	Row get(Dir dir) {
-		// TODO get
-		return null;
+	private boolean next_row1(Dir dir) {
+		if (null == (row1 = source.get(dir)))
+			return false;
+		Record key = row1.project(hdr1, joincols);
+		source2.select(joincols, key);
+		return true;
+	}
+
+	private boolean should_output(Row row) {
+		return row != null;
 	}
 
 	@Override
 	void rewind() {
-		// TODO rewind
+		source.rewind();
+		row2 = null;
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO select
+		source.select(index, from, to);
+		row2 = null;
 	}
 
 }
