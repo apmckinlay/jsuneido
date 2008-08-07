@@ -15,7 +15,10 @@ public class ExecuteTest extends TestBase {
 	public void test() {
 		for (String[] c : cases) {
 			System.out.println("CASE " + c[0]);
-			Query q = ParseQuery.parse(c[0]).setup();
+			Query q = ParseQuery.parse(c[0]);
+			if (q instanceof Select)
+				((Select) q).forceFilters = true;
+			q = q.setup();
 			// System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {
@@ -191,5 +194,7 @@ public class ExecuteTest extends TestBase {
 			"item	qty\n" +
 			"'disk'	5\n" +
 			"'pencil'	7\n" },
+		{ "cus where cnum = 2 and abbrev = 'b'",
+			"cnum	abbrev	name\n" + "2	'b'	'bill'\n" }
 	};
 }
