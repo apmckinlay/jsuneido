@@ -37,7 +37,7 @@ public class Select extends Query1 {
 	// for get
 	private boolean first = true;
 	private boolean rewound = true;
-	private List<Keyrange> ranges;
+	private List<Keyrange> ranges = Collections.emptyList();
 	private int range_i = 0;
 	private final Keyrange sel = new Keyrange();
 	private boolean newrange = true;;
@@ -80,7 +80,7 @@ public class Select extends Query1 {
 		List<String> fields = source.columns();
 		for (Expr e : expr.exprs)
 			if (e.isTerm(fields) && e instanceof BinOp) {
-				// TODO: handle IN
+				// MAYBE: handle IN
 				BinOp binop = (BinOp) e;
 				if (binop.op == BinOp.Op.IS) {
 					String field = ((Identifier) binop.left).ident;
@@ -446,28 +446,28 @@ public class Select extends Query1 {
 			}
 		}
 
-		// TODO: convert this to use Select::selects()
+		// MAYBE: convert this to use Select::selects()
 
 		for (Iselect isel : iselects) {
 			verify(! isel.none());
 			if (isel.one())
-			{ }
-			else if (isel.type == IselType.RANGE)
+				continue;
+			if (isel.type == IselType.RANGE)
 				break ;
-			else { // set - recurse through values
-				List<ByteBuffer> save = isel.values;
-				float sum = 0;
-				for (ByteBuffer v : isel.values) {
-					isel.values = list(v);
-					sum += iselsize(index, iselects);
-				}
-				isel.values = save;
-				return sum;
+			// set - recurse through values
+			List<ByteBuffer> save = isel.values;
+			float sum = 0;
+			for (ByteBuffer v : isel.values) {
+				isel.values = list(v);
+				sum += iselsize(index, iselects);
 			}
+			isel.values = save;
+			return sum;
 		}
 
 		// now build the key
 		int i = 0;
+		int n = index.size();
 		Record org = new Record();
 		Record end = new Record();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli, ++i) {
@@ -481,31 +481,18 @@ public class Select extends Query1 {
 					org.add(isel.values.get(0));
 					end.add(isel.values.get(0));
 				}
-				if (iseli == iselects.size() - 1) {
+				if (iseli == iselects.size() - 1)
 					// final exact value (inclusive end)
-					++i;
-					for (int j = i; j < index.size(); ++j)
-						end.addMax();
-					if (i >= index.size()) // ensure at least one added
-						end.addMax();
-				}
+					addMax(++i, n, end);
 			} else if (isel.type == IselType.RANGE) {
 				// final range
 				org.add(isel.org.x);
 				end.add(isel.end.x);
 				++i;
-				if (isel.org.d != 0) { // exclusive
-					for (int j = i; j < index.size(); ++j)
-						org.addMax();
-					if (i >= index.size()) // ensure at least one added
-						org.addMax();
-				}
-				if (isel.end.d == 0) { // inclusive
-					for (int j = i; j < index.size(); ++j)
-						end.addMax();
-					if (i >= index.size()) // ensure at least one added
-						end.addMax();
-				}
+				if (isel.org.d != 0) // exclusive
+					addMax(i, n, org);
+				if (isel.end.d == 0) // inclusive
+					addMax(i, n, end);
 				break ;
 			} else
 				unreachable();
@@ -644,8 +631,7 @@ public class Select extends Query1 {
 				Keyrange range;
 				do 	{
 					range_i += (dir == Dir.NEXT ? 1 : -1);
-					if (dir == Dir.NEXT ? range_i >= ranges.size()
-							: range_i < 0)
+					if (dir == Dir.NEXT ? range_i >= ranges.size() : range_i < 0)
 						return null;
 					range = Keyrange.intersect(sel, ranges.get(range_i));
 				} while (range.isEmpty());
@@ -696,8 +682,68 @@ public class Select extends Query1 {
 	}
 
 	private List<Keyrange> selects(List<String> index, List<Iselect> iselects) {
-		// TODO Auto-generated method stub
-		return null;
+		for (Iselect isel : iselects) {
+			verify(!isel.none());
+			if (isel.one())
+				continue;
+			if (isel.type == IselType.RANGE)
+				break;
+			// set - recurse through values
+			List<ByteBuffer> save = isel.values;
+			List<Keyrange> result = new ArrayList<Keyrange>();
+			for (ByteBuffer value : isel.values) {
+				isel.values = list(value);
+				result.addAll(selects(index, iselects));
+			}
+			isel.values = save;
+			return result;
+		}
+
+		// now build the keys
+		int i = 0;
+		int n = index.size();
+		Record org = new Record();
+		Record end = new Record();
+		if (nil(iselects))
+			end.addMax();
+		for (int iseli = 0; iseli < iselects.size(); ++iseli) {
+			Iselect isel = iselects.get(iseli);
+			verify(!isel.none());
+			if (isel.one()) {
+				if (isel.type == IselType.RANGE) {
+					// range
+					org.add(isel.org.x);
+					end.add(isel.org.x);
+				} else {
+					// in set
+					org.add(isel.values.get(0));
+					end.add(isel.values.get(0));
+				}
+				if (iseli + 1 >= iselects.size()) {
+					// final exact value (inclusive end)
+					addMax(++i, n, end);
+				}
+			} else if (isel.type == IselType.RANGE) {
+				// final range
+				org.add(isel.org.x);
+				end.add(isel.end.x);
+				++i;
+				if (isel.org.d != 0) // exclusive
+					addMax(i, n, org);
+				if (isel.end.d == 0) // inclusive
+					addMax(i, n, end);
+				break;
+			} else
+				throw unreachable();
+		}
+		return list(new Keyrange(org, end));
+	}
+
+	private void addMax(int i, int n, Record end) {
+		for (int j = i; j < n; ++j)
+			end.addMax();
+		if (i >= n) // ensure at least one added
+			end.addMax();
 	}
 
 	boolean matches(Row row) {
@@ -706,7 +752,7 @@ public class Select extends Query1 {
 			return false;
 
 		// then check against isels
-		// TODO: check keys before data (every other one)
+		// PERF: check keys before data (every other one)
 		for (Map.Entry<String,Iselect> e : isels.entrySet()) {
 			Iselect isel = e.getValue();
 			ByteBuffer value = row.getraw(hdr, e.getKey());
@@ -745,7 +791,7 @@ public class Select extends Query1 {
 	}
 
 	private void convert_select(List<String> index, Record from, Record to) {
-		// TODO: could optimize for case where from == to
+		// PERF: could optimize for case where from == to
 		if (from.equals(Record.MINREC) && to.equals(Record.MAXREC)) {
 			sel.setAll();
 			return ;
@@ -802,6 +848,7 @@ public class Select extends Query1 {
 	@Override
 	void setTransaction(Transaction tran) {
 		this.tran = tran;
+		super.setTransaction(tran);
 	}
 
 	private static class Cmp implements Comparable<Cmp> {
@@ -835,7 +882,7 @@ public class Select extends Query1 {
 
 		public boolean equals(Cmp c) {
 			return ident == c.ident && op == c.op && value.equals(c.value);
-			// TODO what about values ?
+			// what about values ?
 		}
 
 		public int compareTo(Cmp other) {
@@ -858,7 +905,7 @@ public class Select extends Query1 {
 		Point org = new Point();
 		Point end = new Point();
 		// set
-		List<ByteBuffer> values;
+		List<ByteBuffer> values = Collections.emptyList();
 
 		Iselect() {
 			org.x = MIN_FIELD;
