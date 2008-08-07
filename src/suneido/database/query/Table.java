@@ -197,7 +197,6 @@ public class Table extends Query {
 			rewound = true;
 			return null;
 		}
-
 		return row;
 	}
 

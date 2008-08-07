@@ -16,6 +16,7 @@ public class ExecuteTest extends TestBase {
 		for (String[] c : cases) {
 			System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]).setup();
+			// System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {
 				q.setTransaction(t);
@@ -163,5 +164,28 @@ public class ExecuteTest extends TestBase {
 			"id	name	city\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n" },
+		{ "customer where id = 'e'",
+			"id	name	city\n" +
+			"'e'	'emerald'	'vancouver'\n" },
+		{ "customer where id = 'd'",
+			"id	name	city\n" },
+		{ "inven where qty > 0",
+			"item	qty\n" +
+			"'disk'	5\n" +
+			"'mouse'	2\n" +
+			"'pencil'	7\n" },
+		{ "inven where item =~ 'i'",
+			"item	qty\n" +
+			"'disk'	5\n" +
+			"'pencil'	7\n" },
+		{ "inven where item =~ 'i'",
+			"item	qty\n" +
+			"'disk'	5\n" +
+			"'pencil'	7\n" },
+		{ "inven where item in ('disk', 'mouse', 'pencil')",
+			"item	qty\n" +
+			"'disk'	5\n" +
+			"'mouse'	2\n" +
+			"'pencil'	7\n" },
 	};
 }

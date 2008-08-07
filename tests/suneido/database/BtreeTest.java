@@ -191,7 +191,7 @@ public class BtreeTest {
 	final private static SuString filler = SuString
 			.valueOf("hellooooooooooooooooooooooooooooooooooooooooooo");
 
-	public static void main(String args[]) {
-		new BtreeTest().test();
-	}
+	// public static void main(String args[]) {
+	// new BtreeTest().test();
+	// }
 }

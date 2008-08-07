@@ -128,7 +128,7 @@ public class Record
 			return "[MAX]";
 		String s = "[";
 		for (int i = 0; i < getNfields(); ++i)
-			s += get(i) + ",";
+			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : get(i)) + ",";
 		return s.substring(0, s.length() - 1) + "]";
 	}
 
@@ -344,7 +344,7 @@ public class Record
 		int n = Math.min(size(), r.size());
 		for (int i = 0; i < n; ++i) {
 			int cmp = getraw(i).compareTo(r.getraw(i));
-			if (cmp > 0)
+			if (cmp != 0)
 				return cmp > 0;
 		}
 		// prefix equal
