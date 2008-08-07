@@ -112,6 +112,10 @@ public class Row {
 		}
 	}
 
+	public void setTransaction(Transaction tran) {
+		this.tran = tran;
+	}
+
 	/**
 	 * Used by TempIndex and Project
 	 *

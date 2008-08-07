@@ -9,42 +9,52 @@ import static suneido.database.Record.MIN_FIELD;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 
 public class Select extends Query1 {
 	private Multi expr;
 	private boolean optFirst = true;
-	private final boolean rewound = true;
-	private boolean newrange;
 	private boolean conflicting = false;
 	boolean fixdone;
 	List<Fixed> fix;
-	private List<String> required_index;
-	private List<String> source_index = null; // may have extra stuff on
-	// the end, or be
-	// missing fields that are fixed
-	List<List<String>> filter = null;
+	private List<String> source_index = null;	// may have extra stuff on
+												// the end, or be
+												// missing fields that are fixed
+	private List<List<String>> filter = null;
 	private List<String> select_needs;
 	private Table tbl;
 	private List<String> primary;
 	private List<List<String>> theindexes;
-	private int nrecs;
 	private Map<String, Iselect> isels;
 	private List<List<String>> possible;
 	private Map<String, Double> ffracs;
 	private Map<List<String>, Double> ifracs;
 	private List<String> prior_needs;
+	private int nrecs = 0;
+	// for get
+	private boolean first = true;
+	private boolean rewound = true;
+	private List<Keyrange> ranges;
+	private int range_i = 0;
+	private final Keyrange sel = new Keyrange();
+	private boolean newrange = true;;
+	int n_in = 0;
+	int n_out = 0;
+	private HashSet<Long> f;
+	private Header hdr;
+	private Transaction tran;
 
 	public Select(Query source, Expr expr) {
 		super(source);
-		// expr = expr.fold();
+		expr = expr.fold();
 		if (!(expr instanceof And))
 			expr = new And().add(expr);
-		// if (!source.columns().containsAll(expr.fields()))
-		// throw new SuException("select: nonexistent columns: "
-		// + listToParens(difference(expr.fields(), source.columns())));
+		 if (!source.columns().containsAll(expr.fields()))
+			throw new SuException("select: nonexistent columns: "
+					+ listToParens(difference(expr.fields(), source.columns())));
 		this.expr = (Multi) expr;
 	}
 
@@ -251,7 +261,7 @@ public class Select extends Query1 {
 		if (tbl == null || // source isnt a Table
 				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
 			optFirst = false;
-			required_index = source_index = index;
+			source_index = index;
 			return source.optimize(index, union(needs, select_needs), union(
 					firstneeds, select_needs), is_cursor, freeze);
 		}
@@ -277,7 +287,6 @@ public class Select extends Query1 {
 		if (!freeze)
 			return cost;
 
-		required_index = index;
 		source_index = primary;
 		tbl.select_index(source_index);
 
@@ -579,10 +588,10 @@ public class Select extends Query1 {
 		// PERF avoid copying filter
 		List<List<String>> all = new ArrayList<List<String>>(filter);
 		all.add(primary);
-		
+
 		double data_frac = primary.containsAll(select_needs)
 			? includes(all, select_needs) ? 0 : .5 * datafrac(all)
-			: datafrac(all);			
+			: datafrac(all);
 
 		// approximate filter cost independent of order of filters
 		double filter_cost = 0;
@@ -613,19 +622,186 @@ public class Select extends Query1 {
 	// end of optimize ==============================================
 
 	@Override
+	double nrecords() {
+		return nrecs;
+	}
+
+	// get ----------------------------------------------------------
+
+	@Override
 	Row get(Dir dir) {
-		// TODO get
+		if (first ) {
+			first = false;
+			iterate_setup();
+		}
+		if (rewound) {
+			rewound = false;
+			newrange = true;
+			range_i = (dir == Dir.NEXT ? -1 : ranges.size()); // allow for ++
+		}
+		while (true) {
+			if (newrange) {
+				Keyrange range;
+				do 	{
+					range_i += (dir == Dir.NEXT ? 1 : -1);
+					if (dir == Dir.NEXT ? range_i >= ranges.size()
+							: range_i < 0)
+						return null;
+					range = Keyrange.intersect(sel, ranges.get(range_i));
+				} while (range.isEmpty());
+				source.select(source_index, range.org, range.end);
+				newrange = false;
+				}
+			Row row;
+			do {
+				row = source.get(dir);
+				++n_in;
+			} while (row != null && !matches(row));
+			if (row != null) {
+				++n_out;
+				return row;
+			}
+			newrange = true;
+		}
+	}
+
+	private void iterate_setup() {
+		processFilters();
+		hdr = source.header();
+		ranges = selects(source_index, iselects(source_index));
+	}
+
+	private void processFilters() {
+		if (nil(filter))
+			return;
+
+		for (List<String> ix : filter) {
+			HashSet<Long> newset = new HashSet<Long>();
+			tbl.set_index(ix);
+			for (Keyrange range : selects(ix, iselects(ix))) {
+				for (source.select(ix, range.org, range.end);
+						null != source.get(Dir.NEXT); )
+					if (matches(ix, tbl.iter.cur().key)
+							&& (f == null || f.contains(tbl.iter.keyadr())))
+						newset.add(tbl.iter.keyadr());
+			}
+			f = newset;
+		}
+		tbl.set_index(source_index); // restore primary index
+
+		// remove filter isels - no longer needed
+		for (List<String> idx : filter)
+			for (String fld : idx)
+				isels.remove(fld);
+	}
+
+	private List<Keyrange> selects(List<String> index, List<Iselect> iselects) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
+	boolean matches(Row row) {
+		// first check against filter
+		if (f != null && !f.contains(tbl.iter.keyadr()))
+			return false;
+
+		// then check against isels
+		// TODO: check keys before data (every other one)
+		for (Map.Entry<String,Iselect> e : isels.entrySet()) {
+			Iselect isel = e.getValue();
+			ByteBuffer value = row.getraw(hdr, e.getKey());
+			if (! isel.matches(value))
+				return false;
+		}
+		// finally check remaining expressions
+		row.setTransaction(tran);
+		return expr.eval(hdr, row) == SuBoolean.TRUE;
+	}
+
+	private boolean matches(List<String> idx, Record key) {
+		for (int i = 0; i < idx.size(); ++i)
+			if (!isels.get(idx.get(i)).matches(key.getraw(i)))
+				return false;
+		return true;
+	}
+
+	// end of get ---------------------------------------------------
+
 	@Override
 	void rewind() {
-		// TODO rewind
+		source.rewind();
+		rewound = true;
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO select
+		if (conflicting) {
+			sel.setNone();
+		} else if (prefix(source_index, index)) {
+			sel.set(from, to);
+		} else
+			convert_select(index, from, to);
+		rewound = true;
+	}
+
+	private void convert_select(List<String> index, Record from, Record to) {
+		// TODO: could optimize for case where from == to
+		if (from.equals(Record.MINREC) && to.equals(Record.MAXREC)) {
+			sel.setAll();
+			return ;
+		}
+		Record newfrom = new Record();
+		Record newto = new Record();
+		int si = 0; // source_index;
+		int ri = 0; // index;
+		SuValue fixval;
+		while (ri < index.size()) {
+			String sidx = source_index.get(si);
+			String ridx = index.get(ri);
+			if (si < source_index.size() && sidx.equals(ridx)) {
+				int i = index.indexOf(ridx);
+				newfrom.add(from.getraw(i));
+				newto.add(to.getraw(i));
+				++si;
+				++ri;
+			}
+			else if (si < source_index.size()
+					&& null != (fixval = getfixed(fix, sidx))) {
+				newfrom.add(fixval);
+				newto.add(fixval);
+				++si;
+			}
+			else if (null != (fixval = getfixed(fix, ridx))) {
+				int i = index.indexOf(ridx);
+				if (fixval.compareTo(from.get(i)) < 0
+						|| fixval.compareTo(to.get(i)) > 0)
+					{
+					// select doesn't match fixed so empty select
+					sel.setNone();
+					return ;
+					}
+				++ri;
+			}
+			else
+				throw unreachable();
+			}
+		if (from.getraw(from.size() - 1).equals(Record.MAX_FIELD))
+			newfrom.add(Record.MAX_FIELD);
+		if (to.getraw(to.size() - 1) == Record.MAX_FIELD)
+			newto.add(Record.MAX_FIELD);
+		sel.set(newfrom, newto);
+	}
+
+	private static SuValue getfixed(List<Fixed> fixed, String field) {
+		for (Fixed f : fixed)
+			if (f.field.equals(field) && f.values.size() == 1)
+				return f.values.get(0);
+		return null;
+	}
+
+	@Override
+	void setTransaction(Transaction tran) {
+		this.tran = tran;
 	}
 
 	private static class Cmp implements Comparable<Cmp> {
@@ -672,6 +848,8 @@ public class Select extends Query1 {
 					+ valuesToString(values);
 		}
 	}
+
+	// Iselect ------------------------------------------------------
 
 	enum IselType { RANGE, VALUES };
 	private static class Iselect {
@@ -775,4 +953,5 @@ public class Select extends Query1 {
 				s += " " + valueToString(b);
 		return s;
 	}
+
 }

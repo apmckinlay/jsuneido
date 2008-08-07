@@ -21,7 +21,7 @@ public class Table extends Query {
 	private Transaction tran = null;
 	private boolean singleton; // i.e. key()
 	private List<String> idx;
-	private BtreeIndex.Iter iter;
+	/* package */BtreeIndex.Iter iter;
 
 	public Table(String tablename) {
 		table = tablename;
@@ -225,8 +225,16 @@ public class Table extends Query {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		verify(prefix(idx, index));
-		sel.org = from;
-		sel.end = to;
+		sel.set(from, to);
+		rewound = true;
+	}
+
+	void set_index(List<String> index) {
+		idx = index;
+		ix = (nil(idx) || singleton
+				? tbl.firstIndex()
+				: tbl.getIndex(listToCommas(idx))).btreeIndex;
+		verify(ix != null);
 		rewound = true;
 	}
 

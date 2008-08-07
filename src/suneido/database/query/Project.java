@@ -386,11 +386,10 @@ public class Project extends Query1 {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		source.select(index, from, to);
-		if (strategy == Strategy.LOOKUP && (sel.org != from || sel.end != to))
+		if (strategy == Strategy.LOOKUP && !sel.equals(from, to))
 			// idx = new VVtree(td = new DestMem());
 			indexed = false;
-		sel.org = from;
-		sel.end = to;
+		sel.set(from, to);
 		rewound = true;
 	}
 
