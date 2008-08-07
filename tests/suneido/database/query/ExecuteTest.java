@@ -159,5 +159,9 @@ public class ExecuteTest extends TestBase {
 			"'e'	'emerald'	'vancouver'	970102	'disk'	200\n" +
 			"'e'	'emerald'	'vancouver'	970103	'pencil'	300\n" +
 			"'i'	'intercon'	'saskatoon'	''	''	''\n" },
+		{ "customer where id > 'd'",
+			"id	name	city\n" +
+			"'e'	'emerald'	'vancouver'\n" +
+			"'i'	'intercon'	'saskatoon'\n" },
 	};
 }
