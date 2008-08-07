@@ -14,23 +14,31 @@ public class Keyrange {
 		set(org, end);
 	}
 
+	@Override
+	public String toString() {
+		return "Keyrange(" + org + ", " + end + ")";
+	}
+
 	public boolean isEmpty() {
 		return org.compareTo(end) > 0;
 	}
 
-	public void set(Record org, Record end) {
+	public Keyrange set(Record org, Record end) {
 		this.org = org;
 		this.end = end;
+		return this;
 	}
 
-	public void setAll() {
+	public Keyrange setAll() {
 		org = Record.MINREC;
 		end = Record.MAXREC;
+		return this;
 	}
 
-	public void setNone() {
+	public Keyrange setNone() {
 		org = Record.MAXREC;
 		end = Record.MINREC;
+		return this;
 	}
 
 	public boolean equals(Record org, Record end) {
@@ -44,7 +52,7 @@ public class Keyrange {
 		if (!(other instanceof Keyrange))
 			return false;
 		Keyrange kr = (Keyrange) other;
-		return org.equals(kr.org) && end.equals(kr.org);
+		return org.equals(kr.org) && end.equals(kr.end);
 	}
 
 	@Override
@@ -57,7 +65,7 @@ public class Keyrange {
 	}
 
 	public static Keyrange intersect(Keyrange r1, Keyrange r2) {
-		return new Keyrange(min(r1.org, r2.org), max(r1.end, r2.end));
+		return new Keyrange(max(r1.org, r2.org), min(r1.end, r2.end));
 	}
 
 	public static Record min(Record r1, Record r2) {
