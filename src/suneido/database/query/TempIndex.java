@@ -81,8 +81,7 @@ public class TempIndex extends Query1 {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		verify(prefix(order, index));
-		sel.org = from;
-		sel.end = to;
+		sel.set(from, to);
 		rewound = true;
 	}
 

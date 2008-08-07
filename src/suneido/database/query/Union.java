@@ -301,8 +301,7 @@ public class Union extends Compatible {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		sel.org = from;
-		sel.end = to;
+		sel.set(from, to);
 		rewound = true;
 		source.select(index, from, to);
 		source2.select(index, from, to);

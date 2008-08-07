@@ -24,8 +24,8 @@ public class TransformTest extends TestBase {
 			{ "customer rename id to x rename name to y",
 					"customer RENAME id to x, name to y" },
 			// combine where's
-			{ "customer where a = 5 where b = 6",
-					"customer WHERE ((a = 5) and (b = 6))" },
+			{ "customer where id = 5 where city = 6",
+					"customer WHERE ((id = 5) and (city = 6))" },
 
 			// remove projects of all fields
 			{ "customer project id, city, name", "customer" },
