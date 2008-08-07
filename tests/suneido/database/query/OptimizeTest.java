@@ -9,7 +9,10 @@ public class OptimizeTest extends TestBase {
 	public void test() {
 		for (String[] c : cases) {
 			// System.out.println("CASE " + c[0]);
-			Query q = ParseQuery.parse(c[0]).setup();
+			Query q = ParseQuery.parse(c[0]);
+			if (q instanceof Select)
+				((Select) q).forceFilters = true;
+			q = q.setup();
 			assertEquals(c[0], c[1], q.toString());
 		}
 	}
@@ -104,6 +107,9 @@ public class OptimizeTest extends TestBase {
 
 		{ "(hist where item = 1) intersect (trans where item = 2)",
 			"(hist WHERE (item = 1) INTERSECT-DISJOINT(item) trans WHERE (item = 2))" },
+
+		{ "cus where cnum = 2 and abbrev = 'c'",
+			"cus^(abbrev) WHERE^(abbrev)%((cnum))" },
 
 		{ "(trans union trans) intersect (hist union hist)",
 			"((trans^(date,item,id) " +

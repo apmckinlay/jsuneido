@@ -187,5 +187,9 @@ public class ExecuteTest extends TestBase {
 			"'disk'	5\n" +
 			"'mouse'	2\n" +
 			"'pencil'	7\n" },
+		{ "inven where item <= 'e' or item >= 'p'",
+			"item	qty\n" +
+			"'disk'	5\n" +
+			"'pencil'	7\n" },
 	};
 }
