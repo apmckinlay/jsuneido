@@ -65,8 +65,12 @@ public class Select extends Query1 {
 			return s + " nothing";
 		if (! nil(source_index))
 			s += "^" + listToParens(source_index);
-		if (! nil(filter))
-			s += "%" + listToParens(filter);
+		if (!nil(filter)) {
+			s += "%(";
+			for (List<String> f : filter)
+				s += listToParens(f) + ",";
+			s = s.substring(0, s.length() - 1) + ")";
+		}
 		if (! nil(expr.exprs))
 			s += " " + expr;
 		return s;
@@ -340,10 +344,8 @@ public class Select extends Query1 {
 			return ;
 		Collections.sort(cmps);
 		Iselect isel = new Iselect();
-		Iterator<Cmp> iter = cmps.iterator();
-		Cmp cmp = iter.next();
-		boolean end = iter.hasNext();
-		while (! end) {
+		for (int cmpi = 0; cmpi < cmps.size(); ++cmpi) {
+			Cmp cmp = cmps.get(cmpi);
 			Iselect r = new Iselect();
 			if (cmp.op == null) { // IN
 				r.values = cmp.values;
@@ -359,10 +361,8 @@ public class Select extends Query1 {
 				}
 			isel.and_with(r);
 
-			String ident = cmp.ident;
-			if (!(end = !iter.hasNext()))
-				cmp = iter.next();
-			if (end || cmp.ident != ident) {
+			if (cmpi + 1 >= cmps.size()
+					|| !cmp.ident.equals(cmps.get(cmpi + 1).ident)) {
 				// end of group
 				if (isel.none())
 					{ nrecs = 0; conflicting = true; return ; }
@@ -554,8 +554,12 @@ public class Select extends Query1 {
 			List<String> best_filter = null;
 			filter.add(0, null);
 			for (List<String> idx : available) {
+				if (filter.contains(idx))
+					continue;
 				filter.set(0, idx);
 				double cost = costwith(filter, primary_index_cost);
+				if (forceFilters)
+					cost = best_cost * .5;
 				if (cost < best_cost) {
 					best_cost = cost;
 					best_filter = idx;
@@ -568,6 +572,8 @@ public class Select extends Query1 {
 		filter.remove(0);
 		return best_cost;
 	}
+
+	/* package */boolean forceFilters = false; // for testing
 
 	private final static int FILTER_KEYSIZE = 10;
 
@@ -891,8 +897,8 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return "Cmp " + ident + " " + op.name + valueToString(value)
-					+ valuesToString(values);
+			return "Cmp " + ident + " " + (op == null ? "in" : op.name)
+					+ valueToString(value) + valuesToString(values);
 		}
 	}
 
@@ -989,6 +995,8 @@ public class Select extends Query1 {
 	}
 
 	private static String valueToString(ByteBuffer value) {
+		if (value == null)
+			return "";
 		return value.equals(MIN_FIELD) ? "min"
 				: value.equals(MAX_FIELD) ? "max"
 				: SuValue.toString(value);
