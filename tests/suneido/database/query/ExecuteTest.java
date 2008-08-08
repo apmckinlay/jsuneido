@@ -19,7 +19,7 @@ public class ExecuteTest extends TestBase {
 			if (q instanceof Select)
 				((Select) q).forceFilters = true;
 			q = q.setup();
-			// System.out.println(q);
+			System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {
 				q.setTransaction(t);
@@ -195,6 +195,21 @@ public class ExecuteTest extends TestBase {
 			"'disk'	5\n" +
 			"'pencil'	7\n" },
 		{ "cus where cnum = 2 and abbrev = 'b'",
-			"cnum	abbrev	name\n" + "2	'b'	'bill'\n" }
+			"cnum	abbrev	name\n" +
+			"2	'b'	'bill'\n" },
+		{ "cus where cnum = 2 and abbrev >= 'b' and abbrev < 'c'",
+			"cnum	abbrev	name\n" +
+			"2	'b'	'bill'\n" },
+		{ "hist summarize count",
+			"count\n" +
+			"4\n" },
+		{ "hist summarize min cost, average cost, max cost, sum = total cost",
+			"min_cost	average_cost	max_cost	sum\n" +
+			"100	200	300	800\n" },
+//		{ "hist summarize date, list id",
+//			"date	list_id\n" +
+//			"970101	('a', 'e')\n" +
+//			"970102	('c')\n" +
+//			"970103	('e')\n" },
 	};
 }
