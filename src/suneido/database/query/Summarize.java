@@ -1,11 +1,21 @@
 package suneido.database.query;
 
-import static suneido.Util.*;
+import static suneido.Util.concat;
+import static suneido.Util.difference;
+import static suneido.Util.list;
+import static suneido.Util.listToParens;
+import static suneido.Util.nil;
+import static suneido.Util.prefix_set;
+import static suneido.Util.remove;
+import static suneido.Util.union;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuInteger;
+import suneido.SuValue;
 import suneido.database.Record;
 
 public class Summarize extends Query1 {
@@ -13,18 +23,11 @@ public class Summarize extends Query1 {
 	private final List<String> cols;
 	private final List<String> funcs;
 	private final List<String> on;
+	private final boolean copy;
 	private List<String> via;
-	Strategy strategy = Strategy.NONE;
 	private boolean first = true;
 	private boolean rewound = true;
 	private Header hdr;
-	enum Strategy {
-		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ");
-		public String name;
-		Strategy(String name) {
-			this.name = name;
-		}
-	};
 	private List<Summary> sums;
 	private Row nextrow;
 	private Row currow;
@@ -43,8 +46,7 @@ public class Summarize extends Query1 {
 					"summarize: nonexistent columns: "
 					+ difference(by, source.columns()));
 
-		if (by.isEmpty() || by_contains_key())
-			strategy = Strategy.COPY;
+		copy = by.isEmpty() || by_contains_key();
 
 		for (int i = 0; i < cols.size(); ++i)
 			if (cols.get(i) == null)
@@ -62,7 +64,10 @@ public class Summarize extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source + " SUMMARIZE" + strategy.name + " ";
+		String s = source + " SUMMARIZE";
+		if (copy)
+			s += "-COPY";
+		s += " ";
 		if (via != null)
 			s += "^" + listToParens(via) + " ";
 		if (! by.isEmpty())
@@ -83,7 +88,7 @@ public class Summarize extends Query1 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		List<String> srcneeds = union(remove(on, null), difference(needs, cols));
 
-		if (strategy == Strategy.COPY)
+		if (copy)
 			return source.optimize(index, srcneeds, by, is_cursor, freeze);
 
 		List<List<String>> indexes;
@@ -118,7 +123,7 @@ public class Summarize extends Query1 {
 
 	@Override
 	List<List<String>> indexes() {
-		if (strategy == Strategy.COPY)
+		if (copy)
 			return source.indexes();
 		else {
 			List<List<String>> idxs = new ArrayList<List<String>>();

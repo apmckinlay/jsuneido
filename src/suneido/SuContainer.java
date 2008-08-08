@@ -1,7 +1,10 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeSet;
 
 import suneido.database.Record;
 import suneido.database.query.Header;
@@ -130,16 +133,72 @@ public class SuContainer extends SuValue {
 	public int vecsize() {
 		return vec.size();
 	}
-	@Override
-	public void pack(ByteBuffer buf) {
-		// TODO pack containers
 
-	}
+	// TODO prevent infinite recursion
+
 	@Override
 	public int packSize() {
-		// TODO pack containers
-		return 0;
+		int ps = 1;
+		if (size() == 0)
+			return ps;
+
+		ps += 4; // vec size
+		for (SuValue x : vec)
+			ps += 4 /* value size */+ x.packSize();
+
+		ps += 4; // map size
+		for (Map.Entry<SuValue, SuValue> e : map.entrySet())
+			ps += 4 /* member size */+ e.getKey().packSize() + 4 /* value size */
+					+ e.getValue().packSize();
+
+		return ps;
 	}
+
+	@Override
+	public void pack(ByteBuffer buf) {
+		buf.put(Pack.OBJECT);
+		if (size() == 0)
+			return;
+		buf.putInt(vec.size());
+		for (SuValue x : vec)
+			packvalue(buf, x);
+
+		buf.putInt(map.size());
+		for (Map.Entry<SuValue, SuValue> e : map.entrySet()) {
+			packvalue(buf, e.getKey()); // member
+			packvalue(buf, e.getValue()); // value
+		}
+	}
+
+	private void packvalue(ByteBuffer buf, SuValue x) {
+		buf.putInt(x.packSize());
+		x.pack(buf);
+	}
+
+	public static SuValue unpack1(ByteBuffer buf) {
+		SuContainer c = new SuContainer();
+		if (buf.remaining() == 0)
+			return c;
+		int n = buf.getInt(); // vec size
+		for (int i = 0; i < n; ++i)
+			c.vec.add(unpackvalue(buf));
+		n = buf.getInt(); // map size
+		for (int i = 0; i < n; ++i) {
+			SuValue key = unpackvalue(buf);
+			SuValue val = unpackvalue(buf);
+			c.map.put(key, val);
+		}
+		return c;
+	}
+
+	private static SuValue unpackvalue(ByteBuffer buf) {
+		int n = buf.getInt();
+		ByteBuffer buf2 = buf.slice();
+		buf2.limit(n);
+		buf.position(buf.position() + n);
+		return SuValue.unpack(buf2);
+	}
+
 	public Record toDbRecord(Header hdr) {
 		int[] fldsyms = hdr.output_fldsyms();
 		// dependencies
@@ -167,7 +226,6 @@ public class SuContainer extends SuValue {
 		SuValue x;
 		// int ts = hdr.timestamp_field();
 		for (int f : fldsyms)
-			{
 			if (f == -1)
 				rec.addMin();
 //			else if (f == ts)
@@ -188,7 +246,6 @@ public class SuContainer extends SuValue {
 				rec.add(x);
 			else
 				rec.addMin();
-			}
 		return rec;
 	}
 }

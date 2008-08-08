@@ -73,6 +73,22 @@ public class ExecuteTest extends TestBase {
 			"'a'	'axon'	'saskatoon'\n" +
 			"'i'	'intercon'	'saskatoon'\n" +
 			"'e'	'emerald'	'vancouver'\n" },
+		{ "customer sort reverse city", // tempindex1
+			"id	name	city\n" +
+			"'e'	'emerald'	'vancouver'\n" +
+			"'i'	'intercon'	'saskatoon'\n" +
+			"'a'	'axon'	'saskatoon'\n" +
+			"'c'	'calac'	'calgary'\n" },
+		{ "task sort cnum, tnum",
+			"tnum	cnum\n" +
+			"100	1\n" +
+			"104	1\n" +
+			"101	2\n" +
+			"105	2\n" +
+			"102	3\n" +
+			"106	3\n" +
+			"103	4\n" +
+			"107	4\n" },
 		{ "trans project item", // sequential
 			"item\n" +
 			"'disk'\n" +
@@ -206,10 +222,15 @@ public class ExecuteTest extends TestBase {
 		{ "hist summarize min cost, average cost, max cost, sum = total cost",
 			"min_cost	average_cost	max_cost	sum\n" +
 			"100	200	300	800\n" },
-//		{ "hist summarize date, list id",
-//			"date	list_id\n" +
-//			"970101	('a', 'e')\n" +
-//			"970102	('c')\n" +
-//			"970103	('e')\n" },
+		{ "hist summarize item, total cost",
+			"item	total_cost\n" +
+			"'disk'	300\n" +
+			"'mouse'	200\n" +
+			"'pencil'	300\n" },
+		{ "hist summarize date, list id",
+			"date	list_id\n" +
+			"970101	['a', 'e']\n" +
+			"970102	['c']\n" +
+			"970103	['e']\n" },
 	};
 }
