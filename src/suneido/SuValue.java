@@ -15,6 +15,10 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		throw new SuException(typeName() + " cannot be converted to string");
 	}
 
+	public int hashCode(int nest) {
+		return hashCode();
+	}
+
 	// sequence must match Order
 	static class Pack {
 		static final byte FALSE = 0;

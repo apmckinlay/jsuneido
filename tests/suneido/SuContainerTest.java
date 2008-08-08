@@ -114,9 +114,17 @@ public class SuContainerTest {
 	}
 
 	@Test(expected = SuException.class)
-	public void packnest() {
+	public void packNest() {
 		SuContainer c = new SuContainer();
 		c.append(c);
 		c.packSize();
 	}
+
+	@Test(expected = SuException.class)
+	public void hashCodeNest() {
+		SuContainer c = new SuContainer();
+		c.append(c);
+		c.hashCode();
+	}
+
 }
