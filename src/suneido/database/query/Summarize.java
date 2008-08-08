@@ -5,7 +5,7 @@ import static suneido.Util.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuException;
+import suneido.*;
 import suneido.database.Record;
 
 public class Summarize extends Query1 {
@@ -15,6 +15,9 @@ public class Summarize extends Query1 {
 	private final List<String> on;
 	private List<String> via;
 	Strategy strategy = Strategy.NONE;
+	private boolean first = true;
+	private boolean rewound = true;
+	private Header hdr;
 	enum Strategy {
 		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ");
 		public String name;
@@ -22,6 +25,11 @@ public class Summarize extends Query1 {
 			this.name = name;
 		}
 	};
+	private List<Summary> sums;
+	private Row nextrow;
+	private Row currow;
+	private Dir curdir;
+	private Keyrange sel;
 
 	Summarize(Query source, List<String> by, List<String> cols,
 			List<String> funcs, List<String> on) {
@@ -39,8 +47,9 @@ public class Summarize extends Query1 {
 			strategy = Strategy.COPY;
 
 		for (int i = 0; i < cols.size(); ++i)
-			if (cols.get(i) == null && on.get(i) != null)
-				cols.set(i, funcs.get(i) + "_" + on.get(i));
+			if (cols.get(i) == null)
+				cols.set(i, on.get(i) == null ? "count"
+						: funcs.get(i) + "_" + on.get(i));
 	}
 
 	boolean by_contains_key() {
@@ -72,7 +81,7 @@ public class Summarize extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> srcneeds = union(remove(on, ""), difference(needs, cols));
+		List<String> srcneeds = union(remove(on, null), difference(needs, cols));
 
 		if (strategy == Strategy.COPY)
 			return source.optimize(index, srcneeds, by, is_cursor, freeze);
@@ -143,29 +152,195 @@ public class Summarize extends Query1 {
 
 	@Override
 	Header header() {
-		// TODO header
-		return null;
+		if (first)
+			iterate_setup();
+		List<String> flds = concat(by, cols);
+		return new Header(list(noFields, flds), flds);
+	}
+
+	private void iterate_setup() {
+		first = false;
+		sums = new ArrayList<Summary>();
+		for (String f : funcs)
+			sums.add(Summary.valueOf(f.toUpperCase()));
+		hdr = source.header();
 	}
 
 	@Override
 	Row get(Dir dir) {
-		// TODO get
-		return null;
+		if (first)
+			iterate_setup();
+		if (rewound) {
+			rewound = false;
+			curdir = dir;
+			currow = new Row();
+			nextrow = source.get(dir);
+			if (nextrow == null)
+				return null;
+		}
+
+		// if direction changes, have to skip over previous result
+		if (dir != curdir) {
+			if (nextrow == null)
+				source.rewind();
+			do
+				nextrow = source.get(dir);
+			while (nextrow != null && equal());
+			curdir = dir;
+		}
+
+		if (nextrow == null)
+			return null;
+
+		currow = nextrow;
+		for (Summary s : sums)
+			s.init();
+		do {
+			if (nextrow == null)
+				break;
+			for (int i = 0; i < on.size(); ++i)
+				sums.get(i).add(nextrow.getval(hdr, on.get(i)));
+			nextrow = source.get(dir);
+		} while (equal());
+		// output after reading a group
+
+		// build a result record
+		Record r = new Record();
+		for (String f : by)
+			r.add(currow.getval(hdr, f));
+		for (Summary s : sums)
+			r.add(s.result());
+
+		return new Row(Record.MINREC, r);
+	}
+
+	private boolean equal() {
+		if (nextrow == null)
+			return false;
+		for (String f : by)
+			if (!currow.getval(hdr, f).equals(nextrow.getval(hdr, f)))
+				return false;
+		return true;
 	}
 
 	@Override
 	void rewind() {
-		// TODO rewind
+		source.rewind();
+		rewound = true;
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		// TODO select
+		source.select(index, from, to);
+		sel.set(from, to);
+		rewound = true;
 	}
 
 	@Override
 	boolean updateable() {
 		return false; // override Query1 source->updateable
+	}
+
+	private static enum Summary {
+		COUNT {
+			@Override
+			void init() {
+				n = 0;
+			}
+			@Override
+			void add(SuValue x) {
+				++n;
+			}
+			@Override
+			SuValue result() {
+				return SuInteger.valueOf(n);
+			}
+			int n;
+		},
+		TOTAL {
+			@Override
+			void init() {
+				total = SuInteger.ZERO;
+			}
+			@Override
+			void add(SuValue x) {
+				total = total.add(x);
+			}
+			@Override
+			SuValue result() {
+				return total;
+			}
+			SuValue total;
+		},
+		AVERAGE {
+			@Override
+			void init() {
+				n = 0;
+				total = SuInteger.ZERO;
+			}
+			@Override
+			void add(SuValue x) {
+				++n;
+				total = total.add(x);
+			}
+			@Override
+			SuValue result() {
+				return total.div(SuInteger.valueOf(n));
+			}
+			int n = 0;
+			SuValue total;
+		},
+		MAX {
+			@Override
+			void init() {
+				value = null;
+			}
+			@Override
+			void add(SuValue x) {
+				if (value == null || x.compareTo(value) > 0)
+					value = x;
+			}
+			@Override
+			SuValue result() {
+				return value;
+			}
+			SuValue value;
+		},
+		MIN {
+			@Override
+			void init() {
+				value = null;
+			}
+			@Override
+			void add(SuValue x) {
+				if (value == null || x.compareTo(value) < 0)
+					value = x;
+			}
+			@Override
+			SuValue result() {
+				return value;
+			}
+			SuValue value;
+		},
+		LIST {
+			@Override
+			void init() {
+				list = new SuContainer();
+			}
+			@Override
+			void add(SuValue x) {
+				list.append(x);
+			}
+			@Override
+			SuValue result() {
+				return list;
+			}
+			SuContainer list;
+		};
+
+		abstract void init();
+		abstract void add(SuValue x);
+		abstract SuValue result();
 	}
 
 }

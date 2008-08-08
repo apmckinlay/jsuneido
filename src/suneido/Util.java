@@ -129,7 +129,7 @@ public class Util {
 	public static <T> List<T> remove(List<T> list, T x) {
 		List<T> result = new ArrayList<T>();
 		for (T y : list)
-			if (!y.equals(x))
+			if (x == null ? x != y : !x.equals(y))
 				result.add(y);
 		return result;
 	}
