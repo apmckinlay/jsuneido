@@ -84,14 +84,20 @@ public class SuContainer extends SuValue {
 
 	@Override
 	public int hashCode() {
+		return hashCode(0);
+	}
+	@Override
+	public int hashCode(int nest) {
+		checkNest(++nest);
 		int hash = size();
 		for (SuValue x : vec)
-			hash += x.hashCode();
+			hash += x.hashCode(nest);
 		for (Map.Entry<SuValue,SuValue> e : map.entrySet())
-			hash += e.getKey().hashCode() + e.getValue().hashCode();
+			hash += e.getKey().hashCode(nest) + e.getValue().hashCode(nest);
 		return hash;
 		//TODO handle stack overflow from self-reference
 	}
+
 	@Override
 	public boolean equals(Object value) {
 		if (value == this)
@@ -134,13 +140,9 @@ public class SuContainer extends SuValue {
 		return vec.size();
 	}
 
-	final static int NESTING_LIMIT = 20;
-
 	@Override
 	public int packSize(int nest) {
-		if (++nest > NESTING_LIMIT)
-			throw new SuException("pack: object nesting limit ("
-					+ NESTING_LIMIT + ") exceeded");
+		checkNest(++nest);
 		int ps = 1;
 		if (size() == 0)
 			return ps;
@@ -156,6 +158,14 @@ public class SuContainer extends SuValue {
 					+ e.getValue().packSize(nest);
 
 		return ps;
+	}
+
+	final static int NESTING_LIMIT = 20;
+
+	private void checkNest(int nest) {
+		if (nest > NESTING_LIMIT)
+			throw new SuException("pack: object nesting limit ("
+					+ NESTING_LIMIT + ") exceeded");
 	}
 
 	@Override
