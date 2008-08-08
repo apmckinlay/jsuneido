@@ -134,22 +134,26 @@ public class SuContainer extends SuValue {
 		return vec.size();
 	}
 
-	// TODO prevent infinite recursion
+	final static int NESTING_LIMIT = 20;
 
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
+		if (++nest > NESTING_LIMIT)
+			throw new SuException("pack: object nesting limit ("
+					+ NESTING_LIMIT + ") exceeded");
 		int ps = 1;
 		if (size() == 0)
 			return ps;
 
 		ps += 4; // vec size
 		for (SuValue x : vec)
-			ps += 4 /* value size */+ x.packSize();
+			ps += 4 /* value size */+ x.packSize(nest);
 
 		ps += 4; // map size
 		for (Map.Entry<SuValue, SuValue> e : map.entrySet())
-			ps += 4 /* member size */+ e.getKey().packSize() + 4 /* value size */
-					+ e.getValue().packSize();
+			ps += 4 /* member size */
+					+ e.getKey().packSize(nest) + 4 /* value size */
+					+ e.getValue().packSize(nest);
 
 		return ps;
 	}

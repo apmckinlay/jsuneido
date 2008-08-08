@@ -100,7 +100,7 @@ public class SuString extends SuValue {
 
 	// packing ======================================================
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
 		int n = s.length();
 		return n == 0 ? 0 : 1 + n;
 	}

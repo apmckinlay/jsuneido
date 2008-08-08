@@ -7,7 +7,12 @@ import static suneido.database.Database.theDB;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.*;
+import suneido.Packable;
+import suneido.SuException;
+import suneido.SuInteger;
+import suneido.SuNumber;
+import suneido.SuString;
+import suneido.SuValue;
 
 /**
  * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
@@ -185,7 +190,7 @@ public class Record
 	}
 
 	public Record add(Packable x) {
-		alloc(x.packSize());
+		alloc(x.packSize(0));
 		x.pack(buf);
 		return this;
 	}
@@ -245,7 +250,7 @@ public class Record
 	}
 
 	public boolean insert(int at, Packable x) {
-		int len = x.packSize();
+		int len = x.packSize(0);
 		if (len > rep.avail())
 			return false;
 		int n = getNfields();
@@ -424,6 +429,9 @@ public class Record
 		int n = getNfields();
 		int datasize = getSize() - rep.getOffset(n - 1);
 		return packSize(n, datasize);
+	}
+	public int packSize(int nest) {
+		return packSize();
 	}
 
 	public void pack(ByteBuffer dst) {

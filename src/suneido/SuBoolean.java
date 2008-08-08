@@ -44,7 +44,7 @@ public class SuBoolean extends SuValue {
 	}
 
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
 		return 1;
 	}
 	@Override
