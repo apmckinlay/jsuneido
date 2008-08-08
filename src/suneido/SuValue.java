@@ -56,6 +56,8 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			return SuString.unpack1(buf);
 		case Pack.DATE:
 			return SuDate.unpack1(buf);
+		case Pack.OBJECT:
+			return SuContainer.unpack1(buf);
 		// TODO unpack other types
 		default :
 			throw SuException.unreachable();
