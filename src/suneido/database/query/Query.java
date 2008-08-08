@@ -48,7 +48,7 @@ public abstract class Query {
 		return q;
 	}
 
-	static int update(Transaction tran, Query qq, List<String> c, List<Expr> e) {
+	static int update(Transaction tran, Query q, List<String> c, List<Expr> e) {
 		return 0; // TODO
 	}
 

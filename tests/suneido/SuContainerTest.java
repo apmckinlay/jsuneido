@@ -112,4 +112,11 @@ public class SuContainerTest {
 			c.map.put(SuInteger.valueOf(i), SuInteger.valueOf(i));
 		assertEquals(c, SuValue.unpack(c.pack()));
 	}
+
+	@Test(expected = SuException.class)
+	public void packnest() {
+		SuContainer c = new SuContainer();
+		c.append(c);
+		c.packSize();
+	}
 }

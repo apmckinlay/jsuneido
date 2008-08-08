@@ -27,7 +27,7 @@ public abstract class SuNumber extends SuValue {
 	 * plus 2 bytes (a short) for each 4 decimal digits
 	 */
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
 		long n = unscaled();
 		if (n == 0)
 			return 1;

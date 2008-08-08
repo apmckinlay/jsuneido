@@ -14,17 +14,17 @@ import java.nio.ByteBuffer;
 public class Slot implements suneido.Packable, Comparable<Slot> {
 	public final Record key;
 	public final long[] adrs;
-	
+
 	public Slot() {
 		key = Record.MINREC;
 		adrs = new long[0];
 	}
-	
+
 	public Slot(Record key, long ... adrs) {
 		this.key = key;
 		this.adrs = adrs;
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof Slot
@@ -34,9 +34,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public int compareTo(Slot other) {
 		return key.compareTo(other.key);
 	}
-	
+
 	public int packSize() {
-		return key.packSize() + 4 * adrs.length;
+		return packSize(0);
+	}
+	public int packSize(int nest) {
+		return key.packSize(nest + 1) + 4 * adrs.length;
 	}
 	public void pack(ByteBuffer buf) {
 		key.pack(buf);
@@ -44,7 +47,7 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 			buf.putInt(Mmfile.offsetToInt(adr));
 	}
 	/**
-	 * 
+	 *
 	 * @param buf A ByteBuffer containing a packed Slot.
 	 * 		<b>Note:</b> The limit of the buffer must be correct.
 	 * @return A new Slot containing the values from the buffer.
@@ -58,7 +61,7 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 			adrs[i] = Mmfile.intToOffset(buf.getInt());
 		return new Slot(key, adrs);
 	}
-	
+
 	@Override
 	public String toString() {
 		String s = key.toString();
@@ -66,11 +69,11 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 			s += " " + adr;
 		return s;
 	}
-	
+
 	public boolean isEmpty() {
 		return key.isEmpty();
 	}
-	
+
 	/**
 	 * @return The address at the end of the key.
 	 * (not from adrs)

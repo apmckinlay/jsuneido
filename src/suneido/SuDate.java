@@ -1,7 +1,9 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-import java.text.*;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -93,7 +95,7 @@ public class SuDate extends SuValue {
 		buf.putLong(date.getTime());
 	}
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
 		return 9;
 	}
 

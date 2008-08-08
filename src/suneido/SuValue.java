@@ -35,7 +35,11 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		buf.position(0);
 		return buf;
 	}
+
 	public int packSize() {
+		return packSize(0);
+	}
+	public int packSize(int nest) {
 		throw new SuException(typeName() + " cannot be stored");
 	}
 	public void pack(ByteBuffer buf) {
