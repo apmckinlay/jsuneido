@@ -67,7 +67,7 @@ public class Product extends Query2 {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		// keys are all pairs of source keys
 		// there are no columns in common so no keys in common
 		// so there won't be any duplicates in the result
@@ -80,14 +80,14 @@ public class Product extends Query2 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		rewound = true;
 		source.rewind();
 		source2.rewind();
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		Row row2 = source2.get(dir);
 		if (rewound) {
 			rewound = false;

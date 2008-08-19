@@ -99,7 +99,7 @@ public class Extend extends Query1 {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (hdr == null)
 			header();
 		Row row = source.get(dir);
@@ -113,7 +113,7 @@ public class Extend extends Query1 {
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		if (hdr == null)
 			hdr = new Header(source.header(),
 					new Header(list(noFields, flds), union(flds, rules)));

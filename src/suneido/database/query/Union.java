@@ -31,7 +31,6 @@ public class Union extends Compatible {
 		NONE, MERGE, LOOKUP
 	};
 
-
 	Union(Query source1, Query source2) {
 		super(source1, source2);
 	}
@@ -151,7 +150,7 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		if (disjoint != null) {
 			List<List<String>> kin = intersect_prefix(source.keys(), source2.keys());
 			if (!nil(kin)) {
@@ -178,12 +177,12 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	double nrecords() {
+	public double nrecords() {
 		return (source.nrecords() + source2.nrecords()) / 2;
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (first) {
 			empty1 = new Row(source.header().size());
 			empty2 = new Row(source2.header().size());
@@ -293,7 +292,7 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		rewound = true;
 		source.rewind();
 		source2.select(ki, sel.org, sel.end);

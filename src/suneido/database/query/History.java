@@ -35,13 +35,13 @@ public class History extends Query {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -53,7 +53,7 @@ public class History extends Query {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -78,7 +78,7 @@ public class History extends Query {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		// TODO Auto-generated method stub
 
 	}
@@ -90,7 +90,7 @@ public class History extends Query {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
+	public void setTransaction(Transaction tran) {
 		// TODO Auto-generated method stub
 
 	}

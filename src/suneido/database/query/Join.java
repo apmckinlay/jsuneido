@@ -185,7 +185,7 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		switch (type) {
 		case ONE_ONE :
 			return union(source.keys(), source2.keys());
@@ -236,7 +236,7 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (hdr1 == null) {
 			hdr1 = source.header();
 			empty2 = new Row(source2.header().size());
@@ -267,7 +267,7 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 		row2 = null;
 	}
