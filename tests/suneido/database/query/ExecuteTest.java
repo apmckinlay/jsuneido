@@ -67,6 +67,12 @@ public class ExecuteTest extends TestBase {
 			"'eraser'	'c'	150	970201\n" +
 			"'mouse'	'e'	200	960204\n" +
 			"'mouse'	'c'	200	970101\n" },
+		{ "trans rename id to code, date to when",
+			"item	code	cost	when\n" +
+			"'disk'	'a'	100	970101\n" +
+			"'eraser'	'c'	150	970201\n" +
+			"'mouse'	'e'	200	960204\n" +
+			"'mouse'	'c'	200	970101\n" },
 		{ "customer sort city", // tempindex1
 			"id	name	city\n" +
 			"'c'	'calac'	'calgary'\n" +
