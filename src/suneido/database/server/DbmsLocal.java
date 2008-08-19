@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.server;
 
 import static suneido.database.Database.theDB;
 
@@ -6,25 +6,64 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.SuValue;
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
+/**
+ * Connects Suneido to a local database.
+ *
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
+ */
 public class DbmsLocal implements Dbms {
+	private int next_tn = 0;
 	private final Map<Integer, Transaction> trans = new HashMap<Integer, Transaction>();
 
-	public void abort(int tran) {
-		// TODO Auto-generated method stub
-
+	public void admin(String s) {
+		Request.execute(s);
 	}
 
-	public boolean admin(String s) {
-		// TODO Auto-generated method stub
-		return false;
+	public int request(int tran, String s) {
+		return ((QueryAction) ParseQuery.parse(s)).execute();
 	}
 
-	public boolean commit(int tran, String conflict) {
-		// TODO Auto-generated method stub
-		return false;
+	public int transaction(boolean readwrite, String session_id) {
+		Transaction tran = readwrite
+				? theDB.readwriteTran() : theDB.readonlyTran();
+		int tn = ++next_tn;
+		trans.put(tn, tran);
+		return tn;
+	}
+
+	public String complete(int tn) {
+		Transaction tran = trans.get(tn);
+		return tran.complete() ? null : tran.conflict();
+	}
+
+	public void abort(int tn) {
+		trans.get(tn).abort();
+	}
+
+	public HeaderAndRow get(Dir dir, String query, boolean one, int tn) {
+		Transaction tran = tn <= 0 ? theDB.readonlyTran() : trans.get(tn);
+		try {
+			DbmsQuery q = ParseQuery.query(query, tran);
+			Row row = q.get(dir);
+			if (one && row != null && q.get(dir) != null)
+				throw new SuException("Query1 not unique: " + query);
+			Header hdr = q.header();
+			return new HeaderAndRow(hdr, row);
+		} finally {
+			if (tn <= 0)
+				tran.complete();
+		}
+	}
+
+	public DbmsQuery query(int tn, String s) {
+		return ParseQuery.query(s, trans.get(tn));
 	}
 
 	public SuValue connections() {
@@ -62,21 +101,6 @@ public class DbmsLocal implements Dbms {
 		return 0;
 	}
 
-	public Row get(Dir dir, String query, boolean one, Header hdr, int tn) {
-		Transaction tran = tn <= 0 ? theDB.readonlyTran() : trans.get(tn);
-		try {
-			DbmsQuery q = ParseQuery.query(query, tran);
-			Row row = q.get(dir);
-			if (one && row != null && q.get(dir) != null)
-				throw new SuException("Query1 not unique: " + query);
-			hdr = q.header();
-			return row;
-		} finally {
-			if (tn <= 0)
-				tran.complete();
-		}
-	}
-
 	public int kill(String s) {
 		// TODO Auto-generated method stub
 		return 0;
@@ -97,10 +121,6 @@ public class DbmsLocal implements Dbms {
 
 	}
 
-	public DbmsQuery query(int tn, String s) {
-		return ParseQuery.query(s, trans.get(tn));
-	}
-
 	public boolean record_ok(int tran, long recadr) {
 		// TODO Auto-generated method stub
 		return false;
@@ -109,11 +129,6 @@ public class DbmsLocal implements Dbms {
 	public boolean refresh(int tran) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	public int request(int tran, String s) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public SuValue run(String s) {
@@ -131,11 +146,6 @@ public class DbmsLocal implements Dbms {
 		return 0;
 	}
 
-	public int tempdest() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 	public SuValue timestamp() {
 		// TODO Auto-generated method stub
 		return null;
@@ -144,11 +154,6 @@ public class DbmsLocal implements Dbms {
 	public List<Integer> tranlist() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public int transaction(TranType type, String session_id) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public long update(int tran, long recadr, Record rec) {

@@ -1,7 +1,9 @@
-package suneido.database;
+package suneido.database.server;
 
 import java.util.List;
 
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
