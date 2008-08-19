@@ -19,16 +19,13 @@ import suneido.database.query.Query.Dir;
  *         </p>
  */
 public interface Dbms {
-	int transaction(boolean readwrite, String session_id);
-	String complete(int n);
-
-	void abort(int tn);
+	DbmsTran transaction(boolean readwrite, String session_id);
 
 	void admin(String s);
+	int request(DbmsTran tran, String s);
 
-	int request(int tn, String s);
 	DbmsQuery cursor(String s);
-	DbmsQuery query(int tn, String s);
+	DbmsQuery query(DbmsTran tran, String s);
 	List<String> libget(String name);
 	List<String> libraries();
 	List<Integer> tranlist();
@@ -44,7 +41,7 @@ public interface Dbms {
 
 	boolean record_ok(int tn, long recadr);
 
-	HeaderAndRow get(Dir dir, String query, boolean one, int tn);
+	HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran);
 	int cursors();
 	SuValue sessionid(String s);
 	boolean refresh(int tn);
