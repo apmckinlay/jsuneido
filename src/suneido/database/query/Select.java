@@ -622,7 +622,7 @@ public class Select extends Query1 {
 	// get ----------------------------------------------------------
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (first ) {
 			first = false;
 			iterate_setup();
@@ -780,7 +780,7 @@ public class Select extends Query1 {
 	// end of get ---------------------------------------------------
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 		rewound = true;
 	}
@@ -852,7 +852,7 @@ public class Select extends Query1 {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
+	public void setTransaction(Transaction tran) {
 		this.tran = tran;
 		super.setTransaction(tran);
 	}

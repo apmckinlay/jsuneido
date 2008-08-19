@@ -85,7 +85,7 @@ public abstract class Compatible extends Query2 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 	}
 

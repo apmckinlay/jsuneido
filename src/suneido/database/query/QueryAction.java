@@ -32,11 +32,11 @@ public abstract class QueryAction extends Query1 {
 		throw unreachable();
 	}
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		throw unreachable();
 	}
 	@Override
-	Header header() {
+	public Header header() {
 		throw unreachable();
 	}
 	@Override
@@ -44,11 +44,11 @@ public abstract class QueryAction extends Query1 {
 		throw unreachable();
 	}
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		throw unreachable();
 	}
 	@Override
-	void rewind() {
+	public void rewind() {
 		throw unreachable();
 	}
 	@Override

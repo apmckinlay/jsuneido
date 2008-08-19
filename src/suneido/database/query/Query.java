@@ -8,8 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 import suneido.database.query.expr.Expr;
 
 /**
@@ -18,7 +17,7 @@ import suneido.database.query.expr.Expr;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public abstract class Query {
+public abstract class Query implements DbmsQuery {
 	private final Cache cache = new Cache();
 	protected boolean willneed_tempindex;
 	private List<String> tempindex;
@@ -52,20 +51,21 @@ public abstract class Query {
 		return 0; // TODO
 	}
 
-	abstract void setTransaction(Transaction tran);
+	public abstract void setTransaction(Transaction tran);
 
 	// iteration
-	abstract Header header();
+	abstract public Header header();
 	abstract List<List<String>> indexes();
-	List<String> ordering() { // overridden by QSort
+	public List<String> ordering() { // overridden by QSort
 		return noFields;
 	}
 	abstract void select(List<String> index, Record from, Record to);
 	void select(List<String> index, Record key) {
 		select(index, key, key);
 	}
-	abstract void rewind();
-	abstract Row get(Dir dir);
+	abstract public void rewind();
+
+	abstract public Row get(Dir dir);
 	List<Fixed> fixed() {
 		return Collections.emptyList();
 	}
@@ -74,7 +74,7 @@ public abstract class Query {
 	boolean updateable() {
 		return false;
 	}
-	void output(Record record) {
+	public void output(Record record) {
 		throw new SuException("can't output to this query");
 	}
 
@@ -83,7 +83,7 @@ public abstract class Query {
 
 	abstract List<String> columns();
 
-	abstract List<List<String>> keys();
+	public abstract List<List<String>> keys();
 
 	Query transform() {
 		return this;

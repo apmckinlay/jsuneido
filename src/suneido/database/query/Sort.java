@@ -36,7 +36,7 @@ public class Sort extends Query1 {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		return source.get(reverse ? (dir == Dir.NEXT ? Dir.PREV : Dir.NEXT)
 				: dir);
 	}
@@ -67,7 +67,7 @@ public class Sort extends Query1 {
 	}
 
 	@Override
-	List<String> ordering() {
+	public List<String> ordering() {
 		return segs;
 	}
 

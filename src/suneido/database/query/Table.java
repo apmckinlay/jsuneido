@@ -98,7 +98,7 @@ public class Table extends Query {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		return tbl.keysColumns();
 	}
 
@@ -161,12 +161,12 @@ public class Table extends Query {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
+	public void setTransaction(Transaction tran) {
 		this.tran = tran;
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (first) {
 			first = false;
 			iterate_setup(dir);
@@ -208,7 +208,7 @@ public class Table extends Query {
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		Index i = nil(idx) || singleton ? null
 				: theDB.getIndex(tbl, listToCommas(idx));
 		boolean lower = i != null && i.isLower();
@@ -217,7 +217,7 @@ public class Table extends Query {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		rewound = true;
 	}
 
@@ -243,7 +243,7 @@ public class Table extends Query {
 	}
 
 	@Override
-	void output(Record r) {
+	public void output(Record r) {
 		theDB.addRecord(tran, table, r);
 	}
 

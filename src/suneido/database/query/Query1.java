@@ -31,7 +31,7 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
+	public void setTransaction(Transaction tran) {
 		source.setTransaction(tran);
 	}
 
@@ -62,7 +62,7 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		return source.keys();
 	}
 
@@ -72,12 +72,12 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		return source.header();
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 	}
 
@@ -87,7 +87,7 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	void output(Record r) {
+	public void output(Record r) {
 		source.output(r);
 	}
 

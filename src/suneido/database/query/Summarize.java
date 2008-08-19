@@ -1,21 +1,11 @@
 package suneido.database.query;
 
-import static suneido.Util.concat;
-import static suneido.Util.difference;
-import static suneido.Util.list;
-import static suneido.Util.listToParens;
-import static suneido.Util.nil;
-import static suneido.Util.prefix_set;
-import static suneido.Util.remove;
-import static suneido.Util.union;
+import static suneido.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuInteger;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.Record;
 
 public class Summarize extends Query1 {
@@ -135,7 +125,7 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		List<List<String>> keys = new ArrayList<List<String>>();
 		for (List<String> k : source.keys())
 			if (by.containsAll(k))
@@ -156,7 +146,7 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		if (first)
 			iterate_setup();
 		List<String> flds = concat(by, cols);
@@ -172,7 +162,7 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (first)
 			iterate_setup();
 		if (rewound) {
@@ -229,7 +219,7 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 		rewound = true;
 	}

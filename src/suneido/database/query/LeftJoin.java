@@ -22,7 +22,7 @@ public class LeftJoin extends Join {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		switch (type) {
 		case ONE_ONE:
 		case N_ONE:

@@ -88,7 +88,7 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		List<List<String>> keys = new ArrayList<List<String>>();
 		for (List<String> k : source.keys())
 			if (flds.containsAll(k))
@@ -275,12 +275,12 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	Header header() {
+	public Header header() {
 		return source.header().project(flds);
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (strategy == Strategy.COPY)
 			return source.get(dir);
 
@@ -394,13 +394,13 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 		rewound = true;
 	}
 
 	@Override
-	void output(Record r) {
+	public void output(Record r) {
 		ckmodify("output");
 		source.output(r);
 	}

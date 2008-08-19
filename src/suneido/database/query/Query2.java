@@ -30,7 +30,7 @@ public abstract class Query2 extends Query1 {
 	}
 
 	@Override
-	void setTransaction(Transaction tran) {
+	public void setTransaction(Transaction tran) {
 		super.setTransaction(tran);
 		source2.setTransaction(tran);
 	}

@@ -34,7 +34,7 @@ public class TempIndex extends Query1 {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (first) {
 			first = false;
 			iterate_setup(dir);
@@ -74,7 +74,7 @@ public class TempIndex extends Query1 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		rewound = true;
 	}
 

@@ -65,7 +65,7 @@ public class Intersect extends Compatible {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		List<List<String>> k = intersect(source.keys(), source2.keys());
 		return k == null ? Collections.singletonList(columns()) : k;
 	}
@@ -81,7 +81,7 @@ public class Intersect extends Compatible {
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		if (disjoint != null)
 			return null;
 		Row row;

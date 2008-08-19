@@ -111,13 +111,13 @@ public class Rename extends Query1 {
 	}
 
 	@Override
-	List<List<String>> keys() {
+	public List<List<String>> keys() {
 		return rename_indexes(source.keys(), from, to);
 	}
 
 	// iteration
 	@Override
-	Header header() {
+	public Header header() {
 		return source.header().rename(from, to);
 	}
 
@@ -127,17 +127,17 @@ public class Rename extends Query1 {
 	}
 
 	@Override
-	void rewind() {
+	public void rewind() {
 		source.rewind();
 	}
 
 	@Override
-	Row get(Dir dir) {
+	public Row get(Dir dir) {
 		return source.get(dir);
 	}
 
 	@Override
-	void output(Record r) {
+	public void output(Record r) {
 		source.output(r);
 	}
 
