@@ -5,13 +5,10 @@ import static suneido.database.Transactions.FUTURE;
 import static suneido.database.Transactions.UNCOMMITTED;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Deque;
+import java.util.*;
 
 import suneido.SuException;
+import suneido.database.server.DbmsTran;
 
 /**
  * Handles a single transaction, either readonly or readwrite.
@@ -19,7 +16,7 @@ import suneido.SuException;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class Transaction implements Comparable<Transaction> {
+public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
@@ -131,25 +128,25 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	public void ck_complete() {
-		verify(complete());
+		verify(complete() == null);
 	}
 
-	public boolean complete() {
+	public String complete() {
 		notEnded();
 		if (!conflict.equals("")) {
 			abort();
-			return false;
+			return conflict;
 		}
 		if (!readonly && !writes.isEmpty()) {
 			if (!validate_reads()) {
 				abort();
-				return false;
+				return conflict;
 			}
 			completeReadwrite();
 		}
 		trans.remove(this);
 		ended = true;
-		return true;
+		return null;
 	}
 
 	/**
@@ -302,9 +299,9 @@ public class Transaction implements Comparable<Transaction> {
 			return new TranRead(tblnum, index);
 		}
 		@Override
-		public boolean complete() {
+		public String complete() {
 			ended = true;
-			return true;
+			return null;
 		}
 		@Override
 		public void abort() {

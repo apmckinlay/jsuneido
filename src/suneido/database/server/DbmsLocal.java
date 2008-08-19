@@ -2,7 +2,7 @@ package suneido.database.server;
 
 import static suneido.database.Database.theDB;
 
-import java.util.*;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -19,51 +19,38 @@ import suneido.database.query.Query.Dir;
  * Licensed under GPLv2.</small></p>
  */
 public class DbmsLocal implements Dbms {
-	private int next_tn = 0;
-	private final Map<Integer, Transaction> trans = new HashMap<Integer, Transaction>();
 
 	public void admin(String s) {
 		Request.execute(s);
 	}
 
-	public int request(int tran, String s) {
+	public int request(DbmsTran tran, String s) {
 		return ((QueryAction) ParseQuery.parse(s)).execute();
 	}
 
-	public int transaction(boolean readwrite, String session_id) {
-		Transaction tran = readwrite
-				? theDB.readwriteTran() : theDB.readonlyTran();
-		int tn = ++next_tn;
-		trans.put(tn, tran);
-		return tn;
+	public DbmsTran transaction(boolean readwrite, String session_id) {
+		return readwrite ? theDB.readwriteTran() : theDB.readonlyTran();
 	}
 
-	public String complete(int tn) {
-		Transaction tran = trans.get(tn);
-		return tran.complete() ? null : tran.conflict();
-	}
-
-	public void abort(int tn) {
-		trans.get(tn).abort();
-	}
-
-	public HeaderAndRow get(Dir dir, String query, boolean one, int tn) {
-		Transaction tran = tn <= 0 ? theDB.readonlyTran() : trans.get(tn);
+	public HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran) {
+		boolean complete = tran == null;
+		if (tran == null)
+			tran = theDB.readonlyTran();
 		try {
-			DbmsQuery q = ParseQuery.query(query, tran);
+			DbmsQuery q = ParseQuery.query(query, (Transaction) tran);
 			Row row = q.get(dir);
 			if (one && row != null && q.get(dir) != null)
 				throw new SuException("Query1 not unique: " + query);
 			Header hdr = q.header();
 			return new HeaderAndRow(hdr, row);
 		} finally {
-			if (tn <= 0)
+			if (complete)
 				tran.complete();
 		}
 	}
 
-	public DbmsQuery query(int tn, String s) {
-		return ParseQuery.query(s, trans.get(tn));
+	public DbmsQuery query(DbmsTran tran, String s) {
+		return ParseQuery.query(s, (Transaction) tran);
 	}
 
 	public SuValue connections() {

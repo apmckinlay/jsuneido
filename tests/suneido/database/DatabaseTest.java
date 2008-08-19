@@ -1,9 +1,6 @@
 package suneido.database;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -152,7 +149,7 @@ public class DatabaseTest extends TestBase {
 
 		// need to do a write or else it won't validate_reads
 		db.addRecord(t, "test", record(99));
-		assertFalse(t.complete());
+		assertNotNull(t.complete());
 		assertTrue(t.conflict().contains("read conflict"));
 	}
 
@@ -179,7 +176,7 @@ public class DatabaseTest extends TestBase {
 			assertTrue(e.toString().contains("delete conflict"));
 		}
 		t1.ck_complete();
-		assertFalse(t2.complete());
+		assertNotNull(t2.complete());
 		assertTrue(t2.conflict().contains("delete conflict"));
 	}
 
@@ -192,7 +189,7 @@ public class DatabaseTest extends TestBase {
 		Transaction t2 = db.readwriteTran();
 		db.addRecord(t2, "test", record(99));
 		t1.ck_complete();
-		assertFalse(t2.complete());
+		assertNotNull(t2.complete());
 		assertTrue(t2.conflict().contains("read conflict"));
 		// read conflict due to dup check read
 	}
