@@ -10,6 +10,7 @@ import java.util.List;
 import suneido.SuException;
 import suneido.database.*;
 import suneido.database.query.expr.Expr;
+import suneido.database.server.DbmsQuery;
 
 /**
  * Base class for query operation classes.
