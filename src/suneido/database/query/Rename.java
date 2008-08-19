@@ -25,14 +25,14 @@ public class Rename extends Query1 {
 			throw new SuException("rename: column(s) already exist: " + dups);
 
 		// also rename dependencies
-		boolean copies = false;
+		boolean copy = false;
 		for (int i = 0; i < from.size(); ++i) {
 			String deps = from.get(i) + "_deps";
 			if (src.contains(deps)) {
-				if (!copies) {
+				if (!copy) {
 					from = new ArrayList<String>(from);
 					to = new ArrayList<String>(to);
-					copies = true;
+					copy = true;
 				}
 				from.add(deps);
 				to.add(to.get(i) + "_deps");
