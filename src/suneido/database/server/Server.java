@@ -38,17 +38,18 @@ public class Server {
 		acceptor.newThread();
 	}
 
-	/**
-	 *  If I understand correctly, a given handler instance
-	 *  will only be running in single thread at any one time,
-	 *  since there is a handler instance for each channel (connection).
-	 *  So it can use instance variables and not synchronize them.
+	/*
+	 * If I understand correctly, a given handler instance will only be running
+	 * in single thread at any one time, since there is a handler instance for
+	 * each channel (connection). So it can use instance variables and not
+	 * synchronize them.
 	 */
 	public static class Handler implements InputHandler {
 		ByteBuffer line = null;
 		Command cmd = null;
 		ByteBuffer extra = null;
 		int nExtra = -1;
+		ServerData serverData = new ServerData();
 
 		public ByteBuffer nextMessage(ChannelFacade channelFacade) {
 			InputQueue inputQueue = channelFacade.inputQueue();
@@ -88,7 +89,8 @@ public class Server {
 		public void handleInput(ByteBuffer message, ChannelFacade channelFacade) {
 			ByteBuffer output;
 			try {
-				output = cmd.execute(line, extra, channelFacade.outputQueue());
+				output = cmd.execute(line, extra, 
+						channelFacade.outputQueue(), serverData);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				output = ByteBuffer.wrap(

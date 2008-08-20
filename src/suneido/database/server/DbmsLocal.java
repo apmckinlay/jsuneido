@@ -53,6 +53,11 @@ public class DbmsLocal implements Dbms {
 		return ParseQuery.query(s, (Transaction) tran);
 	}
 
+	public void erase(int tran, long recadr) {
+		// TODO Auto-generated method stub
+	
+	}
+
 	public SuValue connections() {
 		// TODO Auto-generated method stub
 		return null;
@@ -74,11 +79,6 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public void dump(String filename) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void erase(int tran, long recadr) {
 		// TODO Auto-generated method stub
 
 	}
