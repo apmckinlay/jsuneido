@@ -2,7 +2,10 @@ package suneido;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -41,6 +44,10 @@ public class Util {
 		} catch (UnsupportedEncodingException e) {
 			throw new SuException("can't unpack string", e);
 		}
+	}
+
+	public static ByteBuffer stringToBuffer(String s) {
+		return ByteBuffer.wrap(s.getBytes());
 	}
 
 	/**
