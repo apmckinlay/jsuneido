@@ -104,25 +104,35 @@ public enum Command {
 
 	static Dbms theDbms = new DbmsLocal();
 
-	int getnum(char type, ByteBuffer buf) {
+	/**
+	 * Skips whitespace then looks for 'type' char followed by digits, starting
+	 * at buf's current position. If successful, advances buf's position to past
+	 * digits and following whitespace
+	 *
+	 * @param type
+	 * @param buf
+	 * @return The digits converted to an int, or -1 if unsuccessful.
+	 */
+	static int getnum(char type, ByteBuffer buf) {
 		int i = buf.position();
-		while (Character.isWhitespace(buf.get(i)))
+		while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
 			++i;
-		if (Character.toUpperCase(buf.get(i)) != type
+		if (i >= buf.limit()
+				|| Character.toUpperCase(buf.get(i)) != type
 				|| !Character.isDigit(buf.get(i + 1)))
 			return -1;
 		++i;
 		String s = "";
-		while (Character.isDigit(buf.get(i)))
-			s += buf.get(i++);
+		while (i < buf.limit() && Character.isDigit(buf.get(i)))
+			s += (char) buf.get(i++);
 		int n = Integer.valueOf(s);
-		while (Character.isWhitespace(buf.get(i)))
+		while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
 			++i;
-		buf.position(i - 1);
+		buf.position(i);
 		return n;
 	}
 
-	int ck_getnum(char type, ByteBuffer buf) {
+	static int ck_getnum(char type, ByteBuffer buf) {
 		int num = getnum(type, buf);
 		if (num == -1)
 			throw new SuException("expecting: " + type + "#");
