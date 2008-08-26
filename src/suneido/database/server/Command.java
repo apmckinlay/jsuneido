@@ -26,13 +26,14 @@ public enum Command {
 			return line;
 		}
 	},
-	LIBGET, GET,
-	GET1,
-	OUTPUT,
-	UPDATE,
-	HEADER,
-	ORDER,
-	KEYS,
+	ADMIN {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			theDbms.admin(bufferToString(line));
+			return OK;
+		}
+	},
 	TRANSACTION {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -44,9 +45,28 @@ public enum Command {
 			return stringToBuffer("T" + tn + "\r\n");
 		}
 	},
-	CURSOR,
-	CLOSE,
-	QUERY,
+	COMMIT {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			int tn = ck_getnum('T', line);
+			DbmsTran tran = serverData.getTransaction(tn);
+			serverData.endTransaction(tn);
+			String conflict = tran.complete();
+			return conflict == null ? OK : stringToBuffer(conflict + "\r\n");
+		}
+	},
+	ABORT {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			int tn = ck_getnum('T', line);
+			DbmsTran tran = serverData.getTransaction(tn);
+			serverData.endTransaction(tn);
+			tran.abort();
+			return OK;
+		}
+	},
 	REQUEST {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -56,20 +76,10 @@ public enum Command {
 			return OK;
 		}
 	},
-	ADMIN {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			theDbms.admin(bufferToString(line));
-			return OK;
-		}
-	},
+	QUERY, CURSOR, CLOSE, HEADER, GET, GET1, OUTPUT, UPDATE, ERASE, ORDER, KEYS, LIBGET,
 	LIBRARIES,
 	EXPLAIN,
 	REWIND,
-	ERASE,
-	COMMIT,
-	ABORT,
 	TIMESTAMP,
 	DUMP,
 	COPY,
@@ -95,6 +105,14 @@ public enum Command {
 	public int extra(ByteBuffer buf) {
 		return 0;
 	}
+	/**
+	 * @param line
+	 *            Current position is past the first (command) word.
+	 * @param extra
+	 * @param outputQueue
+	 * @param serverData
+	 * @return
+	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue, ServerData serverData) {
 		return line; //TODO just echo for now
