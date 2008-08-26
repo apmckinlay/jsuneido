@@ -7,14 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.ronsoft.nioserver.BufferFactory;
-import org.ronsoft.nioserver.ChannelFacade;
-import org.ronsoft.nioserver.InputHandler;
-import org.ronsoft.nioserver.InputQueue;
-import org.ronsoft.nioserver.impl.DumbBufferFactory;
-import org.ronsoft.nioserver.impl.GenericInputHandlerFactory;
-import org.ronsoft.nioserver.impl.NioDispatcher;
-import org.ronsoft.nioserver.impl.StandardAcceptor;
+import org.ronsoft.nioserver.*;
+import org.ronsoft.nioserver.impl.*;
 
 import suneido.database.Database;
 import suneido.database.DestMem;
@@ -89,7 +83,7 @@ public class Server {
 		public void handleInput(ByteBuffer message, ChannelFacade channelFacade) {
 			ByteBuffer output;
 			try {
-				output = cmd.execute(line, extra, 
+				output = cmd.execute(line, extra,
 						channelFacade.outputQueue(), serverData);
 			} catch (Throwable e) {
 				e.printStackTrace();
@@ -97,7 +91,7 @@ public class Server {
 						("ERR " + e.toString() + "\r\n").getBytes());
 			}
 			if (output != null) {
-				output.position(0);
+				output.rewind();
 				channelFacade.outputQueue().enqueue(output);
 			}
 			line = extra = null;

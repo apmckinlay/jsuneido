@@ -35,11 +35,13 @@ public class Util {
 
 	public static String bufferToString(ByteBuffer buf) {
 		byte[] bytes = new byte[buf.remaining()];
+		buf.mark();
 		buf.get(bytes);
+		buf.reset();
 		try {
 			return new String(bytes, "US-ASCII");
 		} catch (UnsupportedEncodingException e) {
-			throw new SuException("can't unpack string", e);
+			throw new SuException("can't convert buffer to string", e);
 		}
 	}
 
