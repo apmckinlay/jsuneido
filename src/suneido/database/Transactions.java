@@ -2,11 +2,7 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  * Manages transactions.
@@ -164,7 +160,7 @@ public class Transactions {
 							tw.type.toString());
 			}
 		}
-		return "";
+		return null;
 	}
 
 	private String readConflict(Transaction t, int tblnum, String index,

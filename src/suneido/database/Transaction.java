@@ -20,7 +20,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
-	private String conflict = "";
+	private String conflict = null;
 	private final long t;
 	private long asof; // not final because updated when readwrite tran commits
 	String sessionId = "session";
@@ -133,7 +133,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	public String complete() {
 		notEnded();
-		if (!conflict.equals("")) {
+		if (conflict != null) {
 			abort();
 			return conflict;
 		}
@@ -185,7 +185,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 			conflict = trans.anyConflicts(asof, tr.tblnum, colnums, from, to,
 					tr.index);
-			if (!conflict.equals(""))
+			if (conflict != null)
 				return false;
 		}
 		reads.clear(); // no longer needed
