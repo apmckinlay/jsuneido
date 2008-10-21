@@ -47,19 +47,59 @@ public class CommandTest {
 	public void transaction() {
 		theDB = new Database(new DestMem(), Mode.CREATE);
 		ServerData serverData = new ServerData();
-	
-		ByteBuffer result = Command.TRANSACTION.execute(null, null, null, serverData);
-		assertEquals("T0\r\n", bufferToString(result));
-		result.rewind();
-		result = Command.ABORT.execute(result, null, null, serverData);
-		assertEquals("OK\r\n", bufferToString(result));
+
+		ByteBuffer buf = Command.TRANSACTION.execute(null, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(buf));
+		buf.rewind();
+		buf = Command.ABORT.execute(buf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
 		assertTrue(serverData.isEmpty());
-	
-		result = Command.TRANSACTION.execute(null, null, null, serverData);
-		assertEquals("T1\r\n", bufferToString(result));
-		result.rewind();
-		result = Command.COMMIT.execute(result, null, null, serverData);
-		assertEquals("OK\r\n", bufferToString(result));
+
+		buf = Command.TRANSACTION.execute(null, null, null, serverData);
+		assertEquals("T1\r\n", bufferToString(buf));
+		buf.rewind();
+		buf = Command.COMMIT.execute(buf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+	}
+
+	@Test
+	public void cursor() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
+				null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.CLOSE.execute(buf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+	}
+
+	@Test
+	public void query() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
+
+		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q7"),
+				stringToBuffer("tables"), null, serverData);
+		assertEquals("Q1\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.CLOSE.execute(buf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		tbuf.rewind();
+		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
 		assertTrue(serverData.isEmpty());
 	}
 
