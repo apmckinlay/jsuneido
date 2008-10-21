@@ -8,7 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.*;
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.DbmsQuery;
 
@@ -72,7 +73,7 @@ public abstract class Query implements DbmsQuery {
 	}
 
 	// updating
-	boolean updateable() {
+	public boolean updateable() {
 		return false;
 	}
 	public void output(Record record) {

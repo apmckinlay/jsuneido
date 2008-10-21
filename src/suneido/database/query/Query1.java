@@ -82,7 +82,7 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	boolean updateable() {
+	public boolean updateable() {
 		return source.updateable();
 	}
 

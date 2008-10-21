@@ -238,7 +238,7 @@ public class Table extends Query {
 	}
 
 	@Override
-	boolean updateable() {
+	public boolean updateable() {
 		return true;
 	}
 
