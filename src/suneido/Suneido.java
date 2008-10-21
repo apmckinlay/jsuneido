@@ -5,14 +5,10 @@ package suneido;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Suneido {
-	public static void main(String args[]) {
-		System.out.println("hello world");
-	}
-	
 	public static void fatal(String msg) {
-		
+		throw new SuException("FATAL " + msg);
 	}
-	
+
 	/**
 	 * Similar to assert, but always enabled
 	 * so it may be used around actual code.
@@ -33,7 +29,7 @@ public class Suneido {
 		if (! expr)
 			throw new SuException(stackTrace() + " assertion failed - " + msg);
 	}
-	
+
 	private static String stackTrace() {
 		StackTraceElement[] t = new Throwable().getStackTrace();
 		return t.length >= 3 ? t[2].toString() : "";

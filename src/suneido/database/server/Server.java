@@ -18,7 +18,7 @@ import suneido.database.DestMem;
  * see <a href="http://javanio.info/filearea/nioserver">
  *		How to Build a Scalable Multiplexed Server with NIO Mark II</a>
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. 
+ * <p><small>Copyright 2008 Suneido Software Corp.
  * All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Server {
@@ -44,6 +44,7 @@ public class Server {
 		Command cmd = null;
 		ByteBuffer extra = null;
 		int nExtra = -1;
+		Throwable err = null;
 		ServerData serverData = new ServerData();
 
 		public ByteBuffer nextMessage(ChannelFacade channelFacade) {
@@ -54,7 +55,13 @@ public class Server {
 					return null;
 				line = inputQueue.dequeueBytes(nlPos + 1);
 				cmd = getCmd(line);
-				nExtra = cmd.extra(line);
+				try {
+					nExtra = cmd.extra(line);
+				} catch (Throwable e) {
+					e.printStackTrace();
+					err = e;
+					nExtra = 0;
+				}
 			}
 			// next state = waiting for extra data (if any)
 			if (nExtra != -1 && inputQueue.available() >= nExtra) {
@@ -82,15 +89,22 @@ public class Server {
 			return s;
 		}
 		public void handleInput(ByteBuffer message, ChannelFacade channelFacade) {
-			ByteBuffer output;
-			try {
-				output = cmd.execute(line, extra,
-						channelFacade.outputQueue(), serverData);
-			} catch (Throwable e) {
-				e.printStackTrace();
+			ByteBuffer output = null;
+			if (err == null)
+				try {
+					output = cmd.execute(line, extra, channelFacade
+							.outputQueue(), serverData);
+				} catch (Throwable e) {
+					e.printStackTrace();
+					err = e;
+				}
+			if (err != null) {
 				output = ByteBuffer.wrap(
-						("ERR " + e.toString() + "\r\n").getBytes());
+						("ERR " + err.toString() + "\r\n")
+						.getBytes());
+				err = null;
 			}
+
 			if (output != null) {
 				output.rewind();
 				channelFacade.outputQueue().enqueue(output);
