@@ -1,7 +1,6 @@
 package suneido.database.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static suneido.Util.bufferToString;
 import static suneido.Util.stringToBuffer;
 import static suneido.database.Database.theDB;
@@ -9,6 +8,8 @@ import static suneido.database.Database.theDB;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.ronsoft.nioserver.OutputQueue;
@@ -37,10 +38,10 @@ public class CommandTest {
 	@Test
 	public void badcmd() {
 		Output output = new Output();
-		ByteBuffer buf = Command.BADCMD.execute(stringToBuffer("hello"), null,
-				output, null);
-		assertEquals("ERR bad command: hello", output.content
-				+ bufferToString(buf));
+		ByteBuffer hello = stringToBuffer("hello world");
+		ByteBuffer buf = Command.BADCMD.execute(hello, null, output, null);
+		assertEquals("ERR bad command: ", bufferToString(output.content.get(0)));
+		assertEquals(hello, buf);
 	}
 
 	@Test
@@ -174,17 +175,50 @@ public class CommandTest {
 		assertEquals("OK\r\n", bufferToString(buf));
 	}
 
+	@Test
+	public void get() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+		Output output = new Output();
+
+		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
+
+		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q7"),
+				stringToBuffer("tables"), null, serverData);
+		assertEquals("Q1\r\n", bufferToString(buf));
+
+		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output,
+				serverData);
+		assertNull(buf);
+		assertEquals("A0 R29\r\n", bufferToString(output.content.get(0)));
+		Record rec = new Record(output.content.get(1));
+		assertEquals("[0,'tables',5,4,164]", rec.toString());
+
+		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
+				serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+
+		tbuf.rewind();
+		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+	}
+
 	static private class Output implements OutputQueue {
 		public int drainTo(ByteChannel channel) throws IOException {
 			return 0;
 		}
 		public boolean enqueue(ByteBuffer buf) {
-			content += bufferToString(buf);
+			content.add(buf);
 			return true;
 		}
 		public boolean isEmpty() {
 			return false;
 		}
-		public String content = "";
+		public List<ByteBuffer> content = new ArrayList<ByteBuffer>();
 	}
 }

@@ -42,9 +42,7 @@ public class Row {
 	public Row(Row row1, Row row2) {
 		data = new Record[row1.data.length + row2.data.length];
 		System.arraycopy(row1.data, 0, data, 0, row1.data.length);
-		System
-				.arraycopy(row2.data, 0, data, row1.data.length,
-						row2.data.length);
+		System.arraycopy(row2.data, 0, data, row1.data.length, row2.data.length);
 	}
 
 	@Override
@@ -53,6 +51,10 @@ public class Row {
 		for (Record r : data)
 			s += r.toString();
 		return s;
+	}
+
+	public int size() {
+		return data.length;
 	}
 
 	public ByteBuffer getraw(Header hdr, String col) {
@@ -67,7 +69,7 @@ public class Row {
 	}
 
 	public Record getFirstData() {
-		return data[1]; // 0 is index key
+		return data[data.length > 1 ? 1 : 0]; // 0 is index key
 	}
 
 	ByteBuffer getrawval(Header hdr, String col) {
