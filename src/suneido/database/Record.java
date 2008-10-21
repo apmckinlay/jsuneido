@@ -7,12 +7,7 @@ import static suneido.database.Database.theDB;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.Packable;
-import suneido.SuException;
-import suneido.SuInteger;
-import suneido.SuNumber;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 
 /**
  * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
@@ -27,10 +22,8 @@ import suneido.SuValue;
  * size and array elements are of the type
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Record
 		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
@@ -291,6 +284,10 @@ public class Record
 	}
 
 	// get's ========================================================
+
+	public ByteBuffer getBuf() {
+		return buf;
+	}
 
 	public final static ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
 	public final static ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0,

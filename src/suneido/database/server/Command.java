@@ -7,6 +7,10 @@ import java.nio.ByteBuffer;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
+import suneido.database.*;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
+import suneido.database.query.Query.Dir;
 
 /**
  * Implements the server protocol commands.
@@ -164,8 +168,18 @@ public enum Command {
 		}
 	},
 
-	GET,
+	GET {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			Dir dir = getDir(line);
+			DbmsQuery q = q_or_tc(line, serverData);
+			return get(q, dir, outputQueue);
+		}
+	},
 	GET1,
+
+
 	OUTPUT,
 	UPDATE,
 	ERASE,
@@ -239,14 +253,14 @@ public enum Command {
 		return n;
 	}
 
-	static int ck_getnum(char type, ByteBuffer buf) {
+	private static int ck_getnum(char type, ByteBuffer buf) {
 		int num = getnum(type, buf);
 		if (num == -1)
 			throw new SuException("expecting: " + type + "#");
 		return num;
 	}
 
-	DbmsQuery q_or_c(ByteBuffer buf, ServerData serverData) {
+	private static DbmsQuery q_or_c(ByteBuffer buf, ServerData serverData) {
 		DbmsQuery q = null;
 		int n;
 		if (-1 != (n = getnum('Q', buf)))
@@ -260,4 +274,68 @@ public enum Command {
 		return q;
 	}
 
+	private static DbmsQuery q_or_tc(ByteBuffer buf, ServerData serverData) {
+		DbmsQuery q = null;
+		int n, tn;
+		if (-1 != (n = getnum('Q', buf)))
+			q = serverData.getQuery(n);
+		else if (-1 != (tn = getnum('T', buf)) && -1 != (n = getnum('C', buf))) {
+			q = serverData.getCursor(n);
+			q.setTransaction((Transaction) serverData.getTransaction(tn));
+		} else
+			throw new SuException("expecting Q# or T# C#");
+		if (q == null)
+			throw new SuException("valid query or cursor required");
+		return q;
+	}
+
+	private static Dir getDir(ByteBuffer line) {
+		Dir dir;
+		switch (line.get()) {
+		case '+':
+			dir = Dir.NEXT;
+			break;
+		case '-':
+			dir = Dir.PREV;
+			break;
+		default:
+			throw new SuException("get expects + or -");
+		}
+		line.get(); // skip space
+		return dir;
+	}
+
+	private static ByteBuffer get(DbmsQuery q, Dir dir, OutputQueue outputQueue) {
+		Row row = q.get(dir);
+		Header hdr = q.header();
+		row_result(row, hdr, false, outputQueue);
+		return null;
+	}
+
+	private static void row_result(Row row, Header hdr, boolean sendhdr, OutputQueue outputQueue) {
+		Record rec;
+		if (row.size() <= 2)
+			rec = row.getFirstData();
+		else
+			{
+			rec = new Record(1000);
+			for (String f : hdr.fields())
+				rec.add(row.getraw(hdr, f));
+
+			// strip trailing empty fields
+			int n = rec.size();
+			while (rec.getraw(n - 1).remaining() == 0)
+				--n;
+			rec.truncate(n);
+			}
+
+		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.packSize();
+		if (sendhdr)
+			s += ' ' + listToParens(hdr.schema());
+		s += "\r\n";
+		outputQueue.enqueue(stringToBuffer(s));
+
+		rec = rec.dup(); // compact
+		outputQueue.enqueue(rec.getBuf());
+	}
 }

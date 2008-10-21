@@ -76,7 +76,7 @@ public class Header {
 		return cols;
 	}
 
-	List<String> fields() {
+	public List<String> fields() {
 		// NOTE: this includes deleted fields - important for output
 		if (size() == 1)
 			return flds.get(0);
