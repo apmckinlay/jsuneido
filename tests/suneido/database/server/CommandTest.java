@@ -103,6 +103,77 @@ public class CommandTest {
 		assertTrue(serverData.isEmpty());
 	}
 
+	@Test
+	public void header() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
+				null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.HEADER.execute(buf, null, null, serverData);
+		assertEquals("(table,tablename,nextfield,nrows,totalsize)\r\n",
+				bufferToString(buf));
+	}
+
+	@Test
+	public void order() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null,
+				stringToBuffer("tables sort nrows,totalsize"), null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.ORDER.execute(buf, null, null, serverData);
+		assertEquals("(nrows,totalsize)\r\n", bufferToString(buf));
+	}
+
+	@Test
+	public void keys() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
+				null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.KEYS.execute(buf, null, null, serverData);
+		assertEquals("([table],[tablename])\r\n", bufferToString(buf));
+	}
+
+	@Test
+	public void explain() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
+				null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.EXPLAIN.execute(buf, null, null, serverData);
+		assertEquals("tables^(table)\r\n", bufferToString(buf));
+	}
+
+	@Test
+	public void rewind() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
+				null, serverData);
+		assertEquals("C0\r\n", bufferToString(buf));
+
+		buf.rewind();
+		buf = Command.REWIND.execute(buf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+	}
+
 	static private class Output implements OutputQueue {
 		public int drainTo(ByteChannel channel) throws IOException {
 			return 0;

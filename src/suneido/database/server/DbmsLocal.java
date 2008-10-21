@@ -53,9 +53,13 @@ public class DbmsLocal implements Dbms {
 		return ParseQuery.query(s, (Transaction) tran);
 	}
 
+	public DbmsQuery cursor(String s) {
+		return ParseQuery.query(s);
+	}
+
 	public void erase(int tran, long recadr) {
 		// TODO Auto-generated method stub
-	
+
 	}
 
 	public SuValue connections() {
@@ -66,11 +70,6 @@ public class DbmsLocal implements Dbms {
 	public void copy(String filename) {
 		// TODO Auto-generated method stub
 
-	}
-
-	public DbmsQuery cursor(String s) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public int cursors() {
@@ -106,16 +105,6 @@ public class DbmsLocal implements Dbms {
 	public void log(String s) {
 		// TODO Auto-generated method stub
 
-	}
-
-	public boolean record_ok(int tran, long recadr) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean refresh(int tran) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	public SuValue run(String s) {

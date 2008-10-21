@@ -1,7 +1,6 @@
 package suneido.database.server;
 
-import static suneido.Util.bufferToString;
-import static suneido.Util.stringToBuffer;
+import static suneido.Util.*;
 
 import java.nio.ByteBuffer;
 
@@ -122,18 +121,57 @@ public enum Command {
 			return OK;
 		}
 	},
-	HEADER,
+
+	HEADER {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_c(line, serverData);
+			return stringToBuffer(listToParens(q.header().schema()) + "\r\n");
+		}
+	},
+	ORDER {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_c(line, serverData);
+			return stringToBuffer(listToParens(q.ordering()) + "\r\n");
+		}
+	},
+	KEYS {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_c(line, serverData);
+			return stringToBuffer(listToParens(q.keys()) + "\r\n");
+		}
+	},
+	EXPLAIN {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_c(line, serverData);
+			return stringToBuffer(q.toString() + "\r\n");
+		}
+	},
+	REWIND {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_c(line, serverData);
+			q.rewind();
+			return OK;
+		}
+	},
+
 	GET,
 	GET1,
 	OUTPUT,
 	UPDATE,
 	ERASE,
-	ORDER,
-	KEYS,
+
 	LIBGET,
 	LIBRARIES,
-	EXPLAIN,
-	REWIND,
 	TIMESTAMP,
 	DUMP,
 	COPY,
@@ -143,11 +181,8 @@ public enum Command {
 	TRANLIST,
 	SIZE,
 	CONNECTIONS,
-	RECORDOK,
-	TEMPDEST,
 	CURSORS,
 	SESSIONID,
-	REFRESH,
 	FINAL,
 	LOG,
 	KILL;
@@ -210,4 +245,19 @@ public enum Command {
 			throw new SuException("expecting: " + type + "#");
 		return num;
 	}
+
+	DbmsQuery q_or_c(ByteBuffer buf, ServerData serverData) {
+		DbmsQuery q = null;
+		int n;
+		if (-1 != (n = getnum('Q', buf)))
+			q = serverData.getQuery(n);
+		else if (-1 != (n = getnum('C', buf)))
+			q = serverData.getCursor(n);
+		else
+			throw new SuException("expecting Q# or C#");
+		if (q == null)
+			throw new SuException("valid query or cursor required");
+		return q;
+	}
+
 }

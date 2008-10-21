@@ -20,7 +20,7 @@ public class ServerData {
 	public void endTransaction(int tn) {
 		for (Integer qn : tranqueries.get(tn))
 			queries.remove(qn);
-		trans.remove(tn);
+		verify(trans.remove(tn) != null);
 		if (trans.isEmpty())
 			verify(queries.isEmpty());
 	}
@@ -32,16 +32,17 @@ public class ServerData {
 	}
 
 	public void endQuery(int qn) {
-		queries.remove(qn);
+		verify(queries.remove(qn) != null);
 	}
 
 	public int addCursor(DbmsQuery q) {
+		verify(q != null);
 		cursors.put(next, q);
 		return next++;
 	}
 
 	public void endCursor(int qn) {
-		cursors.remove(qn);
+		verify(cursors.remove(qn) != null);
 	}
 
 	public DbmsTran getTransaction(int tn) {

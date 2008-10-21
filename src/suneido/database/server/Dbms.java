@@ -39,12 +39,9 @@ public interface Dbms {
 
 	long update(int tn, long recadr, Record rec);
 
-	boolean record_ok(int tn, long recadr);
-
 	HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran);
 	int cursors();
 	SuValue sessionid(String s);
-	boolean refresh(int tn);
 	int finalSize();
 	void log(String s);
 	int kill(String s);
