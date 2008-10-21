@@ -18,7 +18,8 @@ import suneido.database.DestMem;
  * see <a href="http://javanio.info/filearea/nioserver">
  *		How to Build a Scalable Multiplexed Server with NIO Mark II</a>
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. 
+ * All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Server {
 	public static void start(int port) throws IOException {
