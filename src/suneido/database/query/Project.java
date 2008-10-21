@@ -83,7 +83,7 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	boolean updateable() {
+	public boolean updateable() {
 		return super.updateable() && strategy == Strategy.COPY;
 	}
 

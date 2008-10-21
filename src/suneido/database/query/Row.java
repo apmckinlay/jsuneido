@@ -12,8 +12,8 @@ import suneido.database.Transaction;
 
 public class Row {
 	final Record[] data;
-	long recadr = 0; // if Row contains single update-able record, this is its
-	// address
+	public long recadr = 0; // if Row contains single update-able record, this
+							// is its address
 	Transaction tran = null;
 	SuContainer surec = null;
 
@@ -64,6 +64,10 @@ public class Row {
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
 		return key;
+	}
+
+	public Record getFirstData() {
+		return data[1]; // 0 is index key
 	}
 
 	ByteBuffer getrawval(Header hdr, String col) {

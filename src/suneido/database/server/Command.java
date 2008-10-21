@@ -76,9 +76,52 @@ public enum Command {
 			return OK;
 		}
 	},
-	QUERY,
-	CURSOR,
-	CLOSE,
+	QUERY {
+		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			return ck_getnum('Q', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			line.rewind();
+			int tn = ck_getnum('T', line);
+			DbmsTran tran = serverData.getTransaction(tn);
+			DbmsQuery dq = theDbms.query(tran, bufferToString(extra));
+			int qn = serverData.addQuery(tn, dq);
+			return stringToBuffer("Q" + qn + "\r\n");
+		}
+	},
+	CURSOR {
+		@Override
+		public int extra(ByteBuffer buf) {
+			return ck_getnum('Q', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery dq = theDbms.cursor(bufferToString(extra));
+			int cn = serverData.addCursor(dq);
+			return stringToBuffer("C" + cn + "\r\n");
+		}
+	},
+	CLOSE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			int n;
+			if (-1 != (n = getnum('Q', line)))
+				serverData.endQuery(n);
+			else if (-1 != (n = getnum('C', line)))
+				serverData.endCursor(n);
+			else
+				throw new SuException("CLOSE expects Q# or C#");
+			return OK;
+		}
+	},
 	HEADER,
 	GET,
 	GET1,

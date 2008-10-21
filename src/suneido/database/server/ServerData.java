@@ -4,8 +4,6 @@ import static suneido.Suneido.verify;
 
 import java.util.*;
 
-import suneido.database.query.Query;
-
 public class ServerData {
 	private int next = 0;
 	private final Map<Integer, DbmsTran> trans = new HashMap<Integer, DbmsTran>();
@@ -27,15 +25,23 @@ public class ServerData {
 			verify(queries.isEmpty());
 	}
 
-	public int addQuery(int tn, Query q) {
+	public int addQuery(int tn, DbmsQuery q) {
 		queries.put(next, q);
 		tranqueries.get(tn).add(next);
 		return next++;
 	}
 
-	public int addCursor(Query q) {
+	public void endQuery(int qn) {
+		queries.remove(qn);
+	}
+
+	public int addCursor(DbmsQuery q) {
 		cursors.put(next, q);
 		return next++;
+	}
+
+	public void endCursor(int qn) {
+		cursors.remove(qn);
 	}
 
 	public DbmsTran getTransaction(int tn) {

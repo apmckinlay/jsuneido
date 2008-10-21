@@ -232,7 +232,7 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	boolean updateable() {
+	public boolean updateable() {
 		return false; // override Query1 source->updateable
 	}
 
