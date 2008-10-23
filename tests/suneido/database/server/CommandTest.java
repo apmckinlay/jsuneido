@@ -258,6 +258,13 @@ public class CommandTest {
 		Command.OUTPUT.execute(stringToBuffer("Q1 R13"), rec.getBuf(), null,
 				serverData);
 
+		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
+				stringToBuffer("test"), output, serverData);
+		assertNull(buf);
+		assertEquals("A0 R13 (a,b,c)\r\n",
+				bufferToString(output.content.get(0)));
+		assertEquals("['a','b','c']", rec.toString());
+
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
