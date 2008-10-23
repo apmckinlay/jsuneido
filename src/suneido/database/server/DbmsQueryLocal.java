@@ -40,8 +40,8 @@ public class DbmsQueryLocal implements DbmsQuery {
 		q.rewind();
 	}
 
-	public void setTransaction(Transaction tn) {
-		q.setTransaction(tn);
+	public void setTransaction(Transaction tran) {
+		q.setTransaction(tran);
 	}
 
 }

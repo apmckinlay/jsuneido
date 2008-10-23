@@ -700,6 +700,14 @@ public class Database {
 
 	// update record ================================================
 
+	public long updateRecord(Transaction tran, long recadr, Record rec) {
+		verify(recadr > 0);
+		int tblnum = adr(recadr - 4).getInt(0);
+		Table tbl = ck_getTable(tblnum);
+		return update_record(tran, tbl, input(recadr), rec, true);
+		// TODO: should be checking for system table
+	}
+
 	public void updateRecord(Transaction tran, String table, String index,
 			Record key, Record newrec) {
 		if (is_system_table(table))
@@ -780,6 +788,7 @@ public class Database {
 		int tblnum = adr(recadr - 4).getInt(0);
 		Table tbl = ck_getTable(tblnum);
 		remove_any_record(tran, tbl, input(recadr));
+		// TODO: should be checking for system table
 
 	}
 
@@ -974,4 +983,5 @@ public class Database {
 				throw new SuException("invalid database");
 		}
 	}
+
 }

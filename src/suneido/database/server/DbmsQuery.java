@@ -23,6 +23,6 @@ public interface DbmsQuery {
 
 	void output(Record rec);
 
-	void setTransaction(Transaction tn);
+	void setTransaction(Transaction tran);
 
 }

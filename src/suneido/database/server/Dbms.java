@@ -35,9 +35,9 @@ public interface Dbms {
 	SuValue run(String s);
 	long size();
 	SuValue connections();
-	void erase(int tn, long recadr);
+	void erase(DbmsTran tran, long recadr);
 
-	long update(int tn, long recadr, Record rec);
+	long update(DbmsTran tran, long recadr, Record rec);
 
 	HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran);
 	int cursors();

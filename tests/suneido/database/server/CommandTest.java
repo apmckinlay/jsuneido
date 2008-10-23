@@ -208,6 +208,36 @@ public class CommandTest {
 		assertTrue(serverData.isEmpty());
 	}
 
+	@Test
+	public void get1() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+		Output output = new Output();
+
+		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer line = stringToBuffer("+1 T0 Q7");
+
+		assertEquals(7, Command.GET1.extra(line));
+
+		ByteBuffer buf = Command.GET1.execute(line,
+				stringToBuffer("tables where table = 0"), output, serverData);
+		assertNull(buf);
+		assertEquals("A0 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
+				bufferToString(output.content.get(0)));
+		Record rec = new Record(output.content.get(1));
+		assertEquals("[0,'tables',5,4,164]", rec.toString());
+
+		tbuf.rewind();
+		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+	}
+
+	// ===============================================================
+
 	static private class Output implements OutputQueue {
 		public int drainTo(ByteChannel channel) throws IOException {
 			return 0;
