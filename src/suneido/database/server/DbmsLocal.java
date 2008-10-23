@@ -57,9 +57,12 @@ public class DbmsLocal implements Dbms {
 		return ParseQuery.query(s);
 	}
 
-	public void erase(int tran, long recadr) {
-		// TODO Auto-generated method stub
+	public void erase(DbmsTran tran, long recadr) {
+		theDB.removeRecord((Transaction) tran, recadr);
+	}
 
+	public long update(DbmsTran tran, long recadr, Record rec) {
+		return theDB.updateRecord((Transaction) tran, recadr, rec);
 	}
 
 	public SuValue connections() {
@@ -130,11 +133,6 @@ public class DbmsLocal implements Dbms {
 	public List<Integer> tranlist() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public long update(int tran, long recadr, Record rec) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 }

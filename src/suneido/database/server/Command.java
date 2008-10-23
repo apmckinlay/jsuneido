@@ -11,6 +11,7 @@ import suneido.database.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
+import suneido.database.server.Dbms.HeaderAndRow;
 
 /**
  * Implements the server protocol commands.
@@ -174,15 +175,73 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			Dir dir = getDir(line);
 			DbmsQuery q = q_or_tc(line, serverData);
-			return get(q, dir, outputQueue);
+			get(q, dir, outputQueue);
+			return null;
 		}
 	},
-	GET1,
+	GET1 {
+		@Override
+		public int extra(ByteBuffer buf) {
+			getDir(buf);
+			ck_getnum('T', buf);
+			return ck_getnum('Q', buf);
+		}
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			line.rewind();
+			Dir dir = getDir(line);
+			int tn = ck_getnum('T', line);
+			HeaderAndRow hr = theDbms.get(dir, bufferToString(extra), true,
+					serverData.getTransaction(tn));
+			row_result(hr.row, hr.header, true, outputQueue);
+			return null;
+		}
+	},
+	ERASE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
+			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			theDbms.erase(tran, recadr);
+			return OK;
+		}
+	},
+	OUTPUT {
+		@Override
+		public int extra(ByteBuffer buf) {
+			if (-1 == getnum('T', buf) || -1 == getnum('C', buf))
+				ck_getnum('Q', buf);
+			return ck_getnum('R', buf);
+		}
 
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsQuery q = q_or_tc(line, serverData);
+			q.output(new Record(extra));
+			return OK;
+		}
+	},
+	UPDATE {
+		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			ck_getnum('A', buf);
+			return ck_getnum('R', buf);
+		}
 
-	OUTPUT,
-	UPDATE,
-	ERASE,
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
+			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			Record newrec = new Record(extra);
+			theDbms.update(tran, recadr, newrec);
+			return OK;
+		}
+	},
 
 	LIBGET,
 	LIBRARIES,
@@ -191,7 +250,13 @@ public enum Command {
 	COPY,
 	RUN,
 	TEXT,
-	BINARY,
+	BINARY {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return OK;
+		}
+	},
 	TRANLIST,
 	SIZE,
 	CONNECTIONS,
@@ -218,7 +283,7 @@ public enum Command {
 	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue, ServerData serverData) {
-		return line; //TODO just echo for now
+		throw new SuException("not implemented: " + bufferToString(line));
 	}
 	private final static ByteBuffer badcmd = stringToBuffer("ERR bad command: ");
 	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
@@ -301,15 +366,16 @@ public enum Command {
 		default:
 			throw new SuException("get expects + or -");
 		}
-		line.get(); // skip space
+		// skip space
+		if (line.get() == '1')
+			line.get();
 		return dir;
 	}
 
-	private static ByteBuffer get(DbmsQuery q, Dir dir, OutputQueue outputQueue) {
+	private static void get(DbmsQuery q, Dir dir, OutputQueue outputQueue) {
 		Row row = q.get(dir);
 		Header hdr = q.header();
 		row_result(row, hdr, false, outputQueue);
-		return null;
 	}
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr, OutputQueue outputQueue) {
