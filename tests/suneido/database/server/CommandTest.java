@@ -49,7 +49,7 @@ public class CommandTest {
 		theDB = new Database(new DestMem(), Mode.CREATE);
 		ServerData serverData = new ServerData();
 
-		ByteBuffer buf = Command.TRANSACTION.execute(null, null, null,
+		ByteBuffer buf = Command.TRANSACTION.execute(READ, null, null,
 				serverData);
 		assertEquals("T0\r\n", bufferToString(buf));
 		buf.rewind();
@@ -57,7 +57,7 @@ public class CommandTest {
 		assertEquals("OK\r\n", bufferToString(buf));
 		assertTrue(serverData.isEmpty());
 
-		buf = Command.TRANSACTION.execute(null, null, null, serverData);
+		buf = Command.TRANSACTION.execute(UPDATE, null, null, serverData);
 		assertEquals("T1\r\n", bufferToString(buf));
 		buf.rewind();
 		buf = Command.COMMIT.execute(buf, null, null, serverData);
@@ -87,7 +87,7 @@ public class CommandTest {
 
 		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null,
 				serverData);
 		assertEquals("T0\r\n", bufferToString(tbuf));
 
@@ -183,7 +183,7 @@ public class CommandTest {
 
 		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null,
 				serverData);
 		assertEquals("T0\r\n", bufferToString(tbuf));
 
@@ -214,7 +214,7 @@ public class CommandTest {
 		ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(null, null, null,
+		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null,
 				serverData);
 		assertEquals("T0\r\n", bufferToString(tbuf));
 
@@ -229,6 +229,38 @@ public class CommandTest {
 				bufferToString(output.content.get(0)));
 		Record rec = new Record(output.content.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
+
+		tbuf.rewind();
+		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+	}
+
+	@Test
+	public void output_update_erase() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+		Output output = new Output();
+
+		Command.ADMIN.execute(stringToBuffer("create test (a, b, c) key(a)"),
+				null, null, null);
+
+		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q5"),
+				stringToBuffer("test"), null, serverData);
+		assertEquals("Q1\r\n", bufferToString(buf));
+
+		Record rec = RecordTest.make("a", "b", "c");
+		assertEquals(13, rec.packSize());
+		Command.OUTPUT.execute(stringToBuffer("Q1 R13"), rec.getBuf(), null,
+				serverData);
+
+		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
+				serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
 
 		tbuf.rewind();
 		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
@@ -251,4 +283,8 @@ public class CommandTest {
 		}
 		public List<ByteBuffer> content = new ArrayList<ByteBuffer>();
 	}
+
+	static private ByteBuffer READ = stringToBuffer("read");
+	static private ByteBuffer UPDATE = stringToBuffer("update");
+
 }

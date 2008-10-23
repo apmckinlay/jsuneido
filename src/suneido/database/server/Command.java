@@ -42,7 +42,11 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			boolean readwrite = false; // TODO
+			boolean readwrite = false;
+			if (match(line, "update"))
+				readwrite = true;
+			else if (!match(line, "read"))
+				return stringToBuffer("ERR invalid transaction mode\r\n");
 			String session_id = ""; // TODO
 			int tn = serverData.addTransaction(
 					theDbms.transaction(readwrite, session_id));
@@ -403,5 +407,15 @@ public enum Command {
 
 		rec = rec.dup(); // compact
 		outputQueue.enqueue(rec.getBuf());
+	}
+
+
+	private static boolean match(ByteBuffer linebuf, String string) {
+		String line = bufferToString(linebuf).toLowerCase();
+		if (!line.startsWith(string))
+			return false;
+		int n = string.length();
+		return line.length() == n || line.charAt(n) == ' ';
+		// TODO advance line position
 	}
 }
