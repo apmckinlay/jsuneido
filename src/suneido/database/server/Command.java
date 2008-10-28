@@ -8,8 +8,7 @@ import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
 import suneido.database.*;
-import suneido.database.query.Header;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 
@@ -97,7 +96,7 @@ public enum Command {
 			line.rewind();
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = serverData.getTransaction(tn);
-			DbmsQuery dq = theDbms.query(tran, bufferToString(extra));
+			Query dq = (Query) theDbms.query(tran, bufferToString(extra));
 			int qn = serverData.addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
@@ -111,7 +110,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery dq = theDbms.cursor(bufferToString(extra));
+			Query dq = (Query) theDbms.cursor(bufferToString(extra));
 			int cn = serverData.addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
@@ -178,7 +177,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
 			Dir dir = getDir(line);
-			DbmsQuery q = q_or_tc(line, serverData);
+			Query q = q_or_tc(line, serverData);
 			get(q, dir, outputQueue);
 			return null;
 		}
@@ -223,7 +222,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_tc(line, serverData);
+			Query q = q_or_tc(line, serverData);
 			q.output(new Record(extra));
 			return OK;
 		}
@@ -329,8 +328,8 @@ public enum Command {
 		return num;
 	}
 
-	private static DbmsQuery q_or_c(ByteBuffer buf, ServerData serverData) {
-		DbmsQuery q = null;
+	private static Query q_or_c(ByteBuffer buf, ServerData serverData) {
+		Query q = null;
 		int n;
 		if (-1 != (n = getnum('Q', buf)))
 			q = serverData.getQuery(n);
@@ -343,8 +342,8 @@ public enum Command {
 		return q;
 	}
 
-	private static DbmsQuery q_or_tc(ByteBuffer buf, ServerData serverData) {
-		DbmsQuery q = null;
+	private static Query q_or_tc(ByteBuffer buf, ServerData serverData) {
+		Query q = null;
 		int n, tn;
 		if (-1 != (n = getnum('Q', buf)))
 			q = serverData.getQuery(n);
@@ -376,8 +375,10 @@ public enum Command {
 		return dir;
 	}
 
-	private static void get(DbmsQuery q, Dir dir, OutputQueue outputQueue) {
+	private static void get(Query q, Dir dir, OutputQueue outputQueue) {
 		Row row = q.get(dir);
+		if (row != null && q.updateable())
+			row.recadr = row.getFirstData().off();
 		Header hdr = q.header();
 		row_result(row, hdr, false, outputQueue);
 	}

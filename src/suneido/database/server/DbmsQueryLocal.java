@@ -10,13 +10,17 @@ import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
 public class DbmsQueryLocal implements DbmsQuery {
-	private Query q;
+	private final Query q;
+
+	DbmsQueryLocal(Query q) {
+		this.q = q;
+	}
 
 	public Row get(Dir dir) {
 		Row row = q.get(dir);
 		if (q.updateable() && row != null)
 			row.recadr = row.getFirstData().off(); // [1] to skip key
-		verify(row.recadr >= 0);
+		verify(row.recadr > 0);
 		return row;
 	}
 
