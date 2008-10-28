@@ -194,21 +194,12 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			line.rewind();
 			Dir dir = getDir(line);
+			boolean one = line.get(line.position() - 2) == '1';
 			int tn = ck_getnum('T', line);
-			HeaderAndRow hr = theDbms.get(dir, bufferToString(extra), true,
+			HeaderAndRow hr = theDbms.get(dir, bufferToString(extra), one,
 					serverData.getTransaction(tn));
 			row_result(hr.row, hr.header, true, outputQueue);
 			return null;
-		}
-	},
-	ERASE {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
-			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			theDbms.erase(tran, recadr);
-			return OK;
 		}
 	},
 	OUTPUT {
@@ -242,6 +233,16 @@ public enum Command {
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			Record newrec = new Record(extra);
 			theDbms.update(tran, recadr, newrec);
+			return OK;
+		}
+	},
+	ERASE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
+			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			theDbms.erase(tran, recadr);
 			return OK;
 		}
 	},
@@ -290,6 +291,7 @@ public enum Command {
 	}
 	private final static ByteBuffer badcmd = stringToBuffer("ERR bad command: ");
 	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
+	private final static ByteBuffer EOF = stringToBuffer("EOF\r\n");
 
 	static Dbms theDbms = new DbmsLocal();
 
@@ -384,6 +386,10 @@ public enum Command {
 	}
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr, OutputQueue outputQueue) {
+		if (row == null) {
+			outputQueue.enqueue(EOF);
+			return;
+		}
 		Record rec;
 		if (row.size() <= 2)
 			rec = row.getFirstData();
