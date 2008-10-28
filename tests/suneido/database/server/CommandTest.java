@@ -218,12 +218,13 @@ public class CommandTest {
 				serverData);
 		assertEquals("T0\r\n", bufferToString(tbuf));
 
-		ByteBuffer line = stringToBuffer("+1 T0 Q7");
+		ByteBuffer line = stringToBuffer("+ T0 Q6");
 
-		assertEquals(7, Command.GET1.extra(line));
+		assertEquals(6, Command.GET1.extra(line));
 
 		ByteBuffer buf = Command.GET1.execute(line,
-				stringToBuffer("tables where table = 0"), output, serverData);
+				stringToBuffer("tables"),
+				output, serverData);
 		assertNull(buf);
 		assertEquals("A5 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.content.get(0)));
@@ -253,9 +254,9 @@ public class CommandTest {
 				stringToBuffer("test"), null, serverData);
 		assertEquals("Q1\r\n", bufferToString(buf));
 
+		// OUTPUT
 		Record rec = RecordTest.make("a", "b", "c");
 		assertEquals(13, rec.packSize());
-System.out.println("output");
 		Command.OUTPUT.execute(stringToBuffer("Q1 R13"), rec.getBuf(), null,
 				serverData);
 
@@ -278,11 +279,19 @@ System.out.println("output");
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
-		assertEquals("A107 R13 (a,b,c)\r\n", 
+		assertEquals("A107 R13 (a,b,c)\r\n",
 				bufferToString(output.content.get(0)));
 		assertEquals("['A','B','C']", rec.toString());
 
-		// TODO: ERASE
+		// ERASE
+		buf = Command.ERASE.execute(stringToBuffer("T0 A107"), rec.getBuf(),
+				null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		output = new Output();
+		buf = Command.GET1.execute(stringToBuffer("+ T0 Q4"),
+				stringToBuffer("test"), output, serverData);
+		assertNull(buf);
+		assertEquals("EOF\r\n", bufferToString(output.content.get(0)));
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
