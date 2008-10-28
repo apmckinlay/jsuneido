@@ -37,8 +37,10 @@ public class DbmsLocal implements Dbms {
 		if (tran == null)
 			tran = theDB.readonlyTran();
 		try {
-			DbmsQuery q = ParseQuery.query(query, (Transaction) tran);
+			Query q = ParseQuery.query(query, (Transaction) tran);
 			Row row = q.get(dir);
+			if (row != null && q.updateable())
+				row.recadr = row.getFirstData().off();
 			if (one && row != null && q.get(dir) != null)
 				throw new SuException("Query1 not unique: " + query);
 			Header hdr = q.header();

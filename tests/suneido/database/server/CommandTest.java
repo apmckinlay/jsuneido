@@ -194,7 +194,7 @@ public class CommandTest {
 		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output,
 				serverData);
 		assertNull(buf);
-		assertEquals("A0 R29\r\n", bufferToString(output.content.get(0)));
+		assertEquals("A5 R29\r\n", bufferToString(output.content.get(0)));
 		Record rec = new Record(output.content.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
 
@@ -225,7 +225,7 @@ public class CommandTest {
 		ByteBuffer buf = Command.GET1.execute(line,
 				stringToBuffer("tables where table = 0"), output, serverData);
 		assertNull(buf);
-		assertEquals("A0 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
+		assertEquals("A5 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.content.get(0)));
 		Record rec = new Record(output.content.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
@@ -239,7 +239,7 @@ public class CommandTest {
 	@Test
 	public void output_update_erase() {
 		theDB = new Database(new DestMem(), Mode.CREATE);
-		ServerData serverData = new ServerData();
+		final ServerData serverData = new ServerData();
 		Output output = new Output();
 
 		Command.ADMIN.execute(stringToBuffer("create test (a, b, c) key(a)"),
@@ -255,15 +255,34 @@ public class CommandTest {
 
 		Record rec = RecordTest.make("a", "b", "c");
 		assertEquals(13, rec.packSize());
+System.out.println("output");
 		Command.OUTPUT.execute(stringToBuffer("Q1 R13"), rec.getBuf(), null,
 				serverData);
 
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
-		assertEquals("A0 R13 (a,b,c)\r\n",
+		assertEquals("A105 R13 (a,b,c)\r\n",
 				bufferToString(output.content.get(0)));
 		assertEquals("['a','b','c']", rec.toString());
+
+		// UPDATE
+		rec = RecordTest.make("A", "B", "C");
+		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R13"),
+				rec.getBuf(), null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+
+		buf = Command.REWIND.execute(stringToBuffer("Q1"), null, null,
+				serverData);
+		output = new Output();
+		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
+				stringToBuffer("test"), output, serverData);
+		assertNull(buf);
+		assertEquals("A107 R13 (a,b,c)\r\n", 
+				bufferToString(output.content.get(0)));
+		assertEquals("['A','B','C']", rec.toString());
+
+		// TODO: ERASE
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
