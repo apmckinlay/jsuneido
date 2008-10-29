@@ -3,6 +3,7 @@ package suneido.database.server;
 import static suneido.Util.*;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.ronsoft.nioserver.OutputQueue;
 
@@ -247,7 +248,25 @@ public enum Command {
 		}
 	},
 
-	LIBGET,
+	LIBGET {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			List<String> srcs = theDbms.libget(bufferToString(line));
+
+			String resp = "";
+			for (int i = 1; i < srcs.size(); i += 2)
+				resp += "L" + srcs.get(i).length() + " ";
+			resp += "\r\n";
+			outputQueue.enqueue(stringToBuffer(resp));
+
+			for (int i = 0; i < srcs.size(); i += 2) {
+				outputQueue.enqueue(stringToBuffer(srcs.get(i) + "\r\n"));
+				outputQueue.enqueue(stringToBuffer(srcs.get(i + 1)));
+			}
+			return null;
+		}
+	},
 	LIBRARIES,
 	TIMESTAMP,
 	DUMP,
