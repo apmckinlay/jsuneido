@@ -2,12 +2,12 @@ package suneido.database.server;
 
 import static suneido.database.Database.theDB;
 
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
+import suneido.database.Table;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
@@ -98,17 +98,38 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<String> libget(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		Record key = new Record();
+		key.add(name);
+		key.add(-1);
+		List<String> srcs = new ArrayList<String>();
+		Transaction tran = theDB.readonlyTran();
+		for (String lib : libraries()) {
+			Table table = theDB.getTable(lib);
+			List<String> flds = table.getFields();
+			int group_fld = flds.indexOf("group");
+			int text_fld = flds.indexOf("text");
+			Index index = theDB.getIndex(table, "name,group");
+			if (group_fld < 0 || text_fld < 0 || index == null)
+				continue; // library is invalid, ignore it
+			BtreeIndex.Iter iter = index.btreeIndex.iter(tran).next(); // TODO
+																		// select
+																		// name
+//QUESTION what's to stop this finding folders?
+			if (!iter.eof()) {
+				Record rec = theDB.input(iter.keyadr());
+				srcs.add(lib);
+				srcs.add(rec.getString(text_fld));
+			}
+			else
+				System.out.println("eof");
+		}
+		tran.complete();
+		return srcs;
 	}
 
 	public List<String> libraries() {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void log(String s) {
-		// TODO Auto-generated method stub
+		return Collections.singletonList("stdlib");
 
 	}
 
@@ -135,6 +156,11 @@ public class DbmsLocal implements Dbms {
 	public List<Integer> tranlist() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void log(String s) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

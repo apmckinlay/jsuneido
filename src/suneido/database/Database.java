@@ -445,7 +445,7 @@ public class Database {
 		Index idx = table.firstIndex();
 		Table fktbl = getTable(fktable);
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
-		!iter.eof(); iter.next()) {
+				!iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
 			fkey_source_block1(tran, fktbl, fkcolumns, rec.project(colnums),
 					"add index to " + table.name);

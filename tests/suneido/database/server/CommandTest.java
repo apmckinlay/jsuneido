@@ -40,7 +40,7 @@ public class CommandTest {
 		Output output = new Output();
 		ByteBuffer hello = stringToBuffer("hello world");
 		ByteBuffer buf = Command.BADCMD.execute(hello, null, output, null);
-		assertEquals("ERR bad command: ", bufferToString(output.content.get(0)));
+		assertEquals("ERR bad command: ", bufferToString(output.get(0)));
 		assertEquals(hello, buf);
 	}
 
@@ -194,8 +194,8 @@ public class CommandTest {
 		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output,
 				serverData);
 		assertNull(buf);
-		assertEquals("A5 R29\r\n", bufferToString(output.content.get(0)));
-		Record rec = new Record(output.content.get(1));
+		assertEquals("A5 R29\r\n", bufferToString(output.get(0)));
+		Record rec = new Record(output.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
@@ -227,8 +227,8 @@ public class CommandTest {
 				output, serverData);
 		assertNull(buf);
 		assertEquals("A5 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
-				bufferToString(output.content.get(0)));
-		Record rec = new Record(output.content.get(1));
+				bufferToString(output.get(0)));
+		Record rec = new Record(output.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
 
 		tbuf.rewind();
@@ -264,7 +264,7 @@ public class CommandTest {
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
 		assertEquals("A105 R13 (a,b,c)\r\n",
-				bufferToString(output.content.get(0)));
+				bufferToString(output.get(0)));
 		assertEquals("['a','b','c']", rec.toString());
 
 		// UPDATE
@@ -280,7 +280,7 @@ public class CommandTest {
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
 		assertEquals("A107 R13 (a,b,c)\r\n",
-				bufferToString(output.content.get(0)));
+				bufferToString(output.get(0)));
 		assertEquals("['A','B','C']", rec.toString());
 
 		// ERASE
@@ -291,7 +291,7 @@ public class CommandTest {
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q4"),
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
-		assertEquals("EOF\r\n", bufferToString(output.content.get(0)));
+		assertEquals("EOF\r\n", bufferToString(output.get(0)));
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
@@ -303,9 +303,50 @@ public class CommandTest {
 		assertTrue(serverData.isEmpty());
 	}
 
+	@Test
+	public void libget() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		final ServerData serverData = new ServerData();
+		Output output = new Output();
+
+		Command.ADMIN.execute(stringToBuffer(
+				"create stdlib (name,group,text) key(name,group)"),
+				null, null, null);
+
+		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null,
+				serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q6"),
+				stringToBuffer("stdlib"), null, serverData);
+		assertEquals("Q1\r\n", bufferToString(buf));
+
+		Record rec = RecordTest.make("Foo", "", "some text");
+		assertEquals(21, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R21"), rec.getBuf(),
+				null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+
+		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
+				serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		tbuf.rewind();
+		buf = Command.COMMIT.execute(tbuf, null, null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+		assertTrue(serverData.isEmpty());
+
+		buf = Command.LIBGET.execute(stringToBuffer("Foo"), null, output,
+				serverData);
+		assertEquals(null, buf);
+		assertEquals("L9 \r\n", bufferToString(output.get(0)));
+		// TODO check rest of result
+	}
+
 	// ===============================================================
 
 	static private class Output implements OutputQueue {
+		private final List<ByteBuffer> content = new ArrayList<ByteBuffer>();
+
 		public int drainTo(ByteChannel channel) throws IOException {
 			return 0;
 		}
@@ -316,7 +357,9 @@ public class CommandTest {
 		public boolean isEmpty() {
 			return false;
 		}
-		public List<ByteBuffer> content = new ArrayList<ByteBuffer>();
+		public ByteBuffer get(int i) {
+			return content.get(i);
+		}
 	}
 
 	static private ByteBuffer READ = stringToBuffer("read");
