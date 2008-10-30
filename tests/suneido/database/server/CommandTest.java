@@ -356,9 +356,10 @@ public class CommandTest {
 				serverData);
 		assertEquals(null, buf);
 		assertEquals("L10 \r\n", bufferToString(output.get(0)));
-		assertEquals("stdlib\r\n" + (char) Pack.STRING, bufferToString(output
+		assertEquals("stdlib\r\n", bufferToString(output
 				.get(1)));
-		assertEquals("some text", bufferToString(output.get(2)));
+		assertEquals("" + (char) Pack.STRING + "some text",
+				bufferToString(output.get(2)));
 
 		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output,
 				serverData);

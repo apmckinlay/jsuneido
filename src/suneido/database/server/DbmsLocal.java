@@ -97,12 +97,12 @@ public class DbmsLocal implements Dbms {
 		return 0;
 	}
 
-	public List<String> libget(String name) {
+	public List<LibGet> libget(String name) {
 		System.out.println("libget(" + name + ")");
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
-		List<String> srcs = new ArrayList<String>();
+		List<LibGet> srcs = new ArrayList<LibGet>();
 		Transaction tran = theDB.readonlyTran();
 		for (String lib : libraries()) {
 			Table table = theDB.ck_getTable(lib);
@@ -115,9 +115,8 @@ public class DbmsLocal implements Dbms {
 			BtreeIndex.Iter iter = index.btreeIndex.iter(tran, key).next();
 			if (!iter.eof()) {
 				Record rec = theDB.input(iter.keyadr());
-				srcs.add(lib);
-				srcs.add(rec.getString(text_fld));
-				System.out.println("=> '" + rec.getString(text_fld) + "'");
+				srcs.add(new LibGet(lib, rec.getraw(text_fld)));
+System.out.println("=> '" + rec.getString(text_fld) + "'");
 			}
 else
 System.out.println("eof");
