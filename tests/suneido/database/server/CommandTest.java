@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.Test;
 import org.ronsoft.nioserver.OutputQueue;
 
+import suneido.SuValue.Pack;
 import suneido.database.*;
 
 public class CommandTest {
@@ -309,9 +310,10 @@ public class CommandTest {
 		final ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		Command.ADMIN.execute(stringToBuffer(
-				"create stdlib (name,text,group) key(name,group)"),
-				null, null, null);
+		Command.ADMIN
+				.execute(
+						stringToBuffer("create stdlib (name,text,group) key(name,group)"),
+						null, null, null);
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null,
 				serverData);
@@ -353,8 +355,9 @@ public class CommandTest {
 		buf = Command.LIBGET.execute(stringToBuffer("Foo"), null, output,
 				serverData);
 		assertEquals(null, buf);
-		assertEquals("L9 \r\n", bufferToString(output.get(0)));
-		assertEquals("stdlib\r\n", bufferToString(output.get(1)));
+		assertEquals("L10 \r\n", bufferToString(output.get(0)));
+		assertEquals("stdlib\r\n" + (char) Pack.STRING, bufferToString(output
+				.get(1)));
 		assertEquals("some text", bufferToString(output.get(2)));
 
 		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output,

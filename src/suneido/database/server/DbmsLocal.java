@@ -98,6 +98,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<String> libget(String name) {
+		System.out.println("libget(" + name + ")");
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
@@ -116,9 +117,10 @@ public class DbmsLocal implements Dbms {
 				Record rec = theDB.input(iter.keyadr());
 				srcs.add(lib);
 				srcs.add(rec.getString(text_fld));
+				System.out.println("=> '" + rec.getString(text_fld) + "'");
 			}
-			else
-				System.out.println("eof");
+else
+System.out.println("eof");
 		}
 		tran.complete();
 		return srcs;
