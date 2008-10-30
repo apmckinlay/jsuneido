@@ -1,5 +1,6 @@
 package suneido.database.server;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import suneido.SuValue;
@@ -26,7 +27,7 @@ public interface Dbms {
 
 	DbmsQuery cursor(String s);
 	DbmsQuery query(DbmsTran tran, String s);
-	List<String> libget(String name);
+	List<LibGet> libget(String name);
 	List<String> libraries();
 	List<Integer> tranlist();
 	SuValue timestamp();
@@ -55,5 +56,15 @@ public interface Dbms {
 			this.row = row;
 		}
 	}
+	public static class LibGet {
+		public String library;
+		public ByteBuffer text;
+
+		public LibGet(String library, ByteBuffer text) {
+			this.library = library;
+			this.text = text;
+		}
+	}
+
 
 }

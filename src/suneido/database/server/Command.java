@@ -8,11 +8,11 @@ import java.util.List;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
-import suneido.SuValue.Pack;
 import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
+import suneido.database.server.Dbms.LibGet;
 
 /**
  * Implements the server protocol commands.
@@ -253,18 +253,17 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			List<String> srcs = theDbms.libget(bufferToString(line).trim());
+			List<LibGet> srcs = theDbms.libget(bufferToString(line).trim());
 
 			String resp = "";
-			for (int i = 1; i < srcs.size(); i += 2)
-				resp += "L" + (srcs.get(i).length() + 1) + " ";
+			for (LibGet src : srcs)
+				resp += "L" + (src.text.limit()) + " ";
 			resp += "\r\n";
 			outputQueue.enqueue(stringToBuffer(resp));
 
-			for (int i = 0; i < srcs.size(); i += 2) {
-				outputQueue.enqueue(stringToBuffer(srcs.get(i) + "\r\n"
-						+ (char) Pack.STRING));
-				outputQueue.enqueue(stringToBuffer(srcs.get(i + 1)));
+			for (LibGet src : srcs) {
+				outputQueue.enqueue(stringToBuffer(src.library + "\r\n"));
+				outputQueue.enqueue(src.text);
 			}
 			return null;
 		}
