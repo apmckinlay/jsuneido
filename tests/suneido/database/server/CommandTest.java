@@ -310,7 +310,7 @@ public class CommandTest {
 		Output output = new Output();
 
 		Command.ADMIN.execute(stringToBuffer(
-				"create stdlib (name,group,text) key(name,group)"),
+				"create stdlib (name,text,group) key(name,group)"),
 				null, null, null);
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null,
@@ -321,9 +321,24 @@ public class CommandTest {
 				stringToBuffer("stdlib"), null, serverData);
 		assertEquals("Q1\r\n", bufferToString(buf));
 
-		Record rec = RecordTest.make("Foo", "", "some text");
-		assertEquals(21, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R21"), rec.getBuf(),
+		Record rec = RecordTest.make("Foo", "some text");
+		rec.add(-1);
+		assertEquals(25, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R25"), rec.getBuf(),
+				null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+
+		rec = RecordTest.make("Bar", "other stuff");
+		rec.add(-1);
+		assertEquals(27, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R27"), rec.getBuf(),
+				null, serverData);
+		assertEquals("OK\r\n", bufferToString(buf));
+
+		rec = RecordTest.make("Foo", "");
+		rec.add(1); // folder
+		assertEquals(15, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R15"), rec.getBuf(),
 				null, serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
 
@@ -341,6 +356,9 @@ public class CommandTest {
 		assertEquals("L9 \r\n", bufferToString(output.get(0)));
 		assertEquals("stdlib\r\n", bufferToString(output.get(1)));
 		assertEquals("some text", bufferToString(output.get(2)));
+
+		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output,
+				serverData);
 	}
 
 	// ===============================================================

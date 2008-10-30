@@ -104,17 +104,14 @@ public class DbmsLocal implements Dbms {
 		List<String> srcs = new ArrayList<String>();
 		Transaction tran = theDB.readonlyTran();
 		for (String lib : libraries()) {
-			Table table = theDB.getTable(lib);
+			Table table = theDB.ck_getTable(lib);
 			List<String> flds = table.getFields();
 			int group_fld = flds.indexOf("group");
 			int text_fld = flds.indexOf("text");
 			Index index = theDB.getIndex(table, "name,group");
 			if (group_fld < 0 || text_fld < 0 || index == null)
 				continue; // library is invalid, ignore it
-			BtreeIndex.Iter iter = index.btreeIndex.iter(tran).next(); // TODO
-																		// select
-																		// name
-//QUESTION what's to stop this finding folders?
+			BtreeIndex.Iter iter = index.btreeIndex.iter(tran, key).next();
 			if (!iter.eof()) {
 				Record rec = theDB.input(iter.keyadr());
 				srcs.add(lib);
