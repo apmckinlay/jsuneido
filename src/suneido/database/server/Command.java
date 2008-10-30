@@ -8,6 +8,7 @@ import java.util.List;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
+import suneido.SuValue.Pack;
 import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
@@ -252,16 +253,17 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			List<String> srcs = theDbms.libget(bufferToString(line));
+			List<String> srcs = theDbms.libget(bufferToString(line).trim());
 
 			String resp = "";
 			for (int i = 1; i < srcs.size(); i += 2)
-				resp += "L" + srcs.get(i).length() + " ";
+				resp += "L" + (srcs.get(i).length() + 1) + " ";
 			resp += "\r\n";
 			outputQueue.enqueue(stringToBuffer(resp));
 
 			for (int i = 0; i < srcs.size(); i += 2) {
-				outputQueue.enqueue(stringToBuffer(srcs.get(i) + "\r\n"));
+				outputQueue.enqueue(stringToBuffer(srcs.get(i) + "\r\n"
+						+ (char) Pack.STRING));
 				outputQueue.enqueue(stringToBuffer(srcs.get(i + 1)));
 			}
 			return null;
@@ -277,6 +279,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
+			// TODO BINARY
 			return OK;
 		}
 	},
@@ -284,9 +287,24 @@ public enum Command {
 	SIZE,
 	CONNECTIONS,
 	CURSORS,
-	SESSIONID,
+	SESSIONID {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			// TODO SESSIONID
+			// outputQueue.enqueue(line);
+			return line;
+		}
+	},
 	FINAL,
-	LOG,
+	LOG {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			// TODO LOG
+			return OK;
+		}
+	},
 	KILL;
 
 	/**
@@ -306,9 +324,11 @@ public enum Command {
 	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue, ServerData serverData) {
-		throw new SuException("not implemented: " + bufferToString(line));
+		outputQueue.enqueue(notimp);
+		return line;
 	}
 	private final static ByteBuffer badcmd = stringToBuffer("ERR bad command: ");
+	private final static ByteBuffer notimp = stringToBuffer("ERR not implemented: ");
 	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
 	private final static ByteBuffer EOF = stringToBuffer("EOF\r\n");
 

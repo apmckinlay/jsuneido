@@ -1,7 +1,10 @@
 package suneido.database.server;
 
+import static suneido.Suneido.verify;
+import static suneido.Util.bufferToString;
 import static suneido.database.Mode.CREATE;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
@@ -10,8 +13,8 @@ import java.util.concurrent.Executors;
 import org.ronsoft.nioserver.*;
 import org.ronsoft.nioserver.impl.*;
 
-import suneido.database.Database;
-import suneido.database.DestMem;
+import suneido.database.*;
+import suneido.database.query.*;
 
 /**
  * Using org.ronsoft.nioserver -
@@ -54,6 +57,7 @@ public class Server {
 				if (nlPos == -1)
 					return null;
 				line = inputQueue.dequeueBytes(nlPos + 1);
+System.out.print(bufferToString(line));
 				cmd = getCmd(line);
 				try {
 					nExtra = cmd.extra(line);
@@ -135,7 +139,13 @@ public class Server {
 	}
 
 	public static void main(String[] args) throws IOException {
-		Database.theDB = new Database(new DestMem(), CREATE);
+		new File("suneido.db").delete();
+		Mmfile mmf = new Mmfile("suneido.db", Mode.CREATE);
+		Database.theDB = new Database(mmf, CREATE);
+		Request.execute("create stdlib (name,text,group) key(name,group)");
+		QueryAction q = (QueryAction) ParseQuery
+				.parse("insert [name: 'Init', group: -1, text: 'function () { Exit() }'] into stdlib");
+		verify(q.execute() == 1);
 		start(3456);
 	}
 }

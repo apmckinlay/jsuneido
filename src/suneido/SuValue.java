@@ -20,17 +20,17 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 
 	// sequence must match Order
-	static class Pack {
-		static final byte FALSE = 0;
-		static final byte TRUE = 1;
-		static final byte MINUS = 2;
-		static final byte PLUS = 3;
-		static final byte STRING = 4;
-		static final byte DATE = 5;
-		static final byte OBJECT = 6;
-		static final byte RECORD = 7;
-		static final byte FUNCTION = 8;
-		static final byte CLASS = 9;
+	public static class Pack {
+		public static final byte FALSE = 0;
+		public static final byte TRUE = 1;
+		public static final byte MINUS = 2;
+		public static final byte PLUS = 3;
+		public static final byte STRING = 4;
+		public static final byte DATE = 5;
+		public static final byte OBJECT = 6;
+		public static final byte RECORD = 7;
+		public static final byte FUNCTION = 8;
+		public static final byte CLASS = 9;
 	}
 
 	public ByteBuffer pack() {
