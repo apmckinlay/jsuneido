@@ -339,7 +339,8 @@ public class CommandTest {
 				serverData);
 		assertEquals(null, buf);
 		assertEquals("L9 \r\n", bufferToString(output.get(0)));
-		// TODO check rest of result
+		assertEquals("stdlib\r\n", bufferToString(output.get(1)));
+		assertEquals("some text", bufferToString(output.get(2)));
 	}
 
 	// ===============================================================
