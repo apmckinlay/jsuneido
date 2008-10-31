@@ -2,13 +2,23 @@ package suneido.database.server;
 
 import static suneido.database.Database.theDB;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.*;
+import suneido.database.BtreeIndex;
+import suneido.database.Index;
+import suneido.database.Record;
 import suneido.database.Table;
-import suneido.database.query.*;
+import suneido.database.Transaction;
+import suneido.database.query.Header;
+import suneido.database.query.ParseQuery;
+import suneido.database.query.Query;
+import suneido.database.query.QueryAction;
+import suneido.database.query.Request;
+import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 
 /**
@@ -98,7 +108,6 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<LibGet> libget(String name) {
-		System.out.println("libget(" + name + ")");
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
@@ -116,10 +125,7 @@ public class DbmsLocal implements Dbms {
 			if (!iter.eof()) {
 				Record rec = theDB.input(iter.keyadr());
 				srcs.add(new LibGet(lib, rec.getraw(text_fld)));
-System.out.println("=> '" + rec.getString(text_fld) + "'");
 			}
-else
-System.out.println("eof");
 		}
 		tran.complete();
 		return srcs;
@@ -128,7 +134,6 @@ System.out.println("eof");
 	public List<String> libraries() {
 		// TODO Auto-generated method stub
 		return Collections.singletonList("stdlib");
-
 	}
 
 	public SuValue run(String s) {
