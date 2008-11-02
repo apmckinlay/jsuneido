@@ -984,4 +984,8 @@ public class Database {
 		}
 	}
 
+	public void setLoading(boolean loading) {
+		this.loading = loading;
+	}
+
 }

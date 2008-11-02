@@ -195,7 +195,7 @@ public class CommandTest {
 		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output,
 				serverData);
 		assertNull(buf);
-		assertEquals("A5 R29\r\n", bufferToString(output.get(0)));
+		assertEquals("A5 R30\r\n", bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
 
@@ -227,7 +227,7 @@ public class CommandTest {
 				stringToBuffer("tables"),
 				output, serverData);
 		assertNull(buf);
-		assertEquals("A5 R29 (table,tablename,nextfield,nrows,totalsize)\r\n",
+		assertEquals("A5 R30 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
@@ -257,20 +257,20 @@ public class CommandTest {
 
 		// OUTPUT
 		Record rec = RecordTest.make("a", "b", "c");
-		assertEquals(13, rec.packSize());
-		Command.OUTPUT.execute(stringToBuffer("Q1 R13"), rec.getBuf(), null,
+		assertEquals(14, rec.packSize());
+		Command.OUTPUT.execute(stringToBuffer("Q1 R14"), rec.getBuf(), null,
 				serverData);
 
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
-		assertEquals("A105 R13 (a,b,c)\r\n",
+		assertEquals("A105 R14 (a,b,c)\r\n",
 				bufferToString(output.get(0)));
 		assertEquals("['a','b','c']", rec.toString());
 
 		// UPDATE
 		rec = RecordTest.make("A", "B", "C");
-		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R13"),
+		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R14"),
 				rec.getBuf(), null, serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
 
@@ -280,7 +280,7 @@ public class CommandTest {
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
 				stringToBuffer("test"), output, serverData);
 		assertNull(buf);
-		assertEquals("A107 R13 (a,b,c)\r\n",
+		assertEquals("A107 R14 (a,b,c)\r\n",
 				bufferToString(output.get(0)));
 		assertEquals("['A','B','C']", rec.toString());
 
@@ -325,22 +325,22 @@ public class CommandTest {
 
 		Record rec = RecordTest.make("Foo", "some text");
 		rec.add(-1);
-		assertEquals(25, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R25"), rec.getBuf(),
+		assertEquals(26, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R26"), rec.getBuf(),
 				null, serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Bar", "other stuff");
 		rec.add(-1);
-		assertEquals(27, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R27"), rec.getBuf(),
+		assertEquals(28, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R28"), rec.getBuf(),
 				null, serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Foo", "");
 		rec.add(1); // folder
-		assertEquals(15, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R15"), rec.getBuf(),
+		assertEquals(16, rec.packSize());
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R16"), rec.getBuf(),
 				null, serverData);
 		assertEquals("OK\r\n", bufferToString(buf));
 

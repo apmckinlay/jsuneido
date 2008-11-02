@@ -68,6 +68,7 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			return SuContainer.unpack1(buf);
 		// TODO unpack other types
 		default :
+			System.out.println(buf.get());
 			throw SuException.unreachable();
 		}
 	}
