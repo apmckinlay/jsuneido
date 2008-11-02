@@ -27,8 +27,8 @@ import suneido.*;
  */
 public class Record
 		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
-	public final static Record MINREC = new Record(4);
-	public final static Record MAXREC = new Record(7).addMax();
+	public final static Record MINREC = new Record(5);
+	public final static Record MAXREC = new Record(8).addMax();
 	private Rep rep;
 	private ByteBuffer buf;
 	private long dboffset = 0;
@@ -42,8 +42,8 @@ public class Record
 
 	private static class Offset {
 		final static int TYPE = 0; // byte
-		final static int NFIELDS = 1; // short
-		final static int SIZE = 3; // byte, short, or int <= type
+		final static int NFIELDS = 2; // short
+		final static int SIZE = 4; // byte, short, or int <= type
 	}
 
 	public Record() {
@@ -124,6 +124,15 @@ public class Record
 			return "[]";
 		if (equals(MAXREC))
 			return "[MAX]";
+
+		// String s = "";
+		// s += (char) getType() + " " + getNfields() + " = ";
+		// try {
+		// for (int i = 0; i < 7; ++i)
+		// s += rep.getOffset(i) + ":" + fieldSize(i) + " ";
+		// } catch (Throwable e) {
+		// }
+		// return s;
 		String s = "[";
 		for (int i = 0; i < getNfields(); ++i)
 			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : get(i)) + ",";
@@ -406,16 +415,16 @@ public class Record
 	 */
 	public static int packSize(int nfields, int datasize) {
 		int e = 1;
-		int size = 1 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e
+		int size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e
 		+ datasize;
 		if (size < 0x100)
 			return size;
 		e = 2;
-		size = 1 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		if (size < 0x10000)
 			return size;
 		e = 4;
-		return 1 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		return 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 	}
 
 	/**
@@ -517,7 +526,7 @@ public class Record
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (1 /* type */+ 2 /* nfields */+ 1 /* byte */* (n + 2));
+			- (2 /* type */+ 2 /* nfields */+ 1 /* byte */* (n + 2));
 		}
 	}
 
@@ -536,7 +545,7 @@ public class Record
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (1 /* type */+ 2 /* nfields */+ 2 /* short */* (n + 2));
+			- (2 /* type */+ 2 /* nfields */+ 2 /* short */* (n + 2));
 		}
 	}
 
@@ -555,7 +564,7 @@ public class Record
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (1 /* type */+ 2 /* nfields */+ 4 /* int */* (n + 2));
+			- (2 /* type */+ 2 /* nfields */+ 4 /* int */* (n + 2));
 		}
 	}
 

@@ -50,10 +50,10 @@ public class RecordTest {
 
 	@Test
 	public void bufsize() {
-		assertEquals(4, Record.packSize(0, 0));
-		assertEquals(10, Record.packSize(1, 5));
-		assertEquals(1205, Record.packSize(100, 1000));
-		assertEquals(104007, Record.packSize(1000, 100000));
+		assertEquals(5, Record.packSize(0, 0));
+		assertEquals(11, Record.packSize(1, 5));
+		assertEquals(1206, Record.packSize(100, 1000));
+		assertEquals(104008, Record.packSize(1000, 100000));
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class RecordTest {
 	public void packBufRecord() {
 		Record r = new Record(1000);
 		assertEquals(1000, r.bufSize());
-		assertEquals(4, r.packSize());
+		assertEquals(5, r.packSize());
 
 		ByteBuffer buf = ByteBuffer.allocate(r.packSize());
 		r.pack(buf);
