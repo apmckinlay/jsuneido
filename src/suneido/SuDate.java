@@ -1,15 +1,16 @@
 package suneido;
 
 import java.nio.ByteBuffer;
-import java.text.ParseException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
+import java.text.*;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
  * Wrapper for a Java date.
+ *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class SuDate extends SuValue {
 	private Date date;
@@ -88,19 +89,44 @@ public class SuDate extends SuValue {
 		return Order.DATE.ordinal();
 	}
 
-	// WARNING: this packed format is NOT compatible with cSuneido
 	@Override
 	public void pack(ByteBuffer buf) {
 		buf.put(Pack.DATE);
-		buf.putLong(date.getTime());
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		int date = (cal.get(Calendar.YEAR) << 9)
+				| (cal.get(Calendar.MONTH) << 5)
+				| cal.get(Calendar.DAY_OF_MONTH);
+		buf.putInt(date);
+		int time = (cal.get(Calendar.HOUR) << 22)
+				| (cal.get(Calendar.MINUTE) << 16)
+				| (cal.get(Calendar.SECOND) << 10)
+				| cal.get(Calendar.MILLISECOND);
+		buf.putInt(time);
 	}
+
 	@Override
 	public int packSize(int nest) {
 		return 9;
 	}
 
 	public static SuDate unpack1(ByteBuffer buf) {
-		long date = buf.getLong();
-		return new SuDate(new Date(date));
+		int date = buf.getInt();
+		int year = date >> 9;
+		int month = (date >> 5) & 0xf;
+		int day = date & 0x1f;
+
+		int time = buf.getInt();
+		int hour = time >> 22;
+		int minute = (time >> 16) & 0x2f;
+		int second = (time >> 10) & 0x2f;
+		int millisecond = time & 0x3ff;
+
+		Calendar cal = Calendar.getInstance();
+		cal.set(year, month, day, hour, minute, second);
+		cal.set(Calendar.MILLISECOND, millisecond);
+
+		return new SuDate(cal.getTime());
 	}
+
 }
