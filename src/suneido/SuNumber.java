@@ -53,7 +53,8 @@ public abstract class SuNumber extends SuValue {
 	@Override
 	public void pack(ByteBuffer buf) {
 		long n = unscaled();
-		buf.put(n < 0 ? Pack.MINUS : Pack.PLUS);
+		boolean minus = n < 0;
+		buf.put(minus ? Pack.MINUS : Pack.PLUS);
 		if (n == 0)
 			return ;
 		if (n < 0)
@@ -62,14 +63,17 @@ public abstract class SuNumber extends SuValue {
 		for (; (e % 4) != 0; --e)
 			n *= 10;
 		e = e / 4 + packshorts(n);
-		buf.put((byte) (e + 128));
-		packLongPart(buf, n);
+		byte eb = (byte) ((e ^ 0x80) & 0xff);
+		if (minus)
+			eb = (byte) ((~eb) & 0xff);
+		buf.put(eb);
+		packLongPart(buf, n, minus);
 	}
-	private void packLongPart(ByteBuffer buf, long n) {
+	private void packLongPart(ByteBuffer buf, long n, boolean minus) {
 		short sh[] = new short[4];
 		int i;
 		for (i = 0; n != 0; ++i) {
-			sh[i] = (short) (n % 10000);
+			sh[i] = (short) (minus ? (~(n % 10000) & 0xffff) : (n % 10000));
 			n /= 10000;
 		}
 		while (--i >= 0)
@@ -79,23 +83,32 @@ public abstract class SuNumber extends SuValue {
 	public static SuValue unpack1(ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			return SuInteger.ZERO;
-		int s = (buf.get() & 0xff) - 128;
-		long n = unpackLongPart(buf);
+		boolean minus = buf.get(0) == Pack.MINUS;
+		int s = buf.get() & 0xff;
+		if (minus)
+			s = ((~s) & 0xff);
+		s = (byte) (s ^ 0x80);
+
+		long n = unpackLongPart(buf, minus);
 		s = -(s - packshorts(n)) * 4;
 		if (-10 <= s && s < 0)
 			for (; s < 0; ++s)
 				n *= 10;
-		if (buf.get(0) == Pack.MINUS)
+		if (minus)
 			n = -n;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return SuInteger.valueOf((int) n);
 		else
 			return new SuDecimal(n, s);
 	}
-	private static long unpackLongPart(ByteBuffer buf) {
+	private static long unpackLongPart(ByteBuffer buf, boolean minus) {
 		long n = 0;
-		while (buf.remaining() > 0)
-			n = n * 10000 + buf.getShort();
+		while (buf.remaining() > 0) {
+			short x = buf.getShort();
+			if (minus)
+				x = (short) ((~x) & 0xffff);
+			n = n * 10000 + x;
+		}
 		return n;
 	}
 
@@ -110,7 +123,7 @@ public abstract class SuNumber extends SuValue {
 		if (buf.remaining() == 0)
 			return 0;
 		buf.get(); // skip scale/exponent
-		return unpackLongPart(buf);
+		return unpackLongPart(buf, b == Pack.MINUS);
 	}
 
 	public static SuNumber valueOf(String s) {

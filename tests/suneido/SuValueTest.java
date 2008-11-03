@@ -1,10 +1,14 @@
 package suneido;
 
+import static org.junit.Assert.assertEquals;
+
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static suneido.Symbols.*;
+
+import suneido.Symbols.Num;
+import suneido.Symbols.Sym;
 
 public class SuValueTest {
 	@Test
@@ -17,7 +21,7 @@ public class SuValueTest {
 		SuContainer c3 = new SuContainer();
 		c3.append(SuInteger.ONE);
 		SuValue[] values = {
-			SuBoolean.FALSE, SuBoolean.TRUE, 
+			SuBoolean.FALSE, SuBoolean.TRUE,
 			SuInteger.ZERO, new SuDecimal(123), SuInteger.valueOf(456), new SuDecimal(789),
 			SuString.EMPTY, new SuString("abc"), new SuString("def"),
 			new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
@@ -30,7 +34,7 @@ public class SuValueTest {
 		assertEquals(Integer.signum(x.hashCode() - y.hashCode()), x.compareTo(y));
 		assertEquals(Integer.signum(y.hashCode() - x.hashCode()), y.compareTo(x));
 	}
-	
+
 	@Test
 	public void math() {
 		int[] ints = { 0, 1, -1, 123, -123 };
@@ -40,10 +44,9 @@ public class SuValueTest {
 			values[3 * i + 1] = new SuDecimal(ints[i]);
 			values[3 * i + 2] = new SuString(Integer.toString(ints[i]));
 		}
-		for (SuValue x : values) {
+		for (SuValue x : values)
 			for (SuValue y : values)
 				math1(x, y);
-		}
 	}
 
 	private void math1(SuValue x, SuValue y) {
@@ -62,7 +65,7 @@ public class SuValueTest {
 		z = x.div(y);
 		assertEquals(new SuDecimal(new BigDecimal(i).divide(new BigDecimal(j), SuDecimal.mc)), z);
 	}
-	
+
 	@Test(expected=SuException.class)
 	public void call1() {
 		SuValue x = SuInteger.ZERO;
@@ -81,12 +84,13 @@ public class SuValueTest {
 	public void putdata() {
 		SuString.EMPTY.putdata(Sym.CALL, SuInteger.ZERO);
 	}
-	
+
 	@Test
 	public void pack() {
 		SuValue[] values = {
-			SuBoolean.FALSE, SuBoolean.TRUE, 
+			SuBoolean.FALSE, SuBoolean.TRUE,
 			SuInteger.ZERO, SuDecimal.ZERO, SuInteger.ONE, SuInteger.valueOf(123),
+			SuInteger.valueOf(-1),
 			SuString.EMPTY, new SuString("abc") };
 		for (SuValue x : values) {
 			ByteBuffer buf = ByteBuffer.allocate(x.packSize());
