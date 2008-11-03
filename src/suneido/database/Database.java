@@ -654,7 +654,7 @@ public class Database {
 		|| (table.equals("indexes") && columns.equals("table,columns"));
 	}
 
-	private void add_any_record(Transaction tran, String table, Record r) {
+	void add_any_record(Transaction tran, String table, Record r) {
 		add_any_record(tran, ck_getTable(table), r);
 	}
 	private void add_any_record(Transaction tran, Table table, Record rec) {
