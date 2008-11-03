@@ -4,11 +4,16 @@ import static suneido.Suneido.verify;
 import static suneido.database.Database.theDB;
 import static suneido.database.Mode.CREATE;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
+import suneido.database.query.Request;
 
 public class Load {
 	private InputStream fin;
@@ -50,9 +55,9 @@ System.out.println(schema);
 		String table = schema.substring(7, n);
 
 		if (table != "views") {
-		// if (theDB.isTable(table))
-		// theDB.removeTable(table);
-		// verify(database_admin(schema));
+		if (theDB.getTable(table) != null)
+				theDB.removeTable(table);
+			Request.execute(schema);
 		}
 		return load_data(table);
 	}
@@ -75,7 +80,7 @@ System.out.println("load_data(" + table + ")");
 					verify(tran.complete() == null);
 					tran = theDB.readwriteTran();
 				}
-//break;
+				// break;
 			}
 		} finally {
 			verify(tran.complete() == null);
@@ -90,17 +95,25 @@ System.out.println("load_data(" + table + ")");
 		fin.read(recbuf, 0, n);
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n).order(
 				ByteOrder.LITTLE_ENDIAN));
+
+		rec = rec.dup();
 //System.out.println(rec);
-System.out.println(rec.get(2));
-		// try {
-		// if (table == "views")
-		// theDB.add_any_record(tran, table, rec);
-		// else
-		// theDB.add_record(tran, table, rec);
-		// } catch (const Except& x) {
-		// errlog("load: ignoring: ", table.str(), x.exception);
-		// alert("ignoring: " << table << ": " << x.exception);
-		// }
+//System.out.println(rec.get(2));
+		try {
+			if (table.equals("views"))
+				theDB.add_any_record(tran, table, rec);
+			else
+				theDB.addRecord(tran, table, rec);
+		} catch (Throwable e) {
+			System.out.println("load: ignoring: " + table + e);
+		}
+	}
+
+	private void printbuf(String name, ByteBuffer b) {
+		System.out.print(name);
+		for (int i = 0; i < b.limit(); ++i)
+			System.out.print(" " + (b.get(i) & 0xff));
+		System.out.println("");
 	}
 
 	private String getline() throws IOException {
@@ -117,6 +130,9 @@ System.out.println(rec.get(2));
 		Database.theDB = new Database(mmf, CREATE);
 
 		new Load().load("stdlib");
+
+		Database.theDB.close();
+		Database.theDB = null;
 	}
 
 }

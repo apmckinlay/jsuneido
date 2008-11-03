@@ -1,6 +1,8 @@
 package suneido.database.server;
 
-import static suneido.Util.*;
+import static suneido.Util.bufferToString;
+import static suneido.Util.listToParens;
+import static suneido.Util.stringToBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -8,8 +10,12 @@ import java.util.List;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
-import suneido.database.*;
-import suneido.database.query.*;
+import suneido.database.Mmfile;
+import suneido.database.Record;
+import suneido.database.Transaction;
+import suneido.database.query.Header;
+import suneido.database.query.Query;
+import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
@@ -95,7 +101,6 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			line.rewind();
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = serverData.getTransaction(tn);
 			Query dq = (Query) theDbms.query(tran, bufferToString(extra));
@@ -187,16 +192,30 @@ public enum Command {
 	GET1 {
 		@Override
 		public int extra(ByteBuffer buf) {
-			getDir(buf);
+			buf.get();
+			buf.get();
 			ck_getnum('T', buf);
 			return ck_getnum('Q', buf);
 		}
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			line.rewind();
-			Dir dir = getDir(line);
-			boolean one = line.get(line.position() - 2) == '1';
+			Dir dir = Dir.NEXT;
+			boolean one = false;
+			switch (line.get()) {
+			case '+':
+				dir = Dir.NEXT;
+				break;
+			case '-':
+				dir = Dir.PREV;
+				break;
+			case '1':
+				one = true;
+				break;
+			default:
+				throw new SuException("get1 expects + or - or 1");
+			}
+			line.get(); // skip space
 			int tn = ck_getnum('T', line);
 			HeaderAndRow hr = theDbms.get(dir, bufferToString(extra), one,
 					serverData.getTransaction(tn));
@@ -409,9 +428,7 @@ public enum Command {
 		default:
 			throw new SuException("get expects + or -");
 		}
-		// skip space
-		if (line.get() == '1')
-			line.get();
+		line.get(); // skip space
 		return dir;
 	}
 
