@@ -4,11 +4,7 @@ import static suneido.Suneido.verify;
 import static suneido.database.Database.theDB;
 import static suneido.database.Mode.CREATE;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -80,7 +76,7 @@ System.out.println("load_data(" + table + ")");
 					verify(tran.complete() == null);
 					tran = theDB.readwriteTran();
 				}
-				// break;
+//break;
 			}
 		} finally {
 			verify(tran.complete() == null);
@@ -93,12 +89,12 @@ System.out.println("load_data(" + table + ")");
 		if (n > recbuf.length)
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
 		fin.read(recbuf, 0, n);
-		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n).order(
-				ByteOrder.LITTLE_ENDIAN));
-
+		Record rec = new Record(
+				ByteBuffer.wrap(recbuf, 0, n).order(ByteOrder.LITTLE_ENDIAN));
 		rec = rec.dup();
 //System.out.println(rec);
-//System.out.println(rec.get(2));
+System.out.println(rec.get(2));
+
 		try {
 			if (table.equals("views"))
 				theDB.add_any_record(tran, table, rec);
@@ -109,9 +105,9 @@ System.out.println("load_data(" + table + ")");
 		}
 	}
 
-	private void printbuf(String name, ByteBuffer b) {
+	private static void printbuf(String name, ByteBuffer b) {
 		System.out.print(name);
-		for (int i = 0; i < b.limit(); ++i)
+		for (int i = 0; i < b.limit() && i < 20; ++i)
 			System.out.print(" " + (b.get(i) & 0xff));
 		System.out.println("");
 	}

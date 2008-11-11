@@ -7,18 +7,10 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.ronsoft.nioserver.BufferFactory;
-import org.ronsoft.nioserver.ChannelFacade;
-import org.ronsoft.nioserver.InputHandler;
-import org.ronsoft.nioserver.InputQueue;
-import org.ronsoft.nioserver.impl.DumbBufferFactory;
-import org.ronsoft.nioserver.impl.GenericInputHandlerFactory;
-import org.ronsoft.nioserver.impl.NioDispatcher;
-import org.ronsoft.nioserver.impl.StandardAcceptor;
+import org.ronsoft.nioserver.*;
+import org.ronsoft.nioserver.impl.*;
 
-import suneido.database.Database;
-import suneido.database.Mmfile;
-import suneido.database.Mode;
+import suneido.database.*;
 
 /**
  * Using org.ronsoft.nioserver -
@@ -67,7 +59,7 @@ System.out.print(bufferToString(line));
 				try {
 					nExtra = cmd.extra(line);
 				} catch (Throwable e) {
-					e.printStackTrace();
+e.printStackTrace();
 					err = e;
 					nExtra = 0;
 				}
@@ -102,13 +94,14 @@ System.out.print(bufferToString(line));
 			if (err == null)
 				try {
 					line.reset();
-					output = cmd.execute(line, extra, channelFacade
-							.outputQueue(), serverData);
+					output = cmd.execute(line, extra, 
+							channelFacade.outputQueue(), serverData);
 				} catch (Throwable e) {
 					e.printStackTrace();
 					err = e;
 				}
 			if (err != null) {
+System.out.println("ERR " + err);
 				output = ByteBuffer.wrap(
 						("ERR " + err.toString() + "\r\n")
 						.getBytes());
@@ -122,6 +115,7 @@ System.out.print(bufferToString(line));
 			line = extra = null;
 			cmd = null;
 			nExtra = -1;
+System.out.println("-");
 		}
 
 		private static final ByteBuffer hello =
@@ -154,8 +148,8 @@ System.out.print(bufferToString(line));
 		// "insert [name: 'Init', group: -1, text: 'function () { Exit() }'] into stdlib"
 		// );
 		// verify(q.execute() == 1);
-		Database.theDB = new Database(new Mmfile("suneido.db", Mode.OPEN),
-				Mode.OPEN);
+		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
+		Database.theDB = new Database(mmf, Mode.OPEN);
 		start(3147);
 	}
 }

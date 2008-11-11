@@ -1,8 +1,6 @@
 package suneido.database.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static suneido.Util.bufferToString;
 import static suneido.Util.stringToBuffer;
 import static suneido.database.Database.theDB;
@@ -17,11 +15,7 @@ import org.junit.Test;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuValue.Pack;
-import suneido.database.Database;
-import suneido.database.DestMem;
-import suneido.database.Mode;
-import suneido.database.Record;
-import suneido.database.RecordTest;
+import suneido.database.*;
 
 public class CommandTest {
 	@Test
@@ -204,6 +198,7 @@ public class CommandTest {
 		assertEquals("A5 R30\r\n", bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
 		assertEquals("[0,'tables',5,4,164]", rec.toString());
+		assertEquals(30, rec.bufSize());
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
@@ -369,6 +364,12 @@ public class CommandTest {
 
 		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output,
 				serverData);
+	}
+
+	@Test
+	public void libraries() {
+		ByteBuffer buf = Command.LIBRARIES.execute(null, null, null, null);
+		assertEquals("(stdlib)\r\n", bufferToString(buf));
 	}
 
 	// ===============================================================

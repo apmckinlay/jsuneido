@@ -295,6 +295,7 @@ public class Record
 	// get's ========================================================
 
 	public ByteBuffer getBuf() {
+		buf.rewind();
 		return buf;
 	}
 
@@ -442,14 +443,14 @@ public class Record
 
 	public void pack(ByteBuffer dst) {
 		int dstsize = packSize();
-		if (getSize() == dstsize)
+		if (getSize() == dstsize && dst.order() == buf.order())
 			// already "compacted" so just bulk copy
 			for (int i = 0; i < dstsize; ++i)
 				dst.put(buf.get(i));
 		else {
 			// PERF do without allocating a temp record
 			// maybe bulk copy then adjust like insert
-			Record dstRec = new Record(dst.slice(), dstsize);
+			Record dstRec = new Record(dst.slice().order(dst.order()), dstsize);
 			for (int i = 0; i < getNfields(); ++i)
 				dstRec.add(buf, rep.getOffset(i), fieldSize(i));
 			dst.position(dst.position() + dstsize);

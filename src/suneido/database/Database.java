@@ -18,7 +18,8 @@ import suneido.SuException;
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * Licensed under GPLv2.</small></p>
  */
 public class Database {
 	private final Destination dest;
