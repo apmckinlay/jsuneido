@@ -1,21 +1,16 @@
 package suneido.database.server;
 
-import static suneido.Util.bufferToString;
-import static suneido.Util.listToParens;
-import static suneido.Util.stringToBuffer;
+import static suneido.Util.*;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
 
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
-import suneido.database.Mmfile;
-import suneido.database.Record;
-import suneido.database.Transaction;
-import suneido.database.query.Header;
-import suneido.database.query.Query;
-import suneido.database.query.Row;
+import suneido.database.*;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
@@ -49,11 +44,13 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
+			String s = bufferToString(line).trim().toLowerCase();
 			boolean readwrite = false;
-			if (match(line, "update"))
+			if (match(s, "update"))
 				readwrite = true;
-			else if (!match(line, "read"))
-				return stringToBuffer("ERR invalid transaction mode\r\n");
+			else if (!match(s, "read"))
+				return stringToBuffer("ERR invalid transaction mode: " + s
+						+ "\r\n");
 			String session_id = ""; // TODO
 			int tn = serverData.addTransaction(
 					theDbms.transaction(readwrite, session_id));
@@ -287,7 +284,13 @@ public enum Command {
 			return null;
 		}
 	},
-	LIBRARIES,
+	LIBRARIES {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer(listToParens(theDbms.libraries()) + "\r\n");
+		}
+	},
 	TIMESTAMP,
 	DUMP,
 	COPY,
@@ -442,6 +445,7 @@ public enum Command {
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr, OutputQueue outputQueue) {
 		if (row == null) {
+			EOF.rewind();
 			outputQueue.enqueue(EOF);
 			return;
 		}
@@ -460,20 +464,21 @@ public enum Command {
 				--n;
 			rec.truncate(n);
 			}
-
 		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.packSize();
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";
 		outputQueue.enqueue(stringToBuffer(s));
 
-		rec = rec.dup(); // compact
-		outputQueue.enqueue(rec.getBuf());
+		ByteBuffer buf = ByteBuffer.allocate(rec.packSize());
+		buf.order(ByteOrder.LITTLE_ENDIAN);
+		rec.pack(buf);
+		buf.rewind();
+		outputQueue.enqueue(buf);
 	}
 
 
-	private static boolean match(ByteBuffer linebuf, String string) {
-		String line = bufferToString(linebuf).toLowerCase();
+	private static boolean match(String line, String string) {
 		if (!line.startsWith(string))
 			return false;
 		int n = string.length();

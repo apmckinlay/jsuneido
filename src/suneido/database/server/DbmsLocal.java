@@ -2,23 +2,13 @@ package suneido.database.server;
 
 import static suneido.database.Database.theDB;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.BtreeIndex;
-import suneido.database.Index;
-import suneido.database.Record;
+import suneido.database.*;
 import suneido.database.Table;
-import suneido.database.Transaction;
-import suneido.database.query.Header;
-import suneido.database.query.ParseQuery;
-import suneido.database.query.Query;
-import suneido.database.query.QueryAction;
-import suneido.database.query.Request;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
 /**
@@ -62,6 +52,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public DbmsQuery query(DbmsTran tran, String s) {
+System.out.println(s);
 		return ParseQuery.query(s, (Transaction) tran);
 	}
 
@@ -132,7 +123,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<String> libraries() {
-		// TODO Auto-generated method stub
+		// TODO libraries
 		return Collections.singletonList("stdlib");
 	}
 
