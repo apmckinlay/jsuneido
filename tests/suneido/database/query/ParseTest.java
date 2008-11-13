@@ -15,6 +15,7 @@ public class ParseTest extends TestBase {
 		makeTable("test2", "x", "y");
 		makeTable("compat", "a", "b");
 		makeTable("joinable", "x", "y", "a");
+		makeTable("persistent", "user", "set", "last", "classname");
 
 		String[] cases = {
 			"test", null,
@@ -54,6 +55,8 @@ public class ParseTest extends TestBase {
 			"joinable WHERE (a or y or x)", null,
 			"test WHERE (a ? b : 5)", null,
 			"test WHERE a in (2,3,4)", null,
+			"persistent WHERE user = \"default\" and set = \"IDE\" and last = True and classname = \"QueryViewControl /* stdlib class : Controller */\"",
+				"persistent WHERE ((user = 'default') and (set = 'IDE') and (last = true) and (classname = 'QueryViewControl /* stdlib class : Controller */'))",
 			"test EXTEND Z, x = 12, y = (b + a), f = fn(), g = fn(1), h = fn(1,2,3)",
 				null,
 			"DELETE test WHERE (a = 5)", null,

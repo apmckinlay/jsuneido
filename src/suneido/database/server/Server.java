@@ -115,7 +115,6 @@ System.out.println("ERR " + err);
 			line = extra = null;
 			cmd = null;
 			nExtra = -1;
-System.out.println("-");
 		}
 
 		private static final ByteBuffer hello =
