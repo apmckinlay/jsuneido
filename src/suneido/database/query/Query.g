@@ -267,6 +267,8 @@ unary returns [Expr expr]
 term returns [Expr expr]
 	: ID
 		{ $expr = Identifier.valueOf($text); }
+	| SET
+		{ $expr = Identifier.valueOf($text); }
 	| ID '('
 		{ $expr = new FunCall($ID.text); } 
 	  ( e1=expr

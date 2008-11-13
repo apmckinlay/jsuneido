@@ -37,7 +37,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
 			theDbms.admin(bufferToString(line));
-			return OK;
+			return TRUE;
 		}
 	},
 	TRANSACTION {
@@ -352,6 +352,7 @@ public enum Command {
 	private final static ByteBuffer notimp = stringToBuffer("ERR not implemented: ");
 	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
 	private final static ByteBuffer EOF = stringToBuffer("EOF\r\n");
+	private final static ByteBuffer TRUE = stringToBuffer("t\r\n");
 
 	static Dbms theDbms = new DbmsLocal();
 

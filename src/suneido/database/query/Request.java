@@ -5,21 +5,17 @@ import static suneido.database.Database.theDB;
 
 import java.util.List;
 
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.runtime.CommonTokenStream;
-import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.*;
 
 import suneido.SuException;
 import suneido.database.Table;
-import suneido.database.query.RequestParser.IRequest;
-import suneido.database.query.RequestParser.Index;
+import suneido.database.query.RequestParser.*;
 import suneido.database.query.RequestParser.Rename;
-import suneido.database.query.RequestParser.Schema;
 
 /**
  * Parse and execute database "requests" to create, alter, or remove tables.
  * Uses the ANTLR grammer in {Request.g}.
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
@@ -40,21 +36,34 @@ public class Request {
 
 	public static class RequestImpl implements IRequest {
 		public void create(String table, Schema schema) {
+			if (!hasKey(schema))
+				throw new SuException("key required for " + table);
 			theDB.addTable(table);
 			schema(table, schema);
 		}
 
+		private boolean hasKey(Schema schema) {
+			for (Index index : schema.indexes)
+				if (index.isKey)
+					return true;
+			return false;
+		}
+
 		public void ensure(String tablename, Schema schema) {
-			Table table = theDB.ck_getTable(tablename);
-			for (String col : schema.columns)
-				if (!table.hasColumn(col))
-					theDB.addColumn(tablename, col);
-			for (Index index : schema.indexes) {
-				String cols = listToCommas(index.columns);
-				if (!table.hasIndex(cols))
-					theDB.addIndex(tablename, cols,
-							index.isKey, index.isUnique, false, index.in.table,
-							listToCommas(index.in.columns), index.in.mode);
+			Table table = theDB.getTable(tablename);
+			if (table == null)
+				create(tablename, schema);
+			else {
+				for (String col : schema.columns)
+					if (!table.hasColumn(col))
+						theDB.addColumn(tablename, col);
+				for (Index index : schema.indexes) {
+					String cols = listToCommas(index.columns);
+					if (!table.hasIndex(cols))
+						theDB.addIndex(tablename, cols, index.isKey,
+								index.isUnique, false, index.in.table,
+								listToCommas(index.in.columns), index.in.mode);
+				}
 			}
 		}
 

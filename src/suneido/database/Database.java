@@ -18,7 +18,7 @@ import suneido.SuException;
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class Database {
@@ -252,7 +252,7 @@ public class Database {
 	public void addTable(String table) {
 		if (tableExists(table))
 			throw new SuException("add table: table already exists: " + table);
-		int tblnum = dbhdr.next_table++;
+		int tblnum = dbhdr.getNextTableNum();
 		Transaction tran = readwriteTran();
 		try {
 			Record r = Table.record(table, tblnum, 0, 0);
@@ -958,8 +958,8 @@ public class Database {
 
 	private class Dbhdr {
 		static final int SIZE = 4 + 4 + 4;
-		ByteBuffer buf;
-		int next_table;
+		private final ByteBuffer buf;
+		private int next_table;
 		long indexes;
 
 		// create
@@ -983,6 +983,11 @@ public class Database {
 			if (version != VERSION)
 				throw new SuException("invalid database");
 		}
+		public int getNextTableNum() {
+			buf.putInt(0, ++next_table);
+			return next_table - 1;
+		}
+
 	}
 
 	public void setLoading(boolean loading) {
