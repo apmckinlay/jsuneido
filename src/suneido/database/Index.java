@@ -36,8 +36,10 @@ public class Index {
 		this.colnums = colnums;
 		this.btreeIndex = btreeIndex;
 
-		fksrc = new ForeignKey(record.getString(FKTABLE),
-				record.getString(FKCOLUMNS), record.getInt(FKMODE));
+		String fktable = record.getString(FKTABLE);
+		if (!fktable.equals(""))
+			fksrc = new ForeignKey(fktable, record.getString(FKCOLUMNS), record
+					.getInt(FKMODE));
 
 		for (Record ri : fkdstrecs)
 			fkdsts.add(new ForeignKey(ri.getInt(TBLNUM), ri.getString(COLUMNS),

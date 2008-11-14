@@ -89,9 +89,7 @@ System.out.println("load_data(" + table + ")");
 		if (n > recbuf.length)
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
 		fin.read(recbuf, 0, n);
-		Record rec = new Record(
-				ByteBuffer.wrap(recbuf, 0, n).order(ByteOrder.LITTLE_ENDIAN));
-		rec = rec.dup();
+		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
 //System.out.println(rec);
 System.out.println(rec.get(2));
 

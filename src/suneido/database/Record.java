@@ -5,6 +5,7 @@ import static suneido.Suneido.verify;
 import static suneido.database.Database.theDB;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Iterator;
 
 import suneido.*;
@@ -466,11 +467,21 @@ public class Record
 	}
 
 	private void setNfields(int nfields) {
-		buf.putShort(Offset.NFIELDS, (short) nfields);
+		buf.order(ByteOrder.LITTLE_ENDIAN);
+		try {
+			buf.putShort(Offset.NFIELDS, (short) nfields);
+		} finally {
+			buf.order(ByteOrder.BIG_ENDIAN);
+		}
 	}
 
 	private short getNfields() {
-		return buf.getShort(Offset.NFIELDS);
+		buf.order(ByteOrder.LITTLE_ENDIAN);
+		try {
+			return buf.getShort(Offset.NFIELDS);
+		} finally {
+			buf.order(ByteOrder.BIG_ENDIAN);
+		}
 	}
 
 	private void setSize(int sz) {
@@ -527,45 +538,65 @@ public class Record
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (2 /* type */+ 2 /* nfields */+ 1 /* byte */* (n + 2));
+					- (2 /* type */+ 2 /* nfields */+ 1 /* byte */* (n + 2));
 		}
 	}
 
 	private class ShortRep extends Rep {
 		@Override
 		void setOffset(int i, int sz) {
-			buf.putShort(Offset.SIZE + 2 * (i + 1), (short) sz);
+			buf.order(ByteOrder.LITTLE_ENDIAN);
+			try {
+				buf.putShort(Offset.SIZE + 2 * (i + 1), (short) sz);
+			} finally {
+				buf.order(ByteOrder.BIG_ENDIAN);
+			}
 		}
 
 		@Override
 		int getOffset(int i) {
-			return buf.getShort(Offset.SIZE + 2 * (i + 1)) & 0xffff;
+			buf.order(ByteOrder.LITTLE_ENDIAN);
+			try {
+				return buf.getShort(Offset.SIZE + 2 * (i + 1)) & 0xffff;
+			} finally {
+				buf.order(ByteOrder.BIG_ENDIAN);
+			}
 		}
 
 		@Override
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (2 /* type */+ 2 /* nfields */+ 2 /* short */* (n + 2));
+					- (2 /* type */+ 2 /* nfields */+ 2 /* short */* (n + 2));
 		}
 	}
 
 	private class IntRep extends Rep {
 		@Override
 		void setOffset(int i, int sz) {
-			buf.putInt(Offset.SIZE + 4 * (i + 1), sz);
+			buf.order(ByteOrder.LITTLE_ENDIAN);
+			try {
+				buf.putInt(Offset.SIZE + 4 * (i + 1), sz);
+			} finally {
+				buf.order(ByteOrder.BIG_ENDIAN);
+			}
 		}
 
 		@Override
 		int getOffset(int i) {
-			return buf.getInt(Offset.SIZE + 4 * (i + 1));
+			buf.order(ByteOrder.LITTLE_ENDIAN);
+			try {
+				return buf.getInt(Offset.SIZE + 4 * (i + 1));
+			} finally {
+				buf.order(ByteOrder.BIG_ENDIAN);
+			}
 		}
 
 		@Override
 		int avail() {
 			int n = getNfields();
 			return getOffset(n - 1)
-			- (2 /* type */+ 2 /* nfields */+ 4 /* int */* (n + 2));
+					- (2 /* type */+ 2 /* nfields */+ 4 /* int */* (n + 2));
 		}
 	}
 

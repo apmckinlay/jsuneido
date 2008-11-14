@@ -52,6 +52,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public DbmsQuery query(DbmsTran tran, String s) {
+		System.out.println("\t" + s);
 		return ParseQuery.query(s, (Transaction) tran);
 	}
 

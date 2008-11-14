@@ -3,7 +3,6 @@ package suneido.database.server;
 import static suneido.Util.*;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.List;
 
 import org.ronsoft.nioserver.OutputQueue;
@@ -81,11 +80,17 @@ public enum Command {
 	},
 	REQUEST {
 		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			return ck_getnum('Q', buf);
+		}
+
+		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
 			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
-			theDbms.request(tran, bufferToString(line));
-			return OK;
+			int n = theDbms.request(tran, bufferToString(extra));
+			return stringToBuffer("R" + n + "\r\n");
 		}
 	},
 	QUERY {
@@ -233,7 +238,7 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			Query q = q_or_tc(line, serverData);
 			q.output(new Record(extra));
-			return OK;
+			return TRUE;
 		}
 	},
 	UPDATE {
@@ -249,8 +254,7 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			Record newrec = new Record(extra);
-			theDbms.update(tran, recadr, newrec);
+			theDbms.update(tran, recadr, new Record(extra));
 			return OK;
 		}
 	},
@@ -335,6 +339,7 @@ public enum Command {
 	public int extra(ByteBuffer buf) {
 		return 0;
 	}
+
 	/**
 	 * @param line
 	 *            Current position is past the first (command) word.
@@ -450,11 +455,8 @@ public enum Command {
 			outputQueue.enqueue(EOF);
 			return;
 		}
-		Record rec;
-		if (row.size() <= 2)
-			rec = row.getFirstData();
-		else
-			{
+		Record rec = row.getFirstData();
+		if (row.size() > 2) {
 			rec = new Record(1000);
 			for (String f : hdr.fields())
 				rec.add(row.getraw(hdr, f));
@@ -464,18 +466,15 @@ public enum Command {
 			while (rec.getraw(n - 1).remaining() == 0)
 				--n;
 			rec.truncate(n);
-			}
+		} else if (rec.packSize() < rec.bufSize())
+			rec = rec.dup();
 		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.packSize();
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";
 		outputQueue.enqueue(stringToBuffer(s));
 
-		ByteBuffer buf = ByteBuffer.allocate(rec.packSize());
-		buf.order(ByteOrder.LITTLE_ENDIAN);
-		rec.pack(buf);
-		buf.rewind();
-		outputQueue.enqueue(buf);
+		outputQueue.enqueue(rec.getBuf());
 	}
 
 
