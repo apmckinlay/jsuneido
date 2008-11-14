@@ -182,12 +182,11 @@ public class CommandTest {
 		ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
-
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null,
 				serverData);
 		assertEquals("T0\r\n", bufferToString(tbuf));
 
+		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
 		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q7"),
 				stringToBuffer("tables"), null, serverData);
 		assertEquals("Q1\r\n", bufferToString(buf));
@@ -329,21 +328,21 @@ public class CommandTest {
 		assertEquals(26, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R26"), rec.getBuf(),
 				null, serverData);
-		assertEquals("OK\r\n", bufferToString(buf));
+		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Bar", "other stuff");
 		rec.add(-1);
 		assertEquals(28, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R28"), rec.getBuf(),
 				null, serverData);
-		assertEquals("OK\r\n", bufferToString(buf));
+		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Foo", "");
 		rec.add(1); // folder
 		assertEquals(16, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R16"), rec.getBuf(),
 				null, serverData);
-		assertEquals("OK\r\n", bufferToString(buf));
+		assertEquals("t\r\n", bufferToString(buf));
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
