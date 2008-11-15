@@ -296,8 +296,13 @@ public class Record
 	// get's ========================================================
 
 	public ByteBuffer getBuf() {
-		buf.rewind();
-		return buf;
+		ByteBuffer b = buf;
+		if (buf.limit() != bufSize()) {
+			b = buf.slice();
+			b.limit(bufSize());
+		}
+		b.rewind();
+		return b;
 	}
 
 	public final static ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
