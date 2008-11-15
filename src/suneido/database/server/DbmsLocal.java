@@ -4,8 +4,7 @@ import static suneido.database.Database.theDB;
 
 import java.util.*;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.*;
 import suneido.database.Table;
 import suneido.database.query.*;
@@ -25,6 +24,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public int request(DbmsTran tran, String s) {
+System.out.println("\t" + s);
 		return ((QueryAction) ParseQuery.parse(s)).execute();
 	}
 
@@ -52,11 +52,12 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public DbmsQuery query(DbmsTran tran, String s) {
-		System.out.println("\t" + s);
+System.out.println("\t" + s);
 		return ParseQuery.query(s, (Transaction) tran);
 	}
 
 	public DbmsQuery cursor(String s) {
+System.out.println("\t" + s);
 		return ParseQuery.query(s);
 	}
 
@@ -142,14 +143,19 @@ public class DbmsLocal implements Dbms {
 		return 0;
 	}
 
+	static SuDate prev = new SuDate();
 	public SuValue timestamp() {
-		// TODO Auto-generated method stub
-		return null;
+		SuDate ts = new SuDate();
+		if (ts.compareTo(prev) <= 0)
+			ts = prev.increment();
+		else
+			prev = ts;
+		return ts;
 	}
 
 	public List<Integer> tranlist() {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO tranlist
+		return Collections.EMPTY_LIST;
 	}
 
 	public void log(String s) {

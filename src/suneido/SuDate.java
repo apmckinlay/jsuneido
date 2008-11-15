@@ -128,5 +128,9 @@ public class SuDate extends SuValue {
 
 		return new SuDate(cal.getTime());
 	}
+	public SuDate increment() {
+		 date.setTime(date.getTime() + 1);
+		return this;
+	}
 
 }

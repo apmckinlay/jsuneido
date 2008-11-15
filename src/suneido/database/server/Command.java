@@ -295,7 +295,13 @@ public enum Command {
 			return stringToBuffer(listToParens(theDbms.libraries()) + "\r\n");
 		}
 	},
-	TIMESTAMP,
+	TIMESTAMP {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer(theDbms.timestamp().toString() + "\r\n");
+		}
+	},
 	DUMP,
 	COPY,
 	RUN,
@@ -308,10 +314,36 @@ public enum Command {
 			return OK;
 		}
 	},
-	TRANLIST,
-	SIZE,
+	TRANLIST {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer(listToParens(theDbms.tranlist()) + "\r\n");
+		}
+	},
+	SIZE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer("S" + Mmfile.offsetToInt(theDbms.size())
+					+ "\r\n");
+		}
+	},
+	TEMPDEST {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer("D0\r\n");
+		}
+	},
 	CONNECTIONS,
-	CURSORS,
+	CURSORS {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return stringToBuffer("N" + theDbms.cursors() + "\r\n");
+		}
+	},
 	SESSIONID {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -466,9 +498,10 @@ public enum Command {
 			while (rec.getraw(n - 1).remaining() == 0)
 				--n;
 			rec.truncate(n);
-		} else if (rec.packSize() < rec.bufSize())
-			rec = rec.dup();
-		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.packSize();
+		}
+
+		rec = rec.dup();
+		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.bufSize();
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";

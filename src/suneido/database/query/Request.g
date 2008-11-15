@@ -123,7 +123,7 @@ request
     	{ iRequest.alter_delete($ID.text, $request::schema); }
     | rename
     	{ iRequest.rename($rename.from, $rename.to); }
-    | (DROP|DELETE) ID
+    | (DROP|DESTROY) ID
     	{ iRequest.drop($ID.text); }
     ;
   
@@ -177,6 +177,7 @@ rename 	 returns [String from, String to]
 CREATE	: ('c'|'C')('r'|'R')('e'|'E')('a'|'A')('t'|'T')('e'|'E') ;
 ENSURE	: ('e'|'E')('n'|'N')('s'|'S')('u'|'U')('r'|'R')('e'|'E') ;
 DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
+DESTROY	: ('d'|'D')('e'|'E')('s'|'S')('t'|'T')('r'|'R')('o'|'O')('y'|'Y') ;
 DROP	: ('d'|'D')('r'|'R')('o'|'O')('p'|'P') ;
 ALTER	: ('a'|'A')('l'|'L')('t'|'T')('e'|'E')('r'|'R') ;
 RENAME	: ('r'|'R')('e'|'E')('n'|'N')('a'|'A')('m'|'M')('e'|'E') ;
