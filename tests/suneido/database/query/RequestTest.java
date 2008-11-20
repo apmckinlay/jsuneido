@@ -43,6 +43,8 @@ public class RequestTest extends TestBase {
 
 		Request.execute("drop tmp");
 		assertNull(db.getTable("tmp"));
+
+		Request.execute("create tmp (aField) key(aField)");
 	}
 
 	@Test(expected = SuException.class)

@@ -272,7 +272,7 @@ public class CommandTest {
 		rec = RecordTest.make("A", "B", "C");
 		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R14"),
 				rec.getBuf(), null, serverData);
-		assertEquals("OK\r\n", bufferToString(buf));
+		assertEquals("U1\r\n", bufferToString(buf));
 
 		buf = Command.REWIND.execute(stringToBuffer("Q1"), null, null,
 				serverData);

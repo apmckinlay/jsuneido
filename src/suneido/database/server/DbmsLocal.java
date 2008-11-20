@@ -33,6 +33,7 @@ System.out.println("\t" + s);
 	}
 
 	public HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran) {
+System.out.println("\t" + query);
 		boolean complete = tran == null;
 		if (tran == null)
 			tran = theDB.readonlyTran();

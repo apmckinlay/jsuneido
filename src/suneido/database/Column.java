@@ -1,7 +1,7 @@
 package suneido.database;
 
 /**
- * 
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -28,5 +28,10 @@ public class Column implements Comparable<Column> {
 
 	public static Record record(int table_num, String name, int num) {
 		return new Record().add(table_num).add(name).add(num);
+	}
+
+	@Override
+	public String toString() {
+		return name + ":" + num;
 	}
 }
