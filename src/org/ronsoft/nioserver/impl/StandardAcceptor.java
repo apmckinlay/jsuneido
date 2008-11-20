@@ -1,19 +1,14 @@
 package org.ronsoft.nioserver.impl;
 
-import org.ronsoft.nioserver.Dispatcher;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.channels.ClosedByInterruptException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.channels.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.ronsoft.nioserver.Dispatcher;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,7 +23,7 @@ public class StandardAcceptor
 	private final ServerSocketChannel listenSocket;
 	private final Listener listener;
 	private final List<Thread> threads = new ArrayList<Thread>();
-	private Logger logger = Logger.getLogger (getClass().getName());
+	private final Logger logger = Logger.getLogger (getClass().getName());
 	private volatile boolean running = true;
 
 	public StandardAcceptor (ServerSocketChannel listenSocket, Dispatcher dispatcher,
@@ -65,7 +60,9 @@ public class StandardAcceptor
 			while (running) {
 				try {
 					SocketChannel client = listenSocket.accept();
-
+					// prevent Nagle/Ack delays
+					// might be better to use scatter/gather writes
+					client.socket().setTcpNoDelay(true);
 					if (client == null) {
 						continue;
 					}

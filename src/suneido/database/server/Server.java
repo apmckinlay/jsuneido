@@ -94,7 +94,7 @@ e.printStackTrace();
 			if (err == null)
 				try {
 					line.reset();
-					output = cmd.execute(line, extra, 
+					output = cmd.execute(line, extra,
 							channelFacade.outputQueue(), serverData);
 				} catch (Throwable e) {
 					e.printStackTrace();
@@ -138,15 +138,6 @@ System.out.println("ERR " + err);
 	}
 
 	public static void main(String[] args) throws IOException {
-		// new File("suneido.db").delete();
-		// Mmfile mmf = new Mmfile("suneido.db", Mode.CREATE);
-		// Database.theDB = new Database(mmf, CREATE);
-		// Request.execute("create stdlib (name,text,group) key(name,group)");
-		// QueryAction q = (QueryAction) ParseQuery
-		// .parse(
-		// "insert [name: 'Init', group: -1, text: 'function () { Exit() }'] into stdlib"
-		// );
-		// verify(q.execute() == 1);
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
 		start(3147);

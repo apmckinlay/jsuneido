@@ -15,7 +15,7 @@ public class Load {
 	private InputStream fin;
 	byte[] recbuf = new byte[100];
 
-	void load(String table) {
+	public void load(String table) {
 		// extern bool thedb_create;
 		// thedb_create = true;
 
