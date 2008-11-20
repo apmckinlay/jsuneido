@@ -189,6 +189,10 @@ public class ExecuteTest extends TestBase {
 			"id	name	city\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n" },
+		{ "customer where id > 'd' and id < 'j'",
+			"id	name	city\n" +
+			"'e'	'emerald'	'vancouver'\n" +
+			"'i'	'intercon'	'saskatoon'\n" },
 		{ "customer where id = 'e'",
 			"id	name	city\n" +
 			"'e'	'emerald'	'vancouver'\n" },

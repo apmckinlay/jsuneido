@@ -1,11 +1,11 @@
 package org.ronsoft.nioserver.impl;
 
-import org.ronsoft.nioserver.InputQueue;
-import org.ronsoft.nioserver.BufferFactory;
-
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
-import java.io.IOException;
+
+import org.ronsoft.nioserver.BufferFactory;
+import org.ronsoft.nioserver.InputQueue;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,7 +32,8 @@ class InputQueueImpl implements InputQueue
 			buffer = bufferFactory.newBuffer();
 		}
 
-		return channel.read (buffer);
+		assert (buffer.remaining() > 0);
+		return channel.read(buffer);
 	}
 
 	// -- not needed by framework
@@ -41,7 +42,7 @@ class InputQueueImpl implements InputQueue
 	{
 		return (buffer == null) || (buffer.position () == 0);
 	}
-	
+
 	public synchronized int available()
 	{
 		return buffer == null ? 0 : buffer.position();

@@ -23,7 +23,7 @@ import suneido.database.*;
 public class Server {
 	public static void start(int port) throws IOException {
 		Executor executor = Executors.newCachedThreadPool();
-		BufferFactory bufFactory = new DumbBufferFactory (1024);
+		BufferFactory bufFactory = new DumbBufferFactory(10 * 1024);
 		NioDispatcher dispatcher = new NioDispatcher (executor, bufFactory);
 		StandardAcceptor acceptor = new StandardAcceptor (port, dispatcher,
 				new GenericInputHandlerFactory(Handler.class));

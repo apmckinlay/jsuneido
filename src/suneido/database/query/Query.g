@@ -55,8 +55,8 @@ insert returns [Query result]
 		{ $result = new Insert($query2.result, $insert::record); }
 	;
 field
-	:	ID ':' constant
-			{ $insert::record.putdata($ID.text, $constant.value); }
+	:	id ':' constant
+			{ $insert::record.putdata($id.text, $constant.value); }
 	;
 
 update returns [Query result]
@@ -67,8 +67,8 @@ update returns [Query result]
 		{ $result = new Update($query2.result, $update::fields, $update::exprs); } 
 	;
 set
-	: ID '=' expr
-		{ $update::fields.add($ID.text); $update::exprs.add($expr.expr); } 
+	: id '=' expr
+		{ $update::fields.add($id.text); $update::exprs.add($expr.expr); } 
 	;
   
 query2 returns [Query result]
@@ -82,10 +82,10 @@ query2 returns [Query result]
 	;
 
 source returns [Query result]
-	: ID
-		{ $result = new Table($ID.text); }
-    | HISTORY '(' ID ')'
-    	{ $result = new History($ID.text); }
+	: id
+		{ $result = new Table($id.text); }
+    | HISTORY '(' id ')'
+    	{ $result = new History($id.text); }
     | '(' query2 ')'
     	{ $result = $query2.result; }
     ;
@@ -124,14 +124,14 @@ rename returns [Query result]
 	;
     
 rename1
-	: f=ID TO t=ID
+	: f=id TO t=id
 		{ $rename::froms.add($f.text); $rename::tos.add($t.text); }
 	;
     
 cols returns [List<String> list]  
 	@init { list = new ArrayList<String>(); }
-	: i=ID { list.add($i.text); } 
-		(','? j=ID { list.add($j.text); }
+	: i=id { list.add($i.text); } 
+		(','? j=id { list.add($j.text); }
 		)* ;
 		
 summarize returns [Query result]
@@ -146,17 +146,17 @@ summarize returns [Query result]
 			$summarize::cols, $summarize::funcs, $summarize::on); }
 	;
 summary 
-	: ID
-		{ $summarize::by.add($ID.text); }
-    | (ID '=')? COUNT
+	: id
+		{ $summarize::by.add($id.text); }
+    | (id eq='=')? COUNT
     	{
-    	$summarize::cols.add($ID == null ? null : $ID.text);
+    	$summarize::cols.add($eq == null ? null : $id.text);
     	$summarize::funcs.add("count");
  		$summarize::on.add(null);
     	}
-    | (c=ID '=')? f=(TOTAL|AVERAGE|MAX|MIN|LIST) o=ID
+    | (c=id eq='=')? f=(TOTAL|AVERAGE|MAX|MIN|LIST) o=id
     	{
-    	$summarize::cols.add($c == null ? null : $c.text);
+    	$summarize::cols.add($eq == null ? null : $c.text);
     	$summarize::funcs.add($f.text);
 		$summarize::on.add($o.text);
     	}
@@ -173,9 +173,9 @@ extend returns [Query result]
 	;
 
 extend1
-	: ID (a='=' expr)?
-		{ if ($a == null) $extend::rules.add($ID.text);
-			else { $extend::fields.add($ID.text); $extend::exprs.add($expr.expr); } } 
+	: id (a='=' expr)?
+		{ if ($a == null) $extend::rules.add($id.text);
+			else { $extend::fields.add($id.text); $extend::exprs.add($expr.expr); } } 
 	;
   
 // for testing
@@ -265,12 +265,10 @@ unary returns [Expr expr]
 		{ $expr = ($unop.op == null) ? $term.expr : new UnOp($unop.op, $term.expr); } 
 	;
 term returns [Expr expr]
-	: ID
+	: id
 		{ $expr = Identifier.valueOf($text); }
-	| SET
-		{ $expr = Identifier.valueOf($text); }
-	| ID '('
-		{ $expr = new FunCall($ID.text); } 
+	| id '('
+		{ $expr = new FunCall($id.text); } 
 	  ( e1=expr
 	  	{ ((FunCall) $expr).add($e1.expr); }
 	  (',' e2=expr
@@ -285,6 +283,9 @@ term returns [Expr expr]
     | '(' expr ')'
     	{ $expr = $expr.expr; }
     ;
+id	:	ID
+	|	SET
+	;
 constant returns [SuValue value]  
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
@@ -305,7 +306,7 @@ member
 	: constant
     | '(' members ')'
     | '{' members '}'
-    | ID ':' member
+    | id ':' member
     ;
     
 isop returns [BinOp.Op op]

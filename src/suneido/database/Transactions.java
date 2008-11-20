@@ -167,7 +167,7 @@ public class Transactions {
 			Record from, Record to, Record key, String type) {
 		StringBuilder sb = new StringBuilder("read conflict with ");
 		sb.append(t.sessionId);
-		sb.append("transaction ").append(t.num);
+		sb.append(" transaction ").append(t.num);
 		sb.append(" table: ");
 		Table tbl = db.getTable(tblnum);
 		if (tbl == null)

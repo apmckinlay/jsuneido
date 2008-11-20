@@ -1,6 +1,7 @@
 package suneido.database.query.expr;
 
 import static suneido.Util.listToParens;
+import suneido.SuException;
 import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
@@ -26,7 +27,7 @@ public class FunCall extends Multi {
 
 	@Override
 	public SuValue eval(Header hdr, Row row) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO FunCall eval
+		throw new SuException("not implemented: FunCall");
 	}
 }

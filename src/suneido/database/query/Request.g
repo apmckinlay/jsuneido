@@ -111,20 +111,20 @@ public void emitErrorMessage(String msg) {
 request 
 	scope { Schema schema; }
 	@init { $request::schema = new Schema(); }
-	: CREATE ID schema
-		{ iRequest.create($ID.text, $request::schema); }
-	| ENSURE ID partial
-		{ iRequest.ensure($ID.text, $request::schema); }
-	| ALTER ID RENAME renames
-		{ iRequest.alter_rename($ID.text, $renames.list); }
-    | ALTER ID CREATE partial
-    	{ iRequest.alter_create($ID.text, $request::schema); }
-    | ALTER ID (DROP|DELETE) partial
-    	{ iRequest.alter_delete($ID.text, $request::schema); }
+	: CREATE id schema
+		{ iRequest.create($id.text, $request::schema); }
+	| ENSURE id partial
+		{ iRequest.ensure($id.text, $request::schema); }
+	| ALTER id RENAME renames
+		{ iRequest.alter_rename($id.text, $renames.list); }
+    | ALTER id CREATE partial
+    	{ iRequest.alter_create($id.text, $request::schema); }
+    | ALTER id (DROP|DELETE) partial
+    	{ iRequest.alter_delete($id.text, $request::schema); }
     | rename
     	{ iRequest.rename($rename.from, $rename.to); }
-    | (DROP|DESTROY) ID
-    	{ iRequest.drop($ID.text); }
+    | (DROP|DESTROY) id
+    	{ iRequest.drop($id.text); }
     ;
   
 schema	: schema_columns (key|index)* ;
@@ -139,7 +139,7 @@ columns returns [List<String> list]
 	@init { list = new ArrayList<String>(); }
 	:	'(' column[list] (','? column[list] )* ')' ;
 column[List<String> list]
-	:	ID { list.add($ID.text); } ;
+	:	id { list.add($id.text); } ;
 	
 key	: KEY columns in? 
 		{ $request::schema.indexes.add(new Index(true, false, $columns.list, $in.in)); }
@@ -150,14 +150,14 @@ index : INDEX (u=UNIQUE | LOWER)? columns in?
 	;
 
 in returns [In in]
-	:	IN ID columns? (c=CASCADE u=UPDATES ?)? 
+	:	IN id columns? (c=CASCADE u=UPDATES ?)? 
 		{
 		int mode = 0;
 		if ($u != null)
 			mode = 1;
 		else if ($c != null)
 			mode = 3;
-		$in = new In($ID.text, $columns.list, mode);
+		$in = new In($id.text, $columns.list, mode);
 		}
 	;
 
@@ -165,13 +165,17 @@ renames returns [List<Rename> list]
 	@init { list = new ArrayList<Rename>(); }
 	: rename1[list] (',' rename1[list] )* ;
 rename1[List<Rename> list]
-	:	f=ID TO t=ID 
+	:	f=id TO t=id 
 		{ list.add(new Rename($f.text, $t.text)); }
 	;
     
 rename 	 returns [String from, String to]
-	:	RENAME f=ID TO t=ID 
+	:	RENAME f=id TO t=id 
 		{ $from = $f.text; $to = $t.text; }
+	;
+	
+id	:	ID
+	|	KEY
 	;
 	
 CREATE	: ('c'|'C')('r'|'R')('e'|'E')('a'|'A')('t'|'T')('e'|'E') ;

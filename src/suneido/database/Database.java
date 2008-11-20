@@ -313,7 +313,9 @@ public class Database {
 		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1
 				: table.nextfield;
 		if (! column.equals("-")) { // addition of deleted field used by dump/load
-			column = column.toLowerCase();
+			if (fldnum == -1)
+				column = column.substring(0, 1).toLowerCase()
+						+ column.substring(1);
 			if (table.hasColumn(column))
 				throw new SuException("add column: column already exists: "
 						+ column + " in " + tablename);
@@ -811,7 +813,7 @@ public class Database {
 		Record rec = find(tran, index.btreeIndex, key);
 		if (rec == null)
 			throw new SuException("delete record: can't find record in "
-					+ tablename);
+					+ tablename + " " + indexcolumns + " " + key);
 		remove_any_record(tran, table, rec);
 	}
 

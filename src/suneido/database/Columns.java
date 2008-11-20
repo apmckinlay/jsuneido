@@ -1,16 +1,13 @@
 package suneido.database;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 
 /**
- *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Columns implements Iterable<Column> {
 	private final ArrayList<Column> columns = new ArrayList<Column>();
