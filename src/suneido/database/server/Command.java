@@ -86,7 +86,6 @@ public enum Command {
 			return OK;
 		}
 	},
-	REFRESH,
 	REQUEST {
 		@Override
 		public int extra(ByteBuffer buf) {
