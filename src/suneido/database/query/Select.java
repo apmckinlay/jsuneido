@@ -119,9 +119,9 @@ public class Select extends Query1 {
 		// move selects before renames
 		else if (source instanceof Rename) {
 			Rename r = (Rename) source;
-			expr.rename(r.to, r.from);
+			Expr new_expr = expr.rename(r.to, r.from);
 			source = r.source;
-			r.source = this;
+			r.source = (new_expr == expr ? this : new Select(source, new_expr));
 			return r.transform();
 		}
 		// move select before extend, unless it depends on rules
@@ -218,8 +218,7 @@ public class Select extends Query1 {
 		List<String> exprflds = expr.fields();
 		List<String> missing = difference(exprflds, srcflds);
 		return expr.replace(missing,
-				Collections.nCopies(missing.size(),
-						(Expr) Constant.EMPTY));
+				Collections.nCopies(missing.size(), (Expr) Constant.EMPTY));
 	}
 
 	private boolean distribute(Query2 q2) {

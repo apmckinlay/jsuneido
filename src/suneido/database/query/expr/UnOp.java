@@ -4,9 +4,7 @@ import static suneido.SuException.unreachable;
 
 import java.util.List;
 
-import suneido.SuBoolean;
-import suneido.SuInteger;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 
@@ -65,13 +63,14 @@ public class UnOp extends Expr {
 	}
 
 	@Override
-	public void rename(List<String> from, List<String> to) {
-		expr.rename(from, to);
+	public Expr rename(List<String> from, List<String> to) {
+		Expr new_expr = expr.rename(from, to);
+		return new_expr == expr ? this : new UnOp(op, new_expr);
 	}
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		expr = expr.replace(from, to);
-		return this;
+		Expr new_expr = expr.replace(from, to);
+		return new_expr == expr ? this : new UnOp(op, new_expr);
 	}
 }

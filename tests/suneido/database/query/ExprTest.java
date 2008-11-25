@@ -1,13 +1,9 @@
 package suneido.database.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static suneido.Util.list;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.junit.Test;
 
@@ -103,7 +99,7 @@ public class ExprTest {
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr(cases[i]);
-			assertEquals(e.toString(), cases[i + 1], 
+			assertEquals(e.toString(), cases[i + 1],
 					e.eval(hdr, row).toString());
 		}
 	}
@@ -121,7 +117,7 @@ public class ExprTest {
 		List<String> to = list("xx", "yy", "zz");
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr(cases[i]);
-			e.rename(from, to);
+			e = e.rename(from, to);
 			assertEquals(e.toString(), cases[i + 1], e.toString());
 		}
 	}

@@ -26,10 +26,18 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			badcmd.position(0);
+			badcmd.rewind();
 			outputQueue.enqueue(badcmd);
 			return line;
 		}
+	},
+	NILCMD {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue, ServerData serverData) {
+			return null;
+		}
+
 	},
 	ADMIN {
 		@Override
@@ -78,6 +86,7 @@ public enum Command {
 			return OK;
 		}
 	},
+	REFRESH,
 	REQUEST {
 		@Override
 		public int extra(ByteBuffer buf) {

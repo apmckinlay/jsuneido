@@ -49,17 +49,21 @@ public class TriOp extends Expr {
 	}
 
 	@Override
-	public void rename(List<String> from, List<String> to) {
-		expr.rename(from, to);
-		iftrue.rename(from, to);
-		iffalse.rename(from, to);
+	public Expr rename(List<String> from, List<String> to) {
+		Expr new_expr = expr.rename(from, to);
+		Expr new_iftrue = iftrue.rename(from, to);
+		Expr new_iffalse = iffalse.rename(from, to);
+		return new_expr == expr && new_iftrue == iftrue && new_iffalse == iffalse
+			? this : new TriOp(new_expr, new_iftrue, new_iffalse);
 	}
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		expr = expr.replace(from, to);
-		iftrue = iftrue.replace(from, to);
-		iffalse = iffalse.replace(from, to);
-		return this;
+		Expr new_expr = expr.replace(from, to);
+		Expr new_iftrue = iftrue.replace(from, to);
+		Expr new_iffalse = iffalse.replace(from, to);
+		return new_expr == expr && new_iftrue == iftrue
+				&& new_iffalse == iffalse ? this : new TriOp(new_expr,
+				new_iftrue, new_iffalse);
 	}
 }

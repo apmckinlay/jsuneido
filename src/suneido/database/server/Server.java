@@ -53,7 +53,7 @@ public class Server {
 				if (nlPos == -1)
 					return null;
 				line = inputQueue.dequeueBytes(nlPos + 1);
-System.out.print(bufferToString(line));
+System.out.print(">" + bufferToString(line));
 				cmd = getCmd(line);
 				line.mark();
 				try {
@@ -73,7 +73,10 @@ e.printStackTrace();
 		}
 		private static Command getCmd(ByteBuffer buf) {
 			try {
-				return Command.valueOf(firstWord(buf).toUpperCase());
+				String word = firstWord(buf);
+				if (word.isEmpty())
+					return Command.NILCMD;
+				return Command.valueOf(word.toUpperCase());
 			} catch (IllegalArgumentException e) {
 				return Command.BADCMD;
 			}

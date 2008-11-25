@@ -55,16 +55,27 @@ public abstract class Multi extends Expr {
 		return exprs.isEmpty() ? ignore : this;
 	}
 
-	@Override
-	public void rename(List<String> from, List<String> to) {
-		for (Expr expr : exprs)
-			expr.rename(from, to);
+	protected List<Expr> rename_exprs(List<String> from, List<String> to) {
+		ArrayList<Expr> exprs2 = new ArrayList<Expr>();
+		boolean changed = false;
+		for (Expr e : exprs) {
+			Expr e2 = e.rename(from, to);
+			exprs2.add(e2);
+			if (e2 != e)
+				changed = true;
+		}
+		return changed ? exprs2 : null;
 	}
 
-	@Override
-	public Expr replace(List<String> from, List<Expr> to) {
-		for (int i = 0; i < exprs.size(); ++i)
-			exprs.set(i, exprs.get(i).replace(from, to));
-		return this;
+	protected List<Expr> replace_exprs(List<String> from, List<Expr> to) {
+		ArrayList<Expr> exprs2 = new ArrayList<Expr>();
+		boolean changed = false;
+		for (Expr e : exprs) {
+			Expr e2 = e.replace(from, to);
+			exprs2.add(e2);
+			if (e2 != e)
+				changed = true;
+		}
+		return changed ? exprs2 : null;
 	}
 }
