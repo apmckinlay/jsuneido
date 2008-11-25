@@ -10,7 +10,6 @@ import suneido.database.query.Row;
 public class And extends Multi {
 
 	public And() {
-		super();
 	}
 
 	public And(List<Expr> exprs) {
@@ -33,6 +32,18 @@ public class And extends Multi {
 			if (e.eval(hdr, row) != SuBoolean.TRUE)
 				return SuBoolean.FALSE;
 		return SuBoolean.TRUE;
+	}
+
+	@Override
+	public Expr rename(List<String> from, List<String> to) {
+		List<Expr> new_exprs = rename_exprs(from, to);
+		return new_exprs == null ? this : new And(new_exprs);
+	}
+
+	@Override
+	public Expr replace(List<String> from, List<Expr> to) {
+		List<Expr> new_exprs = replace_exprs(from, to);
+		return new_exprs == null ? this : new And(new_exprs);
 	}
 
 }

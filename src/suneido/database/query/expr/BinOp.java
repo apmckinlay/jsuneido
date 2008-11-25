@@ -136,16 +136,19 @@ public class BinOp extends Expr {
 	}
 
 	@Override
-	public void rename(List<String> from, List<String> to) {
-		left.rename(from, to);
-		right.rename(from, to);
+	public Expr rename(List<String> from, List<String> to) {
+		Expr new_left = left.rename(from, to);
+		Expr new_right = right.rename(from, to);
+		return new_left == left && new_right == right ? this :
+			new BinOp(op, new_left, new_right);
 	}
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		left = left.replace(from, to);
-		right = right.replace(from, to);
-		return this;
+		Expr new_left = left.replace(from, to);
+		Expr new_right = right.replace(from, to);
+		return new_left == left && new_right == right ? this :
+			new BinOp(op, new_left, new_right);
 	}
 
 }

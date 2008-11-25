@@ -39,10 +39,9 @@ public class Identifier extends Expr {
 	}
 
 	@Override
-	public void rename(List<String> from, List<String> to) {
+	public Expr rename(List<String> from, List<String> to) {
 		int i = from.indexOf(ident);
-		if (i != -1)
-			ident = to.get(i);
+		return i == -1 ? this : new Identifier(to.get(i));
 	}
 
 	@Override

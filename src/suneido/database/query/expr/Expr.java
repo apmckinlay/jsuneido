@@ -17,7 +17,7 @@ public abstract class Expr {
 		return this;
 	}
 
-	public abstract void rename(List<String> from, List<String> to);
+	public abstract Expr rename(List<String> from, List<String> to);
 
 	public abstract Expr replace(List<String> from, List<Expr> to);
 

@@ -7,6 +7,8 @@ import org.junit.Test;
 public class OptimizeTest extends TestBase {
 	@Test
 	public void test() {
+		adm("create test_minus1 (a, b, c) key(a)");
+		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
 			// System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]);
@@ -98,6 +100,9 @@ public class OptimizeTest extends TestBase {
 
 		{ "trans minus hist",
 			"(trans^(date,item,id) MINUS^(date,item,id) hist^(date,item,id))" },
+
+		{ "(test_minus1 minus test_minus2) where a is 1",
+			"(test_minus1^(a) WHERE^(a) MINUS^(d) test_minus2^(d) WHERE^(d) false)" },
 
 		{ "trans intersect hist",
 			"(trans^(date,item,id) INTERSECT^(date,item,id) hist^(date,item,id))" },

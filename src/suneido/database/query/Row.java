@@ -78,6 +78,8 @@ public class Row {
 			return getraw(w);
 		// else rule
 		SuValue val = surec().getdata(SuString.valueOf(col));
+		if (val == null) // TODO should be in SuRecord
+			val = SuString.EMPTY;
 		return val.pack();
 	}
 

@@ -15,11 +15,19 @@ import suneido.database.query.Row;
 public class In extends Expr {
 	public Expr expr;
 	private Boolean isterm = null;
-	private final List<SuValue> values = new ArrayList<SuValue>();
-	public final Record packed = new Record();
+	private final List<SuValue> values;
+	public final Record packed;
 
 	public In(Expr expr) {
 		this.expr = expr;
+		this.values = new ArrayList<SuValue>();
+		this.packed = new Record();
+	}
+
+	public In(Expr expr, List<SuValue> values, Record packed) {
+		this.expr = expr;
+		this.values = values;
+		this.packed = packed;
 	}
 
 	public In add(SuValue x) {
@@ -77,8 +85,9 @@ public class In extends Expr {
 	}
 
 	@Override
-	public void rename(List<String> from, List<String> to) {
-		expr.rename(from, to);
+	public Expr rename(List<String> from, List<String> to) {
+		Expr new_expr = expr.rename(from, to);
+		return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 
 	@Override

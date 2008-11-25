@@ -95,11 +95,11 @@ public class TestBase {
 		req("insert { date: #20010401 } into dates");
 	}
 
-	private void adm(String s) {
+	protected void adm(String s) {
 		Request.execute(s);
 	}
 
-	private void req(String s) {
+	protected void req(String s) {
 		((QueryAction) ParseQuery.parse(s)).execute();
 	}
 

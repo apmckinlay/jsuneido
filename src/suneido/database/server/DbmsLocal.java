@@ -121,6 +121,8 @@ System.out.println("\t" + s);
 			}
 		}
 		tran.complete();
+if (srcs.isEmpty())
+System.out.println("    " + name + " NOT FOUND");
 		return srcs;
 	}
 
