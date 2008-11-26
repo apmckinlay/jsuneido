@@ -139,6 +139,8 @@ public class ExecuteTest extends TestBase {
 			"'mouse'	'e'	200	960204\n" +
 			"'mouse'	'c'	200	970101\n" +
 			"'eraser'	'c'	150	970201\n" },
+		{ "(trans minus hist) where id = 9",
+			"item	id	cost	date\n" },
 		{ "trans union hist", // merge
 			"item	id	cost	date\n" +
 			"'mouse'	'e'	200	960204\n" +

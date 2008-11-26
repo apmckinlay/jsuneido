@@ -28,9 +28,8 @@ public class FunCall extends Multi {
 
 	@Override
 	public Expr fold() {
-		for (int i = 0; i < exprs.size(); ++i)
-			exprs.set(i, exprs.get(i).fold());
-		return this;
+		List<Expr> new_exprs = foldExprs(null);
+		return new_exprs == null ? this : new FunCall(fname, new_exprs);
 	}
 
 	@Override
@@ -41,13 +40,13 @@ public class FunCall extends Multi {
 
 	@Override
 	public Expr rename(List<String> from, List<String> to) {
-		List<Expr> new_exprs = rename_exprs(from, to);
+		List<Expr> new_exprs = renameExprs(from, to);
 		return new_exprs == null ? this : new FunCall(fname, new_exprs);
 	}
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		List<Expr> new_exprs = replace_exprs(from, to);
+		List<Expr> new_exprs = replaceExprs(from, to);
 		return new_exprs == null ? this : new FunCall(fname, new_exprs);
 	}
 }
