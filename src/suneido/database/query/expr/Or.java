@@ -23,7 +23,16 @@ public class Or extends Multi {
 
 	@Override
 	public Expr fold() {
-		return foldExprs(Constant.FALSE, Constant.TRUE);
+		List<Expr> new_exprs = foldExprs(Constant.FALSE);
+		boolean allfalse = true;
+		for (Expr e : new_exprs == null ? exprs : new_exprs)
+			if (e == Constant.TRUE)
+				return Constant.TRUE;
+			else
+				allfalse = false;
+		if (allfalse)
+			return Constant.FALSE;
+		return new_exprs == null ? this : new Or(new_exprs);
 	}
 
 	@Override
@@ -36,13 +45,13 @@ public class Or extends Multi {
 
 	@Override
 	public Expr rename(List<String> from, List<String> to) {
-		List<Expr> new_exprs = rename_exprs(from, to);
+		List<Expr> new_exprs = renameExprs(from, to);
 		return new_exprs == null ? this : new Or(new_exprs);
 	}
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		List<Expr> new_exprs = replace_exprs(from, to);
+		List<Expr> new_exprs = replaceExprs(from, to);
 		return new_exprs == null ? this : new Or(new_exprs);
 	}
 

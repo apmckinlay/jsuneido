@@ -318,24 +318,27 @@ public class Select extends Query1 {
 	private List<Cmp> extract_cmps() {
 		List<Cmp> cmps = new ArrayList<Cmp>();
 		List<String> fields = tbl.tbl.getFields();
-		for (Iterator<Expr> iter = expr.exprs.iterator(); iter.hasNext();) {
-			Expr expr = iter.next();
-			if (expr.isTerm(fields))
-				if (expr instanceof In) {
-					In in = (In) expr;
+		List<Expr> new_exprs = new ArrayList<Expr>();
+		for (Expr e : expr.exprs) {
+			if (e.isTerm(fields))
+				if (e instanceof In) {
+					In in = (In) e;
 					Identifier id = (Identifier) in.expr;
 					cmps.add(new Cmp(id.ident, in.packed));
-					iter.remove();
-				} else if (expr instanceof BinOp) {
-					BinOp binop = (BinOp) expr;
+					continue;
+				} else if (e instanceof BinOp) {
+					BinOp binop = (BinOp) e;
 					if (binop.op != BinOp.Op.ISNT) {
 						String field = ((Identifier) binop.left).ident;
 						ByteBuffer value = ((Constant) binop.right).packed;
 						cmps.add(new Cmp(field, binop.op, value));
-						iter.remove();
+						continue;
 					}
 				}
+			new_exprs.add(e);
 		}
+		if (new_exprs.size() != expr.exprs.size())
+			expr = new And(new_exprs);
 		return cmps;
 	}
 	private void cmps_to_isels(List<Cmp> cmps) {
@@ -917,10 +920,16 @@ public class Select extends Query1 {
 			end.x = MAX_FIELD;
 		}
 		boolean matches(ByteBuffer value) {
+			value.rewind(); // TODO shouldn't need these rewinds
+			for (ByteBuffer b : values)
+				b.rewind();
 			return type == IselType.RANGE ? inrange(value)
 					: values.contains(value);
 		}
 		boolean inrange(ByteBuffer x) {
+			x.rewind(); // TODO shouldn't need these rewinds
+			org.x.rewind();
+			end.x.rewind();
 			int org_cmp = org.x.compareTo(x);
 			if (org_cmp > 0 || (org_cmp == 0 && org.d != 0))
 				return false;
@@ -996,6 +1005,7 @@ public class Select extends Query1 {
 	private static String valueToString(ByteBuffer value) {
 		if (value == null)
 			return "";
+		value.rewind();
 		return value.equals(MIN_FIELD) ? "min"
 				: value.equals(MAX_FIELD) ? "max"
 				: SuValue.toString(value);
