@@ -18,4 +18,15 @@ public class DeleteTest extends TestBase {
 		assertEquals(0, get("test").size());
 	}
 
+	@Test
+	public void test2() {
+		makeTable(5);
+
+		assertEquals(5, get("test").size());
+		QueryAction q = (QueryAction) ParseQuery
+				.parse("delete test where a >= 1 and a <= 2 ");
+		assertEquals(2, q.execute());
+		assertEquals(3, get("test").size());
+	}
+
 }
