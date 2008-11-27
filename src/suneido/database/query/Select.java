@@ -920,14 +920,10 @@ public class Select extends Query1 {
 			end.x = MAX_FIELD;
 		}
 		boolean matches(ByteBuffer value) {
-			value.rewind(); // TODO shouldn't need these rewinds
-			for (ByteBuffer b : values)
-				b.rewind();
 			return type == IselType.RANGE ? inrange(value)
 					: values.contains(value);
 		}
 		boolean inrange(ByteBuffer x) {
-			x.rewind(); // TODO shouldn't need these rewinds
 			org.x.rewind();
 			end.x.rewind();
 			int org_cmp = org.x.compareTo(x);
@@ -1005,7 +1001,6 @@ public class Select extends Query1 {
 	private static String valueToString(ByteBuffer value) {
 		if (value == null)
 			return "";
-		value.rewind();
 		return value.equals(MIN_FIELD) ? "min"
 				: value.equals(MAX_FIELD) ? "max"
 				: SuValue.toString(value);
