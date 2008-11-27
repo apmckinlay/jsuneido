@@ -1,7 +1,12 @@
 package suneido.database.query;
 
+import static suneido.database.Database.theDB;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import suneido.SuException;
+import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 
@@ -26,8 +31,30 @@ public class Update extends QueryAction {
 
 	@Override
 	int execute(Transaction tran) {
-		// TODO Auto-generated method stub
-		return 0;
+		Query q = source.setup();
+		if (!q.updateable())
+			throw new SuException("update: query not updateable");
+		q.setTransaction(tran);
+		Header hdr = q.header();
+		List<Expr> fldexprs = new ArrayList<Expr>();
+		for (String field : hdr.fields()) {
+			int i = fields.indexOf(field);
+			fldexprs.add(i == -1 ? null : exprs.get(i));
+		}
+		Row row;
+		int n = 0;
+		for (; null != (row = q.get(Dir.NEXT)); ++n) {
+			long off = row.getFirstData().off();
+			Record rec = theDB.input(off);
+			Record newrec = new Record();
+			for (Expr expr : fldexprs)
+				if (expr == null)
+					newrec.add(rec.getraw(newrec.size()));
+				else
+					newrec.add(expr.eval(hdr, row));
+			theDB.updateRecord(tran, off, newrec);
+		}
+		return n;
 	}
 
 }
