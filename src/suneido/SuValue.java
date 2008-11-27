@@ -36,7 +36,7 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public ByteBuffer pack() {
 		ByteBuffer buf = ByteBuffer.allocate(packSize());
 		pack(buf);
-		buf.position(0);
+		buf.rewind();
 		return buf;
 	}
 
@@ -68,14 +68,13 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			return SuContainer.unpack1(buf);
 		// TODO unpack other types
 		default :
-			System.out.println(buf.get());
 			throw SuException.unreachable();
 		}
 	}
 	public static String toString(ByteBuffer buf) {
-		buf.mark();
+		int pos = buf.position();
 		SuValue x = unpack(buf);
-		buf.reset();
+		buf.position(pos);
 		return x.toString();
 	}
 

@@ -35,9 +35,9 @@ public class Util {
 
 	public static String bufferToString(ByteBuffer buf) {
 		byte[] bytes = new byte[buf.remaining()];
-		buf.mark();
+		int pos = buf.position();
 		buf.get(bytes);
-		buf.reset();
+		buf.position(pos);
 		try {
 			return new String(bytes, "US-ASCII");
 		} catch (UnsupportedEncodingException e) {
