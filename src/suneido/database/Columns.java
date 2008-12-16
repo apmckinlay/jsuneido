@@ -22,6 +22,8 @@ public class Columns implements Iterable<Column> {
 	}
 
 	public short[] nums(String s) {
+		if (s.equals(""))
+			return new short[0];
 		String[] names = s.split(",");
 		short[] nums = new short[names.length];
 		int n = 0;

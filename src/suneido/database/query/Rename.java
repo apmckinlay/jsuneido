@@ -19,7 +19,7 @@ public class Rename extends Query1 {
 		List<String> src = source.columns();
 		if (!src.containsAll(from))
 			throw new SuException("rename: nonexistent column(s): "
-					+ difference(from, src));
+					+ listToParens(difference(from, src)));
 		List<String> dups = intersect(src, to);
 		if (!nil(dups))
 			throw new SuException("rename: column(s) already exist: " + dups);

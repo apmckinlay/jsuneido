@@ -14,12 +14,18 @@ import java.util.*;
  */
 public class Util {
 
+	@SuppressWarnings("unchecked")
 	public static <T> String listToCommas(List<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
 		StringBuilder sb = new StringBuilder();
-		for (T x : list)
-			sb.append(x).append(",");
+		for (T x : list) {
+			if (x instanceof List)
+				sb.append(listToParens((List<String>) x));
+			else
+				sb.append(x);
+			sb.append(",");
+		}
 		return sb.deleteCharAt(sb.length() - 1).toString();
 	}
 
