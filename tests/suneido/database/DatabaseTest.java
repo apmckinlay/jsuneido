@@ -30,7 +30,7 @@ public class DatabaseTest extends TestBase {
 	public void test() {
 		Table tbl = db.getTable("indexes");
 		assertEquals("indexes", tbl.name);
-		assertSame(tbl, db.getTable(2));
+		assertSame(tbl, db.getTable(3));
 
 		makeTable();
 

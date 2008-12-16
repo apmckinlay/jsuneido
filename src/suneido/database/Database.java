@@ -32,7 +32,7 @@ public class Database {
 	public static Database theDB;
 
 	private static class TN {
-		final static int TABLES = 0, COLUMNS = 1, INDEXES = 2, VIEWS = 3;
+		final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
 	private static class V {
 		final static int NAME = 0, DEFINITION = 1;

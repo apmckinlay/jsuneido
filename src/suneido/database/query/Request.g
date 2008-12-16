@@ -143,6 +143,8 @@ column[List<String> list]
 	
 key	: KEY columns in? 
 		{ $request::schema.indexes.add(new Index(true, false, $columns.list, $in.in)); }
+	| KEY '(' ')'
+		{ $request::schema.indexes.add(new Index(true, false, new ArrayList<String>(), null)); }
 	;
 
 index : INDEX (u=UNIQUE | LOWER)? columns in? 

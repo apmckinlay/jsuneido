@@ -145,7 +145,7 @@ public class CommandTest {
 
 		buf.rewind();
 		buf = Command.KEYS.execute(buf, null, null, serverData);
-		assertEquals("([table],[tablename])\r\n", bufferToString(buf));
+		assertEquals("((table),(tablename))\r\n", bufferToString(buf));
 	}
 
 	@Test
@@ -194,10 +194,10 @@ public class CommandTest {
 		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output,
 				serverData);
 		assertNull(buf);
-		assertEquals("A5 R30\r\n", bufferToString(output.get(0)));
+		assertEquals("A5 R33\r\n", bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
-		assertEquals("[0,'tables',5,4,164]", rec.toString());
-		assertEquals(30, rec.bufSize());
+		assertEquals("[1,'tables',5,4,164]", rec.toString());
+		assertEquals(33, rec.bufSize());
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null,
 				serverData);
@@ -227,10 +227,10 @@ public class CommandTest {
 				stringToBuffer("tables"),
 				output, serverData);
 		assertNull(buf);
-		assertEquals("A5 R30 (table,tablename,nextfield,nrows,totalsize)\r\n",
+		assertEquals("A5 R33 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
-		assertEquals("[0,'tables',5,4,164]", rec.toString());
+		assertEquals("[1,'tables',5,4,164]", rec.toString());
 
 		tbuf.rewind();
 		buf = Command.COMMIT.execute(tbuf, null, null, serverData);

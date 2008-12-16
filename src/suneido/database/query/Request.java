@@ -37,7 +37,7 @@ public class Request {
 	public static class RequestImpl implements IRequest {
 		public void create(String table, Schema schema) {
 			if (!hasKey(schema))
-				throw new SuException("key required for " + table);
+				throw new SuException("key required for: " + table);
 			theDB.addTable(table);
 			schema(table, schema);
 		}
