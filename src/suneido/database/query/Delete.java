@@ -17,7 +17,7 @@ public class Delete extends QueryAction {
 	}
 
 	@Override
-	int execute(Transaction tran) {
+	public int execute(Transaction tran) {
 		Query q = source.setup();
 		if (!q.updateable())
 			throw new SuException("delete: query not updateable");

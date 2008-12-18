@@ -17,7 +17,7 @@ public class Insert extends QueryAction {
 	}
 
 	@Override
-	int execute(Transaction tran) {
+	public int execute(Transaction tran) {
 		source.setTransaction(tran);
 		source.output(record.toDbRecord(source.header()));
 		return 1;
