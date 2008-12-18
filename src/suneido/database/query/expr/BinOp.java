@@ -6,11 +6,7 @@ import static suneido.Util.union;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.Regex;
-import suneido.SuBoolean;
-import suneido.SuInteger;
-import suneido.SuString;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 

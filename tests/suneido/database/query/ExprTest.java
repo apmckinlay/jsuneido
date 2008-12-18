@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.junit.Test;
 
+import suneido.SuDate;
 import suneido.database.Record;
 import suneido.database.query.expr.Expr;
 
@@ -91,11 +92,14 @@ public class ExprTest {
 				"b > 2", "false",
 				"b > a", "true",
 				"d in (3,4,5)", "true",
+				"e < #20081216.152744828", "false",
+				"e < #20081216.155544828", "true"
 		};
-		Header hdr = new Header(list(list("a"), list("a", "b", "c", "d")),
-				list("a", "b", "c", "d"));
+		Header hdr = new Header(list(list("a"), list("a", "b", "c", "d", "e")),
+				list("a", "b", "c", "d", "e"));
 		Record key = new Record().add(1);
-		Record rec = new Record().add(1).add(2).add(3).add(4);
+		Record rec = new Record().add(1).add(2).add(3).add(4).
+				add(SuDate.literal("#20081216.153244828"));
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = ParseQuery.expr(cases[i]);

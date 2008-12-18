@@ -59,6 +59,9 @@ public class ParseTest extends TestBase {
 			"DELETE test WHERE (a = 5)", null,
 			"UPDATE test SET a=5, b=3", null,
 			"INSERT [a: 4, b: 6] INTO test", null,
+			"test WHERE (a = #20081216.1523)", null,
+			"test WHERE (a = #20081216.152301)", null,
+			"test WHERE (a = #20081216.152301234)", null,
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];

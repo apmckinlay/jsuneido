@@ -47,4 +47,17 @@ public class SuDateTest {
 		SuDate e = (SuDate) SuValue.unpack(buf);
 		assertEquals(d, e);
 	}
+
+	@Test
+	public void compare() {
+		SuDate d1 = SuDate.literal("#20081215");
+		SuDate d2 = SuDate.literal("#20081216.153244828");
+		assert (d1.compareTo(d2) < 0);
+		assert (d2.compareTo(d1) > 0);
+		ByteBuffer b1 = d1.pack();
+		ByteBuffer b2 = d2.pack();
+		assert (b1.compareTo(b2) < 0);
+		assert (b2.compareTo(b1) > 0);
+	}
+
 }

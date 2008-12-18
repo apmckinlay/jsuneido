@@ -9,7 +9,11 @@ import suneido.database.query.expr.Expr;
 public class ParseQuery {
 
 	public static Query query(String s) {
-		return parse(s).setup();
+		return query(s, false);
+	}
+
+	public static Query query(String s, boolean is_cursor) {
+		return parse(s).setup(is_cursor);
 	}
 
 	public static Query query(String s, Transaction tran) {
