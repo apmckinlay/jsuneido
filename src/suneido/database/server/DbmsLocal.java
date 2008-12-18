@@ -158,7 +158,7 @@ System.out.println("    " + name + " NOT FOUND");
 
 	public List<Integer> tranlist() {
 		// TODO tranlist
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 
 	public void log(String s) {

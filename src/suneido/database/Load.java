@@ -103,12 +103,12 @@ System.out.println(rec.get(2));
 		}
 	}
 
-	private static void printbuf(String name, ByteBuffer b) {
-		System.out.print(name);
-		for (int i = 0; i < b.limit() && i < 20; ++i)
-			System.out.print(" " + (b.get(i) & 0xff));
-		System.out.println("");
-	}
+//	private static void printbuf(String name, ByteBuffer b) {
+//		System.out.print(name);
+//		for (int i = 0; i < b.limit() && i < 20; ++i)
+//			System.out.print(" " + (b.get(i) & 0xff));
+//		System.out.println("");
+//	}
 
 	private String getline() throws IOException {
 		String line = "";
