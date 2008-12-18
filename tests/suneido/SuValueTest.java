@@ -25,6 +25,7 @@ public class SuValueTest {
 			SuInteger.ZERO, new SuDecimal(123), SuInteger.valueOf(456), new SuDecimal(789),
 			SuString.EMPTY, new SuString("abc"), new SuString("def"),
 			new SuDate("#20080514.143622123"), new SuDate("#20080522.143622123"),
+			new SuDate("#20081216.152744828"), new SuDate("#20081216.153244828"), 
 			new SuContainer(), c1, c2, c3, new SuClass() };
 		for (int i = 0; i < values.length; ++i)
 			for (int j = 0; j < values.length; ++j)

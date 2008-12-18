@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import java.util.Collections;
 import java.util.List;
 
 import suneido.database.Record;
@@ -98,7 +99,7 @@ public abstract class Query1 extends Query {
 
 	protected static class Best {
 		double cost = IMPOSSIBLE;
-		List<String> index;
+		List<String> index = Collections.emptyList();
 	}
 
 	protected Best best_prefixed(List<List<String>> indexes, List<String> by,

@@ -1,6 +1,7 @@
 package suneido;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.*;
 import java.util.Calendar;
 import java.util.Date;
@@ -95,7 +96,7 @@ public class SuDate extends SuValue {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		int date = (cal.get(Calendar.YEAR) << 9)
-				| (cal.get(Calendar.MONTH) << 5)
+				| ((cal.get(Calendar.MONTH) + 1) << 5)
 				| cal.get(Calendar.DAY_OF_MONTH);
 		buf.putInt(date);
 		int time = (cal.get(Calendar.HOUR) << 22)
@@ -111,6 +112,7 @@ public class SuDate extends SuValue {
 	}
 
 	public static SuDate unpack1(ByteBuffer buf) {
+		assert (buf.order() == ByteOrder.BIG_ENDIAN);
 		int date = buf.getInt();
 		int year = date >> 9;
 		int month = (date >> 5) & 0xf;
@@ -123,7 +125,7 @@ public class SuDate extends SuValue {
 		int millisecond = time & 0x3ff;
 
 		Calendar cal = Calendar.getInstance();
-		cal.set(year, month, day, hour, minute, second);
+		cal.set(year, month - 1, day, hour, minute, second);
 		cal.set(Calendar.MILLISECOND, millisecond);
 
 		return new SuDate(cal.getTime());

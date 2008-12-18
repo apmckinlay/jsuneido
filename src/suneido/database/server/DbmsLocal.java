@@ -39,6 +39,7 @@ System.out.println("\t" + query);
 			tran = theDB.readonlyTran();
 		try {
 			Query q = ParseQuery.query(query, (Transaction) tran);
+System.out.println("\t" + q);
 			Row row = q.get(dir);
 			if (row != null && q.updateable())
 				row.recadr = row.getFirstData().off();
@@ -59,7 +60,7 @@ System.out.println("\t" + s);
 
 	public DbmsQuery cursor(String s) {
 System.out.println("\t" + s);
-		return ParseQuery.query(s);
+		return ParseQuery.query(s, true);
 	}
 
 	public void erase(DbmsTran tran, long recadr) {
