@@ -39,7 +39,6 @@ System.out.println("\t" + query);
 			tran = theDB.readonlyTran();
 		try {
 			Query q = ParseQuery.query(query, (Transaction) tran);
-System.out.println("\t" + q);
 			Row row = q.get(dir);
 			if (row != null && q.updateable())
 				row.recadr = row.getFirstData().off();
