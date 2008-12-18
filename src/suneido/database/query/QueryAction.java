@@ -14,18 +14,19 @@ public abstract class QueryAction extends Query1 {
 		super(source);
 	}
 
+	// used by tests
 	public int execute() {
 		Transaction tran = theDB.readwriteTran();
 		try {
 			int n = execute(tran);
-			tran.complete();
+			tran.ck_complete();
 			return n;
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
-	abstract int execute(Transaction tran);
+	public abstract int execute(Transaction tran);
 
 	@Override
 	List<String> columns() {

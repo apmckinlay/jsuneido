@@ -25,7 +25,7 @@ public class DbmsLocal implements Dbms {
 
 	public int request(DbmsTran tran, String s) {
 System.out.println("\t" + s);
-		return ((QueryAction) ParseQuery.parse(s)).execute();
+		return ((QueryAction) ParseQuery.parse(s)).execute((Transaction) tran);
 	}
 
 	public DbmsTran transaction(boolean readwrite, String session_id) {

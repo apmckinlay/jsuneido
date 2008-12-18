@@ -30,7 +30,7 @@ public class Update extends QueryAction {
 	}
 
 	@Override
-	int execute(Transaction tran) {
+	public int execute(Transaction tran) {
 		Query q = source.setup();
 		if (!q.updateable())
 			throw new SuException("update: query not updateable");
