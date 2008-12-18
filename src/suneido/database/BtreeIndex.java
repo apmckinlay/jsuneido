@@ -164,7 +164,7 @@ public class BtreeIndex {
 			if (iter.eof())
 				tranread.end = to;
 			else if (iter.key().compareTo(tranread.end) > 0)
-				tranread.end = iter.key();
+				tranread.end = iter.key().dup();
 			return this;
 		}
 
@@ -189,7 +189,7 @@ public class BtreeIndex {
 			if (iter.eof())
 				tranread.org = from;
 			else if (iter.key().compareTo(tranread.org) < 0)
-				tranread.org = iter.key();
+				tranread.org = iter.key().dup();
 			return this;
 		}
 

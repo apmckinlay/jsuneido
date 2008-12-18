@@ -78,6 +78,13 @@ public class TestBase {
 		return recs;
 	}
 
+	protected Record getFirst(String tablename, Transaction tran) {
+		Table tbl = db.getTable(tablename);
+		Index idx = tbl.indexes.first();
+		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
+		return iter.eof() ? null : db.input(iter.keyadr());
+	}
+
 	protected void check(int... values) {
 		Transaction t = db.readonlyTran();
 		check(t, values);

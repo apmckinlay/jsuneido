@@ -114,9 +114,11 @@ public class DatabaseTest extends TestBase {
 	private void checkBefore() {
 		check(0, 1, 2);
 	}
+
 	private void checkBefore(Transaction t) {
 		check(t, 0, 1, 2);
 	}
+
 	private void checkAfter(Transaction t) {
 		check(t, 0, 2, 99);
 	}
@@ -195,6 +197,23 @@ public class DatabaseTest extends TestBase {
 	}
 
 	@Test
+	public void read_conflict() {
+		makeTable(1);
+
+		Transaction t1 = db.readwriteTran();
+		assertNotNull(getFirst("test", t1));
+
+		Transaction t2 = db.readwriteTran();
+		db.addRecord(t2, "test", record(-1));
+		t2.ck_complete();
+
+		db.addRecord(t1, "test", record(9));
+		assertNotNull(t1.complete());
+		assertTrue(t1.conflict().contains("read conflict"));
+		// read conflict due to dup check read
+	}
+
+	@Test
 	public void update() {
 		makeTable(3);
 		Transaction t = db.readwriteTran();
@@ -213,10 +232,10 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test2", "f1");
 		db.addColumn("test2", "f2");
 		db.addIndex("test2", "a", true);
-		db.addIndex("test2", "f1", false, false, false,
-				"test", "a", Index.BLOCK);
-		db.addIndex("test2", "f2", false, false, false,
-				"test", "a", Index.BLOCK);
+		db.addIndex("test2", "f1", false, false, false, "test", "a",
+				Index.BLOCK);
+		db.addIndex("test2", "f2", false, false, false, "test", "a",
+				Index.BLOCK);
 
 		Table table = db.getTable("test2");
 		ForeignKey fk = table.indexes.get("f1").fksrc;
@@ -237,6 +256,7 @@ public class DatabaseTest extends TestBase {
 		}
 		t1.ck_complete();
 	}
+
 	private void shouldBlock(Transaction t1, Record rec) {
 		try {
 			db.addRecord(t1, "test2", rec);
