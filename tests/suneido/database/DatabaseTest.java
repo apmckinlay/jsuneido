@@ -267,7 +267,20 @@ public class DatabaseTest extends TestBase {
 	}
 
 	@Test
-	public void foreign_key_addIndex() {
+	public void foreign_key_addIndex1() {
+		makeTable(3);
+
+		try {
+			db.addIndex("test", "b", false, false, false, "foo", "",
+					Index.BLOCK);
+			assertTrue(false);
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("blocked by foreign key"));
+		}
+	}
+
+	@Test
+	public void foreign_key_addIndex2() {
 		makeTable(3);
 
 		db.addTable("test2");

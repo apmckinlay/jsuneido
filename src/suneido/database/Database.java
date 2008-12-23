@@ -416,6 +416,8 @@ public class Database {
 	public void addIndex(String tablename, String columns,
 			boolean isKey, boolean unique, boolean lower,
 			String fktable,	String fkcolumns, int fkmode) {
+		if (fkcolumns == null || fkcolumns.equals(""))
+			fkcolumns = columns;
 		Table table = ck_getTable(tablename);
 		short[] colnums = table.columns.nums(columns);
 		if (table.hasIndex(columns))
@@ -447,6 +449,10 @@ public class Database {
 			return ;
 		Index idx = table.firstIndex();
 		Table fktbl = getTable(fktable);
+		if (fktable != null && fktbl == null)
+			throw new SuException("add index to " + table.name
+					+ " blocked by foreign key to nonexistent table: "
+					+ fktable);
 		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
 				!iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
@@ -849,11 +855,12 @@ public class Database {
 
 	private void fkey_source_block1(Transaction tran, Table fktbl,
 			String fkcolumns, Record key, String action) {
-		if (fkcolumns == "" || key.allEmpty())
+		if (fkcolumns.equals("") || key.allEmpty())
 			return;
 		Index fkidx = getIndex(fktbl, fkcolumns);
 		if (fkidx == null || find(tran, fkidx, key) == null)
-			throw new SuException(action + " blocked by foreign key to " + fktbl.name + " ");
+			throw new SuException(action + " blocked by foreign key to "
+					+ fktbl.name);
 	}
 
 	void fkey_target_block(Transaction tran, Table tbl, Record r, String action) {

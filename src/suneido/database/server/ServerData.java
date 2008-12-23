@@ -4,6 +4,7 @@ import static suneido.Suneido.verify;
 
 import java.util.*;
 
+import suneido.database.Transaction;
 import suneido.database.query.Query;
 
 public class ServerData {
@@ -14,6 +15,9 @@ public class ServerData {
 	private final Map<Integer, Query> cursors = new HashMap<Integer, Query>();
 
 	public int addTransaction(DbmsTran tran) {
+		// client expect readonly tran# to be even
+		if (((Transaction) tran).isReadonly() && (next % 2) == 1)
+			++next;
 		trans.put(next, tran);
 		tranqueries.put(next, new ArrayList<Integer>());
 		return next++;

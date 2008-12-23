@@ -154,11 +154,11 @@ index : INDEX (u=UNIQUE | LOWER)? columns in?
 in returns [In in]
 	:	IN id columns? (c=CASCADE u=UPDATES ?)? 
 		{
-		int mode = 0;
+		int mode = suneido.database.Index.BLOCK;
 		if ($u != null)
-			mode = 1;
+			mode = suneido.database.Index.CASCADE_UPDATES;
 		else if ($c != null)
-			mode = 3;
+			mode = suneido.database.Index.CASCADE;
 		$in = new In($id.text, $columns.list, mode);
 		}
 	;
