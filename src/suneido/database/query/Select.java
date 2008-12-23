@@ -926,10 +926,10 @@ public class Select extends Query1 {
 		boolean inrange(ByteBuffer x) {
 			org.x.rewind();
 			end.x.rewind();
-			int org_cmp = org.x.compareTo(x);
+			int org_cmp = bufferUcompare(org.x, x);
 			if (org_cmp > 0 || (org_cmp == 0 && org.d != 0))
 				return false;
-			int end_cmp = end.x.compareTo(x);
+			int end_cmp = bufferUcompare(end.x, x);
 			if (end_cmp < 0 || (end_cmp == 0 && end.d != 0))
 				return false;
 			return true;
@@ -988,7 +988,7 @@ public class Select extends Query1 {
 		}
 
 		public int compareTo(Point p) {
-			int cmp = x.compareTo(p.x);
+			int cmp = bufferUcompare(x, p.x);
 			return cmp == 0 ? d - p.d : cmp;
 		}
 

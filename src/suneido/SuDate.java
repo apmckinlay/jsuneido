@@ -99,7 +99,7 @@ public class SuDate extends SuValue {
 				| ((cal.get(Calendar.MONTH) + 1) << 5)
 				| cal.get(Calendar.DAY_OF_MONTH);
 		buf.putInt(date);
-		int time = (cal.get(Calendar.HOUR) << 22)
+		int time = (cal.get(Calendar.HOUR_OF_DAY) << 22)
 				| (cal.get(Calendar.MINUTE) << 16)
 				| (cal.get(Calendar.SECOND) << 10)
 				| cal.get(Calendar.MILLISECOND);
@@ -131,7 +131,7 @@ public class SuDate extends SuValue {
 		return new SuDate(cal.getTime());
 	}
 	public SuDate increment() {
-		 date.setTime(date.getTime() + 1);
+		date.setTime(date.getTime() + 1);
 		return this;
 	}
 

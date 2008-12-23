@@ -117,7 +117,8 @@ public class Btree {
 		++modified;
 		LeafNode left = leaf.split(x);
 		++nnodes;
-		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 ? left.insert(x) : leaf.insert(x)));
+		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 
+				? left.insert(x) : leaf.insert(x)));
 		Record key = left.slots.back().key.dup();
 		adr = left.adr;
 
@@ -129,7 +130,8 @@ public class Btree {
 			// else split
 			TreeNode tleft = nodes[i].split(key);
 			++nnodes;
-			verify(tleft.slots.back().key.compareTo(key) < 0 ? nodes[i].insert(key, adr) : tleft.insert(key, adr));
+			verify(tleft.slots.back().key.compareTo(key) < 0 
+					? nodes[i].insert(key, adr) : tleft.insert(key, adr));
 			key = tleft.slots.back().key.dup();
 			tleft.setNext(tleft.slots.back().adrs[0]);
 			tleft.slots.removeLast();

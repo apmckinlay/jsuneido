@@ -245,6 +245,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
 			Query q = q_or_tc(line, serverData);
+			// System.out.println("\t" + new Record(extra));
 			q.output(new Record(extra));
 			return TRUE;
 		}
@@ -262,6 +263,7 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			// System.out.println("\t" + new Record(extra));
 			theDbms.update(tran, recadr, new Record(extra));
 			return U1;
 		}
