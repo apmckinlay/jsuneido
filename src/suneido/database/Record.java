@@ -2,6 +2,7 @@ package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
+import static suneido.Util.bufferUcompare;
 import static suneido.database.Database.theDB;
 
 import java.nio.ByteBuffer;
@@ -361,7 +362,7 @@ public class Record
 	public boolean prefixgt(Record r) {
 		int n = Math.min(size(), r.size());
 		for (int i = 0; i < n; ++i) {
-			int cmp = getraw(i).compareTo(r.getraw(i));
+			int cmp = bufferUcompare(getraw(i), r.getraw(i));
 			if (cmp != 0)
 				return cmp > 0;
 		}

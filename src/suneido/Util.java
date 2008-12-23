@@ -55,6 +55,25 @@ public class Util {
 		return ByteBuffer.wrap(s.getBytes());
 	}
 
+	public static String bufferToHex(ByteBuffer buf) {
+		String s = "";
+		for (int i = buf.position(); i < buf.limit(); ++i)
+			s += String.format("%02x", buf.get(i)) + " ";
+		return s.substring(0, s.length() - 1);
+	}
+
+	public static int bufferUcompare(ByteBuffer b1, ByteBuffer b2) {
+		int n = Math.min(b1.remaining(), b2.remaining());
+		int b1pos = b1.position();
+		int b2pos = b2.position();
+		for (int i = 0; i < n; ++i) {
+			int cmp = (b1.get(b1pos + i) & 0xff) - (b2.get(b2pos + i) & 0xff);
+			if (cmp != 0)
+				return cmp;
+		}
+		return b1.remaining() - b2.remaining();
+	}
+
 	/**
 	 * @return A new list containing all the values from x and y. x is copied as
 	 *         is, so if it has duplicates they are retained. Duplicates from y
