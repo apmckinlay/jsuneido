@@ -1,13 +1,9 @@
 package suneido;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
+import static suneido.Suneido.verify;
 
-import suneido.database.Record;
-import suneido.database.query.Header;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * Suneido's single container type.
@@ -16,8 +12,11 @@ import suneido.database.query.Header;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuContainer extends SuValue {
-	ArrayList<SuValue> vec = new ArrayList<SuValue>();
-	HashMap<SuValue, SuValue> map = new HashMap<SuValue,SuValue>();
+	final ArrayList<SuValue> vec = new ArrayList<SuValue>();
+	final HashMap<SuValue, SuValue> map = new HashMap<SuValue, SuValue>();
+	private SuValue defval; // TODO defval
+
+	// TODO readonly
 
 	public SuContainer() {
 	}
@@ -36,6 +35,7 @@ public class SuContainer extends SuValue {
 			map.remove(num);
 		}
 	}
+
 	public void merge(SuContainer c) {
 		vec.addAll(c.vec);
 		map.putAll(c.map);
@@ -47,6 +47,10 @@ public class SuContainer extends SuValue {
 
 	@Override
 	public void putdata(SuValue key, SuValue value) {
+		put(key, value);
+	}
+
+	public void put(SuValue key, SuValue value) {
 		int i = key.index();
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
@@ -59,9 +63,10 @@ public class SuContainer extends SuValue {
 	@Override
 	public SuValue getdata(SuValue key) {
 		int i = key.index();
-		return 0 <= i && i < vec.size()
-			? vec.get(i)
-			: map.get(key);
+		if (0 <= i && i < vec.size())
+			return vec.get(i);
+		SuValue x = map.get(key);
+		return x == null ? defval : x;
 	}
 
 	public int size() {
@@ -153,9 +158,8 @@ public class SuContainer extends SuValue {
 
 		ps += 4; // map size
 		for (Map.Entry<SuValue, SuValue> e : map.entrySet())
-			ps += 4 /* member size */
-					+ e.getKey().packSize(nest) + 4 /* value size */
-					+ e.getValue().packSize(nest);
+			ps += 4 /* member size */ + e.getKey().packSize(nest)
+					+ 4 /* value size */ + e.getValue().packSize(nest);
 
 		return ps;
 	}
@@ -173,11 +177,11 @@ public class SuContainer extends SuValue {
 		buf.put(Pack.OBJECT);
 		if (size() == 0)
 			return;
-		buf.putInt(vec.size());
+		buf.putInt(vec.size() ^ 0x80000000);
 		for (SuValue x : vec)
 			packvalue(buf, x);
 
-		buf.putInt(map.size());
+		buf.putInt(map.size() ^ 0x80000000);
 		for (Map.Entry<SuValue, SuValue> e : map.entrySet()) {
 			packvalue(buf, e.getKey()); // member
 			packvalue(buf, e.getValue()); // value
@@ -185,7 +189,7 @@ public class SuContainer extends SuValue {
 	}
 
 	private void packvalue(ByteBuffer buf, SuValue x) {
-		buf.putInt(x.packSize());
+		buf.putInt(x.packSize() ^ 0x80000000);
 		x.pack(buf);
 	}
 
@@ -193,73 +197,25 @@ public class SuContainer extends SuValue {
 		SuContainer c = new SuContainer();
 		if (buf.remaining() == 0)
 			return c;
-		int n = buf.getInt(); // vec size
+		int n = buf.getInt() ^ 0x80000000; // vec size
 		for (int i = 0; i < n; ++i)
 			c.vec.add(unpackvalue(buf));
-		n = buf.getInt(); // map size
+		n = buf.getInt() ^ 0x80000000; // map size
 		for (int i = 0; i < n; ++i) {
 			SuValue key = unpackvalue(buf);
 			SuValue val = unpackvalue(buf);
 			c.map.put(key, val);
 		}
+		verify(buf.remaining() == 0);
 		return c;
 	}
 
 	private static SuValue unpackvalue(ByteBuffer buf) {
-		int n = buf.getInt();
+		int n = buf.getInt() ^ 0x80000000;
 		ByteBuffer buf2 = buf.slice();
 		buf2.limit(n);
 		buf.position(buf.position() + n);
 		return SuValue.unpack(buf2);
 	}
 
-	public Record toDbRecord(Header hdr) {
-		int[] fldsyms = hdr.output_fldsyms();
-		// dependencies
-		// - access all the fields to ensure dependencies are created
-//		Lisp<int> f;
-//		for (f = fldsyms; ! nil(f); ++f)
-//			if (*f != -1)
-//				getdata(symbol(*f));
-		// - invert stored dependencies
-//		typedef HashMap<ushort, Lisp<ushort> > Deps;
-//		Deps deps;
-//		for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
-//			it != dependents.end(); ++it)
-//			{
-//			for (Lisp<ushort> m = it->val; ! nil(m); ++m)
-//				{
-//				ushort d = depsname(*m);
-//				if (fldsyms.member(d))
-//					deps[d].push(it->key);
-//				}
-//			}
-
-		Record rec = new Record();
-//		OstreamStr oss;
-		SuValue x;
-		// int ts = hdr.timestamp_field();
-		for (int f : fldsyms)
-			if (f == -1)
-				rec.addMin();
-//			else if (f == ts)
-//				rec.addval(dbms()->timestamp());
-//			else if (Lisp<ushort>* pd = deps.find(*f))
-//				{
-//				// output dependencies
-//				oss.clear();
-//				for (Lisp<ushort> d = *pd; ! nil(d); )
-//					{
-//					oss << symstr(*d);
-//					if (! nil(++d))
-//						oss << ",";
-//					}
-//				rec.addval(oss.str());
-//				}
-			else if (null != (x = getdata(Symbols.symbol(f))))
-				rec.add(x);
-			else
-				rec.addMin();
-		return rec;
-	}
 }

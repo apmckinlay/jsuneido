@@ -3,19 +3,21 @@ package suneido.database.query;
 import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import suneido.*;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
+// maybe it would be simpler to attach header to row
+// rather than passing it in all the time
+
 public class Row {
 	final Record[] data;
 	public long recadr = 0; // if Row contains single update-able record, this
 							// is its address
-	Transaction tran = null;
-	SuContainer surec = null;
+	private Transaction tran = null;
+	private SuRecord surec = null;
 
 	Row(Record... data) {
 		this.data = data;
@@ -77,15 +79,12 @@ public class Row {
 		if (w != null)
 			return getraw(w);
 		// else rule
-		SuValue val = surec().getdata(SuString.valueOf(col));
-		if (val == null) // TODO should be in SuRecord
-			val = SuString.EMPTY;
-		return val.pack();
+		return surec(hdr).getdata(SuString.valueOf(col)).pack();
 	}
 
-	private SuContainer surec() {
+	public SuRecord surec(Header hdr) {
 		if (surec == null)
-			surec = new SuContainer(); // TODO surec
+			surec = new SuRecord(this, hdr, tran);
 		return surec;
 	}
 
@@ -107,7 +106,7 @@ public class Row {
 		if (w != null || !hdr.cols.contains(col))
 			return SuValue.unpack(getraw(w));
 		// else rule
-		return SuString.EMPTY; // TODO surec().getdata(SuString.valueOf(col));
+		return surec(hdr).getdata(SuString.valueOf(col));
 	}
 
 	static class Which {
@@ -142,6 +141,66 @@ public class Row {
 		for (int i = 0; i < data.length; ++i)
 			data[i] = Record.fromRef(refs[i]);
 		return new Row(data);
+	}
+
+	public Iterator<Entry> iterator(Header hdr) {
+		return new Iter(hdr.flds);
+	}
+
+	private class Iter implements Iterator<Entry> {
+		private final List<List<String>> fields;
+		private int i = 0; // index into fields/data
+		private int j = 0; // index into fields[i]
+		private final int imax;
+		private int jmax;
+
+		Iter(List<List<String>> fields) {
+			this.fields = fields;
+			imax = Math.min(data.length, fields.size());
+			set_jmax();
+			skipempty();
+		}
+
+		private void set_jmax() {
+			jmax = Math.min(data[i].size(), fields.get(i).size());
+		}
+
+		private void skipempty() {
+			while (j >= jmax) {
+				if (++i >= imax)
+					break;
+				j = 0;
+				set_jmax();
+			}
+		}
+
+		public boolean hasNext() {
+			return i < imax;
+		}
+
+		public Entry next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			Entry e = new Entry(fields.get(i).get(j), data[i].getraw(j));
+			++j;
+			skipempty();
+			return e;
+		}
+
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	public static class Entry {
+		public final String field;
+		public final ByteBuffer value;
+
+		public Entry(String field, ByteBuffer value) {
+			this.field = field;
+			this.value = value;
+		}
 	}
 
 }

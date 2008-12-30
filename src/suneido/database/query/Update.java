@@ -1,11 +1,11 @@
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
+import static suneido.database.server.Command.theDbms;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.SuRecord;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
@@ -36,23 +36,14 @@ public class Update extends QueryAction {
 			throw new SuException("update: query not updateable");
 		q.setTransaction(tran);
 		Header hdr = q.header();
-		List<Expr> fldexprs = new ArrayList<Expr>();
-		for (String field : hdr.fields()) {
-			int i = fields.indexOf(field);
-			fldexprs.add(i == -1 ? null : exprs.get(i));
-		}
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
-			long off = row.getFirstData().off();
-			Record rec = theDB.input(off);
-			Record newrec = new Record();
-			for (Expr expr : fldexprs)
-				if (expr == null)
-					newrec.add(rec.getraw(newrec.size()));
-				else
-					newrec.add(expr.eval(hdr, row));
-			theDB.updateRecord(tran, off, newrec);
+			SuRecord surec = row.surec(hdr);
+			for (int i = 0; i < fields.size(); ++i)
+				surec.putdata(fields.get(i), exprs.get(i).eval(hdr, row));
+			Record newrec = surec.toDbRecord(hdr);
+			theDbms.update(tran, row.getFirstData().off(), newrec);
 		}
 		return n;
 	}

@@ -1,12 +1,12 @@
 package suneido.database.query;
 
-import suneido.SuContainer;
+import suneido.SuRecord;
 import suneido.database.Transaction;
 
 public class Insert extends QueryAction {
-	private final SuContainer record;
+	private final SuRecord record;
 
-	public Insert(Query source, SuContainer record) {
+	public Insert(Query source, SuRecord record) {
 		super(source);
 		this.record = record;
 	}

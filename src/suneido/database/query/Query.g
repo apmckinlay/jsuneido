@@ -49,8 +49,8 @@ sort[Query source] returns [Query result]
 	;
 
 insert returns [Query result]
-	scope { SuContainer record; }
-	@init { $insert::record = new SuContainer(); }
+	scope { SuRecord record; }
+	@init { $insert::record = new SuRecord(); }
 	: INSERT ('{'|'['|'(') field (','? field )* ('}'|']'|')') INTO query2
 		{ $result = new Insert($query2.result, $insert::record); }
 	;
