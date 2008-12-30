@@ -403,7 +403,7 @@ public enum Command {
 	private final static ByteBuffer TRUE = stringToBuffer("t\r\n");
 	private final static ByteBuffer U1 = stringToBuffer("U1\r\n");
 
-	static Dbms theDbms = new DbmsLocal();
+	public static Dbms theDbms = new DbmsLocal();
 
 	/**
 	 * Skips whitespace then looks for 'type' char followed by digits, starting

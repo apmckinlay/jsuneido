@@ -2,8 +2,7 @@ package suneido.database.query;
 
 import static suneido.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.*;
 import suneido.database.Record;
@@ -320,17 +319,20 @@ public class Summarize extends Query1 {
 		LIST {
 			@Override
 			void init() {
-				list = new SuContainer();
+				set = new HashSet<SuValue>();
 			}
 			@Override
 			void add(SuValue x) {
-				list.append(x);
+				set.add(x);
 			}
 			@Override
 			SuValue result() {
+				SuContainer list = new SuContainer();
+				for (SuValue x : set)
+					list.append(x);
 				return list;
 			}
-			SuContainer list;
+			HashSet<SuValue> set;
 		};
 
 		abstract void init();

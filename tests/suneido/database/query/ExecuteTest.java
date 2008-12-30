@@ -241,8 +241,11 @@ public class ExecuteTest extends TestBase {
 			"'pencil'	300\n" },
 		{ "hist summarize date, list id",
 			"date	list_id\n" +
-			"970101	['a', 'e']\n" +
+			"970101	['e', 'a']\n" +
 			"970102	['c']\n" +
 			"970103	['e']\n" },
+		{ "hist summarize list id",
+			"list_id\n" +
+			"['e', 'c', 'a']\n" },
 	};
 }

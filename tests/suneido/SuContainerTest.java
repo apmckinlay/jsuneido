@@ -1,8 +1,9 @@
 package suneido;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static suneido.Util.bufferToHex;
+
+import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
@@ -111,6 +112,21 @@ public class SuContainerTest {
 		for (int i = 100; i < 105; ++i)
 			c.map.put(SuInteger.valueOf(i), SuInteger.valueOf(i));
 		assertEquals(c, SuValue.unpack(c.pack()));
+
+		SuContainer nested = new SuContainer();
+		nested.vec.add(SuDecimal.ONE);
+		c.vec.add(nested);
+		c.map.put(SuInteger.valueOf(999), nested);
+		assertEquals(c, SuValue.unpack(c.pack()));
+
+		SuContainer list = new SuContainer();
+		list.append(SuString.valueOf("nextfield"));
+		list.append(SuString.valueOf("nrows"));
+		list.append(SuString.valueOf("table"));
+		list.append(SuString.valueOf("tablename"));
+		list.append(SuString.valueOf("totalsize"));
+		ByteBuffer buf = list.pack();
+		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", bufferToHex(buf).replace(" ", ""));
 	}
 
 	@Test(expected = SuException.class)
