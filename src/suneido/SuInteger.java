@@ -59,11 +59,13 @@ public class SuInteger extends SuNumber {
 		return Integer.valueOf(n).hashCode();
 	}
 	@Override
-	public boolean equals(Object value) {
-		if (value instanceof SuInteger)
-			return n == ((SuInteger) value).n;
-		if (value instanceof SuDecimal)
-			return value.equals(this); // SuNumber
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (other instanceof SuInteger)
+			return n == ((SuInteger) other).n;
+		if (other instanceof SuDecimal)
+			return other.equals(this); // SuNumber
 		return false;
 	}
 	@Override

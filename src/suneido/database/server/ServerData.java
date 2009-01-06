@@ -16,7 +16,7 @@ public class ServerData {
 
 	public int addTransaction(DbmsTran tran) {
 		// client expect readonly tran# to be even
-		if (((Transaction) tran).isReadonly() && (next % 2) == 1)
+		if (((Transaction) tran).isReadonly() && (next % 2) != 0)
 			++next;
 		trans.put(next, tran);
 		tranqueries.put(next, new ArrayList<Integer>());

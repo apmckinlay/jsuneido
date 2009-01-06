@@ -608,7 +608,14 @@ public class Record
 
 	@Override
 	public boolean equals(Object other) {
+		if (this == other)
+			return true;
 		return other instanceof Record ? 0 == compareTo((Record) other) : false;
+	}
+
+	@Override
+	public int hashCode() {
+		throw new SuException("Record hashCode not implemented");
 	}
 
 	public int compareTo(Record rec) {

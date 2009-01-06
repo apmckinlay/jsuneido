@@ -14,7 +14,7 @@ import java.util.*;
 public class SuContainer extends SuValue {
 	final ArrayList<SuValue> vec = new ArrayList<SuValue>();
 	final HashMap<SuValue, SuValue> map = new HashMap<SuValue, SuValue>();
-	private SuValue defval; // TODO defval
+	private final SuValue defval = null; // TODO defval
 
 	// TODO readonly
 

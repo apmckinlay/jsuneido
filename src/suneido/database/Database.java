@@ -670,7 +670,7 @@ public class Database {
 		if (tran.isReadonly())
 			throw new SuException("can't output from read-only transaction to "
 					+ table.name);
-		verify(table != null);
+		assert (table != null);
 		verify(!table.indexes.isEmpty());
 
 		if (!loading)
@@ -815,7 +815,7 @@ public class Database {
 		Table table = ck_getTable(tablename);
 		// lookup key in given index
 		Index index = table.indexes.get(indexcolumns);
-		verify(index != null);
+		assert (index != null);
 		Record rec = find(tran, index.btreeIndex, key);
 		if (rec == null)
 			throw new SuException("delete record: can't find record in "
@@ -827,8 +827,8 @@ public class Database {
 		if (tran.isReadonly())
 			throw new SuException("can't delete from read-only transaction in "
 					+ table.name);
-		verify(table != null);
-		verify(rec != null);
+		assert (table != null);
+		assert (rec != null);
 
 		fkey_target_block(tran, table, rec, "delete from " + table.name);
 

@@ -94,7 +94,7 @@ public class Transactions {
 	}
 	public void updateDeleted(long off, long commit_time) {
 		TranDelete td = deleted.get(off);
-		verify(td != null && td.time > UNCOMMITTED);
+		assert (td != null && td.time > UNCOMMITTED);
 		td.time = commit_time;
 	}
 	public void removeDeleted(Transaction tran, long off) {

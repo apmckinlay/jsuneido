@@ -71,11 +71,17 @@ public class Symbols {
 		}
 
 		@Override
-		public boolean equals(Object value) {
-			if (value instanceof SuSymbol)
-				return this == value;
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			else if (other instanceof SuSymbol)
+				return false;
 			else
-				return super.equals(value);
+				return super.equals(other);
+		}
+		@Override
+		public int hashCode() {
+			return super.hashCode();
 		}
 
 		public int symnum() {

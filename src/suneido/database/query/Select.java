@@ -18,7 +18,6 @@ public class Select extends Query1 {
 	private Multi expr;
 	private boolean optFirst = true;
 	private boolean conflicting = false;
-	boolean fixdone;
 	List<Fixed> fix;
 	private List<String> source_index = null;	// may have extra stuff on
 												// the end, or be
@@ -887,13 +886,23 @@ public class Select extends Query1 {
 				values.add(buf);
 		}
 
-		public boolean equals(Cmp c) {
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (!(other instanceof Cmp))
+				return false;
+			Cmp c = (Cmp) other;
 			return ident.equals(c.ident) && op == c.op && value.equals(c.value);
 			// what about values ?
 		}
 
 		public int compareTo(Cmp other) {
 			return ident.compareTo(other.ident);
+		}
+		@Override
+		public int hashCode() {
+			throw new SuException("Cmp hashCode not implemented");
 		}
 
 		@Override
@@ -982,8 +991,18 @@ public class Select extends Query1 {
 		ByteBuffer x;
 		int d = 0;		// 0 if inclusive, +1 or -1 if exclusive
 
-		public boolean equals(Point p) {
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (!(other instanceof Point))
+				return false;
+			Point p = (Point) other;
 			return d == p.d && x.equals(p.x);
+		}
+		@Override
+		public int hashCode() {
+			throw new SuException("Point hashCode not implemented");
 		}
 
 		public int compareTo(Point p) {

@@ -1,8 +1,6 @@
 package suneido;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
+import java.math.*;
 
 /**
  * Wrapper for BigDecimal.
@@ -18,7 +16,7 @@ public class SuDecimal extends SuNumber {
 	public final static BigDecimal INT_MAX = new BigDecimal(Integer.MAX_VALUE);
 	public final static SuDecimal ZERO = new SuDecimal(BigDecimal.ZERO);
 	public final static SuDecimal ONE = new SuDecimal(BigDecimal.ONE);
-	
+
 	public SuDecimal(int n) {
 		this.n = new BigDecimal(n);
 	}
@@ -52,17 +50,17 @@ public class SuDecimal extends SuNumber {
 	public SuDecimal number() {
 		return this;
 	}
-	
+
 	@Override
 	public String toString() {
 		strip();
 		return n.toString();
 	}
-		
+
 	/**
 	 * Need to strip because two BigDecimal objects that are numerically equal
-	 * but differ in scale (like 2.0 and 2.00) may not  have the same hash code. 
-	 */ 
+	 * but differ in scale (like 2.0 and 2.00) may not  have the same hash code.
+	 */
 	@Override
 	public int hashCode() {
 		strip();
@@ -75,18 +73,18 @@ public class SuDecimal extends SuNumber {
 		}
 	}
 	@Override
-	public boolean equals(Object value) {
-		if (value == this)
+	public boolean equals(Object other) {
+		if (other == this)
 			return true;
-		if (value instanceof SuInteger)
+		if (other instanceof SuDecimal)
+			// use compareTo to handle differences in scaling
+			return 0 == n.compareTo(((SuDecimal) other).n);
+		if (other instanceof SuInteger)
 			try {
-				return n.intValueExact() == ((SuInteger) value).integer();
+				return n.intValueExact() == ((SuInteger) other).integer();
 			} catch (ArithmeticException e) {
 				return false;
 			}
-		if (value instanceof SuDecimal)
-			// use compareTo to handle differences in scaling
-			return 0 == n.compareTo(((SuDecimal) value).n);
 		return false;
 	}
 	@Override
@@ -103,7 +101,7 @@ public class SuDecimal extends SuNumber {
 	public int order() {
 		return Order.NUMBER.ordinal();
 	}
-	
+
 	@Override
 	public SuValue add(SuValue x) {
 		return x.addNum(this);
@@ -116,7 +114,7 @@ public class SuDecimal extends SuNumber {
 	protected SuValue addInt(SuInteger x) {
 		return new SuDecimal(n.add(new BigDecimal(x.integer())));
 	}
-	
+
 	@Override
 	public SuValue sub(SuValue x) {
 		return x.subNum(this);
@@ -129,7 +127,7 @@ public class SuDecimal extends SuNumber {
 	protected SuValue subInt(SuInteger x) {
 		return new SuDecimal(new BigDecimal(x.integer()).subtract(n));
 	}
-	
+
 	@Override
 	public SuValue mul(SuValue x) {
 		return x.mulNum(this);
@@ -142,7 +140,7 @@ public class SuDecimal extends SuNumber {
 	protected SuValue mulInt(SuInteger x) {
 		return new SuDecimal(n.multiply(new BigDecimal(x.integer())));
 	}
-	
+
 	@Override
 	public SuValue div(SuValue x) {
 		return x.divNum(this);
@@ -155,12 +153,12 @@ public class SuDecimal extends SuNumber {
 	protected SuValue divInt(SuInteger x) {
 		return new SuDecimal(new BigDecimal(x.integer()).divide(n, mc));
 	}
-		
+
 	@Override
 	public SuValue uminus() {
 		return new SuDecimal(n.negate());
 	}
-	
+
 	@Override
 	protected long unscaled() {
 		strip();

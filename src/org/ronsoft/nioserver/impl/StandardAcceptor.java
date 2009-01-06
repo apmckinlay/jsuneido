@@ -60,12 +60,12 @@ public class StandardAcceptor
 			while (running) {
 				try {
 					SocketChannel client = listenSocket.accept();
-					// prevent Nagle/Ack delays
-					// might be better to use scatter/gather writes
-					client.socket().setTcpNoDelay(true);
 					if (client == null) {
 						continue;
 					}
+					// prevent Nagle/Ack delays
+					// might be better to use scatter/gather writes
+					client.socket().setTcpNoDelay(true);
 
 					dispatcher.registerChannel (client, inputHandlerFactory.newHandler());
 

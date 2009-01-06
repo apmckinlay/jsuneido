@@ -1,5 +1,7 @@
 package suneido.database;
 
+import suneido.SuException;
+
 /**
  *
  * @author Andrew McKinlay
@@ -24,6 +26,18 @@ public class Column implements Comparable<Column> {
 
 	public int compareTo(Column other) {
 		return num - other.num;
+	}
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof Column))
+			return false;
+		return num == ((Column) other).num;
+	}
+	@Override
+	public int hashCode() {
+		throw new SuException("Column hashCode not implemented");
 	}
 
 	public static Record record(int table_num, String name, int num) {

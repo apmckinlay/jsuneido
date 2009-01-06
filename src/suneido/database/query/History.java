@@ -7,11 +7,12 @@ import suneido.database.Transaction;
 
 public class History extends Query {
 	String tablename;
-	int tblnum;
+
+	//int tblnum;
 	// Mmfile::iterator iter;
-	boolean rewound;
-	int id;
-	int ic;
+	//boolean rewound;
+	//int id;
+	//int ic;
 
 	History(String tablename) {
 		this.tablename = tablename;
