@@ -546,7 +546,10 @@ public class Select extends Query1 {
 	}
 
 	private double choose_filter(double primary_cost) {
+		System.out.println("primary_cost " + primary_cost);
+System.out.println("possible " + possible);
 		List<List<String>> available = remove(possible, primary);
+System.out.println("available " + available);
 		if (nil(available))
 			return primary_cost;
 		double primary_index_cost = ifracs.get(primary)	* tbl.indexsize(primary);
@@ -560,6 +563,7 @@ public class Select extends Query1 {
 					continue;
 				filter.set(0, idx);
 				double cost = costwith(filter, primary_index_cost);
+System.out.println("cost " + cost + " with " + filter);
 				if (forceFilters)
 					cost = best_cost * .5;
 				if (cost < best_cost) {
@@ -583,10 +587,12 @@ public class Select extends Query1 {
 		// PERF avoid copying filter
 		List<List<String>> all = new ArrayList<List<String>>(filter);
 		all.add(primary);
-
-		double data_frac = primary.containsAll(select_needs)
-			? includes(all, select_needs) ? 0 : .5 * datafrac(all)
+System.out.println("all " + all);
+System.out.println("select needs " + select_needs);
+		double data_frac = includes(all, select_needs)
+			? primary.containsAll(select_needs) ? 0 : .5 * datafrac(all)
 			: datafrac(all);
+System.out.println("data frac " + data_frac);
 
 		// approximate filter cost independent of order of filters
 		double filter_cost = 0;
