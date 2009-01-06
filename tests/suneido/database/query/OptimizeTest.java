@@ -10,7 +10,7 @@ public class OptimizeTest extends TestBase {
 		adm("create test_minus1 (a, b, c) key(a)");
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
-			// System.out.println("CASE " + c[0]);
+System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]);
 			if (q instanceof Select)
 				((Select) q).forceFilters = true;
@@ -180,11 +180,13 @@ public class OptimizeTest extends TestBase {
 
 		{ "(((task join co)) join (cus where abbrev = 'a'))",
 			"((co^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum)%((abbrev)))" },
+				// NOTE: cSuneido doesn't use filter ???
 
 		{ "((task join (co where signed = 990103)) join (cus where abbrev = 'a'))",
 			"((co^(tnum) WHERE^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum)%((abbrev)))" },
+				// NOTE: cSuneido doesn't use filter ???
 
 		{ "inven leftjoin trans",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item))" },
