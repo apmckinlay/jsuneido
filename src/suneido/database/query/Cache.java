@@ -16,7 +16,7 @@ public class Cache {
 	public double get(List<String> index, List<String> needs, List<String> firstneeds)
 		{
 		for (CacheEntry c : entries)
-			if (c.index == index && c.needs == needs && c.firstneeds == firstneeds)
+			if (index.equals(c.index) && needs.equals(c.needs) && firstneeds.equals(c.firstneeds))
 				return c.cost;
 		return -1;
 		}
