@@ -398,7 +398,7 @@ public class Select extends Query1 {
 		int best_size = Integer.MAX_VALUE;
 		// look for smallest index starting with field
 		for (List<String> idx : theindexes)
-			if (idx.get(0) == field && tbl.indexsize(idx) < best_size) {
+			if (idx.get(0).equals(field) && tbl.indexsize(idx) < best_size) {
 				best_index = idx;
 				best_size = tbl.indexsize(idx);
 			}
@@ -840,7 +840,7 @@ public class Select extends Query1 {
 			}
 		if (from.getraw(from.size() - 1).equals(Record.MAX_FIELD))
 			newfrom.add(Record.MAX_FIELD);
-		if (to.getraw(to.size() - 1) == Record.MAX_FIELD)
+		if (to.getraw(to.size() - 1).equals(Record.MAX_FIELD))
 			newto.add(Record.MAX_FIELD);
 		sel.set(newfrom, newto);
 	}
@@ -888,7 +888,7 @@ public class Select extends Query1 {
 		}
 
 		public boolean equals(Cmp c) {
-			return ident == c.ident && op == c.op && value.equals(c.value);
+			return ident.equals(c.ident) && op == c.op && value.equals(c.value);
 			// what about values ?
 		}
 
@@ -960,7 +960,7 @@ public class Select extends Query1 {
 			}
 		}
 		boolean all() {
-			return org.x == MIN_FIELD && org.d == 0 && end.x == MAX_FIELD;
+			return org.x.equals(MIN_FIELD) && org.d == 0 && end.x.equals(MAX_FIELD);
 		}
 		boolean none() {
 			return org.compareTo(end) > 0 && values.size() == 0;

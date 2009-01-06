@@ -139,7 +139,7 @@ public abstract class Query1 extends Query {
 	}
 	private static boolean isfixed(List<Fixed> fixed, String field) {
 		for (Fixed f : fixed)
-			if (f.field == field && f.values.size() == 1)
+			if (field.equals(f.field) && f.values.size() == 1)
 				return true;
 		return false;
 	}

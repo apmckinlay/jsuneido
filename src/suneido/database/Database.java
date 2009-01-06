@@ -367,7 +367,7 @@ public class Database {
 	}
 
 	public void renameColumn(String table, String oldname, String newname) {
-		if (oldname == newname)
+		if (oldname.equals(newname))
 			return ;
 
 		Table tbl = ck_getTable(table);
