@@ -10,7 +10,7 @@ public class OptimizeTest extends TestBase {
 		adm("create test_minus1 (a, b, c) key(a)");
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
-System.out.println("CASE " + c[0]);
+			//System.out.println("CASE " + c[0]);
 			Query q = ParseQuery.parse(c[0]);
 			if (q instanceof Select)
 				((Select) q).forceFilters = true;
