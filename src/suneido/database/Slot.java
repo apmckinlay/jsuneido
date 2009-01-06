@@ -2,10 +2,11 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
+import suneido.SuException;
+
 /**
- * Holds an index node "slot" while in memory.
- * Comparisons are by key only. (not addresses)
- * Used with {@link Slots}
+ * Holds an index node "slot" while in memory. Comparisons are by key only. (not
+ * addresses) Used with {@link Slots}
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
  * @author Andrew McKinlay
@@ -27,6 +28,8 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 
 	@Override
 	public boolean equals(Object other) {
+		if (this == other)
+			return true;
 		return other instanceof Slot
 			? 0 == compareTo((Slot) other)
 			: false;
@@ -34,6 +37,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public int compareTo(Slot other) {
 		return key.compareTo(other.key);
 	}
+
+	@Override
+	public int hashCode() {
+		throw new SuException("Slot hashCode not implemented");
+	}
+
 
 	public int packSize() {
 		return packSize(0);

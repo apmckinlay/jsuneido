@@ -21,7 +21,7 @@ public class Summarize extends Query1 {
 	private Row nextrow;
 	private Row currow;
 	private Dir curdir;
-	private Keyrange sel;
+	private final Keyrange sel = new Keyrange();
 
 	Summarize(Query source, List<String> by, List<String> cols,
 			List<String> funcs, List<String> on) {

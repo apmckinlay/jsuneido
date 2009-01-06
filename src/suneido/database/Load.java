@@ -50,8 +50,8 @@ System.out.println(schema);
 		int n = schema.indexOf(' ', 7);
 		String table = schema.substring(7, n);
 
-		if (table != "views") {
-		if (theDB.getTable(table) != null)
+		if (!"views".equals(table)) {
+			if (theDB.getTable(table) != null)
 				theDB.removeTable(table);
 			Request.execute(schema);
 		}
@@ -65,7 +65,7 @@ System.out.println("load_data(" + table + ")");
 		try {
 			for (;; ++nrecs) {
 				byte[] buf = new byte[4];
-				fin.read(buf);
+				verify(fin.read(buf) == buf.length);
 				int n = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN)
 						.getInt();
 //System.out.println(n);
@@ -88,7 +88,7 @@ System.out.println("load_data(" + table + ")");
 			throws IOException {
 		if (n > recbuf.length)
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
-		fin.read(recbuf, 0, n);
+		verify(fin.read(recbuf, 0, n) == n);
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
 //System.out.println(rec);
 System.out.println(rec.get(2));

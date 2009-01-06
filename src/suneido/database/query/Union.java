@@ -25,8 +25,6 @@ public class Union extends Compatible {
 	Record key1;
 	Record key2;
 	Record curkey;
-	boolean fixdone = false;
-	List<Fixed> fix;
 	enum Strategy {
 		NONE, MERGE, LOOKUP
 	};

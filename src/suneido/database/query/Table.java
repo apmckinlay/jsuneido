@@ -142,7 +142,7 @@ public class Table extends Query {
 		if (nrecs == 0)
 			return 0;
 		Index idx = tbl.getIndex(listToCommas(index));
-		verify(idx != null);
+		assert (idx != null);
 		int nnodes = idx.nnodes();
 		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
 		return (nnodes * nodesize) / nrecs + index.size();

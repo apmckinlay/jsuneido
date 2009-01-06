@@ -288,6 +288,19 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public int compareTo(Transaction other) {
 		return asof < other.asof ? -1 : asof > other.asof ? +1 : 0;
 	}
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof Transaction))
+			return false;
+		return t == ((Transaction) other).t;
+	}
+
+	@Override
+	public int hashCode() {
+		throw new SuException("Transaction hashCode not implemented");
+	}
 
 	private static class NullTransaction extends Transaction {
 		@Override

@@ -15,8 +15,6 @@ import java.util.Date;
  */
 public class SuDate extends SuValue {
 	private Date date;
-	final public static SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
-	static { formatter.setLenient(false); }
 
 	public SuDate() {
 		date = new Date();
@@ -25,13 +23,16 @@ public class SuDate extends SuValue {
 		if (s.startsWith("#"))
 			s = s.substring(1);
 		try {
-			date = formatter.parse(s);
+			date = formatter().parse(s);
 		} catch (ParseException e) {
 			throw new SuException("can't convert to date");
 		}
 	}
+	private static DateFormat formatter() {
+		return new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
+	}
 	public SuDate(Date date) {
-		this.date = date;
+		this.date = new Date(date.getTime());
 	}
 
 	public static SuDate literal(String s) {
@@ -44,7 +45,7 @@ public class SuDate extends SuValue {
 		if (s.length() < 18)
 			s = (s + "000000000").substring(0, 18);
 		ParsePosition pos = new ParsePosition(0);
-		Date date = formatter.parse(s, pos);
+		Date date = formatter().parse(s, pos);
 		if (date == null || pos.getIndex() != 18)
 			return null;
 		return new SuDate(date);
@@ -52,7 +53,7 @@ public class SuDate extends SuValue {
 
 	@Override
 	public String toString() {
-		String s = "#" + formatter.format(date);
+		String s = "#" + formatter().format(date);
 		if (s.endsWith("000000000"))
 			return s.substring(0, 9);
 		if (s.endsWith("00000"))

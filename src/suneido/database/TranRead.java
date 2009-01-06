@@ -1,5 +1,7 @@
 package suneido.database;
 
+import suneido.SuException;
+
 /**
  * Stores the range of keys that was read by an {@link BtreeIndex} iterator.
  * Used to validate transactions.
@@ -21,6 +23,20 @@ public class TranRead implements Comparable<TranRead> {
 	public int compareTo(TranRead other) {
 		return tblnum != other.tblnum ? tblnum - other.tblnum :
 			index.compareTo(other.index);
+	}
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof TranRead))
+			return false;
+		TranRead tr = (TranRead) other;
+		return tblnum == tr.tblnum && index.equals(tr.index);
+	}
+
+	@Override
+	public int hashCode() {
+		throw new SuException("TranRead hashCode not implemented");
 	}
 
 	@Override

@@ -17,7 +17,7 @@ public class Project extends Query1 {
 	private Header hdr;
 	// used by LOOKUP
 	private TreeMap<Record, Object[]> map = null;
-	private Keyrange sel;
+	private final Keyrange sel = new Keyrange();
 	private boolean rewound = true;
 	private boolean indexed;
 	// used by SEQUENTIAL
