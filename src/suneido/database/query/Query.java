@@ -21,7 +21,7 @@ import suneido.database.server.DbmsQuery;
  */
 public abstract class Query implements DbmsQuery {
 	private final Cache cache = new Cache();
-	protected boolean willneed_tempindex;
+	private boolean willneed_tempindex = false;
 	private List<String> tempindex;
 	public enum Dir {
 		NEXT, PREV
@@ -92,12 +92,16 @@ public abstract class Query implements DbmsQuery {
 	}
 	double optimize(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-//System.out.println("optimize " + this);
-//System.out.println("    index=" + index + " needs=" + needs
-//	+ " firstneeds=" + firstneeds + (is_cursor ? " cursor" : "")
-//	+ (freeze ? " FREEZE" : ""));
-		if (is_cursor || nil(index))
-			return optimize1(index, needs, firstneeds, is_cursor, freeze);
+		//System.out.println("\noptimize START " + this);
+		//System.out.println("    index=" + index
+		//	+ " needs=" + needs	+ " firstneeds=" + firstneeds
+		//	+ (freeze ? " FREEZE" : ""));
+		if (is_cursor || nil(index)) {
+			double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
+			//System.out.println("optimize END " + this);
+			//System.out.println("\tcost " + cost);
+			return cost;
+		}
 		if (!columns().containsAll(index))
 			return IMPOSSIBLE;
 
@@ -113,7 +117,10 @@ public abstract class Query implements DbmsQuery {
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
 		verify(cost2 >= 0);
-//System.out.println("cost1 " + cost1 + ", cost2 " + cost2);
+		//System.out.println("optimize END " + this);
+		//System.out.println("\twith " + index + " cost1 " + cost1);
+		//System.out.println("\twith tempindex cost2 " + cost2
+		//	+ " nrecords " + nrecords() + " keysize " + keysize);
 
 		double cost = Math.min(cost1, cost2);
 		willneed_tempindex = (cost2 < cost1);
@@ -135,8 +142,8 @@ public abstract class Query implements DbmsQuery {
 	double optimize1(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		double cost;
-		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
-			return cost;
+		//		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
+		//			return cost;
 
 		cost = optimize2(index, needs, firstneeds, is_cursor, freeze);
 		verify(cost >= 0);
@@ -178,5 +185,9 @@ public abstract class Query implements DbmsQuery {
 			if (tempindex.containsAll(k))
 				return true;
 		return false;
+	}
+
+	protected boolean tempindexed() {
+		return willneed_tempindex;
 	}
 }

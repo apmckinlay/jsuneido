@@ -144,4 +144,8 @@ public abstract class Query1 extends Query {
 		return false;
 	}
 
+	@Override
+	protected boolean tempindexed() {
+		return super.tempindexed() || source.tempindexed();
+	}
 }

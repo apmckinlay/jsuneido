@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
+import static suneido.Suneido.verify;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public class LeftJoin extends Join {
 
 	@Override
 	double nrecords() {
+		verify(nrecs >= 0);
 		return source.nrecords();
 	}
 

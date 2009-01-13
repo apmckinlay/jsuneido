@@ -20,7 +20,7 @@ public class Table extends Query {
 	private BtreeIndex ix;
 	private Transaction tran = null;
 	private boolean singleton; // i.e. key()
-	private List<String> idx;
+	private List<String> idx = noFields;
 	/* package */BtreeIndex.Iter iter;
 
 	public Table(String tablename) {
@@ -31,7 +31,7 @@ public class Table extends Query {
 
 	@Override
 	public String toString() {
-		return table + (idx == null ? "" : "^" + listToParens(idx));
+		return table + (nil(idx) ? "" : "^" + listToParens(idx));
 	}
 
 	@Override
@@ -69,8 +69,9 @@ public class Table extends Query {
 			if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
 				cost3 = nrecords() * recordsize() + // cost of reading data
 				nrecords() * keysize(idx3); // cost of reading index
-	//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
-	//	+ idx3 + " = " + cost3);
+			//System.out.println("Table have " + indexes() + " want " + index);
+			//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
+			//	+ idx3 + " = " + cost3);
 
 			double cost;
 			if (cost1 <= cost2 && cost1 <= cost3) {
@@ -145,14 +146,13 @@ public class Table extends Query {
 		assert (idx != null);
 		int nnodes = idx.nnodes();
 		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
-		return (nnodes * nodesize) / nrecs + index.size();
-		// add index.size() to favor shorter indexes
+		return (nnodes * nodesize) / nrecs;
 	}
 
 	public int indexsize(List<String> index) {
 		Index idx = tbl.getIndex(listToCommas(index));
-		return idx.nnodes() == 1 ? index.size() * 100 : idx.nnodes()
-				* Btree.NODESIZE;
+		return idx.nnodes() * Btree.NODESIZE + index.size();
+		// add index.size() to favor shorter indexes
 	}
 
 	/* package */void select_index(List<String> index) {
@@ -202,7 +202,7 @@ public class Table extends Query {
 
 	private void iterate_setup(Dir dir) {
 		hdr = header();
-		ix = (idx == null || singleton
+		ix = (nil(idx) || singleton
 				? tbl.firstIndex()
 						: tbl.getIndex(listToCommas(idx))).btreeIndex;
 	}

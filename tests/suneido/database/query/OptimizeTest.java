@@ -165,8 +165,8 @@ public class OptimizeTest extends TestBase {
 				"TEMPINDEX(name,city))" },
 
 		{ "trans join customer join inven",
-			"(inven^(item) JOIN 1:n on (item) (trans^(item) " +
-				"JOIN n:1 on (id) customer^(id)))" },
+			"((trans^(date,item,id) JOIN n:1 on (id) customer^(id)) " +
+				"JOIN n:1 on (item) inven^(item))" },
 
 		{ "(trans join customer) union (hist join customer)",
 			"((trans^(date,item,id) JOIN n:1 on (id) customer^(id)) " +
