@@ -19,7 +19,7 @@ public class Select extends Query1 {
 	private boolean optFirst = true;
 	private boolean conflicting = false;
 	List<Fixed> fix;
-	private List<String> source_index = null;	// may have extra stuff on
+	private List<String> source_index = noFields; // may have extra stuff on
 												// the end, or be
 												// missing fields that are fixed
 	private List<List<String>> filter = null;
@@ -32,9 +32,9 @@ public class Select extends Query1 {
 	private Map<String, Double> ffracs;
 	private Map<List<String>, Double> ifracs;
 	private List<String> prior_needs;
-	private int nrecs = 0;
+	private double nrecs = -1;
 	// for get
-	private boolean first = true;
+	private boolean getFirst = true;
 	private boolean rewound = true;
 	private List<Keyrange> ranges = Collections.emptyList();
 	private int range_i = 0;
@@ -264,8 +264,10 @@ public class Select extends Query1 {
 				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
 			optFirst = false;
 			source_index = index;
-			return source.optimize(index, union(needs, select_needs), union(
+			double cost = source.optimize(index, union(needs, select_needs), union(
 					firstneeds, select_needs), is_cursor, freeze);
+			nrecs = source.nrecords();
+			return cost;
 		}
 
 		if (optFirst) {
@@ -303,6 +305,8 @@ public class Select extends Query1 {
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
 		isels = new HashMap<String, Iselect>();
 		cmps_to_isels(cmps);
+		if (conflicting)
+			return;
 		possible = new ArrayList<List<String>>();
 		identify_possible();
 		ffracs = new HashMap<String, Double>();
@@ -311,8 +315,7 @@ public class Select extends Query1 {
 		calc_index_fracs();
 
 		// TODO: should be frac of complete select, not just indexes
-		nrecs = (int) (datafrac(theindexes) * tbl.nrecords() + .5); // .5 to
-		// round
+		nrecs = datafrac(theindexes) * tbl.nrecords();
 	}
 	private List<Cmp> extract_cmps() {
 		List<Cmp> cmps = new ArrayList<Cmp>();
@@ -541,6 +544,7 @@ public class Select extends Query1 {
 			: datafrac(list(idx));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
+
 		return index_read_cost + data_read_cost;
 	}
 
@@ -616,6 +620,7 @@ public class Select extends Query1 {
 
 	@Override
 	double nrecords() {
+		assert (nrecs >= 0);
 		return nrecs;
 	}
 
@@ -623,8 +628,10 @@ public class Select extends Query1 {
 
 	@Override
 	public Row get(Dir dir) {
-		if (first ) {
-			first = false;
+		if (conflicting)
+			return null;
+		if (getFirst) {
+			getFirst = false;
 			iterate_setup();
 		}
 		if (rewound) {
@@ -808,9 +815,8 @@ public class Select extends Query1 {
 		int ri = 0; // index;
 		SuValue fixval;
 		while (ri < index.size()) {
-			String sidx = source_index.get(si);
 			String ridx = index.get(ri);
-			if (si < source_index.size() && sidx.equals(ridx)) {
+			if (si < source_index.size() && source_index.get(si).equals(ridx)) {
 				int i = index.indexOf(ridx);
 				newfrom.add(from.getraw(i));
 				newto.add(to.getraw(i));
@@ -818,7 +824,7 @@ public class Select extends Query1 {
 				++ri;
 			}
 			else if (si < source_index.size()
-					&& null != (fixval = getfixed(fix, sidx))) {
+					&& null != (fixval = getfixed(fix, source_index.get(si)))) {
 				newfrom.add(fixval);
 				newto.add(fixval);
 				++si;

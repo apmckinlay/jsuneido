@@ -19,6 +19,7 @@ public class Join extends Query2 {
 	short[] cols1;
 	short[] cols2;
 	Row empty2;
+	protected double nrecs = -1;
 
 	enum Type {
 		NONE(""), ONE_ONE("1:1"), ONE_N("1:n"), N_ONE("n:1"), N_N("n:n");
@@ -104,35 +105,32 @@ public class Join extends Query2 {
 			List<String> needs1, List<String> needs2, boolean is_cursor,
 			boolean freeze) {
 		// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
-		double SELECT_COST = 1000;
+		final double SELECT_COST = 1000;
 
 		// always have to read all of source 1
-		double cost1 = src1
-				.optimize(index, needs1, joincols, is_cursor, freeze);
-
+		double cost1 = src1.optimize(index, needs1, joincols, is_cursor, freeze);
+		if (cost1 >= IMPOSSIBLE)
+			return IMPOSSIBLE;
 		double nrecs1 = src1.nrecords();
-		double nrecs2 = src2.nrecords();
 
 		// for each of source 1, select on source2
 		cost1 += nrecs1 * SELECT_COST;
 
 		// cost of reading all of source 2
-		double cost2 = src2.optimize(joincols, needs2, noFields, is_cursor,
-				freeze);
+		double cost2 = src2.optimize(joincols, needs2, noFields, is_cursor, freeze);
+		if (cost2 >= IMPOSSIBLE)
+			return IMPOSSIBLE;
+		double nrecs2 = src2.nrecords();
 
-		if (src2.willneed_tempindex)
-			return cost1 + cost2;
-
-		double nrecs;
 		switch (typ) {
 		case ONE_ONE:
 			nrecs = Math.min(nrecs1, nrecs2);
 			break;
 		case N_ONE:
-			nrecs = nrecs1;
+			nrecs = nrecs2 <= 0 ? 0 : nrecs1;
 			break;
 		case ONE_N:
-			nrecs = nrecs2;
+			nrecs = nrecs1 <= 0 ? 0 : nrecs2;
 			break;
 		case N_N:
 			nrecs = nrecs1 * nrecs2;
@@ -140,8 +138,12 @@ public class Join extends Query2 {
 		default:
 			throw unreachable();
 		}
-		// guestimate 0...nrecs => nrecs / 2
-		cost2 *= nrecs <= 0 || nrecs2 <= 0 ? 0 : (nrecs / 2) / nrecs2;
+		nrecs /= 2; // convert from max to guess of expected
+
+		if (nrecs <= 0)
+			cost2 = 0;
+		else if (!src2.tempindexed())
+			cost2 = nrecs * (cost2 / nrecs2);
 
 		return cost1 + cost2;
 	}
@@ -211,18 +213,8 @@ public class Join extends Query2 {
 
 	@Override
 	double nrecords() {
-		switch (type) {
-		case ONE_ONE:
-			return Math.min(source.nrecords(), source2.nrecords()) / 2;
-		case ONE_N:
-			return source.nrecords() / 2;
-		case N_ONE:
-			return source2.nrecords() / 2;
-		case N_N:
-			return (source.nrecords() * source2.nrecords()) / 2;
-		default:
-			throw unreachable();
-		}
+		verify(nrecs >= 0);
+		return nrecs;
 	}
 
 	@Override
