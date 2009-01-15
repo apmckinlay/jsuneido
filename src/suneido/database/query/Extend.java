@@ -7,6 +7,7 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.database.Record;
+import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
@@ -15,6 +16,7 @@ public class Extend extends Query1 {
 	List<Expr> exprs; // modified by Project.transform
 	private List<String> eflds;
 	private Header hdr = null;
+	private List<Fixed> fix;
 
 	Extend(Query source, List<String> flds, List<Expr> exprs,
 			List<String> rules) {
@@ -106,7 +108,7 @@ public class Extend extends Query1 {
 		if (row == null)
 			return null;
 		Record results = new Record();
-		row = new Row(row, null, results);
+		row = new Row(row, Record.MINREC, results);
 		for (int i = 0; i < flds.size(); ++i)
 			results.add(exprs.get(i).eval(hdr, row));
 		return row;
@@ -118,6 +120,18 @@ public class Extend extends Query1 {
 			hdr = new Header(source.header(),
 					new Header(list(noFields, flds), union(flds, rules)));
 		return hdr;
+	}
+
+	@Override
+	List<Fixed> fixed() {
+		if (fix != null)
+			return fix;
+		fix = new ArrayList<Fixed>();
+		for (int i = 0; i < flds.size(); ++i)
+			if (exprs.get(i) instanceof Constant)
+				fix.add(new Fixed(flds.get(i), ((Constant) exprs.get(i)).value));
+		fix = Fixed.combine(fix, source.fixed());
+		return fix;
 	}
 
 }

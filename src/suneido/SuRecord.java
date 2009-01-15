@@ -11,27 +11,27 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 
 public class SuRecord extends SuContainer {
-	private final Header hdr;
-	private final Transaction trans;
+	//private final Header hdr;
+	//private final Transaction trans;
 	private final long recadr;
-	private final Status status;
+	//private final Status status;
 
 	enum Status {
 		NEW, OLD, DELETED
 	};
 
 	public SuRecord() {
-		hdr = null;
-		trans = null;
+		//hdr = null;
+		//trans = null;
 		recadr = 0;
-		status = Status.NEW;
+		//status = Status.NEW;
 	}
 
 	public SuRecord(Row row, Header hdr, Transaction trans) {
-		this.hdr = hdr;
-		this.trans = trans;
+		//this.hdr = hdr;
+		//this.trans = trans;
 		this.recadr = row.recadr;
-		status = Status.OLD;
+		//status = Status.OLD;
 
 		verify(recadr >= 0);
 		// TODO: cache symbol's

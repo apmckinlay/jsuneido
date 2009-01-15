@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.Test;
 import org.ronsoft.nioserver.OutputQueue;
 
+import suneido.SuException;
 import suneido.SuValue.Pack;
 import suneido.database.*;
 
@@ -81,6 +82,15 @@ public class CommandTest {
 		assertTrue(serverData.isEmpty());
 	}
 
+	@Test(expected = SuException.class)
+	public void badcursor() {
+		theDB = new Database(new DestMem(), Mode.CREATE);
+		ServerData serverData = new ServerData();
+
+		Command.CURSOR.execute(null,
+				stringToBuffer("tables sort totalsize"), null, serverData);
+	}
+
 	@Test
 	public void query() {
 		theDB = new Database(new DestMem(), Mode.CREATE);
@@ -125,9 +135,12 @@ public class CommandTest {
 		theDB = new Database(new DestMem(), Mode.CREATE);
 		ServerData serverData = new ServerData();
 
-		ByteBuffer buf = Command.CURSOR.execute(null,
+		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null, serverData);
+		assertEquals("T0\r\n", bufferToString(tbuf));
+
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q27"),
 				stringToBuffer("tables sort nrows,totalsize"), null, serverData);
-		assertEquals("C0\r\n", bufferToString(buf));
+		assertEquals("Q1\r\n", bufferToString(buf));
 
 		buf.rewind();
 		buf = Command.ORDER.execute(buf, null, null, serverData);
@@ -272,7 +285,7 @@ public class CommandTest {
 		rec = RecordTest.make("A", "B", "C");
 		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R14"),
 				rec.getBuf(), null, serverData);
-		assertEquals("U1\r\n", bufferToString(buf));
+		assertEquals("U107\r\n", bufferToString(buf));
 
 		buf = Command.REWIND.execute(stringToBuffer("Q1"), null, null,
 				serverData);

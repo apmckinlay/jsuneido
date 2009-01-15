@@ -3,10 +3,10 @@ package suneido.database.query;
 import suneido.SuRecord;
 import suneido.database.Transaction;
 
-public class Insert extends QueryAction {
+public class InsertRecord extends QueryAction {
 	private final SuRecord record;
 
-	public Insert(Query source, SuRecord record) {
+	public InsertRecord(Query source, SuRecord record) {
 		super(source);
 		this.record = record;
 	}

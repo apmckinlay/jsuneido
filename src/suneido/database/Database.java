@@ -774,8 +774,10 @@ public class Database {
 			if (!i.btreeIndex.insert(tran, new Slot(newkey))) {
 				// undo previous
 				for (Index j : table.indexes)
-					verify(j.btreeIndex.remove(
-							newrec.project(j.colnums, newoff)));
+					if (j == i)
+						break;
+					else
+						verify(j.btreeIndex.remove(newrec.project(j.colnums, newoff)));
 				tran.undo_delete_act(table.num, oldoff);
 				throw new SuException("update record: duplicate key: "
 						+ i.columns + " = " + newkey + " in " + table.name);

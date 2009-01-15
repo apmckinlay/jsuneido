@@ -90,7 +90,7 @@ public class Summarize extends Query1 {
 				if (prefixed(idx, index, fixed))
 					indexes.add(idx);
 		}
-		Best best = best_prefixed(indexes, by, srcneeds, is_cursor);
+		Best best = best_prefixed(indexes, by, srcneeds, is_cursor, new Best());
 		if (nil(best.index) && nil(index)) {
 			best.index = by;
 			best.cost = source.optimize(by, srcneeds, noFields, is_cursor,

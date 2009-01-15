@@ -94,8 +94,9 @@ public abstract class Query implements DbmsQuery {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		//System.out.println("\noptimize START " + this);
 		//System.out.println("    index=" + index
-		//	+ " needs=" + needs	+ " firstneeds=" + firstneeds
-		//	+ (freeze ? " FREEZE" : ""));
+		//		+ " needs=" + needs	+ " firstneeds=" + firstneeds
+		//		+ (is_cursor ? " CURSOR" : "")
+		//		+ (freeze ? " FREEZE" : ""));
 		if (is_cursor || nil(index)) {
 			double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
 			//System.out.println("optimize END " + this);
@@ -142,8 +143,8 @@ public abstract class Query implements DbmsQuery {
 	double optimize1(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		double cost;
-		//		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
-		//			return cost;
+		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
+			return cost;
 
 		cost = optimize2(index, needs, firstneeds, is_cursor, freeze);
 		verify(cost >= 0);

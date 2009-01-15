@@ -37,6 +37,8 @@ query returns [Query result]
     	{ $result = $sort.result == null ? $query2.result : $sort.result; }
     | insert
     	{ $result = $insert.result; }
+    | INSERT query2 INTO id
+    	{ $result = new InsertQuery($query2.result, $id.text); }
     | update
     	{ $result = $update.result; }
     | DELETE query2
@@ -52,7 +54,7 @@ insert returns [Query result]
 	scope { SuRecord record; }
 	@init { $insert::record = new SuRecord(); }
 	: INSERT ('{'|'['|'(') field (','? field )* ('}'|']'|')') INTO query2
-		{ $result = new Insert($query2.result, $insert::record); }
+		{ $result = new InsertRecord($query2.result, $insert::record); }
 	;
 field
 	:	id ':' constant
@@ -286,27 +288,43 @@ term returns [Expr expr]
 id	:	ID
 	|	SET
 	;
-constant returns [SuValue value]  
+constant returns [SuValue value]
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
     | STRING
     	{ $value = SuString.valueOf($text.substring(1, $text.length() - 1)); }
+    | '#' id
+    	{ $value = Symbols.symbol($id.text); }
     | DATE
     	{ 
     	$value = SuDate.literal($text);
     	if ($value == null)
     		throw new SuException("invalid date: " + $text); 
     	}
-    | '[' members ']'
-    | '#' '(' members ')'
-    | '#' '{' members '}'
+	| '#' '(' members[new SuContainer()] ')'
+		{ $value = $members.value; }
+    | '#' ? '[' members[new SuRecord()] ']'
+		{ $value = $members.value; }
+    | '#' '{' members[new SuRecord()] '}'
+		{ $value = $members.value; }
     ;
-members : member (',' member)* ;
-member  
+members[SuContainer ob] returns [SuValue value]
+	: member[ob] (',' member[ob])*
+		{ $value = $ob; }
+	;
+member[SuContainer ob]
+	: membervalue
+		{ $ob.append($membervalue.value); }
+    | id ':' membervalue
+  		{ $ob.putdata($id.text, $membervalue.value); }
+	;
+membervalue returns [SuValue value]
 	: constant
-    | '(' members ')'
-    | '{' members '}'
-    | id ':' member
+		{ $value = $constant.value; }
+    | '(' members[new SuContainer()] ')'
+		{ $value = $members.value; }
+    | '{' members[new SuRecord()] '}'
+		{ $value = $members.value; }
     ;
     
 isop returns [BinOp.Op op]

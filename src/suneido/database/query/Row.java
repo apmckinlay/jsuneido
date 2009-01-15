@@ -34,7 +34,7 @@ public class Row {
 		Arrays.fill(data, Record.MINREC);
 	}
 
-	// used by Project
+	// used by Project & Extend
 	public Row(Row row, Record... recs) {
 		data = new Record[row.data.length + recs.length];
 		System.arraycopy(row.data, 0, data, 0, row.data.length);
