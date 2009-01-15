@@ -34,7 +34,7 @@ System.out.println("\t" + s);
 
 	public HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran) {
 System.out.println("\t" + query);
-		boolean complete = tran == null;
+		boolean complete = (tran == null);
 		if (tran == null)
 			tran = theDB.readonlyTran();
 		try {
@@ -106,23 +106,24 @@ System.out.println("\t" + s);
 		key.add(-1);
 		List<LibGet> srcs = new ArrayList<LibGet>();
 		Transaction tran = theDB.readonlyTran();
-		for (String lib : libraries()) {
-			Table table = theDB.ck_getTable(lib);
-			List<String> flds = table.getFields();
-			int group_fld = flds.indexOf("group");
-			int text_fld = flds.indexOf("text");
-			Index index = theDB.getIndex(table, "name,group");
-			if (group_fld < 0 || text_fld < 0 || index == null)
-				continue; // library is invalid, ignore it
-			BtreeIndex.Iter iter = index.btreeIndex.iter(tran, key).next();
-			if (!iter.eof()) {
-				Record rec = theDB.input(iter.keyadr());
-				srcs.add(new LibGet(lib, rec.getraw(text_fld)));
+		try {
+			for (String lib : libraries()) {
+				Table table = theDB.ck_getTable(lib);
+				List<String> flds = table.getFields();
+				int group_fld = flds.indexOf("group");
+				int text_fld = flds.indexOf("text");
+				Index index = theDB.getIndex(table, "name,group");
+				if (group_fld < 0 || text_fld < 0 || index == null)
+					continue; // library is invalid, ignore it
+				BtreeIndex.Iter iter = index.btreeIndex.iter(tran, key).next();
+				if (!iter.eof()) {
+					Record rec = theDB.input(iter.keyadr());
+					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
+				}
 			}
+		} finally {
+			tran.complete();
 		}
-		tran.complete();
-if (srcs.isEmpty())
-System.out.println("    " + name + " NOT FOUND");
 		return srcs;
 	}
 

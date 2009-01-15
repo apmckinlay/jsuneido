@@ -18,7 +18,7 @@ public class Select extends Query1 {
 	private Multi expr;
 	private boolean optFirst = true;
 	private boolean conflicting = false;
-	List<Fixed> fix;
+	private List<Fixed> fix;
 	private List<String> source_index = noFields; // may have extra stuff on
 												// the end, or be
 												// missing fields that are fixed

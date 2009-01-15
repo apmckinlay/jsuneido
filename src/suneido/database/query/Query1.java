@@ -100,11 +100,14 @@ public abstract class Query1 extends Query {
 	protected static class Best {
 		double cost = IMPOSSIBLE;
 		List<String> index = Collections.emptyList();
+		@Override
+		public String toString() {
+			return "Best " + index + " " + cost;
+		}
 	}
 
 	protected Best best_prefixed(List<List<String>> indexes, List<String> by,
-			List<String> needs, boolean is_cursor) {
-		Best best = new Best();
+			List<String> needs, boolean is_cursor, Best best) {
 		List<Fixed> fixed = source.fixed();
 		for (List<String> ix : indexes)
 			if (prefixed(ix, by, fixed)) {

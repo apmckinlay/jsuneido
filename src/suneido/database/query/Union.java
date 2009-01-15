@@ -6,6 +6,8 @@ import static suneido.Util.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.SuString;
+import suneido.SuValue;
 import suneido.database.Record;
 
 public class Union extends Compatible {
@@ -25,6 +27,7 @@ public class Union extends Compatible {
 	Record key1;
 	Record key2;
 	Record curkey;
+	private List<Fixed> fix;
 	enum Strategy {
 		NONE, MERGE, LOOKUP
 	};
@@ -175,6 +178,31 @@ public class Union extends Compatible {
 	}
 
 	@Override
+	List<Fixed> fixed() {
+		if (fix != null)
+			return fix;
+		fix = new ArrayList<Fixed>();
+		List<Fixed> fixed1 = source.fixed();
+		List<Fixed> fixed2 = source2.fixed();
+		for (Fixed f1 : fixed1)
+			for (Fixed f2 : fixed2)
+				if (f1.field.equals(f2.field)) {
+					fix.add(new Fixed(f1.field, union(f1.values, f2.values)));
+					break;
+				}
+		List<String> cols2 = source2.columns();
+		final List<SuValue> elist = list((SuValue) SuString.EMPTY);
+		for (Fixed f1 : fixed1)
+			if (!cols2.contains(f1.field))
+				fix.add(new Fixed(f1.field, union(f1.values, elist)));
+		List<String> cols1 = source.columns();
+		for (Fixed f2 : fixed2)
+			if (!cols1.contains(f2.field))
+				fix.add(new Fixed(f2.field, union(f2.values, elist)));
+		return fix;
+	}
+
+	@Override
 	public double nrecords() {
 		return (source.nrecords() + source2.nrecords()) / 2;
 	}
@@ -236,27 +264,19 @@ public class Union extends Compatible {
 		// read from the appropriate source(s)
 		if (rewound) {
 			rewound = false;
-			if (null != (row1 = source.get(dir)))
-				key1 = row1.project(hdr1, ki);
-			if (null != (row2 = source2.get(dir)))
-				key2 = row2.project(hdr2, ki);
+			fetch1(dir);
+			fetch2(dir);
 		} else {
 			// curkey is required for changing direction
 			if (src1 || before(dir, key1, 1, curkey, 2)) {
 				if (key1.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
 					source.select(ki, sel.org, sel.end);
-				row1 = source.get(dir);
-				key1 = (row1 == null
-						? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
-						: row1.project(hdr1, ki));
+				fetch1(dir);
 			}
 			if (src2 || before(dir, key2, 2, curkey, 1)) {
 				if (key2.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
 					source2.select(ki, sel.org, sel.end);
-				row2 = source2.get(dir);
-				key2 = (row2 == null
-						? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
-						: row2.project(hdr2, ki));
+				fetch2(dir);
 			}
 		}
 
@@ -280,6 +300,20 @@ public class Union extends Compatible {
 			src2 = true;
 			return new Row(empty1, row2);
 		}
+	}
+
+	private void fetch1(Dir dir) {
+		row1 = source.get(dir);
+		key1 = (row1 == null
+				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
+				: row1.project(hdr1, ki));
+	}
+
+	private void fetch2(Dir dir) {
+		row2 = source2.get(dir);
+		key2 = (row2 == null 
+				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC) 
+				: row2.project(hdr2, ki));
 	}
 
 	private boolean before(Dir dir, Record key1, int src1, Record key2, int src2) {

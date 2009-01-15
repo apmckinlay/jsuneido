@@ -264,8 +264,8 @@ public enum Command {
 			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
-			theDbms.update(tran, recadr, new Record(extra));
-			return U1;
+			recadr = theDbms.update(tran, recadr, new Record(extra));
+			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
 		}
 	},
 	ERASE {
@@ -401,7 +401,6 @@ public enum Command {
 	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
 	private final static ByteBuffer EOF = stringToBuffer("EOF\r\n");
 	private final static ByteBuffer TRUE = stringToBuffer("t\r\n");
-	private final static ByteBuffer U1 = stringToBuffer("U1\r\n");
 
 	public final static Dbms theDbms = new DbmsLocal();
 
