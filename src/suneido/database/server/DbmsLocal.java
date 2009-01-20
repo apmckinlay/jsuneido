@@ -19,26 +19,26 @@ import suneido.database.query.Query.Dir;
  */
 public class DbmsLocal implements Dbms {
 
-	public void admin(String s) {
-		Request.execute(s);
+	public void admin(ServerData serverData, String s) {
+		Request.execute(serverData, s);
 	}
 
-	public int request(DbmsTran tran, String s) {
+	public int request(ServerData serverData, DbmsTran tran, String s) {
 System.out.println("\t" + s);
-		return ((QueryAction) ParseQuery.parse(s)).execute((Transaction) tran);
+		return ((QueryAction) ParseQuery.parse(serverData, s)).execute((Transaction) tran);
 	}
 
 	public DbmsTran transaction(boolean readwrite, String session_id) {
 		return readwrite ? theDB.readwriteTran() : theDB.readonlyTran();
 	}
 
-	public HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran) {
+	public HeaderAndRow get(ServerData serverData, Dir dir, String query, boolean one, DbmsTran tran) {
 System.out.println("\t" + query);
 		boolean complete = (tran == null);
 		if (tran == null)
 			tran = theDB.readonlyTran();
 		try {
-			Query q = ParseQuery.query(query, (Transaction) tran);
+			Query q = ParseQuery.query(serverData, query, (Transaction) tran);
 			Row row = q.get(dir);
 			if (row != null && q.updateable())
 				row.recadr = row.getFirstData().off();
@@ -52,14 +52,14 @@ System.out.println("\t" + query);
 		}
 	}
 
-	public DbmsQuery query(DbmsTran tran, String s) {
+	public DbmsQuery query(ServerData serverData, DbmsTran tran, String s) {
 System.out.println("\t" + s);
-		return ParseQuery.query(s, (Transaction) tran);
+		return ParseQuery.query(serverData, s, (Transaction) tran);
 	}
 
-	public DbmsQuery cursor(String s) {
+	public DbmsQuery cursor(ServerData serverData, String s) {
 System.out.println("\t" + s);
-		return ParseQuery.query(s, true);
+		return ParseQuery.query(serverData, s, true);
 	}
 
 	public void erase(DbmsTran tran, long recadr) {

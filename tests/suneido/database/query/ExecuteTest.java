@@ -15,7 +15,7 @@ public class ExecuteTest extends TestBase {
 	public void test() {
 		for (String[] c : cases) {
 			// System.out.println("CASE " + c[0]);
-			Query q = ParseQuery.parse(c[0]);
+			Query q = ParseQuery.parse(serverData, c[0]);
 			if (q instanceof Select)
 				((Select) q).forceFilters = true;
 			q = q.setup();

@@ -18,7 +18,7 @@ public class UpdateTest extends TestBase {
 
 		assertEquals(4, get("test").size());
 		QueryAction q = (QueryAction) ParseQuery
-				.parse("update test where a >= 1 and a <= 2 set b = 'xxx'");
+				.parse(serverData, "update test where a >= 1 and a <= 2 set b = 'xxx'");
 		assertEquals(2, q.execute());
 		List<Record> recs = get("test");
 		assertEquals(4, recs.size());

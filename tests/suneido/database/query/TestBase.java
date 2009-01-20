@@ -6,8 +6,11 @@ import org.junit.After;
 import org.junit.Before;
 
 import suneido.database.*;
+import suneido.database.server.ServerData;
 
 public class TestBase {
+	protected final ServerData serverData = new ServerData();
+
 	@Before
 	public void create() {
 		theDB = new Database(new DestMem(), Mode.CREATE);
@@ -100,7 +103,7 @@ public class TestBase {
 	}
 
 	protected void req(String s) {
-		((QueryAction) ParseQuery.parse(s)).execute();
+		((QueryAction) ParseQuery.parse(serverData, s)).execute();
 	}
 
 }

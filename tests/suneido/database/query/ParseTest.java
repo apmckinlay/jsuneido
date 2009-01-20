@@ -15,6 +15,8 @@ public class ParseTest extends TestBase {
 		makeTable("test2", "x", "y");
 		makeTable("compat", "a", "b");
 		makeTable("joinable", "x", "y", "a");
+		Request.execute(serverData, "view myview = test project a,b");
+		Request.execute(serverData, "sview myview2 = test extend x=1");
 
 		String[] cases = {
 			"test", null,
@@ -62,11 +64,14 @@ public class ParseTest extends TestBase {
 			"test WHERE (a = #20081216.1523)", null,
 			"test WHERE (a = #20081216.152301)", null,
 			"test WHERE (a = #20081216.152301234)", null,
+			"myview", "test PROJECT a,b",
+			"myview2", "test EXTEND x = 1",
+			"test union myview extend x = 1", "(test UNION test PROJECT a,b) EXTEND x = 1",
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];
 			String expect = cases[i + 1] == null ? s : cases[i + 1];
-			assertEquals(s, expect, ParseQuery.parse(s).toString());
+			assertEquals(s, expect, ParseQuery.parse(serverData, s).toString());
 		}
 	}
 

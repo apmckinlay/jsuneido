@@ -13,7 +13,7 @@ public class DeleteTest extends TestBase {
 		makeTable(3);
 
 		assertEquals(3, get("test").size());
-		QueryAction q = (QueryAction) ParseQuery.parse("delete test");
+		QueryAction q = (QueryAction) ParseQuery.parse(serverData, "delete test");
 		assertEquals(3, q.execute());
 		assertEquals(0, get("test").size());
 	}
@@ -24,7 +24,7 @@ public class DeleteTest extends TestBase {
 
 		assertEquals(5, get("test").size());
 		QueryAction q = (QueryAction) ParseQuery
-				.parse("delete test where a >= 1 and a <= 2 ");
+				.parse(serverData, "delete test where a >= 1 and a <= 2 ");
 		assertEquals(2, q.execute());
 		assertEquals(3, get("test").size());
 	}

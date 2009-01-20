@@ -17,18 +17,19 @@ public class DbmsLocalTest {
 	public void test() {
 		theDB = new Database(new DestMem(), Mode.CREATE);
 		Dbms dbms = new DbmsLocal();
+		ServerData serverData = new ServerData();
 
-		dbms.admin("create test (a, b, c) key(a)");
+		dbms.admin(null, "create test (a, b, c) key(a)");
 
 		DbmsTran t1 = dbms.transaction(true, "");
-		dbms.request(t1, "insert { a: 1, b: 2, c: 3 } into test");
+		dbms.request(serverData, t1, "insert { a: 1, b: 2, c: 3 } into test");
 		t1.complete();
 
-		HeaderAndRow hr = dbms.get(Dir.NEXT, "test", true, null);
+		HeaderAndRow hr = dbms.get(serverData, Dir.NEXT, "test", true, null);
 		assertEquals(SuInteger.valueOf(1), hr.row.getval(hr.header, "a"));
 
 		DbmsTran t2 = dbms.transaction(true, "");
-		DbmsQuery q = dbms.query(t2, "test");
+		DbmsQuery q = dbms.query(serverData, t2, "test");
 		q.output(new Record().add(SuInteger.valueOf(4))
 				.add(SuInteger.valueOf(5)).add(SuInteger.valueOf(6)));
 		q.rewind();
