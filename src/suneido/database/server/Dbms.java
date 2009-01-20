@@ -22,11 +22,12 @@ import suneido.database.query.Query.Dir;
 public interface Dbms {
 	DbmsTran transaction(boolean readwrite, String session_id);
 
-	void admin(String s);
-	int request(DbmsTran tran, String s);
+	void admin(ServerData serverData, String s);
+	int request(ServerData serverData, DbmsTran tran, String s);
 
-	DbmsQuery cursor(String s);
-	DbmsQuery query(DbmsTran tran, String s);
+	DbmsQuery cursor(ServerData serverData, String s);
+
+	DbmsQuery query(ServerData serverData, DbmsTran tran, String s);
 	List<LibGet> libget(String name);
 	List<String> libraries();
 	List<Integer> tranlist();
@@ -40,7 +41,7 @@ public interface Dbms {
 
 	long update(DbmsTran tran, long recadr, Record rec);
 
-	HeaderAndRow get(Dir dir, String query, boolean one, DbmsTran tran);
+	HeaderAndRow get(ServerData serverData, Dir dir, String query, boolean one, DbmsTran tran);
 	int cursors();
 	SuValue sessionid(String s);
 	int finalSize();

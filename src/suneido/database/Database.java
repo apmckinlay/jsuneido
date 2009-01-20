@@ -492,7 +492,7 @@ public class Database {
 				key(tbl.num, columns));
 	}
 
-	private boolean tableExists(String table) {
+	public boolean tableExists(String table) {
 		return getTable(table) != null;
 	}
 
@@ -621,7 +621,7 @@ public class Database {
 		} finally {
 			tran.complete();
 		}
-		return rec == null ? "" : rec.getString(V.DEFINITION);
+		return rec == null ? null : rec.getString(V.DEFINITION);
 	}
 
 	public void removeView(String viewname) {

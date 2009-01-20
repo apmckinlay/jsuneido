@@ -9,7 +9,7 @@ public class TransformTest extends TestBase {
 	public void test() {
 		for (String[] c : transforms) {
 			// System.out.println("CASE " + c[0]);
-			Query q = ParseQuery.parse(c[0]).transform();
+			Query q = ParseQuery.parse(serverData, c[0]).transform();
 			assertEquals(c[1], q.toString());
 		}
 	}

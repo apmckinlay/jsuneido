@@ -9,6 +9,8 @@ package suneido.database.query;
 
 import suneido.*;
 import suneido.database.query.expr.*;
+import suneido.database.server.ServerData;
+import static suneido.database.Database.theDB; // used for view expansion
 }
 @lexer::header { package suneido.database.query; }
 
@@ -22,6 +24,7 @@ import suneido.database.query.expr.*;
 		throws RecognitionException {
 		throw e;
 	}
+	public ServerData serverData = null; // for sview
 }
 
 @rulecatch {
@@ -85,7 +88,22 @@ query2 returns [Query result]
 
 source returns [Query result]
 	: id
-		{ $result = new Table($id.text); }
+		{			
+		String def = serverData.getSview($id.text);
+		if (def == null) 
+			def = theDB.getView($id.text);
+			
+		if (def == null || serverData.inView($id.text))
+			$result = new Table($id.text);
+		else {
+			try {
+				serverData.enterView($id.text);
+				$result = ParseQuery.parse(serverData, def);
+			} finally {
+				serverData.leaveView($id.text);
+			}
+		} 
+		}
     | HISTORY '(' id ')'
     	{ $result = new History($id.text); }
     | '(' query2 ')'

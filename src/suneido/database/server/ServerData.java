@@ -7,12 +7,21 @@ import java.util.*;
 import suneido.database.Transaction;
 import suneido.database.query.Query;
 
+/**
+ * Each connection/session has it's own ServerData instance
+ *
+ * @author Andrew McKinlay
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
+ */
 public class ServerData {
 	private int next = 0;
 	private final Map<Integer, DbmsTran> trans = new HashMap<Integer, DbmsTran>();
 	private final Map<Integer, List<Integer>> tranqueries = new HashMap<Integer, List<Integer>>();
 	private final Map<Integer, Query> queries = new HashMap<Integer, Query>();
 	private final Map<Integer, Query> cursors = new HashMap<Integer, Query>();
+	private final Map<String, String> sviews = new HashMap<String, String>();
+	private final Stack<String> viewnest = new Stack<String>();
 
 	public int addTransaction(DbmsTran tran) {
 		// client expect readonly tran# to be even
@@ -65,5 +74,26 @@ public class ServerData {
 
 	public boolean isEmpty() {
 		return trans.isEmpty();
+	}
+
+	public void addSview(String name, String definition) {
+		sviews.put(name, definition);
+	}
+	public String getSview(String name) {
+		return sviews.get(name);
+	}
+	public void dropSview(String name) {
+		sviews.remove(name);
+	}
+
+	public void enterView(String name) {
+		viewnest.push(name);
+	}
+	public boolean inView(String name) {
+		return -1 != viewnest.search(name);
+	}
+	public void leaveView(String name) {
+		assert viewnest.peek().equals(name);
+		viewnest.pop();
 	}
 }

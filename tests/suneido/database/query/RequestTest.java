@@ -41,10 +41,14 @@ public class RequestTest extends TestBase {
 		assertEquals(schema, db.schema("tmp"));
 		assertNull(db.getTable("test"));
 
-		Request.execute("drop tmp");
+		Request.execute(serverData, "drop tmp");
 		assertNull(db.getTable("tmp"));
 
 		Request.execute("create tmp (aField) key(aField)");
+
+		String def = "one join two where three = 4";
+		Request.execute(serverData, "view myview = " + def);
+		assertEquals(def, db.getView("myview"));
 	}
 
 	@Test(expected = SuException.class)

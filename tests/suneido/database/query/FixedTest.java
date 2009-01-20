@@ -15,7 +15,7 @@ public class FixedTest extends TestBase {
 	public void extend() {
 		makeTable();
 		for (String[] c : cases)
-			assertEquals(c[1], ParseQuery.parse(c[0]).fixed().toString());
+			assertEquals(c[1], ParseQuery.parse(serverData, c[0]).fixed().toString());
 	}
 	private static String[][] cases = {
 		{ "test", "[]" },

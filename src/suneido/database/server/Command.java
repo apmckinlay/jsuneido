@@ -43,7 +43,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			theDbms.admin(bufferToString(line));
+			theDbms.admin(serverData, bufferToString(line));
 			return TRUE;
 		}
 	},
@@ -97,7 +97,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
 			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
-			int n = theDbms.request(tran, bufferToString(extra));
+			int n = theDbms.request(serverData, tran, bufferToString(extra));
 			return stringToBuffer("R" + n + "\r\n");
 		}
 	},
@@ -113,7 +113,7 @@ public enum Command {
 				OutputQueue outputQueue, ServerData serverData) {
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = serverData.getTransaction(tn);
-			Query dq = (Query) theDbms.query(tran, bufferToString(extra));
+			Query dq = (Query) theDbms.query(serverData, tran, bufferToString(extra));
 			int qn = serverData.addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
@@ -127,7 +127,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue, ServerData serverData) {
-			Query dq = (Query) theDbms.cursor(bufferToString(extra));
+			Query dq = (Query) theDbms.cursor(serverData, bufferToString(extra));
 			int cn = serverData.addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
@@ -227,7 +227,7 @@ public enum Command {
 			}
 			line.get(); // skip space
 			int tn = ck_getnum('T', line);
-			HeaderAndRow hr = theDbms.get(dir, bufferToString(extra), one,
+			HeaderAndRow hr = theDbms.get(serverData, dir, bufferToString(extra), one,
 					serverData.getTransaction(tn));
 			row_result(hr.row, hr.header, true, outputQueue);
 			return null;

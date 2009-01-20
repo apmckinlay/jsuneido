@@ -9,9 +9,12 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
+import suneido.database.server.ServerData;
+
 public class TestBase {
 	DestMem dest;
 	protected Database db;
+	protected final ServerData serverData = new ServerData();
 
 	@Before
 	public void create() {

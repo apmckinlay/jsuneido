@@ -11,6 +11,7 @@ import suneido.SuException;
 import suneido.database.Table;
 import suneido.database.query.RequestParser.*;
 import suneido.database.query.RequestParser.Rename;
+import suneido.database.server.ServerData;
 
 /**
  * Parse and execute database "requests" to create, alter, or remove tables.
@@ -22,11 +23,15 @@ import suneido.database.query.RequestParser.Rename;
  */
 public class Request {
 	public static void execute(String s) {
+		Request.execute(null, s);
+	}
+
+	public static void execute(ServerData serverData, String s) {
 		ANTLRStringStream input = new ANTLRStringStream(s);
 		RequestLexer lexer = new RequestLexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		RequestParser parser = new RequestParser(tokens);
-		parser.iRequest = new RequestImpl();
+		parser.iRequest = new RequestImpl(serverData);
 		try {
 			parser.request();
 		} catch (RecognitionException e) {
@@ -35,6 +40,12 @@ public class Request {
 	}
 
 	public static class RequestImpl implements IRequest {
+		private final ServerData serverData;
+
+		public RequestImpl(ServerData serverData) {
+			this.serverData = serverData;
+		}
+
 		public void create(String table, Schema schema) {
 			if (!hasKey(schema))
 				throw new SuException("key required for: " + table);
@@ -98,7 +109,27 @@ public class Request {
 		}
 
 		public void drop(String table) {
-			theDB.removeTable(table);
+			if (serverData.getSview(table) != null)
+				serverData.dropSview(table);
+			else if (theDB.getView(table) != null)
+				theDB.removeView(table);
+			else
+				theDB.removeTable(table);
+		}
+
+		public void view(String name, String definition) {
+			checkExisting(name);
+			theDB.add_view(name, definition);
+		}
+
+		public void sview(String name, String definition) {
+			checkExisting(name);
+			serverData.addSview(name, definition);
+		}
+
+		private void checkExisting(String name) {
+			if (theDB.getView(name) != null || serverData.getSview(name) != null)
+				throw new SuException("view: '" + name + "' already exists");
 		}
 
 		public void error(String msg) {

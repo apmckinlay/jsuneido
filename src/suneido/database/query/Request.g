@@ -22,6 +22,8 @@ public interface IRequest {
 	void alter_rename(String table, List<Rename> renames);
 	void rename(String from, String to);
 	void drop(String table);
+	void view(String name, String definition);
+	void sview(String name, String definition);
 	void error(String msg);
 }
 static class PrintRequest implements IRequest {
@@ -60,6 +62,12 @@ static class PrintRequest implements IRequest {
 	}
 	public void drop(String table) {
 		System.out.println("removeTable(" + table + ")");
+	}
+	public void view(String name, String definition) {
+			System.out.println("view " + name + " = " + definition);
+	}
+	public void sview(String name, String definition) {
+			System.out.println("sview " + name + " = " + definition);
 	}
 	public void error(String msg) {
 		System.out.println(msg);
@@ -123,6 +131,18 @@ request
     	{ iRequest.alter_delete($id.text, $request::schema); }
     | rename
     	{ iRequest.rename($rename.from, $rename.to); }
+    | VIEWDEF
+    	{
+    	String s = $VIEWDEF.text;
+    	int i = s.indexOf('='); 
+    	iRequest.view(s.substring(0, i), s.substring(i + 1).trim());
+    	}
+   | SVIEWDEF
+    	{
+    	String s = $SVIEWDEF.text;
+    	int i = s.indexOf('='); 
+    	iRequest.sview(s.substring(0, i), s.substring(i + 1).trim());
+    	}
     | (DROP|DESTROY) id
     	{ iRequest.drop($id.text); }
     ;
@@ -180,6 +200,15 @@ id	:	ID
 	|	KEY
 	;
 	
+VIEWDEF	: VIEW WHITE+ NAME WHITE* '=' ANY EOF
+			{ setText($NAME.text + "=" + $ANY.text); };
+			
+SVIEWDEF: ('s'|'S') VIEW WHITE+ NAME WHITE* '=' ANY EOF
+			{ setText($NAME.text + "=" + $ANY.text); };
+			
+fragment
+VIEW	: ('v'|'V')('i'|'I')('e'|'E')('w'|'W') ;
+
 CREATE	: ('c'|'C')('r'|'R')('e'|'E')('a'|'A')('t'|'T')('e'|'E') ;
 ENSURE	: ('e'|'E')('n'|'N')('s'|'S')('u'|'U')('r'|'R')('e'|'E') ;
 DELETE	: ('d'|'D')('e'|'E')('l'|'L')('e'|'E')('t'|'T')('e'|'E') ;
@@ -196,7 +225,16 @@ UPDATES	: ('u'|'U')('p'|'P')('d'|'D')('a'|'A')('t'|'T')('e'|'E')('s'|'S') ;
 INDEX	: ('i'|'I')('n'|'N')('d'|'D')('e'|'E')('x'|'X') ;
 KEY		: ('k'|'K')('e'|'E')('y'|'Y') ;
 
-ID    : ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
+ID		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 
-WS    : (' '|'\t'|'\r'|'\n')+ { $channel = HIDDEN; } ;
+fragment
+NAME	: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')* ;
+
+fragment
+ANY		: ('\u0000'..'\uFFFE')+ ;
+
+fragment
+WHITE	: (' '|'\t'|'\r'|'\n') ;
+
+WS		: WHITE+ { $channel = HIDDEN; } ;
 COMMENT : '/*' .* '*/' { $channel = HIDDEN; } ;
