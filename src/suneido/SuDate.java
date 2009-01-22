@@ -121,8 +121,8 @@ public class SuDate extends SuValue {
 
 		int time = buf.getInt();
 		int hour = time >> 22;
-		int minute = (time >> 16) & 0x2f;
-		int second = (time >> 10) & 0x2f;
+		int minute = (time >> 16) & 0x3f;
+		int second = (time >> 10) & 0x3f;
 		int millisecond = time & 0x3ff;
 
 		Calendar cal = Calendar.getInstance();

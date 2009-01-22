@@ -43,10 +43,14 @@ public class SuDateTest {
 
 	@Test
 	public void pack() {
-		SuDate d = SuDate.literal("20010203");
-		ByteBuffer buf = d.pack();
-		SuDate e = (SuDate) SuValue.unpack(buf);
-		assertEquals(d, e);
+		String[] cases = { "20010203", "#20090122.091407890", 
+				"#20090122.091423854" };
+		for (String s : cases) {
+			SuDate d = SuDate.literal(s);
+			ByteBuffer buf = d.pack();
+			SuDate e = (SuDate) SuValue.unpack(buf);
+			assertEquals(d, e);
+		}
 	}
 
 	@Test
