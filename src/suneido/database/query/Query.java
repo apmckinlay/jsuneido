@@ -64,7 +64,9 @@ public abstract class Query implements DbmsQuery {
 	}
 	abstract void select(List<String> index, Record from, Record to);
 	void select(List<String> index, Record key) {
-		select(index, key, key);
+		Record key_to = key.dup(8);
+		key_to.addMax();
+		select(index, key, key_to);
 	}
 	abstract public void rewind();
 
