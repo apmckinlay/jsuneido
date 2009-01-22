@@ -22,6 +22,54 @@ public class SuString extends SuValue {
 		return s.equals("") ? EMPTY : new SuString(s);
 	}
 
+	/**
+	 * @return An SuString with escape sequences interpreted
+	 */
+	public static SuString literal(String s) {
+		int i = s.indexOf('\\');
+		if (i == -1)
+			return valueOf(s);
+		StringBuilder buf = new StringBuilder(s);
+		for (; -1 != (i = buf.indexOf("\\", i)); ++i)
+			escape(buf, i);
+		return valueOf(buf.toString());
+	}
+
+	private static void escape(StringBuilder buf, int i) {
+		int end = i + 1;
+		char c = buf.charAt(i + 1);
+		switch (c) {
+		case 'n':
+			c = '\n';
+			break;
+		case 'r':
+			c = '\r';
+			break;
+		case 't':
+			c = '\t';
+			break;
+		case 'x':
+			if (i + 4 > buf.length())
+				return;
+			c = (char) Integer.parseInt(buf.substring(i + 2, i + 4), 16);
+			end += 3;
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+			if (i + 4 > buf.length())
+				return;
+			c = (char) Integer.parseInt(buf.substring(i + 1, i + 4), 8);
+			end += 3;
+			break;
+		default:
+			return; // unrecognized sequences are kept as is
+		}
+		buf.setCharAt(i, c);
+		buf.delete(i + 1, end);
+	}
+
 	protected SuString(String s) {
 		this.s = s;
 	}

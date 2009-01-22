@@ -12,7 +12,9 @@ import suneido.database.query.expr.*;
 import suneido.database.server.ServerData;
 import static suneido.database.Database.theDB; // used for view expansion
 }
-@lexer::header { package suneido.database.query; }
+@lexer::header {
+package suneido.database.query;
+}
 
 @members {
 	protected void mismatch(IntStream input, int ttype, BitSet follow)
@@ -309,8 +311,8 @@ id	:	ID
 constant returns [SuValue value]
 	: NUM
 		{ $value = SuNumber.valueOf($text); }
-    | STRING
-    	{ $value = SuString.valueOf($text.substring(1, $text.length() - 1)); }
+    | STR
+    	{ $value = SuString.literal($text); }
     | '#' id
     	{ $value = Symbols.symbol($id.text); }
     | DATE
@@ -429,20 +431,26 @@ DATE	: YMD
 WS    : (' '|'\t'|'\r'|'\n')+ {skip();} ; // ignore whitespace
 COMMENT : '/*' .* '*/' {skip();} ; // ignore comments
 
-STRING  : '"' .* '"'
-    | '\'' .* '\''
+STR	: '"' ( ESCAPE | ~('"'|'\\') )* '"'
+		{ String s = getText(); setText(s.substring(1, s.length() - 1)); }
+	| '\'' ( ESCAPE | ~('\''|'\\') )* '\''
+		{ String s = getText(); setText(s.substring(1, s.length() - 1)); }
     ;
-
-NUM   : '0x' ('0'..'9'|'a'..'f'|'A'..'F')+
-    | '0' ('0'..'7')*
+fragment
+ESCAPE : '\\' . ;
+    
+NUM : '0x' HEX +
+    | '0' OCT *
     | SIGN? ('1'..'9') DIG* ('.' DIG*)? EXP?
     | SIGN? '.' DIG+ EXP?
     ;
+fragment
+HEX : '0'..'9'|'a'..'f'|'A'..'F' ;
+fragment
+OCT : '0'..'7' ;
 fragment
 SIGN  : '+'|'-' ;
 fragment
 DIG   : '0'..'9' ;
 fragment
 EXP   : ('e'|'E')('0'..'9')+ ;
-
-
