@@ -1,17 +1,16 @@
 grammar Request;
 
 options {
-	language = Java;
-}
-tokens {
-	COLUMNS;
+language = Java;
 }
 
 @header {
 package suneido.database.query;
 import java.util.Collections;
 }
-@lexer::header { package suneido.database.query; }
+@lexer::header {
+package suneido.database.query;
+}
 
 @members {
 public interface IRequest {
