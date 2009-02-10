@@ -54,12 +54,18 @@ public class SuDecimal extends SuNumber {
 	@Override
 	public String toString() {
 		strip();
-		return n.toString();
+		return removeLeadingZero(n.toPlainString());
+		// TODO 1e20 should use exponential notation
+	}
+	private String removeLeadingZero(String s) {
+		if (s.startsWith("0.") && s.length() > 2)
+			s = s.substring(1);
+		return s;
 	}
 
 	/**
 	 * Need to strip because two BigDecimal objects that are numerically equal
-	 * but differ in scale (like 2.0 and 2.00) may not  have the same hash code.
+	 * but differ in scale (like 2.0 and 2.00) may not have the same hash code.
 	 */
 	@Override
 	public int hashCode() {

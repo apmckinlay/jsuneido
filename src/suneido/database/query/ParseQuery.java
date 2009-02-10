@@ -26,7 +26,7 @@ public class ParseQuery {
 	public static Query parse(ServerData serverData, String s) {
 		QueryParser parser = parser(serverData, s);
 		try {
-			return parser.query();
+			return parser.top_query();
 		} catch (RecognitionException e) {
 			throw new SuException("syntax error", e);
 		}
