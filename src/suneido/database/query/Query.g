@@ -35,9 +35,40 @@ package suneido.database.query;
 	}
 }
 
-// need this extra rule 
-// because ANTLR wants a start rule that is not referenced anywhere
-query returns [Query result] 
+@lexer::members {
+	@Override
+	public void reportError(RecognitionException e) {
+		Thrower.sneakyThrow(e);
+	}
+	
+	// See: How can I make the lexer exit upon first lexical error?
+	// http://www.antlr.org/wiki/pages/viewpage.action?pageId=5341217
+	static class Thrower {
+		private static Throwable t;
+		private Thrower() throws Throwable {
+			throw t;
+		}
+		public static synchronized void sneakyThrow(Throwable t) {
+			Thrower.t = t;
+			try {
+				Thrower.class.newInstance();
+			} catch (InstantiationException e) {
+				throw new IllegalArgumentException(e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalArgumentException(e);
+			} finally {
+				Thrower.t = null; // Avoid memory leak
+			}
+		}
+	}
+}
+
+top_query returns [Query result]
+	: query EOF
+		{ $result = $query.result; }
+	;
+	
+query returns [Query result]
 	: query2 sort[$query2.result]?
     	{ $result = $sort.result == null ? $query2.result : $sort.result; }
     | insert
@@ -50,6 +81,16 @@ query returns [Query result]
     	{ $result = new Delete($query2.result); }
 	;
 	
+query2 returns [Query result]
+	scope { Query source; }
+	: source 
+		{ $query2::source = $source.result; }
+	  (op 
+	  	{ $query2::source = $op.result; } 
+	  )*
+    	{ $result = $query2::source; } 
+	;
+
 sort[Query source] returns [Query result]
 	: SORT r=REVERSE ? cols
 		 { $result = new Sort($source, $r != null, $cols.list); }
@@ -78,16 +119,6 @@ set
 		{ $update::fields.add($id.text); $update::exprs.add($expr.expr); } 
 	;
   
-query2 returns [Query result]
-	scope { Query source; }
-	: source 
-		{ $query2::source = $source.result; }
-	  (op 
-	  	{ $query2::source = $op.result; } 
-	  )*
-    	{ $result = $query2::source; } 
-	;
-
 source returns [Query result]
 	: id
 		{			
@@ -202,7 +233,9 @@ extend1
   
 // for testing
 expression returns [Expr expression]  
-	: expr { $expression = $expr.expr; } ; 
+	: expr EOF
+		{ $expression = $expr.expr; }
+	; 
 		
 expr returns [Expr expr]  
 	: or
@@ -284,7 +317,9 @@ mul returns [Expr expr]
      )* ;
 unary returns [Expr expr]  
 	: unop? term
-		{ $expr = ($unop.op == null) ? $term.expr : new UnOp($unop.op, $term.expr); } 
+		{ $expr = ($unop.op == null) ? $term.expr : new UnOp($unop.op, $term.expr); }
+    | constant
+    	{ $expr = Constant.valueOf($constant.value); }
 	;
 term returns [Expr expr]
 	: id
@@ -300,8 +335,6 @@ term returns [Expr expr]
 		{ $expr = Constant.TRUE; }
 	| FALSE
 		{ $expr = Constant.FALSE; }
-    | constant
-    	{ $expr = Constant.valueOf($constant.value); }
     | '(' expr ')'
     	{ $expr = $expr.expr; }
     ;
@@ -309,7 +342,7 @@ id	:	ID
 	|	SET
 	;
 constant returns [SuValue value]
-	: NUM
+	: '-'? NUM
 		{ $value = SuNumber.valueOf($text); }
     | STR
     	{ $value = SuString.literal($text); }
@@ -441,15 +474,13 @@ ESCAPE : '\\' . ;
     
 NUM : '0x' HEX +
     | '0' OCT *
-    | SIGN? ('1'..'9') DIG* ('.' DIG*)? EXP?
-    | SIGN? '.' DIG+ EXP?
+    | ('1'..'9') DIG* ('.' DIG*)? EXP?
+    | '.' DIG+ EXP?
     ;
 fragment
 HEX : '0'..'9'|'a'..'f'|'A'..'F' ;
 fragment
 OCT : '0'..'7' ;
-fragment
-SIGN  : '+'|'-' ;
 fragment
 DIG   : '0'..'9' ;
 fragment

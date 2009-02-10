@@ -14,8 +14,9 @@ public class FixedTest extends TestBase {
 	@Test
 	public void extend() {
 		makeTable();
-		for (String[] c : cases)
+		for (String[] c : cases) {
 			assertEquals(c[1], ParseQuery.parse(serverData, c[0]).fixed().toString());
+		}
 	}
 	private static String[][] cases = {
 		{ "test", "[]" },
@@ -27,7 +28,7 @@ public class FixedTest extends TestBase {
 		{ "test extend f=1, g=2 where f=3", "[f=(3), g=(2)]" },
 
 		{ "test where a=1", "[a=(1)]" },
-		{ "test where a=1 and b='s', c=a", "[a=(1), b=('s')]" },
+		{ "test where a=1 and b='s' and a = b", "[a=(1), b=('s')]" },
 
 		{ "test union (test extend f=1)", "[f=(1,'')]" },
 		{ "(test extend f=2) union (test extend f=1)", "[f=(2,1)]" },

@@ -1,7 +1,9 @@
 package suneido;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class SuDecimalTest {
 	@Test
@@ -15,5 +17,7 @@ public class SuDecimalTest {
 		String huge = "12345678901234567890.123456789";
 		assertEquals(new SuDecimal(huge).toString(), huge);
 		assertFalse(new SuDecimal("1.5").equals(SuInteger.valueOf(1)));
+		assertEquals("1000", new SuDecimal("1e3").toString());
+		assertEquals(".5", new SuDecimal(".5").toString());
 	}
 }

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.SuException;
 import suneido.database.TestBase;
 
 //TODO parse object constants
@@ -44,7 +45,9 @@ public class ParseTest extends TestBase {
 				"test SUMMARIZE (b) count = count, total_a = total a, x = max b",
 			"test WHERE !a", null,
 			"test WHERE (a * 5)", null,
-			"test WHERE (a - 5)", null,
+			"test WHERE (a-5)", "test WHERE (a - 5)",
+			"test WHERE (a--5)", "test WHERE (a - -5)",
+			"test WHERE (a+5)", "test WHERE (a + 5)",
 			"test WHERE (a >> 2)", null,
 			"test WHERE (a > 5)", null,
 			"test WHERE (a = b)", null,
@@ -81,5 +84,20 @@ public class ParseTest extends TestBase {
 		for (String column : columns)
 			db.addColumn(tablename, column);
 		db.addIndex(tablename, columns[0], true);
+	}
+
+	@Test(expected = SuException.class)
+	public void lexer_error() {
+		ParseQuery.parse(null, "test where x = 1e~3");
+	}
+
+	@Test(expected = SuException.class)
+	public void queryEof() {
+		ParseQuery.parse(serverData, "test 123");
+	}
+
+	@Test(expected = SuException.class)
+	public void exprEof() {
+		ParseQuery.expr("x + 1 y");
 	}
 }
