@@ -2,6 +2,8 @@ grammar Language;
 
 options {
 	language = Java;
+	backtrack = true;
+	k = 3;
 }
 
 @header {
@@ -77,7 +79,27 @@ constant returns [SuValue result]
     	if ($result == null)
     		throw new SuException("invalid date: " + $text); 
     	}
-    ;
+	| FUNCTION '(' ')' '{' statement* '}'
+		{ $result = SuString.literal("FUNCTION"); }
+	;
+
+statement
+	: stmt ';'?
+	;
+stmt
+	: expr
+	| IF expr statement
+	| '{' statement* '}'
+	| RETURN expr?
+		{ System.out.println($text); }
+	;
+	
+expr 
+	: '(' expr ')'
+	| constant
+	| ID
+	| ID '=' constant
+	;
 
 AND			: 'and' ;
 BOOL		: 'bool' ;
