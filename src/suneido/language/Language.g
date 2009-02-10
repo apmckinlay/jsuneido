@@ -79,22 +79,30 @@ constant returns [SuValue result]
     	if ($result == null)
     		throw new SuException("invalid date: " + $text); 
     	}
-	| FUNCTION '(' ')' '{' statement* '}'
+	| FUNCTION '(' ')' compound
 		{ $result = SuString.literal("FUNCTION"); }
 	;
 
 statement
-	: stmt ';'?
+	: (NL | ';')* stmt
 	;
 stmt
 	: expr
-	| IF expr statement
-	| '{' statement* '}'
+	| compound
+	| IF NL* expr NL* statement
 	| RETURN expr?
 		{ System.out.println($text); }
 	;
 	
-expr 
+compound
+	: '{' statement* (NL | ';')* '}'
+	;
+	
+expr : triop ;
+
+triop : term ( '?' triop ':' triop )? ;
+
+term
 	: '(' expr ')'
 	| constant
 	| ID
@@ -159,8 +167,9 @@ YMD	: '#' ('1'..'2')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')
 fragment
 HM	: ('0'..'9')('0'..'9')('0'..'9')('0'..'9') ;
 		
-WS    : (' '|'\t'|'\r'|'\n')+ {skip();} ; // ignore whitespace
-COMMENT : '/*' .* '*/' {skip();} ; // ignore comments
+NL	: '\n' ;
+WS	: (' '|'\t'|'\r')+ { skip(); } ; // ignore whitespace
+COMMENT : '/*' .* '*/' { skip(); } ; // ignore comments
 
 STR	: '"' ( ESCAPE | ~('"'|'\\') )* '"'
 		{ String s = getText(); setText(s.substring(1, s.length() - 1)); }
