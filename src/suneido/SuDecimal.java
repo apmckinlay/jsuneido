@@ -54,8 +54,8 @@ public class SuDecimal extends SuNumber {
 	@Override
 	public String toString() {
 		strip();
-		return removeLeadingZero(n.toPlainString());
-		// TODO 1e20 should use exponential notation
+		String s = Math.abs(scale()) > 10 ? n.toString() : n.toPlainString();
+		return removeLeadingZero(s).replace("E", "e").replace("e+", "e");
 	}
 	private String removeLeadingZero(String s) {
 		if (s.startsWith("0.") && s.length() > 2)
