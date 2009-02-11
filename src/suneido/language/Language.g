@@ -26,6 +26,16 @@ import suneido.SuException;
 		throws RecognitionException {
 		throw e;
 	}
+	public String addParens(String s) {
+		if (! s.startsWith("("))
+			 s = "(" + s + ")";
+		return s;
+	}
+	public String addSemi(String s) {
+		if (! s.endsWith("}"))
+			s += ";";
+		return s;
+		}
 }
 @rulecatch {
 	catch (RecognitionException e) {
@@ -80,27 +90,43 @@ constant returns [SuValue result]
     		throw new SuException("invalid date: " + $text); 
     	}
 	| FUNCTION '(' ')' compound
-		{ $result = SuString.literal("FUNCTION"); }
+		{ $result = new SuFunction($compound.s); }
 	;
 
-statement
+compound returns [String s]
+	@init { s = ""; }
+	: '{' (statement
+			{ $s += $statement.s; }
+	  )* (NL | ';')* '}'
+	;
+	
+statement returns [String s]
 	: (NL | ';')* stmt
+		{ $s = addSemi($stmt.s) + " "; }
 	;
-stmt
+stmt returns [String s]
 	: expr
-	| compound
+		{ $s = $expr.s; }
 	| IF NL* expr NL* statement
+		{ $s = "if " + addParens($expr.s) + " { " + $statement.s + "}"; }
 	| RETURN expr?
-		{ System.out.println($text); }
+		{ $s = "return" + ($expr.s == null ? "" : " " + $expr.s); }
+	| compound
+	  	{ $s = "{ " + $compound.s + "}"; }
 	;
 	
-compound
-	: '{' statement* (NL | ';')* '}'
+expr returns [String s] 
+	: triop
+		{ return $triop.s; } 
 	;
-	
-expr : triop ;
 
-triop : term ( '?' triop ':' triop )? ;
+triop returns [String s]
+	: term
+		{ $s = $text; }
+	| term '?' first=triop ':' second=triop
+		{ $s = "(" + $term.text + " ? " + $first.s + " : " + $second.s + ")"; } 
+		
+	;
 
 term
 	: '(' expr ')'
