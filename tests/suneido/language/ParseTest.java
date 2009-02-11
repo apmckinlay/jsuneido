@@ -20,24 +20,24 @@ public class ParseTest {
 			"0xff", "255",
 			"'hello'", null,
 			"#20080101", null,
-			"function () { }", "'FUNCTION'",
-			"function () { x }", "'FUNCTION'",
-			"function () { x y }", "'FUNCTION'",
-			"function () { if (x) y }", "'FUNCTION'",
-			"function () { if x y }", "'FUNCTION'",
-			"function () { if (x) if (y) z }", "'FUNCTION'",
-			"function () { if x if y z }", "'FUNCTION'",
-			"function () { x; y; z; }", "'FUNCTION'",
-			"function () { x y z }", "'FUNCTION'",
-			"function () { return }", "'FUNCTION'",
-			"function () { return \n x }", "'FUNCTION'",
-			"function () { return; x }", "'FUNCTION'",
-			"function () { if x return y }", "'FUNCTION'",
-			"function () { x ? y : a ? b : c z }", "'FUNCTION'",
+			"function () { }", "",
+			"function () { x }", "x;",
+			"function () { x y }", "x; y;",
+			"function () { if (x) y }", "if (x) { y; }",
+			"function () { if x y }", "if (x) { y; }",
+			"function () { if (x) if (y) z }", "if (x) { if (y) { z; } }",
+			"function () { if x if y z }", "if (x) { if (y) { z; } }",
+			"function () { x; y; z; }", "x; y; z;",
+			"function () { x y z }", "x; y; z;",
+			"function () { return }", "return;",
+			"function () { return x }", "return x;",
+			"function () { return \n x }", "return; x;",
+			"function () { return; x }", "return; x;",
+			"function () { if x return y }", "if (x) { return y; }",
+			"function () { x ? y : a ? b : c z }", "(x ? y : (a ? b : c)); z;",
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];
-System.out.println(s);
 			String expect = cases[i + 1] == null ? s : cases[i + 1];
 			assertEquals(s, expect, ParseLanguage.parse(s).toString());
 		}
