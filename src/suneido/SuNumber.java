@@ -138,6 +138,11 @@ public abstract class SuNumber extends SuValue {
 			return new SuDecimal(s);
 	}
 
+	@Override
+	public String string() {
+		return toString();
+	}
+
 //	public static void main(String args[]) {
 //		String[] values = {
 //				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
