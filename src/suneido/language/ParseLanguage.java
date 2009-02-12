@@ -8,6 +8,7 @@ import suneido.SuValue;
 public class ParseLanguage {
 	public static SuValue parse(String s) {
 		LanguageParser parser = parser(s);
+		parser.builder = new StringBuilder();
 		try {
 			return parser.top_constant();
 		} catch (RecognitionException e) {
