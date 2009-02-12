@@ -14,6 +14,8 @@ options {
 }
 
 @members {
+	Builder builder;
+	
 	protected void mismatch(IntStream input, int ttype, BitSet follow)
 		throws RecognitionException {
 		throw new MismatchedTokenException(ttype, input);
@@ -71,15 +73,19 @@ options {
 top_constant returns [SuValue result]
 	: constant EOF
 		{ $result = $constant.result; }
-	; 
+	;
+top_statementList returns [Object n]
+	: statementList EOF
+		{ $n = $statementList.n; }
+	;
 
 constant returns [SuValue result]
 	: '-'? NUM
 		{ $result = SuNumber.valueOf($text); }
     | STR
     	{ $result = SuString.literal($text); }
-    | '#' ID
-    	{ $result = Symbols.symbol($ID.text); }
+    | '#' IDENTIFIER
+    	{ $result = Symbols.symbol($IDENTIFIER.text); }
     | DATE
     	{ 
     	$result = SuDate.literal($text);
@@ -87,61 +93,61 @@ constant returns [SuValue result]
     		throw new SuException("invalid date: " + $text); 
     	}
 	| FUNCTION '(' ')' compound
-		{ $result = new SuFunction($compound.s); }
+		{ $result = builder.function($compound.n); }
 	;
 
-compound returns [String s]
+compound returns [Object n]
 	: '{' NL* ( statementList NL* )? '}'
-		{ $s = $statementList.s == null ? "" : $statementList.s; }
+		{ $n = $statementList.n; }
 	;
 	
-statementList returns [String s]
-	@init { s = ""; }
+statementList returns [Object n]
 	: first=statement
-			{ $s += $first.s + " "; }
+			{ $n = builder.statementList(null, $first.n); }
 	  ( (NL+ | ';') next=statement
-	  		{ $s += $next.s + " "; }
+	  		{ $n = builder.statementList($n, $next.n); }
 	  )* ';'?
 	;
 	
-statement returns [String s]
+statement returns [Object n]
 	: expression
-		{ $s = $expression.s + ";"; }
-	| IF NL* expression NL* t=statement
-		{ $s = "if " + addParens($expression.s) + " { " + $t.s + " }"; }
+		{ $n = builder.expressionStatement($expression.n); }
+	| IF NL* expression NL* t=statement ( ELSE f=statement )?
+		{ $n = builder.ifStatement($expression.n, $t.n, $f.n); }
 	| RETURN expression?
-		{ $s = "return" + ($expression.s == null ? "" : " " + $expression.s) + ";"; }
+		{ $n = builder.returnStatement($expression.n); }
 	| compound
-	  	{ $s = "{ " + $compound.s + "}"; }
+	  	{ $n = $compound.n; }
 	;
 	
-expression returns [String s] 
+expression returns [Object n]
 	: assignmentExpression
-		{ $s = $assignmentExpression.s; } 
+		{ $n = $assignmentExpression.n; } 
 	| conditionalExpression
-		{ $s = $conditionalExpression.s; } 
+		{ $n = $conditionalExpression.n; } 
 	;
 	
-assignmentExpression returns [String s] 
-	: ID NL* '=' NL* expression
-		{ $s = $ID.text + " = " + $expression.s; }
+assignmentExpression returns [Object n]
+	: IDENTIFIER NL* '=' NL* expression
+		{ $n = builder.assignment($IDENTIFIER.text, $expression.n); }
 	;
 	
-conditionalExpression returns [String s]
+conditionalExpression returns [Object n]
 	: primaryExpression ( NL* q='?' NL* first=conditionalExpression NL* 
 		':' NL* second=conditionalExpression )?
-		{ $s = $q == null ? $primaryExpression.s : 
-			"(" + $primaryExpression.s + " ? " + $first.s + " : " + $second.s + ")"; } 
+		{ $n = $q == null 
+			? $primaryExpression.n
+			: builder.conditional($primaryExpression.n, $first.n, $second.n); } 
 		
 	;
 
-primaryExpression returns [String s]
+primaryExpression returns [Object n]
 	: '(' NL* expression NL* ')'
-		{ $s = "(" + $expression.s + ")"; }
+		{ $n = $expression.n; }
 	| constant
-		{ $s = $constant.result.toString(); }
-	| ID
-		{ $s = $ID.text; }
+		{ $n = builder.constant($constant.result); }
+	| IDENTIFIER
+		{ $n = builder.identifier($IDENTIFIER.text); }
 	;
 	
 AND			: 'and' ;
@@ -192,7 +198,7 @@ VALUE		: 'value' ;
 VOID		: 'void' ;
 WHILE		: 'while' ;
 
-ID		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
+IDENTIFIER		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 
 DATE	: YMD
 		| YMD '.' HM (('0'..'9')('0'..'9')(('0'..'9')('0'..'9')('0'..'9'))?)?

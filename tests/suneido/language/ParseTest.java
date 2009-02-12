@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import suneido.SuException;
+import suneido.*;
 
 public class ParseTest {
 	@Test
@@ -18,7 +18,7 @@ public class ParseTest {
 			"1e-3", ".001",
 			"0177", "127",
 			"0xff", "255",
-			"'hello'", null,
+			"'hello'", "hello",
 			"#20080101", null,
 			"function () { }", "",
 			"function () { x }", "x;",
@@ -39,13 +39,14 @@ public class ParseTest {
 			"function () { return; x }", "return; x;",
 			"function () { if x return y }", "if (x) { return y; }",
 			"function () { x ? y : a ? b : c }", "(x ? y : (a ? b : c));",
-			"function () { x = y \n = z }", "x = y = z;",
+			"function () { x = y \n = z }", "x = (y = (z));",
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];
 System.out.println(s);
 			String expect = cases[i + 1] == null ? s : cases[i + 1];
-			assertEquals(s, expect, ParseLanguage.parse(s).toString());
+			SuValue x = ParseLanguage.parse(s);
+			assertEquals(s, expect, x instanceof SuString ? x.string() : x.toString());
 		}
 	}
 
