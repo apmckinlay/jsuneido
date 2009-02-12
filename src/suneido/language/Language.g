@@ -2,18 +2,15 @@ grammar Language;
 
 options {
 	language = Java;
-	backtrack = true;
-	k = 3;
 }
 
 @header {
-package suneido.language;
-
-import suneido.*;
+	package suneido.language;
+	import suneido.*;
 }
 @lexer::header {
-package suneido.language;
-import suneido.SuException;
+	package suneido.language;
+	import suneido.SuException;
 }
 
 @members {
@@ -74,7 +71,7 @@ import suneido.SuException;
 top_constant returns [SuValue result]
 	: constant EOF
 		{ $result = $constant.result; }
-	;
+	; 
 
 constant returns [SuValue result]
 	: '-'? NUM
@@ -94,47 +91,59 @@ constant returns [SuValue result]
 	;
 
 compound returns [String s]
+	: '{' NL* ( statementList NL* )? '}'
+		{ $s = $statementList.s == null ? "" : $statementList.s; }
+	;
+	
+statementList returns [String s]
 	@init { s = ""; }
-	: '{' (statement
-			{ $s += $statement.s; }
-	  )* (NL | ';')* '}'
+	: first=statement
+			{ $s += $first.s + " "; }
+	  ( (NL+ | ';') next=statement
+	  		{ $s += $next.s + " "; }
+	  )* ';'?
 	;
 	
 statement returns [String s]
-	: (NL | ';')* stmt
-		{ $s = addSemi($stmt.s) + " "; }
-	;
-stmt returns [String s]
-	: expr
-		{ $s = $expr.s; }
-	| IF NL* expr NL* statement
-		{ $s = "if " + addParens($expr.s) + " { " + $statement.s + "}"; }
-	| RETURN expr?
-		{ $s = "return" + ($expr.s == null ? "" : " " + $expr.s); }
+	: expression
+		{ $s = $expression.s + ";"; }
+	| IF NL* expression NL* t=statement
+		{ $s = "if " + addParens($expression.s) + " { " + $t.s + " }"; }
+	| RETURN expression?
+		{ $s = "return" + ($expression.s == null ? "" : " " + $expression.s) + ";"; }
 	| compound
 	  	{ $s = "{ " + $compound.s + "}"; }
 	;
 	
-expr returns [String s] 
-	: triop
-		{ return $triop.s; } 
+expression returns [String s] 
+	: assignmentExpression
+		{ $s = $assignmentExpression.s; } 
+	| conditionalExpression
+		{ $s = $conditionalExpression.s; } 
 	;
-
-triop returns [String s]
-	: term
-		{ $s = $text; }
-	| term '?' first=triop ':' second=triop
-		{ $s = "(" + $term.text + " ? " + $first.s + " : " + $second.s + ")"; } 
+	
+assignmentExpression returns [String s] 
+	: ID NL* '=' NL* expression
+		{ $s = $ID.text + " = " + $expression.s; }
+	;
+	
+conditionalExpression returns [String s]
+	: primaryExpression ( NL* q='?' NL* first=conditionalExpression NL* 
+		':' NL* second=conditionalExpression )?
+		{ $s = $q == null ? $primaryExpression.s : 
+			"(" + $primaryExpression.s + " ? " + $first.s + " : " + $second.s + ")"; } 
 		
 	;
 
-term
-	: '(' expr ')'
+primaryExpression returns [String s]
+	: '(' NL* expression NL* ')'
+		{ $s = "(" + $expression.s + ")"; }
 	| constant
+		{ $s = $constant.result.toString(); }
 	| ID
-	| ID '=' constant
+		{ $s = $ID.text; }
 	;
-
+	
 AND			: 'and' ;
 BOOL		: 'bool' ;
 BREAK		: 'break' ;
