@@ -26,7 +26,7 @@ public class StringBuilder implements Builder {
 	}
 
 	public String ifStatement(Object expression, Object t, Object f) {
-		return "if (" + expression + ") { " + (String) t + " }" + str(" else { ", f, " }");
+		return "if (" + expression + ") {" + str(" ", t) + " }" + str(" else { ", f, " }");
 	}
 
 	public String returnStatement(Object expression) {
@@ -39,6 +39,22 @@ public class StringBuilder implements Builder {
 
 	public String statementList(Object n, Object next) {
 		return str(n) + str(next) + " ";
+	}
+
+	public Object whileStatement(Object expression, Object statement) {
+		return "while (" + expression + ") {" + str(" ", statement) + " }";
+	}
+
+	public Object dowhileStatement(Object statement, Object expression) {
+		return "do {" + str(" ", statement) + " } while (" + expression + ")";
+	}
+
+	public Object binaryExpression(String op, Object list, Object next) {
+		return str(list) + ' ' + op + ' ' + str(next);
+	}
+
+	public Object unaryExpression(String op, Object expression) {
+		return op + (String) expression;
 	}
 
 	private String str(Object x) {
