@@ -5,9 +5,20 @@ import static suneido.language.Token.*;
 public class Lexer {
 	private final String source;
 	private int si = 0;
+	private int prev;
+	private String value = "";
+	private Token keyword;
 
 	public Lexer(String source) {
 		this.source = source;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public Token getKeyword() {
+		return keyword;
 	}
 
 	public Token next() {
@@ -21,6 +32,8 @@ public class Lexer {
 	public Token nextAll() {
 		if (si >= source.length())
 			return EOF;
+		value = "";
+		prev = si;
 		char c = source.charAt(si);
 		if (Character.isWhitespace(c)) {
 			boolean eol = false;
@@ -187,7 +200,7 @@ public class Lexer {
 				while (-1 != Character.digit(charAt(si), 16))
 					++si;
 				// NOTE: this accepts "0x"
-				return NUMBER;
+				return value(NUMBER);
 			}
 			// fall thru
 		case '1':
@@ -204,7 +217,7 @@ public class Lexer {
 			if (charAt(si) == '.')
 				++si;
 			else if (charAtLower(si) != 'e')
-				return NUMBER;
+				return value(NUMBER);
 			// fall thru
 		case '.':
 			// NOTE: this accepts ".e1"
@@ -217,15 +230,19 @@ public class Lexer {
 				while (Character.isDigit(charAt(si)))
 					++si;
 			}
-			return NUMBER;
+			return value(NUMBER);
 		case '"' :
 		case '\'' :
 			char quote = c;
-			for (; si < source.length() && source.charAt(si) != quote; ++si)
-				if ('\\' == charAt(si))
-					doesc();
+			StringBuilder sb = new StringBuilder();
+			for (; si < source.length() && (c = source.charAt(si)) != quote; ++si)
+				if (c == '\\')
+					sb.append(doesc());
+				else
+					sb.append(c);
 			if (si < source.length())
 				++si;	// skip closing quote
+			value = sb.toString();
 			return STRING;
 		default:
 			if (Character.isLetter(c) || c == '_') {
@@ -238,10 +255,17 @@ public class Lexer {
 				}
 				if (c == '?' || c == '!')
 					++si;
-				return IDENTIFIER;
+				value = source.substring(prev, si);
+				keyword = Keywords.lookup(value);
+				return keyword != null && keyword.isOperator() ? keyword : IDENTIFIER;
 			}
 			return ERROR;
 		}
+	}
+
+	private Token value(Token token) {
+		value = source.substring(prev, si);
+		return token;
 	}
 
 	private char doesc() {
@@ -256,10 +280,9 @@ public class Lexer {
 		case 'r' :
 			return '\r';
 		case 'x' :
-			if (-1 != (dig1 = Character.digit(charAt(si), 16)) &&
-					-1 != (dig2 = Character.digit(charAt(si + 1), 16))) {
+			if (-1 != (dig1 = Character.digit(charAt(si + 1), 16)) && -1 != (dig2 = Character.digit(charAt(si + 2), 16))) {
 				si += 2;
-				return (char) (16 * dig2 + dig1);
+				return (char) (16 * dig1 + dig2);
 				}
 			else
 				return source.charAt(--si);
@@ -272,7 +295,7 @@ public class Lexer {
 					-1 != (dig2 = Character.digit(charAt(si + 1), 8)) &&
 					-1 != (dig3 = Character.digit(charAt(si + 2), 8))) {
 				si += 2;
-				return (char) (64 * dig3 + 8 * dig2 + dig1);
+				return (char) (64 * dig1 + 8 * dig2 + dig3);
 				}
 			else
 				return source.charAt(--si);

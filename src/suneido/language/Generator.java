@@ -2,7 +2,7 @@ package suneido.language;
 
 import suneido.SuValue;
 
-public interface Builder {
+public interface Generator {
 
 	Object assignment(String text, Object expression);
 

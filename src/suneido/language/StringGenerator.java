@@ -3,7 +3,7 @@ package suneido.language;
 import suneido.SuString;
 import suneido.SuValue;
 
-public class StringBuilder implements Builder {
+public class StringGenerator implements Generator {
 
 	public String assignment(String text, Object expression) {
 		return text + " = (" + (String) expression + ")";
