@@ -4,13 +4,19 @@ import suneido.SuValue;
 
 public interface Builder {
 
-	SuValue function(Object compound);
-
 	Object assignment(String text, Object expression);
+
+	Object binaryExpression(String op, Object list, Object next);
 
 	Object conditional(Object primaryExpression, Object first, Object second);
 
 	Object constant(SuValue result);
+
+	Object dowhileStatement(Object statement, Object expression);
+
+	Object expressionStatement(Object expression);
+
+	SuValue function(Object compound);
 
 	Object identifier(String text);
 
@@ -20,6 +26,8 @@ public interface Builder {
 
 	Object statementList(Object n, Object next);
 
-	Object expressionStatement(Object expression);
+	Object unaryExpression(String op, Object expression);
+
+	Object whileStatement(Object expression, Object statement);
 
 }

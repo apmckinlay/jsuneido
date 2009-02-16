@@ -26,8 +26,9 @@ public class ParseTest {
 			"function () { x ; y }", "x; y;",
 			"function () { x; y; }", "x; y;",
 			"function () { x \n y }", "x; y;",
-			"function () { if (x) y }", "if (x) { y; }",
-			"function () { if x y }", "if (x) { y; }",
+//			"function () { if (x) y }", "if (x) { y; }",
+//			"function () { if (x) {} }", "if (x) { }",
+			"function () { if x \n y }", "if (x) { y; }",
 			"function () { if (x) if (y) z }", "if (x) { if (y) { z; } }",
 			"function () { if x if y z }", "if (x) { if (y) { z; } }",
 			"function () { x; y; z; }", "x; y; z;",
@@ -40,6 +41,9 @@ public class ParseTest {
 			"function () { if x return y }", "if (x) { return y; }",
 			"function () { x ? y : a ? b : c }", "(x ? y : (a ? b : c));",
 			"function () { x = y \n = z }", "x = (y = (z));",
+			"function () { while (x) y }", "while (x) { y; }",
+			"function () { while x \n y }", "while (x) { y; }",
+			"function () { do a while (b) }", "do { a; } while (b)",
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			String s = cases[i];

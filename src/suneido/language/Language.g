@@ -74,15 +74,18 @@ top_constant returns [SuValue result]
 	: constant EOF
 		{ $result = $constant.result; }
 	;
-top_statementList returns [Object n]
-	: statementList EOF
-		{ $n = $statementList.n; }
-	;
-
+	
 constant returns [SuValue result]
-	: '-'? NUM
+	: constantValue
+		{ $result = $constantValue.result; }
+	| '-' NUMBER
 		{ $result = SuNumber.valueOf($text); }
-    | STR
+	;
+	
+constantValue returns [SuValue result]
+	: NUMBER
+		{ $result = SuNumber.valueOf($text); }
+    | STRING
     	{ $result = SuString.literal($text); }
     | '#' IDENTIFIER
     	{ $result = Symbols.symbol($IDENTIFIER.text); }
@@ -112,12 +115,61 @@ statementList returns [Object n]
 statement returns [Object n]
 	: expression
 		{ $n = builder.expressionStatement($expression.n); }
-	| IF NL* expression NL* t=statement ( ELSE f=statement )?
-		{ $n = builder.ifStatement($expression.n, $t.n, $f.n); }
+	| IF NL* controlExpression t=statement f=elsePart
+		{ $n = builder.ifStatement($controlExpression.n, $t.n, $f.n); }
+	| WHILE NL* controlExpression b=statement
+		{ $n = builder.whileStatement($controlExpression.n, $b.n); }
+	| DO NL* b=statement WHILE NL* expression
+		{ $n = builder.dowhileStatement($b.n, $expression.n); }
+	| FOREVER NL* b=statement
+	| FOR forInExpression b=statement
+	| FOR '(' forExpression ';' forExpression ';' forExpression ')' b=statement
 	| RETURN expression?
 		{ $n = builder.returnStatement($expression.n); }
 	| compound
 	  	{ $n = $compound.n; }
+	| BREAK
+	| CONTINUE
+	| TRY NL* statement catcher
+	| SWITCH expression NL* '{' (NL* switchCase NL* statement)* NL* '}'
+	;
+	
+controlExpression returns [Object n]
+	: ('(')=> '(' expression ')' NL*
+		{ $n = $expression.n; }
+	| expression NL+
+		{ $n = $expression.n; }
+	;
+
+elsePart returns [Object n]
+	: (ELSE)=> ELSE statement
+		{ $n = $statement.n; }
+	| /* empty */
+	;
+	
+forInExpression returns [Object n]
+	: IDENTIFIER NL* IN NL* expression NL+
+	| '(' IDENTIFIER NL* IN NL* expression ')' NL*
+	;
+	
+forExpression returns [Object n]
+	: /* empty */
+	| expression (',' expression)*
+	;
+	
+catcher returns [Object n]
+	: (NL* CATCH)=> NL* CATCH catchParameters NL* statement
+	| /* empty */
+	;
+	
+catchParameters returns [Object n]
+	: ('(')=> '(' IDENTIFIER (',' STRING)? ')'
+	| /* empty */ 
+	;
+	
+switchCase returns [Object n]
+	: CASE constant (',' constant)* ':'
+	| DEFAULT ':'
 	;
 	
 expression returns [Object n]
@@ -133,24 +185,54 @@ assignmentExpression returns [Object n]
 	;
 	
 conditionalExpression returns [Object n]
-	: primaryExpression ( NL* q='?' NL* first=conditionalExpression NL* 
+	: orExpression ( NL* q='?' NL* first=conditionalExpression NL* 
 		':' NL* second=conditionalExpression )?
 		{ $n = $q == null 
-			? $primaryExpression.n
-			: builder.conditional($primaryExpression.n, $first.n, $second.n); } 
+			? $orExpression.n
+			: builder.conditional($orExpression.n, $first.n, $second.n); } 
 		
+	;
+	
+orExpression returns [Object n]
+	: first=andExpression
+			{ $n = $first.n; }
+		( op=OR NL* next=andExpression
+			{ $n = builder.binaryExpression($op.text, $n, $next.n); } 
+		)*
+	;
+	
+andExpression returns [Object n]
+	: first=mulExpression
+			{ $n = $first.n; }
+		( op=AND NL* next=mulExpression
+			{ $n = builder.binaryExpression($op.text, $n, $next.n); } 
+		)*
+	;
+	
+mulExpression returns [Object n]
+	: first=unaryExpression
+			{ $n = $first.n; }
+		( op=('*' | '/' | '%') NL* next=unaryExpression
+			{ $n = builder.binaryExpression($op.text, $n, $next.n); } 
+		)*
+	;
+	
+unaryExpression returns [Object n]
+	: op=('+' | '-')? primaryExpression
+		{ $n = $op == null ? $primaryExpression.n : 
+			builder.unaryExpression($op.text, $primaryExpression.n); }
 	;
 
 primaryExpression returns [Object n]
 	: '(' NL* expression NL* ')'
 		{ $n = $expression.n; }
-	| constant
-		{ $n = builder.constant($constant.result); }
+	| constantValue
+		{ $n = builder.constant($constantValue.result); }
 	| IDENTIFIER
 		{ $n = builder.identifier($IDENTIFIER.text); }
 	;
 	
-AND			: 'and' ;
+AND			: 'and' | '&&' ;
 BOOL		: 'bool' ;
 BREAK		: 'break' ;
 BUFFER		: 'buffer' ;
@@ -181,12 +263,11 @@ ISNT		: 'isnt' ;
 LIST		: 'list' ;
 LONG		: 'long' ;
 NEW			: 'new' ;
-NOT			: 'not' ;
-OR			: 'or' ;
+NOT			: 'not' | '!';
+OR			: 'or' | '||' ;
 RESOURCE	: 'resource' ;
 RETURN		: 'return' ;
 SHORT		: 'short' ;
-STRING		: 'string' ;
 STRUCT		: 'struct' ;
 SUPER		: 'super' ;
 SWITCH		: 'switch' ;
@@ -198,11 +279,13 @@ VALUE		: 'value' ;
 VOID		: 'void' ;
 WHILE		: 'while' ;
 
-IDENTIFIER		: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
+IDENTIFIER		
+	: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*('?'|'!')? ;
 
-DATE	: YMD
-		| YMD '.' HM (('0'..'9')('0'..'9')(('0'..'9')('0'..'9')('0'..'9'))?)?
-		;
+DATE
+	: YMD
+	| YMD '.' HM (('0'..'9')('0'..'9')(('0'..'9')('0'..'9')('0'..'9'))?)?
+	;
 fragment
 YMD	: '#' ('1'..'2')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9')('0'..'9') ;
 fragment
@@ -212,7 +295,8 @@ NL	: '\n' ;
 WS	: (' '|'\t'|'\r')+ { skip(); } ; // ignore whitespace
 COMMENT : '/*' .* '*/' { skip(); } ; // ignore comments
 
-STR	: '"' ( ESCAPE | ~('"'|'\\') )* '"'
+STRING	
+	: '"' ( ESCAPE | ~('"'|'\\') )* '"'
 		{ String s = getText(); setText(s.substring(1, s.length() - 1)); }
 	| '\'' ( ESCAPE | ~('\''|'\\') )* '\''
 		{ String s = getText(); setText(s.substring(1, s.length() - 1)); }
@@ -220,7 +304,8 @@ STR	: '"' ( ESCAPE | ~('"'|'\\') )* '"'
 fragment
 ESCAPE : '\\' . ;
     
-NUM : '0x' HEX +
+NUMBER 
+	: '0x' HEX +
     | '0' OCT *
     | ('1'..'9') DIG* ('.' DIG*)? EXP?
     | '.' DIG+ EXP?
