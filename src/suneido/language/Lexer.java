@@ -2,6 +2,8 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 
+import java.io.*;
+
 public class Lexer {
 	private final String source;
 	private int si = 0;
@@ -32,7 +34,8 @@ public class Lexer {
 	public Token nextAll() {
 		if (si >= source.length())
 			return EOF;
-		value = "";
+		value = null;
+		keyword = null;
 		prev = si;
 		char c = source.charAt(si);
 		if (Character.isWhitespace(c)) {
@@ -223,6 +226,8 @@ public class Lexer {
 			// NOTE: this accepts ".e1"
 			while (Character.isDigit(charAt(si)))
 				++si;
+			if (c == '.' && si == prev + 1)
+				return DOT;
 			if (charAtLower(si) == 'e') {
 				++si;
 				if (charAt(si) == '+' || charAt(si) == '-')
@@ -309,4 +314,29 @@ public class Lexer {
 		return i < source.length() ? Character.toLowerCase(source.charAt(i)) : 0;
 	}
 
+	public static void main(String[] args) throws IOException {
+		BufferedReader rdr = new BufferedReader(new FileReader("lexer.in"));
+		String line;
+		while (null != (line = rdr.readLine())) {
+			System.out.println(line);
+			Lexer lexer = new Lexer(line);
+			Token token;
+			while (EOF != (token = lexer.next())) {
+				System.out.println(token + str(lexer.getKeyword(), lexer.getValue()));
+			}
+		}
+	}
+
+	private static String str(Token x, String s) {
+		if (x != null)
+			return "\t" + x;
+		else if (s != null)
+			return "\t" + s;
+		else
+			return "";
+	}
+
+	private static String str(String s, String x) {
+		return x == null ? "" : s + x;
+	}
 }

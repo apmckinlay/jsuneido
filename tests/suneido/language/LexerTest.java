@@ -14,9 +14,9 @@ public class LexerTest {
 
 	@Test
 	public void singleChar() {
-		check("#(),:;?@[]{}",
+		check("#(),:;?@[]{}.",
 				HASH, L_PAREN, R_PAREN, COMMA, COLON, SEMICOLON, Q_MARK, AT,
-				L_BRACKET, R_BRACKET, L_CURLY, R_CURLY);
+				L_BRACKET, R_BRACKET, L_CURLY, R_CURLY, DOT);
 	}
 
 	@Test
