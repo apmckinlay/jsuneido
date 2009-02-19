@@ -103,8 +103,8 @@ public class RecordTest {
 		r.add(data);
 		assertFalse(r.equals(r2));
 		assertFalse(r2.equals(r));
-		assertEquals(+1, Math.signum(r.compareTo(r2)));
-		assertEquals(-1, Math.signum(r2.compareTo(r)));
+		assertEquals(+1, Integer.signum(r.compareTo(r2)));
+		assertEquals(-1, Integer.signum(r2.compareTo(r)));
 		r2.add(data);
 		assertEquals(r, r2);
 		assertEquals(r2, r);
@@ -112,8 +112,8 @@ public class RecordTest {
 		r.add(data2);
 		r2.add(data2);
 		r2.add(data);
-		assertEquals(-1, Math.signum(r.compareTo(r2)));
-		assertEquals(+1, Math.signum(r2.compareTo(r)));
+		assertEquals(-1, Integer.signum(r.compareTo(r2)));
+		assertEquals(+1, Integer.signum(r2.compareTo(r)));
 	}
 
 	@Test
