@@ -47,6 +47,7 @@ public class LexerTest {
 	@Test
 	public void newline() {
 		checkAll(" \n ", NEWLINE);
+		checkAll("\n ", NEWLINE);
 	}
 
 	@Test

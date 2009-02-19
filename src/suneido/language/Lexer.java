@@ -32,19 +32,14 @@ public class Lexer {
 	}
 
 	public Token nextAll() {
-		if (si >= source.length())
-			return EOF;
 		value = null;
 		keyword = null;
 		prev = si;
+		if (si >= source.length())
+			return EOF;
 		char c = source.charAt(si);
-		if (Character.isWhitespace(c)) {
-			boolean eol = false;
-			for (; Character.isWhitespace(c = charAt(si)); ++si)
-				if (c == '\r' || c == '\n')
-					eol = true;
-			return eol ? NEWLINE : WHITE;
-		}
+		if (Character.isWhitespace(c))
+			return whitespace();
 		++si;
 		switch (c) {
 		case '#': return HASH;
@@ -268,6 +263,15 @@ public class Lexer {
 		}
 	}
 
+	private Token whitespace() {
+		char c;
+		boolean eol = false;
+		for (; Character.isWhitespace(c = charAt(si)); ++si)
+			if (c == '\r' || c == '\n')
+				eol = true;
+		return eol ? NEWLINE : WHITE;
+	}
+
 	private Token value(Token token) {
 		value = source.substring(prev, si);
 		return token;
@@ -334,9 +338,5 @@ public class Lexer {
 			return "\t" + s;
 		else
 			return "";
-	}
-
-	private static String str(String s, String x) {
-		return x == null ? "" : s + x;
 	}
 }
