@@ -2,18 +2,13 @@ package suneido.language;
 
 import static suneido.language.Token.NUMBER;
 import static suneido.language.Token.STRING;
-import suneido.SuException;
 
-public class ParseConstant<T> extends Parse {
-	private final Lexer lexer;
-	private final Generator<T> generator;
-	private Token token;
-	private String value;
-
+public class ParseConstant<T> extends Parse<T> {
 	ParseConstant(Lexer lexer, Generator<T> generator) {
-		this.lexer = lexer;
-		this.generator = generator;
-		match();
+		super(lexer, generator);
+	}
+	ParseConstant(Parse<T> parse) {
+		super(parse);
 	}
 
 	public T constant() {
@@ -78,33 +73,5 @@ public class ParseConstant<T> extends Parse {
 
 	private T symbol() {
 		return matchReturn(generator.symbol(value));
-	}
-
-	private T matchReturn(T result) {
-		match();
-		return result;
-	}
-	private T matchReturn(Token token, T result) {
-		match(token);
-		return result;
-	}
-
-	private void match() {
-		token = lexer.next();
-		value = lexer.getValue();
-	}
-
-	private void match(Token expected) {
-		if (this.token != expected)
-			syntaxError();
-		match();
-	}
-
-	private void syntaxError() {
-		throw new SuException("syntax error: unexpected " + token);
-	}
-
-	public void checkEof() {
-		match(Token.EOF);
 	}
 }
