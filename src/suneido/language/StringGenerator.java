@@ -3,21 +3,21 @@ package suneido.language;
 import suneido.SuString;
 import suneido.SuValue;
 
-public class StringGenerator implements Generator {
+public class StringGenerator implements Generator<String> {
 
-	public String assignment(String text, Object expression) {
-		return text + " = (" + (String) expression + ")";
+	public String assignment(String text, String expression) {
+		return text + " = (" + expression + ")";
 	}
 
-	public String conditional(Object expression, Object first, Object second) {
-		return "(" + expression + " ? " + (String) first + " : " + (String) second + ")";
+	public String conditional(String expression, String first, String second) {
+		return "(" + expression + " ? " + first + " : " + second + ")";
 	}
 
 	public String constant(SuValue result) {
 		return result.toString();
 	}
 
-	public SuValue function(Object compound) {
+	public SuValue function(String compound) {
 		return SuString.valueOf(str(compound).trim());
 	}
 
@@ -25,46 +25,66 @@ public class StringGenerator implements Generator {
 		return text;
 	}
 
-	public String ifStatement(Object expression, Object t, Object f) {
+	public String ifStatement(String expression, String t, String f) {
 		return "if (" + expression + ") {" + str(" ", t) + " }" + str(" else { ", f, " }");
 	}
 
-	public String returnStatement(Object expression) {
+	public String returnStatement(String expression) {
 		return "return" + str(" ", expression) + ";";
 	}
 
-	public Object expressionStatement(Object expression) {
-		return (String) expression + ";";
+	public String expressionStatement(String expression) {
+		return expression + ";";
 	}
 
-	public String statementList(Object n, Object next) {
+	public String statementList(String n, String next) {
 		return str(n) + str(next) + " ";
 	}
 
-	public Object whileStatement(Object expression, Object statement) {
+	public String whileStatement(String expression, String statement) {
 		return "while (" + expression + ") {" + str(" ", statement) + " }";
 	}
 
-	public Object dowhileStatement(Object statement, Object expression) {
+	public String dowhileStatement(String statement, String expression) {
 		return "do {" + str(" ", statement) + " } while (" + expression + ")";
 	}
 
-	public Object binaryExpression(String op, Object list, Object next) {
+	public String binaryExpression(String op, String list, String next) {
 		return str(list) + ' ' + op + ' ' + str(next);
 	}
 
-	public Object unaryExpression(String op, Object expression) {
-		return op + (String) expression;
+	public String unaryExpression(String op, String expression) {
+		return op + expression;
 	}
 
-	private String str(Object x) {
+	private String str(String x) {
 		return x == null ? "" : (String) x;
 	}
-	private String str(String s, Object x) {
-		return x == null ? "" : s + (String) x;
+	private String str(String s, String x) {
+		return x == null ? "" : s + x;
 	}
-	private String str(String s, Object x, String t) {
-		return x == null ? "" : s + (String) x + t;
+	private String str(String s, String x, String t) {
+		return x == null ? "" : s + x + t;
+	}
+
+	public String number(String value) {
+		return "number(" + value + ")";
+	}
+
+	public String string(String value) {
+		return "string(" + value + ")";
+	}
+
+	public String date(String value) {
+		return "date(" + value + ")";
+	}
+
+	public String symbol(String value) {
+		return "symbol(" + value + ")";
+	}
+
+	public String bool(String value) {
+		return value;
 	}
 
 }

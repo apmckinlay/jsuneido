@@ -2,32 +2,42 @@ package suneido.language;
 
 import suneido.SuValue;
 
-public interface Generator {
+public interface Generator<T> {
 
-	Object assignment(String text, Object expression);
+	T assignment(String text, T expression);
 
-	Object binaryExpression(String op, Object list, Object next);
+	T binaryExpression(String op, T list, T next);
 
-	Object conditional(Object primaryExpression, Object first, Object second);
+	T conditional(T primaryExpression, T first, T second);
 
-	Object constant(SuValue result);
+	T constant(SuValue result);
 
-	Object dowhileStatement(Object statement, Object expression);
+	T dowhileStatement(T statement, T expression);
 
-	Object expressionStatement(Object expression);
+	T expressionStatement(T expression);
 
-	SuValue function(Object compound);
+	SuValue function(T compound);
 
-	Object identifier(String text);
+	T identifier(String text);
 
-	Object ifStatement(Object expression, Object t, Object f);
+	T ifStatement(T expression, T t, T f);
 
-	Object returnStatement(Object expression);
+	T returnStatement(T expression);
 
-	Object statementList(Object n, Object next);
+	T statementList(T n, T next);
 
-	Object unaryExpression(String op, Object expression);
+	T unaryExpression(String op, T expression);
 
-	Object whileStatement(Object expression, Object statement);
+	T whileStatement(T expression, T statement);
+
+	T number(String value);
+
+	T string(String value);
+
+	T date(String value);
+
+	T symbol(String value);
+
+	T bool(String value);
 
 }
