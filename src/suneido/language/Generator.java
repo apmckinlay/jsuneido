@@ -6,7 +6,7 @@ public interface Generator<T> {
 
 	T assignment(String text, T expression);
 
-	T binaryExpression(String op, T list, T next);
+	T binaryExpression(Token op, T list, T next);
 
 	T conditional(T primaryExpression, T first, T second);
 
@@ -14,9 +14,11 @@ public interface Generator<T> {
 
 	T dowhileStatement(T statement, T expression);
 
+	T foreverStatement(T statement);
+
 	T expressionStatement(T expression);
 
-	SuValue function(T compound);
+	T function(T compound);
 
 	T identifier(String text);
 
@@ -26,7 +28,7 @@ public interface Generator<T> {
 
 	T statementList(T n, T next);
 
-	T unaryExpression(String op, T expression);
+	T unaryExpression(Token op, T expression);
 
 	T whileStatement(T expression, T statement);
 
