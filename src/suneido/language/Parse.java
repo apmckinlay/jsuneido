@@ -1,6 +1,7 @@
 package suneido.language;
 
 import suneido.SuException;
+import static suneido.language.Token.*;
 
 public class Parse<T> {
 
@@ -37,13 +38,18 @@ public class Parse<T> {
 	}
 
 	protected void match(Token expected) {
-		if (this.token != expected)
-			syntaxError();
-		match();
+		if (this.token == expected ||
+				(this.token == IDENTIFIER && lexer.getKeyword() == expected))
+			match();
+		else
+			syntaxError("expected: " + expected + " got: " + token);
 	}
 
 	protected void syntaxError() {
 		throw new SuException("syntax error: unexpected " + token);
+	}
+	protected void syntaxError(String s) {
+		throw new SuException("syntax error: " + s);
 	}
 
 	public void checkEof() {

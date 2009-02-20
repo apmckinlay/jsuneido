@@ -9,13 +9,13 @@ public class ParseConstantTest {
 	@Test
 	public void test() {
 		String[][] cases = new String[][] {
-			{ "123", "number(123)" },
-			{ "+123", "number(123)" },
-			{ "-123", "number(-123)" },
-			{ "'abc'", "string(abc)" },
-			{ "#20090219", "date(20090219)" },
-			{ "#foo", "symbol(foo)" },
-			{ "#'foo bar'", "symbol(foo bar)" },
+			{ "123", "n(123)" },
+			{ "+123", "n(123)" },
+			{ "-123", "n(-123)" },
+			{ "'abc'", "s(abc)" },
+			{ "#20090219", "d(20090219)" },
+			{ "#foo", "sym(foo)" },
+			{ "#'foo bar'", "sym(foo bar)" },
 			{ "true", "true" },
 			{ "false", "false" },
 		};

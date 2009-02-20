@@ -17,8 +17,8 @@ public class StringGenerator implements Generator<String> {
 		return result.toString();
 	}
 
-	public SuValue function(String compound) {
-		return SuString.valueOf(str(compound).trim());
+	public String function(String statementList) {
+		return "function () { " + str(statementList) + "}";
 	}
 
 	public String identifier(String text) {
@@ -49,12 +49,12 @@ public class StringGenerator implements Generator<String> {
 		return "do {" + str(" ", statement) + " } while (" + expression + ")";
 	}
 
-	public String binaryExpression(String op, String list, String next) {
-		return str(list) + ' ' + op + ' ' + str(next);
+	public String binaryExpression(Token op, String list, String next) {
+		return "(" + str(list) + " " + op + " " + str(next) + ")";
 	}
 
-	public String unaryExpression(String op, String expression) {
-		return op + expression;
+	public String unaryExpression(Token op, String expression) {
+		return "(" + op + " " + expression + ")";
 	}
 
 	private String str(String x) {
@@ -68,23 +68,27 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String number(String value) {
-		return "number(" + value + ")";
+		return "n(" + value + ")";
 	}
 
 	public String string(String value) {
-		return "string(" + value + ")";
+		return "s(" + value + ")";
 	}
 
 	public String date(String value) {
-		return "date(" + value + ")";
+		return "d(" + value + ")";
 	}
 
 	public String symbol(String value) {
-		return "symbol(" + value + ")";
+		return "sym(" + value + ")";
 	}
 
 	public String bool(String value) {
 		return value;
+	}
+
+	public String foreverStatement(String statement) {
+		return "forever { " + statement.trim() + " }";
 	}
 
 }
