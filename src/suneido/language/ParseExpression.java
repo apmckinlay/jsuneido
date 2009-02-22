@@ -18,9 +18,11 @@ public class ParseExpression<T> extends Parse<T> {
 	private T conditionalExpression() {
 		T first = orExpression();
 		if (token == Q_MARK) {
+			++statementNest;
 			match(Q_MARK);
 			T t = expression();
 			match(COLON);
+			--statementNest;
 			T f = expression();
 			return generator.conditional(first, t, f);
 		} else {

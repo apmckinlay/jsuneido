@@ -1,6 +1,5 @@
 package suneido.language;
 
-import suneido.SuString;
 import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
@@ -18,7 +17,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String function(String statementList) {
-		return "function () { " + str(statementList) + "}";
+		return "function () { " + str(statementList) + " }";
 	}
 
 	public String identifier(String text) {
@@ -37,8 +36,8 @@ public class StringGenerator implements Generator<String> {
 		return expression + ";";
 	}
 
-	public String statementList(String n, String next) {
-		return str(n) + str(next) + " ";
+	public String statementList(String list, String statement) {
+		return str("", list, " ") + str(statement);
 	}
 
 	public String whileStatement(String expression, String statement) {
@@ -46,7 +45,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String dowhileStatement(String statement, String expression) {
-		return "do {" + str(" ", statement) + " } while (" + expression + ")";
+		return "do {" + str(" ", statement) + " } while (" + expression + ");";
 	}
 
 	public String binaryExpression(Token op, String list, String next) {
@@ -89,6 +88,53 @@ public class StringGenerator implements Generator<String> {
 
 	public String foreverStatement(String statement) {
 		return "forever { " + statement.trim() + " }";
+	}
+
+	public String breakStatement() {
+		return "break;";
+	}
+
+	public String continueStatement() {
+		return "continue;";
+	}
+
+	public String throwStatement(String expression) {
+		return "throw " + expression + ";";
+	}
+
+	public String catcher(String variable, String pattern, String statement) {
+		return "catch" + str("(", variable, str(", '", pattern, "'") + ")")
+				+ " { " + statement + " }";
+	}
+
+	public String tryStatement(String tryStatement, String catcher) {
+		return "try { " + tryStatement + " }" + str(" ", catcher);
+	}
+
+	public String caseValues(String list, String expression) {
+		return str("", list, ", ") + expression;
+	}
+
+	public String switchCases(String list, String values, String statements) {
+		return str("", list, " ")
+				+ (values == null ? "default:" : "case " + values + ":")
+				+ " " + statements;
+	}
+
+	public String switchStatement(String expression, String cases) {
+		return "switch (" + expression + ") {" + str(" ", cases) + " }";
+	}
+
+	public String forInStatement(String var, String expr, String statement) {
+		return "for (" + var + " in " + expr + ") { " + statement + " }";
+	}
+
+	public String expressionList(String list, String expression) {
+		return str("", list, ", ") + expression;
+	}
+
+	public String forClassicStatement(String expr1, String expr2, String expr3, String statement) {
+		return "for (" + str(expr1) + "; " + str(expr2) + "; " + str(expr3) + ") { " + statement + " }";
 	}
 
 }

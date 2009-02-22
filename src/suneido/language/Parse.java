@@ -1,7 +1,7 @@
 package suneido.language;
 
-import suneido.SuException;
 import static suneido.language.Token.*;
+import suneido.SuException;
 
 public class Parse<T> {
 
@@ -9,6 +9,7 @@ public class Parse<T> {
 	protected final Generator<T> generator;
 	protected Token token;
 	protected String value;
+	protected int statementNest = 0;
 
 	Parse(Lexer lexer, Generator<T> generator) {
 		this.lexer = lexer;
@@ -26,22 +27,44 @@ public class Parse<T> {
 		match();
 		return result;
 	}
-
-	protected T matchReturn(Token token, T result) {
-		match(token);
+	protected T matchReturn(Token expected, T result) {
+		match(expected);
 		return result;
 	}
 
+	protected boolean matchIf(Token possible) {
+		if (token == possible || lexer.getKeyword() == possible) {
+			match();
+			return true;
+		} else
+			return false;
+	}
+	protected void match(Token expected) {
+		verifyMatch(expected);
+		match();
+	}
 	protected void match() {
+		matchKeepNewline(token);
+		if (statementNest > 0)
+			while (token == NEWLINE)
+				matchKeepNewline();
+	}
+
+	protected void matchKeepNewline(Token expected) {
+		verifyMatch(expected);
+		matchKeepNewline();
+	}
+	protected void matchKeepNewline() {
+		if (token == L_CURLY || token == L_PAREN || token == L_BRACKET)
+			++statementNest;
+		if (token == R_CURLY || token == R_PAREN || token == R_BRACKET)
+			--statementNest;
 		token = lexer.next();
 		value = lexer.getValue();
 	}
 
-	protected void match(Token expected) {
-		if (this.token == expected ||
-				(this.token == IDENTIFIER && lexer.getKeyword() == expected))
-			match();
-		else
+	private void verifyMatch(Token expected) {
+		if (this.token != expected && lexer.getKeyword() != expected)
 			syntaxError("expected: " + expected + " got: " + token);
 	}
 

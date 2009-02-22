@@ -42,4 +42,26 @@ public interface Generator<T> {
 
 	T bool(String value);
 
+	T breakStatement();
+
+	T continueStatement();
+
+	T throwStatement(T expression);
+
+	T catcher(String variable, String pattern, T statement);
+
+	T tryStatement(T tryStatement, T catcher);
+
+	T caseValues(T values, T expression);
+
+	T switchCases(T cases, T values, T statements);
+
+	T switchStatement(T expression, T cases);
+
+	T forInStatement(String var, T expr, T statement);
+
+	T forClassicStatement(T expr1, T expr2, T expr3, T statement);
+
+	T expressionList(T list, T expression);
+
 }
