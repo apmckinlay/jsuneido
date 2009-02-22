@@ -11,8 +11,20 @@ public class Lexer {
 	private String value = "";
 	private Token keyword;
 
+	private int save_si;
+	private int save_prev;
+	private String save_value;
+	private Token save_keyword;
+
 	public Lexer(String source) {
 		this.source = source;
+	}
+	public Lexer(Lexer lexer) {
+		source = lexer.source;
+		si = lexer.si;
+		prev = lexer.prev;
+		value = lexer.value;
+		keyword = lexer.keyword;
 	}
 
 	public String getValue() {
@@ -20,7 +32,7 @@ public class Lexer {
 	}
 
 	public Token getKeyword() {
-		return keyword;
+		return keyword == null ? NIL : keyword;
 	}
 
 	public Token next() {
