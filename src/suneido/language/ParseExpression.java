@@ -141,12 +141,76 @@ public class ParseExpression<T> extends Parse<T> {
 	}
 
 	private T term() {
-		switch (token) {
-		case IDENTIFIER:
-			return matchReturn(IDENTIFIER, generator.identifier(value));
-		default:
-			return constant();
+		T term = null;
+		boolean lvalue = true;
+		Token incdec = null;
+		if (token == INC || token == DEC) {
+			incdec = token;
+			match();
 		}
+		switch (token) {
+		case NUMBER:
+		case STRING:
+		case HASH:
+			term = constant();
+			lvalue = false;
+			break;
+//		case L_CURLY:
+//			block();
+//			break
+		case IDENTIFIER:
+			switch (lexer.getKeyword()) {
+//			case FUNCTION :
+//			case CLASS :
+//			case DLL :
+//			case STRUCT :
+//			case CALLBACK :
+//				term = constant();
+//				lvalue = false;
+//				break;
+			default:
+				term = matchReturn(IDENTIFIER, generator.identifier(value));
+			}
+			break;
+		case DOT:
+			term = generator.self();
+			break;
+		case L_PAREN:
+			match(L_PAREN);
+			term = expression();
+			match(R_PAREN);
+			lvalue = false;
+			break;
+		default:
+			syntaxError();
+		}
+
+		while (true) {
+			if (matchIf(DOT)) {
+				term = matchReturn(IDENTIFIER, generator.member(term, value));
+				lvalue = true;
+			} else if (matchIf(L_BRACKET)) {
+				term = generator.subscript(term, expression());
+				match(R_BRACKET);
+				lvalue = true;
+			} else if (matchIf(L_PAREN)) {
+				//TODO function call
+				lvalue = false;
+			} else
+				break;
+		}
+
+		if (incdec != null) {
+			if (!lvalue)
+				syntaxError("lvalue required");
+			term = generator.preIncDec(incdec, term);
+		} else if (token == INC || token == DEC) {
+			if (!lvalue)
+				syntaxError("lvalue required");
+			term = generator.postIncDec(token, term);
+			match();
+		}
+		return term;
 	}
 
 	private T constant() {

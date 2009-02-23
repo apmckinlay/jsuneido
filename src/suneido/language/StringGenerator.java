@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static suneido.language.Token.INC;
 import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
@@ -135,6 +136,26 @@ public class StringGenerator implements Generator<String> {
 
 	public String forClassicStatement(String expr1, String expr2, String expr3, String statement) {
 		return "for (" + str(expr1) + "; " + str(expr2) + "; " + str(expr3) + ") { " + statement + " }";
+	}
+
+	public String preIncDec(Token incdec, String lvalue) {
+		return (incdec == INC ? "++" : "--") + "(" + lvalue + ")";
+	}
+
+	public String postIncDec(Token incdec, String lvalue) {
+		return "(" + lvalue + ")" + (incdec == INC ? "++" : "--");
+	}
+
+	public String member(String term, String identifier) {
+		return term + "." + identifier;
+	}
+
+	public String subscript(String term, String expression) {
+		return term + "[" + expression + "]";
+	}
+
+	public String self() {
+		return "this";
 	}
 
 }

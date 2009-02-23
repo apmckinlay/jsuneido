@@ -1,7 +1,8 @@
 package suneido.language;
 
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * @author Andrew McKinlay
@@ -36,7 +37,14 @@ public class ParseExpressionTest {
             { "a / b / c", "((a DIV b) DIV c)" },
             { "a % b % c", "((a MOD b) MOD c)" },
 			{ "a * b + c * d", "((a MUL b) ADD (c MUL d))" },
+			{ "a * (b + c) * d", "((a MUL (b ADD c)) MUL d)" },
 			{ "+ - ! ~ x", "(ADD (SUB (NOT (BITNOT x))))" },
+			{ "--x", "--(x)" }, { "++x", "++(x)" }, { "x--", "(x)--" }, { "x++", "(x)++" },
+			{ "a.b", "a.b" },
+			{ "++a.b.c", "++(a.b.c)" },
+			{ "a[b]", "a[b]" },
+			{ "a[b]++", "(a[b])++" },
+			{ ".a.b", "this.a.b" },
         };
         for (String[] c : cases) {
             System.out.println(c[0]);

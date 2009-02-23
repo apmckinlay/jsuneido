@@ -56,6 +56,7 @@ public class ParseConstant<T> extends Parse<T> {
 		case IDENTIFIER:
 		case STRING:
 			return symbol();
+		// TODO objects
 		}
 		syntaxError();
 		return null;
