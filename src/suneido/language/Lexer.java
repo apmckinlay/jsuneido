@@ -11,11 +11,6 @@ public class Lexer {
 	private String value = "";
 	private Token keyword;
 
-	private int save_si;
-	private int save_prev;
-	private String save_value;
-	private Token save_keyword;
-
 	public Lexer(String source) {
 		this.source = source;
 	}

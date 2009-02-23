@@ -38,7 +38,7 @@ public interface Generator<T> {
 
 	T date(String value);
 
-	T symbol(String value);
+	T symbol(String identifier);
 
 	T bool(String value);
 
@@ -63,5 +63,15 @@ public interface Generator<T> {
 	T forClassicStatement(T expr1, T expr2, T expr3, T statement);
 
 	T expressionList(T list, T expression);
+
+	T preIncDec(Token incdec, T lvalue);
+
+	T postIncDec(Token incdec, T lvalue);
+
+	T member(T term, String identifier);
+
+	T subscript(T term, T expression);
+
+	T self();
 
 }
