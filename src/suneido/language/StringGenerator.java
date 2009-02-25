@@ -1,12 +1,14 @@
 package suneido.language;
 
-import static suneido.language.Token.INC;
+import static suneido.language.Generator.ObjectOrRecord.OBJECT;
+import static suneido.language.Token.ADD;
+import static suneido.language.Token.SUB;
 import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
 
-	public String assignment(String text, String expression) {
-		return text + " = (" + expression + ")";
+	public String assignment(String lvalue, Token op, String expression) {
+		return expression + " " + op + "(" + lvalue + ")";
 	}
 
 	public String conditional(String expression, String first, String second) {
@@ -17,8 +19,8 @@ public class StringGenerator implements Generator<String> {
 		return result.toString();
 	}
 
-	public String function(String statementList) {
-		return "function () { " + str(statementList) + " }";
+	public String function(String parameters, String statementList) {
+		return "function (" + str(parameters) + ") { " + str("", statementList, " ") + "}";
 	}
 
 	public String identifier(String text) {
@@ -26,11 +28,11 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String ifStatement(String expression, String t, String f) {
-		return "if (" + expression + ") {" + str(" ", t) + " }" + str(" else { ", f, " }");
+		return "if (" + expression + ") {" + str(" ", t, "") + " }" + str(" else { ", f, " }");
 	}
 
 	public String returnStatement(String expression) {
-		return "return" + str(" ", expression) + ";";
+		return "return" + str(" ", expression, "") + ";";
 	}
 
 	public String expressionStatement(String expression) {
@@ -42,26 +44,23 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String whileStatement(String expression, String statement) {
-		return "while (" + expression + ") {" + str(" ", statement) + " }";
+		return "while (" + expression + ") {" + str(" ", statement, "") + " }";
 	}
 
 	public String dowhileStatement(String statement, String expression) {
-		return "do {" + str(" ", statement) + " } while (" + expression + ");";
+		return "do {" + str(" ", statement, "") + " } while (" + expression + ");";
 	}
 
 	public String binaryExpression(Token op, String list, String next) {
-		return "(" + str(list) + " " + op + " " + str(next) + ")";
+		return str(list) + " " + str(next) + " " + op;
 	}
 
 	public String unaryExpression(Token op, String expression) {
-		return "(" + op + " " + expression + ")";
+		return expression + " " + (op == ADD | op == SUB ? "u" : "") + op;
 	}
 
 	private String str(String x) {
 		return x == null ? "" : (String) x;
-	}
-	private String str(String s, String x) {
-		return x == null ? "" : s + x;
 	}
 	private String str(String s, String x, String t) {
 		return x == null ? "" : s + x + t;
@@ -84,7 +83,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String bool(String value) {
-		return value;
+		return "b(" + value + ")";
 	}
 
 	public String foreverStatement(String statement) {
@@ -109,7 +108,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String tryStatement(String tryStatement, String catcher) {
-		return "try { " + tryStatement + " }" + str(" ", catcher);
+		return "try { " + tryStatement + " }" + str(" ", catcher, "");
 	}
 
 	public String caseValues(String list, String expression) {
@@ -123,7 +122,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String switchStatement(String expression, String cases) {
-		return "switch (" + expression + ") {" + str(" ", cases) + " }";
+		return "switch (" + expression + ") {" + str(" ", cases, "") + " }";
 	}
 
 	public String forInStatement(String var, String expr, String statement) {
@@ -139,23 +138,62 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String preIncDec(Token incdec, String lvalue) {
-		return (incdec == INC ? "++" : "--") + "(" + lvalue + ")";
+		return "pre" + incdec + "(" + lvalue + ")";
 	}
 
 	public String postIncDec(Token incdec, String lvalue) {
-		return "(" + lvalue + ")" + (incdec == INC ? "++" : "--");
+		return "post" + incdec + "(" + lvalue + ")";
 	}
 
 	public String member(String term, String identifier) {
-		return term + "." + identifier;
+		return term + " ." + identifier;
 	}
 
 	public String subscript(String term, String expression) {
-		return term + "[" + expression + "]";
+		return term + " " + expression + " []";
 	}
 
 	public String self() {
 		return "this";
 	}
 
+	public String functionCall(String function, String arguments) {
+		return function + "(" + arguments + ")";
+	}
+
+	public String newExpression(String term, String arguments) {
+		return "new " + term + str("(", arguments, ")");
+	}
+
+	public String atArgument(String n, String expression) {
+		return "@" + str("+", n, " ") + expression;
+	}
+
+	public String block(String params, String statements) {
+		return "{" + str("|", params, "|") + " " + statements + " }";
+	}
+
+	public String parameters(String list, String name, String defaultValue) {
+		return str("", list, ", ") + name + str(" = ", defaultValue, "");
+	}
+
+	public String argumentList(String list, String keyword, String expression) {
+		return str("", list, ", ") + str("", keyword, ": ") + expression;
+	}
+
+	public String classConstant(String base, String members) {
+		return "class" + str(" : ", base, "") + " { " + str("", members, " ") + "}";
+	}
+
+	public String memberDefinition(String name, String value) {
+		return str("", name, ": ") + value;
+	}
+
+	public String memberList(String list, String member) {
+		return str("", list, ", ") + member;
+	}
+
+	public String object(ObjectOrRecord which, String members) {
+		return "#" + (which == OBJECT ? "(" : "{") + str(members) + (which == OBJECT ? ")" : "}");
+	}
 }
