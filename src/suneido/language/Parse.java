@@ -8,7 +8,6 @@ public class Parse<T> {
 	protected final Lexer lexer;
 	protected final Generator<T> generator;
 	protected Token token;
-	protected String value;
 	protected int statementNest = 0;
 
 	Parse(Lexer lexer, Generator<T> generator) {
@@ -20,7 +19,6 @@ public class Parse<T> {
 		lexer = parse.lexer;
 		generator = parse.generator;
 		token = parse.token;
-		value = parse.value;
 	}
 
 	protected T matchReturn(T result) {
@@ -60,7 +58,6 @@ public class Parse<T> {
 		if (token == R_CURLY || token == R_PAREN || token == R_BRACKET)
 			--statementNest;
 		token = lexer.next();
-		value = lexer.getValue();
 	}
 
 	private void verifyMatch(Token expected) {
@@ -77,6 +74,10 @@ public class Parse<T> {
 
 	public void checkEof() {
 		match(Token.EOF);
+	}
+	protected Token lookAhead() {
+		Lexer ahead = new Lexer(lexer);
+		return ahead.next();
 	}
 
 }

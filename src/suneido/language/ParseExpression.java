@@ -134,16 +134,29 @@ public class ParseExpression<T> extends Parse<T> {
 			Token op = token;
 			match();
 			return generator.unaryExpression(op, unaryExpression());
-		// TODO new
 		default:
-			return term();
+			if (lexer.getKeyword() == NEW) {
+				return newExpression();
+			} else
+				return term();
 		}
+	}
+	private T newExpression() {
+		match(NEW);
+		T term = term(true);
+		T args = token == L_PAREN ? arguments() : null;
+		return generator.newExpression(term, args);
 	}
 
 	private T term() {
+		return term(false);
+	}
+
+	private T term(boolean newTerm) {
 		T term = null;
 		boolean lvalue = true;
 		Token incdec = null;
+
 		if (token == INC || token == DEC) {
 			incdec = token;
 			match();
@@ -155,21 +168,20 @@ public class ParseExpression<T> extends Parse<T> {
 			term = constant();
 			lvalue = false;
 			break;
-//		case L_CURLY:
-//			block();
-//			break
+		case L_CURLY:
+			term = block();
+			lvalue = false;
+			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
-//			case FUNCTION :
-//			case CLASS :
-//			case DLL :
-//			case STRUCT :
-//			case CALLBACK :
-//				term = constant();
-//				lvalue = false;
-//				break;
+			case FUNCTION:
+			case CLASS:
+				term = constant();
+				lvalue = false;
+				break;
 			default:
-				term = matchReturn(IDENTIFIER, generator.identifier(value));
+				term = generator.identifier(lexer.getValue());
+				match(IDENTIFIER);
 			}
 			break;
 		case DOT:
@@ -186,15 +198,18 @@ public class ParseExpression<T> extends Parse<T> {
 		}
 
 		while (true) {
+			if (newTerm && token == L_PAREN)
+				return term;
 			if (matchIf(DOT)) {
-				term = matchReturn(IDENTIFIER, generator.member(term, value));
+				term = generator.member(term, lexer.getValue());
+				match(IDENTIFIER);
 				lvalue = true;
 			} else if (matchIf(L_BRACKET)) {
 				term = generator.subscript(term, expression());
 				match(R_BRACKET);
 				lvalue = true;
-			} else if (matchIf(L_PAREN)) {
-				//TODO function call
+			} else if (token == L_PAREN || token == L_CURLY) {
+				term = generator.functionCall(term, arguments());
 				lvalue = false;
 			} else
 				break;
@@ -204,6 +219,12 @@ public class ParseExpression<T> extends Parse<T> {
 			if (!lvalue)
 				syntaxError("lvalue required");
 			term = generator.preIncDec(incdec, term);
+		} else if (isEq(token)) {
+			if (!lvalue)
+				syntaxError("lvalue required");
+			Token op = token;
+			match();
+			term = generator.assignment(term, op, expression());
 		} else if (token == INC || token == DEC) {
 			if (!lvalue)
 				syntaxError("lvalue required");
@@ -213,12 +234,106 @@ public class ParseExpression<T> extends Parse<T> {
 		return term;
 	}
 
+	private T arguments() {
+		T args = null;
+		if (matchIf(L_PAREN)) {
+			if (matchIf(AT))
+				return atArgument();
+			else
+				args = argumentList();
+		}
+		if (token == L_CURLY)
+			args = generator.expressionList(args, block());
+		return args;
+	}
+	private T atArgument() {
+		String n = null;
+		if (matchIf(ADD)) {
+			n = lexer.getValue();
+			match(NUMBER);
+		}
+		T expr = expression();
+		match(R_PAREN);
+		return generator.atArgument(n, expr);
+	}
+
+	private T argumentList() {
+		T args = null;
+		String keyword = null;
+		while (token != R_PAREN) {
+			if (lookAhead() == COLON) {
+				keyword = keyword();
+			} else if (keyword != null)
+				syntaxError("un-named arguments must come before named arguments");
+			args = generator.argumentList(args, keyword, expression());
+			matchIf(COMMA);
+		}
+		match(R_PAREN);
+		return args;
+	}
+	private String keyword() {
+		if (token != IDENTIFIER && token != STRING && token != NUMBER)
+			syntaxError("invalid keyword");
+		String keyword = lexer.getValue();
+		match();
+		match(COLON);
+		return keyword;
+	}
+
+	private T block() {
+		match(L_CURLY);
+		T params = token == BITOR ? blockParams() : null;
+		T statements = statementList();
+		match(R_CURLY);
+		return generator.block(params, statements);
+	}
+
+	private T blockParams() {
+		match(BITOR);
+		T params = null;
+		if (matchIf(AT)) {
+			params = generator.parameters(params, "@" + lexer.getValue(), null);
+			match(IDENTIFIER);
+		} else
+			while (token == IDENTIFIER) {
+				params = generator.parameters(params, lexer.getValue(), null);
+				match(IDENTIFIER);
+				matchIf(COMMA);
+			}
+		match(BITOR);
+		return params;
+	}
+	private boolean isEq(Token token) {
+		switch (token) {
+		case EQ:
+		case ADDEQ:
+		case SUBEQ:
+		case CATEQ:
+		case MULEQ:
+		case DIVEQ:
+		case MODEQ:
+		case LSHIFTEQ:
+		case RSHIFTEQ:
+		case BITOREQ:
+		case BITANDEQ:
+		case BITXOREQ:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	private T constant() {
-		// TODO move some of this to Parse method
 		ParseConstant<T> p = new ParseConstant<T>(this);
 		T result = p.constant();
 		token = p.token;
-		value = p.value;
+		return result;
+	}
+
+	private T statementList() {
+		ParseFunction<T> p = new ParseFunction<T>(this);
+		T result = p.statementList();
+		token = p.token;
 		return result;
 	}
 }

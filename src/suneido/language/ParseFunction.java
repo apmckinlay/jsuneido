@@ -10,31 +10,60 @@ public class ParseFunction<T> extends Parse<T> {
 	ParseFunction(Lexer lexer, Generator<T> generator) {
 		super(lexer, generator);
 	}
+	ParseFunction(Parse<T> parse) {
+		super(parse);
+	}
 
 	public T function() {
 		match(FUNCTION);
-		match(L_PAREN);
-		// TODO parameters
-		match(R_PAREN);
-		return generator.function(compound());
+		return functionWithoutKeyword();
+	}
+	protected T functionWithoutKeyword() {
+		T params = parameters();
+		return generator.function(params, compound());
 	}
 
+	private T parameters() {
+		match(L_PAREN);
+		T params = null;
+		if (matchIf(AT)) {
+			params = generator.parameters(params, "@" + lexer.getValue(), null);
+			match(IDENTIFIER);
+		} else {
+			T defaultValue = null;
+			while (token != R_PAREN) {
+				String name = lexer.getValue();
+				match(IDENTIFIER);
+				if (matchIf(EQ))
+					defaultValue = constant();
+				else if (defaultValue != null)
+					syntaxError("default parameters must come last");
+				params = generator.parameters(params, name, defaultValue);
+				matchIf(COMMA);
+			}
+		}
+		match(R_PAREN);
+		return params;
+	}
 	public T compound() {
-		T statements = null;
 		match(L_CURLY);
+		T statements = statementList();
+		match(R_CURLY);
+		return statements;
+	}
+
+	public T statementList() {
+		T statements = null;
 		while (token != R_CURLY)
 			statements = generator.statementList(statements, statement());
-		match(R_CURLY);
 		return statements;
 	}
 
 	public T statement() {
 		if (token == L_CURLY)
 			return compound();
-		else if (token == SEMICOLON) {
-			match();
+		else if (matchIf(SEMICOLON))
 			return null;
-		}
 
 		switch (lexer.getKeyword()) {
 		case BREAK:
@@ -65,14 +94,12 @@ public class ParseFunction<T> extends Parse<T> {
 	}
 
 	private T breakStatement() {
-		// TODO only allow in loop or block
 		match(BREAK);
 		matchIf(SEMICOLON);
 		return generator.breakStatement();
 	}
 
 	private T continueStatement() {
-		// TODO only allow in loop or block
 		match(CONTINUE);
 		matchIf(SEMICOLON);
 		return generator.continueStatement();
@@ -119,7 +146,7 @@ public class ParseFunction<T> extends Parse<T> {
 	private T forInStatement() {
 		int prevStatementNest = statementNest;
 		boolean parens = matchIf(L_PAREN);
-		String var = value;
+		String var = lexer.getValue();
 		match(IDENTIFIER);
 		match(IN);
 		if (parens)
@@ -233,10 +260,10 @@ public class ParseFunction<T> extends Parse<T> {
 		String variable = null;
 		String pattern = null;
 		if (matchIf(L_PAREN)) {
-			variable = value;
+			variable = lexer.getValue();
 			match(IDENTIFIER);
 			if (matchIf(COMMA)) {
-				pattern = value;
+				pattern = lexer.getValue();
 				match(STRING);
 			}
 			match(R_PAREN);
@@ -256,11 +283,17 @@ public class ParseFunction<T> extends Parse<T> {
 	}
 
 	private T expression() {
-		// TODO move some of this to Parse method
 		ParseExpression<T> p = new ParseExpression<T>(this);
 		T result = p.expression();
 		token = p.token;
-		value = p.value;
 		return result;
 	}
+
+	private T constant() {
+		ParseConstant<T> p = new ParseConstant<T>(this);
+		T result = p.constant();
+		token = p.token;
+		return result;
+	}
+
 }

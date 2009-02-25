@@ -4,7 +4,7 @@ import suneido.SuValue;
 
 public interface Generator<T> {
 
-	T assignment(String text, T expression);
+	T assignment(T term, Token op, T expression);
 
 	T binaryExpression(Token op, T list, T next);
 
@@ -18,7 +18,7 @@ public interface Generator<T> {
 
 	T expressionStatement(T expression);
 
-	T function(T compound);
+	T function(T params, T compound);
 
 	T identifier(String text);
 
@@ -73,5 +73,27 @@ public interface Generator<T> {
 	T subscript(T term, T expression);
 
 	T self();
+
+	T functionCall(T function, T arguments);
+
+	T newExpression(T term, T arguments);
+
+	T argumentList(T list, String keyword, T expression);
+
+	T atArgument(String n, T expr);
+
+	T block(T params, T statements);
+
+	T parameters(T list, String name, T defaultValue);
+
+	T memberList(T list, T member);
+
+	T classConstant(String base, T members);
+
+	T memberDefinition(T name, T value);
+
+	enum ObjectOrRecord { OBJECT, RECORD };
+
+	T object(ObjectOrRecord which, T members);
 
 }
