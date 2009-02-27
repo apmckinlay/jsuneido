@@ -20,6 +20,7 @@ public class ParseFunctionTest {
 			{ "forever { forever return }", "forever { forever { return; } }" },
 			{ "if (a) b",	"if (a) { b; }" },
 			{ "if a \n b",	"if (a) { b; }" },
+			{ "if f()\n { b }", "if (f()) { b; }" },
 			{ "if (a) b; else c", "if (a) { b; } else { c; }" },
 			{ "if a \n b \n else c", "if (a) { b; } else { c; }" },
 			{ "if (a) { b } else c", "if (a) { b; } else { c; }" },
@@ -47,6 +48,12 @@ public class ParseFunctionTest {
 			{ "for (;;) f", "for (; ; ) { f; }" },
 			{ "for (a; b; c) f", "for (a; b; c) { f; }" },
 			{ "for (a,b; c; d,e) f", "for (a, b; c; d, e) { f; }" },
+			{ "if x is \n y \n z", "if (x y IS) { z; }" },
+			{ "return x \n ? y \n : z", "return (x ? y : z);" },
+			{ "return .x.f().\n g()", "return this .x .f() .g();" },
+			{ "args.Each {|x, y|\n z }", "args .Each({|x, y| z; });" },
+			{ "args.Each()\n {|x, y|\n z }", "args .Each({|x, y| z; });" },
+			{ "args.Each\n {|x, y|\n z }", "args .Each({|x, y| z; });" },
 		};
         for (String[] c : cases) {
             System.out.println(c[0]);

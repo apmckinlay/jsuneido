@@ -3,20 +3,30 @@
  */
 package suneido.language;
 
+import static suneido.language.TokenFeature.ASSIGN;
+import static suneido.language.TokenFeature.INFIX;
+
+import java.util.EnumSet;
+
 public enum Token {
 	NIL, EOF, ERROR,
 	IDENTIFIER, NUMBER, STRING,
-	AND, OR,
+	AND(INFIX), OR(INFIX),
 	WHITE, COMMENT, NEWLINE,
-	HASH, COMMA, COLON, SEMICOLON, Q_MARK, AT, DOT,
+	HASH, COMMA, COLON, SEMICOLON, Q_MARK(INFIX), AT, DOT,
 	R_PAREN, L_PAREN(R_PAREN),
 	R_BRACKET, L_BRACKET(R_BRACKET),
 	R_CURLY, L_CURLY(R_CURLY),
-	IS, ISNT, MATCH, MATCHNOT, LT, LTE, GT, GTE,
+	IS(INFIX), ISNT(INFIX), MATCH(INFIX), MATCHNOT(INFIX),
+	LT(INFIX), LTE(INFIX), GT(INFIX), GTE(INFIX),
 	NOT, INC, DEC, BITNOT,
-	ADD, SUB, CAT, MUL, DIV, MOD, LSHIFT, RSHIFT, BITOR, BITAND, BITXOR,
-	EQ, ADDEQ, SUBEQ, CATEQ, MULEQ, DIVEQ, MODEQ,
-	LSHIFTEQ, RSHIFTEQ, BITOREQ, BITANDEQ, BITXOREQ,
+	ADD(INFIX), SUB(INFIX), CAT(INFIX), MUL(INFIX), DIV(INFIX), MOD(INFIX),
+	LSHIFT(INFIX), RSHIFT(INFIX), BITOR(INFIX), BITAND(INFIX), BITXOR(INFIX),
+	EQ(INFIX, ASSIGN), 
+	ADDEQ(INFIX, ASSIGN), SUBEQ(INFIX, ASSIGN), CATEQ(INFIX, ASSIGN), 
+	MULEQ(INFIX, ASSIGN), DIVEQ(INFIX, ASSIGN), MODEQ(INFIX, ASSIGN), 
+	LSHIFTEQ(INFIX, ASSIGN), RSHIFTEQ(INFIX, ASSIGN), 
+	BITOREQ(INFIX, ASSIGN), BITANDEQ(INFIX, ASSIGN), BITXOREQ(INFIX, ASSIGN),
 	// keywords
 	IF, ELSE,
 	WHILE, DO, FOR, FOREACH, FOREVER, BREAK, CONTINUE,
@@ -31,15 +41,26 @@ public enum Token {
 	STRING_KEYWORD, BUFFER, RESOURCE, VOID;
 
 	Token other;
+	EnumSet<TokenFeature> features;
 	Token() {
-		other = null;
 	}
 	Token(Token other) {
 		this.other = other;
 		other.other = this;
 	}
+	Token(TokenFeature... has) {
+		features = EnumSet.noneOf(TokenFeature.class);
+		for (TokenFeature tf : has)
+			features.add(tf);
+	}
 
-	public boolean isOperator() {
-		return ordinal() < IF.ordinal();
+	public boolean isKeyword() {
+		return ordinal() >= IF.ordinal();
+	}
+	public boolean infix() {
+		return features != null && features.contains(INFIX);
+	}
+	public boolean assign() {
+		return features != null && features.contains(ASSIGN);
 	}
 }

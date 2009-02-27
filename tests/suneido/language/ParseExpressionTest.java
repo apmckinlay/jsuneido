@@ -49,6 +49,7 @@ public class ParseExpressionTest {
 			{ "++a.b.c", "preINC(a .b .c)" },
 			{ "a[b]++", "postINC(a b [])" },
 			{ "a = b + c", "b c ADD EQ(a)" },
+			{ "a =\n b", "b EQ(a)" },
 			{ "a.b += c", "c ADDEQ(a .b)" },
 			{ "f(a, b)", "f(a, b)" },
 			{ "f.g(a + b, c)", "f .g(a b ADD, c)" },
@@ -59,6 +60,7 @@ public class ParseExpressionTest {
 			{ "{|a,b| x }", "{|a, b| x; }" },
 			{ "{|@a| x }", "{|@a| x; }" },
 			{ "f(a) { x }", "f(a, { x; })" },
+			{ "function () { f(a)\n { x } }", "function () { f(a, { x; }); }" },
 			{ "f { x }", "f({ x; })" },
 			{ "new c", "new c" },
 			{ "new c(a, b)", "new c(a, b)" },
@@ -66,12 +68,24 @@ public class ParseExpressionTest {
 			{ "f(a, k: b)", "f(a, k: b)" },
 			{ "f = function () { }", "function () { } EQ(f)" },
 			{ "c = class { }", "class { } EQ(c)" },
+			{ "c = Base { }", "class : Base { } EQ(c)" },
+			{ "c = C\n {\n T: 'a'\n N()\n { } }",
+				"class : C { s(T): s(a), s(N): function () { } } EQ(c)" },
+			{ "O('v'\n #(H F #()))", "O(s(v), #(s(H), s(F), #()))" },
+			{ "f(u:)", "f(u: b(true))" },
+			{ "x = [a,b]", "Record(a, b) EQ(x)" },
+			{ ".x = class\n { }", "class { } EQ(this .x)" },
+			{ ".x.f().\n g()", "this .x .f() .g()" },
+			{ "100.Times() { }", "n(100) .Times({ })" },
+			{ "100.Times()\n { }", "n(100) .Times({ })" },
+			{ "100.Times { }", "n(100) .Times({ })" },
+			{ "100.Times\n { }", "n(100) .Times({ })" },
         };
         for (String[] c : cases) {
-            System.out.println(c[0]);
-            assertEquals(c[1], parse(c[0]));
+        	System.out.println(c[0]);
+			assertEquals(c[1], parse(c[0]));
         }
-    }
+	}
 
     private String parse(String s) {
         Lexer lexer = new Lexer(s);

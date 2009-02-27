@@ -109,6 +109,12 @@ public class LexerTest {
 			"new switch struct super return throw try while true false");
 	}
 
+	@Test
+	public void numberEnding() {
+		check("100.Times", NUMBER, DOT, IDENTIFIER);
+		check("#20090216.EndOfDay", HASH, NUMBER, DOT, IDENTIFIER);
+	}
+
 	private void check(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results)

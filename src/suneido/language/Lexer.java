@@ -2,14 +2,13 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 
-import java.io.*;
-
 public class Lexer {
 	private final String source;
 	private int si = 0;
 	private int prev;
 	private String value = "";
 	private Token keyword;
+	//private String debug = ">";
 
 	public Lexer(String source) {
 		this.source = source;
@@ -20,6 +19,7 @@ public class Lexer {
 		prev = lexer.prev;
 		value = lexer.value;
 		keyword = lexer.keyword;
+		//debug = ">>";
 	}
 
 	public String getValue() {
@@ -35,6 +35,7 @@ public class Lexer {
 		do
 			token = nextAll();
 			while (token == WHITE || token == COMMENT);
+		//		System.out.println(debug + " " + token + (value == null ? "" : " " + value));
 		return token;
 	}
 
@@ -66,7 +67,8 @@ public class Lexer {
 			switch (charAt(si)) {
 			case '=' : ++si; return IS;
 			case '~' : ++si; return MATCH;
-			default : return EQ;
+			default:
+				return EQ;
 			}
 		case '!':
 			switch (charAt(si)) {
@@ -237,6 +239,10 @@ public class Lexer {
 				while (Character.isDigit(charAt(si)))
 					++si;
 			}
+			if (charAtLower(si - 1) == 'e')
+				--si;
+			if (charAt(si - 1) == '.')
+				--si;
 			return value(NUMBER);
 		case '"' :
 		case '\'' :
@@ -264,7 +270,7 @@ public class Lexer {
 					++si;
 				value = source.substring(prev, si);
 				keyword = Keywords.lookup(value);
-				return keyword != null && keyword.isOperator() ? keyword : IDENTIFIER;
+				return keyword == null || keyword.isKeyword() ? IDENTIFIER : keyword;
 			}
 			return ERROR;
 		}
@@ -323,27 +329,5 @@ public class Lexer {
 	}
 	private char charAtLower(int i) {
 		return i < source.length() ? Character.toLowerCase(source.charAt(i)) : 0;
-	}
-
-	public static void main(String[] args) throws IOException {
-		BufferedReader rdr = new BufferedReader(new FileReader("lexer.in"));
-		String line;
-		while (null != (line = rdr.readLine())) {
-			System.out.println(line);
-			Lexer lexer = new Lexer(line);
-			Token token;
-			while (EOF != (token = lexer.next())) {
-				System.out.println(token + str(lexer.getKeyword(), lexer.getValue()));
-			}
-		}
-	}
-
-	private static String str(Token x, String s) {
-		if (x != null)
-			return "\t" + x;
-		else if (s != null)
-			return "\t" + s;
-		else
-			return "";
 	}
 }

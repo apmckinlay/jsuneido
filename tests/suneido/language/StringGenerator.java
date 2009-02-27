@@ -158,7 +158,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String functionCall(String function, String arguments) {
-		return function + "(" + arguments + ")";
+		return function + "(" + str(arguments) + ")";
 	}
 
 	public String newExpression(String term, String arguments) {
@@ -170,7 +170,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String block(String params, String statements) {
-		return "{" + str("|", params, "|") + " " + statements + " }";
+		return "{" + str("|", params, "|") + " " + str("", statements, " ") + "}";
 	}
 
 	public String parameters(String list, String name, String defaultValue) {
@@ -182,6 +182,8 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String classConstant(String base, String members) {
+		if ("Object".equals(base))
+			base = null;
 		return "class" + str(" : ", base, "") + " { " + str("", members, " ") + "}";
 	}
 

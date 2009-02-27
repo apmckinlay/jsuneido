@@ -9,13 +9,15 @@ public class ParseFunction<T> extends Parse<T> {
 
 	ParseFunction(Lexer lexer, Generator<T> generator) {
 		super(lexer, generator);
+		expectingCompound = false;
 	}
 	ParseFunction(Parse<T> parse) {
 		super(parse);
+		expectingCompound = false;
 	}
 
 	public T function() {
-		match(FUNCTION);
+		matchSkipNewlines(FUNCTION);
 		return functionWithoutKeyword();
 	}
 	protected T functionWithoutKeyword() {
@@ -42,7 +44,7 @@ public class ParseFunction<T> extends Parse<T> {
 				matchIf(COMMA);
 			}
 		}
-		match(R_PAREN);
+		matchSkipNewlines(R_PAREN);
 		return params;
 	}
 	public T compound() {
@@ -149,14 +151,18 @@ public class ParseFunction<T> extends Parse<T> {
 		String var = lexer.getValue();
 		match(IDENTIFIER);
 		match(IN);
-		if (parens)
+		if (!parens)
+			{
 			statementNest = 0;
+			expectingCompound = true;
+		}
 		T expr = expression();
 		if (parens)
 			match(R_PAREN);
 		else
 			matchIf(NEWLINE);
 		statementNest = prevStatementNest;
+		expectingCompound = false;
 		T stat = statement();
 		return generator.forInStatement(var, expr, stat);
 	}
@@ -197,14 +203,18 @@ public class ParseFunction<T> extends Parse<T> {
 	private T optionalParensExpression() {
 		int prevStatementNest = statementNest;
 		boolean parens = matchIf(L_PAREN);
-		if (parens)
+		if (!parens)
+			{
 			statementNest = 0;
+			expectingCompound = true;
+		}
 		T expr = expression();
 		if (parens)
 			match(R_PAREN);
 		else
 			matchIf(NEWLINE);
 		statementNest = prevStatementNest;
+		expectingCompound = false;
 		return expr;
 	}
 
@@ -260,11 +270,13 @@ public class ParseFunction<T> extends Parse<T> {
 		String variable = null;
 		String pattern = null;
 		if (matchIf(L_PAREN)) {
-			variable = lexer.getValue();
-			match(IDENTIFIER);
-			if (matchIf(COMMA)) {
-				pattern = lexer.getValue();
-				match(STRING);
+			if (token == IDENTIFIER) {
+				variable = lexer.getValue();
+				match(IDENTIFIER);
+				if (matchIf(COMMA)) {
+					pattern = lexer.getValue();
+					match(STRING);
+				}
 			}
 			match(R_PAREN);
 		}
