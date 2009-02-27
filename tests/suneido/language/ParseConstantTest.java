@@ -20,10 +20,13 @@ public class ParseConstantTest {
 			{ "false", "b(false)" },
 			{ "Global", "s(Global)" },
 			{ "function () { }", "function () { }" },
+			{ "function\n () { }", "function () { }" },
+			{ "function ()\n { }", "function () { }" },
 			{ "function (@args) { }", "function (@args) { }" },
 			{ "function (a, b, c = 1, d = 2) { }",
 				"function (a, b, c = n(1), d = n(2)) { }" },
 			{ "class { }", "class { }" },
+			{ "class\n { }", "class { }" },
 			{ "class : Base { }", "class : Base { }" },
 			{ "Base { }", "class : Base { }" },
 			{ "Base { a: }", "class : Base { s(a): b(true) }" },
@@ -36,6 +39,8 @@ public class ParseConstantTest {
 			{ "#{}", "#{}" },
 			{ "#(1, 'a', b: 2)", "#(n(1), s(a), s(b): n(2))" },
 			{ "#({})", "#(#{})" },
+			{ "#(class: 123)", "#(s(class): n(123))" },
+			{ "class { one\n two }", "class { s(one), s(two) }" },
 		};
 		for (String[] c : cases) {
 System.out.println(c[0]);

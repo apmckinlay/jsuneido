@@ -8,7 +8,8 @@ public class Parse<T> {
 	protected final Lexer lexer;
 	protected final Generator<T> generator;
 	protected Token token;
-	protected int statementNest = 0;
+	protected int statementNest = 99;
+	boolean expectingCompound = false;
 
 	Parse(Lexer lexer, Generator<T> generator) {
 		this.lexer = lexer;
@@ -19,6 +20,8 @@ public class Parse<T> {
 		lexer = parse.lexer;
 		generator = parse.generator;
 		token = parse.token;
+		statementNest = parse.statementNest;
+		expectingCompound = parse.expectingCompound;
 	}
 
 	protected T matchReturn(T result) {
@@ -42,10 +45,21 @@ public class Parse<T> {
 		match();
 	}
 	protected void match() {
-		matchKeepNewline(token);
-		if (statementNest > 0)
+		matchKeepNewline();
+		if (statementNest != 0 || lookAhead().infix())
 			while (token == NEWLINE)
 				matchKeepNewline();
+	}
+
+	protected void matchSkipNewlines(Token token) {
+		verifyMatch(token);
+		matchSkipNewlines();
+	}
+
+	protected void matchSkipNewlines() {
+		do
+			matchKeepNewline();
+		while (token == NEWLINE);
 	}
 
 	protected void matchKeepNewline(Token expected) {
@@ -66,7 +80,9 @@ public class Parse<T> {
 	}
 
 	protected void syntaxError() {
-		throw new SuException("syntax error: unexpected " + token);
+		String value = lexer.getValue();
+		throw new SuException("syntax error: unexpected " + token +
+				(value == null ? "" : " " + value));
 	}
 	protected void syntaxError(String s) {
 		throw new SuException("syntax error: " + s);
@@ -76,8 +92,15 @@ public class Parse<T> {
 		match(Token.EOF);
 	}
 	protected Token lookAhead() {
+		return lookAhead(true);
+	}
+
+	protected Token lookAhead(boolean skipNewlines) {
 		Lexer ahead = new Lexer(lexer);
-		return ahead.next();
+		Token token = ahead.next();
+		while (skipNewlines && token == NEWLINE)
+			token = ahead.next();
+		return token;
 	}
 
 }
