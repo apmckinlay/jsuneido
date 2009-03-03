@@ -1,3 +1,7 @@
+/*
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
+ */
 package suneido.database.query;
 
 import static suneido.Util.listToCommas;
@@ -13,10 +17,14 @@ import suneido.language.Lexer;
  * Parse and execute database "requests" to create, alter, or remove tables.
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
-public class Request {
+public class Request implements RequestGenerator<Object> {
+	private final ServerData serverData;
+
+	public Request(ServerData serverData) {
+		this.serverData = serverData;
+	}
+
 	public static void execute(String s) {
 		Request.execute(null, s);
 	}
@@ -24,208 +32,201 @@ public class Request {
 	public static void execute(ServerData serverData, String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		Gen generator = new Gen(serverData);
+		Request generator = new Request(serverData);
 		ParseRequest<Object> pc = new ParseRequest<Object>(lexer, generator);
 		pc.request();
 	}
 
-	public static class Gen implements RequestGenerator<Object> {
-		private final ServerData serverData;
+	public Object columns(Object columns, String column) {
+		List<String> list = columns == null
+				? new ArrayList<String>() : (List<String>) columns;
+		list.add(column);
+		return list;
+	}
 
-		public Gen(ServerData serverData) {
-			this.serverData = serverData;
-		}
+	public Object create(String table, Object schemaOb) {
+		Schema schema = (Schema) schemaOb;
+		if (!schema.hasKey())
+			throw new SuException("key required for: " + table);
+		theDB.addTable(table);
+		createSchema(table, schema);
+		return null;
+	}
 
-		public Object alterCreate(String table, Object schema) {
-			createSchema(table, (Schema) schema);
-			return null;
-		}
+	private void createSchema(String table, Schema schema) {
+		for (String column : schema.columns)
+			theDB.addColumn(table, column);
+		for (Index index : schema.indexes)
+			index.create(table);
+	}
 
-		public Object alterDrop(String table, Object schemaOb) {
-			Schema schema = (Schema) schemaOb;
+
+	public Object ensure(String tablename, Object schemaOb) {
+		Schema schema = (Schema) schemaOb;
+		suneido.database.Table table = theDB.getTable(tablename);
+		if (table == null)
+			create(tablename, schema);
+		else {
 			for (String col : schema.columns)
-				theDB.removeColumn(table, col);
-			for (Index index : schema.indexes)
-				theDB.removeIndex(table, listToCommas(index.columns));
-			return null;
-		}
-
-		public Object alterRename(String table, Object renames) {
-			for (Rename r : (List<Rename>) renames)
-				r.rename(table);
-			return null;
-		}
-
-		public Object columns(Object columns, String column) {
-			List<String> list = columns == null
-					? new ArrayList<String>() : (List<String>) columns;
-			list.add(column);
-			return list;
-		}
-
-		public Object create(String table, Object schemaOb) {
-			Schema schema = (Schema) schemaOb;
-			if (!schema.hasKey())
-				throw new SuException("key required for: " + table);
-			theDB.addTable(table);
-			createSchema(table, schema);
-			return null;
-		}
-		private void createSchema(String table, Schema schema) {
-			for (String column : schema.columns)
-				theDB.addColumn(table, column);
-			for (Index index : schema.indexes)
-				index.create(table);
-		}
-
-
-		public Object ensure(String tablename, Object schemaOb) {
-			Schema schema = (Schema) schemaOb;
-			suneido.database.Table table = theDB.getTable(tablename);
-			if (table == null)
-				create(tablename, schema);
-			else {
-				for (String col : schema.columns)
-					if (!table.hasColumn(col))
-						theDB.addColumn(tablename, col);
-				for (Index index : schema.indexes) {
-					String cols = listToCommas(index.columns);
-					if (!table.hasIndex(cols))
-						index.create(tablename);
-				}
-			}
-			return null;
-		}
-
-		static class ForeignKey {
-			String table;
-			List<String> columns;
-			int mode;
-
-			ForeignKey(String table, Object columns, int mode) {
-				this.table = table;
-				this.columns = (List<String>) columns;
-				this.mode = mode;
-			}
-			ForeignKey() {
+				if (!table.hasColumn(col))
+					theDB.addColumn(tablename, col);
+			for (Index index : schema.indexes) {
+				String cols = listToCommas(index.columns);
+				if (!table.hasIndex(cols))
+					index.create(tablename);
 			}
 		}
+		return null;
+	}
 
-		public Object foreignKey(String table, Object columns, int mode) {
-			return new ForeignKey(table, columns, mode);
+	public Object alterCreate(String table, Object schema) {
+		createSchema(table, (Schema) schema);
+		return null;
+	}
+
+	public Object alterDrop(String table, Object schemaOb) {
+		Schema schema = (Schema) schemaOb;
+		for (String col : schema.columns)
+			theDB.removeColumn(table, col);
+		for (Index index : schema.indexes)
+			theDB.removeIndex(table, listToCommas(index.columns));
+		return null;
+	}
+
+	public Object alterRename(String table, Object renames) {
+		for (Rename r : (List<Rename>) renames)
+			r.rename(table);
+		return null;
+	}
+
+	public Object rename(String from, String to) {
+		theDB.renameTable(from, to);
+		return null;
+	}
+
+	public Object view(String name, String definition) {
+		checkExisting(name);
+		theDB.add_view(name, definition);
+		return null;
+	}
+
+	public Object sview(String name, String definition) {
+		checkExisting(name);
+		serverData.addSview(name, definition);
+		return null;
+	}
+
+	public Object drop(String table) {
+		if (serverData.getSview(table) != null)
+			serverData.dropSview(table);
+		else if (theDB.getView(table) != null)
+			theDB.removeView(table);
+		else
+			theDB.removeTable(table);
+		return null;
+	}
+
+	static class ForeignKey {
+		String table;
+		List<String> columns;
+		int mode;
+
+		ForeignKey(String table, Object columns, int mode) {
+			this.table = table;
+			this.columns = (List<String>) columns;
+			this.mode = mode;
+		}
+		ForeignKey() {
+		}
+	}
+
+	public Object foreignKey(String table, Object columns, int mode) {
+		return new ForeignKey(table, columns, mode);
+	}
+
+	static class Index {
+		boolean key;
+		boolean unique;
+		boolean lower;
+		List<String> columns;
+		ForeignKey in;
+
+		Index(boolean key, boolean unique, boolean lower, Object columns,
+				Object foreignKey) {
+			this.key = key;
+			this.unique = unique;
+			this.lower = lower;
+			this.columns = (List<String>) columns;
+			this.in = (ForeignKey) foreignKey;
 		}
 
-		static class Index {
-			boolean key;
-			boolean unique;
-			boolean lower;
-			List<String> columns;
-			ForeignKey in;
-
-			Index(boolean key, boolean unique, boolean lower, Object columns,
-					Object foreignKey) {
-				this.key = key;
-				this.unique = unique;
-				this.lower = lower;
-				this.columns = (List<String>) columns;
-				this.in = (ForeignKey) foreignKey;
-			}
-
-			void create(String table) {
-				assert (in != null);
-				theDB.addIndex(table, listToCommas(columns), key, unique, lower,
-						in.table, listToCommas(in.columns), in.mode);
-			}
+		void create(String table) {
+			assert (in != null);
+			theDB.addIndex(table, listToCommas(columns), key, unique, lower,
+					in.table, listToCommas(in.columns), in.mode);
 		}
+	}
 
-		public Object index(boolean key, boolean unique, boolean lower,
-				Object columns, Object foreignKey) {
-			return new Index(key, unique, lower, columns,
-					foreignKey == null ? new ForeignKey() : foreignKey);
+	public Object index(boolean key, boolean unique, boolean lower,
+			Object columns, Object foreignKey) {
+		return new Index(key, unique, lower, columns, foreignKey == null
+				? new ForeignKey() : foreignKey);
+	}
+
+	public Object indexes(Object indexes, Object index) {
+		List<Index> list = indexes == null 
+				? new ArrayList<Index>() : (List<Index>) indexes; 
+		list.add((Index) index);
+		return list;
+	}
+
+	static class Rename {
+		String from;
+		String to;
+
+		Rename(String from, String to) {
+			this.from = from;
+			this.to = to;
 		}
-
-		public Object indexes(Object indexes, Object index) {
-			List<Index> list = indexes == null
-				? new ArrayList<Index>() : (List<Index>) indexes;
-			list.add((Index) index);
-			return list;
+		void rename(String table) {
+			theDB.renameColumn(table, from, to);
 		}
+	}
 
-		static class Rename {
-			String from;
-			String to;
+	public Object renames(Object renames, String from, String to) {
+		List<Rename> list = renames == null 
+				? new ArrayList<Rename>() : (List<Rename>) renames;
+		list.add(new Rename(from, to));
+		return list;
+	}
 
-			Rename(String from, String to) {
-				this.from = from;
-				this.to = to;
-			}
-			void rename(String table) {
-				theDB.renameColumn(table, from, to);
-			}
+	static class Schema {
+		List<String> columns;
+		List<Index> indexes;
+
+		Schema(Object columns, Object indexes) {
+			if (columns == null)
+				columns = Collections.emptyList();
+			this.columns = (List<String>) columns;
+			if (indexes == null)
+				indexes = Collections.emptyList();
+			this.indexes = (List<Index>) indexes;
 		}
-
-		public Object renames(Object renames, String from, String to) {
-			List<Rename> list = renames == null
-					? new ArrayList<Rename>() : (List<Rename>) renames;
-			list.add(new Rename(from, to));
-			return list;
+		boolean hasKey() {
+			for (Index index : indexes)
+				if (index.key)
+					return true;
+			return false;
 		}
+	}
 
-		static class Schema {
-			List<String> columns;
-			List<Index> indexes;
-			Schema(Object columns, Object indexes) {
-				if (columns == null)
-					columns = Collections.emptyList();
-				this.columns = (List<String>) columns;
-				if (indexes == null)
-					indexes = Collections.emptyList();
-				this.indexes = (List<Index>) indexes;
-			}
-			boolean hasKey() {
-				for (Index index : indexes)
-					if (index.key)
-						return true;
-				return false;
-			}
-		}
+	public Object schema(Object columns, Object indexes) {
+		return new Schema(columns, indexes);
+	}
 
-		public Object schema(Object columns, Object indexes) {
-			return new Schema(columns, indexes);
-		}
-
-		public Object drop(String table) {
-			if (serverData.getSview(table) != null)
-				serverData.dropSview(table);
-			else if (theDB.getView(table) != null)
-				theDB.removeView(table);
-			else
-				theDB.removeTable(table);
-			return null;
-		}
-
-		public Object rename(String from, String to) {
-			theDB.renameTable(from, to);
-			return null;
-		}
-
-		public Object sview(String name, String definition) {
-			checkExisting(name);
-			serverData.addSview(name, definition);
-			return null;
-		}
-
-		public Object view(String name, String definition) {
-			checkExisting(name);
-			theDB.add_view(name, definition);
-			return null;
-		}
-
-		private void checkExisting(String name) {
-			if (theDB.getView(name) != null || serverData.getSview(name) != null)
-				throw new SuException("view: '" + name + "' already exists");
-		}
-
+	private void checkExisting(String name) {
+		if (theDB.getView(name) != null || serverData.getSview(name) != null)
+			throw new SuException("view: '" + name + "' already exists");
 	}
 
 }
