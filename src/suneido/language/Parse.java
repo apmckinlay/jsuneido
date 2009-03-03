@@ -11,12 +11,12 @@ public class Parse<T> {
 	protected int statementNest = 99;
 	boolean expectingCompound = false;
 
-	Parse(Lexer lexer, Generator<T> generator) {
+	protected Parse(Lexer lexer, Generator<T> generator) {
 		this.lexer = lexer;
 		this.generator = generator;
 		match();
 	}
-	Parse(Parse<T> parse) {
+	protected Parse(Parse<T> parse) {
 		lexer = parse.lexer;
 		generator = parse.generator;
 		token = parse.token;

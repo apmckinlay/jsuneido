@@ -8,7 +8,8 @@ public class Lexer {
 	private int prev;
 	private String value = "";
 	private Token keyword;
-	//private String debug = ">";
+	private boolean ignoreCase = false;
+	private final String debug = ">";
 
 	public Lexer(String source) {
 		this.source = source;
@@ -20,6 +21,10 @@ public class Lexer {
 		value = lexer.value;
 		keyword = lexer.keyword;
 		//debug = ">>";
+	}
+
+	public void ignoreCase() {
+		ignoreCase = true;
 	}
 
 	public String getValue() {
@@ -35,7 +40,7 @@ public class Lexer {
 		do
 			token = nextAll();
 			while (token == WHITE || token == COMMENT);
-		//		System.out.println(debug + " " + token + (value == null ? "" : " " + value));
+		System.out.println(debug + " " + token + (value == null ? "" : " " + value));
 		return token;
 	}
 
@@ -269,8 +274,10 @@ public class Lexer {
 				if (c == '?' || c == '!')
 					++si;
 				value = source.substring(prev, si);
-				keyword = Keywords.lookup(value);
-				return keyword == null || keyword.isKeyword() ? IDENTIFIER : keyword;
+				keyword = ignoreCase
+						? Token.lookupIgnoreCase(value) : Token.lookup(value);
+				return keyword != null && keyword.isOperator()
+						? keyword : IDENTIFIER;
 			}
 			return ERROR;
 		}
@@ -329,5 +336,9 @@ public class Lexer {
 	}
 	private char charAtLower(int i) {
 		return i < source.length() ? Character.toLowerCase(source.charAt(i)) : 0;
+	}
+	public String remaining() {
+		si = source.length();
+		return source.substring(prev);
 	}
 }
