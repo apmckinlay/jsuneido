@@ -53,13 +53,13 @@ public class LexerTest {
 	@Test
 	public void operators() {
 		check("= == != =~ !~ ! ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
-				"+ += - -= $ $= * *= / /= % %= && || and or not is isnt xor",
+				"+ += - -= $ $= * *= / /= % %= && || and or not is isnt",
 				EQ, IS, ISNT, MATCH, MATCHNOT, NOT, INC, DEC,
 				LT, LTE, GT, GTE, LSHIFT, RSHIFT, LSHIFTEQ, RSHIFTEQ,
 				BITOR, BITOREQ, BITAND, BITANDEQ, BITXOR, BITXOREQ,
 				ADD, ADDEQ, SUB, SUBEQ, CAT, CATEQ,
 				MUL, MULEQ, DIV, DIVEQ, MOD, MODEQ, AND, OR,
-				AND, OR, NOT, IS, ISNT, ISNT);
+				AND, OR, NOT, IS, ISNT);
 	}
 
 	@Test
@@ -105,8 +105,8 @@ public class LexerTest {
 	@Test
 	public void keywords() {
 		checkKeywords("break case catch continue class callback default " +
-			"dll do else for foreach forever function if " +
-			"new switch struct super return throw try while true false");
+			"dll do else for forever function if new " +
+			"switch struct super return throw try while true false");
 	}
 
 	@Test
