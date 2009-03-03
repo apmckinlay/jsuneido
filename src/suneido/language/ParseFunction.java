@@ -5,13 +5,13 @@ import static suneido.language.Token.*;
 /**
  * @author Andrew McKinlay
  */
-public class ParseFunction<T> extends Parse<T> {
+public class ParseFunction<T> extends Parse<T, Generator<T>> {
 
 	ParseFunction(Lexer lexer, Generator<T> generator) {
 		super(lexer, generator);
 		expectingCompound = false;
 	}
-	ParseFunction(Parse<T> parse) {
+	ParseFunction(Parse<T, Generator<T>> parse) {
 		super(parse);
 		expectingCompound = false;
 	}

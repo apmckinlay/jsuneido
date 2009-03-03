@@ -3,20 +3,20 @@ package suneido.language;
 import static suneido.language.Token.*;
 import suneido.SuException;
 
-public class Parse<T> {
+public class Parse<T, Gen> {
 
 	protected final Lexer lexer;
-	protected final Generator<T> generator;
+	protected final Gen generator;
 	protected Token token;
 	protected int statementNest = 99;
 	boolean expectingCompound = false;
 
-	protected Parse(Lexer lexer, Generator<T> generator) {
+	protected Parse(Lexer lexer, Gen generator) {
 		this.lexer = lexer;
 		this.generator = generator;
 		match();
 	}
-	protected Parse(Parse<T> parse) {
+	protected Parse(Parse<T, Gen> parse) {
 		lexer = parse.lexer;
 		generator = parse.generator;
 		token = parse.token;

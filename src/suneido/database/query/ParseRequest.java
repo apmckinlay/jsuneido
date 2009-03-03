@@ -1,18 +1,25 @@
 package suneido.database.query;
 
 import static suneido.language.Token.*;
+import suneido.database.Index;
 import suneido.language.*;
 
-public class ParseRequest<T> extends Parse<T> {
-	ParseRequest(Lexer lexer, Generator<T> generator) {
+public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
+	ParseRequest(Lexer lexer, RequestGenerator<T> generator) {
 		super(lexer, generator);
 	}
 
-	ParseRequest(Parse<T> parse) {
+	ParseRequest(Parse<T, RequestGenerator<T>> parse) {
 		super(parse);
 	}
 
 	T request() {
+		T result = request2();
+		match(EOF);
+		return result;
+	}
+
+	T request2() {
 		switch (lexer.getKeyword()) {
 		case CREATE:
 			return create();
@@ -28,8 +35,10 @@ public class ParseRequest<T> extends Parse<T> {
 			return sview();
 		case DROP:
 			return drop();
+		default:
+			syntaxError();
+			return null;
 		}
-		return null;
 	}
 
 	private T create() {
@@ -152,13 +161,13 @@ public class ParseRequest<T> extends Parse<T> {
 		String table = lexer.getValue();
 		match(IDENTIFIER);
 		T columns = token == L_PAREN ? columnList() : null;
-		Token mode = null;
+		int mode = Index.BLOCK;
 		if (lexer.getKeyword() == CASCADE) {
 			match();
-			mode = CASCADE;
+			mode = Index.CASCADE;
 			if (lexer.getKeyword() == UPDATE) {
 				match();
-				mode = UPDATE;
+				mode = Index.CASCADE_UPDATES;
 			}
 		}
 		return generator.foreignKey(table, columns, mode);

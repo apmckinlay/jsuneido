@@ -5,11 +5,11 @@ import static suneido.language.Generator.ObjectOrRecord.RECORD;
 import static suneido.language.Token.*;
 import suneido.language.Generator.ObjectOrRecord;
 
-public class ParseConstant<T> extends Parse<T> {
+public class ParseConstant<T> extends Parse<T, Generator<T>> {
 	ParseConstant(Lexer lexer, Generator<T> generator) {
 		super(lexer, generator);
 	}
-	ParseConstant(Parse<T> parse) {
+	ParseConstant(Parse<T, Generator<T>> parse) {
 		super(parse);
 	}
 
