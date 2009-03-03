@@ -9,7 +9,7 @@ public class Lexer {
 	private String value = "";
 	private Token keyword;
 	private boolean ignoreCase = false;
-	private final String debug = ">";
+	//private final String debug = ">";
 
 	public Lexer(String source) {
 		this.source = source;
@@ -40,7 +40,7 @@ public class Lexer {
 		do
 			token = nextAll();
 			while (token == WHITE || token == COMMENT);
-		System.out.println(debug + " " + token + (value == null ? "" : " " + value));
+		//System.out.println(debug + " " + token + (value == null ? "" : " " + value));
 		return token;
 	}
 

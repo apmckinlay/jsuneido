@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.language.Lexer;
-import suneido.language.StringGenerator;
 
 
 public class ParseRequestTest {
@@ -45,11 +44,9 @@ public class ParseRequestTest {
 	private String parse(String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		StringGenerator generator = new StringGenerator();
+		StringRequestGenerator generator = new StringRequestGenerator();
 		ParseRequest<String> pc = new ParseRequest<String>(lexer, generator);
-		String result = pc.request();
-		pc.checkEof();
-		return result;
+		return pc.request();
 	}
 
 }

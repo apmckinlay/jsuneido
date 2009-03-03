@@ -1,7 +1,8 @@
 package suneido.language;
 
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
-import static suneido.language.Token.*;
+import static suneido.language.Token.ADD;
+import static suneido.language.Token.SUB;
 import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
@@ -56,13 +57,6 @@ public class StringGenerator implements Generator<String> {
 
 	public String unaryExpression(Token op, String expression) {
 		return expression + " " + (op == ADD | op == SUB ? "u" : "") + op;
-	}
-
-	private String str(String x) {
-		return x == null ? "" : (String) x;
-	}
-	private String str(String s, String x, String t) {
-		return x == null ? "" : s + x + t;
 	}
 
 	public String number(String value) {
@@ -198,71 +192,11 @@ public class StringGenerator implements Generator<String> {
 		return "#" + (which == OBJECT ? "(" : "{") + str(members) + (which == OBJECT ? ")" : "}");
 	}
 
-	// for queries
-
-	public String drop(String name) {
-		return "drop(" + name + ")";
+	private String str(String x) {
+		return x == null ? "" : (String) x;
 	}
 
-	public String rename(String from, String to) {
-		return "rename(" + from + ", " + to + ")";
-	}
-
-	public String view(String name, String definition) {
-		return "view(" + name + ", '" + definition + "')";
-	}
-
-	public String sview(String name, String definition) {
-		return "s" + view(name, definition);
-	}
-
-	public String columns(String columns, String column) {
-		return str("", columns, ",") + column;
-	}
-
-	public String create(String table, String schema) {
-		return "create " + table + " " + schema;
-	}
-
-	public String ensure(String table, String schema) {
-		return "ensure " + table + " " + schema;
-	}
-
-	public String foreignKey(String table, String columns, Token mode) {
-		return "in " + table + str(" (", columns, ")") +
-				(mode != null ? " cascade" : "") + (mode == UPDATE ? " update" : "");
-	}
-
-	public String index(boolean key, boolean unique, boolean lower,
-			String columns, String foreignKey) {
-		return (key ? "key" : "index") + (unique ? " unique" : "") +
-				(lower ? " lower" : "") + "(" + columns + ")" +
-				str(" ", foreignKey, "");
-	}
-
-	public String indexes(String indexes, String index) {
-		return str("", indexes, " ") + index;
-	}
-
-	public String schema(String columns, String indexes) {
-		return str("(", columns, ")") +
-				(columns != null && indexes != null ? " " : "") +
-				str(indexes);
-	}
-
-	public String alterCreate(String table, String schema) {
-		return "alter " + table + " create " + schema;
-	}
-
-	public String alterDrop(String table, String schema) {
-		return "alter " + table + " drop " + schema;
-	}
-
-	public String alterRename(String table, String renames) {
-		return "alter " + table + " rename " + renames;
-	}
-
-	public String renames(String renames, String from, String to) {
-		return str("", renames, ", ") + from + " to " + to;
+	private String str(String s, String x, String t) {
+		return x == null ? "" : s + x + t;
 	}
 }

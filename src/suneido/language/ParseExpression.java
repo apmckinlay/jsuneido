@@ -2,12 +2,12 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 
-public class ParseExpression<T> extends Parse<T> {
+public class ParseExpression<T> extends Parse<T, Generator<T>> {
 
 	ParseExpression(Lexer lexer, Generator<T> generator) {
 		super(lexer, generator);
 	}
-	ParseExpression(Parse<T> parse) {
+	ParseExpression(Parse<T, Generator<T>> parse) {
 		super(parse);
 	}
 
