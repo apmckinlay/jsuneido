@@ -36,7 +36,7 @@ public abstract class Query implements DbmsQuery {
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
 	static Query query(ServerData serverData, String s, boolean is_cursor) {
-		return ParseQuery.parse(serverData, s).setup(is_cursor);
+		return CompileQuery.parse(serverData, s).setup(is_cursor);
 	}
 
 	Query setup() {

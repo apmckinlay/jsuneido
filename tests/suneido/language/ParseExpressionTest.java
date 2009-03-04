@@ -90,7 +90,8 @@ public class ParseExpressionTest {
     private String parse(String s) {
         Lexer lexer = new Lexer(s);
         StringGenerator generator = new StringGenerator();
-        ParseExpression<String> pc = new ParseExpression<String>(lexer, generator);
+        ParseExpression<String, Generator<String>> pc =
+				new ParseExpression<String, Generator<String>>(lexer, generator);
         String result = pc.expression();
         pc.checkEof();
         return result;

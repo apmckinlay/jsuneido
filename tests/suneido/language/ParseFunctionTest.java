@@ -65,7 +65,8 @@ public class ParseFunctionTest {
     private String parse(String s) {
         Lexer lexer = new Lexer(s);
         StringGenerator generator = new StringGenerator();
-        ParseFunction<String> pc = new ParseFunction<String>(lexer, generator);
+        ParseFunction<String, Generator<String>> pc =
+				new ParseFunction<String, Generator<String>>(lexer, generator);
         String result = pc.function();
         pc.checkEof();
         return result;

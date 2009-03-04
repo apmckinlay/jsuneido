@@ -196,7 +196,7 @@ public class StringGenerator implements Generator<String> {
 		return x == null ? "" : (String) x;
 	}
 
-	private String str(String s, String x, String t) {
+	protected String str(String s, String x, String t) {
 		return x == null ? "" : s + x + t;
 	}
 }

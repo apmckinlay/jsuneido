@@ -25,7 +25,7 @@ public class ExprTest {
 				"f(a, b)", list("a", "b"),
 		};
 		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = ParseQuery.expr((String) cases[i]);
+			Expr e = CompileQuery.expr((String) cases[i]);
 			assertEquals(cases[i + 1], e.fields());
 		}
 	}
@@ -55,7 +55,7 @@ public class ExprTest {
 				"3 * 4 in (2,3,4)", "false",
 		};
 		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = ParseQuery.expr(cases[i]);
+			Expr e = CompileQuery.expr(cases[i]);
 			assertEquals(cases[i + 1], e.fold().toString());
 		}
 	}
@@ -65,10 +65,10 @@ public class ExprTest {
 		List<String> fields = list("a", "b", "c");
 		String truecases[] = new String[] { "a = 5", "5 > b", "b in (3,4,5)" };
 		for (String s : truecases)
-			assertTrue(s, ParseQuery.expr(s).isTerm(fields));
+			assertTrue(s, CompileQuery.expr(s).isTerm(fields));
 		String falsecases[] = new String[] { "a", "d = 5", "c =~ 'x'" };
 		for (String s : falsecases)
-			assertFalse(s, ParseQuery.expr(s).isTerm(fields));
+			assertFalse(s, CompileQuery.expr(s).isTerm(fields));
 	}
 
 	@Test
@@ -102,7 +102,7 @@ public class ExprTest {
 				add(SuDate.literal("#20081216.153244828"));
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = ParseQuery.expr(cases[i]);
+			Expr e = CompileQuery.expr(cases[i]);
 			assertEquals(e.toString(), cases[i + 1],
 					e.eval(hdr, row).toString());
 		}
@@ -120,7 +120,7 @@ public class ExprTest {
 		List<String> from = list("x", "y", "z");
 		List<String> to = list("xx", "yy", "zz");
 		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = ParseQuery.expr(cases[i]);
+			Expr e = CompileQuery.expr(cases[i]);
 			e = e.rename(from, to);
 			assertEquals(e.toString(), cases[i + 1], e.toString());
 		}
@@ -138,9 +138,9 @@ public class ExprTest {
 		List<String> from = list("x", "y", "z");
 		List<Expr> to = new ArrayList<Expr>();
 		for (String s : list("1 + x", "yy", "''"))
-			to.add(ParseQuery.expr(s));
+			to.add(CompileQuery.expr(s));
 		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = ParseQuery.expr(cases[i]);
+			Expr e = CompileQuery.expr(cases[i]);
 			assertEquals(e.toString(), cases[i + 1],
 					e.replace(from, to).toString());
 		}

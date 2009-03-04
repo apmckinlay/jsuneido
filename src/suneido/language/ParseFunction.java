@@ -5,13 +5,13 @@ import static suneido.language.Token.*;
 /**
  * @author Andrew McKinlay
  */
-public class ParseFunction<T> extends Parse<T, Generator<T>> {
+public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
-	ParseFunction(Lexer lexer, Generator<T> generator) {
+	ParseFunction(Lexer lexer, G generator) {
 		super(lexer, generator);
 		expectingCompound = false;
 	}
-	ParseFunction(Parse<T, Generator<T>> parse) {
+	ParseFunction(Parse<T, G> parse) {
 		super(parse);
 		expectingCompound = false;
 	}
@@ -295,14 +295,14 @@ public class ParseFunction<T> extends Parse<T, Generator<T>> {
 	}
 
 	private T expression() {
-		ParseExpression<T> p = new ParseExpression<T>(this);
+		ParseExpression<T, G> p = new ParseExpression<T, G>(this);
 		T result = p.expression();
 		token = p.token;
 		return result;
 	}
 
 	private T constant() {
-		ParseConstant<T> p = new ParseConstant<T>(this);
+		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
 		T result = p.constant();
 		token = p.token;
 		return result;

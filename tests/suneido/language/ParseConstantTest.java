@@ -51,7 +51,8 @@ System.out.println(c[0]);
 	private String parse(String s) {
 		Lexer lexer = new Lexer(s);
 		StringGenerator generator = new StringGenerator();
-		ParseConstant<String> pc = new ParseConstant<String>(lexer, generator);
+		ParseConstant<String, Generator<String>> pc =
+				new ParseConstant<String, Generator<String>>(lexer, generator);
 		String result = pc.constant();
 		pc.checkEof();
 		return result;

@@ -7,7 +7,7 @@ public class Parse<T, Gen> {
 
 	protected final Lexer lexer;
 	protected final Gen generator;
-	protected Token token;
+	public Token token;
 	protected int statementNest = 99;
 	boolean expectingCompound = false;
 

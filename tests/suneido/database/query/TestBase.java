@@ -103,7 +103,7 @@ public class TestBase {
 	}
 
 	protected void req(String s) {
-		((QueryAction) ParseQuery.parse(serverData, s)).execute();
+		((QueryAction) CompileQuery.parse(serverData, s)).execute();
 	}
 
 }

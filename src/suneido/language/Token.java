@@ -39,7 +39,7 @@ public enum Token {
 	TRUE("true"), FALSE("false"), IN("in"), THIS("this"),
 	// for queries
 	VIEW("view"), SVIEW("sview"), CREATE("create"), ENSURE("ensure"),
-	DROP("drop"), ALTER("alter"),
+	DROP("drop"), ALTER("alter"), DELETE("delete"),
 	RENAME("rename"), TO("to"), UNIQUE("unique"), LOWER("lower"),
 	CASCADE("cascade"), UPDATES("updates"), INDEX("index"), KEY("key"),
 	TOTAL("total"), SORT("sort"), PROJECT("project"), MAX("max"), MIN("min"),
@@ -52,6 +52,7 @@ public enum Token {
 	Token other;
 	String keyword;
 	EnumSet<TokenFeature> features;
+
 	Token() {
 	}
 	Token(Token other) {
@@ -84,8 +85,8 @@ public enum Token {
 	static final Map<String, Token> keywords = new HashMap<String, Token>();
 	static {
 		for (Token t : Token.values())
-			keywords.put(t.keyword, t);
-		keywords.put("delete", DROP);
+			if (t.keyword != null)
+				keywords.put(t.keyword, t);
 		keywords.put("destroy", DROP);
 	}
 	public static Token lookup(String s) {
