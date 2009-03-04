@@ -26,11 +26,11 @@ public class UpdateableTest extends TestBase {
 
 	private void updateable(String q) {
 		assertTrue(q + "should be updateable",
-				ParseQuery.query(serverData, q).updateable());
+				CompileQuery.query(serverData, q).updateable());
 	}
 
 	private void not_updateable(String q) {
 		assertFalse(q + "should NOT be updateable",
-				ParseQuery.query(serverData, q).updateable());
+				CompileQuery.query(serverData, q).updateable());
 	}
 }

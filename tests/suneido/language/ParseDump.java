@@ -34,7 +34,8 @@ public class ParseDump implements DumpReader.Processor {
 
 		Lexer lexer = new Lexer(source);
 		StringGenerator generator = new StringGenerator();
-		ParseConstant<String> pc = new ParseConstant<String>(lexer, generator);
+		ParseConstant<String, Generator<String>> pc =
+				new ParseConstant<String, Generator<String>>(lexer, generator);
 		try {
 			pc.constant();
 			pc.checkEof();

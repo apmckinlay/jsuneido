@@ -25,7 +25,7 @@ public class DbmsLocal implements Dbms {
 
 	public int request(ServerData serverData, DbmsTran tran, String s) {
 System.out.println("\t" + s);
-		return ((QueryAction) ParseQuery.parse(serverData, s)).execute((Transaction) tran);
+		return ((QueryAction) CompileQuery.parse(serverData, s)).execute((Transaction) tran);
 	}
 
 	public DbmsTran transaction(boolean readwrite, String session_id) {
@@ -38,7 +38,7 @@ System.out.println("\t" + query);
 		if (tran == null)
 			tran = theDB.readonlyTran();
 		try {
-			Query q = ParseQuery.query(serverData, query, (Transaction) tran);
+			Query q = CompileQuery.query(serverData, query, (Transaction) tran);
 			Row row = q.get(dir);
 			if (row != null && q.updateable())
 				row.recadr = row.getFirstData().off();
@@ -54,12 +54,12 @@ System.out.println("\t" + query);
 
 	public DbmsQuery query(ServerData serverData, DbmsTran tran, String s) {
 System.out.println("\t" + s);
-		return ParseQuery.query(serverData, s, (Transaction) tran);
+		return CompileQuery.query(serverData, s, (Transaction) tran);
 	}
 
 	public DbmsQuery cursor(ServerData serverData, String s) {
 System.out.println("\t" + s);
-		return ParseQuery.query(serverData, s, true);
+		return CompileQuery.query(serverData, s, true);
 	}
 
 	public void erase(DbmsTran tran, long recadr) {

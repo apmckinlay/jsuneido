@@ -2,16 +2,16 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 
-public class ParseExpression<T> extends Parse<T, Generator<T>> {
+public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
-	ParseExpression(Lexer lexer, Generator<T> generator) {
+	ParseExpression(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
-	ParseExpression(Parse<T, Generator<T>> parse) {
+	public ParseExpression(Parse<T, G> parse) {
 		super(parse);
 	}
 
-	T expression() {
+	public T expression() {
 		return conditionalExpression();
 	}
 
@@ -336,14 +336,14 @@ public class ParseExpression<T> extends Parse<T, Generator<T>> {
 	}
 
 	private T constant() {
-		ParseConstant<T> p = new ParseConstant<T>(this);
+		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
 		T result = p.constant();
 		token = p.token;
 		return result;
 	}
 
 	private T statementList() {
-		ParseFunction<T> p = new ParseFunction<T>(this);
+		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
 		T result = p.statementList();
 		token = p.token;
 		return result;

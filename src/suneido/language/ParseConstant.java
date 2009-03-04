@@ -5,11 +5,11 @@ import static suneido.language.Generator.ObjectOrRecord.RECORD;
 import static suneido.language.Token.*;
 import suneido.language.Generator.ObjectOrRecord;
 
-public class ParseConstant<T> extends Parse<T, Generator<T>> {
-	ParseConstant(Lexer lexer, Generator<T> generator) {
+public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
+	ParseConstant(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
-	ParseConstant(Parse<T, Generator<T>> parse) {
+	ParseConstant(Parse<T, G> parse) {
 		super(parse);
 	}
 
@@ -61,7 +61,7 @@ public class ParseConstant<T> extends Parse<T, Generator<T>> {
 	}
 
 	private T function() {
-		ParseFunction<T> p = new ParseFunction<T>(this);
+		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
 		T result = p.function();
 		token = p.token;
 		return result;
@@ -135,7 +135,7 @@ public class ParseConstant<T> extends Parse<T, Generator<T>> {
 		return value;
 	}
 	private T functionWithoutKeyword() {
-		ParseFunction<T> p = new ParseFunction<T>(this);
+		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
 		T result = p.functionWithoutKeyword();
 		token = p.token;
 		return result;

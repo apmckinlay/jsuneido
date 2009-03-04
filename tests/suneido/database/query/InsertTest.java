@@ -13,7 +13,7 @@ public class InsertTest extends TestBase {
 		makeTable();
 
 		assertEquals(0, get("test").size());
-		QueryAction q = (QueryAction) ParseQuery
+		QueryAction q = (QueryAction) CompileQuery
 				.parse(serverData, "insert [a: 3, b: 'more stuff'] into test");
 		assertEquals(1, q.execute());
 		check(3);

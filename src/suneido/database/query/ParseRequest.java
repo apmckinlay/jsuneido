@@ -13,13 +13,11 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		super(parse);
 	}
 
-	T request() {
-		T result = request2();
-		match(EOF);
-		return result;
+	T parse() {
+		return matchReturn(EOF, request());
 	}
 
-	T request2() {
+	private T request() {
 		switch (lexer.getKeyword()) {
 		case CREATE:
 			return create();
@@ -63,6 +61,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		case CREATE:
 			return alterCreate(table);
 		case DROP:
+		case DELETE:
 			return alterDrop(table);
 		case RENAME:
 			return alterRename(table);
@@ -78,7 +77,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	}
 
 	private T alterDrop(String table) {
-		match(DROP);
+		match();
 		return generator.alterDrop(table, partialSchema());
 	}
 

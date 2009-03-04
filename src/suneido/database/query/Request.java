@@ -34,7 +34,7 @@ public class Request implements RequestGenerator<Object> {
 		lexer.ignoreCase();
 		Request generator = new Request(serverData);
 		ParseRequest<Object> pc = new ParseRequest<Object>(lexer, generator);
-		pc.request();
+		pc.parse();
 	}
 
 	public Object columns(Object columns, String column) {
