@@ -190,7 +190,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case NUMBER:
 		case STRING:
 		case HASH:
-			term = constant();
+			term = generator.constant(constant());
 			lvalue = false;
 			break;
 		case L_CURLY:

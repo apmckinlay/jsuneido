@@ -99,4 +99,6 @@ public interface Generator<T> {
 
 	T object(ObjectOrRecord which, T members);
 
+	T constant(T value);
+
 }

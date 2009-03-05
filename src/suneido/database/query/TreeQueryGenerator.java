@@ -122,7 +122,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object table(String table) {
-		// TODO views
 		return new Table(table);
 	}
 
@@ -208,8 +207,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return new TriOp((Expr) expr, (Expr) iftrue, (Expr) iffalse);
 	}
 
-	public Object constant(SuValue value) {
-		return Constant.valueOf(value);
+	public Object constant(Object value) {
+		return Constant.valueOf((SuValue) value);
 	}
 
 	public Object continueStatement() {
@@ -217,7 +216,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object date(String value) {
-		return Constant.valueOf(SuDate.literal(value));
+		return SuDate.literal(value);
 	}
 
 	public Object dowhileStatement(Object statement, Object expression) {
@@ -283,7 +282,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		}
 	}
 	public Object memberDefinition(Object name, Object value) {
-		return new MemDef(((Constant) name).value, ((Constant) value).value);
+		return new MemDef((SuValue) name, (SuValue) value);
 	}
 	public Object memberList(Object members, Object member) {
 		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
@@ -298,7 +297,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object number(String value) {
-		return Constant.valueOf(SuNumber.valueOf(value));
+		return SuNumber.valueOf(value);
 	}
 
 	public Object object(suneido.language.Generator.ObjectOrRecord which,
@@ -334,7 +333,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object string(String value) {
-		return Constant.valueOf(SuString.valueOf(value));
+		return SuString.valueOf(value);
 	}
 
 	public Object subscript(Object term, Object expression) {
@@ -383,7 +382,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		if (constant == null)
 			return new In((Expr) expression);
 		In in = (In) expression;
-		in.add(((Constant) constant).value);
+		in.add((SuValue) constant);
 		return in;
 	}
 
