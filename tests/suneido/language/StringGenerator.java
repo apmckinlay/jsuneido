@@ -213,4 +213,8 @@ public class StringGenerator implements Generator<String> {
 		else
 			return expression + " " + constant;
 	}
+
+	public String constant(String value) {
+		return value;
+	}
 }
