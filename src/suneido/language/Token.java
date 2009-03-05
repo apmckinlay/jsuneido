@@ -22,11 +22,11 @@ public enum Token {
 	NOT("not"), INC, DEC, BITNOT,
 	ADD(INFIX), SUB(INFIX), CAT(INFIX), MUL(INFIX), DIV(INFIX), MOD(INFIX),
 	LSHIFT(INFIX), RSHIFT(INFIX), BITOR(INFIX), BITAND(INFIX), BITXOR(INFIX),
-	EQ(INFIX, ASSIGN),
-	ADDEQ(INFIX, ASSIGN), SUBEQ(INFIX, ASSIGN), CATEQ(INFIX, ASSIGN),
-	MULEQ(INFIX, ASSIGN), DIVEQ(INFIX, ASSIGN), MODEQ(INFIX, ASSIGN),
-	LSHIFTEQ(INFIX, ASSIGN), RSHIFTEQ(INFIX, ASSIGN),
-	BITOREQ(INFIX, ASSIGN), BITANDEQ(INFIX, ASSIGN), BITXOREQ(INFIX, ASSIGN),
+	EQ(ASSIGN),
+	ADDEQ(ASSIGN), SUBEQ(ASSIGN), CATEQ(ASSIGN),
+	MULEQ(ASSIGN), DIVEQ(ASSIGN), MODEQ(ASSIGN),
+	LSHIFTEQ(ASSIGN), RSHIFTEQ(ASSIGN),
+	BITOREQ(ASSIGN), BITANDEQ(ASSIGN), BITXOREQ(ASSIGN),
 	// keywords
 	IF("if"), ELSE("else"),
 	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
@@ -51,7 +51,7 @@ public enum Token {
 
 	Token other;
 	String keyword;
-	EnumSet<TokenFeature> features;
+	TokenFeature feature;
 
 	Token() {
 	}
@@ -59,27 +59,25 @@ public enum Token {
 		this.other = other;
 		other.other = this;
 	}
-	Token(TokenFeature... has) {
-		features = EnumSet.noneOf(TokenFeature.class);
-		for (TokenFeature tf : has)
-			features.add(tf);
-	}
 	Token(String keyword) {
 		this.keyword = keyword;
 	}
-	Token(String keyword, TokenFeature... has) {
-		this(has);
+	Token(TokenFeature feature) {
+		this.feature = feature;
+	}
+	Token(String keyword, TokenFeature feature) {
 		this.keyword = keyword;
+		this.feature = feature;
 	}
 
 	public boolean isOperator() {
 		return ordinal() < IF.ordinal();
 	}
 	public boolean infix() {
-		return features != null && features.contains(INFIX);
+		return feature == INFIX || feature == ASSIGN;
 	}
 	public boolean assign() {
-		return features != null && features.contains(ASSIGN);
+		return feature == ASSIGN;
 	}
 
 	static final Map<String, Token> keywords = new HashMap<String, Token>();
