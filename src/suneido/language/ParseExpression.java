@@ -3,12 +3,21 @@ package suneido.language;
 import static suneido.language.Token.*;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
+	boolean EQ_as_IS = false;
 
-	ParseExpression(Lexer lexer, G generator) {
+	public ParseExpression(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
 	public ParseExpression(Parse<T, G> parse) {
 		super(parse);
+	}
+
+	public void eq_as_is() {
+		EQ_as_IS = true;
+	}
+
+	public T parse() {
+		return matchReturn(EOF, expression());
 	}
 
 	public T expression() {
@@ -34,18 +43,32 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		T result = andExpression();
 		while (token == OR) {
 			matchSkipNewlines();
-			result = generator.binaryExpression(OR, result, andExpression());
+			result = generator.or(result, andExpression());
 		}
 		return result;
 	}
 
 	private T andExpression() {
-		T result = bitorExpression();
+		T result = inExpression();
 		while (token == AND) {
 			matchSkipNewlines();
-			result = generator.binaryExpression(AND, result, bitorExpression());
+			result = generator.and(result, inExpression());
 		}
 		return result;
+	}
+
+	private T inExpression() {
+		T expr = bitorExpression();
+		if (matchIf(IN)) {
+			expr = generator.in(expr, null);
+			match(L_PAREN);
+			while (token != R_PAREN) {
+				expr = generator.in(expr, constant());
+				matchIf(COMMA);
+			}
+			match(R_PAREN);
+		}
+		return expr;
 	}
 
 	private T bitorExpression() {
@@ -77,8 +100,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T isExpression() {
 		T result = compareExpression();
-		while (token == IS || token == ISNT || token == MATCH || token == MATCHNOT) {
-			Token op = token;
+		while (token == IS || token == ISNT ||
+				token == MATCH || token == MATCHNOT ||
+				(EQ_as_IS && token == EQ)) {
+			Token op = (token == EQ ? IS : token);
 			matchSkipNewlines();
 			result = generator.binaryExpression(op, result, compareExpression());
 		}
@@ -202,6 +227,11 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 						lookAhead(! expectingCompound) == L_CURLY) {
 					term = constant();
 					lvalue = false;
+				} else if (lexer.getKeyword() == TRUE
+						|| lexer.getKeyword() == FALSE) {
+					term = generator.bool(lexer.getKeyword() == TRUE);
+					match();
+					lvalue = false;
 				} else {
 					term = generator.identifier(lexer.getValue());
 					match(IDENTIFIER);
@@ -237,7 +267,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			if (!lvalue)
 				syntaxError("lvalue required");
 			term = generator.preIncDec(incdec, term);
-		} else if (token.assign()) {
+		} else if (assign()) {
 			if (!lvalue)
 				syntaxError("lvalue required");
 			Token op = token;
@@ -252,6 +282,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term;
 	}
 
+	private boolean assign() {
+		return (EQ_as_IS && token == EQ) ? false : token.assign();
+	}
 	private boolean isGlobal(String value) {
 		char c = value.charAt(0);
 		if (c == '_')
@@ -294,7 +327,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			T value;
 			if (keyword != null &&
 					(token == COMMA || token == closing || lookAhead() == COLON))
-				value = generator.bool("true");
+				value = generator.bool(true);
 			else
 				value = expression();
 			args = generator.argumentList(args, keyword, value);

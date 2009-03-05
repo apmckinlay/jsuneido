@@ -120,7 +120,7 @@ public class SuString extends SuValue {
 
 	@Override
 	public String toString() {
-		return "'" + s + "'"; //TODO smarter quoting/escaping
+		return "'" + s.replace("'", "\\'") + "'"; //TODO smarter quoting/escaping
 	}
 
 	@Override

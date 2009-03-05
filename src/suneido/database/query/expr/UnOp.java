@@ -7,26 +7,20 @@ import java.util.List;
 import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Token;
 
 public class UnOp extends Expr {
-	private final Op op;
+	private final Token op;
 	private Expr expr;
-	public enum Op {
-		PLUS("+"), MINUS("-"), NOT("!"), BITNOT("~");
-		public String name;
-		Op(String name) {
-			this.name = name;
-		}
-	}
 
-	public UnOp(Op op, Expr expr) {
+	public UnOp(Token op, Expr expr) {
 		this.op = op;
 		this.expr = expr;
 	}
 
 	@Override
 	public String toString() {
-		return op.name + expr;
+		return op.string + " " + expr;
 	}
 
 	@Override
@@ -53,9 +47,9 @@ public class UnOp extends Expr {
 			return x == SuBoolean.FALSE ? SuBoolean.TRUE : SuBoolean.FALSE;
 		case BITNOT:
 			return SuInteger.valueOf(~x.integer());
-		case PLUS:
+		case ADD:
 			return x;
-		case MINUS:
+		case SUB:
 			return x.uminus();
 		default:
 			throw unreachable();

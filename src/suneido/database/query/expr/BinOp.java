@@ -1,7 +1,9 @@
 package suneido.database.query.expr;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.*;
+import static suneido.Util.bufferUcompare;
+import static suneido.Util.union;
+import static suneido.language.Token.*;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -9,24 +11,15 @@ import java.util.List;
 import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Token;
 
 public class BinOp extends Expr {
-	public Op op;
+	public Token op;
 	public Expr left;
 	public Expr right;
 	private Boolean isterm = null;
-	public enum Op {
-		IS("="), ISNT("!="), LT("<"), LTE("<="), GT(">"), GTE(">="),
-		MATCH("=~"), MATCHNOT("!~"),
-		ADD("+"), SUB("-"), MUL("*"), DIV("/"), MOD("%"), CAT("$"),
-		LSHIFT("<<"), RSHIFT(">>"), BITAND("&"), BITOR("|"), BITXOR("^");
-		public String name;
-		Op(String name) {
-			this.name = name;
-		}
-	}
 
-	public BinOp(Op op, Expr left, Expr right) {
+	public BinOp(Token op, Expr left, Expr right) {
 		this.op = op;
 		this.left = left;
 		this.right = right;
@@ -34,7 +27,7 @@ public class BinOp extends Expr {
 
 	@Override
 	public String toString() {
-		return "(" + left + " " + op.name + " " + right + ")";
+		return "(" + left + " " + op.string + " " + right + ")";
 	}
 
 	@Override
@@ -86,23 +79,27 @@ public class BinOp extends Expr {
 
 	@Override
 	public boolean isTerm(List<String> fields) {
-		if (op.ordinal() > Op.GTE.ordinal())
+		if (!op.termop())
 			return false;
 		if (left.isField(fields) && right instanceof Constant)
 			return true;
 		if (left instanceof Constant && right.isField(fields)) {
-			Expr tmp = left; left = right; right = tmp;
-			switch (op) {
-			case LT : op = Op.GT; break ;
-			case LTE : op = Op.GTE; break ;
-			case GT : op = Op.LT; break ;
-			case GTE : op = Op.LTE; break ;
-			case IS : case ISNT : break ;
-			default : throw unreachable();
-			}
+			reverse();
 			return true;
 		}
 		return false;
+	}
+
+	private void reverse() {
+		Expr tmp = left; left = right; right = tmp;
+		switch (op) {
+		case LT : op = GT; break ;
+		case LTE : op = GTE; break ;
+		case GT : op = LT; break ;
+		case GTE : op = LTE; break ;
+		case IS : case ISNT : break ;
+		default : throw unreachable();
+		}
 	}
 
 	@Override

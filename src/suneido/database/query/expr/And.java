@@ -1,5 +1,6 @@
 package suneido.database.query.expr;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuBoolean;
@@ -14,6 +15,19 @@ public class And extends Multi {
 
 	public And(List<Expr> exprs) {
 		super(exprs);
+	}
+
+	public static Object make(Expr expr1, Expr expr2) {
+		if (expr1 instanceof And) {
+			And and = (And) expr1;
+			and.exprs.add(expr2);
+			return and;
+		} else {
+			List<Expr> exprs = new ArrayList<Expr>();
+			exprs.add(expr1);
+			exprs.add(expr2);
+			return new And(exprs);
+		}
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 package suneido.language;
 
 public enum TokenFeature {
-	INFIX, ASSIGN;
+	INFIX, ASSIGN, TERMOP, SUMOP;
 }

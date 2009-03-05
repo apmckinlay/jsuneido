@@ -1,16 +1,17 @@
 package suneido.language;
 
-import suneido.SuValue;
 
 public interface Generator<T> {
 
 	T assignment(T term, Token op, T expression);
 
-	T binaryExpression(Token op, T list, T next);
+	T binaryExpression(Token op, T expr1, T expr2);
+
+	T and(T expr1, T expr2);
+
+	T or(T expr1, T expr2);
 
 	T conditional(T primaryExpression, T first, T second);
-
-	T constant(SuValue result);
 
 	T dowhileStatement(T statement, T expression);
 
@@ -23,6 +24,8 @@ public interface Generator<T> {
 	T identifier(String text);
 
 	T ifStatement(T expression, T t, T f);
+
+	T in(T expression, T constant);
 
 	T returnStatement(T expression);
 
@@ -40,7 +43,7 @@ public interface Generator<T> {
 
 	T symbol(String identifier);
 
-	T bool(String value);
+	T bool(boolean value);
 
 	T breakStatement();
 

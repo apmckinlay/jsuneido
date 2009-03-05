@@ -111,7 +111,7 @@ public class ExprTest {
 	@Test
 	public void rename() {
 		String cases[] = new String[] {
-				"a = 1", "(a = 1)",
+				"a = 1", "(a is 1)",
 				"y", "yy",
 				"a + x < y * b", "((a + xx) < (yy * b))",
 				"a and z and b", "(a and zz and b)",
@@ -129,7 +129,7 @@ public class ExprTest {
 	@Test
 	public void replace() {
 		String cases[] = new String[] {
-				"a = 1", "(a = 1)",
+				"a = 1", "(a is 1)",
 				"y", "yy",
 				"a + x < y * b", "((a + (1 + x)) < (yy * b))",
 				"a and z and b", "(a and '' and b)",

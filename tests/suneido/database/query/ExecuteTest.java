@@ -14,12 +14,12 @@ public class ExecuteTest extends TestBase {
 	@Test
 	public void test() {
 		for (String[] c : cases) {
-			// System.out.println("CASE " + c[0]);
+			//System.out.println("CASE " + c[0]);
 			Query q = CompileQuery.parse(serverData, c[0]);
 			if (q instanceof Select)
 				((Select) q).forceFilters = true;
 			q = q.setup();
-			// System.out.println(q);
+			//System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {
 				q.setTransaction(t);

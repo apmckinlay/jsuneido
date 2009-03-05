@@ -5,6 +5,8 @@ import static suneido.Suneido.verify;
 import static suneido.Util.*;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
+import static suneido.language.Token.IS;
+import static suneido.language.Token.ISNT;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -13,6 +15,7 @@ import suneido.*;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.*;
+import suneido.language.Token;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -85,7 +88,7 @@ public class Select extends Query1 {
 			if (e.isTerm(fields) && e instanceof BinOp) {
 				// MAYBE: handle IN
 				BinOp binop = (BinOp) e;
-				if (binop.op == BinOp.Op.IS) {
+				if (binop.op == IS) {
 					String field = ((Identifier) binop.left).ident;
 					SuValue value = ((Constant) binop.right).value;
 					fix.add(new Fixed(field, value));
@@ -330,7 +333,7 @@ public class Select extends Query1 {
 					continue;
 				} else if (e instanceof BinOp) {
 					BinOp binop = (BinOp) e;
-					if (binop.op != BinOp.Op.ISNT) {
+					if (binop.op != ISNT) {
 						String field = ((Identifier) binop.left).ident;
 						ByteBuffer value = ((Constant) binop.right).packed;
 						cmps.add(new Cmp(field, binop.op, value));
@@ -865,7 +868,7 @@ public class Select extends Query1 {
 
 	private static class Cmp implements Comparable<Cmp> {
 		final String ident;
-		final BinOp.Op op;
+		final Token op;
 		final ByteBuffer value;
 		final List<ByteBuffer> values;
 
@@ -876,7 +879,7 @@ public class Select extends Query1 {
 			values = null;
 		}
 
-		Cmp(String ident, BinOp.Op op, ByteBuffer value) {
+		Cmp(String ident, Token op, ByteBuffer value) {
 			this.ident = ident;
 			this.op = op;
 			this.value = value;
@@ -913,7 +916,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return "Cmp " + ident + " " + (op == null ? "in" : op.name)
+			return "Cmp " + ident + " " + (op == null ? "in" : op.string)
 					+ valueToString(value) + valuesToString(values);
 		}
 	}

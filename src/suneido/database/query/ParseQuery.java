@@ -1,9 +1,13 @@
 package suneido.database.query;
 
+import static suneido.database.Database.theDB;
 import static suneido.language.Token.*;
+import suneido.database.server.ServerData;
 import suneido.language.*;
 
 public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
+	private ServerData serverData;
+
 	ParseQuery(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
@@ -12,11 +16,15 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 		super(parse);
 	}
 
+	public void serverData(ServerData serverData) {
+		this.serverData = serverData;
+	}
+
 	public T parse() {
 		return matchReturn(EOF, query());
 	}
 
-	public T query() {
+	private T query() {
 		switch (lexer.getKeyword()) {
 		case INSERT:
 			return insert();
@@ -31,7 +39,8 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 
 	private T insert() {
 		match(INSERT);
-		return token == L_CURLY ? insertRecord() : insertQuery();
+		return token == L_CURLY || token == L_BRACKET
+				? insertRecord() : insertQuery();
 	}
 
 	private T insertRecord() {
@@ -42,8 +51,12 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	}
 
 	private T record() {
-		// TODO Auto-generated method stub
-		return null;
+		if (token != L_CURLY && token != L_BRACKET)
+			syntaxError("record expected e.g. { a: 1, b: 2 }");
+		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
+		T result = p.object();
+		token = p.token;
+		return result;
 	}
 
 	private T insertQuery() {
@@ -84,12 +97,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	private T sort(T query) {
 		match(SORT);
 		boolean reverse = matchIf(REVERSE);
-		T columns = null;
-		do {
-			columns = generator.columns(columns, lexer.getValue());
-			match(IDENTIFIER);
-		} while (matchIf(COMMA));
-		return generator.sort(query, reverse, columns);
+		return generator.sort(query, reverse, commaList());
 	}
 
 	private T baseQuery() {
@@ -109,7 +117,30 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 			match(R_PAREN);
 			return query;
 		} else
-			return matchReturn(IDENTIFIER, generator.table(lexer.getValue()));
+			return table();
+	}
+
+	private T table() {
+		String tablename = lexer.getValue();
+		match(IDENTIFIER);
+
+		if (serverData == null)
+			return generator.table(tablename);
+
+		String def = serverData.getSview(tablename);
+		if (def == null)
+			def = theDB.getView(tablename);
+
+		if (def == null || serverData.inView(tablename))
+			return generator.table(tablename);
+		else {
+			try {
+				serverData.enterView(tablename);
+				return (T) CompileQuery.parse(serverData, def);
+			} finally {
+				serverData.leaveView(tablename);
+			}
+		}
 	}
 
 	private T history() {
@@ -130,7 +161,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 		case RENAME:
 			return rename(q);
 		case JOIN:
-			return leftjoin(q);
+			return join(q);
 		case LEFTJOIN:
 			return leftjoin(q);
 		case TIMES:
@@ -154,62 +185,139 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	}
 
 	private T project(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(PROJECT);
+		return generator.project(q, commaList());
 	}
 
 	private T remove(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(REMOVE);
+		return generator.remove(q, commaList());
+	}
+
+	private T commaList() {
+		T columns = null;
+		do {
+			columns = generator.columns(columns, lexer.getValue());
+			match(IDENTIFIER);
+		} while (matchIf(COMMA));
+		return columns;
 	}
 
 	private T rename(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(RENAME);
+		T renames = null;
+		do {
+			String from = lexer.getValue();
+			match(IDENTIFIER);
+			match(TO);
+			String to = lexer.getValue();
+			match(IDENTIFIER);
+			renames = generator.renames(renames, from, to);
+		} while (matchIf(COMMA));
+		return generator.rename(q, renames);
+	}
+
+	private T join(T q) {
+		match(JOIN);
+		T by = joinBy();
+		return generator.join(q, by, source());
 	}
 
 	private T leftjoin(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(LEFTJOIN);
+		T by = joinBy();
+		return generator.leftjoin(q, by, source());
+	}
+
+	private T joinBy() {
+		if (!matchIf(BY))
+			return null;
+		return parenList();
+	}
+
+	private T parenList() {
+		match(L_PAREN);
+		T columns = null;
+		while (token != R_PAREN) {
+			columns = generator.columns(columns, lexer.getValue());
+			match(IDENTIFIER);
+			matchIf(COMMA);
+		}
+		match(R_PAREN);
+		return columns;
 	}
 
 	private T times(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(TIMES);
+		return generator.times(q, source());
 	}
 
 	private T union(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(UNION);
+		return generator.union(q, source());
 	}
 
 	private T minus(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(MINUS);
+		return generator.minus(q, source());
 	}
 
 	private T intersect(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(INTERSECT);
+		return generator.intersect(q, source());
 	}
 
 	private T summarize(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(SUMMARIZE);
+		T by = null;
+		while (token == IDENTIFIER && !lexer.getKeyword().sumop()
+				&& lookAhead() != EQ) {
+			by = generator.columns(by, lexer.getValue());
+			match(IDENTIFIER);
+			match(COMMA);
+		}
+		T ops = null;
+		do {
+			String name = null;
+			if (!lexer.getKeyword().sumop()) {
+				name = lexer.getValue();
+				match(IDENTIFIER);
+				match(EQ);
+			}
+			if (!lexer.getKeyword().sumop())
+				syntaxError("summarize operation expected");
+			Token op = lexer.getKeyword();
+			match();
+			String field = null;
+			if (op != COUNT) {
+				field = lexer.getValue();
+				match(IDENTIFIER);
+			}
+			ops = generator.sumops(ops, name, op, field);
+		} while (matchIf(COMMA));
+		return generator.summarize(q, by, ops);
 	}
 
 	private T extend(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(EXTEND);
+		T list = null;
+		do {
+			String column = lexer.getValue();
+			match(IDENTIFIER);
+			T expr = matchIf(EQ) ? expression() : null;
+			list = generator.extendList(list, column, expr);
+		} while (matchIf(COMMA));
+		return generator.extend(q, list);
 	}
 
 	private T where(T q) {
-		// TODO Auto-generated method stub
-		return null;
+		match(WHERE);
+		return generator.where(q, expression());
 	}
 
 	private T expression() {
 		ParseExpression<T, G> p = new ParseExpression<T, G>(this);
+		p.eq_as_is();
 		T result = p.expression();
 		token = p.token;
 		return result;
