@@ -111,7 +111,7 @@ public class OptimizeTest extends TestBase {
 			"(trans^(date,item,id) INTERSECT^(date) hist2^(date))" },
 
 		{ "(hist where item = 1) intersect (trans where item = 2)",
-			"(hist WHERE (item = 1) INTERSECT-DISJOINT(item) trans WHERE (item = 2))" },
+			"(hist WHERE (item is 1) INTERSECT-DISJOINT(item) trans WHERE (item is 2))" },
 
 		{ "cus where cnum = 2 and abbrev = 'c'",
 			"cus^(abbrev) WHERE^(abbrev)%((cnum))" },
@@ -202,7 +202,7 @@ public class OptimizeTest extends TestBase {
 
 		{ "trans where \"mousee\" = item $ id",
 			"trans^(date,item,id) " +
-				"WHERE^(date,item,id) ('mousee' = (item $ id))" },
+				"WHERE^(date,item,id) ('mousee' is (item $ id))" },
 
 		{ "inven where qty + 1 in (3,8)",
 			"inven^(item) WHERE^(item) (qty + 1) in (3,8)" },
@@ -235,10 +235,10 @@ public class OptimizeTest extends TestBase {
 			"hist^(date) EXTEND x = (item $ id)" },
 
 		{ "inven extend x = -qty sort x",
-			"inven^(item) EXTEND x = -qty TEMPINDEX(x)" },
+			"inven^(item) EXTEND x = - qty TEMPINDEX(x)" },
 
 		{ "inven extend x = (qty = 2 ? 222 : qty)",
-			"inven^(item) EXTEND x = ((qty = 2) ? 222 : qty)" },
+			"inven^(item) EXTEND x = ((qty is 2) ? 222 : qty)" },
 
 		{ "inven extend x = qty where x > 4",
 			"inven^(item) WHERE^(item) EXTEND x = qty" },
@@ -254,7 +254,7 @@ public class OptimizeTest extends TestBase {
 
 		{ "(inven leftjoin trans) where date = 960204",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +
-				"WHERE (date = 960204)" },
+				"WHERE (date is 960204)" },
 
 	};
 

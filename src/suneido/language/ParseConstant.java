@@ -9,7 +9,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	ParseConstant(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
-	ParseConstant(Parse<T, G> parse) {
+	public ParseConstant(Parse<T, G> parse) {
 		super(parse);
 	}
 
@@ -129,7 +129,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
 			value = constant();
 		} else if (name != null)
-			value = generator.bool("true");
+			value = generator.bool(true);
 		else
 			syntaxError();
 		return value;
@@ -142,7 +142,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T bool() {
-		return matchReturn(generator.bool(lexer.getValue()));
+		return matchReturn(generator.bool(lexer.getKeyword() == TRUE));
 	}
 
 	private T number() {
@@ -174,7 +174,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return null;
 	}
 
-	private T object() {
+	public T object() {
 		ObjectOrRecord which = token == L_PAREN ? OBJECT : RECORD;
 		T members = memberList(token, null);
 		return generator.object(which, members);

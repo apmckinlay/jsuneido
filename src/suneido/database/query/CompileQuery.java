@@ -1,11 +1,10 @@
 package suneido.database.query;
 
-import org.antlr.runtime.*;
-
-import suneido.SuException;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
+import suneido.language.Lexer;
+import suneido.language.ParseExpression;
 
 public class CompileQuery {
 
@@ -24,31 +23,25 @@ public class CompileQuery {
 	}
 
 	public static Query parse(ServerData serverData, String s) {
-		QueryParser parser = parser(serverData, s);
-		try {
-			return parser.top_query();
-		} catch (RecognitionException e) {
-			throw new SuException("syntax error", e);
-		}
+		Lexer lexer = new Lexer(s);
+		lexer.ignoreCase();
+		TreeQueryGenerator generator = new TreeQueryGenerator();
+		ParseQuery<Object, QueryGenerator<Object>> pc =
+				new ParseQuery<Object, QueryGenerator<Object>>(lexer, generator);
+		pc.serverData(serverData);
+		return (Query) pc.parse();
 	}
 
 	// for testing
 	static Expr expr(String s) {
-		QueryParser parser = parser(null, s);
-		try {
-			return parser.expression();
-		} catch (RecognitionException e) {
-			throw new SuException("syntax error", e);
-		}
-	}
-
-	private static QueryParser parser(ServerData serverData, String s) {
-		ANTLRStringStream input = new ANTLRStringStream(s);
-		QueryLexer lexer = new QueryLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		QueryParser parser = new QueryParser(tokens);
-		parser.serverData = serverData;
-		return parser;
+		Lexer lexer = new Lexer(s);
+		lexer.ignoreCase();
+		TreeQueryGenerator generator = new TreeQueryGenerator();
+		ParseExpression<Object, QueryGenerator<Object>> pc =
+				new ParseExpression<Object, QueryGenerator<Object>>(lexer,
+						generator);
+		pc.eq_as_is();
+		return (Expr) pc.parse();
 	}
 
 }

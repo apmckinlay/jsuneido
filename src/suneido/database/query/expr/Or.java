@@ -1,5 +1,6 @@
 package suneido.database.query.expr;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuBoolean;
@@ -19,6 +20,19 @@ public class Or extends Multi {
 	@Override
 	public String toString() {
 		return super.toString(" or ");
+	}
+
+	public static Object make(Expr expr1, Expr expr2) {
+		if (expr1 instanceof Or) {
+			Or or = (Or) expr1;
+			or.exprs.add(expr2);
+			return or;
+		} else {
+			List<Expr> exprs = new ArrayList<Expr>();
+			exprs.add(expr1);
+			exprs.add(expr2);
+			return new Or(exprs);
+		}
 	}
 
 	@Override

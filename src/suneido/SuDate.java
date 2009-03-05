@@ -25,7 +25,7 @@ public class SuDate extends SuValue {
 		try {
 			date = formatter().parse(s);
 		} catch (ParseException e) {
-			throw new SuException("can't convert to date");
+			throw new SuException("can't convert to date: " + s);
 		}
 	}
 	private static DateFormat formatter() {

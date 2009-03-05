@@ -25,13 +25,13 @@ public class TransformTest extends TestBase {
 					"customer RENAME id to x, name to y" },
 			// combine where's
 			{ "customer where id = 5 where city = 6",
-					"customer WHERE ((id = 5) and (city = 6))" },
+					"customer WHERE ((id is 5) and (city is 6))" },
 
 			// remove projects of all fields
 			{ "customer project id, city, name", "customer" },
 			// remove disjoint difference
 			{ "(customer where id = 3) minus (customer where id = 5)",
-					"customer WHERE (id = 3)" },
+					"customer WHERE (id is 3)" },
 			// remove empty extends
 			{ "customer extend zone = 3 project id, city",
 					"customer PROJECT id,city" },
@@ -56,16 +56,16 @@ public class TransformTest extends TestBase {
 					"customer PROJECT id,name" },
 			// move where before project
 			{ "trans project id,cost where id = 5",
-					"trans WHERE (id = 5) PROJECT id,cost" },
+					"trans WHERE (id is 5) PROJECT id,cost" },
 			// move where before rename
 			{ "trans where cost = 200 rename cost to x where id is 5",
-					"trans WHERE ((cost = 200) and (id = 5)) RENAME cost to x" },
+					"trans WHERE ((cost is 200) and (id is 5)) RENAME cost to x" },
 			// move where before extend
 			{ "trans where cost = 200 extend x = 1 where id is 5",
-					"trans WHERE ((cost = 200) and (id = 5)) EXTEND x = 1" },
+					"trans WHERE ((cost is 200) and (id is 5)) EXTEND x = 1" },
 			// move where before summarize
 			{ "hist summarize id, total cost where id = 3 and total_cost > 10",
-					"hist WHERE (id = 3) SUMMARIZE (id) total_cost = total cost "
+					"hist WHERE (id is 3) SUMMARIZE (id) total_cost = total cost "
 							+ "WHERE (total_cost > 10)" },
 
 			// distribute where over intersect
@@ -79,10 +79,10 @@ public class TransformTest extends TestBase {
 					"(hist WHERE (cost > 10) UNION trans WHERE (cost > 10))" },
 			// distribute where over leftjoin
 			{ "(customer leftjoin trans) where id = 5",
-					"(customer WHERE (id = 5) LEFTJOIN 1:n on (id) trans)" },
+					"(customer WHERE (id is 5) LEFTJOIN 1:n on (id) trans)" },
 			// distribute where over leftjoin
 			{ "(customer leftjoin trans) where id = 5 and item = 3",
-					"(customer WHERE (id = 5) LEFTJOIN 1:n on (id) trans) WHERE (item = 3)" },
+					"(customer WHERE (id is 5) LEFTJOIN 1:n on (id) trans) WHERE (item is 3)" },
 			// distribute where over join
 			{ "(customer join trans) where cost > 10 and city =~ 'toon'",
 					"(customer WHERE (city =~ 'toon') JOIN 1:n on (id) trans WHERE (cost > 10))" },

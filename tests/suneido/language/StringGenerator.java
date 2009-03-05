@@ -1,8 +1,7 @@
 package suneido.language;
 
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
-import static suneido.language.Token.ADD;
-import static suneido.language.Token.SUB;
+import static suneido.language.Token.*;
 import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
@@ -51,8 +50,8 @@ public class StringGenerator implements Generator<String> {
 		return "do {" + str(" ", statement, "") + " } while (" + expression + ");";
 	}
 
-	public String binaryExpression(Token op, String list, String next) {
-		return str(list) + " " + str(next) + " " + op;
+	public String binaryExpression(Token op, String expr1, String expr2) {
+		return str(expr1) + " " + str(expr2) + " " + op;
 	}
 
 	public String unaryExpression(Token op, String expression) {
@@ -75,7 +74,7 @@ public class StringGenerator implements Generator<String> {
 		return "sym(" + value + ")";
 	}
 
-	public String bool(String value) {
+	public String bool(boolean value) {
 		return "b(" + value + ")";
 	}
 
@@ -198,5 +197,20 @@ public class StringGenerator implements Generator<String> {
 
 	protected String str(String s, String x, String t) {
 		return x == null ? "" : s + x + t;
+	}
+
+	public String and(String expr1, String expr2) {
+		return binaryExpression(AND, expr1, expr2);
+	}
+
+	public String or(String expr1, String expr2) {
+		return binaryExpression(OR, expr1, expr2);
+	}
+
+	public String in(String expression, String constant) {
+		if (constant == null)
+			return expression + " in";
+		else
+			return expression + " " + constant;
 	}
 }
