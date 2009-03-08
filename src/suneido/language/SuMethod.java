@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static suneido.language.SuClass.CALL;
 import suneido.SuValue;
 
 /**

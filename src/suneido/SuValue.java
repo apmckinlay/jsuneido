@@ -1,5 +1,7 @@
 package suneido;
 
+import static suneido.language.SuClass.CALL;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -36,12 +38,6 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		public static final byte FUNCTION = 8;
 		public static final byte CLASS = 9;
 	}
-
-	public static final String CALL = "<call>";
-	public static final String NEW = "<new>";
-	public static final SuString EACH = SuString.valueOf("<each>");
-	public static final SuString EACH1 = SuString.valueOf("<each1>");
-	public static final SuString NAMED = SuString.valueOf("<named>");
 
 	public ByteBuffer pack() {
 		ByteBuffer buf = ByteBuffer.allocate(packSize());
