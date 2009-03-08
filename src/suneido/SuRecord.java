@@ -44,7 +44,7 @@ public class SuRecord extends SuContainer {
 //			if (has_suffix(field, "_deps"))
 //				dependencies(basename(field), x.gcstr());
 //			else
-				put(Symbols.symbol(e.field), x);
+				put(SuString.valueOf(e.field), x);
 		}
 }
 
@@ -55,7 +55,7 @@ public class SuRecord extends SuContainer {
 	}
 
 	public Record toDbRecord(Header hdr) {
-		int[] fldsyms = hdr.output_fldsyms();
+		SuString[] fldsyms = hdr.output_fldsyms();
 		// dependencies
 		// - access all the fields to ensure dependencies are created
 		// Lisp<int> f;
@@ -79,9 +79,9 @@ public class SuRecord extends SuContainer {
 		Record rec = new Record();
 		// OstreamStr oss;
 		SuValue x;
-		int ts = hdr.timestamp_field();
-		for (int f : fldsyms)
-			if (f == -1)
+		SuString ts = hdr.timestamp_field();
+		for (SuString f : fldsyms)
+			if (f == null)
 				rec.addMin();
 			else if (f == ts)
 				rec.add(theDbms.timestamp());
@@ -97,7 +97,7 @@ public class SuRecord extends SuContainer {
 			// }
 			// rec.addval(oss.str());
 			// }
-			else if (null != (x = getdata(Symbols.symbol(f))))
+			else if (null != (x = getdata(f)))
 				rec.add(x);
 			else
 				rec.addMin();

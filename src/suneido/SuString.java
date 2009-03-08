@@ -7,7 +7,7 @@ import static suneido.Util.bufferToString;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import suneido.Symbols.Num;
+import suneido.language.SuClass;
 
 /**
  * Wrapper for Java String
@@ -124,6 +124,11 @@ public class SuString extends SuValue {
 	}
 
 	@Override
+	public String strIfStr() {
+		return s;
+	}
+
+	@Override
 	public int hashCode() {
 		return s.hashCode();
 	}
@@ -178,17 +183,15 @@ public class SuString extends SuValue {
 	// since they have to be constant ints for switches
 
 	@Override
-	public SuValue invoke(SuValue self, int method, SuValue ... args) {
-		switch (method) {
-		case Num.SUBSTR :
+	public SuValue invoke(String method, SuValue ... args) {
+		if (method == "Substr")
 			return substr(args);
-		case Num.SIZE :
+		else if (method == "Size")
 			return size(args);
-		default:
-			return super.invoke(self, method, args);
-		}
+		else
+			return super.invoke(method, args);
 	}
-	private static int[] substr_params = new int[] { Num.I, Num.N };
+	private static String[] substr_params = { "i", "n" };
 	private SuValue substr(SuValue[] args) {
 		args = SuClass.massage(args, substr_params);
 		int len = s.length();

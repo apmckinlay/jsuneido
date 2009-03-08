@@ -1,6 +1,7 @@
-package suneido;
+package suneido.language;
 
-import static suneido.Symbols.*;
+import suneido.*;
+
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -14,7 +15,7 @@ import static suneido.Symbols.*;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class SuClass extends SuValue {
+public abstract class SuClass extends SuValue {
 	//TODO handle static data members
 
 	@Override
@@ -23,37 +24,39 @@ public class SuClass extends SuValue {
 	}
 
 	@Override
-	public SuValue invoke(SuValue self, int method, SuValue ... args) {		
-		switch (method) {
-		case Num.CALL : // default for call class is instantiate
-		case Num.INSTANTIATE :
-			SuInstance x = new SuInstance(self);
-			methodNew(x, args); // a "known" method so we can bypass invoke
+	public SuValue invoke(String method, SuValue ... args) {
+		if (method == CALL || // default for call class is instantiate
+				method == NEW) {
+			SuValue x = createInstance();
+			methodNew(args); // a "known" method so we can bypass invoke
 			return x;
-		case Num.NEW :
-			massage(args, new int[0]);
+		} else if (method == "New") {
+			massage(args, new String[0]);
 			return null;
-		default :
+		} else {
 			// if method not found
 			// add method to beginning of args and call Default
 			SuValue newargs[] = new SuValue[1 + args.length];
 			System.arraycopy(args, 0, newargs, 1, args.length);
-			newargs[0] = Symbols.symbol(method);
-			return methodDefault(self, newargs);
+			newargs[0] = SuString.valueOf(method);
+			return methodDefault(newargs);
 		}
 	}
-	
-	public void methodNew(SuInstance x, SuValue[] args) {
+
+	// defined by each Suneido class
+	abstract SuClass createInstance();
+
+	public void methodNew(SuValue[] args) {
 		// default does nothing
 	}
-	public SuValue methodDefault(SuValue self, SuValue[] args) {
-		throw unknown_method(args[0]);
+	public SuValue methodDefault(SuValue[] args) {
+		throw unknown_method(args[0].strIfStr());
 	}
-	
+
 	/**
 	 * Implements Suneido's argument handling.
 	 * Called at the start of generated sub-class methods.
-	 *  
+	 *
 	 * @param nlocals	The number of local variables required, including parameters.
 	 * @param args		The arguments as an SuValue array.<br />
 	 * 					fn(... @args ...) => ... EACH, args ...<br />
@@ -64,15 +67,16 @@ public class SuClass extends SuValue {
 	 * 					No other params are allowed with EACH.
 	 * @return	The locals SuValue array initialized from args.
 	 */
-	public static SuValue[] massage(int nlocals, final SuValue[] args, final int ... params) {
-		boolean params_each = params.length > 0 && params[0] == Num.EACH;
-		
+	public static SuValue[] massage(int nlocals, final SuValue[] args,
+			final String... params) {
+		boolean params_each = params.length > 0 && params[0] == "<each>";
+
 		// "fast" path - when possible, avoid alloc and just return args
 		if (nlocals == args.length && ! params_each)
 			for (int i = 0; ; ++i)
 				if (i >= args.length)
 					return args;
-				else if (args[i] == Sym.EACH || args[i] != Sym.NAMED)
+				else if (args[i] == EACH || args[i] != NAMED)
 					break ;
 
 		// "slow" path - alloc and copy into locals
@@ -81,43 +85,43 @@ public class SuClass extends SuValue {
 			return locals;
 		if (params_each) {
 			// function (@params)
-			if (args[0] == Sym.EACH && args.length == 2)
+			if (args[0] == EACH && args.length == 2)
 				// optimize function (@params) (@args)
 				locals[0] = new SuContainer((SuContainer) args[1]);
 			else {
 				SuContainer c = new SuContainer();
 				locals[0] = c;
 				for (int i = 0; i < args.length; ++i) {
-					if (args[i] == Sym.NAMED) {
+					if (args[i] == NAMED) {
 						c.putdata(args[i + 1], args[i + 2]);
 						i += 2;
 					}
-					else if (args[i] == Sym.EACH)
+					else if (args[i] == EACH)
 						c.merge((SuContainer) args[++i]);
 					else
-						c.vec.add(args[i]);
+						c.append(args[i]);
 				}
 			}
 		} else {
 			assert nlocals >= params.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
-				if (args[i] == Sym.NAMED) {
+				if (args[i] == NAMED) {
 					for (int j = 0; j < params.length; ++j)
-						if (Symbols.symbol(params[j]) == args[i + 1])
+						if (params[j].equals(args[i + 1].strIfStr()))
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
 				}
-				else if (args[i] == Sym.EACH || args[i] == Sym.EACH1) {
-					int start = args[i] == Sym.EACH ? 0 : 1;
+				else if (args[i] == EACH || args[i] == EACH1) {
+					int start = args[i] == EACH ? 0 : 1;
 					SuContainer c = (SuContainer) args[++i];
-					if (c.vecsize() - start > nlocals - li)
+					if (c.vecSize() - start > nlocals - li)
 						throw new SuException("too many arguments");
-					for (int j = start; j < c.vecsize(); ++j)
-						locals[li++] = c.vec.get(j);
+					for (int j = start; j < c.vecSize(); ++j)
+						locals[li++] = c.vecGet(j);
 					for (int j = 0; j < params.length; ++j) {
-						SuValue x = c.map.get(Symbols.symbol(params[j]));
+						SuValue x = c.getdata(params[j]);
 						if (x != null)
 							locals[j] = x;
 					}
@@ -128,7 +132,8 @@ public class SuClass extends SuValue {
 		}
 		return locals;
 	}
-	public static SuValue[] massage(final SuValue[] args, final int ... params) {
+	public static SuValue[] massage(final SuValue[] args,
+			final String... params) {
 		return massage(params.length, args, params);
 	}
 
