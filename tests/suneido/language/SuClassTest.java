@@ -1,7 +1,8 @@
 package suneido.language;
 
 import static org.junit.Assert.*;
-import static suneido.language.SuClass.*;
+import static suneido.language.SuClass.EACH;
+import static suneido.language.SuClass.NAMED;
 
 import org.junit.Test;
 
@@ -79,7 +80,7 @@ public class SuClassTest {
 	@Test
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
-		SuValue instance = dc.invoke(NEW);
+		SuValue instance = dc.newInstance();
 		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
 		assertArrayEquals(new SuValue[] { SuString.valueOf("Substr") },
 				DefaultClass.args);
@@ -104,7 +105,7 @@ public class SuClassTest {
 	@Test
 	public void test_inheritance() {
 		SuValue subClass = new SubClass();
-		SuValue instance = subClass.invoke(NEW);
+		SuValue instance = subClass.newInstance();
 		assertTrue(instance instanceof SubClass);
 		assertEquals(SuInteger.valueOf(99), instance.invoke("Size"));
 		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
