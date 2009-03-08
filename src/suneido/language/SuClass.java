@@ -15,7 +15,16 @@ import suneido.*;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public abstract class SuClass extends SuValue {
-	protected SuContainer vars = new SuContainer();
+	protected final SuContainer vars;
+
+	SuClass() {
+		vars = new SuContainer();
+	}
+
+	// used by SuFunction
+	SuClass(boolean noVars) {
+		vars = null;
+	}
 
 	// classes store "static" data members into vars in initialization block
 
@@ -35,12 +44,17 @@ public abstract class SuClass extends SuValue {
 
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
-		// if we get here, method was not found
-		// add method to beginning of args and call Default
-		SuValue newargs[] = new SuValue[1 + args.length];
-		System.arraycopy(args, 0, newargs, 1, args.length);
-		newargs[0] = SuString.valueOf(method);
-		return methodDefault(newargs);
+		if (method == "Type")
+			return SuString.valueOf("Class");
+		// TODO other standard methods on classes
+		else {
+			// if we get here, method was not found
+			// add method to beginning of args and call Default
+			SuValue newargs[] = new SuValue[1 + args.length];
+			System.arraycopy(args, 0, newargs, 1, args.length);
+			newargs[0] = SuString.valueOf(method);
+			return methodDefault(newargs);
+		}
 	}
 
 	// overridden by class defining Default
@@ -66,13 +80,15 @@ public abstract class SuClass extends SuValue {
 			final String... params) {
 		boolean params_each = params.length > 0 && params[0] == "<each>";
 
-		// "fast" path - when possible, avoid alloc and just return args
-		if (nlocals == args.length && ! params_each)
-			for (int i = 0; ; ++i)
-				if (i >= args.length)
-					return args;
-				else if (args[i] == EACH || args[i] != NAMED)
-					break ;
+		if (simple(args) && !params_each) {
+			if (args.length != params.length)
+				throw new SuException("wrong number of arguments");
+
+			// "fast" path - when possible, avoid alloc and just return args
+			if (nlocals <= args.length) {
+				return args;
+			}
+		}
 
 		// "slow" path - alloc and copy into locals
 		SuValue[] locals = new SuValue[nlocals];
@@ -127,6 +143,12 @@ public abstract class SuClass extends SuValue {
 		}
 		return locals;
 	}
+	private static boolean simple(SuValue[] args) {
+		for (SuValue arg : args)
+			if (arg == EACH || arg == NAMED)
+				return false;
+		return true;
+	}
 
 	public static SuValue[] massage(final SuValue[] args,
 			final String... params) {
@@ -138,5 +160,6 @@ public abstract class SuClass extends SuValue {
 	public static final SuString NAMED = SuString.valueOf("<named>");
 
 	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1
-	//TODO check for missing arguments (but what about defaults?)
+	//TODO parameters with default values
+	//TODO check for missing arguments
 }

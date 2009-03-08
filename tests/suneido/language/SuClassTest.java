@@ -72,9 +72,20 @@ public class SuClassTest {
 		assertArrayEquals(locals2, SuClass.massage(2, args2, "x", "a"));
 		// function (x, a) (@(123, a: "hello")) => too many arguments
 		try {
-			SuClass.massage(1, args3, "x");
+			SuClass.massage(empty, "x"); // too few arguments
 			fail();
-		} catch (SuException e) { }
+		} catch (SuException e) {
+		}
+		try {
+			SuClass.massage(new SuValue[] { s }); // too many arguments
+			fail();
+		} catch (SuException e) {
+		}
+		try {
+			SuClass.massage(args3, "x");
+			fail();
+		} catch (SuException e) {
+		}
 	}
 
 	@Test
