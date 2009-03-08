@@ -29,31 +29,39 @@ public abstract class SuClass extends SuValue {
 	}
 
 	@Override
+	public SuValue invoke(SuValue... args) {
+		// default for calling a class is to instantiate
+		// overridden by class defining CallClass
+		return newInstance(args);
+	}
+
+	@Override
 	public SuValue invoke(String method, SuValue ... args) {
-		if (method == CALL || // default for call class is instantiate
-				method == NEW) {
-			SuValue x = createInstance();
-			methodNew(args); // a "known" method so we can bypass invoke
-			return x;
-		} else if (method == "New") {
-			massage(args, new String[0]);
-			return null;
-		} else {
-			// if method not found
-			// add method to beginning of args and call Default
-			SuValue newargs[] = new SuValue[1 + args.length];
-			System.arraycopy(args, 0, newargs, 1, args.length);
-			newargs[0] = SuString.valueOf(method);
-			return methodDefault(newargs);
-		}
+		// if we get here, method was not found
+		// add method to beginning of args and call Default
+		SuValue newargs[] = new SuValue[1 + args.length];
+		System.arraycopy(args, 0, newargs, 1, args.length);
+		newargs[0] = SuString.valueOf(method);
+		return methodDefault(newargs);
+	}
+
+	// new x is compiled to x.newInstance
+	@Override
+	final public SuValue newInstance(SuValue... args) {
+		SuClass x = createInstance();
+		x.init(args);
+		return x;
 	}
 
 	// defined by each Suneido class
 	abstract SuClass createInstance();
 
-	public void methodNew(SuValue[] args) {
-		// default does nothing
+	// overridden by class defining New
+	// overrides must call super.init first
+	public void init(SuValue[] args) {
+		// base constructor does nothing
 	}
+	// overridden by class defining Default
 	public SuValue methodDefault(SuValue[] args) {
 		throw unknown_method(args[0].strIfStr());
 	}

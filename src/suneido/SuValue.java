@@ -1,7 +1,5 @@
 package suneido;
 
-import static suneido.language.SuClass.CALL;
-
 import java.nio.ByteBuffer;
 
 /**
@@ -179,10 +177,14 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		return number().uminus();
 	}
 
+	public SuValue newInstance(SuValue... args) {
+		throw new SuException("can't do new " + typeName());
+	}
+	public SuValue invoke(SuValue... args) {
+		throw new SuException("can't call " + typeName());
+	}
 	public SuValue invoke(String method, SuValue ... args) {
-		throw method == CALL
-			? new SuException("can't call " + typeName())
-			: unknown_method(method);
+		throw unknown_method(method);
 	}
 
 	public SuException unknown_method(String method) {
