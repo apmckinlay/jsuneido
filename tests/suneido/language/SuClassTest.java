@@ -1,7 +1,7 @@
 package suneido.language;
 
 import static org.junit.Assert.*;
-import static suneido.SuValue.*;
+import static suneido.language.SuClass.*;
 
 import org.junit.Test;
 

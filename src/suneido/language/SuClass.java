@@ -2,7 +2,6 @@ package suneido.language;
 
 import suneido.*;
 
-
 /**
  * The Java base class for compiled Suneido classes.
  * The Java class hierarchy is "flat".
@@ -17,6 +16,12 @@ import suneido.*;
  */
 public abstract class SuClass extends SuValue {
 	//TODO handle static data members
+
+	public static final String CALL = "<call>";
+	public static final String NEW = "<new>";
+	public static final SuString EACH = SuString.valueOf("<each>");
+	public static final SuString EACH1 = SuString.valueOf("<each1>");
+	public static final SuString NAMED = SuString.valueOf("<named>");
 
 	@Override
 	public String toString() {
