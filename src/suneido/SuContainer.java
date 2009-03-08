@@ -17,8 +17,6 @@ public class SuContainer extends SuValue {
 			new HashMap<SuValue, SuValue>();
 	private final SuValue defval = null; // TODO defval
 
-	// TODO readonly
-
 	public SuContainer() {
 	}
 	public SuContainer(SuContainer c) {
@@ -228,6 +226,10 @@ public class SuContainer extends SuValue {
 		buf2.limit(n);
 		buf.position(buf.position() + n);
 		return SuValue.unpack(buf2);
+	}
+
+	public void setReadonly() {
+		// TODO setReadonly
 	}
 
 }

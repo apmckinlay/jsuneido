@@ -178,10 +178,6 @@ public class SuString extends SuValue {
 
 	// methods ======================================================
 
-	// TODO program that finds all the method symbols in the source
-	// and creates a file to initialize them all
-	// since they have to be constant ints for switches
-
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Substr")

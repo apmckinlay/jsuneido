@@ -15,18 +15,16 @@ import suneido.*;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public abstract class SuClass extends SuValue {
-	//TODO handle static data members
+	protected SuContainer vars = new SuContainer();
 
-	public static final String CALL = "<call>";
-	public static final String NEW = "<new>";
-	public static final SuString EACH = SuString.valueOf("<each>");
-	public static final SuString EACH1 = SuString.valueOf("<each1>");
-	public static final SuString NAMED = SuString.valueOf("<named>");
+	// classes store "static" data members into vars in initialization block
 
 	@Override
-	public String toString() {
-		return "a Suneido class";
-	}
+	abstract public String toString();
+
+	// new x is compiled as x.newInstance(...)
+	@Override
+	abstract public SuClass newInstance(SuValue... args);
 
 	@Override
 	public SuValue invoke(SuValue... args) {
@@ -45,22 +43,6 @@ public abstract class SuClass extends SuValue {
 		return methodDefault(newargs);
 	}
 
-	// new x is compiled to x.newInstance
-	@Override
-	final public SuValue newInstance(SuValue... args) {
-		SuClass x = createInstance();
-		x.init(args);
-		return x;
-	}
-
-	// defined by each Suneido class
-	abstract SuClass createInstance();
-
-	// overridden by class defining New
-	// overrides must call super.init first
-	public void init(SuValue[] args) {
-		// base constructor does nothing
-	}
 	// overridden by class defining Default
 	public SuValue methodDefault(SuValue[] args) {
 		throw unknown_method(args[0].strIfStr());
@@ -145,10 +127,15 @@ public abstract class SuClass extends SuValue {
 		}
 		return locals;
 	}
+
 	public static SuValue[] massage(final SuValue[] args,
 			final String... params) {
 		return massage(params.length, args, params);
 	}
+
+	public static final SuString EACH = SuString.valueOf("<each>");
+	public static final SuString EACH1 = SuString.valueOf("<each1>");
+	public static final SuString NAMED = SuString.valueOf("<named>");
 
 	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1
 	//TODO check for missing arguments (but what about defaults?)

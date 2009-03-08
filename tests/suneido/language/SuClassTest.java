@@ -97,8 +97,13 @@ public class SuClassTest {
 			return SuString.EMPTY;
 		}
 		@Override
-		SuClass createInstance() {
+		public SuClass newInstance(SuValue... args) {
+			massage(args);
 			return new DefaultClass();
+		}
+		@Override
+		public String toString() {
+			return "DefaultClass";
 		}
 	}
 
@@ -112,15 +117,46 @@ public class SuClassTest {
 	}
 	static class SubClass extends DefaultClass {
 		@Override
+		public SuClass newInstance(SuValue... args) {
+			massage(args);
+			return new SubClass();
+		}
+
+		@Override
 		public SuValue invoke(String method, SuValue ... args) {
 			if (method == "Size")
 				return SuInteger.valueOf(99);
 			else
 				return super.invoke(method, args);
 		}
+	}
+
+	@Test
+	public void test_constructor() {
+		SuClass wc = new WrapClass();
+		SuValue s = SuString.valueOf("hello");
+		SuClass instance = wc.newInstance(s);
+		assertEquals(s, instance.vars.getdata("value"));
+	}
+
+	static class WrapClass extends SuClass {
+		{
+			vars.putdata("Name", SuString.valueOf("Wrap"));
+		}
 		@Override
-		SuClass createInstance() {
-			return new SubClass();
+		public SuClass newInstance(SuValue... args) {
+			massage(args, "value");
+			return new WrapClass(args);
+		}
+		WrapClass() {
+		}
+		WrapClass(SuValue[] args) {
+			vars.putdata("value", args[0]);
+		}
+
+		@Override
+		public String toString() {
+			return "WrapClass";
 		}
 	}
 }
