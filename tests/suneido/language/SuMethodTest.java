@@ -1,7 +1,6 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.language.SuClass.CALL;
 
 import org.junit.Test;
 
@@ -13,7 +12,7 @@ public class SuMethodTest {
 	public void test() {
 		SuValue x = new TestClass();
 		SuValue m = new SuMethod(x, "Size");
-		SuValue result = m.invoke(CALL);
+		SuValue result = m.invoke();
 		assertEquals(SuInteger.ZERO, result);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package suneido.language;
 
@@ -22,7 +22,12 @@ class TestClass extends SuClass {
 		return SuInteger.ZERO;
 	}
 	@Override
-	SuClass createInstance() {
+	public SuClass newInstance(SuValue... args) {
+		massage(args);
 		return new TestClass();
+	}
+	@Override
+	public String toString() {
+		return "TestClass";
 	}
 }

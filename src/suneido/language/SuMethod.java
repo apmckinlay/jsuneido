@@ -1,6 +1,5 @@
 package suneido.language;
 
-import static suneido.language.SuClass.CALL;
 import suneido.SuValue;
 
 /**
@@ -19,10 +18,8 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
-		return method == CALL
-			? instance.invoke(this.method, args)
-			: super.invoke(method, args);
+	public SuValue invoke(SuValue... args) {
+		return instance.invoke(method, args);
 	}
 
 	@Override
