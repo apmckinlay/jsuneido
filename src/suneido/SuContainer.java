@@ -12,8 +12,9 @@ import java.util.*;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuContainer extends SuValue {
-	final ArrayList<SuValue> vec = new ArrayList<SuValue>();
-	final HashMap<SuValue, SuValue> map = new HashMap<SuValue, SuValue>();
+	final private ArrayList<SuValue> vec = new ArrayList<SuValue>();
+	final private HashMap<SuValue, SuValue> map =
+			new HashMap<SuValue, SuValue>();
 	private final SuValue defval = null; // TODO defval
 
 	// TODO readonly
@@ -24,10 +25,17 @@ public class SuContainer extends SuValue {
 		merge(c);
 	}
 
+	public SuValue vecGet(int i) {
+		return vec.get(i);
+	}
+	public SuValue mapGet(SuValue key) {
+		return map.get(key);
+	}
+
 	public void append(SuValue value) {
 		vec.add(value);
 		// check for migration from map to vec
-		while (true) {
+		while (!map.isEmpty()) {
 			SuValue num = SuInteger.valueOf(vec.size());
 			if (! map.containsKey(num))
 				break ;
@@ -42,7 +50,7 @@ public class SuContainer extends SuValue {
 	}
 
 	public void putdata(String key, SuValue value) {
-		putdata(new SuString(key), value);
+		putdata(SuString.valueOf(key), value);
 	}
 
 	@Override
@@ -58,6 +66,10 @@ public class SuContainer extends SuValue {
 			append(value);
 		else
 			map.put(key, value);
+	}
+
+	public SuValue getdata(String key) {
+		return getdata(SuString.valueOf(key));
 	}
 
 	@Override
@@ -141,7 +153,7 @@ public class SuContainer extends SuValue {
 		} else
 			return null != map.remove(key);
 	}
-	public int vecsize() {
+	public int vecSize() {
 		return vec.size();
 	}
 

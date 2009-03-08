@@ -99,24 +99,24 @@ public class SuContainerTest {
 		SuContainer c = new SuContainer();
 		assertEquals(c, SuValue.unpack(c.pack()));
 
-		c.vec.add(SuDecimal.ONE);
+		c.append(SuDecimal.ONE);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
-		c.map.put(SuString.EMPTY, SuBoolean.TRUE);
+		c.putdata(SuString.EMPTY, SuBoolean.TRUE);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		for (int i = 0; i < 5; ++i)
-			c.vec.add(SuInteger.valueOf(i));
+			c.append(SuInteger.valueOf(i));
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		for (int i = 100; i < 105; ++i)
-			c.map.put(SuInteger.valueOf(i), SuInteger.valueOf(i));
+			c.putdata(SuInteger.valueOf(i), SuInteger.valueOf(i));
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		SuContainer nested = new SuContainer();
-		nested.vec.add(SuDecimal.ONE);
-		c.vec.add(nested);
-		c.map.put(SuInteger.valueOf(999), nested);
+		nested.append(SuDecimal.ONE);
+		c.append(nested);
+		c.putdata(SuInteger.valueOf(999), nested);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		SuContainer list = new SuContainer();

@@ -6,13 +6,13 @@ import static suneido.Util.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.Symbols;
+import suneido.SuString;
 
 public class Header {
 	List<List<String>> flds;
 	List<String> cols;
-	private int[] fldsyms;
-	private int timestamp = 0;
+	private SuString[] fldsyms;
+	private SuString timestamp = SuString.EMPTY;
 
 	public Header(List<List<String>> flds, List<String> cols) {
 		this.flds = flds;
@@ -111,25 +111,25 @@ public class Header {
 		return schema;
 	}
 
-	public int[] output_fldsyms() {
+	public SuString[] output_fldsyms() {
 		if (fldsyms == null) {
 			// WARNING: this depends on flds[1] being the actual fields
 			List<String> flds1 = flds.get(1);
 			int n = flds1.size();
-			fldsyms = new int[n];
+			fldsyms = new SuString[n];
 			for (int i = 0; i < n; ++i)
-				fldsyms[i] = flds1.get(i) == "-" ? -1
-						: Symbols.symnum(flds1.get(i));
+				fldsyms[i] = flds1.get(i) == "-"
+						? null : SuString.valueOf(flds1.get(i));
 		}
 		return fldsyms;
 	}
 
-	public int timestamp_field() {
-		if (timestamp == 0) {
-			timestamp = -1; // no timestamp
+	public SuString timestamp_field() {
+		if (timestamp == SuString.EMPTY) {
+			timestamp = null; // no timestamp
 			for (String f : flds.get(1))
 				if (f.endsWith("_TS")) {
-					timestamp = Symbols.symnum(f);
+					timestamp = SuString.valueOf(f);
 					break;
 				}
 		}

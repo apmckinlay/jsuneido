@@ -1,6 +1,6 @@
-package suneido;
+package suneido.language;
 
-import static suneido.Symbols.*;
+import suneido.SuValue;
 
 /**
  * SuMethod makes methods first class values.
@@ -10,23 +10,23 @@ import static suneido.Symbols.*;
  */
 public class SuMethod extends SuValue {
 	private final SuValue instance;
-	private final int method;
-	
-	public SuMethod(SuValue instance, int method) {
+	private final String method;
+
+	public SuMethod(SuValue instance, String method) {
 		this.instance = instance;
 		this.method = method;
 	}
-	
+
 	@Override
-	public SuValue invoke(int method, SuValue ... args) {
-		return method == Num.CALL
+	public SuValue invoke(String method, SuValue... args) {
+		return method == CALL
 			? instance.invoke(this.method, args)
 			: super.invoke(method, args);
 	}
 
 	@Override
 	public String toString() {
-		return instance.toString() + "." + Symbols.symbol(method);
+		return instance.toString() + "." + method;
 	}
 
 }
