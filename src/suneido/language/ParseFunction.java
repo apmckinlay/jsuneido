@@ -16,11 +16,16 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		expectingCompound = false;
 	}
 
+	public T parse() {
+		return matchReturn(EOF, function());
+	}
+
 	public T function() {
 		matchSkipNewlines(FUNCTION);
 		return functionWithoutKeyword();
 	}
 	protected T functionWithoutKeyword() {
+		//		generator.startFunction();
 		T params = parameters();
 		return generator.function(params, compound());
 	}
