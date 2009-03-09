@@ -116,21 +116,6 @@ public class AsmGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object function(Object params, Object compound) {
-		Label endLabel = new Label();
-		mv.visitLabel(endLabel);
-		mv.visitLocalVariable("this", "LSampleFunction;", null, startLabel,
-				endLabel, 0);
-		mv.visitLocalVariable("args", "[LSuValue;", null, startLabel, endLabel,
-				1);
-		mv.visitMaxs(0, 0);
-		mv.visitEnd();
-
-		cw.visitEnd();
-
-		return cw.toByteArray();
-	}
-
 	public Object functionCall(Object function, Object arguments) {
 		// TODO Auto-generated method stub
 		return null;
@@ -189,16 +174,25 @@ public class AsmGenerator implements Generator<Object> {
 	public Object parameters(Object list, String name, Object defaultValue) {
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-		cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "SampleFunction", null,
-				"SuFunction", null);
+		cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
+				"suneido/language/SampleFunction", null,
+				"suneido/language/SuFunction", null);
 
 		cw.visitSource("function.suneido", null);
 
 		asm_init();
+		asm_toString("SampleFunction");
 
-		mv = cw.visitMethod(0, "invoke", "([LSuValue;)LSuValue;", null, null);
+		mv = cw.visitMethod(ACC_PUBLIC, "invoke",
+				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
 		startLabel = new Label();
 		mv.visitLabel(startLabel);
+
+		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
+				"Ljava/io/PrintStream;");
+		mv.visitLdcInsn("hello world");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
+				"(Ljava/lang/String;)V");
 		return null;
 	}
 
@@ -208,14 +202,53 @@ public class AsmGenerator implements Generator<Object> {
 		Label l0 = new Label();
 		mv.visitLabel(l0);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, "SuFunction", "<init>", "()V");
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuFunction",
+				"<init>", "()V");
 		mv.visitInsn(RETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", "LSampleFunction;", null, l0, l1, 0);
+		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
 		mv.visitEnd();
 		mv = null;
+	}
+
+	private void asm_toString(String name) {
+		mv = cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
+				null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		mv.visitLabel(l0);
+		mv.visitLdcInsn(name);
+		mv.visitInsn(ARETURN);
+		Label l1 = new Label();
+		mv.visitLabel(l1);
+		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, l0, l1, 0);
+		mv.visitMaxs(1, 1);
+		mv.visitEnd();
+	}
+
+	public Object returnStatement(Object expression) {
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ARETURN);
+		return null;
+	}
+
+	public Object function(Object params, Object compound) {
+		Label endLabel = new Label();
+		mv.visitLabel(endLabel);
+		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, startLabel, endLabel, 0);
+		mv.visitLocalVariable("args", "[Lsuneido/SuValue;", null, startLabel,
+				endLabel, 1);
+		mv.visitMaxs(0, 0);
+		mv.visitEnd();
+
+		cw.visitEnd();
+
+		return cw.toByteArray();
 	}
 
 	public Object postIncDec(Token incdec, Object lvalue) {
@@ -225,12 +258,6 @@ public class AsmGenerator implements Generator<Object> {
 
 	public Object preIncDec(Token incdec, Object lvalue) {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object returnStatement(Object expression) {
-		mv.visitInsn(ACONST_NULL);
-		mv.visitInsn(ARETURN);
 		return null;
 	}
 
