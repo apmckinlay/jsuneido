@@ -10,7 +10,7 @@ import suneido.*;
  */
 abstract public class SuFunction extends SuClass {
 
-	SuFunction() {
+	public SuFunction() {
 		super(false); // don't need vars
 	}
 
