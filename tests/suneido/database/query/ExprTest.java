@@ -99,7 +99,7 @@ public class ExprTest {
 				list("a", "b", "c", "d", "e"));
 		Record key = new Record().add(1);
 		Record rec = new Record().add(1).add(2).add(3).add(4).
-				add(SuDate.literal("#20081216.153244828"));
+				add(SuDate.valueOf("#20081216.153244828"));
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr(cases[i]);

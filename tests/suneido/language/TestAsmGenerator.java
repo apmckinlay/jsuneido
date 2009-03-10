@@ -24,16 +24,16 @@ public class TestAsmGenerator {
 	static class TestClassLoader extends ClassLoader {
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
+			assert "suneido.language.SampleFunction".equals(name);
 			byte[] b = compile("function (x) { return }");
 			dump(b);
 			Class<?> c = defineClass(name, b, 0, b.length);
-			//			resolveClass(c);
 			return c;
 		}
 	}
     private static byte[] compile(String s) {
 		Lexer lexer = new Lexer(s);
-		AsmGenerator generator = new AsmGenerator();
+		CompileGenerator generator = new CompileGenerator();
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return (byte[]) pc.parse();

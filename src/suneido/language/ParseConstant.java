@@ -13,6 +13,10 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		super(parse);
 	}
 
+	public T parse() {
+		return matchReturn(EOF, constant());
+	}
+
 	public T constant() {
 		if (token == IDENTIFIER)
 			switch (lexer.getKeyword()) {
@@ -83,10 +87,11 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return base;
 	}
 	private T memberList(Token open, String base) {
+		ObjectOrRecord which = (open == L_PAREN ? OBJECT : RECORD);
 		match(open);
 		T members = null;
 		while (token != open.other) {
-			members = generator.memberList(members, member(base));
+			members = generator.memberList(which, members, member(base));
 			if (token == COMMA || token == SEMICOLON)
 				match();
 		}
@@ -175,7 +180,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public T object() {
-		ObjectOrRecord which = token == L_PAREN ? OBJECT : RECORD;
+		ObjectOrRecord which = (token == L_PAREN ? OBJECT : RECORD);
 		T members = memberList(token, null);
 		return generator.object(which, members);
 	}

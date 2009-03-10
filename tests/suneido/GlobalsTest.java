@@ -1,6 +1,8 @@
 package suneido;
 
 import org.junit.Test;
+
+import suneido.language.Globals;
 import static org.junit.Assert.*;
 
 public class GlobalsTest {

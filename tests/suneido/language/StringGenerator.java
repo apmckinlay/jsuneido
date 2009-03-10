@@ -183,12 +183,13 @@ public class StringGenerator implements Generator<String> {
 		return str("", name, ": ") + value;
 	}
 
-	public String memberList(String list, String member) {
+	public String memberList(ObjectOrRecord which, String list, String member) {
 		return str("", list, ", ") + member;
 	}
 
 	public String object(ObjectOrRecord which, String members) {
-		return "#" + (which == OBJECT ? "(" : "{") + str(members) + (which == OBJECT ? ")" : "}");
+		return "#" + (which == OBJECT ? "(" : "{") + str(members)
+				+ (which == OBJECT ? ")" : "}");
 	}
 
 	private String str(String x) {
