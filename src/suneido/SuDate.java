@@ -35,7 +35,7 @@ public class SuDate extends SuValue {
 		this.date = new Date(date.getTime());
 	}
 
-	public static SuDate literal(String s) {
+	public static SuDate valueOf(String s) {
 		if (s.startsWith("#"))
 			s = s.substring(1);
 		if (s.length() < 8 || 18 < s.length())

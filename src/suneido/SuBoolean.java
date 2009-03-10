@@ -16,6 +16,10 @@ public class SuBoolean extends SuValue {
 		this.b = b;
 	}
 
+	public static SuBoolean valueOf(boolean value) {
+		return value ? TRUE : FALSE;
+	}
+
 	@Override
 	public String toString() {
 		return b ? "true" : "false";

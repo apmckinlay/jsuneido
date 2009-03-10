@@ -32,13 +32,13 @@ public class SuDateTest {
 
 	@Test
 	public void literal() {
-		assertNull(SuDate.literal(""));
-		assertNull(SuDate.literal("hello"));
-		assertNull(SuDate.literal("20010203.123456789x"));
+		assertNull(SuDate.valueOf(""));
+		assertNull(SuDate.valueOf("hello"));
+		assertNull(SuDate.valueOf("20010203.123456789x"));
 		String[] cases = new String[] { "#20010203", "#20010203.1234",
 				"#20010203.123456", "#20010203.123456789" };
 		for (String s : cases)
-			assertEquals(s, SuDate.literal(s).toString());
+			assertEquals(s, SuDate.valueOf(s).toString());
 	}
 
 	@Test
@@ -46,7 +46,7 @@ public class SuDateTest {
 		String[] cases = { "20010203", "#20090122.091407890", 
 				"#20090122.091423854" };
 		for (String s : cases) {
-			SuDate d = SuDate.literal(s);
+			SuDate d = SuDate.valueOf(s);
 			ByteBuffer buf = d.pack();
 			SuDate e = (SuDate) SuValue.unpack(buf);
 			assertEquals(d, e);
@@ -55,8 +55,8 @@ public class SuDateTest {
 
 	@Test
 	public void compare() {
-		SuDate d1 = SuDate.literal("#20081215");
-		SuDate d2 = SuDate.literal("#20081215.133244828");
+		SuDate d1 = SuDate.valueOf("#20081215");
+		SuDate d2 = SuDate.valueOf("#20081215.133244828");
 		assert (d1.compareTo(d2) < 0);
 		assert (d2.compareTo(d1) > 0);
 		ByteBuffer b1 = d1.pack();

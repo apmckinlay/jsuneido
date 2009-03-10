@@ -43,7 +43,7 @@ public class ParseConstantTest {
 			{ "class { one\n two }", "class { s(one), s(two) }" },
 		};
 		for (String[] c : cases) {
-System.out.println(c[0]);
+			//System.out.println(c[0]);
 			assertEquals(c[1], parse(c[0]));
 		}
 	}
@@ -53,8 +53,6 @@ System.out.println(c[0]);
 		StringGenerator generator = new StringGenerator();
 		ParseConstant<String, Generator<String>> pc =
 				new ParseConstant<String, Generator<String>>(lexer, generator);
-		String result = pc.constant();
-		pc.checkEof();
-		return result;
+		return pc.parse();
 	}
 }

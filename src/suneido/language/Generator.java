@@ -89,7 +89,7 @@ public interface Generator<T> {
 
 	T parameters(T list, String name, T defaultValue);
 
-	T memberList(T list, T member);
+	T memberList(ObjectOrRecord which, T list, T member);
 
 	T classConstant(String base, T members);
 

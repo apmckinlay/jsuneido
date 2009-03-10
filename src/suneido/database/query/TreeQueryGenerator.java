@@ -216,7 +216,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object date(String value) {
-		return SuDate.literal(value);
+		return SuDate.valueOf(value);
 	}
 
 	public Object dowhileStatement(Object statement, Object expression) {
@@ -273,10 +273,11 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	static class MemDef {
-		final SuValue name;
-		final SuValue value;
-		MemDef(SuValue name, SuValue value) {
+	public static class MemDef {
+		final public SuValue name;
+		final public SuValue value;
+
+		public MemDef(SuValue name, SuValue value) {
 			this.name = name;
 			this.value = value;
 		}
@@ -284,7 +285,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public Object memberDefinition(Object name, Object value) {
 		return new MemDef((SuValue) name, (SuValue) value);
 	}
-	public Object memberList(Object members, Object member) {
+	public Object memberList(ObjectOrRecord which, Object members, Object member) {
 		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
 		MemDef m = (MemDef) member;
 		rec.put(m.name, m.value);
@@ -300,8 +301,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return SuNumber.valueOf(value);
 	}
 
-	public Object object(suneido.language.Generator.ObjectOrRecord which,
-			Object members) {
+	public Object object(ObjectOrRecord which, Object members) {
 		return members;
 	}
 

@@ -1,10 +1,14 @@
 package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
+import static suneido.language.Generator.ObjectOrRecord.OBJECT;
 
 import org.objectweb.asm.*;
 
-public class AsmGenerator implements Generator<Object> {
+import suneido.*;
+import suneido.database.query.TreeQueryGenerator.MemDef;
+
+public class CompileGenerator implements Generator<Object> {
 	private ClassWriter cw;
 	private MethodVisitor mv;
 	private Label startLabel;
@@ -40,6 +44,46 @@ public class AsmGenerator implements Generator<Object> {
 	}
 
 	public Object bool(boolean value) {
+		return SuBoolean.valueOf(value);
+	}
+
+	public Object number(String value) {
+		return SuNumber.valueOf(value);
+	}
+
+	public Object string(String value) {
+		return SuString.valueOf(value);
+	}
+
+	public Object symbol(String value) {
+		return SuString.valueOf(value); // same as string for now
+	}
+
+	public Object date(String value) {
+		return SuDate.valueOf(value);
+	}
+
+	public Object object(ObjectOrRecord which, Object members) {
+		return members;
+	}
+
+	public Object memberList(ObjectOrRecord which, Object list, Object member) {
+		SuContainer c = (list == null
+				? which == OBJECT ? new SuContainer() : new SuRecord()
+				: (SuContainer) list);
+		MemDef m = (MemDef) member;
+		if (m.name == null)
+			c.append(m.value);
+		else
+			c.putdata(m.name, m.value);
+		return c;
+	}
+
+	public Object memberDefinition(Object name, Object value) {
+		return new MemDef((SuValue) name, (SuValue) value);
+	}
+
+	public Object member(Object term, String identifier) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -76,11 +120,6 @@ public class AsmGenerator implements Generator<Object> {
 	}
 
 	public Object continueStatement() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object date(String value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -136,32 +175,7 @@ public class AsmGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object member(Object term, String identifier) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object memberDefinition(Object name, Object value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object memberList(Object list, Object member) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object newExpression(Object term, Object arguments) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object number(String value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object object(ObjectOrRecord which, Object members) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -271,11 +285,6 @@ public class AsmGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object string(String value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object subscript(Object term, Object expression) {
 		// TODO Auto-generated method stub
 		return null;
@@ -287,11 +296,6 @@ public class AsmGenerator implements Generator<Object> {
 	}
 
 	public Object switchStatement(Object expression, Object cases) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object symbol(String identifier) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,7 +1,10 @@
-package suneido;
+package suneido.language;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import suneido.SuException;
+import suneido.SuValue;
 import static suneido.Suneido.verify;
 
 /**
