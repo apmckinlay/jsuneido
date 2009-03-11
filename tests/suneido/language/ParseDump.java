@@ -37,8 +37,7 @@ public class ParseDump implements DumpReader.Processor {
 		ParseConstant<String, Generator<String>> pc =
 				new ParseConstant<String, Generator<String>>(lexer, generator);
 		try {
-			pc.constant();
-			pc.checkEof();
+			pc.parse();
 		} catch (SuException e) {
 			if (e.toString().contains("not supported"))
 				return;

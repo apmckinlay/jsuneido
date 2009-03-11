@@ -92,8 +92,6 @@ public class ParseExpressionTest {
         StringGenerator generator = new StringGenerator();
         ParseExpression<String, Generator<String>> pc =
 				new ParseExpression<String, Generator<String>>(lexer, generator);
-        String result = pc.expression();
-        pc.checkEof();
-        return result;
+        return pc.parse();
     }
 }

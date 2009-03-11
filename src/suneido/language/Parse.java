@@ -3,20 +3,20 @@ package suneido.language;
 import static suneido.language.Token.*;
 import suneido.SuException;
 
-public class Parse<T, Gen> {
+public class Parse<T, G> {
 
 	protected final Lexer lexer;
-	protected final Gen generator;
+	protected final G generator;
 	public Token token;
 	protected int statementNest = 99;
 	boolean expectingCompound = false;
 
-	protected Parse(Lexer lexer, Gen generator) {
+	protected Parse(Lexer lexer, G generator) {
 		this.lexer = lexer;
 		this.generator = generator;
 		match();
 	}
-	protected Parse(Parse<T, Gen> parse) {
+	protected Parse(Parse<T, G> parse) {
 		lexer = parse.lexer;
 		generator = parse.generator;
 		token = parse.token;
@@ -88,9 +88,6 @@ public class Parse<T, Gen> {
 		throw new SuException("syntax error: " + s);
 	}
 
-	public void checkEof() {
-		match(Token.EOF);
-	}
 	protected Token lookAhead() {
 		return lookAhead(true);
 	}

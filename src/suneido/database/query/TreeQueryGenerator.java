@@ -6,10 +6,15 @@ import java.util.*;
 
 import suneido.*;
 import suneido.database.query.expr.*;
+import suneido.language.Generator;
 import suneido.language.Token;
 
 public class TreeQueryGenerator implements QueryGenerator<Object> {
 	TreeQueryGenerator() {
+	}
+
+	public Generator<Object> create() {
+		return new TreeQueryGenerator();
 	}
 
 	public Object columns(Object columns, String column) {
@@ -384,6 +389,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		In in = (In) expression;
 		in.add((SuValue) constant);
 		return in;
+	}
+
+	public void startFunction() {
 	}
 
 }

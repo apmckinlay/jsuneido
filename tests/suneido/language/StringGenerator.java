@@ -6,6 +6,10 @@ import suneido.SuValue;
 
 public class StringGenerator implements Generator<String> {
 
+	public Generator<String> create() {
+		return new StringGenerator();
+	}
+
 	public String assignment(String lvalue, Token op, String expression) {
 		return expression + " " + op + "(" + lvalue + ")";
 	}
@@ -217,5 +221,8 @@ public class StringGenerator implements Generator<String> {
 
 	public String constant(String value) {
 		return value;
+	}
+
+	public void startFunction() {
 	}
 }

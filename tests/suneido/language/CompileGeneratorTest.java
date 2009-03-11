@@ -30,6 +30,11 @@ public class CompileGeneratorTest {
 		c.append(SuInteger.valueOf(12));
 		c.putdata("ab", SuString.valueOf("cd"));
 		assertEquals(c, compile("#(12, ab: cd)"));
+
+		SuContainer cc = new SuContainer();
+		cc.append(SuInteger.ZERO);
+		cc.append(c);
+		assertEquals(cc, compile("#(0, (12, ab: cd))"));
 	}
 
 	private SuValue compile(String s) {

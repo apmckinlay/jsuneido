@@ -7,7 +7,7 @@ import suneido.language.Generator.ObjectOrRecord;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	ParseConstant(Lexer lexer, G generator) {
-		super(lexer, generator);
+		super(lexer, (G) generator.create());
 	}
 	public ParseConstant(Parse<T, G> parse) {
 		super(parse);
@@ -62,13 +62,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 		syntaxError();
 		return null;
-	}
-
-	private T function() {
-		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.function();
-		token = p.token;
-		return result;
 	}
 
 	private T classConstant() {
@@ -139,13 +132,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			syntaxError();
 		return value;
 	}
-	private T functionWithoutKeyword() {
-		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.functionWithoutKeyword();
-		token = p.token;
-		return result;
-	}
-
 	private T bool() {
 		return matchReturn(generator.bool(lexer.getKeyword() == TRUE));
 	}
@@ -179,13 +165,24 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return null;
 	}
 
+	private T symbol() {
+		return matchReturn(generator.symbol(lexer.getValue()));
+	}
 	public T object() {
 		ObjectOrRecord which = (token == L_PAREN ? OBJECT : RECORD);
 		T members = memberList(token, null);
 		return generator.object(which, members);
 	}
 
-	private T symbol() {
-		return matchReturn(generator.symbol(lexer.getValue()));
+	private T function() {
+		matchSkipNewlines(FUNCTION);
+		return functionWithoutKeyword();
+	}
+
+	private T functionWithoutKeyword() {
+		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
+		T result = p.functionWithoutKeyword();
+		token = p.token;
+		return result;
 	}
 }
