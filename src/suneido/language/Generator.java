@@ -3,6 +3,8 @@ package suneido.language;
 
 public interface Generator<T> {
 
+	Generator<T> create();
+
 	T assignment(T term, Token op, T expression);
 
 	T binaryExpression(Token op, T expr1, T expr2);
@@ -20,6 +22,8 @@ public interface Generator<T> {
 	T expressionStatement(T expression);
 
 	T function(T params, T compound);
+
+	void startFunction();
 
 	T identifier(String text);
 

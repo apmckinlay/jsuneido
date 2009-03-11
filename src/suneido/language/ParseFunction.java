@@ -8,7 +8,7 @@ import static suneido.language.Token.*;
 public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	ParseFunction(Lexer lexer, G generator) {
-		super(lexer, generator);
+		super(lexer, (G) generator.create());
 		expectingCompound = false;
 	}
 	ParseFunction(Parse<T, G> parse) {
@@ -25,7 +25,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword();
 	}
 	protected T functionWithoutKeyword() {
-		//		generator.startFunction();
+		generator.startFunction();
 		T params = parameters();
 		return generator.function(params, compound());
 	}

@@ -13,4 +13,5 @@ public class SampleFunction2 extends SuFunction {
 		System.out.println("hello world");
 		return null;
 	}
+
 }
