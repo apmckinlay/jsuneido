@@ -16,6 +16,7 @@ public class CompileGenerator implements Generator<Object> {
 	private MethodVisitor mv;
 	private Label startLabel;
 	private List<String> locals;
+	private List<SuValue> constants;
 
 	public CompileGenerator() {
 	}
@@ -89,13 +90,14 @@ public class CompileGenerator implements Generator<Object> {
 		startLabel = new Label();
 		mv.visitLabel(startLabel);
 
-		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-				"Ljava/io/PrintStream;");
-		mv.visitLdcInsn("hello world");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
-				"(Ljava/lang/String;)V");
+		//		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
+		//				"Ljava/io/PrintStream;");
+		//		mv.visitLdcInsn("hello world");
+		//		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
+		//				"(Ljava/lang/String;)V");
 
 		locals = new ArrayList<String>();
+		constants = new ArrayList<SuValue>();
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
@@ -139,7 +141,8 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object returnStatement(Object expression) {
-		mv.visitInsn(ACONST_NULL);
+		if (expression == null)
+			mv.visitInsn(ACONST_NULL);
 		mv.visitInsn(ARETURN);
 		return null;
 	}
@@ -162,8 +165,10 @@ public class CompileGenerator implements Generator<Object> {
 	// expressions
 
 	public Object identifier(String text) {
-		// TODO Auto-generated method stub
-		return null;
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitInsn(ICONST_0);
+		mv.visitInsn(AALOAD);
+		return true;
 	}
 
 	public Object and(Object expr1, Object expr2) {
