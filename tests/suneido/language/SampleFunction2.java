@@ -11,7 +11,7 @@ public class SampleFunction2 extends SuFunction {
 	@Override
 	public SuValue invoke(SuValue... args) {
 		System.out.println("hello world");
-		return null;
+		return args[0];
 	}
 
 }

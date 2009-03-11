@@ -3,7 +3,7 @@ package suneido.language;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import suneido.SuException;
+import suneido.*;
 
 public class TestAsmGenerator {
 
@@ -15,9 +15,10 @@ public class TestAsmGenerator {
 		try {
 			Class<?> c = loader.findClass("suneido.language.SampleFunction");
 			SuFunction sf = (SuFunction) c.newInstance();
-			sf.invoke();
+			SuValue result = sf.invoke(SuString.valueOf("hello world"));
+			System.out.println("result: " + result);
 		} catch (Exception e) {
-			throw new SuException("class not found");
+			throw new SuException(e.toString());
 		}
 	}
 
@@ -25,7 +26,7 @@ public class TestAsmGenerator {
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
 			assert "suneido.language.SampleFunction".equals(name);
-			byte[] b = compile("function (x) { return }");
+			byte[] b = compile("function (x) { return x }");
 			dump(b);
 			Class<?> c = defineClass(name, b, 0, b.length);
 			return c;
