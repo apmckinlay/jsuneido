@@ -173,8 +173,22 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		return number().divNum(x);
 	}
 
+	public SuValue mod(SuValue x) {
+		return x.number().modNum(number());
+	}
+	protected SuValue modInt(SuInteger x) {
+		return number().modInt(x);
+	}
+	protected SuValue modNum(SuDecimal x) {
+		return number().modNum(x);
+	}
+
 	public SuValue uminus() {
 		return number().uminus();
+	}
+
+	public final SuValue cat(SuValue other) {
+		return SuString.valueOf(string() + other.string());
 	}
 
 	public SuValue newInstance(SuValue... args) {

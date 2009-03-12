@@ -1,11 +1,12 @@
 package suneido.language;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import suneido.*;
 
 public class TestAsmGenerator {
+
+	private static final StringWriter sw = new StringWriter();
 
 	public static void main(String[] args) {
 		// byte[] b = compile("function (x) { return }");
@@ -15,7 +16,10 @@ public class TestAsmGenerator {
 		try {
 			Class<?> c = loader.findClass("suneido.language.SampleFunction");
 			SuFunction sf = (SuFunction) c.newInstance();
-			SuValue result = sf.invoke(SuString.valueOf("hello world"));
+			SuValue[] locals =
+					new SuValue[] { SuInteger.valueOf(12), null };
+			SuValue result = sf.invoke(locals);
+			System.out.println(sw);
 			System.out.println("result: " + result);
 		} catch (Exception e) {
 			throw new SuException(e.toString());
@@ -26,7 +30,7 @@ public class TestAsmGenerator {
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
 			assert "suneido.language.SampleFunction".equals(name);
-			byte[] b = compile("function (x) { return x }");
+			byte[] b = compile("function (x) { y = 34; return x + y }");
 			dump(b);
 			Class<?> c = defineClass(name, b, 0, b.length);
 			return c;
@@ -34,7 +38,7 @@ public class TestAsmGenerator {
 	}
     private static byte[] compile(String s) {
 		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator();
+		CompileGenerator generator = new CompileGenerator(new PrintWriter(sw));
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return (byte[]) pc.parse();

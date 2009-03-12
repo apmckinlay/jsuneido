@@ -8,6 +8,7 @@ import suneido.*;
 import suneido.database.query.expr.*;
 import suneido.language.Generator;
 import suneido.language.Token;
+import suneido.language.ParseExpression.Value;
 
 public class TreeQueryGenerator implements QueryGenerator<Object> {
 	TreeQueryGenerator() {
@@ -168,7 +169,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return args;
 	}
 
-	public Object assignment(Object term, Token op, Object expression) {
+	public Object assignment(Object term, Value<Object> value, Token op,
+			Object expression) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -315,12 +317,12 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object postIncDec(Token incdec, Object lvalue) {
+	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Object preIncDec(Token incdec, Object lvalue) {
+	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -392,6 +394,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void startFunction() {
+	}
+
+	public void lvalue(Value<Object> value) {
 	}
 
 }
