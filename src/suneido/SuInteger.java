@@ -111,6 +111,16 @@ public class SuInteger extends SuNumber {
 	// div is handled by SuDecimal
 
 	@Override
+	public SuValue mod(SuValue x) {
+		return x.modInt(this);
+	}
+
+	@Override
+	protected SuValue modInt(SuInteger x) {
+		return valueOf(x.n % n);
+	}
+
+	@Override
 	public SuValue uminus() {
 		return new SuInteger(-n);
 	}

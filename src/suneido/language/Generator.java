@@ -1,11 +1,14 @@
 package suneido.language;
 
+import suneido.language.ParseExpression.Value;
 
 public interface Generator<T> {
 
 	Generator<T> create();
 
-	T assignment(T term, Token op, T expression);
+	void lvalue(Value<T> value);
+
+	T assignment(T term, Value<T> value, Token op, T expression);
 
 	T binaryExpression(Token op, T expr1, T expr2);
 
@@ -71,9 +74,9 @@ public interface Generator<T> {
 
 	T expressionList(T list, T expression);
 
-	T preIncDec(Token incdec, T lvalue);
+	T preIncDec(T term, Token incdec, Value<T> value);
 
-	T postIncDec(Token incdec, T lvalue);
+	T postIncDec(T term, Token incdec, Value<T> value);
 
 	T member(T term, String identifier);
 

@@ -3,6 +3,7 @@ package suneido.language;
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
 import static suneido.language.Token.*;
 import suneido.SuValue;
+import suneido.language.ParseExpression.Value;
 
 public class StringGenerator implements Generator<String> {
 
@@ -10,8 +11,10 @@ public class StringGenerator implements Generator<String> {
 		return new StringGenerator();
 	}
 
-	public String assignment(String lvalue, Token op, String expression) {
-		return expression + " " + op + "(" + lvalue + ")";
+	public String assignment(String term, Value<String> value, Token op,
+			String expression) {
+		return str("", term, " ") + expression + " " + op + "(" + value(value)
+				+ ")";
 	}
 
 	public String conditional(String expression, String first, String second) {
@@ -133,12 +136,24 @@ public class StringGenerator implements Generator<String> {
 		return "for (" + str(expr1) + "; " + str(expr2) + "; " + str(expr3) + ") { " + statement + " }";
 	}
 
-	public String preIncDec(Token incdec, String lvalue) {
-		return "pre" + incdec + "(" + lvalue + ")";
+	public String preIncDec(String term, Token incdec, Value<String> value) {
+		return str("", term, " ") + "pre" + incdec + "(" + value(value) + ")";
 	}
 
-	public String postIncDec(Token incdec, String lvalue) {
-		return "post" + incdec + "(" + lvalue + ")";
+	public String postIncDec(String term, Token incdec, Value<String> value) {
+		return str("", term, " ") + "post" + incdec + "(" + value(value) + ")";
+	}
+
+	public String value(Value<String> value) {
+		switch (value.option) {
+		case LOCAL:
+			return value.id;
+		case MEMBER:
+			return "." + value.id;
+		case SUBSCRIPT:
+			return "[" + value.expr + "]";
+		}
+		return null;
 	}
 
 	public String member(String term, String identifier) {
@@ -225,4 +240,8 @@ public class StringGenerator implements Generator<String> {
 
 	public void startFunction() {
 	}
+
+	public void lvalue(Value<String> value) {
+	}
+
 }

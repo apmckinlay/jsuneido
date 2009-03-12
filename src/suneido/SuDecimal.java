@@ -161,6 +161,21 @@ public class SuDecimal extends SuNumber {
 	}
 
 	@Override
+	public SuValue mod(SuValue x) {
+		return x.modNum(this);
+	}
+
+	@Override
+	protected SuValue modNum(SuDecimal x) {
+		return new SuDecimal(x.n.remainder(n, mc));
+	}
+
+	@Override
+	protected SuValue modInt(SuInteger x) {
+		return new SuDecimal(new BigDecimal(x.integer()).remainder(n, mc));
+	}
+
+	@Override
 	public SuValue uminus() {
 		return new SuDecimal(n.negate());
 	}

@@ -1,5 +1,6 @@
 package suneido.language;
 
+import suneido.SuInteger;
 import suneido.SuValue;
 
 public class SampleFunction2 extends SuFunction {
@@ -10,8 +11,10 @@ public class SampleFunction2 extends SuFunction {
 
 	@Override
 	public SuValue invoke(SuValue... args) {
-		System.out.println("hello world");
-		return args[0];
+		SuValue[] constants = Constants.get("SampleFunction");
+		//		System.out.println("hello world");
+		args[1] = SuInteger.valueOf(123);
+		return null;
 	}
 
 }

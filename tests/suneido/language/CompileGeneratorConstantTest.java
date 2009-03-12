@@ -7,7 +7,7 @@ import org.junit.Test;
 import suneido.*;
 
 
-public class CompileGeneratorTest {
+public class CompileGeneratorConstantTest {
 
 	@Test
 	public void constant() {

@@ -3,30 +3,43 @@ package suneido.language;
 import static org.objectweb.asm.Opcodes.*;
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.*;
 import suneido.database.query.TreeQueryGenerator.MemDef;
+import suneido.language.ParseExpression.Value;
 
 public class CompileGenerator implements Generator<Object> {
+    private PrintWriter pw = null;
 	private ClassWriter cw;
+	private ClassVisitor cv;
 	private MethodVisitor mv;
 	private Label startLabel;
 	private List<String> locals;
 	private List<SuValue> constants;
+	private final static int SELF = 0;
+	private final static int LOCALS = 1;
+	private final static int CONSTANTS = 2;
 
 	public CompileGenerator() {
 	}
 
-	public CompileGenerator(ClassWriter cw) {
-		this.cw = cw;
+	public CompileGenerator(PrintWriter pw) {
+		this.pw = pw;
+	}
+
+	public CompileGenerator(CompileGenerator other) {
+		cv = other.cv;
+		pw = other.pw;
 	}
 
 	public Generator<Object> create() {
-		return new CompileGenerator(cw);
+		return new CompileGenerator(this);
 	}
 
 	// constants
@@ -74,18 +87,22 @@ public class CompileGenerator implements Generator<Object> {
 	// function
 
 	public void startFunction() {
-		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		cv = cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-		cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
+		if (pw != null)
+			cv = new TraceClassVisitor(cw, pw);
+
+		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
 				"suneido/language/SampleFunction", null,
 				"suneido/language/SuFunction", null);
 
-		cw.visitSource("function.suneido", null);
+		cv.visitSource("function.suneido", null);
 
 		asm_init();
 		asm_toString("SampleFunction");
 
-		mv = cw.visitMethod(ACC_PUBLIC, "invoke",
+		mv =
+				cv.visitMethod(ACC_PUBLIC, "invoke",
 				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
 		startLabel = new Label();
 		mv.visitLabel(startLabel);
@@ -98,6 +115,12 @@ public class CompileGenerator implements Generator<Object> {
 
 		locals = new ArrayList<String>();
 		constants = new ArrayList<SuValue>();
+
+		// TODO do this lazily in case method doesn't need it
+		mv.visitLdcInsn("SampleFunction");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Constants", "get",
+				"(Ljava/lang/String;)[Lsuneido/SuValue;");
+		mv.visitVarInsn(ASTORE, CONSTANTS);
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
@@ -107,7 +130,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void asm_init() {
-		mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+		mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
 		Label l0 = new Label();
 		mv.visitLabel(l0);
@@ -125,7 +148,8 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void asm_toString(String name) {
-		mv = cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
+		mv =
+				cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
 				null, null);
 		mv.visitCode();
 		Label l0 = new Label();
@@ -147,28 +171,78 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
+	/**
+	 * function is called at the end of the function
+	 */
 	public Object function(Object params, Object compound) {
+
+		// TODO output a return null if there wasn't a return
+
 		Label endLabel = new Label();
 		mv.visitLabel(endLabel);
 		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
 				null, startLabel, endLabel, 0);
-		mv.visitLocalVariable("args", "[Lsuneido/SuValue;", null, startLabel,
-				endLabel, 1);
+		mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
+				null, startLabel, endLabel, 1);
+		mv.visitLocalVariable("constants", "[Lsuneido/SuValue;",
+				null, startLabel, endLabel, 2);
 		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 
-		cw.visitEnd();
+		cv.visitEnd();
+
+		Constants.put("SampleFunction", constants);
 
 		return cw.toByteArray();
 	}
 
 	// expressions
 
-	public Object identifier(String text) {
-		mv.visitVarInsn(ALOAD, 1);
-		mv.visitInsn(ICONST_0);
+	public Object constant(Object value) {
+		int i = constants.size();
+		constants.add((SuValue) value);
+		mv.visitVarInsn(ALOAD, CONSTANTS);
+		iconst(i);
 		mv.visitInsn(AALOAD);
 		return true;
+	}
+
+	private void iconst(int i) {
+		if (i <= 5)
+			mv.visitInsn(ICONST_0 + i);
+		else
+			mv.visitVarInsn(BIPUSH, i);
+	}
+
+	public Object identifier(String name) {
+		localRef(name);
+		mv.visitInsn(AALOAD);
+		return true;
+	}
+
+	private void localRef(String name) {
+		mv.visitVarInsn(ALOAD, LOCALS);
+		iconst(local(name));
+	}
+
+	private int local(String name) {
+		int i = locals.indexOf(name);
+		if (i == -1) {
+			i = locals.size();
+			locals.add(name);
+		}
+		return i;
+	}
+
+	public void lvalue(Value<Object> value) {
+		// TODO other options
+		localRef(value.id);
+	}
+
+	public Object assignment(Object term, Value<Object> value, Token op,
+			Object expression) {
+		mv.visitInsn(AASTORE);
+		return null; // nothing left on the stack
 	}
 
 	public Object and(Object expr1, Object expr2) {
@@ -181,18 +255,30 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object assignment(Object term, Token op, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object atArgument(String n, Object expr) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
-		// TODO Auto-generated method stub
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
+				op.toString().toLowerCase(),
+				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
+		return true;
+	}
+
+	public Object unaryExpression(Token op, Object expression) {
+		switch (op) {
+		case SUB:
+			mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "uminus",
+					"()Lsuneido/SuValue;");
+			break;
+		case ADD:
+			// TODO should implement this (altho cSuneido doesn't)
+			break;
+		default:
+			throw new SuException("invalid unaryExpression op: " + op);
+		}
 		return null;
 	}
 
@@ -228,11 +314,6 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object conditional(Object primaryExpression, Object first,
 			Object second) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object constant(Object value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -298,12 +379,12 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object postIncDec(Token incdec, Object lvalue) {
+	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Object preIncDec(Token incdec, Object lvalue) {
+	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -339,11 +420,6 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object tryStatement(Object tryStatement, Object catcher) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object unaryExpression(Token op, Object expression) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -177,9 +177,36 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
+	public enum Option {
+		LOCAL, MEMBER, SUBSCRIPT, GLOBAL
+	};
+
+	public static class Value<T> {
+		Option option = null;
+		String id;
+		T expr;
+
+		void set(Option option, String id, T expr) {
+			this.option = option;
+			this.id = id;
+			this.expr = expr;
+		}
+		void clear() {
+			option = null;
+		}
+
+		boolean isSet() {
+			return option != null;
+		}
+
+		boolean lvalue() {
+			return option != Option.GLOBAL;
+		}
+	}
+
 	private T term(boolean newTerm) {
 		T term = null;
-		boolean lvalue = true;
+		Value<T> value = new Value<T>();
 		Token incdec = null;
 
 		if (token == INC || token == DEC) {
@@ -191,26 +218,23 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case STRING:
 		case HASH:
 			term = generator.constant(constant());
-			lvalue = false;
 			break;
 		case L_CURLY:
 			term = block();
-			lvalue = false;
 			break;
 		case DOT:
 			term = generator.self();
+			value.set(Option.LOCAL, "this", null);
 			break;
 		case L_PAREN:
 			match(L_PAREN);
 			term = expression();
 			match(R_PAREN);
-			lvalue = false;
 			break;
 		case L_BRACKET:
 			match(L_BRACKET);
 			term = generator.functionCall(generator.identifier("Record"),
 					argumentList(R_BRACKET));
-			lvalue = false;
 			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
@@ -220,20 +244,17 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			case STRUCT:
 			case CALLBACK:
 				term = constant();
-				lvalue = false;
 				break;
 			default:
 				if (isGlobal(lexer.getValue()) &&
 						lookAhead(! expectingCompound) == L_CURLY) {
 					term = constant();
-					lvalue = false;
 				} else if (lexer.getKeyword() == TRUE
 						|| lexer.getKeyword() == FALSE) {
 					term = generator.bool(lexer.getKeyword() == TRUE);
 					match();
-					lvalue = false;
 				} else {
-					term = generator.identifier(lexer.getValue());
+					value.set(Option.LOCAL, lexer.getValue(), null);
 					match(IDENTIFIER);
 				}
 			}
@@ -242,44 +263,61 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			syntaxError();
 		}
 
-		while (true) {
+		while (token == DOT || token == L_BRACKET || token == L_PAREN
+				|| token == L_CURLY) {
+			if (value.isSet()) {
+				term = push(term, value);
+				value.clear();
+			}
+
 			if (newTerm && token == L_PAREN)
 				return term;
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
-				term = generator.member(term, lexer.getValue());
+				value.set(Option.MEMBER, lexer.getValue(), null);
 				match(IDENTIFIER);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
-				lvalue = true;
 			} else if (matchIf(L_BRACKET)) {
-				term = generator.subscript(term, expression());
+				value.set(Option.SUBSCRIPT, null, expression());
 				match(R_BRACKET);
-				lvalue = true;
 			} else if (token == L_PAREN || token == L_CURLY) {
 				term = generator.functionCall(term, arguments());
-				lvalue = false;
-			} else
-				break;
+			}
 		}
 
 		if (incdec != null) {
-			if (!lvalue)
+			if (!value.lvalue())
 				syntaxError("lvalue required");
-			term = generator.preIncDec(incdec, term);
+			term = generator.preIncDec(term, incdec, value);
 		} else if (assign()) {
-			if (!lvalue)
+			if (!value.lvalue())
 				syntaxError("lvalue required");
 			Token op = token;
 			matchSkipNewlines();
-			term = generator.assignment(term, op, expression());
+			generator.lvalue(value);
+			term = generator.assignment(term, value, op, expression());
 		} else if (token == INC || token == DEC) {
-			if (!lvalue)
+			if (!value.lvalue())
 				syntaxError("lvalue required");
-			term = generator.postIncDec(token, term);
+			term = generator.postIncDec(term, token, value);
 			match();
+		} else if (value.isSet()) {
+			term = push(term, value);
 		}
 		return term;
+	}
+
+	private T push(T term, Value<T> value) {
+		switch (value.option) {
+		case LOCAL:
+			return generator.identifier(value.id);
+		case MEMBER:
+			return generator.member(term, value.id);
+		case SUBSCRIPT:
+			return generator.subscript(term, value.expr);
+		}
+		return null;
 	}
 
 	private boolean assign() {
