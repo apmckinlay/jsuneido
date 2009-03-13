@@ -145,8 +145,11 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String value(Value<String> value) {
+		if (value.option == null)
+			return null;
 		switch (value.option) {
 		case LOCAL:
+		case GLOBAL:
 			return value.id;
 		case MEMBER:
 			return "." + value.id;
@@ -168,8 +171,10 @@ public class StringGenerator implements Generator<String> {
 		return "this";
 	}
 
-	public String functionCall(String function, String arguments) {
-		return function + "(" + str(arguments) + ")";
+	public String functionCall(String function, Value<String> value,
+			String arguments) {
+		return function + str(" ", value(value), "") + "(" + str(arguments)
+				+ ")";
 	}
 
 	public String newExpression(String term, String arguments) {
@@ -242,6 +247,9 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void lvalue(Value<String> value) {
+	}
+
+	public void beforeStatement(String statements) {
 	}
 
 }

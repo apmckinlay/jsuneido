@@ -36,6 +36,8 @@ public interface Generator<T> {
 
 	T returnStatement(T expression);
 
+	void beforeStatement(T statements);
+
 	T statementList(T n, T next);
 
 	T unaryExpression(Token op, T expression);
@@ -84,7 +86,7 @@ public interface Generator<T> {
 
 	T self();
 
-	T functionCall(T function, T arguments);
+	T functionCall(T function, Value<T> value, T arguments);
 
 	T newExpression(T term, T arguments);
 
