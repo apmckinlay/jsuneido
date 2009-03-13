@@ -61,8 +61,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public T statementList() {
 		T statements = null;
-		while (token != R_CURLY)
+		while (token != R_CURLY) {
+			generator.beforeStatement(statements);
 			statements = generator.statementList(statements, statement());
+		}
 		return statements;
 	}
 

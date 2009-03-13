@@ -167,8 +167,12 @@ public class CompileGenerator implements Generator<Object> {
 	public Object returnStatement(Object expression) {
 		if (expression == null)
 			mv.visitInsn(ACONST_NULL);
+		else if (expression == "aastore") {
+			mv.visitInsn(DUP_X2);
+			mv.visitInsn(AASTORE);
+		}
 		mv.visitInsn(ARETURN);
-		return null;
+		return "return";
 	}
 
 	/**
@@ -176,7 +180,18 @@ public class CompileGenerator implements Generator<Object> {
 	 */
 	public Object function(Object params, Object compound) {
 
-		// TODO output a return null if there wasn't a return
+		// generate return if last statement wasn't one
+		if (compound == "pop")
+			mv.visitInsn(ARETURN);
+		else if (compound == "aastore") {
+			mv.visitInsn(DUP_X2);
+			mv.visitInsn(AASTORE);
+			mv.visitInsn(ARETURN);
+		}
+		else if (compound != "return") {
+			mv.visitInsn(ACONST_NULL);
+			mv.visitInsn(ARETURN);
+		}
 
 		Label endLabel = new Label();
 		mv.visitLabel(endLabel);
@@ -204,20 +219,24 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(i);
 		mv.visitInsn(AALOAD);
-		return true;
+		return "pop";
 	}
 
 	private void iconst(int i) {
-		if (i <= 5)
+		if (i <= 5 || i == -1)
 			mv.visitInsn(ICONST_0 + i);
-		else
+		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
 			mv.visitVarInsn(BIPUSH, i);
+		else if (Short.MIN_VALUE <= i && i <= Short.MAX_VALUE)
+			mv.visitIntInsn(SIPUSH, i);
+		else
+			mv.visitLdcInsn(i);
 	}
 
 	public Object identifier(String name) {
 		localRef(name);
 		mv.visitInsn(AALOAD);
-		return true;
+		return "pop";
 	}
 
 	private void localRef(String name) {
@@ -241,21 +260,15 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
-		mv.visitInsn(AASTORE);
-		return null; // nothing left on the stack
+		// TODO handle MEMBER and SUBSCRIPT
+		if (expression == "aastore") {
+			mv.visitInsn(DUP_X2);
+			mv.visitInsn(AASTORE);
+		}
+		return "aastore";
 	}
 
 	public Object and(Object expr1, Object expr2) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object argumentList(Object list, String keyword, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object atArgument(String n, Object expr) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -264,7 +277,7 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
 				op.toString().toLowerCase(),
 				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
-		return true;
+		return "pop";
 	}
 
 	public Object unaryExpression(Token op, Object expression) {
@@ -279,7 +292,7 @@ public class CompileGenerator implements Generator<Object> {
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
 		}
-		return null;
+		return "pop";
 	}
 
 	public Object block(Object params, Object statements) {
@@ -334,8 +347,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object expressionStatement(Object expression) {
-		// TODO Auto-generated method stub
-		return null;
+		return expression;
 	}
 
 	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
@@ -354,7 +366,22 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object functionCall(Object function, Object arguments) {
+	public Object functionCall(Object function, Value<Object> value,
+			Object arguments) {
+		mv.visitLdcInsn(value.id);
+		iconst(arguments == null ? 0 : (Integer) arguments);
+		mv.visitTypeInsn(ANEWARRAY, "suneido/SuValue");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invoke",
+				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;");
+		return "pop"; // value on stack
+	}
+
+	public Object argumentList(Object list, String keyword, Object expression) {
+		int n = (list == null ? 0 : (Integer) list);
+		return n + 1;
+	}
+
+	public Object atArgument(String n, Object expr) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -394,9 +421,15 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object statementList(Object n, Object next) {
-		// TODO Auto-generated method stub
-		return null;
+	public void beforeStatement(Object list) {
+		if (list == "pop")
+			mv.visitInsn(POP);
+		else if (list == "aastore")
+			mv.visitInsn(AASTORE);
+	}
+
+	public Object statementList(Object list, Object next) {
+		return next;
 	}
 
 	public Object subscript(Object term, Object expression) {

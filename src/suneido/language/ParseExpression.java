@@ -234,7 +234,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_BRACKET:
 			match(L_BRACKET);
 			term = generator.functionCall(generator.identifier("Record"),
-					argumentList(R_BRACKET));
+					value, argumentList(R_BRACKET));
 			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
@@ -265,13 +265,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 		while (token == DOT || token == L_BRACKET || token == L_PAREN
 				|| token == L_CURLY) {
-			if (value.isSet()) {
+			if (value.isSet() && token == DOT || token == L_BRACKET) {
 				term = push(term, value);
 				value.clear();
 			}
 
-			if (newTerm && token == L_PAREN)
+			if (newTerm && token == L_PAREN) {
+				term = push(term, value);
 				return term;
+			}
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
 				value.set(Option.MEMBER, lexer.getValue(), null);
@@ -282,7 +284,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				value.set(Option.SUBSCRIPT, null, expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				term = generator.functionCall(term, arguments());
+				if (value.option == Option.LOCAL
+						|| value.option == Option.GLOBAL) {
+					term = push(term, value);
+					value.clear();
+				}
+				term = generator.functionCall(term, value, arguments());
+				value.clear();
 			}
 		}
 

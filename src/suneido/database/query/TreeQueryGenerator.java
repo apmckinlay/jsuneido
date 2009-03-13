@@ -258,7 +258,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object functionCall(Object function, Object arguments) {
+	public Object functionCall(Object function, Value<Object> value,
+			Object arguments) {
 		if (!(function instanceof Identifier))
 			throw new SuException("query functions must be called by name");
 		String fname = ((Identifier) function).ident;
@@ -397,6 +398,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void lvalue(Value<Object> value) {
+	}
+
+	public void beforeStatement(Object statements) {
 	}
 
 }
