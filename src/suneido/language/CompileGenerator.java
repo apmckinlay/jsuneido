@@ -2,6 +2,9 @@ package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
+import static suneido.language.ParseExpression.Type.*;
+import static suneido.language.Token.EQ;
+import static suneido.language.Token.INC;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -101,8 +104,7 @@ public class CompileGenerator implements Generator<Object> {
 		asm_init();
 		asm_toString("SampleFunction");
 
-		mv =
-				cv.visitMethod(ACC_PUBLIC, "invoke",
+		mv = cv.visitMethod(ACC_PUBLIC, "invoke",
 				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
 		startLabel = new Label();
 		mv.visitLabel(startLabel);
@@ -167,10 +169,8 @@ public class CompileGenerator implements Generator<Object> {
 	public Object returnStatement(Object expression) {
 		if (expression == null)
 			mv.visitInsn(ACONST_NULL);
-		else if (expression == "aastore") {
-			mv.visitInsn(DUP_X2);
-			mv.visitInsn(AASTORE);
-		}
+		else if (expression != "pop")
+			dupAndStore(expression);
 		mv.visitInsn(ARETURN);
 		return "return";
 	}
@@ -181,15 +181,13 @@ public class CompileGenerator implements Generator<Object> {
 	public Object function(Object params, Object compound) {
 
 		// generate return if last statement wasn't one
-		if (compound == "pop")
-			mv.visitInsn(ARETURN);
-		else if (compound == "aastore") {
-			mv.visitInsn(DUP_X2);
-			mv.visitInsn(AASTORE);
-			mv.visitInsn(ARETURN);
-		}
-		else if (compound != "return") {
-			mv.visitInsn(ACONST_NULL);
+		if (compound != "return") {
+			if (compound == "pop")
+				;
+			else if (compound == null)
+				mv.visitInsn(ACONST_NULL);
+			else
+				dupAndStore(compound);
 			mv.visitInsn(ARETURN);
 		}
 
@@ -234,8 +232,12 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object identifier(String name) {
-		localRef(name);
-		mv.visitInsn(AALOAD);
+		if (name == "this")
+			mv.visitVarInsn(ALOAD, SELF);
+		else {
+			localRef(name);
+			mv.visitInsn(AALOAD);
+		}
 		return "pop";
 	}
 
@@ -253,30 +255,112 @@ public class CompileGenerator implements Generator<Object> {
 		return i;
 	}
 
+	public Object member(Object term, String identifier) {
+		mv.visitLdcInsn(identifier);
+		getMember();
+		return "pop";
+	}
+
+	public Object subscript(Object term, Object expression) {
+		assert (expression == "pop");
+		getSubscript();
+		return "pop";
+	}
+
+	public Object self() {
+		mv.visitVarInsn(ALOAD, SELF);
+		return "pop";
+	}
+
 	public void lvalue(Value<Object> value) {
-		// TODO other options
-		localRef(value.id);
+		switch (value.type) {
+		case LOCAL:
+			localRef(value.id);
+			break;
+		case MEMBER:
+			mv.visitLdcInsn(value.id);
+			break;
+		case SUBSCRIPT:
+			break;
+		default:
+			throw new SuException("invalid lvalue type: " + value.type);
+		}
 	}
 
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
-		// TODO handle MEMBER and SUBSCRIPT
-		if (expression == "aastore") {
-			mv.visitInsn(DUP_X2);
-			mv.visitInsn(AASTORE);
+		dupAndStore(expression);
+		if (op != EQ) {
+			identifier(value.id);
+			valueMethod_v_v(assignOp(op));
 		}
-		return "aastore";
+		return value.type;
 	}
 
-	public Object and(Object expr1, Object expr2) {
-		// TODO Auto-generated method stub
-		return null;
+	private String assignOp(Token op) {
+		String s = op.toString();
+		return s.substring(0, s.length() - 2).toLowerCase();
+	}
+
+	private void valueMethod_v(String method) {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
+				"()Lsuneido/SuValue;");
+	}
+	private void valueMethod_v_v(String method) {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
+				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
+	}
+	private void getMember() {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
+				"(Ljava/lang/String;)Lsuneido/SuValue;");
+	}
+
+	private void putMember() {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
+				"(Ljava/lang/String;Lsuneido/SuValue;)V");
+	}
+
+	private void getSubscript() {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
+				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
+	}
+
+	private void putSubscript() {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
+				"(Lsuneido/SuValue;Lsuneido/SuValue;)V");
+	}
+
+	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
+		mv.visitInsn(AALOAD);
+		lvalue(value);
+		valueMethod_v(incdec == INC ? "add1" : "sub1");
+		dupAndStore(value.type);
+		return "pop";
+	}
+
+	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
+		identifier(value.id);
+		valueMethod_v(incdec == INC ? "add1" : "sub1");
+		return value.type;
+	}
+
+	private void dupAndStore(Object expression) {
+		if (expression != null && expression != "pop")
+			mv.visitInsn(DUP_X2);
+		store(expression);
+	}
+
+	private void store(Object expression) {
+		if (expression == LOCAL)
+			mv.visitInsn(AASTORE);
+		else if (expression == MEMBER)
+			putMember();
+		else if (expression == SUBSCRIPT)
+			putSubscript();
 	}
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
-				op.toString().toLowerCase(),
-				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
+		valueMethod_v_v(op.toString().toLowerCase());
 		return "pop";
 	}
 
@@ -300,11 +384,6 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object member(Object term, String identifier) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object breakStatement() {
 		// TODO Auto-generated method stub
 		return null;
@@ -322,6 +401,16 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object classConstant(String base, Object members) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object and(Object expr1, Object expr2) {
+		// TODO and
+		return null;
+	}
+
+	public Object or(Object expr1, Object expr2) {
+		// TODO or
 		return null;
 	}
 
@@ -401,40 +490,16 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object or(Object expr1, Object expr2) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object self() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	@SuppressWarnings("unchecked")
 	public void beforeStatement(Object list) {
 		if (list == "pop")
 			mv.visitInsn(POP);
-		else if (list == "aastore")
-			mv.visitInsn(AASTORE);
+		else
+			store(list);
 	}
 
 	public Object statementList(Object list, Object next) {
 		return next;
-	}
-
-	public Object subscript(Object term, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public Object switchCases(Object cases, Object values, Object statements) {

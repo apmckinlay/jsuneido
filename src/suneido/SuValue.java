@@ -82,6 +82,14 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		return x.toString();
 	}
 
+	public SuValue get(String member) {
+		throw new SuException(typeName() + " does not support get");
+	}
+
+	public void put(String member, SuValue value) {
+		throw new SuException(typeName() + " does not support put");
+	}
+
 	public SuValue getdata(SuValue member) {
 		throw new SuException(typeName() + " does not support get");
 	}
@@ -189,6 +197,14 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 
 	public final SuValue cat(SuValue other) {
 		return SuString.valueOf(string() + other.string());
+	}
+
+	public final SuValue add1() {
+		return number().addInt(SuInteger.ONE);
+	}
+
+	public final SuValue sub1() {
+		return number().subInt(SuInteger.ONE);
 	}
 
 	public SuValue newInstance(SuValue... args) {
