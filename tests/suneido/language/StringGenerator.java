@@ -145,9 +145,9 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String value(Value<String> value) {
-		if (value.option == null)
+		if (value.type == null)
 			return null;
-		switch (value.option) {
+		switch (value.type) {
 		case LOCAL:
 		case GLOBAL:
 			return value.id;

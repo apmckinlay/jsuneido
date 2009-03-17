@@ -177,30 +177,28 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
-	public enum Option {
+	public enum Type {
 		LOCAL, MEMBER, SUBSCRIPT, GLOBAL
 	};
 
 	public static class Value<T> {
-		Option option = null;
+		Type type = null;
 		String id;
 		T expr;
 
-		void set(Option option, String id, T expr) {
-			this.option = option;
+		void set(Type option, String id, T expr) {
+			this.type = option;
 			this.id = id;
 			this.expr = expr;
 		}
 		void clear() {
-			option = null;
+			type = null;
 		}
-
 		boolean isSet() {
-			return option != null;
+			return type != null;
 		}
-
 		boolean lvalue() {
-			return option != Option.GLOBAL;
+			return type != Type.GLOBAL;
 		}
 	}
 
@@ -223,8 +221,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			term = block();
 			break;
 		case DOT:
-			term = generator.self();
-			value.set(Option.LOCAL, "this", null);
+			//			term = generator.self();
+			value.set(Type.LOCAL, "this", null);
+			// leave token == DOT
 			break;
 		case L_PAREN:
 			match(L_PAREN);
@@ -253,8 +252,11 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 						|| lexer.getKeyword() == FALSE) {
 					term = generator.bool(lexer.getKeyword() == TRUE);
 					match();
+				} else if (lexer.getKeyword() == THIS) {
+					term = generator.self();
+					match();
 				} else {
-					value.set(Option.LOCAL, lexer.getValue(), null);
+					value.set(Type.LOCAL, lexer.getValue(), null);
 					match(IDENTIFIER);
 				}
 			}
@@ -276,16 +278,16 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			}
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
-				value.set(Option.MEMBER, lexer.getValue(), null);
+				value.set(Type.MEMBER, lexer.getValue(), null);
 				match(IDENTIFIER);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				value.set(Option.SUBSCRIPT, null, expression());
+				value.set(Type.SUBSCRIPT, null, expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				if (value.option == Option.LOCAL
-						|| value.option == Option.GLOBAL) {
+				if (value.type == Type.LOCAL
+						|| value.type == Type.GLOBAL) {
 					term = push(term, value);
 					value.clear();
 				}
@@ -297,6 +299,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		if (incdec != null) {
 			if (!value.lvalue())
 				syntaxError("lvalue required");
+			generator.lvalue(value);
 			term = generator.preIncDec(term, incdec, value);
 		} else if (assign()) {
 			if (!value.lvalue())
@@ -308,6 +311,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		} else if (token == INC || token == DEC) {
 			if (!value.lvalue())
 				syntaxError("lvalue required");
+			generator.lvalue(value);
 			term = generator.postIncDec(term, token, value);
 			match();
 		} else if (value.isSet()) {
@@ -317,7 +321,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T push(T term, Value<T> value) {
-		switch (value.option) {
+		switch (value.type) {
 		case LOCAL:
 			return generator.identifier(value.id);
 		case MEMBER:
