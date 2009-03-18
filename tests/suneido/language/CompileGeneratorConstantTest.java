@@ -28,7 +28,7 @@ public class CompileGeneratorConstantTest {
 
 		SuContainer c = new SuContainer();
 		c.append(SuInteger.valueOf(12));
-		c.putdata("ab", SuString.valueOf("cd"));
+		c.put("ab", SuString.valueOf("cd"));
 		assertEquals(c, compile("#(12, ab: cd)"));
 
 		SuContainer cc = new SuContainer();

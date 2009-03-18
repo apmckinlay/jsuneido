@@ -175,6 +175,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
+	public void atArgument(String n) {
+	}
 	public Object atArgument(String n, Object expr) {
 		// TODO Auto-generated method stub
 		return null;

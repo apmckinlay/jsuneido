@@ -44,7 +44,7 @@ public class SuValueTest {
 	}
 
 	private void math1(SuValue x, SuValue y) {
-		// System.out.println(x.typeName() + " " + x + " " + y.typeName() + " " + y);
+		//System.out.println(x.typeName() + " " + x + " " + y.typeName() + " " + y);
 		int i = x.integer();
 		int j = y.integer();
 		SuValue z;

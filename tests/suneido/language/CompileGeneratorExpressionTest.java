@@ -21,9 +21,11 @@ public class CompileGeneratorExpressionTest {
 				{ "b", "b, ARETURN" },
 				{ "return b", "b, ARETURN" },
 				{ "return a + b", "a, b, .add, ARETURN" },
-				{ "a.Size()", "a, LDC 'Size', 0, new SuValue[], .invoke, ARETURN" },
-				{ "return a.Size()", "a, LDC 'Size', 0, new SuValue[], .invoke, ARETURN" },
-				{ "a.Substr(b, c)", "a, b, c, LDC 'Substr', 2, new SuValue[], .invoke, ARETURN" },
+				{ "a()", "a, .invokeN, ARETURN" },
+				{ "a(b, c)", "a, b, c, .invokeN, ARETURN" },
+				{ "a.Size()", "a, LDC 'Size', .invokeN, ARETURN" },
+				{ "return a.Size()", "a, LDC 'Size', .invokeN, ARETURN" },
+				{ "a.Substr(b, c)", "a, b, c, LDC 'Substr', .invokeN, ARETURN" },
 				{ "a = b $ c", "&a, b, c, .cat, DUP_X2, AASTORE, ARETURN" },
 				{ "a = b = c", "&a, &b, c, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN" },
 				{ "a = b; return c", "&a, b, AASTORE, c, ARETURN" },
@@ -40,6 +42,10 @@ public class CompileGeneratorExpressionTest {
 				{ "a.x = b", "a, LDC 'x', b, DUP_X2, .putMem, ARETURN" },
 				{ "a[b]", "a, b, .getSub, ARETURN" },
 				{ "a[b] = c;;", "a, b, c, .putSub" },
+				{ "G", "LDC 'G', global, ARETURN" },
+				{ "G()", "LDC 'G', global, .invokeN, ARETURN" },
+				{ "a(@b)", "a, EACH, b, .invokeN, ARETURN" },
+				{ "a(@+1b)", "a, EACH1, b, .invokeN, ARETURN" },
 		};
 		for (String[] c : cases) {
 			assertEquals(c[0], c[1], compile(c[0]));
@@ -83,6 +89,9 @@ System.out.println(r);
 				{ "suneido/SuValue", "SuValue" },
 				{ "java/lang/String", "String" },
 				{ "ANEWARRAY SuValue", "new SuValue[]" },
+				{ "GETSTATIC suneido/language/SuClass.", "" },
+				{ " : Lsuneido/SuString;", "" },
+				{ "INVOKESTATIC suneido/language/Globals.get (LString;)LSuValue;", "global" },
 				{ "INVOKEVIRTUAL SuValue", "" },
 				{ ".get (LSuValue;)LSuValue;", ".getSub" },
 				{ ".get (LString;)LSuValue;", ".getMem" },
@@ -90,7 +99,12 @@ System.out.println(r);
 				{ ".put (LSuValue;LSuValue;)V", ".putSub" },
 				{ " ()LSuValue;", "" },
 				{ " (LSuValue;)LSuValue;", "" },
-				{ " (LString;[LSuValue;)LSuValue;", "" },
+				{ " (LSuValue;LSuValue;)LSuValue;", "" },
+				{ " (LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
+				{ " (LString;)LSuValue;", "" },
+				{ " (LString;LSuValue;)LSuValue;", "" },
+				{ " (LString;LSuValue;LSuValue;)LSuValue;", "" },
+				{ " (LString;LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

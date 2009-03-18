@@ -92,6 +92,7 @@ public interface Generator<T> {
 
 	T argumentList(T list, String keyword, T expression);
 
+	void atArgument(String n);
 	T atArgument(String n, T expr);
 
 	T block(T params, T statements);

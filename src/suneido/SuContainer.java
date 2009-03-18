@@ -47,15 +47,7 @@ public class SuContainer extends SuValue {
 		map.putAll(c.map);
 	}
 
-	public void putdata(String key, SuValue value) {
-		putdata(SuString.valueOf(key), value);
-	}
-
 	@Override
-	public void putdata(SuValue key, SuValue value) {
-		put(key, value);
-	}
-
 	public void put(SuValue key, SuValue value) {
 		int i = key.index();
 		if (0 <= i && i < vec.size())
@@ -66,12 +58,8 @@ public class SuContainer extends SuValue {
 			map.put(key, value);
 	}
 
-	public SuValue getdata(String key) {
-		return getdata(SuString.valueOf(key));
-	}
-
 	@Override
-	public SuValue getdata(SuValue key) {
+	public SuValue get(SuValue key) {
 		int i = key.index();
 		if (0 <= i && i < vec.size())
 			return vec.get(i);

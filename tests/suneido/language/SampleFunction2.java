@@ -12,8 +12,14 @@ public class SampleFunction2 extends SuFunction {
 	public SuValue invoke(SuValue... args) {
 		SuValue[] constants = Constants.get("SampleFunction");
 		//		System.out.println("hello world");
-		putdata(args[0], args[1]);
+		Globals.get("X");
+		SuValue a = null, b = null, c = null;
+		invokeN(SuClass.EACH, a);
 		return null;
+	}
+
+	private void f(int... args) {
+
 	}
 
 }

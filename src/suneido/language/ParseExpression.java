@@ -178,7 +178,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public enum Type {
-		LOCAL, MEMBER, SUBSCRIPT, GLOBAL
+		IDENTIFIER, MEMBER, SUBSCRIPT
 	};
 
 	public static class Value<T> {
@@ -191,14 +191,17 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			this.id = id;
 			this.expr = expr;
 		}
+		void set(String id) {
+			this.type = Type.IDENTIFIER;
+			this.id = id;
+			this.expr = null;
+		}
 		void clear() {
 			type = null;
+			id = null;
 		}
 		boolean isSet() {
 			return type != null;
-		}
-		boolean lvalue() {
-			return type != Type.GLOBAL;
 		}
 	}
 
@@ -221,8 +224,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			term = block();
 			break;
 		case DOT:
-			//			term = generator.self();
-			value.set(Type.LOCAL, "this", null);
+			value.set("this");
 			// leave token == DOT
 			break;
 		case L_PAREN:
@@ -256,7 +258,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					term = generator.self();
 					match();
 				} else {
-					value.set(Type.LOCAL, lexer.getValue(), null);
+					value.set(lexer.getValue());
 					match(IDENTIFIER);
 				}
 			}
@@ -286,8 +288,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				value.set(Type.SUBSCRIPT, null, expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				if (value.type == Type.LOCAL
-						|| value.type == Type.GLOBAL) {
+				if (value.type == Type.IDENTIFIER) {
 					term = push(term, value);
 					value.clear();
 				}
@@ -297,20 +298,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 
 		if (incdec != null) {
-			if (!value.lvalue())
-				syntaxError("lvalue required");
 			generator.lvalue(value);
 			term = generator.preIncDec(term, incdec, value);
 		} else if (assign()) {
-			if (!value.lvalue())
-				syntaxError("lvalue required");
 			Token op = token;
 			matchSkipNewlines();
 			generator.lvalue(value);
-			term = generator.assignment(term, value, op, expression());
+			T expr = expression();
+			term = generator.assignment(term, value, op, expr);
 		} else if (token == INC || token == DEC) {
-			if (!value.lvalue())
-				syntaxError("lvalue required");
 			generator.lvalue(value);
 			term = generator.postIncDec(term, token, value);
 			match();
@@ -322,7 +318,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T push(T term, Value<T> value) {
 		switch (value.type) {
-		case LOCAL:
+		case IDENTIFIER:
 			return generator.identifier(value.id);
 		case MEMBER:
 			return generator.member(term, value.id);
@@ -356,11 +352,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return args;
 	}
 	private T atArgument() {
-		String n = null;
+		String n = "0";
 		if (matchIf(ADD)) {
 			n = lexer.getValue();
 			match(NUMBER);
 		}
+		generator.atArgument(n);
 		T expr = expression();
 		match(R_PAREN);
 		return generator.atArgument(n, expr);

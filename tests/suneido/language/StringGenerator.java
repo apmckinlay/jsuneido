@@ -144,12 +144,11 @@ public class StringGenerator implements Generator<String> {
 		return str("", term, " ") + "post" + incdec + "(" + value(value) + ")";
 	}
 
-	public String value(Value<String> value) {
+	private String value(Value<String> value) {
 		if (value.type == null)
 			return null;
 		switch (value.type) {
-		case LOCAL:
-		case GLOBAL:
+		case IDENTIFIER:
 			return value.id;
 		case MEMBER:
 			return "." + value.id;
@@ -181,8 +180,10 @@ public class StringGenerator implements Generator<String> {
 		return "new " + term + str("(", arguments, ")");
 	}
 
+	public void atArgument(String n) {
+	}
 	public String atArgument(String n, String expression) {
-		return "@" + str("+", n, " ") + expression;
+		return "@" + ("0".equals(n) ? "" : str("+", n, " ")) + expression;
 	}
 
 	public String block(String params, String statements) {

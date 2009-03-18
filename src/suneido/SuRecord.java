@@ -49,8 +49,8 @@ public class SuRecord extends SuContainer {
 }
 
 	@Override
-	public SuValue getdata(SuValue key) {
-		SuValue x = super.getdata(key);
+	public SuValue get(SuValue key) {
+		SuValue x = super.get(key);
 		return x == null ? SuString.EMPTY : x;
 	}
 
@@ -97,7 +97,7 @@ public class SuRecord extends SuContainer {
 			// }
 			// rec.addval(oss.str());
 			// }
-			else if (null != (x = getdata(f)))
+			else if (null != (x = get(f)))
 				rec.add(x);
 			else
 				rec.addMin();

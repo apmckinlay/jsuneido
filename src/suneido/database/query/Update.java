@@ -41,7 +41,7 @@ public class Update extends QueryAction {
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
 			SuRecord surec = row.surec(hdr);
 			for (int i = 0; i < fields.size(); ++i)
-				surec.putdata(fields.get(i), exprs.get(i).eval(hdr, row));
+				surec.put(fields.get(i), exprs.get(i).eval(hdr, row));
 			Record newrec = surec.toDbRecord(hdr);
 			theDbms.update(tran, row.getFirstData().off(), newrec);
 		}

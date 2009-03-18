@@ -30,15 +30,15 @@ public class SuClassTest {
 		SuString x = SuString.valueOf("x");
 		SuContainer c = new SuContainer();
 		c.append(i);
-		c.putdata(a, s);
+		c.put(a, s);
 		SuContainer c2 = new SuContainer();
 		c2.append(s);
-		c2.putdata(x, i);
+		c2.put(x, i);
 		SuContainer c3 = new SuContainer();
 		c3.append(i);
 		c3.append(s);
-		c3.putdata(a, s);
-		c3.putdata(x, i);
+		c3.put(a, s);
+		c3.put(x, i);
 		SuValue[] args1 = { i, NAMED, a, s };
 		SuValue[] args2 = { EACH, c };
 		SuValue[] args3 = { EACH, c, EACH, c2 };
@@ -147,12 +147,12 @@ public class SuClassTest {
 		SuClass wc = new WrapClass();
 		SuValue s = SuString.valueOf("hello");
 		SuClass instance = wc.newInstance(s);
-		assertEquals(s, instance.vars.getdata("value"));
+		assertEquals(s, instance.vars.get("value"));
 	}
 
 	static class WrapClass extends SuClass {
 		{
-			vars.putdata("Name", SuString.valueOf("Wrap"));
+			vars.put("Name", SuString.valueOf("Wrap"));
 		}
 		@Override
 		public SuClass newInstance(SuValue... args) {
@@ -162,7 +162,7 @@ public class SuClassTest {
 		WrapClass() {
 		}
 		WrapClass(SuValue[] args) {
-			vars.putdata("value", args[0]);
+			vars.put("value", args[0]);
 		}
 
 		@Override

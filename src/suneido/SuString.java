@@ -74,6 +74,10 @@ public class SuString extends SuValue {
 		this.s = s;
 	}
 
+	public static SuString makeUnique(String s) {
+		return new SuString(s);
+	}
+
 	@Override
 	public String string() {
 		return s;
@@ -85,11 +89,11 @@ public class SuString extends SuValue {
 	 * 			or "" if the position is out of range.
 	 */
 	@Override
-	public SuValue getdata(SuValue member) {
+	public SuValue get(SuValue member) {
 		int i = member.integer();
 		return 0 <= i && i < s.length()
-		? new SuString(s.substring(i, i + 1))
-		: EMPTY;
+				? new SuString(s.substring(i, i + 1))
+				: EMPTY;
 	}
 
 	@Override
@@ -110,9 +114,9 @@ public class SuString extends SuValue {
 	}
 
 	@Override
-	public SuDecimal number() {
+	public SuNumber number() {
 		try {
-			return new SuDecimal(s);
+			return SuNumber.valueOf(s);
 		} catch (NumberFormatException e) {
 			return super.number();
 		}
