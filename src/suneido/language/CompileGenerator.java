@@ -79,7 +79,7 @@ public class CompileGenerator implements Generator<Object> {
 		if (m.name == null)
 			c.append(m.value);
 		else
-			c.putdata(m.name, m.value);
+			c.put(m.name, m.value);
 		return c;
 	}
 
@@ -234,19 +234,23 @@ public class CompileGenerator implements Generator<Object> {
 	public Object identifier(String name) {
 		if (name == "this")
 			mv.visitVarInsn(ALOAD, SELF);
-		else {
+		else if (Character.isLowerCase(name.charAt(0))) {
 			localRef(name);
 			mv.visitInsn(AALOAD);
+		} else {
+			mv.visitLdcInsn(name);
+			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "get",
+					"(Ljava/lang/String;)Lsuneido/SuValue;");
 		}
 		return "pop";
 	}
 
 	private void localRef(String name) {
 		mv.visitVarInsn(ALOAD, LOCALS);
-		iconst(local(name));
+		iconst(addLocal(name));
 	}
 
-	private int local(String name) {
+	private int addLocal(String name) {
 		int i = locals.indexOf(name);
 		if (i == -1) {
 			i = locals.size();
@@ -274,7 +278,9 @@ public class CompileGenerator implements Generator<Object> {
 
 	public void lvalue(Value<Object> value) {
 		switch (value.type) {
-		case LOCAL:
+		case IDENTIFIER:
+			if (Character.isUpperCase(value.id.charAt(0)))
+				throw new SuException("globals are read-only");
 			localRef(value.id);
 			break;
 		case MEMBER:
@@ -351,7 +357,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void store(Object expression) {
-		if (expression == LOCAL)
+		if (expression == IDENTIFIER)
 			mv.visitInsn(AASTORE);
 		else if (expression == MEMBER)
 			putMember();
@@ -379,12 +385,50 @@ public class CompileGenerator implements Generator<Object> {
 		return "pop";
 	}
 
-	public Object block(Object params, Object statements) {
-		// TODO Auto-generated method stub
+	public Object functionCall(Object function, Value<Object> value,
+			Object arguments) {
+		int nargs = arguments == null ? 0 : (Integer) arguments;
+		if (value.id == null)
+			invokeFunction(nargs);
+		else {
+			mv.visitLdcInsn(value.id);
+			invokeMethod(nargs);
+		}
+		return "pop"; // value on stack
+	}
+
+	private static final String[] args = new String[] {
+		"",
+		"Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+	};
+	private void invokeFunction(int i) {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN", "("
+				+ args[i] + ")Lsuneido/SuValue;");
+	}
+	private void invokeMethod(int i) {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN",
+				"(Ljava/lang/String;" + args[i] + ")Lsuneido/SuValue;");
+	}
+
+	public Object argumentList(Object list, String keyword, Object expression) {
+		// TODO handle named args
+		int n = (list == null ? 0 : (Integer) list);
+		return n + 1;
+	}
+
+	public void atArgument(String n) {
+		assert "0".equals(n) || "1".equals(n);
+		mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass",
+				n.charAt(0) == '1' ? "EACH1" : "EACH", "Lsuneido/SuString;");
+	}
+	public Object atArgument(String n, Object expr) {
 		return null;
 	}
 
-	public Object breakStatement() {
+	public Object block(Object params, Object statements) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -416,6 +460,11 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object conditional(Object primaryExpression, Object first,
 			Object second) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Object breakStatement() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -455,26 +504,6 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object functionCall(Object function, Value<Object> value,
-			Object arguments) {
-		mv.visitLdcInsn(value.id);
-		iconst(arguments == null ? 0 : (Integer) arguments);
-		mv.visitTypeInsn(ANEWARRAY, "suneido/SuValue");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invoke",
-				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;");
-		return "pop"; // value on stack
-	}
-
-	public Object argumentList(Object list, String keyword, Object expression) {
-		int n = (list == null ? 0 : (Integer) list);
-		return n + 1;
-	}
-
-	public Object atArgument(String n, Object expr) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Object ifStatement(Object expression, Object t, Object f) {
 		// TODO Auto-generated method stub
 		return null;
@@ -490,7 +519,6 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void beforeStatement(Object list) {
 		if (list == "pop")
 			mv.visitInsn(POP);

@@ -83,20 +83,19 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 
 	public SuValue get(String member) {
+		return get(SuString.valueOf(member));
+	}
+	public SuValue get(SuValue member) {
 		throw new SuException(typeName() + " does not support get");
 	}
 
 	public void put(String member, SuValue value) {
+		put(SuString.valueOf(member), value);
+	}
+	public void put(SuValue member, SuValue value) {
 		throw new SuException(typeName() + " does not support put");
 	}
-
-	public SuValue getdata(SuValue member) {
-		throw new SuException(typeName() + " does not support get");
-	}
-
-	public void putdata(SuValue member, SuValue value) {
-		throw new SuException(typeName() + " does not support put");
-	}
+	
 	public String typeName() {
 		return getClass().getName().substring(10); // strip Suneido.Su
 	}
@@ -111,7 +110,7 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public int integer() {
 		throw new SuException("can't convert " + typeName() + " to integer");
 	}
-	public SuDecimal number() {
+	public SuNumber number() {
 		throw new SuException("can't convert " + typeName() + " to number");
 	}
 
@@ -132,7 +131,11 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		ord = hashCode() - value.hashCode(); // default ordering
 		return ord < 0 ? -1 : ord > 0 ? +1 : 0;
 	}
-	public int compareToInt(SuInteger i) {
+	protected int compareToInt(SuInteger x) {
+		throw SuException.unreachable();
+	}
+
+	protected int compareToDec(SuDecimal x) {
 		throw SuException.unreachable();
 	}
 
@@ -141,70 +144,70 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		return Order.OTHER.ordinal();
 	}
 
-	public SuValue add(SuValue x) {
-		return addNum(x.number());
+	// handle conversion of left hand side (this)
+	public SuNumber add(SuValue x) {
+		return number().add(x);
 	}
-	protected SuValue addInt(SuInteger x) {
+	public SuNumber sub(SuValue x) {
+		return number().sub(x);
+	}
+	public SuNumber mul(SuValue x) {
+		return number().mul(x);
+	}
+	public SuNumber div(SuValue x) {
+		return number().div(x);
+	}
+	public SuNumber mod(SuValue x) {
+		return number().mod(x);
+	}
+
+	// handle conversion of other side
+	protected SuNumber addInt(SuInteger x) {
 		return number().addInt(x);
 	}
-	protected SuValue addNum(SuDecimal x) {
-		return number().addNum(x);
-	}
-
-	public SuValue sub(SuValue x) {
-		return x.number().subNum(number());
-	}
-	protected SuValue subInt(SuInteger x) {
+	protected SuNumber subInt(SuInteger x) {
 		return number().subInt(x);
 	}
-	protected SuValue subNum(SuDecimal x) {
-		return number().subNum(x);
-	}
-
-	public SuValue mul(SuValue x) {
-		return mulNum(x.number());
-	}
-	protected SuValue mulInt(SuInteger x) {
+	protected SuNumber mulInt(SuInteger x) {
 		return number().mulInt(x);
 	}
-	protected SuValue mulNum(SuDecimal x) {
-		return number().mulNum(x);
-	}
-
-	public SuValue div(SuValue x) {
-		return x.number().divNum(number());
-	}
-	protected SuValue divInt(SuInteger x) {
+	protected SuNumber divInt(SuInteger x) {
 		return number().divInt(x);
 	}
-	protected SuValue divNum(SuDecimal x) {
-		return number().divNum(x);
-	}
-
-	public SuValue mod(SuValue x) {
-		return x.number().modNum(number());
-	}
-	protected SuValue modInt(SuInteger x) {
+	protected SuNumber modInt(SuInteger x) {
 		return number().modInt(x);
 	}
-	protected SuValue modNum(SuDecimal x) {
-		return number().modNum(x);
+
+	protected SuNumber addDec(SuDecimal x) {
+		return number().addDec(x);
+	}
+	protected SuNumber subDec(SuDecimal x) {
+		return number().subDec(x);
+	}
+	protected SuNumber mulDec(SuDecimal x) {
+		return number().mulDec(x);
+	}
+	protected SuNumber divDec(SuDecimal x) {
+		return number().divDec(x);
+	}
+	protected SuNumber modDec(SuDecimal x) {
+		return number().modDec(x);
 	}
 
-	public SuValue uminus() {
-		return number().uminus();
+	public SuNumber uminus() {
+		throw new SuException("can't convert " + typeName() + " to number");
 	}
 
-	public final SuValue cat(SuValue other) {
+	public final SuString cat(SuValue other) {
 		return SuString.valueOf(string() + other.string());
 	}
 
 	public final SuValue add1() {
-		return number().addInt(SuInteger.ONE);
+		return addInt(SuInteger.ONE);
 	}
 
 	public final SuValue sub1() {
-		return number().subInt(SuInteger.ONE);
+		return subInt(SuInteger.ONE);
 	}
 
 	public SuValue newInstance(SuValue... args) {

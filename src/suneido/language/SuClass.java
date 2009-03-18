@@ -104,7 +104,7 @@ public abstract class SuClass extends SuValue {
 				locals[0] = c;
 				for (int i = 0; i < args.length; ++i) {
 					if (args[i] == NAMED) {
-						c.putdata(args[i + 1], args[i + 2]);
+						c.put(args[i + 1], args[i + 2]);
 						i += 2;
 					}
 					else if (args[i] == EACH)
@@ -132,7 +132,7 @@ public abstract class SuClass extends SuValue {
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
 					for (int j = 0; j < params.length; ++j) {
-						SuValue x = c.getdata(params[j]);
+						SuValue x = c.get(params[j]);
 						if (x != null)
 							locals[j] = x;
 					}
@@ -155,11 +155,39 @@ public abstract class SuClass extends SuValue {
 		return massage(params.length, args, params);
 	}
 
-	public static final SuString EACH = SuString.valueOf("<each>");
-	public static final SuString EACH1 = SuString.valueOf("<each1>");
-	public static final SuString NAMED = SuString.valueOf("<named>");
+	public static final SuString EACH = SuString.makeUnique("<each>");
+	public static final SuString EACH1 = SuString.makeUnique("<each1>");
+	public static final SuString NAMED = SuString.makeUnique("<named>");
 
 	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1
 	//TODO parameters with default values
 	//TODO check for missing arguments
+
+	// to simplify code generation
+	public final SuValue invokeN() {
+		return invoke();
+	}
+	public final SuValue invokeN(SuValue a) {
+		return invoke(a);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b) {
+		return invoke(a, b);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
+		return invoke(a, b, c);
+	}
+
+	public final SuValue invokeN(String method) {
+		return invoke(method);
+	}
+	public final SuValue invokeN(String method, SuValue a) {
+		return invoke(method, a);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b) {
+		return invoke(method, a, b);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b, SuValue c) {
+		return invoke(method, a, b, c);
+	}
+
 }

@@ -21,27 +21,27 @@ public class SuContainerTest {
 
 		c.append(i[0]);
 		assertEquals(1, c.size());
-		assertEquals(i[0], c.getdata(SuInteger.ZERO));
+		assertEquals(i[0], c.get(SuInteger.ZERO));
 		assertEquals("[12]", c.toString());
 
-		c.putdata(s[0], i[1]);
+		c.put(s[0], i[1]);
 		assertEquals(2, c.size());
-		assertEquals(i[0], c.getdata(SuInteger.ZERO));
-		assertEquals(i[1], c.getdata(s[0]));
+		assertEquals(i[0], c.get(SuInteger.ZERO));
+		assertEquals(i[1], c.get(s[0]));
 		assertEquals("[12, ab: 34]", c.toString());
 
-		c.putdata(SuInteger.valueOf(2), s[1]);
+		c.put(SuInteger.valueOf(2), s[1]);
 		assertEquals(3, c.size());
-		assertEquals(i[0], c.getdata(SuInteger.ZERO));
-		assertEquals(i[1], c.getdata(s[0]));
-		assertEquals(s[1], c.getdata(SuInteger.valueOf(2)));
+		assertEquals(i[0], c.get(SuInteger.ZERO));
+		assertEquals(i[1], c.get(s[0]));
+		assertEquals(s[1], c.get(SuInteger.valueOf(2)));
 		assertEquals("[12, 2: 'cd', ab: 34]", c.toString());
 
-		c.putdata(SuInteger.ONE, s[2]);
+		c.put(SuInteger.ONE, s[2]);
 		assertEquals(4, c.size());
-		assertEquals(i[0], c.getdata(SuInteger.ZERO));
-		assertEquals(i[1], c.getdata(s[0]));
-		assertEquals(s[2], c.getdata(SuInteger.ONE));
+		assertEquals(i[0], c.get(SuInteger.ZERO));
+		assertEquals(i[1], c.get(s[0]));
+		assertEquals(s[2], c.get(SuInteger.ONE));
 		assertEquals("[12, 'ef', 'cd', ab: 34]", c.toString());
 	}
 
@@ -63,12 +63,12 @@ public class SuContainerTest {
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 
-		one.putdata(new SuString("abc"), SuInteger.valueOf(456));
+		one.put(new SuString("abc"), SuInteger.valueOf(456));
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 
-		two.putdata(new SuString("abc"), SuInteger.valueOf(456));
+		two.put(new SuString("abc"), SuInteger.valueOf(456));
 		assert one.equals(two);
 		assert two.equals(one);
 		assertEquals(one.hashCode(), two.hashCode());
@@ -86,7 +86,7 @@ public class SuContainerTest {
 		assertFalse(c.erase(SuString.EMPTY));
 		assert c.size() == 0;
 		c.append(SuInteger.ONE);
-		c.putdata(new SuString("a"), SuInteger.ONE);
+		c.put(new SuString("a"), SuInteger.ONE);
 		assert c.size() == 2;
 		assertTrue(c.erase(SuInteger.ZERO));
 		assert c.size() == 1;
@@ -102,7 +102,7 @@ public class SuContainerTest {
 		c.append(SuDecimal.ONE);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
-		c.putdata(SuString.EMPTY, SuBoolean.TRUE);
+		c.put(SuString.EMPTY, SuBoolean.TRUE);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		for (int i = 0; i < 5; ++i)
@@ -110,13 +110,13 @@ public class SuContainerTest {
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		for (int i = 100; i < 105; ++i)
-			c.putdata(SuInteger.valueOf(i), SuInteger.valueOf(i));
+			c.put(SuInteger.valueOf(i), SuInteger.valueOf(i));
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		SuContainer nested = new SuContainer();
 		nested.append(SuDecimal.ONE);
 		c.append(nested);
-		c.putdata(SuInteger.valueOf(999), nested);
+		c.put(SuInteger.valueOf(999), nested);
 		assertEquals(c, SuValue.unpack(c.pack()));
 
 		SuContainer list = new SuContainer();

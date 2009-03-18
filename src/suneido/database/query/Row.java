@@ -79,7 +79,7 @@ public class Row {
 		if (w != null)
 			return getraw(w);
 		// else rule
-		return surec(hdr).getdata(SuString.valueOf(col)).pack();
+		return surec(hdr).get(SuString.valueOf(col)).pack();
 	}
 
 	public SuRecord surec(Header hdr) {
@@ -106,7 +106,7 @@ public class Row {
 		if (w != null || !hdr.cols.contains(col))
 			return SuValue.unpack(getraw(w));
 		// else rule
-		return surec(hdr).getdata(SuString.valueOf(col));
+		return surec(hdr).get(SuString.valueOf(col));
 	}
 
 	static class Which {

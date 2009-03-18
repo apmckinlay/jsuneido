@@ -1,26 +1,27 @@
 package suneido;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class SuIntegerTest {
 	static SuInteger si = SuInteger.valueOf(123);
-	
+
 	@Test
 	public void integer() {
 		assertEquals(si.integer(), 123);
 	}
-	
+
 	@Test(expected=SuException.class)
 	public void get() {
-		si.getdata(SuInteger.ZERO);
+		si.get(SuInteger.ZERO);
 	}
-	
+
 	@Test(expected=SuException.class)
 	public void put() {
-		si.putdata(SuInteger.ZERO, SuInteger.ZERO);
+		si.put(SuInteger.ZERO, SuInteger.ZERO);
 	}
-		
+
 	@Test
 	public void equals() {
 		assertEquals(si, SuInteger.valueOf(123));

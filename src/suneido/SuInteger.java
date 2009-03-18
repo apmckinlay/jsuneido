@@ -1,5 +1,7 @@
 package suneido;
 
+import java.math.BigDecimal;
+
 // import java.util.Random;
 
 /**
@@ -7,7 +9,7 @@ package suneido;
  * @see SuDecimal
  */
 public class SuInteger extends SuNumber {
-	private final int n;
+	final int n;
 	final public static SuInteger ZERO = new SuInteger(0);
 	final public static SuInteger ONE = new SuInteger(1);
 
@@ -70,58 +72,94 @@ public class SuInteger extends SuNumber {
 		int ord = order() - value.order();
 		if (ord != 0)
 			return ord < 0 ? -1 : +1;
-		return -value.compareToInt(this);
+		return value.compareToInt(this);
 	}
 	@Override
-	public int compareToInt(SuInteger i) {
-		return Integer.valueOf(n).compareTo(i.n);
+	protected int compareToInt(SuInteger x) {
+		return Integer.valueOf(x.n).compareTo(n);
+	}
+	@Override
+	protected int compareToDec(SuDecimal x) {
+		return x.n.compareTo(BigDecimal.valueOf(n));
 	}
 	@Override
 	public int order() {
 		return Order.NUMBER.ordinal();
 	}
 
+	// double dispatch
 	@Override
-	public SuValue add(SuValue x) {
-		return x.addInt(this);
+	public SuNumber add(SuValue that) {
+		return that.addInt(this);
 	}
 	@Override
-	protected SuValue addInt(SuInteger x) {
+	protected SuInteger addInt(SuInteger x) {
 		return valueOf(x.n + n);
 	}
-
 	@Override
-	public SuValue sub(SuValue x) {
-		return x.subInt(this);
+	protected SuDecimal addDec(SuDecimal x) {
+		return new SuDecimal(x.n.add(BigDecimal.valueOf(n)));
+	}
+
+	// double dispatch
+	@Override
+	public SuNumber sub(SuValue that) {
+		return that.subInt(this);
 	}
 	@Override
-	protected SuValue subInt(SuInteger x) {
+	protected SuInteger subInt(SuInteger x) {
 		return valueOf(x.n - n);
 	}
-
 	@Override
-	public SuValue mul(SuValue x) {
-		return x.mulInt(this);
+	protected SuDecimal subDec(SuDecimal x) {
+		return new SuDecimal(x.n.subtract(BigDecimal.valueOf(n)));
+	}
+
+	// double dispatch
+	@Override
+	public SuNumber mul(SuValue that) {
+		return that.mulInt(this);
 	}
 	@Override
-	protected SuValue mulInt(SuInteger x) {
+	protected SuInteger mulInt(SuInteger x) {
 		return valueOf(x.n * n);
 	}
-
-	// div is handled by SuDecimal
-
 	@Override
-	public SuValue mod(SuValue x) {
-		return x.modInt(this);
+	protected SuDecimal mulDec(SuDecimal x) {
+		return new SuDecimal(x.n.multiply(BigDecimal.valueOf(n)));
 	}
 
+	// double dispatch
 	@Override
-	protected SuValue modInt(SuInteger x) {
+	public SuNumber div(SuValue that) {
+		return that.divInt(this);
+	}
+	@Override
+	protected SuDecimal divInt(SuInteger x) {
+		return new SuDecimal(BigDecimal.valueOf(x.n).divide(
+				BigDecimal.valueOf(n), SuDecimal.mc));
+	}
+	@Override
+	protected SuDecimal divDec(SuDecimal x) {
+		return new SuDecimal(x.n.divide(BigDecimal.valueOf(n), SuDecimal.mc));
+	}
+
+	// double dispatch
+	@Override
+	public SuNumber mod(SuValue that) {
+		return that.modInt(this);
+	}
+	@Override
+	protected SuInteger modInt(SuInteger x) {
 		return valueOf(x.n % n);
 	}
+	@Override
+	protected SuDecimal modDec(SuDecimal x) {
+		return new SuDecimal(x.n.remainder(BigDecimal.valueOf(n), SuDecimal.mc));
+	}
 
 	@Override
-	public SuValue uminus() {
+	public SuInteger uminus() {
 		return new SuInteger(-n);
 	}
 

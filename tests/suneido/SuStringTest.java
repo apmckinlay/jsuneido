@@ -17,17 +17,17 @@ public class SuStringTest {
 
 	@Test
 	public void get_valid() {
-		assertEquals(ss.getdata(SuInteger.ZERO), new SuString("h"));
+		assertEquals(ss.get(SuInteger.ZERO), new SuString("h"));
 	}
 
 	@Test(expected=SuException.class)
 	public void get_invalid() {
-		ss.getdata(ss);
+		ss.get(ss);
 	}
 
 	@Test(expected=SuException.class)
 	public void put() {
-		ss.putdata(SuInteger.ZERO, SuInteger.ZERO);
+		ss.put(SuInteger.ZERO, SuInteger.ZERO);
 	}
 
 	@Test
@@ -49,12 +49,13 @@ public class SuStringTest {
 	}
 
 	@Test
-	public void getdata() {
+	public void get() {
 		SuString s = new SuString("hello world");
 		int[] offsets = { -1, 0, 1, 10, 11, 999 };
 		String[] results = { "", "h", "e", "d", "", "" };
 		for (int i = 0; i < offsets.length; ++i)
-			assertEquals(results[i], s.getdata(SuInteger.valueOf(offsets[i])).string());
+			assertEquals(results[i],
+					s.get(SuInteger.valueOf(offsets[i])).string());
 	}
 
 	@Test
