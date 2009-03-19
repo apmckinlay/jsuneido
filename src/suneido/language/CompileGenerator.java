@@ -26,10 +26,15 @@ public class CompileGenerator implements Generator<Object> {
 	private Label startLabel;
 	private List<String> locals;
 	private List<SuValue> constants;
+	private boolean constantsUsed = false;
 	private final static int SELF = 0;
 	private final static int LOCALS = 1;
 	private final static int CONSTANTS = 2;
 	enum Stack { VALUE, LOCAL, CALLRESULT };
+	private int ndefaults = 0;
+	private List<CompiledFunction> functions = null;
+	private static final String[] arrayString = new String[0];
+	private static final SuValue[] arraySuValue = new SuValue[0];
 
 	public CompileGenerator() {
 	}
@@ -92,6 +97,8 @@ public class CompileGenerator implements Generator<Object> {
 	// function
 
 	public void startFunction() {
+		functions = new ArrayList<CompiledFunction>();
+
 		cv = cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
 		if (pw != null)
@@ -111,26 +118,19 @@ public class CompileGenerator implements Generator<Object> {
 		startLabel = new Label();
 		mv.visitLabel(startLabel);
 
-		//		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-		//				"Ljava/io/PrintStream;");
-		//		mv.visitLdcInsn("hello world");
-		//		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
-		//				"(Ljava/lang/String;)V");
-
 		locals = new ArrayList<String>();
 		constants = new ArrayList<SuValue>();
-
-		// TODO do this lazily in case method doesn't need it
-		mv.visitLdcInsn("SampleFunction");
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Constants", "get",
-				"(Ljava/lang/String;)[Lsuneido/SuValue;");
-		mv.visitVarInsn(ASTORE, CONSTANTS);
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
 		locals.add(name);
-		// TODO handle default value
-		return null;
+		if (defaultValue != null) {
+			int i = addConstant(defaultValue);
+			assert (i == ndefaults);
+			++ndefaults;
+		}
+		int n = (list == null ? 0 : (Integer) list);
+		return n + 1;
 	}
 
 	private void asm_init() {
@@ -199,22 +199,51 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 
+		SuValue[] constantsArray = constants.toArray(arraySuValue);
+		Constants.put("SampleFunction", constantsArray);
+
+		int nparams = (params == null ? 0 : (Integer) params);
+		CompiledFunction f = new CompiledFunction(locals.toArray(arrayString),
+				constantsArray, nparams, ndefaults);
+		functions.add(f);
+
+		genDispatcher(functions);
+
 		cv.visitEnd();
-
-		Constants.put("SampleFunction", constants);
-
 		return cw.toByteArray();
+	}
+
+	private void genDispatcher(List<CompiledFunction> functions) {
+		// TODO genDispatcher
+
 	}
 
 	// expressions
 
 	public Object constant(Object value) {
-		int i = constants.size();
-		constants.add((SuValue) value);
-		mv.visitVarInsn(ALOAD, CONSTANTS);
+		int i = constantFor(value);
+		if (!constantsUsed) {
+			constantsUsed = true;
+			mv.visitLdcInsn("SampleFunction");
+			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Constants",
+					"get", "(Ljava/lang/String;)[Lsuneido/SuValue;");
+			mv.visitInsn(DUP);
+			mv.visitVarInsn(ASTORE, CONSTANTS);
+		} else
+			mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(i);
 		mv.visitInsn(AALOAD);
 		return VALUE;
+	}
+
+	private int constantFor(Object value) {
+		int i = constants.indexOf(value);
+		return i == -1 ? addConstant(value) : i;
+	}
+
+	private int addConstant(Object value) {
+		constants.add((SuValue) value);
+		return constants.size() - 1;
 	}
 
 	private void iconst(int i) {
@@ -431,9 +460,13 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object argumentList(Object list, String keyword, Object expression) {
-		// TODO handle named args
 		int n = (list == null ? 0 : (Integer) list);
 		return n + 1;
+	}
+
+	public void argumentName(String name) {
+		mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass", "NAMED",
+				"Lsuneido/SuString;");
 	}
 
 	public void atArgument(String n) {
@@ -442,6 +475,13 @@ public class CompileGenerator implements Generator<Object> {
 				n.charAt(0) == '1' ? "EACH1" : "EACH", "Lsuneido/SuString;");
 	}
 	public Object atArgument(String n, Object expr) {
+		return null;
+	}
+
+	// complex constants
+
+	public Object classConstant(String base, Object members) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -458,11 +498,6 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object catcher(String variable, String pattern, Object statement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object classConstant(String base, Object members) {
 		// TODO Auto-generated method stub
 		return null;
 	}

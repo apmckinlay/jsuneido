@@ -17,32 +17,32 @@ public class SuContainerTest {
 			new SuString("ef"), new SuString("gh") };
 
 		assertEquals(0, c.size());
-		assertEquals("[]", c.toString());
+		assertEquals("#()", c.toString());
 
 		c.append(i[0]);
 		assertEquals(1, c.size());
 		assertEquals(i[0], c.get(SuInteger.ZERO));
-		assertEquals("[12]", c.toString());
+		assertEquals("#(12)", c.toString());
 
 		c.put(s[0], i[1]);
 		assertEquals(2, c.size());
 		assertEquals(i[0], c.get(SuInteger.ZERO));
 		assertEquals(i[1], c.get(s[0]));
-		assertEquals("[12, ab: 34]", c.toString());
+		assertEquals("#(12, ab: 34)", c.toString());
 
 		c.put(SuInteger.valueOf(2), s[1]);
 		assertEquals(3, c.size());
 		assertEquals(i[0], c.get(SuInteger.ZERO));
 		assertEquals(i[1], c.get(s[0]));
 		assertEquals(s[1], c.get(SuInteger.valueOf(2)));
-		assertEquals("[12, 2: 'cd', ab: 34]", c.toString());
+		assertEquals("#(12, 2: 'cd', ab: 34)", c.toString());
 
 		c.put(SuInteger.ONE, s[2]);
 		assertEquals(4, c.size());
 		assertEquals(i[0], c.get(SuInteger.ZERO));
 		assertEquals(i[1], c.get(s[0]));
 		assertEquals(s[2], c.get(SuInteger.ONE));
-		assertEquals("[12, 'ef', 'cd', ab: 34]", c.toString());
+		assertEquals("#(12, 'ef', 'cd', ab: 34)", c.toString());
 	}
 
 	@Test

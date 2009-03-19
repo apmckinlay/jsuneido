@@ -7,6 +7,8 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 
+import suneido.SuValue;
+
 
 public class CompileGeneratorExpressionTest {
 	private final StringWriter sw = new StringWriter();
@@ -15,8 +17,8 @@ public class CompileGeneratorExpressionTest {
 	public void test() {
 		String[][] cases = {
 				{ "return", "null, ARETURN" },
-				{ "123", "const, 0, AALOAD, ARETURN" },
-				{ "return 123", "const, 0, AALOAD, ARETURN" },
+				{ "123", "0=123, ARETURN" },
+				{ "return 123", "0=123, ARETURN" },
 				{ "b;;", "b, POP" },
 				{ "b", "b, null?, ARETURN" },
 				{ "return b", "b, null?, ARETURN" },
@@ -47,10 +49,23 @@ public class CompileGeneratorExpressionTest {
 				{ "a(@b)", "a, EACH, b, .invokeN, ARETURN" },
 				{ "a(@+1b)", "a, EACH1, b, .invokeN, ARETURN" },
 				{ "a = b();;", "&a, b, .invokeN, null?, AASTORE" },
+				{ "123; 456; 123;", "0=123, POP, 1=456, POP, 0=123, ARETURN" },
+				{ "#(1, a: 2)", "0=#(1, a: 2), ARETURN" },
+				{ "#{1, a: 2}", "0=[1, a: 2], ARETURN" },
+				{ "a(1, x: 2)", "a, 0=1, NAMED, 1=2, .invokeN, ARETURN" },
 		};
 		for (String[] c : cases) {
 			assertEquals(c[0], c[1], compile(c[0]));
 		}
+	}
+
+	private String after(String r, String s) {
+		int i = r.indexOf(s);
+		return r.substring(i + s.length(), r.length());
+	}
+	private String before(String r, String s) {
+		int i = r.indexOf(s);
+		return r.substring(0, i);
 	}
 
 	private String compile(String s) {
@@ -63,15 +78,15 @@ System.out.println("====== " + s);
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		pc.parse();
 		String r = sw.toString();
-		int i = r.indexOf("ASTORE 2\n");
-		r = r.substring(i + 9, r.length());
-		i = r.indexOf("    LOCALVARIABLE");
-		r = r.substring(0, i - 6);
+		r = after(r, "invoke([Lsuneido/SuValue;)Lsuneido/SuValue;\n   L0\n");
+		r = before(r, "    LOCALVARIABLE");
+		r = r.substring(0, r.length() - 6); // label
 System.out.println(r);
 		r = r.trim();
 		r = r.replace("\n", ", ");
 		r = r.replace('"', '\'');
 		r = r.replaceAll(" +", " ");
+		SuValue[] constants = Constants.get("SampleFunction");
 		String[][] simplify = {
 				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
@@ -109,6 +124,9 @@ System.out.println(r);
 				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
 				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
 				{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L2", "null?" },
+				{ "LDC 'SampleFunction', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
+				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? constants[0] : "") },
+				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? constants[1] : "") },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

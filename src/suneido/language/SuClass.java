@@ -36,13 +36,6 @@ public abstract class SuClass extends SuValue {
 	abstract public SuClass newInstance(SuValue... args);
 
 	@Override
-	public SuValue invoke(SuValue... args) {
-		// default for calling a class is to instantiate
-		// overridden by class defining CallClass
-		return newInstance(args);
-	}
-
-	@Override
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Type")
 			return SuString.valueOf("Class");
@@ -76,8 +69,10 @@ public abstract class SuClass extends SuValue {
 	 * 					No other params are allowed with EACH.
 	 * @return	The locals SuValue array initialized from args.
 	 */
-	public static SuValue[] massage(int nlocals, final SuValue[] args,
-			final String... params) {
+	//TODO parameters with default values
+	//TODO check for missing arguments
+	public static SuValue[] massage(int nlocals, SuValue[] args,
+			String... params /*, int ndefaults, SuValue[] constants*/) {
 		boolean params_each = params.length > 0 && params[0] == "<each>";
 
 		if (simple(args) && !params_each) {
@@ -150,8 +145,7 @@ public abstract class SuClass extends SuValue {
 		return true;
 	}
 
-	public static SuValue[] massage(final SuValue[] args,
-			final String... params) {
+	public static SuValue[] massage(SuValue[] args, String... params) {
 		return massage(params.length, args, params);
 	}
 
@@ -159,22 +153,18 @@ public abstract class SuClass extends SuValue {
 	public static final SuString EACH1 = SuString.makeUnique("<each1>");
 	public static final SuString NAMED = SuString.makeUnique("<named>");
 
-	//TODO handle @+# args, maybe just add EACH1 since we only ever use @+1
-	//TODO parameters with default values
-	//TODO check for missing arguments
-
 	// to simplify code generation
 	public final SuValue invokeN() {
-		return invoke();
+		return invoke("call");
 	}
 	public final SuValue invokeN(SuValue a) {
-		return invoke(a);
+		return invoke("call", a);
 	}
 	public final SuValue invokeN(SuValue a, SuValue b) {
-		return invoke(a, b);
+		return invoke("call", a, b);
 	}
 	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
-		return invoke(a, b, c);
+		return invoke("call", a, b, c);
 	}
 
 	public final SuValue invokeN(String method) {
