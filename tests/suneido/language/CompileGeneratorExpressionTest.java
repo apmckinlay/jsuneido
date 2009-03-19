@@ -18,8 +18,8 @@ public class CompileGeneratorExpressionTest {
 				{ "123", "const, 0, AALOAD, ARETURN" },
 				{ "return 123", "const, 0, AALOAD, ARETURN" },
 				{ "b;;", "b, POP" },
-				{ "b", "b, ARETURN" },
-				{ "return b", "b, ARETURN" },
+				{ "b", "b, null?, ARETURN" },
+				{ "return b", "b, null?, ARETURN" },
 				{ "return a + b", "a, b, .add, ARETURN" },
 				{ "a()", "a, .invokeN, ARETURN" },
 				{ "a(b, c)", "a, b, c, .invokeN, ARETURN" },
@@ -27,9 +27,9 @@ public class CompileGeneratorExpressionTest {
 				{ "return a.Size()", "a, LDC 'Size', .invokeN, ARETURN" },
 				{ "a.Substr(b, c)", "a, b, c, LDC 'Substr', .invokeN, ARETURN" },
 				{ "a = b $ c", "&a, b, c, .cat, DUP_X2, AASTORE, ARETURN" },
-				{ "a = b = c", "&a, &b, c, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN" },
-				{ "a = b; return c", "&a, b, AASTORE, c, ARETURN" },
-				{ "a = b = c; return c", "&a, &b, c, DUP_X2, AASTORE, AASTORE, c, ARETURN" },
+				{ "a = b = c", "&a, &b, c, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN" },
+				{ "a = b; return c", "&a, b, null?, AASTORE, c, null?, ARETURN" },
+				{ "a = b = c; return c", "&a, &b, c, null?, DUP_X2, AASTORE, AASTORE, c, null?, ARETURN" },
 				{ "return this", "this, ARETURN" },
 				{ "a += b;;", "&a, b, a, .add, AASTORE" },
 				{ "a *= b;;", "&a, b, a, .mul, AASTORE" },
@@ -46,6 +46,7 @@ public class CompileGeneratorExpressionTest {
 				{ "G()", "LDC 'G', global, .invokeN, ARETURN" },
 				{ "a(@b)", "a, EACH, b, .invokeN, ARETURN" },
 				{ "a(@+1b)", "a, EACH1, b, .invokeN, ARETURN" },
+				{ "a = b();;", "&a, b, .invokeN, null?, AASTORE" },
 		};
 		for (String[] c : cases) {
 			assertEquals(c[0], c[1], compile(c[0]));
@@ -64,8 +65,8 @@ System.out.println("====== " + s);
 		String r = sw.toString();
 		int i = r.indexOf("ASTORE 2\n");
 		r = r.substring(i + 9, r.length());
-		i = r.lastIndexOf("   L1\n");
-		r = r.substring(0, i);
+		i = r.indexOf("    LOCALVARIABLE");
+		r = r.substring(0, i - 6);
 System.out.println(r);
 		r = r.trim();
 		r = r.replace("\n", ", ");
@@ -105,6 +106,9 @@ System.out.println(r);
 				{ " (LString;LSuValue;)LSuValue;", "" },
 				{ " (LString;LSuValue;LSuValue;)LSuValue;", "" },
 				{ " (LString;LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
+				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
+				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
+				{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L2", "null?" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
