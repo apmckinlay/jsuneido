@@ -73,6 +73,10 @@ public class SuContainer extends SuValue {
 
 	@Override
 	public String toString() {
+		return toString("#(", ")");
+	}
+
+	protected String toString(String before, String after) {
 		String s = "";
 		for (SuValue x : vec)
 			s += x + ", ";
@@ -82,7 +86,7 @@ public class SuContainer extends SuValue {
 			s += k.string() + ": " + map.get(k) + ", ";
 		if (s.length() >= 2)
 			s = s.substring(0, s.length() - 2);
-		return "[" + s + "]";
+		return before + s + after;
 	}
 
 	@Override

@@ -405,4 +405,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void beforeStatement(Object statements) {
 	}
 
+	public void argumentName(String keyword) {
+	}
+
 }

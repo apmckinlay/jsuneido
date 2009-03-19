@@ -1,6 +1,7 @@
 package suneido.language;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import suneido.SuValue;
 
@@ -16,8 +17,8 @@ public class Constants {
 
 	private static final SuValue[] eg = new SuValue[0];
 
-	public static void put(String name, List<SuValue> x) {
-		constants.put(name, x.toArray(eg));
+	public static void put(String name, SuValue[] values) {
+		constants.put(name, values);
 	}
 
 	public static SuValue[] get(String name) {

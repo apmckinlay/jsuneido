@@ -253,4 +253,7 @@ public class StringGenerator implements Generator<String> {
 	public void beforeStatement(String statements) {
 	}
 
+	public void argumentName(String keyword) {
+	}
+
 }

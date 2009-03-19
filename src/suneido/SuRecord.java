@@ -49,6 +49,11 @@ public class SuRecord extends SuContainer {
 }
 
 	@Override
+	public String toString() {
+		return toString("[", "]");
+	}
+
+	@Override
 	public SuValue get(SuValue key) {
 		SuValue x = super.get(key);
 		return x == null ? SuString.EMPTY : x;

@@ -241,6 +241,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			break;
 		case L_BRACKET:
 			match(L_BRACKET);
+			// TODO optimize literal part like cSuneido
 			term = generator.functionCall(generator.identifier("Record"),
 					value, argumentList(R_BRACKET));
 			break;
@@ -396,6 +397,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		String keyword = lexer.getValue();
 		match();
 		match(COLON);
+		generator.argumentName(keyword);
 		return keyword;
 	}
 
