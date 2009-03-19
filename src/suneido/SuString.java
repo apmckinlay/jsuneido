@@ -7,6 +7,7 @@ import static suneido.Util.bufferToString;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
+import suneido.language.FunctionSpec;
 import suneido.language.SuClass;
 
 /**
@@ -191,9 +192,14 @@ public class SuString extends SuValue {
 		else
 			return super.invoke(method, args);
 	}
-	private static String[] substr_params = { "i", "n" };
+
+	private static class SubstrSpec {
+		static final FunctionSpec spec =
+			new FunctionSpec(new String[] { "i", "n" }, 2, new SuValue[0],
+						0);
+	}
 	private SuValue substr(SuValue[] args) {
-		args = SuClass.massage(args, substr_params);
+		args = SuClass.massage(SubstrSpec.spec, args);
 		int len = s.length();
 		int i = args[0].integer();
 		if (i < 0)

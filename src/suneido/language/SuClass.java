@@ -59,24 +59,21 @@ public abstract class SuClass extends SuValue {
 	 * Implements Suneido's argument handling.
 	 * Called at the start of generated sub-class methods.
 	 *
-	 * @param nlocals	The number of local variables required, including parameters.
 	 * @param args		The arguments as an SuValue array.<br />
 	 * 					fn(... @args ...) => ... EACH, args ...<br />
 	 * 					fn(... name: arg ...) => ... NAMED, name, arg ...<br />
 	 * 					Unlike cSuneido, multiple EACH's are allowed.
-	 * @param params	A variable number of parameter names as symbol indexes.<br />
-	 * 					function (@args) => EACH, args<br />
-	 * 					No other params are allowed with EACH.
 	 * @return	The locals SuValue array initialized from args.
 	 */
 	//TODO parameters with default values
 	//TODO check for missing arguments
-	public static SuValue[] massage(int nlocals, SuValue[] args,
-			String... params /*, int ndefaults, SuValue[] constants*/) {
-		boolean params_each = params.length > 0 && params[0] == "<each>";
+	public static SuValue[] massage(FunctionSpec fn, SuValue[] args) {
+		final boolean params_each =
+				fn.nparams > 0 && fn.locals[0].startsWith("@");
+		final int nlocals = fn.locals.length;
 
 		if (simple(args) && !params_each) {
-			if (args.length != params.length)
+			if (args.length != fn.nparams)
 				throw new SuException("wrong number of arguments");
 
 			// "fast" path - when possible, avoid alloc and just return args
@@ -109,12 +106,12 @@ public abstract class SuClass extends SuValue {
 				}
 			}
 		} else {
-			assert nlocals >= params.length;
+			assert nlocals >= fn.nparams;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i] == NAMED) {
-					for (int j = 0; j < params.length; ++j)
-						if (params[j].equals(args[i + 1].strIfStr()))
+					for (int j = 0; j < fn.nparams; ++j)
+						if (fn.locals[j].equals(args[i + 1].strIfStr()))
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
@@ -126,8 +123,8 @@ public abstract class SuClass extends SuValue {
 						throw new SuException("too many arguments");
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
-					for (int j = 0; j < params.length; ++j) {
-						SuValue x = c.get(params[j]);
+					for (int j = 0; j < fn.nparams; ++j) {
+						SuValue x = c.get(fn.locals[j]);
 						if (x != null)
 							locals[j] = x;
 					}
@@ -145,9 +142,9 @@ public abstract class SuClass extends SuValue {
 		return true;
 	}
 
-	public static SuValue[] massage(SuValue[] args, String... params) {
-		return massage(params.length, args, params);
-	}
+	//	public static SuValue[] massage(SuValue[] args, String... params) {
+	//		return massage(params.length, args, params);
+	//	}
 
 	public static final SuString EACH = SuString.makeUnique("<each>");
 	public static final SuString EACH1 = SuString.makeUnique("<each1>");

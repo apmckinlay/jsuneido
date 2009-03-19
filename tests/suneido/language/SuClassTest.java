@@ -47,42 +47,55 @@ public class SuClassTest {
 		SuValue[] locals4 = { c };
 		SuValue[] locals5 = { c3 };
 		SuValue[] locals6 = { s, null };
+		FunctionSpec noParams =
+				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
+		FunctionSpec noParams1 =
+				new FunctionSpec(new String[] { "local" }, 0, new SuValue[0], 0);
+		FunctionSpec xParam =
+				new FunctionSpec(new String[] { "x" }, 1, new SuValue[0], 0);
+		FunctionSpec xaParams =
+				new FunctionSpec(new String[] { "x", "a" }, 2, new SuValue[0], 0);
+		FunctionSpec axParams =
+				new FunctionSpec(new String[] { "a", "x" }, 2, new SuValue[0], 0);
+		FunctionSpec atParam =
+				new FunctionSpec(new String[] { "@args" }, 1, new SuValue[0], 0);
+		FunctionSpec atParam1 =
+				new FunctionSpec(new String[] { "@args", "local" }, 1, new SuValue[0], 0);
 
 		// function () () => []
-		assertArrayEquals(empty, SuClass.massage(0, new SuValue[0]));
-		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty));
+		assertArrayEquals(empty, SuClass.massage(noParams, new SuValue[0]));
+		assertArrayEquals(new SuValue[1], SuClass.massage(noParams1, empty));
 		// function (@args) () => []
-		assertArrayEquals(empty, SuClass.massage(0, empty, EACH.string()));
-		assertArrayEquals(new SuValue[1], SuClass.massage(1, empty,
-				EACH.string()));
+		assertArrayEquals(new SuValue[1], SuClass.massage(atParam, empty));
+		assertArrayEquals(new SuValue[2], SuClass.massage(atParam1, empty));
 		// function (@args) (123, a: "hello") => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args1, EACH.string()));
+		assertArrayEquals(locals4, SuClass.massage(atParam, args1));
 		// function (@args) (@(123, a: "hello")) => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(1, args2, EACH.string()));
+		assertArrayEquals(locals4, SuClass.massage(atParam, args2));
 		// function (@args) (@(123, a: "hello"), @("hello", x: 123))
 		//		=> [[123, "hello", a: "hello", x: 123]]
-		assertArrayEquals(locals5, SuClass.massage(1, args3, EACH.string()));
+		assertArrayEquals(locals5, SuClass.massage(atParam, args3));
 		// function (x) (123, a: "hello") => [123]
-		assertArrayEquals(locals1, SuClass.massage(1, args1, "x"));
+		assertArrayEquals(locals1, SuClass.massage(xParam, args1));
 		// function (x, a) (123, a: "hello") => [123]
-		assertArrayEquals(locals2, SuClass.massage(2, args1, "x", "a"));
+		assertArrayEquals(locals2, SuClass.massage(xaParams, args1));
 		// function (a, x) (123, a: "hello") => ["hello", null]
-		assertArrayEquals(locals6, SuClass.massage(2, args1, "a", "x"));
+		assertArrayEquals(locals6, SuClass.massage(axParams, args1));
 		// function (x, a) (@(123, a: "hello")) => [123, "hello"]
-		assertArrayEquals(locals2, SuClass.massage(2, args2, "x", "a"));
+		assertArrayEquals(locals2, SuClass.massage(xaParams, args2));
 		// function (x, a) (@(123, a: "hello")) => too many arguments
 		try {
-			SuClass.massage(empty, "x"); // too few arguments
+			SuClass.massage(xParam, empty); // too few arguments
 			fail();
 		} catch (SuException e) {
 		}
 		try {
-			SuClass.massage(new SuValue[] { s }); // too many arguments
+			SuClass.massage(noParams, new SuValue[] { s }); // too many arguments
 			fail();
 		} catch (SuException e) {
 		}
 		try {
-			SuClass.massage(args3, "x");
+			SuClass.massage(xParam, args3);
 			fail();
 		} catch (SuException e) {
 		}
@@ -107,9 +120,11 @@ public class SuClassTest {
 			DefaultClass.args = args;
 			return SuString.EMPTY;
 		}
+		static final FunctionSpec noParams =
+				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
-			massage(args);
+			massage(noParams, args);
 			return new DefaultClass();
 		}
 		@Override
@@ -127,9 +142,11 @@ public class SuClassTest {
 		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
 	}
 	static class SubClass extends DefaultClass {
+		static final FunctionSpec noParams =
+				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
-			massage(args);
+			massage(noParams, args);
 			return new SubClass();
 		}
 
@@ -154,9 +171,11 @@ public class SuClassTest {
 		{
 			vars.put("Name", SuString.valueOf("Wrap"));
 		}
+		static final FunctionSpec params =
+				new FunctionSpec(new String[] { "value" }, 1, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
-			massage(args, "value");
+			massage(params, args);
 			return new WrapClass(args);
 		}
 		WrapClass() {

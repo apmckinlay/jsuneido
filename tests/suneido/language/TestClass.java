@@ -21,9 +21,11 @@ class TestClass extends SuClass {
 	public static SuValue method2(SuValue[] args) {
 		return SuInteger.ZERO;
 	}
+	static final FunctionSpec noParams =
+			new FunctionSpec(new String[0], 0, new SuValue[0], 0);
 	@Override
 	public SuClass newInstance(SuValue... args) {
-		massage(args);
+		massage(noParams, args);
 		return new TestClass();
 	}
 	@Override

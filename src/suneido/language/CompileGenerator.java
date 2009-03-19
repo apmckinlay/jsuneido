@@ -32,7 +32,7 @@ public class CompileGenerator implements Generator<Object> {
 	private final static int CONSTANTS = 2;
 	enum Stack { VALUE, LOCAL, CALLRESULT };
 	private int ndefaults = 0;
-	private List<CompiledFunction> functions = null;
+	private List<FunctionSpec> functions = null;
 	private static final String[] arrayString = new String[0];
 	private static final SuValue[] arraySuValue = new SuValue[0];
 
@@ -97,7 +97,7 @@ public class CompileGenerator implements Generator<Object> {
 	// function
 
 	public void startFunction() {
-		functions = new ArrayList<CompiledFunction>();
+		functions = new ArrayList<FunctionSpec>();
 
 		cv = cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
@@ -203,8 +203,8 @@ public class CompileGenerator implements Generator<Object> {
 		Constants.put("SampleFunction", constantsArray);
 
 		int nparams = (params == null ? 0 : (Integer) params);
-		CompiledFunction f = new CompiledFunction(locals.toArray(arrayString),
-				constantsArray, nparams, ndefaults);
+		FunctionSpec f = new FunctionSpec(locals.toArray(arrayString),
+				nparams, constantsArray, ndefaults);
 		functions.add(f);
 
 		genDispatcher(functions);
@@ -213,7 +213,7 @@ public class CompileGenerator implements Generator<Object> {
 		return cw.toByteArray();
 	}
 
-	private void genDispatcher(List<CompiledFunction> functions) {
+	private void genDispatcher(List<FunctionSpec> functions) {
 		// TODO genDispatcher
 
 	}
