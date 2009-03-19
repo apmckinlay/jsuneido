@@ -1,5 +1,6 @@
 package suneido.language;
 
+import suneido.SuException;
 import suneido.SuValue;
 
 public class SampleFunction2 extends SuFunction {
@@ -12,10 +13,10 @@ public class SampleFunction2 extends SuFunction {
 	public SuValue invoke(SuValue... args) {
 		SuValue[] constants = Constants.get("SampleFunction");
 		//		System.out.println("hello world");
-		Globals.get("X");
 		SuValue a = null, b = null, c = null;
-		invokeN(SuClass.EACH, a);
-		return null;
+		if (a == null)
+			throw new SuException("uninitialized variable");
+		return a;
 	}
 
 	private void f(int... args) {

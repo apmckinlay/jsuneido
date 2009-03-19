@@ -177,31 +177,38 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
-	public enum Type {
-		IDENTIFIER, MEMBER, SUBSCRIPT
-	};
-
 	public static class Value<T> {
+		public enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
 		Type type = null;
 		String id;
 		T expr;
 
-		void set(Type option, String id, T expr) {
-			this.type = option;
+		void identifier(String id) {
+			type = Type.IDENTIFIER;
 			this.id = id;
-			this.expr = expr;
+			expr = null;
 		}
-		void set(String id) {
-			this.type = Type.IDENTIFIER;
+		void member(String id) {
+			type = Type.MEMBER;
 			this.id = id;
-			this.expr = null;
+			expr = null;
+		}
+
+		void subscript(T expr) {
+			type = Type.SUBSCRIPT;
+			id = null;
+			this.expr = expr;
 		}
 		void clear() {
 			type = null;
 			id = null;
+			expr = null;
 		}
 		boolean isSet() {
 			return type != null;
+		}
+		boolean identifier() {
+			return type == Type.IDENTIFIER;
 		}
 	}
 
@@ -224,7 +231,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			term = block();
 			break;
 		case DOT:
-			value.set("this");
+			value.identifier("this");
 			// leave token == DOT
 			break;
 		case L_PAREN:
@@ -258,7 +265,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					term = generator.self();
 					match();
 				} else {
-					value.set(lexer.getValue());
+					value.identifier(lexer.getValue());
 					match(IDENTIFIER);
 				}
 			}
@@ -280,15 +287,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			}
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
-				value.set(Type.MEMBER, lexer.getValue(), null);
+				value.member(lexer.getValue());
 				match(IDENTIFIER);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				value.set(Type.SUBSCRIPT, null, expression());
+				value.subscript(expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				if (value.type == Type.IDENTIFIER) {
+				if (value.identifier()) {
 					term = push(term, value);
 					value.clear();
 				}

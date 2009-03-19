@@ -1,8 +1,9 @@
 package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
+import static suneido.language.CompileGenerator.Stack.*;
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
-import static suneido.language.ParseExpression.Type.*;
+import static suneido.language.ParseExpression.Value.Type.*;
 import static suneido.language.Token.EQ;
 import static suneido.language.Token.INC;
 
@@ -28,6 +29,7 @@ public class CompileGenerator implements Generator<Object> {
 	private final static int SELF = 0;
 	private final static int LOCALS = 1;
 	private final static int CONSTANTS = 2;
+	enum Stack { VALUE, LOCAL, CALLRESULT };
 
 	public CompileGenerator() {
 	}
@@ -150,8 +152,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void asm_toString(String name) {
-		mv =
-				cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
+		mv = cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
 				null, null);
 		mv.visitCode();
 		Label l0 = new Label();
@@ -169,7 +170,11 @@ public class CompileGenerator implements Generator<Object> {
 	public Object returnStatement(Object expression) {
 		if (expression == null)
 			mv.visitInsn(ACONST_NULL);
-		else if (expression != "pop")
+		else if (expression == LOCAL)
+			addNullCheck(expression);
+		else if (expression == VALUE || expression == CALLRESULT)
+			; // return it
+		else
 			dupAndStore(expression);
 		mv.visitInsn(ARETURN);
 		return "return";
@@ -180,16 +185,8 @@ public class CompileGenerator implements Generator<Object> {
 	 */
 	public Object function(Object params, Object compound) {
 
-		// generate return if last statement wasn't one
-		if (compound != "return") {
-			if (compound == "pop")
-				;
-			else if (compound == null)
-				mv.visitInsn(ACONST_NULL);
-			else
-				dupAndStore(compound);
-			mv.visitInsn(ARETURN);
-		}
+		if (compound != "return")
+			returnStatement(compound);
 
 		Label endLabel = new Label();
 		mv.visitLabel(endLabel);
@@ -217,7 +214,7 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(i);
 		mv.visitInsn(AALOAD);
-		return "pop";
+		return VALUE;
 	}
 
 	private void iconst(int i) {
@@ -237,12 +234,13 @@ public class CompileGenerator implements Generator<Object> {
 		else if (Character.isLowerCase(name.charAt(0))) {
 			localRef(name);
 			mv.visitInsn(AALOAD);
+			return LOCAL;
 		} else {
 			mv.visitLdcInsn(name);
 			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "get",
 					"(Ljava/lang/String;)Lsuneido/SuValue;");
 		}
-		return "pop";
+		return VALUE;
 	}
 
 	private void localRef(String name) {
@@ -262,18 +260,18 @@ public class CompileGenerator implements Generator<Object> {
 	public Object member(Object term, String identifier) {
 		mv.visitLdcInsn(identifier);
 		getMember();
-		return "pop";
+		return VALUE;
 	}
 
-	public Object subscript(Object term, Object expression) {
-		assert (expression == "pop");
+	public Object subscript(Object term, Object expr) {
+		assert (expr instanceof Stack);
 		getSubscript();
-		return "pop";
+		return VALUE;
 	}
 
 	public Object self() {
 		mv.visitVarInsn(ALOAD, SELF);
-		return "pop";
+		return VALUE;
 	}
 
 	public void lvalue(Value<Object> value) {
@@ -296,11 +294,29 @@ public class CompileGenerator implements Generator<Object> {
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
 		dupAndStore(expression);
-		if (op != EQ) {
+		if (op == EQ) {
+			if (value.type == IDENTIFIER
+					&& (expression == LOCAL || expression == CALLRESULT))
+				addNullCheck(expression);
+		} else {
 			identifier(value.id);
 			valueMethod_v_v(assignOp(op));
 		}
 		return value.type;
+	}
+
+	private void addNullCheck(Object expr) {
+		Label label = new Label();
+		mv.visitInsn(DUP);
+		mv.visitJumpInsn(IFNONNULL, label);
+		mv.visitTypeInsn(NEW, "suneido/SuException");
+		mv.visitInsn(DUP);
+		mv.visitLdcInsn(expr == LOCAL ? "uninitialized variable"
+				: "no return value");
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
+				"(Ljava/lang/String;)V");
+		mv.visitInsn(ATHROW);
+		mv.visitLabel(label);
 	}
 
 	private String assignOp(Token op) {
@@ -341,7 +357,7 @@ public class CompileGenerator implements Generator<Object> {
 		lvalue(value);
 		valueMethod_v(incdec == INC ? "add1" : "sub1");
 		dupAndStore(value.type);
-		return "pop";
+		return VALUE;
 	}
 
 	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
@@ -350,10 +366,11 @@ public class CompileGenerator implements Generator<Object> {
 		return value.type;
 	}
 
-	private void dupAndStore(Object expression) {
-		if (expression != null && expression != "pop")
-			mv.visitInsn(DUP_X2);
-		store(expression);
+	private void dupAndStore(Object expr) {
+		if (!(expr instanceof Value.Type))
+			return;
+		mv.visitInsn(DUP_X2);
+		store(expr);
 	}
 
 	private void store(Object expression) {
@@ -367,7 +384,7 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
 		valueMethod_v_v(op.toString().toLowerCase());
-		return "pop";
+		return VALUE;
 	}
 
 	public Object unaryExpression(Token op, Object expression) {
@@ -382,7 +399,7 @@ public class CompileGenerator implements Generator<Object> {
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
 		}
-		return "pop";
+		return VALUE;
 	}
 
 	public Object functionCall(Object function, Value<Object> value,
@@ -394,7 +411,7 @@ public class CompileGenerator implements Generator<Object> {
 			mv.visitLdcInsn(value.id);
 			invokeMethod(nargs);
 		}
-		return "pop"; // value on stack
+		return CALLRESULT;
 	}
 
 	private static final String[] args = new String[] {
@@ -427,6 +444,8 @@ public class CompileGenerator implements Generator<Object> {
 	public Object atArgument(String n, Object expr) {
 		return null;
 	}
+
+	// end of expression stuff
 
 	public Object block(Object params, Object statements) {
 		// TODO Auto-generated method stub
@@ -520,9 +539,9 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public void beforeStatement(Object list) {
-		if (list == "pop")
+		if (list instanceof Stack)
 			mv.visitInsn(POP);
-		else
+		else if (list instanceof Value.Type)
 			store(list);
 	}
 
