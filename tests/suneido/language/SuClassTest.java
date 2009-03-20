@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static org.junit.Assert.*;
+import static suneido.Util.array;
 import static suneido.language.SuClass.EACH;
 import static suneido.language.SuClass.NAMED;
 
@@ -50,17 +51,17 @@ public class SuClassTest {
 		FunctionSpec noParams =
 				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
 		FunctionSpec noParams1 =
-				new FunctionSpec(new String[] { "local" }, 0, new SuValue[0], 0);
+				new FunctionSpec(array("local"), 0, new SuValue[0], 0);
 		FunctionSpec xParam =
-				new FunctionSpec(new String[] { "x" }, 1, new SuValue[0], 0);
+				new FunctionSpec(array("x"), 1, new SuValue[0], 0);
 		FunctionSpec xaParams =
-				new FunctionSpec(new String[] { "x", "a" }, 2, new SuValue[0], 0);
+				new FunctionSpec(array("x", "a"), 2, new SuValue[0], 0);
 		FunctionSpec axParams =
-				new FunctionSpec(new String[] { "a", "x" }, 2, new SuValue[0], 0);
+				new FunctionSpec(array("a", "x"), 2, new SuValue[0], 0);
 		FunctionSpec atParam =
-				new FunctionSpec(new String[] { "@args" }, 1, new SuValue[0], 0);
+				new FunctionSpec(array("@args"), 1, new SuValue[0], 0);
 		FunctionSpec atParam1 =
-				new FunctionSpec(new String[] { "@args", "local" }, 1, new SuValue[0], 0);
+				new FunctionSpec(array("@args", "local"), 1, new SuValue[0], 0);
 
 		// function () () => []
 		assertArrayEquals(empty, SuClass.massage(noParams, new SuValue[0]));

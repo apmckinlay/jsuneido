@@ -13,8 +13,8 @@ public class FunctionSpec {
 	public FunctionSpec(String[] locals, int nparams, SuValue[] constants,
 			int ndefaults) {
 		this.locals = locals;
-		this.constants = constants;
 		this.nparams = nparams;
+		this.constants = constants;
 		this.ndefaults = ndefaults;
 		assert nparams <= locals.length;
 		assert ndefaults <= constants.length;
