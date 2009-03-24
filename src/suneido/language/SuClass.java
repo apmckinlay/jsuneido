@@ -12,7 +12,8 @@ import suneido.*;
  * @see SuMethod
  * @see SuInstance
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public abstract class SuClass extends SuValue {
 	protected final SuContainer vars;
@@ -57,7 +58,6 @@ public abstract class SuClass extends SuValue {
 
 	/**
 	 * Implements Suneido's argument handling.
-	 * Called at the start of generated sub-class methods.
 	 *
 	 * @param args		The arguments as an SuValue array.<br />
 	 * 					fn(... @args ...) => ... EACH, args ...<br />
@@ -163,6 +163,7 @@ public abstract class SuClass extends SuValue {
 	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
 		return invoke("call", a, b, c);
 	}
+	//...
 
 	public final SuValue invokeN(String method) {
 		return invoke(method);
@@ -176,5 +177,6 @@ public abstract class SuClass extends SuValue {
 	public final SuValue invokeN(String method, SuValue a, SuValue b, SuValue c) {
 		return invoke(method, a, b, c);
 	}
+	//...
 
 }
