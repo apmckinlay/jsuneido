@@ -9,9 +9,15 @@ public class SampleFunction2 extends SuFunction {
 	}
 
 	@Override
+	public SuValue invoke(String method, SuValue... args) {
+		if (method == "call")
+			return invoke(args);
+		else
+			return super.invoke(method, args);
+	}
+
+	@Override
 	public SuValue invoke(SuValue... args) {
-		SuValue[] constants = Constants.get("SampleFunction");
-		//		System.out.println("hello world");
 		return null;
 	}
 
