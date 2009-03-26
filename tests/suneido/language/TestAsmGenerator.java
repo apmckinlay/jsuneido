@@ -8,22 +8,17 @@ public class TestAsmGenerator {
 
 	private static final StringWriter sw = new StringWriter();
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		// byte[] b = compile("function (x) { return }");
 		// dump(b);
 
 		TestClassLoader loader = new TestClassLoader();
-		try {
-			Class<?> c = loader.findClass("suneido.language.SampleFunction");
-			SuFunction sf = (SuFunction) c.newInstance();
-			SuValue[] locals =
-					new SuValue[] { SuInteger.valueOf(12), null };
-			SuValue result = sf.invoke(locals);
-			System.out.println(sw);
-			System.out.println("result: " + result);
-		} catch (Exception e) {
-			throw new SuException(e.toString());
-		}
+		Class<?> c = loader.findClass("suneido.language.SampleFunction");
+		SuFunction sf = (SuFunction) c.newInstance();
+		SuValue[] locals = new SuValue[] { SuInteger.valueOf(12), null };
+		SuValue result = sf.invoke(locals);
+		System.out.println(sw);
+		System.out.println("result: " + result);
 	}
 
 	static class TestClassLoader extends ClassLoader {

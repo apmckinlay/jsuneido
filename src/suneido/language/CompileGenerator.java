@@ -214,8 +214,50 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void genDispatcher(List<FunctionSpec> functions) {
-		// TODO genDispatcher
+		final int THIS = 0;
+		final int METHOD = 1;
+		final int ARGS = 2;
 
+		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_VARARGS, "invoke",
+				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;",
+				null, null);
+		mv.visitCode();
+		Label begin = new Label();
+		mv.visitLabel(begin);
+
+		// if (method == "call")
+		//		invoke(args)
+		mv.visitVarInsn(ALOAD, METHOD);
+		mv.visitLdcInsn("call");
+		Label l1 = new Label();
+		mv.visitJumpInsn(IF_ACMPNE, l1);
+		mv.visitVarInsn(ALOAD, THIS);
+		mv.visitVarInsn(ALOAD, ARGS);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
+				"invoke", "([Lsuneido/SuValue;)Lsuneido/SuValue;");
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l1);
+
+		// else
+		//		super.invoke(method, args)
+		mv.visitVarInsn(ALOAD, THIS);
+		mv.visitVarInsn(ALOAD, METHOD);
+		mv.visitVarInsn(ALOAD, ARGS);
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuFunction",
+				"invoke",
+				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;");
+		mv.visitInsn(ARETURN);
+
+		Label end = new Label();
+		mv.visitLabel(end);
+		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, begin, end, 0);
+		mv.visitLocalVariable("method", "Ljava/lang/String;",
+				null, begin, end, 1);
+		mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
+				null, begin, end, 2);
+		mv.visitMaxs(0, 0);
+		mv.visitEnd();
 	}
 
 	// expressions
@@ -329,7 +371,7 @@ public class CompileGenerator implements Generator<Object> {
 				addNullCheck(expression);
 		} else {
 			identifier(value.id);
-			valueMethod_v_v(assignOp(op));
+			binaryMethod(assignOp(op));
 		}
 		return value.type;
 	}
@@ -357,9 +399,10 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
 				"()Lsuneido/SuValue;");
 	}
-	private void valueMethod_v_v(String method) {
+	private void binaryMethod(String method) {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
-				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
+				method == "cat" ? "(Lsuneido/SuValue;)Lsuneido/SuString;"
+						: "(Lsuneido/SuValue;)Lsuneido/SuNumber;");
 	}
 	private void getMember() {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
@@ -412,7 +455,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
-		valueMethod_v_v(op.toString().toLowerCase());
+		binaryMethod(op.toString().toLowerCase());
 		return VALUE;
 	}
 
