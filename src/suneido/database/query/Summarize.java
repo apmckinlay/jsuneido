@@ -144,6 +144,7 @@ public class Summarize extends Query1 {
 		return by.size() * source.columnsize() + cols.size() * 8;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		if (first)

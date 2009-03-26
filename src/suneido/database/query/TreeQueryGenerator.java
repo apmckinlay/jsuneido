@@ -10,6 +10,7 @@ import suneido.language.Generator;
 import suneido.language.Token;
 import suneido.language.ParseExpression.Value;
 
+@SuppressWarnings("unchecked")
 public class TreeQueryGenerator implements QueryGenerator<Object> {
 	TreeQueryGenerator() {
 	}

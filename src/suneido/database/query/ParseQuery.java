@@ -120,6 +120,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 			return table();
 	}
 
+	@SuppressWarnings("unchecked")
 	private T table() {
 		String tablename = lexer.getValue();
 		match(IDENTIFIER);

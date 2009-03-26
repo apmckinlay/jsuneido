@@ -207,6 +207,7 @@ public class Table extends Query {
 						: tbl.getIndex(listToCommas(idx))).btreeIndex;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		Index i = nil(idx) || singleton ? null

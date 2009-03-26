@@ -539,6 +539,7 @@ public class Select extends Query1 {
 		return best_cost;
 	}
 
+	@SuppressWarnings("unchecked")
 	private double primarycost(List<String> idx) {
 		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
 

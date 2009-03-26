@@ -114,6 +114,7 @@ public class Extend extends Query1 {
 		return row;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		if (hdr == null)

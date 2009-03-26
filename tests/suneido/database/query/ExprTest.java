@@ -71,6 +71,7 @@ public class ExprTest {
 			assertFalse(s, CompileQuery.expr(s).isTerm(fields));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void eval() {
 		String cases[] = new String[] {
