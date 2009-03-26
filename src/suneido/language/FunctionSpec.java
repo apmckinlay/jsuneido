@@ -20,4 +20,18 @@ public class FunctionSpec {
 		assert 0 <= ndefaults && ndefaults <= constants.length;
 	}
 
+	@Override
+	public String toString() {
+		String s = "FunctionSpec(";
+		s += "locals:";
+		for (String t : locals)
+			s += " " + t;
+		s += ", nparams: " + nparams;
+		s += ", constants:";
+		for (SuValue x : constants)
+			s += " " + x;
+		s += ", ndefaults: " + ndefaults;
+		return s + ")";
+	}
+
 }

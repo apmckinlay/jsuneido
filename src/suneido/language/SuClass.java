@@ -65,13 +65,10 @@ public abstract class SuClass extends SuValue {
 	 * 					Unlike cSuneido, multiple EACH's are allowed.
 	 * @return	The locals SuValue array initialized from args.
 	 */
-	//TODO parameters with default values
-	//TODO check for missing arguments
 	public static SuValue[] massage(FunctionSpec fn, SuValue[] args) {
 		final boolean params_each =
 				fn.nparams > 0 && fn.locals[0].startsWith("@");
 		final int nlocals = fn.locals.length;
-		final int nargs = args.length;
 		final boolean args_each =
 				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
@@ -80,13 +77,11 @@ public abstract class SuClass extends SuValue {
 			// "fast" path - avoid alloc by using args as locals
 			return args;
 
-		// "slow" path - alloc and copy into locals
 		SuValue[] locals = new SuValue[nlocals];
 
 		if (params_each && args_each) {
 			// function (@params) (@args)
-			locals[0] = new SuContainer((SuContainer) args[1]);
-			// TODO handle EACH1
+			locals[0] = args[1].container().slice(args[0] == EACH ? 0 : 1);
 		} else if (params_each) {
 			// function (@params)
 			SuContainer c = new SuContainer();
@@ -132,18 +127,32 @@ public abstract class SuClass extends SuValue {
 			}
 		}
 
-		// check that all params now have values
-		for (int i = 0; i < fn.nparams; ++i)
-			if (locals[i] == null)
-				throw new SuException("missing argument: " + fn.locals[i]);
+		applyDefaults(fn, locals);
+
+		verifyAllSupplied(fn, locals);
 
 		return locals;
 	}
+
 	private static boolean simple(SuValue[] args) {
 		for (SuValue arg : args)
 			if (arg == EACH || arg == NAMED)
 				return false;
 		return true;
+	}
+
+	private static void applyDefaults(FunctionSpec fn, SuValue[] locals) {
+		if (fn.ndefaults == 0)
+			return;
+		for (int i = 0, j = fn.nparams - fn.ndefaults; i < fn.ndefaults; ++i, ++j)
+			if (locals[j] == null)
+				locals[j] = fn.constants[i];
+	}
+
+	private static void verifyAllSupplied(FunctionSpec fn, SuValue[] locals) {
+		for (int i = 0; i < fn.nparams; ++i)
+			if (locals[i] == null)
+				throw new SuException("missing argument: " + fn.locals[i]);
 	}
 
 	public static final SuString EACH = SuString.makeUnique("<each>");
