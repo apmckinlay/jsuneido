@@ -95,7 +95,7 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public void put(SuValue member, SuValue value) {
 		throw new SuException(typeName() + " does not support put");
 	}
-	
+
 	public String typeName() {
 		return getClass().getName().substring(10); // strip Suneido.Su
 	}
@@ -112,6 +112,9 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 	public SuNumber number() {
 		throw new SuException("can't convert " + typeName() + " to number");
+	}
+	public SuContainer container() {
+		throw new SuException("can't convert " + typeName() + " to object");
 	}
 
 	/**

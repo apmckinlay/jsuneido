@@ -13,14 +13,10 @@ import java.util.*;
  */
 public class SuContainer extends SuValue {
 	final private ArrayList<SuValue> vec = new ArrayList<SuValue>();
-	final private HashMap<SuValue, SuValue> map =
-			new HashMap<SuValue, SuValue>();
+	final private HashMap<SuValue, SuValue> map = new HashMap<SuValue, SuValue>();
 	private final SuValue defval = null; // TODO defval
 
 	public SuContainer() {
-	}
-	public SuContainer(SuContainer c) {
-		merge(c);
 	}
 
 	public SuValue vecGet(int i) {
@@ -222,6 +218,18 @@ public class SuContainer extends SuValue {
 
 	public void setReadonly() {
 		// TODO setReadonly
+	}
+
+	public SuValue slice(int i) {
+		SuContainer c = new SuContainer();
+		c.vec.addAll(vec.subList(i, vec.size()));
+		c.map.putAll(map);
+		return c;
+	}
+
+	@Override
+	public SuContainer container() {
+		return this;
 	}
 
 }
