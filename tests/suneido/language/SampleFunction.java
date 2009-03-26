@@ -18,6 +18,7 @@ public class SampleFunction extends SuFunction {
 
 	@Override
 	public SuValue invoke(SuValue... args) {
+		SuValue[] constants = SuClass.constants[12];
 		return null;
 	}
 

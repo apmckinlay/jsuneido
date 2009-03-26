@@ -6,18 +6,11 @@ import java.util.*;
 
 import suneido.*;
 import suneido.database.query.expr.*;
-import suneido.language.Generator;
 import suneido.language.Token;
 import suneido.language.ParseExpression.Value;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator implements QueryGenerator<Object> {
-	TreeQueryGenerator() {
-	}
-
-	public Generator<Object> create() {
-		return new TreeQueryGenerator();
-	}
 
 	public Object columns(Object columns, String column) {
 		List<String> list =	columns == null ? new ArrayList<String>()

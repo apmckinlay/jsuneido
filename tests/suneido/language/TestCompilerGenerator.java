@@ -4,7 +4,7 @@ import java.io.*;
 
 import suneido.*;
 
-public class TestAsmGenerator {
+public class TestCompilerGenerator {
 
 	private static final StringWriter sw = new StringWriter();
 
@@ -14,10 +14,10 @@ public class TestAsmGenerator {
 
 		TestClassLoader loader = new TestClassLoader();
 		Class<?> c = loader.findClass("suneido.language.SampleFunction");
+		System.out.println(sw);
 		SuFunction sf = (SuFunction) c.newInstance();
 		SuValue[] locals = new SuValue[] { SuInteger.valueOf(12), null };
 		SuValue result = sf.invoke(locals);
-		System.out.println(sw);
 		System.out.println("result: " + result);
 	}
 
@@ -25,7 +25,8 @@ public class TestAsmGenerator {
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
 			assert "suneido.language.SampleFunction".equals(name);
-			byte[] b = compile("function (x) { y = 34; return x + y }");
+			byte[] b = compile("function (x) { " +
+					"f = function () { 123 }; f() }");
 			dump(b);
 			Class<?> c = defineClass(name, b, 0, b.length);
 			return c;

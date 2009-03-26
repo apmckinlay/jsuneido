@@ -3,7 +3,6 @@ package suneido.database.query;
 import suneido.database.Index;
 
 public class StringRequestGenerator implements RequestGenerator<String> {
-	// for queries
 
 	public String drop(String name) {
 		return "drop(" + name + ")";
