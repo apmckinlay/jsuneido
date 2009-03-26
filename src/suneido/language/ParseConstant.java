@@ -6,6 +6,7 @@ import static suneido.language.Token.*;
 import suneido.language.Generator.ObjectOrRecord;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
+	@SuppressWarnings("unchecked")
 	ParseConstant(Lexer lexer, G generator) {
 		super(lexer, (G) generator.create());
 	}

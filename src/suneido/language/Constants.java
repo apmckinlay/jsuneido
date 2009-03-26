@@ -15,8 +15,6 @@ public class Constants {
 	private static Map<String, SuValue[]> constants =
 			new HashMap<String, SuValue[]>();
 
-	private static final SuValue[] eg = new SuValue[0];
-
 	public static void put(String name, SuValue[] values) {
 		constants.put(name, values);
 	}

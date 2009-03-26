@@ -16,8 +16,8 @@ public class FunctionSpec {
 		this.nparams = nparams;
 		this.constants = constants;
 		this.ndefaults = ndefaults;
-		assert nparams <= locals.length;
-		assert ndefaults <= constants.length;
+		assert 0 <= nparams && nparams <= locals.length;
+		assert 0 <= ndefaults && ndefaults <= constants.length;
 	}
 
 }

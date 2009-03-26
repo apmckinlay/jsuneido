@@ -5,6 +5,8 @@ import static suneido.Util.array;
 import static suneido.language.SuClass.EACH;
 import static suneido.language.SuClass.NAMED;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import suneido.*;
@@ -30,76 +32,54 @@ public class SuClassTest {
 		SuString a = SuString.valueOf("a");
 		SuString x = SuString.valueOf("x");
 		SuContainer c = new SuContainer();
-		c.append(i);
-		c.put(a, s);
-		SuContainer c2 = new SuContainer();
-		c2.append(s);
-		c2.put(x, i);
-		SuContainer c3 = new SuContainer();
-		c3.append(i);
-		c3.append(s);
-		c3.put(a, s);
-		c3.put(x, i);
-		SuValue[] args1 = { i, NAMED, a, s };
-		SuValue[] args2 = { EACH, c };
-		SuValue[] args3 = { EACH, c, EACH, c2 };
-		SuValue[] locals1 = { i };
-		SuValue[] locals2 = { i, s };
-		SuValue[] locals4 = { c };
-		SuValue[] locals5 = { c3 };
-		SuValue[] locals6 = { s, null };
-		FunctionSpec noParams =
-				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
-		FunctionSpec noParams1 =
-				new FunctionSpec(array("local"), 0, new SuValue[0], 0);
-		FunctionSpec xParam =
-				new FunctionSpec(array("x"), 1, new SuValue[0], 0);
-		FunctionSpec xaParams =
-				new FunctionSpec(array("x", "a"), 2, new SuValue[0], 0);
-		FunctionSpec axParams =
-				new FunctionSpec(array("a", "x"), 2, new SuValue[0], 0);
-		FunctionSpec atParam =
-				new FunctionSpec(array("@args"), 1, new SuValue[0], 0);
-		FunctionSpec atParam1 =
-				new FunctionSpec(array("@args", "local"), 1, new SuValue[0], 0);
+		SuContainer ias = new SuContainer();
+		ias.append(i);
+		ias.put(a, s);
+		SuContainer sxi = new SuContainer();
+		sxi.append(s);
+		sxi.put(x, i);
+		SuContainer isasxi = new SuContainer();
+		isasxi.append(i);
+		isasxi.append(s);
+		isasxi.put(a, s);
+		isasxi.put(x, i);
 
-		// function () () => []
-		assertArrayEquals(empty, SuClass.massage(noParams, new SuValue[0]));
-		assertArrayEquals(new SuValue[1], SuClass.massage(noParams1, empty));
-		// function (@args) () => []
-		assertArrayEquals(new SuValue[1], SuClass.massage(atParam, empty));
-		assertArrayEquals(new SuValue[2], SuClass.massage(atParam1, empty));
-		// function (@args) (123, a: "hello") => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(atParam, args1));
-		// function (@args) (@(123, a: "hello")) => [[123, a: "hello]]
-		assertArrayEquals(locals4, SuClass.massage(atParam, args2));
-		// function (@args) (@(123, a: "hello"), @("hello", x: 123))
-		//		=> [[123, "hello", a: "hello", x: 123]]
-		assertArrayEquals(locals5, SuClass.massage(atParam, args3));
-		// function (x) (123, a: "hello") => [123]
-		assertArrayEquals(locals1, SuClass.massage(xParam, args1));
-		// function (x, a) (123, a: "hello") => [123]
-		assertArrayEquals(locals2, SuClass.massage(xaParams, args1));
-		// function (a, x) (123, a: "hello") => ["hello", null]
-		assertArrayEquals(locals6, SuClass.massage(axParams, args1));
-		// function (x, a) (@(123, a: "hello")) => [123, "hello"]
-		assertArrayEquals(locals2, SuClass.massage(xaParams, args2));
-		// function (x, a) (@(123, a: "hello")) => too many arguments
+		//	 params			args							resulting locals
+		good(f(),			empty,							empty);
+		good(f(1),			empty,							new SuValue[1]);
+		good(f("@args"),	empty,							array(c));
+		good(f(1, "@args"),	empty,							array(c, null));
+		good(f("@args"),	array(i, NAMED, a, s),			array(ias));
+		good(f("@args"),	array(EACH, ias),				array(ias));
+		good(f("@args"),	array(EACH, ias, EACH, sxi),	array(isasxi));
+		good(f("x"),		array(i, NAMED, a, s),			array(i));
+		good(f("x", "a"),	array(i, NAMED, a, s),			array(i, s));
+		good(f("x", "a"),	array(EACH, ias),				array(i, s));
+		good(f(1, "x"),		array(EACH, sxi),				array(i, null));
+
+		bad(f("a", "x"), array(i, NAMED, a, s)); // missing x
+		bad(f("x"), empty); // too few arguments
+		bad(f(), array(s)); // too many arguments
+		bad(f("x"), array(EACH, ias, EACH, sxi)); // too many arguments
+	}
+	private void good(FunctionSpec f, SuValue[] args, SuValue[] locals) {
+		assertArrayEquals(locals, SuClass.massage(f, args));
+	}
+	private void bad(FunctionSpec f, SuValue[] args) {
 		try {
-			SuClass.massage(xParam, empty); // too few arguments
+			SuClass.massage(f, args);
 			fail();
 		} catch (SuException e) {
 		}
-		try {
-			SuClass.massage(noParams, new SuValue[] { s }); // too many arguments
-			fail();
-		} catch (SuException e) {
-		}
-		try {
-			SuClass.massage(xParam, args3);
-			fail();
-		} catch (SuException e) {
-		}
+	}
+	private FunctionSpec f(String... params) {
+		return new FunctionSpec(params, params.length, new SuValue[0], 0);
+	}
+	private FunctionSpec f(int extra, String... params) {
+		String[] locals = Arrays.copyOf(params, params.length + extra);
+		for (int i = 0; i < extra; ++i)
+			locals[params.length + i] = "local" + i;
+		return new FunctionSpec(locals, params.length, new SuValue[0], 0);
 	}
 
 	@Test

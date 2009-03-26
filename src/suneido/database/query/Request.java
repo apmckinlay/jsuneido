@@ -18,6 +18,7 @@ import suneido.language.Lexer;
  *
  * @author Andrew McKinlay
  */
+@SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
 	private final ServerData serverData;
 
@@ -174,8 +175,8 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	public Object indexes(Object indexes, Object index) {
-		List<Index> list = indexes == null 
-				? new ArrayList<Index>() : (List<Index>) indexes; 
+		List<Index> list = indexes == null
+				? new ArrayList<Index>() : (List<Index>) indexes;
 		list.add((Index) index);
 		return list;
 	}
@@ -194,7 +195,7 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	public Object renames(Object renames, String from, String to) {
-		List<Rename> list = renames == null 
+		List<Rename> list = renames == null
 				? new ArrayList<Rename>() : (List<Rename>) renames;
 		list.add(new Rename(from, to));
 		return list;

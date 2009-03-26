@@ -238,6 +238,8 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l1);
 
+		// TODO: gen else-if for each method
+
 		// else
 		//		super.invoke(method, args)
 		mv.visitVarInsn(ALOAD, THIS);
@@ -300,7 +302,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object identifier(String name) {
-		if (name == "this")
+		if (name.equals("this"))
 			mv.visitVarInsn(ALOAD, SELF);
 		else if (Character.isLowerCase(name.charAt(0))) {
 			localRef(name);
@@ -401,7 +403,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 	private void binaryMethod(String method) {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
-				method == "cat" ? "(Lsuneido/SuValue;)Lsuneido/SuString;"
+				method.equals("cat") ? "(Lsuneido/SuValue;)Lsuneido/SuString;"
 						: "(Lsuneido/SuValue;)Lsuneido/SuNumber;");
 	}
 	private void getMember() {

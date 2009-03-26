@@ -11,7 +11,6 @@ import suneido.SuValue;
 
 
 public class CompileGeneratorExpressionTest {
-	private final StringWriter sw = new StringWriter();
 
 	@Test
 	public void test() {

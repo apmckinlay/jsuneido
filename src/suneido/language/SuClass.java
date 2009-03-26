@@ -51,7 +51,7 @@ public abstract class SuClass extends SuValue {
 		}
 	}
 
-	// overridden by class defining Default
+	// overridden by classes defining Default
 	public SuValue methodDefault(SuValue[] args) {
 		throw unknown_method(args[0].strIfStr());
 	}
@@ -71,39 +71,35 @@ public abstract class SuClass extends SuValue {
 		final boolean params_each =
 				fn.nparams > 0 && fn.locals[0].startsWith("@");
 		final int nlocals = fn.locals.length;
+		final int nargs = args.length;
+		final boolean args_each =
+				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
-		if (simple(args) && !params_each) {
-			if (args.length != fn.nparams)
-				throw new SuException("wrong number of arguments");
-
-			// "fast" path - when possible, avoid alloc and just return args
-			if (nlocals <= args.length) {
-				return args;
-			}
-		}
+		if (simple(args) && !params_each && args.length == fn.nparams
+				&& nlocals <= args.length)
+			// "fast" path - avoid alloc by using args as locals
+			return args;
 
 		// "slow" path - alloc and copy into locals
 		SuValue[] locals = new SuValue[nlocals];
-		if (args.length == 0)
-			return locals;
-		if (params_each) {
+
+		if (params_each && args_each) {
+			// function (@params) (@args)
+			locals[0] = new SuContainer((SuContainer) args[1]);
+			// TODO handle EACH1
+		} else if (params_each) {
 			// function (@params)
-			if (args[0] == EACH && args.length == 2)
-				// optimize function (@params) (@args)
-				locals[0] = new SuContainer((SuContainer) args[1]);
-			else {
-				SuContainer c = new SuContainer();
-				locals[0] = c;
-				for (int i = 0; i < args.length; ++i) {
-					if (args[i] == NAMED) {
-						c.put(args[i + 1], args[i + 2]);
-						i += 2;
-					}
-					else if (args[i] == EACH)
-						c.merge((SuContainer) args[++i]);
-					else
-						c.append(args[i]);
+			SuContainer c = new SuContainer();
+			locals[0] = c;
+			for (int i = 0; i < args.length; ++i) {
+				if (args[i] == NAMED) {
+					c.put(args[i + 1], args[i + 2]);
+					i += 2;
 				}
+				else if (args[i] == EACH)
+					c.merge((SuContainer) args[++i]);
+				else
+					c.append(args[i]);
 			}
 		} else {
 			assert nlocals >= fn.nparams;
@@ -129,10 +125,18 @@ public abstract class SuClass extends SuValue {
 							locals[j] = x;
 					}
 				}
-				else
+				else if (li < fn.nparams)
 					locals[li++] = args[i];
+				else
+					throw new SuException("too many arguments");
 			}
 		}
+
+		// check that all params now have values
+		for (int i = 0; i < fn.nparams; ++i)
+			if (locals[i] == null)
+				throw new SuException("missing argument: " + fn.locals[i]);
+
 		return locals;
 	}
 	private static boolean simple(SuValue[] args) {
@@ -141,10 +145,6 @@ public abstract class SuClass extends SuValue {
 				return false;
 		return true;
 	}
-
-	//	public static SuValue[] massage(SuValue[] args, String... params) {
-	//		return massage(params.length, args, params);
-	//	}
 
 	public static final SuString EACH = SuString.makeUnique("<each>");
 	public static final SuString EACH1 = SuString.makeUnique("<each1>");

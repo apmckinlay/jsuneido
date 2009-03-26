@@ -150,6 +150,7 @@ public class Union extends Compatible {
 			intersect(source2.keys(), source2.indexes()));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<List<String>> keys() {
 		if (disjoint != null) {
@@ -311,8 +312,8 @@ public class Union extends Compatible {
 
 	private void fetch2(Dir dir) {
 		row2 = source2.get(dir);
-		key2 = (row2 == null 
-				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC) 
+		key2 = (row2 == null
+				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
 				: row2.project(hdr2, ki));
 	}
 

@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Test;
 
 public class HeaderTest {
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() {
 		List<List<String>> flds = new ArrayList<List<String>>();
@@ -37,6 +38,7 @@ public class HeaderTest {
 		assertEquals(flds, hdr.flds);
 	}
 
+	@SuppressWarnings("unchecked")
 	static Header makeHeader() {
 		List<List<String>> flds = list(list("a"), list("a", "b", "c"),
 				list("x"), list("x", "y", "z"));
