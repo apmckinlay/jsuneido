@@ -2,7 +2,7 @@ package suneido.language;
 
 import suneido.SuValue;
 
-public class SampleFunction2 extends SuFunction {
+public class SampleFunction extends SuFunction {
 	@Override
 	public String toString() {
 		return "SampleFunction";
