@@ -85,7 +85,9 @@ System.out.println(r);
 		r = r.replace("\n", ", ");
 		r = r.replace('"', '\'');
 		r = r.replaceAll(" +", " ");
-		SuValue[] constants = Constants.get("SampleFunction");
+		SuValue[] constants = generator.constants == null
+			? new SuValue[0]
+			: generator.constants.get(0);
 		String[][] simplify = {
 				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
@@ -106,6 +108,7 @@ System.out.println(r);
 				{ "suneido/SuNumber", "SuNumber" },
 				{ "java/lang/String", "String" },
 				{ "ANEWARRAY SuValue", "new SuValue[]" },
+				{ "GETSTATIC suneido/language/SuClass.constants : [[LSuValue;, BIPUSH 0, AALOAD, DUP, ASTORE 2", "const" },
 				{ "GETSTATIC suneido/language/SuClass.", "" },
 				{ " : LSuString;", "" },
 				{ "INVOKESTATIC suneido/language/Globals.get (LString;)LSuValue;", "global" },

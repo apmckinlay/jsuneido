@@ -8,8 +8,7 @@ import static suneido.language.Token.EQ;
 import static suneido.language.Token.INC;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.TraceClassVisitor;
@@ -22,19 +21,16 @@ public class CompileGenerator implements Generator<Object> {
     private PrintWriter pw = null;
 	private ClassWriter cw;
 	private ClassVisitor cv;
-	private MethodVisitor mv;
-	private Label startLabel;
-	private List<String> locals;
-	private List<SuValue> constants;
-	private boolean constantsUsed = false;
 	private final static int SELF = 0;
 	private final static int LOCALS = 1;
 	private final static int CONSTANTS = 2;
 	enum Stack { VALUE, LOCAL, CALLRESULT };
-	private int ndefaults = 0;
 	private List<FunctionSpec> functions = null;
 	private static final String[] arrayString = new String[0];
 	private static final SuValue[] arraySuValue = new SuValue[0];
+	private Function f = null; // the current function
+	private Deque<Function> fstack = null; // functions nested around f
+	List<SuValue[]> constants = null;
 
 	public CompileGenerator() {
 	}
@@ -43,13 +39,15 @@ public class CompileGenerator implements Generator<Object> {
 		this.pw = pw;
 	}
 
-	public CompileGenerator(CompileGenerator other) {
-		cv = other.cv;
-		pw = other.pw;
-	}
-
-	public Generator<Object> create() {
-		return new CompileGenerator(this);
+	private static class Function {
+		String name;
+		MethodVisitor mv;
+		Label startLabel;
+		List<String> locals;
+		List<SuValue> constants;
+		boolean constantsUsed = false;
+		int ndefaults = 0;
+		int iConstants;
 	}
 
 	// constants
@@ -97,44 +95,56 @@ public class CompileGenerator implements Generator<Object> {
 	// function
 
 	public void startFunction() {
-		functions = new ArrayList<FunctionSpec>();
+		if (cv == null) {
+			fstack = new ArrayDeque<Function>();
+			functions = new ArrayList<FunctionSpec>();
 
-		cv = cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+			cv = cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-		if (pw != null)
-			cv = new TraceClassVisitor(cw, pw);
+			if (pw != null)
+				cv = new TraceClassVisitor(cw, pw);
 
-		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
-				"suneido/language/SampleFunction", null,
-				"suneido/language/SuFunction", null);
+			cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
+					"suneido/language/SampleFunction", null,
+					"suneido/language/SuFunction", null);
 
-		cv.visitSource("function.suneido", null);
+			cv.visitSource("function.suneido", null);
 
-		asm_init();
-		asm_toString("SampleFunction");
+			asm_init();
+			asm_toString("SampleFunction");
 
-		mv = cv.visitMethod(ACC_PUBLIC, "invoke",
+			f = new Function();
+
+			f.name = "invoke";
+		} else {
+			fstack.push(f);
+			f = new Function();
+			f.name = "f" + functions.size();
+		}
+System.out.println("startFunction " + f.name);
+		f.mv = cv.visitMethod(ACC_PUBLIC, f.name,
 				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
-		startLabel = new Label();
-		mv.visitLabel(startLabel);
+		f.startLabel = new Label();
+		f.mv.visitLabel(f.startLabel);
 
-		locals = new ArrayList<String>();
-		constants = new ArrayList<SuValue>();
+		f.locals = new ArrayList<String>();
+		f.constants = new ArrayList<SuValue>();
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
-		locals.add(name);
+		f.locals.add(name);
 		if (defaultValue != null) {
 			int i = addConstant(defaultValue);
-			assert (i == ndefaults);
-			++ndefaults;
+			assert (i == f.ndefaults);
+			++f.ndefaults;
 		}
 		int n = (list == null ? 0 : (Integer) list);
 		return n + 1;
 	}
 
 	private void asm_init() {
-		mv = cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+		MethodVisitor mv =
+				cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
 		Label l0 = new Label();
 		mv.visitLabel(l0);
@@ -148,11 +158,11 @@ public class CompileGenerator implements Generator<Object> {
 				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
 		mv.visitEnd();
-		mv = null;
 	}
 
 	private void asm_toString(String name) {
-		mv = cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
+		MethodVisitor mv =
+				cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
 				null, null);
 		mv.visitCode();
 		Label l0 = new Label();
@@ -169,14 +179,14 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object returnStatement(Object expression) {
 		if (expression == null)
-			mv.visitInsn(ACONST_NULL);
+			f.mv.visitInsn(ACONST_NULL);
 		else if (expression == LOCAL)
 			addNullCheck(expression);
 		else if (expression == VALUE || expression == CALLRESULT)
 			; // return it
 		else
 			dupAndStore(expression);
-		mv.visitInsn(ARETURN);
+		f.mv.visitInsn(ARETURN);
 		return "return";
 	}
 
@@ -185,32 +195,42 @@ public class CompileGenerator implements Generator<Object> {
 	 */
 	public Object function(Object params, Object compound) {
 
+System.out.println("function end " + f.name);
+
 		if (compound != "return")
 			returnStatement(compound);
 
 		Label endLabel = new Label();
-		mv.visitLabel(endLabel);
-		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
-				null, startLabel, endLabel, 0);
-		mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
-				null, startLabel, endLabel, 1);
-		mv.visitLocalVariable("constants", "[Lsuneido/SuValue;",
-				null, startLabel, endLabel, 2);
-		mv.visitMaxs(0, 0);
-		mv.visitEnd();
+		f.mv.visitLabel(endLabel);
+		f.mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, f.startLabel, endLabel, 0);
+		f.mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
+				null,
+				f.startLabel, endLabel, 1);
+		f.mv.visitLocalVariable("constants", "[Lsuneido/SuValue;",
+				null,
+				f.startLabel, endLabel, 2);
+		f.mv.visitMaxs(0, 0);
+		f.mv.visitEnd();
 
-		SuValue[] constantsArray = constants.toArray(arraySuValue);
-		Constants.put("SampleFunction", constantsArray);
+		SuValue[] constantsArray = f.constants.toArray(arraySuValue);
+		if (f.constantsUsed)
+			constants.set(f.iConstants, constantsArray);
+		if (fstack.isEmpty()) {
 
-		int nparams = (params == null ? 0 : (Integer) params);
-		FunctionSpec f = new FunctionSpec(locals.toArray(arrayString),
-				nparams, constantsArray, ndefaults);
-		functions.add(f);
+			int nparams = (params == null ? 0 : (Integer) params);
+			FunctionSpec fs = new FunctionSpec(f.locals.toArray(arrayString),
+					nparams, constantsArray, f.ndefaults);
+			functions.add(fs);
 
-		genDispatcher(functions);
+			genDispatcher(functions);
 
-		cv.visitEnd();
-		return cw.toByteArray();
+			cv.visitEnd();
+			return cw.toByteArray();
+		} else {
+			f = fstack.pop();
+			return null;
+		}
 	}
 
 	private void genDispatcher(List<FunctionSpec> functions) {
@@ -218,7 +238,10 @@ public class CompileGenerator implements Generator<Object> {
 		final int METHOD = 1;
 		final int ARGS = 2;
 
-		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_VARARGS, "invoke",
+		MethodVisitor mv =
+				cw.visitMethod(
+						ACC_PUBLIC + ACC_VARARGS,
+						"invoke",
 				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;",
 				null, null);
 		mv.visitCode();
@@ -266,72 +289,77 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object constant(Object value) {
 		int i = constantFor(value);
-		if (!constantsUsed) {
-			constantsUsed = true;
-			mv.visitLdcInsn("SampleFunction");
-			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Constants",
-					"get", "(Ljava/lang/String;)[Lsuneido/SuValue;");
-			mv.visitInsn(DUP);
-			mv.visitVarInsn(ASTORE, CONSTANTS);
+		if (!f.constantsUsed) {
+			f.constantsUsed = true;
+			if (constants == null)
+				constants = new ArrayList<SuValue[]>();
+			f.iConstants = constants.size();
+			constants.add(null); // to increase size, set correctly in function
+			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass",
+					"constants", "[[Lsuneido/SuValue;");
+			f.mv.visitIntInsn(BIPUSH, f.iConstants);
+			f.mv.visitInsn(AALOAD);
+			f.mv.visitInsn(DUP);
+			f.mv.visitVarInsn(ASTORE, CONSTANTS);
 		} else
-			mv.visitVarInsn(ALOAD, CONSTANTS);
+			f.mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(i);
-		mv.visitInsn(AALOAD);
+		f.mv.visitInsn(AALOAD);
 		return VALUE;
 	}
 
 	private int constantFor(Object value) {
-		int i = constants.indexOf(value);
+		int i = f.constants.indexOf(value);
 		return i == -1 ? addConstant(value) : i;
 	}
 
 	private int addConstant(Object value) {
-		constants.add((SuValue) value);
-		return constants.size() - 1;
+		f.constants.add((SuValue) value);
+		return f.constants.size() - 1;
 	}
 
 	private void iconst(int i) {
 		if (i <= 5 || i == -1)
-			mv.visitInsn(ICONST_0 + i);
+			f.mv.visitInsn(ICONST_0 + i);
 		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
-			mv.visitVarInsn(BIPUSH, i);
+			f.mv.visitVarInsn(BIPUSH, i);
 		else if (Short.MIN_VALUE <= i && i <= Short.MAX_VALUE)
-			mv.visitIntInsn(SIPUSH, i);
+			f.mv.visitIntInsn(SIPUSH, i);
 		else
-			mv.visitLdcInsn(i);
+			f.mv.visitLdcInsn(i);
 	}
 
 	public Object identifier(String name) {
 		if (name.equals("this"))
-			mv.visitVarInsn(ALOAD, SELF);
+			f.mv.visitVarInsn(ALOAD, SELF);
 		else if (Character.isLowerCase(name.charAt(0))) {
 			localRef(name);
-			mv.visitInsn(AALOAD);
+			f.mv.visitInsn(AALOAD);
 			return LOCAL;
 		} else {
-			mv.visitLdcInsn(name);
-			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "get",
+			f.mv.visitLdcInsn(name);
+			f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "get",
 					"(Ljava/lang/String;)Lsuneido/SuValue;");
 		}
 		return VALUE;
 	}
 
 	private void localRef(String name) {
-		mv.visitVarInsn(ALOAD, LOCALS);
+		f.mv.visitVarInsn(ALOAD, LOCALS);
 		iconst(addLocal(name));
 	}
 
 	private int addLocal(String name) {
-		int i = locals.indexOf(name);
+		int i = f.locals.indexOf(name);
 		if (i == -1) {
-			i = locals.size();
-			locals.add(name);
+			i = f.locals.size();
+			f.locals.add(name);
 		}
 		return i;
 	}
 
 	public Object member(Object term, String identifier) {
-		mv.visitLdcInsn(identifier);
+		f.mv.visitLdcInsn(identifier);
 		getMember();
 		return VALUE;
 	}
@@ -343,7 +371,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object self() {
-		mv.visitVarInsn(ALOAD, SELF);
+		f.mv.visitVarInsn(ALOAD, SELF);
 		return VALUE;
 	}
 
@@ -355,7 +383,7 @@ public class CompileGenerator implements Generator<Object> {
 			localRef(value.id);
 			break;
 		case MEMBER:
-			mv.visitLdcInsn(value.id);
+			f.mv.visitLdcInsn(value.id);
 			break;
 		case SUBSCRIPT:
 			break;
@@ -380,16 +408,16 @@ public class CompileGenerator implements Generator<Object> {
 
 	private void addNullCheck(Object expr) {
 		Label label = new Label();
-		mv.visitInsn(DUP);
-		mv.visitJumpInsn(IFNONNULL, label);
-		mv.visitTypeInsn(NEW, "suneido/SuException");
-		mv.visitInsn(DUP);
-		mv.visitLdcInsn(expr == LOCAL ? "uninitialized variable"
+		f.mv.visitInsn(DUP);
+		f.mv.visitJumpInsn(IFNONNULL, label);
+		f.mv.visitTypeInsn(NEW, "suneido/SuException");
+		f.mv.visitInsn(DUP);
+		f.mv.visitLdcInsn(expr == LOCAL ? "uninitialized variable"
 				: "no return value");
-		mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
+		f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
 				"(Ljava/lang/String;)V");
-		mv.visitInsn(ATHROW);
-		mv.visitLabel(label);
+		f.mv.visitInsn(ATHROW);
+		f.mv.visitLabel(label);
 	}
 
 	private String assignOp(Token op) {
@@ -398,36 +426,36 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void valueMethod_v(String method) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
 				"()Lsuneido/SuValue;");
 	}
 	private void binaryMethod(String method) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
 				method.equals("cat") ? "(Lsuneido/SuValue;)Lsuneido/SuString;"
 						: "(Lsuneido/SuValue;)Lsuneido/SuNumber;");
 	}
 	private void getMember() {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
 				"(Ljava/lang/String;)Lsuneido/SuValue;");
 	}
 
 	private void putMember() {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
 				"(Ljava/lang/String;Lsuneido/SuValue;)V");
 	}
 
 	private void getSubscript() {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
 				"(Lsuneido/SuValue;)Lsuneido/SuValue;");
 	}
 
 	private void putSubscript() {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "put",
 				"(Lsuneido/SuValue;Lsuneido/SuValue;)V");
 	}
 
 	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		mv.visitInsn(AALOAD);
+		f.mv.visitInsn(AALOAD);
 		lvalue(value);
 		valueMethod_v(incdec == INC ? "add1" : "sub1");
 		dupAndStore(value.type);
@@ -443,13 +471,13 @@ public class CompileGenerator implements Generator<Object> {
 	private void dupAndStore(Object expr) {
 		if (!(expr instanceof Value.Type))
 			return;
-		mv.visitInsn(DUP_X2);
+		f.mv.visitInsn(DUP_X2);
 		store(expr);
 	}
 
 	private void store(Object expression) {
 		if (expression == IDENTIFIER)
-			mv.visitInsn(AASTORE);
+			f.mv.visitInsn(AASTORE);
 		else if (expression == MEMBER)
 			putMember();
 		else if (expression == SUBSCRIPT)
@@ -464,7 +492,7 @@ public class CompileGenerator implements Generator<Object> {
 	public Object unaryExpression(Token op, Object expression) {
 		switch (op) {
 		case SUB:
-			mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "uminus",
+			f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "uminus",
 					"()Lsuneido/SuValue;");
 			break;
 		case ADD:
@@ -482,7 +510,7 @@ public class CompileGenerator implements Generator<Object> {
 		if (value.id == null)
 			invokeFunction(nargs);
 		else {
-			mv.visitLdcInsn(value.id);
+			f.mv.visitLdcInsn(value.id);
 			invokeMethod(nargs);
 		}
 		return CALLRESULT;
@@ -496,11 +524,11 @@ public class CompileGenerator implements Generator<Object> {
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 	};
 	private void invokeFunction(int i) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN", "("
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN", "("
 				+ args[i] + ")Lsuneido/SuValue;");
 	}
 	private void invokeMethod(int i) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN",
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN",
 				"(Ljava/lang/String;" + args[i] + ")Lsuneido/SuValue;");
 	}
 
@@ -510,13 +538,13 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public void argumentName(String name) {
-		mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass", "NAMED",
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass", "NAMED",
 				"Lsuneido/SuString;");
 	}
 
 	public void atArgument(String n) {
 		assert "0".equals(n) || "1".equals(n);
-		mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass",
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass",
 				n.charAt(0) == '1' ? "EACH1" : "EACH", "Lsuneido/SuString;");
 	}
 	public Object atArgument(String n, Object expr) {
@@ -620,7 +648,7 @@ public class CompileGenerator implements Generator<Object> {
 
 	public void beforeStatement(Object list) {
 		if (list instanceof Stack)
-			mv.visitInsn(POP);
+			f.mv.visitInsn(POP);
 		else if (list instanceof Value.Type)
 			store(list);
 	}

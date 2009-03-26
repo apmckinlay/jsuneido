@@ -7,10 +7,6 @@ import suneido.language.ParseExpression.Value;
 
 public class StringGenerator implements Generator<String> {
 
-	public Generator<String> create() {
-		return new StringGenerator();
-	}
-
 	public String assignment(String term, Value<String> value, Token op,
 			String expression) {
 		return str("", term, " ") + expression + " " + op + "(" + value(value)

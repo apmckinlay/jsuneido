@@ -16,6 +16,7 @@ import suneido.*;
  * Licensed under GPLv2.</small></p>
  */
 public abstract class SuClass extends SuValue {
+	static SuValue[][] constants;
 	protected final SuContainer vars;
 
 	SuClass() {

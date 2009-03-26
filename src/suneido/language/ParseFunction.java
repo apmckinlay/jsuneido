@@ -9,7 +9,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	@SuppressWarnings("unchecked")
 	ParseFunction(Lexer lexer, G generator) {
-		super(lexer, (G) generator.create());
+		super(lexer, generator);
 		expectingCompound = false;
 	}
 	ParseFunction(Parse<T, G> parse) {

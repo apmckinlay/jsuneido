@@ -4,8 +4,6 @@ import suneido.language.ParseExpression.Value;
 
 public interface Generator<T> {
 
-	Generator<T> create();
-
 	void lvalue(Value<T> value);
 
 	T assignment(T term, Value<T> value, Token op, T expression);
