@@ -15,17 +15,12 @@ abstract public class SuFunction extends SuClass {
 	}
 
 	@Override
-	abstract public SuValue invoke(SuValue... args);
-
-	@Override
 	public SuValue invoke(String method, SuValue... args) {
 		if (method == "Type")
 			return SuString.valueOf("function");
 		// TODO other standard methods on functions e.g. Params
-		else {
-			unknown_method(method);
-			return null;
-		}
+		else
+			throw unknown_method(method);
 	}
 
 	@Override

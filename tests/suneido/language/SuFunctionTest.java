@@ -13,15 +13,15 @@ public class SuFunctionTest {
 	public void test() {
 		SuValue f = new MyFunc();
 		SuString s = SuString.valueOf("fred");
-		assertEquals(s, f.invoke(s));
+		assertEquals(s, f.invokeN(s));
 	}
 
 	static class MyFunc extends SuFunction {
-		static final FunctionSpec params =
-				new FunctionSpec(new String[] { "value" }, 1, new SuValue[0], 0);
+		static final FunctionSpec params = new FunctionSpec("",
+				new String[] { "value" }, 1, new SuValue[0], 0);
 
 		@Override
-		public SuValue invoke(SuValue... args) {
+		public SuValue invoke(String method, SuValue... args) {
 			massage(params, args);
 			return args[0];
 		}

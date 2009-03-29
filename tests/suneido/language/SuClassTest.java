@@ -86,7 +86,7 @@ public class SuClassTest {
 		for (int i = 0; i < extra; ++i)
 			locals[params.length + i] = "local" + i;
 		SuValue[] defaults = defaults(locals, params);
-		return new FunctionSpec(locals, params.length, defaults,
+		return new FunctionSpec("", locals, params.length, defaults,
 				defaults.length);
 	}
 	private SuValue[] defaults(String[] locals, String... params) {
@@ -122,7 +122,7 @@ public class SuClassTest {
 			return SuString.EMPTY;
 		}
 		static final FunctionSpec noParams =
-				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
+				new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(noParams, args);
@@ -147,7 +147,7 @@ public class SuClassTest {
 	}
 	static class SubClass extends DefaultClass {
 		static final FunctionSpec noParams =
-				new FunctionSpec(new String[0], 0, new SuValue[0], 0);
+				new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(noParams, args);
@@ -175,8 +175,8 @@ public class SuClassTest {
 		{
 			vars.put("Name", SuString.valueOf("Wrap"));
 		}
-		static final FunctionSpec params =
-				new FunctionSpec(new String[] { "value" }, 1, new SuValue[0], 0);
+		static final FunctionSpec params = new FunctionSpec("", 
+				new String[] { "value" }, 1, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(params, args);

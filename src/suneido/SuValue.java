@@ -210,14 +210,11 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 
 	public final SuValue sub1() {
-		return subInt(SuInteger.ONE);
+		return sub(SuInteger.ONE);
 	}
 
 	public SuValue newInstance(SuValue... args) {
 		throw new SuException("can't do new " + typeName());
-	}
-	public SuValue invoke(SuValue... args) {
-		throw new SuException("can't call " + typeName());
 	}
 	public SuValue invoke(String method, SuValue ... args) {
 		throw unknown_method(method);
@@ -226,4 +223,34 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public SuException unknown_method(String method) {
 		return new SuException("unknown method " + typeName() + "." + method);
 	}
+
+	// to simplify code generation
+	public final SuValue invokeN() {
+		return invoke("call");
+	}
+	public final SuValue invokeN(SuValue a) {
+		return invoke("call", a);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b) {
+		return invoke("call", a, b);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
+		return invoke("call", a, b, c);
+	}
+	//...
+
+	public final SuValue invokeN(String method) {
+		return invoke(method);
+	}
+	public final SuValue invokeN(String method, SuValue a) {
+		return invoke(method, a);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b) {
+		return invoke(method, a, b);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b, SuValue c) {
+		return invoke(method, a, b, c);
+	}
+	//...
+
 }

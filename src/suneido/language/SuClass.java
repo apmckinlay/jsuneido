@@ -161,33 +161,4 @@ public abstract class SuClass extends SuValue {
 	public static final SuString EACH1 = SuString.makeUnique("<each1>");
 	public static final SuString NAMED = SuString.makeUnique("<named>");
 
-	// to simplify code generation
-	public final SuValue invokeN() {
-		return invoke("call");
-	}
-	public final SuValue invokeN(SuValue a) {
-		return invoke("call", a);
-	}
-	public final SuValue invokeN(SuValue a, SuValue b) {
-		return invoke("call", a, b);
-	}
-	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
-		return invoke("call", a, b, c);
-	}
-	//...
-
-	public final SuValue invokeN(String method) {
-		return invoke(method);
-	}
-	public final SuValue invokeN(String method, SuValue a) {
-		return invoke(method, a);
-	}
-	public final SuValue invokeN(String method, SuValue a, SuValue b) {
-		return invoke(method, a, b);
-	}
-	public final SuValue invokeN(String method, SuValue a, SuValue b, SuValue c) {
-		return invoke(method, a, b, c);
-	}
-	//...
-
 }

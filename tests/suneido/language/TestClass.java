@@ -22,7 +22,7 @@ class TestClass extends SuClass {
 		return SuInteger.ZERO;
 	}
 	static final FunctionSpec noParams =
-			new FunctionSpec(new String[0], 0, new SuValue[0], 0);
+			new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 	@Override
 	public SuClass newInstance(SuValue... args) {
 		massage(noParams, args);

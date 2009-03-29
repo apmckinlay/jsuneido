@@ -106,7 +106,8 @@ public class CompileGenerator implements Generator<Object> {
 				cv = new TraceClassVisitor(cw, pw);
 
 			cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
-					"suneido/language/SampleFunction", null,
+					"suneido/language/MyFunc",
+					null,
 					"suneido/language/SuFunction", null);
 
 			cv.visitSource("function.suneido", null);
@@ -114,7 +115,7 @@ public class CompileGenerator implements Generator<Object> {
 			gen_constants();
 			gen_init();
 			gen_setConstants();
-			gen_toString("SampleFunction");
+			gen_toString("MyFunc");
 
 			f = new Function();
 
@@ -122,10 +123,9 @@ public class CompileGenerator implements Generator<Object> {
 		} else {
 			fstack.push(f);
 			f = new Function();
-			f.name = "f" + functions.size();
+			f.name = ("f" + functions.size()).intern();
 		}
-System.out.println("startFunction " + f.name);
-		f.mv = cv.visitMethod(ACC_PUBLIC, f.name,
+		f.mv = cv.visitMethod(ACC_PRIVATE, f.name,
 				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
 		f.mv.visitCode();
 		f.startLabel = new Label();
@@ -164,7 +164,7 @@ System.out.println("startFunction " + f.name);
 		mv.visitInsn(RETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+		mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
 		mv.visitEnd();
@@ -181,7 +181,7 @@ System.out.println("startFunction " + f.name);
 		mv.visitInsn(ARETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+		mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
 		mv.visitEnd();
@@ -195,7 +195,7 @@ System.out.println("startFunction " + f.name);
 		mv.visitLabel(l0);
 		mv.visitLineNumber(8, l0);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitFieldInsn(PUTSTATIC, "suneido/language/SampleFunction",
+		mv.visitFieldInsn(PUTSTATIC, "suneido/language/MyFunc",
 				"constants", "[[Lsuneido/SuValue;");
 		Label l1 = new Label();
 		mv.visitLabel(l1);
@@ -203,7 +203,7 @@ System.out.println("startFunction " + f.name);
 		mv.visitInsn(RETURN);
 		Label l2 = new Label();
 		mv.visitLabel(l2);
-		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+		mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, l0, l2, 0);
 		mv.visitLocalVariable("c", "[[Lsuneido/SuValue;", null, l0, l2, 1);
 		mv.visitMaxs(1, 2);
@@ -228,14 +228,12 @@ System.out.println("startFunction " + f.name);
 	 */
 	public Object function(Object params, Object compound) {
 
-System.out.println("function end " + f.name);
-
 		if (compound != "return")
 			returnStatement(compound);
 
 		Label endLabel = new Label();
 		f.mv.visitLabel(endLabel);
-		f.mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+		f.mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, f.startLabel, endLabel, 0);
 		f.mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
 				null,
@@ -249,13 +247,14 @@ System.out.println("function end " + f.name);
 		SuValue[] constantsArray = f.constants.toArray(arraySuValue);
 		if (f.constantsUsed)
 			constants.set(f.iConstants, constantsArray);
+
+		int nparams = (params == null ? 0 : (Integer) params);
+		FunctionSpec fs =
+				new FunctionSpec(f.name, f.locals.toArray(arrayString),
+						nparams, constantsArray, f.ndefaults);
+		functions.add(fs);
+
 		if (fstack.isEmpty()) {
-
-			int nparams = (params == null ? 0 : (Integer) params);
-			FunctionSpec fs = new FunctionSpec(f.locals.toArray(arrayString),
-					nparams, constantsArray, f.ndefaults);
-			functions.add(fs);
-
 			genDispatcher(functions);
 
 			cv.visitEnd();
@@ -264,7 +263,7 @@ System.out.println("function end " + f.name);
 
 			Loader loader = new Loader();
 			Class<?> c =
-					loader.defineClass("suneido.language.SampleFunction",
+					loader.defineClass("suneido.language.MyFunc",
 							cw.toByteArray());
 			SuClass sc;
 			try {
@@ -277,14 +276,15 @@ System.out.println("function end " + f.name);
 			linkConstants(sc);
 			return sc;
 		} else {
+			String method = f.name;
 			f = fstack.pop();
-			return new SuMethod(null, f.name);
+			return new SuMethod(null, method);
 		}
 	}
 
 	private static void dump(byte[] buf) {
 		try {
-			FileOutputStream f = new FileOutputStream("SampleFunction.class");
+			FileOutputStream f = new FileOutputStream("MyFunc.class");
 			f.write(buf);
 			f.close();
 		} catch (IOException e) {
@@ -317,20 +317,19 @@ System.out.println("function end " + f.name);
 		Label begin = new Label();
 		mv.visitLabel(begin);
 
-		// if (method == "call")
-		//		invoke(args)
-		mv.visitVarInsn(ALOAD, METHOD);
-		mv.visitLdcInsn("call");
-		Label l1 = new Label();
-		mv.visitJumpInsn(IF_ACMPNE, l1);
-		mv.visitVarInsn(ALOAD, THIS);
-		mv.visitVarInsn(ALOAD, ARGS);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
-				"invoke", "([Lsuneido/SuValue;)Lsuneido/SuValue;");
-		mv.visitInsn(ARETURN);
-		mv.visitLabel(l1);
-
-		// TODO: gen else-if for each method
+		for (FunctionSpec f : functions) {
+			mv.visitVarInsn(ALOAD, METHOD);
+			mv.visitLdcInsn(f.name.equals("invoke") ? "call" : f.name);
+			Label l1 = new Label();
+			mv.visitJumpInsn(IF_ACMPNE, l1);
+			mv.visitVarInsn(ALOAD, THIS);
+			mv.visitVarInsn(ALOAD, ARGS);
+			mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/MyFunc",
+					f.name, "([Lsuneido/SuValue;)Lsuneido/SuValue;");
+			mv.visitInsn(ARETURN);
+			mv.visitLabel(l1);
+			// TODO massage args
+		}
 
 		// else
 		//		super.invoke(method, args)
@@ -344,7 +343,7 @@ System.out.println("function end " + f.name);
 
 		Label end = new Label();
 		mv.visitLabel(end);
-		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+		mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, begin, end, 0);
 		mv.visitLocalVariable("method", "Ljava/lang/String;",
 				null, begin, end, 1);
@@ -370,7 +369,7 @@ System.out.println("function end " + f.name);
 				constants = new ArrayList<SuValue[]>();
 			f.iConstants = constants.size();
 			constants.add(null); // to increase size, set correctly in function
-			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SampleFunction",
+			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/MyFunc",
 					"constants", "[[Lsuneido/SuValue;");
 			f.mv.visitIntInsn(BIPUSH, f.iConstants);
 			f.mv.visitInsn(AALOAD);

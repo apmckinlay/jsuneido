@@ -1,0 +1,41 @@
+package suneido.language;
+
+import java.io.*;
+
+import suneido.SuException;
+import suneido.SuValue;
+
+public class Repl {
+
+	public static void main(String[] args) throws Exception {
+		BufferedReader in =
+				new BufferedReader(new InputStreamReader(System.in));
+		PrintWriter out = new PrintWriter(System.out);
+		while (true) {
+			out.print("> ");
+			out.flush();
+			String line = in.readLine();
+			if ("q".equals(line))
+				break;
+			try {
+				SuValue f = compile("function () { " + line + " }");
+				SuValue[] locals = new SuValue[10]; // due to lack of massage
+				SuValue result = f.invoke("call", locals);
+				out.println(" => " + result);
+			} catch (SuException e) {
+				out.println(" !! " + e);
+			}
+		}
+		out.println("bye");
+		out.flush();
+	}
+
+	private static SuValue compile(String s) {
+		Lexer lexer = new Lexer(s);
+		CompileGenerator generator = new CompileGenerator();
+		ParseFunction<Object, Generator<Object>> pc =
+				new ParseFunction<Object, Generator<Object>>(lexer, generator);
+		return (SuValue) pc.parse();
+	}
+
+}

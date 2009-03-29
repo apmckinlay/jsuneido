@@ -194,9 +194,8 @@ public class SuString extends SuValue {
 	}
 
 	private static class SubstrSpec {
-		static final FunctionSpec spec =
-			new FunctionSpec(new String[] { "i", "n" }, 2, new SuValue[0],
-						0);
+		static final FunctionSpec spec = new FunctionSpec("Substr", 
+				new String[] { "i", "n" }, 2, new SuValue[0], 0);
 	}
 	private SuValue substr(SuValue[] args) {
 		args = SuClass.massage(SubstrSpec.spec, args);

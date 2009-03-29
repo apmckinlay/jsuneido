@@ -6,7 +6,8 @@ import suneido.SuValue;
  * SuMethod makes methods first class values.
  * It binds the method and the instance it "came from".
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class SuMethod extends SuValue {
 	public SuValue instance;
@@ -18,8 +19,11 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
-	public SuValue invoke(SuValue... args) {
-		return instance.invoke(method, args);
+	public SuValue invoke(String method, SuValue... args) {
+		if (method == "call")
+			return instance.invoke(this.method, args);
+		else
+			throw unknown_method(method);
 	}
 
 	@Override
