@@ -3,6 +3,13 @@ package suneido.language;
 import suneido.SuValue;
 
 public class SampleFunction extends SuFunction {
+	private static SuValue[][] constants;
+
+	@Override
+	public void setConstants(SuValue[][] c) {
+		constants = c;
+	}
+
 	@Override
 	public String toString() {
 		return "SampleFunction";
@@ -18,7 +25,7 @@ public class SampleFunction extends SuFunction {
 
 	@Override
 	public SuValue invoke(SuValue... args) {
-		SuValue[] constants = SuClass.constants[12];
+		args[1] = args[1].add1();
 		return null;
 	}
 

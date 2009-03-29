@@ -3,10 +3,16 @@ package suneido.language;
 import suneido.SuValue;
 
 public class SampleClass extends SuClass {
+	private static SuValue[][] constants;
 
 	@Override
 	public SuClass newInstance(SuValue... args) {
 		return new SampleClass();
+	}
+
+	@Override
+	public void setConstants(SuValue[][] c) {
+		constants = c;
 	}
 
 	@Override

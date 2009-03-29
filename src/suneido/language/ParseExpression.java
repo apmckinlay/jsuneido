@@ -210,6 +210,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		boolean identifier() {
 			return type == Type.IDENTIFIER;
 		}
+		boolean member() {
+			return type == Type.MEMBER;
+		}
 	}
 
 	private T term(boolean newTerm) {
@@ -252,7 +255,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			case DLL:
 			case STRUCT:
 			case CALLBACK:
-				term = constant();
+				term = generator.constant(constant());
 				break;
 			default:
 				if (isGlobal(lexer.getValue()) &&
@@ -299,6 +302,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (value.identifier()) {
 					term = push(term, value);
 					value.clear();
+				} else if (value.member()) {
+					generator.preFunctionCall(value);
 				}
 				term = generator.functionCall(term, value, arguments());
 				value.clear();

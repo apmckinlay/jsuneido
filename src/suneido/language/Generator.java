@@ -84,6 +84,7 @@ public interface Generator<T> {
 
 	T self();
 
+	void preFunctionCall(Value<T> value);
 	T functionCall(T function, Value<T> value, T arguments);
 
 	T newExpression(T term, T arguments);

@@ -252,4 +252,9 @@ public class StringGenerator implements Generator<String> {
 	public void argumentName(String keyword) {
 	}
 
+	public void preFunctionCall(Value<String> value) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

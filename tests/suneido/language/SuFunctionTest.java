@@ -17,9 +17,9 @@ public class SuFunctionTest {
 	}
 
 	static class MyFunc extends SuFunction {
-
 		static final FunctionSpec params =
 				new FunctionSpec(new String[] { "value" }, 1, new SuValue[0], 0);
+
 		@Override
 		public SuValue invoke(SuValue... args) {
 			massage(params, args);
@@ -31,5 +31,8 @@ public class SuFunctionTest {
 			return "MyFunc";
 		}
 
+		@Override
+		public void setConstants(SuValue[][] c) {
+		}
 	}
 }

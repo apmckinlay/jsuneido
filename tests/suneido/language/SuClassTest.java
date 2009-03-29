@@ -132,6 +132,9 @@ public class SuClassTest {
 		public String toString() {
 			return "DefaultClass";
 		}
+		@Override
+		public void setConstants(SuValue[][] c) {
+		}
 	}
 
 	@Test
@@ -188,6 +191,9 @@ public class SuClassTest {
 		@Override
 		public String toString() {
 			return "WrapClass";
+		}
+		@Override
+		public void setConstants(SuValue[][] c) {
 		}
 	}
 }
