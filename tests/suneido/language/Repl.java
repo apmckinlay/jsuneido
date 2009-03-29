@@ -22,12 +22,21 @@ public class Repl {
 				SuValue[] locals = new SuValue[10]; // due to lack of massage
 				SuValue result = f.invoke("call", locals);
 				out.println(" => " + result);
+				saveTest(line, result);
 			} catch (SuException e) {
 				out.println(" !! " + e);
 			}
 		}
 		out.println("bye");
 		out.flush();
+	}
+
+	private static void saveTest(String line, SuValue result) throws FileNotFoundException {
+		PrintWriter pw =
+				new PrintWriter(new FileOutputStream("repl.txt", true));
+		pw.println("test(\"" + line.replace('"', '\'') + "\", \"" + result
+				+ "\");");
+		pw.close();
 	}
 
 	private static SuValue compile(String s) {
