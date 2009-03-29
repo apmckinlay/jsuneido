@@ -23,8 +23,7 @@ public class SampleFunction extends SuFunction {
 			return super.invoke(method, args);
 	}
 
-	@Override
-	public SuValue invoke(SuValue... args) {
+	private SuValue invoke(SuValue... args) {
 		args[1] = args[1].add1();
 		return null;
 	}

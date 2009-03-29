@@ -28,8 +28,7 @@ public class SampleClass extends SuClass {
 			return super.invoke(method, args);
 	}
 
-	@Override
-	public SuValue invoke(SuValue... args) {
+	private SuValue invoke(SuValue... args) {
 		return null;
 	}
 

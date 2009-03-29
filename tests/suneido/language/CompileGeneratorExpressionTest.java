@@ -108,7 +108,7 @@ System.out.println(r);
 				{ "suneido/SuNumber", "SuNumber" },
 				{ "java/lang/String", "String" },
 				{ "ANEWARRAY SuValue", "new SuValue[]" },
-				{ "GETSTATIC suneido/language/SampleFunction.constants : [[LSuValue;, BIPUSH 0, AALOAD, DUP, ASTORE 2", "const" },
+				{ "GETSTATIC suneido/language/MyFunc.constants : [[LSuValue;, BIPUSH 0, AALOAD, DUP, ASTORE 2", "const" },
 				{ "GETSTATIC suneido/language/SuClass.", "" },
 				{ " : LSuString;", "" },
 				{ "INVOKESTATIC suneido/language/Globals.get (LString;)LSuValue;", "global" },
@@ -130,7 +130,7 @@ System.out.println(r);
 				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
 				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L1", "null?" },
 				{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (LString;)V, ATHROW, L2", "null?" },
-				{ "LDC 'SampleFunction', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
+				{ "LDC 'MyFunc', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
 				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? constants[0] : "") },
 				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? constants[1] : "") },
 		};

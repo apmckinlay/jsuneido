@@ -11,13 +11,10 @@ public class TestCompilerGenerator {
 	private static final StringWriter sw = new StringWriter();
 
 	public static void main(String[] args) throws Exception {
-		// byte[] b = compile("function (x) { return }");
-		// dump(b);
-
 		SuValue f = compile("function () { f = function () { 123 }; f() }");
 		System.out.println(sw);
 		SuValue[] locals = new SuValue[] { SuInteger.valueOf(12), null };
-		SuValue result = f.invoke(locals);
+		SuValue result = f.invoke("call", locals);
 		System.out.println("result: " + result);
 	}
 

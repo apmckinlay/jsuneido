@@ -12,7 +12,7 @@ public class SuMethodTest {
 	public void test() {
 		SuValue x = new TestClass();
 		SuValue m = new SuMethod(x, "Size");
-		SuValue result = m.invoke();
+		SuValue result = m.invokeN();
 		assertEquals(SuInteger.ZERO, result);
 	}
 }
