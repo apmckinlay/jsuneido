@@ -32,4 +32,7 @@ class TestClass extends SuClass {
 	public String toString() {
 		return "TestClass";
 	}
+	@Override
+	public void setConstants(SuValue[][] c) {
+	}
 }

@@ -16,7 +16,6 @@ import suneido.*;
  * Licensed under GPLv2.</small></p>
  */
 public abstract class SuClass extends SuValue {
-	static SuValue[][] constants;
 	protected final SuContainer vars;
 
 	SuClass() {
@@ -27,6 +26,8 @@ public abstract class SuClass extends SuValue {
 	SuClass(boolean noVars) {
 		vars = null;
 	}
+
+	abstract public void setConstants(SuValue[][] constants);
 
 	// classes store "static" data members into vars in initialization block
 

@@ -402,4 +402,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void argumentName(String keyword) {
 	}
 
+	public void preFunctionCall(Value<Object> value) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

@@ -7,7 +7,7 @@ import static suneido.language.ParseExpression.Value.Type.*;
 import static suneido.language.Token.EQ;
 import static suneido.language.Token.INC;
 
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 
 import org.objectweb.asm.*;
@@ -28,6 +28,7 @@ public class CompileGenerator implements Generator<Object> {
 	private List<FunctionSpec> functions = null;
 	private static final String[] arrayString = new String[0];
 	private static final SuValue[] arraySuValue = new SuValue[0];
+	private static final SuValue[][] arrayConstants = new SuValue[0][0];
 	private Function f = null; // the current function
 	private Deque<Function> fstack = null; // functions nested around f
 	List<SuValue[]> constants = null;
@@ -110,8 +111,10 @@ public class CompileGenerator implements Generator<Object> {
 
 			cv.visitSource("function.suneido", null);
 
-			asm_init();
-			asm_toString("SampleFunction");
+			gen_constants();
+			gen_init();
+			gen_setConstants();
+			gen_toString("SampleFunction");
 
 			f = new Function();
 
@@ -124,11 +127,18 @@ public class CompileGenerator implements Generator<Object> {
 System.out.println("startFunction " + f.name);
 		f.mv = cv.visitMethod(ACC_PUBLIC, f.name,
 				"([Lsuneido/SuValue;)Lsuneido/SuValue;", null, null);
+		f.mv.visitCode();
 		f.startLabel = new Label();
 		f.mv.visitLabel(f.startLabel);
 
 		f.locals = new ArrayList<String>();
 		f.constants = new ArrayList<SuValue>();
+	}
+
+	private void gen_constants() {
+		FieldVisitor fv = cw.visitField(ACC_PRIVATE + ACC_STATIC, "constants",
+				"[[Lsuneido/SuValue;", null, null);
+		fv.visitEnd();
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
@@ -142,7 +152,7 @@ System.out.println("startFunction " + f.name);
 		return n + 1;
 	}
 
-	private void asm_init() {
+	private void gen_init() {
 		MethodVisitor mv =
 				cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
@@ -160,7 +170,7 @@ System.out.println("startFunction " + f.name);
 		mv.visitEnd();
 	}
 
-	private void asm_toString(String name) {
+	private void gen_toString(String name) {
 		MethodVisitor mv =
 				cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
 				null, null);
@@ -174,6 +184,29 @@ System.out.println("startFunction " + f.name);
 		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
 				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
+		mv.visitEnd();
+	}
+
+	private void gen_setConstants() {
+		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "setConstants",
+				"([[Lsuneido/SuValue;)V", null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		mv.visitLabel(l0);
+		mv.visitLineNumber(8, l0);
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitFieldInsn(PUTSTATIC, "suneido/language/SampleFunction",
+				"constants", "[[Lsuneido/SuValue;");
+		Label l1 = new Label();
+		mv.visitLabel(l1);
+		mv.visitLineNumber(9, l1);
+		mv.visitInsn(RETURN);
+		Label l2 = new Label();
+		mv.visitLabel(l2);
+		mv.visitLocalVariable("this", "Lsuneido/language/SampleFunction;",
+				null, l0, l2, 0);
+		mv.visitLocalVariable("c", "[[Lsuneido/SuValue;", null, l0, l2, 1);
+		mv.visitMaxs(1, 2);
 		mv.visitEnd();
 	}
 
@@ -226,11 +259,50 @@ System.out.println("function end " + f.name);
 			genDispatcher(functions);
 
 			cv.visitEnd();
-			return cw.toByteArray();
+
+			dump(cw.toByteArray());
+
+			Loader loader = new Loader();
+			Class<?> c =
+					loader.defineClass("suneido.language.SampleFunction",
+							cw.toByteArray());
+			SuClass sc;
+			try {
+				sc = (SuClass) c.newInstance();
+			} catch (InstantiationException e) {
+				throw new SuException("newInstance error: " + e);
+			} catch (IllegalAccessException e) {
+				throw new SuException("newInstance error: " + e);
+			}
+			linkConstants(sc);
+			return sc;
 		} else {
 			f = fstack.pop();
-			return null;
+			return new SuMethod(null, f.name);
 		}
+	}
+
+	private static void dump(byte[] buf) {
+		try {
+			FileOutputStream f = new FileOutputStream("SampleFunction.class");
+			f.write(buf);
+			f.close();
+		} catch (IOException e) {
+			throw new SuException("dump error");
+		}
+	}
+
+	private void linkConstants(SuClass sc) {
+		if (constants == null)
+			return;
+		for (SuValue[] cs : constants)
+			for (SuValue x : cs)
+				if (x instanceof SuMethod) {
+					SuMethod m = (SuMethod) x;
+					if (m.instance == null)
+						m.instance = sc;
+				}
+		sc.setConstants(constants.toArray(arrayConstants));
 	}
 
 	private void genDispatcher(List<FunctionSpec> functions) {
@@ -238,10 +310,7 @@ System.out.println("function end " + f.name);
 		final int METHOD = 1;
 		final int ARGS = 2;
 
-		MethodVisitor mv =
-				cw.visitMethod(
-						ACC_PUBLIC + ACC_VARARGS,
-						"invoke",
+		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_VARARGS, "invoke",
 				"(Ljava/lang/String;[Lsuneido/SuValue;)Lsuneido/SuValue;",
 				null, null);
 		mv.visitCode();
@@ -285,6 +354,12 @@ System.out.println("function end " + f.name);
 		mv.visitEnd();
 	}
 
+	static class Loader extends ClassLoader {
+		public Class<?> defineClass(String name, byte[] b) {
+			return defineClass(name, b, 0, b.length);
+		}
+	}
+
 	// expressions
 
 	public Object constant(Object value) {
@@ -295,7 +370,7 @@ System.out.println("function end " + f.name);
 				constants = new ArrayList<SuValue[]>();
 			f.iConstants = constants.size();
 			constants.add(null); // to increase size, set correctly in function
-			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass",
+			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SampleFunction",
 					"constants", "[[Lsuneido/SuValue;");
 			f.mv.visitIntInsn(BIPUSH, f.iConstants);
 			f.mv.visitInsn(AALOAD);
@@ -454,18 +529,27 @@ System.out.println("function end " + f.name);
 				"(Lsuneido/SuValue;Lsuneido/SuValue;)V");
 	}
 
-	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		f.mv.visitInsn(AALOAD);
-		lvalue(value);
-		valueMethod_v(incdec == INC ? "add1" : "sub1");
-		dupAndStore(value.type);
-		return VALUE;
-	}
-
 	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
 		identifier(value.id);
 		valueMethod_v(incdec == INC ? "add1" : "sub1");
 		return value.type;
+	}
+
+	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
+		// TODO handle other types
+
+		// stack: i args
+		f.mv.visitInsn(DUP2);
+		// stack: i args i args
+		f.mv.visitInsn(AALOAD);
+		// stack: v i args
+		f.mv.visitInsn(DUP_X2);
+		// stack: v i args v
+		valueMethod_v(incdec == INC ? "add1" : "sub1");
+		// stack: v+1 i args v
+		store(value.type);
+		// stack: v
+		return VALUE;
 	}
 
 	private void dupAndStore(Object expr) {
@@ -475,13 +559,15 @@ System.out.println("function end " + f.name);
 		store(expr);
 	}
 
-	private void store(Object expression) {
-		if (expression == IDENTIFIER)
+	private void store(Object type) {
+		if (type == IDENTIFIER)
 			f.mv.visitInsn(AASTORE);
-		else if (expression == MEMBER)
+		else if (type == MEMBER)
 			putMember();
-		else if (expression == SUBSCRIPT)
+		else if (type == SUBSCRIPT)
 			putSubscript();
+		else
+			throw new SuException("unknown store type: " + type);
 	}
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
@@ -504,15 +590,18 @@ System.out.println("function end " + f.name);
 		return VALUE;
 	}
 
+	public void preFunctionCall(Value<Object> value) {
+		if (value.member()) {
+			f.mv.visitLdcInsn(value.id);
+		}
+	}
 	public Object functionCall(Object function, Value<Object> value,
 			Object arguments) {
 		int nargs = arguments == null ? 0 : (Integer) arguments;
 		if (value.id == null)
 			invokeFunction(nargs);
-		else {
-			f.mv.visitLdcInsn(value.id);
+		else
 			invokeMethod(nargs);
-		}
 		return CALLRESULT;
 	}
 

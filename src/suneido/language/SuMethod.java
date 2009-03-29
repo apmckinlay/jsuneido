@@ -9,7 +9,7 @@ import suneido.SuValue;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuMethod extends SuValue {
-	private final SuValue instance;
+	public SuValue instance;
 	private final String method;
 
 	public SuMethod(SuValue instance, String method) {
