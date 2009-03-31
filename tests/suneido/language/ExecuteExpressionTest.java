@@ -37,6 +37,13 @@ public class ExecuteExpressionTest {
 
 		test("f = function (@x) { x }; f(1, a: 2)", "#(1, a: 2)");
 		test("f = function (@x) { x }; f(a: 1, b: 2)", "#(a: 1, b: 2)");
+
+		test("true && false", "false");
+		test("false && true", "false");
+		test("true && true", "true");
+		test("true || false", "true");
+		test("false || true", "true");
+		test("false || false", "false");
 	}
 
 	private static void test(String expr, String result) {

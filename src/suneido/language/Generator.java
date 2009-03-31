@@ -11,8 +11,12 @@ public interface Generator<T> {
 	T binaryExpression(Token op, T expr1, T expr2);
 
 	T and(T expr1, T expr2);
+	Object and(Object prevlabel);
+	void andEnd(Object label);
 
 	T or(T expr1, T expr2);
+	Object or(Object label);
+	void orEnd(Object label);
 
 	T conditional(T primaryExpression, T first, T second);
 

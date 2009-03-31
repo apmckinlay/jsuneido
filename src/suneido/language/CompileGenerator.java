@@ -328,7 +328,6 @@ public class CompileGenerator implements Generator<Object> {
 
 		for (int i = 0; i < functions.size(); ++i) {
 			FunctionSpec f = functions.get(i);
-System.out.println(f);
 			mv.visitVarInsn(ALOAD, METHOD);
 			mv.visitLdcInsn(f.name.equals("invoke") ? "call" : f.name);
 			Label l1 = new Label();
@@ -379,6 +378,12 @@ System.out.println(f);
 	// expressions
 
 	public Object constant(Object value) {
+		if (value == SuBoolean.TRUE || value == SuBoolean.FALSE) {
+			f.mv.visitFieldInsn(GETSTATIC, "suneido/SuBoolean",
+					value == SuBoolean.TRUE ? "TRUE" : "FALSE",
+					"Lsuneido/SuBoolean;");
+			return VALUE;
+		}
 		int i = constantFor(value);
 		if (!f.constantsUsed) {
 			f.constantsUsed = true;
@@ -706,14 +711,46 @@ System.out.println(f);
 		return null;
 	}
 
+	public Object and(Object prev) {
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/SuBoolean", "FALSE",
+				"Lsuneido/SuBoolean;");
+		Label label = (prev == null ? new Label() : (Label) prev);
+		f.mv.visitJumpInsn(IF_ACMPEQ, label);
+		return label;
+	}
+	public void andEnd(Object label) {
+		if (label == null)
+			return;
+		Label l0 = new Label();
+		f.mv.visitJumpInsn(GOTO, l0);
+		f.mv.visitLabel((Label) label);
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/SuBoolean", "FALSE",
+				"Lsuneido/SuBoolean;");
+		f.mv.visitLabel(l0);
+	}
 	public Object and(Object expr1, Object expr2) {
-		// TODO and
-		return null;
+		return VALUE;
 	}
 
+	public Object or(Object prev) {
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/SuBoolean", "TRUE",
+				"Lsuneido/SuBoolean;");
+		Label label = (prev == null ? new Label() : (Label) prev);
+		f.mv.visitJumpInsn(IF_ACMPEQ, label);
+		return label;
+	}
+	public void orEnd(Object label) {
+		if (label == null)
+			return;
+		Label l0 = new Label();
+		f.mv.visitJumpInsn(GOTO, l0);
+		f.mv.visitLabel((Label) label);
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/SuBoolean", "TRUE",
+				"Lsuneido/SuBoolean;");
+		f.mv.visitLabel(l0);
+	}
 	public Object or(Object expr1, Object expr2) {
-		// TODO or
-		return null;
+		return VALUE;
 	}
 
 	public Object conditional(Object primaryExpression, Object first,
