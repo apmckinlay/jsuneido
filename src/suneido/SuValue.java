@@ -237,6 +237,17 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public final SuValue invokeN(SuValue a, SuValue b, SuValue c) {
 		return invoke("call", a, b, c);
 	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d) {
+		return invoke("call", a, b, c, d);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d,
+			SuValue e) {
+		return invoke("call", a, b, c, d, e);
+	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d,
+			SuValue e, SuValue f) {
+		return invoke("call", a, b, c, d, e, f);
+	}
 	//...
 
 	public final SuValue invokeN(String method) {
@@ -250,6 +261,18 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 	public final SuValue invokeN(String method, SuValue a, SuValue b, SuValue c) {
 		return invoke(method, a, b, c);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b,
+			SuValue c, SuValue d) {
+		return invoke(method, a, b, c, d);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b,
+			SuValue c, SuValue d, SuValue e) {
+		return invoke(method, a, b, c, d, e);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b,
+			SuValue c, SuValue d, SuValue e, SuValue f) {
+		return invoke(method, a, b, c, d, e, f);
 	}
 	//...
 

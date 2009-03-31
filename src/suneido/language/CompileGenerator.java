@@ -494,6 +494,7 @@ System.out.println(f);
 			if (value.type == IDENTIFIER
 					&& (expression == LOCAL || expression == CALLRESULT))
 				addNullCheck(expression);
+			// TODO params don't need to be checked
 		} else {
 			identifier(value.id);
 			binaryMethod(assignOp(op));
@@ -649,6 +650,8 @@ System.out.println(f);
 		"Lsuneido/SuValue;Lsuneido/SuValue;",
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 	};
 	private void invokeFunction(int i) {
 		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN", "("
@@ -661,12 +664,13 @@ System.out.println(f);
 
 	public Object argumentList(Object list, String keyword, Object expression) {
 		int n = (list == null ? 0 : (Integer) list);
-		return n + 1;
+		return n + (keyword == null ? 1 : 3);
 	}
 
 	public void argumentName(String name) {
 		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass", "NAMED",
 				"Lsuneido/SuString;");
+		constant(string(name));
 	}
 
 	public void atArgument(String n) {
