@@ -40,20 +40,26 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T orExpression() {
+		Object label = null;
 		T result = andExpression();
 		while (token == OR) {
 			matchSkipNewlines();
+			label = generator.or(label);
 			result = generator.or(result, andExpression());
 		}
+		generator.orEnd(label);
 		return result;
 	}
 
 	private T andExpression() {
+		Object label = null;
 		T result = inExpression();
 		while (token == AND) {
 			matchSkipNewlines();
+			label = generator.and(label);
 			result = generator.and(result, inExpression());
 		}
+		generator.andEnd(label);
 		return result;
 	}
 
@@ -263,7 +269,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					term = constant();
 				} else if (lexer.getKeyword() == TRUE
 						|| lexer.getKeyword() == FALSE) {
-					term = generator.bool(lexer.getKeyword() == TRUE);
+					term =
+							generator.constant(generator.bool(lexer.getKeyword() == TRUE));
 					match();
 				} else if (lexer.getKeyword() == THIS) {
 					term = generator.self();

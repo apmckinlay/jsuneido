@@ -1,5 +1,6 @@
 package suneido.language;
 
+import suneido.SuBoolean;
 import suneido.SuValue;
 
 public class SampleFunction extends SuFunction {
@@ -26,8 +27,8 @@ public class SampleFunction extends SuFunction {
 	}
 
 	private SuValue invoke(SuValue... args) {
-		args[1] = args[1].add1();
-		return null;
+		return args[0] == SuBoolean.TRUE || args[1] == SuBoolean.TRUE
+				? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
 }

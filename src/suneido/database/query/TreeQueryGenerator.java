@@ -186,7 +186,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object bool(boolean value) {
-		return value ? Constant.TRUE : Constant.FALSE;
+		return value ? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
 	public Object breakStatement() {
@@ -403,6 +403,26 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void preFunctionCall(Value<Object> value) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Object and(Object prevlabel) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void andEnd(Object label) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Object or(Object label) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void orEnd(Object label) {
 		// TODO Auto-generated method stub
 
 	}

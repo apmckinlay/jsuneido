@@ -257,4 +257,24 @@ public class StringGenerator implements Generator<String> {
 
 	}
 
+	public Object and(Object prevlabel) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void andEnd(Object label) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Object or(Object label) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void orEnd(Object label) {
+		// TODO Auto-generated method stub
+
+	}
+
 }
