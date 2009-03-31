@@ -19,7 +19,7 @@ public class Repl {
 				break;
 			try {
 				SuValue f = compile("function () { " + line + " }");
-				SuValue[] locals = new SuValue[10]; // due to lack of massage
+				SuValue[] locals = new SuValue[0];
 				SuValue result = f.invoke("call", locals);
 				out.println(" => " + result);
 				saveTest(line, result);

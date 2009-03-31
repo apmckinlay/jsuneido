@@ -4,13 +4,8 @@ import suneido.*;
 
 /**
  * The Java base class for compiled Suneido classes.
- * The Java class hierarchy is "flat".
- * All compiled Suneido classes derive directly from SuClass.
- * Suneido inheritance is handled by invoke.
- * A Suneido class with "no" parent calls super.invoke from its invoke's default
- * else it calls Globals.get(parent).invoke2
  * @see SuMethod
- * @see SuInstance
+ * @see SuFunction
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
@@ -27,7 +22,7 @@ public abstract class SuClass extends SuValue {
 		vars = null;
 	}
 
-	abstract public void setConstants(SuValue[][] constants);
+	abstract public void setup(FunctionSpec[] params, SuValue[][] constants);
 
 	// classes store "static" data members into vars in initialization block
 
