@@ -20,6 +20,18 @@ public class ExecuteExpressionTest {
 		test("'hello world'.Size()", "11");
 		test("s = 'hello'; s.Substr(s.Size() - 2, 99)", "'lo'");
 		test("f = function (@x) { x }; f()", "#()");
+		test("f = function (@x) { x.a = 0; ++x.a }; f()", "1");
+		test("f = function (@x) { x.a = 0; x.a++ }; f()", "0");
+		test("f = function (@x) { x.a = 0; x.a++; x.a }; f()", "1");
+		test("f = function (@x) { x.a = 0; --x.a }; f()", "-1");
+		test("f = function (@x) { x.a = 0; x.a-- }; f()", "0");
+		test("f = function (@x) { x.a = 0; x.a--; x.a }; f()", "-1");
+		test("f = function (@x) { x[0] = 0; ++x[0] }; f()", "1");
+		test("f = function (@x) { x[0] = 0; x[0]++ }; f()", "0");
+		test("f = function (@x) { x[0] = 0; x[0]++; x[0] }; f()", "1");
+		test("f = function (@x) { x[0] = 0; --x[0] }; f()", "-1");
+		test("f = function (@x) { x[0] = 0; x[0]-- }; f()", "0");
+		test("f = function (@x) { x[0] = 0; x[0]--; x[0] }; f()", "-1");
 	}
 
 	private static void test(String expr, String result) {

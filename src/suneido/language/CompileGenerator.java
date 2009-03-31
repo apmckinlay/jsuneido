@@ -151,7 +151,6 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
-System.out.println("parameter " + name);
 		if (f.atParam = name.startsWith("@"))
 			name = name.substring(1, name.length());
 		f.locals.add(name);
@@ -451,9 +450,13 @@ System.out.println(f);
 	}
 
 	public Object member(Object term, String identifier) {
+		member(identifier);
+		return VALUE;
+	}
+
+	private void member(String identifier) {
 		f.mv.visitLdcInsn(identifier);
 		getMember();
-		return VALUE;
 	}
 
 	public Object subscript(Object term, Object expr) {
@@ -547,18 +550,25 @@ System.out.println(f);
 	}
 
 	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
-		identifier(value.id);
+		// stack: i args (or: member object)
+		f.mv.visitInsn(DUP2);
+		// stack: i args i args
+		load(value.type);
+		// stack: v i args
 		valueMethod_v(incdec == INC ? "add1" : "sub1");
-		return value.type;
+		// stack: v+1 i args
+		f.mv.visitInsn(DUP_X2);
+		// stack: v+1 i args v+1
+		store(value.type);
+		// stack: v+1
+		return VALUE;
 	}
 
 	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		// TODO handle other types
-
 		// stack: i args
 		f.mv.visitInsn(DUP2);
 		// stack: i args i args
-		f.mv.visitInsn(AALOAD);
+		load(value.type);
 		// stack: v i args
 		f.mv.visitInsn(DUP_X2);
 		// stack: v i args v
@@ -574,6 +584,17 @@ System.out.println(f);
 			return;
 		f.mv.visitInsn(DUP_X2);
 		store(expr);
+	}
+
+	private void load(Object type) {
+		if (type == IDENTIFIER)
+			f.mv.visitInsn(AALOAD);
+		else if (type == MEMBER)
+			getMember();
+		else if (type == SUBSCRIPT)
+			getSubscript();
+		else
+			throw new SuException("unknown load type: " + type);
 	}
 
 	private void store(Object type) {
