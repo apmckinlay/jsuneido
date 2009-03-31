@@ -83,12 +83,15 @@ public class SuClassTest {
 		return f(0, params);
 	}
 	private FunctionSpec f(int extra, String... params) {
+		boolean atParam = (params.length == 1 && params[0].startsWith("@"));
+		if (atParam)
+			params[0] = params[0].substring(1, params[0].length());
 		String[] locals = Arrays.copyOf(params, params.length + extra);
 		for (int i = 0; i < extra; ++i)
 			locals[params.length + i] = "local" + i;
 		SuValue[] defaults = defaults(locals, params);
 		return new FunctionSpec("", locals, params.length, defaults,
-				defaults.length, false);
+				defaults.length, atParam);
 	}
 	private SuValue[] defaults(String[] locals, String... params) {
 		ArrayList<SuValue> defaults = new ArrayList<SuValue>();
