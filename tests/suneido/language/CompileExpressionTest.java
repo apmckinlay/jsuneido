@@ -10,7 +10,7 @@ import org.junit.Test;
 import suneido.SuValue;
 
 
-public class CompileGeneratorExpressionTest {
+public class CompileExpressionTest {
 
 	@Test
 	public void tests() {
@@ -87,9 +87,9 @@ public class CompileGeneratorExpressionTest {
 		test("#{1, a: 2}",
  				"0=[1, a: 2], ARETURN");
 		test("a(1, x: 2)",
- 				"a, 0=1, NAMED, 1=2, .invokeN, ARETURN");
+ 				"a, 0=1, NAMED, 1='x', 2=2, .invokeN, ARETURN");
 	}
-	
+
 	private void test(String expr, String expected) {
 		assertEquals(expr, expected, compile(expr));
 	}
@@ -159,6 +159,7 @@ System.out.println(r);
 				{ " (LSuValue;)LSuNumber;", "" },
 				{ " (LSuValue;LSuValue;)LSuValue;", "" },
 				{ " (LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
+				{ " (LSuValue;LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
 				{ " (LString;)LSuValue;", "" },
 				{ " (LString;LSuValue;)LSuValue;", "" },
 				{ " (LString;LSuValue;LSuValue;)LSuValue;", "" },
@@ -169,6 +170,11 @@ System.out.println(r);
 				{ "LDC 'MyFunc', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
 				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? constants[0] : "") },
 				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? constants[1] : "") },
+				{
+								"const, 2, AALOAD",
+								"2="
+										+ (constants.length > 2 ? constants[2]
+												: "") },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

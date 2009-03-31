@@ -31,7 +31,8 @@ public class Repl {
 		out.flush();
 	}
 
-	private static void saveTest(String line, SuValue result) throws FileNotFoundException {
+	private static void saveTest(String line, SuValue result) 
+			throws FileNotFoundException {
 		PrintWriter pw =
 				new PrintWriter(new FileOutputStream("repl.txt", true));
 		pw.println("test(\"" + line.replace('"', '\'') + "\", \"" + result
