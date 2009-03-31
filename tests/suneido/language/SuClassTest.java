@@ -2,6 +2,7 @@ package suneido.language;
 
 import static org.junit.Assert.*;
 import static suneido.Util.array;
+import static suneido.language.FunctionSpec.noParams;
 import static suneido.language.SuClass.EACH;
 import static suneido.language.SuClass.NAMED;
 
@@ -87,7 +88,7 @@ public class SuClassTest {
 			locals[params.length + i] = "local" + i;
 		SuValue[] defaults = defaults(locals, params);
 		return new FunctionSpec("", locals, params.length, defaults,
-				defaults.length);
+				defaults.length, false);
 	}
 	private SuValue[] defaults(String[] locals, String... params) {
 		ArrayList<SuValue> defaults = new ArrayList<SuValue>();
@@ -121,8 +122,6 @@ public class SuClassTest {
 			DefaultClass.args = args;
 			return SuString.EMPTY;
 		}
-		static final FunctionSpec noParams =
-				new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(noParams, args);
@@ -139,8 +138,6 @@ public class SuClassTest {
 		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
 	}
 	static class SubClass extends DefaultClass {
-		static final FunctionSpec noParams =
-				new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(noParams, args);
@@ -169,7 +166,7 @@ public class SuClassTest {
 			vars.put("Name", SuString.valueOf("Wrap"));
 		}
 		static final FunctionSpec params = new FunctionSpec("",
-				new String[] { "value" }, 1, new SuValue[0], 0);
+				new String[] { "value" }, 1);
 		@Override
 		public SuClass newInstance(SuValue... args) {
 			massage(params, args);

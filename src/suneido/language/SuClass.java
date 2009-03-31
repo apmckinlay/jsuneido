@@ -63,23 +63,21 @@ public abstract class SuClass extends SuValue {
 	 * @return	The locals SuValue array initialized from args.
 	 */
 	public static SuValue[] massage(FunctionSpec fn, SuValue[] args) {
-		final boolean params_each =
-				fn.nparams > 0 && fn.locals[0].startsWith("@");
 		final int nlocals = fn.locals.length;
 		final boolean args_each =
 				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
-		if (simple(args) && !params_each && args.length == fn.nparams
+		if (simple(args) && !fn.atParam && args.length == fn.nparams
 				&& nlocals <= args.length)
 			// "fast" path - avoid alloc by using args as locals
 			return args;
 
 		SuValue[] locals = new SuValue[nlocals];
 
-		if (params_each && args_each) {
+		if (fn.atParam && args_each) {
 			// function (@params) (@args)
 			locals[0] = args[1].container().slice(args[0] == EACH ? 0 : 1);
-		} else if (params_each) {
+		} else if (fn.atParam) {
 			// function (@params)
 			SuContainer c = new SuContainer();
 			locals[0] = c;

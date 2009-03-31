@@ -50,6 +50,7 @@ public class CompileGenerator implements Generator<Object> {
 		boolean constantsUsed = false;
 		int ndefaults = 0;
 		int iConstants;
+		boolean atParam;
 	}
 
 	// constants
@@ -150,6 +151,9 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
+System.out.println("parameter " + name);
+		if (f.atParam = name.startsWith("@"))
+			name = name.substring(1, name.length());
 		f.locals.add(name);
 		if (defaultValue != null) {
 			int i = addConstant(defaultValue);
@@ -246,11 +250,9 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
 				null, f.startLabel, endLabel, 0);
 		f.mv.visitLocalVariable("args", "[Lsuneido/SuValue;",
-				null,
-				f.startLabel, endLabel, 1);
+				null, f.startLabel, endLabel, 1);
 		f.mv.visitLocalVariable("constants", "[Lsuneido/SuValue;",
-				null,
-				f.startLabel, endLabel, 2);
+				null, f.startLabel, endLabel, 2);
 		f.mv.visitMaxs(0, 0);
 		f.mv.visitEnd();
 
@@ -259,9 +261,8 @@ public class CompileGenerator implements Generator<Object> {
 			constants.set(f.iConstants, constantsArray);
 
 		int nparams = (params == null ? 0 : (Integer) params);
-		FunctionSpec fs =
-				new FunctionSpec(f.name, f.locals.toArray(arrayString),
-						nparams, constantsArray, f.ndefaults);
+		FunctionSpec fs = new FunctionSpec(f.name, f.locals.toArray(arrayString),
+				nparams, constantsArray, f.ndefaults, f.atParam);
 		functions.add(fs);
 
 		if (fstack.isEmpty()) {
@@ -272,9 +273,8 @@ public class CompileGenerator implements Generator<Object> {
 			dump(cw.toByteArray());
 
 			Loader loader = new Loader();
-			Class<?> c =
-					loader.defineClass("suneido.language.MyFunc",
-							cw.toByteArray());
+			Class<?> c = loader.defineClass("suneido.language.MyFunc",
+					cw.toByteArray());
 			SuClass sc;
 			try {
 				sc = (SuClass) c.newInstance();
@@ -329,6 +329,7 @@ public class CompileGenerator implements Generator<Object> {
 
 		for (int i = 0; i < functions.size(); ++i) {
 			FunctionSpec f = functions.get(i);
+System.out.println(f);
 			mv.visitVarInsn(ALOAD, METHOD);
 			mv.visitLdcInsn(f.name.equals("invoke") ? "call" : f.name);
 			Label l1 = new Label();

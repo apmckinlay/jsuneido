@@ -17,8 +17,8 @@ public class SuFunctionTest {
 	}
 
 	static class MyFunc extends SampleFunction {
-		static final FunctionSpec params = new FunctionSpec("",
-				new String[] { "value" }, 1, new SuValue[0], 0);
+		static final FunctionSpec params =
+				new FunctionSpec("", new String[] { "value" }, 1);
 
 		@Override
 		public SuValue invoke(String method, SuValue... args) {

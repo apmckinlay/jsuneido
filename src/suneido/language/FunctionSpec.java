@@ -10,28 +10,40 @@ public class FunctionSpec {
 	final SuValue[] constants;
 	final int nparams;
 	final int ndefaults;
+	final boolean atParam;
+	private final static SuValue[] noConstants = new SuValue[0];
+	public final static FunctionSpec noParams =
+			new FunctionSpec(null, new String[0], 0);
 
+	public FunctionSpec(String name, String[] locals, int nparams) {
+		this(name, locals, nparams, noConstants, 0, false);
+	}
 	public FunctionSpec(String name, String[] locals, int nparams,
-			SuValue[] constants, int ndefaults) {
+			SuValue[] constants, int ndefaults, boolean atParam) {
 		this.name = name;
 		this.locals = locals;
 		this.nparams = nparams;
 		this.constants = constants;
 		this.ndefaults = ndefaults;
+		this.atParam = atParam;
 		assert 0 <= nparams && nparams <= locals.length;
 		assert 0 <= ndefaults && ndefaults <= constants.length;
+		assert !atParam || (nparams == 1 && ndefaults == 0);
 	}
 
 	@Override
 	public String toString() {
 		String s = "FunctionSpec(";
+		s += name + ", ";
 		s += "locals:";
+		if (atParam)
+			s += " @";
 		for (String t : locals)
 			s += " " + t;
 		s += ", nparams: " + nparams;
 		s += ", constants:";
 		for (SuValue x : constants)
-			s += " " + x;
+			s += " " + (x == null ? "null" : x.toString());
 		s += ", ndefaults: " + ndefaults;
 		return s + ")";
 	}
