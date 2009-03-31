@@ -13,49 +13,85 @@ import suneido.SuValue;
 public class CompileGeneratorExpressionTest {
 
 	@Test
-	public void test() {
-		String[][] cases = {
-				{ "return", "null, ARETURN" },
-				{ "123", "0=123, ARETURN" },
-				{ "return 123", "0=123, ARETURN" },
-				{ "b;;", "b, POP" },
-				{ "b", "b, null?, ARETURN" },
-				{ "return b", "b, null?, ARETURN" },
-				{ "return a + b", "a, b, .add, ARETURN" },
-				{ "a()", "a, .invokeN, ARETURN" },
-				{ "a(b, c)", "a, b, c, .invokeN, ARETURN" },
-				{ "a.Size()", "a, LDC 'Size', .invokeN, ARETURN" },
-				{ "return a.Size()", "a, LDC 'Size', .invokeN, ARETURN" },
-				{ "a.Substr(b, c)", "a, LDC 'Substr', b, c, .invokeN, ARETURN" },
-				{ "a = b $ c", "&a, b, c, .cat, DUP_X2, AASTORE, ARETURN" },
-				{ "a = b = c", "&a, &b, c, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN" },
-				{ "a = b; return c", "&a, b, null?, AASTORE, c, null?, ARETURN" },
-				{ "a = b = c; return c", "&a, &b, c, null?, DUP_X2, AASTORE, AASTORE, c, null?, ARETURN" },
-				{ "return this", "this, ARETURN" },
-				{ "a += b;;", "&a, b, a, .add, AASTORE" },
-				{ "a *= b;;", "&a, b, a, .mul, AASTORE" },
-				{ "++a;;", "&a, a, .add1, AASTORE" },
-				{ "--a;;", "&a, a, .sub1, AASTORE" },
-				{ "a++", "&a, DUP2, AALOAD, DUP_X2, .add1, AASTORE, ARETURN" },
-				{ "a.x", "a, LDC 'x', .getMem, ARETURN" },
-				{ ".x", "this, LDC 'x', .getMem, ARETURN" },
-				{ "a.x = b;;", "a, LDC 'x', b, .putMem" },
-				{ "a.x = b", "a, LDC 'x', b, DUP_X2, .putMem, ARETURN" },
-				{ "a[b]", "a, b, .getSub, ARETURN" },
-				{ "a[b] = c;;", "a, b, c, .putSub" },
-				{ "G", "LDC 'G', global, ARETURN" },
-				{ "G()", "LDC 'G', global, .invokeN, ARETURN" },
-				{ "a(@b)", "a, EACH, b, .invokeN, ARETURN" },
-				{ "a(@+1b)", "a, EACH1, b, .invokeN, ARETURN" },
-				{ "a = b();;", "&a, b, .invokeN, null?, AASTORE" },
-				{ "123; 456; 123;", "0=123, POP, 1=456, POP, 0=123, ARETURN" },
-				{ "#(1, a: 2)", "0=#(1, a: 2), ARETURN" },
-				{ "#{1, a: 2}", "0=[1, a: 2], ARETURN" },
-				{ "a(1, x: 2)", "a, 0=1, NAMED, 1=2, .invokeN, ARETURN" },
-		};
-		for (String[] c : cases) {
-			assertEquals(c[0], c[1], compile(c[0]));
-		}
+	public void tests() {
+		test("return",
+				"null, ARETURN");
+		test("123",
+				"0=123, ARETURN");
+		test("return 123",
+ 				"0=123, ARETURN");
+		test("b;;",
+ 				"b, POP");
+		test("b",
+ 				"b, null?, ARETURN");
+		test("return b",
+ 				"b, null?, ARETURN");
+		test("return a + b",
+ 				"a, b, .add, ARETURN");
+		test("a()",
+ 				"a, .invokeN, ARETURN");
+		test("a(b, c)",
+ 				"a, b, c, .invokeN, ARETURN");
+		test("a.Size()",
+ 				"a, LDC 'Size', .invokeN, ARETURN");
+		test("return a.Size()",
+ 				"a, LDC 'Size', .invokeN, ARETURN");
+		test("a.Substr(b, c)",
+ 				"a, LDC 'Substr', b, c, .invokeN, ARETURN");
+		test("a = b $ c",
+ 				"&a, b, c, .cat, DUP_X2, AASTORE, ARETURN");
+		test("a = b = c",
+ 				"&a, &b, c, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
+		test("a = b; return c",
+ 				"&a, b, null?, AASTORE, c, null?, ARETURN");
+		test("a = b = c; return c",
+ 				"&a, &b, c, null?, DUP_X2, AASTORE, AASTORE, c, null?, ARETURN");
+		test("return this",
+ 				"this, ARETURN");
+		test("a += b;;",
+ 				"&a, b, a, .add, AASTORE");
+		test("a *= b;;",
+ 				"&a, b, a, .mul, AASTORE");
+		test("++a;;",
+ 				"&a, DUP2, AALOAD, .add1, DUP_X2, AASTORE, POP");
+		test("--a;;",
+ 				"&a, DUP2, AALOAD, .sub1, DUP_X2, AASTORE, POP");
+		test("a++",
+ 				"&a, DUP2, AALOAD, DUP_X2, .add1, AASTORE, ARETURN");
+		test("a.x",
+ 				"a, LDC 'x', .getMem, ARETURN");
+		test(".x",
+ 				"this, LDC 'x', .getMem, ARETURN");
+		test("a.x = b;;",
+ 				"a, LDC 'x', b, .putMem");
+		test("a.x = b",
+ 				"a, LDC 'x', b, DUP_X2, .putMem, ARETURN");
+		test("a[b]",
+ 				"a, b, .getSub, ARETURN");
+		test("a[b] = c;;",
+ 				"a, b, c, .putSub");
+		test("G",
+ 				"LDC 'G', global, ARETURN");
+		test("G()",
+ 				"LDC 'G', global, .invokeN, ARETURN");
+		test("a(@b)",
+ 				"a, EACH, b, .invokeN, ARETURN");
+		test("a(@+1b)",
+ 				"a, EACH1, b, .invokeN, ARETURN");
+		test("a = b();;",
+ 				"&a, b, .invokeN, null?, AASTORE");
+		test("123; 456; 123;",
+ 				"0=123, POP, 1=456, POP, 0=123, ARETURN");
+		test("#(1, a: 2)",
+ 				"0=#(1, a: 2), ARETURN");
+		test("#{1, a: 2}",
+ 				"0=[1, a: 2], ARETURN");
+		test("a(1, x: 2)",
+ 				"a, 0=1, NAMED, 1=2, .invokeN, ARETURN");
+	}
+	
+	private void test(String expr, String expected) {
+		assertEquals(expr, expected, compile(expr));
 	}
 
 	private String after(String r, String s) {
