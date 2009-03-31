@@ -5,7 +5,7 @@ package suneido.language;
 
 import suneido.*;
 
-class TestClass extends SuClass {
+class TestClass extends SampleClass {
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Substr")
@@ -27,12 +27,5 @@ class TestClass extends SuClass {
 	public SuClass newInstance(SuValue... args) {
 		massage(noParams, args);
 		return new TestClass();
-	}
-	@Override
-	public String toString() {
-		return "TestClass";
-	}
-	@Override
-	public void setConstants(SuValue[][] c) {
 	}
 }

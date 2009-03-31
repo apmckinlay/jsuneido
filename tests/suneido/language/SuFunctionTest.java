@@ -16,7 +16,7 @@ public class SuFunctionTest {
 		assertEquals(s, f.invokeN(s));
 	}
 
-	static class MyFunc extends SuFunction {
+	static class MyFunc extends SampleFunction {
 		static final FunctionSpec params = new FunctionSpec("",
 				new String[] { "value" }, 1, new SuValue[0], 0);
 
@@ -24,15 +24,6 @@ public class SuFunctionTest {
 		public SuValue invoke(String method, SuValue... args) {
 			massage(params, args);
 			return args[0];
-		}
-
-		@Override
-		public String toString() {
-			return "MyFunc";
-		}
-
-		@Override
-		public void setConstants(SuValue[][] c) {
 		}
 	}
 }

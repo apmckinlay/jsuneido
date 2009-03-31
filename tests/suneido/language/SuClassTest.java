@@ -114,7 +114,7 @@ public class SuClassTest {
 				new SuValue[] { SuString.valueOf("Substr"), SuInteger.ONE },
 				DefaultClass.args);
 	}
-	static class DefaultClass extends SuClass {
+	static class DefaultClass extends SampleClass {
 		public static SuValue[] args;
 		@Override
 		public SuValue methodDefault(SuValue[] args) {
@@ -127,13 +127,6 @@ public class SuClassTest {
 		public SuClass newInstance(SuValue... args) {
 			massage(noParams, args);
 			return new DefaultClass();
-		}
-		@Override
-		public String toString() {
-			return "DefaultClass";
-		}
-		@Override
-		public void setConstants(SuValue[][] c) {
 		}
 	}
 
@@ -171,11 +164,11 @@ public class SuClassTest {
 		assertEquals(s, instance.vars.get("value"));
 	}
 
-	static class WrapClass extends SuClass {
+	static class WrapClass extends SampleClass {
 		{
 			vars.put("Name", SuString.valueOf("Wrap"));
 		}
-		static final FunctionSpec params = new FunctionSpec("", 
+		static final FunctionSpec params = new FunctionSpec("",
 				new String[] { "value" }, 1, new SuValue[0], 0);
 		@Override
 		public SuClass newInstance(SuValue... args) {
@@ -186,14 +179,6 @@ public class SuClassTest {
 		}
 		WrapClass(SuValue[] args) {
 			vars.put("value", args[0]);
-		}
-
-		@Override
-		public String toString() {
-			return "WrapClass";
-		}
-		@Override
-		public void setConstants(SuValue[][] c) {
 		}
 	}
 }

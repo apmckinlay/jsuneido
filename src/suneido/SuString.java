@@ -2,18 +2,20 @@ package suneido;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static suneido.Util.array;
 import static suneido.Util.bufferToString;
+import static suneido.language.SuClass.massage;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import suneido.language.FunctionSpec;
-import suneido.language.SuClass;
 
 /**
  * Wrapper for Java String
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * Licensed under GPLv2.</small></p>
  */
 public class SuString extends SuValue {
 	private final String s;
@@ -183,22 +185,24 @@ public class SuString extends SuValue {
 
 	// methods ======================================================
 
+	private static FunctionSpec[] params = new FunctionSpec[] {
+		new FunctionSpec("Substr", array("i", "n"), 2, new SuValue[0], 0),
+		new FunctionSpec("Size", new String[0], 0, new SuValue[0], 0),
+	};
+	private static final int SUBSTR = 0;
+	private static final int SIZE = 1;
+
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Substr")
-			return substr(args);
+			return substr(massage(params[SUBSTR], args));
 		else if (method == "Size")
-			return size(args);
+			return size(massage(params[SIZE], args));
 		else
 			return super.invoke(method, args);
 	}
 
-	private static class SubstrSpec {
-		static final FunctionSpec spec = new FunctionSpec("Substr", 
-				new String[] { "i", "n" }, 2, new SuValue[0], 0);
-	}
 	private SuValue substr(SuValue[] args) {
-		args = SuClass.massage(SubstrSpec.spec, args);
 		int len = s.length();
 		int i = args[0].integer();
 		if (i < 0)
