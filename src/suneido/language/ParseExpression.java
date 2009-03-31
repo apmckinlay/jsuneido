@@ -173,10 +173,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return generator.newExpression(term, args);
 	}
 
-	private T term() {
-		return term(false);
-	}
-
 	public static class Value<T> {
 		public enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
 		Type type = null;
@@ -213,6 +209,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		boolean member() {
 			return type == Type.MEMBER;
 		}
+	}
+
+	private T term() {
+		return term(false);
 	}
 
 	private T term(boolean newTerm) {

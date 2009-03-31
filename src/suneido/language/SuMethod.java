@@ -28,7 +28,7 @@ public class SuMethod extends SuValue {
 
 	@Override
 	public String toString() {
-		return instance.toString() + "." + method;
+		return (instance == null ? "null" : instance.toString()) + "." + method;
 	}
 
 }

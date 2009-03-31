@@ -3,6 +3,7 @@
  */
 package suneido.language;
 
+import static suneido.language.FunctionSpec.noParams;
 import suneido.*;
 
 class TestClass extends SampleClass {
@@ -21,8 +22,6 @@ class TestClass extends SampleClass {
 	public static SuValue method2(SuValue[] args) {
 		return SuInteger.ZERO;
 	}
-	static final FunctionSpec noParams =
-			new FunctionSpec("", new String[0], 0, new SuValue[0], 0);
 	@Override
 	public SuClass newInstance(SuValue... args) {
 		massage(noParams, args);

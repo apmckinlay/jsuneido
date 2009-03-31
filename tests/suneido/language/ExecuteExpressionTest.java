@@ -19,6 +19,7 @@ public class ExecuteExpressionTest {
 		test("f = function (x, y) { x + y }; f(123, 456)", "579");
 		test("'hello world'.Size()", "11");
 		test("s = 'hello'; s.Substr(s.Size() - 2, 99)", "'lo'");
+		test("f = function (@x) { x }; f()", "#()");
 	}
 
 	private static void test(String expr, String result) {

@@ -14,7 +14,7 @@ import suneido.language.FunctionSpec;
 /**
  * Wrapper for Java String
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class SuString extends SuValue {
@@ -186,8 +186,8 @@ public class SuString extends SuValue {
 	// methods ======================================================
 
 	private static FunctionSpec[] params = new FunctionSpec[] {
-		new FunctionSpec("Substr", array("i", "n"), 2, new SuValue[0], 0),
-		new FunctionSpec("Size", new String[0], 0, new SuValue[0], 0),
+		new FunctionSpec("Substr", array("i", "n"), 2),
+		new FunctionSpec("Size", new String[0], 0),
 	};
 	private static final int SUBSTR = 0;
 	private static final int SIZE = 1;
