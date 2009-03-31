@@ -22,10 +22,12 @@ public class CompileExpressionTest {
  				"0=123, ARETURN");
 		test("b;;",
  				"b, POP");
-		test("b",
- 				"b, null?, ARETURN");
-		test("return b",
- 				"b, null?, ARETURN");
+		test("a", "a, ARETURN");
+		test("return b", "b, ARETURN");
+		test("x",
+ 				"x, null?, ARETURN");
+		test("return x",
+ 				"x, null?, ARETURN");
 		test("return a + b",
  				"a, b, .add, ARETURN");
 		test("a()",
@@ -41,11 +43,14 @@ public class CompileExpressionTest {
 		test("a = b $ c",
  				"&a, b, c, .cat, DUP_X2, AASTORE, ARETURN");
 		test("a = b = c",
- 				"&a, &b, c, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
+				"&a, &b, c, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
+		test("a = b = x",
+				"&a, &b, x, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
 		test("a = b; return c",
- 				"&a, b, null?, AASTORE, c, null?, ARETURN");
-		test("a = b = c; return c",
- 				"&a, &b, c, null?, DUP_X2, AASTORE, AASTORE, c, null?, ARETURN");
+ 				"&a, b, AASTORE, c, ARETURN");
+		test("a = x; return x", "&a, x, null?, AASTORE, x, null?, ARETURN");
+		test("a = b = c; return x",
+				"&a, &b, c, DUP_X2, AASTORE, AASTORE, x, null?, ARETURN");
 		test("return this",
  				"this, ARETURN");
 		test("a += b;;",
@@ -128,6 +133,7 @@ System.out.println(r);
 				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
 				{ "ALOAD 1, ICONST_2, AALOAD", "c" },
+				{ "ALOAD 1, ICONST_3, AALOAD", "x" },
 				{ "ALOAD 1, ICONST_0", "&a" },
 				{ "ALOAD 1, ICONST_1", "&b" },
 				{ "ALOAD 1, ICONST_2", "&c" },
@@ -170,11 +176,7 @@ System.out.println(r);
 				{ "LDC 'MyFunc', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
 				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? constants[0] : "") },
 				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? constants[1] : "") },
-				{
-								"const, 2, AALOAD",
-								"2="
-										+ (constants.length > 2 ? constants[2]
-												: "") },
+				{ "const, 2, AALOAD", "2=" + (constants.length > 2 ? constants[2] : "") },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

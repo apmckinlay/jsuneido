@@ -24,7 +24,7 @@ public class CompileGenerator implements Generator<Object> {
 	private final static int SELF = 0;
 	private final static int LOCALS = 1;
 	private final static int CONSTANTS = 2;
-	enum Stack { VALUE, LOCAL, CALLRESULT };
+	enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private List<FunctionSpec> functions = null;
 	private static final String[] arrayString = new String[0];
 	private static final SuValue[] arraySuValue = new SuValue[0];
@@ -50,6 +50,7 @@ public class CompileGenerator implements Generator<Object> {
 		boolean constantsUsed = false;
 		int ndefaults = 0;
 		int iConstants;
+		int nparams = 0;
 		boolean atParam;
 	}
 
@@ -107,10 +108,8 @@ public class CompileGenerator implements Generator<Object> {
 			if (pw != null)
 				cv = new TraceClassVisitor(cw, pw);
 
-			cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
-					"suneido/language/MyFunc",
-					null,
-					"suneido/language/SuFunction", null);
+			cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "suneido/language/MyFunc",
+					null, "suneido/language/SuFunction", null);
 
 			cv.visitSource("function.suneido", null);
 
@@ -159,8 +158,8 @@ public class CompileGenerator implements Generator<Object> {
 			assert (i == f.ndefaults);
 			++f.ndefaults;
 		}
-		int n = (list == null ? 0 : (Integer) list);
-		return n + 1;
+		++f.nparams;
+		return null;
 	}
 
 	private void gen_init() {
@@ -223,15 +222,15 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitEnd();
 	}
 
-	public Object returnStatement(Object expression) {
-		if (expression == null)
+	public Object returnStatement(Object expr) {
+		if (expr == null)
 			f.mv.visitInsn(ACONST_NULL);
-		else if (expression == LOCAL)
-			addNullCheck(expression);
-		else if (expression == VALUE || expression == CALLRESULT)
+		else if (expr == LOCAL)
+			addNullCheck(expr);
+		else if (expr == PARAMETER || expr == VALUE || expr == CALLRESULT)
 			; // return it
 		else
-			dupAndStore(expression);
+			dupAndStore(expr);
 		f.mv.visitInsn(ARETURN);
 		return "return";
 	}
@@ -259,9 +258,8 @@ public class CompileGenerator implements Generator<Object> {
 		if (f.constantsUsed)
 			constants.set(f.iConstants, constantsArray);
 
-		int nparams = (params == null ? 0 : (Integer) params);
 		FunctionSpec fs = new FunctionSpec(f.name, f.locals.toArray(arrayString),
-				nparams, constantsArray, f.ndefaults, f.atParam);
+				f.nparams, constantsArray, f.ndefaults, f.atParam);
 		functions.add(fs);
 
 		if (fstack.isEmpty()) {
@@ -429,9 +427,9 @@ public class CompileGenerator implements Generator<Object> {
 		if (name.equals("this"))
 			f.mv.visitVarInsn(ALOAD, SELF);
 		else if (Character.isLowerCase(name.charAt(0))) {
-			localRef(name);
+			int i = localRef(name);
 			f.mv.visitInsn(AALOAD);
-			return LOCAL;
+			return i < f.nparams ? PARAMETER : LOCAL;
 		} else {
 			f.mv.visitLdcInsn(name);
 			f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "get",
@@ -440,9 +438,11 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
-	private void localRef(String name) {
+	private int localRef(String name) {
 		f.mv.visitVarInsn(ALOAD, LOCALS);
-		iconst(f.mv, addLocal(name));
+		int i = addLocal(name);
+		iconst(f.mv, i);
+		return i;
 	}
 
 	private int addLocal(String name) {
@@ -499,7 +499,6 @@ public class CompileGenerator implements Generator<Object> {
 			if (value.type == IDENTIFIER
 					&& (expression == LOCAL || expression == CALLRESULT))
 				addNullCheck(expression);
-			// TODO params don't need to be checked
 		} else {
 			identifier(value.id);
 			binaryMethod(assignOp(op));
