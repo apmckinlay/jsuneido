@@ -32,7 +32,10 @@ public interface Generator<T> {
 
 	T identifier(String text);
 
-	T ifStatement(T expression, T t, T f);
+	Object ifExpr();
+	void ifThen(Object label, T t);
+	Object ifElse(Object label);
+	T ifStatement(T expression, T t, T e, Object label);
 
 	T in(T expression, T constant);
 

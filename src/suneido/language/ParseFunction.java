@@ -203,9 +203,15 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private T ifStatement() {
 		match(IF);
 		T expr = optionalParensExpression();
+		Object label = generator.ifExpr();
 		T truePart = statement();
-		T falsePart = matchIf(ELSE) ? statement() : null;
-		return generator.ifStatement(expr, truePart, falsePart);
+		generator.ifThen(label, truePart);
+		T falsePart = null;
+		if (matchIf(ELSE)) {
+			label = generator.ifElse(label);
+			falsePart = statement();
+		}
+		return generator.ifStatement(expr, truePart, falsePart, label);
 	}
 
 	private T optionalParensExpression() {

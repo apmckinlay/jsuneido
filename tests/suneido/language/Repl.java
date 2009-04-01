@@ -31,7 +31,7 @@ public class Repl {
 		out.flush();
 	}
 
-	private static void saveTest(String line, SuValue result) 
+	private static void saveTest(String line, SuValue result)
 			throws FileNotFoundException {
 		PrintWriter pw =
 				new PrintWriter(new FileOutputStream("repl.txt", true));
@@ -40,9 +40,10 @@ public class Repl {
 		pw.close();
 	}
 
-	private static SuValue compile(String s) {
+	private static SuValue compile(String s) throws FileNotFoundException {
 		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator();
+		PrintWriter pw = new PrintWriter(new FileOutputStream("repl.out"));
+		CompileGenerator generator = new CompileGenerator(pw);
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return (SuValue) pc.parse();

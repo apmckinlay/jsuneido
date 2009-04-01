@@ -22,8 +22,10 @@ public class CompileExpressionTest {
  				"0=123, ARETURN");
 		test("b;;",
  				"b, POP");
-		test("a", "a, ARETURN");
-		test("return b", "b, ARETURN");
+		test("a",
+				"a, ARETURN");
+		test("return b",
+				"b, ARETURN");
 		test("x",
  				"x, null?, ARETURN");
 		test("return x",
@@ -48,7 +50,8 @@ public class CompileExpressionTest {
 				"&a, &b, x, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
 		test("a = b; return c",
  				"&a, b, AASTORE, c, ARETURN");
-		test("a = x; return x", "&a, x, null?, AASTORE, x, null?, ARETURN");
+		test("a = x; return x",
+				"&a, x, null?, AASTORE, x, null?, ARETURN");
 		test("a = b = c; return x",
 				"&a, &b, c, DUP_X2, AASTORE, AASTORE, x, null?, ARETURN");
 		test("return this",
@@ -99,15 +102,6 @@ public class CompileExpressionTest {
 		assertEquals(expr, expected, compile(expr));
 	}
 
-	private String after(String r, String s) {
-		int i = r.indexOf(s);
-		return r.substring(i + s.length(), r.length());
-	}
-	private String before(String r, String s) {
-		int i = r.indexOf(s);
-		return r.substring(0, i);
-	}
-
 	private String compile(String s) {
 System.out.println("====== " + s);
 		s = "function (a,b,c) { " + s + " }";
@@ -130,6 +124,7 @@ System.out.println(r);
 			? new SuValue[0]
 			: generator.constants.get(0);
 		String[][] simplify = {
+				{ "GETSTATIC suneido/language/MyFunc.constants : [[Lsuneido/SuValue;, ICONST_0, AALOAD, ASTORE 2, ", "" },
 				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
 				{ "ALOAD 1, ICONST_2, AALOAD", "c" },
@@ -150,7 +145,6 @@ System.out.println(r);
 				{ "suneido/SuNumber", "SuNumber" },
 				{ "java/lang/String", "String" },
 				{ "ANEWARRAY SuValue", "new SuValue[]" },
-				{ "GETSTATIC suneido/language/MyFunc.constants : [[LSuValue;, BIPUSH 0, AALOAD, DUP, ASTORE 2", "const" },
 				{ "GETSTATIC suneido/language/SuClass.", "" },
 				{ " : LSuString;", "" },
 				{ "INVOKESTATIC suneido/language/Globals.get (LString;)LSuValue;", "global" },
@@ -183,6 +177,14 @@ System.out.println(r);
 		return r;
 	}
 
+	private static String after(String r, String s) {
+		int i = r.indexOf(s);
+		return r.substring(i + s.length(), r.length());
+	}
 
+	private static String before(String r, String s) {
+		int i = r.indexOf(s);
+		return r.substring(0, i);
+	}
 
 }

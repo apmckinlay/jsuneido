@@ -22,15 +22,17 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String function(String parameters, String statementList) {
-		return "function (" + str(parameters) + ") { " + str("", statementList, " ") + "}";
+		return "function (" + str(parameters) + ") { "
+				+ str("", statementList, " ") + "}";
 	}
 
 	public String identifier(String text) {
 		return text;
 	}
 
-	public String ifStatement(String expression, String t, String f) {
-		return "if (" + expression + ") {" + str(" ", t, "") + " }" + str(" else { ", f, " }");
+	public String ifStatement(String expr, String t, String f, Object label) {
+		return "if (" + expr + ") {" + str(" ", t, "") + " }"
+				+ str(" else { ", f, " }");
 	}
 
 	public String returnStatement(String expression) {
@@ -253,28 +255,27 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void preFunctionCall(Value<String> value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public Object and(Object prevlabel) {
-		// TODO Auto-generated method stub
 		return null;
 	}
-
 	public void andEnd(Object label) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public Object or(Object label) {
-		// TODO Auto-generated method stub
 		return null;
 	}
-
 	public void orEnd(Object label) {
-		// TODO Auto-generated method stub
+	}
 
+	public Object ifExpr() {
+		return null;
+	}
+	public void ifThen(Object label, String t) {
+	}
+	public Object ifElse(Object label) {
+		return null;
 	}
 
 }
