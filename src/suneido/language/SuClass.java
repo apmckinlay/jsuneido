@@ -33,6 +33,16 @@ public abstract class SuClass extends SuValue {
 	@Override
 	abstract public SuClass newInstance(SuValue... args);
 
+	public static boolean bool(SuValue value) {
+		if (value == SuBoolean.TRUE)
+			return true;
+		else if (value == SuBoolean.FALSE)
+			return false;
+		else
+			throw new SuException("expected true or false, got: "
+					+ value.typeName());
+	}
+
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Type")

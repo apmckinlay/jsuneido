@@ -268,7 +268,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return new Identifier(text);
 	}
 
-	public Object ifStatement(Object expression, Object t, Object f) {
+	public Object ifStatement(Object expr, Object t, Object f, Object label) {
 		return null;
 	}
 
@@ -403,28 +403,29 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void preFunctionCall(Value<Object> value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public Object and(Object prevlabel) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public void andEnd(Object label) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public Object or(Object label) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public void orEnd(Object label) {
-		// TODO Auto-generated method stub
+	}
 
+	public Object ifExpr() {
+		return null;
+	}
+	public void ifThen(Object label, Object t) {
+	}
+	public Object ifElse(Object label) {
+		return null;
 	}
 
 }

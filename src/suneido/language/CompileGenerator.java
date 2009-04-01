@@ -47,7 +47,6 @@ public class CompileGenerator implements Generator<Object> {
 		Label startLabel;
 		List<String> locals;
 		List<SuValue> constants;
-		boolean constantsUsed = false;
 		int ndefaults = 0;
 		int iConstants;
 		int nparams = 0;
@@ -132,6 +131,8 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitCode();
 		f.startLabel = new Label();
 		f.mv.visitLabel(f.startLabel);
+
+		loadConstants();
 
 		f.locals = new ArrayList<String>();
 		f.constants = new ArrayList<SuValue>();
@@ -222,6 +223,18 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitEnd();
 	}
 
+	private void loadConstants() {
+		if (constants == null)
+			constants = new ArrayList<SuValue[]>();
+		f.iConstants = constants.size();
+		constants.add(null); // to increase size, set correctly in function
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/MyFunc", "constants",
+				"[[Lsuneido/SuValue;");
+		iconst(f.mv, f.iConstants);
+		f.mv.visitInsn(AALOAD);
+		f.mv.visitVarInsn(ASTORE, CONSTANTS);
+	}
+
 	public Object returnStatement(Object expr) {
 		if (expr == null)
 			f.mv.visitInsn(ACONST_NULL);
@@ -235,9 +248,7 @@ public class CompileGenerator implements Generator<Object> {
 		return "return";
 	}
 
-	/**
-	 * function is called at the end of the function
-	 */
+	/** function is called at the end of the function */
 	public Object function(Object params, Object compound) {
 
 		if (compound != "return")
@@ -255,8 +266,7 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitEnd();
 
 		SuValue[] constantsArray = f.constants.toArray(arraySuValue);
-		if (f.constantsUsed)
-			constants.set(f.iConstants, constantsArray);
+		constants.set(f.iConstants, constantsArray);
 
 		FunctionSpec fs = new FunctionSpec(f.name, f.locals.toArray(arrayString),
 				f.nparams, constantsArray, f.ndefaults, f.atParam);
@@ -383,20 +393,7 @@ public class CompileGenerator implements Generator<Object> {
 			return VALUE;
 		}
 		int i = constantFor(value);
-		if (!f.constantsUsed) {
-			f.constantsUsed = true;
-			if (constants == null)
-				constants = new ArrayList<SuValue[]>();
-			f.iConstants = constants.size();
-			constants.add(null); // to increase size, set correctly in function
-			f.mv.visitFieldInsn(GETSTATIC, "suneido/language/MyFunc",
-					"constants", "[[Lsuneido/SuValue;");
-			f.mv.visitIntInsn(BIPUSH, f.iConstants);
-			f.mv.visitInsn(AALOAD);
-			f.mv.visitInsn(DUP);
-			f.mv.visitVarInsn(ASTORE, CONSTANTS);
-		} else
-			f.mv.visitVarInsn(ALOAD, CONSTANTS);
+		f.mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(f.mv, i);
 		f.mv.visitInsn(AALOAD);
 		return VALUE;
@@ -413,7 +410,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	private void iconst(MethodVisitor mv, int i) {
-		if (i <= 5 || i == -1)
+		if (-1 <= i && i <= 5)
 			mv.visitInsn(ICONST_0 + i);
 		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
 			mv.visitVarInsn(BIPUSH, i);
@@ -625,7 +622,7 @@ public class CompileGenerator implements Generator<Object> {
 					"()Lsuneido/SuValue;");
 			break;
 		case ADD:
-			// TODO should implement this (altho cSuneido doesn't)
+			// should have a uplus, but cSuneido doesn't
 			break;
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
@@ -798,8 +795,25 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object ifStatement(Object expression, Object t, Object f) {
-		// TODO Auto-generated method stub
+	public Object ifExpr() {
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc",
+				"bool", "(Lsuneido/SuValue;)Z");
+		Label pastThen = new Label();
+		f.mv.visitJumpInsn(IFEQ, pastThen);
+		return pastThen;
+	}
+	public void ifThen(Object label, Object t) {
+		beforeStatement(t);
+	}
+	public Object ifElse(Object pastThen) {
+		Label pastElse = new Label();
+		f.mv.visitJumpInsn(GOTO, pastElse);
+		f.mv.visitLabel((Label) pastThen);
+		return pastElse;
+	}
+	public Object ifStatement(Object expr, Object t, Object e, Object afterIf) {
+		beforeStatement(e);
+		f.mv.visitLabel((Label) afterIf);
 		return null;
 	}
 
