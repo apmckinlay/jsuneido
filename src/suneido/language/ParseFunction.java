@@ -27,7 +27,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	protected T functionWithoutKeyword() {
 		generator.startFunction();
 		T params = parameters();
-		T body = compound();
+		T body = compound(null);
 		return generator.function(params, body);
 	}
 
@@ -53,33 +53,36 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		matchSkipNewlines(R_PAREN);
 		return params;
 	}
-	public T compound() {
+	public T compound(Object loop) {
 		match(L_CURLY);
-		T statements = statementList();
+		T statements = statementList(loop);
 		match(R_CURLY);
 		return statements;
 	}
 
 	public T statementList() {
+		return statementList(null);
+	}
+	public T statementList(Object loop) {
 		T statements = null;
 		while (token != R_CURLY) {
 			generator.afterStatement(statements);
-			statements = generator.statementList(statements, statement());
+			statements = generator.statementList(statements, statement(loop));
 		}
 		return statements;
 	}
 
-	public T statement() {
+	public T statement(Object loop) {
 		if (token == L_CURLY)
-			return compound();
+			return compound(loop);
 		else if (matchIf(SEMICOLON))
 			return null;
 
 		switch (lexer.getKeyword()) {
 		case BREAK:
-			return breakStatement();
+			return breakStatement(loop);
 		case CONTINUE:
-			return continueStatement();
+			return continueStatement(loop);
 		case DO:
 			return dowhileStatement();
 		case FOR:
@@ -87,7 +90,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		case FOREVER:
 			return foreverStatement();
 		case IF:
-			return ifStatement();
+			return ifStatement(loop);
 		case RETURN:
 			return returnStatement();
 		case SWITCH:
@@ -103,26 +106,30 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 	}
 
-	private T breakStatement() {
+	private T breakStatement(Object loop) {
 		match(BREAK);
 		matchIf(SEMICOLON);
-		return generator.breakStatement();
+		if (loop == null)
+			syntaxError("break can only be used within a loop");
+		return generator.breakStatement(loop);
 	}
 
-	private T continueStatement() {
+	private T continueStatement(Object loop) {
 		match(CONTINUE);
 		matchIf(SEMICOLON);
-		return generator.continueStatement();
+		if (loop == null)
+			syntaxError("continue can only be used within a loop");
+		return generator.continueStatement(loop);
 	}
 
 	private T dowhileStatement() {
 		match(DO);
-		Object label = generator.label();
-		T stat = statement();
-		generator.afterStatement(stat);
+		Object loop = generator.loop();
+		T statement = statement(loop);
+		generator.afterStatement(statement);
 		match(WHILE);
 		T expr = optionalParensExpression();
-		return generator.dowhileStatement(stat, expr, label);
+		return generator.dowhileStatement(statement, expr, loop);
 	}
 
 	private T expressionStatement() {
@@ -173,7 +180,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			matchIf(NEWLINE);
 		statementNest = prevStatementNest;
 		expectingCompound = false;
-		T stat = statement();
+		T stat = statement(null);
 		return generator.forInStatement(var, expr, stat);
 	}
 
@@ -185,7 +192,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		match(SEMICOLON);
 		T expr3 = token == R_PAREN ? null : expressionList();
 		match(R_PAREN);
-		T stat = statement();
+		T stat = statement(null);
 		return generator.forClassicStatement(expr1, expr2, expr3, stat);
 	}
 
@@ -199,20 +206,21 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T foreverStatement() {
 		match(FOREVER);
-		Object label = generator.label();
-		return generator.foreverStatement(statement(), label);
+		Object loop = generator.loop();
+		T statement = statement(loop);
+		return generator.foreverStatement(statement, loop);
 	}
 
-	private T ifStatement() {
+	private T ifStatement(Object loop) {
 		match(IF);
 		T expr = optionalParensExpression();
 		Object label = generator.ifExpr(expr);
-		T truePart = statement();
+		T truePart = statement(loop);
 		generator.ifThen(label, truePart);
 		T falsePart = null;
 		if (matchIf(ELSE)) {
 			label = generator.ifElse(label);
-			falsePart = statement();
+			falsePart = statement(loop);
 		}
 		return generator.ifStatement(expr, truePart, falsePart, label);
 	}
@@ -265,7 +273,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token != R_CURLY &&
 				lexer.getKeyword() != CASE &&
 				lexer.getKeyword() != DEFAULT)
-			statements = generator.statementList(statements, statement());
+			statements = generator.statementList(statements, statement(null));
 		return generator.switchCases(cases, values, statements);
 	}
 
@@ -276,7 +284,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T tryStatement() {
 		match(TRY);
-		T tryStat = statement();
+		T tryStat = statement(null);
 		T catcher = catcher();
 		return generator.tryStatement(tryStat, catcher);
 	}
@@ -297,16 +305,16 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			}
 			match(R_PAREN);
 		}
-		return generator.catcher(variable, pattern, statement());
+		return generator.catcher(variable, pattern, statement(null));
 	}
 
 	private T whileStatement() {
 		match(WHILE);
-		Object startLabel = generator.label();
+		Object loop = generator.loop();
 		T expr = optionalParensExpression();
-		Object endLabel = generator.ifExpr(expr);
-		T stat = statement();
-		return generator.whileStatement(expr, stat, startLabel, endLabel);
+		generator.whileExpr(expr, loop);
+		T stat = statement(loop);
+		return generator.whileStatement(expr, stat, loop);
 	}
 
 	private boolean endOfStatement() {

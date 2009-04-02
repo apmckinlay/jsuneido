@@ -189,7 +189,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return value ? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
-	public Object breakStatement() {
+	public Object breakStatement(Object loop) {
 		return null;
 	}
 
@@ -215,7 +215,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return Constant.valueOf((SuValue) value);
 	}
 
-	public Object continueStatement() {
+	public Object continueStatement(Object loop) {
 		return null;
 	}
 
@@ -372,7 +372,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object whileStatement(Object expression, Object statement,
-			Object startLabel, Object endLabel) {
+			Object loop) {
 		return null;
 	}
 
@@ -434,8 +434,11 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object label() {
-		return null;
+	public Object loop() {
+		return true; // can't be null
+	}
+
+	public void whileExpr(Object expr, Object loop) {
 	}
 
 }
