@@ -21,9 +21,9 @@ public interface Generator<T> {
 	Object conditionalTrue(Object label, T first);
 	T conditional(T primaryExpression, T first, T second, Object label);
 
-	T dowhileStatement(T statement, T expression);
+	T dowhileStatement(T statement, T expression, Object label);
 
-	T foreverStatement(T statement);
+	T foreverStatement(T statement, Object label);
 
 	T expressionStatement(T expression);
 
@@ -42,13 +42,13 @@ public interface Generator<T> {
 
 	T returnStatement(T expression);
 
-	void betweenStatements(T statements);
+	void afterStatement(T statements);
 
 	T statementList(T n, T next);
 
 	T unaryExpression(Token op, T expression);
 
-	Object loop();
+	Object label();
 	T whileStatement(T expression, T statement,
 			Object startLabel, Object endLabel);
 

@@ -86,6 +86,10 @@ public class ExecuteTest {
 		test("i = 0; while (i < 5) i += 2; i", "6");
 		test("i = 6; while (i < 5) i += 2; i", "6");
 	}
+	@Test public void test_do_while() {
+		test("i = 0; do i += 2; while (i < 5); i", "6");
+		test("i = 6; do i += 2; while (i < 5); i", "8");
+	}
 	@Test public void test_assignOpOrder() {
 		test("s = 1; s $= 2", "'12'");
 		test("n = 10; n -= 5", "5");
