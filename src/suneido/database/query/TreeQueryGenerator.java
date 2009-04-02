@@ -206,7 +206,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object conditional(Object expr, Object iftrue, Object iffalse) {
+	public Object conditional(Object expr, Object iftrue, Object iffalse,
+			Object label) {
 		return new TriOp((Expr) expr, (Expr) iftrue, (Expr) iffalse);
 	}
 
@@ -425,6 +426,10 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void ifThen(Object label, Object t) {
 	}
 	public Object ifElse(Object label) {
+		return null;
+	}
+
+	public Object conditionalTrue(Object label, Object first) {
 		return null;
 	}
 

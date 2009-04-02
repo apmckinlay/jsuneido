@@ -581,6 +581,11 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
+	/**
+	 * assignments are delayed because store's lose the expression value so if
+	 * we need the value we have to dup before storing but we don't know if we
+	 * need the value until later, thus the delay
+	 */
 	private void dupAndStore(Object expr) {
 		if (!(expr instanceof Value.Type))
 			return;
@@ -749,10 +754,15 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
+	public Object conditionalTrue(Object label, Object first) {
+		dupAndStore(first);
+		return ifElse(label);
+	}
 	public Object conditional(Object primaryExpression, Object first,
-			Object second) {
-		// TODO Auto-generated method stub
-		return null;
+			Object second, Object label) {
+		dupAndStore(second);
+		f.mv.visitLabel((Label) label);
+		return VALUE;
 	}
 
 	public Object breakStatement() {

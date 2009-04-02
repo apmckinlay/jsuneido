@@ -27,13 +27,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T conditionalExpression() {
 		T first = orExpression();
 		if (token == Q_MARK) {
+			Object label = generator.ifExpr();
 			++statementNest;
 			match(Q_MARK);
 			T t = expression();
+			label = generator.conditionalTrue(label, t);
 			match(COLON);
 			--statementNest;
 			T f = expression();
-			return generator.conditional(first, t, f);
+			return generator.conditional(first, t, f, label);
 		} else {
 			return first;
 		}

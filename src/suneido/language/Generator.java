@@ -18,7 +18,8 @@ public interface Generator<T> {
 	Object or(Object label);
 	void orEnd(Object label);
 
-	T conditional(T primaryExpression, T first, T second);
+	Object conditionalTrue(Object label, T first);
+	T conditional(T primaryExpression, T first, T second, Object label);
 
 	T dowhileStatement(T statement, T expression);
 
