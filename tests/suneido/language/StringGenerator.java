@@ -13,7 +13,8 @@ public class StringGenerator implements Generator<String> {
 				+ ")";
 	}
 
-	public String conditional(String expression, String first, String second) {
+	public String conditional(String expression, String first, String second,
+			Object label) {
 		return "(" + expression + " ? " + first + " : " + second + ")";
 	}
 
@@ -275,6 +276,10 @@ public class StringGenerator implements Generator<String> {
 	public void ifThen(Object label, String t) {
 	}
 	public Object ifElse(Object label) {
+		return null;
+	}
+
+	public Object conditionalTrue(Object label, String first) {
 		return null;
 	}
 
