@@ -59,4 +59,14 @@ public class SuBoolean extends SuValue {
 	public SuValue not() {
 		return b ? FALSE : TRUE;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return this == other; // ok since there are only the two instances
+	}
+
+	@Override
+	public int hashCode() {
+		return ((Boolean) b).hashCode();
+	}
 }

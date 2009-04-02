@@ -164,4 +164,13 @@ public abstract class SuClass extends SuValue {
 	public static final SuString EACH1 = SuString.makeUnique("<each1>");
 	public static final SuString NAMED = SuString.makeUnique("<named>");
 
+	@Override
+	public boolean equals(Object other) {
+		return this == other; // identity
+	}
+
+	@Override
+	public int hashCode() {
+		return System.identityHashCode(this);
+	}
 }

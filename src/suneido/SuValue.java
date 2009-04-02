@@ -10,6 +10,10 @@ import java.nio.ByteBuffer;
 public abstract class SuValue implements Packable, Comparable<SuValue> {
 	@Override
 	public abstract String toString();
+	@Override
+	public abstract int hashCode();
+	@Override
+	public abstract boolean equals(Object other);
 
 	public String strIfStr() {
 		return null;
@@ -118,10 +122,13 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	}
 
 	/**
-	 * This is a default implementation,
-	 * it should be overridden if there is a "natural" ordering, e.g. numbers, strings, dates
-	 * Orders first by order(), then by hashCode.
-	 * <p>WARNING: will return 0 for different objects if they happen to have the same hashCode.
+	 * This is a default implementation, it should be overridden if there is a
+	 * "natural" ordering, e.g. numbers, strings, dates Orders first by order(),
+	 * then by hashCode.
+	 * <p>
+	 * WARNING: will return 0 for different objects if they happen to have the
+	 * same hashCode.
+	 *
 	 * @param value
 	 * @return 0, -1, or +1
 	 */
@@ -137,14 +144,32 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	protected int compareToInt(SuInteger x) {
 		throw SuException.unreachable();
 	}
-
 	protected int compareToDec(SuDecimal x) {
 		throw SuException.unreachable();
 	}
-
 	protected enum Order { BOOLEAN, NUMBER, STRING, DATE, CONTAINER, OTHER };
 	public int order() {
 		return Order.OTHER.ordinal();
+	}
+
+	public final SuBoolean is(SuValue x) {
+		return equals(x) ? SuBoolean.TRUE : SuBoolean.FALSE;
+	}
+	public final SuBoolean isnt(SuValue x) {
+		return equals(x) ? SuBoolean.TRUE : SuBoolean.FALSE;
+	}
+
+	public final SuBoolean lt(SuValue x) {
+		return compareTo(x) < 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
+	}
+	public final SuBoolean lte(SuValue x) {
+		return compareTo(x) <= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
+	}
+	public final SuBoolean gt(SuValue x) {
+		return compareTo(x) > 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
+	}
+	public final SuBoolean gte(SuValue x) {
+		return compareTo(x) >= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
 	// handle conversion of left hand side (this)

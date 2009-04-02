@@ -60,6 +60,35 @@ public class ExecuteTest {
 		test("if (true) x = 1; x", "1");
 		test("if (false) x = 1; else x = 2; x", "2");
 		test("if (true) x = 1; else x = 2; x", "1");
+		test("if (x = true) y = 123; y", "123");
+	}
+	@Test public void test_lt() {
+		test("2 < 3", "true");
+		test("3 < 2", "false");
+		test("2 < 2", "false");
+	}
+	@Test public void test_lte() {
+		test("2 <= 3", "true");
+		test("3 <= 2", "false");
+		test("2 <= 2", "true");
+	}
+	@Test public void test_gt() {
+		test("2 > 3", "false");
+		test("3 > 2", "true");
+		test("2 > 2", "false");
+	}
+	@Test public void test_gte() {
+		test("2 >= 3", "false");
+		test("3 >= 2", "true");
+		test("2 >= 2", "true");
+	}
+	@Test public void test_while() {
+		test("i = 0; while (i < 5) i += 2; i", "6");
+		test("i = 6; while (i < 5) i += 2; i", "6");
+	}
+	@Test public void test_assignOpOrder() {
+		test("s = 1; s $= 2", "'12'");
+		test("n = 10; n -= 5", "5");
 	}
 
 	private static void test(String expr, String result) {

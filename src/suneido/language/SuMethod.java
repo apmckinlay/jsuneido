@@ -31,4 +31,24 @@ public class SuMethod extends SuValue {
 		return (instance == null ? "null" : instance.toString()) + "." + method;
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (other == this)
+			return true;
+		if (other instanceof SuMethod) {
+			SuMethod that = (SuMethod) other;
+			return instance.equals(that.instance) && method.equals(that.method);
+		}
+		return false;
+	}
+
+	/** as recommended by Effective Java */
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 31 * result + instance.hashCode();
+		result = 31 * result + method.hashCode();
+		return result;
+	}
+
 }

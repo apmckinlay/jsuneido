@@ -371,7 +371,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return new UnOp(op, (Expr) expression);
 	}
 
-	public Object whileStatement(Object expression, Object statement) {
+	public Object whileStatement(Object expression, Object statement,
+			Object startLabel, Object endLabel) {
 		return null;
 	}
 
@@ -397,7 +398,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void lvalue(Value<Object> value) {
 	}
 
-	public void beforeStatement(Object statements) {
+	public void betweenStatements(Object statements) {
 	}
 
 	public void argumentName(String keyword) {
@@ -420,7 +421,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void orEnd(Object label) {
 	}
 
-	public Object ifExpr() {
+	public Object ifExpr(Object expr) {
 		return null;
 	}
 	public void ifThen(Object label, Object t) {
@@ -430,6 +431,10 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object conditionalTrue(Object label, Object first) {
+		return null;
+	}
+
+	public Object loop() {
 		return null;
 	}
 
