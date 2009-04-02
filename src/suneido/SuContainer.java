@@ -89,16 +89,20 @@ public class SuContainer extends SuValue {
 	public int hashCode() {
 		return hashCode(0);
 	}
+	/** as recommended by Effective Java
+	 *  can't use vec and map hashCode methods 
+	 *  because we need to check nesting */
 	@Override
 	public int hashCode(int nest) {
 		checkNest(++nest);
-		int hash = size();
+		int result = 17;
 		for (SuValue x : vec)
-			hash += x.hashCode(nest);
-		for (Map.Entry<SuValue,SuValue> e : map.entrySet())
-			hash += e.getKey().hashCode(nest) + e.getValue().hashCode(nest);
-		return hash;
-		//TODO handle stack overflow from self-reference
+			result = 31 * result + x.hashCode(nest);
+		for (Map.Entry<SuValue,SuValue> e : map.entrySet()) {
+			result = 31 * result + e.getKey().hashCode(nest);
+			result = 31 * result + e.getValue().hashCode(nest);
+		}
+		return result;
 	}
 
 	@Override

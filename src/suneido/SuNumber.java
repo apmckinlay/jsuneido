@@ -112,11 +112,7 @@ public abstract class SuNumber extends SuValue {
 		return n;
 	}
 
-	/**
-	 * <b>Warning:</b> This <u>ignores</u> any scale.
-	 * @param buf
-	 * @return The long value.
-	 */
+	/** Warning: This ignores any scale. */
 	public static long unpackLong(ByteBuffer buf) {
 		byte b = buf.get();
 		verify(b == Pack.PLUS || b == Pack.MINUS);
@@ -143,22 +139,4 @@ public abstract class SuNumber extends SuValue {
 		return toString();
 	}
 
-//	public static void main(String args[]) {
-//		String[] values = {
-//				"1", "10", "123", "1000", "9999", "10000", "10002", "100020000", "100020003","1000200030004",
-//				".12", ".1", ".01", ".001", ".0001", ".00010002", ".00001"
-//				};
-//		for (String s : values) {
-//			SuNumber n = new SuDecimal(s);
-//			int ps = n.packsize();
-//			System.out.print(n);
-//			ByteBuffer buf = ByteBuffer.allocate(ps);
-//			n.pack(buf);
-//			for (int i = 0; i < ps; ++i)
-//				System.out.print(" " + (int) (buf.get(i) & 0xff));
-//			SuValue x = unpack1(buf);
-//			System.out.print(" " + x.typeName() + " " + x);
-//			System.out.println("");
-//		}
-//	}
 }

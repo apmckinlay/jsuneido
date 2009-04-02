@@ -48,7 +48,8 @@ public class StringGenerator implements Generator<String> {
 		return str("", list, " ") + str(statement);
 	}
 
-	public String whileStatement(String expression, String statement) {
+	public String whileStatement(String expression, String statement,
+			Object startLabel, Object endLabel) {
 		return "while (" + expression + ") {" + str(" ", statement, "") + " }";
 	}
 
@@ -249,7 +250,7 @@ public class StringGenerator implements Generator<String> {
 	public void lvalue(Value<String> value) {
 	}
 
-	public void beforeStatement(String statements) {
+	public void betweenStatements(String statements) {
 	}
 
 	public void argumentName(String keyword) {
@@ -270,7 +271,7 @@ public class StringGenerator implements Generator<String> {
 	public void orEnd(Object label) {
 	}
 
-	public Object ifExpr() {
+	public Object ifExpr(String expr) {
 		return null;
 	}
 	public void ifThen(Object label, String t) {
@@ -280,6 +281,10 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public Object conditionalTrue(Object label, String first) {
+		return null;
+	}
+
+	public Object loop() {
 		return null;
 	}
 

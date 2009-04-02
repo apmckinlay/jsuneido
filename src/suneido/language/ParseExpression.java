@@ -27,7 +27,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T conditionalExpression() {
 		T first = orExpression();
 		if (token == Q_MARK) {
-			Object label = generator.ifExpr();
+			Object label = generator.ifExpr(first);
 			++statementNest;
 			match(Q_MARK);
 			T t = expression();

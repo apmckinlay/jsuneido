@@ -33,7 +33,7 @@ public interface Generator<T> {
 
 	T identifier(String text);
 
-	Object ifExpr();
+	Object ifExpr(T expr);
 	void ifThen(Object label, T t);
 	Object ifElse(Object label);
 	T ifStatement(T expression, T t, T e, Object label);
@@ -42,13 +42,15 @@ public interface Generator<T> {
 
 	T returnStatement(T expression);
 
-	void beforeStatement(T statements);
+	void betweenStatements(T statements);
 
 	T statementList(T n, T next);
 
 	T unaryExpression(Token op, T expression);
 
-	T whileStatement(T expression, T statement);
+	Object loop();
+	T whileStatement(T expression, T statement,
+			Object startLabel, Object endLabel);
 
 	T number(String value);
 

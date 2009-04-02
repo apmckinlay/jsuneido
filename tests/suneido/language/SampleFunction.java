@@ -26,9 +26,7 @@ public class SampleFunction extends SuFunction {
 	}
 
 	private SuValue invoke(SuValue... args) {
-		if (bool(args[0]))
-			return null;
-		return null;
+		return args[0].lt(args[1]);
 	}
 
 }

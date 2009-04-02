@@ -498,7 +498,9 @@ public class CompileGenerator implements Generator<Object> {
 				addNullCheck(expression);
 		} else {
 			identifier(value.id);
-			binaryMethod(assignOp(op));
+			if (!op.commutative())
+				f.mv.visitInsn(SWAP);
+			binaryMethod(op);
 		}
 		return value.type;
 	}
@@ -517,19 +519,13 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitLabel(label);
 	}
 
-	private String assignOp(Token op) {
-		String s = op.toString();
-		return s.substring(0, s.length() - 2).toLowerCase();
-	}
-
 	private void valueMethod_v(String method) {
 		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
 				"()Lsuneido/SuValue;");
 	}
-	private void binaryMethod(String method) {
-		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", method,
-				method.equals("cat") ? "(Lsuneido/SuValue;)Lsuneido/SuString;"
-						: "(Lsuneido/SuValue;)Lsuneido/SuNumber;");
+	private void binaryMethod(Token op) {
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue",
+				op.method, op.resultType.type);
 	}
 	private void getMember() {
 		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "get",
@@ -616,7 +612,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
-		binaryMethod(op.toString().toLowerCase());
+		binaryMethod(op);
 		return VALUE;
 	}
 
@@ -691,24 +687,7 @@ public class CompileGenerator implements Generator<Object> {
 	// complex constants
 
 	public Object classConstant(String base, Object members) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	// end of expression stuff
-
-	public Object block(Object params, Object statements) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object caseValues(Object values, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object catcher(String variable, String pattern, Object statement) {
-		// TODO Auto-generated method stub
+		// TODO class constant
 		return null;
 	}
 
@@ -765,55 +744,46 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
-	public Object breakStatement() {
-		// TODO Auto-generated method stub
+	public Object in(Object expression, Object constant) {
+		// TODO in
 		return null;
 	}
 
-	public Object continueStatement() {
-		// TODO Auto-generated method stub
+	public Object newExpression(Object term, Object arguments) {
+		// TODO new
 		return null;
 	}
 
-	public Object dowhileStatement(Object statement, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * pop any value left on the stack complete delayed assignment
+	 */
+	public void betweenStatements(Object list) {
+		if (list instanceof Stack)
+			f.mv.visitInsn(POP);
+		else if (list instanceof Value.Type)
+			store(list);
 	}
 
-	public Object expressionList(Object list, Object expression) {
-		// TODO Auto-generated method stub
-		return null;
+	// statements
+
+	public Object statementList(Object list, Object next) {
+		return next;
 	}
 
 	public Object expressionStatement(Object expression) {
 		return expression;
 	}
 
-	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
-			Object statement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object forInStatement(String var, Object expr, Object statement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object foreverStatement(Object statement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object ifExpr() {
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc",
-				"bool", "(Lsuneido/SuValue;)Z");
-		Label pastThen = new Label();
-		f.mv.visitJumpInsn(IFEQ, pastThen);
-		return pastThen;
+	public Object ifExpr(Object expr) {
+		dupAndStore(expr);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc", "bool",
+				"(Lsuneido/SuValue;)Z");
+		Label label = new Label();
+		f.mv.visitJumpInsn(IFEQ, label);
+		return label;
 	}
 	public void ifThen(Object label, Object t) {
-		beforeStatement(t);
+		betweenStatements(t);
 	}
 	public Object ifElse(Object pastThen) {
 		Label pastElse = new Label();
@@ -822,54 +792,84 @@ public class CompileGenerator implements Generator<Object> {
 		return pastElse;
 	}
 	public Object ifStatement(Object expr, Object t, Object e, Object afterIf) {
-		beforeStatement(e);
+		betweenStatements(e);
 		f.mv.visitLabel((Label) afterIf);
 		return null;
 	}
 
-	public Object in(Object expression, Object constant) {
-		// TODO Auto-generated method stub
+	public Object loop() {
+		Label startLabel = new Label();
+		f.mv.visitLabel(startLabel);
+		return startLabel;
+	}
+	public Object whileStatement(Object expression, Object statement,
+			Object startLabel, Object endLabel) {
+		betweenStatements(statement);
+		f.mv.visitJumpInsn(GOTO, (Label) startLabel);
+		f.mv.visitLabel((Label) endLabel);
 		return null;
 	}
 
-	public Object newExpression(Object term, Object arguments) {
-		// TODO Auto-generated method stub
+	public Object block(Object params, Object statements) {
+		// TODO blocks
 		return null;
 	}
 
-	public void beforeStatement(Object list) {
-		if (list instanceof Stack)
-			f.mv.visitInsn(POP);
-		else if (list instanceof Value.Type)
-			store(list);
+	public Object breakStatement() {
+		// TODO break
+		return null;
 	}
 
-	public Object statementList(Object list, Object next) {
-		return next;
+	public Object continueStatement() {
+		// TODO continue
+		return null;
 	}
 
-	public Object switchCases(Object cases, Object values, Object statements) {
-		// TODO Auto-generated method stub
+	public Object dowhileStatement(Object statement, Object expression) {
+		// TODO do-while
+		return null;
+	}
+
+	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
+			Object statement) {
+		// TODO for classic
+		return null;
+	}
+	public Object expressionList(Object list, Object expression) {
+		return null;
+	}
+
+	public Object forInStatement(String var, Object expr, Object statement) {
+		// TODO for in
+		return null;
+	}
+
+	public Object foreverStatement(Object statement) {
+		// TODO forever
 		return null;
 	}
 
 	public Object switchStatement(Object expression, Object cases) {
-		// TODO Auto-generated method stub
+		// TODO switch
+		return null;
+	}
+	public Object switchCases(Object cases, Object values, Object statements) {
+		return null;
+	}
+	public Object caseValues(Object values, Object expression) {
 		return null;
 	}
 
 	public Object throwStatement(Object expression) {
-		// TODO Auto-generated method stub
+		// TODO throw
 		return null;
 	}
 
 	public Object tryStatement(Object tryStatement, Object catcher) {
-		// TODO Auto-generated method stub
+		// TODO try-catch
 		return null;
 	}
-
-	public Object whileStatement(Object expression, Object statement) {
-		// TODO Auto-generated method stub
+	public Object catcher(String variable, String pattern, Object statement) {
 		return null;
 	}
 

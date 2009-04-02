@@ -4,6 +4,7 @@
 package suneido.language;
 
 import static suneido.language.TokenFeature.*;
+import static suneido.language.TokenResultType.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,19 +18,19 @@ public enum Token {
 	R_PAREN, L_PAREN(R_PAREN),
 	R_BRACKET, L_BRACKET(R_BRACKET),
 	R_CURLY, L_CURLY(R_CURLY),
-	IS("is", TERMOP), ISNT("isnt", TERMOP),
-	MATCH("=~", INFIX), MATCHNOT("!~", INFIX),
-	LT("<", TERMOP), LTE("<=", TERMOP), GT(">", TERMOP), GTE(">=", TERMOP),
+	IS("is", TERMOP, B), ISNT("isnt", TERMOP, B),
+	MATCH("=~", INFIX, B), MATCHNOT("!~", INFIX, B),
+	LT("<", TERMOP, B), LTE("<=", TERMOP, B),
+	GT(">", TERMOP, B), GTE(">=", TERMOP, B),
 	NOT("not"), INC, DEC, BITNOT("~"),
-	ADD("+", INFIX), SUB("-", INFIX), CAT("$", INFIX),
-	MUL("*", INFIX), DIV("/", INFIX), MOD("%", INFIX),
+	ADD("+", INFIX, N), SUB("-", INFIX, N), CAT("$", INFIX, S),
+	MUL("*", INFIX, N), DIV("/", INFIX, N), MOD("%", INFIX, N),
 	LSHIFT("<<", INFIX), RSHIFT(">>", INFIX),
 	BITOR("|", INFIX), BITAND("&", INFIX), BITXOR("^", INFIX),
 	EQ("=", ASSIGN),
-	ADDEQ("+=", ASSIGN), SUBEQ("-=", ASSIGN), CATEQ("$=", ASSIGN),
-	MULEQ("*=", ASSIGN), DIVEQ("/=", ASSIGN), MODEQ("%=", ASSIGN),
+	ADDEQ("+=", ASSIGNC, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, S), MULEQ("*=", ASSIGNC, N), DIVEQ("/=", ASSIGN, N), MODEQ("%=", ASSIGN, N),
 	LSHIFTEQ("<<=", ASSIGN), RSHIFTEQ(">>=", ASSIGN),
-	BITOREQ("|=", ASSIGN), BITANDEQ("&=", ASSIGN), BITXOREQ("^=", ASSIGN),
+	BITOREQ("|=", ASSIGNC), BITANDEQ("&=", ASSIGNC), BITXOREQ("^=", ASSIGNC),
 	// keywords
 	IF("if"), ELSE("else"),
 	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
@@ -48,7 +49,7 @@ public enum Token {
 	TOTAL("total", SUMOP), SORT("sort"), PROJECT("project"), MAX("max", SUMOP),
 	MIN("min", SUMOP), MINUS("minus"), INTERSECT("intersect"),
 	LIST("list", SUMOP), UNION("union"), REMOVE("remove"), HISTORY("history"),
-	EXTEND("extend"), COUNT("count", SUMOP), TIMES("times"), BY("by"), 
+	EXTEND("extend"), COUNT("count", SUMOP), TIMES("times"), BY("by"),
 	SUMMARIZE("summarize"), WHERE("where"), JOIN("join"), LEFTJOIN("leftjoin"),
 	REVERSE("reverse"), AVERAGE("average", SUMOP),
 	INTO("into"), INSERT("insert"), UPDATE("update"), SET("set");
@@ -56,6 +57,9 @@ public enum Token {
 	Token other;
 	public String string;
 	private TokenFeature feature;
+	public TokenResultType resultType;
+	public String method;
+
 
 	Token() {
 	}
@@ -64,30 +68,39 @@ public enum Token {
 		other.other = this;
 	}
 	Token(String string) {
-		this.string = string;
+		this(string, null);
 	}
 	Token(TokenFeature feature) {
-		this.feature = feature;
+		this(null, feature);
 	}
 	Token(String string, TokenFeature feature) {
-		this.string = string;
 		this.feature = feature;
+		this.string = string;
+	}
+	Token(String string, TokenFeature feature, TokenResultType resultType) {
+		this(string, feature);
+		this.resultType = resultType;
+		method = toString().replace("EQ", "").toLowerCase();
 	}
 
 	public boolean isOperator() {
 		return ordinal() < IF.ordinal();
 	}
 	public boolean infix() {
-		return feature == INFIX || feature == ASSIGN || feature == TERMOP;
+		return feature == INFIX || feature == TERMOP || feature == ASSIGN
+				|| feature == ASSIGNC;
 	}
 	public boolean assign() {
-		return feature == ASSIGN;
+		return feature == ASSIGN || feature == ASSIGNC;
 	}
 	public boolean sumop() {
 		return feature == SUMOP;
 	}
 	public boolean termop() {
 		return feature == TERMOP;
+	}
+	public boolean commutative() {
+		return feature == ASSIGNC;
 	}
 
 	static final Map<String, Token> keywords = new HashMap<String, Token>();
