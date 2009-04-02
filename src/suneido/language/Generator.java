@@ -48,9 +48,10 @@ public interface Generator<T> {
 
 	T unaryExpression(Token op, T expression);
 
-	Object label();
-	T whileStatement(T expression, T statement,
-			Object startLabel, Object endLabel);
+	Object loop();
+	void whileExpr(T expr, Object loop);
+
+	T whileStatement(T expr, T statement, Object loop);
 
 	T number(String value);
 
@@ -62,9 +63,9 @@ public interface Generator<T> {
 
 	T bool(boolean value);
 
-	T breakStatement();
+	T breakStatement(Object loop);
 
-	T continueStatement();
+	T continueStatement(Object loop);
 
 	T throwStatement(T expression);
 

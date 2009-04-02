@@ -94,6 +94,9 @@ public class ExecuteTest {
 		test("s = 1; s $= 2", "'12'");
 		test("n = 10; n -= 5", "5");
 	}
+	@Test public void test_forever_break() {
+		test("i = 0; forever { ++i; if (i > 4) break }; i", "5");
+	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, eval(expr).toString());

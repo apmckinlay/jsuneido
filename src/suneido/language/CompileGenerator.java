@@ -33,6 +33,12 @@ public class CompileGenerator implements Generator<Object> {
 	private Function f = null; // the current function
 	private Deque<Function> fstack = null; // functions nested around f
 	List<SuValue[]> constants = null;
+	private static final int IFTRUE = IFNE;
+	private static final int IFFALSE = IFEQ;
+	static class Loop {
+		public Label continueLabel = new Label();
+		public Label breakLabel = new Label();
+	};
 
 	public CompileGenerator() {
 	}
@@ -775,12 +781,16 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object ifExpr(Object expr) {
-		dupAndStore(expr);
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc", "bool",
-				"(Lsuneido/SuValue;)Z");
+		toBool(expr);
 		Label label = new Label();
 		f.mv.visitJumpInsn(IFEQ, label);
 		return label;
+	}
+
+	private void toBool(Object expr) {
+		dupAndStore(expr);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc", "bool",
+				"(Lsuneido/SuValue;)Z");
 	}
 	public void ifThen(Object label, Object t) {
 		afterStatement(t);
@@ -797,16 +807,21 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object label() {
-		Label label = new Label();
-		f.mv.visitLabel(label);
-		return label;
+	public Object loop() {
+		Loop loop = new Loop();
+		f.mv.visitLabel(loop.continueLabel);
+		return loop;
 	}
-	public Object whileStatement(Object expression, Object statement,
-			Object startLabel, Object endLabel) {
+
+	public void whileExpr(Object expr, Object loop) {
+		toBool(expr);
+		gotoBreak(IFFALSE, loop);
+	}
+
+	public Object whileStatement(Object expr, Object statement, Object loop) {
 		afterStatement(statement);
-		f.mv.visitJumpInsn(GOTO, (Label) startLabel);
-		f.mv.visitLabel((Label) endLabel);
+		gotoContinue(GOTO, loop);
+		setBreak(loop);
 		return null;
 	}
 
@@ -815,22 +830,31 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object breakStatement() {
-		// TODO break
+	public Object breakStatement(Object loop) {
+		gotoBreak(GOTO, loop);
 		return null;
 	}
 
-	public Object continueStatement() {
-		// TODO continue
+	public Object continueStatement(Object loop) {
+		gotoContinue(GOTO, loop);
 		return null;
 	}
 
-	public Object dowhileStatement(Object body, Object expr, Object label) {
-		dupAndStore(expr);
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc", "bool",
-				"(Lsuneido/SuValue;)Z");
-		f.mv.visitJumpInsn(IFNE, (Label) label);
+	public Object dowhileStatement(Object body, Object expr, Object loop) {
+		toBool(expr);
+		gotoContinue(IFTRUE, loop);
+		setBreak(loop);
 		return null;
+	}
+
+	private void gotoContinue(int op, Object loop) {
+		f.mv.visitJumpInsn(op, ((Loop) loop).continueLabel);
+	}
+	private void gotoBreak(int op, Object loop) {
+		f.mv.visitJumpInsn(op, ((Loop) loop).breakLabel);
+	}
+	private void setBreak(Object loop) {
+		f.mv.visitLabel(((Loop) loop).breakLabel);
 	}
 
 	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
@@ -847,9 +871,10 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object foreverStatement(Object statement, Object label) {
+	public Object foreverStatement(Object statement, Object loop) {
 		afterStatement(statement);
-		f.mv.visitJumpInsn(GOTO, (Label) label);
+		gotoContinue(GOTO, loop);
+		setBreak(loop);
 		return null;
 	}
 

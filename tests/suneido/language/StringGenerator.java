@@ -49,7 +49,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public String whileStatement(String expression, String statement,
-			Object startLabel, Object endLabel) {
+			Object loop) {
 		return "while (" + expression + ") {" + str(" ", statement, "") + " }";
 	}
 
@@ -89,11 +89,11 @@ public class StringGenerator implements Generator<String> {
 		return "forever { " + statement.trim() + " }";
 	}
 
-	public String breakStatement() {
+	public String breakStatement(Object loop) {
 		return "break;";
 	}
 
-	public String continueStatement() {
+	public String continueStatement(Object loop) {
 		return "continue;";
 	}
 
@@ -284,8 +284,11 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 
-	public Object label() {
-		return null;
+	public Object loop() {
+		return true; // can't be null
+	}
+
+	public void whileExpr(String expr, Object loop) {
 	}
 
 }
