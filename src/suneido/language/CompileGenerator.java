@@ -757,7 +757,7 @@ public class CompileGenerator implements Generator<Object> {
 	/**
 	 * pop any value left on the stack complete delayed assignment
 	 */
-	public void betweenStatements(Object list) {
+	public void afterStatement(Object list) {
 		if (list instanceof Stack)
 			f.mv.visitInsn(POP);
 		else if (list instanceof Value.Type)
@@ -783,7 +783,7 @@ public class CompileGenerator implements Generator<Object> {
 		return label;
 	}
 	public void ifThen(Object label, Object t) {
-		betweenStatements(t);
+		afterStatement(t);
 	}
 	public Object ifElse(Object pastThen) {
 		Label pastElse = new Label();
@@ -792,19 +792,19 @@ public class CompileGenerator implements Generator<Object> {
 		return pastElse;
 	}
 	public Object ifStatement(Object expr, Object t, Object e, Object afterIf) {
-		betweenStatements(e);
+		afterStatement(e);
 		f.mv.visitLabel((Label) afterIf);
 		return null;
 	}
 
-	public Object loop() {
-		Label startLabel = new Label();
-		f.mv.visitLabel(startLabel);
-		return startLabel;
+	public Object label() {
+		Label label = new Label();
+		f.mv.visitLabel(label);
+		return label;
 	}
 	public Object whileStatement(Object expression, Object statement,
 			Object startLabel, Object endLabel) {
-		betweenStatements(statement);
+		afterStatement(statement);
 		f.mv.visitJumpInsn(GOTO, (Label) startLabel);
 		f.mv.visitLabel((Label) endLabel);
 		return null;
@@ -825,8 +825,11 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object dowhileStatement(Object statement, Object expression) {
-		// TODO do-while
+	public Object dowhileStatement(Object body, Object expr, Object label) {
+		dupAndStore(expr);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/MyFunc", "bool",
+				"(Lsuneido/SuValue;)Z");
+		f.mv.visitJumpInsn(IFNE, (Label) label);
 		return null;
 	}
 
@@ -844,8 +847,9 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object foreverStatement(Object statement) {
-		// TODO forever
+	public Object foreverStatement(Object statement, Object label) {
+		afterStatement(statement);
+		f.mv.visitJumpInsn(GOTO, (Label) label);
 		return null;
 	}
 

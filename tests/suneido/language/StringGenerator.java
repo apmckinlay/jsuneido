@@ -53,8 +53,8 @@ public class StringGenerator implements Generator<String> {
 		return "while (" + expression + ") {" + str(" ", statement, "") + " }";
 	}
 
-	public String dowhileStatement(String statement, String expression) {
-		return "do {" + str(" ", statement, "") + " } while (" + expression + ");";
+	public String dowhileStatement(String body, String expr, Object label) {
+		return "do {" + str(" ", body, "") + " } while (" + expr + ");";
 	}
 
 	public String binaryExpression(Token op, String expr1, String expr2) {
@@ -85,7 +85,7 @@ public class StringGenerator implements Generator<String> {
 		return "b(" + value + ")";
 	}
 
-	public String foreverStatement(String statement) {
+	public String foreverStatement(String statement, Object label) {
 		return "forever { " + statement.trim() + " }";
 	}
 
@@ -250,7 +250,7 @@ public class StringGenerator implements Generator<String> {
 	public void lvalue(Value<String> value) {
 	}
 
-	public void betweenStatements(String statements) {
+	public void afterStatement(String statements) {
 	}
 
 	public void argumentName(String keyword) {
@@ -284,7 +284,7 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 
-	public Object loop() {
+	public Object label() {
 		return null;
 	}
 

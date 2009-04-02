@@ -63,7 +63,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	public T statementList() {
 		T statements = null;
 		while (token != R_CURLY) {
-			generator.betweenStatements(statements);
+			generator.afterStatement(statements);
 			statements = generator.statementList(statements, statement());
 		}
 		return statements;
@@ -117,10 +117,12 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T dowhileStatement() {
 		match(DO);
+		Object label = generator.label();
 		T stat = statement();
+		generator.afterStatement(stat);
 		match(WHILE);
 		T expr = optionalParensExpression();
-		return generator.dowhileStatement(stat, expr);
+		return generator.dowhileStatement(stat, expr, label);
 	}
 
 	private T expressionStatement() {
@@ -197,7 +199,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T foreverStatement() {
 		match(FOREVER);
-		return generator.foreverStatement(statement());
+		Object label = generator.label();
+		return generator.foreverStatement(statement(), label);
 	}
 
 	private T ifStatement() {
@@ -299,7 +302,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T whileStatement() {
 		match(WHILE);
-		Object startLabel = generator.loop();
+		Object startLabel = generator.label();
 		T expr = optionalParensExpression();
 		Object endLabel = generator.ifExpr(expr);
 		T stat = statement();

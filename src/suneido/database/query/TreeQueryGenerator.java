@@ -223,7 +223,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return SuDate.valueOf(value);
 	}
 
-	public Object dowhileStatement(Object statement, Object expression) {
+	public Object dowhileStatement(Object body, Object expr, Object label) {
 		return null;
 	}
 
@@ -246,7 +246,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object foreverStatement(Object statement) {
+	public Object foreverStatement(Object statement, Object label) {
 		return null;
 	}
 
@@ -398,7 +398,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void lvalue(Value<Object> value) {
 	}
 
-	public void betweenStatements(Object statements) {
+	public void afterStatement(Object statements) {
 	}
 
 	public void argumentName(String keyword) {
@@ -434,7 +434,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object loop() {
+	public Object label() {
 		return null;
 	}
 
