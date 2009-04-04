@@ -97,6 +97,12 @@ public class ExecuteTest {
 	@Test public void test_forever_break() {
 		test("i = 0; forever { ++i; if (i > 4) break }; i", "5");
 	}
+	@Test public void test_for_classic() {
+		test("for (i = 0; i < 5; ++i) ; i", "5");
+		test("i = 0; for (; i < 5; ++i) ; i", "5");
+		test("for (i = 0; i < 5; ) ++i; i", "5");
+		test("for (i = 0; ; ++i) if (i > 5) break; i", "6");
+	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, eval(expr).toString());

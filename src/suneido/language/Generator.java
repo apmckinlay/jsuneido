@@ -81,7 +81,10 @@ public interface Generator<T> {
 
 	T forInStatement(String var, T expr, T statement);
 
-	T forClassicStatement(T expr1, T expr2, T expr3, T statement);
+	T forClassicStatement(T expr1, T expr2, T expr3, T statement, Object loop);
+	Object forStart();
+	void forIncrement(Object label);
+	void forCondition(T cond, Object loop);
 
 	T expressionList(T list, T expression);
 

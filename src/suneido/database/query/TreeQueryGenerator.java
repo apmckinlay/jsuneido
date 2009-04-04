@@ -238,7 +238,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
-			Object statement) {
+			Object statement, Object loop) {
 		return null;
 	}
 
@@ -442,6 +442,14 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void newCall() {
+	}
+
+	public Object forStart() {
+		return null;
+	}
+	public void forIncrement(Object label) {
+	}
+	public void forCondition(Object cond, Object loop) {
 	}
 
 }

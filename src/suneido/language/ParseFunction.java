@@ -186,14 +186,35 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T forClassicStatement() {
 		match(L_PAREN);
-		T expr1 = token == SEMICOLON ? null : expressionList();
+		T init = token == SEMICOLON ? null : expressionList();
 		match(SEMICOLON);
-		T expr2 = token == SEMICOLON ? null : expression();
+		Object label = generator.forStart();
+		Object loop = generator.loop();
+
+		String condSource = null;
+		if (token != SEMICOLON) {
+			int pos = lexer.position();
+			while (token != SEMICOLON)
+				match();
+			condSource = lexer.from(pos);
+		}
 		match(SEMICOLON);
-		T expr3 = token == R_PAREN ? null : expressionList();
+
+		T incr = token == R_PAREN ? null : expressionList();
 		match(R_PAREN);
-		T stat = statement(null);
-		return generator.forClassicStatement(expr1, expr2, expr3, stat);
+		generator.forIncrement(label);
+
+		T cond = null;
+		if (condSource != null) {
+			Lexer lex = new Lexer(condSource);
+			ParseExpression<T, Generator<T>> pc =
+					new ParseExpression<T, Generator<T>>(lex, generator);
+			cond = pc.parse();
+			generator.forCondition(cond, loop);
+		}
+
+		T stat = statement(loop);
+		return generator.forClassicStatement(init, cond, incr, stat, loop);
 	}
 
 	private T expressionList() {

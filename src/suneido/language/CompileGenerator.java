@@ -827,9 +827,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object whileStatement(Object expr, Object statement, Object loop) {
-		afterStatement(statement);
-		gotoContinue(GOTO, loop);
-		setBreak(loop);
+		endLoop(statement, loop);
 		return null;
 	}
 
@@ -865,12 +863,25 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitLabel(((Loop) loop).breakLabel);
 	}
 
+	public Object forStart() {
+		Label label = new Label();
+		f.mv.visitJumpInsn(GOTO, label);
+		return label;
+	}
+	public void forIncrement(Object label) {
+		f.mv.visitLabel((Label) label);
+	}
+	public void forCondition(Object cond, Object loop) {
+		toBool(cond);
+		gotoBreak(IFFALSE, loop);
+	}
 	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
-			Object statement) {
-		// TODO for classic
+			Object statement, Object loop) {
+		endLoop(statement, loop);
 		return null;
 	}
 	public Object expressionList(Object list, Object expression) {
+		afterStatement(expression);
 		return null;
 	}
 
@@ -880,10 +891,14 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object foreverStatement(Object statement, Object loop) {
+		endLoop(statement, loop);
+		return null;
+	}
+
+	private void endLoop(Object statement, Object loop) {
 		afterStatement(statement);
 		gotoContinue(GOTO, loop);
 		setBreak(loop);
-		return null;
 	}
 
 	public Object switchStatement(Object expression, Object cases) {
