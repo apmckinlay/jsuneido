@@ -25,7 +25,34 @@ public class Globals {
 	}
 
 	public static SuValue get(String name) {
-		return globals.get(name);
+		SuValue x = globals.get(name);
+		if (x == null) {
+			x = loadClass(name);
+			if (x == null)
+				throw new SuException("can't find " + name);
+		}
+		return x;
+	}
+
+	public static SuValue loadClass(String name) {
+		Class<?> c = null;
+		try {
+			c = Class.forName("suneido.language." + name);
+		} catch (ClassNotFoundException e) {
+			System.out.println(e);
+			return null;
+		}
+		SuClass sc = null;
+		try {
+			sc = (SuClass) c.newInstance();
+		} catch (InstantiationException e) {
+			return null;
+		} catch (IllegalAccessException e) {
+			return null;
+		}
+System.out.println("<loaded: " + name + ">");
+		put(name, sc);
+		return sc;
 	}
 
 	public static void put(String name, SuValue x) {
