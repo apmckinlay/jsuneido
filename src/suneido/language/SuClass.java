@@ -30,9 +30,7 @@ public abstract class SuClass extends SuValue {
 	@Override
 	abstract public String toString();
 
-	// new x is compiled as x.newInstance(...)
-	@Override
-	abstract public SuClass newInstance(SuValue... args);
+	abstract public SuClass newInstance();
 
 	public static boolean bool(SuValue value) {
 		if (value == SuBoolean.TRUE)
@@ -48,8 +46,9 @@ public abstract class SuClass extends SuValue {
 	public SuValue invoke(String method, SuValue ... args) {
 		if (method == "Type")
 			return SuString.valueOf("Class");
-		// TODO other standard methods on classes
-		else {
+		else if (method == "<new>") {
+			return newInstance();
+		} else {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
 			SuValue newargs[] = new SuValue[1 + args.length];
@@ -57,6 +56,7 @@ public abstract class SuClass extends SuValue {
 			newargs[0] = SuString.valueOf(method);
 			return methodDefault(newargs);
 		}
+		// TODO other standard methods on classes
 	}
 
 	// overridden by classes defining Default

@@ -7,7 +7,7 @@ public class SampleClass extends SuClass {
 	private static SuValue[][] constants;
 
 	@Override
-	public SuClass newInstance(SuValue... args) {
+	public SuClass newInstance() {
 		return new SampleClass();
 	}
 

@@ -239,9 +239,6 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 		return sub(SuInteger.ONE);
 	}
 
-	public SuValue newInstance(SuValue... args) {
-		throw new SuException("can't do new " + typeName());
-	}
 	public SuValue invoke(String method, SuValue ... args) {
 		throw unknown_method(method);
 	}
@@ -278,7 +275,6 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			SuValue e, SuValue f, SuValue g) {
 		return invoke("call", a, b, c, d, e, f, g);
 	}
-
 	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d,
 			SuValue e, SuValue f, SuValue g, SuValue h) {
 		return invoke("call", a, b, c, d, e, f, g, h);
@@ -313,7 +309,6 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			SuValue c, SuValue d, SuValue e, SuValue f, SuValue g) {
 		return invoke(method, a, b, c, d, e, f, g);
 	}
-
 	public final SuValue invokeN(String method, SuValue a, SuValue b,
 			SuValue c, SuValue d, SuValue e, SuValue f, SuValue g, SuValue h) {
 		return invoke(method, a, b, c, d, e, f, g, h);
