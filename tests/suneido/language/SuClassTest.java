@@ -2,7 +2,6 @@ package suneido.language;
 
 import static org.junit.Assert.*;
 import static suneido.Util.array;
-import static suneido.language.FunctionSpec.noParams;
 import static suneido.language.SuClass.EACH;
 import static suneido.language.SuClass.NAMED;
 
@@ -126,8 +125,7 @@ public class SuClassTest {
 			return SuString.EMPTY;
 		}
 		@Override
-		public SuClass newInstance(SuValue... args) {
-			massage(noParams, args);
+		public SuClass newInstance() {
 			return new DefaultClass();
 		}
 	}
@@ -135,15 +133,14 @@ public class SuClassTest {
 	@Test
 	public void test_inheritance() {
 		SuValue subClass = new SubClass();
-		SuValue instance = subClass.newInstance();
+		SuValue instance = subClass.invoke("<new>");
 		assertTrue(instance instanceof SubClass);
 		assertEquals(SuInteger.valueOf(99), instance.invoke("Size"));
 		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
 	}
 	static class SubClass extends DefaultClass {
 		@Override
-		public SuClass newInstance(SuValue... args) {
-			massage(noParams, args);
+		public SuClass newInstance() {
 			return new SubClass();
 		}
 
@@ -160,7 +157,7 @@ public class SuClassTest {
 	public void test_constructor() {
 		SuClass wc = new WrapClass();
 		SuValue s = SuString.valueOf("hello");
-		SuClass instance = wc.newInstance(s);
+		SuClass instance = (SuClass) wc.invoke("<new>", s);
 		assertEquals(s, instance.vars.get("value"));
 	}
 
@@ -171,14 +168,18 @@ public class SuClassTest {
 		static final FunctionSpec params = new FunctionSpec("",
 				new String[] { "value" }, 1);
 		@Override
-		public SuClass newInstance(SuValue... args) {
-			massage(params, args);
-			return new WrapClass(args);
+		public SuClass newInstance() {
+			return new WrapClass();
 		}
-		WrapClass() {
-		}
-		WrapClass(SuValue[] args) {
-			vars.put("value", args[0]);
+
+		@Override
+		public SuValue invoke(String method, SuValue... args) {
+			if (method == "<new>") {
+				WrapClass wc = (WrapClass) super.invoke(method);
+				wc.vars.put("value", args[0]);
+				return wc;
+			} else
+				return super.invoke(method, args);
 		}
 	}
 }

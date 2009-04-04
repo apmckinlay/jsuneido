@@ -661,8 +661,8 @@ public class CompileGenerator implements Generator<Object> {
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
-					"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
-					"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
+		"Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;Lsuneido/SuValue;",
 	};
 	private void invokeFunction(int i) {
 		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN", "("
@@ -758,9 +758,14 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
+	public void newCall() {
+		f.mv.visitLdcInsn("<new>");
+	}
 	public Object newExpression(Object term, Object arguments) {
-		// TODO new
-		return null;
+		int nargs = arguments == null ? 0 : (Integer) arguments;
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuValue", "invokeN",
+				"(Ljava/lang/String;" + args[nargs] + ")Lsuneido/SuValue;");
+		return VALUE;
 	}
 
 	/**

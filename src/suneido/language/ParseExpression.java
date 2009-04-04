@@ -177,6 +177,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T newExpression() {
 		match(NEW);
 		T term = term(true);
+		generator.newCall();
 		T args = token == L_PAREN ? arguments() : null;
 		return generator.newExpression(term, args);
 	}

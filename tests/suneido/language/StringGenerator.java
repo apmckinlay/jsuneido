@@ -291,4 +291,7 @@ public class StringGenerator implements Generator<String> {
 	public void whileExpr(String expr, Object loop) {
 	}
 
+	public void newCall() {
+	}
+
 }

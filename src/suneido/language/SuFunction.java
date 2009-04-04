@@ -24,7 +24,7 @@ abstract public class SuFunction extends SuClass {
 	}
 
 	@Override
-	public SuClass newInstance(SuValue... args) {
+	public SuClass newInstance() {
 		throw new SuException("cannot create instances of functions");
 	}
 

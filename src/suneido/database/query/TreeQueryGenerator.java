@@ -441,4 +441,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void whileExpr(Object expr, Object loop) {
 	}
 
+	public void newCall() {
+	}
+
 }

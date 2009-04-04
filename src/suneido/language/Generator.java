@@ -98,6 +98,7 @@ public interface Generator<T> {
 	void preFunctionCall(Value<T> value);
 	T functionCall(T function, Value<T> value, T arguments);
 
+	void newCall();
 	T newExpression(T term, T arguments);
 
 	T argumentList(T list, String keyword, T expression);
