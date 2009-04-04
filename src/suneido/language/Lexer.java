@@ -341,4 +341,12 @@ public class Lexer {
 		si = source.length();
 		return source.substring(prev);
 	}
+
+	public int position() {
+		return prev;
+	}
+
+	public String from(int pos) {
+		return source.substring(pos, prev);
+	}
 }

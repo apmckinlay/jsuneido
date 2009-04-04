@@ -132,7 +132,7 @@ public class StringGenerator implements Generator<String> {
 		return str("", list, ", ") + expression;
 	}
 
-	public String forClassicStatement(String expr1, String expr2, String expr3, String statement) {
+	public String forClassicStatement(String expr1, String expr2, String expr3, String statement, Object loop) {
 		return "for (" + str(expr1) + "; " + str(expr2) + "; " + str(expr3) + ") { " + statement + " }";
 	}
 
@@ -292,6 +292,14 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void newCall() {
+	}
+
+	public Object forStart() {
+		return null;
+	}
+	public void forIncrement(Object label) {
+	}
+	public void forCondition(String cond, Object loop) {
 	}
 
 }
