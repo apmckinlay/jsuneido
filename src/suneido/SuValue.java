@@ -5,7 +5,8 @@ import java.nio.ByteBuffer;
 /**
  * Base class for Suneido data types.
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public abstract class SuValue implements Packable, Comparable<SuValue> {
 	@Override
@@ -273,6 +274,15 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 			SuValue e, SuValue f) {
 		return invoke("call", a, b, c, d, e, f);
 	}
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d,
+			SuValue e, SuValue f, SuValue g) {
+		return invoke("call", a, b, c, d, e, f, g);
+	}
+
+	public final SuValue invokeN(SuValue a, SuValue b, SuValue c, SuValue d,
+			SuValue e, SuValue f, SuValue g, SuValue h) {
+		return invoke("call", a, b, c, d, e, f, g, h);
+	}
 	//...
 
 	public final SuValue invokeN(String method) {
@@ -298,6 +308,15 @@ public abstract class SuValue implements Packable, Comparable<SuValue> {
 	public final SuValue invokeN(String method, SuValue a, SuValue b,
 			SuValue c, SuValue d, SuValue e, SuValue f) {
 		return invoke(method, a, b, c, d, e, f);
+	}
+	public final SuValue invokeN(String method, SuValue a, SuValue b,
+			SuValue c, SuValue d, SuValue e, SuValue f, SuValue g) {
+		return invoke(method, a, b, c, d, e, f, g);
+	}
+
+	public final SuValue invokeN(String method, SuValue a, SuValue b,
+			SuValue c, SuValue d, SuValue e, SuValue f, SuValue g, SuValue h) {
+		return invoke(method, a, b, c, d, e, f, g, h);
 	}
 	//...
 

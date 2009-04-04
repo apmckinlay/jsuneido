@@ -22,7 +22,8 @@ public abstract class SuClass extends SuValue {
 		vars = null;
 	}
 
-	abstract public void setup(FunctionSpec[] params, SuValue[][] constants);
+	public void setup(FunctionSpec[] params, SuValue[][] constants) {
+	}
 
 	// classes store "static" data members into vars in initialization block
 
@@ -91,16 +92,7 @@ public abstract class SuClass extends SuValue {
 			// function (@params)
 			SuContainer c = new SuContainer();
 			locals[0] = c;
-			for (int i = 0; i < args.length; ++i) {
-				if (args[i] == NAMED) {
-					c.put(args[i + 1], args[i + 2]);
-					i += 2;
-				}
-				else if (args[i] == EACH)
-					c.merge((SuContainer) args[++i]);
-				else
-					c.append(args[i]);
-			}
+			collectArgs(args, c);
 		} else {
 			assert nlocals >= fn.nparams;
 			int li = 0;
@@ -137,6 +129,20 @@ public abstract class SuClass extends SuValue {
 		verifyAllSupplied(fn, locals);
 
 		return locals;
+	}
+
+	public static SuContainer collectArgs(SuValue[] args, SuContainer c) {
+		for (int i = 0; i < args.length; ++i) {
+			if (args[i] == NAMED) {
+				c.put(args[i + 1], args[i + 2]);
+				i += 2;
+			}
+			else if (args[i] == EACH)
+				c.merge((SuContainer) args[++i]);
+			else
+				c.append(args[i]);
+		}
+		return c;
 	}
 
 	private static boolean simple(SuValue[] args) {

@@ -6,11 +6,11 @@ import suneido.SuException;
 import suneido.SuValue;
 
 public class Repl {
+	static PrintWriter out = new PrintWriter(System.out);
 
 	public static void main(String[] args) throws Exception {
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
-		PrintWriter out = new PrintWriter(System.out);
 		while (true) {
 			out.print("> ");
 			out.flush();
@@ -21,6 +21,7 @@ public class Repl {
 				SuValue f = compile("function () { " + line + " }");
 				SuValue[] locals = new SuValue[0];
 				SuValue result = f.invoke("call", locals);
+				if (result != null)
 				out.println(" => " + result);
 				saveTest(line, result);
 			} catch (SuException e) {
