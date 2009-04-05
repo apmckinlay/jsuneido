@@ -10,7 +10,7 @@ import org.junit.Test;
 import suneido.SuValue;
 
 
-public class CompileExpressionTest {
+public class CompileTest {
 
 	@Test
 	public void tests() {
@@ -96,6 +96,36 @@ public class CompileExpressionTest {
  				"0=[1, a: 2], ARETURN");
 		test("a(1, x: 2)",
  				"a, 0=1, NAMED, 1='x', 2=2, .invokeN, ARETURN");
+		test("if (a) b",
+				"a, bool, IFFALSE L1, b, POP, L1");
+		test("if (a) b else c",
+				"a, bool, IFFALSE L1, b, POP, GOTO L2, L1, c, POP, L2");
+		test("do a while (b)",
+				"L1, a, POP, b, bool, IFTRUE L1, L2");
+		test("while (a) b",
+				"L1, a, bool, IFFALSE L2, b, POP, GOTO L1, L2");
+		test("forever a",
+				"L1, a, POP, GOTO L1, L2");
+		test("for(;;) a",
+				"L1, a, POP, GOTO L1, L2");
+		test("for(b;;) a",
+				"b, POP, L1, a, POP, GOTO L1, L2");
+		test("for(b;c;) a",
+				"b, POP, L1, c, bool, IFFALSE L2, a, POP, GOTO L1, L2");
+		test("for(b;c;a) a",
+				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
+		test("forever { a; break; b }",
+				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
+		test("forever { a; continue; b }",
+				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
+		test("switch (a) { }",
+				"a, POP, L1");
+		test("switch (a) { default: b }",
+				"a, POP, b, POP, GOTO L1, POP, L1");
+		test("switch (a) { case 0: b }",
+				"a, DUP, 0=0, .is, bool, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
+		test("switch (a) { case 0,1: b }",
+				"a, DUP, 0=0, .is, bool, IFTRUE L1, DUP, 1=1, .is, bool, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
 	}
 
 	private void test(String expr, String expected) {
@@ -143,6 +173,7 @@ System.out.println(r);
 				{ "suneido/SuValue", "SuValue" },
 				{ "suneido/SuString", "SuString" },
 				{ "suneido/SuNumber", "SuNumber" },
+				{ "suneido/SuBoolean", "SuBoolean" },
 				{ "java/lang/String", "String" },
 				{ "ANEWARRAY SuValue", "new SuValue[]" },
 				{ "GETSTATIC suneido/language/SuClass.", "" },
@@ -157,6 +188,7 @@ System.out.println(r);
 				{ " (LSuValue;)LSuValue;", "" },
 				{ " (LSuValue;)LSuString;", "" },
 				{ " (LSuValue;)LSuNumber;", "" },
+				{ " (LSuValue;)LSuBoolean;", "" },
 				{ " (LSuValue;LSuValue;)LSuValue;", "" },
 				{ " (LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
 				{ " (LSuValue;LSuValue;LSuValue;LSuValue;)LSuValue;", "" },
@@ -171,6 +203,9 @@ System.out.println(r);
 				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? constants[0] : "") },
 				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? constants[1] : "") },
 				{ "const, 2, AALOAD", "2=" + (constants.length > 2 ? constants[2] : "") },
+				{ "INVOKESTATIC suneido/language/MyFunc.bool (LSuValue;)Z", "bool" },
+				{ "IFEQ", "IFFALSE" },
+						{ "IFNE", "IFTRUE" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

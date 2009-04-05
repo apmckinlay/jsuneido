@@ -73,11 +73,13 @@ public interface Generator<T> {
 
 	T tryStatement(T tryStatement, T catcher);
 
-	T caseValues(T values, T expression);
-
-	T switchCases(T cases, T values, T statements);
-
-	T switchStatement(T expression, T cases);
+	Object startSwitch();
+	void startCase(Object labels);
+	void startCaseValue();
+	void startCaseBody(Object labels);
+	T caseValues(T values, T expression, Object labels, boolean more);
+	T switchCases(T cases, T values, T statements, Object labels);
+	T switchStatement(T expression, T cases, Object labels);
 
 	T forInStatement(String var, T expr, T statement);
 

@@ -4,8 +4,6 @@ import static org.objectweb.asm.Opcodes.*;
 import static suneido.language.CompileGenerator.Stack.*;
 import static suneido.language.Generator.ObjectOrRecord.OBJECT;
 import static suneido.language.ParseExpression.Value.Type.*;
-import static suneido.language.Token.EQ;
-import static suneido.language.Token.INC;
 
 import java.io.*;
 import java.util.*;
@@ -498,7 +496,7 @@ public class CompileGenerator implements Generator<Object> {
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
 		dupAndStore(expression);
-		if (op == EQ) {
+		if (op == Token.EQ) {
 			if (value.type == IDENTIFIER
 					&& (expression == LOCAL || expression == CALLRESULT))
 				addNullCheck(expression);
@@ -559,7 +557,7 @@ public class CompileGenerator implements Generator<Object> {
 		// stack: i args i args
 		load(value.type);
 		// stack: v i args
-		valueMethod_v(incdec == INC ? "add1" : "sub1");
+		valueMethod_v(incdec == Token.INC ? "add1" : "sub1");
 		// stack: v+1 i args
 		f.mv.visitInsn(DUP_X2);
 		// stack: v+1 i args v+1
@@ -576,7 +574,7 @@ public class CompileGenerator implements Generator<Object> {
 		// stack: v i args
 		f.mv.visitInsn(DUP_X2);
 		// stack: v i args v
-		valueMethod_v(incdec == INC ? "add1" : "sub1");
+		valueMethod_v(incdec == Token.INC ? "add1" : "sub1");
 		// stack: v+1 i args v
 		store(value.type);
 		// stack: v
@@ -754,8 +752,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object in(Object expression, Object constant) {
-		// TODO in
-		return null;
+		throw new SuException("'in' is only implemented for queries");
 	}
 
 	public void newCall() {
@@ -869,7 +866,8 @@ public class CompileGenerator implements Generator<Object> {
 		return label;
 	}
 	public void forIncrement(Object label) {
-		f.mv.visitLabel((Label) label);
+		if (label != null)
+			f.mv.visitLabel((Label) label);
 	}
 	public void forCondition(Object cond, Object loop) {
 		toBool(cond);
@@ -901,14 +899,58 @@ public class CompileGenerator implements Generator<Object> {
 		setBreak(loop);
 	}
 
-	public Object switchStatement(Object expression, Object cases) {
-		// TODO switch
+	static class SwitchLabels {
+		Label end = new Label();
+		Label body;
+		Label next;
+	}
+	public Object startSwitch() {
+		return new SwitchLabels();
+	}
+	public void startCase(Object labels) {
+		SwitchLabels slabels = (SwitchLabels) labels;
+		if (slabels.next != null)
+			f.mv.visitLabel(slabels.next);
+		slabels.next = null;
+		slabels.body = null;
+	}
+	public void startCaseValue() {
+		f.mv.visitInsn(DUP);
+	}
+	public Object caseValues(Object values, Object expr, Object labels,
+			boolean more) {
+		binaryMethod(Token.IS);
+		toBool(null);
+		SwitchLabels slabels = (SwitchLabels) labels;
+		if (more) {
+			if (slabels.body == null)
+				slabels.body = new Label();
+			f.mv.visitJumpInsn(IFTRUE, slabels.body);
+		} else {
+			if (slabels.next == null)
+				slabels.next = new Label();
+			f.mv.visitJumpInsn(IFFALSE, slabels.next);
+		}
 		return null;
 	}
-	public Object switchCases(Object cases, Object values, Object statements) {
+	public void startCaseBody(Object labels) {
+		SwitchLabels slabels = (SwitchLabels) labels;
+		if (slabels.body != null)
+			f.mv.visitLabel(slabels.body);
+		f.mv.visitInsn(POP);
+	}
+	public Object switchCases(Object cases, Object values, Object statements,
+			Object labels) {
+		afterStatement(statements);
+		f.mv.visitJumpInsn(GOTO, ((SwitchLabels) labels).end);
 		return null;
 	}
-	public Object caseValues(Object values, Object expression) {
+	public Object switchStatement(Object expr, Object cases, Object labels) {
+		SwitchLabels slabels = (SwitchLabels) labels;
+		if (slabels.next != null)
+			f.mv.visitLabel(((SwitchLabels) labels).next);
+		f.mv.visitInsn(POP);
+		f.mv.visitLabel(((SwitchLabels) labels).end);
 		return null;
 	}
 
