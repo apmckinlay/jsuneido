@@ -103,6 +103,11 @@ public class ExecuteTest {
 		test("for (i = 0; i < 5; ) ++i; i", "5");
 		test("for (i = 0; ; ++i) if (i > 5) break; i", "6");
 	}
+	@Test public void test_switch() {
+		test("switch(1) { case 0: ; case 1: x='one'; }; x", "'one'");
+		test("switch(1) { case 0,1,2: x='one'; }; x", "'one'");
+		test("switch(2) { case 1: x='one'; default: x='def' }; x", "'def'");
+	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, eval(expr).toString());
