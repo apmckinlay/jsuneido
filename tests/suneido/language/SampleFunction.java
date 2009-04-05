@@ -26,6 +26,7 @@ public class SampleFunction extends SuFunction {
 	}
 
 	private SuValue invoke(SuValue... args) {
+		Integer i = 0x1234567;
 		return args[0].lt(args[1]);
 	}
 

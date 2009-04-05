@@ -346,14 +346,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object switchCases(Object cases, Object values, Object statements) {
-		return null;
-	}
-
-	public Object switchStatement(Object expression, Object cases) {
-		return null;
-	}
-
 	public Object symbol(String identifier) {
 		// TODO Auto-generated method stub
 		return null;
@@ -450,6 +442,27 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void forIncrement(Object label) {
 	}
 	public void forCondition(Object cond, Object loop) {
+	}
+
+	public Object caseValues(Object values, Object expression, Object labels,
+			boolean more) {
+		return null;
+	}
+	public void startCase(Object labels) {
+	}
+	public void startCaseBody(Object labels) {
+	}
+	public Object startSwitch() {
+		return null;
+	}
+	public Object switchCases(Object cases, Object values, Object statements,
+			Object labels) {
+		return null;
+	}
+	public Object switchStatement(Object expression, Object cases, Object labels) {
+		return null;
+	}
+	public void startCaseValue() {
 	}
 
 }

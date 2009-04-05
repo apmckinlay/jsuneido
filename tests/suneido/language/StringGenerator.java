@@ -110,17 +110,17 @@ public class StringGenerator implements Generator<String> {
 		return "try { " + tryStatement + " }" + str(" ", catcher, "");
 	}
 
-	public String caseValues(String list, String expression) {
+	public String caseValues(String list, String expression, Object labels,
+			boolean more) {
 		return str("", list, ", ") + expression;
 	}
-
-	public String switchCases(String list, String values, String statements) {
+	public String switchCases(String list, String values, String statements,
+			Object labels) {
 		return str("", list, " ")
 				+ (values == null ? "default:" : "case " + values + ":")
 				+ " " + statements;
 	}
-
-	public String switchStatement(String expression, String cases) {
+	public String switchStatement(String expression, String cases, Object labels) {
 		return "switch (" + expression + ") {" + str(" ", cases, "") + " }";
 	}
 
@@ -300,6 +300,16 @@ public class StringGenerator implements Generator<String> {
 	public void forIncrement(Object label) {
 	}
 	public void forCondition(String cond, Object loop) {
+	}
+
+	public void startCase(Object labels) {
+	}
+	public void startCaseBody(Object labels) {
+	}
+	public Object startSwitch() {
+		return null;
+	}
+	public void startCaseValue() {
 	}
 
 }

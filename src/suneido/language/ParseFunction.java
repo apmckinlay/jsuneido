@@ -143,7 +143,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		statementNest = prevStatementNest;
 		if (token == SEMICOLON || token == NEWLINE)
 			match();
-		else if (token != R_CURLY && lexer.getKeyword() != CATCH && lexer.getKeyword() != WHILE)
+		else if (token != R_CURLY && lexer.getKeyword() != CATCH
+				&& lexer.getKeyword() != WHILE && lexer.getKeyword() != ELSE)
 			syntaxError();
 		return expr;
 	}
@@ -185,12 +186,28 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T forClassicStatement() {
+		T init = forInit();
+
+		String condSource = saveCond();
+
+		boolean hasIncr = (token != R_PAREN);
+		Object label = hasIncr ? generator.forStart() : null;
+		Object loop = generator.loop();
+
+		T incr = forIncr(label);
+
+		T cond = forCond(condSource, loop);
+
+		T stat = statement(loop);
+		return generator.forClassicStatement(init, cond, incr, stat, loop);
+	}
+	private T forInit() {
 		match(L_PAREN);
 		T init = token == SEMICOLON ? null : expressionList();
 		match(SEMICOLON);
-		Object label = generator.forStart();
-		Object loop = generator.loop();
-
+		return init;
+	}
+	private String saveCond() {
 		String condSource = null;
 		if (token != SEMICOLON) {
 			int pos = lexer.position();
@@ -199,22 +216,23 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			condSource = lexer.from(pos);
 		}
 		match(SEMICOLON);
-
+		return condSource;
+	}
+	private T forCond(String condSource, Object loop) {
+		if (condSource == null)
+			return null;
+		Lexer lex = new Lexer(condSource);
+		ParseExpression<T, Generator<T>> pc =
+				new ParseExpression<T, Generator<T>>(lex, generator);
+		T cond = pc.parse();
+		generator.forCondition(cond, loop);
+		return cond;
+	}
+	private T forIncr(Object label) {
 		T incr = token == R_PAREN ? null : expressionList();
 		match(R_PAREN);
 		generator.forIncrement(label);
-
-		T cond = null;
-		if (condSource != null) {
-			Lexer lex = new Lexer(condSource);
-			ParseExpression<T, Generator<T>> pc =
-					new ParseExpression<T, Generator<T>>(lex, generator);
-			cond = pc.parse();
-			generator.forCondition(cond, loop);
-		}
-
-		T stat = statement(loop);
-		return generator.forClassicStatement(init, cond, incr, stat, loop);
+		return incr;
 	}
 
 	private T expressionList() {
@@ -272,30 +290,39 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T switchStatement() {
 		match(SWITCH);
+		Object labels = generator.startSwitch();
 		T expr = optionalParensExpression();
 		T cases = null;
 		match(L_CURLY);
-		while (matchIf(CASE)) {
-			T values = null;
-			do
-				values = generator.caseValues(values, expression());
-			while (matchIf(COMMA));
-			cases = switchCase(cases, values);
+		while (matchIf(CASE))
+			cases = switchCase(cases, labels);
+		if (matchIf(DEFAULT)) {
+			generator.startCase(labels);
+			cases = switchCaseBody(cases, null, labels);
 		}
-		if (matchIf(DEFAULT))
-			cases = switchCase(cases, null);
 		match(R_CURLY);
-		return generator.switchStatement(expr, cases);
+		return generator.switchStatement(expr, cases, labels);
 	}
-
-	private T switchCase(T cases, T values) {
+	private T switchCase(T cases, Object labels) {
+		generator.startCase(labels);
+		T values = null;
+		do {
+			generator.startCaseValue();
+			T value = expression();
+			values = generator.caseValues(values, value, labels, token == COMMA);
+		} while (matchIf(COMMA));
+		cases = switchCaseBody(cases, values, labels);
+		return cases;
+	}
+	private T switchCaseBody(T cases, T values, Object labels) {
 		match(COLON);
+		generator.startCaseBody(labels);
 		T statements = null;
 		while (token != R_CURLY &&
 				lexer.getKeyword() != CASE &&
 				lexer.getKeyword() != DEFAULT)
 			statements = generator.statementList(statements, statement(null));
-		return generator.switchCases(cases, values, statements);
+		return generator.switchCases(cases, values, statements, labels);
 	}
 
 	private T throwStatement() {
