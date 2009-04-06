@@ -186,20 +186,24 @@ public class SuString extends SuValue {
 	// methods ======================================================
 
 	private static FunctionSpec[] params = new FunctionSpec[] {
-		new FunctionSpec("Substr", array("i", "n"), 2),
 		new FunctionSpec("Size", new String[0], 0),
+		new FunctionSpec("Substr", array("i", "n"), 2),
 	};
-	private static final int SUBSTR = 0;
-	private static final int SIZE = 1;
+	private static final int SIZE = 0;
+	private static final int SUBSTR = 1;
 
 	@Override
 	public SuValue invoke(String method, SuValue ... args) {
-		if (method == "Substr")
-			return substr(massage(params[SUBSTR], args));
-		else if (method == "Size")
+		if (method == "Size")
 			return size(massage(params[SIZE], args));
+		else if (method == "Substr")
+			return substr(massage(params[SUBSTR], args));
 		else
 			return super.invoke(method, args);
+	}
+
+	private SuValue size(SuValue[] args) {
+		return SuInteger.valueOf(s.length());
 	}
 
 	private SuValue substr(SuValue[] args) {
@@ -213,9 +217,5 @@ public class SuString extends SuValue {
 			n += len - i;
 		n = max(0, min(n, len - i));
 		return new SuString(s.substring(i, i + n));
-	}
-
-	private SuValue size(SuValue[] args) {
-		return SuInteger.valueOf(s.length());
 	}
 }
