@@ -1,6 +1,7 @@
 package suneido.database.server;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.List;
 
 import suneido.SuValue;
@@ -31,7 +32,7 @@ public interface Dbms {
 	List<LibGet> libget(String name);
 	List<String> libraries();
 	List<Integer> tranlist();
-	SuValue timestamp();
+	Date timestamp();
 	void dump(String filename);
 	void copy(String filename);
 	SuValue run(String s);

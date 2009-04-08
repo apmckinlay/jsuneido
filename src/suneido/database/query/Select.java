@@ -2,20 +2,20 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
+import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.*;
+import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.*;
-import suneido.language.Token;
+import suneido.language.*;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -90,7 +90,7 @@ public class Select extends Query1 {
 				BinOp binop = (BinOp) e;
 				if (binop.op == IS) {
 					String field = ((Identifier) binop.left).ident;
-					SuValue value = ((Constant) binop.right).value;
+					Object value = ((Constant) binop.right).value;
 					fix.add(new Fixed(field, value));
 				}
 			}
@@ -778,7 +778,7 @@ public class Select extends Query1 {
 		}
 		// finally check remaining expressions
 		row.setTransaction(tran);
-		return expr.eval(hdr, row) == SuBoolean.TRUE;
+		return expr.eval(hdr, row) == Boolean.TRUE;
 	}
 
 	private boolean matches(List<String> idx, Record key) {
@@ -817,7 +817,7 @@ public class Select extends Query1 {
 		Record newto = new Record();
 		int si = 0; // source_index;
 		int ri = 0; // index;
-		SuValue fixval;
+		Object fixval;
 		while (ri < index.size()) {
 			String ridx = index.get(ri);
 			if (si < source_index.size() && source_index.get(si).equals(ridx)) {
@@ -835,8 +835,8 @@ public class Select extends Query1 {
 			}
 			else if (null != (fixval = getfixed(fix, ridx))) {
 				int i = index.indexOf(ridx);
-				if (fixval.compareTo(from.get(i)) < 0
-						|| fixval.compareTo(to.get(i)) > 0)
+				if (Ops.cmp(fixval, from.get(i)) < 0
+						|| Ops.cmp(fixval, to.get(i)) > 0)
 					{
 					// select doesn't match fixed so empty select
 					sel.setNone();
@@ -854,7 +854,7 @@ public class Select extends Query1 {
 		sel.set(newfrom, newto);
 	}
 
-	private static SuValue getfixed(List<Fixed> fixed, String field) {
+	private static Object getfixed(List<Fixed> fixed, String field) {
 		for (Fixed f : fixed)
 			if (f.field.equals(field) && f.values.size() == 1)
 				return f.values.get(0);
@@ -1031,8 +1031,16 @@ public class Select extends Query1 {
 			return "";
 		return value.equals(MIN_FIELD) ? "min"
 				: value.equals(MAX_FIELD) ? "max"
-				: SuValue.toString(value);
+				: toString(value);
 	}
+
+	public static String toString(ByteBuffer buf) {
+		int pos = buf.position();
+		Object x = Pack.unpack(buf);
+		buf.position(pos);
+		return Ops.toString(x);
+	}
+
 	private static String valuesToString(List<ByteBuffer> values) {
 		String s = "";
 		if (values != null)

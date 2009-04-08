@@ -4,9 +4,9 @@ import static suneido.SuException.unreachable;
 
 import java.util.List;
 
-import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Ops;
 import suneido.language.Token;
 
 public class UnOp extends Expr {
@@ -37,20 +37,20 @@ public class UnOp extends Expr {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
+	public Object eval(Header hdr, Row row) {
 		return eval2(expr.eval(hdr, row));
 	}
 
-	SuValue eval2(SuValue x) {
+	Object eval2(Object x) {
 		switch (op) {
 		case NOT:
-			return x == SuBoolean.FALSE ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case BITNOT:
-			return SuInteger.valueOf(~x.integer());
+			return x == Boolean.FALSE ? Boolean.TRUE : Boolean.FALSE;
 		case ADD:
 			return x;
 		case SUB:
-			return x.uminus();
+			return Ops.uminus(x);
+		case BITNOT:
+			return Ops.bitnot(x);
 		default:
 			throw unreachable();
 		}

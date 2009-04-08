@@ -7,14 +7,12 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.SuString;
-
 public class SlotTest {
 	@Test
 	public void test() {
 		Slot slot;
 		Record r = new Record(100);
-		r.add(SuString.valueOf("hello"));
+		r.add("hello");
 
 		slot = new Slot(r);
 		assertEquals(r.packSize(), slot.packSize());

@@ -18,9 +18,9 @@ public class Repl {
 			if ("q".equals(line))
 				break;
 			try {
-				SuValue f = compile("function () { " + line + " }");
-				SuValue[] locals = new SuValue[0];
-				SuValue result = f.invoke("call", locals);
+				Object f = compile("function () { " + line + " }");
+				Object[] locals = new SuValue[0];
+				Object result = Ops.invoke(f, "call", locals);
 				if (result != null)
 				out.println(" => " + result);
 				saveTest(line, result);
@@ -32,7 +32,7 @@ public class Repl {
 		out.flush();
 	}
 
-	private static void saveTest(String line, SuValue result)
+	private static void saveTest(String line, Object result)
 			throws FileNotFoundException {
 		PrintWriter pw =
 				new PrintWriter(new FileOutputStream("repl.txt", true));

@@ -3,7 +3,6 @@ package suneido.language;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import suneido.SuInteger;
 import suneido.SuValue;
 
 public class TestCompilerGenerator {
@@ -13,8 +12,8 @@ public class TestCompilerGenerator {
 	public static void main(String[] args) throws Exception {
 		SuValue f = compile("function () { f = function () { 123 }; f() }");
 		System.out.println(sw);
-		SuValue[] locals = new SuValue[] { SuInteger.valueOf(12), null };
-		SuValue result = f.invoke("call", locals);
+		Object[] locals = new Object[] { 12, null };
+		Object result = Ops.invoke(f, "call", locals);
 		System.out.println("result: " + result);
 	}
 

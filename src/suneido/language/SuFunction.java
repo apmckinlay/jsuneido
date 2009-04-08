@@ -1,6 +1,6 @@
 package suneido.language;
 
-import suneido.*;
+import suneido.SuException;
 
 /**
  * an SuFunction is implemented as a class with the definition in the
@@ -15,9 +15,9 @@ abstract public class SuFunction extends SuClass {
 	}
 
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "Type")
-			return SuString.valueOf("function");
+			return "function";
 		// TODO other standard methods on functions e.g. Params
 		else
 			throw unknown_method(method);

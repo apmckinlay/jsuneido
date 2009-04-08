@@ -1,13 +1,11 @@
 package suneido.language;
 
-import suneido.SuValue;
-
 public class SampleFunction extends SuFunction {
 	private static FunctionSpec[] params;
-	private static SuValue[][] constants;
+	private static Object[][] constants;
 
 	@Override
-	public void setup(FunctionSpec[] p, SuValue[][] c) {
+	public void setup(FunctionSpec[] p, Object[][] c) {
 		params = p;
 		constants = c;
 	}
@@ -18,16 +16,15 @@ public class SampleFunction extends SuFunction {
 	}
 
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "call")
 			return invoke(massage(params[0], args));
 		else
 			return super.invoke(method, args);
 	}
 
-	private SuValue invoke(SuValue... args) {
-		Integer i = 0x1234567;
-		return args[0].lt(args[1]);
+	private Object invoke(Object... args) {
+		return Ops.toBool(null);
 	}
 
 }

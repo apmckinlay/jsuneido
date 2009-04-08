@@ -1,10 +1,9 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.language.Ops.display;
 
 import org.junit.Test;
-
-import suneido.SuValue;
 
 public class ExecuteTest {
 
@@ -37,7 +36,7 @@ public class ExecuteTest {
 	}
 	@Test public void test_args() {
 		test("f = function (@x) { x }; f(1, a: 2)", "#(1, a: 2)");
-		test("f = function (@x) { x }; f(a: 1, b: 2)", "#(a: 1, b: 2)");
+		test("f = function (@x) { x }; f(a: 1, b: 2)", "#(b: 2, a: 1)");
 	}
 	@Test public void test_and() {
 		test("true && false", "false");
@@ -110,20 +109,20 @@ public class ExecuteTest {
 	}
 
 	private static void test(String expr, String result) {
-		assertEquals(result, eval(expr).toString());
+		assertEquals(result, display(eval(expr)));
 	}
 
-	private static SuValue eval(String s) {
-		SuValue f = compile("function () { " + s + " }");
-		SuValue[] locals = new SuValue[0];
-		return f.invoke("call", locals);
+	private static Object eval(String s) {
+		Object f = compile("function () { " + s + " }");
+		Object[] locals = new Object[0];
+		return Ops.invoke(f, "call", locals);
 	}
 
-	private static SuValue compile(String s) {
+	private static Object compile(String s) {
 		Lexer lexer = new Lexer(s);
 		CompileGenerator generator = new CompileGenerator();
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
-		return (SuValue) pc.parse();
+		return pc.parse();
 	}
 }

@@ -10,18 +10,18 @@ import suneido.SuValue;
  * Licensed under GPLv2.</small></p>
  */
 public class SuMethod extends SuValue {
-	public SuValue instance;
+	public Object instance;
 	private final String method;
 
-	public SuMethod(SuValue instance, String method) {
+	public SuMethod(Object instance, String method) {
 		this.instance = instance;
 		this.method = method;
 	}
 
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "call")
-			return instance.invoke(this.method, args);
+			return Ops.invoke(instance, this.method, args);
 		else
 			throw unknown_method(method);
 	}

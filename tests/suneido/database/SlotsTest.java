@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.SuString;
-
 public class SlotsTest {
 	@Test
 	public void test() {
@@ -76,7 +74,7 @@ public class SlotsTest {
 			args = new String[] { "hello" };
 		Record r = new Record(100);
 		for (String s : args)
-			r.add(SuString.valueOf(s));
+			r.add(s);
 		return new Slot(r);
 	}
 }

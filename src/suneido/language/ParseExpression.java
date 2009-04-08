@@ -168,10 +168,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			match();
 			return generator.unaryExpression(op, unaryExpression());
 		default:
-			if (lexer.getKeyword() == NEW) {
-				return newExpression();
-			} else
-				return term();
+			return lexer.getKeyword() == NEW ? newExpression() : term();
 		}
 	}
 	private T newExpression() {

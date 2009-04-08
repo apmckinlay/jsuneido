@@ -1,10 +1,4 @@
-/**
- *
- */
 package suneido.language;
-
-import suneido.SuString;
-import suneido.SuValue;
 
 class Print extends SuFunction {
 	@Override
@@ -12,23 +6,21 @@ class Print extends SuFunction {
 		return "Print";
 	}
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "call")
 			return invoke(args);
 		else
 			return super.invoke(method, args);
 	}
-	private SuValue invoke(SuValue... args) {
+	private Object invoke(Object... args) {
 		for (int i = 0; i < args.length; ++i) {
 			if (i > 0)
 				System.out.print(' ');
-			SuValue x = args[i];
-			if (x == NAMED)
-				System.out.print(args[++i].string() + ":");
-			else if (x instanceof SuString)
-				System.out.print(x.string());
+			Object x = args[i];
+			if (x == SuClass.SpecialArg.NAMED)
+				System.out.print((String) args[++i] + ":");
 			else
-				System.out.print(x.toString());
+				System.out.print(Ops.toString(x));
 		}
 		System.out.println();
 		return null;

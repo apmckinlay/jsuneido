@@ -2,7 +2,7 @@ package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static suneido.Util.list;
+import static suneido.util.Util.list;
 
 import java.util.Iterator;
 

@@ -1,9 +1,9 @@
 package suneido.language;
 
 import static org.junit.Assert.*;
-import static suneido.Util.array;
-import static suneido.language.SuClass.EACH;
-import static suneido.language.SuClass.NAMED;
+import static suneido.language.SuClass.SpecialArg.EACH;
+import static suneido.language.SuClass.SpecialArg.NAMED;
+import static suneido.util.Util.array;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,8 +16,8 @@ public class SuClassTest {
 	@Test
 	public void test() {
 		SuValue c = new TestClass();
-		assertEquals(SuString.EMPTY, c.invoke("Substr"));
-		assertEquals(SuInteger.ZERO, c.invoke("Size"));
+		assertEquals("", c.invoke("Substr"));
+		assertEquals(0, c.invoke("Size"));
 	}
 
 	@Test(expected=SuException.class)
@@ -27,11 +27,11 @@ public class SuClassTest {
 
 	@Test
 	public void massage() {
-		SuValue[] empty = new SuValue[0];
-		SuValue i = SuInteger.valueOf(6);
-		SuValue s = SuString.valueOf("hello");
-		SuString a = SuString.valueOf("a");
-		SuString x = SuString.valueOf("x");
+		Object[] empty = new Object[0];
+		Object i = 6;
+		Object s = "hello";
+		String a = "a";
+		String x = "x";
 		SuContainer c = new SuContainer();
 		SuContainer ias = new SuContainer();
 		ias.append(i);
@@ -68,10 +68,10 @@ public class SuClassTest {
 		bad(f(),			array(s)); // too many arguments
 		bad(f("x"),			array(EACH, ias, EACH, sxi)); // too many arguments
 	}
-	private void good(FunctionSpec f, SuValue[] args, SuValue[] locals) {
+	private void good(FunctionSpec f, Object[] args, Object[] locals) {
 		assertArrayEquals(locals, SuClass.massage(f, args));
 	}
-	private void bad(FunctionSpec f, SuValue[] args) {
+	private void bad(FunctionSpec f, Object[] args) {
 		try {
 			SuClass.massage(f, args);
 			fail();
@@ -88,41 +88,38 @@ public class SuClassTest {
 		String[] locals = Arrays.copyOf(params, params.length + extra);
 		for (int i = 0; i < extra; ++i)
 			locals[params.length + i] = "local" + i;
-		SuValue[] defaults = defaults(locals, params);
+		Object[] defaults = defaults(locals, params);
 		return new FunctionSpec("", locals, params.length, defaults,
 				defaults.length, atParam);
 	}
-	private SuValue[] defaults(String[] locals, String... params) {
-		ArrayList<SuValue> defaults = new ArrayList<SuValue>();
+	private Object[] defaults(String[] locals, String... params) {
+		ArrayList<Object> defaults = new ArrayList<Object>();
 		int j;
 		for (int i = 0; i < params.length; ++i)
 			if (-1 != (j = params[i].indexOf('='))) {
 				locals[i] = params[i].substring(0, j);
 				String s = params[i].substring(j + 1);
 				defaults.add(Character.isDigit(s.charAt(0))
-						? SuInteger.valueOf(s) : SuString.valueOf(s));
+						? Ops.stringToNumber(s) : s);
 			}
-		return defaults.toArray(new SuValue[0]);
+		return defaults.toArray(new Object[0]);
 	}
 
 	@Test
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
 		SuValue instance = dc.newInstance();
-		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
-		assertArrayEquals(new SuValue[] { SuString.valueOf("Substr") },
-				DefaultClass.args);
-		instance.invoke("Substr", SuInteger.ONE);
-		assertArrayEquals(
-				new SuValue[] { SuString.valueOf("Substr"), SuInteger.ONE },
-				DefaultClass.args);
+		assertEquals("", instance.invoke("Substr"));
+		assertArrayEquals(new Object[] { "Substr" }, DefaultClass.args);
+		instance.invoke("Substr", 1);
+		assertArrayEquals(new Object[] { "Substr", 1 }, DefaultClass.args);
 	}
 	static class DefaultClass extends SampleClass {
-		public static SuValue[] args;
+		public static Object[] args;
 		@Override
-		public SuValue methodDefault(SuValue[] args) {
+		public Object methodDefault(Object[] args) {
 			DefaultClass.args = args;
-			return SuString.EMPTY;
+			return "";
 		}
 		@Override
 		public SuClass newInstance() {
@@ -132,11 +129,11 @@ public class SuClassTest {
 
 	@Test
 	public void test_inheritance() {
-		SuValue subClass = new SubClass();
-		SuValue instance = subClass.invoke("<new>");
+		Object subClass = new SubClass();
+		Object instance = Ops.invoke(subClass, "<new>");
 		assertTrue(instance instanceof SubClass);
-		assertEquals(SuInteger.valueOf(99), instance.invoke("Size"));
-		assertEquals(SuString.EMPTY, instance.invoke("Substr"));
+		assertEquals(99, Ops.invoke(instance, "Size"));
+		assertEquals("", Ops.invoke(instance, "Substr"));
 	}
 	static class SubClass extends DefaultClass {
 		@Override
@@ -145,9 +142,9 @@ public class SuClassTest {
 		}
 
 		@Override
-		public SuValue invoke(String method, SuValue ... args) {
+		public Object invoke(String method, Object... args) {
 			if (method == "Size")
-				return SuInteger.valueOf(99);
+				return 99;
 			else
 				return super.invoke(method, args);
 		}
@@ -156,14 +153,14 @@ public class SuClassTest {
 	@Test
 	public void test_constructor() {
 		SuClass wc = new WrapClass();
-		SuValue s = SuString.valueOf("hello");
+		Object s = "hello";
 		SuClass instance = (SuClass) wc.invoke("<new>", s);
 		assertEquals(s, instance.vars.get("value"));
 	}
 
 	static class WrapClass extends SampleClass {
 		{
-			vars.put("Name", SuString.valueOf("Wrap"));
+			vars.put("Name", "Wrap");
 		}
 		static final FunctionSpec params = new FunctionSpec("",
 				new String[] { "value" }, 1);
@@ -173,7 +170,7 @@ public class SuClassTest {
 		}
 
 		@Override
-		public SuValue invoke(String method, SuValue... args) {
+		public Object invoke(String method, Object... args) {
 			if (method == "<new>") {
 				WrapClass wc = (WrapClass) super.invoke(method);
 				wc.vars.put("value", args[0]);

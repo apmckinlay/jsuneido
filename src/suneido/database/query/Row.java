@@ -5,9 +5,10 @@ import static suneido.Suneido.verify;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.*;
+import suneido.SuRecord;
 import suneido.database.Record;
 import suneido.database.Transaction;
+import suneido.language.Pack;
 
 // maybe it would be simpler to attach header to row
 // rather than passing it in all the time
@@ -79,7 +80,7 @@ public class Row {
 		if (w != null)
 			return getraw(w);
 		// else rule
-		return surec(hdr).get(SuString.valueOf(col)).pack();
+		return Pack.pack(surec(hdr).get(col));
 	}
 
 	public SuRecord surec(Header hdr) {
@@ -101,12 +102,12 @@ public class Row {
 		return null;
 	}
 
-	public SuValue getval(Header hdr, String col) {
+	public Object getval(Header hdr, String col) {
 		Which w = find(hdr, col);
 		if (w != null || !hdr.cols.contains(col))
-			return SuValue.unpack(getraw(w));
+			return Pack.unpack(getraw(w));
 		// else rule
-		return surec(hdr).get(SuString.valueOf(col));
+		return surec(hdr).get(col);
 	}
 
 	static class Which {

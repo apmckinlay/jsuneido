@@ -3,7 +3,6 @@ package suneido.language;
 import java.util.HashMap;
 
 import suneido.SuException;
-import suneido.SuValue;
 
 /**
  * Stores global names and values.
@@ -13,8 +12,8 @@ import suneido.SuValue;
  * Licensed under GPLv2.</small></p>
  */
 public class Globals {
-	private static HashMap<String, SuValue> globals =
-			new HashMap<String, SuValue>();
+	private static HashMap<String, Object> globals =
+			new HashMap<String, Object>();
 
 	private Globals() { // no instances
 		throw SuException.unreachable();
@@ -24,8 +23,8 @@ public class Globals {
 		return globals.size();
 	}
 
-	public static SuValue get(String name) {
-		SuValue x = globals.get(name);
+	public static Object get(String name) {
+		Object x = globals.get(name);
 		if (x == null) {
 			x = loadClass(name);
 			if (x == null)
@@ -34,7 +33,7 @@ public class Globals {
 		return x;
 	}
 
-	public static SuValue loadClass(String name) {
+	public static Object loadClass(String name) {
 		Class<?> c = null;
 		try {
 			c = Class.forName("suneido.language." + name);
@@ -55,7 +54,7 @@ System.out.println("<loaded: " + name + ">");
 		return sc;
 	}
 
-	public static void put(String name, SuValue x) {
+	public static void put(String name, Object x) {
 		globals.put(name, x);
 	}
 }

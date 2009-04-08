@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
 import suneido.SuValue;
 
 public class SuMethodTest {
@@ -12,7 +11,7 @@ public class SuMethodTest {
 	public void test() {
 		SuValue x = new TestClass();
 		SuValue m = new SuMethod(x, "Size");
-		SuValue result = m.invokeN();
-		assertEquals(SuInteger.ZERO, result);
+		Object result = Ops.invoke(m, "call");
+		assertEquals(0, result);
 	}
 }

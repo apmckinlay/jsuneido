@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.util.Util.*;
 
 import java.util.*;
 

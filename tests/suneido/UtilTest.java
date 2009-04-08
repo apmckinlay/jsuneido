@@ -1,14 +1,16 @@
 package suneido;
 
 import static org.junit.Assert.*;
-import static suneido.Util.bufferUcompare;
-import static suneido.Util.list;
+import static suneido.util.Util.bufferUcompare;
+import static suneido.util.Util.list;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+
+import suneido.util.Util;
 
 public class UtilTest {
 	@Test
@@ -17,11 +19,11 @@ public class UtilTest {
 		List<String> list = new ArrayList<String>();
 		assertEquals("()", Util.listToParens(list));
 		list.add("one");
-		assertEquals("(one)", Util.listToParens(list));
+		assertEquals("('one')", Util.displayListToParens(list));
 		list.add("two");
-		assertEquals("(one,two)", Util.listToParens(list));
+		assertEquals("('one','two')", Util.displayListToParens(list));
 		list.add("three");
-		assertEquals("(one,two,three)", Util.listToParens(list));
+		assertEquals("('one','two','three')", Util.displayListToParens(list));
 	}
 
 	@Test

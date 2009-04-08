@@ -1,7 +1,7 @@
 package suneido.database.query;
 
-import static suneido.Util.intersect;
-import static suneido.Util.union;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.union;
 
 import java.util.Collections;
 import java.util.List;

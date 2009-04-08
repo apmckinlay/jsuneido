@@ -6,9 +6,6 @@ import java.util.*;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
-import suneido.SuString;
-
 public class BtreeTest {
 	@Test
 	public void one_leaf() {
@@ -183,13 +180,13 @@ public class BtreeTest {
 	}
 	private static Record makerec(int num, int nfiller) {
 		Record r = new Record();
-		r.add(SuInteger.valueOf(num));
+		r.add(num);
 		for (int i = 0; i < nfiller; ++i)
 			r.add(filler);
 		return r;
 	}
-	final private static SuString filler = SuString
-			.valueOf("hellooooooooooooooooooooooooooooooooooooooooooo");
+	final private static String filler =
+			"hellooooooooooooooooooooooooooooooooooooooooooo";
 
 	// public static void main(String args[]) {
 	// new BtreeTest().test();

@@ -64,7 +64,7 @@ public class ParseTest extends TestBase {
 				null,
 			"DELETE test WHERE (a is 5)", null,
 			"UPDATE test SET a=5, b=3", null,
-			"INSERT [a: 4, b: 6] INTO test", null,
+			"INSERT [b: 6, a: 4] INTO test", null,
 			"test WHERE (a is #20081216.1523)", null,
 			"test WHERE (a is #20081216.152301)", null,
 			"test WHERE (a is #20081216.152301234)", null,

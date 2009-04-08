@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.listToCommas;
+import static suneido.util.Util.listToCommas;
 
 import java.util.List;
 

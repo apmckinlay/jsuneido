@@ -1,17 +1,16 @@
 package suneido.language;
 
-import suneido.SuValue;
 
 public class FunctionSpec {
 	final String name;
 	/** parameter names followed by local variable names */
 	final String[] locals;
 	/** default parameter values followed by constants */
-	final SuValue[] constants;
+	final Object[] constants;
 	final int nparams;
 	final int ndefaults;
 	final boolean atParam;
-	private final static SuValue[] noConstants = new SuValue[0];
+	private final static Object[] noConstants = new Object[0];
 	public final static FunctionSpec noParams =
 			new FunctionSpec(null, new String[0], 0);
 
@@ -19,7 +18,7 @@ public class FunctionSpec {
 		this(name, locals, nparams, noConstants, 0, false);
 	}
 	public FunctionSpec(String name, String[] locals, int nparams,
-			SuValue[] constants, int ndefaults, boolean atParam) {
+			Object[] constants, int ndefaults, boolean atParam) {
 		this.name = name;
 		this.locals = locals;
 		this.nparams = nparams;
@@ -42,8 +41,8 @@ public class FunctionSpec {
 			s += " " + t;
 		s += ", nparams: " + nparams;
 		s += ", constants:";
-		for (SuValue x : constants)
-			s += " " + (x == null ? "null" : x.toString());
+		for (Object x : constants)
+			s += " " + (x == null ? "null" : Ops.display(x));
 		s += ", ndefaults: " + ndefaults;
 		return s + ")";
 	}

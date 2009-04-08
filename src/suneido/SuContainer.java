@@ -1,9 +1,13 @@
 package suneido;
 
 import static suneido.Suneido.verify;
+import static suneido.language.Ops.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+
+import suneido.language.Ops;
+import suneido.language.Pack;
 
 /**
  * Suneido's single container type.
@@ -11,26 +15,26 @@ import java.util.*;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class SuContainer extends SuValue {
-	final private ArrayList<SuValue> vec = new ArrayList<SuValue>();
-	final private HashMap<SuValue, SuValue> map = new HashMap<SuValue, SuValue>();
-	private final SuValue defval = null; // TODO defval
+public class SuContainer extends SuValue implements Comparable<SuContainer> {
+	final private ArrayList<Object> vec = new ArrayList<Object>();
+	final private HashMap<Object, Object> map = new HashMap<Object, Object>();
+	private final Object defval = null; // TODO defval
 
 	public SuContainer() {
 	}
 
-	public SuValue vecGet(int i) {
+	public Object vecGet(int i) {
 		return vec.get(i);
 	}
-	public SuValue mapGet(SuValue key) {
+	public Object mapGet(Object key) {
 		return map.get(key);
 	}
 
-	public void append(SuValue value) {
+	public void append(Object value) {
 		vec.add(value);
 		// check for migration from map to vec
 		while (!map.isEmpty()) {
-			SuValue num = SuInteger.valueOf(vec.size());
+			Object num = vec.size();
 			if (! map.containsKey(num))
 				break ;
 			vec.add(map.get(num));
@@ -44,22 +48,22 @@ public class SuContainer extends SuValue {
 	}
 
 	@Override
-	public void put(SuValue key, SuValue value) {
-		int i = key.index();
+	public void put(Object key, Object value) {
+		int i = index(key);
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
 			append(value);
 		else
-			map.put(key, value);
+			map.put(canonical(key), value);
 	}
 
 	@Override
-	public SuValue get(SuValue key) {
-		int i = key.index();
+	public Object get(Object key) {
+		int i = index(key);
 		if (0 <= i && i < vec.size())
 			return vec.get(i);
-		SuValue x = map.get(key);
+		Object x = map.get(key);
 		return x == null ? defval : x;
 	}
 
@@ -74,15 +78,20 @@ public class SuContainer extends SuValue {
 
 	protected String toString(String before, String after) {
 		String s = "";
-		for (SuValue x : vec)
-			s += x + ", ";
-		// use a TreeSet to get the members sorted
-		TreeSet<SuValue> keys = new TreeSet<SuValue>(map.keySet());
-		for (SuValue k : keys)
-			s += k.string() + ": " + map.get(k) + ", ";
+		for (Object x : vec)
+			s += Ops.display(x) + ", ";
+		Set<Object> keys = map.keySet();
+		for (Object k : keys)
+			s += keyToString(k) + ": " + Ops.display(map.get(k)) + ", ";
 		if (s.length() >= 2)
 			s = s.substring(0, s.length() - 2);
 		return before + s + after;
+	}
+	static String keyToString(Object x) {
+		return x instanceof String ? keyToString((String) x) : Ops.toString(x);
+	}
+	static String keyToString(String s) {
+		return s.matches("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$") ? s : ("'" + s + "'");
 	}
 
 	@Override
@@ -90,17 +99,17 @@ public class SuContainer extends SuValue {
 		return hashCode(0);
 	}
 	/** as recommended by Effective Java
-	 *  can't use vec and map hashCode methods 
+	 *  can't use vec and map hashCode methods
 	 *  because we need to check nesting */
 	@Override
 	public int hashCode(int nest) {
 		checkNest(++nest);
 		int result = 17;
-		for (SuValue x : vec)
-			result = 31 * result + x.hashCode(nest);
-		for (Map.Entry<SuValue,SuValue> e : map.entrySet()) {
-			result = 31 * result + e.getKey().hashCode(nest);
-			result = 31 * result + e.getValue().hashCode(nest);
+		for (Object x : vec)
+			result = 31 * result + Ops.hashCode(x, nest);
+		for (Map.Entry<Object, Object> e : map.entrySet()) {
+			result = 31 * result + Ops.hashCode(e.getKey(), nest);
+			result = 31 * result + Ops.hashCode(e.getValue(), nest);
 		}
 		return result;
 	}
@@ -116,33 +125,28 @@ public class SuContainer extends SuValue {
 		//TODO handle stack overflow from self-reference
 	}
 
-	@Override
-	public int compareTo(SuValue value) {
-		if (value == this)
-			return 0;
-		int ord = order() - value.order();
-		if (ord != 0)
-			return ord < 0 ? -1 : +1;
-		SuContainer other = (SuContainer) value;
+	public int compareTo(SuContainer other) {
+		int ord;
 		for (int i = 0; i < vec.size() && i < other.vec.size(); ++i)
-			if (0 != (ord = vec.get(i).compareTo(other.vec.get(i))))
+			if (0 != (ord = cmp(vec.get(i), other.vec.get(i))))
 				return ord;
 		return vec.size() - other.vec.size();
 		//TODO handle stack overflow from self-reference
 	}
-	@Override
-	public int order() {
-		return Order.CONTAINER.ordinal();
-	}
 
-	public boolean erase(SuValue key) {
-		int i = key.index();
+	public boolean erase(Object key) {
+		int i = index(key);
 		if (0 <= i && i < vec.size()) {
 			vec.remove(i);
 			return true;
 		} else
 			return null != map.remove(key);
 	}
+
+	private static int index(Object x) {
+		return x instanceof Number ? toInt(x) : -1;
+	}
+
 	public int vecSize() {
 		return vec.size();
 	}
@@ -155,13 +159,13 @@ public class SuContainer extends SuValue {
 			return ps;
 
 		ps += 4; // vec size
-		for (SuValue x : vec)
-			ps += 4 /* value size */+ x.packSize(nest);
+		for (Object x : vec)
+			ps += 4 /* value size */+ Pack.packSize(x, nest);
 
 		ps += 4; // map size
-		for (Map.Entry<SuValue, SuValue> e : map.entrySet())
-			ps += 4 /* member size */ + e.getKey().packSize(nest)
-					+ 4 /* value size */ + e.getValue().packSize(nest);
+		for (Map.Entry<Object, Object> e : map.entrySet())
+			ps += 4 /* member size */ + Pack.packSize(e.getKey(), nest)
+					+ 4 /* value size */ + Pack.packSize(e.getValue(), nest);
 
 		return ps;
 	}
@@ -176,26 +180,26 @@ public class SuContainer extends SuValue {
 
 	@Override
 	public void pack(ByteBuffer buf) {
-		buf.put(Pack.OBJECT);
+		buf.put(Pack.Tag.OBJECT);
 		if (size() == 0)
 			return;
 		buf.putInt(vec.size() ^ 0x80000000);
-		for (SuValue x : vec)
+		for (Object x : vec)
 			packvalue(buf, x);
 
 		buf.putInt(map.size() ^ 0x80000000);
-		for (Map.Entry<SuValue, SuValue> e : map.entrySet()) {
+		for (Map.Entry<Object, Object> e : map.entrySet()) {
 			packvalue(buf, e.getKey()); // member
 			packvalue(buf, e.getValue()); // value
 		}
 	}
 
-	private void packvalue(ByteBuffer buf, SuValue x) {
-		buf.putInt(x.packSize() ^ 0x80000000);
-		x.pack(buf);
+	private void packvalue(ByteBuffer buf, Object x) {
+		buf.putInt(Pack.packSize(x) ^ 0x80000000);
+		Pack.pack(x, buf);
 	}
 
-	public static SuValue unpack1(ByteBuffer buf) {
+	public static Object unpack1(ByteBuffer buf) {
 		SuContainer c = new SuContainer();
 		if (buf.remaining() == 0)
 			return c;
@@ -204,27 +208,27 @@ public class SuContainer extends SuValue {
 			c.vec.add(unpackvalue(buf));
 		n = buf.getInt() ^ 0x80000000; // map size
 		for (int i = 0; i < n; ++i) {
-			SuValue key = unpackvalue(buf);
-			SuValue val = unpackvalue(buf);
+			Object key = unpackvalue(buf);
+			Object val = unpackvalue(buf);
 			c.map.put(key, val);
 		}
 		verify(buf.remaining() == 0);
 		return c;
 	}
 
-	private static SuValue unpackvalue(ByteBuffer buf) {
+	private static Object unpackvalue(ByteBuffer buf) {
 		int n = buf.getInt() ^ 0x80000000;
 		ByteBuffer buf2 = buf.slice();
 		buf2.limit(n);
 		buf.position(buf.position() + n);
-		return SuValue.unpack(buf2);
+		return Pack.unpack(buf2);
 	}
 
 	public void setReadonly() {
 		// TODO setReadonly
 	}
 
-	public SuValue slice(int i) {
+	public Object slice(int i) {
 		SuContainer c = new SuContainer();
 		c.vec.addAll(vec.subList(i, vec.size()));
 		c.map.putAll(map);
@@ -232,8 +236,9 @@ public class SuContainer extends SuValue {
 	}
 
 	@Override
-	public SuContainer container() {
-		return this;
+	public Object invoke(String method, Object... args) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -3,7 +3,6 @@ package suneido.database.query.expr;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 
@@ -34,7 +33,7 @@ public class Identifier extends Expr {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
+	public Object eval(Header hdr, Row row) {
 		return row.getval(hdr, ident);
 	}
 

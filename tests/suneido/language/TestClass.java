@@ -3,11 +3,10 @@
  */
 package suneido.language;
 
-import suneido.*;
 
 class TestClass extends SampleClass {
 	@Override
-	public SuValue invoke(String method, SuValue ... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "Substr")
 			return TestClass.method1(args);
 		else if (method == "Size")
@@ -15,11 +14,11 @@ class TestClass extends SampleClass {
 		else
 			return super.invoke(method, args);
 	}
-	public static SuValue method1(SuValue[] args) {
-		return SuString.EMPTY;
+	public static Object method1(Object[] args) {
+		return "";
 	}
-	public static SuValue method2(SuValue[] args) {
-		return SuInteger.ZERO;
+	public static Object method2(Object[] args) {
+		return 0;
 	}
 	@Override
 	public SuClass newInstance() {

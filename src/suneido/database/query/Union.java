@@ -1,14 +1,13 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.*;
+import static suneido.util.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuString;
-import suneido.SuValue;
 import suneido.database.Record;
+import suneido.language.Ops;
 
 public class Union extends Compatible {
 	Strategy strategy;
@@ -187,12 +186,12 @@ public class Union extends Compatible {
 		List<Fixed> fixed2 = source2.fixed();
 		for (Fixed f1 : fixed1)
 			for (Fixed f2 : fixed2)
-				if (f1.field.equals(f2.field)) {
+				if (Ops.is(f1.field, f2.field)) {
 					fix.add(new Fixed(f1.field, union(f1.values, f2.values)));
 					break;
 				}
 		List<String> cols2 = source2.columns();
-		final List<SuValue> elist = list((SuValue) SuString.EMPTY);
+		final List<Object> elist = list((Object) "");
 		for (Fixed f1 : fixed1)
 			if (!cols2.contains(f1.field))
 				fix.add(new Fixed(f1.field, union(f1.values, elist)));

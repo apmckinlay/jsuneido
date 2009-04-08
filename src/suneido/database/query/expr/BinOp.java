@@ -1,14 +1,15 @@
 package suneido.database.query.expr;
 
 import static suneido.SuException.unreachable;
-import static suneido.Util.bufferUcompare;
-import static suneido.Util.union;
+import static suneido.language.Ops.*;
 import static suneido.language.Token.*;
+import static suneido.util.Util.bufferUcompare;
+import static suneido.util.Util.union;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.*;
+import suneido.Regex;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.language.Token;
@@ -47,34 +48,29 @@ public class BinOp extends Expr {
 		return this;
 	}
 
-	private SuValue eval2(SuValue x, SuValue y) {
+	private Object eval2(Object x, Object y) {
 		switch (op) {
-		case IS :	return x.equals(y) ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case ISNT :	return ! x.equals(y) ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case LT :	return x.compareTo(y) < 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case LTE :	return x.compareTo(y) <= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case GT :	return x.compareTo(y) > 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case GTE :	return x.compareTo(y) >= 0 ? SuBoolean.TRUE : SuBoolean.FALSE;
-		case ADD :	return x.add(y);
-		case SUB :	return x.sub(y);
-		case CAT: 	return SuString.valueOf(x.string() + y.string());
-		case MUL :	return x.mul(y);
-		case DIV :	return x.div(y);
-		case MOD :	return SuInteger.valueOf(x.integer() % y.integer());
-		case LSHIFT :	return SuInteger.valueOf(x.integer() << y.integer());
-		case RSHIFT :	return SuInteger.valueOf(x.integer() >> y.integer());
-		case BITAND :	return SuInteger.valueOf(x.integer() & y.integer());
-		case BITOR :	return SuInteger.valueOf(x.integer() | y.integer());
-		case BITXOR:	return SuInteger.valueOf(x.integer() ^ y.integer());
-		case MATCH :	return matches(x.string(), y.string());
-		case MATCHNOT : return matches(x.string(), y.string()).not();
+		case IS :	return is(x, y) ? Boolean.TRUE : Boolean.FALSE;
+		case ISNT :	return ! is(x, y) ? Boolean.TRUE : Boolean.FALSE;
+		case LT :	return cmp(x, y) < 0 ? Boolean.TRUE : Boolean.FALSE;
+		case LTE :	return cmp(x, y) <= 0 ? Boolean.TRUE : Boolean.FALSE;
+		case GT :	return cmp(x, y) > 0 ? Boolean.TRUE : Boolean.FALSE;
+		case GTE :	return cmp(x, y) >= 0 ? Boolean.TRUE : Boolean.FALSE;
+		case ADD :	return add(x, y);
+		case SUB :	return sub(x, y);
+		case CAT: 	return cat(x, y);
+		case MUL :	return mul(x, y);
+		case DIV :	return div(x, y);
+		case MOD :	return mod(x, y);
+		case LSHIFT :	return lshift(x, y);
+		case RSHIFT :	return rshift(x, y);
+		case BITAND :	return bitand(x, y);
+		case BITOR :	return bitor(x, y);
+		case BITXOR:	return bitxor(x, y);
+		case MATCH :	return matches(x, y);
+		case MATCHNOT : return ! matches(x, y);
 		default : 	throw unreachable();
 		}
-	}
-
-	// TODO convert from Suneido regex and cache compiled patterns
-	private SuBoolean matches(String s, String rx) {
-		return Regex.contains(s, rx) ? SuBoolean.TRUE : SuBoolean.FALSE;
 	}
 
 	@Override
@@ -103,7 +99,7 @@ public class BinOp extends Expr {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
+	public Object eval(Header hdr, Row row) {
 		// once we're eval'ing it is safe to cache isTerm
 		if (isterm == null)
 			isterm = isTerm(hdr.columns());
@@ -122,7 +118,7 @@ public class BinOp extends Expr {
 			case GTE :	result = bufferUcompare(field, value) >= 0; break;
 			default :	throw unreachable();
 			}
-			return result ? SuBoolean.TRUE : SuBoolean.FALSE;
+			return result ? Boolean.TRUE : Boolean.FALSE;
 		}
 		else
 			return eval2(left.eval(hdr, row), right.eval(hdr, row));

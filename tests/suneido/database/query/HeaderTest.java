@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.Util.list;
+import static suneido.util.Util.list;
 
 import java.util.ArrayList;
 import java.util.List;

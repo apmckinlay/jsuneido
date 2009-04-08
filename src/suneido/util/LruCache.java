@@ -1,8 +1,7 @@
-package suneido;
+package suneido.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 
 public class LruCache<K,V> {
 	private final LinkedHashMap<K, V> map;

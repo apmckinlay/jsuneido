@@ -1,9 +1,11 @@
-package suneido;
+package suneido.util;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import suneido.SuException;
+import suneido.language.Ops;
 
 /**
  * Miscellaneous functions.
@@ -23,7 +25,22 @@ public class Util {
 			if (x instanceof List)
 				sb.append(listToParens((List<String>) x));
 			else
-				sb.append(x);
+				sb.append(Ops.toString(x));
+			sb.append(",");
+		}
+		return sb.deleteCharAt(sb.length() - 1).toString();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> String displayListToCommas(List<T> list) {
+		if (list == null || list.isEmpty())
+			return "";
+		StringBuilder sb = new StringBuilder();
+		for (T x : list) {
+			if (x instanceof List)
+				sb.append(displayListToParens((List<String>) x));
+			else
+				sb.append(Ops.display(x));
 			sb.append(",");
 		}
 		return sb.deleteCharAt(sb.length() - 1).toString();
@@ -31,6 +48,10 @@ public class Util {
 
 	public static <T> String listToParens(List<T> list) {
 		return "(" + listToCommas(list) + ")";
+	}
+
+	public static <T> String displayListToParens(List<T> list) {
+		return "(" + displayListToCommas(list) + ")";
 	}
 
 	public static List<String> commasToList(String s) {
