@@ -1,18 +1,16 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
+import static suneido.util.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuString;
-
 public class Header {
 	List<List<String>> flds;
 	List<String> cols;
-	private SuString[] fldsyms;
-	private SuString timestamp = SuString.EMPTY;
+	private String[] fldsyms;
+	private String timestamp = "";
 
 	public Header(List<List<String>> flds, List<String> cols) {
 		this.flds = flds;
@@ -111,25 +109,25 @@ public class Header {
 		return schema;
 	}
 
-	public SuString[] output_fldsyms() {
+	public String[] output_fldsyms() {
 		if (fldsyms == null) {
 			// WARNING: this depends on flds[1] being the actual fields
 			List<String> flds1 = flds.get(1);
 			int n = flds1.size();
-			fldsyms = new SuString[n];
+			fldsyms = new String[n];
 			for (int i = 0; i < n; ++i)
 				fldsyms[i] = flds1.get(i) == "-"
-						? null : SuString.valueOf(flds1.get(i));
+						? null : flds1.get(i);
 		}
 		return fldsyms;
 	}
 
-	public SuString timestamp_field() {
-		if (timestamp == SuString.EMPTY) {
+	public String timestamp_field() {
+		if (timestamp == "") {
 			timestamp = null; // no timestamp
 			for (String f : flds.get(1))
 				if (f.endsWith("_TS")) {
-					timestamp = SuString.valueOf(f);
+					timestamp = f;
 					break;
 				}
 		}

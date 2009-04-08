@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Test;
 
 import suneido.database.Transaction;
+import suneido.language.Ops;
 
 public class ExecuteTest extends TestBase {
 	@Test
@@ -41,7 +42,7 @@ public class ExecuteTest extends TestBase {
 		Row row;
 		while (null != (row = q.get(NEXT))) {
 			for (String f : columns)
-				sb.append(row.getval(hdr, f)).append("\t");
+				sb.append(Ops.display(row.getval(hdr, f))).append("\t");
 			sb.deleteCharAt(sb.length() - 1);
 			sb.append("\n");
 		}

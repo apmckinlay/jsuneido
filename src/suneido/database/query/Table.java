@@ -2,8 +2,8 @@ package suneido.database.query;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.*;
 import static suneido.database.Database.theDB;
+import static suneido.util.Util.*;
 
 import java.util.List;
 

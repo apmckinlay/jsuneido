@@ -1,9 +1,10 @@
 package suneido.language;
 
 public enum TokenResultType {
-	N("(Lsuneido/SuValue;)Lsuneido/SuNumber;"),
-	S("(Lsuneido/SuValue;)Lsuneido/SuString;"),
-	B("(Lsuneido/SuValue;)Lsuneido/SuBoolean;");
+	I("Ljava/lang/Integer;"),
+	N("Ljava/lang/Number;"),
+	S("Ljava/lang/String;"),
+	B("Ljava/lang/Boolean;");
 
 	String type;
 

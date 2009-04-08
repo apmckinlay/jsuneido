@@ -2,6 +2,8 @@ package suneido;
 
 import java.util.regex.Pattern;
 
+import suneido.util.LruCache;
+
 public class Regex {
 	private static LruCache<String, Pattern> cache = 
 		new LruCache<String, Pattern>(32);

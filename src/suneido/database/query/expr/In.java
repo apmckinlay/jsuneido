@@ -1,36 +1,35 @@
 package suneido.database.query.expr;
 
-import static suneido.Util.listToParens;
+import static suneido.util.Util.listToParens;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuBoolean;
-import suneido.SuValue;
 import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Ops;
 
 public class In extends Expr {
 	public Expr expr;
 	private Boolean isterm = null;
-	private final List<SuValue> values;
+	private final List<Object> values;
 	public final Record packed;
 
 	public In(Expr expr) {
 		this.expr = expr;
-		this.values = new ArrayList<SuValue>();
+		this.values = new ArrayList<Object>();
 		this.packed = new Record();
 	}
 
-	public In(Expr expr, List<SuValue> values, Record packed) {
+	public In(Expr expr, List<Object> values, Record packed) {
 		this.expr = expr;
 		this.values = values;
 		this.packed = packed;
 	}
 
-	public In add(SuValue x) {
+	public In add(Object x) {
 		values.add(x);
 		packed.add(x);
 		return this;
@@ -60,7 +59,7 @@ public class In extends Expr {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
+	public Object eval(Header hdr, Row row) {
 		// once we're eval'ing it is safe to cache isTerm
 		if (isterm == null)
 			isterm = isTerm(hdr.columns());
@@ -69,19 +68,19 @@ public class In extends Expr {
 			ByteBuffer value = row.getraw(hdr, id.ident);
 			for (ByteBuffer v : packed)
 				if (v.equals(value))
-					return SuBoolean.TRUE;
-			return SuBoolean.FALSE;
+					return Boolean.TRUE;
+			return Boolean.FALSE;
 		} else {
-			SuValue x = expr.eval(hdr, row);
+			Object x = expr.eval(hdr, row);
 			return eval2(x);
 		}
 	}
 
-	private SuValue eval2(SuValue x) {
-		for (SuValue y : values)
-			if (x.equals(y))
-				return SuBoolean.TRUE;
-		return SuBoolean.FALSE;
+	private Object eval2(Object x) {
+		for (Object y : values)
+			if (Ops.is(x, y))
+				return Boolean.TRUE;
+		return Boolean.FALSE;
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package suneido.database.server;
 
-import static suneido.Util.bufferToString;
+import static suneido.util.Util.bufferToString;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

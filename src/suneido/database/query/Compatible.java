@@ -1,12 +1,11 @@
 package suneido.database.query;
 
 import static java.util.Collections.disjoint;
-import static suneido.Util.listToParens;
-import static suneido.Util.union;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.union;
 
 import java.util.List;
 
-import suneido.SuString;
 import suneido.database.Record;
 
 public abstract class Compatible extends Query2 {
@@ -29,14 +28,14 @@ public abstract class Compatible extends Query2 {
 		List<String> cols2 = source2.columns();
 		for (Fixed f1 : fixed1)
 			if (!cols2.contains(f1.field)
-					&& !f1.values.contains(SuString.EMPTY)) {
+					&& !f1.values.contains("")) {
 				disjoint = f1.field;
 				return ;
 			}
 		List<String> cols1 = source.columns();
 		for (Fixed f2 : fixed2)
 			if (!cols1.contains(f2.field)
-					&& !f2.values.contains(SuString.EMPTY)) {
+					&& !f2.values.contains("")) {
 				disjoint = f2.field;
 				return ;
 			}

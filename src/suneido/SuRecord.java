@@ -9,6 +9,7 @@ import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Pack;
 
 public class SuRecord extends SuContainer {
 	//private final Header hdr;
@@ -40,11 +41,11 @@ public class SuRecord extends SuContainer {
 			Row.Entry e = iter.next();
 			if (e.field.equals("-") || e.value.remaining() == 0)
 				continue ;
-			SuValue x = SuValue.unpack(e.value);
+			Object x = Pack.unpack(e.value);
 //			if (has_suffix(field, "_deps"))
 //				dependencies(basename(field), x.gcstr());
 //			else
-				put(SuString.valueOf(e.field), x);
+				put(e.field, x);
 		}
 }
 
@@ -54,13 +55,13 @@ public class SuRecord extends SuContainer {
 	}
 
 	@Override
-	public SuValue get(SuValue key) {
-		SuValue x = super.get(key);
-		return x == null ? SuString.EMPTY : x;
+	public Object get(Object key) {
+		Object x = super.get(key);
+		return x == null ? "" : x;
 	}
 
 	public Record toDbRecord(Header hdr) {
-		SuString[] fldsyms = hdr.output_fldsyms();
+		String[] fldsyms = hdr.output_fldsyms();
 		// dependencies
 		// - access all the fields to ensure dependencies are created
 		// Lisp<int> f;
@@ -83,9 +84,9 @@ public class SuRecord extends SuContainer {
 
 		Record rec = new Record();
 		// OstreamStr oss;
-		SuValue x;
-		SuString ts = hdr.timestamp_field();
-		for (SuString f : fldsyms)
+		Object x;
+		String ts = hdr.timestamp_field();
+		for (String f : fldsyms)
 			if (f == null)
 				rec.addMin();
 			else if (f == ts)

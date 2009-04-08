@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.*;
+import suneido.language.Ops;
+import suneido.language.Pack;
 
 public class RecordTest {
 	final static String data = "abc";
@@ -40,7 +41,7 @@ public class RecordTest {
 			assertEquals(4, r.fieldSize(0));
 			bb = r.getraw(0);
 			assertEquals(4, bb.limit());
-			assertEquals(data, SuValue.unpack(bb).string());
+			assertEquals(data, Ops.toString(Pack.unpack(bb)));
 			assertEquals(data, r.getString(0));
 
 			assertEquals(4, r.fieldSize(0));
@@ -59,13 +60,13 @@ public class RecordTest {
 	@Test
 	public void addPackable() {
 		Record r = new Record();
-		SuString s = SuString.valueOf("hello");
+		String s = String.valueOf("hello");
 		r.add(s);
-		assertEquals(s, SuValue.unpack(r.getraw(0)));
-		SuString s2 = SuString.valueOf("world");
+		assertEquals(s, Pack.unpack(r.getraw(0)));
+		String s2 = String.valueOf("world");
 		r.add(s2);
-		assertEquals(s, SuValue.unpack(r.getraw(0)));
-		assertEquals(s2, SuValue.unpack(r.getraw(1)));
+		assertEquals(s, Pack.unpack(r.getraw(0)));
+		assertEquals(s2, Pack.unpack(r.getraw(1)));
 
 	}
 
@@ -121,18 +122,19 @@ public class RecordTest {
 		Record r = make(data, data2);
 		assertEquals(data, r.getString(0));
 		assertEquals(data2, r.getString(1));
-		SuString s = SuString.valueOf("hello");
+		String s = String.valueOf("hello");
 		assertTrue(r.insert(1, s));
 		assertEquals(data, r.getString(0));
-		assertEquals(s, SuValue.unpack(r.getraw(1)));
+		assertEquals(s, Pack.unpack(r.getraw(1)));
 		assertEquals(data2, r.getString(2));
 
 		r = new Record(40);
 		r.insert(0, s); // insert at beginning
-		assertEquals(s, SuValue.unpack(r.getraw(0)));
+		assertEquals(s, Pack.unpack(r.getraw(0)));
 		r.insert(1, s); // insert at end (same as add)
-		assertEquals(s, SuValue.unpack(r.getraw(0)));
-		assertFalse(r.insert(1, SuString
+		assertEquals(s, Pack.unpack(r.getraw(0)));
+		assertFalse(r.insert(1,
+				String
 				.valueOf(
 				"hellooooooooooooooooooooooooooooooooooooooo")));
 	}
@@ -166,8 +168,8 @@ public class RecordTest {
 	@Test
 	public void unpackLong() {
 		Record r = new Record(40);
-		r.add(SuInteger.valueOf(0));
-		r.add(SuInteger.valueOf(1234));
+		r.add(0);
+		r.add(1234);
 		assertEquals(0, r.getLong(0));
 		assertEquals(1234, r.getLong(1));
 	}
@@ -189,11 +191,9 @@ public class RecordTest {
 
 	@Test
 	public void order() {
-		SuValue values[] = { SuInteger.valueOf(0), SuInteger.valueOf(70),
-				SuInteger.valueOf(140), SuInteger.valueOf(9999),
-				SuInteger.valueOf(10001) };
+		Object values[] = { 0, 70, 140, 9999, 10001 };
 		Record prev = null;
-		for (SuValue x : values) {
+		for (Object x : values) {
 			Record rec = new Record();
 			rec.add(x);
 			if (prev != null)
@@ -207,11 +207,11 @@ public class RecordTest {
 		Record rec = new Record(100);
 		Record pre = new Record(100);
 		assertTrue(rec.hasPrefix(pre));
-		pre.add(SuInteger.valueOf(6));
+		pre.add(6);
 		assertFalse(rec.hasPrefix(pre));
-		rec.add(SuInteger.valueOf(6));
+		rec.add(6);
 		assertTrue(rec.hasPrefix(pre));
-		rec.add(SuInteger.valueOf(99));
+		rec.add(99);
 		assertTrue(rec.hasPrefix(pre));
 	}
 

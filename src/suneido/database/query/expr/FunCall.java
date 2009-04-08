@@ -1,6 +1,6 @@
 package suneido.database.query.expr;
 
-import static suneido.Util.listToParens;
+import static suneido.util.Util.listToParens;
 
 import java.util.List;
 

@@ -1,27 +1,25 @@
 package suneido.database.query;
 
-import static suneido.Util.listToParens;
+import static suneido.util.Util.displayListToParens;
 
 import java.util.*;
 
-import suneido.SuValue;
-
 public class Fixed {
 	public String field;
-	public List<SuValue> values;
+	public List<Object> values;
 
-	public Fixed(String field, SuValue value) {
+	public Fixed(String field, Object value) {
 		this.field = field;
 		values = Collections.singletonList(value);
 	}
-	public Fixed(String field, List<SuValue> values) {
+	public Fixed(String field, List<Object> values) {
 		this.field = field;
 		this.values = values;
 	}
 
 	@Override
 	public String toString() {
-		return field + "=" + listToParens(values);
+		return field + "=" + displayListToParens(values);
 	}
 
 	/**

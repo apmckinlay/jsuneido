@@ -1,9 +1,9 @@
 package suneido.database.server;
 
 import static org.junit.Assert.*;
-import static suneido.Util.bufferToString;
-import static suneido.Util.stringToBuffer;
 import static suneido.database.Database.theDB;
+import static suneido.util.Util.bufferToString;
+import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,8 +15,8 @@ import org.junit.Test;
 import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
-import suneido.SuValue.Pack;
 import suneido.database.*;
+import suneido.language.Pack;
 
 public class CommandTest {
 	@Test
@@ -371,7 +371,7 @@ public class CommandTest {
 		assertEquals("L10 \r\n", bufferToString(output.get(0)));
 		assertEquals("stdlib\r\n", bufferToString(output
 				.get(1)));
-		assertEquals("" + (char) Pack.STRING + "some text",
+		assertEquals("" + (char) Pack.Tag.STRING + "some text",
 				bufferToString(output.get(2)));
 
 		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output,

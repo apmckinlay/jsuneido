@@ -4,8 +4,10 @@ import static suneido.language.Token.COUNT;
 
 import java.util.*;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.SuRecord;
 import suneido.database.query.expr.*;
+import suneido.language.Ops;
 import suneido.language.Token;
 import suneido.language.ParseExpression.Value;
 
@@ -186,7 +188,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object bool(boolean value) {
-		return value ? SuBoolean.TRUE : SuBoolean.FALSE;
+		return value ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	public Object breakStatement(Object loop) {
@@ -212,7 +214,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object constant(Object value) {
-		return Constant.valueOf((SuValue) value);
+		return Constant.valueOf(value);
 	}
 
 	public Object continueStatement(Object loop) {
@@ -220,7 +222,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object date(String value) {
-		return SuDate.valueOf(value);
+		return Ops.stringToDate(value);
 	}
 
 	public Object dowhileStatement(Object body, Object expr, Object label) {
@@ -279,16 +281,16 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public static class MemDef {
-		final public SuValue name;
-		final public SuValue value;
+		final public Object name;
+		final public Object value;
 
-		public MemDef(SuValue name, SuValue value) {
+		public MemDef(Object name, Object value) {
 			this.name = name;
 			this.value = value;
 		}
 	}
 	public Object memberDefinition(Object name, Object value) {
-		return new MemDef((SuValue) name, (SuValue) value);
+		return new MemDef(name, value);
 	}
 	public Object memberList(ObjectOrRecord which, Object members, Object member) {
 		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
@@ -303,7 +305,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object number(String value) {
-		return SuNumber.valueOf(value);
+		return Ops.stringToNumber(value);
 	}
 
 	public Object object(ObjectOrRecord which, Object members) {
@@ -338,7 +340,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object string(String value) {
-		return SuString.valueOf(value);
+		return value;
 	}
 
 	public Object subscript(Object term, Object expression) {
@@ -380,7 +382,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		if (constant == null)
 			return new In((Expr) expression);
 		In in = (In) expression;
-		in.add((SuValue) constant);
+		in.add(constant);
 		return in;
 	}
 

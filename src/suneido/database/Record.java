@@ -2,14 +2,17 @@ package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
-import static suneido.Util.bufferUcompare;
 import static suneido.database.Database.theDB;
+import static suneido.util.Util.bufferUcompare;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Iterator;
 
-import suneido.*;
+import suneido.Packable;
+import suneido.SuException;
+import suneido.language.Ops;
+import suneido.language.Pack;
 
 /**
  * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
@@ -137,7 +140,7 @@ public class Record
 		// return s;
 		String s = "[";
 		for (int i = 0; i < getNfields(); ++i)
-			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : get(i)) + ",";
+			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i))) + ",";
 		return s.substring(0, s.length() - 1) + "]";
 	}
 
@@ -193,22 +196,14 @@ public class Record
 		return this;
 	}
 
-	public Record add(Packable x) {
-		alloc(x.packSize(0));
-		x.pack(buf);
+	public Record add(Object x) {
+		if (x == null)
+			addMin();
+		else {
+			alloc(Pack.packSize(x));
+			Pack.pack(x, buf);
+		}
 		return this;
-	}
-
-	/** convenience method */
-	public Record add(String s) {
-		// PERF could bypass SuString instance
-		return s == null ? addMin() : add(SuString.valueOf(s));
-	}
-
-	/** convenience method */
-	public Record add(int x) {
-		// PERF could bypass SuInteger instance
-		return add(SuInteger.valueOf(x));
 	}
 
 	/** convenience method */
@@ -253,8 +248,8 @@ public class Record
 		rep = tmp.rep;
 	}
 
-	public boolean insert(int at, Packable x) {
-		int len = x.packSize(0);
+	public boolean insert(int at, Object x) {
+		int len = Pack.packSize(x);
 		if (len > rep.avail())
 			return false;
 		int n = getNfields();
@@ -266,7 +261,7 @@ public class Record
 		int pos = rep.getOffset(at - 1) - len;
 		rep.setOffset(at, pos);
 		buf.position(pos);
-		x.pack(buf);
+		Pack.pack(x, buf);
 		setNfields(n + 1);
 		return true;
 	}
@@ -319,31 +314,31 @@ public class Record
 		return result;
 	}
 
-	public SuValue get(int i) {
+	public Object get(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		return SuValue.unpack(getraw(i));
+		return Pack.unpack(getraw(i));
 	}
 
 	public String getString(int i) {
 		// PERF could bypass SuValue instance if SuString
-		return get(i).string();
+		return Ops.toString(get(i));
 	}
 
 	public long getLong(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		return SuNumber.unpackLong(getraw(i));
+		return Pack.unpackLong(getraw(i));
 	}
 
 	public int getInt(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		long n = SuNumber.unpackLong(getraw(i));
+		long n = Pack.unpackLong(getraw(i));
 		assert (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE);
 		return (int) n;
 	}
 
 	public short getShort(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		long n = SuNumber.unpackLong(getraw(i));
+		long n = Pack.unpackLong(getraw(i));
 		assert (Short.MIN_VALUE <= n && n <= Short.MAX_VALUE);
 		return (short) n;
 	}

@@ -5,8 +5,6 @@ import static suneido.Suneido.verify;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.*;
-
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
  *
@@ -23,7 +21,7 @@ public class Index {
 		FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3; // TODO convert to enum
-	private final static SuString UNIQUE = SuString.valueOf("u");
+	private final static String UNIQUE = "u";
 
 	ForeignKey fksrc = null;
 	ArrayList<ForeignKey> fkdsts = new ArrayList<ForeignKey>();
@@ -72,8 +70,9 @@ public class Index {
 		Record r = new Record()
 			.add(btreeIndex.tblnum)
 			.add(btreeIndex.indexColumns)
-			.add(btreeIndex.iskey ? SuBoolean.TRUE :
-				btreeIndex.unique ? UNIQUE : SuBoolean.FALSE)
+			.add(
+						btreeIndex.iskey ? Boolean.TRUE : btreeIndex.unique
+								? UNIQUE : Boolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
 		indexInfo(r, btreeIndex);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
@@ -92,11 +91,11 @@ public class Index {
 		// boolean lower = columns.startsWith("lower:");
 		// if (lower)
 		// columns += 6;
-		SuValue key = r.get(KEY);
+		Object key = r.get(KEY);
 		long root = r.getMmoffset(ROOT);
 		verify(root != 0);
 		return new BtreeIndex(dest, r.getInt(TBLNUM), columns,
-				key == SuBoolean.TRUE, key.equals(UNIQUE), root,
+				key == Boolean.TRUE, key.equals(UNIQUE), root,
 				r.getInt(TREELEVELS), r.getInt(NNODES));
 	}
 

@@ -1,8 +1,8 @@
 package suneido.database.query;
 
 import static suneido.Suneido.verify;
-import static suneido.Util.nil;
-import static suneido.Util.union;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.union;
 
 import java.util.Collections;
 import java.util.List;

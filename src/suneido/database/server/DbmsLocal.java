@@ -4,7 +4,8 @@ import static suneido.database.Database.theDB;
 
 import java.util.*;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.SuValue;
 import suneido.database.*;
 import suneido.database.Table;
 import suneido.database.query.*;
@@ -147,11 +148,11 @@ System.out.println("\t" + s);
 		return 0;
 	}
 
-	static SuDate prev = new SuDate();
-	public SuValue timestamp() {
-		SuDate ts = new SuDate();
-		if (ts.compareTo(prev) <= 0)
-			ts = prev.increment();
+	static Date prev = new Date();
+	public Date timestamp() {
+		Date ts = new Date();
+		if (ts.equals(prev))
+			ts = new Date(prev.getTime() + 1);
 		else
 			prev = ts;
 		return ts;

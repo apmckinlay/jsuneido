@@ -4,8 +4,8 @@
  */
 package suneido.database.query;
 
-import static suneido.Util.listToCommas;
 import static suneido.database.Database.theDB;
+import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 

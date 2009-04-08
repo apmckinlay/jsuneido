@@ -1,15 +1,15 @@
 package suneido.database.query;
 
 import static org.junit.Assert.*;
-import static suneido.Util.list;
+import static suneido.util.Util.list;
 
 import java.util.*;
 
 import org.junit.Test;
 
-import suneido.SuDate;
 import suneido.database.Record;
 import suneido.database.query.expr.Expr;
+import suneido.language.Ops;
 
 public class ExprTest {
 	@Test
@@ -100,12 +100,12 @@ public class ExprTest {
 				list("a", "b", "c", "d", "e"));
 		Record key = new Record().add(1);
 		Record rec = new Record().add(1).add(2).add(3).add(4).
-				add(SuDate.valueOf("#20081216.153244828"));
+				add(Ops.stringToDate("#20081216.153244828"));
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr(cases[i]);
 			assertEquals(e.toString(), cases[i + 1],
-					e.eval(hdr, row).toString());
+					Ops.display(e.eval(hdr, row)));
 		}
 	}
 

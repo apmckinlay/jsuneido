@@ -1,7 +1,9 @@
 package suneido;
 
 import static org.junit.Assert.*;
-import static suneido.Util.bufferToHex;
+import static suneido.language.Pack.pack;
+import static suneido.language.Pack.unpack;
+import static suneido.util.Util.bufferToHex;
 
 import java.nio.ByteBuffer;
 
@@ -11,37 +13,33 @@ public class SuContainerTest {
 	@Test
 	public void add_put() {
 		SuContainer c = new SuContainer();
-		SuValue[] i = { SuInteger.valueOf(12), SuInteger.valueOf(34),
-			SuInteger.valueOf(56), SuInteger.valueOf(78) };
-		SuValue[] s = { new SuString("ab"), new SuString("cd"),
-			new SuString("ef"), new SuString("gh") };
 
 		assertEquals(0, c.size());
 		assertEquals("#()", c.toString());
 
-		c.append(i[0]);
+		c.append(12);
 		assertEquals(1, c.size());
-		assertEquals(i[0], c.get(SuInteger.ZERO));
+		assertEquals(12, c.get(0));
 		assertEquals("#(12)", c.toString());
 
-		c.put(s[0], i[1]);
+		c.put("ab", 34);
 		assertEquals(2, c.size());
-		assertEquals(i[0], c.get(SuInteger.ZERO));
-		assertEquals(i[1], c.get(s[0]));
+		assertEquals(12, c.get(0));
+		assertEquals(34, c.get("ab"));
 		assertEquals("#(12, ab: 34)", c.toString());
 
-		c.put(SuInteger.valueOf(2), s[1]);
+		c.put(2, "cd");
 		assertEquals(3, c.size());
-		assertEquals(i[0], c.get(SuInteger.ZERO));
-		assertEquals(i[1], c.get(s[0]));
-		assertEquals(s[1], c.get(SuInteger.valueOf(2)));
+		assertEquals(12, c.get(0));
+		assertEquals(34, c.get("ab"));
+		assertEquals("cd", c.get(2));
 		assertEquals("#(12, 2: 'cd', ab: 34)", c.toString());
 
-		c.put(SuInteger.ONE, s[2]);
+		c.put(1, "ef");
 		assertEquals(4, c.size());
-		assertEquals(i[0], c.get(SuInteger.ZERO));
-		assertEquals(i[1], c.get(s[0]));
-		assertEquals(s[2], c.get(SuInteger.ONE));
+		assertEquals(12, c.get(0));
+		assertEquals(34, c.get("ab"));
+		assertEquals("ef", c.get(1));
 		assertEquals("#(12, 'ef', 'cd', ab: 34)", c.toString());
 	}
 
@@ -53,79 +51,74 @@ public class SuContainerTest {
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 
-		one.append(SuInteger.valueOf(123));
+		one.append(123);
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 
-		two.append(SuInteger.valueOf(123));
+		two.append(123);
 		assertEquals(one, two);
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 
-		one.put(new SuString("abc"), SuInteger.valueOf(456));
+		one.put("abc", 456);
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 
-		two.put(new SuString("abc"), SuInteger.valueOf(456));
+		two.put("abc", 456);
 		assert one.equals(two);
 		assert two.equals(one);
 		assertEquals(one.hashCode(), two.hashCode());
 	}
 
-	@Test(expected=SuException.class)
-	public void integer() {
-		new SuContainer().integer();
-	}
-
 	@Test
 	public void erase() {
 		SuContainer c = new SuContainer();
-		assertFalse(c.erase(SuInteger.ZERO));
-		assertFalse(c.erase(SuString.EMPTY));
+		assertFalse(c.erase(0));
+		assertFalse(c.erase(""));
 		assert c.size() == 0;
-		c.append(SuInteger.ONE);
-		c.put(new SuString("a"), SuInteger.ONE);
+		c.append(1);
+		c.put("a", 1);
 		assert c.size() == 2;
-		assertTrue(c.erase(SuInteger.ZERO));
+		assertTrue(c.erase(0));
 		assert c.size() == 1;
-		assertTrue(c.erase(new SuString("a")));
+		assertTrue(c.erase("a"));
 		assert c.size() == 0;
 	}
 
 	@Test
-	public void pack() {
+	public void test_pack() {
 		SuContainer c = new SuContainer();
-		assertEquals(c, SuValue.unpack(c.pack()));
+		assertEquals(c, unpack(pack(c)));
 
-		c.append(SuDecimal.ONE);
-		assertEquals(c, SuValue.unpack(c.pack()));
+		c.append(1);
+		assertEquals(c, unpack(pack(c)));
 
-		c.put(SuString.EMPTY, SuBoolean.TRUE);
-		assertEquals(c, SuValue.unpack(c.pack()));
+		c.put("", true);
+		assertEquals(c, unpack(pack(c)));
 
 		for (int i = 0; i < 5; ++i)
-			c.append(SuInteger.valueOf(i));
-		assertEquals(c, SuValue.unpack(c.pack()));
+			c.append(i);
+		assertEquals(c, unpack(pack(c)));
 
 		for (int i = 100; i < 105; ++i)
-			c.put(SuInteger.valueOf(i), SuInteger.valueOf(i));
-		assertEquals(c, SuValue.unpack(c.pack()));
+			c.put(i, i);
+		assertEquals(c, unpack(pack(c)));
 
 		SuContainer nested = new SuContainer();
-		nested.append(SuDecimal.ONE);
+		nested.append(1);
 		c.append(nested);
-		c.put(SuInteger.valueOf(999), nested);
-		assertEquals(c, SuValue.unpack(c.pack()));
+		c.put(999, nested);
+		assertEquals(c, unpack(pack(c)));
 
 		SuContainer list = new SuContainer();
-		list.append(SuString.valueOf("nextfield"));
-		list.append(SuString.valueOf("nrows"));
-		list.append(SuString.valueOf("table"));
-		list.append(SuString.valueOf("tablename"));
-		list.append(SuString.valueOf("totalsize"));
-		ByteBuffer buf = list.pack();
+		list.append("nextfield");
+		list.append("nrows");
+		list.append("table");
+		list.append("tablename");
+		list.append("totalsize");
+		ByteBuffer buf = pack(list);
 		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", bufferToHex(buf).replace(" ", ""));
 	}
 

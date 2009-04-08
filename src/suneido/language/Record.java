@@ -1,7 +1,6 @@
 package suneido.language;
 
 import suneido.SuRecord;
-import suneido.SuValue;
 
 public class Record extends SuFunction {
 
@@ -11,14 +10,14 @@ public class Record extends SuFunction {
 	}
 
 	@Override
-	public SuValue invoke(String method, SuValue... args) {
+	public Object invoke(String method, Object... args) {
 		if (method == "call")
 			return invoke(args);
 		else
 			return super.invoke(method, args);
 	}
 
-	private SuValue invoke(SuValue... args) {
+	private Object invoke(Object... args) {
 		return collectArgs(args, new SuRecord());
 	}
 

@@ -5,7 +5,6 @@ import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
 import suneido.database.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
@@ -26,16 +25,15 @@ public class DbmsLocalTest {
 		t1.complete();
 
 		HeaderAndRow hr = dbms.get(serverData, Dir.NEXT, "test", true, null);
-		assertEquals(SuInteger.valueOf(1), hr.row.getval(hr.header, "a"));
+		assertEquals(1, hr.row.getval(hr.header, "a"));
 
 		DbmsTran t2 = dbms.transaction(true, "");
 		DbmsQuery q = dbms.query(serverData, t2, "test");
-		q.output(new Record().add(SuInteger.valueOf(4))
-				.add(SuInteger.valueOf(5)).add(SuInteger.valueOf(6)));
+		q.output(new Record().add(4).add(5).add(6));
 		q.rewind();
 		Row row = q.get(Dir.PREV);
 		Header hdr = q.header();
 		t2.complete();
-		assertEquals(SuInteger.valueOf(6), row.getval(hdr, "c"));
+		assertEquals(6, row.getval(hdr, "c"));
 	}
 }

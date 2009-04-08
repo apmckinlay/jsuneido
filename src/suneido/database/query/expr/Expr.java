@@ -2,7 +2,6 @@ package suneido.database.query.expr;
 
 import java.util.List;
 
-import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 
@@ -29,6 +28,6 @@ public abstract class Expr {
 		return false;
 	}
 
-	public abstract SuValue eval(Header hdr, Row row);
+	public abstract Object eval(Header hdr, Row row);
 
 }

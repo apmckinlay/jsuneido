@@ -1,11 +1,13 @@
 package suneido.database.query;
 
-import static suneido.Util.*;
+import static suneido.util.Util.*;
 
 import java.util.*;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
 import suneido.database.Record;
+import suneido.language.Ops;
 
 public class Summarize extends Query1 {
 	private final List<String> by;
@@ -243,47 +245,47 @@ public class Summarize extends Query1 {
 				n = 0;
 			}
 			@Override
-			void add(SuValue x) {
+			void add(Object x) {
 				++n;
 			}
 			@Override
-			SuValue result() {
-				return SuInteger.valueOf(n);
+			Object result() {
+				return n;
 			}
 			int n;
 		},
 		TOTAL {
 			@Override
 			void init() {
-				total = SuInteger.ZERO;
+				total = 0;
 			}
 			@Override
-			void add(SuValue x) {
-				total = total.add(x);
+			void add(Object x) {
+				total = Ops.add(total, x);
 			}
 			@Override
-			SuValue result() {
+			Object result() {
 				return total;
 			}
-			SuValue total;
+			Object total;
 		},
 		AVERAGE {
 			@Override
 			void init() {
 				n = 0;
-				total = SuInteger.ZERO;
+				total = 0;
 			}
 			@Override
-			void add(SuValue x) {
+			void add(Object x) {
 				++n;
-				total = total.add(x);
+				total = Ops.add(total, x);
 			}
 			@Override
-			SuValue result() {
-				return total.div(SuInteger.valueOf(n));
+			Object result() {
+				return Ops.div(total, n);
 			}
 			int n = 0;
-			SuValue total;
+			Object total;
 		},
 		MAX {
 			@Override
@@ -291,15 +293,15 @@ public class Summarize extends Query1 {
 				value = null;
 			}
 			@Override
-			void add(SuValue x) {
-				if (value == null || x.compareTo(value) > 0)
+			void add(Object x) {
+				if (value == null || Ops.cmp(x, value) > 0)
 					value = x;
 			}
 			@Override
-			SuValue result() {
+			Object result() {
 				return value;
 			}
-			SuValue value;
+			Object value;
 		},
 		MIN {
 			@Override
@@ -307,38 +309,39 @@ public class Summarize extends Query1 {
 				value = null;
 			}
 			@Override
-			void add(SuValue x) {
-				if (value == null || x.compareTo(value) < 0)
+			void add(Object x) {
+				if (value == null || Ops.cmp(x, value) < 0)
 					value = x;
 			}
 			@Override
-			SuValue result() {
+			Object result() {
 				return value;
 			}
-			SuValue value;
+			Object value;
 		},
 		LIST {
 			@Override
 			void init() {
-				set = new HashSet<SuValue>();
+				set = new HashSet<Object>();
 			}
 			@Override
-			void add(SuValue x) {
+			void add(Object x) {
 				set.add(x);
 			}
 			@Override
-			SuValue result() {
+			Object result() {
 				SuContainer list = new SuContainer();
-				for (SuValue x : set)
+				for (Object x : set)
 					list.append(x);
 				return list;
 			}
-			HashSet<SuValue> set;
+			HashSet<Object> set;
 		};
 
 		abstract void init();
-		abstract void add(SuValue x);
-		abstract SuValue result();
+		abstract void add(Object x);
+
+		abstract Object result();
 	}
 
 }

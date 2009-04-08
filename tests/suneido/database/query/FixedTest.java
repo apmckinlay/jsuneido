@@ -1,13 +1,12 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.Util.list;
+import static suneido.util.Util.list;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import suneido.SuInteger;
 import suneido.database.TestBase;
 
 public class FixedTest extends TestBase {
@@ -42,11 +41,10 @@ public class FixedTest extends TestBase {
 
 	@Test
 	public void combine() {
-		List<Fixed> f = Fixed.combine(list(new Fixed("f", SuInteger.ZERO)),
-				list(new Fixed("g", SuInteger.ONE)));
+		List<Fixed> f =
+				Fixed.combine(list(new Fixed("f", 0)), list(new Fixed("g", 1)));
 		assertEquals("[f=(0), g=(1)]", f.toString());
-		f = Fixed.combine(list(new Fixed("f", SuInteger.ZERO)),
-				list(new Fixed("f", SuInteger.ONE)));
+		f = Fixed.combine(list(new Fixed("f", 0)), list(new Fixed("f", 1)));
 		assertEquals("[f=(0)]", f.toString());
 	}
 }

@@ -4,16 +4,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuString;
-import suneido.SuValue;
-
 public class SuFunctionTest {
 
 	@Test
 	public void test() {
-		SuValue f = new MyFunc();
-		SuString s = SuString.valueOf("fred");
-		assertEquals(s, f.invokeN(s));
+		Object f = new MyFunc();
+		String s = "fred";
+		assertEquals(s, Ops.invoke(f, "call", s));
 	}
 
 	static class MyFunc extends SampleFunction {
@@ -21,7 +18,7 @@ public class SuFunctionTest {
 				new FunctionSpec("", new String[] { "value" }, 1);
 
 		@Override
-		public SuValue invoke(String method, SuValue... args) {
+		public Object invoke(String method, Object... args) {
 			massage(params, args);
 			return args[0];
 		}

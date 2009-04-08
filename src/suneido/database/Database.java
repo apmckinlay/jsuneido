@@ -2,9 +2,9 @@ package suneido.database;
 
 import static java.lang.Math.min;
 import static suneido.Suneido.verify;
-import static suneido.Util.commasToList;
-import static suneido.Util.listToCommas;
 import static suneido.database.Transaction.NULLTRAN;
+import static suneido.util.Util.commasToList;
+import static suneido.util.Util.listToCommas;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

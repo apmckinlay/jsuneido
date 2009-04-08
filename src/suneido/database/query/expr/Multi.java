@@ -1,6 +1,6 @@
 package suneido.database.query.expr;
 
-import static suneido.Util.addUnique;
+import static suneido.util.Util.addUnique;
 
 import java.util.ArrayList;
 import java.util.List;
