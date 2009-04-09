@@ -124,6 +124,22 @@ public class Ops {
 		return xHash < yHash ? -1 : xHash > yHash ? +1 : 0;
 	}
 
+	// TODO convert from Suneido regex and cache compiled patterns
+	public static boolean match_(Object s, Object rx) {
+		if (s instanceof String && rx instanceof String)
+			return Regex.contains((String) s, (String) rx);
+		throw cant(s, " =~ ", rx);
+	}
+	public static Boolean match(Object s, Object rx) {
+		return match_(s, rx);
+	}
+	public static Boolean matchnot(Object s, Object rx) {
+		return ! match_(s, rx);
+	}
+	public static boolean matchnot_(Object s, Object rx) {
+		return ! match_(s, rx);
+	}
+
 	public static String cat(Object x, Object y) {
 		if (x instanceof String) {
 			if (y instanceof String)
@@ -137,14 +153,6 @@ public class Ops {
 				return x.toString().concat(y.toString());
 		}
 		throw cant(x, " $ ", y);
-	}
-
-	// TODO convert from Suneido regex and cache compiled patterns
-	public static Boolean matches(Object s, Object rx) {
-		if (s instanceof String && rx instanceof String)
-			return Regex.contains((String) s, (String) rx)
-					? Boolean.TRUE : Boolean.FALSE;
-		throw cant(s, " =~ ", rx);
 	}
 
 	private static SuException cant(Object x, String op, Object y) {
