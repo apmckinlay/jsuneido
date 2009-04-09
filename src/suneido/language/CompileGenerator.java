@@ -132,6 +132,7 @@ public class CompileGenerator implements Generator<Object> {
 		}
 		f.mv = cv.visitMethod(ACC_PRIVATE, f.name,
 				"([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
+		f.mv = new OptimizeToBool(f.mv);
 		f.mv.visitCode();
 		f.startLabel = new Label();
 		f.mv.visitLabel(f.startLabel);
@@ -637,7 +638,7 @@ public class CompileGenerator implements Generator<Object> {
 	private static final String[] args = new String[] {
 		"",
 		"Ljava/lang/Object;",
-					"Ljava/lang/Object;Ljava/lang/Object;",
+		"Ljava/lang/Object;Ljava/lang/Object;",
 					"Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;",
 					"Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;",
 					"Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;",
@@ -908,8 +909,8 @@ public class CompileGenerator implements Generator<Object> {
 	}
 	public Object caseValues(Object values, Object expr, Object labels,
 			boolean more) {
-		binaryMethod(Token.IS);
-		toBool(null);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "is_",
+				"(Ljava/lang/Object;Ljava/lang/Object;)Z");
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (more) {
 			if (slabels.body == null)

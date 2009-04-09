@@ -10,6 +10,16 @@ import org.junit.Test;
 
 public class CompileTest {
 
+	public void tmp() {
+		String s = "function (a,b,c) { if (a < b) c }";
+		Lexer lexer = new Lexer(s);
+		CompileGenerator generator =
+				new CompileGenerator(new PrintWriter(System.out));
+		ParseFunction<Object, Generator<Object>> pc =
+				new ParseFunction<Object, Generator<Object>>(lexer, generator);
+		pc.parse();
+	}
+
 	@Test
 	public void tests() {
 		test("return",
@@ -96,6 +106,8 @@ public class CompileTest {
  				"a, 0=1, NAMED, 1='x', 2=2, invokeN, ARETURN");
 		test("if (a) b",
 				"a, bool, IFFALSE L1, b, POP, L1");
+		test("if (a < b) c",
+				"a, b, lt_, IFFALSE L1, c, POP, L1");
 		test("if (a) b else c",
 				"a, bool, IFFALSE L1, b, POP, GOTO L2, L1, c, POP, L2");
 		test("do a while (b)",
@@ -121,9 +133,9 @@ public class CompileTest {
 		test("switch (a) { default: b }",
 				"a, POP, b, POP, GOTO L1, POP, L1");
 		test("switch (a) { case 0: b }",
-				"a, DUP, 0=0, is, bool, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
+				"a, DUP, 0=0, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
 		test("switch (a) { case 0,1: b }",
-				"a, DUP, 0=0, is, bool, IFTRUE L1, DUP, 1=1, is, bool, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
+				"a, DUP, 0=0, is_, IFTRUE L1, DUP, 1=1, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
 	}
 
 	private void test(String expr, String expected) {
@@ -131,7 +143,7 @@ public class CompileTest {
 	}
 
 	private String compile(String s) {
-		// System.out.println("====== " + s);
+System.out.println("====== " + s);
 		s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
@@ -142,7 +154,7 @@ public class CompileTest {
 		String r = sw.toString();
 		r = after(r, "invoke([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 		r = before(r, "    LOCALVARIABLE");
-		//System.out.println(r);
+System.out.println(r);
 		r = r.substring(0, r.length() - 6); // label
 		r = r.trim();
 		r = r.replace("\n", ", ");
@@ -180,6 +192,7 @@ public class CompileTest {
 				{ "put (Object;Object;Object;)V", "putMem" },
 				{ " (Object;)Object;", "" },
 				{ " (Object;)Number;", "" },
+				{ " (Object;Object;)Z", "" },
 				{ " (Object;Object;)Number;", "" },
 				{ " (Object;Object;)String;", "" },
 				{ " (Object;Object;)Boolean;", "" },
