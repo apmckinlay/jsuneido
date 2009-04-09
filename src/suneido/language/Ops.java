@@ -4,9 +4,10 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 import suneido.*;
+import suneido.util.StringIterator;
 
 public class Ops {
 
@@ -544,16 +545,35 @@ public class Ops {
 	//...
 
 	public static void put(Object x, Object member, Object value) {
-		if (x instanceof SuContainer)
-			((SuContainer) x).put(member, value);
+		if (x instanceof SuValue)
+			((SuValue) x).put(member, value);
 		else
 			throw new SuException(typeName(x) + " does not support put");
 	}
-
 	public static Object get(Object x, Object member) {
-		if (x instanceof SuContainer)
-			return ((SuContainer) x).get(member);
+		if (x instanceof SuValue)
+			return ((SuValue) x).get(member);
 		throw new SuException(typeName(x) + " does not support get");
+	}
+
+	public static Object iterator(Object x) {
+		if (x instanceof Iterable<?>)
+			return ((Iterable<?>) x).iterator();
+		else if (x instanceof String)
+			return new StringIterator((String) x);
+		else if (x instanceof Object[])
+			return Arrays.asList((Object[]) x).iterator();
+		throw new SuException("can't iterate " + typeName(x));
+	}
+	public static boolean hasNext(Object x) {
+		if (x instanceof Iterator<?>)
+			return ((Iterator<?>) x).hasNext();
+		throw new SuException("not an iterator " + typeName(x));
+	}
+	public static Object next(Object x) {
+		if (x instanceof Iterator<?>)
+			return ((Iterator<?>) x).next();
+		throw new SuException("not an iterator " + typeName(x));
 	}
 
 }

@@ -1,5 +1,7 @@
 package suneido.language;
 
+import java.util.List;
+
 public class SampleFunction extends SuFunction {
 	private static FunctionSpec[] params;
 	private static Object[][] constants;
@@ -24,7 +26,11 @@ public class SampleFunction extends SuFunction {
 	}
 
 	private Object invoke(Object... args) {
-		return Ops.toBool(null);
+		return null;
 	}
 
+	private void test(List<Object> v) {
+		for (Object x : v)
+			;
+	}
 }

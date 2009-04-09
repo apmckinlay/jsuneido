@@ -9,6 +9,9 @@ public class Repl {
 	static PrintWriter out = new PrintWriter(System.out);
 
 	public static void main(String[] args) throws Exception {
+
+		Globals.put("X", new Integer[] { 123, 456 });
+
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
 		while (true) {

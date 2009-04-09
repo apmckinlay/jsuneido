@@ -81,7 +81,8 @@ public interface Generator<T> {
 	T switchCases(T cases, T values, T statements, Object labels);
 	T switchStatement(T expression, T cases, Object labels);
 
-	T forInStatement(String var, T expr, T statement);
+	Object forInExpression(String var, T expr);
+	T forInStatement(String var, T expr, T statement, Object loop);
 
 	T forClassicStatement(T expr1, T expr2, T expr3, T statement, Object loop);
 	Object forStart();
