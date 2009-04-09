@@ -1,7 +1,8 @@
 package suneido;
 
 import static suneido.Suneido.verify;
-import static suneido.language.Ops.*;
+import static suneido.language.Ops.canonical;
+import static suneido.language.Ops.cmp;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -16,9 +17,29 @@ import suneido.language.Pack;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class SuContainer extends SuValue implements Comparable<SuContainer> {
-	final private ArrayList<Object> vec = new ArrayList<Object>();
-	final private HashMap<Object, Object> map = new HashMap<Object, Object>();
+	private final ArrayList<Object> vec = new ArrayList<Object>();
+	private final CanonicalMap map = new CanonicalMap();
 	private final Object defval = null; // TODO defval
+
+	@SuppressWarnings("serial")
+	static class CanonicalMap extends HashMap<Object, Object> {
+		@Override
+		public Object get(Object key) {
+			return super.get(canonical(key));
+		}
+		@Override
+		public Object put(Object key, Object value) {
+			return super.put(canonical(key), value);
+		}
+		@Override
+		public Object remove(Object key) {
+			return super.remove(canonical(key));
+		}
+		@Override
+		public boolean containsKey(Object key) {
+			return super.containsKey(canonical(key));
+		}
+	}
 
 	public SuContainer() {
 	}
@@ -33,13 +54,9 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 	public void append(Object value) {
 		vec.add(value);
 		// check for migration from map to vec
-		while (!map.isEmpty()) {
-			Object num = vec.size();
-			if (! map.containsKey(num))
-				break ;
-			vec.add(map.get(num));
-			map.remove(num);
-		}
+		Object x;
+		while (null != (x = map.remove(vec.size())))
+			vec.add(x);
 	}
 
 	public void merge(SuContainer c) {
@@ -55,7 +72,7 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 		else if (i == vec.size())
 			append(value);
 		else
-			map.put(canonical(key), value);
+			map.put(key, value);
 	}
 
 	@Override
@@ -80,9 +97,8 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 		String s = "";
 		for (Object x : vec)
 			s += Ops.display(x) + ", ";
-		Set<Object> keys = map.keySet();
-		for (Object k : keys)
-			s += keyToString(k) + ": " + Ops.display(map.get(k)) + ", ";
+		for (Map.Entry<Object, Object> e : map.entrySet())
+			s += keyToString(e.getKey()) + ": " + Ops.display(e.getValue()) + ", ";
 		if (s.length() >= 2)
 			s = s.substring(0, s.length() - 2);
 		return before + s + after;
@@ -144,7 +160,8 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 	}
 
 	private static int index(Object x) {
-		return x instanceof Number ? toInt(x) : -1;
+		x = canonical(x);
+		return x instanceof Integer ? (Integer) x : -1;
 	}
 
 	public int vecSize() {
@@ -237,8 +254,12 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 
 	@Override
 	public Object invoke(String method, Object... args) {
-		// TODO Auto-generated method stub
-		return null;
+		if (method == "Size")
+			return size();
+		// TODO other methods
+		// TODO check user defined Objects methods
+		else
+			throw new SuException("unknown method: object." + method);
 	}
 
 }
