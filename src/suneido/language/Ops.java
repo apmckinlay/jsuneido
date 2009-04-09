@@ -1,5 +1,7 @@
 package suneido.language;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.ParsePosition;
@@ -553,11 +555,35 @@ public class Ops {
 	public static Object get(Object x, Object member) {
 		if (x instanceof SuValue)
 			return ((SuValue) x).get(member);
-		else if (x instanceof String) {
+		else if (x instanceof String)
 			return getString((String) x, toInt(member));
-		}
+		else if (x instanceof Object[])
+			return getArray((Object[]) x, toInt(member));
+		else if (member instanceof String)
+			return getProperty(x, (String) member);
 		throw new SuException(typeName(x) + " does not support get");
 	}
+
+	private static Object getProperty(Object x, String member) {
+		try {
+			Method m = x.getClass().getMethod("get" + capitalized(member));
+			return m.invoke(x);
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		throw new SuException("get property failed");
+	}
+	private static String capitalized(String s) {
+		return s.substring(0, 1).toUpperCase() + s.substring(1);
+	}
+
+	private static Object getArray(Object[] x, int i) {
+		return x[i];
+	}
+
 	private static Object getString(String s, int i) {
 		return 0 > i || i > s.length() ? "" : s.substring(i, i + 1);
 	}
