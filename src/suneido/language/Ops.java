@@ -553,7 +553,13 @@ public class Ops {
 	public static Object get(Object x, Object member) {
 		if (x instanceof SuValue)
 			return ((SuValue) x).get(member);
+		else if (x instanceof String) {
+			return getString((String) x, toInt(member));
+		}
 		throw new SuException(typeName(x) + " does not support get");
+	}
+	private static Object getString(String s, int i) {
+		return 0 > i || i > s.length() ? "" : s.substring(i, i + 1);
 	}
 
 	public static Object iterator(Object x) {

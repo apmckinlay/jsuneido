@@ -287,7 +287,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 		while (token == DOT || token == L_BRACKET || token == L_PAREN
 				|| token == L_CURLY) {
-			if (value.isSet() && token == DOT || token == L_BRACKET) {
+			if (value.isSet() && (token == DOT || token == L_BRACKET)) {
 				term = push(term, value);
 				value.clear();
 			}
