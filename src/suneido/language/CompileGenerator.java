@@ -466,7 +466,7 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object subscript(Object term, Object expr) {
 		assert (expr instanceof Stack);
-		getSubscript();
+		getMember();
 		return VALUE;
 	}
 
@@ -532,20 +532,10 @@ public class CompileGenerator implements Generator<Object> {
 	}
 	private void getMember() {
 		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "get",
-				"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
-	}
-
-	private void putMember() {
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "put",
-				"(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V");
-	}
-
-	private void getSubscript() {
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "get",
 				"(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	private void putSubscript() {
+	private void putMember() {
 		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "put",
 				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
 	}
@@ -595,10 +585,8 @@ public class CompileGenerator implements Generator<Object> {
 	private void load(Object type) {
 		if (type == IDENTIFIER)
 			f.mv.visitInsn(AALOAD);
-		else if (type == MEMBER)
+		else if (type == MEMBER || type == SUBSCRIPT)
 			getMember();
-		else if (type == SUBSCRIPT)
-			getSubscript();
 		else
 			throw new SuException("unknown load type: " + type);
 	}
@@ -606,10 +594,8 @@ public class CompileGenerator implements Generator<Object> {
 	private void store(Object type) {
 		if (type == IDENTIFIER)
 			f.mv.visitInsn(AASTORE);
-		else if (type == MEMBER)
+		else if (type == MEMBER || type == SUBSCRIPT)
 			putMember();
-		else if (type == SUBSCRIPT)
-			putSubscript();
 		else
 			throw new SuException("unknown store type: " + type);
 	}
@@ -820,6 +806,7 @@ public class CompileGenerator implements Generator<Object> {
 		return loop;
 	}
 
+	// TODO optimize compare,toBool => compare returning int
 	public void whileExpr(Object expr, Object loop) {
 		toBool(expr);
 		gotoBreak(IFFALSE, loop);

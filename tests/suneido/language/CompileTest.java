@@ -73,9 +73,9 @@ public class CompileTest {
 		test("a.x = b",
  				"a, LDC 'x', b, DUP_X2, putMem, ARETURN");
 		test("a[b]",
- 				"a, b, getSub, ARETURN");
+ 				"a, b, getMem, ARETURN");
 		test("a[b] = c;;",
- 				"a, b, c, putSub");
+ 				"a, b, c, putMem");
 		test("G",
  				"LDC 'G', global, ARETURN");
 		test("G()",
@@ -176,10 +176,8 @@ public class CompileTest {
 				{ " : Lsuneido/language/SuClass$SpecialArg;", "" },
 				{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
 				{ "INVOKESTATIC suneido/language/Ops.", "" },
-				{ "get (Object;Object;)Object;", "getSub" },
-				{ "get (Object;String;)Object;", "getMem" },
-				{ "put (Object;String;Object;)V", "putMem" },
-				{ "put (Object;Object;Object;)V", "putSub" },
+				{ "get (Object;Object;)Object;", "getMem" },
+				{ "put (Object;Object;Object;)V", "putMem" },
 				{ " (Object;)Object;", "" },
 				{ " (Object;)Number;", "" },
 				{ " (Object;Object;)Number;", "" },

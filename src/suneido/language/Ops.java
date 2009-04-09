@@ -518,24 +518,11 @@ public class Ops {
 	}
 	//...
 
-	public static void put(Object x, String member, Object value) {
-		if (x instanceof SuContainer)
-			((SuContainer) x).put(member, value);
-		else
-			throw new SuException(typeName(x) + " does not support put");
-	}
-
 	public static void put(Object x, Object member, Object value) {
 		if (x instanceof SuContainer)
 			((SuContainer) x).put(member, value);
 		else
 			throw new SuException(typeName(x) + " does not support put");
-	}
-
-	public static Object get(Object x, String member) {
-		if (x instanceof SuContainer)
-			return ((SuContainer) x).get(member);
-		throw new SuException(typeName(x) + " does not support get");
 	}
 
 	public static Object get(Object x, Object member) {

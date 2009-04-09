@@ -5,11 +5,24 @@ import static suneido.language.Pack.pack;
 import static suneido.language.Pack.unpack;
 import static suneido.util.Util.bufferToHex;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
 public class SuContainerTest {
+	@Test
+	public void canonical() {
+		Object[] a = { 100, BigDecimal.valueOf(100), new BigDecimal("1e2") };
+		for (Object x : a) {
+			SuContainer c = new SuContainer();
+			c.put(x, true);
+			for (Object y : a)
+				assertEquals(true, c.get(y));
+			assertTrue(c.erase(x));
+		}
+	}
+
 	@Test
 	public void add_put() {
 		SuContainer c = new SuContainer();
@@ -83,6 +96,7 @@ public class SuContainerTest {
 		assert c.size() == 2;
 		assertTrue(c.erase(0));
 		assert c.size() == 1;
+System.out.println(c);
 		assertTrue(c.erase("a"));
 		assert c.size() == 0;
 	}
