@@ -136,6 +136,8 @@ public class CompileTest {
 				"a, DUP, 0=0, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
 		test("switch (a) { case 0,1: b }",
 				"a, DUP, 0=0, is_, IFTRUE L1, DUP, 1=1, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
+		test("for (a in b) c",
+				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
 	}
 
 	private void test(String expr, String expected) {
@@ -190,6 +192,7 @@ System.out.println(r);
 				{ "INVOKESTATIC suneido/language/Ops.", "" },
 				{ "get (Object;Object;)Object;", "getMem" },
 				{ "put (Object;Object;Object;)V", "putMem" },
+				{ " (Object;)Z", "" },
 				{ " (Object;)Object;", "" },
 				{ " (Object;)Number;", "" },
 				{ " (Object;Object;)Z", "" },

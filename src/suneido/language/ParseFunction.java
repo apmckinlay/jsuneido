@@ -169,8 +169,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		String var = lexer.getValue();
 		match(IDENTIFIER);
 		match(IN);
-		if (!parens)
-			{
+		if (!parens) {
 			statementNest = 0;
 			expectingCompound = true;
 		}
@@ -179,10 +178,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			match(R_PAREN);
 		else
 			matchIf(NEWLINE);
+		Object loop = generator.forInExpression(var, expr);
 		statementNest = prevStatementNest;
 		expectingCompound = false;
 		T stat = statement(null);
-		return generator.forInStatement(var, expr, stat);
+		return generator.forInStatement(var, expr, stat, loop);
 	}
 
 	private T forClassicStatement() {

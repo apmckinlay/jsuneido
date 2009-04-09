@@ -124,7 +124,8 @@ public class StringGenerator implements Generator<String> {
 		return "switch (" + expression + ") {" + str(" ", cases, "") + " }";
 	}
 
-	public String forInStatement(String var, String expr, String statement) {
+	public String forInStatement(String var, String expr, String statement,
+			Object loop) {
 		return "for (" + var + " in " + expr + ") { " + statement + " }";
 	}
 
@@ -310,6 +311,10 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 	public void startCaseValue() {
+	}
+
+	public Object forInExpression(String var, String expr) {
+		return null;
 	}
 
 }

@@ -807,7 +807,6 @@ public class CompileGenerator implements Generator<Object> {
 		return loop;
 	}
 
-	// TODO optimize compare,toBool => compare returning int
 	public void whileExpr(Object expr, Object loop) {
 		toBool(expr);
 		gotoBreak(IFFALSE, loop);
@@ -873,8 +872,29 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	public Object forInStatement(String var, Object expr, Object statement) {
-		// TODO for in
+	public Object forInExpression(String var, Object expr) {
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "iterator",
+				"(Ljava/lang/Object;)Ljava/lang/Object;");
+		Object loop = loop();
+		f.mv.visitInsn(DUP);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "hasNext",
+				"(Ljava/lang/Object;)Z");
+		gotoBreak(IFFALSE, loop);
+		f.mv.visitInsn(DUP);
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
+				"(Ljava/lang/Object;)Ljava/lang/Object;");
+		f.mv.visitVarInsn(ALOAD, LOCALS);
+		f.mv.visitInsn(SWAP);
+		iconst(f.mv, addLocal(var));
+		f.mv.visitInsn(SWAP);
+		f.mv.visitInsn(AASTORE);
+		return loop;
+	}
+
+	public Object forInStatement(String var, Object expr, Object statement,
+			Object loop) {
+		endLoop(statement, loop);
+		f.mv.visitInsn(POP); // pop iterator
 		return null;
 	}
 

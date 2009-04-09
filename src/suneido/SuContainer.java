@@ -16,7 +16,8 @@ import suneido.language.Pack;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class SuContainer extends SuValue implements Comparable<SuContainer> {
+public class SuContainer extends SuValue
+		implements Comparable<SuContainer>, Iterable<Object> {
 	private final ArrayList<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
 	private final Object defval = null; // TODO defval
@@ -260,6 +261,34 @@ public class SuContainer extends SuValue implements Comparable<SuContainer> {
 		// TODO check user defined Objects methods
 		else
 			throw new SuException("unknown method: object." + method);
+	}
+
+	public Iterator<Object> iterator() {
+		return new Iter(vec.iterator(), map.entrySet().iterator());
+	}
+
+	static class Iter implements Iterator<Object> {
+		private final Iterator<Object> veciter;
+		private final Iterator<Map.Entry<Object, Object>> mapiter;
+		public Iter(Iterator<Object> veciter,
+				Iterator<Map.Entry<Object, Object>> mapiter) {
+			this.veciter = veciter;
+			this.mapiter = mapiter;
+		}
+		public boolean hasNext() {
+			return veciter.hasNext() || mapiter.hasNext();
+		}
+		public Object next() {
+			if (veciter.hasNext())
+				return veciter.next();
+			else if (mapiter.hasNext())
+				return mapiter.next().getValue();
+			else
+				throw new NoSuchElementException();
+		}
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 }

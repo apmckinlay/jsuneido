@@ -244,7 +244,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object forInStatement(String var, Object expr, Object statement) {
+	public Object forInStatement(String var, Object expr, Object statement,
+			Object loop) {
 		return null;
 	}
 
@@ -465,6 +466,10 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 	public void startCaseValue() {
+	}
+
+	public Object forInExpression(String var, Object expr) {
+		return null;
 	}
 
 }
