@@ -9,7 +9,6 @@ import static suneido.util.Util.union;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.Regex;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.language.Token;
@@ -50,12 +49,12 @@ public class BinOp extends Expr {
 
 	private Object eval2(Object x, Object y) {
 		switch (op) {
-		case IS :	return is(x, y) ? Boolean.TRUE : Boolean.FALSE;
-		case ISNT :	return ! is(x, y) ? Boolean.TRUE : Boolean.FALSE;
-		case LT :	return cmp(x, y) < 0 ? Boolean.TRUE : Boolean.FALSE;
-		case LTE :	return cmp(x, y) <= 0 ? Boolean.TRUE : Boolean.FALSE;
-		case GT :	return cmp(x, y) > 0 ? Boolean.TRUE : Boolean.FALSE;
-		case GTE :	return cmp(x, y) >= 0 ? Boolean.TRUE : Boolean.FALSE;
+		case IS :	return is(x, y);
+		case ISNT :	return isnt(x, y);
+		case LT :	return lt(x, y);
+		case LTE :	return lte(x, y);
+		case GT :	return gt(x, y);
+		case GTE :	return gte(x, y);
 		case ADD :	return add(x, y);
 		case SUB :	return sub(x, y);
 		case CAT: 	return cat(x, y);
@@ -67,8 +66,8 @@ public class BinOp extends Expr {
 		case BITAND :	return bitand(x, y);
 		case BITOR :	return bitor(x, y);
 		case BITXOR:	return bitxor(x, y);
-		case MATCH :	return matches(x, y);
-		case MATCHNOT : return ! matches(x, y);
+		case MATCH :	return match(x, y);
+		case MATCHNOT : return matchnot(x, y);
 		default : 	throw unreachable();
 		}
 	}
