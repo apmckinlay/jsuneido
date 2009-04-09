@@ -10,7 +10,7 @@ import suneido.*;
 
 public class Ops {
 
-	public static Boolean is(Object x, Object y) {
+	public static boolean is_(Object x, Object y) {
 		if (x == y)
 			return true;
 		if (x == null || y == null)
@@ -25,23 +25,40 @@ public class Ops {
 		}
 		return x.equals(y);
 	}
+
+	public static Boolean is(Object x, Object y) {
+		return is_(x, y);
+	}
 	public static Boolean isnt(Object x, Object y) {
-		return !is(x, y);
+		return !is_(x, y);
 	}
 
 	public static Boolean lt(Object x, Object y) {
 		return cmp(x, y) < 0;
 	}
-
 	public static Boolean lte(Object x, Object y) {
 		return cmp(x, y) <= 0;
 	}
-
 	public static Boolean gt(Object x, Object y) {
 		return cmp(x, y) > 0;
 	}
-
 	public static Boolean gte(Object x, Object y) {
+		return cmp(x, y) >= 0;
+	}
+
+	public static boolean isnt_(Object x, Object y) {
+		return !is_(x, y);
+	}
+	public static boolean lt_(Object x, Object y) {
+		return cmp(x, y) < 0;
+	}
+	public static boolean lte_(Object x, Object y) {
+		return cmp(x, y) <= 0;
+	}
+	public static boolean gt_(Object x, Object y) {
+		return cmp(x, y) > 0;
+	}
+	public static boolean gte_(Object x, Object y) {
 		return cmp(x, y) >= 0;
 	}
 
