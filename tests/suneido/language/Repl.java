@@ -25,7 +25,7 @@ public class Repl {
 				Object[] locals = new SuValue[0];
 				Object result = Ops.invoke(f, "call", locals);
 				if (result != null)
-				out.println(" => " + result);
+					out.println(" => " + Ops.display(result));
 				saveTest(line, result);
 			} catch (SuException e) {
 				out.println(" !! " + e);
