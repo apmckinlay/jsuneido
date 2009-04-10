@@ -166,7 +166,10 @@ System.out.println(r);
 				generator.constants == null ? new Object[0]
 			: generator.constants.get(0);
 		String[][] simplify = {
-				{ "GETSTATIC suneido/language/MyFunc.constants : [[Ljava/lang/Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
+				{ "Ljava/lang/", "" },
+				{ "GETSTATIC suneido/language/MyFunc.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
+				{ "ALOAD 1, INVOKESTATIC suneido/language/MyFunc.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
+				{ "GETSTATIC suneido/language/MyFunc.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
 				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
 				{ "ALOAD 1, ICONST_2, AALOAD", "c" },
@@ -182,7 +185,6 @@ System.out.println(r);
 				{ "ICONST_2", "2" },
 				{ ", ACONST_NULL, ARETURN", "" },
 				{ "ACONST_NULL", "null" },
-				{ "Ljava/lang/", "" },
 				{ "ANEWARRAY Object", "new Object[]" },
 				{ "GETSTATIC suneido/language/SuClass.", "" },
 				{ " : LString;", "" },

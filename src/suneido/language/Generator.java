@@ -29,7 +29,8 @@ public interface Generator<T> {
 
 	T function(T params, T compound);
 
-	void startFunction();
+	enum FuncOrBlock { FUNC, BLOCK };
+	void startFunction(FuncOrBlock funcOrBlock);
 
 	T identifier(String text);
 
@@ -125,7 +126,6 @@ public interface Generator<T> {
 	T memberDefinition(T name, T value);
 
 	enum ObjectOrRecord { OBJECT, RECORD };
-
 	T object(ObjectOrRecord which, T members);
 
 	T constant(T value);

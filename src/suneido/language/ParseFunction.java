@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
+import suneido.language.Generator.FuncOrBlock;
 
 /**
  * @author Andrew McKinlay
@@ -25,7 +26,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword();
 	}
 	protected T functionWithoutKeyword() {
-		generator.startFunction();
+		generator.startFunction(FuncOrBlock.FUNC);
 		T params = parameters();
 		T body = compound(null);
 		return generator.function(params, body);
@@ -181,7 +182,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		Object loop = generator.forInExpression(var, expr);
 		statementNest = prevStatementNest;
 		expectingCompound = false;
-		T stat = statement(null);
+		T stat = statement(loop);
 		return generator.forInStatement(var, expr, stat, loop);
 	}
 

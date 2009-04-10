@@ -245,7 +245,7 @@ public class StringGenerator implements Generator<String> {
 		return value;
 	}
 
-	public void startFunction() {
+	public void startFunction(FuncOrBlock which) {
 	}
 
 	public void lvalue(Value<String> value) {
