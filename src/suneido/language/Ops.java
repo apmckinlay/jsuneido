@@ -459,7 +459,11 @@ public class Ops {
 		return x.getClass().getName().replaceFirst("^(suneido.(language.)?)?", "");
 	}
 
-	// to simplify code generation
+	// invokeN is to simplify code generation
+	// so caller doesn't have to build args array
+
+	// TODO bypass invoke dispatcher for "call"
+
 	public static Object invokeN(Object x) {
 		return invoke(x, "call");
 	}

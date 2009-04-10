@@ -20,17 +20,16 @@ public class SampleFunction extends SuFunction {
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "call")
-			return invoke(massage(params[0], args));
+			return invoke(args);
 		else
 			return super.invoke(method, args);
 	}
 
 	private Object invoke(Object... args) {
+		args = massage(params[1], args);
 		return null;
 	}
 
 	private void test(List<Object> v) {
-		for (Object x : v)
-			;
 	}
 }

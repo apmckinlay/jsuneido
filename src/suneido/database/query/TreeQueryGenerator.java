@@ -387,7 +387,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return in;
 	}
 
-	public void startFunction() {
+	public void startFunction(FuncOrBlock which) {
 	}
 
 	public void lvalue(Value<Object> value) {

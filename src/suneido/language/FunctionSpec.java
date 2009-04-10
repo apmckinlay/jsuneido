@@ -10,7 +10,7 @@ public class FunctionSpec {
 	final int nparams;
 	final int ndefaults;
 	final boolean atParam;
-	private final static Object[] noConstants = new Object[0];
+	final static Object[] noConstants = new Object[0];
 	public final static FunctionSpec noParams =
 			new FunctionSpec(null, new String[0], 0);
 

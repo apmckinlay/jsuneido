@@ -5,11 +5,14 @@ import suneido.SuValue;
 /**
  * SuMethod makes methods first class values.
  * It binds the method and the instance it "came from".
+ * Also used for nested anonymous functions.
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class SuMethod extends SuValue {
+	/** not private final because instance is filled in later
+	 *  @see CompileGenerator.linkConstants */
 	public Object instance;
 	private final String method;
 
