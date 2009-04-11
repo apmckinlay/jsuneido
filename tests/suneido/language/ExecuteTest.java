@@ -112,6 +112,9 @@ public class ExecuteTest {
 		test("a = 123; b = { a + 456 }; b()", "579");
 		test("b = {|x| x * 2 }; b(123)", "246");
 		test("x = 111; b = {|x| x * 2 }; b(123) + x", "357");
+		test("b = { 2 * it }; b(123)", "246");
+		test("b = {|it| 2 * it }; b(123)", "246");
+		test("it = 111; b = {|it| 2 * it }; b(123) + it", "357");
 	}
 
 	private static void test(String expr, String result) {

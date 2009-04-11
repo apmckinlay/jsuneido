@@ -318,4 +318,7 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 
+	public void blockParams() {
+	}
+
 }

@@ -115,6 +115,7 @@ public interface Generator<T> {
 	void atArgument(String n);
 	T atArgument(String n, T expr);
 
+	void blockParams();
 	T block(T params, T statements);
 
 	T parameters(T list, String name, T defaultValue);
