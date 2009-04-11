@@ -473,4 +473,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
+	public void blockParams() {
+	}
+
 }

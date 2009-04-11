@@ -45,6 +45,8 @@ public class CompileGenerator implements Generator<Object> {
 		boolean atParam;
 		int iparams; // where block params start in locals
 		int iFspecs;
+		boolean auto_it_param = false;
+		boolean it_param_used = false;
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
@@ -515,7 +517,8 @@ public class CompileGenerator implements Generator<Object> {
 		if (i == -1) {
 			i = f.locals.size();
 			f.locals.add(name);
-		}
+		} else if (name.equals("it"))
+			f.it_param_used = true;
 		return i;
 	}
 
@@ -881,9 +884,19 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
+	public void blockParams() {
+		if (f.nparams == 0) {
+			f.locals.add("it");
+			f.auto_it_param = true;
+		}
+	}
+
 	public Object block(Object params, Object statements) {
 		final int THIS = 0;
 		final int ARGS = 1;
+
+		if (f.auto_it_param && f.it_param_used)
+			f.nparams = 1;
 
 		finishMethod(statements);
 
