@@ -93,7 +93,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		case IF:
 			return ifStatement(loop);
 		case RETURN:
-			return returnStatement();
+			return returnStatement(loop);
 		case SWITCH:
 			return switchStatement();
 		case THROW:
@@ -283,10 +283,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return expr;
 	}
 
-	private T returnStatement() {
+	private T returnStatement(Object context) {
 		matchKeepNewline(RETURN);
 		T expr = endOfStatement() ? null : statementExpression();
-		return generator.returnStatement(expr);
+		return generator.returnStatement(expr, context);
 		}
 
 	private T switchStatement() {

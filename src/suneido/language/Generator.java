@@ -30,7 +30,7 @@ public interface Generator<T> {
 	T function(T params, T compound);
 
 	enum FuncOrBlock { FUNC, BLOCK };
-	void startFunction(FuncOrBlock funcOrBlock);
+	Object startFunction(FuncOrBlock funcOrBlock);
 
 	T identifier(String text);
 
@@ -41,7 +41,7 @@ public interface Generator<T> {
 
 	T in(T expression, T constant);
 
-	T returnStatement(T expression);
+	T returnStatement(T expression, Object context);
 
 	void afterStatement(T statements);
 

@@ -9,15 +9,10 @@ import java.io.StringWriter;
 import org.junit.Test;
 
 public class CompileTest {
-
-	public void tmp() {
-		String s = "function (a,b,c) { if (a < b) c }";
-		Lexer lexer = new Lexer(s);
-		CompileGenerator generator =
-				new CompileGenerator(new PrintWriter(System.out));
-		ParseFunction<Object, Generator<Object>> pc =
-				new ParseFunction<Object, Generator<Object>>(lexer, generator);
-		pc.parse();
+	//@Test
+	public void blocks() {
+		test("return { }",
+				"block, ARETURN");
 	}
 
 	@Test
@@ -25,9 +20,9 @@ public class CompileTest {
 		test("return",
 				"null, ARETURN");
 		test("123",
-				"0=123, ARETURN");
+				"123, ARETURN");
 		test("return 123",
- 				"0=123, ARETURN");
+ 				"123, ARETURN");
 		test("b;;",
  				"b, POP");
 		test("a",
@@ -45,11 +40,11 @@ public class CompileTest {
 		test("a(b, c)",
  				"a, b, c, invokeN, ARETURN");
 		test("a.Size()",
- 				"a, LDC 'Size', invokeN, ARETURN");
+ 				"a, 'Size', invokeN, ARETURN");
 		test("return a.Size()",
- 				"a, LDC 'Size', invokeN, ARETURN");
+ 				"a, 'Size', invokeN, ARETURN");
 		test("a.Substr(b, c)",
- 				"a, LDC 'Substr', b, c, invokeN, ARETURN");
+ 				"a, 'Substr', b, c, invokeN, ARETURN");
 		test("a = b $ c",
  				"&a, b, c, cat, DUP_X2, AASTORE, ARETURN");
 		test("a = b = c",
@@ -75,21 +70,21 @@ public class CompileTest {
 		test("a++",
  				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, ARETURN");
 		test("a.x",
- 				"a, LDC 'x', getMem, ARETURN");
+ 				"a, 'x', getMem, ARETURN");
 		test(".x",
- 				"this, LDC 'x', getMem, ARETURN");
+ 				"this, 'x', getMem, ARETURN");
 		test("a.x = b;;",
- 				"a, LDC 'x', b, putMem");
+ 				"a, 'x', b, putMem");
 		test("a.x = b",
- 				"a, LDC 'x', b, DUP_X2, putMem, ARETURN");
+ 				"a, 'x', b, DUP_X2, putMem, ARETURN");
 		test("a[b]",
  				"a, b, getMem, ARETURN");
 		test("a[b] = c;;",
  				"a, b, c, putMem");
 		test("G",
- 				"LDC 'G', global, ARETURN");
+ 				"'G', global, ARETURN");
 		test("G()",
- 				"LDC 'G', global, invokeN, ARETURN");
+ 				"'G', global, invokeN, ARETURN");
 		test("a(@b)",
  				"a, EACH, b, invokeN, ARETURN");
 		test("a(@+1b)",
@@ -97,13 +92,13 @@ public class CompileTest {
 		test("a = b();;",
  				"&a, b, invokeN, null?, AASTORE");
 		test("123; 456; 123;",
- 				"0=123, POP, 1=456, POP, 0=123, ARETURN");
+ 				"123, POP, 456, POP, 123, ARETURN");
 		test("#(1, a: 2)",
  				"0=#(1, a: 2), ARETURN");
 		test("#{1, a: 2}",
  				"0=[1, a: 2], ARETURN");
-		test("a(1, x: 2)",
- 				"a, 0=1, NAMED, 1='x', 2=2, invokeN, ARETURN");
+		test("a(123, x: 456)",
+ 				"a, 123, NAMED, 'x', 456, invokeN, ARETURN");
 		test("if (a) b",
 				"a, bool, IFFALSE L1, b, POP, L1");
 		test("if (a < b) c",
@@ -132,12 +127,16 @@ public class CompileTest {
 				"a, POP, L1");
 		test("switch (a) { default: b }",
 				"a, POP, b, POP, GOTO L1, POP, L1");
-		test("switch (a) { case 0: b }",
-				"a, DUP, 0=0, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
-		test("switch (a) { case 0,1: b }",
-				"a, DUP, 0=0, is_, IFTRUE L1, DUP, 1=1, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
+		test("switch (a) { case 123: b }",
+				"a, DUP, 123, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
+		test("switch (a) { case 123,456: b }",
+				"a, DUP, 123, is_, IFTRUE L1, DUP, 456, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
 		test("for (a in b) c",
 				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
+		test("return function () { }",
+				"0=MyFunc.f1, ARETURN");
+		test("a = function () { }",
+				"&a, 0=MyFunc.f1, DUP_X2, AASTORE, ARETURN");
 	}
 
 	private void test(String expr, String expected) {
@@ -215,6 +214,10 @@ System.out.println(r);
 				{ "toBool (Object;)I", "bool" },
 				{ "IFEQ", "IFFALSE" },
 				{ "IFNE", "IFTRUE" },
+				{ "NEW suneido/language/SuBlock, DUP, this, GETSTATIC suneido/language/MyFunc.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+				{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
+				{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
+				{ "LDC ", "" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

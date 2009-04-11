@@ -36,7 +36,7 @@ public class StringGenerator implements Generator<String> {
 				+ str(" else { ", f, " }");
 	}
 
-	public String returnStatement(String expression) {
+	public String returnStatement(String expression, Object context) {
 		return "return" + str(" ", expression, "") + ";";
 	}
 
@@ -245,7 +245,8 @@ public class StringGenerator implements Generator<String> {
 		return value;
 	}
 
-	public void startFunction(FuncOrBlock which) {
+	public Object startFunction(FuncOrBlock which) {
+		return null;
 	}
 
 	public void lvalue(Value<String> value) {

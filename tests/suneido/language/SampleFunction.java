@@ -1,6 +1,5 @@
 package suneido.language;
 
-import java.util.List;
 
 public class SampleFunction extends SuFunction {
 	private static FunctionSpec[] params;
@@ -26,10 +25,10 @@ public class SampleFunction extends SuFunction {
 	}
 
 	private Object invoke(Object... args) {
-		args = massage(params[1], args);
-		return null;
+		throw new BlockReturnException(args[1]);
 	}
 
-	private void test(List<Object> v) {
+	private Integer test() {
+		return 1234567;
 	}
 }
