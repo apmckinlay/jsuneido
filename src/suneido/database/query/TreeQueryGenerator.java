@@ -328,7 +328,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object returnStatement(Object expression) {
+	public Object returnStatement(Object expression, Object context) {
 		return null;
 	}
 
@@ -387,7 +387,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return in;
 	}
 
-	public void startFunction(FuncOrBlock which) {
+	public Object startFunction(FuncOrBlock which) {
+		return null;
 	}
 
 	public void lvalue(Value<Object> value) {

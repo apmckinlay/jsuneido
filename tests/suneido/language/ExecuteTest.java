@@ -107,6 +107,12 @@ public class ExecuteTest {
 		test("switch(1) { case 0,1,2: x='one'; }; x", "'one'");
 		test("switch(2) { case 1: x='one'; default: x='def' }; x", "'def'");
 	}
+	@Test public void test_block() {
+		test("b = { 123 }; b()", "123");
+		test("a = 123; b = { a + 456 }; b()", "579");
+		test("b = {|x| x * 2 }; b(123)", "246");
+		test("x = 111; b = {|x| x * 2 }; b(123) + x", "357");
+	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));

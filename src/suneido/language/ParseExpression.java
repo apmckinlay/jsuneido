@@ -415,10 +415,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T block() {
-		generator.startFunction(FuncOrBlock.BLOCK);
+		Object loop = generator.startFunction(FuncOrBlock.BLOCK);
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
-		T statements = statementList();
+		T statements = statementList(loop);
 		match(R_CURLY);
 		return generator.block(params, statements);
 	}
@@ -445,9 +445,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	private T statementList() {
+	private T statementList(Object loop) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.statementList();
+		T result = p.statementList(loop);
 		token = p.token;
 		return result;
 	}
