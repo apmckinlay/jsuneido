@@ -120,6 +120,8 @@ public class ExecuteTest {
 		test("try return 123", "123");
 		test("try return 123 catch ;", "123");
 		test("try throw 'abc' catch (e) return e", "'abc'");
+		test("try { try throw 'x' catch (e) return e } return 'y'", "'x'");
+		test("try { try 123 catch (e) return 'y'; throw 'x' } catch(e) return e; return 'y'", "'x'");
 	}
 
 	private static void test(String expr, String result) {

@@ -1115,8 +1115,6 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object startTry() {
 		TryCatch tc = new TryCatch();
-		f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
-				"suneido/SuException");
 		f.mv.visitLabel(tc.label0);
 		return tc;
 	}
@@ -1149,7 +1147,10 @@ public class CompileGenerator implements Generator<Object> {
 	// end of try-catch
 	public Object tryStatement(Object tryStatement, Object catcher,
 			Object trycatch) {
-		f.mv.visitLabel(((TryCatch) trycatch).label3);
+		TryCatch tc = (TryCatch) trycatch;
+		f.mv.visitLabel(tc.label3);
+		f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
+				"suneido/SuException");
 		return null;
 	}
 
