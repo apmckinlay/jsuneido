@@ -42,7 +42,7 @@ public class OpTest {
 	@Test
 	public void test_cat() {
 		assertEquals("onetwo", cat("one", "two"));
-		assertEquals("one0.2", cat("one", BigDecimal.valueOf(.2)));
+		assertEquals("one.2", cat("one", BigDecimal.valueOf(.2)));
 		assertEquals("1two", cat(1, "two"));
 	}
 

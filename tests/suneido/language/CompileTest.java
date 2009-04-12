@@ -142,13 +142,13 @@ public class CompileTest {
 		test("throw 'oops'",
 				"'oops', throw");
 		test("try 123",
-				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, POP, L4");
+				"L1, 123, POP, L2, GOTO L3, L4, POP, L3, try L1 L2 L4");
 		test("try 123 catch 456",
-				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, POP, 456, POP, L4");
+				"L1, 123, POP, L2, GOTO L3, L4, POP, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a) 456",
-				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, toString, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L4");
+				"L1, 123, POP, L2, GOTO L3, L4, toString, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a, 'x') 456",
-				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, 'x', catchMatch, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L4");
+				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
 	}
 
 	private void test(String expr, String expected) {
@@ -231,7 +231,8 @@ System.out.println(r);
 				{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
 				{ "LDC ", "" },
 				{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
-				{ "TRYCATCHBLOCK L1 L2 L3 suneido/SuException", "try L1 L2 L3" },
+				{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException",
+								"try L1 L2 L4" },
 				{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
 				{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 		};

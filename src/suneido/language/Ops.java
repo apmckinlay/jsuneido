@@ -144,7 +144,7 @@ public class Ops {
 	}
 
 	public static String cat(Object x, Object y) {
-		return x.toString().concat(y.toString());
+		return toString(x).concat(toString(y));
 	}
 
 	private static SuException cant(Object x, String op, Object y) {
