@@ -1006,12 +1006,16 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitInsn(DUP);
 		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
+		saveTopInVar(var);
+		return loop;
+	}
+
+	private void saveTopInVar(String var) {
 		f.mv.visitVarInsn(ALOAD, LOCALS);
 		f.mv.visitInsn(SWAP);
 		iconst(f.mv, addLocal(var));
 		f.mv.visitInsn(SWAP);
 		f.mv.visitInsn(AASTORE);
-		return loop;
 	}
 
 	public Object forInStatement(String var, Object expr, Object statement,
@@ -1088,15 +1092,64 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object throwStatement(Object expression) {
-		// TODO throw
+		// stack: value
+		f.mv.visitTypeInsn(NEW, "suneido/SuException");
+		// stack: exception, value
+		f.mv.visitInsn(DUP_X1);
+		// stack: exception, value, exception
+		f.mv.visitInsn(SWAP);
+		// stack: value, exception, exception
+		f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
+				"(Ljava/lang/String;)V");
+		// stack: exception
+		f.mv.visitInsn(ATHROW);
 		return null;
 	}
 
-	public Object tryStatement(Object tryStatement, Object catcher) {
-		// TODO try-catch
+	static class TryCatch {
+		Label label0 = new Label();
+		Label label1 = new Label();
+		Label label2 = new Label();
+		Label label3 = new Label();
+	}
+
+	public Object startTry() {
+		TryCatch tc = new TryCatch();
+		f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
+				"suneido/SuException");
+		f.mv.visitLabel(tc.label0);
+		return tc;
+	}
+
+	public void startCatch(String var, String pattern, Object trycatch) {
+		TryCatch tc = (TryCatch) trycatch;
+		f.mv.visitLabel(tc.label1);
+		f.mv.visitJumpInsn(GOTO, tc.label3);
+		f.mv.visitLabel(tc.label2);
+
+		// exception is on stack
+		if (pattern != null) {
+			f.mv.visitLdcInsn(pattern);
+			f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
+					"(Lsuneido/SuException;Ljava/lang/String;)Ljava/lang/String;");
+		} else if (var != null)
+			f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuException",
+					"toString", "()Ljava/lang/String;");
+		if (var == null)
+			f.mv.visitInsn(POP);
+		else
+			saveTopInVar(var);
+	}
+
+	public Object catcher(String var, String pattern, Object statement) {
+		// TODO if statement is null, generate empty catch
 		return null;
 	}
-	public Object catcher(String variable, String pattern, Object statement) {
+
+	// end of try-catch
+	public Object tryStatement(Object tryStatement, Object catcher,
+			Object trycatch) {
+		f.mv.visitLabel(((TryCatch) trycatch).label3);
 		return null;
 	}
 

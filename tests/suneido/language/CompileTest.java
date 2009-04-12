@@ -138,6 +138,18 @@ public class CompileTest {
 		test("a = function () { }",
 				"&a, 0=MyFunc.f1, DUP_X2, AASTORE, ARETURN");
 	}
+	@Test public void exceptions() {
+		test("throw 'oops'",
+				"'oops', throw");
+		test("try 123",
+				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, POP, L4");
+		test("try 123 catch 456",
+				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, POP, 456, POP, L4");
+		test("try 123 catch(a) 456",
+				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, toString, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L4");
+		test("try 123 catch(a, 'x') 456",
+				"try L1 L2 L3, L1, 123, POP, L2, GOTO L4, L3, 'x', catchMatch, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L4");
+	}
 
 	private void test(String expr, String expected) {
 		assertEquals(expr, expected, compile(expr));
@@ -218,6 +230,10 @@ System.out.println(r);
 				{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
 				{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
 				{ "LDC ", "" },
+				{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
+				{ "TRYCATCHBLOCK L1 L2 L3 suneido/SuException", "try L1 L2 L3" },
+				{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
+				{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

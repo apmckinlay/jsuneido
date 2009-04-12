@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 
 import org.junit.Test;
 
+import suneido.SuException;
+
 public class OpTest {
 
 	@Test
@@ -54,4 +56,26 @@ public class OpTest {
 		assertEquals(123.9, add(x, z));
 	}
 
+	@Test
+	public void test_catchMatch() {
+		match("abc", null);
+		match("abc", "a");
+		nomatch("abc", "b");
+		match("abc", "b|ab");
+		nomatch("abc", "x|y|z");
+		match("abc", "*bc");
+		nomatch("abc", "*x|*y");
+	}
+
+	private void match(String exception, String pattern) {
+		catchMatch(new SuException(exception), pattern);
+	}
+	private void nomatch(String exception, String pattern) {
+		try {
+			catchMatch(new SuException(exception), pattern);
+			fail();
+		} catch (SuException e) {
+			// expected
+		}
+	}
 }

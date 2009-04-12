@@ -116,6 +116,11 @@ public class ExecuteTest {
 		test("b = {|it| 2 * it }; b(123)", "246");
 		test("it = 111; b = {|it| 2 * it }; b(123) + it", "357");
 	}
+	@Test public void test_exceptions() {
+		test("try return 123", "123");
+		test("try return 123 catch ;", "123");
+		test("try throw 'abc' catch (e) return e", "'abc'");
+	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));
