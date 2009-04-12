@@ -358,7 +358,8 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object tryStatement(Object tryStatement, Object catcher) {
+	public Object tryStatement(Object tryStatement, Object catcher,
+			Object trycatch) {
 		return null;
 	}
 
@@ -474,6 +475,13 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void blockParams() {
+	}
+
+	public void startCatch(String var, String pattern, Object trycatch) {
+	}
+
+	public Object startTry() {
+		return null;
 	}
 
 }

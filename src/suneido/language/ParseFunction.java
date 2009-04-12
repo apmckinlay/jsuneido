@@ -95,11 +95,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		case RETURN:
 			return returnStatement(loop);
 		case SWITCH:
-			return switchStatement();
+			return switchStatement(loop);
 		case THROW:
 			return throwStatement();
 		case TRY:
-			return tryStatement();
+			return tryStatement(loop);
 		case WHILE:
 			return whileStatement();
 		default:
@@ -289,22 +289,22 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return generator.returnStatement(expr, context);
 		}
 
-	private T switchStatement() {
+	private T switchStatement(Object loop) {
 		match(SWITCH);
 		Object labels = generator.startSwitch();
 		T expr = optionalParensExpression();
 		T cases = null;
 		match(L_CURLY);
 		while (matchIf(CASE))
-			cases = switchCase(cases, labels);
+			cases = switchCase(cases, labels, loop);
 		if (matchIf(DEFAULT)) {
 			generator.startCase(labels);
-			cases = switchCaseBody(cases, null, labels);
+			cases = switchCaseBody(cases, null, labels, loop);
 		}
 		match(R_CURLY);
 		return generator.switchStatement(expr, cases, labels);
 	}
-	private T switchCase(T cases, Object labels) {
+	private T switchCase(T cases, Object labels, Object loop) {
 		generator.startCase(labels);
 		T values = null;
 		do {
@@ -312,17 +312,17 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			T value = expression();
 			values = generator.caseValues(values, value, labels, token == COMMA);
 		} while (matchIf(COMMA));
-		cases = switchCaseBody(cases, values, labels);
+		cases = switchCaseBody(cases, values, labels, loop);
 		return cases;
 	}
-	private T switchCaseBody(T cases, T values, Object labels) {
+	private T switchCaseBody(T cases, T values, Object labels, Object loop) {
 		match(COLON);
 		generator.startCaseBody(labels);
 		T statements = null;
 		while (token != R_CURLY &&
 				lexer.getKeyword() != CASE &&
 				lexer.getKeyword() != DEFAULT)
-			statements = generator.statementList(statements, statement(null));
+			statements = generator.statementList(statements, statement(loop));
 		return generator.switchCases(cases, values, statements, labels);
 	}
 
@@ -331,16 +331,20 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return generator.throwStatement(statementExpression());
 	}
 
-	private T tryStatement() {
+	private T tryStatement(Object loop) {
 		match(TRY);
-		T tryStat = statement(null);
-		T catcher = catcher();
-		return generator.tryStatement(tryStat, catcher);
+		Object trycatch = generator.startTry();
+		T tryStat = statement(loop);
+		generator.afterStatement(tryStat);
+		T catcher = catcher(loop, trycatch);
+		return generator.tryStatement(tryStat, catcher, trycatch);
 	}
 
-	private T catcher() {
-		if (!matchIf(CATCH))
+	private T catcher(Object loop, Object trycatch) {
+		if (!matchIf(CATCH)) {
+			generator.startCatch(null, null, trycatch);
 			return null;
+		}
 		String variable = null;
 		String pattern = null;
 		if (matchIf(L_PAREN)) {
@@ -354,7 +358,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			}
 			match(R_PAREN);
 		}
-		return generator.catcher(variable, pattern, statement(null));
+		generator.startCatch(variable, pattern, trycatch);
+		T catchStat = statement(loop);
+		generator.afterStatement(catchStat);
+		return generator.catcher(variable, pattern, catchStat);
 	}
 
 	private T whileStatement() {

@@ -72,7 +72,9 @@ public interface Generator<T> {
 
 	T catcher(String variable, String pattern, T statement);
 
-	T tryStatement(T tryStatement, T catcher);
+	Object startTry();
+	void startCatch(String var, String pattern, Object trycatch);
+	T tryStatement(T tryStatement, T catcher, Object trycatch);
 
 	Object startSwitch();
 	void startCase(Object labels);

@@ -106,7 +106,8 @@ public class StringGenerator implements Generator<String> {
 				+ " { " + statement + " }";
 	}
 
-	public String tryStatement(String tryStatement, String catcher) {
+	public String tryStatement(String tryStatement, String catcher,
+			Object trycatch) {
 		return "try { " + tryStatement + " }" + str(" ", catcher, "");
 	}
 
@@ -319,6 +320,13 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void blockParams() {
+	}
+
+	public void startCatch(String var, String pattern, Object trycatch) {
+	}
+
+	public Object startTry() {
+		return null;
 	}
 
 }

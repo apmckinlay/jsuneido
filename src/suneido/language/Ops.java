@@ -144,18 +144,7 @@ public class Ops {
 	}
 
 	public static String cat(Object x, Object y) {
-		if (x instanceof String) {
-			if (y instanceof String)
-				return ((String) x).concat((String) y);
-			if (y instanceof Number)
-				return ((String) x).concat(y.toString());
-		} else if (x instanceof Number) {
-			if (y instanceof String)
-				return x.toString().concat((String) y);
-			if (y instanceof Number)
-				return x.toString().concat(y.toString());
-		}
-		throw cant(x, " $ ", y);
+		return x.toString().concat(y.toString());
 	}
 
 	private static SuException cant(Object x, String op, Object y) {
@@ -610,6 +599,21 @@ public class Ops {
 		if (x instanceof Iterator<?>)
 			return ((Iterator<?>) x).next();
 		throw new SuException("not an iterator " + typeName(x));
+	}
+
+	public static String catchMatch(SuException e, String patterns) {
+		String es = e.toString();
+		if (patterns == null)
+			return es;
+		for (String pat : patterns.split("[|]")) {
+			if (pat.startsWith("*")) {
+				pat = pat.substring(1);
+				if (es.contains(pat))
+					return es;
+			} else if (es.startsWith(pat))
+				return es;
+		}
+		throw e; // no match so rethrow
 	}
 
 }
