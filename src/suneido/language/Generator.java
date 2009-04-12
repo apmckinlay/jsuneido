@@ -30,7 +30,7 @@ public interface Generator<T> {
 	T function(T params, T compound);
 
 	enum FuncOrBlock { FUNC, BLOCK };
-	Object startFunction(FuncOrBlock funcOrBlock);
+	Object startFunction(FuncOrBlock funcOrBlock, T name);
 
 	T identifier(String text);
 
@@ -124,6 +124,7 @@ public interface Generator<T> {
 
 	T memberList(ObjectOrRecord which, T list, T member);
 
+	void startClass();
 	T classConstant(String base, T members);
 
 	T memberDefinition(T name, T value);

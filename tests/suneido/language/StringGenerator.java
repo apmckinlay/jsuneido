@@ -246,7 +246,7 @@ public class StringGenerator implements Generator<String> {
 		return value;
 	}
 
-	public Object startFunction(FuncOrBlock which) {
+	public Object startFunction(FuncOrBlock which, String name) {
 		return null;
 	}
 
@@ -327,6 +327,9 @@ public class StringGenerator implements Generator<String> {
 
 	public Object startTry() {
 		return null;
+	}
+
+	public void startClass() {
 	}
 
 }

@@ -150,7 +150,7 @@ public class ExecuteTest {
 
 	private static Object compile(String s) {
 		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator();
+		CompileGenerator generator = new CompileGenerator("Test");
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return pc.parse();

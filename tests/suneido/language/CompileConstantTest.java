@@ -42,7 +42,7 @@ public class CompileConstantTest {
 
 	private Object compile(String s) {
 		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator();
+		CompileGenerator generator = new CompileGenerator("Test");
 		ParseConstant<Object, Generator<Object>> pc =
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);
 		return pc.parse();

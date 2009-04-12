@@ -23,10 +23,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public T function() {
 		matchSkipNewlines(FUNCTION);
-		return functionWithoutKeyword();
+		return functionWithoutKeyword(null);
 	}
-	protected T functionWithoutKeyword() {
-		generator.startFunction(FuncOrBlock.FUNC);
+	protected T functionWithoutKeyword(T name) {
+		generator.startFunction(FuncOrBlock.FUNC, name);
 		T params = parameters();
 		T body = compound(null);
 		return generator.function(params, body);

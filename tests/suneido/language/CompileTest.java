@@ -100,9 +100,9 @@ public class CompileTest {
 		test("a(123, x: 456)",
  				"a, 123, NAMED, 'x', 456, invokeN, ARETURN");
 		test("return function () { }",
-				"0=MyFunc.f1, ARETURN");
+				"0=Test._f1, ARETURN");
 		test("a = function () { }",
-				"&a, 0=MyFunc.f1, DUP_X2, AASTORE, ARETURN");
+				"&a, 0=Test._f1, DUP_X2, AASTORE, ARETURN");
 
 	}
 	@Test public void test_if() {
@@ -168,19 +168,27 @@ public class CompileTest {
 	}
 
 	private void test(String expr, String expected) {
-		assertEquals(expr, expected, compile(expr));
+		assertEquals(expr, expected, simplify(compile(expr)));
 	}
+
+	private Object[] constants;
 
 	private String compile(String s) {
 System.out.println("====== " + s);
 		s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
-		CompileGenerator generator = new CompileGenerator(new PrintWriter(sw));
-		ParseFunction<Object, Generator<Object>> pc =
-				new ParseFunction<Object, Generator<Object>>(lexer, generator);
+		CompileGenerator generator =
+				new CompileGenerator("Test", new PrintWriter(sw));
+		ParseConstant<Object, Generator<Object>> pc =
+				new ParseConstant<Object, Generator<Object>>(lexer, generator);
 		pc.parse();
-		String r = sw.toString();
+		constants = generator.constants == null ? new Object[0]
+				: generator.constants.get(0);
+		return sw.toString();
+	}
+
+	private String simplify(String r) {
 		r = after(r, "invoke([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 		r = before(r, "    LOCALVARIABLE");
 System.out.println(r);
@@ -189,70 +197,67 @@ System.out.println(r);
 		r = r.replace("\n", ", ");
 		r = r.replace('"', '\'');
 		r = r.replaceAll(" +", " ");
-		Object[] constants =
-				generator.constants == null ? new Object[0]
-			: generator.constants.get(0);
 		String[][] simplify = {
-				{ "Ljava/lang/", "" },
-				{ "GETSTATIC suneido/language/MyFunc.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
-				{ "ALOAD 1, INVOKESTATIC suneido/language/MyFunc.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
-				{ "GETSTATIC suneido/language/MyFunc.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
-				{ "ALOAD 1, ICONST_0, AALOAD", "a" },
-				{ "ALOAD 1, ICONST_1, AALOAD", "b" },
-				{ "ALOAD 1, ICONST_2, AALOAD", "c" },
-				{ "ALOAD 1, ICONST_3, AALOAD", "x" },
-				{ "ALOAD 1, ICONST_0", "&a" },
-				{ "ALOAD 1, ICONST_1", "&b" },
-				{ "ALOAD 1, ICONST_2", "&c" },
-				{ "ALOAD 0", "this" },
-				{ "ALOAD 1", "vars" },
-				{ "ALOAD 2", "const" },
-				{ "ICONST_0", "0" },
-				{ "ICONST_1", "1" },
-				{ "ICONST_2", "2" },
-				{ ", ACONST_NULL, ARETURN", "" },
-				{ "ACONST_NULL", "null" },
-				{ "ANEWARRAY Object", "new Object[]" },
-				{ "GETSTATIC suneido/language/SuClass.", "" },
-				{ " : LString;", "" },
-				{ "GETSTATIC suneido/language/SuClass$SpecialArg.", "" },
-				{ " : Lsuneido/language/SuClass$SpecialArg;", "" },
-				{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
-				{ "INVOKESTATIC suneido/language/Ops.", "" },
-				{ "get (Object;Object;)Object;", "getMem" },
-				{ "put (Object;Object;Object;)V", "putMem" },
-				{ " (Object;)Z", "" },
-				{ " (Object;)Object;", "" },
-				{ " (Object;)Number;", "" },
-				{ " (Object;Object;)Z", "" },
-				{ " (Object;Object;)Number;", "" },
-				{ " (Object;Object;)String;", "" },
-				{ " (Object;Object;)Boolean;", "" },
-				{ " (Object;Object;Object;)Object;", "" },
-				{ " (Object;String;)Object;", "" },
-				{ " (Object;String;Object;Object;)Object;", "" },
-				{ " (Object;Object;Object;Object;Object;)Object;", "" },
-				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
-				{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
-				{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L2", "null?" },
-				{ "LDC 'MyFunc', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
-				{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? display(constants[0]) : "") },
-				{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? display(constants[1]) : "") },
-				{ "const, 2, AALOAD", "2=" + (constants.length > 2 ? display(constants[2]) : "") },
-				{ "toBool (Object;)I", "bool" },
-				{ "IFEQ", "IFFALSE" },
-				{ "IFNE", "IFTRUE" },
-				{ "NEW suneido/language/SuBlock, DUP, this, GETSTATIC suneido/language/MyFunc.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
-				{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
-				{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
-				{ "LDC ", "" },
-				{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
-				{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
-				{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
-				{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
-				{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
-				{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
-				{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
+			{ "Ljava/lang/", "" },
+			{ "GETSTATIC suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
+			{ "ALOAD 1, INVOKESTATIC suneido/language/Test.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
+			{ "GETSTATIC suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
+			{ "ALOAD 1, ICONST_0, AALOAD", "a" },
+			{ "ALOAD 1, ICONST_1, AALOAD", "b" },
+			{ "ALOAD 1, ICONST_2, AALOAD", "c" },
+			{ "ALOAD 1, ICONST_3, AALOAD", "x" },
+			{ "ALOAD 1, ICONST_0", "&a" },
+			{ "ALOAD 1, ICONST_1", "&b" },
+			{ "ALOAD 1, ICONST_2", "&c" },
+			{ "ALOAD 0", "this" },
+			{ "ALOAD 1", "vars" },
+			{ "ALOAD 2", "const" },
+			{ "ICONST_0", "0" },
+			{ "ICONST_1", "1" },
+			{ "ICONST_2", "2" },
+			{ ", ACONST_NULL, ARETURN", "" },
+			{ "ACONST_NULL", "null" },
+			{ "ANEWARRAY Object", "new Object[]" },
+			{ "GETSTATIC suneido/language/SuClass.", "" },
+			{ " : LString;", "" },
+			{ "GETSTATIC suneido/language/SuClass$SpecialArg.", "" },
+			{ " : Lsuneido/language/SuClass$SpecialArg;", "" },
+			{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
+			{ "INVOKESTATIC suneido/language/Ops.", "" },
+			{ "get (Object;Object;)Object;", "getMem" },
+			{ "put (Object;Object;Object;)V", "putMem" },
+			{ " (Object;)Z", "" },
+			{ " (Object;)Object;", "" },
+			{ " (Object;)Number;", "" },
+			{ " (Object;Object;)Z", "" },
+			{ " (Object;Object;)Number;", "" },
+			{ " (Object;Object;)String;", "" },
+			{ " (Object;Object;)Boolean;", "" },
+			{ " (Object;Object;Object;)Object;", "" },
+			{ " (Object;String;)Object;", "" },
+			{ " (Object;String;Object;Object;)Object;", "" },
+			{ " (Object;Object;Object;Object;Object;)Object;", "" },
+			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
+			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
+			{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L2", "null?" },
+			{ "LDC 'Test', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
+			{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? display(constants[0]) : "") },
+			{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? display(constants[1]) : "") },
+			{ "const, 2, AALOAD", "2=" + (constants.length > 2 ? display(constants[2]) : "") },
+			{ "toBool (Object;)I", "bool" },
+			{ "IFEQ", "IFFALSE" },
+			{ "IFNE", "IFTRUE" },
+			{ "NEW suneido/language/SuBlock, DUP, this, GETSTATIC suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+			{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
+			{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
+			{ "LDC ", "" },
+			{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
+			{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
+			{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
+			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
+			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
+			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
+			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

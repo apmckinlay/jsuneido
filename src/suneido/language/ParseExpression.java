@@ -415,7 +415,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T block() {
-		Object loop = generator.startFunction(FuncOrBlock.BLOCK);
+		Object loop = generator.startFunction(FuncOrBlock.BLOCK, null);
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
 		generator.blockParams();
