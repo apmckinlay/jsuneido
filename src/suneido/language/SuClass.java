@@ -14,12 +14,12 @@ import suneido.*;
 public abstract class SuClass extends SuValue {
 	protected final SuContainer vars;
 
-	SuClass() {
+	public SuClass() {
 		vars = new SuContainer();
 	}
 
 	// used by SuFunction
-	SuClass(boolean noVars) {
+	protected SuClass(boolean noVars) {
 		vars = null;
 	}
 

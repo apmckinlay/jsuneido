@@ -82,7 +82,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object rename(Object query, Object renames) {
-		// TODO Auto-generated method stub
 		Renames r = (Renames) renames;
 		return new Rename((Query) query, r.froms, r.tos);
 	}
@@ -167,14 +166,12 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public void atArgument(String n) {
 	}
 	public Object atArgument(String n, Object expr) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -183,7 +180,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object block(Object params, Object statements) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -204,7 +200,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object classConstant(String base, Object members) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -230,12 +225,10 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object expressionList(Object list, Object expression) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object expressionStatement(Object expression) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -254,7 +247,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object function(Object params, Object compound) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -277,7 +269,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object member(Object term, String identifier) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -301,7 +292,6 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object newExpression(Object term, Object arguments) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -314,17 +304,14 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -345,12 +332,10 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object subscript(Object term, Object expression) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object symbol(String identifier) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -388,7 +373,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return in;
 	}
 
-	public Object startFunction(FuncOrBlock which) {
+	public Object startFunction(FuncOrBlock which, Object name) {
 		return null;
 	}
 
@@ -482,6 +467,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 
 	public Object startTry() {
 		return null;
+	}
+
+	public void startClass() {
 	}
 
 }

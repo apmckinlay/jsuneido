@@ -65,6 +65,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T classConstant() {
+		generator.startClass();
 		String base = classBase();
 		T members = memberList(L_CURLY, base);
 		return generator.classConstant(base, members);
@@ -123,7 +124,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private T memberValue(T name, boolean canBeFunction) {
 		T value = null;
 		if (name != null && canBeFunction && token == L_PAREN)
-			value = functionWithoutKeyword();
+			value = functionWithoutKeyword(name);
 		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
 			value = constant();
 		} else if (name != null)
@@ -176,12 +177,12 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T function() {
 		matchSkipNewlines(FUNCTION);
-		return functionWithoutKeyword();
+		return functionWithoutKeyword(null);
 	}
 
-	private T functionWithoutKeyword() {
+	private T functionWithoutKeyword(T name) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.functionWithoutKeyword();
+		T result = p.functionWithoutKeyword(name);
 		token = p.token;
 		return result;
 	}

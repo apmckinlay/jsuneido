@@ -19,7 +19,8 @@ public class TestCompilerGenerator {
 
     private static SuValue compile(String s) {
 		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator(new PrintWriter(sw));
+		CompileGenerator generator =
+				new CompileGenerator("Test", new PrintWriter(sw));
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return (SuValue) pc.parse();
