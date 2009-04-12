@@ -47,6 +47,8 @@ public class CompileGenerator implements Generator<Object> {
 		int iFspecs;
 		boolean auto_it_param = false;
 		boolean it_param_used = false;
+		TryCatch blockReturnCatcher = null;
+		boolean isBlock;
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
@@ -136,6 +138,7 @@ public class CompileGenerator implements Generator<Object> {
 		case BLOCK:
 			f.locals = fstack.peek().locals; // use outer locals
 			f.iparams = f.locals.size();
+			f.isBlock = true;
 			return Block;
 		default:
 			throw new SuException("invalid 'which' in startFunction");
@@ -297,7 +300,6 @@ public class CompileGenerator implements Generator<Object> {
 		return "return";
 	}
 
-	// TODO catch block return
 	private void blockReturn() {
 		// stack: value
 		f.mv.visitTypeInsn(NEW, "suneido/language/BlockReturnException");
@@ -306,8 +308,10 @@ public class CompileGenerator implements Generator<Object> {
 		// stack: exception, value, exception
 		f.mv.visitInsn(SWAP);
 		// stack: value, exception, exception
+		f.mv.visitVarInsn(ALOAD, LOCALS);
 		f.mv.visitMethodInsn(INVOKESPECIAL,	"suneido/language/BlockReturnException",
-				"<init>", "(Ljava/lang/Object;)V");
+				"<init>",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)V");
 		// stack: exception
 		f.mv.visitInsn(ATHROW);
 	}
@@ -337,6 +341,8 @@ public class CompileGenerator implements Generator<Object> {
 		if (compound != "return")
 			returnStatement(compound, null);
 
+		finishBlockReturnCatcher();
+
 		Label endLabel = new Label();
 		f.mv.visitLabel(endLabel);
 		f.mv.visitLocalVariable("this", "Lsuneido/language/MyFunc;",
@@ -347,6 +353,28 @@ public class CompileGenerator implements Generator<Object> {
 				null, f.startLabel, endLabel, 2);
 		f.mv.visitMaxs(0, 0);
 		f.mv.visitEnd();
+	}
+
+	private void finishBlockReturnCatcher() {
+		if (f.blockReturnCatcher == null)
+			return;
+		TryCatch tc = f.blockReturnCatcher;
+		f.mv.visitLabel(tc.label1);
+		f.mv.visitLabel(tc.label2);
+		f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
+				"suneido/language/BlockReturnException");
+
+		f.mv.visitInsn(DUP);
+		f.mv.visitFieldInsn(GETFIELD, "suneido/language/BlockReturnException",
+				"locals", "[Ljava/lang/Object;");
+		f.mv.visitVarInsn(ALOAD, LOCALS);
+		Label label = new Label();
+		f.mv.visitJumpInsn(IF_ACMPEQ, label);
+		f.mv.visitInsn(ATHROW); // not ours so just re-throw
+		f.mv.visitLabel(label);
+		f.mv.visitFieldInsn(GETFIELD, "suneido/language/BlockReturnException",
+				"returnValue", "Ljava/lang/Object;");
+		f.mv.visitInsn(ARETURN);
 	}
 
 	private Object finishClass() {
@@ -922,6 +950,11 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuBlock", "<init>",
 				"(Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
 
+		if (!f.isBlock && f.blockReturnCatcher == null) {
+			f.blockReturnCatcher = new TryCatch();
+			f.mv.visitLabel(f.blockReturnCatcher.label0);
+		}
+
 		return VALUE;
 	}
 
@@ -1140,7 +1173,6 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object catcher(String var, String pattern, Object statement) {
-		// TODO if statement is null, generate empty catch
 		return null;
 	}
 
