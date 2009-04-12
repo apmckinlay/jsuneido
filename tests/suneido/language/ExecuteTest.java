@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static suneido.language.Ops.display;
 
 import org.junit.Test;
@@ -121,11 +122,24 @@ public class ExecuteTest {
 		test("try return 123 catch ;", "123");
 		test("try throw 'abc' catch (e) return e", "'abc'");
 		test("try { try throw 'x' catch (e) return e } return 'y'", "'x'");
-		test("try { try 123 catch (e) return 'y'; throw 'x' } catch(e) return e; return 'y'", "'x'");
+		test("try { " +
+				"try 123 catch (e) return 'y'; " +
+				"throw 'x' } catch(e) return e; " +
+				"return 'y'", "'x'");
+		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
 	}
 
 	private static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));
+	}
+
+	private static void blockReturn(String expr) {
+		try {
+			eval(expr);
+			fail();
+		} catch (BlockReturnException e) {
+			// expected
+		}
 	}
 
 	private static Object eval(String s) {

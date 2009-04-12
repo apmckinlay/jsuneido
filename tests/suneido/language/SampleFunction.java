@@ -1,6 +1,5 @@
 package suneido.language;
 
-import suneido.SuException;
 
 public class SampleFunction extends SuFunction {
 	private static FunctionSpec[] params;
@@ -28,13 +27,8 @@ public class SampleFunction extends SuFunction {
 	private Object invoke(Object... args) {
 		try {
 			args[0] = args[1];
-			try {
-				toString();
-			} catch (SuException e) {
-				return null;
-			}
-		} catch (SuException e) {
-			args[0] = e.toString();
+		} catch (BlockReturnException e) {
+			return e.returnValue;
 		}
 		return null;
 	}

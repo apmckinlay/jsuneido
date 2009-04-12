@@ -16,7 +16,7 @@ public class CompileTest {
 	}
 
 	@Test
-	public void tests() {
+	public void test_expressions() {
 		test("return",
 				"null, ARETURN");
 		test("123",
@@ -99,12 +99,21 @@ public class CompileTest {
  				"0=[1, a: 2], ARETURN");
 		test("a(123, x: 456)",
  				"a, 123, NAMED, 'x', 456, invokeN, ARETURN");
+		test("return function () { }",
+				"0=MyFunc.f1, ARETURN");
+		test("a = function () { }",
+				"&a, 0=MyFunc.f1, DUP_X2, AASTORE, ARETURN");
+
+	}
+	@Test public void test_if() {
 		test("if (a) b",
 				"a, bool, IFFALSE L1, b, POP, L1");
 		test("if (a < b) c",
 				"a, b, lt_, IFFALSE L1, c, POP, L1");
 		test("if (a) b else c",
 				"a, bool, IFFALSE L1, b, POP, GOTO L2, L1, c, POP, L2");
+	}
+	@Test public void test_loops() {
 		test("do a while (b)",
 				"L1, a, POP, b, bool, IFTRUE L1, L2");
 		test("while (a) b",
@@ -123,6 +132,10 @@ public class CompileTest {
 				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
 		test("forever { a; continue; b }",
 				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
+		test("for (a in b) c",
+				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
+	}
+	@Test public void test_switch() {
 		test("switch (a) { }",
 				"a, POP, L1");
 		test("switch (a) { default: b }",
@@ -131,14 +144,8 @@ public class CompileTest {
 				"a, DUP, 123, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
 		test("switch (a) { case 123,456: b }",
 				"a, DUP, 123, is_, IFTRUE L1, DUP, 456, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
-		test("for (a in b) c",
-				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
-		test("return function () { }",
-				"0=MyFunc.f1, ARETURN");
-		test("a = function () { }",
-				"&a, 0=MyFunc.f1, DUP_X2, AASTORE, ARETURN");
 	}
-	@Test public void exceptions() {
+	@Test public void test_exceptions() {
 		test("throw 'oops'",
 				"'oops', throw");
 		test("try 123",
@@ -146,9 +153,18 @@ public class CompileTest {
 		test("try 123 catch 456",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a) 456",
-				"L1, 123, POP, L2, GOTO L3, L4, toString, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
+				"L1, 123, POP, L2, GOTO L3, L4, toString, vars, SWAP, 0, SWAP, "
+				+ "AASTORE, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a, 'x') 456",
-				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, vars, SWAP, 0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
+				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, vars, SWAP, "
+				+ "0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
+	}
+	@Test public void test_block() {
+		test("b = { }",
+				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
+				+ "L2, L3, try L1 L2 L3, DUP, .locals, vars, IF_ACMPEQ L4, "
+				+ "ATHROW, L4, .returnValue, ARETURN");
+		// f = function () { return { return 123 } }; b = f(); b()
 	}
 
 	private void test(String expr, String expected) {
@@ -231,10 +247,12 @@ System.out.println(r);
 				{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
 				{ "LDC ", "" },
 				{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
-				{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException",
-								"try L1 L2 L4" },
+				{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
+				{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
 				{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
 				{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
+				{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
+				{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
