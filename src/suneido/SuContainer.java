@@ -14,7 +14,8 @@ import suneido.language.Pack;
  * Suneido's single container type.
  * Combines an extendable array plus a hash map.
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * Licensed under GPLv2.</small></p>
  */
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {

@@ -20,8 +20,4 @@ class TestClass extends SampleClass {
 	public static Object method2(Object[] args) {
 		return 0;
 	}
-	@Override
-	public SuClass newInstance() {
-		return new TestClass();
-	}
 }

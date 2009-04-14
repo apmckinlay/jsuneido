@@ -23,7 +23,7 @@ public class SuClassTest {
 	@Test
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
-		SuValue instance = dc.newInstance();
+		SuValue instance = new SuInstance(dc);
 		assertEquals("", instance.invoke("Substr"));
 		assertArrayEquals(new Object[] { "Substr" }, DefaultClass.args);
 		instance.invoke("Substr", 1);
@@ -36,26 +36,17 @@ public class SuClassTest {
 			DefaultClass.args = args;
 			return "";
 		}
-		@Override
-		public SuClass newInstance() {
-			return new DefaultClass();
-		}
 	}
 
 	@Test
 	public void test_inheritance() {
 		Object subClass = new SubClass();
 		Object instance = Ops.invoke(subClass, "<new>");
-		assertTrue(instance instanceof SubClass);
+		assertTrue(instance instanceof SuInstance);
 		assertEquals(99, Ops.invoke(instance, "Size"));
 		assertEquals("", Ops.invoke(instance, "Substr"));
 	}
 	static class SubClass extends DefaultClass {
-		@Override
-		public SuClass newInstance() {
-			return new SubClass();
-		}
-
 		@Override
 		public Object invoke(String method, Object... args) {
 			if (method == "Size")
@@ -69,8 +60,8 @@ public class SuClassTest {
 	public void test_constructor() {
 		SuClass wc = new WrapClass();
 		Object s = "hello";
-		SuClass instance = (SuClass) wc.invoke("<new>", s);
-		assertEquals(s, instance.vars.get("value"));
+		SuInstance instance = (SuInstance) wc.invoke("<new>", s);
+		assertEquals(s, instance.get("value"));
 	}
 
 	static class WrapClass extends SampleClass {
@@ -79,16 +70,12 @@ public class SuClassTest {
 		}
 		static final FunctionSpec params = new FunctionSpec("",
 				new String[] { "value" }, 1);
-		@Override
-		public SuClass newInstance() {
-			return new WrapClass();
-		}
 
 		@Override
 		public Object invoke(String method, Object... args) {
 			if (method == "<new>") {
-				WrapClass wc = (WrapClass) super.invoke(method);
-				wc.vars.put("value", args[0]);
+				SuInstance wc = new SuInstance(this);
+				wc.put("value", args[0]);
 				return wc;
 			} else
 				return super.invoke(method, args);
