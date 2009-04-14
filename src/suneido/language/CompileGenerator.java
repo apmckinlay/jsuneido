@@ -152,9 +152,9 @@ public class CompileGenerator implements Generator<Object> {
 		Loader loader = new Loader();
 		Class<?> c =
 				loader.defineClass("suneido.language." + name, cw.toByteArray());
-		SuClass sc;
+		SuCallable sc;
 		try {
-			sc = (SuClass) c.newInstance();
+			sc = (SuCallable) c.newInstance();
 		} catch (InstantiationException e) {
 			throw new SuException("newInstance error: " + e);
 		} catch (IllegalAccessException e) {
@@ -174,7 +174,7 @@ public class CompileGenerator implements Generator<Object> {
 		}
 	}
 
-	private Object[][] linkConstants(SuClass sc) {
+	private Object[][] linkConstants(SuCallable sc) {
 		if (constants == null)
 			return null;
 		for (Object[] cs : constants)

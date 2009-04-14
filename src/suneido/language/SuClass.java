@@ -1,7 +1,6 @@
 package suneido.language;
 
 import suneido.SuContainer;
-import suneido.SuValue;
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -11,25 +10,14 @@ import suneido.SuValue;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public abstract class SuClass extends SuValue {
+public abstract class SuClass extends SuCallable {
 	protected final SuContainer vars;
 
 	public SuClass() {
 		vars = new SuContainer();
 	}
 
-	// used by SuFunction
-	protected SuClass(boolean noVars) {
-		vars = null;
-	}
-
-	public void setup(FunctionSpec[] params, Object[][] constants) {
-	}
-
 	// classes store "static" data members into vars in initialization block
-
-	@Override
-	abstract public String toString();
 
 	abstract public SuClass newInstance();
 
@@ -55,13 +43,4 @@ public abstract class SuClass extends SuValue {
 		throw unknown_method((String) args[0]);
 	}
 
-	@Override
-	public boolean equals(Object other) {
-		return this == other; // identity
-	}
-
-	@Override
-	public int hashCode() {
-		return System.identityHashCode(this);
-	}
 }
