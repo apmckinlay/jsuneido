@@ -189,7 +189,7 @@ public class CompileTest {
 	}
 
 	private String simplify(String r) {
-		r = after(r, "invoke([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+		r = after(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 		r = before(r, "    LOCALVARIABLE");
 		//System.out.println(r);
 		r = r.substring(0, r.length() - 6); // label
@@ -200,9 +200,7 @@ public class CompileTest {
 		String[][] simplify = {
 			{ "Ljava/lang/", "" },
 			{ "GETSTATIC suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
-			{
-								"ALOAD 1, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ",
-								"" },
+			{ "ALOAD 1, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
 			{ "GETSTATIC suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
 			{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 			{ "ALOAD 1, ICONST_1, AALOAD", "b" },
@@ -223,7 +221,7 @@ public class CompileTest {
 			{ "GETSTATIC suneido/language/SuClass.", "" },
 			{ " : LString;", "" },
 			{ "GETSTATIC suneido/language/Args$Special.", "" },
-						{ " : Lsuneido/language/Args$Special;", "" },
+			{ " : Lsuneido/language/Args$Special;", "" },
 			{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
 			{ "INVOKESTATIC suneido/language/Ops.", "" },
 			{ "get (Object;Object;)Object;", "getMem" },
