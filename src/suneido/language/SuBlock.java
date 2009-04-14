@@ -16,13 +16,18 @@ public class SuBlock  extends SuValue {
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "call") {
-			args = Args.massage(bspec, args);
-			// merge args into locals
-			for (int i = 0; i < bspec.nparams; ++i)
-				locals[bspec.iparams + i] = args[i];
-			return Ops.invoke(instance, bspec.name, locals);
+			return call(args);
 		} else
 			throw unknown_method(method);
+	}
+
+	@Override
+	public Object call(Object... args) {
+		args = Args.massage(bspec, args);
+		// merge args into locals
+		for (int i = 0; i < bspec.nparams; ++i)
+			locals[bspec.iparams + i] = args[i];
+		return Ops.invoke(instance, bspec.name, locals);
 	}
 
 	@Override

@@ -329,15 +329,6 @@ public class Ops {
 		return date;
 	}
 
-	public static Object invoke(Object x, String method, Object... args) {
-		if (x instanceof SuValue)
-			return ((SuValue) x).invoke(method, args);
-		Class<?> xType = x.getClass();
-		if (xType == String.class)
-			return StringMethods.invoke((String) x, method, args);
-		return null;
-	}
-
 	public static int toBool(Object x) {
 		if (x == Boolean.TRUE)
 			return 1;
@@ -448,50 +439,66 @@ public class Ops {
 		return x.getClass().getName().replaceFirst("^(suneido.(language.)?)?", "");
 	}
 
+	public static Object call(Object x, Object... args) {
+		if (x instanceof SuValue)
+			return ((SuValue) x).call(args);
+		throw new SuException("can't call " + typeName(x));
+	}
+
+	public static Object invoke(Object x, String method, Object... args) {
+		if (x instanceof SuValue)
+			return ((SuValue) x).invoke(method, args);
+		Class<?> xType = x.getClass();
+		if (xType == String.class)
+			return StringMethods.invoke((String) x, method, args);
+		// TODO handle invoke on other types e.g. numbers
+		throw new SuException("no such method: " + typeName(x) + method);
+	}
+
 	// invokeN is to simplify code generation
 	// so caller doesn't have to build args array
 
 	// TODO bypass invoke dispatcher for "call"
 
-	public static Object invokeN(Object x) {
-		return invoke(x, "call");
+	public static Object callN(Object x) {
+		return call(x);
 	}
 
-	public static Object invokeN(Object x, Object a) {
-		return invoke(x, "call", a);
+	public static Object callN(Object x, Object a) {
+		return call(x, a);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b) {
-		return invoke(x, "call", a, b);
+	public static Object callN(Object x, Object a, Object b) {
+		return call(x, a, b);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c) {
-		return invoke(x, "call", a, b, c);
+	public static Object callN(Object x, Object a, Object b, Object c) {
+		return call(x, a, b, c);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c,
+	public static Object callN(Object x, Object a, Object b, Object c,
 			Object d) {
-		return invoke(x, "call", a, b, c, d);
+		return call(x, a, b, c, d);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c,
+	public static Object callN(Object x, Object a, Object b, Object c,
 			Object d, Object e) {
-		return invoke(x, "call", a, b, c, d, e);
+		return call(x, a, b, c, d, e);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c,
+	public static Object callN(Object x, Object a, Object b, Object c,
 			Object d, Object e, Object f) {
-		return invoke(x, "call", a, b, c, d, e, f);
+		return call(x, a, b, c, d, e, f);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c,
+	public static Object callN(Object x, Object a, Object b, Object c,
 			Object d, Object e, Object f, Object g) {
-		return invoke(x, "call", a, b, c, d, e, f, g);
+		return call(x, a, b, c, d, e, f, g);
 	}
 
-	public static Object invokeN(Object x, Object a, Object b, Object c,
+	public static Object callN(Object x, Object a, Object b, Object c,
 			Object d, Object e, Object f, Object g, Object h) {
-		return invoke(x, "call", a, b, c, d, e, f, g, h);
+		return call(x, a, b, c, d, e, f, g, h);
 	}
 
 	//...

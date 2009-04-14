@@ -28,7 +28,8 @@ public class SampleClass extends SuClass {
 			return super.invoke(method, args);
 	}
 
-	private Object call(Object... args) {
+	@Override
+	public Object call(Object... args) {
 		return null;
 	}
 
