@@ -80,6 +80,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		matchSkipNewlines(IDENTIFIER);
 		return base;
 	}
+	// base is null for non-class objects
 	private T memberList(Token open, String base) {
 		ObjectOrRecord which = (open == L_PAREN ? OBJECT : RECORD);
 		match(open);

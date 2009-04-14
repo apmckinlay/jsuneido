@@ -23,7 +23,7 @@ public class SampleClass extends SuClass {
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "call")
-			return invoke(massage(params[0], args));
+			return invoke(Args.massage(params[0], args));
 		else
 			return super.invoke(method, args);
 	}

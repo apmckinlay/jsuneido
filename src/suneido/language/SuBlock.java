@@ -1,6 +1,5 @@
 package suneido.language;
 
-import static suneido.language.SuClass.massage;
 import suneido.SuValue;
 
 public class SuBlock  extends SuValue {
@@ -17,7 +16,7 @@ public class SuBlock  extends SuValue {
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "call") {
-			args = massage(bspec, args);
+			args = Args.massage(bspec, args);
 			// merge args into locals
 			for (int i = 0; i < bspec.nparams; ++i)
 				locals[bspec.iparams + i] = args[i];
