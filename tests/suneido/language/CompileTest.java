@@ -36,9 +36,9 @@ public class CompileTest {
 		test("return a + b",
  				"a, b, add, ARETURN");
 		test("a()",
- 				"a, invokeN, ARETURN");
+ 				"a, callN, ARETURN");
 		test("a(b, c)",
- 				"a, b, c, invokeN, ARETURN");
+ 				"a, b, c, callN, ARETURN");
 		test("a.Size()",
  				"a, 'Size', invokeN, ARETURN");
 		test("return a.Size()",
@@ -84,13 +84,13 @@ public class CompileTest {
 		test("G",
  				"'G', global, ARETURN");
 		test("G()",
- 				"'G', global, invokeN, ARETURN");
+ 				"'G', global, callN, ARETURN");
 		test("a(@b)",
- 				"a, EACH, b, invokeN, ARETURN");
+ 				"a, EACH, b, callN, ARETURN");
 		test("a(@+1b)",
- 				"a, EACH1, b, invokeN, ARETURN");
+ 				"a, EACH1, b, callN, ARETURN");
 		test("a = b();;",
- 				"&a, b, invokeN, null?, AASTORE");
+ 				"&a, b, callN, null?, AASTORE");
 		test("123; 456; 123;",
  				"123, POP, 456, POP, 123, ARETURN");
 		test("#(1, a: 2)",
@@ -98,7 +98,7 @@ public class CompileTest {
 		test("#{1, a: 2}",
  				"0=[1, a: 2], ARETURN");
 		test("a(123, x: 456)",
- 				"a, 123, NAMED, 'x', 456, invokeN, ARETURN");
+ 				"a, 123, NAMED, 'x', 456, callN, ARETURN");
 		test("return function () { }",
 				"0=Test._f1, ARETURN");
 		test("a = function () { }",

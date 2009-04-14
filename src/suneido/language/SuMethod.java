@@ -30,6 +30,11 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
+	public Object call(Object... args) {
+		return Ops.invoke(instance, this.method, args);
+	}
+
+	@Override
 	public String toString() {
 		return (instance == null ? "null" : instance.toString()) + "." + method;
 	}

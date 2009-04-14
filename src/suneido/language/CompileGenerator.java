@@ -252,8 +252,8 @@ public class CompileGenerator implements Generator<Object> {
 			f.name = ((which == FuncOrBlock.FUNC ? "_f" : "_b")
 					+ fspecs.size()).intern();
 		}
-		f.mv = cv.visitMethod(ACC_PRIVATE, f.name,
-				"([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
+		f.mv = cv.visitMethod(f.name.equals("call") ? ACC_PUBLIC : ACC_PRIVATE,
+				f.name, "([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		f.mv = new OptimizeToBool(f.mv);
 		f.mv.visitCode();
 		f.startLabel = new Label();
@@ -767,7 +767,7 @@ public class CompileGenerator implements Generator<Object> {
 		"Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;",
 	};
 	private void invokeFunction(int nargs) {
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invokeN",
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "callN",
 				"(Ljava/lang/Object;" + args[nargs] + ")Ljava/lang/Object;");
 	}
 	private void invokeMethod(int nargs) {

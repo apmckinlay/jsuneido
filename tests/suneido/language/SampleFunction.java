@@ -24,7 +24,8 @@ public class SampleFunction extends SuFunction {
 			return super.invoke(method, args);
 	}
 
-	private Object call(Object... args) {
+	@Override
+	public Object call(Object... args) {
 		try {
 			args[0] = args[1];
 		} catch (BlockReturnException e) {

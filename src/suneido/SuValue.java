@@ -29,6 +29,9 @@ public abstract class SuValue implements Packable {
 		return hashCode();
 	}
 
+	public Object call(Object... args) {
+		throw new SuException("can't call " + typeName());
+	}
 	public abstract Object invoke(String method, Object... args);
 
 	public SuException unknown_method(String method) {
