@@ -203,7 +203,7 @@ public class CompileGenerator implements Generator<Object> {
 		for (int i = 0; i < functions.size(); ++i) {
 			FunctionSpec f = functions.get(i);
 			mv.visitVarInsn(ALOAD, METHOD);
-			mv.visitLdcInsn(f.name.equals("invoke") ? "call" : f.name);
+			mv.visitLdcInsn(f.name);
 			Label l1 = new Label();
 			mv.visitJumpInsn(IF_ACMPNE, l1);
 			mv.visitVarInsn(ALOAD, THIS);
@@ -287,7 +287,7 @@ public class CompileGenerator implements Generator<Object> {
 			isFunction = true;
 		}
 		f = new Function();
-		f.name = name == null ? "invoke" : name;
+		f.name = name == null ? "call" : name;
 	}
 
 	private void gen_constants() {

@@ -1,6 +1,7 @@
 package suneido.language;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuValue;
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -31,15 +32,6 @@ public abstract class SuClass extends SuValue {
 	abstract public String toString();
 
 	abstract public SuClass newInstance();
-
-	public static boolean bool(Object x) {
-		if (x == Boolean.TRUE)
-			return true;
-		else if (x == Boolean.FALSE)
-			return false;
-		else
-			throw new SuException("expected true or false, got: " + x);
-	}
 
 	@Override
 	public Object invoke(String method, Object... args) {

@@ -19,12 +19,12 @@ public class SampleFunction extends SuFunction {
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "call")
-			return invoke(args);
+			return call(args);
 		else
 			return super.invoke(method, args);
 	}
 
-	private Object invoke(Object... args) {
+	private Object call(Object... args) {
 		try {
 			args[0] = args[1];
 		} catch (BlockReturnException e) {
