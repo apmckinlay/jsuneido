@@ -19,14 +19,12 @@ public abstract class SuClass extends SuCallable {
 
 	// classes store "static" data members into vars in initialization block
 
-	abstract public SuClass newInstance();
-
 	@Override
 	public Object invoke(String method, Object... args) {
 		if (method == "Type")
 			return "Class";
 		else if (method == "<new>")
-			return newInstance();
+			return new SuInstance(this);
 		else {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default

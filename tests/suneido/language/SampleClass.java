@@ -5,11 +5,6 @@ public class SampleClass extends SuClass {
 	private static Object[][] constants;
 
 	@Override
-	public SuClass newInstance() {
-		return new SampleClass();
-	}
-
-	@Override
 	public void setup(FunctionSpec[] p, Object[][] c) {
 		params = p;
 		constants = c;
