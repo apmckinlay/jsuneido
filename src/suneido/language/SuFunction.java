@@ -1,18 +1,12 @@
 package suneido.language;
 
-import suneido.SuException;
-
 /**
- * an SuFunction is implemented as a class with the definition in the
- * method-less invoke
- *
+ * an SuFunction is implemented as a class with the definition in a "call"
+ * method
+ * 
  * @author Andrew McKinlay
  */
-abstract public class SuFunction extends SuClass {
-
-	public SuFunction() {
-		super(false); // don't need vars
-	}
+abstract public class SuFunction extends SuCallable {
 
 	@Override
 	public Object invoke(String method, Object... args) {
@@ -21,11 +15,6 @@ abstract public class SuFunction extends SuClass {
 		// TODO other standard methods on functions e.g. Params
 		else
 			throw unknown_method(method);
-	}
-
-	@Override
-	public SuClass newInstance() {
-		throw new SuException("cannot create instances of functions");
 	}
 
 }
