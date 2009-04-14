@@ -109,7 +109,9 @@ public class CompileGenerator implements Generator<Object> {
 		return new MemDef(name, value);
 	}
 
-	// TODO class
+	// TODO private methods
+	// TODO inheritance
+	// TODO nested classes
 
 	public void startClass() {
 		startClass("suneido/language/SuClass");
@@ -384,7 +386,7 @@ public class CompileGenerator implements Generator<Object> {
 		iconst(f.mv, f.iFspecs);
 		f.mv.visitInsn(AALOAD);
 		f.mv.visitVarInsn(ALOAD, ARGS);
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/" + name,
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Args",
 				"massage",
 				"(Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)[Ljava/lang/Object;");
 		f.mv.visitVarInsn(ASTORE, ARGS);
@@ -792,8 +794,8 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 	private void specialArg(String which) {
-		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/SuClass$SpecialArg",
-				which, "Lsuneido/language/SuClass$SpecialArg;");
+		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/Args$Special", which,
+				"Lsuneido/language/Args$Special;");
 	}
 
 	public Object and(Object prev) {

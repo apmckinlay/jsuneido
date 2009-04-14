@@ -19,7 +19,7 @@ public class SuFunctionTest {
 
 		@Override
 		public Object invoke(String method, Object... args) {
-			massage(params, args);
+			Args.massage(params, args);
 			return args[0];
 		}
 	}

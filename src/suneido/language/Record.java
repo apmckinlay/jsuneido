@@ -18,7 +18,7 @@ public class Record extends SuFunction {
 	}
 
 	private Object invoke(Object... args) {
-		return collectArgs(args, new SuRecord());
+		return Args.collectArgs(args, new SuRecord());
 	}
 
 }
