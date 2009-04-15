@@ -447,7 +447,7 @@ public class Ops {
 
 	public static Object invoke(Object x, String method, Object... args) {
 		if (x instanceof SuValue)
-			return ((SuValue) x).invoke(method, args);
+			return ((SuValue) x).invoke(x, method, args);
 		Class<?> xType = x.getClass();
 		if (xType == String.class)
 			return StringMethods.invoke((String) x, method, args);

@@ -145,7 +145,7 @@ public class ExecuteTest {
 	private static Object eval(String s) {
 		Object f = compile("function () { " + s + " }");
 		Object[] locals = new Object[0];
-		return Ops.invoke(f, "call", locals);
+		return Ops.call(f, locals);
 	}
 
 	private static Object compile(String s) {

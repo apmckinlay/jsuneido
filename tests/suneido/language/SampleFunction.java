@@ -17,14 +17,6 @@ public class SampleFunction extends SuFunction {
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
-		if (method == "call")
-			return call(args);
-		else
-			return super.invoke(method, args);
-	}
-
-	@Override
 	public Object call(Object... args) {
 		try {
 			args[0] = args[1];
@@ -34,7 +26,4 @@ public class SampleFunction extends SuFunction {
 		return null;
 	}
 
-	private Integer test() {
-		return 1234567;
-	}
 }

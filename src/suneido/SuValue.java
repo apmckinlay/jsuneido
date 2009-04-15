@@ -32,7 +32,11 @@ public abstract class SuValue implements Packable {
 	public Object call(Object... args) {
 		throw new SuException("can't call " + typeName());
 	}
-	public abstract Object invoke(String method, Object... args);
+
+	public Object invoke(String method, Object... args) {
+		return invoke(this, method, args);
+	}
+	public abstract Object invoke(Object self, String method, Object... args);
 
 	public SuException unknown_method(String method) {
 		return new SuException("unknown method " + typeName() + "." + method);

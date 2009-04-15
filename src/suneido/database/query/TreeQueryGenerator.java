@@ -373,7 +373,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return in;
 	}
 
-	public Object startFunction(FuncOrBlock which, Object name) {
+	public Object startMethod(FuncOrBlock which, Object name) {
 		return null;
 	}
 

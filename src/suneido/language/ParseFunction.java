@@ -26,7 +26,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword(null);
 	}
 	protected T functionWithoutKeyword(T name) {
-		generator.startFunction(FuncOrBlock.FUNC, name);
+		generator.startMethod(FuncOrBlock.FUNC, name);
 		T params = parameters();
 		T body = compound(null);
 		return generator.function(params, body);

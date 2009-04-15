@@ -10,7 +10,7 @@ public class SuFunctionTest {
 	public void test() {
 		Object f = new MyFunc();
 		String s = "fred";
-		assertEquals(s, Ops.invoke(f, "call", s));
+		assertEquals(s, Ops.call(f, s));
 	}
 
 	static class MyFunc extends SampleFunction {
@@ -18,7 +18,7 @@ public class SuFunctionTest {
 				new FunctionSpec("", new String[] { "value" }, 1);
 
 		@Override
-		public Object invoke(String method, Object... args) {
+		public Object call(Object... args) {
 			Args.massage(params, args);
 			return args[0];
 		}

@@ -16,15 +16,21 @@ public class SampleClass extends SuClass {
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
+	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call")
 			return call(Args.massage(params[0], args));
+		else if (method == "MyMethod")
+			return MyMethod(self, args);
 		else
-			return super.invoke(method, args);
+			return super.invoke(self, method, args);
 	}
 
 	@Override
 	public Object call(Object... args) {
+		return null;
+	}
+
+	private static Object MyMethod(Object self, Object... args) {
 		return null;
 	}
 
