@@ -24,9 +24,9 @@ public class SuClassTest {
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
 		SuValue instance = new SuInstance(dc);
-		assertEquals("", instance.invoke("Substr"));
+		assertEquals("", instance.invoke(instance, "Substr"));
 		assertArrayEquals(new Object[] { "Substr" }, DefaultClass.args);
-		instance.invoke("Substr", 1);
+		instance.invoke(instance, "Substr", 1);
 		assertArrayEquals(new Object[] { "Substr", 1 }, DefaultClass.args);
 	}
 	static class DefaultClass extends SampleClass {
@@ -48,11 +48,11 @@ public class SuClassTest {
 	}
 	static class SubClass extends DefaultClass {
 		@Override
-		public Object invoke(String method, Object... args) {
+		public Object invoke(Object self, String method, Object... args) {
 			if (method == "Size")
 				return 99;
 			else
-				return super.invoke(method, args);
+				return super.invoke(self, method, args);
 		}
 	}
 
@@ -60,7 +60,7 @@ public class SuClassTest {
 	public void test_constructor() {
 		SuClass wc = new WrapClass();
 		Object s = "hello";
-		SuInstance instance = (SuInstance) wc.invoke("<new>", s);
+		SuInstance instance = (SuInstance) wc.invoke(wc, "<new>", s);
 		assertEquals(s, instance.get("value"));
 	}
 
@@ -72,13 +72,13 @@ public class SuClassTest {
 				new String[] { "value" }, 1);
 
 		@Override
-		public Object invoke(String method, Object... args) {
+		public Object invoke(Object self, String method, Object... args) {
 			if (method == "<new>") {
 				SuInstance wc = new SuInstance(this);
 				wc.put("value", args[0]);
 				return wc;
 			} else
-				return super.invoke(method, args);
+				return super.invoke(self, method, args);
 		}
 	}
 }

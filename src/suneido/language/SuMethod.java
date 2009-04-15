@@ -22,7 +22,7 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
+	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call")
 			return Ops.invoke(instance, this.method, args);
 		else

@@ -14,7 +14,7 @@ import suneido.language.Pack;
  * Suneido's single container type.
  * Combines an extendable array plus a hash map.
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class SuContainer extends SuValue
@@ -255,7 +255,8 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
+	public Object invoke(Object self, String method, Object... args) {
+		assert this == self;
 		if (method == "Size")
 			return size();
 		// TODO other methods

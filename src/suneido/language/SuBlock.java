@@ -14,7 +14,7 @@ public class SuBlock  extends SuValue {
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
+	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call") {
 			return call(args);
 		} else

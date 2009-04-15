@@ -10,14 +10,15 @@ public class Record extends SuFunction {
 	}
 
 	@Override
-	public Object invoke(String method, Object... args) {
+	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call")
-			return invoke(args);
+			return call(args);
 		else
-			return super.invoke(method, args);
+			return super.invoke(self, method, args);
 	}
 
-	private Object invoke(Object... args) {
+	@Override
+	public Object call(Object... args) {
 		return Args.collectArgs(args, new SuRecord());
 	}
 
