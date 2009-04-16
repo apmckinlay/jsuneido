@@ -160,8 +160,8 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 
-	public String member(String term, String identifier) {
-		return term + " ." + identifier;
+	public String member(String term, String name, boolean thisRef) {
+		return term + " ." + name;
 	}
 
 	public String subscript(String term, String expression) {

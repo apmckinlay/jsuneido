@@ -268,7 +268,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object member(Object term, String identifier) {
+	public Object member(Object term, String name, boolean thisRef) {
 		return null;
 	}
 

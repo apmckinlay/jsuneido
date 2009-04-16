@@ -98,7 +98,7 @@ public interface Generator<T> {
 
 	T postIncDec(T term, Token incdec, Value<T> value);
 
-	T member(T term, String identifier);
+	T member(T term, String name, boolean thisRef);
 
 	T subscript(T term, T expression);
 

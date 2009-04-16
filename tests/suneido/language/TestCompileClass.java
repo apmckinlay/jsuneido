@@ -6,7 +6,7 @@ import java.io.StringWriter;
 public class TestCompileClass {
 
 	public static void main(String[] args) {
-		Object c = compile("Test", "class { f() { 123 } G() { 456 } }");
+		Object c = compile("Test", "class { f() { 123 } G() { .f() } }");
 		Object result = Ops.invoke(c, "G");
 		System.out.println(result);
 	}

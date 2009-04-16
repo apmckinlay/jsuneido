@@ -72,7 +72,9 @@ public class CompileTest {
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
 		test(".x",
- 				"this, 'x', getMem, ARETURN");
+			"this, 'Test_x', getMem, ARETURN");
+		test(".f()",
+			"this, 'Test_f', invokeN, ARETURN");
 		test("a.x = b;;",
  				"a, 'x', b, putMem");
 		test("a.x = b",
