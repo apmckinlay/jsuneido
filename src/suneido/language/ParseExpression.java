@@ -185,6 +185,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		Type type = null;
 		String id;
 		T expr;
+		boolean thisRef;
 
 		void identifier(String id) {
 			type = Type.IDENTIFIER;
@@ -192,11 +193,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			expr = null;
 		}
 		void member(String id) {
+			member(id, false);
+		}
+
+		void member(String id, boolean thisRef) {
 			type = Type.MEMBER;
 			this.id = id;
 			expr = null;
+			this.thisRef = thisRef;
 		}
-
 		void subscript(T expr) {
 			type = Type.SUBSCRIPT;
 			id = null;
@@ -210,10 +215,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		boolean isSet() {
 			return type != null;
 		}
-		boolean identifier() {
+		boolean isIdentifier() {
 			return type == Type.IDENTIFIER;
 		}
-		boolean member() {
+		boolean isMember() {
 			return type == Type.MEMBER;
 		}
 	}
@@ -231,6 +236,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			incdec = token;
 			match();
 		}
+		boolean thisRef = false;
 		switch (token) {
 		case NUMBER:
 		case STRING:
@@ -243,6 +249,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case DOT:
 			value.identifier("this");
 			// leave token == DOT
+			thisRef = true;
 			break;
 		case L_PAREN:
 			match(L_PAREN);
@@ -292,30 +299,31 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				term = push(term, value);
 				value.clear();
 			}
-
 			if (newTerm && token == L_PAREN) {
 				term = push(term, value);
 				return term;
 			}
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
-				value.member(lexer.getValue());
+				String id = lexer.getValue();
 				match(IDENTIFIER);
+				value.member(id, thisRef);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
 				value.subscript(expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				if (value.identifier()) {
+				if (value.isIdentifier()) {
 					term = push(term, value);
 					value.clear();
-				} else if (value.member()) {
+				} else if (value.isMember()) {
 					generator.preFunctionCall(value);
 				}
 				term = generator.functionCall(term, value, arguments());
 				value.clear();
 			}
+			thisRef = false;
 		}
 
 		if (incdec != null) {
@@ -342,7 +350,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case IDENTIFIER:
 			return generator.identifier(value.id);
 		case MEMBER:
-			return generator.member(term, value.id);
+			return generator.member(term, value.id, value.thisRef);
 		case SUBSCRIPT:
 			return generator.subscript(term, value.expr);
 		}

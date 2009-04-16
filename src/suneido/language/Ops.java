@@ -436,7 +436,9 @@ public class Ops {
 	}
 
 	public static String typeName(Object x) {
-		return x.getClass().getName().replaceFirst("^(suneido.(language.)?)?", "");
+		return x == null ? "uninitialized"
+				: x.getClass().getName().replaceFirst(
+						"^(suneido.(language.)?)?", "");
 	}
 
 	public static Object call(Object x, Object... args) {
