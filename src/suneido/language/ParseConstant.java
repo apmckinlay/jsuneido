@@ -68,13 +68,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		generator.startClass();
 		String base = classBase();
 		T members = memberList(L_CURLY, base);
-		return generator.classConstant(base, members);
+		return generator.classConstant(base == "" ? null : base, members);
 	}
 	private String classBase() {
 		if (lexer.getKeyword() == CLASS) {
 			matchSkipNewlines(CLASS);
 			if (!matchIf(COLON))
-				return "Object";
+				return "";
 		}
 		String base = lexer.getValue();
 		matchSkipNewlines(IDENTIFIER);

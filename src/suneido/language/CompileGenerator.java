@@ -123,14 +123,14 @@ public class CompileGenerator implements Generator<Object> {
 		return new MemDef(name, value);
 	}
 
-	// TODO private methods - add class name to method name
 	// TODO inheritance
+	// TODO new must call super.new, implicitly or explicitly
 	// TODO nested classes
-	// TODO call private methods directly, bypass dispatch
 	// TODO call class / call instance
+	// TODO getters & setters
 
 	public void startClass() {
-		startClass("suneido/language/SuClass");
+		startClass(null);
 	}
 
 	private void startClass(String base) {
@@ -143,24 +143,20 @@ public class CompileGenerator implements Generator<Object> {
 			cv = new TraceClassVisitor(cw, pw);
 
 		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER,
-				"suneido/language/" + globalName,
-				null, base, null);
+				"suneido/language/" + globalName, null,
+				"suneido/language/SuClass", null);
 
 		cv.visitSource("", null);
 
-		gen_params();
-		gen_constants();
-		gen_init(base);
-		gen_setup();
-		gen_toString(globalName);
+		gen_init();
 	}
 
 	public Object classConstant(String base, Object members) {
-		return finishClass("suneido/language/SuClass");
+		return finishClass(base);
 	}
 
 	private Object finishClass(String base) {
-		genDispatcher(base, fspecs);
+		genInvoke(fspecs);
 
 		cv.visitEnd();
 
@@ -170,16 +166,19 @@ public class CompileGenerator implements Generator<Object> {
 		Class<?> c =
 				loader.defineClass("suneido.language." + globalName,
 						cw.toByteArray());
-		SuCallable sc;
+		SuCallable callable;
 		try {
-			sc = (SuCallable) c.newInstance();
+			callable = (SuCallable) c.newInstance();
 		} catch (InstantiationException e) {
 			throw new SuException("newInstance error: " + e);
 		} catch (IllegalAccessException e) {
 			throw new SuException("newInstance error: " + e);
 		}
-		sc.setup(fspecs.toArray(arrayFunctionSpec), linkConstants(sc));
-		return sc;
+		callable.params = fspecs.toArray(arrayFunctionSpec);
+		callable.constants = linkConstants(callable);
+		if (callable instanceof SuClass)
+			((SuClass) callable).baseGlobal = base;
+		return callable;
 	}
 
 	private void dump(byte[] buf) {
@@ -206,7 +205,7 @@ public class CompileGenerator implements Generator<Object> {
 		return constants.toArray(arrayConstants);
 	}
 
-	private void genDispatcher(String base, List<FunctionSpec> functions) {
+	private void genInvoke(List<FunctionSpec> functions) {
 		final int SELF = 1;
 		final int METHOD = 2;
 		final int ARGS = 3;
@@ -242,7 +241,7 @@ public class CompileGenerator implements Generator<Object> {
 		mv.visitVarInsn(ALOAD, SELF);
 		mv.visitVarInsn(ALOAD, METHOD);
 		mv.visitVarInsn(ALOAD, ARGS);
-		mv.visitMethodInsn(INVOKESPECIAL, base, "invoke",
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuClass", "invoke",
 				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 		mv.visitInsn(ARETURN);
 
@@ -316,11 +315,13 @@ public class CompileGenerator implements Generator<Object> {
 
 	private void startTopFunction(String name) {
 		if (cv == null) {
-			startClass("suneido/language/SuFunction");
+			startClass(null);
 			isFunction = true;
 		}
 		if (name == null)
 			name = "call";
+		else if (name.equals("New"))
+			name = "_init";
 		else
 			name = privatize(name);
 		f = new Function(name);
@@ -330,18 +331,6 @@ public class CompileGenerator implements Generator<Object> {
 		if (Character.isLowerCase(name.charAt(0)))
 			name = globalName + "_" + name;
 		return name;
-	}
-
-	private void gen_constants() {
-		FieldVisitor fv = cw.visitField(ACC_PRIVATE + ACC_STATIC, "constants",
-				"[[Ljava/lang/Object;", null, null);
-		fv.visitEnd();
-	}
-
-	private void gen_params() {
-		FieldVisitor fv = cw.visitField(ACC_PRIVATE + ACC_STATIC, "params",
-				"[Lsuneido/language/FunctionSpec;", null, null);
-		fv.visitEnd();
 	}
 
 	public Object parameters(Object list, String name, Object defaultValue) {
@@ -357,63 +346,21 @@ public class CompileGenerator implements Generator<Object> {
 		return null;
 	}
 
-	private void gen_init(String base) {
+	private void gen_init() {
 		MethodVisitor mv =
 				cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
 		Label l0 = new Label();
 		mv.visitLabel(l0);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, base, "<init>", "()V");
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuClass", "<init>",
+				"()V");
 		mv.visitInsn(RETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
 		mv.visitLocalVariable("this", "Lsuneido/language/" + globalName + ";",
 				null, l0, l1, 0);
 		mv.visitMaxs(1, 1);
-		mv.visitEnd();
-	}
-
-	private void gen_toString(String name) {
-		MethodVisitor mv =
-				cv.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;",
-				null, null);
-		mv.visitCode();
-		Label l0 = new Label();
-		mv.visitLabel(l0);
-		mv.visitLdcInsn(name);
-		mv.visitInsn(ARETURN);
-		Label l1 = new Label();
-		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", "Lsuneido/language/" + name + ";",
-				null, l0, l1, 0);
-		mv.visitMaxs(1, 1);
-		mv.visitEnd();
-	}
-
-	private void gen_setup() {
-		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "setup",
-				"([Lsuneido/language/FunctionSpec;[[Ljava/lang/Object;)V",
-				null, null);
-		mv.visitCode();
-		Label start = new Label();
-		mv.visitLabel(start);
-		mv.visitVarInsn(ALOAD, 1);
-		mv.visitFieldInsn(PUTSTATIC, "suneido/language/" + globalName,
-				"params", "[Lsuneido/language/FunctionSpec;");
-		mv.visitVarInsn(ALOAD, 2);
-		mv.visitFieldInsn(PUTSTATIC, "suneido/language/" + globalName,
-				"constants",
-				"[[Ljava/lang/Object;");
-		mv.visitInsn(RETURN);
-		Label end = new Label();
-		mv.visitLabel(end);
-		mv.visitLocalVariable("this", "Lsuneido/language/" + globalName + ";",
-				null, start, end, 0);
-		mv.visitLocalVariable("p", "[Lsuneido/language/FunctionSpec;", null,
-				start, end, 1);
-		mv.visitLocalVariable("c", "[[Ljava/lang/Object;", null, start, end, 2);
-		mv.visitMaxs(1, 3);
 		mv.visitEnd();
 	}
 
@@ -421,14 +368,13 @@ public class CompileGenerator implements Generator<Object> {
 	// so "call" and private methods can be called directly
 	// and blocks can do their own handling
 	private void massage() {
-		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/" + globalName,
-				"params",
-				"[Lsuneido/language/FunctionSpec;");
+		f.mv.visitVarInsn(ALOAD, THIS);
+		f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + globalName,
+				"params", "[Lsuneido/language/FunctionSpec;");
 		iconst(f.mv, f.iFspecs);
 		f.mv.visitInsn(AALOAD);
 		f.mv.visitVarInsn(ALOAD, f.ARGS);
-		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Args",
-				"massage",
+		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Args", "massage",
 				"(Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)[Ljava/lang/Object;");
 		f.mv.visitVarInsn(ASTORE, f.ARGS);
 	}
@@ -438,9 +384,9 @@ public class CompileGenerator implements Generator<Object> {
 			constants = new ArrayList<Object[]>();
 		f.iConstants = constants.size();
 		constants.add(null); // to increase size, set correctly in function
-		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/" + globalName,
-				"constants",
-				"[[Ljava/lang/Object;");
+		f.mv.visitVarInsn(ALOAD, THIS);
+		f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + globalName,
+				"constants", "[[Ljava/lang/Object;");
 		iconst(f.mv, f.iConstants);
 		f.mv.visitInsn(AALOAD);
 		f.mv.visitVarInsn(ASTORE, f.CONSTANTS);
@@ -497,7 +443,7 @@ public class CompileGenerator implements Generator<Object> {
 		}
 		f = null;
 		if (isFunction)
-			return finishClass("suneido/language/SuFunction");
+			return finishClass(null);
 		else // method
 			return null;
 	}
@@ -785,6 +731,7 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
+	// TODO call private methods directly, bypassing invoke
 	public void preFunctionCall(Value<Object> value) {
 		if (value.isMember())
 			f.mv.visitLdcInsn(value.thisRef ? privatize(value.id) : value.id);
@@ -898,7 +845,7 @@ public class CompileGenerator implements Generator<Object> {
 		throw new SuException("'in' is only implemented for queries");
 	}
 
-	// COULD bypass dispatch, like call does
+	// COULD bypass invoke (like call does)
 	public void newCall() {
 		f.mv.visitLdcInsn("<new>");
 	}
@@ -998,9 +945,9 @@ public class CompileGenerator implements Generator<Object> {
 		f.mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
 		f.mv.visitInsn(DUP);
 		f.mv.visitVarInsn(ALOAD, THIS);
-		f.mv.visitFieldInsn(GETSTATIC, "suneido/language/" + globalName,
-				"params",
-				"[Lsuneido/language/FunctionSpec;");
+		f.mv.visitInsn(DUP);
+		f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + globalName,
+				"params", "[Lsuneido/language/FunctionSpec;");
 		iconst(f.mv, iFspecs);
 		f.mv.visitInsn(AALOAD);
 		f.mv.visitVarInsn(ALOAD, f.ARGS);

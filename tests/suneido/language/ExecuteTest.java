@@ -39,6 +39,12 @@ public class ExecuteTest {
 		test("f = function (@x) { x }; f(1, a: 2)", "#(1, a: 2)");
 		test("f = function (@x) { x }; f(a: 1, b: 2)", "#(b: 2, a: 1)");
 	}
+	@Test public void test_new() {
+		test("new SampleClass", "SampleClass()");
+		test("SampleClass()", "SampleClass()");
+		test("x = SampleClass(123, 456); x.args", "#(123, 456)");
+		test("x = new SampleClass(123, 456); x.args", "#(123, 456)");
+	}
 	@Test public void test_and() {
 		test("true && false", "false");
 		test("false && true", "false");
@@ -129,7 +135,7 @@ public class ExecuteTest {
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
 	}
 
-	private static void test(String expr, String result) {
+	public static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));
 	}
 
@@ -142,7 +148,7 @@ public class ExecuteTest {
 		}
 	}
 
-	private static Object eval(String s) {
+	public static Object eval(String s) {
 		Object f = compile("function () { " + s + " }");
 		Object[] locals = new Object[0];
 		return Ops.call(f, locals);

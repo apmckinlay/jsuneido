@@ -1,19 +1,9 @@
 package suneido.language;
 
+import suneido.SuContainer;
+
+
 public class SampleClass extends SuClass {
-	private static FunctionSpec[] params;
-	private static Object[][] constants;
-
-	@Override
-	public void setup(FunctionSpec[] p, Object[][] c) {
-		params = p;
-		constants = c;
-	}
-
-	@Override
-	public String toString() {
-		return "SampleClass";
-	}
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
@@ -21,16 +11,24 @@ public class SampleClass extends SuClass {
 			return call(Args.massage(params[0], args));
 		else if (method == "MyMethod")
 			return MyMethod(self, args);
+		else if (method == "_init")
+			return init(self, args);
 		else
 			return super.invoke(self, method, args);
 	}
 
-	@Override
-	public Object call(Object... args) {
+	private Object MyMethod(Object self, Object[] args) {
+		args = Args.massage(params[0], args);
+		Object[] consts = constants[0];
 		return null;
 	}
 
-	private static Object MyMethod(Object self, Object... args) {
+	private static Object init(Object self, Object[] args) {
+		// no need to call super.init since we know it doesn't do anything
+		SuContainer x = new SuContainer();
+		for (Object a : args)
+			x.append(a);
+		((SuInstance) self).put("args", x);
 		return null;
 	}
 

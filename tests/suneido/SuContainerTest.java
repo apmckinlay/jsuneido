@@ -96,7 +96,6 @@ public class SuContainerTest {
 		assert c.size() == 2;
 		assertTrue(c.erase(0));
 		assert c.size() == 1;
-System.out.println(c);
 		assertTrue(c.erase("a"));
 		assert c.size() == 0;
 	}
