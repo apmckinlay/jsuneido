@@ -122,15 +122,17 @@ public interface Generator<T> {
 
 	T parameters(T list, String name, T defaultValue);
 
-	T memberList(ObjectOrRecord which, T list, T member);
+	T memberList(MType which, T list, T member);
 
 	void startClass();
 	T classConstant(String base, T members);
 
 	T memberDefinition(T name, T value);
 
-	enum ObjectOrRecord { OBJECT, RECORD };
-	T object(ObjectOrRecord which, T members);
+	enum MType {
+		OBJECT, RECORD, CLASS
+	};
+	T object(MType which, T members);
 
 	T constant(T value);
 

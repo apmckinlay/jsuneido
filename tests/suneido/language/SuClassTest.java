@@ -2,6 +2,8 @@ package suneido.language;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
+
 import org.junit.Test;
 
 import suneido.SuException;
@@ -70,6 +72,7 @@ public class SuClassTest {
 
 	static class WrapClass extends SampleClass {
 		{
+			vars = new HashMap<String, Object>();
 			vars.put("Name", "Wrap");
 		}
 		static final FunctionSpec params = new FunctionSpec("",

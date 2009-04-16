@@ -284,7 +284,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public Object memberDefinition(Object name, Object value) {
 		return new MemDef(name, value);
 	}
-	public Object memberList(ObjectOrRecord which, Object members, Object member) {
+	public Object memberList(MType which, Object members, Object member) {
 		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
 		MemDef m = (MemDef) member;
 		rec.put(m.name, m.value);
@@ -299,7 +299,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return Ops.stringToNumber(value);
 	}
 
-	public Object object(ObjectOrRecord which, Object members) {
+	public Object object(MType which, Object members) {
 		return members;
 	}
 

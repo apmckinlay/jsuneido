@@ -2,7 +2,8 @@ package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
 import static suneido.language.CompileGenerator.Stack.*;
-import static suneido.language.Generator.ObjectOrRecord.OBJECT;
+import static suneido.language.Generator.MType.CLASS;
+import static suneido.language.Generator.MType.OBJECT;
 import static suneido.language.ParseExpression.Value.Type.*;
 
 import java.io.*;
@@ -103,30 +104,38 @@ public class CompileGenerator implements Generator<Object> {
 		return Ops.stringToDate(value);
 	}
 
-	public Object object(ObjectOrRecord which, Object members) {
+	public Object object(MType which, Object members) {
 		return members;
 	}
 
-	public Object memberList(ObjectOrRecord which, Object list, Object member) {
-		SuContainer c = (list == null
-				? which == OBJECT ? new SuContainer() : new SuRecord()
-				: (SuContainer) list);
+	@SuppressWarnings("unchecked")
+	public Object memberList(MType which, Object list, Object member) {
 		MemDef m = (MemDef) member;
-		if (m.name == null)
-			c.append(m.value);
-		else
-			c.put(m.name, m.value);
-		return c;
+		if (which == CLASS) {
+			Map<String, Object> vars = (list == null
+					? new HashMap<String, Object>()
+					: (Map<String,Object>) list);
+			vars.put((String) m.name, m.value);
+			return vars;
+		} else {
+			SuContainer c = (list == null
+					? which == OBJECT ? new SuContainer() : new SuRecord()
+					: (SuContainer) list);
+			if (m.name == null)
+				c.append(m.value);
+			else
+				c.put(m.name, m.value);
+			return c;
+		}
 	}
 
 	public Object memberDefinition(Object name, Object value) {
 		return new MemDef(name, value);
 	}
 
-	// TODO inheritance
+	// TODO super.meth()
 	// TODO new must call super.new, implicitly or explicitly
 	// TODO nested classes
-	// TODO call class / call instance
 	// TODO getters & setters
 
 	public void startClass() {
@@ -152,10 +161,10 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object classConstant(String base, Object members) {
-		return finishClass(base);
+		return finishClass(base, members);
 	}
 
-	private Object finishClass(String base) {
+	private Object finishClass(String base, Object members) {
 		genInvoke(fspecs);
 
 		cv.visitEnd();
@@ -176,8 +185,11 @@ public class CompileGenerator implements Generator<Object> {
 		}
 		callable.params = fspecs.toArray(arrayFunctionSpec);
 		callable.constants = linkConstants(callable);
-		if (callable instanceof SuClass)
+		if (callable instanceof SuClass) {
 			((SuClass) callable).baseGlobal = base;
+			if (members != null)
+				((SuClass) callable).vars = (Map<String, Object>) members;
+		}
 		return callable;
 	}
 
@@ -443,7 +455,7 @@ public class CompileGenerator implements Generator<Object> {
 		}
 		f = null;
 		if (isFunction)
-			return finishClass(null);
+			return finishClass(null, null);
 		else // method
 			return null;
 	}
@@ -595,7 +607,10 @@ public class CompileGenerator implements Generator<Object> {
 			localRef(value.id);
 			break;
 		case MEMBER:
-			f.mv.visitLdcInsn(value.id);
+			String id = value.id;
+			if (value.thisRef)
+				id = privatize(id);
+			f.mv.visitLdcInsn(id);
 			break;
 		case SUBSCRIPT:
 			break;

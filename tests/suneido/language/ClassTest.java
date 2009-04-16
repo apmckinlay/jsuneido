@@ -11,6 +11,9 @@ public class ClassTest {
 		defineClass("A", "class { }");
 		test("new A", "A()");
 
+		defineClass("A", "class { F() { 123 } }");
+		test("A().F()", "123");
+
 		defineClass("A", "class { F() { .g() } g() { 123 } }");
 		test("A().F()", "123");
 
@@ -23,6 +26,31 @@ public class ClassTest {
 		defineClass("A", "class { F(n) { n * 2 } }");
 		defineClass("B", "A { }");
 		test("B().F(123)", "246");
+
+		defineClass("A", "class { G() { .x = 456 } }");
+		defineClass("B", "A { F() { .x = 123; .G(); .x } }");
+		test("B().F()", "123");
+
+		defineClass("A", "class { G() { .X = 123 } }");
+		defineClass("B", "A { F() { .G(); .X } }");
+		test("B().F()", "123");
+
+		defineClass("A", "class { Call() { 123 } CallClass() { 456 } }");
+		test("A()", "456");
+		test("a = new A; a()", "123");
+
+		defineClass("A", "class { N: 123 F() { .N } }");
+		test("A.N", "123");
+		test("A.F()", "123");
+		test("A().N", "123");
+		test("A().F()", "123");
+		defineClass("B", "A { G() { .N } }");
+		test("B.N", "123");
+		test("B.F()", "123");
+		test("B.G()", "123");
+		test("B().N", "123");
+		test("B().F()", "123");
+		test("B().G()", "123");
 
 	}
 

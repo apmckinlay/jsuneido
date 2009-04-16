@@ -15,6 +15,12 @@ public class SuInstance extends SuValue {
 	}
 
 	@Override
+	public Object call(Object... args) {
+		return myclass.invoke(this, "Call", args);
+		// MAYBE myclass.Call()
+	}
+
+	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		return myclass.invoke(self, method, args);
 	}
@@ -30,10 +36,14 @@ public class SuInstance extends SuValue {
 		if (!(member instanceof String))
 			throw new SuException("non-string member name: "
 					+ Ops.typeName(member));
-		Object x = ivars.get(member);
-		if (x == null)
-			throw new SuException("uninitialized member " + member);
-		return x;
+		Object value = ivars.get(member);
+		if (value == null) {
+			value = myclass.get(member);
+			if (value == null)
+				throw new SuException("uninitialized member " + member);
+		}
+System.out.println("get " + member + " => " + value);
+		return value;
 	}
 
 	@Override
@@ -41,6 +51,7 @@ public class SuInstance extends SuValue {
 		if (!(member instanceof String))
 			throw new SuException("non-string member name: "
 					+ Ops.typeName(member));
+System.out.println("put " + value + " => " + member);
 		ivars.put((String) member, value);
 	}
 
