@@ -1,6 +1,6 @@
 package suneido.language;
 
-import static suneido.language.Generator.ObjectOrRecord.OBJECT;
+import static suneido.language.Generator.MType.OBJECT;
 import static suneido.language.Token.*;
 import suneido.SuValue;
 import suneido.language.ParseExpression.Value;
@@ -210,11 +210,11 @@ public class StringGenerator implements Generator<String> {
 		return str("", name, ": ") + value;
 	}
 
-	public String memberList(ObjectOrRecord which, String list, String member) {
+	public String memberList(MType which, String list, String member) {
 		return str("", list, ", ") + member;
 	}
 
-	public String object(ObjectOrRecord which, String members) {
+	public String object(MType which, String members) {
 		return "#" + (which == OBJECT ? "(" : "{") + str(members)
 				+ (which == OBJECT ? ")" : "}");
 	}

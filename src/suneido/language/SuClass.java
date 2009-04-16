@@ -1,6 +1,9 @@
 package suneido.language;
 
-import suneido.*;
+import java.util.Map;
+
+import suneido.SuException;
+import suneido.SuValue;
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -12,18 +15,23 @@ import suneido.*;
  */
 public abstract class SuClass extends SuCallable {
 	protected String baseGlobal = null;
-	protected final SuContainer vars;
+	protected Map<String, Object> vars;
 
-	public SuClass() {
-		vars = new SuContainer();
+	@Override
+	public Object get(Object member) {
+		Object value = vars.get(member);
+		if (value == null && baseGlobal != null) {
+			Object base = Globals.get(baseGlobal);
+			if (!(base instanceof SuClass))
+				throw new SuException("base must be class");
+			return ((SuClass) base).get(member);
+		}
+		return value;
 	}
-
-	// classes store "static" data members into vars in initialization block
 
 	@Override
 	public Object call(Object... args) {
-		// default for calling class is to create instance
-		return newInstance(args);
+		return invoke(this, "CallClass", args);
 	}
 
 	@Override
@@ -31,7 +39,7 @@ public abstract class SuClass extends SuCallable {
 		if (method == "Type")
 			return "Class";
 		// TODO other standard methods on classes
-		else if (method == "<new>")
+		else if (method == "<new>" || method == "CallClass")
 			return newInstance(args);
 		else if (method == "_init")
 			return init(args);

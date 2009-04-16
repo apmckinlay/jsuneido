@@ -1,9 +1,7 @@
 package suneido.language;
 
-import static suneido.language.Generator.ObjectOrRecord.OBJECT;
-import static suneido.language.Generator.ObjectOrRecord.RECORD;
 import static suneido.language.Token.*;
-import suneido.language.Generator.ObjectOrRecord;
+import suneido.language.Generator.MType;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	ParseConstant(Lexer lexer, G generator) {
@@ -82,7 +80,8 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	// base is null for non-class objects
 	private T memberList(Token open, String base) {
-		ObjectOrRecord which = (open == L_PAREN ? OBJECT : RECORD);
+		MType which = (base != null ? MType.CLASS
+				: open == L_PAREN ? MType.OBJECT : MType.RECORD);
 		match(open);
 		T members = null;
 		while (token != open.other) {
@@ -171,7 +170,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return matchReturn(generator.symbol(lexer.getValue()));
 	}
 	public T object() {
-		ObjectOrRecord which = (token == L_PAREN ? OBJECT : RECORD);
+		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
 		T members = memberList(token, null);
 		return generator.object(which, members);
 	}
