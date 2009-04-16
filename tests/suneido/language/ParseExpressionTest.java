@@ -81,7 +81,7 @@ public class ParseExpressionTest {
 			{ "100.Times\n { }", "n(100) .Times({ })" },
         };
         for (String[] c : cases) {
-        	System.out.println(c[0]);
+        	// System.out.println(c[0]);
 			assertEquals(c[1], parse(c[0]));
         }
 	}

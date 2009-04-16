@@ -30,7 +30,10 @@ public class SuInstance extends SuValue {
 		if (!(member instanceof String))
 			throw new SuException("non-string member name: "
 					+ Ops.typeName(member));
-		return ivars.get(member);
+		Object x = ivars.get(member);
+		if (x == null)
+			throw new SuException("uninitialized member " + member);
+		return x;
 	}
 
 	@Override

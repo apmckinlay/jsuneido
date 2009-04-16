@@ -25,7 +25,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public int request(ServerData serverData, DbmsTran tran, String s) {
-System.out.println("\t" + s);
+		//System.out.println("\t" + s);
 		return ((QueryAction) CompileQuery.parse(serverData, s)).execute((Transaction) tran);
 	}
 
@@ -34,7 +34,7 @@ System.out.println("\t" + s);
 	}
 
 	public HeaderAndRow get(ServerData serverData, Dir dir, String query, boolean one, DbmsTran tran) {
-System.out.println("\t" + query);
+		//System.out.println("\t" + query);
 		boolean complete = (tran == null);
 		if (tran == null)
 			tran = theDB.readonlyTran();
@@ -54,12 +54,12 @@ System.out.println("\t" + query);
 	}
 
 	public DbmsQuery query(ServerData serverData, DbmsTran tran, String s) {
-System.out.println("\t" + s);
+		//System.out.println("\t" + s);
 		return CompileQuery.query(serverData, s, (Transaction) tran);
 	}
 
 	public DbmsQuery cursor(ServerData serverData, String s) {
-System.out.println("\t" + s);
+		//System.out.println("\t" + s);
 		return CompileQuery.query(serverData, s, true);
 	}
 

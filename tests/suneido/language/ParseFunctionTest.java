@@ -56,7 +56,7 @@ public class ParseFunctionTest {
 			{ "args.Each\n {|x, y|\n z }", "args .Each({|x, y| z; });" },
 		};
         for (String[] c : cases) {
-            System.out.println(c[0]);
+            // System.out.println(c[0]);
             assertEquals("function () { " + c[1] + " }",
 					parse("function () { " + c[0] + " }"));
         }

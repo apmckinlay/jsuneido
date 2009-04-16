@@ -107,6 +107,12 @@ public class CompileTest {
 				"&a, 0=Test._f1, DUP_X2, AASTORE, ARETURN");
 
 	}
+	@Test public void test_new() {
+		test("new c",
+				"c, '<new>', invokeN, ARETURN");
+		test("new G",
+				"'G', global, '<new>', invokeN, ARETURN");
+	}
 	@Test public void test_if() {
 		test("if (a) b",
 				"a, bool, IFFALSE L1, b, POP, L1");
@@ -166,7 +172,6 @@ public class CompileTest {
 				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
 				+ "L2, L3, try L1 L2 L3, DUP, .locals, vars, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
-		// f = function () { return { return 123 } }; b = f(); b()
 	}
 
 	private void test(String expr, String expected) {
@@ -193,7 +198,7 @@ public class CompileTest {
 	private String simplify(String r) {
 		r = after(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 		r = before(r, "    LOCALVARIABLE");
-		//System.out.println(r);
+		// System.out.println(r);
 		r = r.substring(0, r.length() - 6); // label
 		r = r.trim();
 		r = r.replace("\n", ", ");
@@ -201,9 +206,9 @@ public class CompileTest {
 		r = r.replaceAll(" +", " ");
 		String[][] simplify = {
 			{ "Ljava/lang/", "" },
-			{ "GETSTATIC suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
+			{ "ALOAD 0, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
 			{ "ALOAD 1, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
-			{ "GETSTATIC suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
+			{ "ALOAD 0, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
 			{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 			{ "ALOAD 1, ICONST_1, AALOAD", "b" },
 			{ "ALOAD 1, ICONST_2, AALOAD", "c" },
@@ -249,7 +254,7 @@ public class CompileTest {
 			{ "toBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, this, GETSTATIC suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock, DUP, this, DUP, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
 			{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
 			{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
 			{ "LDC ", "" },

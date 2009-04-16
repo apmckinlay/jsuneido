@@ -3,8 +3,12 @@ package suneido.language;
 import suneido.SuValue;
 
 abstract public class SuCallable extends SuValue {
+	protected FunctionSpec[] params;
+	protected Object[][] constants;
 
-	public void setup(FunctionSpec[] params, Object[][] constants) {
+	@Override
+	public String toString() {
+		return typeName();
 	}
 
 	@Override

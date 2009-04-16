@@ -31,7 +31,7 @@ public class ParseRequestTest {
 				{ "alter a rename b to c, d to e", null },
 		};
 		for (String[] c : cases) {
-			System.out.println(c[0]);
+			// System.out.println(c[0]);
 			assertEquals(c[1] == null ? c[0] : c[1], parse(c[0]));
 		}
 	}

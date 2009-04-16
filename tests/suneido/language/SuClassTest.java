@@ -31,10 +31,14 @@ public class SuClassTest {
 	}
 	static class DefaultClass extends SampleClass {
 		public static Object[] args;
+
 		@Override
-		public Object methodDefault(Object[] args) {
-			DefaultClass.args = args;
-			return "";
+		public Object invoke(Object self, String method, Object... args) {
+			if (method == "Default") {
+				DefaultClass.args = args;
+				return "";
+			}
+			return super.invoke(self, method, args);
 		}
 	}
 
