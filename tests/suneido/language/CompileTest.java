@@ -105,7 +105,8 @@ public class CompileTest {
 				"0=Test._f1, ARETURN");
 		test("a = function () { }",
 				"&a, 0=Test._f1, DUP_X2, AASTORE, ARETURN");
-
+//		test("super.F()", 
+//				"");
 	}
 	@Test public void test_new() {
 		test("new c",

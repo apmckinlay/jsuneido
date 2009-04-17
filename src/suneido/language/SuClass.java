@@ -72,4 +72,19 @@ public abstract class SuClass extends SuCallable {
 		return null;
 	}
 
+	static Object[] noArgs = new Object[0];
+
+	protected Object superInvoke(Object self, String member) {
+		if (baseGlobal == null) {
+			if (member == "_init")
+				return null;
+			else
+				throw new SuException("must have base class to use super");
+		}
+		Object base = Globals.get(baseGlobal);
+		if (!(base instanceof SuClass))
+			throw new SuException("base must be class");
+		return ((SuValue) base).invoke(self, member, noArgs);
+	}
+
 }
