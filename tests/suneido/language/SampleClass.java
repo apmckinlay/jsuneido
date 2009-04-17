@@ -23,8 +23,8 @@ public class SampleClass extends SuClass {
 		return null;
 	}
 
-	private static Object init(Object self, Object[] args) {
-		// no need to call super.init since we know it doesn't do anything
+	private Object init(Object self, Object[] args) {
+		superInvoke(self, "_init");
 		SuContainer x = new SuContainer();
 		for (Object a : args)
 			x.append(a);

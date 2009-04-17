@@ -49,7 +49,7 @@ public class Globals {
 		} catch (IllegalAccessException e) {
 			return null;
 		}
-System.out.println("<loaded: " + name + ">");
+		// System.out.println("<loaded: " + name + ">");
 		put(name, sc);
 		return sc;
 	}

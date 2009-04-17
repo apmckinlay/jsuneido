@@ -82,7 +82,7 @@ public class ParseExpressionTest {
         };
         for (String[] c : cases) {
         	// System.out.println(c[0]);
-			assertEquals(c[1], parse(c[0]));
+			assertEquals(c[0], c[1], parse(c[0]));
         }
 	}
 

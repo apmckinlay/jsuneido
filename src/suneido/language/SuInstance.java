@@ -42,7 +42,6 @@ public class SuInstance extends SuValue {
 			if (value == null)
 				throw new SuException("uninitialized member " + member);
 		}
-System.out.println("get " + member + " => " + value);
 		return value;
 	}
 
@@ -51,7 +50,6 @@ System.out.println("get " + member + " => " + value);
 		if (!(member instanceof String))
 			throw new SuException("non-string member name: "
 					+ Ops.typeName(member));
-System.out.println("put " + value + " => " + member);
 		ivars.put((String) member, value);
 	}
 

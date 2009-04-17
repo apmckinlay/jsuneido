@@ -236,7 +236,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			incdec = token;
 			match();
 		}
-		boolean thisRef = false;
+		String special = null;
 		switch (token) {
 		case NUMBER:
 		case STRING:
@@ -247,9 +247,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			term = block();
 			break;
 		case DOT:
-			value.identifier("this");
+			term = generator.self();
 			// leave token == DOT
-			thisRef = true;
+			special = "this";
 			break;
 		case L_PAREN:
 			match(L_PAREN);
@@ -271,6 +271,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			case CALLBACK:
 				term = generator.constant(constant());
 				break;
+			case SUPER:
+				// TODO super
+				match(SUPER);
+				if (incdec != null || (token != DOT && token != L_PAREN))
+					syntaxError();
+				term = generator.self();
+				special = "super";
+				break;
 			default:
 				if (isGlobal(lexer.getValue()) &&
 						lookAhead(! expectingCompound) == L_CURLY) {
@@ -282,6 +290,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					match();
 				} else if (lexer.getKeyword() == THIS) {
 					term = generator.self();
+					special = "this";
 					match();
 				} else {
 					value.identifier(lexer.getValue());
@@ -307,7 +316,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchSkipNewlines(DOT);
 				String id = lexer.getValue();
 				match(IDENTIFIER);
-				value.member(id, thisRef);
+				value.member(id, special == "this");
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
@@ -323,7 +332,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				term = generator.functionCall(term, value, arguments());
 				value.clear();
 			}
-			thisRef = false;
+			special = null;
 		}
 
 		if (incdec != null) {

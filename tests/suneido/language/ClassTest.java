@@ -52,6 +52,10 @@ public class ClassTest {
 		test("B().F()", "123");
 		test("B().G()", "123");
 
+		defineClass("A", "class { New() { .A = 123 } }");
+		defineClass("B", "A { New() { .B = 456 } }");
+		test("B().A", "123");
+		test("B().B", "456");
 	}
 
 	void defineClass(String name, String definition) {

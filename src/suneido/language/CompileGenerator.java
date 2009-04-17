@@ -883,7 +883,19 @@ public class CompileGenerator implements Generator<Object> {
 	// statements
 
 	public Object statementList(Object list, Object next) {
+		if (list == null && f.name == "_init")
+			superInit();
 		return next;
+	}
+
+	private void superInit() {
+		f.mv.visitVarInsn(ALOAD, 0);
+		f.mv.visitVarInsn(ALOAD, 1);
+		f.mv.visitLdcInsn("_init");
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuClass",
+				"superInvoke",
+				"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
+		f.mv.visitInsn(POP);
 	}
 
 	public Object expressionStatement(Object expression) {
