@@ -134,6 +134,10 @@ public class ExecuteTest {
 				"return 'y'", "'x'");
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
 	}
+	@Test public void test_nested_class() {
+		test("c = class { }; new c", "Test_c0()");
+		test("c = class { F() { 123 } }; c.F()", "123");
+	}
 
 	public static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));
