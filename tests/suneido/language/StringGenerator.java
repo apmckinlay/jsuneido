@@ -168,8 +168,12 @@ public class StringGenerator implements Generator<String> {
 		return term + " " + expression + " []";
 	}
 
-	public String self() {
+	public String selfRef() {
 		return "this";
+	}
+
+	public String superRef() {
+		return "super";
 	}
 
 	public String functionCall(String function, Value<String> value,

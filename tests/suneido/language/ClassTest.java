@@ -54,12 +54,15 @@ public class ClassTest {
 
 		defineClass("A", "class { New() { .A = 123 } }");
 		defineClass("B", "A { New() { .B = 456 } }");
-		test("B().A", "123");
-		test("B().B", "456");
+		test("b = B(); b.A + b.B", "579");
 
 		defineClass("A", "class { New(n) { .A = n } }");
 		defineClass("B", "A { New() { super(123) } }");
 		test("B().A", "123");
+
+		defineClass("A", "class { F() { 123 } }");
+		defineClass("B", "A { F() { 456 } G() { super.F() } }");
+		test("B().G()", "123");
 	}
 
 	void defineClass(String name, String definition) {

@@ -319,7 +319,11 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object self() {
+	public Object selfRef() {
+		return null;
+	}
+
+	public Object superRef() {
 		return null;
 	}
 
