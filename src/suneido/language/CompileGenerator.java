@@ -134,8 +134,6 @@ public class CompileGenerator implements Generator<Object> {
 		return new MemDef(name, value);
 	}
 
-	// TODO super.meth()
-	// TODO new must call super.new, implicitly or explicitly
 	// TODO nested classes
 	// TODO getters & setters
 
@@ -341,6 +339,10 @@ public class CompileGenerator implements Generator<Object> {
 		f = new Function(name);
 	}
 
+	private String privatize(Value<Object> value) {
+		return value.thisOrSuper == ThisOrSuper.THIS ? privatize(value.id)
+				: value.id;
+	}
 	private String privatize(String name) {
 		if (Character.isLowerCase(name.charAt(0)))
 			name = globalName + "_" + name;
@@ -551,7 +553,7 @@ public class CompileGenerator implements Generator<Object> {
 
 	public Object identifier(String name) {
 		if (name.equals("this"))
-			self();
+			selfRef();
 		else if (Character.isLowerCase(name.charAt(0))) {
 			int i = localRef(name);
 			f.mv.visitInsn(AALOAD);
@@ -583,9 +585,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object member(Object term, Value<Object> value) {
-		String name =
-				(value.thisOrSuper == null ? value.id : privatize(value.id));
-		f.mv.visitLdcInsn(name);
+		f.mv.visitLdcInsn(privatize(value));
 		getMember();
 		return VALUE;
 	}
@@ -596,7 +596,13 @@ public class CompileGenerator implements Generator<Object> {
 		return VALUE;
 	}
 
-	public Object self() {
+	public Object selfRef() {
+		f.mv.visitVarInsn(ALOAD, f.SELF);
+		return VALUE;
+	}
+
+	public Object superRef() {
+		f.mv.visitVarInsn(ALOAD, THIS);
 		f.mv.visitVarInsn(ALOAD, f.SELF);
 		return VALUE;
 	}
@@ -609,10 +615,7 @@ public class CompileGenerator implements Generator<Object> {
 			localRef(value.id);
 			break;
 		case MEMBER:
-			String id = value.id;
-			if (value.thisOrSuper != null)
-				id = privatize(id);
-			f.mv.visitLdcInsn(id);
+			f.mv.visitLdcInsn(privatize(value));
 			break;
 		case SUBSCRIPT:
 			break;
@@ -751,11 +754,9 @@ public class CompileGenerator implements Generator<Object> {
 	// TODO call private methods directly, bypassing invoke
 	public void preFunctionCall(Value<Object> value) {
 		if (value.isMember())
-			f.mv.visitLdcInsn(value.thisOrSuper == null ? value.id
-					: privatize(value.id));
-		else if (value.thisOrSuper == ThisOrSuper.SUPER)
-			superInitStart();
+			f.mv.visitLdcInsn(privatize(value));
 	}
+
 	public Object functionCall(Object function, Value<Object> value,
 			Object arguments) {
 		int nargs = arguments == null ? 0 : (Integer) arguments;
@@ -901,13 +902,10 @@ public class CompileGenerator implements Generator<Object> {
 	public void addSuperInit() {
 		if (!f.name.equals("_init"))
 			return;
-		superInitStart();
-		invokeSuperInit(0);
-	}
-	private void superInitStart() {
 		f.mv.visitVarInsn(ALOAD, THIS);
 		f.mv.visitVarInsn(ALOAD, f.SELF);
 		f.mv.visitLdcInsn("_init");
+		invokeSuperInit(0);
 	}
 
 	public Object expressionStatement(Object expression) {

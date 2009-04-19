@@ -102,7 +102,8 @@ public interface Generator<T> {
 
 	T subscript(T term, T expression);
 
-	T self();
+	T selfRef();
+	T superRef();
 
 	void preFunctionCall(Value<T> value);
 	T functionCall(T function, Value<T> value, T arguments);

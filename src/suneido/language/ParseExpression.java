@@ -251,7 +251,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			term = block();
 			break;
 		case DOT:
-			term = generator.self();
+			term = generator.selfRef();
 			// leave token == DOT
 			thisOrSuper = ThisOrSuper.THIS;
 			break;
@@ -281,7 +281,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				match();
 				break;
 			case THIS:
-				term = generator.self();
+				term = generator.selfRef();
 				thisOrSuper = ThisOrSuper.THIS;
 				match();
 				break;
@@ -289,7 +289,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				match(SUPER);
 				if (incdec != null || (token != DOT && token != L_PAREN))
 					syntaxError();
+				term = generator.superRef();
 				thisOrSuper = ThisOrSuper.SUPER;
+				if (token == L_PAREN)
+					value.member("_init", ThisOrSuper.SUPER);
 				break;
 			default:
 				if (isGlobal(lexer.getValue()) &&
@@ -326,12 +329,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				value.subscript(expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				if (thisOrSuper == ThisOrSuper.SUPER)
-					value.thisOrSuper = thisOrSuper;
 				if (value.isIdentifier()) {
 					term = push(term, value);
 					value.clear();
-				} else if (value.isMember() || thisOrSuper == ThisOrSuper.SUPER)
+				} else if (value.isMember())
 					generator.preFunctionCall(value);
 				term = generator.functionCall(term, value, arguments());
 				value.clear();
