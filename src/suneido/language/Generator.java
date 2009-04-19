@@ -98,7 +98,7 @@ public interface Generator<T> {
 
 	T postIncDec(T term, Token incdec, Value<T> value);
 
-	T member(T term, String name, boolean thisRef);
+	T member(T term, Value<T> value);
 
 	T subscript(T term, T expression);
 
@@ -129,11 +129,11 @@ public interface Generator<T> {
 
 	T memberDefinition(T name, T value);
 
-	enum MType {
-		OBJECT, RECORD, CLASS
-	};
+	enum MType { OBJECT, RECORD, CLASS };
 	T object(MType which, T members);
 
 	T constant(T value);
+
+	void addSuperInit();
 
 }

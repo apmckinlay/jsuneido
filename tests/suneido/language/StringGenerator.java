@@ -160,8 +160,8 @@ public class StringGenerator implements Generator<String> {
 		return null;
 	}
 
-	public String member(String term, String name, boolean thisRef) {
-		return term + " ." + name;
+	public String member(String term, Value<String> value) {
+		return term + " ." + value.id;
 	}
 
 	public String subscript(String term, String expression) {
@@ -330,6 +330,9 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void startClass() {
+	}
+
+	public void addSuperInit() {
 	}
 
 }

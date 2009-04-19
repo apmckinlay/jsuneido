@@ -56,6 +56,10 @@ public class ClassTest {
 		defineClass("B", "A { New() { .B = 456 } }");
 		test("B().A", "123");
 		test("B().B", "456");
+
+		defineClass("A", "class { New(n) { .A = n } }");
+		defineClass("B", "A { New() { super(123) } }");
+		test("B().A", "123");
 	}
 
 	void defineClass(String name, String definition) {

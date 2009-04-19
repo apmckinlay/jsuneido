@@ -2,6 +2,7 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 import suneido.language.Generator.FuncOrBlock;
+import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
@@ -182,35 +183,38 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public static class Value<T> {
 		public enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
+		public enum ThisOrSuper { THIS, SUPER };
 		Type type = null;
 		String id;
 		T expr;
-		boolean thisRef;
+		ThisOrSuper thisOrSuper;
 
 		void identifier(String id) {
 			type = Type.IDENTIFIER;
 			this.id = id;
 			expr = null;
+			thisOrSuper = null;
 		}
 		void member(String id) {
-			member(id, false);
+			member(id, null);
 		}
-
-		void member(String id, boolean thisRef) {
+		void member(String id, ThisOrSuper thisOrSuper) {
 			type = Type.MEMBER;
 			this.id = id;
 			expr = null;
-			this.thisRef = thisRef;
+			this.thisOrSuper = thisOrSuper;
 		}
 		void subscript(T expr) {
 			type = Type.SUBSCRIPT;
 			id = null;
 			this.expr = expr;
+			thisOrSuper = null;
 		}
 		void clear() {
 			type = null;
 			id = null;
 			expr = null;
+			thisOrSuper = null;
 		}
 		boolean isSet() {
 			return type != null;
@@ -236,7 +240,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			incdec = token;
 			match();
 		}
-		String special = null;
+		ThisOrSuper thisOrSuper = null;
 		switch (token) {
 		case NUMBER:
 		case STRING:
@@ -249,7 +253,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case DOT:
 			term = generator.self();
 			// leave token == DOT
-			special = "this";
+			thisOrSuper = ThisOrSuper.THIS;
 			break;
 		case L_PAREN:
 			match(L_PAREN);
@@ -271,27 +275,26 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			case CALLBACK:
 				term = generator.constant(constant());
 				break;
+			case TRUE:
+			case FALSE:
+				term = generator.constant(generator.bool(lexer.getKeyword() == TRUE));
+				match();
+				break;
+			case THIS:
+				term = generator.self();
+				thisOrSuper = ThisOrSuper.THIS;
+				match();
+				break;
 			case SUPER:
-				// TODO super
 				match(SUPER);
 				if (incdec != null || (token != DOT && token != L_PAREN))
 					syntaxError();
-				term = generator.self();
-				special = "super";
+				thisOrSuper = ThisOrSuper.SUPER;
 				break;
 			default:
 				if (isGlobal(lexer.getValue()) &&
 						lookAhead(! expectingCompound) == L_CURLY) {
 					term = constant();
-				} else if (lexer.getKeyword() == TRUE
-						|| lexer.getKeyword() == FALSE) {
-					term =
-							generator.constant(generator.bool(lexer.getKeyword() == TRUE));
-					match();
-				} else if (lexer.getKeyword() == THIS) {
-					term = generator.self();
-					special = "this";
-					match();
 				} else {
 					value.identifier(lexer.getValue());
 					match(IDENTIFIER);
@@ -316,23 +319,24 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchSkipNewlines(DOT);
 				String id = lexer.getValue();
 				match(IDENTIFIER);
-				value.member(id, special == "this");
+				value.member(id, thisOrSuper);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
 				value.subscript(expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
+				if (thisOrSuper == ThisOrSuper.SUPER)
+					value.thisOrSuper = thisOrSuper;
 				if (value.isIdentifier()) {
 					term = push(term, value);
 					value.clear();
-				} else if (value.isMember()) {
+				} else if (value.isMember() || thisOrSuper == ThisOrSuper.SUPER)
 					generator.preFunctionCall(value);
-				}
 				term = generator.functionCall(term, value, arguments());
 				value.clear();
 			}
-			special = null;
+			thisOrSuper = null;
 		}
 
 		if (incdec != null) {
@@ -359,7 +363,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case IDENTIFIER:
 			return generator.identifier(value.id);
 		case MEMBER:
-			return generator.member(term, value.id, value.thisRef);
+			return generator.member(term, value);
 		case SUBSCRIPT:
 			return generator.subscript(term, value.expr);
 		}

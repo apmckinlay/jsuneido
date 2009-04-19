@@ -15,6 +15,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import suneido.*;
 import suneido.database.query.TreeQueryGenerator.MemDef;
 import suneido.language.ParseExpression.Value;
+import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class CompileGenerator implements Generator<Object> {
 	private final String globalName;
@@ -38,7 +39,7 @@ public class CompileGenerator implements Generator<Object> {
 		Function(String name) {
 			this.name = name;
 			if (name.equals("call")) {
-				SELF = -1; // not used
+				SELF = 0; // default to "this"
 				ARGS = 1;
 				CONSTANTS = 2;
 			} else {
@@ -164,6 +165,7 @@ public class CompileGenerator implements Generator<Object> {
 		return finishClass(base, members);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object finishClass(String base, Object members) {
 		genInvoke(fspecs);
 
@@ -580,9 +582,9 @@ public class CompileGenerator implements Generator<Object> {
 		return i;
 	}
 
-	public Object member(Object term, String name, boolean thisRef) {
-		if (thisRef)
-			name = privatize(name);
+	public Object member(Object term, Value<Object> value) {
+		String name =
+				(value.thisOrSuper == null ? value.id : privatize(value.id));
 		f.mv.visitLdcInsn(name);
 		getMember();
 		return VALUE;
@@ -595,7 +597,7 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public Object self() {
-		f.mv.visitVarInsn(ALOAD, f.SELF == -1 ? THIS : f.SELF);
+		f.mv.visitVarInsn(ALOAD, f.SELF);
 		return VALUE;
 	}
 
@@ -608,7 +610,7 @@ public class CompileGenerator implements Generator<Object> {
 			break;
 		case MEMBER:
 			String id = value.id;
-			if (value.thisRef)
+			if (value.thisOrSuper != null)
 				id = privatize(id);
 			f.mv.visitLdcInsn(id);
 			break;
@@ -749,12 +751,17 @@ public class CompileGenerator implements Generator<Object> {
 	// TODO call private methods directly, bypassing invoke
 	public void preFunctionCall(Value<Object> value) {
 		if (value.isMember())
-			f.mv.visitLdcInsn(value.thisRef ? privatize(value.id) : value.id);
+			f.mv.visitLdcInsn(value.thisOrSuper == null ? value.id
+					: privatize(value.id));
+		else if (value.thisOrSuper == ThisOrSuper.SUPER)
+			superInitStart();
 	}
 	public Object functionCall(Object function, Value<Object> value,
 			Object arguments) {
 		int nargs = arguments == null ? 0 : (Integer) arguments;
-		if (value.id == null)
+		if (value.thisOrSuper == ThisOrSuper.SUPER)
+			invokeSuperInit(nargs);
+		else if (value.id == null)
 			invokeFunction(nargs);
 		else
 			invokeMethod(nargs);
@@ -768,6 +775,11 @@ public class CompileGenerator implements Generator<Object> {
 			args[i] = s;
 			s += "Ljava/lang/Object;";
 		}
+	}
+	private void invokeSuperInit(int nargs) {
+		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuClass",
+				"superInvokeN", "(Ljava/lang/Object;Ljava/lang/String;"
+						+ args[nargs] + ")Ljava/lang/Object;");
 	}
 	private void invokeFunction(int nargs) {
 		f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "callN",
@@ -883,19 +895,19 @@ public class CompileGenerator implements Generator<Object> {
 	// statements
 
 	public Object statementList(Object list, Object next) {
-		if (list == null && f.name == "_init")
-			superInit();
 		return next;
 	}
 
-	private void superInit() {
-		f.mv.visitVarInsn(ALOAD, 0);
-		f.mv.visitVarInsn(ALOAD, 1);
+	public void addSuperInit() {
+		if (!f.name.equals("_init"))
+			return;
+		superInitStart();
+		invokeSuperInit(0);
+	}
+	private void superInitStart() {
+		f.mv.visitVarInsn(ALOAD, THIS);
+		f.mv.visitVarInsn(ALOAD, f.SELF);
 		f.mv.visitLdcInsn("_init");
-		f.mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuClass",
-				"superInvoke",
-				"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
-		f.mv.visitInsn(POP);
 	}
 
 	public Object expressionStatement(Object expression) {
