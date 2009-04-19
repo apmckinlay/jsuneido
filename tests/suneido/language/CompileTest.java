@@ -102,9 +102,9 @@ public class CompileTest {
 		test("a(123, x: 456)",
  				"a, 123, NAMED, 'x', 456, callN, ARETURN");
 		test("return function () { }",
-				"0=Test._f1, ARETURN");
+				"0=Test.Test_f0, ARETURN");
 		test("a = function () { }",
-				"&a, 0=Test._f1, DUP_X2, AASTORE, ARETURN");
+				"&a, 0=Test.Test_f0, DUP_X2, AASTORE, ARETURN");
 		test("super.F()",
 				"this, this, 'F', superInvokeN, ARETURN");
 	}

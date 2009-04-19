@@ -19,7 +19,7 @@ import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class CompileGenerator implements Generator<Object> {
 	private final String globalName;
-	private int iName = 0;
+	private final int iName = 0;
     private PrintWriter pw = null;
 	enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private static final String[] arrayString = new String[0];
@@ -41,6 +41,9 @@ public class CompileGenerator implements Generator<Object> {
 		Function f = null; // the current function
 		Deque<Function> fstack = null; // functions nested around f
 		List<Object[]> constants = null;
+		int iClass = 0;
+		int iBlock = 0;
+		int iFunction = 0;
 	}
 	private static class Function {
 		Function(String name) {
@@ -165,15 +168,20 @@ public class CompileGenerator implements Generator<Object> {
 		if (pw != null)
 			c.cv = new TraceClassVisitor(c.cw, pw);
 
-		c.name = globalName;
-		if (cstack != null && !cstack.isEmpty())
-			c.name = c.name + "_c" + iName++;
+		c.name = className();
 		c.cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "suneido/language/" + c.name,
 				null, c.baseClass, null);
 
 		c.cv.visitSource("", null);
 
 		gen_init();
+	}
+
+	private String className() {
+		if (cstack == null || cstack.isEmpty())
+			return globalName;
+		else
+			return cstack.peek().name + "_c" + c.iClass++;
 	}
 
 	public Object classConstant(String base, Object members) {
@@ -306,9 +314,8 @@ public class CompileGenerator implements Generator<Object> {
 			startTopFunction((String) name);
 		else {
 			c.fstack.push(c.f);
-			String fname =
-					((which == FuncOrBlock.FUNC ? "_f" : "_b")
-					+ c.fspecs.size()).intern();
+			String fname = (which == FuncOrBlock.FUNC ? functionName()
+					: blockName()).intern();
 			c.f = new Function(fname);
 		}
 		if (c.f.name.equals("call"))
@@ -344,6 +351,13 @@ public class CompileGenerator implements Generator<Object> {
 		default:
 			throw new SuException("invalid 'which' in startFunction");
 		}
+	}
+
+	private String functionName() {
+		return c.name + "_f" + c.iFunction++;
+	}
+	private String blockName() {
+		return c.name + "_b" + c.iBlock++;
 	}
 
 	private void startTopFunction(String name) {
