@@ -105,8 +105,8 @@ public class CompileTest {
 				"0=Test._f1, ARETURN");
 		test("a = function () { }",
 				"&a, 0=Test._f1, DUP_X2, AASTORE, ARETURN");
-//		test("super.F()", 
-//				"");
+		test("super.F()",
+				"this, this, 'F', superInvokeN, ARETURN");
 	}
 	@Test public void test_new() {
 		test("new c",
@@ -190,9 +190,8 @@ public class CompileTest {
 				new CompileGenerator("Test", new PrintWriter(sw));
 		ParseConstant<Object, Generator<Object>> pc =
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		pc.parse();
-		constants = generator.constants == null ? new Object[0]
-				: generator.constants.get(0);
+		SuCallable x = (SuCallable) pc.parse();
+		constants = x.constants == null ? new Object[0] : x.constants[0];
 		return sw.toString();
 	}
 
@@ -266,6 +265,7 @@ public class CompileTest {
 			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
+			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

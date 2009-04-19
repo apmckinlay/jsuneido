@@ -63,6 +63,10 @@ public class ClassTest {
 		defineClass("A", "class { F() { 123 } }");
 		defineClass("B", "A { F() { 456 } G() { super.F() } }");
 		test("B().G()", "123");
+
+		defineClass("A", "class { B: class { F() { 123 } } }");
+		test("(new A.B).F()", "123");
+		test("new A.B", "A_c0()");
 	}
 
 	void defineClass(String name, String definition) {
