@@ -72,9 +72,22 @@ public abstract class SuClass extends SuCallable {
 		return null;
 	}
 
-	static Object[] noArgs = new Object[0];
+	protected Object superInvokeN(Object self, String member) {
+		return superInvoke(self, member);
+	}
+	protected Object superInvokeN(Object self, String member, Object a) {
+		return superInvoke(self, member, a);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b) {
+		return superInvoke(self, member, a, b);
+	}
+	protected Object superInvokeN(Object self, String member, Object a,
+			Object b, Object c) {
+		return superInvoke(self, member, a, b, c);
+	}
+	// TODO more args
 
-	protected Object superInvoke(Object self, String member) {
+	protected Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {
 			if (member == "_init")
 				return null;
@@ -84,7 +97,7 @@ public abstract class SuClass extends SuCallable {
 		Object base = Globals.get(baseGlobal);
 		if (!(base instanceof SuClass))
 			throw new SuException("base must be class");
-		return ((SuValue) base).invoke(self, member, noArgs);
+		return ((SuValue) base).invoke(self, member, args);
 	}
 
 }

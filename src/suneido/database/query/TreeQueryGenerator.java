@@ -268,7 +268,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return null;
 	}
 
-	public Object member(Object term, String name, boolean thisRef) {
+	public Object member(Object term, Value<Object> value) {
 		return null;
 	}
 
@@ -470,6 +470,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void startClass() {
+	}
+
+	public void addSuperInit() {
 	}
 
 }

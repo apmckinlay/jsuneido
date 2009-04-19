@@ -12,7 +12,7 @@ public class SampleClass extends SuClass {
 		else if (method == "MyMethod")
 			return MyMethod(self, args);
 		else if (method == "_init")
-			return init(self, args);
+			return _init(self, args);
 		else
 			return super.invoke(self, method, args);
 	}
@@ -23,8 +23,8 @@ public class SampleClass extends SuClass {
 		return null;
 	}
 
-	private Object init(Object self, Object[] args) {
-		superInvoke(self, "_init");
+	private Object _init(Object self, Object[] args) {
+		superInvoke(self, "_init", args);
 		SuContainer x = new SuContainer();
 		for (Object a : args)
 			x.append(a);
