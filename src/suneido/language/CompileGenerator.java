@@ -19,7 +19,6 @@ import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class CompileGenerator implements Generator<Object> {
 	private final String globalName;
-	private final int iName = 0;
     private PrintWriter pw = null;
 	enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private static final String[] arrayString = new String[0];
@@ -35,7 +34,7 @@ public class CompileGenerator implements Generator<Object> {
 		String name;
 		ClassWriter cw;
 		ClassVisitor cv;
-		boolean isFunction;;
+		boolean isFunction;
 		String baseClass;
 		List<FunctionSpec> fspecs = null;
 		Function f = null; // the current function
@@ -44,10 +43,11 @@ public class CompileGenerator implements Generator<Object> {
 		int iClass = 0;
 		int iBlock = 0;
 		int iFunction = 0;
+		boolean hasGetters = false;
 	}
 	private static class Function {
 		Function(String name) {
-			this.name = name;
+			this.name = name.intern();
 			if (name.equals("call")) {
 				SELF = 0; // default to "this"
 				ARGS = 1;
@@ -144,8 +144,6 @@ public class CompileGenerator implements Generator<Object> {
 		return new MemDef(name, value);
 	}
 
-	// TODO getters & setters
-
 	public void startClass() {
 		startClass(false);
 	}
@@ -212,8 +210,10 @@ public class CompileGenerator implements Generator<Object> {
 		callable.constants = linkConstants(callable);
 		if (callable instanceof SuClass) {
 			((SuClass) callable).baseGlobal = base;
-			if (members != null)
-				((SuClass) callable).vars = (Map<String, Object>) members;
+			((SuClass) callable).vars = members != null
+					? (Map<String, Object>) members
+					: new HashMap<String, Object>(0);
+			((SuClass) callable).hasGetters = c.hasGetters;
 		}
 
 		if (cstack != null && !cstack.isEmpty())
@@ -369,6 +369,8 @@ public class CompileGenerator implements Generator<Object> {
 			name = "_init";
 		else
 			name = privatize(name);
+		if (name.startsWith("Get_"))
+			c.hasGetters = true;
 		c.f = new Function(name);
 	}
 

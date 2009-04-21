@@ -14,7 +14,7 @@ public class SuMethod extends SuValue {
 	/** not private final because instance is filled in later
 	 *  @see CompileGenerator.linkConstants */
 	public Object instance;
-	private final String method;
+	public final String method;
 
 	public SuMethod(Object instance, String method) {
 		this.instance = instance;
@@ -24,7 +24,7 @@ public class SuMethod extends SuValue {
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call")
-			return Ops.invoke(instance, this.method, args);
+			return call(args);
 		else
 			throw unknown_method(method);
 	}
@@ -36,7 +36,7 @@ public class SuMethod extends SuValue {
 
 	@Override
 	public String toString() {
-		return (instance == null ? "null" : instance.toString()) + "." + method;
+		return instance + "." + method;
 	}
 
 	@Override

@@ -31,18 +31,13 @@ public class SuInstance extends SuValue {
 		return myclass + "()";
 	}
 
+	// TODO getters & setters
+	// TODO get should return SuMethod for public methods
+
 	@Override
 	public Object get(Object member) {
-		if (!(member instanceof String))
-			throw new SuException("non-string member name: "
-					+ Ops.typeName(member));
 		Object value = ivars.get(member);
-		if (value == null) {
-			value = myclass.get(member);
-			if (value == null)
-				throw new SuException("uninitialized member " + member);
-		}
-		return value;
+		return value != null ? value : myclass.get(member);
 	}
 
 	@Override

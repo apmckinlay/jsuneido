@@ -1,8 +1,12 @@
 package suneido.language;
 
+import static org.junit.Assert.fail;
+import static suneido.language.ExecuteTest.eval;
 import static suneido.language.ExecuteTest.test;
 
 import org.junit.Test;
+
+import suneido.SuException;
 
 
 public class ClassTest {
@@ -10,6 +14,10 @@ public class ClassTest {
 	public void test1() {
 		defineClass("A", "class { }");
 		test("new A", "A()");
+
+		defineClass("A", "class { N: 123 }");
+		test("A.N", "123");
+		notFound("A.M");
 
 		defineClass("A", "class { F() { 123 } }");
 		test("A().F()", "123");
@@ -67,6 +75,28 @@ public class ClassTest {
 		defineClass("A", "class { B: class { F() { 123 } } }");
 		test("(new A.B).F()", "123");
 		test("new A.B", "A_c0()");
+
+		defineClass("A", "class { F() { 123 } N: 123 }");
+		defineClass("B", "A { }");
+		test("A.F", "A.F");
+		test("B.F", "A.F");
+		test("B.N", "123");
+		notFound("B.M");
+	}
+
+	@Test
+	public void test_getter() {
+		defineClass("A", "class { Get_N() { 'getter' } }");
+		test("A.N", "'getter'");
+	}
+
+	private static void notFound(String expr) {
+		try {
+			eval(expr);
+			fail();
+		} catch (SuException e) {
+			assert e.toString().startsWith("member not found");
+		}
 	}
 
 	void defineClass(String name, String definition) {
