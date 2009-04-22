@@ -1,5 +1,7 @@
 package suneido.language;
 
+import static suneido.language.SuClass.Marker.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,13 +33,21 @@ public class SuInstance extends SuValue {
 		return myclass + "()";
 	}
 
-	// TODO getters & setters
-	// TODO get should return SuMethod for public methods
-
 	@Override
 	public Object get(Object member) {
 		Object value = ivars.get(member);
-		return value != null ? value : myclass.get(member);
+		if (value != null)
+			return value;
+		value = ((SuClass) myclass).get2(member);
+		if (value == GETTER)
+			value = invoke(this, "Get_", member);
+		else if (value == GETMEM)
+			value = invoke(this, ("Get_" + (String) member).intern());
+		else if (value == METHOD)
+			value = new SuMethod(this, (String) member);
+		if (value == null)
+			throw new SuException("member not found: " + member);
+		return value;
 	}
 
 	@Override

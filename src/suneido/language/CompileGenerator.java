@@ -314,9 +314,9 @@ public class CompileGenerator implements Generator<Object> {
 			startTopFunction((String) name);
 		else {
 			c.fstack.push(c.f);
-			String fname = (which == FuncOrBlock.FUNC ? functionName()
-					: blockName()).intern();
-			c.f = new Function(fname);
+			c.f =
+					new Function((which == FuncOrBlock.FUNC ? functionName()
+							: blockName()));
 		}
 		if (c.f.name.equals("call"))
 			c.f.mv = c.cv.visitMethod(ACC_PUBLIC, c.f.name,

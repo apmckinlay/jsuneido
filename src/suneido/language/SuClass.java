@@ -1,5 +1,7 @@
 package suneido.language;
 
+import static suneido.language.SuClass.Marker.*;
+
 import java.util.Map;
 
 import suneido.SuException;
@@ -18,65 +20,49 @@ public abstract class SuClass extends SuCallable {
 	protected Map<String, Object> vars;
 	protected boolean hasGetters = false;
 
-	static class Get {
-		protected final Object getter;
-		public Get(Object getter) {
-			this.getter = getter;
-		}
-		public Object call() {
-			return ((SuMethod) getter).call();
-		}
-		@Override
-		public String toString() {
-			return "Get(" + getter + ")";
-		}
-	}
-	static class GetMem extends Get {
-		public GetMem(Object getter) {
-			super(getter);
-		}
-		@Override
-		public String toString() {
-			return "GetMem(" + getter + ")";
-		}
-	}
+	// NOMETHOD is used instead of null
+	// to differentiate from map.get returning null for missing
+	static enum Marker {
+		NOMETHOD, METHOD, GETTER, GETMEM
+	};
 
 	@Override
 	public Object get(Object member) {
 		Object value = get2(member);
-		if (value instanceof Get)
-			value = ((Get) value).call();
-		else if (value == null)
+		if (value == GETTER)
+			value = invoke(this, "Get_", member);
+		else if (value == GETMEM)
+			value = invoke(this, ("Get_" + (String) member).intern());
+		else if (value == METHOD)
+			value = new SuMethod(this, (String) member);
+		if (value == null)
 			throw new SuException("member not found: " + member);
 		return value;
 	}
 
-	private Object get2(Object member) {
+	// TODO skip getBase if member is private
+	public Object get2(Object member) {
 		Object value = get3(member);
 		if (value != null)
 			return value;
 		value = getBase(member);
 		if (hasGetters) {
 			String getter = ("Get_" + member).intern();
-			if (value == null || value instanceof Get) {
-				Object ourGetter = findGetter(getter);
-				if (ourGetter != null)
-					value = new GetMem(ourGetter); // our Get_member beats any base getter
-				else if (!(value instanceof GetMem)
-						&& null != (ourGetter = findGetter("Get_")))
-					value = new Get(ourGetter); // our Get_ beats base Get_
+			if (value == null || value == GETTER || value == GETMEM) {
+				if (haveGetter(getter))
+					value = GETMEM; // our Get_member beats any base getter
+				else if (value != GETMEM && haveGetter("Get_"))
+					value = GETTER; // our Get_ beats base Get_
 			}
 		}
 		return value;
 	}
 
-	private static final Object NOMETHOD = new Object();
-
 	private Object get3(Object member) {
 		Object value = vars.get(member);
 		if (value == null && member instanceof String) {
 			value = findMethod(member);
-			vars.put((String) member, value); // cache it for next time
+			vars.put((String) member, value); // cache for next time
 		}
 		return value == NOMETHOD ? null : value;
 	}
@@ -84,17 +70,19 @@ public abstract class SuClass extends SuCallable {
 	private Object findMethod(Object method) {
 		for (FunctionSpec f : params)
 			if (f.name == method)
-				return new SuMethod(this, f.name);
+				return METHOD;
 		return NOMETHOD;
 	}
 
-	private Object findGetter(String getter) {
-		Object value = get3(getter);
-		if (!(value instanceof SuMethod))
-			return null;
-		SuMethod m = (SuMethod) value;
-		assert m.method.equals(getter);
-		return m.instance == this ? m : null;
+	private boolean haveGetter(String getter) {
+		Object value = vars.get(getter);
+		if (value != null)
+			return value == GETTER ? true : false; // cached from last time
+		value = findMethod(getter);
+		if (value != METHOD)
+			return false;
+		vars.put(getter, GETTER); // cache for next time
+		return true;
 	}
 
 	private Object getBase(Object member) {
@@ -115,13 +103,13 @@ public abstract class SuClass extends SuCallable {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "<new>" || method == "CallClass")
 			return newInstance(args);
-		else if (method == "_init")
-			return init(args);
 		else if (method == "Type")
 			return "Class";
 		// TODO other standard methods on classes
 		else if (baseGlobal != null)
 			return base().invoke(self, method, args);
+		else if (method == "_init")
+			return init(args);
 		else if (method != "Default") {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
