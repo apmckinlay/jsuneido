@@ -79,15 +79,32 @@ public class ClassTest {
 		defineClass("A", "class { F() { 123 } N: 123 }");
 		defineClass("B", "A { }");
 		test("A.F", "A.F");
-		test("B.F", "A.F");
+		test("B.F", "B.F");
 		test("B.N", "123");
 		notFound("B.M");
 	}
-
-	@Test
-	public void test_getter() {
-		defineClass("A", "class { Get_N() { 'getter' } }");
+	@Test public void test_static_getter() {
+		defineClass("A", "class { " +
+				"Get_N() { 'getter' }" +
+				"Get_(m) { 'get ' $ m }" +
+				" }");
 		test("A.N", "'getter'");
+		test("A.X", "'get X'");
+		defineClass("B", "A { }");
+		test("B.N", "'getter'");
+		test("B.X", "'get X'");
+	}
+	@Test public void test_instance_getter() {
+		defineClass("A", "class { "
+				+ "New(x) { .X = x } "
+				+ "Get_N() { .X $ ' getter' } "
+				+ "Get_(m) { .X $ ' get ' $ m } "
+				+ "}");
+		test("A(1).N", "'1 getter'");
+		test("A(1).Z", "'1 get Z'");
+		defineClass("B", "A { }");
+		test("B(2).N", "'2 getter'");
+		test("B(2).Z", "'2 get Z'");
 	}
 
 	private static void notFound(String expr) {
