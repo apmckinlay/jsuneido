@@ -297,7 +297,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			default:
 				if (isGlobal(lexer.getValue()) &&
 						lookAhead(! expectingCompound) == L_CURLY) {
-					term = constant();
+					term = generator.constant(constant());
 				} else {
 					value.identifier(lexer.getValue());
 					match(IDENTIFIER);

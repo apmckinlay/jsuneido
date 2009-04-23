@@ -35,6 +35,10 @@ public class CompileTest {
  				"x, null?, ARETURN");
 		test("return a + b",
  				"a, b, add, ARETURN");
+		test("-a",
+				"a, uminus, ARETURN");
+		test("! a",
+				"a, not, ARETURN");
 		test("a()",
  				"a, callN, ARETURN");
 		test("a(b, c)",
@@ -201,7 +205,7 @@ public class CompileTest {
 
 	private String compile(String s) {
 		//System.out.println("====== " + s);
-		if (! s.startsWith("class"))
+		if (! s.startsWith("class") && ! s.startsWith("function"))
 			s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
@@ -217,7 +221,7 @@ public class CompileTest {
 	private String simplify(String r) {
 		r = after(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 		r = before(r, "    LOCALVARIABLE");
-		// System.out.println(r);
+		//System.out.println(r);
 		r = r.substring(0, r.length() - 6); // label
 		r = r.trim();
 		r = r.replace("\n", ", ");
@@ -255,6 +259,7 @@ public class CompileTest {
 			{ " (Object;)Z", "" },
 			{ " (Object;)Object;", "" },
 			{ " (Object;)Number;", "" },
+			{ " (Object;)Boolean;", "" },
 			{ " (Object;Object;)Z", "" },
 			{ " (Object;Object;)Number;", "" },
 			{ " (Object;Object;)String;", "" },

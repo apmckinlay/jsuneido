@@ -12,6 +12,8 @@ public class ExecuteTest {
 		test("123 + 456", "579");
 		test("'hello' $ ' ' $ 'world'", "'hello world'");
 		test("1 + 2 * 3", "7");
+		test("a = 2; -a", "-2");
+		test("a = true; not a", "false");
 		test("'hello'.Size()", "5");
 		test("'hello'.Substr(3, 2)", "'lo'");
 		test("x = 123; y = 456; return x + y", "579");

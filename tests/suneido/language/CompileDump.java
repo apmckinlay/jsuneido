@@ -40,9 +40,13 @@ public class CompileDump implements DumpReader.Processor {
 		} catch (SuException e) {
 			if (e.toString().contains("not supported"))
 				return;
-			System.out.println("!!!!!!!!! " + e);
 			//System.out.println(source);
+			System.out.println("line " + lexer.getLineNumber());
 			throw e;
+		} catch (Throwable e) {
+			//System.out.println(source);
+			System.out.println("line " + lexer.getLineNumber());
+			throw new SuException("", e);
 		}
 	}
 
