@@ -14,7 +14,7 @@ import org.junit.Test;
 import suneido.*;
 
 public class ArgsTest {
-
+	
 	@Test
 	public void massage() {
 		Object[] empty = new Object[0];
@@ -48,6 +48,7 @@ public class ArgsTest {
 		good(f("x", "a"),			array(i, NAMED, a, s),			array(i, s));
 		good(f("x", "a"),			array(EACH, ias),				array(i, s));
 		good(f(1, "x"),				array(EACH, sxi),				array(i, null));
+		good(f(),					array(EACH, c),					empty);
 		good(f("x=6"),				empty,							array(i));
 		good(f("a", "x=6"), 		array(s), 						array(s, i));
 		good(f("a", "x=6"), 		array(i, s), 					array(i, s));

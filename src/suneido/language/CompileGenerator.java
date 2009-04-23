@@ -192,7 +192,8 @@ public class CompileGenerator implements Generator<Object> {
 
 		c.cv.visitEnd();
 
-		dump(c.cw.toByteArray());
+		if (pw != null)
+			dump(c.cw.toByteArray());
 
 		Loader loader = new Loader();
 		Class<?> sc =
@@ -314,9 +315,8 @@ public class CompileGenerator implements Generator<Object> {
 			startTopFunction((String) name);
 		else {
 			c.fstack.push(c.f);
-			c.f =
-					new Function((which == FuncOrBlock.FUNC ? functionName()
-							: blockName()));
+			c.f = new Function((which == FuncOrBlock.FUNC ? functionName()
+					: blockName()));
 		}
 		if (c.f.name.equals("call"))
 			c.f.mv = c.cv.visitMethod(ACC_PUBLIC, c.f.name,

@@ -58,9 +58,9 @@ public class ParseExpressionTest {
 			{ "b = { x }", "{ x; } EQ(b)" },
 			{ "{|a,b| x }", "{|a, b| x; }" },
 			{ "{|@a| x }", "{|@a| x; }" },
-			{ "f(a) { x }", "f(a, { x; })" },
-			{ "function () { f(a)\n { x } }", "function () { f(a, { x; }); }" },
-			{ "f { x }", "f({ x; })" },
+			{ "f(a) { x }", "f(a, block: { x; })" },
+			{ "function () { f(a)\n { x } }", "function () { f(a, block: { x; }); }" },
+			{ "f { x }", "f(block: { x; })" },
 			{ "new c", "new c" },
 			{ "new c(a, b)", "new c(a, b)" },
 			{ "new a.c", "new a .c" },
@@ -75,10 +75,10 @@ public class ParseExpressionTest {
 			{ "x = [a,b]", "Record(a, b) EQ(x)" },
 			{ ".x = class\n { }", "this class { } EQ(.x)" },
 			{ ".x.f().\n g()", "this .x .f() .g()" },
-			{ "100.Times() { }", "n(100) .Times({ })" },
-			{ "100.Times()\n { }", "n(100) .Times({ })" },
-			{ "100.Times { }", "n(100) .Times({ })" },
-			{ "100.Times\n { }", "n(100) .Times({ })" },
+			{ "100.Times() { }", "n(100) .Times(block: { })" },
+			{ "100.Times()\n { }", "n(100) .Times(block: { })" },
+			{ "100.Times { }", "n(100) .Times(block: { })" },
+			{ "100.Times\n { }", "n(100) .Times(block: { })" },
         };
         for (String[] c : cases) {
         	// System.out.println(c[0]);

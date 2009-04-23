@@ -1038,7 +1038,7 @@ public class Select extends Query1 {
 		int pos = buf.position();
 		Object x = Pack.unpack(buf);
 		buf.position(pos);
-		return Ops.toString(x);
+		return Ops.toStr(x);
 	}
 
 	private static String valuesToString(List<ByteBuffer> values) {

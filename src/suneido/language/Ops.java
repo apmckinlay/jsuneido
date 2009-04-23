@@ -144,7 +144,7 @@ public class Ops {
 	}
 
 	public static String cat(Object x, Object y) {
-		return toString(x).concat(toString(y));
+		return toStr(x).concat(toStr(y));
 	}
 
 	private static SuException cant(Object x, String op, Object y) {
@@ -378,7 +378,7 @@ public class Ops {
 		}
 	}
 
-	public static String toString(Object x) {
+	public static String toStr(Object x) {
 		if (x instanceof BigDecimal)
 			return toStringBD((BigDecimal) x);
 		if (x instanceof Date)
@@ -401,7 +401,7 @@ public class Ops {
 		if (x instanceof String)
 			return "'" + ((String) x).replace("'", "\\'") + "'"; //TODO smarter quoting/escaping
 		else
-			return toString(x);
+			return toStr(x);
 	}
 
 	public static String toStringBD(BigDecimal n) {
@@ -457,96 +457,172 @@ public class Ops {
 		throw new SuException("no such method: " + typeName(x) + method);
 	}
 
-	// invokeN is to simplify code generation
+	// callN and invokeN are to simplify code generation
 	// so caller doesn't have to build args array
 
-	// TODO bypass invoke dispatcher for "call"
-
-	public static Object callN(Object x) {
-		return call(x);
+	public static Object callN(Object it) {
+		return call(it);
+	}
+	public static Object callN(Object it, Object a) {
+		return call(it, a);
+	}
+	public static Object callN(Object it, Object a, Object b) {
+		return call(it, a, b);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c) {
+		return call(it, a, b, c);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d) {
+		return call(it, a, b, c, d);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e) {
+		return call(it, a, b, c, d, e);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f) {
+		return call(it, a, b, c, d, e, f);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g) {
+		return call(it, a, b, c, d, e, f, g);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h) {
+		return call(it, a, b, c, d, e, f, g, h);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+		return call(it, a, b, c, d, e, f, g, h, i);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j) {
+		return call(it, a, b, c, d, e, f, g, h, i, j);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y);
+	}
+	public static Object callN(Object it, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y, Object z) {
+		return call(it, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z);
 	}
 
-	public static Object callN(Object x, Object a) {
-		return call(x, a);
+	public static Object invokeN(Object it, String method) {
+		return invoke(it, method);
 	}
-
-	public static Object callN(Object x, Object a, Object b) {
-		return call(x, a, b);
+	public static Object invokeN(Object it, String method, Object a) {
+		return invoke(it, method, a);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c) {
-		return call(x, a, b, c);
+	public static Object invokeN(Object it, String method, Object a, Object b) {
+		return invoke(it, method, a, b);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c,
-			Object d) {
-		return call(x, a, b, c, d);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c) {
+		return invoke(it, method, a, b, c);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c,
-			Object d, Object e) {
-		return call(x, a, b, c, d, e);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d) {
+		return invoke(it, method, a, b, c, d);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c,
-			Object d, Object e, Object f) {
-		return call(x, a, b, c, d, e, f);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e) {
+		return invoke(it, method, a, b, c, d, e);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c,
-			Object d, Object e, Object f, Object g) {
-		return call(x, a, b, c, d, e, f, g);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f) {
+		return invoke(it, method, a, b, c, d, e, f);
 	}
-
-	public static Object callN(Object x, Object a, Object b, Object c,
-			Object d, Object e, Object f, Object g, Object h) {
-		return call(x, a, b, c, d, e, f, g, h);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g) {
+		return invoke(it, method, a, b, c, d, e, f, g);
 	}
-
-	//...
-
-	public static Object invokeN(Object x, String method) {
-		return invoke(x, method);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h) {
+		return invoke(it, method, a, b, c, d, e, f, g, h);
 	}
-
-	public static Object invokeN(Object x, String method, Object a) {
-		return invoke(x, method, a);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b) {
-		return invoke(x, method, a, b);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c) {
-		return invoke(x, method, a, b, c);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c, Object d) {
-		return invoke(x, method, a, b, c, d);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e) {
-		return invoke(x, method, a, b, c, d, e);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return invoke(x, method, a, b, c, d, e, f);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return invoke(x, method, a, b, c, d, e, f, g);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
 	}
-
-	public static Object invokeN(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return invoke(x, method, a, b, c, d, e, f, g, h);
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
 	}
-	//...
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y);
+	}
+	public static Object invokeN(Object it, String method, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y, Object z) {
+		return invoke(it, method, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z);
+	}
 
 	public static void put(Object x, Object member, Object value) {
 		if (x instanceof SuValue)

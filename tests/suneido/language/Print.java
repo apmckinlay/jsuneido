@@ -14,7 +14,7 @@ class Print extends SuFunction {
 			if (x == Args.Special.NAMED)
 				System.out.print((String) args[++i] + ":");
 			else
-				System.out.print(Ops.toString(x));
+				System.out.print(Ops.toStr(x));
 		}
 		System.out.println();
 		return null;

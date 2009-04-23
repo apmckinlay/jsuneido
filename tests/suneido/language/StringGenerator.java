@@ -251,6 +251,8 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public Object startMethod(FuncOrBlock which, String name) {
+		if (which == FuncOrBlock.BLOCK)
+			return true; // non-null to allow break and continue
 		return null;
 	}
 
@@ -320,7 +322,7 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public Object forInExpression(String var, String expr) {
-		return null;
+		return true; // non-null to allow break and continue
 	}
 
 	public void blockParams() {

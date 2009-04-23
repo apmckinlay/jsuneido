@@ -321,7 +321,7 @@ public class Record
 
 	public String getString(int i) {
 		// PERF could bypass SuValue instance if SuString
-		return Ops.toString(get(i));
+		return Ops.toStr(get(i));
 	}
 
 	public long getLong(int i) {

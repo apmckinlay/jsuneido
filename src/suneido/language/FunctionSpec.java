@@ -14,6 +14,12 @@ public class FunctionSpec {
 	public final static FunctionSpec noParams =
 			new FunctionSpec(null, new String[0], 0);
 
+	public FunctionSpec(String... locals) {
+		this(null, locals, locals.length, noConstants, 0, false);
+	}
+	public FunctionSpec(String[] locals, Object... constants) {
+		this(null, locals, locals.length, constants, constants.length, false);
+	}
 	public FunctionSpec(String name, String[] locals, int nparams) {
 		this(name, locals, nparams, noConstants, 0, false);
 	}

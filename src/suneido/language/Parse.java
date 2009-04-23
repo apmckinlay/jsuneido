@@ -1,13 +1,13 @@
 package suneido.language;
 
-import static suneido.language.Token.*;
+import static suneido.language.Token.NEWLINE;
 import suneido.SuException;
 
 public class Parse<T, G> {
 
 	protected final Lexer lexer;
 	protected final G generator;
-	public Token token;
+	public Token token = NEWLINE;
 	protected int statementNest = 99;
 	boolean expectingCompound = false;
 
@@ -67,11 +67,20 @@ public class Parse<T, G> {
 		matchKeepNewline();
 	}
 	protected void matchKeepNewline() {
-		if (token == L_CURLY || token == L_PAREN || token == L_BRACKET)
-			++statementNest;
-		if (token == R_CURLY || token == R_PAREN || token == R_BRACKET)
-			--statementNest;
+			switch (token) {
+			case L_CURLY:
+			case L_PAREN:
+			case L_BRACKET:
+				++statementNest;
+				break;
+			case R_CURLY:
+			case R_PAREN:
+			case R_BRACKET:
+				--statementNest;
+				break;
+			}
 		token = lexer.next();
+		//System.out.println(token + " " + lexer.getValue());
 	}
 
 	private void verifyMatch(Token expected) {
@@ -81,17 +90,18 @@ public class Parse<T, G> {
 
 	protected void syntaxError() {
 		String value = lexer.getValue();
-		throw new SuException("syntax error: unexpected " + token +
-				(value == null ? "" : " " + value));
+		syntaxError("unexpected " + token + (value == null ? "" : " " + value));
 	}
 	protected void syntaxError(String s) {
-		throw new SuException("syntax error: " + s);
+		throw new SuException("syntax error: line " + lexer.getLineNumber()
+				+ ": " + s);
 	}
 
 	protected Token lookAhead() {
 		return lookAhead(true);
 	}
 
+	// TODO reuse a lookahead lexer (match calls this every time)
 	protected Token lookAhead(boolean skipNewlines) {
 		Lexer ahead = new Lexer(lexer);
 		Token token = ahead.next();

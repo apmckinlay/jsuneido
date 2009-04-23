@@ -25,7 +25,7 @@ public class Util {
 			if (x instanceof List)
 				sb.append(listToParens((List<String>) x));
 			else
-				sb.append(Ops.toString(x));
+				sb.append(Ops.toStr(x));
 			sb.append(",");
 		}
 		return sb.deleteCharAt(sb.length() - 1).toString();
