@@ -106,6 +106,15 @@ public class ClassTest {
 		test("B(2).N", "'2 getter'");
 		test("B(2).Z", "'2 get Z'");
 	}
+	@Test public void test_private_instance_getter() {
+		defineClass("A", "class { "
+				+ "New(x) { .x = x } "
+				+ "get_n() { .x $ ' getter' } "
+				+ "N() { .n }"
+				+ "Z() { .z }"
+				+ "}");
+		test("A(1).N()", "'1 getter'");
+	}
 
 	private static void notFound(String expr) {
 		try {

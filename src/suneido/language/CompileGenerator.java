@@ -379,7 +379,10 @@ public class CompileGenerator implements Generator<Object> {
 				: value.id;
 	}
 	private String privatize(String name) {
-		if (Character.isLowerCase(name.charAt(0)))
+		if (name.startsWith("get_") &&
+				name.length() > 4 && Character.isLowerCase(name.charAt(4)))
+			name = "Get_" + c.name + name.substring(3);
+		else if (Character.isLowerCase(name.charAt(0)))
 			name = c.name + "_" + name;
 		return name;
 	}
