@@ -4,6 +4,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import org.objectweb.asm.MethodVisitor;
 
+// TODO optimize "not"
+
 /**
  * optimizes sequences like lt,toBool => lt_
  * @author Andrew McKinlay

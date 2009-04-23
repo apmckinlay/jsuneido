@@ -282,6 +282,14 @@ public class Ops {
 			throw new SuException("can't do - " + typeName(x));
 	}
 
+	public static Boolean not(Object x) {
+		if (x == Boolean.TRUE)
+			return Boolean.FALSE;
+		if (x == Boolean.FALSE)
+			return Boolean.TRUE;
+		throw new SuException("can't do not " + typeName(x));
+	}
+
 	public static Integer bitnot(Object x) {
 		return ~toInt(x);
 	}

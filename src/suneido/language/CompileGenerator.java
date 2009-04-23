@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.*;
@@ -166,6 +167,8 @@ public class CompileGenerator implements Generator<Object> {
 		if (pw != null)
 			c.cv = new TraceClassVisitor(c.cw, pw);
 
+c.cv = new CheckClassAdapter(c.cv);
+
 		c.name = className();
 		c.cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "suneido/language/" + c.name,
 				null, c.baseClass, null);
@@ -247,6 +250,7 @@ public class CompileGenerator implements Generator<Object> {
 		return c.constants.toArray(arrayConstants);
 	}
 
+	// TODO if no methods, don't generate empty invoke
 	private void genInvoke(List<FunctionSpec> functions) {
 		final int SELF = 1;
 		final int METHOD = 2;
@@ -587,7 +591,7 @@ public class CompileGenerator implements Generator<Object> {
 		if (-1 <= i && i <= 5)
 			mv.visitInsn(ICONST_0 + i);
 		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
-			mv.visitVarInsn(BIPUSH, i);
+			mv.visitIntInsn(BIPUSH, i);
 		else if (Short.MIN_VALUE <= i && i <= Short.MAX_VALUE)
 			mv.visitIntInsn(SIPUSH, i);
 		else
@@ -698,9 +702,9 @@ public class CompileGenerator implements Generator<Object> {
 		c.f.mv.visitLabel(label);
 	}
 
-	private void unaryMethod(String method) {
+	private void unaryMethod(String method, String type) {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", method,
-				"(Ljava/lang/Object;)Ljava/lang/Number;");
+				"(Ljava/lang/Object;)Ljava/lang/" + type + ";");
 	}
 	private void binaryMethod(Token op) {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
@@ -722,7 +726,7 @@ public class CompileGenerator implements Generator<Object> {
 		// stack: i args i args
 		load(value.type);
 		// stack: v i args
-		unaryMethod(incdec == Token.INC ? "add1" : "sub1");
+		unaryMethod(incdec == Token.INC ? "add1" : "sub1", "Number");
 		// stack: v+1 i args
 		c.f.mv.visitInsn(DUP_X2);
 		// stack: v+1 i args v+1
@@ -739,7 +743,7 @@ public class CompileGenerator implements Generator<Object> {
 		// stack: v i args
 		c.f.mv.visitInsn(DUP_X2);
 		// stack: v i args v
-		unaryMethod(incdec == Token.INC ? "add1" : "sub1");
+		unaryMethod(incdec == Token.INC ? "add1" : "sub1", "Number");
 		// stack: v+1 i args v
 		store(value.type);
 		// stack: v
@@ -784,10 +788,13 @@ public class CompileGenerator implements Generator<Object> {
 	public Object unaryExpression(Token op, Object expression) {
 		switch (op) {
 		case SUB:
-			unaryMethod("uminus");
+			unaryMethod("uminus", "Number");
 			break;
 		case ADD:
 			// should have a uplus, but cSuneido doesn't
+			break;
+		case NOT:
+			unaryMethod("not", "Boolean");
 			break;
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);

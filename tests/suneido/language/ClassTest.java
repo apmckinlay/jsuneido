@@ -22,6 +22,9 @@ public class ClassTest {
 		defineClass("A", "class { F() { 123 } }");
 		test("A().F()", "123");
 
+		defineClass("A", "class { F?() { 123 } }");
+		test("A.F?()", "123");
+
 		defineClass("A", "class { F() { .g() } g() { 123 } }");
 		test("A().F()", "123");
 
