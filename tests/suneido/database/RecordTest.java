@@ -41,7 +41,7 @@ public class RecordTest {
 			assertEquals(4, r.fieldSize(0));
 			bb = r.getraw(0);
 			assertEquals(4, bb.limit());
-			assertEquals(data, Ops.toString(Pack.unpack(bb)));
+			assertEquals(data, Ops.toStr(Pack.unpack(bb)));
 			assertEquals(data, r.getString(0));
 
 			assertEquals(4, r.fieldSize(0));

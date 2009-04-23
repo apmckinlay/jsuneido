@@ -15,6 +15,6 @@ public class BlockReturnException extends RuntimeException {
 
 	@Override
 	public String toString() {
-		return "block-return(" + Ops.toString(returnValue) + ")";
+		return "block-return(" + Ops.toStr(returnValue) + ")";
 	}
 }

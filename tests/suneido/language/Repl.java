@@ -20,7 +20,7 @@ public class Repl {
 			try {
 				Object f = compile("function () { " + line + " }");
 				Object[] locals = new SuValue[0];
-				Object result = Ops.invoke(f, "call", locals);
+				Object result = Ops.call(f, locals);
 				if (result != null)
 					out.println(" => " + Ops.display(result));
 				saveTest(line, result);

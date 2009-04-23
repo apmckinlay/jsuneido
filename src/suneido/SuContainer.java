@@ -106,7 +106,7 @@ public class SuContainer extends SuValue
 		return before + s + after;
 	}
 	static String keyToString(Object x) {
-		return x instanceof String ? keyToString((String) x) : Ops.toString(x);
+		return x instanceof String ? keyToString((String) x) : Ops.toStr(x);
 	}
 	static String keyToString(String s) {
 		return s.matches("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$") ? s : ("'" + s + "'");

@@ -315,7 +315,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				value.clear();
 			}
 			if (newTerm && token == L_PAREN) {
-				term = push(term, value);
+				if (value.isSet())
+					term = push(term, value);
 				return term;
 			}
 			if (token == DOT) {
@@ -390,8 +391,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 		if (token == NEWLINE && !expectingCompound && lookAhead() == L_CURLY)
 			match();
-		if (token == L_CURLY)
-			args = generator.expressionList(args, block());
+		if (token == L_CURLY) {
+			generator.argumentName("block");
+			args = generator.argumentList(args, "block", block());
+		}
 		return args;
 	}
 	private T atArgument() {

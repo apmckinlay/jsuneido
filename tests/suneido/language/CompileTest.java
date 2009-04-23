@@ -107,6 +107,12 @@ public class CompileTest {
 				"&a, 0=Test.Test_f0, DUP_X2, AASTORE, ARETURN");
 		test("super.F()",
 				"this, this, 'F', superInvokeN, ARETURN");
+		test("A().B()",
+				"'A', global, callN, 'B', invokeN, ARETURN");
+		test("new this",
+				"this, '<new>', invokeN, ARETURN");
+		test("new this(a)",
+				"this, '<new>', a, invokeN, ARETURN");
 	}
 	@Test public void test_new() {
 		test("new c",
@@ -173,6 +179,18 @@ public class CompileTest {
 				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
 				+ "L2, L3, try L1 L2 L3, DUP, .locals, vars, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
+		compile("Foreach(a, { })");
+		compile("Foreach(a) { }");
+		compile("Plugins().Foreach(a, { })");
+		compile("Plugins.Foreach(a) { }");
+		compile("Plugins().Foreach(a) { }");
+	}
+	@Test public void test_block_break() {
+		compile("b = { break }");
+		compile("Foreach(a, { break })");
+		compile("Foreach(a) { break }");
+		compile("Plugins().Foreach(a, { break })");
+		compile("Plugins().Foreach(a) { break }");
 	}
 
 	private void test(String expr, String expected) {
@@ -183,7 +201,8 @@ public class CompileTest {
 
 	private String compile(String s) {
 		//System.out.println("====== " + s);
-		s = "function (a,b,c) { " + s + " }";
+		if (! s.startsWith("class"))
+			s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
 		CompileGenerator generator =
@@ -242,6 +261,7 @@ public class CompileTest {
 			{ " (Object;Object;)Boolean;", "" },
 			{ " (Object;Object;Object;)Object;", "" },
 			{ " (Object;String;)Object;", "" },
+			{ " (Object;String;Object;)Object;", "" },
 			{ " (Object;String;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },

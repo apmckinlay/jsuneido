@@ -41,8 +41,11 @@ public class ParseDump implements DumpReader.Processor {
 		} catch (SuException e) {
 			if (e.toString().contains("not supported"))
 				return;
-			System.out.println("!!!!!!!!! " + e);
-			System.out.println(source);
+			//System.out.println(source);
+			throw e;
+		} catch (RuntimeException e) {
+			//System.out.println(source);
+			System.out.println("line " + lexer.getLineNumber());
 			throw e;
 		}
 	}

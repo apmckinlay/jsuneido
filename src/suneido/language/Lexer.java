@@ -9,7 +9,8 @@ public class Lexer {
 	private String value = "";
 	private Token keyword;
 	private boolean ignoreCase = false;
-	//private final String debug = ">";
+	private int lineNumber = 1;
+	//private String debug = ">";
 
 	public Lexer(String source) {
 		this.source = source;
@@ -33,6 +34,10 @@ public class Lexer {
 
 	public Token getKeyword() {
 		return keyword == null ? NIL : keyword;
+	}
+
+	public int getLineNumber() {
+		return lineNumber;
 	}
 
 	public Token next() {
@@ -287,7 +292,10 @@ public class Lexer {
 		char c;
 		boolean eol = false;
 		for (; Character.isWhitespace(c = charAt(si)); ++si)
-			if (c == '\r' || c == '\n')
+			if (c == '\n') {
+				eol = true;
+				++lineNumber;
+			} else if (c == '\r')
 				eol = true;
 		return eol ? NEWLINE : WHITE;
 	}

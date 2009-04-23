@@ -128,27 +128,19 @@ public abstract class SuClass extends SuCallable {
 		return x;
 	}
 
+	private SuValue base() {
+		Object base = Globals.get(baseGlobal);
+		if (!(base instanceof SuValue))
+			throw new SuException("class base must be a Suneido value");
+		return (SuValue) base;
+	}
+
 	private static Object init(Object[] args) {
 		args = Args.massage(FunctionSpec.noParams, args);
 		if (args.length != 0)
 			throw new SuException("wrong number of arguments");
 		return null;
 	}
-
-	protected Object superInvokeN(Object self, String member) {
-		return superInvoke(self, member);
-	}
-	protected Object superInvokeN(Object self, String member, Object a) {
-		return superInvoke(self, member, a);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b) {
-		return superInvoke(self, member, a, b);
-	}
-	protected Object superInvokeN(Object self, String member, Object a,
-			Object b, Object c) {
-		return superInvoke(self, member, a, b, c);
-	}
-	// TODO more args
 
 	protected Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {
@@ -160,11 +152,86 @@ public abstract class SuClass extends SuCallable {
 		return base().invoke(self, member, args);
 	}
 
-	private SuValue base() {
-		Object base = Globals.get(baseGlobal);
-		if (!(base instanceof SuValue))
-			throw new SuException("class base must be a Suneido value");
-		return (SuValue) base;
+	protected Object superInvokeN(Object self, String member) {
+		return superInvoke(self, member);
+	}
+	protected Object superInvokeN(Object self, String member, Object a) {
+		return superInvoke(self, member, a);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b) {
+		return superInvoke(self, member, a, b);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c) {
+		return superInvoke(self, member, a, b, c);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d) {
+		return superInvoke(self, member, a, b, c, d);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e) {
+		return superInvoke(self, member, a, b, c, d, e);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f) {
+		return superInvoke(self, member, a, b, c, d, e, f);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g) {
+		return superInvoke(self, member, a, b, c, d, e, f, g);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y);
+	}
+	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y, Object z) {
+		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z);
 	}
 
 }
