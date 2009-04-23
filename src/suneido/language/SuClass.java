@@ -40,7 +40,6 @@ public abstract class SuClass extends SuCallable {
 		return value;
 	}
 
-	// TODO skip getBase if member is private
 	public Object get2(Object member) {
 		Object value = get3(member);
 		if (value != null)
@@ -130,7 +129,9 @@ public abstract class SuClass extends SuCallable {
 	}
 
 	private static Object init(Object[] args) {
-		// TODO massage args (shouldn't be any)
+		args = Args.massage(FunctionSpec.noParams, args);
+		if (args.length != 0)
+			throw new SuException("wrong number of arguments");
 		return null;
 	}
 
