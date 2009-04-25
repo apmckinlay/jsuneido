@@ -250,11 +250,14 @@ c.cv = new CheckClassAdapter(c.cv);
 		return c.constants.toArray(arrayConstants);
 	}
 
-	// TODO if no methods, don't generate empty invoke
 	private void genInvoke(List<FunctionSpec> functions) {
 		final int SELF = 1;
 		final int METHOD = 2;
 		final int ARGS = 3;
+
+		if (functions.size() == 0
+				|| (functions.size() == 1 && functions.get(0).name == "call"))
+			return;
 
 		MethodVisitor mv = c.cv.visitMethod(ACC_PUBLIC, "invoke",
 				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;",
