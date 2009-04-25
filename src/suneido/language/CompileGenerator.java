@@ -275,7 +275,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			mv.visitVarInsn(ALOAD, SELF);
 			mv.visitVarInsn(ALOAD, ARGS);
 			mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/" + c.name,
-					f.name,
+					javify(f.name),
 					"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 			mv.visitInsn(ARETURN);
 			mv.visitLabel(l1);
@@ -323,10 +323,14 @@ c.cv = new CheckClassAdapter(c.cv);
 					: blockName()));
 		}
 		if (c.f.name.equals("call"))
-			c.f.mv = c.cv.visitMethod(ACC_PUBLIC, c.f.name,
+			c.f.mv =
+					c.cv.visitMethod(ACC_PUBLIC, javify(c.f.name),
 					"([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		else
-			c.f.mv = c.cv.visitMethod(ACC_PRIVATE, c.f.name,
+			c.f.mv =
+					c.cv.visitMethod(
+							ACC_PRIVATE,
+							javify(c.f.name),
 					"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
 					null, null);
 
@@ -362,6 +366,14 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 	private String blockName() {
 		return c.name + "_b" + c.iBlock++;
+	}
+
+	private String javify(String name) {
+		if (name.endsWith("?"))
+			name = name.substring(0, name.length() - 1) + "Q";
+		else if (name.endsWith("!"))
+			name = name.substring(0, name.length() - 1) + "X";
+		return name;
 	}
 
 	private void startTopFunction(String name) {
