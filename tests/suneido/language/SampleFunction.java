@@ -1,16 +1,19 @@
 package suneido.language;
 
+import java.util.List;
 
 public class SampleFunction extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {
-		try {
-			args[0] = args[1];
-		} catch (BlockReturnException e) {
-			return e.returnValue;
-		}
+
 		return null;
+	}
+
+	void test(List<Object> list) {
+		for (Object x : list)
+			for (Object y : list)
+				call(x, y);
 	}
 
 }

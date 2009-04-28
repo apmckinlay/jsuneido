@@ -169,7 +169,7 @@ public class CompileGenerator implements Generator<Object> {
 
 c.cv = new CheckClassAdapter(c.cv);
 
-		c.name = className();
+		c.name = javify(className());
 		c.cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "suneido/language/" + c.name,
 				null, c.baseClass, null);
 
@@ -654,7 +654,7 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	public Object subscript(Object term, Object expr) {
-		assert (expr instanceof Stack);
+		dupAndStore(expr);
 		getMember();
 		return VALUE;
 	}
@@ -742,12 +742,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		load(value.type);
 		// stack: v i args
 		unaryMethod(incdec == Token.INC ? "add1" : "sub1", "Number");
-		// stack: v+1 i args
-		c.f.mv.visitInsn(DUP_X2);
-		// stack: v+1 i args v+1
-		store(value.type);
-		// stack: v+1
-		return VALUE;
+		return value.type;
 	}
 
 	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
@@ -816,6 +811,9 @@ c.cv = new CheckClassAdapter(c.cv);
 			break;
 		case NOT:
 			unaryMethod("not", "Boolean");
+			break;
+		case BITNOT:
+			unaryMethod("bitnot", "Number");
 			break;
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
@@ -984,6 +982,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		c.f.mv.visitLdcInsn("_init");
 		invokeSuperInit(0);
+		c.f.mv.visitInsn(POP);
 	}
 
 	public Object expressionStatement(Object expression) {
