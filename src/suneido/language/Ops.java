@@ -465,6 +465,12 @@ public class Ops {
 		throw new SuException("no such method: " + typeName(x) + method);
 	}
 
+	public static String toMethodString(Object method) {
+		if (method instanceof String)
+			return (String) method;
+		throw new SuException("invalid method: " + method);
+	}
+
 	// callN and invokeN are to simplify code generation
 	// so caller doesn't have to build args array
 
