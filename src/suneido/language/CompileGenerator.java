@@ -826,6 +826,9 @@ c.cv = new CheckClassAdapter(c.cv);
 	public void preFunctionCall(Value<Object> value) {
 		if (value.isMember())
 			c.f.mv.visitLdcInsn(privatize(value));
+		else if (value.type == SUBSCRIPT)
+			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
+					"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
 	}
 
 	public Object functionCall(Object function, Value<Object> value,

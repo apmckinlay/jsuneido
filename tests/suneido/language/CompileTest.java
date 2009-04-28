@@ -99,8 +99,8 @@ public class CompileTest {
 			"this, 'Test_f', invokeN, ARETURN");
 		test("this.f()",
 			"this, 'Test_f', invokeN, ARETURN");
-		//		test("this[a]()",
-		//			"this, a, invokeN, ARETURN");
+		test("this[a]()",
+			"this, a, toMethodString, invokeN, ARETURN");
 		test("a.x = b;;",
  				"a, 'x', b, putMem");
 		test("a.x = b",
@@ -281,6 +281,7 @@ public class CompileTest {
 			{ " (Object;)Z", "" },
 			{ " (Object;)Object;", "" },
 			{ " (Object;)Number;", "" },
+			{ " (Object;)String;", "" },
 			{ " (Object;)Boolean;", "" },
 			{ " (Object;Object;)Z", "" },
 			{ " (Object;Object;)Number;", "" },

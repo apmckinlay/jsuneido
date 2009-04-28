@@ -340,7 +340,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (value.isIdentifier()) {
 					term = push(term, value);
 					value.clear();
-				} else if (value.isMember())
+				} else
 					generator.preFunctionCall(value);
 				term = generator.functionCall(term, value, arguments());
 				value.clear();

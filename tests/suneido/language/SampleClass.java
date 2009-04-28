@@ -20,7 +20,8 @@ public class SampleClass extends SuClass {
 	private Object MyMethod(Object self, Object[] args) {
 		args = Args.massage(params[0], args);
 		Object[] consts = constants[0];
-		return 123;
+		String s = Ops.toMethodString(null);
+		return null;
 	}
 
 	private Object _init(Object self, Object[] args) {
