@@ -105,6 +105,8 @@ public class CompileTest {
  				"a, 'x', b, putMem");
 		test("a.x = b",
  				"a, 'x', b, DUP_X2, putMem, ARETURN");
+		test("(a = b).F()",
+				"&a, b, DUP_X2, AASTORE, 'F', invokeN, ARETURN");
 		test("a[b]",
  				"a, b, getMem, ARETURN");
 		test("a[b] = c;;",
@@ -151,6 +153,8 @@ public class CompileTest {
 				"a, bool, IFFALSE L1, b, POP, L1");
 		test("if (a < b) c",
 				"a, b, lt_, IFFALSE L1, c, POP, L1");
+		test("if (a = b) c",
+				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, c, POP, L1");
 		test("if (a) b else c",
 				"a, bool, IFFALSE L1, b, POP, GOTO L2, L1, c, POP, L2");
 	}
