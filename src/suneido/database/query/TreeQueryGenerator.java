@@ -480,7 +480,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public Object rvalue(Object expr) {
-		return null;
+		return expr;
 	}
 
 }
