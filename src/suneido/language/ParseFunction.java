@@ -331,8 +331,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		T statements = null;
 		while (token != R_CURLY &&
 				lexer.getKeyword() != CASE &&
-				lexer.getKeyword() != DEFAULT)
+				lexer.getKeyword() != DEFAULT) {
+			generator.afterStatement(statements);
 			statements = generator.statementList(statements, statement(loop));
+		}
 		return generator.switchCases(cases, values, statements, labels);
 	}
 

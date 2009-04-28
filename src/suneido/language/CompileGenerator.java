@@ -770,8 +770,9 @@ c.cv = new CheckClassAdapter(c.cv);
 	 * we need the value we have to dup before storing but we don't know if we
 	 * need the value until later, thus the delay
 	 */
-	public void rvalue(Object expr) {
+	public Object rvalue(Object expr) {
 		dupAndStore(expr);
+		return VALUE;
 	}
 	private void dupAndStore(Object expr) {
 		if (!(expr instanceof Value.Type))

@@ -265,6 +265,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_PAREN:
 			match(L_PAREN);
 			term = expression();
+			term = generator.rvalue(term);
 			match(R_PAREN);
 			break;
 		case L_BRACKET:
