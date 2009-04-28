@@ -31,6 +31,10 @@ public class CompileDump implements DumpReader.Processor {
 		String name = rec.getString(iname);
 		System.out.println(name);
 
+		compile(source, name);
+	}
+
+	public static void compile(String source, String name) {
 		Lexer lexer = new Lexer(source);
 		CompileGenerator generator = new CompileGenerator(name);
 		ParseConstant<Object, Generator<Object>> pc =

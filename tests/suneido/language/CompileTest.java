@@ -43,6 +43,10 @@ public class CompileTest {
  				"a, callN, ARETURN");
 		test("a(b, c)",
  				"a, b, c, callN, ARETURN");
+		test("a(b, x: c)",
+				"a, b, NAMED, 'x', c, callN, ARETURN");
+		test("a(b, x:)",
+				"a, b, NAMED, 'x', true, callN, ARETURN");
 		test("a.Size()",
  				"a, 'Size', invokeN, ARETURN");
 		test("return a.Size()",
@@ -61,6 +65,20 @@ public class CompileTest {
 				"&a, x, null?, AASTORE, x, null?, ARETURN");
 		test("a = b = c; return x",
 				"&a, &b, c, DUP_X2, AASTORE, AASTORE, x, null?, ARETURN");
+		test("-(a = b)",
+				"&a, b, DUP_X2, AASTORE, uminus, ARETURN");
+		test("123 is (a = b)",
+				"123, &a, b, DUP_X2, AASTORE, is, ARETURN");
+		test("(a = b) is 123",
+				"&a, b, DUP_X2, AASTORE, 123, is, ARETURN");
+		test("123 is (a = b)",
+				"123, &a, b, DUP_X2, AASTORE, is, ARETURN");
+		test("(a = b) ? (b = 123) : (c = 456)",
+				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, "
+						+ "&b, 123, DUP_X2, AASTORE, GOTO L2, "
+						+ "L1, &c, 456, DUP_X2, AASTORE, L2, ARETURN");
+		test("a(b = c)",
+				"a, &b, c, DUP_X2, AASTORE, callN, ARETURN");
 		test("return this",
  				"this, ARETURN");
 		test("a += b;;",
@@ -79,6 +97,10 @@ public class CompileTest {
 			"this, 'Test_x', getMem, ARETURN");
 		test(".f()",
 			"this, 'Test_f', invokeN, ARETURN");
+		test("this.f()",
+			"this, 'Test_f', invokeN, ARETURN");
+		//		test("this[a]()",
+		//			"this, a, invokeN, ARETURN");
 		test("a.x = b;;",
  				"a, 'x', b, putMem");
 		test("a.x = b",
@@ -264,6 +286,7 @@ public class CompileTest {
 			{ " (Object;Object;)Number;", "" },
 			{ " (Object;Object;)String;", "" },
 			{ " (Object;Object;)Boolean;", "" },
+			{ " (Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;)Object;", "" },
 			{ " (Object;String;)Object;", "" },
 			{ " (Object;String;Object;)Object;", "" },
@@ -291,6 +314,7 @@ public class CompileTest {
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
+			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

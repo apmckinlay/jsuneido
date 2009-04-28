@@ -86,6 +86,8 @@ public class ClassTest {
 		test("B.F", "B.F");
 		test("B.N", "123");
 		notFound("B.M");
+
+		defineClass("A", "class { New(args) { super(@args) } }");
 	}
 	@Test public void test_static_getter() {
 		defineClass("A", "class { " +

@@ -195,7 +195,7 @@ c.cv = new CheckClassAdapter(c.cv);
 
 		c.cv.visitEnd();
 
-		if (pw != null)
+		//		if (pw != null)
 			dump(c.cw.toByteArray());
 
 		Loader loader = new Loader();
@@ -770,20 +770,14 @@ c.cv = new CheckClassAdapter(c.cv);
 	 * we need the value we have to dup before storing but we don't know if we
 	 * need the value until later, thus the delay
 	 */
+	public void rvalue(Object expr) {
+		dupAndStore(expr);
+	}
 	private void dupAndStore(Object expr) {
 		if (!(expr instanceof Value.Type))
 			return;
 		c.f.mv.visitInsn(DUP_X2);
 		store(expr);
-	}
-
-	private void load(Object type) {
-		if (type == IDENTIFIER)
-			c.f.mv.visitInsn(AALOAD);
-		else if (type == MEMBER || type == SUBSCRIPT)
-			getMember();
-		else
-			throw new SuException("unknown load type: " + type);
 	}
 
 	private void store(Object type) {
@@ -795,12 +789,23 @@ c.cv = new CheckClassAdapter(c.cv);
 			throw new SuException("unknown store type: " + type);
 	}
 
+	private void load(Object type) {
+		if (type == IDENTIFIER)
+			c.f.mv.visitInsn(AALOAD);
+		else if (type == MEMBER || type == SUBSCRIPT)
+			getMember();
+		else
+			throw new SuException("unknown load type: " + type);
+	}
+
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
+		dupAndStore(expr2);
 		binaryMethod(op);
 		return VALUE;
 	}
 
 	public Object unaryExpression(Token op, Object expression) {
+		dupAndStore(expression);
 		switch (op) {
 		case SUB:
 			unaryMethod("uminus", "Number");
@@ -828,10 +833,10 @@ c.cv = new CheckClassAdapter(c.cv);
 		int nargs = arguments == null ? 0 : (Integer) arguments;
 		if (value.thisOrSuper == ThisOrSuper.SUPER)
 			invokeSuperInit(nargs);
-		else if (value.id == null)
-			invokeFunction(nargs);
-		else
+		else if (value.type == MEMBER || value.type == SUBSCRIPT)
 			invokeMethod(nargs);
+		else
+			invokeFunction(nargs);
 		return CALLRESULT;
 	}
 
@@ -859,6 +864,7 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	public Object argumentList(Object list, String keyword, Object expression) {
+		dupAndStore(expression);
 		int n = (list == null ? 0 : (Integer) list);
 		return n + (keyword == null ? 1 : 3);
 	}
@@ -873,7 +879,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		specialArg(n.charAt(0) == '1' ? "EACH1" : "EACH");
 	}
 	public Object atArgument(String n, Object expr) {
-		return null;
+		dupAndStore(expr);
+		return 2;
 	}
 	private void specialArg(String which) {
 		c.f.mv.visitFieldInsn(GETSTATIC, "suneido/language/Args$Special",

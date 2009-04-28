@@ -341,4 +341,7 @@ public class StringGenerator implements Generator<String> {
 	public void addSuperInit() {
 	}
 
+	public void rvalue(String expr) {
+	}
+
 }

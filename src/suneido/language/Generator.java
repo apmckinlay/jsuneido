@@ -137,4 +137,6 @@ public interface Generator<T> {
 
 	void addSuperInit();
 
+	void rvalue(T expr);
+
 }
