@@ -95,8 +95,8 @@ public class CompileTest {
  				"&a, DUP2, AALOAD, sub1, AASTORE");
 		test("a++",
  				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, ARETURN");
-		test("a++;;",
- 				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, POP");
+		test("a--;;",
+ 				"&a, DUP2, AALOAD, DUP_X2, sub1, AASTORE, POP");
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
 		test(".x",
@@ -188,8 +188,8 @@ public class CompileTest {
 		test("forever { a; continue; b }",
 				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
 		test("for (a in b) c",
-				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
-//		compile("for (a in b) try c catch ;");
+				"b, iterator, ASTORE 3, L1, ALOAD 3, hasNext, IFFALSE L2, ALOAD 3, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
+		compile("for (a in b) try c catch ;");
 	}
 	@Test public void test_switch() {
 		test("switch (a) { }",
