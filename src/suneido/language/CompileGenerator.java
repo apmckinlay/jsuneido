@@ -58,6 +58,7 @@ public class CompileGenerator implements Generator<Object> {
 				ARGS = 2;
 				CONSTANTS = 3;
 			}
+			forInTmp = CONSTANTS + 1;
 		}
 
 		final String name;
@@ -78,10 +79,12 @@ public class CompileGenerator implements Generator<Object> {
 		final int ARGS;
 		final int SELF;
 		final int CONSTANTS;
+		int forInTmp;
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
 		public Label breakLabel = new Label();
+		public int var;
 	}
 	static final Object Block = new Object();
 
@@ -1152,15 +1155,20 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"iterator",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
+		c.f.mv.visitVarInsn(ASTORE, c.f.forInTmp);
+
 		Object loop = loop();
-		c.f.mv.visitInsn(DUP);
+
+		c.f.mv.visitVarInsn(ALOAD, c.f.forInTmp);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "hasNext",
 				"(Ljava/lang/Object;)Z");
 		gotoBreak(IFFALSE, loop);
-		c.f.mv.visitInsn(DUP);
+
+		c.f.mv.visitVarInsn(ALOAD, c.f.forInTmp);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
 		saveTopInVar(var);
+		++c.f.forInTmp;
 		return loop;
 	}
 
@@ -1174,8 +1182,8 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	public Object forInStatement(String var, Object expr, Object statement,
 			Object loop) {
+		--c.f.forInTmp;
 		endLoop(statement, loop);
-		c.f.mv.visitInsn(POP); // pop iterator
 		return null;
 	}
 
