@@ -45,7 +45,9 @@ public class SuMethod extends SuValue {
 			return true;
 		if (other instanceof SuMethod) {
 			SuMethod that = (SuMethod) other;
-			return instance.equals(that.instance) && method.equals(that.method);
+			return method.equals(that.method)
+					&& (instance == null ? that.instance == null
+							: instance.equals(that.instance));
 		}
 		return false;
 	}

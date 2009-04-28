@@ -79,6 +79,8 @@ public class CompileTest {
 						+ "L1, &c, 456, DUP_X2, AASTORE, L2, ARETURN");
 		test("a(b = c)",
 				"a, &b, c, DUP_X2, AASTORE, callN, ARETURN");
+		test("a[b = c]",
+				"a, &b, c, DUP_X2, AASTORE, getMem, ARETURN");
 		test("return this",
  				"this, ARETURN");
 		test("a += b;;",
@@ -86,11 +88,15 @@ public class CompileTest {
 		test("a *= b;;",
  				"&a, b, a, mul, AASTORE");
 		test("++a;;",
- 				"&a, DUP2, AALOAD, add1, DUP_X2, AASTORE, POP");
+				"&a, DUP2, AALOAD, add1, AASTORE");
+		test("++a",
+				"&a, DUP2, AALOAD, add1, DUP_X2, AASTORE, ARETURN");
 		test("--a;;",
- 				"&a, DUP2, AALOAD, sub1, DUP_X2, AASTORE, POP");
+ 				"&a, DUP2, AALOAD, sub1, AASTORE");
 		test("a++",
  				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, ARETURN");
+		test("a++;;",
+ 				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, POP");
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
 		test(".x",
@@ -173,12 +179,17 @@ public class CompileTest {
 				"b, POP, L1, c, bool, IFFALSE L2, a, POP, GOTO L1, L2");
 		test("for(b;c;a) a",
 				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
+		test("for (a = 0; a < 4; ++i) b",
+				"&a, 0, AASTORE, GOTO L1, "
+				+ "L2, vars, 3, DUP2, AALOAD, add1, AASTORE, "
+				+ "L1, a, 4, lt_, IFFALSE L3, b, POP, GOTO L2, L3");
 		test("forever { a; break; b }",
 				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
 		test("forever { a; continue; b }",
 				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
 		test("for (a in b) c",
 				"b, iterator, L1, DUP, hasNext, IFFALSE L2, DUP, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2, POP");
+//		compile("for (a in b) try c catch ;");
 	}
 	@Test public void test_switch() {
 		test("switch (a) { }",
@@ -268,9 +279,7 @@ public class CompileTest {
 			{ "ALOAD 0", "this" },
 			{ "ALOAD 1", "vars" },
 			{ "ALOAD 2", "const" },
-			{ "ICONST_0", "0" },
-			{ "ICONST_1", "1" },
-			{ "ICONST_2", "2" },
+			{ "ICONST_", "" },
 			{ ", ACONST_NULL, ARETURN", "" },
 			{ "ACONST_NULL", "null" },
 			{ "ANEWARRAY Object", "new Object[]" },
@@ -308,8 +317,9 @@ public class CompileTest {
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
 			{ "NEW suneido/language/SuBlock, DUP, this, DUP, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
-			{ "BIPUSH 123, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "123" },
-			{ "SIPUSH 456, INVOKESTATIC java/lang/Integer.valueOf (I)Integer;", "456" },
+			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
+			{ "BIPUSH ", "" },
+			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
 			{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
 			{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
