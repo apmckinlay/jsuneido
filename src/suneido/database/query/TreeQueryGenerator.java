@@ -479,4 +479,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	public void addSuperInit() {
 	}
 
+	public void rvalue(Object expr) {
+	}
+
 }

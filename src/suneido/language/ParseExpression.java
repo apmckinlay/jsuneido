@@ -49,6 +49,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == OR) {
 			matchSkipNewlines();
 			label = generator.or(label);
+			generator.rvalue(result);
 			result = generator.or(result, andExpression());
 		}
 		generator.orEnd(label);
@@ -61,6 +62,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == AND) {
 			matchSkipNewlines();
 			label = generator.and(label);
+			generator.rvalue(result);
 			result = generator.and(result, inExpression());
 		}
 		generator.andEnd(label);
@@ -85,6 +87,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		T result = bitxorExpression();
 		while (token == BITOR) {
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(BITOR, result, bitxorExpression());
 		}
 		return result;
@@ -94,6 +97,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		T result = bitandExpression();
 		while (token == BITXOR) {
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(BITXOR, result, bitandExpression());
 		}
 		return result;
@@ -103,6 +107,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		T result = isExpression();
 		while (token == BITAND) {
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(BITAND, result, isExpression());
 		}
 		return result;
@@ -115,6 +120,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				(EQ_as_IS && token == EQ)) {
 			Token op = (token == EQ ? IS : token);
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(op, result, compareExpression());
 		}
 		return result;
@@ -125,6 +131,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == LT || token == LTE || token == GT || token == GTE) {
 			Token op = token;
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(op, result, shiftExpression());
 		}
 		return result;
@@ -135,6 +142,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == LSHIFT || token == RSHIFT) {
 			Token op = token;
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(op, result, addExpression());
 		}
 		return result;
@@ -145,6 +153,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == ADD || token == SUB || token == CAT) {
 			Token op = token;
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(op, result, mulExpression());
 		}
 		return result;
@@ -155,6 +164,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == MUL || token == DIV || token == MOD) {
 			Token op = token;
 			matchSkipNewlines();
+			generator.rvalue(result);
 			result = generator.binaryExpression(op, result, unaryExpression());
 		}
 		return result;
@@ -195,20 +205,17 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			expr = null;
 			thisOrSuper = null;
 		}
-		void member(String id) {
-			member(id, null);
-		}
 		void member(String id, ThisOrSuper thisOrSuper) {
 			type = Type.MEMBER;
 			this.id = id;
 			expr = null;
 			this.thisOrSuper = thisOrSuper;
 		}
-		void subscript(T expr) {
+		void subscript(T expr, ThisOrSuper thisOrSuper) {
 			type = Type.SUBSCRIPT;
 			id = null;
 			this.expr = expr;
-			thisOrSuper = null;
+			this.thisOrSuper = thisOrSuper;
 		}
 		void clear() {
 			type = null;
@@ -327,7 +334,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				value.subscript(expression());
+				value.subscript(expression(), thisOrSuper);
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
 				if (value.isIdentifier()) {
@@ -420,7 +427,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			T value;
 			if (keyword != null &&
 					(token == COMMA || token == closing || lookAhead() == COLON))
-				value = generator.bool(true);
+				value = generator.constant(generator.bool(true));
 			else
 				value = expression();
 			args = generator.argumentList(args, keyword, value);
