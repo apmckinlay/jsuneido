@@ -1254,6 +1254,7 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	public Object throwStatement(Object expression) {
+		dupAndStore(expression);
 		// stack: value
 		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
 		// stack: exception, value
@@ -1262,7 +1263,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(SWAP);
 		// stack: value, exception, exception
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
-				"(Ljava/lang/String;)V");
+				"(Ljava/lang/Object;)V");
 		// stack: exception
 		c.f.mv.visitInsn(ATHROW);
 		return null;

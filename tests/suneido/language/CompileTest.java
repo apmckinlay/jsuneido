@@ -204,6 +204,8 @@ public class CompileTest {
 	@Test public void test_exceptions() {
 		test("throw 'oops'",
 				"'oops', throw");
+		test("throw a", 
+				"a, throw");
 		test("try 123",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, L3, try L1 L2 L4");
 		test("try 123 catch 456",
@@ -321,7 +323,9 @@ public class CompileTest {
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
-			{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW", "throw" },
+			{
+								"NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW",
+								"throw" },
 			{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
 			{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
 			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
