@@ -2,14 +2,15 @@ package suneido;
 
 /**
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class SuException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 	String s;
 
-	public SuException(String s) {
-		this.s = s;
+	public SuException(Object e) {
+		this.s = e.toString();
 	}
 
 	public SuException(String s, Throwable e) {
