@@ -21,6 +21,12 @@ public class CompileTest {
 				"null, ARETURN");
 		test("123",
 				"123, ARETURN");
+		test("0xffffffff",
+				"-1, ARETURN");
+		test("037777777777",
+				"-1, ARETURN");
+		test("0.1",
+				"0=.1, ARETURN");
 		test("return 123",
  				"123, ARETURN");
 		test("b;;",
@@ -204,7 +210,7 @@ public class CompileTest {
 	@Test public void test_exceptions() {
 		test("throw 'oops'",
 				"'oops', throw");
-		test("throw a", 
+		test("throw a",
 				"a, throw");
 		test("try 123",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, L3, try L1 L2 L4");
@@ -281,6 +287,7 @@ public class CompileTest {
 			{ "ALOAD 0", "this" },
 			{ "ALOAD 1", "vars" },
 			{ "ALOAD 2", "const" },
+			{ "ICONST_M1", "-1" },
 			{ "ICONST_", "" },
 			{ ", ACONST_NULL, ARETURN", "" },
 			{ "ACONST_NULL", "null" },
