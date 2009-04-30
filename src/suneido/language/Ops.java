@@ -311,9 +311,9 @@ public class Ops {
 
 	public static Number stringToNumber(String s) {
 		if (s.startsWith("0x"))
-			return Integer.parseInt(s.substring(2), 16);
-		else if (s.startsWith("0"))
-			return Integer.parseInt(s, 8);
+			return (int) Long.parseLong(s.substring(2), 16);
+		else if (s.startsWith("0") && s.indexOf('.') == -1)
+			return (int) Long.parseLong(s, 8);
 		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
 				&& s.indexOf("E") == -1 && s.length() < 10)
 			return Integer.parseInt(s);
