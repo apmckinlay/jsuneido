@@ -28,10 +28,9 @@ public enum Token {
 	LSHIFT("<<", INFIX, N), RSHIFT(">>", INFIX, N),
 	BITOR("|", INFIX, N), BITAND("&", INFIX, N), BITXOR("^", INFIX, N),
 	EQ("=", ASSIGN),
-	ADDEQ("+=", ASSIGNC, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, S), 
-	MULEQ("*=", ASSIGNC, N), DIVEQ("/=", ASSIGN, N), MODEQ("%=", ASSIGN, N),
+	ADDEQ("+=", ASSIGN, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, S), MULEQ("*=", ASSIGN, N), DIVEQ("/=", ASSIGN, N), MODEQ("%=", ASSIGN, N),
 	LSHIFTEQ("<<=", ASSIGN, N), RSHIFTEQ(">>=", ASSIGN, N),
-	BITOREQ("|=", ASSIGNC, N), BITANDEQ("&=", ASSIGNC, N), BITXOREQ("^=", ASSIGNC, N),
+	BITOREQ("|=", ASSIGN, N), BITANDEQ("&=", ASSIGN, N), BITXOREQ("^=", ASSIGN, N),
 	// keywords
 	IF("if"), ELSE("else"),
 	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
@@ -88,20 +87,16 @@ public enum Token {
 		return ordinal() < IF.ordinal();
 	}
 	public boolean infix() {
-		return feature == INFIX || feature == TERMOP || feature == ASSIGN
-				|| feature == ASSIGNC;
+		return feature == INFIX || feature == TERMOP || feature == ASSIGN;
 	}
 	public boolean assign() {
-		return feature == ASSIGN || feature == ASSIGNC;
+		return feature == ASSIGN;
 	}
 	public boolean sumop() {
 		return feature == SUMOP;
 	}
 	public boolean termop() {
 		return feature == TERMOP;
-	}
-	public boolean commutative() {
-		return feature == ASSIGNC;
 	}
 
 	static final Map<String, Token> keywords = new HashMap<String, Token>();

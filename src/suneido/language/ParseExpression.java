@@ -355,7 +355,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		} else if (assign()) {
 			Token op = token;
 			matchSkipNewlines();
-			generator.lvalue(value);
+			generator.lvalueForAssign(value, op);
 			T expr = expression();
 			term = generator.assignment(term, value, op, expr);
 		} else if (token == INC || token == DEC) {

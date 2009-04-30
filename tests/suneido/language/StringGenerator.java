@@ -345,4 +345,7 @@ public class StringGenerator implements Generator<String> {
 		return expr;
 	}
 
+	public void lvalueForAssign(Value<String> value, Token op) {
+	}
+
 }

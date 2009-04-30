@@ -61,6 +61,10 @@ public class CompileTest {
  				"a, 'Size', invokeN, ARETURN");
 		test("a.Substr(b, c)",
  				"a, 'Substr', b, c, invokeN, ARETURN");
+		test("a = b",
+ 				"&a, b, DUP_X2, AASTORE, ARETURN");
+		test("a *= b",
+ 				"&a, DUP2, AALOAD, b, mul, DUP_X2, AASTORE, ARETURN");
 		test("a = b $ c",
  				"&a, b, c, cat, DUP_X2, AASTORE, ARETURN");
 		test("a = b = c",
@@ -91,10 +95,6 @@ public class CompileTest {
 				"a, &b, c, DUP_X2, AASTORE, getMem, ARETURN");
 		test("return this",
  				"this, ARETURN");
-		test("a += b;;",
- 				"&a, b, a, add, AASTORE");
-		test("a *= b;;",
- 				"&a, b, a, mul, AASTORE");
 		test("++a;;",
 				"&a, DUP2, AALOAD, add1, AASTORE");
 		test("++a",
@@ -125,6 +125,8 @@ public class CompileTest {
  				"a, b, getMem, ARETURN");
 		test("a[b] = c;;",
  				"a, b, c, putMem");
+		test("a[b] *= c;;",
+ 				"a, b, DUP2, getMem, c, mul, putMem");
 		test("G",
  				"'G', global, ARETURN");
 		test("G()",
