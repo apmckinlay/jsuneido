@@ -483,4 +483,7 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return expr;
 	}
 
+	public void lvalueForAssign(Value<Object> value, Token op) {
+	}
+
 }

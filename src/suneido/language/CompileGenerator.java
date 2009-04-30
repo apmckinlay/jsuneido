@@ -690,6 +690,17 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
+	public void lvalueForAssign(Value<Object> value, Token op) {
+		lvalue(value);
+		if (op != Token.EQ) {
+			// stack: L1, L2, ...
+			c.f.mv.visitInsn(DUP2);
+			// stack: L1, L2, L1, L2, ...
+			load(value.type);
+			// stack: L, L1, L2, ...
+		}
+	}
+
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
 		dupAndStore(expression);
@@ -697,12 +708,8 @@ c.cv = new CheckClassAdapter(c.cv);
 			if (value.type == IDENTIFIER
 					&& (expression == LOCAL || expression == CALLRESULT))
 				addNullCheck(expression);
-		} else {
-			identifier(value.id);
-			if (!op.commutative())
-				c.f.mv.visitInsn(SWAP);
+		} else
 			binaryMethod(op);
-		}
 		return value.type;
 	}
 

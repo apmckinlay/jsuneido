@@ -1,6 +1,6 @@
 package suneido.language;
 
 public enum TokenFeature {
-	INFIX, ASSIGN, ASSIGNC, TERMOP, SUMOP;
+	INFIX, ASSIGN, TERMOP, SUMOP;
 	// ASSIGNC is for commutative assignment operators
 }
