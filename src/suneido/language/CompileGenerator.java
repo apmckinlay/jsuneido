@@ -198,7 +198,7 @@ c.cv = new CheckClassAdapter(c.cv);
 
 		c.cv.visitEnd();
 
-		//		if (pw != null)
+		if (pw != null)
 			dump(c.cw.toByteArray());
 
 		Loader loader = new Loader();

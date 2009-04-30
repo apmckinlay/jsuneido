@@ -49,6 +49,8 @@ public class CompileTest {
  				"a, callN, ARETURN");
 		test("a(b, c)",
  				"a, b, c, callN, ARETURN");
+		test("a(b = c)",
+ 				"a, &b, c, DUP_X2, AASTORE, callN, ARETURN");
 		test("a(b, x: c)",
 				"a, b, NAMED, 'x', c, callN, ARETURN");
 		test("a(b, x:)",
@@ -173,8 +175,12 @@ public class CompileTest {
 	@Test public void test_loops() {
 		test("do a while (b)",
 				"L1, a, POP, b, bool, IFTRUE L1, L2");
+		test("do a while (b = c)",
+				"L1, a, POP, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L2");
 		test("while (a) b",
 				"L1, a, bool, IFFALSE L2, b, POP, GOTO L1, L2");
+		test("while (a = b) c",
+				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, POP, GOTO L1, L2");
 		test("forever a",
 				"L1, a, POP, GOTO L1, L2");
 		test("for(;;) a",
@@ -183,6 +189,8 @@ public class CompileTest {
 				"b, POP, L1, a, POP, GOTO L1, L2");
 		test("for(b;c;) a",
 				"b, POP, L1, c, bool, IFFALSE L2, a, POP, GOTO L1, L2");
+		test("for(; a = b;) c",
+				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, POP, GOTO L1, L2");
 		test("for(b;c;a) a",
 				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
 		test("for (a = 0; a < 4; ++i) b",
@@ -202,8 +210,8 @@ public class CompileTest {
 				"a, POP, L1");
 		test("switch (a) { default: b }",
 				"a, POP, b, POP, GOTO L1, POP, L1");
-		test("switch (a) { case 123: b }",
-				"a, DUP, 123, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
+		test("switch (a = b) { case 123: b }",
+				"&a, b, DUP_X2, AASTORE, DUP, 123, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
 		test("switch (a) { case 123,456: b }",
 				"a, DUP, 123, is_, IFTRUE L1, DUP, 456, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
 	}
@@ -212,6 +220,8 @@ public class CompileTest {
 				"'oops', throw");
 		test("throw a",
 				"a, throw");
+		test("throw a = b",
+				"&a, b, DUP_X2, AASTORE, throw");
 		test("try 123",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, L3, try L1 L2 L4");
 		test("try 123 catch 456",

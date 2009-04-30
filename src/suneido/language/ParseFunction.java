@@ -302,7 +302,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private T switchStatement(Object loop) {
 		match(SWITCH);
 		Object labels = generator.startSwitch();
-		T expr = optionalParensExpression();
+		T expr = generator.rvalue(optionalParensExpression());
 		T cases = null;
 		match(L_CURLY);
 		while (matchIf(CASE))
