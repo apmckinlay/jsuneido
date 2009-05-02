@@ -193,42 +193,42 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	public static class Value<T> {
 		public enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
 		public enum ThisOrSuper { THIS, SUPER };
-		Type type = null;
-		String id;
-		T expr;
-		ThisOrSuper thisOrSuper;
+		public Type type = null;
+		public String id;
+		public T expr;
+		public ThisOrSuper thisOrSuper;
 
-		void identifier(String id) {
+		public void identifier(String id) {
 			type = Type.IDENTIFIER;
 			this.id = id;
 			expr = null;
 			thisOrSuper = null;
 		}
-		void member(String id, ThisOrSuper thisOrSuper) {
+		public void member(String id, ThisOrSuper thisOrSuper) {
 			type = Type.MEMBER;
 			this.id = id;
 			expr = null;
 			this.thisOrSuper = thisOrSuper;
 		}
-		void subscript(T expr, ThisOrSuper thisOrSuper) {
+		public void subscript(T expr, ThisOrSuper thisOrSuper) {
 			type = Type.SUBSCRIPT;
 			id = null;
 			this.expr = expr;
 			this.thisOrSuper = thisOrSuper;
 		}
-		void clear() {
+		public void clear() {
 			type = null;
 			id = null;
 			expr = null;
 			thisOrSuper = null;
 		}
-		boolean isSet() {
+		public boolean isSet() {
 			return type != null;
 		}
-		boolean isIdentifier() {
+		public boolean isIdentifier() {
 			return type == Type.IDENTIFIER;
 		}
-		boolean isMember() {
+		public boolean isMember() {
 			return type == Type.MEMBER;
 		}
 	}

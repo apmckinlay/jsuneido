@@ -3,6 +3,7 @@ package suneido.language;
 import suneido.SuException;
 import suneido.database.DumpReader;
 import suneido.database.Record;
+import suneido.database.query.StringGenerator;
 
 public class ParseDump implements DumpReader.Processor {
 

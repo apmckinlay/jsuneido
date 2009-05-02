@@ -18,7 +18,7 @@ import suneido.database.query.TreeQueryGenerator.MemDef;
 import suneido.language.ParseExpression.Value;
 import suneido.language.ParseExpression.Value.ThisOrSuper;
 
-public class CompileGenerator implements Generator<Object> {
+public class CompileGenerator extends Generator<Object> {
 	private final String globalName;
 	enum TopType { CLASS, OBJECT, FUNCTION };
 	private TopType topType = null;
@@ -101,30 +101,44 @@ public class CompileGenerator implements Generator<Object> {
 
 	// constants
 
+
+	@Override
 	public Object bool(boolean value) {
 		return value ? Boolean.TRUE : Boolean.FALSE;
 	}
 
+
+	@Override
 	public Object number(String value) {
 		return Ops.stringToNumber(value);
 	}
 
+
+	@Override
 	public Object string(String value) {
 		return value;
 	}
 
+
+	@Override
 	public Object symbol(String value) {
 		return value; // same as string for now
 	}
 
+
+	@Override
 	public Object date(String value) {
 		return Ops.stringToDate(value);
 	}
 
+
+	@Override
 	public Object object(MType which, Object members) {
 		return members;
 	}
 
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object memberList(MType which, Object list, Object member) {
 		MemDef m = (MemDef) member;
@@ -146,10 +160,14 @@ public class CompileGenerator implements Generator<Object> {
 		}
 	}
 
+
+	@Override
 	public Object memberDefinition(Object name, Object value) {
 		return new MemDef(name, value);
 	}
 
+
+	@Override
 	public void startClass() {
 		if (topType == null)
 			topType = TopType.CLASS;
@@ -190,10 +208,14 @@ c.cv = new CheckClassAdapter(c.cv);
 			return cstack.peek().name + "_c" + c.iClass++;
 	}
 
+
+	@Override
 	public Object classConstant(String base, Object members) {
 		return finishClass(base, members);
 	}
 
+
+	@Override
 	public void finish() {
 		// needed for object constants containing functions
 		if (c != null)
@@ -322,6 +344,8 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	// functions
 
+
+	@Override
 	public void startFunction(Object name) {
 		if (topType == null) {
 			topType = TopType.FUNCTION;
@@ -354,6 +378,8 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 
+
+	@Override
 	public Object startBlock() {
 		assert topType != null;
 		assert c.f != null;
@@ -409,6 +435,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		return name;
 	}
 
+
+	@Override
 	public Object parameters(Object list, String name, Object defaultValue) {
 		if (c.f.atParam = name.startsWith("@"))
 			name = name.substring(1, name.length());
@@ -468,6 +496,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitVarInsn(ASTORE, c.f.CONSTANTS);
 	}
 
+
+	@Override
 	public Object returnStatement(Object expr, Object context) {
 		if (expr == null)
 			c.f.mv.visitInsn(ACONST_NULL);
@@ -502,6 +532,8 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	/// called at the end of a function
+
+	@Override
 	public Object function(Object params, Object compound) {
 
 		finishMethod(compound);
@@ -590,6 +622,8 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	// expressions
 
+
+	@Override
 	public Object constant(Object value) {
 		if (value == Boolean.TRUE || value == Boolean.FALSE)
 			getBoolean(value == Boolean.TRUE ? "TRUE" : "FALSE");
@@ -630,6 +664,8 @@ c.cv = new CheckClassAdapter(c.cv);
 			mv.visitLdcInsn(i);
 	}
 
+
+	@Override
 	public Object identifier(String name) {
 		if (name.equals("this"))
 			selfRef();
@@ -664,29 +700,39 @@ c.cv = new CheckClassAdapter(c.cv);
 		return i;
 	}
 
+
+	@Override
 	public Object member(Object term, Value<Object> value) {
 		c.f.mv.visitLdcInsn(privatize(value));
 		getMember();
 		return VALUE;
 	}
 
+
+	@Override
 	public Object subscript(Object term, Object expr) {
 		dupAndStore(expr);
 		getMember();
 		return VALUE;
 	}
 
+
+	@Override
 	public Object selfRef() {
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		return VALUE;
 	}
 
+
+	@Override
 	public Object superRef() {
 		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		return VALUE;
 	}
 
+
+	@Override
 	public void lvalue(Value<Object> value) {
 		switch (value.type) {
 		case IDENTIFIER:
@@ -704,6 +750,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
+
+	@Override
 	public void lvalueForAssign(Value<Object> value, Token op) {
 		lvalue(value);
 		if (op != Token.EQ) {
@@ -715,6 +763,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
+
+	@Override
 	public Object assignment(Object term, Value<Object> value, Token op,
 			Object expression) {
 		dupAndStore(expression);
@@ -759,6 +809,7 @@ c.cv = new CheckClassAdapter(c.cv);
 				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
 	}
 
+	@Override
 	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
 		// stack: i args (or: member object)
 		c.f.mv.visitInsn(DUP2);
@@ -769,6 +820,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return value.type;
 	}
 
+	@Override
 	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
 		// stack: i args
 		c.f.mv.visitInsn(DUP2);
@@ -789,6 +841,8 @@ c.cv = new CheckClassAdapter(c.cv);
 	 * we need the value we have to dup before storing but we don't know if we
 	 * need the value until later, thus the delay
 	 */
+
+	@Override
 	public Object rvalue(Object expr) {
 		dupAndStore(expr);
 		return VALUE;
@@ -818,12 +872,14 @@ c.cv = new CheckClassAdapter(c.cv);
 			throw new SuException("unknown load type: " + type);
 	}
 
+	@Override
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
 		dupAndStore(expr2);
 		binaryMethod(op);
 		return VALUE;
 	}
 
+	@Override
 	public Object unaryExpression(Token op, Object expression) {
 		dupAndStore(expression);
 		switch (op) {
@@ -846,6 +902,8 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	// MAYBE call private methods directly, bypassing invoke
+
+	@Override
 	public void preFunctionCall(Value<Object> value) {
 		if (value.isMember())
 			c.f.mv.visitLdcInsn(privatize(value));
@@ -854,6 +912,7 @@ c.cv = new CheckClassAdapter(c.cv);
 					"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
 	}
 
+	@Override
 	public Object functionCall(Object function, Value<Object> value,
 			Object arguments) {
 		int nargs = arguments == null ? 0 : (Integer) arguments;
@@ -889,21 +948,26 @@ c.cv = new CheckClassAdapter(c.cv);
 						+ ")Ljava/lang/Object;");
 	}
 
+	@Override
 	public Object argumentList(Object list, String keyword, Object expression) {
 		dupAndStore(expression);
 		int n = (list == null ? 0 : (Integer) list);
 		return n + (keyword == null ? 1 : 3);
 	}
 
+	@Override
 	public void argumentName(String name) {
 		specialArg("NAMED");
 		constant(string(name));
 	}
 
+	@Override
 	public void atArgument(String n) {
 		assert "0".equals(n) || "1".equals(n);
 		specialArg(n.charAt(0) == '1' ? "EACH1" : "EACH");
 	}
+
+	@Override
 	public Object atArgument(String n, Object expr) {
 		dupAndStore(expr);
 		return 2;
@@ -914,12 +978,15 @@ c.cv = new CheckClassAdapter(c.cv);
 				"Lsuneido/language/Args$Special;");
 	}
 
+	@Override
 	public Object and(Object prev) {
 		getBoolean("FALSE");
 		Label label = (prev == null ? new Label() : (Label) prev);
 		c.f.mv.visitJumpInsn(IF_ACMPEQ, label);
 		return label;
 	}
+
+	@Override
 	public void andEnd(Object label) {
 		if (label == null)
 			return;
@@ -935,16 +1002,21 @@ c.cv = new CheckClassAdapter(c.cv);
 				"java/lang/Boolean", which,
 				"Ljava/lang/Boolean;");
 	}
+
+	@Override
 	public Object and(Object expr1, Object expr2) {
 		return VALUE;
 	}
 
+	@Override
 	public Object or(Object prev) {
 		getBoolean("TRUE");
 		Label label = (prev == null ? new Label() : (Label) prev);
 		c.f.mv.visitJumpInsn(IF_ACMPEQ, label);
 		return label;
 	}
+
+	@Override
 	public void orEnd(Object label) {
 		if (label == null)
 			return;
@@ -954,14 +1026,19 @@ c.cv = new CheckClassAdapter(c.cv);
 		getBoolean("TRUE");
 		c.f.mv.visitLabel(l0);
 	}
+
+	@Override
 	public Object or(Object expr1, Object expr2) {
 		return VALUE;
 	}
 
+	@Override
 	public Object conditionalTrue(Object label, Object first) {
 		dupAndStore(first);
 		return ifElse(label);
 	}
+
+	@Override
 	public Object conditional(Object primaryExpression, Object first,
 			Object second, Object label) {
 		dupAndStore(second);
@@ -969,14 +1046,19 @@ c.cv = new CheckClassAdapter(c.cv);
 		return VALUE;
 	}
 
+	@Override
 	public Object in(Object expression, Object constant) {
 		throw new SuException("'in' is only implemented for queries");
 	}
 
 	// COULD bypass invoke (like call does)
+
+	@Override
 	public void newCall() {
 		c.f.mv.visitLdcInsn("<new>");
 	}
+
+	@Override
 	public Object newExpression(Object term, Object arguments) {
 		int nargs = arguments == null ? 0 : (Integer) arguments;
 		invokeMethod(nargs);
@@ -986,6 +1068,8 @@ c.cv = new CheckClassAdapter(c.cv);
 	/**
 	 * pop any value left on the stack complete delayed assignment
 	 */
+
+	@Override
 	public void afterStatement(Object list) {
 		if (list instanceof Stack)
 			c.f.mv.visitInsn(POP);
@@ -995,10 +1079,12 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	// statements
 
+	@Override
 	public Object statementList(Object list, Object next) {
 		return next;
 	}
 
+	@Override
 	public void addSuperInit() {
 		if (!c.f.name.equals("_init"))
 			return;
@@ -1009,10 +1095,12 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(POP);
 	}
 
+	@Override
 	public Object expressionStatement(Object expression) {
 		return expression;
 	}
 
+	@Override
 	public Object ifExpr(Object expr) {
 		toBool(expr);
 		Label label = new Label();
@@ -1025,37 +1113,47 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toBool",
 				"(Ljava/lang/Object;)I");
 	}
+
+	@Override
 	public void ifThen(Object label, Object t) {
 		afterStatement(t);
 	}
+
+	@Override
 	public Object ifElse(Object pastThen) {
 		Label pastElse = new Label();
 		c.f.mv.visitJumpInsn(GOTO, pastElse);
 		c.f.mv.visitLabel((Label) pastThen);
 		return pastElse;
 	}
+
+	@Override
 	public Object ifStatement(Object expr, Object t, Object e, Object afterIf) {
 		afterStatement(e);
 		c.f.mv.visitLabel((Label) afterIf);
 		return null;
 	}
 
+	@Override
 	public Object loop() {
 		Loop loop = new Loop();
 		c.f.mv.visitLabel(loop.continueLabel);
 		return loop;
 	}
 
+	@Override
 	public void whileExpr(Object expr, Object loop) {
 		toBool(expr);
 		gotoBreak(IFFALSE, loop);
 	}
 
+	@Override
 	public Object whileStatement(Object expr, Object statement, Object loop) {
 		endLoop(statement, loop);
 		return null;
 	}
 
+	@Override
 	public void blockParams() {
 		if (c.f.nparams == 0) {
 			c.f.locals.add("it");
@@ -1063,6 +1161,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
+	@Override
 	public Object block(Object params, Object statements) {
 		if (c.f.auto_it_param && c.f.it_param_used)
 			c.f.nparams = 1;
@@ -1107,6 +1206,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			c.f.locals.set(i, "_" + c.f.locals.get(i));
 	}
 
+	@Override
 	public Object breakStatement(Object loop) {
 		if (loop == Block)
 			blockThrow("block:break");
@@ -1115,6 +1215,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return null;
 	}
 
+	@Override
 	public Object continueStatement(Object loop) {
 		if (loop == Block)
 			blockThrow("block:continue");
@@ -1132,6 +1233,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(ATHROW);
 	}
 
+	@Override
 	public Object dowhileStatement(Object body, Object expr, Object loop) {
 		toBool(expr);
 		gotoContinue(IFTRUE, loop);
@@ -1149,29 +1251,39 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitLabel(((Loop) loop).breakLabel);
 	}
 
+	@Override
 	public Object forStart() {
 		Label label = new Label();
 		c.f.mv.visitJumpInsn(GOTO, label);
 		return label;
 	}
+
+	@Override
 	public void forIncrement(Object label) {
 		if (label != null)
 			c.f.mv.visitLabel((Label) label);
 	}
+
+	@Override
 	public void forCondition(Object cond, Object loop) {
 		toBool(cond);
 		gotoBreak(IFFALSE, loop);
 	}
+
+	@Override
 	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
 			Object statement, Object loop) {
 		endLoop(statement, loop);
 		return null;
 	}
+
+	@Override
 	public Object expressionList(Object list, Object expression) {
 		afterStatement(expression);
 		return null;
 	}
 
+	@Override
 	public Object forInExpression(String var, Object expr) {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"iterator",
@@ -1201,6 +1313,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(AASTORE);
 	}
 
+	@Override
 	public Object forInStatement(String var, Object expr, Object statement,
 			Object loop) {
 		--c.f.forInTmp;
@@ -1208,6 +1321,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return null;
 	}
 
+	@Override
 	public Object foreverStatement(Object statement, Object loop) {
 		endLoop(statement, loop);
 		return null;
@@ -1224,9 +1338,13 @@ c.cv = new CheckClassAdapter(c.cv);
 		Label body;
 		Label next;
 	}
+
+	@Override
 	public Object startSwitch() {
 		return new SwitchLabels();
 	}
+
+	@Override
 	public void startCase(Object labels) {
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (slabels.next != null)
@@ -1234,9 +1352,13 @@ c.cv = new CheckClassAdapter(c.cv);
 		slabels.next = null;
 		slabels.body = null;
 	}
+
+	@Override
 	public void startCaseValue() {
 		c.f.mv.visitInsn(DUP);
 	}
+
+	@Override
 	public Object caseValues(Object values, Object expr, Object labels,
 			boolean more) {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "is_",
@@ -1253,18 +1375,24 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 		return null;
 	}
+
+	@Override
 	public void startCaseBody(Object labels) {
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (slabels.body != null)
 			c.f.mv.visitLabel(slabels.body);
 		c.f.mv.visitInsn(POP);
 	}
+
+	@Override
 	public Object switchCases(Object cases, Object values, Object statements,
 			Object labels) {
 		afterStatement(statements);
 		c.f.mv.visitJumpInsn(GOTO, ((SwitchLabels) labels).end);
 		return null;
 	}
+
+	@Override
 	public Object switchStatement(Object expr, Object cases, Object labels) {
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (slabels.next != null)
@@ -1274,6 +1402,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return null;
 	}
 
+	@Override
 	public Object throwStatement(Object expression) {
 		dupAndStore(expression);
 		// stack: value
@@ -1297,12 +1426,14 @@ c.cv = new CheckClassAdapter(c.cv);
 		Label label3 = new Label();
 	}
 
+	@Override
 	public Object startTry() {
 		TryCatch tc = new TryCatch();
 		c.f.mv.visitLabel(tc.label0);
 		return tc;
 	}
 
+	@Override
 	public void startCatch(String var, String pattern, Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
 		c.f.mv.visitLabel(tc.label1);
@@ -1324,11 +1455,12 @@ c.cv = new CheckClassAdapter(c.cv);
 			saveTopInVar(var);
 	}
 
+	@Override
 	public Object catcher(String var, String pattern, Object statement) {
 		return null;
 	}
 
-	// end of try-catch
+	@Override
 	public Object tryStatement(Object tryStatement, Object catcher,
 			Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
