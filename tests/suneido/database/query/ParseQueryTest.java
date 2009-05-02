@@ -64,7 +64,7 @@ public class ParseQueryTest {
 	private String parse(String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		StringQueryGenerator generator = new StringQueryGenerator();
+		StringGenerator generator = new StringGenerator();
 		ParseQuery<String, QueryGenerator<String>> pc =
 				new ParseQuery<String, QueryGenerator<String>>(lexer, generator);
 		return pc.parse();

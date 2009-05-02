@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.database.query.StringGenerator;
 
 public class ParseConstantTest {
 	@Test
