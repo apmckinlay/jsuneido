@@ -149,6 +149,8 @@ public class CompileTest {
 				"0=Test.Test_f0, ARETURN");
 		test("a = function () { }",
 				"&a, 0=Test.Test_f0, DUP_X2, AASTORE, ARETURN");
+		test("#(a: (b: function () { }))",
+				"0=#(a: #(b: Test.Test_f0)), ARETURN");
 		test("super.F()",
 				"this, this, 'F', superInvokeN, ARETURN");
 		test("A().B()",

@@ -1,7 +1,6 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
-import suneido.language.Generator.FuncOrBlock;
 
 /**
  * @author Andrew McKinlay
@@ -26,7 +25,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword(null);
 	}
 	protected T functionWithoutKeyword(T name) {
-		generator.startMethod(FuncOrBlock.FUNC, name);
+		generator.startFunction(name);
 		T params = parameters();
 		if (!superInit())
 			generator.addSuperInit();

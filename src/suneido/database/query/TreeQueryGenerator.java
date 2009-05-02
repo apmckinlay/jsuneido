@@ -377,8 +377,11 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 		return in;
 	}
 
-	public Object startMethod(FuncOrBlock which, Object name) {
-		return null;
+	public void startFunction(Object name) {
+	}
+
+	public Object startBlock() {
+		return true;
 	}
 
 	public void lvalue(Value<Object> value) {
@@ -484,6 +487,9 @@ public class TreeQueryGenerator implements QueryGenerator<Object> {
 	}
 
 	public void lvalueForAssign(Value<Object> value, Token op) {
+	}
+
+	public void finish() {
 	}
 
 }
