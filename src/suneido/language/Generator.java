@@ -30,8 +30,9 @@ public interface Generator<T> {
 
 	T function(T params, T compound);
 
-	enum FuncOrBlock { FUNC, BLOCK };
-	Object startMethod(FuncOrBlock funcOrBlock, T name);
+	void startFunction(T name);
+
+	Object startBlock();
 
 	T identifier(String text);
 
@@ -139,5 +140,7 @@ public interface Generator<T> {
 	void addSuperInit();
 
 	T rvalue(T expr);
+
+	void finish();
 
 }

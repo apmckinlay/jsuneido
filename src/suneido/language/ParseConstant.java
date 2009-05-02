@@ -12,7 +12,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public T parse() {
-		return matchReturn(EOF, constant());
+		T c = matchReturn(EOF, constant());
+		generator.finish();
+		return c;
 	}
 
 	public T constant() {

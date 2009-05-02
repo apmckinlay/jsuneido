@@ -1,7 +1,6 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
-import suneido.language.Generator.FuncOrBlock;
 import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
@@ -448,7 +447,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T block() {
-		Object loop = generator.startMethod(FuncOrBlock.BLOCK, null);
+		Object loop = generator.startBlock();
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
 		generator.blockParams();

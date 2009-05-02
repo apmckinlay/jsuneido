@@ -250,10 +250,11 @@ public class StringGenerator implements Generator<String> {
 		return value;
 	}
 
-	public Object startMethod(FuncOrBlock which, String name) {
-		if (which == FuncOrBlock.BLOCK)
-			return true; // non-null to allow break and continue
-		return null;
+	public void startFunction(String name) {
+	}
+
+	public Object startBlock() {
+		return true; // non-null to allow break and continue
 	}
 
 	public void lvalue(Value<String> value) {
@@ -346,6 +347,9 @@ public class StringGenerator implements Generator<String> {
 	}
 
 	public void lvalueForAssign(Value<String> value, Token op) {
+	}
+
+	public void finish() {
 	}
 
 }

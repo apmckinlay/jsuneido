@@ -140,6 +140,10 @@ public class ExecuteTest {
 		test("c = class { }; new c", "Test_c0()");
 		test("c = class { F() { 123 } }; c.F()", "123");
 	}
+	@Test
+	public void test_function_in_object() {
+		test("x = #(F: function (n) { n + 1 }); (x.F)(123)", "124");
+	}
 
 	public static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));

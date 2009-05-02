@@ -20,6 +20,8 @@ import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class CompileGenerator implements Generator<Object> {
 	private final String globalName;
+	enum TopType { CLASS, OBJECT, FUNCTION };
+	private TopType topType = null;
     private PrintWriter pw = null;
 	enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private static final String[] arrayString = new String[0];
@@ -35,7 +37,6 @@ public class CompileGenerator implements Generator<Object> {
 		String name;
 		ClassWriter cw;
 		ClassVisitor cv;
-		boolean isFunction;
 		String baseClass;
 		List<FunctionSpec> fspecs = null;
 		Function f = null; // the current function
@@ -45,6 +46,7 @@ public class CompileGenerator implements Generator<Object> {
 		int iBlock = 0;
 		int iFunction = 0;
 		boolean hasGetters = false;
+		List<SuMethod> suMethods = null;
 	}
 	private static class Function {
 		Function(String name) {
@@ -149,19 +151,19 @@ public class CompileGenerator implements Generator<Object> {
 	}
 
 	public void startClass() {
-		startClass(false);
+		if (topType == null)
+			topType = TopType.CLASS;
+		startClass("suneido/language/SuClass");
 	}
 
-	private void startClass(boolean isFunction) {
+	private void startClass(String base) {
 		if (c != null) {
 			if (cstack == null)
 				cstack = new ArrayDeque<ClassGen>();
 			cstack.push(c);
 		}
 		c = new ClassGen();
-		c.isFunction = isFunction;
-		c.baseClass =
-				"suneido/language/Su" + (isFunction ? "Function" : "Class");
+		c.baseClass = base;
 		c.fstack = new ArrayDeque<Function>();
 		c.fspecs = new ArrayList<FunctionSpec>();
 
@@ -192,6 +194,12 @@ c.cv = new CheckClassAdapter(c.cv);
 		return finishClass(base, members);
 	}
 
+	public void finish() {
+		// needed for object constants containing functions
+		if (c != null)
+			finishClass(null, null);
+	}
+
 	@SuppressWarnings("unchecked")
 	private Object finishClass(String base, Object members) {
 		genInvoke(c.fspecs);
@@ -202,8 +210,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			dump(c.cw.toByteArray());
 
 		Loader loader = new Loader();
-		Class<?> sc =
-				loader.defineClass("suneido.language." + c.name,
+		Class<?> sc = loader.defineClass("suneido.language." + c.name,
 				c.cw.toByteArray());
 		SuCallable callable;
 		try {
@@ -214,7 +221,9 @@ c.cv = new CheckClassAdapter(c.cv);
 			throw new SuException("newInstance error: " + e);
 		}
 		callable.params = c.fspecs.toArray(arrayFunctionSpec);
-		callable.constants = linkConstants(callable);
+		callable.constants = c.constants == null ? null
+				: c.constants.toArray(arrayConstants);
+		linkMethods(callable);
 		if (callable instanceof SuClass) {
 			((SuClass) callable).baseGlobal = base;
 			((SuClass) callable).vars = members != null
@@ -223,6 +232,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			((SuClass) callable).hasGetters = c.hasGetters;
 		}
 
+		c = null;
 		if (cstack != null && !cstack.isEmpty())
 			c = cstack.pop();
 
@@ -239,18 +249,11 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
-	private Object[][] linkConstants(SuCallable sc) {
-		if (c.constants == null)
-			return null;
-		for (Object[] cs : c.constants)
-			if (cs != null)
-				for (Object x : cs)
-					if (x instanceof SuMethod) {
-						SuMethod m = (SuMethod) x;
-						if (m.instance == null)
-							m.instance = sc;
-					}
-		return c.constants.toArray(arrayConstants);
+	private void linkMethods(SuCallable sc) {
+		if (c.suMethods == null)
+			return;
+		for (SuMethod m : c.suMethods)
+			m.instance = sc;
 	}
 
 	private void genInvoke(List<FunctionSpec> functions) {
@@ -300,8 +303,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		Label end = new Label();
 		mv.visitLabel(end);
 		mv.visitLocalVariable("this", "Lsuneido/language/" + c.name + ";",
-				null,
-				begin, end, 0);
+				null, begin, end, 0);
 		mv.visitLocalVariable("self", "Ljava/lang/String;", null,
 				begin, end, 1);
 		mv.visitLocalVariable("method", "Ljava/lang/String;", null,
@@ -318,25 +320,60 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
-	// function
+	// functions
 
-	public Object startMethod(FuncOrBlock which, Object name) {
-		if (c == null || c.f == null)
+	public void startFunction(Object name) {
+		if (topType == null) {
+			topType = TopType.FUNCTION;
+			assert c == null;
+			startClass("suneido/language/SuFunction");
+		}
+		if (c.f == null)
 			startTopFunction((String) name);
 		else {
 			c.fstack.push(c.f);
-			c.f = new Function((which == FuncOrBlock.FUNC ? functionName()
-					: blockName()));
+			c.f = new Function(c.name + "_f" + c.iFunction++);
 		}
+
+		startMethod();
+		massage();
+		loadConstants();
+
+		c.f.locals = new ArrayList<String>();
+	}
+	private void startTopFunction(String name) {
+		if (name == null)
+			name = "call";
+		else if (name.equals("New"))
+			name = "_init";
+		else
+			name = privatize(name);
+		if (name.startsWith("Get_"))
+			c.hasGetters = true;
+		c.f = new Function(name);
+	}
+
+
+	public Object startBlock() {
+		assert topType != null;
+		assert c.f != null;
+		c.fstack.push(c.f);
+		c.f = new Function(c.name + "_b" + c.iBlock++);
+
+		startMethod();
+
+		c.f.locals = c.fstack.peek().locals; // use outer locals
+		c.f.iparams = c.f.locals.size();
+		c.f.isBlock = true;
+		return Block;
+	}
+
+	private void startMethod() {
 		if (c.f.name.equals("call"))
-			c.f.mv =
-					c.cv.visitMethod(ACC_PUBLIC, javify(c.f.name),
+			c.f.mv = c.cv.visitMethod(ACC_PUBLIC, javify(c.f.name),
 					"([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		else
-			c.f.mv =
-					c.cv.visitMethod(
-							ACC_PRIVATE,
-							javify(c.f.name),
+			c.f.mv = c.cv.visitMethod(ACC_PRIVATE, javify(c.f.name),
 					"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
 					null, null);
 
@@ -348,30 +385,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.iFspecs = c.fspecs.size();
 		c.fspecs.add(null); // to reserve a slot, set correctly later
 
-		if (which == FuncOrBlock.FUNC)
-			massage();
-		loadConstants();
-
 		c.f.constants = new ArrayList<Object>();
-		switch (which) {
-		case FUNC:
-			c.f.locals = new ArrayList<String>();
-			return null;
-		case BLOCK:
-			c.f.locals = c.fstack.peek().locals; // use outer locals
-			c.f.iparams = c.f.locals.size();
-			c.f.isBlock = true;
-			return Block;
-		default:
-			throw new SuException("invalid 'which' in startFunction");
-		}
-	}
-
-	private String functionName() {
-		return c.name + "_f" + c.iFunction++;
-	}
-	private String blockName() {
-		return c.name + "_b" + c.iBlock++;
 	}
 
 	private String javify(String name) {
@@ -380,20 +394,6 @@ c.cv = new CheckClassAdapter(c.cv);
 		else if (name.endsWith("!"))
 			name = name.substring(0, name.length() - 1) + "X";
 		return name;
-	}
-
-	private void startTopFunction(String name) {
-		if (c == null)
-			startClass(true);
-		if (name == null)
-			name = "call";
-		else if (name.equals("New"))
-			name = "_init";
-		else
-			name = privatize(name);
-		if (name.startsWith("Get_"))
-			c.hasGetters = true;
-		c.f = new Function(name);
 	}
 
 	private String privatize(Value<Object> value) {
@@ -501,7 +501,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(ATHROW);
 	}
 
-	/// called at the end of the function
+	/// called at the end of a function
 	public Object function(Object params, Object compound) {
 
 		finishMethod(compound);
@@ -509,21 +509,35 @@ c.cv = new CheckClassAdapter(c.cv);
 		Object[] constantsArray = c.f.constants.toArray(arrayObject);
 		c.constants.set(c.f.iConstants, constantsArray);
 
-		FunctionSpec fs =
-				new FunctionSpec(c.f.name, c.f.locals.toArray(arrayString),
-						c.f.nparams, constantsArray, c.f.ndefaults, c.f.atParam);
+		FunctionSpec fs = new FunctionSpec(c.f.name, c.f.locals.toArray(arrayString),
+				c.f.nparams, constantsArray, c.f.ndefaults, c.f.atParam);
 		c.fspecs.set(c.f.iFspecs, fs);
 
 		if (!c.fstack.isEmpty()) {
-			String method = c.f.name;
+			Object m = method(c.f.name);
 			c.f = c.fstack.pop();
-			return new SuMethod(null, method);
+			return m;
+		} else {
+			c.f = null;
+			if (c.baseClass == "suneido/language/SuFunction")
+				return finishClass(null, null);
+			else
+				// method
+				return null;
 		}
-		c.f = null;
-		if (c.isFunction)
-			return finishClass(null, null);
-		else // method
-			return null;
+	}
+
+	private SuMethod method(String name) {
+		if (c.suMethods == null)
+			c.suMethods = new ArrayList<SuMethod>();
+		else {
+			for (SuMethod m : c.suMethods)
+				if (name.equals(m.method))
+					return m;
+		}
+		SuMethod m = new SuMethod(name);
+		c.suMethods.add(m);
+		return m;
 	}
 
 	private void finishMethod(Object compound) {
@@ -852,7 +866,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return CALLRESULT;
 	}
 
-	private static final String[] args = new String[32];
+	private static final String[] args = new String[99];
 	static {
 		String s = "";
 		for (int i = 0; i < args.length; ++i) {

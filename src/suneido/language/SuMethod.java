@@ -21,6 +21,10 @@ public class SuMethod extends SuValue {
 		this.method = method;
 	}
 
+	public SuMethod(String method) {
+		this(null, method);
+	}
+
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "call")
@@ -56,7 +60,8 @@ public class SuMethod extends SuValue {
 	@Override
 	public int hashCode() {
 		int result = 17;
-		result = 31 * result + instance.hashCode();
+		if (instance != null)
+			result = 31 * result + instance.hashCode();
 		result = 31 * result + method.hashCode();
 		return result;
 	}
