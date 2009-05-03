@@ -247,6 +247,7 @@ public class CompileTest {
 		compile("Plugins().Foreach(a, { })");
 		compile("Plugins.Foreach(a) { }");
 		compile("Plugins().Foreach(a) { }");
+		compile("b = { .001 }");
 	}
 	@Test public void test_block_break() {
 		compile("b = { break }");
