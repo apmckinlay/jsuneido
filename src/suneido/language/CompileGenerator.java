@@ -377,8 +377,6 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f = new Function(name);
 	}
 
-
-
 	@Override
 	public Object startBlock() {
 		assert topType != null;
@@ -387,6 +385,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f = new Function(c.name + "_b" + c.iBlock++);
 
 		startMethod();
+		loadConstants();
 
 		c.f.locals = c.fstack.peek().locals; // use outer locals
 		c.f.iparams = c.f.locals.size();
