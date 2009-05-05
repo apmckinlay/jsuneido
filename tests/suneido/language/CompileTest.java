@@ -127,6 +127,10 @@ public class CompileTest {
  				"a, b, c, putMem");
 		test("a[b] *= c;;",
  				"a, b, DUP2, getMem, c, mul, putMem");
+		test("a[++b];;",
+				"a, &b, DUP2, AALOAD, add1, DUP_X2, AASTORE, getMem, POP");
+		test("a[++b] = c;;",
+				"a, &b, DUP2, AALOAD, add1, DUP_X2, AASTORE, c, putMem");
 		test("G",
  				"'G', global, ARETURN");
 		test("G()",
@@ -139,8 +143,8 @@ public class CompileTest {
  				"&a, b, callN, null?, AASTORE");
 		test("123; 456; 123;",
  				"123, POP, 456, POP, 123, ARETURN");
-		test("#(1, a: 2)",
- 				"0=#(1, a: 2), ARETURN");
+		test("a = #(1, a: 2);;",
+ 				"&a, 0=#(1, a: 2), AASTORE");
 		test("#{1, a: 2}",
  				"0=[1, a: 2], ARETURN");
 		test("a(123, x: 456)",
@@ -149,8 +153,6 @@ public class CompileTest {
 				"0=Test.Test_f0, ARETURN");
 		test("a = function () { }",
 				"&a, 0=Test.Test_f0, DUP_X2, AASTORE, ARETURN");
-		test("#(a: (b: function () { }))",
-				"0=#(a: #(b: Test.Test_f0)), ARETURN");
 		test("super.F()",
 				"this, this, 'F', superInvokeN, ARETURN");
 		test("A().B()",
@@ -265,7 +267,8 @@ public class CompileTest {
 
 	private String compile(String s) {
 		//System.out.println("====== " + s);
-		if (! s.startsWith("class") && ! s.startsWith("function"))
+		if (!s.startsWith("class") && !s.startsWith("function")
+				&& !s.startsWith("#("))
 			s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
@@ -345,9 +348,7 @@ public class CompileTest {
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
-			{
-								"NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW",
-								"throw" },
+			{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW", "throw" },
 			{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
 			{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
 			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },

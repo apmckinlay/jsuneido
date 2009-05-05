@@ -10,7 +10,7 @@ public class CompileDump implements DumpReader.Processor {
 	int itext;
 
 	public static void main(String[] args) {
-		new DumpReader("stdlib.su", new CompileDump()).process();
+		new DumpReader("etalib.su", new CompileDump()).process();
 	}
 
 	public void schema(String s) {

@@ -38,6 +38,9 @@ public class CompileConstantTest {
 		cc.append(0);
 		cc.append(c);
 		assertEquals(cc, compile("#(0, (12, ab: cd))"));
+
+		compile("#(function () { }, function () { })");
+		compile("#(a: (b: function () { }))");
 	}
 
 	private Object compile(String s) {

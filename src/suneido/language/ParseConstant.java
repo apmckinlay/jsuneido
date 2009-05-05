@@ -172,6 +172,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return matchReturn(generator.symbol(lexer.getValue()));
 	}
 	public T object() {
+		generator.startObject();
 		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
 		T members = memberList(token, null);
 		return generator.object(which, members);
