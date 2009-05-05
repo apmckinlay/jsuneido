@@ -179,4 +179,7 @@ public abstract class Generator<T> {
 
 	public abstract void finish();
 
+	public void startObject() {
+	}
+
 }

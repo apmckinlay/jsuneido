@@ -334,7 +334,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				value.subscript(expression(), thisOrSuper);
+				T expr = generator.rvalue(expression());
+				value.subscript(expr, thisOrSuper);
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
 				if (value.isIdentifier()) {

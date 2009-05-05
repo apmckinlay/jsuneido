@@ -101,42 +101,41 @@ public class CompileGenerator extends Generator<Object> {
 
 	// constants
 
-
 	@Override
 	public Object bool(boolean value) {
 		return value ? Boolean.TRUE : Boolean.FALSE;
 	}
-
 
 	@Override
 	public Object number(String value) {
 		return Ops.stringToNumber(value);
 	}
 
-
 	@Override
 	public Object string(String value) {
 		return value;
 	}
-
 
 	@Override
 	public Object symbol(String value) {
 		return value; // same as string for now
 	}
 
-
 	@Override
 	public Object date(String value) {
 		return Ops.stringToDate(value);
 	}
-
 
 	@Override
 	public Object object(MType which, Object members) {
 		return members;
 	}
 
+	@Override
+	public void startObject() {
+		if (topType == null)
+			topType = TopType.OBJECT;
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -160,12 +159,10 @@ public class CompileGenerator extends Generator<Object> {
 		}
 	}
 
-
 	@Override
 	public Object memberDefinition(Object name, Object value) {
 		return new MemDef(name, value);
 	}
-
 
 	@Override
 	public void startClass() {
@@ -208,12 +205,10 @@ c.cv = new CheckClassAdapter(c.cv);
 			return cstack.peek().name + "_c" + c.iClass++;
 	}
 
-
 	@Override
 	public Object classConstant(String base, Object members) {
 		return finishClass(base, members);
 	}
-
 
 	@Override
 	public void finish() {
@@ -344,13 +339,15 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	// functions
 
-
 	@Override
 	public void startFunction(Object name) {
 		if (topType == null) {
 			topType = TopType.FUNCTION;
 			assert c == null;
 			startClass("suneido/language/SuFunction");
+		} else if (c == null) {
+			assert topType == TopType.OBJECT;
+			startClass("suneido/language/SuFunction"); // ???
 		}
 		if (c.f == null)
 			startTopFunction((String) name);
@@ -414,11 +411,7 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	private String javify(String name) {
-		if (name.endsWith("?"))
-			name = name.substring(0, name.length() - 1) + "Q";
-		else if (name.endsWith("!"))
-			name = name.substring(0, name.length() - 1) + "X";
-		return name;
+		return name.replace('?', 'Q').replace('!', 'X');
 	}
 
 	private String privatize(Value<Object> value) {
@@ -433,7 +426,6 @@ c.cv = new CheckClassAdapter(c.cv);
 			name = c.name + "_" + name;
 		return name;
 	}
-
 
 	@Override
 	public Object parameters(Object list, String name, Object defaultValue) {
@@ -494,7 +486,6 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(AALOAD);
 		c.f.mv.visitVarInsn(ASTORE, c.f.CONSTANTS);
 	}
-
 
 	@Override
 	public Object returnStatement(Object expr, Object context) {
@@ -621,7 +612,6 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	// expressions
 
-
 	@Override
 	public Object constant(Object value) {
 		if (value == Boolean.TRUE || value == Boolean.FALSE)
@@ -663,7 +653,6 @@ c.cv = new CheckClassAdapter(c.cv);
 			mv.visitLdcInsn(i);
 	}
 
-
 	@Override
 	public Object identifier(String name) {
 		if (name.equals("this"))
@@ -699,14 +688,12 @@ c.cv = new CheckClassAdapter(c.cv);
 		return i;
 	}
 
-
 	@Override
 	public Object member(Object term, Value<Object> value) {
 		c.f.mv.visitLdcInsn(privatize(value));
 		getMember();
 		return VALUE;
 	}
-
 
 	@Override
 	public Object subscript(Object term, Object expr) {
@@ -715,13 +702,11 @@ c.cv = new CheckClassAdapter(c.cv);
 		return VALUE;
 	}
 
-
 	@Override
 	public Object selfRef() {
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		return VALUE;
 	}
-
 
 	@Override
 	public Object superRef() {
@@ -729,7 +714,6 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		return VALUE;
 	}
-
 
 	@Override
 	public void lvalue(Value<Object> value) {
@@ -749,7 +733,6 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 	}
 
-
 	@Override
 	public void lvalueForAssign(Value<Object> value, Token op) {
 		lvalue(value);
@@ -761,7 +744,6 @@ c.cv = new CheckClassAdapter(c.cv);
 			// stack: L, L1, L2, ...
 		}
 	}
-
 
 	@Override
 	public Object assignment(Object term, Value<Object> value, Token op,
@@ -924,7 +906,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		return CALLRESULT;
 	}
 
-	private static final String[] args = new String[99];
+	private static final String[] args = new String[128];
 	static {
 		String s = "";
 		for (int i = 0; i < args.length; ++i) {
