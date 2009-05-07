@@ -6,6 +6,7 @@ import static suneido.language.Ops.toInt;
 import static suneido.language.Ops.toStr;
 import static suneido.util.Util.array;
 import suneido.SuException;
+import suneido.util.Tr;
 
 public class StringMethods {
 	public static Object invoke(String s, String method, Object... args) {
@@ -19,12 +20,13 @@ public class StringMethods {
 			return substr(s, args);
 		if (method == "Asc")
 			return asc(s, args);
+		if (method == "Tr")
+			return tr(s, args);
 		// TODO check user defined Strings
 		throw new SuException("unknown method: string." + method);
 	}
 
 	private static final FunctionSpec findFS = new FunctionSpec("s");
-
 	private static Object find(String s, Object[] args) {
 		args = Args.massage(findFS, args);
 		int i = s.indexOf(toStr(args[0]));
@@ -44,7 +46,6 @@ public class StringMethods {
 
 	private static final FunctionSpec substrFS =
 			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
-
 	private static String substr(String s, Object[] args) {
 		args = Args.massage(substrFS, args);
 		int len = s.length();
@@ -62,5 +63,12 @@ public class StringMethods {
 	private static int asc(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return s.length() == 0 ? 0 : (int) s.charAt(0);
+	}
+
+	private static final FunctionSpec trFS =
+			new FunctionSpec(array("from", "to"), "");
+	private static String tr(String s, Object[] args) {
+		args = Args.massage(trFS, args);
+		return Tr.tr(s, toStr(args[0]), toStr(args[1]));
 	}
 }
