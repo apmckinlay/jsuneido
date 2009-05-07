@@ -25,11 +25,12 @@ public class Globals {
 
 	public static Object get(String name) {
 		Object x = globals.get(name);
-		if (x == null) {
+		if (x == null)
+			x = Libraries.load(name);
+		if (x == null)
 			x = loadClass(name);
-			if (x == null)
-				throw new SuException("can't find " + name);
-		}
+		if (x == null)
+			throw new SuException("can't find " + name);
 		return x;
 	}
 
