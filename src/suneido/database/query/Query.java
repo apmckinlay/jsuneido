@@ -10,7 +10,6 @@ import java.util.List;
 import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
-import suneido.database.query.expr.Expr;
 import suneido.database.server.DbmsQuery;
 import suneido.database.server.ServerData;
 
@@ -48,10 +47,6 @@ public abstract class Query implements DbmsQuery {
 			throw new SuException("invalid query");
 		q = q.addindex();
 		return q;
-	}
-
-	static int update(Transaction tran, Query q, List<String> c, List<Expr> e) {
-		return 0; // TODO
 	}
 
 	public abstract void setTransaction(Transaction tran);

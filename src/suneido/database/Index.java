@@ -20,7 +20,7 @@ public class Index {
 	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 		FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
-			CASCADE_DELETES = 2, CASCADE = 3; // TODO convert to enum
+			CASCADE_DELETES = 2, CASCADE = 3;
 	private final static String UNIQUE = "u";
 
 	ForeignKey fksrc = null;
@@ -111,7 +111,7 @@ public class Index {
 	}
 
 	public boolean isLower() {
-		return false; // TODO
+		return false; // TODO isLower
 	}
 
 	public int nnodes() {

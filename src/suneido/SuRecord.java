@@ -35,7 +35,6 @@ public class SuRecord extends SuContainer {
 		//status = Status.OLD;
 
 		verify(recadr >= 0);
-		// TODO: cache symbol's
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();)
 			{
 			Row.Entry e = iter.next();
