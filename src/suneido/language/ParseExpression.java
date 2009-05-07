@@ -270,8 +270,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_BRACKET:
 			match(L_BRACKET);
 			// TODO optimize literal part like cSuneido
-			term = generator.functionCall(generator.identifier("Record"),
-					value, argumentList(R_BRACKET));
+			T func = generator.identifier("Record");
+			term = generator.functionCall(func, value, argumentList(R_BRACKET));
 			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
@@ -425,13 +425,22 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				keyword = keyword();
 			} else if (keyword != null)
 				syntaxError("un-named arguments must come before named arguments");
-			T value;
-			if (keyword != null &&
-					(token == COMMA || token == closing || lookAhead() == COLON))
-				value = generator.constant(generator.bool(true));
-			else
-				value = expression();
-			args = generator.argumentList(args, keyword, value);
+
+			Token ahead = lookAhead();
+			boolean trueDefault = (keyword != null &&
+					(token == COMMA || token == closing || ahead == COLON));
+
+			if (keyword != null && isConstantArg(closing)) {
+				args = generator.argumentListConstant(args, keyword,
+						trueDefault ? generator.bool(true) : constant());
+			} else {
+				if (keyword != null)
+					generator.argumentName(keyword);
+				T value = trueDefault
+						? generator.constant(generator.bool(true))
+						: expression();
+				args = generator.argumentList(args, keyword, value);
+			}
 			matchIf(COMMA);
 		}
 		match(closing);
@@ -443,8 +452,24 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		String keyword = lexer.getValue();
 		match();
 		match(COLON);
-		generator.argumentName(keyword);
 		return keyword;
+	}
+	// MAYBE factor out duplication with ParseConstant.isMemberName
+	private boolean isConstantArg(Token closing) {
+		// TODO handle -number and true/false
+		if (token != NUMBER && token != STRING)
+			return false;
+		Lexer ahead = new Lexer(lexer);
+		Token t = ahead.nextSkipNewlines();
+		if (t == COMMA || t == closing)
+			return true;
+		if (t != IDENTIFIER && t != STRING && t != NUMBER && t != SUB
+				&& t != ADD)
+			return false;
+		if (t == SUB || t == ADD)
+			t = ahead.next();
+		t = ahead.next();
+		return t == COLON;
 	}
 
 	private T block() {

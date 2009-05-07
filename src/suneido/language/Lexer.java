@@ -40,6 +40,14 @@ public class Lexer {
 		return lineNumber;
 	}
 
+	public Token nextSkipNewlines() {
+		Token token;
+		do
+			token = next();
+		while (token == NEWLINE);
+		return token;
+	}
+
 	public Token next() {
 		Token token;
 		do

@@ -165,9 +165,7 @@ public abstract class Generator<T> {
 
 	public abstract T memberDefinition(T name, T value);
 
-	public enum MType {
-		OBJECT, RECORD, CLASS
-	};
+	public enum MType { OBJECT, RECORD, CLASS };
 
 	public abstract T object(MType which, T members);
 
@@ -180,6 +178,10 @@ public abstract class Generator<T> {
 	public abstract void finish();
 
 	public void startObject() {
+	}
+
+	public T argumentListConstant(T args, String keyword, T value) {
+		return argumentList(args, keyword, constant(value));
 	}
 
 }
