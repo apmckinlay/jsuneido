@@ -52,6 +52,9 @@ public class SuContainer extends SuValue
 	public Object mapGet(Object key) {
 		return map.get(key);
 	}
+	public Set<Map.Entry<Object, Object>> mapEntrySet() {
+		return map.entrySet();
+	}
 
 	public void append(Object value) {
 		vec.add(value);

@@ -40,6 +40,9 @@ public class ExecuteTest {
 	@Test public void test_args() {
 		test("f = function (@x) { x }; f(1, a: 2)", "#(1, a: 2)");
 		test("f = function (@x) { x }; f(a: 1, b: 2)", "#(b: 2, a: 1)");
+		test("f = function (@x) { x }; f(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6"
+				+ "g: 7, h: 8, i: 9, j: 10, k: 11)",
+				"#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9)");
 	}
 	@Test public void test_new() {
 		test("new SampleClass", "SampleClass()");

@@ -894,19 +894,37 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	@Override
-	public Object functionCall(Object function, Value<Object> value,
-			Object arguments) {
-		int nargs = arguments == null ? 0 : (Integer) arguments;
+	public Object functionCall(Object function, Value<Object> value, Object args) {
+		Args a = args == null ? noArgs : (Args) args;
+		processConstArgs(a);
+
 		if (value.thisOrSuper == ThisOrSuper.SUPER)
-			invokeSuperInit(nargs);
+			invokeSuperInit(a.nargs);
 		else if (value.type == MEMBER || value.type == SUBSCRIPT)
-			invokeMethod(nargs);
+			invokeMethod(a.nargs);
 		else
-			invokeFunction(nargs);
+			invokeFunction(a.nargs);
 		return CALLRESULT;
 	}
 
-	private static final String[] args = new String[128];
+	private void processConstArgs(Args args) {
+		if (args.constArgs == null)
+			return;
+		if (args.constArgs.size() < 10) {
+			for (Map.Entry<Object, Object> e : args.constArgs.mapEntrySet()) {
+				argumentName((String) e.getKey());
+				dupAndStore(constant(e.getValue()));
+				args.nargs += 3;
+			}
+		} else { // more than 10
+			specialArg("EACH");
+			dupAndStore(constant(args.constArgs));
+			args.nargs += 2;
+		}
+
+	}
+
+	private static final String[] args = new String[99];
 	static {
 		String s = "";
 		for (int i = 0; i < args.length; ++i) {
@@ -930,10 +948,11 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	@Override
-	public Object argumentList(Object list, String keyword, Object expression) {
-		dupAndStore(expression);
-		int n = (list == null ? 0 : (Integer) list);
-		return n + (keyword == null ? 1 : 3);
+	public Object argumentList(Object args, String keyword, Object value) {
+		dupAndStore(value);
+		Args a = (args == null ? new Args() : (Args) args);
+		a.nargs += keyword == null ? 1 : 3;
+		return a;
 	}
 
 	@Override
@@ -951,13 +970,32 @@ c.cv = new CheckClassAdapter(c.cv);
 	@Override
 	public Object atArgument(String n, Object expr) {
 		dupAndStore(expr);
-		return 2;
+		return new Args(2);
 	}
 	private void specialArg(String which) {
 		c.f.mv.visitFieldInsn(GETSTATIC, "suneido/language/Args$Special",
 				which,
 				"Lsuneido/language/Args$Special;");
 	}
+	@Override
+	public Object argumentListConstant(Object args, String keyword, Object value) {
+		Args a = (args == null ? new Args() : (Args) args);
+		if (a.constArgs == null)
+			a.constArgs = new SuContainer();
+		a.constArgs.put(keyword, value);
+		return a;
+	}
+
+	private static class Args {
+		int nargs = 0;
+		SuContainer constArgs = null;
+		Args() {
+		}
+		Args(int nargs) {
+			this.nargs = nargs;
+		}
+	}
+	private static final Args noArgs = new Args();
 
 	@Override
 	public Object and(Object prev) {
@@ -1040,14 +1078,15 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	@Override
-	public Object newExpression(Object term, Object arguments) {
-		int nargs = arguments == null ? 0 : (Integer) arguments;
-		invokeMethod(nargs);
+	public Object newExpression(Object term, Object args) {
+		Args a = args == null ? noArgs : (Args) args;
+		processConstArgs(a);
+		invokeMethod(a.nargs);
 		return VALUE;
 	}
 
 	/**
-	 * pop any value left on the stack complete delayed assignment
+	 * pop any value left on the stack, complete delayed assignment
 	 */
 
 	@Override

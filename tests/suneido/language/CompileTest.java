@@ -161,6 +161,9 @@ public class CompileTest {
 				"this, '<new>', invokeN, ARETURN");
 		test("new this(a)",
 				"this, '<new>', a, invokeN, ARETURN");
+		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
+				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
+						+ "a: 1, j: 10, k: 11, h: 8, i: 9), callN, ARETURN");
 	}
 	@Test public void test_new() {
 		test("new c",
