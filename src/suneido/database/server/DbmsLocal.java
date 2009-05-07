@@ -72,32 +72,32 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public SuValue connections() {
-		// TODO Auto-generated method stub
+		// TODO connnections
 		return null;
 	}
 
 	public void copy(String filename) {
-		// TODO Auto-generated method stub
+		// TODO copy file
 
 	}
 
 	public int cursors() {
-		// TODO Auto-generated method stub
+		// TODO cursors
 		return 0;
 	}
 
 	public void dump(String filename) {
-		// TODO Auto-generated method stub
+		// TODO dump
 
 	}
 
 	public int finalSize() {
-		// TODO Auto-generated method stub
+		// TODO finalSize
 		return 0;
 	}
 
 	public int kill(String s) {
-		// TODO Auto-generated method stub
+		// TODO kill
 		return 0;
 	}
 
@@ -134,17 +134,17 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public SuValue run(String s) {
-		// TODO Auto-generated method stub
+		// TODO run
 		return null;
 	}
 
 	public SuValue sessionid(String s) {
-		// TODO Auto-generated method stub
+		// TODO sessionid
 		return null;
 	}
 
 	public long size() {
-		// TODO Auto-generated method stub
+		// TODO size
 		return 0;
 	}
 
@@ -164,7 +164,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public void log(String s) {
-		// TODO Auto-generated method stub
+		// TODO log
 
 	}
 

@@ -58,7 +58,7 @@ public enum Command {
 			else if (!match(s, "read"))
 				return stringToBuffer("ERR invalid transaction mode: " + s
 						+ "\r\n");
-			String session_id = ""; // TODO
+			String session_id = ""; // TODO session id
 			int tn = serverData.addTransaction(
 					theDbms.transaction(readwrite, session_id));
 			return stringToBuffer("T" + tn + "\r\n");

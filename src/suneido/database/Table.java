@@ -64,7 +64,7 @@ public class Table {
 	}
 
 	public void user_trigger(Transaction tran, Record norec, Record r) {
-		// TODO Auto-generated method stub
+		// TODO user_trigger
 	}
 
 	public void update() {
