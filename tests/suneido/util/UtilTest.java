@@ -1,4 +1,4 @@
-package suneido;
+package suneido.util;
 
 import static org.junit.Assert.*;
 import static suneido.util.Util.bufferUcompare;

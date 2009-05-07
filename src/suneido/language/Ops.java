@@ -461,7 +461,11 @@ public class Ops {
 		Class<?> xType = x.getClass();
 		if (xType == String.class)
 			return StringMethods.invoke((String) x, method, args);
-		// TODO handle invoke on other types e.g. numbers
+		if (xType == Integer.class)
+			return NumberMethods.invoke((Integer) x, method, args);
+		if (xType == BigDecimal.class)
+			return NumberMethods.invoke((BigDecimal) x, method, args);
+		// TODO handle invoke on other types
 		throw new SuException("no such method: " + typeName(x) + method);
 	}
 
