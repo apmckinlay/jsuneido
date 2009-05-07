@@ -677,7 +677,7 @@ public class Ops {
 	}
 
 	private static Object getString(String s, int i) {
-		return 0 > i || i > s.length() ? "" : s.substring(i, i + 1);
+		return 0 > i || i >= s.length() ? "" : s.substring(i, i + 1);
 	}
 
 	public static Object iterator(Object x) {

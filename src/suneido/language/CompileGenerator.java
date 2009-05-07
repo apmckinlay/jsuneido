@@ -145,7 +145,7 @@ public class CompileGenerator extends Generator<Object> {
 			Map<String, Object> vars = (list == null
 					? new HashMap<String, Object>()
 					: (Map<String,Object>) list);
-			vars.put((String) m.name, m.value);
+			vars.put(privatize((String) m.name), m.value);
 			return vars;
 		} else {
 			SuContainer c = (list == null

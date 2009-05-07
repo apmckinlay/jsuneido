@@ -17,6 +17,8 @@ public class StringMethods {
 			return size(s, args);
 		if (method == "Substr")
 			return substr(s, args);
+		if (method == "Asc")
+			return asc(s, args);
 		// TODO check user defined Strings
 		throw new SuException("unknown method: string." + method);
 	}
@@ -36,7 +38,7 @@ public class StringMethods {
 	}
 
 	private static int size(String s, Object[] args) {
-		args = Args.massage(FunctionSpec.noParams, args);
+		Args.massage(FunctionSpec.noParams, args);
 		return s.length();
 	}
 
@@ -49,11 +51,16 @@ public class StringMethods {
 		int i = toInt(args[0]);
 		if (i < 0)
 			i += len;
-		i = max(0, min(i, len - 1));
-		int n = args[1] == null ? len : toInt(args[1]);
+		i = max(0, min(i, len));
+		int n = toInt(args[1]);
 		if (n < 0)
 			n += len - i;
 		n = max(0, min(n, len - i));
 		return s.substring(i, i + n);
+	}
+
+	private static int asc(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.length() == 0 ? 0 : (int) s.charAt(0);
 	}
 }
