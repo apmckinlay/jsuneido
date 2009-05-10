@@ -37,14 +37,14 @@ public class Globals {
 	public static Object loadClass(String name) {
 		Class<?> c = null;
 		try {
-			c = Class.forName("suneido.language." + name);
+			c = Class.forName("suneido.language.builtin." + name);
 		} catch (ClassNotFoundException e) {
 			System.out.println(e);
 			return null;
 		}
-		SuClass sc = null;
+		SuCallable sc = null;
 		try {
-			sc = (SuClass) c.newInstance();
+			sc = (SuCallable) c.newInstance();
 		} catch (InstantiationException e) {
 			return null;
 		} catch (IllegalAccessException e) {

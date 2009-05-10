@@ -1,6 +1,8 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import suneido.SuRecord;
+import suneido.language.Args;
+import suneido.language.SuFunction;
 
 public class Record extends SuFunction {
 

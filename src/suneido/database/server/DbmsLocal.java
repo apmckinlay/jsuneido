@@ -102,14 +102,18 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<LibGet> libget(String name) {
+		List<LibGet> srcs = new ArrayList<LibGet>();
+		if (theDB == null)
+			return srcs;
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
-		List<LibGet> srcs = new ArrayList<LibGet>();
 		Transaction tran = theDB.readonlyTran();
 		try {
 			for (String lib : libraries()) {
-				Table table = theDB.ck_getTable(lib);
+				Table table = theDB.getTable(lib);
+				if (table == null)
+					continue;
 				List<String> flds = table.getFields();
 				int group_fld = flds.indexOf("group");
 				int text_fld = flds.indexOf("text");

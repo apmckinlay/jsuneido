@@ -24,13 +24,17 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
+
 		return myclass.invoke(self, method, args);
 	}
 
 	@Override
 	public String toString() {
-		// TODO handle user defined toString
-		return myclass + "()";
+		if (myclass != null && myclass instanceof SuClass
+				&& ((SuClass) myclass).get3("ToString") == METHOD)
+			return Ops.toStr(invoke(this, "ToString"));
+		else
+			return myclass + "()";
 	}
 
 	@Override

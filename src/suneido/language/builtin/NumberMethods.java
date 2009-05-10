@@ -1,10 +1,13 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import java.math.BigDecimal;
 
 import suneido.SuException;
+import suneido.language.Args;
+import suneido.language.FunctionSpec;
 
 public class NumberMethods {
+
 	public static Object invoke(Integer n, String method, Object... args) {
 		if (method == "Chr")
 			return chr(n, args);

@@ -91,6 +91,11 @@ public class ClassTest {
 		notFound("B.M");
 
 		defineClass("A", "class { New(args) { super(@args) } }");
+
+		defineClass("A", "class { ToString() { 'an A' } }");
+		test("A()", "an A");
+		defineClass("A", "class { New(n) { .n = n } ToString() { 'A' $ .n } }");
+		test("A(123)", "A123");
 	}
 	@Test public void test_static_getter() {
 		defineClass("A", "class { " +

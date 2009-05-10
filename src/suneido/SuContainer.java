@@ -7,8 +7,8 @@ import static suneido.language.Ops.cmp;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.language.Ops;
-import suneido.language.Pack;
+import suneido.language.*;
+import suneido.language.builtin.ContainerMethods;
 
 /**
  * Suneido's single container type.
@@ -58,10 +58,18 @@ public class SuContainer extends SuValue
 
 	public void append(Object value) {
 		vec.add(value);
-		// check for migration from map to vec
+		migrate();
+	}
+
+	private void migrate() {
 		Object x;
 		while (null != (x = map.remove(vec.size())))
 			vec.add(x);
+	}
+
+	public void insert(int at, Object value) {
+		vec.add(at, value);
+		migrate();
 	}
 
 	public void merge(SuContainer c) {
@@ -87,6 +95,11 @@ public class SuContainer extends SuValue
 			return vec.get(i);
 		Object x = map.get(key);
 		return x == null ? defval : x;
+	}
+
+	public boolean containsKey(Object key) {
+		int i = index(key);
+		return 0 <= i && i < vec.size() ? true : map.containsKey(key);
 	}
 
 	public int size() {
@@ -164,7 +177,7 @@ public class SuContainer extends SuValue
 			return null != map.remove(key);
 	}
 
-	private static int index(Object x) {
+	public static int index(Object x) {
 		x = canonical(x);
 		return x instanceof Integer ? (Integer) x : -1;
 	}
@@ -260,12 +273,7 @@ public class SuContainer extends SuValue
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		assert this == self;
-		if (method == "Size")
-			return size();
-		// TODO other methods
-		// TODO check user defined Objects methods
-		else
-			throw new SuException("unknown method: object." + method);
+		return ContainerMethods.invoke(this, method, args);
 	}
 
 	public Iterator<Object> iterator() {
