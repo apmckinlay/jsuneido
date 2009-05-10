@@ -128,6 +128,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object object(MType which, Object members) {
+		if (members == null)
+			members = which == OBJECT ? new SuContainer() : new SuRecord();
 		return members;
 	}
 
@@ -410,7 +412,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.constants = new ArrayList<Object>();
 	}
 
-	private String javify(String name) {
+	public static String javify(String name) {
 		return name.replace('?', 'Q').replace('!', 'X');
 	}
 

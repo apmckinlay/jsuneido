@@ -1,12 +1,14 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 
 import org.junit.Test;
 
 import suneido.SuContainer;
+import suneido.SuRecord;
 
 
 public class CompileConstantTest {
@@ -41,13 +43,14 @@ public class CompileConstantTest {
 
 		compile("#(function () { }, function () { })");
 		compile("#(a: (b: function () { }))");
+
+		assertEquals(new SuContainer(), compile("#()"));
+		assertEquals(new SuRecord(), compile("#{}"));
+
+		assertTrue(compile("function () { }") instanceof SuFunction);
 	}
 
 	private Object compile(String s) {
-		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator("Test");
-		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		return pc.parse();
+		return Compiler.compile("Test", s);
 	}
 }

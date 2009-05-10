@@ -2,7 +2,7 @@ package suneido.language;
 
 import suneido.SuValue;
 
-public class SuBlock  extends SuValue {
+public class SuBlock extends SuValue {
 	private final Object instance;
 	private final BlockSpec bspec;
 	private final Object[] locals;
@@ -11,14 +11,6 @@ public class SuBlock  extends SuValue {
 		this.instance = instance;
 		this.bspec = (BlockSpec) bspec;
 		this.locals = locals;
-	}
-
-	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		if (method == "call") {
-			return call(args);
-		} else
-			throw unknown_method(method);
 	}
 
 	@Override

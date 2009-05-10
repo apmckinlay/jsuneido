@@ -7,6 +7,7 @@ import static suneido.language.Ops.display;
 import org.junit.Test;
 
 public class ContainerMethodsTest {
+
 	@Test
 	public void test_add() {
 		test("[].Add(123)", "[123]");
