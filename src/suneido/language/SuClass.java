@@ -57,7 +57,9 @@ public abstract class SuClass extends SuCallable {
 		return value;
 	}
 
-	private Object get3(Object member) {
+	Object get3(Object member) {
+		if (vars == null)
+			return null;
 		Object value = vars.get(member);
 		if (value == null && member instanceof String) {
 			value = findMethod(member);

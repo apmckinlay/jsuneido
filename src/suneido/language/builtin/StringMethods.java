@@ -1,11 +1,16 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static suneido.language.Ops.toInt;
 import static suneido.language.Ops.toStr;
 import static suneido.util.Util.array;
+
+import java.util.regex.Pattern;
+
 import suneido.SuException;
+import suneido.language.*;
+import suneido.language.Compiler;
 import suneido.util.Tr;
 
 public class StringMethods {
@@ -22,6 +27,8 @@ public class StringMethods {
 			return asc(s, args);
 		if (method == "Tr")
 			return tr(s, args);
+		if (method == "Eval")
+			return eval(s, args);
 		// TODO check user defined Strings
 		throw new SuException("unknown method: string." + method);
 	}
@@ -71,4 +78,14 @@ public class StringMethods {
 		args = Args.massage(trFS, args);
 		return Tr.tr(s, toStr(args[0]), toStr(args[1]));
 	}
+
+	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
+	private static Object eval(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (globalRx.matcher(s).matches())
+			return Globals.get(s);
+		Object result = Compiler.eval(s);
+		return result == null ? "" : result;
+	}
+
 }

@@ -14,14 +14,7 @@ public class Libraries {
 			return null;
 		// TODO overloading
 		String src = (String) Pack.unpack(srcs.get(0).text);
-		return compile(name, src);
+		return Compiler.compile(name, src);
 	}
 
-	public static Object compile(String name, String src) {
-		Lexer lexer = new Lexer(src);
-		CompileGenerator generator = new CompileGenerator(name);
-		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		return pc.parse();
-	}
 }
