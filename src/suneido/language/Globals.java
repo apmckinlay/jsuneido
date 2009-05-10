@@ -24,6 +24,7 @@ public class Globals {
 	}
 
 	public static Object get(String name) {
+		name = CompileGenerator.javify(name);
 		Object x = globals.get(name);
 		if (x == null)
 			x = Libraries.load(name);
@@ -50,7 +51,7 @@ public class Globals {
 		} catch (IllegalAccessException e) {
 			return null;
 		}
-		// System.out.println("<loaded: " + name + ">");
+		//System.out.println("<loaded: " + name + ">");
 		put(name, sc);
 		return sc;
 	}
@@ -58,4 +59,5 @@ public class Globals {
 	public static void put(String name, Object x) {
 		globals.put(name, x);
 	}
+
 }

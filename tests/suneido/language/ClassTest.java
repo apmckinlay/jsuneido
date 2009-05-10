@@ -1,13 +1,13 @@
 package suneido.language;
 
 import static org.junit.Assert.fail;
-import static suneido.language.ExecuteTest.eval;
+import static suneido.language.Compiler.compile;
+import static suneido.language.Compiler.eval;
 import static suneido.language.ExecuteTest.test;
 
 import org.junit.Test;
 
 import suneido.SuException;
-
 
 public class ClassTest {
 	@Test
@@ -140,11 +140,6 @@ public class ClassTest {
 	}
 
 	void defineClass(String name, String definition) {
-		Lexer lexer = new Lexer(definition);
-		CompileGenerator generator = new CompileGenerator(name);
-		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		Object x = pc.parse();
-		Globals.put(name, x);
+		Globals.put(name, compile(name, definition));
 	}
 }

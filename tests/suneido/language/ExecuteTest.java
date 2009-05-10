@@ -2,6 +2,7 @@ package suneido.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static suneido.language.Compiler.eval;
 import static suneido.language.Ops.display;
 
 import org.junit.Test;
@@ -134,7 +135,7 @@ public class ExecuteTest {
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
 	}
 	@Test public void test_nested_class() {
-		test("c = class { }; new c", "Test_c0()");
+		test("c = class { }; new c", "eval_c0()");
 		test("c = class { F() { 123 } }; c.F()", "123");
 	}
 	@Test
@@ -155,17 +156,4 @@ public class ExecuteTest {
 		}
 	}
 
-	public static Object eval(String s) {
-		Object f = compile("function () { " + s + " }");
-		Object[] locals = new Object[0];
-		return Ops.call(f, locals);
-	}
-
-	private static Object compile(String s) {
-		Lexer lexer = new Lexer(s);
-		CompileGenerator generator = new CompileGenerator("Test");
-		ParseFunction<Object, Generator<Object>> pc =
-				new ParseFunction<Object, Generator<Object>>(lexer, generator);
-		return pc.parse();
-	}
 }
