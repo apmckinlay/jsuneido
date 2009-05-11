@@ -96,6 +96,15 @@ public class ClassTest {
 		test("A()", "an A");
 		defineClass("A", "class { New(n) { .n = n } ToString() { 'A' $ .n } }");
 		test("A(123)", "A123");
+
+		defineClass("A", "class { CallClass() { 123 } }");
+		defineClass("B", "A { }");
+		test("A()", "123");
+		test("B()", "123");
+
+		defineClass("A", "class { F() { } }");
+		defineClass("B", "A { G() { } }");
+		test("B.Members()", "#('G')");
 	}
 	@Test public void test_static_getter() {
 		defineClass("A", "class { " +

@@ -14,6 +14,9 @@ import suneido.SuException;
 public class Globals {
 	private static HashMap<String, Object> globals =
 			new HashMap<String, Object>();
+	static {
+		globals.put("Object", new suneido.language.builtin.ObjectFunction());
+	}
 
 	private Globals() { // no instances
 		throw SuException.unreachable();
@@ -24,12 +27,11 @@ public class Globals {
 	}
 
 	public static Object get(String name) {
-		name = CompileGenerator.javify(name);
 		Object x = globals.get(name);
 		if (x == null)
 			x = Libraries.load(name);
 		if (x == null)
-			x = loadClass(name);
+			x = loadClass(CompileGenerator.javify(name));
 		if (x == null)
 			throw new SuException("can't find " + name);
 		return x;
@@ -40,7 +42,6 @@ public class Globals {
 		try {
 			c = Class.forName("suneido.language.builtin." + name);
 		} catch (ClassNotFoundException e) {
-			System.out.println(e);
 			return null;
 		}
 		SuCallable sc = null;

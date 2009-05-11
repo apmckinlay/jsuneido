@@ -4,8 +4,7 @@ import static suneido.language.SuClass.Marker.*;
 
 import java.util.Map;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -22,9 +21,7 @@ public abstract class SuClass extends SuCallable {
 
 	// NOMETHOD is used instead of null
 	// to differentiate from map.get returning null for missing
-	static enum Marker {
-		NOMETHOD, METHOD, GETTER, GETMEM
-	};
+	public static enum Marker { NOMETHOD, METHOD, GETTER, GETMEM };
 
 	@Override
 	public Object get(Object member) {
@@ -57,7 +54,7 @@ public abstract class SuClass extends SuCallable {
 		return value;
 	}
 
-	Object get3(Object member) {
+	public Object get3(Object member) {
 		if (vars == null)
 			return null;
 		Object value = vars.get(member);
@@ -102,16 +99,20 @@ public abstract class SuClass extends SuCallable {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		if (method == "<new>" || method == "CallClass")
+		if (method == "<new>")
 			return newInstance(args);
-		else if (method == "Type")
+		if (method == "Type")
 			return "Class";
 		// TODO other standard methods on classes
-		else if (baseGlobal != null)
+		if (baseGlobal != null)
 			return base().invoke(self, method, args);
-		else if (method == "_init")
+		if (method == "_init")
 			return init(args);
-		else if (method != "Default") {
+		if (method == "CallClass")
+			return Ops.invoke(self, "<new>", args);
+		if (method == "Members")
+			return members(self, args);
+		if (method != "Default") {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
 			Object newargs[] = new Object[1 + args.length];
@@ -119,9 +120,8 @@ public abstract class SuClass extends SuCallable {
 			newargs[0] = method;
 			return Ops.invoke(self, "Default", newargs);
 			// COULD make a defaultMethod and bypass invoke (like "call")
-		} else
-			// method == "Default"
-			throw unknown_method((String) args[0]);
+		}
+		throw unknown_method((String) args[0]);
 	}
 
 	private Object newInstance(Object[] args) {
@@ -138,10 +138,17 @@ public abstract class SuClass extends SuCallable {
 	}
 
 	private static Object init(Object[] args) {
-		args = Args.massage(FunctionSpec.noParams, args);
-		if (args.length != 0)
-			throw new SuException("wrong number of arguments");
+		Args.massage(FunctionSpec.noParams, args);
 		return null;
+	}
+
+	private SuContainer members(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		SuContainer c = new SuContainer();
+		for (FunctionSpec fs : ((SuClass) self).params)
+			if (fs.name != "_init") // TODO skip blocks & nested functions
+				c.append(fs.name);
+		return c;
 	}
 
 	protected Object superInvoke(Object self, String member, Object... args) {

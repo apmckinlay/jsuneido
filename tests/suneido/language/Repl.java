@@ -1,9 +1,9 @@
 package suneido.language;
 
 import java.io.*;
+import java.util.Map;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.*;
 
 public class Repl {
@@ -12,6 +12,10 @@ public class Repl {
 	public static void main(String[] args) throws Exception {
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
+
+		Object print = new Print();
+		Globals.put("Print", print);
+		Globals.put("Alert", print);
 
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
@@ -52,6 +56,29 @@ public class Repl {
 		ParseFunction<Object, Generator<Object>> pc =
 				new ParseFunction<Object, Generator<Object>>(lexer, generator);
 		return (SuValue) pc.parse();
+	}
+
+	static class Print extends SuFunction {
+		@Override
+		public Object call(Object... args) {
+			SuContainer c = Args.collectArgs(args, new SuContainer());
+			int i = 0;
+			for (; i < c.vecSize(); ++i)
+				System.out.print((i > 0 ? " " : "") + Ops.toStr(c.get(i)));
+			for (Map.Entry<Object, Object> e : c.mapEntrySet())
+				System.out.print((i++ > 0 ? " " : "") + e.getKey() + ": "
+						+ Ops.toStr(e.getValue()));
+			System.out.println();
+			return null;
+		}
+	}
+
+	static class Alert extends SuFunction {
+		@Override
+		public Object call(Object... args) {
+			System.out.print("ALERT " + Ops.toStr(args[0]));
+			return null;
+		}
 	}
 
 }

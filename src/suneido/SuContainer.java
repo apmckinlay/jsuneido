@@ -7,7 +7,8 @@ import static suneido.language.Ops.cmp;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Pack;
 import suneido.language.builtin.ContainerMethods;
 
 /**
@@ -302,6 +303,11 @@ public class SuContainer extends SuValue
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
+	}
+
+	public void sort() {
+		Collections.sort(vec, new Comparator<Object>() {
+			public int compare(Object x, Object y) { return Ops.cmp(x, y); } });
 	}
 
 }

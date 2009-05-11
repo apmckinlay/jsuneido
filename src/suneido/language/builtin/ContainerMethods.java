@@ -9,12 +9,14 @@ import suneido.language.FunctionSpec;
 public class ContainerMethods {
 
 	public static Object invoke(SuContainer c, String method, Object... args) {
-		if (method == "Size")
-			return size(c, args);
-		if (method == "Member?")
-			return memberQ(c, args);
 		if (method == "Add")
 			return add(c, args);
+		if (method == "Member?")
+			return memberQ(c, args);
+		if (method == "Size")
+			return size(c, args);
+		if (method == "Sort" || method == "Sort!")
+			return sort(c, args);
 		// TODO check user defined Objects
 		throw new SuException("unknown method: object." + method);
 	}
@@ -30,7 +32,13 @@ public class ContainerMethods {
 		return c.size();
 	}
 
-	private static Object add(SuContainer c, Object[] args) {
+	private static SuContainer sort(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		c.sort();
+		return c;
+	}
+
+	private static SuContainer add(SuContainer c, Object[] args) {
 		// TODO handle Add(@args)
 		int n = args.length;
 		Object at = c.size();

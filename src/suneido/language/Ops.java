@@ -410,8 +410,21 @@ public class Ops {
 	public static String display(Object x) {
 		if (x instanceof String)
 			return "'" + ((String) x).replace("'", "\\'") + "'"; //TODO smarter quoting/escaping
+		else if (x == null)
+			return "null";
 		else
 			return toStr(x);
+	}
+	public static String display(Object[] a) {
+		if (a.length == 0)
+			return "()";
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		for (Object x : a)
+			sb.append(display(x) + ", ");
+		sb.delete(sb.length() - 2, sb.length());
+		sb.append(")");
+		return sb.toString();
 	}
 
 	public static String toStringBD(BigDecimal n) {
@@ -452,12 +465,15 @@ public class Ops {
 	}
 
 	public static Object call(Object x, Object... args) {
+		System.out.println("call " + display(x) + display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).call(args);
 		throw new SuException("can't call " + typeName(x));
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
+		System.out.println("invoke " + display(x) + "." + method
+				+ display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).invoke(x, method, args);
 		Class<?> xType = x.getClass();

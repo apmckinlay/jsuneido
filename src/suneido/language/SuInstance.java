@@ -24,7 +24,8 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-
+		if (method == "Base")
+			return myclass;
 		return myclass.invoke(self, method, args);
 	}
 

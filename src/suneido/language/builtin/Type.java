@@ -36,6 +36,7 @@ public class Type extends SuFunction {
 		translate.put("java.lang.String", "String");
 		translate.put("java.lang.Integer", "Number");
 		translate.put("java.math.BigDecimal", "Number");
+		translate.put("java.util.Date", "Date");
 		translate.put("suneido.SuContainer", "Object");
 		translate.put("suneido.SuRecord", "Record");
 	}
