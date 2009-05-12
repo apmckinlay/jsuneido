@@ -13,9 +13,8 @@ public class Repl {
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
 
-		Object print = new Print();
-		Globals.put("Print", print);
-		Globals.put("Alert", print);
+		Globals.put("Print", new Print());
+		Globals.put("Alert", new Alert());
 
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
