@@ -22,12 +22,17 @@ public class Ops {
 			return false;
 		Class<?> xType = x.getClass();
 		if (xType == Integer.class) {
-			if (y.getClass() == BigDecimal.class)
+			if (y.getClass() == BigDecimal.class) {
 				x = BigDecimal.valueOf((Integer) x);
+				xType = BigDecimal.class;
+			}
 		} else if (xType == BigDecimal.class) {
 			if (y.getClass() == Integer.class)
 				y = BigDecimal.valueOf((Integer) y);
 		}
+		if (xType == BigDecimal.class && y.getClass() == BigDecimal.class)
+			// need to use compareTo to ignore scale
+			return 0 == ((BigDecimal) x).compareTo((BigDecimal) y);
 		return x.equals(y);
 	}
 
