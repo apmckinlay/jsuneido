@@ -1,6 +1,7 @@
 package suneido.language.builtin;
 
 import static suneido.language.Args.Special.NAMED;
+import static suneido.language.builtin.UserDefined.userDefined;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.language.Args;
@@ -17,8 +18,7 @@ public class ContainerMethods {
 			return size(c, args);
 		if (method == "Sort" || method == "Sort!")
 			return sort(c, args);
-		// TODO check user defined Objects
-		throw new SuException("unknown method: object." + method);
+		return userDefined("Objects", method).invoke(c, method, args);
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
