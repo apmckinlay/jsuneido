@@ -4,12 +4,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static suneido.language.Ops.toInt;
 import static suneido.language.Ops.toStr;
-import static suneido.language.SuClass.Marker.METHOD;
+import static suneido.language.builtin.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
 import java.util.regex.Pattern;
 
-import suneido.SuException;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Tr;
@@ -44,13 +43,7 @@ public class StringMethods {
 			if (method == "Tr")
 				return tr(s, args);
 		}
-		Object strings = Globals.get("Strings");
-		if (strings != null && strings instanceof SuClass) {
-			SuClass cstrings = (SuClass) strings;
-			if (cstrings.get3(method) == METHOD)
-				return cstrings.invoke(s, method, args);
-		}
-		throw new SuException("unknown method: string." + method);
+		return userDefined("Strings", method).invoke(s, method, args);
 	}
 
 	private static final FunctionSpec sFS = new FunctionSpec("s");

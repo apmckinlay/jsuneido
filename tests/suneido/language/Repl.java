@@ -75,7 +75,7 @@ public class Repl {
 	static class Alert extends SuFunction {
 		@Override
 		public Object call(Object... args) {
-			System.out.print("ALERT " + Ops.toStr(args[0]));
+			System.out.println("ALERT " + Ops.toStr(args[0]));
 			return null;
 		}
 	}

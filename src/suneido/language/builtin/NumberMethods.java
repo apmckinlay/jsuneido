@@ -1,8 +1,9 @@
 package suneido.language.builtin;
 
+import static suneido.language.builtin.UserDefined.userDefined;
+
 import java.math.BigDecimal;
 
-import suneido.SuException;
 import suneido.language.Args;
 import suneido.language.FunctionSpec;
 
@@ -17,8 +18,7 @@ public class NumberMethods {
 	public static Object invoke(BigDecimal n, String method, Object... args) {
 		if (method == "Chr")
 			return chr(n.intValue(), args);
-		// TODO check user defined Numbers
-		throw new SuException("unknown method: number." + method);
+		return userDefined("Numbers", method).invoke(n, method, args);
 	}
 
 	private static String chr(Integer n, Object[] args) {
