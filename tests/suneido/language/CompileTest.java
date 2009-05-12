@@ -346,7 +346,9 @@ public class CompileTest {
 			{ "toBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, this, DUP, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+			{
+								"NEW suneido/language/SuBlock, DUP, this, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Lsuneido/language/FunctionSpec;[Object;)V",
+								"block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },

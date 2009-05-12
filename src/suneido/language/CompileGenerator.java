@@ -1204,8 +1204,8 @@ c.cv = new CheckClassAdapter(c.cv);
 		// new SuBlock(classValue, bspec, locals)
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
 		c.f.mv.visitInsn(DUP);
+		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		c.f.mv.visitVarInsn(ALOAD, THIS);
-		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + c.name,
 				"params", "[Lsuneido/language/FunctionSpec;");
 		iconst(c.f.mv, iFspecs);

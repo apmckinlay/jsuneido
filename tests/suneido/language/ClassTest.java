@@ -105,6 +105,10 @@ public class ClassTest {
 		defineClass("A", "class { F() { } }");
 		defineClass("B", "A { G() { } }");
 		test("B.Members()", "#('G')");
+
+		defineClass("A", "class { F() { b = { .G() }; b() } }");
+		defineClass("B", "A { G() { 123 } }");
+		test("B.F()", "123");
 	}
 	@Test public void test_static_getter() {
 		defineClass("A", "class { " +
