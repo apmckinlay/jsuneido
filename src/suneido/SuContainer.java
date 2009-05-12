@@ -46,6 +46,15 @@ public class SuContainer extends SuValue
 
 	public SuContainer() {
 	}
+	public SuContainer(Collection<?> c) {
+		vec.addAll(c);
+	}
+	public static SuContainer of(Object x, Object y) {
+		SuContainer c = new SuContainer();
+		c.append(x);
+		c.append(y);
+		return c;
+	}
 
 	public Object vecGet(int i) {
 		return vec.get(i);
@@ -55,6 +64,9 @@ public class SuContainer extends SuValue
 	}
 	public Set<Map.Entry<Object, Object>> mapEntrySet() {
 		return map.entrySet();
+	}
+	public Set<Object> mapKeySet() {
+		return map.keySet();
 	}
 
 	public void append(Object value) {
@@ -186,6 +198,9 @@ public class SuContainer extends SuValue
 	public int vecSize() {
 		return vec.size();
 	}
+	public int mapSize() {
+		return map.size();
+	}
 
 	@Override
 	public int packSize(int nest) {
@@ -277,28 +292,66 @@ public class SuContainer extends SuValue
 		return ContainerMethods.invoke(this, method, args);
 	}
 
+	public static enum IterWhich { LIST, NAMED, ALL };
+
 	public Iterator<Object> iterator() {
-		return new Iter(vec.iterator(), map.entrySet().iterator());
+		return iterator(IterWhich.ALL, IterResult.VALUE);
 	}
+	@SuppressWarnings("unchecked")
+	public Iterator<Object> iterator(IterWhich iterWhich, IterResult iterValue) {
+		return new Iter(
+				iterWhich != IterWhich.NAMED ? vec.iterator() : nullIter,
+				iterWhich != IterWhich.LIST ? map.entrySet().iterator() : nullIter,
+				iterValue);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static class NullIter implements Iterator {
+		public boolean hasNext() {
+			return false;
+		}
+		public Object next() {
+			return null;
+		}
+		public void remove() {
+		}
+	}
+	private static final NullIter nullIter = new NullIter();
+
+	public static enum IterResult { KEY, VALUE, ASSOC };
 
 	static class Iter implements Iterator<Object> {
 		private final Iterator<Object> veciter;
+		private int vec_i = 0;
 		private final Iterator<Map.Entry<Object, Object>> mapiter;
+		private final IterResult iterResult;
 		public Iter(Iterator<Object> veciter,
-				Iterator<Map.Entry<Object, Object>> mapiter) {
+				Iterator<Map.Entry<Object, Object>> mapiter, IterResult iterResult) {
 			this.veciter = veciter;
 			this.mapiter = mapiter;
+			this.iterResult = iterResult;
 		}
 		public boolean hasNext() {
 			return veciter.hasNext() || mapiter.hasNext();
 		}
 		public Object next() {
 			if (veciter.hasNext())
-				return veciter.next();
-			else if (mapiter.hasNext())
-				return mapiter.next().getValue();
-			else
+				return result(vec_i++, veciter.next());
+			else if (mapiter.hasNext()) {
+				Map.Entry<Object, Object> e = mapiter.next();
+				return result(e.getKey(), e.getValue());
+			} else
 				throw new NoSuchElementException();
+		}
+		private Object result(Object key, Object value) {
+			switch (iterResult) {
+			case KEY:
+				return key;
+			case VALUE:
+				return value;
+			default:
+				return SuContainer.of(key, value);
+			}
 		}
 		public void remove() {
 			throw new UnsupportedOperationException();

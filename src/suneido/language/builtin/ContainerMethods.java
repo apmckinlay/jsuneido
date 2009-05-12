@@ -2,23 +2,57 @@ package suneido.language.builtin;
 
 import static suneido.language.Args.Special.NAMED;
 import static suneido.language.builtin.UserDefined.userDefined;
+import static suneido.util.Util.array;
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.language.Args;
-import suneido.language.FunctionSpec;
+import suneido.SuContainer.IterResult;
+import suneido.SuContainer.IterWhich;
+import suneido.language.*;
 
 public class ContainerMethods {
 
 	public static Object invoke(SuContainer c, String method, Object... args) {
 		if (method == "Add")
 			return add(c, args);
+		if (method == "Assocs")
+			return assocs(c, args);
 		if (method == "Member?")
 			return memberQ(c, args);
+		if (method == "Members")
+			return members(c, args);
 		if (method == "Size")
 			return size(c, args);
 		if (method == "Sort" || method == "Sort!")
 			return sort(c, args);
+		if (method == "Values")
+			return values(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
+	}
+
+	private static Object members(SuContainer c, Object[] args) {
+		return new SuSequence(c.iterator(iterWhich(args), IterResult.KEY));
+	}
+
+	private static Object values(SuContainer c, Object[] args) {
+		return new SuSequence(c.iterator(iterWhich(args), IterResult.VALUE));
+	}
+
+	private static Object assocs(SuContainer c, Object[] args) {
+		return new SuSequence(c.iterator(iterWhich(args), IterResult.ASSOC));
+	}
+
+	private static final FunctionSpec list_named_FS =
+			new FunctionSpec(array("list", "named"), false, false);
+	private static IterWhich iterWhich(Object[] args) {
+		args = Args.massage(list_named_FS, args);
+		boolean list = Ops.toBool(args[0]) == 1;
+		boolean named = Ops.toBool(args[1]) == 1;
+		if (list && !named)
+			return IterWhich.LIST;
+		else if (!list && named)
+			return IterWhich.NAMED;
+		else
+			return IterWhich.ALL;
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
@@ -28,8 +62,14 @@ public class ContainerMethods {
 	}
 
 	private static int size(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return c.size();
+		switch (iterWhich(args)) {
+		case LIST:
+			return c.vecSize();
+		case NAMED:
+			return c.mapSize();
+		default:
+			return c.size();
+		}
 	}
 
 	private static SuContainer sort(SuContainer c, Object[] args) {
