@@ -23,6 +23,11 @@ public class ExecuteTest {
 		test("s = 'hello'; s.Substr(s.Size() - 2, 99)", "'lo'");
 		test("f = function (@x) { x }; f()", "#()");
 	}
+	@Test public void test_bigdecimal_is() {
+		test("1000 is 1e3", "true");
+		test("1e3 is 1000", "true");
+		test("10e3 is 1e4", "true");
+	}
 	@Test public void test_incdec() {
 		test("f = function (@x) { x.a = 0; ++x.a }; f()", "1");
 		test("f = function (@x) { x.a = 0; x.a++ }; f()", "0");
