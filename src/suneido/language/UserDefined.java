@@ -1,9 +1,7 @@
-package suneido.language.builtin;
+package suneido.language;
 
 import static suneido.language.SuClass.Marker.METHOD;
 import suneido.SuException;
-import suneido.language.Globals;
-import suneido.language.SuClass;
 
 public class UserDefined {
 

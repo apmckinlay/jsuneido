@@ -1,11 +1,9 @@
-package suneido.language.builtin;
+package suneido.language;
 
-import static suneido.language.builtin.UserDefined.userDefined;
+import static suneido.language.UserDefined.userDefined;
 
 import java.math.BigDecimal;
 
-import suneido.language.Args;
-import suneido.language.FunctionSpec;
 
 public class NumberMethods {
 

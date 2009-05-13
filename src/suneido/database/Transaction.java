@@ -62,6 +62,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return readonly;
 	}
 
+	public boolean isEnded() {
+		return ended;
+	}
+
 	public long asof() {
 		return asof;
 	}
@@ -128,7 +132,9 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	public void ck_complete() {
-		verify(complete() == null);
+		String s = complete();
+		if (s != null)
+			throw new SuException("transaction commit failed: " + s);
 	}
 
 	public String complete() {

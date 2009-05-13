@@ -17,13 +17,9 @@ import suneido.language.SuClass;
 public abstract class SuValue implements Packable {
 
 	@Override
-	public abstract String toString();
-
-	@Override
-	public abstract int hashCode();
-
-	@Override
-	public abstract boolean equals(Object other);
+	public String toString() {
+		return typeName();
+	}
 
 	public int hashCode(int nest) {
 		return hashCode();

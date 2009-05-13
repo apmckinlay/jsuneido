@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import suneido.*;
-import suneido.language.builtin.NumberMethods;
-import suneido.language.builtin.StringMethods;
 import suneido.util.StringIterator;
 
 public class Ops {
@@ -466,7 +464,7 @@ public class Ops {
 	public static String typeName(Object x) {
 		return x == null ? "uninitialized"
 				: x.getClass().getName().replaceFirst(
-						"^(suneido.(language.)?)?", "");
+						"^(suneido.(language.(builtin.)?)?)?(Su)?", "");
 	}
 
 	public static Object call(Object x, Object... args) {
@@ -493,7 +491,7 @@ public class Ops {
 
 	public static String toMethodString(Object method) {
 		if (method instanceof String)
-			return (String) method;
+			return ((String) method).intern();
 		throw new SuException("invalid method: " + method);
 	}
 

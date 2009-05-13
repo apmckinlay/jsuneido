@@ -20,14 +20,14 @@ public class DbmsLocalTest {
 
 		dbms.admin(null, "create test (a, b, c) key(a)");
 
-		DbmsTran t1 = dbms.transaction(true, "");
+		DbmsTran t1 = dbms.transaction(true);
 		dbms.request(serverData, t1, "insert { a: 1, b: 2, c: 3 } into test");
 		t1.complete();
 
 		HeaderAndRow hr = dbms.get(serverData, Dir.NEXT, "test", true, null);
 		assertEquals(1, hr.row.getval(hr.header, "a"));
 
-		DbmsTran t2 = dbms.transaction(true, "");
+		DbmsTran t2 = dbms.transaction(true);
 		DbmsQuery q = dbms.query(serverData, t2, "test");
 		q.output(new Record().add(4).add(5).add(6));
 		q.rewind();

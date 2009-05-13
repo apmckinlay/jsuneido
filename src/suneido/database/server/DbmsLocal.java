@@ -29,7 +29,7 @@ public class DbmsLocal implements Dbms {
 		return ((QueryAction) CompileQuery.parse(serverData, s)).execute((Transaction) tran);
 	}
 
-	public DbmsTran transaction(boolean readwrite, String session_id) {
+	public DbmsTran transaction(boolean readwrite) {
 		return readwrite ? theDB.readwriteTran() : theDB.readonlyTran();
 	}
 

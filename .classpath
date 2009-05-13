@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="/Users/andrew/workspace/jSuneido/asm-3.1.jar"/>
 	<classpathentry kind="lib" path="/Users/andrew/workspace/jSuneido/asm-util-3.1.jar"/>
 	<classpathentry kind="lib" path="/Users/andrew/workspace/jSuneido/asm-analysis-3.1.jar"/>
+	<classpathentry kind="lib" path="WhenBuilt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

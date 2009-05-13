@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import suneido.SuContainer;
 import suneido.SuValue;
-import suneido.language.builtin.ContainerMethods;
 
 /**
  * A wrapper for an iterator that can be treated like an SuObject

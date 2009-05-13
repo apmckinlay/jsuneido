@@ -1,15 +1,16 @@
 package suneido;
 
 import static suneido.Suneido.verify;
+import static suneido.database.server.Command.theDbms;
 import static suneido.language.Ops.canonical;
 import static suneido.language.Ops.cmp;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.language.Ops;
-import suneido.language.Pack;
-import suneido.language.builtin.ContainerMethods;
+import suneido.database.Record;
+import suneido.database.query.Header;
+import suneido.language.*;
 
 /**
  * Suneido's single container type.
@@ -181,13 +182,30 @@ public class SuContainer extends SuValue
 		//TODO handle stack overflow from self-reference
 	}
 
-	public boolean erase(Object key) {
+	public boolean delete(Object key) {
+		if (null != map.remove(key))
+			return true;
 		int i = index(key);
 		if (0 <= i && i < vec.size()) {
 			vec.remove(i);
 			return true;
 		} else
-			return null != map.remove(key);
+			return false;
+	}
+
+	public boolean erase(Object key) {
+		if (null != map.remove(key))
+			return true;
+		int i = index(key);
+		if (i < 0 || vec.size() <= i)
+			return false;
+		// migrate from vec to map
+		for (int j = vec.size() - 1; j > i; --j) {
+			map.put(j, vec.get(j));
+			vec.remove(j);
+		}
+		vec.remove(i);
+		return true;
 	}
 
 	public static int index(Object x) {
@@ -393,6 +411,22 @@ public class SuContainer extends SuValue
 	public void sort() {
 		Collections.sort(vec, new Comparator<Object>() {
 			public int compare(Object x, Object y) { return Ops.cmp(x, y); } });
+	}
+
+	public Record toDbRecord(Header hdr) {
+		Record rec = new Record();
+		Object x;
+		String ts = hdr.timestamp_field();
+		for (String f : hdr.output_fldsyms())
+			if (f == null)
+				rec.addMin();
+			else if (f == ts)
+				rec.add(theDbms.timestamp());
+			else if (null != (x = get(f)))
+				rec.add(x);
+			else
+				rec.addMin();
+		return rec;
 	}
 
 }
