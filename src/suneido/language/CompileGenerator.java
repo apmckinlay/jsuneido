@@ -384,6 +384,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f = new Function(c.name + "_b" + c.iBlock++);
 
 		startMethod();
+		// massage done in SuBlock.call
 		loadConstants();
 
 		c.f.locals = c.fstack.peek().locals; // use outer locals
@@ -1194,7 +1195,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.constants.set(c.f.iConstants, constantsArray);
 
 		FunctionSpec fs =
-				new BlockSpec(c.f.name, c.f.locals.toArray(arrayString),
+				new BlockSpec(c.f.name, blockLocals(),
 						c.f.nparams, c.f.atParam, c.f.iparams);
 		c.fspecs.set(c.f.iFspecs, fs);
 		int iFspecs = c.f.iFspecs;
@@ -1221,6 +1222,13 @@ c.cv = new CheckClassAdapter(c.cv);
 		}
 
 		return VALUE;
+	}
+
+	private String[] blockLocals() {
+		String[] locals = new String[c.f.locals.size() - c.f.iparams];
+		for (int i = 0; i < locals.length; ++i)
+			locals[i] = c.f.locals.get(i + c.f.iparams);
+		return locals;
 	}
 
 	private void hideBlockParams() {
