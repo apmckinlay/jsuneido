@@ -41,6 +41,13 @@ public class ContainerMethodsTest {
 		test("#(11, 22, a: 33, b: 44, c: 55).Assocs(named:)",
 				"#(#('b', 44), #('c', 55), #('a', 33))");
 	}
+	@Test
+	public void test_find() {
+		test("#(11, 22, a: 33, b: 44).Find(123)", "false");
+		test("#(11, 22, a: 33, b: 44).Find(22)", "1");
+		test("#(11, 22, a: 33, b: 44).Find(33)", "'a'");
+
+	}
 
 	public static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));

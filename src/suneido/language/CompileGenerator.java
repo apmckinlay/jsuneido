@@ -1251,7 +1251,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitLdcInsn(which);
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
-				"(Ljava/lang/String;)V");
+				"(Ljava/lang/Object;)V");
 		c.f.mv.visitInsn(ATHROW);
 	}
 

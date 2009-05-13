@@ -297,12 +297,34 @@ public class SuContainer extends SuValue
 	public Iterator<Object> iterator() {
 		return iterator(IterWhich.ALL, IterResult.VALUE);
 	}
+
 	@SuppressWarnings("unchecked")
-	public Iterator<Object> iterator(IterWhich iterWhich, IterResult iterValue) {
+	public Iterator<Object> iterator(IterWhich iterWhich, IterResult iterResult) {
 		return new Iter(
 				iterWhich != IterWhich.NAMED ? vec.iterator() : nullIter,
 				iterWhich != IterWhich.LIST ? map.entrySet().iterator() : nullIter,
-				iterValue);
+				iterResult);
+	}
+
+	public Iterable<Object> iterable(IterWhich iterWhich, IterResult iterResult) {
+		if (iterWhich == IterWhich.ALL && iterResult == IterResult.VALUE)
+			return this;
+		else
+			return new IterableAdapter(iterWhich, iterResult);
+	}
+
+	private class IterableAdapter implements Iterable<Object> {
+		private final IterWhich iterWhich;
+		private final IterResult iterResult;
+
+		public IterableAdapter(IterWhich iterWhich, IterResult iterResult) {
+			this.iterWhich = iterWhich;
+			this.iterResult = iterResult;
+		}
+
+		public Iterator<Object> iterator() {
+			return SuContainer.this.iterator(iterWhich, iterResult);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -356,6 +378,16 @@ public class SuContainer extends SuValue
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
+	}
+
+	public Object find(Object value) {
+		int i = vec.indexOf(value);
+		if (i != -1)
+			return i;
+		for (Map.Entry<Object, Object> e : map.entrySet())
+			if (e.getValue().equals(value))
+				return e.getKey();
+		return null;
 	}
 
 	public void sort() {

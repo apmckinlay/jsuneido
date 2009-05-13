@@ -2,6 +2,8 @@ package suneido.language;
 
 import java.util.List;
 
+import suneido.SuException;
+
 public class SampleFunction extends SuFunction {
 
 	@Override
@@ -11,9 +13,7 @@ public class SampleFunction extends SuFunction {
 	}
 
 	void test(List<Object> list) {
-		for (Object x : list)
-			for (Object y : list)
-				call(x, y);
+		throw new SuException("block:continue");
 	}
 
 }

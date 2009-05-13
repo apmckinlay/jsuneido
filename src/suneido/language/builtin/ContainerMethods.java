@@ -16,6 +16,8 @@ public class ContainerMethods {
 			return add(c, args);
 		if (method == "Assocs")
 			return assocs(c, args);
+		if (method == "Find")
+			return find(c, args);
 		if (method == "Member?")
 			return memberQ(c, args);
 		if (method == "Members")
@@ -30,15 +32,15 @@ public class ContainerMethods {
 	}
 
 	private static Object members(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterator(iterWhich(args), IterResult.KEY));
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.KEY));
 	}
 
 	private static Object values(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterator(iterWhich(args), IterResult.VALUE));
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 	private static Object assocs(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterator(iterWhich(args), IterResult.ASSOC));
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
 	private static final FunctionSpec list_named_FS =
@@ -76,6 +78,13 @@ public class ContainerMethods {
 		Args.massage(FunctionSpec.noParams, args);
 		c.sort();
 		return c;
+	}
+
+	private static final FunctionSpec valueFS = new FunctionSpec("value");
+	private static Object find(SuContainer c, Object[] args) {
+		args = Args.massage(valueFS, args);
+		Object key = c.find(args[0]);
+		return key == null ? false : key;
 	}
 
 	private static SuContainer add(SuContainer c, Object[] args) {
