@@ -19,7 +19,7 @@ public class SuContainerTest {
 			c.put(x, true);
 			for (Object y : a)
 				assertEquals(true, c.get(y));
-			assertTrue(c.erase(x));
+			assertTrue(c.delete(x));
 		}
 	}
 
@@ -86,18 +86,37 @@ public class SuContainerTest {
 	}
 
 	@Test
+	public void delete() {
+		SuContainer c = new SuContainer();
+		assertFalse(c.delete(0));
+		assertFalse(c.delete(""));
+		assert c.size() == 0;
+		c.append(1);
+		c.put("a", 1);
+		assert c.size() == 2;
+		assertTrue(c.delete(0));
+		assert c.size() == 1;
+		assertTrue(c.delete("a"));
+		assert c.size() == 0;
+	}
+
+	@Test
 	public void erase() {
 		SuContainer c = new SuContainer();
 		assertFalse(c.erase(0));
 		assertFalse(c.erase(""));
 		assert c.size() == 0;
-		c.append(1);
+		c.append(11);
+		c.append(22);
+		c.append(33);
 		c.put("a", 1);
-		assert c.size() == 2;
-		assertTrue(c.erase(0));
-		assert c.size() == 1;
+		assert c.size() == 4;
+		assertTrue(c.erase(1));
+		assert c.size() == 3;
+		assertEquals(2, c.mapSize());
+		assertEquals(1, c.vecSize());
 		assertTrue(c.erase("a"));
-		assert c.size() == 0;
+		assert c.size() == 2;
 	}
 
 	@Test

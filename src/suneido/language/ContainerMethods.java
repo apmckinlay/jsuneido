@@ -1,13 +1,12 @@
-package suneido.language.builtin;
+package suneido.language;
 
 import static suneido.language.Args.Special.NAMED;
-import static suneido.language.builtin.UserDefined.userDefined;
+import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuContainer.IterResult;
 import suneido.SuContainer.IterWhich;
-import suneido.language.*;
 
 public class ContainerMethods {
 
@@ -16,6 +15,10 @@ public class ContainerMethods {
 			return add(c, args);
 		if (method == "Assocs")
 			return assocs(c, args);
+		if (method == "Delete")
+			return delete(c, args);
+		if (method == "Erase")
+			return erase(c, args);
 		if (method == "Find")
 			return find(c, args);
 		if (method == "Member?")
@@ -58,9 +61,20 @@ public class ContainerMethods {
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
+
 	private static boolean memberQ(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.containsKey(args[0]);
+	}
+
+	private static Object delete(SuContainer c, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return c.delete(args[0]) ? c : false;
+	}
+
+	private static Object erase(SuContainer c, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return c.erase(args[0]) ? c : false;
 	}
 
 	private static int size(SuContainer c, Object[] args) {

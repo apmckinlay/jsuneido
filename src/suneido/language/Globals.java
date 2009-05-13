@@ -2,8 +2,7 @@ package suneido.language;
 
 import java.util.HashMap;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 
 /**
  * Stores global names and values.
@@ -16,7 +15,9 @@ public class Globals {
 	private static HashMap<String, Object> globals =
 			new HashMap<String, Object>();
 	static {
-		globals.put("Object", new suneido.language.builtin.ObjectFunction());
+		globals.put("Suneido", new SuContainer());
+		globals.put("Date", new DateClass());
+		globals.put("Object", new suneido.language.ObjectFunction());
 	}
 
 	private Globals() { // no instances

@@ -21,7 +21,7 @@ import suneido.database.query.Query.Dir;
  *         </p>
  */
 public interface Dbms {
-	DbmsTran transaction(boolean readwrite, String session_id);
+	DbmsTran transaction(boolean readwrite);
 
 	void admin(ServerData serverData, String s);
 	int request(ServerData serverData, DbmsTran tran, String s);
