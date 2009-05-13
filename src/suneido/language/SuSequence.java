@@ -12,13 +12,15 @@ import suneido.language.builtin.ContainerMethods;
  *
  * @author Andrew McKinlay
  */
-public class SuSequence extends SuValue implements Iterator<Object> {
-	private final Iterator<Object> originalIter;
+public class SuSequence extends SuValue
+		implements Iterator<Object>, Iterable<Object> {
+	private final Iterable<Object> iterable;
 	private final Iterator<Object> iter;
 	private SuContainer ob = null;
 
-	public SuSequence(Iterator<Object> iter) {
-		this.iter = originalIter = iter;
+	public SuSequence(Iterable<Object> iterable) {
+		this.iterable = iterable;
+		iter = iterable.iterator();
 	}
 
 	@Override
@@ -46,8 +48,8 @@ public class SuSequence extends SuValue implements Iterator<Object> {
 	private SuContainer getOb() {
 		if (ob == null) {
 			ob = new SuContainer();
-			for (Iterator<Object> i = originalIter; i.hasNext();)
-				ob.append(i.next());
+			for (Object value : iterable)
+				ob.append(value);
 		}
 		return ob;
 	}
@@ -62,5 +64,9 @@ public class SuSequence extends SuValue implements Iterator<Object> {
 
 	public void remove() {
 		throw new UnsupportedOperationException();
+	}
+
+	public Iterator<Object> iterator() {
+		return iterable.iterator();
 	}
 }

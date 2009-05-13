@@ -32,7 +32,7 @@ public class Repl {
 					out.println(" => " + Ops.display(result));
 				saveTest(line, result);
 			} catch (SuException e) {
-				out.println(" !! " + e);
+				e.printStackTrace();
 			}
 		}
 		out.println("bye");

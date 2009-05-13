@@ -3,6 +3,7 @@ package suneido.language;
 import java.util.HashMap;
 
 import suneido.SuException;
+import suneido.SuValue;
 
 /**
  * Stores global names and values.
@@ -44,9 +45,9 @@ public class Globals {
 		} catch (ClassNotFoundException e) {
 			return null;
 		}
-		SuCallable sc = null;
+		SuValue sc = null;
 		try {
-			sc = (SuCallable) c.newInstance();
+			sc = (SuValue) c.newInstance();
 		} catch (InstantiationException e) {
 			return null;
 		} catch (IllegalAccessException e) {
