@@ -25,7 +25,7 @@ public enum Command {
 	BADCMD {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			badcmd.rewind();
 			outputQueue.enqueue(badcmd);
 			return line;
@@ -34,7 +34,7 @@ public enum Command {
 	NILCMD {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return null;
 		}
 
@@ -42,15 +42,15 @@ public enum Command {
 	ADMIN {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			theDbms.admin(serverData, bufferToString(line));
+				OutputQueue outputQueue) {
+			theDbms.admin(ServerData.forThread(), bufferToString(line));
 			return TRUE;
 		}
 	},
 	TRANSACTION {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			String s = bufferToString(line).trim().toLowerCase();
 			boolean readwrite = false;
 			if (match(s, "update"))
@@ -59,7 +59,8 @@ public enum Command {
 				return stringToBuffer("ERR invalid transaction mode: " + s
 						+ "\r\n");
 			// TODO session id
-			int tn = serverData.addTransaction(
+			int tn =
+					ServerData.forThread().addTransaction(
 					theDbms.transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
 		}
@@ -67,10 +68,10 @@ public enum Command {
 	COMMIT {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			int tn = ck_getnum('T', line);
-			DbmsTran tran = serverData.getTransaction(tn);
-			serverData.endTransaction(tn);
+			DbmsTran tran = ServerData.forThread().getTransaction(tn);
+			ServerData.forThread().endTransaction(tn);
 			String conflict = tran.complete();
 			return conflict == null ? OK : stringToBuffer(conflict + "\r\n");
 		}
@@ -78,10 +79,10 @@ public enum Command {
 	ABORT {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			int tn = ck_getnum('T', line);
-			DbmsTran tran = serverData.getTransaction(tn);
-			serverData.endTransaction(tn);
+			DbmsTran tran = ServerData.forThread().getTransaction(tn);
+			ServerData.forThread().endTransaction(tn);
 			tran.abort();
 			return OK;
 		}
@@ -95,9 +96,12 @@ public enum Command {
 
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
-			int n = theDbms.request(serverData, tran, bufferToString(extra));
+				OutputQueue outputQueue) {
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			int n =
+					theDbms.request(ServerData.forThread(), tran,
+							bufferToString(extra));
 			return stringToBuffer("R" + n + "\r\n");
 		}
 	},
@@ -110,11 +114,13 @@ public enum Command {
 
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			int tn = ck_getnum('T', line);
-			DbmsTran tran = serverData.getTransaction(tn);
-			Query dq = (Query) theDbms.query(serverData, tran, bufferToString(extra));
-			int qn = serverData.addQuery(tn, dq);
+			DbmsTran tran = ServerData.forThread().getTransaction(tn);
+			Query dq =
+					(Query) theDbms.query(ServerData.forThread(), tran,
+							bufferToString(extra));
+			int qn = ServerData.forThread().addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
 	},
@@ -126,21 +132,23 @@ public enum Command {
 
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			Query dq = (Query) theDbms.cursor(serverData, bufferToString(extra));
-			int cn = serverData.addCursor(dq);
+				OutputQueue outputQueue) {
+			Query dq =
+					(Query) theDbms.cursor(ServerData.forThread(),
+							bufferToString(extra));
+			int cn = ServerData.forThread().addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
 	},
 	CLOSE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			int n;
 			if (-1 != (n = getnum('Q', line)))
-				serverData.endQuery(n);
+				ServerData.forThread().endQuery(n);
 			else if (-1 != (n = getnum('C', line)))
-				serverData.endCursor(n);
+				ServerData.forThread().endCursor(n);
 			else
 				throw new SuException("CLOSE expects Q# or C#");
 			return OK;
@@ -150,40 +158,40 @@ public enum Command {
 	HEADER {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_c(line, serverData);
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
 			return stringToBuffer(listToParens(q.header().schema()) + "\r\n");
 		}
 	},
 	ORDER {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_c(line, serverData);
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
 			return stringToBuffer(listToParens(q.ordering()) + "\r\n");
 		}
 	},
 	KEYS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_c(line, serverData);
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
 			return stringToBuffer(listToParens(q.keys()) + "\r\n");
 		}
 	},
 	EXPLAIN {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_c(line, serverData);
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
 			return stringToBuffer(q.toString() + "\r\n");
 		}
 	},
 	REWIND {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsQuery q = q_or_c(line, serverData);
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
 			q.rewind();
 			return OK;
 		}
@@ -192,9 +200,9 @@ public enum Command {
 	GET {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			Dir dir = getDir(line);
-			Query q = q_or_tc(line, serverData);
+			Query q = q_or_tc(line);
 			get(q, dir, outputQueue);
 			return null;
 		}
@@ -209,7 +217,7 @@ public enum Command {
 		}
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			Dir dir = Dir.NEXT;
 			boolean one = false;
 			switch (line.get()) {
@@ -227,8 +235,10 @@ public enum Command {
 			}
 			line.get(); // skip space
 			int tn = ck_getnum('T', line);
-			HeaderAndRow hr = theDbms.get(serverData, dir, bufferToString(extra), one,
-					serverData.getTransaction(tn));
+			HeaderAndRow hr =
+					theDbms.get(ServerData.forThread(), dir,
+							bufferToString(extra), one,
+							ServerData.forThread().getTransaction(tn));
 			row_result(hr.row, hr.header, true, outputQueue);
 			return null;
 		}
@@ -243,8 +253,8 @@ public enum Command {
 
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			Query q = q_or_tc(line, serverData);
+				OutputQueue outputQueue) {
+			Query q = q_or_tc(line);
 			// System.out.println("\t" + new Record(extra));
 			q.output(new Record(extra));
 			return TRUE;
@@ -260,8 +270,9 @@ public enum Command {
 
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
+				OutputQueue outputQueue) {
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
 			recadr = theDbms.update(tran, recadr, new Record(extra));
@@ -271,8 +282,9 @@ public enum Command {
 	ERASE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
-			DbmsTran tran = serverData.getTransaction(ck_getnum('T', line));
+				OutputQueue outputQueue) {
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			theDbms.erase(tran, recadr);
 			return OK;
@@ -282,7 +294,7 @@ public enum Command {
 	LIBGET {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			List<LibGet> srcs = theDbms.libget(bufferToString(line).trim());
 
 			String resp = "";
@@ -301,14 +313,14 @@ public enum Command {
 	LIBRARIES {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer(listToParens(theDbms.libraries()) + "\r\n");
 		}
 	},
 	TIMESTAMP {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer(theDbms.timestamp().toString() + "\r\n");
 		}
 	},
@@ -319,7 +331,7 @@ public enum Command {
 	BINARY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			// TODO BINARY
 			return OK;
 		}
@@ -327,14 +339,14 @@ public enum Command {
 	TRANLIST {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer(listToParens(theDbms.tranlist()) + "\r\n");
 		}
 	},
 	SIZE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer("S" + Mmfile.offsetToInt(theDbms.size())
 					+ "\r\n");
 		}
@@ -342,7 +354,7 @@ public enum Command {
 	TEMPDEST {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer("D0\r\n");
 		}
 	},
@@ -350,14 +362,14 @@ public enum Command {
 	CURSORS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			return stringToBuffer("N" + theDbms.cursors() + "\r\n");
 		}
 	},
 	SESSIONID {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			// TODO SESSIONID
 			// outputQueue.enqueue(line);
 			return line;
@@ -367,7 +379,7 @@ public enum Command {
 	LOG {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue, ServerData serverData) {
+				OutputQueue outputQueue) {
 			// TODO LOG
 			return OK;
 		}
@@ -387,11 +399,12 @@ public enum Command {
 	 *            Current position is past the first (command) word.
 	 * @param extra
 	 * @param outputQueue
-	 * @param serverData
+	 * @param TheServerData
+	 *            .get()
 	 * @return
 	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-			OutputQueue outputQueue, ServerData serverData) {
+			OutputQueue outputQueue) {
 		notimp.rewind();
 		outputQueue.enqueue(notimp);
 		return line;
@@ -439,13 +452,13 @@ public enum Command {
 		return num;
 	}
 
-	private static Query q_or_c(ByteBuffer buf, ServerData serverData) {
+	private static Query q_or_c(ByteBuffer buf) {
 		Query q = null;
 		int n;
 		if (-1 != (n = getnum('Q', buf)))
-			q = serverData.getQuery(n);
+			q = ServerData.forThread().getQuery(n);
 		else if (-1 != (n = getnum('C', buf)))
-			q = serverData.getCursor(n);
+			q = ServerData.forThread().getCursor(n);
 		else
 			throw new SuException("expecting Q# or C#");
 		if (q == null)
@@ -453,14 +466,15 @@ public enum Command {
 		return q;
 	}
 
-	private static Query q_or_tc(ByteBuffer buf, ServerData serverData) {
+	private static Query q_or_tc(ByteBuffer buf) {
 		Query q = null;
 		int n, tn;
 		if (-1 != (n = getnum('Q', buf)))
-			q = serverData.getQuery(n);
+			q = ServerData.forThread().getQuery(n);
 		else if (-1 != (tn = getnum('T', buf)) && -1 != (n = getnum('C', buf))) {
-			q = serverData.getCursor(n);
-			q.setTransaction((Transaction) serverData.getTransaction(tn));
+			q = ServerData.forThread().getCursor(n);
+			q.setTransaction((Transaction) ServerData.forThread().getTransaction(
+					tn));
 		} else
 			throw new SuException("expecting Q# or T# C#");
 		if (q == null)

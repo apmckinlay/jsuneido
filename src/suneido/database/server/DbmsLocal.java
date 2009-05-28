@@ -82,8 +82,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public int cursors() {
-		// TODO cursors
-		return 0;
+		return ServerData.forThread().cursorsSize();
 	}
 
 	public void dump(String filename) {
@@ -148,8 +147,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public long size() {
-		// TODO size
-		return 0;
+		return theDB.size();
 	}
 
 	static Date prev = new Date();

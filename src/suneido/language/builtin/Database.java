@@ -1,8 +1,7 @@
 package suneido.language.builtin;
 
 import static suneido.database.server.Command.theDbms;
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 import suneido.database.server.ServerData;
 import suneido.language.*;
 
@@ -21,7 +20,25 @@ public class Database extends SuValue {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "<new>")
 			throw new SuException("cannot create instances of Database");
+		if (method == "CurrentSize")
+			return currentSize(args);
+		if (method == "Transactions")
+			return new SuContainer(); // TODO Transactions
+		if (method == "Cursors")
+			return cursors(args);
+		if (method == "TempDest")
+			return 0; // not relevant to jSuneido
 		return super.invoke(self, method, args);
+	}
+
+	private Object currentSize(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return theDbms.size();
+	}
+
+	private int cursors(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return theDbms.cursors();
 	}
 
 }

@@ -1005,4 +1005,8 @@ public class Database {
 		this.loading = loading;
 	}
 
+	public long size() {
+		return dest.size();
+	}
+
 }

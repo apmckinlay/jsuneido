@@ -1,9 +1,10 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import suneido.*;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsQuery;
+import suneido.language.*;
 
 public class SuQuery extends SuValue {
 	private final DbmsQuery q;

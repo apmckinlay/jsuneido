@@ -1,4 +1,4 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -9,6 +9,8 @@ import static suneido.util.Util.array;
 
 import java.util.regex.Pattern;
 
+import suneido.language.*;
+import suneido.language.Compiler;
 import suneido.util.Tr;
 
 public class StringMethods {

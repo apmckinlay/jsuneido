@@ -4,7 +4,6 @@ import static suneido.database.server.Command.theDbms;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsTran;
 import suneido.language.SuFunction;
-import suneido.language.SuTransaction;
 
 public class QueryLast extends SuFunction {
 

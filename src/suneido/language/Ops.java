@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import suneido.*;
+import suneido.language.builtin.*;
 import suneido.util.StringIterator;
 
 public class Ops {
@@ -485,6 +486,8 @@ public class Ops {
 			return NumberMethods.invoke((Integer) x, method, args);
 		if (xType == BigDecimal.class)
 			return NumberMethods.invoke((BigDecimal) x, method, args);
+		if (xType == Date.class)
+			return DateMethods.invoke((Date) x, method, args);
 		// TODO handle invoke on other types
 		throw new SuException("no such method: " + typeName(x) + method);
 	}

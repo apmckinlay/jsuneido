@@ -1,4 +1,4 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import static suneido.database.server.Command.theDbms;
 import static suneido.language.UserDefined.userDefined;
@@ -8,7 +8,14 @@ import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsTran;
 import suneido.database.server.ServerData;
 import suneido.database.server.Dbms.HeaderAndRow;
+import suneido.language.*;
 
+/**
+ * SuTransaction is for instances of transactions the class is
+ * {@link Transaction}
+ * 
+ * @author Andrew McKinlay
+ */
 public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean ended = false;
@@ -102,18 +109,6 @@ public class SuTransaction extends SuValue {
 			ended = true;
 			t.abort();
 		}
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public int hashCode() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
