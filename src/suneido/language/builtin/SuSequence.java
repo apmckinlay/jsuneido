@@ -1,4 +1,4 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import java.util.Iterator;
 

@@ -4,6 +4,12 @@ import static suneido.util.Util.array;
 import suneido.SuException;
 import suneido.language.*;
 
+/**
+ * this is the value of the global "Transaction" instances are
+ * {@link SuTransaction}
+ *
+ * @author Andrew McKinlay
+ */
 public class Transaction extends BuiltinClass {
 
 	@Override

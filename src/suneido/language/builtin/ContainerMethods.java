@@ -1,4 +1,4 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import static suneido.language.Args.Special.NAMED;
 import static suneido.language.UserDefined.userDefined;
@@ -7,6 +7,7 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuContainer.IterResult;
 import suneido.SuContainer.IterWhich;
+import suneido.language.*;
 
 public class ContainerMethods {
 
@@ -31,6 +32,8 @@ public class ContainerMethods {
 			return sort(c, args);
 		if (method == "Values")
 			return values(c, args);
+		if (method == "Set_default")
+			return set_default(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
 	}
 
@@ -125,6 +128,12 @@ public class ContainerMethods {
 		else
 			throw new SuException("can only Add multiple values to un-named "
 					+ "or to numeric positions");
+		return c;
+	}
+
+	private static Object set_default(SuContainer c, Object[] args) {
+		args = Args.massage(valueFS, args);
+		c.setDefault(args[0]);
 		return c;
 	}
 }

@@ -10,7 +10,9 @@ import java.util.*;
 
 import suneido.database.Record;
 import suneido.database.query.Header;
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Pack;
+import suneido.language.builtin.ContainerMethods;
 
 /**
  * Suneido's single container type.
@@ -23,7 +25,7 @@ public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	private final ArrayList<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
-	private final Object defval = null; // TODO defval
+	private Object defval = null; // TODO defval
 
 	@SuppressWarnings("serial")
 	static class CanonicalMap extends HashMap<Object, Object> {
@@ -427,6 +429,10 @@ public class SuContainer extends SuValue
 			else
 				rec.addMin();
 		return rec;
+	}
+
+	public void setDefault(Object value) {
+		defval = value;
 	}
 
 }

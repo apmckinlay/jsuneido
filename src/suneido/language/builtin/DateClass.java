@@ -1,8 +1,10 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import static suneido.util.Util.array;
 
 import java.util.Date;
+
+import suneido.language.*;
 
 public class DateClass extends BuiltinClass {
 

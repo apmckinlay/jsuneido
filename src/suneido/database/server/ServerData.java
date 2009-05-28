@@ -23,6 +23,16 @@ public class ServerData {
 	private final Map<String, String> sviews = new HashMap<String, String>();
 	private final Stack<String> viewnest = new Stack<String>();
 
+	/**
+	 * this is set by {@link Server} since it is per connection, not really per
+	 * thread
+	 */
+	public static final ThreadLocal<ServerData> threadLocal =
+			new ThreadLocal<ServerData>();
+	public static ServerData forThread() {
+		return threadLocal.get();
+	}
+
 	public int addTransaction(DbmsTran tran) {
 		// client expect readonly tran# to be even
 		if (((Transaction) tran).isReadonly() && (next % 2) != 0)
@@ -95,5 +105,9 @@ public class ServerData {
 	public void leaveView(String name) {
 		assert viewnest.peek().equals(name);
 		viewnest.pop();
+	}
+
+	public int cursorsSize() {
+		return cursors.size();
 	}
 }

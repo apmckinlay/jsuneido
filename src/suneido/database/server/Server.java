@@ -96,9 +96,10 @@ e.printStackTrace();
 			ByteBuffer output = null;
 			if (err == null)
 				try {
+					ServerData.threadLocal.set(serverData);
 					line.reset();
 					output = cmd.execute(line, extra,
-							channelFacade.outputQueue(), serverData);
+							channelFacade.outputQueue());
 				} catch (Throwable e) {
 					e.printStackTrace();
 					err = e;
