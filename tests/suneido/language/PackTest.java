@@ -1,4 +1,4 @@
-package suneido;
+package suneido.language;
 
 import static org.junit.Assert.assertEquals;
 import static suneido.language.Pack.pack;
@@ -6,6 +6,7 @@ import static suneido.language.Pack.unpack;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 import org.junit.Test;
 
@@ -22,6 +23,7 @@ public class PackTest {
 		test(-1);
 		test("");
 		test("abc");
+		test(new Date());
 	}
 
 	private static void test(Object x) {
