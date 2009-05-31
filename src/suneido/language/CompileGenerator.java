@@ -877,7 +877,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			unaryMethod("not", "Boolean");
 			break;
 		case BITNOT:
-			unaryMethod("bitnot", "Number");
+			unaryMethod("bitnot", "Integer");
 			break;
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
