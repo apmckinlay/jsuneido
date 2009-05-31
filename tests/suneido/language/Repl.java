@@ -10,11 +10,7 @@ public class Repl {
 	static PrintWriter out = new PrintWriter(System.out);
 
 	public static void main(String[] args) throws Exception {
-		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
-		Database.theDB = new Database(mmf, Mode.OPEN);
-
-		Globals.put("Print", new Print());
-		Globals.put("Alert", new Alert());
+		setup();
 
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
@@ -37,6 +33,14 @@ public class Repl {
 		}
 		out.println("bye");
 		out.flush();
+	}
+
+	public static void setup() {
+		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
+		Database.theDB = new Database(mmf, Mode.OPEN);
+
+		Globals.put("Print", new Print());
+		Globals.put("Alert", new Alert());
 	}
 
 	private static void saveTest(String line, Object result)

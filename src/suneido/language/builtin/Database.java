@@ -1,6 +1,9 @@
 package suneido.language.builtin;
 
 import static suneido.database.server.Command.theDbms;
+
+import java.math.BigDecimal;
+
 import suneido.*;
 import suneido.database.server.ServerData;
 import suneido.language.*;
@@ -33,7 +36,8 @@ public class Database extends SuValue {
 
 	private Object currentSize(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return theDbms.size();
+		// need BigDecimal to handle long values
+		return BigDecimal.valueOf(theDbms.size());
 	}
 
 	private int cursors(Object[] args) {

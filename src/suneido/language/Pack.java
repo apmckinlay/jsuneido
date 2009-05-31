@@ -12,7 +12,6 @@ import java.util.Date;
 
 import suneido.*;
 
-
 public class Pack {
 	// sequence must match Order
 	public static class Tag {
@@ -111,6 +110,25 @@ public class Pack {
 		buf.putInt(time);
 	}
 
+	private static Date unpackDate(ByteBuffer buf) {
+		int date = buf.getInt();
+		int time = buf.getInt();
+
+		int year = date >> 9;
+		int month = (date >> 5) & 0xf;
+		int day = date & 0x1f;
+
+		int hour = time >> 22;
+		int minute = (time >> 16) & 0x3f;
+		int second = (time >> 10) & 0x3f;
+		int millisecond = time & 0x3ff;
+
+		Calendar cal = Calendar.getInstance();
+		cal.set(year, month - 1, day, hour, minute, second);
+		cal.set(Calendar.MILLISECOND, millisecond);
+		return cal.getTime();
+	}
+
 	private static void packString(String s, ByteBuffer buf) {
 		if (s.length() == 0)
 			return;
@@ -182,9 +200,12 @@ public class Pack {
 			return unpackString(buf);
 		case Tag.OBJECT:
 			return SuContainer.unpack1(buf);
-			// TODO unpack other types
+		case Tag.DATE:
+			return unpackDate(buf);
+		// TODO unpack other types
 		default:
-			throw SuException.unreachable();
+			throw new SuException("invalid unpack type: "
+					+ buf.get(buf.position() - 1));
 		}
 	}
 

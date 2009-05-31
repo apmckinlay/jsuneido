@@ -25,10 +25,15 @@ public class ServerData {
 
 	/**
 	 * this is set by {@link Server} since it is per connection, not really per
-	 * thread
+	 * thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal =
-			new ThreadLocal<ServerData>();
+		new ThreadLocal<ServerData>() {
+				@Override
+				public ServerData initialValue() {
+					return new ServerData();
+				}
+			};
 	public static ServerData forThread() {
 		return threadLocal.get();
 	}
