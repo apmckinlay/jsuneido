@@ -5,8 +5,7 @@ import static suneido.language.SuClass.Marker.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
@@ -26,7 +25,15 @@ public class SuInstance extends SuValue {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "Base")
 			return myclass;
+		if (method == "Members")
+			return members(self, args);
 		return myclass.invoke(self, method, args);
+	}
+
+	private Object members(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuContainer(ivars.keySet());
+		// TODO inherited members
 	}
 
 	@Override

@@ -149,6 +149,7 @@ public abstract class SuClass extends SuCallable {
 			if (fs.name != "_init") // TODO skip blocks & nested functions
 				c.append(fs.name);
 		return c;
+		// TODO inherited members
 	}
 
 	protected Object superInvoke(Object self, String member, Object... args) {

@@ -28,7 +28,7 @@ public enum Token {
 	LSHIFT("<<", INFIX, I), RSHIFT(">>", INFIX, I),
 	BITOR("|", INFIX, I), BITAND("&", INFIX, I), BITXOR("^", INFIX, I),
 	EQ("=", ASSIGN),
-	ADDEQ("+=", ASSIGN, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, S), 
+	ADDEQ("+=", ASSIGN, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, S),
 	MULEQ("*=", ASSIGN, N), DIVEQ("/=", ASSIGN, N), MODEQ("%=", ASSIGN, N),
 	LSHIFTEQ("<<=", ASSIGN, I), RSHIFTEQ(">>=", ASSIGN, I),
 	BITOREQ("|=", ASSIGN, I), BITANDEQ("&=", ASSIGN, I), BITXOREQ("^=", ASSIGN, I),
