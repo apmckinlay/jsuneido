@@ -4,6 +4,8 @@ import static suneido.database.server.Command.theDbms;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 import suneido.*;
+import suneido.database.query.CompileQuery;
+import suneido.database.query.QueryAction;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsTran;
 import suneido.database.server.ServerData;
@@ -11,9 +13,9 @@ import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.language.*;
 
 /**
- * SuTransaction is for instances of transactions the class is
- * {@link Transaction}
- * 
+ * SuTransaction is for instances of transactions
+ * the class is {@link Transaction}
+ *
  * @author Andrew McKinlay
  */
 public class SuTransaction extends SuValue {
@@ -23,6 +25,10 @@ public class SuTransaction extends SuValue {
 	private static final Object notPassed = new Object();
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), notPassed, notPassed);
+
+	public SuTransaction(DbmsTran tran) {
+		this.t = tran;
+	}
 
 	public SuTransaction(Object[] args) {
 		args = Args.massage(tranFS, args);
@@ -44,11 +50,11 @@ public class SuTransaction extends SuValue {
 		if (method == "Query")
 			return query(args);
 		if (method == "QueryFirst")
-			return queryOne(t, args, Dir.NEXT, false);
+			return queryOne(this, args, Dir.NEXT, false);
 		if (method == "QueryLast")
-			return queryOne(t, args, Dir.PREV, false);
+			return queryOne(this, args, Dir.PREV, false);
 		if (method == "Query1")
-			return queryOne(t, args, Dir.NEXT, true);
+			return queryOne(this, args, Dir.NEXT, true);
 		if (method == "Rollback")
 			return rollback(args);
 		return userDefined("Transactions", method).invoke(self, method, args);
@@ -60,7 +66,15 @@ public class SuTransaction extends SuValue {
 	private Object query(Object[] args) {
 		args = Args.massage(queryFS, args);
 		String query = Ops.toStr(args[0]);
-		SuQuery q = new SuQuery(theDbms.query(new ServerData(), t, query));
+		Object q;
+		if (CompileQuery.isRequest(query)) {
+			QueryAction qa =
+				(QueryAction) CompileQuery.parse(ServerData.forThread(), query);
+			q = qa.execute();
+System.out.println("execute => " + q);
+		} else {
+			q = new SuQuery(theDbms.query(new ServerData(), t, query));
+		}
 		if (args[1] == Boolean.FALSE)
 			return q;
 		try {
@@ -73,13 +87,15 @@ public class SuTransaction extends SuValue {
 	// TODO keyword query arguments
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
-	public static Object queryOne(DbmsTran t, Object[] args, Dir dir,
+	public static Object queryOne(SuTransaction t, Object[] args, Dir dir,
 			boolean single) {
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]);
 		// TODO serverdata ???
-		HeaderAndRow hr = theDbms.get(new ServerData(), dir, query, single, t);
-		return hr.row == null ? false : new SuRecord(hr.row, hr.header, null);
+		HeaderAndRow hr = theDbms.get(new ServerData(), dir, query, single,
+				t == null
+						? null : t.getTransaction());
+		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
 	}
 
 	private Object complete(Object[] args) {
@@ -113,8 +129,15 @@ public class SuTransaction extends SuValue {
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
-		return null;
+		return super.toString();
+	}
+
+	public DbmsTran getTransaction() {
+		return t;
+	}
+
+	public boolean isEnded() {
+		return ended;
 	}
 
 }

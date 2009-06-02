@@ -500,7 +500,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			; // return it
 		else
 			dupAndStore(expr);
-		if (context == Block)
+		if (c.f.isBlock && context != normalReturn)
 			blockReturn();
 		else
 			c.f.mv.visitInsn(ARETURN);
@@ -565,9 +565,10 @@ c.cv = new CheckClassAdapter(c.cv);
 		return m;
 	}
 
+	private static final Object normalReturn = new Object();
 	private void finishMethod(Object compound) {
 		if (compound != "return")
-			returnStatement(compound, null);
+			returnStatement(compound, normalReturn);
 
 		finishBlockReturnCatcher();
 

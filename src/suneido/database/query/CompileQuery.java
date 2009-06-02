@@ -44,4 +44,18 @@ public class CompileQuery {
 		return (Expr) pc.parse();
 	}
 
+	public static boolean isRequest(String query) {
+		Lexer lexer = new Lexer(query);
+		lexer.ignoreCase();
+		lexer.nextSkipNewlines();
+		switch (lexer.getKeyword()) {
+		case INSERT:
+		case UPDATE:
+		case DELETE:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 }

@@ -127,6 +127,11 @@ public class ExecuteTest {
 		test("b = { 2 * it }; b(123)", "246");
 		test("b = {|it| 2 * it }; b(123)", "246");
 		test("it = 111; b = {|it| 2 * it }; b(123) + it", "357");
+		test("function () { b = { return 123 }; b(); 456 }()", "123");
+		test("function () { b = { do { return 123 } while(false) }; b(); 456 }()",
+				"123");
+		test("function () { b = { return 123 }; do { b() } while(false); 456 }()",
+				"123");
 	}
 	@Test public void test_exceptions() {
 		test("try return 123", "123");
