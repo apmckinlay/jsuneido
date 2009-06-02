@@ -742,7 +742,7 @@ public class Database {
 		if (tran.isReadonly())
 			throw new SuException("can't update from read-only transaction in "
 					+ table.name);
-
+		
 		long oldoff = oldrec.off();
 
 		// check foreign keys

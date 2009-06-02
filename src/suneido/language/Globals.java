@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import suneido.*;
 import suneido.language.builtin.DateClass;
+import suneido.language.builtin.Sleep;
 
 /**
  * Stores global names and values.
@@ -19,6 +20,7 @@ public class Globals {
 		globals.put("Suneido", new SuContainer());
 		globals.put("Date", new DateClass());
 		globals.put("Object", new suneido.language.builtin.ObjectFunction());
+		globals.put("Sleep", new Sleep());
 	}
 
 	private Globals() { // no instances
