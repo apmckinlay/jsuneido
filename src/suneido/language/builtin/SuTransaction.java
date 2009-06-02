@@ -5,7 +5,6 @@ import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 import suneido.*;
 import suneido.database.query.CompileQuery;
-import suneido.database.query.QueryAction;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsTran;
 import suneido.database.server.ServerData;
@@ -68,10 +67,7 @@ public class SuTransaction extends SuValue {
 		String query = Ops.toStr(args[0]);
 		Object q;
 		if (CompileQuery.isRequest(query)) {
-			QueryAction qa =
-				(QueryAction) CompileQuery.parse(ServerData.forThread(), query);
-			q = qa.execute();
-System.out.println("execute => " + q);
+			q = theDbms.request(ServerData.forThread(), t, query);
 		} else {
 			q = new SuQuery(theDbms.query(new ServerData(), t, query));
 		}
@@ -93,8 +89,7 @@ System.out.println("execute => " + q);
 		String query = Ops.toStr(args[0]);
 		// TODO serverdata ???
 		HeaderAndRow hr = theDbms.get(new ServerData(), dir, query, single,
-				t == null
-						? null : t.getTransaction());
+				t == null ? null : t.getTransaction());
 		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
 	}
 

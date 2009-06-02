@@ -214,6 +214,25 @@ public class DatabaseTest extends TestBase {
 	}
 
 	@Test
+	public void update_conflict() {
+		makeTable(3);
+
+		Transaction t1 = db.readwriteTran();
+		db.updateRecord(t1, "test", "a", key(1), record(5));
+
+		Transaction t2 = db.readwriteTran();
+		try {
+			db.updateRecord(t2, "test", "a", key(1), record(6));
+		} catch (SuException e) {
+			// ignore, should be
+		}
+		assertNotNull(t2.complete());
+		assertTrue(t2.conflict().contains("delete conflict"));
+
+		t1.ck_complete();
+	}
+
+	@Test
 	public void update() {
 		makeTable(3);
 		Transaction t = db.readwriteTran();

@@ -55,7 +55,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	@Override
 	public String toString() {
-		return "Transaction " + num + " time " + t + " asof " + asof;
+		return "Transaction " + (readonly ? "read " : "update ") + 
+				num + " time " + t + " asof " + asof;
 	}
 
 	public boolean isReadonly() {
