@@ -33,7 +33,7 @@ public class Transaction extends BuiltinClass {
 			return result;
 		} catch (BlockReturnException bre) {
 			t.ck_complete();
-			return bre.returnValue;
+			throw bre;
 		} catch (SuException e) {
 			t.abort();
 			throw e;

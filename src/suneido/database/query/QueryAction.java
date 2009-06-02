@@ -30,7 +30,7 @@ public abstract class QueryAction extends Query1 {
 
 	@Override
 	List<String> columns() {
-		throw unreachable();
+		return super.columns();
 	}
 	@Override
 	public Row get(Dir dir) {

@@ -6,33 +6,43 @@ import static suneido.database.server.Command.theDbms;
 import java.util.Iterator;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.database.server.DbmsTran;
 import suneido.language.Pack;
+import suneido.language.builtin.RecordMethods;
+import suneido.language.builtin.SuTransaction;
 
 public class SuRecord extends SuContainer {
-	//private final Header hdr;
-	//private final Transaction trans;
-	private final long recadr;
-	//private final Status status;
+	private final Header hdr;
+	private final SuTransaction tran;
+	private long recadr;
+	private final Status status;
 
 	enum Status {
 		NEW, OLD, DELETED
 	};
 
 	public SuRecord() {
-		//hdr = null;
-		//trans = null;
+		hdr = null;
+		tran = null;
 		recadr = 0;
-		//status = Status.NEW;
+		status = Status.NEW;
 	}
 
-	public SuRecord(Row row, Header hdr, Transaction trans) {
-		//this.hdr = hdr;
-		//this.trans = trans;
+	public SuRecord(Row row, Header hdr) {
+		this(row, hdr, (SuTransaction) null);
+	}
+
+	public SuRecord(Row row, Header hdr, DbmsTran tran) {
+		this(row, hdr, new SuTransaction(tran));
+	}
+
+	public SuRecord(Row row, Header hdr, SuTransaction tran) {
+		this.hdr = hdr;
+		this.tran = tran;
 		this.recadr = row.recadr;
-		//status = Status.OLD;
+		status = Status.OLD;
 
 		verify(recadr >= 0);
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();)
@@ -59,6 +69,7 @@ public class SuRecord extends SuContainer {
 		return x == null ? "" : x;
 	}
 
+	@Override
 	public Record toDbRecord(Header hdr) {
 		String[] fldsyms = hdr.output_fldsyms();
 		// dependencies
@@ -107,6 +118,29 @@ public class SuRecord extends SuContainer {
 			else
 				rec.addMin();
 		return rec;
+	}
+
+	@Override
+	public Object invoke(Object self, String method, Object... args) {
+		assert this == self;
+		return RecordMethods.invoke(this, method, args);
+	}
+
+	public void update() {
+		ck_modify("Update");
+		Record newrec = toDbRecord(hdr);
+		recadr = theDbms.update(tran.getTransaction(), recadr, newrec);
+		verify(recadr >= 0);
+	}
+
+	private void ck_modify(String op) {
+		if (tran == null)
+			throw new SuException("record." + op + ": no Transaction");
+		if (tran.isEnded())
+			throw new SuException("record." + op
+					+ ": Transaction already completed");
+		if (status != Status.OLD || recadr == 0)
+			throw new SuException("record." + op + ": not a database record");
 	}
 
 }

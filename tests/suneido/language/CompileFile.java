@@ -12,9 +12,6 @@ public class CompileFile {
 		int n = f.read(buf);
 		f.close();
 		String src = new String(buf, 0, n);
-		Object c = TestCompiler.compile(src);
-		Globals.put("T", c);
-
-		Compiler.eval("T.Run()");
+		TestCompiler.compile(src);
 	}
 }
