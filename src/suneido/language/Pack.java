@@ -134,7 +134,7 @@ public class Pack {
 			return;
 		buf.put(Tag.STRING);
 		try {
-			buf.put(s.getBytes("US-ASCII"));
+			buf.put(s.getBytes("ISO-8859-1"));
 		} catch (UnsupportedEncodingException e) {
 			throw new SuException("error packing string: ", e);
 		}
