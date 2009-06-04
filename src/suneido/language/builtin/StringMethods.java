@@ -9,6 +9,8 @@ import static suneido.util.Util.array;
 
 import java.util.regex.Pattern;
 
+import suneido.SuContainer;
+import suneido.SuException;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Tr;
@@ -34,6 +36,8 @@ public class StringMethods {
 				return repeat(s, args);
 			if (method == "Size")
 				return size(s, args);
+			if (method == "Split")
+				return split(s, args);
 			if (method == "StartsWith")
 				return startsWith(s, args);
 			if (method == "Substr")
@@ -46,7 +50,28 @@ public class StringMethods {
 		return userDefined("Strings", method).invoke(s, method, args);
 	}
 
+	private static int asc(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.length() == 0 ? 0 : (int) s.charAt(0);
+	}
+
 	private static final FunctionSpec sFS = new FunctionSpec("s");
+
+	private static boolean endsWith(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		return s.endsWith(toStr(args[0]));
+	}
+
+	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
+
+	private static Object eval(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (globalRx.matcher(s).matches())
+			return Globals.get(s);
+		Object result = Compiler.eval(s);
+		return result == null ? "" : result;
+	}
+
 	private static Object find(String s, Object[] args) {
 		args = Args.massage(sFS, args);
 		int i = s.indexOf(toStr(args[0]));
@@ -59,9 +84,40 @@ public class StringMethods {
 		return i == -1 ? false : i;
 	}
 
+	private static final FunctionSpec repeatFS = new FunctionSpec("n");
+
+	private static String repeat(String s, Object[] args) {
+		args = Args.massage(repeatFS, args);
+		int n = Ops.toInt(args[0]);
+		StringBuilder sb = new StringBuilder(n * s.length());
+		for (int i = 0; i < n; ++i)
+			sb.append(s);
+		return sb.toString();
+	}
+
 	private static int size(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return s.length();
+	}
+
+	static SuContainer split(String s, Object... args) {
+		args = Args.massage(sFS, args);
+		String sep = Ops.toStr(args[0]);
+		if (sep.equals(""))
+			throw new SuException(
+					"string.Split: separator must not be empty string");
+		SuContainer ob = new SuContainer();
+		int i = 0;
+		for (int j; -1 != (j = s.indexOf(sep, i)); i = j + sep.length())
+			ob.append(s.substring(i, j));
+		if (i < s.length())
+			ob.append(s.substring(i));
+		return ob;
+	}
+
+	private static boolean startsWith(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		return s.startsWith(toStr(args[0]));
 	}
 
 	private static final FunctionSpec substrFS =
@@ -80,46 +136,11 @@ public class StringMethods {
 		return s.substring(i, i + n);
 	}
 
-	private static int asc(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.length() == 0 ? 0 : (int) s.charAt(0);
-	}
-
 	private static final FunctionSpec trFS =
 			new FunctionSpec(array("from", "to"), "");
 	private static String tr(String s, Object[] args) {
 		args = Args.massage(trFS, args);
 		return Tr.tr(s, toStr(args[0]), toStr(args[1]));
-	}
-
-	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
-	private static Object eval(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (globalRx.matcher(s).matches())
-			return Globals.get(s);
-		Object result = Compiler.eval(s);
-		return result == null ? "" : result;
-	}
-
-	private static final FunctionSpec repeatFS = new FunctionSpec("n");
-
-	private static String repeat(String s, Object[] args) {
-		args = Args.massage(repeatFS, args);
-		int n = Ops.toInt(args[0]);
-		StringBuilder sb = new StringBuilder(n * s.length());
-		for (int i = 0; i < n; ++i)
-			sb.append(s);
-		return sb.toString();
-	}
-
-	private static boolean startsWith(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.startsWith(toStr(args[0]));
-	}
-
-	private static boolean endsWith(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.endsWith(toStr(args[0]));
 	}
 
 }

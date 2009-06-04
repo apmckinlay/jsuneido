@@ -4,7 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static suneido.language.Compiler.eval;
 import static suneido.language.Ops.display;
 
+import java.util.Arrays;
+
 import org.junit.Test;
+
+import suneido.SuContainer;
 
 public class ContainerMethodsTest {
 
@@ -51,6 +55,24 @@ public class ContainerMethodsTest {
 
 	public static void test(String expr, String result) {
 		assertEquals(result, display(eval(expr)));
+	}
+
+	@Test
+	public void test_join() {
+		testjoin("", "");
+		testjoin("", "<>");
+		testjoin("", "", "", "", "");
+		testjoin("abc", "", "abc");
+		testjoin("abc", "<>", "abc");
+		testjoin("123", "", 1, 2, 3);
+		testjoin("1.2.3", ".", 1, 2, 3);
+		testjoin("1.two.3", ".", 1, "two", 3);
+		testjoin("1<>2<>3", "<>", 1, 2, 3);
+	}
+
+	private void testjoin(String result, String sep, Object... values) {
+		SuContainer c = new SuContainer(Arrays.asList(values));
+		assertEquals(result, ContainerMethods.join(c, sep));
 	}
 
 }

@@ -23,7 +23,7 @@ import suneido.language.builtin.ContainerMethods;
  */
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
-	private final ArrayList<Object> vec = new ArrayList<Object>();
+	private final List<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
 	private Object defval = null; // TODO defval
 
@@ -57,6 +57,10 @@ public class SuContainer extends SuValue
 		c.append(x);
 		c.append(y);
 		return c;
+	}
+
+	public List<Object> getVec() {
+		return vec;
 	}
 
 	public Object vecGet(int i) {
