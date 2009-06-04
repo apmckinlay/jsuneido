@@ -160,12 +160,12 @@ public class Ops {
 	public static Number add(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		if (xType == String.class) {
-			x = stringToNumber((String) x);
+			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
 		}
 		Class<?> yType = y.getClass();
 		if (yType == String.class) {
-			y = stringToNumber((String) y);
+			y = stringToPlainNumber((String) y);
 			yType = y.getClass();
 		}
 		if (xType == Integer.class) {
@@ -185,12 +185,12 @@ public class Ops {
 	public static Number sub(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		if (xType == String.class) {
-			x = stringToNumber((String) x);
+			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
 		}
 		Class<?> yType = y.getClass();
 		if (yType == String.class) {
-			y = stringToNumber((String) y);
+			y = stringToPlainNumber((String) y);
 			yType = y.getClass();
 		}
 		if (xType == Integer.class) {
@@ -218,12 +218,12 @@ public class Ops {
 	public static Number mul(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		if (xType == String.class) {
-			x = stringToNumber((String) x);
+			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
 		}
 		Class<?> yType = y.getClass();
 		if (yType == String.class) {
-			y = stringToNumber((String) y);
+			y = stringToPlainNumber((String) y);
 			yType = y.getClass();
 		}
 		if (xType == Integer.class) {
@@ -245,12 +245,12 @@ public class Ops {
 	public static Number div(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		if (xType == String.class) {
-			x = stringToNumber((String) x);
+			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
 		}
 		Class<?> yType = y.getClass();
 		if (yType == String.class) {
-			y = stringToNumber((String) y);
+			y = stringToPlainNumber((String) y);
 			yType = y.getClass();
 		}
 		if (xType == Integer.class) {
@@ -277,7 +277,7 @@ public class Ops {
 	public static Number uminus(Object x) {
 		Class<?> xType = x.getClass();
 		if (xType == String.class) {
-			x = stringToNumber((String) x);
+			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
 		}
 		if (xType == Integer.class)
@@ -320,7 +320,12 @@ public class Ops {
 			return (int) Long.parseLong(s.substring(2), 16);
 		else if (s.startsWith("0") && s.indexOf('.') == -1)
 			return (int) Long.parseLong(s, 8);
-		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
+		else
+			return stringToPlainNumber(s);
+	}
+
+	public static Number stringToPlainNumber(String s) {
+		if (s.indexOf('.') == -1 && s.indexOf('e') == -1
 				&& s.indexOf("E") == -1 && s.length() < 10)
 			return Integer.parseInt(s);
 		else
@@ -480,7 +485,7 @@ public class Ops {
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
-		//System.out.println("invoke " + display(x) + "." + method	+ display(args));
+		//System.out.println("invoke " + display(x) + "." + method + display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).invoke(x, method, args);
 		Class<?> xType = x.getClass();

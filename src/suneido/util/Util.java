@@ -66,7 +66,7 @@ public class Util {
 		buf.get(bytes);
 		buf.position(pos);
 		try {
-			return new String(bytes, "US-ASCII");
+			return new String(bytes, "ISO-8859-1");//"US-ASCII");
 		} catch (UnsupportedEncodingException e) {
 			throw new SuException("can't convert buffer to string", e);
 		}
