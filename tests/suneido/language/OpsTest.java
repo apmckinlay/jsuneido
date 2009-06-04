@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import suneido.SuException;
 
-public class OpTest {
+public class OpsTest {
 
 	@Test
 	public void test_equals() {
@@ -77,5 +77,11 @@ public class OpTest {
 		} catch (SuException e) {
 			// expected
 		}
+	}
+
+	@Test
+	public void test_toStringBD() {
+		assertEquals("10000000000000000000", Ops.toStringBD(new BigDecimal("1e19")));
+		assertEquals("1e20", Ops.toStringBD(new BigDecimal("1e20")));
 	}
 }

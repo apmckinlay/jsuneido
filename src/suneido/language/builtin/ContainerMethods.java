@@ -22,6 +22,8 @@ public class ContainerMethods {
 			return erase(c, args);
 		if (method == "Find")
 			return find(c, args);
+		if (method == "Join")
+			return join(c, args);
 		if (method == "Member?")
 			return memberQ(c, args);
 		if (method == "Members")
@@ -35,73 +37,6 @@ public class ContainerMethods {
 		if (method == "Set_default")
 			return set_default(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
-	}
-
-	private static Object members(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterable(iterWhich(args), IterResult.KEY));
-	}
-
-	private static Object values(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
-	}
-
-	private static Object assocs(SuContainer c, Object[] args) {
-		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
-	}
-
-	private static final FunctionSpec list_named_FS =
-			new FunctionSpec(array("list", "named"), false, false);
-	private static IterWhich iterWhich(Object[] args) {
-		args = Args.massage(list_named_FS, args);
-		boolean list = Ops.toBool(args[0]) == 1;
-		boolean named = Ops.toBool(args[1]) == 1;
-		if (list && !named)
-			return IterWhich.LIST;
-		else if (!list && named)
-			return IterWhich.NAMED;
-		else
-			return IterWhich.ALL;
-	}
-
-	private static final FunctionSpec keyFS = new FunctionSpec("key");
-
-	private static boolean memberQ(SuContainer c, Object[] args) {
-		args = Args.massage(keyFS, args);
-		return c.containsKey(args[0]);
-	}
-
-	private static Object delete(SuContainer c, Object[] args) {
-		args = Args.massage(keyFS, args);
-		return c.delete(args[0]) ? c : false;
-	}
-
-	private static Object erase(SuContainer c, Object[] args) {
-		args = Args.massage(keyFS, args);
-		return c.erase(args[0]) ? c : false;
-	}
-
-	private static int size(SuContainer c, Object[] args) {
-		switch (iterWhich(args)) {
-		case LIST:
-			return c.vecSize();
-		case NAMED:
-			return c.mapSize();
-		default:
-			return c.size();
-		}
-	}
-
-	private static SuContainer sort(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		c.sort();
-		return c;
-	}
-
-	private static final FunctionSpec valueFS = new FunctionSpec("value");
-	private static Object find(SuContainer c, Object[] args) {
-		args = Args.massage(valueFS, args);
-		Object key = c.find(args[0]);
-		return key == null ? false : key;
 	}
 
 	private static SuContainer add(SuContainer c, Object[] args) {
@@ -131,6 +66,94 @@ public class ContainerMethods {
 		return c;
 	}
 
+	private static Object assocs(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
+	}
+
+	private static final FunctionSpec keyFS = new FunctionSpec("key");
+
+	private static Object delete(SuContainer c, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return c.delete(args[0]) ? c : false;
+	}
+
+	private static Object erase(SuContainer c, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return c.erase(args[0]) ? c : false;
+	}
+
+	private static Object find(SuContainer c, Object[] args) {
+		args = Args.massage(valueFS, args);
+		Object key = c.find(args[0]);
+		return key == null ? false : key;
+	}
+
+	static String join(SuContainer c, Object... args) {
+		args = Args.massage(valueFS, args);
+		String sep = Ops.toStr(args[0]);
+		StringBuilder sb = new StringBuilder();
+		for (Object x : c.getVec()) {
+			if (x instanceof String)
+				sb.append((String) x);
+			else
+				sb.append(Ops.display(x));
+			sb.append(sep);
+		}
+		if (sb.length() > 0)
+			sb.delete(sb.length() - sep.length(), sb.length());
+		return sb.toString();
+	}
+
+	private static boolean memberQ(SuContainer c, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return c.containsKey(args[0]);
+	}
+
+	private static Object members(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.KEY));
+	}
+
+	private static int size(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		switch (iterWhich(args)) {
+		case LIST:
+			return c.vecSize();
+		case NAMED:
+			return c.mapSize();
+		default:
+			return c.size();
+		}
+	}
+	private static final FunctionSpec list_named_FS =
+			new FunctionSpec(array("list", "named"), false, false);
+
+	private static IterWhich iterWhich(Object[] args) {
+		args = Args.massage(list_named_FS, args);
+		boolean list = Ops.toBool(args[0]) == 1;
+		boolean named = Ops.toBool(args[1]) == 1;
+		if (list && !named)
+			return IterWhich.LIST;
+		else if (!list && named)
+			return IterWhich.NAMED;
+		else
+			return IterWhich.ALL;
+	}
+
+	private static SuContainer sort(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		c.sort();
+		return c;
+	}
+
+	private static Object values(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
+	}
+
+
+	private static final FunctionSpec valueFS = new FunctionSpec("value");
 	private static Object set_default(SuContainer c, Object[] args) {
 		args = Args.massage(valueFS, args);
 		c.setDefault(args[0]);

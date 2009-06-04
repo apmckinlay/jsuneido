@@ -324,7 +324,11 @@ public class Ops {
 				&& s.indexOf("E") == -1 && s.length() < 10)
 			return Integer.parseInt(s);
 		else
-			return new BigDecimal(s);
+			try {
+				return new BigDecimal(s);
+			} catch (NumberFormatException e) {
+				throw new SuException("can't convert to number: " + s, e);
+			}
 	}
 
 	public static Date stringToDate(String s) {
@@ -433,7 +437,7 @@ public class Ops {
 
 	public static String toStringBD(BigDecimal n) {
 		n = n.stripTrailingZeros();
-		String s = Math.abs(n.scale()) > 10 ? n.toString() : n.toPlainString();
+		String s = Math.abs(n.scale()) >= 20 ? n.toString() : n.toPlainString();
 		return removeLeadingZero(s).replace("E", "e").replace("e+", "e");
 	}
 	private static String removeLeadingZero(String s) {

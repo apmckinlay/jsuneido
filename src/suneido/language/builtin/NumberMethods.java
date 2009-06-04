@@ -35,7 +35,7 @@ public class NumberMethods {
 	private static final FunctionSpec intFS = new FunctionSpec("integer");
 	private static Object pow(BigDecimal n, Object[] args) {
 		args = Args.massage(intFS, args);
-		return n.pow(Ops.toInt(args[0]));
+		return n.pow(Ops.toInt(args[0]), Ops.mc);
 	}
 
 }
