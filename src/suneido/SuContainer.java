@@ -110,6 +110,10 @@ public class SuContainer extends SuValue
 
 	@Override
 	public Object get(Object key) {
+		return getDefault(key, defval);
+	}
+
+	public Object getDefault(Object key, Object defval) {
 		int i = index(key);
 		if (0 <= i && i < vec.size())
 			return vec.get(i);
@@ -437,6 +441,11 @@ public class SuContainer extends SuValue
 
 	public void setDefault(Object value) {
 		defval = value;
+	}
+
+	@Override
+	public SuContainer toContainer() {
+		return this;
 	}
 
 }

@@ -68,4 +68,10 @@ public class SuSequence extends SuValue
 	public Iterator<Object> iterator() {
 		return iterable.iterator();
 	}
+
+	@Override
+	public SuContainer toContainer() {
+		return getOb();
+	}
+
 }

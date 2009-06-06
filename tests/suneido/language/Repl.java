@@ -1,5 +1,7 @@
 package suneido.language;
 
+// TestRunner.RunLib('stdlib', quit_on_failure:);;
+
 import java.io.*;
 import java.util.Map;
 

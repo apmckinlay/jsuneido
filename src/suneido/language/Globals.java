@@ -33,12 +33,15 @@ public class Globals {
 
 	public static Object get(String name) {
 		Object x = globals.get(name);
-		if (x == null)
-			x = Libraries.load(name);
+		if (x != null)
+			return x;
+		x = Libraries.load(name);
 		if (x == null)
 			x = loadClass(CompileGenerator.javify(name));
+		// TODO save a special value to avoid future attempts to load
 		if (x == null)
 			throw new SuException("can't find " + name);
+		globals.put(name, x);
 		return x;
 	}
 
@@ -58,7 +61,6 @@ public class Globals {
 			return null;
 		}
 		//System.out.println("<loaded: " + name + ">");
-		put(name, sc);
 		return sc;
 	}
 

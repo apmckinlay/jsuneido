@@ -451,6 +451,10 @@ public class Ops {
 		return s;
 	}
 
+	public static SuContainer toContainer(Object x) {
+		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
+	}
+
 	public static int hashCode(Object x, int nest) {
 		if (x instanceof SuContainer)
 			return ((SuContainer) x).hashCode(nest);

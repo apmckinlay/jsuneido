@@ -4,6 +4,7 @@ import static suneido.util.Util.array;
 
 import java.util.Iterator;
 
+import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.*;
 
@@ -77,6 +78,14 @@ public class Seq extends BuiltinClass {
 			result = 31 * result + to.hashCode();
 			result = 31 * result + by.hashCode();
 			return result;
+		}
+
+		@Override
+		public SuContainer toContainer() {
+			SuContainer c = new SuContainer();
+			for (Object x : this)
+				c.append(x);
+			return c;
 		}
 
 	}
