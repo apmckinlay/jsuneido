@@ -36,7 +36,10 @@ public class Args {
 
 		if (fn.atParam && args_each) {
 			// function (@params) (@args)
-			locals[0] = ((SuContainer) args[1]).slice(args[0] == EACH ? 0 : 1);
+			SuContainer c = Ops.toContainer(args[1]);
+			if (c == null)
+				throw new SuException("@args requires object");
+			locals[0] = c.slice(args[0] == EACH ? 0 : 1);
 		} else if (fn.atParam) {
 			// function (@params)
 			SuContainer c = new SuContainer();

@@ -22,6 +22,8 @@ public class ContainerMethods {
 			return erase(c, args);
 		if (method == "Find")
 			return find(c, args);
+		if (method == "GetDefault")
+			return GetDefault(c, args);
 		if (method == "Join")
 			return join(c, args);
 		if (method == "Member?")
@@ -37,6 +39,13 @@ public class ContainerMethods {
 		if (method == "Set_default")
 			return set_default(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
+	}
+
+	private static final FunctionSpec keyValueFS = new FunctionSpec("key", "value");
+
+	private static Object GetDefault(SuContainer c, Object[] args) {
+		args = Args.massage(keyValueFS, args);
+		return c.getDefault(args[0], args[1]);
 	}
 
 	private static SuContainer add(SuContainer c, Object[] args) {

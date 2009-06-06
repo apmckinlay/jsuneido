@@ -64,4 +64,8 @@ public abstract class SuValue implements Packable {
 		throw new SuException(typeName() + " cannot be stored");
 	}
 
+	public SuContainer toContainer() {
+		return null;
+	}
+
 }
