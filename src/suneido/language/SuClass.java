@@ -112,6 +112,8 @@ public abstract class SuClass extends SuCallable {
 			return Ops.invoke(self, "<new>", args);
 		if (method == "Members")
 			return members(self, args);
+		if (method == "Member?")
+			return memberQ(self, args);
 		if (method != "Default") {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
@@ -142,14 +144,30 @@ public abstract class SuClass extends SuCallable {
 		return null;
 	}
 
-	private SuContainer members(Object self, Object[] args) {
+	private static SuContainer members(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		SuContainer c = new SuContainer();
+		for (Map.Entry<String, Object> e : ((SuClass) self).vars.entrySet())
+			if (e.getValue() != null && !(e.getValue() instanceof Marker))
+				c.append(e.getKey());
 		for (FunctionSpec fs : ((SuClass) self).params)
 			if (fs.name != "_init") // TODO skip blocks & nested functions
 				c.append(fs.name);
 		return c;
-		// TODO inherited members
+	}
+
+	private static final FunctionSpec keyFS = new FunctionSpec("key");
+
+	private static Boolean memberQ(Object self, Object[] args) {
+		args = Args.massage(keyFS, args);
+		String key = Ops.toStr(args[0]);
+		Object x = ((SuClass) self).get3(key);
+		if (x != null && !(x instanceof Marker))
+			return Boolean.TRUE;
+		for (FunctionSpec fs : ((SuClass) self).params)
+			if (key.equals(fs.name)) // TODO skip blocks & nested functions
+				return Boolean.TRUE;
+		return Boolean.FALSE;
 	}
 
 	protected Object superInvoke(Object self, String member, Object... args) {

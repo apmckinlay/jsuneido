@@ -5,14 +5,14 @@ import java.util.regex.Pattern;
 import suneido.util.LruCache;
 
 public class Regex {
-	private static LruCache<String, Pattern> cache = 
+	private static LruCache<String, Pattern> cache =
 		new LruCache<String, Pattern>(32);
 
 	public static boolean contains(String s, String rx) {
 		return getPat(rx).matcher(s).find();
 	}
 
-	/* package */static Pattern getPat(String rx) {
+	public static Pattern getPat(String rx) {
 		Pattern p = cache.get(rx);
 		if (p == null)
 			cache.put(rx, p = Pattern.compile(convertRegex(rx)));
