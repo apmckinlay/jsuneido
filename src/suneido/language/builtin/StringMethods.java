@@ -7,10 +7,9 @@ import static suneido.language.Ops.toStr;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
-import suneido.SuContainer;
-import suneido.SuException;
+import suneido.*;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Tr;
@@ -18,13 +17,15 @@ import suneido.util.Tr;
 public class StringMethods {
 	public static Object invoke(String s, String method, Object... args) {
 		char c = method.charAt(0);
-		if (c < 'R') {
+		if (c < 'P') {
 			if (method == "Asc")
 				return asc(s, args);
 			if (method == "EndsWith")
 				return endsWith(s, args);
 			if (method == "Eval")
 				return eval(s, args);
+			if (method == "Extract")
+				return Extract(s, args);
 			if (method == "Find")
 				return find(s, args);
 			if (method == "Find1of")
@@ -39,9 +40,9 @@ public class StringMethods {
 				return FindLastnot1of(s, args);
 			if (method == "Numeric?")
 				return NumericQ(s, args);
+		} else {
 			if (method == "Prefix?")
 				return startsWith(s, args);
-		} else {
 			if (method == "Repeat")
 				return repeat(s, args);
 			if (method == "Size")
@@ -58,6 +59,25 @@ public class StringMethods {
 				return tr(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
+	}
+
+	private static final FunctionSpec extractFS =
+			new FunctionSpec(array("pattern", "part"), false);
+
+	static Object Extract(String s, Object... args) {
+		args = Args.massage(extractFS, args);
+		String pat = Ops.toStr(args[0]);
+		Pattern pattern = Regex.getPat(pat);
+		Matcher matcher = pattern.matcher(s);
+		if (!matcher.find())
+			return Boolean.FALSE;
+		MatchResult result = matcher.toMatchResult();
+		int part;
+		if (args[1] == Boolean.FALSE)
+			part = result.groupCount() == 0 ? 0 : 1;
+		else
+			part = Ops.toInt(args[1]);
+		return result.group(part);
 	}
 
 	private static Object NumericQ(String s, Object[] args) {
