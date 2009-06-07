@@ -27,8 +27,18 @@ public class StringMethods {
 				return eval(s, args);
 			if (method == "Find")
 				return find(s, args);
+			if (method == "Find1of")
+				return Find1of(s, args);
+			if (method == "Findnot1of")
+				return Findnot1of(s, args);
 			if (method == "FindLast")
 				return findLast(s, args);
+			if (method == "FindLast1of")
+				return FindLast1of(s, args);
+			if (method == "FindLastnot1of")
+				return FindLastnot1of(s, args);
+			if (method == "Numeric?")
+				return NumericQ(s, args);
 			if (method == "Prefix?")
 				return startsWith(s, args);
 		} else {
@@ -48,6 +58,60 @@ public class StringMethods {
 				return tr(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
+	}
+
+	private static Object NumericQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (! Character.isDigit(s.charAt(i)))
+				return Boolean.FALSE;
+		return Boolean.TRUE;
+	}
+
+	private static Object Find1of(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		String set = Ops.toStr(args[0]);
+		for (int i = 0; i < s.length(); ++i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j != -1)
+				return i;
+		}
+		return s.length();
+	}
+
+	private static Object Findnot1of(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		String set = Ops.toStr(args[0]);
+		for (int i = 0; i < s.length(); ++i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j == -1)
+				return i;
+		}
+		return s.length();
+	}
+
+	private static Object FindLast1of(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		String set = Ops.toStr(args[0]);
+		for (int i = s.length() - 1; i >= 0; --i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j != -1)
+				return i;
+		}
+		return Boolean.FALSE;
+	}
+
+	private static Object FindLastnot1of(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		String set = Ops.toStr(args[0]);
+		for (int i = s.length() - 1; i >= 0; --i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j == -1)
+				return i;
+		}
+		return Boolean.FALSE;
 	}
 
 	private static int asc(String s, Object[] args) {

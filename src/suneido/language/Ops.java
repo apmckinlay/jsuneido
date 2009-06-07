@@ -1125,9 +1125,12 @@ public class Ops {
 	public static Object get(Object x, Object member) {
 		if (member == null)
 			throw new SuException("uninitialized");
-		if (x instanceof SuValue)
-			return ((SuValue) x).get(member);
-		else if (x instanceof String)
+		if (x instanceof SuValue) {
+			Object y = ((SuValue) x).get(member);
+			if (y == null)
+				throw new SuException("uninitialized member " + member);
+			return y;
+		} else if (x instanceof String)
 			return getString((String) x, toInt(member));
 		else if (x instanceof Object[])
 			return getArray((Object[]) x, toInt(member));
