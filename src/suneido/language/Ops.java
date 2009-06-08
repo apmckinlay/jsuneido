@@ -369,6 +369,8 @@ public class Ops {
 			return toIntBD((BigDecimal) x);
 		else if (xType == String.class)
 			return toIntS((String) x);
+		else if (xType == Boolean.class)
+			return x == Boolean.TRUE ? 1 : 0;
 		else
 			throw new SuException("can't convert " + typeName(x)
 					+ " to integer");
@@ -485,6 +487,11 @@ public class Ops {
 		//System.out.println("call " + display(x) + display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).call(args);
+		if (x instanceof String) {
+			Object ob = args[0];
+			args = Arrays.copyOfRange(args, 1, args.length);
+			return invoke(ob, (String) x, args);
+		}
 		throw new SuException("can't call " + typeName(x));
 	}
 

@@ -1,9 +1,9 @@
 package suneido.language.builtin;
 
+import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 import suneido.language.*;
 
@@ -13,8 +13,8 @@ public class DateClass extends BuiltinClass {
 
 	private static final FunctionSpec dateFS =
 			new FunctionSpec(array("string", "year", "month", "day", "hour",
-					"minute", "second", "millisecond"), Boolean.FALSE, nil,
-					nil, nil, nil, nil, nil, nil);
+					"minute", "second", "millisecond"),
+			Boolean.FALSE, nil,	nil, nil, nil, nil, nil, nil);
 
 	@Override
 	public Object newInstance(Object[] args) {
@@ -49,6 +49,19 @@ public class DateClass extends BuiltinClass {
 		if (args[7] != nil)
 			c.set(Calendar.MILLISECOND, Ops.toInt(args[7]));
 		return c.getTime();
+	}
+
+	@Override
+	public Object invoke(Object self, String method, Object... args) {
+		if (method == "GetLocalGMTBias")
+			return GetLocalGMTBias(self, args);
+		return userDefined("Dates", method).invoke(self, method, args);
+	}
+
+	private static Object GetLocalGMTBias(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		int offset = TimeZone.getDefault().getOffset(new Date().getTime());
+		return -offset / 60000; // convert from ms to minutes
 	}
 
 }

@@ -418,9 +418,22 @@ public class SuContainer extends SuValue
 		return null;
 	}
 
-	public void sort() {
-		Collections.sort(vec, new Comparator<Object>() {
-			public int compare(Object x, Object y) { return Ops.cmp(x, y); } });
+	private static final class Comp implements Comparator<Object> {
+		public int compare(Object x, Object y) {
+			return Ops.cmp(x, y);
+		}
+	}
+	private static final Comp comp = new Comp();
+
+	public void sort(final Object fn) {
+		if (fn == Boolean.FALSE)
+			Collections.sort(vec, comp);
+		else
+			Collections.sort(vec, new Comparator<Object>() {
+				public int compare(Object x, Object y) {
+					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
+				}
+			});
 	}
 
 	public Record toDbRecord(Header hdr) {

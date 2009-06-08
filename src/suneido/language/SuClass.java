@@ -114,6 +114,8 @@ public abstract class SuClass extends SuCallable {
 			return members(self, args);
 		if (method == "Member?")
 			return memberQ(self, args);
+		if (method == "Method?")
+			return methodQ(self, args);
 		if (method != "Default") {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
@@ -168,6 +170,13 @@ public abstract class SuClass extends SuCallable {
 			if (key.equals(fs.name)) // TODO skip blocks & nested functions
 				return Boolean.TRUE;
 		return Boolean.FALSE;
+	}
+
+	private static Boolean methodQ(Object self, Object[] args) {
+		args = Args.massage(keyFS, args);
+		String key = Ops.toStr(args[0]);
+		Object x = ((SuClass) self).get2(key);
+		return x == Marker.METHOD;
 	}
 
 	protected Object superInvoke(Object self, String member, Object... args) {

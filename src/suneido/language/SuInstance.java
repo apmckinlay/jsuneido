@@ -27,13 +27,14 @@ public class SuInstance extends SuValue {
 			return myclass;
 		if (method == "Members")
 			return members(self, args);
+		if (method == "Method?")
+			return myclass.invoke(myclass, method, args);
 		return myclass.invoke(self, method, args);
 	}
 
 	private Object members(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuContainer(ivars.keySet());
-		// TODO inherited members
 	}
 
 	@Override

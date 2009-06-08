@@ -38,6 +38,8 @@ public class StringMethods {
 				return FindLast1of(s, args);
 			if (method == "FindLastnot1of")
 				return FindLastnot1of(s, args);
+			if (method == "Lower")
+				return Lower(s, args);
 			if (method == "Numeric?")
 				return NumericQ(s, args);
 		} else {
@@ -57,8 +59,20 @@ public class StringMethods {
 				return endsWith(s, args);
 			if (method == "Tr")
 				return tr(s, args);
+			if (method == "Upper")
+				return Upper(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
+	}
+
+	private static Object Lower(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.toLowerCase();
+	}
+
+	private static Object Upper(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.toUpperCase();
 	}
 
 	private static final FunctionSpec extractFS =

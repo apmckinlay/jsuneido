@@ -14,6 +14,8 @@ public class NumberMethods {
 			return chr(n, args);
 		if (method == "Int")
 			return n;
+		if (method == "Hex")
+			return Hex(n, args);
 		return invoke(BigDecimal.valueOf(n), method, args);
 	}
 
@@ -36,6 +38,8 @@ public class NumberMethods {
 			return frac(n, args);
 		if (method == "Int")
 			return Int(n, args);
+		if (method == "Hex")
+			return Hex(n, args);
 		if (method == "Log")
 			return log(n, args);
 		if (method == "Log10")
@@ -60,6 +64,16 @@ public class NumberMethods {
 	private static BigDecimal Int(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new BigDecimal(n.toBigInteger());
+	}
+
+	private static String Hex(Integer n, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return Integer.toHexString(n);
+	}
+
+	private static String Hex(BigDecimal n, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return Long.toHexString(n.longValue());
 	}
 
 	private static String chr(Integer n, Object[] args) {
