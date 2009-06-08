@@ -3,7 +3,7 @@ package suneido.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class StringIterator implements Iterator<Character> {
+public class StringIterator implements Iterator<String> {
 	private final String s;
 	private int i = 0;
 
@@ -15,10 +15,11 @@ public class StringIterator implements Iterator<Character> {
 		return i < s.length();
 	}
 
-	public Character next() {
+	public String next() {
 		if (i >= s.length())
 			throw new NoSuchElementException();
-		return s.charAt(i++);
+		++i;
+		return s.substring(i - 1, i);
 	}
 
 	public void remove() {

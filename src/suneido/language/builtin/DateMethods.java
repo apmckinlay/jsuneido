@@ -1,36 +1,50 @@
 package suneido.language.builtin;
 
-import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 import suneido.language.*;
 
 public class DateMethods {
 
 	public static Object invoke(Date d, String method, Object... args) {
-		if (method == "MinusSeconds")
-			return MinusSeconds(d, args);
-		if (method == "Plus")
-			return Plus(d, args);
-		if (method == "Year")
-			return Year(d, args);
-		if (method == "Month")
-			return Month(d, args);
 		if (method == "Day")
 			return Day(d, args);
+		if (method == "GMTime")
+			return GMTime(d, args);
+		if (method == "GMTimeToLocal")
+			return GMTimeToLocal(d, args);
 		if (method == "Hour")
 			return Hour(d, args);
-		if (method == "Minute")
-			return Minute(d, args);
-		if (method == "Second")
-			return Second(d, args);
 		if (method == "Millisecond")
 			return Millisecond(d, args);
-		return userDefined("Dates", method).invoke(d, method, args);
+		if (method == "MinusSeconds")
+			return MinusSeconds(d, args);
+		if (method == "Minute")
+			return Minute(d, args);
+		if (method == "Month")
+			return Month(d, args);
+		if (method == "Plus")
+			return Plus(d, args);
+		if (method == "Second")
+			return Second(d, args);
+		if (method == "Year")
+			return Year(d, args);
+		return ((DateClass) Globals.get("Date")).invoke(d, method, args);
+	}
+
+	private static Object GMTimeToLocal(Date d, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		int offset = TimeZone.getDefault().getOffset(d.getTime());
+		return new Date(d.getTime() + offset);
+	}
+
+	private static Object GMTime(Date d, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		int offset = TimeZone.getDefault().getOffset(d.getTime());
+		return new Date(d.getTime() - offset);
 	}
 
 	private static int Year(Date d, Object[] args) {

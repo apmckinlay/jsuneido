@@ -150,9 +150,12 @@ public class ContainerMethods {
 			return IterWhich.ALL;
 	}
 
+	private static final FunctionSpec blockFS =
+			new FunctionSpec(array("block"), Boolean.FALSE);
+
 	private static SuContainer sort(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		c.sort();
+		args = Args.massage(blockFS, args);
+		c.sort(args[0]);
 		return c;
 	}
 
