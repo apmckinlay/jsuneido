@@ -47,6 +47,8 @@ public class StringMethods {
 				return startsWith(s, args);
 			if (method == "Repeat")
 				return repeat(s, args);
+			if (method == "Replace")
+				return Replace(s, args);
 			if (method == "Size")
 				return size(s, args);
 			if (method == "Split")
@@ -63,6 +65,37 @@ public class StringMethods {
 				return Upper(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
+	}
+
+	private static final FunctionSpec replaceFS =
+			new FunctionSpec(array("pattern", "block", "count"), 99999);
+
+	// TODO convert case
+	static String Replace(String s, Object... args) {
+		args = Args.massage(replaceFS, args);
+		Pattern pat = Regex.getPat(Ops.toStr(args[0]));
+		String rep = null;
+		if (args[1] instanceof String)
+			rep = Regex.convertReplacement(Ops.toStr(args[1]));
+		int n = Ops.toInt(args[2]);
+
+		Matcher m = pat.matcher(s);
+		StringBuffer sb = new StringBuffer();
+		if (rep != null) {
+			for (int i = 0; i < n && m.find(); ++i)
+				m.appendReplacement(sb, rep);
+			m.appendTail(sb);
+		} else {
+			int append = 0;
+			for (int i = 0; i < n && m.find(); ++i) {
+				sb.append(s.substring(append, m.start()));
+				Object t = Ops.call(args[1], m.group());
+				sb.append(t == null ? m.group() : Ops.toStr(t));
+				append = m.end();
+			}
+			sb.append(s.substring(append));
+		}
+		return sb.toString();
 	}
 
 	private static Object Lower(String s, Object[] args) {

@@ -15,19 +15,19 @@ public class Tr {
 
 		int srclen = src.length();
 		StringBuilder buf = new StringBuilder(srclen);
-		for (int si = 0; si < src.length(); ++si) {
+		for (int si = 0; si < srclen; ++si) {
 			char c = src.charAt(si);
 			int i = xindex(fromset, c, allbut, lastto);
 			if (collapse && i >= lastto && lastto >= 0) {
 				buf.append(toset.charAt(lastto));
 				do {
-					if (++i > src.length())
+					if (++si >= srclen)
 						break;
-					c = src.charAt(++si);
+					c = src.charAt(si);
 					i = xindex(fromset, c, allbut, lastto);
 				} while (i >= lastto);
 			}
-			if (si >= src.length())
+			if (si >= srclen)
 				break;
 			if (i >= 0 && lastto >= 0)
 				buf.append(toset.charAt(i));

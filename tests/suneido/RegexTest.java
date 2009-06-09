@@ -36,4 +36,15 @@ public class RegexTest {
 			assertFalse(falsecases[i] + " !~ " + falsecases[i + 1],
 					Regex.contains(falsecases[i], falsecases[i + 1]));
 	}
+
+	@Test
+	public void convertReplacement() {
+		assertEquals("abc", Regex.convertReplacement("abc"));
+		assertEquals("$0x", Regex.convertReplacement("&x"));
+		assertEquals("a$0b", Regex.convertReplacement("a&b"));
+		assertEquals("a&b", Regex.convertReplacement("a\\&b"));
+		assertEquals("a\\$b", Regex.convertReplacement("a$b"));
+		assertEquals("$3", Regex.convertReplacement("\\3"));
+	}
+
 }

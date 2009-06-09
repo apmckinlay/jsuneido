@@ -11,6 +11,7 @@ public class Compiler {
 	}
 
 	private static Object[] noLocals = new Object[0];
+
 	public static Object eval(String s) {
 		Object f = compile("eval", "function () { " + s + " }");
 		return Ops.call(f, noLocals);

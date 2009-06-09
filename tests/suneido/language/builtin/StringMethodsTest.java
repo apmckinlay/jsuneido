@@ -34,4 +34,20 @@ public class StringMethodsTest {
 	private void extract(String s, String pat, String result) {
 		assertEquals(result, StringMethods.Extract(s, pat));
 	}
+
+	@Test
+	public void test_replace() {
+		replace("now is the time", "is", "may be", "now may be the time");
+		replace("now is the time", "t", "X", "now is Xhe Xime");
+		replace("now is the time", "t", "X", 1, "now is Xhe time");
+		replace("now is the time", "[a-z]+", "(&)", 2, "(now) (is) the time");
+	}
+
+	private void replace(String s, String pat, String rep, String result) {
+		assertEquals(result, StringMethods.Replace(s, pat, rep));
+	}
+	private void replace(String s, String pat, String rep, int n, String result) {
+		assertEquals(result, StringMethods.Replace(s, pat, rep, n));
+	}
+
 }
