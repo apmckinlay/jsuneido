@@ -27,9 +27,21 @@ public class SuInstance extends SuValue {
 			return myclass;
 		if (method == "Members")
 			return members(self, args);
+		if (method == "Member?")
+			return MemberQ(self, args);
 		if (method == "Method?")
 			return myclass.invoke(myclass, method, args);
 		return myclass.invoke(self, method, args);
+	}
+
+	private static final FunctionSpec keyFS = new FunctionSpec("key");
+
+	private Object MemberQ(Object self, Object[] args) {
+		args = Args.massage(keyFS, args);
+		String key = Ops.toStr(args[0]);
+		if (ivars.containsKey(key))
+			return true;
+		return myclass.invoke(myclass, "Member?", args);
 	}
 
 	private Object members(Object self, Object[] args) {

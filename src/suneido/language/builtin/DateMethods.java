@@ -3,6 +3,8 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import suneido.language.*;
@@ -12,6 +14,8 @@ public class DateMethods {
 	public static Object invoke(Date d, String method, Object... args) {
 		if (method == "Day")
 			return Day(d, args);
+		if (method == "FormatEn")
+			return FormatEn(d, args);
 		if (method == "GMTime")
 			return GMTime(d, args);
 		if (method == "GMTimeToLocal")
@@ -33,6 +37,20 @@ public class DateMethods {
 		if (method == "Year")
 			return Year(d, args);
 		return ((DateClass) Globals.get("Date")).invoke(d, method, args);
+	}
+
+	private static final FunctionSpec formatFS = new FunctionSpec("format");
+
+	private static Object FormatEn(Date d, Object[] args) {
+		args = Args.massage(formatFS, args);
+		String format = convertFormat(Ops.toStr(args[0]));
+		DateFormat df = new SimpleDateFormat(format);
+		return df.format(d);
+	}
+
+	private static String convertFormat(String fmt) {
+		return fmt.replace("A", "a").replace('t', 'a').replaceAll(
+				"[^adhHmMsy]+", "'$0'");
 	}
 
 	private static Object GMTimeToLocal(Date d, Object[] args) {

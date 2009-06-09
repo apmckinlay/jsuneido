@@ -16,6 +16,7 @@ public class Repl {
 
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
+		Compiler.eval("JInit()");
 		while (true) {
 			out.print("> ");
 			out.flush();

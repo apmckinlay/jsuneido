@@ -40,4 +40,11 @@ public class Regex {
 				.replace("[:upper:]", "\\p{Upper}")
 				.replace("[:xdigit:]", "\\p{XDigit}");
 	}
+
+	public static String convertReplacement(String rep) {
+		return rep.replace("$", "\\$")
+				.replaceAll("(^|[^\\\\])(&)", "$1\\$0")
+				.replaceAll("\\\\([0-9])", "\\$$1")
+				.replace("\\&", "&");
+	}
 }
