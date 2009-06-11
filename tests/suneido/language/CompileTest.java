@@ -108,13 +108,13 @@ public class CompileTest {
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
 		test(".x",
-			"this, 'Test_x', getMem, ARETURN");
+				"this, 'Test_x', getMem, ARETURN");
 		test(".f()",
-			"this, 'Test_f', invokeN, ARETURN");
+				"this, 'Test_f', invokeN, ARETURN");
 		test("this.f()",
-			"this, 'Test_f', invokeN, ARETURN");
+				"this, 'Test_f', invokeN, ARETURN");
 		test("this[a]()",
-			"this, a, toMethodString, invokeN, ARETURN");
+				"this, a, toMethodString, invokeN, ARETURN");
 		test("a.x = b;;",
  				"a, 'x', b, putMem");
 		test("a.x = b",
@@ -339,9 +339,9 @@ public class CompileTest {
 			{ " (Object;String;Object;)Object;", "" },
 			{ " (Object;String;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;)Object;", "" },
-			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
-			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L1", "null?" },
-			{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (String;)V, ATHROW, L2", "null?" },
+			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
+			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
+			{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L2", "null?" },
 			{ "LDC 'Test', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
 			{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? display(constants[0]) : "") },
 			{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? display(constants[1]) : "") },

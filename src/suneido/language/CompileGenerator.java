@@ -771,7 +771,7 @@ c.cv = new CheckClassAdapter(c.cv);
 		c.f.mv.visitLdcInsn(expr == LOCAL ? "uninitialized variable"
 				: "no return value");
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
-				"(Ljava/lang/String;)V");
+				"(Ljava/lang/Object;)V");
 		c.f.mv.visitInsn(ATHROW);
 		c.f.mv.visitLabel(label);
 	}
