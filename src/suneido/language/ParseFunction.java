@@ -220,7 +220,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private String saveCond() {
 		String condSource = null;
 		if (token != SEMICOLON) {
-			int pos = lexer.position();
+			int pos = lexer.start();
 			while (token != SEMICOLON)
 				match();
 			condSource = lexer.from(pos);

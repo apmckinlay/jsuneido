@@ -33,15 +33,15 @@ public enum Token {
 	LSHIFTEQ("<<=", ASSIGN, I), RSHIFTEQ(">>=", ASSIGN, I),
 	BITOREQ("|=", ASSIGN, I), BITANDEQ("&=", ASSIGN, I), BITXOREQ("^=", ASSIGN, I),
 	// keywords
-	IF("if"), ELSE("else"),
-	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
-	BREAK("break"), CONTINUE("continue"),
-	SWITCH("switch"), CASE("case"), DEFAULT("default"),
-	FUNCTION("function"), CLASS("class"),
-	CATCH("catch"),
-	DLL("dll"), STRUCT("struct"), CALLBACK("callback"),
-	NEW("new"), RETURN("return"), TRY("try"), THROW("throw"), SUPER("super"),
-	TRUE("true"), FALSE("false"), IN("in"), THIS("this"),
+	IF("if", 1), ELSE("else", 2),
+	WHILE("while", 3), DO("do", 4), FOR("for", 5), FOREVER("forever", 7),
+	BREAK("break", 8), CONTINUE("continue", 9),
+	SWITCH("switch", 10), CASE("case", 11), DEFAULT("default", 12),
+	FUNCTION("function", 13), CLASS("class", 14), CATCH("catch", 15),
+	DLL("dll", 16), STRUCT("struct", 17), CALLBACK("callback", 18),
+	NEW("new", 19), RETURN("return", 20), TRY("try", 21), THROW("throw", 22),
+	SUPER("super", 23), TRUE("true", 24), FALSE("false", 25),
+	IN("in", 27), THIS("this", 29),
 	// for queries
 	VIEW("view"), SVIEW("sview"), CREATE("create"), ENSURE("ensure"),
 	DROP("drop"), ALTER("alter"), DELETE("delete"),
@@ -60,6 +60,7 @@ public enum Token {
 	private TokenFeature feature;
 	public TokenResultType resultType;
 	public String method;
+	public int oldnum  = 0;
 
 
 	Token() {
@@ -70,6 +71,10 @@ public enum Token {
 	}
 	Token(String string) {
 		this(string, null);
+	}
+	Token(String string, int oldnum) {
+		this(string, null);
+		this.oldnum = oldnum;
 	}
 	Token(TokenFeature feature) {
 		this(null, feature);

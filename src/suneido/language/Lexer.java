@@ -57,6 +57,10 @@ public class Lexer {
 		return token;
 	}
 
+	public boolean hasNext() {
+		return si < source.length();
+	}
+
 	public Token nextAll() {
 		value = null;
 		keyword = null;
@@ -358,11 +362,19 @@ public class Lexer {
 		return source.substring(prev);
 	}
 
-	public int position() {
+	public int start() {
 		return prev;
+	}
+
+	public int end() {
+		return si;
 	}
 
 	public String from(int pos) {
 		return source.substring(pos, prev);
+	}
+
+	public String matched() {
+		return source.substring(prev, si);
 	}
 }

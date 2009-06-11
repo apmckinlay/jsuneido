@@ -11,11 +11,11 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.language.Pack;
 import suneido.language.builtin.RecordMethods;
-import suneido.language.builtin.SuTransaction;
+import suneido.language.builtin.TransactionInstance;
 
 public class SuRecord extends SuContainer {
 	private final Header hdr;
-	private final SuTransaction tran;
+	private final TransactionInstance tran;
 	private long recadr;
 	private final Status status;
 
@@ -31,14 +31,14 @@ public class SuRecord extends SuContainer {
 	}
 
 	public SuRecord(Row row, Header hdr) {
-		this(row, hdr, (SuTransaction) null);
+		this(row, hdr, (TransactionInstance) null);
 	}
 
 	public SuRecord(Row row, Header hdr, DbmsTran tran) {
-		this(row, hdr, new SuTransaction(tran));
+		this(row, hdr, new TransactionInstance(tran));
 	}
 
-	public SuRecord(Row row, Header hdr, SuTransaction tran) {
+	public SuRecord(Row row, Header hdr, TransactionInstance tran) {
 		this.hdr = hdr;
 		this.tran = tran;
 		this.recadr = row.recadr;

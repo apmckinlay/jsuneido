@@ -17,7 +17,7 @@ import suneido.language.*;
  *
  * @author Andrew McKinlay
  */
-public class SuTransaction extends SuValue {
+public class TransactionInstance extends SuValue {
 	private final DbmsTran t;
 	private boolean ended = false;
 
@@ -25,11 +25,11 @@ public class SuTransaction extends SuValue {
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), notPassed, notPassed);
 
-	public SuTransaction(DbmsTran tran) {
+	public TransactionInstance(DbmsTran tran) {
 		this.t = tran;
 	}
 
-	public SuTransaction(Object[] args) {
+	public TransactionInstance(Object[] args) {
 		args = Args.massage(tranFS, args);
 		if ((args[0] == notPassed) == (args[1] == notPassed))
 			throw new SuException("usage: Transaction(read: [, block ]) "
@@ -83,7 +83,7 @@ public class SuTransaction extends SuValue {
 	// TODO keyword query arguments
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
-	public static Object queryOne(SuTransaction t, Object[] args, Dir dir,
+	public static Object queryOne(TransactionInstance t, Object[] args, Dir dir,
 			boolean single) {
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]);

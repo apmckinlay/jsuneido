@@ -32,7 +32,7 @@ public class SuQuery extends SuValue {
 	private Object get(Object[] args, Dir dir) {
 		Args.massage(FunctionSpec.noParams, args);
 		Row row = q.get(dir);
-		return row == null ? false : new SuRecord(row, q.header());
+		return row == null ? Boolean.FALSE : new SuRecord(row, q.header());
 	}
 
 	private static final FunctionSpec recFS = new FunctionSpec("record");

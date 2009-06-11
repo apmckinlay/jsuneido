@@ -7,7 +7,7 @@ public class Query1 extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {
-		return SuTransaction.queryOne(null, args, Dir.NEXT, true);
+		return TransactionInstance.queryOne(null, args, Dir.NEXT, true);
 	}
 
 }

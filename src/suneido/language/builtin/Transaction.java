@@ -5,16 +5,16 @@ import suneido.SuException;
 import suneido.language.*;
 
 /**
- * this is the value of the global "Transaction" instances are
- * {@link SuTransaction}
+ * this is the value of the global "Transaction" i.e. the class
+ * instances are {@link TransactionInstance}
  *
  * @author Andrew McKinlay
  */
 public class Transaction extends BuiltinClass {
 
 	@Override
-	public SuTransaction newInstance(Object[] args) {
-		return new SuTransaction(args);
+	public TransactionInstance newInstance(Object[] args) {
+		return new TransactionInstance(args);
 	}
 
 	private static final FunctionSpec tranFS =
@@ -23,7 +23,7 @@ public class Transaction extends BuiltinClass {
 
 	@Override
 	public Object call(Object... args) {
-		SuTransaction t = newInstance(args);
+		TransactionInstance t = newInstance(args);
 		args = Args.massage(tranFS, args);
 		if (args[2] == Boolean.FALSE)
 			return t;
@@ -39,7 +39,5 @@ public class Transaction extends BuiltinClass {
 			throw e;
 		}
 	}
-
-
 
 }
