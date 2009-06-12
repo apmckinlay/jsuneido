@@ -45,7 +45,7 @@ public class ScannerInstance extends SuValue implements Iterable<String>, Iterat
 
 	private Object Type(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return null;
+		return token.oldnum;
 	}
 
 	private Object Text(Object[] args) {

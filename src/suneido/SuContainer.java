@@ -35,6 +35,8 @@ public class SuContainer extends SuValue
 		}
 		@Override
 		public Object put(Object key, Object value) {
+			assert key != null;
+			assert value != null;
 			return super.put(canonical(key), value);
 		}
 		@Override
