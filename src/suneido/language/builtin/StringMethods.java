@@ -219,7 +219,7 @@ public class StringMethods {
 
 	private static String repeat(String s, Object[] args) {
 		args = Args.massage(repeatFS, args);
-		int n = Ops.toInt(args[0]);
+		int n = Math.max(0, Ops.toInt(args[0]));
 		StringBuilder sb = new StringBuilder(n * s.length());
 		for (int i = 0; i < n; ++i)
 			sb.append(s);
