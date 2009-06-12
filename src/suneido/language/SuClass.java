@@ -108,6 +108,8 @@ public abstract class SuClass extends SuCallable {
 			return base().invoke(self, method, args);
 		if (method == "_init")
 			return init(args);
+		if (method == "Base?")
+			return BaseQ(self, args);
 		if (method == "CallClass")
 			return Ops.invoke(self, "<new>", args);
 		if (method == "Members")
@@ -144,6 +146,17 @@ public abstract class SuClass extends SuCallable {
 	private static Object init(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return null;
+	}
+
+	private static final FunctionSpec valueFS = new FunctionSpec("value");
+
+	private Object BaseQ(Object self, Object[] args) {
+		args = Args.massage(valueFS, args);
+		if (args[0] == this)
+			return Boolean.TRUE;
+		if (baseGlobal == null)
+			return Boolean.FALSE;
+		return base().invoke("Base?", args);
 	}
 
 	private static SuContainer members(Object self, Object[] args) {

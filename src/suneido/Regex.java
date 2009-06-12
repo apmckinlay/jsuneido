@@ -23,10 +23,11 @@ public class Regex {
 	 * Convert from Suneido's regular expression syntax to Java's.
 	 */
 	private static String convertRegex(String rx) {
-		return rx.replace("(?q)", "\\Q")
+		return rx.replace("\\", "\\\\")
+				.replace("(?q)", "\\Q")
 				.replace("(?-q)", "\\E")
-				.replace("\\<", "\\b") // TODO improve
-				.replace("\\>", "\\b") // TODO improve
+				.replace("\\\\<", "\\b") // TODO improve
+				.replace("\\\\>", "\\b") // TODO improve
 				.replace("[:alnum:]", "\\p{Alnum}")
 				.replace("[:alpha:]", "\\p{Alpha}")
 				.replace("[:blank:]", "\\p{Blank}")
@@ -38,10 +39,12 @@ public class Regex {
 				.replace("[:punct:]", "\\p{Punct}")
 				.replace("[:space:]", "\\p{Space}")
 				.replace("[:upper:]", "\\p{Upper}")
-				.replace("[:xdigit:]", "\\p{XDigit}");
+				.replace("[:xdigit:]", "\\p{XDigit}")
+				;
 	}
 
 	public static String convertReplacement(String rep) {
+		// TODO double backslashes
 		return rep.replace("$", "\\$")
 				.replaceAll("(^|[^\\\\])(&)", "$1\\$0")
 				.replaceAll("\\\\([0-9])", "\\$$1")

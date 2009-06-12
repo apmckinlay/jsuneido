@@ -24,7 +24,7 @@ public class SuInstance extends SuValue {
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "Base")
-			return myclass;
+			return Base(self, args);
 		if (method == "Members")
 			return members(self, args);
 		if (method == "Member?")
@@ -32,6 +32,11 @@ public class SuInstance extends SuValue {
 		if (method == "Method?")
 			return myclass.invoke(myclass, method, args);
 		return myclass.invoke(self, method, args);
+	}
+
+	private Object Base(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return myclass;
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");

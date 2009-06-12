@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
+import suneido.SuException;
 import suneido.language.Generator.MType;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
@@ -27,8 +28,8 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			case DLL:
 			case STRUCT:
 			case CALLBACK:
-				syntaxError(lexer.getValue() + " not supported in jSuneido");
-				break;
+				throw new SuException("jSuneido does not support "
+						+ lexer.getValue() + " line " + lexer.getLineNumber());
 			case TRUE:
 			case FALSE:
 				return bool();
