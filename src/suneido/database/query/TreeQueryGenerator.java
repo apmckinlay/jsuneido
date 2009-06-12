@@ -338,7 +338,10 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	public Object memberList(MType which, Object members, Object member) {
 		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
 		MemDef m = (MemDef) member;
-		rec.put(m.name, m.value);
+		if (m.name == null)
+			rec.append(m.value);
+		else
+			rec.put(m.name, m.value);
 		return rec;
 	}
 
@@ -569,26 +572,33 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	public void blockParams() {
 	}
 
+	@Override
 	public void startCatch(String var, String pattern, Object trycatch) {
 	}
 
+	@Override
 	public Object startTry() {
 		return null;
 	}
 
+	@Override
 	public void startClass() {
 	}
 
+	@Override
 	public void addSuperInit() {
 	}
 
+	@Override
 	public Object rvalue(Object expr) {
 		return expr;
 	}
 
+	@Override
 	public void lvalueForAssign(Value<Object> value, Token op) {
 	}
 
+	@Override
 	public void finish() {
 	}
 
