@@ -73,11 +73,7 @@ public class TransactionInstance extends SuValue {
 		}
 		if (args[1] == Boolean.FALSE)
 			return q;
-		try {
-			return Ops.call(args[1], q);
-		} catch (BlockReturnException bre) {
-			return bre.returnValue;
-		}
+		return Ops.call(args[1], q);
 	}
 
 	// TODO keyword query arguments

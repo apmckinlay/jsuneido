@@ -5,9 +5,10 @@ import static suneido.util.Util.listToParens;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.SuValue;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Globals;
+import suneido.language.Ops;
 
 public class FunCall extends Multi {
 	private final String fname;
@@ -33,9 +34,16 @@ public class FunCall extends Multi {
 	}
 
 	@Override
-	public SuValue eval(Header hdr, Row row) {
-		// TODO FunCall eval
-		throw new SuException("not implemented: FunCall");
+	public Object eval(Header hdr, Row row) {
+		Object[] args = new Object[exprs.size()];
+		int i = 0;
+		for (Expr e : exprs)
+			args[i++] = e.eval(hdr, row);
+		Object result = Ops.call(Globals.get(fname), args);
+		if (result == null)
+			throw new SuException("no return value from " + fname);
+		//System.out.println("Eval " + fname + Ops.display(args) + " => " + result);
+		return result;
 	}
 
 	@Override

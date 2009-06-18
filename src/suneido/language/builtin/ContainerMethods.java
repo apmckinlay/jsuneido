@@ -41,11 +41,15 @@ public class ContainerMethods {
 		return userDefined("Objects", method).invoke(c, method, args);
 	}
 
-	private static final FunctionSpec keyValueFS = new FunctionSpec("key", "value");
+	private static final FunctionSpec keyValueFS =
+			new FunctionSpec("key", "block");
 
 	private static Object GetDefault(SuContainer c, Object[] args) {
 		args = Args.massage(keyValueFS, args);
-		return c.getDefault(args[0], args[1]);
+		Object x = c.getDefault(args[0], args[1]);
+		if (x == args[1] && x instanceof SuBlock)
+			x = Ops.call(x);
+		return x;
 	}
 
 	private static SuContainer add(SuContainer c, Object[] args) {

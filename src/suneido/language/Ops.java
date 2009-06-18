@@ -159,21 +159,7 @@ public class Ops {
 
 	public static Number add(Object x, Object y) {
 		Class<?> xType = x.getClass();
-		if (xType == String.class) {
-			x = stringToPlainNumber((String) x);
-			xType = x.getClass();
-		} else if (xType == Boolean.class) {
-			x = (Boolean) x ? 1 : 0;
-			xType = x.getClass();
-		}
 		Class<?> yType = y.getClass();
-		if (yType == String.class) {
-			y = stringToPlainNumber((String) y);
-			yType = y.getClass();
-		} else if (yType == Boolean.class) {
-			y = (Boolean) y ? 1 : 0;
-			yType = y.getClass();
-		}
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x + (Integer) y;
@@ -182,23 +168,28 @@ public class Ops {
 		} else if (xType == BigDecimal.class) {
 			if (yType == BigDecimal.class)
 				return ((BigDecimal) x).add((BigDecimal) y);
-			else if (yType == Integer.class)
+			if (yType == Integer.class)
 				return ((BigDecimal) x).add(BigDecimal.valueOf((Integer) y));
 		}
-		throw cant(x, " + ", y);
+		return add(toNum(x), toNum(y));
+	}
+
+	// used by math ops
+	private static Object toNum(Object x) {
+		Class<?> xType = x.getClass();
+		if (xType == Integer.class || xType == BigDecimal.class)
+			return x;
+		if (xType == String.class)
+			return stringToPlainNumber((String) x);
+		if (xType == Boolean.class)
+			return (Boolean) x ? 1 : 0;
+		// MAYBE other types e.g. long, BigInteger
+		throw new SuException("can't convert " + typeName(x) + " to number");
 	}
 
 	public static Number sub(Object x, Object y) {
 		Class<?> xType = x.getClass();
-		if (xType == String.class) {
-			x = stringToPlainNumber((String) x);
-			xType = x.getClass();
-		}
 		Class<?> yType = y.getClass();
-		if (yType == String.class) {
-			y = stringToPlainNumber((String) y);
-			yType = y.getClass();
-		}
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x - (Integer) y;
@@ -207,10 +198,10 @@ public class Ops {
 		} else if (xType == BigDecimal.class) {
 			if (yType == BigDecimal.class)
 				return ((BigDecimal) x).subtract((BigDecimal) y);
-			else if (yType == Integer.class)
+			if (yType == Integer.class)
 				return ((BigDecimal) x).subtract(BigDecimal.valueOf((Integer) y));
 		}
-		throw cant(x, " - ", y);
+		return sub(toNum(x), toNum(y));
 	}
 
 	private static Integer one = 1;
@@ -223,15 +214,7 @@ public class Ops {
 
 	public static Number mul(Object x, Object y) {
 		Class<?> xType = x.getClass();
-		if (xType == String.class) {
-			x = stringToPlainNumber((String) x);
-			xType = x.getClass();
-		}
 		Class<?> yType = y.getClass();
-		if (yType == String.class) {
-			y = stringToPlainNumber((String) y);
-			yType = y.getClass();
-		}
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x * (Integer) y;
@@ -240,25 +223,17 @@ public class Ops {
 		} else if (xType == BigDecimal.class) {
 			if (yType == BigDecimal.class)
 				return ((BigDecimal) x).multiply((BigDecimal) y);
-			else if (yType == Integer.class)
+			if (yType == Integer.class)
 				return ((BigDecimal) x).multiply(BigDecimal.valueOf((Integer) y));
 		}
-		throw cant(x, " * ", y);
+		return mul(toNum(x), toNum(y));
 	}
 
 	public final static MathContext mc = new MathContext(16);
 
 	public static Number div(Object x, Object y) {
 		Class<?> xType = x.getClass();
-		if (xType == String.class) {
-			x = stringToPlainNumber((String) x);
-			xType = x.getClass();
-		}
 		Class<?> yType = y.getClass();
-		if (yType == String.class) {
-			y = stringToPlainNumber((String) y);
-			yType = y.getClass();
-		}
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return BigDecimal.valueOf((Integer) x).divide(
@@ -269,11 +244,11 @@ public class Ops {
 		} else if (xType == BigDecimal.class) {
 			if (yType == BigDecimal.class)
 				return ((BigDecimal) x).divide((BigDecimal) y, mc);
-			else if (yType == Integer.class)
+			if (yType == Integer.class)
 				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y),
 						mc);
 		}
-		throw cant(x, " / ", y);
+		return div(toNum(x), toNum(y));
 	}
 
 	public static Number mod(Object x, Object y) {
@@ -282,16 +257,11 @@ public class Ops {
 
 	public static Number uminus(Object x) {
 		Class<?> xType = x.getClass();
-		if (xType == String.class) {
-			x = stringToPlainNumber((String) x);
-			xType = x.getClass();
-		}
 		if (xType == Integer.class)
 			return -(Integer) x;
-		else if (xType == BigDecimal.class)
+		if (xType == BigDecimal.class)
 			return ((BigDecimal) x).negate();
-		else
-			throw new SuException("can't do - " + typeName(x));
+		return uminus(toNum(x));
 	}
 
 	public static Boolean not(Object x) {
@@ -324,10 +294,9 @@ public class Ops {
 	public static Number stringToNumber(String s) {
 		if (s.startsWith("0x"))
 			return (int) Long.parseLong(s.substring(2), 16);
-		else if (s.startsWith("0") && s.indexOf('.') == -1)
+		if (s.startsWith("0") && s.indexOf('.') == -1)
 			return (int) Long.parseLong(s, 8);
-		else
-			return stringToPlainNumber(s);
+		return stringToPlainNumber(s);
 	}
 
 	public static Number stringToPlainNumber(String s) {
@@ -371,15 +340,13 @@ public class Ops {
 		Class<?> xType = x.getClass();
 		if (xType == Integer.class)
 			return ((Integer) x);
-		else if (xType == BigDecimal.class)
+		if (xType == BigDecimal.class)
 			return toIntBD((BigDecimal) x);
-		else if (xType == String.class)
+		if (xType == String.class)
 			return toIntS((String) x);
-		else if (xType == Boolean.class)
+		if (xType == Boolean.class)
 			return x == Boolean.TRUE ? 1 : 0;
-		else
-			throw new SuException("can't convert " + typeName(x)
-					+ " to integer");
+		throw new SuException("can't convert " + typeName(x) + " to integer");
 	}
 
 	public final static BigDecimal INT_MIN = new BigDecimal(Integer.MIN_VALUE);
@@ -388,10 +355,9 @@ public class Ops {
 	public static int toIntBD(BigDecimal n) {
 		if (n.compareTo(INT_MIN) == -1)
 			return Integer.MIN_VALUE;
-		else if (n.compareTo(INT_MAX) == 1)
+		if (n.compareTo(INT_MAX) == 1)
 			return Integer.MAX_VALUE;
-		else
-			return n.intValue();
+		return n.intValue();
 	}
 
 	public static int toIntS(String s) {
@@ -429,12 +395,16 @@ public class Ops {
 	}
 
 	public static String display(Object x) {
-		if (x instanceof String)
-			return "'" + ((String) x).replace("'", "\\'") + "'"; //TODO smarter quoting/escaping
-		else if (x == null)
+		if (x instanceof String) {
+			String s = (String) x;
+			if (!s.contains("'"))
+				return "'" + s + "'";
+			else
+				return "\"" + s.replace("\"", "\\\"") + "\"";
+		}
+		if (x == null)
 			return "null";
-		else
-			return toStr(x);
+		return toStr(x);
 	}
 	public static String display(Object[] a) {
 		if (a.length == 0)
@@ -466,10 +436,9 @@ public class Ops {
 	public static int hashCode(Object x, int nest) {
 		if (x instanceof SuContainer)
 			return ((SuContainer) x).hashCode(nest);
-		else if (x instanceof BigDecimal)
+		if (x instanceof BigDecimal)
 			return canonical(x).hashCode();
-		else
-			return x.hashCode();
+		return x.hashCode();
 	}
 
 	public static Object canonical(Object x) {
