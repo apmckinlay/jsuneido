@@ -24,6 +24,8 @@ public class DateMethods {
 			return Hour(d, args);
 		if (method == "Millisecond")
 			return Millisecond(d, args);
+		if (method == "MinusDays")
+			return MinusDays(d, args);
 		if (method == "MinusSeconds")
 			return MinusSeconds(d, args);
 		if (method == "Minute")
@@ -115,6 +117,25 @@ public class DateMethods {
 	}
 
 	private static final FunctionSpec dateFS = new FunctionSpec("date");
+
+	private static int MinusDays(Date d, Object[] args) {
+		args = Args.massage(dateFS, args);
+		Date d2 = (Date) args[0];
+		return day(d) - day(d2);
+	}
+
+    protected static final int MILLISECS_PER_DAY = 24 * 60 * 60 * 1000;
+
+	private static int day(Date d) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(d);
+		Calendar c2 = Calendar.getInstance();
+		c2.clear();
+		c2.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH),
+				c.get(Calendar.DAY_OF_MONTH));
+		return (int) (c2.getTimeInMillis() / MILLISECS_PER_DAY);
+	}
+
 	private static Object MinusSeconds(Date d, Object[] args) {
 		args = Args.massage(dateFS, args);
 		Date d2 = (Date) args[0];

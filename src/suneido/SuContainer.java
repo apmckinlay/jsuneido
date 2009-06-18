@@ -54,6 +54,11 @@ public class SuContainer extends SuValue
 	public SuContainer(Collection<?> c) {
 		vec.addAll(c);
 	}
+	public SuContainer(SuContainer other) {
+		vec.addAll(other.vec);
+		map.putAll(other.map);
+		defval = other.defval;
+	}
 	public static SuContainer of(Object x, Object y) {
 		SuContainer c = new SuContainer();
 		c.append(x);
@@ -120,7 +125,14 @@ public class SuContainer extends SuValue
 		if (0 <= i && i < vec.size())
 			return vec.get(i);
 		Object x = map.get(key);
-		return x == null ? defval : x;
+		if (x != null)
+			return x;
+		if (defval instanceof SuContainer) {
+			x = new SuContainer((SuContainer) defval);
+			put(key, x);
+			return x;
+		}
+		return defval;
 	}
 
 	public boolean containsKey(Object key) {
