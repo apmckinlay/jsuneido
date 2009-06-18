@@ -22,25 +22,112 @@ public class Regex {
 	/**
 	 * Convert from Suneido's regular expression syntax to Java's.
 	 */
-	private static String convertRegex(String rx) {
-		return rx.replace("\\", "\\\\")
-				.replace("(?q)", "\\Q")
-				.replace("(?-q)", "\\E")
-				.replace("\\\\<", "\\b") // TODO improve
-				.replace("\\\\>", "\\b") // TODO improve
-				.replace("[:alnum:]", "\\p{Alnum}")
-				.replace("[:alpha:]", "\\p{Alpha}")
-				.replace("[:blank:]", "\\p{Blank}")
-				.replace("[:cntrl:]", "\\p{Cntrl}")
-				.replace("[:digit:]", "\\p{Digit}")
-				.replace("[:graph:]", "\\p{Graph}")
-				.replace("[:lower:]", "\\p{Lower}")
-				.replace("[:print:]", "\\p{Print}")
-				.replace("[:punct:]", "\\p{Punct}")
-				.replace("[:space:]", "\\p{Space}")
-				.replace("[:upper:]", "\\p{Upper}")
-				.replace("[:xdigit:]", "\\p{XDigit}")
-				;
+	static String convertRegex(String rx) {
+		StringBuilder sb = new StringBuilder();
+		boolean inCharClass = false;
+		for (int i = 0; i < rx.length();) {
+			char c = rx.charAt(i);
+			switch (c) {
+			case '[':
+				if (inCharClass) {
+					if (rx.startsWith("[:", i))
+						i += posixClass(rx, i, sb);
+					else {
+						sb.append("\\[");
+						++i;
+					}
+				} else {
+					inCharClass = true;
+					sb.append(c);
+					++i;
+				}
+				break;
+			case ']':
+				if (inCharClass)
+					inCharClass = false;
+				sb.append(c);
+				++i;
+				break;
+			case '(':
+				if (rx.startsWith("(?q)", i)) {
+					sb.append("\\Q");
+					i += 4;
+				} else if (rx.startsWith("(?-q)", i)) {
+					sb.append("\\E");
+					i += 5;
+				} else {
+					sb.append(c);
+					++i;
+				}
+				break;
+			case '\\':
+				i += backslash(rx, i, sb);
+				break;
+			case '{':
+			case '}':
+				sb.append('\\');
+				sb.append(c);
+				++i;
+				break;
+			default:
+				sb.append(c);
+				++i;
+				break;
+			}
+		}
+		return sb.toString();
+	}
+
+	private static final String[][] posix = {
+		{ "[:alnum:]", "\\p{Alnum}" },
+		{ "[:alpha:]", "\\p{Alpha}" },
+		{ "[:blank:]", "\\p{Blank}" },
+		{ "[:cntrl:]", "\\p{Cntrl}" },
+		{ "[:digit:]", "\\p{Digit}" },
+		{ "[:graph:]", "\\p{Graph}" },
+		{ "[:lower:]", "\\p{Lower}" },
+		{ "[:print:]", "\\p{Print}" },
+		{ "[:punct:]", "\\p{Punct}" },
+		{ "[:space:]", "\\p{Space}" },
+		{ "[:upper:]", "\\p{Upper}" },
+		{ "[:xdigit:]", "\\p{XDigit}" }
+		};
+	private static int posixClass(String rx, int i, StringBuilder sb) {
+		for (String[] p : posix) {
+			if (rx.startsWith(p[0], i)) {
+				sb.append(p[1]);
+				return p[0].length();
+			}
+		}
+		throw new SuException("Regex: bad posix character class");
+	}
+
+	private static int backslash(String rx, int i, StringBuilder sb) {
+		switch (rx.charAt(i + 1)) {
+		case '<': case '>':
+			sb.append("\\b");
+			return 2;
+		case '\\':
+		case 'd': case 'D':
+		case 's': case 'S':
+		case 'w': case 'W':
+		case 't': case 'n': case 'r':
+		case 'A':
+		case '(':
+		case ')':
+		case '[':
+		case ']':
+		case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9':
+			sb.append(rx.substring(i, i + 2));
+			return 2;
+		case 'Z':
+			sb.append("\\z");
+			return 2;
+		default:
+			sb.append("\\\\");
+			return 1;
+		}
 	}
 
 	public static String convertReplacement(String rep) {

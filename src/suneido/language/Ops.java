@@ -484,7 +484,7 @@ public class Ops {
 	}
 
 	public static Object call(Object x, Object... args) {
-		System.out.println("call " + display(x) + display(args));
+		//System.out.println("call " + display(x) + display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).call(args);
 		if (x instanceof String) {
@@ -496,8 +496,7 @@ public class Ops {
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
-		System.out.println("invoke " + display(x) + "." + method
-				+ display(args));
+		//System.out.println("invoke " + display(x) + "." + method + display(args));
 		if (x instanceof SuValue)
 			return ((SuValue) x).invoke(x, method, args);
 		Class<?> xType = x.getClass();
