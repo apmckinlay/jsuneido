@@ -9,6 +9,11 @@ import org.junit.Test;
 public class RegexTest {
 
 	@Test
+	public void convertRegex() {
+		assertEquals("[\\p{Alnum}]", Regex.convertRegex("[[:alnum:]]"));
+	}
+
+	@Test
 	public void getPat() {
 		Pattern p1 = Regex.getPat("x");
 		Pattern p2 = Regex.getPat("a.*b");
@@ -23,6 +28,10 @@ public class RegexTest {
 				"abc", "a.c",
 				"a", "[[:alnum:]]",
 				"hello", "\\<hello\\>",
+				"-", "[-x]",
+				"-", "[x-]",
+				"[", "[[]",
+				"]", "]"
 				};
 		for (int i = 0; i < truecases.length; i += 2)
 			assertTrue(truecases[i] + " =~ " + truecases[i + 1],
