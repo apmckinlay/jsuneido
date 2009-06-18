@@ -162,10 +162,16 @@ public class Ops {
 		if (xType == String.class) {
 			x = stringToPlainNumber((String) x);
 			xType = x.getClass();
+		} else if (xType == Boolean.class) {
+			x = (Boolean) x ? 1 : 0;
+			xType = x.getClass();
 		}
 		Class<?> yType = y.getClass();
 		if (yType == String.class) {
 			y = stringToPlainNumber((String) y);
+			yType = y.getClass();
+		} else if (yType == Boolean.class) {
+			y = (Boolean) y ? 1 : 0;
 			yType = y.getClass();
 		}
 		if (xType == Integer.class) {
