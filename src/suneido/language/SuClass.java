@@ -108,6 +108,8 @@ public abstract class SuClass extends SuCallable {
 			return base().invoke(self, method, args);
 		if (method == "_init")
 			return init(args);
+		if (method == "Base")
+			return Base(self, args);
 		if (method == "Base?")
 			return BaseQ(self, args);
 		if (method == "CallClass")
@@ -127,7 +129,14 @@ public abstract class SuClass extends SuCallable {
 			return Ops.invoke(self, "Default", newargs);
 			// COULD make a defaultMethod and bypass invoke (like "call")
 		}
-		throw unknown_method((String) args[0]);
+		throw methodNotFound((String) args[0]);
+	}
+
+	private Object Base(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (baseGlobal == null)
+			return Boolean.FALSE; // TODO Base should return Object class
+		return Globals.get(baseGlobal);
 	}
 
 	private Object newInstance(Object[] args) {

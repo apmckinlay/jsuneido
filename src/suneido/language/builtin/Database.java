@@ -25,12 +25,14 @@ public class Database extends SuValue {
 			throw new SuException("cannot create instances of Database");
 		if (method == "CurrentSize")
 			return currentSize(args);
-		if (method == "Transactions")
-			return new SuContainer(); // TODO Transactions
 		if (method == "Cursors")
 			return cursors(args);
+		if (method == "SessionId")
+			return "127.0.0.1"; // TODO SessionId
 		if (method == "TempDest")
 			return 0; // not relevant to jSuneido
+		if (method == "Transactions")
+			return new SuContainer(); // TODO Transactions
 		return super.invoke(self, method, args);
 	}
 

@@ -30,7 +30,7 @@ public class SuMethod extends SuValue {
 		if (method == "call")
 			return call(args);
 		else
-			throw unknown_method(method);
+			throw methodNotFound(method);
 	}
 
 	@Override
