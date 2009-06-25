@@ -78,11 +78,13 @@ public class FileInstance extends SuValue {
 		long remaining;
 		try {
 			remaining = f.length() - f.getFilePointer();
+			if (remaining == 0)
+				return Boolean.FALSE;
 			if (n > remaining)
 				n = (int) remaining;
 			byte buf[] = new byte[n];
 			f.readFully(buf);
-			return buf;
+			return new String(buf);
 		} catch (IOException e) {
 			throw new SuException("File io exception", e);
 		}

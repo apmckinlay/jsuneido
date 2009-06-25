@@ -14,7 +14,7 @@ abstract public class SuFunction extends SuCallable {
 			return "function";
 		// TODO other standard methods on functions e.g. Params
 		else
-			throw unknown_method(method);
+			throw methodNotFound(method);
 	}
 
 }

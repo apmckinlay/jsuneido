@@ -27,4 +27,9 @@ public class SuException extends RuntimeException {
 	public static final SuException unreachable() {
 		return new SuException("should not reach here");
 	}
+
+	public static final SuException methodNotFound(String object, String method) {
+		return new SuException("method not found: " + object + "." + method);
+	}
+
 }

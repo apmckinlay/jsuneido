@@ -49,6 +49,8 @@ public class StringMethods {
 				return repeat(s, args);
 			if (method == "Replace")
 				return Replace(s, args);
+			if (method == "ServerEval")
+				return eval(s, args);
 			if (method == "Size")
 				return size(s, args);
 			if (method == "Split")

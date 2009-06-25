@@ -35,7 +35,7 @@ public class ScannerInstance extends SuValue implements Iterable<String>, Iterat
 			return Keyword(args);
 		if (method == "Iter")
 			return Iter(args);
-		throw new SuException("unknown method: scanner." + method);
+		throw SuException.methodNotFound("scanner", method);
 	}
 
 	private Object Position(Object[] args) {

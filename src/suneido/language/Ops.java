@@ -459,31 +459,38 @@ public class Ops {
 	}
 
 	public static Object call(Object x, Object... args) {
-		//System.out.println("call " + display(x) + display(args));
-		if (x instanceof SuValue)
-			return ((SuValue) x).call(args);
-		if (x instanceof String) {
-			Object ob = args[0];
-			args = Arrays.copyOfRange(args, 1, args.length);
-			return invoke(ob, (String) x, args);
+		try {
+			//System.out.println("call " + display(x) + display(args));
+			if (x instanceof SuValue)
+				return ((SuValue) x).call(args);
+			if (x instanceof String) {
+				Object ob = args[0];
+				args = Arrays.copyOfRange(args, 1, args.length);
+				return invoke(ob, (String) x, args);
+			}
+		} catch (java.lang.StackOverflowError e) {
+			throw new SuException("function call overflow");
 		}
 		throw new SuException("can't call " + typeName(x));
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
-		//System.out.println("invoke " + display(x) + "." + method + display(args));
-		if (x instanceof SuValue)
-			return ((SuValue) x).invoke(x, method, args);
-		Class<?> xType = x.getClass();
-		if (xType == String.class)
-			return StringMethods.invoke((String) x, method, args);
-		if (xType == Integer.class)
-			return NumberMethods.invoke((Integer) x, method, args);
-		if (xType == BigDecimal.class)
-			return NumberMethods.invoke((BigDecimal) x, method, args);
-		if (xType == Date.class)
-			return DateMethods.invoke((Date) x, method, args);
-		// TODO handle invoke on other types
+		try {
+			//System.out.println("invoke " + display(x) + "." + method + display(args));
+			if (x instanceof SuValue)
+				return ((SuValue) x).invoke(x, method, args);
+			Class<?> xType = x.getClass();
+			if (xType == String.class)
+				return StringMethods.invoke((String) x, method, args);
+			if (xType == Integer.class)
+				return NumberMethods.invoke((Integer) x, method, args);
+			if (xType == BigDecimal.class)
+				return NumberMethods.invoke((BigDecimal) x, method, args);
+			if (xType == Date.class)
+				return DateMethods.invoke((Date) x, method, args);
+		} catch (java.lang.StackOverflowError e) {
+			throw new SuException("function call overflow");
+		}
 		throw new SuException("no such method: " + typeName(x) + method);
 	}
 

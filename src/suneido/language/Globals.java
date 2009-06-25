@@ -22,6 +22,7 @@ public class Globals {
 		globals.put("Sleep", new Sleep());
 		globals.put("DeleteFile", new DeleteFile());
 		globals.put("FileExists?", new FileExistsQ());
+		globals.put("File", new FileClass());
 	}
 
 	private Globals() { // no instances
@@ -33,6 +34,13 @@ public class Globals {
 	}
 
 	public static Object get(String name) {
+		Object x = tryget(name);
+		if (x == null)
+			throw new SuException("can't find " + name);
+		return x;
+	}
+
+	public static Object tryget(String name) {
 		Object x = globals.get(name);
 		if (x != null)
 			return x;
@@ -40,9 +48,8 @@ public class Globals {
 		if (x == null)
 			x = loadClass(CompileGenerator.javify(name));
 		// TODO save a special value to avoid future attempts to load
-		if (x == null)
-			throw new SuException("can't find " + name);
-		globals.put(name, x);
+		if (x != null)
+			globals.put(name, x);
 		return x;
 	}
 

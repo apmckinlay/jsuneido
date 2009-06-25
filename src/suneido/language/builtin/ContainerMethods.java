@@ -1,6 +1,9 @@
 package suneido.language.builtin;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static suneido.language.Args.Special.NAMED;
+import static suneido.language.Ops.toInt;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 import suneido.SuContainer;
@@ -16,6 +19,8 @@ public class ContainerMethods {
 			return add(c, args);
 		if (method == "Assocs")
 			return assocs(c, args);
+		if (method == "Copy")
+			return copy(c, args);
 		if (method == "Delete")
 			return delete(c, args);
 		if (method == "Erase")
@@ -32,6 +37,8 @@ public class ContainerMethods {
 			return members(c, args);
 		if (method == "Size")
 			return size(c, args);
+		if (method == "Slice")
+			return slice(c, args);
 		if (method == "Sort" || method == "Sort!")
 			return sort(c, args);
 		if (method == "Values")
@@ -39,6 +46,28 @@ public class ContainerMethods {
 		if (method == "Set_default")
 			return set_default(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
+	}
+
+	private static final FunctionSpec sliceFS =
+			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
+
+	private static Object slice(SuContainer c, Object[] args) {
+		args = Args.massage(sliceFS, args);
+		int vecsize = c.vecSize();
+		int i = toInt(args[0]);
+		if (i < 0)
+			i += vecsize;
+		i = max(0, min(i, vecsize));
+		int n = toInt(args[1]);
+		if (n < 0)
+			n += vecsize - i;
+		n = max(0, min(n, vecsize - i));
+		return new SuContainer(c.getVec().subList(i, i + n));
+	}
+
+	private static Object copy(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuContainer(c);
 	}
 
 	private static final FunctionSpec keyValueFS =

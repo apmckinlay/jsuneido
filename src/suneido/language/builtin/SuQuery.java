@@ -1,5 +1,7 @@
 package suneido.language.builtin;
 
+import java.util.List;
+
 import suneido.*;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
@@ -20,6 +22,12 @@ public class SuQuery extends SuValue {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
+		if (method == "Close")
+			return null;
+		if (method == "Columns")
+			return columns(args);
+		if (method == "Fields") // deprecated
+			return columns(args);
 		if (method == "Next")
 			return get(args, Dir.NEXT);
 		if (method == "Output")
@@ -27,6 +35,12 @@ public class SuQuery extends SuValue {
 		if (method == "Prev")
 			return get(args, Dir.PREV);
 		return super.invoke(self, method, args);
+	}
+
+	private Object columns(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		List<String> cols = q.header().columns();
+		return new SuContainer(cols);
 	}
 
 	private Object get(Object[] args, Dir dir) {
