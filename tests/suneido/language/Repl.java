@@ -1,6 +1,6 @@
 package suneido.language;
 
-// TestRunner.RunLib('stdlib', quit_on_failure:);;
+// TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test));;
 
 import java.io.*;
 import java.util.Map;

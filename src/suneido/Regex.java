@@ -15,7 +15,8 @@ public class Regex {
 	public static Pattern getPat(String rx) {
 		Pattern p = cache.get(rx);
 		if (p == null)
-			cache.put(rx, p = Pattern.compile(convertRegex(rx)));
+			cache.put(rx, p =
+					Pattern.compile(convertRegex(rx), Pattern.MULTILINE));
 		return p;
 	}
 

@@ -93,7 +93,7 @@ public class Parse<T, G> {
 		syntaxError("unexpected " + token + (value == null ? "" : " " + value));
 	}
 	protected void syntaxError(String s) {
-		throw new SuException("syntax error: line " + lexer.getLineNumber()
+		throw new SuException("syntax error at line " + lexer.getLineNumber()
 				+ ": " + s);
 	}
 
