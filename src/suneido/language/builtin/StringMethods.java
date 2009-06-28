@@ -20,6 +20,8 @@ public class StringMethods {
 		if (c < 'P') {
 			if (method == "Asc")
 				return asc(s, args);
+			if (method == "Compile")
+				return compile(s, args);
 			if (method == "EndsWith")
 				return endsWith(s, args);
 			if (method == "Eval")
@@ -40,6 +42,8 @@ public class StringMethods {
 				return FindLastnot1of(s, args);
 			if (method == "Lower")
 				return Lower(s, args);
+			if (method == "Lower?")
+				return LowerQ(s, args);
 			if (method == "Numeric?")
 				return NumericQ(s, args);
 		} else {
@@ -65,6 +69,8 @@ public class StringMethods {
 				return tr(s, args);
 			if (method == "Upper")
 				return Upper(s, args);
+			if (method == "Upper?")
+				return UpperQ(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
 	}
@@ -105,9 +111,35 @@ public class StringMethods {
 		return s.toLowerCase();
 	}
 
+	private static Object LowerQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isUpperCase(c))
+				return Boolean.FALSE;
+			else if (Character.isLowerCase(c))
+				result = true;
+		}
+		return result;
+	}
+
 	private static Object Upper(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return s.toUpperCase();
+	}
+
+	private static Object UpperQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isLowerCase(c))
+				return Boolean.FALSE;
+			else if (Character.isUpperCase(c))
+				result = true;
+		}
+		return result;
 	}
 
 	private static final FunctionSpec extractFS =
@@ -193,6 +225,11 @@ public class StringMethods {
 	private static boolean endsWith(String s, Object[] args) {
 		args = Args.massage(sFS, args);
 		return s.endsWith(toStr(args[0]));
+	}
+
+	private static Object compile(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return Compiler.compile("StringCompile", s);
 	}
 
 	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");

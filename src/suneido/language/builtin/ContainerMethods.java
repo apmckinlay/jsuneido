@@ -6,6 +6,10 @@ import static suneido.language.Args.Special.NAMED;
 import static suneido.language.Ops.toInt;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
+
+import java.util.Collections;
+import java.util.List;
+
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuContainer.IterResult;
@@ -35,6 +39,10 @@ public class ContainerMethods {
 			return memberQ(c, args);
 		if (method == "Members")
 			return members(c, args);
+		if (method == "Reverse!")
+			return reverse(c, args);
+		if (method == "Set_default")
+			return set_default(c, args);
 		if (method == "Size")
 			return size(c, args);
 		if (method == "Slice")
@@ -43,9 +51,15 @@ public class ContainerMethods {
 			return sort(c, args);
 		if (method == "Values")
 			return values(c, args);
-		if (method == "Set_default")
-			return set_default(c, args);
+		if (method == "Unique!")
+			return unique(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
+	}
+
+	private static Object reverse(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		Collections.reverse(c.getVec());
+		return c;
 	}
 
 	private static final FunctionSpec sliceFS =
@@ -202,6 +216,22 @@ public class ContainerMethods {
 	private static Object set_default(SuContainer c, Object[] args) {
 		args = Args.massage(valueFS, args);
 		c.setDefault(args[0]);
+		return c;
+	}
+
+	private static Object unique(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		List<Object> v = c.getVec();
+		int dst = 1;
+		for (int src = 1; src < v.size(); ++src) {
+			if (Ops.is_(v.get(src), v.get(src - 1)))
+				continue;
+			if (dst < src)
+				v.set(dst, v.get(src));
+			++dst;
+		}
+		while (v.size() > dst)
+			v.remove(v.size() - 1);
 		return c;
 	}
 }

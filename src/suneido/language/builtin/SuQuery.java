@@ -26,6 +26,8 @@ public class SuQuery extends SuValue {
 			return null;
 		if (method == "Columns")
 			return columns(args);
+		if (method == "Explain")
+			return explain(args);
 		if (method == "Fields") // deprecated
 			return columns(args);
 		if (method == "Next")
@@ -34,6 +36,8 @@ public class SuQuery extends SuValue {
 			return output(args);
 		if (method == "Prev")
 			return get(args, Dir.PREV);
+		if (method == "Strategy")
+			return explain(args);
 		return super.invoke(self, method, args);
 	}
 
@@ -41,6 +45,11 @@ public class SuQuery extends SuValue {
 		Args.massage(FunctionSpec.noParams, args);
 		List<String> cols = q.header().columns();
 		return new SuContainer(cols);
+	}
+
+	private String explain(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return q.toString();
 	}
 
 	private Object get(Object[] args, Dir dir) {

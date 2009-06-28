@@ -75,4 +75,15 @@ public class ContainerMethodsTest {
 		assertEquals(result, ContainerMethods.join(c, sep));
 	}
 
+	@Test
+	public void test_unique() {
+		test("#().Unique!()", "#()");
+		test("#(1, 2, 3).Unique!()", "#(1, 2, 3)");
+		test("#(1, 1).Unique!()", "#(1)");
+		test("#(1, 1, 1, 1).Unique!()", "#(1)");
+		test("#(1, 1, 2, 3).Unique!()", "#(1, 2, 3)");
+		test("#(1, 2, 2, 3).Unique!()", "#(1, 2, 3)");
+		test("#(1, 2, 3, 3).Unique!()", "#(1, 2, 3)");
+	}
+
 }
