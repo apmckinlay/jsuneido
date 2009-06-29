@@ -1,5 +1,6 @@
 package suneido.language.builtin;
 
+import static suneido.util.Util.array;
 import suneido.SuRecord;
 import suneido.language.Args;
 import suneido.language.FunctionSpec;
@@ -7,10 +8,24 @@ import suneido.language.FunctionSpec;
 public class RecordMethods {
 
 	public static Object invoke(SuRecord r, String method, Object... args) {
+		if (method == "Delete")
+			return delete(r, args);
 		if (method == "Update")
 			return update(r, args);
 		// TODO Records user defined methods
 		return ContainerMethods.invoke(r, method, args);
+	}
+
+	private static final Object nil = new Object();
+	private static final FunctionSpec deleteFS =
+		new FunctionSpec(array("key"), nil);
+
+	private static Object delete(SuRecord r, Object[] args) {
+		args = Args.massage(deleteFS, args);
+		if (args[0] != nil)
+			return ContainerMethods.delete(r, args);
+		r.delete();
+		return Boolean.TRUE;
 	}
 
 	private static Object update(SuRecord r, Object[] args) {

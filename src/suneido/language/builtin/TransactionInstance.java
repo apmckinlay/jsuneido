@@ -66,11 +66,10 @@ public class TransactionInstance extends SuValue {
 		args = Args.massage(queryFS, args);
 		String query = Ops.toStr(args[0]);
 		Object q;
-		if (CompileQuery.isRequest(query)) {
+		if (CompileQuery.isRequest(query))
 			q = theDbms.request(ServerData.forThread(), t, query);
-		} else {
-			q = new SuQuery(theDbms.query(new ServerData(), t, query));
-		}
+		else
+			q = new SuQuery(theDbms.query(new ServerData(), t, query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
 		return Ops.call(args[1], q);

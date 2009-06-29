@@ -55,12 +55,13 @@ public class DbmsLocal implements Dbms {
 
 	public DbmsQuery query(ServerData serverData, DbmsTran tran, String s) {
 		//System.out.println("\t" + s);
-		return CompileQuery.query(serverData, s, (Transaction) tran);
+		return new DbmsQueryLocal(CompileQuery.query(serverData, s,
+				(Transaction) tran));
 	}
 
 	public DbmsQuery cursor(ServerData serverData, String s) {
 		//System.out.println("\t" + s);
-		return CompileQuery.query(serverData, s, true);
+		return new DbmsQueryLocal(CompileQuery.query(serverData, s, true));
 	}
 
 	public void erase(DbmsTran tran, long recadr) {

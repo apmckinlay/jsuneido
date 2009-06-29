@@ -1,7 +1,5 @@
 package suneido.database.server;
 
-import static suneido.Suneido.verify;
-
 import java.util.List;
 
 import suneido.database.Record;
@@ -18,9 +16,10 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	public Row get(Dir dir) {
 		Row row = q.get(dir);
-		if (q.updateable() && row != null)
+		if (q.updateable() && row != null) {
 			row.recadr = row.getFirstData().off(); // [1] to skip key
-		verify(row == null || row.recadr > 0);
+			assert row.recadr != 0;
+		}
 		return row;
 	}
 
@@ -46,6 +45,15 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	public void setTransaction(Transaction tran) {
 		q.setTransaction(tran);
+	}
+
+	public boolean updateable() {
+		return q.updateable();
+	}
+
+	@Override
+	public String toString() {
+		return q.toString();
 	}
 
 }

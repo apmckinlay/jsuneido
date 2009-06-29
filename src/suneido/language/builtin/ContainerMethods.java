@@ -129,7 +129,7 @@ public class ContainerMethods {
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
-	private static Object delete(SuContainer c, Object[] args) {
+	static Object delete(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.delete(args[0]) ? c : false;
 	}

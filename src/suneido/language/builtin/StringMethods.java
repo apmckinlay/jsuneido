@@ -44,6 +44,8 @@ public class StringMethods {
 				return Lower(s, args);
 			if (method == "Lower?")
 				return LowerQ(s, args);
+			if (method == "Number?")
+				return NumberQ(s, args);
 			if (method == "Numeric?")
 				return NumericQ(s, args);
 		} else {
@@ -73,6 +75,36 @@ public class StringMethods {
 				return UpperQ(s, args);
 		}
 		return userDefined("Strings", method).invoke(s, method, args);
+	}
+
+	private static Object NumberQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		int i = 0;
+		char c = get(s, i);
+		if (c == '+' || c == '-')
+			c = get(s, ++i);
+		boolean intdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = get(s, ++i);
+		if (c == '.')
+			c = get(s, ++i);
+		boolean fracdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = get(s, ++i);
+		if (! intdigits && ! fracdigits)
+			return Boolean.FALSE;
+		if (c == 'e' || c == 'E') {
+			c = get(s, ++i);
+			if (c == '-')
+				c = get(s, ++i);
+			while (Character.isDigit(c))
+				c = get(s, ++i);
+		}
+		return i == s.length();
+	}
+
+	private static char get(String s, int i) {
+		return i < s.length() ? s.charAt(i) : 0;
 	}
 
 	private static final FunctionSpec replaceFS =
