@@ -5,7 +5,6 @@ import static suneido.Suneido.verify;
 import java.util.*;
 
 import suneido.database.Transaction;
-import suneido.database.query.Query;
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -16,10 +15,14 @@ import suneido.database.query.Query;
  */
 public class ServerData {
 	private int next = 0;
-	private final Map<Integer, DbmsTran> trans = new HashMap<Integer, DbmsTran>();
-	private final Map<Integer, List<Integer>> tranqueries = new HashMap<Integer, List<Integer>>();
-	private final Map<Integer, Query> queries = new HashMap<Integer, Query>();
-	private final Map<Integer, Query> cursors = new HashMap<Integer, Query>();
+	private final Map<Integer, DbmsTran> trans =
+			new HashMap<Integer, DbmsTran>();
+	private final Map<Integer, List<Integer>> tranqueries =
+			new HashMap<Integer, List<Integer>>();
+	private final Map<Integer, DbmsQuery> queries =
+			new HashMap<Integer, DbmsQuery>();
+	private final Map<Integer, DbmsQuery> cursors =
+			new HashMap<Integer, DbmsQuery>();
 	private final Map<String, String> sviews = new HashMap<String, String>();
 	private final Stack<String> viewnest = new Stack<String>();
 
@@ -55,7 +58,7 @@ public class ServerData {
 			verify(queries.isEmpty());
 	}
 
-	public int addQuery(int tn, Query q) {
+	public int addQuery(int tn, DbmsQuery q) {
 		queries.put(next, q);
 		tranqueries.get(tn).add(next);
 		return next++;
@@ -65,7 +68,7 @@ public class ServerData {
 		verify(queries.remove(qn) != null);
 	}
 
-	public int addCursor(Query q) {
+	public int addCursor(DbmsQuery q) {
 		verify(q != null);
 		cursors.put(next, q);
 		return next++;
@@ -79,11 +82,11 @@ public class ServerData {
 		return trans.get(tn);
 	}
 
-	public Query getQuery(int qn) {
+	public DbmsQuery getQuery(int qn) {
 		return queries.get(qn);
 	}
 
-	public Query getCursor(int cn) {
+	public DbmsQuery getCursor(int cn) {
 		return cursors.get(cn);
 	}
 

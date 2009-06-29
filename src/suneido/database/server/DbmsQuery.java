@@ -25,4 +25,6 @@ public interface DbmsQuery {
 
 	void setTransaction(Transaction tran);
 
+	boolean updateable();
+
 }

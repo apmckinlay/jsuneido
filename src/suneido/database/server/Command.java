@@ -9,7 +9,8 @@ import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
 import suneido.database.*;
-import suneido.database.query.*;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
@@ -117,9 +118,8 @@ public enum Command {
 				OutputQueue outputQueue) {
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
-			Query dq =
-					(Query) theDbms.query(ServerData.forThread(), tran,
-							bufferToString(extra));
+			DbmsQuery dq = theDbms.query(ServerData.forThread(), tran,
+					bufferToString(extra));
 			int qn = ServerData.forThread().addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
@@ -133,9 +133,8 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			Query dq =
-					(Query) theDbms.cursor(ServerData.forThread(),
-							bufferToString(extra));
+			DbmsQuery dq = theDbms.cursor(ServerData.forThread(),
+					bufferToString(extra));
 			int cn = ServerData.forThread().addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
@@ -202,7 +201,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			Dir dir = getDir(line);
-			Query q = q_or_tc(line);
+			DbmsQuery q = q_or_tc(line);
 			get(q, dir, outputQueue);
 			return null;
 		}
@@ -254,7 +253,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			Query q = q_or_tc(line);
+			DbmsQuery q = q_or_tc(line);
 			// System.out.println("\t" + new Record(extra));
 			q.output(new Record(extra));
 			return TRUE;
@@ -452,8 +451,8 @@ public enum Command {
 		return num;
 	}
 
-	private static Query q_or_c(ByteBuffer buf) {
-		Query q = null;
+	private static DbmsQuery q_or_c(ByteBuffer buf) {
+		DbmsQuery q = null;
 		int n;
 		if (-1 != (n = getnum('Q', buf)))
 			q = ServerData.forThread().getQuery(n);
@@ -466,8 +465,8 @@ public enum Command {
 		return q;
 	}
 
-	private static Query q_or_tc(ByteBuffer buf) {
-		Query q = null;
+	private static DbmsQuery q_or_tc(ByteBuffer buf) {
+		DbmsQuery q = null;
 		int n, tn;
 		if (-1 != (n = getnum('Q', buf)))
 			q = ServerData.forThread().getQuery(n);
@@ -498,7 +497,7 @@ public enum Command {
 		return dir;
 	}
 
-	private static void get(Query q, Dir dir, OutputQueue outputQueue) {
+	private static void get(DbmsQuery q, Dir dir, OutputQueue outputQueue) {
 		Row row = q.get(dir);
 		if (row != null && q.updateable())
 			row.recadr = row.getFirstData().off();

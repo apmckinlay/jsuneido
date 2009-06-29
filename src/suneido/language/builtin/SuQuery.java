@@ -6,13 +6,17 @@ import suneido.*;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsQuery;
+import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
 public class SuQuery extends SuValue {
 	private final DbmsQuery q;
+	private final DbmsTran t;
 
-	public SuQuery(DbmsQuery q) {
+	public SuQuery(DbmsQuery q, DbmsTran t) {
 		this.q = q;
+		this.t = t;
+		assert t != null;
 	}
 
 	@Override
@@ -55,7 +59,7 @@ public class SuQuery extends SuValue {
 	private Object get(Object[] args, Dir dir) {
 		Args.massage(FunctionSpec.noParams, args);
 		Row row = q.get(dir);
-		return row == null ? Boolean.FALSE : new SuRecord(row, q.header());
+		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 	}
 
 	private static final FunctionSpec recFS = new FunctionSpec("record");
@@ -66,7 +70,7 @@ public class SuQuery extends SuValue {
 			throw new SuException("can't convert " + Ops.typeName(args[0]) + " to object");
 		SuContainer rec = (SuContainer) args[0];
 		q.output(rec.toDbRecord(q.header()));
-		return null;
+		return Boolean.TRUE;
 	}
 
 }

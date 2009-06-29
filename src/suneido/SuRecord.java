@@ -56,7 +56,7 @@ public class SuRecord extends SuContainer {
 //			else
 				put(e.field, x);
 		}
-}
+	}
 
 	@Override
 	public String toString() {
@@ -133,13 +133,20 @@ public class SuRecord extends SuContainer {
 		verify(recadr >= 0);
 	}
 
+	public void delete() {
+		ck_modify("Delete");
+		theDbms.erase(tran.getTransaction(), recadr);
+	}
+
 	private void ck_modify(String op) {
 		if (tran == null)
 			throw new SuException("record." + op + ": no Transaction");
 		if (tran.isEnded())
 			throw new SuException("record." + op
 					+ ": Transaction already completed");
-		if (status != Status.OLD || recadr == 0)
+		if (status != Status.OLD)
+			throw new SuException("record." + op + ": not an old record");
+		if (recadr == 0)
 			throw new SuException("record." + op + ": not a database record");
 	}
 
