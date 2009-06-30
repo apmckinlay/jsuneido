@@ -21,7 +21,7 @@ public class Construct extends SuFunction {
 			what = c.get(0);
 			if (what == null)
 				throw new SuException("Construct: object requires member 0");
-			args = array(Args.Special.EACH1, what);
+			newargs = array(Args.Special.EACH1, c);
 		}
 		if (what instanceof String) {
 			String className = (String) what;

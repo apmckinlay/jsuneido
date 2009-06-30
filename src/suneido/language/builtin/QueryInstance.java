@@ -9,19 +9,25 @@ import suneido.database.server.DbmsQuery;
 import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
-public class SuQuery extends SuValue {
-	private final DbmsQuery q;
-	private final DbmsTran t;
+public class QueryInstance extends SuValue {
+	protected String query;
+	protected DbmsQuery q;
+	protected final DbmsTran t;
 
-	public SuQuery(DbmsQuery q, DbmsTran t) {
+	public QueryInstance(String query, DbmsQuery q, DbmsTran t) {
+		this.query = query;
 		this.q = q;
 		this.t = t;
 		assert t != null;
 	}
 
+	protected QueryInstance() { // used by CursorInstance
+		t = null;
+	}
+
 	@Override
 	public String toString() {
-		return "query";
+		return "Query(" + Ops.display(query) + ")";
 	}
 
 	@Override
@@ -32,14 +38,14 @@ public class SuQuery extends SuValue {
 			return columns(args);
 		if (method == "Explain")
 			return explain(args);
-		if (method == "Fields") // deprecated
+		if (method == "Fields") // deprecated - use Columns
 			return columns(args);
 		if (method == "Next")
-			return get(args, Dir.NEXT);
+			return getrec(args, Dir.NEXT);
 		if (method == "Output")
 			return output(args);
 		if (method == "Prev")
-			return get(args, Dir.PREV);
+			return getrec(args, Dir.PREV);
 		if (method == "Strategy")
 			return explain(args);
 		return super.invoke(self, method, args);
@@ -56,7 +62,7 @@ public class SuQuery extends SuValue {
 		return q.toString();
 	}
 
-	private Object get(Object[] args, Dir dir) {
+	private Object getrec(Object[] args, Dir dir) {
 		Args.massage(FunctionSpec.noParams, args);
 		Row row = q.get(dir);
 		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);

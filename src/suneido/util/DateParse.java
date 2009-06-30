@@ -5,10 +5,10 @@ import java.util.*;
 import suneido.SuException;
 
 public class DateParse {
-	final static String[] month =
+	private final static String[] month =
 		{ "January", "February", "March", "April", "May", "June", "July",
 			"August", "September", "October", "November", "December" };
-	final static String[] weekday =
+	private final static String[] weekday =
 		{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 			"Saturday" };
 
@@ -73,11 +73,15 @@ public class DateParse {
 			c.set(Calendar.MILLISECOND, millisecond);
 			return c;
 		}
+		@Override
+		public String toString() {
+			return year + "-" + month + "-" + day + " "
+					+ hour + ":" + minute + ":" + second + ":" + millisecond;
+		}
 	}
 
 	public static Date parse(String s) {
-		//SimpleDateFormat df = new SimpleDateFormat();
-		return parse(s, "yMd"); //df.toPattern());
+		return parse(s, "yMd");
 	}
 
 	public static Date parse(String s, String order) {
@@ -141,6 +145,7 @@ public class DateParse {
 				int n = Integer.parseInt(next);
 				int len = next.length();
 				si += len;
+				c = get(s, si);
 				if (len == 6 || len == 8) {
 					Digits digits = new Digits(next);
 					if (len == 6) {
@@ -168,7 +173,7 @@ public class DateParse {
 							}
 						}
 					}
-				} else if (prev == ':' || c == ':' || ampm_ahead(s)) {
+				} else if (prev == ':' || c == ':' || ampm_ahead(s, si)) {
 					// time
 					got_time = true;
 					if (dt.hour == NOTSET)
@@ -314,14 +319,17 @@ public class DateParse {
 		a[2] = tmp;
 	}
 
-	static boolean ampm_ahead(String s) {
-		int i = 0;
-		char s0 = s.charAt(i);
+	static boolean ampm_ahead(String s, int i) {
+		char s0 = get(s, i);
 		if (s0 == ' ')
-			s0 = s.charAt(++i);
+			s0 = get(s, ++i);
 		s0 = Character.toLowerCase(s0);
 		return (s0 == 'a' || s0 == 'p') &&
-				Character.toLowerCase(s.charAt(i + 1)) == 'm';
+				Character.toLowerCase(get(s, i + 1)) == 'm';
+	}
+
+	private static char get(String s, int i) {
+		return i < s.length() ? s.charAt(i) : 0;
 	}
 
 	private static class Digits {

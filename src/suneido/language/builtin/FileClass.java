@@ -11,7 +11,8 @@ public class FileClass extends BuiltinClass {
 	}
 
 	private static final FunctionSpec fileFS =
-			new FunctionSpec(array("filename", "mode", "block"), "r", false);
+			new FunctionSpec(array("filename", "mode", "block"), 
+					"r", Boolean.FALSE);
 
 	@Override
 	public Object call(Object... args) {
@@ -20,9 +21,7 @@ public class FileClass extends BuiltinClass {
 		if (args[2] == Boolean.FALSE)
 			return f;
 		try {
-			Object result = Ops.call(args[2], f);
-			f.close();
-			return result;
+			return Ops.call(args[2], f);
 		} finally {
 			f.close();
 		}

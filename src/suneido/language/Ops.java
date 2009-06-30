@@ -454,8 +454,9 @@ public class Ops {
 
 	public static String typeName(Object x) {
 		return x == null ? "uninitialized"
-				: x.getClass().getName().replaceFirst(
-						"^(suneido.(language.(builtin.)?)?)?(Su)?", "");
+				: x.getClass().getName()
+					.replace("java.lang.Boolean", "Boolean")
+					.replaceFirst("^(suneido.(language.(builtin.)?)?)?(Su)?", "");
 	}
 
 	public static Object call(Object x, Object... args) {
@@ -491,7 +492,7 @@ public class Ops {
 		} catch (java.lang.StackOverflowError e) {
 			throw new SuException("function call overflow");
 		}
-		throw new SuException("no such method: " + typeName(x) + method);
+		throw new SuException("method not found: " + typeName(x) + "." + method);
 	}
 
 	public static String toMethodString(Object method) {

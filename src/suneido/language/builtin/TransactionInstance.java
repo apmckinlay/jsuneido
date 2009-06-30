@@ -69,7 +69,8 @@ public class TransactionInstance extends SuValue {
 		if (CompileQuery.isRequest(query))
 			q = theDbms.request(ServerData.forThread(), t, query);
 		else
-			q = new SuQuery(theDbms.query(new ServerData(), t, query), t);
+			q = new QueryInstance(query, 
+					theDbms.query(new ServerData(), t, query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
 		return Ops.call(args[1], q);
