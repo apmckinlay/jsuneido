@@ -20,22 +20,30 @@ public class StringMethods {
 		if (c < 'P') {
 			if (method == "Asc")
 				return asc(s, args);
+			if (method == "Alpha?")
+				return AlphaQ(s, args);
+			if (method == "AlphaNum?")
+				return AlphaNumQ(s, args);
 			if (method == "Compile")
-				return compile(s, args);
+				return Compile(s, args);
+			if (method == "Detab")
+				return Detab(s, args);
 			if (method == "EndsWith")
-				return endsWith(s, args);
+				return EndsWith(s, args);
+			if (method == "Entab")
+				return Entab(s, args);
 			if (method == "Eval")
-				return eval(s, args);
+				return Eval(s, args);
 			if (method == "Extract")
 				return Extract(s, args);
 			if (method == "Find")
-				return find(s, args);
+				return Find(s, args);
 			if (method == "Find1of")
 				return Find1of(s, args);
 			if (method == "Findnot1of")
 				return Findnot1of(s, args);
 			if (method == "FindLast")
-				return findLast(s, args);
+				return FindLast(s, args);
 			if (method == "FindLast1of")
 				return FindLast1of(s, args);
 			if (method == "FindLastnot1of")
@@ -50,25 +58,25 @@ public class StringMethods {
 				return NumericQ(s, args);
 		} else {
 			if (method == "Prefix?")
-				return startsWith(s, args);
+				return StartsWith(s, args);
 			if (method == "Repeat")
-				return repeat(s, args);
+				return Repeat(s, args);
 			if (method == "Replace")
 				return Replace(s, args);
 			if (method == "ServerEval")
-				return eval(s, args);
+				return Eval(s, args);
 			if (method == "Size")
-				return size(s, args);
+				return Size(s, args);
 			if (method == "Split")
-				return split(s, args);
+				return Split(s, args);
 			if (method == "StartsWith")
-				return startsWith(s, args);
+				return StartsWith(s, args);
 			if (method == "Substr")
-				return substr(s, args);
+				return Substr(s, args);
 			if (method == "Suffix?")
-				return endsWith(s, args);
+				return EndsWith(s, args);
 			if (method == "Tr")
-				return tr(s, args);
+				return Tr(s, args);
 			if (method == "Upper")
 				return Upper(s, args);
 			if (method == "Upper?")
@@ -77,105 +85,108 @@ public class StringMethods {
 		return userDefined("Strings", method).invoke(s, method, args);
 	}
 
-	private static Object NumberQ(String s, Object[] args) {
+	private static Boolean AlphaQ(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		int i = 0;
-		char c = get(s, i);
-		if (c == '+' || c == '-')
-			c = get(s, ++i);
-		boolean intdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = get(s, ++i);
-		if (c == '.')
-			c = get(s, ++i);
-		boolean fracdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = get(s, ++i);
-		if (! intdigits && ! fracdigits)
+		if (s.length() == 0)
 			return Boolean.FALSE;
-		if (c == 'e' || c == 'E') {
-			c = get(s, ++i);
-			if (c == '-')
-				c = get(s, ++i);
-			while (Character.isDigit(c))
-				c = get(s, ++i);
-		}
-		return i == s.length();
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isLetter(s.charAt(i)))
+				return Boolean.FALSE;
+		return Boolean.TRUE;
 	}
 
-	private static char get(String s, int i) {
-		return i < s.length() ? s.charAt(i) : 0;
+	private static Boolean AlphaNumQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isLetterOrDigit(s.charAt(i)))
+				return Boolean.FALSE;
+		return Boolean.TRUE;
 	}
 
-	private static final FunctionSpec replaceFS =
-			new FunctionSpec(array("pattern", "block", "count"), 99999);
+	private static int asc(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.length() == 0 ? 0 : (int) s.charAt(0);
+	}
 
-	// TODO convert case
-	static String Replace(String s, Object... args) {
-		args = Args.massage(replaceFS, args);
-		Pattern pat = Regex.getPat(Ops.toStr(args[0]));
-		String rep = null;
-		if (args[1] instanceof String)
-			rep = Regex.convertReplacement(Ops.toStr(args[1]));
-		int n = Ops.toInt(args[2]);
+	private static Object Compile(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return Compiler.compile("StringCompile", s);
+	}
 
-		Matcher m = pat.matcher(s);
-		StringBuffer sb = new StringBuffer();
-		if (rep != null) {
-			for (int i = 0; i < n && m.find(); ++i)
-				m.appendReplacement(sb, rep);
-			m.appendTail(sb);
-		} else {
-			int append = 0;
-			for (int i = 0; i < n && m.find(); ++i) {
-				sb.append(s.substring(append, m.start()));
-				Object t = Ops.call(args[1], m.group());
-				sb.append(t == null ? m.group() : Ops.toStr(t));
-				append = m.end();
+	private static Object Detab(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		// TODO detab
+		return null;
+	}
+
+	private static final FunctionSpec sFS = new FunctionSpec("s");
+
+	private static boolean EndsWith(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		return s.endsWith(toStr(args[0]));
+	}
+
+	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
+
+	private static String Entab(String s, Object[] args) {
+		StringBuilder sb = new StringBuilder(s.length());
+		int si = 0;
+		for (;;) { // for each line
+			// convert leading spaces & tabs
+			char c;
+			int col = 0;
+			while (0 != (c = get(s, si++))) {
+				if (c == ' ')
+					++col;
+				else if (c == '\t')
+					for (++col; !istab(col); ++col)
+						;
+				else
+					break;
 			}
-			sb.append(s.substring(append));
+			--si;
+			int dstcol = 0;
+			for (int j = 0; j <= col; ++j)
+				if (istab(j)) {
+					sb.append('\t');
+					dstcol = j;
+				}
+			for (; dstcol < col; ++dstcol)
+				sb.append(' ');
+
+			// copy the rest of the line
+			while (0 != (c = get(s, si++)) && c != '\n' && c != '\r')
+				sb.append(c);
+
+			// strip trailing spaces & tabs
+
+			for (int j = sb.length() - 1; j >= 0 && isTabOrSpace(sb.charAt(j)); --j)
+				sb.deleteCharAt(j);
+			if (c == 0)
+				break;
+			sb.append(c); // \n or \r
 		}
 		return sb.toString();
 	}
-
-	private static Object Lower(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.toLowerCase();
+	private static boolean istab(int col) {
+		return col > 0 && (col % 4) == 0;
+	}
+	private static boolean isTabOrSpace(char c) {
+		return c == ' ' || c == '\t';
 	}
 
-	private static Object LowerQ(String s, Object[] args) {
+	private static Object Eval(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		Boolean result = Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i) {
-			char c = s.charAt(i);
-			if (Character.isUpperCase(c))
-				return Boolean.FALSE;
-			else if (Character.isLowerCase(c))
-				result = true;
-		}
-		return result;
-	}
-
-	private static Object Upper(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.toUpperCase();
-	}
-
-	private static Object UpperQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		Boolean result = Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i) {
-			char c = s.charAt(i);
-			if (Character.isLowerCase(c))
-				return Boolean.FALSE;
-			else if (Character.isUpperCase(c))
-				result = true;
-		}
-		return result;
+		if (globalRx.matcher(s).matches())
+			return Globals.get(s);
+		Object result = Compiler.eval(s);
+		return result == null ? "" : result;
 	}
 
 	private static final FunctionSpec extractFS =
-			new FunctionSpec(array("pattern", "part"), false);
+		new FunctionSpec(array("pattern", "part"), false);
 
 	static Object Extract(String s, Object... args) {
 		args = Args.massage(extractFS, args);
@@ -193,14 +204,16 @@ public class StringMethods {
 		return result.group(part);
 	}
 
-	private static Object NumericQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (s.length() == 0)
-			return Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i)
-			if (! Character.isDigit(s.charAt(i)))
-				return Boolean.FALSE;
-		return Boolean.TRUE;
+	private static Object Find(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		int i = s.indexOf(toStr(args[0]));
+		return i == -1 ? s.length() : i;
+	}
+
+	private static Object FindLast(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		int i = s.lastIndexOf(toStr(args[0]));
+		return i == -1 ? false : i;
 	}
 
 	private static Object Find1of(String s, Object[] args) {
@@ -247,48 +260,67 @@ public class StringMethods {
 		return Boolean.FALSE;
 	}
 
-	private static int asc(String s, Object[] args) {
+	private static Object Lower(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return s.length() == 0 ? 0 : (int) s.charAt(0);
+		return s.toLowerCase();
 	}
 
-	private static final FunctionSpec sFS = new FunctionSpec("s");
-
-	private static boolean endsWith(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.endsWith(toStr(args[0]));
-	}
-
-	private static Object compile(String s, Object[] args) {
+	private static Object LowerQ(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return Compiler.compile("StringCompile", s);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isUpperCase(c))
+				return Boolean.FALSE;
+			else if (Character.isLowerCase(c))
+				result = true;
+		}
+		return result;
 	}
 
-	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
-
-	private static Object eval(String s, Object[] args) {
+	private static Boolean NumberQ(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		if (globalRx.matcher(s).matches())
-			return Globals.get(s);
-		Object result = Compiler.eval(s);
-		return result == null ? "" : result;
+		int i = 0;
+		char c = get(s, i);
+		if (c == '+' || c == '-')
+			c = get(s, ++i);
+		boolean intdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = get(s, ++i);
+		if (c == '.')
+			c = get(s, ++i);
+		boolean fracdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = get(s, ++i);
+		if (!intdigits && !fracdigits)
+			return Boolean.FALSE;
+		if (c == 'e' || c == 'E') {
+			c = get(s, ++i);
+			if (c == '-')
+				c = get(s, ++i);
+			while (Character.isDigit(c))
+				c = get(s, ++i);
+		}
+		return i == s.length();
 	}
 
-	private static Object find(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		int i = s.indexOf(toStr(args[0]));
-		return i == -1 ? s.length() : i;
+	private static Object NumericQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isDigit(s.charAt(i)))
+				return Boolean.FALSE;
+		return Boolean.TRUE;
 	}
 
-	private static Object findLast(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		int i = s.lastIndexOf(toStr(args[0]));
-		return i == -1 ? false : i;
+	private static char get(String s, int i) {
+		return i < s.length() ? s.charAt(i) : 0;
 	}
 
 	private static final FunctionSpec repeatFS = new FunctionSpec("n");
 
-	private static String repeat(String s, Object[] args) {
+	private static String Repeat(String s, Object[] args) {
 		args = Args.massage(repeatFS, args);
 		int n = Math.max(0, Ops.toInt(args[0]));
 		StringBuilder sb = new StringBuilder(n * s.length());
@@ -297,12 +329,39 @@ public class StringMethods {
 		return sb.toString();
 	}
 
-	private static int size(String s, Object[] args) {
+	private static final FunctionSpec replaceFS =
+			new FunctionSpec(array("pattern", "block", "count"), 99999);
+
+	static String Replace(String s, Object... args) {
+		args = Args.massage(replaceFS, args);
+		Pattern pat = Regex.getPat(Ops.toStr(args[0]));
+		String rep = null;
+		if (args[1] instanceof String)
+			rep = Ops.toStr(args[1]);
+		int n = Ops.toInt(args[2]);
+
+		Matcher m = pat.matcher(s);
+		StringBuilder sb = new StringBuilder();
+		int append = 0;
+		for (int i = 0; i < n && m.find(); ++i) {
+			sb.append(s.substring(append, m.start()));
+			if (rep == null) {
+				Object t = Ops.call(args[1], m.group());
+				sb.append(t == null ? m.group() : Ops.toStr(t));
+			} else
+				suneido.Regex.appendReplacement(m, sb, rep);
+			append = m.end();
+		}
+		sb.append(s.substring(append));
+		return sb.toString();
+	}
+
+	private static int Size(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return s.length();
 	}
 
-	static SuContainer split(String s, Object... args) {
+	static SuContainer Split(String s, Object... args) {
 		args = Args.massage(sFS, args);
 		String sep = Ops.toStr(args[0]);
 		if (sep.equals(""))
@@ -317,14 +376,15 @@ public class StringMethods {
 		return ob;
 	}
 
-	private static boolean startsWith(String s, Object[] args) {
+	private static boolean StartsWith(String s, Object[] args) {
 		args = Args.massage(sFS, args);
 		return s.startsWith(toStr(args[0]));
 	}
 
 	private static final FunctionSpec substrFS =
 			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
-	private static String substr(String s, Object[] args) {
+
+	private static String Substr(String s, Object[] args) {
 		args = Args.massage(substrFS, args);
 		int len = s.length();
 		int i = toInt(args[0]);
@@ -340,9 +400,28 @@ public class StringMethods {
 
 	private static final FunctionSpec trFS =
 			new FunctionSpec(array("from", "to"), "");
-	private static String tr(String s, Object[] args) {
+
+	private static String Tr(String s, Object[] args) {
 		args = Args.massage(trFS, args);
 		return Tr.tr(s, toStr(args[0]), toStr(args[1]));
+	}
+
+	private static String Upper(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return s.toUpperCase();
+	}
+
+	private static Boolean UpperQ(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isLowerCase(c))
+				return Boolean.FALSE;
+			else if (Character.isUpperCase(c))
+				result = Boolean.TRUE;
+		}
+		return result;
 	}
 
 }

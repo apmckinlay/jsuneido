@@ -16,6 +16,8 @@ public class Globals {
 	private static HashMap<String, Object> globals =
 			new HashMap<String, Object>();
 	static {
+		globals.put("True", Boolean.TRUE);
+		globals.put("False", Boolean.FALSE);
 		globals.put("Suneido", new SuContainer());
 		globals.put("Date", new DateClass());
 		globals.put("Object", new ObjectFunction());

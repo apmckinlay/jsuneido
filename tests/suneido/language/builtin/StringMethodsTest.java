@@ -19,7 +19,7 @@ public class StringMethodsTest {
 	}
 
 	private void split(String s, String sep, String... list) {
-		SuContainer c = StringMethods.split(s, sep);
+		SuContainer c = StringMethods.Split(s, sep);
 		assertEquals(list.length, c.size());
 		for (int i = 0; i < list.length; ++i)
 			assertEquals(list[i], c.get(i));

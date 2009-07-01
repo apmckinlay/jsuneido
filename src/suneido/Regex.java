@@ -1,5 +1,6 @@
 package suneido;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import suneido.util.LruCache;
@@ -131,11 +132,72 @@ public class Regex {
 		}
 	}
 
-	public static String convertReplacement(String rep) {
-		// TODO double backslashes
-		return rep.replace("$", "\\$")
-				.replaceAll("(^|[^\\\\])(&)", "$1\\$0")
-				.replaceAll("\\\\([0-9])", "\\$$1")
-				.replace("\\&", "&");
+	public static void appendReplacement(Matcher m, StringBuilder sb, String rep) {
+		if (get(rep, 0) == '\\' && get(rep, 1) == '=') {
+			sb.append(rep.substring(2));
+			return ;
+		}
+		char tr = 'E';
+		for (int ri = 0; ri < rep.length(); ++ri) {
+			char rc = rep.charAt(ri);
+			if (rc == '&')
+				insert(sb, m.group(), tr);
+			else if ('\\' == rc && ri + 1 < rep.length()) {
+				rc = get(rep, ++ri);
+				if (Character.isDigit(rc))
+					insert(sb, m.group(rc - '0'), tr);
+				else if (rc == 'n')
+					sb.append('\n');
+				else if (rc == 't')
+					sb.append('\t');
+				else if (rc == '\\')
+					sb.append('\\');
+				else if (rc == '&')
+					sb.append('&');
+				else if (rc == 'u' || rc == 'l' || rc == 'U' || rc == 'L'
+						|| rc == 'E')
+					tr = Character.toUpperCase(rc);
+				else
+					sb.append(rc);
+			} else
+				sb.append(trcase(tr, rc));
+		}
+
 	}
+
+	private static char get(String s, int i) {
+		return i < s.length() ? s.charAt(i) : 0;
+	}
+
+	private static char trcase(char tr, char rc) {
+		switch (tr) {
+		case 'E':
+			return rc;
+		case 'L':
+			return Character.toLowerCase(rc);
+		case 'U':
+			return Character.toUpperCase(rc);
+		default:
+			throw SuException.unreachable();
+		}
+	}
+
+	private static void insert(StringBuilder sb, String group, char tr) {
+		if (group == null)
+			return;
+		switch (tr) {
+		case 'E':
+			sb.append(group);
+			break;
+		case 'L':
+			sb.append(group.toLowerCase());
+			break;
+		case 'U':
+			sb.append(group.toUpperCase());
+			break;
+		default:
+			throw SuException.unreachable();
+		}
+	}
+
 }
