@@ -1,7 +1,7 @@
 package suneido.language;
 
 /*
- TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, Customizable_Test));;
+ TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, Customizable_Test, DbOutputTest));;
  */
 
 import java.io.*;
