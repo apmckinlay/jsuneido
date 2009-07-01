@@ -382,7 +382,9 @@ public class SuContainer extends SuValue
 	}
 	private static final NullIter nullIter = new NullIter();
 
-	public static enum IterResult { KEY, VALUE, ASSOC };
+	public static enum IterResult {
+		KEY, VALUE, ASSOC, ENTRY
+	};
 
 	static class Iter implements Iterator<Object> {
 		private final Iterator<Object> veciter;
@@ -403,6 +405,8 @@ public class SuContainer extends SuValue
 				return result(vec_i++, veciter.next());
 			else if (mapiter.hasNext()) {
 				Map.Entry<Object, Object> e = mapiter.next();
+				if (iterResult == IterResult.ENTRY)
+					return e;
 				return result(e.getKey(), e.getValue());
 			} else
 				throw new NoSuchElementException();
@@ -412,9 +416,12 @@ public class SuContainer extends SuValue
 			case KEY:
 				return key;
 			case VALUE:
+			case ENTRY:
 				return value;
-			default:
+			case ASSOC:
 				return SuContainer.of(key, value);
+			default:
+				throw SuException.unreachable();
 			}
 		}
 		public void remove() {

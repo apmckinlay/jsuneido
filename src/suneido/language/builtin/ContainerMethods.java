@@ -2,13 +2,11 @@ package suneido.language.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static suneido.language.Args.Special.NAMED;
 import static suneido.language.Ops.toInt;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuContainer;
 import suneido.SuException;
@@ -95,31 +93,45 @@ public class ContainerMethods {
 		return x;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static SuContainer add(SuContainer c, Object[] args) {
-		// TODO handle Add(@args)
-		int n = args.length;
 		Object at = c.size();
-		if (n >= 3 && args[n - 3] == NAMED && args[n - 2] == "at") {
-			at = args[n - 1];
-			n -= 3;
+		int n = 0;
+		ArgsIterator iter = new ArgsIterator(args);
+		while (iter.hasNext()) {
+			Object x = iter.next();
+			if (x instanceof Map.Entry
+					&& ((Map.Entry<Object, Object>) x).getKey() == "at") {
+				at = ((Map.Entry<Object, Object>) x).getValue();
+				if (iter.hasNext())
+					addUsage();
+				break;
+			}
+			++n;
 		}
+		if (n == 0)
+			return c;
+		iter = new ArgsIterator(args);
 		if (at instanceof Integer) {
 			int at_i = (Integer) at;
-			for (int i = 0; i < n; ++i) {
-				if (args[i] == NAMED)
-					throw new SuException(
-							"usage: object.Add(value, ... [ at: position ])");
-				else if (0 <= at_i && at_i <= c.vecSize())
-					c.insert(at_i++, args[i]);
+			for (Object x : iter) {
+				if (x instanceof Map.Entry)
+					addUsage();
 				else
-					c.put(at_i++, args[i]);
+					c.insert(at_i++, x);
+				if (--n == 0)
+					break; // stop before at:
 			}
 		} else if (n == 1)
-			c.put(at, args[0]);
+			c.put(at, iter.next());
 		else
 			throw new SuException("can only Add multiple values to un-named "
 					+ "or to numeric positions");
 		return c;
+	}
+
+	private static void addUsage() {
+		throw new SuException("usage: object.Add(value, ... [ at: position ])");
 	}
 
 	private static Object assocs(SuContainer c, Object[] args) {
