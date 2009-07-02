@@ -4,6 +4,7 @@ import static suneido.language.UserDefined.userDefined;
 
 import java.math.BigDecimal;
 
+import suneido.SuException;
 import suneido.language.*;
 
 
@@ -166,61 +167,69 @@ public class NumberMethods {
 	private static BigDecimal cos(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.cos(d));
+		return convert(Math.cos(d));
 	}
 
 	private static BigDecimal sin(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.sin(d));
+		return convert(Math.sin(d));
 	}
 
 	private static BigDecimal tan(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.tan(d));
+		return convert(Math.tan(d));
 	}
 
 	private static BigDecimal acos(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.acos(d));
+		return convert(Math.acos(d));
 	}
 
 	private static BigDecimal asin(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.asin(d));
+		return convert(Math.asin(d));
 	}
 
 	private static BigDecimal atan(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.atan(d));
+		return convert(Math.atan(d));
 	}
 
 	private static BigDecimal exp(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.exp(d));
+		return convert(Math.exp(d));
 	}
 
 	private static BigDecimal log(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.log(d));
+		return convert(Math.log(d));
 	}
 
 	private static BigDecimal log10(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.log10(d));
+		return convert(Math.log10(d));
 	}
 
 	private static BigDecimal sqrt(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return new BigDecimal(Math.sqrt(d));
+		return convert(Math.sqrt(d));
+	}
+
+	private static BigDecimal convert(double d) {
+		if (Double.isInfinite(d))
+			throw new SuException("infinite result");
+		if (Double.isNaN(d))
+			throw new SuException("not-a-number result");
+		return new BigDecimal(d);
 	}
 
 }

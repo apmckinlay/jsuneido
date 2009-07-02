@@ -159,16 +159,18 @@ public class DateParse {
 							tokens[ntokens++] =
 								syspat[i] == 'y' ? digits.get(4) : digits.get(2);
 					}
-					if (si < s.length() && s.charAt(si) == '.') { // time
+					if (c == '.') { // time
 						++si;
 						String time = nextNumber(s, si);
 						int tlen = time.length();
+						si += tlen;
 						if (tlen == 4 || tlen == 6 || tlen == 9) {
+							digits = new Digits(time);
 							dt.hour = digits.get(2);
 							dt.minute = digits.get(2);
 							if (tlen >= 6) {
-								dt.second = digits.get(2);;
-								if (tlen >= 9)
+								dt.second = digits.get(2);
+								if (tlen == 9)
 									dt.millisecond = digits.get(3);
 							}
 						}

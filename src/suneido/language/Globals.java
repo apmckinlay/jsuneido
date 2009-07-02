@@ -20,7 +20,7 @@ public class Globals {
 		globals.put("False", Boolean.FALSE);
 		globals.put("Suneido", new SuContainer());
 		globals.put("Date", new DateClass());
-		globals.put("Object", new ObjectFunction());
+		globals.put("Object", new ObjectClass());
 		globals.put("Sleep", new Sleep());
 		globals.put("DeleteFile", new DeleteFile());
 		globals.put("FileExists?", new FileExistsQ());

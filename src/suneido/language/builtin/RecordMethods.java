@@ -23,7 +23,7 @@ public class RecordMethods {
 	private static Object delete(SuRecord r, Object[] args) {
 		args = Args.massage(deleteFS, args);
 		if (args[0] != nil)
-			return ContainerMethods.delete(r, args);
+			return ContainerMethods.Delete(r, args);
 		r.delete();
 		return Boolean.TRUE;
 	}

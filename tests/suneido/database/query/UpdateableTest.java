@@ -10,7 +10,6 @@ public class UpdateableTest extends TestBase {
 	@Test
 	public void test() {
 		updateable("tables");
-		not_updateable("history(tables)");
 		updateable("tables extend xyz = 123");
 		updateable("tables project table");
 		not_updateable("columns project table");

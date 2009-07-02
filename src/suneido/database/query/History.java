@@ -2,6 +2,7 @@ package suneido.database.query;
 
 import java.util.List;
 
+import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 
@@ -25,44 +26,37 @@ public class History extends Query {
 
 	@Override
 	List<String> columns() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	int columnsize() {
-		// TODO Auto-generated method stub
-		return 0;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	public Row get(Dir dir) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	public Header header() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	List<List<String>> indexes() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	public List<List<String>> keys() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
 	double nrecords() {
-		// TODO Auto-generated method stub
-		return 0;
+		throw new SuException("database history not implemented");
 	}
 
 	@Override
