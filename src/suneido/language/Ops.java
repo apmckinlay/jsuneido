@@ -300,7 +300,9 @@ public class Ops {
 	}
 
 	public static Number stringToPlainNumber(String s) {
-		if (s.indexOf('.') == -1 && s.indexOf('e') == -1
+		if (s.length() == 0)
+			return 0;
+		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
 				&& s.indexOf("E") == -1 && s.length() < 10)
 			return Integer.parseInt(s);
 		else

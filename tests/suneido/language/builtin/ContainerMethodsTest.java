@@ -72,7 +72,7 @@ public class ContainerMethodsTest {
 
 	private void testjoin(String result, String sep, Object... values) {
 		SuContainer c = new SuContainer(Arrays.asList(values));
-		assertEquals(result, ContainerMethods.join(c, sep));
+		assertEquals(result, ContainerMethods.Join(c, sep));
 	}
 
 	@Test

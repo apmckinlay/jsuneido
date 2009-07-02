@@ -13,6 +13,7 @@ import suneido.database.query.Header;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.builtin.ContainerMethods;
+import suneido.util.NullIterator;
 
 /**
  * Suneido's single container type.
@@ -26,6 +27,7 @@ public class SuContainer extends SuValue
 	private final List<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
 	private Object defval = null; // TODO defval
+	private boolean readonly = false;
 
 	@SuppressWarnings("serial")
 	static class CanonicalMap extends HashMap<Object, Object> {
@@ -84,8 +86,14 @@ public class SuContainer extends SuValue
 	}
 
 	public void append(Object value) {
+		checkReadonly();
 		vec.add(value);
 		migrate();
+	}
+
+	private void checkReadonly() {
+		if (readonly)
+			throw new SuException("can't modify read-only objects");
 	}
 
 	private void migrate() {
@@ -95,8 +103,12 @@ public class SuContainer extends SuValue
 	}
 
 	public void insert(int at, Object value) {
-		vec.add(at, value);
-		migrate();
+		checkReadonly();
+		if (0 <= at && at <= vec.size()) {
+			vec.add(at, value);
+			migrate();
+		} else
+			put(at, value);
 	}
 
 	public void merge(SuContainer c) {
@@ -106,6 +118,7 @@ public class SuContainer extends SuValue
 
 	@Override
 	public void put(Object key, Object value) {
+		checkReadonly();
 		int i = index(key);
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
@@ -207,6 +220,7 @@ public class SuContainer extends SuValue
 	}
 
 	public boolean delete(Object key) {
+		checkReadonly();
 		if (null != map.remove(key))
 			return true;
 		int i = index(key);
@@ -218,6 +232,7 @@ public class SuContainer extends SuValue
 	}
 
 	public boolean erase(Object key) {
+		checkReadonly();
 		if (null != map.remove(key))
 			return true;
 		int i = index(key);
@@ -318,7 +333,11 @@ public class SuContainer extends SuValue
 	}
 
 	public void setReadonly() {
-		// TODO setReadonly
+		readonly = true;
+	}
+
+	public Object getReadonly() {
+		return readonly;
 	}
 
 	public Object slice(int i) {
@@ -370,17 +389,7 @@ public class SuContainer extends SuValue
 	}
 
 	@SuppressWarnings("unchecked")
-	private static class NullIter implements Iterator {
-		public boolean hasNext() {
-			return false;
-		}
-		public Object next() {
-			return null;
-		}
-		public void remove() {
-		}
-	}
-	private static final NullIter nullIter = new NullIter();
+	private static final NullIterator nullIter = new NullIterator();
 
 	public static enum IterResult {
 		KEY, VALUE, ASSOC, ENTRY
@@ -447,6 +456,7 @@ public class SuContainer extends SuValue
 	private static final Comp comp = new Comp();
 
 	public void sort(final Object fn) {
+		checkReadonly();
 		if (fn == Boolean.FALSE)
 			Collections.sort(vec, comp);
 		else

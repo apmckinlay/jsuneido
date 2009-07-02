@@ -20,7 +20,14 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 	}
 
 	public boolean hasNext() {
-		return argi < args.length || each.hasNext();
+		if (each.hasNext())
+			return true;
+		if (argi >= args.length)
+			return false;
+		Object x = args[argi];
+		if (x != EACH && x != EACH1)
+			return true;
+		return ((SuContainer) args[argi + 1]).size() > (x == EACH1 ? 1 : 0);
 	}
 
 	public Object next() {

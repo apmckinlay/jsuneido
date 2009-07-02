@@ -1,7 +1,6 @@
 package suneido;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 import suneido.util.LruCache;
 
@@ -16,8 +15,13 @@ public class Regex {
 	public static Pattern getPat(String rx) {
 		Pattern p = cache.get(rx);
 		if (p == null)
-			cache.put(rx, p =
-					Pattern.compile(convertRegex(rx), Pattern.MULTILINE));
+			try {
+				cache.put(rx, p =
+						Pattern.compile(convertRegex(rx), Pattern.MULTILINE));
+			} catch (PatternSyntaxException e) {
+				throw new SuException("bad regular expression: " + rx + " => "
+						+ convertRegex(rx));
+			}
 		return p;
 	}
 
@@ -25,10 +29,15 @@ public class Regex {
 	 * Convert from Suneido's regular expression syntax to Java's.
 	 */
 	static String convertRegex(String rx) {
+		if (rx.length() == 0)
+			return rx;
 		StringBuilder sb = new StringBuilder();
+		char c = rx.charAt(0);
+		if (c == '+' || c == '*' || c == '?')
+			sb.append('\\');
 		boolean inCharClass = false;
 		for (int i = 0; i < rx.length();) {
-			char c = rx.charAt(i);
+			c = rx.charAt(i);
 			switch (c) {
 			case '[':
 				if (inCharClass) {

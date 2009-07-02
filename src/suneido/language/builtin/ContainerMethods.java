@@ -18,43 +18,58 @@ public class ContainerMethods {
 
 	public static Object invoke(SuContainer c, String method, Object... args) {
 		if (method == "Add")
-			return add(c, args);
+			return Add(c, args);
 		if (method == "Assocs")
-			return assocs(c, args);
+			return Assocs(c, args);
 		if (method == "Copy")
-			return copy(c, args);
+			return Copy(c, args);
 		if (method == "Delete")
-			return delete(c, args);
+			return Delete(c, args);
 		if (method == "Erase")
-			return erase(c, args);
+			return Erase(c, args);
 		if (method == "Find")
-			return find(c, args);
+			return Find(c, args);
 		if (method == "GetDefault")
 			return GetDefault(c, args);
 		if (method == "Join")
-			return join(c, args);
+			return Join(c, args);
 		if (method == "Member?")
-			return memberQ(c, args);
+			return MemberQ(c, args);
 		if (method == "Members")
-			return members(c, args);
+			return Members(c, args);
+		if (method == "Readonly?")
+			return ReadonlyQ(c, args);
 		if (method == "Reverse!")
-			return reverse(c, args);
+			return Reverse(c, args);
 		if (method == "Set_default")
-			return set_default(c, args);
+			return Set_default(c, args);
+		if (method == "Set_readonly")
+			return Set_readonly(c, args);
 		if (method == "Size")
-			return size(c, args);
+			return Size(c, args);
 		if (method == "Slice")
-			return slice(c, args);
+			return Slice(c, args);
 		if (method == "Sort" || method == "Sort!")
-			return sort(c, args);
+			return Sort(c, args);
 		if (method == "Values")
-			return values(c, args);
+			return Values(c, args);
 		if (method == "Unique!")
-			return unique(c, args);
+			return Unique(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
 	}
 
-	private static Object reverse(SuContainer c, Object[] args) {
+	private static Object Set_readonly(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		c.setReadonly();
+		return c.getReadonly();
+	}
+
+	private static Object ReadonlyQ(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return c.getReadonly();
+	}
+
+	private static Object Reverse(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		Collections.reverse(c.getVec());
 		return c;
@@ -63,7 +78,7 @@ public class ContainerMethods {
 	private static final FunctionSpec sliceFS =
 			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
 
-	private static Object slice(SuContainer c, Object[] args) {
+	private static Object Slice(SuContainer c, Object[] args) {
 		args = Args.massage(sliceFS, args);
 		int vecsize = c.vecSize();
 		int i = toInt(args[0]);
@@ -77,7 +92,7 @@ public class ContainerMethods {
 		return new SuContainer(c.getVec().subList(i, i + n));
 	}
 
-	private static Object copy(SuContainer c, Object[] args) {
+	private static Object Copy(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuContainer(c);
 	}
@@ -94,7 +109,7 @@ public class ContainerMethods {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static SuContainer add(SuContainer c, Object[] args) {
+	private static SuContainer Add(SuContainer c, Object[] args) {
 		Object at = c.size();
 		int n = 0;
 		ArgsIterator iter = new ArgsIterator(args);
@@ -134,30 +149,30 @@ public class ContainerMethods {
 		throw new SuException("usage: object.Add(value, ... [ at: position ])");
 	}
 
-	private static Object assocs(SuContainer c, Object[] args) {
+	private static Object Assocs(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
-	static Object delete(SuContainer c, Object[] args) {
+	static Object Delete(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.delete(args[0]) ? c : false;
 	}
 
-	private static Object erase(SuContainer c, Object[] args) {
+	private static Object Erase(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.erase(args[0]) ? c : false;
 	}
 
-	private static Object find(SuContainer c, Object[] args) {
+	private static Object Find(SuContainer c, Object[] args) {
 		args = Args.massage(valueFS, args);
 		Object key = c.find(args[0]);
 		return key == null ? false : key;
 	}
 
-	static String join(SuContainer c, Object... args) {
+	static String Join(SuContainer c, Object... args) {
 		args = Args.massage(valueFS, args);
 		String sep = Ops.toStr(args[0]);
 		StringBuilder sb = new StringBuilder();
@@ -173,17 +188,17 @@ public class ContainerMethods {
 		return sb.toString();
 	}
 
-	private static boolean memberQ(SuContainer c, Object[] args) {
+	private static boolean MemberQ(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.containsKey(args[0]);
 	}
 
-	private static Object members(SuContainer c, Object[] args) {
+	private static Object Members(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.KEY));
 	}
 
-	private static int size(SuContainer c, Object[] args) {
+	private static int Size(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		switch (iterWhich(args)) {
 		case LIST:
@@ -212,26 +227,26 @@ public class ContainerMethods {
 	private static final FunctionSpec blockFS =
 			new FunctionSpec(array("block"), Boolean.FALSE);
 
-	private static SuContainer sort(SuContainer c, Object[] args) {
+	private static SuContainer Sort(SuContainer c, Object[] args) {
 		args = Args.massage(blockFS, args);
 		c.sort(args[0]);
 		return c;
 	}
 
-	private static Object values(SuContainer c, Object[] args) {
+	private static Object Values(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 
 	private static final FunctionSpec valueFS = new FunctionSpec("value");
-	private static Object set_default(SuContainer c, Object[] args) {
+	private static Object Set_default(SuContainer c, Object[] args) {
 		args = Args.massage(valueFS, args);
 		c.setDefault(args[0]);
 		return c;
 	}
 
-	private static Object unique(SuContainer c, Object[] args) {
+	private static Object Unique(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		List<Object> v = c.getVec();
 		int dst = 1;
