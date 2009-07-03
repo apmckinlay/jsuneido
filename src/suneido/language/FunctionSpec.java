@@ -11,8 +11,12 @@ public class FunctionSpec {
 	final int ndefaults;
 	final boolean atParam;
 	final static Object[] noConstants = new Object[0];
+
 	public final static FunctionSpec noParams =
 			new FunctionSpec(null, new String[0], 0);
+	public static final FunctionSpec value = new FunctionSpec("value");
+	public static final FunctionSpec value2 =
+			new FunctionSpec("value", "value");
 
 	public FunctionSpec(String... locals) {
 		this(null, locals, locals.length, noConstants, 0, false);

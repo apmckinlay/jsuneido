@@ -58,7 +58,7 @@ public class Args {
 				}
 				else if (args[i] == EACH || args[i] == EACH1) {
 					int start = args[i] == EACH ? 0 : 1;
-					SuContainer c = (SuContainer) args[++i];
+					SuContainer c = Ops.toContainer(args[++i]);
 					if (c.vecSize() - start > nlocals - li)
 						throw new SuException("too many arguments");
 					for (int j = start; j < c.vecSize(); ++j)
@@ -90,7 +90,7 @@ public class Args {
 				i += 2;
 			}
 			else if (args[i] == EACH)
-				c.merge((SuContainer) args[++i]);
+				c.merge(Ops.toContainer(args[++i]));
 			else
 				c.append(args[i]);
 		}

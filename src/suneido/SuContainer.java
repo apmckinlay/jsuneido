@@ -206,7 +206,15 @@ public class SuContainer extends SuValue
 		if (! (value instanceof SuContainer))
 			return false;
 		SuContainer c = (SuContainer) value;
-		return vec.equals(c.vec) && map.equals(c.map);
+		if (vec.size() != c.vec.size() || map.size() != c.map.size())
+			return false;
+		for (int i = 0; i < vec.size(); ++i)
+			if (!Ops.is_(vec.get(i), c.vec.get(i)))
+				return false;
+		for (Map.Entry<Object, Object> e : map.entrySet())
+			if (!Ops.is_(e.getValue(), c.map.get(e.getKey())))
+				return false;
+		return true;
 		//TODO handle stack overflow from self-reference
 	}
 

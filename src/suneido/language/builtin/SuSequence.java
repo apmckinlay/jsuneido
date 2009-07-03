@@ -74,4 +74,9 @@ public class SuSequence extends SuValue
 		return getOb();
 	}
 
+	@Override
+	public Object get(Object key) {
+		return getOb().get(key);
+	}
+
 }
