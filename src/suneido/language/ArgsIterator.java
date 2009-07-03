@@ -7,7 +7,6 @@ import static suneido.language.Args.Special.*;
 import java.util.AbstractMap;
 import java.util.Iterator;
 
-import suneido.SuContainer;
 import suneido.util.NullIterator;
 
 public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
@@ -27,7 +26,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 		Object x = args[argi];
 		if (x != EACH && x != EACH1)
 			return true;
-		return ((SuContainer) args[argi + 1]).size() > (x == EACH1 ? 1 : 0);
+		return Ops.toContainer(args[argi + 1]).size() > (x == EACH1 ? 1 : 0);
 	}
 
 	public Object next() {
@@ -35,7 +34,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 			return each.next();
 		Object x = args[argi++];
 		if (x == EACH || x == EACH1) {
-			each = ((SuContainer) args[argi++]).iterator(ALL, ENTRY);
+			each = Ops.toContainer(args[argi++]).iterator(ALL, ENTRY);
 			if (x == EACH1 && each.hasNext())
 				each.next();
 			return next();

@@ -17,7 +17,7 @@ public class Construct extends SuFunction {
 		Object what = args[0];
 		Object[] newargs = noArgs;
 		if (what instanceof SuContainer) {
-			SuContainer c = (SuContainer) what;
+			SuContainer c = Ops.toContainer(what);
 			what = c.get(0);
 			if (what == null)
 				throw new SuException("Construct: object requires member 0");
