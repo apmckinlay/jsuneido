@@ -1,16 +1,13 @@
 package suneido.util;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static suneido.util.Util.bufferUcompare;
-import static suneido.util.Util.list;
+import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.junit.Test;
-
-import suneido.util.Util;
 
 public class UtilTest {
 	@Test
@@ -106,17 +103,40 @@ public class UtilTest {
 
 	@Test
 	public void prefix_set() {
-		assertTrue(Util.prefix_set(list("a", "b", "c"), new ArrayList<String>()));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a")));
-		assertFalse(Util.prefix_set(list("a", "b", "c"), list("b")));
-		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a", "b")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("b", "a")));
-		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c", "a")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("a", "b", "c")));
-		assertTrue(Util.prefix_set(list("a", "b", "c"), list("c", "a", "b")));
-		assertFalse(Util.prefix_set(list("a", "b", "c"), list("c", "a", "d")));
-		assertFalse(Util.prefix_set(list("a"), list("b")));
-		assertFalse(Util.prefix_set(list("a"), list("b", "a")));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), new ArrayList<String>()));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a")));
+		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("b")));
+		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c")));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a", "b")));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("b", "a")));
+		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c", "a")));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a", "b", "c")));
+		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("c", "a", "b")));
+		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c", "a", "d")));
+		assertFalse(Util.prefix_set(asList("a"), asList("b")));
+		assertFalse(Util.prefix_set(asList("a"), asList("b", "a")));
 	}
+
+	@Test
+	public void test_lower_bound() {
+		assertEquals(0, lower_bound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, lower_bound(asList(456), 123));
+		assertEquals(0, lower_bound(asList(123), 123));
+		assertEquals(0, lower_bound(asList(123, 123, 456), 123));
+		assertEquals(1, lower_bound(asList(123), 456));
+		assertEquals(1, lower_bound(asList(0, 123, 123, 456), 123));
+		assertEquals(3, lower_bound(asList(0, 123, 123, 456), 456));
+	}
+
+	@Test
+	public void test_upper_bound() {
+		assertEquals(0, upper_bound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, upper_bound(asList(456), 123));
+		assertEquals(1, upper_bound(asList(123), 123));
+		assertEquals(2, upper_bound(asList(123, 123, 456), 123));
+		assertEquals(1, upper_bound(asList(123), 456));
+		assertEquals(3, upper_bound(asList(0, 123, 123, 456), 123));
+		assertEquals(4, upper_bound(asList(0, 123, 123, 456), 456));
+	}
+
 }

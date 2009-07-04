@@ -1,6 +1,7 @@
 package suneido.database;
 
 import java.nio.ByteBuffer;
+import java.util.AbstractList;
 
 /**
  * Collection of {@link Slot}'s for a {@link Btree} node,
@@ -12,15 +13,15 @@ import java.nio.ByteBuffer;
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class Slots {
+public class Slots extends AbstractList<Slot> {
 	final private static int NEXT_OFFSET = 0;
 	final private static int PREV_OFFSET = 4;
 	final private static int REC_OFFSET = 8;
 	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
-	
-	private ByteBuffer buf;
+
+	private final ByteBuffer buf;
 	private Record rec;
-	
+
 	public Slots(ByteBuffer buf) {
 		this(buf, Mode.OPEN);
 	}
@@ -35,54 +36,62 @@ public class Slots {
 			rec = new Record(buf.slice(), BUFREC_SIZE);
 		}
 	}
-	
+
+	@Override
 	public String toString() {
 		return "Slots next " + next() + " prev " + prev() + " " + rec;
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return rec.size() == 0;
 	}
 	/**
 	 * @return The number of slots currently stored.
 	 */
+	@Override
 	public int size() {
 		return rec.size();
 	}
-	
+
 	public Slot front() {
 		return get(0);
 	}
 	public Slot back() {
 		return get(size() - 1);
 	}
+	@Override
 	public Slot get(int i) {
 		return Slot.unpack(rec.getraw(i));
 	}
-	
-	public void add(Slot slot) {
+
+	@Override
+	public boolean add(Slot slot) {
 		rec.add(slot);
+		return true;
 	}
 	public void add(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {
 			rec.add(slots.rec.getraw(i));
 		}
 	}
-	
+
 	public boolean insert(int i, Slot slot) {
 		return rec.insert(i, slot);
 	}
-	
-	public void remove(int i) {
+
+	@Override
+	public Slot remove(int i) {
 		rec.remove(i);
+		return null;
 	}
 	public void remove(int begin, int end) {
 		rec.remove(begin, end);
-	} 
+	}
 	public void removeLast() {
 		remove(size() - 1);
 	}
-	
+
 	public long next() {
 		return Mmfile.intToOffset(buf.getInt(NEXT_OFFSET));
 	}
@@ -97,63 +106,23 @@ public class Slots {
 	}
 
 	/**
-	 * Used to avoid instantiating a Slots object just to set next.
+	 * Used to avoid instantiating a Slots object just to set next
+	 * 
 	 * @param buf
 	 * @param value
 	 */
 	public static void setBufNext(ByteBuffer buf, long value) {
 		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
 	}
+
 	/**
-	 * Used to avoid instantiating a Slots object just to set next.
+	 * Used to avoid instantiating a Slots object just to set prev
+	 * 
 	 * @param buf
 	 * @param value
 	 */
 	public static void setBufPrev(ByteBuffer buf, long value) {
 		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
-	
-	/**
-	 * Based on C++ STL code.
-	 * @param slot
-	 * @return The <u>first</u> position where slot could be inserted
-	 * without changing the ordering.
-	 */
-	public int lower_bound(Slot slot) {
-		int first = 0;
-		int len = size();
-		while (len > 0) {
-			int half = len >> 1;
-			int middle = first + half;
-			if (get(middle).compareTo(slot) < 0) {
-				first = middle + 1;
-				len = len - half - 1;
-			}
-			else
-				len = half;
-		}
-		return first;
-	}
 
-	/**
-	 * Based on C++ STL code.
-	 * @param slot
-	 * @return The <u>last</u> position where slot could be inserted
-	 * without changing the ordering.
-	 */
-	public int upper_bound(Slot slot) {
-		int first = 0;
-		int len = size();
-		while (len > 0) {
-			int half = len >> 1;
-			int middle = first + half;
-			if (slot.compareTo(get(middle)) < 0)
-				len = half;
-			else {
-				first = middle + 1;
-				len = len - half - 1;
-			}
-		}
-		return first;
-	}
 }

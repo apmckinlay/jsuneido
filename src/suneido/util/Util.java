@@ -186,12 +186,54 @@ public class Util {
 		return result;
 	}
 
-	public static <T> List<T> list(T... values) {
-		return Arrays.asList(values);
-	}
-
 	public static <T> T[] array(T... values) {
 		return values;
 	}
 
+	/**
+	 * Based on C++ STL code.
+	 *
+	 * @param slot
+	 * @return The <u>first</u> position where slot could be inserted without
+	 *         changing the ordering.
+	 */
+	public static <T extends Comparable<? super T>> int lower_bound(
+			List<T> list, T value) {
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (list.get(middle).compareTo(value) < 0) {
+				first = middle + 1;
+				len = len - half - 1;
+			} else
+				len = half;
+		}
+		return first;
+	}
+
+	/**
+	 * Based on C++ STL code.
+	 *
+	 * @param slot
+	 * @return The <u>last</u> position where slot could be inserted without
+	 *         changing the ordering.
+	 */
+	public static <T extends Comparable<? super T>> int upper_bound(
+			List<T> list, T value) {
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (value.compareTo(list.get(middle)) < 0)
+				len = half;
+			else {
+				first = middle + 1;
+				len = len - half - 1;
+			}
+		}
+		return first;
+	}
 }

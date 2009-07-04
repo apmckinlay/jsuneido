@@ -1,7 +1,7 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static suneido.util.Util.list;
 
 import java.util.*;
 
@@ -16,13 +16,13 @@ public class ExprTest {
 	public void fields() {
 		Object cases[] = new Object[] {
 				"123", Collections.emptyList(),
-				"a", list("a"),
-				"-a", list("a"),
-				"a + b", list("a", "b"),
-				"a ? b : c", list("a", "b", "c"),
-				"a and b and c", list("a", "b", "c"),
-				"a or b or c", list("a", "b", "c"),
-				"f(a, b)", list("a", "b"),
+				"a", asList("a"),
+				"-a", asList("a"),
+				"a + b", asList("a", "b"),
+				"a ? b : c", asList("a", "b", "c"),
+				"a and b and c", asList("a", "b", "c"),
+				"a or b or c", asList("a", "b", "c"),
+				"f(a, b)", asList("a", "b"),
 		};
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr((String) cases[i]);
@@ -62,7 +62,7 @@ public class ExprTest {
 
 	@Test
 	public void isTerm() {
-		List<String> fields = list("a", "b", "c");
+		List<String> fields = asList("a", "b", "c");
 		String truecases[] = new String[] { "a = 5", "5 > b", "b in (3,4,5)" };
 		for (String s : truecases)
 			assertTrue(s, CompileQuery.expr(s).isTerm(fields));
@@ -96,8 +96,8 @@ public class ExprTest {
 				"e < #20081216.152744828", "false",
 				"e < #20081216.155544828", "true"
 		};
-		Header hdr = new Header(list(list("a"), list("a", "b", "c", "d", "e")),
-				list("a", "b", "c", "d", "e"));
+		Header hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
+				asList("a", "b", "c", "d", "e"));
 		Record key = new Record().add(1);
 		Record rec = new Record().add(1).add(2).add(3).add(4).
 				add(Ops.stringToDate("#20081216.153244828"));
@@ -118,8 +118,8 @@ public class ExprTest {
 				"a and z and b", "(a and zz and b)",
 				"z < 6 ? x : a + y", "((zz < 6) ? xx : (a + yy))"
 		};
-		List<String> from = list("x", "y", "z");
-		List<String> to = list("xx", "yy", "zz");
+		List<String> from = asList("x", "y", "z");
+		List<String> to = asList("xx", "yy", "zz");
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr(cases[i]);
 			e = e.rename(from, to);
@@ -136,9 +136,9 @@ public class ExprTest {
 				"a and z and b", "(a and '' and b)",
 				"z < 6 ? x : a + y", "(('' < 6) ? (1 + x) : (a + yy))"
 		};
-		List<String> from = list("x", "y", "z");
+		List<String> from = asList("x", "y", "z");
 		List<Expr> to = new ArrayList<Expr>();
-		for (String s : list("1 + x", "yy", "''"))
+		for (String s : asList("1 + x", "yy", "''"))
 			to.add(CompileQuery.expr(s));
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr(cases[i]);

@@ -1,7 +1,9 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.Suneido.verify;
-import static suneido.util.Util.*;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.prefix;
 
 import java.util.*;
 
@@ -31,7 +33,7 @@ public class TempIndex extends Query1 {
 	@SuppressWarnings("unchecked")
 	@Override
 	List<List<String>> indexes() {
-		return list(order);
+		return asList(order);
 	}
 
 	@Override

@@ -1,6 +1,8 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
+import static suneido.util.Util.lower_bound;
+import static suneido.util.Util.upper_bound;
 
 /**
  * Btree implementation.
@@ -117,7 +119,7 @@ public class Btree {
 		++modified;
 		LeafNode left = leaf.split(x);
 		++nnodes;
-		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0 
+		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0
 				? left.insert(x) : leaf.insert(x)));
 		Record key = left.slots.back().key.dup();
 		adr = left.adr;
@@ -130,7 +132,7 @@ public class Btree {
 			// else split
 			TreeNode tleft = nodes[i].split(key);
 			++nnodes;
-			verify(tleft.slots.back().key.compareTo(key) < 0 
+			verify(tleft.slots.back().key.compareTo(key) < 0
 					? nodes[i].insert(key, adr) : tleft.insert(key, adr));
 			key = tleft.slots.back().key.dup();
 			tleft.setNext(tleft.slots.back().adrs[0]);
@@ -201,17 +203,17 @@ public class Btree {
 			if (node.isEmpty())
 				return 0;
 			Slots slots = node.slots;
-			int org = slots.lower_bound(new Slot(from));
-			int end = slots.lower_bound(new Slot(to));
+			int org = lower_bound(slots, new Slot(from));
+			int end = lower_bound(slots, new Slot(to));
 			return (float) (end - org) / slots.size();
 			}
 		else
 			{
 			TreeNode node = new TreeNode(root());
 			Slots slots = node.slots;
-			int org = slots.lower_bound(new Slot(from));
+			int org = lower_bound(slots, new Slot(from));
 			long fromadr = org < slots.size() ? slots.get(org).adrs[0] : node.next();
-			int end = slots.lower_bound(new Slot(to));
+			int end = lower_bound(slots, new Slot(to));
 			long toadr = end < slots.size() ? slots.get(end).adrs[0] : node.next();
 			int n = slots.size() + 1;
 			if (n > 20)
@@ -231,14 +233,14 @@ public class Btree {
 			{
 			TreeNode node = new TreeNode(adr);
 			Slots slots = node.slots;
-			int i = slots.lower_bound(new Slot(key));
+			int i = lower_bound(slots, new Slot(key));
 			return start + (nodefrac * i) / slots.size();
 			}
 		else
 			{
 			LeafNode node = new LeafNode(adr);
 			Slots slots = node.slots;
-			int i = slots.lower_bound(new Slot(key));
+			int i = lower_bound(slots, new Slot(key));
 			return start + (nodefrac * i) / slots.size();
 			}
 		}
@@ -257,7 +259,7 @@ public class Btree {
 		}
 		Insert insert(Slot x)
 			{
-			int i = slots.lower_bound(x);
+			int i = lower_bound(slots, x);
 			if (i < slots.size() && slots.get(i).equals(x))
 				return Insert.DUP;
 			else if (! slots.insert(i, x))
@@ -266,7 +268,7 @@ public class Btree {
 			}
 		boolean erase(Slot x)
 			{
-			int i = slots.lower_bound(x);
+			int i = lower_bound(slots, x);
 			if (i >= slots.size() || ! slots.get(i).equals(x))
 				return false;
 			slots.remove(i);
@@ -352,13 +354,13 @@ public class Btree {
 		// returns false if no room
 		boolean insert(Record key, long off) {
 			Slot slot = new Slot(key, off);
-			int i = slots.lower_bound(slot);
+			int i = lower_bound(slots, slot);
 			verify(i == slots.size() || ! slots.get(i).key.equals(key)); // no dups
 			return slots.insert(i, slot);
 		}
 		long find(Record key)
 			{
-			int i = slots.lower_bound(new Slot(key));
+			int i = lower_bound(slots, new Slot(key));
 			return i < slots.size() ? slots.get(i).adrs[0] : slots.next();
 			}
 		void erase(Record key) {
@@ -368,7 +370,7 @@ public class Btree {
 				slots.setNext(0);
 				return ;
 			}
-			int slot = slots.lower_bound(new Slot(key));
+			int slot = lower_bound(slots, new Slot(key));
 			if (slot == slots.size()) {
 				--slot;
 				slots.setNext(slots.get(slot).adrs[0]);
@@ -493,7 +495,7 @@ public class Btree {
 			if (modified != valid && ! seek(cur.key))
 				return this;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
-			int t = leaf.slots.upper_bound(cur);
+			int t = upper_bound(leaf.slots, cur);
 			if (t < leaf.slots.size())
 				cur = leaf.slots.get(t);
 			else if ((adr = leaf.next()) != 0)
@@ -506,7 +508,7 @@ public class Btree {
 			if (modified != valid)
 				seek(cur.key);
 			LeafNode leaf = new LeafNode(adr);
-			int t = leaf.slots.lower_bound(cur);
+			int t = lower_bound(leaf.slots, cur);
 			if (t > 0)
 				cur = leaf.slots.get(--t);
 			else if ((adr = leaf.prev()) != 0)
@@ -522,7 +524,7 @@ public class Btree {
 				adr = 0; // empty btree
 				return false;
 			}
-			int t = leaf.slots.lower_bound(new Slot(key));
+			int t = lower_bound(leaf.slots, new Slot(key));
 			valid = modified;
 			boolean found;
 			if (t == leaf.slots.size()) {

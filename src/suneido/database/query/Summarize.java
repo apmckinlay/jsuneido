@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.util.Util.*;
 
 import java.util.*;
@@ -152,7 +153,7 @@ public class Summarize extends Query1 {
 		if (first)
 			iterate_setup();
 		List<String> flds = concat(by, cols);
-		return new Header(list(noFields, flds), flds);
+		return new Header(asList(noFields, flds), flds);
 	}
 
 	private void iterate_setup() {

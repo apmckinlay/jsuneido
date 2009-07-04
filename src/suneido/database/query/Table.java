@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
 import static suneido.database.Database.theDB;
@@ -214,7 +215,7 @@ public class Table extends Query {
 				: theDB.getIndex(tbl, listToCommas(idx));
 		boolean lower = i != null && i.isLower();
 		List<String> index = singleton || lower ? noFields : idx;
-		return new Header(list(index, tbl.getFields()), tbl.getColumns());
+		return new Header(asList(index, tbl.getFields()), tbl.getColumns());
 	}
 
 	@Override

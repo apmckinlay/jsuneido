@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.util.Util.*;
 
@@ -158,11 +159,11 @@ public class Union extends Compatible {
 				List<List<String>> kout = new ArrayList<List<String>>();
 				for (List<String> k : kin)
 					kout.add(k.contains(disjoint) ? k : concat(k,
-							list(disjoint)));
+							asList(disjoint)));
 				return kout;
 			}
 		}
-		return list(source.columns());
+		return asList(source.columns());
 	}
 
 	private List<List<String>> intersect_prefix(List<List<String>> keys1,
@@ -191,7 +192,7 @@ public class Union extends Compatible {
 					break;
 				}
 		List<String> cols2 = source2.columns();
-		final List<Object> elist = list((Object) "");
+		final List<Object> elist = asList((Object) "");
 		for (Fixed f1 : fixed1)
 			if (!cols2.contains(f1.field))
 				fix.add(new Fixed(f1.field, union(f1.values, elist)));
