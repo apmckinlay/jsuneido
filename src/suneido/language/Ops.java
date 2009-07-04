@@ -133,6 +133,15 @@ public class Ops {
 		return xHash < yHash ? -1 : xHash > yHash ? +1 : 0;
 	}
 
+	public static final class Comp implements Comparator<Object> {
+		public int compare(Object x, Object y) {
+			return cmp(x, y);
+		}
+	}
+
+	public static final Comp comp = new Comp();
+
+
 	// TODO convert from Suneido regex and cache compiled patterns
 	public static boolean match_(Object s, Object rx) {
 		if (s instanceof String && rx instanceof String)

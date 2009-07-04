@@ -33,6 +33,8 @@ public class ContainerMethods {
 			return GetDefault(c, args);
 		if (method == "Join")
 			return Join(c, args);
+		if (method == "LowerBound")
+			return LowerBound(c, args);
 		if (method == "Member?")
 			return MemberQ(c, args);
 		if (method == "Members")
@@ -55,6 +57,8 @@ public class ContainerMethods {
 			return Values(c, args);
 		if (method == "Unique!")
 			return Unique(c, args);
+		if (method == "UpperBound")
+			return UpperBound(c, args);
 		return userDefined("Objects", method).invoke(c, method, args);
 	}
 
@@ -188,6 +192,14 @@ public class ContainerMethods {
 		return sb.toString();
 	}
 
+	private static final FunctionSpec boundFS =
+	new FunctionSpec(array("value", "block"), Boolean.FALSE);
+
+	private static Object LowerBound(SuContainer c, Object[] args) {
+		args = Args.massage(boundFS, args);
+		return c.lower_bound(args[0], args[1]);
+	}
+
 	private static boolean MemberQ(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.containsKey(args[0]);
@@ -260,5 +272,10 @@ public class ContainerMethods {
 		while (v.size() > dst)
 			v.remove(v.size() - 1);
 		return c;
+	}
+
+	private static Object UpperBound(SuContainer c, Object[] args) {
+		args = Args.massage(boundFS, args);
+		return c.upper_bound(args[0], args[1]);
 	}
 }
