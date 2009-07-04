@@ -212,6 +212,21 @@ public class Util {
 		}
 		return first;
 	}
+	public static <T> int lower_bound(
+			List<T> list, T value, Comparator<? super T> comp) {
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (comp.compare(list.get(middle), value) < 0) {
+				first = middle + 1;
+				len = len - half - 1;
+			} else
+				len = half;
+		}
+		return first;
+	}
 
 	/**
 	 * Based on C++ STL code.
@@ -236,4 +251,21 @@ public class Util {
 		}
 		return first;
 	}
+	public static <T> int upper_bound(
+			List<T> list, T value, Comparator<? super T> comp) {
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (comp.compare(value, list.get(middle)) < 0)
+				len = half;
+			else {
+				first = middle + 1;
+				len = len - half - 1;
+			}
+		}
+		return first;
+	}
+
 }

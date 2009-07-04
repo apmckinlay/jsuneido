@@ -14,6 +14,7 @@ import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
+import suneido.util.Util;
 
 /**
  * Suneido's single container type.
@@ -456,19 +457,36 @@ public class SuContainer extends SuValue
 		return null;
 	}
 
-	private static final class Comp implements Comparator<Object> {
-		public int compare(Object x, Object y) {
-			return Ops.cmp(x, y);
-		}
-	}
-	private static final Comp comp = new Comp();
-
 	public void sort(final Object fn) {
 		checkReadonly();
 		if (fn == Boolean.FALSE)
-			Collections.sort(vec, comp);
+			Collections.sort(vec, Ops.comp);
 		else
 			Collections.sort(vec, new Comparator<Object>() {
+				public int compare(Object x, Object y) {
+					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
+				}
+			});
+	}
+
+	public int lower_bound(Object value, final Object fn) {
+		checkReadonly();
+		if (fn == Boolean.FALSE)
+			return Util.lower_bound(vec, value, Ops.comp);
+		else
+			return Util.lower_bound(vec, value, new Comparator<Object>() {
+				public int compare(Object x, Object y) {
+					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
+				}
+			});
+	}
+
+	public int upper_bound(Object value, final Object fn) {
+		checkReadonly();
+		if (fn == Boolean.FALSE)
+			return Util.upper_bound(vec, value, Ops.comp);
+		else
+			return Util.upper_bound(vec, value, new Comparator<Object>() {
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}
