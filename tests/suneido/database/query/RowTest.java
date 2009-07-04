@@ -1,8 +1,8 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static suneido.util.Util.list;
 
 import java.util.Iterator;
 
@@ -23,7 +23,7 @@ public class RowTest {
 		Header hdr = HeaderTest.makeHeader();
 		assertEquals(rec1.getraw(0), row.getraw(hdr, "a"));
 		assertEquals(rec2.getraw(1), row.getraw(hdr, "b"));
-		assertEquals(new Record().add(456), row.project(hdr, list("b")));
+		assertEquals(new Record().add(456), row.project(hdr, asList("b")));
 
 		Iterator<Row.Entry> iter = row.iterator(hdr);
 		Row.Entry e = iter.next();

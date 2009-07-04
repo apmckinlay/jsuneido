@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.util.Util.*;
 
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public class Extend extends Query1 {
 	public Header header() {
 		if (hdr == null)
 			hdr = new Header(source.header(),
-					new Header(list(noFields, flds), union(flds, rules)));
+					new Header(asList(noFields, flds), union(flds, rules)));
 		return hdr;
 	}
 

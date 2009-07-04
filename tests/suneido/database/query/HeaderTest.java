@@ -1,7 +1,7 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static suneido.util.Util.list;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,30 +19,30 @@ public class HeaderTest {
 
 		hdr = makeHeader();
 		assertEquals(4, hdr.size());
-		assertEquals(list("a", "b", "c", "x", "y", "z"), hdr.fields());
-		assertEquals(list("me", "no"), hdr.rules());
-		assertEquals(list("a", "b", "c", "x", "y", "z", "Me", "No"),
+		assertEquals(asList("a", "b", "c", "x", "y", "z"), hdr.fields());
+		assertEquals(asList("me", "no"), hdr.rules());
+		assertEquals(asList("a", "b", "c", "x", "y", "z", "Me", "No"),
 				hdr.schema());
 
-		hdr = hdr.rename(list("x", "b"), list("xx", "bb"));
-		assertEquals(list("a", "bb", "me", "c", "xx", "no", "y", "z"), hdr.cols);
-		flds = list(list("a"), list("a", "bb", "c"),
-				list("xx"), list("xx", "y", "z"));
+		hdr = hdr.rename(asList("x", "b"), asList("xx", "bb"));
+		assertEquals(asList("a", "bb", "me", "c", "xx", "no", "y", "z"), hdr.cols);
+		flds = asList(asList("a"), asList("a", "bb", "c"),
+				asList("xx"), asList("xx", "y", "z"));
 		assertEquals(flds, hdr.flds);
 
 
-		hdr = hdr.project(list("c", "y", "me", "a"));
-		assertEquals(list("a", "me", "c", "y"), hdr.cols);
-		flds = list(list("a"), list("a", "-", "c"),
-				list("-"), list("-", "y", "-"));
+		hdr = hdr.project(asList("c", "y", "me", "a"));
+		assertEquals(asList("a", "me", "c", "y"), hdr.cols);
+		flds = asList(asList("a"), asList("a", "-", "c"),
+				asList("-"), asList("-", "y", "-"));
 		assertEquals(flds, hdr.flds);
 	}
 
 	@SuppressWarnings("unchecked")
 	static Header makeHeader() {
-		List<List<String>> flds = list(list("a"), list("a", "b", "c"),
-				list("x"), list("x", "y", "z"));
-		List<String> cols = list("a", "b", "me", "c", "x", "no", "y", "z");
+		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"),
+				asList("x"), asList("x", "y", "z"));
+		List<String> cols = asList("a", "b", "me", "c", "x", "no", "y", "z");
 		return new Header(flds, cols);
 	}
 

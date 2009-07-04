@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.verify;
 import static suneido.database.Record.MAX_FIELD;
@@ -410,7 +411,7 @@ public class Select extends Query1 {
 		if (nil(best_index))
 			return .5;
 		Iselect fsel = isels.get(field);
-		return iselsize(best_index, list(fsel));
+		return iselsize(best_index, asList(fsel));
 	}
 
 	private void calc_index_fracs() {
@@ -465,7 +466,7 @@ public class Select extends Query1 {
 			List<ByteBuffer> save = isel.values;
 			float sum = 0;
 			for (ByteBuffer v : isel.values) {
-				isel.values = list(v);
+				isel.values = asList(v);
 				sum += iselsize(index, iselects);
 			}
 			isel.values = save;
@@ -544,8 +545,8 @@ public class Select extends Query1 {
 		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
 
 		double data_frac = idx.containsAll(select_needs)
-			? idx.containsAll(prior_needs) ? 0 : .5 * datafrac(list(idx))
-			: datafrac(list(idx));
+			? idx.containsAll(prior_needs) ? 0 : .5 * datafrac(asList(idx))
+			: datafrac(asList(idx));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
 
@@ -709,7 +710,7 @@ public class Select extends Query1 {
 			List<ByteBuffer> save = isel.values;
 			List<Keyrange> result = new ArrayList<Keyrange>();
 			for (ByteBuffer value : isel.values) {
-				isel.values = list(value);
+				isel.values = asList(value);
 				result.addAll(selects(index, iselects));
 			}
 			isel.values = save;
@@ -753,7 +754,7 @@ public class Select extends Query1 {
 			} else
 				throw unreachable();
 		}
-		return list(new Keyrange(org, end));
+		return asList(new Keyrange(org, end));
 	}
 
 	private void addMax(int i, int n, Record end) {
