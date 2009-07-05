@@ -9,6 +9,8 @@ import java.util.*;
 
 import org.junit.Test;
 
+import suneido.util.Util.Range;
+
 public class UtilTest {
 	@Test
 	public void listToParens() {
@@ -118,25 +120,36 @@ public class UtilTest {
 	}
 
 	@Test
-	public void test_lower_bound() {
-		assertEquals(0, lower_bound(Collections.<Integer> emptyList(), 123));
-		assertEquals(0, lower_bound(asList(456), 123));
-		assertEquals(0, lower_bound(asList(123), 123));
-		assertEquals(0, lower_bound(asList(123, 123, 456), 123));
-		assertEquals(1, lower_bound(asList(123), 456));
-		assertEquals(1, lower_bound(asList(0, 123, 123, 456), 123));
-		assertEquals(3, lower_bound(asList(0, 123, 123, 456), 456));
+	public void test_lowerBound() {
+		assertEquals(0, lowerBound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, lowerBound(asList(456), 123));
+		assertEquals(0, lowerBound(asList(123), 123));
+		assertEquals(0, lowerBound(asList(123, 123, 456), 123));
+		assertEquals(1, lowerBound(asList(123), 456));
+		assertEquals(1, lowerBound(asList(0, 123, 123, 456), 123));
+		assertEquals(3, lowerBound(asList(0, 123, 123, 456), 456));
 	}
 
 	@Test
-	public void test_upper_bound() {
-		assertEquals(0, upper_bound(Collections.<Integer> emptyList(), 123));
-		assertEquals(0, upper_bound(asList(456), 123));
-		assertEquals(1, upper_bound(asList(123), 123));
-		assertEquals(2, upper_bound(asList(123, 123, 456), 123));
-		assertEquals(1, upper_bound(asList(123), 456));
-		assertEquals(3, upper_bound(asList(0, 123, 123, 456), 123));
-		assertEquals(4, upper_bound(asList(0, 123, 123, 456), 456));
+	public void test_upperBound() {
+		assertEquals(0, upperBound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, upperBound(asList(456), 123));
+		assertEquals(1, upperBound(asList(123), 123));
+		assertEquals(2, upperBound(asList(123, 123, 456), 123));
+		assertEquals(1, upperBound(asList(123), 456));
+		assertEquals(3, upperBound(asList(0, 123, 123, 456), 123));
+		assertEquals(4, upperBound(asList(0, 123, 123, 456), 456));
+	}
+
+	@Test
+	public void test_equalRange() {
+		assertEquals(new Range(0,0), equalRange(Collections.<Integer> emptyList(), 123));
+		assertEquals(new Range(0,0), equalRange(asList(456), 123));
+		assertEquals(new Range(0, 1), equalRange(asList(123), 123));
+		assertEquals(new Range(0, 2), equalRange(asList(123, 123, 456), 123));
+		assertEquals(new Range(1,1), equalRange(asList(123), 456));
+		assertEquals(new Range(1, 3), equalRange(asList(0, 123, 123, 456), 123));
+		assertEquals(new Range(3, 4), equalRange(asList(0, 123, 123, 456), 456));
 	}
 
 }
