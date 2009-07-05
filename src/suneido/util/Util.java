@@ -197,7 +197,7 @@ public class Util {
 	 * @return The <u>first</u> position where slot could be inserted without
 	 *         changing the ordering.
 	 */
-	public static <T extends Comparable<? super T>> int lower_bound(
+	public static <T extends Comparable<? super T>> int lowerBound(
 			List<T> list, T value) {
 		int first = 0;
 		int len = list.size();
@@ -206,13 +206,13 @@ public class Util {
 			int middle = first + half;
 			if (list.get(middle).compareTo(value) < 0) {
 				first = middle + 1;
-				len = len - half - 1;
+				len -= half + 1;
 			} else
 				len = half;
 		}
 		return first;
 	}
-	public static <T> int lower_bound(
+	public static <T> int lowerBound(
 			List<T> list, T value, Comparator<? super T> comp) {
 		int first = 0;
 		int len = list.size();
@@ -221,7 +221,7 @@ public class Util {
 			int middle = first + half;
 			if (comp.compare(list.get(middle), value) < 0) {
 				first = middle + 1;
-				len = len - half - 1;
+				len -= half + 1;
 			} else
 				len = half;
 		}
@@ -231,11 +231,10 @@ public class Util {
 	/**
 	 * Based on C++ STL code.
 	 *
-	 * @param slot
 	 * @return The <u>last</u> position where slot could be inserted without
 	 *         changing the ordering.
 	 */
-	public static <T extends Comparable<? super T>> int upper_bound(
+	public static <T extends Comparable<? super T>> int upperBound(
 			List<T> list, T value) {
 		int first = 0;
 		int len = list.size();
@@ -246,12 +245,12 @@ public class Util {
 				len = half;
 			else {
 				first = middle + 1;
-				len = len - half - 1;
+				len -= half + 1;
 			}
 		}
 		return first;
 	}
-	public static <T> int upper_bound(
+	public static <T> int upperBound(
 			List<T> list, T value, Comparator<? super T> comp) {
 		int first = 0;
 		int len = list.size();
@@ -262,10 +261,98 @@ public class Util {
 				len = half;
 			else {
 				first = middle + 1;
-				len = len - half - 1;
+				len -= half + 1;
 			}
 		}
 		return first;
+	}
+
+	/**
+	 * Based on C++ STL code.
+	 *
+	 * Equivalent to Range(lowerBound, upperBound)
+	 *
+	 * @return The largest subrange in which value could be inserted at any
+	 *         place in it without changing the ordering.
+	 */
+	public static <T extends Comparable<? super T>> Range equalRange(
+			List<T> list, T value) {
+//return new Range(lowerBound(list, value), upperBound(list, value));
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			T midvalue = list.get(middle);
+			if (midvalue.compareTo(value) < 0) {
+				first = middle + 1;
+				len -= half + 1;
+			} else if (value.compareTo(midvalue) < 0)
+				len = half;
+			else {
+				int left = first + lowerBound(list.subList(first, middle), value);
+				++middle;
+				int right = middle + upperBound(list.subList(middle, first + len), value);
+				return new Range(left, right);
+			}
+		}
+		return new Range(first, first);
+	}
+	public static <T> Range equalRange(
+			List<T> list, T value, Comparator<? super T> comp) {
+		int first = 0;
+		int len = list.size();
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			T midvalue = list.get(middle);
+			if (comp.compare(midvalue, value) < 0) {
+				first = middle;
+				++first;
+				len -= half + 1;
+			} else if (comp.compare(value, midvalue) < 0)
+				len = half;
+			else {
+				int left = first + lowerBound(list.subList(first, middle), value, comp);
+				++middle;
+				int right = middle + upperBound(list.subList(middle, first + len), value, comp);
+				return new Range(left, right);
+			}
+		}
+		return new Range(first, first);
+	}
+
+	public static final class Range {
+		public final int left;
+		public final int right;
+
+		public Range(int left, int right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (!(other instanceof Range))
+				return false;
+			Range r = (Range) other;
+			return left == r.left && right == r.right;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = 17;
+			result = 31 * result + left;
+			result = 31 * result + right;
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return "Range(" + left + "," + right + ")";
+		}
 	}
 
 }

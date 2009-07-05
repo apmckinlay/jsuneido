@@ -469,24 +469,36 @@ public class SuContainer extends SuValue
 			});
 	}
 
-	public int lower_bound(Object value, final Object fn) {
+	public int lowerBound(Object value, final Object fn) {
 		checkReadonly();
 		if (fn == Boolean.FALSE)
-			return Util.lower_bound(vec, value, Ops.comp);
+			return Util.lowerBound(vec, value, Ops.comp);
 		else
-			return Util.lower_bound(vec, value, new Comparator<Object>() {
+			return Util.lowerBound(vec, value, new Comparator<Object>() {
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}
 			});
 	}
 
-	public int upper_bound(Object value, final Object fn) {
+	public int upperBound(Object value, final Object fn) {
 		checkReadonly();
 		if (fn == Boolean.FALSE)
-			return Util.upper_bound(vec, value, Ops.comp);
+			return Util.upperBound(vec, value, Ops.comp);
 		else
-			return Util.upper_bound(vec, value, new Comparator<Object>() {
+			return Util.upperBound(vec, value, new Comparator<Object>() {
+				public int compare(Object x, Object y) {
+					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
+				}
+			});
+	}
+
+	public Util.Range equalRange(Object value, final Object fn) {
+		checkReadonly();
+		if (fn == Boolean.FALSE)
+			return Util.equalRange(vec, value, Ops.comp);
+		else
+			return Util.equalRange(vec, value, new Comparator<Object>() {
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}

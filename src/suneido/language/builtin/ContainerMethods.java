@@ -13,103 +13,84 @@ import suneido.SuException;
 import suneido.SuContainer.IterResult;
 import suneido.SuContainer.IterWhich;
 import suneido.language.*;
+import suneido.util.Util.Range;
 
 public class ContainerMethods {
 
 	public static Object invoke(SuContainer c, String method, Object... args) {
-		if (method == "Add")
-			return Add(c, args);
-		if (method == "Assocs")
-			return Assocs(c, args);
-		if (method == "Copy")
-			return Copy(c, args);
-		if (method == "Delete")
-			return Delete(c, args);
-		if (method == "Erase")
-			return Erase(c, args);
-		if (method == "Find")
-			return Find(c, args);
-		if (method == "GetDefault")
-			return GetDefault(c, args);
-		if (method == "Join")
-			return Join(c, args);
-		if (method == "LowerBound")
-			return LowerBound(c, args);
-		if (method == "Member?")
-			return MemberQ(c, args);
-		if (method == "Members")
-			return Members(c, args);
-		if (method == "Readonly?")
-			return ReadonlyQ(c, args);
-		if (method == "Reverse!")
-			return Reverse(c, args);
-		if (method == "Set_default")
-			return Set_default(c, args);
-		if (method == "Set_readonly")
-			return Set_readonly(c, args);
-		if (method == "Size")
-			return Size(c, args);
-		if (method == "Slice")
-			return Slice(c, args);
-		if (method == "Sort" || method == "Sort!")
-			return Sort(c, args);
-		if (method == "Values")
-			return Values(c, args);
-		if (method == "Unique!")
-			return Unique(c, args);
-		if (method == "UpperBound")
-			return UpperBound(c, args);
+		switch (method.charAt(0)) {
+		case 'A':
+			if (method == "Add")
+				return Add(c, args);
+			if (method == "Assocs")
+				return Assocs(c, args);
+			break;
+		case 'C':
+			if (method == "Copy")
+				return Copy(c, args);
+			break;
+		case 'D':
+			if (method == "Delete")
+				return Delete(c, args);
+			break;
+		case 'E':
+			if (method == "EqualRange")
+				return EqualRange(c, args);
+			if (method == "Erase")
+				return Erase(c, args);
+			break;
+		case 'F':
+			if (method == "Find")
+				return Find(c, args);
+			break;
+		case 'G':
+			if (method == "GetDefault")
+				return GetDefault(c, args);
+			break;
+		case 'J':
+			if (method == "Join")
+				return Join(c, args);
+			break;
+		case 'L':
+			if (method == "LowerBound")
+				return LowerBound(c, args);
+			break;
+		case 'M':
+			if (method == "Member?")
+				return MemberQ(c, args);
+			if (method == "Members")
+				return Members(c, args);
+			break;
+		case 'R':
+			if (method == "Readonly?")
+				return ReadonlyQ(c, args);
+			if (method == "Reverse!")
+				return Reverse(c, args);
+			break;
+		case 'S':
+			if (method == "Set_default")
+				return Set_default(c, args);
+			if (method == "Set_readonly")
+				return Set_readonly(c, args);
+			if (method == "Size")
+				return Size(c, args);
+			if (method == "Slice")
+				return Slice(c, args);
+			if (method == "Sort" || method == "Sort!")
+				return Sort(c, args);
+			break;
+		case 'V':
+			if (method == "Values")
+				return Values(c, args);
+			break;
+		case 'U':
+			if (method == "Unique!")
+				return Unique(c, args);
+			if (method == "UpperBound")
+				return UpperBound(c, args);
+			break;
+		}
 		return userDefined("Objects", method).invoke(c, method, args);
-	}
-
-	private static Object Set_readonly(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		c.setReadonly();
-		return c.getReadonly();
-	}
-
-	private static Object ReadonlyQ(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return c.getReadonly();
-	}
-
-	private static Object Reverse(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		Collections.reverse(c.getVec());
-		return c;
-	}
-
-	private static final FunctionSpec sliceFS =
-			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
-
-	private static Object Slice(SuContainer c, Object[] args) {
-		args = Args.massage(sliceFS, args);
-		int vecsize = c.vecSize();
-		int i = toInt(args[0]);
-		if (i < 0)
-			i += vecsize;
-		i = max(0, min(i, vecsize));
-		int n = toInt(args[1]);
-		if (n < 0)
-			n += vecsize - i;
-		n = max(0, min(n, vecsize - i));
-		return new SuContainer(c.getVec().subList(i, i + n));
-	}
-
-	private static Object Copy(SuContainer c, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return new SuContainer(c);
-	}
-
-	private static final FunctionSpec keyValueFS =
-			new FunctionSpec("key", "block");
-
-	private static Object GetDefault(SuContainer c, Object[] args) {
-		args = Args.massage(keyValueFS, args);
-		Object x = c.getDefault(args[0], args[1]);
-		if (x == args[1] && x instanceof SuBlock)
-			x = Ops.call(x);
-		return x;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -158,11 +139,22 @@ public class ContainerMethods {
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
+	private static Object Copy(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuContainer(c);
+	}
+
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
 	static Object Delete(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.delete(args[0]) ? c : false;
+	}
+
+	private static Object EqualRange(SuContainer c, Object[] args) {
+		args = Args.massage(value_blockFS, args);
+		Range r = c.equalRange(args[0], args[1]);
+		return SuContainer.of(r.left, r.right);
 	}
 
 	private static Object Erase(SuContainer c, Object[] args) {
@@ -171,13 +163,24 @@ public class ContainerMethods {
 	}
 
 	private static Object Find(SuContainer c, Object[] args) {
-		args = Args.massage(valueFS, args);
+		args = Args.massage(FunctionSpec.value, args);
 		Object key = c.find(args[0]);
 		return key == null ? false : key;
 	}
 
+	private static final FunctionSpec keyValueFS =
+	new FunctionSpec("key", "block");
+
+	private static Object GetDefault(SuContainer c, Object[] args) {
+		args = Args.massage(keyValueFS, args);
+		Object x = c.getDefault(args[0], args[1]);
+		if (x == args[1] && x instanceof SuBlock)
+			x = Ops.call(x);
+		return x;
+	}
+
 	static String Join(SuContainer c, Object... args) {
-		args = Args.massage(valueFS, args);
+		args = Args.massage(FunctionSpec.value, args);
 		String sep = Ops.toStr(args[0]);
 		StringBuilder sb = new StringBuilder();
 		for (Object x : c.getVec()) {
@@ -192,12 +195,12 @@ public class ContainerMethods {
 		return sb.toString();
 	}
 
-	private static final FunctionSpec boundFS =
+	private static final FunctionSpec value_blockFS =
 	new FunctionSpec(array("value", "block"), Boolean.FALSE);
 
 	private static Object LowerBound(SuContainer c, Object[] args) {
-		args = Args.massage(boundFS, args);
-		return c.lower_bound(args[0], args[1]);
+		args = Args.massage(value_blockFS, args);
+		return c.lowerBound(args[0], args[1]);
 	}
 
 	private static boolean MemberQ(SuContainer c, Object[] args) {
@@ -236,6 +239,40 @@ public class ContainerMethods {
 			return IterWhich.ALL;
 	}
 
+	private static Object ReadonlyQ(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return c.getReadonly();
+	}
+
+	private static Object Reverse(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		Collections.reverse(c.getVec());
+		return c;
+	}
+
+	private static Object Set_readonly(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		c.setReadonly();
+		return c.getReadonly();
+	}
+
+	private static final FunctionSpec sliceFS =
+			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
+
+	private static Object Slice(SuContainer c, Object[] args) {
+		args = Args.massage(sliceFS, args);
+		int vecsize = c.vecSize();
+		int i = toInt(args[0]);
+		if (i < 0)
+			i += vecsize;
+		i = max(0, min(i, vecsize));
+		int n = toInt(args[1]);
+		if (n < 0)
+			n += vecsize - i;
+		n = max(0, min(n, vecsize - i));
+		return new SuContainer(c.getVec().subList(i, i + n));
+	}
+
 	private static final FunctionSpec blockFS =
 			new FunctionSpec(array("block"), Boolean.FALSE);
 
@@ -250,10 +287,8 @@ public class ContainerMethods {
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
-
-	private static final FunctionSpec valueFS = new FunctionSpec("value");
 	private static Object Set_default(SuContainer c, Object[] args) {
-		args = Args.massage(valueFS, args);
+		args = Args.massage(FunctionSpec.value, args);
 		c.setDefault(args[0]);
 		return c;
 	}
@@ -275,7 +310,7 @@ public class ContainerMethods {
 	}
 
 	private static Object UpperBound(SuContainer c, Object[] args) {
-		args = Args.massage(boundFS, args);
-		return c.upper_bound(args[0], args[1]);
+		args = Args.massage(value_blockFS, args);
+		return c.upperBound(args[0], args[1]);
 	}
 }
