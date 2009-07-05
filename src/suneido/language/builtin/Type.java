@@ -8,11 +8,9 @@ import suneido.language.*;
 
 public class Type extends SuFunction {
 
-	private static final FunctionSpec fs = new FunctionSpec("value");
-
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+		args = Args.massage(FunctionSpec.value, args);
 		Object x = args[0];
 		if (x instanceof SuClass)
 			return "Class";

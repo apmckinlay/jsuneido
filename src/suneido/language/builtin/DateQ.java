@@ -6,11 +6,9 @@ import suneido.language.*;
 
 public class DateQ extends SuFunction {
 
-	private static final FunctionSpec fs = new FunctionSpec("value");
-
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+		args = Args.massage(FunctionSpec.value, args);
 		return args[0] instanceof Date;
 	}
 

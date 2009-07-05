@@ -4,11 +4,9 @@ import suneido.language.*;
 
 public class Display extends SuFunction {
 
-	private static final FunctionSpec fs = new FunctionSpec("value");
-
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+		args = Args.massage(FunctionSpec.value, args);
 		// doesn't use Ops.display
 		// because here we default to double quote to match cSuneido
 		if (args[0] instanceof String) {

@@ -204,9 +204,9 @@ public class SuContainer extends SuValue
 	public boolean equals(Object value) {
 		if (value == this)
 			return true;
-		if (! (value instanceof SuContainer))
+		SuContainer c = Ops.toContainer(value);
+		if (c == null)
 			return false;
-		SuContainer c = (SuContainer) value;
 		if (vec.size() != c.vec.size() || map.size() != c.map.size())
 			return false;
 		for (int i = 0; i < vec.size(); ++i)

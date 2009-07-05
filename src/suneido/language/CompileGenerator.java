@@ -916,7 +916,7 @@ c.cv = new CheckClassAdapter(c.cv);
 			return;
 		if (args.constArgs.size() < 10) {
 			for (Map.Entry<Object, Object> e : args.constArgs.mapEntrySet()) {
-				argumentName((String) e.getKey());
+				argumentName(e.getKey());
 				dupAndStore(constant(e.getValue()));
 				args.nargs += 3;
 			}
@@ -952,7 +952,7 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	@Override
-	public Object argumentList(Object args, String keyword, Object value) {
+	public Object argumentList(Object args, Object keyword, Object value) {
 		dupAndStore(value);
 		Args a = (args == null ? new Args() : (Args) args);
 		a.nargs += keyword == null ? 1 : 3;
@@ -960,9 +960,9 @@ c.cv = new CheckClassAdapter(c.cv);
 	}
 
 	@Override
-	public void argumentName(String name) {
+	public void argumentName(Object name) {
 		specialArg("NAMED");
-		constant(string(name));
+		constant(name);
 	}
 
 	@Override
@@ -982,7 +982,7 @@ c.cv = new CheckClassAdapter(c.cv);
 				"Lsuneido/language/Args$Special;");
 	}
 	@Override
-	public Object argumentListConstant(Object args, String keyword, Object value) {
+	public Object argumentListConstant(Object args, Object keyword, Object value) {
 		Args a = (args == null ? new Args() : (Args) args);
 		if (a.constArgs == null)
 			a.constArgs = new SuContainer();

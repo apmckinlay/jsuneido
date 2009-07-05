@@ -72,9 +72,9 @@ public class QueryInstance extends SuValue {
 
 	private Object output(Object[] args) {
 		args = Args.massage(recFS, args);
-		if (!(args[0] instanceof SuContainer))
-			throw new SuException("can't convert " + Ops.typeName(args[0]) + " to object");
 		SuContainer rec = Ops.toContainer(args[0]);
+		if (rec == null)
+			throw new SuException("can't convert " + Ops.typeName(args[0]) + " to object");
 		q.output(rec.toDbRecord(q.header()));
 		return Boolean.TRUE;
 	}

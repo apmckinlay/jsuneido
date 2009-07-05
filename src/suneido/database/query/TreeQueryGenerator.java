@@ -179,7 +179,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object argumentList(Object listOb, String keyword, Object expression) {
+	public Object argumentList(Object listOb, Object keyword, Object expression) {
 		List<Expr> args =
 				listOb == null ? new ArrayList<Expr>() : (List<Expr>) listOb;
 		if (keyword != null)
@@ -466,10 +466,6 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public void afterStatement(Object statements) {
-	}
-
-	@Override
-	public void argumentName(String keyword) {
 	}
 
 	@Override
