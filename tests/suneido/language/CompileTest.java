@@ -149,6 +149,8 @@ public class CompileTest {
  				"0=[1, a: 2], ARETURN");
 		test("a(123, x: 456)",
  				"a, 123, NAMED, 'x', 456, callN, ARETURN");
+		test("a(99: 'x')",
+				"a, NAMED, 99, 'x', callN, ARETURN");
 		test("return function () { }",
 				"0=Test.Test_f0, ARETURN");
 		test("a = function () { }",
@@ -338,6 +340,7 @@ public class CompileTest {
 			{ " (Object;String;)Object;", "" },
 			{ " (Object;String;Object;)Object;", "" },
 			{ " (Object;String;Object;Object;)Object;", "" },
+			{ " (Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },

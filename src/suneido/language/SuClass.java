@@ -157,10 +157,8 @@ public abstract class SuClass extends SuCallable {
 		return null;
 	}
 
-	private static final FunctionSpec valueFS = new FunctionSpec("value");
-
 	private Object BaseQ(Object self, Object[] args) {
-		args = Args.massage(valueFS, args);
+		args = Args.massage(FunctionSpec.value, args);
 		if (args[0] == this)
 			return Boolean.TRUE;
 		if (baseGlobal == null)

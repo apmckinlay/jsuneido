@@ -8,8 +8,7 @@ import static suneido.util.Util.array;
 
 import java.util.*;
 
-import suneido.SuContainer;
-import suneido.SuException;
+import suneido.*;
 import suneido.SuContainer.IterResult;
 import suneido.SuContainer.IterWhich;
 import suneido.language.*;
@@ -46,6 +45,10 @@ public class ContainerMethods {
 		case 'G':
 			if (method == "GetDefault")
 				return GetDefault(c, args);
+			break;
+		case 'I':
+			if (method == "Iter")
+				return Iter(c, args);
 			break;
 		case 'J':
 			if (method == "Join")
@@ -95,7 +98,7 @@ public class ContainerMethods {
 
 	@SuppressWarnings("unchecked")
 	private static SuContainer Add(SuContainer c, Object[] args) {
-		Object at = c.size();
+		Object at = c.vecSize();
 		int n = 0;
 		ArgsIterator iter = new ArgsIterator(args);
 		while (iter.hasNext()) {
@@ -177,6 +180,45 @@ public class ContainerMethods {
 		if (x == args[1] && x instanceof SuBlock)
 			x = Ops.call(x);
 		return x;
+	}
+
+	private static Object Iter(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new Iter(c);
+	}
+
+	private static final class Iter extends SuValue {
+		SuContainer c;
+		Iterator<Object> iter;
+
+		Iter(SuContainer c) {
+			this.c = c;
+			iter = c.iterator();
+		}
+
+		@Override
+		public Object invoke(Object self, String method, Object... args) {
+			if (method == "Next")
+				return Next(args);
+			if (method == "Rewind")
+				return Rewind(args);
+			return super.invoke(self, method, args);
+		}
+
+		private Object Next(Object[] args) {
+			Args.massage(FunctionSpec.noParams, args);
+			try {
+				return iter.hasNext() ? iter.next() : this;
+			} catch (ConcurrentModificationException e) {
+				throw new SuException("object modified during iteration");
+			}
+		}
+
+		private Object Rewind(Object[] args) {
+			Args.massage(FunctionSpec.noParams, args);
+			iter = c.iterator();
+			return null;
+		}
 	}
 
 	static String Join(SuContainer c, Object... args) {

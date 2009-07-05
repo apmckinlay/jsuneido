@@ -249,8 +249,9 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String argumentList(String list, String keyword, String expression) {
-		return str("", list, ", ") + str("", keyword, ": ") + expression;
+	public String argumentList(String list, Object keyword, String expression) {
+		return str("", list, ", ") + str("", keyword, ": ")
+				+ expression;
 	}
 
 	@Override
@@ -281,8 +282,8 @@ public class StringGenerator extends QueryGenerator<String> {
 		return x == null ? "" : (String) x;
 	}
 
-	protected String str(String s, String x, String t) {
-		return x == null ? "" : s + x + t;
+	protected String str(String s, Object x, String t) {
+		return x == null ? "" : s + x.toString() + t;
 	}
 
 	@Override
@@ -323,10 +324,6 @@ public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
 	public void afterStatement(String statements) {
-	}
-
-	@Override
-	public void argumentName(String keyword) {
 	}
 
 	@Override

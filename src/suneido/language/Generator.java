@@ -143,9 +143,10 @@ public abstract class Generator<T> {
 
 	public abstract T newExpression(T term, T arguments);
 
-	public abstract T argumentList(T list, String keyword, T expression);
+	public abstract T argumentList(T list, Object keyword, T expression);
 
-	public abstract void argumentName(String keyword);
+	public void argumentName(Object keyword) {
+	}
 
 	public abstract void atArgument(String n);
 
@@ -180,7 +181,7 @@ public abstract class Generator<T> {
 	public void startObject() {
 	}
 
-	public T argumentListConstant(T args, String keyword, T value) {
+	public T argumentListConstant(T args, Object keyword, T value) {
 		return argumentList(args, keyword, constant(value));
 	}
 

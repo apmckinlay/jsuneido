@@ -419,7 +419,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T argumentList(Token closing) {
 		T args = null;
-		String keyword = null;
+		Object keyword = null;
 		while (token != closing) {
 			if (lookAhead() == COLON) {
 				keyword = keyword();
@@ -446,10 +446,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		match(closing);
 		return args;
 	}
-	private String keyword() {
-		if (token != IDENTIFIER && token != STRING && token != NUMBER)
+	private Object keyword() {
+		Object keyword = lexer.getValue();
+		if (token == NUMBER)
+			keyword = generator.number(lexer.getValue());
+		else if (token != IDENTIFIER && token != STRING)
 			syntaxError("invalid keyword");
-		String keyword = lexer.getValue();
 		match();
 		match(COLON);
 		return keyword;
