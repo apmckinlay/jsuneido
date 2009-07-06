@@ -94,7 +94,7 @@ public class SuContainer extends SuValue
 
 	private void checkReadonly() {
 		if (readonly)
-			throw new SuException("can't modify read-only objects");
+			throw new SuException("can't modify readonly objects");
 	}
 
 	private void migrate() {
@@ -457,6 +457,11 @@ public class SuContainer extends SuValue
 		return null;
 	}
 
+	public void reverse() {
+		checkReadonly();
+		Collections.reverse(vec);
+	}
+
 	public void sort(final Object fn) {
 		checkReadonly();
 		if (fn == Boolean.FALSE)
@@ -470,7 +475,6 @@ public class SuContainer extends SuValue
 	}
 
 	public int lowerBound(Object value, final Object fn) {
-		checkReadonly();
 		if (fn == Boolean.FALSE)
 			return Util.lowerBound(vec, value, Ops.comp);
 		else
@@ -482,7 +486,6 @@ public class SuContainer extends SuValue
 	}
 
 	public int upperBound(Object value, final Object fn) {
-		checkReadonly();
 		if (fn == Boolean.FALSE)
 			return Util.upperBound(vec, value, Ops.comp);
 		else
@@ -494,7 +497,6 @@ public class SuContainer extends SuValue
 	}
 
 	public Util.Range equalRange(Object value, final Object fn) {
-		checkReadonly();
 		if (fn == Boolean.FALSE)
 			return Util.equalRange(vec, value, Ops.comp);
 		else

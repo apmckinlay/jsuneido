@@ -94,7 +94,7 @@ public abstract class SuClass extends SuCallable {
 
 	@Override
 	public Object call(Object... args) {
-		return invoke(this, "CallClass", args);
+		return invoke(self == null ? this : self, "CallClass", args);
 	}
 
 	@Override

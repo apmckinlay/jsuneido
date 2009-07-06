@@ -7,9 +7,7 @@ public class SampleClass extends SuClass {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		if (method == "call")
-			return call(Args.massage(params[0], args));
-		else if (method == "MyMethod")
+		if (method == "MyMethod")
 			return MyMethod(self, args);
 		else if (method == "_init")
 			return _init(self, args);

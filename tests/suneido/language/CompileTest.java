@@ -366,6 +366,7 @@ public class CompileTest {
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
+			{ "this, GETFIELD suneido/language/Test.self : Object;", "this" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
