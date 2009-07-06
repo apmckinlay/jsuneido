@@ -9,7 +9,7 @@ public class SampleFunction extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 
-		return null;
+		return self;
 	}
 
 	void test(List<Object> list) {

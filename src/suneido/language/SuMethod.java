@@ -26,14 +26,6 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		if (method == "call")
-			return call(args);
-		else
-			throw methodNotFound(method);
-	}
-
-	@Override
 	public Object call(Object... args) {
 		return Ops.invoke(instance, this.method, args);
 	}

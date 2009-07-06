@@ -130,6 +130,7 @@ public class CompileGenerator extends Generator<Object> {
 	public Object object(MType which, Object members) {
 		if (members == null)
 			members = which == OBJECT ? new SuContainer() : new SuRecord();
+		((SuContainer) members).setReadonly();
 		return members;
 	}
 
@@ -186,10 +187,10 @@ public class CompileGenerator extends Generator<Object> {
 
 		c.cv = c.cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-		if (pw != null)
+		if (pw != null) {
 			c.cv = new TraceClassVisitor(c.cw, pw);
-
-c.cv = new CheckClassAdapter(c.cv);
+			c.cv = new CheckClassAdapter(c.cv);
+		}
 
 		c.name = javify(className());
 		c.cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, "suneido/language/" + c.name,
@@ -708,7 +709,12 @@ c.cv = new CheckClassAdapter(c.cv);
 
 	@Override
 	public Object selfRef() {
-		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
+		if (c.f.name.equals("call")) {
+			c.f.mv.visitVarInsn(ALOAD, THIS);
+			c.f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + c.name,
+					"self", "Ljava/lang/Object;");
+		} else
+			c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		return VALUE;
 	}
 

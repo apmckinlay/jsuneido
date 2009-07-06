@@ -6,9 +6,9 @@ import suneido.SuContainer;
 import suneido.SuValue;
 
 /**
- * A wrapper for an iterator that can be treated like an SuObject
- * but doesn't instantiate the object if you just iterate over it.
- *
+ * A wrapper for an Iterable that can be treated like an SuObject but doesn't
+ * instantiate the object if you just iterate over it.
+ * 
  * @author Andrew McKinlay
  */
 public class SuSequence extends SuValue

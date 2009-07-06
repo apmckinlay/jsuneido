@@ -12,7 +12,7 @@ public class Seq extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object[] args) {
-		return new SuSeq(args);
+		return new SuSequence(new SuSeq(args));
 	}
 
 	private static class SuSeq extends SuValue implements Iterable<Object> {

@@ -24,6 +24,10 @@ public class ContainerMethods {
 			if (method == "Assocs")
 				return Assocs(c, args);
 			break;
+		case 'B':
+			if (method == "Base")
+				return Base(c, args);
+			break;
 		case 'C':
 			if (method == "Copy")
 				return Copy(c, args);
@@ -37,6 +41,8 @@ public class ContainerMethods {
 				return EqualRange(c, args);
 			if (method == "Erase")
 				return Erase(c, args);
+			if (method == "Eval")
+				return Eval(c, args);
 			break;
 		case 'F':
 			if (method == "Find")
@@ -142,6 +148,11 @@ public class ContainerMethods {
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
+	private static Object Base(SuContainer c, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return Globals.get("Object");
+	}
+
 	private static Object Copy(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuContainer(c);
@@ -163,6 +174,28 @@ public class ContainerMethods {
 	private static Object Erase(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
 		return c.erase(args[0]) ? c : false;
+	}
+
+	private static Object Eval(SuContainer c, Object[] args) {
+		ArgsIterator iter = new ArgsIterator(args);
+		if (!iter.hasNext())
+			throw new SuException("usage: object.Eval(callable [, args...]");
+		Object arg = iter.next();
+		if (!(arg instanceof SuCallable))
+			throw new SuException("usage: object.Eval requires function");
+		SuCallable fn = (SuCallable) arg;
+		SuCallable fn2;
+		try {
+			fn2 = (SuCallable) arg.getClass().newInstance();
+		} catch (InstantiationException e) {
+			throw new SuException("object.Eval bad function");
+		} catch (IllegalAccessException e) {
+			throw new SuException("object.Eval bad function");
+		}
+		fn2.self = c;
+		fn2.params = fn.params;
+		fn2.constants = fn.constants;
+		return Ops.call(fn2, Arrays.copyOfRange(args, 1, args.length));
 	}
 
 	private static Object Find(SuContainer c, Object[] args) {
@@ -288,7 +321,7 @@ public class ContainerMethods {
 
 	private static Object Reverse(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		Collections.reverse(c.getVec());
+		c.reverse();
 		return c;
 	}
 

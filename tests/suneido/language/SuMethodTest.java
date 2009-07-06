@@ -11,7 +11,7 @@ public class SuMethodTest {
 	public void test() {
 		SuValue x = new TestClass();
 		SuValue m = new SuMethod(x, "Size");
-		Object result = Ops.invoke(m, "call");
+		Object result = Ops.call(m);
 		assertEquals(0, result);
 	}
 }
