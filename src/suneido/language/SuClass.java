@@ -5,6 +5,7 @@ import static suneido.language.SuClass.Marker.*;
 import java.util.Map;
 
 import suneido.*;
+import suneido.language.builtin.ContainerMethods;
 
 /**
  * The Java base class for compiled Suneido classes.
@@ -114,6 +115,10 @@ public abstract class SuClass extends SuCallable {
 			return BaseQ(self, args);
 		if (method == "CallClass")
 			return Ops.invoke(self, "<new>", args);
+		if (method == "Eval") {
+			assert self == this;
+			return ContainerMethods.Eval(this, args);
+		}
 		if (method == "Members")
 			return members(self, args);
 		if (method == "Member?")

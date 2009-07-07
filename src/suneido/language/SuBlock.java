@@ -3,23 +3,32 @@ package suneido.language;
 import suneido.SuValue;
 
 public class SuBlock extends SuValue {
-	private final Object instance;
+	private final SuValue instance;
 	private final BlockSpec bspec;
 	private final Object[] locals;
 
 	public SuBlock(Object instance, FunctionSpec bspec, Object[] locals) {
-		this.instance = instance;
+		this.instance = (SuValue) instance;
 		this.bspec = (BlockSpec) bspec;
 		this.locals = locals;
 	}
 
 	@Override
 	public Object call(Object... args) {
+		return call2(instance, args);
+	}
+
+	@Override
+	public Object eval(Object self, Object[] args) {
+		return call2(self, args);
+	}
+
+	private Object call2(Object self, Object[] args) {
 		args = Args.massage(bspec, args);
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)
 			locals[bspec.iparams + i] = args[i];
-		return Ops.invoke(instance, bspec.name, locals);
+		return instance.invoke(self, bspec.name, locals);
 	}
 
 	@Override

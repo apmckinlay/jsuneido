@@ -176,26 +176,15 @@ public class ContainerMethods {
 		return c.erase(args[0]) ? c : false;
 	}
 
-	private static Object Eval(SuContainer c, Object[] args) {
+	// also called by SuInstance
+	public static Object Eval(SuValue c, Object[] args) {
 		ArgsIterator iter = new ArgsIterator(args);
 		if (!iter.hasNext())
 			throw new SuException("usage: object.Eval(callable [, args...]");
 		Object arg = iter.next();
-		if (!(arg instanceof SuCallable))
+		if (!(arg instanceof SuValue))
 			throw new SuException("usage: object.Eval requires function");
-		SuCallable fn = (SuCallable) arg;
-		SuCallable fn2;
-		try {
-			fn2 = (SuCallable) arg.getClass().newInstance();
-		} catch (InstantiationException e) {
-			throw new SuException("object.Eval bad function");
-		} catch (IllegalAccessException e) {
-			throw new SuException("object.Eval bad function");
-		}
-		fn2.self = c;
-		fn2.params = fn.params;
-		fn2.constants = fn.constants;
-		return Ops.call(fn2, Arrays.copyOfRange(args, 1, args.length));
+		return ((SuValue) arg).eval(c, Arrays.copyOfRange(args, 1, args.length));
 	}
 
 	private static Object Find(SuContainer c, Object[] args) {

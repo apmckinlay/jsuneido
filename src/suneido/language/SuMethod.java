@@ -13,10 +13,10 @@ import suneido.SuValue;
 public class SuMethod extends SuValue {
 	/** not private final because instance is filled in later
 	 *  @see CompileGenerator.linkConstants */
-	public Object instance;
+	public SuValue instance;
 	public final String method;
 
-	public SuMethod(Object instance, String method) {
+	public SuMethod(SuValue instance, String method) {
 		this.instance = instance;
 		this.method = method;
 	}
@@ -27,7 +27,12 @@ public class SuMethod extends SuValue {
 
 	@Override
 	public Object call(Object... args) {
-		return Ops.invoke(instance, this.method, args);
+		return instance.invoke(instance, method, args);
+	}
+
+	@Override
+	public Object eval(Object self, Object[] args) {
+		return instance.invoke(self, method, args);
 	}
 
 	@Override

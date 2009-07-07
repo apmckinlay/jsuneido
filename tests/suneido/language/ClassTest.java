@@ -148,8 +148,11 @@ public class ClassTest {
 		define("F", "function () { this }");
 		test("#(1).Eval(F)", "#(1)");
 
-		define("F", "class { CallClass() { this } }");
-		test("#(1).Eval(F)", "#(1)");
+		define("C", "class { CallClass() { this } }");
+		test("#(1).Eval(C)", "#(1)");
+
+		test("C.Eval(F)", "C");
+		test("(new C).Eval(F)", "C()");
 	}
 
 	private static void notFound(String expr) {

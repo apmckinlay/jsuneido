@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import suneido.*;
+import suneido.language.builtin.ContainerMethods;
 
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
@@ -23,8 +24,11 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
+		assert self == this;
 		if (method == "Base")
 			return Base(self, args);
+		if (method == "Eval")
+			return ContainerMethods.Eval(this, args);
 		if (method == "Members")
 			return members(self, args);
 		if (method == "Member?")
