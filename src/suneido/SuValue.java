@@ -36,6 +36,10 @@ public abstract class SuValue implements Packable {
 		throw methodNotFound(method);
 	}
 
+	public Object eval(Object self, Object[] args) {
+		throw new SuException("can't eval " + typeName());
+	}
+
 	public SuException methodNotFound(String method) {
 		return SuException.methodNotFound(typeName(), method);
 	}

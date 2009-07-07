@@ -144,19 +144,6 @@ public class ExecuteTest {
 				"return 'y'", "'x'");
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
 	}
-	@Test public void test_nested_class() {
-		test("c = class { }; new c", "eval_c0()");
-		test("c = class { F() { 123 } }; c.F()", "123");
-	}
-	@Test
-	public void test_function_in_object() {
-		test("x = #(F: function (n) { n + 1 }); (x.F)(123)", "124");
-	}
-
-	public static void test(String expr, String result) {
-		assertEquals(result, display(eval(expr)));
-	}
-
 	private static void blockReturn(String expr) {
 		try {
 			eval(expr);
@@ -164,6 +151,25 @@ public class ExecuteTest {
 		} catch (BlockReturnException e) {
 			// expected
 		}
+	}
+
+	@Test public void test_nested_class() {
+		test("c = class { }; new c", "eval_c0()");
+		test("c = class { F() { 123 } }; c.F()", "123");
+	}
+
+	@Test public void test_function_in_object() {
+		test("x = #(F: function (n) { n + 1 }); (x.F)(123)", "124");
+	}
+
+	@Test
+	public void test_eval() {
+		test("#(1).Eval(function () { this })", "#(1)");
+		test("#(1).Eval({ this })", "#(1)");
+	}
+
+	public static void test(String expr, String result) {
+		assertEquals(result, display(eval(expr)));
 	}
 
 }
