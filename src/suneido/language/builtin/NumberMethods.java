@@ -12,7 +12,7 @@ public class NumberMethods {
 
 	public static Object invoke(Integer n, String method, Object... args) {
 		if (method == "Chr")
-			return chr(n, args);
+			return Chr(n, args);
 		if (method == "Int")
 			return n;
 		if (method == "Hex")
@@ -28,7 +28,7 @@ public class NumberMethods {
 		if (method == "ATan")
 			return atan(n, args);
 		if (method == "Chr")
-			return chr(n.intValue(), args);
+			return Chr(n.intValue(), args);
 		if (method == "Cos")
 			return cos(n, args);
 		if (method == "Exp")
@@ -77,9 +77,9 @@ public class NumberMethods {
 		return Long.toHexString(n.longValue());
 	}
 
-	private static String chr(Integer n, Object[] args) {
+	private static String Chr(Integer n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return Character.toString((char) (int) n);
+		return Character.toString((char) (n & 0xff));
 	}
 
 	private static final FunctionSpec maskFS = new FunctionSpec("mask");

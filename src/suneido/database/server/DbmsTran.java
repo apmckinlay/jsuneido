@@ -4,4 +4,6 @@ public interface DbmsTran {
 	String complete();
 
 	void abort();
+
+	boolean isReadonly();
 }

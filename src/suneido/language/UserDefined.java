@@ -1,7 +1,7 @@
 package suneido.language;
 
-import static suneido.language.SuClass.Marker.METHOD;
 import suneido.SuException;
+import suneido.language.SuClass.Method;
 
 public class UserDefined {
 
@@ -9,7 +9,7 @@ public class UserDefined {
 		Object x = Globals.tryget(where);
 		if (x != null && x instanceof SuClass) {
 			SuClass c = (SuClass) x;
-			if (c.get3(method) == METHOD)
+			if (c.get3(method) instanceof Method)
 				return c;
 		}
 		String type = where.substring(0, where.length() - 1).toLowerCase();

@@ -46,7 +46,7 @@ public class CompileGenerator extends Generator<Object> {
 		int iBlock = 0;
 		int iFunction = 0;
 		boolean hasGetters = false;
-		List<SuMethod> suMethods = null;
+		List<AnonFunction> suMethods = null;
 	}
 	private static class Function {
 		Function(String name) {
@@ -423,6 +423,8 @@ public class CompileGenerator extends Generator<Object> {
 				: value.id;
 	}
 	private String privatize(String name) {
+		if (!c.fstack.isEmpty() && !c.f.isBlock)
+			return name;
 		if (name.startsWith("get_") &&
 				name.length() > 4 && Character.isLowerCase(name.charAt(4)))
 			name = "Get_" + c.name + name.substring(3);
@@ -553,15 +555,15 @@ public class CompileGenerator extends Generator<Object> {
 		}
 	}
 
-	private SuMethod method(String name) {
+	private AnonFunction method(String name) {
 		if (c.suMethods == null)
-			c.suMethods = new ArrayList<SuMethod>();
+			c.suMethods = new ArrayList<AnonFunction>();
 		else {
-			for (SuMethod m : c.suMethods)
+			for (AnonFunction m : c.suMethods)
 				if (name.equals(m.method))
 					return m;
 		}
-		SuMethod m = new SuMethod(name);
+		AnonFunction m = new AnonFunction(name);
 		c.suMethods.add(m);
 		return m;
 	}
@@ -639,7 +641,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	private int constantFor(Object value) {
 		int i = c.f.constants.indexOf(value);
-		return i == -1 ? addConstant(value) : i;
+		return i == -1 || value.getClass() != c.f.constants.get(i).getClass()
+				? addConstant(value) : i;
 	}
 
 	private int addConstant(Object value) {

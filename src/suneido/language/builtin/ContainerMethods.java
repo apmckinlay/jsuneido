@@ -241,6 +241,12 @@ public class ContainerMethods {
 			iter = c.iterator();
 			return null;
 		}
+
+		@Override
+		public String typeName() {
+			return "ObjectIter";
+		}
+
 	}
 
 	static String Join(SuContainer c, Object... args) {

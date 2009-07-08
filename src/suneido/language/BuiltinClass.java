@@ -18,4 +18,9 @@ public abstract class BuiltinClass extends SuValue {
 
 	abstract public Object newInstance(Object[] args);
 
+	@Override
+	public String typeName() {
+		return "BuiltinClass";
+	}
+
 }

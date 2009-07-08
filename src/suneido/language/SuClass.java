@@ -22,7 +22,17 @@ public abstract class SuClass extends SuCallable {
 
 	// NOMETHOD is used instead of null
 	// to differentiate from map.get returning null for missing
-	public static enum Marker { NOMETHOD, METHOD, GETTER, GETMEM };
+	public static class Marker {
+		public static final Marker NOMETHOD = new Marker();
+		public static final Marker GETTER = new Marker();
+		public static final Marker GETMEM = new Marker();
+	};
+	public static final class Method extends Marker {
+		final SuClass c;
+		public Method(SuClass c) {
+			this.c = c;
+		}
+	}
 
 	@Override
 	public Object get(Object member) {
@@ -31,7 +41,7 @@ public abstract class SuClass extends SuCallable {
 			value = invoke(this, "Get_", member);
 		else if (value == GETMEM)
 			value = invoke(this, ("Get_" + (String) member).intern());
-		else if (value == METHOD)
+		else if (value instanceof Method)
 			value = new SuMethod(this, (String) member);
 		if (value == null)
 			throw new SuException("member not found: " + member);
@@ -69,7 +79,7 @@ public abstract class SuClass extends SuCallable {
 	private Object findMethod(Object method) {
 		for (FunctionSpec f : params)
 			if (f.name == method)
-				return METHOD;
+				return new Method(this);
 		return NOMETHOD;
 	}
 
@@ -78,7 +88,7 @@ public abstract class SuClass extends SuCallable {
 		if (value != null)
 			return value == GETTER ? true : false; // cached from last time
 		value = findMethod(getter);
-		if (value != METHOD)
+		if (!(value instanceof Method))
 			return false;
 		vars.put(getter, GETTER); // cache for next time
 		return true;
@@ -100,31 +110,34 @@ public abstract class SuClass extends SuCallable {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
+		// if the original method call was to an instance
+		// then self will be the instance (not the class)
 		if (method == "<new>")
 			return newInstance(args);
-		if (method == "Type")
-			return "Class";
-		// TODO other standard methods on classes
-		if (baseGlobal != null)
-			return base().invoke(self, method, args);
-		if (method == "_init")
-			return init(args);
 		if (method == "Base")
 			return Base(self, args);
 		if (method == "Base?")
 			return BaseQ(self, args);
+		if (method == "Eval")
+			return ContainerMethods.Eval((SuValue) self, args);
+		if (method == "Members")
+			return Members(self, args);
+		if (method == "Member?")
+			return MemberQ(self, args);
+		if (method == "Method?")
+			return MethodQ(self, args);
+		if (method == "MethodClass")
+			return MethodClass(self, args);
+		if (method == "Type")
+			return "Class";
+
+		if (baseGlobal != null)
+			return base().invoke(self, method, args);
+
+		if (method == "_init")
+			return init(args);
 		if (method == "CallClass")
 			return Ops.invoke(self, "<new>", args);
-		if (method == "Eval") {
-			assert self == this;
-			return ContainerMethods.Eval(this, args);
-		}
-		if (method == "Members")
-			return members(self, args);
-		if (method == "Member?")
-			return memberQ(self, args);
-		if (method == "Method?")
-			return methodQ(self, args);
 		if (method != "Default") {
 			// if we get here, method was not found
 			// add method to beginning of args and call Default
@@ -137,11 +150,9 @@ public abstract class SuClass extends SuCallable {
 		throw methodNotFound((String) args[0]);
 	}
 
-	private Object Base(Object self, Object[] args) {
+	private static Object init(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		if (baseGlobal == null)
-			return Boolean.FALSE; // TODO Base should return Object class
-		return Globals.get(baseGlobal);
+		return null;
 	}
 
 	private Object newInstance(Object[] args) {
@@ -157,9 +168,11 @@ public abstract class SuClass extends SuCallable {
 		return (SuValue) base;
 	}
 
-	private static Object init(Object[] args) {
+	private Object Base(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return null;
+		if (baseGlobal == null)
+			return Boolean.FALSE; // TODO Base should return Object class
+		return Globals.get(baseGlobal);
 	}
 
 	private Object BaseQ(Object self, Object[] args) {
@@ -171,13 +184,13 @@ public abstract class SuClass extends SuCallable {
 		return base().invoke("Base?", args);
 	}
 
-	private static SuContainer members(Object self, Object[] args) {
+	private SuContainer Members(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		SuContainer c = new SuContainer();
-		for (Map.Entry<String, Object> e : ((SuClass) self).vars.entrySet())
+		for (Map.Entry<String, Object> e : vars.entrySet())
 			if (e.getValue() != null && !(e.getValue() instanceof Marker))
 				c.append(e.getKey());
-		for (FunctionSpec fs : ((SuClass) self).params)
+		for (FunctionSpec fs : params)
 			if (fs.name != "_init") // TODO skip blocks & nested functions
 				c.append(fs.name);
 		return c;
@@ -185,23 +198,43 @@ public abstract class SuClass extends SuCallable {
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
-	private static Boolean memberQ(Object self, Object[] args) {
+	private Boolean MemberQ(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);
 		String key = Ops.toStr(args[0]);
-		Object x = ((SuClass) self).get3(key);
+		Object x = get3(key);
 		if (x != null && !(x instanceof Marker))
 			return Boolean.TRUE;
-		for (FunctionSpec fs : ((SuClass) self).params)
+		for (FunctionSpec fs : params)
 			if (key.equals(fs.name)) // TODO skip blocks & nested functions
 				return Boolean.TRUE;
 		return Boolean.FALSE;
 	}
 
-	private static Boolean methodQ(Object self, Object[] args) {
+	private Object MethodClass(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);
 		String key = Ops.toStr(args[0]);
-		Object x = ((SuClass) self).get2(key);
-		return x == Marker.METHOD;
+		Object x = get2(key);
+		if (x instanceof Method)
+			return ((Method) x).c;
+		else
+			return Boolean.FALSE;
+	}
+
+	private Boolean MethodQ(Object self, Object[] args) {
+		args = Args.massage(keyFS, args);
+		String key = Ops.toStr(args[0]);
+		Object x = get2(key);
+		return x instanceof Method;
+	}
+
+	@Override
+	public String typeName() {
+		return "Class";
+	}
+
+	@Override
+	public String toString() {
+		return super.typeName();
 	}
 
 	protected Object superInvoke(Object self, String member, Object... args) {

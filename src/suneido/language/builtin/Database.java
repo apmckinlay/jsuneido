@@ -16,7 +16,7 @@ public class Database extends SuValue {
 		args = Args.massage(requestFS, args);
 		String request = Ops.toStr(args[0]);
 		theDbms.admin(new ServerData(), request);
-		return null;
+		return Boolean.TRUE;
 	}
 
 	@Override
