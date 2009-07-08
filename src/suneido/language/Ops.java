@@ -464,10 +464,20 @@ public class Ops {
 	}
 
 	public static String typeName(Object x) {
-		return x == null ? "uninitialized"
-				: x.getClass().getName()
-					.replace("java.lang.Boolean", "Boolean")
-					.replaceFirst("^(suneido.(language.(builtin.)?)?)?(Su)?", "");
+		if (x == null)
+			return "uninitialized";
+		if (x instanceof SuValue)
+			return ((SuValue) x).typeName();
+		Class<?> xType = x.getClass();
+		if (xType == String.class)
+			return "String";
+		if (xType == Boolean.class)
+			return "Boolean";
+		if (xType == Date.class)
+			return "Date";
+		if (xType == Integer.class || xType == BigDecimal.class)
+			return "Number";
+		return x.getClass().getName();
 	}
 
 	public static Object call(Object x, Object... args) {

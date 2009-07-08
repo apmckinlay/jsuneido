@@ -15,7 +15,7 @@ public class TypeTest {
 		test("Type(#{})", "Record");
 		test("Type({|x| })", "Block");
 		test("Type(class { })", "Class");
-		test("Type(new class { })", "Instance");
+		test("Type(new class { })", "Object");
 		test("Type(function () { })", "Function");
 	}
 

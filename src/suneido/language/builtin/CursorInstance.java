@@ -28,7 +28,7 @@ public class CursorInstance extends QueryInstance {
 		if (method == "Next")
 			return getrec(args, Dir.NEXT);
 		if (method == "Output")
-			return output(args);
+			throw new SuException("cursor.Output not implemented yet");
 		if (method == "Prev")
 			return getrec(args, Dir.PREV);
 		return super.invoke(self, method, args);
@@ -48,10 +48,6 @@ public class CursorInstance extends QueryInstance {
 		} finally {
 			q.setTransaction(null);
 		}
-	}
-
-	private Object output(Object[] args) {
-		return null;
 	}
 
 }

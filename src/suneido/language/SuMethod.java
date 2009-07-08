@@ -21,10 +21,6 @@ public class SuMethod extends SuValue {
 		this.method = method;
 	}
 
-	public SuMethod(String method) {
-		this(null, method);
-	}
-
 	@Override
 	public Object call(Object... args) {
 		return instance.invoke(instance, method, args);
@@ -61,6 +57,11 @@ public class SuMethod extends SuValue {
 			result = 31 * result + instance.hashCode();
 		result = 31 * result + method.hashCode();
 		return result;
+	}
+
+	@Override
+	public String typeName() {
+		return "Method";
 	}
 
 }

@@ -153,6 +153,9 @@ public class ClassTest {
 
 		test("C.Eval(F)", "C");
 		test("(new C).Eval(F)", "C()");
+
+		define("B", "C { }");
+		test("B.Eval(F)", "B");
 	}
 
 	private static void notFound(String expr) {

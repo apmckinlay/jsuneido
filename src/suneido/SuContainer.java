@@ -532,4 +532,9 @@ public class SuContainer extends SuValue
 		return this;
 	}
 
+	@Override
+	public String typeName() {
+		return "Object";
+	}
+
 }

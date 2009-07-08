@@ -23,4 +23,5 @@ abstract public class SuCallable extends SuValue {
 		fn2.constants = constants;
 		return fn2.call(args);
 	}
+
 }

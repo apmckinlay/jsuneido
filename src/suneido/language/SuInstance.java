@@ -1,12 +1,13 @@
 package suneido.language;
 
-import static suneido.language.SuClass.Marker.*;
+import static suneido.language.SuClass.Marker.GETMEM;
+import static suneido.language.SuClass.Marker.GETTER;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import suneido.*;
-import suneido.language.builtin.ContainerMethods;
+import suneido.language.SuClass.Method;
 
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
@@ -19,22 +20,18 @@ public class SuInstance extends SuValue {
 	@Override
 	public Object call(Object... args) {
 		return myclass.invoke(this, "Call", args);
-		// MAYBE myclass.Call()
 	}
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		assert self == this;
+		// self will normally be the same as "this"
+		// except when object.Eval is used
 		if (method == "Base")
 			return Base(self, args);
-		if (method == "Eval")
-			return ContainerMethods.Eval(this, args);
 		if (method == "Members")
-			return members(self, args);
+			return Members(self, args);
 		if (method == "Member?")
 			return MemberQ(self, args);
-		if (method == "Method?")
-			return myclass.invoke(myclass, method, args);
 		return myclass.invoke(self, method, args);
 	}
 
@@ -53,7 +50,7 @@ public class SuInstance extends SuValue {
 		return myclass.invoke(myclass, "Member?", args);
 	}
 
-	private Object members(Object self, Object[] args) {
+	private Object Members(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return new SuContainer(ivars.keySet());
 	}
@@ -61,7 +58,7 @@ public class SuInstance extends SuValue {
 	@Override
 	public String toString() {
 		if (myclass != null && myclass instanceof SuClass
-				&& ((SuClass) myclass).get3("ToString") == METHOD)
+				&& ((SuClass) myclass).get3("ToString") instanceof Method)
 			return Ops.toStr(invoke(this, "ToString"));
 		else
 			return myclass + "()";
@@ -77,7 +74,7 @@ public class SuInstance extends SuValue {
 			value = invoke(this, "Get_", member);
 		else if (value == GETMEM)
 			value = invoke(this, ("Get_" + (String) member).intern());
-		else if (value == METHOD)
+		else if (value instanceof Method)
 			value = new SuMethod(this, (String) member);
 		if (value == null)
 			throw new SuException("member not found: " + member);
@@ -99,7 +96,7 @@ public class SuInstance extends SuValue {
 		if (!(other instanceof SuInstance))
 			return false;
 		SuInstance that = (SuInstance) other;
-		return this.myclass == that.myclass && this.ivars == that.ivars;
+		return this.myclass == that.myclass && this.ivars.equals(that.ivars);
 	}
 
 	@Override
@@ -108,6 +105,11 @@ public class SuInstance extends SuValue {
 		result = 31 * result + myclass.hashCode();
 		result = 31 * result + ivars.hashCode();
 		return result;
+	}
+
+	@Override
+	public String typeName() {
+		return "Object";
 	}
 
 }

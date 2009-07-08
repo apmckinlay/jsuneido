@@ -20,6 +20,7 @@ import suneido.language.*;
 public class TransactionInstance extends SuValue {
 	private final DbmsTran t;
 	private boolean ended = false;
+	private String conflict = null;
 
 	private static final Object notPassed = new Object();
 	private static final FunctionSpec tranFS =
@@ -45,9 +46,13 @@ public class TransactionInstance extends SuValue {
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "Complete")
-			return complete(args);
+			return Complete(args);
+		if (method == "Conflict")
+			return Confict(args);
+		if (method == "Ended?")
+			return EndedQ(args);
 		if (method == "Query")
-			return query(args);
+			return Query(args);
 		if (method == "QueryFirst")
 			return queryOne(this, args, Dir.NEXT, false);
 		if (method == "QueryLast")
@@ -55,21 +60,40 @@ public class TransactionInstance extends SuValue {
 		if (method == "Query1")
 			return queryOne(this, args, Dir.NEXT, true);
 		if (method == "Rollback")
-			return rollback(args);
+			return Rollback(args);
+		if (method == "Update?")
+			return UpdateQ(args);
 		return userDefined("Transactions", method).invoke(self, method, args);
+	}
+
+	private boolean Complete(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		ended = true;
+		conflict = t.complete();
+		return conflict == null;
+	}
+
+	private String Confict(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return conflict == null ? "" : conflict;
+	}
+
+	private boolean EndedQ(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return ended;
 	}
 
 	private static final FunctionSpec queryFS =
 			new FunctionSpec(array("query", "block"), false);
 
-	private Object query(Object[] args) {
+	private Object Query(Object[] args) {
 		args = Args.massage(queryFS, args);
 		String query = Ops.toStr(args[0]);
 		Object q;
 		if (CompileQuery.isRequest(query))
 			q = theDbms.request(ServerData.forThread(), t, query);
 		else
-			q = new QueryInstance(query, 
+			q = new QueryInstance(query,
 					theDbms.query(new ServerData(), t, query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
@@ -89,25 +113,25 @@ public class TransactionInstance extends SuValue {
 		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
 	}
 
-	private Object complete(Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		ended = true;
-		return t.complete() == null;
-	}
-
-	private Object rollback(Object[] args) {
+	private Object Rollback(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		ended = true;
 		t.abort();
 		return null;
 	}
 
+	private Object UpdateQ(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return t.isReadonly();
+	}
+
+	// used by Transaction for block form
 	public void ck_complete() {
 		if (!ended) {
 			ended = true;
-			String s = t.complete();
-			if (s != null)
-				throw new SuException("transaction commit failed: " + s);
+			conflict = t.complete();
+			if (conflict != null)
+				throw new SuException("transaction commit failed: " + conflict);
 		}
 	}
 

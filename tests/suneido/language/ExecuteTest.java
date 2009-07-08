@@ -166,6 +166,8 @@ public class ExecuteTest {
 	public void test_eval() {
 		test("#(1).Eval(function () { this })", "#(1)");
 		test("#(1).Eval({ this })", "#(1)");
+		test("#(A: 123).Eval(function () { .A })", "123");
+		test("#(a: 123).Eval(function () { .a })", "123");
 	}
 
 	public static void test(String expr, String result) {

@@ -1,7 +1,7 @@
 package suneido.language;
 
 /*
- TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, Customizable_Test, HistoryTest, HttpServer2_Test, ScheduleAddEditControlTest, ScheduleControlTest, WinErrTest));;
+ TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, Customizable_Test, HistoryTest, HtmIncludeTest, HttpServer2_Test, ScheduleAddEditControlTest, ScheduleControlTest, WinErrTest));;
  TestRunner.RunAll()
  */
 
@@ -67,7 +67,7 @@ public class Repl {
 		return (SuValue) pc.parse();
 	}
 
-	static class Print extends SuFunction {
+	static class Print extends BuiltinFunction {
 		@Override
 		public Object call(Object... args) {
 			SuContainer c = Args.collectArgs(args, new SuContainer());
@@ -82,7 +82,7 @@ public class Repl {
 		}
 	}
 
-	static class Alert extends SuFunction {
+	static class Alert extends BuiltinFunction {
 		@Override
 		public Object call(Object... args) {
 			System.out.println("ALERT: " + Ops.toStr(args[0]));

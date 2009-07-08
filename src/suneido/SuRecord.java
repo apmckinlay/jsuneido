@@ -150,4 +150,9 @@ public class SuRecord extends SuContainer {
 			throw new SuException("record." + op + ": not a database record");
 	}
 
+	@Override
+	public String typeName() {
+		return "Record";
+	}
+
 }

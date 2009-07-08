@@ -17,4 +17,14 @@ abstract public class SuFunction extends SuCallable {
 			throw methodNotFound(method);
 	}
 
+	@Override
+	public String typeName() {
+		return "Function";
+	}
+
+	@Override
+	public String toString() {
+		return super.typeName();
+	}
+
 }

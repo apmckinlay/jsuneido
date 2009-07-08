@@ -152,9 +152,9 @@ public class CompileTest {
 		test("a(99: 'x')",
 				"a, NAMED, 99, 'x', callN, ARETURN");
 		test("return function () { }",
-				"0=Test.Test_f0, ARETURN");
+				"0=aFunction, ARETURN");
 		test("a = function () { }",
-				"&a, 0=Test.Test_f0, DUP_X2, AASTORE, ARETURN");
+				"&a, 0=aFunction, DUP_X2, AASTORE, ARETURN");
 		test("super.F()",
 				"this, this, 'F', superInvokeN, ARETURN");
 		test("A().B()",

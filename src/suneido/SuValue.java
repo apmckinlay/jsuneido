@@ -2,7 +2,6 @@ package suneido;
 
 import java.nio.ByteBuffer;
 
-import suneido.language.Ops;
 import suneido.language.SuClass;
 
 /**
@@ -18,7 +17,7 @@ public abstract class SuValue implements Packable {
 
 	@Override
 	public String toString() {
-		return typeName();
+		return "a" + typeName();
 	}
 
 	public int hashCode(int nest) {
@@ -45,7 +44,15 @@ public abstract class SuValue implements Packable {
 	}
 
 	public String typeName() {
-		return Ops.typeName(this);
+		String s = getClass().getName();
+		if (s.startsWith("suneido.language.")) {
+			s = s.substring(17);
+			if (s.startsWith("builtin."))
+				s = s.substring(8);
+			if (s.endsWith("Instance"))
+				s = s.substring(0, s.length() - 8);
+		}
+		return s;
 	}
 
 	public Object get(Object member) {
