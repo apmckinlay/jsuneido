@@ -15,10 +15,10 @@ public class RegexTest {
 
 	@Test
 	public void getPat() {
-		Pattern p1 = Regex.getPat("x");
-		Pattern p2 = Regex.getPat("a.*b");
-		assertSame(p1, Regex.getPat("x"));
-		assertSame(p2, Regex.getPat("a.*b"));
+		Pattern p1 = Regex.getPat("x", "");
+		Pattern p2 = Regex.getPat("a.*b", "");
+		assertSame(p1, Regex.getPat("x", ""));
+		assertSame(p2, Regex.getPat("a.*b", ""));
 	}
 
 	@Test
@@ -44,6 +44,15 @@ public class RegexTest {
 		for (int i = 0; i < falsecases.length; i += 2)
 			assertFalse(falsecases[i] + " !~ " + falsecases[i + 1],
 					Regex.contains(falsecases[i], falsecases[i + 1]));
+	}
+
+	@Test
+	public void start() {
+		assertTrue(Pattern.compile("^").matcher("").find());
+		assertFalse(Pattern.compile("^", Pattern.MULTILINE).matcher("").find());
+		assertFalse(Pattern.compile("(?m)^").matcher("").find());
+
+		assertTrue(Regex.contains("", "^"));
 	}
 
 }
