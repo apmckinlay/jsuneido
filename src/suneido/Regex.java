@@ -9,15 +9,16 @@ public class Regex {
 		new LruCache<String, Pattern>(32);
 
 	public static boolean contains(String s, String rx) {
-		return getPat(rx).matcher(s).find();
+		return getPat(rx, s).matcher(s).find();
 	}
 
-	public static Pattern getPat(String rx) {
+	public static Pattern getPat(String rx, String s) {
+		if (s.indexOf('\n') != -1)
+			rx = "(?m)" + rx;
 		Pattern p = cache.get(rx);
 		if (p == null)
 			try {
-				cache.put(rx, p =
-						Pattern.compile(convertRegex(rx), Pattern.MULTILINE));
+				cache.put(rx, p = Pattern.compile(convertRegex(rx)));
 			} catch (PatternSyntaxException e) {
 				throw new SuException("bad regular expression: " + rx + " => "
 						+ convertRegex(rx));
@@ -50,7 +51,15 @@ public class Regex {
 				} else {
 					inCharClass = true;
 					sb.append(c);
-					++i;
+					c = rx.charAt(++i);
+					if (c == '^') {
+						sb.append(c);
+						c = rx.charAt(++i);
+					}
+					if (c == ']') {
+						sb.append("\\]");
+						++i;
+					}
 				}
 				break;
 			case ']':
@@ -77,6 +86,12 @@ public class Regex {
 			case '{':
 			case '}':
 				sb.append('\\');
+				sb.append(c);
+				++i;
+				break;
+			case '$':
+				if (inCharClass)
+					sb.append('\\');
 				sb.append(c);
 				++i;
 				break;
@@ -128,6 +143,10 @@ public class Regex {
 		case ')':
 		case '[':
 		case ']':
+		case '*':
+		case '+':
+		case '?':
+		case '|':
 		case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			sb.append(rx.substring(i, i + 2));

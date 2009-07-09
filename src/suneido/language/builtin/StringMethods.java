@@ -43,6 +43,8 @@ public class StringMethods {
 				return Entab(s, args);
 			if (method == "Eval")
 				return Eval(s, args);
+			if (method == "Eval2")
+				return Eval2(s, args);
 			if (method == "Extract")
 				return Extract(s, args);
 			break;
@@ -232,11 +234,22 @@ public class StringMethods {
 	}
 
 	private static Object Eval(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (globalRx.matcher(s).matches())
-			return Globals.get(s);
-		Object result = Compiler.eval(s);
+		Object result = eval(s, args);
 		return result == null ? "" : result;
+	}
+
+	private static Object Eval2(String s, Object[] args) {
+		Object value = eval(s, args);
+		SuContainer result = new SuContainer();
+		if (value != null)
+			result.append(value);
+		return result;
+	}
+
+	private static Object eval(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return globalRx.matcher(s).matches() ? Globals.get(s)
+				: Compiler.eval(s);
 	}
 
 	private static final FunctionSpec extractFS =
@@ -245,7 +258,7 @@ public class StringMethods {
 	static Object Extract(String s, Object... args) {
 		args = Args.massage(extractFS, args);
 		String pat = Ops.toStr(args[0]);
-		Pattern pattern = Regex.getPat(pat);
+		Pattern pattern = Regex.getPat(pat, s);
 		Matcher matcher = pattern.matcher(s);
 		if (!matcher.find())
 			return Boolean.FALSE;
@@ -336,7 +349,7 @@ public class StringMethods {
 
 	private static Object Match(String s, Object[] args) {
 		args = Args.massage(matchFS, args);
-		Pattern pat = Regex.getPat(Ops.toStr(args[0]));
+		Pattern pat = Regex.getPat(Ops.toStr(args[0]), s);
 		Matcher m = pat.matcher(s);
 		if (!m.find())
 			return Boolean.FALSE;
@@ -408,7 +421,7 @@ public class StringMethods {
 
 	static String Replace(String s, Object... args) {
 		args = Args.massage(replaceFS, args);
-		Pattern pat = Regex.getPat(Ops.toStr(args[0]));
+		Pattern pat = Regex.getPat(Ops.toStr(args[0]), s);
 		String rep = null;
 		if (args[1] instanceof String)
 			rep = Ops.toStr(args[1]);

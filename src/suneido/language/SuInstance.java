@@ -8,6 +8,7 @@ import java.util.Map;
 
 import suneido.*;
 import suneido.language.SuClass.Method;
+import suneido.language.builtin.ContainerMethods;
 
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
@@ -28,6 +29,10 @@ public class SuInstance extends SuValue {
 		// except when object.Eval is used
 		if (method == "Base")
 			return Base(self, args);
+		if (method == "Eval")
+			return ContainerMethods.Eval(self, args);
+		if (method == "Eval2")
+			return ContainerMethods.Eval2(self, args);
 		if (method == "Members")
 			return Members(self, args);
 		if (method == "Member?")

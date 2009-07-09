@@ -43,6 +43,8 @@ public class ContainerMethods {
 				return Erase(c, args);
 			if (method == "Eval")
 				return Eval(c, args);
+			if (method == "Eval2")
+				return Eval2(c, args);
 			break;
 		case 'F':
 			if (method == "Find")
@@ -177,7 +179,7 @@ public class ContainerMethods {
 	}
 
 	// also called by SuInstance
-	public static Object Eval(SuValue c, Object[] args) {
+	public static Object Eval(Object c, Object[] args) {
 		ArgsIterator iter = new ArgsIterator(args);
 		if (!iter.hasNext())
 			throw new SuException("usage: object.Eval(callable [, args...]");
@@ -185,6 +187,14 @@ public class ContainerMethods {
 		if (!(arg instanceof SuValue))
 			throw new SuException("usage: object.Eval requires function");
 		return ((SuValue) arg).eval(c, Arrays.copyOfRange(args, 1, args.length));
+	}
+
+	public static Object Eval2(Object c, Object[] args) {
+		Object value = Eval(c, args);
+		SuContainer result = new SuContainer();
+		if (value != null)
+			result.append(value);
+		return result;
 	}
 
 	private static Object Find(SuContainer c, Object[] args) {

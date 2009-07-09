@@ -158,6 +158,12 @@ public class ClassTest {
 		test("B.Eval(F)", "B");
 	}
 
+	@Test
+	public void test_privatize() {
+		define("C", "class { F() { .p() }; Default(@a) { a } }");
+		test("C.F()", "#('C_p')");
+	}
+
 	private static void notFound(String expr) {
 		try {
 			eval(expr);

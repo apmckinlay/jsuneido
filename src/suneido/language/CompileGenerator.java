@@ -1215,6 +1215,7 @@ public class CompileGenerator extends Generator<Object> {
 		// new SuBlock(classValue, bspec, locals)
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
 		c.f.mv.visitInsn(DUP);
+		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
 		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + c.name,
@@ -1224,7 +1225,7 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuBlock",
 				"<init>",
-				"(Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
+				"(Ljava/lang/Object;Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
 
 		if (!c.f.isBlock && c.f.blockReturnCatcher == null) {
 			c.f.blockReturnCatcher = new TryCatch();

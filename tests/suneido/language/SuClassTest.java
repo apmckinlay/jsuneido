@@ -10,25 +10,28 @@ import suneido.SuException;
 import suneido.SuValue;
 
 public class SuClassTest {
+
+	private static final Object[] noArgs = new Object[0];
+
 	@Test
 	public void test() {
 		SuValue c = new TestClass();
-		assertEquals("", c.invoke("Substr"));
-		assertEquals(0, c.invoke("Size"));
+		assertEquals("", c.invoke("Substr", noArgs));
+		assertEquals(0, c.invoke("Size", noArgs));
 	}
 
 	@Test(expected=SuException.class)
 	public void unknown() {
-		new TestClass().invoke("Foo");
+		new TestClass().invoke("Foo", noArgs);
 	}
 
 	@Test
 	public void test_new() {
 		DefaultClass dc = new DefaultClass();
 		SuValue instance = new SuInstance(dc);
-		assertEquals("", instance.invoke(instance, "Substr"));
+		assertEquals("", instance.invoke(instance, "Substr", noArgs));
 		assertArrayEquals(new Object[] { "Substr" }, DefaultClass.args);
-		instance.invoke(instance, "Substr", 1);
+		instance.invoke(instance, "Substr", new Object[] { 1 });
 		assertArrayEquals(new Object[] { "Substr", 1 }, DefaultClass.args);
 	}
 	static class DefaultClass extends SampleClass {

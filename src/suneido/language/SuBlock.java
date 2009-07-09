@@ -4,12 +4,14 @@ import suneido.SuException;
 import suneido.SuValue;
 
 public class SuBlock extends SuValue {
-	private final Object instance;
+	private final Object home; // defining class
+	private final Object self;
 	private final BlockSpec bspec;
 	private final Object[] locals;
 
-	public SuBlock(Object instance, FunctionSpec bspec, Object[] locals) {
-		this.instance = instance;
+	public SuBlock(Object home, Object self, FunctionSpec bspec, Object[] locals) {
+		this.home = home;
+		this.self = self;
 		this.bspec = (BlockSpec) bspec;
 		this.locals = locals;
 	}
@@ -23,23 +25,23 @@ public class SuBlock extends SuValue {
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)
 			locals[bspec.iparams + i] = args[i];
-		return Ops.invoke(instance, bspec.name, locals);
+		return ((SuValue) home).invoke(self, bspec.name, locals);
 	}
 
 	@Override
-	public Object eval(Object self, Object[] args) {
-		if (!(instance instanceof SuValue))
+	public Object eval(Object newSelf, Object[] args) {
+		if (!(home instanceof SuValue))
 			throw new SuException("Eval requires Suneido value");
 		args = Args.massage(bspec, args);
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)
 			locals[bspec.iparams + i] = args[i];
-		return ((SuValue) instance).invoke(self, bspec.name, locals);
+		return ((SuValue) home).invoke(newSelf, bspec.name, locals);
 	}
 
 	@Override
 	public String toString() {
-		return (instance == null ? "null" : instance.toString())
+		return "block:" + (home == null ? "null" : home.toString())
 				+ "."
 				+ bspec.name;
 	}
@@ -50,7 +52,7 @@ public class SuBlock extends SuValue {
 			return true;
 		if (other instanceof SuBlock) {
 			SuBlock that = (SuBlock) other;
-			return instance == that.instance
+			return home == that.home
 					&& bspec == that.bspec
 					&& locals == that.locals;
 		}
@@ -61,7 +63,7 @@ public class SuBlock extends SuValue {
 	@Override
 	public int hashCode() {
 		int result = 17;
-		result = 31 * result + instance.hashCode();
+		result = 31 * result + home.hashCode();
 		result = 31 * result + bspec.hashCode();
 		result = 31 * result + locals.hashCode();
 		return result;
