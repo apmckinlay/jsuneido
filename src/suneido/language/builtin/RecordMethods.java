@@ -9,9 +9,11 @@ public class RecordMethods {
 
 	public static Object invoke(SuRecord r, String method, Object... args) {
 		if (method == "Delete")
-			return delete(r, args);
+			return Delete(r, args);
+		if (method == "New?")
+			return NewQ(r, args);
 		if (method == "Update")
-			return update(r, args);
+			return Update(r, args);
 		// TODO Records user defined methods
 		return ContainerMethods.invoke(r, method, args);
 	}
@@ -20,7 +22,7 @@ public class RecordMethods {
 	private static final FunctionSpec deleteFS =
 		new FunctionSpec(array("key"), nil);
 
-	private static Object delete(SuRecord r, Object[] args) {
+	private static Object Delete(SuRecord r, Object[] args) {
 		args = Args.massage(deleteFS, args);
 		if (args[0] != nil)
 			return ContainerMethods.Delete(r, args);
@@ -28,7 +30,12 @@ public class RecordMethods {
 		return Boolean.TRUE;
 	}
 
-	private static Object update(SuRecord r, Object[] args) {
+	private static Boolean NewQ(SuRecord r, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return r.isNew();
+	}
+
+	private static Object Update(SuRecord r, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		r.update();
 		return Boolean.TRUE;
