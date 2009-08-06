@@ -7,7 +7,8 @@ public class ObjectQ extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(FunctionSpec.value, args);
-		return null != Ops.toContainer(args[0]);
+		return args[0] instanceof SuInstance
+				|| null != Ops.toContainer(args[0]);
 	}
 
 }

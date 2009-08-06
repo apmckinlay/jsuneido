@@ -42,6 +42,8 @@ public class QueryInstance extends SuValue {
 			return Columns(args);
 		if (method == "Keys")
 			return Keys(args);
+		if (method == "NewRecord")
+			return NewRecord(args);
 		if (method == "Next")
 			return getrec(args, Dir.NEXT);
 		if (method == "Order")
@@ -79,6 +81,10 @@ public class QueryInstance extends SuValue {
 			c.append(s.substring(1));
 		}
 		return c;
+	}
+
+	private Object NewRecord(Object[] args) {
+		return Args.collectArgs(args, new SuRecord());
 	}
 
 	private Object getrec(Object[] args, Dir dir) {

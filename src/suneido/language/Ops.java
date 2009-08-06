@@ -404,14 +404,14 @@ public class Ops {
 			return s.substring(0, 16);
 		return s;
 	}
-	
+
 	public static boolean default_single_quotes = false;
 
 	public static String display(Object x) {
 		if (x instanceof String) {
 			String s = (String) x;
 			boolean single_quotes = default_single_quotes
-				? !s.contains("'") 
+				? !s.contains("'")
 				: (s.contains("\"") && !s.contains("'"));
 			if (single_quotes)
 				return "'" + s + "'";
@@ -1195,7 +1195,11 @@ public class Ops {
 	}
 	public static Object next(Object x) {
 		if (x instanceof Iterator<?>)
-			return ((Iterator<?>) x).next();
+			try {
+				return ((Iterator<?>) x).next();
+			} catch (ConcurrentModificationException e) {
+				throw new SuException("concurrent modification");
+			}
 		throw new SuException("not an iterator " + typeName(x));
 	}
 

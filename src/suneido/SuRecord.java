@@ -155,4 +155,8 @@ public class SuRecord extends SuContainer {
 		return "Record";
 	}
 
+	public boolean isNew() {
+		return status == Status.NEW;
+	}
+
 }
