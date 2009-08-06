@@ -101,6 +101,7 @@ public class Regex {
 				break;
 			}
 		}
+		System.out.println("convertRegex '" + rx + "' => '" + sb.toString() + "'");
 		return sb.toString();
 	}
 
@@ -134,6 +135,7 @@ public class Regex {
 			sb.append("\\b");
 			return 2;
 		case '\\':
+		case '.':
 		case 'd': case 'D':
 		case 's': case 'S':
 		case 'w': case 'W':
