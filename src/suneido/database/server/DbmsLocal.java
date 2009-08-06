@@ -154,10 +154,9 @@ public class DbmsLocal implements Dbms {
 	static Date prev = new Date();
 	public Date timestamp() {
 		Date ts = new Date();
-		if (ts.equals(prev))
+		if (ts.compareTo(prev) <= 0)
 			ts = new Date(prev.getTime() + 1);
-		else
-			prev = ts;
+		prev = ts;
 		return ts;
 	}
 
