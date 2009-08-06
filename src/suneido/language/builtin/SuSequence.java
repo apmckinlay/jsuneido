@@ -8,7 +8,7 @@ import suneido.SuValue;
 /**
  * A wrapper for an Iterable that can be treated like an SuObject but doesn't
  * instantiate the object if you just iterate over it.
- * 
+ *
  * @author Andrew McKinlay
  */
 public class SuSequence extends SuValue
@@ -24,7 +24,14 @@ public class SuSequence extends SuValue
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
+		if (method == "Next")
+			return Next(args);
 		return ContainerMethods.invoke(getOb(), method, args);
+	}
+
+	private Object Next(Object[] args) {
+		// TODO Auto-generated method stub
+		return iter.hasNext() ? iter.next() : this;
 	}
 
 	// TODO handle compareTo (also in Ops.cmp)
