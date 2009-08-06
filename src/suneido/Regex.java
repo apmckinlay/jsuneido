@@ -101,7 +101,7 @@ public class Regex {
 				break;
 			}
 		}
-		System.out.println("convertRegex '" + rx + "' => '" + sb.toString() + "'");
+		//System.out.println("convertRegex '" + rx + "' => '" + sb.toString() + "'");
 		return sb.toString();
 	}
 
