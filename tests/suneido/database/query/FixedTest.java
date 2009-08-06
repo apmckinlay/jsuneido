@@ -5,11 +5,19 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.database.TestBase;
+import suneido.language.Ops;
 
 public class FixedTest extends TestBase {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
 	@Test
 	public void extend() {
 		makeTable();

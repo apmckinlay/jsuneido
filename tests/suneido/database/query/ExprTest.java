@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.util.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.database.Record;
@@ -12,6 +13,12 @@ import suneido.database.query.expr.Expr;
 import suneido.language.Ops;
 
 public class ExprTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
 	@Test
 	public void fields() {
 		Object cases[] = new Object[] {
