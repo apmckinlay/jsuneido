@@ -5,11 +5,18 @@ import static suneido.language.Compiler.compile;
 import static suneido.language.Compiler.eval;
 import static suneido.language.ExecuteTest.test;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuException;
 
 public class ClassTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
 	@Test
 	public void test1() {
 		define("A", "class { }");

@@ -8,9 +8,18 @@ import static suneido.util.Util.bufferToHex;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import suneido.language.Ops;
+
 public class SuContainerTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
 	@Test
 	public void canonical() {
 		Object[] a = { 100, BigDecimal.valueOf(100), new BigDecimal("1e2") };

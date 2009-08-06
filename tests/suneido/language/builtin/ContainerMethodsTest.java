@@ -6,11 +6,18 @@ import static suneido.language.Ops.display;
 
 import java.util.Arrays;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuContainer;
+import suneido.language.Ops;
 
 public class ContainerMethodsTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
 
 	@Test
 	public void test_add() {

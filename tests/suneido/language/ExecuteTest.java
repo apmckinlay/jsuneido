@@ -5,9 +5,15 @@ import static org.junit.Assert.fail;
 import static suneido.language.Compiler.eval;
 import static suneido.language.Ops.display;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ExecuteTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
 
 	@Test public void tests() {
 		test("123 + 456", "579");

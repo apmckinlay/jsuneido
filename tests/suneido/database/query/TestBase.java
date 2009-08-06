@@ -7,9 +7,15 @@ import org.junit.Before;
 
 import suneido.database.*;
 import suneido.database.server.ServerData;
+import suneido.language.Ops;
 
 public class TestBase {
 	protected final ServerData serverData = new ServerData();
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
 
 	@Before
 	public void create() {

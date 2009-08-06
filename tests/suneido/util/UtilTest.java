@@ -7,11 +7,19 @@ import static suneido.util.Util.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import suneido.language.Ops;
 import suneido.util.Util.Range;
 
 public class UtilTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
 	@Test
 	public void listToParens() {
 		assertEquals("()", Util.listToParens(null));

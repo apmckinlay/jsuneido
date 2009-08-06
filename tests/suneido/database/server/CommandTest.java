@@ -17,6 +17,7 @@ import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
 import suneido.database.*;
+import suneido.language.Ops;
 import suneido.language.Pack;
 
 public class CommandTest {
@@ -24,6 +25,11 @@ public class CommandTest {
 	@Before
 	public void clearServerData() {
 		ServerData.threadLocal.set(new ServerData());
+	}
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
 	}
 
 	@Test
