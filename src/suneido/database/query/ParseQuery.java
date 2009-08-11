@@ -233,7 +233,10 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	private T joinBy() {
 		if (!matchIf(BY))
 			return null;
-		return parenList();
+		T by = parenList();
+		if (by == null)
+			syntaxError("empty join by not allowed");
+		return by;
 	}
 
 	private T parenList() {
