@@ -46,7 +46,6 @@ public class Repl {
 		Database.theDB = new Database(mmf, Mode.OPEN);
 
 		Globals.put("Print", new Print());
-		Globals.put("Alert", new Alert());
 	}
 
 	private static void saveTest(String line, Object result)

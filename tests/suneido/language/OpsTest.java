@@ -63,7 +63,7 @@ public class OpsTest {
 		nomatch("abc", "b");
 		match("abc", "b|ab");
 		nomatch("abc", "x|y|z");
-		match("abc", "*bc");
+		match("abc", "*bc|*xy");
 		nomatch("abc", "*x|*y");
 	}
 

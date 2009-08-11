@@ -139,6 +139,19 @@ public class DatabaseTest extends TestBase {
 	}
 
 	@Test
+	public void duplicate_key() {
+		makeTable(3);
+
+		Transaction t = db.readwriteTran();
+		try {
+			db.addRecord(t, "test", record(1));
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("duplicate key: a"));
+		}
+		t.ck_complete();
+	}
+
+	@Test
 	public void validate_reads() {
 		makeTable(3);
 
