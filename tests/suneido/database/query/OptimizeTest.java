@@ -11,10 +11,7 @@ public class OptimizeTest extends TestBase {
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.parse(serverData, c[0]);
-			if (q instanceof Select)
-				((Select) q).forceFilters = true;
-			q = q.setup();
+			Query q = CompileQuery.parse(serverData, c[0]).setup();
 			assertEquals(c[0], c[1], q.toString());
 		}
 	}
@@ -102,7 +99,7 @@ public class OptimizeTest extends TestBase {
 			"(trans^(date,item,id) MINUS^(date,item,id) hist^(date,item,id))" },
 
 		{ "(test_minus1 minus test_minus2) where a is 1",
-			"(test_minus1^(a) WHERE^(a) MINUS^(d) test_minus2^(d) WHERE^(d) false)" },
+			"(test_minus1^(a) WHERE^(a) MINUS^(d) test_minus2 WHERE nothing)" },
 
 		{ "trans intersect hist",
 			"(trans^(date,item,id) INTERSECT^(date,item,id) hist^(date,item,id))" },
@@ -114,7 +111,7 @@ public class OptimizeTest extends TestBase {
 			"(hist WHERE (item is 1) INTERSECT-DISJOINT(item) trans WHERE (item is 2))" },
 
 		{ "cus where cnum = 2 and abbrev = 'c'",
-			"cus^(abbrev) WHERE^(abbrev)%((cnum))" },
+			"cus^(abbrev) WHERE^(abbrev)" },
 
 		{ "(trans union trans) intersect (hist union hist)",
 			"((trans^(date,item,id) " +
@@ -180,13 +177,11 @@ public class OptimizeTest extends TestBase {
 
 		{ "(((task join co)) join (cus where abbrev = 'a'))",
 			"((co^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum)%((abbrev)))" },
-				// NOTE: cSuneido doesn't use filter ???
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
 
 		{ "((task join (co where signed = 990103)) join (cus where abbrev = 'a'))",
 			"((co^(tnum) WHERE^(tnum) JOIN 1:1 on (tnum) task^(tnum)) "
-				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum)%((abbrev)))" },
-				// NOTE: cSuneido doesn't use filter ???
+				+ "JOIN n:1 on (cnum) cus^(cnum) WHERE^(cnum))" },
 
 		{ "inven leftjoin trans",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item))" },

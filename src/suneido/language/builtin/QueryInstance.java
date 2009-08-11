@@ -13,6 +13,8 @@ public class QueryInstance extends SuValue {
 	protected String query;
 	protected DbmsQuery q;
 	protected final DbmsTran t;
+	protected Dir eof = null;
+
 
 	public QueryInstance(String query, DbmsQuery q, DbmsTran t) {
 		this.query = query;
@@ -89,7 +91,10 @@ public class QueryInstance extends SuValue {
 
 	private Object getrec(Object[] args, Dir dir) {
 		Args.massage(FunctionSpec.noParams, args);
+		if (eof == dir)
+			return Boolean.FALSE;
 		Row row = q.get(dir);
+		eof = row == null ? dir : null;
 		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 	}
 

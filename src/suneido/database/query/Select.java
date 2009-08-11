@@ -270,7 +270,8 @@ public class Select extends Query1 {
 			source_index = index;
 			double cost = source.optimize(index, union(needs, select_needs), union(
 					firstneeds, select_needs), is_cursor, freeze);
-			nrecs = source.nrecords();
+			if (cost < IMPOSSIBLE)
+				nrecs = source.nrecords();
 			return cost;
 		}
 
@@ -289,8 +290,8 @@ public class Select extends Query1 {
 		if (nil(primary))
 			return IMPOSSIBLE;
 
-		if (!is_cursor)
-			cost = choose_filter(cost);
+//		if (!is_cursor)
+//			cost = choose_filter(cost);
 
 		if (!freeze)
 			return cost;
@@ -306,14 +307,16 @@ public class Select extends Query1 {
 
 		theindexes = tbl.indexes();
 
+		ffracs = new HashMap<String, Double>();
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
 		isels = new HashMap<String, Iselect>();
 		cmps_to_isels(cmps);
-		if (conflicting)
+		if (conflicting) {
+			nrecs = 0;
 			return;
+		}
 		possible = new ArrayList<List<String>>();
 		identify_possible();
-		ffracs = new HashMap<String, Double>();
 		calc_field_fracs();
 		ifracs = new HashMap<List<String>, Double>();
 		calc_index_fracs();
@@ -326,6 +329,9 @@ public class Select extends Query1 {
 		List<String> fields = tbl.tbl.getFields();
 		List<Expr> new_exprs = new ArrayList<Expr>();
 		for (Expr e : expr.exprs) {
+			if (e == Constant.FALSE)
+				conflicting = true;
+
 			if (e.isTerm(fields))
 				if (e instanceof In) {
 					In in = (In) e;
@@ -341,6 +347,17 @@ public class Select extends Query1 {
 						continue;
 					}
 				}
+
+			if (e instanceof BinOp) {
+				BinOp binop = (BinOp) e;
+				if ((binop.op == Token.MATCH || binop.op == Token.MATCHNOT || binop.op == Token.ISNT)
+						&& binop.left.isField(fields)
+						&& binop.right instanceof Constant) {
+					String field = ((Identifier) binop.left).ident;
+					ffracs.put(field, .5);
+				}
+			}
+
 			new_exprs.add(e);
 		}
 		if (new_exprs.size() != expr.exprs.size())
@@ -544,81 +561,13 @@ public class Select extends Query1 {
 	private double primarycost(List<String> idx) {
 		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
 
-		double data_frac = idx.containsAll(select_needs)
-			? idx.containsAll(prior_needs) ? 0 : .5 * datafrac(asList(idx))
-			: datafrac(asList(idx));
+		double data_frac =
+				idx.containsAll(select_needs) && idx.containsAll(prior_needs)
+						? 0 : datafrac(asList(idx));
 
 		double data_read_cost = data_frac * tbl.tbl.totalsize();
 
 		return index_read_cost + data_read_cost;
-	}
-
-	private double choose_filter(double primary_cost) {
-		List<List<String>> available = remove(possible, primary);
-		if (nil(available))
-			return primary_cost;
-		double primary_index_cost = ifracs.get(primary)	* tbl.indexsize(primary);
-		double best_cost = primary_cost;
-		filter = new ArrayList<List<String>>();
-		while (true) {
-			List<String> best_filter = null;
-			filter.add(0, null);
-			for (List<String> idx : available) {
-				if (filter.contains(idx))
-					continue;
-				filter.set(0, idx);
-				double cost = costwith(filter, primary_index_cost);
-				if (forceFilters)
-					cost = best_cost * .5;
-				if (cost < best_cost) {
-					best_cost = cost;
-					best_filter = idx;
-				}
-			}
-			if (best_filter == null)
-				break; // can't reduce cost by adding another filter
-			filter.set(0, best_filter);
-		}
-		filter.remove(0);
-		return best_cost;
-	}
-
-	/* package */boolean forceFilters = false; // for testing
-
-	private final static int FILTER_KEYSIZE = 10;
-
-	private double costwith(List<List<String>> filter, double primary_index_cost) {
-		// PERF avoid copying filter
-		List<List<String>> all = new ArrayList<List<String>>(filter);
-		all.add(primary);
-		double data_frac = includes(all, select_needs)
-			? primary.containsAll(select_needs) ? 0 : .5 * datafrac(all)
-			: datafrac(all);
-
-		// approximate filter cost independent of order of filters
-		double filter_cost = 0;
-		for (List<String> f : filter) {
-			double n = tbl.nrecords() * ifracs.get(f);
-			filter_cost += n * tbl.keysize(f) // read cost
-					+ n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
-		}
-
-		return data_frac * tbl.tbl.totalsize()
-				+ primary_index_cost + filter_cost;
-	}
-
-	// determine whether a set of indexes includes a set of fields
-	// like containsAll, but set of indexes is list of lists
-	private boolean includes(List<List<String>> indexes, List<String> fields) {
-		if (indexes.size() == 1)
-			return indexes.get(0).containsAll(fields);
-		outer: for (String field : fields) {
-			for (List<String> index : indexes)
-				if (index.contains(field))
-					continue outer;
-			return false; // field not found in any index
-		}
-	return true;
 	}
 
 	// end of optimize ==============================================
