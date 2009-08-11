@@ -16,10 +16,7 @@ public class ExecuteTest extends TestBase {
 	public void test() {
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.parse(serverData, c[0]);
-			if (q instanceof Select)
-				((Select) q).forceFilters = true;
-			q = q.setup();
+			Query q = CompileQuery.parse(serverData, c[0]).setup();
 			//System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {

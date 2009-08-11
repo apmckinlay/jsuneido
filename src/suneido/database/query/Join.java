@@ -117,10 +117,28 @@ public class Join extends Query2 {
 		cost1 += nrecs1 * SELECT_COST;
 
 		// cost of reading all of source 2
-		double cost2 = src2.optimize(joincols, needs2, noFields, is_cursor, freeze);
+		double cost2 =
+				src2.optimize(joincols, needs2, noFields, is_cursor, false);
 		if (cost2 >= IMPOSSIBLE)
 			return IMPOSSIBLE;
 		double nrecs2 = src2.nrecords();
+
+		boolean is_cursor2 = is_cursor;
+		if (type == Type.N_ONE && nrecs1 >= 0 && nrecs2 > 0) {
+			double p = nrecs1 / nrecs2;
+			if (!is_cursor && p < .2) {
+				// "1" side can be no bigger than "n" side
+				// if "1" side is a lot bigger, then pass is_cursor = true to avoid temp or filter indexes
+				double cost2b =
+						src2.optimize(joincols, needs2, noFields, true, false);
+				if (cost2b < IMPOSSIBLE) {
+					is_cursor2 = true;
+					cost2 = cost2b;
+				}
+			}
+		}
+		if (freeze)
+			src2.optimize(joincols, needs2, noFields, is_cursor2, true);
 
 		switch (typ) {
 		case ONE_ONE:
