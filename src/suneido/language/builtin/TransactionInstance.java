@@ -3,6 +3,9 @@ package suneido.language.builtin;
 import static suneido.database.server.Command.theDbms;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
+
+import java.util.Map;
+
 import suneido.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
@@ -87,8 +90,9 @@ public class TransactionInstance extends SuValue {
 			new FunctionSpec(array("query", "block"), false);
 
 	private Object Query(Object[] args) {
+		String where = queryWhere(args);
 		args = Args.massage(queryFS, args);
-		String query = Ops.toStr(args[0]);
+		String query = Ops.toStr(args[0]) + where;
 		Object q;
 		if (CompileQuery.isRequest(query))
 			q = theDbms.request(ServerData.forThread(), t, query);
@@ -100,17 +104,38 @@ public class TransactionInstance extends SuValue {
 		return Ops.call(args[1], q);
 	}
 
-	// TODO keyword query arguments
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
 	public static Object queryOne(TransactionInstance t, Object[] args, Dir dir,
 			boolean single) {
+		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
-		String query = Ops.toStr(args[0]);
+		String query = Ops.toStr(args[0]) + where;
 		// TODO serverdata ???
 		HeaderAndRow hr = theDbms.get(new ServerData(), dir, query, single,
 				t == null ? null : t.getTransaction());
 		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static String queryWhere(Object[] args) {
+		ArgsIterator iter = new ArgsIterator(args);
+		String where = "";
+		while (iter.hasNext()) {
+			Object arg = iter.next();
+			if (!(arg instanceof Map.Entry))
+				continue;
+			Map.Entry<Object, Object> e = (Map.Entry<Object, Object>) arg;
+			Object key = e.getKey();
+			Object value = e.getValue();
+			if (key.equals("query"))
+				continue;
+			if (key.equals("block")
+					&& (value instanceof SuCallable || value instanceof SuBlock))
+				continue;
+			where += " where " + key + " = " + value;
+		}
+		return where;
 	}
 
 	private Object Rollback(Object[] args) {
