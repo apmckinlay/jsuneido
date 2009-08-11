@@ -35,10 +35,8 @@ public class ParseQueryTest {
 				{ "a minus b minus c", null },
 				{ "a intersect b", null },
 				{ "a intersect b intersect c", null },
-				{ "a join by() b", "a join b" },
 				{ "a join by(x, y) b", null },
 				{ "a join b join c", null },
-				{ "a leftjoin by() b", "a leftjoin b" },
 				{ "a leftjoin by(x, y) b", null },
 				{ "a leftjoin b leftjoin c", null },
 				{ "a rename b to c, d to e", null },
@@ -59,6 +57,16 @@ public class ParseQueryTest {
 	@Test(expected = SuException.class)
 	public void bad() {
 		parse("");
+	}
+
+	@Test(expected = SuException.class)
+	public void empty_join_by() {
+		parse("a join by() b");
+	}
+
+	@Test(expected = SuException.class)
+	public void empty_leftjoin_by() {
+		parse("a leftjoin by() b");
 	}
 
 	private String parse(String s) {
