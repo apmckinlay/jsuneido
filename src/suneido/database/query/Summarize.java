@@ -60,7 +60,7 @@ public class Summarize extends Query1 {
 		if (copy)
 			s += "-COPY";
 		s += " ";
-		if (via != null)
+		if (!nil(via))
 			s += "^" + listToParens(via) + " ";
 		if (! by.isEmpty())
 			s += listToParens(by) + " ";
@@ -80,8 +80,11 @@ public class Summarize extends Query1 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		List<String> srcneeds = union(remove(on, null), difference(needs, cols));
 
-		if (copy)
+		if (copy) {
+			if (freeze)
+				via = index;
 			return source.optimize(index, srcneeds, by, is_cursor, freeze);
+		}
 
 		List<List<String>> indexes;
 		if (nil(index))
