@@ -160,7 +160,7 @@ public class Join extends Query2 {
 
 		if (nrecs <= 0)
 			cost2 = 0;
-		else if (!src2.tempindexed())
+		else if (is_cursor2 || !src2.tempindexed())
 			cost2 = nrecs * (cost2 / nrecs2);
 
 		return cost1 + cost2;
