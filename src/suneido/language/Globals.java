@@ -15,20 +15,26 @@ import suneido.language.builtin.*;
 public class Globals {
 	private static HashMap<String, Object> globals =
 			new HashMap<String, Object>();
+	private static HashMap<String, Object> builtins =
+			new HashMap<String, Object>();
 	static {
-		globals.put("True", Boolean.TRUE);
-		globals.put("False", Boolean.FALSE);
-		globals.put("Suneido", new SuContainer());
-		globals.put("Date", new DateClass());
-		globals.put("Object", new ObjectClass());
-		globals.put("Sleep", new Sleep());
-		globals.put("DeleteFile", new DeleteFile());
-		globals.put("FileExists?", new FileExistsQ());
-		globals.put("File", new FileClass());
+		builtins.put("True", Boolean.TRUE);
+		builtins.put("False", Boolean.FALSE);
+		builtins.put("Suneido", new SuContainer());
+		builtins.put("Date", new DateClass());
+		builtins.put("Object", new ObjectClass());
+		builtins.put("Sleep", new Sleep());
+		builtins.put("DeleteFile", new DeleteFile());
+		builtins.put("FileExists?", new FileExistsQ());
+		builtins.put("File", new FileClass());
 	}
 
 	private Globals() { // no instances
 		throw SuException.unreachable();
+	}
+
+	public static void builtin(String name, Object value) {
+		builtins.put(name, value);
 	}
 
 	public static int size() {
@@ -46,6 +52,11 @@ public class Globals {
 		Object x = globals.get(name);
 		if (x != null)
 			return x;
+		x = builtins.get(name);
+		if (x != null) {
+			globals.put(name, x);
+			return x;
+		}
 		x = Libraries.load(name);
 		if (x == null)
 			x = loadClass(CompileGenerator.javify(name));
@@ -74,8 +85,18 @@ public class Globals {
 		return sc;
 	}
 
+	/** used by tests */
 	public static void put(String name, Object x) {
 		globals.put(name, x);
+	}
+
+	public static void unload(String name) {
+		globals.remove(name);
+	}
+
+	/** for Libraries.use */
+	public static void clear() {
+		globals.clear();
 	}
 
 }

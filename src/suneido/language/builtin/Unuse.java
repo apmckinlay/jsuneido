@@ -9,8 +9,7 @@ public class Unuse extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(unuseFS, args);
-		// TODO unuse
-		return false;
+		return suneido.language.Libraries.unuse(Ops.toStr(args[0]));
 	}
 
 }

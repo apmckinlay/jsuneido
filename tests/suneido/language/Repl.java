@@ -45,7 +45,7 @@ public class Repl {
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
 
-		Globals.put("Print", new Print());
+		Globals.builtin("Print", new Print());
 	}
 
 	private static void saveTest(String line, Object result)
