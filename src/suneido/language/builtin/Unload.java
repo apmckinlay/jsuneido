@@ -9,7 +9,7 @@ public class Unload extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(unloadFS, args);
-		Globals.put(Ops.toStr(args[0]), null);
+		Globals.unload(Ops.toStr(args[0]));
 		return null;
 	}
 

@@ -6,10 +6,11 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.*;
-import suneido.database.Table;
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
+import suneido.language.Libraries;
 
 /**
  * Connects Suneido to a local database.
@@ -88,7 +89,6 @@ public class DbmsLocal implements Dbms {
 
 	public void dump(String filename) {
 		// TODO dump
-
 	}
 
 	public int finalSize() {
@@ -102,39 +102,11 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<LibGet> libget(String name) {
-		List<LibGet> srcs = new ArrayList<LibGet>();
-		if (theDB == null)
-			return srcs;
-		Record key = new Record();
-		key.add(name);
-		key.add(-1);
-		Transaction tran = theDB.readonlyTran();
-		try {
-			for (String lib : libraries()) {
-				Table table = theDB.getTable(lib);
-				if (table == null)
-					continue;
-				List<String> flds = table.getFields();
-				int group_fld = flds.indexOf("group");
-				int text_fld = flds.indexOf("text");
-				Index index = theDB.getIndex(table, "name,group");
-				if (group_fld < 0 || text_fld < 0 || index == null)
-					continue; // library is invalid, ignore it
-				BtreeIndex.Iter iter = index.btreeIndex.iter(tran, key).next();
-				if (!iter.eof()) {
-					Record rec = theDB.input(iter.keyadr());
-					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
-				}
-			}
-		} finally {
-			tran.complete();
-		}
-		return srcs;
+		return Libraries.libget(name);
 	}
 
 	public List<String> libraries() {
-		// TODO libraries
-		return Collections.singletonList("stdlib");
+		return Libraries.libraries();
 	}
 
 	public SuValue run(String s) {
