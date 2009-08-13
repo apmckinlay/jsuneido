@@ -5,6 +5,11 @@ import static suneido.Suneido.verify;
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.SuException;
+import suneido.SuRecord;
+import suneido.language.*;
+import suneido.language.builtin.TransactionInstance;
+
 /**
  *
  * @author Andrew McKinlay
@@ -21,6 +26,7 @@ public class Table {
 	public int totalsize;
 	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
 			TOTALSIZE = 4;
+	private List<String> flds = null;
 
 	public Table(Record record) {
 		this.record = record;
@@ -63,8 +69,25 @@ public class Table {
 		return totalsize;
 	}
 
-	public void user_trigger(Transaction tran, Record norec, Record r) {
-		// TODO user_trigger
+	public void user_trigger(Transaction tran, Record oldrec, Record newrec) {
+		String trigger = "Trigger_" + name;
+		if (flds == null)
+			flds = getFields();
+//		if (member(disabled_triggers, trigger))
+//			return ;
+		Object fn = Globals.tryget(trigger);
+		if (fn == null)
+			return;
+		if (!(fn instanceof SuCallable))
+			throw new SuException(trigger + " not callable");
+		TransactionInstance t = new TransactionInstance(tran);
+		try {
+			Ops.call(fn, t,
+					oldrec == null ? Boolean.FALSE : new SuRecord(oldrec, flds, t),
+					newrec == null ? Boolean.FALSE : new SuRecord(newrec, flds, t));
+		} catch (SuException e) {
+			throw new SuException(e + " (" + trigger + ")", e);
+		}
 	}
 
 	public void update() {

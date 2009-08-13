@@ -4,6 +4,7 @@ import static suneido.Suneido.verify;
 import static suneido.database.server.Command.theDbms;
 
 import java.util.Iterator;
+import java.util.List;
 
 import suneido.database.Record;
 import suneido.database.query.Header;
@@ -55,6 +56,25 @@ public class SuRecord extends SuContainer {
 //				dependencies(basename(field), x.gcstr());
 //			else
 				put(e.field, x);
+		}
+	}
+
+	public SuRecord(Record rec, List<String> flds, TransactionInstance tran) {
+		hdr = null;
+		this.tran = tran;
+		recadr = 0;
+		status = Status.OLD;
+		int i = 0;
+		for (String field : flds) {
+			if (field.equals("-"))
+				continue ;
+			Object x = Pack.unpack(rec.getraw(i++));
+			// dependencies
+			if (field.endsWith("_deps")) {
+//				char* base = PREFIXA(field, strlen(field) - 5);
+//				dependencies(::symnum(base), x.gcstr());
+			} else
+				put(field, x);
 		}
 	}
 
@@ -157,6 +177,10 @@ public class SuRecord extends SuContainer {
 
 	public boolean isNew() {
 		return status == Status.NEW;
+	}
+
+	public TransactionInstance getTransaction() {
+		return tran;
 	}
 
 }
