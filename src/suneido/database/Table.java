@@ -27,6 +27,7 @@ public class Table {
 	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
 			TOTALSIZE = 4;
 	private List<String> flds = null;
+	private static List<String> disabledTriggers = new ArrayList<String>();
 
 	public Table(Record record) {
 		this.record = record;
@@ -70,11 +71,11 @@ public class Table {
 	}
 
 	public void user_trigger(Transaction tran, Record oldrec, Record newrec) {
+		if (disabledTriggers.contains(name))
+			return;
 		String trigger = "Trigger_" + name;
 		if (flds == null)
 			flds = getFields();
-//		if (member(disabled_triggers, trigger))
-//			return ;
 		Object fn = Globals.tryget(trigger);
 		if (fn == null)
 			return;
@@ -88,6 +89,14 @@ public class Table {
 		} catch (SuException e) {
 			throw new SuException(e + " (" + trigger + ")", e);
 		}
+	}
+
+	public static void disableTrigger(String table) {
+		disabledTriggers.add(table);
+	}
+
+	public static void enableTrigger(String table) {
+		disabledTriggers.remove(table);
 	}
 
 	public void update() {
