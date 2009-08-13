@@ -12,6 +12,8 @@ public class RecordMethods {
 			return Delete(r, args);
 		if (method == "New?")
 			return NewQ(r, args);
+		if (method == "Transaction")
+			return Transaction(r, args);
 		if (method == "Update")
 			return Update(r, args);
 		// TODO Records user defined methods
@@ -33,6 +35,11 @@ public class RecordMethods {
 	private static Boolean NewQ(SuRecord r, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return r.isNew();
+	}
+
+	private static Object Transaction(SuRecord r, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return r.getTransaction();
 	}
 
 	private static Object Update(SuRecord r, Object[] args) {

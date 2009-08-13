@@ -681,7 +681,7 @@ public class Database {
 		tran.create_act(table.num, adr);
 
 		if (!loading)
-			table.user_trigger(tran, Record.MINREC, rec);
+			table.user_trigger(tran, null, rec);
 	}
 
 	void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
@@ -742,7 +742,7 @@ public class Database {
 		if (tran.isReadonly())
 			throw new SuException("can't update from read-only transaction in "
 					+ table.name);
-		
+
 		long oldoff = oldrec.off();
 
 		// check foreign keys
@@ -843,7 +843,7 @@ public class Database {
 		table.update(); // update tables record
 
 		if (!loading)
-			table.user_trigger(tran, rec, Record.MINREC);
+			table.user_trigger(tran, rec, null);
 	}
 
 	// foreign keys =================================================
