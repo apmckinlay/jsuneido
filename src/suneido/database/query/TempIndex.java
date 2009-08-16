@@ -7,6 +7,7 @@ import static suneido.util.Util.prefix;
 
 import java.util.*;
 
+import suneido.SuException;
 import suneido.database.Record;
 
 public class TempIndex extends Query1 {
@@ -70,6 +71,8 @@ public class TempIndex extends Query1 {
 		for (int num = 0; null != (row = source.get(Dir.NEXT)); ++num)
 			{
 			Record key = row.project(srchdr, order);
+			if (key.bufSize() > 4000)
+				throw new SuException("index entry size > 4000: " + order);
 			if (!unique)
 				key.add(num);
 			verify(null == map.put(key, row.getRefs()));
