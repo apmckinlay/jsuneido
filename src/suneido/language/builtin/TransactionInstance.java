@@ -21,7 +21,10 @@ import suneido.language.*;
  * @author Andrew McKinlay
  */
 public class TransactionInstance extends SuValue {
+	private static int nextnum = 0;
+	private final int num = ++nextnum;
 	private final DbmsTran t;
+	private boolean update = false;
 	private boolean ended = false;
 	private String conflict = null;
 
@@ -38,7 +41,6 @@ public class TransactionInstance extends SuValue {
 		if ((args[0] == notPassed) == (args[1] == notPassed))
 			throw new SuException("usage: Transaction(read: [, block ]) "
 					+ "or Transaction(update: [, block ])");
-		boolean update;
 		if (args[0] == notPassed)
 			update = Ops.toBool(args[1]) == 1;
 		else
@@ -146,7 +148,7 @@ public class TransactionInstance extends SuValue {
 
 	private Object UpdateQ(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return t.isReadonly();
+		return update;
 	}
 
 	// used by Transaction for block form
@@ -168,7 +170,7 @@ public class TransactionInstance extends SuValue {
 
 	@Override
 	public String toString() {
-		return super.toString();
+		return "Transaction" + num;
 	}
 
 	public DbmsTran getTransaction() {
