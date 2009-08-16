@@ -98,7 +98,7 @@ public class TransactionInstance extends SuValue {
 			q = theDbms.request(ServerData.forThread(), t, query);
 		else
 			q = new QueryInstance(query,
-					theDbms.query(new ServerData(), t, query), t);
+					theDbms.query(ServerData.forThread(), t, query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
 		return Ops.call(args[1], q);
@@ -111,8 +111,7 @@ public class TransactionInstance extends SuValue {
 		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]) + where;
-		// TODO serverdata ???
-		HeaderAndRow hr = theDbms.get(new ServerData(), dir, query, single,
+		HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir, query, single,
 				t == null ? null : t.getTransaction());
 		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
 	}

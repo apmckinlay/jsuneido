@@ -15,7 +15,7 @@ public class Database extends SuValue {
 	public Object call(Object... args) {
 		args = Args.massage(requestFS, args);
 		String request = Ops.toStr(args[0]);
-		theDbms.admin(new ServerData(), request);
+		theDbms.admin(ServerData.forThread(), request);
 		return Boolean.TRUE;
 	}
 
