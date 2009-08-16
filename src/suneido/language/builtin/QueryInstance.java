@@ -117,6 +117,7 @@ public class QueryInstance extends SuValue {
 	private Object Rewind(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		q.rewind();
+		eof = null;
 		return null;
 	}
 
