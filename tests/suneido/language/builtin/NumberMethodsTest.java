@@ -26,7 +26,7 @@ public class NumberMethodsTest {
 
 	private void format(String num, String mask, String expected) {
 		BigDecimal bd = new BigDecimal(num);
-		assertEquals(expected, NumberMethods.format(bd, mask));
+		assertEquals(expected, NumberMethods.Format(bd, mask));
 	}
 
 	@Test
@@ -39,7 +39,7 @@ public class NumberMethodsTest {
 
 	private void frac(String num, String expected) {
 		BigDecimal bd = new BigDecimal(num);
-		assertEquals(expected, Ops.toStringBD(NumberMethods.frac(bd)));
+		assertEquals(expected, Ops.toStringBD(NumberMethods.Frac(bd)));
 	}
 
 }
