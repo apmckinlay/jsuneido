@@ -163,7 +163,7 @@ public class Summarize extends Query1 {
 		first = false;
 		sums = new ArrayList<Summary>();
 		for (String f : funcs)
-			sums.add(Summary.valueOf(f.toUpperCase()));
+			sums.add(Summary.valueOf(f));
 		hdr = source.header();
 	}
 
@@ -242,110 +242,144 @@ public class Summarize extends Query1 {
 		return false; // override Query1 source->updateable
 	}
 
-	private static enum Summary {
-		COUNT {
-			@Override
-			void init() {
-				n = 0;
-			}
-			@Override
-			void add(Object x) {
-				++n;
-			}
-			@Override
-			Object result() {
-				return n;
-			}
-			int n;
-		},
-		TOTAL {
-			@Override
-			void init() {
-				total = 0;
-			}
-			@Override
-			void add(Object x) {
-				total = Ops.add(total, x);
-			}
-			@Override
-			Object result() {
-				return total;
-			}
-			Object total;
-		},
-		AVERAGE {
-			@Override
-			void init() {
-				n = 0;
-				total = 0;
-			}
-			@Override
-			void add(Object x) {
-				++n;
-				total = Ops.add(total, x);
-			}
-			@Override
-			Object result() {
-				return Ops.div(total, n);
-			}
-			int n = 0;
-			Object total;
-		},
-		MAX {
-			@Override
-			void init() {
-				value = null;
-			}
-			@Override
-			void add(Object x) {
-				if (value == null || Ops.cmp(x, value) > 0)
-					value = x;
-			}
-			@Override
-			Object result() {
-				return value;
-			}
-			Object value;
-		},
-		MIN {
-			@Override
-			void init() {
-				value = null;
-			}
-			@Override
-			void add(Object x) {
-				if (value == null || Ops.cmp(x, value) < 0)
-					value = x;
-			}
-			@Override
-			Object result() {
-				return value;
-			}
-			Object value;
-		},
-		LIST {
-			@Override
-			void init() {
-				set = new HashSet<Object>();
-			}
-			@Override
-			void add(Object x) {
-				set.add(x);
-			}
-			@Override
-			Object result() {
-				SuContainer list = new SuContainer();
-				for (Object x : set)
-					list.append(x);
-				return list;
-			}
-			HashSet<Object> set;
-		};
-
+	private abstract static class Summary {
 		abstract void init();
 		abstract void add(Object x);
-
 		abstract Object result();
+
+		static Summary valueOf(String summary) {
+			summary = summary.toLowerCase();
+			if ("count".equals(summary))
+				return new Count();
+			if ("total".equals(summary))
+				return new Total();
+			if ("average".equals(summary))
+				return new Average();
+			if ("max".equals(summary))
+				return new Max();
+			if ("min".equals(summary))
+				return new Min();
+			if ("list".equals(summary))
+				return new ListSum();
+			throw SuException.unreachable();
+		}
+	}
+	private static class Count extends Summary {
+		@Override
+		void init() {
+			n = 0;
+		}
+		@Override
+		void add(Object x) {
+			++n;
+		}
+		@Override
+		Object result() {
+			return n;
+		}
+		int n;
+	}
+	private static class Total extends Summary {
+		@Override
+		void init() {
+			total = 0;
+		}
+
+		@Override
+		void add(Object x) {
+			total = Ops.add(total, x);
+		}
+
+		@Override
+		Object result() {
+			return total;
+		}
+
+		Object total;
+	}
+
+	private static class Average extends Summary {
+		@Override
+		void init() {
+			n = 0;
+			total = 0;
+		}
+
+		@Override
+		void add(Object x) {
+			++n;
+			total = Ops.add(total, x);
+		}
+
+		@Override
+		Object result() {
+			return Ops.div(total, n);
+		}
+
+		int n = 0;
+		Object total;
+	}
+
+	private static class Max extends Summary {
+		@Override
+		void init() {
+			value = null;
+		}
+
+		@Override
+		void add(Object x) {
+			if (value == null || Ops.cmp(x, value) > 0)
+				value = x;
+		}
+
+		@Override
+		Object result() {
+			return value;
+		}
+
+		Object value;
+	}
+
+	private static class Min extends Summary {
+		@Override
+		void init() {
+			value = null;
+		}
+
+		@Override
+		void add(Object x) {
+			if (value == null || Ops.cmp(x, value) < 0)
+				value = x;
+		}
+
+		@Override
+		Object result() {
+			return value;
+		}
+
+		Object value;
+	}
+
+	private static class ListSum extends Summary {
+		@Override
+		void init() {
+			set = new HashSet<Object>();
+		}
+
+		@Override
+		void add(Object x) {
+			set.add(x);
+		}
+
+		@Override
+		Object result() {
+			SuContainer list = new SuContainer();
+			for (Object x : set)
+				list.append(x);
+			return list;
+		}
+
+		HashSet<Object> set;
 	}
 
 }
