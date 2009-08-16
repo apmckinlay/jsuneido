@@ -11,20 +11,17 @@ import suneido.database.Record;
 import suneido.language.Ops;
 
 public class Summarize extends Query1 {
-	private final List<String> by;
+	final List<String> by;
 	private final List<String> cols;
-	private final List<String> funcs;
-	private final List<String> on;
-	private final boolean copy;
-	private List<String> via;
+	final List<String> funcs;
+	final List<String> on;
+	private enum Strategy { NONE, COPY, SEQUENTIAL, MAP };
+	private Strategy strategy = Strategy.NONE;
+	List<String> via;
 	private boolean first = true;
 	private boolean rewound = true;
-	private Header hdr;
-	private List<Summary> sums;
-	private Row nextrow;
-	private Row currow;
-	private Dir curdir;
-	private final Keyrange sel = new Keyrange();
+	Header hdr;
+	private SummarizeStrategy strategyImp;
 
 	Summarize(Query source, List<String> by, List<String> cols,
 			List<String> funcs, List<String> on) {
@@ -38,7 +35,8 @@ public class Summarize extends Query1 {
 					"summarize: nonexistent columns: "
 					+ difference(by, source.columns()));
 
-		copy = by.isEmpty() || by_contains_key();
+		if (by.isEmpty() || by_contains_key())
+			strategy = Strategy.COPY;
 
 		for (int i = 0; i < cols.size(); ++i)
 			if (cols.get(i) == null)
@@ -57,8 +55,13 @@ public class Summarize extends Query1 {
 	@Override
 	public String toString() {
 		String s = source + " SUMMARIZE";
-		if (copy)
-			s += "-COPY";
+		switch (strategy) {
+		case NONE: break;
+		case COPY: s += "-COPY"; break;
+		case SEQUENTIAL: s += "-SEQ"; break;
+		case MAP: s += "-MAP"; break;
+		default: throw SuException.unreachable();
+		}
 		s += " ";
 		if (!nil(via))
 			s += "^" + listToParens(via) + " ";
@@ -80,7 +83,7 @@ public class Summarize extends Query1 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		List<String> srcneeds = union(remove(on, null), difference(needs, cols));
 
-		if (copy) {
+		if (strategy == Strategy.COPY) {
 			if (freeze)
 				via = index;
 			return source.optimize(index, srcneeds, by, is_cursor, freeze);
@@ -97,13 +100,15 @@ public class Summarize extends Query1 {
 					indexes.add(idx);
 		}
 		Best best = best_prefixed(indexes, by, srcneeds, is_cursor, new Best());
-		if (nil(best.index) && nil(index)) {
-			best.index = by;
-			best.cost = source.optimize(by, srcneeds, noFields, is_cursor,
-					false);
+		if (nil(best.index) && prefix(by, index)) {
+			// accumulate results in memory
+			// doesn't require any order, can only supply in order of "by"
+			strategy = Strategy.MAP;
+			return source.optimize(noFields, srcneeds, by, is_cursor, freeze);
 		}
 		if (nil(best.index))
 			return IMPOSSIBLE;
+		strategy = Strategy.SEQUENTIAL;
 		if (!freeze)
 			return best.cost;
 		via = best.index;
@@ -118,7 +123,7 @@ public class Summarize extends Query1 {
 
 	@Override
 	List<List<String>> indexes() {
-		if (copy)
+		if (strategy == Strategy.COPY)
 			return source.indexes();
 		else {
 			List<List<String>> idxs = new ArrayList<List<String>>();
@@ -161,67 +166,19 @@ public class Summarize extends Query1 {
 
 	private void iterate_setup() {
 		first = false;
-		sums = new ArrayList<Summary>();
-		for (String f : funcs)
-			sums.add(Summary.valueOf(f));
 		hdr = source.header();
+		strategyImp = strategy == Strategy.MAP
+			? new SummarizeStrategyMap(this)
+			: new SummarizeStrategySeq(this);
 	}
 
 	@Override
 	public Row get(Dir dir) {
 		if (first)
 			iterate_setup();
-		if (rewound) {
-			rewound = false;
-			curdir = dir;
-			currow = new Row();
-			nextrow = source.get(dir);
-			if (nextrow == null)
-				return null;
-		}
-
-		// if direction changes, have to skip over previous result
-		if (dir != curdir) {
-			if (nextrow == null)
-				source.rewind();
-			do
-				nextrow = source.get(dir);
-			while (nextrow != null && equal());
-			curdir = dir;
-		}
-
-		if (nextrow == null)
-			return null;
-
-		currow = nextrow;
-		for (Summary s : sums)
-			s.init();
-		do {
-			if (nextrow == null)
-				break;
-			for (int i = 0; i < on.size(); ++i)
-				sums.get(i).add(nextrow.getval(hdr, on.get(i)));
-			nextrow = source.get(dir);
-		} while (equal());
-		// output after reading a group
-
-		// build a result record
-		Record r = new Record();
-		for (String f : by)
-			r.add(currow.getval(hdr, f));
-		for (Summary s : sums)
-			r.add(s.result());
-
-		return new Row(Record.MINREC, r);
-	}
-
-	private boolean equal() {
-		if (nextrow == null)
-			return false;
-		for (String f : by)
-			if (!currow.getval(hdr, f).equals(nextrow.getval(hdr, f)))
-				return false;
-		return true;
+		boolean wasRewound = rewound;
+		rewound = false;
+		return strategyImp.get(dir, wasRewound);
 	}
 
 	@Override
@@ -232,8 +189,9 @@ public class Summarize extends Query1 {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		source.select(index, from, to);
-		sel.set(from, to);
+		strategyImp.select(index, from, to);
+		strategyImp.sel.org = from;
+		strategyImp.sel.end = to;
 		rewound = true;
 	}
 
@@ -242,7 +200,7 @@ public class Summarize extends Query1 {
 		return false; // override Query1 source->updateable
 	}
 
-	private abstract static class Summary {
+	public abstract static class Summary {
 		abstract void init();
 		abstract void add(Object x);
 		abstract Object result();
