@@ -239,23 +239,38 @@ public class Ops {
 	}
 
 	public final static MathContext mc = new MathContext(16);
+	public final static BigDecimal inf =
+			BigDecimal.valueOf(1, Integer.MAX_VALUE);
+	public final static BigDecimal minus_inf =
+			BigDecimal.valueOf(-1, Integer.MAX_VALUE);
+
 
 	public static Number div(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
 		if (xType == Integer.class) {
-			if (yType == Integer.class)
+			if (yType == Integer.class) {
+				if ((Integer) y == 0)
+					return ((Integer) x) < 0 ? minus_inf : inf;
 				return BigDecimal.valueOf((Integer) x).divide(
 						BigDecimal.valueOf((Integer) y), mc);
-			if (yType == BigDecimal.class)
-				return BigDecimal.valueOf((Integer) x).divide((BigDecimal) y,
-						mc);
+			}
+			if (yType == BigDecimal.class) {
+				if (BigDecimal.ZERO.compareTo((BigDecimal) y) == 0)
+					return ((Integer) x) < 0 ? minus_inf : inf;
+				return BigDecimal.valueOf((Integer) x).divide((BigDecimal) y, mc);
+			}
 		} else if (xType == BigDecimal.class) {
-			if (yType == BigDecimal.class)
+			if (yType == BigDecimal.class) {
+				if (BigDecimal.ZERO.compareTo((BigDecimal) y) == 0)
+					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
 				return ((BigDecimal) x).divide((BigDecimal) y, mc);
-			if (yType == Integer.class)
-				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y),
-						mc);
+			}
+			if (yType == Integer.class) {
+				if ((Integer) y == 0)
+					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
+				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y), mc);
+			}
 		}
 		return div(toNum(x), toNum(y));
 	}
@@ -435,6 +450,10 @@ public class Ops {
 	}
 
 	public static String toStringBD(BigDecimal n) {
+		if (n.compareTo(inf) == 0)
+			return "Inf";
+		if (n.compareTo(minus_inf) == 0)
+			return "-Inf";
 		n = n.stripTrailingZeros();
 		String s = Math.abs(n.scale()) >= 20 ? n.toString() : n.toPlainString();
 		return removeLeadingZero(s).replace("E", "e").replace("e+", "e");

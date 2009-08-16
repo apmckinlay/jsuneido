@@ -22,41 +22,41 @@ public class NumberMethods {
 
 	public static Object invoke(BigDecimal n, String method, Object... args) {
 		if (method == "ACos")
-			return acos(n, args);
+			return ACos(n, args);
 		if (method == "ASin")
-			return asin(n, args);
+			return ASin(n, args);
 		if (method == "ATan")
-			return atan(n, args);
+			return ATan(n, args);
 		if (method == "Chr")
 			return Chr(n.intValue(), args);
 		if (method == "Cos")
-			return cos(n, args);
+			return Cos(n, args);
 		if (method == "Exp")
-			return exp(n, args);
+			return Exp(n, args);
 		if (method == "Format")
-			return format(n, args);
+			return Format(n, args);
 		if (method == "Frac")
-			return frac(n, args);
+			return Frac(n, args);
 		if (method == "Int")
 			return Int(n, args);
 		if (method == "Hex")
 			return Hex(n, args);
 		if (method == "Log")
-			return log(n, args);
+			return Log(n, args);
 		if (method == "Log10")
-			return log10(n, args);
+			return Log10(n, args);
 		if (method == "Pow")
-			return pow(n, args);
+			return Pow(n, args);
 		if (method == "Sin")
-			return sin(n, args);
+			return Sin(n, args);
 		if (method == "Sqrt")
-			return sqrt(n, args);
+			return Sqrt(n, args);
 		if (method == "Tan")
-			return tan(n, args);
+			return Tan(n, args);
 		return userDefined("Numbers", method).invoke(n, method, args);
 	}
 
-	static BigDecimal frac(BigDecimal n, Object... args) {
+	static BigDecimal Frac(BigDecimal n, Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
 		BigDecimal i = new BigDecimal(n.toBigInteger());
 		return n.subtract(i);
@@ -86,7 +86,7 @@ public class NumberMethods {
 
 	static BigDecimal half = new BigDecimal(".5");
 
-	static String format(BigDecimal n, Object... args) {
+	static String Format(BigDecimal n, Object... args) {
 		args = Args.massage(maskFS, args);
 		String mask = Ops.toStr(args[0]);
 
@@ -159,76 +159,76 @@ public class NumberMethods {
 	}
 
 	private static final FunctionSpec intFS = new FunctionSpec("integer");
-	private static Object pow(BigDecimal n, Object[] args) {
+	private static Object Pow(BigDecimal n, Object[] args) {
 		args = Args.massage(intFS, args);
 		return n.pow(Ops.toInt(args[0]), Ops.mc);
 	}
 
-	private static BigDecimal cos(BigDecimal n, Object[] args) {
+	private static BigDecimal Cos(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.cos(d));
+		return convert(Math.cos(d), "Cos");
 	}
 
-	private static BigDecimal sin(BigDecimal n, Object[] args) {
+	private static BigDecimal Sin(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.sin(d));
+		return convert(Math.sin(d), "Sin");
 	}
 
-	private static BigDecimal tan(BigDecimal n, Object[] args) {
+	private static BigDecimal Tan(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.tan(d));
+		return convert(Math.tan(d), "Tan");
 	}
 
-	private static BigDecimal acos(BigDecimal n, Object[] args) {
+	private static BigDecimal ACos(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.acos(d));
+		return convert(Math.acos(d), "ACos");
 	}
 
-	private static BigDecimal asin(BigDecimal n, Object[] args) {
+	private static BigDecimal ASin(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.asin(d));
+		return convert(Math.asin(d), "ASin");
 	}
 
-	private static BigDecimal atan(BigDecimal n, Object[] args) {
+	private static BigDecimal ATan(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.atan(d));
+		return convert(Math.atan(d), "ATan");
 	}
 
-	private static BigDecimal exp(BigDecimal n, Object[] args) {
+	private static BigDecimal Exp(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.exp(d));
+		return convert(Math.exp(d), "Exp");
 	}
 
-	private static BigDecimal log(BigDecimal n, Object[] args) {
+	private static BigDecimal Log(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.log(d));
+		return convert(Math.log(d), "Log");
 	}
 
-	private static BigDecimal log10(BigDecimal n, Object[] args) {
+	private static BigDecimal Log10(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.log10(d));
+		return convert(Math.log10(d), "Log10");
 	}
 
-	private static BigDecimal sqrt(BigDecimal n, Object[] args) {
+	private static BigDecimal Sqrt(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		double d = n.doubleValue();
-		return convert(Math.sqrt(d));
+		return convert(Math.sqrt(d), "Sqrt");
 	}
 
-	private static BigDecimal convert(double d) {
+	private static BigDecimal convert(double d, String op) {
 		if (Double.isInfinite(d))
 			throw new SuException("infinite result");
 		if (Double.isNaN(d))
-			throw new SuException("not-a-number result");
+			throw new SuException(op + ": not-a-number result");
 		return new BigDecimal(d);
 	}
 
