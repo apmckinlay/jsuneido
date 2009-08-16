@@ -239,10 +239,10 @@ public class OptimizeTest extends TestBase {
 			"inven^(item) WHERE^(item) EXTEND x = qty" },
 
 		{ "trans summarize item, total cost",
-			"trans^(item) SUMMARIZE ^(item) (item) total_cost = total cost" },
+			"trans^(item) SUMMARIZE-SEQ ^(item) (item) total_cost = total cost" },
 
 		{ "trans summarize item, x = total cost",
-			"trans^(item) SUMMARIZE ^(item) (item) x = total cost" },
+			"trans^(item) SUMMARIZE-SEQ ^(item) (item) x = total cost" },
 
 		{ "trans summarize total cost",
 			"trans^(item) SUMMARIZE-COPY total_cost = total cost" },
