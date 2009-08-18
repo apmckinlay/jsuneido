@@ -199,20 +199,59 @@ public class SuRecord extends SuContainer {
 		observers.remove(observer);
 	}
 
-	public void callObservers(Object member) {
-		for (Object observer : observers) {
-			// TODO prevent cycles (thread local)
-			if (observer instanceof SuMethod)
-				((SuMethod) observer).call(Args.Special.NAMED, "member", member);
-			else if (observer instanceof SuValue)
-				((SuValue) observer).eval(this, Args.Special.NAMED, "member", member);
-			else
-				throw new SuException("invalid observer");
+	public void invalidate(Object member) {
+		callObservers(member);
+	}
+
+	private static class ActiveObserver {
+		public Object observer;
+		public Object member;
+
+		public ActiveObserver(Object observer, Object member) {
+			this.observer = observer;
+			this.member = member;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (!(other instanceof ActiveObserver))
+				return false;
+			ActiveObserver that = (ActiveObserver) other;
+			return observer.equals(that.observer) && member.equals(that.member);
 		}
 	}
 
-	public void invalidate(Object member) {
-		callObservers(member);
+	public static final ThreadLocal<List<ActiveObserver>> activeObservers =
+			new ThreadLocal<List<ActiveObserver>>() {
+				@Override
+				public List<ActiveObserver> initialValue() {
+					return new ArrayList<ActiveObserver>();
+				}
+			};
+
+	public void callObservers(Object member) {
+		List<ActiveObserver> aos = activeObservers.get();
+		for (Object observer : observers) {
+			// prevent cycles
+			ActiveObserver ao = new ActiveObserver(observer, member);
+			if (aos.contains(ao))
+				continue;
+			aos.add(ao);
+			try {
+				if (observer instanceof SuMethod)
+					((SuMethod) observer).call(Args.Special.NAMED, "member",
+							member);
+				else if (observer instanceof SuValue)
+					((SuValue) observer).eval(this, Args.Special.NAMED,
+							"member", member);
+				else
+					throw new SuException("invalid observer");
+			} finally {
+				aos.remove(ao);
+			}
+		}
 	}
 
 }
