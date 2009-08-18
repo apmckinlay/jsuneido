@@ -9,8 +9,7 @@ import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
-import suneido.language.Pack;
-import suneido.language.SuMethod;
+import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.TransactionInstance;
 
@@ -204,9 +203,9 @@ public class SuRecord extends SuContainer {
 		for (Object observer : observers) {
 			// TODO prevent cycles (thread local)
 			if (observer instanceof SuMethod)
-				((SuMethod) observer).call(member);
+				((SuMethod) observer).call(Args.Special.NAMED, "member", member);
 			else if (observer instanceof SuValue)
-				((SuValue) observer).eval(this, member);
+				((SuValue) observer).eval(this, Args.Special.NAMED, "member", member);
 			else
 				throw new SuException("invalid observer");
 		}
