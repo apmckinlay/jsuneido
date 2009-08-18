@@ -3,14 +3,14 @@ package suneido;
 import static suneido.Suneido.verify;
 import static suneido.database.server.Command.theDbms;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.language.Pack;
+import suneido.language.SuMethod;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.TransactionInstance;
 
@@ -19,6 +19,7 @@ public class SuRecord extends SuContainer {
 	private final TransactionInstance tran;
 	private long recadr;
 	private final Status status;
+	private final List<Object> observers = new ArrayList<Object>();
 
 	enum Status {
 		NEW, OLD, DELETED
@@ -81,6 +82,14 @@ public class SuRecord extends SuContainer {
 	@Override
 	public String toString() {
 		return toString("[", "]");
+	}
+
+	@Override
+	public void put(Object key, Object value) {
+		if (get(key).equals(value))
+			return;
+		super.put(key, value);
+		callObservers(key);
 	}
 
 	@Override
@@ -181,6 +190,30 @@ public class SuRecord extends SuContainer {
 
 	public TransactionInstance getTransaction() {
 		return tran;
+	}
+
+	public void addObserver(Object observer) {
+		observers.add(observer);
+	}
+
+	public void removeObserver(Object observer) {
+		observers.remove(observer);
+	}
+
+	public void callObservers(Object member) {
+		for (Object observer : observers) {
+			// TODO prevent cycles (thread local)
+			if (observer instanceof SuMethod)
+				((SuMethod) observer).call(member);
+			else if (observer instanceof SuValue)
+				((SuValue) observer).eval(this, member);
+			else
+				throw new SuException("invalid observer");
+		}
+	}
+
+	public void invalidate(Object member) {
+		callObservers(member);
 	}
 
 }

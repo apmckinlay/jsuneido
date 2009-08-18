@@ -29,7 +29,7 @@ public class SuBlock extends SuValue {
 	}
 
 	@Override
-	public Object eval(Object newSelf, Object[] args) {
+	public Object eval(Object newSelf, Object... args) {
 		if (!(home instanceof SuValue))
 			throw new SuException("Eval requires Suneido value");
 		args = Args.massage(bspec, args);
