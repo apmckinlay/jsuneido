@@ -1,17 +1,26 @@
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
+
+import java.util.Map;
+
+import suneido.SuException;
 import suneido.SuRecord;
-import suneido.language.Args;
-import suneido.language.FunctionSpec;
+import suneido.language.*;
 
 public class RecordMethods {
 
 	public static Object invoke(SuRecord r, String method, Object... args) {
 		if (method == "Delete")
 			return Delete(r, args);
+		if (method == "Invalidate")
+			return Invalidate(r, args);
 		if (method == "New?")
 			return NewQ(r, args);
+		if (method == "Observer")
+			return Observer(r, args);
+		if (method == "RemoveObserver")
+			return RemoveObserver(r, args);
 		if (method == "Transaction")
 			return Transaction(r, args);
 		if (method == "Update")
@@ -32,9 +41,32 @@ public class RecordMethods {
 		return Boolean.TRUE;
 	}
 
+	private static Object Invalidate(SuRecord r, Object[] args) {
+		ArgsIterator iter = new ArgsIterator(args);
+		while (iter.hasNext()) {
+			Object arg = iter.next();
+			if (arg instanceof Map.Entry)
+				throw new SuException("usage: record.Invalidate(member, ...)");
+			r.invalidate(arg);
+		}
+		return null;
+	}
+
 	private static Boolean NewQ(SuRecord r, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return r.isNew();
+	}
+
+	private static Object Observer(SuRecord r, Object[] args) {
+		args = Args.massage(FunctionSpec.value, args);
+		r.addObserver(args[0]);
+		return null;
+	}
+
+	private static Object RemoveObserver(SuRecord r, Object[] args) {
+		args = Args.massage(FunctionSpec.value, args);
+		r.removeObserver(args[0]);
+		return null;
 	}
 
 	private static Object Transaction(SuRecord r, Object[] args) {

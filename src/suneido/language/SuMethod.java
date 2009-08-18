@@ -27,7 +27,7 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
-	public Object eval(Object self, Object[] args) {
+	public Object eval(Object self, Object... args) {
 		return instance.invoke(self, method, args);
 	}
 
