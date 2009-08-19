@@ -1,5 +1,6 @@
 package suneido.language.builtin;
 
+import static suneido.language.UserDefined.userDefinedClass;
 import static suneido.util.Util.array;
 
 import java.util.Map;
@@ -11,6 +12,8 @@ import suneido.language.*;
 public class RecordMethods {
 
 	public static Object invoke(SuRecord r, String method, Object... args) {
+		if (method == "Copy")
+			return Copy(r, args);
 		if (method == "Delete")
 			return Delete(r, args);
 		if (method == "Invalidate")
@@ -25,8 +28,16 @@ public class RecordMethods {
 			return Transaction(r, args);
 		if (method == "Update")
 			return Update(r, args);
-		// TODO Records user defined methods
+
+		SuClass c = userDefinedClass("Records", method);
+		if (c != null)
+			return c.invoke(r, method, args);
 		return ContainerMethods.invoke(r, method, args);
+	}
+
+	private static Object Copy(SuRecord r, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return new SuRecord(r);
 	}
 
 	private static final Object nil = new Object();
@@ -47,7 +58,9 @@ public class RecordMethods {
 			Object arg = iter.next();
 			if (arg instanceof Map.Entry)
 				throw new SuException("usage: record.Invalidate(member, ...)");
+System.out.println("Invalidate " + arg);
 			r.invalidate(arg);
+			r.callObservers(arg);
 		}
 		return null;
 	}
@@ -71,7 +84,8 @@ public class RecordMethods {
 
 	private static Object Transaction(SuRecord r, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return r.getTransaction();
+		Object t = r.getTransaction();
+		return t == null ? Boolean.FALSE : t;
 	}
 
 	private static Object Update(SuRecord r, Object[] args) {

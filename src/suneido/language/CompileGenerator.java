@@ -423,6 +423,8 @@ public class CompileGenerator extends Generator<Object> {
 				: value.id;
 	}
 	private String privatize(String name) {
+		if (c.fstack.isEmpty() && topType == TopType.FUNCTION)
+			return name;
 		if (!c.fstack.isEmpty() && !c.f.isBlock)
 			return name;
 		if (name.startsWith("get_") &&

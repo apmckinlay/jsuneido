@@ -19,6 +19,11 @@ public class SuRecord extends SuContainer {
 	private long recadr;
 	private final Status status;
 	private final List<Object> observers = new ArrayList<Object>();
+	private final Set<Object> invalid = new HashSet<Object>();
+	private final Map<Object, Set<Object>> dependencies =
+			new HashMap<Object, Set<Object>>();
+	private final Deque<Object> activeRules = new ArrayDeque<Object>();
+	private final Set<Object> invalidated = new HashSet<Object>();
 
 	enum Status {
 		NEW, OLD, DELETED
@@ -29,6 +34,14 @@ public class SuRecord extends SuContainer {
 		tran = null;
 		recadr = 0;
 		status = Status.NEW;
+	}
+
+	public SuRecord(SuRecord r) {
+		super(r);
+		hdr = null;
+		tran = null;
+		recadr = 0;
+		status = r.status;
 	}
 
 	public SuRecord(Row row, Header hdr) {
@@ -55,7 +68,7 @@ public class SuRecord extends SuContainer {
 //			if (has_suffix(field, "_deps"))
 //				dependencies(basename(field), x.gcstr());
 //			else
-				put(e.field, x);
+				super.put(e.field, x);
 		}
 	}
 
@@ -74,7 +87,7 @@ public class SuRecord extends SuContainer {
 //				char* base = PREFIXA(field, strlen(field) - 5);
 //				dependencies(::symnum(base), x.gcstr());
 			} else
-				put(field, x);
+				super.put(field, x);
 		}
 	}
 
@@ -88,40 +101,85 @@ public class SuRecord extends SuContainer {
 		if (get(key).equals(value))
 			return;
 		super.put(key, value);
+		invalidateDependents(key);
 		callObservers(key);
+	}
+
+	private void invalidateDependents(Object key) {
+		if (dependencies.containsKey(key))
+			for (Object dep : dependencies.get(key))
+				invalidate(dep);
 	}
 
 	@Override
 	public Object get(Object key) {
-		Object x = super.get(key);
+		RuleContext.Rule ar = RuleContext.top();
+		if (ar != null && ar.rec == this)
+			addDependency(ar.member, key);
+
+		if (containsKey(key) && !invalid.contains(key))
+			return super.get(key);
+
+		Object x = callRule(key);
 		return x == null ? "" : x;
+	}
+
+	private void addDependency(Object src, Object dst) {
+		if (!dependencies.containsKey(dst))
+			dependencies.put(dst, new HashSet<Object>());
+		dependencies.get(dst).add(src);
+	}
+
+	private Object callRule(Object key) {
+		invalid.remove(key);
+		Object rule = Globals.tryget("Rule_" + key);
+		if (rule == null)
+			return null;
+		// prevent cycles
+		if (activeRules.contains(key))
+			return null;
+		activeRules.push(key);
+		try {
+			RuleContext.push(this, key);
+			try {
+				if (rule instanceof SuValue) {
+					Object x = ((SuValue) rule).eval(this);
+					if (x != null)
+						super.put(key, x);
+					return x;
+				} else
+					throw new SuException("invalid Rule_" + key);
+			} finally {
+				RuleContext.pop(this, key);
+			}
+		} finally {
+			assert activeRules.peek() == key;
+			activeRules.pop();
+		}
 	}
 
 	@Override
 	public Record toDbRecord(Header hdr) {
-		String[] fldsyms = hdr.output_fldsyms();
+		List<String> fldsyms = hdr.output_fldsyms();
 		// dependencies
 		// - access all the fields to ensure dependencies are created
-		// Lisp<int> f;
-		// for (f = fldsyms; ! nil(f); ++f)
-		// if (*f != -1)
-		// getdata(symbol(*f));
+		for (String f : hdr.output_fldsyms())
+			if (f != "-")
+				get(f);
 		// - invert stored dependencies
-		// typedef HashMap<ushort, Lisp<ushort> > Deps;
-		// Deps deps;
-		// for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
-		// it != dependents.end(); ++it)
-		// {
-		// for (Lisp<ushort> m = it->val; ! nil(m); ++m)
-		// {
-		// ushort d = depsname(*m);
-		// if (fldsyms.member(d))
-		// deps[d].push(it->key);
-		// }
-		// }
+		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
+		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
+			for (Object x : e.getValue()) {
+				String d = x + "_deps";
+				if (!fldsyms.contains(d))
+					continue;
+				if (!deps.containsKey(d))
+					deps.put(d, new HashSet<Object>());
+				deps.get(d).add(e.getKey());
+			}
 
 		Record rec = new Record();
-		// OstreamStr oss;
+		StringBuilder sb = new StringBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : fldsyms)
@@ -129,19 +187,13 @@ public class SuRecord extends SuContainer {
 				rec.addMin();
 			else if (f == ts)
 				rec.add(theDbms.timestamp());
-			// else if (Lisp<ushort>* pd = deps.find(*f))
-			// {
-			// // output dependencies
-			// oss.clear();
-			// for (Lisp<ushort> d = *pd; ! nil(d); )
-			// {
-			// oss << symstr(*d);
-			// if (! nil(++d))
-			// oss << ",";
-			// }
-			// rec.addval(oss.str());
-			// }
-			else if (null != (x = get(f)))
+			else if (deps.containsKey(f)) {
+				// output dependencies
+				sb.setLength(0);
+				for (Object d : deps.get(f))
+					sb.append(",").append(d);
+				rec.add(sb.substring(1));
+			} else if (null != (x = get(f)))
 				rec.add(x);
 			else
 				rec.addMin();
@@ -200,7 +252,12 @@ public class SuRecord extends SuContainer {
 	}
 
 	public void invalidate(Object member) {
-		callObservers(member);
+		boolean was_valid = !invalid.contains(member);
+		if (invalidated.contains(member))
+			invalidated.add(member); // for observers
+		invalid.add(member);
+		if (was_valid)
+			invalidateDependents(member);
 	}
 
 	private static class ActiveObserver {
@@ -232,9 +289,17 @@ public class SuRecord extends SuContainer {
 			};
 
 	public void callObservers(Object member) {
+		callObservers2(member);
+		for (Iterator<Object> iter = invalidated.iterator(); iter.hasNext();) {
+			Object m = iter.next();
+			iter.remove();
+			callObservers2(m);
+		}
+	}
+
+	public void callObservers2(Object member) {
 		List<ActiveObserver> aos = activeObservers.get();
 		for (Object observer : observers) {
-			// prevent cycles
 			ActiveObserver ao = new ActiveObserver(observer, member);
 			if (aos.contains(ao))
 				continue;
@@ -253,5 +318,7 @@ public class SuRecord extends SuContainer {
 			}
 		}
 	}
+
+
 
 }

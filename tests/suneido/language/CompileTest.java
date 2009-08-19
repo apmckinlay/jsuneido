@@ -94,7 +94,7 @@ public class CompileTest {
 		test("a[b = c]",
 				"a, &b, c, DUP_X2, AASTORE, getMem, ARETURN");
 		test("return this",
- 				"this, ARETURN");
+ 				"self, ARETURN");
 		test("++a;;",
 				"&a, DUP2, AALOAD, add1, AASTORE");
 		test("++a",
@@ -108,13 +108,13 @@ public class CompileTest {
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
 		test(".x",
-				"this, 'Test_x', getMem, ARETURN");
+				"self, 'x', getMem, ARETURN");
 		test(".f()",
-				"this, 'Test_f', invokeN, ARETURN");
+				"self, 'f', invokeN, ARETURN");
 		test("this.f()",
-				"this, 'Test_f', invokeN, ARETURN");
+				"self, 'f', invokeN, ARETURN");
 		test("this[a]()",
-				"this, a, toMethodString, invokeN, ARETURN");
+				"self, a, toMethodString, invokeN, ARETURN");
 		test("a.x = b;;",
  				"a, 'x', b, putMem");
 		test("a.x = b",
@@ -160,9 +160,9 @@ public class CompileTest {
 		test("A().B()",
 				"'A', global, callN, 'B', invokeN, ARETURN");
 		test("new this",
-				"this, '<new>', invokeN, ARETURN");
+				"self, '<new>', invokeN, ARETURN");
 		test("new this(a)",
-				"this, '<new>', a, invokeN, ARETURN");
+				"self, '<new>', a, invokeN, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
 						+ "a: 1, j: 10, k: 11, h: 8, i: 9), callN, ARETURN");
@@ -366,7 +366,7 @@ public class CompileTest {
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
-			{ "this, GETFIELD suneido/language/Test.self : Object;", "this" },
+			{ "this, GETFIELD suneido/language/Test.self : Object;", "self" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
