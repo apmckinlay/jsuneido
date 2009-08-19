@@ -512,7 +512,7 @@ public class SuContainer extends SuValue
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : hdr.output_fldsyms())
-			if (f == null)
+			if (f == "-")
 				rec.addMin();
 			else if (f == ts)
 				rec.add(theDbms.timestamp());

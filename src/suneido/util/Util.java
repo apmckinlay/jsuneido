@@ -277,7 +277,6 @@ public class Util {
 	 */
 	public static <T extends Comparable<? super T>> Range equalRange(
 			List<T> list, T value) {
-//return new Range(lowerBound(list, value), upperBound(list, value));
 		int first = 0;
 		int len = list.size();
 		while (len > 0) {

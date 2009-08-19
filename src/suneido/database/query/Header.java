@@ -9,7 +9,7 @@ import java.util.List;
 public class Header {
 	List<List<String>> flds;
 	List<String> cols;
-	private String[] fldsyms;
+	private List<String> fldsyms;
 	private String timestamp = "";
 
 	public Header(List<List<String>> flds, List<String> cols) {
@@ -109,15 +109,10 @@ public class Header {
 		return schema;
 	}
 
-	public String[] output_fldsyms() {
+	public List<String> output_fldsyms() {
 		if (fldsyms == null) {
 			// WARNING: this depends on flds[1] being the actual fields
-			List<String> flds1 = flds.get(1);
-			int n = flds1.size();
-			fldsyms = new String[n];
-			for (int i = 0; i < n; ++i)
-				fldsyms[i] = flds1.get(i) == "-"
-						? null : flds1.get(i);
+			fldsyms = flds.get(1);
 		}
 		return fldsyms;
 	}
