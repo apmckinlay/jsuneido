@@ -28,7 +28,7 @@ public class TestBase {
 		theDB.close();
 	}
 
-	private void makeDB() {
+	protected void makeDB() {
 		adm("create stdlib (group, name, text) key(name,group)");
 
 		// create customer file

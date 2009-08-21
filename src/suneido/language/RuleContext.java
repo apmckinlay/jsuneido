@@ -5,6 +5,11 @@ import java.util.Deque;
 
 import suneido.SuRecord;
 
+/**
+ * used to auto-register dependencies
+ *
+ * @author Andrew McKinlay
+ */
 public class RuleContext {
 
 	public static void push(SuRecord rec, Object member) {

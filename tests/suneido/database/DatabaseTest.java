@@ -400,4 +400,5 @@ public class DatabaseTest extends TestBase {
 				"(table,tablename,nextfield,nrows,totalsize) key(table) key(tablename)",
 				db.schema("tables"));
 	}
+
 }

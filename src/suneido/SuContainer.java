@@ -119,6 +119,10 @@ public class SuContainer extends SuValue
 
 	@Override
 	public void put(Object key, Object value) {
+		preset(key, value);
+	}
+
+	public void preset(Object key, Object value) {
 		checkReadonly();
 		int i = index(key);
 		if (0 <= i && i < vec.size())

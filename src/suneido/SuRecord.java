@@ -12,7 +12,12 @@ import suneido.database.server.DbmsTran;
 import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.TransactionInstance;
+import suneido.util.Util;
 
+/**
+ *
+ * @author Andrew McKinlay
+ */
 public class SuRecord extends SuContainer {
 	private final Header hdr;
 	private final TransactionInstance tran;
@@ -42,6 +47,8 @@ public class SuRecord extends SuContainer {
 		tran = null;
 		recadr = 0;
 		status = r.status;
+		for (Map.Entry<Object, Set<Object>> e : r.dependencies.entrySet())
+			dependencies.put(e.getKey(), new HashSet<Object>(e.getValue()));
 	}
 
 	public SuRecord(Row row, Header hdr) {
@@ -253,8 +260,7 @@ public class SuRecord extends SuContainer {
 
 	public void invalidate(Object member) {
 		boolean was_valid = !invalid.contains(member);
-		if (invalidated.contains(member))
-			invalidated.add(member); // for observers
+		invalidated.add(member); // for observers
 		invalid.add(member);
 		if (was_valid)
 			invalidateDependents(member);
@@ -319,6 +325,18 @@ public class SuRecord extends SuContainer {
 		}
 	}
 
+	public List<String> getdeps(String field) {
+		List<String> deps = new ArrayList<String>();
+		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
+			for (Object x : e.getValue())
+				if (field.equals(x))
+					deps.add(e.getKey().toString());
+		return deps;
+	}
 
+	public void setdeps(String field, String deps) {
+		for (String d : Util.commasToList(deps))
+			addDependency(field, d);
+	}
 
 }

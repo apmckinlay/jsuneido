@@ -229,8 +229,6 @@ public class Pack {
 		if (-10 <= s && s < 0)
 			for (; s < 0; ++s)
 				n *= 10;
-		if (minus)
-			n = -n;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return (int) n;
 		else
@@ -245,7 +243,7 @@ public class Pack {
 				x = (short) ((~x) & 0xffff);
 			n = n * 10000 + x;
 		}
-		return n;
+		return minus ? -n : n;
 	}
 
 	public static long unpackLong(ByteBuffer buf) {
