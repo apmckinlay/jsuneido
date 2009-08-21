@@ -543,7 +543,7 @@ public class Database {
 
 			// columns
 			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
-			!iter.eof(); iter.next())
+					!iter.eof(); iter.next())
 				table.addColumn(new Column(input(iter.keyadr())));
 			table.sortColumns();
 

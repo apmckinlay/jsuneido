@@ -22,13 +22,13 @@ public class Util {
 			return "";
 		StringBuilder sb = new StringBuilder();
 		for (T x : list) {
+			sb.append(",");
 			if (x instanceof List)
 				sb.append(listToParens((List<String>) x));
 			else
 				sb.append(Ops.toStr(x));
-			sb.append(",");
 		}
-		return sb.deleteCharAt(sb.length() - 1).toString();
+		return sb.substring(1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -37,13 +37,13 @@ public class Util {
 			return "";
 		StringBuilder sb = new StringBuilder();
 		for (T x : list) {
+			sb.append(",");
 			if (x instanceof List)
 				sb.append(displayListToParens((List<String>) x));
 			else
 				sb.append(Ops.display(x));
-			sb.append(",");
 		}
-		return sb.deleteCharAt(sb.length() - 1).toString();
+		return sb.substring(1);
 	}
 
 	public static <T> String listToParens(List<T> list) {
@@ -79,8 +79,8 @@ public class Util {
 	public static String bufferToHex(ByteBuffer buf) {
 		String s = "";
 		for (int i = buf.position(); i < buf.limit(); ++i)
-			s += String.format("%02x", buf.get(i)) + " ";
-		return s.substring(0, s.length() - 1);
+			s += " " + String.format("%02x", buf.get(i));
+		return s.substring(1);
 	}
 
 	public static int bufferUcompare(ByteBuffer b1, ByteBuffer b2) {

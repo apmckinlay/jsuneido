@@ -86,7 +86,7 @@ public class Args {
 	public static SuContainer collectArgs(Object[] args, SuContainer c) {
 		for (int i = 0; i < args.length; ++i) {
 			if (args[i] == NAMED) {
-				c.put(args[i + 1], args[i + 2]);
+				c.preset(args[i + 1], args[i + 2]);
 				i += 2;
 			}
 			else if (args[i] == EACH)

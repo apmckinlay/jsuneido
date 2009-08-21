@@ -37,4 +37,15 @@ public class PackTest {
 		assertEquals(expected, y);
 	}
 
+	@Test
+	public void unpacklong() {
+		ByteBuffer buf = pack(-1);
+		buf.position(0);
+		Object x = Pack.unpack(buf);
+		assertEquals(-1, x);
+		buf.position(0);
+		long n = Pack.unpackLong(buf);
+		assertEquals(-1, n);
+	}
+
 }

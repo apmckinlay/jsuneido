@@ -263,6 +263,7 @@ public class Select extends Query1 {
 			prior_needs = noFields; // needs;
 			select_needs = expr.fields();
 			tbl = source instanceof Table ? (Table) source : null;
+			isels = new HashMap<String, Iselect>();
 		}
 		if (tbl == null || // source isnt a Table
 				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
@@ -309,7 +310,6 @@ public class Select extends Query1 {
 
 		ffracs = new HashMap<String, Double>();
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
-		isels = new HashMap<String, Iselect>();
 		cmps_to_isels(cmps);
 		if (conflicting) {
 			nrecs = 0;
