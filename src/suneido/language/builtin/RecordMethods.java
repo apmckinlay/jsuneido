@@ -25,6 +25,8 @@ public class RecordMethods {
 			return NewQ(r, args);
 		if (method == "Observer")
 			return Observer(r, args);
+		if (method == "PreSet")
+			return PreSet(r, args);
 		if (method == "RemoveObserver")
 			return RemoveObserver(r, args);
 		if (method == "SetDeps")
@@ -82,6 +84,15 @@ public class RecordMethods {
 	private static Object Observer(SuRecord r, Object[] args) {
 		args = Args.massage(FunctionSpec.value, args);
 		r.addObserver(args[0]);
+		return null;
+	}
+
+	private static final FunctionSpec presetFS =
+			new FunctionSpec("field", "value");
+
+	private static Object PreSet(SuRecord r, Object[] args) {
+		args = Args.massage(presetFS, args);
+		r.preset(args[0], args[1]);
 		return null;
 	}
 
