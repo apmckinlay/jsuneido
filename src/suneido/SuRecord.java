@@ -3,6 +3,7 @@ package suneido;
 import static suneido.Suneido.verify;
 import static suneido.database.server.Command.theDbms;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.database.Record;
@@ -66,16 +67,9 @@ public class SuRecord extends SuContainer {
 		status = Status.OLD;
 
 		verify(recadr >= 0);
-		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();)
-			{
+		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
 			Row.Entry e = iter.next();
-			if (e.field.equals("-") || e.value.remaining() == 0)
-				continue ;
-			Object x = Pack.unpack(e.value);
-//			if (has_suffix(field, "_deps"))
-//				dependencies(basename(field), x.gcstr());
-//			else
-				super.put(e.field, x);
+			addField(e.field, e.value);
 		}
 	}
 
@@ -85,16 +79,33 @@ public class SuRecord extends SuContainer {
 		recadr = 0;
 		status = Status.OLD;
 		int i = 0;
-		for (String field : flds) {
-			if (field.equals("-"))
-				continue ;
-			Object x = Pack.unpack(rec.getraw(i++));
-			// dependencies
-			if (field.endsWith("_deps")) {
-//				char* base = PREFIXA(field, strlen(field) - 5);
-//				dependencies(::symnum(base), x.gcstr());
-			} else
-				super.put(field, x);
+		for (String field : flds)
+			addField(field, rec.getraw(i++));
+	}
+
+	private void addField(String field, ByteBuffer buf) {
+		if (field.equals("-") || buf.remaining() == 0)
+			return;
+		Object x = Pack.unpack(buf);
+		if (field.endsWith("_deps"))
+			dependencies(baseFieldName(field), (String) x);
+		else
+			super.put(field, x);
+	}
+
+	/** remove "_deps" suffix */
+	private String baseFieldName(String field) {
+		return field.substring(0, field.length() - 5);
+	}
+
+	private void dependencies(String mem, String s) {
+		for (int pos = 0; pos < s.length();) {
+			int end = s.indexOf(',', pos);
+			if (end == -1)
+				end = s.length();
+			String t = s.substring(pos, end);
+			addDependency(mem, t);
+			pos = end + 1;
 		}
 	}
 
@@ -171,7 +182,7 @@ public class SuRecord extends SuContainer {
 		// dependencies
 		// - access all the fields to ensure dependencies are created
 		for (String f : hdr.output_fldsyms())
-			if (f != "-")
+			if (!f.equals("-"))
 				get(f);
 		// - invert stored dependencies
 		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
