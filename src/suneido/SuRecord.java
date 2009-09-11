@@ -307,6 +307,7 @@ public class SuRecord extends SuContainer {
 
 	public void callObservers(Object member) {
 		callObservers2(member);
+		invalidated.remove(member);
 		for (Iterator<Object> iter = invalidated.iterator(); iter.hasNext();) {
 			Object m = iter.next();
 			iter.remove();
