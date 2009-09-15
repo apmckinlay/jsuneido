@@ -101,7 +101,7 @@ public class BinOp extends Expr {
 	public Object eval(Header hdr, Row row) {
 		// once we're eval'ing it is safe to cache isTerm
 		if (isterm == null)
-			isterm = isTerm(hdr.columns());
+			isterm = isTerm(hdr.fields());
 		if (isterm) {
 			Identifier id = (Identifier) left;
 			ByteBuffer field = row.getraw(hdr, id.ident);

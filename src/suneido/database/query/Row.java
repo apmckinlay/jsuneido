@@ -118,6 +118,10 @@ public class Row {
 			this.di = di;
 			this.ri = ri;
 		}
+		@Override
+		public String toString() {
+			return "Which(" + di + "," + ri + ")";
+		}
 	}
 
 	public void setTransaction(Transaction tran) {
