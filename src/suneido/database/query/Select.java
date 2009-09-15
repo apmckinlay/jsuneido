@@ -868,7 +868,7 @@ public class Select extends Query1 {
 		@Override
 		public String toString() {
 			return "Cmp " + ident + " " + (op == null ? "in" : op.string)
-					+ valueToString(value) + valuesToString(values);
+					+ " " + valueToString(value) + valuesToString(values);
 		}
 	}
 
