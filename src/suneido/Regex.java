@@ -130,6 +130,10 @@ public class Regex {
 	}
 
 	private static int backslash(String rx, int i, StringBuilder sb) {
+		if (i + 1 >= rx.length()) {
+			sb.append("\\\\");
+			return 1;
+		}
 		switch (rx.charAt(i + 1)) {
 		case '<': case '>':
 			sb.append("\\b");
