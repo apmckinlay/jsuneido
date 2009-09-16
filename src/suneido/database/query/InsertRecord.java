@@ -8,7 +8,7 @@ public class InsertRecord extends QueryAction {
 
 	public InsertRecord(Query source, SuRecord record) {
 		super(source);
-		this.record = record;
+		this.record = record == null ? new SuRecord() : record;
 	}
 
 	@Override
