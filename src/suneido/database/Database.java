@@ -264,9 +264,7 @@ public class Database {
 	}
 
 	public void removeTable(String tablename) {
-		if (is_system_table(tablename))
-			throw new SuException("drop: can't destroy system table: "
-					+ tablename);
+		checkForSystemTable(tablename, "drop");
 		Table table = ck_getTable(tablename);
 		Transaction tran = readwriteTran();
 		try {
@@ -282,13 +280,18 @@ public class Database {
 		tables.remove(tablename);
 	}
 
+	private void checkForSystemTable(String tablename, String operation) {
+		if (is_system_table(tablename))
+			throw new SuException("can't " + operation +
+					" system table: " + tablename);
+	}
+
 	public void renameTable(String oldname, String newname) {
 		if (oldname.equals(newname))
 			return ;
 
 		Table tbl = ck_getTable(oldname);
-		if (is_system_table(oldname))
-			throw new SuException("rename table: can't rename system table: " + oldname);
+		checkForSystemTable(oldname, "rename");
 		if (null != getTable(newname))
 			throw new SuException("rename table: table already exists: " + newname);
 
@@ -637,8 +640,7 @@ public class Database {
 	// add record ===================================================
 
 	public void addRecord(Transaction tran, String table, Record r) {
-		if (is_system_table(table))
-			throw new SuException("add record: can't add records to system table: " + table);
+		checkForSystemTable(table, "add record to");
 		add_any_record(tran, table, r);
 	}
 
@@ -713,17 +715,13 @@ public class Database {
 		verify(recadr > 0);
 		int tblnum = adr(recadr - 4).getInt(0);
 		Table tbl = ck_getTable(tblnum);
-		if (is_system_table(tbl.name))
-			throw new SuException("can't update records in system table: "
-					+ tbl.name);
+		checkForSystemTable(tbl.name, "update record in");
 		return update_record(tran, tbl, input(recadr), rec, true);
 	}
 
 	public void updateRecord(Transaction tran, String table, String index,
 			Record key, Record newrec) {
-		if (is_system_table(table))
-			throw new SuException("can't update records in system table: "
-					+ table);
+		checkForSystemTable(table, "update record in");
 		update_any_record(tran, table, index, key, newrec);
 	}
 
@@ -800,20 +798,14 @@ public class Database {
 		verify(recadr > 0);
 		int tblnum = adr(recadr - 4).getInt(0);
 		Table tbl = ck_getTable(tblnum);
-		if (is_system_table(tbl.name))
-			throw new SuException(
-					"delete record: can't delete records from system table: "
-							+ tbl.name);
+		checkForSystemTable(tbl.name, "delete record from");
 		remove_any_record(tran, tbl, input(recadr));
 
 	}
 
 	public void removeRecord(Transaction tran, String tablename, String index,
 			Record key) {
-		if (is_system_table(tablename))
-			throw new SuException(
-					"delete record: can't delete records from system table: "
-					+ tablename);
+		checkForSystemTable(tablename, "delete record from");
 		remove_any_record(tran, tablename, index, key);
 	}
 
