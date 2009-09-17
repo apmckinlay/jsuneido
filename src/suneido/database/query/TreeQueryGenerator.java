@@ -4,8 +4,7 @@ import static suneido.language.Token.COUNT;
 
 import java.util.*;
 
-import suneido.SuException;
-import suneido.SuRecord;
+import suneido.*;
 import suneido.database.query.expr.*;
 import suneido.language.Ops;
 import suneido.language.Token;
@@ -336,7 +335,9 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 	@Override
 	public Object memberList(MType which, Object members, Object member) {
-		SuRecord rec = members == null ? new SuRecord() : (SuRecord) members;
+		SuContainer rec =
+				members == null ? which == MType.RECORD ? new SuRecord()
+						: new SuContainer() : (SuContainer) members;
 		MemDef m = (MemDef) member;
 		if (m.name == null)
 			rec.append(m.value);

@@ -28,10 +28,10 @@ public abstract class SuValue implements Packable {
 		throw new SuException("can't call " + typeName());
 	}
 
-	public Object invoke(String method, Object[] args) {
+	public Object invoke(String method, Object... args) {
 		return invoke(this, method, args);
 	}
-	public Object invoke(Object self, String method, Object[] args) {
+	public Object invoke(Object self, String method, Object... args) {
 		throw methodNotFound(method);
 	}
 

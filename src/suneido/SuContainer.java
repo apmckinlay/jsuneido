@@ -27,7 +27,7 @@ public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	private final List<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
-	private Object defval = null; // TODO defval
+	private Object defval = null;
 	private boolean readonly = false;
 
 	@SuppressWarnings("serial")
@@ -301,7 +301,11 @@ public class SuContainer extends SuValue
 
 	@Override
 	public void pack(ByteBuffer buf) {
-		buf.put(Pack.Tag.OBJECT);
+		pack(buf, Pack.Tag.OBJECT);
+	}
+
+	protected void pack(ByteBuffer buf, byte tag) {
+		buf.put(tag);
 		if (size() == 0)
 			return;
 		buf.putInt(vec.size() ^ 0x80000000);
@@ -320,8 +324,11 @@ public class SuContainer extends SuValue
 		Pack.pack(x, buf);
 	}
 
-	public static Object unpack1(ByteBuffer buf) {
-		SuContainer c = new SuContainer();
+	public static Object unpack(ByteBuffer buf) {
+		return unpack(buf, new SuContainer());
+	}
+
+	public static Object unpack(ByteBuffer buf, SuContainer c) {
 		if (buf.remaining() == 0)
 			return c;
 		int n = buf.getInt() ^ 0x80000000; // vec size

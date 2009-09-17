@@ -142,7 +142,6 @@ public class Ops {
 	public static final Comp comp = new Comp();
 
 
-	// TODO convert from Suneido regex and cache compiled patterns
 	public static boolean match_(Object s, Object rx) {
 		if (s instanceof String && rx instanceof String)
 			return Regex.contains((String) s, (String) rx);
