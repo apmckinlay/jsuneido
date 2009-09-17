@@ -115,6 +115,15 @@ public class SuRecord extends SuContainer {
 	}
 
 	@Override
+	public void pack(ByteBuffer buf) {
+		super.pack(buf, Pack.Tag.OBJECT);
+	}
+
+	public static Object unpack(ByteBuffer buf) {
+		return unpack(buf, new SuRecord());
+	}
+
+	@Override
 	public void put(Object key, Object value) {
 		if (get(key).equals(value))
 			return;

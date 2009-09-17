@@ -199,10 +199,11 @@ public class Pack {
 		case Tag.STRING:
 			return unpackString(buf);
 		case Tag.OBJECT:
-			return SuContainer.unpack1(buf);
+			return SuContainer.unpack(buf);
+		case Tag.RECORD:
+			return SuRecord.unpack(buf);
 		case Tag.DATE:
 			return unpackDate(buf);
-		// TODO unpack other types
 		default:
 			throw new SuException("invalid unpack type: "
 					+ buf.get(buf.position() - 1));
