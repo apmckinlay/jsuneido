@@ -21,7 +21,7 @@ public abstract class Expr {
 	public abstract Expr replace(List<String> from, List<Expr> to);
 
 	public boolean isTerm(List<String> fields) {
-		return false; // TODO override appropriately
+		return false; // override appropriately in derived classes
 	}
 
 	public boolean isField(List<String> fields) {

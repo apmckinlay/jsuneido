@@ -16,9 +16,6 @@ public class Load {
 	byte[] recbuf = new byte[100];
 
 	public void load(String table) {
-		// extern bool thedb_create;
-		// thedb_create = true;
-
 		try {
 			if (!table.equals("")) { // load a single table
 				fin = new BufferedInputStream(
@@ -68,7 +65,6 @@ System.out.println("load_data(" + table + ")");
 				verify(fin.read(buf) == buf.length);
 				int n = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN)
 						.getInt();
-//System.out.println(n);
 				if (n == 0)
 					break;
 				load_data_record(table, tran, n);
@@ -76,7 +72,6 @@ System.out.println("load_data(" + table + ")");
 					verify(tran.complete() == null);
 					tran = theDB.readwriteTran();
 				}
-//break;
 			}
 		} finally {
 			verify(tran.complete() == null);
@@ -90,8 +85,7 @@ System.out.println("load_data(" + table + ")");
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
 		verify(fin.read(recbuf, 0, n) == n);
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
-//System.out.println(rec);
-System.out.println(rec.get(2));
+//System.out.println(rec.get(0));
 
 		try {
 			if (table.equals("views"))
@@ -124,6 +118,7 @@ System.out.println(rec.get(2));
 		Database.theDB = new Database(mmf, CREATE);
 
 		new Load().load("stdlib");
+		new Load().load("Accountinglib");
 
 		Database.theDB.close();
 		Database.theDB = null;

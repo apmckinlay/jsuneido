@@ -60,8 +60,7 @@ public enum Command {
 				return stringToBuffer("ERR invalid transaction mode: " + s
 						+ "\r\n");
 			// TODO session id
-			int tn =
-					ServerData.forThread().addTransaction(
+			int tn = ServerData.forThread().addTransaction(
 					theDbms.transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
 		}
@@ -323,10 +322,10 @@ public enum Command {
 			return stringToBuffer(theDbms.timestamp().toString() + "\r\n");
 		}
 	},
-	DUMP,
-	COPY,
-	RUN,
-	TEXT,
+	DUMP, // TODO DUMP
+	COPY, // TODO COPY
+	RUN, // TODO RUN
+	TEXT, // TODO TEXT
 	BINARY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,

@@ -1,7 +1,7 @@
 package suneido.language;
 
 /*
- TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, Customizable_Test, HistoryTest, HtmIncludeTest, HttpServer2_Test, LongTest, LowerIndexTest, ScheduleAddEditControlTest, ScheduleControlTest, ScheduleTaskTest, SpellCheckCode_Test, WinErrTest));;
+ TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, HistoryTest, HtmIncludeTest, HttpServer_Test, LibIOTest, LongTest, LowerIndexTest, ScheduleAddEditControlTest, ScheduleControlTest, ScheduleTaskTest, SpellCheckCode_Test, WinErrTest));;
  TestRunner.RunAll();;
  */
 
