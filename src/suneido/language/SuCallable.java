@@ -9,7 +9,7 @@ abstract public class SuCallable extends SuValue {
 	protected Object self = null; // used within call methods, set by eval
 
 	@Override
-	public Object eval(Object self, Object[] args) {
+	public Object eval(Object self, Object... args) {
 		SuCallable fn2;
 		try {
 			fn2 = getClass().newInstance();
