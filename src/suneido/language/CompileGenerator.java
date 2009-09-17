@@ -210,6 +210,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object classConstant(String base, Object members) {
+		if (base != null && base.startsWith("_"))
+			base = Globals.overload(base);
 		return finishClass(base, members);
 	}
 
@@ -672,6 +674,8 @@ public class CompileGenerator extends Generator<Object> {
 			c.f.mv.visitInsn(AALOAD);
 			return i < c.f.nparams ? PARAMETER : LOCAL;
 		} else {
+			if (name.startsWith("_") && Character.isUpperCase(name.charAt(1)))
+				name = Globals.overload(name);
 			c.f.mv.visitLdcInsn(name);
 			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals",
 					"get",

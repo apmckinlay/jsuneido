@@ -17,6 +17,7 @@ public class Globals {
 			new HashMap<String, Object>();
 	private static HashMap<String, Object> builtins =
 			new HashMap<String, Object>();
+	private static Integer overload = 0;
 	static {
 		builtins.put("True", Boolean.TRUE);
 		builtins.put("False", Boolean.FALSE);
@@ -60,7 +61,7 @@ public class Globals {
 		x = Libraries.load(name);
 		if (x == null)
 			x = loadClass(CompileGenerator.javify(name));
-		// TODO save a special value to avoid future attempts to load
+		// PERF save a special value to avoid future attempts to load
 		if (x != null)
 			globals.put(name, x);
 		return x;
@@ -97,6 +98,16 @@ public class Globals {
 	/** for Libraries.use */
 	public static void clear() {
 		globals.clear();
+	}
+
+	public static String overload(String base) {
+		String name = base.substring(1);
+		Object x = globals.get(name);
+		if (x == null)
+			throw new SuException("can't find " + base);
+		String nameForPreviousValue = overload.toString() + base;
+		globals.put(nameForPreviousValue, get(name));
+		return nameForPreviousValue;
 	}
 
 }
