@@ -30,7 +30,6 @@ public class SuSequence extends SuValue
 	}
 
 	private Object Next(Object[] args) {
-		// TODO Auto-generated method stub
 		return iter.hasNext() ? iter.next() : this;
 	}
 
