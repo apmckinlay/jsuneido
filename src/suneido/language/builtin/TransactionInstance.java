@@ -121,7 +121,7 @@ public class TransactionInstance extends SuValue {
 	@SuppressWarnings("unchecked")
 	private static String queryWhere(Object[] args) {
 		ArgsIterator iter = new ArgsIterator(args);
-		String where = "";
+		StringBuilder where = new StringBuilder();
 		while (iter.hasNext()) {
 			Object arg = iter.next();
 			if (!(arg instanceof Map.Entry))
@@ -134,9 +134,9 @@ public class TransactionInstance extends SuValue {
 			if (key.equals("block")
 					&& (value instanceof SuCallable || value instanceof SuBlock))
 				continue;
-			where += " where " + key + " = " + value;
+			where.append(" where ").append(key).append(" = ").append(value);
 		}
-		return where;
+		return where.toString();
 	}
 
 	private Object Rollback(Object[] args) {

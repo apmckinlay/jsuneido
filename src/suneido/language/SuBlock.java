@@ -1,5 +1,7 @@
 package suneido.language;
 
+import java.util.Arrays;
+
 import suneido.SuException;
 import suneido.SuValue;
 
@@ -65,7 +67,7 @@ public class SuBlock extends SuValue {
 		int result = 17;
 		result = 31 * result + home.hashCode();
 		result = 31 * result + bspec.hashCode();
-		result = 31 * result + locals.hashCode();
+		result = 31 * result + Arrays.hashCode(locals);
 		return result;
 	}
 
