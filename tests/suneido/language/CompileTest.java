@@ -166,6 +166,13 @@ public class CompileTest {
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
 						+ "a: 1, j: 10, k: 11, h: 8, i: 9), callN, ARETURN");
+
+		test("return .a + .b",
+				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
+		test_b0("Do() { this }",
+				"ALOAD 1, ARETURN");
+		test_b0("Do() { return .a + .b }",
+				"ALOAD 1, 'a', getMem, ALOAD 1, 'b', getMem, add");
 	}
 	@Test public void test_new() {
 		test("new c",
@@ -206,14 +213,15 @@ public class CompileTest {
 				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
 		test("for (a = 0; a < 4; ++i) b",
 				"&a, 0, AASTORE, GOTO L1, "
-				+ "L2, vars, 3, DUP2, AALOAD, add1, AASTORE, "
+				+ "L2, ALOAD 1, 3, DUP2, AALOAD, add1, AASTORE, "
 				+ "L1, a, 4, lt_, IFFALSE L3, b, POP, GOTO L2, L3");
 		test("forever { a; break; b }",
 				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
 		test("forever { a; continue; b }",
 				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
 		test("for (a in b) c",
-				"b, iterator, ASTORE 3, L1, ALOAD 3, hasNext, IFFALSE L2, ALOAD 3, next, vars, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
+				"b, iterator, ASTORE 3, L1, ALOAD 3, hasNext, IFFALSE L2, ALOAD 3, next, ALOAD 1, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
+
 		compile("for (a in b) try c catch ;");
 	}
 	@Test public void test_switch() {
@@ -238,16 +246,16 @@ public class CompileTest {
 		test("try 123 catch 456",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a) 456",
-				"L1, 123, POP, L2, GOTO L3, L4, toString, vars, SWAP, 0, SWAP, "
+				"L1, 123, POP, L2, GOTO L3, L4, toString, ALOAD 1, SWAP, 0, SWAP, "
 				+ "AASTORE, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a, 'x') 456",
-				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, vars, SWAP, "
+				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, ALOAD 1, SWAP, "
 				+ "0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
 	}
 	@Test public void test_block() {
 		test("b = { }",
 				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, vars, IF_ACMPEQ L4, "
+				+ "L2, L3, try L1 L2 L3, DUP, .locals, ALOAD 1, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
@@ -256,7 +264,7 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
 		test("b = { return 123 }", "&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, vars, IF_ACMPEQ L4, "
+				+ "L2, L3, try L1 L2 L3, DUP, .locals, ALOAD 1, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 	}
 	@Test public void test_block_break() {
@@ -269,6 +277,13 @@ public class CompileTest {
 
 	private void test(String expr, String expected) {
 		assertEquals(expr, expected, simplify(compile(expr)));
+	}
+	private void test_b0(String expr, String expected) {
+		String s = compile(expr);
+		s = simplify(s,
+				"Test_b0(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0");
+		s = before(s, ", NEW suneido/language/BlockReturnException");
+		assertEquals(expr, expected, s);
 	}
 
 	private Object[] constants;
@@ -290,7 +305,12 @@ public class CompileTest {
 	}
 
 	private String simplify(String r) {
-		r = after(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+		return simplify(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+	}
+
+	private String simplify(String r, String after) {
+System.out.println(r);
+		r = after(r, after);
 		r = before(r, "    LOCALVARIABLE");
 		//System.out.println(r);
 		r = r.substring(0, r.length() - 6); // label
@@ -303,6 +323,7 @@ public class CompileTest {
 			{ "ALOAD 0, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
 			{ "ALOAD 1, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
 			{ "ALOAD 0, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
+			{ "ALOAD 0, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_1, AALOAD, ASTORE 3, ", "" },
 			{ "ALOAD 1, ICONST_0, AALOAD", "a" },
 			{ "ALOAD 1, ICONST_1, AALOAD", "b" },
 			{ "ALOAD 1, ICONST_2, AALOAD", "c" },
@@ -311,7 +332,6 @@ public class CompileTest {
 			{ "ALOAD 1, ICONST_1", "&b" },
 			{ "ALOAD 1, ICONST_2", "&c" },
 			{ "ALOAD 0", "this" },
-			{ "ALOAD 1", "vars" },
 			{ "ALOAD 2", "const" },
 			{ "ICONST_M1", "-1" },
 			{ "ICONST_", "" },
@@ -352,7 +372,9 @@ public class CompileTest {
 			{ "toBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, this, this, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, vars, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+			{
+								"NEW suneido/language/SuBlock, DUP, this, this, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, ALOAD 1, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;Lsuneido/language/FunctionSpec;[Object;)V",
+								"block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
@@ -380,6 +402,8 @@ public class CompileTest {
 
 	private static String before(String r, String s) {
 		int i = r.indexOf(s);
+		if (i == -1)
+			return r;
 		return r.substring(0, i);
 	}
 
