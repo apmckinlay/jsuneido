@@ -25,7 +25,7 @@ public class Libraries {
 		List<LibGet> srcs = theDbms.libget(name);
 		if (srcs.isEmpty())
 			return null;
-		// TODO overloading
+		//System.out.println("LOAD " + name);
 		String src = (String) Pack.unpack(srcs.get(0).text);
 		try {
 			return Compiler.compile(name, src);

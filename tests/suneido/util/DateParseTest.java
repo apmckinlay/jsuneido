@@ -3,7 +3,6 @@ package suneido.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -24,12 +23,10 @@ public class DateParseTest {
 		bad("25252525", "yMd");
 	}
 
-	private final static DateFormat df = new SimpleDateFormat("yyyy MMM d");
-
 	private void d(String ds, String fmt, String result) {
 		Date d = DateParse.parse(ds, fmt);
 		assertNotNull(d);
-		assertEquals(result, df.format(d));
+		assertEquals(result, new SimpleDateFormat("yyyy MMM d").format(d));
 	}
 
 	private void bad(String ds, String fmt) {

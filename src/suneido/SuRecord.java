@@ -304,6 +304,11 @@ public class SuRecord extends SuContainer {
 			ActiveObserver that = (ActiveObserver) other;
 			return observer.equals(that.observer) && member.equals(that.member);
 		}
+
+		@Override
+		public int hashCode() {
+			throw SuException.unreachable();
+		}
 	}
 
 	public static final ThreadLocal<List<ActiveObserver>> activeObservers =

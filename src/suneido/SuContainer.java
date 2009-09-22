@@ -525,7 +525,7 @@ public class SuContainer extends SuValue
 		for (String f : hdr.output_fldsyms())
 			if (f == "-")
 				rec.addMin();
-			else if (f == ts)
+			else if (f.equals(ts))
 				rec.add(theDbms.timestamp());
 			else if (null != (x = get(f)))
 				rec.add(x);

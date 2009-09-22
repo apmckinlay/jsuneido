@@ -3,6 +3,7 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import suneido.SuContainer;
 import suneido.SuValue;
@@ -51,6 +52,8 @@ public class Seq extends BuiltinClass {
 			}
 
 			public Object next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
 				Object x = i;
 				i = Ops.add(i, by);
 				return x;
