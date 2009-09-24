@@ -509,6 +509,7 @@ public class Ops {
 			if (x instanceof SuValue)
 				return ((SuValue) x).call(args);
 			if (x instanceof String) {
+				// string(object, ...) => object[string](...)
 				Object ob = args[0];
 				args = Arrays.copyOfRange(args, 1, args.length);
 				return invoke(ob, (String) x, args);
@@ -1170,7 +1171,7 @@ public class Ops {
 			return getArray((Object[]) x, toInt(member));
 		else if (member instanceof String)
 			return getProperty(x, (String) member);
-		throw new SuException(typeName(x) + " does not support get");
+		throw new SuException(typeName(x) + " does not support get " + x + "." + member);
 	}
 
 	private static Object getProperty(Object x, String member) {

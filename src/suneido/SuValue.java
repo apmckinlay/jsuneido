@@ -56,7 +56,8 @@ public abstract class SuValue implements Packable {
 	}
 
 	public Object get(Object member) {
-		throw new SuException(typeName() + " does not support get");
+		throw new SuException(typeName() + " " + this
+				+ " does not support get " + member);
 	}
 
 	public void put(Object member, Object value) {
