@@ -2,7 +2,13 @@ package suneido.language;
 
 /*
  TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, HistoryTest, HtmIncludeTest, HttpServer_Test, LibIOTest, LongTest, LowerIndexTest, ScheduleAddEditControlTest, ScheduleControlTest, ScheduleTaskTest, SpellCheckCode_Test, WinErrTest));;
+ TestRunner.RunLib('Accountinglib', quit_on_failure:)
  TestRunner.RunAll();;
+
+ Use('Accountinglib')
+ BookModel.Create('ETA')
+ LibTreeModel.Create('configlib')
+ Create_DemoData('CAD')
  */
 
 import java.io.*;
@@ -20,6 +26,7 @@ public class Repl {
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
 		Compiler.eval("JInit()");
+		Compiler.eval("Use('Accountinglib')");
 		while (true) {
 			out.print("> ");
 			out.flush();
