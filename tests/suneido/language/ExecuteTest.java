@@ -175,6 +175,12 @@ public class ExecuteTest {
 		test("#(a: 123).Eval({ .a })", "123");
 		test("#(A: 123).Eval(function () { .A })", "123");
 		test("#(a: 123).Eval(function () { .a })", "123");
+
+		def("F", "function () { b = { .a }; b() }");
+		test("[a: 123].Eval(F)", "123");
+	}
+	private void def(String name, String source) {
+		Globals.put(name, Compiler.compile(name, source));
 	}
 
 	public static void test(String expr, String result) {
