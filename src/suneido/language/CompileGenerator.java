@@ -1211,9 +1211,8 @@ public class CompileGenerator extends Generator<Object> {
 		Object[] constantsArray = c.f.constants.toArray(arrayObject);
 		c.constants.set(c.f.iConstants, constantsArray);
 
-		FunctionSpec fs =
-				new BlockSpec(c.f.name, blockLocals(),
-						c.f.nparams, c.f.atParam, c.f.iparams);
+		FunctionSpec fs = new BlockSpec(c.f.name, blockLocals(), 
+				c.f.nparams, c.f.atParam, c.f.iparams);
 		c.fspecs.set(c.f.iFspecs, fs);
 		int iFspecs = c.f.iFspecs;
 		hideBlockParams();
