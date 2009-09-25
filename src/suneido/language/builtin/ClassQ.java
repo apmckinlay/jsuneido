@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class ClassQ extends SuFunction {
+public class ClassQ extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {

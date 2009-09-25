@@ -186,6 +186,7 @@ public class ContainerMethods {
 		Object arg = iter.next();
 		if (!(arg instanceof SuValue))
 			throw new SuException("usage: object.Eval requires function");
+		// BUG copyOfRange won't work in all cases e.g. @args
 		return ((SuValue) arg).eval(c, Arrays.copyOfRange(args, 1, args.length));
 	}
 

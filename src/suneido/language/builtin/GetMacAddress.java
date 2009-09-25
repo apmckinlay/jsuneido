@@ -5,7 +5,7 @@ import java.net.*;
 import suneido.SuException;
 import suneido.language.*;
 
-public class GetMacAddress extends SuFunction {
+public class GetMacAddress extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {

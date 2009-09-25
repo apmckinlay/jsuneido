@@ -30,7 +30,10 @@ public class CompileGenerator extends Generator<Object> {
 	private static final FunctionSpec[] arrayFunctionSpec = new FunctionSpec[0];
 	private static final int IFTRUE = IFNE;
 	private static final int IFFALSE = IFEQ;
-	final int THIS = 0;
+	private static final int THIS = 0;
+	private static final int SELF = 1;
+	private static final int ARGS = 2;
+	private static final int CONSTANTS = 3;
 	private ClassGen c = null;
 	private Deque<ClassGen> cstack = null;
 	private static class ClassGen {
@@ -51,16 +54,6 @@ public class CompileGenerator extends Generator<Object> {
 	private static class Function {
 		Function(String name) {
 			this.name = name.intern();
-			if (name.equals("call")) {
-				SELF = 0; // default to "this"
-				ARGS = 1;
-				CONSTANTS = 2;
-			} else {
-				SELF = 1;
-				ARGS = 2;
-				CONSTANTS = 3;
-			}
-			forInTmp = CONSTANTS + 1;
 		}
 
 		final String name;
@@ -78,10 +71,7 @@ public class CompileGenerator extends Generator<Object> {
 		boolean it_param_used = false;
 		TryCatch blockReturnCatcher = null;
 		boolean isBlock;
-		final int ARGS;
-		final int SELF;
-		final int CONSTANTS;
-		int forInTmp;
+		int forInTmp = CONSTANTS + 1;
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
@@ -326,7 +316,7 @@ public class CompileGenerator extends Generator<Object> {
 		mv.visitLabel(end);
 		mv.visitLocalVariable("this", "Lsuneido/language/" + c.name + ";",
 				null, begin, end, 0);
-		mv.visitLocalVariable("self", "Ljava/lang/String;", null,
+		mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
 				begin, end, 1);
 		mv.visitLocalVariable("method", "Ljava/lang/String;", null,
 				begin, end, 2);
@@ -352,7 +342,7 @@ public class CompileGenerator extends Generator<Object> {
 			startClass("suneido/language/SuFunction");
 		} else if (c == null) {
 			assert topType == TopType.OBJECT;
-			startClass("suneido/language/SuFunction"); // ???
+			startClass("suneido/language/SuFunction");
 		}
 		if (c.f == null)
 			startTopFunction((String) name);
@@ -367,6 +357,7 @@ public class CompileGenerator extends Generator<Object> {
 
 		c.f.locals = new ArrayList<String>();
 	}
+
 	private void startTopFunction(String name) {
 		if (name == null)
 			name = "call";
@@ -397,13 +388,11 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	private void startMethod() {
-		if (c.f.name.equals("call"))
-			c.f.mv = c.cv.visitMethod(ACC_PUBLIC, javify(c.f.name),
-					"([Ljava/lang/Object;)Ljava/lang/Object;", null, null);
-		else
-			c.f.mv = c.cv.visitMethod(ACC_PRIVATE, javify(c.f.name),
-					"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
-					null, null);
+		c.f.mv = c.cv.visitMethod(
+				c.f.name.equals("call") ? ACC_PUBLIC : ACC_PRIVATE,
+				javify(c.f.name),
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
+				null, null);
 
 		c.f.mv = new OptimizeToBool(c.f.mv);
 		c.f.mv.visitCode();
@@ -478,11 +467,11 @@ public class CompileGenerator extends Generator<Object> {
 				"params", "[Lsuneido/language/FunctionSpec;");
 		iconst(c.f.mv, c.f.iFspecs);
 		c.f.mv.visitInsn(AALOAD);
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Args",
 				"massage",
 				"(Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)[Ljava/lang/Object;");
-		c.f.mv.visitVarInsn(ASTORE, c.f.ARGS);
+		c.f.mv.visitVarInsn(ASTORE, ARGS);
 	}
 
 	private void loadConstants() {
@@ -495,7 +484,7 @@ public class CompileGenerator extends Generator<Object> {
 				"constants", "[[Ljava/lang/Object;");
 		iconst(c.f.mv, c.f.iConstants);
 		c.f.mv.visitInsn(AALOAD);
-		c.f.mv.visitVarInsn(ASTORE, c.f.CONSTANTS);
+		c.f.mv.visitVarInsn(ASTORE, CONSTANTS);
 	}
 
 	@Override
@@ -523,7 +512,7 @@ public class CompileGenerator extends Generator<Object> {
 		// stack: exception, value, exception
 		c.f.mv.visitInsn(SWAP);
 		// stack: value, exception, exception
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		c.f.mv.visitMethodInsn(INVOKESPECIAL,
 				"suneido/language/BlockReturnException",
 				"<init>",
@@ -582,21 +571,18 @@ public class CompileGenerator extends Generator<Object> {
 
 		Label endLabel = new Label();
 		c.f.mv.visitLabel(endLabel);
-		c.f.mv.visitLocalVariable("this",
-				"Lsuneido/language/" + c.name + ";",
-				null, c.f.startLabel, endLabel, 0);
-		if (!c.f.name.equals("call"))
-			c.f.mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
-					c.f.startLabel, endLabel, c.f.SELF);
-		c.f.mv.visitLocalVariable("args", "[Ljava/lang/Object;",
-				null,
-				c.f.startLabel, endLabel, c.f.ARGS);
-		c.f.mv.visitLocalVariable("constants", "[Ljava/lang/Object;",
-				null,
-				c.f.startLabel, endLabel, c.f.CONSTANTS);
+		c.f.mv.visitLocalVariable("this", "Lsuneido/language/" + c.name + ";",
+				null, c.f.startLabel, endLabel, THIS);
+		c.f.mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
+				c.f.startLabel, endLabel, SELF);
+		c.f.mv.visitLocalVariable("args", "[Ljava/lang/Object;", null,
+				c.f.startLabel, endLabel, ARGS);
+		c.f.mv.visitLocalVariable("constants", "[Ljava/lang/Object;", null,
+				c.f.startLabel, endLabel, CONSTANTS);
 		c.f.mv.visitMaxs(0, 0);
 		c.f.mv.visitEnd();
 	}
+
 
 	private void finishBlockReturnCatcher() {
 		if (c.f.blockReturnCatcher == null)
@@ -611,7 +597,7 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitFieldInsn(GETFIELD,
 				"suneido/language/BlockReturnException",
 				"locals", "[Ljava/lang/Object;");
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		Label label = new Label();
 		c.f.mv.visitJumpInsn(IF_ACMPEQ, label);
 		c.f.mv.visitInsn(ATHROW); // not ours so just re-throw
@@ -637,7 +623,7 @@ public class CompileGenerator extends Generator<Object> {
 					"(I)Ljava/lang/Integer;");
 		} else {
 			int i = constantFor(value);
-			c.f.mv.visitVarInsn(ALOAD, c.f.CONSTANTS);
+			c.f.mv.visitVarInsn(ALOAD, CONSTANTS);
 			iconst(c.f.mv, i);
 			c.f.mv.visitInsn(AALOAD);
 		}
@@ -686,7 +672,7 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	private int localRef(String name) {
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		int i = addLocal(name);
 		iconst(c.f.mv, i);
 		return i;
@@ -719,19 +705,14 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object selfRef() {
-		if (c.f.name.equals("call")) {
-			c.f.mv.visitVarInsn(ALOAD, THIS);
-			c.f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + c.name,
-					"self", "Ljava/lang/Object;");
-		} else
-			c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
+		c.f.mv.visitVarInsn(ALOAD, SELF);
 		return VALUE;
 	}
 
 	@Override
 	public Object superRef() {
 		c.f.mv.visitVarInsn(ALOAD, THIS);
-		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
+		c.f.mv.visitVarInsn(ALOAD, SELF);
 		return VALUE;
 	}
 
@@ -1129,7 +1110,7 @@ public class CompileGenerator extends Generator<Object> {
 		if (!c.f.name.equals("_init"))
 			return;
 		c.f.mv.visitVarInsn(ALOAD, THIS);
-		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
+		c.f.mv.visitVarInsn(ALOAD, SELF);
 		c.f.mv.visitLdcInsn("_init");
 		invokeSuperInit(0);
 		c.f.mv.visitInsn(POP);
@@ -1211,7 +1192,7 @@ public class CompileGenerator extends Generator<Object> {
 		Object[] constantsArray = c.f.constants.toArray(arrayObject);
 		c.constants.set(c.f.iConstants, constantsArray);
 
-		FunctionSpec fs = new BlockSpec(c.f.name, blockLocals(), 
+		FunctionSpec fs = new BlockSpec(c.f.name, blockLocals(),
 				c.f.nparams, c.f.atParam, c.f.iparams);
 		c.fspecs.set(c.f.iFspecs, fs);
 		int iFspecs = c.f.iFspecs;
@@ -1222,13 +1203,13 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
 		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitVarInsn(ALOAD, THIS);
-		c.f.mv.visitVarInsn(ALOAD, c.f.SELF);
+		c.f.mv.visitVarInsn(ALOAD, SELF);
 		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitFieldInsn(GETFIELD, "suneido/language/" + c.name,
 				"params", "[Lsuneido/language/FunctionSpec;");
 		iconst(c.f.mv, iFspecs);
 		c.f.mv.visitInsn(AALOAD);
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuBlock",
 				"<init>",
 				"(Ljava/lang/Object;Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
@@ -1353,7 +1334,7 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	private void saveTopInVar(String var) {
-		c.f.mv.visitVarInsn(ALOAD, c.f.ARGS);
+		c.f.mv.visitVarInsn(ALOAD, ARGS);
 		c.f.mv.visitInsn(SWAP);
 		iconst(c.f.mv, addLocal(var));
 		c.f.mv.visitInsn(SWAP);

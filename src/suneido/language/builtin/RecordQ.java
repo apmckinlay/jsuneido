@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.SuRecord;
 import suneido.language.*;
 
-public class RecordQ extends SuFunction {
+public class RecordQ extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {

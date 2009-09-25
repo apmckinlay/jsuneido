@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Random extends SuFunction {
+public class Random extends BuiltinFunction {
 
 	private final java.util.Random random = new java.util.Random();
 

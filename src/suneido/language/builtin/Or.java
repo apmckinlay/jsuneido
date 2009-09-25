@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Or extends SuFunction {
+public class Or extends BuiltinFunction {
 
 	@Override
 	public Boolean call(Object... args) {

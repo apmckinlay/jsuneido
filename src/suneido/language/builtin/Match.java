@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.language.*;
 
 
-public class Match extends SuFunction {
+public class Match extends BuiltinFunction {
 
 	@Override
 	public Boolean call(Object... args) {

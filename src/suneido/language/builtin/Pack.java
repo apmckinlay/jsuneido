@@ -6,10 +6,10 @@ import suneido.language.*;
 
 /**
  * NOTE: inefficient space-wise - uses one char (2 bytes) per byte
- * 
+ *
  * @author Andrew McKinlay
  */
-public class Pack extends SuFunction {
+public class Pack extends BuiltinFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("string");
 

@@ -26,7 +26,7 @@ public class Repl {
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
 		Compiler.eval("JInit()");
-		Compiler.eval("Use('Accountinglib')");
+		//		Compiler.eval("Use('Accountinglib')");
 		while (true) {
 			out.print("> ");
 			out.flush();
