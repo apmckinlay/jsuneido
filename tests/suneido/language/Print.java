@@ -1,10 +1,7 @@
 package suneido.language;
 
-class Print extends SuFunction {
-	@Override
-	public String toString() {
-		return "Print";
-	}
+class Print extends BuiltinFunction {
+
 	@Override
 	public Object call(Object... args) {
 		for (int i = 0; i < args.length; ++i) {
@@ -19,4 +16,5 @@ class Print extends SuFunction {
 		System.out.println();
 		return null;
 	}
+
 }

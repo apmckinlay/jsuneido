@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Synchronized extends SuFunction {
+public class Synchronized extends BuiltinFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("block");
 

@@ -1,8 +1,10 @@
-package suneido.language;
+package suneido.language.builtin;
 
 import java.io.File;
 
-public class FileExistsQ extends SuFunction {
+import suneido.language.*;
+
+public class FileExistsQ extends BuiltinFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("filename");
 

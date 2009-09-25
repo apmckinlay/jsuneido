@@ -18,6 +18,19 @@ abstract public class SuFunction extends SuCallable {
 	}
 
 	@Override
+	public Object call(Object... args) {
+		return call(this, args);
+	}
+
+	// defined by compiled functions
+	public abstract Object call(Object self, Object... args);
+
+	@Override
+	public Object eval(Object self, Object... args) {
+		return call(self, args);
+	}
+
+	@Override
 	public String typeName() {
 		return "Function";
 	}

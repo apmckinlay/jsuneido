@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Unuse extends SuFunction {
+public class Unuse extends BuiltinFunction {
 
 	private static final FunctionSpec unuseFS = new FunctionSpec("library");
 

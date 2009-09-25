@@ -105,7 +105,12 @@ public abstract class SuClass extends SuCallable {
 
 	@Override
 	public Object call(Object... args) {
-		return invoke(self == null ? this : self, "CallClass", args);
+		return invoke(this, "CallClass", args);
+	}
+
+	@Override
+	public Object eval(Object self, Object... args) {
+		return invoke(self, "CallClass", args);
 	}
 
 	@Override
@@ -119,7 +124,7 @@ public abstract class SuClass extends SuCallable {
 		if (method == "Base?")
 			return BaseQ(self, args);
 		if (method == "Eval")
-			return ContainerMethods.Eval((SuValue) self, args);
+			return ContainerMethods.Eval(self, args);
 		if (method == "Members")
 			return Members(self, args);
 		if (method == "Member?")

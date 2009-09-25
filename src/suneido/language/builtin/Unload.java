@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Unload extends SuFunction {
+public class Unload extends BuiltinFunction {
 
 	private static final FunctionSpec unloadFS = new FunctionSpec("name");
 

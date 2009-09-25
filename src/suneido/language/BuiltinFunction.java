@@ -7,4 +7,9 @@ public class BuiltinFunction extends SuFunction {
 		return "Builtin";
 	}
 
+	// not used by builtin functions
+	@Override
+	public Object call(Object self, Object... args) {
+		return null;
+	}
 }

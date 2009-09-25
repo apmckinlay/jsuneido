@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Sleep extends SuFunction {
+public class Sleep extends BuiltinFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("ms");
 

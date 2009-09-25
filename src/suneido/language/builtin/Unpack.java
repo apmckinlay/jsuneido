@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 import suneido.language.*;
 
-public class Unpack extends SuFunction {
+public class Unpack extends BuiltinFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("string");
 

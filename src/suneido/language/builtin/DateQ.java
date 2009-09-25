@@ -4,7 +4,7 @@ import java.util.Date;
 
 import suneido.language.*;
 
-public class DateQ extends SuFunction {
+public class DateQ extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {

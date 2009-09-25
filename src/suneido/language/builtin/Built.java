@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.WhenBuilt;
 import suneido.language.*;
 
-public class Built extends SuFunction {
+public class Built extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {

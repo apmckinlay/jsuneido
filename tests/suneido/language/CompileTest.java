@@ -156,7 +156,7 @@ public class CompileTest {
 		test("a = function () { }",
 				"&a, 0=aFunction, DUP_X2, AASTORE, ARETURN");
 		test("super.F()",
-				"this, this, 'F', superInvokeN, ARETURN");
+				"this, self, 'F', superInvokeN, ARETURN");
 		test("A().B()",
 				"'A', global, callN, 'B', invokeN, ARETURN");
 		test("new this",
@@ -170,9 +170,9 @@ public class CompileTest {
 		test("return .a + .b",
 				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
 		test_b0("Do() { this }",
-				"ALOAD 1, ARETURN");
+				"self, ARETURN");
 		test_b0("Do() { return .a + .b }",
-				"ALOAD 1, 'a', getMem, ALOAD 1, 'b', getMem, add");
+				"self, 'a', getMem, self, 'b', getMem, add");
 	}
 	@Test public void test_new() {
 		test("new c",
@@ -213,14 +213,14 @@ public class CompileTest {
 				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
 		test("for (a = 0; a < 4; ++i) b",
 				"&a, 0, AASTORE, GOTO L1, "
-				+ "L2, ALOAD 1, 3, DUP2, AALOAD, add1, AASTORE, "
+				+ "L2, args, 3, DUP2, AALOAD, add1, AASTORE, "
 				+ "L1, a, 4, lt_, IFFALSE L3, b, POP, GOTO L2, L3");
 		test("forever { a; break; b }",
 				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
 		test("forever { a; continue; b }",
 				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
 		test("for (a in b) c",
-				"b, iterator, ASTORE 3, L1, ALOAD 3, hasNext, IFFALSE L2, ALOAD 3, next, ALOAD 1, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
+				"b, iterator, ASTORE 4, L1, ALOAD 4, hasNext, IFFALSE L2, ALOAD 4, next, args, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
 
 		compile("for (a in b) try c catch ;");
 	}
@@ -246,16 +246,16 @@ public class CompileTest {
 		test("try 123 catch 456",
 				"L1, 123, POP, L2, GOTO L3, L4, POP, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a) 456",
-				"L1, 123, POP, L2, GOTO L3, L4, toString, ALOAD 1, SWAP, 0, SWAP, "
+				"L1, 123, POP, L2, GOTO L3, L4, toString, args, SWAP, 0, SWAP, "
 				+ "AASTORE, 456, POP, L3, try L1 L2 L4");
 		test("try 123 catch(a, 'x') 456",
-				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, ALOAD 1, SWAP, "
+				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, args, SWAP, "
 				+ "0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
 	}
 	@Test public void test_block() {
 		test("b = { }",
 				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, ALOAD 1, IF_ACMPEQ L4, "
+				+ "L2, L3, try L1 L2 L3, DUP, .locals, args, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
@@ -264,7 +264,7 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
 		test("b = { return 123 }", "&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, ALOAD 1, IF_ACMPEQ L4, "
+				+ "L2, L3, try L1 L2 L3, DUP, .locals, args, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 	}
 	@Test public void test_block_break() {
@@ -305,11 +305,12 @@ public class CompileTest {
 	}
 
 	private String simplify(String r) {
-		return simplify(r, "call([Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+		return simplify(r,
+				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 	}
 
 	private String simplify(String r, String after) {
-System.out.println(r);
+		//System.out.println(r);
 		r = after(r, after);
 		r = before(r, "    LOCALVARIABLE");
 		//System.out.println(r);
@@ -320,19 +321,21 @@ System.out.println(r);
 		r = r.replaceAll(" +", " ");
 		String[][] simplify = {
 			{ "Ljava/lang/", "" },
-			{ "ALOAD 0, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
-			{ "ALOAD 1, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
-			{ "ALOAD 0, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 2, ", "" },
-			{ "ALOAD 0, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_1, AALOAD, ASTORE 3, ", "" },
-			{ "ALOAD 1, ICONST_0, AALOAD", "a" },
-			{ "ALOAD 1, ICONST_1, AALOAD", "b" },
-			{ "ALOAD 1, ICONST_2, AALOAD", "c" },
-			{ "ALOAD 1, ICONST_3, AALOAD", "x" },
-			{ "ALOAD 1, ICONST_0", "&a" },
-			{ "ALOAD 1, ICONST_1", "&b" },
-			{ "ALOAD 1, ICONST_2", "&c" },
 			{ "ALOAD 0", "this" },
-			{ "ALOAD 2", "const" },
+			{ "ALOAD 1", "self" },
+			{ "ALOAD 2", "args" },
+			{ "ALOAD 3", "const" },
+			{ "this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
+			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
+			{ "this, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 3, ", "" },
+			{ "this, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_1, AALOAD, ASTORE 3, ", "" },
+			{ "args, ICONST_0, AALOAD", "a" },
+			{ "args, ICONST_1, AALOAD", "b" },
+			{ "args, ICONST_2, AALOAD", "c" },
+			{ "args, ICONST_3, AALOAD", "x" },
+			{ "args, ICONST_0", "&a" },
+			{ "args, ICONST_1", "&b" },
+			{ "args, ICONST_2", "&c" },
 			{ "ICONST_M1", "-1" },
 			{ "ICONST_", "" },
 			{ ", ACONST_NULL, ARETURN", "" },
@@ -372,9 +375,7 @@ System.out.println(r);
 			{ "toBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{
-								"NEW suneido/language/SuBlock, DUP, this, this, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, ALOAD 1, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;Lsuneido/language/FunctionSpec;[Object;)V",
-								"block" },
+			{ "NEW suneido/language/SuBlock, DUP, this, self, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
@@ -388,7 +389,6 @@ System.out.println(r);
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
-			{ "this, GETFIELD suneido/language/Test.self : Object;", "self" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
