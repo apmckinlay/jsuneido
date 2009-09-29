@@ -71,7 +71,10 @@ public class Pack {
 	}
 
 	private static int packshorts(long n) {
-		return n < 100000000L ? n < 10000 ? 1 : 2 : n < 1000000000000L ? 3 : 4;
+		int i = 0;
+		for (; n != 0; ++i)
+			n /= 10000;
+		return i;
 	}
 
 	public static void pack(Object x, ByteBuffer buf) {
@@ -163,7 +166,7 @@ public class Pack {
 	}
 
 	private static void packLongPart(ByteBuffer buf, long n, boolean minus) {
-		short sh[] = new short[4];
+		short sh[] = new short[5];
 		int i;
 		for (i = 0; n != 0; ++i) {
 			sh[i] = (short) (minus ? (~(n % 10000) & 0xffff) : (n % 10000));
