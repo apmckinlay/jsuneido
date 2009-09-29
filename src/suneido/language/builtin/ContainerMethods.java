@@ -205,7 +205,7 @@ public class ContainerMethods {
 	}
 
 	private static final FunctionSpec keyValueFS =
-	new FunctionSpec("key", "block");
+			new FunctionSpec("key", "block");
 
 	private static Object GetDefault(SuContainer c, Object[] args) {
 		args = Args.massage(keyValueFS, args);
