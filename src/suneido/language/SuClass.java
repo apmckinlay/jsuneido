@@ -125,6 +125,8 @@ public abstract class SuClass extends SuCallable {
 			return BaseQ(self, args);
 		if (method == "Eval")
 			return ContainerMethods.Eval(self, args);
+		if (method == "GetDefault")
+			return GetDefault(self, args);
 		if (method == "Members")
 			return Members(self, args);
 		if (method == "Member?")
@@ -187,6 +189,20 @@ public abstract class SuClass extends SuCallable {
 		if (baseGlobal == null)
 			return Boolean.FALSE;
 		return base().invoke("Base?", args);
+	}
+
+	private static final FunctionSpec keyValueFS =
+			new FunctionSpec("key", "block");
+
+	private Object GetDefault(Object self, Object[] args) {
+		args = Args.massage(keyValueFS, args);
+		String key = Ops.toStr(args[0]);
+		if (vars.containsKey(key))
+			return vars.get(key);
+		Object x = args[1];
+		if (x instanceof SuBlock)
+			x = Ops.call(x);
+		return x;
 	}
 
 	private SuContainer Members(Object self, Object[] args) {
