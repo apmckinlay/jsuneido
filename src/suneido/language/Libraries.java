@@ -22,16 +22,18 @@ public class Libraries {
 	}
 
 	public static Object load(String name) {
-		List<LibGet> srcs = theDbms.libget(name);
-		if (srcs.isEmpty())
-			return null;
 		//System.out.println("LOAD " + name);
-		String src = (String) Pack.unpack(srcs.get(0).text);
-		try {
-			return Compiler.compile(name, src);
-		} catch (SuException e) {
-			throw new SuException("error loading " + name + ": " + e);
+		Object result = null;
+		for (LibGet libget : theDbms.libget(name)) {
+			String src = (String) Pack.unpack(libget.text);
+			try {
+				result = Compiler.compile(name, src);
+				Globals.put(name, result); // needed for overloading
+			} catch (SuException e) {
+				throw new SuException("error loading " + name + ": " + e);
+			}
 		}
+		return result;
 	}
 
 	public static List<LibGet> libget(String name) {
