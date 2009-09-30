@@ -1169,6 +1169,8 @@ public class Ops {
 			return getString((String) x, toInt(member));
 		else if (x instanceof Object[])
 			return getArray((Object[]) x, toInt(member));
+		else if (x instanceof Boolean || x instanceof Number)
+			; // fall thru to error
 		else if (member instanceof String)
 			return getProperty(x, (String) member);
 		throw new SuException(typeName(x) + " does not support get " + x + "." + member);
@@ -1184,7 +1186,7 @@ public class Ops {
 		} catch (IllegalAccessException e) {
 		} catch (InvocationTargetException e) {
 		}
-		throw new SuException("get property failed");
+		throw new SuException("get property failed: " + x + "." + member);
 	}
 	private static String capitalized(String s) {
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
