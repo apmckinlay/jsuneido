@@ -1,6 +1,6 @@
 package suneido.language;
 
-import java.util.HashMap;
+import java.util.*;
 
 import suneido.*;
 import suneido.language.builtin.*;
@@ -13,9 +13,9 @@ import suneido.language.builtin.*;
  * Licensed under GPLv2.</small></p>
  */
 public class Globals {
-	private static HashMap<String, Object> globals =
-			new HashMap<String, Object>();
-	private static HashMap<String, Object> builtins =
+	private static Map<String, Object> globals =
+			Collections.synchronizedMap(new HashMap<String, Object>());
+	private static Map<String, Object> builtins =
 			new HashMap<String, Object>();
 	private static Integer overload = 0;
 	static {

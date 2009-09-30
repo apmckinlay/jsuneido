@@ -171,6 +171,7 @@ public class SuRecord extends SuContainer {
 			try {
 				if (rule instanceof SuValue) {
 					Object x = ((SuValue) rule).eval(this);
+					//System.out.println("callRule " + key + " => " + x);
 					if (x != null)
 						super.put(key, x);
 					return x;

@@ -113,8 +113,8 @@ public class RecordMethods {
 
 	private static Object Transaction(SuRecord r, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		Object t = r.getTransaction();
-		return t == null ? Boolean.FALSE : t;
+		TransactionInstance t = r.getTransaction();
+		return t == null || t.isEnded() ? Boolean.FALSE : t;
 	}
 
 	private static Object Update(SuRecord r, Object[] args) {

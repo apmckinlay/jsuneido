@@ -9,6 +9,8 @@ package suneido.language;
  BookModel.Create('ETA')
  LibTreeModel.Create('configlib')
  Create_DemoData('CAD')
+ Ap_CreateCheck_Test()
+ RenameRule_Test()
  */
 
 import java.io.*;
@@ -26,7 +28,7 @@ public class Repl {
 		BufferedReader in =
 				new BufferedReader(new InputStreamReader(System.in));
 		Compiler.eval("JInit()");
-		//		Compiler.eval("Use('Accountinglib')");
+		Compiler.eval("Use('Accountinglib')");
 		while (true) {
 			out.print("> ");
 			out.flush();
