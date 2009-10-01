@@ -1,6 +1,7 @@
 package suneido;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.Ops.*;
 
 import java.math.BigDecimal;
@@ -51,15 +52,17 @@ public class SuValueTest {
 		int j = toInt(y);
 		Object z;
 		z = add(x, y);
-		assertEquals(BigDecimal.valueOf(i + j), z);
+		assertTrue(i + " + " + j + " should be " + z, is(i + j, z));
 		z = sub(x, y);
-		assertEquals(BigDecimal.valueOf(i - j), z);
+		assertTrue(i + " - " + j + " should be " + z, is(i - j, z));
 		z = mul(x, y);
-		assertEquals(BigDecimal.valueOf(i * j), z);
+		assertTrue(i + " * " + j + " should be " + z, is(i * j, z));
 		if (j == 0)
 			return ; // skip divide by zero
 		z = div(x, y);
-		assertEquals(BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), mc), z);
+		BigDecimal expected =
+				BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), mc);
+		assertTrue(i + " / " + j + " should be " + z, is(expected, z));
 	}
 
 }
