@@ -52,8 +52,8 @@ public class OpsTest {
 		Object y = 456;
 		assertEquals(579, add(x, y));
 		Object z = BigDecimal.valueOf(.9);
-		assertEquals(456.9, add(z, y));
-		assertEquals(123.9, add(x, z));
+		assertEquals(new BigDecimal("456.9"), add(z, y));
+		assertEquals(new BigDecimal("123.9"), add(x, z));
 	}
 
 	@Test

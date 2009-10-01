@@ -141,7 +141,6 @@ public class Ops {
 
 	public static final Comp comp = new Comp();
 
-
 	public static boolean match_(Object s, Object rx) {
 		if (s instanceof String && rx instanceof String)
 			return Regex.contains((String) s, (String) rx);
@@ -191,7 +190,7 @@ public class Ops {
 			return stringToPlainNumber((String) x);
 		if (xType == Boolean.class)
 			return (Boolean) x ? 1 : 0;
-		// MAYBE other types e.g. long, BigInteger
+		// MAYBE other types e.g. long, BigInteger or double
 		throw new SuException("can't convert " + typeName(x) + " to number");
 	}
 
