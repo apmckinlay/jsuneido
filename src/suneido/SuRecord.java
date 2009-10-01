@@ -173,7 +173,7 @@ public class SuRecord extends SuContainer {
 					Object x = ((SuValue) rule).eval(this);
 					//System.out.println("callRule " + key + " => " + x);
 					if (x != null)
-						super.put(key, x);
+						putMap(key, x);
 					return x;
 				} else
 					throw new SuException("invalid Rule_" + key);
