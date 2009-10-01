@@ -78,6 +78,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				return "";
 		}
 		String base = lexer.getValue();
+		int i = base.startsWith("_") ? 1 : 0;
+		if (!Character.isUpperCase(base.charAt(i)))
+			syntaxError("base class must be global defined in library");
 		matchSkipNewlines(IDENTIFIER);
 		return base;
 	}

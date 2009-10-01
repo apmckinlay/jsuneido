@@ -24,7 +24,10 @@ public class Rename extends Query1 {
 		if (!nil(dups))
 			throw new SuException("rename: column(s) already exist: " + dups);
 
-		// also rename dependencies
+		renameDependencies(src);
+	}
+
+	private void renameDependencies(List<String> src) {
 		boolean copy = false;
 		for (int i = 0; i < from.size(); ++i) {
 			String deps = from.get(i) + "_deps";
