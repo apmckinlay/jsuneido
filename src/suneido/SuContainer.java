@@ -133,6 +133,11 @@ public class SuContainer extends SuValue
 			map.put(key, value);
 	}
 
+	/** used by CallRule, bypasses readonly */
+	protected void putMap(Object key, Object value) {
+		map.put(key, value);
+	}
+
 	@Override
 	public Object get(Object key) {
 		return getDefault(key, defval);
