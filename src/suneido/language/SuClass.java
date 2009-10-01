@@ -222,13 +222,8 @@ public abstract class SuClass extends SuCallable {
 	private Boolean MemberQ(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);
 		String key = Ops.toStr(args[0]);
-		Object x = get3(key);
-		if (x != null && !(x instanceof Marker))
-			return Boolean.TRUE;
-		for (FunctionSpec fs : params)
-			if (key.equals(fs.name)) // TODO skip blocks & nested functions
-				return Boolean.TRUE;
-		return Boolean.FALSE;
+		Object x = get2(key);
+		return x == null || x instanceof Marker ? Boolean.FALSE : Boolean.TRUE;
 	}
 
 	private Object MethodClass(Object self, Object[] args) {

@@ -189,22 +189,7 @@ public class SuRecord extends SuContainer {
 	@Override
 	public Record toDbRecord(Header hdr) {
 		List<String> fldsyms = hdr.output_fldsyms();
-		// dependencies
-		// - access all the fields to ensure dependencies are created
-		for (String f : hdr.output_fldsyms())
-			if (!f.equals("-"))
-				get(f);
-		// - invert stored dependencies
-		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
-		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
-			for (Object x : e.getValue()) {
-				String d = x + "_deps";
-				if (!fldsyms.contains(d))
-					continue;
-				if (!deps.containsKey(d))
-					deps.put(d, new HashSet<Object>());
-				deps.get(d).add(e.getKey());
-			}
+		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 
 		Record rec = new Record();
 		StringBuilder sb = new StringBuilder();
@@ -226,6 +211,25 @@ public class SuRecord extends SuContainer {
 			else
 				rec.addMin();
 		return rec;
+	}
+
+	private Map<Object, Set<Object>> getDeps(Header hdr, List<String> fldsyms) {
+		// access all fields to ensure dependencies are created
+		for (String f : hdr.output_fldsyms())
+			if (!f.equals("-"))
+				get(f);
+		// invert dependencies
+		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
+		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
+			for (Object x : e.getValue()) {
+				String d = x + "_deps";
+				if (!fldsyms.contains(d))
+					continue;
+				if (!deps.containsKey(d))
+					deps.put(d, new HashSet<Object>());
+				deps.get(d).add(e.getKey());
+			}
+		return deps;
 	}
 
 	@Override
