@@ -130,18 +130,39 @@ public class Record
 		if (equals(MAXREC))
 			return "[MAX]";
 
-		// String s = "";
-		// s += (char) getType() + " " + getNfields() + " = ";
-		// try {
-		// for (int i = 0; i < 7; ++i)
-		// s += rep.getOffset(i) + ":" + fieldSize(i) + " ";
-		// } catch (Throwable e) {
-		// }
-		// return s;
 		String s = "[";
 		for (int i = 0; i < getNfields(); ++i)
 			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i))) + ",";
 		return s.substring(0, s.length() - 1) + "]";
+	}
+
+	public String toDebugString() {
+		String s = "";
+		s += " limit " + buf.limit() + " ";
+		int nfields = getNfields();
+		s += (char) getType() + " " + nfields + " = ";
+		try {
+			for (int i = 0; i < Math.max(nfields, 10); ++i)
+				s += rep.getOffset(i) + ":" + fieldSize(i) + " ";
+		} catch (Throwable e) {
+			s += e;
+		}
+		return s;
+	}
+
+	public void validate() {
+		char type = (char) getType();
+		assert type == 'c' || type == 's' || type == 'l';
+		int nfields = getNfields();
+		assert nfields >= 0;
+		int limit = buf.limit();
+		for (int i = 0; i < nfields; ++i) {
+			int offset = rep.getOffset(i);
+			assert offset <= limit;
+			int size = fieldSize(i);
+			assert size >= 0;
+			assert offset + size <= limit;
+		}
 	}
 
 	public Object toObject() {
@@ -161,9 +182,9 @@ public class Record
 	}
 
 	public static Record fromObject(Mmfile mmf, Object ob) {
-		return ob instanceof Integer ? new Record(mmf.adr(Mmfile
-				.intToOffset((Integer) ob))) : new Record(ByteBuffer
-						.wrap((byte[]) ob));
+		return ob instanceof Integer
+				? new Record(mmf.adr(Mmfile.intToOffset((Integer) ob)))
+				: new Record(ByteBuffer.wrap((byte[]) ob));
 	}
 
 	public long off() {
@@ -266,6 +287,10 @@ public class Record
 		return true;
 	}
 
+	public int available() {
+		return rep.avail();
+	}
+
 	private void moveLeft(int start, int end, int amount) {
 		for (int i = start; i < end; ++i)
 			buf.put(i - amount, buf.get(i));
@@ -320,7 +345,6 @@ public class Record
 	}
 
 	public String getString(int i) {
-		// PERF could bypass SuValue instance if SuString
 		return Ops.toStr(get(i));
 	}
 

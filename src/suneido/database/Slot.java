@@ -90,4 +90,8 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public long keyadr() {
 		return key.getMmoffset(key.size() - 1);
 	}
+
+	public Slot dup() {
+		return key == Record.MINREC ? this : new Slot(key.dup(), adrs);
+	}
 }

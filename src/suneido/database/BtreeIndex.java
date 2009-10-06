@@ -11,20 +11,19 @@ import static suneido.Suneido.verify;
  * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
-	Destination dest;
-	Btree bt;
-	boolean iskey;
-	boolean unique;
-	int tblnum;
-	String indexColumns;
+	private final Destination dest;
+	private final Btree bt;
+	final boolean iskey;
+	final boolean unique;
+	final int tblnum;
+	private String indexColumns;
 
 	/**
 	 * Create a new index.
 	 */
 	public BtreeIndex(Destination dest, int tblnum, String index,
 			boolean isKey, boolean unique) {
-		init(dest, tblnum, index, isKey, unique);
-		bt = new Btree(dest);
+		this(dest, tblnum, index, isKey, unique, new Btree(dest));
 	}
 
 	/**
@@ -32,17 +31,26 @@ public class BtreeIndex {
 	 */
 	public BtreeIndex(Destination dest, int tblnum, String index,
 			boolean iskey, boolean unique, long root, int treelevels, int nnodes) {
-		init(dest, tblnum, index, iskey, unique);
-		bt = new Btree(dest, root, treelevels, nnodes);
+		this(dest, tblnum, index, iskey, unique,
+				new Btree(dest, root, treelevels, nnodes));
 	}
 
-	private void init(Destination dest, int tblnum, String index,
-			boolean iskey, boolean unique) {
+	private BtreeIndex(Destination dest, int tblnum, String index,
+			boolean iskey, boolean unique, Btree bt) {
 		this.dest = dest;
+		this.bt = bt;
 		this.iskey = iskey;
 		this.unique = unique;
 		this.tblnum = tblnum;
 		this.indexColumns = index;
+	}
+
+	public String getIndexColumns() {
+		return indexColumns;
+	}
+
+	public void setIndexColumns(String indexColumns) {
+		this.indexColumns = indexColumns;
 	}
 
 	public long root() {
@@ -72,6 +80,10 @@ public class BtreeIndex {
 
 	public boolean remove(Record key) {
 		return bt.remove(key);
+	}
+
+	public boolean isValid() {
+		return bt.isValid();
 	}
 
 	public float rangefrac(Record from, Record to) {

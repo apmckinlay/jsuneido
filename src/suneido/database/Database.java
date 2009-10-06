@@ -149,7 +149,9 @@ public class Database {
 
 	private long createSchemaIndex(BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, Index.record(btreeIndex));
-		Record key1 = new Record().add(btreeIndex.tblnum).add(btreeIndex.indexColumns)
+		Record key1 = new Record()
+				.add(btreeIndex.tblnum)
+				.add(btreeIndex.getIndexColumns())
 		.addMmoffset(at);
 		verify(indexes_index.insert(NULLTRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
@@ -399,7 +401,7 @@ public class Database {
 				if (i < 0)
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);
-				idx.btreeIndex.indexColumns = listToCommas(cols);
+				idx.btreeIndex.setIndexColumns(listToCommas(cols));
 				update_any_record(tran, "indexes", "table,columns",
 						key(tbl.num, idx.columns), idx.record());
 				}

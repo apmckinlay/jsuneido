@@ -275,6 +275,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 		fm[chunk].force();
 		// have to depend on garbage collection finalization to unmap
 		fm[chunk] = null;
+assert false;
 	}
 
 	private MmCheck check(long offset) {

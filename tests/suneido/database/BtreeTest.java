@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static org.junit.Assert.*;
+import static suneido.Suneido.verify;
 
 import java.util.*;
 
@@ -109,6 +110,50 @@ public class BtreeTest {
 	}
 
 	@Test
+	public void sorted() {
+		Btree bt = new Btree(new DestMem());
+		final int N = 1000;
+		for (int i = 0; i < N; ++i) {
+			verify(bt.insert(new Slot(makerec(i))));
+			if (i % 10 == 0)
+				assertTrue(bt.isValid());
+		}
+		check(bt, N);
+	}
+
+	@Test
+	public void reverse_sorted() {
+		Btree bt = new Btree(new DestMem());
+		final int N = 1000;
+		for (int i = N - 1; i >= 0; --i) {
+			verify(bt.insert(new Slot(makerec(i))));
+			if (i % 10 == 0)
+				assertTrue(bt.isValid());
+		}
+		check(bt, N);
+	}
+
+	private void check(Btree bt, final int N) {
+		assertTrue(bt.isValid());
+
+		Btree.Iter iter = bt.first();
+		for (int i = 0; i < N; ++i) {
+			assertFalse(iter.eof());
+			assertEquals(i, iter.cur().key.getLong(0));
+			iter.next();
+		}
+		assertTrue(iter.eof());
+
+		iter = bt.last();
+		for (int i = N - 1; i >= 0; --i) {
+			assertFalse(iter.eof());
+			assertEquals(i, iter.cur().key.getLong(0));
+			iter.prev();
+		}
+		assertTrue(iter.eof());
+	}
+
+	@Test
 	public void rangefrac_onelevel() {
 		Btree bt = new Btree(new DestMem());
 		assertfeq(0, bt.rangefrac(makerec(10, 0), makerec(20, 0)));
@@ -188,7 +233,4 @@ public class BtreeTest {
 	final private static String filler =
 			"hellooooooooooooooooooooooooooooooooooooooooooo";
 
-	// public static void main(String args[]) {
-	// new BtreeTest().test();
-	// }
 }
