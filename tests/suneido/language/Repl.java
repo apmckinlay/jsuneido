@@ -10,7 +10,7 @@ package suneido.language;
  Wipeout_DemoData()
  Create_DemoData('CAD')
 
- Wipeout_DemoData(); Ar_Credit_Limit_Test()
+ Ar_Discounts_Test()
  */
 
 import java.io.*;

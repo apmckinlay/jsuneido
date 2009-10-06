@@ -144,11 +144,15 @@ public class SuRecord extends SuContainer {
 		if (ar != null && ar.rec == this)
 			addDependency(ar.member, key);
 
-		if (containsKey(key) && !invalid.contains(key))
-			return super.get(key);
-
-		Object x = callRule(key);
-		return x == null ? "" : x;
+		Object result = containsKey(key) ? super.get(key) : null;
+		if (result == null || invalid.contains(key)) {
+			Object x = callRule(key);
+			if (x != null)
+				result = x;
+			else if (result == null)
+				result = "";
+		}
+		return result;
 	}
 
 	private void addDependency(Object src, Object dst) {
