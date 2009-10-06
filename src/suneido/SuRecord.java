@@ -57,7 +57,7 @@ public class SuRecord extends SuContainer {
 	}
 
 	public SuRecord(Row row, Header hdr, DbmsTran tran) {
-		this(row, hdr, new TransactionInstance(tran));
+		this(row, hdr, tran == null ? null : new TransactionInstance(tran));
 	}
 
 	public SuRecord(Row row, Header hdr, TransactionInstance tran) {

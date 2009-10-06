@@ -32,8 +32,9 @@ public class TransactionInstance extends SuValue {
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), notPassed, notPassed);
 
-	public TransactionInstance(DbmsTran tran) {
-		this.t = tran;
+	public TransactionInstance(DbmsTran t) {
+		assert t != null;
+		this.t = t;
 	}
 
 	public TransactionInstance(Object[] args) {
