@@ -69,10 +69,9 @@ public class Index {
 			String fktable, String fkcolumns, int fkmode) {
 		Record r = new Record()
 			.add(btreeIndex.tblnum)
-			.add(btreeIndex.indexColumns)
-			.add(
-						btreeIndex.iskey ? Boolean.TRUE : btreeIndex.unique
-								? UNIQUE : Boolean.FALSE)
+			.add(btreeIndex.getIndexColumns())
+			.add(btreeIndex.iskey ? Boolean.TRUE : 
+					btreeIndex.unique ? UNIQUE : Boolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
 		indexInfo(r, btreeIndex);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize

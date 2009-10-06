@@ -92,6 +92,10 @@ public class Slots extends AbstractList<Slot> {
 		remove(size() - 1);
 	}
 
+	public int remaining() {
+		return rec.available();
+	}
+
 	public long next() {
 		return Mmfile.intToOffset(buf.getInt(NEXT_OFFSET));
 	}
@@ -107,7 +111,7 @@ public class Slots extends AbstractList<Slot> {
 
 	/**
 	 * Used to avoid instantiating a Slots object just to set next
-	 * 
+	 *
 	 * @param buf
 	 * @param value
 	 */
@@ -117,7 +121,7 @@ public class Slots extends AbstractList<Slot> {
 
 	/**
 	 * Used to avoid instantiating a Slots object just to set prev
-	 * 
+	 *
 	 * @param buf
 	 * @param value
 	 */

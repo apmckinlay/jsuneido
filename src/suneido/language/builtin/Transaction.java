@@ -35,6 +35,7 @@ public class Transaction extends BuiltinClass {
 			t.ck_complete();
 			throw bre;
 		} catch (SuException e) {
+			//e.printStackTrace();
 			t.abort();
 			throw e;
 		}

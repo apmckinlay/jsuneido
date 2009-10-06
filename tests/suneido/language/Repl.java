@@ -6,11 +6,11 @@ package suneido.language;
  TestRunner.RunAll();;
 
  Use('Accountinglib')
- BookModel.Create('ETA')
- LibTreeModel.Create('configlib')
+ BookModel.Create('ETA'); LibTreeModel.Create('configlib')
+ Wipeout_DemoData()
  Create_DemoData('CAD')
- Ap_CreateCheck_Test()
- RenameRule_Test()
+
+ Wipeout_DemoData(); Ar_Credit_Limit_Test()
  */
 
 import java.io.*;

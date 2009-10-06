@@ -3,6 +3,7 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
+import suneido.SuException;
 
 /**
  * Btree implementation.
@@ -15,7 +16,7 @@ public class Btree {
 	final public static int MAXLEVELS = 20;
 	final public static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
-	enum Insert { OK, DUP, FULL };	// return values for insert
+	enum Insert { OK, DUP, WONT_FIT };	// return values for insert
 
 	private final Destination dest;
 	private long root_;
@@ -58,44 +59,28 @@ public class Btree {
 		verify(nnodes == 1);
 		return new LeafNode(root()).isEmpty();
 	}
-	/**
-	 * @return true if the structure is valid, false if not.
-	 * Can be used via assert(isValid()) to avoid overhead in production.
-	 */
+
+	// not void so we can call it with assert
 	public boolean isValid() {
 		long[] links = new long[] { 0, -1 };
-		return isValid(root(), 0, links)
-			&& links[1] == 0; // final next should be 0
+		isValid(root(), 0, links);
+		assert links[1] == 0; // final next should be 0
+		return true;
 	}
 	// links is checked and then set by each leaf node
-	private boolean isValid(long adr, int level, long[] links) {
-		if (level < treelevels)
-			{
+	private void isValid(long adr, int level, long[] links) {
+		if (level < treelevels) {
 			TreeNode tn = new TreeNode(adr);
-			if (! tn.isValid())
-				return false;
-			int i = 0;
-			for (; i < tn.slots.size(); ++i)
-				{
-				if (! isValid(tn.slots.get(i).adrs[0], level + 1, links))
-					return false;
-				}
-			if (! isValid(tn.next(), level + 1, links))
-				return false;
-			}
-		else
-			{
+			for (int i = 0; i < tn.slots.size(); ++i)
+				isValid(tn.slots.get(i).adrs[0], level + 1, links);
+			isValid(tn.next(), level + 1, links);
+		} else {
 			LeafNode ln = new LeafNode(adr);
-			if (links[0] != ln.prev())
-				return false; // our prev is wrong
-			if (links[1] != -1 && links[1] != adr)
-				return false; // previous leaf node's next was wrong
-			if (! ln.isValid())
-				return false;
+			assert links[0] == ln.prev(); // our prev is wrong
+			assert links[1] == -1 || links[1] == adr; // prev's next was wrong
 			links[0] = adr;
 			links[1] = ln.next();
-			}
-		return true;
+		}
 	}
 
 	public boolean insert(Slot x) { // returns false for duplicate key
@@ -104,41 +89,41 @@ public class Btree {
 		// search down the tree
 		long adr = root();
 		int i;
-		for (i = 0; i < treelevels; ++i)
-			{
+		for (i = 0; i < treelevels; ++i) {
 			nodes[i] = new TreeNode(adr);
 			adr = nodes[i].find(x.key);
-			}
+		}
 		LeafNode leaf = new LeafNode(adr);
 
 		// insert the key & data into the leaf
 		Insert status = leaf.insert(x);
-		if (status != Insert.FULL)
+		if (status != Insert.WONT_FIT)
 			return status == Insert.OK;
 		// split
 		++modified;
 		LeafNode left = leaf.split(x);
 		++nnodes;
-		verify(Insert.OK == (x.compareTo(left.slots.back()) <= 0
-				? left.insert(x) : leaf.insert(x)));
+		if (!(Insert.OK == (x.compareTo(left.slots.back()) <= 0
+				? left.insert(x) : leaf.insert(x))))
+			throw new SuException("index entry too large to insert");
 		Record key = left.slots.back().key.dup();
 		adr = left.adr;
 
 		// insert up the tree as necessary
-		for (--i; i >= 0; --i)
-			{
+		for (--i; i >= 0; --i) {
 			if (nodes[i].insert(key, adr))
 				return true;
 			// else split
 			TreeNode tleft = nodes[i].split(key);
 			++nnodes;
-			verify(tleft.slots.back().key.compareTo(key) < 0
-					? nodes[i].insert(key, adr) : tleft.insert(key, adr));
+			if (!(tleft.slots.back().key.compareTo(key) < 0 ? nodes[i].insert(
+					key, adr) : tleft.insert(key, adr)))
+				throw new SuException("index entry too large to insert");
 			key = tleft.slots.back().key.dup();
 			tleft.setNext(tleft.slots.back().adrs[0]);
 			tleft.slots.removeLast();
 			adr = tleft.adr;
-			}
+		}
 		newRoot(key, adr);
 		return true ;
 	}
@@ -157,13 +142,12 @@ public class Btree {
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 
 		// search down the tree
-		long off = root();
 		int i;
-		for (i = 0; i < treelevels; ++i)
-			{
+		long off = root();
+		for (i = 0; i < treelevels; ++i) {
 			nodes[i] = new TreeNode(off);
 			off = nodes[i].find(key);
-			}
+		}
 		// erase the key and data from the leaf
 		LeafNode leaf = new LeafNode(off);
 		if (! leaf.erase(new Slot(key)))
@@ -173,25 +157,22 @@ public class Btree {
 		leaf.unlink();
 		--nnodes;
 		++modified;
-		// erase empty nodes up the tree as necessary
-		for (--i; i > 0; --i)
-			{
-			nodes[i].erase(key);
-			if (! nodes[i].isEmpty())
+		// erase up the tree
+		for (--i; i > 0; --i) {
+			nodes[i].erase(key, i + 1 < treelevels ? nodes[i + 1].adr : off);
+			if (!nodes[i].isEmpty())
 				return true;
 			--nnodes;
-			}
-		nodes[0].erase(key);
-		off = root_;
-		for (; treelevels > 0; --treelevels)
-			{
-			TreeNode node = new TreeNode(off);
+		}
+		nodes[0].erase(key, i + 1 < treelevels ? nodes[i + 1].adr : off);
+		// remove roots with only single pointer (no keys)
+		for (; treelevels > 0; --treelevels) {
+			TreeNode node = new TreeNode(root_);
 			if (node.slots.size() > 0)
-				break ;
-			off = node.next();
+				return true;
+			root_ = node.next();
 			--nnodes;
-			}
-		root_ = off;
+		}
 		return true;
 	}
 
@@ -234,6 +215,7 @@ public class Btree {
 			TreeNode node = new TreeNode(adr);
 			Slots slots = node.slots;
 			int i = lowerBound(slots, new Slot(key));
+			assert slots.size() > 0;
 			return start + (nodefrac * i) / slots.size();
 			}
 		else
@@ -241,6 +223,7 @@ public class Btree {
 			LeafNode node = new LeafNode(adr);
 			Slots slots = node.slots;
 			int i = lowerBound(slots, new Slot(key));
+			assert slots.size() > 0;
 			return start + (nodefrac * i) / slots.size();
 			}
 		}
@@ -255,7 +238,7 @@ public class Btree {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			slots = new Slots(dest.adr(adr), mode);
-			assert(isValid());
+			assert isValid(mode);
 		}
 		Insert insert(Slot x)
 			{
@@ -263,7 +246,7 @@ public class Btree {
 			if (i < slots.size() && slots.get(i).equals(x))
 				return Insert.DUP;
 			else if (! slots.insert(i, x))
-				return Insert.FULL;
+				return Insert.WONT_FIT;
 			return Insert.OK;
 			}
 		boolean erase(Slot x)
@@ -284,11 +267,13 @@ public class Btree {
 				percent = 25;
 			LeafNode left = new LeafNode(dest.alloc(NODESIZE, Mmfile.OTHER),
 					Mode.CREATE);
-			int n = slots.size();
-			int nright = (n * percent) / 100;
-			// move first half of right keys to left
-			left.slots.add(slots, 0, slots.size() - nright);
-			slots.remove(0, slots.size() - nright);
+
+			int rem = (left.slots.remaining() * percent) / 100;
+			while (left.slots.remaining() > rem) {
+				left.slots.add(slots.front());
+				slots.remove(0);
+			}
+
 			// maintain linked list of leaves
 			left.setPrev(prev());
 			left.setNext(adr);
@@ -319,17 +304,17 @@ public class Btree {
 			slots.setPrev(prev);
 		}
 
-		boolean isValid() {
-			if (prev() == TREENODE_PREV)
-				return false;
+		// not void so we can call it with assert
+		private boolean isValid(Mode mode) {
+			assert prev() != TREENODE_PREV;
 			int n = slots.size();
-			if (n <= 1)
+			assert n != 0 || mode == Mode.CREATE || adr == root_;
+			if (n == 0)
 				return true;
 			Slot prev = slots.get(0);
 			for (int i = 1; i < n; ++i) {
 				Slot x = slots.get(i);
-				if (prev.compareTo(slots.get(i)) >= 0)
-					return false;
+				assert prev.compareTo(slots.get(i)) < 0;
 				prev = x;
 			}
 			return true;
@@ -348,7 +333,7 @@ public class Btree {
 			this.adr = adr;
 			if (mode == Mode.CREATE)
 				slots.setPrev(TREENODE_PREV);
-			assert(isValid());
+			assert isValid(mode);
 		}
 
 		// returns false if no room
@@ -363,19 +348,30 @@ public class Btree {
 			int i = lowerBound(slots, new Slot(key));
 			return i < slots.size() ? slots.get(i).adrs[0] : slots.next();
 			}
-		void erase(Record key) {
+
+		void erase(Record key, long adr) {
 			// NOTE: erases the first key >= key
 			// this is so Btree erase can use target key
+			//			if (slots.size() == 0) {
+			//				slots.setNext(0);
+			//				return false;
+			//			}
 			if (slots.size() == 0) {
 				slots.setNext(0);
-				return ;
+				return;
 			}
 			int slot = lowerBound(slots, new Slot(key));
 			if (slot == slots.size()) {
+				assert adr == slots.next();
 				--slot;
 				slots.setNext(slots.get(slot).adrs[0]);
-			}
+			} else
+				assert adr == slots.get(slot).adrs[0];
 			slots.remove(slot);
+
+for (int i = 0; i < slots.size(); ++i)
+	assert slots.get(i).adrs[0] != adr;
+assert slots.next() != adr;
 		}
 		TreeNode split(Record key) {
 			int percent = 50;
@@ -403,19 +399,18 @@ public class Btree {
 			slots.setNext(next);
 		}
 
-		boolean isValid() {
+		private boolean isValid(Mode mode) {
 			if (slots.prev() != TREENODE_PREV)
 				return false;
 			int n = slots.size();
-			if (n > 0 && next() == 0)
-				return false;
-			if (n <= 1)
+			assert !isEmpty() || mode == Mode.CREATE;
+			if (n == 0)
 				return true;
+			assert next() != 0;
 			Slot prev = slots.get(0);
 			for (int i = 1; i < n; ++i) {
 				Slot x = slots.get(i);
-				if (prev.compareTo(slots.get(i)) >= 0)
-					return false;
+				assert prev.compareTo(slots.get(i)) < 0;
 				prev = x;
 			}
 			return true;
@@ -468,7 +463,7 @@ public class Btree {
 		}
 		private Iter(long adr, Slot slot) {
 			this.adr = adr;
-			cur = slot;
+			cur = slot.dup();
 		}
 		private Iter(Record key) {
 			seek(key);
@@ -488,7 +483,6 @@ public class Btree {
 			return cur.key;
 		}
 
-		//TODO copy/dup cur in next & prev & seek ?
 		public Iter next() {
 			if (adr == 0)
 				return this;
@@ -497,9 +491,9 @@ public class Btree {
 			LeafNode leaf = new LeafNode(adr);
 			int t = upperBound(leaf.slots, cur);
 			if (t < leaf.slots.size())
-				cur = leaf.slots.get(t);
+				cur = leaf.slots.get(t).dup();
 			else if ((adr = leaf.next()) != 0)
-				cur = new LeafNode(adr).slots.front();
+				cur = new LeafNode(adr).slots.front().dup();
 			return this;
 		}
 		public Iter prev() {
@@ -510,9 +504,9 @@ public class Btree {
 			LeafNode leaf = new LeafNode(adr);
 			int t = lowerBound(leaf.slots, cur);
 			if (t > 0)
-				cur = leaf.slots.get(--t);
+				cur = leaf.slots.get(--t).dup();
 			else if ((adr = leaf.prev()) != 0)
-				cur = new LeafNode(adr).slots.back();
+				cur = new LeafNode(adr).slots.back().dup();
 			return this;
 		}
 		public boolean seek(Record key) {
@@ -528,12 +522,12 @@ public class Btree {
 			valid = modified;
 			boolean found;
 			if (t == leaf.slots.size()) {
-				cur = leaf.slots.get(--t);
+				cur = leaf.slots.get(--t).dup();
 				next();
 				found = false;
 			} else {
 				found = (key == leaf.slots.get(t).key);
-				cur = leaf.slots.get(t);
+				cur = leaf.slots.get(t).dup();
 			}
 			return found;
 		}
@@ -570,7 +564,8 @@ public class Btree {
 			LeafNode ln = new LeafNode(adr);
 			for (int j = 0; j < level; ++j)
 				System.out.print("    ");
-			System.out.print(ln.prev() + "<<" + ln.adr + ">>" + ln.next() + "  " );
+			System.out.print(ln.prev() + " << " + ln.adr + " >> " + ln.next()
+					+ "  ");
 			int i = 0;
 			for (; i < ln.slots.size(); ++i)
 				System.out.print(ln.slots.get(i).key.get(0) + " ");

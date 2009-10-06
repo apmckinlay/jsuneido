@@ -428,7 +428,13 @@ public class Select extends Query1 {
 		if (nil(best_index))
 			return .5;
 		Iselect fsel = isels.get(field);
-		return iselsize(best_index, asList(fsel));
+//		return 
+		double tmp = iselsize(best_index, asList(fsel));
+		if (Double.isNaN(tmp))
+			throw new SuException("field_frac " + field + 
+					" => iselsize " + best_index + " " + asList(fsel) +
+					" => NaN");
+		return tmp;
 	}
 
 	private void calc_index_fracs() {
@@ -538,6 +544,7 @@ public class Select extends Query1 {
 			Double f = ffracs.get(fld);
 			if (f != null)
 				frac *= f;
+			assert frac > 0;
 		}
 		return frac;
 	}
@@ -822,13 +829,6 @@ public class Select extends Query1 {
 		final Token op;
 		final ByteBuffer value;
 		final List<ByteBuffer> values;
-
-		Cmp() {
-			ident = null;
-			op = null;
-			value = null;
-			values = null;
-		}
 
 		Cmp(String ident, Token op, ByteBuffer value) {
 			this.ident = ident;
