@@ -50,7 +50,8 @@ public class Project extends Query1 {
 				: removeDups(args);
 
 		// include dependencies (_deps)
-		for (String f : flds) {
+		for (int i = flds.size() - 1; i >= 0; --i) {
+			String f = flds.get(i);
 			String deps = f + "_deps";
 			if (columns.contains(deps) && !flds.contains(deps))
 				flds.add(deps);
