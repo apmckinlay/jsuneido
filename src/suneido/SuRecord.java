@@ -125,7 +125,8 @@ public class SuRecord extends SuContainer {
 
 	@Override
 	public void put(Object key, Object value) {
-		if (get(key).equals(value))
+		Object old = super.get(key);
+		if (old != null && old.equals(value))
 			return;
 		super.put(key, value);
 		invalidateDependents(key);

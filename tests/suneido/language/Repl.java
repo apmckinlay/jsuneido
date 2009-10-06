@@ -10,7 +10,7 @@ package suneido.language;
  Wipeout_DemoData()
  Create_DemoData('CAD')
 
- Ar_Discounts_Test()
+ Test_GetAndInstallNeededUpdates: can't find ServerPort
  */
 
 import java.io.*;
