@@ -15,6 +15,10 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 	private final int size;
 	private final Node<K, V> node;
 
+	private static final int BITS_PER_LEVEL = 5;
+	private static final int LEVEL_MASK = (1 << BITS_PER_LEVEL) - 1;
+	private static final int HASH_BITS = 32;
+
 	@SuppressWarnings("unchecked")
 	public static final <K, V> PersistentMap<K, V> empty() {
 		return EmptyMap.emptyMap;
@@ -115,7 +119,7 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 				return assoc.getKey().equals(key) ? assoc.getValue() : null;
 			} else {
 				Node<K, V> child = (Node<K, V>) a[i];
-				return child.get(key, hash, shift + 5);
+				return child.get(key, hash, shift + BITS_PER_LEVEL);
 			}
 		}
 
@@ -145,13 +149,16 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 					// push entry into child node along with new entry
 					added.n = 1;
 					aa = a.clone();
-					aa[i] = newChild(assoc, key, value, hash, shift + 5);
+					aa[i] =
+							newChild(assoc, key, value, hash, shift
+									+ BITS_PER_LEVEL);
 					return new TrieNode<K, V>(bitmap, aa);
 				}
 			} else { // slot points to child node
 				Node<K, V> child = (Node<K, V>) a[i];
 				Node<K, V> newchild =
-						child.with(key, value, hash, shift + 5, added);
+						child.with(key, value, hash, shift + BITS_PER_LEVEL,
+								added);
 				if (newchild == child)
 					return this; // entry already exists
 				aa = a.clone();
@@ -165,14 +172,16 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 		/** really static but needs K,V */
 		private Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc, K key,
 				V value, int hash, int shift) {
-			if (shift >= 32)
+			if (shift >= HASH_BITS)
 				return new OverflowNode<K, V>(assoc, new SimpleImmutableEntry(key,
 						value));
-			int ha = (assoc.getKey().hashCode() >> shift) & 0x1f;
-			int h = (hash >>> shift) & 0x1f;
+			int ha = (assoc.getKey().hashCode() >> shift) & LEVEL_MASK;
+			int h = (hash >>> shift) & LEVEL_MASK;
 			if (ha == h) { // collision
 				Object[] aa = new Object[1];
-				aa[0] = newChild(assoc, key, value, hash, shift + 5);
+				aa[0] =
+						newChild(assoc, key, value, hash, shift
+								+ BITS_PER_LEVEL);
 				return new TrieNode<K, V>(1, aa);
 			}
 			Object[] aa = new Object[2];
@@ -197,7 +206,8 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 			int i = Integer.bitCount(bitmap & (bit - 1));
 			if (a[i] instanceof Node<?, ?>) {
 				Object newChild =
-						((Node<K, V>) a[i]).without(key, hash, shift + 5);
+						((Node<K, V>) a[i]).without(key, hash, shift
+								+ BITS_PER_LEVEL);
 				if (newChild == a[i])
 					return this; // not present
 				if (newChild != null) {
@@ -216,7 +226,7 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 		}
 
 		private int bit(int hash, int shift) {
-			int h = (hash >>> shift) & 0x1f;
+			int h = (hash >>> shift) & LEVEL_MASK;
 			int bit = 1 << h;
 			return bit;
 		}
