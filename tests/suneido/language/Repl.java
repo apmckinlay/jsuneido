@@ -2,15 +2,13 @@ package suneido.language;
 
 /*
  TestRunner.RunLib('stdlib', quit_on_failure:, exclude: #(CheckCode_Test, HistoryTest, HtmIncludeTest, HttpServer_Test, LibIOTest, LongTest, LowerIndexTest, ScheduleAddEditControlTest, ScheduleControlTest, ScheduleTaskTest, SpellCheckCode_Test, WinErrTest));;
- TestRunner.RunLib('Accountinglib', quit_on_failure:)
+ TestRunner.RunLib('Accountinglib', quit_on_failure:, exclude: #(AutoUpdate_Test))
  TestRunner.RunAll();;
 
  Use('Accountinglib')
  BookModel.Create('ETA'); LibTreeModel.Create('configlib')
  Wipeout_DemoData()
  Create_DemoData('CAD')
-
- Test_GetAndInstallNeededUpdates: can't find ServerPort
  */
 
 import java.io.*;
