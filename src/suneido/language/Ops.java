@@ -142,9 +142,7 @@ public class Ops {
 	public static final Comp comp = new Comp();
 
 	public static boolean match_(Object s, Object rx) {
-		if (s instanceof String && rx instanceof String)
-			return Regex.contains((String) s, (String) rx);
-		throw cant(s, " =~ ", rx);
+		return Regex.contains(toStr(s), toStr(rx));
 	}
 	public static Boolean match(Object s, Object rx) {
 		return match_(s, rx);
@@ -158,10 +156,6 @@ public class Ops {
 
 	public static String cat(Object x, Object y) {
 		return toStr(x).concat(toStr(y));
-	}
-
-	private static SuException cant(Object x, String op, Object y) {
-		return new SuException("can't do " + typeName(x) + op + typeName(y));
 	}
 
 	public static Number add(Object x, Object y) {
