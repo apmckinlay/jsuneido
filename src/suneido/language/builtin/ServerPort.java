@@ -2,12 +2,12 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class ServerIP extends BuiltinFunction {
+public class ServerPort extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return ""; // TODO ServerIP
+		return ""; // TODO ServerPort
 	}
 
 }
