@@ -164,13 +164,32 @@ public class Ops {
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x + (Integer) y;
-			if (yType == BigDecimal.class)
+			if (yType == BigDecimal.class) {
+				if (y == inf)
+					return inf;
+				if (y == minus_inf)
+					return minus_inf;
 				return BigDecimal.valueOf((Integer) x).add((BigDecimal) y);
+			}
 		} else if (xType == BigDecimal.class) {
-			if (yType == BigDecimal.class)
-				return ((BigDecimal) x).add((BigDecimal) y);
-			if (yType == Integer.class)
+			if (yType == Integer.class) {
+				if (x == inf)
+					return inf;
+				if (x == minus_inf)
+					return minus_inf;
 				return ((BigDecimal) x).add(BigDecimal.valueOf((Integer) y));
+			}
+			if (yType == BigDecimal.class) {
+				if (x == inf)
+					return y == minus_inf ? 0 : inf;
+				if (x == minus_inf)
+					return y == inf ? 0 : minus_inf;
+				if (y == inf)
+					return inf;
+				if (y == minus_inf)
+					return minus_inf;
+				return ((BigDecimal) x).add((BigDecimal) y);
+			}
 		}
 		return add(toNum(x), toNum(y));
 	}
@@ -194,13 +213,32 @@ public class Ops {
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x - (Integer) y;
-			if (yType == BigDecimal.class)
+			if (yType == BigDecimal.class) {
+				if (y == inf)
+					return minus_inf;
+				if (y == minus_inf)
+					return inf;
 				return BigDecimal.valueOf((Integer) x).subtract((BigDecimal) y);
+			}
 		} else if (xType == BigDecimal.class) {
-			if (yType == BigDecimal.class)
-				return ((BigDecimal) x).subtract((BigDecimal) y);
-			if (yType == Integer.class)
+			if (yType == Integer.class) {
+				if (x == inf)
+					return inf;
+				if (x == minus_inf)
+					return minus_inf;
 				return ((BigDecimal) x).subtract(BigDecimal.valueOf((Integer) y));
+			}
+			if (yType == BigDecimal.class) {
+				if (x == inf)
+					return y == inf ? 0 : inf;
+				if (x == minus_inf)
+					return y == minus_inf ? 0 : minus_inf;
+				if (y == inf)
+					return minus_inf;
+				if (y == minus_inf)
+					return inf;
+				return ((BigDecimal) x).subtract((BigDecimal) y);
+			}
 		}
 		return sub(toNum(x), toNum(y));
 	}
@@ -219,28 +257,57 @@ public class Ops {
 		if (xType == Integer.class) {
 			if (yType == Integer.class)
 				return (Integer) x * (Integer) y;
-			if (yType == BigDecimal.class)
+			if (yType == BigDecimal.class) {
+				if ((Integer) x == 0)
+					return 0;
+				if (y == inf)
+					return (Integer) x > 0 ? inf : minus_inf;
+				if (y == minus_inf)
+					return (Integer) x > 0 ? minus_inf : inf;
 				return BigDecimal.valueOf((Integer) x).multiply((BigDecimal) y);
+			}
 		} else if (xType == BigDecimal.class) {
-			if (yType == BigDecimal.class)
-				return ((BigDecimal) x).multiply((BigDecimal) y);
-			if (yType == Integer.class)
+			if (yType == Integer.class) {
+				if ((Integer) y == 0)
+					return 0;
+				if (x == inf)
+					return (Integer) y > 0 ? inf : minus_inf;
+				if (x == minus_inf)
+					return (Integer) y > 0 ? minus_inf : inf;
 				return ((BigDecimal) x).multiply(BigDecimal.valueOf((Integer) y));
+			}
+			if (yType == BigDecimal.class) {
+				if (((BigDecimal) x).signum() == 0
+						|| ((BigDecimal) y).signum() == 0)
+					return 0;
+				if (x == inf)
+					return ((BigDecimal) y).signum() > 0 ? inf : minus_inf;
+				if (x == minus_inf)
+					return ((BigDecimal) y).signum() > 0 ? minus_inf : inf;
+				if (y == inf)
+					return ((BigDecimal) x).signum() > 0 ? inf : minus_inf;
+				if (y == minus_inf)
+					return ((BigDecimal) x).signum() > 0 ? minus_inf : inf;
+				return ((BigDecimal) x).multiply((BigDecimal) y);
+			}
 		}
 		return mul(toNum(x), toNum(y));
 	}
 
 	public final static MathContext mc = new MathContext(16);
+
+	public final static BigDecimal zero = BigDecimal.ZERO;
 	public final static BigDecimal inf =
 			BigDecimal.valueOf(1, Integer.MAX_VALUE);
 	public final static BigDecimal minus_inf =
 			BigDecimal.valueOf(-1, Integer.MAX_VALUE);
 
-
 	public static Number div(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
 		if (xType == Integer.class) {
+			if ((Integer) x == 0)
+				return 0;
 			if (yType == Integer.class) {
 				if ((Integer) y == 0)
 					return ((Integer) x) < 0 ? minus_inf : inf;
@@ -248,20 +315,37 @@ public class Ops {
 						BigDecimal.valueOf((Integer) y), mc);
 			}
 			if (yType == BigDecimal.class) {
-				if (BigDecimal.ZERO.compareTo((BigDecimal) y) == 0)
+				if (y == inf || y == minus_inf)
+					return 0;
+				if (((BigDecimal) y).signum() == 0)
 					return ((Integer) x) < 0 ? minus_inf : inf;
 				return BigDecimal.valueOf((Integer) x).divide((BigDecimal) y, mc);
 			}
 		} else if (xType == BigDecimal.class) {
-			if (yType == BigDecimal.class) {
-				if (BigDecimal.ZERO.compareTo((BigDecimal) y) == 0)
-					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
-				return ((BigDecimal) x).divide((BigDecimal) y, mc);
-			}
+			if (((BigDecimal) x).signum() == 0)
+				return 0;
 			if (yType == Integer.class) {
 				if ((Integer) y == 0)
 					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
-				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y), mc);
+				if (x == inf)
+					return (Integer) y >= 0 ? inf : minus_inf;
+				if (x == minus_inf)
+					return (Integer) y >= 0 ? minus_inf : inf;
+				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y),
+						mc);
+			}
+			if (yType == BigDecimal.class) {
+				if (x == inf)
+					return y == inf ? 1 : y == minus_inf ? -1
+							: ((BigDecimal) y).signum() >= 0 ? inf : minus_inf;
+				if (x == minus_inf)
+					return y == inf ? -1 : y == minus_inf ? 1
+							: ((BigDecimal) y).signum() >= 0 ? minus_inf : inf;
+				if (y == inf || y == minus_inf)
+					return 0;
+				if (((BigDecimal) y).signum() == 0)
+					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
+				return ((BigDecimal) x).divide((BigDecimal) y, mc);
 			}
 		}
 		return div(toNum(x), toNum(y));
@@ -417,6 +501,7 @@ public class Ops {
 	public static String display(Object x) {
 		if (x instanceof String) {
 			String s = (String) x;
+			s = s.replace("\\", "\\\\");
 			boolean single_quotes = default_single_quotes
 				? !s.contains("'")
 				: (s.contains("\"") && !s.contains("'"));
