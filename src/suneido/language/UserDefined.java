@@ -3,6 +3,12 @@ package suneido.language;
 import suneido.SuException;
 import suneido.language.SuClass.Method;
 
+/**
+ * Used to implement user defined methods for builtin classes e.g. Numbers,
+ * Strings, Objects
+ * 
+ * @author Andrew McKinlay
+ */
 public class UserDefined {
 
 	public static SuClass userDefined(String where, String method) {
