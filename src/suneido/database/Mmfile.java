@@ -12,6 +12,9 @@ import java.util.Iterator;
 
 import suneido.SuException;
 
+// TODO switch to lru instead of clock, as done with cSuneido
+// to avoid worst case scenario bugs
+
 /**
  * Memory mapped file access using Java NIO. Maps in 4mb chunks. A maximum of
  * 1gb is mapped at any one time. Chunks are unmapped as necessary roughly LRU
@@ -19,13 +22,11 @@ import suneido.SuException;
  * are aligned on 8 byte boundaries allowing offsets to be shifted right to fit
  * in 32 bit int's. Alignment also allows storing a type in the low bits of the
  * block size. Since offsets are stored shifted as int's maximum file size is
- * 32gb (max unsigned int (4gb) << 3). *
+ * 32gb (max unsigned int (4gb) << 3).
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	private RandomAccessFile fin;

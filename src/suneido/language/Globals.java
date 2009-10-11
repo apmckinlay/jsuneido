@@ -1,6 +1,7 @@
 package suneido.language;
 
-import java.util.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import suneido.*;
 import suneido.language.builtin.*;
@@ -13,10 +14,10 @@ import suneido.language.builtin.*;
  * Licensed under GPLv2.</small></p>
  */
 public class Globals {
-	private static Map<String, Object> globals =
-			Collections.synchronizedMap(new HashMap<String, Object>());
-	private static Map<String, Object> builtins =
-			new HashMap<String, Object>();
+	private static final Map<String, Object> globals =
+			new ConcurrentHashMap<String, Object>(1000);
+	private static final Map<String, Object> builtins =
+			new ConcurrentHashMap<String, Object>(100);
 	private static Integer overload = 0;
 	static {
 		builtins.put("True", Boolean.TRUE);
@@ -49,6 +50,11 @@ public class Globals {
 		return x;
 	}
 
+	/**
+	 * does NOT prevent two threads concurrently getting same name but this
+	 * shouldn't matter since it idempotent i.e. result should be the same no
+	 * matter which thread "wins"
+	 */
 	public static Object tryget(String name) {
 		Object x = globals.get(name);
 		if (x != null)
@@ -59,15 +65,19 @@ public class Globals {
 			return x;
 		}
 		x = Libraries.load(name);
-		if (x == null)
-			x = loadClass(CompileGenerator.javify(name));
-		// PERF save a special value to avoid future attempts to load
+		if (x == null) {
+			x = loadClass(name);
+			if (x != null)
+				builtins.put(name, x);
+		}
 		if (x != null)
 			globals.put(name, x);
+		// PERF could save a special value to avoid future attempts to load
 		return x;
 	}
 
-	public static Object loadClass(String name) {
+	private static Object loadClass(String name) {
+		name = CompileGenerator.javify(name);
 		Class<?> c = null;
 		try {
 			c = Class.forName("suneido.language.builtin." + name);
@@ -100,6 +110,7 @@ public class Globals {
 		globals.clear();
 	}
 
+	// TODO make this thread safe (not sufficient to synchronize)
 	public static String overload(String base) {
 		String name = base.substring(1);
 		Object x = globals.get(name);
