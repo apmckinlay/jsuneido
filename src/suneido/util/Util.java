@@ -95,6 +95,13 @@ public class Util {
 		return b1.remaining() - b2.remaining();
 	}
 
+	public static String bytesToString(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length);
+		for (byte b : bytes)
+			sb.append((char) (b & 0xff));
+		return sb.toString();
+	}
+
 	/**
 	 * @return A new list containing all the values from x and y. x is copied as
 	 *         is, so if it has duplicates they are retained. Duplicates from y
