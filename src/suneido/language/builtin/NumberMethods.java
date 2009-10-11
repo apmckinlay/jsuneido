@@ -1,12 +1,13 @@
 package suneido.language.builtin;
 
+import static suneido.language.Ops.inf;
+import static suneido.language.Ops.minus_inf;
 import static suneido.language.UserDefined.userDefined;
 
 import java.math.BigDecimal;
 
 import suneido.SuException;
 import suneido.language.*;
-
 
 public class NumberMethods {
 
@@ -64,7 +65,8 @@ public class NumberMethods {
 
 	private static BigDecimal Int(BigDecimal n, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return new BigDecimal(n.toBigInteger());
+		return n == inf || n == minus_inf ? n
+				: new BigDecimal(n.toBigInteger());
 	}
 
 	private static String Hex(Integer n, Object[] args) {

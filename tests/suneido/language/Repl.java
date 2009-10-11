@@ -6,9 +6,10 @@ package suneido.language;
  TestRunner.RunAll();;
 
  Use('Accountinglib')
- BookModel.Create('ETA'); LibTreeModel.Create('configlib')
- Wipeout_DemoData()
+ BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
+
+ Rule_biz_ugrp_protect_Test()
  */
 
 import java.io.*;
