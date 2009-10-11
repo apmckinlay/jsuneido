@@ -2,6 +2,8 @@ package suneido.util;
 
 import java.util.*;
 
+import net.jcip.annotations.Immutable;
+
 /**
  * An implementation of an immutable persistent map. Based on Phil Bagwell's
  * Hash Array Mapped Trie with some help from Rich Hickey's implementation in
@@ -10,6 +12,7 @@ import java.util.*;
  *
  * @author Andrew McKinlay
  */
+@Immutable
 public class PersistentMap<K, V> extends AbstractMap<K, V> {
 
 	private final int size;
@@ -96,6 +99,7 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 		public abstract Object without(Object key, int hash, int shift);
 	}
 
+	@Immutable
 	@SuppressWarnings("unchecked")
 	private static class TrieNode<K, V> extends Node<K, V> {
 
@@ -234,6 +238,7 @@ public class PersistentMap<K, V> extends AbstractMap<K, V> {
 	}
 
 	/** used for overflow leaf nodes when multiple identical hash */
+	@Immutable
 	@SuppressWarnings("unchecked")
 	private static class OverflowNode<K, V> extends Node<K, V> {
 		private final SimpleImmutableEntry<K, V> assocs[];
