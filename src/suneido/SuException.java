@@ -11,7 +11,7 @@ public class SuException extends RuntimeException {
 
 	public SuException(Object e) {
 		this.s = e.toString();
-		// printStackTrace();
+		//printStackTrace();
 	}
 
 	public SuException(String s, Throwable e) {
