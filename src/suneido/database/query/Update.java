@@ -31,7 +31,16 @@ public class Update extends QueryAction {
 
 	@Override
 	public int execute(Transaction tran) {
-		Query q = source.setup();
+		Query q = source.transform();
+		List<String> cols = q.columns();
+		List<String> bestKey = q.key_index(cols);
+		if (q.optimize(bestKey, cols, noFields, false, true) >= IMPOSSIBLE)
+			throw new SuException("invalid query");
+		q = q.addindex();
+		// cSuneido uses source.key_index
+		// but this causes problems - maybe need transform first?
+		//		List<String> bestKey = source.keys().get(0);
+		//		Query q = source.setup();
 		if (!q.updateable())
 			throw new SuException("update: query not updateable");
 		q.setTransaction(tran);
