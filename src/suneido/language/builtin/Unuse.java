@@ -9,7 +9,7 @@ public class Unuse extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(unuseFS, args);
-		return suneido.language.Libraries.unuse(Ops.toStr(args[0]));
+		return suneido.language.Library.unuse(Ops.toStr(args[0]));
 	}
 
 }

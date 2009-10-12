@@ -10,7 +10,7 @@ import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
-import suneido.language.Libraries;
+import suneido.language.Library;
 
 /**
  * Connects Suneido to a local database.
@@ -102,11 +102,11 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public List<LibGet> libget(String name) {
-		return Libraries.libget(name);
+		return Library.libget(name);
 	}
 
 	public List<String> libraries() {
-		return Libraries.libraries();
+		return Library.libraries();
 	}
 
 	public SuValue run(String s) {

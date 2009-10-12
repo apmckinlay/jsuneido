@@ -3,7 +3,8 @@ package suneido.language;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
 import suneido.language.builtin.*;
 
 /**
@@ -23,12 +24,67 @@ public class Globals {
 		builtins.put("True", Boolean.TRUE);
 		builtins.put("False", Boolean.FALSE);
 		builtins.put("Suneido", new SuContainer());
+
+		builtins.put("Add", new Add());
+		builtins.put("And", new And());
+		builtins.put("Boolean?", new BooleanQ());
+		builtins.put("Built", new Built());
+		builtins.put("Cat", new Cat());
+		builtins.put("Class?", new ClassQ());
+		builtins.put("Construct", new Construct());
+		builtins.put("Cursor", new Cursor());
+		builtins.put("Database", new Database());
 		builtins.put("Date", new DateClass());
-		builtins.put("Object", new ObjectClass());
-		builtins.put("Sleep", new Sleep());
+		builtins.put("Date?", new DateQ());
 		builtins.put("DeleteFile", new DeleteFile());
-		builtins.put("FileExists?", new FileExistsQ());
+		builtins.put("Display", new Display());
+		builtins.put("Div", new Div());
+		builtins.put("DoWithoutTriggers", new DoWithoutTriggers());
+		builtins.put("Eq", new Eq());
 		builtins.put("File", new FileClass());
+		builtins.put("FileExists?", new FileExistsQ());
+		builtins.put("Frame", new Frame());
+		builtins.put("Function?", new FunctionQ());
+		builtins.put("GetMacAddress", new GetMacAddress());
+		builtins.put("Gt", new Gt());
+		builtins.put("Gte", new Gte());
+		builtins.put("Libraries", new Libraries());
+		builtins.put("Lt", new Lt());
+		builtins.put("Lte", new Lte());
+		builtins.put("Match", new Match());
+		builtins.put("Md5", new Md5());
+		builtins.put("Mod", new Mod());
+		builtins.put("Mul", new Mul());
+		builtins.put("Neg", new Neg());
+		builtins.put("Neq", new Neq());
+		builtins.put("NoMatch", new NoMatch());
+		builtins.put("Not", new Not());
+		builtins.put("Number?", new NumberQ());
+		builtins.put("Object", new ObjectClass());
+		builtins.put("Object?", new ObjectQ());
+		builtins.put("Or", new Or());
+		builtins.put("Pack", new Pack());
+		builtins.put("Query1", new Query1());
+		builtins.put("QueryFirst", new QueryFirst());
+		builtins.put("QueryLast", new QueryLast());
+		builtins.put("Random", new Random());
+		builtins.put("Record", new Record());
+		builtins.put("Record?", new RecordQ());
+		builtins.put("Scanner", new Scanner());
+		builtins.put("Seq", new Seq());
+		builtins.put("ServerIP", new ServerIP());
+		builtins.put("ServerPort", new ServerPort());
+		builtins.put("Sleep", new Sleep());
+		builtins.put("String?", new StringQ());
+		builtins.put("Sub", new Sub());
+		builtins.put("Synchronized", new Synchronized());
+		builtins.put("Timestamp", new Timestamp());
+		builtins.put("Transaction", new Transaction());
+		builtins.put("Type", new Type());
+		builtins.put("Unload", new Unload());
+		builtins.put("Unpack", new Unpack());
+		builtins.put("Unuse", new Unuse());
+		builtins.put("Use", new Use());
 	}
 
 	private Globals() { // no instances
@@ -50,51 +106,24 @@ public class Globals {
 		return x;
 	}
 
+	private static final Object nonExistent = new Object();
+
 	/**
 	 * does NOT prevent two threads concurrently getting same name but this
-	 * shouldn't matter since it idempotent i.e. result should be the same no
+	 * shouldn't matter since it's idempotent i.e. result should be the same no
 	 * matter which thread "wins"
 	 */
 	public static Object tryget(String name) {
 		Object x = globals.get(name);
 		if (x != null)
-			return x;
+			return x == nonExistent ? null : x;
 		x = builtins.get(name);
-		if (x != null) {
-			globals.put(name, x);
-			return x;
-		}
-		x = Libraries.load(name);
-		if (x == null) {
-			x = loadClass(name);
-			if (x != null)
-				builtins.put(name, x);
-		}
-		if (x != null)
-			globals.put(name, x);
-		// PERF could save a special value to avoid future attempts to load
+		if (x == null)
+			x = Library.load(name);
+		globals.put(name, x == null ? nonExistent : x);
 		return x;
 	}
 
-	private static Object loadClass(String name) {
-		name = CompileGenerator.javify(name);
-		Class<?> c = null;
-		try {
-			c = Class.forName("suneido.language.builtin." + name);
-		} catch (ClassNotFoundException e) {
-			return null;
-		}
-		SuValue sc = null;
-		try {
-			sc = (SuValue) c.newInstance();
-		} catch (InstantiationException e) {
-			return null;
-		} catch (IllegalAccessException e) {
-			return null;
-		}
-		//System.out.println("<loaded: " + name + ">");
-		return sc;
-	}
 
 	/** used by tests */
 	public static void put(String name, Object x) {
@@ -114,7 +143,7 @@ public class Globals {
 	public static String overload(String base) {
 		String name = base.substring(1);
 		Object x = globals.get(name);
-		if (x == null)
+		if (x == null || x == nonExistent)
 			throw new SuException("can't find " + base);
 		String nameForPreviousValue = overload.toString() + base;
 		globals.put(nameForPreviousValue, get(name));

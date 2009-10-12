@@ -1,10 +1,9 @@
 package suneido.util;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.*;
 
-import suneido.SuException;
 import suneido.language.Ops;
 
 /**
@@ -60,20 +59,18 @@ public class Util {
 		return Arrays.asList(s.split(","));
 	}
 
+	// TODO should be thread local
+	private static final Charset charset = Charset.forName("ISO-8859-1");
+
 	public static String bufferToString(ByteBuffer buf) {
-		byte[] bytes = new byte[buf.remaining()];
 		int pos = buf.position();
-		buf.get(bytes);
+		String s = charset.decode(buf).toString();
 		buf.position(pos);
-		try {
-			return new String(bytes, "ISO-8859-1");
-		} catch (UnsupportedEncodingException e) {
-			throw new SuException("can't convert buffer to string", e);
-		}
+		return s;
 	}
 
 	public static ByteBuffer stringToBuffer(String s) {
-		return ByteBuffer.wrap(s.getBytes());
+		return ByteBuffer.wrap(s.getBytes(charset));
 	}
 
 	public static String bufferToHex(ByteBuffer buf) {

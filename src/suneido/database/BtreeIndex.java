@@ -169,6 +169,7 @@ public class BtreeIndex {
 			while (!iter.eof()
 					&& (iter.cur().keyadr() >= prevsize || !visible()))
 				iter.next();
+			// PERF skip prefixgt if to is max
 			if (!iter.eof() && iter.key().prefixgt(to))
 				iter.seteof();
 			if (!iter.eof() && (iskey || first || !eq(iter.key(), prevkey)))

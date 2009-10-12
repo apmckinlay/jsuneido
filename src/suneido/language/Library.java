@@ -10,7 +10,7 @@ import suneido.SuException;
 import suneido.database.*;
 import suneido.database.server.Dbms.LibGet;
 
-public class Libraries {
+public class Library {
 
 	private static final List<String> libraries = new ArrayList<String>();
 	static {
