@@ -1,8 +1,12 @@
 package suneido.database;
 
+import static suneido.util.Util.commaSplitter;
+
 import java.util.*;
 
 import suneido.SuException;
+
+import com.google.common.collect.Iterables;
 
 /**
  * @author Andrew McKinlay
@@ -22,13 +26,13 @@ public class Columns implements Iterable<Column> {
 	}
 
 	public short[] nums(String s) {
-		if (s.equals(""))
+		if (s.isEmpty())
 			return new short[0];
-		String[] names = s.split(",");
-		short[] nums = new short[names.length];
-		int n = 0;
+		Iterable<String> names = commaSplitter.split(s);
+		short[] nums = new short[Iterables.size(names)];
+		int i = 0;
 		for (String name : names)
-			nums[n++] = ck_find(name).num;
+			nums[i++] = ck_find(name).num;
 		return nums;
 	}
 
