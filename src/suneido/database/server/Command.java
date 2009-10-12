@@ -504,7 +504,8 @@ public enum Command {
 		row_result(row, hdr, false, outputQueue);
 	}
 
-	private static void row_result(Row row, Header hdr, boolean sendhdr, OutputQueue outputQueue) {
+	private static void row_result(Row row, Header hdr, boolean sendhdr,
+			OutputQueue outputQueue) {
 		if (row == null) {
 			EOF.rewind();
 			outputQueue.enqueue(EOF);

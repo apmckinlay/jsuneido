@@ -71,11 +71,13 @@ public class Btree {
 	private void isValid(long adr, int level, long[] links) {
 		if (level < treelevels) {
 			TreeNode tn = new TreeNode(adr);
+			tn.isValid(Mode.OPEN);
 			for (int i = 0; i < tn.slots.size(); ++i)
 				isValid(tn.slots.get(i).adrs[0], level + 1, links);
 			isValid(tn.next(), level + 1, links);
 		} else {
 			LeafNode ln = new LeafNode(adr);
+			ln.isValid(Mode.OPEN);
 			assert links[0] == ln.prev(); // our prev is wrong
 			assert links[1] == -1 || links[1] == adr; // prev's next was wrong
 			links[0] = adr;
@@ -238,7 +240,7 @@ public class Btree {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			slots = new Slots(dest.adr(adr), mode);
-			assert isValid(mode);
+			//assert isValid(mode);
 		}
 		Insert insert(Slot x)
 			{
@@ -333,7 +335,7 @@ public class Btree {
 			this.adr = adr;
 			if (mode == Mode.CREATE)
 				slots.setPrev(TREENODE_PREV);
-			assert isValid(mode);
+			//assert isValid(mode);
 		}
 
 		// returns false if no room
@@ -368,10 +370,6 @@ public class Btree {
 			} else
 				assert adr == slots.get(slot).adrs[0];
 			slots.remove(slot);
-
-for (int i = 0; i < slots.size(); ++i)
-	assert slots.get(i).adrs[0] != adr;
-assert slots.next() != adr;
 		}
 		TreeNode split(Record key) {
 			int percent = 50;

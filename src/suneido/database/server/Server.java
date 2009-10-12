@@ -53,7 +53,7 @@ public class Server {
 				if (nlPos == -1)
 					return null;
 				line = inputQueue.dequeueBytes(nlPos + 1);
-System.out.print(">" + bufferToString(line));
+//System.out.print(">" + bufferToString(line));
 				cmd = getCmd(line);
 				line.mark();
 				try {

@@ -8,6 +8,8 @@ package suneido.language;
  Use('Accountinglib')
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
+
+ -server -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */
 
 import java.io.*;
@@ -22,10 +24,10 @@ public class Repl {
 	public static void main(String[] args) throws Exception {
 		setup();
 
-		BufferedReader in =
-				new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
+
 		while (true) {
 			out.print("> ");
 			out.flush();
@@ -83,14 +85,6 @@ public class Repl {
 				System.out.print((i++ > 0 ? " " : "") + e.getKey() + ": "
 						+ Ops.toStr(e.getValue()));
 			System.out.println();
-			return null;
-		}
-	}
-
-	static class Alert extends BuiltinFunction {
-		@Override
-		public Object call(Object... args) {
-			System.out.println("ALERT: " + Ops.toStr(args[0]));
 			return null;
 		}
 	}
