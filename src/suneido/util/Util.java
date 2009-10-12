@@ -6,6 +6,9 @@ import java.util.*;
 
 import suneido.language.Ops;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
 /**
  * Miscellaneous functions.
  *
@@ -53,10 +56,12 @@ public class Util {
 		return "(" + displayListToCommas(list) + ")";
 	}
 
+	public static final Splitter commaSplitter = Splitter.on(',');
+
 	public static List<String> commasToList(String s) {
-		if (s.equals(""))
+		if (s.isEmpty())
 			return Collections.emptyList();
-		return Arrays.asList(s.split(","));
+		return Lists.newArrayList(commaSplitter.split(s));
 	}
 
 	// TODO should be thread local

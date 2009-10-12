@@ -12,6 +12,8 @@ import suneido.*;
 import suneido.language.builtin.*;
 import suneido.util.StringIterator;
 
+import com.google.common.base.Splitter;
+
 public class Ops {
 
 	public static boolean is_(Object x, Object y) {
@@ -1302,11 +1304,13 @@ public class Ops {
 		throw new SuException("not an iterator " + typeName(x));
 	}
 
+	private static final Splitter catchSplitter = Splitter.on('|');
+
 	public static String catchMatch(SuException e, String patterns) {
 		String es = e.toString();
 		if (patterns == null)
 			return es;
-		for (String pat : patterns.split("[|]")) {
+		for (String pat : catchSplitter.split(patterns)) {
 			if (pat.startsWith("*")) {
 				pat = pat.substring(1);
 				if (es.contains(pat))

@@ -1,5 +1,7 @@
 package suneido.language.builtin;
 
+import static suneido.util.Util.listToCommas;
+
 import java.util.List;
 
 import suneido.*;
@@ -74,14 +76,9 @@ public class QueryInstance extends SuValue {
 
 	private Object Keys(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		List<List<String>> keys = q.keys();
 		SuContainer c = new SuContainer();
-		for (List<String> key : keys) {
-			String s = "";
-			for (String field : key)
-				s += "," + field;
-			c.append(s.substring(1));
-		}
+		for (List<String> key : q.keys())
+			c.append(listToCommas(key));
 		return c;
 	}
 

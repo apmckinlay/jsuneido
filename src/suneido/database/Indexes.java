@@ -1,9 +1,10 @@
 package suneido.database;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import static suneido.util.Util.commaSplitter;
+
+import java.util.*;
+
+import com.google.common.collect.Lists;
 
 /**
  *
@@ -52,17 +53,19 @@ public class Indexes implements Iterable<Index> {
 	}
 
 	public List<List<String>> columns() {
-		ArrayList<List<String>> list = new ArrayList<List<String>>();
-		for (Index index : indexes)
-			list.add(Arrays.asList(index.columns.split(",")));
-		return list;
+		return columns(false);
 	}
 
 	public List<List<String>> keysColumns() {
+		return columns(true);
+	}
+
+	private List<List<String>> columns(boolean justKeys) {
 		ArrayList<List<String>> list = new ArrayList<List<String>>();
 		for (Index index : indexes)
-			if (index.isKey())
-				list.add(Arrays.asList(index.columns.split(",")));
+			if (!justKeys || index.isKey())
+				list.add(Lists.newArrayList(commaSplitter.split(index.columns)));
+		// note: can't use commasToList because it does "" => empty list
 		return list;
 	}
 }
