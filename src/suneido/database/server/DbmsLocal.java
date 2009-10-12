@@ -123,13 +123,8 @@ public class DbmsLocal implements Dbms {
 		return theDB.size();
 	}
 
-	static Date prev = new Date();
 	public Date timestamp() {
-		Date ts = new Date();
-		if (ts.compareTo(prev) <= 0)
-			ts = new Date(prev.getTime() + 1);
-		prev = ts;
-		return ts;
+		return Timestamp.next();
 	}
 
 	public List<Integer> tranlist() {
