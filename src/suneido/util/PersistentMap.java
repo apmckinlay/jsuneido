@@ -1,5 +1,7 @@
 package suneido.util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.*;
 
 import net.jcip.annotations.Immutable;
@@ -54,8 +56,8 @@ public abstract class PersistentMap<K, V> extends AbstractMap<K, V> {
 
 		@Override
 		public PersistentMap<K, V> with(K key, V value) {
-			assert key != null;
-			assert value != null;
+			checkNotNull(key);
+			checkNotNull(value);
 			return with(key, value, key.hashCode(), 0);
 		}
 
@@ -78,6 +80,8 @@ public abstract class PersistentMap<K, V> extends AbstractMap<K, V> {
 
 		// Only used by Builder
 		protected void add(K key, V value) {
+			checkNotNull(key);
+			checkNotNull(value);
 			add(key, value, key.hashCode(), 0);
 		}
 
