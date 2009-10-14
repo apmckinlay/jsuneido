@@ -3,7 +3,7 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.Suneido.verify;
 import static suneido.util.Util.listToParens;
-import static suneido.util.Util.prefix;
+import static suneido.util.Util.startsWith;
 
 import java.util.*;
 
@@ -86,7 +86,7 @@ public class TempIndex extends Query1 {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		verify(prefix(order, index));
+		verify(startsWith(order, index));
 		sel.set(from, to);
 		rewound = true;
 	}

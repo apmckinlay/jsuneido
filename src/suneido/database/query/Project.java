@@ -47,7 +47,7 @@ public class Project extends Query1 {
 					+ listToParens(difference(args, columns)));
 		flds = allbut
 				? difference(columns, args)
-				: removeDups(args);
+				: withoutDups(args);
 
 		// include dependencies (_deps)
 		for (int i = flds.size() - 1; i >= 0; --i) {
@@ -112,7 +112,7 @@ public class Project extends Query1 {
 	Query transform() {
 		boolean moved = false;
 		// remove projects of all fields
-		if (set_eq(flds, source.columns()))
+		if (setEquals(flds, source.columns()))
 			return source.transform();
 		// combine projects
 		if (source instanceof Project) {
@@ -239,7 +239,7 @@ public class Project extends Query1 {
 				: Collections.singletonList(index);
 		for (List<String> ix : idxs)
 			// TODO: take fixed into account
-			if (prefix_set(ix, flds)) {
+			if (startsWithSet(ix, flds)) {
 				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
 						is_cursor, false);

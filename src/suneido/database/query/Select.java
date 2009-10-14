@@ -757,7 +757,7 @@ public class Select extends Query1 {
 	void select(List<String> index, Record from, Record to) {
 		if (conflicting) {
 			sel.setNone();
-		} else if (prefix(source_index, index)) {
+		} else if (startsWith(source_index, index)) {
 			sel.set(from, to);
 		} else
 			convert_select(index, from, to);

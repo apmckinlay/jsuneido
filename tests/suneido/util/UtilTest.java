@@ -89,42 +89,42 @@ public class UtilTest {
 		assertSetEquals(list, Util.union(y, x));
 	}
 	private void assertSetEquals(List<String> x, List<String> y) {
-		assertTrue(Util.set_eq(x, y));
+		assertTrue(Util.setEquals(x, y));
 	}
 
 	@Test
 	public void set_eq() {
 		List<String> x = new ArrayList<String>();
 		List<String> y = new ArrayList<String>();
-		assertTrue(Util.set_eq(x, y));
+		assertTrue(Util.setEquals(x, y));
 		x.add("a");
-		assertFalse(Util.set_eq(x, y));
-		assertFalse(Util.set_eq(y, x));
+		assertFalse(Util.setEquals(x, y));
+		assertFalse(Util.setEquals(y, x));
 		y.add("b");
-		assertFalse(Util.set_eq(x, y));
-		assertFalse(Util.set_eq(y, x));
+		assertFalse(Util.setEquals(x, y));
+		assertFalse(Util.setEquals(y, x));
 		x.add("b");
-		assertFalse(Util.set_eq(x, y));
-		assertFalse(Util.set_eq(y, x));
+		assertFalse(Util.setEquals(x, y));
+		assertFalse(Util.setEquals(y, x));
 		y.add("a");
-		assertTrue(Util.set_eq(x, y));
-		assertTrue(Util.set_eq(y, x));
+		assertTrue(Util.setEquals(x, y));
+		assertTrue(Util.setEquals(y, x));
 	}
 
 	@Test
 	public void prefix_set() {
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), new ArrayList<String>()));
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a")));
-		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("b")));
-		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c")));
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a", "b")));
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("b", "a")));
-		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c", "a")));
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("a", "b", "c")));
-		assertTrue(Util.prefix_set(asList("a", "b", "c"), asList("c", "a", "b")));
-		assertFalse(Util.prefix_set(asList("a", "b", "c"), asList("c", "a", "d")));
-		assertFalse(Util.prefix_set(asList("a"), asList("b")));
-		assertFalse(Util.prefix_set(asList("a"), asList("b", "a")));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), new ArrayList<String>()));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), asList("a")));
+		assertFalse(Util.startsWithSet(asList("a", "b", "c"), asList("b")));
+		assertFalse(Util.startsWithSet(asList("a", "b", "c"), asList("c")));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), asList("a", "b")));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), asList("b", "a")));
+		assertFalse(Util.startsWithSet(asList("a", "b", "c"), asList("c", "a")));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), asList("a", "b", "c")));
+		assertTrue(Util.startsWithSet(asList("a", "b", "c"), asList("c", "a", "b")));
+		assertFalse(Util.startsWithSet(asList("a", "b", "c"), asList("c", "a", "d")));
+		assertFalse(Util.startsWithSet(asList("a"), asList("b")));
+		assertFalse(Util.startsWithSet(asList("a"), asList("b", "a")));
 	}
 
 	@Test

@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import static suneido.util.Util.prefix;
+import static suneido.util.Util.startsWith;
 
 import java.util.*;
 
@@ -46,7 +46,7 @@ public class SummarizeStrategyMap extends SummarizeStrategy {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		assert prefix(q.by, index);
+		assert startsWith(q.by, index);
 		sel.org = from;
 		sel.end = to;
 	}
