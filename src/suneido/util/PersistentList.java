@@ -2,6 +2,8 @@ package suneido.util;
 
 import java.util.*;
 
+import net.jcip.annotations.Immutable;
+
 import com.google.common.base.Joiner;
 
 /**
@@ -9,6 +11,7 @@ import com.google.common.base.Joiner;
  *
  * @author Andrew McKinlay
  */
+@Immutable
 public class PersistentList<T> extends AbstractSequentialList<T> {
 
 	private final T value;
