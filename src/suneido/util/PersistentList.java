@@ -1,5 +1,7 @@
 package suneido.util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.*;
 
 import net.jcip.annotations.Immutable;
@@ -83,7 +85,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 
 	/** @return A new list with value as the head and the old list as the tail */
 	public PersistentList<T> with(T value) {
-		assert value != null;
+		checkNotNull(value);
 		return new PersistentList<T>(value, this);
 	}
 
