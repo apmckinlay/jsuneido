@@ -171,9 +171,9 @@ public class Union extends Compatible {
 		List<List<String>> kout = new ArrayList<List<String>>();
 		for (List<String> k1 : keys1)
 			for (List<String> k2 : keys2)
-				if (prefix(k1, k2))
+				if (startsWith(k1, k2))
 					addUnique(kout, k1);
-				else if (prefix(k2, k1))
+				else if (startsWith(k2, k1))
 					addUnique(kout, k2);
 		return kout;
 	}

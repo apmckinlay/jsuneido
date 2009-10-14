@@ -64,7 +64,6 @@ public class Util {
 		return Lists.newArrayList(commaSplitter.split(s));
 	}
 
-	// TODO should be thread local
 	private static final Charset charset = Charset.forName("ISO-8859-1");
 
 	public static String bufferToString(ByteBuffer buf) {
@@ -113,20 +112,23 @@ public class Util {
 		return addUnique(new ArrayList<T>(x), y);
 	}
 
-	public static <T> List<T> addUnique(List<T> x, List<T> y) {
-		for (T s : y)
-			if (!x.contains(s))
-				x.add(s);
-		return x;
+	/** modifies list */
+	public static <T> List<T> addUnique(List<T> list, List<T> x) {
+		for (T s : x)
+			if (!list.contains(s))
+				list.add(s);
+		return list;
 	}
 
+	/** modifies list */
 	public static <T> List<T> addUnique(List<T> list, T x) {
 		if (!list.contains(x))
 			list.add(x);
 		return list;
 	}
 
-	public static <T> List<T> removeDups(List<T> x) {
+	/** returns a new list */
+	public static <T> List<T> withoutDups(List<T> x) {
 		List<T> result = new ArrayList<T>();
 		for (T s : x)
 			if (!result.contains(s))
@@ -134,6 +136,7 @@ public class Util {
 		return result;
 	}
 
+	/** returns a new list */
 	public static <T> List<T> difference(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>();
 		for (T s : x)
@@ -142,6 +145,7 @@ public class Util {
 		return result;
 	}
 
+	/** returns a new list */
 	public static <T> List<T> intersect(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>();
 		for (T s : x)
@@ -150,7 +154,7 @@ public class Util {
 		return result;
 	}
 
-	public static <T> boolean prefix(List<T> x, List<T> y) {
+	public static <T> boolean startsWith(List<T> x, List<T> y) {
 		if (y.size() > x.size())
 			return false;
 		for (int i = 0; i < y.size(); ++i)
@@ -159,7 +163,7 @@ public class Util {
 		return true;
 	}
 
-	public static <T> boolean prefix_set(List<T> list, List<T> set) {
+	public static <T> boolean startsWithSet(List<T> list, List<T> set) {
 		int set_size = set.size();
 		if (list.size() < set_size)
 			return false;
@@ -169,7 +173,7 @@ public class Util {
 		return true;
 	}
 
-	public static <T> boolean set_eq(List<T> x, List<T> y) {
+	public static <T> boolean setEquals(List<T> x, List<T> y) {
 		int n = 0;
 		for (T s : x)
 			if (y.contains(s))
@@ -181,13 +185,15 @@ public class Util {
 		return x == null || x.isEmpty();
 	}
 
+	/** returns a new list */
 	public static <T> List<T> concat(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>(x);
 		result.addAll(y);
 		return result;
 	}
 
-	public static <T> List<T> remove(List<T> list, T x) {
+	/** returns a new list */
+	public static <T> List<T> without(List<T> list, T x) {
 		List<T> result = new ArrayList<T>();
 		for (T y : list)
 			if (x == null ? y != null : !x.equals(y))

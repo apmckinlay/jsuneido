@@ -34,7 +34,7 @@ public class Join extends Query2 {
 		joincols = intersect(source.columns(), source2.columns());
 		if (joincols.isEmpty())
 			throw new SuException("join: common columns required");
-		if (by != null && !set_eq(by, joincols))
+		if (by != null && !setEquals(by, joincols))
 			throw new SuException("join: by does not match common columns: "
 					+ joincols);
 

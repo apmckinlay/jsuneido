@@ -225,7 +225,7 @@ public class Table extends Query {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		verify(prefix(idx, index));
+		verify(startsWith(idx, index));
 		sel.set(from, to);
 		rewound = true;
 	}

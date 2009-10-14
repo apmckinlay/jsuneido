@@ -81,7 +81,7 @@ public class Summarize extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> srcneeds = union(remove(on, null), difference(needs, cols));
+		List<String> srcneeds = union(without(on, null), difference(needs, cols));
 
 		if (strategy == Strategy.COPY) {
 			if (freeze)
@@ -100,7 +100,7 @@ public class Summarize extends Query1 {
 					indexes.add(idx);
 		}
 		Best best = best_prefixed(indexes, by, srcneeds, is_cursor, new Best());
-		if (nil(best.index) && prefix(by, index)) {
+		if (nil(best.index) && startsWith(by, index)) {
 			// accumulate results in memory
 			// doesn't require any order, can only supply in order of "by"
 			strategy = Strategy.MAP;
@@ -128,7 +128,7 @@ public class Summarize extends Query1 {
 		else {
 			List<List<String>> idxs = new ArrayList<List<String>>();
 			for (List<String> src : source.indexes())
-				if (prefix_set(src, by))
+				if (startsWithSet(src, by))
 					idxs.add(src);
 			return idxs;
 		}

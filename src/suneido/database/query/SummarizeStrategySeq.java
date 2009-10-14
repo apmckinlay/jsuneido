@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import static suneido.util.Util.prefix;
+import static suneido.util.Util.startsWith;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 	@Override
 	void select(List<String> index, Record from, Record to) {
 		// because of fixed, this index may not be the same as the source index (via)
-		if (prefix(q.via, index) ||
+		if (startsWith(q.via, index) ||
 				(from.equals(Record.MINREC) && to.equals(Record.MAXREC)))
 			source.select(q.via, from, to);
 		else
