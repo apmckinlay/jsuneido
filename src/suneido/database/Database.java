@@ -70,6 +70,7 @@ public class Database {
 			output_type = Mmfile.DATA;
 		} else
 			open();
+		loadSchema();
 	}
 
 	private void create() {
@@ -179,6 +180,20 @@ public class Database {
 	private BtreeIndex btreeIndex(int table_num, String columns) {
 		return Index.btreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
+	}
+	
+	private void loadSchema() {
+		Transaction tran = readonlyTran();
+		try {
+			for (BtreeIndex.Iter iter = tablenum_index.iter(tran).next();
+					!iter.eof(); iter.next()) {
+				Record table_rec = input(iter.keyadr());
+				Table table = getTable(tran, table_rec);
+				tables.add(table);
+			}
+		} finally {
+			tran.complete();
+		}
 	}
 
 	long output(int tblnum, Record r) {
@@ -542,45 +557,49 @@ public class Database {
 			if (table_rec == null)
 				return null; // table not found
 
-			Table table = new Table(table_rec);
-
-			Record tblkey = key(table.num);
-
-			// columns
-			for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
-					!iter.eof(); iter.next())
-				table.addColumn(new Column(input(iter.keyadr())));
-			table.sortColumns();
-
-			// indexes
-			for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey)
-					.next(); !iter.eof(); iter
-					.next()) {
-				Record r = input(iter.keyadr());
-				String cols = Index.getColumns(r);
-				// make sure to use the same index for the system tables
-				BtreeIndex index;
-				if (table.name.equals("tables") && cols.equals("tablename"))
-					index = tablename_index;
-				else if (table.name.equals("tables") && cols.equals("table"))
-					index = tablenum_index;
-				else if (table.name.equals("columns") && cols.equals("table,column"))
-					index = columns_index;
-				else if (table.name.equals("indexes") && cols.equals("table,columns"))
-					index = indexes_index;
-				else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
-					index = fkey_index;
-				else
-					index = Index.btreeIndex(dest, r);
-				table.addIndex(new Index(r, cols, table.columns
-						.nums(cols),
-						index, getForeignKeys(tran, table, cols)));
-			}
+			Table table = getTable(tran, table_rec);
 			tables.add(table);
 			return table;
 		} finally {
 			tran.complete();
 		}
+	}
+
+	private Table getTable(Transaction tran, Record table_rec) {
+		Table table = new Table(table_rec);
+
+		Record tblkey = key(table.num);
+
+		// columns
+		for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
+				!iter.eof(); iter.next())
+			table.addColumn(new Column(input(iter.keyadr())));
+		table.sortColumns();
+
+		// indexes
+		for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey).next(); 
+				!iter.eof(); iter.next()) {
+			Record r = input(iter.keyadr());
+			String cols = Index.getColumns(r);
+			// make sure to use the same index for the system tables
+			BtreeIndex index;
+			if (table.name.equals("tables") && cols.equals("tablename"))
+				index = tablename_index;
+			else if (table.name.equals("tables") && cols.equals("table"))
+				index = tablenum_index;
+			else if (table.name.equals("columns") && cols.equals("table,column"))
+				index = columns_index;
+			else if (table.name.equals("indexes") && cols.equals("table,columns"))
+				index = indexes_index;
+			else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
+				index = fkey_index;
+			else
+				index = Index.btreeIndex(dest, r);
+			table.addIndex(new Index(r, cols, table.columns
+					.nums(cols),
+					index, getForeignKeys(tran, table, cols)));
+		}
+		return table;
 	}
 
 	// find foreign keys pointing to this index
