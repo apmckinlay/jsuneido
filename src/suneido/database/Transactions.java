@@ -126,11 +126,9 @@ public class Transactions {
 	}
 	private static class TranDelete {
 		Transaction tran;
-		long t;
 		long time;
 		TranDelete(Transaction tran, long t) {
 			this.tran = tran;
-			this.t = t;
 			this.time = t + UNCOMMITTED;
 		}
 	}
