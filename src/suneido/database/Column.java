@@ -1,15 +1,18 @@
 package suneido.database;
 
+import net.jcip.annotations.Immutable;
 import suneido.SuException;
 
 /**
- *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
+@Immutable
 public class Column implements Comparable<Column> {
+
 	public final String name;
-	public final short num;
+	public final int num;
 
 	@SuppressWarnings("unused")
 	private final static int TBLNUM = 0, COLUMN = 1, FLDNUM = 2;
@@ -19,7 +22,7 @@ public class Column implements Comparable<Column> {
 		num = record.getShort(FLDNUM);
 	}
 
-	public Column(String column, short colnum) {
+	public Column(String column, int colnum) {
 		this.name = column;
 		this.num = colnum;
 	}
@@ -27,6 +30,7 @@ public class Column implements Comparable<Column> {
 	public int compareTo(Column other) {
 		return num - other.num;
 	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (this == other)
@@ -35,6 +39,7 @@ public class Column implements Comparable<Column> {
 			return false;
 		return num == ((Column) other).num;
 	}
+
 	@Override
 	public int hashCode() {
 		throw new SuException("Column hashCode not implemented");

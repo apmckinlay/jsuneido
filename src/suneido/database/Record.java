@@ -14,6 +14,8 @@ import suneido.SuException;
 import suneido.language.Ops;
 import suneido.language.Pack;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
  * to store records containing field values. Used by {@link Slots} for
@@ -517,10 +519,11 @@ public class Record
 		return rep.getOffset(-1);
 	}
 
-	public Record project(short[] fields) {
+	public Record project(ImmutableList<Integer> fields) {
 		return project(fields, 0);
 	}
-	public Record project(short[] fields, long adr) {
+
+	public Record project(ImmutableList<Integer> fields, long adr) {
 		Record r = new Record();
 		for (int i : fields)
 			r.add(getraw(i));

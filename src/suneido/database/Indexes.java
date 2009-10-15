@@ -4,18 +4,23 @@ import static suneido.util.Util.commaSplitter;
 
 import java.util.*;
 
+import net.jcip.annotations.Immutable;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
- *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
+@Immutable
 public class Indexes implements Iterable<Index> {
-	private final ArrayList<Index> indexes = new ArrayList<Index>();
 
-	public void add(Index index) {
-		indexes.add(index);
+	private final ImmutableList<Index> indexes;
+
+	public Indexes(ImmutableList<Index> indexes) {
+		this.indexes = indexes;
 	}
 
 	public Iterator<Index> iterator() {

@@ -10,48 +10,42 @@ import suneido.SuRecord;
 import suneido.language.*;
 import suneido.language.builtin.TransactionInstance;
 
+import com.google.common.collect.ImmutableList;
+
 /**
- *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Table {
+	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
+			TOTALSIZE = 4;
 	private final Record record;
 	public final String name;
 	public final int num;
-	public final Columns columns = new Columns();
-	public final Indexes indexes = new Indexes();
+	public final Columns columns;
+	public final Indexes indexes;
+
 	public int nextfield;
 	public int nrecords;
 	public int totalsize;
-	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
-			TOTALSIZE = 4;
 	private List<String> flds = null;
 	private static List<String> disabledTriggers = new ArrayList<String>();
 
-	public Table(Record record) {
+	public Table(Record record, Columns columns, ImmutableList<Index> indexes) {
 		this.record = record;
+		this.columns = columns;
+		this.indexes = new Indexes(indexes);
 		num = record.getInt(TBLNUM);
 		name = record.getString(TABLE);
 		nextfield = record.getInt(NEXTFIELD);
 		nrecords = record.getInt(NROWS);
 		totalsize = record.getInt(TOTALSIZE);
 	}
+
 	@Override
 	public String toString() {
 		return "Table('" + name + "', " + num + ")";
-	}
-
-	public void addColumn(Column column) {
-		columns.add(column);
-	}
-
-	public void sortColumns() {
-		columns.sort();
-	}
-
-	public void addIndex(Index index) {
-		indexes.add(index);
 	}
 
 	public boolean hasColumn(String name) {

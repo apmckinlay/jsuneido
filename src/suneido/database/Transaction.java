@@ -10,6 +10,8 @@ import java.util.*;
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Handles a single transaction, either readonly or readwrite.
  *
@@ -55,7 +57,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	@Override
 	public String toString() {
-		return "Transaction " + (readonly ? "read " : "update ") + 
+		return "Transaction " + (readonly ? "read " : "update ") +
 				num + " time " + t + " asof " + asof;
 	}
 
@@ -169,7 +171,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		// PERF merge overlapping reads (add org to TranRead.compareTo)
 		int cur_tblnum = -1;
 		String cur_index = "";
-		short[] colnums = null;
+		ImmutableList<Integer> colnums = null;
 		int nidxcols = 0;
 		Collections.sort(reads);
 		for (TranRead tr : reads) {
@@ -180,7 +182,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 				if (tbl == null)
 					continue ;
 				colnums = tbl.columns.nums(tr.index);
-				nidxcols = colnums.length;
+				nidxcols = colnums.size();
 			}
 			// crude removal of record address from org & end
 			Record from = tr.org;

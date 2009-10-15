@@ -1,24 +1,25 @@
 package suneido.database;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import suneido.SuException;
 
+import com.google.common.collect.ImmutableList;
+
 public class ColumnsTest {
 	@Test
 	public void commas_to_nums() {
-		Columns columns = new Columns();
-		columns.add(new Column("a", (short) 1));
-		columns.add(new Column("b", (short) 2));
-		columns.add(new Column("c", (short) 3));
-		assertArrayEquals(new short[] { 3, 2 }, columns.nums("c,b"));
+		Columns columns = new Columns(ImmutableList.of(
+			new Column("a", 1), new Column("b", 2), new Column("c", 3)));
+		assertEquals(ImmutableList.of(3, 2), columns.nums("c,b"));
 	}
 
 	@Test(expected = SuException.class)
 	public void column_not_found() {
-		new Columns().nums("a,b");
+		Columns columns = new Columns(ImmutableList.of(new Column("c", 3)));
+		columns.nums("a,b");
 	}
 
 }

@@ -4,6 +4,8 @@ import static suneido.Suneido.verify;
 
 import java.util.*;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Manages transactions.
  * @author Andrew McKinlay
@@ -141,8 +143,8 @@ public class Transactions {
 			trans2.peek().abort();
 	}
 
-	public String anyConflicts(long asof, int tblnum, short[] colnums,
-			Record from, Record to, String index) {
+	public String anyConflicts(long asof, int tblnum,
+			ImmutableList<Integer> colnums, Record from, Record to, String index) {
 		Iterator<Transaction> iter = finals.descendingIterator();
 		while (iter.hasNext()) {
 			Transaction t = iter.next();

@@ -4,36 +4,33 @@ import static suneido.util.Util.commaSplitter;
 
 import java.util.*;
 
+import net.jcip.annotations.Immutable;
 import suneido.SuException;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@Immutable
 public class Columns implements Iterable<Column> {
-	private final ArrayList<Column> columns = new ArrayList<Column>();
 
-	public void add(Column column) {
-		columns.add(column);
+	private final ImmutableList<Column> columns;
+
+	public Columns(ImmutableList<Column> columns) {
+		this.columns = columns;
 	}
 
-	public void sort() {
-		columns.trimToSize();
-		Collections.sort(columns);
-	}
-
-	public short[] nums(String s) {
+	public ImmutableList<Integer> nums(String s) {
 		if (s.isEmpty())
-			return new short[0];
+			return ImmutableList.of();
 		Iterable<String> names = commaSplitter.split(s);
-		short[] nums = new short[Iterables.size(names)];
-		int i = 0;
+		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
 		for (String name : names)
-			nums[i++] = ck_find(name).num;
-		return nums;
+			builder.add(ck_find(name).num);
+		return builder.build();
 	}
 
 	private Column ck_find(String name) {
