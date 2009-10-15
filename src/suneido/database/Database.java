@@ -7,11 +7,12 @@ import static suneido.util.Util.commasToList;
 import static suneido.util.Util.listToCommas;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
@@ -181,7 +182,7 @@ public class Database {
 		return Index.btreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
 	}
-	
+
 	private void loadSchema() {
 		Transaction tran = readonlyTran();
 		try {
@@ -439,7 +440,7 @@ public class Database {
 		if (fkcolumns == null || fkcolumns.equals(""))
 			fkcolumns = columns;
 		Table table = ck_getTable(tablename);
-		short[] colnums = table.columns.nums(columns);
+		ImmutableList<Integer> colnums = table.columns.nums(columns);
 		if (table.hasIndex(columns))
 			throw new SuException("add index: index already exists: " + columns
 					+ " in " + tablename);
@@ -463,8 +464,8 @@ public class Database {
 	}
 
 	private void insertExistingRecords(Transaction tran, String columns,
-			Table table, short[] colnums, String fktable, String fkcolumns,
-			BtreeIndex index) {
+			Table table, ImmutableList<Integer> colnums, String fktable,
+			String fkcolumns, BtreeIndex index) {
 		if (!table.hasIndexes() || !table.hasRecords())
 			return ;
 		Index idx = table.firstIndex();
@@ -566,48 +567,52 @@ public class Database {
 	}
 
 	private Table getTable(Transaction tran, Record table_rec) {
-		Table table = new Table(table_rec);
 
-		Record tblkey = key(table.num);
+		String tablename = table_rec.getString(Table.TABLE);
+		int tblnum = table_rec.getInt(Table.TBLNUM);
+		Record tblkey = key(tblnum);
 
 		// columns
+		ArrayList<Column> cols = new ArrayList<Column>();
 		for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
 				!iter.eof(); iter.next())
-			table.addColumn(new Column(input(iter.keyadr())));
-		table.sortColumns();
+			cols.add(new Column(input(iter.keyadr())));
+		Collections.sort(cols);
+		Columns columns = new Columns(ImmutableList.copyOf(cols));
 
 		// indexes
-		for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey).next(); 
+		ImmutableList.Builder<Index> indexes = ImmutableList.builder();
+		for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey).next();
 				!iter.eof(); iter.next()) {
 			Record r = input(iter.keyadr());
-			String cols = Index.getColumns(r);
+			String icols = Index.getColumns(r);
 			// make sure to use the same index for the system tables
 			BtreeIndex index;
-			if (table.name.equals("tables") && cols.equals("tablename"))
+			if (tblnum == TN.TABLES && icols.equals("tablename"))
 				index = tablename_index;
-			else if (table.name.equals("tables") && cols.equals("table"))
+			else if (tblnum == TN.TABLES && icols.equals("table"))
 				index = tablenum_index;
-			else if (table.name.equals("columns") && cols.equals("table,column"))
+			else if (tblnum == TN.COLUMNS && icols.equals("table,column"))
 				index = columns_index;
-			else if (table.name.equals("indexes") && cols.equals("table,columns"))
+			else if (tblnum == TN.INDEXES && icols.equals("table,columns"))
 				index = indexes_index;
-			else if (table.name.equals("indexes") && cols.equals("fktable,fkcolumns"))
+			else if (tblnum == TN.INDEXES && icols.equals("fktable,fkcolumns"))
 				index = fkey_index;
 			else
 				index = Index.btreeIndex(dest, r);
-			table.addIndex(new Index(r, cols, table.columns
-					.nums(cols),
-					index, getForeignKeys(tran, table, cols)));
+			indexes.add(new Index(r, icols, columns.nums(icols), index,
+					getForeignKeys(tran, tablename, icols)));
 		}
-		return table;
+
+		return new Table(table_rec, columns, indexes.build());
 	}
 
 	// find foreign keys pointing to this index
-	private List<Record> getForeignKeys(Transaction tran, Table table,
+	private List<Record> getForeignKeys(Transaction tran, String tablename,
 			String columns) {
 		List<Record> records = new ArrayList<Record>();
 		for (BtreeIndex.Iter iter = fkey_index.iter(tran,
-				key(table.name, columns)).next(); !iter.eof(); iter.next())
+ key(tablename, columns)).next(); !iter.eof(); iter.next())
 			records.add(input(iter.keyadr()));
 		return records;
 	}
@@ -912,14 +917,12 @@ public class Database {
 	}
 
 	private void cascade_update(Transaction tran, Record newkey, Table fktbl,
-			BtreeIndex.Iter iter, short[] colnums) {
+			BtreeIndex.Iter iter, ImmutableList<Integer> colnums) {
 		Record oldrec = input(iter.keyadr());
 		Record newrec = new Record();
 		for (int i = 0; i < oldrec.size(); ++i) {
-			int j = 0;
-			for (; j < colnums.length && colnums[j] != i; ++j)
-				;
-			if (j >= colnums.length)
+			int j = colnums.indexOf(i);
+			if (j == -1)
 				newrec.add(oldrec.get(i));
 			else
 				newrec.add(newkey.get(j));

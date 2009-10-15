@@ -2,8 +2,11 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import net.jcip.annotations.Immutable;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
@@ -12,36 +15,49 @@ import java.util.List;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@Immutable
 public class Index {
-	private final Record record;
-	public final String columns;
-	public final short[] colnums;
-	public final BtreeIndex btreeIndex;
+
 	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
-		FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
+			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
+	private final Record record;
+	public final String columns;
+	public final ImmutableList<Integer> colnums;
+	public final BtreeIndex btreeIndex;
 	private final static String UNIQUE = "u";
 
-	ForeignKey fksrc = null;
-	ArrayList<ForeignKey> fkdsts = new ArrayList<ForeignKey>();
+	final ForeignKey fksrc;
+	final ImmutableList<ForeignKey> fkdsts;
 
-	public Index(Record record, String columns, short[] colnums,
+	public Index(Record record, String columns, ImmutableList<Integer> colnums,
 			BtreeIndex btreeIndex, List<Record> fkdstrecs) {
-		this.record = record;
 		verify(record.off() != 0);
+		this.record = record;
 		this.columns = columns;
 		this.colnums = colnums;
 		this.btreeIndex = btreeIndex;
+		fksrc = get_fksrc(record);
+		fkdsts = get_fkdsts(fkdstrecs);
+	}
 
+	private ForeignKey get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
 		if (!fktable.equals(""))
-			fksrc = new ForeignKey(fktable, record.getString(FKCOLUMNS), record
+			return new ForeignKey(fktable, record.getString(FKCOLUMNS),
+					record
 					.getInt(FKMODE));
+		return null;
+	}
 
+	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
+		ImmutableList.Builder<ForeignKey> builder = ImmutableList.builder();
 		for (Record ri : fkdstrecs)
-			fkdsts.add(new ForeignKey(ri.getInt(TBLNUM), ri.getString(COLUMNS),
+			builder.add(new ForeignKey(ri.getInt(TBLNUM),
+					ri.getString(COLUMNS),
 					ri.getInt(FKMODE)));
+		return builder.build();
 	}
 
 	@Override
@@ -70,7 +86,7 @@ public class Index {
 		Record r = new Record()
 			.add(btreeIndex.tblnum)
 			.add(btreeIndex.getIndexColumns())
-			.add(btreeIndex.iskey ? Boolean.TRUE : 
+			.add(btreeIndex.iskey ? Boolean.TRUE :
 					btreeIndex.unique ? UNIQUE : Boolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
 		indexInfo(r, btreeIndex);
@@ -117,28 +133,30 @@ public class Index {
 		return btreeIndex.nnodes();
 	}
 
+	@Immutable
 	static class ForeignKey {
-		String tablename; // used by fksrc
-		int tblnum; // used by fkdsts
-		String columns;
-		int mode;
+		final String tablename; // used by fksrc
+		final int tblnum; // used by fkdsts
+		final String columns;
+		final int mode;
 
 		static final ForeignKey NIL = new ForeignKey("", "", 0);
 
 		ForeignKey(String tablename, String columns, int mode) {
-			this(columns, mode);
-			this.tablename = tablename;
+			this(tablename, columns, mode, 0);
 		}
 
 		ForeignKey(int tblnum, String columns, int mode) {
-			this(columns, mode);
-			this.tblnum = tblnum;
+			this(null, columns, mode, tblnum);
 		}
 
-		private ForeignKey(String columns, int mode) {
+		private ForeignKey(String tablename, String columns, int mode,
+				int tblnum) {
 			this.mode = mode;
 			this.columns = columns.startsWith("lower:") ? columns.substring(6)
 					: columns;
+			this.tablename = tablename;
+			this.tblnum = tblnum;
 		}
 
 		@Override

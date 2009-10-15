@@ -9,6 +9,8 @@ import org.junit.Test;
 import suneido.language.Ops;
 import suneido.language.Pack;
 
+import com.google.common.collect.ImmutableList;
+
 public class RecordTest {
 	final static String data = "abc";
 	final static String data2 = "x";
@@ -217,18 +219,14 @@ public class RecordTest {
 
 	@Test
 	public void project() {
-		short[] fields;
-		fields = new short[] {};
+		ImmutableList<Integer> fields;
+		fields = ImmutableList.of();
 		assertEquals(make(), make().project(fields, 0));
-		fields = new short[] {};
 		assertEquals(make(), make("a", "b").project(fields, 0));
-		fields = new short[] { 1, 3 };
+		fields = ImmutableList.of(1, 3);
 		assertEquals(make("b", "d"),
 				make("a", "b", "c", "d", "e").project(fields, 0));
 		assertEquals(make("b").addMin(), make("a", "b").project(fields, 0));
 	}
 
-	// public static void main(String args[]) {
-	// new BufRecordTest().hasPrefix();
-	// }
 }
