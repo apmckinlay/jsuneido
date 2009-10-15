@@ -15,21 +15,29 @@ import com.google.common.collect.ImmutableList;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-@Immutable
 public class Index {
 
 	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
+	private final static String UNIQUE = "u";
+
 	private final Record record;
 	public final String columns;
 	public final ImmutableList<Integer> colnums;
-	public final BtreeIndex btreeIndex;
-	private final static String UNIQUE = "u";
-
 	final ForeignKey fksrc;
 	final ImmutableList<ForeignKey> fkdsts;
+
+	// TODO split out, mutable, not part of schema
+	public final BtreeIndex btreeIndex;
+
+	public void update() {
+		verify(record.off() != 0);
+		// treelevels and root should not change without nnodes changing
+		if (record.getInt(NNODES) != btreeIndex.nnodes())
+			indexInfo(record, btreeIndex);
+	}
 
 	public Index(Record record, String columns, ImmutableList<Integer> colnums,
 			BtreeIndex btreeIndex, List<Record> fkdstrecs) {
@@ -64,13 +72,6 @@ public class Index {
 	public String toString() {
 		return "Index(" + columns + ")" + (isKey() ? ", key" : "")
 				+ (btreeIndex.unique ? "unique" : "");
-	}
-
-	public void update() {
-		verify(record.off() != 0);
-		// treelevels and root should not change without nnodes changing
-		if (record.getInt(NNODES) != btreeIndex.nnodes())
-			indexInfo(record, btreeIndex);
 	}
 
 	public Record record() {

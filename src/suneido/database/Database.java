@@ -29,6 +29,8 @@ public class Database {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
+	public final Map<Integer, TableData> tabledata =
+			new HashMap<Integer, TableData>();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
 
@@ -136,7 +138,7 @@ public class Database {
 
 	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
 		long at = output(TN.TABLES,
-				Table.record(name, num, nextfield, nrecords));
+ Table.record(name, num, nextfield, nrecords));
 		verify(tablenum_index.insert(NULLTRAN,
 				new Slot(new Record().add(num).addMmoffset(at))));
 		verify(tablename_index.insert(NULLTRAN,
@@ -316,7 +318,8 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			update_any_record(tran, "tables", "table", key(tbl.num),
-				Table.record(newname, tbl.num, tbl.nextfield, tbl.nrecords));
+					Table.record(newname, tbl.num, tbl.nextfield,
+							tabledata.get(tbl.num).nrecords));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -350,10 +353,11 @@ public class Database {
 			}
 		}
 		if (fldnum >= 0) {
-			++table.nextfield;
-			table.update();
+			TableData td = tabledata.get(table.num);
+			++td.nextfield;
+			td.update();
 		}
-		tables.remove(tablename);
+		tables.remove(tablename); // TODO update instead of remove
 	}
 
 	public void removeColumn(String tablename, String name) {
@@ -466,16 +470,20 @@ public class Database {
 	private void insertExistingRecords(Transaction tran, String columns,
 			Table table, ImmutableList<Integer> colnums, String fktable,
 			String fkcolumns, BtreeIndex index) {
-		if (!table.hasIndexes() || !table.hasRecords())
-			return ;
+		if (!table.hasIndexes())
+			return;
+
 		Index idx = table.firstIndex();
+		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
+		if (iter.eof())
+			return;
+
 		Table fktbl = getTable(fktable);
 		if (fktable != null && fktbl == null)
 			throw new SuException("add index to " + table.name
 					+ " blocked by foreign key to nonexistent table: "
 					+ fktable);
-		for (BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
-				!iter.eof(); iter.next()) {
+		for (; !iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
 			fkey_source_block1(tran, fktbl, fkcolumns, rec.project(colnums),
 					"add index to " + table.name);
@@ -604,15 +612,17 @@ public class Database {
 					getForeignKeys(tran, tablename, icols)));
 		}
 
-		return new Table(table_rec, columns, indexes.build());
+		tabledata.put(tblnum, new TableData(table_rec));
+
+		return new Table(table_rec, columns, new Indexes(indexes.build()));
 	}
 
 	// find foreign keys pointing to this index
 	private List<Record> getForeignKeys(Transaction tran, String tablename,
 			String columns) {
 		List<Record> records = new ArrayList<Record>();
-		for (BtreeIndex.Iter iter = fkey_index.iter(tran,
- key(tablename, columns)).next(); !iter.eof(); iter.next())
+		for (BtreeIndex.Iter iter = fkey_index.iter(tran, key(tablename, columns)).next();
+				!iter.eof(); iter.next())
 			records.add(input(iter.keyadr()));
 		return records;
 	}
@@ -709,7 +719,7 @@ public class Database {
 		tran.create_act(table.num, adr);
 
 		if (!loading)
-			table.user_trigger(tran, null, rec);
+			Triggers.call(table, tran, null, rec);
 	}
 
 	void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
@@ -730,9 +740,7 @@ public class Database {
 			i.update(); // update indexes record from index
 		}
 
-		++table.nrecords;
-		table.totalsize += rec.bufSize();
-		table.update(); // update tables record
+		tabledata.get(table.num).add(rec.bufSize());
 	}
 
 	// update record ================================================
@@ -811,10 +819,9 @@ public class Database {
 			i.update();
 		}
 		tran.create_act(table.num, newoff);
-		table.totalsize += newrec.bufSize() - oldrec.bufSize();
-		table.update();
+		tabledata.get(table.num).update(oldrec.bufSize(), newrec.bufSize());
 
-		table.user_trigger(tran, oldrec, newrec);
+		Triggers.call(table, tran, oldrec, newrec);
 		return newoff;
 	}
 
@@ -861,12 +868,10 @@ public class Database {
 			throw new SuException("delete record from " + table.name
 					+ " transaction conflict: " + tran.conflict());
 
-		--table.nrecords;
-		table.totalsize -= rec.bufSize();
-		table.update(); // update tables record
+		tabledata.get(table.num).remove(rec.bufSize());
 
 		if (!loading)
-			table.user_trigger(tran, rec, null);
+			Triggers.call(table, tran, rec, null);
 	}
 
 	// foreign keys =================================================
@@ -946,9 +951,7 @@ public class Database {
 			return;
 		Record rec = input(adr);
 		remove_index_entries(table, rec);
-		--table.nrecords;
-		table.totalsize -= rec.bufSize();
-		table.update();
+		tabledata.get(table.num).remove(rec.bufSize());
 	}
 
 	// used by Transaction.abort
@@ -956,10 +959,8 @@ public class Database {
 		Table table = getTable(tblnum);
 		if (table == null)
 			return;
-		// undo tables record update
-		++table.nrecords;
-		table.totalsize += input(adr).bufSize();
-		table.update();
+		Record rec = input(adr);
+		tabledata.get(table.num).add(rec.bufSize());
 	}
 
 	// used by Transaction.finalization

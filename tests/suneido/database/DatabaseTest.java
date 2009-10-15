@@ -46,7 +46,7 @@ public class DatabaseTest extends TestBase {
 		reopen();
 
 		tbl = db.getTable("test");
-		assertEquals(1, tbl.nrecords);
+		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
 
 		List<Record> recs = get("test");
 		assertEquals(1, recs.size());
