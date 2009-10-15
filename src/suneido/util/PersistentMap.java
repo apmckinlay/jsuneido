@@ -2,7 +2,10 @@ package suneido.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map.Entry;
 
 import net.jcip.annotations.Immutable;
 
@@ -14,7 +17,7 @@ import net.jcip.annotations.Immutable;
  * @author Andrew McKinlay
  */
 @Immutable
-public abstract class PersistentMap<K, V> extends AbstractMap<K, V> {
+public abstract class PersistentMap<K, V> {
 
 	private static final int BITS_PER_LEVEL = 5;
 	private static final int LEVEL_MASK = (1 << BITS_PER_LEVEL) - 1;
@@ -28,24 +31,16 @@ public abstract class PersistentMap<K, V> extends AbstractMap<K, V> {
 		return emptyNode;
 	}
 
+	public abstract V get(Object key);
+
 	public abstract PersistentMap<K, V> with(K key, V value);
 
 	public abstract PersistentMap<K, V> without(K key);
 
-	@Override
-	public int size() {
-		// TODO size
-		throw new UnsupportedOperationException();
-	}
+	// TODO size
 
-	@Override
 	public boolean containsKey(Object key) {
 		return get(key) != null;
-	}
-
-	@Override
-	public V remove(Object key) {
-		throw new UnsupportedOperationException();
 	}
 
 	private static abstract class Node<K, V> extends PersistentMap<K, V> {
@@ -343,12 +338,6 @@ public abstract class PersistentMap<K, V> extends AbstractMap<K, V> {
 			return i + 1;
 		}
 
-	}
-
-	@Override
-	public Set<Map.Entry<K, V>> entrySet() {
-		// TODO entrySet
-		throw new UnsupportedOperationException();
 	}
 
 	public static class Builder<K, V> {

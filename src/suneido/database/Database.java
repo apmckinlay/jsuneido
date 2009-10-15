@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
+import suneido.util.PersistentMap;
 
 import com.google.common.collect.ImmutableList;
 
@@ -29,8 +30,7 @@ public class Database {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
-	public final Map<Integer, TableData> tabledata =
-			new HashMap<Integer, TableData>();
+	public PersistentMap<Integer, TableData> tabledata = PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
 
@@ -352,11 +352,10 @@ public class Database {
 				tran.abortIfNotComplete();
 			}
 		}
-		if (fldnum >= 0) {
-			TableData td = tabledata.get(table.num);
-			++td.nextfield;
-			td.update();
-		}
+		if (fldnum >= 0)
+			tabledata = tabledata.with(table.num,
+					tabledata.get(table.num).withField());
+
 		tables.remove(tablename); // TODO update instead of remove
 	}
 
@@ -612,7 +611,7 @@ public class Database {
 					getForeignKeys(tran, tablename, icols)));
 		}
 
-		tabledata.put(tblnum, new TableData(table_rec));
+		tabledata = tabledata.with(tblnum, new TableData(table_rec));
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
 	}
@@ -740,7 +739,8 @@ public class Database {
 			i.update(); // update indexes record from index
 		}
 
-		tabledata.get(table.num).add(rec.bufSize());
+		tabledata = tabledata.with(table.num,
+				tabledata.get(table.num).with(rec.bufSize()));
 	}
 
 	// update record ================================================
@@ -819,7 +819,8 @@ public class Database {
 			i.update();
 		}
 		tran.create_act(table.num, newoff);
-		tabledata.get(table.num).update(oldrec.bufSize(), newrec.bufSize());
+		tabledata =	tabledata.with(table.num, tabledata.get(table.num)
+				.withReplace(oldrec.bufSize(), newrec.bufSize()));
 
 		Triggers.call(table, tran, oldrec, newrec);
 		return newoff;
@@ -868,7 +869,8 @@ public class Database {
 			throw new SuException("delete record from " + table.name
 					+ " transaction conflict: " + tran.conflict());
 
-		tabledata.get(table.num).remove(rec.bufSize());
+		tabledata = tabledata.with(table.num,
+				tabledata.get(table.num).without(rec.bufSize()));
 
 		if (!loading)
 			Triggers.call(table, tran, rec, null);
@@ -951,7 +953,8 @@ public class Database {
 			return;
 		Record rec = input(adr);
 		remove_index_entries(table, rec);
-		tabledata.get(table.num).remove(rec.bufSize());
+		tabledata = tabledata.with(table.num,
+				tabledata.get(table.num).without(rec.bufSize()));
 	}
 
 	// used by Transaction.abort
@@ -960,7 +963,8 @@ public class Database {
 		if (table == null)
 			return;
 		Record rec = input(adr);
-		tabledata.get(table.num).add(rec.bufSize());
+		tabledata = tabledata.with(table.num,
+				tabledata.get(table.num).with(rec.bufSize()));
 	}
 
 	// used by Transaction.finalization
