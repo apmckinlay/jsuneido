@@ -13,6 +13,7 @@ import suneido.SuException;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small>
  */
 public class Btree {
+
 	final public static int MAXLEVELS = 20;
 	final public static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
 	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
@@ -45,12 +46,15 @@ public class Btree {
 		verify(nnodes > 0);
 		this.nnodes = nnodes;
 	}
+
 	public int treelevels() {
 		return treelevels;
 	}
+
 	public int nnodes() {
 		return nnodes;
 	}
+
 	public boolean isEmpty() {
 		if (nnodes == 0)
 			return true;

@@ -3,15 +3,17 @@ package suneido.database;
 import static suneido.Suneido.verify;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
+ * NOT thread safe, but only updated by schema transactions, during which
+ * nothing else should be running
+ * 
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. 
- * Licensed under GPLv2.</small></p>
  */
 public class Tables {
-	private final HashMap<Integer, Table> bynum = new HashMap<Integer, Table>();
-	private final HashMap<String, Table> byname = new HashMap<String, Table>();
+	private final Map<Integer, Table> bynum = new HashMap<Integer, Table>();
+	private final Map<String, Table> byname = new HashMap<String, Table>();
 
 	public void add(Table tbl) {
 		bynum.put(tbl.num, tbl);
@@ -27,17 +29,14 @@ public class Tables {
 	}
 
 	public void remove(String tblname) {
-		if (null == byname.get(tblname))
-			return;
-		verify(null != bynum.remove(byname.get(tblname).num));
-		verify(null != byname.remove(tblname));
+		Table table = byname.remove(tblname);
+		if (table != null)
+			verify(null != bynum.remove(table.num));
 	}
 
 	public void remove(int tblnum) {
-		if (null == bynum.get(tblnum))
-			return;
-		String tblname = bynum.get(tblnum).name;
-		verify(null != byname.remove(tblname));
-		verify(null != bynum.remove(tblnum));
+		Table table = bynum.remove(tblnum);
+		if (table != null)
+			verify(null != byname.remove(table.name));
 	}
 }

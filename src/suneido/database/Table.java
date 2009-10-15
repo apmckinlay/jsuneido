@@ -1,46 +1,31 @@
 package suneido.database;
 
-import static suneido.Suneido.verify;
-
-import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.SuRecord;
-import suneido.language.*;
-import suneido.language.builtin.TransactionInstance;
+import net.jcip.annotations.Immutable;
 
 import com.google.common.collect.ImmutableList;
 
 /**
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
+@Immutable
 public class Table {
-	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3,
-			TOTALSIZE = 4;
-	private final Record record;
+	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
 	public final String name;
 	public final int num;
+	public final int nextfield;
 	public final Columns columns;
 	public final Indexes indexes;
+	public final ImmutableList<String> fields;
 
-	public int nextfield;
-	public int nrecords;
-	public int totalsize;
-	private List<String> flds = null;
-	private static List<String> disabledTriggers = new ArrayList<String>();
-
-	public Table(Record record, Columns columns, ImmutableList<Index> indexes) {
-		this.record = record;
+	public Table(Record record, Columns columns, Indexes indexes) {
 		this.columns = columns;
-		this.indexes = new Indexes(indexes);
+		this.indexes = indexes;
+		this.fields = get_fields();
 		num = record.getInt(TBLNUM);
 		name = record.getString(TABLE);
 		nextfield = record.getInt(NEXTFIELD);
-		nrecords = record.getInt(NROWS);
-		totalsize = record.getInt(TOTALSIZE);
 	}
 
 	@Override
@@ -56,62 +41,8 @@ public class Table {
 		return columns.find(name);
 	}
 
-	public int nrecords() {
-		return nrecords;
-	}
-
-	public int totalsize() {
-		return totalsize;
-	}
-
-	public void user_trigger(Transaction tran, Record oldrec, Record newrec) {
-		if (disabledTriggers.contains(name))
-			return;
-		String trigger = "Trigger_" + name;
-		if (flds == null)
-			flds = getFields();
-		Object fn = Globals.tryget(trigger);
-		if (fn == null)
-			return;
-		if (!(fn instanceof SuCallable))
-			throw new SuException(trigger + " not callable");
-		TransactionInstance t = new TransactionInstance(tran);
-		try {
-			Ops.call(fn, t,
-					oldrec == null ? Boolean.FALSE : new SuRecord(oldrec, flds, t),
-					newrec == null ? Boolean.FALSE : new SuRecord(newrec, flds, t));
-		} catch (SuException e) {
-			throw new SuException(e + " (" + trigger + ")", e);
-		}
-	}
-
-	public static void disableTrigger(String table) {
-		disabledTriggers.add(table);
-	}
-
-	public static void enableTrigger(String table) {
-		disabledTriggers.remove(table);
-	}
-
-	public void update() {
-		verify(record.off() != 0);
-		record.truncate(NEXTFIELD);
-		record.add(nextfield).add(nrecords).add(totalsize);
-	}
-
-	public static Record record(String name, int num, int nextfield, int nrecords) {
-		Record r = new Record();
-		r.add(num).add(name).add(nextfield).add(nrecords).add(100);
-		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
-		return r;
-	}
-
 	public boolean hasIndexes() {
 		return !indexes.isEmpty();
-	}
-
-	public boolean hasRecords() {
-		return nrecords > 0;
 	}
 
 	public boolean hasIndex(String columns) {
@@ -142,8 +73,12 @@ public class Table {
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */
-	public List<String> getFields() {
-		List<String> list = new ArrayList<String>();
+	public ImmutableList<String> getFields() {
+		return fields;
+	}
+
+	private ImmutableList<String> get_fields() {
+		ImmutableList.Builder<String> list = ImmutableList.builder();
 		int i = 0;
 		for (Column cs : columns) {
 			if (cs.num < 0)
@@ -153,9 +88,12 @@ public class Table {
 			list.add(cs.name);
 			++i;
 		}
+
+		// TODO try removing this
 		for (; i < nextfield; ++i)
 			list.add("-");
-		return list;
+
+		return list.build();
 	}
 
 	public String schema() {
@@ -196,4 +134,13 @@ public class Table {
 		}
 		return sb.toString();
 	}
+
+	public static Record record(String name, int num, int nextfield,
+			int nrecords) {
+		Record r = new Record();
+		r.add(num).add(name).add(nextfield).add(nrecords).add(100);
+		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		return r;
+	}
+
 }

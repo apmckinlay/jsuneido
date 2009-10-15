@@ -1,7 +1,7 @@
 package suneido.language.builtin;
 
 import suneido.SuContainer;
-import suneido.database.Table;
+import suneido.database.Triggers;
 import suneido.language.*;
 
 public class DoWithoutTriggers extends BuiltinFunction {
@@ -14,11 +14,11 @@ public class DoWithoutTriggers extends BuiltinFunction {
 		SuContainer c = Ops.toContainer(args[0]);
 		try {
 			for (Object x : c.getVec())
-				Table.disableTrigger(Ops.toStr(x));
+				Triggers.disableTrigger(Ops.toStr(x));
 			return Ops.call(args[1]);
 		} finally {
 			for (Object x : c.getVec())
-				Table.enableTrigger(Ops.toStr(x));
+				Triggers.enableTrigger(Ops.toStr(x));
 		}
 	}
 

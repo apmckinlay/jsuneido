@@ -428,10 +428,10 @@ public class Select extends Query1 {
 		if (nil(best_index))
 			return .5;
 		Iselect fsel = isels.get(field);
-//		return 
+//		return
 		double tmp = iselsize(best_index, asList(fsel));
 		if (Double.isNaN(tmp))
-			throw new SuException("field_frac " + field + 
+			throw new SuException("field_frac " + field +
 					" => iselsize " + best_index + " " + asList(fsel) +
 					" => NaN");
 		return tmp;
@@ -471,7 +471,7 @@ public class Select extends Query1 {
 				}
 			}
 			if (nexact > 0) {
-				int nrecs = tbl.tbl.nrecords();
+				int nrecs = tbl.nrecs();
 				return nrecs != 0 ? (float) nexact / nrecs : 0;
 				// NOTE: assumes they all exist ???
 			}
@@ -572,7 +572,7 @@ public class Select extends Query1 {
 				idx.containsAll(select_needs) && idx.containsAll(prior_needs)
 						? 0 : datafrac(asList(idx));
 
-		double data_read_cost = data_frac * tbl.tbl.totalsize();
+		double data_read_cost = data_frac * tbl.totalsize();
 
 		return index_read_cost + data_read_cost;
 	}

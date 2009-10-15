@@ -111,12 +111,21 @@ public class Table extends Query {
 
 	@Override
 	int recordsize() {
-		return tbl.nrecords() == 0 ? 0 : tbl.totalsize / tbl.nrecords();
+		TableData td = theDB.tabledata.get(tbl.num);
+		return td.nrecords == 0 ? 0 : td.totalsize / td.nrecords;
 	}
 
 	@Override
 	double nrecords() {
-		return tbl.nrecords();
+		return nrecs();
+	}
+
+	int nrecs() {
+		return theDB.tabledata.get(tbl.num).nrecords;
+	}
+
+	int totalsize() {
+		return theDB.tabledata.get(tbl.num).totalsize;
 	}
 
 	private static List<String> match(List<List<String>> idxs,
@@ -140,7 +149,7 @@ public class Table extends Query {
 	}
 
 	int keysize(List<String> index) {
-		int nrecs = tbl.nrecords();
+		int nrecs = nrecs();
 		if (nrecs == 0)
 			return 0;
 		Index idx = tbl.getIndex(listToCommas(index));
