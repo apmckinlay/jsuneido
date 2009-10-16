@@ -6,19 +6,23 @@ import static suneido.Suneido.verify;
 public class TableData {
 
 	private final Record record;
+	public final int num;
 	public final int nextfield;
 	public final int nrecords;
 	public final int totalsize;
 
 	public TableData(Record record) {
 		this.record = record;
+		num = record.getInt(Table.TBLNUM);
 		nextfield = record.getInt(Table.NEXTFIELD);
 		nrecords = record.getInt(Table.NROWS);
 		totalsize = record.getInt(Table.TOTALSIZE);
 	}
 
-	private TableData(Record record, int nextfield, int nrecords, int totalsize) {
+	private TableData(Record record, int num, int nextfield, int nrecords,
+			int totalsize) {
 		this.record = record;
+		this.num = num;
 		this.nextfield = nextfield;
 		this.nrecords = nrecords;
 		this.totalsize = totalsize;
@@ -37,25 +41,33 @@ public class TableData {
 	}
 
 	public TableData with(int recSize) {
-		return new TableData(record, nextfield, nrecords + 1,
-				totalsize + recSize).update();
+		return new TableData(record, num, nextfield, nrecords + 1,
+				totalsize + recSize);
 	}
 
 	public TableData without(int recSize) {
-		return new TableData(record, nextfield, nrecords - 1,
-				totalsize - recSize).update();
+		return new TableData(record, num, nextfield, nrecords - 1,
+				totalsize - recSize);
 	}
 
 	public TableData withReplace(int oldSize, int newSize) {
-		return new TableData(record, nextfield, nrecords,
-				totalsize + newSize - oldSize).update();
+		return new TableData(record, num, nextfield, nrecords,
+				totalsize + newSize - oldSize);
 	}
 
 	public TableData withField() {
-		return new TableData(record, nextfield + 1, nrecords, totalsize).update();
+		return new TableData(record, num, nextfield + 1, nrecords,
+ totalsize).update();
 	}
 
-	public TableData update() {
+	public TableData with(int nextfield, int d_nrecords, int d_totalsize) {
+		if (nextfield == this.nextfield && d_nrecords == 0 && d_totalsize == 0)
+			return this;
+		return new TableData(record, num, nextfield, nrecords + d_nrecords,
+				totalsize + d_totalsize).update();
+	}
+
+	private TableData update() {
 		verify(record.off() != 0);
 		record.truncate(Table.NEXTFIELD);
 		record.add(nextfield).add(nrecords).add(totalsize);

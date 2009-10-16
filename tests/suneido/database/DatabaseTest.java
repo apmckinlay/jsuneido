@@ -46,7 +46,7 @@ public class DatabaseTest extends TestBase {
 		reopen();
 
 		tbl = db.getTable("test");
-		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
+		assertEquals(1, db.tabledataMaster.get(tbl.num).nrecords);
 
 		List<Record> recs = get("test");
 		assertEquals(1, recs.size());
@@ -271,6 +271,10 @@ public class DatabaseTest extends TestBase {
 
 		Table table = db.getTable("test2");
 		ForeignKey fk = table.indexes.get("f1").fksrc;
+		assertEquals("test", fk.tablename);
+		assertEquals("a", fk.columns);
+		assertEquals(0, fk.mode);
+		fk = table.indexes.get("f2").fksrc;
 		assertEquals("test", fk.tablename);
 		assertEquals("a", fk.columns);
 		assertEquals(0, fk.mode);

@@ -8,18 +8,13 @@ import suneido.language.ParseExpression;
 
 public class CompileQuery {
 
-	public static Query query(ServerData serverData, String s) {
-		return query(serverData, s, false);
+	public static Query query(Transaction t, ServerData serverData, String s,
+			boolean is_cursor) {
+		return parse(serverData, s).setup(t, is_cursor);
 	}
 
-	public static Query query(ServerData serverData, String s, boolean is_cursor) {
-		return parse(serverData, s).setup(is_cursor);
-	}
-
-	public static Query query(ServerData serverData, String s, Transaction tran) {
-		Query q = parse(serverData, s).setup();
-		q.setTransaction(tran);
-		return q;
+	public static Query query(Transaction t, ServerData serverData, String s) {
+		return parse(serverData, s).setup(t);
 	}
 
 	public static Query parse(ServerData serverData, String s) {

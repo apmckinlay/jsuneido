@@ -111,7 +111,7 @@ public class Table extends Query {
 
 	@Override
 	int recordsize() {
-		TableData td = theDB.tabledata.get(tbl.num);
+		TableData td = tran.getTableData(tbl.num);
 		return td.nrecords == 0 ? 0 : td.totalsize / td.nrecords;
 	}
 
@@ -121,11 +121,11 @@ public class Table extends Query {
 	}
 
 	int nrecs() {
-		return theDB.tabledata.get(tbl.num).nrecords;
+		return tran.getTableData(tbl.num).nrecords;
 	}
 
 	int totalsize() {
-		return theDB.tabledata.get(tbl.num).totalsize;
+		return tran.getTableData(tbl.num).totalsize;
 	}
 
 	private static List<String> match(List<List<String>> idxs,

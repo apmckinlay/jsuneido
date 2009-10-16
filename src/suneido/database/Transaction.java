@@ -9,6 +9,7 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
+import suneido.util.PersistentMap;
 
 import com.google.common.collect.ImmutableList;
 
@@ -26,33 +27,46 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final long t;
 	private long asof; // not final because updated when readwrite tran commits
 	String sessionId = "session";
+	private final PersistentMap<Integer, TableData> tabledata;
+	private final Map<Integer, TableData> tabledataUpdates =
+			new HashMap<Integer, TableData>();
 
 	public final int num;
 	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
-	public static Transaction readonly(Transactions trans) {
-		return new Transaction(trans, true);
+	public static Transaction readonly(Transactions trans,
+			PersistentMap<Integer, TableData> tabledata) {
+		return new Transaction(trans, true, tabledata);
 	}
 
-	public static Transaction readwrite(Transactions trans) {
-		return new Transaction(trans, false);
+	public static Transaction readwrite(Transactions trans,
+			PersistentMap<Integer, TableData> tabledata) {
+		return new Transaction(trans, false, tabledata);
 	}
 
-	private Transaction(Transactions trans, boolean readonly) {
+	private Transaction(Transactions trans, boolean readonly,
+			PersistentMap<Integer, TableData> tabledata) {
 		this.trans = trans;
 		this.readonly = readonly;
 		t = asof = trans.clock();
-		this.num = trans.nextNum();
+		num = trans.nextNum();
+		this.tabledata = tabledata;
 		trans.add(this);
+	}
+
+	// used for cursor setup
+	public Transaction(PersistentMap<Integer, TableData> tabledata) {
+		this.tabledata = tabledata;
+		trans = null;
+		readonly = true;
+		t = asof = num = 0;
 	}
 
 	// used by NullTransaction
 	private Transaction() {
-		trans = null;
-		readonly = true;
-		t = asof = num = 0;
+		this(null);
 	}
 
 	@Override
@@ -75,6 +89,16 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	public String conflict() {
 		return conflict;
+	}
+
+	public TableData getTableData(int tblnum) {
+		TableData td = tabledataUpdates.get(tblnum);
+		return td != null ? td : tabledata.get(tblnum);
+	}
+
+	public void updateTableData(TableData td) {
+		verify(!readonly);
+		tabledataUpdates.put(td.num, td);
 	}
 
 	public TranRead read_act(int tblnum, String index) {
@@ -202,6 +226,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void completeReadwrite() {
+		updateTableData();
+
 		int ncreates = 0;
 		int ndeletes = 0;
 		long commit_time = trans.clock();
@@ -221,6 +247,16 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		asof = commit_time;
 		trans.addFinal(this);
 		writeCommitRecord(ncreates, ndeletes);
+	}
+
+	private void updateTableData() {
+		for (Map.Entry<Integer, TableData> e : tabledataUpdates.entrySet()) {
+			TableData tdNew = e.getValue();
+			TableData tdOld = tabledata.get(tdNew.num);
+			trans.db.updateTableData(tdNew.num, tdNew.nextfield,
+					tdNew.nrecords - tdOld.nrecords,
+					tdNew.totalsize - tdOld.totalsize);
+		}
 	}
 
 	private void writeCommitRecord(int ncreates, int ndeletes) {

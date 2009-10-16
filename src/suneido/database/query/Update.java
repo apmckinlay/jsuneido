@@ -31,6 +31,7 @@ public class Update extends QueryAction {
 
 	@Override
 	public int execute(Transaction tran) {
+		source.setTransaction(tran);
 		Query q = source.transform();
 		List<String> cols = q.columns();
 		List<String> bestKey = q.key_index(cols);
@@ -43,7 +44,6 @@ public class Update extends QueryAction {
 		//		Query q = source.setup();
 		if (!q.updateable())
 			throw new SuException("update: query not updateable");
-		q.setTransaction(tran);
 		Header hdr = q.header();
 		Row row;
 		int n = 0;
