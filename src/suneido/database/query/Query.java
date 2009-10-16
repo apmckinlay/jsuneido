@@ -11,7 +11,6 @@ import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.server.DbmsQuery;
-import suneido.database.server.ServerData;
 
 /**
  * Base class for query operation classes.
@@ -34,14 +33,16 @@ public abstract class Query implements DbmsQuery {
 	// allow for adding impossibles together
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
-	static Query query(ServerData serverData, String s, boolean is_cursor) {
-		return CompileQuery.parse(serverData, s).setup(is_cursor);
+	//	static Query query(ServerData serverData, String s, boolean is_cursor) {
+	//		return CompileQuery.parse(serverData, s).setup(is_cursor);
+	//	}
+
+	Query setup(Transaction t) {
+		return setup(t, false);
 	}
 
-	Query setup() {
-		return setup(false);
-	}
-	Query setup(boolean is_cursor) {
+	Query setup(Transaction t, boolean is_cursor) {
+		setTransaction(t);
 		Query q = transform();
 		if (q.optimize(noFields, q.columns(), noFields, is_cursor, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");

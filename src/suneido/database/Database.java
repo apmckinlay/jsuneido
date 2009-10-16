@@ -30,7 +30,7 @@ public class Database {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private final Tables tables = new Tables();
-	public PersistentMap<Integer, TableData> tabledata = PersistentMap.empty();
+	public PersistentMap<Integer, TableData> tabledataMaster = PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
 
@@ -129,6 +129,7 @@ public class Database {
 		loading = false;
 
 		// views
+		loadSchema(); // need to load what we have so far
 		addTable("views");
 		addColumn("views", "view_name");
 		addColumn("views", "view_definition");
@@ -261,10 +262,10 @@ public class Database {
 	}
 
 	public Transaction readonlyTran() {
-		return Transaction.readonly(trans);
+		return Transaction.readonly(trans, tabledataMaster);
 	}
 	public Transaction readwriteTran() {
-		return Transaction.readwrite(trans);
+		return Transaction.readwrite(trans, tabledataMaster);
 	}
 
 	// tables =======================================================
@@ -319,7 +320,7 @@ public class Database {
 		try {
 			update_any_record(tran, "tables", "table", key(tbl.num),
 					Table.record(newname, tbl.num, tbl.nextfield,
-							tabledata.get(tbl.num).nrecords));
+							tabledataMaster.get(tbl.num).nrecords));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -353,8 +354,8 @@ public class Database {
 			}
 		}
 		if (fldnum >= 0)
-			tabledata = tabledata.with(table.num,
-					tabledata.get(table.num).withField());
+			tabledataMaster = tabledataMaster.with(table.num,
+					tabledataMaster.get(table.num).withField());
 
 		tables.remove(tablename); // TODO update instead of remove
 	}
@@ -484,8 +485,9 @@ public class Database {
 					+ fktable);
 		for (; !iter.eof(); iter.next()) {
 			Record rec = input(iter.keyadr());
-			fkey_source_block1(tran, fktbl, fkcolumns, rec.project(colnums),
-					"add index to " + table.name);
+			if (fktable != null)
+				fkey_source_block1(tran, fktbl, fkcolumns,
+						rec.project(colnums), "add index to " + table.name);
 			Record key = rec.project(colnums, iter.cur().keyadr());
 			if (!index.insert(tran, new Slot(key)))
 				throw new SuException("add index: duplicate key: " + columns
@@ -611,7 +613,7 @@ public class Database {
 					getForeignKeys(tran, tablename, icols)));
 		}
 
-		tabledata = tabledata.with(tblnum, new TableData(table_rec));
+		tabledataMaster = tabledataMaster.with(tblnum, new TableData(table_rec));
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
 	}
@@ -739,8 +741,7 @@ public class Database {
 			i.update(); // update indexes record from index
 		}
 
-		tabledata = tabledata.with(table.num,
-				tabledata.get(table.num).with(rec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).with(rec.bufSize()));
 	}
 
 	// update record ================================================
@@ -819,7 +820,7 @@ public class Database {
 			i.update();
 		}
 		tran.create_act(table.num, newoff);
-		tabledata =	tabledata.with(table.num, tabledata.get(table.num)
+		tran.updateTableData(tran.getTableData(table.num)
 				.withReplace(oldrec.bufSize(), newrec.bufSize()));
 
 		Triggers.call(table, tran, oldrec, newrec);
@@ -869,8 +870,7 @@ public class Database {
 			throw new SuException("delete record from " + table.name
 					+ " transaction conflict: " + tran.conflict());
 
-		tabledata = tabledata.with(table.num,
-				tabledata.get(table.num).without(rec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).without(rec.bufSize()));
 
 		if (!loading)
 			Triggers.call(table, tran, rec, null);
@@ -953,8 +953,6 @@ public class Database {
 			return;
 		Record rec = input(adr);
 		remove_index_entries(table, rec);
-		tabledata = tabledata.with(table.num,
-				tabledata.get(table.num).without(rec.bufSize()));
 	}
 
 	// used by Transaction.abort
@@ -962,9 +960,6 @@ public class Database {
 		Table table = getTable(tblnum);
 		if (table == null)
 			return;
-		Record rec = input(adr);
-		tabledata = tabledata.with(table.num,
-				tabledata.get(table.num).with(rec.bufSize()));
 	}
 
 	// used by Transaction.finalization
@@ -1033,6 +1028,15 @@ public class Database {
 
 	public long size() {
 		return dest.size();
+	}
+
+	public void updateTableData(int num, int nextfield, int d_nrecords,
+			int d_totalsize) {
+		TableData td = tabledataMaster.get(num);
+		td = td.with(nextfield, d_nrecords, d_totalsize);
+		tabledataMaster = tabledataMaster.with(num, td);
+
+		// TODO invalidate Table if nextfield changed
 	}
 
 }

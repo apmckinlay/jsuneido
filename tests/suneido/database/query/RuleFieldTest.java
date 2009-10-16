@@ -1,10 +1,12 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
 import suneido.database.Record;
+import suneido.database.Transaction;
 
 public class RuleFieldTest extends TestBase {
 
@@ -17,7 +19,8 @@ public class RuleFieldTest extends TestBase {
 		adm("create withrule (a,B) key(a)");
 		req("insert { a: 1, b: 2 } into withrule");
 
-		Query q = CompileQuery.parse(serverData, "withrule").setup();
+		Query q = CompileQuery.query(new Transaction(theDB.tabledataMaster),
+				serverData, "withrule");
 		Header hdr = q.header();
 		assertEquals("[b, a]", hdr.columns().toString());
 		assertEquals("[a]", hdr.fields().toString());

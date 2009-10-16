@@ -16,14 +16,14 @@ public class ExecuteTest extends TestBase {
 	public void test() {
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.parse(serverData, c[0]).setup();
 			//System.out.println(q);
 			Transaction t = theDB.readonlyTran();
 			try {
-				q.setTransaction(t);
+				Query q = CompileQuery.query(t, serverData, c[0]);
 				assertEquals(c[0], c[1], execute(q));
-			} finally {
 				t.complete();
+			} finally {
+				t.abortIfNotComplete();
 			}
 		}
 	}

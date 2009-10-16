@@ -22,8 +22,7 @@ public class InsertQuery extends QueryAction {
 
 	@Override
 	public int execute(Transaction tran) {
-		Query q = source.setup();
-		q.setTransaction(tran);
+		Query q = source.setup(tran);
 		Header hdr = q.header();
 		List<String> fields = theDB.ck_getTable(table).getFields();
 		Row row;
