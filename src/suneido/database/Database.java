@@ -30,7 +30,7 @@ public class Database {
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
 	private Tables tables = new Tables();
-	public PersistentMap<Integer, TableData> tabledataMaster = PersistentMap.empty();
+	public PersistentMap<Integer, TableData> tabledata = PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
 
@@ -186,18 +186,23 @@ public class Database {
 	}
 
 	private void loadSchema() {
-		Tables.Builder builder = new Tables.Builder();
+		Tables.Builder tablesBuilder = new Tables.Builder();
+		PersistentMap.Builder<Integer, TableData> tabledataBuilder =
+				PersistentMap.builder();
 		Transaction tran = readonlyTran();
 		try {
 			for (BtreeIndex.Iter iter = tablenum_index.iter(tran).next();
 					!iter.eof(); iter.next()) {
 				Record table_rec = input(iter.keyadr());
-				builder.add(loadTable(tran, table_rec));
+				Table table = loadTable(tran, table_rec);
+				tablesBuilder.add(table);
+				tabledataBuilder.put(table.num, new TableData(table_rec));
 			}
 		} finally {
 			tran.complete();
 		}
-		tables = builder.build();
+		tables = tablesBuilder.build();
+		tabledata = tabledataBuilder.build();
 	}
 
 	long output(int tblnum, Record r) {
@@ -262,10 +267,10 @@ public class Database {
 	}
 
 	public Transaction readonlyTran() {
-		return Transaction.readonly(trans, tabledataMaster);
+		return Transaction.readonly(trans, tabledata);
 	}
 	public Transaction readwriteTran() {
-		return Transaction.readwrite(trans, tabledataMaster);
+		return Transaction.readwrite(trans, tabledata);
 	}
 
 	// tables =======================================================
@@ -278,7 +283,7 @@ public class Database {
 		try {
 			Record r = Table.record(tablename, tblnum, 0, 0);
 			add_any_record(tran, "tables", r);
-			tables = tables.with(loadTable(tran, tblnum));
+			updateTable(tran, tblnum);
 			tran.complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -300,6 +305,7 @@ public class Database {
 			tran.abortIfNotComplete();
 		}
 		tables = tables.without(table);
+		tabledata = tabledata.without(table.num);
 	}
 
 	private void checkForSystemTable(String tablename, String operation) {
@@ -319,10 +325,11 @@ public class Database {
 
 		Transaction tran = readwriteTran();
 		try {
+			TableData td = tran.getTableData(table.num);
 			update_any_record(tran, "tables", "table", key(table.num),
-					Table.record(newname, table.num, table.nextfield,
-							tabledataMaster.get(table.num).nrecords));
-			tables = tables.without(table).with(loadTable(tran, table.num));
+					Table.record(newname, table.num, td.nextfield, td.nrecords));
+			tables = tables.without(table);
+			updateTable(tran, table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -334,28 +341,28 @@ public class Database {
 
 	public void addColumn(String tablename, String column) {
 		Table table = ck_getTable(tablename);
-
-		int fldnum = Character.isUpperCase(column.charAt(0)) ? -1
-				: table.nextfield;
-		if (! column.equals("-")) { // addition of deleted field used by dump/load
-			if (fldnum == -1)
-				column = column.substring(0, 1).toLowerCase()
-						+ column.substring(1);
-			if (table.hasColumn(column))
-				throw new SuException("add column: column already exists: "
-						+ column + " in " + tablename);
-			Transaction tran = readwriteTran();
-			try {
+		Transaction tran = readwriteTran();
+		try {
+			TableData td = tran.getTableData(table.num);
+			int fldnum =
+					Character.isUpperCase(column.charAt(0)) ? -1 : td.nextfield;
+			if (!column.equals("-")) { // addition of deleted field used by dump/load
+				if (fldnum == -1)
+					column =
+							column.substring(0, 1).toLowerCase()
+									+ column.substring(1);
+				if (table.hasColumn(column))
+					throw new SuException("add column: column already exists: "
+							+ column + " in " + tablename);
 				Record rec = Column.record(table.num, column, fldnum);
 				add_any_record(tran, "columns", rec);
 				if (fldnum >= 0)
-					tabledataMaster = tabledataMaster.with(table.num,
-							tabledataMaster.get(table.num).withField());
-				tables = tables.without(table).with(loadTable(tran, table.num));
+					tran.updateTableData(td.withField());
+				updateTable(tran, table.num);
 				tran.complete();
-			} finally {
-				tran.abortIfNotComplete();
 			}
+		} finally {
+			tran.abortIfNotComplete();
 		}
 	}
 
@@ -379,7 +386,7 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			removeColumn(tran, table, name);
-			tables = tables.without(table).with(loadTable(tran, table.num));
+			updateTable(tran, table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -410,8 +417,8 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			update_any_record(tran, "columns", "table,column",
- key(table.num,
-					oldname), Column.record(table.num, newname, col.num));
+					key(table.num, oldname),
+					Column.record(table.num, newname, col.num));
 
 			// update any indexes that include this column
 			for (Index idx : table.indexes) {
@@ -422,10 +429,9 @@ public class Database {
 				cols.set(i, newname);
 				idx.btreeIndex.setIndexColumns(listToCommas(cols));
 				update_any_record(tran, "indexes", "table,columns",
- key(
-						table.num, idx.columns), idx.record());
+						key(table.num, idx.columns), idx.record());
 				}
-			tables = tables.without(table).with(loadTable(tran, table.num));
+			updateTable(tran, table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -456,13 +462,12 @@ public class Database {
 		try {
 			add_any_record(tran, "indexes", Index.record(index, fktablename,
 					fkcolumns, fkmode));
-			tables = tables.without(table).with(loadTable(tran, table.num));
+			updateTable(tran, table.num);
 			Table fktable = null;
 			if (fktablename != null) {
 				fktable = getTable(fktablename);
 				if (fktable != null)
-					tables = tables.without(fktable)
-							.with(loadTable(tran, fktable.num));
+					updateTable(tran, fktable.num);
 			}
 			insertExistingRecords(tran, columns, table, colnums,
 					fktablename, fktable, fkcolumns, index);
@@ -514,7 +519,7 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			removeIndex(tran, table, columns);
-			tables = tables.without(table).with(loadTable(tran, table.num));
+			updateTable(tran, table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -558,11 +563,13 @@ public class Database {
 		return tables.get(tblnum);
 	}
 
-	private Table loadTable(Transaction tran, int tblnum) {
+	private void updateTable(Transaction tran, int tblnum) {
 		Record table_rec = find(tran, tablenum_index, key(tblnum));
 		if (table_rec == null)
-			return null; // table not found
-		return loadTable(tran, table_rec);
+			return; // table not found
+		Table table = loadTable(tran, table_rec);
+		tables = tables.with(table);
+		tabledata = tabledata.with(tblnum, new TableData(table_rec));
 	}
 
 	private Table loadTable(Transaction tran, Record table_rec) {
@@ -601,8 +608,6 @@ public class Database {
 			indexes.add(new Index(r, icols, columns.nums(icols), index,
 					getForeignKeys(tran, tablename, icols)));
 		}
-
-		tabledataMaster = tabledataMaster.with(tblnum, new TableData(table_rec));
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
 	}
@@ -1022,11 +1027,9 @@ public class Database {
 
 	public void updateTableData(int num, int nextfield, int d_nrecords,
 			int d_totalsize) {
-		TableData td = tabledataMaster.get(num);
+		TableData td = tabledata.get(num);
 		td = td.with(nextfield, d_nrecords, d_totalsize);
-		tabledataMaster = tabledataMaster.with(num, td);
-
-		// TODO invalidate Table if nextfield changed
+		tabledata = tabledata.with(num, td);
 	}
 
 }
