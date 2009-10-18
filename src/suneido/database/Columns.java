@@ -8,6 +8,7 @@ import net.jcip.annotations.Immutable;
 import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Andrew McKinlay
@@ -65,4 +66,10 @@ public class Columns implements Iterable<Column> {
 	public Iterator<Column> iterator() {
 		return columns.iterator();
 	}
+
+	@Override
+	public String toString() {
+		return "Columns " + Iterables.toString(this);
+	}
+
 }

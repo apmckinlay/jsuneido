@@ -6,8 +6,7 @@ import java.util.*;
 
 import net.jcip.annotations.Immutable;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 
 /**
  * @author Andrew McKinlay
@@ -73,4 +72,10 @@ public class Indexes implements Iterable<Index> {
 		// note: can't use commasToList because it does "" => empty list
 		return list;
 	}
+
+	@Override
+	public String toString() {
+		return "Indexes " + Iterables.toString(this);
+	}
+
 }

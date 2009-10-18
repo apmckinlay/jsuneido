@@ -264,10 +264,8 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test2", "f1");
 		db.addColumn("test2", "f2");
 		db.addIndex("test2", "a", true);
-		db.addIndex("test2", "f1", false, false, false, "test", "a",
-				Index.BLOCK);
-		db.addIndex("test2", "f2", false, false, false, "test", "a",
-				Index.BLOCK);
+		db.addIndex("test2", "f1", false, false, false, "test", "a", Index.BLOCK);
+		db.addIndex("test2", "f2", false, false, false, "test", "a", Index.BLOCK);
 
 		Table table = db.getTable("test2");
 		ForeignKey fk = table.indexes.get("f1").fksrc;
@@ -307,8 +305,7 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 
 		try {
-			db.addIndex("test", "b", false, false, false, "foo", "",
-					Index.BLOCK);
+			db.addIndex("test", "b", false, false, false, "foo", "", Index.BLOCK);
 			assertTrue(false);
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));

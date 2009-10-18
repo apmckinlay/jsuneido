@@ -9,7 +9,7 @@ package suneido.language;
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
 
- -server -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
+ -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */
 
 import java.io.*;

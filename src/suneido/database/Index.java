@@ -70,8 +70,8 @@ public class Index {
 
 	@Override
 	public String toString() {
-		return "Index(" + columns + ")" + (isKey() ? ", key" : "")
-				+ (btreeIndex.unique ? "unique" : "");
+		return "Index(" + columns + ")" + (isKey() ? ".key" : "")
+				+ (btreeIndex.unique ? ".unique" : "");
 	}
 
 	public Record record() {
