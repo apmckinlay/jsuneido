@@ -1,23 +1,23 @@
 package suneido.database;
 
-import static suneido.Suneido.verify;
-
-import java.util.HashMap;
-import java.util.Map;
+import suneido.util.PersistentMap;
 
 /**
- * NOT thread safe, but only updated by schema transactions, during which
- * nothing else should be running
- * 
  * @author Andrew McKinlay
  */
 public class Tables {
-	private final Map<Integer, Table> bynum = new HashMap<Integer, Table>();
-	private final Map<String, Table> byname = new HashMap<String, Table>();
+	private final PersistentMap<Integer, Table> bynum;
+	private final PersistentMap<String, Table> byname;
 
-	public void add(Table tbl) {
-		bynum.put(tbl.num, tbl);
-		byname.put(tbl.name, tbl);
+	public Tables() {
+		this.bynum = PersistentMap.empty();
+		this.byname = PersistentMap.empty();
+	}
+
+	private Tables(PersistentMap<Integer, Table> bynum,
+			PersistentMap<String, Table> byname) {
+		this.bynum = bynum;
+		this.byname = byname;
 	}
 
 	public Table get(int tblnum) {
@@ -28,15 +28,28 @@ public class Tables {
 		return byname.get(tblname);
 	}
 
-	public void remove(String tblname) {
-		Table table = byname.remove(tblname);
-		if (table != null)
-			verify(null != bynum.remove(table.num));
+	public Tables with(Table tbl) {
+		return new Tables(bynum.with(tbl.num, tbl), byname.with(tbl.name, tbl));
 	}
 
-	public void remove(int tblnum) {
-		Table table = bynum.remove(tblnum);
-		if (table != null)
-			verify(null != byname.remove(table.name));
+	public Tables without(Table tbl) {
+		return new Tables(bynum.without(tbl.num), byname.without(tbl.name));
 	}
+
+	public static class Builder {
+		private final PersistentMap.Builder<Integer, Table> bynum =
+				PersistentMap.builder();
+		private final PersistentMap.Builder<String, Table> byname =
+				PersistentMap.builder();
+
+		public void add(Table tbl) {
+			bynum.put(tbl.num, tbl);
+			byname.put(tbl.name, tbl);
+		}
+
+		public Tables build() {
+			return new Tables(bynum.build(), byname.build());
+		}
+	}
+
 }

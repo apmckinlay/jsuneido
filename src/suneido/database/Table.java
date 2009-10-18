@@ -28,11 +28,6 @@ public class Table {
 		nextfield = record.getInt(NEXTFIELD);
 	}
 
-	@Override
-	public String toString() {
-		return "Table('" + name + "', " + num + ")";
-	}
-
 	public boolean hasColumn(String name) {
 		return columns.hasColumn(name);
 	}
@@ -141,6 +136,11 @@ public class Table {
 		r.add(num).add(name).add(nextfield).add(nrecords).add(100);
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
+	}
+
+	@Override
+	public String toString() {
+		return "Table(" + name + ":" + num + ") " + columns + " " + indexes;
 	}
 
 }

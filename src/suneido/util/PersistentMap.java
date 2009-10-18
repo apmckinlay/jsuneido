@@ -24,7 +24,7 @@ public abstract class PersistentMap<K, V> {
 	private static final int HASH_BITS = 32;
 
 	@SuppressWarnings("unchecked")
-	private static TrieNode emptyNode = new TrieNode(0, new Entry[0]);
+	private static TrieNode emptyNode = new TrieNode(0, new Object[0]);
 
 	@SuppressWarnings("unchecked")
 	public static final <K, V> PersistentMap<K, V> empty() {
@@ -171,9 +171,8 @@ public abstract class PersistentMap<K, V> {
 				} else { // collision
 					// push entry into child node along with new entry
 					aa = a.clone();
-					aa[i] =
-							newChild(assoc, key, value, hash, shift
-									+ BITS_PER_LEVEL);
+					aa[i] = newChild(assoc, key, value, hash,
+							shift + BITS_PER_LEVEL);
 					return new TrieNode<K, V>(bitmap, aa);
 				}
 			} else { // slot points to child node
@@ -342,7 +341,7 @@ public abstract class PersistentMap<K, V> {
 
 	public static class Builder<K, V> {
 
-		private Node<K, V> map = new TrieNode<K, V>(0, new Entry[4]);
+		private Node<K, V> map = new TrieNode<K, V>(0, new Object[4]);
 
 		public Builder<K, V> put(K key, V value) {
 			map.add(key, value);
@@ -365,6 +364,10 @@ public abstract class PersistentMap<K, V> {
 			map = null;
 			return result;
 		}
+	}
+
+	public static <K, V> Builder<K, V> builder() {
+		return new Builder<K, V>();
 	}
 
 }
