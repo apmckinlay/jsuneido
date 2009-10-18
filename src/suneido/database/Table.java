@@ -14,7 +14,6 @@ public class Table {
 	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
 	public final String name;
 	public final int num;
-	public final int nextfield;
 	public final Columns columns;
 	public final Indexes indexes;
 	public final ImmutableList<String> fields;
@@ -25,7 +24,6 @@ public class Table {
 		this.fields = get_fields();
 		num = record.getInt(TBLNUM);
 		name = record.getString(TABLE);
-		nextfield = record.getInt(NEXTFIELD);
 	}
 
 	public boolean hasColumn(String name) {
@@ -83,11 +81,6 @@ public class Table {
 			list.add(cs.name);
 			++i;
 		}
-
-		// TODO try removing this
-		for (; i < nextfield; ++i)
-			list.add("-");
-
 		return list.build();
 	}
 

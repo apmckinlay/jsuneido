@@ -28,13 +28,13 @@ public class UpdateableTest extends TestBase {
 
 	private void updateable(String q) {
 		assertTrue(q + "should be updateable",
-				CompileQuery.query(new Transaction(theDB.tabledataMaster),
+				CompileQuery.query(new Transaction(theDB.tabledata),
 						serverData, q).updateable());
 	}
 
 	private void not_updateable(String q) {
 		assertFalse(q + "should NOT be updateable",
-				CompileQuery.query(new Transaction(theDB.tabledataMaster),
+				CompileQuery.query(new Transaction(theDB.tabledata),
 						serverData, q).updateable());
 	}
 }

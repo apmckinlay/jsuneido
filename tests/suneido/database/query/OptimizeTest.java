@@ -14,7 +14,7 @@ public class OptimizeTest extends TestBase {
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.query(new Transaction(theDB.tabledataMaster),
+			Query q = CompileQuery.query(new Transaction(theDB.tabledata),
 					serverData, c[0]);
 			assertEquals(c[0], c[1], q.toString());
 		}

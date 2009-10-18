@@ -56,8 +56,7 @@ public class TableData {
 	}
 
 	public TableData withField() {
-		return new TableData(record, num, nextfield + 1, nrecords,
- totalsize).update();
+		return new TableData(record, num, nextfield + 1, nrecords, totalsize);
 	}
 
 	public TableData with(int nextfield, int d_nrecords, int d_totalsize) {
