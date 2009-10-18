@@ -270,13 +270,13 @@ public class Database {
 
 	// tables =======================================================
 
-	public void addTable(String table) {
-		if (tableExists(table))
-			throw new SuException("add table: table already exists: " + table);
+	public void addTable(String tablename) {
+		if (tableExists(tablename))
+			throw new SuException("add table: table already exists: " + tablename);
 		int tblnum = dbhdr.getNextTableNum();
 		Transaction tran = readwriteTran();
 		try {
-			Record r = Table.record(table, tblnum, 0, 0);
+			Record r = Table.record(tablename, tblnum, 0, 0);
 			add_any_record(tran, "tables", r);
 			tables = tables.with(loadTable(tran, tblnum));
 			tran.complete();
@@ -451,6 +451,7 @@ public class Database {
 		BtreeIndex index = new BtreeIndex(dest, table.num, columns, isKey,
 				unique);
 
+		Tables originalTables = tables;
 		Transaction tran = readwriteTran();
 		try {
 			add_any_record(tran, "indexes", Index.record(index, fktablename,
@@ -463,9 +464,12 @@ public class Database {
 					tables = tables.without(fktable)
 							.with(loadTable(tran, fktable.num));
 			}
-			insertExistingRecords(tran, columns, table, colnums, 
+			insertExistingRecords(tran, columns, table, colnums,
 					fktablename, fktable, fkcolumns, index);
 			tran.complete();
+		} catch (RuntimeException e) {
+			tables = originalTables; // TODO temp till tables in tran
+			throw e;
 		} finally {
 			tran.abortIfNotComplete();
 		}
