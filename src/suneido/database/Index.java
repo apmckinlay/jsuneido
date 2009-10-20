@@ -21,31 +21,25 @@ public class Index {
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
-	private final static String UNIQUE = "u";
+	final static String UNIQUE = "u";
 
-	private final Record record;
+	public final int tblnum;
 	public final String columns;
 	public final ImmutableList<Integer> colnums;
+	public final boolean isKey;
+	public final boolean unique;
 	final ForeignKey fksrc;
 	final ImmutableList<ForeignKey> fkdsts;
 
-	// TODO split out, mutable, not part of schema
-	public final BtreeIndex btreeIndex;
-
-	public void update() {
-		verify(record.off() != 0);
-		// treelevels and root should not change without nnodes changing
-		if (record.getInt(NNODES) != btreeIndex.nnodes())
-			indexInfo(record, btreeIndex);
-	}
-
 	public Index(Record record, String columns, ImmutableList<Integer> colnums,
-			BtreeIndex btreeIndex, List<Record> fkdstrecs) {
+			List<Record> fkdstrecs) {
 		verify(record.off() != 0);
-		this.record = record;
+		this.tblnum = record.getInt(TBLNUM);
 		this.columns = columns;
 		this.colnums = colnums;
-		this.btreeIndex = btreeIndex;
+		Object key = record.get(KEY);
+		this.isKey = key == Boolean.TRUE;
+		this.unique = key.equals(UNIQUE);
 		fksrc = get_fksrc(record);
 		fkdsts = get_fkdsts(fkdstrecs);
 	}
@@ -71,9 +65,9 @@ public class Index {
 	@Override
 	public String toString() {
 		return "Index(" + columns + ")" + (isKey() ? ".key" : "")
-				+ (btreeIndex.unique ? ".unique" : "");
+				+ (unique ? ".unique" : "");
 	}
-
+/*
 	public Record record() {
 		ForeignKey fk = fksrc == null ? ForeignKey.NIL : fksrc;
 		return Index.record(btreeIndex, fk.tablename, fk.columns, fk.mode);
@@ -94,27 +88,7 @@ public class Index {
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
 	}
-
-	private static void indexInfo(Record r, BtreeIndex btreeIndex) {
-		r.truncate(ROOT);
-		r.addMmoffset(btreeIndex.root());
-		r.add(btreeIndex.treelevels());
-		r.add(btreeIndex.nnodes());
-	}
-
-	public static BtreeIndex btreeIndex(Destination dest, Record r) {
-		String columns = r.getString(COLUMNS);
-		// boolean lower = columns.startsWith("lower:");
-		// if (lower)
-		// columns += 6;
-		Object key = r.get(KEY);
-		long root = r.getMmoffset(ROOT);
-		verify(root != 0);
-		return new BtreeIndex(dest, r.getInt(TBLNUM), columns,
-				key == Boolean.TRUE, key.equals(UNIQUE), root,
-				r.getInt(TREELEVELS), r.getInt(NNODES));
-	}
-
+*/
 	public static String getColumns(Record r) {
 		String columns = r.getString(COLUMNS);
 		if (columns.startsWith("lower:"))
@@ -123,15 +97,11 @@ public class Index {
 	}
 
 	public boolean isKey() {
-		return btreeIndex.iskey;
+		return isKey;
 	}
 
 	public boolean isLower() {
 		return false; // TODO isLower
-	}
-
-	public int nnodes() {
-		return btreeIndex.nnodes();
 	}
 
 	@Immutable
@@ -171,7 +141,4 @@ public class Index {
 		return ("," + columns + ",").contains("," + name + ",");
 	}
 
-	public float rangefrac(Record org, Record end) {
-		return btreeIndex.rangefrac(org, end);
-	}
 }

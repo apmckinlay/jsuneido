@@ -71,7 +71,8 @@ public class UpdateTest extends TestBase {
 		for (String cols : indexes) {
 			Index index = table.getIndex(cols);
 			int n = 0;
-			BtreeIndex.Iter iter = index.btreeIndex.iter(t).next();
+			BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+			BtreeIndex.Iter iter = bti.iter(t).next();
 			for (; !iter.eof(); iter.next())
 				++n;
 			assertEquals(10, n);

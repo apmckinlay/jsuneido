@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
+import static suneido.database.Index.*;
 
 /**
  * Wraps a {@link Btree} to implement database table indexes. Adds transaction
@@ -11,58 +12,92 @@ import static suneido.Suneido.verify;
  * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
+	public final Record record;
 	private final Destination dest;
 	private final Btree bt;
 	final boolean iskey;
 	final boolean unique;
 	final int tblnum;
-	private String indexColumns;
+	private final String indexColumns;
 
-	/**
-	 * Create a new index.
-	 */
-	public BtreeIndex(Destination dest, int tblnum, String index,
+	/** Create a new index */
+	public BtreeIndex(Destination dest, int tblnum, String indexColumns,
 			boolean isKey, boolean unique) {
-		this(dest, tblnum, index, isKey, unique, new Btree(dest));
+		this(dest, tblnum, indexColumns, isKey, unique, "", "", 0);
 	}
-
-	/**
-	 * Open an existing index.
-	 */
-	public BtreeIndex(Destination dest, int tblnum, String index,
-			boolean iskey, boolean unique, long root, int treelevels, int nnodes) {
-		this(dest, tblnum, index, iskey, unique,
-				new Btree(dest, root, treelevels, nnodes));
-	}
-
-	private BtreeIndex(Destination dest, int tblnum, String index,
-			boolean iskey, boolean unique, Btree bt) {
+	public BtreeIndex(Destination dest, int tblnum, String indexColumns,
+			boolean isKey, boolean unique,
+			String fktable, String fkcolumns, int fkmode) {
+		Btree bt = new Btree(dest);
 		this.dest = dest;
+		this.record = record(bt, tblnum, indexColumns, isKey, unique,
+				fktable, fkcolumns, fkmode);
 		this.bt = bt;
-		this.iskey = iskey;
+		this.iskey = isKey;
 		this.unique = unique;
 		this.tblnum = tblnum;
-		this.indexColumns = index;
+		this.indexColumns = indexColumns;
+	}
+
+	/** Open an existing index */
+	public BtreeIndex(Destination dest, Record record) {
+		this.dest = dest;
+		this.record = record;
+		this.bt = new Btree(dest, record.getMmoffset(ROOT),
+				record.getInt(TREELEVELS), record.getInt(NNODES));
+		Object key = record.get(KEY);
+		this.iskey = key == Boolean.TRUE;
+		this.unique = key.equals(UNIQUE);
+		this.tblnum = record.getInt(TBLNUM);
+		this.indexColumns = record.getString(COLUMNS);
 	}
 
 	public String getIndexColumns() {
 		return indexColumns;
 	}
 
-	public void setIndexColumns(String indexColumns) {
-		this.indexColumns = indexColumns;
+	public void update() {
+		verify(record.off() != 0);
+		btreeInfo(bt, record);
 	}
 
-	public long root() {
-		return bt.root();
+	public Record record(String fktable, String fkcolumns, int fkmode) {
+		return record(bt, tblnum, indexColumns, iskey, unique, fktable,
+				fkcolumns, fkmode);
+	}
+
+	public static Record record(Btree bt, int tblnum, String indexColumns,
+			boolean iskey, boolean unique,
+			String fktable, String fkcolumns, int fkmode) {
+		Record r = new Record()
+			.add(tblnum)
+			.add(indexColumns)
+			.add(iskey ? Boolean.TRUE :	unique ? Index.UNIQUE : Boolean.FALSE)
+			.add(fktable).add(fkcolumns).add(fkmode);
+		btreeInfo(bt, r);
+		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		return r;
+	}
+
+	private static void btreeInfo(Btree bt, Record r) {
+		r.truncate(Index.ROOT);
+		r.addMmoffset(bt.root());
+		r.add(bt.treelevels());
+		r.add(bt.nnodes());
+	}
+
+	public Record withColumns(String newColumns) {
+		Record r = new Record();
+		for (int i = 0; i <= NNODES; ++i)
+			if (i == COLUMNS)
+				r.add(newColumns);
+			else
+				r.add(record.getraw(i));
+		return r;
 	}
 
 	public int nnodes() {
 		return bt.nnodes();
-	}
-
-	public int treelevels() {
-		return bt.treelevels();
 	}
 
 	public boolean insert(Transaction tran, Slot x) {
@@ -121,6 +156,8 @@ public class BtreeIndex {
 		return new Iter(tran, from, to);
 	}
 
+	// adds from/to range, tranread tracking, transaction visibility,
+	// and prevsize to skip records added/updated during iteration
 	public class Iter {
 		Transaction tran;
 		Record from;

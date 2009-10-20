@@ -12,7 +12,7 @@ public class BtreeIndexTest extends TestBase {
 	public void test() {
 		makeTable(10);
 		Table tbl = theDB.getTable("test");
-		BtreeIndex bi = tbl.getIndex("a").btreeIndex;
+		BtreeIndex bi = theDB.getBtreeIndex(tbl.num, "a");
 		Transaction t = theDB.readonlyTran();
 		try {
 			BtreeIndex.Iter iter = bi.iter(t, key(3), key(6));

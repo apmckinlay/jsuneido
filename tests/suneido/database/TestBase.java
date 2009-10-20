@@ -73,18 +73,20 @@ public class TestBase {
 
 	protected List<Record> get(String tablename, Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
-		Table tbl = db.getTable(tablename);
-		Index idx = tbl.indexes.first();
-		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
+		Table table = db.getTable(tablename);
+		Index index = table.indexes.first();
+		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex.Iter iter = bti.iter(tran).next();
 		for (; !iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));
 		return recs;
 	}
 
 	protected Record getFirst(String tablename, Transaction tran) {
-		Table tbl = db.getTable(tablename);
-		Index idx = tbl.indexes.first();
-		BtreeIndex.Iter iter = idx.btreeIndex.iter(tran).next();
+		Table table = db.getTable(tablename);
+		Index index = table.indexes.first();
+		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex.Iter iter = bti.iter(tran).next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
