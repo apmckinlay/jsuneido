@@ -528,7 +528,7 @@ public class Select extends Query1 {
 			} else
 				unreachable();
 		}
-		return tbl.tbl.getIndex(listToCommas(index)).rangefrac(org, end);
+		return tbl.getBtreeIndex(index).rangefrac(org, end);
 	}
 
 	private double datafrac(List<List<String>> indexes) {

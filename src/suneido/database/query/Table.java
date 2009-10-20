@@ -152,17 +152,24 @@ public class Table extends Query {
 		int nrecs = nrecs();
 		if (nrecs == 0)
 			return 0;
-		Index idx = tbl.getIndex(listToCommas(index));
-		assert (idx != null);
+		BtreeIndex idx = getBtreeIndex(index);
 		int nnodes = idx.nnodes();
 		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
 		return (nnodes * nodesize) / nrecs;
 	}
 
 	public int indexsize(List<String> index) {
-		Index idx = tbl.getIndex(listToCommas(index));
+		BtreeIndex idx = getBtreeIndex(index);
 		return idx.nnodes() * Btree.NODESIZE + index.size();
 		// add index.size() to favor shorter indexes
+	}
+
+	BtreeIndex getBtreeIndex(List<String> index) {
+		return getBtreeIndex(listToCommas(index));
+	}
+
+	private BtreeIndex getBtreeIndex(String index) {
+		return theDB.getBtreeIndex(tbl.num, index);
 	}
 
 	/* package */void select_index(List<String> index) {
@@ -212,9 +219,15 @@ public class Table extends Query {
 
 	private void iterate_setup(Dir dir) {
 		hdr = header();
-		ix = (nil(idx) || singleton
-				? tbl.firstIndex()
-						: tbl.getIndex(listToCommas(idx))).btreeIndex;
+		set_ix();
+	}
+
+	private void set_ix() {
+		String icols =
+				nil(idx) || singleton ? tbl.firstIndex().columns
+						: listToCommas(idx);
+		ix = getBtreeIndex(icols);
+		verify(ix != null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -241,10 +254,7 @@ public class Table extends Query {
 
 	void set_index(List<String> index) {
 		idx = index;
-		ix = (nil(idx) || singleton
-				? tbl.firstIndex()
-				: tbl.getIndex(listToCommas(idx))).btreeIndex;
-		verify(ix != null);
+		set_ix();
 		rewound = true;
 	}
 

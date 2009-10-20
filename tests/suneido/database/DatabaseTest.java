@@ -133,7 +133,8 @@ public class DatabaseTest extends TestBase {
 		Table table = db.getTable("test");
 		Index index = table.getIndex("c");
 		int i = 0;
-		BtreeIndex.Iter iter = index.btreeIndex.iter(t).next();
+		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex.Iter iter = bti.iter(t).next();
 		for (; !iter.eof(); iter.next())
 			assertEquals(record(i++), db.input(iter.keyadr()));
 	}

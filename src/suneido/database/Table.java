@@ -104,11 +104,10 @@ public class Table {
 
 		// indexes
 		for (Index index : indexes) {
-			if (index.isKey())
+			if (index.isKey)
 				sb.append(" key");
 			else
-				sb.append(" index").append(
-						index.btreeIndex.unique ? " unique" : "");
+				sb.append(" index").append(index.unique ? " unique" : "");
 			sb.append("(").append(index.columns).append(")");
 			if (index.fksrc != null && !index.fksrc.tablename.equals("")) {
 				sb.append(" in ").append(index.fksrc.tablename);
