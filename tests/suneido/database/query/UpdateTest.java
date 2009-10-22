@@ -20,7 +20,7 @@ public class UpdateTest extends TestBase {
 		assertEquals(4, get("test").size());
 		QueryAction q = (QueryAction) CompileQuery.parse(
 				serverData, "update test where a >= 1 and a <= 2 set b = 'xxx'");
-		q.setTransaction(new Transaction(theDB.tabledata));
+		q.setTransaction(new Transaction(theDB.tabledata, theDB.btreeIndexes));
 		assertEquals(2, q.execute());
 		List<Record> recs = get("test");
 		assertEquals(4, recs.size());
@@ -71,7 +71,7 @@ public class UpdateTest extends TestBase {
 		for (String cols : indexes) {
 			Index index = table.getIndex(cols);
 			int n = 0;
-			BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+			BtreeIndex bti = t.getBtreeIndex(index);
 			BtreeIndex.Iter iter = bti.iter(t).next();
 			for (; !iter.eof(); iter.next())
 				++n;

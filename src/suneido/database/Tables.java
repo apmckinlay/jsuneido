@@ -33,7 +33,11 @@ public class Tables {
 	}
 
 	public Tables without(Table tbl) {
-		return new Tables(bynum.without(tbl.num), byname.without(tbl.name));
+		// look up old name to handle rename
+		Table old = bynum.get(tbl.num);
+		if (old == null)
+			return this;
+		return new Tables(bynum.without(tbl.num), byname.without(old.name));
 	}
 
 	public static class Builder {

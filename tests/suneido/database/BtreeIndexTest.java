@@ -9,12 +9,12 @@ import org.junit.Test;
 
 public class BtreeIndexTest extends TestBase {
 	@Test
-	public void test() {
+	public void test_iter_range() {
 		makeTable(10);
 		Table tbl = theDB.getTable("test");
-		BtreeIndex bi = theDB.getBtreeIndex(tbl.num, "a");
 		Transaction t = theDB.readonlyTran();
 		try {
+			BtreeIndex bi = t.getBtreeIndex(tbl.num, "a");
 			BtreeIndex.Iter iter = bi.iter(t, key(3), key(6));
 			for (int i = 3; i <= 6; ++i) {
 				iter.next();

@@ -28,8 +28,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private long asof; // not final because updated when readwrite tran commits
 	String sessionId = "session";
 	private final PersistentMap<Integer, TableData> tabledata;
-	private final Map<Integer, TableData> tabledataUpdates =
+	final Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
+	public final PersistentMap<String, BtreeIndex> btreeIndexes;
+	final Map<String, BtreeIndex> btreeIndexUpdates =
+			new HashMap<String, BtreeIndex>();
+	private List<Table> update_tables = null;
+	private Table remove_table = null;
 
 	public final int num;
 	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
@@ -37,28 +42,34 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public static final Transaction NULLTRAN = new NullTransaction();
 
 	public static Transaction readonly(Transactions trans,
-			PersistentMap<Integer, TableData> tabledata) {
-		return new Transaction(trans, true, tabledata);
+			PersistentMap<Integer, TableData> tabledata,
+			PersistentMap<String, BtreeIndex> btreeIndexes) {
+		return new Transaction(trans, true, tabledata, btreeIndexes);
 	}
 
 	public static Transaction readwrite(Transactions trans,
-			PersistentMap<Integer, TableData> tabledata) {
-		return new Transaction(trans, false, tabledata);
+			PersistentMap<Integer, TableData> tabledata,
+			PersistentMap<String, BtreeIndex> btreeIndexes) {
+		return new Transaction(trans, false, tabledata, btreeIndexes);
 	}
 
 	private Transaction(Transactions trans, boolean readonly,
-			PersistentMap<Integer, TableData> tabledata) {
+			PersistentMap<Integer, TableData> tabledata,
+			PersistentMap<String, BtreeIndex> btreeIndexes) {
 		this.trans = trans;
 		this.readonly = readonly;
 		t = asof = trans.clock();
 		num = trans.nextNum();
 		this.tabledata = tabledata;
+		this.btreeIndexes = btreeIndexes;
 		trans.add(this);
 	}
 
 	// used for cursor setup
-	public Transaction(PersistentMap<Integer, TableData> tabledata) {
+	public Transaction(PersistentMap<Integer, TableData> tabledata,
+			PersistentMap<String, BtreeIndex> btreeIndexes) {
 		this.tabledata = tabledata;
+		this.btreeIndexes = btreeIndexes;
 		trans = null;
 		readonly = true;
 		t = asof = num = 0;
@@ -66,7 +77,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// used by NullTransaction
 	private Transaction() {
-		this(null);
+		this(null, null);
 	}
 
 	@Override
@@ -91,6 +102,20 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return conflict;
 	}
 
+	public void updateTable(Table table) {
+		assert remove_table == null;
+		if (update_tables == null)
+			update_tables = new ArrayList<Table>();
+		update_tables.add(table);
+	}
+
+	public void deleteTable(Table table) {
+		assert update_tables == null && remove_table == null;
+		remove_table = table;
+	}
+
+	// table data
+
 	public TableData getTableData(int tblnum) {
 		TableData td = tabledataUpdates.get(tblnum);
 		return td != null ? td : tabledata.get(tblnum);
@@ -100,6 +125,24 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		verify(!readonly);
 		tabledataUpdates.put(td.num, td);
 	}
+
+	// btree indexes
+
+	public BtreeIndex getBtreeIndex(Index index) {
+		return getBtreeIndex(index.tblnum, index.columns);
+	}
+
+	public BtreeIndex getBtreeIndex(int tblnum, String columns) {
+		String key = tblnum + ":" + columns;
+		BtreeIndex bti = btreeIndexUpdates.get(key);
+		if (bti == null) {
+			bti = new BtreeIndex(btreeIndexes.get(key));
+			btreeIndexUpdates.put(key, bti);
+		}
+		return bti;
+	}
+
+	// actions
 
 	public TranRead read_act(int tblnum, String index) {
 		notEnded();
@@ -171,7 +214,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			return conflict;
 		}
 		if (!readonly && !writes.isEmpty()) {
-			if (!validate_reads()) {
+			if (!validate_reads() || !updateBtreeIndexes()) {
 				abort();
 				return conflict;
 			}
@@ -227,6 +270,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	private void completeReadwrite() {
 		updateTableData();
+		updateTables();
 
 		int ncreates = 0;
 		int ndeletes = 0;
@@ -249,14 +293,41 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		writeCommitRecord(ncreates, ndeletes);
 	}
 
+	private void updateTables() {
+		final Database db = trans.db;
+		if (remove_table != null)
+			db.removeTable(remove_table);
+		if (update_tables != null)
+			for (Table table : update_tables) {
+				db.removeTable(table);
+				db.updateTable(table, getTableData(table.num));
+				for (Index index : table.indexes)
+					db.updateBtreeIndex(getBtreeIndex(index));
+			}
+	}
+
 	private void updateTableData() {
 		for (Map.Entry<Integer, TableData> e : tabledataUpdates.entrySet()) {
 			TableData tdNew = e.getValue();
 			TableData tdOld = tabledata.get(tdNew.num);
-			trans.db.updateTableData(tdNew.num, tdNew.nextfield,
-					tdNew.nrecords - tdOld.nrecords,
-					tdNew.totalsize - tdOld.totalsize);
+			if (tdOld != null)
+				trans.db.updateTableData(tdNew.num, tdNew.nextfield,
+						tdNew.nrecords - tdOld.nrecords, 
+						tdNew.totalsize	- tdOld.totalsize);
 		}
+	}
+
+	private boolean updateBtreeIndexes() {
+		for (Map.Entry<String, BtreeIndex> e : btreeIndexUpdates.entrySet()) {
+			String key = e.getKey();
+			BtreeIndex btiNew = e.getValue();
+			BtreeIndex btiOld = btreeIndexes.get(key);
+			if (btiOld == null || !btiNew.differsFrom(btiOld))
+				continue;
+			if (!trans.db.updateBtreeIndex(key, btiOld, btiNew))
+				return false; // concurrent update = conflict
+		}
+		return true;
 	}
 
 	private void writeCommitRecord(int ncreates, int ndeletes) {

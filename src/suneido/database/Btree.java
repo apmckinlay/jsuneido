@@ -25,18 +25,15 @@ public class Btree {
 	private int nnodes;
 	private long modified = 0;
 
-	/*
-	 * Create a new btree.
-	 */
+	/** Create new */
 	public Btree(Destination dest) {
 		this.dest = dest;
-		root_ = 0;
+		root_ = 0; // lazy creation
 		treelevels = 0;
 		nnodes = 0;
 	}
-	/*
-	 * Open an existing btree.
-	 */
+
+	/** Open existing */
 	public Btree(Destination dest, long root, int treelevels, int nnodes) {
 		this.dest = dest;
 		verify(root >= 0);
@@ -45,6 +42,29 @@ public class Btree {
 		this.treelevels = treelevels;
 		verify(nnodes > 0);
 		this.nnodes = nnodes;
+	}
+
+	/** Copy constructor */
+	public Btree(Btree bt) {
+		dest = bt.dest;
+		root_ = bt.root_;
+		treelevels = bt.treelevels;
+		nnodes = bt.nnodes;
+	}
+
+	public boolean update(Btree btOld, Btree btNew) {
+		if (root_ != btOld.root_)
+			return false;
+		assert treelevels == btOld.treelevels;
+		root_ = btNew.root_;
+		treelevels = btNew.treelevels;
+		nnodes += btNew.nnodes - btOld.nnodes;
+		return true;
+	}
+
+	public boolean differsFrom(Btree bt) {
+		return root_ != bt.root_ || treelevels != bt.treelevels
+				|| nnodes != bt.nnodes;
 	}
 
 	public int treelevels() {

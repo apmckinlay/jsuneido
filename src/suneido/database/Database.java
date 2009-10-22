@@ -159,7 +159,7 @@ public class Database {
 		long at = output(TN.INDEXES, btreeIndex.record);
 		Record key1 = new Record()
 				.add(btreeIndex.tblnum)
-				.add(btreeIndex.getIndexColumns())
+				.add(btreeIndex.columns)
 				.addMmoffset(at);
 		verify(indexes_index.insert(NULLTRAN, new Slot(key1)));
 		Record key2 = new Record().add("").add("").addMmoffset(at);
@@ -199,14 +199,18 @@ public class Database {
 				PersistentMap.builder();
 		PersistentMap.Builder<String, BtreeIndex> btreeIndexBuilder =
 				PersistentMap.builder();
+		List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
 		Transaction tran = readonlyTran();
 		try {
 			for (BtreeIndex.Iter iter = tablenum_index.iter(tran).next();
 					!iter.eof(); iter.next()) {
 				Record table_rec = input(iter.keyadr());
-				Table table = loadTable(tran, table_rec, btreeIndexBuilder);
+				Table table = loadTable(tran, table_rec, btis);
 				tablesBuilder.add(table);
 				tabledataBuilder.put(table.num, new TableData(table_rec));
+				for (BtreeIndex bti : btis)
+					btreeIndexBuilder.put(bti.tblnum + ":" + bti.columns, bti);
+				btis.clear();
 			}
 		} finally {
 			tran.complete();
@@ -266,16 +270,6 @@ public class Database {
 		return find(tran, getBtreeIndex(index), key);
 	}
 
-	private BtreeIndex getBtreeIndex(Index index) {
-		return getBtreeIndex(index.tblnum, index.columns);
-	}
-
-	public BtreeIndex getBtreeIndex(int tblnum, String indexColumns) {
-		BtreeIndex bti = btreeIndexes.get(tblnum + ":" + indexColumns);
-		verify(bti != null);
-		return bti;
-	}
-
 	private Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
 		return slot == null ? null : input(slot.keyadr());
@@ -288,10 +282,10 @@ public class Database {
 	}
 
 	public Transaction readonlyTran() {
-		return Transaction.readonly(trans, tabledata);
+		return Transaction.readonly(trans, tabledata, btreeIndexes);
 	}
 	public Transaction readwriteTran() {
-		return Transaction.readwrite(trans, tabledata);
+		return Transaction.readwrite(trans, tabledata, btreeIndexes);
 	}
 
 	// tables =======================================================
@@ -304,7 +298,7 @@ public class Database {
 		try {
 			Record r = Table.record(tablename, tblnum, 0, 0);
 			add_any_record(tran, "tables", r);
-			updateTable(tran, tblnum);
+			tran.updateTable(getUpdatedTable(tran, tblnum));
 			tran.complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -321,12 +315,11 @@ public class Database {
 			for (Column column : table.columns)
 				removeColumn(tran, table, column.name);
 			remove_any_record(tran, "tables", "tablename", key(tablename));
+			tran.deleteTable(table);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
-		tables = tables.without(table);
-		tabledata = tabledata.without(table.num);
 	}
 
 	private void checkForSystemTable(String tablename, String operation) {
@@ -349,13 +342,11 @@ public class Database {
 			TableData td = tran.getTableData(table.num);
 			update_any_record(tran, "tables", "table", key(table.num),
 					Table.record(newname, table.num, td.nextfield, td.nrecords));
-			tables = tables.without(table);
-			updateTable(tran, table.num);
+			tran.updateTable(getUpdatedTable(tran, table.num));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
-
 	}
 
 	// columns ======================================================
@@ -377,9 +368,9 @@ public class Database {
 							+ column + " in " + tablename);
 				Record rec = Column.record(table.num, column, fldnum);
 				add_any_record(tran, "columns", rec);
+				tran.updateTable(getUpdatedTable(tran, table.num));
 				if (fldnum >= 0)
 					tran.updateTableData(td.withField());
-				updateTable(tran, table.num);
 				tran.complete();
 			}
 		} finally {
@@ -407,13 +398,14 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			removeColumn(tran, table, name);
-			updateTable(tran, table.num);
+			tran.updateTable(getUpdatedTable(tran, table.num));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
+	// used by removeColumn and removeTable
 	private void removeColumn(Transaction tran, Table tbl, String name) {
 		remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
 	}
@@ -435,29 +427,32 @@ public class Database {
 			throw new SuException("rename column: column already exists: "
 					+ newname + " in " + tablename);
 
-		Transaction tran = readwriteTran();
+		Transaction t = readwriteTran();
 		try {
-			update_any_record(tran, "columns", "table,column",
+			update_any_record(t, "columns", "table,column",
 					key(table.num, oldname),
 					Column.record(table.num, newname, col.num));
 
 			// update any indexes that include this column
 			for (Index index : table.indexes) {
 				List<String> cols = commasToList(index.columns);
-				int i = cols.indexOf(oldname);
+				int i = cols.indexOf(oldname); // TODO use contains ?
 				if (i < 0)
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);
 
 				String newColumns = listToCommas(cols);
-				Record newRecord = getBtreeIndex(index).withColumns(newColumns);
-				update_any_record(tran, "indexes", "table,columns",
+				Record newRecord = t.getBtreeIndex(index).withColumns(newColumns);
+				update_any_record(t, "indexes", "table,columns",
 						key(table.num, index.columns), newRecord);
 				}
-			updateTable(tran, table.num);
-			tran.ck_complete();
+			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
+			t.updateTable(getUpdatedTable(t, table.num, btis));
+			for (BtreeIndex bti : btis)
+				t.btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
+			t.ck_complete();
 		} finally {
-			tran.abortIfNotComplete();
+			t.abortIfNotComplete();
 		}
 	}
 
@@ -477,22 +472,27 @@ public class Database {
 		if (table.hasIndex(columns))
 			throw new SuException("add index: index already exists: " + columns
 					+ " in " + tablename);
-		BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
+		BtreeIndex btreeIndex =
+				new BtreeIndex(dest, table.num, columns, isKey,
 				unique, fktablename, fkcolumns, fkmode);
 
 		Tables originalTables = tables;
 		Transaction tran = readwriteTran();
 		try {
 			add_any_record(tran, "indexes", btreeIndex.record);
-			updateTable(tran, table.num);
+			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
+			tran.updateTable(getUpdatedTable(tran, table.num, btis));
 			Table fktable = null;
 			if (fktablename != null) {
 				fktable = getTable(fktablename);
 				if (fktable != null)
-					updateTable(tran, fktable.num);
+					tran.updateTable(getUpdatedTable(tran, fktable.num));
 			}
 			insertExistingRecords(tran, columns, table, colnums,
 					fktablename, fktable, fkcolumns, btreeIndex);
+			for (BtreeIndex bti : btis)
+				if (bti.columns.equals(columns))
+					tran.btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
 			tran.complete();
 		} catch (RuntimeException e) {
 			tables = originalTables; // TODO temp till tables in tran
@@ -508,8 +508,10 @@ public class Database {
 		if (!table.hasIndexes())
 			return;
 
-		BtreeIndex.Iter iter =
-				getBtreeIndex(table.firstIndex()).iter(tran).next();
+		Index index = table.firstIndex();
+		if (index == null)
+			return;
+		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter(tran).next();
 		if (iter.eof())
 			return;
 
@@ -541,13 +543,14 @@ public class Database {
 		Transaction tran = readwriteTran();
 		try {
 			removeIndex(tran, table, columns);
-			updateTable(tran, table.num);
+			tran.updateTable(getUpdatedTable(tran, table.num));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
+	// used by removeIndex and removeTable
 	private void removeIndex(Transaction tran, Table tbl, String columns) {
 		if (!tbl.indexes.hasIndex(columns))
 			throw new SuException("delete index: nonexistent index: " + columns
@@ -585,17 +588,39 @@ public class Database {
 		return tables.get(tblnum);
 	}
 
-	private void updateTable(Transaction tran, int tblnum) {
+	// used by schema changes
+	Table getUpdatedTable(Transaction tran, int tblnum) {
+		return getUpdatedTable(tran, tblnum, null);
+	}
+
+	Table getUpdatedTable(Transaction tran, int tblnum, List<BtreeIndex> btis) {
 		Record table_rec = find(tran, tablenum_index, key(tblnum));
-		if (table_rec == null)
-			return; // table not found
-		Table table = loadTable(tran, table_rec, null);
+		tran.tabledataUpdates.put(tblnum, new TableData(table_rec));
+		return loadTable(tran, table_rec, btis);
+	}
+
+	// called by Transaction complete for schema changes
+	void removeTable(Table table) {
+		tables = tables.without(table);
+		tabledata = tabledata.without(table.num);
+		for (Index index : table.indexes)
+			btreeIndexes =
+					btreeIndexes.without(index.tblnum + ":" + index.columns);
+	}
+
+	// called by Transaction complete for schema changes
+	void updateTable(Table table, TableData td) {
 		tables = tables.with(table);
-		tabledata = tabledata.with(tblnum, new TableData(table_rec));
+		tabledata = tabledata.with(td.num, td);
+	}
+
+	// called by Transaction complete for schema changes
+	void updateBtreeIndex(BtreeIndex bti) {
+		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
 	}
 
 	private Table loadTable(Transaction tran, Record table_rec,
-			PersistentMap.Builder<String, BtreeIndex> btreeIndexBuilder) {
+			List<BtreeIndex> btis) {
 		String tablename = table_rec.getString(Table.TABLE);
 		int tblnum = table_rec.getInt(Table.TBLNUM);
 		Record tblkey = key(tblnum);
@@ -615,25 +640,23 @@ public class Database {
 			Record r = input(iter.keyadr());
 			String icols = Index.getColumns(r);
 			// make sure to use the same index for the system tables
-			BtreeIndex index;
+			BtreeIndex bti;
 			if (tblnum == TN.TABLES && icols.equals("tablename"))
-				index = tablename_index;
+				bti = tablename_index;
 			else if (tblnum == TN.TABLES && icols.equals("table"))
-				index = tablenum_index;
+				bti = tablenum_index;
 			else if (tblnum == TN.COLUMNS && icols.equals("table,column"))
-				index = columns_index;
+				bti = columns_index;
 			else if (tblnum == TN.INDEXES && icols.equals("table,columns"))
-				index = indexes_index;
+				bti = indexes_index;
 			else if (tblnum == TN.INDEXES && icols.equals("fktable,fkcolumns"))
-				index = fkey_index;
+				bti = fkey_index;
 			else
-				index = new BtreeIndex(dest, r);
+				bti = new BtreeIndex(dest, r);
 			indexes.add(new Index(r, icols, columns.nums(icols),
 					getForeignKeys(tran, tablename, icols)));
-			if (btreeIndexBuilder == null)
-				btreeIndexes = btreeIndexes.with(tblnum + ":" + icols, index);
-			else
-				btreeIndexBuilder.put(tblnum + ":" + icols, index);
+			if (btis != null)
+				btis.add(bti);
 		}
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
@@ -746,7 +769,7 @@ public class Database {
 
 	void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
 		for (Index index : table.indexes) {
-			BtreeIndex btreeIndex = getBtreeIndex(index);
+			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
 			Record key = rec.project(index.colnums, adr);
 			// handle insert failing due to duplicate key
 			if (!btreeIndex.insert(tran, new Slot(key))) {
@@ -755,7 +778,7 @@ public class Database {
 					if (j == index)
 						break;
 					key = rec.project(j.colnums, adr);
-					btreeIndex = getBtreeIndex(j);
+					btreeIndex = tran.getBtreeIndex(j);
 					verify(btreeIndex.remove(key));
 				}
 				throw new SuException("duplicate key: " + index.columns + " = "
@@ -829,13 +852,13 @@ public class Database {
 		// update indexes
 		for (Index index : table.indexes) {
 			Record newkey = newrec.project(index.colnums, newoff);
-			BtreeIndex btreeIndex = getBtreeIndex(index);
+			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
 			if (!btreeIndex.insert(tran, new Slot(newkey))) {
 				// undo previous
 				for (Index j : table.indexes) {
 					if (j == index)
 						break;
-					btreeIndex = getBtreeIndex(j);
+					btreeIndex = tran.getBtreeIndex(j);
 					verify(btreeIndex.remove(newrec.project(j.colnums, newoff)));
 				}
 				tran.undo_delete_act(table.num, oldoff);
@@ -875,7 +898,7 @@ public class Database {
 		// lookup key in given index
 		Index index = table.indexes.get(indexcolumns);
 		assert (index != null);
-		Record rec = find(tran, getBtreeIndex(index), key);
+		Record rec = find(tran, tran.getBtreeIndex(index), key);
 		if (rec == null)
 			throw new SuException("delete record: can't find record in "
 					+ tablename + " " + indexcolumns + " " + key);
@@ -935,7 +958,8 @@ public class Database {
 			Index fkidx = getIndex(fktbl, fk.columns);
 			if (fkidx == null)
 				continue ;
-			BtreeIndex.Iter iter = getBtreeIndex(fkidx).iter(tran, key).next();
+			BtreeIndex.Iter iter =
+					tran.getBtreeIndex(fkidx).iter(tran, key).next();
 			if (newkey == null && (fk.mode & Index.CASCADE_DELETES) != 0)
 				for (; ! iter.eof(); iter.next())
 					cascade_delete(tran, fktbl, iter);
@@ -972,6 +996,9 @@ public class Database {
 		// otherwise iter doesn't "see" the updated lines
 	}
 
+	// =========================================================================
+	// TODO remove this code once indexes not updated till commit
+
 	// used by Transaction.abort
 	void undoAdd(int tblnum, long adr) {
 		Table table = getTable(tblnum);
@@ -1004,6 +1031,12 @@ public class Database {
 			btreeIndex.update(); // update indexes record from index
 		}
 	}
+
+	private BtreeIndex getBtreeIndex(Index index) {
+		return btreeIndexes.get(index.tblnum + ":" + index.columns);
+	}
+
+	// =========================================================================
 
 	public long alloc(int n, byte type) {
 		return dest.alloc(n, type);
@@ -1062,6 +1095,17 @@ public class Database {
 		TableData td = tabledata.get(num);
 		td = td.with(nextfield, d_nrecords, d_totalsize);
 		tabledata = tabledata.with(num, td);
+	}
+
+	public boolean updateBtreeIndex(String key,
+			BtreeIndex btiOld, BtreeIndex btiNew) {
+		// TODO maybe use btiNew instead of copying
+		BtreeIndex bti = new BtreeIndex(btreeIndexes.get(key));
+		if (!bti.update(btiOld, btiNew))
+			return false; // conflict
+		bti.update(); // save changes to database
+		btreeIndexes = btreeIndexes.with(key, bti);
+		return true;
 	}
 
 }

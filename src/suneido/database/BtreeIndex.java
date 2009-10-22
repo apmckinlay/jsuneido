@@ -12,31 +12,33 @@ import static suneido.database.Index.*;
  * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
+
 	public final Record record;
 	private final Destination dest;
 	private final Btree bt;
 	final boolean iskey;
 	final boolean unique;
 	final int tblnum;
-	private final String indexColumns;
+	final String columns;
 
 	/** Create a new index */
 	public BtreeIndex(Destination dest, int tblnum, String indexColumns,
 			boolean isKey, boolean unique) {
 		this(dest, tblnum, indexColumns, isKey, unique, "", "", 0);
 	}
-	public BtreeIndex(Destination dest, int tblnum, String indexColumns,
+
+	public BtreeIndex(Destination dest, int tblnum, String columns,
 			boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Btree bt = new Btree(dest);
 		this.dest = dest;
-		this.record = record(bt, tblnum, indexColumns, isKey, unique,
+		this.record = record(bt, tblnum, columns, isKey, unique,
 				fktable, fkcolumns, fkmode);
 		this.bt = bt;
 		this.iskey = isKey;
 		this.unique = unique;
 		this.tblnum = tblnum;
-		this.indexColumns = indexColumns;
+		this.columns = columns;
 	}
 
 	/** Open an existing index */
@@ -49,11 +51,26 @@ public class BtreeIndex {
 		this.iskey = key == Boolean.TRUE;
 		this.unique = key.equals(UNIQUE);
 		this.tblnum = record.getInt(TBLNUM);
-		this.indexColumns = record.getString(COLUMNS);
+		this.columns = record.getString(COLUMNS);
 	}
 
-	public String getIndexColumns() {
-		return indexColumns;
+	/** Copy constructor, used by {@link Transaction} */
+	public BtreeIndex(BtreeIndex bti) {
+		dest = bti.dest;
+		record = bti.record;
+		bt = new Btree(bti.bt);
+		iskey = bti.iskey;
+		unique = bti.unique;
+		tblnum = bti.tblnum;
+		columns = bti.columns;
+	}
+
+	public boolean differsFrom(BtreeIndex bti) {
+		return bt.differsFrom(bti.bt);
+	}
+
+	public boolean update(BtreeIndex btiOld, BtreeIndex btiNew) {
+		return bt.update(btiOld.bt, btiNew.bt);
 	}
 
 	public void update() {
@@ -62,7 +79,7 @@ public class BtreeIndex {
 	}
 
 	public Record record(String fktable, String fkcolumns, int fkmode) {
-		return record(bt, tblnum, indexColumns, iskey, unique, fktable,
+		return record(bt, tblnum, columns, iskey, unique, fktable,
 				fkcolumns, fkmode);
 	}
 
@@ -171,7 +188,7 @@ public class BtreeIndex {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
-			tranread = tran.read_act(tblnum, indexColumns);
+			tranread = tran.read_act(tblnum, columns);
 		}
 
 		public boolean eof() {

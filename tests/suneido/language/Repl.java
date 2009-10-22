@@ -10,6 +10,8 @@ package suneido.language;
  Create_DemoData('CAD')
 
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
+
+ stdlib tests succeed once (after fresh load) then fail subsequently
  */
 
 import java.io.*;
