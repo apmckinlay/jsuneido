@@ -75,7 +75,7 @@ public class TestBase {
 		List<Record> recs = new ArrayList<Record>();
 		Table table = db.getTable(tablename);
 		Index index = table.indexes.first();
-		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
 		for (; !iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));
@@ -85,7 +85,7 @@ public class TestBase {
 	protected Record getFirst(String tablename, Transaction tran) {
 		Table table = db.getTable(tablename);
 		Index index = table.indexes.first();
-		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}

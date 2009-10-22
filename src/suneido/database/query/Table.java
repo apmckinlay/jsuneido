@@ -169,7 +169,7 @@ public class Table extends Query {
 	}
 
 	private BtreeIndex getBtreeIndex(String index) {
-		return theDB.getBtreeIndex(tbl.num, index);
+		return tran.getBtreeIndex(tbl.num, index);
 	}
 
 	/* package */void select_index(List<String> index) {

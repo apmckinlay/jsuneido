@@ -1,8 +1,6 @@
 package suneido.database;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static suneido.database.Transaction.NULLTRAN;
 
 import org.junit.Test;
@@ -67,7 +65,4 @@ public class IndexTest {
 		return r;
 	}
 
-//	public static void main(String args[]) {
-//		new IndexTest().next_prev();
-//	}
 }

@@ -55,7 +55,7 @@ public class Library {
 				Index index = theDB.getIndex(table, "name,group");
 				if (group_fld < 0 || text_fld < 0 || index == null)
 					continue; // library is invalid, ignore it
-				BtreeIndex bti = theDB.getBtreeIndex(table.num, index.columns);
+				BtreeIndex bti = tran.getBtreeIndex(table.num, index.columns);
 				BtreeIndex.Iter iter = bti.iter(tran, key).next();
 				if (!iter.eof()) {
 					Record rec = theDB.input(iter.keyadr());

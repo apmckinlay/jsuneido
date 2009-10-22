@@ -43,12 +43,19 @@ public class DatabaseTest extends TestBase {
 		db.addRecord(t, "test", r);
 		t.ck_complete();
 
+		tbl = db.getTable("test");
+		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
+
+		List<Record> recs = get("test");
+		assertEquals(1, recs.size());
+		assertEquals(r, recs.get(0));
+
 		reopen();
 
 		tbl = db.getTable("test");
 		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
 
-		List<Record> recs = get("test");
+		recs = get("test");
 		assertEquals(1, recs.size());
 		assertEquals(r, recs.get(0));
 
@@ -57,6 +64,13 @@ public class DatabaseTest extends TestBase {
 		t.ck_complete();
 
 		assertEquals(0, get("test").size());
+	}
+
+	@Test
+	public void test_multi_node_index() {
+		final int N = 2000;
+		makeTable(N);
+		assertEquals(N, get("test").size());
 	}
 
 	@Test
@@ -133,7 +147,7 @@ public class DatabaseTest extends TestBase {
 		Table table = db.getTable("test");
 		Index index = table.getIndex("c");
 		int i = 0;
-		BtreeIndex bti = db.getBtreeIndex(table.num, index.columns);
+		BtreeIndex bti = t.getBtreeIndex(table.num, index.columns);
 		BtreeIndex.Iter iter = bti.iter(t).next();
 		for (; !iter.eof(); iter.next())
 			assertEquals(record(i++), db.input(iter.keyadr()));
@@ -261,19 +275,25 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 
 		db.addTable("test2");
-		db.addColumn("test2", "a");
+		db.addColumn("test2", "b");
 		db.addColumn("test2", "f1");
 		db.addColumn("test2", "f2");
-		db.addIndex("test2", "a", true);
+		db.addIndex("test2", "b", true);
 		db.addIndex("test2", "f1", false, false, false, "test", "a", Index.BLOCK);
 		db.addIndex("test2", "f2", false, false, false, "test", "a", Index.BLOCK);
 
-		Table table = db.getTable("test2");
-		ForeignKey fk = table.indexes.get("f1").fksrc;
+		Table test2 = db.getTable("test2");
+		Index f1 = test2.indexes.get("f1");
+		assertEquals("f1", f1.columns);
+		assertEquals(1, (int) f1.colnums.get(0));
+		ForeignKey fk = f1.fksrc;
 		assertEquals("test", fk.tablename);
 		assertEquals("a", fk.columns);
 		assertEquals(0, fk.mode);
-		fk = table.indexes.get("f2").fksrc;
+		Index f2 = test2.indexes.get("f2");
+		assertEquals("f2", f2.columns);
+		assertEquals(2, (int) f2.colnums.get(0));
+		fk = f2.fksrc;
 		assertEquals("test", fk.tablename);
 		assertEquals("a", fk.columns);
 		assertEquals(0, fk.mode);
