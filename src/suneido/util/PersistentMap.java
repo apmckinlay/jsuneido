@@ -190,8 +190,8 @@ public abstract class PersistentMap<K, V> {
 		}
 
 		/** really static but needs K,V */
-		private Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc, K key,
-				V value, int hash, int shift) {
+		private static <K, V> Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc,
+				K key, V value, int hash, int shift) {
 			if (shift >= HASH_BITS)
 				return new OverflowNode<K, V>(assoc, new SimpleImmutableEntry(key,
 						value));
