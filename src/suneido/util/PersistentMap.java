@@ -189,7 +189,6 @@ public abstract class PersistentMap<K, V> {
 			return new TrieNode<K, V>(bm, aa);
 		}
 
-		/** really static but needs K,V */
 		private static <K, V> Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc,
 				K key, V value, int hash, int shift) {
 			if (shift >= HASH_BITS)
