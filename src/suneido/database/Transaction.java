@@ -136,7 +136,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexUpdates.get(key);
 		if (bti == null) {
-			bti = new BtreeIndex(btreeIndexes.get(key));
+			bti = btreeIndexes.get(key);
+if (bti == null)
+System.out.println("getBtreeIndex FAILED for " + trans.db.getTable(tblnum).name + " " + columns);
+			bti = new BtreeIndex(bti);
 			btreeIndexUpdates.put(key, bti);
 		}
 		return bti;
@@ -312,7 +315,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			TableData tdOld = tabledata.get(tdNew.num);
 			if (tdOld != null)
 				trans.db.updateTableData(tdNew.num, tdNew.nextfield,
-						tdNew.nrecords - tdOld.nrecords, 
+						tdNew.nrecords - tdOld.nrecords,
 						tdNew.totalsize	- tdOld.totalsize);
 		}
 	}
@@ -322,9 +325,11 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			String key = e.getKey();
 			BtreeIndex btiNew = e.getValue();
 			BtreeIndex btiOld = btreeIndexes.get(key);
-			if (btiOld == null || !btiNew.differsFrom(btiOld))
+			if (btiOld == null)
+				trans.db.addBtreeIndex(key, btiNew);
+			else if (!btiNew.differsFrom(btiOld))
 				continue;
-			if (!trans.db.updateBtreeIndex(key, btiOld, btiNew))
+			else if (!trans.db.updateBtreeIndex(key, btiOld, btiNew))
 				return false; // concurrent update = conflict
 		}
 		return true;

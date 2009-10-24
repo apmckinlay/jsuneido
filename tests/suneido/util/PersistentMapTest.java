@@ -1,7 +1,6 @@
 package suneido.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -141,6 +140,33 @@ public class PersistentMapTest {
 		assertEquals("two", map.get(22));
 		assertEquals("three", map.get(33));
 		assertEquals(null, map.get(44));
+	}
+
+	@Test
+	public void test_random() {
+		PersistentMap<String, Integer> map = PersistentMap.empty();
+		final int N = 1024;
+		for (int i = 0; i < N; ++i) {
+			Integer x = (i ^ 0x15a) << 15;
+			String key = "key" + x;
+			PersistentMap<String, Integer> newmap = map.with(key, x);
+			assertNotSame(map, newmap);
+			map = newmap;
+			assertEquals(x, map.get(key));
+		}
+		for (int i = 0; i < N; ++i) {
+			Integer x = (i ^ 0x2a5) << 15;
+			String key = "key" + x;
+			assertEquals(x, map.get(key));
+			PersistentMap<String, Integer> newmap = map.without(key);
+			assertNotSame(map, newmap);
+			map = newmap;
+			assertEquals(null, map.get(key));
+		}
+		for (int i = 0; i < N; ++i) {
+			String key = "key" + i;
+			assertEquals(null, map.get(key));
+		}
 	}
 
 }
