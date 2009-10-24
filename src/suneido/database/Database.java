@@ -472,8 +472,7 @@ public class Database {
 		if (table.hasIndex(columns))
 			throw new SuException("add index: index already exists: " + columns
 					+ " in " + tablename);
-		BtreeIndex btreeIndex =
-				new BtreeIndex(dest, table.num, columns, isKey,
+		BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
 				unique, fktablename, fkcolumns, fkmode);
 
 		Tables originalTables = tables;
@@ -1106,6 +1105,11 @@ public class Database {
 		bti.update(); // save changes to database
 		btreeIndexes = btreeIndexes.with(key, bti);
 		return true;
+	}
+
+	public void addBtreeIndex(String key, BtreeIndex btiNew) {
+assert null == btreeIndexes.get(key);
+		btreeIndexes = btreeIndexes.with(key, btiNew);
 	}
 
 }

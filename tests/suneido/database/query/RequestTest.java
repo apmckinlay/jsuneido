@@ -11,6 +11,11 @@ import suneido.database.TestBase;
 public class RequestTest extends TestBase {
 	@Test
 	public void test() {
+		test_();
+		test_();
+	}
+
+	private void test_() {
 		String schema = "(a,b,c) key(a)";
 		Request.execute("create test " + schema);
 		assertEquals(schema, db.schema("test"));
@@ -46,6 +51,12 @@ public class RequestTest extends TestBase {
 
 		Request.execute("create tmp (aField) key(aField)");
 
+		Request.execute(serverData, "drop tmp");
+		assertNull(db.getTable("tmp"));
+	}
+
+	@Test
+	public void test_view() {
 		String def = "one join two where three = 4";
 		Request.execute(serverData, "view myview = " + def);
 		assertEquals(def, db.getView("myview"));

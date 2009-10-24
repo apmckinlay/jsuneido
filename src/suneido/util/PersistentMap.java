@@ -200,7 +200,7 @@ public abstract class PersistentMap<K, V> {
 			if (ha == h) { // collision
 				Object[] aa = new Object[1];
 				aa[0] = newChild(assoc, key, value, hash, shift	+ BITS_PER_LEVEL);
-				return new TrieNode<K, V>(1, aa);
+				return new TrieNode<K, V>(1 << h, aa);
 			}
 			Object[] aa = new Object[2];
 			SimpleImmutableEntry<K, V> newAssoc =
@@ -369,5 +369,14 @@ public abstract class PersistentMap<K, V> {
 	public static <K, V> Builder<K, V> builder() {
 		return new Builder<K, V>();
 	}
+
+//	private static String hashStr(int hash) {
+//		String s = "";
+//		do {
+//			s = "." + (hash & LEVEL_MASK) + s;
+//			hash = hash >>> BITS_PER_LEVEL;
+//		} while (hash != 0);
+//		return s.substring(1);
+//	}
 
 }
