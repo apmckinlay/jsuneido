@@ -443,7 +443,7 @@ public class Database {
 			// update any indexes that include this column
 			for (Index index : table.indexes) {
 				List<String> cols = commasToList(index.columns);
-				int i = cols.indexOf(oldname); // TODO use contains ?
+				int i = cols.indexOf(oldname);
 				if (i < 0)
 					continue ; // this index doesn't contain the column
 				cols.set(i, newname);
@@ -1055,12 +1055,11 @@ public class Database {
 	// called by Transaction complete
 	public boolean updateBtreeIndex(String key,
 			BtreeIndex btiOld, BtreeIndex btiNew) {
-		// TODO maybe use btiNew instead of copying
-		BtreeIndex bti = new BtreeIndex(btreeIndexes.get(key));
+		BtreeIndex bti = btreeIndexes.get(key);
 		if (!bti.update(btiOld, btiNew))
 			return false; // conflict
-		bti.update(); // save changes to database
-		btreeIndexes = btreeIndexes.with(key, bti);
+		btiNew.update(); // save changes to database
+		btreeIndexes = btreeIndexes.with(key, btiNew);
 		return true;
 	}
 

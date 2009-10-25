@@ -56,9 +56,7 @@ public class Btree {
 		if (root_ != btOld.root_)
 			return false;
 		assert treelevels == btOld.treelevels;
-		root_ = btNew.root_;
-		treelevels = btNew.treelevels;
-		nnodes += btNew.nnodes - btOld.nnodes;
+		btNew.nnodes = nnodes + (btNew.nnodes - btOld.nnodes);
 		return true;
 	}
 
