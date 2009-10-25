@@ -1,7 +1,6 @@
 package suneido.database.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -54,7 +53,9 @@ public class RequestTest extends TestBase {
 	public void test_view() {
 		String def = "one join two where three = 4";
 		Request.execute(serverData, "view myview = " + def);
-		assertEquals(def, db.getView("myview"));
+		assertEquals(def, db.getView(db.cursorTran(), "myview"));
+		Request.execute(serverData, "drop myview");
+		assertNull(db.getView(db.cursorTran(), "myview"));
 	}
 
 	@Test(expected = SuException.class)
@@ -63,20 +64,17 @@ public class RequestTest extends TestBase {
 	}
 
 	@Test
-	public void test_fkey() {
-		test_fkey_create();
-		Request.execute(serverData, "drop gl_accounts");
-		Request.execute(serverData, "drop gl_tran1");
-		Request.execute(serverData, "drop gl_tran2");
-		test_fkey_create();
+	public void test_parse_eof() {
+		Request.execute("create tmp (aField) key(aField)");
+		assertNotNull(db.tables.get("tmp"));
+		try {
+			Request.execute(serverData, "drop tmp extra");
+			fail("should have got an exception");
+		} catch (SuException e) {
+			assertEquals("syntax error at line 1: expected: EOF got: IDENTIFIER",
+					e.toString());
+		}
+		assertNotNull(db.tables.get("tmp"));
 	}
 
-	private void test_fkey_create() {
-		Request.execute("ensure gl_accounts (glacct_num, glacct_abbrev)" +
-				"key(glacct_num) index unique(glacct_abbrev)");
-		Request.execute("ensure gl_tran1 (gltran1_num, glacct_num)" +
-				"index(glacct_num) in gl_accounts key(gltran1_num)");
-		Request.execute("ensure gl_tran2 (gltran2_num, glacct_num)" +
-				"index(glacct_num) in gl_accounts key(gltran2_num)");
-	}
 }

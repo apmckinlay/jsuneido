@@ -92,6 +92,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 			match(IDENTIFIER);
 			renames = generator.renames(renames, from, to);
 		} while (matchIf(COMMA));
+		verifyMatch(EOF);
 		return generator.alterRename(table, renames);
 	}
 
@@ -104,6 +105,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	private T partialSchema() {
 		T columns = token == L_PAREN ? columns() : null;
 		T indexes = indexes();
+		verifyMatch(EOF);
 		return generator.schema(columns, indexes);
 	}
 
@@ -192,6 +194,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		match(TO);
 		String to = lexer.getValue();
 		match(IDENTIFIER);
+		verifyMatch(EOF);
 		return generator.rename(from, to);
 	}
 
@@ -216,6 +219,9 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 
 	private T drop() {
 		match(DROP);
-		return matchReturn(IDENTIFIER, generator.drop(lexer.getValue()));
+		String name = lexer.getValue();
+		match(IDENTIFIER);
+		verifyMatch(EOF);
+		return generator.drop(name);
 	}
 }

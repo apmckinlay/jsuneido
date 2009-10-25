@@ -606,4 +606,9 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	public void finish() {
 	}
 
+	@Override
+	public String getView(String name) {
+		return tran.getView(name);
+	}
+
 }

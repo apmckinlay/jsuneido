@@ -107,13 +107,13 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	public Object view(String name, String definition) {
-		checkExisting(name);
 		theDB.add_view(name, definition);
 		return null;
 	}
 
 	public Object sview(String name, String definition) {
-		checkExisting(name);
+		if (serverData.getSview(name) != null)
+			throw new SuException("sview: '" + name + "' already exists");
 		serverData.addSview(name, definition);
 		return null;
 	}
@@ -121,11 +121,8 @@ public class Request implements RequestGenerator<Object> {
 	public Object drop(String table) {
 		if (serverData.getSview(table) != null)
 			serverData.dropSview(table);
-		else if (theDB.getView(table) != null)
-			theDB.removeView(table);
-		else
-			if (!theDB.removeTable(table))
-				throw new SuException("nonexistent table: " + table);
+		else if (!theDB.removeTable(table))
+			throw new SuException("nonexistent table: " + table);
 		return null;
 	}
 
@@ -225,11 +222,6 @@ public class Request implements RequestGenerator<Object> {
 
 	public Object schema(Object columns, Object indexes) {
 		return new Schema(columns, indexes);
-	}
-
-	private void checkExisting(String name) {
-		if (theDB.getView(name) != null || serverData.getSview(name) != null)
-			throw new SuException("view: '" + name + "' already exists");
 	}
 
 }

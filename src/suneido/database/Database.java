@@ -286,7 +286,7 @@ public class Database {
 		return new Transaction(trans, false, tables, tabledata, btreeIndexes);
 	}
 	public Transaction cursorTran() {
-		return new Transaction(tables, tabledata, btreeIndexes);
+		return new Transaction(trans, tables, tabledata, btreeIndexes);
 	}
 
 	// tables =======================================================
@@ -311,13 +311,19 @@ public class Database {
 		checkForSystemTable(tablename, "drop");
 		Transaction tran = readwriteTran();
 		try {
-			Table table = tran.ck_getTable(tablename);
-			for (Index index : table.indexes)
-				removeIndex(tran, table, index.columns);
-			for (Column column : table.columns)
-				removeColumn(tran, table, column.name);
-			remove_any_record(tran, "tables", "tablename", key(tablename));
-			tran.deleteTable(table);
+			if (getView(tran, tablename) != null) {
+				removeView(tran, tablename);
+			} else {
+				Table table = tran.ck_getTable(tablename);
+				if (table == null)
+					return false;
+				for (Index index : table.indexes)
+					removeIndex(tran, table, index.columns);
+				for (Column column : table.columns)
+					removeColumn(tran, table, column.name);
+				remove_any_record(tran, "tables", "tablename", key(tablename));
+				tran.deleteTable(table);
+			}
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -645,38 +651,27 @@ public class Database {
 
 	// views ========================================================
 
-	public void add_view(String table, String definition) {
+	public void add_view(String name, String definition) {
 		Transaction tran = readwriteTran();
 		try {
+			if (null != getView(tran, name))
+				throw new SuException("view: '" + name + "' already exists");
 			add_any_record(tran, "views",
-					new Record().add(table).add(definition));
+					new Record().add(name).add(definition));
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
-	// TODO shouldn't this be using parent transaction?
-	public String getView(String viewname) {
-		Record rec;
-		Transaction tran = readonlyTran();
-		try {
-			BtreeIndex views_index = tran.getBtreeIndex(TN.VIEWS, "view_name");
-			rec = find(tran, views_index, key(viewname));
-		} finally {
-			tran.complete();
-		}
+	public String getView(Transaction tran, String viewname) {
+		BtreeIndex views_index = tran.getBtreeIndex(TN.VIEWS, "view_name");
+		Record rec = find(tran, views_index, key(viewname));
 		return rec == null ? null : rec.getString(V.DEFINITION);
 	}
 
-	public void removeView(String viewname) {
-		Transaction tran = readwriteTran();
-		try {
-			remove_any_record(tran, "views", "view_name", key(viewname));
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
+	public void removeView(Transaction tran, String viewname) {
+		remove_any_record(tran, "views", "view_name", key(viewname));
 	}
 
 	// add record ===================================================
