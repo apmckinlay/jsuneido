@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Transaction implements Comparable<Transaction>, DbmsTran {
+	private final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
@@ -45,6 +46,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
 			PersistentMap<String, BtreeIndex> btreeIndexes) {
+		this.db = trans.db;
 		this.trans = trans;
 		this.readonly = readonly;
 		t = asof = trans.clock();
@@ -55,21 +57,28 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		trans.add(this);
 	}
 
-	// used for cursor setup
-	public Transaction(Tables tables,
+	// used for cursors
+	public Transaction(Transactions trans, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
 			PersistentMap<String, BtreeIndex> btreeIndexes) {
+		this.db = trans.db;
+		this.trans = trans;
 		this.tables = tables;
 		this.tabledata = tabledata;
 		this.btreeIndexes = btreeIndexes;
-		trans = null;
 		readonly = true;
 		t = asof = num = 0;
 	}
 
 	// used by NullTransaction
 	private Transaction() {
-		this(null, null, null);
+		this.db = null;
+		this.trans = null;
+		this.tables = null;
+		this.tabledata = null;
+		this.btreeIndexes = null;
+		readonly = true;
+		t = asof = num = 0;
 	}
 
 	@Override
@@ -131,6 +140,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public void deleteTable(Table table) {
 		assert update_tables == null && remove_table == null;
 		remove_table = table;
+	}
+
+	public String getView(String name) {
+		return db.getView(this, name);
 	}
 
 	// table data
@@ -313,7 +326,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void updateTables() {
-		final Database db = trans.db;
 		if (remove_table != null)
 			db.removeTable(remove_table);
 		if (update_tables != null)
@@ -330,7 +342,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			TableData tdNew = e.getValue();
 			TableData tdOld = tabledata.get(tdNew.num);
 			if (tdOld != null)
-				trans.db.updateTableData(tdNew.num, tdNew.nextfield,
+				db.updateTableData(tdNew.num, tdNew.nextfield,
 						tdNew.nrecords - tdOld.nrecords,
 						tdNew.totalsize	- tdOld.totalsize);
 		}
@@ -342,10 +354,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			BtreeIndex btiNew = e.getValue();
 			BtreeIndex btiOld = btreeIndexes.get(key);
 			if (btiOld == null)
-				trans.db.addBtreeIndex(key, btiNew);
+				db.addBtreeIndex(key, btiNew);
 			else if (!btiNew.differsFrom(btiOld))
 				continue;
-			else if (!trans.db.updateBtreeIndex(key, btiOld, btiNew))
+			else if (!db.updateBtreeIndex(key, btiOld, btiNew))
 				return false; // concurrent update = conflict
 		}
 		return true;
@@ -355,7 +367,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (ndeletes == 0 && ncreates == 0)
 			return;
 		final int n = 8 + 4 + 4 + 4 + 4 * (ncreates + ndeletes) + 4;
-		ByteBuffer buf = trans.db.adr(trans.db.alloc(n, Mmfile.COMMIT));
+		ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT));
 		buf.putLong(new Date().getTime());
 		buf.putInt(num);
 		buf.putInt(ncreates);
@@ -367,10 +379,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			if (tw.type == TranWrite.Type.DELETE)
 				buf.putInt(Mmfile.offsetToInt(tw.off));
 		// include commit in checksum, but don't include checksum itself
-		trans.db.checksum(buf, buf.position());
-		buf.putInt(trans.db.getChecksum());
+		db.checksum(buf, buf.position());
+		buf.putInt(db.getChecksum());
 		verify(buf.position() == n);
-		trans.db.resetChecksum();
+		db.resetChecksum();
 	}
 
 	/**
@@ -386,7 +398,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 				break;
 			case DELETE:
 				trans.removeDeleted(this, tw.off);
-				trans.db.remove_index_entries(tw.tblnum, tw.off);
+				db.remove_index_entries(tw.tblnum, tw.off);
 				break;
 			default:
 				throw SuException.unreachable();
@@ -406,11 +418,11 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			switch (tw.type) {
 			case CREATE:
 				trans.removeCreated(tw.off);
-				trans.db.undoAdd(tw.tblnum, tw.off);
+				db.undoAdd(tw.tblnum, tw.off);
 				break;
 			case DELETE:
 				trans.removeDeleted(this, tw.off);
-				trans.db.undoDelete(tw.tblnum, tw.off);
+				db.undoDelete(tw.tblnum, tw.off);
 				break;
 			default:
 				throw SuException.unreachable();

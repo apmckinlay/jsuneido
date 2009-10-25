@@ -53,4 +53,8 @@ public abstract class QueryGenerator<T> extends Generator<T> {
 
 	public abstract T summarize(T query, T by, T ops);
 
+	public String getView(String name) {
+		return null;
+	}
+
 }

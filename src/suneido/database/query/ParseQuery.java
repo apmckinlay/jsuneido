@@ -1,6 +1,5 @@
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
 import static suneido.language.Token.*;
 import suneido.database.server.ServerData;
 import suneido.language.*;
@@ -129,7 +128,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 
 		String def = serverData.getSview(tablename);
 		if (def == null)
-			def = theDB.getView(tablename);
+			def = generator.getView(tablename);
 
 		if (def == null || serverData.inView(tablename))
 			return generator.table(tablename);

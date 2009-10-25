@@ -83,7 +83,7 @@ public class Parse<T, G> {
 		//System.out.println(token + " " + lexer.getValue());
 	}
 
-	private void verifyMatch(Token expected) {
+	protected void verifyMatch(Token expected) {
 		if (this.token != expected && lexer.getKeyword() != expected)
 			syntaxError("expected: " + expected + " got: " + token);
 	}
