@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import suneido.SuRecord;
-import suneido.database.Transaction;
 
 public class InsertRecord extends QueryAction {
 	private final SuRecord record;
@@ -17,8 +16,7 @@ public class InsertRecord extends QueryAction {
 	}
 
 	@Override
-	public int execute(Transaction tran) {
-		source.setTransaction(tran);
+	public int execute() {
 		source.output(record.toDbRecord(source.header()));
 		return 1;
 	}

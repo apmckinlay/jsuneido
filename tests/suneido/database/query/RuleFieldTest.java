@@ -6,7 +6,6 @@ import static suneido.database.Database.theDB;
 import org.junit.Test;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class RuleFieldTest extends TestBase {
 
@@ -20,8 +19,7 @@ public class RuleFieldTest extends TestBase {
 		req("insert { a: 1, b: 2 } into withrule");
 
 		Query q = CompileQuery.query(
-				new Transaction(theDB.tabledata, theDB.btreeIndexes),
-				serverData, "withrule");
+				theDB.cursorTran(), serverData, "withrule");
 		Header hdr = q.header();
 		assertEquals("[b, a]", hdr.columns().toString());
 		assertEquals("[a]", hdr.fields().toString());

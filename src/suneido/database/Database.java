@@ -29,9 +29,10 @@ public class Database {
 	private boolean loading = false;
 	private final Adler32 cksum = new Adler32();
 	private byte output_type = Mmfile.DATA;
-	private Tables tables = new Tables();
-	public PersistentMap<Integer, TableData> tabledata = null;
-	public PersistentMap<String, BtreeIndex> btreeIndexes = null;
+	public volatile Tables tables = new Tables();
+	public volatile PersistentMap<Integer, TableData> tabledata = null;
+	public volatile PersistentMap<String, BtreeIndex> btreeIndexes =
+			PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
 
@@ -42,14 +43,7 @@ public class Database {
 		@SuppressWarnings("unused")
 		final static int NAME = 0, DEFINITION = 1;
 	}
-
 	private final static int VERSION = 1;
-	private BtreeIndex tablename_index;
-	private BtreeIndex tablenum_index;
-	private BtreeIndex columns_index;
-	private BtreeIndex indexes_index;
-	private BtreeIndex fkey_index;
-	private BtreeIndex views_index;
 
 	public Database(String filename, Mode mode) {
 		dest = new Mmfile(filename, mode);
@@ -84,48 +78,48 @@ public class Database {
 		long dbhdr_at = alloc(Dbhdr.SIZE, Mmfile.OTHER);
 
 		// tables
-		tablename_index = new BtreeIndex(dest, TN.TABLES, "tablename",
+		BtreeIndex tablenum_index = new BtreeIndex(dest, TN.TABLES, "table",
 				true, false);
-		tablenum_index = new BtreeIndex(dest, TN.TABLES, "table",
+		BtreeIndex tablename_index = new BtreeIndex(dest, TN.TABLES, "tablename",
 				true, false);
-		createSchemaTable("tables", TN.TABLES, 5, 3);
-		createSchemaTable("columns", TN.COLUMNS, 3, 17);
-		createSchemaTable("indexes", TN.INDEXES, 9, 5);
+		createSchemaTable(tablenum_index, tablename_index, "tables", TN.TABLES, 5, 3);
+		createSchemaTable(tablenum_index, tablename_index, "columns", TN.COLUMNS, 3, 17);
+		createSchemaTable(tablenum_index, tablename_index, "indexes", TN.INDEXES, 9, 5);
 
 		// columns
-		columns_index = new BtreeIndex(dest, TN.COLUMNS, "table,column",
+		BtreeIndex columns_index = new BtreeIndex(dest, TN.COLUMNS, "table,column",
 				true, false);
-		createSchemaColumn(TN.TABLES, "table", 0);
-		createSchemaColumn(TN.TABLES, "tablename", 1);
-		createSchemaColumn(TN.TABLES, "nextfield", 2);
-		createSchemaColumn(TN.TABLES, "nrows", 3);
-		createSchemaColumn(TN.TABLES, "totalsize", 4);
+		createSchemaColumn(columns_index, TN.TABLES, "table", 0);
+		createSchemaColumn(columns_index, TN.TABLES, "tablename", 1);
+		createSchemaColumn(columns_index, TN.TABLES, "nextfield", 2);
+		createSchemaColumn(columns_index, TN.TABLES, "nrows", 3);
+		createSchemaColumn(columns_index, TN.TABLES, "totalsize", 4);
 
-		createSchemaColumn(TN.COLUMNS, "table", 0);
-		createSchemaColumn(TN.COLUMNS, "column", 1);
-		createSchemaColumn(TN.COLUMNS, "field", 2);
+		createSchemaColumn(columns_index, TN.COLUMNS, "table", 0);
+		createSchemaColumn(columns_index, TN.COLUMNS, "column", 1);
+		createSchemaColumn(columns_index, TN.COLUMNS, "field", 2);
 
-		createSchemaColumn(TN.INDEXES, "table", 0);
-		createSchemaColumn(TN.INDEXES, "columns", 1);
-		createSchemaColumn(TN.INDEXES, "key", 2);
-		createSchemaColumn(TN.INDEXES, "fktable", 3);
-		createSchemaColumn(TN.INDEXES, "fkcolumns", 4);
-		createSchemaColumn(TN.INDEXES, "fkmode", 5);
-		createSchemaColumn(TN.INDEXES, "root", 6);
-		createSchemaColumn(TN.INDEXES, "treelevels", 7);
-		createSchemaColumn(TN.INDEXES, "nnodes", 8);
+		createSchemaColumn(columns_index, TN.INDEXES, "table", 0);
+		createSchemaColumn(columns_index, TN.INDEXES, "columns", 1);
+		createSchemaColumn(columns_index, TN.INDEXES, "key", 2);
+		createSchemaColumn(columns_index, TN.INDEXES, "fktable", 3);
+		createSchemaColumn(columns_index, TN.INDEXES, "fkcolumns", 4);
+		createSchemaColumn(columns_index, TN.INDEXES, "fkmode", 5);
+		createSchemaColumn(columns_index, TN.INDEXES, "root", 6);
+		createSchemaColumn(columns_index, TN.INDEXES, "treelevels", 7);
+		createSchemaColumn(columns_index, TN.INDEXES, "nnodes", 8);
 
 		// indexes
-		indexes_index = new BtreeIndex(dest, TN.INDEXES, "table,columns",
+		BtreeIndex indexes_index = new BtreeIndex(dest, TN.INDEXES, "table,columns",
 				true, false);
-		fkey_index = new BtreeIndex(dest, TN.INDEXES, "fktable,fkcolumns",
+		BtreeIndex fkey_index = new BtreeIndex(dest, TN.INDEXES, "fktable,fkcolumns",
 				false, false);
-		createSchemaIndex(tablename_index);
-		createSchemaIndex(tablenum_index);
-		createSchemaIndex(columns_index);
+		createSchemaIndex(indexes_index, fkey_index, tablename_index);
+		createSchemaIndex(indexes_index, fkey_index, tablenum_index);
+		createSchemaIndex(indexes_index, fkey_index, columns_index);
 		// output indexes indexes last
-		long indexes_adr = createSchemaIndex(indexes_index);
-		createSchemaIndex(fkey_index);
+		long indexes_adr = createSchemaIndex(indexes_index, fkey_index, indexes_index);
+		createSchemaIndex(indexes_index, fkey_index, fkey_index);
 
 		dbhdr = new Dbhdr(dbhdr_at, indexes_adr);
 
@@ -138,10 +132,11 @@ public class Database {
 		addColumn("views", "view_name");
 		addColumn("views", "view_definition");
 		addIndex("views", "view_name", true);
-		views_index = btreeIndex(TN.VIEWS, "view_name");
 	}
 
-	private void createSchemaTable(String name, int num, int nextfield, int nrecords) {
+	private void createSchemaTable(
+			BtreeIndex tablenum_index, BtreeIndex tablename_index,
+			String name, int num, int nextfield, int nrecords) {
 		long at = output(TN.TABLES, Table.record(name, num, nextfield, nrecords));
 		verify(tablenum_index.insert(NULLTRAN,
 				new Slot(new Record().add(num).addMmoffset(at))));
@@ -149,13 +144,15 @@ public class Database {
 				new Slot(new Record().add(name).addMmoffset(at))));
 	}
 
-	private void createSchemaColumn(int tblnum, String column, int field) {
+	private void createSchemaColumn(BtreeIndex columns_index,
+			int tblnum, String column, int field) {
 		long at = output(TN.COLUMNS, Column.record(tblnum, column, field));
 		Record key = new Record().add(tblnum).add(column).addMmoffset(at);
 		verify(columns_index.insert(NULLTRAN, new Slot(key)));
 	}
 
-	private long createSchemaIndex(BtreeIndex btreeIndex) {
+	private long createSchemaIndex(BtreeIndex indexes_index, BtreeIndex fkey_index,
+			BtreeIndex btreeIndex) {
 		long at = output(TN.INDEXES, btreeIndex.record);
 		Record key1 = new Record()
 				.add(btreeIndex.tblnum)
@@ -172,25 +169,25 @@ public class Database {
 		Session.startup(dest);
 		dest.sync();
 		getIndexes();
-		// WARNING: any new indexes added here must also be added in get_table
-		views_index = btreeIndex(TN.VIEWS, "view_name");
 	}
 
 	private void getIndexes() {
-		indexes_index = new BtreeIndex(dest, input(dbhdr.indexes));
+		BtreeIndex indexes_index = new BtreeIndex(dest, input(dbhdr.indexes));
+		btreeIndexes = btreeIndexes.with(TN.INDEXES + ":table,columns", indexes_index);
 
 		Record r = find(NULLTRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
 		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
 
-		tablename_index = btreeIndex(TN.TABLES, "tablename");
-		tablenum_index = btreeIndex(TN.TABLES, "table");
-		columns_index = btreeIndex(TN.COLUMNS, "table,column");
-		fkey_index = btreeIndex(TN.INDEXES, "fktable,fkcolumns");
+		btreeIndex(indexes_index, TN.TABLES, "table");
+		btreeIndex(indexes_index, TN.COLUMNS, "table,column");
+		btreeIndex(indexes_index, TN.INDEXES, "fktable,fkcolumns");
 	}
-	private BtreeIndex btreeIndex(int table_num, String columns) {
-		return new BtreeIndex(dest,
+	private void btreeIndex(BtreeIndex indexes_index,
+			int table_num, String columns) {
+		BtreeIndex bti = new BtreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
+		btreeIndexes = btreeIndexes.with(table_num + ":" + columns, bti);
 	}
 
 	private void loadSchema() {
@@ -202,6 +199,7 @@ public class Database {
 		List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
 		Transaction tran = readonlyTran();
 		try {
+			BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 			for (BtreeIndex.Iter iter = tablenum_index.iter(tran).next();
 					!iter.eof(); iter.next()) {
 				Record table_rec = input(iter.keyadr());
@@ -267,7 +265,7 @@ public class Database {
 	}
 
 	private Record find(Transaction tran, Index index, Record key) {
-		return find(tran, getBtreeIndex(index), key);
+		return find(tran, tran.getBtreeIndex(index), key);
 	}
 
 	private Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
@@ -282,20 +280,23 @@ public class Database {
 	}
 
 	public Transaction readonlyTran() {
-		return Transaction.readonly(trans, tabledata, btreeIndexes);
+		return new Transaction(trans, true, tables, tabledata, btreeIndexes);
 	}
 	public Transaction readwriteTran() {
-		return Transaction.readwrite(trans, tabledata, btreeIndexes);
+		return new Transaction(trans, false, tables, tabledata, btreeIndexes);
+	}
+	public Transaction cursorTran() {
+		return new Transaction(tables, tabledata, btreeIndexes);
 	}
 
 	// tables =======================================================
 
 	public void addTable(String tablename) {
-		if (tableExists(tablename))
-			throw new SuException("add table: table already exists: " + tablename);
 		int tblnum = dbhdr.getNextTableNum();
 		Transaction tran = readwriteTran();
 		try {
+			if (tran.tableExists(tablename))
+				throw new SuException("add table: table already exists: " + tablename);
 			Record r = Table.record(tablename, tblnum, 0, 0);
 			add_any_record(tran, "tables", r);
 			tran.updateTable(getUpdatedTable(tran, tblnum));
@@ -305,11 +306,12 @@ public class Database {
 		}
 	}
 
-	public void removeTable(String tablename) {
+	/** returns false if table does not exist */
+	public boolean removeTable(String tablename) {
 		checkForSystemTable(tablename, "drop");
-		Table table = ck_getTable(tablename);
 		Transaction tran = readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
 			for (Index index : table.indexes)
 				removeIndex(tran, table, index.columns);
 			for (Column column : table.columns)
@@ -320,6 +322,7 @@ public class Database {
 		} finally {
 			tran.abortIfNotComplete();
 		}
+		return true;
 	}
 
 	private void checkForSystemTable(String tablename, String operation) {
@@ -332,13 +335,13 @@ public class Database {
 		if (oldname.equals(newname))
 			return ;
 
-		Table table = ck_getTable(oldname);
 		checkForSystemTable(oldname, "rename");
-		if (null != getTable(newname))
-			throw new SuException("rename table: table already exists: " + newname);
 
 		Transaction tran = readwriteTran();
 		try {
+			if (tran.tableExists(newname))
+				throw new SuException("rename table: table already exists: " + newname);
+			Table table = tran.ck_getTable(oldname);
 			TableData td = tran.getTableData(table.num);
 			update_any_record(tran, "tables", "table", key(table.num),
 					Table.record(newname, table.num, td.nextfield, td.nrecords));
@@ -352,27 +355,27 @@ public class Database {
 	// columns ======================================================
 
 	public void addColumn(String tablename, String column) {
-		Table table = ck_getTable(tablename);
 		Transaction tran = readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
 			TableData td = tran.getTableData(table.num);
 			int fldnum =
 					Character.isUpperCase(column.charAt(0)) ? -1 : td.nextfield;
-			if (!column.equals("-")) { // addition of deleted field used by dump/load
+			// "-" is addition of deleted field used by dump/load
+			if (!column.equals("-")) {
 				if (fldnum == -1)
-					column =
-							column.substring(0, 1).toLowerCase()
-									+ column.substring(1);
+					column = column.substring(0, 1).toLowerCase()
+							+ column.substring(1);
 				if (table.hasColumn(column))
 					throw new SuException("add column: column already exists: "
 							+ column + " in " + tablename);
 				Record rec = Column.record(table.num, column, fldnum);
 				add_any_record(tran, "columns", rec);
 				tran.updateTable(getUpdatedTable(tran, table.num));
-				if (fldnum >= 0)
-					tran.updateTableData(td.withField());
-				tran.complete();
 			}
+			if (fldnum >= 0)
+				tran.updateTableData(td.withField());
+			tran.complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
@@ -383,20 +386,18 @@ public class Database {
 			throw new SuException("delete column: can't delete system column: "
 					+ name + " from " + tablename);
 
-		Table table = ck_getTable(tablename);
-
-		if (table.columns.find(name) == null)
-			throw new SuException("delete column: nonexistent column: " + name
-					+ " in " + tablename);
-
-		for (Index index : table.indexes)
-			if (index.hasColumn(name))
-				throw new SuException(
-						"delete column: can't delete column used in index: "
-						+ name + " in " + tablename);
-
 		Transaction tran = readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
+			if (table.columns.find(name) == null)
+				throw new SuException("delete column: nonexistent column: " + name
+						+ " in " + tablename);
+			for (Index index : table.indexes)
+				if (index.hasColumn(name))
+					throw new SuException(
+							"delete column: can't delete column used in index: "
+							+ name + " in " + tablename);
+
 			removeColumn(tran, table, name);
 			tran.updateTable(getUpdatedTable(tran, table.num));
 			tran.ck_complete();
@@ -414,21 +415,21 @@ public class Database {
 		if (oldname.equals(newname))
 			return ;
 
-		Table table = ck_getTable(tablename);
 		if (is_system_column(tablename, oldname))
 			throw new SuException("rename column: can't rename system column: "
 					+ oldname + " in " + tablename);
 
-		Column col = table.getColumn(oldname);
-		if (col == null)
-			throw new SuException("rename column: nonexistent column: "
-					+ oldname + " in " + tablename);
-		if (table.hasColumn(newname))
-			throw new SuException("rename column: column already exists: "
-					+ newname + " in " + tablename);
-
 		Transaction t = readwriteTran();
 		try {
+			Table table = t.ck_getTable(tablename);
+			if (table.hasColumn(newname))
+				throw new SuException("rename column: column already exists: "
+						+ newname + " in " + tablename);
+			Column col = table.getColumn(oldname);
+			if (col == null)
+				throw new SuException("rename column: nonexistent column: "
+						+ oldname + " in " + tablename);
+
 			update_any_record(t, "columns", "table,column",
 					key(table.num, oldname),
 					Column.record(table.num, newname, col.num));
@@ -467,23 +468,22 @@ public class Database {
 			String fkcolumns, int fkmode) {
 		if (fkcolumns == null || fkcolumns.equals(""))
 			fkcolumns = columns;
-		Table table = ck_getTable(tablename);
-		ImmutableList<Integer> colnums = table.columns.nums(columns);
-		if (table.hasIndex(columns))
-			throw new SuException("add index: index already exists: " + columns
-					+ " in " + tablename);
-		BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
-				unique, fktablename, fkcolumns, fkmode);
 
-		Tables originalTables = tables;
 		Transaction tran = readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
+			ImmutableList<Integer> colnums = table.columns.nums(columns);
+			if (table.hasIndex(columns))
+				throw new SuException("add index: index already exists: " + columns
+						+ " in " + tablename);
+			BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
+					unique, fktablename, fkcolumns, fkmode);
 			add_any_record(tran, "indexes", btreeIndex.record);
 			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
 			tran.updateTable(getUpdatedTable(tran, table.num, btis));
 			Table fktable = null;
 			if (fktablename != null) {
-				fktable = getTable(fktablename);
+				fktable = tran.getTable(fktablename);
 				if (fktable != null)
 					tran.updateTable(getUpdatedTable(tran, fktable.num));
 			}
@@ -494,7 +494,6 @@ public class Database {
 					tran.btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
 			tran.complete();
 		} catch (RuntimeException e) {
-			tables = originalTables; // TODO temp till tables in tran
 			throw e;
 		} finally {
 			tran.abortIfNotComplete();
@@ -535,12 +534,12 @@ public class Database {
 		if (is_system_index(tablename, columns))
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);
-		Table table = ck_getTable(tablename);
-		if (table.indexes.size() == 1)
-			throw new SuException("delete index: can't delete last index from "
-					+ tablename);
 		Transaction tran = readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
+			if (table.indexes.size() == 1)
+				throw new SuException("delete index: can't delete last index from "
+						+ tablename);
 			removeIndex(tran, table, columns);
 			tran.updateTable(getUpdatedTable(tran, table.num));
 			tran.ck_complete();
@@ -559,40 +558,13 @@ public class Database {
 				key(tbl.num, columns));
 	}
 
-	public boolean tableExists(String table) {
-		return getTable(table) != null;
-	}
-
-	public Table ck_getTable(String tablename) {
-		Table tbl = getTable(tablename);
-		if (tbl == null)
-			throw new SuException("nonexistent table: " + tablename);
-		return tbl;
-	}
-
-	public Table getTable(String tablename) {
-		if (tablename == null)
-			return null;
-		return tables.get(tablename);
-	}
-
-	public Table ck_getTable(int tblnum) {
-		Table tbl = getTable(tblnum);
-		if (tbl == null)
-			throw new SuException("nonexistent table: " + tblnum);
-		return tbl;
-	}
-
-	public Table getTable(int tblnum) {
-		return tables.get(tblnum);
-	}
-
 	// used by schema changes
 	Table getUpdatedTable(Transaction tran, int tblnum) {
 		return getUpdatedTable(tran, tblnum, null);
 	}
 
 	Table getUpdatedTable(Transaction tran, int tblnum, List<BtreeIndex> btis) {
+		BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 		Record table_rec = find(tran, tablenum_index, key(tblnum));
 		tran.tabledataUpdates.put(tblnum, new TableData(table_rec));
 		return loadTable(tran, table_rec, btis);
@@ -603,8 +575,7 @@ public class Database {
 		tables = tables.without(table);
 		tabledata = tabledata.without(table.num);
 		for (Index index : table.indexes)
-			btreeIndexes =
-					btreeIndexes.without(index.tblnum + ":" + index.columns);
+			btreeIndexes = btreeIndexes.without(index.tblnum + ":" + index.columns);
 	}
 
 	// called by Transaction complete for schema changes
@@ -626,6 +597,7 @@ public class Database {
 
 		// columns
 		ArrayList<Column> cols = new ArrayList<Column>();
+		BtreeIndex columns_index = tran.getBtreeIndex(TN.COLUMNS, "table,column");
 		for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
 				!iter.eof(); iter.next())
 			cols.add(new Column(input(iter.keyadr())));
@@ -634,28 +606,15 @@ public class Database {
 
 		// indexes
 		ImmutableList.Builder<Index> indexes = ImmutableList.builder();
+		BtreeIndex indexes_index = tran.getBtreeIndex(TN.INDEXES, "table,columns");
 		for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey).next();
 				!iter.eof(); iter.next()) {
 			Record r = input(iter.keyadr());
 			String icols = Index.getColumns(r);
-			// make sure to use the same index for the system tables
-			BtreeIndex bti;
-			if (tblnum == TN.TABLES && icols.equals("tablename"))
-				bti = tablename_index;
-			else if (tblnum == TN.TABLES && icols.equals("table"))
-				bti = tablenum_index;
-			else if (tblnum == TN.COLUMNS && icols.equals("table,column"))
-				bti = columns_index;
-			else if (tblnum == TN.INDEXES && icols.equals("table,columns"))
-				bti = indexes_index;
-			else if (tblnum == TN.INDEXES && icols.equals("fktable,fkcolumns"))
-				bti = fkey_index;
-			else
-				bti = new BtreeIndex(dest, r);
 			indexes.add(new Index(r, icols, columns.nums(icols),
 					getForeignKeys(tran, tablename, icols)));
 			if (btis != null)
-				btis.add(bti);
+				btis.add(new BtreeIndex(dest, r));
 		}
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
@@ -665,6 +624,7 @@ public class Database {
 	private List<Record> getForeignKeys(Transaction tran, String tablename,
 			String columns) {
 		List<Record> records = new ArrayList<Record>();
+		BtreeIndex fkey_index = tran.getBtreeIndex(TN.INDEXES, "fktable,fkcolumns");
 		for (BtreeIndex.Iter iter = fkey_index.iter(tran, key(tablename, columns)).next();
 				!iter.eof(); iter.next())
 			records.add(input(iter.keyadr()));
@@ -680,7 +640,7 @@ public class Database {
 	}
 
 	public String schema(String table) {
-		return ck_getTable(table).schema();
+		return tables.get(table).schema();
 	}
 
 	// views ========================================================
@@ -696,10 +656,12 @@ public class Database {
 		}
 	}
 
+	// TODO shouldn't this be using parent transaction?
 	public String getView(String viewname) {
 		Record rec;
 		Transaction tran = readonlyTran();
 		try {
+			BtreeIndex views_index = tran.getBtreeIndex(TN.VIEWS, "view_name");
 			rec = find(tran, views_index, key(viewname));
 		} finally {
 			tran.complete();
@@ -726,27 +688,27 @@ public class Database {
 
 	private boolean is_system_table(String table) {
 		return table.equals("tables") || table.equals("columns")
-		|| table.equals("indexes") || table.equals("views");
+				|| table.equals("indexes") || table.equals("views");
 	}
 
 	private boolean is_system_column(String table, String column) {
 		return (table.equals("tables") && (column.equals("table")
 				|| column.equals("nrows") || column.equals("totalsize")))
-				|| (table.equals("columns") && (column.equals("table")
-						|| column.equals("column") || column.equals("field")))
-						|| (table.equals("indexes") && (column.equals("table")
-								|| column.equals("columns") || column.equals("root")
-								|| column.equals("treelevels") || column.equals("nnodes")));
+			|| (table.equals("columns") && (column.equals("table")
+				|| column.equals("column") || column.equals("field")))
+			|| (table.equals("indexes") && (column.equals("table")
+				|| column.equals("columns") || column.equals("root")
+				|| column.equals("treelevels") || column.equals("nnodes")));
 	}
 
 	private boolean is_system_index(String table, String columns) {
 		return (table.equals("tables") && columns.equals("table"))
-		|| (table.equals("columns") && columns.equals("table,column"))
-		|| (table.equals("indexes") && columns.equals("table,columns"));
+				|| (table.equals("columns") && columns.equals("table,column"))
+				|| (table.equals("indexes") && columns.equals("table,columns"));
 	}
 
 	void add_any_record(Transaction tran, String table, Record r) {
-		add_any_record(tran, ck_getTable(table), r);
+		add_any_record(tran, tran.ck_getTable(table), r);
 	}
 	private void add_any_record(Transaction tran, Table table, Record rec) {
 		if (tran.isReadonly())
@@ -783,7 +745,6 @@ public class Database {
 				throw new SuException("duplicate key: " + index.columns + " = "
 						+ key + " in " + table.name);
 			}
-			btreeIndex.update(); // update indexes record from index
 		}
 
 		tran.updateTableData(tran.getTableData(table.num).with(rec.bufSize()));
@@ -794,7 +755,7 @@ public class Database {
 	public long updateRecord(Transaction tran, long recadr, Record rec) {
 		verify(recadr > 0);
 		int tblnum = adr(recadr - 4).getInt(0);
-		Table tbl = ck_getTable(tblnum);
+		Table tbl = tran.ck_getTable(tblnum);
 		checkForSystemTable(tbl.name, "update record in");
 		return update_record(tran, tbl, input(recadr), rec, true);
 	}
@@ -807,7 +768,7 @@ public class Database {
 
 	void update_any_record(Transaction tran, String tablename,
 			String indexcolumns, Record key, Record newrec) {
-		Table table = ck_getTable(tablename);
+		Table table = tran.ck_getTable(tablename);
 		Index index = getIndex(table, indexcolumns);
 		Record oldrec = find(tran, index, key);
 		if (oldrec == null)
@@ -834,7 +795,7 @@ public class Database {
 			if (oldkey.equals(newkey))
 				continue;
 			if (srcblock && i.fksrc != null)
-				fkey_source_block1(tran, getTable(i.fksrc.tablename),
+				fkey_source_block1(tran, tran.getTable(i.fksrc.tablename),
 						i.fksrc.columns,
 						newkey, "update record in " + table.name);
 			fkey_target_block1(tran, i, oldkey, newkey, "update record in "
@@ -864,7 +825,6 @@ public class Database {
 				throw new SuException("update record: duplicate key: "
 						+ index.columns + " = " + newkey + " in " + table.name);
 			}
-			btreeIndex.update();
 		}
 		tran.create_act(table.num, newoff);
 		tran.updateTableData(tran.getTableData(table.num)
@@ -879,7 +839,7 @@ public class Database {
 	public void removeRecord(Transaction tran, long recadr) {
 		verify(recadr > 0);
 		int tblnum = adr(recadr - 4).getInt(0);
-		Table tbl = ck_getTable(tblnum);
+		Table tbl = tran.ck_getTable(tblnum);
 		checkForSystemTable(tbl.name, "delete record from");
 		remove_any_record(tran, tbl, input(recadr));
 
@@ -893,7 +853,7 @@ public class Database {
 
 	private void remove_any_record(Transaction tran, String tablename,
 			String indexcolumns, Record key) {
-		Table table = ck_getTable(tablename);
+		Table table = tran.ck_getTable(tablename);
 		// lookup key in given index
 		Index index = table.indexes.get(indexcolumns);
 		assert (index != null);
@@ -928,7 +888,7 @@ public class Database {
 	private void fkey_source_block(Transaction tran, Table table, Record rec, String action) {
 		for (Index index : table.indexes)
 			if (index.fksrc != null) {
-				fkey_source_block1(tran, getTable(index.fksrc.tablename),
+				fkey_source_block1(tran, tran.getTable(index.fksrc.tablename),
 						index.fksrc.columns, rec.project(index.colnums), action);
 			}
 	}
@@ -953,7 +913,7 @@ public class Database {
 		if (key.allEmpty())
 			return;
 		for (Index.ForeignKey fk : index.fkdsts) {
-			Table fktbl = getTable(fk.tblnum);
+			Table fktbl = tran.getTable(fk.tblnum);
 			Index fkidx = getIndex(fktbl, fk.columns);
 			if (fkidx == null)
 				continue ;
@@ -1000,7 +960,7 @@ public class Database {
 
 	// used by Transaction.abort
 	void undoAdd(int tblnum, long adr) {
-		Table table = getTable(tblnum);
+		Table table = tables.get(tblnum);
 		if (table == null)
 			return;
 		Record rec = input(adr);
@@ -1009,14 +969,14 @@ public class Database {
 
 	// used by Transaction.abort
 	void undoDelete(int tblnum, long adr) {
-		Table table = getTable(tblnum);
+		Table table = tables.get(tblnum);
 		if (table == null)
 			return;
 	}
 
 	// used by Transaction.finalization
 	void remove_index_entries(int tblnum, long adr) {
-		Table table = getTable(tblnum);
+		Table table = tables.get(tblnum);
 		if (table != null)
 			remove_index_entries(table, input(adr));
 	}
@@ -1089,6 +1049,7 @@ public class Database {
 		return dest.size();
 	}
 
+	// called by Transaction complete
 	public void updateTableData(int num, int nextfield, int d_nrecords,
 			int d_totalsize) {
 		TableData td = tabledata.get(num);
@@ -1096,6 +1057,7 @@ public class Database {
 		tabledata = tabledata.with(num, td);
 	}
 
+	// called by Transaction complete
 	public boolean updateBtreeIndex(String key,
 			BtreeIndex btiOld, BtreeIndex btiNew) {
 		// TODO maybe use btiNew instead of copying
@@ -1107,8 +1069,8 @@ public class Database {
 		return true;
 	}
 
+	// called by Transaction complete
 	public void addBtreeIndex(String key, BtreeIndex btiNew) {
-assert null == btreeIndexes.get(key);
 		btreeIndexes = btreeIndexes.with(key, btiNew);
 	}
 

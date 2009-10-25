@@ -8,10 +8,12 @@ import suneido.database.Record;
 import suneido.database.Transaction;
 
 public class InsertQuery extends QueryAction {
+	private final Transaction tran;
 	final private String table;
 
-	InsertQuery(Query source, String table) {
+	InsertQuery(Transaction tran, Query source, String table) {
 		super(source);
+		this.tran = tran;
 		this.table = table;
 	}
 
@@ -21,10 +23,10 @@ public class InsertQuery extends QueryAction {
 	}
 
 	@Override
-	public int execute(Transaction tran) {
-		Query q = source.setup(tran);
+	public int execute() {
+		Query q = source.setup();
 		Header hdr = q.header();
-		List<String> fields = theDB.ck_getTable(table).getFields();
+		List<String> fields = tran.ck_getTable(table).getFields();
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {

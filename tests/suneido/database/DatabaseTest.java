@@ -28,13 +28,13 @@ public class DatabaseTest extends TestBase {
 
 	@Test
 	public void test() {
-		Table tbl = db.getTable("indexes");
+		Table tbl = db.tables.get("indexes");
 		assertEquals("indexes", tbl.name);
-		assertSame(tbl, db.getTable(3));
+		assertSame(tbl, db.tables.get(3));
 
 		makeTable();
 
-		tbl = db.getTable("test");
+		tbl = db.tables.get("test");
 		assertEquals(2, tbl.columns.size());
 		assertEquals(2, tbl.indexes.size());
 
@@ -43,7 +43,7 @@ public class DatabaseTest extends TestBase {
 		db.addRecord(t, "test", r);
 		t.ck_complete();
 
-		tbl = db.getTable("test");
+		tbl = db.tables.get("test");
 		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
 
 		List<Record> recs = get("test");
@@ -52,7 +52,7 @@ public class DatabaseTest extends TestBase {
 
 		reopen();
 
-		tbl = db.getTable("test");
+		tbl = db.tables.get("test");
 		assertEquals(1, db.tabledata.get(tbl.num).nrecords);
 
 		recs = get("test");
@@ -144,7 +144,7 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test", "c");
 		db.addIndex("test", "c", false);
 		Transaction t = db.readonlyTran();
-		Table table = db.getTable("test");
+		Table table = t.getTable("test");
 		Index index = table.getIndex("c");
 		int i = 0;
 		BtreeIndex bti = t.getBtreeIndex(table.num, index.columns);
@@ -282,7 +282,7 @@ public class DatabaseTest extends TestBase {
 		db.addIndex("test2", "f1", false, false, false, "test", "a", Index.BLOCK);
 		db.addIndex("test2", "f2", false, false, false, "test", "a", Index.BLOCK);
 
-		Table test2 = db.getTable("test2");
+		Table test2 = db.tables.get("test2");
 		Index f1 = test2.indexes.get("f1");
 		assertEquals("f1", f1.columns);
 		assertEquals(1, (int) f1.colnums.get(0));
@@ -392,9 +392,9 @@ public class DatabaseTest extends TestBase {
 		db.addIndex("test2", "f", false, false, false, "test", "a",
 				Index.CASCADE_UPDATES);
 
-		Table table = db.getTable("test");
+		Table table = db.tables.get("test");
 		ForeignKey fk = table.getIndex("a").fkdsts.get(0);
-		assertEquals(db.getTable("test2").num, fk.tblnum);
+		assertEquals(db.tables.get("test2").num, fk.tblnum);
 		assertEquals("f", fk.columns);
 		assertEquals(Index.CASCADE_UPDATES, fk.mode);
 

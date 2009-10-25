@@ -5,8 +5,6 @@ import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
-import suneido.database.Transaction;
-
 public class OptimizeTest extends TestBase {
 	@Test
 	public void test() {
@@ -15,8 +13,7 @@ public class OptimizeTest extends TestBase {
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
 			Query q = CompileQuery.query(
-					new Transaction(theDB.tabledata, theDB.btreeIndexes),
-					serverData, c[0]);
+					theDB.cursorTran(), serverData, c[0]);
 			assertEquals(c[0], c[1], q.toString());
 		}
 	}

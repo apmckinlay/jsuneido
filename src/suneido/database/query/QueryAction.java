@@ -1,12 +1,10 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.database.Database.theDB;
 
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public abstract class QueryAction extends Query1 {
 
@@ -14,19 +12,7 @@ public abstract class QueryAction extends Query1 {
 		super(source);
 	}
 
-	// used by tests
-	public int execute() {
-		Transaction tran = theDB.readwriteTran();
-		try {
-			int n = execute(tran);
-			tran.ck_complete();
-			return n;
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	public abstract int execute(Transaction tran);
+	public abstract int execute();
 
 	@Override
 	List<String> columns() {

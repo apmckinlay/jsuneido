@@ -6,8 +6,6 @@ import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
-import suneido.database.Transaction;
-
 
 public class UpdateableTest extends TestBase {
 	@Test
@@ -29,14 +27,12 @@ public class UpdateableTest extends TestBase {
 	private void updateable(String q) {
 		assertTrue(q + "should be updateable",
 				CompileQuery.query(
-						new Transaction(theDB.tabledata, theDB.btreeIndexes),
-						serverData, q).updateable());
+						theDB.cursorTran(), serverData, q).updateable());
 	}
 
 	private void not_updateable(String q) {
 		assertFalse(q + "should NOT be updateable",
 				CompileQuery.query(
-						new Transaction(theDB.tabledata, theDB.btreeIndexes),
-						serverData, q).updateable());
+						theDB.cursorTran(), serverData, q).updateable());
 	}
 }

@@ -46,7 +46,7 @@ public class Library {
 		Transaction tran = theDB.readonlyTran();
 		try {
 			for (String lib : libraries) {
-				Table table = theDB.getTable(lib);
+				Table table = tran.getTable(lib);
 				if (table == null)
 					continue;
 				List<String> flds = table.getFields();
