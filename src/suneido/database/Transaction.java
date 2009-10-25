@@ -27,6 +27,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final long t;
 	private long asof; // not final because updated when readwrite tran commits
 	String sessionId = "session";
+	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
 	final Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
@@ -41,33 +42,24 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
-	public static Transaction readonly(Transactions trans,
-			PersistentMap<Integer, TableData> tabledata,
-			PersistentMap<String, BtreeIndex> btreeIndexes) {
-		return new Transaction(trans, true, tabledata, btreeIndexes);
-	}
-
-	public static Transaction readwrite(Transactions trans,
-			PersistentMap<Integer, TableData> tabledata,
-			PersistentMap<String, BtreeIndex> btreeIndexes) {
-		return new Transaction(trans, false, tabledata, btreeIndexes);
-	}
-
-	private Transaction(Transactions trans, boolean readonly,
+	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
 			PersistentMap<String, BtreeIndex> btreeIndexes) {
 		this.trans = trans;
 		this.readonly = readonly;
 		t = asof = trans.clock();
 		num = trans.nextNum();
+		this.tables = tables;
 		this.tabledata = tabledata;
 		this.btreeIndexes = btreeIndexes;
 		trans.add(this);
 	}
 
 	// used for cursor setup
-	public Transaction(PersistentMap<Integer, TableData> tabledata,
+	public Transaction(Tables tables,
+			PersistentMap<Integer, TableData> tabledata,
 			PersistentMap<String, BtreeIndex> btreeIndexes) {
+		this.tables = tables;
 		this.tabledata = tabledata;
 		this.btreeIndexes = btreeIndexes;
 		trans = null;
@@ -77,7 +69,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// used by NullTransaction
 	private Transaction() {
-		this(null, null);
+		this(null, null, null);
 	}
 
 	@Override
@@ -100,6 +92,33 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	public String conflict() {
 		return conflict;
+	}
+
+	public boolean tableExists(String table) {
+		return getTable(table) != null;
+	}
+
+	public Table ck_getTable(String tablename) {
+		Table tbl = getTable(tablename);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tablename);
+		return tbl;
+	}
+	public Table getTable(String tablename) {
+		if (tablename == null)
+			return null;
+		return tables.get(tablename);
+	}
+
+	public Table ck_getTable(int tblnum) {
+		Table tbl = getTable(tblnum);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tblnum);
+		return tbl;
+	}
+
+	public Table getTable(int tblnum) {
+		return tables.get(tblnum);
 	}
 
 	public void updateTable(Table table) {
@@ -136,10 +155,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexUpdates.get(key);
 		if (bti == null) {
-			bti = btreeIndexes.get(key);
-if (bti == null)
-System.out.println("getBtreeIndex FAILED for " + trans.db.getTable(tblnum).name + " " + columns);
-			bti = new BtreeIndex(bti);
+			bti = new BtreeIndex(btreeIndexes.get(key));
 			btreeIndexUpdates.put(key, bti);
 		}
 		return bti;
@@ -248,7 +264,7 @@ System.out.println("getBtreeIndex FAILED for " + trans.db.getTable(tblnum).name 
 			if (tr.tblnum != cur_tblnum || ! tr.index.equals(cur_index)) {
 				cur_tblnum = tr.tblnum;
 				cur_index = tr.index;
-				Table tbl = trans.db.getTable(tr.tblnum);
+				Table tbl = getTable(tr.tblnum);
 				if (tbl == null)
 					continue ;
 				colnums = tbl.columns.nums(tr.index);

@@ -48,8 +48,7 @@ System.out.println(schema);
 		String table = schema.substring(7, n);
 
 		if (!"views".equals(table)) {
-			if (theDB.getTable(table) != null)
-				theDB.removeTable(table);
+			theDB.removeTable(table);
 			Request.execute(schema);
 		}
 		return load_data(table);

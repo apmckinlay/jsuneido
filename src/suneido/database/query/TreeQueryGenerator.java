@@ -5,6 +5,7 @@ import static suneido.language.Token.COUNT;
 import java.util.*;
 
 import suneido.*;
+import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 import suneido.language.Ops;
 import suneido.language.Token;
@@ -12,6 +13,12 @@ import suneido.language.ParseExpression.Value;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator extends QueryGenerator<Object> {
+
+	private final Transaction tran;
+
+	public TreeQueryGenerator(Transaction tran) {
+		this.tran = tran;
+	}
 
 	@Override
 	public Object columns(Object columns, String column) {
@@ -23,7 +30,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object delete(Object query) {
-		return new Delete((Query) query);
+		return new Delete(tran, (Query) query);
 	}
 
 	@Override
@@ -55,7 +62,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object insertQuery(Object query, String table) {
-		return new InsertQuery((Query) query, table);
+		return new InsertQuery(tran, (Query) query, table);
 	}
 
 	@Override
@@ -141,7 +148,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object table(String table) {
-		return new Table(table);
+		return new Table(tran, table);
 	}
 
 	@Override
@@ -157,7 +164,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object update(Object query, Object updates) {
 		Updates u = (Updates) updates;
-		return new Update((Query) query, u.cols, u.exprs);
+		return new Update(tran, (Query) query, u.cols, u.exprs);
 	}
 
 	static class Updates {
@@ -174,7 +181,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object where(Object query, Object expr) {
-		return new Select((Query) query, (Expr) expr);
+		return new Select(tran, (Query) query, (Expr) expr);
 	}
 
 	@Override

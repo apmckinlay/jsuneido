@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
+import suneido.database.query.*;
 import suneido.database.server.ServerData;
 
 public class TestBase {
@@ -73,7 +74,7 @@ public class TestBase {
 
 	protected List<Record> get(String tablename, Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
-		Table table = db.getTable(tablename);
+		Table table = tran.getTable(tablename);
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
@@ -83,7 +84,7 @@ public class TestBase {
 	}
 
 	protected Record getFirst(String tablename, Transaction tran) {
-		Table table = db.getTable(tablename);
+		Table table = tran.getTable(tablename);
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
@@ -102,4 +103,17 @@ public class TestBase {
 		for (int i = 0; i < values.length; ++i)
 			assertEquals(record(values[i]), recs.get(i));
 	}
+
+	protected int req(String s) {
+		Transaction tran = db.readwriteTran();
+		try {
+			Query q = CompileQuery.parse(tran, serverData, s);
+			int n = ((QueryAction) q).execute();
+			tran.ck_complete();
+			return n;
+		} finally {
+			tran.abortIfNotComplete();
+		}
+	}
+
 }

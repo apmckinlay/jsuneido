@@ -471,8 +471,7 @@ public enum Command {
 			q = ServerData.forThread().getQuery(n);
 		else if (-1 != (tn = getnum('T', buf)) && -1 != (n = getnum('C', buf))) {
 			q = ServerData.forThread().getCursor(n);
-			q.setTransaction((Transaction) ServerData.forThread().getTransaction(
-					tn));
+			q.setTransaction((Transaction) ServerData.forThread().getTransaction(tn));
 		} else
 			throw new SuException("expecting Q# or T# C#");
 		if (q == null)

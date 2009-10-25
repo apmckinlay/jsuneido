@@ -22,7 +22,8 @@ public class FixedTest extends TestBase {
 	public void extend() {
 		makeTable();
 		for (String[] c : cases) {
-			assertEquals(c[1], CompileQuery.parse(serverData, c[0]).fixed().toString());
+			assertEquals(c[1], CompileQuery.parse(db.cursorTran(),
+					serverData, c[0]).fixed().toString());
 		}
 	}
 	private static String[][] cases = {

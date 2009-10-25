@@ -48,10 +48,11 @@ public class Select extends Query1 {
 	int n_out = 0;
 	private HashSet<Long> f;
 	private Header hdr;
-	private Transaction tran;
+	private final Transaction tran;
 
-	public Select(Query source, Expr expr) {
+	public Select(Transaction tran, Query source, Expr expr) {
 		super(source);
+		this.tran = tran;
 		expr = expr.fold();
 		if (!(expr instanceof And))
 			expr = new And().add(expr);
@@ -124,7 +125,7 @@ public class Select extends Query1 {
 			Rename r = (Rename) source;
 			Expr new_expr = expr.rename(r.to, r.from);
 			source = r.source;
-			r.source = (new_expr == expr ? this : new Select(source, new_expr));
+			r.source = (new_expr == expr ? this : new Select(tran, source, new_expr));
 			return r.transform();
 		}
 		// move select before extend, unless it depends on rules
@@ -138,7 +139,7 @@ public class Select extends Query1 {
 				else
 					rest.add(e);
 			if (!nil(src1))
-				extend.source = new Select(extend.source, new And(src1));
+				extend.source = new Select(tran, extend.source, new And(src1));
 			if (!nil(rest))
 				expr = new And(rest);
 			else
@@ -156,7 +157,7 @@ public class Select extends Query1 {
 				else
 					rest.add(e);
 			if (!nil(src1))
-				summarize.source = new Select(summarize.source, new And(src1));
+				summarize.source = new Select(tran, summarize.source, new And(src1));
 			if (!nil(rest))
 				expr = new And(rest);
 			else
@@ -165,22 +166,22 @@ public class Select extends Query1 {
 		// distribute select over intersect
 		else if (source instanceof Intersect) {
 			Intersect q = (Intersect) source;
-			q.source = new Select(q.source, expr);
-			q.source2 = new Select(q.source2, expr);
+			q.source = new Select(tran, q.source, expr);
+			q.source2 = new Select(tran, q.source2, expr);
 			moved = true;
 		}
 		// distribute select over difference
 		else if (source instanceof Difference) {
 			Difference q = (Difference) source;
-			q.source = new Select(q.source, expr);
-			q.source2 = new Select(q.source2, project(q.source2));
+			q.source = new Select(tran, q.source, expr);
+			q.source2 = new Select(tran, q.source2, project(q.source2));
 			moved = true;
 		}
 		// distribute select over union
 		else if (source instanceof Union) {
 			Query2 q = (Query2) source;
-			q.source = new Select(q.source, project(q.source));
-			q.source2 = new Select(q.source2, project(q.source2));
+			q.source = new Select(tran, q.source, project(q.source));
+			q.source2 = new Select(tran, q.source2, project(q.source2));
 			moved = true;
 		}
 		// split select over product
@@ -200,7 +201,7 @@ public class Select extends Query1 {
 				else
 					common.add(e);
 			if (!nil(src1))
-				j.source = new Select(j.source, new And(src1));
+				j.source = new Select(tran, j.source, new And(src1));
 			if (!nil(common))
 				expr = new And(common);
 			else
@@ -244,9 +245,9 @@ public class Select extends Query1 {
 				common.add(e);
 		}
 		if (! nil(src1))
-			q2.source = new Select(q2.source, new And(src1));
+			q2.source = new Select(tran, q2.source, new And(src1));
 		if (! nil(src2))
-			q2.source2 = new Select(q2.source2, new And(src2));
+			q2.source2 = new Select(tran, q2.source2, new And(src2));
 		if (! nil(common))
 			expr = new And(common);
 		else
@@ -816,12 +817,6 @@ public class Select extends Query1 {
 			if (f.field.equals(field) && f.values.size() == 1)
 				return f.values.get(0);
 		return null;
-	}
-
-	@Override
-	public void setTransaction(Transaction tran) {
-		this.tran = tran;
-		super.setTransaction(tran);
 	}
 
 	private static class Cmp implements Comparable<Cmp> {

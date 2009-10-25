@@ -7,8 +7,11 @@ import suneido.database.Transaction;
 
 public class Delete extends QueryAction {
 
-	public Delete(Query source) {
+	private final Transaction tran;
+
+	public Delete(Transaction tran, Query source) {
 		super(source);
+		this.tran = tran;
 	}
 
 	@Override
@@ -17,8 +20,8 @@ public class Delete extends QueryAction {
 	}
 
 	@Override
-	public int execute(Transaction tran) {
-		Query q = source.setup(tran);
+	public int execute() {
+		Query q = source.setup();
 		if (!q.updateable())
 			throw new SuException("delete: query not updateable");
 		Row row;

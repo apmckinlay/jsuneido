@@ -63,8 +63,9 @@ public class Request implements RequestGenerator<Object> {
 
 
 	public Object ensure(String tablename, Object schemaOb) {
+		// TODO: should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
-		suneido.database.Table table = theDB.getTable(tablename);
+		suneido.database.Table table = theDB.tables.get(tablename);
 		if (table == null)
 			create(tablename, schema);
 		else {
@@ -123,7 +124,8 @@ public class Request implements RequestGenerator<Object> {
 		else if (theDB.getView(table) != null)
 			theDB.removeView(table);
 		else
-			theDB.removeTable(table);
+			if (!theDB.removeTable(table))
+				throw new SuException("nonexistent table: " + table);
 		return null;
 	}
 

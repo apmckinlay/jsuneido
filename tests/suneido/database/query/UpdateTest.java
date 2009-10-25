@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.theDB;
 
 import java.util.List;
 
@@ -18,10 +17,7 @@ public class UpdateTest extends TestBase {
 		makeTable(4);
 
 		assertEquals(4, get("test").size());
-		QueryAction q = (QueryAction) CompileQuery.parse(
-				serverData, "update test where a >= 1 and a <= 2 set b = 'xxx'");
-		q.setTransaction(new Transaction(theDB.tabledata, theDB.btreeIndexes));
-		assertEquals(2, q.execute());
+		assertEquals(2, req("update test where a >= 1 and a <= 2 set b = 'xxx'"));
 		List<Record> recs = get("test");
 		assertEquals(4, recs.size());
 		assertEquals(record(0), recs.get(0));
@@ -66,7 +62,7 @@ public class UpdateTest extends TestBase {
 
 	private void checkCount() {
 		Transaction t = db.readonlyTran();
-		Table table = db.getTable("lib");
+		Table table = t.getTable("lib");
 		String[] indexes = { "name,group", "num", "parent", "parent,name" };
 		for (String cols : indexes) {
 			Index index = table.getIndex(cols);

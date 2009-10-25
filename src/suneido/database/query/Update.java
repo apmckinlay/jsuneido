@@ -10,13 +10,15 @@ import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 
-
 public class Update extends QueryAction {
+
+	private final Transaction tran;
 	private final List<String> fields;
 	private final List<Expr> exprs;
 
-	public Update(Query source, List<String> fields, List<Expr> exprs) {
+	public Update(Transaction tran, Query source, List<String> fields, List<Expr> exprs) {
 		super(source);
+		this.tran = tran;
 		this.fields = fields;
 		this.exprs = exprs;
 	}
@@ -30,8 +32,7 @@ public class Update extends QueryAction {
 	}
 
 	@Override
-	public int execute(Transaction tran) {
-		source.setTransaction(tran);
+	public int execute() {
 		Query q = source.transform();
 		List<String> cols = q.columns();
 		List<String> bestKey = q.key_index(cols);

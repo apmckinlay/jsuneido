@@ -37,12 +37,11 @@ public abstract class Query implements DbmsQuery {
 	//		return CompileQuery.parse(serverData, s).setup(is_cursor);
 	//	}
 
-	Query setup(Transaction t) {
-		return setup(t, false);
+	Query setup() {
+		return setup(false);
 	}
 
-	Query setup(Transaction t, boolean is_cursor) {
-		setTransaction(t);
+	Query setup(boolean is_cursor) {
 		Query q = transform();
 		if (q.optimize(noFields, q.columns(), noFields, is_cursor, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");

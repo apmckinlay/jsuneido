@@ -11,7 +11,7 @@ public class BtreeIndexTest extends TestBase {
 	@Test
 	public void test_iter_range() {
 		makeTable(10);
-		Table tbl = theDB.getTable("test");
+		Table tbl = theDB.tables.get("test");
 		Transaction t = theDB.readonlyTran();
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, "a");

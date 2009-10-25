@@ -11,11 +11,6 @@ import suneido.database.TestBase;
 public class RequestTest extends TestBase {
 	@Test
 	public void test() {
-		test_();
-		test_();
-	}
-
-	private void test_() {
 		String schema = "(a,b,c) key(a)";
 		Request.execute("create test " + schema);
 		assertEquals(schema, db.schema("test"));
@@ -44,15 +39,15 @@ public class RequestTest extends TestBase {
 
 		Request.execute("RENAME test TO tmp");
 		assertEquals(schema, db.schema("tmp"));
-		assertNull(db.getTable("test"));
+		assertNull(db.tables.get("test"));
 
 		Request.execute(serverData, "drop tmp");
-		assertNull(db.getTable("tmp"));
+		assertNull(db.tables.get("tmp"));
 
 		Request.execute("create tmp (aField) key(aField)");
 
 		Request.execute(serverData, "drop tmp");
-		assertNull(db.getTable("tmp"));
+		assertNull(db.tables.get("tmp"));
 	}
 
 	@Test
@@ -65,5 +60,23 @@ public class RequestTest extends TestBase {
 	@Test(expected = SuException.class)
 	public void test2() {
 		Request.execute("ensure non_existant (a,b,c) index(a)");
+	}
+
+	@Test
+	public void test_fkey() {
+		test_fkey_create();
+		Request.execute(serverData, "drop gl_accounts");
+		Request.execute(serverData, "drop gl_tran1");
+		Request.execute(serverData, "drop gl_tran2");
+		test_fkey_create();
+	}
+
+	private void test_fkey_create() {
+		Request.execute("ensure gl_accounts (glacct_num, glacct_abbrev)" +
+				"key(glacct_num) index unique(glacct_abbrev)");
+		Request.execute("ensure gl_tran1 (gltran1_num, glacct_num)" +
+				"index(glacct_num) in gl_accounts key(gltran1_num)");
+		Request.execute("ensure gl_tran2 (gltran2_num, glacct_num)" +
+				"index(glacct_num) in gl_accounts key(gltran2_num)");
 	}
 }

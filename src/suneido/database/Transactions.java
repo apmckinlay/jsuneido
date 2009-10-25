@@ -110,19 +110,17 @@ public class Transactions {
 		TranDelete td = deleted.get(adr);
 		if (td == null)
 			return "";
-		StringBuilder sb = new StringBuilder("delete conflict with ");
-		sb.append(td.tran.sessionId);
-		sb.append(" transaction ").append(td.tran.num);
-		sb.append(" table: ");
-		Table tbl = db.getTable(tblnum);
-		if (tbl != null)
-			{
+		StringBuilder sb = new StringBuilder("delete conflict with ")
+				.append(td.tran.sessionId)
+				.append(" transaction ").append(td.tran.num)
+				.append(" table: ");
+		Table tbl = td.tran.getTable(tblnum);
+		if (tbl != null) {
 			sb.append(tbl.name);
 			Index index = tbl.indexes.firstKey();
 			sb.append(" index: ").append(index.columns).append(" key ")
 					.append(db.input(adr).project(index.colnums));
-			}
-		else
+		} else
 			sb.append(tblnum);
 		return sb.toString();
 	}
@@ -165,11 +163,11 @@ public class Transactions {
 
 	private String readConflict(Transaction t, int tblnum, String index,
 			Record from, Record to, Record key, String type) {
-		StringBuilder sb = new StringBuilder("read conflict with ");
-		sb.append(t.sessionId);
-		sb.append(" transaction ").append(t.num);
-		sb.append(" table: ");
-		Table tbl = db.getTable(tblnum);
+		StringBuilder sb = new StringBuilder("read conflict with ")
+				.append(t.sessionId)
+				.append(" transaction ").append(t.num)
+				.append(" table: ");
+		Table tbl = t.getTable(tblnum);
 		if (tbl == null)
 			sb.append(tblnum);
 		else

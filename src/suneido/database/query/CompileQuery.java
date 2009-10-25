@@ -10,17 +10,17 @@ public class CompileQuery {
 
 	public static Query query(Transaction t, ServerData serverData, String s,
 			boolean is_cursor) {
-		return parse(serverData, s).setup(t, is_cursor);
+		return parse(t, serverData, s).setup(is_cursor);
 	}
 
 	public static Query query(Transaction t, ServerData serverData, String s) {
-		return parse(serverData, s).setup(t);
+		return parse(t, serverData, s).setup();
 	}
 
-	public static Query parse(ServerData serverData, String s) {
+	public static Query parse(Transaction tran, ServerData serverData, String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		TreeQueryGenerator generator = new TreeQueryGenerator();
+		TreeQueryGenerator generator = new TreeQueryGenerator(tran);
 		ParseQuery<Object, QueryGenerator<Object>> pc =
 				new ParseQuery<Object, QueryGenerator<Object>>(lexer, generator);
 		pc.serverData(serverData);
@@ -31,7 +31,7 @@ public class CompileQuery {
 	static Expr expr(String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		TreeQueryGenerator generator = new TreeQueryGenerator();
+		TreeQueryGenerator generator = new TreeQueryGenerator(null);
 		ParseExpression<Object, QueryGenerator<Object>> pc =
 				new ParseExpression<Object, QueryGenerator<Object>>(lexer,
 						generator);

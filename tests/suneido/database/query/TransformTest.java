@@ -1,15 +1,18 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
 public class TransformTest extends TestBase {
+
 	@Test
 	public void test() {
 		for (String[] c : transforms) {
 			// System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.parse(serverData, c[0]).transform();
+			Query q = CompileQuery.parse(theDB.cursorTran(),
+					serverData, c[0]).transform();
 			assertEquals(c[1], q.toString());
 		}
 	}

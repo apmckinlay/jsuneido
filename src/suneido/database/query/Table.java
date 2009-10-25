@@ -13,20 +13,21 @@ import suneido.database.*;
 
 public class Table extends Query {
 	private final String table;
-	/* package */suneido.database.Table tbl;
+	final suneido.database.Table tbl;
 	private boolean first = true;
 	private boolean rewound = true;
 	private final Keyrange sel = new Keyrange();
 	private Header hdr;
 	private BtreeIndex ix;
-	private Transaction tran = null;
+	private Transaction tran;
 	private boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
-	/* package */BtreeIndex.Iter iter;
+	BtreeIndex.Iter iter;
 
-	public Table(String tablename) {
+	public Table(Transaction tran, String tablename) {
+		this.tran = tran;
 		table = tablename;
-		tbl = theDB.ck_getTable(table);
+		tbl = tran.ck_getTable(table);
 		singleton = indexes().get(0).isEmpty();
 	}
 
@@ -38,7 +39,6 @@ public class Table extends Query {
 	@Override
 		double optimize2(List<String> index, List<String> needs,
 				List<String> firstneeds, boolean is_cursor, boolean freeze) {
-			tbl = theDB.ck_getTable(table);
 			singleton = tbl.singleton();
 
 			if (!columns().containsAll(needs))
