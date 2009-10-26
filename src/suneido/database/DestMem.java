@@ -29,6 +29,10 @@ public class DestMem implements Destination {
 		return buf;
 	}
 
+	public ByteBuffer adrForWrite(long offset) {
+		return adr(offset);
+	}
+
 	public long size() {
 		return (nodes.size() + 1) * Mmfile.ALIGN;
 	}
@@ -45,6 +49,10 @@ public class DestMem implements Destination {
 	}
 
 	public void close() {
+	}
+
+	public Destination unwrap() {
+		return this;
 	}
 
 }

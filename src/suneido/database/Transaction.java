@@ -33,7 +33,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	final Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
 	public final PersistentMap<String, BtreeIndex> btreeIndexes;
-	final Map<String, BtreeIndex> btreeIndexUpdates =
+	private final Map<String, BtreeIndex> btreeIndexUpdates =
 			new HashMap<String, BtreeIndex>();
 	private List<Table> update_tables = null;
 	private Table remove_table = null;
@@ -42,6 +42,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
+
+	final Map<Long, ByteBuffer> shadow = new HashMap<Long, ByteBuffer>();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -168,10 +170,18 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexUpdates.get(key);
 		if (bti == null) {
-			bti = new BtreeIndex(btreeIndexes.get(key));
+			bti = btreeIndexes.get(key);
+			bti = new BtreeIndex(bti, new TranDest(this, bti.getDest()));
 			btreeIndexUpdates.put(key, bti);
+assert bti.getDest() instanceof TranDest;
 		}
 		return bti;
+	}
+
+	public void addBtreeIndex(BtreeIndex bti) {
+		bti.setDest(new TranDest(this, bti.getDest()));
+assert bti.getDest() instanceof TranDest;
+		btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
 	}
 
 	// actions
