@@ -212,9 +212,12 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	}
 
 	public ByteBuffer adr(long offset) {
-		ByteBuffer buf = buf(offset);
-		// buf.limit(length(offset));
-		return buf;
+		return buf(offset);
+	}
+
+	public ByteBuffer adrForWrite(long offset) {
+assert false;
+		return adr(offset);
 	}
 
 	private ByteBuffer buf(long offset) {
@@ -321,6 +324,10 @@ assert false;
 		for (MappedByteBuffer buf : fm)
 			if (buf != null)
 				buf.force();
+	}
+
+	public Destination unwrap() {
+		return this;
 	}
 
 	public Iterator<ByteBuffer> iterator() {

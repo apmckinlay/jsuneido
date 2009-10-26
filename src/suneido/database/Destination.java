@@ -3,21 +3,21 @@ package suneido.database;
 import java.nio.ByteBuffer;
 
 /**
- * Interface from {@link Btree} and {@link BtreeIndex} to {@link Database}.
- * Normally implemented by {@link Database} but {@link DestMem} is used for
+ * Interface from {@link Database}, {@link BtreeIndex}, {@link Btree) to storage.
+ * Normally implemented by {@link Mmfile} but {@link DestMem} is used for
  * tests and in-memory temporary indexes.
  *
  * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public interface Destination {
 
 	long alloc(int size, byte type);
 
 	ByteBuffer adr(long offset);
+
+	ByteBuffer adrForWrite(long offset);
 
 	long first();
 
@@ -28,5 +28,7 @@ public interface Destination {
 	void sync();
 
 	void close();
+
+	Destination unwrap();
 
 }

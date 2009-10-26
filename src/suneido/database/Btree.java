@@ -3,6 +3,9 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
+
+import java.nio.ByteBuffer;
+
 import suneido.SuException;
 
 /**
@@ -14,12 +17,13 @@ import suneido.SuException;
  */
 public class Btree {
 
-	final public static int MAXLEVELS = 20;
-	final public static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
-	final public static int NODESIZE = 4096 - Mmfile.OVERHEAD;
+	public final static int MAXLEVELS = 20;
+	public final static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
+	private final static int BLOCKSIZE = 4096;
+	public final static int NODESIZE = BLOCKSIZE - Mmfile.OVERHEAD;
 	enum Insert { OK, DUP, WONT_FIT };	// return values for insert
 
-	private final Destination dest;
+	private Destination dest;
 	private long root_;
 	private int treelevels;	// not including leaves
 	private int nnodes;
@@ -45,13 +49,14 @@ public class Btree {
 	}
 
 	/** Copy constructor */
-	public Btree(Btree bt) {
-		dest = bt.dest;
+	public Btree(Btree bt, Destination dest) {
+		this.dest = dest;
 		root_ = bt.root_;
 		treelevels = bt.treelevels;
 		nnodes = bt.nnodes;
 	}
 
+	// used when completing transactions
 	public boolean update(Btree btOld, Btree btNew) {
 		if (root_ != btOld.root_)
 			return false;
@@ -71,6 +76,10 @@ public class Btree {
 
 	public int nnodes() {
 		return nnodes;
+	}
+
+	public void setDest(Destination dest) {
+		this.dest = dest;
 	}
 
 	public boolean isEmpty() {
@@ -255,17 +264,29 @@ public class Btree {
 	private class LeafNode {
 		Slots slots;
 		long adr;
+		boolean forWrite = false;
 
 		LeafNode(long adr) {
 			this(adr, Mode.OPEN);
 		}
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
-			slots = new Slots(dest.adr(adr), mode);
+			forWrite = mode == Mode.CREATE;
+			ByteBuffer buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			slots = new Slots(buf, mode);
 			//assert isValid(mode);
+		}
+		void forWrite() {
+			if (forWrite)
+				return;
+			forWrite = true;
+			ByteBuffer buf = dest.adrForWrite(adr);
+			assert ! buf.isReadOnly();
+			slots = new Slots(buf);
 		}
 		Insert insert(Slot x)
 			{
+			forWrite();
 			int i = lowerBound(slots, x);
 			if (i < slots.size() && slots.get(i).equals(x))
 				return Insert.DUP;
@@ -275,6 +296,7 @@ public class Btree {
 			}
 		boolean erase(Slot x)
 			{
+			forWrite();
 			int i = lowerBound(slots, x);
 			if (i >= slots.size() || ! slots.get(i).equals(x))
 				return false;
@@ -292,6 +314,7 @@ public class Btree {
 			LeafNode left = new LeafNode(dest.alloc(NODESIZE, Mmfile.OTHER),
 					Mode.CREATE);
 
+			forWrite();
 			int rem = (left.slots.remaining() * percent) / 100;
 			while (left.slots.remaining() > rem) {
 				left.slots.add(slots.front());
@@ -303,14 +326,14 @@ public class Btree {
 			left.setNext(adr);
 			setPrev(left.adr);
 			if (left.prev() != 0)
-				Slots.setBufNext(dest.adr(left.prev()), left.adr);
+				Slots.setBufNext(dest.adrForWrite(left.prev()), left.adr);
 			return left;
 			}
 		void unlink() {
 			if (prev() != 0)
-				Slots.setBufNext(dest.adr(prev()), next());
+				Slots.setBufNext(dest.adrForWrite(prev()), next());
 			if (next() != 0)
-				Slots.setBufPrev(dest.adr(next()), prev());
+				Slots.setBufPrev(dest.adrForWrite(next()), prev());
 		}
 		boolean isEmpty() {
 			return slots.isEmpty();
@@ -343,25 +366,37 @@ public class Btree {
 			}
 			return true;
 		}
-	}
+	} // end LeafNode
 
 	private class TreeNode {
 		Slots slots;
 		long adr;
+		boolean forWrite = false;
 
 		TreeNode(long adr) {
 			this(adr, Mode.OPEN);
 		}
 		TreeNode(long adr, Mode mode) {
-			slots = new Slots(dest.adr(adr), mode);
 			this.adr = adr;
+			forWrite = mode == Mode.CREATE;
+			ByteBuffer buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			slots = new Slots(buf, mode);
 			if (mode == Mode.CREATE)
 				slots.setPrev(TREENODE_PREV);
 			//assert isValid(mode);
 		}
+		void forWrite() {
+			if (forWrite)
+				return;
+			forWrite = true;
+			ByteBuffer buf = dest.adrForWrite(adr);
+			assert ! buf.isReadOnly();
+			slots = new Slots(buf);
+		}
 
 		// returns false if no room
 		boolean insert(Record key, long off) {
+			forWrite();
 			Slot slot = new Slot(key, off);
 			int i = lowerBound(slots, slot);
 			verify(i == slots.size() || ! slots.get(i).key.equals(key)); // no dups
@@ -380,6 +415,7 @@ public class Btree {
 			//				slots.setNext(0);
 			//				return false;
 			//			}
+			forWrite();
 			if (slots.size() == 0) {
 				slots.setNext(0);
 				return;
@@ -394,6 +430,7 @@ public class Btree {
 			slots.remove(slot);
 		}
 		TreeNode split(Record key) {
+			forWrite();
 			int percent = 50;
 			if (key.compareTo(slots.front().key) < 0)
 				percent = 75;
@@ -416,6 +453,7 @@ public class Btree {
 			return slots.next();
 		}
 		void setNext(long next) {
+			forWrite();
 			slots.setNext(next);
 		}
 
@@ -435,7 +473,7 @@ public class Btree {
 			}
 			return true;
 		}
-}
+	} // end TreeNode
 
 	public long root() {
 		if (root_ == 0)

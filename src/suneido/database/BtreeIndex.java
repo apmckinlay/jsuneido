@@ -14,7 +14,7 @@ import static suneido.database.Index.*;
 public class BtreeIndex {
 
 	public final Record record;
-	private final Destination dest;
+	private Destination dest;
 	private final Btree bt;
 	final boolean iskey;
 	final boolean unique;
@@ -55,14 +55,22 @@ public class BtreeIndex {
 	}
 
 	/** Copy constructor, used by {@link Transaction} */
-	public BtreeIndex(BtreeIndex bti) {
-		dest = bti.dest;
+	public BtreeIndex(BtreeIndex bti, Destination dest) {
+		this.dest = dest;
 		record = bti.record;
-		bt = new Btree(bti.bt);
+		bt = new Btree(bti.bt, dest);
 		iskey = bti.iskey;
 		unique = bti.unique;
 		tblnum = bti.tblnum;
 		columns = bti.columns;
+	}
+
+	Destination getDest() {
+		return dest;
+	}
+	void setDest(Destination dest) {
+		this.dest = dest;
+		bt.setDest(dest);
 	}
 
 	public boolean differsFrom(BtreeIndex bti) {

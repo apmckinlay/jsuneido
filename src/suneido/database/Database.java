@@ -187,6 +187,7 @@ public class Database {
 			int table_num, String columns) {
 		BtreeIndex bti = new BtreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
+assert !(bti.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(table_num + ":" + columns, bti);
 	}
 
@@ -425,9 +426,9 @@ public class Database {
 			throw new SuException("rename column: can't rename system column: "
 					+ oldname + " in " + tablename);
 
-		Transaction t = readwriteTran();
+		Transaction tran = readwriteTran();
 		try {
-			Table table = t.ck_getTable(tablename);
+			Table table = tran.ck_getTable(tablename);
 			if (table.hasColumn(newname))
 				throw new SuException("rename column: column already exists: "
 						+ newname + " in " + tablename);
@@ -436,7 +437,7 @@ public class Database {
 				throw new SuException("rename column: nonexistent column: "
 						+ oldname + " in " + tablename);
 
-			update_any_record(t, "columns", "table,column",
+			update_any_record(tran, "columns", "table,column",
 					key(table.num, oldname),
 					Column.record(table.num, newname, col.num));
 
@@ -449,17 +450,17 @@ public class Database {
 				cols.set(i, newname);
 
 				String newColumns = listToCommas(cols);
-				Record newRecord = t.getBtreeIndex(index).withColumns(newColumns);
-				update_any_record(t, "indexes", "table,columns",
+				Record newRecord = tran.getBtreeIndex(index).withColumns(newColumns);
+				update_any_record(tran, "indexes", "table,columns",
 						key(table.num, index.columns), newRecord);
 				}
 			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
-			t.updateTable(getUpdatedTable(t, table.num, btis));
+			tran.updateTable(getUpdatedTable(tran, table.num, btis));
 			for (BtreeIndex bti : btis)
-				t.btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
-			t.ck_complete();
+				tran.addBtreeIndex(bti);
+			tran.ck_complete();
 		} finally {
-			t.abortIfNotComplete();
+			tran.abortIfNotComplete();
 		}
 	}
 
@@ -497,7 +498,7 @@ public class Database {
 					fktablename, fktable, fkcolumns, btreeIndex);
 			for (BtreeIndex bti : btis)
 				if (bti.columns.equals(columns))
-					tran.btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
+					tran.addBtreeIndex(bti);
 			tran.complete();
 		} catch (RuntimeException e) {
 			throw e;
@@ -592,6 +593,8 @@ public class Database {
 
 	// called by Transaction complete for schema changes
 	void updateBtreeIndex(BtreeIndex bti) {
+		bti.setDest(bti.getDest().unwrap());
+assert !(bti.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
 	}
 
@@ -1059,12 +1062,16 @@ public class Database {
 		if (!bti.update(btiOld, btiNew))
 			return false; // conflict
 		btiNew.update(); // save changes to database
+		btiNew.setDest(btiNew.getDest().unwrap());
+assert !(btiNew.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(key, btiNew);
 		return true;
 	}
 
 	// called by Transaction complete
 	public void addBtreeIndex(String key, BtreeIndex btiNew) {
+		btiNew.setDest(btiNew.getDest().unwrap());
+assert !(btiNew.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(key, btiNew);
 	}
 
