@@ -4,6 +4,8 @@ import static suneido.Suneido.verify;
 
 import java.util.*;
 
+import suneido.util.ByteBuf;
+
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -176,5 +178,27 @@ public class Transactions {
 				.append(" to ").append(to).append(" key ").append(key)
 				.append(" ").append(type);
 		return sb.toString();
+	}
+
+	/** Called from {@Transaction.completeReadWrite}
+	 * Gives other outstanding transactions shadow copies of any btree nodes
+	 * that this transaction is going to update so they don't see the updates
+	 * i.e. to implement snapshot isolation
+	 */
+	void addShadows(Transaction tcompleting, Map<Long, ByteBuf> shadow) {
+		for (Map.Entry<Long, ByteBuf> e : shadow.entrySet()) {
+			Long offset = e.getKey();
+			ByteBuf copy = null;
+			for (Transaction t : trans2) {
+				if (t == tcompleting)
+					continue;
+				if (t.shadow.containsKey(offset))
+					continue;
+				if (copy == null)
+					copy = db.dest.adr(offset).copy(Btree.NODESIZE)
+							.asReadOnlyBuffer();
+				t.shadow.put(offset, copy);
+			}
+		}
 	}
 }

@@ -2,14 +2,14 @@ package suneido.database;
 
 import static org.junit.Assert.assertEquals;
 
-import java.nio.ByteBuffer;
-
 import org.junit.Test;
+
+import suneido.util.ByteBuf;
 
 public class SlotsTest {
 	@Test
 	public void test() {
-		Slots slots = new Slots(ByteBuffer.allocate(Btree.NODESIZE), Mode.CREATE);
+		Slots slots = new Slots(ByteBuf.allocate(Btree.NODESIZE), Mode.CREATE);
 
 		assertEquals(0, slots.size());
 		slots.setNext(1200);
@@ -20,7 +20,7 @@ public class SlotsTest {
 
 	@Test
 	public void test2() {
-		Slots slots = new Slots(ByteBuffer.allocate(Btree.NODESIZE), Mode.CREATE);
+		Slots slots = new Slots(ByteBuf.allocate(Btree.NODESIZE), Mode.CREATE);
 		Slot slot = make();
 		slots.add(slot);
 

@@ -10,6 +10,7 @@ import java.nio.ByteOrder;
 
 import suneido.SuException;
 import suneido.database.query.Request;
+import suneido.util.ByteBuf;
 
 public class Load {
 	private InputStream fin;
@@ -83,7 +84,7 @@ System.out.println("load_data(" + table + ")");
 		if (n > recbuf.length)
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
 		verify(fin.read(recbuf, 0, n) == n);
-		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
+		Record rec = new Record(ByteBuf.wrap(recbuf, 0, n));
 //System.out.println(rec.get(0));
 
 		try {

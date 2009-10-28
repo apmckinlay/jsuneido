@@ -3,10 +3,8 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
-
-import java.nio.ByteBuffer;
-
 import suneido.SuException;
+import suneido.util.ByteBuf;
 
 /**
  * Btree implementation.
@@ -272,7 +270,7 @@ public class Btree {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			forWrite = mode == Mode.CREATE;
-			ByteBuffer buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			ByteBuf buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
 			slots = new Slots(buf, mode);
 			//assert isValid(mode);
 		}
@@ -280,7 +278,7 @@ public class Btree {
 			if (forWrite)
 				return;
 			forWrite = true;
-			ByteBuffer buf = dest.adrForWrite(adr);
+			ByteBuf buf = dest.adrForWrite(adr);
 			assert ! buf.isReadOnly();
 			slots = new Slots(buf);
 		}
@@ -379,7 +377,7 @@ public class Btree {
 		TreeNode(long adr, Mode mode) {
 			this.adr = adr;
 			forWrite = mode == Mode.CREATE;
-			ByteBuffer buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			ByteBuf buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
 			slots = new Slots(buf, mode);
 			if (mode == Mode.CREATE)
 				slots.setPrev(TREENODE_PREV);
@@ -389,7 +387,7 @@ public class Btree {
 			if (forWrite)
 				return;
 			forWrite = true;
-			ByteBuffer buf = dest.adrForWrite(adr);
+			ByteBuf buf = dest.adrForWrite(adr);
 			assert ! buf.isReadOnly();
 			slots = new Slots(buf);
 		}

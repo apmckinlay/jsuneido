@@ -6,6 +6,7 @@ import static suneido.database.Index.*;
 /**
  * Wraps a {@link Btree} to implement database table indexes. Adds transaction
  * stuff.
+ * Almost immutable but update will change record.
  *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -81,6 +82,7 @@ public class BtreeIndex {
 		return bt.update(btiOld.bt, btiNew.bt);
 	}
 
+	/** updates the record in place */
 	public void update() {
 		verify(record.off() != 0);
 		btreeInfo(bt, record);

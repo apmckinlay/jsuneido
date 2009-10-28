@@ -25,6 +25,7 @@ public class SlotTest {
 
 		ByteBuffer buf = ByteBuffer.allocate(slot.packSize());
 		slot.pack(buf);
+		buf.rewind();
 		Slot slot2 = Slot.unpack(buf);
 		assertEquals(slot.key, slot2.key);
 		assertArrayEquals(slot.adrs, slot2.adrs);

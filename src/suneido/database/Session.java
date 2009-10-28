@@ -1,7 +1,8 @@
 package suneido.database;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
+
+import suneido.util.ByteBuf;
 
 public class Session {
 	public final static int SIZE = 1 + 8;
@@ -17,8 +18,8 @@ public class Session {
 	}
 
 	private static void output(Destination mmf, byte type) {
-		ByteBuffer buf = mmf.adr(mmf.alloc(SIZE, Mmfile.SESSION));
-		buf.put(type);
-		buf.putLong(new Date().getTime());
+		ByteBuf buf = mmf.adr(mmf.alloc(SIZE, Mmfile.SESSION));
+		buf.put(0, type);
+		buf.putLong(1, new Date().getTime());
 	}
 }

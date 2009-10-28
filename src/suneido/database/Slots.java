@@ -1,7 +1,8 @@
 package suneido.database;
 
-import java.nio.ByteBuffer;
 import java.util.AbstractList;
+
+import suneido.util.ByteBuf;
 
 /**
  * Collection of {@link Slot}'s for a {@link Btree} node,
@@ -19,21 +20,20 @@ public class Slots extends AbstractList<Slot> {
 	final private static int REC_OFFSET = 8;
 	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
 
-	private final ByteBuffer buf;
+	private final ByteBuf buf;
 	private Record rec;
 
-	public Slots(ByteBuffer buf) {
+	public Slots(ByteBuf buf) {
 		this(buf, Mode.OPEN);
 	}
-	public Slots(ByteBuffer buf, Mode mode) {
+	public Slots(ByteBuf buf, Mode mode) {
 		this.buf = buf;
-		buf.position(REC_OFFSET);
 		if (mode == Mode.OPEN)
-			rec = new Record(buf.slice());
+			rec = new Record(buf.slice(REC_OFFSET));
 		else { // mode == CREATE
 			setNext(0);
 			setPrev(0);
-			rec = new Record(buf.slice(), BUFREC_SIZE);
+			rec = new Record(buf.slice(REC_OFFSET), BUFREC_SIZE);
 		}
 	}
 
@@ -115,7 +115,7 @@ public class Slots extends AbstractList<Slot> {
 	 * @param buf
 	 * @param value
 	 */
-	public static void setBufNext(ByteBuffer buf, long value) {
+	public static void setBufNext(ByteBuf buf, long value) {
 		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
 	}
 
@@ -125,7 +125,7 @@ public class Slots extends AbstractList<Slot> {
 	 * @param buf
 	 * @param value
 	 */
-	public static void setBufPrev(ByteBuffer buf, long value) {
+	public static void setBufPrev(ByteBuf buf, long value) {
 		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
 

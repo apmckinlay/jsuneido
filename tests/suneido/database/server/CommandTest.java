@@ -277,7 +277,7 @@ public class CommandTest {
 		// OUTPUT
 		Record rec = RecordTest.make("a", "b", "c");
 		assertEquals(14, rec.packSize());
-		Command.OUTPUT.execute(stringToBuffer("Q1 R14"), rec.getBuf(), null);
+		Command.OUTPUT.execute(stringToBuffer("Q1 R14"), rec.getBuffer(), null);
 
 		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
 				stringToBuffer("test"), output);
@@ -289,7 +289,7 @@ public class CommandTest {
 		// UPDATE
 		rec = RecordTest.make("A", "B", "C");
 		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R14"),
-				rec.getBuf(), null);
+				rec.getBuffer(), null);
 		assertEquals("U107\r\n", bufferToString(buf));
 
 		buf = Command.REWIND.execute(stringToBuffer("Q1"), null, null);
@@ -302,7 +302,7 @@ public class CommandTest {
 		assertEquals("['A','B','C']", rec.toString());
 
 		// ERASE
-		buf = Command.ERASE.execute(stringToBuffer("T0 A107"), rec.getBuf(),
+		buf = Command.ERASE.execute(stringToBuffer("T0 A107"), rec.getBuffer(),
 				null);
 		assertEquals("OK\r\n", bufferToString(buf));
 		output = new Output();
@@ -340,21 +340,21 @@ public class CommandTest {
 		Record rec = RecordTest.make("Foo", "some text");
 		rec.add(-1);
 		assertEquals(26, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R26"), rec.getBuf(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R26"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Bar", "other stuff");
 		rec.add(-1);
 		assertEquals(28, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R28"), rec.getBuf(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R28"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Foo", "");
 		rec.add(1); // folder
 		assertEquals(16, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R16"), rec.getBuf(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R16"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 

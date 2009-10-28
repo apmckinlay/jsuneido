@@ -1,7 +1,8 @@
 package suneido.database;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
+
+import suneido.util.ByteBuf;
 
 /**
  * @author Andrew McKinlay
@@ -11,25 +12,20 @@ import java.util.ArrayList;
  *         </p>
  */
 public class DestMem implements Destination {
-	private final ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();
+	private final ArrayList<ByteBuf> nodes = new ArrayList<ByteBuf>();
 
 	public long alloc(int size, byte type) {
-		nodes.add(ByteBuffer.allocate(size));
+		nodes.add(ByteBuf.allocate(size));
 		return nodes.size() * Mmfile.ALIGN; // start at one not zero
 	}
 
-	public ByteBuffer adr(long adr) {
-		ByteBuffer buf = nodes.get((int) (adr / Mmfile.ALIGN) - 1);
+	public ByteBuf adr(long adr) {
+		ByteBuf buf = nodes.get((int) (adr / Mmfile.ALIGN) - 1);
 		int offset = (int) adr % Mmfile.ALIGN;
-		if (offset != 0) {
-			buf.position(offset);
-			buf = buf.slice();
-		}
-		buf.position(0);
-		return buf;
+		return buf.slice(offset);
 	}
 
-	public ByteBuffer adrForWrite(long offset) {
+	public ByteBuf adrForWrite(long offset) {
 		return adr(offset);
 	}
 
@@ -42,7 +38,7 @@ public class DestMem implements Destination {
 	}
 
 	public int length(long adr) {
-		return adr(adr).capacity();
+		return adr(adr).size();
 	}
 
 	public void sync() {

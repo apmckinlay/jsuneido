@@ -6,9 +6,11 @@ import static suneido.database.Transactions.UNCOMMITTED;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
+import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
 import com.google.common.collect.ImmutableList;
@@ -43,7 +45,9 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
-	final Map<Long, ByteBuffer> shadow = new HashMap<Long, ByteBuffer>();
+	// needs to be concurrent because complete of other transactions
+	// will insert original copies into here so we don't see their changes
+	final Map<Long, ByteBuf> shadow = new ConcurrentHashMap<Long, ByteBuf>();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -311,6 +315,7 @@ assert bti.getDest() instanceof TranDest;
 	}
 
 	private void completeReadwrite() {
+		writeBtreeNodes();
 		updateTableData();
 		updateTables();
 
@@ -333,6 +338,15 @@ assert bti.getDest() instanceof TranDest;
 		asof = commit_time;
 		trans.addFinal(this);
 		writeCommitRecord(ncreates, ndeletes);
+	}
+
+	private void writeBtreeNodes() {
+		trans.addShadows(this, shadow);
+		for (Map.Entry<Long, ByteBuf> e : shadow.entrySet()) {
+			ByteBuf to = db.dest.adr(e.getKey());
+			ByteBuf from = e.getValue();
+			to.put(0, from.array());
+		}
 	}
 
 	private void updateTables() {
@@ -377,7 +391,7 @@ assert bti.getDest() instanceof TranDest;
 		if (ndeletes == 0 && ncreates == 0)
 			return;
 		final int n = 8 + 4 + 4 + 4 + 4 * (ncreates + ndeletes) + 4;
-		ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT));
+		ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT)).getByteBuffer();
 		buf.putLong(new Date().getTime());
 		buf.putInt(num);
 		buf.putInt(ncreates);
@@ -428,11 +442,11 @@ assert bti.getDest() instanceof TranDest;
 			switch (tw.type) {
 			case CREATE:
 				trans.removeCreated(tw.off);
-				db.undoAdd(tw.tblnum, tw.off);
+//				db.undoAdd(tw.tblnum, tw.off);
 				break;
 			case DELETE:
 				trans.removeDeleted(this, tw.off);
-				db.undoDelete(tw.tblnum, tw.off);
+//				db.undoDelete(tw.tblnum, tw.off);
 				break;
 			default:
 				throw SuException.unreachable();

@@ -84,6 +84,16 @@ public class Util {
 		return s.substring(1);
 	}
 
+	public static int bufferUcompare(ByteBuf b1, ByteBuf b2) {
+		int n = Math.min(b1.size(), b2.size());
+		for (int i = 0; i < n; ++i) {
+			int cmp = (b1.get(i) & 0xff) - (b2.get(i) & 0xff);
+			if (cmp != 0)
+				return cmp;
+		}
+		return b1.size() - b2.size();
+	}
+
 	public static int bufferUcompare(ByteBuffer b1, ByteBuffer b2) {
 		int n = Math.min(b1.remaining(), b2.remaining());
 		int b1pos = b1.position();
@@ -94,6 +104,18 @@ public class Util {
 				return cmp;
 		}
 		return b1.remaining() - b2.remaining();
+	}
+
+	public static ByteBuffer copyByteBuffer(ByteBuffer buf, int size) {
+		byte[] data = new byte[size];
+		// duplicate buffer if we need to set position
+		// because modification is not thread safe
+		if (buf.position() != 0) {
+			buf = buf.duplicate();
+			buf.position(0);
+		}
+		buf.get(data);
+		return ByteBuffer.wrap(data);
 	}
 
 	public static String bytesToString(byte[] bytes) {

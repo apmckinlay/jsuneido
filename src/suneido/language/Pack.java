@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import suneido.*;
+import suneido.util.ByteBuf;
 
 public class Pack {
 	// sequence must match Order
@@ -186,6 +187,10 @@ public class Pack {
 		pack(x, buf);
 		buf.rewind();
 		return buf;
+	}
+
+	public static Object unpack(ByteBuf buf) {
+		return unpack(buf.getByteBuffer());
 	}
 
 	public static Object unpack(ByteBuffer buf) {

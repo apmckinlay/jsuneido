@@ -1,13 +1,16 @@
 package suneido.database;
 
 import static org.junit.Assert.*;
+import static suneido.database.Record.MINREC;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.junit.Test;
 
 import suneido.language.Ops;
 import suneido.language.Pack;
+import suneido.util.ByteBuf;
 
 import com.google.common.collect.ImmutableList;
 
@@ -42,7 +45,7 @@ public class RecordTest {
 			assertEquals(1, r.size());
 			assertEquals(4, r.fieldSize(0));
 			bb = r.getraw(0);
-			assertEquals(4, bb.limit());
+			assertEquals(4, bb.remaining());
 			assertEquals(data, Ops.toStr(Pack.unpack(bb)));
 			assertEquals(data, r.getString(0));
 
@@ -64,11 +67,11 @@ public class RecordTest {
 		Record r = new Record();
 		String s = String.valueOf("hello");
 		r.add(s);
-		assertEquals(s, Pack.unpack(r.getraw(0)));
+		assertEquals(s, r.get(0));
 		String s2 = String.valueOf("world");
 		r.add(s2);
-		assertEquals(s, Pack.unpack(r.getraw(0)));
-		assertEquals(s2, Pack.unpack(r.getraw(1)));
+		assertEquals(s, r.get(0));
+		assertEquals(s2, r.get(1));
 
 	}
 
@@ -78,20 +81,23 @@ public class RecordTest {
 		assertEquals(1000, r.bufSize());
 		assertEquals(5, r.packSize());
 
-		ByteBuffer buf = ByteBuffer.allocate(r.packSize());
+		ByteBuffer buf = ByteBuffer.allocate(r.packSize())
+				.order(ByteOrder.BIG_ENDIAN);
 		r.pack(buf);
 
 		r.add(data);
 		r.add(data2);
 		assertEquals(2, r.size());
-		buf = ByteBuffer.allocate(r.packSize());
+		buf = ByteBuffer.allocate(r.packSize())
+				.order(ByteOrder.BIG_ENDIAN);
 		r.pack(buf);
-		Record r2 = new Record(buf);
+		Record r2 = new Record(new ByteBuf(buf, 0));
 		assertEquals(r.packSize(), r2.packSize());
 		assertEquals(r2.bufSize(), r2.packSize());
 		assertEquals(data, r2.getString(0));
 
-		ByteBuffer buf2 = ByteBuffer.allocate(r2.packSize());
+		ByteBuffer buf2 = ByteBuffer.allocate(r2.packSize())
+				.order(ByteOrder.BIG_ENDIAN);
 		r2.pack(buf2);
 		assertEquals(buf.position(0), buf2.position(0));
 	}
@@ -127,14 +133,14 @@ public class RecordTest {
 		String s = String.valueOf("hello");
 		assertTrue(r.insert(1, s));
 		assertEquals(data, r.getString(0));
-		assertEquals(s, Pack.unpack(r.getraw(1)));
+		assertEquals(s, r.get(1));
 		assertEquals(data2, r.getString(2));
 
 		r = new Record(40);
 		r.insert(0, s); // insert at beginning
-		assertEquals(s, Pack.unpack(r.getraw(0)));
+		assertEquals(s, r.get(0));
 		r.insert(1, s); // insert at end (same as add)
-		assertEquals(s, Pack.unpack(r.getraw(0)));
+		assertEquals(s, r.get(0));
 		assertFalse(r.insert(1,
 				String
 				.valueOf(
@@ -199,7 +205,8 @@ public class RecordTest {
 			Record rec = new Record();
 			rec.add(x);
 			if (prev != null)
-				assertTrue(rec.compareTo(prev) > 0);
+				assertTrue(rec + " should be > " + prev,
+						rec.compareTo(prev) > 0);
 			prev = rec;
 		}
 	}
@@ -227,6 +234,13 @@ public class RecordTest {
 		assertEquals(make("b", "d"),
 				make("a", "b", "c", "d", "e").project(fields, 0));
 		assertEquals(make("b").addMin(), make("a", "b").project(fields, 0));
+	}
+
+	@Test
+	public void misc() {
+		assertTrue(MINREC.available() < 1);
+		Record rec = new Record();
+		rec.addMax();
 	}
 
 }
