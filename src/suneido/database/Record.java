@@ -6,20 +6,20 @@ import static suneido.database.Database.theDB;
 import static suneido.util.Util.bufferUcompare;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Iterator;
 
 import suneido.Packable;
 import suneido.SuException;
 import suneido.language.Ops;
 import suneido.language.Pack;
+import suneido.util.ByteBuf;
 
 import com.google.common.collect.ImmutableList;
 
 /**
- * Stores an array of {@link Packable} in a ByteBuffer. Used by {@link Database}
+ * Stores an array of {@link Packable} in a ByteBuf. Used by {@link Database}
  * to store records containing field values. Used by {@link Slots} for
- * {@link Btree} nodes. Provides a "view" onto a ByteBuffer.
+ * {@link Btree} nodes. Provides a "view" onto a ByteBuf.
  * <p>
  * Format is:<br>
  * - one byte type = 'c', 's', 'l'<br>
@@ -37,7 +37,7 @@ public class Record
 	public final static Record MINREC = new Record(5);
 	public final static Record MAXREC = new Record(8).addMax();
 	private Rep rep;
-	private ByteBuffer buf;
+	private ByteBuf buf;
 	private long dboffset = 0;
 	private boolean growable = false;
 
@@ -60,26 +60,26 @@ public class Record
 	}
 
 	/**
-	 * Create a new BufRecord, allocating a new ByteBuffer
+	 * Create a new BufRecord, allocating a new ByteBuf
 	 *
 	 * @param size
 	 *            The required size, including both data and offsets
 	 */
 	public Record(int size) {
-		this(ByteBuffer.allocate(size), size);
+		this(ByteBuf.allocate(size), size);
 		growable = true;
 	}
 
 	/**
-	 * Create a new BufRecord using a supplied ByteBuffer.
+	 * Create a new BufRecord using a supplied ByteBuf.
 	 *
 	 * @param buf
 	 * @param size
 	 *            The size of the buffer. Used to determine the required
 	 *            representation.
 	 */
-	public Record(ByteBuffer buf, int size) {
-		verify(size <= buf.limit());
+	public Record(ByteBuf buf, int size) {
+		verify(size <= buf.size());
 		this.buf = buf;
 		setType(type(size));
 		init();
@@ -93,17 +93,22 @@ public class Record
 	}
 
 	/**
-	 * Create a BufRecord on an existing ByteBuffer in BufRecord format.
+	 * Create a BufRecord on an existing ByteBuf in BufRecord format.
 	 *
 	 * @param buf
 	 *            Must be in BufRecord format.
 	 */
-	public Record(ByteBuffer buf) {
+	public Record(ByteBuf buf) {
 		this.buf = buf;
 		init();
 	}
 
-	public Record(ByteBuffer buf, long dboffset) {
+	// position must be set correctly
+	public Record(ByteBuffer buf) {
+		this(new ByteBuf(buf));
+	}
+
+	public Record(ByteBuf buf, long dboffset) {
 		this.buf = buf;
 		this.dboffset = dboffset;
 		init();
@@ -140,7 +145,7 @@ public class Record
 
 	public String toDebugString() {
 		String s = "";
-		s += " limit " + buf.limit() + " ";
+		s += " limit " + buf.size() + " ";
 		int nfields = getNfields();
 		s += (char) getType() + " " + nfields + " = ";
 		try {
@@ -157,7 +162,7 @@ public class Record
 		assert type == 'c' || type == 's' || type == 'l';
 		int nfields = getNfields();
 		assert nfields >= 0;
-		int limit = buf.limit();
+		int limit = buf.size();
 		for (int i = 0; i < nfields; ++i) {
 			int offset = rep.getOffset(i);
 			assert offset <= limit;
@@ -173,20 +178,13 @@ public class Record
 	}
 
 	private byte[] array() {
-		byte[] array;
-		int bufSize = bufSize();
-		if (buf.hasArray() && buf.arrayOffset() == 0
-				&& (array = buf.array()).length == bufSize)
-			return array;
-		array = new byte[bufSize];
-		buf.get(array, 0, bufSize);
-		return array;
+		return buf.array(bufSize());
 	}
 
 	public static Record fromObject(Mmfile mmf, Object ob) {
 		return ob instanceof Integer
 				? new Record(mmf.adr(Mmfile.intToOffset((Integer) ob)))
-				: new Record(ByteBuffer.wrap((byte[]) ob));
+				: new Record(ByteBuf.wrap((byte[]) ob));
 	}
 
 	public long off() {
@@ -207,15 +205,23 @@ public class Record
 
 	// add's ========================================================
 
-	public Record add(ByteBuffer src) {
-		add(src, 0, src.limit());
+	public Record add(ByteBuf src) {
+		add(src, 0, src.size());
 		return this;
 	}
 
-	public Record add(ByteBuffer src, int pos, int len) {
-		alloc(len);
+	public Record add(ByteBuffer src) {
+		int len = src.remaining();
+		int dst = alloc(len);
 		for (int i = 0; i < len; ++i)
-			buf.put(src.get(pos + i));
+			buf.put(dst++, src.get(src.position() + i));
+		return this;
+	}
+
+	public Record add(ByteBuf src, int pos, int len) {
+		int dst = alloc(len);
+		for (int i = 0; i < len; ++i)
+			buf.put(dst++, src.get(pos + i));
 		return this;
 	}
 
@@ -223,8 +229,8 @@ public class Record
 		if (x == null)
 			addMin();
 		else {
-			alloc(Pack.packSize(x));
-			Pack.pack(x, buf);
+			int pos = alloc(Pack.packSize(x));
+			Pack.pack(x, buf.getByteBuffer(pos));
 		}
 		return this;
 	}
@@ -240,8 +246,8 @@ public class Record
 	}
 
 	public Record addMax() {
-		alloc(1);
-		buf.put((byte) 0x7f);
+		int dst = alloc(1);
+		buf.put(dst, (byte) 0x7f);
 		return this;
 	}
 
@@ -258,7 +264,6 @@ public class Record
 		int offset = rep.getOffset(n - 1) - len;
 		rep.setOffset(n, offset);
 		setNfields(n + 1);
-		buf.position(offset);
 		return offset;
 	}
 
@@ -283,8 +288,7 @@ public class Record
 		rep.insert1(at, n, len);
 		int pos = rep.getOffset(at - 1) - len;
 		rep.setOffset(at, pos);
-		buf.position(pos);
-		Pack.pack(x, buf);
+		Pack.pack(x, buf.getByteBuffer(pos));
 		setNfields(n + 1);
 		return true;
 	}
@@ -318,27 +322,24 @@ public class Record
 
 	// get's ========================================================
 
-	public ByteBuffer getBuf() {
-		ByteBuffer b = buf;
-		if (buf.limit() != bufSize()) {
-			b = buf.slice();
-			b.limit(bufSize());
-		}
-		b.rewind();
-		return b;
+	public ByteBuffer getBuffer() {
+		return buf.getByteBuffer(0, bufSize());
 	}
 
 	public final static ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
-	public final static ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0,
-			(byte) 0x7f).asReadOnlyBuffer();
+	public final static ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
+			.put(0, (byte) 0x7f).asReadOnlyBuffer();
 
 	public ByteBuffer getraw(int i) {
 		if (i >= getNfields())
 			return MIN_FIELD;
-		buf.position(rep.getOffset(i));
-		ByteBuffer result = buf.slice();
-		result.limit(fieldSize(i));
-		return result;
+		return buf.getByteBuffer(rep.getOffset(i), fieldSize(i));
+	}
+
+	public ByteBuf getbuf(int i) {
+		if (i >= getNfields())
+			return ByteBuf.empty();
+		return buf.slice(rep.getOffset(i), fieldSize(i));
 	}
 
 	public Object get(int i) {
@@ -434,8 +435,6 @@ public class Record
 	}
 
 	/**
-	 * Used by MemRecord
-	 *
 	 * @param nfields
 	 *            The number of fields.
 	 * @param datasize
@@ -444,8 +443,7 @@ public class Record
 	 */
 	public static int packSize(int nfields, int datasize) {
 		int e = 1;
-		int size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e
-		+ datasize;
+		int size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		if (size < 0x100)
 			return size;
 		e = 2;
@@ -478,7 +476,7 @@ public class Record
 		else {
 			// PERF do without allocating a temp record
 			// maybe bulk copy then adjust like insert
-			Record dstRec = new Record(dst.slice().order(dst.order()), dstsize);
+			Record dstRec = new Record(new ByteBuf(dst), dstsize);
 			for (int i = 0; i < getNfields(); ++i)
 				dstRec.add(buf, rep.getOffset(i), fieldSize(i));
 			dst.position(dst.position() + dstsize);
@@ -494,21 +492,11 @@ public class Record
 	}
 
 	private void setNfields(int nfields) {
-		buf.order(ByteOrder.LITTLE_ENDIAN);
-		try {
-			buf.putShort(Offset.NFIELDS, (short) nfields);
-		} finally {
-			buf.order(ByteOrder.BIG_ENDIAN);
-		}
+		buf.putShortLE(Offset.NFIELDS, (short) nfields);
 	}
 
 	private short getNfields() {
-		buf.order(ByteOrder.LITTLE_ENDIAN);
-		try {
-			return buf.getShort(Offset.NFIELDS);
-		} finally {
-			buf.order(ByteOrder.BIG_ENDIAN);
-		}
+		return buf.getShortLE(Offset.NFIELDS);
 	}
 
 	private void setSize(int sz) {
@@ -526,7 +514,7 @@ public class Record
 	public Record project(ImmutableList<Integer> fields, long adr) {
 		Record r = new Record();
 		for (int i : fields)
-			r.add(getraw(i));
+			r.add(getbuf(i));
 		if (adr != 0)
 			r.addMmoffset(adr);
 		return r;
@@ -573,22 +561,12 @@ public class Record
 	private class ShortRep extends Rep {
 		@Override
 		void setOffset(int i, int sz) {
-			buf.order(ByteOrder.LITTLE_ENDIAN);
-			try {
-				buf.putShort(Offset.SIZE + 2 * (i + 1), (short) sz);
-			} finally {
-				buf.order(ByteOrder.BIG_ENDIAN);
-			}
+			buf.putShortLE(Offset.SIZE + 2 * (i + 1), (short) sz);
 		}
 
 		@Override
 		int getOffset(int i) {
-			buf.order(ByteOrder.LITTLE_ENDIAN);
-			try {
-				return buf.getShort(Offset.SIZE + 2 * (i + 1)) & 0xffff;
-			} finally {
-				buf.order(ByteOrder.BIG_ENDIAN);
-			}
+			return buf.getShortLE(Offset.SIZE + 2 * (i + 1)) & 0xffff;
 		}
 
 		@Override
@@ -602,22 +580,12 @@ public class Record
 	private class IntRep extends Rep {
 		@Override
 		void setOffset(int i, int sz) {
-			buf.order(ByteOrder.LITTLE_ENDIAN);
-			try {
-				buf.putInt(Offset.SIZE + 4 * (i + 1), sz);
-			} finally {
-				buf.order(ByteOrder.BIG_ENDIAN);
-			}
+			buf.putIntLE(Offset.SIZE + 4 * (i + 1), sz);
 		}
 
 		@Override
 		int getOffset(int i) {
-			buf.order(ByteOrder.LITTLE_ENDIAN);
-			try {
-				return buf.getInt(Offset.SIZE + 4 * (i + 1));
-			} finally {
-				buf.order(ByteOrder.BIG_ENDIAN);
-			}
+			return buf.getIntLE(Offset.SIZE + 4 * (i + 1));
 		}
 
 		@Override
@@ -653,11 +621,11 @@ public class Record
 	}
 
 	private int compare1(int fld, Record rec) {
-		buf.position(rep.getOffset(fld));
-		rec.buf.position(rec.rep.getOffset(fld));
+		int buf_i = rep.getOffset(fld);
+		int recbuf_i = rec.rep.getOffset(fld);
 		int n = Math.min(fieldSize(fld), rec.fieldSize(fld));
 		for (int i = 0; i < n; ++i) {
-			int cmp = (buf.get() & 0xff) - (rec.buf.get() & 0xff);
+			int cmp = (buf.get(buf_i++) & 0xff) - (rec.buf.get(recbuf_i++) & 0xff);
 			if (cmp != 0)
 				return cmp;
 		}
@@ -695,6 +663,6 @@ public class Record
 	public static Record fromRef(Object ref) {
 		return ref instanceof Long
 				? theDB.input((Long) ref)
-				: new Record((ByteBuffer) ref);
+				: new Record((ByteBuf) ref);
 	}
 }

@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.zip.Adler32;
 
 import suneido.SuException;
+import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
 import com.google.common.collect.ImmutableList;
@@ -24,7 +25,7 @@ import com.google.common.collect.ImmutableList;
  * Licensed under GPLv2.</small></p>
  */
 public class Database {
-	private final Destination dest;
+	final Destination dest;
 	private Dbhdr dbhdr;
 	private boolean loading = false;
 	private final Adler32 cksum = new Adler32();
@@ -222,7 +223,7 @@ assert !(bti.getDest() instanceof TranDest);
 	long output(int tblnum, Record r) {
 		int n = r.packSize();
 		long offset = alloc(4 + n, output_type);
-		ByteBuffer p = adr(offset);
+		ByteBuffer p = adr(offset).getByteBuffer();
 		p.putInt(tblnum);
 		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
@@ -999,7 +1000,7 @@ assert !(bti.getDest() instanceof TranDest);
 		return dest.alloc(n, type);
 	}
 
-	public ByteBuffer adr(long offset) {
+	public ByteBuf adr(long offset) {
 		return dest.adr(offset);
 	}
 
@@ -1014,7 +1015,7 @@ assert !(bti.getDest() instanceof TranDest);
 		// create
 		Dbhdr(long at, long indexes_adr) {
 			verify(at == dest.first());
-			buf = adr(at);
+			buf = adr(at).getByteBuffer();
 			buf.putInt(next_table = TN.INDEXES + 1);
 			buf.putInt(Mmfile.offsetToInt(indexes = indexes_adr));
 			buf.putInt(VERSION);
@@ -1025,7 +1026,7 @@ assert !(bti.getDest() instanceof TranDest);
 			long at = dest.first();
 			if (dest.length(at) < SIZE)
 				throw new SuException("invalid database");
-			buf = adr(dest.first());
+			buf = adr(dest.first()).getByteBuffer();
 			next_table = buf.getInt();
 			indexes = Mmfile.intToOffset(buf.getInt());
 			int version = buf.getInt();

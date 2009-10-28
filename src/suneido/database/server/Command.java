@@ -530,7 +530,7 @@ public enum Command {
 		s += "\r\n";
 		outputQueue.enqueue(stringToBuffer(s));
 
-		outputQueue.enqueue(rec.getBuf());
+		outputQueue.enqueue(rec.getBuffer());
 	}
 
 

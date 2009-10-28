@@ -1,6 +1,6 @@
 package suneido.database;
 
-import java.nio.ByteBuffer;
+import suneido.util.ByteBuf;
 
 /**
  * Interface from {@link Database}, {@link BtreeIndex}, {@link Btree) to storage.
@@ -15,9 +15,9 @@ public interface Destination {
 
 	long alloc(int size, byte type);
 
-	ByteBuffer adr(long offset);
+	ByteBuf adr(long offset);
 
-	ByteBuffer adrForWrite(long offset);
+	ByteBuf adrForWrite(long offset);
 
 	long first();
 

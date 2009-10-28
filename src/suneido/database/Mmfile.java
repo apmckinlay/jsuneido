@@ -4,13 +4,14 @@ import static suneido.Suneido.fatal;
 import static suneido.Suneido.verify;
 
 import java.io.*;
-import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Iterator;
 
 import suneido.SuException;
+import suneido.util.ByteBuf;
 
 // TODO switch to lru instead of clock, as done with cSuneido
 // to avoid worst case scenario bugs
@@ -28,7 +29,7 @@ import suneido.SuException;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public class Mmfile implements Iterable<ByteBuffer>, Destination {
+public class Mmfile implements Iterable<ByteBuf>, Destination {
 	private RandomAccessFile fin;
 	private FileChannel fc;
 	private long file_size;
@@ -57,7 +58,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	final public static byte COMMIT = 2;
 	final public static byte SESSION = 3;
 	final public static byte OTHER = 4;
-	private final static ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
+	private final static ByteBuf EMPTY_BUF = ByteBuf.empty();
 
 	private static enum MmCheck {
 		OK, ERR, EOF
@@ -94,7 +95,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 		verify(file_size >= 0);
 		if (file_size == 0) {
 			set_file_size(file_size = FILEHDR);
-			buf(0).put(magic);
+			buf(0).put(0, magic);
 		} else {
 			String err = checkfile();
 			if (err != "")
@@ -103,9 +104,9 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	}
 
 	private String checkfile() {
-		byte[] buf = new byte[4];
-		buf(0).get(buf);
-		if (!Arrays.equals(buf, magic))
+		byte[] m = new byte[4];
+		buf(0).get(0, m);
+		if (!Arrays.equals(m, magic))
 			return "bad magic";
 		if (file_size >= (long) MB_MAX_DB * 1024 * 1024)
 			return "file too large " + file_size;
@@ -162,12 +163,12 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 	}
 
 	private long get_file_size() {
-		return intToOffset(buf(FILESIZE_OFFSET).getInt());
+		return intToOffset(buf(FILESIZE_OFFSET).getInt(0));
 	}
 
 	private void set_file_size(long size) {
 		verify((size % ALIGN) == 0);
-		buf(FILESIZE_OFFSET).putInt(offsetToInt(size));
+		buf(FILESIZE_OFFSET).putInt(0, offsetToInt(size));
 	}
 
 	public long size() {
@@ -194,7 +195,7 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 		long offset = file_size + HEADER;
 		file_size += n + OVERHEAD;
 		set_file_size(file_size);
-		ByteBuffer p = buf(offset - HEADER);
+		ByteBuf p = buf(offset - HEADER);
 		p.putInt(0, n | type); // header
 		p.putInt(HEADER + n, n ^ (int) (offset + n)); // trailer
 		return offset;
@@ -211,16 +212,16 @@ public class Mmfile implements Iterable<ByteBuffer>, Destination {
 		set_file_size(file_size);
 	}
 
-	public ByteBuffer adr(long offset) {
+	public ByteBuf adr(long offset) {
 		return buf(offset);
 	}
 
-	public ByteBuffer adrForWrite(long offset) {
-assert false;
+	public ByteBuf adrForWrite(long offset) {
+//assert false;
 		return adr(offset);
 	}
 
-	private ByteBuffer buf(long offset) {
+	private ByteBuf buf(long offset) {
 		verify(offset >= 0);
 		verify(offset < file_size);
 		int chunk = (int) (offset / chunk_size);
@@ -234,8 +235,7 @@ assert false;
 				hi_chunk = chunk;
 		}
 		recently_used[chunk] = true;
-		fm[chunk].position((int) (offset % chunk_size));
-		return fm[chunk].slice();
+		return new ByteBuf(fm[chunk], (int) (offset % chunk_size));
 	}
 
 	private void map(int chunk) {
@@ -244,6 +244,7 @@ assert false;
 			try {
 				fm[chunk] = fc.map(FileChannel.MapMode.READ_WRITE, (long) chunk
 						* chunk_size, chunk_size);
+				fm[chunk].order(ByteOrder.BIG_ENDIAN);
 				return;
 			} catch (IOException e) {
 				if (tries > 10)
@@ -285,7 +286,7 @@ assert false;
 	private MmCheck check(long offset) {
 		if (offset >= file_size + HEADER)
 			return MmCheck.EOF;
-		ByteBuffer p = buf(offset - HEADER);
+		ByteBuf p = buf(offset - HEADER);
 		int n = length(p);
 		if (n > chunk_size)
 			return MmCheck.ERR;
@@ -300,7 +301,7 @@ assert false;
 		return length(buf(offset - HEADER));
 	}
 
-	private int length(ByteBuffer bb) {
+	private int length(ByteBuf bb) {
 		return bb.getInt(0) & ~(ALIGN - 1);
 	}
 
@@ -308,7 +309,7 @@ assert false;
 		return type(buf(offset - HEADER));
 	}
 
-	private byte type(ByteBuffer bb) {
+	private byte type(ByteBuf bb) {
 		return (byte) (bb.getInt(0) & (ALIGN - 1));
 	}
 
@@ -330,11 +331,11 @@ assert false;
 		return this;
 	}
 
-	public Iterator<ByteBuffer> iterator() {
+	public Iterator<ByteBuf> iterator() {
 		return new MmfileIterator();
 	}
 
-	private class MmfileIterator implements Iterator<ByteBuffer> {
+	private class MmfileIterator implements Iterator<ByteBuf> {
 		private long offset = BEGIN_OFFSET;
 		private boolean err = false;
 
@@ -342,7 +343,7 @@ assert false;
 			return offset < file_size;
 		}
 
-		public ByteBuffer next() {
+		public ByteBuf next() {
 			long p;
 			do {
 				p = offset;
@@ -374,11 +375,11 @@ assert false;
 		}
 	}
 
-	public Iterator<ByteBuffer> reverse_iterator() {
+	public Iterator<ByteBuf> reverse_iterator() {
 		return new MmfileReverseIterator();
 	}
 
-	private class MmfileReverseIterator implements Iterator<ByteBuffer> {
+	private class MmfileReverseIterator implements Iterator<ByteBuf> {
 		private long offset = end_offset();
 		private boolean err = false;
 
@@ -386,10 +387,10 @@ assert false;
 			return offset > FILEHDR + OVERHEAD;
 		}
 
-		public ByteBuffer next() {
+		public ByteBuf next() {
 			do {
 				offset -= OVERHEAD;
-				int n = buf(offset).getInt() ^ (int) offset;
+				int n = buf(offset).getInt(0) ^ (int) offset;
 				if (n > chunk_size || n > offset) {
 					err = true;
 					offset = BEGIN_OFFSET;

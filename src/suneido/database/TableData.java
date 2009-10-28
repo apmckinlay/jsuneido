@@ -2,7 +2,14 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 
-// almost immutable but update will change record
+/**
+ * Contains the changing data for a table: nextfield, nrecords, totalsize.
+ * tables and indexes records are the only records that are updated "in place"
+ * rather than new versions being added to the end of the database file.
+ * Almost immutable but update will change record.
+ *
+ * @author Andrew McKinlay
+ */
 public class TableData {
 
 	private final Record record;

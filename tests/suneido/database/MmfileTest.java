@@ -1,13 +1,16 @@
 package suneido.database;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
-import org.junit.Test;
-import static org.junit.Assert.*;
+
 import org.junit.AfterClass;
-import suneido.*;
-import suneido.database.Mmfile;
+import org.junit.Test;
+
+import suneido.SuException;
+import suneido.util.ByteBuf;
 
 // use different file names in case of delayed finalization
 public class MmfileTest {
@@ -16,19 +19,19 @@ public class MmfileTest {
 		new File("tmp1").delete();
 		new Mmfile("tmp1", Mode.OPEN);
 	}
-	
+
 	@Test
 	public void create_open() {
 		new File("tmp2").delete();
 		Mmfile mmf = new Mmfile("tmp2", Mode.CREATE);
 		assertEquals(8, mmf.size());
 		mmf.close();
-		
+
 		mmf = new Mmfile("tmp2", Mode.OPEN);
 		assertEquals(8, mmf.size());
 		mmf.close();
 	}
-	
+
 	@Test
 	public void read_write() {
 		new File("tmp3").delete();
@@ -37,40 +40,40 @@ public class MmfileTest {
 			long offset[] = new long[2];
 			offset[0] = mmf.alloc(16, (byte) 1);
 			assertEquals(8 + 4, offset[0]);
-			
+
 			offset[1] = mmf.alloc(8, (byte) 1);
 			assertEquals(8 + 4 + 16 + 4 + 4, offset[1]);
-			
+
 			assertEquals(48, mmf.size());
-			
+
 			byte[][] data = new byte[2][];
-	
+
 			data[0] = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-			mmf.adr(offset[0]).put(data[0]);
-			
+			mmf.adr(offset[0]).put(0, data[0]);
+
 			data[1] = new byte[] { 8, 7, 6, 5, 4, 3, 2, 1 };
-			mmf.adr(offset[1]).put(data[1]);
-			
+			mmf.adr(offset[1]).put(0, data[1]);
+
 			int i = 0;
-			for (ByteBuffer b : mmf) {
+			for (ByteBuf b : mmf) {
 				byte[] x = new byte[data[i].length];
-				b.get(x);
+				b.get(0, x);
 				assertArrayEquals(data[i], x);
 				++i;
 			}
-			
+
 			i = 1;
-			for (Iterator<ByteBuffer> iter = mmf.reverse_iterator(); iter.hasNext(); --i) {
-				ByteBuffer b = iter.next();
+			for (Iterator<ByteBuf> iter = mmf.reverse_iterator(); iter.hasNext(); --i) {
+				ByteBuf b = iter.next();
 				byte[] x = new byte[data[i].length];
-				b.get(x);
+				b.get(0, x);
 				assertArrayEquals(data[i], x);
 			}
 		} finally {
 			mmf.close();
 		}
 	}
-	
+
 	@AfterClass
 	public static void cleanup() {
 		for (int i = 1; i <= 3; ++i)

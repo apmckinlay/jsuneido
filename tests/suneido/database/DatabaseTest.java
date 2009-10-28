@@ -2,13 +2,13 @@ package suneido.database;
 
 import static org.junit.Assert.*;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.junit.Test;
 
 import suneido.SuException;
 import suneido.database.Index.ForeignKey;
+import suneido.util.ByteBuf;
 
 public class DatabaseTest extends TestBase {
 
@@ -19,8 +19,8 @@ public class DatabaseTest extends TestBase {
 
 		reopen();
 
-		ByteBuffer bb = db.adr(offset - 4);
-		assertEquals(1234, bb.getInt());
+		ByteBuf bb = db.adr(offset - 4);
+		assertEquals(1234, bb.getInt(0));
 
 		Record r2 = db.input(offset);
 		assertEquals(r, r2);

@@ -1,33 +1,37 @@
 package suneido.database;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.nio.ByteBuffer;
+
 import org.junit.Test;
 
-import suneido.database.Record;
-import suneido.database.Mmfile;
-import static org.junit.Assert.*;
+import suneido.util.ByteBuf;
 
 public class MmfileRecordTest {
 	private final static String file = "MmfileRecordTest";
 	@Test
 	public void test() {
+		String data1 = "hello";
+		String data2 = "world";
 		new File(file).delete();
 		Mmfile mmf = new Mmfile(file, Mode.CREATE);
 		try {
 			Record mr = new Record(100);
-			String data1 = "hello";
 			mr.add(data1);
-			String data2 = "world";
 			mr.add(data2);
 			long offset = mmf.alloc(mr.packSize(), (byte) 1);
-			ByteBuffer bb = mmf.adr(offset);
+			ByteBuf b = mmf.adr(offset);
+			ByteBuffer bb = b.getByteBuffer(0);
 			mr.pack(bb);
+		} finally {
 			mmf.close();
-			
-			mmf = new Mmfile(file, Mode.OPEN);
-			bb = mmf.iterator().next();
-			Record br = new Record(bb);
+		}
+		mmf = new Mmfile(file, Mode.OPEN);
+		try {
+			ByteBuf buf = mmf.iterator().next();
+			Record br = new Record(buf);
 			assertEquals(data1, br.getString(0));
 			assertEquals(data2, br.getString(1));
 		} finally {

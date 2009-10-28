@@ -1,6 +1,6 @@
 package suneido.database;
 
-import java.nio.ByteBuffer;
+import suneido.util.ByteBuf;
 
 /** A wrapper for another Destination that uses adrForWrite to copy-on-write
  *
@@ -17,23 +17,24 @@ public class TranDest implements Destination {
 assert ! (dest instanceof TranDest);
 	}
 
-	public ByteBuffer adr(long offset) {
-		ByteBuffer buf = tran.shadow.get(offset);
+	public ByteBuf adr(long offset) {
+		ByteBuf buf = tran.shadow.get(offset);
 		return buf != null ? buf : dest.adr(offset).asReadOnlyBuffer();
 	}
 
-	public ByteBuffer adrForWrite(long offset) {
-		ByteBuffer buf = tran.shadow.get(offset);
-		if (buf != null)
+	public ByteBuf adrForWrite(long offset) {
+		ByteBuf buf = tran.shadow.get(offset);
+		if (buf != null) {
+			if (buf.isReadOnly()) {
+				buf = buf.copy(Btree.NODESIZE);
+				tran.shadow.put(offset, buf);
+			}
 			return buf;
+		}
 		buf = dest.adr(offset);
 assert ! buf.isReadOnly();
-		byte[] data = new byte[Btree.NODESIZE];
-		assert buf.position() == 0;
-		buf.get(data);
-		buf.position(0);
-		ByteBuffer copy = ByteBuffer.wrap(data);
-copy = buf; // TEMP
+		ByteBuf copy = buf.copy(Btree.NODESIZE);
+//copy = buf; // TEMP
 		tran.shadow.put(offset, copy);
 		return copy;
 	}

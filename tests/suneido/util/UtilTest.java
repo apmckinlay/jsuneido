@@ -55,16 +55,18 @@ public class UtilTest {
 	@Test
 	public void bufferUcompare_test() {
 		byte[][] values = {
-				new byte[] {}, new byte[] { 12 },
-				new byte[] { 12, 34 }, new byte[] { (byte) 0xee },
+				new byte[] {},
+				new byte[] { 12 },
+				new byte[] { 12, 34 },
+				new byte[] { (byte) 0xee },
 				new byte[] { (byte) 0xee, 12 } };
 		for (int i = 0; i < values.length; ++i) {
-			ByteBuffer buf1 = ByteBuffer.wrap(values[i]);
+			ByteBuf buf1 = ByteBuf.wrap(values[i]);
 			assertEquals(0, bufferUcompare(buf1, buf1));
 			for (int j = i + 1; j < values.length; ++j) {
-				ByteBuffer buf2 = ByteBuffer.wrap(values[j]);
-				assert (bufferUcompare(buf1, buf2) < 0);
-				assert (bufferUcompare(buf2, buf1) > 0);
+				ByteBuf buf2 = ByteBuf.wrap(values[j]);
+				assertTrue(i + "," + j, bufferUcompare(buf1, buf2) < 0);
+				assertTrue(i + "," + j, bufferUcompare(buf2, buf1) > 0);
 			}
 
 		}
