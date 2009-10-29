@@ -1,5 +1,6 @@
 package suneido.database;
 
+import static suneido.Suneido.verify;
 import suneido.util.ByteBuf;
 
 /** A wrapper for another Destination that uses adrForWrite to copy-on-write
@@ -18,11 +19,15 @@ assert ! (dest instanceof TranDest);
 	}
 
 	public ByteBuf adr(long offset) {
+		if (tran.isReadWrite())
+			tran.readLock(offset);
 		ByteBuf buf = tran.shadow.get(offset);
 		return buf != null ? buf : dest.adr(offset).asReadOnlyBuffer();
 	}
 
 	public ByteBuf adrForWrite(long offset) {
+		verify(tran.isReadWrite());
+		tran.writeLock(offset);
 		ByteBuf buf = tran.shadow.get(offset);
 		if (buf != null) {
 			if (buf.isReadOnly()) {
