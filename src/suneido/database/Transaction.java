@@ -1,34 +1,36 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
-import static suneido.database.Transactions.FUTURE;
-import static suneido.database.Transactions.UNCOMMITTED;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.jcip.annotations.NotThreadSafe;
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Handles a single transaction, either readonly or readwrite.
+ * equals and hashCode are the default i.e. identity
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
+@NotThreadSafe // should only used by one session i.e. one thread at a time
 public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
+	private boolean inConflict = false;
+	private boolean outConflict = false;
 	private String conflict = null;
-	private final long t;
-	private long asof; // not final because updated when readwrite tran commits
+	private final long asof;
+	private long commitTime = 0;
 	String sessionId = "session";
 	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
@@ -41,7 +43,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private Table remove_table = null;
 
 	public final int num;
-	private final ArrayList<TranRead> reads = new ArrayList<TranRead>();
 	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
@@ -55,7 +56,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		this.db = trans.db;
 		this.trans = trans;
 		this.readonly = readonly;
-		t = asof = trans.clock();
+		asof = trans.clock();
 		num = trans.nextNum();
 		this.tables = tables;
 		this.tabledata = tabledata;
@@ -73,28 +74,32 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		this.tabledata = tabledata;
 		this.btreeIndexes = btreeIndexes;
 		readonly = true;
-		t = asof = num = 0;
+		asof = num = 0;
 	}
 
 	// used by NullTransaction
-	private Transaction() {
+	Transaction() {
 		this.db = null;
 		this.trans = null;
 		this.tables = null;
 		this.tabledata = null;
 		this.btreeIndexes = null;
 		readonly = true;
-		t = asof = num = 0;
+		asof = num = 0;
 	}
 
 	@Override
 	public String toString() {
 		return "Transaction " + (readonly ? "read " : "update ") +
-				num + " time " + t + " asof " + asof;
+				num + " asof " + asof;
 	}
 
 	public boolean isReadonly() {
 		return readonly;
+	}
+
+	public boolean isReadWrite() {
+		return ! readonly;
 	}
 
 	public boolean isEnded() {
@@ -190,62 +195,41 @@ assert bti.getDest() instanceof TranDest;
 
 	// actions
 
-	public TranRead read_act(int tblnum, String index) {
-		notEnded();
-		TranRead tr = new TranRead(tblnum, index);
-		reads.add(tr);
-		return tr;
-	}
-
-	private void notEnded() {
-		if (ended)
-			throw new SuException("cannot use ended transaction");
-	}
-
 	public void create_act(int tblnum, long adr) {
 		verify(! readonly);
+		if (isAborted())
+			return;
 		notEnded();
-		trans.putCreated(adr, t);
 		writes.add(TranWrite.create(tblnum, adr, trans.clock()));
 	}
 
-	public boolean delete_act(int tblnum, long adr) {
+	public void delete_act(int tblnum, long adr) {
 		verify(! readonly);
+		if (isAborted())
+			return;
 		notEnded();
-		String c = trans.deleteConflict(tblnum, adr);
-		if (!c.equals("")) {
-			conflict = c;
-			asof = FUTURE;
-			return false;
-		}
-		trans.putDeleted(this, adr, t);
 		writes.add(TranWrite.delete(tblnum, adr, trans.clock()));
-		return true;
+	}
+
+	boolean isAborted() {
+		return isEnded() && ! isCommitted();
 	}
 
 	public void undo_delete_act(int tblnum, long adr) {
 		verify(!readonly);
-		trans.removeDeleted(this, adr);
 		TranWrite tw = writes.removeLast();
 		verify(tw.type == TranWrite.Type.DELETE && tw.tblnum == tblnum
 				&& tw.off == adr);
 	}
 
-	// used by {@link BtreeIndex} to determine if records are visible to a
-	// transaction
-	public boolean visible(long adr) {
-		long ct = trans.createTime(adr);
-		if (ct > UNCOMMITTED) {
-			if (ct - UNCOMMITTED != t)
-				return false;
-		} else if (ct > asof)
-			return false;
-
-		long dt = trans.deleteTime(adr);
-		if (dt > UNCOMMITTED)
-			return dt - UNCOMMITTED != t;
-		return dt >= asof;
+	private void notEnded() {
+		if (ended)
+			throw new SuException("cannot use "
+					+ (isCommitted() ? "completed" : "aborted")
+					+ " transaction");
 	}
+
+	// complete & abort
 
 	public void ck_complete() {
 		String s = complete();
@@ -254,88 +238,37 @@ assert bti.getDest() instanceof TranDest;
 	}
 
 	public String complete() {
-		notEnded();
-		if (conflict != null) {
-			abort();
+		if (isAborted())
 			return conflict;
-		}
-		if (!readonly && !writes.isEmpty()) {
-			if (!validate_reads() || !updateBtreeIndexes()) {
-				abort();
-				return conflict;
-			}
+		notEnded();
+		if (!readonly && !writes.isEmpty())
 			completeReadwrite();
-		}
+		commitTime  = trans.clock();
 		trans.remove(this);
 		ended = true;
 		return null;
 	}
 
-	/**
-	 * Checks if any of the records this transaction read have been modified
-	 * since then. (stale read)
-	 * Pretty ugly -
-	 *	for each read
-	 *		for each final tran with asof > ours
-	 *			for each tran write
-	 * @return true if all the reads are still valid, false if any conflict
-	 */
-	private boolean validate_reads() {
-		// PERF merge overlapping reads (add org to TranRead.compareTo)
-		int cur_tblnum = -1;
-		String cur_index = "";
-		ImmutableList<Integer> colnums = null;
-		int nidxcols = 0;
-		Collections.sort(reads);
-		for (TranRead tr : reads) {
-			if (tr.tblnum != cur_tblnum || ! tr.index.equals(cur_index)) {
-				cur_tblnum = tr.tblnum;
-				cur_index = tr.index;
-				Table tbl = getTable(tr.tblnum);
-				if (tbl == null)
-					continue ;
-				colnums = tbl.columns.nums(tr.index);
-				nidxcols = colnums.size();
-			}
-			// crude removal of record address from org & end
-			Record from = tr.org;
-			if (from.size() > nidxcols)
-				from = from.dup().truncate(nidxcols);
-			Record to = tr.end;
-			if (to.size() > nidxcols)
-				to = to.dup().truncate(nidxcols);
-
-			conflict = trans.anyConflicts(asof, tr.tblnum, colnums, from, to,
-					tr.index);
-			if (conflict != null)
-				return false;
-		}
-		reads.clear(); // no longer needed
-		return true;
-	}
-
 	private void completeReadwrite() {
+		updateBtreeIndexes();
 		writeBtreeNodes();
 		updateTableData();
 		updateTables();
 
 		int ncreates = 0;
 		int ndeletes = 0;
-		long commit_time = trans.clock();
+		commitTime  = trans.clock();
 		for (TranWrite tw : writes)
 			switch (tw.type) {
 			case CREATE:
-				trans.updateCreated(tw.off, commit_time);
 				++ncreates;
 				break;
 			case DELETE:
-				trans.updateDeleted(tw.off, commit_time);
 				++ndeletes;
 				break;
 			default:
 				throw SuException.unreachable();
 			}
-		asof = commit_time;
 		trans.addFinal(this);
 		writeCommitRecord(ncreates, ndeletes);
 	}
@@ -372,19 +305,16 @@ assert bti.getDest() instanceof TranDest;
 		}
 	}
 
-	private boolean updateBtreeIndexes() {
+	private void updateBtreeIndexes() {
 		for (Map.Entry<String, BtreeIndex> e : btreeIndexUpdates.entrySet()) {
 			String key = e.getKey();
 			BtreeIndex btiNew = e.getValue();
 			BtreeIndex btiOld = btreeIndexes.get(key);
 			if (btiOld == null)
 				db.addBtreeIndex(key, btiNew);
-			else if (!btiNew.differsFrom(btiOld))
-				continue;
-			else if (!db.updateBtreeIndex(key, btiOld, btiNew))
-				return false; // concurrent update = conflict
+			else if (btiNew.differsFrom(btiOld))
+				db.updateBtreeIndex(key, btiOld, btiNew);
 		}
-		return true;
 	}
 
 	private void writeCommitRecord(int ncreates, int ndeletes) {
@@ -409,48 +339,9 @@ assert bti.getDest() instanceof TranDest;
 		db.resetChecksum();
 	}
 
-	/**
-	 * Called by {@link Transactions}. Removes created and deleted records.
-	 * Physically removes index entries. ({@link Database.removeRecord} just
-	 * calls delete_act.)
-	 */
-	public void finalization() {
-		for (TranWrite tw : writes)
-			switch (tw.type) {
-			case CREATE:
-				trans.removeCreated(tw.off);
-				break;
-			case DELETE:
-				trans.removeDeleted(this, tw.off);
-				db.remove_index_entries(tw.tblnum, tw.off);
-				break;
-			default:
-				throw SuException.unreachable();
-			}
-	}
-
 	public void abort() {
-		notEnded();
-		if (!readonly)
-			abortReadwrite();
-		trans.remove(this);
-		ended = true;
-	}
-
-	private void abortReadwrite() {
-		for (TranWrite tw : writes)
-			switch (tw.type) {
-			case CREATE:
-				trans.removeCreated(tw.off);
-//				db.undoAdd(tw.tblnum, tw.off);
-				break;
-			case DELETE:
-				trans.removeDeleted(this, tw.off);
-//				db.undoDelete(tw.tblnum, tw.off);
-				break;
-			default:
-				throw SuException.unreachable();
-			}
+		verify(isActive());
+		abort("aborted");
 	}
 
 	public void abortIfNotComplete() {
@@ -461,29 +352,9 @@ assert bti.getDest() instanceof TranDest;
 	public int compareTo(Transaction other) {
 		return asof < other.asof ? -1 : asof > other.asof ? +1 : 0;
 	}
-	@Override
-	public boolean equals(Object other) {
-		if (this == other)
-			return true;
-		if (!(other instanceof Transaction))
-			return false;
-		return t == ((Transaction) other).t;
-	}
-
-	@Override
-	public int hashCode() {
-		throw new SuException("Transaction hashCode not implemented");
-	}
 
 	private static class NullTransaction extends Transaction {
-		@Override
-		public boolean visible(long adr) {
-			return true;
-		}
-		@Override
-		public TranRead read_act(int tblnum, String index) {
-			return new TranRead(tblnum, index);
-		}
+
 		@Override
 		public String complete() {
 			ended = true;
@@ -494,4 +365,65 @@ assert bti.getDest() instanceof TranDest;
 			ended = true;
 		}
 	}
+
+	public void readLock(long offset) {
+		Transaction writer = trans.readLock(this, offset);
+		if (writer != null) {
+			if (this.inConflict || writer.outConflict) {
+				abort("read-write conflict");
+				return;
+			}
+			writer.inConflict = true;
+			this.outConflict = true;
+		}
+
+		Set<Transaction> writes = trans.writes(offset);
+		for (Transaction w : writes) {
+			if (w == this
+					|| (w.isCommitted() && w.commitTime < asof))
+				continue;
+			if (w.outConflict) {
+				abort("read-write conflict");
+				return;
+			}
+			this.outConflict = true;
+		}
+		for (Transaction w : writes)
+			w.inConflict = true;
+	}
+
+	public void writeLock(long offset) {
+		Set<Transaction> readers = trans.writeLock(this, offset);
+		if (readers == null) {
+			abort("write-write conflict");
+			return;
+		}
+		for (Transaction reader : readers)
+			if (reader.isActive() || reader.commitTime > asof) {
+				if (reader.inConflict || this.outConflict) {
+					abort("write-read conflict"); //
+					return;
+				}
+				this.inConflict = true;
+			}
+		for (Transaction reader : readers)
+			reader.outConflict = true;
+	}
+
+	boolean isCommitted() {
+		return commitTime != 0;
+	}
+
+	private boolean isActive() {
+		return commitTime == 0 && ! ended;
+	}
+
+	private void abort(String conflict) {
+		if (isAborted())
+			return;
+		this.conflict = conflict;
+		trans.remove(this);
+		ended = true;
+	}
+
 }

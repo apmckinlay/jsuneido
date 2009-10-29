@@ -183,7 +183,7 @@ public class BtreeIndex {
 		return new Iter(tran, from, to);
 	}
 
-	// adds from/to range, tranread tracking, transaction visibility,
+	// adds from/to range,
 	// and prevsize to skip records added/updated during iteration
 	public class Iter {
 		Transaction tran;
@@ -191,14 +191,12 @@ public class BtreeIndex {
 		Record to;
 		boolean rewound = true;
 		Btree.Iter iter;
-		TranRead tranread;
 		long prevsize = Long.MAX_VALUE;
 
 		private Iter(Transaction tran, Record from, Record to) {
 			this.tran = tran;
 			this.from = from;
 			this.to = to;
-			tranread = tran.read_act(tblnum, columns);
 		}
 
 		public boolean eof() {
@@ -224,24 +222,18 @@ public class BtreeIndex {
 			if (rewound) {
 				iter = bt.locate(from);
 				rewound = false;
-				tranread.org = from;
 			} else if (!iter.eof()) {
 				prevkey = iter.key();
 				first = false;
 				iter.next();
 			}
-			while (!iter.eof()
-					&& (iter.cur().keyadr() >= prevsize || !visible()))
+			while (!iter.eof() && iter.cur().keyadr() >= prevsize)
 				iter.next();
 			// PERF skip prefixgt if to is max
 			if (!iter.eof() && iter.key().prefixgt(to))
 				iter.seteof();
 			if (!iter.eof() && (iskey || first || !eq(iter.key(), prevkey)))
 				prevsize = dest.size();
-			if (iter.eof())
-				tranread.end = to;
-			else if (iter.key().compareTo(tranread.end) > 0)
-				tranread.end = iter.key().dup();
 			return this;
 		}
 
@@ -254,25 +246,14 @@ public class BtreeIndex {
 					while (!iter.eof() && iter.key().prefixgt(to))
 						iter.prev();
 				rewound = false;
-				if (tranread != null)
-					tranread.end = to;
 			} else if (!iter.eof())
-				iter.prev();
-			while (!iter.eof() && !visible())
 				iter.prev();
 			prevsize = dest.size();
 			if (!iter.eof() && iter.key().compareTo(from) < 0)
 				iter.seteof();
-			if (iter.eof())
-				tranread.org = from;
-			else if (iter.key().compareTo(tranread.org) < 0)
-				tranread.org = iter.key().dup();
 			return this;
 		}
 
-		private boolean visible() {
-			return tran.visible(iter.cur().keyadr());
-		}
 	}
 
 	/**

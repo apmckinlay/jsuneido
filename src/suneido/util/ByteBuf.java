@@ -11,7 +11,8 @@ import suneido.SuException;
  * A immutable wrapper for a slice of a ByteBuffer.
  * The ByteBuffer contents may be changed, but the ByteBuf itself is immutable.
  * All get's and put's are absolute.
- * The "slice" extends to the end of the ByteBuffer
+ * The position and limit of the ByteBuffer are only read at initialization,
+ * it has no effect if they are changed later.
  *
  * @author Andrew McKinlay
  */
@@ -41,7 +42,8 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 	}
 
 	public static ByteBuf allocate(int capacity) {
-		return new ByteBuf(ByteBuffer.allocate(capacity).order(ByteOrder.BIG_ENDIAN));
+		return new ByteBuf(ByteBuffer.allocate(capacity)
+				.order(ByteOrder.BIG_ENDIAN));
 	}
 
 	public static ByteBuf wrap(byte[] array) {
@@ -68,7 +70,12 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 
 	public ByteBuf copy(int size) {
 		byte[] data = new byte[size];
-		get(0, data);
+		if (buf.hasArray()) {
+			byte[] array = buf.array();
+			int arrayOffset = buf.arrayOffset();
+			System.arraycopy(array, arrayOffset + offset, data, 0, size);
+		} else
+			get(0, data);
 		return wrap(data);
 	}
 

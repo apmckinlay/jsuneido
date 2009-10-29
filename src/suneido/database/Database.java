@@ -801,9 +801,9 @@ assert !(bti.getDest() instanceof TranDest);
 					+ table.name);
 		}
 
-		if (!tran.delete_act(table.num, oldoff))
-			throw new SuException("update record in " + table.name
-					+ " transaction conflict: " + tran.conflict());
+		remove_index_entries(tran, table, oldrec);
+
+		tran.delete_act(table.num, oldoff);
 
 		// do the update
 		long newoff = output(table.num, newrec); // output new version
@@ -820,6 +820,7 @@ assert !(bti.getDest() instanceof TranDest);
 					btreeIndex = tran.getBtreeIndex(j);
 					verify(btreeIndex.remove(newrec.project(j.colnums, newoff)));
 				}
+				add_index_entries(tran, table, oldrec, oldoff);
 				tran.undo_delete_act(table.num, oldoff);
 				throw new SuException("update record: duplicate key: "
 						+ index.columns + " = " + newkey + " in " + table.name);
@@ -872,14 +873,23 @@ assert !(bti.getDest() instanceof TranDest);
 
 		fkey_target_block(tran, table, rec, "delete from " + table.name);
 
-		if (!tran.delete_act(table.num, rec.off()))
-			throw new SuException("delete record from " + table.name
-					+ " transaction conflict: " + tran.conflict());
+		tran.delete_act(table.num, rec.off());
+
+		remove_index_entries(tran, table, rec);
 
 		tran.updateTableData(tran.getTableData(table.num).without(rec.bufSize()));
 
 		if (!loading)
 			Triggers.call(table, tran, rec, null);
+	}
+
+	private void remove_index_entries(Transaction tran, Table table, Record rec) {
+		long off = rec.off();
+		for (Index index : table.indexes) {
+			Record key = rec.project(index.colnums, off);
+			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
+			verify(btreeIndex.remove(key));
+		}
 	}
 
 	// foreign keys =================================================
@@ -913,7 +923,7 @@ assert !(bti.getDest() instanceof TranDest);
 			return;
 		for (Index.ForeignKey fk : index.fkdsts) {
 			Table fktbl = tran.getTable(fk.tblnum);
-			Index fkidx = getIndex(fktbl, fk.columns);
+			Index fkidx = getIndex(fktbl, fk.columns); // TODO tran.getIndex ?
 			if (fkidx == null)
 				continue ;
 			BtreeIndex.Iter iter =
@@ -953,48 +963,6 @@ assert !(bti.getDest() instanceof TranDest);
 		// need to reset prevsize in case trigger updates other lines
 		// otherwise iter doesn't "see" the updated lines
 	}
-
-	// =========================================================================
-	// TODO remove this code once indexes not updated till commit
-
-	// used by Transaction.abort
-	void undoAdd(int tblnum, long adr) {
-		Table table = tables.get(tblnum);
-		if (table == null)
-			return;
-		Record rec = input(adr);
-		remove_index_entries(table, rec);
-	}
-
-	// used by Transaction.abort
-	void undoDelete(int tblnum, long adr) {
-		Table table = tables.get(tblnum);
-		if (table == null)
-			return;
-	}
-
-	// used by Transaction.finalization
-	void remove_index_entries(int tblnum, long adr) {
-		Table table = tables.get(tblnum);
-		if (table != null)
-			remove_index_entries(table, input(adr));
-	}
-
-	private void remove_index_entries(Table table, Record rec) {
-		long off = rec.off();
-		for (Index index : table.indexes) {
-			Record key = rec.project(index.colnums, off);
-			BtreeIndex btreeIndex = getBtreeIndex(index);
-			verify(btreeIndex.remove(key));
-			btreeIndex.update(); // update indexes record from index
-		}
-	}
-
-	private BtreeIndex getBtreeIndex(Index index) {
-		return btreeIndexes.get(index.tblnum + ":" + index.columns);
-	}
-
-	// =========================================================================
 
 	public long alloc(int n, byte type) {
 		return dest.alloc(n, type);
@@ -1057,16 +1025,14 @@ assert !(bti.getDest() instanceof TranDest);
 	}
 
 	// called by Transaction complete
-	public boolean updateBtreeIndex(String key,
+	public void updateBtreeIndex(String key,
 			BtreeIndex btiOld, BtreeIndex btiNew) {
 		BtreeIndex bti = btreeIndexes.get(key);
-		if (!bti.update(btiOld, btiNew))
-			return false; // conflict
+		verify(bti.update(btiOld, btiNew));
 		btiNew.update(); // save changes to database
 		btiNew.setDest(btiNew.getDest().unwrap());
 assert !(btiNew.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(key, btiNew);
-		return true;
 	}
 
 	// called by Transaction complete

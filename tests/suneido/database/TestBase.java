@@ -65,11 +65,19 @@ public class TestBase {
 		return new Record().add(i);
 	}
 
+	protected List<Record> get() {
+		return get("test");
+	}
+
 	protected List<Record> get(String tablename) {
 		Transaction tran = db.readonlyTran();
 		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
+	}
+
+	protected List<Record> get(Transaction tran) {
+		return get("test", tran);
 	}
 
 	protected List<Record> get(String tablename, Transaction tran) {
@@ -88,6 +96,14 @@ public class TestBase {
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
+		return iter.eof() ? null : db.input(iter.keyadr());
+	}
+
+	protected Record getLast(String tablename, Transaction tran) {
+		Table table = tran.getTable(tablename);
+		Index index = table.indexes.first();
+		BtreeIndex bti = tran.getBtreeIndex(index);
+		BtreeIndex.Iter iter = bti.iter(tran).prev();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
