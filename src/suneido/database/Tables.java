@@ -1,10 +1,12 @@
 package suneido.database;
 
+import net.jcip.annotations.Immutable;
 import suneido.util.PersistentMap;
 
 /**
  * @author Andrew McKinlay
  */
+@Immutable
 public class Tables {
 	private final PersistentMap<Integer, Table> bynum;
 	private final PersistentMap<String, Table> byname;

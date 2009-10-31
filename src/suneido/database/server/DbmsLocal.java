@@ -68,11 +68,11 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public void erase(DbmsTran tran, long recadr) {
-		theDB.removeRecord((Transaction) tran, recadr);
+		((Transaction) tran).removeRecord(recadr);
 	}
 
 	public long update(DbmsTran tran, long recadr, Record rec) {
-		return theDB.updateRecord((Transaction) tran, recadr, rec);
+		return ((Transaction) tran).updateRecord(recadr, rec);
 	}
 
 	public SuValue connections() {

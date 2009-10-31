@@ -233,9 +233,7 @@ public class Table extends Query {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
-		Index i = nil(idx) || singleton ? null
-				: theDB.getIndex(tbl, listToCommas(idx));
-		boolean lower = i != null && i.isLower();
+		boolean lower = false; // TODO
 		List<String> index = singleton || lower ? noFields : idx;
 		return new Header(asList(index, tbl.getFields()), tbl.getColumns());
 	}
@@ -265,7 +263,7 @@ public class Table extends Query {
 
 	@Override
 	public void output(Record r) {
-		theDB.addRecord(tran, table, r);
+		tran.addRecord(table, r);
 	}
 
 }

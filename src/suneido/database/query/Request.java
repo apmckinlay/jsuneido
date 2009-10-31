@@ -65,18 +65,13 @@ public class Request implements RequestGenerator<Object> {
 	public Object ensure(String tablename, Object schemaOb) {
 		// TODO: should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
-		suneido.database.Table table = theDB.tables.get(tablename);
-		if (table == null)
-			create(tablename, schema);
+		if (theDB.ensureTable(tablename))
+			createSchema(tablename, schema);
 		else {
 			for (String col : schema.columns)
-				if (!table.hasColumn(col))
-					theDB.addColumn(tablename, col);
-			for (Index index : schema.indexes) {
-				String cols = listToCommas(index.columns);
-				if (!table.hasIndex(cols))
-					index.create(tablename);
-			}
+					theDB.ensureColumn(tablename, col);
+			for (Index index : schema.indexes)
+				index.ensure(tablename);
 		}
 		return null;
 	}
@@ -163,6 +158,12 @@ public class Request implements RequestGenerator<Object> {
 		void create(String table) {
 			assert (in != null);
 			theDB.addIndex(table, listToCommas(columns), key, unique, lower,
+					in.table, listToCommas(in.columns), in.mode);
+		}
+
+		void ensure(String table) {
+			assert (in != null);
+			theDB.ensureIndex(table, listToCommas(columns), key, unique, lower,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 	}

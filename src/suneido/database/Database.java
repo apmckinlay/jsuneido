@@ -1,15 +1,12 @@
 package suneido.database;
 
-import static java.lang.Math.min;
 import static suneido.Suneido.verify;
 import static suneido.database.Transaction.NULLTRAN;
-import static suneido.util.Util.commasToList;
-import static suneido.util.Util.listToCommas;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.zip.Adler32;
 
+import net.jcip.annotations.ThreadSafe;
 import suneido.SuException;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
@@ -24,15 +21,16 @@ import com.google.common.collect.ImmutableList;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@ThreadSafe
 public class Database {
 	final Destination dest;
 	private Dbhdr dbhdr;
-	private boolean loading = false;
-	private final Adler32 cksum = new Adler32();
+	private final Checksum checksum = new Checksum();
+	boolean loading = false;
 	private byte output_type = Mmfile.DATA;
-	public volatile Tables tables = new Tables();
-	public volatile PersistentMap<Integer, TableData> tabledata = null;
-	public volatile PersistentMap<String, BtreeIndex> btreeIndexes =
+	public volatile Tables tables = new Tables(); // depends on Tables being immutable
+	private volatile PersistentMap<Integer, TableData> tabledata = null;
+	private volatile PersistentMap<String, BtreeIndex> btreeIndexes =
 			PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public static Database theDB;
@@ -220,59 +218,51 @@ assert !(bti.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexBuilder.build();
 	}
 
-	long output(int tblnum, Record r) {
+	// only used by DatabaseTest
+	int getNrecords(String tablename) {
+		return tabledata.get(tables.get(tablename).num).nrecords;
+	}
+
+	synchronized long output(int tblnum, Record r) {
 		int n = r.packSize();
-		long offset = alloc(4 + n, output_type);
-		ByteBuffer p = adr(offset).getByteBuffer();
+		long offset = dest.alloc(4 + n, output_type);
+		ByteBuffer p = dest.adr(offset).getByteBuffer();
 		p.putInt(tblnum);
 		r.pack(p);
 		// don't checksum tables or indexes records because they get updated
-		if (output_type == Mmfile.DATA && tblnum != TN.TABLES
-				&& tblnum != TN.INDEXES)
-			checksum(p, 4 + n);
+		if (output_type == Mmfile.DATA
+				&& tblnum != TN.TABLES && tblnum != TN.INDEXES)
+			checksum.add(p, 4 + n);
 		return offset + 4; // offset of record i.e. past tblnum
 	}
-	void checksum(ByteBuffer buf, int len) {
-		buf.position(0);
-		for (int i = 0; i < len; i += bytes.length) {
-			int n = min(bytes.length, len - i);
-			buf.get(bytes, 0, n);
-			cksum.update(bytes, 0, n);
-		}
+
+	void writeCommit(ByteBuffer buf) {
+		checksum.writeCommit(buf);
 	}
 
-	void resetChecksum() {
-		cksum.reset();
-	}
-
-	int getChecksum() {
-		return (int) cksum.getValue();
-	}
-
+	// not synchronized because it does not depend on state
+	// only uses dest
 	public Record input(long adr) {
 		verify(adr != 0);
-		return new Record(adr(adr), adr);
+		return new Record(dest.adr(adr), adr);
 	}
 
-	private Record key(int tblnum, String columns) {
+	static Record key(int tblnum, String columns) {
 		return new Record().add(tblnum).add(columns);
 	}
 
-	private Record key(int i) {
+	static Record key(int i) {
 		return new Record().add(i);
 	}
 
-	private Record key(String s) {
-		return new Record().add(s);
-	}
-
-	private Record find(Transaction tran, Index index, Record key) {
-		return find(tran, tran.getBtreeIndex(index), key);
-	}
-
-	private Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
+	Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
 		return slot == null ? null : input(slot.keyadr());
+	}
+
+	Record getTableRecord(Transaction tran, int tblnum) {
+		BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
+		return find(tran, tablenum_index, key(tblnum));
 	}
 
 	public void close() {
@@ -282,324 +272,22 @@ assert !(bti.getDest() instanceof TranDest);
 	}
 
 	public Transaction readonlyTran() {
-		return new Transaction(trans, true, tables, tabledata, btreeIndexes);
+		synchronized(Transaction.commitLock) {
+			return new Transaction(trans, true, tables, tabledata, btreeIndexes);
+		}
 	}
 	public Transaction readwriteTran() {
-		return new Transaction(trans, false, tables, tabledata, btreeIndexes);
+		synchronized(Transaction.commitLock) {
+			return new Transaction(trans, false, tables, tabledata, btreeIndexes);
+		}
 	}
 	public Transaction cursorTran() {
-		return new Transaction(trans, tables, tabledata, btreeIndexes);
-	}
-
-	// tables =======================================================
-
-	public void addTable(String tablename) {
-		int tblnum = dbhdr.getNextTableNum();
-		Transaction tran = readwriteTran();
-		try {
-			if (tran.tableExists(tablename))
-				throw new SuException("add table: table already exists: " + tablename);
-			Record r = Table.record(tablename, tblnum, 0, 0);
-			add_any_record(tran, "tables", r);
-			tran.updateTable(getUpdatedTable(tran, tblnum));
-			tran.complete();
-		} finally {
-			tran.abortIfNotComplete();
+		synchronized(Transaction.commitLock) {
+			return new Transaction(trans, tables, tabledata, btreeIndexes);
 		}
 	}
 
-	/** returns false if table does not exist */
-	public boolean removeTable(String tablename) {
-		checkForSystemTable(tablename, "drop");
-		Transaction tran = readwriteTran();
-		try {
-			if (getView(tran, tablename) != null) {
-				removeView(tran, tablename);
-			} else {
-				Table table = tran.ck_getTable(tablename);
-				if (table == null)
-					return false;
-				for (Index index : table.indexes)
-					removeIndex(tran, table, index.columns);
-				for (Column column : table.columns)
-					removeColumn(tran, table, column.name);
-				remove_any_record(tran, "tables", "tablename", key(tablename));
-				tran.deleteTable(table);
-			}
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-		return true;
-	}
-
-	private void checkForSystemTable(String tablename, String operation) {
-		if (is_system_table(tablename))
-			throw new SuException("can't " + operation +
-					" system table: " + tablename);
-	}
-
-	public void renameTable(String oldname, String newname) {
-		if (oldname.equals(newname))
-			return ;
-
-		checkForSystemTable(oldname, "rename");
-
-		Transaction tran = readwriteTran();
-		try {
-			if (tran.tableExists(newname))
-				throw new SuException("rename table: table already exists: " + newname);
-			Table table = tran.ck_getTable(oldname);
-			TableData td = tran.getTableData(table.num);
-			update_any_record(tran, "tables", "table", key(table.num),
-					Table.record(newname, table.num, td.nextfield, td.nrecords));
-			tran.updateTable(getUpdatedTable(tran, table.num));
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	// columns ======================================================
-
-	public void addColumn(String tablename, String column) {
-		Transaction tran = readwriteTran();
-		try {
-			Table table = tran.ck_getTable(tablename);
-			TableData td = tran.getTableData(table.num);
-			int fldnum =
-					Character.isUpperCase(column.charAt(0)) ? -1 : td.nextfield;
-			// "-" is addition of deleted field used by dump/load
-			if (!column.equals("-")) {
-				if (fldnum == -1)
-					column = column.substring(0, 1).toLowerCase()
-							+ column.substring(1);
-				if (table.hasColumn(column))
-					throw new SuException("add column: column already exists: "
-							+ column + " in " + tablename);
-				Record rec = Column.record(table.num, column, fldnum);
-				add_any_record(tran, "columns", rec);
-				tran.updateTable(getUpdatedTable(tran, table.num));
-			}
-			if (fldnum >= 0)
-				tran.updateTableData(td.withField());
-			tran.complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	public void removeColumn(String tablename, String name) {
-		if (is_system_column(tablename, name))
-			throw new SuException("delete column: can't delete system column: "
-					+ name + " from " + tablename);
-
-		Transaction tran = readwriteTran();
-		try {
-			Table table = tran.ck_getTable(tablename);
-			if (table.columns.find(name) == null)
-				throw new SuException("delete column: nonexistent column: " + name
-						+ " in " + tablename);
-			for (Index index : table.indexes)
-				if (index.hasColumn(name))
-					throw new SuException(
-							"delete column: can't delete column used in index: "
-							+ name + " in " + tablename);
-
-			removeColumn(tran, table, name);
-			tran.updateTable(getUpdatedTable(tran, table.num));
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	// used by removeColumn and removeTable
-	private void removeColumn(Transaction tran, Table tbl, String name) {
-		remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
-	}
-
-	public void renameColumn(String tablename, String oldname, String newname) {
-		if (oldname.equals(newname))
-			return ;
-
-		if (is_system_column(tablename, oldname))
-			throw new SuException("rename column: can't rename system column: "
-					+ oldname + " in " + tablename);
-
-		Transaction tran = readwriteTran();
-		try {
-			Table table = tran.ck_getTable(tablename);
-			if (table.hasColumn(newname))
-				throw new SuException("rename column: column already exists: "
-						+ newname + " in " + tablename);
-			Column col = table.getColumn(oldname);
-			if (col == null)
-				throw new SuException("rename column: nonexistent column: "
-						+ oldname + " in " + tablename);
-
-			update_any_record(tran, "columns", "table,column",
-					key(table.num, oldname),
-					Column.record(table.num, newname, col.num));
-
-			// update any indexes that include this column
-			for (Index index : table.indexes) {
-				List<String> cols = commasToList(index.columns);
-				int i = cols.indexOf(oldname);
-				if (i < 0)
-					continue ; // this index doesn't contain the column
-				cols.set(i, newname);
-
-				String newColumns = listToCommas(cols);
-				Record newRecord = tran.getBtreeIndex(index).withColumns(newColumns);
-				update_any_record(tran, "indexes", "table,columns",
-						key(table.num, index.columns), newRecord);
-				}
-			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
-			tran.updateTable(getUpdatedTable(tran, table.num, btis));
-			for (BtreeIndex bti : btis)
-				tran.addBtreeIndex(bti);
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	// indexes ======================================================
-
-	public void addIndex(String tablename, String columns, boolean isKey) {
-		addIndex(tablename, columns, isKey, false, false, null, null, 0);
-	}
-
-	public void addIndex(String tablename, String columns,
-			boolean isKey, boolean unique, boolean lower, String fktablename,
-			String fkcolumns, int fkmode) {
-		if (fkcolumns == null || fkcolumns.equals(""))
-			fkcolumns = columns;
-
-		Transaction tran = readwriteTran();
-		try {
-			Table table = tran.ck_getTable(tablename);
-			ImmutableList<Integer> colnums = table.columns.nums(columns);
-			if (table.hasIndex(columns))
-				throw new SuException("add index: index already exists: " + columns
-						+ " in " + tablename);
-			BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
-					unique, fktablename, fkcolumns, fkmode);
-			add_any_record(tran, "indexes", btreeIndex.record);
-			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
-			tran.updateTable(getUpdatedTable(tran, table.num, btis));
-			Table fktable = null;
-			if (fktablename != null) {
-				fktable = tran.getTable(fktablename);
-				if (fktable != null)
-					tran.updateTable(getUpdatedTable(tran, fktable.num));
-			}
-			insertExistingRecords(tran, columns, table, colnums,
-					fktablename, fktable, fkcolumns, btreeIndex);
-			for (BtreeIndex bti : btis)
-				if (bti.columns.equals(columns))
-					tran.addBtreeIndex(bti);
-			tran.complete();
-		} catch (RuntimeException e) {
-			throw e;
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	private void insertExistingRecords(Transaction tran, String columns,
-			Table table, ImmutableList<Integer> colnums, String fktablename,
-			Table fktable, String fkcolumns, BtreeIndex btreeIndex) {
-		if (!table.hasIndexes())
-			return;
-
-		Index index = table.firstIndex();
-		if (index == null)
-			return;
-		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter(tran).next();
-		if (iter.eof())
-			return;
-
-		if (fktablename != null && fktable == null)
-			throw new SuException("add index to " + table.name
-					+ " blocked by foreign key to nonexistent table: "
-					+ fktablename);
-
-		for (; !iter.eof(); iter.next()) {
-			Record rec = input(iter.keyadr());
-			if (fktable != null)
-				fkey_source_block1(tran, fktable, fkcolumns,
-						rec.project(colnums), "add index to " + table.name);
-			Record key = rec.project(colnums, iter.cur().keyadr());
-			if (!btreeIndex.insert(tran, new Slot(key)))
-				throw new SuException("add index: duplicate key: " + columns
-						+ " = " + key + " in " + table.name);
-		}
-	}
-
-	public void removeIndex(String tablename, String columns) {
-		if (is_system_index(tablename, columns))
-			throw new SuException("delete index: can't delete system index: "
-					+ columns + " from " + tablename);
-		Transaction tran = readwriteTran();
-		try {
-			Table table = tran.ck_getTable(tablename);
-			if (table.indexes.size() == 1)
-				throw new SuException("delete index: can't delete last index from "
-						+ tablename);
-			removeIndex(tran, table, columns);
-			tran.updateTable(getUpdatedTable(tran, table.num));
-			tran.ck_complete();
-		} finally {
-			tran.abortIfNotComplete();
-		}
-	}
-
-	// used by removeIndex and removeTable
-	private void removeIndex(Transaction tran, Table tbl, String columns) {
-		if (!tbl.indexes.hasIndex(columns))
-			throw new SuException("delete index: nonexistent index: " + columns
-					+ " in " + tbl.name);
-
-		remove_any_record(tran, "indexes", "table,columns",
-				key(tbl.num, columns));
-	}
-
-	// used by schema changes
-	Table getUpdatedTable(Transaction tran, int tblnum) {
-		return getUpdatedTable(tran, tblnum, null);
-	}
-
-	Table getUpdatedTable(Transaction tran, int tblnum, List<BtreeIndex> btis) {
-		BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
-		Record table_rec = find(tran, tablenum_index, key(tblnum));
-		tran.tabledataUpdates.put(tblnum, new TableData(table_rec));
-		return loadTable(tran, table_rec, btis);
-	}
-
-	// called by Transaction complete for schema changes
-	void removeTable(Table table) {
-		tables = tables.without(table);
-		tabledata = tabledata.without(table.num);
-		for (Index index : table.indexes)
-			btreeIndexes = btreeIndexes.without(index.tblnum + ":" + index.columns);
-	}
-
-	// called by Transaction complete for schema changes
-	void updateTable(Table table, TableData td) {
-		tables = tables.with(table);
-		tabledata = tabledata.with(td.num, td);
-	}
-
-	// called by Transaction complete for schema changes
-	void updateBtreeIndex(BtreeIndex bti) {
-		bti.setDest(bti.getDest().unwrap());
-assert !(bti.getDest() instanceof TranDest);
-		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
-	}
-
-	private Table loadTable(Transaction tran, Record table_rec,
+	Table loadTable(Transaction tran, Record table_rec,
 			List<BtreeIndex> btis) {
 		String tablename = table_rec.getString(Table.TABLE);
 		int tblnum = table_rec.getInt(Table.TBLNUM);
@@ -645,10 +333,7 @@ assert !(bti.getDest() instanceof TranDest);
 		return new Record().add(name).add(columns);
 	}
 
-	public Index getIndex(Table table, String indexcolumns) {
-		return table == null ? null : table.getIndex(indexcolumns);
-	}
-
+	// only used by tests
 	public String schema(String table) {
 		return tables.get(table).schema();
 	}
@@ -660,7 +345,7 @@ assert !(bti.getDest() instanceof TranDest);
 		try {
 			if (null != getView(tran, name))
 				throw new SuException("view: '" + name + "' already exists");
-			add_any_record(tran, "views",
+			Data.add_any_record(tran, "views",
 					new Record().add(name).add(definition));
 			tran.ck_complete();
 		} finally {
@@ -668,311 +353,27 @@ assert !(bti.getDest() instanceof TranDest);
 		}
 	}
 
-	public String getView(Transaction tran, String viewname) {
+	public static String getView(Transaction tran, String viewname) {
 		BtreeIndex views_index = tran.getBtreeIndex(TN.VIEWS, "view_name");
-		Record rec = find(tran, views_index, key(viewname));
+		Record rec = tran.db.find(tran, views_index, key(viewname));
 		return rec == null ? null : rec.getString(V.DEFINITION);
 	}
 
-	public void removeView(Transaction tran, String viewname) {
-		remove_any_record(tran, "views", "view_name", key(viewname));
+	public static void removeView(Transaction tran, String viewname) {
+		Data.remove_any_record(tran, "views", "view_name", key(viewname));
 	}
 
-	// add record ===================================================
-
-	public void addRecord(Transaction tran, String table, Record r) {
-		checkForSystemTable(table, "add record to");
-		add_any_record(tran, table, r);
+	private static Record key(String s) {
+		return new Record().add(s);
 	}
 
-	private boolean is_system_table(String table) {
-		return table.equals("tables") || table.equals("columns")
-				|| table.equals("indexes") || table.equals("views");
-	}
-
-	private boolean is_system_column(String table, String column) {
-		return (table.equals("tables") && (column.equals("table")
-				|| column.equals("nrows") || column.equals("totalsize")))
-			|| (table.equals("columns") && (column.equals("table")
-				|| column.equals("column") || column.equals("field")))
-			|| (table.equals("indexes") && (column.equals("table")
-				|| column.equals("columns") || column.equals("root")
-				|| column.equals("treelevels") || column.equals("nnodes")));
-	}
-
-	private boolean is_system_index(String table, String columns) {
-		return (table.equals("tables") && columns.equals("table"))
-				|| (table.equals("columns") && columns.equals("table,column"))
-				|| (table.equals("indexes") && columns.equals("table,columns"));
-	}
-
-	void add_any_record(Transaction tran, String table, Record r) {
-		add_any_record(tran, tran.ck_getTable(table), r);
-	}
-	private void add_any_record(Transaction tran, Table table, Record rec) {
-		if (tran.isReadonly())
-			throw new SuException("can't output from read-only transaction to "
-					+ table.name);
-		assert (table != null);
-		verify(!table.indexes.isEmpty());
-
-		if (!loading)
-			fkey_source_block(tran, table, rec, "add record to " + table.name);
-
-		long adr = output(table.num, rec);
-		add_index_entries(tran, table, rec, adr);
-		tran.create_act(table.num, adr);
-
-		if (!loading)
-			Triggers.call(table, tran, null, rec);
-	}
-
-	void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
-		for (Index index : table.indexes) {
-			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
-			Record key = rec.project(index.colnums, adr);
-			// handle insert failing due to duplicate key
-			if (!btreeIndex.insert(tran, new Slot(key))) {
-				// delete from previous indexes
-				for (Index j : table.indexes) {
-					if (j == index)
-						break;
-					key = rec.project(j.colnums, adr);
-					btreeIndex = tran.getBtreeIndex(j);
-					verify(btreeIndex.remove(key));
-				}
-				throw new SuException("duplicate key: " + index.columns + " = "
-						+ key + " in " + table.name);
-			}
-		}
-
-		tran.updateTableData(tran.getTableData(table.num).with(rec.bufSize()));
-	}
-
-	// update record ================================================
-
-	public long updateRecord(Transaction tran, long recadr, Record rec) {
-		verify(recadr > 0);
-		int tblnum = adr(recadr - 4).getInt(0);
-		Table tbl = tran.ck_getTable(tblnum);
-		checkForSystemTable(tbl.name, "update record in");
-		return update_record(tran, tbl, input(recadr), rec, true);
-	}
-
-	public void updateRecord(Transaction tran, String table, String index,
-			Record key, Record newrec) {
-		checkForSystemTable(table, "update record in");
-		update_any_record(tran, table, index, key, newrec);
-	}
-
-	void update_any_record(Transaction tran, String tablename,
-			String indexcolumns, Record key, Record newrec) {
-		Table table = tran.ck_getTable(tablename);
-		Index index = getIndex(table, indexcolumns);
-		Record oldrec = find(tran, index, key);
-		if (oldrec == null)
-			throw new SuException("update record: can't find record in "
-					+ tablename);
-
-		update_record(tran, table, oldrec, newrec, true);
-	}
-
-	long update_record(Transaction tran, Table table, Record oldrec,
-			Record newrec, boolean srcblock) {
-		if (tran.isReadonly())
-			throw new SuException("can't update from read-only transaction in "
-					+ table.name);
-
-		long oldoff = oldrec.off();
-
-		// check foreign keys
-		for (Index i : table.indexes) {
-			if ((!srcblock || i.fksrc == null) && i.fkdsts.isEmpty())
-				continue; // no foreign keys for this index
-			Record oldkey = oldrec.project(i.colnums);
-			Record newkey = newrec.project(i.colnums);
-			if (oldkey.equals(newkey))
-				continue;
-			if (srcblock && i.fksrc != null)
-				fkey_source_block1(tran, tran.getTable(i.fksrc.tablename),
-						i.fksrc.columns,
-						newkey, "update record in " + table.name);
-			fkey_target_block1(tran, i, oldkey, newkey, "update record in "
-					+ table.name);
-		}
-
-		remove_index_entries(tran, table, oldrec);
-
-		tran.delete_act(table.num, oldoff);
-
-		// do the update
-		long newoff = output(table.num, newrec); // output new version
-
-		// update indexes
-		for (Index index : table.indexes) {
-			Record newkey = newrec.project(index.colnums, newoff);
-			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
-			if (!btreeIndex.insert(tran, new Slot(newkey))) {
-				// undo previous
-				for (Index j : table.indexes) {
-					if (j == index)
-						break;
-					btreeIndex = tran.getBtreeIndex(j);
-					verify(btreeIndex.remove(newrec.project(j.colnums, newoff)));
-				}
-				add_index_entries(tran, table, oldrec, oldoff);
-				tran.undo_delete_act(table.num, oldoff);
-				throw new SuException("update record: duplicate key: "
-						+ index.columns + " = " + newkey + " in " + table.name);
-			}
-		}
-		tran.create_act(table.num, newoff);
-		tran.updateTableData(tran.getTableData(table.num)
-				.withReplace(oldrec.bufSize(), newrec.bufSize()));
-
-		Triggers.call(table, tran, oldrec, newrec);
-		return newoff;
-	}
-
-	// remove record ================================================
-
-	public void removeRecord(Transaction tran, long recadr) {
-		verify(recadr > 0);
-		int tblnum = adr(recadr - 4).getInt(0);
-		Table tbl = tran.ck_getTable(tblnum);
-		checkForSystemTable(tbl.name, "delete record from");
-		remove_any_record(tran, tbl, input(recadr));
-
-	}
-
-	public void removeRecord(Transaction tran, String tablename, String index,
-			Record key) {
-		checkForSystemTable(tablename, "delete record from");
-		remove_any_record(tran, tablename, index, key);
-	}
-
-	private void remove_any_record(Transaction tran, String tablename,
-			String indexcolumns, Record key) {
-		Table table = tran.ck_getTable(tablename);
-		// lookup key in given index
-		Index index = table.indexes.get(indexcolumns);
-		assert (index != null);
-		Record rec = find(tran, tran.getBtreeIndex(index), key);
-		if (rec == null)
-			throw new SuException("delete record: can't find record in "
-					+ tablename + " " + indexcolumns + " " + key);
-		remove_any_record(tran, table, rec);
-	}
-
-	public void remove_any_record(Transaction tran, Table table, Record rec) {
-		if (tran.isReadonly())
-			throw new SuException("can't delete from read-only transaction in "
-					+ table.name);
-		assert (table != null);
-		assert (rec != null);
-
-		fkey_target_block(tran, table, rec, "delete from " + table.name);
-
-		tran.delete_act(table.num, rec.off());
-
-		remove_index_entries(tran, table, rec);
-
-		tran.updateTableData(tran.getTableData(table.num).without(rec.bufSize()));
-
-		if (!loading)
-			Triggers.call(table, tran, rec, null);
-	}
-
-	private void remove_index_entries(Transaction tran, Table table, Record rec) {
-		long off = rec.off();
-		for (Index index : table.indexes) {
-			Record key = rec.project(index.colnums, off);
-			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
-			verify(btreeIndex.remove(key));
-		}
-	}
-
-	// foreign keys =================================================
-
-	private void fkey_source_block(Transaction tran, Table table, Record rec, String action) {
-		for (Index index : table.indexes)
-			if (index.fksrc != null) {
-				fkey_source_block1(tran, tran.getTable(index.fksrc.tablename),
-						index.fksrc.columns, rec.project(index.colnums), action);
-			}
-	}
-
-	private void fkey_source_block1(Transaction tran, Table fktbl,
-			String fkcolumns, Record key, String action) {
-		if (fkcolumns.equals("") || key.allEmpty())
-			return;
-		Index fkidx = getIndex(fktbl, fkcolumns);
-		if (fkidx == null || find(tran, fkidx, key) == null)
-			throw new SuException(action + " blocked by foreign key to "
-					+ fktbl.name + " " + key);
-	}
-
-	void fkey_target_block(Transaction tran, Table tbl, Record r, String action) {
-		for (Index i : tbl.indexes)
-			fkey_target_block1(tran, i, r.project(i.colnums), null, action);
-	}
-
-	private void fkey_target_block1(Transaction tran, Index index, Record key,
-			Record newkey, String action) {
-		if (key.allEmpty())
-			return;
-		for (Index.ForeignKey fk : index.fkdsts) {
-			Table fktbl = tran.getTable(fk.tblnum);
-			Index fkidx = getIndex(fktbl, fk.columns); // TODO tran.getIndex ?
-			if (fkidx == null)
-				continue ;
-			BtreeIndex.Iter iter =
-					tran.getBtreeIndex(fkidx).iter(tran, key).next();
-			if (newkey == null && (fk.mode & Index.CASCADE_DELETES) != 0)
-				for (; ! iter.eof(); iter.next())
-					cascade_delete(tran, fktbl, iter);
-			else if (newkey != null && (fk.mode & Index.CASCADE_UPDATES) != 0)
-				for (; !iter.eof(); iter.next())
-					cascade_update(tran, newkey, fktbl, iter, fkidx.colnums);
-			else // blocking
-				if (! iter.eof())
-					throw new SuException(action + " blocked by foreign key in "
-							+ fktbl.name);
-		}
-	}
-
-	private void cascade_update(Transaction tran, Record newkey, Table fktbl,
-			BtreeIndex.Iter iter, ImmutableList<Integer> colnums) {
-		Record oldrec = input(iter.keyadr());
-		Record newrec = new Record();
-		for (int i = 0; i < oldrec.size(); ++i) {
-			int j = colnums.indexOf(i);
-			if (j == -1)
-				newrec.add(oldrec.get(i));
-			else
-				newrec.add(newkey.get(j));
-		}
-		update_record(tran, fktbl, oldrec, newrec, false);
-	}
-
-	private void cascade_delete(Transaction tran, Table fktbl,
-			BtreeIndex.Iter iter) {
-		Record r = input(iter.keyadr());
-		remove_any_record(tran, fktbl, r);
-		iter.reset_prevsize();
-		// need to reset prevsize in case trigger updates other lines
-		// otherwise iter doesn't "see" the updated lines
-	}
-
-	public long alloc(int n, byte type) {
+	long alloc(int n, byte type) {
 		return dest.alloc(n, type);
 	}
 
-	public ByteBuf adr(long offset) {
+	ByteBuf adr(long offset) {
 		return dest.adr(offset);
 	}
-
-	static byte[] bytes = new byte[256];
 
 	private class Dbhdr {
 		static final int SIZE = 4 + 4 + 4;
@@ -1008,6 +409,10 @@ assert !(bti.getDest() instanceof TranDest);
 
 	}
 
+	int getNextTableNum() {
+		return dbhdr.getNextTableNum();
+	}
+
 	public void setLoading(boolean loading) {
 		this.loading = loading;
 	}
@@ -1016,30 +421,103 @@ assert !(bti.getDest() instanceof TranDest);
 		return dest.size();
 	}
 
-	// called by Transaction complete
-	public void updateTableData(int num, int nextfield, int d_nrecords,
+	// not synchronized since only called by Transaction complete
+	// which is single threaded
+
+	// called by Transaction complete for schema changes
+	void removeTableCommit(Table table) {
+		tables = tables.without(table);
+		tabledata = tabledata.without(table.num);
+		for (Index index : table.indexes)
+			btreeIndexes = btreeIndexes.without(index.tblnum + ":" + index.columns);
+	}
+
+	// called by Transaction complete for schema changes
+	void updateTable(Table table, TableData td) {
+		tables = tables.with(table);
+		tabledata = tabledata.with(td.num, td);
+	}
+
+	// called by Transaction complete for schema changes
+	void updateBtreeIndex(BtreeIndex bti) {
+		bti.setDest(bti.getDest().unwrap());
+		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
+	}
+
+	void updateTableData(int num, int nextfield, int d_nrecords,
 			int d_totalsize) {
 		TableData td = tabledata.get(num);
 		td = td.with(nextfield, d_nrecords, d_totalsize);
 		tabledata = tabledata.with(num, td);
 	}
 
-	// called by Transaction complete
-	public void updateBtreeIndex(String key,
+	void addBtreeIndex(String key, BtreeIndex btiNew) {
+		btiNew.setDest(btiNew.getDest().unwrap());
+		btreeIndexes = btreeIndexes.with(key, btiNew);
+	}
+
+	void updateBtreeIndex(String key,
 			BtreeIndex btiOld, BtreeIndex btiNew) {
 		BtreeIndex bti = btreeIndexes.get(key);
 		verify(bti.update(btiOld, btiNew));
 		btiNew.update(); // save changes to database
 		btiNew.setDest(btiNew.getDest().unwrap());
-assert !(btiNew.getDest() instanceof TranDest);
 		btreeIndexes = btreeIndexes.with(key, btiNew);
 	}
 
-	// called by Transaction complete
-	public void addBtreeIndex(String key, BtreeIndex btiNew) {
-		btiNew.setDest(btiNew.getDest().unwrap());
-assert !(btiNew.getDest() instanceof TranDest);
-		btreeIndexes = btreeIndexes.with(key, btiNew);
+	// delegate
+
+	public void addTable(String tablename) {
+		Schema.addTable(this, tablename);
+	}
+
+	public boolean ensureTable(String tablename) {
+		return Schema.ensureTable(this, tablename);
+	}
+
+	public void addColumn(String tablename, String column) {
+		Schema.addColumn(this, tablename, column);
+	}
+
+	public void ensureColumn(String tablename, String column) {
+		Schema.ensureColumn(this, tablename, column);
+	}
+
+	public void addIndex(String tablename, String columns, boolean isKey) {
+		addIndex(tablename, columns, isKey, false, false, null, null, 0);	}
+
+	public void addIndex(String tablename, String columns, boolean isKey,
+			boolean unique, boolean lower,
+			String fktablename, String fkcolumns, int fkmode) {
+		Schema.addIndex(this, tablename, columns, isKey, unique, lower,
+				fktablename, fkcolumns, fkmode);
+	}
+
+	public void ensureIndex(String tablename, String columns, boolean isKey,
+			boolean unique, boolean lower,
+			String fktablename, String fkcolumns, int fkmode) {
+		Schema.ensureIndex(this, tablename, columns, isKey, unique, lower,
+				fktablename, fkcolumns, fkmode);
+	}
+
+	public void renameTable(String oldname, String newname) {
+		Schema.renameTable(this, oldname, newname);
+	}
+
+	public void renameColumn(String tablename, String oldname, String newname) {
+		Schema.renameColumn(this, tablename, oldname, newname);
+	}
+
+	public boolean removeTable(String tablename) {
+		return Schema.removeTable(this, tablename);
+	}
+
+	public void removeColumn(String tablename, String column) {
+		Schema.removeColumn(this, tablename, column);
+	}
+
+	public void removeIndex(String tablename, String columns) {
+		Schema.removeIndex(this, tablename, columns);
 	}
 
 }

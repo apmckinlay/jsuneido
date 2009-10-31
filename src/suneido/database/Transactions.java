@@ -3,7 +3,10 @@ package suneido.database;
 import static suneido.Suneido.verify;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import net.jcip.annotations.ThreadSafe;
 import suneido.util.ByteBuf;
 
 /**
@@ -13,11 +16,11 @@ import suneido.util.ByteBuf;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-// TODO needs to be threadsafe
+@ThreadSafe
 public class Transactions {
 	public final Database db;
-	private long clock = 0;
-	private int nextNum = 0;
+	private final AtomicLong clock = new AtomicLong();
+	private final AtomicInteger nextNum = new AtomicInteger();
 	private final Locks locks = new Locks();
 	private final HashMap<Integer, Transaction> trans = new HashMap<Integer, Transaction>();
 
@@ -35,20 +38,20 @@ public class Transactions {
 	}
 
 	public long clock() {
-		return ++clock;
+		return clock.incrementAndGet();
 	}
 
 	public int nextNum() {
-		return ++nextNum;
+		return nextNum.incrementAndGet();
 	}
 
-	public void add(Transaction tran) {
+	synchronized public void add(Transaction tran) {
 		trans.put(tran.num, tran);
 		trans2.add(tran);
 		verify(trans.size() == trans2.size());
 	}
 
-	public void addFinal(Transaction tran) {
+	synchronized public void addFinal(Transaction tran) {
 		finals.add(tran);
 	}
 
@@ -56,7 +59,7 @@ public class Transactions {
 	 * Remove transaction from outstanding.
 	 * Called by {@link Transaction.complete} and {@link Transaction.abort}.
 	 */
-	public void remove(Transaction tran) {
+	synchronized public void remove(Transaction tran) {
 		verify(trans.remove(tran.num) != null);
 		verify(trans2.remove(tran));
 		verify(trans.size() == trans2.size());
@@ -77,18 +80,18 @@ public class Transactions {
 			locks.remove(finals.poll());
 	}
 
-	/** abort all outstanding transactions */
-	public void shutdown() {
+	synchronized public void shutdown() {
+		// abort all outstanding transactions
 		while (!trans2.isEmpty())
 			trans2.peek().abort();
 	}
 
-	/** Called from {@Transaction.completeReadWrite}
+	/** Called only by {@Transaction.completeReadWrite}
 	 * Gives other outstanding transactions shadow copies of any btree nodes
 	 * that this transaction is going to update so they don't see the updates
 	 * i.e. to implement snapshot isolation
 	 */
-	void addShadows(Transaction tcompleting, Map<Long, ByteBuf> shadow) {
+	synchronized void addShadows(Transaction tcompleting, Map<Long, ByteBuf> shadow) {
 		for (Map.Entry<Long, ByteBuf> e : shadow.entrySet()) {
 			Long offset = e.getKey();
 			ByteBuf copy = null;
@@ -105,15 +108,15 @@ public class Transactions {
 		}
 	}
 
-	public Transaction readLock(Transaction tran, long offset) {
+	synchronized public Transaction readLock(Transaction tran, long offset) {
 		return locks.addRead(tran, offset);
 	}
 
-	public Set<Transaction> writeLock(Transaction tran, long offset) {
+	synchronized public Set<Transaction> writeLock(Transaction tran, long offset) {
 		return locks.addWrite(tran, offset);
 	}
 
-	public Set<Transaction> writes(long offset) {
+	synchronized public Set<Transaction> writes(long offset) {
 		return locks.writes(offset);
 	}
 

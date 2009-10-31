@@ -46,7 +46,7 @@ public class TestBase {
 
 		Transaction t = db.readwriteTran();
 		for (int i = 0; i < nrecords; ++i)
-			db.addRecord(t, "test", record(i));
+			t.addRecord("test", record(i));
 		t.ck_complete();
 	}
 

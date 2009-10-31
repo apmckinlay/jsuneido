@@ -2,30 +2,23 @@ package suneido.database;
 
 import java.util.*;
 
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.NotThreadSafe;
 
 import com.google.common.collect.*;
 
-@ThreadSafe
+/** Synchronized by {@link Transactions} which is the only user */
+@NotThreadSafe
 public class Locks {
 
-	@GuardedBy("this")
 	private final SetMultimap<Transaction, Long> locks = HashMultimap.create();
-
-	@GuardedBy("this")
 	private final SetMultimap<Long, Transaction> readLocks = HashMultimap.create();
-
-	@GuardedBy("this")
 	private final Map<Long, Transaction> writeLocks = new HashMap<Long, Transaction>();
-
-	@GuardedBy("this")
 	private final SetMultimap<Long, Transaction> writes = HashMultimap.create();
 
 	/** @return A transaction if it has a write lock on this adr,
 	 * otherwise null
 	 */
-	synchronized public Transaction addRead(Transaction tran, long adr) {
+	public Transaction addRead(Transaction tran, long adr) {
 		Transaction prev = writeLocks.get(adr);
 		if (prev == tran)
 			return null;
@@ -38,7 +31,7 @@ public class Locks {
 	 *  or else a set (possibly empty) of other transactions that have read locks.
 	 *  NOTE: The set may contain the locking transaction.
 	 */
-	synchronized public ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
+	public ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
 		Transaction prev = writeLocks.get(adr);
 		if (prev != null && prev != tran)
 			return null; // write-write conflict
@@ -50,13 +43,13 @@ public class Locks {
 	}
 
 	/** Just remove writeLocks. Other locks kept till finalization */
-	synchronized public void commit(Transaction tran) {
+	public void commit(Transaction tran) {
 		for (Long adr : locksFor(tran))
 			writeLocks.remove(adr);
 	}
 
 	/** Remove all locks for this transaction */
-	synchronized public void remove(Transaction tran) {
+	public void remove(Transaction tran) {
 		for (Long adr : locksFor(tran)) {
 			readLocks.remove(adr, tran);
 			writeLocks.remove(adr);
@@ -78,7 +71,7 @@ public class Locks {
 		return ImmutableSet.copyOf(writes.get(offset));
 	}
 
-	synchronized public boolean isEmpty() {
+	public boolean isEmpty() {
 		return locks.isEmpty();
 	}
 

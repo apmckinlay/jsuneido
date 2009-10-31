@@ -53,14 +53,9 @@ public class RequestTest extends TestBase {
 	public void test_view() {
 		String def = "one join two where three = 4";
 		Request.execute(serverData, "view myview = " + def);
-		assertEquals(def, db.getView(db.cursorTran(), "myview"));
+		assertEquals(def, db.cursorTran().getView("myview"));
 		Request.execute(serverData, "drop myview");
-		assertNull(db.getView(db.cursorTran(), "myview"));
-	}
-
-	@Test(expected = SuException.class)
-	public void test2() {
-		Request.execute("ensure non_existant (a,b,c) index(a)");
+		assertNull(db.cursorTran().getView("myview"));
 	}
 
 	@Test
