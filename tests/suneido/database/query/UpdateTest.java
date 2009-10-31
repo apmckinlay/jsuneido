@@ -37,7 +37,7 @@ public class UpdateTest extends TestBase {
 		for (int i = 0; i < 10; ++i) {
 			Record rec = mkrec(i);
 			Transaction t = db.readwriteTran();
-			db.addRecord(t, "lib", rec);
+			t.addRecord("lib", rec);
 			t.ck_complete();
 		}
 

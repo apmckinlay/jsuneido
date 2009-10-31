@@ -22,7 +22,7 @@ import suneido.util.PersistentMap;
  */
 @NotThreadSafe // should only used by one session i.e. one thread at a time
 public class Transaction implements Comparable<Transaction>, DbmsTran {
-	private final Database db;
+	final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected boolean ended = false;
@@ -34,20 +34,21 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	String sessionId = "session";
 	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
-	final Map<Integer, TableData> tabledataUpdates =
+	private final Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
 	public final PersistentMap<String, BtreeIndex> btreeIndexes;
 	private final Map<String, BtreeIndex> btreeIndexUpdates =
 			new HashMap<String, BtreeIndex>();
 	private List<Table> update_tables = null;
 	private Table remove_table = null;
+	static final Object commitLock = new Object();
 
 	public final int num;
-	final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
+	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
 	// needs to be concurrent because complete of other transactions
-	// will insert original copies into here so we don't see their changes
+	// will insert pre-update copies into here so we don't see their changes
 	final Map<Long, ByteBuf> shadow = new ConcurrentHashMap<Long, ByteBuf>();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
@@ -141,20 +142,25 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return tables.get(tblnum);
 	}
 
-	public void updateTable(Table table) {
+	void updateTable(int tblnum) {
+		updateTable(tblnum, null);
+	}
+	void updateTable(int tblnum, List<BtreeIndex> btis) {
+		Table table = getUpdatedTable(tblnum, btis);
 		assert remove_table == null;
 		if (update_tables == null)
 			update_tables = new ArrayList<Table>();
 		update_tables.add(table);
 	}
+	private Table getUpdatedTable(int tblnum, List<BtreeIndex> btis) {
+		Record table_rec = db.getTableRecord(this, tblnum);
+		tabledataUpdates.put(tblnum, new TableData(table_rec));
+		return db.loadTable(this, table_rec, btis);
+	}
 
 	public void deleteTable(Table table) {
 		assert update_tables == null && remove_table == null;
 		remove_table = table;
-	}
-
-	public String getView(String name) {
-		return db.getView(this, name);
 	}
 
 	// table data
@@ -180,6 +186,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		BtreeIndex bti = btreeIndexUpdates.get(key);
 		if (bti == null) {
 			bti = btreeIndexes.get(key);
+			if (bti == null)
+				return null;
 			bti = new BtreeIndex(bti, new TranDest(this, bti.getDest()));
 			btreeIndexUpdates.put(key, bti);
 assert bti.getDest() instanceof TranDest;
@@ -215,6 +223,7 @@ assert bti.getDest() instanceof TranDest;
 		return isEnded() && ! isCommitted();
 	}
 
+	// Used by update_record
 	public void undo_delete_act(int tblnum, long adr) {
 		verify(!readonly);
 		TranWrite tw = writes.removeLast();
@@ -238,15 +247,17 @@ assert bti.getDest() instanceof TranDest;
 	}
 
 	public String complete() {
-		if (isAborted())
-			return conflict;
-		notEnded();
-		if (!readonly && !writes.isEmpty())
-			completeReadwrite();
-		commitTime  = trans.clock();
-		trans.remove(this);
-		ended = true;
-		return null;
+		synchronized(commitLock) {
+			if (isAborted())
+				return conflict;
+			notEnded();
+			if (!readonly && !writes.isEmpty())
+				completeReadwrite();
+			commitTime  = trans.clock();
+			trans.remove(this);
+			ended = true;
+			return null;
+		}
 	}
 
 	private void completeReadwrite() {
@@ -284,10 +295,10 @@ assert bti.getDest() instanceof TranDest;
 
 	private void updateTables() {
 		if (remove_table != null)
-			db.removeTable(remove_table);
+			db.removeTableCommit(remove_table);
 		if (update_tables != null)
 			for (Table table : update_tables) {
-				db.removeTable(table);
+				db.removeTableCommit(table);
 				db.updateTable(table, getTableData(table.num));
 				for (Index index : table.indexes)
 					db.updateBtreeIndex(getBtreeIndex(index));
@@ -332,11 +343,8 @@ assert bti.getDest() instanceof TranDest;
 		for (TranWrite tw : writes)
 			if (tw.type == TranWrite.Type.DELETE)
 				buf.putInt(Mmfile.offsetToInt(tw.off));
-		// include commit in checksum, but don't include checksum itself
-		db.checksum(buf, buf.position());
-		buf.putInt(db.getChecksum());
+		db.writeCommit(buf);
 		verify(buf.position() == n);
-		db.resetChecksum();
 	}
 
 	public void abort() {
@@ -424,6 +432,37 @@ assert bti.getDest() instanceof TranDest;
 		this.conflict = conflict;
 		trans.remove(this);
 		ended = true;
+	}
+
+	// delegate
+
+	public String getView(String viewname) {
+		return Database.getView(this, viewname);
+	}
+
+	public void removeView(String viewname) {
+		Database.removeView(this, viewname);
+	}
+
+	public void addRecord(String table, Record r) {
+		Data.addRecord(this, table, r);
+	}
+
+	public long updateRecord(long recadr, Record rec) {
+		return Data.updateRecord(this, recadr, rec);
+	}
+
+	public void updateRecord(String table, String index, Record key,
+			Record record) {
+		Data.updateRecord(this, table, index, key, record);
+	}
+
+	public void removeRecord(long off) {
+		Data.removeRecord(this, off);
+	}
+
+	public void removeRecord(String tablename, String index, Record key) {
+		Data.removeRecord(this, tablename, index, key);
 	}
 
 }

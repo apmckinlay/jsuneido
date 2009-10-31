@@ -49,7 +49,7 @@ System.out.println(schema);
 		String table = schema.substring(7, n);
 
 		if (!"views".equals(table)) {
-			theDB.removeTable(table);
+			Schema.removeTable(theDB, table);
 			Request.execute(schema);
 		}
 		return load_data(table);
@@ -89,9 +89,9 @@ System.out.println("load_data(" + table + ")");
 
 		try {
 			if (table.equals("views"))
-				theDB.add_any_record(tran, table, rec);
+				Data.add_any_record(tran, table, rec);
 			else
-				theDB.addRecord(tran, table, rec);
+				Data.addRecord(tran, table, rec);
 		} catch (Throwable e) {
 			System.out.println("load: ignoring: " + table + e);
 		}

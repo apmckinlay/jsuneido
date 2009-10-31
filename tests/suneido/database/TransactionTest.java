@@ -61,8 +61,8 @@ public class TransactionTest extends TestBase {
 	private Transaction add_remove() {
 		Transaction t = db.readwriteTran();
 		checkBefore(t);
-		db.addRecord(t, "test", record(9999));
-		db.removeRecord(t, "test", "a", key(1));
+		t.addRecord("test", record(9999));
+		t.removeRecord("test", "a", key(1));
 		checkAfter(t); // uncommitted ARE visible to their transaction
 		return t;
 	}
@@ -106,17 +106,17 @@ public class TransactionTest extends TestBase {
 
 		// deleting different records doesn't conflict
 		Transaction t1 = db.readwriteTran();
-		db.removeRecord(t1, "test", "a", key(1));
+		t1.removeRecord("test", "a", key(1));
 		Transaction t2 = db.readwriteTran();
-		db.removeRecord(t2, "test", "a", key(999));
+		t2.removeRecord("test", "a", key(999));
 		t2.ck_complete();
 		t1.ck_complete();
 
 		// deleting from the same btree node conflicts
 		t1 = db.readwriteTran();
-		db.removeRecord(t1, "test", "a", key(4));
+		t1.removeRecord("test", "a", key(4));
 		t2 = db.readwriteTran();
-		db.removeRecord(t2, "test", "a", key(5));
+		t2.removeRecord("test", "a", key(5));
 		assertTrue(t2.isAborted());
 		t1.ck_complete();
 		assertNotNull(t2.complete());
@@ -128,9 +128,9 @@ public class TransactionTest extends TestBase {
 		makeTable();
 
 		Transaction t1 = db.readwriteTran();
-		db.addRecord(t1, "test", record(99));
+		t1.addRecord("test", record(99));
 		Transaction t2 = db.readwriteTran();
-		db.addRecord(t2, "test", record(99));
+		t2.addRecord("test", record(99));
 		t1.ck_complete();
 		assertNotNull(t2.complete());
 		assertTrue(t2.conflict().contains("write-write conflict"));
@@ -141,11 +141,11 @@ public class TransactionTest extends TestBase {
 		makeTable(3);
 
 		Transaction t1 = db.readwriteTran();
-		db.updateRecord(t1, "test", "a", key(1), record(5));
+		t1.updateRecord("test", "a", key(1), record(5));
 
 		Transaction t2 = db.readwriteTran();
 		try {
-			db.updateRecord(t2, "test", "a", key(1), record(6));
+			t2.updateRecord("test", "a", key(1), record(6));
 		} catch (SuException e) {
 			// ignore, should be
 		}
@@ -159,7 +159,7 @@ public class TransactionTest extends TestBase {
 	public void update_visibility() {
 		makeTable(5);
 		Transaction t = db.readwriteTran();
-		db.updateRecord(t, "test", "a", key(1), record(9));
+		t.updateRecord("test", "a", key(1), record(9));
 		check(0, 1, 3, 4);
 		t.ck_complete();
 		check(0, 2, 4, 9);
@@ -173,11 +173,11 @@ public class TransactionTest extends TestBase {
 
 		getFirst("test", t1);
 		getLast("test", t1);
-		db.updateRecord(t1, "test", "a", key(1), record(1));
+		t1.updateRecord("test", "a", key(1), record(1));
 
 		getFirst("test", t2);
 		getLast("test", t2);
-		db.updateRecord(t2, "test", "a", key(999), record(999));
+		t2.updateRecord("test", "a", key(999), record(999));
 
 		t1.ck_complete();
 		assertNotNull(t2.complete());
@@ -189,14 +189,14 @@ public class TransactionTest extends TestBase {
 		makeTable(1000);
 		Transaction t1  = db.readwriteTran();
 		getLast("test", t1);
-		db.updateRecord(t1, "test", "a", key(1), record(1));
+		t1.updateRecord("test", "a", key(1), record(1));
 
 		Transaction t2  = db.readwriteTran();
-		db.addRecord(t2, "test", record(1000));
+		t2.addRecord("test", record(1000));
 		assertTrue(t2.isAborted());
 
 		Transaction t3  = db.readwriteTran();
-		db.removeRecord(t3, "test", "a", key(999));
+		t3.removeRecord("test", "a", key(999));
 		assertTrue(t3.isAborted());
 
 		t1.ck_complete();

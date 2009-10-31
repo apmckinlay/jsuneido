@@ -1,160 +1,201 @@
 package suneido.database;
 
+import static suneido.database.Database.key;
 import static suneido.util.Util.commasToList;
 import static suneido.util.Util.listToCommas;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import net.jcip.annotations.ThreadSafe;
 import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
 
-public class Schema {
-/*	
+@ThreadSafe // no state, all static methods
+class Schema {
+
 	// tables =======================================================
 
 	public static void addTable(Database db, String tablename) {
-		Transaction t = db.readwriteTran();
-		try {
-			if (db.tableExists(tablename))
-				throw new SuException("add table: table already exists: " + tablename);
-			int tblnum = dbhdr.getNextTableNum();
-			Record r = Table.record(tablename, tblnum, 0, 0);
-			add_any_record(t, "tables", r);
-			updateTable(t, tblnum);
-			t.complete();
-		} finally {
-			t.abortIfNotComplete();
-		}
+		if (!ensureTable(db, tablename))
+			throw new SuException("add table: table already exists: " + tablename);
 	}
 
-	public void removeTable(String tablename) {
-		checkForSystemTable(tablename, "drop");
-		Table table = ck_getTable(tablename);
-		Transaction tran = readwriteTran();
+	public static boolean ensureTable(Database db, String tablename) {
+		int tblnum = db.getNextTableNum();
+		Transaction tran = db.readwriteTran();
 		try {
-			for (Index index : table.indexes)
-				removeIndex(tran, table, index.columns);
-			for (Column column : table.columns)
-				removeColumn(tran, table, column.name);
-			remove_any_record(tran, "tables", "tablename", key(tablename));
+			if (tran.tableExists(tablename))
+				return false;
+			Record r = Table.record(tablename, tblnum, 0, 0);
+			Data.add_any_record(tran, "tables", r);
+			tran.updateTable(tblnum);
+			tran.complete();
+		} finally {
+			tran.abortIfNotComplete();
+		}
+		return true;
+	}
+
+	/** returns false if table does not exist */
+	public static boolean removeTable(Database db, String tablename) {
+		checkForSystemTable(tablename, "drop");
+		Transaction tran = db.readwriteTran();
+		try {
+			if (tran.getView(tablename) != null) {
+				tran.removeView(tablename);
+			} else {
+				Table table = tran.ck_getTable(tablename);
+				if (table == null)
+					return false;
+				for (Index index : table.indexes)
+					removeIndex(db, tran, table, index.columns);
+				for (Column column : table.columns)
+					removeColumn(db, tran, table, column.name);
+				Data.remove_any_record(tran, "tables", "table", key(table.num));
+				tran.deleteTable(table);
+			}
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
-		tables = tables.without(table);
-		tabledata = tabledata.without(table.num);
+		return true;
 	}
 
-	private void checkForSystemTable(String tablename, String operation) {
+	static void checkForSystemTable(String tablename, String operation) {
 		if (is_system_table(tablename))
 			throw new SuException("can't " + operation +
 					" system table: " + tablename);
 	}
 
-	public void renameTable(String oldname, String newname) {
+	private static boolean is_system_table(String table) {
+		return table.equals("tables") || table.equals("columns")
+				|| table.equals("indexes") || table.equals("views");
+	}
+
+	private static boolean is_system_column(String table, String column) {
+		return (table.equals("tables") && (column.equals("table")
+				|| column.equals("nrows") || column.equals("totalsize")))
+			|| (table.equals("columns") && (column.equals("table")
+				|| column.equals("column") || column.equals("field")))
+			|| (table.equals("indexes") && (column.equals("table")
+				|| column.equals("columns") || column.equals("root")
+				|| column.equals("treelevels") || column.equals("nnodes")));
+	}
+
+	private static boolean is_system_index(String table, String columns) {
+		return (table.equals("tables") && columns.equals("table"))
+				|| (table.equals("columns") && columns.equals("table,column"))
+				|| (table.equals("indexes") && columns.equals("table,columns"));
+	}
+
+	public static void renameTable(Database db, String oldname, String newname) {
 		if (oldname.equals(newname))
 			return ;
 
-		Table table = ck_getTable(oldname);
 		checkForSystemTable(oldname, "rename");
-		if (null != getTable(newname))
-			throw new SuException("rename table: table already exists: " + newname);
 
-		Transaction tran = readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
+			if (tran.tableExists(newname))
+				throw new SuException("rename table: table already exists: " + newname);
+			Table table = tran.ck_getTable(oldname);
 			TableData td = tran.getTableData(table.num);
-			update_any_record(tran, "tables", "table", key(table.num),
+			Data.update_any_record(tran, "tables", "table", key(table.num),
 					Table.record(newname, table.num, td.nextfield, td.nrecords));
-			tables = tables.without(table);
-			updateTable(tran, table.num);
+			tran.updateTable(table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
-
 	}
 
 	// columns ======================================================
 
-	public void addColumn(String tablename, String column) {
-		Table table = ck_getTable(tablename);
-		Transaction tran = readwriteTran();
+	public static void addColumn(Database db, String tablename, String column) {
+		if (!ensureColumn(db, tablename, column))
+			throw new SuException("add column: column already exists: "
+					+ column + " in " + tablename);
+	}
+
+	public static boolean ensureColumn(Database db, String tablename, String column) {
+		Transaction tran = db.readwriteTran();
 		try {
+			Table table = tran.ck_getTable(tablename);
 			TableData td = tran.getTableData(table.num);
 			int fldnum =
 					Character.isUpperCase(column.charAt(0)) ? -1 : td.nextfield;
-			if (!column.equals("-")) { // addition of deleted field used by dump/load
+			// "-" is addition of deleted field used by dump/load
+			if (!column.equals("-")) {
 				if (fldnum == -1)
-					column =
-							column.substring(0, 1).toLowerCase()
-									+ column.substring(1);
+					column = column.substring(0, 1).toLowerCase()
+							+ column.substring(1);
 				if (table.hasColumn(column))
-					throw new SuException("add column: column already exists: "
-							+ column + " in " + tablename);
+					return false;
 				Record rec = Column.record(table.num, column, fldnum);
-				add_any_record(tran, "columns", rec);
-				if (fldnum >= 0)
-					tran.updateTableData(td.withField());
-				updateTable(tran, table.num);
-				tran.complete();
+				Data.add_any_record(tran, "columns", rec);
+				tran.updateTable(table.num);
 			}
+			if (fldnum >= 0)
+				tran.updateTableData(td.withField());
+			tran.complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
+		return true;
 	}
 
-	public void removeColumn(String tablename, String name) {
+	public static void removeColumn(Database db, String tablename, String name) {
 		if (is_system_column(tablename, name))
 			throw new SuException("delete column: can't delete system column: "
 					+ name + " from " + tablename);
 
-		Table table = ck_getTable(tablename);
-
-		if (table.columns.find(name) == null)
-			throw new SuException("delete column: nonexistent column: " + name
-					+ " in " + tablename);
-
-		for (Index index : table.indexes)
-			if (index.hasColumn(name))
-				throw new SuException(
-						"delete column: can't delete column used in index: "
-						+ name + " in " + tablename);
-
-		Transaction tran = readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
-			removeColumn(tran, table, name);
-			updateTable(tran, table.num);
+			Table table = tran.ck_getTable(tablename);
+			if (table.columns.find(name) == null)
+				throw new SuException("delete column: nonexistent column: " + name
+						+ " in " + tablename);
+			for (Index index : table.indexes)
+				if (index.hasColumn(name))
+					throw new SuException(
+							"delete column: can't delete column used in index: "
+							+ name + " in " + tablename);
+
+			removeColumn(db, tran, table, name);
+			tran.updateTable(table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
-	private void removeColumn(Transaction tran, Table tbl, String name) {
-		remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
+	// used by removeColumn and removeTable
+	private static void removeColumn(Database db, Transaction tran, Table tbl, String name) {
+		Data.remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
 	}
 
-	public void renameColumn(String tablename, String oldname, String newname) {
+	public static void renameColumn(Database db, String tablename, String oldname, String newname) {
 		if (oldname.equals(newname))
 			return ;
 
-		Table table = ck_getTable(tablename);
 		if (is_system_column(tablename, oldname))
 			throw new SuException("rename column: can't rename system column: "
 					+ oldname + " in " + tablename);
 
-		Column col = table.getColumn(oldname);
-		if (col == null)
-			throw new SuException("rename column: nonexistent column: "
-					+ oldname + " in " + tablename);
-		if (table.hasColumn(newname))
-			throw new SuException("rename column: column already exists: "
-					+ newname + " in " + tablename);
-
-		Transaction tran = readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
-			update_any_record(tran, "columns", "table,column",
+			Table table = tran.ck_getTable(tablename);
+			if (table.hasColumn(newname))
+				throw new SuException("rename column: column already exists: "
+						+ newname + " in " + tablename);
+			Column col = table.getColumn(oldname);
+			if (col == null)
+				throw new SuException("rename column: nonexistent column: "
+						+ oldname + " in " + tablename);
+
+			Data.update_any_record(tran, "columns", "table,column",
 					key(table.num, oldname),
 					Column.record(table.num, newname, col.num));
 
@@ -167,11 +208,14 @@ public class Schema {
 				cols.set(i, newname);
 
 				String newColumns = listToCommas(cols);
-				Record newRecord = getBtreeIndex(index).withColumns(newColumns);
-				update_any_record(tran, "indexes", "table,columns",
+				Record newRecord = tran.getBtreeIndex(index).withColumns(newColumns);
+				Data.update_any_record(tran, "indexes", "table,columns",
 						key(table.num, index.columns), newRecord);
 				}
-			updateTable(tran, table.num);
+			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
+			tran.updateTable(table.num, btis);
+			for (BtreeIndex bti : btis)
+				tran.addBtreeIndex(bti);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
@@ -180,53 +224,61 @@ public class Schema {
 
 	// indexes ======================================================
 
-	public void addIndex(String tablename, String columns, boolean isKey) {
-		addIndex(tablename, columns, isKey, false, false, null, null, 0);
+	public static void addIndex(Database db, String tablename, String columns,
+			boolean isKey, boolean unique, boolean lower, String fktablename,
+			String fkcolumns, int fkmode) {
+			if (!ensureIndex(db, tablename, columns, isKey, unique, lower,
+				fktablename, fkcolumns, fkmode))
+				throw new SuException("add index: index already exists: " + columns
+						+ " in " + tablename);
 	}
-
-	public void addIndex(String tablename, String columns,
+	public static boolean ensureIndex(Database db, String tablename, String columns,
 			boolean isKey, boolean unique, boolean lower, String fktablename,
 			String fkcolumns, int fkmode) {
 		if (fkcolumns == null || fkcolumns.equals(""))
 			fkcolumns = columns;
-		Table table = ck_getTable(tablename);
-		ImmutableList<Integer> colnums = table.columns.nums(columns);
-		if (table.hasIndex(columns))
-			throw new SuException("add index: index already exists: " + columns
-					+ " in " + tablename);
-		BtreeIndex btreeIndex = new BtreeIndex(dest, table.num, columns, isKey,
-				unique, fktablename, fkcolumns, fkmode);
 
-		Tables originalTables = tables;
-		Transaction tran = readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
-			add_any_record(tran, "indexes", btreeIndex.record);
-			updateTable(tran, table.num);
+			Table table = tran.ck_getTable(tablename);
+			ImmutableList<Integer> colnums = table.columns.nums(columns);
+			if (table.hasIndex(columns))
+				return false;
+			BtreeIndex btreeIndex = new BtreeIndex(db.dest, table.num, columns,
+					isKey, unique, fktablename, fkcolumns, fkmode);
+			Data.add_any_record(tran, "indexes", btreeIndex.record);
+			List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
+			tran.updateTable(table.num, btis);
 			Table fktable = null;
 			if (fktablename != null) {
-				fktable = getTable(fktablename);
+				fktable = tran.getTable(fktablename);
 				if (fktable != null)
-					updateTable(tran, fktable.num);
+					tran.updateTable(fktable.num);
 			}
-			insertExistingRecords(tran, columns, table, colnums,
+			insertExistingRecords(db, tran, columns, table, colnums,
 					fktablename, fktable, fkcolumns, btreeIndex);
+			for (BtreeIndex bti : btis)
+				if (bti.columns.equals(columns))
+					tran.addBtreeIndex(bti);
 			tran.complete();
 		} catch (RuntimeException e) {
-			tables = originalTables; // TODO temp till tables in tran
 			throw e;
 		} finally {
 			tran.abortIfNotComplete();
 		}
+		return true;
 	}
 
-	private void insertExistingRecords(Transaction tran, String columns,
+	private static void insertExistingRecords(Database db, Transaction tran, String columns,
 			Table table, ImmutableList<Integer> colnums, String fktablename,
 			Table fktable, String fkcolumns, BtreeIndex btreeIndex) {
 		if (!table.hasIndexes())
 			return;
 
-		BtreeIndex.Iter iter =
-				getBtreeIndex(table.firstIndex()).iter(tran).next();
+		Index index = table.firstIndex();
+		if (index == null)
+			return;
+		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter(tran).next();
 		if (iter.eof())
 			return;
 
@@ -236,9 +288,9 @@ public class Schema {
 					+ fktablename);
 
 		for (; !iter.eof(); iter.next()) {
-			Record rec = input(iter.keyadr());
+			Record rec = db.input(iter.keyadr());
 			if (fktable != null)
-				fkey_source_block1(tran, fktable, fkcolumns,
+				Data.fkey_source_block1(tran, fktable, fkcolumns,
 						rec.project(colnums), "add index to " + table.name);
 			Record key = rec.project(colnums, iter.cur().keyadr());
 			if (!btreeIndex.insert(tran, new Slot(key)))
@@ -247,31 +299,32 @@ public class Schema {
 		}
 	}
 
-	public void removeIndex(String tablename, String columns) {
+	public static void removeIndex(Database db, String tablename, String columns) {
 		if (is_system_index(tablename, columns))
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);
-		Table table = ck_getTable(tablename);
-		if (table.indexes.size() == 1)
-			throw new SuException("delete index: can't delete last index from "
-					+ tablename);
-		Transaction tran = readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
-			removeIndex(tran, table, columns);
-			updateTable(tran, table.num);
+			Table table = tran.ck_getTable(tablename);
+			if (table.indexes.size() == 1)
+				throw new SuException("delete index: can't delete last index from "
+						+ tablename);
+			removeIndex(db, tran, table, columns);
+			tran.updateTable(table.num);
 			tran.ck_complete();
 		} finally {
 			tran.abortIfNotComplete();
 		}
 	}
 
-	private void removeIndex(Transaction tran, Table tbl, String columns) {
-		if (!tbl.indexes.hasIndex(columns))
+	// used by removeIndex and removeTable
+	private static void removeIndex(Database db, Transaction tran, Table table,
+			String columns) {
+		if (!table.indexes.hasIndex(columns))
 			throw new SuException("delete index: nonexistent index: " + columns
-					+ " in " + tbl.name);
-
-		remove_any_record(tran, "indexes", "table,columns",
-				key(tbl.num, columns));
+					+ " in " + table.name);
+		Data.remove_any_record(tran, "indexes", "table,columns",
+				key(table.num, columns));
 	}
-*/
+
 }

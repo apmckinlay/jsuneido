@@ -1,7 +1,5 @@
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
-
 import java.util.List;
 
 import suneido.database.Record;
@@ -36,7 +34,7 @@ public class InsertQuery extends QueryAction {
 					r.addMin();
 				else
 					r.add(row.getraw(hdr, f));
-			theDB.addRecord(tran, table, r);
+			tran.addRecord(table, r);
 		}
 		return n;
 	}

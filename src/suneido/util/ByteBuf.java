@@ -79,12 +79,10 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 		return wrap(data);
 	}
 
-	// NOTE: position is not 0
 	public ByteBuffer getByteBuffer() {
 		return getByteBuffer(0);
 	}
 
-	// NOTE: position is not 0
 	public ByteBuffer getByteBuffer(int index) {
 		ByteBuffer buf2 = buf.duplicate();
 		buf2.position(offset + index);

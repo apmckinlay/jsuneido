@@ -52,10 +52,9 @@ public class Library {
 				List<String> flds = table.getFields();
 				int group_fld = flds.indexOf("group");
 				int text_fld = flds.indexOf("text");
-				Index index = theDB.getIndex(table, "name,group");
-				if (group_fld < 0 || text_fld < 0 || index == null)
+				BtreeIndex bti = tran.getBtreeIndex(table.num, "name,group");
+				if (group_fld < 0 || text_fld < 0 || bti == null)
 					continue; // library is invalid, ignore it
-				BtreeIndex bti = tran.getBtreeIndex(table.num, index.columns);
 				BtreeIndex.Iter iter = bti.iter(tran, key).next();
 				if (!iter.eof()) {
 					Record rec = theDB.input(iter.keyadr());
