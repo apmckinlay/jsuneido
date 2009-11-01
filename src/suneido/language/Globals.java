@@ -2,6 +2,7 @@ package suneido.language;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import suneido.SuContainer;
 import suneido.SuException;
@@ -19,7 +20,7 @@ public class Globals {
 			new ConcurrentHashMap<String, Object>(1000);
 	private static final Map<String, Object> builtins =
 			new ConcurrentHashMap<String, Object>(100);
-	private static Integer overload = 0;
+	private static final AtomicInteger overload = new AtomicInteger();
 	static {
 		builtins.put("True", Boolean.TRUE);
 		builtins.put("False", Boolean.FALSE);
@@ -135,19 +136,20 @@ public class Globals {
 		globals.remove(name);
 	}
 
-	/** for Libraries.use */
+	/** for Use */
 	public static void clear() {
 		globals.clear();
 	}
 
-	// TODO make this thread safe (not sufficient to synchronize)
+	// synchronized by Library.load which should be the only caller
 	public static String overload(String base) {
-		String name = base.substring(1);
+		String name = base.substring(1); // remove leading underscore
 		Object x = globals.get(name);
 		if (x == null || x == nonExistent)
 			throw new SuException("can't find " + base);
-		String nameForPreviousValue = overload.toString() + base;
-		globals.put(nameForPreviousValue, get(name));
+		int n = overload.getAndIncrement();
+		String nameForPreviousValue = n + base;
+		globals.put(nameForPreviousValue, x);
 		return nameForPreviousValue;
 	}
 

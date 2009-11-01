@@ -23,12 +23,15 @@ public class Library {
 
 	public static Object load(String name) {
 		//System.out.println("LOAD " + name);
+		return load2(name, theDbms.libget(name));
+	}
+	synchronized private static Object load2(String name, List<LibGet> libgets) {
 		Object result = null;
-		for (LibGet libget : theDbms.libget(name)) {
+		for (LibGet libget : libgets) {
 			String src = (String) Pack.unpack(libget.text);
 			try {
 				result = Compiler.compile(name, src);
-				Globals.put(name, result); // needed for overloading
+				Globals.put(name, result); // needed inside loop for overloading
 			} catch (SuException e) {
 				throw new SuException("error loading " + name + ": " + e);
 			}
