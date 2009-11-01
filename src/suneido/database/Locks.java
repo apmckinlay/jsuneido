@@ -2,7 +2,7 @@ package suneido.database;
 
 import java.util.*;
 
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.collect.*;
 

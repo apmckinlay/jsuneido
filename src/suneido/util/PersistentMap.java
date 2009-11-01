@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 
-import net.jcip.annotations.Immutable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * An persistent immutable map. Based on Phil Bagwell's Hash Array Mapped Trie

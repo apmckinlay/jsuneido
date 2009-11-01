@@ -2,12 +2,14 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 import static suneido.database.Schema.checkForSystemTable;
-import net.jcip.annotations.ThreadSafe;
+
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
 
-@ThreadSafe // no state, all static methods
+@ThreadSafe
 class Data {
 
 	// add record ===================================================

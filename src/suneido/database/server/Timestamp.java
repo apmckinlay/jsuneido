@@ -2,8 +2,8 @@ package suneido.database.server;
 
 import java.util.Date;
 
-import net.jcip.annotations.GuardedBy;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class Timestamp {

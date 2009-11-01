@@ -4,7 +4,7 @@ import static suneido.util.Util.commaSplitter;
 
 import java.util.*;
 
-import net.jcip.annotations.Immutable;
+import javax.annotation.concurrent.Immutable;
 
 import com.google.common.collect.*;
 

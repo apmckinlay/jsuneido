@@ -6,7 +6,8 @@ import static suneido.database.Transaction.NULLTRAN;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;

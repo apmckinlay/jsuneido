@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.jcip.annotations.NotThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
 import suneido.util.ByteBuf;
