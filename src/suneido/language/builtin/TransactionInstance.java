@@ -135,7 +135,8 @@ public class TransactionInstance extends SuValue {
 			if (key.equals("block")
 					&& (value instanceof SuCallable || value instanceof SuBlock))
 				continue;
-			where.append(" where ").append(key).append(" = ").append(value);
+			where.append(" where ")
+					.append(key).append(" = ").append(Ops.display(value));
 		}
 		return where.toString();
 	}
