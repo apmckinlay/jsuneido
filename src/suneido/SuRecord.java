@@ -203,7 +203,7 @@ public class SuRecord extends SuContainer {
 		for (String f : fldsyms)
 			if (f == null)
 				rec.addMin();
-			else if (f == ts)
+			else if (f.equals(ts))
 				rec.add(theDbms.timestamp());
 			else if (deps.containsKey(f)) {
 				// output dependencies

@@ -50,7 +50,6 @@ public class DatabaseTest extends TestBase {
 
 		reopen();
 
-		tbl = db.tables.get("test");
 		assertEquals(1, db.getNrecords("test"));
 
 		recs = get("test");

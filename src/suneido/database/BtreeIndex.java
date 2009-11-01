@@ -172,29 +172,27 @@ public class BtreeIndex {
 	}
 
 	public Iter iter(Transaction tran) {
-		return new Iter(tran, Record.MINREC, Record.MAXREC);
+		return new Iter(Record.MINREC, Record.MAXREC);
 	}
 
 	public Iter iter(Transaction tran, Record key) {
-		return new Iter(tran, key, key);
+		return new Iter(key, key);
 	}
 
 	public Iter iter(Transaction tran, Record from, Record to) {
-		return new Iter(tran, from, to);
+		return new Iter(from, to);
 	}
 
 	// adds from/to range,
 	// and prevsize to skip records added/updated during iteration
 	public class Iter {
-		Transaction tran;
 		Record from;
 		Record to;
 		boolean rewound = true;
 		Btree.Iter iter;
 		long prevsize = Long.MAX_VALUE;
 
-		private Iter(Transaction tran, Record from, Record to) {
-			this.tran = tran;
+		private Iter(Record from, Record to) {
 			this.from = from;
 			this.to = to;
 		}
