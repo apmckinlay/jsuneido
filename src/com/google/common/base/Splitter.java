@@ -16,10 +16,16 @@
 
 package com.google.common.base;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
-import java.util.*;
-import java.util.regex.*;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * An object that divides strings (or other instances of {@code CharSequence})
@@ -76,7 +82,7 @@ import java.util.regex.*;
  * separators, as does {@link String#split(String)}, nor does it have a default
  * behavior of using five particular whitespace characters as separators, like
  * {@link StringTokenizer}.
- *
+ *  
  * @author Julien Silland
  * @author Jesse Wilson
  * @author Kevin Bourrillion
@@ -124,7 +130,7 @@ public final class Splitter {
     checkNotNull(separatorMatcher);
 
     return new Splitter(new Strategy() {
-			public SplittingIterator iterator(
+      @Override public SplittingIterator iterator(
           Splitter splitter, final CharSequence toSplit) {
         return new SplittingIterator(splitter, toSplit) {
           @Override int separatorStart(int start) {
@@ -152,7 +158,7 @@ public final class Splitter {
         "The separator may not be the empty string.");
 
     return new Splitter(new Strategy() {
-			public SplittingIterator iterator(
+      @Override public SplittingIterator iterator(
           Splitter splitter, CharSequence toSplit) {
         return new SplittingIterator(splitter, toSplit) {
           @Override public int separatorStart(int start) {
@@ -197,7 +203,7 @@ public final class Splitter {
         "The pattern may not match the empty string: %s", separatorPattern);
 
     return new Splitter(new Strategy() {
-			public SplittingIterator iterator(
+      @Override public SplittingIterator iterator(
           final Splitter splitter, CharSequence toSplit) {
         final Matcher matcher = separatorPattern.matcher(toSplit);
         return new SplittingIterator(splitter, toSplit) {
@@ -246,7 +252,7 @@ public final class Splitter {
     checkArgument(length > 0, "The length may not be less than 1");
 
     return new Splitter(new Strategy() {
-			public SplittingIterator iterator(
+      @Override public SplittingIterator iterator(
           final Splitter splitter, CharSequence toSplit) {
         return new SplittingIterator(splitter, toSplit) {
           @Override public int separatorStart(int start) {
@@ -273,7 +279,7 @@ public final class Splitter {
    * emptiness. So, for example, {@code
    * Splitter.on(':').omitEmptyStrings().trimResults().split(": : : ")} returns
    * an empty iterable.
-   *
+   * 
    * <p>Note that it is ordinarily not possible for {@link #split(CharSequence)}
    * to return an empty iterable, but when using this option, it can (if the
    * input sequence consists of nothing but separators).
@@ -324,7 +330,7 @@ public final class Splitter {
     checkNotNull(sequence);
 
     return new Iterable<String>() {
-			public Iterator<String> iterator() {
+      @Override public Iterator<String> iterator() {
         return strategy.iterator(Splitter.this, sequence);
       }
     };
@@ -442,7 +448,7 @@ public final class Splitter {
       return next;
     }
 
-		public void remove() {
+    @Override public void remove() {
       throw new UnsupportedOperationException();
     }
   }

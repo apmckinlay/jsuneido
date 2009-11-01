@@ -10,6 +10,8 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 import suneido.util.ByteBuf;
 
@@ -29,35 +31,35 @@ import suneido.util.ByteBuf;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@ThreadSafe
 public class Mmfile implements Iterable<ByteBuf>, Destination {
-	private RandomAccessFile fin;
-	private FileChannel fc;
-	private long file_size;
+	private final RandomAccessFile fin;
+	private final FileChannel fc;
 	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
-	private final boolean[] recently_used = new boolean[MAX_CHUNKS];
+	private final long[] last_used = new long[MAX_CHUNKS];
+	private volatile long file_size;
 	private int chunks_mapped = 0;
 	private int hi_chunk = 0;
-	private int hand = 0;
-	private int last_alloc = 0;
+	private long clock = 0;
 
-	final static int HEADER = 4; // contains size | type
-	final static int TRAILER = 4; // contains size ^ adr
+	private final static int HEADER = 4; // contains size | type
+	private final static int TRAILER = 4; // contains size ^ adr
 	final static int OVERHEAD = HEADER + TRAILER;
-	final public static int ALIGN = 8;
-	final public static int SHIFT = 2;
-	final private static int MB_PER_CHUNK = 4;
-	final private static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
-	final private static int MB_MAX_DB = 32 * 1024; // 32 gb
-	final private static int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
-	final private static int FILEHDR = 8; // should be multiple of align
-	final private static byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
-	final private static int FILESIZE_OFFSET = 4;
-	final private static int BEGIN_OFFSET = FILEHDR + HEADER;
-	final private static byte FILLER = 0;
-	final public static byte DATA = 1;
-	final public static byte COMMIT = 2;
-	final public static byte SESSION = 3;
-	final public static byte OTHER = 4;
+	final static int ALIGN = 8;
+	final static int SHIFT = 2;
+	private final static int MB_PER_CHUNK = 4;
+	private final static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
+	private final static int MB_MAX_DB = 32 * 1024; // 32 gb
+	private final static int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
+	private final static int FILEHDR = 8; // should be multiple of align
+	private final static byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
+	private final static int FILESIZE_OFFSET = 4;
+	private final static int BEGIN_OFFSET = FILEHDR + HEADER;
+	private final static byte FILLER = 0;
+	final static byte DATA = 1;
+	final static byte COMMIT = 2;
+	final static byte SESSION = 3;
+	final static byte OTHER = 4;
 	private final static ByteBuf EMPTY_BUF = ByteBuf.empty();
 
 	private static enum MmCheck {
@@ -133,13 +135,13 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		max_chunks_mapped = n;
 	}
 
-	public void force() {
+	synchronized public void force() {
 		for (int i = 0; i <= hi_chunk; ++i)
 			if (fm[i] != null)
 				fm[i].force();
 	}
 
-	public void close() {
+	synchronized public void close() {
 		Arrays.fill(fm, null); // might help gc
 		try {
 			fc.close();
@@ -147,7 +149,6 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		} catch (IOException e) {
 			throw new SuException("can't close database file");
 		}
-		fc = null;
 		// should truncate file but probably can't
 		// since memory mappings won't all be finalized
 		// so file size will be rounded up to chunk size
@@ -175,9 +176,8 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		return file_size;
 	}
 
-	public long alloc(int n, byte type) {
+	synchronized public long alloc(int n, byte type) {
 		verify(n < chunk_size);
-		last_alloc = n;
 		n = align(n);
 
 		// if insufficient room in this chunk, advance to next
@@ -205,19 +205,11 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
-	public void unalloc(int n) {
-		verify(n == last_alloc);
-		n = align(n);
-		file_size -= n + OVERHEAD;
-		set_file_size(file_size);
-	}
-
-	public ByteBuf adr(long offset) {
+	synchronized public ByteBuf adr(long offset) {
 		return buf(offset);
 	}
 
-	public ByteBuf adrForWrite(long offset) {
-//assert false;
+	synchronized public ByteBuf adrForWrite(long offset) {
 		return adr(offset);
 	}
 
@@ -234,7 +226,7 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 			if (chunk > hi_chunk)
 				hi_chunk = chunk;
 		}
-		recently_used[chunk] = true;
+		last_used[chunk] = ++clock;
 		return new ByteBuf(fm[chunk], (int) (offset % chunk_size));
 	}
 
@@ -263,24 +255,17 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 
 	private int lru_chunk() {
 		verify(chunks_mapped > 0);
-		// the *2 is to allow for two passes
-		// first to clear recently_used, second to find it
-		for (int i = 0; i < 2 * MAX_CHUNKS; ++i) {
-			hand = (hand + 1) % MAX_CHUNKS;
-			if (fm[hand] == null)
-				continue;
-			if (!recently_used[hand])
-				return hand;
-			recently_used[hand] = false;
-		}
-		throw SuException.unreachable();
+		int min = 0;
+		for (int i = 0; i < last_used.length; ++i)
+			if (last_used[i] < last_used[min])
+				min = i;
+		return min;
 	}
 
 	private void unmap(int chunk) {
 		fm[chunk].force();
 		// have to depend on garbage collection finalization to unmap
 		fm[chunk] = null;
-assert false;
 	}
 
 	private MmCheck check(long offset) {
@@ -301,7 +286,7 @@ assert false;
 		return length(buf(offset - HEADER));
 	}
 
-	private int length(ByteBuf bb) {
+	private static int length(ByteBuf bb) {
 		return bb.getInt(0) & ~(ALIGN - 1);
 	}
 
@@ -309,7 +294,7 @@ assert false;
 		return type(buf(offset - HEADER));
 	}
 
-	private byte type(ByteBuf bb) {
+	private static byte type(ByteBuf bb) {
 		return (byte) (bb.getInt(0) & (ALIGN - 1));
 	}
 
@@ -321,7 +306,7 @@ assert false;
 		return file_size <= FILEHDR ? 0 : FILEHDR + HEADER;
 	}
 
-	public void sync() {
+	synchronized public void sync() {
 		for (MappedByteBuffer buf : fm)
 			if (buf != null)
 				buf.force();
@@ -366,13 +351,13 @@ assert false;
 			throw new UnsupportedOperationException();
 		}
 
-		public boolean corrupt() {
-			return err;
-		}
-
-		public long offset() {
-			return offset;
-		}
+//		public boolean corrupt() {
+//			return err;
+//		}
+//
+//		public long offset() {
+//			return offset;
+//		}
 	}
 
 	public Iterator<ByteBuf> reverse_iterator() {
@@ -415,13 +400,13 @@ assert false;
 			throw SuException.unreachable();
 		}
 
-		public boolean corrupt() {
-			return err;
-		}
-
-		public long offset() {
-			return offset;
-		}
+//		public boolean corrupt() {
+//			return err;
+//		}
+//
+//		public long offset() {
+//			return offset;
+//		}
 	}
 
 	// public static void main(String[] args) throws Exception {

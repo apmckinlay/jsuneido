@@ -5,7 +5,7 @@ import static java.lang.Math.min;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 class Checksum {

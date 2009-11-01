@@ -8,6 +8,8 @@ import static suneido.language.Ops.cmp;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.language.Ops;
@@ -23,6 +25,7 @@ import suneido.util.Util;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@NotThreadSafe
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	private final List<Object> vec = new ArrayList<Object>();

@@ -1,6 +1,7 @@
 package suneido.database;
 
-import net.jcip.annotations.Immutable;
+import javax.annotation.concurrent.Immutable;
+
 import suneido.util.PersistentMap;
 
 /**

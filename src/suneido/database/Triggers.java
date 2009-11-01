@@ -3,7 +3,8 @@ package suneido.database;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.language.*;

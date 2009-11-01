@@ -7,7 +7,8 @@ import static suneido.util.Util.listToCommas;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
