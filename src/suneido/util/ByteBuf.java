@@ -114,6 +114,11 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 		return true;
 	}
 
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
+	}
+
 	public ByteBuf asReadOnlyBuffer() {
 		return new ByteBuf(buf.asReadOnlyBuffer()
 				.order(ByteOrder.BIG_ENDIAN), offset);

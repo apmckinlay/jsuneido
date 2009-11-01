@@ -24,7 +24,7 @@ public abstract class PersistentMap<K, V> {
 	private static final int HASH_BITS = 32;
 
 	@SuppressWarnings("unchecked")
-	private static TrieNode emptyNode = new TrieNode(0, new Object[0]);
+	private static final TrieNode emptyNode = new TrieNode(0, new Object[0]);
 
 	@SuppressWarnings("unchecked")
 	public static final <K, V> PersistentMap<K, V> empty() {
