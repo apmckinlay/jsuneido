@@ -142,6 +142,8 @@ public class TransactionInstance extends SuValue {
 
 	private Object Rollback(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
+		if (ended)
+			throw new SuException("cannot Rollback completed Transaction");
 		ended = true;
 		t.abort();
 		return null;
@@ -153,12 +155,12 @@ public class TransactionInstance extends SuValue {
 	}
 
 	// used by Transaction for block form
-	public void ck_complete() {
+	public void block_complete() {
 		if (!ended) {
 			ended = true;
 			conflict = t.complete();
 			if (conflict != null)
-				throw new SuException("transaction commit failed: " + conflict);
+				throw new SuException("Transaction: block commit failed: " + conflict);
 		}
 	}
 
@@ -171,7 +173,7 @@ public class TransactionInstance extends SuValue {
 
 	@Override
 	public String toString() {
-		return "Transaction" + num;
+		return /*"Transaction" + num + " " +*/ t.toString();
 	}
 
 	public DbmsTran getTransaction() {
@@ -180,6 +182,10 @@ public class TransactionInstance extends SuValue {
 
 	public boolean isEnded() {
 		return ended;
+	}
+
+	public String conflict() {
+		return conflict;
 	}
 
 }

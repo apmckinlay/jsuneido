@@ -12,13 +12,13 @@ class Data {
 
 	// add record ===================================================
 
-	static void addRecord(Transaction tran, String table, Record r) {
-		checkForSystemTable(table, "add record to");
-		add_any_record(tran, table, r);
+	static void addRecord(Transaction tran, String tablename, Record r) {
+		checkForSystemTable(tablename, "add record to");
+		add_any_record(tran, tablename, r);
 	}
 
-	static void add_any_record(Transaction tran, String table, Record r) {
-		add_any_record(tran, tran.ck_getTable(table), r);
+	static void add_any_record(Transaction tran, String tablename, Record r) {
+		add_any_record(tran, tran.ck_getTable(tablename), r);
 	}
 
 	static void add_any_record(Transaction tran, Table table, Record rec) {
@@ -36,7 +36,11 @@ class Data {
 		tran.create_act(table.num, adr);
 
 		if (!tran.db.loading)
-			Triggers.call(table, tran, null, rec);
+			Triggers.call(tran, table, null, rec);
+
+		if (tran.isAborted())
+			throw new SuException("add record to " + table.name
+					+ " transaction conflict: " + tran.conflict());
 	}
 
 	static void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
@@ -66,9 +70,9 @@ class Data {
 	static long updateRecord(Transaction tran, long recadr, Record rec) {
 		verify(recadr > 0);
 		int tblnum = tran.db.adr(recadr - 4).getInt(0);
-		Table tbl = tran.ck_getTable(tblnum);
-		checkForSystemTable(tbl.name, "update record in");
-		return update_record(tran, tbl, tran.db.input(recadr), rec, true);
+		Table table = tran.ck_getTable(tblnum);
+		checkForSystemTable(table.name, "update record in");
+		return update_record(tran, table, tran.db.input(recadr), rec, true);
 	}
 
 	static void updateRecord(Transaction tran, String table, String index,
@@ -85,7 +89,6 @@ class Data {
 		if (oldrec == null)
 			throw new SuException("update record: can't find record in "
 					+ tablename);
-
 		update_record(tran, table, oldrec, newrec, true);
 	}
 
@@ -142,7 +145,10 @@ class Data {
 		tran.updateTableData(tran.getTableData(table.num)
 				.withReplace(oldrec.bufSize(), newrec.bufSize()));
 
-		Triggers.call(table, tran, oldrec, newrec);
+		Triggers.call(tran, table, oldrec, newrec);
+		if (tran.isAborted())
+			throw new SuException("update record in " + table.name
+					+ " transaction conflict: " + tran.conflict());
 		return newoff;
 	}
 
@@ -192,7 +198,11 @@ class Data {
 		tran.updateTableData(tran.getTableData(table.num).without(rec.bufSize()));
 
 		if (!tran.db.loading)
-			Triggers.call(table, tran, rec, null);
+			Triggers.call(tran, table, rec, null);
+
+		if (tran.isAborted())
+			throw new SuException("delete record from " + table.name
+					+ " transaction conflict: " + tran.conflict());
 	}
 
 	private static void remove_index_entries(Transaction tran, Table table, Record rec) {

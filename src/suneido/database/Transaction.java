@@ -30,7 +30,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private boolean outConflict = false;
 	private String conflict = null;
 	private final long asof;
-	private long commitTime = 0;
+	private long commitTime = Long.MAX_VALUE;
 	String sessionId = "session";
 	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
@@ -254,6 +254,8 @@ assert bti.getDest() instanceof TranDest;
 			if (!readonly && !writes.isEmpty())
 				completeReadwrite();
 			commitTime  = trans.clock();
+			if (!readonly)
+				trans.addFinal(this);
 			trans.remove(this);
 			ended = true;
 			return null;
@@ -268,7 +270,6 @@ assert bti.getDest() instanceof TranDest;
 
 		int ncreates = 0;
 		int ndeletes = 0;
-		commitTime  = trans.clock();
 		for (TranWrite tw : writes)
 			switch (tw.type) {
 			case CREATE:
@@ -280,15 +281,16 @@ assert bti.getDest() instanceof TranDest;
 			default:
 				throw SuException.unreachable();
 			}
-		trans.addFinal(this);
 		writeCommitRecord(ncreates, ndeletes);
 	}
 
 	private void writeBtreeNodes() {
 		trans.addShadows(this, shadow);
 		for (Map.Entry<Long, ByteBuf> e : shadow.entrySet()) {
-			ByteBuf to = db.dest.adr(e.getKey());
 			ByteBuf from = e.getValue();
+			if (from.isReadOnly())
+				continue;
+			ByteBuf to = db.dest.adr(e.getKey());
 			to.put(0, from.array());
 		}
 	}
@@ -347,14 +349,24 @@ assert bti.getDest() instanceof TranDest;
 		verify(buf.position() == n);
 	}
 
+	public void abortIfNotComplete() {
+		if (!ended)
+			abort();
+	}
+
 	public void abort() {
+		if (isAborted())
+			return;
 		verify(isActive());
 		abort("aborted");
 	}
 
-	public void abortIfNotComplete() {
-		if (!ended)
-			abort();
+	private void abort(String conflict) {
+		if (isAborted())
+			return;
+		this.conflict = conflict;
+		trans.remove(this);
+		ended = true;
 	}
 
 	public int compareTo(Transaction other) {
@@ -387,8 +399,7 @@ assert bti.getDest() instanceof TranDest;
 
 		Set<Transaction> writes = trans.writes(offset);
 		for (Transaction w : writes) {
-			if (w == this
-					|| (w.isCommitted() && w.commitTime < asof))
+			if (w == this || w.commitTime < asof)
 				continue;
 			if (w.outConflict) {
 				abort("read-write conflict");
@@ -407,9 +418,9 @@ assert bti.getDest() instanceof TranDest;
 			return;
 		}
 		for (Transaction reader : readers)
-			if (reader.isActive() || reader.commitTime > asof) {
+			if (reader.isActive() || reader.committedAfter(this)) {
 				if (reader.inConflict || this.outConflict) {
-					abort("write-read conflict"); //
+					abort("write-read conflict");
 					return;
 				}
 				this.inConflict = true;
@@ -419,19 +430,19 @@ assert bti.getDest() instanceof TranDest;
 	}
 
 	boolean isCommitted() {
-		return commitTime != 0;
+		return commitTime != Long.MAX_VALUE;
+	}
+
+	boolean committedBefore(Transaction tran) {
+		return commitTime < tran.asof;
+	}
+
+	private boolean committedAfter(Transaction tran) {
+		return isCommitted() && commitTime > tran.asof;
 	}
 
 	private boolean isActive() {
-		return commitTime == 0 && ! ended;
-	}
-
-	private void abort(String conflict) {
-		if (isAborted())
-			return;
-		this.conflict = conflict;
-		trans.remove(this);
-		ended = true;
+		return commitTime == Long.MAX_VALUE && ! ended;
 	}
 
 	// delegate
