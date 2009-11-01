@@ -29,10 +29,10 @@ public class Transaction extends BuiltinClass {
 			return t;
 		try {
 			Object result = Ops.call(args[2], t);
-			t.ck_complete();
+			t.block_complete();
 			return result;
 		} catch (BlockReturnException bre) {
-			t.ck_complete();
+			t.block_complete();
 			throw bre;
 		} catch (SuException e) {
 			//e.printStackTrace();

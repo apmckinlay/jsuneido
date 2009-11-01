@@ -37,16 +37,23 @@ public class TestBase {
 		makeTable(0);
 	}
 
+	protected void makeTable(String tablename) {
+		makeTable(tablename, 0);
+	}
+
 	protected void makeTable(int nrecords) {
-		db.addTable("test");
-		db.addColumn("test", "a");
-		db.addColumn("test", "b");
-		db.addIndex("test", "a", true);
-		db.addIndex("test", "b,a", false);
+		makeTable("test", nrecords);
+	}
+	protected void makeTable(String tablename, int nrecords) {
+		db.addTable(tablename);
+		db.addColumn(tablename, "a");
+		db.addColumn(tablename, "b");
+		db.addIndex(tablename, "a", true);
+		db.addIndex(tablename, "b,a", false);
 
 		Transaction t = db.readwriteTran();
 		for (int i = 0; i < nrecords; ++i)
-			t.addRecord("test", record(i));
+			t.addRecord(tablename, record(i));
 		t.ck_complete();
 	}
 
@@ -108,14 +115,17 @@ public class TestBase {
 	}
 
 	protected void check(int... values) {
+		check("test", values);
+	}
+	protected void check(String filename, int... values) {
 		Transaction t = db.readonlyTran();
-		check(t, values);
+		check(t, filename, values);
 		t.ck_complete();
 	}
 
-	protected void check(Transaction t, int... values) {
-		List<Record> recs = get("test", t);
-		assertEquals(values.length, recs.size());
+	protected void check(Transaction t, String filename, int... values) {
+		List<Record> recs = get(filename, t);
+		assertEquals("number of values", values.length, recs.size());
 		for (int i = 0; i < values.length; ++i)
 			assertEquals(record(values[i]), recs.get(i));
 	}

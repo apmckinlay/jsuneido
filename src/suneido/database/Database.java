@@ -520,4 +520,9 @@ assert !(bti.getDest() instanceof TranDest);
 		Schema.removeIndex(this, tablename, columns);
 	}
 
+	// used by tests
+	public void checkTransEmpty() {
+		trans.checkTransEmpty();
+	}
+
 }

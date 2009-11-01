@@ -15,7 +15,7 @@ public class Triggers {
 	private static final Set<String> disabledTriggers =
 			new ConcurrentSkipListSet<String>();
 
-	public static void call(Table table, Transaction tran,
+	public static void call(Transaction tran, Table table,
 			Record oldrec, Record newrec) {
 		if (disabledTriggers.contains(table.name))
 			return;

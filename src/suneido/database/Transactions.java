@@ -29,9 +29,7 @@ public class Transactions {
 
 	private final PriorityQueue<Transaction> finals = new PriorityQueue<Transaction>();
 
-	public static final long FUTURE = Long.MAX_VALUE;
-	public static final long UNCOMMITTED = Long.MAX_VALUE / 2;
-	public static final long PAST = Long.MIN_VALUE;
+	static final long FUTURE = Long.MAX_VALUE;
 
 	Transactions(Database db) {
 		this.db = db;
@@ -43,6 +41,14 @@ public class Transactions {
 
 	public int nextNum() {
 		return nextNum.incrementAndGet();
+	}
+
+	// used by tests
+	public void checkTransEmpty() {
+		assert trans.isEmpty();
+		assert trans2.isEmpty();
+		assert finals.isEmpty();
+		locks.checkEmpty();
 	}
 
 	synchronized public void add(Transaction tran) {
@@ -78,6 +84,8 @@ public class Transactions {
 		long oldest = trans.isEmpty() ? FUTURE : trans2.peek().asof();
 		while (!finals.isEmpty() && finals.peek().asof() < oldest)
 			locks.remove(finals.poll());
+		assert !trans.isEmpty() || finals.isEmpty();
+		assert !trans.isEmpty() || locks.isEmpty();
 	}
 
 	synchronized public void shutdown() {

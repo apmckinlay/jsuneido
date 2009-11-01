@@ -46,7 +46,7 @@ class Schema {
 			if (tran.getView(tablename) != null) {
 				tran.removeView(tablename);
 			} else {
-				Table table = tran.ck_getTable(tablename);
+				Table table = tran.getTable(tablename);
 				if (table == null)
 					return false;
 				for (Index index : table.indexes)
