@@ -1,5 +1,8 @@
 package suneido.language;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 public class Compiler {
 
 	public static Object compile(String name, String src) {
@@ -10,7 +13,7 @@ public class Compiler {
 		return pc.parse();
 	}
 
-	private static Object[] noLocals = new Object[0];
+	private static final Object[] noLocals = new Object[0];
 
 	public static Object eval(String s) {
 		Object f = compile("eval", "function () { " + s + " }");

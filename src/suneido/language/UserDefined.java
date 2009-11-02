@@ -1,14 +1,17 @@
 package suneido.language;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
 import suneido.language.SuClass.Method;
 
 /**
  * Used to implement user defined methods for builtin classes e.g. Numbers,
  * Strings, Objects
- * 
+ *
  * @author Andrew McKinlay
  */
+@ThreadSafe
 public class UserDefined {
 
 	public static SuClass userDefined(String where, String method) {

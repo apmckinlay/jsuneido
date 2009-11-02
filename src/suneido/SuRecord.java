@@ -6,6 +6,8 @@ import static suneido.database.server.Command.theDbms;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
@@ -16,9 +18,9 @@ import suneido.language.builtin.TransactionInstance;
 import suneido.util.Util;
 
 /**
- *
  * @author Andrew McKinlay
  */
+@NotThreadSafe
 public class SuRecord extends SuContainer {
 	private final Header hdr;
 	private final TransactionInstance tran;

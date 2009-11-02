@@ -1,12 +1,16 @@
 package suneido.language;
 
 import static suneido.language.Args.Special.*;
+
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuContainer;
 import suneido.SuException;
 
 /**
  * Implements Suneido's argument handling.
  */
+@ThreadSafe
 public class Args {
 	public static enum Special {
 		EACH, EACH1, NAMED

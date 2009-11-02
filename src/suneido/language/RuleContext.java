@@ -3,6 +3,9 @@ package suneido.language;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuRecord;
 
 /**
@@ -10,6 +13,7 @@ import suneido.SuRecord;
  *
  * @author Andrew McKinlay
  */
+@ThreadSafe
 public class RuleContext {
 
 	public static void push(SuRecord rec, Object member) {
@@ -25,9 +29,10 @@ public class RuleContext {
 		assert rec.equals(ar.rec) && member.equals(ar.member);
 	}
 
+	@Immutable
 	public static class Rule {
-		public SuRecord rec;
-		public Object member;
+		public final SuRecord rec;
+		public final Object member;
 
 		public Rule(SuRecord rec, Object member) {
 			this.rec = rec;

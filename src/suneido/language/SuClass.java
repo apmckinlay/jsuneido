@@ -9,6 +9,7 @@ import suneido.language.builtin.ContainerMethods;
 
 /**
  * The Java base class for compiled Suneido classes.
+ * Immutable after initialization by {@link CompileGenerator.finishClass}
  * @see SuMethod
  * @see SuFunction
  * @author Andrew McKinlay
@@ -17,7 +18,7 @@ import suneido.language.builtin.ContainerMethods;
  */
 public abstract class SuClass extends SuCallable {
 	protected String baseGlobal = null;
-	protected Map<String, Object> vars;
+	protected Map<String, Object> vars; // must be synchronized
 	protected boolean hasGetters = false;
 
 	// NOMETHOD is used instead of null

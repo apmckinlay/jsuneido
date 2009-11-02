@@ -11,7 +11,7 @@ public class Timestamp {
 	@GuardedBy("this")
 	private static Date prev = new Date();
 
-	public static synchronized Date next() {
+	public synchronized static Date next() {
 		Date ts = new Date();
 		if (ts.compareTo(prev) <= 0)
 			ts = new Date(prev.getTime() + 1);

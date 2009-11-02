@@ -11,7 +11,7 @@ import suneido.util.DateParse;
 
 public class DateClass extends BuiltinClass {
 
-	private static Object nil = new Object();
+	private static final Object nil = new Object();
 
 	private static final FunctionSpec dateFS =
 			new FunctionSpec(array("string", "pattern",

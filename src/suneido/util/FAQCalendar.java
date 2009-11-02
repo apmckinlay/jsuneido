@@ -3,6 +3,8 @@ package suneido.util;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Demonstration of delta day calculations.
  * http://www.xmission.com/~goodhill/dates/deltaDates.html
@@ -10,9 +12,9 @@ import java.util.GregorianCalendar;
  * @author Paul Hill
  * @copyright 2004 Paul Hill
  */
+@ThreadSafe
+@SuppressWarnings("serial")
 public class FAQCalendar extends GregorianCalendar {
-	private static final long serialVersionUID = 1L;
-
 	/**
 	 * All minutes have this many milliseconds except the last minute of the day
 	 * on a day defined with a leap second.

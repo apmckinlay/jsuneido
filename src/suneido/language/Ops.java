@@ -8,12 +8,15 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.*;
 import suneido.language.builtin.*;
 import suneido.util.StringIterator;
 
 import com.google.common.base.Splitter;
 
+@ThreadSafe // all static methods
 public class Ops {
 
 	public static boolean is_(Object x, Object y) {
@@ -245,7 +248,7 @@ public class Ops {
 		return sub(toNum(x), toNum(y));
 	}
 
-	private static Integer one = 1;
+	private static final Integer one = 1;
 	public static Number add1(Object x) {
 		return add(x, one);
 	}

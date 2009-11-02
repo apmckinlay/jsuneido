@@ -9,7 +9,8 @@ public class Construct extends BuiltinFunction {
 
 	private static final FunctionSpec constructFS =
 			new FunctionSpec(array("what", "suffix"), "");
-	private static Object[] noArgs = new Object[0];
+	private static final Object[] noArgs = new Object[0];
+
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(constructFS, args);
