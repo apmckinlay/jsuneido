@@ -10,9 +10,12 @@ import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.*;
 import suneido.util.ByteBuf;
 
+@ThreadSafe // all static methods
 public class Pack {
 	// sequence must match Order
 	public static class Tag {

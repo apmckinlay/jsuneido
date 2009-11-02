@@ -1,6 +1,3 @@
-/**
- *
- */
 package suneido.language;
 
 import static suneido.language.TokenFeature.*;
@@ -9,6 +6,9 @@ import static suneido.language.TokenResultType.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public enum Token {
 	NIL, EOF, ERROR(1000),
 	IDENTIFIER(1001), NUMBER(1002), STRING(1003),

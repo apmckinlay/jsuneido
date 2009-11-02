@@ -1,6 +1,9 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
+
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
@@ -190,9 +193,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return generator.newExpression(term, args);
 	}
 
+	@NotThreadSafe
 	public static class Value<T> {
-		public enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
-		public enum ThisOrSuper { THIS, SUPER };
+		public static enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
+		public static enum ThisOrSuper { THIS, SUPER };
 		public Type type = null;
 		public String id;
 		public T expr;

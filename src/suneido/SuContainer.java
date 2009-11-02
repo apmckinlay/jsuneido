@@ -25,7 +25,7 @@ import suneido.util.Util;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-@NotThreadSafe
+@NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	private final List<Object> vec = new ArrayList<Object>();

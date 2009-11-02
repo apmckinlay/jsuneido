@@ -1,5 +1,8 @@
 package suneido.util;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 public class Tr {
 
 	public static String tr(String src, String from, String to) {

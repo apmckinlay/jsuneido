@@ -9,6 +9,8 @@ import static suneido.language.ParseExpression.Value.Type.*;
 import java.io.*;
 import java.util.*;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
@@ -18,12 +20,13 @@ import suneido.database.query.TreeQueryGenerator.MemDef;
 import suneido.language.ParseExpression.Value;
 import suneido.language.ParseExpression.Value.ThisOrSuper;
 
+@ThreadSafe
 public class CompileGenerator extends Generator<Object> {
 	private final String globalName;
-	enum TopType { CLASS, OBJECT, FUNCTION };
+	static enum TopType { CLASS, OBJECT, FUNCTION };
 	private TopType topType = null;
     private PrintWriter pw = null;
-	enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
+	static enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private static final String[] arrayString = new String[0];
 	private static final Object[] arrayObject = new Object[0];
 	private static final Object[][] arrayConstants = new Object[0][0];
@@ -238,9 +241,9 @@ public class CompileGenerator extends Generator<Object> {
 		linkMethods(callable);
 		if (callable instanceof SuClass) {
 			((SuClass) callable).baseGlobal = base;
-			((SuClass) callable).vars = members != null
+			((SuClass) callable).vars = Collections.synchronizedMap(members != null
 					? (Map<String, Object>) members
-					: new HashMap<String, Object>(0);
+					: new HashMap<String, Object>());
 			((SuClass) callable).hasGetters = c.hasGetters;
 		}
 

@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.language.Ops;
 
 import com.google.common.base.Splitter;
@@ -16,6 +18,7 @@ import com.google.common.collect.Lists;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@ThreadSafe
 public class Util {
 
 	@SuppressWarnings("unchecked")
@@ -358,6 +361,7 @@ public class Util {
 		return new Range(first, first);
 	}
 
+	@ThreadSafe
 	public static final class Range {
 		public final int left;
 		public final int right;

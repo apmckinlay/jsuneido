@@ -15,13 +15,13 @@ import suneido.util.ByteBuf;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Slots extends AbstractList<Slot> {
-	final private static int NEXT_OFFSET = 0;
-	final private static int PREV_OFFSET = 4;
-	final private static int REC_OFFSET = 8;
-	final protected static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
+	private final static int NEXT_OFFSET = 0;
+	private final static int PREV_OFFSET = 4;
+	private final static int REC_OFFSET = 8;
+	protected final static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
 
 	private final ByteBuf buf;
-	private Record rec;
+	private final Record rec;
 
 	public Slots(ByteBuf buf) {
 		this(buf, Mode.OPEN);

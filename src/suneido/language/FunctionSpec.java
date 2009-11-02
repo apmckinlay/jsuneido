@@ -1,6 +1,8 @@
 package suneido.language;
 
+import javax.annotation.concurrent.ThreadSafe;
 
+@ThreadSafe
 public class FunctionSpec {
 	final String name;
 	/** parameter names followed by local variable names */

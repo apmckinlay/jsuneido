@@ -12,13 +12,15 @@ public class Regex {
 		return getPat(rx, s).matcher(s).find();
 	}
 
+	// cache get/put not synchronized, but idempotent
 	public static Pattern getPat(String rx, String s) {
 		if (s.indexOf('\n') != -1)
 			rx = "(?m)" + rx;
 		Pattern p = cache.get(rx);
 		if (p == null)
 			try {
-				cache.put(rx, p = Pattern.compile(convertRegex(rx)));
+				p = Pattern.compile(convertRegex(rx));
+				cache.put(rx, p);
 			} catch (PatternSyntaxException e) {
 				throw new SuException("bad regular expression: " + rx + " => "
 						+ convertRegex(rx));
