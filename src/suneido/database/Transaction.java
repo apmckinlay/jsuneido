@@ -4,7 +4,6 @@ import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,7 +49,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// needs to be concurrent because complete of other transactions
 	// will insert pre-update copies into here so we don't see their changes
-	final Map<Long, ByteBuf> shadow = new ConcurrentHashMap<Long, ByteBuf>();
+	final Shadows shadows = new Shadows();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -183,6 +182,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	public BtreeIndex getBtreeIndex(int tblnum, String columns) {
+		notEnded();
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexUpdates.get(key);
 		if (bti == null) {
@@ -191,14 +191,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 				return null;
 			bti = new BtreeIndex(bti, new TranDest(this, bti.getDest()));
 			btreeIndexUpdates.put(key, bti);
-assert bti.getDest() instanceof TranDest;
 		}
 		return bti;
 	}
 
+	// used for schema changes
 	public void addBtreeIndex(BtreeIndex bti) {
 		bti.setDest(new TranDest(this, bti.getDest()));
-assert bti.getDest() instanceof TranDest;
 		btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
 	}
 
@@ -239,7 +238,30 @@ assert bti.getDest() instanceof TranDest;
 					+ " transaction");
 	}
 
-	// complete & abort
+	// abort -------------------------------------------------------------------
+
+	public void abortIfNotComplete() {
+		if (!ended)
+			abort();
+	}
+
+	public void abort() {
+		if (isAborted())
+			return;
+		if (conflict == null)
+			this.conflict = "aborted";
+		verify(isActive());
+		trans.remove(this);
+		ended = true;
+	}
+
+	private void abortThrow(String conflict) {
+		this.conflict = conflict;
+		abort();
+		throw new SuException("transaction " + conflict);
+	}
+
+	// complete ----------------------------------------------------------------
 
 	public void ck_complete() {
 		String s = complete();
@@ -268,26 +290,24 @@ assert bti.getDest() instanceof TranDest;
 		writeBtreeNodes();
 		updateTableData();
 		updateTables();
+		writeCommitRecord();
+	}
 
-		int ncreates = 0;
-		int ndeletes = 0;
-		for (TranWrite tw : writes)
-			switch (tw.type) {
-			case CREATE:
-				++ncreates;
-				break;
-			case DELETE:
-				++ndeletes;
-				break;
-			default:
-				throw SuException.unreachable();
-			}
-		writeCommitRecord(ncreates, ndeletes);
+	private void updateBtreeIndexes() {
+		for (Map.Entry<String, BtreeIndex> e : btreeIndexUpdates.entrySet()) {
+			String key = e.getKey();
+			BtreeIndex btiNew = e.getValue();
+			BtreeIndex btiOld = btreeIndexes.get(key);
+			if (btiOld == null)
+				db.addBtreeIndex(key, btiNew);
+			else if (btiNew.differsFrom(btiOld))
+				db.updateBtreeIndex(key, btiOld, btiNew);
+		}
 	}
 
 	private void writeBtreeNodes() {
-		trans.addShadows(this, shadow);
-		for (Map.Entry<Long, ByteBuf> e : shadow.entrySet()) {
+		trans.addShadows(this, shadows);
+		for (Map.Entry<Long, ByteBuf> e : shadows.entrySet()) {
 			ByteBuf from = e.getValue();
 			if (from.isReadOnly())
 				continue;
@@ -319,19 +339,20 @@ assert bti.getDest() instanceof TranDest;
 		}
 	}
 
-	private void updateBtreeIndexes() {
-		for (Map.Entry<String, BtreeIndex> e : btreeIndexUpdates.entrySet()) {
-			String key = e.getKey();
-			BtreeIndex btiNew = e.getValue();
-			BtreeIndex btiOld = btreeIndexes.get(key);
-			if (btiOld == null)
-				db.addBtreeIndex(key, btiNew);
-			else if (btiNew.differsFrom(btiOld))
-				db.updateBtreeIndex(key, btiOld, btiNew);
-		}
-	}
-
-	private void writeCommitRecord(int ncreates, int ndeletes) {
+	private void writeCommitRecord() {
+		int ncreates = 0;
+		int ndeletes = 0;
+		for (TranWrite tw : writes)
+			switch (tw.type) {
+			case CREATE:
+				++ncreates;
+				break;
+			case DELETE:
+				++ndeletes;
+				break;
+			default:
+				throw SuException.unreachable();
+			}
 		if (ndeletes == 0 && ncreates == 0)
 			return;
 		final int n = 8 + 4 + 4 + 4 + 4 * (ncreates + ndeletes) + 4;
@@ -350,25 +371,7 @@ assert bti.getDest() instanceof TranDest;
 		verify(buf.position() == n);
 	}
 
-	public void abortIfNotComplete() {
-		if (!ended)
-			abort();
-	}
-
-	public void abort() {
-		if (isAborted())
-			return;
-		verify(isActive());
-		abort("aborted");
-	}
-
-	private void abort(String conflict) {
-		if (isAborted())
-			return;
-		this.conflict = conflict;
-		trans.remove(this);
-		ended = true;
-	}
+	// end of complete ---------------------------------------------------------
 
 	public int compareTo(Transaction other) {
 		return asof < other.asof ? -1 : asof > other.asof ? +1 : 0;
@@ -390,10 +393,8 @@ assert bti.getDest() instanceof TranDest;
 	public void readLock(long offset) {
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
-			if (this.inConflict || writer.outConflict) {
-				abort("read-write conflict");
-				return;
-			}
+			if (this.inConflict || writer.outConflict)
+				abortThrow("read-write conflict");
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
@@ -402,10 +403,8 @@ assert bti.getDest() instanceof TranDest;
 		for (Transaction w : writes) {
 			if (w == this || w.commitTime < asof)
 				continue;
-			if (w.outConflict) {
-				abort("read-write conflict");
-				return;
-			}
+			if (w.outConflict)
+				abortThrow("read-write conflict");
 			this.outConflict = true;
 		}
 		for (Transaction w : writes)
@@ -414,16 +413,12 @@ assert bti.getDest() instanceof TranDest;
 
 	public void writeLock(long offset) {
 		Set<Transaction> readers = trans.writeLock(this, offset);
-		if (readers == null) {
-			abort("write-write conflict");
-			return;
-		}
+		if (readers == null)
+			abortThrow("write-write conflict");
 		for (Transaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
-				if (reader.inConflict || this.outConflict) {
-					abort("write-read conflict");
-					return;
-				}
+				if (reader.inConflict || this.outConflict)
+					abortThrow("write-read conflict");
 				this.inConflict = true;
 			}
 		for (Transaction reader : readers)

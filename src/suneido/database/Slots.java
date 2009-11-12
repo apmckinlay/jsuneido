@@ -129,4 +129,14 @@ public class Slots extends AbstractList<Slot> {
 		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof Slots))
+			return false;
+		Slots that = (Slots) other;
+		return this.rec.equals(that.rec);
+	}
+
 }

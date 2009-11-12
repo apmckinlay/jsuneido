@@ -126,7 +126,7 @@ public class Record
 			rep = new IntRep();
 			break;
 		default:
-			throw SuException.unreachable();
+			throw new SuException("bad record type");
 		}
 	}
 

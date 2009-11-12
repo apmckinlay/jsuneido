@@ -10,7 +10,8 @@ import suneido.SuException;
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
 public class Slot implements suneido.Packable, Comparable<Slot> {
 	public final Record key;

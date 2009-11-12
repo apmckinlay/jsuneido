@@ -148,9 +148,6 @@ class Data {
 				.withReplace(oldrec.bufSize(), newrec.bufSize()));
 
 		Triggers.call(tran, table, oldrec, newrec);
-		if (tran.isAborted())
-			throw new SuException("update record in " + table.name
-					+ " transaction conflict: " + tran.conflict());
 		return newoff;
 	}
 

@@ -4,6 +4,8 @@ import static suneido.Suneido.verify;
 
 import java.util.*;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.Transaction;
 
 /**
@@ -13,6 +15,7 @@ import suneido.database.Transaction;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+@NotThreadSafe
 public class ServerData {
 	private int next = 0;
 	private final Map<Integer, DbmsTran> trans =

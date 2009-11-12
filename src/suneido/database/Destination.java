@@ -11,24 +11,30 @@ import suneido.util.ByteBuf;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public interface Destination {
+public abstract class Destination {
 
-	long alloc(int size, byte type);
+	abstract long alloc(int size, byte type);
 
-	ByteBuf adr(long offset);
+	abstract ByteBuf adr(long offset);
 
-	ByteBuf adrForWrite(long offset);
+	ByteBuf node(long offset) {
+		return adr(offset);
+	}
 
-	long first();
+	ByteBuf nodeForWrite(long offset) {
+		return adr(offset);
+	}
 
-	int length(long adr);
+	abstract long first();
 
-	long size();
+	abstract int length(long adr);
 
-	void sync();
+	abstract long size();
 
-	void close();
+	abstract void sync();
 
-	Destination unwrap();
+	abstract void close();
+
+	abstract Destination unwrap();
 
 }
