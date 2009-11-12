@@ -57,7 +57,7 @@ public class TestBase {
 		t.ck_complete();
 	}
 
-	protected Record record(int i) {
+	protected static Record record(int i) {
 		return new Record().add(i).add("more stuff");
 	}
 
@@ -68,7 +68,7 @@ public class TestBase {
 		return r;
 	}
 
-	protected Record key(int i) {
+	protected static Record key(int i) {
 		return new Record().add(i);
 	}
 

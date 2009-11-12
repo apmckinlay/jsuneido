@@ -13,7 +13,6 @@ import static suneido.database.Index.*;
  * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
-
 	public final Record record;
 	private Destination dest;
 	private final Btree bt;

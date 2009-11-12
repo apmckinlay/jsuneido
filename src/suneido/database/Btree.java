@@ -11,10 +11,10 @@ import suneido.util.ByteBuf;
  * Uses {@link Slots} to store nodes.
  * @see BtreeIndex
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small>
  */
 public class Btree {
-
 	public final static int MAXLEVELS = 20;
 	public final static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
 	private final static int BLOCKSIZE = 4096;
@@ -54,6 +54,11 @@ public class Btree {
 		nnodes = bt.nnodes;
 	}
 
+	public boolean differsFrom(Btree bt) {
+		return root_ != bt.root_ || treelevels != bt.treelevels
+				|| nnodes != bt.nnodes;
+	}
+
 	// used when completing transactions
 	public boolean update(Btree btOld, Btree btNew) {
 		if (root_ != btOld.root_)
@@ -61,11 +66,6 @@ public class Btree {
 		assert treelevels == btOld.treelevels;
 		btNew.nnodes = nnodes + (btNew.nnodes - btOld.nnodes);
 		return true;
-	}
-
-	public boolean differsFrom(Btree bt) {
-		return root_ != bt.root_ || treelevels != bt.treelevels
-				|| nnodes != bt.nnodes;
 	}
 
 	public int treelevels() {
@@ -270,7 +270,7 @@ public class Btree {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			forWrite = mode == Mode.CREATE;
-			ByteBuf buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			ByteBuf buf = forWrite ? dest.nodeForWrite(adr) : dest.node(adr);
 			slots = new Slots(buf, mode);
 			//assert isValid(mode);
 		}
@@ -278,9 +278,11 @@ public class Btree {
 			if (forWrite)
 				return;
 			forWrite = true;
-			ByteBuf buf = dest.adrForWrite(adr);
+			ByteBuf buf = dest.nodeForWrite(adr);
 			assert ! buf.isReadOnly();
+//Slots old = slots;
 			slots = new Slots(buf);
+//assert(old.equals(slots));
 		}
 		Insert insert(Slot x)
 			{
@@ -324,14 +326,14 @@ public class Btree {
 			left.setNext(adr);
 			setPrev(left.adr);
 			if (left.prev() != 0)
-				Slots.setBufNext(dest.adrForWrite(left.prev()), left.adr);
+				Slots.setBufNext(dest.nodeForWrite(left.prev()), left.adr);
 			return left;
 			}
 		void unlink() {
 			if (prev() != 0)
-				Slots.setBufNext(dest.adrForWrite(prev()), next());
+				Slots.setBufNext(dest.nodeForWrite(prev()), next());
 			if (next() != 0)
-				Slots.setBufPrev(dest.adrForWrite(next()), prev());
+				Slots.setBufPrev(dest.nodeForWrite(next()), prev());
 		}
 		boolean isEmpty() {
 			return slots.isEmpty();
@@ -364,6 +366,11 @@ public class Btree {
 			}
 			return true;
 		}
+
+		@Override
+		public String toString() {
+			return slots.toString();
+		}
 	} // end LeafNode
 
 	private class TreeNode {
@@ -377,7 +384,7 @@ public class Btree {
 		TreeNode(long adr, Mode mode) {
 			this.adr = adr;
 			forWrite = mode == Mode.CREATE;
-			ByteBuf buf = forWrite ? dest.adrForWrite(adr) : dest.adr(adr);
+			ByteBuf buf = forWrite ? dest.nodeForWrite(adr) : dest.node(adr);
 			slots = new Slots(buf, mode);
 			if (mode == Mode.CREATE)
 				slots.setPrev(TREENODE_PREV);
@@ -387,7 +394,7 @@ public class Btree {
 			if (forWrite)
 				return;
 			forWrite = true;
-			ByteBuf buf = dest.adrForWrite(adr);
+			ByteBuf buf = dest.nodeForWrite(adr);
 			assert ! buf.isReadOnly();
 			slots = new Slots(buf);
 		}
@@ -479,7 +486,9 @@ public class Btree {
 			verify(nnodes == 0);
 			++nnodes;
 			root_ = dest.alloc(NODESIZE, Mmfile.OTHER);
-			new Slots(dest.adr(root_), Mode.CREATE);
+			new Slots(dest.node(root_), Mode.CREATE);
+			// doesn't need to be nodeForWrite because it's "private"
+			// i.e. nothing else knows about it
 			}
 		verify(root_ >= 0);
 		return root_;

@@ -15,9 +15,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.SuException;
 import suneido.util.ByteBuf;
 
-// TODO switch to lru instead of clock, as done with cSuneido
-// to avoid worst case scenario bugs
-
 /**
  * Memory mapped file access using Java NIO. Maps in 4mb chunks. A maximum of
  * 1gb is mapped at any one time. Chunks are unmapped as necessary roughly LRU
@@ -32,7 +29,7 @@ import suneido.util.ByteBuf;
  * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
-public class Mmfile implements Iterable<ByteBuf>, Destination {
+public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
 	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
@@ -141,6 +138,7 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 				fm[i].force();
 	}
 
+	@Override
 	synchronized public void close() {
 		Arrays.fill(fm, null); // might help gc
 		try {
@@ -172,10 +170,12 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		buf(FILESIZE_OFFSET).putInt(0, offsetToInt(size));
 	}
 
+	@Override
 	public long size() {
 		return file_size;
 	}
 
+	@Override
 	synchronized public long alloc(int n, byte type) {
 		verify(n < chunk_size);
 		n = align(n);
@@ -186,8 +186,7 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		int remaining = chunk_size - (int) (file_size % chunk_size);
 		verify(remaining >= OVERHEAD);
 		if (remaining < n + OVERHEAD) {
-			verify(type != FILLER); // type 0 is filler, filler should always
-			// fit
+			verify(type != FILLER); // type 0 is filler, filler should always fit
 			alloc(remaining - OVERHEAD, FILLER);
 			verify(file_size / chunk_size == chunk + 1);
 		}
@@ -205,12 +204,9 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
+	@Override
 	synchronized public ByteBuf adr(long offset) {
 		return buf(offset);
-	}
-
-	synchronized public ByteBuf adrForWrite(long offset) {
-		return adr(offset);
 	}
 
 	private ByteBuf buf(long offset) {
@@ -282,6 +278,7 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		return MmCheck.OK;
 	}
 
+	@Override
 	public int length(long offset) {
 		return length(buf(offset - HEADER));
 	}
@@ -302,16 +299,19 @@ public class Mmfile implements Iterable<ByteBuf>, Destination {
 		return file_size + HEADER;
 	}
 
+	@Override
 	public long first() {
 		return file_size <= FILEHDR ? 0 : FILEHDR + HEADER;
 	}
 
+	@Override
 	synchronized public void sync() {
 		for (MappedByteBuffer buf : fm)
 			if (buf != null)
 				buf.force();
 	}
 
+	@Override
 	public Destination unwrap() {
 		return this;
 	}

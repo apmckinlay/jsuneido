@@ -8,8 +8,7 @@ import java.nio.charset.Charset;
 import suneido.SuException;
 
 /**
- * A immutable wrapper for a slice of a ByteBuffer.
- * The ByteBuffer contents may be changed, but the ByteBuf itself is immutable.
+ * A wrapper for a slice of a ByteBuffer.
  * All get's and put's are absolute.
  * The position and limit of the ByteBuffer are only read at initialization,
  * it has no effect if they are changed later.
@@ -17,24 +16,23 @@ import suneido.SuException;
  * @author Andrew McKinlay
  */
 public class ByteBuf {
-
-	private final ByteBuffer buf;
-	private final int offset;
-	private final int size;
+	private volatile ByteBuffer buf;
+	private volatile int offset;
+	private volatile int size;
 
 	public ByteBuf(ByteBuffer buf) {
 		this(buf, buf.position());
 	}
 
 	public ByteBuf(ByteBuffer buf, int offset) {
-assert(buf.order() == ByteOrder.BIG_ENDIAN);
+		assert(buf.order() == ByteOrder.BIG_ENDIAN);
 		this.buf = buf;
 		this.offset = offset;
 		this.size = buf.limit() - offset;
 	}
 
 	public ByteBuf(ByteBuffer buf, int offset, int size) {
-assert(buf.order() == ByteOrder.BIG_ENDIAN);
+		assert(buf.order() == ByteOrder.BIG_ENDIAN);
 		this.buf = buf;
 		this.offset = offset;
 		this.size = size;
@@ -43,6 +41,11 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 
 	public static ByteBuf allocate(int capacity) {
 		return new ByteBuf(ByteBuffer.allocate(capacity)
+				.order(ByteOrder.BIG_ENDIAN));
+	}
+
+	public static ByteBuf allocateDirect(int capacity) {
+		return new ByteBuf(ByteBuffer.allocateDirect(capacity)
 				.order(ByteOrder.BIG_ENDIAN));
 	}
 
@@ -57,14 +60,14 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 	}
 
 	public ByteBuf slice(int index) {
-		if (index == 0)
-			return this;
+//		if (index == 0)
+//			return this; // this doesn't work with update
 		return new ByteBuf(buf, offset + index);
 	}
 
 	public ByteBuf slice(int index, int size) {
-		if (index == 0 && size == this.size)
-			return this;
+//		if (index == 0 && size == this.size)
+//			return this; // this doesn't work with update
 		return new ByteBuf(buf, offset + index, size);
 	}
 
@@ -120,8 +123,9 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 	}
 
 	public ByteBuf asReadOnlyBuffer() {
-		return new ByteBuf(buf.asReadOnlyBuffer()
-				.order(ByteOrder.BIG_ENDIAN), offset);
+		return new ByteBuf(
+				buf.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN),
+				offset);
 	}
 
 	public boolean isReadOnly() {
@@ -248,6 +252,17 @@ assert(buf.order() == ByteOrder.BIG_ENDIAN);
 		array = new byte[size];
 		get(0, array);
 		return array;
+	}
+
+	public boolean isDirect() {
+		return buf.isDirect();
+	}
+
+	public void update(ByteBuf b) {
+		// TODO this needs to be synchronized
+		this.buf = b.buf;
+		this.offset = b.offset;
+		this.size = b.size;
 	}
 
 }
