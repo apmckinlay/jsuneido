@@ -4,7 +4,6 @@ import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -49,8 +48,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public static final Transaction NULLTRAN = new NullTransaction();
 
 	final Shadows shadows = new Shadows();
-
-public final Queue<String> log = new ConcurrentLinkedQueue<String>();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -309,12 +306,12 @@ public final Queue<String> log = new ConcurrentLinkedQueue<String>();
 	private void writeBtreeNodes() {
 		for (Map.Entry<Long, ByteBuf> e : shadows.entrySet()) {
 			ByteBuf from = e.getValue();
-			if (from.isDirect() || from.isReadOnly())
+			if (from.isReadOnly())
 				continue;
 			Long offset = e.getKey();
 			trans.addShadows(this, offset);
 			ByteBuf to = db.dest.adr(offset);
-			to.put(0, from.array());
+			to.put(0, from);
 		}
 	}
 
