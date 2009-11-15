@@ -95,20 +95,16 @@ public class Transactions {
 			trans2.peek().abort();
 	}
 
-	/** Called only by {@Transaction.writeBtreeNodes}
+	/** Called only by {@link Transaction.writeBtreeNodes}
 	 * Gives other outstanding transactions shadow copies of any btree nodes
 	 * that this transaction is going to update so they don't see the updates
 	 * i.e. to implement snapshot isolation
 	 */
-	synchronized void addShadows(Transaction tcompleting, Shadows shadows) {
-		for (Map.Entry<Long, ByteBuf> e : shadows.entrySet()) {
-			Long offset = e.getKey();
-			ByteBuf copy = null;
-			for (Transaction t : trans2) {
-				if (t != tcompleting)
-					copy = t.shadows.redirect(db, offset, copy);
-			}
-		}
+	synchronized void addShadows(Transaction tcompleting, Long offset) {
+		ByteBuf copy = null;
+		for (Transaction t : trans2)
+			if (t != tcompleting)
+				copy = t.shadows.redirect(db.dest, offset, copy);
 	}
 
 	synchronized public Transaction readLock(Transaction tran, long offset) {

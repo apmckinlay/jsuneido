@@ -105,7 +105,7 @@ public class Record
 
 	// position must be set correctly
 	public Record(ByteBuffer buf) {
-		this(new ByteBuf(buf));
+		this(ByteBuf.wrap(buf));
 	}
 
 	public Record(ByteBuf buf, long dboffset) {
@@ -126,7 +126,7 @@ public class Record
 			rep = new IntRep();
 			break;
 		default:
-			throw new SuException("bad record type");
+			throw new SuException("bad record type: " + getType());
 		}
 	}
 
@@ -170,15 +170,6 @@ public class Record
 			assert size >= 0;
 			assert offset + size <= limit;
 		}
-	}
-
-	public Object toObject() {
-		return dboffset == 0 ? array() : Integer.valueOf(Mmfile
-				.offsetToInt(dboffset));
-	}
-
-	private byte[] array() {
-		return buf.array(bufSize());
 	}
 
 	public static Record fromObject(Mmfile mmf, Object ob) {
@@ -476,7 +467,7 @@ public class Record
 		else {
 			// PERF do without allocating a temp record
 			// maybe bulk copy then adjust like insert
-			Record dstRec = new Record(new ByteBuf(dst), dstsize);
+			Record dstRec = new Record(ByteBuf.wrap(dst), dstsize);
 			for (int i = 0; i < getNfields(); ++i)
 				dstRec.add(buf, rep.getOffset(i), fieldSize(i));
 			dst.position(dst.position() + dstsize);

@@ -57,8 +57,6 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	final static byte COMMIT = 2;
 	final static byte SESSION = 3;
 	final static byte OTHER = 4;
-	private final static ByteBuf EMPTY_BUF = ByteBuf.empty();
-
 	private static enum MmCheck {
 		OK, ERR, EOF
 	};
@@ -223,7 +221,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 				hi_chunk = chunk;
 		}
 		last_used[chunk] = ++clock;
-		return new ByteBuf(fm[chunk], (int) (offset % chunk_size));
+		return ByteBuf.wrap(fm[chunk], (int) (offset % chunk_size));
 	}
 
 	private void map(int chunk) {
@@ -322,7 +320,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 	private class MmfileIterator implements Iterator<ByteBuf> {
 		private long offset = BEGIN_OFFSET;
-		private boolean err = false;
+		//private boolean err = false;
 
 		public boolean hasNext() {
 			return offset < file_size;
@@ -337,11 +335,11 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 				case OK:
 					break;
 				case ERR:
-					err = true;
+					//err = true;
 					// fall thru
 				case EOF:
 					offset = end_offset(); // eof or bad block
-					return EMPTY_BUF;
+					return ByteBuf.empty();
 				}
 			} while (type(p) == FILLER);
 			return adr(p);
@@ -366,7 +364,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 	private class MmfileReverseIterator implements Iterator<ByteBuf> {
 		private long offset = end_offset();
-		private boolean err = false;
+		//private boolean err = false;
 
 		public boolean hasNext() {
 			return offset > FILEHDR + OVERHEAD;
@@ -377,20 +375,20 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 				offset -= OVERHEAD;
 				int n = buf(offset).getInt(0) ^ (int) offset;
 				if (n > chunk_size || n > offset) {
-					err = true;
+					//err = true;
 					offset = BEGIN_OFFSET;
-					return EMPTY_BUF;
+					return ByteBuf.empty();
 				}
 				offset -= n;
 				switch (check(offset)) {
 				case OK:
 					break;
 				case ERR:
-					err = true;
+					//err = true;
 					// fall thru
 				case EOF:
 					offset = BEGIN_OFFSET; // eof or bad block
-					return EMPTY_BUF;
+					return ByteBuf.empty();
 				}
 			} while (type(offset) == FILLER);
 			return adr(offset);

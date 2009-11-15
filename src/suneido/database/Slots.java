@@ -11,6 +11,7 @@ import suneido.util.ByteBuf;
  * followed by a {@link Record} holding the slots.
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
  */
@@ -29,11 +30,11 @@ public class Slots extends AbstractList<Slot> {
 	public Slots(ByteBuf buf, Mode mode) {
 		this.buf = buf;
 		if (mode == Mode.OPEN)
-			rec = new Record(buf.slice(REC_OFFSET));
+			rec = new Record(buf.slice(REC_OFFSET, BUFREC_SIZE));
 		else { // mode == CREATE
 			setNext(0);
 			setPrev(0);
-			rec = new Record(buf.slice(REC_OFFSET), BUFREC_SIZE);
+			rec = new Record(buf.slice(REC_OFFSET, BUFREC_SIZE), BUFREC_SIZE);
 		}
 	}
 

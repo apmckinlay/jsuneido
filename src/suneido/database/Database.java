@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
-	final Destination dest;
+	public final Destination dest;
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
 	boolean loading = false;
@@ -187,7 +187,7 @@ public class Database {
 			int table_num, String columns) {
 		BtreeIndex bti = new BtreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
-assert !(bti.getDest() instanceof TranDest);
+assert !(bti.getDest() instanceof DestTran);
 		btreeIndexes = btreeIndexes.with(table_num + ":" + columns, bti);
 	}
 

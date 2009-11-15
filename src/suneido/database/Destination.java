@@ -13,7 +13,7 @@ import suneido.util.ByteBuf;
  */
 public abstract class Destination {
 
-	abstract long alloc(int size, byte type);
+	public abstract long alloc(int size, byte type);
 
 	abstract ByteBuf adr(long offset);
 
