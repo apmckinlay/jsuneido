@@ -7,42 +7,28 @@ import suneido.util.ByteBuf;
  *
  * @author Andrew McKinlay
  */
-public class TranDest extends Destination {
-	private final Transaction tran;
+public class DestTran extends Destination {
+	/*private*/ final Transaction tran;
 	private final Destination dest;
 
-	TranDest(Transaction tran, Destination dest) {
+	public DestTran(Transaction tran, Destination dest) {
 		this.tran = tran;
 		this.dest = dest;
-assert ! (dest instanceof TranDest);
+assert ! (dest instanceof DestTran);
 	}
 
 	@Override
 	public ByteBuf node(long offset) {
 		if (tran.isReadWrite())
 			tran.readLock(offset);
-		ByteBuf buf = tran.shadows.get(offset);
-		if (buf == null) {
-			buf = dest.adr(offset);
-			assert buf.isDirect(); // shadowing depends on this
-			tran.shadows.put(offset, buf);
-		}
-		return buf;
+		return tran.shadows.node(this, offset); // should be dest
 	}
 
 	@Override
 	public ByteBuf nodeForWrite(long offset) {
 		verify(tran.isReadWrite());
 		tran.writeLock(offset);
-		ByteBuf buf = tran.shadows.get(offset);
-		if (buf == null) {
-			buf = dest.adr(offset);
-		} else if (! buf.isDirect() && ! buf.isReadOnly()) {
-			return buf;
-		}
-		buf = buf.copy(Btree.NODESIZE);
-		tran.shadows.put(offset, buf);
-		return buf;
+		return tran.shadows.nodeForWrite(this, offset); // should be dest
 	}
 
 	@Override

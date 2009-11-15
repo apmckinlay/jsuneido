@@ -5,10 +5,12 @@ import java.nio.ByteBuffer;
 import suneido.SuException;
 
 /**
- * Holds an index node "slot" while in memory. Comparisons are by key only. (not
- * addresses) Used with {@link Slots}
+ * Holds an index node "slot" while in memory.
+ * Comparisons are by key only. (not addresses)
+ * Used with {@link Slots}
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
+ *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>

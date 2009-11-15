@@ -91,7 +91,7 @@ public class RecordTest {
 		buf = ByteBuffer.allocate(r.packSize())
 				.order(ByteOrder.BIG_ENDIAN);
 		r.pack(buf);
-		Record r2 = new Record(new ByteBuf(buf, 0));
+		Record r2 = new Record(ByteBuf.wrap(buf, 0));
 		assertEquals(r.packSize(), r2.packSize());
 		assertEquals(r2.bufSize(), r2.packSize());
 		assertEquals(data, r2.getString(0));

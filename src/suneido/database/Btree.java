@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.Suneido.verify;
+import static suneido.TestConcurrency.assert2;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
 import suneido.SuException;
@@ -270,6 +271,12 @@ public class Btree {
 		LeafNode(long adr, Mode mode) {
 			this.adr = adr;
 			forWrite = mode == Mode.CREATE;
+try {
+if (dest instanceof DestTran)
+((DestTran) dest).tran.log.add("LeafNode " + adr);
+} catch (SuException e) {
+// ignore
+}
 			ByteBuf buf = forWrite ? dest.nodeForWrite(adr) : dest.node(adr);
 			slots = new Slots(buf, mode);
 			//assert isValid(mode);
@@ -279,7 +286,8 @@ public class Btree {
 				return;
 			forWrite = true;
 			ByteBuf buf = dest.nodeForWrite(adr);
-			assert ! buf.isReadOnly();
+assert2(dest instanceof DestTran);
+assert2(! buf.isDirect() && ! buf.isReadOnly());
 //Slots old = slots;
 			slots = new Slots(buf);
 //assert(old.equals(slots));
@@ -298,8 +306,16 @@ public class Btree {
 			{
 			forWrite();
 			int i = lowerBound(slots, x);
-			if (i >= slots.size() || ! slots.get(i).equals(x))
+			if (i >= slots.size() || ! slots.get(i).equals(x)) {
+if (dest instanceof DestTran) {
+System.out.println("erase " + x + " FAILED");
+System.out.println("slots size " + slots.size() + " adr " + adr);
+if (slots.size() > 0) System.out.println("slots[0] " + slots.get(0));
+for (String s : ((DestTran) dest).tran.log)
+System.out.println(s);
+}
 				return false;
+			}
 			slots.remove(i);
 			return true;
 			}
@@ -578,11 +594,23 @@ public class Btree {
 			adr = root();
 			for (int i = 0; i < treelevels; ++i)
 				adr = new TreeNode(adr).find(key);
+try {
+if (dest instanceof DestTran)
+((DestTran) dest).tran.log.add("seek adr " + adr);
+} catch (SuException e) {
+// ignore
+}
 			LeafNode leaf = new LeafNode(adr);
 			if (treelevels == 0 && leaf.slots.size() == 0) {
 				adr = 0; // empty btree
 				return false;
 			}
+try {
+if (dest instanceof DestTran)
+((DestTran) dest).tran.log.add("seek adr " + adr + " slots[0] " + leaf.slots.get(0));
+} catch (SuException e) {
+// ignore
+}
 			int t = lowerBound(leaf.slots, new Slot(key));
 			valid = modified;
 			boolean found;

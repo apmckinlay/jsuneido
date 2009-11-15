@@ -4,6 +4,7 @@ import static suneido.Suneido.verify;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -29,7 +30,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private boolean inConflict = false;
 	private boolean outConflict = false;
 	private String conflict = null;
-	private final long asof;
+	final long asof;
 	private long commitTime = Long.MAX_VALUE;
 	String sessionId = "session";
 	private final Tables tables;
@@ -47,9 +48,9 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
-	// needs to be concurrent because complete of other transactions
-	// will insert pre-update copies into here so we don't see their changes
 	final Shadows shadows = new Shadows();
+
+public final Queue<String> log = new ConcurrentLinkedQueue<String>();
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -189,7 +190,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			bti = btreeIndexes.get(key);
 			if (bti == null)
 				return null;
-			bti = new BtreeIndex(bti, new TranDest(this, bti.getDest()));
+			bti = new BtreeIndex(bti, new DestTran(this, bti.getDest()));
 			btreeIndexUpdates.put(key, bti);
 		}
 		return bti;
@@ -197,7 +198,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// used for schema changes
 	public void addBtreeIndex(BtreeIndex bti) {
-		bti.setDest(new TranDest(this, bti.getDest()));
+		bti.setDest(new DestTran(this, bti.getDest()));
 		btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
 	}
 
@@ -306,12 +307,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void writeBtreeNodes() {
-		trans.addShadows(this, shadows);
 		for (Map.Entry<Long, ByteBuf> e : shadows.entrySet()) {
 			ByteBuf from = e.getValue();
-			if (from.isReadOnly())
+			if (from.isDirect() || from.isReadOnly())
 				continue;
-			ByteBuf to = db.dest.adr(e.getKey());
+			Long offset = e.getKey();
+			trans.addShadows(this, offset);
+			ByteBuf to = db.dest.adr(offset);
 			to.put(0, from.array());
 		}
 	}

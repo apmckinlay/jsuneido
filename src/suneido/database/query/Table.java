@@ -208,6 +208,7 @@ public class Table extends Query {
 			rewound = true;
 			return null;
 		}
+tran.log.add("get iter keyadr " + (iter.keyadr() >> 2));
 		Row row = new Row(iter.cur().key, theDB.input(iter.keyadr()));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
