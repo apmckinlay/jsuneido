@@ -4,7 +4,6 @@ package suneido;
 
 import static suneido.database.Database.theDB;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,18 +19,13 @@ import suneido.util.ByteBuf;
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
 	private static final int NTHREADS = 2;
-	private static final int NREPS = 100000;
+	private static final int NREPS = 1000000;
 	private static final int QUEUE_SIZE = 100;
-	private static boolean setup = true;
 
 	static final Random rand = new Random();
 
 	synchronized static int random(int n) {
 		return rand.nextInt(n);
-	}
-
-	public static void assert2(boolean condition) {
-		assert setup || condition;
 	}
 
 	public static void sleep(int nanos) {
@@ -45,14 +39,12 @@ public class TestConcurrency {
 	public static void main(String[] args) {
 		Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
 		theDB = new Database(mmf, Mode.CREATE);
-		setup = false;
 
 		Runnable[] actions = new Runnable[] {
-//			new MmfileTest(),
-//			new ByteBufTest(),
-//			new TransactionTest(),
+			new MmfileTest(),
+			new TransactionTest(),
 			new NextNum("nextnum"),
-//			new NextNum("nextnum2"), // currently failing with two NextNum's
+			new NextNum("nextnum2"),
 		};
 		final int na = actions.length;
 
@@ -121,60 +113,6 @@ public class TestConcurrency {
 		}
 	}
 
-	static class ByteBufTest implements Runnable {
-		final int SIZE = 10;
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE).putInt(0, 0);
-		final Object commitLock = new Object();
-		final AtomicInteger num = new AtomicInteger();
-		final Set<ByteBuf> bufs = new TreeSet<ByteBuf>(new Cmp());
-
-		@Override
-		public void run() {
-			if (random(2) == 0) {
-				ByteBuf buf;
-				synchronized(commitLock) {
-					buf = ByteBuf.indirect(ByteBuf.wrap(buffer));
-					bufs.add(buf);
-				}
-				try {
-					int n = buf.getInt(0);
-					for (int i = 0; i < 10; ++i) {
-						Thread.yield();
-						assert n == buf.getInt(0);
-					}
-				} finally {
-					synchronized(commitLock) {
-						bufs.remove(buf);
-					}
-				}
-			} else {
-				synchronized(commitLock) {
-					ByteBuf mybuf = ByteBuf.wrap(buffer).copy(SIZE);
-					mybuf.putInt(0, num.incrementAndGet());
-					ByteBuf copy = null;
-					for (ByteBuf b : bufs) {
-						if (b.isDirect()) {
-							if (copy == null)
-								copy = ByteBuf.wrap(buffer).readOnlyCopy(SIZE);
-							b.update(copy);
-						}
-					}
-					ByteBuf to = ByteBuf.wrap(buffer);
-					to.put(0, mybuf.array());
-				}
-			}
-		}
-
-		static class Cmp implements Comparator<ByteBuf> {
-			@Override
-			public int compare(ByteBuf o1, ByteBuf o2) {
-				int i = System.identityHashCode(o1);
-				int j = System.identityHashCode(o2);
-				return i == j ? 0 : i < j ? -1 : +1;
-			}
-		}
-	}
-
 	static class TransactionTest implements Runnable {
 		final long node = theDB.dest.alloc(4096, (byte) 1);
 		AtomicInteger nreps = new AtomicInteger();
@@ -220,7 +158,7 @@ public class TestConcurrency {
 		}
 		@Override
 		public String toString() {
-			return nreps.get() == 0 ? "" :
+			return nreps.get() == 0 ? "" : "TransactionTest " +
 					(nfailed.get() * 100 / nreps.get()) + "% failed "
 					+ "(" + nfailed + " / " + nreps + ")";
 
@@ -246,7 +184,6 @@ public class TestConcurrency {
 			try {
 				Row r = q.get(Dir.NEXT);
 				Record rec = r.getFirstData();
-t.log.add("rec.off " + (rec.off() >> 2));
 				t.updateRecord(rec.off(), rec);
 			} catch (SuException e) {
 				if (! e.toString().contains("conflict"))
@@ -258,7 +195,7 @@ t.log.add("rec.off " + (rec.off() >> 2));
 		}
 		@Override
 		public String toString() {
-			return nreps.get() == 0 ? "" :
+			return nreps.get() == 0 ? "" : "NextNum " +
 					(nfailed.get() * 100 / nreps.get()) + "% failed "
 					+ "(" + nfailed + " / " + nreps + ")";
 

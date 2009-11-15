@@ -1,7 +1,13 @@
 package suneido.util;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+
+import javax.annotation.concurrent.Immutable;
+
+import suneido.SuException;
 
 /**
  * Abstract base class for wrapper for ByteBuffer
@@ -10,41 +16,59 @@ import java.nio.ByteOrder;
  *
  * @author Andrew McKinlay
  */
-public abstract class ByteBuf {
+@Immutable
+public class ByteBuf {
+	private final ByteBuffer buf;
+	private final int offset;
+	private final int size;
+
+	private ByteBuf(ByteBuffer buf) {
+		this(buf, buf.position());
+	}
+
+	private ByteBuf(ByteBuffer buf, int offset) {
+		this(buf, offset, buf.limit() - offset);
+	}
+
+	private ByteBuf(ByteBuffer buf, int offset, int size) {
+		assert buf.order() == ByteOrder.BIG_ENDIAN;
+		assert 0 <= offset && offset <= buf.limit();
+		assert size <= buf.limit() - offset;
+		assert size >= 0;
+		this.buf = buf;
+		this.offset = offset;
+		this.size = size;
+	}
 
 	public static ByteBuf allocate(int capacity) {
-		return new ByteBufNormal(ByteBuffer.allocate(capacity)
+		return new ByteBuf(ByteBuffer.allocate(capacity)
 				.order(ByteOrder.BIG_ENDIAN));
 	}
 
 	public static ByteBuf wrap(byte[] array) {
-		return new ByteBufNormal(ByteBuffer.wrap(array)
+		return new ByteBuf(ByteBuffer.wrap(array)
 				.order(ByteOrder.BIG_ENDIAN));
 	}
 
 	public static ByteBuf wrap(byte[] array, int offset, int len) {
-		return new ByteBufNormal(ByteBuffer.wrap(array, offset, len)
+		return new ByteBuf(ByteBuffer.wrap(array, offset, len)
 				.order(ByteOrder.BIG_ENDIAN));
 	}
 
 	public static ByteBuf wrap(ByteBuffer buf) {
-		return new ByteBufNormal(buf, buf.position());
+		return new ByteBuf(buf, buf.position());
 	}
 
 	public static ByteBuf wrap(ByteBuffer buf, int offset) {
-		return new ByteBufNormal(buf, offset);
+		return new ByteBuf(buf, offset);
 	}
 
 	public static ByteBuf wrap(ByteBuffer buf, int offset, int size) {
-		return new ByteBufNormal(buf, offset, size);
-	}
-
-	public static ByteBuf indirect(ByteBuf buf) {
-		return new ByteBufIndirect(buf);
+		return new ByteBuf(buf, offset, size);
 	}
 
 	private static class Empty {
-		public static final ByteBuf EMPTY = new ByteBufNormal(
+		public static final ByteBuf EMPTY = new ByteBuf(
 				ByteBuffer.allocate(0)
 					.asReadOnlyBuffer()
 					.order(ByteOrder.BIG_ENDIAN), 0);
@@ -54,91 +78,176 @@ public abstract class ByteBuf {
 		return Empty.EMPTY;
 	}
 
-	public abstract ByteBuf slice(int index);
+	public ByteBuf slice(int index) {
+		return slice(index, size - index);
+	}
 
-	public abstract ByteBuf slice(int index, int size);
+	public ByteBuf slice(int index, int size) {
+		if (index == 0 && size == this.size)
+			return this; // requires immutable
+		assert 0 <= index && index <= this.size;
+		assert 0 <= size && size <= this.size - index;
+		return new ByteBuf(buf, offset + index, size);
+	}
 
-	public abstract ByteBuf copy(int size);
+	public ByteBuf copy(int size) {
+		return new ByteBuf(copyByteBuffer(size));
+	}
 
-	public abstract ByteBuf readOnlyCopy(int size);
+	public ByteBuf readOnlyCopy(int size) {
+		return new ByteBuf(
+				copyByteBuffer(size)
+					.asReadOnlyBuffer()
+					.order(ByteOrder.BIG_ENDIAN));
+	}
 
-	public abstract ByteBuffer getByteBuffer();
+	private ByteBuffer copyByteBuffer(int size) {
+		ByteBuffer dst = ByteBuffer.allocate(size);
+		dst.put(duplicate(0, size));
+		dst.position(0);
+		dst.order(ByteOrder.BIG_ENDIAN);
+		return dst;
+	}
 
-	public abstract ByteBuffer getByteBuffer(int index);
+	public ByteBuffer getByteBuffer() {
+		return getByteBuffer(0, size);
+	}
+	public ByteBuffer getByteBuffer(int index) {
+		return getByteBuffer(index, size - index);
+	}
+	public ByteBuffer getByteBuffer(int index, int size) {
+		return duplicate(index, size).slice();
+		// TODO eliminate slice (needed to make position 0)
+	}
 
-	// NOTE: position is not 0
-	public abstract ByteBuffer getByteBuffer(int index, int size);
+	private ByteBuffer duplicate() {
+		return duplicate(0, size);
+	}
+	private ByteBuffer duplicate(int index) {
+		return duplicate(index, size - index);
+	}
+	private ByteBuffer duplicate(int index, int size) {
+		ByteBuffer buffer = buf.duplicate();
+		buffer.position(offset + index);
+		buffer.limit(offset + index + size);
+		buffer.order(ByteOrder.BIG_ENDIAN);
+		return buffer;
+	}
 
-	public abstract ByteBuf asReadOnlyBuffer();
+	public ByteBuf asReadOnlyBuffer() {
+		return new ByteBuf(
+				buf.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN),
+				offset);
+	}
 
-	public abstract boolean isReadOnly();
+	public boolean isReadOnly() {
+		return buf.isReadOnly();
+	}
 
-	public abstract int size();
+	public boolean isDirect() {
+		return buf.isDirect();
+	}
 
-	public abstract ByteOrder order();
+	public int size() {
+		return size;
+	}
 
-	public abstract byte get(int index);
+	public ByteOrder order() {
+		return buf.order();
+	}
+
+	public byte get(int index) {
+		return buf.get(offset + index);
+	}
 
 	public ByteBuf put(int index, byte b) {
-		throw new UnsupportedOperationException();
+		buf.put(offset + index, b);
+		return this;
 	}
 
-	public abstract short getShort(int index);
+	public short getShort(int index) {
+		return buf.getShort(offset + index);
+	}
 
 	public ByteBuf putShort(int index, short value) {
-		throw new UnsupportedOperationException();
+		buf.putShort(offset + index, value);
+		return this;
 	}
 
-	public abstract short getShortLE(int index);
+	public short getShortLE(int index) {
+		return (short) ((buf.get(offset + index) & 0xff)
+				| (buf.get(offset + index + 1) << 8));
+	}
 
 	public ByteBuf putShortLE(int index, short value) {
-		throw new UnsupportedOperationException();
+		buf.put(offset + index, (byte) (value & 0xff));
+		buf.put(offset + index + 1, (byte) (value >>> 8));
+		return this;
 	}
 
-	public abstract int getInt(int index);
+	public int getInt(int index) {
+		return buf.getInt(offset + index);
+	}
 
 	public ByteBuf putInt(int index, int value) {
-		throw new UnsupportedOperationException();
+		buf.putInt(offset + index, value);
+		return this;
 	}
 
-	public abstract int getIntLE(int index);
+	public int getIntLE(int index) {
+		return ((getShortLE(index) & 0xffff)
+				| (getShortLE(index + 2) << 16));
+	}
 
 	public ByteBuf putIntLE(int index, int value) {
-		throw new UnsupportedOperationException();
+		putShortLE(index, (short) (value & 0xffff));
+		putShortLE(index + 2, (short) (value >>> 16));
+		return this;
 	}
 
-	public abstract long getLong(int index);
+	public long getLong(int index) {
+		return buf.getLong(offset + index);
+	}
 
 	public ByteBuf putLong(int index, long value) {
-		throw new UnsupportedOperationException();
+		buf.putLong(offset + index, value);
+		return this;
 	}
 
 	public ByteBuf put(int index, byte[] src) {
-		throw new UnsupportedOperationException();
+		for (byte b : src)
+			buf.put(offset + index++, b);
+		return this;
 	}
 
-	public abstract ByteBuf get(int index, byte[] dst);
+	public ByteBuf get(int index, byte[] dst) {
+		int j = offset + index;
+		for (int i = 0; i < dst.length; ++i)
+			dst[i] = buf.get(j++);
+		return this;
+	}
+
+	public ByteBuf put(int index, ByteBuf src) {
+		duplicate(index).put(src.duplicate());
+		return this;
+	}
+
+	private static final Charset charset = Charset.forName("ISO-8859-1");
 
 	public ByteBuf putString(int index, String s) {
-		throw new UnsupportedOperationException();
+		try {
+			put(index, s.getBytes("ISO-8859-1"));
+		} catch (UnsupportedEncodingException e) {
+			throw new SuException("error packing string: ", e);
+		}
+		return this;
 	}
 
-	public abstract String getString(int index);
-
-	public byte[] array() {
-		return array(size());
+	public String getString(int index) {
+		ByteBuffer buf2 = buf.duplicate();
+		buf2.position(offset + index);
+		return charset.decode(buf2).toString();
 	}
-
-	public void update(ByteBuf newbuf) {
-		throw new UnsupportedOperationException();
-	}
-
-	/** @returns An array containing the initial size bytes of the buffer.
-	 * Returns the actual backing array when possible, otherwise a copy.
-	 */
-	public abstract byte[] array(int size);
-
-	public abstract boolean isDirect();
 
 	@Override
 	public synchronized boolean equals(Object other) {
