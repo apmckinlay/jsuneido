@@ -9,17 +9,17 @@ import com.google.common.collect.*;
 /** Synchronized by {@link Transactions} which is the only user */
 @NotThreadSafe
 public class Locks {
-
 	private final SetMultimap<Transaction, Long> locksRead = HashMultimap.create();
 	private final SetMultimap<Transaction, Long> locksWrite = HashMultimap.create();
 	private final SetMultimap<Long, Transaction> readLocks = HashMultimap.create();
 	private final Map<Long, Transaction> writeLocks = new HashMap<Long, Transaction>();
 	private final SetMultimap<Long, Transaction> writes = HashMultimap.create();
 
-	/** @return A transaction if it has a write lock on this adr,
-	 * otherwise null
+	/** Add a read lock, unless there's already a write lock.
+	 *  @return A transaction if it has a write lock on this adr, else null
 	 */
 	public Transaction addRead(Transaction tran, long adr) {
+		assert tran.isReadWrite();
 		if (tran.isEnded())
 			return null;
 		Transaction prev = writeLocks.get(adr);
@@ -35,6 +35,7 @@ public class Locks {
 	 *  NOTE: The set may contain the locking transaction.
 	 */
 	public ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
+		assert tran.isReadWrite();
 		if (tran.isEnded())
 			return null;
 		Transaction prev = writeLocks.get(adr);
@@ -90,14 +91,18 @@ public class Locks {
 		assert locksWrite.isEmpty();
 	}
 
+	public boolean contains(Transaction tran) {
+		return locksRead.containsKey(tran) || locksWrite.containsKey(tran);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Locks");
 		for (Map.Entry<Long, Transaction> e : writeLocks.entrySet())
-			sb.append(" " + e.getValue().num + "w" + e.getKey());
+			sb.append(" " + e.getValue() + "w" + e.getKey());
 		for (Map.Entry<Long, Transaction> e : readLocks.entries())
-			sb.append(" " + e.getValue().num + "r" + e.getKey());
+			sb.append(" " + e.getValue() + "r" + e.getKey());
 		return sb.toString();
 	}
 

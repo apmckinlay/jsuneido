@@ -9,6 +9,11 @@ import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Methods to add/update/remove records.
+ *
+ * @author Andrew McKinlay
+ */
 @ThreadSafe
 class Data {
 

@@ -29,7 +29,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private boolean inConflict = false;
 	private boolean outConflict = false;
 	private String conflict = null;
-	final long asof;
+	private final long asof;
+	public final int num;
 	private long commitTime = Long.MAX_VALUE;
 	String sessionId = "session";
 	private final Tables tables;
@@ -43,7 +44,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private Table remove_table = null;
 	static final Object commitLock = new Object();
 
-	public final int num;
 	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
@@ -83,14 +83,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		this.tables = null;
 		this.tabledata = null;
 		this.btreeIndexes = null;
-		readonly = true;
+		readonly = false;
 		asof = num = 0;
 	}
 
 	@Override
 	public String toString() {
-		return "Transaction " + (readonly ? "read " : "update ") +
-				num + " asof " + asof;
+		return "T" + (readonly ? "r" : "w") + num;
 	}
 
 	public boolean isReadonly() {
@@ -253,7 +252,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		ended = true;
 	}
 
-	private void abortThrow(String conflict) {
+	void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
 		throw new SuException("transaction " + conflict);

@@ -3,32 +3,36 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import suneido.util.ByteBuf;
 
-/** A wrapper for another Destination that uses nodeForWrite to copy-on-write
+/**
+ * Wraps another Destination and handles shadowing
  *
  * @author Andrew McKinlay
  */
 public class DestTran extends Destination {
-	/*private*/ final Transaction tran;
+	private final Transaction tran;
 	private final Destination dest;
 
 	public DestTran(Transaction tran, Destination dest) {
 		this.tran = tran;
 		this.dest = dest;
-assert ! (dest instanceof DestTran);
+		assert ! (dest instanceof DestTran);
 	}
 
 	@Override
 	public ByteBuf node(long offset) {
 		if (tran.isReadWrite())
 			tran.readLock(offset);
-		return tran.shadows.node(this, offset); // should be dest
+		return tran.shadows.node(dest, offset);
 	}
 
 	@Override
 	public ByteBuf nodeForWrite(long offset) {
 		verify(tran.isReadWrite());
 		tran.writeLock(offset);
-		return tran.shadows.nodeForWrite(this, offset); // should be dest
+		ByteBuf buf = tran.shadows.nodeForWrite(dest, offset);
+		if (buf == null)
+			tran.abortThrow("write-write conflict with completed transaction");
+		return buf;
 	}
 
 	@Override
