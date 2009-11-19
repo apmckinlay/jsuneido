@@ -181,7 +181,7 @@ public class Btree {
 		}
 		// erase the key and data from the leaf
 		LeafNode leaf = new LeafNode(off);
-		if (! leaf.erase(new Slot(key)))
+		if (! leaf.remove(new Slot(key)))
 			return false;
 		if (! leaf.isEmpty() || treelevels == 0)
 			return true;	// this is the usual path
@@ -291,7 +291,7 @@ public class Btree {
 				return Insert.WONT_FIT;
 			return Insert.OK;
 			}
-		boolean erase(Slot x)
+		boolean remove(Slot x)
 			{
 			forWrite();
 			int i = lowerBound(slots, x);
@@ -414,10 +414,6 @@ public class Btree {
 		void erase(Record key, long adr) {
 			// NOTE: erases the first key >= key
 			// this is so Btree erase can use target key
-			//			if (slots.size() == 0) {
-			//				slots.setNext(0);
-			//				return false;
-			//			}
 			forWrite();
 			if (slots.size() == 0) {
 				slots.setNext(0);
@@ -440,7 +436,7 @@ public class Btree {
 			else if (key.compareTo(slots.back().key) > 0)
 				percent = 25;
 			long leftoff = dest.alloc(NODESIZE, Mmfile.OTHER);
-			TreeNode left = new TreeNode(leftoff, Mode.CREATE); // create new treenode
+			TreeNode left = new TreeNode(leftoff, Mode.CREATE);
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first part of right keys to left

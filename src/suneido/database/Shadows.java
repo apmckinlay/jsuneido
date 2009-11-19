@@ -25,16 +25,17 @@ public class Shadows {
 
 	public synchronized ByteBuf nodeForWrite(Destination dest, long offset) {
 		ByteBuf buf = shadows.get(offset);
-		if (buf == null)
-			buf = dest.adr(offset);
-		else if (!buf.isReadOnly())
+		if (buf == null) {
+			buf = dest.adr(offset).copy(Btree.NODESIZE);
+			shadows.put(offset, buf);
 			return buf;
-		buf = buf.copy(Btree.NODESIZE);
-		shadows.put(offset, buf);
-		return buf;
+		} else if (!buf.isReadOnly())
+			return buf;
+		else
+			return null; // write conflict - shadowed so another tran wrote it
 	}
 
-	public synchronized ByteBuf redirect(Destination dest, Long offset, ByteBuf copy) {
+	public synchronized ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
 		assert Thread.holdsLock(Transaction.commitLock);
 		ByteBuf b = shadows.get(offset);
 		if (b == null) {

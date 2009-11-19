@@ -1,7 +1,5 @@
 package suneido.database.query;
 
-import static suneido.database.server.Command.theDbms;
-
 import java.util.List;
 
 import suneido.SuException;
@@ -25,10 +23,11 @@ public class Update extends QueryAction {
 
 	@Override
 	public String toString() {
-		String s = "UPDATE " + source + " SET ";
+		StringBuilder sb = new StringBuilder();
+		sb.append("UPDATE ").append(source).append(" SET ");
 		for (int i = 0; i < fields.size(); ++i)
-			s += fields.get(i) + "=" + exprs.get(i) + ", ";
-		return s.substring(0, s.length() - 2);
+			sb.append(fields.get(i)).append("=").append(exprs.get(i)).append(", ");
+		return sb.substring(0, sb.length() - 2);
 	}
 
 	@Override
@@ -53,7 +52,7 @@ public class Update extends QueryAction {
 			for (int i = 0; i < fields.size(); ++i)
 				surec.put(fields.get(i), exprs.get(i).eval(hdr, row));
 			Record newrec = surec.toDbRecord(hdr);
-			theDbms.update(tran, row.getFirstData().off(), newrec);
+			tran.updateRecord(row.getFirstData().off(), newrec);
 		}
 		return n;
 	}

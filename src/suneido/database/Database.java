@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
+ * See also {@link Schema} and {@link Data}
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  *
  * @author Andrew McKinlay
@@ -24,12 +25,12 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
-	public final Destination dest;
+	public final Destination dest; // used by tests
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
 	boolean loading = false;
 	private byte output_type = Mmfile.DATA;
-	public volatile Tables tables = new Tables(); // depends on Tables being immutable
+	private volatile Tables tables = new Tables(); // depends on Tables being immutable
 	private volatile PersistentMap<Integer, TableData> tabledata = null;
 	private volatile PersistentMap<String, BtreeIndex> btreeIndexes =
 			PersistentMap.empty();
@@ -187,7 +188,6 @@ public class Database {
 			int table_num, String columns) {
 		BtreeIndex bti = new BtreeIndex(dest,
 				find(NULLTRAN, indexes_index, key(table_num, columns)));
-assert !(bti.getDest() instanceof DestTran);
 		btreeIndexes = btreeIndexes.with(table_num + ":" + columns, bti);
 	}
 
@@ -313,7 +313,7 @@ assert !(bti.getDest() instanceof DestTran);
 			indexes.add(new Index(r, icols, columns.nums(icols),
 					getForeignKeys(tran, tablename, icols)));
 			if (btis != null)
-				btis.add(new BtreeIndex(dest, r));
+				btis.add(new BtreeIndex(dest, r)); // TODO check use of dest
 		}
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));
@@ -332,11 +332,6 @@ assert !(bti.getDest() instanceof DestTran);
 
 	private Record key(String name, String columns) {
 		return new Record().add(name).add(columns);
-	}
-
-	// only used by tests
-	public String schema(String table) {
-		return tables.get(table).schema();
 	}
 
 	// views ========================================================
@@ -524,6 +519,11 @@ assert !(bti.getDest() instanceof DestTran);
 	// used by tests
 	public void checkTransEmpty() {
 		trans.checkTransEmpty();
+	}
+
+	// used by tests
+	public Table getTable(String tablename) {
+		return tables.get(tablename);
 	}
 
 }

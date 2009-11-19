@@ -14,15 +14,70 @@ import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
+import suneido.database.server.Timestamp;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 2;
-	private static final int NREPS = 1000000;
+	private static final int NTHREADS = 4;
+	private static final int DURATION = 1 * 60 * 1000;
 	private static final int QUEUE_SIZE = 100;
+	private static final Random rand = new Random();
+	private static boolean setup = true;
 
-	static final Random rand = new Random();
+	public static void main(String[] args) {
+		Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
+		theDB = new Database(mmf, Mode.CREATE);
+
+		Runnable[] actions = new Runnable[] {
+//			new MmfileTest(),
+//			new TransactionTest(),
+			new NextNum("nextnum"),
+			new NextNum("nextnum2"),
+			new BigTable("bigtable"),
+			new BigTable("bigtable2"),
+		};
+		setup = true;
+		BoundedExecutor exec = new BoundedExecutor(QUEUE_SIZE, NTHREADS);
+
+		long t = System.currentTimeMillis();
+		int nreps = 0;
+		while (true) {
+			exec.submitTask(actions[random(actions.length)]);
+			if (++nreps % 100 == 0) {
+				long elapsed = System.currentTimeMillis() - t;
+				if (elapsed > DURATION)
+					break;
+			}
+		}
+		exec.finish();
+		t = System.currentTimeMillis() - t;
+
+		for (Runnable r : actions) {
+			String s = r.toString();
+			if (!s.equals(""))
+				System.out.println(s);
+		}
+
+		System.out.println("finished " + nreps + " reps with " + NTHREADS
+				+ " threads in " + readableDuration(t));
+	}
+
+	static final int MINUTE_MS = 60 * 1000;
+	static final int SECOND_MS = 1000;
+	static String readableDuration(long ms) {
+		long div = 1;
+		String units = "ms";
+		if (ms > MINUTE_MS) {
+			div = MINUTE_MS;
+			units = "min";
+		} else if (ms > SECOND_MS) {
+			div = SECOND_MS;
+			units = "sec";
+		}
+		long t = (ms * 10 + div / 2) / div;
+		return ms + " = " + (t / 10) + "." + (t % 10) + " " + units;
+	}
 
 	synchronized static int random(int n) {
 		return rand.nextInt(n);
@@ -36,46 +91,127 @@ public class TestConcurrency {
 		}
 	}
 
-	public static void main(String[] args) {
-		Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
-		theDB = new Database(mmf, Mode.CREATE);
+	public static void assert2(boolean condition) {
+		assert setup || condition;
+	}
 
-		Runnable[] actions = new Runnable[] {
-			new MmfileTest(),
-			new TransactionTest(),
-			new NextNum("nextnum"),
-			new NextNum("nextnum2"),
-		};
-		final int na = actions.length;
+	static class BigTable implements Runnable {
+		private static final int N = 10000;
+		String tablename;
+		Random rand = new Random();
+		AtomicInteger nlookups = new AtomicInteger();
+		AtomicInteger nranges = new AtomicInteger();
+		AtomicInteger nappends = new AtomicInteger();
+		AtomicInteger nappendsfailed = new AtomicInteger();
+		AtomicInteger nupdates = new AtomicInteger();
+		AtomicInteger nupdatesfailed = new AtomicInteger();
+		static String[] strings = new String[] { "hello", "world", "now", "is",
+			"the", "time", "foo", "bar", "foobar" };
 
-		ExecutorService exec = Executors.newFixedThreadPool(NTHREADS);
-		BoundedExecutor exec2 = new BoundedExecutor(exec, QUEUE_SIZE);
-
-		long t = System.currentTimeMillis();
-		for (int i = 0; i < NREPS; ++i) {
-			int j = random(na);
-			try {
-				exec2.submitTask(actions[j]);
-			} catch (InterruptedException e) {
-				System.out.println(e);
+		synchronized int random(int n) {
+			return rand.nextInt(n);
+		}
+		BigTable(String tablename) {
+			this.tablename = tablename;
+			Request.execute("create " + tablename
+					+ " (a,b,c,d,e,f,g) key(a) index(b,c)");
+			for (int i = 0; i < N / 100; ++i) {
+				Transaction t = theDB.readwriteTran();
+				for (int j = 0; j < 100; ++j)
+					t.addRecord(tablename, record());
+				t.ck_complete();
 			}
 		}
-		exec.shutdown();
-		try {
-			exec.awaitTermination(10, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			System.out.println("interrupted");
+		public void run() {
+			switch (random(4)) {
+			case 0: range(); break;
+			case 1: lookup(); break;
+			case 2: append(); break;
+			case 3: update(); break;
+			}
 		}
-		t = System.currentTimeMillis() - t;
-		t = (t + 500) / 1000;
-
-		for (Runnable r : actions) {
-			String s = r.toString();
-			if (!s.equals(""))
-				System.out.println(r.toString());
+		private void lookup() {
+			nlookups.incrementAndGet();
+			int n = random(N);
+			Transaction t = theDB.readonlyTran();
+			try {
+				Query q = CompileQuery.query(t, serverData,
+						tablename + " where b = " + n);
+				Row row;
+				while (null != (row = q.get(Dir.NEXT)))
+					assert n == row.getFirstData().getInt(1);
+			} finally {
+				t.ck_complete();
+			}
 		}
-
-		System.out.println("finished " + NREPS + " reps with " + NTHREADS + " threads in " + t + " sec");
+		private void range() {
+			nranges.incrementAndGet();
+			int from = random(N);
+			int to = from + random(N - from);
+			Transaction t = theDB.readonlyTran();
+			try {
+				Query q = CompileQuery.query(t, serverData,
+						tablename + " where b > " + from + " and b < " + to);
+				Row row;
+				while (null != (row = q.get(Dir.NEXT))) {
+					Record rec = row.getFirstData();
+					int n = rec.getInt(1);
+					assert from < n && n < to;
+				}
+			} finally {
+				t.ck_complete();
+			}
+		}
+		private void append() {
+			nappends.incrementAndGet();
+			Transaction t = theDB.readwriteTran();
+			try {
+				t.addRecord(tablename, record());
+			} catch (SuException e) {
+				if (! e.toString().contains("conflict"))
+					throw e;
+			} finally {
+				if (t.complete() != null)
+					nappendsfailed.incrementAndGet();
+			}
+		}
+		private void update() {
+			nupdates.incrementAndGet();
+			int n = random(N);
+			Transaction t = theDB.readwriteTran();
+			try {
+				Query q = CompileQuery.parse(t, serverData,
+						"update " + tablename + " where b = " + n
+						+ " set c = " + random(N));
+				((QueryAction) q).execute();
+				t.ck_complete();
+			} catch (SuException e) {
+				nupdatesfailed.incrementAndGet();
+				t.abort();
+				if (! e.toString().contains("conflict")) {
+//Log.print();
+					throw e;
+				}
+			}
+		}
+		Record record() {
+			Record r = new Record();
+			r.add(Timestamp.next());
+			for (int i = 0; i < 6; ++i)
+				r.add(i % 2 == 0 ? random(N)
+						: strings[random(strings.length)]);
+			return r;
+		}
+		@Override
+		public String toString() {
+//Log.save();
+CheckIndexes.checkIndexes(tablename);
+			return "BigTable " + tablename
+					+ " (" + nranges.get() + "r + " + nlookups.get() + " + "
+					+ nappends.get() + "-" + nappendsfailed.get() + "a "
+					+ nupdates.get() + "-" + nupdatesfailed.get() + "u = "
+					+ (nranges.get() + nlookups.get() + nappends.get()) + ")";
+		}
 	}
 
 	static class MmfileTest implements Runnable {
@@ -195,9 +331,9 @@ public class TestConcurrency {
 		}
 		@Override
 		public String toString() {
-			return nreps.get() == 0 ? "" : "NextNum " +
-					(nfailed.get() * 100 / nreps.get()) + "% failed "
-					+ "(" + nfailed + " / " + nreps + ")";
+			return "NextNum " + tablename + (nreps.get() == 0 ? "" : " "
+					+ (nfailed.get() * 100 / nreps.get()) + "% failed "
+					+ "(" + nfailed + " / " + nreps + ")");
 
 		}
 	}
@@ -211,17 +347,20 @@ public class TestConcurrency {
 
 	@ThreadSafe
 	public static class BoundedExecutor {
-	    private final Executor exec;
+	    private final ExecutorService exec;
 	    private final Semaphore semaphore;
 
-	    public BoundedExecutor(Executor exec, int bound) {
-	        this.exec = exec;
+	    public BoundedExecutor(int bound, int nthreads) {
+	        this.exec = Executors.newFixedThreadPool(nthreads);
 	        this.semaphore = new Semaphore(bound);
 	    }
 
-	    public void submitTask(final Runnable command)
-	            throws InterruptedException {
-	        semaphore.acquire();
+	    public void submitTask(final Runnable command) {
+	    	try {
+		        semaphore.acquire();
+			} catch (InterruptedException e) {
+				System.out.println(e);
+			}
 	        try {
 	            exec.execute(new Runnable() {
 	                public void run() {
@@ -235,6 +374,15 @@ public class TestConcurrency {
 	        } catch (RejectedExecutionException e) {
 	            semaphore.release();
 	        }
-	    }
+	   }
+
+	   void finish() {
+			exec.shutdown();
+			try {
+				exec.awaitTermination(10, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+				System.out.println("interrupted");
+			}
+	   }
 	}
 }

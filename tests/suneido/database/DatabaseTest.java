@@ -1,6 +1,7 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -27,13 +28,12 @@ public class DatabaseTest extends TestBase {
 
 	@Test
 	public void test() {
-		Table tbl = db.tables.get("indexes");
+		Table tbl = db.getTable("indexes");
 		assertEquals("indexes", tbl.name);
-		assertSame(tbl, db.tables.get(3));
 
 		makeTable();
 
-		tbl = db.tables.get("test");
+		tbl = db.getTable("test");
 		assertEquals(2, tbl.columns.size());
 		assertEquals(2, tbl.indexes.size());
 
@@ -112,7 +112,7 @@ public class DatabaseTest extends TestBase {
 		db.addIndex("test2", "f1", false, false, false, "test", "a", Index.BLOCK);
 		db.addIndex("test2", "f2", false, false, false, "test", "a", Index.BLOCK);
 
-		Table test2 = db.tables.get("test2");
+		Table test2 = db.getTable("test2");
 		Index f1 = test2.indexes.get("f1");
 		assertEquals("f1", f1.columns);
 		assertEquals(1, (int) f1.colnums.get(0));
@@ -222,9 +222,9 @@ public class DatabaseTest extends TestBase {
 		db.addIndex("test2", "f", false, false, false, "test", "a",
 				Index.CASCADE_UPDATES);
 
-		Table table = db.tables.get("test");
+		Table table = db.getTable("test");
 		ForeignKey fk = table.getIndex("a").fkdsts.get(0);
-		assertEquals(db.tables.get("test2").num, fk.tblnum);
+		assertEquals(db.getTable("test2").num, fk.tblnum);
 		assertEquals("f", fk.columns);
 		assertEquals(Index.CASCADE_UPDATES, fk.mode);
 
@@ -250,7 +250,7 @@ public class DatabaseTest extends TestBase {
 	public void schema() {
 		assertEquals(
 				"(table,tablename,nextfield,nrows,totalsize) key(table) key(tablename)",
-				db.schema("tables"));
+				db.getTable("tables").schema());
 	}
 
 }
