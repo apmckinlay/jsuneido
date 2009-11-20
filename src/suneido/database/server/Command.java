@@ -14,6 +14,8 @@ import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
+import suneido.language.*;
+import suneido.language.Compiler;
 
 /**
  * Implements the server protocol commands.
@@ -295,11 +297,11 @@ public enum Command {
 				OutputQueue outputQueue) {
 			List<LibGet> srcs = theDbms.libget(bufferToString(line).trim());
 
-			String resp = "";
+			StringBuilder resp = new StringBuilder();
 			for (LibGet src : srcs)
-				resp += "L" + (src.text.limit()) + " ";
-			resp += "\r\n";
-			outputQueue.enqueue(stringToBuffer(resp));
+				resp.append("L").append(src.text.limit()).append(" ");
+			resp.append("\r\n");
+			outputQueue.enqueue(stringToBuffer(resp.toString()));
 
 			for (LibGet src : srcs) {
 				outputQueue.enqueue(stringToBuffer(src.library + "\r\n"));
@@ -319,13 +321,24 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			return stringToBuffer(theDbms.timestamp().toString() + "\r\n");
+			return stringToBuffer(Ops.display(theDbms.timestamp()) + "\r\n");
 		}
 	},
 	DUMP, // TODO DUMP
 	COPY, // TODO COPY
-	RUN, // TODO RUN
 	TEXT, // TODO TEXT
+	RUN {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			Object result = Compiler.eval(bufferToString(line));
+			if (result == null)
+				return stringToBuffer("\r\n");
+			ByteBuffer buf = Pack.pack(result);
+			outputQueue.enqueue(stringToBuffer("P" + buf.remaining() + "\r\n"));
+			return buf;
+		}
+	},
 	BINARY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -382,7 +395,7 @@ public enum Command {
 			return OK;
 		}
 	},
-	KILL;
+	KILL; // TODO KILL
 
 	/**
 	 * @param buf A ByteBuffer containing the command line.

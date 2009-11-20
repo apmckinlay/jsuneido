@@ -415,7 +415,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object symbol(String identifier) {
-		return null;
+		return identifier;
 	}
 
 	@Override

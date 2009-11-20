@@ -100,7 +100,7 @@ public class Header {
 
 	// schema is all the columns with the rules capitalized
 	public List<String> schema() {
-		List<String> schema = fields();
+		List<String> schema = new ArrayList<String>(fields());
 		for (String c : cols)
 			if (!inflds(flds, c)) {
 				String s = c.substring(0, 1).toUpperCase() + c.substring(1);
