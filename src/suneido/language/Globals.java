@@ -64,7 +64,7 @@ public class Globals {
 		builtins.put("Object", new ObjectClass());
 		builtins.put("Object?", new ObjectQ());
 		builtins.put("Or", new Or());
-		builtins.put("Pack", new Pack());
+		builtins.put("Pack", new suneido.language.builtin.Pack());
 		builtins.put("Query1", new Query1());
 		builtins.put("QueryFirst", new QueryFirst());
 		builtins.put("QueryLast", new QueryLast());

@@ -10,6 +10,9 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import suneido.SuContainer;
+import suneido.SuRecord;
+
 public class PackTest {
 
 	@Test
@@ -24,6 +27,8 @@ public class PackTest {
 		test("");
 		test("abc");
 		test(new Date());
+		test(new SuContainer());
+		test(new SuRecord());
 	}
 
 	private static void test(Object x) {
@@ -35,6 +40,7 @@ public class PackTest {
 		buf.position(0);
 		Object y = unpack(buf);
 		assertEquals(expected, y);
+		assertEquals(Ops.typeName(expected), Ops.typeName(y));
 	}
 
 	@Test

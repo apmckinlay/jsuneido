@@ -20,7 +20,7 @@ import suneido.util.ByteBuf;
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
 	private static final int NTHREADS = 4;
-	private static final int DURATION = 1 * 60 * 1000;
+	private static final int DURATION = 60 * 60 * 1000;
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;
@@ -76,7 +76,7 @@ public class TestConcurrency {
 			units = "sec";
 		}
 		long t = (ms * 10 + div / 2) / div;
-		return ms + " = " + (t / 10) + "." + (t % 10) + " " + units;
+		return (t / 10) + "." + (t % 10) + " " + units;
 	}
 
 	synchronized static int random(int n) {
@@ -189,7 +189,6 @@ public class TestConcurrency {
 				nupdatesfailed.incrementAndGet();
 				t.abort();
 				if (! e.toString().contains("conflict")) {
-//Log.print();
 					throw e;
 				}
 			}
@@ -204,8 +203,7 @@ public class TestConcurrency {
 		}
 		@Override
 		public String toString() {
-//Log.save();
-CheckIndexes.checkIndexes(tablename);
+			CheckIndexes.checkIndexes(tablename);
 			return "BigTable " + tablename
 					+ " (" + nranges.get() + "r + " + nlookups.get() + " + "
 					+ nappends.get() + "-" + nappendsfailed.get() + "a "

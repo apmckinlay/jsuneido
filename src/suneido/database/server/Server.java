@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import org.ronsoft.nioserver.*;
 import org.ronsoft.nioserver.impl.*;
 
+import suneido.SuException;
 import suneido.database.*;
 
 /**
@@ -59,6 +60,7 @@ public class Server {
 				try {
 					nExtra = cmd.extra(line);
 				} catch (Throwable e) {
+if (!(e instanceof SuException))
 e.printStackTrace();
 					err = e;
 					nExtra = 0;
@@ -106,6 +108,8 @@ e.printStackTrace();
 				}
 			if (err != null) {
 System.out.println("ERR " + err);
+//System.out.println("FROM " + Util.bufferToString(line).trim());
+//System.out.println("EXTRA " + Util.bufferToString(extra));
 				output = ByteBuffer.wrap(
 						("ERR " + err.toString() + "\r\n")
 						.getBytes());

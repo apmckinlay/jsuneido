@@ -118,7 +118,7 @@ public class SuRecord extends SuContainer {
 
 	@Override
 	public void pack(ByteBuffer buf) {
-		super.pack(buf, Pack.Tag.OBJECT);
+		super.pack(buf, Pack.Tag.RECORD);
 	}
 
 	public static Object unpack(ByteBuffer buf) {
