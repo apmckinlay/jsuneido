@@ -1,4 +1,4 @@
-package suneido;
+package suneido.util;
 
 import java.nio.ByteBuffer;
 import java.util.Date;

@@ -188,7 +188,7 @@ public class BtreeIndex {
 		Record from;
 		Record to;
 		boolean rewound = true;
-		Btree.Iter iter;
+		Btree.Iter iter = null;
 		long prevsize = Long.MAX_VALUE;
 
 		private Iter(Record from, Record to) {
@@ -251,7 +251,30 @@ public class BtreeIndex {
 			return this;
 		}
 
+		public Object getState() {
+			assert iter != null;
+			assert rewound == false;
+			return new State(cur(), prevsize);
+		}
+
+		public void setState(Object arg) {
+			State state = (State) arg;
+			assert iter == null;
+			iter = bt.atCur(state.cur);
+			rewound = false;
+			prevsize = state.prevsize;
+		}
+
 	}
+	private static class State {
+		Slot cur;
+		long prevsize;
+		State(Slot cur, long prevsize) {
+			this.cur = cur;
+			this.prevsize = prevsize;
+		}
+	}
+
 
 	/**
 	 * @return True if the records are equal not including the last field.

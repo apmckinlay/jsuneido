@@ -5,8 +5,6 @@ import static suneido.util.Util.*;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.ronsoft.nioserver.OutputQueue;
-
 import suneido.SuException;
 import suneido.database.*;
 import suneido.database.query.Header;
@@ -16,6 +14,7 @@ import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
 import suneido.language.*;
 import suneido.language.Compiler;
+import suneido.util.SocketServer.OutputQueue;
 
 /**
  * Implements the server protocol commands.
@@ -30,7 +29,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			badcmd.rewind();
-			outputQueue.enqueue(badcmd);
+			outputQueue.add(badcmd);
 			return line;
 		}
 	},
@@ -296,16 +295,15 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			List<LibGet> srcs = theDbms.libget(bufferToString(line).trim());
-
 			StringBuilder resp = new StringBuilder();
 			for (LibGet src : srcs)
 				resp.append("L").append(src.text.limit()).append(" ");
 			resp.append("\r\n");
-			outputQueue.enqueue(stringToBuffer(resp.toString()));
+			outputQueue.add(stringToBuffer(resp.toString()));
 
 			for (LibGet src : srcs) {
-				outputQueue.enqueue(stringToBuffer(src.library + "\r\n"));
-				outputQueue.enqueue(src.text);
+				outputQueue.add(stringToBuffer(src.library + "\r\n"));
+				outputQueue.add(src.text);
 			}
 			return null;
 		}
@@ -335,7 +333,7 @@ public enum Command {
 			if (result == null)
 				return stringToBuffer("\r\n");
 			ByteBuffer buf = Pack.pack(result);
-			outputQueue.enqueue(stringToBuffer("P" + buf.remaining() + "\r\n"));
+			outputQueue.add(stringToBuffer("P" + buf.remaining() + "\r\n"));
 			return buf;
 		}
 	},
@@ -382,7 +380,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			// TODO SESSIONID
-			// outputQueue.enqueue(line);
+			// outputQueue.add(line);
 			return line;
 		}
 	},
@@ -417,7 +415,7 @@ public enum Command {
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue) {
 		notimp.rewind();
-		outputQueue.enqueue(notimp);
+		outputQueue.add(notimp);
 		return line;
 	}
 	private final static ByteBuffer badcmd = stringToBuffer("ERR bad command: ");
@@ -446,10 +444,10 @@ public enum Command {
 				|| !Character.isDigit(buf.get(i + 1)))
 			return -1;
 		++i;
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		while (i < buf.limit() && Character.isDigit(buf.get(i)))
-			s += (char) buf.get(i++);
-		int n = Integer.valueOf(s);
+			sb.append((char) buf.get(i++));
+		int n = Integer.valueOf(sb.toString());
 		while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
 			++i;
 		buf.position(i);
@@ -520,7 +518,7 @@ public enum Command {
 			OutputQueue outputQueue) {
 		if (row == null) {
 			EOF.rewind();
-			outputQueue.enqueue(EOF);
+			outputQueue.add(EOF);
 			return;
 		}
 		Record rec = row.getFirstData();
@@ -541,9 +539,9 @@ public enum Command {
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";
-		outputQueue.enqueue(stringToBuffer(s));
+		outputQueue.add(stringToBuffer(s));
 
-		outputQueue.enqueue(rec.getBuffer());
+		outputQueue.add(rec.getBuffer());
 	}
 
 

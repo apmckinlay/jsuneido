@@ -1,4 +1,4 @@
-package suneido.language;
+package suneido;
 
 /*
  TestRunner.Run(#(stdlib), skipTags: #(gui, windows), quit_on_failure:)
@@ -17,6 +17,8 @@ import java.util.Map;
 
 import suneido.*;
 import suneido.database.*;
+import suneido.language.*;
+import suneido.language.Compiler;
 
 public class Repl {
 	static PrintWriter out = new PrintWriter(System.out);

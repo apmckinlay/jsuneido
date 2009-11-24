@@ -3,6 +3,9 @@ package suneido.database;
 import static suneido.Suneido.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
+
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.SuException;
 import suneido.util.ByteBuf;
 
@@ -14,6 +17,7 @@ import suneido.util.ByteBuf;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small>
  */
+@NotThreadSafe
 public class Btree {
 	public final static int MAXLEVELS = 20;
 	public final static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
@@ -511,6 +515,14 @@ public class Btree {
 	public Iter locate(Record key) {
 		return new Iter(key);
 	}
+
+	// used by BtreeIndex.setCur
+	public Iter atCur(Slot cur) {
+		Iter iter = new Iter();
+		iter.setCur(cur);
+		return iter;
+	}
+
 	public class Iter {
 		long adr; // offset of current node
 		Slot cur;
@@ -542,11 +554,18 @@ public class Btree {
 			return cur.key;
 		}
 
+		private void setCur(Slot cur) {
+			this.cur = cur;
+			valid = -1;
+			adr = -1;
+		}
+
 		public Iter next() {
 			if (adr == 0)
 				return this;
-			if (modified != valid && ! seek(cur.key))
-				return this;	// key has been erased so we're on the next one
+			if (modified != valid)
+				if (! seek(cur.key))
+					return this;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
 			int t = upperBound(leaf.slots, cur);
 			if (t < leaf.slots.size())
@@ -560,6 +579,8 @@ public class Btree {
 				return this;
 			if (modified != valid)
 				seek(cur.key);
+			if (adr == 0)
+				return this;
 			LeafNode leaf = new LeafNode(adr);
 			int t = lowerBound(leaf.slots, cur);
 			if (t > 0)
@@ -585,7 +606,7 @@ public class Btree {
 				next();
 				found = false;
 			} else {
-				found = (key == leaf.slots.get(t).key);
+				found = (key.equals(leaf.slots.get(t).key));
 				cur = leaf.slots.get(t).dup();
 			}
 			return found;

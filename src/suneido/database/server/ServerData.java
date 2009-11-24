@@ -7,6 +7,7 @@ import java.util.*;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.Transaction;
+import suneido.util.SocketServer;
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -30,7 +31,7 @@ public class ServerData {
 	private final Stack<String> viewnest = new Stack<String>();
 
 	/**
-	 * this is set by {@link Server} since it is per connection, not really per
+	 * this is set by {@link SocketServer} since it is per connection, not really per
 	 * thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal =
