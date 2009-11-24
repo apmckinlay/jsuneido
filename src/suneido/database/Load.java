@@ -105,11 +105,11 @@ System.out.println("load_data(" + table + ")");
 //	}
 
 	private String getline() throws IOException {
-		String line = "";
+		StringBuilder sb = new StringBuilder();
 		char c;
 		while ('\n' != (c = (char) fin.read()))
-			line += c;
-		return line;
+			sb.append(c);
+		return sb.toString();
 	}
 
 	public static void main(String[] args) throws IOException {

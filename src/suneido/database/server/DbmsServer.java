@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.*;
+import suneido.language.Compiler;
 import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
 
@@ -151,6 +152,8 @@ public class DbmsServer {
 	public static void main(String[] args) {
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
+		Compiler.eval("JInit()");
+		Compiler.eval("Use('Accountinglib')");
 		SocketServer server = new SocketServer(new HandlerFactory());
 		try {
 			server.run(PORT);

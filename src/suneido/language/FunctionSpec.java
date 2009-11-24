@@ -44,19 +44,20 @@ public class FunctionSpec {
 
 	@Override
 	public String toString() {
-		String s = "FunctionSpec(";
-		s += name + ", ";
-		s += "locals:";
+		StringBuilder sb = new StringBuilder("FunctionSpec(");
+		sb.append(name).append(", ");
+		sb.append("locals:");
 		if (atParam)
-			s += " @";
+			sb.append(" @");
 		for (String t : locals)
-			s += " " + t;
-		s += ", nparams: " + nparams;
-		s += ", constants:";
+			sb.append(" ").append(t);
+		sb.append(", nparams: ").append(nparams);
+		sb.append(", constants:");
 		for (Object x : constants)
-			s += " " + (x == null ? "null" : Ops.display(x));
-		s += ", ndefaults: " + ndefaults;
-		return s + ")";
+			sb.append(" ").append(x == null ? "null" : Ops.display(x));
+		sb.append(", ndefaults: " + ndefaults);
+		sb.append(")");
+		return sb.toString();
 	}
 
 }

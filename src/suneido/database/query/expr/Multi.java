@@ -5,6 +5,8 @@ import static suneido.util.Util.addUnique;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Joiner;
+
 public abstract class Multi extends Expr {
 	public List<Expr> exprs;
 
@@ -27,10 +29,10 @@ public abstract class Multi extends Expr {
 			return "";
 		if (exprs.size() == 1)
 			return exprs.get(0).toString();
-		String s = "(";
-		for (Expr e : exprs)
-			s += e + op;
-		return s.substring(0, s.length() - op.length()) + ")";
+		StringBuilder sb = new StringBuilder("(");
+		Joiner.on(op).appendTo(sb, exprs);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override

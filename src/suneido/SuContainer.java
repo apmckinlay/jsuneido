@@ -176,14 +176,15 @@ public class SuContainer extends SuValue
 	}
 
 	protected String toString(String before, String after) {
-		String s = "";
+		StringBuilder sb = new StringBuilder(before);
 		for (Object x : vec)
-			s += Ops.display(x) + ", ";
+			sb.append(Ops.display(x)).append(", ");
 		for (Map.Entry<Object, Object> e : map.entrySet())
-			s += keyToString(e.getKey()) + ": " + Ops.display(e.getValue()) + ", ";
-		if (s.length() >= 2)
-			s = s.substring(0, s.length() - 2);
-		return before + s + after;
+			sb.append(keyToString(e.getKey()) + ": " + Ops.display(e.getValue()))
+					.append(", ");
+		if (size() > 0)
+			sb.delete(sb.length() - 2, sb.length());
+		return sb.append(after).toString();
 	}
 	static String keyToString(Object x) {
 		return x instanceof String ? keyToString((String) x) : Ops.toStr(x);

@@ -40,6 +40,13 @@ public class CursorTest extends TestBase {
 		assertEquals(row2, q.get(Dir.NEXT));
 		t.complete();
 
+		q.rewind();
+
+		t = theDB.readonlyTran();
+		q.setTransaction(t);
+		assertEquals(row1, q.get(Dir.NEXT));
+		t.complete();
+
 		req("delete customer");
 
 		t = theDB.readonlyTran();

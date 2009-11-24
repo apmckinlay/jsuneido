@@ -45,10 +45,11 @@ public class Rename extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source.toString() + " RENAME ";
+		StringBuilder sb = new StringBuilder(source.toString());
+		sb.append(" RENAME ");
 		for (int i = 0; i < from.size(); ++i)
-			s += from.get(i) + " to " + to.get(i) + ", ";
-		return s.substring(0, s.length() - 2);
+			sb.append(from.get(i)).append(" to ").append(to.get(i)).append(", ");
+		return sb.substring(0, sb.length() - 2);
 	}
 
 	@Override

@@ -48,17 +48,18 @@ public class Extend extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source + " EXTEND ";
+		StringBuilder sb = new StringBuilder(source.toString());
+		sb.append(" EXTEND ");
 		String sep = "";
 		for (String f : rules) {
-			s += sep + f;
+			sb.append(sep).append(f);
 			sep = ", ";
 		}
 		for (int i = 0; i < flds.size(); ++i) {
-			s += sep + flds.get(i) + " = " + exprs.get(i);
+			sb.append(sep).append(flds.get(i)).append(" = ").append(exprs.get(i));
 			sep = ", ";
 		}
-		return s;
+		return sb.toString();
 	}
 
 	@Override
