@@ -98,9 +98,12 @@ public class NumberMethods {
 		String num = "";
 		if (n.equals(BigDecimal.ZERO)) {
 			int i = mask.indexOf('.');
-			if (i != -1)
+			if (i != -1) {
+				StringBuilder sb = new StringBuilder(8);
 				for (++i; i < masksize && mask.charAt(i) == '#'; ++i)
-					num += '0';
+					sb.append('0');
+				num = sb.toString();
+			}
 		} else {
 			int i = mask.indexOf('.');
 			if (i != -1)

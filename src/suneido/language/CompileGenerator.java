@@ -930,10 +930,10 @@ public class CompileGenerator extends Generator<Object> {
 
 	private static final String[] args = new String[99];
 	static {
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < args.length; ++i) {
-			args[i] = s;
-			s += "Ljava/lang/Object;";
+			args[i] = sb.toString();
+			sb.append("Ljava/lang/Object;");
 		}
 	}
 	private void invokeSuperInit(int nargs) {

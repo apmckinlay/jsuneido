@@ -64,20 +64,21 @@ public class Select extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source + " WHERE";
+		StringBuilder sb = new StringBuilder(source.toString());
+		sb.append(" WHERE");
 		if (conflicting)
-			return s + " nothing";
+			return sb.append(" nothing").toString();
 		if (! nil(source_index))
-			s += "^" + listToParens(source_index);
+			sb.append("^").append(listToParens(source_index));
 		if (!nil(filter)) {
-			s += "%(";
+			sb.append("%(");
 			for (List<String> f : filter)
-				s += listToParens(f) + ",";
-			s = s.substring(0, s.length() - 1) + ")";
+				sb.append(listToParens(f)).append(",");
+			sb.deleteCharAt(sb.length() - 1).append(")");
 		}
 		if (! nil(expr.exprs))
-			s += " " + expr;
-		return s;
+			sb.append(" ").append(expr);
+		return sb.toString();
 	}
 
 	@Override
@@ -987,11 +988,12 @@ public class Select extends Query1 {
 	}
 
 	private static String valuesToString(List<ByteBuffer> values) {
-		String s = "";
-		if (values != null)
-			for (ByteBuffer b : values)
-				s += " " + valueToString(b);
-		return s;
+		if (values == null)
+			return "";
+		StringBuilder sb = new StringBuilder();
+		for (ByteBuffer b : values)
+			sb.append(" ").append(valueToString(b));
+		return sb.toString();
 	}
 
 }

@@ -54,28 +54,29 @@ public class Summarize extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source + " SUMMARIZE";
+		StringBuilder sb = new StringBuilder(source.toString());
+		sb.append(" SUMMARIZE");
 		switch (strategy) {
 		case NONE: break;
-		case COPY: s += "-COPY"; break;
-		case SEQUENTIAL: s += "-SEQ"; break;
-		case MAP: s += "-MAP"; break;
+		case COPY: sb.append("-COPY"); break;
+		case SEQUENTIAL: sb.append("-SEQ"); break;
+		case MAP: sb.append("-MAP"); break;
 		default: throw SuException.unreachable();
 		}
-		s += " ";
+		sb.append(" ");
 		if (!nil(via))
-			s += "^" + listToParens(via) + " ";
+			sb.append("^").append(listToParens(via)).append(" ");
 		if (! by.isEmpty())
-			s += listToParens(by) + " ";
+			sb.append(listToParens(by)).append(" ");
 		for (int i = 0; i < cols.size(); ++i) {
 			if (cols.get(i) != null)
-				s += cols.get(i) + " = ";
-			s += funcs.get(i);
+				sb.append(cols.get(i)).append(" = ");
+			sb.append(funcs.get(i));
 			if (on.get(i) != null)
-				s += " " + on.get(i);
-			s += ", ";
+				sb.append(" ").append(on.get(i));
+			sb.append(", ");
 		}
-		return s.substring(0, s.length() - 2);
+		return sb.substring(0, sb.length() - 2);
 	}
 
 	@Override

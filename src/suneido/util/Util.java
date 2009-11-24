@@ -81,10 +81,10 @@ public class Util {
 	}
 
 	public static String bufferToHex(ByteBuffer buf) {
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		for (int i = buf.position(); i < buf.limit(); ++i)
-			s += " " + String.format("%02x", buf.get(i));
-		return s.substring(1);
+			sb.append(" ").append(String.format("%02x", buf.get(i)));
+		return sb.substring(1);
 	}
 
 	public static int bufferUcompare(ByteBuf b1, ByteBuf b2) {

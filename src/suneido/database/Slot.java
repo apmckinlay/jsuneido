@@ -76,10 +76,10 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 
 	@Override
 	public String toString() {
-		String s = key.toString();
+		StringBuilder sb = new StringBuilder(key.toString());
 		for (long adr : adrs)
-			s += " " + adr;
-		return s;
+			sb.append(" ").append(adr);
+		return sb.toString();
 	}
 
 	public boolean isEmpty() {

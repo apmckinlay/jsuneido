@@ -137,24 +137,26 @@ public class Record
 		if (equals(MAXREC))
 			return "[MAX]";
 
-		String s = "[";
+		StringBuilder sb = new StringBuilder("[");
 		for (int i = 0; i < getNfields(); ++i)
-			s += (getraw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i))) + ",";
-		return s.substring(0, s.length() - 1) + "]";
+			sb.append(getraw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)))
+					.append(",");
+		sb.deleteCharAt(sb.length() - 1).append("]");
+		return sb.toString();
 	}
 
 	public String toDebugString() {
-		String s = "";
-		s += " limit " + buf.size() + " ";
+		StringBuilder sb = new StringBuilder();
+		sb.append(" limit ").append(buf.size()).append(" ");
 		int nfields = getNfields();
-		s += (char) getType() + " " + nfields + " = ";
+		sb.append((char) getType()).append(" ").append(nfields).append(" = ");
 		try {
 			for (int i = 0; i < Math.max(nfields, 10); ++i)
-				s += rep.getOffset(i) + ":" + fieldSize(i) + " ";
+				sb.append(rep.getOffset(i)).append(":").append(fieldSize(i)).append(" ");
 		} catch (Throwable e) {
-			s += e;
+			sb.append(e);
 		}
-		return s;
+		return sb.toString();
 	}
 
 	public void validate() {
