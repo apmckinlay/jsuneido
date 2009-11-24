@@ -20,7 +20,7 @@ import suneido.util.ByteBuf;
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
 	private static final int NTHREADS = 4;
-	private static final int DURATION = 60 * 60 * 1000;
+	private static final int DURATION = 1 * 60 * 1000;
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;

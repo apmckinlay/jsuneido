@@ -248,8 +248,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (conflict == null)
 			this.conflict = "aborted";
 		verify(isActive());
-		trans.remove(this);
-		ended = true;
+		end();
 	}
 
 	void abortThrow(String conflict) {
@@ -267,18 +266,24 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	public String complete() {
+		if (isAborted())
+			return conflict;
+		notEnded();
+		return writes.isEmpty() ? end() : commit();
+	}
+
+	private String end() {
+		trans.remove(this);
+		ended = true;
+		return null;
+	}
+
+	private String commit() {
 		synchronized(commitLock) {
-			if (isAborted())
-				return conflict;
-			notEnded();
-			if (!readonly && !writes.isEmpty())
-				completeReadwrite();
+			completeReadwrite();
+			trans.addFinal(this);
 			commitTime  = trans.clock();
-			if (!readonly)
-				trans.addFinal(this);
-			trans.remove(this);
-			ended = true;
-			return null;
+			return end();
 		}
 	}
 

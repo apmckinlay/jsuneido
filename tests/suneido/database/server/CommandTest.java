@@ -5,20 +5,18 @@ import static suneido.database.Database.theDB;
 import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.stringToBuffer;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.ronsoft.nioserver.OutputQueue;
 
 import suneido.SuException;
 import suneido.database.*;
 import suneido.language.Ops;
 import suneido.language.Pack;
+import suneido.util.SocketServer;
 
 public class CommandTest {
 
@@ -382,21 +380,20 @@ public class CommandTest {
 		assertEquals("(stdlib)\r\n", bufferToString(buf));
 	}
 
-	// ===============================================================
+	// =========================================================================
 
-	static private class Output implements OutputQueue {
-		private final List<ByteBuffer> content = new ArrayList<ByteBuffer>();
+	static public class Output extends SocketServer.OutputQueue {
+		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
 
-		public int drainTo(ByteChannel channel) throws IOException {
-			return 0;
+		Output() {
+			super(null);
 		}
-		public boolean enqueue(ByteBuffer buf) {
+
+		@Override
+		public void add(ByteBuffer buf) {
 			content.add(buf);
-			return true;
 		}
-		public boolean isEmpty() {
-			return false;
-		}
+
 		public ByteBuffer get(int i) {
 			return content.get(i);
 		}

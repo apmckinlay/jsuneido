@@ -7,7 +7,7 @@ import static suneido.language.Token.*;
  */
 public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
-	ParseFunction(Lexer lexer, G generator) {
+	public ParseFunction(Lexer lexer, G generator) {
 		super(lexer, generator);
 		expectingCompound = false;
 	}

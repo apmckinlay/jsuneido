@@ -50,10 +50,10 @@ public class Row {
 
 	@Override
 	public String toString() {
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		for (Record r : data)
-			s += r.toString();
-		return s;
+			sb.append(r.toString());
+		return sb.toString();
 	}
 
 	public int size() {
@@ -126,6 +126,21 @@ public class Row {
 
 	public void setTransaction(Transaction tran) {
 		this.tran = tran;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof Row))
+			return false;
+		Row that = (Row) other;
+		return Arrays.equals(this.data, that.data);
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(data);
 	}
 
 	/**

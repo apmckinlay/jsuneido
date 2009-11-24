@@ -3,6 +3,8 @@ package suneido.language;
 import java.io.FileReader;
 import java.io.IOException;
 
+import suneido.Repl;
+
 public class CompileFile {
 	public static void main(String[] args) throws IOException {
 		Repl.setup();

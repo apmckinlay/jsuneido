@@ -180,6 +180,12 @@ public class Table extends Query {
 	@Override
 	public void setTransaction(Transaction tran) {
 		this.tran = tran;
+		set_ix();
+		if (iter != null) {
+			Object state = iter.getState();
+			iter = iter();
+			iter.setState(state);
+		}
 	}
 
 	@Override
@@ -190,9 +196,7 @@ public class Table extends Query {
 		}
 		if (rewound) {
 			rewound = false;
-			iter = singleton || sel == null
-					? ix.iter(tran)
-					: ix.iter(tran, sel.org, sel.end);
+			iter = iter();
 		}
 		switch (dir) {
 		case NEXT :
@@ -216,6 +220,12 @@ public class Table extends Query {
 			return null;
 		}
 		return row;
+	}
+
+	private BtreeIndex.Iter iter() {
+		return singleton || sel == null
+				? ix.iter(tran)
+				: ix.iter(tran, sel.org, sel.end);
 	}
 
 	private void iterate_setup(Dir dir) {

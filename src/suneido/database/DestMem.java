@@ -1,5 +1,7 @@
 package suneido.database;
 
+import static suneido.Suneido.verify;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -23,6 +25,7 @@ public class DestMem extends Destination {
 
 	@Override
 	public ByteBuf adr(long adr) {
+		verify(adr > 0);
 		return ByteBuf.wrap(
 				nodes.get((int) (adr / Mmfile.ALIGN) - 1),
 				(int) adr % Mmfile.ALIGN);
