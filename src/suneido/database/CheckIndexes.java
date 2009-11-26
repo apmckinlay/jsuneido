@@ -34,7 +34,7 @@ System.out.println("    failed to find " + key2 + " in " + index2);
 		} finally {
 			t.ck_complete();
 		}
-System.out.println("CheckIndexes finished");
+System.out.println("CheckIndexes " + tablename + " finished");
 	}
 
 }

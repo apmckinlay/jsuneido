@@ -20,7 +20,7 @@ import suneido.util.ByteBuf;
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
 	private static final int NTHREADS = 4;
-	private static final int DURATION = 1 * 60 * 1000;
+	private static final int DURATION = 10 * 60 * 1000;
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;
@@ -105,6 +105,10 @@ public class TestConcurrency {
 		AtomicInteger nappendsfailed = new AtomicInteger();
 		AtomicInteger nupdates = new AtomicInteger();
 		AtomicInteger nupdatesfailed = new AtomicInteger();
+		AtomicInteger nAddColumns = new AtomicInteger();
+		AtomicInteger nAddColumnFailed = new AtomicInteger();
+		AtomicInteger nRemoveColumns = new AtomicInteger();
+		AtomicInteger nRemoveColumnFailed = new AtomicInteger();
 		static String[] strings = new String[] { "hello", "world", "now", "is",
 			"the", "time", "foo", "bar", "foobar" };
 
@@ -123,12 +127,40 @@ public class TestConcurrency {
 			}
 		}
 		public void run() {
-			switch (random(4)) {
+			switch (random(6)) {
 			case 0: range(); break;
 			case 1: lookup(); break;
 			case 2: append(); break;
 			case 3: update(); break;
+			case 4: addColumn(); break;
+			case 5: removeColumn(); break;
 			}
+		}
+		private void addColumn() {
+			nAddColumns.incrementAndGet();
+			try {
+				theDB.addColumn(tablename, "z");
+			} catch (SuException e) {
+				if (e.toString().contains("column already exists")
+						|| e.toString().contains("conflict"))
+					nAddColumnFailed.incrementAndGet();
+				else
+					throw e;
+			}
+
+		}
+		private void removeColumn() {
+			nRemoveColumns.incrementAndGet();
+			try {
+				theDB.removeColumn(tablename, "z");
+			} catch (SuException e) {
+				if (e.toString().contains("nonexistent")
+						|| e.toString().contains("conflict"))
+					nRemoveColumnFailed.incrementAndGet();
+				else
+					throw e;
+			}
+
 		}
 		private void lookup() {
 			nlookups.incrementAndGet();
@@ -205,10 +237,13 @@ public class TestConcurrency {
 		public String toString() {
 			CheckIndexes.checkIndexes(tablename);
 			return "BigTable " + tablename
-					+ " (" + nranges.get() + "r + " + nlookups.get() + " + "
+					+ " " + nranges.get() + "r + " + nlookups.get() + " + "
 					+ nappends.get() + "-" + nappendsfailed.get() + "a "
-					+ nupdates.get() + "-" + nupdatesfailed.get() + "u = "
-					+ (nranges.get() + nlookups.get() + nappends.get()) + ")";
+					+ nupdates.get() + "-" + nupdatesfailed.get() + "u "
+					+ nAddColumns + "-" + nAddColumnFailed + "ac "
+					+ nRemoveColumns + "-" + nRemoveColumnFailed + "rc "
+					+ "= " + (nranges.get() + nlookups.get() + nappends.get()
+							+ nAddColumns.get() + nRemoveColumns.get());
 		}
 	}
 

@@ -251,7 +251,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		verify(chunks_mapped > 0);
 		int min = 0;
 		for (int i = 0; i < last_used.length; ++i)
-			if (last_used[i] < last_used[min])
+			if (fm[i] != null && last_used[i] < last_used[min])
 				min = i;
 		return min;
 	}
