@@ -2,7 +2,6 @@ package suneido.database.query;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
@@ -26,13 +25,11 @@ public class UpdateableTest extends TestBase {
 
 	private void updateable(String q) {
 		assertTrue(q + "should be updateable",
-				CompileQuery.query(
-						theDB.cursorTran(), serverData, q).updateable());
+				CompileQuery.query(serverData, q).updateable());
 	}
 
 	private void not_updateable(String q) {
 		assertFalse(q + "should NOT be updateable",
-				CompileQuery.query(
-						theDB.cursorTran(), serverData, q).updateable());
+				CompileQuery.query(serverData, q).updateable());
 	}
 }

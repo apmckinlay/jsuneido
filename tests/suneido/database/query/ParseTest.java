@@ -91,12 +91,12 @@ public class ParseTest extends TestBase {
 
 	@Test(expected = SuException.class)
 	public void lexer_error() {
-		CompileQuery.parse(db.cursorTran(), serverData, "test where x = 1e~3");
+		CompileQuery.parse(serverData, "test where x = 1e~3");
 	}
 
 	@Test(expected = SuException.class)
 	public void queryEof() {
-		CompileQuery.parse(db.cursorTran(), serverData, "test 123");
+		CompileQuery.parse(serverData, "test 123");
 	}
 
 	@Test(expected = SuException.class)

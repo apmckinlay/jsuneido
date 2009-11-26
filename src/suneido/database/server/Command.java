@@ -234,10 +234,9 @@ public enum Command {
 			}
 			line.get(); // skip space
 			int tn = ck_getnum('T', line);
-			HeaderAndRow hr =
-					theDbms.get(ServerData.forThread(), dir,
-							bufferToString(extra), one,
-							ServerData.forThread().getTransaction(tn));
+			HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir,
+					bufferToString(extra), one,
+					ServerData.forThread().getTransaction(tn));
 			row_result(hr.row, hr.header, true, outputQueue);
 			return null;
 		}

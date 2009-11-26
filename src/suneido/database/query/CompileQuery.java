@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static suneido.database.Database.theDB;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
@@ -8,6 +9,16 @@ import suneido.language.ParseExpression;
 
 public class CompileQuery {
 
+	/** for tests */
+	public static Query query(ServerData serverData, String s) {
+		Transaction tran = theDB.readonlyTran();
+		try {
+			return query(tran, serverData, s);
+		} finally {
+			tran.complete();
+		}
+	}
+
 	public static Query query(Transaction t, ServerData serverData, String s,
 			boolean is_cursor) {
 		return parse(t, serverData, s).setup(is_cursor);
@@ -15,6 +26,16 @@ public class CompileQuery {
 
 	public static Query query(Transaction t, ServerData serverData, String s) {
 		return parse(t, serverData, s).setup();
+	}
+
+	/** for tests */
+	public static Query parse(ServerData serverData, String s) {
+		Transaction tran = theDB.readonlyTran();
+		try {
+			return parse(tran, serverData, s);
+		} finally {
+			tran.complete();
+		}
 	}
 
 	public static Query parse(Transaction tran, ServerData serverData, String s) {
