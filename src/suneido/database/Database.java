@@ -35,6 +35,7 @@ public class Database {
 	private volatile PersistentMap<String, BtreeIndex> btreeIndexes =
 			PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
+	public final Object commitLock = new Object();
 	public static Database theDB;
 
 	private static class TN {
@@ -273,12 +274,12 @@ public class Database {
 	}
 
 	public Transaction readonlyTran() {
-		synchronized(Transaction.commitLock) {
+		synchronized(commitLock) {
 			return new Transaction(trans, true, tables, tabledata, btreeIndexes);
 		}
 	}
 	public Transaction readwriteTran() {
-		synchronized(Transaction.commitLock) {
+		synchronized(commitLock) {
 			return new Transaction(trans, false, tables, tabledata, btreeIndexes);
 		}
 	}

@@ -14,7 +14,7 @@ public class Shadows {
 
 	// used by complete > writeBtreeNodes
 	public synchronized Set<Map.Entry<Long, ByteBuf>> entrySet() {
-		assert Thread.holdsLock(Transaction.commitLock);
+		//assert Thread.holdsLock(Database.commitLock);
 		return shadows.entrySet();
 	}
 
@@ -47,7 +47,7 @@ public class Shadows {
 	}
 
 	public synchronized ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
-		assert Thread.holdsLock(Transaction.commitLock);
+		//assert Thread.holdsLock(Database.commitLock);
 		readcache.remove(offset);
 		ByteBuf b = shadows.get(offset);
 		if (b == null) {

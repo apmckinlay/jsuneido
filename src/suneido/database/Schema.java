@@ -121,7 +121,7 @@ class Schema {
 	}
 
 	public static boolean ensureColumn(Database db, String tablename, String column) {
-		synchronized(Transaction.commitLock) {
+		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
 				Table table = tran.ck_getTable(tablename);
@@ -157,7 +157,7 @@ class Schema {
 			throw new SuException("delete column: can't delete system column: "
 					+ name + " from " + tablename);
 
-		synchronized(Transaction.commitLock) {
+		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
 				Table table = tran.ck_getTable(tablename);
@@ -192,7 +192,7 @@ class Schema {
 			throw new SuException("rename column: can't rename system column: "
 					+ oldname + " in " + tablename);
 
-		synchronized(Transaction.commitLock) {
+		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
 				Table table = tran.ck_getTable(tablename);
@@ -248,7 +248,7 @@ class Schema {
 		if (fkcolumns == null || fkcolumns.equals(""))
 			fkcolumns = columns;
 
-		synchronized(Transaction.commitLock) {
+		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
 				Table table = tran.ck_getTable(tablename);
@@ -315,7 +315,7 @@ class Schema {
 		if (is_system_index(tablename, columns))
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);
-		synchronized(Transaction.commitLock) {
+		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
 				Table table = tran.ck_getTable(tablename);
