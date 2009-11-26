@@ -55,7 +55,7 @@ public class SummarizeStrategyMap extends SummarizeStrategy {
 		results.clear();
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
-			Record byRec = row.project(q.hdr, q.by);
+			Record byRec = row.project(q.getHdr(), q.by);
 			List<Summary> sums = results.get(byRec);
 			if (sums == null) {
 				sums = funcSums();
@@ -63,7 +63,7 @@ public class SummarizeStrategyMap extends SummarizeStrategy {
 				results.put(byRec, sums);
 			}
 			for (int i = 0; i < sums.size(); ++i)
-				sums.get(i).add(row.getval(q.hdr, q.on.get(i)));
+				sums.get(i).add(row.getval(q.getHdr(), q.on.get(i)));
 		}
 	}
 

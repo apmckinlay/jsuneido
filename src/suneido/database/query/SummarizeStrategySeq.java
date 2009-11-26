@@ -48,12 +48,12 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 			if (nextrow == null)
 				break ;
 			for (int i = 0; i < sums.size(); ++i)
-				sums.get(i).add(nextrow.getval(q.hdr, q.on.get(i)));
+				sums.get(i).add(nextrow.getval(q.getHdr(), q.on.get(i)));
 			nextrow = source.get(dir);
 		} while (equal());
 		// output after reading a group
 
-		Record byRec = currow.project(q.hdr, q.by);
+		Record byRec = currow.project(q.getHdr(), q.by);
 		return makeRow(byRec, sums);
 	}
 
@@ -61,7 +61,7 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 		if (nextrow == null)
 			return false;
 		for (String f : q.by)
-			if (!currow.getval(q.hdr, f).equals(nextrow.getval(q.hdr, f)))
+			if (!currow.getval(q.getHdr(), f).equals(nextrow.getval(q.getHdr(), f)))
 				return false;
 		return true;
 	}

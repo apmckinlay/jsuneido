@@ -20,7 +20,7 @@ public class Summarize extends Query1 {
 	List<String> via;
 	private boolean first = true;
 	private boolean rewound = true;
-	Header hdr;
+	private Header hdr;
 	private SummarizeStrategy strategyImp;
 
 	Summarize(Query source, List<String> by, List<String> cols,
@@ -199,6 +199,10 @@ public class Summarize extends Query1 {
 	@Override
 	public boolean updateable() {
 		return false; // override Query1 source->updateable
+	}
+
+	Header getHdr() {
+		return hdr;
 	}
 
 	public abstract static class Summary {
