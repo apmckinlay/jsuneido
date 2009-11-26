@@ -368,20 +368,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return num < that.num ? -1 : num > that.num ? +1 : 0;
 	}
 
-	@Override
-	public int hashCode() {
-		return num;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (this == other)
-			return true;
-		if (!(other instanceof Transaction))
-			return false;
-		Transaction that = (Transaction) other;
-		return num != that.num;
-	}
+	// WARNING: don't define equals based on num
+	// it causes errors (e.g. in TestConcurrency
 
 	private static class NullTransaction extends Transaction {
 
