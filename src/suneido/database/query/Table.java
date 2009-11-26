@@ -179,6 +179,8 @@ public class Table extends Query {
 
 	@Override
 	public void setTransaction(Transaction tran) {
+		if (this.tran == tran)
+			return;
 		this.tran = tran;
 		set_ix();
 		if (iter != null) {
