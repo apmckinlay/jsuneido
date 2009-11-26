@@ -42,8 +42,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			new HashMap<String, BtreeIndex>();
 	private List<Table> update_tables = null;
 	private Table remove_table = null;
-	static final Object commitLock = new Object();
-
 	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 
@@ -266,7 +264,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private String commit() {
-		synchronized(commitLock) {
+		synchronized(db.commitLock) {
 			completeReadwrite();
 			trans.addFinal(this);
 			commitTime  = trans.clock();
