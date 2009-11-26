@@ -63,19 +63,6 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		trans.add(this);
 	}
 
-	// used for cursors
-	public Transaction(Transactions trans, Tables tables,
-			PersistentMap<Integer, TableData> tabledata,
-			PersistentMap<String, BtreeIndex> btreeIndexes) {
-		this.db = trans.db;
-		this.trans = trans;
-		this.tables = tables;
-		this.tabledata = tabledata;
-		this.btreeIndexes = btreeIndexes;
-		readonly = true;
-		asof = num = 0;
-	}
-
 	// used by NullTransaction
 	Transaction() {
 		this.db = null;
@@ -84,7 +71,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		this.tabledata = null;
 		this.btreeIndexes = null;
 		readonly = false;
-		asof = num = 0;
+		asof = num = -1;
 	}
 
 	@Override
@@ -229,10 +216,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void notEnded() {
+		if (asof == -1)
+			throw new SuException("cannot use null transaction");
 		if (ended)
-			throw new SuException("cannot use "
-					+ (isCommitted() ? "completed" : "aborted")
-					+ " transaction");
+			throw new SuException("cannot use ended transaction");
 	}
 
 	// abort -------------------------------------------------------------------
@@ -308,6 +295,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void writeBtreeNodes() {
+		// TODO copy nodes outside commitLock
 		for (Map.Entry<Long, ByteBuf> e : shadows.entrySet()) {
 			ByteBuf from = e.getValue();
 			if (from.isReadOnly())
@@ -376,8 +364,23 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// end of complete ---------------------------------------------------------
 
-	public int compareTo(Transaction other) {
-		return asof < other.asof ? -1 : asof > other.asof ? +1 : 0;
+	public int compareTo(Transaction that) {
+		return num < that.num ? -1 : num > that.num ? +1 : 0;
+	}
+
+	@Override
+	public int hashCode() {
+		return num;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (!(other instanceof Transaction))
+			return false;
+		Transaction that = (Transaction) other;
+		return num != that.num;
 	}
 
 	private static class NullTransaction extends Transaction {

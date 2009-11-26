@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.database.TestBase;
+import suneido.database.Transaction;
 
 public class RequestTest extends TestBase {
 	@Test
@@ -53,9 +54,13 @@ public class RequestTest extends TestBase {
 	public void test_view() {
 		String def = "one join two where three = 4";
 		Request.execute(serverData, "view myview = " + def);
-		assertEquals(def, db.cursorTran().getView("myview"));
+		Transaction t = db.readonlyTran();
+		assertEquals(def, t.getView("myview"));
+		t.complete();
 		Request.execute(serverData, "drop myview");
-		assertNull(db.cursorTran().getView("myview"));
+		t = db.readonlyTran();
+		assertNull(t.getView("myview"));
+		t.complete();
 	}
 
 	@Test

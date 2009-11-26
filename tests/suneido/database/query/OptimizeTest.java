@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
@@ -12,8 +11,7 @@ public class OptimizeTest extends TestBase {
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
-			Query q = CompileQuery.query(
-					theDB.cursorTran(), serverData, c[0]);
+			Query q = CompileQuery.query(serverData, c[0]);
 			assertEquals(c[0], c[1], q.toString());
 		}
 	}

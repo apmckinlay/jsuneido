@@ -48,7 +48,7 @@ public class Select extends Query1 {
 	int n_out = 0;
 	private HashSet<Long> f;
 	private Header hdr;
-	private final Transaction tran;
+	private Transaction tran;
 
 	public Select(Transaction tran, Query source, Expr expr) {
 		super(source);
@@ -587,6 +587,12 @@ public class Select extends Query1 {
 		return nrecs;
 	}
 
+	@Override
+	public void setTransaction(Transaction tran) {
+		super.setTransaction(tran);
+		this.tran = tran;
+	}
+
 	// get ----------------------------------------------------------
 
 	@Override
@@ -722,7 +728,7 @@ public class Select extends Query1 {
 			end.addMax();
 	}
 
-	boolean matches(Row row) {
+	private boolean matches(Row row) {
 		// first check against filter
 		if (f != null && !f.contains(tbl.iter.keyadr()))
 			return false;
@@ -932,9 +938,6 @@ public class Select extends Query1 {
 		}
 		boolean one() {
 			return org.equals(end) || values.size() == 1;
-		}
-		boolean equals(Iselect y) {
-			return org.equals(y.org) && end.equals(y.end);
 		}
 
 		@Override

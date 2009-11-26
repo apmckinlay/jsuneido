@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
@@ -99,7 +98,7 @@ public class TransformTest extends TestBase {
 	}
 
 	private void test(String from, String to) {
-		Query q = CompileQuery.parse(theDB.cursorTran(), serverData, from);
+		Query q = CompileQuery.parse(serverData, from);
 		q = q.transform();
 		assertEquals(to, q.toString());
 	}

@@ -282,11 +282,6 @@ public class Database {
 			return new Transaction(trans, false, tables, tabledata, btreeIndexes);
 		}
 	}
-	public Transaction cursorTran() {
-		synchronized(Transaction.commitLock) {
-			return new Transaction(trans, tables, tabledata, btreeIndexes);
-		}
-	}
 
 	Table loadTable(Transaction tran, Record table_rec,
 			List<BtreeIndex> btis) {
