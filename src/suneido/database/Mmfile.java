@@ -67,7 +67,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 
 	public Mmfile(String filename, Mode mode) {
-		File file = new File(filename);
+		this(new File(filename), mode);
+	}
+
+	public Mmfile(File file, Mode mode) {
 		switch (mode) {
 		case CREATE :
 			if (file.exists())
@@ -75,13 +78,13 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 			break;
 		case OPEN :
 			if (!file.canRead() || !file.canWrite())
-				throw new SuException("can't open " + filename);
+				throw new SuException("can't open " + file);
 			break;
 		}
 		try {
 			fin = new RandomAccessFile(file, "rw");
 		} catch (FileNotFoundException e) {
-			throw new SuException("can't open or create " + filename);
+			throw new SuException("can't open or create " + file);
 		}
 		fc = fin.getChannel();
 		try {

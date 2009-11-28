@@ -23,10 +23,12 @@ public class Database extends SuValue {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "<new>")
 			throw new SuException("cannot create instances of Database");
+		if (method == "Connections")
+			return Connections(args);
 		if (method == "CurrentSize")
-			return currentSize(args);
+			return CurrentSize(args);
 		if (method == "Cursors")
-			return cursors(args);
+			return Cursors(args);
 		if (method == "SessionId")
 			return "127.0.0.1"; // TODO SessionId
 		if (method == "TempDest")
@@ -36,13 +38,19 @@ public class Database extends SuValue {
 		return super.invoke(self, method, args);
 	}
 
-	private Object currentSize(Object[] args) {
+	public static SuContainer Connections(Object... args) {
+		Args.massage(FunctionSpec.noParams, args);
+		// TODO connections
+		return new SuContainer();
+	}
+
+	private Object CurrentSize(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		// need BigDecimal to handle long values
 		return BigDecimal.valueOf(theDbms.size());
 	}
 
-	private int cursors(Object[] args) {
+	private int Cursors(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return theDbms.cursors();
 	}

@@ -321,9 +321,16 @@ public enum Command {
 			return stringToBuffer(Ops.display(theDbms.timestamp()) + "\r\n");
 		}
 	},
-	DUMP, // TODO DUMP
+	DUMP {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			theDbms.dump(bufferToString(line));
+			return OK;
+		}
+	},
 	COPY, // TODO COPY
-	TEXT, // TODO TEXT
+	TEXT, // not supported
 	RUN {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -331,16 +338,14 @@ public enum Command {
 			Object result = Compiler.eval(bufferToString(line));
 			if (result == null)
 				return stringToBuffer("\r\n");
-			ByteBuffer buf = Pack.pack(result);
-			outputQueue.add(stringToBuffer("P" + buf.remaining() + "\r\n"));
-			return buf;
+			return valueResult(outputQueue, result);
 		}
 	},
 	BINARY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			// TODO BINARY
+			// jSuneido only supports binary
 			return OK;
 		}
 	},
@@ -366,7 +371,13 @@ public enum Command {
 			return stringToBuffer("D0\r\n");
 		}
 	},
-	CONNECTIONS,
+	CONNECTIONS {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			return valueResult(outputQueue, theDbms.connections());
+		}
+	},
 	CURSORS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -543,12 +554,16 @@ public enum Command {
 		outputQueue.add(rec.getBuffer());
 	}
 
+	private static ByteBuffer valueResult(OutputQueue outputQueue, Object result) {
+		ByteBuffer buf = Pack.pack(result);
+		outputQueue.add(stringToBuffer("P" + buf.remaining() + "\r\n"));
+		return buf;
+	}
 
 	private static boolean match(String line, String string) {
 		if (!line.startsWith(string))
 			return false;
 		int n = string.length();
 		return line.length() == n || line.charAt(n) == ' ';
-		// TODO advance line position
 	}
 }

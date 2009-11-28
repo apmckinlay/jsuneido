@@ -38,7 +38,7 @@ public class Database {
 	public final Object commitLock = new Object();
 	public static Database theDB;
 
-	private static class TN {
+	static class TN {
 		final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
 	private static class V {

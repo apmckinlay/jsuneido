@@ -154,6 +154,16 @@ public class DbmsServer {
 		Database.theDB = new Database(mmf, Mode.OPEN);
 		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
+		Compiler.eval("Use('etalib')");
+		Compiler.eval("Use('ticketlib')");
+		Compiler.eval("Use('joblib')");
+		Compiler.eval("Use('prlib')");
+		Compiler.eval("Use('prcadlib')");
+		Compiler.eval("Use('etaprlib')");
+		Compiler.eval("Use('invenlib')");
+		Compiler.eval("Use('wolib')");
+		Compiler.eval("Use('configlib')");
+		Compiler.eval("Use('demobookoptions')");
 		SocketServer server = new SocketServer(new HandlerFactory());
 		try {
 			server.run(PORT);
