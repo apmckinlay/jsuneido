@@ -2,7 +2,6 @@ package suneido.database;
 
 import static suneido.Suneido.verify;
 import static suneido.database.Database.theDB;
-import static suneido.database.Mode.CREATE;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -13,38 +12,43 @@ import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 
 public class Load {
-	private InputStream fin;
-	byte[] recbuf = new byte[100];
 
-	public void load(String table) {
+	public static int loadTable(String tablename) {
 		try {
-			if (!table.equals("")) { // load a single table
-				fin = new BufferedInputStream(
-						new FileInputStream(
-						table + ".su"));
-
-				String s = getline();
-				if (!s.startsWith("Suneido dump"))
-					throw new SuException("invalid file");
-
-				String schema = getline();
-				verify(schema.startsWith("====== "));
-				schema = "create " + table + schema.substring(6);
-
-				try {
-					theDB.setLoading(true);
-					load1(schema);
-				} finally {
-					theDB.setLoading(false);
-				}
-			}
-		} catch (IOException e) {
-			throw new SuException("Load: " + e);
+			return loadTableImp(tablename);
+		} catch (Throwable e) {
+			throw new SuException("load " + tablename + " failed", e);
 		}
 	}
 
-	int load1(String schema) throws IOException {
-System.out.println(schema);
+	private static int loadTableImp(String tablename) throws Throwable {
+		InputStream fin = new BufferedInputStream(
+				new FileInputStream(tablename + ".su"));
+		try {
+			String schema = readHeader(fin, tablename);
+			try {
+				theDB.setLoading(true);
+				return load1(fin, schema);
+			} finally {
+				theDB.setLoading(false);
+			}
+		} finally {
+			fin.close();
+		}
+	}
+
+	private static String readHeader(InputStream fin, String tablename) throws IOException {
+		String s = getline(fin);
+		if (!s.startsWith("Suneido dump"))
+			throw new SuException("invalid file");
+
+		String schema = getline(fin);
+		verify(schema.startsWith("====== "));
+		schema = "create " + tablename + schema.substring(6);
+		return schema;
+	}
+
+	private static int load1(InputStream fin, String schema) throws IOException {
 		int n = schema.indexOf(' ', 7);
 		String table = schema.substring(7, n);
 
@@ -52,59 +56,50 @@ System.out.println(schema);
 			Schema.removeTable(theDB, table);
 			Request.execute(schema);
 		}
-		return load_data(table);
+		return load_data(fin, table);
 	}
 
-	int load_data(String table) throws IOException {
-System.out.println("load_data(" + table + ")");
+	private static int load_data(InputStream fin, String tablename) throws IOException {
 		int nrecs = 0;
+		byte[] buf = new byte[4];
+		ByteBuffer bb = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN);
+		byte[] recbuf = new byte[4096];
 		Transaction tran = theDB.readwriteTran();
 		try {
 			for (;; ++nrecs) {
-				byte[] buf = new byte[4];
 				verify(fin.read(buf) == buf.length);
-				int n = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN)
-						.getInt();
+				int n = bb.getInt(0);
 				if (n == 0)
 					break;
-				load_data_record(table, tran, n);
+				if (n > recbuf.length)
+					recbuf = new byte[Math.max(n, 2 * recbuf.length)];
+				load_data_record(fin, tablename, tran, recbuf, n);
 				if (nrecs % 100 == 99) {
 					verify(tran.complete() == null);
 					tran = theDB.readwriteTran();
 				}
 			}
 		} finally {
-			verify(tran.complete() == null);
+			tran.ck_complete();
 		}
 		return nrecs;
 	}
 
-	void load_data_record(String table, Transaction tran, int n)
-			throws IOException {
-		if (n > recbuf.length)
-			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
+	private static void load_data_record(InputStream fin, String tablename,
+			Transaction tran, byte[] recbuf, int n)	throws IOException {
 		verify(fin.read(recbuf, 0, n) == n);
 		Record rec = new Record(ByteBuf.wrap(recbuf, 0, n));
-//System.out.println(rec.get(0));
-
 		try {
-			if (table.equals("views"))
-				Data.add_any_record(tran, table, rec);
+			if (tablename.equals("views"))
+				Data.add_any_record(tran, tablename, rec);
 			else
-				Data.addRecord(tran, table, rec);
+				Data.addRecord(tran, tablename, rec);
 		} catch (Throwable e) {
-			System.out.println("load: ignoring: " + table + e);
+			System.out.println("load failed for " + tablename + e);
 		}
 	}
 
-//	private static void printbuf(String name, ByteBuffer b) {
-//		System.out.print(name);
-//		for (int i = 0; i < b.limit() && i < 20; ++i)
-//			System.out.print(" " + (b.get(i) & 0xff));
-//		System.out.println("");
-//	}
-
-	private String getline() throws IOException {
+	private static String getline(InputStream fin) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		char c;
 		while ('\n' != (c = (char) fin.read()))
@@ -115,10 +110,12 @@ System.out.println("load_data(" + table + ")");
 	public static void main(String[] args) throws IOException {
 		new File("suneido.db").delete();
 		Mmfile mmf = new Mmfile("suneido.db", Mode.CREATE);
-		Database.theDB = new Database(mmf, CREATE);
+		Database.theDB = new Database(mmf, Mode.CREATE);
 
-		new Load().load("stdlib");
-		new Load().load("Accountinglib");
+		int n = Load.loadTable("stdlib");
+		System.out.println("loaded " + n + " records into stdlib");
+		n = Load.loadTable("Accountinglib");
+		System.out.println("loaded " + n + " records into Accountinglib");
 
 		Database.theDB.close();
 		Database.theDB = null;

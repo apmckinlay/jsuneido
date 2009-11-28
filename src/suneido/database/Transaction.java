@@ -464,4 +464,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		Data.removeRecord(this, tablename, index, key);
 	}
 
+	public Record input(long adr) {
+		return db.input(adr);
+	}
+
 }
