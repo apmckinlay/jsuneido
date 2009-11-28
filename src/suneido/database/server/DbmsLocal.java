@@ -6,8 +6,7 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.language.Library;
@@ -81,8 +80,7 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public SuValue connections() {
-		// TODO connnections
-		return null;
+		return suneido.language.builtin.Database.Connections();
 	}
 
 	public void copy(String filename) {
@@ -95,7 +93,10 @@ public class DbmsLocal implements Dbms {
 	}
 
 	public void dump(String filename) {
-		// TODO dump
+		if (filename.equals(""))
+			Dump.dumpDatabase("database.su");
+		else
+			Dump.dumpTable(filename);
 	}
 
 	public int finalSize() {

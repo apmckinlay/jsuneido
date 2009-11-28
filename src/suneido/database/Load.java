@@ -13,6 +13,53 @@ import suneido.util.ByteBuf;
 
 public class Load {
 
+	public static int loadDatabase(String filename) {
+		try {
+			return loadDatabaseImp(filename);
+		} catch (Throwable e) {
+			throw new SuException("load " + filename + " failed", e);
+		}
+	}
+
+	public static int loadDatabaseImp(String filename)
+			throws Throwable {
+		int n = 0;
+		File tmpfile = File.createTempFile("sudb", null, new File("."));
+		try {
+			Mmfile mmf = new Mmfile(tmpfile, Mode.CREATE);
+			Database.theDB = new Database(mmf, Mode.CREATE);
+			InputStream fin = new BufferedInputStream(
+					new FileInputStream(filename));
+			try {
+				verifyFileHeader(fin);
+				String schema;
+				try {
+					theDB.setLoading(true);
+					while (null != (schema = readTableHeader(fin))) {
+						schema = "create" + schema.substring(6);
+						load1(fin, schema);
+						++n;
+					}
+				} finally {
+					theDB.setLoading(false);
+				}
+			} finally {
+				fin.close();
+			}
+		} catch (Throwable e) {
+			tmpfile.delete();
+			throw e;
+		} finally {
+			Database.theDB.close();
+		}
+		File bak = new File("suneido.bak");
+		if (bak.exists())
+			verify(bak.delete());
+		verify(new File("suneido.db").renameTo(bak));
+		verify(tmpfile.renameTo(new File("suneido.db")));
+		return n;
+	}
+
 	public static int loadTable(String tablename) {
 		try {
 			return loadTableImp(tablename);
@@ -22,29 +69,48 @@ public class Load {
 	}
 
 	private static int loadTableImp(String tablename) throws Throwable {
-		InputStream fin = new BufferedInputStream(
-				new FileInputStream(tablename + ".su"));
+		if (tablename.endsWith(".su"))
+			tablename = tablename.substring(0, tablename.length() - 3);
+		File dbfile = new File("suneido.db");
+		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
+		Mmfile mmf = new Mmfile(dbfile, mode);
+		Database.theDB = new Database(mmf, mode);
 		try {
-			String schema = readHeader(fin, tablename);
+			InputStream fin = new BufferedInputStream(
+					new FileInputStream(tablename + ".su"));
 			try {
-				theDB.setLoading(true);
-				return load1(fin, schema);
+				verifyFileHeader(fin);
+				String schema = readTableHeader(fin);
+				if (schema == null)
+					throw new SuException("not a valid dump file");
+				schema = "create " + tablename + schema.substring(6);
+				try {
+					theDB.setLoading(true);
+					return load1(fin, schema);
+				} finally {
+					theDB.setLoading(false);
+				}
 			} finally {
-				theDB.setLoading(false);
+				fin.close();
 			}
 		} finally {
-			fin.close();
+			Database.theDB.close();
 		}
 	}
 
-	private static String readHeader(InputStream fin, String tablename) throws IOException {
+	private static void verifyFileHeader(InputStream fin)
+			throws IOException {
 		String s = getline(fin);
-		if (!s.startsWith("Suneido dump"))
-			throw new SuException("invalid file");
+		if (s == null || !s.startsWith("Suneido dump"))
+			throw new SuException("not a valid dump file");
+	}
 
+	private static String readTableHeader(InputStream fin)
+			throws IOException {
 		String schema = getline(fin);
+		if (schema == null)
+			return null;
 		verify(schema.startsWith("====== "));
-		schema = "create " + tablename + schema.substring(6);
 		return schema;
 	}
 
@@ -101,24 +167,23 @@ public class Load {
 
 	private static String getline(InputStream fin) throws IOException {
 		StringBuilder sb = new StringBuilder();
-		char c;
-		while ('\n' != (c = (char) fin.read()))
-			sb.append(c);
+		int c;
+		while ('\n' != (c = fin.read())) {
+			if (c == -1)
+				return null;
+			sb.append((char) c);
+		}
 		return sb.toString();
 	}
 
 	public static void main(String[] args) throws IOException {
-		new File("suneido.db").delete();
-		Mmfile mmf = new Mmfile("suneido.db", Mode.CREATE);
-		Database.theDB = new Database(mmf, Mode.CREATE);
+		int n = Load.loadDatabase("database.su");
+		System.out.println("loaded " + n + " tables into new suneido.db");
 
-		int n = Load.loadTable("stdlib");
-		System.out.println("loaded " + n + " records into stdlib");
-		n = Load.loadTable("Accountinglib");
-		System.out.println("loaded " + n + " records into Accountinglib");
-
-		Database.theDB.close();
-		Database.theDB = null;
+//		int n = Load.loadTable("stdlib");
+//		System.out.println("loaded " + n + " records into stdlib");
+//		n = Load.loadTable("Accountinglib");
+//		System.out.println("loaded " + n + " records into Accountinglib");
 	}
 
 }

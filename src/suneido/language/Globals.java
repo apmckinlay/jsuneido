@@ -54,6 +54,7 @@ public class Globals {
 		builtins.put("Lte", new Lte());
 		builtins.put("Match", new Match());
 		builtins.put("Md5", new Md5());
+		builtins.put("MemoryArena", new MemoryArena());
 		builtins.put("Mod", new Mod());
 		builtins.put("Mul", new Mul());
 		builtins.put("Neg", new Neg());

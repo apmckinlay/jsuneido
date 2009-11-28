@@ -65,17 +65,17 @@ class Schema {
 	}
 
 	static void checkForSystemTable(String tablename, String operation) {
-		if (is_system_table(tablename))
+		if (isSystemTable(tablename))
 			throw new SuException("can't " + operation +
 					" system table: " + tablename);
 	}
 
-	private static boolean is_system_table(String table) {
+	static boolean isSystemTable(String table) {
 		return table.equals("tables") || table.equals("columns")
 				|| table.equals("indexes") || table.equals("views");
 	}
 
-	private static boolean is_system_column(String table, String column) {
+	private static boolean isSystemColumn(String table, String column) {
 		return (table.equals("tables") && (column.equals("table")
 				|| column.equals("nrows") || column.equals("totalsize")))
 			|| (table.equals("columns") && (column.equals("table")
@@ -85,7 +85,7 @@ class Schema {
 				|| column.equals("treelevels") || column.equals("nnodes")));
 	}
 
-	private static boolean is_system_index(String table, String columns) {
+	private static boolean isSystemIndex(String table, String columns) {
 		return (table.equals("tables") && columns.equals("table"))
 				|| (table.equals("columns") && columns.equals("table,column"))
 				|| (table.equals("indexes") && columns.equals("table,columns"));
@@ -153,7 +153,7 @@ class Schema {
 	}
 
 	public static void removeColumn(Database db, String tablename, String name) {
-		if (is_system_column(tablename, name))
+		if (isSystemColumn(tablename, name))
 			throw new SuException("delete column: can't delete system column: "
 					+ name + " from " + tablename);
 
@@ -188,7 +188,7 @@ class Schema {
 		if (oldname.equals(newname))
 			return ;
 
-		if (is_system_column(tablename, oldname))
+		if (isSystemColumn(tablename, oldname))
 			throw new SuException("rename column: can't rename system column: "
 					+ oldname + " in " + tablename);
 
@@ -312,7 +312,7 @@ class Schema {
 	}
 
 	public static void removeIndex(Database db, String tablename, String columns) {
-		if (is_system_index(tablename, columns))
+		if (isSystemIndex(tablename, columns))
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);
 		synchronized(db.commitLock) {

@@ -14,7 +14,41 @@ import suneido.SuException;
 
 public class Dump {
 
-	static int dumpTable(String tablename) {
+	public static int dumpDatabase(String filename) {
+		try {
+			return dumpDatabaseImp(filename);
+		} catch (Throwable e) {
+			throw new SuException("dump " + filename + " failed", e);
+		}
+	}
+
+	private static int dumpDatabaseImp(String filename) throws Throwable {
+		FileChannel fout = new FileOutputStream(filename).getChannel();
+		try {
+			Transaction t = theDB.readonlyTran();
+			try {
+				writeFileHeader(fout);
+				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
+				BtreeIndex.Iter iter = bti.iter(t).next();
+				int n = 0;
+				for (; !iter.eof(); iter.next()) {
+					Record r = t.input(iter.keyadr());
+					String tablename = r.getString(Table.TABLE);
+					if (Schema.isSystemTable(tablename))
+						continue;
+					dump1(fout, t, tablename, true);
+					++n;
+				}
+				return n;
+			} finally {
+				t.complete();
+			}
+		} finally {
+			fout.close();
+		}
+	}
+
+	public static int dumpTable(String tablename) {
 		try {
 			return dumpTableImp(tablename);
 		} catch (Throwable e) {
@@ -27,7 +61,7 @@ public class Dump {
 		try {
 			Transaction t = theDB.readonlyTran();
 			try {
-				write(fout, "Suneido dump 1.0\n");
+				writeFileHeader(fout);
 				return dump1(fout, t, tablename, false);
 			} finally {
 				t.complete();
@@ -35,6 +69,10 @@ public class Dump {
 		} finally {
 			fout.close();
 		}
+	}
+
+	private static void writeFileHeader(FileChannel fout) throws IOException {
+		write(fout, "Suneido dump 1.0\n");
 	}
 
 	private static int dump1(FileChannel fout, Transaction t, String tablename,
@@ -107,9 +145,12 @@ public class Dump {
 		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
 		Database.theDB = new Database(mmf, Mode.OPEN);
 
-		String tablename = "stdlib";
-		int n = dumpTable(tablename);
-		System.out.println("dumped " + n + " records from " + tablename);
+		int n = dumpDatabase("database2.su");
+		System.out.println("dumped " + n + " tables to database2.su");
+
+//		String tablename = "stdlib";
+//		int n = dumpTable(tablename);
+//		System.out.println("dumped " + n + " records from " + tablename);
 
 		Database.theDB.close();
 		Database.theDB = null;
