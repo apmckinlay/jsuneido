@@ -269,6 +269,11 @@ public class SuContainer extends SuValue
 		return true;
 	}
 
+	public void clear() {
+		vec.clear();
+		map.clear();
+	}
+
 	public static int index(Object x) {
 		x = canonical(x);
 		return x instanceof Integer ? (Integer) x : -1;

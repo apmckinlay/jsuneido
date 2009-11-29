@@ -160,12 +160,19 @@ public class ContainerMethods {
 		return new SuContainer(c);
 	}
 
-	private static final FunctionSpec keyFS = new FunctionSpec("key");
+	private static final Object NA = new Object();
+	private static final FunctionSpec deleteFS
+			= new FunctionSpec(array("key", "all"), NA, NA);
 
 	static Object Delete(SuContainer c, Object[] args) {
-		// TODO Delete(all:)
-		args = Args.massage(keyFS, args);
-		return c.delete(args[0]) ? c : false;
+		args = Args.massage(deleteFS, args);
+		if ((args[0] == NA) == (args[1] == NA))
+			throw new SuException("usage: object.Delete(field) or object.Delete(all:)");
+		if (args[0] != NA)
+			return c.delete(args[0]) ? c : false;
+		else if (args[1] == Boolean.TRUE)
+			c.clear();
+		return c;
 	}
 
 	private static Object EqualRange(SuContainer c, Object[] args) {
@@ -173,6 +180,8 @@ public class ContainerMethods {
 		Range r = c.equalRange(args[0], args[1]);
 		return SuContainer.of(r.left, r.right);
 	}
+
+	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
 	private static Object Erase(SuContainer c, Object[] args) {
 		args = Args.massage(keyFS, args);
@@ -278,7 +287,7 @@ public class ContainerMethods {
 	}
 
 	private static final FunctionSpec value_blockFS =
-	new FunctionSpec(array("value", "block"), Boolean.FALSE);
+			new FunctionSpec(array("value", "block"), Boolean.FALSE);
 
 	private static Object LowerBound(SuContainer c, Object[] args) {
 		args = Args.massage(value_blockFS, args);

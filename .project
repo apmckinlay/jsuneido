@@ -24,6 +24,5 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>net.sourceforge.metrics.nature</nature>
-		<nature>org.deved.antlride.core.nature</nature>
 	</natures>
 </projectDescription>
