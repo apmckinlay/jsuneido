@@ -47,17 +47,18 @@ public class RecordMethods {
 		return new SuRecord(r);
 	}
 
-	private static final Object nil = new Object();
-	private static final FunctionSpec deleteFS =
-		new FunctionSpec(array("key"), nil);
+	private static final Object NA = new Object();
+	private static final FunctionSpec deleteFS
+			= new FunctionSpec(array("key", "all"), NA, NA);
 
 	private static Object Delete(SuRecord r, Object[] args) {
-		// TODO Delete(all:)
+		Object[] original_args = args;
 		args = Args.massage(deleteFS, args);
-		if (args[0] != nil)
-			return ContainerMethods.Delete(r, args);
-		r.delete();
-		return Boolean.TRUE;
+		if (args[0] == NA && args[1] == NA) {
+			r.delete();
+			return Boolean.TRUE;
+		} else
+			return ContainerMethods.Delete(r, original_args);
 	}
 
 	private static Object GetDeps(SuRecord r, Object[] args) {
