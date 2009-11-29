@@ -468,6 +468,8 @@ public class Ops {
 	}
 
 	public static int toIntS(String s) {
+		if (s.equals(""))
+			return 0;
 		String t = s;
 		int radix = 10;
 		if (s.startsWith("0x") || s.startsWith("0X")) {
@@ -478,7 +480,7 @@ public class Ops {
 		try {
 			return Integer.parseInt(t, radix);
 		} catch (NumberFormatException e) {
-			throw new SuException("can't convert string to integer");
+			throw new SuException("can't convert string to integer: " + s);
 		}
 	}
 
@@ -609,6 +611,7 @@ public class Ops {
 			if (x instanceof SuValue)
 				return ((SuValue) x).invoke(x, method, args);
 			Class<?> xType = x.getClass();
+			// MAYBE map from class to methods
 			if (xType == String.class)
 				return StringMethods.invoke((String) x, method, args);
 			if (xType == Integer.class)

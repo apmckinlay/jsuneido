@@ -163,6 +163,7 @@ public class ContainerMethods {
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
 	static Object Delete(SuContainer c, Object[] args) {
+		// TODO Delete(all:)
 		args = Args.massage(keyFS, args);
 		return c.delete(args[0]) ? c : false;
 	}

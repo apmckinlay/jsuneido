@@ -42,12 +42,8 @@ public class CursorInstance extends QueryInstance {
 			throw new SuException("usage: cursor.Next/Prev(transaction)");
 		TransactionInstance t = (TransactionInstance) args[0];
 		q.setTransaction((suneido.database.Transaction) t.getTransaction());
-		try {
-			Row row = q.get(dir);
-			return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
-		} finally {
-			q.setTransaction(null);
-		}
+		Row row = q.get(dir);
+		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 	}
 
 }

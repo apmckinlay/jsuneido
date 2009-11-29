@@ -47,12 +47,12 @@ public class ServerData {
 	 * thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal
-		= new ThreadLocal<ServerData>() /*{
+		= new ThreadLocal<ServerData>() {
 				@Override
 				public ServerData initialValue() {
 					return new ServerData();
 				}
-			}*/;
+			};
 	public static ServerData forThread() {
 		return threadLocal.get();
 	}
