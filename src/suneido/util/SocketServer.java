@@ -3,14 +3,15 @@ package suneido.util;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import suneido.SuException;
 
 /**
  * Socket server framework. Uses a supplied HandlerFactory to create a new
@@ -30,6 +31,10 @@ public class SocketServer {
 	private final HandlerFactory handlerFactory;
 	private Selector selector;
 	private static final int INITIAL_BUFSIZE = 4096;
+	private static final int SELECT_TIMEOUT = 1000; // in ms, so = 1 sec
+	private static final long CHECK_INTERVAL = 60 * 1000; // 1 min
+	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
+	private static long lastCheck = 0;
 
 	public SocketServer(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
@@ -42,21 +47,39 @@ public class SocketServer {
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		while (true) {
-			int nready = selector.select();
-			if (nready == 0)
-				continue;
-			Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
-			while (iter.hasNext()) {
-				SelectionKey key = iter.next();
-				if (key.isAcceptable())
-					accept(key);
-				if (key.isReadable())
-					read(key);
-				if (key.isValid() && key.isWritable())
-					write(key);
-				iter.remove();
+			int nready = selector.select(SELECT_TIMEOUT);
+			if (nready > 0)
+				handleSelected();
+			else
+				closeIdleConnections();
+		}
+	}
+
+	private void handleSelected() throws IOException {
+		Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
+		while (iter.hasNext()) {
+			SelectionKey key = iter.next();
+			if (key.isAcceptable())
+				accept(key);
+			if (key.isReadable())
+				read(key);
+			if (key.isValid() && key.isWritable())
+				write(key);
+			iter.remove();
+		}
+	}
+
+	private long closeIdleConnections() throws IOException {
+		long t = System.currentTimeMillis();
+		if (t - lastCheck > CHECK_INTERVAL) {
+			lastCheck = t;
+			for (SelectionKey key : selector.keys()) {
+				Info info = (Info) key.attachment();
+				if (info != null && t - info.lastActivity > IDLE_TIMEOUT)
+					key.channel().close();
 			}
 		}
+		return lastCheck;
 	}
 
 	private void accept(SelectionKey key)
@@ -69,7 +92,9 @@ public class SocketServer {
 					SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		if (key2 == null)
 			return;
-		Handler handler = handlerFactory.newHandler(new OutputQueue(key2));
+		InetAddress adr = channel.socket().getInetAddress();
+		Handler handler = handlerFactory.newHandler(new OutputQueue(key2),
+				adr.getHostAddress());
 		key2.attach(new Info(handler));
 		handler.start();
 	}
@@ -84,6 +109,7 @@ public class SocketServer {
 			throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
+		info.lastActivity = System.currentTimeMillis();
 		ByteBuffer buf = info.readBuf;
 		int n;
 		do {
@@ -109,12 +135,10 @@ public class SocketServer {
 			else // don't hold onto big buffers
 				info.readBuf = ByteBuffer.allocate(INITIAL_BUFSIZE);
 		}
-		if (n < 0)
-			close(channel);
-	}
-
-	private void close(SocketChannel channel) throws IOException {
-		channel.close();
+		if (n < 0) {
+			info.handler.close();
+			channel.close();
+		}
 	}
 
 	/** called from handlers, possibly in other threads */
@@ -147,11 +171,13 @@ public class SocketServer {
 	}
 
 	private static class Info {
+		long lastActivity;
 		final Handler handler;
 		ByteBuffer readBuf = ByteBuffer.allocate(INITIAL_BUFSIZE);
 		final Deque<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
 		Info(Handler handler) {
 			this.handler = handler;
+			lastActivity = System.currentTimeMillis();
 		}
 	}
 
@@ -169,15 +195,24 @@ public class SocketServer {
 			}
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
+		/** does NOT call handler.close */
+		public void close() {
+			try {
+				key.channel().close();
+			} catch (IOException e) {
+				throw new SuException("error closing connection", e);
+			}
+		}
 	}
 
 	public static interface HandlerFactory {
-		public Handler newHandler(OutputQueue outputQueue);
+		public Handler newHandler(OutputQueue outputQueue, String address);
 	}
 
 	public static interface Handler {
 		public void start();
 		public void moreInput(ByteBuffer buf);
+		public void close();
 	}
 
 	//==========================================================================
@@ -211,10 +246,14 @@ public class SocketServer {
 			outputQueue.add(output);
 			outputQueue.add(output);
 		}
+
+		@Override
+		public void close() {
+		}
 	}
 	static class EchoHandlerFactory implements HandlerFactory {
 		@Override
-		public Handler newHandler(OutputQueue outputQueue) {
+		public Handler newHandler(OutputQueue outputQueue, String address) {
 			return new EchoHandler(outputQueue);
 		}
 	}

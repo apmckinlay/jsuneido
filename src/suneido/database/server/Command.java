@@ -3,8 +3,10 @@ package suneido.database.server;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.List;
 
+import suneido.SuContainer;
 import suneido.SuException;
 import suneido.database.*;
 import suneido.database.query.Header;
@@ -28,8 +30,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			badcmd.rewind();
-			outputQueue.add(badcmd);
+			outputQueue.add(badcmd());
 			return line;
 		}
 	},
@@ -46,7 +47,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			theDbms.admin(ServerData.forThread(), bufferToString(line));
-			return TRUE;
+			return t();
 		}
 	},
 	TRANSACTION {
@@ -60,7 +61,7 @@ public enum Command {
 			else if (!match(s, "read"))
 				return stringToBuffer("ERR invalid transaction mode: " + s
 						+ "\r\n");
-			// TODO session id
+			// TODO associate session id with transaction
 			int tn = ServerData.forThread().addTransaction(
 					theDbms.transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
@@ -74,7 +75,7 @@ public enum Command {
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
 			ServerData.forThread().endTransaction(tn);
 			String conflict = tran.complete();
-			return conflict == null ? OK : stringToBuffer(conflict + "\r\n");
+			return conflict == null ? ok() : stringToBuffer(conflict + "\r\n");
 		}
 	},
 	ABORT {
@@ -85,7 +86,7 @@ public enum Command {
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
 			ServerData.forThread().endTransaction(tn);
 			tran.abort();
-			return OK;
+			return ok();
 		}
 	},
 	REQUEST {
@@ -150,7 +151,7 @@ public enum Command {
 				ServerData.forThread().endCursor(n);
 			else
 				throw new SuException("CLOSE expects Q# or C#");
-			return OK;
+			return ok();
 		}
 	},
 
@@ -192,7 +193,7 @@ public enum Command {
 				OutputQueue outputQueue) {
 			DbmsQuery q = q_or_c(line);
 			q.rewind();
-			return OK;
+			return ok();
 		}
 	},
 
@@ -255,7 +256,7 @@ public enum Command {
 			DbmsQuery q = q_or_tc(line);
 			// System.out.println("\t" + new Record(extra));
 			q.output(new Record(extra));
-			return TRUE;
+			return t();
 		}
 	},
 	UPDATE {
@@ -285,7 +286,7 @@ public enum Command {
 					ServerData.forThread().getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			theDbms.erase(tran, recadr);
-			return OK;
+			return ok();
 		}
 	},
 
@@ -326,7 +327,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			theDbms.dump(bufferToString(line));
-			return OK;
+			return ok();
 		}
 	},
 	COPY, // TODO COPY
@@ -346,7 +347,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			// jSuneido only supports binary
-			return OK;
+			return ok();
 		}
 	},
 	TRANLIST {
@@ -375,7 +376,12 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			return valueResult(outputQueue, theDbms.connections());
+			SuContainer connections = new SuContainer();
+			synchronized(DbmsServer.serverDataSet) {
+				for (ServerData serverData : DbmsServer.serverDataSet)
+					connections.append(serverData.getSessionId());
+			}
+			return valueResult(outputQueue, connections);
 		}
 	},
 	CURSORS {
@@ -389,9 +395,11 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			// TODO SESSIONID
-			// outputQueue.add(line);
-			return line;
+			String sessionId = bufferToString(line).trim();
+			ServerData serverData = ServerData.forThread();
+			if (!sessionId.equals(""))
+				serverData.setSessionId(sessionId);
+			return stringToBuffer(serverData.getSessionId() + "\r\n");
 		}
 	},
 	FINAL,
@@ -400,10 +408,29 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
 			// TODO LOG
-			return OK;
+			return ok();
 		}
 	},
-	KILL; // TODO KILL
+	KILL {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			int nkilled = 0;
+			String sessionId = bufferToString(line).trim();
+			synchronized(DbmsServer.serverDataSet) {
+				Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
+				while (iter.hasNext()) {
+					ServerData serverData = iter.next();
+					if (sessionId.equals(serverData.getSessionId())) {
+						++nkilled;
+						serverData.outputQueue.close();
+						iter.remove();
+					}
+				}
+			}
+			return stringToBuffer("N" + nkilled + "\r\n");
+		}
+	};
 
 	/**
 	 * @param buf A ByteBuffer containing the command line.
@@ -424,17 +451,32 @@ public enum Command {
 	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue) {
-		notimp.rewind();
-		outputQueue.add(notimp);
+		outputQueue.add(notimp());
 		return line;
 	}
-	private final static ByteBuffer badcmd = stringToBuffer("ERR bad command: ");
-	private final static ByteBuffer notimp = stringToBuffer("ERR not implemented: ");
-	private final static ByteBuffer OK = stringToBuffer("OK\r\n");
-	private final static ByteBuffer EOF = stringToBuffer("EOF\r\n");
-	private final static ByteBuffer TRUE = stringToBuffer("t\r\n");
+	private final static ByteBuffer BADCMD_ = stringToBuffer("ERR bad command: ");
+	private final static ByteBuffer NOTIMP_ = stringToBuffer("ERR not implemented: ");
+	private final static ByteBuffer OK_ = stringToBuffer("OK\r\n");
+	private final static ByteBuffer EOF_ = stringToBuffer("EOF\r\n");
+	private final static ByteBuffer TRUE_ = stringToBuffer("t\r\n");
 
 	public final static Dbms theDbms = new DbmsLocal();
+
+	static ByteBuffer badcmd() {
+		return BADCMD_.duplicate();
+	}
+	static ByteBuffer notimp() {
+		return NOTIMP_.duplicate();
+	}
+	static ByteBuffer ok() {
+		return OK_.duplicate();
+	}
+	static ByteBuffer eof() {
+		return EOF_.duplicate();
+	}
+	static ByteBuffer t() {
+		return TRUE_.duplicate();
+	}
 
 	/**
 	 * Skips whitespace then looks for 'type' char followed by digits, starting
@@ -527,8 +569,7 @@ public enum Command {
 	private static void row_result(Row row, Header hdr, boolean sendhdr,
 			OutputQueue outputQueue) {
 		if (row == null) {
-			EOF.rewind();
-			outputQueue.add(EOF);
+			outputQueue.add(eof());
 			return;
 		}
 		Record rec = row.getFirstData();
