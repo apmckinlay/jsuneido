@@ -4,9 +4,12 @@ import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.*;
@@ -17,11 +20,14 @@ import suneido.util.SocketServer.OutputQueue;
 public class DbmsServer {
 	private static final int PORT = 3147;
 	private static final Executor executor = Executors.newCachedThreadPool();
+	@GuardedBy("serverDataSet")
+	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 
 	private static class HandlerFactory implements SocketServer.HandlerFactory {
 		@Override
-		public SocketServer.Handler newHandler(OutputQueue outputQueue) {
-			return new Handler(outputQueue);
+		public SocketServer.Handler newHandler(OutputQueue outputQueue,
+				String address) {
+			return new Handler(outputQueue, address);
 		}
 	}
 
@@ -39,12 +45,17 @@ public class DbmsServer {
 		private Command cmd = null;
 		private int cmdlen = 0;
 		private int nExtra = -1;
-		private final ServerData serverData = new ServerData();
+		private final ServerData serverData;
 		private ByteBuffer line;
 		private ByteBuffer extra;
 
-		Handler(OutputQueue outputQueue) {
+		Handler(OutputQueue outputQueue, String address) {
 			this.outputQueue = outputQueue;
+			serverData = new ServerData(outputQueue);
+			serverData.setSessionId(address);
+			synchronized(serverDataSet) {
+				serverDataSet.add(serverData);
+			}
 		}
 
 		@Override
@@ -69,7 +80,8 @@ public class DbmsServer {
 			// next state = waiting for extra data (if any)
 			if (nExtra != -1 && buf.remaining() >= linelen + nExtra) {
 				assert buf.position() == 0;
-				assert buf.limit() == linelen + nExtra;
+//				assert buf.limit() == linelen + nExtra;
+// some commands e.g. KILL send an extra \r\n
 
 				buf.position(cmdlen);
 				buf.limit(linelen);
@@ -80,7 +92,7 @@ public class DbmsServer {
 				extra = buf.slice();
 
 				buf.position(linelen + nExtra); // consume input
-				assert buf.remaining() == 0;
+//				assert buf.remaining() == 0;
 				linelen = 0;
 				nExtra = -1;
 
@@ -132,8 +144,6 @@ public class DbmsServer {
 			try {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
-				if (output != null) // TODO handle OK etc. better
-					output = output.duplicate();
 			} catch (Throwable e) {
 //e.printStackTrace();
 //System.out.println("ERR " + err);
@@ -141,9 +151,14 @@ public class DbmsServer {
 //System.out.println("EXTRA " + Util.bufferToString(extra));
 				output = stringToBuffer("ERR " + e.toString() + "\r\n");
 			}
-			if (output != null) {
-				output.rewind();
+			if (output != null)
 				outputQueue.add(output);
+		}
+
+		@Override
+		public void close() {
+			synchronized(serverDataSet) {
+				serverDataSet.remove(serverData);
 			}
 		}
 	}

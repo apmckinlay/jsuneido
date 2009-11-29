@@ -8,6 +8,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.Transaction;
 import suneido.util.SocketServer;
+import suneido.util.SocketServer.OutputQueue;
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -29,18 +30,29 @@ public class ServerData {
 			new HashMap<Integer, DbmsQuery>();
 	private final Map<String, String> sviews = new HashMap<String, String>();
 	private final Stack<String> viewnest = new Stack<String>();
+	private String sessionId;
+	public final OutputQueue outputQueue; // for kill
+
+	/** for tests */
+	public ServerData() {
+		this.outputQueue = null;
+	}
+
+	public ServerData(OutputQueue outputQueue) {
+		this.outputQueue = outputQueue;
+	}
 
 	/**
 	 * this is set by {@link SocketServer} since it is per connection, not really per
 	 * thread, initialValue is for tests
 	 */
-	public static final ThreadLocal<ServerData> threadLocal =
-		new ThreadLocal<ServerData>() {
+	public static final ThreadLocal<ServerData> threadLocal
+		= new ThreadLocal<ServerData>() /*{
 				@Override
 				public ServerData initialValue() {
 					return new ServerData();
 				}
-			};
+			}*/;
 	public static ServerData forThread() {
 		return threadLocal.get();
 	}
@@ -121,5 +133,13 @@ public class ServerData {
 
 	public int cursorsSize() {
 		return cursors.size();
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 }
