@@ -25,7 +25,6 @@ public class TransactionInstance extends SuValue {
 	private final int num = ++nextnum;
 	private final DbmsTran t;
 	private boolean update = false;
-	private boolean ended = false;
 	private String conflict = null;
 
 	private static final Object notPassed = new Object();
@@ -74,7 +73,6 @@ public class TransactionInstance extends SuValue {
 
 	private boolean Complete(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		ended = true;
 		conflict = t.complete();
 		return conflict == null;
 	}
@@ -86,7 +84,7 @@ public class TransactionInstance extends SuValue {
 
 	private boolean EndedQ(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return ended;
+		return t.isEnded();
 	}
 
 	private static final FunctionSpec queryFS =
@@ -143,9 +141,8 @@ public class TransactionInstance extends SuValue {
 
 	private Object Rollback(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		if (ended)
+		if (t.isEnded())
 			throw new SuException("cannot Rollback completed Transaction");
-		ended = true;
 		t.abort();
 		return null;
 	}
@@ -157,8 +154,7 @@ public class TransactionInstance extends SuValue {
 
 	// used by Transaction for block form
 	public void block_complete() {
-		if (!ended) {
-			ended = true;
+		if (!t.isEnded()) {
 			conflict = t.complete();
 			if (conflict != null)
 				throw new SuException("Transaction: block commit failed: " + conflict);
@@ -166,10 +162,8 @@ public class TransactionInstance extends SuValue {
 	}
 
 	public void abort() {
-		if (!ended) {
-			ended = true;
+		if (!t.isEnded())
 			t.abort();
-		}
 	}
 
 	@Override
@@ -182,7 +176,7 @@ public class TransactionInstance extends SuValue {
 	}
 
 	public boolean isEnded() {
-		return ended;
+		return t.isEnded();
 	}
 
 	public String conflict() {

@@ -15,7 +15,6 @@ package suneido;
 import java.io.*;
 import java.util.Map;
 
-import suneido.*;
 import suneido.database.*;
 import suneido.language.*;
 import suneido.language.Compiler;
@@ -29,6 +28,8 @@ public class Repl {
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
+		Compiler.eval("Use('etalib')");
+		Compiler.eval("Use('configlib')");
 
 		while (true) {
 			out.print("> ");

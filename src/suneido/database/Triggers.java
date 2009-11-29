@@ -32,6 +32,7 @@ public class Triggers {
 					oldrec == null ? false : new SuRecord(oldrec, table.fields, t),
 					newrec == null ? false : new SuRecord(newrec, table.fields, t));
 		} catch (SuException e) {
+			//e.printStackTrace();
 			throw new SuException(e + " (" + trigger + ")", e);
 		}
 	}

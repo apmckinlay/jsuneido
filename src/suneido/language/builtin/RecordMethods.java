@@ -52,6 +52,7 @@ public class RecordMethods {
 		new FunctionSpec(array("key"), nil);
 
 	private static Object Delete(SuRecord r, Object[] args) {
+		// TODO Delete(all:)
 		args = Args.massage(deleteFS, args);
 		if (args[0] != nil)
 			return ContainerMethods.Delete(r, args);

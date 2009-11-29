@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.SuException;
 import suneido.database.*;
 import suneido.language.Compiler;
 import suneido.util.SocketServer;
@@ -145,10 +146,8 @@ public class DbmsServer {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
-//e.printStackTrace();
-//System.out.println("ERR " + err);
-//System.out.println("FROM " + Util.bufferToString(line).trim());
-//System.out.println("EXTRA " + Util.bufferToString(extra));
+if (!(e instanceof SuException))
+e.printStackTrace();
 				output = stringToBuffer("ERR " + e.toString() + "\r\n");
 			}
 			if (output != null)
