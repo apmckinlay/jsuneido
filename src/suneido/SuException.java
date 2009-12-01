@@ -1,5 +1,7 @@
 package suneido;
 
+import suneido.language.Ops;
+
 /**
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -29,8 +31,10 @@ public class SuException extends RuntimeException {
 		return new SuException("should not reach here");
 	}
 
-	public static final SuException methodNotFound(String object, String method) {
-		return new SuException("method not found: " + object + "." + method);
+	public static final SuException methodNotFound(Object object, String method) {
+		return new SuException("method not found: "
+				+ Ops.typeName(object) + "." + method
+				+ " (" + object + ")");
 	}
 
 }

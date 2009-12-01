@@ -118,6 +118,7 @@ public class SuContainer extends SuValue
 	public void merge(SuContainer c) {
 		vec.addAll(c.vec);
 		map.putAll(c.map);
+		migrate();
 	}
 
 	@Override

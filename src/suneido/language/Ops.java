@@ -1,5 +1,7 @@
 package suneido.language;
 
+import static suneido.SuException.methodNotFound;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -623,7 +625,7 @@ public class Ops {
 		} catch (java.lang.StackOverflowError e) {
 			throw new SuException("function call overflow");
 		}
-		throw new SuException("method not found: " + typeName(x) + "." + method);
+		throw methodNotFound(x, method);
 	}
 
 	public static String toMethodString(Object method) {

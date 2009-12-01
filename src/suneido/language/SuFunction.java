@@ -1,5 +1,7 @@
 package suneido.language;
 
+import static suneido.SuException.methodNotFound;
+
 /**
  * an SuFunction is implemented as a class with the definition in a "call"
  * method
@@ -14,7 +16,7 @@ abstract public class SuFunction extends SuCallable {
 			return "function";
 		// TODO other standard methods on functions e.g. Params
 		else
-			throw methodNotFound(method);
+			throw methodNotFound(self, method);
 	}
 
 	@Override

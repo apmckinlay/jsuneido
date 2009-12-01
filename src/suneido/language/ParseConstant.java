@@ -152,7 +152,10 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T date() {
-		return matchReturn(NUMBER, generator.date(lexer.getValue()));
+		T date = generator.date(lexer.getValue());
+		if (date == null)
+			syntaxError("invalid date literal: " + lexer.getValue());
+		return matchReturn(NUMBER, date);
 	}
 
 	private T hashConstant() {
