@@ -1,5 +1,7 @@
 package suneido;
 
+import static suneido.SuException.methodNotFound;
+
 import java.nio.ByteBuffer;
 
 import suneido.language.SuClass;
@@ -32,15 +34,11 @@ public abstract class SuValue implements Packable {
 		return invoke(this, method, args);
 	}
 	public Object invoke(Object self, String method, Object... args) {
-		throw methodNotFound(method);
+		throw methodNotFound(self, method);
 	}
 
 	public Object eval(Object self, Object... args) {
 		throw new SuException("can't eval " + typeName());
-	}
-
-	public SuException methodNotFound(String method) {
-		return SuException.methodNotFound(typeName(), method);
 	}
 
 	public String typeName() {

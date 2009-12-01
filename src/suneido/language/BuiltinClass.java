@@ -20,7 +20,12 @@ public abstract class BuiltinClass extends SuValue {
 
 	@Override
 	public String typeName() {
-		return "BuiltinClass";
+		return getClass().getName().replace("suneido.language.builtin.", "");
+	}
+
+	@Override
+	public String toString() {
+		return typeName() + " /* builtin class */";
 	}
 
 }

@@ -3,11 +3,14 @@ package suneido;
 /*
  TestRunner.Run(#(stdlib), skipTags: #(gui, windows), quit_on_failure:)
  TestRunner.Run(#(Accountinglib), skipTags: #(windows), quit_on_failure:)
+ TestRunner.Run(#(etalib), skipTags: #(windows), quit_on_failure:)
  TestRunner.RunAll();;
 
  Use('Accountinglib')
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
+
+Ar_EDI_Manager_Test()
 
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */

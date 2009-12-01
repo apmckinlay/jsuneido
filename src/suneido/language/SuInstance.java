@@ -29,6 +29,8 @@ public class SuInstance extends SuValue {
 		// except when object.Eval is used
 		if (method == "Base")
 			return Base(self, args);
+		if (method == "Delete")
+			return Delete(self, args);
 		if (method == "Eval")
 			return ContainerMethods.Eval(self, args);
 		if (method == "Eval2")
@@ -46,6 +48,11 @@ public class SuInstance extends SuValue {
 	}
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
+
+	private Object Delete(Object self, Object[] args) {
+		args = Args.massage(keyFS, args);
+		return ivars.remove(args[0]) == null ? false : this;
+	}
 
 	private Object MemberQ(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);

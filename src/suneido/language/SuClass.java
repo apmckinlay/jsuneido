@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static suneido.SuException.methodNotFound;
 import static suneido.language.SuClass.Marker.*;
 
 import java.util.Map;
@@ -155,7 +156,7 @@ public abstract class SuClass extends SuCallable {
 			return Ops.invoke(self, "Default", newargs);
 			// COULD make a defaultMethod and bypass invoke (like "call")
 		}
-		throw methodNotFound((String) args[0]);
+		throw methodNotFound(self, (String) args[0]);
 	}
 
 	private static Object init(Object[] args) {
