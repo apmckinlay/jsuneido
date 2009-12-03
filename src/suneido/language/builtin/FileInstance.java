@@ -64,7 +64,7 @@ public class FileInstance extends SuValue {
 		try {
 			f.getChannel().force(true);
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File flush io exception", e);
 		}
 		return null;
 	}
@@ -86,7 +86,7 @@ public class FileInstance extends SuValue {
 			f.readFully(buf);
 			return new String(buf);
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File read io exception", e);
 		}
 	}
 
@@ -95,7 +95,7 @@ public class FileInstance extends SuValue {
 		try {
 			s = f.readLine();
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File readline io exception", e);
 		}
 		return s == null ? Boolean.FALSE : s;
 	}
@@ -115,9 +115,11 @@ public class FileInstance extends SuValue {
 			else if (!origin.equals("set"))
 				throw new SuException(
 						"file.Seek: origin must be 'set', 'end', or 'cur'");
+			if (offset < 0)
+				offset = 0;
 			f.seek(offset);
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File seek io exception", e);
 		}
 		return null;
 	}
@@ -127,7 +129,7 @@ public class FileInstance extends SuValue {
 		try {
 			return (int) f.getFilePointer();
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File tell io exception", e);
 		}
 	}
 
@@ -138,7 +140,7 @@ public class FileInstance extends SuValue {
 		try {
 			f.writeBytes(Ops.toStr(args[0]));
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File write io exception", e);
 		}
 		return null;
 	}
@@ -149,7 +151,7 @@ public class FileInstance extends SuValue {
 			f.writeBytes(Ops.toStr(args[0]));
 			f.writeBytes("\r\n");
 		} catch (IOException e) {
-			throw new SuException("File io exception", e);
+			throw new SuException("File write io exception", e);
 		}
 		return null;
 	}

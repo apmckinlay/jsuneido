@@ -81,27 +81,20 @@ public class Ops {
 	/**
 	 * type ordering: boolean, number, string, date, container, other
 	 */
+	@SuppressWarnings("unchecked")
 	public static int cmp(Object x, Object y) {
 		if (x == y)
 			return 0;
 		Class<?> xType = x.getClass();
+		if (xType == SuRecord.class)
+			xType = SuContainer.class;
 		Class<?> yType = y.getClass();
+		if (yType == SuRecord.class)
+			yType = SuContainer.class;
 		if (xType == yType) {
-			if (xType == Integer.class)
-				return ((Integer) x).compareTo((Integer) y);
-			if (xType == String.class)
-				return ((String) x).compareTo((String) y);
-			if (xType == Boolean.class)
-				return ((Boolean) x).compareTo((Boolean) y);
-			if (xType == BigDecimal.class)
-				return ((BigDecimal) x).compareTo((BigDecimal) y);
-			if (xType == Date.class)
-				return ((Date) x).compareTo((Date) y);
-			if (xType == SuContainer.class)
-				return ((SuContainer) x).compareTo((SuContainer) y);
-			int xHash = x.hashCode();
-			int yHash = y.hashCode();
-			return xHash < yHash ? -1 : xHash > yHash ? +1 : 0;
+			if (x instanceof Comparable)
+				return ((Comparable) x).compareTo(y);
+			return cmpHash(xType, yType);
 		}
 		if (xType == Boolean.class)
 			return -1;
@@ -135,6 +128,10 @@ public class Ops {
 		if (yType == Boolean.class || yType == Integer.class
 				|| yType == BigDecimal.class || yType == String.class)
 			return +1;
+		return cmpHash(xType, yType);
+	}
+
+	private static int cmpHash(Class<?> xType, Class<?> yType) {
 		int xHash = xType.hashCode();
 		int yHash = yType.hashCode();
 		return xHash < yHash ? -1 : xHash > yHash ? +1 : 0;
@@ -414,7 +411,10 @@ public class Ops {
 			return Integer.parseInt(s);
 		else
 			try {
-				return new BigDecimal(s);
+				BigDecimal n = new BigDecimal(s);
+				if (n.compareTo(BigDecimal.ZERO) == 0)
+					return 0;
+				return n;
 			} catch (NumberFormatException e) {
 				throw new SuException("can't convert to number: " + s, e);
 			}

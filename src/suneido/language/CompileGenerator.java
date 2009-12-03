@@ -721,6 +721,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void lvalue(Value<Object> value) {
+		if (value.type == null)
+			throw new SuException("invalid lvalue");
 		switch (value.type) {
 		case IDENTIFIER:
 			if (Character.isUpperCase(value.id.charAt(0)))

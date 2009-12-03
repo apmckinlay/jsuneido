@@ -83,6 +83,11 @@ public class ExecuteTest {
 		test("2 < 3", "true");
 		test("3 < 2", "false");
 		test("2 < 2", "false");
+		test("1.1 < 1.2", "true");
+		test("1.2 < 1.1", "false");
+		test("[99] < [.5]", "false");
+		test("#{99} < #(.5)", "false");
+		test("#{.5} < #(99)", "true");
 	}
 	@Test public void test_lte() {
 		test("2 <= 3", "true");

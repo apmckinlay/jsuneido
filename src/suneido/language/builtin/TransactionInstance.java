@@ -34,6 +34,7 @@ public class TransactionInstance extends SuValue {
 	public TransactionInstance(DbmsTran t) {
 		assert t != null;
 		this.t = t;
+		update = !t.isReadonly();
 	}
 
 	public TransactionInstance(Object[] args) {

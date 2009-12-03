@@ -80,7 +80,7 @@ public abstract class SuClass extends SuCallable {
 
 	private Object findMethod(Object method) {
 		for (FunctionSpec f : params)
-			if (f.name == method)
+			if (f.name.equals(method))
 				return new Method(this);
 		return NOMETHOD;
 	}
