@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -87,6 +88,14 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 			throw new SuException("can't open or create " + file);
 		}
 		fc = fin.getChannel();
+		try {
+			FileLock lock = fc.tryLock();
+			if (lock == null)
+				throw new SuException("can't open " + file);
+			lock.release();
+		} catch (IOException e1) {
+			throw new SuException("io exception locking " + file);
+		}
 		try {
 			file_size = fc.size();
 		} catch (IOException e) {
