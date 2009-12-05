@@ -14,12 +14,12 @@ import suneido.language.SuClass.Method;
 @ThreadSafe
 public class UserDefined {
 
-	public static SuClass userDefined(String where, String method) {
+	public static Object userDefined(String where,
+			Object self, String method, Object[] args) {
 		SuClass c = userDefinedClass(where, method);
-		if (c != null)
-			return c;
-		String type = where.substring(0, where.length() - 1).toLowerCase();
-		throw SuException.methodNotFound(type, method);
+		if (c == null)
+			throw SuException.methodNotFound(self, method);
+		return c.invoke(self, method, args);
 	}
 
 	public static SuClass userDefinedClass(String where, String method) {

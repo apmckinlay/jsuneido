@@ -10,8 +10,6 @@ package suneido;
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
 
- Eta_ReminderEmail_Test()
-
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */
 

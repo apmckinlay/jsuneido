@@ -101,7 +101,7 @@ public class ContainerMethods {
 				return UpperBound(c, args);
 			break;
 		}
-		return userDefined("Objects", method).invoke(c, method, args);
+		return userDefined("Objects", c, method, args);
 	}
 
 	@SuppressWarnings("unchecked")
