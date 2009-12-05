@@ -115,7 +115,7 @@ public class StringMethods {
 				return UpperQ(s, args);
 			break;
 		}
-		return userDefined("Strings", method).invoke(s, method, args);
+		return userDefined("Strings", s, method, args);
 	}
 
 	private static Boolean AlphaQ(String s, Object[] args) {

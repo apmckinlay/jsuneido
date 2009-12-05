@@ -69,7 +69,7 @@ public class TransactionInstance extends SuValue {
 			return Rollback(args);
 		if (method == "Update?")
 			return UpdateQ(args);
-		return userDefined("Transactions", method).invoke(self, method, args);
+		return userDefined("Transactions", self, method, args);
 	}
 
 	private boolean Complete(Object[] args) {

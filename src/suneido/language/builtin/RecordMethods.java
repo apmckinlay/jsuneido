@@ -13,6 +13,8 @@ import suneido.util.Util;
 public class RecordMethods {
 
 	public static Object invoke(SuRecord r, String method, Object... args) {
+		if (method == "Clear")
+			return Clear(r, args);
 		if (method == "Copy")
 			return Copy(r, args);
 		if (method == "Delete")
@@ -40,6 +42,12 @@ public class RecordMethods {
 		if (c != null)
 			return c.invoke(r, method, args);
 		return ContainerMethods.invoke(r, method, args);
+	}
+
+	private static Object Clear(SuRecord r, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		r.clear();
+		return null;
 	}
 
 	private static Object Copy(SuRecord r, Object[] args) {

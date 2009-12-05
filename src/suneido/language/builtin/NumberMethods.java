@@ -54,7 +54,7 @@ public class NumberMethods {
 			return Sqrt(n, args);
 		if (method == "Tan")
 			return Tan(n, args);
-		return userDefined("Numbers", method).invoke(n, method, args);
+		return userDefined("Numbers", n, method, args);
 	}
 
 	static BigDecimal Frac(BigDecimal n, Object... args) {

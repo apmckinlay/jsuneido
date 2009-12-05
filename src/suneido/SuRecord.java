@@ -22,10 +22,10 @@ import suneido.util.Util;
  */
 @NotThreadSafe
 public class SuRecord extends SuContainer {
-	private final Header hdr;
-	private final TransactionInstance tran;
+	private Header hdr;
+	private TransactionInstance tran;
 	private long recadr;
-	private final Status status;
+	private Status status;
 	private final List<Object> observers = new ArrayList<Object>();
 	private final Set<Object> invalid = new HashSet<Object>();
 	private final Map<Object, Set<Object>> dependencies =
@@ -83,6 +83,15 @@ public class SuRecord extends SuContainer {
 		int i = 0;
 		for (String field : flds)
 			addField(field, rec.getraw(i++));
+	}
+
+	@Override
+	public void clear() {
+		super.clear();
+		hdr = null;
+		tran = null;
+		recadr = 0;
+		status = Status.NEW;
 	}
 
 	private void addField(String field, ByteBuffer buf) {

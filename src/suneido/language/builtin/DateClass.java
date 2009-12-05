@@ -68,7 +68,7 @@ public class DateClass extends BuiltinClass {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "GetLocalGMTBias")
 			return GetLocalGMTBias(self, args);
-		return userDefined("Dates", method).invoke(self, method, args);
+		return userDefined("Dates", self, method, args);
 	}
 
 	private static Object GetLocalGMTBias(Object self, Object[] args) {

@@ -56,7 +56,7 @@ public class FileInstance extends SuValue {
 			return write(args);
 		if (method == "Writeline")
 			return writeline(args);
-		return userDefined("Files", method).invoke(self, method, args);
+		return userDefined("Files", self, method, args);
 	}
 
 	private Object flush(Object[] args) {
