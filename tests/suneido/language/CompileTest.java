@@ -192,9 +192,13 @@ public class CompileTest {
 	}
 	@Test public void test_loops() {
 		test("do a while (b)",
-				"L1, a, POP, b, bool, IFTRUE L1, L2");
+				"L1, a, POP, L2, b, bool, IFTRUE L1, L3");
 		test("do a while (b = c)",
-				"L1, a, POP, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L2");
+				"L1, a, POP, L2, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L3");
+		test("do { a; continue; b } while (c)",
+				"L1, a, POP, GOTO L2, b, POP, L2, c, bool, IFTRUE L1, L3");
+		test("do { a; break; b } while (c)",
+				"L1, a, POP, GOTO L2, b, POP, L3, c, bool, IFTRUE L1, L2");
 		test("while (a) b",
 				"L1, a, bool, IFFALSE L2, b, POP, GOTO L1, L2");
 		test("while (a = b) c",

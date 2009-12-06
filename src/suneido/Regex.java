@@ -38,6 +38,7 @@ public class Regex {
 		char c = rx.charAt(0);
 		if (c == '+' || c == '*' || c == '?')
 			sb.append('\\');
+		int inParens = 0;
 		boolean inCharClass = false;
 		for (int i = 0; i < rx.length();) {
 			c = rx.charAt(i);
@@ -81,7 +82,16 @@ public class Regex {
 					sb.append(c);
 					++i;
 				}
+				++inParens;
 				break;
+			case ')':
+				if (inParens > 0) {
+					sb.append(c);
+					--inParens;
+				} else
+					sb.append('\\').append(c);
+				++i;
+				break ;
 			case '\\':
 				i += backslash(rx, i, sb);
 				break;

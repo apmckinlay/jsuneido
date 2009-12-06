@@ -1,7 +1,5 @@
 package suneido.language;
 
-import suneido.SuContainer;
-
 
 public class SampleClass extends SuClass {
 
@@ -23,10 +21,6 @@ public class SampleClass extends SuClass {
 
 	private Object _init(Object self, Object[] args) {
 		superInvoke(self, "_init", args);
-		SuContainer x = new SuContainer();
-		for (Object a : args)
-			x.append(a);
-		((SuInstance) self).put("args", x);
 		return null;
 	}
 
