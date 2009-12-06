@@ -31,7 +31,9 @@ public class RegexTest {
 				"-", "[-x]",
 				"-", "[x-]",
 				"[", "[[]",
-				"]", "]"
+				"]", "]",
+				")", ")",
+				"))", "))",
 				};
 		for (int i = 0; i < truecases.length; i += 2)
 			assertTrue(truecases[i] + " =~ " + truecases[i + 1],

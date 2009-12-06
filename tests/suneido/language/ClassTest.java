@@ -82,6 +82,11 @@ public class ClassTest {
 		define("B", "A { New() { super(123) } }");
 		test("B().A", "123");
 
+		define("A", "class { New(n) { .A = n } }");
+		define("B", "A { }"); // New args pass through
+		define("C", "B { New(n) { super(123) } }");
+		test("C(123).A", "123");
+
 		define("A", "class { F() { 123 } }");
 		define("B", "A { F() { 456 } G() { super.F() } }");
 		test("B().G()", "123");
@@ -169,6 +174,16 @@ public class ClassTest {
 	public void test_privatize() {
 		define("C", "class { F() { .p() }; Default(@a) { a } }");
 		test("C.F()", "#('C_p')");
+	}
+
+	@Test(expected=SuException.class)
+	public void test_super() {
+		compile("A", "class { New() { F(); super() } }");
+	}
+
+	@Test(expected=SuException.class)
+	public void test_super2() {
+		compile("A", "class { F() { super() } }");
 	}
 
 	private static void notFound(String expr) {

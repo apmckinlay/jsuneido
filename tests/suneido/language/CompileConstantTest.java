@@ -10,7 +10,6 @@ import org.junit.Test;
 import suneido.SuContainer;
 import suneido.SuRecord;
 
-
 public class CompileConstantTest {
 
 	@Test

@@ -75,10 +75,12 @@ public class CompileGenerator extends Generator<Object> {
 		TryCatch blockReturnCatcher = null;
 		boolean isBlock;
 		int forInTmp = CONSTANTS + 1;
+		boolean superInitCalled = false;
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
 		public Label breakLabel = new Label();
+		public Label doLabel = new Label(); // used by do-while
 		public int var;
 	}
 	static final Object Block = new Object();
@@ -444,6 +446,7 @@ public class CompileGenerator extends Generator<Object> {
 		return null;
 	}
 
+	/** called by startClass to give every class a no arg <init> */
 	private void gen_init() {
 		MethodVisitor mv =
 				c.cv.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -892,9 +895,14 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void preFunctionCall(Value<Object> value) {
-		if (value.isMember())
+		if (value.isMember()) {
+			if (value.id.equals("_init"))
+				if (c.f.superInitCalled)
+					throw new SuException("call to super must come first");
+				else if (!c.f.name.equals("_init"))
+					throw new SuException("super call only allowed in New");
 			c.f.mv.visitLdcInsn(privatize(value));
-		else if (value.type == SUBSCRIPT)
+		} else if (value.type == SUBSCRIPT)
 			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 					"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
 	}
@@ -905,7 +913,7 @@ public class CompileGenerator extends Generator<Object> {
 		processConstArgs(a);
 
 		if (value.thisOrSuper == ThisOrSuper.SUPER)
-			invokeSuperInit(a.nargs);
+			invokeSuper(a.nargs);
 		else if (value.type == MEMBER || value.type == SUBSCRIPT)
 			invokeMethod(a.nargs);
 		else
@@ -938,7 +946,7 @@ public class CompileGenerator extends Generator<Object> {
 			sb.append("Ljava/lang/Object;");
 		}
 	}
-	private void invokeSuperInit(int nargs) {
+	private void invokeSuper(int nargs) {
 		c.f.mv.visitMethodInsn(INVOKEVIRTUAL, c.baseClass,
 				"superInvokeN", "(Ljava/lang/Object;Ljava/lang/String;"
 						+ args[nargs] + ")Ljava/lang/Object;");
@@ -1117,9 +1125,10 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitVarInsn(ALOAD, SELF);
 		c.f.mv.visitLdcInsn("_init");
-		invokeSuperInit(0);
+		invokeSuper(0);
 		c.f.mv.visitInsn(POP);
-	}
+		c.f.superInitCalled = true;
+		}
 
 	@Override
 	public Object expressionStatement(Object expression) {
@@ -1267,9 +1276,21 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
+	public Object dowhileLoop() {
+		Loop loop = new Loop();
+		c.f.mv.visitLabel(loop.doLabel);
+		return loop;
+	}
+
+	@Override
+	public void dowhileContinue(Object loop) {
+		c.f.mv.visitLabel(((Loop) loop).continueLabel);
+	}
+
+	@Override
 	public Object dowhileStatement(Object body, Object expr, Object loop) {
 		toBool(expr);
-		gotoContinue(IFTRUE, loop);
+		c.f.mv.visitJumpInsn(IFTRUE, ((Loop) loop).doLabel);
 		setBreak(loop);
 		return null;
 	}

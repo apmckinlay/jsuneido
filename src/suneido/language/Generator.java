@@ -4,68 +4,115 @@ import suneido.language.ParseExpression.Value;
 
 public abstract class Generator<T> {
 
-	public abstract void lvalue(Value<T> value);
+	public void lvalue(Value<T> value) {
+	}
 
-	public abstract void lvalueForAssign(Value<T> value, Token op);
+	public void lvalueForAssign(Value<T> value, Token op) {
+	}
 
-	public abstract T assignment(T term, Value<T> value, Token op, T expression);
+	public T assignment(T term, Value<T> value, Token op, T expression) {
+		return null;
+	}
 
 	public abstract T binaryExpression(Token op, T expr1, T expr2);
 
 	public abstract T and(T expr1, T expr2);
 
-	public abstract Object and(Object prevlabel);
+	public Object and(Object prevlabel) {
+		return null;
+	}
 
-	public abstract void andEnd(Object label);
+	public void andEnd(Object label) {
+	}
 
 	public abstract T or(T expr1, T expr2);
 
-	public abstract Object or(Object label);
+	public Object or(Object label) {
+		return null;
+	}
 
-	public abstract void orEnd(Object label);
+	public void orEnd(Object label) {
+	}
 
-	public abstract Object conditionalTrue(Object label, T first);
+	public Object conditionalTrue(Object label, T first) {
+		return null;
+	}
 
 	public abstract T conditional(T primaryExpression, T first, T second,
 			Object label);
 
-	public abstract T dowhileStatement(T statement, T expression, Object label);
+	public void dowhileContinue(Object label) {
+	}
 
-	public abstract T foreverStatement(T statement, Object label);
+	public T dowhileStatement(T statement, T expression, Object label) {
+		return null;
+	}
 
-	public abstract T expressionStatement(T expression);
+	public T foreverStatement(T statement, Object label) {
+		return null;
+	}
 
-	public abstract T function(T params, T compound);
+	public T expressionStatement(T expression) {
+		return null;
+	}
 
-	public abstract void startFunction(T name);
+	public T function(T params, T compound) {
+		return null;
+	}
 
-	public abstract Object startBlock();
+	public void startFunction(T name) {
+	}
+
+	public Object startBlock() {
+		return true;
+	}
 
 	public abstract T identifier(String text);
 
-	public abstract Object ifExpr(T expr);
+	public Object ifExpr(T expr) {
+		return null;
+	}
 
-	public abstract void ifThen(Object label, T t);
+	public void ifThen(Object label, T t) {
+	}
 
-	public abstract Object ifElse(Object label);
+	public Object ifElse(Object label) {
+		return null;
+	}
 
-	public abstract T ifStatement(T expression, T t, T e, Object label);
+	public T ifStatement(T expression, T t, T e, Object label) {
+		return null;
+	}
 
 	public abstract T in(T expression, T constant);
 
-	public abstract T returnStatement(T expression, Object context);
+	public T returnStatement(T expression, Object context) {
+		return null;
+	}
 
-	public abstract void afterStatement(T statements);
+	public void afterStatement(T statements) {
+	}
 
-	public abstract T statementList(T n, T next);
+	public T statementList(T n, T next) {
+		return null;
+	}
 
 	public abstract T unaryExpression(Token op, T expression);
 
-	public abstract Object loop();
+	public Object loop() {
+		return true;
+	}
 
-	public abstract void whileExpr(T expr, Object loop);
+	public Object dowhileLoop() {
+		return true;
+	}
 
-	public abstract T whileStatement(T expr, T statement, Object loop);
+	public void whileExpr(T expr, Object loop) {
+	}
+
+	public T whileStatement(T expr, T statement, Object loop) {
+		return null;
+	}
 
 	public abstract T number(String value);
 
@@ -77,92 +124,154 @@ public abstract class Generator<T> {
 
 	public abstract T bool(boolean value);
 
-	public abstract T breakStatement(Object loop);
+	public T breakStatement(Object loop) {
+		return null;
+	}
 
-	public abstract T continueStatement(Object loop);
+	public T continueStatement(Object loop) {
+		return null;
+	}
 
-	public abstract T throwStatement(T expression);
+	public T throwStatement(T expression) {
+		return null;
+	}
 
-	public abstract T catcher(String variable, String pattern, T statement);
+	public T catcher(String variable, String pattern, T statement) {
+		return null;
+	}
 
-	public abstract Object startTry();
+	public Object startTry() {
+		return null;
+	}
 
-	public abstract void startCatch(String var, String pattern, Object trycatch);
+	public void startCatch(String var, String pattern, Object trycatch) {
+	}
 
-	public abstract T tryStatement(T tryStatement, T catcher, Object trycatch);
+	public T tryStatement(T tryStatement, T catcher, Object trycatch) {
+		return null;
+	}
 
-	public abstract Object startSwitch();
+	public Object startSwitch() {
+		return null;
+	}
 
-	public abstract void startCase(Object labels);
+	public void startCase(Object labels) {
+	}
 
-	public abstract void startCaseValue();
+	public void startCaseValue() {
+	}
 
-	public abstract void startCaseBody(Object labels);
+	public void startCaseBody(Object labels) {
+	}
 
-	public abstract T caseValues(T values, T expression, Object labels,
-			boolean more);
+	public T caseValues(T values, T expression, Object labels,
+			boolean more) {
+		return null;
+	}
 
-	public abstract T switchCases(T cases, T values, T statements, Object labels);
+	public T switchCases(T cases, T values, T statements, Object labels) {
+		return null;
+	}
 
-	public abstract T switchStatement(T expression, T cases, Object labels);
+	public T switchStatement(T expression, T cases, Object labels) {
+		return null;
+	}
 
-	public abstract Object forInExpression(String var, T expr);
+	public Object forInExpression(String var, T expr) {
+		return true;
+	}
 
-	public abstract T forInStatement(String var, T expr, T statement,
-			Object loop);
+	public T forInStatement(String var, T expr, T statement,
+			Object loop) {
+		return null;
+	}
 
-	public abstract T forClassicStatement(T expr1, T expr2, T expr3,
-			T statement,
-			Object loop);
+	public T forClassicStatement(T expr1, T expr2, T expr3,
+			T statement, Object loop) {
+		return null;
+	}
 
-	public abstract Object forStart();
+	public Object forStart() {
+		return null;
+	}
 
-	public abstract void forIncrement(Object label);
+	public void forIncrement(Object label) {
+	}
 
-	public abstract void forCondition(T cond, Object loop);
+	public void forCondition(T cond, Object loop) {
+	}
 
-	public abstract T expressionList(T list, T expression);
+	public T expressionList(T list, T expression) {
+		return null;
+	}
 
-	public abstract T preIncDec(T term, Token incdec, Value<T> value);
+	public T preIncDec(T term, Token incdec, Value<T> value) {
+		return null;
+	}
 
-	public abstract T postIncDec(T term, Token incdec, Value<T> value);
+	public T postIncDec(T term, Token incdec, Value<T> value) {
+		return null;
+	}
 
-	public abstract T member(T term, Value<T> value);
+	public T member(T term, Value<T> value) {
+		return null;
+	}
 
-	public abstract T subscript(T term, T expression);
+	public T subscript(T term, T expression) {
+		return null;
+	}
 
-	public abstract T selfRef();
+	public T selfRef() {
+		return null;
+	}
 
-	public abstract T superRef();
+	public T superRef() {
+		return null;
+	}
 
-	public abstract void preFunctionCall(Value<T> value);
+	public void preFunctionCall(Value<T> value) {
+	}
 
 	public abstract T functionCall(T function, Value<T> value, T arguments);
 
-	public abstract void newCall();
+	public void newCall() {
+	}
 
-	public abstract T newExpression(T term, T arguments);
+	public T newExpression(T term, T arguments) {
+		return null;
+	}
 
 	public abstract T argumentList(T list, Object keyword, T expression);
 
 	public void argumentName(Object keyword) {
 	}
 
-	public abstract void atArgument(String n);
+	public void atArgument(String n) {
+	}
 
-	public abstract T atArgument(String n, T expr);
+	public T atArgument(String n, T expr) {
+		return null;
+	}
 
-	public abstract void blockParams();
+	public void blockParams() {
+	}
 
-	public abstract T block(T params, T statements);
+	public T block(T params, T statements) {
+		return null;
+	}
 
-	public abstract T parameters(T list, String name, T defaultValue);
+	public T parameters(T list, String name, T defaultValue) {
+		return null;
+	}
 
 	public abstract T memberList(MType which, T list, T member);
 
-	public abstract void startClass();
+	public void startClass() {
+	}
 
-	public abstract T classConstant(String base, T members);
+	public T classConstant(String base, T members) {
+		return null;
+	}
 
 	public abstract T memberDefinition(T name, T value);
 
@@ -172,11 +281,13 @@ public abstract class Generator<T> {
 
 	public abstract T constant(T value);
 
-	public abstract void addSuperInit();
+	public void addSuperInit() {
+	}
 
 	public abstract T rvalue(T expr);
 
-	public abstract void finish();
+	public void finish() {
+	}
 
 	public void startObject() {
 	}

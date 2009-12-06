@@ -59,7 +59,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private boolean superInit() {
 		Lexer ahead = new Lexer(lexer);
 		assert token == L_CURLY;
-		ahead.next();
+		Token t;
+		do
+			t = ahead.next();
+			while (t == NEWLINE);
 		return ahead.getKeyword() == SUPER && ahead.next() == L_PAREN;
 	}
 
@@ -134,10 +137,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T dowhileStatement() {
 		match(DO);
-		Object loop = generator.loop();
+		Object loop = generator.dowhileLoop();
 		T statement = statement(loop);
 		generator.afterStatement(statement);
 		match(WHILE);
+		generator.dowhileContinue(loop);
 		T expr = optionalParensExpression();
 		return generator.dowhileStatement(statement, expr, loop);
 	}

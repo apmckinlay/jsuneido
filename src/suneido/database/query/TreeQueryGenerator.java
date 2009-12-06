@@ -196,51 +196,13 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object assignment(Object term, Value<Object> value, Token op,
-			Object expression) {
-		return null;
-	}
-
-	@Override
-	public void atArgument(String n) {
-	}
-	@Override
-	public Object atArgument(String n, Object expr) {
-		return null;
-	}
-
-	@Override
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
 		return new BinOp(op, (Expr) expr1, (Expr) expr2);
 	}
 
 	@Override
-	public Object block(Object params, Object statements) {
-		return null;
-	}
-
-	@Override
 	public Object bool(boolean value) {
 		return value ? Boolean.TRUE : Boolean.FALSE;
-	}
-
-	@Override
-	public Object breakStatement(Object loop) {
-		return null;
-	}
-
-	public Object caseValues(Object values, Object expression) {
-		return null;
-	}
-
-	@Override
-	public Object catcher(String variable, String pattern, Object statement) {
-		return null;
-	}
-
-	@Override
-	public Object classConstant(String base, Object members) {
-		return null;
 	}
 
 	@Override
@@ -255,50 +217,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object continueStatement(Object loop) {
-		return null;
-	}
-
-	@Override
 	public Object date(String value) {
 		return Ops.stringToDate(value);
-	}
-
-	@Override
-	public Object dowhileStatement(Object body, Object expr, Object label) {
-		return null;
-	}
-
-	@Override
-	public Object expressionList(Object list, Object expression) {
-		return null;
-	}
-
-	@Override
-	public Object expressionStatement(Object expression) {
-		return null;
-	}
-
-	@Override
-	public Object forClassicStatement(Object expr1, Object expr2, Object expr3,
-			Object statement, Object loop) {
-		return null;
-	}
-
-	@Override
-	public Object forInStatement(String var, Object expr, Object statement,
-			Object loop) {
-		return null;
-	}
-
-	@Override
-	public Object foreverStatement(Object statement, Object label) {
-		return null;
-	}
-
-	@Override
-	public Object function(Object params, Object compound) {
-		return null;
 	}
 
 	@Override
@@ -315,16 +235,6 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object identifier(String text) {
 		return new Identifier(text);
-	}
-
-	@Override
-	public Object ifStatement(Object expr, Object t, Object f, Object label) {
-		return null;
-	}
-
-	@Override
-	public Object member(Object term, Value<Object> value) {
-		return null;
 	}
 
 	public static class MemDef {
@@ -352,11 +262,6 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object newExpression(Object term, Object arguments) {
-		return null;
-	}
-
-	@Override
 	public Object number(String value) {
 		return Ops.stringToNumber(value);
 	}
@@ -369,48 +274,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object parameters(Object list, String name, Object defaultValue) {
-		return null;
-	}
-
-	@Override
-	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
-		return null;
-	}
-
-	@Override
-	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
-		return null;
-	}
-
-	@Override
-	public Object returnStatement(Object expression, Object context) {
-		return null;
-	}
-
-	@Override
-	public Object selfRef() {
-		return null;
-	}
-
-	@Override
-	public Object superRef() {
-		return null;
-	}
-
-	@Override
-	public Object statementList(Object n, Object next) {
-		return null;
-	}
-
-	@Override
 	public Object string(String value) {
 		return value;
-	}
-
-	@Override
-	public Object subscript(Object term, Object expression) {
-		return null;
 	}
 
 	@Override
@@ -419,25 +284,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object throwStatement(Object expression) {
-		return null;
-	}
-
-	@Override
-	public Object tryStatement(Object tryStatement, Object catcher,
-			Object trycatch) {
-		return null;
-	}
-
-	@Override
 	public Object unaryExpression(Token op, Object expression) {
 		return new UnOp(op, (Expr) expression);
-	}
-
-	@Override
-	public Object whileStatement(Object expression, Object statement,
-			Object loop) {
-		return null;
 	}
 
 	@Override
@@ -460,150 +308,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public void startFunction(Object name) {
-	}
-
-	@Override
-	public Object startBlock() {
-		return true;
-	}
-
-	@Override
-	public void lvalue(Value<Object> value) {
-	}
-
-	@Override
-	public void afterStatement(Object statements) {
-	}
-
-	@Override
-	public void preFunctionCall(Value<Object> value) {
-	}
-
-	@Override
-	public Object and(Object prevlabel) {
-		return null;
-	}
-
-	@Override
-	public void andEnd(Object label) {
-	}
-
-	@Override
-	public Object or(Object label) {
-		return null;
-	}
-
-	@Override
-	public void orEnd(Object label) {
-	}
-
-	@Override
-	public Object ifExpr(Object expr) {
-		return null;
-	}
-	@Override
-	public void ifThen(Object label, Object t) {
-	}
-	@Override
-	public Object ifElse(Object label) {
-		return null;
-	}
-
-	@Override
-	public Object conditionalTrue(Object label, Object first) {
-		return null;
-	}
-
-	@Override
-	public Object loop() {
-		return true; // can't be null
-	}
-
-	@Override
-	public void whileExpr(Object expr, Object loop) {
-	}
-
-	@Override
-	public void newCall() {
-	}
-
-	@Override
-	public Object forStart() {
-		return null;
-	}
-	@Override
-	public void forIncrement(Object label) {
-	}
-	@Override
-	public void forCondition(Object cond, Object loop) {
-	}
-
-	@Override
-	public Object caseValues(Object values, Object expression, Object labels,
-			boolean more) {
-		return null;
-	}
-	@Override
-	public void startCase(Object labels) {
-	}
-	@Override
-	public void startCaseBody(Object labels) {
-	}
-	@Override
-	public Object startSwitch() {
-		return null;
-	}
-	@Override
-	public Object switchCases(Object cases, Object values, Object statements,
-			Object labels) {
-		return null;
-	}
-	@Override
-	public Object switchStatement(Object expression, Object cases, Object labels) {
-		return null;
-	}
-	@Override
-	public void startCaseValue() {
-	}
-
-	@Override
-	public Object forInExpression(String var, Object expr) {
-		return null;
-	}
-
-	@Override
-	public void blockParams() {
-	}
-
-	@Override
-	public void startCatch(String var, String pattern, Object trycatch) {
-	}
-
-	@Override
-	public Object startTry() {
-		return null;
-	}
-
-	@Override
-	public void startClass() {
-	}
-
-	@Override
-	public void addSuperInit() {
-	}
-
-	@Override
 	public Object rvalue(Object expr) {
 		return expr;
-	}
-
-	@Override
-	public void lvalueForAssign(Value<Object> value, Token op) {
-	}
-
-	@Override
-	public void finish() {
 	}
 
 	@Override

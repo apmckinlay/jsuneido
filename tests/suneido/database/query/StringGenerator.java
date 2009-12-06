@@ -229,10 +229,6 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public void atArgument(String n) {
-	}
-
-	@Override
 	public String atArgument(String n, String expression) {
 		return "@" + ("0".equals(n) ? "" : str("+", n, " ")) + expression;
 	}
@@ -310,143 +306,8 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public void startFunction(String name) {
-	}
-
-	@Override
-	public Object startBlock() {
-		return true; // non-null to allow break and continue
-	}
-
-	@Override
-	public void lvalue(Value<String> value) {
-	}
-
-	@Override
-	public void afterStatement(String statements) {
-	}
-
-	@Override
-	public void preFunctionCall(Value<String> value) {
-	}
-
-	@Override
-	public Object and(Object prevlabel) {
-		return null;
-	}
-
-	@Override
-	public void andEnd(Object label) {
-	}
-
-	@Override
-	public Object or(Object label) {
-		return null;
-	}
-
-	@Override
-	public void orEnd(Object label) {
-	}
-
-	@Override
-	public Object ifExpr(String expr) {
-		return null;
-	}
-
-	@Override
-	public void ifThen(Object label, String t) {
-	}
-
-	@Override
-	public Object ifElse(Object label) {
-		return null;
-	}
-
-	@Override
-	public Object conditionalTrue(Object label, String first) {
-		return null;
-	}
-
-	@Override
-	public Object loop() {
-		return true; // can't be null
-	}
-
-	@Override
-	public void whileExpr(String expr, Object loop) {
-	}
-
-	@Override
-	public void newCall() {
-	}
-
-	@Override
-	public Object forStart() {
-		return null;
-	}
-
-	@Override
-	public void forIncrement(Object label) {
-	}
-
-	@Override
-	public void forCondition(String cond, Object loop) {
-	}
-
-	@Override
-	public void startCase(Object labels) {
-	}
-
-	@Override
-	public void startCaseBody(Object labels) {
-	}
-
-	@Override
-	public Object startSwitch() {
-		return null;
-	}
-
-	@Override
-	public void startCaseValue() {
-	}
-
-	@Override
-	public Object forInExpression(String var, String expr) {
-		return true; // non-null to allow break and continue
-	}
-
-	@Override
-	public void blockParams() {
-	}
-
-	@Override
-	public void startCatch(String var, String pattern, Object trycatch) {
-	}
-
-	@Override
-	public Object startTry() {
-		return null;
-	}
-
-	@Override
-	public void startClass() {
-	}
-
-	@Override
-	public void addSuperInit() {
-	}
-
-	@Override
 	public String rvalue(String expr) {
 		return expr;
-	}
-
-	@Override
-	public void lvalueForAssign(Value<String> value, Token op) {
-	}
-
-	@Override
-	public void finish() {
 	}
 
 	@Override
