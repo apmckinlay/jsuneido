@@ -2,6 +2,7 @@ package suneido.language.builtin;
 
 import static suneido.util.Util.listToCommas;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import suneido.*;
@@ -65,7 +66,10 @@ public class QueryInstance extends SuValue {
 
 	private Object Columns(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		List<String> cols = q.header().columns();
+		List<String> cols = new ArrayList<String>();
+		for (String col : q.header().columns())
+			if (!col.endsWith("_deps"))
+				cols.add(col);
 		return new SuContainer(cols);
 	}
 
