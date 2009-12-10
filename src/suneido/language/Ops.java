@@ -39,6 +39,8 @@ public class Ops {
 		if (xType == BigDecimal.class && y.getClass() == BigDecimal.class)
 			// need to use compareTo to ignore scale
 			return 0 == ((BigDecimal) x).compareTo((BigDecimal) y);
+		if (y instanceof Concat)
+			return x.equals(y.toString());
 		return x.equals(y);
 	}
 
@@ -96,6 +98,19 @@ public class Ops {
 				return ((Comparable) x).compareTo(y);
 			return cmpHash(xType, yType);
 		}
+		if (xType == Concat.class) {
+			x = x.toString();
+			xType = String.class;
+		}
+		if (yType == Concat.class) {
+			y = y.toString();
+			yType = String.class;
+		}
+		if (xType == yType) {
+			if (x instanceof Comparable)
+				return ((Comparable) x).compareTo(y);
+			return cmpHash(xType, yType);
+		}
 		if (xType == Boolean.class)
 			return -1;
 		if (xType == Integer.class) {
@@ -142,7 +157,6 @@ public class Ops {
 			return cmp(x, y);
 		}
 	}
-
 	public static final Comp comp = new Comp();
 
 	public static boolean match_(Object s, Object rx) {
@@ -158,8 +172,26 @@ public class Ops {
 		return ! match_(s, rx);
 	}
 
-	public static String cat(Object x, Object y) {
-		return toStr(x).concat(toStr(y));
+	private static final int LARGE = 64;
+
+	public static Object cat(Object x, Object y) {
+		if (x instanceof Concat)
+			if (y instanceof Concat)
+				return new Concat(x, y);
+			else
+				return new Concat(x, toStr(y));
+		else if (y instanceof Concat)
+			return new Concat(toStr(x), y);
+		String s = toStr(x);
+		String t = toStr(y);
+		int n = s.length() + t.length();
+		return n < LARGE
+				? toStr(x).concat(toStr(y))
+				: new Concat(s, t, n);
+	}
+
+	public static boolean isString(Object x) {
+		return x instanceof String || x instanceof Concat;
 	}
 
 	public static Number add(Object x, Object y) {
@@ -203,8 +235,8 @@ public class Ops {
 		Class<?> xType = x.getClass();
 		if (xType == Integer.class || xType == BigDecimal.class)
 			return x;
-		if (xType == String.class)
-			return stringToPlainNumber((String) x);
+		if (xType == String.class || xType == Concat.class)
+			return stringToPlainNumber(x.toString());
 		if (xType == Boolean.class)
 			return (Boolean) x ? 1 : 0;
 		// MAYBE other types e.g. long, BigInteger or double
@@ -451,8 +483,8 @@ public class Ops {
 			return ((Integer) x);
 		if (xType == BigDecimal.class)
 			return toIntBD((BigDecimal) x);
-		if (xType == String.class)
-			return toIntS((String) x);
+		if (xType == String.class || xType == Concat.class)
+			return toIntS(x.toString());
 		if (xType == Boolean.class)
 			return x == Boolean.TRUE ? 1 : 0;
 		throw new SuException("can't convert " + typeName(x) + " to integer");
@@ -508,8 +540,8 @@ public class Ops {
 	public static boolean default_single_quotes = false;
 
 	public static String display(Object x) {
-		if (x instanceof String) {
-			String s = (String) x;
+		if (isString(x)) {
+			String s = x.toString();
 			s = s.replace("\\", "\\\\");
 			boolean single_quotes = default_single_quotes
 				? !s.contains("'")
@@ -554,25 +586,6 @@ public class Ops {
 		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
 	}
 
-	public static int hashCode(Object x, int nest) {
-		if (x instanceof SuContainer)
-			return ((SuContainer) x).hashCode(nest);
-		if (x instanceof BigDecimal)
-			return canonical(x).hashCode();
-		return x.hashCode();
-	}
-
-	public static Object canonical(Object x) {
-		return x instanceof BigDecimal ? canonicalBD((BigDecimal) x) : x;
-	}
-	public static Number canonicalBD(BigDecimal n) {
-		try {
-			return n.intValueExact();
-		} catch (ArithmeticException e) {
-			return n.stripTrailingZeros();
-		}
-	}
-
 	public static String typeName(Object x) {
 		if (x == null)
 			return "uninitialized";
@@ -596,15 +609,19 @@ public class Ops {
 			if (x instanceof SuValue)
 				return ((SuValue) x).call(args);
 			if (x instanceof String) {
-				// string(object, ...) => object[string](...)
-				Object ob = args[0];
-				args = Arrays.copyOfRange(args, 1, args.length);
-				return invoke(ob, (String) x, args);
+				return callString(x, args);
 			}
 		} catch (java.lang.StackOverflowError e) {
 			throw new SuException("function call overflow");
 		}
 		throw new SuException("can't call " + typeName(x));
+	}
+
+	static Object callString(Object x, Object... args) {
+		// string(object, ...) => object[string](...)
+		Object ob = args[0];
+		args = Arrays.copyOfRange(args, 1, args.length);
+		return invoke(ob, x.toString(), args);
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
@@ -629,8 +646,8 @@ public class Ops {
 	}
 
 	public static String toMethodString(Object method) {
-		if (method instanceof String)
-			return ((String) method).intern();
+		if (isString(method))
+			return method.toString().intern();
 		throw new SuException("invalid method: " + method);
 	}
 
@@ -1253,14 +1270,14 @@ public class Ops {
 			if (y == null)
 				throw new SuException("uninitialized member " + member);
 			return y;
-		} else if (x instanceof String)
-			return getString((String) x, toInt(member));
+		} else if (isString(x))
+			return getString(x.toString(), toInt(member));
 		else if (x instanceof Object[])
 			return getArray((Object[]) x, toInt(member));
 		else if (x instanceof Boolean || x instanceof Number)
 			; // fall thru to error
-		else if (member instanceof String)
-			return getProperty(x, (String) member);
+		else if (isString(member))
+			return getProperty(x, member.toString());
 		throw new SuException(typeName(x) + " does not support get " + x + "." + member);
 	}
 
@@ -1291,8 +1308,8 @@ public class Ops {
 	public static Object iterator(Object x) {
 		if (x instanceof Iterable<?>)
 			return ((Iterable<?>) x).iterator();
-		else if (x instanceof String)
-			return new StringIterator((String) x);
+		else if (isString(x))
+			return new StringIterator(x.toString());
 		else if (x instanceof Object[])
 			return Arrays.asList((Object[]) x).iterator();
 		throw new SuException("can't iterate " + typeName(x));

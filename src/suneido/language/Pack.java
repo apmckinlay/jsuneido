@@ -54,7 +54,7 @@ public class Pack {
 		return 9;
 	}
 
-	private static int packSizeString(String s) {
+	static int packSizeString(String s) {
 		int n = s.length();
 		return n == 0 ? 0 : 1 + n;
 	}
@@ -136,7 +136,7 @@ public class Pack {
 		return cal.getTime();
 	}
 
-	private static void packString(String s, ByteBuffer buf) {
+	static void packString(String s, ByteBuffer buf) {
 		if (s.length() == 0)
 			return;
 		buf.put(Tag.STRING);

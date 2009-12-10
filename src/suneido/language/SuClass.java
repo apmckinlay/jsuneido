@@ -71,14 +71,15 @@ public abstract class SuClass extends SuCallable {
 		if (vars == null)
 			return null;
 		Object value = vars.get(member);
-		if (value == null && member instanceof String) {
-			value = findMethod(member);
-			vars.put((String) member, value); // cache for next time
+		if (value == null && Ops.isString(member)) {
+			String m = member.toString();
+			value = findMethod(m);
+			vars.put(m, value); // cache for next time
 		}
 		return value == NOMETHOD ? null : value;
 	}
 
-	private Object findMethod(Object method) {
+	private Object findMethod(String method) {
 		for (FunctionSpec f : params)
 			if (f.name.equals(method))
 				return new Method(this);

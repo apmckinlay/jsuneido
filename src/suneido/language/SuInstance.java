@@ -95,10 +95,10 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public void put(Object member, Object value) {
-		if (!(member instanceof String))
+		if (! Ops.isString(member))
 			throw new SuException("non-string member name: "
 					+ Ops.typeName(member));
-		ivars.put((String) member, value);
+		ivars.put(member.toString(), value);
 	}
 
 	@Override

@@ -423,8 +423,8 @@ public class StringMethods {
 		args = Args.massage(replaceFS, args);
 		Pattern pat = Regex.getPat(Ops.toStr(args[0]), s);
 		String rep = null;
-		if (args[1] instanceof String)
-			rep = Ops.toStr(args[1]);
+		if (Ops.isString(args[1]))
+			rep = args[1].toString();
 		int n = Ops.toInt(args[2]);
 
 		Matcher m = pat.matcher(s);
