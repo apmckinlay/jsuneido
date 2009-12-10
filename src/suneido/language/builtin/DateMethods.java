@@ -167,7 +167,7 @@ public class DateMethods {
 
 	private static Object WeekDay(Date d, Object[] args) {
 		args = Args.massage(weekdayFS, args);
-		int i = (args[0] instanceof String)
+		int i = (Ops.isString(args[0]))
 				? dayNumber(Ops.toStr(args[0]).toLowerCase())
 				: Ops.toInt(args[0]);
 		Calendar c = Calendar.getInstance();

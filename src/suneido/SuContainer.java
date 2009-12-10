@@ -2,9 +2,9 @@ package suneido;
 
 import static suneido.Suneido.verify;
 import static suneido.database.server.Command.theDbms;
-import static suneido.language.Ops.canonical;
 import static suneido.language.Ops.cmp;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -12,8 +12,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.Record;
 import suneido.database.query.Header;
-import suneido.language.Ops;
-import suneido.language.Pack;
+import suneido.language.*;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.Util;
@@ -188,7 +187,7 @@ public class SuContainer extends SuValue
 		return sb.append(after).toString();
 	}
 	static String keyToString(Object x) {
-		return x instanceof String ? keyToString((String) x) : Ops.toStr(x);
+		return Ops.isString(x) ? keyToString(x.toString()) : Ops.toStr(x);
 	}
 	static String keyToString(String s) {
 		return s.matches("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$") ? s : ("'" + s + "'");
@@ -206,12 +205,35 @@ public class SuContainer extends SuValue
 		checkNest(++nest);
 		int result = 17;
 		for (Object x : vec)
-			result = 31 * result + Ops.hashCode(x, nest);
+			result = 31 * result + hashCode(x, nest);
 		for (Map.Entry<Object, Object> e : map.entrySet()) {
-			result = 31 * result + Ops.hashCode(e.getKey(), nest);
-			result = 31 * result + Ops.hashCode(e.getValue(), nest);
+			result = 31 * result + hashCode(e.getKey(), nest);
+			result = 31 * result + hashCode(e.getValue(), nest);
 		}
 		return result;
+	}
+
+	private static int hashCode(Object x, int nest) {
+		if (x instanceof SuContainer)
+			return ((SuContainer) x).hashCode(nest);
+		if (x instanceof BigDecimal)
+			return canonical(x).hashCode();
+		return x.hashCode();
+	}
+
+	private static Object canonical(Object x) {
+		if (x instanceof BigDecimal)
+			return canonicalBD((BigDecimal) x);
+		if (x instanceof Concat)
+			return x.toString();
+		return x;
+	}
+	private static Number canonicalBD(BigDecimal n) {
+		try {
+			return n.intValueExact();
+		} catch (ArithmeticException e) {
+			return n.stripTrailingZeros();
+		}
 	}
 
 	@Override
@@ -474,11 +496,11 @@ public class SuContainer extends SuValue
 	}
 
 	public Object find(Object value) {
-		int i = vec.indexOf(value);
-		if (i != -1)
-			return i;
+		for (int i = 0; i < vec.size(); ++i)
+			if (Ops.is_(value, vec.get(i)))
+				return i;
 		for (Map.Entry<Object, Object> e : map.entrySet())
-			if (e.getValue().equals(value))
+			if (Ops.is_(value, e.getValue()))
 				return e.getKey();
 		return null;
 	}

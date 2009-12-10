@@ -275,8 +275,8 @@ public class ContainerMethods {
 		String sep = Ops.toStr(args[0]);
 		StringBuilder sb = new StringBuilder();
 		for (Object x : c.getVec()) {
-			if (x instanceof String)
-				sb.append((String) x);
+			if (Ops.isString(x))
+				sb.append(x.toString());
 			else
 				sb.append(Ops.display(x));
 			sb.append(sep);

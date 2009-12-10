@@ -24,8 +24,8 @@ public class Construct extends BuiltinFunction {
 				throw new SuException("Construct: object requires member 0");
 			newargs = array(Args.Special.EACH1, c);
 		}
-		if (what instanceof String) {
-			String className = (String) what;
+		if (Ops.isString(what)) {
+			String className = what.toString();
 			if (!className.endsWith(suffix))
 				className += suffix;
 			what = Globals.get(className);

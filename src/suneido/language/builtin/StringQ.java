@@ -7,7 +7,7 @@ public class StringQ extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof String;
+		return Ops.isString(args[0]);
 	}
 
 }
