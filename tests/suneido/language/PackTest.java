@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.Pack.pack;
 import static suneido.language.Pack.unpack;
 
@@ -24,6 +25,7 @@ public class PackTest {
 		test(1);
 		test(1, BigDecimal.ONE);
 		test(-1);
+		test(new BigDecimal("4.94557377049180"));
 		test("");
 		test("abc");
 		test(new Date());
@@ -39,7 +41,8 @@ public class PackTest {
 		ByteBuffer buf = pack(x);
 		buf.position(0);
 		Object y = unpack(buf);
-		assertEquals(expected, y);
+		assertTrue("expected <" + expected + "> but was <" + y + ">",
+				Ops.is_(expected, y));
 		assertEquals(Ops.typeName(expected), Ops.typeName(y));
 	}
 

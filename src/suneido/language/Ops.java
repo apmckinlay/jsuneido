@@ -194,6 +194,9 @@ public class Ops {
 		return x instanceof String || x instanceof Concat;
 	}
 
+	public final static MathContext mc = new MathContext(15);
+	// must be 15 or less so Pack can multiply by 1000 and still fit in long
+
 	public static Number add(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
@@ -205,7 +208,7 @@ public class Ops {
 					return inf;
 				if (y == minus_inf)
 					return minus_inf;
-				return BigDecimal.valueOf((Integer) x).add((BigDecimal) y);
+				return BigDecimal.valueOf((Integer) x).add((BigDecimal) y, mc);
 			}
 		} else if (xType == BigDecimal.class) {
 			if (yType == Integer.class) {
@@ -213,7 +216,7 @@ public class Ops {
 					return inf;
 				if (x == minus_inf)
 					return minus_inf;
-				return ((BigDecimal) x).add(BigDecimal.valueOf((Integer) y));
+				return ((BigDecimal) x).add(BigDecimal.valueOf((Integer) y), mc);
 			}
 			if (yType == BigDecimal.class) {
 				if (x == inf)
@@ -224,7 +227,7 @@ public class Ops {
 					return inf;
 				if (y == minus_inf)
 					return minus_inf;
-				return ((BigDecimal) x).add((BigDecimal) y);
+				return ((BigDecimal) x).add((BigDecimal) y, mc);
 			}
 		}
 		return add(toNum(x), toNum(y));
@@ -254,7 +257,7 @@ public class Ops {
 					return minus_inf;
 				if (y == minus_inf)
 					return inf;
-				return BigDecimal.valueOf((Integer) x).subtract((BigDecimal) y);
+				return BigDecimal.valueOf((Integer) x).subtract((BigDecimal) y, mc);
 			}
 		} else if (xType == BigDecimal.class) {
 			if (yType == Integer.class) {
@@ -262,7 +265,7 @@ public class Ops {
 					return inf;
 				if (x == minus_inf)
 					return minus_inf;
-				return ((BigDecimal) x).subtract(BigDecimal.valueOf((Integer) y));
+				return ((BigDecimal) x).subtract(BigDecimal.valueOf((Integer) y), mc);
 			}
 			if (yType == BigDecimal.class) {
 				if (x == inf)
@@ -273,7 +276,7 @@ public class Ops {
 					return minus_inf;
 				if (y == minus_inf)
 					return inf;
-				return ((BigDecimal) x).subtract((BigDecimal) y);
+				return ((BigDecimal) x).subtract((BigDecimal) y, mc);
 			}
 		}
 		return sub(toNum(x), toNum(y));
@@ -300,7 +303,7 @@ public class Ops {
 					return (Integer) x > 0 ? inf : minus_inf;
 				if (y == minus_inf)
 					return (Integer) x > 0 ? minus_inf : inf;
-				return BigDecimal.valueOf((Integer) x).multiply((BigDecimal) y);
+				return BigDecimal.valueOf((Integer) x).multiply((BigDecimal) y, mc);
 			}
 		} else if (xType == BigDecimal.class) {
 			if (yType == Integer.class) {
@@ -310,7 +313,7 @@ public class Ops {
 					return (Integer) y > 0 ? inf : minus_inf;
 				if (x == minus_inf)
 					return (Integer) y > 0 ? minus_inf : inf;
-				return ((BigDecimal) x).multiply(BigDecimal.valueOf((Integer) y));
+				return ((BigDecimal) x).multiply(BigDecimal.valueOf((Integer) y), mc);
 			}
 			if (yType == BigDecimal.class) {
 				if (((BigDecimal) x).signum() == 0
@@ -324,13 +327,11 @@ public class Ops {
 					return ((BigDecimal) x).signum() > 0 ? inf : minus_inf;
 				if (y == minus_inf)
 					return ((BigDecimal) x).signum() > 0 ? minus_inf : inf;
-				return ((BigDecimal) x).multiply((BigDecimal) y);
+				return ((BigDecimal) x).multiply((BigDecimal) y, mc);
 			}
 		}
 		return mul(toNum(x), toNum(y));
 	}
-
-	public final static MathContext mc = new MathContext(16);
 
 	public final static BigDecimal zero = BigDecimal.ZERO;
 	public final static BigDecimal inf =
@@ -367,8 +368,7 @@ public class Ops {
 					return (Integer) y >= 0 ? inf : minus_inf;
 				if (x == minus_inf)
 					return (Integer) y >= 0 ? minus_inf : inf;
-				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y),
-						mc);
+				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y), mc);
 			}
 			if (yType == BigDecimal.class) {
 				if (x == inf)
@@ -443,7 +443,7 @@ public class Ops {
 			return Integer.parseInt(s);
 		else
 			try {
-				BigDecimal n = new BigDecimal(s);
+				BigDecimal n = new BigDecimal(s, mc);
 				if (n.compareTo(BigDecimal.ZERO) == 0)
 					return 0;
 				return n;

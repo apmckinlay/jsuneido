@@ -148,6 +148,7 @@ public class Pack {
 	}
 
 	private static void packBD(BigDecimal n, ByteBuffer buf) {
+		assert n.precision() <= 15;
 		n = n.stripTrailingZeros();
 		packNum(n.unscaledValue().longValue(), -n.scale(), buf);
 	}
@@ -243,8 +244,12 @@ public class Pack {
 				n *= 10;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return (int) n;
-		else
-			return new BigDecimal(BigInteger.valueOf(n), s);
+		else {
+			BigDecimal x = new BigDecimal(BigInteger.valueOf(n), s);
+			if (x.precision() > 15)
+				x = x.round(Ops.mc);
+			return x;
+		}
 	}
 
 	private static long unpackLongPart(ByteBuffer buf, boolean minus) {
