@@ -4,16 +4,22 @@ import static suneido.language.Token.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.database.query.ParseQuery;
 import suneido.language.ParseExpression.Value.ThisOrSuper;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
+	private boolean inQuery = false;
 
 	public ParseExpression(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
+
+	@SuppressWarnings("unchecked")
 	public ParseExpression(Parse<T, G> parse) {
 		super(parse);
+		if (parse instanceof ParseQuery)
+			inQuery = true;
 	}
 
 	public void eq_as_is() {
@@ -272,10 +278,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			match(R_PAREN);
 			break;
 		case L_BRACKET:
-			match(L_BRACKET);
-			// TODO optimize literal part like cSuneido
-			T func = generator.identifier("Record");
-			term = generator.functionCall(func, value, argumentList(R_BRACKET));
+			if (inQuery)
+				term = generator.constant(constant());
+			else {
+				match(L_BRACKET);
+				// TODO optimize literal part like cSuneido
+				T func = generator.identifier("Record");
+				term = generator.functionCall(func, value, argumentList(R_BRACKET));
+			}
 			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
