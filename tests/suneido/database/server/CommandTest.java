@@ -266,18 +266,18 @@ public class CommandTest {
 				null, null);
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertEquals("T0\r\n", bufferToString(tbuf));
+		assertEquals("T1\r\n", bufferToString(tbuf));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q5"),
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T1 Q5"),
 				stringToBuffer("test"), null);
-		assertEquals("Q1\r\n", bufferToString(buf));
+		assertEquals("Q2\r\n", bufferToString(buf));
 
 		// OUTPUT
 		Record rec = RecordTest.make("a", "b", "c");
 		assertEquals(14, rec.packSize());
-		Command.OUTPUT.execute(stringToBuffer("Q1 R14"), rec.getBuffer(), null);
+		Command.OUTPUT.execute(stringToBuffer("Q2 R14"), rec.getBuffer(), null);
 
-		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
+		buf = Command.GET1.execute(stringToBuffer("+ T1 Q5"),
 				stringToBuffer("test"), output);
 		assertNull(buf);
 		assertEquals("A105 R14 (a,b,c)\r\n",
@@ -286,13 +286,13 @@ public class CommandTest {
 
 		// UPDATE
 		rec = RecordTest.make("A", "B", "C");
-		buf = Command.UPDATE.execute(stringToBuffer("T0 A105 R14"),
+		buf = Command.UPDATE.execute(stringToBuffer("T1 A105 R14"),
 				rec.getBuffer(), null);
 		assertEquals("U107\r\n", bufferToString(buf));
 
-		buf = Command.REWIND.execute(stringToBuffer("Q1"), null, null);
+		buf = Command.REWIND.execute(stringToBuffer("Q2"), null, null);
 		output = new Output();
-		buf = Command.GET1.execute(stringToBuffer("+ T0 Q5"),
+		buf = Command.GET1.execute(stringToBuffer("+ T1 Q5"),
 				stringToBuffer("test"), output);
 		assertNull(buf);
 		assertEquals("A107 R14 (a,b,c)\r\n",
@@ -300,16 +300,16 @@ public class CommandTest {
 		assertEquals("['A','B','C']", rec.toString());
 
 		// ERASE
-		buf = Command.ERASE.execute(stringToBuffer("T0 A107"), rec.getBuffer(),
+		buf = Command.ERASE.execute(stringToBuffer("T1 A107"), rec.getBuffer(),
 				null);
 		assertEquals("OK\r\n", bufferToString(buf));
 		output = new Output();
-		buf = Command.GET1.execute(stringToBuffer("+ T0 Q4"),
+		buf = Command.GET1.execute(stringToBuffer("+ T1 Q4"),
 				stringToBuffer("test"), output);
 		assertNull(buf);
 		assertEquals("EOF\r\n", bufferToString(output.get(0)));
 
-		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null);
+		buf = Command.CLOSE.execute(stringToBuffer("Q2"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
 
 		tbuf.rewind();
@@ -329,34 +329,34 @@ public class CommandTest {
 				null, null);
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertEquals("T0\r\n", bufferToString(tbuf));
+		assertEquals("T1\r\n", bufferToString(tbuf));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T0 Q6"),
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T1 Q6"),
 				stringToBuffer("stdlib"), null);
-		assertEquals("Q1\r\n", bufferToString(buf));
+		assertEquals("Q2\r\n", bufferToString(buf));
 
 		Record rec = RecordTest.make("Foo", "some text");
 		rec.add(-1);
 		assertEquals(26, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R26"), rec.getBuffer(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q2 R26"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Bar", "other stuff");
 		rec.add(-1);
 		assertEquals(28, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R28"), rec.getBuffer(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q2 R28"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = RecordTest.make("Foo", "");
 		rec.add(1); // folder
 		assertEquals(16, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q1 R16"), rec.getBuffer(),
+		buf = Command.OUTPUT.execute(stringToBuffer("Q2 R16"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
-		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null);
+		buf = Command.CLOSE.execute(stringToBuffer("Q2"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
 		tbuf.rewind();
 		buf = Command.COMMIT.execute(tbuf, null, null);
