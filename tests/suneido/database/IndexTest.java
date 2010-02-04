@@ -41,12 +41,12 @@ public class IndexTest {
 
 		BtreeIndex.Iter iter = ix.iter(NULLTRAN, makekey(40), makekey(60));
 		for (i = 40; i <= 60; ++i)
-			assertEquals(i, iter.next().cur().key.getLong(0));
+			assertEquals(i, iter.next().cur().key.getInt(0));
 		assertTrue(iter.next().eof());
 
 		iter = ix.iter(NULLTRAN, makekey(40), makekey(60));
 		for (i = 60; i >= 40; --i)
-			assertEquals(i, iter.prev().cur().key.getLong(0));
+			assertEquals(i, iter.prev().cur().key.getInt(0));
 		assertTrue(iter.prev().eof());
 	}
 

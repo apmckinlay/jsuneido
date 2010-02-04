@@ -18,7 +18,7 @@ public class BtreeIndexTest extends TestBase {
 			BtreeIndex.Iter iter = bi.iter(t, key(3), key(6));
 			for (int i = 3; i <= 6; ++i) {
 				iter.next();
-				assertEquals(i, iter.cur().key.getLong(0));
+				assertEquals(i, iter.cur().key.getInt(0));
 			}
 			iter.next();
 			assertTrue(iter.eof());

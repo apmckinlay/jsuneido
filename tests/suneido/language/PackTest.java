@@ -31,6 +31,9 @@ public class PackTest {
 		test(new Date());
 		test(new SuContainer());
 		test(new SuRecord());
+		test(10000);
+		test(-10000);
+		test(10001);
 	}
 
 	private static void test(Object x) {
@@ -47,14 +50,27 @@ public class PackTest {
 	}
 
 	@Test
-	public void unpacklong() {
-		ByteBuffer buf = pack(-1);
-		buf.position(0);
-		Object x = Pack.unpack(buf);
-		assertEquals(-1, x);
-		buf.position(0);
-		long n = Pack.unpackLong(buf);
-		assertEquals(-1, n);
+	public void pack_number_bug() {
+		assertEquals(4, Pack.packSize(10000));
+
+		ByteBuffer buf = pack(10000);
+		assertEquals(4, buf.remaining());
+		assertEquals(0x03, buf.get(0));
+		assertEquals((byte) 0x82, buf.get(1));
+		assertEquals(0x00, buf.get(2));
+		assertEquals(0x01, buf.get(3));
+	}
+
+	@Test
+	public void pack_int_vs_bd() {
+		t(0);
+		t(1);
+		t(10000);
+		t(10001);
+	}
+
+	private void t(int n) {
+		assertEquals(pack(n), pack(BigDecimal.valueOf(n)));
 	}
 
 }

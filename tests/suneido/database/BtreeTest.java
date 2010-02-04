@@ -43,29 +43,29 @@ public class BtreeTest {
 		Btree.Iter iter;
 		int n = 0;
 		for (iter = bt.first(); ! iter.eof(); iter.next())
-			assertEquals(n++, iter.cur().key.getLong(0));
+			assertEquals(n++, iter.cur().key.getInt(0));
 		assertEquals(100, n);
 		n = 100;
 		for (iter = bt.last(); ! iter.eof(); iter.prev())
-			assertEquals(--n, iter.cur().key.getLong(0));
+			assertEquals(--n, iter.cur().key.getInt(0));
 		assertEquals(0, n);
 
 		for (int i = 0; i < 100; ++i)
-			assertEquals(i, bt.locate(makerec(i)).cur().key.getLong(0));
+			assertEquals(i, bt.locate(makerec(i)).cur().key.getInt(0));
 
 		iter = bt.locate(makerec(33));
 		iter.next();
-		assertEquals(34, iter.cur().key.getLong(0));
+		assertEquals(34, iter.cur().key.getInt(0));
 
 		iter = bt.locate(makerec(66));
 		iter.prev();
-		assertEquals(65, iter.cur().key.getLong(0));
+		assertEquals(65, iter.cur().key.getInt(0));
 
 		iter = bt.locate(Record.MINREC);
-		assertEquals(0, iter.cur().key.getLong(0));
+		assertEquals(0, iter.cur().key.getInt(0));
 
 		iter = bt.locate(makerec(101));
-		assertEquals(99, iter.cur().key.getLong(0));
+		assertEquals(99, iter.cur().key.getInt(0));
 
 		assertFalse(bt.remove(makerec(999)));
 		ArrayList<Integer> v = shuffled(100, 123);
@@ -95,7 +95,7 @@ public class BtreeTest {
 		Btree.Iter iter = bt.first();
 		for (int x : ts) {
 			assertFalse(iter.eof());
-			assertEquals(x, iter.cur().key.getLong(0));
+			assertEquals(x, iter.cur().key.getInt(0));
 			iter.next();
 		}
 		assertTrue(iter.eof());
@@ -103,7 +103,7 @@ public class BtreeTest {
 		iter = bt.last();
 		for (int x : ts.descendingSet()) {
 			assertFalse(iter.eof());
-			assertEquals(x, iter.cur().key.getLong(0));
+			assertEquals(x, iter.cur().key.getInt(0));
 			iter.prev();
 		}
 		assertTrue(iter.eof());
@@ -139,7 +139,7 @@ public class BtreeTest {
 		Btree.Iter iter = bt.first();
 		for (int i = 0; i < N; ++i) {
 			assertFalse(iter.eof());
-			assertEquals(i, iter.cur().key.getLong(0));
+			assertEquals(i, iter.cur().key.getInt(0));
 			iter.next();
 		}
 		assertTrue(iter.eof());
@@ -147,7 +147,7 @@ public class BtreeTest {
 		iter = bt.last();
 		for (int i = N - 1; i >= 0; --i) {
 			assertFalse(iter.eof());
-			assertEquals(i, iter.cur().key.getLong(0));
+			assertEquals(i, iter.cur().key.getInt(0));
 			iter.prev();
 		}
 		assertTrue(iter.eof());
