@@ -10,6 +10,8 @@ package suneido;
  TestRunner.Run(#(prcadlib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(#(etaprlib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(#(invenlib), skipTags: #(windows), quit_on_failure:)
+ TestRunner.Run(#(wolib), skipTags: #(windows), quit_on_failure:)
+ TestRunner.Run(#(polib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
 
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
@@ -42,6 +44,7 @@ public class Repl {
 		Compiler.eval("Use('etaprlib')");
 		Compiler.eval("Use('invenlib')");
 		Compiler.eval("Use('wolib')");
+		Compiler.eval("Use('polib')");
 		Compiler.eval("Use('configlib')");
 		Compiler.eval("Use('demobookoptions')");
 

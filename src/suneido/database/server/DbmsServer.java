@@ -176,6 +176,7 @@ e.printStackTrace();
 		Compiler.eval("Use('etaprlib')");
 		Compiler.eval("Use('invenlib')");
 		Compiler.eval("Use('wolib')");
+		Compiler.eval("Use('polib')");
 		Compiler.eval("Use('configlib')");
 		Compiler.eval("Use('demobookoptions')");
 		SocketServer server = new SocketServer(new HandlerFactory());
