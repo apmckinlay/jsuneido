@@ -64,13 +64,15 @@ public class Pack {
 		return packSizeNum(n.unscaledValue().longValue(), -n.scale());
 	}
 
-	public static int packSizeNum(long n, int e) {
+	private static int packSizeNum(long n, int e) {
 		if (n == 0)
 			return 1;
 		if (n < 0)
 			n = -n;
 		for (; (e % 4) != 0; --e)
 			n *= 10;
+		while (n % 10000 == 0)
+			n /= 10000;
 		return 2 + 2 * packshorts(n);
 	}
 
@@ -162,6 +164,10 @@ public class Pack {
 			n = -n;
 		for (; (e % 4) != 0; --e)
 			n *= 10;
+		while (n % 10000 == 0) {
+			n /= 10000;
+			e += 4;
+		}
 		e = e / 4 + packshorts(n);
 		byte eb = (byte) ((e ^ 0x80) & 0xff);
 		if (minus)
@@ -236,7 +242,6 @@ public class Pack {
 		if (minus)
 			s = ((~s) & 0xff);
 		s = (byte) (s ^ 0x80);
-
 		long n = unpackLongPart(buf, minus);
 		s = -(s - packshorts(n)) * 4;
 		if (-10 <= s && s < 0)
@@ -261,15 +266,6 @@ public class Pack {
 			n = n * 10000 + x;
 		}
 		return minus ? -n : n;
-	}
-
-	public static long unpackLong(ByteBuffer buf) {
-		byte b = buf.get();
-		assert (b == Tag.PLUS || b == Tag.MINUS);
-		if (buf.remaining() == 0)
-			return 0;
-		buf.get(); // skip scale/exponent
-		return unpackLongPart(buf, b == Tag.MINUS);
 	}
 
 }

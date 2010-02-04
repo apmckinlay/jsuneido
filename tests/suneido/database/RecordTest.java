@@ -178,8 +178,8 @@ public class RecordTest {
 		Record r = new Record(40);
 		r.add(0);
 		r.add(1234);
-		assertEquals(0, r.getLong(0));
-		assertEquals(1234, r.getLong(1));
+		assertEquals(0, r.getInt(0));
+		assertEquals(1234, r.getInt(1));
 	}
 
 	public static Record make(String... args) {
