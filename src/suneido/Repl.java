@@ -23,7 +23,8 @@ package suneido;
 import java.io.*;
 import java.util.Map;
 
-import suneido.database.*;
+import suneido.database.Database;
+import suneido.database.Mode;
 import suneido.language.*;
 import suneido.language.Compiler;
 
@@ -34,20 +35,6 @@ public class Repl {
 		setup();
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		Compiler.eval("JInit()");
-		Compiler.eval("Use('Accountinglib')");
-		Compiler.eval("Use('etalib')");
-		Compiler.eval("Use('ticketlib')");
-		Compiler.eval("Use('joblib')");
-		Compiler.eval("Use('prlib')");
-		Compiler.eval("Use('prcadlib')");
-		Compiler.eval("Use('etaprlib')");
-		Compiler.eval("Use('invenlib')");
-		Compiler.eval("Use('wolib')");
-		Compiler.eval("Use('polib')");
-		Compiler.eval("Use('configlib')");
-		Compiler.eval("Use('demobookoptions')");
-
 		while (true) {
 			out.print("> ");
 			out.flush();
@@ -70,10 +57,23 @@ public class Repl {
 	}
 
 	public static void setup() {
-		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
-		Database.theDB = new Database(mmf, Mode.OPEN);
+		Database.theDB = new Database("suneido.db", Mode.OPEN);
 
 		Globals.builtin("Print", new Print());
+
+		Compiler.eval("JInit()");
+		Compiler.eval("Use('Accountinglib')");
+		Compiler.eval("Use('etalib')");
+		Compiler.eval("Use('ticketlib')");
+		Compiler.eval("Use('joblib')");
+		Compiler.eval("Use('prlib')");
+		Compiler.eval("Use('prcadlib')");
+		Compiler.eval("Use('etaprlib')");
+		Compiler.eval("Use('invenlib')");
+		Compiler.eval("Use('wolib')");
+		Compiler.eval("Use('polib')");
+		Compiler.eval("Use('configlib')");
+		Compiler.eval("Use('demobookoptions')");
 	}
 
 	private static void saveTest(String line, Object result)
