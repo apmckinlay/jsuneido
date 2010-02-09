@@ -55,8 +55,10 @@ public class Load {
 		File bak = new File("suneido.bak");
 		if (bak.exists())
 			verify(bak.delete());
-		verify(new File("suneido.db").renameTo(bak));
-		verify(tmpfile.renameTo(new File("suneido.db")));
+		File sdb = new File("suneido.db");
+		if (sdb.exists())
+			verify(sdb.renameTo(bak));
+		verify(tmpfile.renameTo(sdb));
 		return n;
 	}
 

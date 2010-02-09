@@ -21,8 +21,6 @@ import suneido.language.*;
  * @author Andrew McKinlay
  */
 public class TransactionInstance extends SuValue {
-	private static int nextnum = 0;
-	private final int num = ++nextnum;
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
@@ -169,7 +167,7 @@ public class TransactionInstance extends SuValue {
 
 	@Override
 	public String toString() {
-		return /*"Transaction" + num + " " +*/ t.toString();
+		return t.toString();
 	}
 
 	public DbmsTran getTransaction() {
