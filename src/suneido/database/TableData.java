@@ -1,6 +1,6 @@
 package suneido.database;
 
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 
 /**
  * Contains the changing data for a table: nextfield, nrecords, totalsize.

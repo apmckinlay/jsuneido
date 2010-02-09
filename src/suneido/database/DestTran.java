@@ -1,6 +1,6 @@
 package suneido.database;
 
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 import suneido.util.ByteBuf;
 
 /**
