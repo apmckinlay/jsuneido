@@ -54,6 +54,7 @@ public class Repl {
 		}
 		out.println("bye");
 		out.flush();
+		Database.theDB.close();
 	}
 
 	public static void setup() {

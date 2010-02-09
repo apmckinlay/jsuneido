@@ -297,7 +297,8 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return bb.getInt(0) & ~(ALIGN - 1);
 	}
 
-	private byte type(long offset) {
+	@Override
+	public byte type(long offset) {
 		return type(buf(offset - HEADER));
 	}
 
@@ -312,6 +313,15 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	@Override
 	public long first() {
 		return file_size <= FILEHDR ? 0 : FILEHDR + HEADER;
+	}
+
+	@Override
+	public long last() {
+		MmfileReverseIterator iter = new MmfileReverseIterator();
+		if (! iter.hasNext())
+			return -1;
+		iter.next();
+		return iter.offset();
 	}
 
 	@Override
@@ -350,7 +360,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 					//err = true;
 					// fall thru
 				case EOF:
-					offset = end_offset(); // eof or bad block
+					offset = last(); // eof or bad block
 					return ByteBuf.empty();
 				}
 			} while (type(p) == FILLER);
@@ -413,10 +423,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 //		public boolean corrupt() {
 //			return err;
 //		}
-//
-//		public long offset() {
-//			return offset;
-//		}
+
+		public long offset() {
+			return offset;
+		}
 	}
 
 	// public static void main(String[] args) throws Exception {
