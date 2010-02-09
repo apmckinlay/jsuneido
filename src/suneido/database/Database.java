@@ -58,13 +58,14 @@ public class Database {
 	}
 
 	private void init(Mode mode) {
-		// if (mode == Mode.OPEN && ! check_shutdown(mmf)) {
-		// mmf.close();
-		// if (0 != fork_rebuild())
-		// fatal("Database not rebuilt, unable to start");
-		// mmf = new Mmfile(filename, mode);
-		// verify(check_shutdown(mmf));
-		// }
+		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
+			System.out.println("database not shut down properly last time");
+			// mmf.close();
+			// if (0 != fork_rebuild())
+			// fatal("Database not rebuilt, unable to start");
+			// mmf = new Mmfile(filename, mode);
+			// verify(check_shutdown(mmf));
+			}
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;
 			create();

@@ -16,10 +16,12 @@ import suneido.util.ByteBuf;
  */
 public class DestMem extends Destination {
 	private final ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();
+	private final ArrayList<Byte> types = new ArrayList<Byte>();
 
 	@Override
 	public long alloc(int size, byte type) {
 		nodes.add(ByteBuffer.allocateDirect(size));
+		types.add(type);
 		return nodes.size() * Mmfile.ALIGN; // start at one not zero
 	}
 
@@ -39,6 +41,16 @@ public class DestMem extends Destination {
 	@Override
 	public long first() {
 		return 1 * Mmfile.ALIGN;
+	}
+
+	@Override
+	public long last() {
+		return nodes.size() * Mmfile.ALIGN;
+	}
+
+	@Override
+	public byte type(long adr) {
+		return types.get((int) (adr / Mmfile.ALIGN) - 1);
 	}
 
 	@Override

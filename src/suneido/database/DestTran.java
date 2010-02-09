@@ -56,8 +56,18 @@ public class DestTran extends Destination {
 	}
 
 	@Override
+	public long last() {
+		return dest.last();
+	}
+
+	@Override
 	public int length(long adr) {
 		return dest.length(adr);
+	}
+
+	@Override
+	public byte type(long adr) {
+		return dest.type(adr);
 	}
 
 	@Override

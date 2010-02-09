@@ -27,7 +27,11 @@ public abstract class Destination {
 
 	abstract long first();
 
+	abstract long last();
+
 	abstract int length(long adr);
+
+	abstract byte type(long adr);
 
 	abstract long size();
 
