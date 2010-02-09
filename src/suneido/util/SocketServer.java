@@ -120,7 +120,12 @@ public class SocketServer {
 				buf.put(oldbuf);
 				info.readBuf = buf;
 			}
-			n = channel.read(buf);
+			try {
+				n = channel.read(buf);
+			} catch (IOException e) {
+				// we get this if the client aborts the connection
+				n = -1;
+			}
 		} while (n > 0);
 		buf.flip();
 		info.handler.moreInput(buf);
@@ -194,6 +199,7 @@ public class SocketServer {
 				queue.add(output);
 			}
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+			key.selector().wakeup();
 		}
 		/** does NOT call handler.close */
 		public void close() {
@@ -243,7 +249,6 @@ public class SocketServer {
 		public void moreInput(ByteBuffer buf) {
 			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
 			output.put(buf).rewind();
-			outputQueue.add(output);
 			outputQueue.add(output);
 		}
 
