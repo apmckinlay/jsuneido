@@ -1,6 +1,6 @@
 package suneido.database;
 
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
 

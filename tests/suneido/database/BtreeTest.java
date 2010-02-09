@@ -1,7 +1,7 @@
 package suneido.database;
 
 import static org.junit.Assert.*;
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 
 import java.util.*;
 

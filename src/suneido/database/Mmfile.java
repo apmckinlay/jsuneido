@@ -1,7 +1,7 @@
 package suneido.database;
 
-import static suneido.Suneido.fatal;
-import static suneido.Suneido.verify;
+import static suneido.SuException.fatal;
+import static suneido.SuException.verify;
 
 import java.io.*;
 import java.nio.ByteOrder;

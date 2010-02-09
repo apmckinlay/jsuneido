@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import static suneido.SuException.unreachable;
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 import static suneido.util.Util.*;
 
 import java.util.ArrayList;

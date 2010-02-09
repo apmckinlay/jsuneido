@@ -2,7 +2,7 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 import static suneido.database.Record.MAX_FIELD;
 import static suneido.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;

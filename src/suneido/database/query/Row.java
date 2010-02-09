@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 
 import java.nio.ByteBuffer;
 import java.util.*;

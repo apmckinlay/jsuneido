@@ -1,7 +1,7 @@
 package suneido.database;
 
 import static suneido.SuException.unreachable;
-import static suneido.Suneido.verify;
+import static suneido.SuException.verify;
 import static suneido.database.Database.theDB;
 import static suneido.util.Util.bufferUcompare;
 
