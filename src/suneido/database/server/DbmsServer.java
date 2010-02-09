@@ -13,7 +13,8 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
-import suneido.database.*;
+import suneido.database.Database;
+import suneido.database.Mode;
 import suneido.language.Compiler;
 import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
@@ -164,8 +165,7 @@ e.printStackTrace();
 
 
 	public static void main(String[] args) {
-		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
-		Database.theDB = new Database(mmf, Mode.OPEN);
+		Database.theDB = new Database("suneido.db", Mode.OPEN);
 		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
 		Compiler.eval("Use('etalib')");
