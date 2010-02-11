@@ -4,7 +4,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.util.Iterator;
 
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -62,13 +61,6 @@ public class MmfileTest {
 				++i;
 			}
 
-			i = 1;
-			for (Iterator<ByteBuf> iter = mmf.reverse_iterator(); iter.hasNext(); --i) {
-				ByteBuf b = iter.next();
-				byte[] x = new byte[data[i].length];
-				b.get(0, x);
-				assertArrayEquals(data[i], x);
-			}
 		} finally {
 			mmf.close();
 		}

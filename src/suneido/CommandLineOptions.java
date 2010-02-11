@@ -1,8 +1,11 @@
 package suneido;
 
+// TODO disallow multiple actions
+// TODO allow dump/load single tables
+// TODO -port
 public class CommandLineOptions {
 	public enum Action {
-		REPL, DUMP, LOAD, SERVER, VERSION
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION
 	}
 	public Action action = null;
 
@@ -16,8 +19,12 @@ public class CommandLineOptions {
 				action = Action.DUMP;
 			else if (arg.equals("-load"))
 				action = Action.LOAD;
+			else if (arg.equals("-check"))
+				action = Action.CHECK;
 			else if (arg.equals("-version"))
 				action = Action.VERSION;
+			else
+				throw new SuException("unknown command line argument: " + arg);
 		}
 	}
 }

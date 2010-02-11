@@ -1,5 +1,6 @@
 package suneido;
 
+import suneido.database.DbCheck;
 import suneido.database.Load;
 import suneido.database.server.DbmsServer;
 
@@ -22,6 +23,9 @@ public class Suneido {
 			break;
 		case LOAD:
 			Load.main(null);
+			break;
+		case CHECK:
+			DbCheck.checkPrintExit("suneido.db");
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
