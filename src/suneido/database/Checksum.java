@@ -28,6 +28,14 @@ class Checksum {
 		// include commit in checksum, but don't include checksum itself
 		add(buf, buf.position());
 		buf.putInt((int) cksum.getValue());
+		reset();
+	}
+
+	synchronized long getValue() {
+		return cksum.getValue();
+	}
+
+	synchronized void reset() {
 		cksum.reset();
 	}
 

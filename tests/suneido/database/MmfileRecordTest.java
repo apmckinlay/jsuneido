@@ -30,7 +30,7 @@ public class MmfileRecordTest {
 		}
 		mmf = new Mmfile(file, Mode.OPEN);
 		try {
-			ByteBuf buf = mmf.iterator().next();
+			ByteBuf buf = mmf.adr(mmf.first());
 			Record br = new Record(buf);
 			assertEquals(data1, br.getString(0));
 			assertEquals(data2, br.getString(1));

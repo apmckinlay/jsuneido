@@ -317,11 +317,17 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 	@Override
 	public long last() {
-		MmfileReverseIterator iter = new MmfileReverseIterator();
-		if (! iter.hasNext())
+		long offset = end_offset();
+		if (offset <= FILEHDR + HEADER)
 			return -1;
-		iter.next();
-		return iter.offset();
+		offset -= OVERHEAD;
+		int n = buf(offset).getInt(0) ^ (int) offset;
+		if (n > chunk_size || n > offset)
+			return -1;
+		offset -= n;
+		if (check(offset) == MmCheck.ERR)
+			return -1;
+		return offset;
 	}
 
 	@Override
@@ -336,129 +342,52 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return this;
 	}
 
-	public Iterator<ByteBuf> iterator() {
+	public MmfileIterator iterator() {
 		return new MmfileIterator();
 	}
 
-	private class MmfileIterator implements Iterator<ByteBuf> {
-		private long offset = BEGIN_OFFSET;
-		//private boolean err = false;
+	class MmfileIterator implements Iterator<ByteBuf> {
+		private long offset = -1;
+		private long next_offset = BEGIN_OFFSET;
+		private boolean err = false;
 
 		public boolean hasNext() {
-			return offset < file_size;
+			return next_offset < file_size;
 		}
 
 		public ByteBuf next() {
-			long p;
 			do {
-				p = offset;
-				offset += length(p) + OVERHEAD;
-				switch (check(p)) {
+				offset = next_offset;
+				next_offset += length(offset) + OVERHEAD;
+				switch (check(offset)) {
 				case OK:
 					break;
 				case ERR:
-					//err = true;
+					err = true;
 					// fall thru
 				case EOF:
-					offset = last(); // eof or bad block
+					next_offset = last(); // eof or bad block
 					return ByteBuf.empty();
 				}
-			} while (type(p) == FILLER);
-			return adr(p);
+			} while (type() == FILLER);
+			return adr(offset);
 		}
 
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 
-//		public boolean corrupt() {
-//			return err;
-//		}
-//
-//		public long offset() {
-//			return offset;
-//		}
-	}
-
-	public Iterator<ByteBuf> reverse_iterator() {
-		return new MmfileReverseIterator();
-	}
-
-	private class MmfileReverseIterator implements Iterator<ByteBuf> {
-		private long offset = end_offset();
-		//private boolean err = false;
-
-		public boolean hasNext() {
-			return offset > FILEHDR + OVERHEAD;
+		public boolean corrupt() {
+			return err;
 		}
-
-		public ByteBuf next() {
-			do {
-				offset -= OVERHEAD;
-				int n = buf(offset).getInt(0) ^ (int) offset;
-				if (n > chunk_size || n > offset) {
-					//err = true;
-					offset = BEGIN_OFFSET;
-					return ByteBuf.empty();
-				}
-				offset -= n;
-				switch (check(offset)) {
-				case OK:
-					break;
-				case ERR:
-					//err = true;
-					// fall thru
-				case EOF:
-					offset = BEGIN_OFFSET; // eof or bad block
-					return ByteBuf.empty();
-				}
-			} while (type(offset) == FILLER);
-			return adr(offset);
-		}
-
-		public void remove() {
-			throw SuException.unreachable();
-		}
-
-//		public boolean corrupt() {
-//			return err;
-//		}
 
 		public long offset() {
 			return offset;
 		}
+
+		public byte type() {
+			return Mmfile.this.type(offset);
+		}
 	}
 
-	// public static void main(String[] args) throws Exception {
-	// RandomAccessFile f = new RandomAccessFile("tmp", "rw");
-	// f.seek(3L * 1024 * 1024 * 1024);
-	// f.write(123);
-	// FileChannel channel = f.getChannel();
-	// long size = channel.size();
-	// System.out.println("File is " + size + " bytes large");
-	// for (int i = 0; i < 10; ++i) {
-	// long ofs = 0;
-	// int chunksize = 512 * 1024 * 1024;
-	// while (ofs < size) {
-	// int n = (int)Math.min(chunksize, size - ofs);
-	// int tries = 0;
-	// ByteBuffer buffer = null;
-	// do {
-	// try {
-	// buffer = channel.map(FileChannel.MapMode.READ_ONLY, ofs, n);
-	// } catch (IOException e) {
-	// if (++tries > 10)
-	// throw e;
-	// System.gc();
-	// System.runFinalization();
-	// }
-	// } while (buffer == null);
-	// System.out.println("Mapped " + n + " bytes at offset " + ofs + " with " +
-	// tries + " tries");
-	// ofs += n;
-	// buffer = null; // "unmap"
-	// }
-	// }
-	// channel.close();
-	// }
 }
