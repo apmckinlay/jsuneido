@@ -14,7 +14,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
 import suneido.database.Database;
-import suneido.database.Mode;
 import suneido.language.Compiler;
 import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
@@ -165,7 +164,8 @@ e.printStackTrace();
 
 
 	public static void main(String[] args) {
-		Database.theDB = new Database("suneido.db", Mode.OPEN);
+		Database.open_theDB();
+
 		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
 		Compiler.eval("Use('etalib')");

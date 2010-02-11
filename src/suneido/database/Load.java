@@ -26,8 +26,7 @@ public class Load {
 		int n = 0;
 		File tmpfile = File.createTempFile("sudb", null, new File("."));
 		try {
-			Mmfile mmf = new Mmfile(tmpfile, Mode.CREATE);
-			Database.theDB = new Database(mmf, Mode.CREATE);
+			Database.theDB = new Database(tmpfile, Mode.CREATE);
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(filename));
 			try {
@@ -75,8 +74,7 @@ public class Load {
 			tablename = tablename.substring(0, tablename.length() - 3);
 		File dbfile = new File("suneido.db");
 		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
-		Mmfile mmf = new Mmfile(dbfile, mode);
-		Database.theDB = new Database(mmf, mode);
+		Database.theDB = new Database(dbfile, mode);
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(tablename + ".su"));

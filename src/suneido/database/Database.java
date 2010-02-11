@@ -3,6 +3,7 @@ package suneido.database;
 import static suneido.SuException.verify;
 import static suneido.database.Transaction.NULLTRAN;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -47,8 +48,23 @@ public class Database {
 	}
 	private final static int VERSION = 1;
 
+	public static void open_theDB() {
+		theDB = new Database("suneido.db", Mode.OPEN);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				theDB.close();
+			}
+		});
+	}
+
 	public Database(String filename, Mode mode) {
 		dest = new Mmfile(filename, mode);
+		init(mode);
+	}
+
+	public Database(File file, Mode mode) {
+		dest = new Mmfile(file, mode);
 		init(mode);
 	}
 
