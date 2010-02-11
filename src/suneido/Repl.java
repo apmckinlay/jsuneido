@@ -24,7 +24,6 @@ import java.io.*;
 import java.util.Map;
 
 import suneido.database.Database;
-import suneido.database.Mode;
 import suneido.language.*;
 import suneido.language.Compiler;
 
@@ -54,11 +53,10 @@ public class Repl {
 		}
 		out.println("bye");
 		out.flush();
-		Database.theDB.close();
 	}
 
 	public static void setup() {
-		Database.theDB = new Database("suneido.db", Mode.OPEN);
+		Database.open_theDB();
 
 		Globals.builtin("Print", new Print());
 

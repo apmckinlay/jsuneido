@@ -142,8 +142,7 @@ public class Dump {
 	}
 
 	public static void main(String[] args) {
-		Mmfile mmf = new Mmfile("suneido.db", Mode.OPEN);
-		Database.theDB = new Database(mmf, Mode.OPEN);
+		Database.open_theDB();
 
 		int n = dumpDatabase("database2.su");
 		System.out.println("dumped " + n + " tables to database2.su");
@@ -151,9 +150,6 @@ public class Dump {
 //		String tablename = "stdlib";
 //		int n = dumpTable(tablename);
 //		System.out.println("dumped " + n + " records from " + tablename);
-
-		Database.theDB.close();
-		Database.theDB = null;
 	}
 
 }
