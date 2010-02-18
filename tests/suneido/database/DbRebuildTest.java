@@ -32,11 +32,9 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 		} finally {
 			closeDb();
 		}
-DbDump.dump(filename);
 		dbrebuild();
 		dbcheck();
 		checkTable();
-DbDump.dump(filename);
 	}
 
 	@Test
@@ -48,7 +46,6 @@ DbDump.dump(filename);
 		} finally {
 			closeDb();
 		}
-DbDump.dump(filename);
 		dbrebuild();
 		dbcheck();
 		checkTable();
@@ -63,8 +60,10 @@ DbDump.dump(filename);
 		} finally {
 			closeDb();
 		}
+		checkNoTable();
 		dbrebuild();
 		dbcheck();
+		checkNoTable();
 	}
 
 	@Test
@@ -77,10 +76,28 @@ DbDump.dump(filename);
 		} finally {
 			closeDb();
 		}
+		checkTable();
 		dbrebuild();
 		dbcheck();
 		checkTable();
 	}
+
+	@Test
+	public void test_rename_table() {
+		db = new Database(filename, Mode.CREATE);
+		try {
+			makeTable("mytable_before", 4);
+			db.renameTable("mytable_before", "mytable");
+			addRecords("mytable", 4, 7);
+		} finally {
+			closeDb();
+		}
+		dbrebuild();
+		dbcheck();
+		checkTable(8);
+	}
+
+	// TODO test that table nrecords and totalsize don't change
 
 	private void dbrebuild() {
 		DbRebuild dbr = new DbRebuild(filename);

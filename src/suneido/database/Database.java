@@ -555,4 +555,16 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
+	void removeIndexEntriesForRebuild(int tblnum, Record rec) {
+		Table table = tables.get(tblnum);
+		for (Index index : table.indexes) {
+			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
+			Record key = rec.project(index.colnums, rec.off());
+			verify(btreeIndex.remove(key));
+		}
+		TableData td = tabledata.get(tblnum);
+		td = td.with(td.nextfield, 1, rec.bufSize());
+		tabledata = tabledata.with(tblnum, td);
+	}
+
 }
