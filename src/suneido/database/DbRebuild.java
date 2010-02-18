@@ -4,10 +4,8 @@ import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
-import suneido.SuException;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
@@ -46,15 +44,17 @@ public class DbRebuild extends DbCheck {
 		}
 	}
 
+	// TODO open source database read-only
+
 	void rebuild() {
 		System.out.println("Rebuilding...");
 		File tmpfile;
-//tmpfile = new File("rebuild.db");
-		try {
-			tmpfile = File.createTempFile("sudb", null, new File("."));
-		} catch (IOException e) {
-			throw new SuException("rebuild failed", e);
-		}
+tmpfile = new File("rebuild.db");
+//		try {
+//			tmpfile = File.createTempFile("sudb", null, new File("."));
+//		} catch (IOException e) {
+//			throw new SuException("rebuild failed", e);
+//		}
 		try {
 			newdb = new Database(tmpfile, Mode.CREATE);
 			copy();
@@ -72,7 +72,7 @@ public class DbRebuild extends DbCheck {
 				newdb.close();
 				newdb = null;
 			}
-			tmpfile.delete();
+//			tmpfile.delete();
 		}
 	}
 
@@ -141,10 +141,11 @@ public class DbRebuild extends DbCheck {
 
 	private void handleCommitEntries(Commit commit) {
 		if (isTableRename(commit)) {
-			long offset = commit.getDelete(0);
-			ByteBuf buf = newdb.adr(offset - 4);
+			long oldoff = commit.getDelete(0);
+			long newoff = tr.get(oldoff - 4) + 4;
+			ByteBuf buf = newdb.adr(newoff - 4);
 			int tblnum = buf.getInt(0);
-			Record rec = new Record(buf.slice(4), offset);
+			Record rec = new Record(buf.slice(4), newoff);
 			newdb.removeIndexEntriesForRebuild(tblnum, rec);
 		}
 		for (int i = 0; i < commit.getNCreates(); ++i) {
