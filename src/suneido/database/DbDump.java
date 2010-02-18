@@ -1,5 +1,8 @@
 package suneido.database;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
@@ -53,14 +56,13 @@ public class DbDump {
 			default:
 				System.out.println("unknown type: " + iter.type());
 			}
-			if (iter.offset() > 50000)
-				break;
 		}
 		if (iter.corrupt())
 			System.out.println("CORRUPT");
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
+		System.setOut(new PrintStream("dbdump.txt"));
 		dump("suneido.db");
 	}
 
