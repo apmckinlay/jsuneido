@@ -80,7 +80,8 @@ public class DbRebuild extends DbCheck {
 		Mmfile.MmfileIterator iter = mmf.iterator();
 		while (iter.hasNext()) {
 			ByteBuf buf = iter.next();
-			if (iter.type() == Mmfile.OTHER)
+			if (iter.type() == Mmfile.OTHER ||
+					(iter.type() == Mmfile.COMMIT && isCommitOther(buf)))
 				continue; // skip
 			long newoff = copyBlock(buf, iter.length(), iter.type());
 			switch (iter.type()) {
@@ -100,6 +101,14 @@ public class DbRebuild extends DbCheck {
 		return true;
 	}
 
+	private boolean isCommitOther(ByteBuf buf) {
+		Commit commit = new Commit(buf);
+		if (commit.getNCreates() != 1 || commit.getNDeletes() != 0)
+			return false;
+		long offset = commit.getCreate(0);
+		return mmf.type(offset - 4) == Mmfile.OTHER;
+	}
+
 	private void handleSession() {
 		cksum.reset();
 	}
@@ -111,44 +120,6 @@ public class DbRebuild extends DbCheck {
 			cksum.add(buf.getByteBuffer(), r.bufSize() + 4);
 		}
 		tr.put(oldoff, newoff);
-		verify(oldoff % 8 == 4);
-		verify(oldoff / GRANULARITY < Integer.MAX_VALUE);
-		boolean deleted = deletes.get((int) (oldoff / GRANULARITY));
-
-		if (tblnum == TN.TABLES && deleted) {
-			Record r = new Record(buf.slice(4));
-			int tn = r.getInt(Table.TBLNUM);
-			deleted_tbls.put(tn, newoff);
-System.out.println("DELETED " + tn + " = " + r.getString(Table.TABLE));
-		} /*else if (tblnum == TN.INDEXES && ! deleted) {
-			Record r = new Record(buf.slice(4));
-			int tn = r.getInt(Index.TBLNUM);
-			Long offset = deleted_tbls.get(tn);
-			if (offset != null) {
-				handleSchemaRecord(newdb, offset);
-				renamed_tbls.put(tn, offset);
-				deleted_tbls.remove(tn);
-			}
-		} else if (tblnum == TN.TABLES && ! deleted) {
-			Record r = new Record(buf.slice(4));
-			int tn = r.getInt(Index.TBLNUM);
-			Long offset = renamed_tbls.get(tn);
-			if (offset != null) {
-				String oldname = new Record(newdb.adr(offset)).getString(Table.TABLE);
-				String newname = r.getString(Table.TABLE);
-System.out.println("RENAME " + oldname + " => " + newname);
-//						db.unalloc(iter.size());
-//						tr.pop();
-//						db.rename_table(oldname, newname);
-				renamed_tbls.remove(tn);
-				deleted = true; // to prevent handling below
-				}
-			else
-				deleted_tbls.remove(tn);
-		}*/
-
-//		if (tblnum <= TN.VIEWS && ! deleted)
-//			handleSchemaRecord(newdb, newoff);
 	}
 
 	private long copyBlock(ByteBuf buf, int n, byte type) {
@@ -161,6 +132,7 @@ System.out.println("RENAME " + oldname + " => " + newname);
 	private void handleCommit(long newoff) {
 		ByteBuf buf = newdb.adr(newoff);
 		Commit commit = new Commit(buf);
+
 		handleCommitEntries(commit);
 		cksum.add(buf.getByteBuffer(), commit.sizeWithoutChecksum());
 		commit.putChecksum(cksum.getValue());
@@ -168,10 +140,15 @@ System.out.println("RENAME " + oldname + " => " + newname);
 	}
 
 	private void handleCommitEntries(Commit commit) {
+		if (isTableRename(commit)) {
+			long offset = commit.getDelete(0);
+			ByteBuf buf = newdb.adr(offset - 4);
+			int tblnum = buf.getInt(0);
+			Record rec = new Record(buf.slice(4), offset);
+			newdb.removeIndexEntriesForRebuild(tblnum, rec);
+		}
 		for (int i = 0; i < commit.getNCreates(); ++i) {
 			long oldoff = commit.getCreate(i);
-			if (mmf.type(oldoff - 4) == Mmfile.OTHER)
-				continue; // TODO remove from commit? remove commit if empty?
 			long newoff = tr.get(oldoff - 4) + 4;
 			commit.putCreate(i, newoff);
 			addIndexEntries(oldoff, newoff);
@@ -189,8 +166,7 @@ System.out.println("RENAME " + oldname + " => " + newname);
 	}
 
 	private void addIndexEntries(long oldoff, long newoff) {
-		boolean deleted = deletes.get((int) ((oldoff - 4) / GRANULARITY));
-		if (deleted)
+		if (isDeleted(oldoff))
 			return;
 		ByteBuf buf = newdb.adr(newoff - 4);
 		int tblnum = buf.getInt(0);
@@ -201,9 +177,15 @@ System.out.println("RENAME " + oldname + " => " + newname);
 			String tablename = tblnames.get(tblnum);
 			if (tablename == null)
 				return;
-System.out.println("DATA " + tblnum + " " + tablename);
 			newdb.addIndexEntriesForRebuild(tblnum, rec);
 		}
+	}
+
+	private boolean isDeleted(long oldoff) {
+		oldoff -= 4;
+		verify(oldoff % 8 == 4);
+		verify(oldoff / GRANULARITY < Integer.MAX_VALUE);
+		return deletes.get((int) (oldoff / GRANULARITY));
 	}
 
 	private void handleSchemaRecord(int tblnum, Record rec, long newoff) {
@@ -232,7 +214,6 @@ System.out.println("DATA " + tblnum + " " + tablename);
 			max_tblnum = tn;
 		String tablename = rec.getString(Table.TABLE);
 		tblnames.put(tn, tablename);
-System.out.println("TABLE " + tn + " " + tablename + " newoff " + rec.off());
 		newdb.addIndexEntriesForRebuild(TN.TABLES, rec);
 		reloadTable(rec);
 	}
@@ -244,13 +225,11 @@ System.out.println("TABLE " + tn + " " + tablename + " newoff " + rec.off());
 	}
 
 	private void handleColumnsRecord(Record rec) {
-System.out.println("COLUMN " + rec.getInt(0) + " " + rec.getString(Column.COLUMN));
 		newdb.addIndexEntriesForRebuild(TN.COLUMNS, rec);
 		reloadTable(rec.getInt(Column.TBLNUM));
 	}
 
 	private void handleIndexesRecord(Record rec) {
-System.out.println("INDEX " + rec.getInt(0) + " " + rec.getString(Index.COLUMNS));
 		newdb.addIndexEntriesForRebuild(TN.INDEXES, rec);
 		BtreeIndex.rebuild(newdb.dest, rec);
 		reloadTable(rec.getInt(Index.TBLNUM));
@@ -295,7 +274,9 @@ System.out.println("INDEX " + rec.getInt(0) + " " + rec.getString(Index.COLUMNS)
 	@Override
 	// called by DbCheck
 	protected void process_deletes(Commit commit) {
-		// called by DbCheck
+		if (isTableRename(commit))
+			return;
+
 		for (int i = 0; i < commit.getNDeletes(); ++i) {
 			long del = commit.getDelete(i);
 			verify(del % 8 == 0);
@@ -304,6 +285,18 @@ System.out.println("INDEX " + rec.getInt(0) + " " + rec.getString(Index.COLUMNS)
 			verify(del < Integer.MAX_VALUE);
 			deletes.set((int) del);
 		}
+	}
+
+	private boolean isTableRename(Commit commit) {
+		return commit.getNCreates() == 1
+				&& commit.getNDeletes() == 1
+				&& isTableRecord(commit.getDelete(0))
+				&& isTableRecord(commit.getCreate(0));
+	}
+
+	private boolean isTableRecord(long offset) {
+		return mmf.type(offset - 4) == Mmfile.DATA
+				&& tblnum(offset) == TN.TABLES;
 	}
 
 	public static void main(String[] args) {

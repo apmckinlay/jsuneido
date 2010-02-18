@@ -38,8 +38,12 @@ public class TestBaseBase {
 		db.addIndex(tablename, "a", true);
 		db.addIndex(tablename, "b,a", false);
 
+		addRecords(tablename, 0, nrecords - 1);
+	}
+
+	protected void addRecords(String tablename, int from, int to) {
 		Transaction t = db.readwriteTran();
-		for (int i = 0; i < nrecords; ++i)
+		for (int i = from; i <= to; ++i)
 			t.addRecord(tablename, record(i));
 		t.ck_complete();
 	}
