@@ -154,7 +154,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	public void updateTableData(TableData td) {
 		verify(!readonly);
-		tabledataUpdates.put(td.num, td);
+		tabledataUpdates.put(td.tblnum, td);
 	}
 
 	// btree indexes
@@ -254,7 +254,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (isAborted())
 			return conflict;
 		notEnded();
-		return writes.isEmpty() ? end() : commit();
+		return writes.isEmpty() && btreeIndexUpdates.isEmpty() ? end() : commit();
 	}
 
 	private String end() {
@@ -320,9 +320,9 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private void updateTableData() {
 		for (Map.Entry<Integer, TableData> e : tabledataUpdates.entrySet()) {
 			TableData tdNew = e.getValue();
-			TableData tdOld = tabledata.get(tdNew.num);
+			TableData tdOld = tabledata.get(tdNew.tblnum);
 			if (tdOld != null)
-				db.updateTableData(tdNew.num, tdNew.nextfield,
+				db.updateTableData(tdNew.tblnum, tdNew.nextfield,
 						tdNew.nrecords - tdOld.nrecords,
 						tdNew.totalsize	- tdOld.totalsize);
 		}
@@ -367,7 +367,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	// WARNING: don't define equals based on num
-	// it causes errors (e.g. in TestConcurrency
+	// it causes errors e.g. in TestConcurrency
 
 	private static class NullTransaction extends Transaction {
 

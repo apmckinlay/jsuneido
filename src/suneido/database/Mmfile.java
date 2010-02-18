@@ -358,7 +358,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		public ByteBuf next() {
 			do {
 				offset = next_offset;
-				next_offset += length(offset) + OVERHEAD;
+				next_offset += length() + OVERHEAD;
 				switch (check(offset)) {
 				case OK:
 					break;
@@ -387,6 +387,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 		public byte type() {
 			return Mmfile.this.type(offset);
+		}
+
+		public int length() {
+			return Mmfile.this.length(offset);
 		}
 	}
 

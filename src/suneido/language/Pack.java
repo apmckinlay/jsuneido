@@ -222,6 +222,9 @@ public class Pack {
 			return SuRecord.unpack(buf);
 		case Tag.DATE:
 			return unpackDate(buf);
+		case Tag.FUNCTION:
+		case Tag.CLASS:
+			throw new SuException("jSuneido cannot unpack functions or classes");
 		default:
 			throw new SuException("invalid unpack type: "
 					+ buf.get(buf.position() - 1));
