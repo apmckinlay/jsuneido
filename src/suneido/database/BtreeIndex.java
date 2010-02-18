@@ -65,6 +65,21 @@ public class BtreeIndex {
 		columns = bti.columns;
 	}
 
+	static void rebuild(Destination dest, Record rec) {
+		new BtreeIndex(rec, dest);
+	}
+
+	private BtreeIndex(Record rec, Destination dest) {
+		tblnum = rec.getInt(Index.TBLNUM);
+		columns = rec.getString(Index.COLUMNS);
+		Object key = rec.get(Index.KEY);
+		iskey = key == Boolean.TRUE;
+		unique = key.equals(Index.UNIQUE);
+		this.record = rec;
+		bt = new Btree(dest);
+		btreeInfo(bt, rec);
+	}
+
 	Destination getDest() {
 		return dest;
 	}

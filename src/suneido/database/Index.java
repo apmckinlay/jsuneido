@@ -48,8 +48,7 @@ public class Index {
 		String fktable = record.getString(FKTABLE);
 		if (!fktable.equals(""))
 			return new ForeignKey(fktable, record.getString(FKCOLUMNS),
-					record
-					.getInt(FKMODE));
+					record.getInt(FKMODE));
 		return null;
 	}
 

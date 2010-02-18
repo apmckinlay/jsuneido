@@ -442,22 +442,24 @@ public class Database {
 	}
 
 	// called by Transaction complete for schema changes
+	// and by DbRebuild
 	void updateTable(Table table, TableData td) {
 		tables = tables.with(table);
-		tabledata = tabledata.with(td.num, td);
+		tabledata = tabledata.with(td.tblnum, td);
 	}
 
 	// called by Transaction complete for schema changes
+	// and by DbRebuild
 	void updateBtreeIndex(BtreeIndex bti) {
 		bti.setDest(bti.getDest().unwrap());
 		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
 	}
 
-	void updateTableData(int num, int nextfield, int d_nrecords,
+	void updateTableData(int tblnum, int nextfield, int d_nrecords,
 			int d_totalsize) {
-		TableData td = tabledata.get(num);
+		TableData td = tabledata.get(tblnum);
 		td = td.with(nextfield, d_nrecords, d_totalsize);
-		tabledata = tabledata.with(num, td);
+		tabledata = tabledata.with(tblnum, td);
 	}
 
 	void addBtreeIndex(String key, BtreeIndex btiNew) {
@@ -537,6 +539,20 @@ public class Database {
 	// used by tests
 	public Table getTable(String tablename) {
 		return tables.get(tablename);
+	}
+
+	void addIndexEntriesForRebuild(int tblnum, Record rec) {
+		Table table = tables.get(tblnum);
+		for (Index index : table.indexes) {
+			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
+			Record key = rec.project(index.colnums, rec.off());
+			if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
+				throw new SuException("duplicate key: " + index.columns + " = "
+						+ key + " in " + table.name);
+		}
+		TableData td = tabledata.get(tblnum);
+		td = td.with(td.nextfield, 1, rec.bufSize());
+		tabledata = tabledata.with(tblnum, td);
 	}
 
 }

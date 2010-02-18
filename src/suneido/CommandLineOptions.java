@@ -5,7 +5,7 @@ package suneido;
 // TODO -port
 public class CommandLineOptions {
 	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD
 	}
 	public Action action = null;
 
@@ -21,6 +21,8 @@ public class CommandLineOptions {
 				action = Action.LOAD;
 			else if (arg.equals("-check"))
 				action = Action.CHECK;
+			else if (arg.equals("-rebuild"))
+				action = Action.REBUILD;
 			else if (arg.equals("-version"))
 				action = Action.VERSION;
 			else

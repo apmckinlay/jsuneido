@@ -3,6 +3,8 @@ package suneido.database;
 import static suneido.database.Database.theDB;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import suneido.database.Database.TN;
 import suneido.language.Pack;
@@ -18,25 +20,38 @@ public class DbCheck {
 	public enum Status {
 		OK, CORRUPTED, UNRECOVERABLE
 	};
+	String filename;
 	Mmfile mmf;
 	long last_good_commit = 0; // offset
 	String details = "";
 
+	protected DbCheck(String filename) {
+		this.filename = filename;
+		mmf = new Mmfile(filename, Mode.OPEN);
+	}
+
 	public static void checkPrintExit(String filename) {
 		DbCheck dbck = new DbCheck(filename);
-		System.out.println("Checking commits and shutdowns...");
-		Status status = dbck.check_commits_and_shutdowns();
-		if (status == Status.OK) {
-			System.out.println("Checking data and indexes...");
-			if (!dbck.check_data_and_indexes())
-				status = Status.CORRUPTED;
-		}
-		System.out.println("database " + status + " " + dbck.details);
+		Status status = dbck.checkPrint();
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	private DbCheck(String filename) {
-		mmf = new Mmfile(filename, Mode.OPEN);
+	protected Status checkPrint() {
+		System.out.println("Checking commits and shutdowns...");
+		Status status = check_commits_and_shutdowns();
+		if (status == Status.OK) {
+			System.out.println("Checking data and indexes...");
+			if (!check_data_and_indexes())
+				status = Status.CORRUPTED;
+		}
+		System.out.println("database " + status + " " + details);
+		Date d = new Date(last_good_commit);
+		if (status != Status.UNRECOVERABLE)
+			System.out.println("Last "
+					+ (status == Status.CORRUPTED ? "good " : "")
+					+ "commit "
+					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d));
+		return status;
 	}
 
 	private Status check_commits_and_shutdowns() {
@@ -55,25 +70,21 @@ public class DbCheck {
 			case Mmfile.DATA:
 				int tblnum = buf.getInt(0);
 				if (tblnum != TN.TABLES && tblnum != TN.INDEXES) {
-					// + 4 to skip tblnum
-					Record r = new Record(buf.slice(4), iter.offset() + 4);
+					Record r = new Record(buf.slice(4));
 					cksum.add(buf.getByteBuffer(), r.bufSize() + 4);
+					// + 4 to skip tblnum
 				}
 				break;
 			case Mmfile.COMMIT:
-				int ncreates = buf.getInt(12);
-				int ndeletes = buf.getInt(16);
-				int pos = 20 + (ncreates + ndeletes) * 4;
-
-				cksum.add(buf.getByteBuffer(), pos);
-
-				int commit_cksum = buf.getInt(pos);
-				if (commit_cksum != (int) cksum.getValue()) {
+				Commit commit = new Commit(buf);
+				cksum.add(buf.getByteBuffer(), commit.sizeWithoutChecksum());
+				if (commit.getChecksum() != (int) cksum.getValue()) {
 					details += "checksum mismatch. ";
 					break loop;
-					}
-				last_good_commit = iter.offset();
+				}
+				last_good_commit = commit.getDate();
 				cksum.reset();
+				process_deletes(commit);
 				break;
 			case Mmfile.SESSION:
 				if (buf.get(0) == Session.SHUTDOWN) {
@@ -108,16 +119,24 @@ public class DbCheck {
 		return Status.OK;
 	}
 
+	protected void process_deletes(Commit commit) {
+		// empty stub, overridden by DbRebuild
+	}
+
 	private final static int BAD_LIMIT = 10;
 
 	private boolean check_data_and_indexes() {
-		Database.open_theDB();
+		Database.theDB = new Database(filename, Mode.OPEN);
 		Transaction t = theDB.readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
 			BtreeIndex.Iter iter = bti.iter(t).next();
+			int i = 0;
 			int nbad = 0;
 			for (; !iter.eof(); iter.next()) {
+				System.out.print(".");
+				if (++i % 80 == 0)
+					System.out.println();
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
 				if (! check_data_and_indexes(t, tablename)) {
@@ -127,12 +146,13 @@ public class DbCheck {
 			}
 			return nbad == 0;
 		} finally {
+			System.out.println();
 			t.complete();
+			Database.theDB.close();
 		}
 	}
 
 	private boolean check_data_and_indexes(Transaction t, String tablename) {
-		int nbad = 0;
 		boolean first_index = true;
 		Table table = t.getTable(tablename);
 		for (Index index : table.indexes) {
@@ -143,28 +163,24 @@ public class DbCheck {
 				Record rec = theDB.input(iter.keyadr());
 				if (first_index)
 					if (!check_record(tablename, rec))
-						if (++nbad > BAD_LIMIT)
-							return false;
-				Record reckey = rec.project(index.colnums, iter.keyadr());
-				if (!key.equals(reckey))
-					if (++nbad > BAD_LIMIT)
 						return false;
-					else
-						details += tablename + ": index mismatch. ";
-
+				Record reckey = rec.project(index.colnums, iter.keyadr());
+				if (!key.equals(reckey)) {
+					details += tablename + ": index mismatch. ";
+					return false;
+				}
 				for (Index index2 : table.indexes) {
 					Record key2 = rec.project(index2.colnums, iter.keyadr());
 					BtreeIndex bti2 = t.getBtreeIndex(index2);
 					Slot slot = bti2.find(t, key2);
-					if (slot == null)
-						if (++nbad > BAD_LIMIT)
-							return false;
-						else
-							details += tablename + ": incomplete index. ";
+					if (slot == null) {
+						details += tablename + ": incomplete index. ";
+						return false;
+					}
 				}
 			}
 		}
-		return nbad == 0;
+		return true;
 	}
 
 	private boolean check_record(String tablename, Record rec) {
@@ -173,6 +189,7 @@ public class DbCheck {
 				Pack.unpack(buf);
 			} catch (Throwable e) {
 				details += tablename + ": " + e + ". ";
+				return false;
 			}
 		return true;
 	}

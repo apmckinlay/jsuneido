@@ -2,6 +2,7 @@ package suneido.database;
 
 import static suneido.SuException.verify;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import suneido.util.ByteBuf;
@@ -34,5 +35,29 @@ public class Session {
 		if (buf.get(0) != Session.SHUTDOWN)
 			return false;
 		return true;
+	}
+
+	private final ByteBuf buf;
+
+	public Session(ByteBuf buf) {
+		this.buf = buf;
+	}
+
+	public long getType() {
+		return buf.get(0);
+	}
+
+	public long getDate() {
+		return buf.getLong(1);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Session ")
+				.append(getType() == STARTUP ? "startup "
+						: getType() == SHUTDOWN ? "shutdown " : "unknown-type ")
+				.append(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(getDate()));
+		return sb.toString();
 	}
 }
