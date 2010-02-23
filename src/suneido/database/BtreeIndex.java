@@ -65,7 +65,7 @@ public class BtreeIndex {
 		columns = bti.columns;
 	}
 
-	static void rebuild(Destination dest, Record rec) {
+	static void rebuildCreate(Destination dest, Record rec) {
 		new BtreeIndex(rec, dest);
 	}
 

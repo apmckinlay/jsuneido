@@ -394,7 +394,7 @@ public class Database {
 		static final int SIZE = 4 + 4 + 4;
 		private final ByteBuffer buf;
 		private int next_table;
-		long indexes;
+		final long indexes;
 
 		// create
 		Dbhdr(long at, long indexes_adr) {
@@ -555,6 +555,7 @@ public class Database {
 			if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
 				throw new SuException("duplicate key: " + index.columns + " = "
 						+ key + " in " + table.name);
+			btreeIndex.update(); // PERF only update if changed
 		}
 		TableData td = tabledata.get(tblnum);
 		td = td.with(td.nextfield, 1, rec.bufSize());
