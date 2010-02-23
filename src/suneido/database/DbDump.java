@@ -22,6 +22,14 @@ public class DbDump {
 		while (iter.hasNext()) {
 			ByteBuf buf = iter.next();
 			System.out.print(iter.offset() + " " + iter.length() + " ");
+			if (iter.offset() == mmf.first()) {
+				int next_table = buf.getInt(0);
+				long indexes = Mmfile.intToOffset(buf.getInt(4));
+				int version = buf.getInt(8);
+				System.out.println("DBHDR next table " + next_table
+						+ ", indexes " + indexes + ", version " + version);
+				continue;
+			}
 			switch (iter.type()) {
 			case Mmfile.DATA:
 				int tblnum = buf.getInt(0);
@@ -63,7 +71,7 @@ public class DbDump {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		System.setOut(new PrintStream("dbdump.txt"));
-		dump("suneido.db");
+		dump("rebuild.db");
 	}
 
 }

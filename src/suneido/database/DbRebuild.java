@@ -20,8 +20,6 @@ public class DbRebuild extends DbCheck {
 	private final Map<Long,Long> tr = new HashMap<Long,Long>();
 	private int max_tblnum = -1;
 	private final Map<Integer,String> tblnames = new HashMap<Integer,String>();
-	private final Map<Integer,Long> deleted_tbls = new HashMap<Integer,Long>();
-	private final Map<Integer,Long> renamed_tbls = new HashMap<Integer,Long>();
 	private final Checksum cksum = new Checksum();
 	// 8 byte overhead (two int's) plus 8 byte alignment
 	// means smallest block is 16 bytes
@@ -230,22 +228,22 @@ public class DbRebuild extends DbCheck {
 		reloadTable(rec.getInt(Column.TBLNUM));
 	}
 
-	private void handleIndexesRecord(Record rec) {
-		newdb.addIndexEntriesForRebuild(TN.INDEXES, rec);
-		BtreeIndex.rebuild(newdb.dest, rec);
-		reloadTable(rec.getInt(Index.TBLNUM));
+	private void handleIndexesRecord(Record indexes_rec) {
+		newdb.addIndexEntriesForRebuild(TN.INDEXES, indexes_rec);
+		BtreeIndex.rebuildCreate(newdb.dest, indexes_rec);
+		reloadTable(indexes_rec.getInt(Index.TBLNUM));
 
 		Transaction tran = newdb.readwriteTran();
-		insertExistingRecords(tran, rec);
+		insertExistingRecords(tran, indexes_rec);
 		tran.complete();
 	}
 
-	void insertExistingRecords(Transaction tran, Record rec) {
-		int tblnum = rec.getInt(Index.TBLNUM);
+	void insertExistingRecords(Transaction tran, Record indexes_rec) {
+		int tblnum = indexes_rec.getInt(Index.TBLNUM);
 		Table table = tran.getTable(tblnum);
 		if (table.indexes.size() == 1)
 			return; // first index
-		String columns = rec.getString(Index.COLUMNS);
+		String columns = indexes_rec.getString(Index.COLUMNS);
 		BtreeIndex btreeIndex = tran.getBtreeIndex(tblnum, columns);
 		ImmutableList<Integer> colnums = table.getIndex(columns).colnums;
 		Index index = table.firstIndex();
