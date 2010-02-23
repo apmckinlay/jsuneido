@@ -31,6 +31,8 @@ public class StringMethods {
 		case 'C':
 			if (method == "Compile")
 				return Compile(s, args);
+			if (method == "Has?")
+				return Contains(s, args);
 			break;
 		case 'D':
 			if (method == "Detab")
@@ -61,6 +63,10 @@ public class StringMethods {
 				return FindLast1of(s, args);
 			if (method == "FindLastnot1of")
 				return FindLastnot1of(s, args);
+			break;
+		case 'H':
+			if (method == "Has?")
+				return Contains(s, args);
 			break;
 		case 'L':
 			if (method == "Lower")
@@ -146,6 +152,11 @@ public class StringMethods {
 	private static Object Compile(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return Compiler.compile("StringCompile", s);
+	}
+
+	private static Object Contains(String s, Object[] args) {
+		args = Args.massage(sFS, args);
+		return s.contains(toStr(args[0]));
 	}
 
 	private static final int TABWIDTH = 4;
@@ -271,9 +282,12 @@ public class StringMethods {
 		return result.group(part);
 	}
 
+	private static final FunctionSpec findFS =
+		new FunctionSpec(array("s", "s"), 0);
+
 	private static int Find(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		int i = s.indexOf(toStr(args[0]));
+		args = Args.massage(findFS, args);
+		int i = s.indexOf(toStr(args[0]), toInt(args[1]));
 		return i == -1 ? s.length() : i;
 	}
 
@@ -409,7 +423,7 @@ public class StringMethods {
 
 	private static String Repeat(String s, Object[] args) {
 		args = Args.massage(repeatFS, args);
-		int n = Math.max(0, Ops.toInt(args[0]));
+		int n = Math.max(0, toInt(args[0]));
 		StringBuilder sb = new StringBuilder(n * s.length());
 		for (int i = 0; i < n; ++i)
 			sb.append(s);
@@ -425,7 +439,7 @@ public class StringMethods {
 		String rep = null;
 		if (Ops.isString(args[1]))
 			rep = args[1].toString();
-		int n = Ops.toInt(args[2]);
+		int n = toInt(args[2]);
 
 		Matcher m = pat.matcher(s);
 		StringBuilder sb = new StringBuilder();
@@ -464,8 +478,8 @@ public class StringMethods {
 	}
 
 	private static boolean StartsWith(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.startsWith(toStr(args[0]));
+		args = Args.massage(findFS, args);
+		return s.startsWith(toStr(args[0]), toInt(args[1]));
 	}
 
 	private static final FunctionSpec substrFS =

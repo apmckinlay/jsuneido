@@ -419,8 +419,8 @@ public class SuContainer extends SuValue
 	@SuppressWarnings("unchecked")
 	public Iterator<Object> iterator(IterWhich iterWhich, IterResult iterResult) {
 		return new Iter(
-				iterWhich != IterWhich.NAMED ? vec.iterator() : nullIter,
-				iterWhich != IterWhich.LIST ? map.entrySet().iterator() : nullIter,
+				iterWhich == IterWhich.NAMED ? nullIter : vec.iterator(),
+				iterWhich == IterWhich.LIST ? nullIter : map.entrySet().iterator(),
 				iterResult);
 	}
 
@@ -457,6 +457,7 @@ public class SuContainer extends SuValue
 		private int vec_i = 0;
 		private final Iterator<Map.Entry<Object, Object>> mapiter;
 		private final IterResult iterResult;
+
 		public Iter(Iterator<Object> veciter,
 				Iterator<Map.Entry<Object, Object>> mapiter, IterResult iterResult) {
 			this.veciter = veciter;
