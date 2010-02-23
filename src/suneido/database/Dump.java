@@ -14,11 +14,27 @@ import suneido.SuException;
 
 public class Dump {
 
-	public static int dumpDatabase(String filename) {
+	public static void dumpDatabasePrint(String db_filename, String output_filename) {
+		int n = dumpDatabase(db_filename, output_filename);
+		System.out.println("dumped " + n + " tables from " + db_filename
+				+ " to " + output_filename);
+	}
+
+	public static int dumpDatabase(String db_filename, String output_filename) {
+		theDB = new Database(db_filename, Mode.READ_ONLY);
 		try {
-			return dumpDatabaseImp(filename);
+			return dumpDatabase(output_filename);
+		} finally {
+			theDB.close();
+			theDB = null;
+		}
+	}
+
+	public static int dumpDatabase(String output_filename) {
+		try {
+			return dumpDatabaseImp(output_filename);
 		} catch (Throwable e) {
-			throw new SuException("dump " + filename + " failed", e);
+			throw new SuException("dump " + output_filename + " failed", e);
 		}
 	}
 
@@ -46,6 +62,11 @@ public class Dump {
 		} finally {
 			fout.close();
 		}
+	}
+
+	public static void dumpTablePrint(String tablename) {
+		int n = dumpTable(tablename);
+		System.out.println("dumped " + n + " records from " + tablename);
 	}
 
 	public static int dumpTable(String tablename) {
@@ -131,7 +152,8 @@ public class Dump {
 		return newrec.dup();
 	}
 
-	private static void writeInt(FileChannel fout, ByteBuffer buf, int n) throws IOException {
+	private static void writeInt(FileChannel fout, ByteBuffer buf, int n)
+			throws IOException {
 		buf.putInt(0, n);
 		buf.rewind();
 		fout.write(buf);
@@ -142,14 +164,9 @@ public class Dump {
 	}
 
 	public static void main(String[] args) {
-		Database.open_theDB();
+		dumpDatabasePrint("suneido.db", "database2.su");
 
-		int n = dumpDatabase("database2.su");
-		System.out.println("dumped " + n + " tables to database2.su");
-
-//		String tablename = "stdlib";
-//		int n = dumpTable(tablename);
-//		System.out.println("dumped " + n + " records from " + tablename);
+//		dumpTablePrint("stdlib");
 	}
 
 }

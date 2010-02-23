@@ -1324,7 +1324,7 @@ public class Ops {
 			try {
 				return ((Iterator<?>) x).next();
 			} catch (ConcurrentModificationException e) {
-				throw new SuException("concurrent modification");
+				throw new SuException("object modified during iteration");
 			}
 		throw new SuException("not an iterator " + typeName(x));
 	}

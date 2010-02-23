@@ -19,6 +19,8 @@ public class Suneido {
 			DbmsServer.main(null);
 			break;
 		case DUMP:
+			// TODO dump single table
+			Dump.dumpDatabasePrint("suneido.db", "database.su");
 			break;
 		case LOAD:
 			Load.main(null);
