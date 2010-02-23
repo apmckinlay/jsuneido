@@ -27,7 +27,7 @@ public class DbCheck {
 
 	protected DbCheck(String filename) {
 		this.filename = filename;
-		mmf = new Mmfile(filename, Mode.OPEN);
+		mmf = new Mmfile(filename, Mode.READ_ONLY);
 	}
 
 	public static void checkPrintExit(String filename) {
@@ -44,13 +44,13 @@ public class DbCheck {
 			if (!check_data_and_indexes())
 				status = Status.CORRUPTED;
 		}
-		System.out.println("database " + status + " " + details);
 		Date d = new Date(last_good_commit);
 		if (status != Status.UNRECOVERABLE)
 			System.out.println("Last "
 					+ (status == Status.CORRUPTED ? "good " : "")
 					+ "commit "
 					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d));
+		System.out.println("Database " + status + " " + details);
 		return status;
 	}
 
@@ -126,7 +126,7 @@ public class DbCheck {
 	private final static int BAD_LIMIT = 10;
 
 	private boolean check_data_and_indexes() {
-		Database.theDB = new Database(filename, Mode.OPEN);
+		Database.theDB = new Database(filename, Mode.READ_ONLY);
 		Transaction t = theDB.readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
@@ -149,6 +149,7 @@ public class DbCheck {
 			System.out.println();
 			t.complete();
 			Database.theDB.close();
+			Database.theDB = null;
 		}
 	}
 

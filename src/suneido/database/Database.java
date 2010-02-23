@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
+	private final Mode mode;
 	public final Destination dest; // used by tests
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
@@ -59,16 +60,19 @@ public class Database {
 	}
 
 	public Database(String filename, Mode mode) {
+		this.mode = mode;
 		dest = new Mmfile(filename, mode);
 		init(mode);
 	}
 
 	public Database(File file, Mode mode) {
+		this.mode = mode;
 		dest = new Mmfile(file, mode);
 		init(mode);
 	}
 
 	public Database(Destination dest, Mode mode) {
+		this.mode = mode;
 		this.dest = dest;
 		init(mode);
 	}
@@ -185,7 +189,8 @@ public class Database {
 
 	private void open() {
 		dbhdr = new Dbhdr();
-		Session.startup(dest);
+		if (mode != Mode.READ_ONLY)
+			Session.startup(dest);
 		dest.sync();
 		getIndexes();
 	}
@@ -286,7 +291,8 @@ public class Database {
 
 	public void close() {
 		trans.shutdown();
-		Session.shutdown(dest);
+		if (mode != Mode.READ_ONLY)
+			Session.shutdown(dest);
 		dest.close();
 	}
 
