@@ -4,8 +4,10 @@ import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
+import suneido.SuException;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
@@ -44,17 +46,15 @@ public class DbRebuild extends DbCheck {
 		}
 	}
 
-	// TODO open source database read-only
-
 	void rebuild() {
 		System.out.println("Rebuilding...");
 		File tmpfile;
-tmpfile = new File("rebuild.db");
-//		try {
-//			tmpfile = File.createTempFile("sudb", null, new File("."));
-//		} catch (IOException e) {
-//			throw new SuException("rebuild failed", e);
-//		}
+//tmpfile = new File("rebuild.db");
+		try {
+			tmpfile = File.createTempFile("sudb", null, new File("."));
+		} catch (IOException e) {
+			throw new SuException("rebuild failed", e);
+		}
 		try {
 			newdb = new Database(tmpfile, Mode.CREATE);
 			copy();
@@ -72,7 +72,7 @@ tmpfile = new File("rebuild.db");
 				newdb.close();
 				newdb = null;
 			}
-//			tmpfile.delete();
+			tmpfile.delete();
 		}
 	}
 

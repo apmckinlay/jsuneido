@@ -31,6 +31,7 @@ import suneido.util.ByteBuf;
  */
 @ThreadSafe
 public class Mmfile extends Destination implements Iterable<ByteBuf> {
+	private final Mode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
 	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
@@ -72,6 +73,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	}
 
 	public Mmfile(File file, Mode mode) {
+		this.mode = mode;
 		switch (mode) {
 		case CREATE :
 			if (file.exists())
@@ -81,20 +83,26 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 			if (!file.canRead() || !file.canWrite())
 				throw new SuException("can't open " + file);
 			break;
+		case READ_ONLY:
+			if (!file.canRead())
+				throw new SuException("can't open " + file + " read-only");
+			break;
 		}
 		try {
-			fin = new RandomAccessFile(file, "rw");
+			fin = new RandomAccessFile(file, mode == Mode.READ_ONLY ? "r" : "rw");
 		} catch (FileNotFoundException e) {
 			throw new SuException("can't open or create " + file);
 		}
 		fc = fin.getChannel();
-		try {
-			FileLock lock = fc.tryLock();
-			if (lock == null)
-				throw new SuException("can't open " + file);
-			lock.release();
-		} catch (IOException e1) {
-			throw new SuException("io exception locking " + file);
+		if (mode != Mode.READ_ONLY) {
+			try {
+				FileLock lock = fc.tryLock();
+				if (lock == null)
+					throw new SuException("can't open " + file);
+				lock.release();
+			} catch (IOException e1) {
+				throw new SuException("io exception locking " + file);
+			}
 		}
 		try {
 			file_size = fc.size();
@@ -240,8 +248,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		verify(fm[chunk] == null);
 		for (int tries = 0;; ++tries) {
 			try {
-				fm[chunk] = fc.map(FileChannel.MapMode.READ_WRITE, (long) chunk
-						* chunk_size, chunk_size);
+				fm[chunk] = fc.map(
+						mode == Mode.READ_ONLY ? FileChannel.MapMode.READ_ONLY
+								: FileChannel.MapMode.READ_WRITE,
+						(long) chunk * chunk_size, chunk_size);
 				fm[chunk].order(ByteOrder.BIG_ENDIAN);
 				return;
 			} catch (IOException e) {

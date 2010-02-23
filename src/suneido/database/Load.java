@@ -51,7 +51,7 @@ public class Load {
 		} finally {
 			Database.theDB.close();
 		}
-		File bak = new File("suneido.bak");
+		File bak = new File("suneido.db.bak");
 		if (bak.exists())
 			verify(bak.delete());
 		File sdb = new File("suneido.db");
