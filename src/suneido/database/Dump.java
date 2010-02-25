@@ -165,6 +165,7 @@ public class Dump {
 
 	public static void main(String[] args) {
 		dumpDatabasePrint("suneido.db", "database2.su");
+//		dumpDatabasePrint("rebuild.db", "database3.su");
 
 //		dumpTablePrint("stdlib");
 	}

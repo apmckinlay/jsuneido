@@ -55,7 +55,9 @@ public class DbRebuild extends DbCheck {
 		}
 		try {
 			newdb = new Database(tmpfile, Mode.CREATE);
+			tblnames.put(4, "views");
 			copy();
+			newdb.setNextTableNum(max_tblnum + 1);
 			mmf.close();
 			newdb.close();
 			newdb = null;
@@ -138,19 +140,12 @@ public class DbRebuild extends DbCheck {
 	}
 
 	private void handleCommitEntries(Commit commit) {
-		if (isTableRename(commit)) {
-			long oldoff = commit.getDelete(0);
-			long newoff = tr.get(oldoff - 4) + 4;
-			ByteBuf buf = newdb.adr(newoff - 4);
-			int tblnum = buf.getInt(0);
-			Record rec = new Record(buf.slice(4), newoff);
-			newdb.removeIndexEntriesForRebuild(tblnum, rec);
-		}
+		Record recFrom = handleTableRename(commit);
 		for (int i = 0; i < commit.getNCreates(); ++i) {
 			long oldoff = commit.getCreate(i);
 			long newoff = tr.get(oldoff - 4) + 4;
 			commit.putCreate(i, newoff);
-			addIndexEntries(oldoff, newoff);
+			addIndexEntries(oldoff, newoff, recFrom);
 		}
 		for (int i = 0; i < commit.getNDeletes(); ++i) {
 			long oldoff = commit.getDelete(i);
@@ -159,19 +154,31 @@ public class DbRebuild extends DbCheck {
 		}
 	}
 
+	private Record handleTableRename(Commit commit) {
+		if (! isTableRename(commit))
+			return null;
+		long oldoff = commit.getDelete(0);
+		long newoff = tr.get(oldoff - 4) + 4;
+		ByteBuf buf = newdb.adr(newoff - 4);
+		int tblnum = buf.getInt(0);
+		Record recFrom = new Record(buf.slice(4), newoff);
+		newdb.removeIndexEntriesForRebuild(tblnum, recFrom);
+		return recFrom;
+	}
+
 	private int tblnum(long offset) {
 		ByteBuf buf = mmf.adr(offset - 4);
 		return buf.getInt(0);
 	}
 
-	private void addIndexEntries(long oldoff, long newoff) {
+	private void addIndexEntries(long oldoff, long newoff, Record renamedFrom) {
 		if (isDeleted(oldoff))
 			return;
 		ByteBuf buf = newdb.adr(newoff - 4);
 		int tblnum = buf.getInt(0);
 		Record rec = new Record(buf.slice(4), newoff);
 		if (tblnum <= TN.INDEXES)
-			handleSchemaRecord(tblnum, rec, newoff);
+			handleSchemaRecord(tblnum, rec, newoff, renamedFrom);
 		else {
 			String tablename = tblnames.get(tblnum);
 			if (tablename == null)
@@ -187,14 +194,15 @@ public class DbRebuild extends DbCheck {
 		return deletes.get((int) (oldoff / GRANULARITY));
 	}
 
-	private void handleSchemaRecord(int tblnum, Record rec, long newoff) {
+	private void handleSchemaRecord(int tblnum, Record rec, long newoff,
+			Record renamedFrom) {
 		int tn = rec.getInt(0);
 		if (tn <= TN.INDEXES)
 			return; // handled by Database create
 		newoff += 4;
 		switch (tblnum) {
 		case TN.TABLES:
-			handleTablesRecord(rec);
+			handleTablesRecord(rec, renamedFrom);
 			break;
 		case TN.COLUMNS:
 			handleColumnsRecord(rec);
@@ -207,20 +215,20 @@ public class DbRebuild extends DbCheck {
 		}
 	}
 
-	private void handleTablesRecord(Record rec) {
-		int tn = rec.getInt(Table.TBLNUM);
-		if (tn > max_tblnum)
-			max_tblnum = tn;
+	private void handleTablesRecord(Record rec, Record renamedFrom) {
+		int tblnum = rec.getInt(Table.TBLNUM);
+		if (tblnum > max_tblnum)
+			max_tblnum = tblnum;
+		rec.truncate(Table.NROWS); //NEXTFIELD);
+		if (renamedFrom == null)
+			rec/*.add(0)*/.add(0).add(0); // nextfield = nrows = totalsize = 0
+		else
+			rec.add(renamedFrom.getInt(Table.NROWS))
+					.add(renamedFrom.getInt(Table.TOTALSIZE));
 		String tablename = rec.getString(Table.TABLE);
-		tblnames.put(tn, tablename);
+		tblnames.put(tblnum, tablename);
 		newdb.addIndexEntriesForRebuild(TN.TABLES, rec);
 		reloadTable(rec);
-	}
-
-	private void reloadTable(Record rec) {
-		Transaction tran = newdb.readonlyTran();
-		reloadTable(tran, rec);
-		tran.complete();
 	}
 
 	private void handleColumnsRecord(Record rec) {
@@ -259,6 +267,12 @@ public class DbRebuild extends DbCheck {
 		Transaction tran = newdb.readonlyTran();
 		Record table_rec = newdb.getTableRecord(tran, tblnum);
 		reloadTable(tran, table_rec);
+		tran.complete();
+	}
+
+	private void reloadTable(Record rec) {
+		Transaction tran = newdb.readonlyTran();
+		reloadTable(tran, rec);
 		tran.complete();
 	}
 

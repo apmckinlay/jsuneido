@@ -4,9 +4,13 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.database.Database.TN;
+
 import com.google.common.collect.ImmutableList;
 
 /**
+ * Table schema information.
+ * The mutable data: nextfield, nrows, and totalsize are stored in {@link TableData}
  * @author Andrew McKinlay
  */
 @Immutable
@@ -125,9 +129,22 @@ public class Table {
 	public static Record record(String name, int num, int nextfield,
 			int nrecords) {
 		Record r = new Record();
-		r.add(num).add(name).add(nextfield).add(nrecords).add(100);
+		r.add(num).add(name).add(nextfield).add(nrecords).add(100); //totalsize(num));
 		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
+	}
+
+	private static int totalsize(int num) {
+		switch (num) {
+		case TN.TABLES:
+			return 160;
+		case TN.COLUMNS:
+			return 317;
+		case TN.INDEXES:
+			return 229;
+		default:
+			return 0;
+		}
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package suneido.database;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -88,16 +87,47 @@ public class DatabaseTest extends TestBase {
 	}
 
 	@Test
-	public void duplicate_key() {
+	public void duplicate_key_add() {
 		makeTable(3);
 
 		Transaction t = db.readwriteTran();
 		try {
 			t.addRecord("test", record(1));
+			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("duplicate key: a"));
+		} finally {
+			t.ck_complete();
 		}
-		t.ck_complete();
+
+		t = db.readonlyTran();
+		try {
+			assertEquals(3, t.getTableData(t.getTable("test").num).nrecords);
+		} finally {
+			t.ck_complete();
+		}
+	}
+
+	@Test
+	public void duplicate_key_update() {
+		makeTable(3);
+
+		Transaction t = db.readwriteTran();
+		try {
+			t.updateRecord("test", "a", new Record().add(1), record(2));
+			fail("expected exception");
+		} catch (SuException e) {
+			assertTrue(e.toString().contains("update record: duplicate key: a"));
+		} finally {
+			t.ck_complete();
+		}
+
+		t = db.readonlyTran();
+		try {
+			assertEquals(3, t.getTableData(t.getTable("test").num).nrecords);
+		} finally {
+			t.ck_complete();
+		}
 	}
 
 	@Test
@@ -135,7 +165,7 @@ public class DatabaseTest extends TestBase {
 
 		try {
 			t1.removeRecord("test", "a", key(1));
-			assertTrue(false);
+			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
@@ -145,7 +175,7 @@ public class DatabaseTest extends TestBase {
 	private void shouldBlock(Transaction t1, Record rec) {
 		try {
 			t1.addRecord("test2", rec);
-			assertTrue(false);
+			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
@@ -157,7 +187,7 @@ public class DatabaseTest extends TestBase {
 
 		try {
 			db.addIndex("test", "b", false, false, false, "foo", "", Index.BLOCK);
-			assertTrue(false);
+			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
@@ -183,7 +213,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			db.addIndex("test2", "f2", false, false, false, "test", "a",
 					Index.BLOCK);
-			assertTrue(false);
+			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
