@@ -3,20 +3,20 @@ package suneido.database;
 import static suneido.SuException.verify;
 
 /**
- * Contains the changing data for a table: nextfield, nrecords, totalsize.
+ * Contains the mutable data for a table: nextfield, nrecords, totalsize.
  * tables and indexes records are the only records that are updated "in place"
  * rather than new versions being added to the end of the database file.
  * Almost immutable but update will change record.
+ * The schema information is in {@link Table}
  *
  * @author Andrew McKinlay
  */
 public class TableData {
-
 	public final Record record;
 	public final int tblnum;
 	public final int nextfield;
 	public final int nrecords;
-	public final int totalsize;
+	public final int totalsize; // TODO should be long
 
 	public TableData(Record record) {
 		this.record = record;
@@ -55,11 +55,6 @@ public class TableData {
 	public TableData without(int recSize) {
 		return new TableData(record, tblnum, nextfield, nrecords - 1,
 				totalsize - recSize);
-	}
-
-	public TableData withReplace(int oldSize, int newSize) {
-		return new TableData(record, tblnum, nextfield, nrecords,
-				totalsize + newSize - oldSize);
 	}
 
 	public TableData withField() {

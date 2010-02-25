@@ -25,6 +25,19 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 	}
 
 	@Test
+	public void test_empty_table() {
+		db = new Database(filename, Mode.CREATE);
+		try {
+			makeTable("mytable", 0);
+		} finally {
+			closeDb();
+		}
+		dbrebuild();
+		dbcheck();
+		checkTable(0);
+	}
+
+	@Test
 	public void test_simple() {
 		db = new Database(filename, Mode.CREATE);
 		try {
@@ -99,7 +112,27 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 		checkTable(8);
 	}
 
-	// TODO test that table nrecords and totalsize don't change
+	@Test
+	public void test_views() {
+		db = new Database(filename, Mode.CREATE);
+		try {
+			db.add_view("myview", "indexes");
+		} finally {
+			closeDb();
+		}
+		dbrebuild();
+		dbcheck();
+		db = new Database(filename, Mode.OPEN);
+		try {
+			Transaction t = db.readonlyTran();
+			assertEquals("indexes", Database.getView(t, "myview"));
+		} finally {
+			db.close();
+			db = null;
+		}
+	}
+
+	// TODO test that table nextfield and totalsize don't change
 
 	private void dbrebuild() {
 		DbRebuild dbr = new DbRebuild(filename);

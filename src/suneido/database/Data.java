@@ -124,6 +124,7 @@ class Data {
 		}
 
 		remove_index_entries(tran, table, oldrec);
+		tran.updateTableData(tran.getTableData(table.num).without(oldrec.bufSize()));
 
 		tran.delete_act(table.num, oldoff);
 
@@ -149,8 +150,7 @@ class Data {
 			}
 		}
 		tran.create_act(table.num, newoff);
-		tran.updateTableData(tran.getTableData(table.num)
-				.withReplace(oldrec.bufSize(), newrec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).with(newrec.bufSize()));
 
 		Triggers.call(tran, table, oldrec, newrec);
 		return newoff;

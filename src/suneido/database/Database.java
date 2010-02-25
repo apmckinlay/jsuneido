@@ -422,10 +422,19 @@ public class Database {
 			return next_table - 1;
 		}
 
+		public void setNextTableNum(int nextTableNum) {
+			buf.putInt(0, nextTableNum);
+		}
+
 	}
 
 	int getNextTableNum() {
 		return dbhdr.getNextTableNum();
+	}
+
+	// for rebuild
+	void setNextTableNum(int nextTableNum) {
+		dbhdr.setNextTableNum(nextTableNum);
 	}
 
 	public void setLoading(boolean loading) {
@@ -570,7 +579,7 @@ public class Database {
 			verify(btreeIndex.remove(key));
 		}
 		TableData td = tabledata.get(tblnum);
-		td = td.with(td.nextfield, 1, rec.bufSize());
+		td = td.without(rec.bufSize());
 		tabledata = tabledata.with(tblnum, td);
 	}
 

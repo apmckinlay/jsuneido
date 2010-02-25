@@ -31,6 +31,7 @@ public class DbCheck {
 	}
 
 	public static void checkPrintExit(String filename) {
+		System.out.println("Checking " + filename);
 		DbCheck dbck = new DbCheck(filename);
 		Status status = dbck.checkPrint();
 		System.exit(status == Status.OK ? 0 : -1);
@@ -139,7 +140,7 @@ public class DbCheck {
 					System.out.println();
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
-				if (! check_data_and_indexes(t, tablename)) {
+				if (! checkTable(t, tablename)) {
 					if (++nbad > BAD_LIMIT)
 						break;
 				}
@@ -153,21 +154,24 @@ public class DbCheck {
 		}
 	}
 
-	private boolean check_data_and_indexes(Transaction t, String tablename) {
+	private boolean checkTable(Transaction t, String tablename) {
 		boolean first_index = true;
 		Table table = t.getTable(tablename);
+		TableData td = t.getTableData(table.num);
 		for (Index index : table.indexes) {
+			int nrecords = 0;
+			long totalsize = 0;
 			BtreeIndex bti = t.getBtreeIndex(index);
 			BtreeIndex.Iter iter = bti.iter(t);
 			for (iter.next(); !iter.eof(); iter.next()) {
 				Record key = iter.cur().key;
 				Record rec = theDB.input(iter.keyadr());
 				if (first_index)
-					if (!check_record(tablename, rec))
+					if (!checkRecord(tablename, rec))
 						return false;
 				Record reckey = rec.project(index.colnums, iter.keyadr());
 				if (!key.equals(reckey)) {
-					details += tablename + ": index mismatch. ";
+					details += tablename + ": index key mismatch. ";
 					return false;
 				}
 				for (Index index2 : table.indexes) {
@@ -179,12 +183,24 @@ public class DbCheck {
 						return false;
 					}
 				}
+				++nrecords;
+				totalsize += rec.bufSize();
 			}
+			if (nrecords != td.nrecords) {
+				details += tablename + ": record count mismatch: index "
+						+ nrecords + " != tables " + td.nrecords + ". ";
+				return false;
+			}
+//			if (totalsize != td.totalsize) {
+//				details += tablename + ": table size mismatch: data "
+//						+ totalsize + " != tables " + td.totalsize + ". ";
+//				return false;
+//			}
 		}
 		return true;
 	}
 
-	private boolean check_record(String tablename, Record rec) {
+	private boolean checkRecord(String tablename, Record rec) {
 		for (ByteBuffer buf : rec)
 			try {
 				Pack.unpack(buf);
