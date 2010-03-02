@@ -122,9 +122,9 @@ public class BtreeIndex {
 
 	private static void btreeInfo(Btree bt, Record r) {
 		r.truncate(Index.ROOT);
-		r.addMmoffset(bt.root());
-		r.add(bt.treelevels());
-		r.add(bt.nnodes());
+		r.addInt32(Mmfile.offsetToInt(bt.root()));
+		r.addInt32(bt.treelevels());
+		r.addInt32(bt.nnodes());
 	}
 
 	public Record withColumns(String newColumns) {

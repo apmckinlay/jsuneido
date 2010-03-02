@@ -66,28 +66,7 @@ public class Index {
 		return "Index(" + columns + ")" + (isKey() ? ".key" : "")
 				+ (unique ? ".unique" : "");
 	}
-/*
-	public Record record() {
-		ForeignKey fk = fksrc == null ? ForeignKey.NIL : fksrc;
-		return Index.record(btreeIndex, fk.tablename, fk.columns, fk.mode);
-	}
 
-	public static Record record(BtreeIndex btreeIndex) {
-		return record(btreeIndex, null, null, 0);
-	}
-	public static Record record(BtreeIndex btreeIndex,
-			String fktable, String fkcolumns, int fkmode) {
-		Record r = new Record()
-			.add(btreeIndex.tblnum)
-			.add(btreeIndex.getIndexColumns())
-			.add(btreeIndex.iskey ? Boolean.TRUE :
-					btreeIndex.unique ? UNIQUE : Boolean.FALSE)
-			.add(fktable).add(fkcolumns).add(fkmode);
-		indexInfo(r, btreeIndex);
-		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
-		return r;
-	}
-*/
 	public static String getColumns(Record r) {
 		String columns = r.getString(COLUMNS);
 		if (columns.startsWith("lower:"))

@@ -18,7 +18,7 @@ import suneido.util.ByteBuf;
 @ThreadSafe // all static methods
 public class Pack {
 	// sequence must match Order
-	public static class Tag {
+	public static final class Tag {
 		public static final byte FALSE = 0;
 		public static final byte TRUE = 1;
 		public static final byte MINUS = 2;
@@ -30,6 +30,7 @@ public class Pack {
 		public static final byte FUNCTION = 8;
 		public static final byte CLASS = 9;
 	}
+	public static final int INT32SIZE = 8; // sign + scale + 3 shorts
 
 	public static int packSize(Object x) {
 		Class<?> xType = x.getClass();
@@ -57,23 +58,6 @@ public class Pack {
 	static int packSizeString(String s) {
 		int n = s.length();
 		return n == 0 ? 0 : 1 + n;
-	}
-
-	private static int packSizeBD(BigDecimal n) {
-		n = n.stripTrailingZeros();
-		return packSizeNum(n.unscaledValue().longValue(), -n.scale());
-	}
-
-	private static int packSizeNum(long n, int e) {
-		if (n == 0)
-			return 1;
-		if (n < 0)
-			n = -n;
-		for (; (e % 4) != 0; --e)
-			n *= 10;
-		while (n % 10000 == 0)
-			n /= 10000;
-		return 2 + 2 * packshorts(n);
 	}
 
 	private static int packshorts(long n) {
@@ -149,6 +133,23 @@ public class Pack {
 		}
 	}
 
+	private static int packSizeBD(BigDecimal n) {
+		n = n.stripTrailingZeros();
+		return packSizeNum(n.unscaledValue().longValue(), -n.scale());
+	}
+
+	private static int packSizeNum(long n, int e) {
+		if (n == 0)
+			return 1;
+		if (n < 0)
+			n = -n;
+		for (; (e % 4) != 0; --e)
+			n *= 10;
+		while (n % 10000 == 0)
+			n /= 10000;
+		return 2 + 2 * packshorts(n);
+	}
+
 	private static void packBD(BigDecimal n, ByteBuffer buf) {
 		assert n.precision() <= 15;
 		n = n.stripTrailingZeros();
@@ -169,22 +170,44 @@ public class Pack {
 			e += 4;
 		}
 		e = e / 4 + packshorts(n);
+		buf.put(scale(e, minus));
+		packLongPart(buf, n, minus);
+	}
+
+	private static byte scale(int e, boolean minus) {
 		byte eb = (byte) ((e ^ 0x80) & 0xff);
 		if (minus)
 			eb = (byte) ((~eb) & 0xff);
-		buf.put(eb);
-		packLongPart(buf, n, minus);
+		return eb;
+	}
+
+	public static void packInt32(ByteBuffer buf, int n) {
+		boolean minus = n < 0;
+		if (n < 0)
+			n = -n;
+		buf.put(minus ? Tag.MINUS : Tag.PLUS);
+		buf.put(scale(3, minus));
+		assert n / 100000000 < 10000;
+		buf.putShort(digit(n / 100000000, minus));
+		n %= 100000000;
+		buf.putShort(digit(n / 10000, minus));
+		n %= 10000;
+		buf.putShort(digit(n, minus));
 	}
 
 	private static void packLongPart(ByteBuffer buf, long n, boolean minus) {
 		short sh[] = new short[5];
 		int i;
 		for (i = 0; n != 0; ++i) {
-			sh[i] = (short) (minus ? (~(n % 10000) & 0xffff) : (n % 10000));
+			sh[i] = digit(n % 10000, minus);
 			n /= 10000;
 		}
 		while (--i >= 0)
 			buf.putShort(sh[i]);
+	}
+
+	private static short digit(long n, boolean minus) {
+		return (short) (minus ? ~(n & 0xffff) : n);
 	}
 
 	public static int packSize(Object x, int nest) {
@@ -245,8 +268,10 @@ public class Pack {
 		if (minus)
 			s = ((~s) & 0xff);
 		s = (byte) (s ^ 0x80);
+		s = -(s - buf.remaining() / 2) * 4;
 		long n = unpackLongPart(buf, minus);
-		s = -(s - packshorts(n)) * 4;
+		if (n == 0)
+			return 0;
 		if (-10 <= s && s < 0)
 			for (; s < 0; ++s)
 				n *= 10;

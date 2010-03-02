@@ -243,4 +243,19 @@ public class RecordTest {
 		rec.addMax();
 	}
 
+	@Test
+	public void int32() {
+		t(0);
+		t(1234);
+		t(12345678);
+		t(123456789);
+	}
+
+	private void t(int n) {
+		Record r = new Record();
+		r.addInt32(n);
+		assertEquals(14, r.packSize());
+		assertEquals(n, r.getInt(0));
+	}
+
 }

@@ -228,6 +228,12 @@ public class Record
 		return this;
 	}
 
+	public Record addInt32(int n) {
+		int pos = alloc(Pack.INT32SIZE);
+		Pack.packInt32(buf.getByteBuffer(pos), n);
+		return this;
+	}
+
 	/** convenience method */
 	public Record addMmoffset(long n) {
 		return add(Mmfile.offsetToInt(n));
