@@ -24,6 +24,7 @@ public class DbRebuild extends DbCheck {
 	// 8 byte overhead (two int's) plus 8 byte alignment
 	// means smallest block is 16 bytes
 	final private int GRANULARITY = 16;
+	private final Map<Integer,Integer> nextfield = new HashMap<Integer,Integer>();
 
 	protected DbRebuild(String filename) {
 		super(filename);
@@ -219,11 +220,13 @@ public class DbRebuild extends DbCheck {
 		int tblnum = rec.getInt(Table.TBLNUM);
 		if (tblnum > max_tblnum)
 			max_tblnum = tblnum;
-		rec.truncate(Table.NROWS); //NEXTFIELD);
+		rec.truncate(Table.NEXTFIELD);
 		if (renamedFrom == null)
-			rec/*.addInt32(0)*/.addInt32(0).addInt32(0); // nextfield = nrows = totalsize = 0
+			rec.addInt32(nextfield.get(tblnum))
+					.addInt32(0).addInt32(0); // nrows = totalsize = 0
 		else
-			rec.addInt32(renamedFrom.getInt(Table.NROWS))
+			rec.addInt32(renamedFrom.getInt(Table.NEXTFIELD))
+					.addInt32(renamedFrom.getInt(Table.NROWS))
 					.addInt32(renamedFrom.getInt(Table.TOTALSIZE));
 		String tablename = rec.getString(Table.TABLE);
 		tblnames.put(tblnum, tablename);
@@ -310,6 +313,12 @@ public class DbRebuild extends DbCheck {
 	private boolean isTableRecord(long offset) {
 		return mmf.type(offset - 4) == Mmfile.DATA
 				&& tblnum(offset) == TN.TABLES;
+	}
+
+	@Override
+	// called by DbCheck
+	protected void nextfield(int tblnum, int n) {
+		nextfield.put(tblnum, n);
 	}
 
 	public static void main(String[] args) {

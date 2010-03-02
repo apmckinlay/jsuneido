@@ -38,6 +38,10 @@ public class Table {
 		return columns.find(name);
 	}
 
+	public int maxColumnNum() {
+		return columns.maxNum();
+	}
+
 	public boolean hasIndexes() {
 		return !indexes.isEmpty();
 	}

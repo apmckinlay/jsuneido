@@ -158,6 +158,7 @@ public class DbCheck {
 		boolean first_index = true;
 		Table table = t.getTable(tablename);
 		TableData td = t.getTableData(table.num);
+		int maxfields = 0;
 		for (Index index : table.indexes) {
 			int nrecords = 0;
 			long totalsize = 0;
@@ -185,6 +186,8 @@ public class DbCheck {
 				}
 				++nrecords;
 				totalsize += rec.packSize();
+				if (rec.size() > maxfields)
+					maxfields = rec.size();
 			}
 			if (nrecords != td.nrecords) {
 				details += tablename + ": record count mismatch: index "
@@ -197,7 +200,22 @@ public class DbCheck {
 				return false;
 			}
 		}
+		if (td.nextfield <= table.maxColumnNum()) {
+			details += tablename + ": nextfield mismatch: nextfield "
+					+ td.nextfield + " <= max column# " + table.maxColumnNum() + ". ";
+			return false;
+		}
+		if (maxfields > td.nextfield) {
+			details += tablename + ": nextfield mismatch: maxfields "
+					+ maxfields + " > nextfield " + td.nextfield + ". ";
+			return false;
+		}
+		nextfield(table.num, Math.max(maxfields, table.maxColumnNum() + 1));
 		return true;
+	}
+
+	// overridden by DbRebuild
+	protected void nextfield(int tblnum, int n) {
 	}
 
 	private boolean checkRecord(String tablename, Record rec) {

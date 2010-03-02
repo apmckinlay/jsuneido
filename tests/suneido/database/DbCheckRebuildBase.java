@@ -32,6 +32,10 @@ public class DbCheckRebuildBase extends TestBaseBase {
 		db = new Database(filename, Mode.OPEN);
 		try {
 			check("mytable", values);
+			Transaction t = db.readonlyTran();
+			TableData td = t.getTableData(t.getTable("mytable").num);
+			assertEquals(2, td.nextfield);
+			t.ck_complete();
 		} finally {
 			db.close();
 			db = null;
