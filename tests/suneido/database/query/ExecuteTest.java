@@ -171,7 +171,7 @@ public class ExecuteTest extends TestBase {
 			"'a'	'abc'	'axon'	'saskatoon'\n" +
 			"'c'	'trical'	'calac'	'calgary'\n" },
 		{ "customer join supplier",
-			"id	name	city	supplier\n" },
+			"supplier	name	city	id\n" },
 		{ "inven leftjoin trans",
 			"item	qty	id	cost	date\n" +
 			"'disk'	5	'a'	100	970101\n" +

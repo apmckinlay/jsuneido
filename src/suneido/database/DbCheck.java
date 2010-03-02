@@ -184,18 +184,18 @@ public class DbCheck {
 					}
 				}
 				++nrecords;
-				totalsize += rec.bufSize();
+				totalsize += rec.packSize();
 			}
 			if (nrecords != td.nrecords) {
 				details += tablename + ": record count mismatch: index "
 						+ nrecords + " != tables " + td.nrecords + ". ";
 				return false;
 			}
-//			if (totalsize != td.totalsize) {
-//				details += tablename + ": table size mismatch: data "
-//						+ totalsize + " != tables " + td.totalsize + ". ";
-//				return false;
-//			}
+			if (totalsize != td.totalsize) {
+				details += tablename + ": table size mismatch: data "
+						+ totalsize + " != tables " + td.totalsize + ". ";
+				return false;
+			}
 		}
 		return true;
 	}

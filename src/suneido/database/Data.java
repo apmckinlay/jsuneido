@@ -69,7 +69,7 @@ class Data {
 			}
 		}
 
-		tran.updateTableData(tran.getTableData(table.num).with(rec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).with(rec.packSize()));
 	}
 
 	// update record ================================================
@@ -124,7 +124,7 @@ class Data {
 		}
 
 		remove_index_entries(tran, table, oldrec);
-		tran.updateTableData(tran.getTableData(table.num).without(oldrec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).without(oldrec.packSize()));
 
 		tran.delete_act(table.num, oldoff);
 
@@ -150,7 +150,7 @@ class Data {
 			}
 		}
 		tran.create_act(table.num, newoff);
-		tran.updateTableData(tran.getTableData(table.num).with(newrec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).with(newrec.packSize()));
 
 		Triggers.call(tran, table, oldrec, newrec);
 		return newoff;
@@ -199,7 +199,7 @@ class Data {
 
 		remove_index_entries(tran, table, rec);
 
-		tran.updateTableData(tran.getTableData(table.num).without(rec.bufSize()));
+		tran.updateTableData(tran.getTableData(table.num).without(rec.packSize()));
 
 		if (!tran.db.loading)
 			Triggers.call(tran, table, rec, null);

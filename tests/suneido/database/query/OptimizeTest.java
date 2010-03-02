@@ -158,7 +158,7 @@ public class OptimizeTest extends TestBase {
 			"(alias^(id) JOIN 1:1 on (id) customer^(id))" },
 
 		{ "customer join supplier",
-			"(customer^(id) JOIN n:n on (name,city) supplier^(city) " +
+			"(supplier^(city) JOIN n:n on (name,city) customer^(id) " +
 				"TEMPINDEX(name,city))" },
 
 		{ "trans join customer join inven",

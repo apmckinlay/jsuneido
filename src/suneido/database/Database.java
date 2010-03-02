@@ -567,7 +567,7 @@ public class Database {
 			btreeIndex.update(); // PERF only update if changed
 		}
 		TableData td = tabledata.get(tblnum);
-		td = td.with(td.nextfield, 1, rec.bufSize());
+		td = td.with(td.nextfield, 1, rec.packSize());
 		tabledata = tabledata.with(tblnum, td);
 	}
 
@@ -579,7 +579,7 @@ public class Database {
 			verify(btreeIndex.remove(key));
 		}
 		TableData td = tabledata.get(tblnum);
-		td = td.without(rec.bufSize());
+		td = td.without(rec.packSize());
 		tabledata = tabledata.with(tblnum, td);
 	}
 
