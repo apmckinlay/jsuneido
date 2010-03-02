@@ -132,8 +132,6 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 		}
 	}
 
-	// TODO test that table nextfield and totalsize don't change
-
 	private void dbrebuild() {
 		DbRebuild dbr = new DbRebuild(filename);
 		Status status = dbr.checkPrint();

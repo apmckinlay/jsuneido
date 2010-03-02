@@ -68,6 +68,14 @@ public class Columns implements Iterable<Column> {
 		return columns.iterator();
 	}
 
+	public int maxNum() {
+		int maxNum = -1;
+		for (Column c : columns)
+			if (c.num > maxNum)
+				maxNum = c.num;
+		return maxNum;
+	}
+
 	@Override
 	public String toString() {
 		return "Columns " + Iterables.toString(this);
