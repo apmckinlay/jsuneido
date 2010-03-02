@@ -129,19 +129,19 @@ public class Table {
 	public static Record record(String name, int num, int nextfield,
 			int nrecords) {
 		Record r = new Record();
-		r.add(num).add(name).add(nextfield).add(nrecords).add(100); //totalsize(num));
-		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		r.add(num).add(name).addInt32(nextfield).addInt32(nrecords).addInt32(totalsize(num));
+//		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
 	}
 
 	private static int totalsize(int num) {
 		switch (num) {
 		case TN.TABLES:
-			return 160;
+			return 137;
 		case TN.COLUMNS:
-			return 317;
+			return 390;
 		case TN.INDEXES:
-			return 229;
+			return 281;
 		default:
 			return 0;
 		}
