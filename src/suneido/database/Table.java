@@ -126,11 +126,15 @@ public class Table {
 		return sb.toString();
 	}
 
-	public static Record record(String name, int num, int nextfield,
-			int nrecords) {
+	public static Record record(String name, int num,
+			int nextfield, int nrecords) {
+		return record(name, num, nextfield, nrecords, totalsize(num));
+	}
+
+	public static Record record(String name, int num,
+			int nextfield, int nrecords, int totalsize) {
 		Record r = new Record();
-		r.add(num).add(name).addInt32(nextfield).addInt32(nrecords).addInt32(totalsize(num));
-//		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+		r.add(num).add(name).addInt32(nextfield).addInt32(nrecords).addInt32(totalsize);
 		return r;
 	}
 

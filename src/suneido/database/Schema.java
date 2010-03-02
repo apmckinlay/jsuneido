@@ -104,7 +104,7 @@ class Schema {
 			Table table = tran.ck_getTable(oldname);
 			TableData td = tran.getTableData(table.num);
 			Data.update_any_record(tran, "tables", "table", key(table.num),
-					Table.record(newname, table.num, td.nextfield, td.nrecords));
+					Table.record(newname, table.num, td.nextfield, td.nrecords, td.totalsize));
 			tran.updateTable(table.num);
 			tran.ck_complete();
 		} finally {

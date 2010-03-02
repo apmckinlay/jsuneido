@@ -28,4 +28,20 @@ public class DbCheckTest extends DbCheckRebuildBase {
 		checkTable();
 	}
 
+	@Test
+	public void test_rename_table() {
+		db = new Database(filename, Mode.CREATE);
+		try {
+			makeTable("tmp", 4);
+			db.removeTable("tmp"); // so new db has different offsets
+			makeTable("mytable_before", 4);
+			db.renameTable("mytable_before", "mytable");
+			addRecords("mytable", 4, 7);
+		} finally {
+			closeDb();
+		}
+		dbcheck();
+		checkTable(8);
+	}
+
 }

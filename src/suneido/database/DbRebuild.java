@@ -221,10 +221,10 @@ public class DbRebuild extends DbCheck {
 			max_tblnum = tblnum;
 		rec.truncate(Table.NROWS); //NEXTFIELD);
 		if (renamedFrom == null)
-			rec/*.add(0)*/.add(0).add(0); // nextfield = nrows = totalsize = 0
+			rec/*.addInt32(0)*/.addInt32(0).addInt32(0); // nextfield = nrows = totalsize = 0
 		else
-			rec.add(renamedFrom.getInt(Table.NROWS))
-					.add(renamedFrom.getInt(Table.TOTALSIZE));
+			rec.addInt32(renamedFrom.getInt(Table.NROWS))
+					.addInt32(renamedFrom.getInt(Table.TOTALSIZE));
 		String tablename = rec.getString(Table.TABLE);
 		tblnames.put(tblnum, tablename);
 		newdb.addIndexEntriesForRebuild(TN.TABLES, rec);
