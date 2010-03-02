@@ -116,7 +116,6 @@ public class BtreeIndex {
 			.add(iskey ? Boolean.TRUE :	unique ? Index.UNIQUE : Boolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
 		btreeInfo(bt, r);
-//		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
 	}
 
