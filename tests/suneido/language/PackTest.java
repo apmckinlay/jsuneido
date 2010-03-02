@@ -24,7 +24,6 @@ public class PackTest {
 		test(0, BigDecimal.ZERO);
 		test(1);
 		test(1, BigDecimal.ONE);
-		test(-1);
 		test(new BigDecimal("4.94557377049180"));
 		test("");
 		test("abc");
@@ -32,16 +31,33 @@ public class PackTest {
 		test(new SuContainer());
 		test(new SuRecord());
 		test(10000);
-		test(-10000);
 		test(10001);
+		test(1234);
+		test(12345678);
+		test(1234567890);
 	}
 
 	private static void test(Object x) {
 		test(x, x);
+		if (x instanceof Integer) {
+			int n = (Integer) x;
+			test(-n, -n);
+		}
+
 	}
 
 	private static void test(Object expected, Object x) {
 		ByteBuffer buf = pack(x);
+		test2(expected, buf);
+		if (x instanceof Integer) {
+			buf = ByteBuffer.allocate(Pack.INT32SIZE);
+			Pack.packInt32(buf, (Integer) x);
+			test2(expected, buf);
+		}
+
+	}
+
+	private static void test2(Object expected, ByteBuffer buf) {
 		buf.position(0);
 		Object y = unpack(buf);
 		assertTrue("expected <" + expected + "> but was <" + y + ">",

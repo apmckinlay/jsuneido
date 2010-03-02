@@ -74,7 +74,7 @@ public class TableData {
 	private void update() {
 		verify(record.off() != 0);
 		record.truncate(Table.NEXTFIELD);
-		record.add(nextfield).add(nrecords).add(totalsize);
+		record.addInt32(nextfield).addInt32(nrecords).addInt32(totalsize);
 	}
 
 }
