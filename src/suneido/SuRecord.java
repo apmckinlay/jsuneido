@@ -206,6 +206,7 @@ public class SuRecord extends SuContainer {
 	public Record toDbRecord(Header hdr) {
 		List<String> fldsyms = hdr.output_fldsyms();
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
+		// PERF don't add trailing empty fields
 
 		Record rec = new Record();
 		StringBuilder sb = new StringBuilder();

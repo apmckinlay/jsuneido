@@ -345,19 +345,21 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (ndeletes == 0 && ncreates == 0)
 			return;
 		final int n = 8 + 4 + 4 + 4 + 4 * (ncreates + ndeletes) + 4;
-		ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT)).getByteBuffer();
-		buf.putLong(new Date().getTime());
-		buf.putInt(num);
-		buf.putInt(ncreates);
-		buf.putInt(ndeletes);
-		for (TranWrite tw : writes)
-			if (tw.type == TranWrite.Type.CREATE)
-				buf.putInt(Mmfile.offsetToInt(tw.off));
-		for (TranWrite tw : writes)
-			if (tw.type == TranWrite.Type.DELETE)
-				buf.putInt(Mmfile.offsetToInt(tw.off));
-		db.writeCommit(buf);
-		verify(buf.position() == n);
+		synchronized(db) {
+			ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT)).getByteBuffer();
+			buf.putLong(new Date().getTime());
+			buf.putInt(num);
+			buf.putInt(ncreates);
+			buf.putInt(ndeletes);
+			for (TranWrite tw : writes)
+				if (tw.type == TranWrite.Type.CREATE)
+					buf.putInt(Mmfile.offsetToInt(tw.off));
+			for (TranWrite tw : writes)
+				if (tw.type == TranWrite.Type.DELETE)
+					buf.putInt(Mmfile.offsetToInt(tw.off));
+			db.writeCommit(buf);
+			verify(buf.position() == n);
+		}
 	}
 
 	// end of complete ---------------------------------------------------------
