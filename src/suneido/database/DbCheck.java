@@ -25,7 +25,7 @@ public class DbCheck {
 	long last_good_commit = 0; // offset
 	String details = "";
 
-	protected DbCheck(String filename) {
+	public DbCheck(String filename) {
 		this.filename = filename;
 		mmf = new Mmfile(filename, Mode.READ_ONLY);
 	}
@@ -37,7 +37,7 @@ public class DbCheck {
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	protected Status checkPrint() {
+	public Status checkPrint() {
 		System.out.println("Checking commits and shutdowns...");
 		Status status = check_commits_and_shutdowns();
 		if (status == Status.OK) {

@@ -65,7 +65,9 @@ public class TableData {
 	public TableData with(int nextfield, int d_nrecords, int d_totalsize) {
 		if (nextfield == this.nextfield && d_nrecords == 0 && d_totalsize == 0)
 			return this;
-		TableData td = new TableData(record, tblnum, nextfield, nrecords + d_nrecords,
+		TableData td = new TableData(record, tblnum,
+				Math.max(this.nextfield, nextfield),
+				nrecords + d_nrecords,
 				totalsize + d_totalsize);
 		td.update();
 		return td;
