@@ -32,6 +32,7 @@ public class Globals {
 		builtins.put("Built", new Built());
 		builtins.put("Cat", new Cat());
 		builtins.put("Class?", new ClassQ());
+		builtins.put("Cmdline", new Cmdline());
 		builtins.put("Construct", new Construct());
 		builtins.put("Cursor", new Cursor());
 		builtins.put("Database", new Database());
@@ -42,6 +43,7 @@ public class Globals {
 		builtins.put("Div", new Div());
 		builtins.put("DoWithoutTriggers", new DoWithoutTriggers());
 		builtins.put("Eq", new Eq());
+		builtins.put("Exit", new Exit());
 		builtins.put("File", new FileClass());
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());

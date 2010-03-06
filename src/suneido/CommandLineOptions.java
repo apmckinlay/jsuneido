@@ -1,7 +1,5 @@
 package suneido;
 
-import java.util.Arrays;
-
 public class CommandLineOptions {
 	private static final String DEFAULT_IP = "127.0.0.1";
 	private static final int DEFAULT_PORT = 3147;
@@ -13,6 +11,7 @@ public class CommandLineOptions {
 	public Action action;
 	public String action_arg = null;
 	public int server_port = -1;
+	public String remainder = "";
 
 	public static CommandLineOptions parse(String[] args) {
 		return new CommandLineOptions(args).parse();
@@ -58,23 +57,8 @@ public class CommandLineOptions {
 		}
 		defaults();
 		validate();
+		remainder();
 		return this;
-	}
-
-	private void validate() {
-		if (server_port != -1 && action != Action.SERVER)
-			throw new SuException("port should only be specifed with server, not " + action);
-	}
-
-	private void defaults() {
-		if (action == null)
-			action = Action.SERVER;
-		if (action == Action.SERVER) {
-			if (action_arg == null)
-				action_arg = DEFAULT_IP;
-			if (server_port == -1)
-				server_port = DEFAULT_PORT;
-		}
 	}
 
 	private void setAction(Action action) {
@@ -91,6 +75,32 @@ public class CommandLineOptions {
 		}
 	}
 
+	private void defaults() {
+		if (action == null)
+			action = Action.SERVER;
+		if (action == Action.SERVER) {
+			if (action_arg == null)
+				action_arg = DEFAULT_IP;
+			if (server_port == -1)
+				server_port = DEFAULT_PORT;
+		}
+	}
+
+	private void validate() {
+		if (server_port != -1 && action != Action.SERVER)
+			throw new SuException("port should only be specifed with server, not " + action);
+	}
+
+	private void remainder() {
+		if (arg_i >= args.length)
+			return;
+		StringBuilder sb = new StringBuilder();
+		for (; arg_i < args.length; ++arg_i) {
+			sb.append(" ").append(args[arg_i]);
+		}
+		remainder = sb.substring(1);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -100,9 +110,8 @@ public class CommandLineOptions {
 			sb.append(" ").append(action_arg);
 		if (server_port != -1 && server_port != DEFAULT_PORT)
 			sb.append(" port=" + server_port);
-		if (arg_i < args.length)
-			sb.append(" rest: ")
-					.append(Arrays.toString(Arrays.copyOfRange(args, arg_i, args.length)));
+		if (remainder != "")
+			sb.append(" rest: ").append(remainder);
 		return sb.toString();
 	}
 

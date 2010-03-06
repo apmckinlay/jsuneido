@@ -1,6 +1,5 @@
 package suneido;
 
-import suneido.CommandLineOptions.Action;
 import suneido.database.*;
 import suneido.database.server.DbmsServer;
 
@@ -10,11 +9,11 @@ import suneido.database.server.DbmsServer;
  * Licensed under GPLv2.</small></p>
  */
 public class Suneido {
+	public static CommandLineOptions cmdlineoptions;
+
 	public static void main(String[] args) throws Exception {
-		CommandLineOptions options = new CommandLineOptions(args);
-		if (options.action == null)
-			options.action = Action.SERVER;
-		switch (options.action) {
+		cmdlineoptions = CommandLineOptions.parse(args);
+		switch (cmdlineoptions.action) {
 		case REPL:
 			Repl.main(null);
 			break;

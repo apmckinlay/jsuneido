@@ -56,11 +56,13 @@ public class Repl {
 	}
 
 	public static void setup() {
+		if (Suneido.cmdlineoptions == null)
+			Suneido.cmdlineoptions = CommandLineOptions.parse(new String[0]);
+
 		Database.open_theDB();
 
 		Globals.builtin("Print", new Print());
 
-		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
 		Compiler.eval("Use('etalib')");
 		Compiler.eval("Use('ticketlib')");
@@ -73,6 +75,7 @@ public class Repl {
 		Compiler.eval("Use('polib')");
 		Compiler.eval("Use('configlib')");
 		Compiler.eval("Use('demobookoptions')");
+		Compiler.eval("JInit()");
 	}
 
 	private static void saveTest(String line, Object result)
