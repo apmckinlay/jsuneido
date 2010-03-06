@@ -14,7 +14,7 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void just_rest() {
-		assertEquals("SERVER rest: [foo, bar]",
+		assertEquals("SERVER rest: foo bar",
 				CommandLineOptions.parse(new String[] { "foo", "bar" }).toString());
 	}
 
@@ -28,7 +28,7 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void separator() {
-		assertEquals("SERVER rest: [-foo, -bar]",
+		assertEquals("SERVER rest: -foo -bar",
 				CommandLineOptions.parse(new String[] { "--", "-foo", "-bar" }).toString());
 	}
 
