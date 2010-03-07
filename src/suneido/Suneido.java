@@ -21,17 +21,25 @@ public class Suneido {
 			DbmsServer.main(null);
 			break;
 		case DUMP:
-			// TODO dump single table
-			Dump.dumpDatabasePrint("suneido.db", "database.su");
+			if (cmdlineoptions.action_arg == null)
+				DbDump.dumpDatabasePrint("suneido.db", "database.su");
+			else
+				DbDump.dumpTablePrint(cmdlineoptions.action_arg);
 			break;
 		case LOAD:
-			Load.main(null);
+			if (cmdlineoptions.action_arg == null)
+				DbLoad.loadPrint("database.su");
+			else
+				DbLoad.loadTablePrint(cmdlineoptions.action_arg);
 			break;
 		case CHECK:
 			DbCheck.checkPrintExit("suneido.db");
 			break;
 		case REBUILD:
 			DbRebuild.rebuildOrExit("suneido.db");
+			break;
+		case COMPACT:
+			DbCompact.compact("suneido.db");
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());

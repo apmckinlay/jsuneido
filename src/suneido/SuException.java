@@ -66,4 +66,10 @@ public class SuException extends RuntimeException {
 			throw new SuException("assertion failed - " + msg);
 	}
 
+	public static void verifyEquals(Object expected, Object actual) {
+		if (!expected.equals(actual))
+			throw new SuException("verify failed: expected " + expected
+					+ " got: " + actual);
+	}
+
 }

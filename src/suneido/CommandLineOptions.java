@@ -6,7 +6,7 @@ public class CommandLineOptions {
 	private final String[] args;
 	private int arg_i = 0;
 	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT
 	}
 	public Action action;
 	public String action_arg = null;
@@ -44,12 +44,16 @@ public class CommandLineOptions {
 			} else if (arg.equals("-dump")) {
 				setAction(Action.DUMP);
 				optionalStringValue();
-			} else if (arg.equals("-load"))
+			} else if (arg.equals("-load")) {
 				setAction(Action.LOAD);
+				optionalStringValue();
+			}
 			else if (arg.equals("-check"))
 				setAction(Action.CHECK);
 			else if (arg.equals("-rebuild"))
 				setAction(Action.REBUILD);
+			else if (arg.equals("-compact"))
+				setAction(Action.COMPACT);
 			else if (arg.equals("-version"))
 				setAction(Action.VERSION);
 			else

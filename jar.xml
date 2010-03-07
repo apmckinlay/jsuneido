@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project jSuneido">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/Users/andrew/Dropbox/workspace/jSuneido/jsuneido.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="suneido.Suneido"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="/Users/andrew/Dropbox/workspace/jSuneido/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/WhenBuilt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-3.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-analysis-3.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-util-3.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/google-guava.jar"/>
+        </jar>
+    </target>
+</project>

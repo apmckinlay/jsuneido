@@ -55,7 +55,8 @@ public class DbDump {
 					dump1(fout, t, tablename, true);
 					++n;
 				}
-				return n;
+				dump1(fout, t, "views", true);
+				return ++n;
 			} finally {
 				t.complete();
 			}
@@ -65,6 +66,8 @@ public class DbDump {
 	}
 
 	public static void dumpTablePrint(String tablename) {
+		if (theDB == null)
+			Database.open_theDB();
 		int n = dumpTable(tablename);
 		System.out.println("dumped " + n + " records from " + tablename);
 	}
@@ -78,7 +81,7 @@ public class DbDump {
 	}
 
 	private static int dumpTableImp(String tablename) throws Throwable {
-		FileChannel fout = new FileOutputStream(tablename + "2.su").getChannel();
+		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
 			Transaction t = theDB.readonlyTran();
 			try {
@@ -99,8 +102,7 @@ public class DbDump {
 	private static int dump1(FileChannel fout, Transaction t, String tablename,
 			boolean outputName) throws IOException {
 		writeTableHeader(fout, t, tablename, outputName);
-		int n = writeTableData(fout, t, tablename);
-		return n;
+		return writeTableData(fout, t, tablename);
 	}
 
 	private static void writeTableHeader(FileChannel fout, Transaction t,
@@ -137,11 +139,11 @@ public class DbDump {
 
 	private final static String DELETED = "-";
 
-	private static boolean needToSqueeze(List<String> fields) {
+	static boolean needToSqueeze(List<String> fields) {
 		return fields.indexOf(DELETED) != -1;
 	}
 
-	private static Record squeezeRecord(Record rec, List<String> fields) {
+	static Record squeezeRecord(Record rec, List<String> fields) {
 		Record newrec = new Record(rec.packSize());
 		int i = 0;
 		for (String f : fields) {
@@ -165,9 +167,7 @@ public class DbDump {
 
 	public static void main(String[] args) {
 		dumpDatabasePrint("suneido.db", "database2.su");
-//		dumpDatabasePrint("rebuild.db", "database3.su");
-
-//		dumpTablePrint("stdlib");
+//		dumpTablePrint("test");
 	}
 
 }
