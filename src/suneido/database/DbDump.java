@@ -12,7 +12,7 @@ import java.util.List;
 
 import suneido.SuException;
 
-public class Dump {
+public class DbDump {
 
 	public static void dumpDatabasePrint(String db_filename, String output_filename) {
 		int n = dumpDatabase(db_filename, output_filename);
