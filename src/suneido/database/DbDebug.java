@@ -6,15 +6,15 @@ import java.io.PrintStream;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
-public class DbDump {
+public class DbDebug {
 	Mmfile mmf;
 
-	protected DbDump(String filename) {
+	protected DbDebug(String filename) {
 		mmf = new Mmfile(filename, Mode.OPEN);
 	}
 
 	public static void dump(String filename) {
-		new DbDump(filename).dump();
+		new DbDebug(filename).dump();
 	}
 
 	private void dump() {
