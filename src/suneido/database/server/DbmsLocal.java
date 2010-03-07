@@ -94,9 +94,9 @@ public class DbmsLocal implements Dbms {
 
 	public void dump(String filename) {
 		if (filename.equals(""))
-			Dump.dumpDatabase("database.su");
+			DbDump.dumpDatabase("database.su");
 		else
-			Dump.dumpTable(filename);
+			DbDump.dumpTable(filename);
 	}
 
 	public int finalSize() {
