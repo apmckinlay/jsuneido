@@ -11,7 +11,12 @@ import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 
-public class Load {
+public class DbLoad {
+
+	public static void loadPrint(String filename) {
+		int n = DbLoad.loadDatabase(filename);
+		System.out.println("loaded " + n + " tables into new suneido.db");
+	}
 
 	public static int loadDatabase(String filename) {
 		try {
@@ -59,6 +64,11 @@ public class Load {
 			verify(sdb.renameTo(bak));
 		verify(tmpfile.renameTo(sdb));
 		return n;
+	}
+
+	public static void loadTablePrint(String tablename) {
+		int n = loadTable(tablename);
+		System.out.println("loaded " + n + " records into suneido.db");
 	}
 
 	public static int loadTable(String tablename) {
@@ -177,8 +187,7 @@ public class Load {
 	}
 
 	public static void main(String[] args) throws IOException {
-		int n = Load.loadDatabase("database.su");
-		System.out.println("loaded " + n + " tables into new suneido.db");
+		loadPrint("database.su");
 
 //		int n = Load.loadTable("stdlib");
 //		System.out.println("loaded " + n + " records into stdlib");

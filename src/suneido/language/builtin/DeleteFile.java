@@ -1,5 +1,7 @@
 package suneido.language.builtin;
 
+import static suneido.language.Ops.toStr;
+
 import java.io.File;
 
 import suneido.language.*;
@@ -11,7 +13,7 @@ public class DeleteFile extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(fs, args);
-		return new File(Ops.toStr(args[0])).delete();
+		return new File(toStr(args[0])).delete();
 	}
 
 }

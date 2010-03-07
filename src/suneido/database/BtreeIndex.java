@@ -143,14 +143,15 @@ public class BtreeIndex {
 	public boolean insert(Transaction tran, Slot x) {
 		// if (lower)
 		// lower_key(x.key);
-		if (iskey || (unique && !isEmpty(x.key))) {
-			Record key = x.key;
-			// TODO avoid dup - maybe some kind of slice/view
-			key = key.dup().truncate(key.size() - 1); // strip record address
-			if (find(tran, key) != null)
+		if (iskey || (unique && !isEmpty(x.key)))
+			if (find(tran, stripAddress(x.key)) != null)
 				return false;
-		}
 		return bt.insert(x);
+	}
+
+	static Record stripAddress(Record key) {
+		// PERF avoid dup - maybe some kind of slice/view
+		return key.dup().truncate(key.size() - 1);
 	}
 
 	public boolean remove(Record key) {
@@ -174,7 +175,7 @@ public class BtreeIndex {
 		return cur.key.hasPrefix(key) ? cur : null;
 	}
 
-	private boolean isEmpty(Record key) {
+	static boolean isEmpty(Record key) {
 		int n = key.size() - 1; // - 1 to ignore record address at end
 		if (n <= 0)
 			return true;

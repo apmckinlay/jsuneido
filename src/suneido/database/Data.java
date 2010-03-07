@@ -60,9 +60,9 @@ class Data {
 				for (Index j : table.indexes) {
 					if (j == index)
 						break;
-					key = rec.project(j.colnums, adr);
+					Record k = rec.project(j.colnums, adr);
 					btreeIndex = tran.getBtreeIndex(j);
-					verify(btreeIndex.remove(key));
+					verify(btreeIndex.remove(k));
 				}
 				throw new SuException("duplicate key: " + index.columns + " = "
 						+ key + " in " + table.name);

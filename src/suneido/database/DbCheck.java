@@ -164,8 +164,16 @@ public class DbCheck {
 			long totalsize = 0;
 			BtreeIndex bti = t.getBtreeIndex(index);
 			BtreeIndex.Iter iter = bti.iter(t);
+			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
 				Record key = iter.cur().key;
+				Record strippedKey = BtreeIndex.stripAddress(key);
+				if (bti.iskey || (bti.unique && !BtreeIndex.isEmpty(strippedKey)))
+					if (strippedKey.equals(prevkey)) {
+						details += tablename + ": duplicate in " + index.columns + ". ";
+						return false;
+					}
+				prevkey = strippedKey;
 				Record rec = theDB.input(iter.keyadr());
 				if (first_index)
 					if (!checkRecord(tablename, rec))
@@ -230,16 +238,6 @@ public class DbCheck {
 	}
 
 	public static void main(String[] args) {
-//		Database db = new Database("check.db", Mode.CREATE);
-//		db.addTable("test");
-//		db.addColumn("test", "a");
-//		db.addColumn("test", "b");
-//		db.addIndex("test", "b", true);
-//		Record r = new Record().add(12).add(34);
-//		Transaction t = db.readwriteTran();
-//		t.addRecord("test", r);
-//		t.ck_complete();
-//		db.close();
 		checkPrintExit("suneido.db");
 	}
 

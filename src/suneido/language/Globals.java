@@ -41,6 +41,7 @@ public class Globals {
 		builtins.put("DeleteFile", new DeleteFile());
 		builtins.put("Display", new Display());
 		builtins.put("Div", new Div());
+		builtins.put("Dump", new Dump());
 		builtins.put("DoWithoutTriggers", new DoWithoutTriggers());
 		builtins.put("Eq", new Eq());
 		builtins.put("Exit", new Exit());

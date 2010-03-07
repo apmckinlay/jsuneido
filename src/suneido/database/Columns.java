@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.util.Util.commaSplitter;
+import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 
@@ -62,6 +63,21 @@ public class Columns implements Iterable<Column> {
 		for (Column c : columns)
 			list.add(c.name);
 		return list;
+	}
+
+	public String schemaColumns() {
+		if (columns.isEmpty())
+			return "";
+		List<String> cols = new ArrayList<String>();
+		for (Column c : columns)
+			if (c.num >= 0)
+				cols.add(c.name);
+		// reverse rule order to match cSuneido
+		int i = cols.size();
+		for (Column c : columns)
+			if (c.num < 0)
+				cols.add(i, c.name.substring(0,1).toUpperCase() + c.name.substring(1));
+		return listToCommas(cols);
 	}
 
 	public Iterator<Column> iterator() {

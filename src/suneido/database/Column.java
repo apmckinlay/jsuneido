@@ -11,7 +11,6 @@ import suneido.SuException;
  */
 @Immutable
 public class Column implements Comparable<Column> {
-
 	public final String name;
 	public final int num;
 

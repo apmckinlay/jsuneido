@@ -96,19 +96,7 @@ public class Table {
 		StringBuilder sb = new StringBuilder();
 
 		// fields
-		sb.append("(");
-		for (String col : getColumns())
-			if (!col.equals("-"))
-				sb.append(col).append(",");
-		// for (String f : get_rules(table))
-		// {
-		// gcstring str(f->str()); // copy
-		// char* s = str.str();
-		// *s = toupper(*s);
-		// sb.append(s).append(",");
-		// }
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append(")");
+		sb.append("(").append(columns.schemaColumns()).append(")");
 
 		// indexes
 		for (Index index : indexes) {
