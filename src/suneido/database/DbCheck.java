@@ -17,41 +17,48 @@ import suneido.util.ByteBuf;
  * @author Andrew McKinlay
  */
 public class DbCheck {
-	public enum Status {
-		OK, CORRUPTED, UNRECOVERABLE
-	};
-	String filename;
-	Mmfile mmf;
+	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
+	private final String filename;
+	final Mmfile mmf;
 	long last_good_commit = 0; // offset
 	String details = "";
+	private final boolean print;
 
-	public DbCheck(String filename) {
+	public DbCheck(String filename, boolean print) {
 		this.filename = filename;
+		this.print = print;
 		mmf = new Mmfile(filename, Mode.READ_ONLY);
 	}
 
+	public static Status check(String filename) {
+		return new DbCheck(filename, false).check();
+	}
+
+	public static Status checkPrint(String filename) {
+		return new DbCheck(filename, true).check();
+	}
+
 	public static void checkPrintExit(String filename) {
-		System.out.println("Checking " + filename);
-		DbCheck dbck = new DbCheck(filename);
-		Status status = dbck.checkPrint();
+		Status status = new DbCheck(filename, true).check();
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	public Status checkPrint() {
-		System.out.println("Checking commits and shutdowns...");
+	public Status check() {
+		println("Checking " + filename);
+		println("Checking commits and shutdowns");
 		Status status = check_commits_and_shutdowns();
 		if (status == Status.OK) {
-			System.out.println("Checking data and indexes...");
+			println("Checking data and indexes");
 			if (!check_data_and_indexes())
 				status = Status.CORRUPTED;
 		}
 		Date d = new Date(last_good_commit);
 		if (status != Status.UNRECOVERABLE)
-			System.out.println("Last "
+			println("Last "
 					+ (status == Status.CORRUPTED ? "good " : "")
 					+ "commit "
 					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d));
-		System.out.println(filename + " " + status + " " + details);
+		println(filename + " " + status + " " + details);
 		return status;
 	}
 
@@ -135,9 +142,9 @@ public class DbCheck {
 			int i = 0;
 			int nbad = 0;
 			for (; !iter.eof(); iter.next()) {
-				System.out.print(".");
+				print(".");
 				if (++i % 80 == 0)
-					System.out.println();
+					println();
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
 				if (! checkTable(t, tablename)) {
@@ -147,7 +154,7 @@ public class DbCheck {
 			}
 			return nbad == 0;
 		} finally {
-			System.out.println();
+			println();
 			t.complete();
 			Database.theDB.close();
 			Database.theDB = null;
@@ -235,6 +242,19 @@ public class DbCheck {
 				return false;
 			}
 		return true;
+	}
+
+	void print(String s) {
+		if (print)
+			System.out.print(s);
+	}
+	void println() {
+		if (print)
+			System.out.println();
+	}
+	void println(String s) {
+		if (print)
+			System.out.println(s);
 	}
 
 	public static void main(String[] args) {

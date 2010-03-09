@@ -26,18 +26,22 @@ public class DbRebuild extends DbCheck {
 	final private int GRANULARITY = 16;
 	private final Map<Integer,Integer> nextfield = new HashMap<Integer,Integer>();
 
-	protected DbRebuild(String filename) {
-		super(filename);
+	protected DbRebuild(String filename, boolean print) {
+		super(filename, print);
 		this.filename = filename;
 	}
 
 	public static void rebuildOrExit(String filename) {
-		DbRebuild dbr = new DbRebuild(filename);
-		switch (dbr.checkPrint()) {
+		DbRebuild dbr = new DbRebuild(filename, true);
+		dbr.checkRebuild(filename, dbr);
+	}
+
+	private void checkRebuild(String filename, DbRebuild dbr) {
+		switch (dbr.check()) {
 		case OK:
 		case CORRUPTED:
 			dbr.rebuild();
-			System.out.println("-<:+:>-");
+			println(filename + " rebuilt");
 		case UNRECOVERABLE:
 			System.exit(-1);
 		default:
@@ -46,7 +50,7 @@ public class DbRebuild extends DbCheck {
 	}
 
 	void rebuild() {
-		System.out.println("Rebuilding...");
+		println("Rebuilding " + filename);
 		File tmpfile = tmpfile();
 		try {
 			newdb = new Database(tmpfile, Mode.CREATE);

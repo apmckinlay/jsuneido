@@ -18,7 +18,16 @@ public class Suneido {
 		if (! System.getProperty("java.vm.name").contains("Server VM"))
 			System.out.println("WARNING: Server VM is recommended");
 		cmdlineoptions = CommandLineOptions.parse(args);
-cmdlineoptions.action = Action.TEST;
+cmdlineoptions.action = Action.COMPACT;
+		try {
+			doAction();
+		} catch (Exception e) {
+			System.out.println(cmdlineoptions.action + " FAILED");
+			System.exit(-1);
+		}
+	}
+
+	private static void doAction() throws Exception {
 		switch (cmdlineoptions.action) {
 		case REPL:
 			Repl.main(null);
@@ -45,7 +54,7 @@ cmdlineoptions.action = Action.TEST;
 			DbRebuild.rebuildOrExit("suneido.db");
 			break;
 		case COMPACT:
-			DbCompact.compact("suneido.db");
+			DbCompact.compactPrint("suneido.db");
 			break;
 		case TEST:
 			RunAllTests.run("jsuneido.jar");

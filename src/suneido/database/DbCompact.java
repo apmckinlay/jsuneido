@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.database.DbCheck.Status;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 
@@ -16,15 +17,27 @@ public class DbCompact {
 	private Database oldDB;
 	private Transaction rt;
 
+	public static void compactPrint(String db_filename) {
+		Status status = DbCheck.checkPrint(db_filename);
+		if (status != Status.OK)
+			throw new SuException("Compact FAILED " + db_filename + " " + status);
+		System.out.println("Compacting " + db_filename);
+		int n = new DbCompact(db_filename).compact();
+		System.out.println(db_filename + " compacted " + n + " tables");
+	}
+
 	public static int compact(String db_filename) {
-		return new DbCompact(db_filename).process();
+		Status status = DbCheck.check(db_filename);
+		if (status != Status.OK)
+			throw new SuException("Compact FAILED " + db_filename + " " + status);
+		return new DbCompact(db_filename).compact();
 	}
 
 	private DbCompact(String dbFilename) {
 		this.dbFilename = dbFilename;
 	}
 
-	private int process() {
+	private int compact() {
 		File tmpfile = tmpfile();
 		oldDB = new Database(dbFilename, Mode.READ_ONLY);
 		theDB = new Database(tmpfile, Mode.CREATE);
@@ -139,8 +152,7 @@ public class DbCompact {
 	}
 
 	public static void main(String[] args) {
-		int n = DbCompact.compact("suneido.db");
-		System.out.println("Compacted " + n + " tables");
+		compactPrint("suneido.db");
 	}
 
 }
