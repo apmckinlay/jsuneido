@@ -63,7 +63,7 @@ public class TestConcurrency {
 
 		theDB.close();
 		theDB = null;
-		new DbCheck("concur.db").checkPrint();
+		DbCheck.check("concur.db");
 
 		System.out.println("finished " + nreps + " reps with " + NTHREADS
 				+ " threads in " + readableDuration(t));

@@ -17,9 +17,7 @@ public class DbCheckRebuildBase extends TestBaseBase {
 	}
 
 	protected void dbcheck() {
-		DbCheck dbck = new DbCheck(filename);
-		Status status = dbck.checkPrint();
-		assertEquals(Status.OK, status);
+		assertEquals(Status.OK, DbCheck.check(filename));
 	}
 
 	protected void checkTable() {
