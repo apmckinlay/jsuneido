@@ -50,6 +50,13 @@ class Data {
 					+ " transaction conflict: " + tran.conflict());
 	}
 
+	static long outputRecordForCompact(Transaction tran, Table table, Record rec) {
+		long adr = tran.db.output(table.num, rec);
+		tran.create_act(table.num, adr);
+		tran.updateTableData(tran.getTableData(table.num).with(rec.packSize()));
+		return adr;
+	}
+
 	static void add_index_entries(Transaction tran, Table table, Record rec, long adr) {
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
