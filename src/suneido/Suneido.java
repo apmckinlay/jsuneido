@@ -3,6 +3,8 @@ package suneido;
 import suneido.database.*;
 import suneido.database.server.DbmsServer;
 
+// TODO log errors/warnings
+
 /**
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -12,6 +14,8 @@ public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) throws Exception {
+		if (! System.getProperty("java.vm.name").contains("Server VM"))
+			System.out.println("WARNING: Server VM is recommended");
 		cmdlineoptions = CommandLineOptions.parse(args);
 		switch (cmdlineoptions.action) {
 		case REPL:
@@ -43,6 +47,8 @@ public class Suneido {
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
+			System.out.println("Java " + System.getProperty("java.version")
+					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
 		default:
 			throw SuException.unreachable();
