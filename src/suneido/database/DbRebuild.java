@@ -47,13 +47,7 @@ public class DbRebuild extends DbCheck {
 
 	void rebuild() {
 		System.out.println("Rebuilding...");
-		File tmpfile;
-//tmpfile = new File("rebuild.db");
-		try {
-			tmpfile = File.createTempFile("sudb", null, new File("."));
-		} catch (IOException e) {
-			throw new SuException("rebuild failed", e);
-		}
+		File tmpfile = tmpfile();
 		try {
 			newdb = new Database(tmpfile, Mode.CREATE);
 			tblnames.put(4, "views");
@@ -75,6 +69,16 @@ public class DbRebuild extends DbCheck {
 			}
 			tmpfile.delete();
 		}
+	}
+
+	private File tmpfile() {
+		File tmpfile;
+		try {
+			tmpfile = File.createTempFile("sudb", null, new File("."));
+		} catch (IOException e) {
+			throw new SuException("Can't create temp file", e);
+		}
+		return tmpfile;
 	}
 
 	private boolean copy() {

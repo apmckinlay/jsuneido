@@ -51,7 +51,7 @@ public class DbCheck {
 					+ (status == Status.CORRUPTED ? "good " : "")
 					+ "commit "
 					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d));
-		System.out.println("Database " + status + " " + details);
+		System.out.println(filename + " " + status + " " + details);
 		return status;
 	}
 

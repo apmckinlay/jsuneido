@@ -356,10 +356,21 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return new MmfileIterator();
 	}
 
+	public MmfileIterator iterator(long start) {
+		return new MmfileIterator(start);
+	}
+
 	class MmfileIterator implements Iterator<ByteBuf> {
 		private long offset = -1;
 		private long next_offset = BEGIN_OFFSET;
 		private boolean err = false;
+
+		public MmfileIterator() {
+		}
+
+		public MmfileIterator(long start) {
+			next_offset = start;
+		}
 
 		public boolean hasNext() {
 			return next_offset < file_size;

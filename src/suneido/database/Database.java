@@ -583,4 +583,13 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
+	void addIndexEntriesForCompact(Table table, Index index, Record rec) {
+		BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
+		Record key = rec.project(index.colnums, rec.off());
+		if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
+			throw new SuException("duplicate key: " + index.columns + " = "
+					+ key + " in " + table.name);
+		btreeIndex.update(); // PERF only update if changed
+	}
+
 }
