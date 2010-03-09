@@ -73,6 +73,8 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	}
 
 	public Mmfile(File file, Mode mode) {
+		if (vmIs64Bit())
+			max_chunks_mapped = MAX_CHUNKS;
 		this.mode = mode;
 		switch (mode) {
 		case CREATE :
@@ -118,6 +120,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 			if (err != "")
 				throw new SuException("not a valid database file (" + err + ")");
 		}
+	}
+
+	private boolean vmIs64Bit() {
+		return System.getProperty("java.vm.name").contains("64-Bit");
 	}
 
 	private String checkfile() {
