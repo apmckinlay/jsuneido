@@ -6,7 +6,7 @@ public class CommandLineOptions {
 	private final String[] args;
 	private int arg_i = 0;
 	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST
 	}
 	public Action action;
 	public String action_arg = null;
@@ -31,29 +31,27 @@ public class CommandLineOptions {
 				break;
 			} else if (arg.equals("-repl"))
 				setAction(Action.REPL);
-			else if (arg.equals("-server") || arg.equals("-s")) {
-				setAction(Action.SERVER);
-				optionalStringValue();
-			} else if (arg.equals("-port") || arg.equals("-p")) {
+			else if (arg.equals("-server") || arg.equals("-s"))
+				setActionWithArg(Action.SERVER);
+			else if (arg.equals("-port") || arg.equals("-p")) {
 				try {
 					server_port = Integer.parseInt(args[++arg_i]);
 				} catch (NumberFormatException e) {
 				}
 				if (server_port <= 0 | 65535 < server_port)
 					throw new SuException("invalid port: " + args[arg_i - 1]);
-			} else if (arg.equals("-dump")) {
-				setAction(Action.DUMP);
-				optionalStringValue();
-			} else if (arg.equals("-load")) {
-				setAction(Action.LOAD);
-				optionalStringValue();
-			}
+			} else if (arg.equals("-dump") || arg.equals("-d"))
+				setActionWithArg(Action.DUMP);
+			else if (arg.equals("-load") || arg.equals("-l"))
+				setActionWithArg(Action.LOAD);
 			else if (arg.equals("-check"))
 				setAction(Action.CHECK);
-			else if (arg.equals("-rebuild"))
+			else if (arg.equals("-rebuild") || arg.equals("-r"))
 				setAction(Action.REBUILD);
 			else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);
+			else if (arg.equals("-tests") || arg.equals("-t"))
+				setAction(Action.TEST);
 			else if (arg.equals("-version"))
 				setAction(Action.VERSION);
 			else
@@ -63,6 +61,11 @@ public class CommandLineOptions {
 		validate();
 		remainder();
 		return this;
+	}
+
+	private void setActionWithArg(Action action) {
+		setAction(action);
+		optionalStringValue();
 	}
 
 	private void setAction(Action action) {

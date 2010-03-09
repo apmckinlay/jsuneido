@@ -1,5 +1,6 @@
 package suneido;
 
+import suneido.CommandLineOptions.Action;
 import suneido.database.*;
 import suneido.database.server.DbmsServer;
 
@@ -17,6 +18,7 @@ public class Suneido {
 		if (! System.getProperty("java.vm.name").contains("Server VM"))
 			System.out.println("WARNING: Server VM is recommended");
 		cmdlineoptions = CommandLineOptions.parse(args);
+cmdlineoptions.action = Action.TEST;
 		switch (cmdlineoptions.action) {
 		case REPL:
 			Repl.main(null);
@@ -44,6 +46,9 @@ public class Suneido {
 			break;
 		case COMPACT:
 			DbCompact.compact("suneido.db");
+			break;
+		case TEST:
+			RunAllTests.run("jsuneido.jar");
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
