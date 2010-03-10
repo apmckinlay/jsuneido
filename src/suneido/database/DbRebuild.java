@@ -2,6 +2,8 @@ package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
+import static suneido.Suneido.errlog;
+import static suneido.Suneido.fatal;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,17 +35,15 @@ public class DbRebuild extends DbCheck {
 
 	public static void rebuildOrExit(String filename) {
 		DbRebuild dbr = new DbRebuild(filename, true);
-		dbr.checkRebuild(filename, dbr);
-	}
-
-	private void checkRebuild(String filename, DbRebuild dbr) {
-		switch (dbr.check()) {
+		Status status = dbr.check();
+		switch (status) {
 		case OK:
 		case CORRUPTED:
 			dbr.rebuild();
-			println(filename + " rebuilt");
+			errlog("Rebuilt " + filename + " was " + status + " " + dbr.lastCommit(status));
+			break;
 		case UNRECOVERABLE:
-			System.exit(-1);
+			fatal("Rebuild failed " + filename + " UNRECOVERABLE");
 		default:
 			throw unreachable();
 		}
@@ -66,6 +66,8 @@ public class DbRebuild extends DbCheck {
 			bakfile.delete();
 			dbfile.renameTo(bakfile);
 			tmpfile.renameTo(dbfile);
+
+			println(filename + " rebuilt");
 		} finally {
 			if (newdb != null) {
 				newdb.close();

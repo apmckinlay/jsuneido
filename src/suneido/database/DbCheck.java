@@ -52,19 +52,22 @@ public class DbCheck {
 			if (!check_data_and_indexes())
 				status = Status.CORRUPTED;
 		}
-		Date d = new Date(last_good_commit);
-		if (status != Status.UNRECOVERABLE)
-			println("Last "
-					+ (status == Status.CORRUPTED ? "good " : "")
-					+ "commit "
-					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d));
-		println(filename + " " + status + " " + details);
+		println(filename + " " + status + " " + lastCommit(status));
+		print(details);
 		return status;
+	}
+
+	public String lastCommit(Status status) {
+		Date d = new Date(last_good_commit);
+		return status == Status.UNRECOVERABLE
+			? "Unrecoverable"
+			: "Last " + (status == Status.CORRUPTED ? "good " : "")	+ "commit "
+					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(d);
 	}
 
 	private Status check_commits_and_shutdowns() {
 		if (mmf.first() == 0) {
-			details = "no data";
+			details = "no data\n";
 			return Status.UNRECOVERABLE;
 		}
 		boolean ok = false;
@@ -87,7 +90,7 @@ public class DbCheck {
 				Commit commit = new Commit(buf);
 				cksum.add(buf.getByteBuffer(), commit.sizeWithoutChecksum());
 				if (commit.getChecksum() != (int) cksum.getValue()) {
-					details += "checksum mismatch. ";
+					details += "checksum mismatch\n";
 					break loop;
 				}
 				last_good_commit = commit.getDate();
@@ -104,24 +107,24 @@ public class DbCheck {
 				// ignore
 				break;
 			default:
-				details += "invalid block type. ";
+				details += "invalid block type\n";
 				break loop;
 			}
 		}
 		if (! has_a_shutdown) {
-			details += "no valid shutdowns. ";
+			details += "no valid shutdowns\n";
 			return Status.UNRECOVERABLE;
 		}
 		if (last_good_commit == 0) {
-			details += "no valid commits. ";
+			details += "no valid commits\n";
 			return Status.UNRECOVERABLE;
 		}
 		if (iter.corrupt()) {
-			details += "iteration failed. ";
+			details += "iteration failed\n";
 			return Status.CORRUPTED;
 		}
 		if (!ok) {
-			details += "missing last shutdown. ";
+			details += "missing last shutdown\n";
 			return Status.CORRUPTED;
 		}
 		return Status.OK;
@@ -177,7 +180,7 @@ public class DbCheck {
 				Record strippedKey = BtreeIndex.stripAddress(key);
 				if (bti.iskey || (bti.unique && !BtreeIndex.isEmpty(strippedKey)))
 					if (strippedKey.equals(prevkey)) {
-						details += tablename + ": duplicate in " + index.columns + ". ";
+						details += tablename + ": duplicate in " + index.columns + "\n";
 						return false;
 					}
 				prevkey = strippedKey;
@@ -187,7 +190,7 @@ public class DbCheck {
 						return false;
 				Record reckey = rec.project(index.colnums, iter.keyadr());
 				if (!key.equals(reckey)) {
-					details += tablename + ": index key mismatch. ";
+					details += tablename + ": index key mismatch\n";
 					return false;
 				}
 				for (Index index2 : table.indexes) {
@@ -195,7 +198,7 @@ public class DbCheck {
 					BtreeIndex bti2 = t.getBtreeIndex(index2);
 					Slot slot = bti2.find(t, key2);
 					if (slot == null) {
-						details += tablename + ": incomplete index. ";
+						details += tablename + ": incomplete index\n";
 						return false;
 					}
 				}
@@ -206,23 +209,23 @@ public class DbCheck {
 			}
 			if (nrecords != td.nrecords) {
 				details += tablename + ": record count mismatch: index "
-						+ nrecords + " != tables " + td.nrecords + ". ";
+						+ nrecords + " != tables " + td.nrecords + "\n";
 				return false;
 			}
 			if (totalsize != td.totalsize) {
 				details += tablename + ": table size mismatch: data "
-						+ totalsize + " != tables " + td.totalsize + ". ";
+						+ totalsize + " != tables " + td.totalsize + "\n";
 				return false;
 			}
 		}
 		if (td.nextfield <= table.maxColumnNum()) {
 			details += tablename + ": nextfield mismatch: nextfield "
-					+ td.nextfield + " <= max column# " + table.maxColumnNum() + ". ";
+					+ td.nextfield + " <= max column# " + table.maxColumnNum() + "\n";
 			return false;
 		}
 		if (maxfields > td.nextfield) {
 			details += tablename + ": nextfield mismatch: maxfields "
-					+ maxfields + " > nextfield " + td.nextfield + ". ";
+					+ maxfields + " > nextfield " + td.nextfield + "\n";
 			return false;
 		}
 		nextfield(table.num, Math.max(maxfields, table.maxColumnNum() + 1));
@@ -238,7 +241,7 @@ public class DbCheck {
 			try {
 				Pack.unpack(buf);
 			} catch (Throwable e) {
-				details += tablename + ": " + e + ". ";
+				details += tablename + ": " + e + "\n";
 				return false;
 			}
 		return true;
