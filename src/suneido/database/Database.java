@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.errlog;
 import static suneido.database.Transaction.NULLTRAN;
 
 import java.io.File;
@@ -26,6 +27,7 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
+	private final File file;
 	private final Mode mode;
 	public final Destination dest; // used by tests
 	private Dbhdr dbhdr;
@@ -60,18 +62,18 @@ public class Database {
 	}
 
 	public Database(String filename, Mode mode) {
-		this.mode = mode;
-		dest = new Mmfile(filename, mode);
-		init(mode);
+		this(new File(filename), mode);
 	}
 
 	public Database(File file, Mode mode) {
+		this.file = file;
 		this.mode = mode;
 		dest = new Mmfile(file, mode);
 		init(mode);
 	}
 
 	public Database(Destination dest, Mode mode) {
+		this.file = null;
 		this.mode = mode;
 		this.dest = dest;
 		init(mode);
@@ -79,13 +81,11 @@ public class Database {
 
 	private void init(Mode mode) {
 		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
-			System.out.println("database not shut down properly last time");
-			// mmf.close();
-			// if (0 != fork_rebuild())
-			// fatal("Database not rebuilt, unable to start");
-			// mmf = new Mmfile(filename, mode);
-			// verify(check_shutdown(mmf));
-			}
+			errlog("database not shut down properly last time");
+			if (file == null)
+				throw new SuException("database not shut down properly last time");
+			DbRebuild.rebuildOrExit(file.getPath());
+		}
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;
 			create();

@@ -1,6 +1,10 @@
 package suneido;
 
-import suneido.CommandLineOptions.Action;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import suneido.database.*;
 import suneido.database.server.DbmsServer;
 
@@ -18,12 +22,29 @@ public class Suneido {
 		if (! System.getProperty("java.vm.name").contains("Server VM"))
 			System.out.println("WARNING: Server VM is recommended");
 		cmdlineoptions = CommandLineOptions.parse(args);
-cmdlineoptions.action = Action.COMPACT;
 		try {
 			doAction();
 		} catch (Exception e) {
-			System.out.println(cmdlineoptions.action + " FAILED");
-			System.exit(-1);
+			fatal(cmdlineoptions.action + " FAILED " + e);
+		}
+	}
+
+	public static void fatal(String s) {
+		errlog("FATAL: " + s);
+		System.exit(-1);
+	}
+
+	public static void errlog(String s) {
+		System.out.println(s);
+		try {
+			FileWriter fw = new FileWriter("error.log", true);
+			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+			fw.append(" ");
+			fw.append(s);
+			fw.append("\n");
+			fw.close();
+		} catch (IOException e) {
+			System.out.println("can't write to error.log " + e);
 		}
 	}
 
