@@ -214,10 +214,10 @@ public class CommandTest {
 
 		buf = Command.GET.execute(stringToBuffer("+ Q1"), null, output);
 		assertNull(buf);
-		assertEquals("A9 R45\r\n", bufferToString(output.get(0)));
+		assertEquals("A9 R58\r\n", bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
-		assertEquals("[1,'tables',5,4,181]", rec.toString());
-		assertEquals(45, rec.bufSize());
+		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
+		assertEquals(58, rec.bufSize());
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q1"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
@@ -245,10 +245,10 @@ public class CommandTest {
 				stringToBuffer("tables"),
 				output);
 		assertNull(buf);
-		assertEquals("A9 R45 (table,tablename,nextfield,nrows,totalsize)\r\n",
+		assertEquals("A9 R58 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.get(0)));
 		Record rec = new Record(output.get(1));
-		assertEquals("[1,'tables',5,4,181]", rec.toString());
+		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
 
 		tbuf.rewind();
 		buf = Command.COMMIT.execute(tbuf, null, null);

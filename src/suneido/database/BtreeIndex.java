@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.SuException.verify;
+import static suneido.SuException.verifyEquals;
 import static suneido.database.Index.*;
 
 /**
@@ -115,15 +116,21 @@ public class BtreeIndex {
 			.add(indexColumns)
 			.add(iskey ? Boolean.TRUE :	unique ? Index.UNIQUE : Boolean.FALSE)
 			.add(fktable).add(fkcolumns).add(fkmode);
-		btreeInfo(bt, r);
+		r.add(Mmfile.offsetToInt(bt.root()));
+		r.add(bt.treelevels());
+		r.add(bt.nnodes());
+		r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 		return r;
 	}
 
 	private static void btreeInfo(Btree bt, Record r) {
+		int n = r.packSize();
 		r.truncate(Index.ROOT);
-		r.addInt32(Mmfile.offsetToInt(bt.root()));
-		r.addInt32(bt.treelevels());
-		r.addInt32(bt.nnodes());
+		r.add(Mmfile.offsetToInt(bt.root()));
+		r.add(bt.treelevels());
+		r.add(bt.nnodes());
+		r.alloc(n - r.packSize() - (n < 256 ? 1 : 2));
+		verifyEquals(n, r.packSize());
 	}
 
 	public Record withColumns(String newColumns) {
