@@ -54,7 +54,7 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			DbmsServer.main(null);
+			DbmsServer.run(cmdlineoptions.server_port);
 			break;
 		case DUMP:
 			if (cmdlineoptions.action_arg == null)
@@ -100,7 +100,7 @@ public class Suneido {
 	private static void printHelp() {
 		System.out.println("usage: [options] [--] [arguments]");
 		System.out.println("options:");
-		System.out.println("    -s[erver] [ip]   start the server, default ip is 127.0.0.1");
+		System.out.println("    -s[erver]       start the server (this is the default option)");
 		System.out.println("    -p[ort] #        specify the TCP/IP port to run the server on (default 3147)");
 		System.out.println("    -repl            interactive read-eval-print-loop command line interface");
 		System.out.println("    -d[ump] [table]  dump the database to database.su or <table> to <table>.su");
@@ -112,6 +112,5 @@ public class Suneido {
 		System.out.println("    -v[ersion]       print the version");
 		System.out.println("    -h[elp] or -?    print this message");
 		System.out.println("    --               end the options, useful if arguments start with '-'");
-		System.out.println("If no options are specified the default is -server");
 	}
 }
