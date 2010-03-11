@@ -39,17 +39,13 @@ public class CommandLineOptionsTest {
 	}
 
 	@Test
-	public void ip() {
-		assertEquals("SERVER 192.168.1.123",
-				CommandLineOptions.parse("-s", "192.168.1.123").toString());
-	}
-
-	@Test
 	public void port() {
 		assertEquals("SERVER port=1234",
 				CommandLineOptions.parse("-port", "1234").toString());
 		assertEquals("SERVER port=1234",
 				CommandLineOptions.parse("-p", "1234").toString());
+		assertEquals("SERVER port=1234",
+				CommandLineOptions.parse("-s", "-p", "1234").toString());
 	}
 
 	@Test

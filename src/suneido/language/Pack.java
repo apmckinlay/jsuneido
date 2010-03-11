@@ -30,7 +30,6 @@ public class Pack {
 		public static final byte FUNCTION = 8;
 		public static final byte CLASS = 9;
 	}
-	public static final int INT32SIZE = 8; // sign + scale + 3 shorts
 
 	public static int packSize(Object x) {
 		Class<?> xType = x.getClass();

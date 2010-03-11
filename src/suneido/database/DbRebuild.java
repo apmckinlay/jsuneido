@@ -232,12 +232,12 @@ public class DbRebuild extends DbCheck {
 			max_tblnum = tblnum;
 		rec.truncate(Table.NEXTFIELD);
 		if (renamedFrom == null)
-			rec.addInt32(nextfield.get(tblnum))
-					.addInt32(0).addInt32(0); // nrows = totalsize = 0
+			rec.add(nextfield.get(tblnum))
+					.add(0).add(0); // nrows = totalsize = 0
 		else
-			rec.addInt32(renamedFrom.getInt(Table.NEXTFIELD))
-					.addInt32(renamedFrom.getInt(Table.NROWS))
-					.addInt32(renamedFrom.getInt(Table.TOTALSIZE));
+			rec.add(renamedFrom.getInt(Table.NEXTFIELD))
+					.add(renamedFrom.getInt(Table.NROWS))
+					.add(renamedFrom.getInt(Table.TOTALSIZE));
 		String tablename = rec.getString(Table.TABLE);
 		tblnames.put(tblnum, tablename);
 		newdb.addIndexEntriesForRebuild(TN.TABLES, rec);

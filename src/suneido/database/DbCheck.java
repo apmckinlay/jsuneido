@@ -223,6 +223,8 @@ public class DbCheck {
 					+ td.nextfield + " <= max column# " + table.maxColumnNum() + "\n";
 			return false;
 		}
+		if (tablename.equals("tables") || tablename.equals("indexes"))
+			maxfields -= 1; // allow for the padding
 		if (maxfields > td.nextfield) {
 			details += tablename + ": nextfield mismatch: maxfields "
 					+ maxfields + " > nextfield " + td.nextfield + "\n";

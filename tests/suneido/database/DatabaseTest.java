@@ -8,22 +8,23 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.database.Index.ForeignKey;
+import suneido.util.ByteBuf;
 
 public class DatabaseTest extends TestBase {
 
-//	@Test
-//	public void output_input() {
-//		Record r = new Record().add("hello");
-//		long offset = db.output(1234, r);
-//
-//		reopen();
-//
-//		ByteBuf bb = db.adr(offset - 4);
-//		assertEquals(1234, bb.getInt(0));
-//
-//		Record r2 = db.input(offset);
-//		assertEquals(r, r2);
-//	}
+	@Test
+	public void output_input() {
+		Record r = new Record().add("hello");
+		long offset = db.output(1234, r);
+
+		reopen();
+
+		ByteBuf bb = db.adr(offset - 4);
+		assertEquals(1234, bb.getInt(0));
+
+		Record r2 = db.input(offset);
+		assertEquals(r, r2);
+	}
 
 	@Test
 	public void test() {
@@ -60,6 +61,21 @@ public class DatabaseTest extends TestBase {
 		t.ck_complete();
 
 		assertEquals(0, get("test").size());
+	}
+
+	@Test
+	public void test_tabledata_for_empty_table() {
+		makeTable(0);
+		Transaction t = db.readonlyTran();
+		Table tbl = t.getTable("tables");
+		BtreeIndex bti = t.getBtreeIndex(tbl.num, "tablename");
+		Record key = new Record().add("test");
+		BtreeIndex.Iter iter = bti.iter(t, key).next();
+		Record rec = db.input(iter.keyadr());
+		t.ck_complete();
+		assertEquals("test", rec.getString(Table.TABLE));
+		assertEquals(0, rec.get(Table.NROWS));
+		assertEquals(0, rec.get(Table.TOTALSIZE));
 	}
 
 	@Test

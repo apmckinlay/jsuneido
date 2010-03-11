@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.SuException.verify;
+import static suneido.SuException.verifyEquals;
 
 /**
  * Contains the mutable data for a table: nextfield, nrecords, totalsize.
@@ -75,8 +76,11 @@ public class TableData {
 
 	private void update() {
 		verify(record.off() != 0);
+		int n = record.packSize();
 		record.truncate(Table.NEXTFIELD);
-		record.addInt32(nextfield).addInt32(nrecords).addInt32(totalsize);
+		record.add(nextfield).add(nrecords).add(totalsize);
+		record.alloc(n - record.packSize() - (n < 256 ? 1 : 2));
+		verifyEquals(n, record.packSize());
 	}
 
 }
