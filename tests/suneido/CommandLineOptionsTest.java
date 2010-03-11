@@ -9,57 +9,65 @@ public class CommandLineOptionsTest {
 	@Test
 	public void none() {
 		assertEquals("SERVER",
-				CommandLineOptions.parse(new String[0]).toString());
+				CommandLineOptions.parse().toString());
 	}
 
 	@Test
 	public void just_rest() {
 		assertEquals("SERVER rest: foo bar",
-				CommandLineOptions.parse(new String[] { "foo", "bar" }).toString());
+				CommandLineOptions.parse("foo", "bar").toString());
 	}
 
 	@Test
 	public void just_action() {
 		assertEquals("DUMP",
-				CommandLineOptions.parse(new String[] { "-dump" }).toString());
+				CommandLineOptions.parse("-dump").toString());
 		assertEquals("SERVER",
-				CommandLineOptions.parse(new String[] { "-s" }).toString());
+				CommandLineOptions.parse("-s").toString());
 	}
 
 	@Test
 	public void separator() {
 		assertEquals("SERVER rest: -foo -bar",
-				CommandLineOptions.parse(new String[] { "--", "-foo", "-bar" }).toString());
+				CommandLineOptions.parse("--", "-foo", "-bar").toString());
 	}
 
 	@Test
 	public void action_arg() {
 		assertEquals("DUMP stdlib",
-				CommandLineOptions.parse(new String[] { "-dump", "stdlib" }).toString());
+				CommandLineOptions.parse("-dump", "stdlib").toString());
 	}
 
 	@Test
 	public void ip() {
 		assertEquals("SERVER 192.168.1.123",
-				CommandLineOptions.parse(new String[] { "-s", "192.168.1.123" }).toString());
+				CommandLineOptions.parse("-s", "192.168.1.123").toString());
 	}
 
 	@Test
 	public void port() {
 		assertEquals("SERVER port=1234",
-				CommandLineOptions.parse(new String[] { "-port", "1234" }).toString());
+				CommandLineOptions.parse("-port", "1234").toString());
 		assertEquals("SERVER port=1234",
-				CommandLineOptions.parse(new String[] { "-p", "1234" }).toString());
+				CommandLineOptions.parse("-p", "1234").toString());
 	}
 
-	@Test(expected=SuException.class)
+	@Test
 	public void two_actions() {
-		CommandLineOptions.parse(new String[] { "-dump -load" });
+		assertEquals("ERROR only one action is allowed, cannot have both DUMP and LOAD",
+				CommandLineOptions.parse("-dump", "-load").toString());
 	}
 
-	@Test(expected=SuException.class)
+	@Test
 	public void port_without_server() {
-		CommandLineOptions.parse(new String[] { "-dump -port 123" });
+		assertEquals("ERROR port should only be specifed with server, not DUMP",
+				CommandLineOptions.parse("-dump", "-port",  "123").toString());
+	}
+
+	@Test
+	public void unknown() {
+		assertEquals("ERROR unknown option: -abc",
+				CommandLineOptions.parse("-abc").toString());
 	}
 
 }

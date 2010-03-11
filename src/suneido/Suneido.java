@@ -85,8 +85,33 @@ public class Suneido {
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
+		case ERROR:
+			System.out.println(cmdlineoptions.action_arg);
+			System.out.println();
+			// fall through
+		case HELP:
+			printHelp();
+			break;
 		default:
 			throw SuException.unreachable();
 		}
+	}
+
+	private static void printHelp() {
+		System.out.println("usage: [options] [--] [arguments]");
+		System.out.println("options:");
+		System.out.println("    -s[erver] [ip]   start the server, default ip is 127.0.0.1");
+		System.out.println("    -p[ort] #        specify the TCP/IP port to run the server on (default 3147)");
+		System.out.println("    -repl            interactive read-eval-print-loop command line interface");
+		System.out.println("    -d[ump] [table]  dump the database to database.su or <table> to <table>.su");
+		System.out.println("    -l[oad] [table]  load the database from database.su or <table> from <table>.su");
+		System.out.println("    -check           check the database integrity");
+		System.out.println("    -rebuild         check and rebuild the database, i.e. for crash recovery");
+		System.out.println("    -compact         remove deleted records");
+		System.out.println("    -t[ests[         run the built-in JUnit tests");
+		System.out.println("    -v[ersion]       print the version");
+		System.out.println("    -h[elp] or -?    print this message");
+		System.out.println("    --               end the options, useful if arguments start with '-'");
+		System.out.println("If no options are specified the default is -server");
 	}
 }
