@@ -43,21 +43,10 @@ public class PackTest {
 			int n = (Integer) x;
 			test(-n, -n);
 		}
-
 	}
 
 	private static void test(Object expected, Object x) {
 		ByteBuffer buf = pack(x);
-		test2(expected, buf);
-		if (x instanceof Integer) {
-			buf = ByteBuffer.allocate(Pack.INT32SIZE);
-			Pack.packInt32(buf, (Integer) x);
-			test2(expected, buf);
-		}
-
-	}
-
-	private static void test2(Object expected, ByteBuffer buf) {
 		buf.position(0);
 		Object y = unpack(buf);
 		assertTrue("expected <" + expected + "> but was <" + y + ">",
