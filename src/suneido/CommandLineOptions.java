@@ -1,7 +1,6 @@
 package suneido;
 
 public class CommandLineOptions {
-	private static final String DEFAULT_IP = "127.0.0.1";
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
 	private int arg_i = 0;
@@ -33,7 +32,7 @@ public class CommandLineOptions {
 			} else if (arg.equals("-repl"))
 				setAction(Action.REPL);
 			else if (arg.equals("-server") || arg.equals("-s"))
-				setActionWithArg(Action.SERVER);
+				setAction(Action.SERVER);
 			else if (arg.equals("-port") || arg.equals("-p")) {
 				try {
 					server_port = Integer.parseInt(args[++arg_i]);
@@ -99,12 +98,8 @@ public class CommandLineOptions {
 	private void defaults() {
 		if (action == null)
 			action = Action.SERVER;
-		if (action == Action.SERVER) {
-			if (action_arg == null)
-				action_arg = DEFAULT_IP;
-			if (server_port == -1)
-				server_port = DEFAULT_PORT;
-		}
+		if (action == Action.SERVER && server_port == -1)
+			server_port = DEFAULT_PORT;
 	}
 
 	private void validate() {
@@ -126,8 +121,7 @@ public class CommandLineOptions {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(action);
-		if (action_arg != null &&
-				!(action == Action.SERVER && action_arg == DEFAULT_IP))
+		if (action_arg != null)
 			sb.append(" ").append(action_arg);
 		if (action != Action.ERROR) {
 			if (server_port != -1 && server_port != DEFAULT_PORT)

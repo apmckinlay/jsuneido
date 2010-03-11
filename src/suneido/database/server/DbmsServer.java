@@ -19,10 +19,20 @@ import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
 
 public class DbmsServer {
-	private static final int PORT = 3147;
 	private static final Executor executor = Executors.newCachedThreadPool();
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
+
+	public static void run(int port) {
+		Database.open_theDB();
+		Compiler.eval("JInit()");
+		SocketServer server = new SocketServer(new HandlerFactory());
+		try {
+			server.run(port);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private static class HandlerFactory implements SocketServer.HandlerFactory {
 		@Override
@@ -181,7 +191,7 @@ e.printStackTrace();
 		Compiler.eval("Use('demobookoptions')");
 		SocketServer server = new SocketServer(new HandlerFactory());
 		try {
-			server.run(PORT);
+			server.run(3147);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
