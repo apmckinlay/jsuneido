@@ -58,4 +58,8 @@ public class Shadows {
 		return copy;
 	}
 
+	public int size() {
+		return shadows.size();
+	}
+
 }

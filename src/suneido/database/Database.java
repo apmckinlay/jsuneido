@@ -592,4 +592,8 @@ public class Database {
 		btreeIndex.update(); // PERF only update if changed
 	}
 
+	public List<Integer> tranlist() {
+		return trans.tranlist();
+	}
+
 }
