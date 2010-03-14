@@ -2,8 +2,7 @@ package suneido.database;
 
 import static suneido.SuException.verify;
 
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -27,6 +26,11 @@ public class Transactions {
 	private final PriorityQueue<Transaction> trans = new PriorityQueue<Transaction>();
 	private final PriorityQueue<Transaction> finals = new PriorityQueue<Transaction>();
 	static final long FUTURE = Long.MAX_VALUE;
+	private static final int MINUTES = 60 * 1000;
+	private static final long MAX_WRITE_TRAN_AGE = 2000;//5 * MINUTES; // ms
+	private static final String TOO_OLD = "exceeded max duration ("
+							+ (MAX_WRITE_TRAN_AGE / MINUTES) + " min)";
+	private static final int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
 
 	Transactions(Database db) {
 		this.db = db;
@@ -49,9 +53,23 @@ public class Transactions {
 
 	synchronized public void add(Transaction tran) {
 		trans.add(tran);
+		checkForOldWriteTrans();
+	}
+
+	private void checkForOldWriteTrans() {
+		if (trans.isEmpty())
+			return;
+		long t = new Date().getTime();
+		for (Transaction tran : trans)
+			if (tran.isReadWrite() &&
+					t - tran.start > MAX_WRITE_TRAN_AGE) {
+				tran.abortConflict(TOO_OLD);
+				System.out.println("aborted " + tran + " - " + TOO_OLD);
+			}
 	}
 
 	synchronized public void addFinal(Transaction tran) {
+		assert tran.isReadWrite();
 		finals.add(tran);
 	}
 
@@ -65,19 +83,39 @@ public class Transactions {
 			locks.commit(tran);
 		else
 			locks.remove(tran);
+		checkForStaleTrans();
 		finalization();
+	}
+
+	private void checkForStaleTrans() {
+		if (trans.isEmpty())
+			return;
+		for (Transaction tran : trans) {
+			int newShadowsSinceActivity = tran.shadows.size() - tran.shadowSizeAtLastActivity();
+			if (newShadowsSinceActivity > MAX_SHADOWS_SINCE_ACTIVITY) {
+				tran.abortConflict("inactive too long");
+				System.out.println("aborted " + tran + " - inactive too long");
+			}
+		}
 	}
 
 	/**
 	 * Finalize any update transactions that are obsolete
-	 * i.e. older than the oldest outstanding transaction.
+	 * i.e. older than the oldest outstanding update transaction.
 	 */
 	private void finalization() {
-		long oldest = trans.isEmpty() ? FUTURE : trans.peek().asof();
+		long oldest = oldestReadWriteTran();
 		while (!finals.isEmpty() && finals.peek().asof() < oldest)
 			locks.remove(finals.poll());
 		assert !trans.isEmpty() || finals.isEmpty();
 		assert !trans.isEmpty() || locks.isEmpty();
+	}
+
+	private long oldestReadWriteTran() {
+		for (Transaction t : trans)
+			if (t.isReadWrite())
+				return t.asof();
+		return FUTURE;
 	}
 
 	synchronized public void shutdown() {
@@ -109,6 +147,13 @@ public class Transactions {
 
 	public synchronized Set<Transaction> writes(long offset) {
 		return locks.writes(offset);
+	}
+
+	public synchronized List<Integer> tranlist() {
+		List<Integer> list = new ArrayList<Integer>(trans.size());
+		for (Transaction t : trans)
+			list.add(t.num);
+		return list;
 	}
 
 }

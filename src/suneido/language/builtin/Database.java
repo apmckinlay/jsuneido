@@ -34,8 +34,12 @@ public class Database extends SuValue {
 		if (method == "TempDest")
 			return 0; // not relevant to jSuneido
 		if (method == "Transactions")
-			return new SuContainer(); // TODO Transactions
+			return Transactions(args); // TODO Transactions
 		return super.invoke(self, method, args);
+	}
+
+	private Object Transactions(Object[] args) {
+		return new SuContainer(theDbms.tranlist());
 	}
 
 	public static SuContainer Connections(Object... args) {

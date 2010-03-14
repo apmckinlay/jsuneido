@@ -29,23 +29,25 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private boolean inConflict = false;
 	private boolean outConflict = false;
 	private String conflict = null;
+	final long start = new Date().getTime();
 	private final long asof;
 	public final int num;
 	private long commitTime = Long.MAX_VALUE;
-	String sessionId = "session";
+	String sessionId = "session"; // TODO session id
 	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
 	private final Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
 	public final PersistentMap<String, BtreeIndex> btreeIndexes;
-	private final Map<String, BtreeIndex> btreeIndexUpdates =
+	private final Map<String, BtreeIndex> btreeIndexCopies =
 			new HashMap<String, BtreeIndex>();
 	private List<Table> update_tables = null;
 	private Table remove_table = null;
 	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
-
+	private static final int MAX_WRITES_PER_TRANSACTION = 5000;
 	final Shadows shadows = new Shadows();
+	private int shadowSizeAtLastActivity = 0;
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -166,13 +168,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public BtreeIndex getBtreeIndex(int tblnum, String columns) {
 		notEnded();
 		String key = tblnum + ":" + columns;
-		BtreeIndex bti = btreeIndexUpdates.get(key);
+		BtreeIndex bti = btreeIndexCopies.get(key);
 		if (bti == null) {
 			bti = btreeIndexes.get(key);
 			if (bti == null)
 				return null;
 			bti = new BtreeIndex(bti, new DestTran(this, bti.getDest()));
-			btreeIndexUpdates.put(key, bti);
+			btreeIndexCopies.put(key, bti);
 		}
 		return bti;
 	}
@@ -180,7 +182,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	// used for schema changes
 	public void addBtreeIndex(BtreeIndex bti) {
 		bti.setDest(new DestTran(this, bti.getDest()));
-		btreeIndexUpdates.put(bti.tblnum + ":" + bti.columns, bti);
+		btreeIndexCopies.put(bti.tblnum + ":" + bti.columns, bti);
 	}
 
 	// actions
@@ -190,7 +192,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (isAborted())
 			return;
 		notEnded();
-		writes.add(TranWrite.create(tblnum, adr, trans.clock()));
+		addWrite(TranWrite.create(tblnum, adr, trans.clock()));
 	}
 
 	public void delete_act(int tblnum, long adr) {
@@ -198,7 +200,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (isAborted())
 			return;
 		notEnded();
-		writes.add(TranWrite.delete(tblnum, adr, trans.clock()));
+		addWrite(TranWrite.delete(tblnum, adr, trans.clock()));
+	}
+
+	private void addWrite(TranWrite tw) {
+		writes.add(tw);
+		if (writes.size() > MAX_WRITES_PER_TRANSACTION)
+			abortThrow("too many writes");
 	}
 
 	boolean isAborted() {
@@ -237,9 +245,13 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	void abortThrow(String conflict) {
+		abortConflict(conflict);
+		throw new SuException("transaction " + conflict);
+	}
+
+	void abortConflict(String conflict) {
 		this.conflict = conflict;
 		abort();
-		throw new SuException("transaction " + conflict);
 	}
 
 	// complete ----------------------------------------------------------------
@@ -254,7 +266,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (isAborted())
 			return conflict;
 		notEnded();
-		return writes.isEmpty() && btreeIndexUpdates.isEmpty() ? end() : commit();
+		return readonly ? end() : commit();
 	}
 
 	private String end() {
@@ -281,7 +293,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private void updateBtreeIndexes() {
-		for (Map.Entry<String, BtreeIndex> e : btreeIndexUpdates.entrySet()) {
+		for (Map.Entry<String, BtreeIndex> e : btreeIndexCopies.entrySet()) {
 			String key = e.getKey();
 			BtreeIndex btiNew = e.getValue();
 			BtreeIndex btiOld = btreeIndexes.get(key);
@@ -468,6 +480,15 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	public Record input(long adr) {
 		return db.input(adr);
+	}
+
+	public int shadowSizeAtLastActivity() {
+		return shadowSizeAtLastActivity ;
+	}
+
+	public ByteBuf node(Destination dest, long offset) {
+		shadowSizeAtLastActivity = shadows.size();
+		return shadows.node(dest, offset);
 	}
 
 }

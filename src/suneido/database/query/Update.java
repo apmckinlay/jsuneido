@@ -30,6 +30,8 @@ public class Update extends QueryAction {
 		return sb.substring(0, sb.length() - 2);
 	}
 
+	// TODO use multiple transactions
+
 	@Override
 	public int execute() {
 		Query q = source.transform();
