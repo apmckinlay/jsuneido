@@ -2,6 +2,7 @@
 
 package suneido;
 
+import static suneido.SuException.verifyEquals;
 import static suneido.database.Database.theDB;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.database.*;
+import suneido.database.DbCheck.Status;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
@@ -18,11 +20,11 @@ import suneido.database.server.Timestamp;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {
+	private static final ServerData serverData = new ServerData();
+	private static final int NTHREADS = 4;
 	private static final int SECONDS = 1000;
 	private static final int MINUTES = 60 * SECONDS;
-	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 8;
-	private static final int DURATION = 15 * MINUTES;
+	private static final int DURATION = 20 * SECONDS;//1 * MINUTES;
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;
@@ -63,7 +65,7 @@ public class TestConcurrency {
 
 		theDB.close();
 		theDB = null;
-		DbCheck.check("concur.db");
+		verifyEquals(Status.OK, DbCheck.check("concur.db"));
 
 		System.out.println("finished " + nreps + " reps with " + NTHREADS
 				+ " threads in " + readableDuration(t));
@@ -241,7 +243,6 @@ public class TestConcurrency {
 		}
 		@Override
 		public String toString() {
-			CheckIndexes.checkIndexes(tablename);
 			return "BigTable " + tablename
 					+ " " + nranges.get() + "r + " + nlookups.get() + " + "
 					+ nappends.get() + "-" + nappendsfailed.get() + "a "
