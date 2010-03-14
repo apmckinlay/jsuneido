@@ -50,10 +50,10 @@ class Data {
 					+ " transaction conflict: " + tran.conflict());
 	}
 
-	static long outputRecordForCompact(Transaction tran, Table table, Record rec) {
-		long adr = tran.db.output(table.num, rec);
-		tran.create_act(table.num, adr);
-		tran.updateTableData(tran.getTableData(table.num).with(rec.packSize()));
+	static long outputRecordForCompact(Transaction tran, int tblnum, Record rec) {
+		long adr = tran.db.output(tblnum, rec);
+		tran.create_act(tblnum, adr);
+		tran.updateTableData(tran.getTableData(tblnum).with(rec.packSize()));
 		return adr;
 	}
 

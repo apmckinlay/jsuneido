@@ -118,11 +118,12 @@ public class DbCompact {
 		long first = 0;
 		long last = 0;
 		Transaction wt = theDB.readwriteTran();
+		int tblnum = wt.ck_getTable(tablename).num;
 		for (; !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			if (squeeze)
 				r = DbDump.squeezeRecord(r, fields);
-			last = Data.outputRecordForCompact(wt, table, r);
+			last = Data.outputRecordForCompact(wt, tblnum, r);
 			if (first == 0)
 				first = last;
 			if (++i % 100 == 0) {
@@ -131,11 +132,12 @@ public class DbCompact {
 			}
 		}
 		if (first != 0)
-			createIndexes(wt, table, first - 4, last - 4);
+			createIndexes(wt, tblnum, first - 4, last - 4);
 		wt.ck_complete();
 	}
 
-	private void createIndexes(Transaction wt, Table table, long first, long last) {
+	private void createIndexes(Transaction wt, int tblnum, long first, long last) {
+		Table table = wt.ck_getTable(tblnum);
 		Mmfile mmf = (Mmfile) wt.db.dest;
 		for (Index index : table.indexes) {
 			Mmfile.MmfileIterator iter = mmf.iterator(first);
