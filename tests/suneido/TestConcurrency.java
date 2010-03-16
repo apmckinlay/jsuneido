@@ -24,7 +24,7 @@ public class TestConcurrency {
 	private static final int NTHREADS = 10;
 	private static final int SECONDS = 1000;
 	private static final int MINUTES = 60 * SECONDS;
-	private static final int DURATION = 5 * MINUTES;//20 * SECONDS;//
+	private static final int DURATION = 1 * MINUTES;//20 * SECONDS;//
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;
@@ -99,14 +99,6 @@ public class TestConcurrency {
 
 	synchronized static int random(int n) {
 		return rand.nextInt(n);
-	}
-
-	public static void sleep(int nanos) {
-		try {
-			Thread.sleep(0, nanos);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static void assert2(boolean condition) {
@@ -371,7 +363,7 @@ public class TestConcurrency {
 		@Override
 		public String toString() {
 			return "NextNum " + tablename + (nreps.get() == 0 ? "" : " "
-					+ (nfailed.get() * 100 / nreps.get()) + "% failed "
+					+ (nfailed.get() * 100 / nreps.get()) + "% conflicted "
 					+ "(" + nfailed + " / " + nreps + ")");
 
 		}

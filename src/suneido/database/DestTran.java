@@ -22,14 +22,14 @@ public class DestTran extends Destination {
 	public ByteBuf node(long offset) {
 		if (tran.isReadWrite())
 			tran.readLock(offset);
-		return tran.shadows.node(dest, offset);
+		return tran.node(dest, offset);
 	}
 
 	@Override
 	public ByteBuf nodeForWrite(long offset) {
 		verify(tran.isReadWrite());
 		tran.writeLock(offset);
-		ByteBuf buf = tran.shadows.nodeForWrite(dest, offset);
+		ByteBuf buf = tran.nodeForWrite(dest, offset);
 		if (buf == null)
 			tran.abortThrow("write-write conflict with completed transaction");
 		return buf;
