@@ -7,6 +7,16 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.util.ByteBuf;
 import suneido.util.LruCache;
 
+/**
+ * Manages shadowing of {@link Btree} nodes.
+ * Each {@link Transaction} has its own Shadows,
+ * although the actual shadow data can be shared between transactions.
+ * When a transaction commits and updates the database,
+ * it gives other outstanding transactions shadow copies
+ * of the old version of the Btree nodes.
+ * Must be threadsafe since other transactions add shadows.
+ * @author Andrew McKinlay
+ */
 @ThreadSafe
 public class Shadows {
 	private final Map<Long, ByteBuf> shadows = new HashMap<Long, ByteBuf>();
@@ -58,7 +68,7 @@ public class Shadows {
 		return copy;
 	}
 
-	public int size() {
+	public synchronized int size() {
 		return shadows.size();
 	}
 
