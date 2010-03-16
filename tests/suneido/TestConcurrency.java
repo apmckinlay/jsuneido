@@ -21,15 +21,17 @@ import suneido.util.ByteBuf;
 
 public class TestConcurrency {
 	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 4;
+	private static final int NTHREADS = 10;
 	private static final int SECONDS = 1000;
 	private static final int MINUTES = 60 * SECONDS;
-	private static final int DURATION = 20 * SECONDS;//1 * MINUTES;
+	private static final int DURATION = 5 * MINUTES;//20 * SECONDS;//
 	private static final int QUEUE_SIZE = 100;
 	private static final Random rand = new Random();
 	private static boolean setup = true;
 
 	public static void main(String[] args) {
+		Transactions.MAX_SHADOWS_SINCE_ACTIVITY = 200;
+		Transactions.MAX_FINALS_SIZE = 90;
 		Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
 		theDB = new Database(mmf, Mode.CREATE);
 
@@ -52,8 +54,16 @@ public class TestConcurrency {
 				long elapsed = System.currentTimeMillis() - t;
 				if (elapsed > DURATION)
 					break;
+				if (nreps % 500 == 0)
+					System.out.print('.');
+				if (nreps % 40000 == 0) {
+					System.out.println();
+					theDB.readonlyTran();
+				}
+				theDB.limitOutstandingTransactions();
 			}
 		}
+		System.out.println();
 		exec.finish();
 		t = System.currentTimeMillis() - t;
 
@@ -149,11 +159,8 @@ public class TestConcurrency {
 			try {
 				theDB.addColumn(tablename, "z");
 			} catch (SuException e) {
-				if (e.toString().contains("column already exists")
-						|| e.toString().contains("conflict"))
-					nAddColumnFailed.incrementAndGet();
-				else
-					throw e;
+				nAddColumnFailed.incrementAndGet();
+				throwUnexpected(e);
 			}
 
 		}
@@ -162,11 +169,8 @@ public class TestConcurrency {
 			try {
 				theDB.removeColumn(tablename, "z");
 			} catch (SuException e) {
-				if (e.toString().contains("nonexistent")
-						|| e.toString().contains("conflict"))
-					nRemoveColumnFailed.incrementAndGet();
-				else
-					throw e;
+				nRemoveColumnFailed.incrementAndGet();
+				throwUnexpected(e);
 			}
 
 		}
@@ -208,8 +212,7 @@ public class TestConcurrency {
 			try {
 				t.addRecord(tablename, record());
 			} catch (SuException e) {
-				if (! e.toString().contains("conflict"))
-					throw e;
+				throwUnexpected(e);
 			} finally {
 				if (t.complete() != null)
 					nappendsfailed.incrementAndGet();
@@ -228,9 +231,7 @@ public class TestConcurrency {
 			} catch (SuException e) {
 				nupdatesfailed.incrementAndGet();
 				t.abort();
-				if (! e.toString().contains("conflict")) {
-					throw e;
-				}
+				throwUnexpected(e);
 			}
 		}
 		Record record() {
@@ -314,8 +315,7 @@ public class TestConcurrency {
 					break;
 				}
 			} catch (SuException e) {
-				if (! e.toString().contains("conflict"))
-					throw e;
+				throwUnexpected(e);
 			} finally {
 				if (t.complete() != null)
 					nfailed.incrementAndGet();
@@ -362,8 +362,7 @@ public class TestConcurrency {
 				Record rec = r.getFirstData();
 				t.updateRecord(rec.off(), rec);
 			} catch (SuException e) {
-				if (! e.toString().contains("conflict"))
-					throw e;
+				throwUnexpected(e);
 			}
 			if (t.complete() != null)
 				nfailed.incrementAndGet();
@@ -384,6 +383,13 @@ public class TestConcurrency {
 		return r;
 	}
 
+	private static void throwUnexpected(SuException e) {
+		if (! e.toString().contains("conflict")
+				&& ! e.toString().contains("aborted")
+				&& ! e.toString().contains("ended")
+				&& ! e.toString().contains("exist"))
+			throw e;
+	}
 
 	@ThreadSafe
 	public static class BoundedExecutor {

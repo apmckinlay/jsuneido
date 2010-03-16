@@ -596,4 +596,8 @@ public class Database {
 		return trans.tranlist();
 	}
 
+	public void limitOutstandingTransactions() {
+		trans.limitOutstanding();
+	}
+
 }

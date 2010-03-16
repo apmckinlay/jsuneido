@@ -5,7 +5,7 @@ import static suneido.SuException.verify;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
@@ -13,26 +13,30 @@ import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
 /**
- * Handles a single transaction, either readonly or readwrite.
+ * Handles a single readonly or readwrite transaction.
+ * Mostly thread-contained, but needs to be threadsafe
+ * so that inactive or excessive transactions can be aborted by other threads.
+ * Uses {@link Transactions} and {@link Shadows}
  * equals and hashCode are the default i.e. identity
  *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-@NotThreadSafe // should only used by one session i.e. one thread at a time
+@ThreadSafe
+// should only used by one session i.e. one thread at a time
 public class Transaction implements Comparable<Transaction>, DbmsTran {
 	final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
-	protected boolean ended = false;
+	protected volatile boolean ended = false;
 	private boolean inConflict = false;
 	private boolean outConflict = false;
 	private String conflict = null;
 	final long start = new Date().getTime();
 	private final long asof;
 	public final int num;
-	private long commitTime = Long.MAX_VALUE;
+	private volatile long commitTime = Long.MAX_VALUE;
 	String sessionId = "session"; // TODO session id
 	private final Tables tables;
 	private final PersistentMap<Integer, TableData> tabledata;
@@ -47,7 +51,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 5000;
 	final Shadows shadows = new Shadows();
-	private int shadowSizeAtLastActivity = 0;
+	private volatile int shadowSizeAtLastActivity = 0;
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
 			PersistentMap<Integer, TableData> tabledata,
@@ -84,7 +88,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	public boolean isReadWrite() {
-		return ! readonly;
+		return !readonly;
 	}
 
 	public boolean isEnded() {
@@ -95,7 +99,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return asof;
 	}
 
-	public String conflict() {
+	public synchronized String conflict() {
 		return conflict;
 	}
 
@@ -109,6 +113,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			throw new SuException("nonexistent table: " + tablename);
 		return tbl;
 	}
+
 	public Table getTable(String tablename) {
 		if (tablename == null)
 			return null;
@@ -126,35 +131,38 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return tables.get(tblnum);
 	}
 
+	// used by Schema
 	void updateTable(int tblnum) {
 		updateTable(tblnum, null);
 	}
-	void updateTable(int tblnum, List<BtreeIndex> btis) {
+
+	synchronized void updateTable(int tblnum, List<BtreeIndex> btis) {
 		Table table = getUpdatedTable(tblnum, btis);
 		assert remove_table == null;
 		if (update_tables == null)
 			update_tables = new ArrayList<Table>();
 		update_tables.add(table);
 	}
+
 	private Table getUpdatedTable(int tblnum, List<BtreeIndex> btis) {
 		Record table_rec = db.getTableRecord(this, tblnum);
 		tabledataUpdates.put(tblnum, new TableData(table_rec));
 		return db.loadTable(this, table_rec, btis);
 	}
 
-	public void deleteTable(Table table) {
+	public synchronized void deleteTable(Table table) {
 		assert update_tables == null && remove_table == null;
 		remove_table = table;
 	}
 
 	// table data
 
-	public TableData getTableData(int tblnum) {
+	public synchronized TableData getTableData(int tblnum) {
 		TableData td = tabledataUpdates.get(tblnum);
 		return td != null ? td : tabledata.get(tblnum);
 	}
 
-	public void updateTableData(TableData td) {
+	public synchronized void updateTableData(TableData td) {
 		verify(!readonly);
 		tabledataUpdates.put(td.tblnum, td);
 	}
@@ -165,7 +173,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return getBtreeIndex(index.tblnum, index.columns);
 	}
 
-	public BtreeIndex getBtreeIndex(int tblnum, String columns) {
+	public synchronized BtreeIndex getBtreeIndex(int tblnum, String columns) {
 		notEnded();
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexCopies.get(key);
@@ -179,24 +187,24 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return bti;
 	}
 
-	// used for schema changes
-	public void addBtreeIndex(BtreeIndex bti) {
+	// used by Schema
+	public synchronized void addBtreeIndex(BtreeIndex bti) {
 		bti.setDest(new DestTran(this, bti.getDest()));
 		btreeIndexCopies.put(bti.tblnum + ":" + bti.columns, bti);
 	}
 
 	// actions
 
-	public void create_act(int tblnum, long adr) {
-		verify(! readonly);
+	public synchronized void create_act(int tblnum, long adr) {
+		verify(!readonly);
 		if (isAborted())
 			return;
 		notEnded();
 		addWrite(TranWrite.create(tblnum, adr, trans.clock()));
 	}
 
-	public void delete_act(int tblnum, long adr) {
-		verify(! readonly);
+	public synchronized void delete_act(int tblnum, long adr) {
+		verify(!readonly);
 		if (isAborted())
 			return;
 		notEnded();
@@ -209,12 +217,12 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			abortThrow("too many writes");
 	}
 
-	boolean isAborted() {
-		return isEnded() && ! isCommitted();
+	synchronized boolean isAborted() {
+		return isEnded() && !isCommitted();
 	}
 
-	// Used by update_record
-	public void undo_delete_act(int tblnum, long adr) {
+	// Used by Data.update_record
+	public synchronized void undo_delete_act(int tblnum, long adr) {
 		verify(!readonly);
 		TranWrite tw = writes.removeLast();
 		verify(tw.type == TranWrite.Type.DELETE && tw.tblnum == tblnum
@@ -230,12 +238,27 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	// abort -------------------------------------------------------------------
 
-	public void abortIfNotComplete() {
+	public synchronized void abortIfNotComplete() {
 		if (!ended)
 			abort();
 	}
 
-	public void abort() {
+	public synchronized void abortIfNotComplete(String conflict) {
+		if (!ended)
+			abort(conflict);
+	}
+
+	void abortThrow(String conflict) {
+		abort(conflict);
+		throw new SuException("transaction " + conflict);
+	}
+
+	void abort(String conflict) {
+		this.conflict = conflict;
+		abort();
+	}
+
+	public synchronized void abort() {
 		if (isAborted())
 			return;
 		if (conflict == null)
@@ -244,43 +267,36 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		end();
 	}
 
-	void abortThrow(String conflict) {
-		abortConflict(conflict);
-		throw new SuException("transaction " + conflict);
-	}
-
-	void abortConflict(String conflict) {
-		this.conflict = conflict;
-		abort();
-	}
-
 	// complete ----------------------------------------------------------------
 
-	public void ck_complete() {
+	public synchronized void ck_complete() {
 		String s = complete();
 		if (s != null)
 			throw new SuException("transaction commit failed: " + s);
 	}
 
-	public String complete() {
+	public synchronized String complete() {
 		if (isAborted())
 			return conflict;
 		notEnded();
-		return readonly ? end() : commit();
-	}
-
-	private String end() {
-		trans.remove(this);
-		ended = true;
+		if (readonly)
+			end();
+		else
+			commit();
 		return null;
 	}
 
-	private String commit() {
-		synchronized(db.commitLock) {
+	private void end() {
+		trans.remove(this);
+		ended = true;
+	}
+
+	private void commit() {
+		synchronized (db.commitLock) {
 			completeReadwrite();
 			trans.addFinal(this);
-			commitTime  = trans.clock();
-			return end();
+			commitTime = trans.clock();
+			end();
 		}
 	}
 
@@ -335,8 +351,8 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			TableData tdOld = tabledata.get(tdNew.tblnum);
 			if (tdOld != null)
 				db.updateTableData(tdNew.tblnum, tdNew.nextfield,
-						tdNew.nrecords - tdOld.nrecords,
-						tdNew.totalsize	- tdOld.totalsize);
+						tdNew.nrecords - tdOld.nrecords, tdNew.totalsize
+								- tdOld.totalsize);
 		}
 	}
 
@@ -357,7 +373,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		if (ndeletes == 0 && ncreates == 0)
 			return;
 		final int n = 8 + 4 + 4 + 4 + 4 * (ncreates + ndeletes) + 4;
-		synchronized(db) {
+		synchronized (db) {
 			ByteBuffer buf = db.adr(db.alloc(n, Mmfile.COMMIT)).getByteBuffer();
 			buf.putLong(new Date().getTime());
 			buf.putInt(num);
@@ -390,13 +406,14 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			ended = true;
 			return null;
 		}
+
 		@Override
 		public void abort() {
 			ended = true;
 		}
 	}
 
-	public void readLock(long offset) {
+	public synchronized void readLock(long offset) {
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
@@ -417,7 +434,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			w.inConflict = true;
 	}
 
-	public void writeLock(long offset) {
+	public synchronized void writeLock(long offset) {
 		Set<Transaction> readers = trans.writeLock(this, offset);
 		if (readers == null)
 			abortThrow("write-write conflict");
@@ -444,7 +461,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	private boolean isActive() {
-		return commitTime == Long.MAX_VALUE && ! ended;
+		return commitTime == Long.MAX_VALUE && !ended;
 	}
 
 	// delegate
@@ -483,7 +500,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	}
 
 	public int shadowSizeAtLastActivity() {
-		return shadowSizeAtLastActivity ;
+		return shadowSizeAtLastActivity;
 	}
 
 	public ByteBuf node(Destination dest, long offset) {

@@ -11,12 +11,15 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.util.ByteBuf;
 
 /**
- * Manages transactions.
+ * Manages transactions. Threadsafe.
+ * Uses {@link Locks}
  *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
+// NOTE: don't call any synchronized Transaction methods while synchronized
+// because this can lead to deadlock.
 @ThreadSafe
 public class Transactions {
 	public final Database db;
@@ -26,11 +29,9 @@ public class Transactions {
 	private final PriorityQueue<Transaction> trans = new PriorityQueue<Transaction>();
 	private final PriorityQueue<Transaction> finals = new PriorityQueue<Transaction>();
 	static final long FUTURE = Long.MAX_VALUE;
-	private static final int MINUTES = 60 * 1000;
-	private static final long MAX_WRITE_TRAN_AGE = 2000;//5 * MINUTES; // ms
-	private static final String TOO_OLD = "exceeded max duration ("
-							+ (MAX_WRITE_TRAN_AGE / MINUTES) + " min)";
-	private static final int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
+	// only overridden by tests, otherwise could be private final
+	public static int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
+	public static int MAX_FINALS_SIZE = 200;
 
 	Transactions(Database db) {
 		this.db = db;
@@ -53,19 +54,6 @@ public class Transactions {
 
 	synchronized public void add(Transaction tran) {
 		trans.add(tran);
-		checkForOldWriteTrans();
-	}
-
-	private void checkForOldWriteTrans() {
-		if (trans.isEmpty())
-			return;
-		long t = new Date().getTime();
-		for (Transaction tran : trans)
-			if (tran.isReadWrite() &&
-					t - tran.start > MAX_WRITE_TRAN_AGE) {
-				tran.abortConflict(TOO_OLD);
-				System.out.println("aborted " + tran + " - " + TOO_OLD);
-			}
 	}
 
 	synchronized public void addFinal(Transaction tran) {
@@ -83,20 +71,7 @@ public class Transactions {
 			locks.commit(tran);
 		else
 			locks.remove(tran);
-		checkForStaleTrans();
 		finalization();
-	}
-
-	private void checkForStaleTrans() {
-		if (trans.isEmpty())
-			return;
-		for (Transaction tran : trans) {
-			int newShadowsSinceActivity = tran.shadows.size() - tran.shadowSizeAtLastActivity();
-			if (newShadowsSinceActivity > MAX_SHADOWS_SINCE_ACTIVITY) {
-				tran.abortConflict("inactive too long");
-				System.out.println("aborted " + tran + " - inactive too long");
-			}
-		}
 	}
 
 	/**
@@ -116,6 +91,47 @@ public class Transactions {
 			if (t.isReadWrite())
 				return t.asof();
 		return FUTURE;
+	}
+
+	public void limitOutstanding() {
+		limitFinalsSize();
+		abortStaleTrans();
+	}
+	private void limitFinalsSize() {
+		Transaction t = null;
+		synchronized (this) {
+			if (finals.size() <= MAX_FINALS_SIZE)
+				return;
+			for (Transaction tran : trans)
+				if (tran.isReadWrite()) {
+					t = tran;
+					break;
+				}
+		}
+		// NOTE: abort outside synchronized to avoid deadlock
+		if (t != null) {
+			t.abortIfNotComplete("too many concurrent update transactions");
+			System.out.println("aborted " + t + " - finals too large");
+		}
+	}
+	private void abortStaleTrans() {
+		Transaction t = null;
+		synchronized (this) {
+			if (trans.isEmpty())
+				return;
+			for (Transaction tran : trans) {
+				int newShadowsSinceActivity = tran.shadows.size() - tran.shadowSizeAtLastActivity();
+				if (newShadowsSinceActivity > MAX_SHADOWS_SINCE_ACTIVITY) {
+					t = tran;
+					break;
+				}
+			}
+		}
+		// NOTE: abort outside synchronized to avoid deadlock
+		if (t != null) {
+			t.abortIfNotComplete("inactive too long");
+			System.out.println("aborted " + t + " - inactive too long");
+		}
 	}
 
 	synchronized public void shutdown() {

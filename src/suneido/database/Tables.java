@@ -5,6 +5,9 @@ import javax.annotation.concurrent.Immutable;
 import suneido.util.PersistentMap;
 
 /**
+ * Stores table information for {@link Database}.
+ * {@link Transaction}'s are given the current state when starting.
+ * Immutable persistent so threadsafe.
  * @author Andrew McKinlay
  */
 @Immutable
