@@ -50,7 +50,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	public static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 5000;
-	final Shadows shadows = new Shadows();
+	private final Shadows shadows = new Shadows();
 	private volatile int shadowSizeAtLastActivity = 0;
 
 	Transaction(Transactions trans, boolean readonly, Tables tables,
@@ -499,6 +499,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return db.input(adr);
 	}
 
+	public int shadowsSize() {
+		return shadows.size();
+	}
+
 	public int shadowSizeAtLastActivity() {
 		return shadowSizeAtLastActivity;
 	}
@@ -506,6 +510,15 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	public ByteBuf node(Destination dest, long offset) {
 		shadowSizeAtLastActivity = shadows.size();
 		return shadows.node(dest, offset);
+	}
+
+	public ByteBuf nodeForWrite(Destination dest, long offset) {
+		shadowSizeAtLastActivity = shadows.size();
+		return shadows.nodeForWrite(dest, offset);
+	}
+
+	public ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
+		return shadows.shadow(dest, offset, copy);
 	}
 
 }

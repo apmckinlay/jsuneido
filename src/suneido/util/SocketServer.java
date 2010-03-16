@@ -51,7 +51,7 @@ public class SocketServer {
 			if (nready > 0)
 				handleSelected();
 			else
-				closeIdleConnections();
+				tick();
 		}
 	}
 
@@ -69,7 +69,12 @@ public class SocketServer {
 		}
 	}
 
-	private long closeIdleConnections() throws IOException {
+	private void tick() throws IOException {
+		closeIdleConnections();
+		handlerFactory.tick();
+	}
+
+	private void closeIdleConnections() throws IOException {
 		long t = System.currentTimeMillis();
 		if (t - lastCheck > CHECK_INTERVAL) {
 			lastCheck = t;
@@ -79,7 +84,6 @@ public class SocketServer {
 					key.channel().close();
 			}
 		}
-		return lastCheck;
 	}
 
 	private void accept(SelectionKey key)
@@ -213,6 +217,7 @@ public class SocketServer {
 
 	public static interface HandlerFactory {
 		public Handler newHandler(OutputQueue outputQueue, String address);
+		public void tick();
 	}
 
 	public static interface Handler {
@@ -260,6 +265,8 @@ public class SocketServer {
 		@Override
 		public Handler newHandler(OutputQueue outputQueue, String address) {
 			return new EchoHandler(outputQueue);
+		}
+		public void tick() {
 		}
 	}
 

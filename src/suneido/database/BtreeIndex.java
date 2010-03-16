@@ -5,9 +5,9 @@ import static suneido.SuException.verifyEquals;
 import static suneido.database.Index.*;
 
 /**
- * Wraps a {@link Btree} to implement database table indexes. Adds transaction
- * stuff.
- * Almost immutable but update will change record.
+ * Wraps a {@link Btree} to implement database table indexes.
+ * Adds transaction stuff.
+ * Almost immutable but update will change record, and btree info may change.
  *
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.

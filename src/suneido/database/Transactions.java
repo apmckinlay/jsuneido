@@ -93,6 +93,7 @@ public class Transactions {
 		return FUTURE;
 	}
 
+	// should be called periodically
 	public void limitOutstanding() {
 		limitFinalsSize();
 		abortStaleTrans();
@@ -120,7 +121,7 @@ public class Transactions {
 			if (trans.isEmpty())
 				return;
 			for (Transaction tran : trans) {
-				int newShadowsSinceActivity = tran.shadows.size() - tran.shadowSizeAtLastActivity();
+				int newShadowsSinceActivity = tran.shadowsSize() - tran.shadowSizeAtLastActivity();
 				if (newShadowsSinceActivity > MAX_SHADOWS_SINCE_ACTIVITY) {
 					t = tran;
 					break;
@@ -150,7 +151,7 @@ public class Transactions {
 		ByteBuf copy = null;
 		for (Transaction t : trans)
 			if (t != tcompleting)
-				copy = t.shadows.shadow(db.dest, offset, copy);
+				copy = t.shadow(db.dest, offset, copy);
 	}
 
 	public synchronized Transaction readLock(Transaction tran, long offset) {

@@ -1,5 +1,6 @@
 package suneido.database.server;
 
+import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
@@ -39,6 +40,9 @@ public class DbmsServer {
 		public SocketServer.Handler newHandler(OutputQueue outputQueue,
 				String address) {
 			return new Handler(outputQueue, address);
+		}
+		public void tick() {
+			theDB.limitOutstandingTransactions();
 		}
 	}
 
