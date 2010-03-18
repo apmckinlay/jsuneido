@@ -10,6 +10,8 @@ import suneido.database.Transaction;
 import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
 
+// TODO purge ended transaction data (and then handle when not found)
+
 /**
  * Each connection/session has it's own ServerData instance
  *

@@ -145,12 +145,4 @@ public class Rename extends Query1 {
 		source.output(r);
 	}
 
-	boolean update(String index, Record key, Record newrec) {
-		return false; // TODO update
-	}
-
-	boolean erase(String index, Record key) {
-		return false; // TODO erase
-	}
-
 }

@@ -42,7 +42,14 @@ public class DbmsServer {
 			return new Handler(outputQueue, address);
 		}
 		public void tick() {
-			theDB.limitOutstandingTransactions();
+			DbmsServer.executor.execute(tick);
+		}
+		private static final Tick tick = new Tick();
+		private static class Tick implements Runnable {
+			@Override
+			public void run() {
+				theDB.limitOutstandingTransactions();
+			}
 		}
 	}
 
