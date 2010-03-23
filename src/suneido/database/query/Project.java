@@ -238,7 +238,7 @@ public class Project extends Query1 {
 		List<List<String>> idxs = index.isEmpty() ? source.indexes()
 				: Collections.singletonList(index);
 		for (List<String> ix : idxs)
-			// TODO: take fixed into account
+			// TODO take fixed into account
 			if (startsWithSet(ix, flds)) {
 				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
