@@ -326,7 +326,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			theDbms.dump(bufferToString(line));
+			theDbms.dump(bufferToString(line).trim());
 			return ok();
 		}
 	},
