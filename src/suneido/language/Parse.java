@@ -101,7 +101,7 @@ public class Parse<T, G> {
 		return lookAhead(true);
 	}
 
-	// TODO reuse a lookahead lexer (match calls this every time)
+	// PERF reuse a lookahead lexer (match calls this every time)
 	protected Token lookAhead(boolean skipNewlines) {
 		Lexer ahead = new Lexer(lexer);
 		Token token = ahead.next();

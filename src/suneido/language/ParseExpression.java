@@ -472,15 +472,15 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	// MAYBE factor out duplication with ParseConstant.isMemberName
 	private boolean isConstantArg(Token closing) {
-		// TODO handle -number and true/false
+		// TODO handle true/false
 		if (token != NUMBER && token != STRING)
 			return false;
 		Lexer ahead = new Lexer(lexer);
 		Token t = ahead.nextSkipNewlines();
 		if (t == COMMA || t == closing)
 			return true;
-		if (t != IDENTIFIER && t != STRING && t != NUMBER && t != SUB
-				&& t != ADD)
+		if (t != IDENTIFIER && t != STRING && t != NUMBER
+				&& t != SUB && t != ADD)
 			return false;
 		if (t == SUB || t == ADD)
 			t = ahead.next();
