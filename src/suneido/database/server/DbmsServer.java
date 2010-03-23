@@ -35,22 +35,30 @@ public class DbmsServer {
 		}
 	}
 
-	private static class HandlerFactory implements SocketServer.HandlerFactory {
+	private static class HandlerFactory extends SocketServer.HandlerFactory {
 		@Override
 		public SocketServer.Handler newHandler(OutputQueue outputQueue,
 				String address) {
 			return new Handler(outputQueue, address);
 		}
-		public void tick() {
-			DbmsServer.executor.execute(tick);
+		@Override
+		public void fastTick() {
+			DbmsServer.executor.execute(fastTick);
 		}
-		private static final Tick tick = new Tick();
-		private static class Tick implements Runnable {
-			@Override
+		private static final Runnable fastTick = new Runnable() {
 			public void run() {
 				theDB.limitOutstandingTransactions();
 			}
+		};
+		@Override
+		public void slowTick() {
+			DbmsServer.executor.execute(slowTick);
 		}
+		private static final Runnable slowTick = new Runnable() {
+			public void run() {
+				theDB.dest.force();
+			}
+		};
 	}
 
 	/**

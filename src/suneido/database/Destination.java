@@ -41,4 +41,7 @@ public abstract class Destination {
 
 	abstract Destination unwrap();
 
+	public void force() {
+	}
+
 }

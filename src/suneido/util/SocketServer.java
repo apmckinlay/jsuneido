@@ -70,19 +70,20 @@ public class SocketServer {
 	}
 
 	private void tick() throws IOException {
-		closeIdleConnections();
-		handlerFactory.tick();
-	}
-
-	private void closeIdleConnections() throws IOException {
+		handlerFactory.fastTick();
 		long t = System.currentTimeMillis();
 		if (t - lastCheck > CHECK_INTERVAL) {
 			lastCheck = t;
-			for (SelectionKey key : selector.keys()) {
-				Info info = (Info) key.attachment();
-				if (info != null && t - info.lastActivity > IDLE_TIMEOUT)
-					key.channel().close();
-			}
+			closeIdleConnections();
+			handlerFactory.slowTick();
+		}
+	}
+
+	private void closeIdleConnections() throws IOException {
+		for (SelectionKey key : selector.keys()) {
+			Info info = (Info) key.attachment();
+			if (info != null && lastCheck - info.lastActivity > IDLE_TIMEOUT)
+				key.channel().close();
 		}
 	}
 
@@ -215,9 +216,12 @@ public class SocketServer {
 		}
 	}
 
-	public static interface HandlerFactory {
-		public Handler newHandler(OutputQueue outputQueue, String address);
-		public void tick();
+	public static abstract class HandlerFactory {
+		public abstract Handler newHandler(OutputQueue outputQueue, String address);
+		public void fastTick() {
+		}
+		public void slowTick() {
+		}
 	}
 
 	public static interface Handler {
@@ -261,12 +265,10 @@ public class SocketServer {
 		public void close() {
 		}
 	}
-	static class EchoHandlerFactory implements HandlerFactory {
+	static class EchoHandlerFactory extends HandlerFactory {
 		@Override
 		public Handler newHandler(OutputQueue outputQueue, String address) {
 			return new EchoHandler(outputQueue);
-		}
-		public void tick() {
 		}
 	}
 
