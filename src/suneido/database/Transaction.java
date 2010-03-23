@@ -222,7 +222,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private void addWrite(TranWrite tw) {
 		writes.add(tw);
 		if (writes.size() > MAX_WRITES_PER_TRANSACTION)
-			abortThrow("too many writes");
+			abortThrow("too many writes in one transaction");
 	}
 
 	synchronized boolean isAborted() {
