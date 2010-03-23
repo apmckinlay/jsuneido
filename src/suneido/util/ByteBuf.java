@@ -117,7 +117,7 @@ public class ByteBuf {
 	}
 	public ByteBuffer getByteBuffer(int index, int size) {
 		return duplicate(index, size).slice();
-		// TODO eliminate slice (needed to make position 0)
+		// PERF eliminate slice (needed to make position 0)
 	}
 
 	private ByteBuffer duplicate() {
