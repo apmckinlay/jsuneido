@@ -61,6 +61,17 @@ public class DbRebuild extends DbCheck {
 			newdb.close();
 			newdb = null;
 
+			switch (DbCheck.checkPrint(tmpfile.getPath())) {
+			case OK:
+				break;
+			case CORRUPTED:
+			case UNRECOVERABLE:
+				System.out.println("Rebuild FAILED still corrupt after rebuild");
+				return ;
+			default:
+				throw unreachable();
+			}
+
 			File dbfile = new File(filename);
 			File bakfile = new File(filename + ".bak");
 			bakfile.delete();
@@ -232,14 +243,13 @@ public class DbRebuild extends DbCheck {
 		int tblnum = rec.getInt(Table.TBLNUM);
 		if (tblnum > max_tblnum)
 			max_tblnum = tblnum;
-		rec.truncate(Table.NEXTFIELD);
 		if (renamedFrom == null)
-			rec.add(nextfield.get(tblnum))
-					.add(0).add(0); // nrows = totalsize = 0
+			Table.update(rec, rec.getInt(Table.NEXTFIELD), 0, 0);
 		else
-			rec.add(renamedFrom.getInt(Table.NEXTFIELD))
-					.add(renamedFrom.getInt(Table.NROWS))
-					.add(renamedFrom.getInt(Table.TOTALSIZE));
+			Table.update(rec,
+					renamedFrom.getInt(Table.NEXTFIELD),
+					renamedFrom.getInt(Table.NROWS),
+					renamedFrom.getInt(Table.TOTALSIZE));
 		String tablename = rec.getString(Table.TABLE);
 		tblnames.put(tblnum, tablename);
 		newdb.addIndexEntriesForRebuild(TN.TABLES, rec);
@@ -325,12 +335,6 @@ public class DbRebuild extends DbCheck {
 	private boolean isTableRecord(long offset) {
 		return mmf.type(offset - 4) == Mmfile.DATA
 				&& tblnum(offset) == TN.TABLES;
-	}
-
-	@Override
-	// called by DbCheck
-	protected void nextfield(int tblnum, int n) {
-		nextfield.put(tblnum, n);
 	}
 
 	public static void main(String[] args) {

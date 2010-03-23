@@ -136,7 +136,7 @@ public class DbCheck {
 
 	private final static int BAD_LIMIT = 10;
 
-	private boolean check_data_and_indexes() {
+	protected boolean check_data_and_indexes() {
 		Database.theDB = new Database(filename, Mode.READ_ONLY);
 		Transaction t = theDB.readonlyTran();
 		try {
@@ -230,12 +230,7 @@ public class DbCheck {
 					+ maxfields + " > nextfield " + td.nextfield + "\n";
 			return false;
 		}
-		nextfield(table.num, Math.max(maxfields, table.maxColumnNum() + 1));
 		return true;
-	}
-
-	// overridden by DbRebuild
-	protected void nextfield(int tblnum, int n) {
 	}
 
 	private boolean checkRecord(String tablename, Record rec) {

@@ -144,6 +144,18 @@ public class Table {
 		}
 	}
 
+	public static void update(Record record, int nextfield, int nrecords, int totalsize) {
+		assert record.off() != 0;
+		int n = record.packSize();
+		record.truncate(Table.NEXTFIELD);
+		record.add(nextfield).add(nrecords).add(totalsize);
+		record.alloc(n - record.packSize() - (n < 256 ? 1 : 2));
+		assert n == record.packSize();
+		assert nextfield == record.getInt(Table.NEXTFIELD);
+		assert nrecords == record.getInt(Table.NROWS);
+		assert totalsize == record.getInt(Table.TOTALSIZE);
+	}
+
 	@Override
 	public String toString() {
 		return "Table(" + name + ":" + num + ") " + columns + " " + indexes;
