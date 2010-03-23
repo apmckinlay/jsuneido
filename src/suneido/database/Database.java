@@ -57,6 +57,7 @@ public class Database {
 			@Override
 			public void run() {
 				theDB.close();
+				theDB = null;
 			}
 		});
 	}
@@ -290,7 +291,6 @@ public class Database {
 	}
 
 	public void close() {
-		trans.shutdown();
 		if (mode != Mode.READ_ONLY)
 			Session.shutdown(dest);
 		dest.close();

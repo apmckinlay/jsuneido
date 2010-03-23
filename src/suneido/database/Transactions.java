@@ -109,7 +109,7 @@ public class Transactions {
 					break;
 				}
 		}
-		// NOTE: abort outside synchronized to avoid deadlock
+		// abort outside synchronized to avoid deadlock
 		if (t != null) {
 			t.abortIfNotComplete("too many concurrent update transactions");
 			System.out.println("aborted " + t + " - finals too large");
@@ -128,17 +128,11 @@ public class Transactions {
 				}
 			}
 		}
-		// NOTE: abort outside synchronized to avoid deadlock
+		// abort outside synchronized to avoid deadlock
 		if (t != null) {
 			t.abortIfNotComplete("inactive too long");
 			System.out.println("aborted " + t + " - inactive too long");
 		}
-	}
-
-	synchronized public void shutdown() {
-		// abort all outstanding transactions
-		while (!trans.isEmpty())
-			trans.peek().abort();
 	}
 
 	/**
