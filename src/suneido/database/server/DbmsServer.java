@@ -113,8 +113,9 @@ public class DbmsServer {
 				buf.limit(linelen + nExtra);
 				extra = buf.slice();
 
-				buf.position(linelen + nExtra); // consume input
-//				assert buf.remaining() == 0;
+				buf.position(buf.limit()); // consume all input
+				assert buf.remaining() == 0;
+				// since synchronous, it's safe to discard extra input
 				linelen = 0;
 				nExtra = -1;
 
@@ -169,10 +170,14 @@ public class DbmsServer {
 			} catch (Throwable e) {
 if (!(e instanceof SuException))
 e.printStackTrace();
-				output = stringToBuffer("ERR " + e.toString() + "\r\n");
+				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			if (output != null)
 				outputQueue.add(output);
+		}
+
+		private String escape(String s) {
+			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
 		@Override
