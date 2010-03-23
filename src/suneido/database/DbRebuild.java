@@ -68,6 +68,8 @@ public class DbRebuild extends DbCheck {
 			tmpfile.renameTo(dbfile);
 
 			println(filename + " rebuilt");
+		} catch (Throwable e) {
+			System.out.println("Rebuild FAILED " + e);
 		} finally {
 			if (newdb != null) {
 				newdb.close();
