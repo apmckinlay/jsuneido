@@ -7,10 +7,7 @@ import java.util.*;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.Transaction;
-import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
-
-// TODO purge ended transaction data (and then handle when not found)
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -45,7 +42,7 @@ public class ServerData {
 	}
 
 	/**
-	 * this is set by {@link SocketServer} since it is per connection, not really per
+	 * this is set by {@link DbmsServer} since it is per connection, not really per
 	 * thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal
@@ -60,7 +57,7 @@ public class ServerData {
 	}
 
 	public int addTransaction(DbmsTran tran) {
-		// client expect readonly tran# to be even, update to be odd
+		// client expects readonly tran# to be even, update to be odd
 		if ((next % 2) != (((Transaction) tran).isReadonly() ? 0 : 1))
 			++next;
 		trans.put(next, tran);
@@ -143,5 +140,10 @@ public class ServerData {
 
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
+	}
+
+	public void end() {
+		for (Map.Entry<Integer, DbmsTran> e : trans.entrySet())
+			e.getValue().abort();
 	}
 }

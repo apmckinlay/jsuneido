@@ -178,6 +178,7 @@ e.printStackTrace();
 		@Override
 		public void close() {
 			synchronized(serverDataSet) {
+				serverData.end();
 				serverDataSet.remove(serverData);
 			}
 		}
