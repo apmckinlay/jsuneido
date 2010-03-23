@@ -60,7 +60,7 @@ public class TempIndex extends Query1 {
 			return null;
 			}
 
-		// TODO: put iter->key into row
+		// TODO put iter->key into row
 		return Row.fromRefs(cur.getValue());
 	}
 

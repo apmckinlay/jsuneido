@@ -63,7 +63,7 @@ public class Request implements RequestGenerator<Object> {
 
 
 	public Object ensure(String tablename, Object schemaOb) {
-		// TODO: should probably be all in one transaction
+		// TODO should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
 		if (theDB.ensureTable(tablename))
 			createSchema(tablename, schema);

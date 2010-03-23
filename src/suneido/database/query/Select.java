@@ -323,7 +323,7 @@ public class Select extends Query1 {
 		ifracs = new HashMap<List<String>, Double>();
 		calc_index_fracs();
 
-		// TODO: should be frac of complete select, not just indexes
+		// TODO should be frac of complete select, not just indexes
 		nrecs = datafrac(theindexes) * tbl.nrecords();
 	}
 	private List<Cmp> extract_cmps() {
