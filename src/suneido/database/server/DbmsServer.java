@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,6 +27,16 @@ public class DbmsServer {
 		Database.open_theDB();
 		Compiler.eval("JInit()");
 		SocketServer server = new SocketServer(new HandlerFactory());
+		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
+				public void run() {
+					theDB.limitOutstandingTransactions();
+				}
+			}, 1, 1, TimeUnit.SECONDS);
+		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
+				public void run() {
+					theDB.dest.force();
+				}
+			}, 1, 1, TimeUnit.MINUTES);
 		try {
 			server.run(port);
 		} catch (IOException e) {
@@ -35,30 +44,12 @@ public class DbmsServer {
 		}
 	}
 
-	private static class HandlerFactory extends SocketServer.HandlerFactory {
+	private static class HandlerFactory implements SocketServer.HandlerFactory {
 		@Override
 		public SocketServer.Handler newHandler(OutputQueue outputQueue,
 				String address) {
 			return new Handler(outputQueue, address);
 		}
-		@Override
-		public void fastTick() {
-			DbmsServer.executor.execute(fastTick);
-		}
-		private static final Runnable fastTick = new Runnable() {
-			public void run() {
-				theDB.limitOutstandingTransactions();
-			}
-		};
-		@Override
-		public void slowTick() {
-			DbmsServer.executor.execute(slowTick);
-		}
-		private static final Runnable slowTick = new Runnable() {
-			public void run() {
-				theDB.dest.force();
-			}
-		};
 	}
 
 	/**
@@ -199,9 +190,6 @@ e.printStackTrace();
 	}
 
 	public static void main(String[] args) {
-		Database.open_theDB();
-
-		Compiler.eval("JInit()");
 		Compiler.eval("Use('Accountinglib')");
 		Compiler.eval("Use('etalib')");
 		Compiler.eval("Use('ticketlib')");
@@ -214,11 +202,6 @@ e.printStackTrace();
 		Compiler.eval("Use('polib')");
 		Compiler.eval("Use('configlib')");
 		Compiler.eval("Use('demobookoptions')");
-		SocketServer server = new SocketServer(new HandlerFactory());
-		try {
-			server.run(3147);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		run(3147);
 	}
 }
