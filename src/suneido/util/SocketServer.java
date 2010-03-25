@@ -29,7 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class SocketServer {
 	private final HandlerFactory handlerFactory;
 	private Selector selector;
-	private static final int INITIAL_BUFSIZE = 4096;
+	private static final int INITIAL_BUFSIZE = 16 * 1024;
+	private static final int MAX_BUFSIZE = 64 * 1024;
 	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
@@ -98,7 +99,7 @@ public class SocketServer {
 		do {
 			if (buf.remaining() == 0) {
 				ByteBuffer oldbuf = buf;
-				buf = ByteBuffer.allocate(2 * oldbuf.capacity());
+				buf = ByteBuffer.allocateDirect(2 * oldbuf.capacity());
 				oldbuf.flip();
 				buf.put(oldbuf);
 				info.readBuf = buf;
@@ -117,11 +118,10 @@ public class SocketServer {
 			buf.compact();
 		} else {
 			// input has been consumed
-			assert buf.remaining() == 0;
-			if (buf.capacity() == INITIAL_BUFSIZE)
+			if (buf.capacity() <= MAX_BUFSIZE)
 				buf.clear();
-			else // don't hold onto big buffers
-				info.readBuf = ByteBuffer.allocate(INITIAL_BUFSIZE);
+			else // don't keep buffer bigger than max
+				info.readBuf = ByteBuffer.allocateDirect(MAX_BUFSIZE);
 		}
 		if (n < 0) {
 			info.handler.close();
@@ -151,7 +151,7 @@ public class SocketServer {
 	private static class Info {
 		long lastActivity;
 		final Handler handler;
-		ByteBuffer readBuf = ByteBuffer.allocate(INITIAL_BUFSIZE);
+		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
 		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
 		Info(Handler handler) {
 			this.handler = handler;
