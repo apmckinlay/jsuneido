@@ -101,8 +101,6 @@ public class DbmsServer {
 			// next state = waiting for extra data (if any)
 			if (nExtra != -1 && buf.remaining() >= linelen + nExtra) {
 				assert buf.position() == 0;
-//				assert buf.limit() == linelen + nExtra;
-// some commands e.g. KILL send an extra \r\n
 
 				buf.position(cmdlen);
 				buf.limit(linelen);
@@ -113,7 +111,6 @@ public class DbmsServer {
 				extra = buf.slice();
 
 				buf.position(buf.limit()); // consume all input
-				assert buf.remaining() == 0;
 				// since synchronous, it's safe to discard extra input
 				linelen = 0;
 				nExtra = -1;
@@ -129,7 +126,7 @@ public class DbmsServer {
 			ByteBuffer line = buf.duplicate();
 			line.position(0);
 			line.limit(nlPos + 1);
-			return line.slice();
+			return line;
 		}
 		private static int indexOf(ByteBuffer buf, byte b) {
 			for (int i = 0; i < buf.remaining(); ++i)
@@ -171,6 +168,8 @@ if (!(e instanceof SuException))
 e.printStackTrace();
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
+			line = null;
+			extra = null;
 			if (output != null)
 				outputQueue.add(output);
 			outputQueue.write();
