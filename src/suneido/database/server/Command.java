@@ -61,7 +61,7 @@ public enum Command {
 			else if (!match(s, "read"))
 				return stringToBuffer("ERR invalid transaction mode: " + s
 						+ "\r\n");
-			// TODO associate session id with transaction
+			// MAYBE associate session id with transaction
 			int tn = ServerData.forThread().addTransaction(
 					theDbms.transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
@@ -423,7 +423,8 @@ public enum Command {
 					ServerData serverData = iter.next();
 					if (sessionId.equals(serverData.getSessionId())) {
 						++nkilled;
-						serverData.outputQueue.close();
+						serverData.end();
+						serverData.outputQueue.closeChannel();
 						iter.remove();
 					}
 				}

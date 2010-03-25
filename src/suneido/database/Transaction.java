@@ -61,7 +61,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		this.trans = trans;
 		this.readonly = readonly;
 		asof = trans.clock();
-		num = trans.nextNum();
+		num = trans.nextNum(readonly);
 		this.tables = tables;
 		this.tabledata = tabledata;
 		this.btreeIndexes = btreeIndexes;

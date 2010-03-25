@@ -8,8 +8,6 @@ import java.util.Date;
 import suneido.database.*;
 import suneido.database.server.DbmsServer;
 
-// TODO log errors/warnings
-
 /**
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
