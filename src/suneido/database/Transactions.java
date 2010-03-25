@@ -41,8 +41,13 @@ public class Transactions {
 		return clock.incrementAndGet();
 	}
 
-	public int nextNum() {
-		return nextNum.incrementAndGet();
+	public int nextNum(boolean readonly) {
+		int n;
+		do // loop needed for concurrency
+			n = nextNum.incrementAndGet();
+			while ((n % 2) != (readonly ? 0 : 1));
+			// client expects readonly tran# to be even, update to be odd
+		return n;
 	}
 
 	// used by tests

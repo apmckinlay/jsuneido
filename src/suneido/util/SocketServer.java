@@ -185,9 +185,7 @@ public class SocketServer {
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 			key.selector().wakeup();
 		}
-		public void close() {
-			Info info = (Info) key.attachment();
-			info.handler.close();
+		public void closeChannel() {
 			try {
 				key.channel().close();
 			} catch (IOException e) {
