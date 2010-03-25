@@ -90,8 +90,8 @@ public class DbmsServer {
 
 		@Override
 		public void start() {
-			hello.rewind();
-			outputQueue.add(hello);
+			outputQueue.add(hello.duplicate());
+			outputQueue.write();
 		}
 
 		@Override
@@ -182,6 +182,7 @@ e.printStackTrace();
 			}
 			if (output != null)
 				outputQueue.add(output);
+			outputQueue.write();
 		}
 
 		private String escape(String s) {
