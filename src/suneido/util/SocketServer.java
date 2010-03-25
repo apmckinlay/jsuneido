@@ -69,32 +69,13 @@ public class SocketServer {
 		}
 	}
 
-	private void tick() throws IOException {
-		handlerFactory.fastTick();
-		long t = System.currentTimeMillis();
-		if (t - lastCheck > CHECK_INTERVAL) {
-			lastCheck = t;
-			closeIdleConnections();
-			handlerFactory.slowTick();
-		}
-	}
-
-	private void closeIdleConnections() throws IOException {
-		for (SelectionKey key : selector.keys()) {
-			Info info = (Info) key.attachment();
-			if (info != null && lastCheck - info.lastActivity > IDLE_TIMEOUT)
-				key.channel().close();
-		}
-	}
-
 	private void accept(SelectionKey key)
 			throws IOException {
 		ServerSocketChannel server = (ServerSocketChannel) key.channel();
 		SocketChannel channel = server.accept();
 		if (channel == null)
 			return;
-		SelectionKey key2 = registerChannel(channel,
-					SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		SelectionKey key2 = registerChannel(channel, SelectionKey.OP_READ);
 		if (key2 == null)
 			return;
 		InetAddress adr = channel.socket().getInetAddress();
@@ -110,7 +91,7 @@ public class SocketServer {
 		return channel.register(selector, ops);
 	}
 
-	private void read(SelectionKey key)
+	private static void read(SelectionKey key)
 			throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
@@ -151,29 +132,30 @@ public class SocketServer {
 		}
 	}
 
-	private void write(SelectionKey key)
-			throws IOException {
+	private static void write(SelectionKey key) throws IOException {
+		if (write2(key))
+			key.interestOps(SelectionKey.OP_READ); // turn off write interest
+	}
+
+	private static boolean write2(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
-		Deque<ByteBuffer> queue = info.writeQueue;
-		ByteBuffer[] bufs;
-		synchronized(queue) {
-			bufs = queue.toArray(new ByteBuffer[0]);
-		}
-		channel.write(bufs);
-		synchronized(queue) {
-			while (!queue.isEmpty() && queue.getFirst().remaining() == 0)
-				queue.removeFirst();
-			if (queue.isEmpty())
-				key.interestOps(SelectionKey.OP_READ);
-		}
+		channel.write(info.writeBufs);
+		return bufsEmpty(info.writeBufs);
+	}
+
+	private static boolean bufsEmpty(ByteBuffer[] bufs) {
+		for (ByteBuffer b : bufs)
+			if (b.remaining() > 0)
+				return false;
+		return true; // everything written
 	}
 
 	private static class Info {
 		long lastActivity;
 		final Handler handler;
 		ByteBuffer readBuf = ByteBuffer.allocate(INITIAL_BUFSIZE);
-		final Deque<ByteBuffer> writeQueue = new LinkedList<ByteBuffer>();
+		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
 		Info(Handler handler) {
 			this.handler = handler;
 			lastActivity = System.currentTimeMillis();
@@ -182,15 +164,25 @@ public class SocketServer {
 
 	@Immutable
 	public static class OutputQueue {
+		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
 		private final SelectionKey key;
+		private final List<ByteBuffer> writeQueue = new ArrayList<ByteBuffer>();
+
 		public OutputQueue(SelectionKey key) { // public for tests
 			this.key = key;
 		}
 		public void add(ByteBuffer output) {
-			Info bufs = (Info) key.attachment();
-			Deque<ByteBuffer> queue = bufs.writeQueue;
-			synchronized(queue) {
-				queue.add(output);
+			writeQueue.add(output);
+		}
+		public void write() {
+			Info info = (Info) key.attachment();
+			info.writeBufs = writeQueue.toArray(ByteBufferArray);
+			writeQueue.clear();
+			try {
+				if (SocketServer.write2(key))
+					return;
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 			key.selector().wakeup();
@@ -202,6 +194,24 @@ public class SocketServer {
 			} catch (IOException e) {
 				throw new SuException("error closing connection", e);
 			}
+		}
+	}
+
+	private void tick() throws IOException {
+		handlerFactory.fastTick();
+		long t = System.currentTimeMillis();
+		if (t - lastCheck > CHECK_INTERVAL) {
+			lastCheck = t;
+			closeIdleConnections();
+			handlerFactory.slowTick();
+		}
+	}
+
+	private void closeIdleConnections() throws IOException {
+		for (SelectionKey key : selector.keys()) {
+			Info info = (Info) key.attachment();
+			if (info != null && lastCheck - info.lastActivity > IDLE_TIMEOUT)
+				key.channel().close();
 		}
 	}
 
