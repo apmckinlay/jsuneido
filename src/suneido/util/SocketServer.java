@@ -151,17 +151,6 @@ public class SocketServer {
 		}
 	}
 
-	/** called from handlers, possibly in other threads */
-	public void queueForOutput(SelectionKey key, ByteBuffer output) {
-		Info bufs = (Info) key.attachment();
-		Deque<ByteBuffer> queue = bufs.writeQueue;
-		if (queue.isEmpty()) {
-			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-			selector.wakeup();
-		}
-		queue.add(output);
-	}
-
 	private void write(SelectionKey key)
 			throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
