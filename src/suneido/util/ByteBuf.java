@@ -1,13 +1,12 @@
 package suneido.util;
 
-import java.io.UnsupportedEncodingException;
+import static suneido.util.Util.getStringFromBuffer;
+import static suneido.util.Util.putStringToByteBuffer;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 
 import javax.annotation.concurrent.Immutable;
-
-import suneido.SuException;
 
 /**
  * Abstract base class for wrapper for ByteBuffer
@@ -232,21 +231,13 @@ public class ByteBuf {
 		return this;
 	}
 
-	private static final Charset charset = Charset.forName("ISO-8859-1");
-
 	public ByteBuf putString(int index, String s) {
-		try {
-			put(index, s.getBytes("ISO-8859-1"));
-		} catch (UnsupportedEncodingException e) {
-			throw new SuException("error packing string: ", e);
-		}
+		putStringToByteBuffer(s, buf, offset + index);
 		return this;
 	}
 
 	public String getString(int index) {
-		ByteBuffer buf2 = buf.duplicate();
-		buf2.position(offset + index);
-		return charset.decode(buf2).toString();
+		return getStringFromBuffer(buf, offset + index);
 	}
 
 	@Override
