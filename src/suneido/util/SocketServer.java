@@ -7,11 +7,10 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import suneido.SuException;
 
 /**
  * Socket server framework. Uses a supplied HandlerFactory to create a new
@@ -31,13 +30,14 @@ public class SocketServer {
 	private final HandlerFactory handlerFactory;
 	private Selector selector;
 	private static final int INITIAL_BUFSIZE = 4096;
-	private static final int SELECT_TIMEOUT = 1000; // in ms, so = 1 sec
-	private static final long CHECK_INTERVAL = 60 * 1000; // 1 min
 	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
-	private static long lastCheck = 0;
+	public static final ScheduledExecutorService scheduler
+			= Executors.newSingleThreadScheduledExecutor();
 
 	public SocketServer(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
+		scheduler.scheduleAtFixedRate(new CloseIdleConnections(),
+				1, 1, TimeUnit.MINUTES);
 	}
 
 	public void run(int port) throws IOException {
@@ -47,11 +47,9 @@ public class SocketServer {
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		while (true) {
-			int nready = selector.select(SELECT_TIMEOUT);
+			int nready = selector.select();
 			if (nready > 0)
 				handleSelected();
-			else
-				tick();
 		}
 	}
 
@@ -95,7 +93,6 @@ public class SocketServer {
 			throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
-		info.lastActivity = System.currentTimeMillis();
 		ByteBuffer buf = info.readBuf;
 		int n;
 		do {
@@ -176,6 +173,7 @@ public class SocketServer {
 		}
 		public void write() {
 			Info info = (Info) key.attachment();
+			info.lastActivity = System.currentTimeMillis();
 			info.writeBufs = writeQueue.toArray(ByteBufferArray);
 			writeQueue.clear();
 			try {
@@ -187,40 +185,36 @@ public class SocketServer {
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 			key.selector().wakeup();
 		}
-		/** does NOT call handler.close */
 		public void close() {
+			Info info = (Info) key.attachment();
+			info.handler.close();
 			try {
 				key.channel().close();
 			} catch (IOException e) {
-				throw new SuException("error closing connection", e);
+				e.printStackTrace();
 			}
 		}
 	}
 
-	private void tick() throws IOException {
-		handlerFactory.fastTick();
-		long t = System.currentTimeMillis();
-		if (t - lastCheck > CHECK_INTERVAL) {
-			lastCheck = t;
-			closeIdleConnections();
-			handlerFactory.slowTick();
+	private class CloseIdleConnections implements Runnable {
+		public void run() {
+			long t = System.currentTimeMillis();
+			for (SelectionKey key : selector.keys()) {
+				Info info = (Info) key.attachment();
+				if (info != null && t - info.lastActivity > IDLE_TIMEOUT) {
+					info.handler.close();
+					try {
+						key.channel().close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
-	private void closeIdleConnections() throws IOException {
-		for (SelectionKey key : selector.keys()) {
-			Info info = (Info) key.attachment();
-			if (info != null && lastCheck - info.lastActivity > IDLE_TIMEOUT)
-				key.channel().close();
-		}
-	}
-
-	public static abstract class HandlerFactory {
-		public abstract Handler newHandler(OutputQueue outputQueue, String address);
-		public void fastTick() {
-		}
-		public void slowTick() {
-		}
+	public static interface HandlerFactory {
+		public Handler newHandler(OutputQueue outputQueue, String address);
 	}
 
 	public static interface Handler {
@@ -264,7 +258,7 @@ public class SocketServer {
 		public void close() {
 		}
 	}
-	static class EchoHandlerFactory extends HandlerFactory {
+	static class EchoHandlerFactory implements HandlerFactory {
 		@Override
 		public Handler newHandler(OutputQueue outputQueue, String address) {
 			return new EchoHandler(outputQueue);
