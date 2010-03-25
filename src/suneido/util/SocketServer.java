@@ -90,6 +90,16 @@ public class SocketServer {
 		return channel.register(selector, ops);
 	}
 
+	private static class Info {
+		long idleSince = 0;
+		final Handler handler;
+		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
+		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
+		Info(Handler handler) {
+			this.handler = handler;
+		}
+	}
+
 	private static void read(SelectionKey key)
 			throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
@@ -148,17 +158,6 @@ public class SocketServer {
 		return true; // everything written
 	}
 
-	private static class Info {
-		long lastActivity;
-		final Handler handler;
-		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
-		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
-		Info(Handler handler) {
-			this.handler = handler;
-			lastActivity = System.currentTimeMillis();
-		}
-	}
-
 	@Immutable
 	public static class OutputQueue {
 		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
@@ -173,7 +172,7 @@ public class SocketServer {
 		}
 		public void write() {
 			Info info = (Info) key.attachment();
-			info.lastActivity = System.currentTimeMillis();
+			info.idleSince = 0;
 			info.writeBufs = writeQueue.toArray(ByteBufferArray);
 			writeQueue.clear();
 			try {
@@ -199,10 +198,15 @@ public class SocketServer {
 			long t = System.currentTimeMillis();
 			for (SelectionKey key : selector.keys()) {
 				Info info = (Info) key.attachment();
-				if (info != null && t - info.lastActivity > IDLE_TIMEOUT) {
+				if (info == null)
+					continue;
+				if (info.idleSince == 0)
+					info.idleSince = t;
+				else if (t - info.idleSince > IDLE_TIMEOUT) {
 					info.handler.close();
 					try {
 						key.channel().close();
+						selector.wakeup();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
