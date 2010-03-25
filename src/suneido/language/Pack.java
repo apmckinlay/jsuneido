@@ -2,8 +2,8 @@ package suneido.language;
 
 import static suneido.language.Ops.typeName;
 import static suneido.util.Util.bufferToString;
+import static suneido.util.Util.putStringToByteBuffer;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -125,11 +125,7 @@ public class Pack {
 		if (s.length() == 0)
 			return;
 		buf.put(Tag.STRING);
-		try {
-			buf.put(s.getBytes("ISO-8859-1"));
-		} catch (UnsupportedEncodingException e) {
-			throw new SuException("error packing string: ", e);
-		}
+		putStringToByteBuffer(s, buf);
 	}
 
 	private static int packSizeBD(BigDecimal n) {

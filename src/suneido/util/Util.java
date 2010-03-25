@@ -1,7 +1,6 @@
 package suneido.util;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -67,17 +66,33 @@ public class Util {
 		return Lists.newArrayList(commaSplitter.split(s));
 	}
 
-	private static final Charset charset = Charset.forName("ISO-8859-1");
-
 	public static String bufferToString(ByteBuffer buf) {
-		int pos = buf.position();
-		String s = charset.decode(buf).toString();
-		buf.position(pos);
-		return s;
+		return getStringFromBuffer(buf, buf.position());
+	}
+
+	/** does NOT change buffer position */
+	public static String getStringFromBuffer(ByteBuffer buf, int i) {
+		StringBuilder sb = new StringBuilder(buf.remaining());
+		for (; i < buf.limit(); ++i)
+			sb.append((char) buf.get(i));
+		return sb.toString();
 	}
 
 	public static ByteBuffer stringToBuffer(String s) {
-		return ByteBuffer.wrap(s.getBytes(charset));
+		ByteBuffer buf = ByteBuffer.allocate(s.length());
+		putStringToByteBuffer(s, buf, 0);
+		return buf;
+	}
+
+	/** DOES change buffer position */
+	public static void putStringToByteBuffer(String s, ByteBuffer buf) {
+		for (int i = 0; i < s.length(); ++i)
+			buf.put((byte) s.codePointAt(i));
+	}
+
+	public static void putStringToByteBuffer(String s, ByteBuffer buf, int pos) {
+		for (int i = 0; i < s.length(); ++i)
+			buf.put(pos++, (byte) s.codePointAt(i));
 	}
 
 	public static String bufferToHex(ByteBuffer buf) {
@@ -393,6 +408,15 @@ public class Util {
 		public String toString() {
 			return "Range(" + left + "," + right + ")";
 		}
+	}
+
+	public static void main(String[] args) {
+		ByteBuffer buf = stringToBuffer("hello world, how are you");
+		long t = System.currentTimeMillis();
+		for (int i = 0; i < 20000000; ++i) {
+			bufferToString(buf);
+		}
+		System.out.println(System.currentTimeMillis() - t);
 	}
 
 }
