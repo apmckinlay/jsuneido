@@ -55,10 +55,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	private final static int FILESIZE_OFFSET = 4;
 	private final static int BEGIN_OFFSET = FILEHDR + HEADER;
 	private final static byte FILLER = 0;
-	final static byte DATA = 1;
-	final static byte COMMIT = 2;
-	final static byte SESSION = 3;
-	final static byte OTHER = 4;
+	public final static byte DATA = 1;
+	public final static byte COMMIT = 2;
+	public final static byte SESSION = 3;
+	public final static byte OTHER = 4;
 	private static enum MmCheck {
 		OK, ERR, EOF
 	};
@@ -367,7 +367,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return new MmfileIterator(start);
 	}
 
-	class MmfileIterator implements Iterator<ByteBuf> {
+	public class MmfileIterator implements Iterator<ByteBuf> {
 		private long offset = -1;
 		private long next_offset = BEGIN_OFFSET;
 		private boolean err = false;

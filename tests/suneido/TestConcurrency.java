@@ -12,11 +12,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.database.*;
-import suneido.database.DbCheck.Status;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
+import suneido.database.tools.DbCheck;
+import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {

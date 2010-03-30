@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 
 import suneido.SuException;
+import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
@@ -26,7 +27,6 @@ public class DbRebuild extends DbCheck {
 	// 8 byte overhead (two int's) plus 8 byte alignment
 	// means smallest block is 16 bytes
 	final private int GRANULARITY = 16;
-	private final Map<Integer,Integer> nextfield = new HashMap<Integer,Integer>();
 
 	protected DbRebuild(String filename, boolean print) {
 		super(filename, print);

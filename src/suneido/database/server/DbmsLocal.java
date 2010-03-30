@@ -10,6 +10,7 @@ import suneido.SuValue;
 import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
+import suneido.database.tools.DbDump;
 import suneido.language.Library;
 
 /**

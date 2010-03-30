@@ -1,8 +1,9 @@
-package suneido.database;
+package suneido.database.tools;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
+import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 

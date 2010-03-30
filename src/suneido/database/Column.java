@@ -14,7 +14,9 @@ public class Column implements Comparable<Column> {
 	public final String name;
 	public final int num;
 
-	final static int TBLNUM = 0, COLUMN = 1, FLDNUM = 2;
+	public static final int TBLNUM = 0;
+	public static final int COLUMN = 1;
+	public static final int FLDNUM = 2;
 
 	public Column(Record record) {
 		name = record.getString(COLUMN);

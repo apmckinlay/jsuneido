@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
 import static suneido.util.Util.array;
-import suneido.database.DbDump;
+import suneido.database.tools.DbDump;
 import suneido.language.*;
 
 public class Dump extends BuiltinFunction {

@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.database.*;
 
 public class DbDump {
 
