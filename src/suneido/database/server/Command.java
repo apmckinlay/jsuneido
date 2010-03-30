@@ -1,5 +1,6 @@
 package suneido.database.server;
 
+import static suneido.Suneido.errlog;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
@@ -407,7 +408,8 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			// TODO LOG
+			String sessionId = ServerData.forThread().getSessionId();
+			errlog(sessionId + ": " + bufferToString(line).trim());
 			return ok();
 		}
 	},
