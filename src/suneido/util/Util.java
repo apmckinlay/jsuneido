@@ -74,7 +74,7 @@ public class Util {
 	public static String getStringFromBuffer(ByteBuffer buf, int i) {
 		StringBuilder sb = new StringBuilder(buf.remaining());
 		for (; i < buf.limit(); ++i)
-			sb.append((char) buf.get(i));
+			sb.append((char) (buf.get(i) & 0xff));
 		return sb.toString();
 	}
 
