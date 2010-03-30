@@ -50,7 +50,7 @@ public class DbRebuild extends DbCheck {
 		}
 	}
 
-	void rebuild() {
+	protected void rebuild() {
 		println("Rebuilding " + filename);
 		File tmpfile = tmpfile();
 		try {
@@ -62,7 +62,8 @@ public class DbRebuild extends DbCheck {
 			newdb.close();
 			newdb = null;
 
-			switch (DbCheck.checkPrint(tmpfile.getPath())) {
+			DbCheck dbc = new DbCheck(tmpfile.getPath(), print);
+			switch (dbc.check()) {
 			case OK:
 				break;
 			case CORRUPTED:

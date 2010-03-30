@@ -24,7 +24,7 @@ public class DbCheck {
 	final Mmfile mmf;
 	long last_good_commit = 0; // offset
 	String details = "";
-	private final boolean print;
+	protected final boolean print;
 
 	public DbCheck(String filename, boolean print) {
 		this.filename = filename;
