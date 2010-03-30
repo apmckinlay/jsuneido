@@ -13,6 +13,7 @@ import suneido.SuException;
 import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
+import suneido.util.Checksum;
 
 import com.google.common.collect.ImmutableList;
 

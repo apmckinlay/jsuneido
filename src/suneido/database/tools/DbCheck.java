@@ -10,6 +10,7 @@ import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.language.Pack;
 import suneido.util.ByteBuf;
+import suneido.util.Checksum;
 
 /**
  * check the consistency of a database
