@@ -29,7 +29,7 @@ public class ServerData {
 			new HashMap<Integer, DbmsQuery>();
 	private final Map<String, String> sviews = new HashMap<String, String>();
 	private final Stack<String> viewnest = new Stack<String>();
-	private String sessionId;
+	private String sessionId = "127.0.0.1";
 	public final OutputQueue outputQueue; // for kill
 
 	/** for tests */

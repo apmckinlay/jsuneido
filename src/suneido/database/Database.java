@@ -605,4 +605,8 @@ public class Database {
 		trans.limitOutstanding();
 	}
 
+	public int finalSize() {
+		return trans.finalSize();
+	}
+
 }
