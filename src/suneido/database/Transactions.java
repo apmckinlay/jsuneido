@@ -172,4 +172,8 @@ public class Transactions {
 		return list;
 	}
 
+	public int finalSize() {
+		return finals.size();
+	}
+
 }

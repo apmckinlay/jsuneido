@@ -1,16 +1,19 @@
 package suneido.database.server;
 
+import static suneido.Suneido.errlog;
 import static suneido.database.Database.theDB;
 
 import java.util.Date;
 import java.util.List;
 
+import suneido.SuContainer;
 import suneido.SuException;
-import suneido.SuValue;
-import suneido.database.*;
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.tools.DbDump;
+import suneido.language.Compiler;
 import suneido.language.Library;
 
 /**
@@ -90,14 +93,13 @@ public class DbmsLocal implements Dbms {
 	}
 
 	@Override
-	public SuValue connections() {
-		return suneido.language.builtin.Database.Connections();
+	public SuContainer connections() {
+		return new SuContainer();
 	}
 
 	@Override
 	public void copy(String filename) {
-		// TODO copy file
-
+		// TODO copy
 	}
 
 	@Override
@@ -115,13 +117,11 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public int finalSize() {
-		// TODO finalSize
-		return 0;
+		return theDB.finalSize();
 	}
 
 	@Override
-	public int kill(String s) {
-		// TODO kill
+	public int kill(String sessionId) {
 		return 0;
 	}
 
@@ -136,15 +136,16 @@ public class DbmsLocal implements Dbms {
 	}
 
 	@Override
-	public SuValue run(String s) {
-		// TODO run
-		return null;
+	public Object run(String s) {
+		return Compiler.eval(s);
 	}
 
 	@Override
-	public SuValue sessionid(String s) {
-		// TODO sessionid
-		return null;
+	public String sessionid(String sessionid) {
+		ServerData serverData = ServerData.forThread();
+		if (!sessionid.equals(""))
+			serverData.setSessionId(sessionid);
+		return serverData.getSessionId();
 	}
 
 	@Override
@@ -164,7 +165,8 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public void log(String s) {
-		// TODO log
+		String sessionId = ServerData.forThread().getSessionId();
+		errlog(sessionId + ": " + s);
 	}
 
 }

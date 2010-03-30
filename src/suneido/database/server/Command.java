@@ -1,6 +1,5 @@
 package suneido.database.server;
 
-import static suneido.Suneido.errlog;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
@@ -15,8 +14,8 @@ import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
-import suneido.language.*;
-import suneido.language.Compiler;
+import suneido.language.Ops;
+import suneido.language.Pack;
 import suneido.util.SocketServer.OutputQueue;
 
 /**
@@ -51,21 +50,37 @@ public enum Command {
 			return t();
 		}
 	},
-	TRANSACTION {
+	ABORT {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			String s = bufferToString(line).trim().toLowerCase();
-			boolean readwrite = false;
-			if (match(s, "update"))
-				readwrite = true;
-			else if (!match(s, "read"))
-				return stringToBuffer("ERR invalid transaction mode: " + s
-						+ "\r\n");
-			// MAYBE associate session id with transaction
-			int tn = ServerData.forThread().addTransaction(
-					theDbms.transaction(readwrite));
-			return stringToBuffer("T" + tn + "\r\n");
+			int tn = ck_getnum('T', line);
+			DbmsTran tran = ServerData.forThread().getTransaction(tn);
+			ServerData.forThread().endTransaction(tn);
+			tran.abort();
+			return ok();
+		}
+	},
+	BINARY {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			textmode = false;
+			return ok();
+		}
+	},
+	CLOSE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			int n;
+			if (-1 != (n = getnum('Q', line)))
+				ServerData.forThread().endQuery(n);
+			else if (-1 != (n = getnum('C', line)))
+				ServerData.forThread().endCursor(n);
+			else
+				throw new SuException("CLOSE expects Q# or C#");
+			return ok();
 		}
 	},
 	COMMIT {
@@ -79,51 +94,24 @@ public enum Command {
 			return conflict == null ? ok() : stringToBuffer(conflict + "\r\n");
 		}
 	},
-	ABORT {
+	CONNECTIONS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			int tn = ck_getnum('T', line);
-			DbmsTran tran = ServerData.forThread().getTransaction(tn);
-			ServerData.forThread().endTransaction(tn);
-			tran.abort();
+			SuContainer connections = new SuContainer();
+			synchronized(DbmsServer.serverDataSet) {
+				for (ServerData serverData : DbmsServer.serverDataSet)
+					connections.append(serverData.getSessionId());
+			}
+			return valueResult(outputQueue, connections);
+		}
+	},
+	COPY {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			theDbms.copy(bufferToString(line).trim());
 			return ok();
-		}
-	},
-	REQUEST {
-		@Override
-		public int extra(ByteBuffer buf) {
-			ck_getnum('T', buf);
-			return ck_getnum('Q', buf);
-		}
-
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
-			int n =
-					theDbms.request(ServerData.forThread(), tran,
-							bufferToString(extra));
-			return stringToBuffer("R" + n + "\r\n");
-		}
-	},
-	QUERY {
-		@Override
-		public int extra(ByteBuffer buf) {
-			ck_getnum('T', buf);
-			return ck_getnum('Q', buf);
-		}
-
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			int tn = ck_getnum('T', line);
-			DbmsTran tran = ServerData.forThread().getTransaction(tn);
-			DbmsQuery dq = theDbms.query(ServerData.forThread(), tran,
-					bufferToString(extra));
-			int qn = ServerData.forThread().addQuery(tn, dq);
-			return stringToBuffer("Q" + qn + "\r\n");
 		}
 	},
 	CURSOR {
@@ -141,43 +129,30 @@ public enum Command {
 			return stringToBuffer("C" + cn + "\r\n");
 		}
 	},
-	CLOSE {
+	CURSORS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			int n;
-			if (-1 != (n = getnum('Q', line)))
-				ServerData.forThread().endQuery(n);
-			else if (-1 != (n = getnum('C', line)))
-				ServerData.forThread().endCursor(n);
-			else
-				throw new SuException("CLOSE expects Q# or C#");
+			return stringToBuffer("N" + theDbms.cursors() + "\r\n");
+		}
+	},
+	DUMP {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			theDbms.dump(bufferToString(line).trim());
 			return ok();
 		}
 	},
-
-	HEADER {
+	ERASE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			DbmsQuery q = q_or_c(line);
-			return stringToBuffer(listToParens(q.header().schema()) + "\r\n");
-		}
-	},
-	ORDER {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			DbmsQuery q = q_or_c(line);
-			return stringToBuffer(listToParens(q.ordering()) + "\r\n");
-		}
-	},
-	KEYS {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			DbmsQuery q = q_or_c(line);
-			return stringToBuffer(listToParens(q.keys()) + "\r\n");
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			theDbms.erase(tran, recadr);
+			return ok();
 		}
 	},
 	EXPLAIN {
@@ -188,16 +163,13 @@ public enum Command {
 			return stringToBuffer(q.toString() + "\r\n");
 		}
 	},
-	REWIND {
+	FINAL {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			DbmsQuery q = q_or_c(line);
-			q.rewind();
-			return ok();
+			return stringToBuffer("N" + theDbms.finalSize() + "\r\n");
 		}
 	},
-
 	GET {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -243,54 +215,43 @@ public enum Command {
 			return null;
 		}
 	},
-	OUTPUT {
-		@Override
-		public int extra(ByteBuffer buf) {
-			if (-1 == getnum('T', buf) || -1 == getnum('C', buf))
-				ck_getnum('Q', buf);
-			return ck_getnum('R', buf);
-		}
-
+	HEADER {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			DbmsQuery q = q_or_tc(line);
-			// System.out.println("\t" + new Record(extra));
-			q.output(new Record(extra));
-			return t();
+			DbmsQuery q = q_or_c(line);
+			return stringToBuffer(listToParens(q.header().schema()) + "\r\n");
 		}
 	},
-	UPDATE {
-		@Override
-		public int extra(ByteBuffer buf) {
-			ck_getnum('T', buf);
-			ck_getnum('A', buf);
-			return ck_getnum('R', buf);
-		}
-
+	KEYS {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
-			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			// System.out.println("\t" + new Record(extra));
-			recadr = theDbms.update(tran, recadr, new Record(extra));
-			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
+			DbmsQuery q = q_or_c(line);
+			return stringToBuffer(listToParens(q.keys()) + "\r\n");
 		}
 	},
-	ERASE {
+	KILL {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
-			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			theDbms.erase(tran, recadr);
-			return ok();
+			int nkilled = 0;
+			String sessionId = bufferToString(line).trim();
+			synchronized(DbmsServer.serverDataSet) {
+				Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
+				while (iter.hasNext()) {
+					ServerData serverData = iter.next();
+					if (sessionId.equals(serverData.getSessionId())) {
+						++nkilled;
+						serverData.end();
+						serverData.outputQueue.closeChannel();
+						iter.remove();
+					}
+				}
+			}
+			return stringToBuffer("N" + nkilled + "\r\n");
 		}
 	},
-
 	LIBGET {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -316,46 +277,102 @@ public enum Command {
 			return stringToBuffer(listToParens(theDbms.libraries()) + "\r\n");
 		}
 	},
-	TIMESTAMP {
+	LOG {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			return stringToBuffer(Ops.display(theDbms.timestamp()) + "\r\n");
-		}
-	},
-	DUMP {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			theDbms.dump(bufferToString(line).trim());
+			theDbms.log(bufferToString(line).trim());
 			return ok();
 		}
 	},
-	COPY, // TODO COPY
-	TEXT, // not supported
+	ORDER {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
+			return stringToBuffer(listToParens(q.ordering()) + "\r\n");
+		}
+	},
+	OUTPUT {
+		@Override
+		public int extra(ByteBuffer buf) {
+			if (-1 == getnum('T', buf) || -1 == getnum('C', buf))
+				ck_getnum('Q', buf);
+			return ck_getnum('R', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_tc(line);
+			// System.out.println("\t" + new Record(extra));
+			q.output(new Record(extra));
+			return t();
+		}
+	},
+	QUERY {
+		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			return ck_getnum('Q', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			int tn = ck_getnum('T', line);
+			DbmsTran tran = ServerData.forThread().getTransaction(tn);
+			DbmsQuery dq = theDbms.query(ServerData.forThread(), tran,
+					bufferToString(extra));
+			int qn = ServerData.forThread().addQuery(tn, dq);
+			return stringToBuffer("Q" + qn + "\r\n");
+		}
+	},
+	REQUEST {
+		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			return ck_getnum('Q', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			int n =
+					theDbms.request(ServerData.forThread(), tran,
+							bufferToString(extra));
+			return stringToBuffer("R" + n + "\r\n");
+		}
+	},
+	REWIND {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			DbmsQuery q = q_or_c(line);
+			q.rewind();
+			return ok();
+		}
+	},
 	RUN {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			Object result = Compiler.eval(bufferToString(line));
+			Object result = theDbms.run(bufferToString(line));
 			if (result == null)
 				return stringToBuffer("\r\n");
-			return valueResult(outputQueue, result);
+			return textmode
+					? stringToBuffer(Ops.display(result) + "\r\n")
+					: valueResult(outputQueue, result);
 		}
 	},
-	BINARY {
+	SESSIONID {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			// jSuneido only supports binary
-			return ok();
-		}
-	},
-	TRANLIST {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			return stringToBuffer(listToParens(theDbms.tranlist()) + "\r\n");
+			return stringToBuffer(
+					theDbms.sessionid(bufferToString(line).trim()) + "\r\n");
 		}
 	},
 	SIZE {
@@ -373,67 +390,66 @@ public enum Command {
 			return stringToBuffer("D0\r\n");
 		}
 	},
-	CONNECTIONS {
+	TEXT {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			SuContainer connections = new SuContainer();
-			synchronized(DbmsServer.serverDataSet) {
-				for (ServerData serverData : DbmsServer.serverDataSet)
-					connections.append(serverData.getSessionId());
-			}
-			return valueResult(outputQueue, connections);
-		}
-	},
-	CURSORS {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			return stringToBuffer("N" + theDbms.cursors() + "\r\n");
-		}
-	},
-	SESSIONID {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			String sessionId = bufferToString(line).trim();
-			ServerData serverData = ServerData.forThread();
-			if (!sessionId.equals(""))
-				serverData.setSessionId(sessionId);
-			return stringToBuffer(serverData.getSessionId() + "\r\n");
-		}
-	},
-	FINAL,
-	LOG {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				OutputQueue outputQueue) {
-			String sessionId = ServerData.forThread().getSessionId();
-			errlog(sessionId + ": " + bufferToString(line).trim());
+			textmode = true;
 			return ok();
 		}
 	},
-	KILL {
+	TIMESTAMP {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				OutputQueue outputQueue) {
-			int nkilled = 0;
-			String sessionId = bufferToString(line).trim();
-			synchronized(DbmsServer.serverDataSet) {
-				Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
-				while (iter.hasNext()) {
-					ServerData serverData = iter.next();
-					if (sessionId.equals(serverData.getSessionId())) {
-						++nkilled;
-						serverData.end();
-						serverData.outputQueue.closeChannel();
-						iter.remove();
-					}
-				}
-			}
-			return stringToBuffer("N" + nkilled + "\r\n");
+			return stringToBuffer(Ops.display(theDbms.timestamp()) + "\r\n");
+		}
+	},
+	TRANLIST {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			return stringToBuffer(listToParens(theDbms.tranlist()) + "\r\n");
+		}
+	},
+	TRANSACTION {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			String s = bufferToString(line).trim().toLowerCase();
+			boolean readwrite = false;
+			if (match(s, "update"))
+				readwrite = true;
+			else if (!match(s, "read"))
+				return stringToBuffer("ERR invalid transaction mode: " + s
+						+ "\r\n");
+			// MAYBE associate session id with transaction
+			int tn = ServerData.forThread().addTransaction(
+					theDbms.transaction(readwrite));
+			return stringToBuffer("T" + tn + "\r\n");
+		}
+	},
+	UPDATE {
+		@Override
+		public int extra(ByteBuffer buf) {
+			ck_getnum('T', buf);
+			ck_getnum('A', buf);
+			return ck_getnum('R', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				OutputQueue outputQueue) {
+			DbmsTran tran =
+					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			// System.out.println("\t" + new Record(extra));
+			recadr = theDbms.update(tran, recadr, new Record(extra));
+			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
 		}
 	};
+
+	//==========================================================================
 
 	/**
 	 * @param buf A ByteBuffer containing the command line.
@@ -444,19 +460,19 @@ public enum Command {
 	}
 
 	/**
-	 * @param line
-	 *            Current position is past the first (command) word.
+	 * @param line Current position is past the first (command) word.
 	 * @param extra
 	 * @param outputQueue
-	 * @param TheServerData
-	 *            .get()
-	 * @return
+	 * @return null or a result buffer to be output
 	 */
 	public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 			OutputQueue outputQueue) {
 		outputQueue.add(notimp());
 		return line;
 	}
+
+	//==========================================================================
+
 	private final static ByteBuffer BADCMD_ = stringToBuffer("ERR bad command: ");
 	private final static ByteBuffer NOTIMP_ = stringToBuffer("ERR not implemented: ");
 	private final static ByteBuffer OK_ = stringToBuffer("OK\r\n");
@@ -464,6 +480,7 @@ public enum Command {
 	private final static ByteBuffer TRUE_ = stringToBuffer("t\r\n");
 
 	public final static Dbms theDbms = new DbmsLocal();
+	public static boolean textmode = true;
 
 	static ByteBuffer badcmd() {
 		return BADCMD_.duplicate();

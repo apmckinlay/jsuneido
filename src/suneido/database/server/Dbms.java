@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
 
-import suneido.SuValue;
+import suneido.SuContainer;
 import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
@@ -35,16 +35,16 @@ public interface Dbms {
 	Date timestamp();
 	void dump(String filename);
 	void copy(String filename);
-	SuValue run(String s);
+	Object run(String s);
 	long size();
-	SuValue connections();
+	SuContainer connections();
 	void erase(DbmsTran tran, long recadr);
 
 	long update(DbmsTran tran, long recadr, Record rec);
 
 	HeaderAndRow get(ServerData serverData, Dir dir, String query, boolean one, DbmsTran tran);
 	int cursors();
-	SuValue sessionid(String s);
+	String sessionid(String s);
 	int finalSize();
 	void log(String s);
 	int kill(String s);
