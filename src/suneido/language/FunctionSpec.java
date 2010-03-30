@@ -16,7 +16,8 @@ public class FunctionSpec {
 
 	public final static FunctionSpec noParams =
 			new FunctionSpec(null, new String[0], 0);
-	public static final FunctionSpec value = new FunctionSpec("value");
+	public static final FunctionSpec value =
+			new FunctionSpec("value");
 	public static final FunctionSpec value2 =
 			new FunctionSpec("value", "value");
 

@@ -17,5 +17,3 @@ public class DeleteFile extends BuiltinFunction {
 	}
 
 }
-
-

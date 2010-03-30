@@ -39,6 +39,7 @@ public class Globals {
 		builtins.put("Date", new DateClass());
 		builtins.put("Date?", new DateQ());
 		builtins.put("DeleteFile", new DeleteFile());
+		builtins.put("Dir", new Dir());
 		builtins.put("Display", new Display());
 		builtins.put("Div", new Div());
 		builtins.put("Dump", new Dump());
