@@ -14,7 +14,7 @@ import suneido.SuException;
 import com.google.common.collect.ImmutableList;
 
 @ThreadSafe // no state, all static methods
-class Schema {
+public class Schema {
 
 	// tables =======================================================
 
@@ -70,7 +70,7 @@ class Schema {
 					" system table: " + tablename);
 	}
 
-	static boolean isSystemTable(String table) {
+	public static boolean isSystemTable(String table) {
 		return table.equals("tables") || table.equals("columns")
 				|| table.equals("indexes") || table.equals("views");
 	}

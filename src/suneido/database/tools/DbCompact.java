@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static suneido.SuException.verifyEquals;
 import static suneido.database.Database.theDB;
@@ -8,8 +8,9 @@ import java.io.IOException;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.DbCheck.Status;
+import suneido.database.*;
 import suneido.database.query.Request;
+import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
 
 public class DbCompact {

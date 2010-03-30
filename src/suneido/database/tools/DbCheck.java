@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static suneido.database.Database.theDB;
 
@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.language.Pack;
 import suneido.util.ByteBuf;

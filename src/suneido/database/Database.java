@@ -11,6 +11,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.database.tools.DbRebuild;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
@@ -32,7 +33,7 @@ public class Database {
 	public final Destination dest; // used by tests
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
-	boolean loading = false;
+	public boolean loading = false;
 	private byte output_type = Mmfile.DATA;
 	private volatile Tables tables = new Tables(); // depends on Tables being immutable
 	private volatile PersistentMap<Integer, TableData> tabledata = null;
@@ -42,8 +43,8 @@ public class Database {
 	public final Object commitLock = new Object();
 	public static Database theDB;
 
-	static class TN {
-		final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
+	public static class TN {
+		public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
 	private static class V {
 		@SuppressWarnings("unused")
@@ -285,7 +286,7 @@ public class Database {
 		return slot == null ? null : input(slot.keyadr());
 	}
 
-	Record getTableRecord(Transaction tran, int tblnum) {
+	public Record getTableRecord(Transaction tran, int tblnum) {
 		BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 		return find(tran, tablenum_index, key(tblnum));
 	}
@@ -307,7 +308,7 @@ public class Database {
 		}
 	}
 
-	Table loadTable(Transaction tran, Record table_rec,
+	public Table loadTable(Transaction tran, Record table_rec,
 			List<BtreeIndex> btis) {
 		String tablename = table_rec.getString(Table.TABLE);
 		int tblnum = table_rec.getInt(Table.TBLNUM);
@@ -382,11 +383,11 @@ public class Database {
 		return new Record().add(s);
 	}
 
-	long alloc(int n, byte type) {
+	public long alloc(int n, byte type) {
 		return dest.alloc(n, type);
 	}
 
-	ByteBuf adr(long offset) {
+	public ByteBuf adr(long offset) {
 		return dest.adr(offset);
 	}
 
@@ -433,7 +434,7 @@ public class Database {
 	}
 
 	// for rebuild
-	void setNextTableNum(int nextTableNum) {
+	public void setNextTableNum(int nextTableNum) {
 		dbhdr.setNextTableNum(nextTableNum);
 	}
 
@@ -458,14 +459,14 @@ public class Database {
 
 	// called by Transaction complete for schema changes
 	// and by DbRebuild
-	void updateTable(Table table, TableData td) {
+	public void updateTable(Table table, TableData td) {
 		tables = tables.with(table);
 		tabledata = tabledata.with(td.tblnum, td);
 	}
 
 	// called by Transaction complete for schema changes
 	// and by DbRebuild
-	void updateBtreeIndex(BtreeIndex bti) {
+	public void updateBtreeIndex(BtreeIndex bti) {
 		bti.setDest(bti.getDest().unwrap());
 		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
 	}
@@ -556,7 +557,7 @@ public class Database {
 		return tables.get(tablename);
 	}
 
-	void addIndexEntriesForRebuild(int tblnum, Record rec) {
+	public void addIndexEntriesForRebuild(int tblnum, Record rec) {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
@@ -571,7 +572,7 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
-	void removeIndexEntriesForRebuild(int tblnum, Record rec) {
+	public void removeIndexEntriesForRebuild(int tblnum, Record rec) {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
@@ -583,7 +584,7 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
-	void addIndexEntriesForCompact(Table table, Index index, Record rec) {
+	public void addIndexEntriesForCompact(Table table, Index index, Record rec) {
 		BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
 		Record key = rec.project(index.colnums, rec.off());
 		if (!btreeIndex.insert(NULLTRAN, new Slot(key)))

@@ -1,6 +1,9 @@
-package suneido.database;
+package suneido.database.tools;
 
 import org.junit.Test;
+
+import suneido.database.Database;
+import suneido.database.Mode;
 
 public class DbCheckTest extends DbCheckRebuildBase {
 

@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -7,7 +7,9 @@ import java.io.File;
 
 import org.junit.After;
 
-import suneido.database.DbCheck.Status;
+import suneido.database.*;
+import suneido.database.tools.DbCheck;
+import suneido.database.tools.DbCheck.Status;
 
 public class DbCheckRebuildBase extends TestBaseBase {
 	protected final String filename;

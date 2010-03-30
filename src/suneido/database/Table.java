@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
  */
 @Immutable
 public class Table {
-	final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
+	public final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
 	public final String name;
 	public final int num;
 	public final Columns columns;

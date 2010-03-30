@@ -8,14 +8,14 @@ import java.util.zip.Adler32;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
-class Checksum {
+public class Checksum {
 
 	private final Adler32 cksum = new Adler32();
 
 	private static byte[] bytes = new byte[256];
 
 	// used by Transaction.writeCommitRecord
-	synchronized void add(ByteBuffer buf, int len) {
+	public synchronized void add(ByteBuffer buf, int len) {
 		buf.position(0);
 		for (int i = 0; i < len; i += bytes.length) {
 			int n = min(bytes.length, len - i);
@@ -31,11 +31,11 @@ class Checksum {
 		reset();
 	}
 
-	synchronized long getValue() {
+	public synchronized long getValue() {
 		return cksum.getValue();
 	}
 
-	synchronized void reset() {
+	public synchronized void reset() {
 		cksum.reset();
 	}
 

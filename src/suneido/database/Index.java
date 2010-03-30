@@ -17,11 +17,11 @@ import com.google.common.collect.ImmutableList;
  */
 public class Index {
 
-	final static int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
+	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
-	public final static int BLOCK = 0, CASCADE_UPDATES = 1,
+	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
-	final static String UNIQUE = "u";
+	static final String UNIQUE = "u";
 
 	public final int tblnum;
 	public final String columns;

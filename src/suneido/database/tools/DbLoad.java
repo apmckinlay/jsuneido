@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.database.tools;
 
 import static suneido.SuException.verify;
 import static suneido.database.Database.theDB;
@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
+import suneido.database.*;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 

@@ -15,16 +15,16 @@ import com.google.common.collect.ImmutableList;
  * @author Andrew McKinlay
  */
 @ThreadSafe
-class Data {
+public class Data {
 
 	// add record ===================================================
 
-	static void addRecord(Transaction tran, String tablename, Record r) {
+	public static void addRecord(Transaction tran, String tablename, Record r) {
 		checkForSystemTable(tablename, "add record to");
 		add_any_record(tran, tablename, r);
 	}
 
-	static void add_any_record(Transaction tran, String tablename, Record r) {
+	public static void add_any_record(Transaction tran, String tablename, Record r) {
 		add_any_record(tran, tran.ck_getTable(tablename), r);
 	}
 
@@ -50,7 +50,7 @@ class Data {
 					+ " transaction conflict: " + tran.conflict());
 	}
 
-	static long outputRecordForCompact(Transaction tran, int tblnum, Record rec) {
+	public static long outputRecordForCompact(Transaction tran, int tblnum, Record rec) {
 		long adr = tran.db.output(tblnum, rec);
 		tran.create_act(tblnum, adr);
 		tran.updateTableData(tran.getTableData(tblnum).with(rec.packSize()));

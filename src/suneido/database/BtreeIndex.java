@@ -17,8 +17,8 @@ public class BtreeIndex {
 	public final Record record;
 	private Destination dest;
 	private final Btree bt;
-	final boolean iskey;
-	final boolean unique;
+	public final boolean iskey;
+	public final boolean unique;
 	final int tblnum;
 	final String columns;
 
@@ -66,7 +66,7 @@ public class BtreeIndex {
 		columns = bti.columns;
 	}
 
-	static void rebuildCreate(Destination dest, Record rec) {
+	public static void rebuildCreate(Destination dest, Record rec) {
 		new BtreeIndex(rec, dest);
 	}
 
@@ -156,7 +156,7 @@ public class BtreeIndex {
 		return bt.insert(x);
 	}
 
-	static Record stripAddress(Record key) {
+	public static Record stripAddress(Record key) {
 		// PERF avoid dup - maybe some kind of slice/view
 		return key.dup().truncate(key.size() - 1);
 	}
@@ -182,7 +182,7 @@ public class BtreeIndex {
 		return cur.key.hasPrefix(key) ? cur : null;
 	}
 
-	static boolean isEmpty(Record key) {
+	public static boolean isEmpty(Record key) {
 		int n = key.size() - 1; // - 1 to ignore record address at end
 		if (n <= 0)
 			return true;

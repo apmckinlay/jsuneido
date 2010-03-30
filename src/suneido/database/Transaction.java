@@ -26,7 +26,7 @@ import suneido.util.PersistentMap;
 @ThreadSafe
 // should only used by one session i.e. one thread at a time
 public class Transaction implements Comparable<Transaction>, DbmsTran {
-	final Database db;
+	public final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected volatile boolean ended = false;
