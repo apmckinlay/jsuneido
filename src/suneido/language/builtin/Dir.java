@@ -31,8 +31,15 @@ public class Dir extends BuiltinFunction {
 		SuContainer ob = new SuContainer();
 		for (File f : new File(dir).listFiles(filter))
 			if (! files || ! f.isDirectory())
-				ob.append(details ? detailsOf(f) : f.getName());
+				ob.append(details ? detailsOf(f) : nameOf(f));
 		return ob;
+	}
+
+	private String nameOf(File f) {
+		String s = f.getName();
+		if (f.isDirectory())
+			s += "/";
+		return s;
 	}
 
 	private SuContainer detailsOf(File f) {
