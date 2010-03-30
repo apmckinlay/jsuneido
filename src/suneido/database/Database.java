@@ -12,8 +12,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.database.tools.DbRebuild;
-import suneido.util.ByteBuf;
-import suneido.util.PersistentMap;
+import suneido.util.*;
 
 import com.google.common.collect.ImmutableList;
 
@@ -263,7 +262,12 @@ public class Database {
 	}
 
 	void writeCommit(ByteBuffer buf) {
-		checksum.writeCommit(buf);
+		// include commit in checksum, but don't include checksum itself
+		synchronized(checksum) {
+			checksum.add(buf, buf.position());
+			buf.putInt((int) checksum.getValue());
+			checksum.reset();
+		}
 	}
 
 	// not synchronized because it does not depend on state
