@@ -1,6 +1,7 @@
 package suneido.language.builtin;
 
 import static suneido.database.server.Command.theDbms;
+import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
 
@@ -30,22 +31,17 @@ public class Database extends SuValue {
 		if (method == "Cursors")
 			return Cursors(args);
 		if (method == "SessionId")
-			return "127.0.0.1"; // TODO SessionId
+			return SessionId(args);
 		if (method == "TempDest")
 			return 0; // not relevant to jSuneido
 		if (method == "Transactions")
-			return Transactions(args); // TODO Transactions
+			return Transactions(args);
 		return super.invoke(self, method, args);
-	}
-
-	private Object Transactions(Object[] args) {
-		return new SuContainer(theDbms.tranlist());
 	}
 
 	public static SuContainer Connections(Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
-		// TODO connections
-		return new SuContainer();
+		return theDbms.connections();
 	}
 
 	private Object CurrentSize(Object[] args) {
@@ -57,6 +53,18 @@ public class Database extends SuValue {
 	private int Cursors(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		return theDbms.cursors();
+	}
+
+	public static final FunctionSpec stringFS =
+			new FunctionSpec(array("string"), "");
+
+	private Object SessionId(Object[] args) {
+		args = Args.massage(stringFS, args);
+		return theDbms.sessionid(Ops.toStr(args[0]));
+	}
+
+	private Object Transactions(Object[] args) {
+		return new SuContainer(theDbms.tranlist());
 	}
 
 }
