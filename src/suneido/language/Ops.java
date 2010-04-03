@@ -1263,7 +1263,7 @@ public class Ops {
 			throw new SuException(typeName(x) + " does not support put");
 	}
 	public static Object get(Object x, Object member) {
-		if (member == null)
+		if (x == null || member == null)
 			throw new SuException("uninitialized");
 		if (x instanceof SuValue) {
 			Object y = ((SuValue) x).get(member);
