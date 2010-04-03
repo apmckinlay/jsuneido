@@ -96,7 +96,7 @@ public class Repl {
 		return (SuValue) pc.parse();
 	}
 
-	static class Print extends BuiltinFunction {
+	public static class Print extends BuiltinFunction {
 		@Override
 		public Object call(Object... args) {
 			SuContainer c = Args.collectArgs(args, new SuContainer());

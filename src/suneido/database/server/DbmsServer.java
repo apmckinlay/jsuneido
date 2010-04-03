@@ -12,9 +12,11 @@ import java.util.concurrent.*;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.Repl;
 import suneido.SuException;
 import suneido.database.Database;
 import suneido.language.Compiler;
+import suneido.language.Globals;
 import suneido.util.SocketServer;
 import suneido.util.SocketServer.OutputQueue;
 
@@ -25,6 +27,7 @@ public class DbmsServer {
 
 	public static void run(int port) {
 		Database.open_theDB();
+		Globals.builtin("Print", new Repl.Print());
 		Compiler.eval("JInit()");
 		SocketServer server = new SocketServer(new HandlerFactory());
 		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
