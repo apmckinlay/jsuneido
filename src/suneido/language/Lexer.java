@@ -377,4 +377,8 @@ public class Lexer {
 	public String matched() {
 		return source.substring(prev, si);
 	}
+
+	public String sourceWithPosition() {
+		return source.substring(0, prev) + " @HERE@ " + source.substring(prev);
+	}
 }
