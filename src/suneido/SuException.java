@@ -33,12 +33,8 @@ public class SuException extends RuntimeException {
 
 	public static final SuException methodNotFound(Object object, String method) {
 		return new SuException("method not found: "
-				+ lowerFirst(Ops.typeName(object)) + "." + method
+				+ Ops.typeName(object) + "." + method
 				+ " (" + object + ")");
-	}
-
-	public static String lowerFirst(String s) {
-		return s.substring(0, 1).toLowerCase() + s.substring(1);
 	}
 
 	public static void fatal(String msg) {
