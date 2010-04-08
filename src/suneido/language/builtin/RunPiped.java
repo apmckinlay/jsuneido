@@ -137,6 +137,11 @@ public class RunPiped extends BuiltinClass {
 		}
 
 		@Override
+		protected void finalize() throws Throwable {
+			Close();
+		}
+
+		@Override
 		public String toString() {
 			return "RunPiped(" + cmd + ")";
 		}

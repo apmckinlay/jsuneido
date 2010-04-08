@@ -552,4 +552,9 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		return shadows.shadow(dest, offset, copy);
 	}
 
+	@Override
+	protected void finalize() throws Throwable {
+		abortIfNotComplete();
+	}
+
 }

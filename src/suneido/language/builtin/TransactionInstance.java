@@ -165,11 +165,6 @@ public class TransactionInstance extends SuValue {
 			t.abort();
 	}
 
-	@Override
-	public String toString() {
-		return t.toString();
-	}
-
 	public DbmsTran getTransaction() {
 		return t;
 	}
@@ -180,6 +175,11 @@ public class TransactionInstance extends SuValue {
 
 	public String conflict() {
 		return conflict;
+	}
+
+	@Override
+	public String toString() {
+		return t.toString();
 	}
 
 }
