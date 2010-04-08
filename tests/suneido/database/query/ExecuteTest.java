@@ -12,6 +12,7 @@ import suneido.database.Transaction;
 import suneido.language.Ops;
 
 public class ExecuteTest extends TestBase {
+
 	@Test
 	public void test() {
 		for (String[] c : cases) {

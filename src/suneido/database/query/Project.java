@@ -3,7 +3,6 @@ package suneido.database.query;
 import static suneido.SuException.unreachable;
 import static suneido.util.Util.*;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuException;
@@ -349,32 +348,16 @@ public class Project extends Query1 {
 			if (data == null) {
 				map.put(key, row.getRefs());
 				return row;
-			} else if (equal(data, row.getRefs()))
+			} else if (Arrays.equals(data, row.getRefs()))
 				return row;
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
 		return null;
 	}
-	private boolean equal(Object[] refs1, Object[] refs2) {
-		if (refs1.length != refs2.length)
-			return false;
-		for (int i = 0; i < refs1.length; ++i)
-			if (!equal(refs1[i], refs2[i]))
-				return false;
-		return true;
-	}
-	private boolean equal(Object ref1, Object ref2) {
-		if (ref1 == ref2)
-			return true;
-		if (ref1 instanceof ByteBuffer && ref2 instanceof ByteBuffer)
-			return ((ByteBuffer) ref1).equals(ref2);
-		return false;
-	}
 
 	private void buildLookupIndex() {
 		Row row;
-		// pre-build the index
 		while (null != (row = source.get(Dir.NEXT))) {
 			Record key = row.project(hdr, flds);
 			if (null == map.get(key))
