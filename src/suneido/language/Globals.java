@@ -45,8 +45,9 @@ public class Globals {
 		builtins.put("Dump", new Dump());
 		builtins.put("DoWithoutTriggers", new DoWithoutTriggers());
 		builtins.put("Eq", new Eq());
+		builtins.put("ExePath", new ExePath());
 		builtins.put("Exit", new Exit());
-		builtins.put("File", new FileClass());
+		builtins.put("File", new File());
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
@@ -76,6 +77,7 @@ public class Globals {
 		builtins.put("Random", new Random());
 		builtins.put("Record", new Record());
 		builtins.put("Record?", new RecordQ());
+		builtins.put("RunPiped", new RunPiped());
 		builtins.put("Scanner", new Scanner());
 		builtins.put("Seq", new Seq());
 		builtins.put("ServerIP", new ServerIP());
