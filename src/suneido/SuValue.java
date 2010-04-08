@@ -49,6 +49,8 @@ public abstract class SuValue implements Packable {
 				s = s.substring(8);
 			if (s.endsWith("Instance"))
 				s = s.substring(0, s.length() - 8);
+			if (s.endsWith("$"))
+				s = s.substring(0, s.length() - 1);
 		}
 		return s;
 	}

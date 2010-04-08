@@ -193,6 +193,11 @@ public class File extends BuiltinClass {
 		}
 
 		@Override
+		protected void finalize() throws Throwable {
+			Close();
+		}
+
+		@Override
 		public String toString() {
 			return "File(" + filename + ", " + mode + ")";
 		}

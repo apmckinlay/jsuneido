@@ -16,7 +16,8 @@ public class DbLoad {
 
 	public static void loadPrint(String filename) {
 		int n = DbLoad.loadDatabase(filename);
-		System.out.println("loaded " + n + " tables into new suneido.db");
+		System.out.println("loaded " + n + " tables from " + filename
+				+ " into new suneido.db");
 	}
 
 	public static int loadDatabase(String filename) {

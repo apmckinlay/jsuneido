@@ -6,6 +6,7 @@ import static suneido.database.Schema.checkForSystemTable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.database.Database.TN;
 
 import com.google.common.collect.ImmutableList;
 
@@ -34,6 +35,7 @@ public class Data {
 					+ table.name);
 		assert (table != null);
 		verify(!table.indexes.isEmpty());
+		truncate(table, rec);
 
 		if (!tran.db.loading)
 			fkey_source_block(tran, table, rec, "add record to " + table.name);
@@ -111,6 +113,7 @@ public class Data {
 		if (tran.isReadonly())
 			throw new SuException("can't update from read-only transaction in "
 					+ table.name);
+		truncate(table, newrec);
 
 		long oldoff = oldrec.off();
 
@@ -161,6 +164,11 @@ public class Data {
 
 		Triggers.call(tran, table, oldrec, newrec);
 		return newoff;
+	}
+
+	private static void truncate(Table table, Record rec) {
+		if (table.num != TN.TABLES && table.num != TN.INDEXES)
+			rec.truncate(table.maxColumnNum() + 1); // can be larger from extend
 	}
 
 	// remove record ================================================
