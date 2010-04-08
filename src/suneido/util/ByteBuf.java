@@ -260,4 +260,9 @@ public class ByteBuf {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public String toString() {
+		return "ByteBuf@" + System.identityHashCode(this);
+	}
+
 }

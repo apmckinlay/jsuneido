@@ -136,4 +136,9 @@ public class Header {
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return "Header(" + listToParens(flds) + ", " + listToParens(cols) + ")";
+	}
+
 }
