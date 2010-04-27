@@ -168,7 +168,7 @@ public class Data {
 
 	private static void truncate(Table table, Record rec) {
 		if (table.num != TN.TABLES && table.num != TN.INDEXES)
-			rec.truncate(table.maxColumnNum() + 1); // can be larger from extend
+			rec.truncateIfLarger(table.maxColumnNum() + 1); // can be larger from extend
 	}
 
 	// remove record ================================================
