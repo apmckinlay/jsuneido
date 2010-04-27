@@ -167,14 +167,10 @@ public class DbLoad {
 			Transaction tran, byte[] recbuf, int n)	throws IOException {
 		verify(fin.read(recbuf, 0, n) == n);
 		Record rec = new Record(ByteBuf.wrap(recbuf, 0, n));
-		try {
-			if (tablename.equals("views"))
-				Data.add_any_record(tran, tablename, rec);
-			else
-				Data.addRecord(tran, tablename, rec);
-		} catch (Throwable e) {
-			System.out.println("load failed for " + tablename + e);
-		}
+		if (tablename.equals("views"))
+			Data.add_any_record(tran, tablename, rec);
+		else
+			Data.addRecord(tran, tablename, rec);
 	}
 
 	private static String getline(InputStream fin) throws IOException {

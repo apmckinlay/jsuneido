@@ -384,6 +384,11 @@ public class Record
 		return this;
 	}
 
+	public void truncateIfLarger(int n) {
+		if (n < getNfields())
+			setNfields(n);
+	}
+
 	/**
 	 * @return The number of fields in the BufRecord.
 	 */
