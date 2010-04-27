@@ -28,6 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class SocketServer {
 	private final HandlerFactory handlerFactory;
+	private InetAddress inetAddress;
 	private Selector selector;
 	private static final int INITIAL_BUFSIZE = 16 * 1024;
 	private static final int MAX_BUFSIZE = 64 * 1024;
@@ -45,6 +46,7 @@ public class SocketServer {
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		ServerSocket serverSocket = serverChannel.socket();
 		serverSocket.bind(new InetSocketAddress(port));
+		inetAddress = serverSocket.getInetAddress();
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		while (true) {
@@ -52,6 +54,10 @@ public class SocketServer {
 			if (nready > 0)
 				handleSelected();
 		}
+	}
+
+	public InetAddress getInetAddress() {
+		return inetAddress;
 	}
 
 	private void handleSelected() throws IOException {

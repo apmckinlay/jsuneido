@@ -82,6 +82,7 @@ public class Globals {
 		builtins.put("Seq", new Seq());
 		builtins.put("ServerIP", new ServerIP());
 		builtins.put("ServerPort", new ServerPort());
+		builtins.put("Server?", new ServerQ());
 		builtins.put("Sleep", new Sleep());
 		builtins.put("String?", new StringQ());
 		builtins.put("Sub", new Sub());

@@ -4,6 +4,7 @@ import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,12 +25,15 @@ public class DbmsServer {
 	private static final Executor executor = Executors.newCachedThreadPool();
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
+	private static InetAddress inetAddress;
 
 	public static void run(int port) {
+		((ThreadPoolExecutor) executor).setMaximumPoolSize(10);
 		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
 		Compiler.eval("JInit()");
 		SocketServer server = new SocketServer(new HandlerFactory());
+		inetAddress = server.getInetAddress();
 		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					theDB.limitOutstandingTransactions();
@@ -45,6 +49,10 @@ public class DbmsServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static InetAddress getInetAddress() {
+		return inetAddress;
 	}
 
 	private static class HandlerFactory implements SocketServer.HandlerFactory {
