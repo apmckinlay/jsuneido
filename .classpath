@@ -8,6 +8,6 @@
 	<classpathentry kind="lib" path="asm-3.1.jar"/>
 	<classpathentry kind="lib" path="asm-analysis-3.1.jar"/>
 	<classpathentry kind="lib" path="asm-util-3.1.jar"/>
-	<classpathentry kind="lib" path="guava-r03.jar"/>
+	<classpathentry kind="lib" path="guava.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
