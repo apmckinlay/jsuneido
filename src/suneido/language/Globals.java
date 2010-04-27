@@ -38,6 +38,7 @@ public class Globals {
 		builtins.put("Database", new Database());
 		builtins.put("Date", new DateClass());
 		builtins.put("Date?", new DateQ());
+		builtins.put("Delayed", new Delayed());
 		builtins.put("DeleteFile", new DeleteFile());
 		builtins.put("Dir", new Dir());
 		builtins.put("Display", new Display());

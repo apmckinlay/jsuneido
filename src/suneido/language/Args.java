@@ -26,36 +26,36 @@ public class Args {
 	 *            Unlike cSuneido, multiple EACH's are allowed.
 	 * @return The locals Object array initialized from args.
 	 */
-	public static Object[] massage(FunctionSpec fn, Object[] args) {
-		final int nlocals = fn.locals.length;
+	public static Object[] massage(FunctionSpec fs, Object[] args) {
+		final int nlocals = fs.locals.length;
 		final boolean args_each =
 				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
-		if (simple(args) && !fn.atParam && args.length == fn.nparams
+		if (simple(args) && !fs.atParam && args.length == fs.nparams
 				&& nlocals <= args.length)
 			// "fast" path - avoid alloc by using args as locals
 			return args;
 
 		Object[] locals = new Object[nlocals];
 
-		if (fn.atParam && args_each) {
+		if (fs.atParam && args_each) {
 			// function (@params) (@args)
 			SuContainer c = Ops.toContainer(args[1]);
 			if (c == null)
 				throw new SuException("@args requires object");
 			locals[0] = c.slice(args[0] == EACH ? 0 : 1);
-		} else if (fn.atParam) {
+		} else if (fs.atParam) {
 			// function (@params)
 			SuContainer c = new SuContainer();
 			locals[0] = c;
 			collectArgs(args, c);
 		} else {
-			assert nlocals >= fn.nparams;
+			assert nlocals >= fs.nparams;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i] == NAMED) {
-					for (int j = 0; j < fn.nparams; ++j)
-						if (fn.locals[j].equals(args[i + 1]))
+					for (int j = 0; j < fs.nparams; ++j)
+						if (fs.locals[j].equals(args[i + 1]))
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
@@ -67,22 +67,22 @@ public class Args {
 						throw new SuException("too many arguments");
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
-					for (int j = 0; j < fn.nparams; ++j) {
-						Object x = c.get(fn.locals[j]);
+					for (int j = 0; j < fs.nparams; ++j) {
+						Object x = c.get(fs.locals[j]);
 						if (x != null)
 							locals[j] = x;
 					}
 				}
-				else if (li < fn.nparams)
+				else if (li < fs.nparams)
 					locals[li++] = args[i];
 				else
 					throw new SuException("too many arguments");
 			}
 		}
 
-		applyDefaults(fn, locals);
+		applyDefaults(fs, locals);
 
-		verifyAllSupplied(fn, locals);
+		verifyAllSupplied(fs, locals);
 
 		return locals;
 	}
