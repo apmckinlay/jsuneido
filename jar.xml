@@ -15,7 +15,7 @@
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-3.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-analysis-3.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-util-3.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/google-guava.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/guava-r03.jar"/>
         </jar>
     </target>
 	<target name="when_built">
