@@ -12,7 +12,7 @@ public class TransformTest extends TestBase {
 		test("customer extend a = 5 extend b = 6",
 				"customer EXTEND a = 5, b = 6");
 		// combine project's
-		test("customer project id, name project id", "customer PROJECT id");
+		test("customer project id, name project id", "customer PROJECT-COPY (id)");
 		// combine rename's
 		test("customer rename id to x rename name to y",
 				"customer RENAME id to x, name to y");
@@ -27,29 +27,29 @@ public class TransformTest extends TestBase {
 				"customer WHERE (id is 3)");
 		// remove empty extends
 		test("customer extend zone = 3 project id, city",
-				"customer PROJECT id,city");
+				"customer PROJECT-COPY (id,city)");
 		// remove empty renames
 		test("customer rename name to nom project id, city",
-				"customer PROJECT id,city");
+				"customer PROJECT-COPY (id,city)");
 
 		// move project before rename
 		test("customer rename id to num, name to nom project num, city",
-				"customer PROJECT id,city RENAME id to num");
+				"customer PROJECT-COPY (id,city) RENAME id to num");
 		// move project before rename & remove empty rename
 		test("customer rename id to num, name to nom project city",
-				"customer PROJECT city");
+				"customer PROJECT (city)");
 		// move project before extend
 		test("customer extend a = 5, b = 6 project id, a, name",
-				"customer PROJECT id,name EXTEND a = 5");
+				"customer PROJECT-COPY (id,name) EXTEND a = 5");
 		// ... but not if extend uses fields not in project
 		test("customer extend a = city, b = 6 project id, a, name",
-				"customer EXTEND a = city, b = 6 PROJECT id,a,name");
+				"customer EXTEND a = city, b = 6 PROJECT-COPY (id,a,name)");
 		// move project before extend & remove empty extend
 		test("customer extend a = 5, b = 6 project id, name",
-				"customer PROJECT id,name");
+				"customer PROJECT-COPY (id,name)");
 		// move where before project
 		test("trans project id,cost where id = 5",
-				"trans WHERE (id is 5) PROJECT id,cost");
+				"trans WHERE (id is 5) PROJECT (id,cost)");
 		// move where before rename
 		test("trans where cost = 200 rename cost to x where id is 5",
 				"trans WHERE ((cost is 200) and (id is 5)) RENAME cost to x");
@@ -85,16 +85,16 @@ public class TransformTest extends TestBase {
 
 		// distribute project over union
 		test("(hist union trans) project item, cost",
-				"(hist PROJECT item,cost UNION trans PROJECT item,cost)");
+				"(hist PROJECT (item,cost) UNION trans PROJECT (item,cost))");
 		// split project over product
 		test("(customer times inven) project city, item, id",
-				"(customer PROJECT city,id TIMES inven PROJECT item)");
+				"(customer PROJECT-COPY (city,id) TIMES inven PROJECT-COPY (item))");
 		// split project over join
 		test("(trans join customer) project city, item, id",
-				"(trans PROJECT item,id JOIN n:1 on (id) customer PROJECT city,id)");
+				"(trans PROJECT (item,id) JOIN n:1 on (id) customer PROJECT-COPY (city,id))");
 		// ... but only if project includes join fields
 		test("(trans join customer) project city, item",
-				"(trans JOIN n:1 on (id) customer) PROJECT city,item");
+				"(trans JOIN n:1 on (id) customer) PROJECT (city,item)");
 	}
 
 	private void test(String from, String to) {

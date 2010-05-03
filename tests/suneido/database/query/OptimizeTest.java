@@ -39,25 +39,25 @@ public class OptimizeTest extends TestBase {
 			"supplier^(city)" },
 
 		{ "customer project id,name",
-			"customer^(id) PROJECT-COPY id,name" },
+			"customer^(id) PROJECT-COPY (id,name)" },
 
 		{ "trans project item",
-			"trans^(item) PROJECT-SEQ^(item) item" },
+			"trans^(item) PROJECT-SEQ^(item) (item)" },
 
 		{ "trans project item,id,cost,date project item",
-			"trans^(item) PROJECT-SEQ^(item) item" },
+			"trans^(item) PROJECT-SEQ^(item) (item)" },
 
 		{ "trans project item,id,cost project item,id project item",
-			"trans^(item) PROJECT-SEQ^(item) item" },
+			"trans^(item) PROJECT-SEQ^(item) (item)" },
 
 		{ "hist project date,item",
-			"hist^(date,item,id) PROJECT-SEQ^(date,item,id) date,item" },
+			"hist^(date,item,id) PROJECT-SEQ^(date,item,id) (date,item)" },
 
 		{ "customer project city",
-			"customer^(id) PROJECT-LOOKUP city" },
+			"customer^(id) PROJECT-LOOKUP (city)" },
 
 		{ "customer project id,city project city",
-			"customer^(id) PROJECT-LOOKUP city" },
+			"customer^(id) PROJECT-LOOKUP (city)" },
 
 		{ "customer rename city to location",
 			"customer^(id) RENAME city to location" },

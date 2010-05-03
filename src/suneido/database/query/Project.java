@@ -48,7 +48,13 @@ public class Project extends Query1 {
 				? difference(columns, args)
 				: withoutDups(args);
 
-		// include dependencies (_deps)
+		if (hasKey(source, flds)) {
+			strategy = Strategy.COPY;
+			includeDeps(columns);
+		}
+	}
+
+	private void includeDeps(List<String> columns) {
 		for (int i = flds.size() - 1; i >= 0; --i) {
 			String f = flds.get(i);
 			String deps = f + "_deps";
@@ -62,7 +68,7 @@ public class Project extends Query1 {
 		String s = source.toString() + " PROJECT" + strategy.name;
 		if (via != null)
 			s += "^" + listToParens(via);
-		return s + " " + listToCommas(flds);
+		return s + " " + listToParens(flds);
 	}
 
 	private boolean hasKey(Query source, List<String> flds) {
@@ -226,10 +232,8 @@ public class Project extends Query1 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 
 		// check if project contain candidate key
-		if (hasKey(source, flds)) {
-			strategy = Strategy.COPY;
+		if (strategy == Strategy.COPY)
 			return source.optimize(index, needs, firstneeds, is_cursor, freeze);
-		}
 
 		// look for index containing result key columns as prefix
 		List<String> best_index = null;

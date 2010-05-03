@@ -26,10 +26,10 @@ public class ParseTest extends TestBase {
 		test("test RENAME a to aa, b to bb");
 		test("test RENAME a to aa RENAME b to bb");
 		test("test RENAME a to aa, b to bb SORT a,b");
-		test("test PROJECT a,b");
-		test("test PROJECT b");
-		test("test REMOVE b", "test PROJECT a");
-		test("test REMOVE a", "test PROJECT b");
+		test("test PROJECT a,b", "test PROJECT-COPY (a,b)");
+		test("test PROJECT b", "test PROJECT (b)");
+		test("test REMOVE b", "test PROJECT-COPY (a)");
+		test("test REMOVE a", "test PROJECT (b)");
 		test("(test TIMES test2)");
 		test("(test MINUS compat)");
 		test("(test UNION compat)");
@@ -64,9 +64,10 @@ public class ParseTest extends TestBase {
 		test("test WHERE (a is #20081216.1523)");
 		test("test WHERE (a is #20081216.152301)");
 		test("test WHERE (a is #20081216.152301234)");
-		test("myview", "test PROJECT a,b");
+		test("myview", "test PROJECT-COPY (a,b)");
 		test("myview2", "test EXTEND x = 1");
-		test("test union myview extend x = 1", "(test UNION test PROJECT a,b) EXTEND x = 1");
+		test("test union myview extend x = 1",
+				"(test UNION test PROJECT-COPY (a,b)) EXTEND x = 1");
 	}
 
 	private void test(String s) {
