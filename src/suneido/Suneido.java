@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import suneido.database.server.DbmsServer;
+import suneido.database.server.*;
 import suneido.database.tools.*;
 
 /**
@@ -23,6 +23,7 @@ public class Suneido {
 		try {
 			doAction();
 		} catch (Exception e) {
+			e.printStackTrace();
 			fatal(cmdlineoptions.action + " FAILED " + e);
 		}
 	}
@@ -82,6 +83,12 @@ public class Suneido {
 			System.out.println("jSuneido " + WhenBuilt.when());
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
+			break;
+		case TESTCLIENT:
+			TestSuneidoClient.main(cmdlineoptions.action_arg);
+			break;
+		case TESTSERVER:
+			TestServer.main();
 			break;
 		case ERROR:
 			System.out.println(cmdlineoptions.action_arg);
