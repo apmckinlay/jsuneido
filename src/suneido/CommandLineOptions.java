@@ -6,7 +6,7 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR
+		ERROR, TESTCLIENT, TESTSERVER
 	}
 	public Action action;
 	public String action_arg = null;
@@ -58,6 +58,10 @@ public class CommandLineOptions {
 				setAction(Action.VERSION);
 			else if (arg.equals("-help") || arg.equals("-h") || arg.equals("-?"))
 				setAction(Action.HELP);
+			else if (arg.equals("-testclient") || arg.equals("-tc"))
+				setActionWithArg(Action.TESTCLIENT);
+			else if (arg.equals("-testserver") || arg.equals("-ts"))
+				setAction(Action.TESTSERVER);
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
