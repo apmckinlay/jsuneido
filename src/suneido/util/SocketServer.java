@@ -35,6 +35,7 @@ public class SocketServer {
 	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
+	private final Set<SelectionKey> needWrite = new ConcurrentSkipListSet<SelectionKey>();
 
 	public SocketServer(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
@@ -53,6 +54,8 @@ public class SocketServer {
 			int nready = selector.select();
 			if (nready > 0)
 				handleSelected();
+			if (!needWrite.isEmpty())
+				handleWriters();
 		}
 	}
 
@@ -64,14 +67,30 @@ public class SocketServer {
 		Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
 		while (iter.hasNext()) {
 			SelectionKey key = iter.next();
+			iter.remove();
+			if (!key.isValid())
+				continue;
 			if (key.isAcceptable())
 				accept(key);
-			if (key.isReadable())
+			else if (key.isReadable())
 				read(key);
-			if (key.isValid() && key.isWritable())
+			else if (key.isWritable())
 				write(key);
+		}
+	}
+
+	private void handleWriters() {
+		Iterator<SelectionKey> iter = needWrite.iterator();
+		while (iter.hasNext()) {
+			SelectionKey key = iter.next();
+			key.interestOps(SelectionKey.OP_WRITE);
 			iter.remove();
 		}
+	}
+
+	private void needWrite(SelectionKey key) {
+		needWrite.add(key);
+		selector.wakeup();
 	}
 
 	private void accept(SelectionKey key)
@@ -84,7 +103,7 @@ public class SocketServer {
 		if (key2 == null)
 			return;
 		InetAddress adr = channel.socket().getInetAddress();
-		Handler handler = handlerFactory.newHandler(new OutputQueue(key2),
+		Handler handler = handlerFactory.newHandler(new OutputQueue(this, key2),
 				adr.getHostAddress());
 		key2.attach(new Info(handler));
 		handler.start();
@@ -101,6 +120,7 @@ public class SocketServer {
 		final Handler handler;
 		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
 		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
+
 		Info(Handler handler) {
 			this.handler = handler;
 		}
@@ -127,6 +147,11 @@ public class SocketServer {
 				n = -1;
 			}
 		} while (n > 0);
+		if (n < 0) {
+			info.handler.close();
+			channel.close();
+			return;
+		}
 		buf.flip();
 		info.handler.moreInput(buf);
 		if (buf.remaining() > 0) {
@@ -139,10 +164,6 @@ public class SocketServer {
 			else // don't keep buffer bigger than max
 				info.readBuf = ByteBuffer.allocateDirect(MAX_BUFSIZE);
 		}
-		if (n < 0) {
-			info.handler.close();
-			channel.close();
-		}
 	}
 
 	private static void write(SelectionKey key) throws IOException {
@@ -150,10 +171,23 @@ public class SocketServer {
 			key.interestOps(SelectionKey.OP_READ); // turn off write interest
 	}
 
+	// called by selector
 	private static boolean write2(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
 		channel.write(info.writeBufs);
+		return bufsEmpty(info.writeBufs);
+	}
+
+	// called by worker
+	private static boolean write3(SelectionKey key) throws IOException {
+		SocketChannel channel = (SocketChannel) key.channel();
+		Info info = (Info) key.attachment();
+		// this synchronized should not be necessary
+		// but it seems to prevent problems with garbage being sent sometimes
+		synchronized(SocketServer.class) {
+			channel.write(info.writeBufs);
+		}
 		return bufsEmpty(info.writeBufs);
 	}
 
@@ -167,28 +201,29 @@ public class SocketServer {
 	@Immutable
 	public static class OutputQueue {
 		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
+		private final SocketServer socketServer;
 		private final SelectionKey key;
 		private final List<ByteBuffer> writeQueue = new ArrayList<ByteBuffer>();
 
-		public OutputQueue(SelectionKey key) { // public for tests
+		public OutputQueue(SocketServer socketServer, SelectionKey key) { // public for tests
+			this.socketServer = socketServer;
 			this.key = key;
 		}
-		public void add(ByteBuffer output) {
+		public synchronized void add(ByteBuffer output) {
 			writeQueue.add(output);
 		}
-		public void write() {
+		public synchronized void write() {
 			Info info = (Info) key.attachment();
 			info.idleSince = 0;
 			info.writeBufs = writeQueue.toArray(ByteBufferArray);
 			writeQueue.clear();
 			try {
-				if (SocketServer.write2(key))
+				if (SocketServer.write3(key))
 					return;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-			key.selector().wakeup();
+			socketServer.needWrite(key);
 		}
 		public void closeChannel() {
 			try {
@@ -241,6 +276,7 @@ public class SocketServer {
 			e.printStackTrace();
 		}
 	}
+
 	static class EchoHandler implements Handler {
 		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
 		OutputQueue outputQueue;
@@ -253,6 +289,7 @@ public class SocketServer {
 		public void start() {
 			hello.rewind();
 			outputQueue.add(hello);
+			outputQueue.write();
 		}
 
 		@Override

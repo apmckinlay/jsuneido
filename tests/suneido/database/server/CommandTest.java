@@ -386,7 +386,7 @@ public class CommandTest {
 		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
 
 		Output() {
-			super(null);
+			super(null, null);
 		}
 
 		@Override
