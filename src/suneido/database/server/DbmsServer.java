@@ -28,7 +28,6 @@ public class DbmsServer {
 	private static InetAddress inetAddress;
 
 	public static void run(int port) {
-		((ThreadPoolExecutor) executor).setMaximumPoolSize(10);
 		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
 		Compiler.eval("JInit()");
@@ -71,15 +70,14 @@ public class DbmsServer {
 	 */
 	@NotThreadSafe
 	private static class Handler implements SocketServer.Handler, Runnable {
-		private final OutputQueue outputQueue;
 		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
-		private int linelen = 0;
-		private Command cmd = null;
-		private int cmdlen = 0;
-		private int nExtra = -1;
+		private final OutputQueue outputQueue;
 		private final ServerData serverData;
-		private ByteBuffer line;
-		private ByteBuffer extra;
+		private volatile int linelen = -1;
+		private volatile Command cmd = null;
+		private volatile int nExtra = -1;
+		private volatile ByteBuffer line;
+		private volatile ByteBuffer extra;
 
 		Handler(OutputQueue outputQueue, String address) {
 			this.outputQueue = outputQueue;
@@ -97,25 +95,22 @@ public class DbmsServer {
 		}
 
 		@Override
-		public void moreInput(ByteBuffer buf) {
+		public synchronized void moreInput(ByteBuffer buf) {
 			// first state = waiting for newline
-			if (linelen == 0) {
-				ByteBuffer line = getLine(buf);
+			if (linelen == -1) {
+				line = getLine(buf);
 				if (line == null)
 					return;
 				linelen = line.remaining();
-//System.out.print(">" + bufferToString(line));
+//System.out.print("> " + bufferToString(line));
 				cmd = getCmd(line);
-				cmdlen = line.position();
+				line = line.slice();
 				nExtra = cmd.extra(line);
+				line.position(0);
 			}
 			// next state = waiting for extra data (if any)
 			if (nExtra != -1 && buf.remaining() >= linelen + nExtra) {
 				assert buf.position() == 0;
-
-				buf.position(cmdlen);
-				buf.limit(linelen);
-				line = buf.slice();
 
 				buf.position(linelen);
 				buf.limit(linelen + nExtra);
@@ -123,9 +118,8 @@ public class DbmsServer {
 
 				buf.position(buf.limit()); // consume all input
 				// since synchronous, it's safe to discard extra input
-				linelen = 0;
+				linelen = -1;
 				nExtra = -1;
-
 				executor.execute(this);
 			}
 		}
@@ -169,7 +163,7 @@ public class DbmsServer {
 		}
 
 		@Override
-		public void run() {
+		public synchronized void run() {
 			ByteBuffer output = null;
 			try {
 				ServerData.threadLocal.set(serverData);
@@ -186,7 +180,7 @@ e.printStackTrace();
 			outputQueue.write();
 		}
 
-		private String escape(String s) {
+		private static String escape(String s) {
 			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
