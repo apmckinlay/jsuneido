@@ -6,6 +6,7 @@ import static suneido.util.Util.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -15,30 +16,31 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Repl;
 import suneido.SuException;
-import suneido.database.Database;
-import suneido.language.Compiler;
 import suneido.language.Globals;
+import suneido.util.SocketOutput;
 import suneido.util.SocketServer;
-import suneido.util.SocketServer.OutputQueue;
+import suneido.util.SocketServer.HandlerFactory;
 
 public class DbmsServer {
-	private static final Executor executor = Executors.newCachedThreadPool();
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
+	public static final ScheduledExecutorService scheduler
+			= Executors.newSingleThreadScheduledExecutor();
+
 
 	public static void run(int port) {
-		Database.open_theDB();
+//		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
-		Compiler.eval("JInit()");
-		SocketServer server = new SocketServer(new HandlerFactory());
+//		Compiler.eval("JInit()");
+		SocketServer server = new SocketServer(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();
-		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
+		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					theDB.limitOutstandingTransactions();
 				}
 			}, 1, 1, TimeUnit.SECONDS);
-		SocketServer.scheduler.scheduleAtFixedRate(new Runnable() {
+		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					theDB.dest.force();
 				}
@@ -48,17 +50,17 @@ public class DbmsServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		scheduler.shutdown();
 	}
 
 	public static InetAddress getInetAddress() {
 		return inetAddress;
 	}
 
-	private static class HandlerFactory implements SocketServer.HandlerFactory {
+	private static class DbmsHandlerFactory implements HandlerFactory {
 		@Override
-		public SocketServer.Handler newHandler(OutputQueue outputQueue,
-				String address) {
-			return new Handler(outputQueue, address);
+		public Runnable newHandler(SocketChannel channel, String address) {
+			return new Handler(channel, address);
 		}
 	}
 
@@ -69,75 +71,66 @@ public class DbmsServer {
 	 * executing.
 	 */
 	@NotThreadSafe
-	private static class Handler implements SocketServer.Handler, Runnable {
+	private static class Handler implements Runnable {
 		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
-		private final OutputQueue outputQueue;
-		private final ServerData serverData;
-		private volatile int linelen = -1;
-		private volatile Command cmd = null;
-		private volatile int nExtra = -1;
-		private volatile ByteBuffer line;
-		private volatile ByteBuffer extra;
+		private final SocketChannel channel;
+		private final SocketInput input;
+		private final SocketOutput outputQueue;
+//		private final ServerData serverData;
+		private Command cmd;
+		private ByteBuffer line;
+		private ByteBuffer extra;
 
-		Handler(OutputQueue outputQueue, String address) {
-			this.outputQueue = outputQueue;
-			serverData = new ServerData(outputQueue);
-			serverData.setSessionId(address);
-			synchronized(serverDataSet) {
-				serverDataSet.add(serverData);
+		Handler(SocketChannel channel, String address) {
+			this.channel = channel;
+			input = new SocketInput(channel);
+			outputQueue = new SocketOutput(channel);
+//			ServerData.threadLocal.set(new ServerData(outputQueue));
+//			serverData = new ServerData(outputQueue);
+//			serverData.setSessionId(address);
+//			synchronized(serverDataSet) {
+//				serverDataSet.add(serverData);
 			}
-		}
 
 		@Override
-		public void start() {
-			outputQueue.add(hello.duplicate());
-			outputQueue.write();
-		}
-
-		@Override
-		public synchronized void moreInput(ByteBuffer buf) {
-			// first state = waiting for newline
-			if (linelen == -1) {
-				line = getLine(buf);
-				if (line == null)
-					return;
-				linelen = line.remaining();
-//System.out.print("> " + bufferToString(line));
-				cmd = getCmd(line);
-				line = line.slice();
-				nExtra = cmd.extra(line);
-				line.position(0);
-			}
-			// next state = waiting for extra data (if any)
-			if (nExtra != -1 && buf.remaining() >= linelen + nExtra) {
-				assert buf.position() == 0;
-
-				buf.position(linelen);
-				buf.limit(linelen + nExtra);
-				extra = buf.slice();
-
-				buf.position(buf.limit()); // consume all input
-				// since synchronous, it's safe to discard extra input
-				linelen = -1;
-				nExtra = -1;
-				executor.execute(this);
+		public void run() {
+			outputQueue.write(hello.duplicate());
+			while (getRequest())
+				executeRequest();
+			try {
+				channel.close();
+			} catch (IOException e) {
+				e.printStackTrace(); // TODO
 			}
 		}
 
-		private static ByteBuffer getLine(ByteBuffer buf) {
-			int nlPos = indexOf(buf, (byte) '\n');
-			if (nlPos == -1)
-				return null;
-			ByteBuffer line = buf.duplicate();
+		private boolean getRequest() {
+			ByteBuffer line = input.readLine();
+			if (line == null)
+				return false;
+			cmd = getCmd(line);
+			line = line.slice();
+			int nExtra = cmd.extra(line);
 			line.position(0);
-			line.limit(nlPos + 1);
-			return line;
+			extra = input.readExtra(nExtra);
+			return true;
 		}
-		private static int indexOf(ByteBuffer buf, byte b) {
-			for (int i = 0; i < buf.remaining(); ++i)
-				if (buf.get(i) == (byte) '\n')
-					return i;
-			return -1;
+
+		private void executeRequest() {
+			ByteBuffer output = null;
+			try {
+				output = cmd.execute(line, extra, outputQueue);
+			} catch (Throwable e) {
+if (!(e instanceof SuException))
+e.printStackTrace();
+				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
+			}
+			cmd = null;
+			line = null;
+			extra = null;
+			if (output != null)
+				outputQueue.add(output);
+			outputQueue.write();
 		}
 
 		private static Command getCmd(ByteBuffer buf) {
@@ -162,50 +155,16 @@ public class DbmsServer {
 			return sb.toString();
 		}
 
-		@Override
-		public synchronized void run() {
-			ByteBuffer output = null;
-			try {
-				ServerData.threadLocal.set(serverData);
-				output = cmd.execute(line, extra, outputQueue);
-			} catch (Throwable e) {
-if (!(e instanceof SuException))
-e.printStackTrace();
-				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
-			}
-			line = null;
-			extra = null;
-			if (output != null)
-				outputQueue.add(output);
-			outputQueue.write();
-		}
-
 		private static String escape(String s) {
 			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
-		@Override
-		public void close() {
-			synchronized(serverDataSet) {
-				serverData.end();
-				serverDataSet.remove(serverData);
-			}
-		}
+//		public void close() {
+//			synchronized(serverDataSet) {
+//				serverData.end();
+//				serverDataSet.remove(serverData);
+//			}
+//		}
 	}
 
-	public static void main(String[] args) {
-		Compiler.eval("Use('Accountinglib')");
-		Compiler.eval("Use('etalib')");
-		Compiler.eval("Use('ticketlib')");
-		Compiler.eval("Use('joblib')");
-		Compiler.eval("Use('prlib')");
-		Compiler.eval("Use('prcadlib')");
-		Compiler.eval("Use('etaprlib')");
-		Compiler.eval("Use('invenlib')");
-		Compiler.eval("Use('wolib')");
-		Compiler.eval("Use('polib')");
-		Compiler.eval("Use('configlib')");
-		Compiler.eval("Use('demobookoptions')");
-		run(3147);
-	}
 }

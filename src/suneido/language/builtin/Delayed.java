@@ -2,8 +2,8 @@ package suneido.language.builtin;
 
 import java.util.concurrent.TimeUnit;
 
+import suneido.database.server.DbmsServer;
 import suneido.language.*;
-import suneido.util.SocketServer;
 
 public class Delayed extends BuiltinFunction {
 
@@ -12,7 +12,7 @@ public class Delayed extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(fs, args);
-		SocketServer.scheduler.schedule(new Run(args[1]),
+		DbmsServer.scheduler.schedule(new Run(args[1]),
 				Ops.toInt(args[0]), TimeUnit.MILLISECONDS);
 		return null;
 	}

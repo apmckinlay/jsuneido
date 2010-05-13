@@ -23,13 +23,18 @@ public class Suneido {
 		try {
 			doAction();
 		} catch (Exception e) {
-			e.printStackTrace();
-			fatal(cmdlineoptions.action + " FAILED " + e);
+			fatal(cmdlineoptions.action + " FAILED", e);
 		}
 	}
 
 	public static void fatal(String s) {
 		errlog("FATAL: " + s);
+		System.exit(-1);
+	}
+
+	public static void fatal(String s, Exception e) {
+		errlog("FATAL: " + s + ": " + e);
+		e.printStackTrace();
 		System.exit(-1);
 	}
 
