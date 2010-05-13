@@ -90,6 +90,7 @@ public class Util {
 			buf.put((byte) s.codePointAt(i));
 	}
 
+	/** does NOT change buffer position */
 	public static void putStringToByteBuffer(String s, ByteBuffer buf, int pos) {
 		for (int i = 0; i < s.length(); ++i)
 			buf.put(pos++, (byte) s.codePointAt(i));
