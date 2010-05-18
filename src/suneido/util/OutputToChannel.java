@@ -15,13 +15,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @author Andrew McKinlay
  */
 @NotThreadSafe
-public class SocketOutput {
+public class OutputToChannel implements NetworkOutput {
 	private final SocketChannel channel;
 	private final int MAXSIZE = 8;
 	private final ByteBuffer[] queue = new ByteBuffer[MAXSIZE];
 	private int n = 0;
 
-	public SocketOutput(SocketChannel channel) {
+	public OutputToChannel(SocketChannel channel) {
 		this.channel = channel;
 	}
 
@@ -31,7 +31,7 @@ public class SocketOutput {
 
 	public void write() {
 		try {
-			synchronized(SocketOutput.class) {
+			synchronized(OutputToSocket.class) {
 				channel.write(queue, 0, n);
 			}
 		} catch (IOException e) {
