@@ -5,8 +5,8 @@ import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -17,11 +17,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.Repl;
 import suneido.SuException;
 import suneido.language.Globals;
-import suneido.util.SocketOutput;
-import suneido.util.SocketServer;
-import suneido.util.SocketServer.HandlerFactory;
+import suneido.util.*;
+import suneido.util.ServerBySocket.HandlerFactory;
 
-public class DbmsServer {
+public class DbmsServerBySocket {
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
@@ -33,7 +32,7 @@ public class DbmsServer {
 //		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
 //		Compiler.eval("JInit()");
-		SocketServer server = new SocketServer(new DbmsHandlerFactory());
+		ServerBySocket server = new ServerBySocket(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();
 		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
@@ -59,8 +58,8 @@ public class DbmsServer {
 
 	private static class DbmsHandlerFactory implements HandlerFactory {
 		@Override
-		public Runnable newHandler(SocketChannel channel, String address) {
-			return new Handler(channel, address);
+		public Runnable newHandler(Socket socket, String address) throws IOException {
+			return new Handler(socket, address);
 		}
 	}
 
@@ -73,18 +72,18 @@ public class DbmsServer {
 	@NotThreadSafe
 	private static class Handler implements Runnable {
 		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
-		private final SocketChannel channel;
+		private final Socket socket;
 		private final SocketInput input;
-		private final SocketOutput outputQueue;
+		private final NetworkOutput outputQueue;
 //		private final ServerData serverData;
 		private Command cmd;
 		private ByteBuffer line;
 		private ByteBuffer extra;
 
-		Handler(SocketChannel channel, String address) {
-			this.channel = channel;
-			input = new SocketInput(channel);
-			outputQueue = new SocketOutput(channel);
+		Handler(Socket socket, String address) throws IOException {
+			this.socket = socket;
+			input = new SocketInput(socket);
+			outputQueue = new OutputToSocket(socket);
 //			ServerData.threadLocal.set(new ServerData(outputQueue));
 //			serverData = new ServerData(outputQueue);
 //			serverData.setSessionId(address);
@@ -94,11 +93,12 @@ public class DbmsServer {
 
 		@Override
 		public void run() {
-			outputQueue.write(hello.duplicate());
+			outputQueue.add(hello.duplicate());
+			outputQueue.write();
 			while (getRequest())
 				executeRequest();
 			try {
-				channel.close();
+				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace(); // TODO
 			}

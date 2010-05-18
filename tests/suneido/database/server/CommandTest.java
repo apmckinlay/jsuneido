@@ -16,7 +16,7 @@ import suneido.SuException;
 import suneido.database.*;
 import suneido.language.Ops;
 import suneido.language.Pack;
-import suneido.util.SocketServer;
+import suneido.util.NetworkOutput;
 
 public class CommandTest {
 
@@ -382,12 +382,9 @@ public class CommandTest {
 
 	// =========================================================================
 
-	static public class Output extends SocketServer.OutputQueue {
-		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
+	static public class Output implements NetworkOutput {
 
-		Output() {
-			super(null, null);
-		}
+		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
 
 		@Override
 		public void add(ByteBuffer buf) {
@@ -396,6 +393,10 @@ public class CommandTest {
 
 		public ByteBuffer get(int i) {
 			return content.get(i);
+		}
+
+		@Override
+		public void write() {
 		}
 	}
 

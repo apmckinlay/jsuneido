@@ -11,24 +11,19 @@ import java.nio.channels.SocketChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Socket server framework. Uses a supplied HandlerFactory to create a new
- * Handler for each accepted connection. Calls handler.start initially. Then
- * calls handler.moreInput each time more data is read. Input is accumulated
- * until moreInput consumes it, presumably after a complete request has been
- * received. The handler is given an OutputQueue to send its output to. Output
- * is gather written asynchronously. OutputQueue's are synchronized. It is up
- * to handlers to create worker threads if desired.
- *
- * Based loosely on examples in Java NIO by Ron Hitchens
+ * Socket server framework using blocking NIO channels (but not Selector).
+ * Uses a supplied HandlerFactory to create a new Runnable handler
+ * for each accepted connection.
+ * Creates a Thread per connection.
  *
  * @author Andrew McKinlay
  */
 @NotThreadSafe
-public class SocketServer {
+public class ServerByChannel {
 	private final HandlerFactory handlerFactory;
 	private InetAddress inetAddress;
 
-	public SocketServer(HandlerFactory handlerFactory) {
+	public ServerByChannel(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
 	}
 
@@ -79,7 +74,7 @@ public class SocketServer {
 	//==========================================================================
 
 	public static void main(String[] args) {
-		SocketServer server = new SocketServer(new EchoHandlerFactory());
+		ServerByChannel server = new ServerByChannel(new EchoHandlerFactory());
 		try {
 			server.run(1234);
 		} catch (IOException e) {

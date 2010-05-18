@@ -7,6 +7,7 @@ import java.util.*;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.Transaction;
+import suneido.util.NetworkOutput;
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -29,20 +30,20 @@ public class ServerData {
 	private final Map<String, String> sviews = new HashMap<String, String>();
 	private final Stack<String> viewnest = new Stack<String>();
 	private String sessionId = "127.0.0.1";
-//	public final OutputQueue outputQueue; // for kill
+	public final NetworkOutput outputQueue; // for kill
 
 	/** for tests */
 	public ServerData() {
-//		this.outputQueue = null;
+		this.outputQueue = null;
 	}
 
-//	public ServerData(OutputQueue outputQueue) {
-//		this.outputQueue = outputQueue;
-//	}
+	public ServerData(NetworkOutput outputQueue) {
+		this.outputQueue = outputQueue;
+	}
 
 	/**
-	 * this is set by {@link DbmsServer} since it is per connection, not really per
-	 * thread, initialValue is for tests
+	 * this is set by {@link DbmsServerBySelect} since it is per connection,
+	 * not really per thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal
 		= new ThreadLocal<ServerData>() {

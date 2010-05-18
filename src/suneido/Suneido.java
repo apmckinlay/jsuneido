@@ -58,7 +58,7 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			DbmsServer.run(cmdlineoptions.server_port);
+			DbmsServerBySocket.run(cmdlineoptions.server_port);
 			break;
 		case DUMP:
 			if (cmdlineoptions.action_arg == null)
@@ -90,10 +90,10 @@ public class Suneido {
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
 		case TESTCLIENT:
-			TestSuneidoClient.main(cmdlineoptions.action_arg);
+			TestClient.main(cmdlineoptions.action_arg);
 			break;
 		case TESTSERVER:
-			TestServer.main();
+			TestServer.main(new String[0]);
 			break;
 		case ERROR:
 			System.out.println(cmdlineoptions.action_arg);

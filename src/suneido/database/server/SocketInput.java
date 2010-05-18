@@ -1,65 +1,68 @@
 package suneido.database.server;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+@NotThreadSafe
 public class SocketInput {
 	private static final int INITIAL_SIZE = 16 * 1024;
 	private static final int MAX_SIZE = 64 * 1024;
-	private final SocketChannel channel;
-	private ByteBuffer buf = ByteBuffer.allocate(INITIAL_SIZE);
+	private final Socket socket;
+	private final InputStream in;
+	private byte[] buf = new byte[INITIAL_SIZE];
+	private int len = 0;
 	private int nlPos;
 
-	public SocketInput(SocketChannel channel) {
-		this.channel = channel;
+	public SocketInput(Socket socket) throws IOException {
+		this.socket = socket;
+		in = socket.getInputStream();
 	}
 
 	public ByteBuffer readLine() {
+		int n;
 		do {
-			if (read() == -1)
+			if (-1 == (n = read()))
 				return null;
-			nlPos = indexOf(buf, (byte) '\n');
+			len += n;
+			nlPos = indexOf(buf, len, (byte) '\n');
 		} while (nlPos == -1);
-		ByteBuffer line = buf.duplicate();
-		line.position(0);
-		line.limit(++nlPos);
-		return line;
+		return ByteBuffer.wrap(buf, 0, nlPos);
 	}
 
 	private int read() {
-		if (buf.remaining() == 0) {
-			ByteBuffer oldbuf = buf;
-			buf = ByteBuffer.allocate(2 * oldbuf.capacity());
-			oldbuf.flip();
-			buf.put(oldbuf);
-		}
+		if (len >= buf.length)
+			buf = Arrays.copyOf(buf, 2 * buf.length);
 		try {
-			return channel.read(buf);
+			return in.read(buf, len, buf.length - len);
 		} catch (IOException e) {
 			// we get this if the client aborts the connection
 			return -1;
 		}
 	}
 
-	private static int indexOf(ByteBuffer buf, byte b) {
-		for (int i = 0; i < buf.remaining(); ++i)
-			if (buf.get(i) == (byte) '\n')
+	private static int indexOf(byte[] buf, int len, byte b) {
+		for (int i = 0; i < len; ++i)
+			if (buf[i] == b)
 				return i;
 		return -1;
 	}
 
-	public ByteBuffer readExtra(int n) {
-		while (buf.position() < nlPos + n)
-			if (read() == -1)
+	public ByteBuffer readExtra(int nExtra) {
+		int n;
+		while (len < nlPos + nExtra) {
+			if (-1 == (n = read()))
 				return null;
-		buf.flip();
-		buf.position(nlPos);
-		ByteBuffer result = buf.slice();
-		if (buf.capacity() <= MAX_SIZE)
-			buf.clear();
-		else // don't keep buffer bigger than max
-			buf = ByteBuffer.allocateDirect(MAX_SIZE);
+			len += n;
+		}
+		ByteBuffer result =  ByteBuffer.wrap(buf, nlPos, nExtra);
+		len = 0;
+		if (buf.length > MAX_SIZE) // don't keep buffer bigger than max
+			buf = new byte[MAX_SIZE];
 		return result;
 	}
 
