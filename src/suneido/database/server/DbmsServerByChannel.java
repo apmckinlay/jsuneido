@@ -16,8 +16,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Repl;
 import suneido.SuException;
+import suneido.database.Database;
+import suneido.language.Compiler;
 import suneido.language.Globals;
-import suneido.util.OutputToChannel;
+import suneido.util.OutputByChannel;
 import suneido.util.ServerByChannel;
 import suneido.util.ServerByChannel.HandlerFactory;
 
@@ -28,11 +30,10 @@ public class DbmsServerByChannel {
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 
-
 	public static void run(int port) {
-//		Database.open_theDB();
+		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
-//		Compiler.eval("JInit()");
+		Compiler.eval("JInit()");
 		ServerByChannel server = new ServerByChannel(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();
 		scheduler.scheduleAtFixedRate(new Runnable() {
@@ -74,38 +75,35 @@ public class DbmsServerByChannel {
 	private static class Handler implements Runnable {
 		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
 		private final SocketChannel channel;
-		private final ChannelInput input;
-		private final OutputToChannel outputQueue;
-//		private final ServerData serverData;
+		private final InputByChannel input;
+		private final OutputByChannel outputQueue;
+		private final ServerData serverData;
 		private Command cmd;
 		private ByteBuffer line;
 		private ByteBuffer extra;
 
 		Handler(SocketChannel channel, String address) {
 			this.channel = channel;
-			input = new ChannelInput(channel);
-			outputQueue = new OutputToChannel(channel);
-//			ServerData.threadLocal.set(new ServerData(outputQueue));
-//			serverData = new ServerData(outputQueue);
-//			serverData.setSessionId(address);
-//			synchronized(serverDataSet) {
-//				serverDataSet.add(serverData);
+			input = new InputByChannel(channel);
+			outputQueue = new OutputByChannel(channel);
+			ServerData.threadLocal.set(new ServerData(outputQueue));
+			serverData = new ServerData(outputQueue);
+			serverData.setSessionId(address);
+			synchronized(serverDataSet) {
+				serverDataSet.add(serverData);
 			}
+		}
 
 		@Override
 		public void run() {
 			outputQueue.write(hello.duplicate());
 			while (getRequest())
 				executeRequest();
-			try {
-				channel.close();
-			} catch (IOException e) {
-				e.printStackTrace(); // TODO
-			}
+			close();
 		}
 
 		private boolean getRequest() {
-			ByteBuffer line = input.readLine();
+			line = input.readLine();
 			if (line == null)
 				return false;
 			cmd = getCmd(line);
@@ -159,12 +157,18 @@ e.printStackTrace();
 			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
-//		public void close() {
-//			synchronized(serverDataSet) {
-//				serverData.end();
-//				serverDataSet.remove(serverData);
-//			}
-//		}
+		public void close() {
+			synchronized(serverDataSet) {
+				try {
+					channel.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				serverData.end();
+				serverDataSet.remove(serverData);
+			}
+		}
 	}
 
 }

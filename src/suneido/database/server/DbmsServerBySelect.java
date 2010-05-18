@@ -101,8 +101,8 @@ public class DbmsServerBySelect {
 				line = getLine(buf);
 				if (line == null)
 					return;
-				linelen = line.remaining();
 //System.out.print("> " + bufferToString(line));
+				linelen = line.remaining();
 				cmd = getCmd(line);
 				line = line.slice();
 				nExtra = cmd.extra(line);

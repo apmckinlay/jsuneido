@@ -9,17 +9,15 @@ import java.util.Arrays;
 import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
-public class SocketInput {
+public class InputBySocket {
 	private static final int INITIAL_SIZE = 16 * 1024;
 	private static final int MAX_SIZE = 64 * 1024;
-	private final Socket socket;
 	private final InputStream in;
-	private byte[] buf = new byte[INITIAL_SIZE];
+	private byte[] data = new byte[INITIAL_SIZE];
 	private int len = 0;
 	private int nlPos;
 
-	public SocketInput(Socket socket) throws IOException {
-		this.socket = socket;
+	public InputBySocket(Socket socket) throws IOException {
 		in = socket.getInputStream();
 	}
 
@@ -29,16 +27,16 @@ public class SocketInput {
 			if (-1 == (n = read()))
 				return null;
 			len += n;
-			nlPos = indexOf(buf, len, (byte) '\n');
+			nlPos = indexOf(data, len, (byte) '\n');
 		} while (nlPos == -1);
-		return ByteBuffer.wrap(buf, 0, nlPos);
+		return ByteBuffer.wrap(data, 0, ++nlPos);
 	}
 
 	private int read() {
-		if (len >= buf.length)
-			buf = Arrays.copyOf(buf, 2 * buf.length);
+		if (len >= data.length)
+			data = Arrays.copyOf(data, 2 * data.length);
 		try {
-			return in.read(buf, len, buf.length - len);
+			return in.read(data, len, data.length - len);
 		} catch (IOException e) {
 			// we get this if the client aborts the connection
 			return -1;
@@ -59,10 +57,10 @@ public class SocketInput {
 				return null;
 			len += n;
 		}
-		ByteBuffer result =  ByteBuffer.wrap(buf, nlPos, nExtra);
+		ByteBuffer result =  ByteBuffer.wrap(data, nlPos, nExtra).slice();
 		len = 0;
-		if (buf.length > MAX_SIZE) // don't keep buffer bigger than max
-			buf = new byte[MAX_SIZE];
+		if (data.length > MAX_SIZE) // don't keep buffer bigger than max
+			data = new byte[MAX_SIZE];
 		return result;
 	}
 

@@ -16,6 +16,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Repl;
 import suneido.SuException;
+import suneido.database.Database;
+import suneido.language.Compiler;
 import suneido.language.Globals;
 import suneido.util.*;
 import suneido.util.ServerBySocket.HandlerFactory;
@@ -27,11 +29,10 @@ public class DbmsServerBySocket {
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 
-
 	public static void run(int port) {
-//		Database.open_theDB();
+		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
-//		Compiler.eval("JInit()");
+		Compiler.eval("JInit()");
 		ServerBySocket server = new ServerBySocket(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();
 		scheduler.scheduleAtFixedRate(new Runnable() {
@@ -73,23 +74,24 @@ public class DbmsServerBySocket {
 	private static class Handler implements Runnable {
 		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
 		private final Socket socket;
-		private final SocketInput input;
+		private final InputBySocket input;
 		private final NetworkOutput outputQueue;
-//		private final ServerData serverData;
+		private final ServerData serverData;
 		private Command cmd;
 		private ByteBuffer line;
 		private ByteBuffer extra;
 
 		Handler(Socket socket, String address) throws IOException {
 			this.socket = socket;
-			input = new SocketInput(socket);
-			outputQueue = new OutputToSocket(socket);
-//			ServerData.threadLocal.set(new ServerData(outputQueue));
-//			serverData = new ServerData(outputQueue);
-//			serverData.setSessionId(address);
-//			synchronized(serverDataSet) {
-//				serverDataSet.add(serverData);
+			input = new InputBySocket(socket);
+			outputQueue = new OutputBySocket(socket);
+			ServerData.threadLocal.set(new ServerData(outputQueue));
+			serverData = new ServerData(outputQueue);
+			serverData.setSessionId(address);
+			synchronized(serverDataSet) {
+				serverDataSet.add(serverData);
 			}
+		}
 
 		@Override
 		public void run() {
@@ -97,17 +99,14 @@ public class DbmsServerBySocket {
 			outputQueue.write();
 			while (getRequest())
 				executeRequest();
-			try {
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace(); // TODO
-			}
+			close();
 		}
 
 		private boolean getRequest() {
-			ByteBuffer line = input.readLine();
+			line = input.readLine();
 			if (line == null)
 				return false;
+//System.out.println("> " + bufferToString(line));
 			cmd = getCmd(line);
 			line = line.slice();
 			int nExtra = cmd.extra(line);
@@ -159,12 +158,18 @@ e.printStackTrace();
 			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
-//		public void close() {
-//			synchronized(serverDataSet) {
-//				serverData.end();
-//				serverDataSet.remove(serverData);
-//			}
-//		}
+		public void close() {
+			synchronized(serverDataSet) {
+				serverData.end();
+				serverDataSet.remove(serverData);
+			}
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
