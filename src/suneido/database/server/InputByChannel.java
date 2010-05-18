@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-public class ChannelInput {
+public class InputByChannel {
 	private static final int INITIAL_SIZE = 16 * 1024;
 	private static final int MAX_SIZE = 64 * 1024;
 	private final SocketChannel channel;
 	private ByteBuffer buf = ByteBuffer.allocate(INITIAL_SIZE);
 	private int nlPos;
 
-	public ChannelInput(SocketChannel channel) {
+	public InputByChannel(SocketChannel channel) {
 		this.channel = channel;
 	}
 

@@ -5,7 +5,7 @@ import static suneido.Suneido.fatal;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.Arrays;
+import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -15,35 +15,44 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @author Andrew McKinlay
  */
 @NotThreadSafe
-public class OutputToChannel implements NetworkOutput {
+public class OutputByChannel implements NetworkOutput {
 	private final SocketChannel channel;
-	private final int MAXSIZE = 8;
-	private final ByteBuffer[] queue = new ByteBuffer[MAXSIZE];
-	private int n = 0;
+	private ByteBuffer[] bufs = new ByteBuffer[0];
+	private final List<ByteBuffer> queue = new ArrayList<ByteBuffer>();
+	private int n;
 
-	public OutputToChannel(SocketChannel channel) {
+	public OutputByChannel(SocketChannel channel) {
 		this.channel = channel;
 	}
 
 	public void add(ByteBuffer buf) {
-		queue[n++] = buf;
+		queue.add(buf);
 	}
 
 	public void write() {
+		bufs = queue.toArray(bufs);
+		n = queue.size();
+		queue.clear();
 		try {
-			synchronized(OutputToSocket.class) {
-				channel.write(queue, 0, n);
-			}
+			while (!isEmpty())
+				channel.write(bufs, 0, n);
 		} catch (IOException e) {
 			fatal("network write error", e); // TODO
 		}
-		Arrays.fill(queue, null);
-		n = 0;
+		Arrays.fill(bufs, null);
+	}
+
+	private boolean isEmpty() {
+		for (int i = 0; i < n; ++i)
+			if (bufs[i].remaining() > 0)
+				return false;
+		return true; // everything written
 	}
 
 	public void write(ByteBuffer buf) {
 		try {
-			channel.write(buf);
+			while (buf.remaining() > 0)
+				channel.write(buf);
 		} catch (IOException e) {
 			fatal("network write error", e); // TODO
 		}

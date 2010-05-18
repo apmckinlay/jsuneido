@@ -34,7 +34,8 @@ public class ServerBySelect {
 	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
-	private final Set<SelectionKey> needWrite = new ConcurrentSkipListSet<SelectionKey>();
+	private final Set<SelectionKey> needWrite
+			= new ConcurrentSkipListSet<SelectionKey>(new IdentityComparator());
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
