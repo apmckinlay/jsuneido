@@ -28,6 +28,8 @@ public class ServerBySocket {
 		inetAddress = serverSocket.getInetAddress();
 		while (true) {
 			Socket clientSocket = serverSocket.accept();
+			// disable Nagle since we don't have gathering write
+			clientSocket.setTcpNoDelay(true);
 			Runnable handler = handlerFactory.newHandler(clientSocket, inetAddress.toString());
 			Thread worker = new Thread(handler);
 			worker.start();
