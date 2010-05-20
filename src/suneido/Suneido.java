@@ -90,7 +90,7 @@ public class Suneido {
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
 		case TESTCLIENT:
-			TestSuneidoClient.main(cmdlineoptions.action_arg);
+			TestClient.main(cmdlineoptions.action_arg);
 			break;
 		case TESTSERVER:
 			TestServer.main(new String[0]);

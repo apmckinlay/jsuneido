@@ -11,7 +11,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * avoid problems with Nagle
- * by doing a single gathering write instead of multiple small writes
+ * by doing gathering write instead of multiple small writes
  * @author Andrew McKinlay
  */
 @NotThreadSafe
