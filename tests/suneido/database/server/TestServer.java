@@ -32,16 +32,12 @@ public class TestServer {
 	}
 
 	private static class Handler implements Runnable {
-		private static final ByteBuffer hello = ByteBuffer.wrap(new byte[]
-				{ 'j', 'S', 'u', 'n', 'e', 'i', 'd', 'o', ' ',
-				'S', 'e', 'r', 'v', 'e', 'r', '\r', '\n' });
 		private final SocketChannel channel;
 		private final Input input;
 		private final Output outputQueue;
 		private ByteBuffer line;
+		private Command cmd;
 		private ByteBuffer extra;
-		private final ByteBuffer response
-				= ByteBuffer.wrap(new byte[] { 'E', 'O', 'F', '\r', '\n' });
 
 		public Handler(SocketChannel channel) {
 			this.channel = channel;
@@ -51,7 +47,6 @@ public class TestServer {
 
 		@Override
 		public void run() {
-			outputQueue.write(hello.duplicate());
 			while (getRequest())
 				executeRequest();
 			close();
@@ -61,19 +56,42 @@ public class TestServer {
 			line = input.readLine();
 			if (line == null)
 				return false;
-			int nExtra = 33; // normally determined by line
+			cmd = getCmd(line);
+			line = line.slice();
+			int nExtra = cmd.extra(line);
 			line.position(0);
 			extra = input.readExtra(nExtra);
 			return true;
 		}
 
+		private static Command getCmd(ByteBuffer buf) {
+			try {
+				String word = firstWord(buf);
+				return Command.valueOf(word.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				return null;
+			}
+		}
+		private static String firstWord(ByteBuffer buf) {
+			StringBuilder sb = new StringBuilder();
+			buf.position(0);
+			while (buf.remaining() > 0) {
+				char c = (char) buf.get();
+				if (c == ' ' || c == '\r' || c == '\n')
+					break ;
+				sb.append(c);
+			}
+			return sb.toString();
+		}
+
 		private void executeRequest() {
 			try {
-				outputQueue.add(response.duplicate());
+				cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}
 			line = null;
+			cmd = null;
 			extra = null;
 			outputQueue.write();
 		}
@@ -89,10 +107,8 @@ public class TestServer {
 	} // end of Handler
 
 	public static class Input {
-		private static final int INITIAL_SIZE = 16 * 1024;
-		private static final int MAX_SIZE = 64 * 1024;
 		private final SocketChannel channel;
-		private ByteBuffer buf = ByteBuffer.allocate(INITIAL_SIZE);
+		private final ByteBuffer buf = ByteBuffer.allocate(16 * 1024);
 		private int nlPos;
 
 		public Input(SocketChannel channel) {
@@ -112,22 +128,14 @@ public class TestServer {
 		}
 
 		private int read() {
-			if (buf.remaining() == 0) {
-				ByteBuffer oldbuf = buf;
-				buf = ByteBuffer.allocate(2 * oldbuf.capacity());
-				oldbuf.flip();
-				buf.put(oldbuf);
-			}
 			try {
 				return channel.read(buf);
 			} catch (IOException e) {
-				// we get this if the client aborts the connection
 				return -1;
 			}
 		}
 
 		private static int indexOf(ByteBuffer buf, byte b) {
-			// NOTE: use buf.position because buf not flipped
 			for (int i = 0; i < buf.position(); ++i)
 				if (buf.get(i) == b)
 					return i;
@@ -141,10 +149,7 @@ public class TestServer {
 			buf.flip();
 			buf.position(nlPos);
 			ByteBuffer result = buf.slice();
-			if (buf.capacity() <= MAX_SIZE)
-				buf.clear();
-			else // don't keep buffer bigger than max
-				buf = ByteBuffer.allocateDirect(MAX_SIZE);
+			buf.clear();
 			return result;
 		}
 
@@ -184,15 +189,58 @@ public class TestServer {
 			return true;
 		}
 
-		public void write(ByteBuffer buf) {
-			try {
-				while (buf.remaining() > 0)
-					channel.write(buf);
-			} catch (IOException e) {
-				e.printStackTrace();
+	} // end of Output
+
+	static enum Command {
+
+		GET1 {
+			private final ByteBuffer response
+				= ByteBuffer.wrap(new byte[] { 'E', 'O', 'F', '\r', '\n' });
+
+			@Override
+			public int extra(ByteBuffer buf) {
+				buf.get();
+				buf.get();
+				getnum('T', buf);
+				return getnum('Q', buf);
 			}
+
+			@Override
+			public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+					Output outputQueue) {
+				outputQueue.add( response.duplicate());
+				return null;
+			}
+		};
+
+		public int extra(ByteBuffer buf) {
+			return 0;
 		}
 
-	} // end of Output
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				Output outputQueue) {
+			return null;
+		}
+
+		static int getnum(char type, ByteBuffer buf) {
+			int i = buf.position();
+			while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
+				++i;
+			if (i >= buf.limit()
+					|| Character.toUpperCase(buf.get(i)) != type
+					|| !Character.isDigit(buf.get(i + 1)))
+				return -1;
+			++i;
+			StringBuilder sb = new StringBuilder();
+			while (i < buf.limit() && Character.isDigit(buf.get(i)))
+				sb.append((char) buf.get(i++));
+			int n = Integer.valueOf(sb.toString());
+			while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
+				++i;
+			buf.position(i);
+			return n;
+		}
+
+	}
 
 }

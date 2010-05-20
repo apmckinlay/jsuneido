@@ -1,34 +1,25 @@
 package suneido.database.server;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.io.*;
+import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 public class TestClient {
-	private static final int NTHREADS = 20;
-	private static final long DURATION = 5 * 60 * 1000;
+	private static final int NTHREADS = 40;
+	private static final long DURATION = 10 * 60 * 1000; // 10 minutes
 
-	public static void main(String... args) {
+	public static void main(String... args)
+			throws UnknownHostException, IOException {
 		String address = args.length == 0 ? "localhost" : args[0];
 		for (int i = 0; i < NTHREADS; ++i)
-			new Thread(new Client(address)).start();
+			new Thread(new Run(address)).start();
 	}
 
-	private static class Client implements Runnable {
+	private static class Run implements Runnable {
 		private final String address;
-		private final ByteBuffer request1 = ByteBuffer.allocate(16);
-		private final ByteBuffer request2 = ByteBuffer.allocate(32);
-		private final ByteBuffer buf = ByteBuffer.allocate(5);
 
-		public Client(String address) {
+		public Run(String address) {
 			this.address = address;
-			byte j = 0;
-			for (int i = 0; i < request1.capacity(); ++i)
-				request1.put(i, j++);
-			for (int i = 0; i < request2.capacity(); ++i)
-				request2.put(i, j++);
 		}
 
 		public void run() {
@@ -40,30 +31,38 @@ public class TestClient {
 				e.printStackTrace();
 			}
 		}
-
 		private void run2() throws UnknownHostException, IOException {
-			SocketChannel channel = SocketChannel.open(
-					new InetSocketAddress(address, 8080));
-			channel.socket().setSoTimeout(2000);
+			Socket socket = new Socket(address, 3147);
+			socket.setSoTimeout(2000);
+			DataInputStream inputstream = new DataInputStream(socket.getInputStream());
+			DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
 			long t = System.currentTimeMillis();
-			while (true) {
-				long elapsed = System.currentTimeMillis() - t;
-				if (elapsed > DURATION)
-					break;
-				if (request1.capacity() != channel.write(request1.duplicate()))
-					throw new IOException("incomplete write");
-				if (request2.capacity() != channel.write(request2.duplicate()))
-					throw new IOException("incomplete write");
-				buf.clear();
-				do {
-					if (channel.read(buf) == -1)
-						return;
-				} while (buf.position() < buf.capacity());
-				for (int i = 0; i < buf.capacity(); ++i)
-					if (buf.get(i) != i)
-						System.out.println("incorrect response byte "
-								+ i + " = " + buf.get(i));
+			int i;
+			for (i = 0; ; ++i) {
+				if (i % 100 == 0) {
+					long elapsed = System.currentTimeMillis() - t;
+					if (elapsed > DURATION)
+						break;
+				}
+				String query = "testConcurrency where b = 9999999";
+				String request = "GET1 +  T0 Q" + query.length() + "\n";
+				outputstream.write(request.getBytes());
+				outputstream.write(query.getBytes());
+				expect(inputstream, 'E', "E");
+				expect(inputstream, 'O', "O");
+				expect(inputstream, 'F', "F");
+				expect(inputstream, '\r', "\\r");
+				expect(inputstream, '\n', "\\n");
 			}
+		System.out.println("done " + i);
+		}
+
+		private void expect(DataInputStream inputstream,
+				char expected, String expected2) throws IOException {
+			int c = inputstream.read();
+			if (c != expected)
+				System.out.println("expected " + expected2 + " but got " + c
+						+ (' ' <= c && c <= '~' ? " '" + (char) c + "'" : ""));
 		}
 	}
 

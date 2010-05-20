@@ -6,8 +6,8 @@ import java.net.UnknownHostException;
 import java.util.Random;
 
 public class TestSuneidoClient {
-	private static final int NTHREADS = 20;
-	private static final long DURATION = 10 * 60 * 1000;
+	private static final int NTHREADS = 80;
+	private static final long DURATION = 5 * 60 * 1000;
 	private static final int MAX_B = 80000;
 	private final static int MAXDATA = 1000;
 
