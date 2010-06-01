@@ -100,13 +100,15 @@ public class Repl {
 		@Override
 		public Object call(Object... args) {
 			SuContainer c = Args.collectArgs(args, new SuContainer());
+			StringBuilder sb = new StringBuilder();
 			int i = 0;
 			for (; i < c.vecSize(); ++i)
-				System.out.print((i > 0 ? " " : "") + Ops.toStr(c.get(i)));
+				sb.append(i > 0 ? " " : "").append(Ops.toStr(c.get(i)));
 			for (Map.Entry<Object, Object> e : c.mapEntrySet())
-				System.out.print((i++ > 0 ? " " : "") + e.getKey() + ": "
-						+ Ops.toStr(e.getValue()));
-			System.out.println();
+				sb.append(i++ > 0 ? " " : "").append(e.getKey()).append(": ")
+						.append(Ops.toStr(e.getValue()));
+			System.out.println(sb.toString());
+			System.out.flush();
 			return null;
 		}
 	}
