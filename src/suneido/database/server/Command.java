@@ -12,6 +12,7 @@ import suneido.database.*;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
+import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
 import suneido.language.Ops;
 import suneido.language.Pack;
@@ -197,28 +198,27 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-return eof();
-//			Dir dir = Dir.NEXT;
-//			boolean one = false;
-//			switch (line.get()) {
-//			case '+':
-//				dir = Dir.NEXT;
-//				break;
-//			case '-':
-//				dir = Dir.PREV;
-//				break;
-//			case '1':
-//				one = true;
-//				break;
-//			default:
-//				throw new SuException("get1 expects + or - or 1");
-//			}
-//			int tn = ck_getnum('T', line);
-//			HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir,
-//					bufferToString(extra), one,
-//					ServerData.forThread().getTransaction(tn));
-//			row_result(hr.row, hr.header, true, outputQueue);
-//			return null;
+			Dir dir = Dir.NEXT;
+			boolean one = false;
+			switch (line.get()) {
+			case '+':
+				dir = Dir.NEXT;
+				break;
+			case '-':
+				dir = Dir.PREV;
+				break;
+			case '1':
+				one = true;
+				break;
+			default:
+				throw new SuException("get1 expects + or - or 1");
+			}
+			int tn = ck_getnum('T', line);
+			HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir,
+					bufferToString(extra), one,
+					ServerData.forThread().getTransaction(tn));
+			row_result(hr.row, hr.header, true, outputQueue);
+			return null;
 		}
 	},
 	HEADER {
