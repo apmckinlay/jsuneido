@@ -35,8 +35,6 @@ public abstract class Destination {
 
 	abstract long size();
 
-	abstract void sync();
-
 	abstract void close();
 
 	abstract Destination unwrap();

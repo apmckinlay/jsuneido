@@ -59,10 +59,6 @@ public class DestMem extends Destination {
 	}
 
 	@Override
-	public void sync() {
-	}
-
-	@Override
 	public void close() {
 	}
 
