@@ -33,7 +33,7 @@ public class TestClient {
 		}
 		private void run2() throws UnknownHostException, IOException {
 			Socket socket = new Socket(address, 3147);
-			socket.setSoTimeout(2000);
+			socket.setSoTimeout(5000);
 			DataInputStream inputstream = new DataInputStream(socket.getInputStream());
 			DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
 			long t = System.currentTimeMillis();
