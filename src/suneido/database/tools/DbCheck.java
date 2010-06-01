@@ -19,6 +19,8 @@ import suneido.util.Checksum;
  * @author Andrew McKinlay
  */
 public class DbCheck {
+	private static final int LINE_LENGTH = 79;
+
 	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
 	private final String filename;
 	final Mmfile mmf;
@@ -148,7 +150,7 @@ public class DbCheck {
 			int nbad = 0;
 			for (; !iter.eof(); iter.next()) {
 				print(".");
-				if (++i % 80 == 0)
+				if (++i % LINE_LENGTH == 0)
 					println();
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
