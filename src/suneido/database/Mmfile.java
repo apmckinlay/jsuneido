@@ -2,6 +2,7 @@ package suneido.database;
 
 import static suneido.SuException.fatal;
 import static suneido.SuException.verify;
+import static suneido.Suneido.errlog;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -158,9 +159,13 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 	@Override
 	synchronized public void force() {
-		for (int i = 0; i <= hi_chunk; ++i)
-			if (fm[i] != null)
-				fm[i].force();
+		try {
+			for (int i = 0; i <= hi_chunk; ++i)
+				if (fm[i] != null)
+					fm[i].force();
+		} catch (Exception e) {
+			errlog("error from MappedByteBuffer.force: " + e);
+		}
 	}
 
 	@Override
@@ -345,13 +350,6 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		if (check(offset) == MmCheck.ERR)
 			return -1;
 		return offset;
-	}
-
-	@Override
-	synchronized public void sync() {
-		for (MappedByteBuffer buf : fm)
-			if (buf != null)
-				buf.force();
 	}
 
 	@Override

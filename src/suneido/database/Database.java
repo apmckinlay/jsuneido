@@ -192,7 +192,7 @@ public class Database {
 		dbhdr = new Dbhdr();
 		if (mode != Mode.READ_ONLY)
 			Session.startup(dest);
-		dest.sync();
+		dest.force();
 		getIndexes();
 	}
 

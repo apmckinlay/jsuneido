@@ -76,8 +76,8 @@ public class DestTran extends Destination {
 	}
 
 	@Override
-	public void sync() {
-		dest.sync();
+	public void force() {
+		dest.force();
 	}
 
 	@Override
