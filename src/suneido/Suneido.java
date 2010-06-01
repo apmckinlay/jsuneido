@@ -38,7 +38,7 @@ public class Suneido {
 		System.exit(-1);
 	}
 
-	public static void errlog(String s) {
+	public synchronized static void errlog(String s) {
 		System.out.println(s);
 		try {
 			FileWriter fw = new FileWriter("error.log", true);
@@ -58,7 +58,7 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			DbmsServerByChannel.run(cmdlineoptions.server_port);
+			DbmsServerBySelect.run(cmdlineoptions.server_port);
 			break;
 		case DUMP:
 			if (cmdlineoptions.action_arg == null)
