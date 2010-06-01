@@ -9,7 +9,6 @@ import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -198,7 +197,6 @@ public class ServerBySelect {
 		return true; // everything written
 	}
 
-	@Immutable
 	public static class OutputQueue implements NetworkOutput {
 		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
 		private final ServerBySelect selectServer;
@@ -209,10 +207,10 @@ public class ServerBySelect {
 			this.selectServer = selectServer;
 			this.key = key;
 		}
-		public synchronized void add(ByteBuffer output) {
+		public void add(ByteBuffer output) {
 			writeQueue.add(output);
 		}
-		public synchronized void write() {
+		public void write() {
 			Info info = (Info) key.attachment();
 			info.idleSince = 0;
 			info.writeBufs = writeQueue.toArray(ByteBufferArray);
