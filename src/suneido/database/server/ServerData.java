@@ -31,6 +31,7 @@ public class ServerData {
 	private final Stack<String> viewnest = new Stack<String>();
 	private String sessionId = "127.0.0.1";
 	public final NetworkOutput outputQueue; // for kill
+	public boolean textmode = true;
 
 	/** for tests */
 	public ServerData() {
