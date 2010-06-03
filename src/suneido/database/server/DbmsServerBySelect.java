@@ -13,8 +13,7 @@ import java.util.concurrent.*;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.Repl;
-import suneido.SuException;
+import suneido.*;
 import suneido.database.Database;
 import suneido.language.Compiler;
 import suneido.language.Globals;
@@ -70,7 +69,8 @@ public class DbmsServerBySelect {
 	 */
 	@NotThreadSafe
 	private static class Handler implements ServerBySelect.Handler, Runnable {
-		private static final ByteBuffer hello = stringToBuffer("jSuneido Server\r\n");
+		private static final ByteBuffer hello = stringToBuffer(
+				"Suneido Database Server (" + Suneido.cmdlineoptions.impersonate + ")\r\n");
 		private final NetworkOutput outputQueue;
 		private final ServerData serverData;
 		private volatile int linelen = -1;

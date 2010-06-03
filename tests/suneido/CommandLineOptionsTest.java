@@ -66,4 +66,18 @@ public class CommandLineOptionsTest {
 				CommandLineOptions.parse("-abc").toString());
 	}
 
+	@Test
+	public void impersonate_without_arg() {
+		assertEquals("ERROR impersonate requires value",
+				CommandLineOptions.parse("-i").toString());
+	}
+
+	@Test
+	public void impersonate() {
+		assertEquals("SERVER impersonate='1234'",
+				CommandLineOptions.parse("-impersonate", "1234").toString());
+		assertEquals("SERVER impersonate='1234'",
+				CommandLineOptions.parse("-i", "1234").toString());
+	}
+
 }
