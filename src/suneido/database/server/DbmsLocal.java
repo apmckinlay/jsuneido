@@ -94,7 +94,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public SuContainer connections() {
-		return new SuContainer();
+		return new SuContainer(DbmsServerBySelect.connections());
 	}
 
 	@Override
