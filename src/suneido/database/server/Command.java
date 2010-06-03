@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 
-import suneido.SuContainer;
 import suneido.SuException;
 import suneido.database.*;
 import suneido.database.query.Header;
@@ -98,12 +97,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			SuContainer connections = new SuContainer();
-			synchronized(DbmsServerBySocket.serverDataSet) {
-				for (ServerData serverData : DbmsServerBySocket.serverDataSet)
-					connections.append(serverData.getSessionId());
-			}
-			return valueResult(outputQueue, connections);
+			return valueResult(outputQueue, theDbms.connections());
 		}
 	},
 	COPY {

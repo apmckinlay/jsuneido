@@ -6,8 +6,7 @@ import static suneido.util.Util.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -23,7 +22,7 @@ import suneido.util.ServerBySelect;
 public class DbmsServerBySelect {
 	private static final Executor executor = Executors.newCachedThreadPool();
 	@GuardedBy("serverDataSet")
-	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
+	private static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
 
 	public static void run(int port) {
@@ -192,6 +191,15 @@ e.printStackTrace();
 				serverDataSet.remove(serverData);
 			}
 		}
+	}
+
+	public static List<String> connections() {
+		List<String> list = new ArrayList<String>();
+		synchronized(serverDataSet) {
+			for (ServerData sd : serverDataSet)
+				list.add(sd.getSessionId());
+		}
+		return list;
 	}
 
 	public static void main(String[] args) {

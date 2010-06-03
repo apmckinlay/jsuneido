@@ -56,6 +56,7 @@ public class SuContainer extends SuValue
 
 	public SuContainer() {
 	}
+	/** create a new container and add the specified collection */
 	public SuContainer(Collection<?> c) {
 		vec.addAll(c);
 	}
