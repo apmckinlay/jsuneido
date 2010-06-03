@@ -65,7 +65,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			textmode = false;
+			ServerData.forThread().textmode = false;
 			return ok();
 		}
 	},
@@ -367,7 +367,7 @@ public enum Command {
 			Object result = theDbms.run(bufferToString(line));
 			if (result == null)
 				return stringToBuffer("\r\n");
-			return textmode
+			return ServerData.forThread().textmode
 					? stringToBuffer(Ops.display(result) + "\r\n")
 					: valueResult(outputQueue, result);
 		}
@@ -399,7 +399,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			textmode = true;
+			ServerData.forThread().textmode = true;
 			return ok();
 		}
 	},
@@ -485,7 +485,6 @@ public enum Command {
 	private final static ByteBuffer TRUE_ = stringToBuffer("t\r\n");
 
 	public final static Dbms theDbms = new DbmsLocal();
-	public static boolean textmode = true;
 
 	static ByteBuffer badcmd() {
 		return BADCMD_.duplicate();
