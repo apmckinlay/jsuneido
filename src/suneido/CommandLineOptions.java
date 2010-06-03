@@ -6,12 +6,13 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER
+		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE
 	}
 	public Action action;
 	public String action_arg = null;
 	public int server_port = -1;
 	public String remainder = "";
+	public String impersonate = WhenBuilt.when();
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -62,7 +63,11 @@ public class CommandLineOptions {
 				setActionWithArg(Action.TESTCLIENT);
 			else if (arg.equals("-testserver") || arg.equals("-ts"))
 				setAction(Action.TESTSERVER);
-			else
+			else if (arg.equals("-impersonate") || arg.equals("-i")) {
+				impersonate = getArg();
+				if (impersonate == null)
+					error("impersonate requires value");
+			} else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
 				return this;
@@ -92,11 +97,18 @@ public class CommandLineOptions {
 	}
 
 	private void optionalStringValue() {
+		String arg = getArg();
+		if (arg != null)
+			action_arg = arg;
+	}
+
+	private String getArg() {
 		String next = arg_i + 1 < args.length ? args[arg_i + 1] : "--";
 		if (! next.startsWith("-") && ! next.equals("--")) {
-			action_arg = next;
 			++arg_i;
-		}
+			return next;
+		} else
+			return null;
 	}
 
 	private void defaults() {
@@ -133,6 +145,8 @@ public class CommandLineOptions {
 			if (remainder != "")
 				sb.append(" rest: ").append(remainder);
 		}
+		if (impersonate != null && impersonate != WhenBuilt.when())
+			sb.append(" impersonate='").append(impersonate).append("'");
 		return sb.toString();
 	}
 
