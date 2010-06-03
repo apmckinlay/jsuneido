@@ -29,7 +29,10 @@ public class Dir extends BuiltinFunction {
 		String pattern = path.getName();
 		FileFilter filter = new Filter(pattern);
 		SuContainer ob = new SuContainer();
-		for (File f : new File(dir).listFiles(filter))
+		File[] listFiles = new File(dir).listFiles(filter);
+		if (listFiles == null)
+			return ob;
+		for (File f : listFiles)
 			if (! files || ! f.isDirectory())
 				ob.append(details ? detailsOf(f) : nameOf(f));
 		return ob;
