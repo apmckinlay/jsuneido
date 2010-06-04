@@ -3,7 +3,7 @@
 			package suneido;
 			public class WhenBuilt {
 				public static String when() {
-					return "Jun 3 2010 17:26:57 (Java)";
+					return "Jun 3 2010 18:02:05 (Java)";
 				}
 			}
 		
