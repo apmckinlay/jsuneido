@@ -52,6 +52,8 @@ public class Globals {
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
+		builtins.put("GetCurrentDirectory", new GetCurrentDirectory());
+		builtins.put("GetCurrentDiskFreeSpace", new GetCurrentDiskFreeSpace());
 		builtins.put("GetMacAddress", new GetMacAddress());
 		builtins.put("Gt", new Gt());
 		builtins.put("Gte", new Gte());
