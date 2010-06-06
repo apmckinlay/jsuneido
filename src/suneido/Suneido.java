@@ -58,6 +58,7 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
+			HttpServerMonitor.run(cmdlineoptions.server_port + 1);
 			DbmsServerBySelect.run(cmdlineoptions.server_port);
 			break;
 		case DUMP:
