@@ -6,11 +6,9 @@ import suneido.language.*;
 
 public class Unpack extends BuiltinFunction {
 
-	private static final FunctionSpec fs = new FunctionSpec("string");
-
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+		args = Args.massage(FunctionSpec.string, args);
 		String s = Ops.toStr(args[0]);
 		int n = s.length();
 		ByteBuffer buf = ByteBuffer.allocate(n);

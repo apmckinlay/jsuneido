@@ -20,6 +20,8 @@ public class FunctionSpec {
 			new FunctionSpec("value");
 	public static final FunctionSpec value2 =
 			new FunctionSpec("value", "value");
+	public static final FunctionSpec string =
+			new FunctionSpec("string");
 
 	public FunctionSpec(String... locals) {
 		this(null, locals, locals.length, noConstants, 0, false);

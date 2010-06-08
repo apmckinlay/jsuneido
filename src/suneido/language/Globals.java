@@ -87,6 +87,7 @@ public class Globals {
 		builtins.put("ServerPort", new ServerPort());
 		builtins.put("Server?", new ServerQ());
 		builtins.put("Sleep", new Sleep());
+		builtins.put("SocketClient", new SocketClient());
 		builtins.put("String?", new StringQ());
 		builtins.put("Sub", new Sub());
 		builtins.put("Synchronized", new Synchronized());
