@@ -35,7 +35,7 @@ public class SocketClient extends BuiltinClass {
 		}
 	}
 
-	private static class Instance extends SuValue {
+	static class Instance extends SuValue {
 		private final Socket socket;
 		private final DataInputStream input;
 		private final DataOutputStream output;
@@ -59,6 +59,13 @@ public class SocketClient extends BuiltinClass {
 			}
 		}
 
+		public Instance(Socket socket) throws IOException {
+			this.socket = socket;
+			socket.setTcpNoDelay(true); // disable nagle
+			input = new DataInputStream(socket.getInputStream());
+			output = new DataOutputStream(socket.getOutputStream());
+		}
+
 		@Override
 		public Object invoke(Object self, String method, Object... args) {
 			if (method == "Close")
@@ -71,10 +78,10 @@ public class SocketClient extends BuiltinClass {
 				return Write(args);
 			if (method == "Writeline")
 				return Writeline(args);
-			throw SuException.methodNotFound("scanner", method);
+			throw SuException.methodNotFound("socket", method);
 		}
 
-		private Object Close(Object... args) {
+		Object Close(Object... args) {
 			try {
 				socket.close();
 			} catch (IOException e) {
