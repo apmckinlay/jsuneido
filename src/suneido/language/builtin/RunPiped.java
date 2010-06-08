@@ -37,7 +37,7 @@ public class RunPiped extends BuiltinClass {
 		private final BufferedReader in;
 
 		public Instance(Object[] args) {
-			args = Args.massage(sFS, args);
+			args = Args.massage(FunctionSpec.string, args);
 			cmd = Ops.toStr(args[0]);
 			try {
 				ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -122,16 +122,14 @@ public class RunPiped extends BuiltinClass {
 			return s == null ? Boolean.FALSE : s;
 		}
 
-		private static final FunctionSpec sFS = new FunctionSpec("string");
-
 		private Object Write(Object[] args) {
-			args = Args.massage(sFS, args);
+			args = Args.massage(FunctionSpec.string, args);
 			out.append(Ops.toStr(args[0]));
 			return null;
 		}
 
 		private Object Writeline(Object[] args) {
-			args = Args.massage(sFS, args);
+			args = Args.massage(FunctionSpec.string, args);
 			out.println(Ops.toStr(args[0]));
 			return null;
 		}

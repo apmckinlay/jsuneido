@@ -24,10 +24,11 @@ public class File extends BuiltinClass {
 	public Object call(Object... args) {
 		Instance f = newInstance(args);
 		args = Args.massage(fileFS, args);
-		if (args[2] == Boolean.FALSE)
+		Object block = args[2];
+		if (block == Boolean.FALSE)
 			return f;
 		try {
-			return Ops.call(args[2], f);
+			return Ops.call(block, f);
 		} finally {
 			f.Close();
 		}
@@ -159,10 +160,8 @@ public class File extends BuiltinClass {
 			}
 		}
 
-		private static final FunctionSpec sFS = new FunctionSpec("string");
-
 		private Object Write(Object[] args) {
-			args = Args.massage(sFS, args);
+			args = Args.massage(FunctionSpec.string, args);
 			try {
 				f.writeBytes(Ops.toStr(args[0]));
 			} catch (IOException e) {
@@ -172,7 +171,7 @@ public class File extends BuiltinClass {
 		}
 
 		private Object Writeline(Object[] args) {
-			args = Args.massage(sFS, args);
+			args = Args.massage(FunctionSpec.string, args);
 			try {
 				f.writeBytes(Ops.toStr(args[0]));
 				f.writeBytes("\r\n");

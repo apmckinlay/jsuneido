@@ -11,11 +11,9 @@ import suneido.language.*;
  */
 public class Pack extends BuiltinFunction {
 
-	private static final FunctionSpec fs = new FunctionSpec("string");
-
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+		args = Args.massage(FunctionSpec.string, args);
 		int n = suneido.language.Pack.packSize(args[0]);
 		ByteBuffer buf = ByteBuffer.allocate(n);
 		suneido.language.Pack.pack(args[0], buf);

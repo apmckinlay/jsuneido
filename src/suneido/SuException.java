@@ -17,7 +17,7 @@ public class SuException extends RuntimeException {
 	}
 
 	public SuException(String s, Throwable e) {
-		this.s = s;
+		this.s = s + " (" + e + ")";
 		initCause(e);
 		//printStackTrace();
 	}
