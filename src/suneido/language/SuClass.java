@@ -165,7 +165,7 @@ public abstract class SuClass extends SuCallable {
 		return null;
 	}
 
-	private Object newInstance(Object[] args) {
+	private Object newInstance(Object... args) {
 		SuInstance x = new SuInstance(this);
 		x.invoke(x, "_init", args);
 		return x;
