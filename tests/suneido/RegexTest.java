@@ -57,4 +57,19 @@ public class RegexTest {
 		assertTrue(Regex.contains("", "^"));
 	}
 
+	@Test
+	public void escaping() {
+		assertTrue(Regex.contains("_._", "_\\._"));
+		assertTrue(Regex.contains("_(_", "_\\(_"));
+		assertTrue(Regex.contains("_)_", "_\\)_"));
+		assertTrue(Regex.contains("_[_", "_\\[_"));
+		assertTrue(Regex.contains("_]_", "_\\]_"));
+		assertTrue(Regex.contains("_*_", "_\\*_"));
+		assertTrue(Regex.contains("_+_", "_\\+_"));
+		assertTrue(Regex.contains("_?_", "_\\?_"));
+		assertTrue(Regex.contains("_|_", "_\\|_"));
+		assertTrue(Regex.contains("_^_", "_\\^_"));
+		assertTrue(Regex.contains("_$_", "_\\$_"));
+	}
+
 }
