@@ -1,14 +1,21 @@
 package suneido.language;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 public class TestCompileClass {
 
-	public static void main(String[] args) {
-		Object c = compile("Test", "class { f() { 123 } G() { .f() } }");
-		Object result = Ops.invoke(c, "G");
-		System.out.println(result);
+	public static void main(String[] args) throws IOException {
+		String s = Files.toString(new File("class.txt"), Charsets.UTF_8);
+		compile("MyClass", s);
+
+//		Object c = compile("Test", "class { f() { 123 } G() { .f() } }");
+//		Object result = Ops.invoke(c, "G");
+//		System.out.println(result);
+
+//		compile("Test", "class { X: (function () {}) }");
 	}
 
 	private static Object compile(String name, String s) {

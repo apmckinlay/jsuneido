@@ -102,9 +102,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		T name = memberName(base);
 		boolean canBeFunction = token != COLON;
 		if (name != null) {
-			if (token == COLON)
+			if (token == COLON) {
 				match();
-			else if (base != null && token != L_PAREN)
+				if (token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
+					canBeFunction = true;
+					match();
+				}
+			} else if (base != null && token != L_PAREN)
 				syntaxError("expected colon after member name");
 		}
 		T value = memberValue(name, canBeFunction);
