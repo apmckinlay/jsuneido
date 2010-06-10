@@ -34,13 +34,16 @@ public class Globals {
 		builtins.put("Class?", new ClassQ());
 		builtins.put("Cmdline", new Cmdline());
 		builtins.put("Construct", new Construct());
+		builtins.put("CreateDirectory", new CreateDirectory());
 		builtins.put("Cursor", new Cursor());
 		builtins.put("Database", new Database());
 		builtins.put("Date", new DateClass());
 		builtins.put("Date?", new DateQ());
 		builtins.put("Delayed", new Delayed());
+		builtins.put("DeleteDir", new DeleteDir());
 		builtins.put("DeleteFile", new DeleteFile());
 		builtins.put("Dir", new Dir());
+		builtins.put("DirExists?", new DirExistsQ());
 		builtins.put("Display", new Display());
 		builtins.put("Div", new Div());
 		builtins.put("Dump", new Dump());
@@ -55,6 +58,7 @@ public class Globals {
 		builtins.put("GetCurrentDirectory", new GetCurrentDirectory());
 		builtins.put("GetCurrentDiskFreeSpace", new GetCurrentDiskFreeSpace());
 		builtins.put("GetMacAddress", new GetMacAddress());
+		builtins.put("GetTempPath", new GetTempPath());
 		builtins.put("Gt", new Gt());
 		builtins.put("Gte", new Gte());
 		builtins.put("Libraries", new Libraries());
