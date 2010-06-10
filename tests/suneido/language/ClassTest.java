@@ -121,6 +121,15 @@ public class ClassTest {
 		define("A", "class { F() { b = { .G() }; b() } }");
 		define("B", "A { G() { 123 } }");
 		test("B.F()", "123");
+
+		define("C", "class { X: function () { 123 } }");
+		test("C.X()", "123");
+
+		define("C", "#( X: (function () {}) )");
+		test("Type(C.X[0])", "'Function'");
+
+		define("C", "class { X: (function () {}) }");
+		test("Type(C.X[0])", "'Function'");
 	}
 	@Test public void test_static_getter() {
 		define("A", "class { " +

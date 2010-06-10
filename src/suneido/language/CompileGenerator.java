@@ -140,6 +140,8 @@ public class CompileGenerator extends Generator<Object> {
 	public Object memberList(MType which, Object list, Object member) {
 		MemDef m = (MemDef) member;
 		if (which == CLASS) {
+			if (m.value == null || m.value instanceof AnonFunction)
+				return list;
 			Map<String, Object> vars = (list == null
 					? new HashMap<String, Object>()
 					: (Map<String,Object>) list);
@@ -349,9 +351,12 @@ public class CompileGenerator extends Generator<Object> {
 			assert topType == TopType.OBJECT;
 			startClass("suneido/language/SuFunction");
 		}
-		if (c.f == null)
-			startTopFunction((String) name);
-		else {
+		if (c.f == null) {
+			if (topType == TopType.CLASS && name == null)
+				c.f = new Function(c.name + "_f" + c.iFunction++);
+			else
+				startTopFunction((String) name);
+		} else {
 			c.fstack.push(c.f);
 			c.f = new Function(c.name + "_f" + c.iFunction++);
 		}
@@ -541,17 +546,16 @@ public class CompileGenerator extends Generator<Object> {
 				c.f.nparams, constantsArray, c.f.ndefaults, c.f.atParam);
 		c.fspecs.set(c.f.iFspecs, fs);
 
+		Function f = c.f;
 		if (!c.fstack.isEmpty()) {
-			Object m = method(c.f.name);
 			c.f = c.fstack.pop();
-			return m;
+			return method(f.name);
 		} else {
 			c.f = null;
 			if (c.baseClass == "suneido/language/SuFunction")
 				return finishClass(null, null);
 			else
-				// method
-				return null;
+				return method(f.name);
 		}
 	}
 
@@ -1007,6 +1011,10 @@ public class CompileGenerator extends Generator<Object> {
 		}
 		Args(int nargs) {
 			this.nargs = nargs;
+		}
+		@Override
+		public String toString() {
+			return "Args(nargs: " + nargs + ", constArgs: " + constArgs + ")";
 		}
 	}
 	private static final Args noArgs = new Args();
