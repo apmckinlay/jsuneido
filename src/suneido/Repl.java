@@ -12,6 +12,7 @@ package suneido;
  TestRunner.Run(#(invenlib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(#(wolib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(#(polib), skipTags: #(windows), quit_on_failure:)
+
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
 
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()

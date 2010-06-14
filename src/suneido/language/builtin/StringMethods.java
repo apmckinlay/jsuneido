@@ -151,7 +151,7 @@ public class StringMethods {
 
 	private static Object Compile(String s, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return Compiler.compile("StringCompile", s);
+		return Compiler.compile("stringCompile", s);
 	}
 
 	private static Object Contains(String s, Object[] args) {

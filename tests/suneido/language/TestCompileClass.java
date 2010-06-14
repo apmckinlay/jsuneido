@@ -2,17 +2,14 @@ package suneido.language;
 
 import java.io.*;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-
 public class TestCompileClass {
 
 	public static void main(String[] args) throws IOException {
-		String s = Files.toString(new File("class.txt"), Charsets.UTF_8);
-		compile("MyClass", s);
+//		String s = Files.toString(new File("class.txt"), Charsets.UTF_8);
+//		compile("MyClass", s);
 
-//		Object c = compile("Test", "class { f() { 123 } G() { .f() } }");
-//		Object result = Ops.invoke(c, "G");
+		Object c = compile("Test", "#(a: function () { 123 }, b: function () { 456 })");
+//		Object result = Ops.invoke(c, "func");
 //		System.out.println(result);
 
 //		compile("Test", "class { X: (function () {}) }");
