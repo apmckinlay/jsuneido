@@ -104,7 +104,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		if (name != null) {
 			if (token == COLON) {
 				match();
-				if (token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
+				if (base != null && token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
 					canBeFunction = true;
 					match();
 				}

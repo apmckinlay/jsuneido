@@ -130,6 +130,12 @@ public class ClassTest {
 
 		define("C", "class { X: (function () {}) }");
 		test("Type(C.X[0])", "'Function'");
+
+		define("X", "#(function () { 123 })");
+		test("(X[0])()", "123");
+
+		define("X", "#(func: function () { 123 })");
+		test("(X.func)()", "123");
 	}
 	@Test public void test_static_getter() {
 		define("A", "class { " +

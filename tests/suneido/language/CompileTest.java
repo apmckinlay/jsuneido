@@ -278,6 +278,20 @@ public class CompileTest {
 		compile("Plugins().Foreach(a, { break })");
 		compile("Plugins().Foreach(a) { break }");
 	}
+	@Test public void test_many_const_args() {
+		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
+			"x, EACH, " +
+			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
+			"callN, ARETURN");
+		test("x('', y(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11))",
+			"x, '', y, EACH, " +
+			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
+			"callN, callN, ARETURN");
+		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
+			"x, NAMED, 'V', a, EACH, " +
+			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
+			"callN, ARETURN");
+	}
 
 	private void test(String expr, String expected) {
 		assertEquals(expr, expected, simplify(compile(expr)));
@@ -337,6 +351,7 @@ public class CompileTest {
 			{ "args, ICONST_1, AALOAD", "b" },
 			{ "args, ICONST_2, AALOAD", "c" },
 			{ "args, ICONST_3, AALOAD", "x" },
+			{ "args, ICONST_4, AALOAD", "y" },
 			{ "args, ICONST_0", "&a" },
 			{ "args, ICONST_1", "&b" },
 			{ "args, ICONST_2", "&c" },
@@ -369,6 +384,7 @@ public class CompileTest {
 			{ " (Object;String;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;)Object;", "" },
+			{ " (Object;Object;Object;Object;Object;Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
 			{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L2", "null?" },
