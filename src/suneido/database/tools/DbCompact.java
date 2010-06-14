@@ -1,5 +1,6 @@
 package suneido.database.tools;
 
+import static suneido.SuException.verify;
 import static suneido.SuException.verifyEquals;
 import static suneido.database.Database.theDB;
 
@@ -46,14 +47,16 @@ public class DbCompact {
 		int n = copy();
 
 		oldDB.close();
+		oldDB = null;
 		theDB.close();
 		theDB = null;
 
 		File dbfile = new File(dbFilename);
 		File bakfile = new File(dbFilename + ".bak");
-		bakfile.delete();
-		dbfile.renameTo(bakfile);
-		tmpfile.renameTo(dbfile);
+		if (bakfile.exists())
+			verify(bakfile.delete());
+		verify(dbfile.renameTo(bakfile));
+		verify(tmpfile.renameTo(dbfile));
 
 		return n;
 	}
