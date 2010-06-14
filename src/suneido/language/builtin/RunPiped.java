@@ -3,6 +3,7 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -39,8 +40,9 @@ public class RunPiped extends BuiltinClass {
 		public Instance(Object[] args) {
 			args = Args.massage(FunctionSpec.string, args);
 			cmd = Ops.toStr(args[0]);
+			String[] cmdargs = splitcmd(cmd);
 			try {
-				ProcessBuilder pb = new ProcessBuilder(cmd);
+				ProcessBuilder pb = new ProcessBuilder(cmdargs);
 				pb.redirectErrorStream(true); // merge stderr into stdout
 				Process proc = pb.start();
 				out = new PrintStream(proc.getOutputStream(), true);
@@ -50,6 +52,29 @@ public class RunPiped extends BuiltinClass {
 				throw new SuException("RunPiped failed", e);
 			}
 		}
+
+		/* temporarily split a single command line string into arguments
+		 * in the long run we will switch to passing multiple arguments instead
+		 */
+		private static String[] splitcmd(String s) {
+			ArrayList<String> args = new ArrayList<String>();
+			while (true) {
+				s = s.trim();
+				if (s.isEmpty())
+					break;
+				char delim = ' ';
+				if (s.charAt(0) == '"') {
+					s = s.substring(1);
+					delim = '"';
+				}
+				int i = s.indexOf(delim);
+				args.add(i == -1 ? s : s.substring(0, i));
+				if (i == -1 || i + 1 > s.length())
+					break;
+				s = s.substring(i + 1);
+			}
+			return args.toArray(new String[0]);
+                }
 
 		@Override
 		public Object invoke(Object self, String method, Object... args) {
