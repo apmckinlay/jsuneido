@@ -58,20 +58,23 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			HttpServerMonitor.run(cmdlineoptions.server_port + 1);
-			DbmsServerBySelect.run(cmdlineoptions.server_port);
+			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
+			DbmsServerBySelect.run(cmdlineoptions.serverPort);
 			break;
 		case DUMP:
-			if (cmdlineoptions.action_arg == null)
+			if (cmdlineoptions.actionArg == null)
 				DbDump.dumpDatabasePrint("suneido.db", "database.su");
 			else
-				DbDump.dumpTablePrint(cmdlineoptions.action_arg);
+				DbDump.dumpTablePrint(cmdlineoptions.actionArg);
 			break;
 		case LOAD:
-			if (cmdlineoptions.action_arg == null)
-				DbLoad.loadPrint("database.su");
+			if (cmdlineoptions.actionArg != null)
+				DbLoad.loadTablePrint(cmdlineoptions.actionArg);
 			else
-				DbLoad.loadTablePrint(cmdlineoptions.action_arg);
+				DbLoad.loadDatabasePrint("database.su", "suneido.db");
+			break;
+		case LOAD2:
+			DbLoad.load2("database.su", cmdlineoptions.actionArg);
 			break;
 		case CHECK:
 			DbCheck.checkPrintExit("suneido.db");
@@ -79,8 +82,14 @@ public class Suneido {
 		case REBUILD:
 			DbRebuild.rebuildOrExit("suneido.db");
 			break;
+		case REBUILD2:
+			DbRebuild.rebuild2("suneido.db", cmdlineoptions.actionArg);
+			break;
 		case COMPACT:
 			DbCompact.compactPrint("suneido.db");
+			break;
+		case COMPACT2:
+			DbCompact.compact2("suneido.db", cmdlineoptions.actionArg);
 			break;
 		case TEST:
 			RunAllTests.run("jsuneido.jar");
@@ -91,13 +100,13 @@ public class Suneido {
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
 		case TESTCLIENT:
-			TestClient.main(cmdlineoptions.action_arg);
+			TestClient.main(cmdlineoptions.actionArg);
 			break;
 		case TESTSERVER:
 			TestServer.main(new String[0]);
 			break;
 		case ERROR:
-			System.out.println(cmdlineoptions.action_arg);
+			System.out.println(cmdlineoptions.actionArg);
 			System.out.println();
 			// fall through
 		case HELP:

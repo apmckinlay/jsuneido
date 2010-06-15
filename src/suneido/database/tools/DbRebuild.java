@@ -4,9 +4,9 @@ import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
+import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import suneido.SuException;
@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 
 public class DbRebuild extends DbCheck {
 	private final String filename;
+	private final String tempfilename;
 	private Database newdb;
 	private final BitSet deletes = new BitSet();
 	private final Map<Long,Long> tr = new HashMap<Long,Long>();
@@ -29,32 +30,41 @@ public class DbRebuild extends DbCheck {
 	// means smallest block is 16 bytes
 	final private int GRANULARITY = 16;
 
-	protected DbRebuild(String filename, boolean print) {
-		super(filename, print);
-		this.filename = filename;
+	public static void rebuildOrExit(String dbfilename)
+			throws InterruptedException {
+		File tempfile = DbTools.tempfile();
+		if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
+			throw new SuException("compact failed: " + dbfilename);
+		renameWithBackup(tempfile, dbfilename);
 	}
 
-	public static void rebuildOrExit(String filename) {
-		DbRebuild dbr = new DbRebuild(filename, true);
+	public static void rebuild2(String dbfilename, String tempfilename) {
+		DbRebuild dbr = new DbRebuild(dbfilename, tempfilename, true);
 		Status status = dbr.check();
 		switch (status) {
 		case OK:
 		case CORRUPTED:
 			dbr.rebuild();
-			errlog("Rebuilt " + filename + " was " + status + " " + dbr.lastCommit(status));
+			errlog("Rebuilt " + dbfilename + " was " + status + " " + dbr.lastCommit(status));
 			break;
 		case UNRECOVERABLE:
-			fatal("Rebuild failed " + filename + " UNRECOVERABLE");
+			fatal("Rebuild failed " + dbfilename + " UNRECOVERABLE");
 		default:
 			throw unreachable();
 		}
 	}
 
+	protected DbRebuild(String filename, String tempfilename, boolean print) {
+		super(filename, print);
+		this.filename = filename;
+		this.tempfilename = tempfilename;
+	}
+
 	protected void rebuild() {
 		println("Rebuilding " + filename);
-		File tmpfile = tmpfile();
+		File tempfile = new File(tempfilename);
 		try {
-			newdb = new Database(tmpfile, Mode.CREATE);
+			newdb = new Database(tempfile, Mode.CREATE);
 			tblnames.put(4, "views");
 			copy();
 			newdb.setNextTableNum(max_tblnum + 1);
@@ -62,7 +72,7 @@ public class DbRebuild extends DbCheck {
 			newdb.close();
 			newdb = null;
 
-			DbCheck dbc = new DbCheck(tmpfile.getPath(), print);
+			DbCheck dbc = new DbCheck(tempfile.getPath(), print);
 			switch (dbc.check()) {
 			case OK:
 				break;
@@ -73,33 +83,13 @@ public class DbRebuild extends DbCheck {
 			default:
 				throw unreachable();
 			}
-
-			File dbfile = new File(filename);
-			File bakfile = new File(filename + ".bak");
-			bakfile.delete();
-			dbfile.renameTo(bakfile);
-			tmpfile.renameTo(dbfile);
-
 			println(filename + " rebuilt");
 		} catch (Throwable e) {
 			System.out.println("Rebuild FAILED " + e);
 		} finally {
-			if (newdb != null) {
+			if (newdb != null)
 				newdb.close();
-				newdb = null;
-			}
-			tmpfile.delete();
 		}
-	}
-
-	private File tmpfile() {
-		File tmpfile;
-		try {
-			tmpfile = File.createTempFile("sudb", null, new File("."));
-		} catch (IOException e) {
-			throw new SuException("Can't create temp file", e);
-		}
-		return tmpfile;
 	}
 
 	private boolean copy() {
@@ -340,7 +330,7 @@ public class DbRebuild extends DbCheck {
 	}
 
 	public static void main(String[] args) {
-		rebuildOrExit("suneido.db");
+		rebuild2("suneido.db", "rebuilt.db");
 	}
 
 }

@@ -6,11 +6,11 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE
+		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE, LOAD2, REBUILD2, COMPACT2
 	}
 	public Action action;
-	public String action_arg = null;
-	public int server_port = -1;
+	public String actionArg = null;
+	public int serverPort = -1;
 	public String remainder = "";
 	public String impersonate = WhenBuilt.when();
 
@@ -36,24 +36,33 @@ public class CommandLineOptions {
 				setAction(Action.SERVER);
 			else if (arg.equals("-port") || arg.equals("-p")) {
 				try {
-					server_port = Integer.parseInt(args[++arg_i]);
+					serverPort = Integer.parseInt(args[++arg_i]);
 				} catch (NumberFormatException e) {
 				}
-				if (server_port <= 0 | 65535 < server_port) {
+				if (serverPort <= 0 | 65535 < serverPort) {
 					setAction(Action.ERROR);
-					action_arg = "invalid port: " + args[arg_i - 1];
+					actionArg = "invalid port: " + args[arg_i - 1];
 				}
 			} else if (arg.equals("-dump") || arg.equals("-d"))
 				setActionWithArg(Action.DUMP);
 			else if (arg.equals("-load") || arg.equals("-l"))
 				setActionWithArg(Action.LOAD);
-			else if (arg.equals("-check"))
+			else if (arg.startsWith("-load:")) {
+				setActionWithArg(Action.LOAD2);
+				actionArg = arg.substring(6);
+			} else if (arg.equals("-check"))
 				setAction(Action.CHECK);
-			else if (arg.equals("-rebuild") )
+			else if (arg.equals("-rebuild"))
 				setAction(Action.REBUILD);
-			else if (arg.equals("-compact"))
+			else if (arg.startsWith("-rebuild:")) {
+				setAction(Action.REBUILD2);
+				actionArg = arg.substring(9);
+			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);
-			else if (arg.equals("-tests") || arg.equals("-t"))
+			else if (arg.startsWith("-compact:")) {
+				setAction(Action.COMPACT2);
+				actionArg = arg.substring(9);
+			} else if (arg.equals("-tests") || arg.equals("-t"))
 				setAction(Action.TEST);
 			else if (arg.equals("-version") | arg.equals("-v"))
 				setAction(Action.VERSION);
@@ -93,13 +102,13 @@ public class CommandLineOptions {
 
 	private void error(String err) {
 		action = Action.ERROR;
-		action_arg = err;
+		actionArg = err;
 	}
 
 	private void optionalStringValue() {
 		String arg = getArg();
 		if (arg != null)
-			action_arg = arg;
+			actionArg = arg;
 	}
 
 	private String getArg() {
@@ -114,12 +123,12 @@ public class CommandLineOptions {
 	private void defaults() {
 		if (action == null)
 			action = Action.SERVER;
-		if (action == Action.SERVER && server_port == -1)
-			server_port = DEFAULT_PORT;
+		if (action == Action.SERVER && serverPort == -1)
+			serverPort = DEFAULT_PORT;
 	}
 
 	private void validate() {
-		if (server_port != -1 && action != Action.SERVER)
+		if (serverPort != -1 && action != Action.SERVER)
 			error("port should only be specifed with server, not " + action);
 	}
 
@@ -137,11 +146,11 @@ public class CommandLineOptions {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(action);
-		if (action_arg != null)
-			sb.append(" ").append(action_arg);
+		if (actionArg != null)
+			sb.append(" ").append(actionArg);
 		if (action != Action.ERROR) {
-			if (server_port != -1 && server_port != DEFAULT_PORT)
-				sb.append(" port=" + server_port);
+			if (serverPort != -1 && serverPort != DEFAULT_PORT)
+				sb.append(" port=" + serverPort);
 			if (remainder != "")
 				sb.append(" rest: ").append(remainder);
 		}

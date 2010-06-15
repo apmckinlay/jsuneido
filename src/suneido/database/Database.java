@@ -11,7 +11,6 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.database.tools.DbRebuild;
 import suneido.util.*;
 
 import com.google.common.collect.ImmutableList;
@@ -83,9 +82,9 @@ public class Database {
 	private void init(Mode mode) {
 		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
 			errlog("database not shut down properly last time");
-			if (file == null)
+//			if (file == null)
 				throw new SuException("database not shut down properly last time");
-			DbRebuild.rebuildOrExit(file.getPath());
+//			DbRebuild.rebuildOrExit(file.getPath());
 		}
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;

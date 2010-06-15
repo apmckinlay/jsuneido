@@ -9,6 +9,7 @@ public class DbCheckTest extends DbCheckRebuildBase {
 
 	public DbCheckTest() {
 		super("dbchecktest.db");
+		outfilename = "dbchecktest.db";
 	}
 
 	@Test

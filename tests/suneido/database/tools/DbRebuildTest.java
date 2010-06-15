@@ -8,7 +8,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import suneido.database.*;
-import suneido.database.tools.DbRebuild;
 import suneido.database.tools.DbCheck.Status;
 
 
@@ -135,7 +134,7 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 	}
 
 	private void dbrebuild() {
-		DbRebuild dbr = new DbRebuild(filename, false);
+		DbRebuild dbr = new DbRebuild(filename, outfilename, false);
 		Status status = dbr.check();
 		assertEquals(Status.OK, status);
 		dbr.rebuild();

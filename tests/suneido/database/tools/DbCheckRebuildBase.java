@@ -8,18 +8,19 @@ import java.io.File;
 import org.junit.After;
 
 import suneido.database.*;
-import suneido.database.tools.DbCheck;
 import suneido.database.tools.DbCheck.Status;
 
 public class DbCheckRebuildBase extends TestBaseBase {
 	protected final String filename;
+	protected String outfilename;
 
 	protected DbCheckRebuildBase(String filename) {
 		this.filename = filename;
+		outfilename = filename + ".out";
 	}
 
 	protected void dbcheck() {
-		assertEquals(Status.OK, DbCheck.check(filename));
+		assertEquals(Status.OK, DbCheck.check(outfilename));
 	}
 
 	protected void checkTable() {
@@ -66,6 +67,7 @@ public class DbCheckRebuildBase extends TestBaseBase {
 	@After
 	public void delete() {
 		new File(filename).delete();
+		new File(outfilename).delete();
 	}
 
 }
