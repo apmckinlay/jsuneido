@@ -2,6 +2,7 @@ package suneido.database.tools;
 
 import static suneido.SuException.verify;
 import static suneido.database.Database.theDB;
+import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -14,26 +15,29 @@ import suneido.util.ByteBuf;
 
 public class DbLoad {
 
-	public static void loadPrint(String filename) {
-		int n = DbLoad.loadDatabase(filename);
-		System.out.println("loaded " + n + " tables from " + filename
-				+ " into new suneido.db");
+	public static void loadDatabasePrint(String filename, String dbfilename)
+			throws InterruptedException {
+		File tempfile = DbTools.tempfile();
+		if (! DbTools.runWithNewJvm("-load:" + tempfile))
+			throw new SuException("failed to load: " + filename);
+		renameWithBackup(tempfile, dbfilename);
+		System.out.println("loaded " + filename	+ " into new " + dbfilename);
 	}
 
-	public static int loadDatabase(String filename) {
+	public static int load2(String filename, String dbfilename) {
 		try {
-			return loadDatabaseImp(filename);
+			return loadDatabase(filename, dbfilename);
 		} catch (Throwable e) {
 			throw new SuException("load " + filename + " failed", e);
 		}
 	}
 
-	public static int loadDatabaseImp(String filename)
+	public static int loadDatabase(String filename, String dbfilename)
 			throws Throwable {
 		int n = 0;
-		File tmpfile = File.createTempFile("sudb", null, new File("."));
+		File dbfile = new File(dbfilename);
 		try {
-			Database.theDB = new Database(tmpfile, Mode.CREATE);
+			Database.theDB = new Database(dbfile, Mode.CREATE);
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(filename));
 			try {
@@ -52,19 +56,9 @@ public class DbLoad {
 			} finally {
 				fin.close();
 			}
-		} catch (Throwable e) {
-			tmpfile.delete();
-			throw e;
 		} finally {
 			Database.theDB.close();
 		}
-		File bak = new File("suneido.db.bak");
-		if (bak.exists())
-			verify(bak.delete());
-		File sdb = new File("suneido.db");
-		if (sdb.exists())
-			verify(sdb.renameTo(bak));
-		verify(tmpfile.renameTo(sdb));
 		return n;
 	}
 
@@ -184,8 +178,8 @@ public class DbLoad {
 		return sb.toString();
 	}
 
-	public static void main(String[] args) throws IOException {
-		loadPrint("database.su");
+	public static void main(String[] args) throws InterruptedException {
+		loadDatabasePrint("database.su", "dbload.db");
 
 //		int n = Load.loadTable("stdlib");
 //		System.out.println("loaded " + n + " records into stdlib");

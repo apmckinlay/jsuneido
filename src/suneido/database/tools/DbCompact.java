@@ -1,11 +1,10 @@
 package suneido.database.tools;
 
-import static suneido.SuException.verify;
 import static suneido.SuException.verifyEquals;
 import static suneido.database.Database.theDB;
+import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import suneido.SuException;
@@ -15,60 +14,50 @@ import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
 
 public class DbCompact {
-	private final String dbFilename;
+	private final String dbfilename;
+	private final String tempfilename;
 	private Database oldDB;
 	private Transaction rt;
 
-	public static void compactPrint(String db_filename) {
-		Status status = DbCheck.checkPrint(db_filename);
-		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + db_filename + " " + status);
-		System.out.println("Compacting " + db_filename);
-		int n = new DbCompact(db_filename).compact();
-		System.out.println(db_filename + " compacted " + n + " tables");
+	public static void compactPrint(String dbfilename)
+			throws InterruptedException {
+		File tempfile = DbTools.tempfile();
+		if (!DbTools.runWithNewJvm("-compact:" + tempfile))
+			throw new SuException("compact failed: " + dbfilename);
+		renameWithBackup(tempfile, dbfilename);
 	}
 
-	public static int compact(String db_filename) {
-		Status status = DbCheck.check(db_filename);
+	public static void compact2(String dbfilename, String tempfilename) {
+		Status status = DbCheck.checkPrint(dbfilename);
 		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + db_filename + " " + status);
-		return new DbCompact(db_filename).compact();
+			throw new SuException("Compact FAILED " + dbfilename + " " + status);
+		System.out.println("Compacting " + dbfilename);
+		int n = new DbCompact(dbfilename, tempfilename).compact();
+		System.out.println(dbfilename + " compacted " + n + " tables");
 	}
 
-	private DbCompact(String dbFilename) {
-		this.dbFilename = dbFilename;
+	public static int compact(String dbfilename, String tempfilename) {
+		Status status = DbCheck.check(dbfilename);
+		if (status != Status.OK)
+			throw new SuException("Compact FAILED " + dbfilename + " " + status);
+		return new DbCompact(dbfilename, tempfilename).compact();
+	}
+
+	private DbCompact(String dbfilename, String tempfilename) {
+		this.dbfilename = dbfilename;
+		this.tempfilename = tempfilename;
 	}
 
 	private int compact() {
-		File tmpfile = tmpfile();
-		oldDB = new Database(dbFilename, Mode.READ_ONLY);
-		theDB = new Database(tmpfile, Mode.CREATE);
+		File tempfile = new File(tempfilename);
+		oldDB = new Database(dbfilename, Mode.READ_ONLY);
+		theDB = new Database(tempfile, Mode.CREATE);
 
 		int n = copy();
 
 		oldDB.close();
-		oldDB = null;
 		theDB.close();
-		theDB = null;
-
-		File dbfile = new File(dbFilename);
-		File bakfile = new File(dbFilename + ".bak");
-		if (bakfile.exists())
-			verify(bakfile.delete());
-		verify(dbfile.renameTo(bakfile));
-		verify(tmpfile.renameTo(dbfile));
-
 		return n;
-	}
-
-	private File tmpfile() {
-		File tmpfile;
-		try {
-			tmpfile = File.createTempFile("sudb", null, new File("."));
-		} catch (IOException e) {
-			throw new SuException("Can't create temp file", e);
-		}
-		return tmpfile;
 	}
 
 	private int copy() {
@@ -157,7 +146,7 @@ public class DbCompact {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		compactPrint("suneido.db");
 	}
 
