@@ -219,9 +219,9 @@ public class ContainerMethods {
 
 	private static Object GetDefault(SuContainer c, Object[] args) {
 		args = Args.massage(keyValueFS, args);
-		Object x = c.getDefault(args[0], args[1]);
-		if (x == args[1] && x instanceof SuBlock)
-			x = Ops.call(x);
+		Object x = c.getIfPresent(args[0]);
+		if (x == null)
+			x = args[1] instanceof SuBlock ? Ops.call(args[1]) : args[1];
 		return x;
 	}
 
