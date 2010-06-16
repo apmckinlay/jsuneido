@@ -148,18 +148,21 @@ public class SuContainer extends SuValue
 	}
 
 	public Object getDefault(Object key, Object defval) {
-		int i = index(key);
-		if (0 <= i && i < vec.size())
-			return vec.get(i);
-		Object x = map.get(key);
+		Object x = getIfPresent(key);
 		if (x != null)
 			return x;
 		if (defval instanceof SuContainer) {
 			x = new SuContainer((SuContainer) defval);
-			put(key, x);
+			if (!readonly)
+				put(key, x);
 			return x;
 		}
 		return defval;
+	}
+
+	public Object getIfPresent(Object key) {
+		int i = index(key);
+		return (0 <= i && i < vec.size()) ? vec.get(i) : map.get(key);
 	}
 
 	public boolean containsKey(Object key) {
