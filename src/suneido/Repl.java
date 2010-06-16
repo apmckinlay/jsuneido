@@ -34,7 +34,8 @@ public class Repl {
 	public static void main(String[] args) throws Exception {
 		setup();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader in = new BufferedReader(
+				new InputStreamReader(System.in));
 		while (true) {
 			out.print("> ");
 			out.flush();
