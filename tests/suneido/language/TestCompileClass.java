@@ -8,7 +8,8 @@ public class TestCompileClass {
 //		String s = Files.toString(new File("class.txt"), Charsets.UTF_8);
 //		compile("MyClass", s);
 
-		Object c = compile("Test", "#(a: function () { 123 }, b: function () { 456 })");
+//		Object c =
+			compile("Test", "#(a: function () { 123 }, b: function () { 456 })");
 //		Object result = Ops.invoke(c, "func");
 //		System.out.println(result);
 
