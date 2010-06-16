@@ -5,6 +5,7 @@ import static suneido.util.Util.array;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -48,7 +49,8 @@ public class Dir extends BuiltinFunction {
 	private SuContainer detailsOf(File f) {
 		SuContainer ob = new SuContainer();
 		ob.put("name", f.getName());
-		ob.put("size", f.length());
+		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
+				: BigDecimal.valueOf(f.length()));
 		ob.put("date", new Date(f.lastModified()));
 		ob.put("attr", attrOf(f));
 		return ob;
