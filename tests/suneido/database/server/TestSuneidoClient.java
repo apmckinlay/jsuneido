@@ -3,12 +3,11 @@ package suneido.database.server;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Random;
 
 public class TestSuneidoClient {
 	private static final int NTHREADS = 80;
 	private static final long DURATION = 5 * 60 * 1000;
-	private static final int MAX_B = 80000;
+//	private static final int MAX_B = 80000;
 	private final static int MAXDATA = 1000;
 
 	public static void main(String... args)
@@ -20,7 +19,7 @@ public class TestSuneidoClient {
 
 	@SuppressWarnings("deprecation")
 	private static class Run implements Runnable {
-		private final Random rand = new Random();
+//		private final Random rand = new Random();
 		private final byte[] buf = new byte[MAXDATA];
 		private final String address;
 

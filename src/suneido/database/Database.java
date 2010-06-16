@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
-	private final File file;
+//	private final File file;
 	private final Mode mode;
 	public final Destination dest; // used by tests
 	private Dbhdr dbhdr;
@@ -66,14 +66,14 @@ public class Database {
 	}
 
 	public Database(File file, Mode mode) {
-		this.file = file;
+//		this.file = file;
 		this.mode = mode;
 		dest = new Mmfile(file, mode);
 		init(mode);
 	}
 
 	public Database(Destination dest, Mode mode) {
-		this.file = null;
+//		this.file = null;
 		this.mode = mode;
 		this.dest = dest;
 		init(mode);
