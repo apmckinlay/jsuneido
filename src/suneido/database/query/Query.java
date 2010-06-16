@@ -11,6 +11,7 @@ import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.server.DbmsQuery;
+import suneido.util.Util;
 
 /**
  * Base class for query operation classes.
@@ -90,6 +91,8 @@ public abstract class Query implements DbmsQuery {
 	}
 	double optimize(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+if (needs.size() != Util.withoutDups(needs).size())
+System.out.println(needs + "\n" + this);
 		//System.out.println("\noptimize START " + this);
 		//System.out.println("    index=" + index
 		//		+ " needs=" + needs	+ " firstneeds=" + firstneeds
