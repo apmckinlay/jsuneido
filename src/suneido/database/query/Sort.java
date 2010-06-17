@@ -1,10 +1,13 @@
 package suneido.database.query;
 
 import static suneido.SuException.verify;
+import static suneido.util.Util.difference;
 import static suneido.util.Util.listToCommas;
 
 import java.util.List;
+import java.util.Set;
 
+import suneido.SuException;
 import suneido.database.Record;
 
 public class Sort extends Query1 {
@@ -16,6 +19,9 @@ public class Sort extends Query1 {
 		super(source);
 		this.reverse = reverse;
 		this.segs = segs;
+		if (!source.columns().containsAll(segs))
+			throw new SuException("sort: nonexistent columns: "
+					+ difference(segs, source.columns()));
 	}
 
 	@Override
@@ -42,8 +48,8 @@ public class Sort extends Query1 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		verify(index.isEmpty());
 		// look for index containing requested index as prefix (using fixed)
 		Best best = new Best();

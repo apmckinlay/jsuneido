@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -55,8 +56,8 @@ public class History extends Query {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		return 0;
 	}
 

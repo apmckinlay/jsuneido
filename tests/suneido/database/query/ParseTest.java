@@ -25,7 +25,7 @@ public class ParseTest extends TestBase {
 		test("test SORT REVERSE a,b");
 		test("test RENAME a to aa, b to bb");
 		test("test RENAME a to aa RENAME b to bb");
-		test("test RENAME a to aa, b to bb SORT a,b");
+		test("test RENAME a to aa, b to bb SORT aa,bb");
 		test("test PROJECT a,b", "test PROJECT-COPY (a,b)");
 		test("test PROJECT b", "test PROJECT (b)");
 		test("test REMOVE b", "test PROJECT-COPY (a)");

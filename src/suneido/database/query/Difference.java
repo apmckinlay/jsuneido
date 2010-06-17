@@ -1,8 +1,9 @@
 package suneido.database.query;
 
-import static suneido.util.Util.intersect;
+import static suneido.util.Util.setIntersect;
 
 import java.util.List;
+import java.util.Set;
 
 public class Difference extends Compatible {
 	Difference(Query source1, Query source2) {
@@ -21,18 +22,18 @@ public class Difference extends Compatible {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (disjoint != null)
 			return 0;
 		List<String> cols1 = source.columns();
 		List<String> cols2 = source2.columns();
-		List<String> needs1 = intersect(needs, cols1);
-		List<String> needs2 = intersect(needs, cols2);
+		Set<String> needs1 = setIntersect(needs, cols1);
+		Set<String> needs2 = setIntersect(needs, cols2);
 		ki = source2.key_index(needs2);
-		List<String> needs1_k = intersect(cols1, ki);
+		Set<String> needs1_k = setIntersect(cols1, ki);
 		return source.optimize(index, needs1, needs1_k, is_cursor, freeze)
-				+ source2.optimize(ki, needs2, noFields, is_cursor, freeze);
+				+ source2.optimize(ki, needs2, noNeeds, is_cursor, freeze);
 	}
 
 	@Override

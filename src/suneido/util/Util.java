@@ -8,6 +8,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.language.Ops;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -21,7 +22,7 @@ import com.google.common.collect.Lists;
 public class Util {
 
 	@SuppressWarnings("unchecked")
-	public static <T> String listToCommas(List<T> list) {
+	public static <T> String listToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
 		StringBuilder sb = new StringBuilder();
@@ -36,7 +37,7 @@ public class Util {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> String displayListToCommas(List<T> list) {
+	public static <T> String displayListToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
 		StringBuilder sb = new StringBuilder();
@@ -50,11 +51,11 @@ public class Util {
 		return sb.substring(1);
 	}
 
-	public static <T> String listToParens(List<T> list) {
+	public static <T> String listToParens(Collection<T> list) {
 		return "(" + listToCommas(list) + ")";
 	}
 
-	public static <T> String displayListToParens(List<T> list) {
+	public static <T> String displayListToParens(Collection<T> list) {
 		return "(" + displayListToCommas(list) + ")";
 	}
 
@@ -153,6 +154,22 @@ public class Util {
 		return addUnique(new ArrayList<T>(x), y);
 	}
 
+	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
+		return new ImmutableSet.Builder<T>().addAll(x).addAll(y).build();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
+		if (y instanceof Set) {
+			Collection<T> tmp = x; x = y; y = tmp;
+		}
+		ImmutableSet.Builder<T> builder = ImmutableSet.builder();
+		for (T e : y)
+			if (x.contains(e))
+				builder.add(e);
+		return builder.build();
+	}
+
 	/** modifies list */
 	public static <T> List<T> addUnique(List<T> list, List<T> x) {
 		for (T s : x)
@@ -186,6 +203,14 @@ public class Util {
 		return result;
 	}
 
+	public static <T> ImmutableSet<T> setDifference(Collection<T> x, Collection<T> y) {
+		ImmutableSet.Builder<T> builder = ImmutableSet.builder();
+		for (T s : x)
+			if (!y.contains(s))
+				builder.add(s);
+		return builder.build();
+	}
+
 	/** returns a new list */
 	public static <T> List<T> intersect(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>();
@@ -214,15 +239,19 @@ public class Util {
 		return true;
 	}
 
-	public static <T> boolean setEquals(List<T> x, List<T> y) {
+	@SuppressWarnings("unchecked")
+	public static <T> boolean setEquals(Collection<T> x, Collection<T> y) {
+		if (y instanceof Set) {
+			Collection<T> tmp = x; x = y; y = tmp;
+		}
 		int n = 0;
-		for (T s : x)
-			if (y.contains(s))
+		for (T s : y)
+			if (x.contains(s))
 				++n;
 		return n == x.size() && n == y.size();
 	}
 
-	public static <T> boolean nil(List<T> x) {
+	public static <T> boolean nil(Collection<T> x) {
 		return x == null || x.isEmpty();
 	}
 

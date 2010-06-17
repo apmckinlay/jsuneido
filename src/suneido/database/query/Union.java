@@ -4,8 +4,7 @@ import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.database.Record;
 import suneido.language.Ops;
@@ -43,12 +42,12 @@ public class Union extends Compatible {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		List<String> cols1 = source.columns();
-		List<String> needs1 = intersect(needs, cols1);
+		Set<String> needs1 = setIntersect(needs, cols1);
 		List<String> cols2 = source2.columns();
-		List<String> needs2 = intersect(needs, cols2);
+		Set<String> needs2 = setIntersect(needs, cols2);
 		if (!nil(index)) {
 			// if not disjoint then index must also be a key
 			if (disjoint == null &&
@@ -58,13 +57,13 @@ public class Union extends Compatible {
 				ki = index;
 				strategy = Strategy.MERGE;
 			}
-			return source.optimize(index, needs1, noFields, is_cursor, freeze) +
-				source2.optimize(index, needs2, noFields, is_cursor, freeze);
+			return source.optimize(index, needs1, noNeeds, is_cursor, freeze) +
+				source2.optimize(index, needs2, noNeeds, is_cursor, freeze);
 		} else if (disjoint != null) {
 			if (freeze)
 				strategy = Strategy.LOOKUP;
-			return source.optimize(noFields, needs1, noFields, is_cursor, freeze) +
-				source2.optimize(noFields, needs2, noFields, is_cursor, freeze);
+			return source.optimize(noFields, needs1, noNeeds, is_cursor, freeze) +
+				source2.optimize(noFields, needs2, noNeeds, is_cursor, freeze);
 		} else {
 			// merge if you can read both sources by common key index
 			List<List<String>> keyidxs = intersect(
@@ -74,8 +73,8 @@ public class Union extends Compatible {
 			double merge_cost = IMPOSSIBLE;
 			for (List<String> k : keyidxs) {
 				// NOTE: optimize1 to avoid tempindex
-				double cost = source.optimize1(k, needs1, noFields, is_cursor, false) +
-					source2.optimize1(k, needs2, noFields, is_cursor, false);
+				double cost = source.optimize1(k, needs1, noNeeds, is_cursor, false) +
+					source2.optimize1(k, needs2, noNeeds, is_cursor, false);
 				if (cost < merge_cost) {
 					merge_key = k;
 					merge_cost = cost;
@@ -85,10 +84,10 @@ public class Union extends Compatible {
 			List<String> ki2 = null;
 			double cost1 = IMPOSSIBLE;
 			for (List<String> k : source2.keys()) {
-				List<String> needs1_k = union(needs1, intersect(cols1, k));
+				Set<String> needs1_k = setUnion(needs1, intersect(cols1, k));
 				double cost =
 					2 * source.optimize(noFields, needs1, needs1_k, is_cursor, false) +
-					source2.optimize(k, needs2, noFields, is_cursor, false);
+					source2.optimize(k, needs2, noNeeds, is_cursor, false);
 				if (cost < cost1) {
 					ki2 = k;
 					cost1 = cost;
@@ -98,10 +97,10 @@ public class Union extends Compatible {
 			List<String> ki1 = null;
 			double cost2 = IMPOSSIBLE;
 			for (List<String> k : source.keys()) {
-				List<String> needs2_k = union(needs2, intersect(cols2, k));
+				Set<String> needs2_k = setUnion(needs2, intersect(cols2, k));
 				double cost =
 					2 * source2.optimize(noFields, needs2, needs2_k, is_cursor, false) +
-					source.optimize(k, needs1, noFields, is_cursor, false) + OUT_OF_ORDER;
+					source.optimize(k, needs1, noNeeds, is_cursor, false) + OUT_OF_ORDER;
 				if (cost < cost2) {
 					ki1 = k;
 					cost2 = cost;
@@ -116,21 +115,21 @@ public class Union extends Compatible {
 					strategy = Strategy.MERGE;
 					ki = merge_key;
 					// NOTE: optimize1 to bypass tempindex
-					source.optimize1(ki, needs1, noFields, is_cursor, true);
-					source2.optimize1(ki, needs2, noFields, is_cursor, true);
+					source.optimize1(ki, needs1, noNeeds, is_cursor, true);
+					source2.optimize1(ki, needs2, noNeeds, is_cursor, true);
 				} else {
 					strategy = Strategy.LOOKUP;
 					if (cost2 < cost1) {
 						Query t1 = source; source = source2; source2 = t1;
-						List<String> t2 = needs1; needs1 = needs2; needs2 = t2;
-						t2 = ki1; ki1 = ki2; ki2 = t2;
-						t2 = cols1; cols1 = cols2; cols2 = t2;
+						Set<String> t2 = needs1; needs1 = needs2; needs2 = t2;
+						List<String> t3 = ki1; ki1 = ki2; ki2 = t3;
+						t3 = cols1; cols1 = cols2; cols2 = t3;
 					}
 					ki = ki2;
-					List<String> needs1_k = union(needs1, intersect(cols1, ki));
+					Set<String> needs1_k = setUnion(needs1, intersect(cols1, ki));
 					// NOTE: optimize1 to bypass tempindex
 					source.optimize1(noFields, needs1, needs1_k, is_cursor, true);
-					source2.optimize(ki, needs2, noFields, is_cursor, true);
+					source2.optimize(ki, needs2, noNeeds, is_cursor, true);
 				}
 			}
 			return cost;

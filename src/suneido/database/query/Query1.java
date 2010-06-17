@@ -1,7 +1,6 @@
 package suneido.database.query;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.database.Record;
 import suneido.database.Transaction;
@@ -20,8 +19,8 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		return source.optimize(index, needs, firstneeds, is_cursor, freeze);
 	}
 
@@ -107,12 +106,12 @@ public abstract class Query1 extends Query {
 	}
 
 	protected Best best_prefixed(List<List<String>> indexes, List<String> by,
-			List<String> needs, boolean is_cursor, Best best) {
+			Set<String> needs, boolean is_cursor, Best best) {
 		List<Fixed> fixed = source.fixed();
 		for (List<String> ix : indexes)
 			if (prefixed(ix, by, fixed)) {
 				// NOTE: optimize1 to bypass tempindex
-				double cost = source.optimize1(ix, needs, noFields, is_cursor,
+				double cost = source.optimize1(ix, needs, noNeeds, is_cursor,
 						false);
 				if (cost < best.cost) {
 					best.cost = cost;

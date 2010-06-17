@@ -1,12 +1,15 @@
 package suneido.database.query;
 
 import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
+
+import com.google.common.collect.ImmutableSet;
 
 public class Update extends QueryAction {
 
@@ -33,9 +36,9 @@ public class Update extends QueryAction {
 	@Override
 	public int execute() {
 		Query q = source.transform();
-		List<String> cols = q.columns();
+		Set<String> cols = ImmutableSet.copyOf(q.columns());
 		List<String> bestKey = q.key_index(cols);
-		if (q.optimize(bestKey, cols, noFields, false, true) >= IMPOSSIBLE)
+		if (q.optimize(bestKey, cols, noNeeds, false, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");
 		q = q.addindex();
 		// cSuneido uses source.key_index

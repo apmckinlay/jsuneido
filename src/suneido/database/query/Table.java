@@ -6,9 +6,8 @@ import static suneido.SuException.verify;
 import static suneido.database.Database.theDB;
 import static suneido.util.Util.*;
 
-import java.util.List;
+import java.util.*;
 
-import suneido.SuException;
 import suneido.database.*;
 
 public class Table extends Query {
@@ -37,13 +36,11 @@ public class Table extends Query {
 	}
 
 	@Override
-		double optimize2(List<String> index, List<String> needs,
-				List<String> firstneeds, boolean is_cursor, boolean freeze) {
+		double optimize2(List<String> index, Set<String> needs,
+				Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 			singleton = tbl.singleton();
 
-			if (!columns().containsAll(needs))
-				throw new SuException("Table::optimize columns does not contain: "
-						+ difference(needs, columns()));
+			assert columns().containsAll(needs);
 			if (!columns().containsAll(index))
 				return IMPOSSIBLE;
 
@@ -129,7 +126,7 @@ public class Table extends Query {
 	}
 
 	private static List<String> match(List<List<String>> idxs,
-			List<String> index, List<String> needs) {
+			List<String> index, Collection<String> needs) {
 		List<String> best = null;
 		int bestremainder = 9999;
 		for (List<String> idx : idxs) {

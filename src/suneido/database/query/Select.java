@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 import static suneido.database.Record.MAX_FIELD;
@@ -18,6 +19,8 @@ import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 import suneido.language.*;
 
+import com.google.common.collect.ImmutableSet;
+
 public class Select extends Query1 {
 	private Multi expr;
 	private boolean optFirst = true;
@@ -27,7 +30,7 @@ public class Select extends Query1 {
 												// the end, or be
 												// missing fields that are fixed
 	private List<List<String>> filter = null;
-	private List<String> select_needs;
+	private Set<String> select_needs;
 	private Table tbl;
 	private List<String> primary;
 	private List<List<String>> theindexes;
@@ -35,7 +38,7 @@ public class Select extends Query1 {
 	private List<List<String>> possible;
 	private Map<String, Double> ffracs;
 	private Map<List<String>, Double> ifracs;
-	private List<String> prior_needs;
+	private Set<String> prior_needs;
 	private double nrecs = -1;
 	// for get
 	private boolean getFirst = true;
@@ -135,7 +138,7 @@ public class Select extends Query1 {
 			List<Expr> src1 = new ArrayList<Expr>();
 			List<Expr> rest = new ArrayList<Expr>();
 			for (Expr e : expr.exprs)
-				if (nil(intersect(extend.rules, e.fields())))
+				if (disjoint(extend.rules, e.fields()))
 					src1.add(e.replace(extend.flds, extend.exprs));
 				else
 					rest.add(e);
@@ -259,11 +262,11 @@ public class Select extends Query1 {
 	// optimize =====================================================
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (optFirst) {
-			prior_needs = noFields; // needs;
-			select_needs = expr.fields();
+			prior_needs = noNeeds; // needs;
+			select_needs = ImmutableSet.copyOf(expr.fields());
 			tbl = source instanceof Table ? (Table) source : null;
 			isels = new HashMap<String, Iselect>();
 		}
@@ -271,8 +274,8 @@ public class Select extends Query1 {
 				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
 			optFirst = false;
 			source_index = index;
-			double cost = source.optimize(index, union(needs, select_needs), union(
-					firstneeds, select_needs), is_cursor, freeze);
+			double cost = source.optimize(index, setUnion(needs, select_needs),
+					setUnion(firstneeds, select_needs), is_cursor, freeze);
 			if (cost < IMPOSSIBLE)
 				nrecs = source.nrecords();
 			return cost;

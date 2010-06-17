@@ -1,14 +1,16 @@
 package suneido.database.query;
 
+import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
+
+import com.google.common.collect.ImmutableSet;
 
 public class Join extends Query2 {
 	List<String> joincols;
@@ -70,11 +72,11 @@ public class Join extends Query2 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> needs1 = intersect(source.columns(), needs);
-		List<String> needs2 = intersect(source2.columns(), needs);
-		verify(union(needs1, needs2).size() == needs.size());
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
+		Set<String> needs1 = setIntersect(needs, source.columns());
+		Set<String> needs2 = setIntersect(needs, source2.columns());
+		assert setUnion(needs1, needs2).size() == needs.size();
 
 		double cost1 = opt(source, source2, type, index, needs1, needs2,
 				is_cursor, false);
@@ -91,9 +93,7 @@ public class Join extends Query2 {
 				Query t1 = source;
 				source = source2;
 				source2 = t1;
-				List<String> t2 = needs1;
-				needs1 = needs2;
-				needs2 = t2;
+				Set<String> t2 = needs1; needs1 = needs2; needs2 = t2;
 				type = reverse(type);
 			}
 			opt(source, source2, type, index, needs1, needs2, is_cursor, true);
@@ -102,13 +102,14 @@ public class Join extends Query2 {
 	}
 
 	private double opt(Query src1, Query src2, Type typ, List<String> index,
-			List<String> needs1, List<String> needs2, boolean is_cursor,
+			Set<String> needs1, Set<String> needs2, boolean is_cursor,
 			boolean freeze) {
 		// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
 		final double SELECT_COST = 1000;
 
 		// always have to read all of source 1
-		double cost1 = src1.optimize(index, needs1, joincols, is_cursor, freeze);
+		double cost1 = src1.optimize(index, needs1, ImmutableSet.copyOf(joincols),
+				is_cursor, freeze);
 		if (cost1 >= IMPOSSIBLE)
 			return IMPOSSIBLE;
 		double nrecs1 = src1.nrecords();
@@ -117,8 +118,7 @@ public class Join extends Query2 {
 		cost1 += nrecs1 * SELECT_COST;
 
 		// cost of reading all of source 2
-		double cost2 =
-				src2.optimize(joincols, needs2, noFields, is_cursor, false);
+		double cost2 = src2.optimize(joincols, needs2, noNeeds, is_cursor, false);
 		if (cost2 >= IMPOSSIBLE)
 			return IMPOSSIBLE;
 		double nrecs2 = src2.nrecords();
@@ -129,8 +129,7 @@ public class Join extends Query2 {
 			if (!is_cursor && p < .2) {
 				// "1" side can be no bigger than "n" side
 				// if "1" side is a lot bigger, then pass is_cursor = true to avoid temp or filter indexes
-				double cost2b =
-						src2.optimize(joincols, needs2, noFields, true, false);
+				double cost2b = src2.optimize(joincols, needs2, noNeeds, true, false);
 				if (cost2b < IMPOSSIBLE) {
 					is_cursor2 = true;
 					cost2 = cost2b;
@@ -138,7 +137,7 @@ public class Join extends Query2 {
 			}
 		}
 		if (freeze)
-			src2.optimize(joincols, needs2, noFields, is_cursor2, true);
+			src2.optimize(joincols, needs2, noNeeds, is_cursor2, true);
 
 		switch (typ) {
 		case ONE_ONE:
@@ -193,10 +192,10 @@ public class Join extends Query2 {
 			// union of indexes that don't include joincols
 			List<List<String>> idxs = new ArrayList<List<String>>();
 			for (List<String> i : source.indexes())
-				if (nil(intersect(i, joincols)))
+				if (disjoint(i, joincols))
 					idxs.add(i);
 			for (List<String> i : source2.indexes())
-				if (nil(intersect(i, joincols)))
+				if (disjoint(i, joincols))
 					addUnique(idxs, i);
 			return idxs;
 		default:
