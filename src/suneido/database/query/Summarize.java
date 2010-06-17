@@ -82,7 +82,8 @@ public class Summarize extends Query1 {
 	@Override
 	double optimize2(List<String> index, List<String> needs,
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> srcneeds = union(without(on, null), difference(needs, cols));
+		List<String> srcneeds =
+				union(withoutDups(without(on, null)), difference(needs, cols));
 
 		if (strategy == Strategy.COPY) {
 			if (freeze)

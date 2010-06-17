@@ -145,8 +145,8 @@ public class Util {
 	}
 
 	/**
-	 * @return A new list containing all the values from x and y. x is copied as
-	 *         is, so if it has duplicates they are retained. Duplicates from y
+	 * @return A new list containing all the values from x and y. <b>x is copied as
+	 *         is</b>, so if it has duplicates they are retained. Duplicates from y
 	 *         are not retained.
 	 */
 	public static <T> List<T> union(List<T> x, List<T> y) {
