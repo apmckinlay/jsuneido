@@ -22,7 +22,7 @@ public class DbTools {
 		File bakfile = new File(filename + ".bak");
 		if (bakfile.exists() && !bakfile.delete())
 			throw new SuException("can't delete " + bakfile);
-		if (!file.renameTo(bakfile))
+		if (file.exists() && !file.renameTo(bakfile))
 			throw new SuException("can't rename " + file + " to " + bakfile);
 		if (!tmpfile.renameTo(file)) {
 			bakfile.renameTo(file);
