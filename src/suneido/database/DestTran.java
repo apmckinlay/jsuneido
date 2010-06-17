@@ -85,4 +85,9 @@ public class DestTran extends Destination {
 		return dest;
 	}
 
+	@Override
+	boolean checkEnd(byte type, byte value) {
+		return dest.checkEnd(type, value);
+	}
+
 }

@@ -127,22 +127,29 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return System.getProperty("java.vm.name").contains("64-Bit");
 	}
 
+	/** avoid memory mapping */
 	private String checkfile() {
-		byte[] m = new byte[4];
-		buf(0).get(0, m);
-		if (!Arrays.equals(m, magic))
-			return "bad magic";
-		if (file_size >= (long) MB_MAX_DB * 1024 * 1024)
-			return "file too large " + file_size;
+		try {
+			byte[] m = new byte[4];
+			fin.seek(0);
+			fin.read(m);
+			if (!Arrays.equals(m, magic))
+				return "bad magic";
+			if (file_size >= (long) MB_MAX_DB * 1024 * 1024)
+				return "file too large " + file_size;
 
-		long saved_size = get_file_size();
-		if (saved_size > file_size)
-			return "saved size > file size";
-		// in case the file wasn't truncated last time
-		file_size = Math.min(file_size, saved_size);
-		if ((file_size % ALIGN) != 0)
-			return "file size " + file_size + " not aligned";
-		return "";
+			fin.seek(FILESIZE_OFFSET);
+			long saved_size = intToOffset(fin.readInt());
+			if (saved_size > file_size)
+				return "saved size > file size";
+			// in case the file wasn't truncated last time
+			file_size = Math.min(file_size, saved_size);
+			if ((file_size % ALIGN) != 0)
+				return "file size " + file_size + " not aligned";
+			return "";
+		} catch (IOException e) {
+			return e.toString();
+		}
 	}
 
 	// for testing only
@@ -350,6 +357,28 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		if (check(offset) == MmCheck.ERR)
 			return -1;
 		return offset;
+	}
+
+	/** avoids memory mapping */
+	@Override
+	public boolean checkEnd(byte type, byte value) {
+		try {
+			long offset = end_offset();
+			if (offset <= FILEHDR + HEADER)
+				return false;
+			offset -= OVERHEAD;
+			fin.seek(offset);
+			int n = fin.readInt() ^ (int) offset;
+			if (n > chunk_size || n > offset)
+				return false;
+			offset -= n + HEADER;
+			fin.seek(offset);
+			int t = fin.readInt() & (ALIGN - 1);
+			byte v = fin.readByte();
+			return t == type && v == value;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	@Override

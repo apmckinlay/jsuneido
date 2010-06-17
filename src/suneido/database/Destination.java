@@ -42,4 +42,6 @@ public abstract class Destination {
 	public void force() {
 	}
 
+	abstract boolean checkEnd(byte type, byte value);
+
 }
