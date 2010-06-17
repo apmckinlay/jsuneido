@@ -74,13 +74,6 @@ public class Join extends Query2 {
 			List<String> firstneeds, boolean is_cursor, boolean freeze) {
 		List<String> needs1 = intersect(source.columns(), needs);
 		List<String> needs2 = intersect(source2.columns(), needs);
-if (union(needs1, needs2).size() != needs.size()) {
-	System.out.println("source " + source.columns());
-	System.out.println("source2 " + source2.columns());
-	System.out.println("needs " + needs);
-	System.out.println("needs1 " + needs1);
-	System.out.println("needs2 " + needs2);
-}
 		verify(union(needs1, needs2).size() == needs.size());
 
 		double cost1 = opt(source, source2, type, index, needs1, needs2,
