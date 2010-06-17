@@ -30,11 +30,14 @@ public class DbRebuild extends DbCheck {
 	// means smallest block is 16 bytes
 	final private int GRANULARITY = 16;
 
-	public static void rebuildOrExit(String dbfilename)
-			throws InterruptedException {
+	public static void rebuildOrExit(String dbfilename) {
 		File tempfile = DbTools.tempfile();
-		if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
-			throw new SuException("compact failed: " + dbfilename);
+		try {
+			if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
+				throw new SuException("rebuild failed: " + dbfilename);
+		} catch (InterruptedException e) {
+			throw new SuException("rebuild was interrupted");
+		}
 		renameWithBackup(tempfile, dbfilename);
 	}
 

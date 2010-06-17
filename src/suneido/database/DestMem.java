@@ -67,4 +67,9 @@ public class DestMem extends Destination {
 		return this;
 	}
 
+	@Override
+	boolean checkEnd(byte type, byte value) {
+		return true;
+	}
+
 }

@@ -11,6 +11,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.database.tools.DbRebuild;
 import suneido.util.*;
 
 import com.google.common.collect.ImmutableList;
@@ -26,9 +27,9 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 public class Database {
-//	private final File file;
+	private final File file;
 	private final Mode mode;
-	public final Destination dest; // used by tests
+	public Destination dest; // used by tests
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
 	public boolean loading = false;
@@ -66,14 +67,14 @@ public class Database {
 	}
 
 	public Database(File file, Mode mode) {
-//		this.file = file;
+		this.file = file;
 		this.mode = mode;
 		dest = new Mmfile(file, mode);
 		init(mode);
 	}
 
 	public Database(Destination dest, Mode mode) {
-//		this.file = null;
+		this.file = null;
 		this.mode = mode;
 		this.dest = dest;
 		init(mode);
@@ -82,9 +83,11 @@ public class Database {
 	private void init(Mode mode) {
 		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
 			errlog("database not shut down properly last time");
-//			if (file == null)
+			if (file == null)
 				throw new SuException("database not shut down properly last time");
-//			DbRebuild.rebuildOrExit(file.getPath());
+			dest.close();
+			DbRebuild.rebuildOrExit(file.getPath());
+			dest = new Mmfile(file, mode);
 		}
 		if (mode == Mode.CREATE) {
 			output_type = Mmfile.OTHER;

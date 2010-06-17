@@ -28,13 +28,7 @@ public class Session {
 	}
 
 	public static boolean check_shutdown(Destination mmf) {
-		final long last = mmf.last();
-		if (mmf.type(last) != Mmfile.SESSION)
-			return false;
-		ByteBuf buf = mmf.adr(last);
-		if (buf.get(0) != Session.SHUTDOWN)
-			return false;
-		return true;
+		return mmf.checkEnd(Mmfile.SESSION, Session.SHUTDOWN);
 	}
 
 	private final ByteBuf buf;
