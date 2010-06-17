@@ -198,10 +198,6 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return (i & 0xffffffffL) << SHIFT;
 	}
 
-	private long get_file_size() {
-		return intToOffset(buf(FILESIZE_OFFSET).getInt(0));
-	}
-
 	private void set_file_size(long size) {
 		verify((size % ALIGN) == 0);
 		buf(FILESIZE_OFFSET).putInt(0, offsetToInt(size));
