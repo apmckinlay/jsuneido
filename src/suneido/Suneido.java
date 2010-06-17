@@ -17,8 +17,6 @@ public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) throws Exception {
-		if (! System.getProperty("java.vm.name").contains("Server VM"))
-			System.out.println("WARNING: Server VM is recommended");
 		cmdlineoptions = CommandLineOptions.parse(args);
 		try {
 			doAction();
@@ -58,6 +56,8 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
+			if (! System.getProperty("java.vm.name").contains("Server VM"))
+				System.out.println("WARNING: Server VM is recommended");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 			DbmsServerBySelect.run(cmdlineoptions.serverPort);
 			break;
