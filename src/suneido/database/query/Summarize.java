@@ -10,6 +10,8 @@ import suneido.SuException;
 import suneido.database.Record;
 import suneido.language.Ops;
 
+import com.google.common.collect.ImmutableSet;
+
 public class Summarize extends Query1 {
 	final List<String> by;
 	private final List<String> cols;
@@ -31,8 +33,7 @@ public class Summarize extends Query1 {
 		this.funcs = funcs;
 		this.on = on;
 		if (!source.columns().containsAll(by))
-			throw new SuException(
-					"summarize: nonexistent columns: "
+			throw new SuException("summarize: nonexistent columns: "
 					+ difference(by, source.columns()));
 
 		if (by.isEmpty() || by_contains_key())
@@ -80,15 +81,16 @@ public class Summarize extends Query1 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> srcneeds =
-				union(withoutDups(without(on, null)), difference(needs, cols));
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
+		Set<String> srcneeds = 	setUnion(ImmutableSet.copyOf(without(on, null)),
+				setDifference(needs, cols));
 
 		if (strategy == Strategy.COPY) {
 			if (freeze)
 				via = index;
-			return source.optimize(index, srcneeds, by, is_cursor, freeze);
+			return source.optimize(index, srcneeds, ImmutableSet.copyOf(by),
+					is_cursor, freeze);
 		}
 
 		List<List<String>> indexes;
@@ -106,7 +108,8 @@ public class Summarize extends Query1 {
 			// accumulate results in memory
 			// doesn't require any order, can only supply in order of "by"
 			strategy = Strategy.MAP;
-			return source.optimize(noFields, srcneeds, by, is_cursor, freeze);
+			return source.optimize(noFields, srcneeds, ImmutableSet.copyOf(by),
+					is_cursor, freeze);
 		}
 		if (nil(best.index))
 			return IMPOSSIBLE;
@@ -114,7 +117,7 @@ public class Summarize extends Query1 {
 		if (!freeze)
 			return best.cost;
 		via = best.index;
-		return source.optimize(best.index, srcneeds, noFields, is_cursor,
+		return source.optimize(best.index, srcneeds, noNeeds, is_cursor,
 				freeze);
 	}
 

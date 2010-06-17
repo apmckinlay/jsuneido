@@ -43,7 +43,7 @@ public class Project extends Query1 {
 		List<String> columns = source.columns();
 		if (! columns.containsAll(args))
 			throw new SuException("project: nonexistent column(s): "
-					+ listToParens(difference(args, columns)));
+					+ difference(args, columns));
 		flds = allbut
 				? difference(columns, args)
 				: withoutDups(args);
@@ -228,8 +228,8 @@ public class Project extends Query1 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 
 		// check if project contain candidate key
 		if (strategy == Strategy.COPY)

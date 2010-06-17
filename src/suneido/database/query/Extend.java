@@ -3,8 +3,7 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -31,19 +30,18 @@ public class Extend extends Query1 {
 	private void init() {
 		List<String> srccols = source.columns();
 
-		List<String> dups = intersect(srccols, flds);
-		if (!dups.isEmpty())
-			throw new SuException("extend: column(s) already exist: " + dups);
+		if (!Collections.disjoint(srccols, flds))
+			throw new SuException("extend: column(s) already exist: "
+					+ intersect(srccols, flds));
 
 		eflds = new ArrayList<String>();
 		for (Expr e : exprs)
 			addUnique(eflds, e.fields());
 
-		List<String> avail = union(union(srccols, rules), flds);
-		List<String> invalid = difference(eflds, avail);
-		if (!invalid.isEmpty())
+		Set<String> avail = setUnion(setUnion(srccols, rules), flds);
+		if (!avail.containsAll(eflds))
 			throw new SuException("extend: invalid column(s) in expressions: "
-					+ invalid);
+					+ setDifference(eflds, avail));
 	}
 
 	@Override
@@ -81,15 +79,15 @@ public class Extend extends Query1 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (!nil(intersect(index, flds)))
 			return IMPOSSIBLE;
-		List<String> extendfields = union(flds, rules);
+		Set<String> extendfields = setUnion(flds, rules);
 		// NOTE: optimize1 to bypass tempindex
 		return source.optimize1(index,
-			union(difference(eflds, extendfields), difference(needs, extendfields)),
-			difference(firstneeds, extendfields), is_cursor, freeze);
+				setDifference(setUnion(eflds, needs), extendfields),
+				setDifference(firstneeds, extendfields), is_cursor, freeze);
 	}
 
 	@Override

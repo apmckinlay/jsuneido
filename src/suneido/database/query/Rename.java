@@ -1,12 +1,14 @@
 package suneido.database.query;
 
+import static java.util.Collections.disjoint;
 import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
+
+import com.google.common.collect.ImmutableSet;
 
 public class Rename extends Query1 {
 	List<String> from;
@@ -19,10 +21,10 @@ public class Rename extends Query1 {
 		List<String> src = source.columns();
 		if (!src.containsAll(from))
 			throw new SuException("rename: nonexistent column(s): "
-					+ listToParens(difference(from, src)));
-		List<String> dups = intersect(src, to);
-		if (!nil(dups))
-			throw new SuException("rename: column(s) already exist: " + dups);
+					+ difference(from, src));
+		if (!disjoint(src, to))
+			throw new SuException("rename: column(s) already exist: "
+					+ intersect(src, to));
 
 		renameDependencies(src);
 	}
@@ -77,6 +79,7 @@ public class Rename extends Query1 {
 		source = source.transform();
 		return this;
 	}
+
 	private static List<String> rename_fields(List<String> f,
 			List<String> from, List<String> to) {
 		List<String> new_fields = new ArrayList<String>(f);
@@ -88,9 +91,19 @@ public class Rename extends Query1 {
 		return new_fields;
 	}
 
+	private static Set<String> rename_fields(Set<String> f,
+			List<String> from, List<String> to) {
+		ImmutableSet.Builder<String> new_fields = ImmutableSet.builder();
+		for (String s : f) {
+			int j = from.indexOf(s);
+			new_fields.add(j == -1 ? s : to.get(j));
+		}
+		return new_fields.build();
+	}
+
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		// NOTE: optimize1 to bypass tempindex
 		return source.optimize1(rename_fields(index, to, from), rename_fields(
 				needs, to, from), rename_fields(firstneeds, to, from),

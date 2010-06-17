@@ -2,18 +2,17 @@ package suneido.database.query;
 
 import static suneido.SuException.verify;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Cache {
 	List<CacheEntry> entries = new ArrayList<CacheEntry>();
 
-	public void add(List<String> index, List<String> needs, List<String> firstneeds, double cost) {
+	public void add(List<String> index, Set<String> needs, Set<String> firstneeds, double cost) {
 		verify(cost >= 0);
 		entries.add(new CacheEntry(index, needs, firstneeds, cost));
 		}
 
-	public double get(List<String> index, List<String> needs, List<String> firstneeds)
+	public double get(List<String> index, Set<String> needs, Set<String> firstneeds)
 		{
 		for (CacheEntry c : entries)
 			if (index.equals(c.index) && needs.equals(c.needs) && firstneeds.equals(c.firstneeds))
@@ -22,16 +21,16 @@ public class Cache {
 		}
 
 	private static class CacheEntry {
-		CacheEntry(List<String> index, List<String> needs,
-				List<String> firstneeds, double cost) {
+		CacheEntry(List<String> index, Set<String> needs,
+				Set<String> firstneeds, double cost) {
 			this.index = index;
 			this.needs = needs;
 			this.firstneeds = firstneeds;
 			this.cost = cost;
 		}
 		List<String> index;
-		List<String> needs;
-		List<String> firstneeds;
+		Set<String> needs;
+		Set<String> firstneeds;
 		double cost;
 	}
 }

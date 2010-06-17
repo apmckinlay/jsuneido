@@ -2,15 +2,16 @@ package suneido.database.query;
 
 import static suneido.SuException.verify;
 import static suneido.util.Util.nil;
-import static suneido.util.Util.union;
+import static suneido.util.Util.setUnion;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.server.DbmsQuery;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Base class for query operation classes.
@@ -26,6 +27,7 @@ public abstract class Query implements DbmsQuery {
 		NEXT, PREV
 	};
 	protected final static List<String> noFields = Collections.emptyList();
+	protected final static Set<String> noNeeds = Collections.emptySet();
 	// cost of writing index relative to reading data
 	protected final static int WRITE_FACTOR = 4;
 	// minimal penalty for changing order of operations
@@ -43,7 +45,8 @@ public abstract class Query implements DbmsQuery {
 
 	Query setup(boolean is_cursor) {
 		Query q = transform();
-		if (q.optimize(noFields, q.columns(), noFields, is_cursor, true) >= IMPOSSIBLE)
+		if (q.optimize(noFields, ImmutableSet.copyOf(q.columns()), noNeeds,
+				is_cursor, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");
 		q = q.addindex();
 		return q;
@@ -88,8 +91,8 @@ public abstract class Query implements DbmsQuery {
 	Query transform() {
 		return this;
 	}
-	double optimize(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		//System.out.println("\noptimize START " + this);
 		//System.out.println("    index=" + index
 		//		+ " needs=" + needs	+ " firstneeds=" + firstneeds
@@ -111,7 +114,7 @@ public abstract class Query implements DbmsQuery {
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
 		cost2 = optimize1(noFields, needs, nil(firstneeds) ? firstneeds
-				: union(firstneeds, index), is_cursor, false)
+				: setUnion(firstneeds, index), is_cursor, false)
 				+ nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
@@ -132,14 +135,14 @@ public abstract class Query implements DbmsQuery {
 			optimize1(index, needs, firstneeds, is_cursor, true);
 		else { // cost2 < cost1
 			tempindex = index;
-			optimize1(noFields, needs, index, is_cursor, true);
+			optimize1(noFields, needs, ImmutableSet.copyOf(index), is_cursor, true);
 		}
 		return cost;
 	}
 
 	// caching
-	double optimize1(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
+	double optimize1(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		double cost;
 		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
 			return cost;
@@ -152,14 +155,14 @@ public abstract class Query implements DbmsQuery {
 		return cost;
 	}
 
-	abstract double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze);
+	abstract double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze);
 
-	protected List<String> key_index(List<String> needs) {
+	protected List<String> key_index(Set<String> needs) {
 		List<String> best_index = Collections.emptyList();
 		double best_cost = IMPOSSIBLE;
 		for (List<String> key : keys()) {
-			double cost = optimize(key, needs, noFields, false, false);
+			double cost = optimize(key, needs, noNeeds, false, false);
 			if (cost < best_cost) {
 				best_cost = cost;
 				best_index = key;

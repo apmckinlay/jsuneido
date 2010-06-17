@@ -1,10 +1,10 @@
 package suneido.database.query;
 
+import static java.util.Collections.disjoint;
 import static suneido.SuException.verify;
 import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
@@ -15,9 +15,9 @@ public class Product extends Query2 {
 
 	Product(Query source1, Query source2) {
 		super(source1, source2);
-		List<String> dups = intersect(source1.columns(), source2.columns());
-		if (!dups.isEmpty())
-			throw new SuException("product: common columns not allowed: " + dups);
+		if (!disjoint(source1.columns(), source2.columns()))
+			throw new SuException("product: common columns not allowed: "
+					+ intersect(source1.columns(), source2.columns()));
 	}
 
 	@Override
@@ -26,20 +26,20 @@ public class Product extends Query2 {
 	}
 
 	@Override
-	double optimize2(List<String> index, List<String> needs,
-			List<String> firstneeds, boolean is_cursor, boolean freeze) {
-		List<String> needs1 = intersect(source.columns(), needs);
-		List<String> needs2 = intersect(source2.columns(), needs);
-		verify(union(needs1, needs2).size() == needs.size());
-		List<String> firstneeds1 = intersect(source.columns(), needs);
-		List<String> firstneeds2 = intersect(source2.columns(), needs);
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
+		Set<String> needs1 = setIntersect(needs, source.columns());
+		Set<String> needs2 = setIntersect(needs, source2.columns());
+		assert setUnion(needs1, needs2).size() == needs.size();
+		Set<String> firstneeds1 = setIntersect(needs, source.columns());
+		Set<String> firstneeds2 = setIntersect(needs, source2.columns());
 		if (! nil(firstneeds1) && ! nil(firstneeds2))
-			firstneeds1 = firstneeds2 = noFields;
+			firstneeds1 = firstneeds2 = noNeeds;
 
 		double cost1 = source.optimize(index, needs1, firstneeds1, is_cursor, false) +
-			source2.optimize(noFields, needs2, noFields, is_cursor, false);
+			source2.optimize(noFields, needs2, noNeeds, is_cursor, false);
 		double cost2 = source2.optimize(index, needs2, firstneeds2, is_cursor, false) +
-			source.optimize(noFields, needs1, noFields, is_cursor, false) + OUT_OF_ORDER;
+			source.optimize(noFields, needs1, noNeeds, is_cursor, false) + OUT_OF_ORDER;
 		double cost = Math.min(cost1, cost2);
 		if (cost >= IMPOSSIBLE)
 			return IMPOSSIBLE;
@@ -48,11 +48,11 @@ public class Product extends Query2 {
 
 		if (cost2 < cost1) {
 			Query t1 = source; source = source2; source2 = t1;
-			List<String> t2 = needs1; needs1 = needs2; needs2 = t2;
+			Set<String> t2 = needs1; needs1 = needs2; needs2 = t2;
 			t2 = firstneeds1; firstneeds1 = firstneeds2; firstneeds2 = t2;
 		}
 		source.optimize(index, needs1, firstneeds1, is_cursor, true);
-		source2.optimize(noFields, needs2, noFields, is_cursor, true);
+		source2.optimize(noFields, needs2, noNeeds, is_cursor, true);
 		return cost;
 	}
 
