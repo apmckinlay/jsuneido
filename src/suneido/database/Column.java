@@ -2,8 +2,6 @@ package suneido.database;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.SuException;
-
 /**
  * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -43,7 +41,7 @@ public class Column implements Comparable<Column> {
 
 	@Override
 	public int hashCode() {
-		throw new SuException("Column hashCode not implemented");
+		throw new UnsupportedOperationException();
 	}
 
 	public static Record record(int table_num, String name, int num) {

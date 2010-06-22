@@ -2,6 +2,8 @@ package suneido.language;
 
 import suneido.SuValue;
 
+import com.google.common.base.Objects;
+
 /**
  * SuMethod makes methods first class values.
  * It binds the method and the instance it "came from".
@@ -40,23 +42,16 @@ public class SuMethod extends SuValue {
 	public boolean equals(Object other) {
 		if (other == this)
 			return true;
-		if (other instanceof SuMethod) {
-			SuMethod that = (SuMethod) other;
-			return method.equals(that.method)
-					&& (instance == null ? that.instance == null
-							: instance.equals(that.instance));
-		}
-		return false;
+		if (! (other instanceof SuMethod))
+			return false;
+		SuMethod that = (SuMethod) other;
+		return Objects.equal(method, that.method) &&
+				Objects.equal(instance, that.instance);
 	}
 
-	/** as recommended by Effective Java */
 	@Override
 	public int hashCode() {
-		int result = 17;
-		if (instance != null)
-			result = 31 * result + instance.hashCode();
-		result = 31 * result + method.hashCode();
-		return result;
+		return Objects.hashCode(instance, method);
 	}
 
 	@Override

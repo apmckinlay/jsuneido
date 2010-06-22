@@ -1,9 +1,9 @@
 package suneido.language;
 
-import java.util.Arrays;
-
 import suneido.SuException;
 import suneido.SuValue;
+
+import com.google.common.base.Objects;
 
 public class SuBlock extends SuValue {
 	private final Object home; // defining class
@@ -52,23 +52,17 @@ public class SuBlock extends SuValue {
 	public boolean equals(Object other) {
 		if (other == this)
 			return true;
-		if (other instanceof SuBlock) {
-			SuBlock that = (SuBlock) other;
-			return home == that.home
-					&& bspec == that.bspec
-					&& locals == that.locals;
-		}
-		return false;
+		if (! (other instanceof SuBlock))
+			return false;
+		SuBlock that = (SuBlock) other;
+		return home == that.home
+				&& bspec == that.bspec
+				&& locals == that.locals;
 	}
 
-	/** as recommended by Effective Java */
 	@Override
 	public int hashCode() {
-		int result = 17;
-		result = 31 * result + home.hashCode();
-		result = 31 * result + bspec.hashCode();
-		result = 31 * result + Arrays.hashCode(locals);
-		return result;
+		return Objects.hashCode(home, bspec, locals);
 	}
 
 	@Override

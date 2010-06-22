@@ -4,6 +4,8 @@ import java.util.AbstractList;
 
 import suneido.util.ByteBuf;
 
+import com.google.common.base.Objects;
+
 /**
  * Collection of {@link Slot}'s for a {@link Btree} node,
  * plus next and prev addresses (offsets in the database).
@@ -13,7 +15,8 @@ import suneido.util.ByteBuf;
  * by aligning and shifting right. (See {@link Mmfile})
  *
  * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved. Licensed under GPLv2.</small></p>
+ * <p><small>Copyright 2008 Suneido Software Corp.
+ * All rights reserved. Licensed under GPLv2.</small></p>
  */
 public class Slots extends AbstractList<Slot> {
 	private final static int NEXT_OFFSET = 0;
@@ -40,12 +43,16 @@ public class Slots extends AbstractList<Slot> {
 
 	@Override
 	public String toString() {
-		return "Slots next " + next() + " prev " + prev() + " " + rec;
+		return Objects.toStringHelper(this)
+				.add("next", next())
+				.add("prev", prev())
+				.addValue(rec)
+				.toString();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return rec.size() == 0;
+		return rec.isEmpty();
 	}
 	/**
 	 * @return The number of slots currently stored.
@@ -136,8 +143,7 @@ public class Slots extends AbstractList<Slot> {
 			return true;
 		if (!(other instanceof Slots))
 			return false;
-		Slots that = (Slots) other;
-		return this.rec.equals(that.rec);
+		return Objects.equal(rec, ((Slots) other).rec);
 	}
 
 }

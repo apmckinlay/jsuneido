@@ -10,6 +10,8 @@ import suneido.*;
 import suneido.language.SuClass.Method;
 import suneido.language.builtin.ContainerMethods;
 
+import com.google.common.base.Objects;
+
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
 	private final Map<String, Object> ivars = new HashMap<String, Object>();
@@ -108,15 +110,13 @@ public class SuInstance extends SuValue {
 		if (!(other instanceof SuInstance))
 			return false;
 		SuInstance that = (SuInstance) other;
-		return this.myclass == that.myclass && this.ivars.equals(that.ivars);
+		return this.myclass == that.myclass &&
+				Objects.equal(ivars, that.ivars);
 	}
 
 	@Override
 	public int hashCode() {
-		int result = 17;
-		result = 31 * result + myclass.hashCode();
-		result = 31 * result + ivars.hashCode();
-		return result;
+		return Objects.hashCode(myclass, ivars);
 	}
 
 	@Override

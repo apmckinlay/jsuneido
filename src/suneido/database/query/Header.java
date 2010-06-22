@@ -6,6 +6,8 @@ import static suneido.util.Util.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Objects;
+
 public class Header {
 	List<List<String>> flds;
 	List<String> cols;
@@ -138,7 +140,10 @@ public class Header {
 
 	@Override
 	public String toString() {
-		return "Header(" + listToParens(flds) + ", " + listToParens(cols) + ")";
+		return Objects.toStringHelper(this)
+				.add("flds", flds)
+				.add("cols", cols)
+				.toString();
 	}
 
 }

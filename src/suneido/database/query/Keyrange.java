@@ -2,6 +2,8 @@ package suneido.database.query;
 
 import suneido.database.Record;
 
+import com.google.common.base.Objects;
+
 public class Keyrange {
 	/* package */Record org;
 	/* package */Record end;
@@ -16,7 +18,10 @@ public class Keyrange {
 
 	@Override
 	public String toString() {
-		return "Keyrange(" + org + ", " + end + ")";
+		return Objects.toStringHelper(this)
+			.add("org", org)
+			.add("end", end)
+			.toString();
 	}
 
 	public boolean isEmpty() {
@@ -42,7 +47,8 @@ public class Keyrange {
 	}
 
 	public boolean equals(Record org, Record end) {
-		return org.equals(this.org) && end.equals(this.end);
+		return Objects.equal(org, this.org) &&
+				Objects.equal(end, this.end);
 	}
 
 	@Override
@@ -52,12 +58,13 @@ public class Keyrange {
 		if (!(other instanceof Keyrange))
 			return false;
 		Keyrange kr = (Keyrange) other;
-		return org.equals(kr.org) && end.equals(kr.end);
+		return Objects.equal(org, kr.org) &&
+				Objects.equal(end, kr.end);
 	}
 
 	@Override
 	public int hashCode() {
-		return org.hashCode() + end.hashCode();
+		return Objects.hashCode(org, end);
 	}
 
 	public boolean contains(Record key) {

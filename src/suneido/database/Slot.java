@@ -2,8 +2,6 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-import suneido.SuException;
-
 /**
  * Holds an index node "slot" while in memory.
  * Comparisons are by key only. (not addresses)
@@ -33,17 +31,18 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 	public boolean equals(Object other) {
 		if (this == other)
 			return true;
-		return other instanceof Slot
-			? 0 == compareTo((Slot) other)
-			: false;
+		if (!(other instanceof Slot))
+			return false;
+		return 0 == compareTo((Slot) other);
 	}
+
 	public int compareTo(Slot other) {
 		return key.compareTo(other.key);
 	}
 
 	@Override
 	public int hashCode() {
-		throw new SuException("Slot hashCode not implemented");
+		throw new UnsupportedOperationException();
 	}
 
 
