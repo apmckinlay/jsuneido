@@ -96,7 +96,8 @@ public class Globals {
 		builtins.put("String?", new StringQ());
 		builtins.put("Sub", new Sub());
 		builtins.put("Synchronized", new Synchronized());
-		builtins.put("System", new SuSystem());
+		builtins.put("System", new SystemFunction());
+		builtins.put("Thread", new ThreadFunction());
 		builtins.put("Timestamp", new Timestamp());
 		builtins.put("Trace", new Trace());
 		builtins.put("Transaction", new Transaction());

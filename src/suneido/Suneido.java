@@ -16,11 +16,11 @@ import suneido.database.tools.*;
 public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		cmdlineoptions = CommandLineOptions.parse(args);
 		try {
 			doAction();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			fatal(cmdlineoptions.action + " FAILED", e);
 		}
 	}
@@ -30,10 +30,15 @@ public class Suneido {
 		System.exit(-1);
 	}
 
-	public static void fatal(String s, Exception e) {
+	public static void fatal(String s, Throwable e) {
 		errlog("FATAL: " + s + ": " + e);
 		e.printStackTrace();
 		System.exit(-1);
+	}
+
+	public static void uncaught(String s, Throwable e) {
+		errlog("UNCAUGHT: " + s + ": " + e);
+		e.printStackTrace();
 	}
 
 	public synchronized static void errlog(String s) {
@@ -50,12 +55,14 @@ public class Suneido {
 		}
 	}
 
-	private static void doAction() throws Exception {
+	private static void doAction() throws Throwable {
 		switch (cmdlineoptions.action) {
 		case REPL:
 			Repl.main(null);
 			break;
 		case SERVER:
+			System.out.println(
+					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);

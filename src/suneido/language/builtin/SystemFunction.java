@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.SuException;
 import suneido.language.*;
 
-public class SuSystem extends BuiltinFunction {
+public class SystemFunction extends BuiltinFunction {
 
 	@Override
 	public Object call(Object... args) {
