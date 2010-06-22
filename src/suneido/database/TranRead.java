@@ -1,6 +1,6 @@
 package suneido.database;
 
-import suneido.SuException;
+import com.google.common.base.Objects;
 
 /**
  * Stores the range of keys that was read by an {@link BtreeIndex} iterator.
@@ -31,17 +31,22 @@ public class TranRead implements Comparable<TranRead> {
 		if (!(other instanceof TranRead))
 			return false;
 		TranRead tr = (TranRead) other;
-		return tblnum == tr.tblnum && index.equals(tr.index);
+		return tblnum == tr.tblnum &&
+				Objects.equal(index, tr.index);
 	}
 
 	@Override
 	public int hashCode() {
-		throw new SuException("TranRead hashCode not implemented");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public String toString() {
-		return "TranRead(table: " + tblnum + ", index: " + index + ", " + org
-		+ " ... " + end + ")";
+		return Objects.toStringHelper(this)
+				.add("tblnum", tblnum)
+				.add("index", index)
+				.add("org", org)
+				.add("end", end)
+				.toString();
 	}
 }

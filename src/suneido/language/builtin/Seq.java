@@ -9,6 +9,8 @@ import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.*;
 
+import com.google.common.base.Objects;
+
 public class Seq extends BuiltinClass {
 
 	@Override
@@ -70,17 +72,14 @@ public class Seq extends BuiltinClass {
 			if (!(other instanceof SuSeq))
 				return false;
 			SuSeq that = (SuSeq) other;
-			return Ops.is_(from, that.from) && Ops.is_(to, that.to)
-					&& Ops.is_(by, that.by);
+			return Ops.is_(from, that.from) &&
+					Ops.is_(to, that.to) &&
+					Ops.is_(by, that.by);
 		}
 
 		@Override
 		public int hashCode() {
-			int result = 17;
-			result = 31 * result + from.hashCode();
-			result = 31 * result + to.hashCode();
-			result = 31 * result + by.hashCode();
-			return result;
+			return Objects.hashCode(from, to, by);
 		}
 
 		@Override

@@ -10,6 +10,8 @@ import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.language.Pack;
 
+import com.google.common.base.Objects;
+
 // maybe it would be simpler to attach header to row
 // rather than passing it in all the time
 
@@ -120,7 +122,10 @@ public class Row {
 		}
 		@Override
 		public String toString() {
-			return "Which(" + di + "," + ri + ")";
+			return Objects.toStringHelper(this)
+					.addValue(di)
+					.addValue(ri)
+					.toString();
 		}
 	}
 

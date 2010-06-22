@@ -17,6 +17,8 @@ import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.TransactionInstance;
 import suneido.util.Util;
 
+import com.google.common.base.Objects;
+
 /**
  * @author Andrew McKinlay
  */
@@ -324,12 +326,13 @@ public class SuRecord extends SuContainer {
 			if (!(other instanceof ActiveObserver))
 				return false;
 			ActiveObserver that = (ActiveObserver) other;
-			return observer.equals(that.observer) && member.equals(that.member);
+			return Objects.equal(observer, that.observer) &&
+					Objects.equal(member, that.member);
 		}
 
 		@Override
 		public int hashCode() {
-			throw SuException.unreachable();
+			throw new UnsupportedOperationException();
 		}
 	}
 

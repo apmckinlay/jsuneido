@@ -6,6 +6,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.database.Database.TN;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -158,7 +159,12 @@ public class Table {
 
 	@Override
 	public String toString() {
-		return "Table(" + name + ":" + num + ") " + columns + " " + indexes;
+		return Objects.toStringHelper(this)
+				.add("name", name)
+				.add("num", num)
+				.add("columns", columns)
+				.add("indexes", indexes)
+				.toString();
 	}
 
 }

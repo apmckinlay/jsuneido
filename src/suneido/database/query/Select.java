@@ -19,6 +19,7 @@ import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 import suneido.language.*;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
 public class Select extends Query1 {
@@ -858,22 +859,30 @@ public class Select extends Query1 {
 			if (!(other instanceof Cmp))
 				return false;
 			Cmp c = (Cmp) other;
-			return ident.equals(c.ident) && op == c.op && value.equals(c.value);
+			return Objects.equal(ident, c.ident) &&
+					op == c.op &&
+					Objects.equal(value, c.value);
 			// what about values ?
 		}
 
-		public int compareTo(Cmp other) {
-			return ident.compareTo(other.ident);
-		}
 		@Override
 		public int hashCode() {
-			throw new SuException("Cmp hashCode not implemented");
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int compareTo(Cmp other) {
+			return ident.compareTo(other.ident);
 		}
 
 		@Override
 		public String toString() {
-			return "Cmp " + ident + " " + (op == null ? "in" : op.string)
-					+ " " + valueToString(value) + valuesToString(values);
+			return Objects.toStringHelper(this)
+					.addValue(ident)
+					.addValue(op == null ? "in" : op.string)
+					.addValue(valueToString(value))
+					.addValue(valuesToString(values))
+					.toString();
 		}
 	}
 
@@ -945,8 +954,11 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return "Isel " + type + " " + org + " .. " + end
-					+ valuesToString(values);
+			return Objects.toStringHelper(this)
+					.addValue(type)
+					.addValue(org + ".." + end)
+					.addValue(valuesToString(values))
+					.toString();
 		}
 	}
 	private static class Point implements Comparable<Point> {
@@ -960,13 +972,15 @@ public class Select extends Query1 {
 			if (!(other instanceof Point))
 				return false;
 			Point p = (Point) other;
-			return d == p.d && x.equals(p.x);
-		}
-		@Override
-		public int hashCode() {
-			throw new SuException("Point hashCode not implemented");
+			return d == p.d && Objects.equal(x, p.x);
 		}
 
+		@Override
+		public int hashCode() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
 		public int compareTo(Point p) {
 			int cmp = bufferUcompare(x, p.x);
 			return cmp == 0 ? d - p.d : cmp;
@@ -974,7 +988,10 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return "Point " + (x == null ? "null" : valueToString(x)) + ","	+ d;
+			return Objects.toStringHelper(this)
+					.addValue(x == null ? "null" : valueToString(x))
+					.addValue(d)
+					.toString();
 		}
 	}
 

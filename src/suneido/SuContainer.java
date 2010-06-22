@@ -201,8 +201,7 @@ public class SuContainer extends SuValue
 	public int hashCode() {
 		return hashCode(0);
 	}
-	/** as recommended by Effective Java
-	 *  can't use vec and map hashCode methods
+	/** can't use vec and map hashCode methods
 	 *  because we need to check nesting */
 	@Override
 	public int hashCode(int nest) {

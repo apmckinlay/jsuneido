@@ -4,6 +4,8 @@ import static suneido.util.Util.displayListToParens;
 
 import java.util.*;
 
+import com.google.common.base.Objects;
+
 public class Fixed {
 	public String field;
 	public List<Object> values;
@@ -51,12 +53,12 @@ public class Fixed {
 		if (!(other instanceof Fixed))
 			return false;
 		Fixed f = (Fixed) other;
-		return field.equals(f.field) && values.equals(f.values);
+		return Objects.equal(field, f.field) && 
+				Objects.equal(values, f.values);
 	}
 
 	@Override
 	public int hashCode() {
-		assert false : "hashCode not implemented";
-		return 42;
+		throw new UnsupportedOperationException();
 	}
 }

@@ -47,11 +47,11 @@ public class Session {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Session ")
+		return new StringBuilder()
+				.append("Session ")
 				.append(getType() == STARTUP ? "startup "
 						: getType() == SHUTDOWN ? "shutdown " : "unknown-type ")
-				.append(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(getDate()));
-		return sb.toString();
+				.append(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(getDate()))
+				.toString();
 	}
 }
