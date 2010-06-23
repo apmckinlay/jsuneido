@@ -277,9 +277,15 @@ public class TransactionTest extends TestBase {
 
 		t1.ck_complete();
 		assertNotNull(t2.complete());
-		assertEquals("write-read conflict", t2.conflict());
+		assertStartsWith("write-read conflict", t2.conflict());
 
 		db.checkTransEmpty();
+	}
+
+	private void assertStartsWith(String expectedPrefix, String s) {
+		assertTrue("expected to startWith: <" + expectedPrefix + ">" +
+				" but was <" + s + ">",
+				s.startsWith(expectedPrefix));
 	}
 
 	@Test

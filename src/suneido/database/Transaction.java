@@ -9,6 +9,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.database.server.DbmsTran;
+import suneido.database.server.ServerData;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
@@ -37,7 +38,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 	private final long asof;
 	public final int num;
 	private volatile long commitTime = Long.MAX_VALUE;
-	String sessionId = "session"; // TODO session id
+	final String sessionId = ServerData.forThread().getSessionId();
 	// these are final except for being cleared when transaction ends
 	private /*final*/ Tables tables;
 	private /*final*/  PersistentMap<Integer, TableData> tabledata;
@@ -81,7 +82,10 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 
 	@Override
 	public String toString() {
-		return "T" + (readonly ? "r" : "w") + num;
+		String sid = "";
+		if (! "127.0.0.1".equals(sessionId))
+			sid = "(" + sessionId + ")";
+		return "T" + (readonly ? "r" : "w") + num + sid;
 	}
 
 	public boolean isReadonly() {
@@ -436,7 +440,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
-				abortThrow("read-write conflict");
+				abortThrow("read-write conflict with " + writer);
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
@@ -446,7 +450,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 			if (w == this || w.commitTime < asof)
 				continue;
 			if (w.outConflict)
-				abortThrow("read-write conflict");
+				abortThrow("read-write conflict with " + w);
 			this.outConflict = true;
 		}
 		for (Transaction w : writes)
@@ -461,7 +465,7 @@ public class Transaction implements Comparable<Transaction>, DbmsTran {
 		for (Transaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
 				if (reader.inConflict || this.outConflict)
-					abortThrow("write-read conflict");
+					abortThrow("write-read conflict with " + reader);
 				this.inConflict = true;
 			}
 		for (Transaction reader : readers)
