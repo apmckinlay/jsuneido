@@ -4,10 +4,8 @@
 	<classpathentry kind="src" path="tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="WhenBuilt.jar"/>
-	<classpathentry kind="lib" path="asm-3.1.jar"/>
-	<classpathentry kind="lib" path="asm-analysis-3.1.jar"/>
-	<classpathentry kind="lib" path="asm-util-3.1.jar"/>
-	<classpathentry kind="lib" path="guava.jar"/>
+	<classpathentry kind="lib" path="asm-all-3.3.jar"/>
+	<classpathentry kind="lib" path="guava-r05.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -8,7 +8,17 @@ public class SampleFunction extends SuFunction {
 
 	@Override
 	public Object call(Object self, Object... args) {
-		return null;
+//		args = Args.massage(FunctionSpec.noParams, args);
+//		Object[] constants = null;
+		try {
+			try {
+				System.out.println();
+			} catch (Throwable e) {
+				return e;
+			}
+		} catch (IllegalAccessError e) {
+		}
+		return "y";
 	}
 
 	void test(List<Object> list) {
