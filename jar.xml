@@ -12,10 +12,8 @@
             <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/WhenBuilt.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-3.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-analysis-3.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-util-3.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/guava.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-all-3.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/guava-r05.jar"/>
         </jar>
     </target>
 	<target name="when_built">

@@ -9,7 +9,7 @@ public class TestCompileClass {
 //		compile("MyClass", s);
 
 //		Object c =
-			compile("Test", "function () { try { try throw 'x' catch (e) return e } return 'y' }");
+			compile("Test", "function () { }");
 //		Object result = Ops.invoke(c, "func");
 //		System.out.println(result);
 
