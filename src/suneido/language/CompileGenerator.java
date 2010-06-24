@@ -12,6 +12,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.commons.TryCatchBlockSorter;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
@@ -186,7 +187,7 @@ public class CompileGenerator extends Generator<Object> {
 
 		if (pw != null) {
 			c.cv = new TraceClassVisitor(c.cw, pw);
-			c.cv = new CheckClassAdapter(c.cv);
+			c.cv = new CheckClassAdapter(c.cv, false);
 		}
 
 		c.name = javify(className());
@@ -398,11 +399,10 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	private void startMethod() {
-		c.f.mv = c.cv.visitMethod(
+		c.f.mv = methodVisitor(
 				c.f.name.equals("call") ? ACC_PUBLIC : ACC_PRIVATE,
 				javify(c.f.name),
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
-				null, null);
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
 		c.f.mv = new OptimizeToBool(c.f.mv);
 		c.f.mv.visitCode();
@@ -413,6 +413,12 @@ public class CompileGenerator extends Generator<Object> {
 		c.fspecs.add(null); // to reserve a slot, set correctly later
 
 		c.f.constants = new ArrayList<Object>();
+	}
+
+	private MethodVisitor methodVisitor(int access, String name, String desc) {
+		MethodVisitor mv = c.cv.visitMethod(access, name, desc, null, null);
+		mv = new TryCatchBlockSorter(mv, access, name, desc, null, null);
+		return mv;
 	}
 
 	public static String javify(String name) {
@@ -600,8 +606,6 @@ public class CompileGenerator extends Generator<Object> {
 		TryCatch tc = c.f.blockReturnCatcher;
 		c.f.mv.visitLabel(tc.label1);
 		c.f.mv.visitLabel(tc.label2);
-		c.f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
-				"suneido/language/BlockReturnException");
 
 		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitFieldInsn(GETFIELD,
@@ -1237,8 +1241,7 @@ public class CompileGenerator extends Generator<Object> {
 				"(Ljava/lang/Object;Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
 
 		if (!c.f.isBlock && c.f.blockReturnCatcher == null) {
-			c.f.blockReturnCatcher = new TryCatch();
-			c.f.mv.visitLabel(c.f.blockReturnCatcher.label0);
+			c.f.blockReturnCatcher = tryCatch("suneido/language/BlockReturnException");
 		}
 
 		return VALUE;
@@ -1490,7 +1493,12 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object startTry() {
+		return tryCatch("suneido/SuException");
+	}
+
+	TryCatch tryCatch(String exception) {
 		TryCatch tc = new TryCatch();
+		c.f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2, exception);
 		c.f.mv.visitLabel(tc.label0);
 		return tc;
 	}
@@ -1527,8 +1535,6 @@ public class CompileGenerator extends Generator<Object> {
 			Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
 		c.f.mv.visitLabel(tc.label3);
-		c.f.mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2,
-				"suneido/SuException");
 		return null;
 	}
 

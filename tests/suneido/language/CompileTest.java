@@ -245,21 +245,21 @@ public class CompileTest {
 				"a, throw");
 		test("throw a = b",
 				"&a, b, DUP_X2, AASTORE, throw");
-		test("try 123",
-				"L1, 123, POP, L2, GOTO L3, L4, POP, L3, try L1 L2 L4");
-		test("try 123 catch 456",
-				"L1, 123, POP, L2, GOTO L3, L4, POP, 456, POP, L3, try L1 L2 L4");
-		test("try 123 catch(a) 456",
-				"L1, 123, POP, L2, GOTO L3, L4, toString, args, SWAP, 0, SWAP, "
-				+ "AASTORE, 456, POP, L3, try L1 L2 L4");
-		test("try 123 catch(a, 'x') 456",
-				"L1, 123, POP, L2, GOTO L3, L4, 'x', catchMatch, args, SWAP, "
-				+ "0, SWAP, AASTORE, 456, POP, L3, try L1 L2 L4");
+		test_e("try 123",
+				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, POP, L4");
+		test_e("try 123 catch 456",
+				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, POP, 456, POP, L4");
+		test_e("try 123 catch(a) 456",
+				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, toString, args, SWAP, 0, SWAP, "
+				+ "AASTORE, 456, POP, L4");
+		test_e("try 123 catch(a, 'x') 456",
+				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, 'x', catchMatch, args, SWAP, "
+				+ "0, SWAP, AASTORE, 456, POP, L4");
 	}
 	@Test public void test_block() {
-		test("b = { }",
-				"&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, args, IF_ACMPEQ L4, "
+		test_e("b = { }",
+				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
+				+ "L1, L2, DUP, .locals, args, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
@@ -267,8 +267,9 @@ public class CompileTest {
 		compile("Plugins.Foreach(a) { }");
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
-		test("b = { return 123 }", "&b, block, L1, DUP_X2, AASTORE, ARETURN, "
-				+ "L2, L3, try L1 L2 L3, DUP, .locals, args, IF_ACMPEQ L4, "
+		test_e("b = { return 123 }",
+				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
+				+ "L1, L2, DUP, .locals, args, IF_ACMPEQ L4, "
 				+ "ATHROW, L4, .returnValue, ARETURN");
 	}
 	@Test public void test_block_break() {
@@ -294,13 +295,23 @@ public class CompileTest {
 	}
 
 	private void test(String expr, String expected) {
-		assertEquals(expr, expected, simplify(compile(expr)));
+		test(expr, expected,
+				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+	}
+	private void test_e(String expr, String expected) {
+		test(expr, expected,
+				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n");
 	}
 	private void test_b0(String expr, String expected) {
 		String s = compile(expr);
 		s = simplify(s,
 				"Test_b0(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0");
 		s = before(s, ", NEW suneido/language/BlockReturnException");
+		assertEquals(expr, expected, s);
+	}
+	private void test(String expr, String expected, String after) {
+		String s = compile(expr);
+		s = simplify(s, after);
 		assertEquals(expr, expected, s);
 	}
 
@@ -320,11 +331,6 @@ public class CompileTest {
 		SuCallable x = (SuCallable) pc.parse();
 		constants = x.constants == null ? new Object[0] : x.constants[0];
 		return sw.toString();
-	}
-
-	private String simplify(String r) {
-		return simplify(r,
-				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 	}
 
 	private String simplify(String r, String after) {
@@ -401,8 +407,8 @@ public class CompileTest {
 			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
 			{ "NEW suneido/SuException, DUP_X1, SWAP, INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW", "throw" },
-			{ "TRYCATCHBLOCK L1 L2 L4 suneido/SuException", "try L1 L2 L4" },
-			{ "TRYCATCHBLOCK L1 L2 L3 suneido/language/BlockReturnException", "try L1 L2 L3" },
+			{ "TRYCATCHBLOCK L0 L1 L2 suneido/SuException", "try L0 L1 L2" },
+			{ "TRYCATCHBLOCK L0 L1 L2 suneido/language/BlockReturnException", "try L0 L1 L2" },
 			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
 			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
