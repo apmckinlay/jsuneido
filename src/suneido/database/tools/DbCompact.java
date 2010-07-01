@@ -133,16 +133,16 @@ public class DbCompact {
 		Table table = wt.ck_getTable(tblnum);
 		Mmfile mmf = (Mmfile) wt.db.dest;
 		for (Index index : table.indexes) {
-			Mmfile.MmfileIterator iter = mmf.iterator(first);
-			while (iter.hasNext()) {
-				ByteBuf buf = iter.next();
+			Mmfile.Iter iter = mmf.iterator(first);
+			do {
 				if (iter.type() != Mmfile.DATA)
 					continue;
+				ByteBuf buf = iter.current();
 				Record rec = new Record(buf.slice(4), iter.offset() + 4);
 				theDB.addIndexEntriesForCompact(table, index, rec);
 				if (iter.offset() >= last)
 					break;
-			}
+			} while (iter.next());
 		}
 	}
 

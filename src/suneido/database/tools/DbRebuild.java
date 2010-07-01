@@ -96,9 +96,9 @@ public class DbRebuild extends DbCheck {
 	}
 
 	private boolean copy() {
-		Mmfile.MmfileIterator iter = mmf.iterator();
-		while (iter.hasNext()) {
-			ByteBuf buf = iter.next();
+		Mmfile.Iter iter = mmf.iterator();
+		while (iter.next()) {
+			ByteBuf buf = iter.current();
 			if (iter.type() == Mmfile.OTHER ||
 					(iter.type() == Mmfile.COMMIT && isCommitOther(buf)))
 				continue; // skip

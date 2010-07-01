@@ -10,7 +10,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +30,7 @@ import suneido.util.ByteBuf;
  * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
-public class Mmfile extends Destination implements Iterable<ByteBuf> {
+public class Mmfile extends Destination {
 	private final Mode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
@@ -64,8 +63,10 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		OK, ERR, EOF
 	};
 
-	// these are only overridden for tests
+	// overridden for tests
 	private int chunk_size = MB_PER_CHUNK * 1024 * 1024;
+
+	// overridden for 64 bit
 	private int max_chunks_mapped = MAX_CHUNKS_MAPPED;
 
 
@@ -337,22 +338,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 
 	@Override
 	public long first() {
-		return file_size <= FILEHDR ? 0 : FILEHDR + HEADER;
-	}
-
-	@Override
-	public long last() {
-		long offset = end_offset();
-		if (offset <= FILEHDR + HEADER)
-			return -1;
-		offset -= OVERHEAD;
-		int n = buf(offset).getInt(0) ^ (int) offset;
-		if (n > chunk_size || n > offset)
-			return -1;
-		offset -= n;
-		if (check(offset) == MmCheck.ERR)
-			return -1;
-		return offset;
+		return file_size <= FILEHDR ? 0 : BEGIN_OFFSET;
 	}
 
 	/** avoids memory mapping */
@@ -360,7 +346,7 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 	public boolean checkEnd(byte type, byte value) {
 		try {
 			long offset = end_offset();
-			if (offset <= FILEHDR + HEADER)
+			if (offset <= BEGIN_OFFSET)
 				return false;
 			offset -= OVERHEAD;
 			fin.seek(offset);
@@ -382,34 +368,42 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 		return this;
 	}
 
-	public MmfileIterator iterator() {
-		return new MmfileIterator();
+	/** bidirectional iterator, normal usage is:<br>
+	 * <pre>
+	 * Mmfile.Iter iter = mmf.iterator();
+	 * while (iter.next/prev()) {
+	 *     ByteBuf buf = iter.current();
+	 * </pre>
+	 */
+	public Iter iterator() {
+		return new Iter();
 	}
 
-	public MmfileIterator iterator(long start) {
-		return new MmfileIterator(start);
+	/**
+	 * returns an iterator positioned at the specified offset
+	 */
+	public Iter iterator(long offset) {
+		return new Iter(offset);
 	}
 
-	public class MmfileIterator implements Iterator<ByteBuf> {
-		private long offset = -1;
-		private long next_offset = BEGIN_OFFSET;
+	public class Iter {
+		private static final long REWOUND = -1;
+		private long offset = REWOUND;
 		private boolean err = false;
 
-		public MmfileIterator() {
+		public Iter() {
 		}
 
-		public MmfileIterator(long start) {
-			next_offset = start;
+		public Iter(long offset) {
+			this.offset = offset;
 		}
 
-		public boolean hasNext() {
-			return next_offset < file_size;
-		}
-
-		public ByteBuf next() {
+		public boolean next() {
 			do {
-				offset = next_offset;
-				next_offset += length() + OVERHEAD;
+				if (offset == REWOUND)
+					offset = first();
+				else
+					offset += length() + OVERHEAD;
 				switch (check(offset)) {
 				case OK:
 					break;
@@ -417,32 +411,67 @@ public class Mmfile extends Destination implements Iterable<ByteBuf> {
 					err = true;
 					// fall thru
 				case EOF:
-					next_offset = last(); // eof or bad block
-					return ByteBuf.empty();
+					offset = REWOUND;
+					return false;
 				}
 			} while (type() == FILLER);
-			return adr(offset);
+			return true;
 		}
 
-		public void remove() {
-			throw new UnsupportedOperationException();
+		public boolean prev() {
+			do {
+				if (offset == REWOUND)
+					offset = end_offset();
+				offset -= OVERHEAD;
+				if (offset < first()) {
+					offset = REWOUND;
+					return false;
+				}
+				int len = buf(offset).getInt(0) ^ (int) offset;
+				if (len > offset || len > chunk_size) {
+					err = true;
+					offset = REWOUND;
+					return false;
+				}
+				offset -= len;
+				switch (check(offset)) {
+				case OK:
+					break;
+				case ERR:
+					err = true;
+					// fall thru
+				case EOF:
+					offset = REWOUND;
+					return false;
+				}
+			} while (type() == FILLER);
+			return true;
 		}
 
 		public boolean corrupt() {
 			return err;
 		}
 
+		public ByteBuf current() {
+			assert offset != REWOUND;
+			return adr(offset);
+		}
+
 		public long offset() {
+			assert offset != REWOUND;
 			return offset;
 		}
 
 		public byte type() {
+			assert offset != REWOUND;
 			return Mmfile.this.type(offset);
 		}
 
 		public int length() {
+			assert offset != REWOUND;
 			return Mmfile.this.length(offset);
 		}
+
 	}
 
 }

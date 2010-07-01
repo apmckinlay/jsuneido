@@ -77,10 +77,11 @@ public class DbCheck {
 		boolean ok = false;
 		boolean has_a_shutdown = false;
 		Checksum cksum = new Checksum();
-		Mmfile.MmfileIterator iter = mmf.iterator();
-		loop: while (iter.hasNext()) {
+
+		Mmfile.Iter iter = mmf.iterator();
+		loop: while (iter.next()) {
 			ok = false;
-			ByteBuf buf = iter.next();
+			ByteBuf buf = iter.current();
 			switch (iter.type()) {
 			case Mmfile.DATA:
 				int tblnum = buf.getInt(0);

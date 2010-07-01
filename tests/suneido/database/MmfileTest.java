@@ -54,7 +54,9 @@ public class MmfileTest {
 			mmf.adr(offset[1]).put(0, data[1]);
 
 			int i = 0;
-			for (ByteBuf b : mmf) {
+			Mmfile.Iter iter = mmf.iterator();
+			while (iter.next()) {
+				ByteBuf b = iter.current();
 				byte[] x = new byte[data[i].length];
 				b.get(0, x);
 				assertArrayEquals(data[i], x);

@@ -19,9 +19,9 @@ public class DbDebug {
 	}
 
 	private void dump() {
-		Mmfile.MmfileIterator iter = mmf.iterator();
-		while (iter.hasNext()) {
-			ByteBuf buf = iter.next();
+		Mmfile.Iter iter = mmf.iterator();
+		while (iter.next()) {
+			ByteBuf buf = iter.current();
 			System.out.print(iter.offset() + " " + iter.length() + " ");
 			if (iter.offset() == mmf.first()) {
 				int next_table = buf.getInt(0);
