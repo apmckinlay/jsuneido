@@ -15,7 +15,7 @@ public abstract class Destination {
 
 	public abstract long alloc(int size, byte type);
 
-	abstract ByteBuf adr(long offset);
+	public abstract ByteBuf adr(long offset);
 
 	ByteBuf node(long offset) {
 		return adr(offset);
@@ -26,8 +26,6 @@ public abstract class Destination {
 	}
 
 	abstract long first();
-
-	abstract long last();
 
 	abstract int length(long adr);
 

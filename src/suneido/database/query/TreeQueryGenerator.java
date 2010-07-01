@@ -57,7 +57,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object history(String table) {
-		return new History(table);
+		return new History(tran, table);
 	}
 
 	@Override

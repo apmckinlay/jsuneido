@@ -44,11 +44,6 @@ public class DestMem extends Destination {
 	}
 
 	@Override
-	public long last() {
-		return nodes.size() * Mmfile.ALIGN;
-	}
-
-	@Override
 	public byte type(long adr) {
 		return types.get((int) (adr / Mmfile.ALIGN) - 1);
 	}
