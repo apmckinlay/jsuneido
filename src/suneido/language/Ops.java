@@ -600,7 +600,8 @@ public class Ops {
 			return "Boolean";
 		if (xType == Date.class)
 			return "Date";
-		if (xType == Integer.class || xType == BigDecimal.class)
+		if (xType == Integer.class || xType == Long.class ||
+				xType == BigDecimal.class)
 			return "Number";
 		return x.getClass().getName();
 	}
@@ -632,11 +633,12 @@ public class Ops {
 			if (x instanceof SuValue)
 				return ((SuValue) x).invoke(x, method, args);
 			Class<?> xType = x.getClass();
-			// MAYBE map from class to methods
 			if (xType == String.class)
 				return StringMethods.invoke((String) x, method, args);
 			if (xType == Integer.class)
 				return NumberMethods.invoke((Integer) x, method, args);
+			if (xType == Long.class)
+				x = BigDecimal.valueOf((Long) x);
 			if (xType == BigDecimal.class)
 				return NumberMethods.invoke((BigDecimal) x, method, args);
 			if (xType == Date.class)
