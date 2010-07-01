@@ -242,6 +242,8 @@ public class Ops {
 			return stringToPlainNumber(x.toString());
 		if (xType == Boolean.class)
 			return (Boolean) x ? 1 : 0;
+		if (xType == Long.class)
+			return BigDecimal.valueOf((Long) x);
 		// MAYBE other types e.g. long, BigInteger or double
 		throw new SuException("can't convert " + typeName(x) + " to number");
 	}
