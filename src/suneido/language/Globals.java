@@ -77,6 +77,7 @@ public class Globals {
 		builtins.put("Number?", new NumberQ());
 		builtins.put("Object", new ObjectClass());
 		builtins.put("Object?", new ObjectQ());
+		builtins.put("OperatingSystem", new OperatingSystem());
 		builtins.put("Or", new Or());
 		builtins.put("Pack", new suneido.language.builtin.Pack());
 		builtins.put("Query1", new Query1());
@@ -98,6 +99,7 @@ public class Globals {
 		builtins.put("Sub", new Sub());
 		builtins.put("Synchronized", new Synchronized());
 		builtins.put("System", new SystemFunction());
+		builtins.put("SystemMemory", new SystemMemory());
 		builtins.put("Thread", new ThreadFunction());
 		builtins.put("Timestamp", new Timestamp());
 		builtins.put("Trace", new Trace());
