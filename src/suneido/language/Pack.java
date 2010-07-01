@@ -37,6 +37,8 @@ public class Pack {
 			return 1;
 		if (xType == Integer.class)
 			return packSizeNum((Integer) x, 0);
+		if (xType == Long.class)
+			return packSizeNum((Long) x, 0);
 		if (xType == BigDecimal.class)
 			return packSizeBD((BigDecimal) x);
 		if (xType == String.class)
@@ -72,6 +74,8 @@ public class Pack {
 			buf.put(x == Boolean.TRUE ? Tag.TRUE : Tag.FALSE);
 		else if (xType == Integer.class)
 			packNum((Integer) x, 0, buf);
+		else if (xType == Long.class)
+			packNum((Long) x, 0, buf);
 		else if (xType == BigDecimal.class)
 			packBD((BigDecimal) x, buf);
 		else if (xType == String.class)
