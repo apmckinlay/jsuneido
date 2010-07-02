@@ -114,6 +114,7 @@ public class History extends Query {
 		long offset;
 		do 	{
 			offset = dir == Dir.NEXT ? next() : prev();
+			assert ! iter.corrupt();
 			if (offset == 0)
 				return null;
 			buf = dest.adr(offset - 4);
@@ -133,8 +134,10 @@ public class History extends Query {
 			if (commit != null) {
 				if (id + 1 < commit.getNDeletes())
 					return commit.getDelete(++id);
-				else if (ic + 1 < commit.getNCreates())
+				id = commit.getNDeletes();
+				if (ic + 1 < commit.getNCreates())
 					return commit.getCreate(++ic);
+				commit = null;
 			}
 			do {
 				if (! iter.next())
@@ -150,8 +153,10 @@ public class History extends Query {
 			if (commit != null) {
 				if (ic > 0)
 					return commit.getCreate(--ic);
-				else if (id > 0)
+				ic = -1;
+				if (id > 0)
 					return commit.getDelete(--id);
+				commit = null;
 			}
 			do {
 				if (! iter.prev())
