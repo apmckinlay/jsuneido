@@ -28,7 +28,11 @@ public class DbmsServerBySelect {
 	public static void run(int port) {
 		Database.open_theDB();
 		Globals.builtin("Print", new Repl.Print());
-		Compiler.eval("JInit()");
+		try {
+			Compiler.eval("JInit()");
+		} catch (Throwable e) {
+			Suneido.fatal("error during init", e);
+		}
 		ServerBySelect server = new ServerBySelect(new HandlerFactory());
 		inetAddress = server.getInetAddress();
 		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
