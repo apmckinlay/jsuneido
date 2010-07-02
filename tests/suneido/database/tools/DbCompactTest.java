@@ -9,10 +9,6 @@ import suneido.database.Mode;
 
 public class DbCompactTest extends DbCheckRebuildBase {
 
-	public DbCompactTest() {
-		super("dbcompacttest.db");
-	}
-
 	@Test
 	public void empty() {
 		db = new Database(filename, Mode.CREATE);

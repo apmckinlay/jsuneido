@@ -136,6 +136,10 @@ public class ClassTest {
 
 		define("X", "#(func: function () { 123 })");
 		test("(X.func)()", "123");
+
+		define("A", "class { CallClass() { new this() } }");
+		test("A()", "A()");
+
 	}
 	@Test public void test_static_getter() {
 		define("A", "class { " +

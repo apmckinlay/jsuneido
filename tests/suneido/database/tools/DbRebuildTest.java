@@ -13,10 +13,6 @@ import suneido.database.tools.DbCheck.Status;
 
 public class DbRebuildTest extends DbCheckRebuildBase {
 
-	public DbRebuildTest() {
-		super("dbrebuildtest.db");
-	}
-
 	@Test
 	public void test_empty() {
 		db = new Database(filename, Mode.CREATE);
@@ -142,7 +138,7 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@After
 	public void remove_bak() {
-		new File(filename + ".bak").delete();
+		new File(filename + ".bak").deleteOnExit();
 	}
 
 }
