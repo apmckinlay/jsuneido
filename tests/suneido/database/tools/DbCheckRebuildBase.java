@@ -6,18 +6,27 @@ import static org.junit.Assert.assertNull;
 import java.io.File;
 
 import org.junit.After;
+import org.junit.Before;
 
 import suneido.database.*;
 import suneido.database.tools.DbCheck.Status;
 
 public class DbCheckRebuildBase extends TestBaseBase {
-	protected final String filename;
+	protected String filename;
 	protected String outfilename;
 
-	protected DbCheckRebuildBase(String filename) {
-		this.filename = filename;
+	@Before
+	public void create() {
+		File file = DbTools.tempfile();
+		filename = file.toString();
 		outfilename = filename + ".out";
 	}
+
+	@After
+        public void delete() {
+        	new File(filename).deleteOnExit();
+        	new File(outfilename).deleteOnExit();
+        }
 
 	protected void dbcheck() {
 		assertEquals(Status.OK, DbCheck.check(outfilename));
@@ -62,12 +71,6 @@ public class DbCheckRebuildBase extends TestBaseBase {
 	protected void closeDb() {
 		db.close();
 		db = null;
-	}
-
-	@After
-	public void delete() {
-		new File(filename).delete();
-		new File(outfilename).delete();
 	}
 
 }

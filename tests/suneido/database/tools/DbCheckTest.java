@@ -1,16 +1,14 @@
 package suneido.database.tools;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import suneido.database.Database;
 import suneido.database.Mode;
+import suneido.database.tools.DbCheck.Status;
 
 public class DbCheckTest extends DbCheckRebuildBase {
-
-	public DbCheckTest() {
-		super("dbchecktest.db");
-		outfilename = "dbchecktest.db";
-	}
 
 	@Test
 	public void test_empty() {
@@ -46,6 +44,11 @@ public class DbCheckTest extends DbCheckRebuildBase {
 		}
 		dbcheck();
 		checkTable(8);
+	}
+
+	@Override
+        protected void dbcheck() {
+		assertEquals(Status.OK, DbCheck.check(filename));
 	}
 
 }
