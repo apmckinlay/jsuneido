@@ -479,6 +479,12 @@ public class Ops {
 				+ typeName(x));
 	}
 
+	public static Boolean toBoolean(Object x) {
+		if (x == Boolean.TRUE || x == Boolean.FALSE)
+			return (Boolean) x;
+		throw new SuException("can't convert " + typeName(x) + " to boolean");
+	}
+
 	public static int toInt(Object x) {
 		Class<?> xType = x.getClass();
 		if (xType == Integer.class)

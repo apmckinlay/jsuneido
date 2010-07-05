@@ -74,7 +74,8 @@ public class Dir extends BuiltinFunction {
 		}
 
 		private String convert(String s) {
-			return s.replace(".", "\\.").replace("?", ".").replace("*", ".*");
+			return s.replace("*.*", "*") // for compatibility with windows
+					.replace(".", "\\.").replace("?", ".").replace("*", ".*");
 		}
 
 		@Override

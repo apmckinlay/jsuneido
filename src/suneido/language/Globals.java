@@ -35,6 +35,7 @@ public class Globals {
 		builtins.put("Class?", new ClassQ());
 		builtins.put("Cmdline", new Cmdline());
 		builtins.put("Construct", new Construct());
+		builtins.put("CopyFile", new CopyFile());
 		builtins.put("CreateDirectory", new CreateDirectory());
 		builtins.put("Cursor", new Cursor());
 		builtins.put("Database", new Database());
@@ -69,6 +70,7 @@ public class Globals {
 		builtins.put("Md5", new Md5());
 		builtins.put("MemoryArena", new MemoryArena());
 		builtins.put("Mod", new Mod());
+		builtins.put("MoveFile", new MoveFile());
 		builtins.put("Mul", new Mul());
 		builtins.put("Neg", new Neg());
 		builtins.put("Neq", new Neq());
