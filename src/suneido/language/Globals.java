@@ -27,7 +27,7 @@ public class Globals {
 		builtins.put("Suneido", new SuContainer());
 
 		builtins.put("Add", new Add());
-		builtins.put("Adler32", new Adler32Function());
+		builtins.put("Adler32", new Adler32Class());
 		builtins.put("And", new And());
 		builtins.put("Boolean?", new BooleanQ());
 		builtins.put("Built", new Built());
@@ -58,7 +58,7 @@ public class Globals {
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
 		builtins.put("GetCurrentDirectory", new GetCurrentDirectory());
-		builtins.put("GetCurrentDiskFreeSpace", new GetCurrentDiskFreeSpace());
+		builtins.put("GetDiskFreeSpace", new GetDiskFreeSpace());
 		builtins.put("GetMacAddress", new GetMacAddress());
 		builtins.put("GetTempPath", new GetTempPath());
 		builtins.put("Gt", new Gt());

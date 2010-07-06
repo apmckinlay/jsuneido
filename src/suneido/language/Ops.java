@@ -113,34 +113,34 @@ public class Ops {
 		}
 		if (xType == Boolean.class)
 			return -1;
-		if (xType == Integer.class) {
+		if (xType == Integer.class || xType == Long.class) {
 			if (yType == Boolean.class)
 				return +1;
 			if (yType == BigDecimal.class)
-				return BigDecimal.valueOf((Integer) x).compareTo((BigDecimal) y);
+				return BigDecimal.valueOf(((Number) x).longValue()).compareTo((BigDecimal) y);
 			return -1;
 		}
 		if (xType == BigDecimal.class) {
 			if (yType == Boolean.class)
 				return +1;
-			if (yType == Integer.class)
-				return ((BigDecimal) x).compareTo(BigDecimal.valueOf((Integer) y));
+			if (yType == Integer.class || yType == Long.class)
+				return ((BigDecimal) x).compareTo(BigDecimal.valueOf(((Number) y).longValue()));
 			return -1;
 		}
 		if (xType == String.class)
 			return yType == Boolean.class || yType == Integer.class
-					|| yType == BigDecimal.class ? +1 : -1;
+					|| yType == Long.class || yType == BigDecimal.class ? +1 : -1;
 		if (xType == Date.class)
 			return yType == Boolean.class || yType == Integer.class
-					|| yType == BigDecimal.class || yType == String.class ? +1
-					: -1;
+					|| yType == Long.class || yType == BigDecimal.class
+					|| yType == String.class ? +1 : -1;
 		if (x instanceof SuContainer)
 			return yType == Boolean.class || yType == Integer.class
-				|| yType == BigDecimal.class || yType == String.class
-				|| yType == Date.class
+				|| yType == BigDecimal.class || yType == Long.class
+				|| yType == String.class || yType == Date.class
 				? +1 : -1;
 
-		if (yType == Boolean.class || yType == Integer.class
+		if (yType == Boolean.class || yType == Integer.class || yType == Long.class
 				|| yType == BigDecimal.class || yType == String.class)
 			return +1;
 		return cmpHash(xType, yType);
