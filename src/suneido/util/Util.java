@@ -145,6 +145,13 @@ public class Util {
 		return sb.toString();
 	}
 
+	public static byte[] stringToBytes(String s) {
+		byte[] bytes = new byte[s.length()];
+		for (int i = 0; i < s.length(); ++i)
+			bytes[i] = (byte) s.charAt(i);
+		return bytes;
+	}
+
 	/**
 	 * @return A new list containing all the values from x and y. <b>x is copied as
 	 *         is</b>, so if it has duplicates they are retained. Duplicates from y
