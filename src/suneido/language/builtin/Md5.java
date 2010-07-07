@@ -1,6 +1,5 @@
 package suneido.language.builtin;
 
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -14,13 +13,7 @@ public class Md5 extends BuiltinFunction {
 	public Object call(Object... args) {
 		Args.massage(FunctionSpec.value, args);
 		String s = Ops.toStr(args[0]);
-		byte[] data;
-		try {
-			data = s.getBytes("ISO-8859-1");
-		} catch (UnsupportedEncodingException e) {
-			throw new SuException("Md5 getBytes failed", e);
-		}
-
+		byte[] data = Util.stringToBytes(s);
 		MessageDigest digest;
 		try {
 			digest = java.security.MessageDigest.getInstance("MD5");
