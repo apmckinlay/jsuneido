@@ -107,6 +107,7 @@ public class Globals {
 		builtins.put("Trace", new Trace());
 		builtins.put("Transaction", new Transaction());
 		builtins.put("Type", new Type());
+		builtins.put("UuidString", new UuidString());
 		builtins.put("Unload", new Unload());
 		builtins.put("Unpack", new Unpack());
 		builtins.put("Unuse", new Unuse());
