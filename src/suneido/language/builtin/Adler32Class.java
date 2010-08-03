@@ -7,7 +7,6 @@ import java.util.zip.Checksum;
 
 import suneido.SuValue;
 import suneido.language.*;
-import suneido.util.Util;
 
 public class Adler32Class extends BuiltinClass {
 
@@ -46,15 +45,15 @@ public class Adler32Class extends BuiltinClass {
 		private Instance Update(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);
 			String s = Ops.toStr(args[0]);
-			byte[] b = Util.stringToBytes(s);
-			cksum.update(b, 0, b.length);
-	                return this;
-                }
+			for (int i = 0; i < s.length(); ++i)
+				cksum.update(s.charAt(i));
+			return this;
+		}
 
 		private Object Value(Object... args) {
 			Args.massage(FunctionSpec.noParams, args);
-	                return (int) (cksum.getValue());
-                }
+			return (int) (cksum.getValue());
+		}
 
 	}
 
