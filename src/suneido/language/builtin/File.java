@@ -8,6 +8,7 @@ import java.io.*;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.language.*;
+import suneido.util.Util;
 
 public class File extends BuiltinClass {
 
@@ -111,7 +112,7 @@ public class File extends BuiltinClass {
 					n = (int) remaining;
 				byte buf[] = new byte[n];
 				f.readFully(buf);
-				return new String(buf);
+				return Util.bytesToString(buf);
 			} catch (IOException e) {
 				throw new SuException("File Read failed", e);
 			}
