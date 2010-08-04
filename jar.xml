@@ -3,17 +3,17 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar" depends="when_built">
-        <jar destfile="/Users/andrew/Dropbox/workspace/jSuneido/jsuneido.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="C:/Dev/workspace/jSuneido/jsuneido.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="suneido.Suneido"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="/Users/andrew/Dropbox/workspace/jSuneido/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse35/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/WhenBuilt.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/asm-all-3.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/guava-r05.jar"/>
+            <fileset dir="C:/Dev/workspace/jSuneido/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Program Files/eclipse3.5/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Program Files/eclipse3.5/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/WhenBuilt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/asm-all-3.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/guava-r05.jar"/>
         </jar>
     </target>
 	<target name="when_built">
@@ -29,10 +29,10 @@
 				}
 			}
 		</echo>
-		<exec executable="javac">
+		<exec executable="C:/Program Files/Java/jdk1.6.0_20/bin/javac">
 		  <arg value="suneido/WhenBuilt.java"/>
 		</exec>
-		<exec executable="jar">
+		<exec executable="C:/Program Files/Java/jdk1.6.0_20/bin/jar">
 		  <arg value="cvf"/>
 		  <arg value="WhenBuilt.jar"/>
 		  <arg value="suneido/WhenBuilt.class"/>
