@@ -8,6 +8,9 @@ import static suneido.language.Ops.toStr;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.regex.*;
@@ -16,6 +19,9 @@ import suneido.*;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Tr;
+import suneido.util.Util;
+
+import com.google.common.base.Charsets;
 
 public class StringMethods {
 	public static Object invoke(String s, String method, Object... args) {
@@ -63,6 +69,8 @@ public class StringMethods {
 				return FindLast1of(s, args);
 			if (method == "FindLastnot1of")
 				return FindLastnot1of(s, args);
+			if (method == "FromUtf8")
+				return FromUtf8(s, args);
 			break;
 		case 'H':
 			if (method == "Has?")
@@ -111,6 +119,8 @@ public class StringMethods {
 		case 'T':
 			if (method == "Tr")
 				return Tr(s, args);
+			if (method == "ToUtf8")
+				return ToUtf8(s, args);
 			break;
 		case 'U':
 			if (method == "Unescape")
@@ -498,6 +508,23 @@ public class StringMethods {
 		n = max(0, min(n, len - i));
 		return s.substring(i, i + n);
 	}
+
+	private static final Charset Windows1252 =
+			Charset.forName("windows-1252");
+
+	private static Object ToUtf8(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		CharBuffer cb = Windows1252.decode(
+				ByteBuffer.wrap(Util.stringToBytes(s)));
+		return Util.bytesToString(Charsets.UTF_8.encode(cb));
+        }
+
+	private static Object FromUtf8(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		CharBuffer cb = Charsets.UTF_8.decode(
+				ByteBuffer.wrap(Util.stringToBytes(s)));
+		return Util.bytesToString(Windows1252.encode(cb));
+        }
 
 	private static final FunctionSpec trFS =
 			new FunctionSpec(array("from", "to"), "");

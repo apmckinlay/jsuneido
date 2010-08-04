@@ -145,6 +145,13 @@ public class Util {
 		return sb.toString();
 	}
 
+	public static String bytesToString(ByteBuffer buf) {
+		StringBuilder sb = new StringBuilder(buf.remaining());
+		for (int i = buf.position(); i < buf.limit(); ++i)
+			sb.append((char) (buf.get(i) & 0xff));
+		return sb.toString();
+	}
+
 	public static byte[] stringToBytes(String s) {
 		byte[] bytes = new byte[s.length()];
 		for (int i = 0; i < s.length(); ++i)
