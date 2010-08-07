@@ -172,9 +172,22 @@ public class Ops {
 		return ! match_(s, rx);
 	}
 
-	private static final int LARGE = 64;
-
 	public static Object cat(Object x, Object y) {
+		if (x instanceof String && y instanceof String)
+			return cat((String) x, (String) y);
+		return cat2(x, y);
+	}
+
+	private static final int LARGE = 256;
+
+	private static Object cat(String x, String y) {
+		int n = x.length() + y.length();
+		return n < LARGE
+				? x.concat(y)
+				: new Concat(x, y, n);
+	}
+
+	private static Object cat2(Object x, Object y) {
 		if (x instanceof Concat)
 			if (y instanceof Concat)
 				return new Concat(x, y);
@@ -182,12 +195,7 @@ public class Ops {
 				return new Concat(x, toStr(y));
 		else if (y instanceof Concat)
 			return new Concat(toStr(x), y);
-		String s = toStr(x);
-		String t = toStr(y);
-		int n = s.length() + t.length();
-		return n < LARGE
-				? toStr(x).concat(toStr(y))
-				: new Concat(s, t, n);
+		return cat(toStr(x), toStr(y));
 	}
 
 	public static boolean isString(Object x) {
@@ -198,11 +206,15 @@ public class Ops {
 	// must be 15 or less so Pack can multiply by 1000 and still fit in long
 
 	public static Number add(Object x, Object y) {
+		if (x instanceof Integer && y instanceof Integer)
+			return (Integer) x + (Integer) y;
+		return add2(x, y);
+	}
+
+	private static Number add2(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
 		if (xType == Integer.class) {
-			if (yType == Integer.class)
-				return (Integer) x + (Integer) y;
 			if (yType == BigDecimal.class) {
 				if (y == inf)
 					return inf;
@@ -249,11 +261,15 @@ public class Ops {
 	}
 
 	public static Number sub(Object x, Object y) {
+		if (x instanceof Integer && y instanceof Integer)
+			return (Integer) x - (Integer) y;
+		return sub2(x, y);
+	}
+
+	private static Number sub2(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
 		if (xType == Integer.class) {
-			if (yType == Integer.class)
-				return (Integer) x - (Integer) y;
 			if (yType == BigDecimal.class) {
 				if (y == inf)
 					return minus_inf;
@@ -293,11 +309,15 @@ public class Ops {
 	}
 
 	public static Number mul(Object x, Object y) {
+		if (x instanceof Integer && y instanceof Integer)
+			return (Integer) x * (Integer) y;
+		return mul2(x, y);
+	}
+
+	private static Number mul2(Object x, Object y) {
 		Class<?> xType = x.getClass();
 		Class<?> yType = y.getClass();
 		if (xType == Integer.class) {
-			if (yType == Integer.class)
-				return (Integer) x * (Integer) y;
 			if (yType == BigDecimal.class) {
 				if ((Integer) x == 0)
 					return 0;
@@ -390,14 +410,15 @@ public class Ops {
 	}
 
 	public static Number mod(Object x, Object y) {
+		if (x instanceof Integer && y instanceof Integer)
+			return (Integer) x % (Integer) y;
 		return toInt(x) % toInt(y);
 	}
 
 	public static Number uminus(Object x) {
-		Class<?> xType = x.getClass();
-		if (xType == Integer.class)
+		if (x instanceof Integer)
 			return -(Integer) x;
-		if (xType == BigDecimal.class)
+		if (x instanceof BigDecimal)
 			return ((BigDecimal) x).negate();
 		return uminus(toNum(x));
 	}
@@ -407,7 +428,7 @@ public class Ops {
 			return Boolean.FALSE;
 		if (x == Boolean.FALSE)
 			return Boolean.TRUE;
-		throw new SuException("can't do not " + typeName(x));
+		throw new SuException("can't do: not " + typeName(x));
 	}
 
 	public static Integer bitnot(Object x) {

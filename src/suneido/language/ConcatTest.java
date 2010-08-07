@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.google.common.base.Strings;
+
 public class ConcatTest {
 
 	@Test
@@ -13,7 +15,7 @@ public class ConcatTest {
 		assertTrue(x instanceof String);
 		assertEquals("helloworld", x);
 
-		String s = "now is the time for all good men to come to the aid of their party";
+		String s = Strings.repeat("helloworld", 30);
 		x = Ops.cat(s, ".");
 		assertTrue(x instanceof Concat);
 		assertEquals(s + ".", x.toString());
