@@ -11,7 +11,7 @@ import suneido.language.*;
 
 import com.google.common.base.Objects;
 
-public class Seq extends BuiltinClass {
+public final class Seq extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object[] args) {

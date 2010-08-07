@@ -13,7 +13,7 @@ import suneido.language.builtin.StringMethods;
  * @author Andrew McKinlay
  */
 @ThreadSafe
-public class Concat extends SuValue implements Comparable<Concat> {
+public final class Concat extends SuValue implements Comparable<Concat> {
 	private Object left; // String or Concat
 	private Object right; // String or Concat or null (if flattened)
 	private final int len;
