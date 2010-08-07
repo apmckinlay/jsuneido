@@ -5,7 +5,7 @@ import suneido.SuValue;
 
 import com.google.common.base.Objects;
 
-public class SuBlock extends SuValue {
+public final class SuBlock extends SuValue {
 	private final Object home; // defining class
 	private final Object self;
 	private final BlockSpec bspec;
