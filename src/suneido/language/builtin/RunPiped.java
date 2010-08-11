@@ -35,6 +35,7 @@ public class RunPiped extends BuiltinClass {
 
 	private static class Instance extends SuValue {
 		private final String cmd;
+		private final Process proc;
 		private final PrintStream out;
 		private final BufferedReader in;
 
@@ -45,7 +46,7 @@ public class RunPiped extends BuiltinClass {
 			try {
 				ProcessBuilder pb = new ProcessBuilder(cmdargs);
 				pb.redirectErrorStream(true); // merge stderr into stdout
-				Process proc = pb.start();
+				proc = pb.start();
 				out = new PrintStream(proc.getOutputStream(), true);
 				in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
@@ -60,6 +61,8 @@ public class RunPiped extends BuiltinClass {
 				return Close(args);
 			if (method == "CloseWrite")
 				return CloseWrite(args);
+			if (method == "ExitValue")
+				return ExitValue(args);
 			if (method == "Flush")
 				return Flush(args);
 			if (method == "Read")
@@ -93,6 +96,17 @@ public class RunPiped extends BuiltinClass {
 			out.close();
 			return null;
 		}
+
+		private Object ExitValue(Object[] args) {
+                	Args.massage(FunctionSpec.noParams, args);
+                	Close();
+                	try {
+	                        proc.waitFor();
+                        } catch (InterruptedException e) {
+	                        throw new SuException("RunPiped ExitValue failed", e);
+                        }
+                        return proc.exitValue();
+                }
 
 		private Object Flush(Object[] args) {
 			Args.massage(FunctionSpec.noParams, args);
