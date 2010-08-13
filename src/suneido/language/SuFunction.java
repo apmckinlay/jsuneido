@@ -12,11 +12,8 @@ abstract public class SuFunction extends SuCallable {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		if (method == "Type")
-			return "function";
-		// TODO other standard methods on functions e.g. Params
-		else
-			throw methodNotFound(self, method);
+		// TODO standard methods on functions e.g. Params
+		throw methodNotFound(self, method);
 	}
 
 	@Override

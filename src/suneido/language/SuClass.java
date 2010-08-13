@@ -138,8 +138,6 @@ public abstract class SuClass extends SuCallable {
 			return MethodQ(self, args);
 		if (method == "MethodClass")
 			return MethodClass(self, args);
-		if (method == "Type")
-			return "Class";
 
 		if (baseGlobal != null)
 			return base().invoke(self, method, args);
