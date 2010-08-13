@@ -63,4 +63,21 @@ public class FunctionSpec {
 		return sb.toString();
 	}
 
+	public String params() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		if (atParam)
+			sb.append("@");
+		short j = 0;
+		for (int i = 0; i < nparams; ++i) {
+			if (i != 0)
+				sb.append(",");
+			sb.append(locals[i]);
+			if (i >= nparams - ndefaults && i < nparams)
+				sb.append("=").append(constants[j++]);
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
 }
