@@ -34,6 +34,28 @@ public class SuMethod extends SuValue {
 	}
 
 	@Override
+	public Object invoke(Object self, String method, Object... args) {
+		if (method == "Params")
+			return Params(self, args);
+		return super.invoke(self, method, args);
+	}
+
+	private Object Params(Object self, Object[] args) {
+		if (! (instance instanceof SuCallable))
+			return "";
+		FunctionSpec fs = find(((SuCallable) instance).params, method);
+		if (fs == null)
+			return "";
+		return fs.params();
+	}
+	private FunctionSpec find(FunctionSpec[] params, String name) {
+		for (FunctionSpec f : params)
+			if (f.name.equals(method))
+				return f;
+		return null;
+	}
+
+	@Override
 	public String toString() {
 		return instance + "." + method;
 	}

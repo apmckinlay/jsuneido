@@ -3,8 +3,10 @@ package suneido.language;
 import static suneido.SuException.methodNotFound;
 
 /**
- * an SuFunction is implemented as a class with the definition in a "call"
- * method
+ * a Suneido function compiles to a class that extends SuFunction
+ * with the definition in a "call" method
+ * Note: anonymous functions compile to methods in their containing class
+ * and are represented by {@link AnonFunction} which extends SuMethod
  *
  * @author Andrew McKinlay
  */
@@ -12,9 +14,14 @@ abstract public class SuFunction extends SuCallable {
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		// TODO standard methods on functions e.g. Params
+		if (method == "Params")
+			return Params(self, args);
 		throw methodNotFound(self, method);
 	}
+
+	private Object Params(Object self, Object[] args) {
+		return params[0].params(); // will it always be zero?
+       }
 
 	@Override
 	public Object call(Object... args) {
