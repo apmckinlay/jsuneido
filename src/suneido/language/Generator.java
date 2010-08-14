@@ -1,35 +1,27 @@
 package suneido.language;
 
-import suneido.language.ParseExpression.Value;
-
 public abstract class Generator<T> {
 
-	public void lvalue(Value<T> value) {
-	}
-
-	public void lvalueForAssign(Value<T> value, Token op) {
-	}
-
-	public T assignment(T term, Value<T> value, Token op, T expression) {
+	public T assignment(T term, Token op, T expression) {
 		return null;
 	}
 
 	public abstract T binaryExpression(Token op, T expr1, T expr2);
 
-	public abstract T and(T expr1, T expr2);
-
-	public Object and(Object prevlabel) {
+	public Object andStart() {
 		return null;
 	}
+
+	public abstract T and(Object label, T exprs, T expr);
 
 	public void andEnd(Object label) {
 	}
 
-	public abstract T or(T expr1, T expr2);
-
-	public Object or(Object label) {
+	public Object orStart() {
 		return null;
 	}
+
+	public abstract T or(Object label, T exprs, T expr);
 
 	public void orEnd(Object label) {
 	}
@@ -158,7 +150,7 @@ public abstract class Generator<T> {
 	public void startCase(Object labels) {
 	}
 
-	public void startCaseValue() {
+	public void startCaseValue(Object labels) {
 	}
 
 	public void startCaseBody(Object labels) {
@@ -169,7 +161,8 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T switchCases(T cases, T values, T statements, Object labels) {
+	public T switchCases(T cases, T values, T statements, Object labels,
+			boolean moreCases) {
 		return null;
 	}
 
@@ -205,15 +198,15 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T preIncDec(T term, Token incdec, Value<T> value) {
+	public T preIncDec(T term, Token incdec) {
 		return null;
 	}
 
-	public T postIncDec(T term, Token incdec, Value<T> value) {
+	public T postIncDec(T term, Token incdec) {
 		return null;
 	}
 
-	public T member(T term, Value<T> value) {
+	public T member(T term, String identifier) {
 		return null;
 	}
 
@@ -221,18 +214,11 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T selfRef() {
-		return null;
+	public T functionCallTarget(T function) {
+		return function;
 	}
 
-	public T superRef() {
-		return null;
-	}
-
-	public void preFunctionCall(Value<T> value) {
-	}
-
-	public abstract T functionCall(T function, Value<T> value, T arguments);
+	public abstract T functionCall(T function, T arguments);
 
 	public void newCall() {
 	}
@@ -284,7 +270,13 @@ public abstract class Generator<T> {
 	public void addSuperInit() {
 	}
 
-	public abstract T rvalue(T expr);
+	public T rvalue(T expr) {
+		return null;
+	}
+
+	public T lvalueForAssign(T term, Token op) {
+		return null;
+	}
 
 	public void finish() {
 	}
@@ -294,6 +286,14 @@ public abstract class Generator<T> {
 
 	public T argumentListConstant(T args, Object keyword, T value) {
 		return argumentList(args, keyword, constant(value));
+	}
+
+	public T superCallTarget(String method) {
+		return null;
+	}
+
+	public T selfRef() {
+		return null;
 	}
 
 }

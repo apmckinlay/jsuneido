@@ -151,7 +151,7 @@ public class ExecuteTest {
 		test("try throw 'x' catch (e) { return e } return 'y'", "'x'");
 		test("try { try throw 'x' catch (e) return e } return 'y'", "'x'");
 		test("try { " +
-				"try 123 catch (e) return 'y'; " +
+				"try Object() catch (e) return 'y'; " +
 				"throw 'x' } catch(e) return e; " +
 				"return 'y'", "'x'");
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");

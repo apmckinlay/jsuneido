@@ -52,7 +52,7 @@ public class ParseFunctionTest {
 			{ "for (a,b; c; d,e) f", "for (a, b; c; d, e) { f; }" },
 			{ "if x is \n y \n z", "if (x y IS) { z; }" },
 			{ "return x \n ? y \n : z", "return (x ? y : z);" },
-			{ "return .x.f().\n g()", "return this .x .f() .g();" },
+			{ "return .x.f().\n g()", "return <this> .x .f() .g();" },
 			{ "args.Each {|x, y|\n z }", "args .Each(block: {|x, y| z; });" },
 			{ "args.Each()\n {|x, y|\n z }", "args .Each(block: {|x, y| z; });" },
 			{ "args.Each\n {|x, y|\n z }", "args .Each(block: {|x, y| z; });" },

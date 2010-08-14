@@ -1,10 +1,8 @@
 package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
-import static suneido.language.CompileGenerator.Stack.*;
 import static suneido.language.Generator.MType.CLASS;
 import static suneido.language.Generator.MType.OBJECT;
-import static suneido.language.ParseExpression.Value.Type.*;
 
 import java.io.*;
 import java.util.*;
@@ -18,8 +16,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.*;
 import suneido.database.query.TreeQueryGenerator.MemDef;
-import suneido.language.ParseExpression.Value;
-import suneido.language.ParseExpression.Value.ThisOrSuper;
+
+import com.google.common.base.Objects;
 
 @ThreadSafe
 public class CompileGenerator extends Generator<Object> {
@@ -27,7 +25,6 @@ public class CompileGenerator extends Generator<Object> {
 	static enum TopType { CLASS, OBJECT, FUNCTION };
 	private TopType topType = null;
     private PrintWriter pw = null;
-	static enum Stack { VALUE, LOCAL, PARAMETER, CALLRESULT };
 	private static final String[] arrayString = new String[0];
 	private static final Object[] arrayObject = new Object[0];
 	private static final Object[][] arrayConstants = new Object[0][0];
@@ -77,6 +74,7 @@ public class CompileGenerator extends Generator<Object> {
 		boolean isBlock;
 		int forInTmp = CONSTANTS + 1;
 		boolean superInitCalled = false;
+		final List<Stack> stack = new ArrayList<Stack>();
 	}
 	static class Loop {
 		public Label continueLabel = new Label();
@@ -183,6 +181,7 @@ public class CompileGenerator extends Generator<Object> {
 		c.fstack = new ArrayDeque<Function>();
 		c.fspecs = new ArrayList<FunctionSpec>();
 
+		//TODO don't use COMPUTE_FRAMES
 		c.cv = c.cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
 		if (pw != null) {
@@ -310,8 +309,7 @@ public class CompileGenerator extends Generator<Object> {
 			mv.visitLabel(l1);
 		}
 
-		// else
-		//		super.invoke(self, method, args)
+		// super.invoke(self, method, args)
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, SELF);
 		mv.visitVarInsn(ALOAD, METHOD);
@@ -425,10 +423,6 @@ public class CompileGenerator extends Generator<Object> {
 		return name.replace('?', 'Q').replace('!', 'X');
 	}
 
-	private String privatize(Value<Object> value) {
-		return value.thisOrSuper == ThisOrSuper.THIS ? privatize(value.id)
-				: value.id;
-	}
 	private String privatize(String name) {
 		// TODO if block (possibly nested) within function, don't privatize
 		if (/*c.fstack.isEmpty() &&*/topType == TopType.FUNCTION)
@@ -506,14 +500,15 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object returnStatement(Object expr, Object context) {
-		if (expr == null)
+		if (stackEmpty())
 			c.f.mv.visitInsn(ACONST_NULL);
-		else if (expr == LOCAL)
-			addNullCheck(expr);
-		else if (expr == PARAMETER || expr == VALUE || expr == CALLRESULT)
-			; // return it
-		else
-			dupAndStore(expr);
+		else {
+			Stack rvalue = pop().forceValue();
+			// NOTE: special case, no null check for returning call result
+			if (rvalue == RVALUE_LOCAL)
+				addNullCheck(rvalue);
+		}
+		assert stackEmpty();
 		if (c.f.isBlock && context != normalReturn)
 			blockReturn();
 		else
@@ -626,22 +621,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object constant(Object value) {
-		if (value == Boolean.TRUE || value == Boolean.FALSE)
-			getBoolean(value == Boolean.TRUE ? "TRUE" : "FALSE");
-		else if (value instanceof String)
-			c.f.mv.visitLdcInsn(value);
-		else if (value instanceof Integer) {
-			iconst(c.f.mv, (Integer) value);
-			c.f.mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer",
-					"valueOf",
-					"(I)Ljava/lang/Integer;");
-		} else {
-			int i = constantFor(value);
-			c.f.mv.visitVarInsn(ALOAD, CONSTANTS);
-			iconst(c.f.mv, i);
-			c.f.mv.visitInsn(AALOAD);
-		}
-		return VALUE;
+		push(new DeferConstant(value));
+		return null;
 	}
 
 	private int constantFor(Object value) {
@@ -668,21 +649,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object identifier(String name) {
-		if (name.equals("this"))
-			selfRef();
-		else if (Character.isLowerCase(name.charAt(0))) {
-			int i = localRef(name);
-			c.f.mv.visitInsn(AALOAD);
-			return i < c.f.nparams ? PARAMETER : LOCAL;
-		} else {
-			if (name.startsWith("_") && Character.isUpperCase(name.charAt(1)))
-				name = Globals.overload(name);
-			c.f.mv.visitLdcInsn(name);
-			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals",
-					"get",
-					"(Ljava/lang/String;)Ljava/lang/Object;");
-		}
-		return VALUE;
+		push(new DeferIdentifier(name)); // defer in case of assignment
+		return null;
 	}
 
 	private int localRef(String name) {
@@ -704,89 +672,72 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object member(Object term, Value<Object> value) {
-		c.f.mv.visitLdcInsn(privatize(value));
-		getMember();
-		return VALUE;
-	}
-
-	@Override
-	public Object subscript(Object term, Object expr) {
-		dupAndStore(expr);
-		getMember();
-		return VALUE;
+	public Object member(Object term, String identifier) {
+		force();
+		push(new DeferMember(pop(), identifier));
+		return null;
 	}
 
 	@Override
 	public Object selfRef() {
-		c.f.mv.visitVarInsn(ALOAD, SELF);
-		return VALUE;
+		push(DEFER_SELF);
+		return null;
 	}
 
 	@Override
-	public Object superRef() {
-		c.f.mv.visitVarInsn(ALOAD, THIS);
-		c.f.mv.visitVarInsn(ALOAD, SELF);
-		return VALUE;
+	public Object subscript(Object term, Object expr) {
+		force();
+		pop(2);
+		push(new DeferSubscript());
+		return null;
 	}
 
 	@Override
-	public void lvalue(Value<Object> value) {
-		if (value.type == null)
-			throw new SuException("invalid lvalue");
-		switch (value.type) {
-		case IDENTIFIER:
-			if (Character.isUpperCase(value.id.charAt(0)))
-				throw new SuException("globals are read-only");
-			localRef(value.id);
-			break;
-		case MEMBER:
-			c.f.mv.visitLdcInsn(privatize(value));
-			break;
-		case SUBSCRIPT:
-			break;
-		default:
-			throw new SuException("invalid lvalue type: " + value.type);
-		}
-	}
-
-	@Override
-	public void lvalueForAssign(Value<Object> value, Token op) {
-		lvalue(value);
+	public Object lvalueForAssign(Object value, Token op) {
+		forceLvalue();
 		if (op != Token.EQ) {
 			// stack: L1, L2, ...
 			c.f.mv.visitInsn(DUP2);
 			// stack: L1, L2, L1, L2, ...
-			load(value.type);
-			// stack: L, L1, L2, ...
+			top().load();
+			// stack: v, L1, L2, ...
 		}
+		return null;
 	}
 
+	/**
+	 * assignments are deferred because store's lose the expression value so if
+	 * we need the value we have to dup before storing but we don't know if we
+	 * need the value until later
+	 */
 	@Override
-	public Object assignment(Object term, Value<Object> value, Token op,
-			Object expression) {
-		dupAndStore(expression);
-		if (op == Token.EQ) {
-			if (value.type == IDENTIFIER
-					&& (expression == LOCAL || expression == CALLRESULT))
-				addNullCheck(expression);
-		} else
+	public Object assignment(Object left, Token op, Object right) {
+		force();
+		if (op != Token.EQ)
 			binaryMethod(op);
-		return value.type;
+		Stack rvalue = pop();
+		Stack lvalue = pop();
+		push(new DeferAssignment(lvalue, op, rvalue));
+		return null;
 	}
 
-	private void addNullCheck(Object expr) {
+	//TODO use a helper function to throw
+	private Stack addNullCheck(Stack expr) {
+		if (expr != RVALUE_LOCAL && expr != RVALUE_RETURN)
+			return expr;
+		assert expr == RVALUE_LOCAL || expr == RVALUE_RETURN;
 		Label label = new Label();
 		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitJumpInsn(IFNONNULL, label);
 		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
 		c.f.mv.visitInsn(DUP);
-		c.f.mv.visitLdcInsn(expr == LOCAL ? "uninitialized variable"
+		c.f.mv.visitLdcInsn(expr == RVALUE_LOCAL ? "uninitialized variable"
 				: "no return value");
 		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
 				"(Ljava/lang/Object;)V");
 		c.f.mv.visitInsn(ATHROW);
 		c.f.mv.visitLabel(label);
+		return RVALUE;
 	}
 
 	private void unaryMethod(String method, String type) {
@@ -808,78 +759,53 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object preIncDec(Object term, Token incdec, Value<Object> value) {
+	public Object preIncDec(Object term, Token incdec) {
+		forceLvalue();
+		Stack lvalue = pop();
 		// stack: i args (or: member object)
 		c.f.mv.visitInsn(DUP2);
 		// stack: i args i args
-		load(value.type);
+		lvalue.load();
 		// stack: v i args
 		unaryMethod(incdec == Token.INC ? "add1" : "sub1", "Number");
-		return value.type;
+		push(new DeferAssignment(lvalue, Token.EQ, RVALUE));
+		return null;
 	}
 
 	@Override
-	public Object postIncDec(Object term, Token incdec, Value<Object> value) {
+	public Object postIncDec(Object term, Token incdec) {
+		forceLvalue();
+		Stack lvalue = pop();
 		// stack: i args
 		c.f.mv.visitInsn(DUP2);
 		// stack: i args i args
-		load(value.type);
+		lvalue.load();
 		// stack: v i args
 		c.f.mv.visitInsn(DUP_X2);
 		// stack: v i args v
 		unaryMethod(incdec == Token.INC ? "add1" : "sub1", "Number");
 		// stack: v+1 i args v
-		store(value.type);
+		lvalue.store();
 		// stack: v
-		return VALUE;
-	}
-
-	/**
-	 * assignments are delayed because store's lose the expression value so if
-	 * we need the value we have to dup before storing but we don't know if we
-	 * need the value until later, thus the delay
-	 */
-
-	@Override
-	public Object rvalue(Object expr) {
-		dupAndStore(expr);
-		return VALUE;
-	}
-	private void dupAndStore(Object expr) {
-		if (!(expr instanceof Value.Type))
-			return;
-		c.f.mv.visitInsn(DUP_X2);
-		store(expr);
-	}
-
-	private void store(Object type) {
-		if (type == IDENTIFIER)
-			c.f.mv.visitInsn(AASTORE);
-		else if (type == MEMBER || type == SUBSCRIPT)
-			putMember();
-		else
-			throw new SuException("unknown store type: " + type);
-	}
-
-	private void load(Object type) {
-		if (type == IDENTIFIER)
-			c.f.mv.visitInsn(AALOAD);
-		else if (type == MEMBER || type == SUBSCRIPT)
-			getMember();
-		else
-			throw new SuException("unknown load type: " + type);
+		push(RVALUE);
+		return null;
 	}
 
 	@Override
 	public Object binaryExpression(Token op, Object expr1, Object expr2) {
-		dupAndStore(expr2);
+		force();
+		pop();
+		pop();
+		push(RVALUE);
 		binaryMethod(op);
-		return VALUE;
+		return null;
 	}
 
 	@Override
-	public Object unaryExpression(Token op, Object expression) {
-		dupAndStore(expression);
+	public Object unaryExpression(Token op, Object expr) {
+		force();
+		pop();
+		push(RVALUE);
 		switch (op) {
 		case SUB:
 			unaryMethod("uminus", "Number");
@@ -896,37 +822,54 @@ public class CompileGenerator extends Generator<Object> {
 		default:
 			throw new SuException("invalid unaryExpression op: " + op);
 		}
-		return VALUE;
+		return null;
 	}
 
-	// MAYBE call private methods directly, bypassing invoke
-
 	@Override
-	public void preFunctionCall(Value<Object> value) {
-		if (value.isMember()) {
-			if (value.id.equals("_init"))
-				if (c.f.superInitCalled)
-					throw new SuException("call to super must come first");
-				else if (!c.f.name.equals("_init"))
-					throw new SuException("super call only allowed in New");
-			c.f.mv.visitLdcInsn(privatize(value));
-		} else if (value.type == SUBSCRIPT)
+	public Object functionCallTarget(Object function) {
+		if (top() instanceof DeferMember) {
+			forceLvalue();
+		} else if (top() instanceof DeferSubscript) {
 			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
-					"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
+						"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
+			forceLvalue();
+		}
+		force();
+		return null;
 	}
 
 	@Override
-	public Object functionCall(Object function, Value<Object> value, Object args) {
+	public Object superCallTarget(String method) {
+		if (method.equals("_init")) {
+			if (c.f.superInitCalled)
+				throw new SuException("call to super must come first");
+			else if (!c.f.name.equals("_init"))
+				throw new SuException("super call only allowed in New");
+		}
+		force();
+		c.f.mv.visitVarInsn(ALOAD, THIS);
+		c.f.mv.visitVarInsn(ALOAD, SELF);
+		c.f.mv.visitLdcInsn(method);
+		push(LVALUE_SUPER_MEMBER);
+		return null;
+	}
+
+	@Override
+	public Object functionCall(Object function, Object args) {
 		Args a = args == null ? noArgs : (Args) args;
 		processConstArgs(a);
+		force();
 
-		if (value.thisOrSuper == ThisOrSuper.SUPER)
+		Stack fn = nth(a.nargs);
+		if (fn == LVALUE_SUPER_MEMBER)
 			invokeSuper(a.nargs);
-		else if (value.type == MEMBER || value.type == SUBSCRIPT)
+		else if (fn == LVALUE_MEMBER)
 			invokeMethod(a.nargs);
 		else
 			invokeFunction(a.nargs);
-		return CALLRESULT;
+		pop(a.nargs + 1);
+		push(RVALUE_RETURN);
+		return null;
 	}
 
 	private void processConstArgs(Args args) {
@@ -935,15 +878,14 @@ public class CompileGenerator extends Generator<Object> {
 		if (args.constArgs.size() < 10) {
 			for (Map.Entry<Object, Object> e : args.constArgs.mapEntrySet()) {
 				argumentName(e.getKey());
-				dupAndStore(constant(e.getValue()));
+				constant(e.getValue());
 				args.nargs += 3;
 			}
 		} else { // more than 10
 			specialArg("EACH");
-			dupAndStore(constant(args.constArgs));
+			constant(args.constArgs);
 			args.nargs += 2;
 		}
-
 	}
 
 	private static final String[] args = new String[99];
@@ -971,7 +913,8 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object argumentList(Object args, Object keyword, Object value) {
-		dupAndStore(value);
+		force();
+		addNullCheck(top());
 		Args a = (args == null ? new Args() : (Args) args);
 		a.nargs += keyword == null ? 1 : 3;
 		return a;
@@ -981,6 +924,7 @@ public class CompileGenerator extends Generator<Object> {
 	public void argumentName(Object name) {
 		specialArg("NAMED");
 		constant(name);
+		push(pop().forceValue());
 	}
 
 	@Override
@@ -991,13 +935,14 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object atArgument(String n, Object expr) {
-		dupAndStore(expr);
 		return new Args(2);
 	}
 	private void specialArg(String which) {
+		force();
 		c.f.mv.visitFieldInsn(GETSTATIC, "suneido/language/Args$Special",
 				which,
 				"Lsuneido/language/Args$Special;");
+		push(RVALUE);
 	}
 	@Override
 	public Object argumentListConstant(Object args, Object keyword, Object value) {
@@ -1024,71 +969,91 @@ public class CompileGenerator extends Generator<Object> {
 	private static final Args noArgs = new Args();
 
 	@Override
-	public Object and(Object prev) {
-		getBoolean("FALSE");
-		Label label = (prev == null ? new Label() : (Label) prev);
-		c.f.mv.visitJumpInsn(IF_ACMPEQ, label);
-		return label;
+	public Object andStart() {
+		return new Label();
+	}
+
+	@Override
+	public Object and(Object olabel, Object expr1, Object expr2) {
+		toBoolPop();
+		Label label = (Label) olabel;
+		c.f.mv.visitJumpInsn(IFEQ, label);
+		return null;
 	}
 
 	@Override
 	public void andEnd(Object label) {
-		if (label == null)
-			return;
+		force();
 		Label l0 = new Label();
+		getBoolean("TRUE");
 		c.f.mv.visitJumpInsn(GOTO, l0);
 		c.f.mv.visitLabel((Label) label);
 		getBoolean("FALSE");
 		c.f.mv.visitLabel(l0);
+		pop(); // only one of the two results will be on the stack;
 	}
 
-	private void getBoolean(String which) {
+	private void genBoolean(String which) {
 		c.f.mv.visitFieldInsn(GETSTATIC,
 				"java/lang/Boolean", which,
 				"Ljava/lang/Boolean;");
 	}
 
-	@Override
-	public Object and(Object expr1, Object expr2) {
-		return VALUE;
+	private void getBoolean(String which) {
+		genBoolean(which);
+		push(RVALUE);
 	}
 
 	@Override
-	public Object or(Object prev) {
-		getBoolean("TRUE");
-		Label label = (prev == null ? new Label() : (Label) prev);
-		c.f.mv.visitJumpInsn(IF_ACMPEQ, label);
-		return label;
+	public Object orStart() {
+		return new Label();
+	}
+
+	@Override
+	public Object or(Object olabel, Object expr1, Object expr2) {
+		toBoolPop();
+		Label label = (Label) olabel;
+		c.f.mv.visitJumpInsn(IFNE, label);
+		return null;
 	}
 
 	@Override
 	public void orEnd(Object label) {
-		if (label == null)
-			return;
+		force();
 		Label l0 = new Label();
+		getBoolean("FALSE");
 		c.f.mv.visitJumpInsn(GOTO, l0);
 		c.f.mv.visitLabel((Label) label);
 		getBoolean("TRUE");
 		c.f.mv.visitLabel(l0);
-	}
-
-	@Override
-	public Object or(Object expr1, Object expr2) {
-		return VALUE;
+		pop(); // only one of the two results will be on the stack;
 	}
 
 	@Override
 	public Object conditionalTrue(Object label, Object first) {
-		dupAndStore(first);
+		force();
 		return ifElse(label);
 	}
 
 	@Override
 	public Object conditional(Object primaryExpression, Object first,
 			Object second, Object label) {
-		dupAndStore(second);
+		force();
+		combineTop2();
 		c.f.mv.visitLabel((Label) label);
-		return VALUE;
+		return null;
+	}
+	private void combineTop2() {
+		Stack f = pop();
+		Stack t = pop();
+		if (t == f)
+			push(t);
+		else if (t == RVALUE)
+			push(f);
+		else if (f == RVALUE)
+			push(t);
+		else
+			push(RVALUE_LOCAL);
 	}
 
 	@Override
@@ -1100,27 +1065,29 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void newCall() {
+		force();
 		c.f.mv.visitLdcInsn("<new>");
+		push(RVALUE);
 	}
 
 	@Override
 	public Object newExpression(Object term, Object args) {
 		Args a = args == null ? noArgs : (Args) args;
 		processConstArgs(a);
+		force();
 		invokeMethod(a.nargs);
-		return VALUE;
+		pop(a.nargs + 2);
+		push(RVALUE);
+		return null;
 	}
 
-	/**
-	 * pop any value left on the stack, complete delayed assignment
+	/** pop any value left on the stack
 	 */
-
 	@Override
 	public void afterStatement(Object list) {
-		if (list instanceof Stack)
-			c.f.mv.visitInsn(POP);
-		else if (list instanceof Value.Type)
-			store(list);
+		if (! stackEmpty())
+			pop().forceVoid();
+		assert stackEmpty();
 	}
 
 	// statements
@@ -1132,6 +1099,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void addSuperInit() {
+		force();
 		if (!c.f.name.equals("_init"))
 			return;
 		c.f.mv.visitVarInsn(ALOAD, THIS);
@@ -1149,16 +1117,17 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object ifExpr(Object expr) {
-		toBool(expr);
+		toBoolPop();
 		Label label = new Label();
 		c.f.mv.visitJumpInsn(IFEQ, label);
 		return label;
 	}
 
-	private void toBool(Object expr) {
-		dupAndStore(expr);
+	private void toBoolPop() {
+		force();
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toBool",
 				"(Ljava/lang/Object;)I");
+		pop();
 	}
 
 	@Override
@@ -1168,6 +1137,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object ifElse(Object pastThen) {
+		force();
 		Label pastElse = new Label();
 		c.f.mv.visitJumpInsn(GOTO, pastElse);
 		c.f.mv.visitLabel((Label) pastThen);
@@ -1183,6 +1153,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object loop() {
+		force();
 		Loop loop = new Loop();
 		c.f.mv.visitLabel(loop.continueLabel);
 		return loop;
@@ -1190,7 +1161,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void whileExpr(Object expr, Object loop) {
-		toBool(expr);
+		toBoolPop();
 		gotoBreak(IFFALSE, loop);
 	}
 
@@ -1225,6 +1196,7 @@ public class CompileGenerator extends Generator<Object> {
 		hideBlockParams();
 		c.f = c.fstack.pop();
 
+		force();
 		// new SuBlock(classValue, bspec, locals)
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
 		c.f.mv.visitInsn(DUP);
@@ -1240,11 +1212,11 @@ public class CompileGenerator extends Generator<Object> {
 				"<init>",
 				"(Ljava/lang/Object;Ljava/lang/Object;Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)V");
 
-		if (!c.f.isBlock && c.f.blockReturnCatcher == null) {
+		if (!c.f.isBlock && c.f.blockReturnCatcher == null)
 			c.f.blockReturnCatcher = tryCatch("suneido/language/BlockReturnException");
-		}
 
-		return VALUE;
+		push(RVALUE);
+		return null;
 	}
 
 	private String[] blockLocals() {
@@ -1277,6 +1249,7 @@ public class CompileGenerator extends Generator<Object> {
 		return null;
 	}
 
+	//TODO use pre-constructed exceptions for performance
 	private void blockThrow(String which) {
 		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
 		c.f.mv.visitInsn(DUP);
@@ -1288,19 +1261,19 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object dowhileLoop() {
+		force();
 		Loop loop = new Loop();
 		c.f.mv.visitLabel(loop.doLabel);
 		return loop;
 	}
-
 	@Override
 	public void dowhileContinue(Object loop) {
+		force();
 		c.f.mv.visitLabel(((Loop) loop).continueLabel);
 	}
-
 	@Override
 	public Object dowhileStatement(Object body, Object expr, Object loop) {
-		toBool(expr);
+		toBoolPop();
 		c.f.mv.visitJumpInsn(IFTRUE, ((Loop) loop).doLabel);
 		setBreak(loop);
 		return null;
@@ -1331,7 +1304,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void forCondition(Object cond, Object loop) {
-		toBool(cond);
+		toBoolPop();
 		gotoBreak(IFFALSE, loop);
 	}
 
@@ -1350,10 +1323,12 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object forInExpression(String var, Object expr) {
+		force();
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"iterator",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
 		c.f.mv.visitVarInsn(ASTORE, c.f.forInTmp);
+		pop();
 
 		Object loop = loop();
 
@@ -1366,6 +1341,7 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
 		saveTopInVar(var);
+
 		++c.f.forInTmp;
 		return loop;
 	}
@@ -1399,14 +1375,21 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	static class SwitchLabels {
-		Label end = new Label();
+		final int tmp;
+		SwitchLabels(int tmp) {
+			this.tmp = tmp;
+		}
+		Label end;
 		Label body;
 		Label next;
 	}
 
 	@Override
 	public Object startSwitch() {
-		return new SwitchLabels();
+		force();
+		c.f.mv.visitVarInsn(ASTORE, c.f.forInTmp);
+		pop();
+		return new SwitchLabels(c.f.forInTmp++);
 	}
 
 	@Override
@@ -1419,16 +1402,14 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public void startCaseValue() {
-		c.f.mv.visitInsn(DUP);
-	}
-
-	@Override
 	public Object caseValues(Object values, Object expr, Object labels,
 			boolean more) {
+		force();
+		SwitchLabels slabels = (SwitchLabels) labels;
+		c.f.mv.visitVarInsn(ALOAD, ((SwitchLabels) labels).tmp);
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "is_",
 				"(Ljava/lang/Object;Ljava/lang/Object;)Z");
-		SwitchLabels slabels = (SwitchLabels) labels;
+		pop();
 		if (more) {
 			if (slabels.body == null)
 				slabels.body = new Label();
@@ -1443,17 +1424,22 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public void startCaseBody(Object labels) {
+		force();
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (slabels.body != null)
 			c.f.mv.visitLabel(slabels.body);
-		c.f.mv.visitInsn(POP);
 	}
 
 	@Override
 	public Object switchCases(Object cases, Object values, Object statements,
-			Object labels) {
+			Object labels, boolean moreCases) {
 		afterStatement(statements);
-		c.f.mv.visitJumpInsn(GOTO, ((SwitchLabels) labels).end);
+		if (moreCases) {
+			SwitchLabels slabels = (SwitchLabels) labels;
+			if (slabels.end == null)
+				slabels.end = new Label();
+			c.f.mv.visitJumpInsn(GOTO, ((SwitchLabels) labels).end);
+		}
 		return null;
 	}
 
@@ -1462,14 +1448,14 @@ public class CompileGenerator extends Generator<Object> {
 		SwitchLabels slabels = (SwitchLabels) labels;
 		if (slabels.next != null)
 			c.f.mv.visitLabel(((SwitchLabels) labels).next);
-		c.f.mv.visitInsn(POP);
-		c.f.mv.visitLabel(((SwitchLabels) labels).end);
+		if (slabels.end != null)
+			c.f.mv.visitLabel(((SwitchLabels) labels).end);
 		return null;
 	}
 
 	@Override
-	public Object throwStatement(Object expression) {
-		dupAndStore(expression);
+	public Object throwStatement(Object expr) {
+		force();
 		// stack: value
 		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
 		// stack: exception, value
@@ -1481,6 +1467,7 @@ public class CompileGenerator extends Generator<Object> {
 				"(Ljava/lang/Object;)V");
 		// stack: exception
 		c.f.mv.visitInsn(ATHROW);
+		pop();
 		return null;
 	}
 
@@ -1493,6 +1480,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object startTry() {
+		force();
 		return tryCatch("suneido/SuException");
 	}
 
@@ -1533,6 +1521,7 @@ public class CompileGenerator extends Generator<Object> {
 	@Override
 	public Object tryStatement(Object tryStatement, Object catcher,
 			Object trycatch) {
+		force();
 		TryCatch tc = (TryCatch) trycatch;
 		c.f.mv.visitLabel(tc.label3);
 		return null;
@@ -1542,4 +1531,346 @@ public class CompileGenerator extends Generator<Object> {
 		return c == null ? null : c.constants;
 	}
 
+	@Override
+	public Object rvalue(Object expr) {
+		force();
+		return expr;
+	}
+
+	// Stack ==================================================================
+
+	void push(Stack x) {
+		c.f.stack.add(x);
+	}
+
+	Stack pop() {
+		return c.f.stack.remove(c.f.stack.size() - 1);
+	}
+	void pop(int n) {
+		for (int i = 0; i < n; ++i)
+			pop();
+	}
+
+	Stack top() {
+		return nth(0);
+	}
+
+	Stack nth(int n) {
+		return c.f.stack.get(c.f.stack.size() - (n + 1));
+	}
+
+	/** called before emitting any byte code
+	 *  to ensure that deferred code is emitted first
+	 */
+	void force() {
+		List<Stack> stack = c.f.stack;
+		for (int i = 0; i < stack.size(); ++i) {
+			Stack x = stack.get(i).forceValue();
+			stack.set(i, x);
+		}
+	}
+
+	boolean stackEmpty() {
+		return c.f.stack.isEmpty();
+	}
+
+	/** same as force except top is forced to lvalue */
+	void forceLvalue() {
+		List<Stack> stack = c.f.stack;
+		int i = 0;
+		for (; i < stack.size() - 1; ++i) {
+			Stack x = stack.get(i).forceValue();
+			stack.set(i, x);
+		}
+		Stack x = stack.get(i).lvalue();
+		stack.set(i, x);
+	}
+
+	private abstract class Stack {
+		abstract Stack forceValue();
+		void forceVoid() {
+		}
+		/** generate code to push lvalue onto stack */
+		Stack lvalue() {
+			throw new SuException("invalid lvalue");
+		}
+		/** generate code to load, given lvalue on stack */
+		Stack load() {
+			throw new SuException("invalid lvalue");
+		}
+		/** generate code to store, given lvalue and rvalue on stack */
+		void store() {
+			throw new SuException("invalid lvalue");
+		}
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName();
+		}
+	}
+
+	/** means that byte code has been generated to push value */
+	private final class Rvalue extends Stack {
+		String which;
+		Rvalue(String which) {
+			this.which = which;
+		}
+		@Override
+		Stack forceValue() {
+			return this;
+		}
+		@Override
+		void forceVoid() {
+			c.f.mv.visitInsn(POP);
+		}
+		@Override
+		public String toString() {
+			return which;
+		}
+	}
+	private final Stack RVALUE = new Rvalue("Rvalue");
+	private final Stack RVALUE_SELF = new Rvalue("RvalueSelf");
+	private final Stack RVALUE_LOCAL = new Rvalue("RvalueLocal");
+	private final Stack RVALUE_RETURN = new Rvalue("RvalueReturn");
+
+	/** means that byte code has been generated to push lvalue for local
+	 *  i.e. args and i
+	 */
+	private final class LvalueLocal extends Stack {
+		@Override
+		Stack forceValue() {
+			return this;
+		}
+		@Override
+		void forceVoid() {
+			throw SuException.unreachable();
+		}
+		@Override
+		Stack load() {
+			c.f.mv.visitInsn(AALOAD);
+			return RVALUE_LOCAL;
+		}
+		@Override
+		void store() {
+			c.f.mv.visitInsn(AASTORE);
+		}
+	}
+	private final Stack LVALUE_LOCAL = new LvalueLocal();
+
+	/** means that byte code has been generated to push lvalue for member/subscript
+	 *  i.e. object and member/subscript
+	 */
+	private final class LvalueMember extends Stack {
+		@Override
+		Stack forceValue() {
+			return this;
+		}
+		@Override
+		void forceVoid() {
+			throw SuException.unreachable();
+		}
+		@Override
+		Stack load() {
+			getMember();
+			return RVALUE;
+		}
+		@Override
+		void store() {
+			putMember();
+		}
+	}
+	private final Stack LVALUE_MEMBER = new LvalueMember();
+	private final Stack LVALUE_SUPER_MEMBER = new LvalueMember();
+
+	/** defer assignment to allow dup before assign if value required
+	 *  means that stack contains lvalue
+	 */
+	private final class DeferAssignment extends Stack {
+		final Stack lvalue;
+		final Token op;
+		final Stack rvalue;
+		DeferAssignment(Stack lvalue, Token op, Stack rvalue) {
+			this.lvalue = lvalue;
+			this.op = op;
+			this.rvalue = rvalue;
+		}
+		@Override
+		void forceVoid() {
+			lvalue.store();
+		}
+		@Override
+		Stack forceValue() {
+			Stack result = rvalue;
+			if (op == Token.EQ && lvalue == LVALUE_MEMBER)
+				result = addNullCheck(rvalue);
+			c.f.mv.visitInsn(DUP_X2);
+			lvalue.store();
+			return result;
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.addValue(lvalue)
+					.addValue(op)
+					.addValue(rvalue)
+					.toString();
+		}
+	}
+
+	// defer identifier to handle assignments
+	// and to allow optimizing calls to built-in globals
+	private final class DeferIdentifier extends Stack {
+		final String name;
+		DeferIdentifier(String name) {
+			this.name = name;
+			assert ! name.equals("super");
+		}
+		@Override
+		Stack forceValue() {
+			if (isGlobal()) {
+				String name2 = name;
+				if (name.startsWith("_") && Character.isUpperCase(name.charAt(1)))
+					name2 = Globals.overload(name);
+				c.f.mv.visitLdcInsn(name2);
+				c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals",
+						"get",
+						"(Ljava/lang/String;)Ljava/lang/Object;");
+				return RVALUE;
+			} else if (name.equals("this")) {
+				c.f.mv.visitVarInsn(ALOAD, SELF);
+				return RVALUE;
+			} else {
+				int i = localRef(name);
+				c.f.mv.visitInsn(AALOAD);
+				return i < c.f.nparams ? RVALUE : RVALUE_LOCAL;
+			}
+		}
+		@Override
+		Stack lvalue() {
+			if (isGlobal())
+				throw new SuException("globals are read-only");
+			else if (name.equals("this") || name.equals("super"))
+				throw new SuException("this and super are read-only");
+			localRef(name);
+			return LVALUE_LOCAL;
+		}
+		private boolean isGlobal() {
+			int i = name.startsWith("_") ? 1 : 0;
+			return Character.isUpperCase(name.charAt(i));
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.addValue(name)
+					.toString();
+		}
+	}
+
+	// used for .member (to privatize)
+	private final class DeferSelf extends Stack {
+		@Override
+		public Stack forceValue() {
+			c.f.mv.visitVarInsn(ALOAD, SELF);
+			return RVALUE_SELF;
+		}
+		@Override
+		public String toString() {
+			return "<self>";
+		}
+	}
+	private final Stack DEFER_SELF = new DeferSelf();
+
+	// defer constants to allow optimizing constant expressions
+	private final class DeferConstant extends Stack {
+		final Object value;
+		DeferConstant(Object value) {
+			this.value = value;
+		}
+		@Override
+		Stack forceValue() {
+			if (value == Boolean.TRUE || value == Boolean.FALSE)
+				genBoolean(value == Boolean.TRUE ? "TRUE" : "FALSE");
+			else if (value instanceof String)
+				c.f.mv.visitLdcInsn(value);
+			else if (value instanceof Integer) {
+				iconst(c.f.mv, (Integer) value);
+				c.f.mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer",
+						"valueOf",
+						"(I)Ljava/lang/Integer;");
+			} else {
+				int i = constantFor(value);
+				c.f.mv.visitVarInsn(ALOAD, CONSTANTS);
+				iconst(c.f.mv, i);
+				c.f.mv.visitInsn(AALOAD);
+			}
+			return RVALUE;
+		}
+		@Override
+		void forceVoid() {
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.addValue(value)
+					.toString();
+		}
+	}
+
+	// defer member to allow optimizing calling private methods
+	private final class DeferMember extends Stack {
+		final Stack object;
+		final String name;
+		DeferMember(Stack object, String name) {
+			this.object = object;
+			this.name = name;
+		}
+		@Override
+		Stack forceValue() {
+			lvalue();
+			getMember();
+			return RVALUE;
+		}
+		@Override
+		void forceVoid() {
+			forceValue();
+			c.f.mv.visitInsn(POP);
+		}
+		@Override
+		Stack lvalue() {
+			c.f.mv.visitLdcInsn(object == RVALUE_SELF ? privatize(name) : name);
+			return LVALUE_MEMBER;
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.addValue(object)
+					.addValue(name)
+					.toString();
+		}
+	}
+	private final class DeferSubscript extends Stack {
+		@Override
+		Stack forceValue() {
+			getMember();
+			return RVALUE;
+		}
+		@Override
+		void forceVoid() {
+			forceValue();
+			c.f.mv.visitInsn(POP);
+		}
+		@Override
+		Stack lvalue() {
+			return LVALUE_MEMBER;
+		}
+	}
+
+	public static void main(String[] args) {
+		String s = "try 123";
+		Lexer lexer = new Lexer("function(){ " + s + "}");
+		CompileGenerator generator =
+				new CompileGenerator("Test", new PrintWriter(System.out));
+		ParseConstant<Object, Generator<Object>> pc =
+				new ParseConstant<Object, Generator<Object>>(lexer, generator);
+		pc.parse();
+	}
 }

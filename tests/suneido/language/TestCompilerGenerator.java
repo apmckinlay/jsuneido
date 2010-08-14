@@ -10,11 +10,11 @@ public class TestCompilerGenerator {
 	private static final StringWriter sw = new StringWriter();
 
 	public static void main(String[] args) throws Exception {
-		SuValue f = compile("function () { f = function () { 123 }; f() }");
+		SuValue f = compile("function () { a = 1;; }");
 		System.out.println(sw);
-		Object[] locals = new Object[] { 12, null };
-		Object result = Ops.invoke(f, "call", locals);
-		System.out.println("result: " + result);
+//		Object[] locals = new Object[] { 12, null };
+//		Object result = Ops.invoke(f, "call", locals);
+//		System.out.println("result: " + result);
 	}
 
     private static SuValue compile(String s) {

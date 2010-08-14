@@ -304,8 +304,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T switchStatement(Object loop) {
 		match(SWITCH);
-		Object labels = generator.startSwitch();
 		T expr = generator.rvalue(optionalParensExpression());
+		Object labels = generator.startSwitch();
 		T cases = null;
 		match(L_CURLY);
 		while (matchIf(CASE))
@@ -321,7 +321,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		generator.startCase(labels);
 		T values = null;
 		do {
-			generator.startCaseValue();
+			generator.startCaseValue(labels);
 			T value = expression();
 			values = generator.caseValues(values, value, labels, token == COMMA);
 		} while (matchIf(COMMA));
@@ -338,7 +338,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			generator.afterStatement(statements);
 			statements = generator.statementList(statements, statement(loop));
 		}
-		return generator.switchCases(cases, values, statements, labels);
+		return generator.switchCases(cases, values, statements, labels,
+				token != R_CURLY);
 	}
 
 	private T throwStatement() {
