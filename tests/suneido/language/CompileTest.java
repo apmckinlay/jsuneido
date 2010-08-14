@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static suneido.language.Ops.display;
 
 import java.io.PrintWriter;
@@ -8,11 +9,17 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 
+import suneido.SuException;
+
 public class CompileTest {
 	//@Test
 	public void blocks() {
 		test("return { }",
 				"block, ARETURN");
+	}
+
+	@Test
+	public void temp() {
 	}
 
 	@Test
@@ -27,10 +34,14 @@ public class CompileTest {
 				"-1, ARETURN");
 		test("0.1",
 				"0=.1, ARETURN");
+		test("true",
+				"true, ARETURN");
+		test("false",
+				"false, ARETURN");
 		test("return 123",
  				"123, ARETURN");
 		test("b;;",
- 				"b, POP");
+ 				"null, ARETURN");
 		test("a",
 				"a, ARETURN");
 		test("return b",
@@ -45,10 +56,14 @@ public class CompileTest {
 				"a, uminus, ARETURN");
 		test("! a",
 				"a, not, ARETURN");
+		test("a = b",
+				"&a, b, DUP_X2, AASTORE, ARETURN");
 		test("a()",
  				"a, callN, ARETURN");
 		test("a(b, c)",
  				"a, b, c, callN, ARETURN");
+		test("a(x)",
+				"a, x, null?, callN, ARETURN");
 		test("a(b = c)",
  				"a, &b, c, DUP_X2, AASTORE, callN, ARETURN");
 		test("a(b, x: c)",
@@ -59,6 +74,8 @@ public class CompileTest {
  				"a, 'Size', invokeN, ARETURN");
 		test("return a.Size()",
  				"a, 'Size', invokeN, ARETURN");
+		test("a['Size']()",
+				"a, 'Size', toMethodString, invokeN, ARETURN");
 		test("a.Substr(b, c)",
  				"a, 'Substr', b, c, invokeN, ARETURN");
 		test("a = b",
@@ -70,11 +87,13 @@ public class CompileTest {
 		test("a = b = c",
 				"&a, &b, c, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
 		test("a = b = x",
-				"&a, &b, x, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
+				"&a, &b, x, DUP_X2, AASTORE, DUP_X2, AASTORE, null?, ARETURN");
 		test("a = b; return c",
  				"&a, b, AASTORE, c, ARETURN");
 		test("a = x; return x",
-				"&a, x, null?, AASTORE, x, null?, ARETURN");
+				"&a, x, AASTORE, x, null?, ARETURN");
+		test("a.b = x",
+			"a, 'b', x, null?, DUP_X2, putMem, ARETURN");
 		test("a = b = c; return x",
 				"&a, &b, c, DUP_X2, AASTORE, AASTORE, x, null?, ARETURN");
 		test("-(a = b)",
@@ -85,6 +104,14 @@ public class CompileTest {
 				"&a, b, DUP_X2, AASTORE, 123, is, ARETURN");
 		test("123 is (a = b)",
 				"123, &a, b, DUP_X2, AASTORE, is, ARETURN");
+		test("a ? b : c",
+				"a, bool, IFFALSE L1, b, GOTO L2, L1, c, L2, ARETURN");
+		test("a ? b : x;;",
+				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, POP");
+		test("a ? b : x",
+				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, null?, ARETURN");
+		test("a ? b() : c()",
+				"a, bool, IFFALSE L1, b, callN, GOTO L2, L1, c, callN, L2, ARETURN");
 		test("(a = b) ? (b = 123) : (c = 456)",
 				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, "
 						+ "&b, 123, DUP_X2, AASTORE, GOTO L2, "
@@ -107,6 +134,8 @@ public class CompileTest {
  				"&a, DUP2, AALOAD, DUP_X2, sub1, AASTORE, POP");
 		test("a.x",
  				"a, 'x', getMem, ARETURN");
+		test("a.x;;",
+				"a, 'x', getMem, POP");
 		test(".x",
 				"self, 'x', getMem, ARETURN");
 		test(".f()",
@@ -123,10 +152,16 @@ public class CompileTest {
 				"&a, b, DUP_X2, AASTORE, 'F', invokeN, ARETURN");
 		test("a[b]",
  				"a, b, getMem, ARETURN");
+		test("a[b];;",
+ 				"a, b, getMem, POP");
 		test("a[b] = c;;",
  				"a, b, c, putMem");
 		test("a[b] *= c;;",
  				"a, b, DUP2, getMem, c, mul, putMem");
+		test("a[b + 1]",
+				"a, b, 1, add, getMem, ARETURN");
+		test("a[b + 1];;",
+				"a, b, 1, add, getMem, POP");
 		test("a[++b];;",
 				"a, &b, DUP2, AALOAD, add1, DUP_X2, AASTORE, getMem, POP");
 		test("a[++b] = c;;",
@@ -140,9 +175,9 @@ public class CompileTest {
 		test("a(@+1b)",
  				"a, EACH1, b, callN, ARETURN");
 		test("a = b();;",
- 				"&a, b, callN, null?, AASTORE");
-		test("123; 456; 123;",
- 				"123, POP, 456, POP, 123, ARETURN");
+ 				"&a, b, callN, AASTORE");
+		test("123; 456; 789;",
+ 				"789, ARETURN");
 		test("a = #(1, a: 2);;",
  				"&a, 0=#(1, a: 2), AASTORE");
 		test("#{1, a: 2}",
@@ -155,24 +190,36 @@ public class CompileTest {
 				"0=aFunction, ARETURN");
 		test("a = function () { }",
 				"&a, 0=aFunction, DUP_X2, AASTORE, ARETURN");
-		test("super.F()",
-				"this, self, 'F', superInvokeN, ARETURN");
 		test("A().B()",
 				"'A', global, callN, 'B', invokeN, ARETURN");
-		test("new this",
-				"self, '<new>', invokeN, ARETURN");
-		test("new this(a)",
-				"self, '<new>', a, invokeN, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
 						+ "a: 1, j: 10, k: 11, h: 8, i: 9), callN, ARETURN");
-
 		test("return .a + .b",
 				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
 		test_b0("Do() { this }",
 				"self, ARETURN");
 		test_b0("Do() { return .a + .b }",
 				"self, 'a', getMem, self, 'b', getMem, add");
+		test("new this",
+				"self, '<new>', invokeN, ARETURN");
+		test("new this(a)",
+				"self, '<new>', a, invokeN, ARETURN");
+		test("super.F()",
+				"this, self, 'F', superInvokeN, ARETURN");
+	}
+	@Test
+	public void andor() {
+		test("a or b",
+				"a, bool, IFTRUE L1, b, bool, IFTRUE L1, " +
+					"false, GOTO L2, L1, true, L2, ARETURN");
+		test("a and b",
+				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
+					"true, GOTO L2, L1, false, L2, ARETURN");
+		test("a and b and c",
+				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
+				"c, bool, IFFALSE L1, " +
+					"true, GOTO L2, L1, false, L2, ARETURN");
 	}
 	@Test public void test_new() {
 		test("new c",
@@ -181,62 +228,65 @@ public class CompileTest {
 				"'G', global, '<new>', invokeN, ARETURN");
 	}
 	@Test public void test_if() {
-		test("if (a) b",
-				"a, bool, IFFALSE L1, b, POP, L1");
-		test("if (a < b) c",
-				"a, b, lt_, IFFALSE L1, c, POP, L1");
-		test("if (a = b) c",
-				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, c, POP, L1");
-		test("if (a) b else c",
-				"a, bool, IFFALSE L1, b, POP, GOTO L2, L1, c, POP, L2");
+		test("if (a) b()",
+				"a, bool, IFFALSE L1, b, callN, POP, L1");
+		test("if (a < b) c()",
+				"a, b, lt_, IFFALSE L1, c, callN, POP, L1");
+		test("if (a = b) c()",
+				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, c, callN, POP, L1");
+		test("if (a) b() else c()",
+				"a, bool, IFFALSE L1, b, callN, POP, GOTO L2, L1, c, callN, POP, L2");
 	}
 	@Test public void test_loops() {
-		test("do a while (b)",
-				"L1, a, POP, L2, b, bool, IFTRUE L1, L3");
-		test("do a while (b = c)",
-				"L1, a, POP, L2, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L3");
-		test("do { a; continue; b } while (c)",
-				"L1, a, POP, GOTO L2, b, POP, L2, c, bool, IFTRUE L1, L3");
-		test("do { a; break; b } while (c)",
-				"L1, a, POP, GOTO L2, b, POP, L3, c, bool, IFTRUE L1, L2");
-		test("while (a) b",
-				"L1, a, bool, IFFALSE L2, b, POP, GOTO L1, L2");
-		test("while (a = b) c",
-				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, POP, GOTO L1, L2");
-		test("forever a",
-				"L1, a, POP, GOTO L1, L2");
-		test("for(;;) a",
-				"L1, a, POP, GOTO L1, L2");
-		test("for(b;;) a",
-				"b, POP, L1, a, POP, GOTO L1, L2");
-		test("for(b;c;) a",
-				"b, POP, L1, c, bool, IFFALSE L2, a, POP, GOTO L1, L2");
-		test("for(; a = b;) c",
-				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, POP, GOTO L1, L2");
-		test("for(b;c;a) a",
-				"b, POP, GOTO L1, L2, a, POP, L1, c, bool, IFFALSE L3, a, POP, GOTO L2, L3");
-		test("for (a = 0; a < 4; ++i) b",
+		test("do a() while (b)",
+				"L1, a, callN, POP, L2, b, bool, IFTRUE L1, L3");
+		test("do a() while (b = c)",
+				"L1, a, callN, POP, L2, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L3");
+		test("do { a(); continue; b() } while (c)",
+				"L1, a, callN, POP, GOTO L2, b, callN, POP, L2, c, bool, IFTRUE L1, L3");
+		test("do { a(); break; b() } while (c)",
+				"L1, a, callN, POP, GOTO L2, b, callN, POP, L3, c, bool, IFTRUE L1, L2");
+		test("while (a) b()",
+				"L1, a, bool, IFFALSE L2, b, callN, POP, GOTO L1, L2");
+		test("while (a = b) c()",
+				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, callN, POP, GOTO L1, L2");
+		test("forever a()",
+				"L1, a, callN, POP, GOTO L1, L2");
+		test("for(;;) a()",
+				"L1, a, callN, POP, GOTO L1, L2");
+		test("for(b();;) a()",
+				"b, callN, POP, L1, a, callN, POP, GOTO L1, L2");
+		test("for(b();c;) a()",
+				"b, callN, POP, L1, c, bool, IFFALSE L2, a, callN, POP, GOTO L1, L2");
+		test("for(; a = b;) c()",
+				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, callN, POP, GOTO L1, L2");
+		test("for(b();c;a()) a()",
+				"b, callN, POP, GOTO L1, L2, a, callN, POP, L1, c, bool, IFFALSE L3, a, callN, POP, GOTO L2, L3");
+		test("for (a = 0; a < 4; ++i) b()",
 				"&a, 0, AASTORE, GOTO L1, "
 				+ "L2, args, 3, DUP2, AALOAD, add1, AASTORE, "
-				+ "L1, a, 4, lt_, IFFALSE L3, b, POP, GOTO L2, L3");
-		test("forever { a; break; b }",
-				"L1, a, POP, GOTO L2, b, POP, GOTO L1, L2");
-		test("forever { a; continue; b }",
-				"L1, a, POP, GOTO L1, b, POP, GOTO L1, L2");
-		test("for (a in b) c",
-				"b, iterator, ASTORE 4, L1, ALOAD 4, hasNext, IFFALSE L2, ALOAD 4, next, args, SWAP, 0, SWAP, AASTORE, c, POP, GOTO L1, L2");
+				+ "L1, a, 4, lt_, IFFALSE L3, b, callN, POP, GOTO L2, L3");
+		test("forever { a(); break; b() }",
+				"L1, a, callN, POP, GOTO L2, b, callN, POP, GOTO L1, L2");
+		test("forever { a(); continue; b() }",
+				"L1, a, callN, POP, GOTO L1, b, callN, POP, GOTO L1, L2");
+		test("for (a in b) c()",
+				"b, iterator, ASTORE 4, L1, ALOAD 4, hasNext, IFFALSE L2, " +
+				"ALOAD 4, next, args, SWAP, 0, SWAP, AASTORE, c, callN, POP, GOTO L1, L2");
 
-		compile("for (a in b) try c catch ;");
+		compile("for (a in b) try c() catch ;");
 	}
 	@Test public void test_switch() {
 		test("switch (a) { }",
-				"a, POP, L1");
-		test("switch (a) { default: b }",
-				"a, POP, b, POP, GOTO L1, POP, L1");
-		test("switch (a = b) { case 123: b }",
-				"&a, b, DUP_X2, AASTORE, DUP, 123, is_, IFFALSE L1, POP, b, POP, GOTO L2, L1, POP, L2");
-		test("switch (a) { case 123,456: b }",
-				"a, DUP, 123, is_, IFTRUE L1, DUP, 456, is_, IFFALSE L2, L1, POP, b, POP, GOTO L3, L2, POP, L3");
+				"a, ASTORE 4");
+		test("switch (a) { default: b() }",
+				"a, ASTORE 4, b, callN, POP");
+		test("switch (a) { case 123: b() }",
+				"a, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, b, callN, POP, L1");
+		test("switch (a = b) { case 123: b() }",
+				"&a, b, DUP_X2, AASTORE, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, b, callN, POP, L1");
+		test("switch (a) { case 123,456: b() }",
+				"a, ASTORE 4, 123, ALOAD 4, is_, IFTRUE L1, 456, ALOAD 4, is_, IFFALSE L2, L1, b, callN, POP, L2");
 	}
 	@Test public void test_exceptions() {
 		test("throw 'oops'",
@@ -245,16 +295,16 @@ public class CompileTest {
 				"a, throw");
 		test("throw a = b",
 				"&a, b, DUP_X2, AASTORE, throw");
-		test_e("try 123",
-				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, POP, L4");
-		test_e("try 123 catch 456",
-				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, POP, 456, POP, L4");
-		test_e("try 123 catch(a) 456",
-				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, toString, args, SWAP, 0, SWAP, "
-				+ "AASTORE, 456, POP, L4");
-		test_e("try 123 catch(a, 'x') 456",
-				"try L0 L1 L2, L3, L0, 123, POP, L1, GOTO L4, L2, 'x', catchMatch, args, SWAP, "
-				+ "0, SWAP, AASTORE, 456, POP, L4");
+		test_e("try a()",
+				"try L0 L1 L2, L3, L0, a, callN, POP, L1, GOTO L4, L2, POP, L4");
+		test_e("try a() catch b()",
+				"try L0 L1 L2, L3, L0, a, callN, POP, L1, GOTO L4, L2, POP, b, callN, POP, L4");
+		test_e("try a() catch(e) b()",
+				"try L0 L1 L2, L3, L0, a, callN, POP, L1, GOTO L4, L2, toString, " +
+					"args, SWAP, 3, SWAP, AASTORE, b, callN, POP, L4");
+		test_e("try a() catch(e, 'x') b()",
+				"try L0 L1 L2, L3, L0, a, callN, POP, L1, GOTO L4, L2, " +
+					"'x', catchMatch, args, SWAP, 3, SWAP, AASTORE, b, callN, POP, L4");
 	}
 	@Test public void test_block() {
 		test_e("b = { }",
@@ -287,12 +337,26 @@ public class CompileTest {
 		test("x('', y(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11))",
 			"x, '', y, EACH, " +
 			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
-			"callN, callN, ARETURN");
+			"callN, null?, callN, ARETURN");
 		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 			"x, NAMED, 'V', a, EACH, " +
 			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
 			"callN, ARETURN");
 	}
+
+	@Test
+	public void test_super() {
+		try {
+			test("a = super.y", "");
+			fail("invalid use of super");
+		} catch (SuException e) {
+			assertEquals("syntax error at line 1: invalid use of super", e.toString());
+		}
+	}
+
+//	@Test public void test_compile_builtin_calls() {
+//		test("Object()", "");
+//	}
 
 	private void test(String expr, String expected) {
 		test(expr, expected,
@@ -394,6 +458,7 @@ public class CompileTest {
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'no return value', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
 			{ "DUP, IFNONNULL L1, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L1", "null?" },
 			{ "DUP, IFNONNULL L2, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L2", "null?" },
+			{ "DUP, IFNONNULL L3, NEW suneido/SuException, DUP, LDC 'uninitialized variable', INVOKESPECIAL suneido/SuException.<init> (Object;)V, ATHROW, L3", "null?" },
 			{ "LDC 'Test', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
 			{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? display(constants[0]) : "") },
 			{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? display(constants[1]) : "") },
@@ -415,6 +480,7 @@ public class CompileTest {
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
+			{ "GETSTATIC java/lang/Boolean.FALSE : Boolean;", "false" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

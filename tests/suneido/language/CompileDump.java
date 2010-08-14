@@ -10,8 +10,8 @@ public class CompileDump implements DumpReader.Processor {
 	int itext;
 
 	public static void main(String[] args) {
-		new DumpReader("stdlib.su", new CompileDump()).process();
-		new DumpReader("accountinglib.su", new CompileDump()).process();
+//		new DumpReader("stdlib.su", new CompileDump()).process();
+//		new DumpReader("Accountinglib.su", new CompileDump()).process();
 		new DumpReader("etalib.su", new CompileDump()).process();
 	}
 
@@ -37,6 +37,8 @@ public class CompileDump implements DumpReader.Processor {
 	}
 
 	public static void compile(String source, String name) {
+//		if (! name.equals("CLucene"))
+//			return;
 		Lexer lexer = new Lexer(source);
 		CompileGenerator generator = new CompileGenerator(name);
 		ParseConstant<Object, Generator<Object>> pc =
@@ -44,7 +46,7 @@ public class CompileDump implements DumpReader.Processor {
 		try {
 			pc.parse();
 		} catch (SuException e) {
-			if (e.toString().contains("not supported"))
+			if (e.toString().matches(".*(not support|can't find _).*"))
 				return;
 			//System.out.println(source);
 			System.out.println("line " + lexer.getLineNumber());

@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static suneido.language.Compiler.compile;
 import static suneido.language.Compiler.eval;
@@ -140,6 +141,14 @@ public class ClassTest {
 		define("A", "class { CallClass() { new this() } }");
 		test("A()", "A()");
 
+		define("A", "class { New() { .a = 123; } }");
+		test("A().Members()", "#('A_a')");
+
+		define("A", "class { New() { this.a = 123; } }");
+		test("A().Members()", "#('a')");
+
+		define("A", "class { New() { this['a'] = 123; } }");
+		test("A().Members()", "#('a')");
 	}
 	@Test public void test_static_getter() {
 		define("A", "class { " +
@@ -195,14 +204,24 @@ public class ClassTest {
 		test("C.F()", "#('C_p')");
 	}
 
-	@Test(expected=SuException.class)
-	public void test_super() {
-		compile("A", "class { New() { F(); super() } }");
+	@Test
+	public void test_super() { // super must be first
+		try {
+			compile("A", "class { New() { F(); super() } }");
+			fail("should only allow super(...) first");
+		} catch (SuException e) {
+			assertEquals("call to super must come first", e.toString());
+		}
 	}
 
-	@Test(expected=SuException.class)
-	public void test_super2() {
-		compile("A", "class { F() { super() } }");
+	@Test
+	public void test_super2() { // super must be in New
+		try {
+			compile("A", "class { F() { super() } }");
+			fail("should only allow super(...) in New");
+		} catch (SuException e) {
+			assertEquals("super call only allowed in New", e.toString());
+		}
 	}
 
 	private static void notFound(String expr) {

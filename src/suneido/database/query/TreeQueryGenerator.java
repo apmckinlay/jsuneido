@@ -9,7 +9,6 @@ import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 import suneido.language.Ops;
 import suneido.language.Token;
-import suneido.language.ParseExpression.Value;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator extends QueryGenerator<Object> {
@@ -222,8 +221,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object functionCall(Object function, Value<Object> value,
-			Object arguments) {
+	public Object functionCall(Object function, Object arguments) {
 		if (!(function instanceof Identifier))
 			throw new SuException("query functions must be called by name");
 		String fname = ((Identifier) function).ident;
@@ -289,13 +287,13 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object and(Object expr1, Object expr2) {
-		return And.make((Expr) expr1, (Expr) expr2);
+	public Object and(Object label, Object expr1, Object expr2) {
+		return (expr1 == null) ? expr2 : And.make((Expr) expr1, (Expr) expr2);
 	}
 
 	@Override
-	public Object or(Object expr1, Object expr2) {
-		return Or.make((Expr) expr1, (Expr) expr2);
+	public Object or(Object label, Object expr1, Object expr2) {
+		return (expr1 == null) ? expr2 : Or.make((Expr) expr1, (Expr) expr2);
 	}
 
 	@Override

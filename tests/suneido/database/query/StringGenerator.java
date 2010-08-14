@@ -4,15 +4,12 @@ import static suneido.language.Generator.MType.OBJECT;
 import static suneido.language.Token.*;
 import suneido.SuValue;
 import suneido.language.Token;
-import suneido.language.ParseExpression.Value;
 
 public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
-	public String assignment(String term, Value<String> value, Token op,
-			String expression) {
-		return str("", term, " ") + expression + " " + op + "(" + value(value)
-				+ ")";
+	public String assignment(String term, Token op, String expression) {
+		return term + " " + expression + " " + op;
 	}
 
 	@Override
@@ -104,6 +101,11 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
+	public String lvalueForAssign(String term, Token op) {
+		return term + "&";
+	}
+
+	@Override
 	public String foreverStatement(String statement, Object label) {
 		return "forever { " + statement.trim() + " }";
 	}
@@ -143,7 +145,7 @@ public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
 	public String switchCases(String list, String values, String statements,
-			Object labels) {
+			Object labels, boolean moreCases) {
 		return str("", list, " ")
 				+ (values == null ? "default:" : "case " + values + ":") + " "
 				+ statements;
@@ -173,32 +175,18 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String preIncDec(String term, Token incdec, Value<String> value) {
-		return str("", term, " ") + "pre" + incdec + "(" + value(value) + ")";
+	public String preIncDec(String term, Token incdec) {
+		return term + " pre" + incdec;
 	}
 
 	@Override
-	public String postIncDec(String term, Token incdec, Value<String> value) {
-		return str("", term, " ") + "post" + incdec + "(" + value(value) + ")";
-	}
-
-	private String value(Value<String> value) {
-		if (value.type == null)
-			return null;
-		switch (value.type) {
-		case IDENTIFIER:
-			return value.id;
-		case MEMBER:
-			return "." + value.id;
-		case SUBSCRIPT:
-			return "[" + value.expr + "]";
-		}
-		return null;
+	public String postIncDec(String term, Token incdec) {
+		return term + " post" + incdec;
 	}
 
 	@Override
-	public String member(String term, Value<String> value) {
-		return term + " ." + value.id;
+	public String member(String term, String identifier) {
+		return term + " ." + identifier;
 	}
 
 	@Override
@@ -207,20 +195,18 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
+	public String functionCall(String function, String arguments) {
+		return function + "(" + str(arguments) + ")";
+	}
+
+	@Override
+	public String superCallTarget(String method) {
+		return "super" + (method.equals("_init") ? "" : "." + method);
+	}
+
+	@Override
 	public String selfRef() {
-		return "this";
-	}
-
-	@Override
-	public String superRef() {
-		return "super";
-	}
-
-	@Override
-	public String functionCall(String function, Value<String> value,
-			String arguments) {
-		return function + str(" ", value(value), "") + "(" + str(arguments)
-				+ ")";
+		return "<this>";
 	}
 
 	@Override
@@ -283,13 +269,13 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String and(String expr1, String expr2) {
-		return binaryExpression(AND, expr1, expr2);
+	public String and(Object label, String expr1, String expr2) {
+		return (expr1 == null) ? expr2 : binaryExpression(AND, expr1, expr2);
 	}
 
 	@Override
-	public String or(String expr1, String expr2) {
-		return binaryExpression(OR, expr1, expr2);
+	public String or(Object label, String expr1, String expr2) {
+		return (expr1 == null) ? expr2 : binaryExpression(OR, expr1, expr2);
 	}
 
 	@Override

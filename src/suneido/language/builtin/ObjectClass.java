@@ -13,6 +13,10 @@ public class ObjectClass extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object[] args) {
+		return create(args);
+	}
+
+	public static Object create(Object[] args) {
 		return Args.collectArgs(args, new SuContainer());
 	}
 
