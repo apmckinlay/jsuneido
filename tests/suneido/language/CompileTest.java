@@ -214,6 +214,10 @@ public class CompileTest {
 				"self, '<new>', a, invokeN, ARETURN");
 		test("super.F()",
 				"this, self, 'F', superInvokeN, ARETURN");
+		test("Object()",
+				"Object, ARETURN");
+		test("Object(a, b)",
+				"a, b, Object, ARETURN");
 	}
 	@Test
 	public void andor() {
@@ -488,6 +492,10 @@ public class CompileTest {
 			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
 			{ "GETSTATIC java/lang/Boolean.FALSE : Boolean;", "false" },
+			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
+			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
+			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" }
+
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

@@ -13,7 +13,7 @@ public class Record extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object[] args) {
-		return Args.collectArgs(args, new SuRecord());
+		return Args.collectArgs(new SuRecord(), args);
 	}
 
 }

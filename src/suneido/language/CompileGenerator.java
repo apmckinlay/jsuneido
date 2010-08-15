@@ -834,6 +834,12 @@ public class CompileGenerator extends Generator<Object> {
 			c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 						"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
 			forceLvalue();
+		} else if (top() instanceof DeferIdentifier) {
+			DeferIdentifier di = (DeferIdentifier) top();
+			if (di.isGlobal() && di.name.equals("Object")) {
+				pop();
+				push(new DirectCall(di.name));
+			}
 		}
 		force();
 		return null;
@@ -866,6 +872,8 @@ public class CompileGenerator extends Generator<Object> {
 			invokeSuper(a.nargs);
 		else if (fn == LVALUE_MEMBER)
 			invokeMethod(a.nargs);
+		else if (fn instanceof DirectCall)
+			invokeDirect(((DirectCall) fn).name, a.nargs);
 		else
 			invokeFunction(a.nargs);
 		pop(a.nargs + 1);
@@ -910,6 +918,17 @@ public class CompileGenerator extends Generator<Object> {
 		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invokeN",
 				"(Ljava/lang/Object;Ljava/lang/String;" + args[nargs]
 						+ ")Ljava/lang/Object;");
+	}
+
+	// TODO handle direct calling other functions
+	private void invokeDirect(String name, int nargs) {
+		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/ArgArray",
+				"buildN",
+				"(" + args[nargs] + ")[Ljava/lang/Object;");
+		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/ObjectClass",
+				"create",
+				"([Ljava/lang/Object;)Ljava/lang/Object;");
+
 	}
 
 	@Override
@@ -1869,6 +1888,18 @@ public class CompileGenerator extends Generator<Object> {
 		@Override
 		Stack lvalue() {
 			return LVALUE_MEMBER;
+		}
+	}
+
+	/** there is actually nothing on the stack for this */
+	private final class DirectCall extends Stack {
+		String name;
+		DirectCall(String name) {
+			this.name = name;
+		}
+		@Override
+		Stack forceValue() {
+			return this;
 		}
 	}
 

@@ -16,8 +16,9 @@ public class ObjectClass extends BuiltinClass {
 		return create(args);
 	}
 
-	public static Object create(Object[] args) {
-		return Args.collectArgs(args, new SuContainer());
+	/** used by direct calls in generated code */
+	public static Object create(Object... args) {
+		return Args.collectArgs(new SuContainer(), args);
 	}
 
 }
