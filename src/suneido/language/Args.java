@@ -48,7 +48,7 @@ public class Args {
 			// function (@params)
 			SuContainer c = new SuContainer();
 			locals[0] = c;
-			collectArgs(args, c);
+			collectArgs(c, args);
 		} else {
 			assert nlocals >= fs.nparams;
 			int li = 0;
@@ -87,7 +87,7 @@ public class Args {
 		return locals;
 	}
 
-	public static SuContainer collectArgs(Object[] args, SuContainer c) {
+	public static SuContainer collectArgs(SuContainer c, Object... args) {
 		for (int i = 0; i < args.length; ++i) {
 			if (args[i] == NAMED) {
 				c.preset(args[i + 1], args[i + 2]);

@@ -87,7 +87,7 @@ public class QueryInstance extends SuValue {
 	}
 
 	private Object NewRecord(Object[] args) {
-		return Args.collectArgs(args, new SuRecord());
+		return Args.collectArgs(new SuRecord(), args);
 	}
 
 	private Object getrec(Object[] args, Dir dir) {
