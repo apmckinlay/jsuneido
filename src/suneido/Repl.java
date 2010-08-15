@@ -51,8 +51,8 @@ public class Repl {
 				if (result != null)
 					out.println(" => " + Ops.display(result));
 				saveTest(line, result);
-			} catch (SuException e) {
-				e.printStackTrace();
+			} catch (Throwable e) {
+				e.printStackTrace(out);
 			}
 		}
 		out.println("bye");
@@ -103,7 +103,7 @@ public class Repl {
 	public static class Print extends BuiltinFunction {
 		@Override
 		public Object call(Object... args) {
-			SuContainer c = Args.collectArgs(args, new SuContainer());
+			SuContainer c = Args.collectArgs(new SuContainer(), args);
 			StringBuilder sb = new StringBuilder();
 			int i = 0;
 			for (; i < c.vecSize(); ++i)
