@@ -402,6 +402,7 @@ public class CompileGenerator extends Generator<Object> {
 				javify(c.f.name),
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 
+		// TODO replace OptimizeToBool with defer
 		c.f.mv = new OptimizeToBool(c.f.mv);
 		c.f.mv.visitCode();
 		c.f.startLabel = new Label();
@@ -977,7 +978,7 @@ public class CompileGenerator extends Generator<Object> {
 	public Object and(Object olabel, Object expr1, Object expr2) {
 		toBoolPop();
 		Label label = (Label) olabel;
-		c.f.mv.visitJumpInsn(IFEQ, label);
+		c.f.mv.visitJumpInsn(IFFALSE, label);
 		return null;
 	}
 
@@ -1013,7 +1014,7 @@ public class CompileGenerator extends Generator<Object> {
 	public Object or(Object olabel, Object expr1, Object expr2) {
 		toBoolPop();
 		Label label = (Label) olabel;
-		c.f.mv.visitJumpInsn(IFNE, label);
+		c.f.mv.visitJumpInsn(IFTRUE, label);
 		return null;
 	}
 
@@ -1119,7 +1120,7 @@ public class CompileGenerator extends Generator<Object> {
 	public Object ifExpr(Object expr) {
 		toBoolPop();
 		Label label = new Label();
-		c.f.mv.visitJumpInsn(IFEQ, label);
+		c.f.mv.visitJumpInsn(IFFALSE, label);
 		return label;
 	}
 
@@ -1695,6 +1696,8 @@ public class CompileGenerator extends Generator<Object> {
 		}
 		@Override
 		void forceVoid() {
+			if (op == Token.EQ)
+				addNullCheck(rvalue);
 			lvalue.store();
 		}
 		@Override
@@ -1743,6 +1746,11 @@ public class CompileGenerator extends Generator<Object> {
 				c.f.mv.visitInsn(AALOAD);
 				return i < c.f.nparams ? RVALUE : RVALUE_LOCAL;
 			}
+		}
+		@Override
+		void forceVoid() {
+			addNullCheck(forceValue());
+			c.f.mv.visitInsn(POP);
 		}
 		@Override
 		Stack lvalue() {

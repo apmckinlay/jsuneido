@@ -22,6 +22,9 @@ public class CompileTest {
 	public void temp() {
 	}
 
+	/*
+	 * a, b, c are parameters (so no null checks)
+	 */
 	@Test
 	public void test_expressions() {
 		test("return",
@@ -41,13 +44,15 @@ public class CompileTest {
 		test("return 123",
  				"123, ARETURN");
 		test("b;;",
- 				"null, ARETURN");
+ 				"b, POP");
 		test("a",
 				"a, ARETURN");
 		test("return b",
 				"b, ARETURN");
 		test("x",
  				"x, null?, ARETURN");
+		test("x;;",
+ 				"x, null?, POP");
 		test("return x",
  				"x, null?, ARETURN");
 		test("return a + b",
@@ -80,6 +85,8 @@ public class CompileTest {
  				"a, 'Substr', b, c, invokeN, ARETURN");
 		test("a = b",
  				"&a, b, DUP_X2, AASTORE, ARETURN");
+		test("a = x;;",
+ 				"&a, x, null?, AASTORE");
 		test("a *= b",
  				"&a, DUP2, AALOAD, b, mul, DUP_X2, AASTORE, ARETURN");
 		test("a = b $ c",
@@ -90,10 +97,10 @@ public class CompileTest {
 				"&a, &b, x, DUP_X2, AASTORE, DUP_X2, AASTORE, null?, ARETURN");
 		test("a = b; return c",
  				"&a, b, AASTORE, c, ARETURN");
-		test("a = x; return x",
-				"&a, x, AASTORE, x, null?, ARETURN");
 		test("a.b = x",
 			"a, 'b', x, null?, DUP_X2, putMem, ARETURN");
+		test("a.b = x;;",
+			"a, 'b', x, null?, putMem");
 		test("a = b = c; return x",
 				"&a, &b, c, DUP_X2, AASTORE, AASTORE, x, null?, ARETURN");
 		test("-(a = b)",
@@ -175,7 +182,7 @@ public class CompileTest {
 		test("a(@+1b)",
  				"a, EACH1, b, callN, ARETURN");
 		test("a = b();;",
- 				"&a, b, callN, AASTORE");
+ 				"&a, b, callN, null?, AASTORE");
 		test("123; 456; 789;",
  				"789, ARETURN");
 		test("a = #(1, a: 2);;",
