@@ -1254,7 +1254,7 @@ public class CompileGenerator extends Generator<Object> {
 	@Override
 	public Object breakStatement(Object loop) {
 		if (loop == Block)
-			blockThrow("block:break");
+			blockThrow("BREAK_EXCEPTION");
 		else
 			gotoBreak(GOTO, loop);
 		return null;
@@ -1263,19 +1263,15 @@ public class CompileGenerator extends Generator<Object> {
 	@Override
 	public Object continueStatement(Object loop) {
 		if (loop == Block)
-			blockThrow("block:continue");
+			blockThrow("CONTINUE_EXCEPTION");
 		else
 			gotoContinue(GOTO, loop);
 		return null;
 	}
 
-	//TODO use pre-constructed exceptions for performance
 	private void blockThrow(String which) {
-		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
-		c.f.mv.visitInsn(DUP);
-		c.f.mv.visitLdcInsn(which);
-		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
-				"(Ljava/lang/Object;)V");
+		c.f.mv.visitFieldInsn(GETSTATIC, "suneido/language/Ops",
+				which, "Lsuneido/SuException;");
 		c.f.mv.visitInsn(ATHROW);
 	}
 
