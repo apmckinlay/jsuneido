@@ -7,8 +7,8 @@ public class SampleClass extends SuClass {
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "MyMethod")
 			return MyMethod(self, args);
-		else if (method == "_init")
-			return _init(self, args);
+		else if (method == "New")
+			return New(self, args);
 		else
 			return super.invoke(self, method, args);
 	}
@@ -19,8 +19,8 @@ public class SampleClass extends SuClass {
 		return null;
 	}
 
-	private Object _init(Object self, Object[] args) {
-		superInvoke(self, "_init", args);
+	private Object New(Object self, Object[] args) {
+		superInvoke(self, "New", args);
 		return null;
 	}
 

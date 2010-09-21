@@ -142,7 +142,7 @@ public abstract class SuClass extends SuCallable {
 		if (baseGlobal != null)
 			return base().invoke(self, method, args);
 
-		if (method == "_init")
+		if (method == "New")
 			return init(args);
 		if (method == "CallClass")
 			return Ops.invoke(self, "<new>", args);
@@ -165,7 +165,7 @@ public abstract class SuClass extends SuCallable {
 
 	private Object newInstance(Object... args) {
 		SuInstance x = new SuInstance(this);
-		x.invoke(x, "_init", args);
+		x.invoke(x, "New", args);
 		return x;
 	}
 
@@ -213,7 +213,7 @@ public abstract class SuClass extends SuCallable {
 			if (e.getValue() != null && !(e.getValue() instanceof Marker))
 				c.append(e.getKey());
 		for (FunctionSpec fs : params)
-			if (fs.name != "_init") // TODO skip blocks & nested functions
+			if (fs.name != "New") // TODO skip blocks & nested functions
 				c.append(fs.name);
 		return c;
 	}
@@ -256,7 +256,7 @@ public abstract class SuClass extends SuCallable {
 
 	protected Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {
-			if (member == "_init")
+			if (member == "New")
 				return null;
 			else
 				throw new SuException("must have base class to use super");

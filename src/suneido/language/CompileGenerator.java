@@ -370,8 +370,6 @@ public class CompileGenerator extends Generator<Object> {
 	private void startTopFunction(String name) {
 		if (name == null)
 			name = "call";
-		else if (name.equals("New"))
-			name = "_init";
 		else
 			name = privatize(name);
 		if (name.startsWith("Get_"))
@@ -847,10 +845,10 @@ public class CompileGenerator extends Generator<Object> {
 
 	@Override
 	public Object superCallTarget(String method) {
-		if (method.equals("_init")) {
+		if (method.equals("New")) {
 			if (c.f.superInitCalled)
 				throw new SuException("call to super must come first");
-			else if (!c.f.name.equals("_init"))
+			else if (!c.f.name.equals("New"))
 				throw new SuException("super call only allowed in New");
 		}
 		force();
@@ -1120,11 +1118,11 @@ public class CompileGenerator extends Generator<Object> {
 	@Override
 	public void addSuperInit() {
 		force();
-		if (!c.f.name.equals("_init"))
+		if (!c.f.name.equals("New"))
 			return;
 		c.f.mv.visitVarInsn(ALOAD, THIS);
 		c.f.mv.visitVarInsn(ALOAD, SELF);
-		c.f.mv.visitLdcInsn("_init");
+		c.f.mv.visitLdcInsn("New");
 		invokeSuper(0);
 		c.f.mv.visitInsn(POP);
 		c.f.superInitCalled = true;

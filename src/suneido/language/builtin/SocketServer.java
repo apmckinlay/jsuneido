@@ -73,7 +73,7 @@ public class SocketServer extends SuClass {
 		@Override
 		public void run() {
 			try {
-				invoke(this, "_init");
+				invoke(this, "New");
 				invoke(this, "Run");
 			} finally {
 				socket.Close();
