@@ -201,7 +201,7 @@ public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
 	public String superCallTarget(String method) {
-		return "super" + (method.equals("_init") ? "" : "." + method);
+		return "super" + (method.equals("New") ? "" : "." + method);
 	}
 
 	@Override

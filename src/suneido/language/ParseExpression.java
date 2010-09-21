@@ -290,7 +290,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T superCall() {
 		if (token == L_PAREN)
-			return generator.superCallTarget("_init");
+			return generator.superCallTarget("New");
 		if (token != DOT)
 			syntaxError("invalid use of super");
 		match();
