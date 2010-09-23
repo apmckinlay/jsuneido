@@ -1,0 +1,5 @@
+syntax: glob
+**.class
+**.launch
+jsuneido.jar
+WhenBuilt.jar
