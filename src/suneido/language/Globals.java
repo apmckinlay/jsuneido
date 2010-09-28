@@ -111,6 +111,7 @@ public class Globals {
 		builtins.put("Unload", new Unload());
 		builtins.put("Unpack", new Unpack());
 		builtins.put("Unuse", new Unuse());
+		builtins.put("UnixTime", new UnixTime());
 		builtins.put("Use", new Use());
 	}
 
