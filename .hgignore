@@ -3,3 +3,12 @@ syntax: glob
 **.launch
 jsuneido.jar
 WhenBuilt.jar
+
+syntax: regexp
+^\.externalToolBuilders$
+syntax: regexp
+\.out$
+syntax: regexp
+^repl\.txt$
+syntax: regexp
+^suneido\.db$
