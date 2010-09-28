@@ -12,3 +12,5 @@ syntax: regexp
 ^repl\.txt$
 syntax: regexp
 ^suneido\.db$
+syntax: regexp
+^jsuneido-dist\.jar$
