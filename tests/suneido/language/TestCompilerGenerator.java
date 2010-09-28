@@ -10,7 +10,7 @@ public class TestCompilerGenerator {
 	private static final StringWriter sw = new StringWriter();
 
 	public static void main(String[] args) throws Exception {
-		SuValue f = compile("function () { a = 1;; }");
+		/*SuValue f =*/ compile("function () { a = 1;; }");
 		System.out.println(sw);
 //		Object[] locals = new Object[] { 12, null };
 //		Object result = Ops.invoke(f, "call", locals);
