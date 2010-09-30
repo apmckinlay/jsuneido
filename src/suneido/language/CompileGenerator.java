@@ -515,6 +515,7 @@ public class CompileGenerator extends Generator<Object> {
 		return "return";
 	}
 
+	// TODO use preconstructed exception
 	private void blockReturn() {
 		// stack: value
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/BlockReturnException");
@@ -720,7 +721,6 @@ public class CompileGenerator extends Generator<Object> {
 		return null;
 	}
 
-	//TODO use a helper function to throw
 	private Stack addNullCheck(Stack expr) {
 		if (expr != RVALUE_LOCAL && expr != RVALUE_RETURN)
 			return expr;
@@ -728,13 +728,10 @@ public class CompileGenerator extends Generator<Object> {
 		Label label = new Label();
 		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitJumpInsn(IFNONNULL, label);
-		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
-		c.f.mv.visitInsn(DUP);
 		c.f.mv.visitLdcInsn(expr == RVALUE_LOCAL ? "uninitialized variable"
 				: "no return value");
-		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
+		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "thrower",
 				"(Ljava/lang/Object;)V");
-		c.f.mv.visitInsn(ATHROW);
 		c.f.mv.visitLabel(label);
 		return RVALUE;
 	}
@@ -1470,17 +1467,8 @@ public class CompileGenerator extends Generator<Object> {
 	@Override
 	public Object throwStatement(Object expr) {
 		force();
-		// stack: value
-		c.f.mv.visitTypeInsn(NEW, "suneido/SuException");
-		// stack: exception, value
-		c.f.mv.visitInsn(DUP_X1);
-		// stack: exception, value, exception
-		c.f.mv.visitInsn(SWAP);
-		// stack: value, exception, exception
-		c.f.mv.visitMethodInsn(INVOKESPECIAL, "suneido/SuException", "<init>",
+		c.f.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "thrower",
 				"(Ljava/lang/Object;)V");
-		// stack: exception
-		c.f.mv.visitInsn(ATHROW);
 		pop();
 		return null;
 	}
