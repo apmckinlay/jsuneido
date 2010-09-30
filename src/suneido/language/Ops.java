@@ -636,6 +636,10 @@ public class Ops {
 		return x.getClass().getName();
 	}
 
+	public static void thrower(Object e) {
+		throw new SuException(e);
+	}
+
 	public static Object call(Object x, Object... args) {
 		try {
 			//System.out.println("call " + display(x) + display(args));
