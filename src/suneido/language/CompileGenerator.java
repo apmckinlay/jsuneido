@@ -515,7 +515,8 @@ public class CompileGenerator extends Generator<Object> {
 		return "return";
 	}
 
-	// TODO use preconstructed exception
+	// note: can't use preconstructed exception
+	// because we have to include the return value
 	private void blockReturn() {
 		// stack: value
 		c.f.mv.visitTypeInsn(NEW, "suneido/language/BlockReturnException");
