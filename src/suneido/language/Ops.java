@@ -649,7 +649,7 @@ public class Ops {
 				return callString(x, args);
 			}
 		} catch (java.lang.StackOverflowError e) {
-			throw new SuException("function call overflow");
+			throw new SuException("function call overflow", e);
 		}
 		throw new SuException("can't call " + typeName(x));
 	}
