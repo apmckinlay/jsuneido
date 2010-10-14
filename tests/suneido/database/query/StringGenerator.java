@@ -23,7 +23,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String function(String parameters, String statementList) {
+	public String functionEnd(String parameters, String statementList) {
 		return "function (" + str(parameters) + ") { "
 				+ str("", statementList, " ") + "}";
 	}
@@ -220,7 +220,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String block(String params, String statements) {
+	public String blockEnd(String params, String statements) {
 		return "{" + str("|", params, "|") + " " + str("", statements, " ")
 				+ "}";
 	}
@@ -237,7 +237,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String classConstant(String base, String members) {
+	public String classEnd(String base, String members) {
 		if ("Object".equals(base))
 			base = null;
 		return "class" + str(" : ", base, "") + " { " + str("", members, " ")
@@ -255,7 +255,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String object(MType which, String members) {
+	public String objectEnd(MType which, String members) {
 		return "#" + (which == OBJECT ? "(" : "{") + str(members)
 				+ (which == OBJECT ? ")" : "}");
 	}

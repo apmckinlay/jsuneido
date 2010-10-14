@@ -4,7 +4,8 @@ public class TestGenerator extends Generator<Object> {
 
 	private void print(Object... args) {
 		for (Object arg : args)
-			System.out.print(arg + " ");
+			if (arg != null)
+				System.out.print(arg + " ");
 		System.out.println();
 	}
 
@@ -100,7 +101,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object object(suneido.language.Generator.MType which, Object members) {
+	public Object objectEnd(suneido.language.Generator.MType which, Object members) {
 		print("object", which, members);
 		return null;
 	}
@@ -148,14 +149,30 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
+	public void classBegin(String name) {
+		print("classBegin", name);
+	}
+
+	@Override
+	public Object classEnd(String base, Object members) {
+		print("classEnd", base, members);
+		return "classEnd-result";
+	}
+
+	@Override
 	public void afterStatement(Object statements) {
 		print("afterStatement", statements);
 	}
 
 	@Override
-	public Object function(Object params, Object compound) {
-		print("function", params, compound);
-		return "function-result";
+	public void functionBegin(String name, boolean isMethod) {
+		print("functionBegin", name, isMethod ? "isMethod" : null);
+	}
+
+	@Override
+	public Object functionEnd(Object params, Object compound) {
+		print("functionEnd", params, compound);
+		return "functionEnd-result";
 	}
 
 	@Override
@@ -268,8 +285,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	public static void main(String[] args) {
-		String s = "a and b";
-		Lexer lexer = new Lexer("function(){ " + s + "}");
+		String s = "function () { return function () { } }";
+		Lexer lexer = new Lexer(s);
 		TestGenerator generator = new TestGenerator();
 		ParseConstant<Object, Generator<Object>> pc =
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);

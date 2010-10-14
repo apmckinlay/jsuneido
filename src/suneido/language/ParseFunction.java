@@ -22,15 +22,15 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public T function() {
 		matchSkipNewlines(FUNCTION);
-		return functionWithoutKeyword(null);
+		return functionWithoutKeyword(null, false);
 	}
-	protected T functionWithoutKeyword(T name) {
-		generator.startFunction(name);
+	protected T functionWithoutKeyword(String name, boolean inClass) {
+		generator.functionBegin(name, inClass);
 		T params = parameters();
 		if (!superInit())
 			generator.addSuperInit();
 		T body = compound(null);
-		return generator.function(params, body);
+		return generator.functionEnd(params, body);
 	}
 
 	private T parameters() {

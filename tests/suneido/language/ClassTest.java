@@ -28,11 +28,15 @@ public class ClassTest {
 		notFound("A.M");
 
 		define("A", "class { F() { 123 } }");
+		test("A.F()", "123");
 		test("A().F()", "123");
 
 		define("A", "class { F?() { 123 } G!() { 456 } }");
 		test("A.F?()", "123");
 		test("A.G!()", "456");
+
+		define("A", "class { F() { .G() } G() { 123 } }");
+		test("A().F()", "123");
 
 		define("A", "class { F() { .g() } g() { 123 } }");
 		test("A().F()", "123");
@@ -90,16 +94,23 @@ public class ClassTest {
 
 		define("A", "class { F() { 123 } }");
 		define("B", "A { F() { 456 } G() { super.F() } }");
+		test("B.G()", "123");
+		test("B().G()", "123");
+
+		// super call in a block
+		define("A", "class { F() { 123 } }");
+		define("B", "A { F() { 456 } G() { b = { super.F() }; b() } }");
+		test("B.G()", "123");
 		test("B().G()", "123");
 
 		define("A", "class { B: class { F() { 123 } } }");
 		test("(new A.B).F()", "123");
-		test("new A.B", "A_c0()");
+		test("new A.B", "A$c()");
 
 		define("A", "class { F() { 123 } N: 123 }");
 		define("B", "A { }");
 		test("A.F", "A.F");
-		test("B.F", "B.F");
+		test("B.F", "A.F");
 		test("B.N", "123");
 		notFound("B.M");
 
@@ -149,6 +160,11 @@ public class ClassTest {
 
 		define("A", "class { New() { this['a'] = 123; } }");
 		test("A().Members()", "#('a')");
+
+		// method should be bound to starting point, not where found
+		define("A", "class { F() { .G() } }");
+		define("B", "class : A { G() { 123 } }");
+		test("f = B.F; f()", "123");
 	}
 	@Test public void test_static_getter() {
 		define("A", "class { " +

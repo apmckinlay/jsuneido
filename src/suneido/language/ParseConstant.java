@@ -66,10 +66,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T classConstant() {
-		generator.startClass();
+		return classConstant(null);
+	}
+	private T classConstant(String name) {
+		generator.classBegin(name);
 		String base = classBase();
-		T members = memberList(L_CURLY, base);
-		return generator.classConstant(base == "" ? null : base, members);
+		T members = memberList(L_CURLY, true);
+		return generator.classEnd(base == "" ? null : base, members);
 	}
 	private String classBase() {
 		if (lexer.getKeyword() == CLASS) {
@@ -85,42 +88,42 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return base;
 	}
 	// base is null for non-class objects
-	private T memberList(Token open, String base) {
-		MType which = (base != null ? MType.CLASS
+	private T memberList(Token open, boolean inClass) {
+		MType which = (inClass ? MType.CLASS
 				: open == L_PAREN ? MType.OBJECT : MType.RECORD);
 		match(open);
 		T members = null;
 		while (token != open.other) {
-			members = generator.memberList(which, members, member(base));
+			members = generator.memberList(which, members, member(inClass));
 			if (token == COMMA || token == SEMICOLON)
 				match();
 		}
 		match(open.other);
 		return members;
 	}
-	private T member(String base) {
-		T name = memberName(base);
+	private T member(boolean inClass) {
+		T name = memberName(inClass);
 		boolean canBeFunction = token != COLON;
 		if (name != null) {
 			if (token == COLON) {
 				match();
-				if (base != null && token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
+				if (inClass && token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
 					canBeFunction = true;
 					match();
 				}
-			} else if (base != null && token != L_PAREN)
+			} else if (inClass && token != L_PAREN)
 				syntaxError("expected colon after member name");
 		}
-		T value = memberValue(name, canBeFunction);
+		T value = memberValue(name, canBeFunction, inClass);
 		return generator.memberDefinition(name, value);
 	}
-	private T memberName(String base) {
-		if (!isMemberName(base))
+	private T memberName(boolean inClass) {
+		if (!isMemberName(inClass))
 			return null;
 		T name = simpleConstant();
 		return name;
 	}
-	private boolean isMemberName(String base) {
+	private boolean isMemberName(boolean inClass) {
 		if (token != IDENTIFIER && token != STRING && token != NUMBER
 				&& token != SUB && token != ADD)
 			return false;
@@ -128,15 +131,23 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		Token next = ahead.next();
 		if (token == SUB || token == ADD)
 			next = ahead.next();
-		return next == COLON || (base != null && next == L_PAREN);
+		return next == COLON || (inClass && next == L_PAREN);
 	}
 
-	private T memberValue(T name, boolean canBeFunction) {
+	private T memberValue(T name, boolean canBeFunction, boolean inClass) {
 		T value = null;
 		if (name != null && canBeFunction && token == L_PAREN)
-			value = functionWithoutKeyword(name);
+			value = functionWithoutKeyword(
+					name instanceof String ? (String) name : null, inClass);
 		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
-			value = constant();
+			if (token == FUNCTION) {
+				matchSkipNewlines(FUNCTION);
+				value = functionWithoutKeyword(
+						name instanceof String ? (String) name : null, inClass);
+			} else if (token == CLASS) {
+				value = classConstant(name instanceof String ? (String) name : null);
+			} else
+				value = constant();
 		} else if (name != null)
 			value = generator.bool(true);
 		else
@@ -183,20 +194,20 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return matchReturn(generator.symbol(lexer.getValue()));
 	}
 	public T object() {
-		generator.startObject();
+		generator.objectBegin();
 		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
-		T members = memberList(token, null);
-		return generator.object(which, members);
+		T members = memberList(token, false);
+		return generator.objectEnd(which, members);
 	}
 
 	private T function() {
 		matchSkipNewlines(FUNCTION);
-		return functionWithoutKeyword(null);
+		return functionWithoutKeyword(null, false);
 	}
 
-	private T functionWithoutKeyword(T name) {
+	private T functionWithoutKeyword(String name, boolean inClass) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.functionWithoutKeyword(name);
+		T result = p.functionWithoutKeyword(name, inClass);
 		token = p.token;
 		return result;
 	}

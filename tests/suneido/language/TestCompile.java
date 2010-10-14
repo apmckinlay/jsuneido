@@ -2,22 +2,24 @@ package suneido.language;
 
 import java.io.*;
 
-public class TestCompileClass {
+public class TestCompile {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new File("class.txt"), Charsets.UTF_8);
 //		compile("MyClass", s);
 
-//		Object c =
-			compile("Test", "function () { }");
-//		Object result = Ops.invoke(c, "func");
-//		System.out.println(result);
-
 //		compile("Test", "class { X: (function () {}) }");
+//		Object result = Ops.invoke(c, "func");
+
+//		Object c = compile("Test", "function () { c = class { F() { 123 } }; c.F() }");
+//		Object result = Ops.call(c);
+//		System.out.println(result);
+		compile("Test", "class { F() { b = { super.G() } } }");
+//		System.out.println(Ops.call(c));
 	}
 
 	private static Object compile(String name, String s) {
-System.out.println("====== " + s);
+		System.out.println("====== " + s);
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
 		CompileGenerator generator =
@@ -26,7 +28,7 @@ System.out.println("====== " + s);
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);
 		Object c = pc.parse();
 		String r = sw.toString();
-System.out.println(r);
+		System.out.println(r);
 		return c;
 	}
 

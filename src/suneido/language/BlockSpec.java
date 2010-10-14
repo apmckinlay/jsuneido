@@ -9,4 +9,9 @@ public class BlockSpec extends FunctionSpec {
 		this.iparams = iparams;
 	}
 
+	@Override
+	public String toString() {
+		return "BlockSpec extends " + super.toString();
+	}
+
 }

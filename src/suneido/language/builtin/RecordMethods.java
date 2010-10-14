@@ -1,6 +1,6 @@
 package suneido.language.builtin;
 
-import static suneido.language.UserDefined.userDefinedClass;
+import static suneido.language.UserDefined.userDefinedMethod;
 import static suneido.util.Util.array;
 
 import java.util.Map;
@@ -38,9 +38,10 @@ public class RecordMethods {
 		if (method == "Update")
 			return Update(r, args);
 
-		SuClass c = userDefinedClass("Records", method);
-		if (c != null)
-			return c.invoke(r, method, args);
+		SuFunction f = userDefinedMethod("Records", method);
+		if (f != null)
+			return f.eval(r, args);
+
 		return ContainerMethods.invoke(r, method, args);
 	}
 

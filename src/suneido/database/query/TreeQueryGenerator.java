@@ -250,7 +250,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 	@Override
 	public Object memberList(MType which, Object members, Object member) {
-		SuContainer rec = object(which, members);
+		SuContainer rec = objectEnd(which, members);
 		MemDef m = (MemDef) member;
 		if (m.name == null)
 			rec.append(m.value);
@@ -265,7 +265,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public SuContainer object(MType which, Object members) {
+	public SuContainer objectEnd(MType which, Object members) {
 		return members == null
 				? which == MType.RECORD ? new SuRecord() : new SuContainer()
 				: (SuContainer) members;

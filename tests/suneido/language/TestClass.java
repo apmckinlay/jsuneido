@@ -3,21 +3,30 @@
  */
 package suneido.language;
 
+import java.util.HashMap;
+import java.util.Map;
 
-class TestClass extends SampleClass {
-	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		if (method == "Substr")
-			return TestClass.method1(args);
-		else if (method == "Size")
-			return TestClass.method2(args);
-		else
-			return super.invoke(self, method, args);
+class TestClass {
+
+	public static SuClass instance() {
+		Map<String, Object> methods = new HashMap<String, Object>();
+		methods.put("Substr", new Test_Substr());
+		methods.put("Size", new Test_Size());
+		return new SuClass("TestClass", null, methods);
 	}
-	public static Object method1(Object[] args) {
-		return "";
+
+	private static class Test_Substr extends SuFunction {
+		@Override
+		public Object call(Object self, Object... args) {
+			return "";
+		}
 	}
-	public static Object method2(Object[] args) {
-		return 0;
+
+	private static class Test_Size extends SuFunction {
+		@Override
+		public Object call(Object self, Object... args) {
+			return 0;
+		}
 	}
+
 }

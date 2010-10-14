@@ -13,6 +13,14 @@ import suneido.util.ServerBySocket.HandlerFactory;
 
 public class SocketServer extends SuClass {
 
+	public SocketServer() {
+		super("SocketServer", null, null);
+	}
+
+	public SocketServer(String className, String baseGlobal, Object vars) {
+		super(className, baseGlobal, vars);
+	}
+
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "CallClass")

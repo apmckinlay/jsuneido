@@ -1,20 +1,18 @@
 package suneido.language;
 
-import suneido.SuException;
-import suneido.SuValue;
-
-import com.google.common.base.Objects;
-
-public final class SuBlock extends SuValue {
-	private final Object home; // defining class
+/**
+ * A bound instance of a block.
+ * Points to a generated sub-class of SuCallable
+ * which defines an eval method.
+ */
+public final class SuBlock extends SuCallable {
+	private final SuCallable block;
 	private final Object self;
-	private final BlockSpec bspec;
 	private final Object[] locals;
 
-	public SuBlock(Object home, Object self, FunctionSpec bspec, Object[] locals) {
-		this.home = home;
+	public SuBlock(Object block, Object self, Object[] locals) {
+		this.block = (SuCallable) block;
 		this.self = self;
-		this.bspec = (BlockSpec) bspec;
 		this.locals = locals;
 	}
 
@@ -23,46 +21,26 @@ public final class SuBlock extends SuValue {
 
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(bspec, args);
-		// merge args into locals
-		for (int i = 0; i < bspec.nparams; ++i)
-			locals[bspec.iparams + i] = args[i];
-		return ((SuValue) home).invoke(self, bspec.name, locals);
+		return call(self, args);
 	}
 
 	@Override
 	public Object eval(Object newSelf, Object... args) {
-		if (!(home instanceof SuValue))
-			throw new SuException("Eval requires Suneido value");
+		return call(newSelf, args);
+	}
+
+	private Object call(Object self, Object... args) {
+		BlockSpec bspec = (BlockSpec) block.params;
 		args = Args.massage(bspec, args);
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)
 			locals[bspec.iparams + i] = args[i];
-		return ((SuValue) home).invoke(newSelf, bspec.name, locals);
+		return block.eval(self, locals);
 	}
 
 	@Override
 	public String toString() {
-		return "block:" + (home == null ? "null" : home.toString())
-				+ "."
-				+ bspec.name;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (other == this)
-			return true;
-		if (! (other instanceof SuBlock))
-			return false;
-		SuBlock that = (SuBlock) other;
-		return home == that.home
-				&& bspec == that.bspec
-				&& locals == that.locals;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(home, bspec, locals);
+		return "aBlock";
 	}
 
 	@Override

@@ -194,9 +194,9 @@ public class CompileTest {
 		test("a(99: 'x')",
 				"a, NAMED, 99, 'x', callN, ARETURN");
 		test("return function () { }",
-				"0=aFunction, ARETURN");
+				"0=Test$f, ARETURN");
 		test("a = function () { }",
-				"&a, 0=aFunction, DUP_X2, AASTORE, ARETURN");
+				"&a, 0=Test$f, DUP_X2, AASTORE, ARETURN");
 		test("A().B()",
 				"'A', global, callN, 'B', invokeN, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
@@ -206,8 +206,10 @@ public class CompileTest {
 				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
 		test_b0("Do() { this }",
 				"self, ARETURN");
-		test_b0("Do() { return .a + .b }",
-				"self, 'a', getMem, self, 'b', getMem, add");
+		test_b0("Do() { .a + .b }",
+				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
+		test_b0("Do() { return 123 }",
+				"123, block_return");
 		test("new this",
 				"self, '<new>', invokeN, ARETURN");
 		test("new this(a)",
@@ -380,12 +382,13 @@ public class CompileTest {
 	private void test_b0(String expr, String expected) {
 		String s = compile(expr);
 		s = simplify(s,
-				"Test_b0(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0");
-		s = before(s, ", NEW suneido/language/BlockReturnException");
+				"eval(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0");
+		s = before(s, ", INVOKESPECIAL suneido/language/BlockReturnException.<init>");
 		assertEquals(expr, expected, s);
 	}
 	private void test(String expr, String expected, String after) {
 		String s = compile(expr);
+		s = after(s, "class suneido/language/Test ");
 		s = simplify(s, after);
 		assertEquals(expr, expected, s);
 	}
@@ -404,7 +407,7 @@ public class CompileTest {
 		ParseConstant<Object, Generator<Object>> pc =
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);
 		SuCallable x = (SuCallable) pc.parse();
-		constants = x.constants == null ? new Object[0] : x.constants[0];
+		constants = x.constants == null ? new Object[0] : x.constants;
 		return sw.toString();
 	}
 
@@ -424,10 +427,10 @@ public class CompileTest {
 			{ "ALOAD 1", "self" },
 			{ "ALOAD 2", "args" },
 			{ "ALOAD 3", "const" },
-			{ "this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, ICONST_0, AALOAD, ", "" },
+			{ "this, GETFIELD suneido/language/Test.params : Lsuneido/language/FunctionSpec;, ", "" },
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
-			{ "this, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_0, AALOAD, ASTORE 3, ", "" },
-			{ "this, GETFIELD suneido/language/Test.constants : [[Object;, ICONST_1, AALOAD, ASTORE 3, ", "" },
+			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE 3, ", "" },
+			{ "this, GETFIELD suneido/language/Test$b.constants : [Object;, ASTORE 3, ", "" },
 			{ "args, ICONST_0, AALOAD", "a" },
 			{ "args, ICONST_1, AALOAD", "b" },
 			{ "args, ICONST_2, AALOAD", "c" },
@@ -477,7 +480,7 @@ public class CompileTest {
 			{ "toBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, this, self, this, GETFIELD suneido/language/Test.params : [Lsuneido/language/FunctionSpec;, 1, AALOAD, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;Lsuneido/language/FunctionSpec;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock, DUP, 0=aTest$b, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
@@ -489,13 +492,13 @@ public class CompileTest {
 			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
-			{ "INVOKEVIRTUAL suneido/language/SuFunction.superInvokeN", "superInvokeN" },
+			{ "INVOKEVIRTUAL suneido/language/SuCallable.superInvokeN", "superInvokeN" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
 			{ "GETSTATIC java/lang/Boolean.FALSE : Boolean;", "false" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
-			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" }
-
+			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" },
+			{ "NEW suneido/language/BlockReturnException, DUP_X1, SWAP, args", "block_return" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

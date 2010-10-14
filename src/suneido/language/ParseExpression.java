@@ -607,13 +607,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T block() {
-		Object loop = generator.startBlock();
+		Object loop = generator.blockBegin();
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
 		generator.blockParams();
 		T statements = statementList(loop);
 		match(R_CURLY);
-		return generator.block(params, statements);
+		return generator.blockEnd(params, statements);
 	}
 	private T blockParams() {
 		match(BITOR);

@@ -5,9 +5,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
-import suneido.SuRecord;
-import suneido.language.*;
+import suneido.*;
+import suneido.language.Globals;
+import suneido.language.Ops;
 import suneido.language.builtin.TransactionInstance;
 
 @ThreadSafe
@@ -24,8 +24,8 @@ public class Triggers {
 		Object fn = Globals.tryget(trigger);
 		if (fn == null)
 			return;
-		if (!(fn instanceof SuCallable))
-			throw new SuException(trigger + " not callable");
+		if (!SuValue.isCallable(fn))
+			throw new SuException(trigger + " not callable (" + Ops.typeName(fn) + ")");
 		TransactionInstance t = new TransactionInstance(tran);
 		try {
 			Ops.call(fn, t,
