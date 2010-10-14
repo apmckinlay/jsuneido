@@ -12,4 +12,5 @@ public class BuiltinFunction extends SuFunction {
 	public Object call(Object self, Object... args) {
 		return null;
 	}
+
 }
