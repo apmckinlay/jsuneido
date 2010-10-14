@@ -80,4 +80,11 @@ public abstract class SuValue implements Packable {
 		return null;
 	}
 
+	public static boolean isCallable(Object x) {
+		return x instanceof SuValue && ((SuValue) x).isCallable();
+	}
+	protected boolean isCallable() {
+		return false;
+	}
+
 }

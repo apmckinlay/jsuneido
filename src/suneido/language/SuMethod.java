@@ -5,59 +5,38 @@ import suneido.SuValue;
 import com.google.common.base.Objects;
 
 /**
- * SuMethod makes methods first class values.
- * It binds the method and the instance it "came from".
- * Also used for nested anonymous functions.
- * @author Andrew McKinlay
+ * A method bound to an instance.
+ *
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class SuMethod extends SuValue {
-	/** not private final because instance is filled in later
-	 *  @see CompileGenerator.linkConstants */
-	public SuValue instance;
-	public final String method;
+	public final SuValue instance;
+	public final SuFunction method;
 
-	public SuMethod(SuValue instance, String method) {
+	public SuMethod(SuValue instance, SuFunction method) {
 		this.instance = instance;
 		this.method = method;
 	}
 
 	@Override
 	public Object call(Object... args) {
-		return instance.invoke(instance, method, args);
+		return method.eval(instance, args);
 	}
 
 	@Override
 	public Object eval(Object self, Object... args) {
-		return instance.invoke(self, method, args);
+		return method.eval(self, args);
 	}
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
-		if (method == "Params")
-			return Params(self, args);
-		return super.invoke(self, method, args);
-	}
-
-	private Object Params(Object self, Object[] args) {
-		if (! (instance instanceof SuCallable))
-			return "";
-		FunctionSpec fs = find(((SuCallable) instance).params, method);
-		if (fs == null)
-			return "";
-		return fs.params();
-	}
-	private FunctionSpec find(FunctionSpec[] params, String name) {
-		for (FunctionSpec f : params)
-			if (f.name.equals(method))
-				return f;
-		return null;
+		return this.method.invoke(self, method, args);
 	}
 
 	@Override
-	public String toString() {
-		return instance + "." + method;
+	public boolean isCallable() {
+		return true;
 	}
 
 	@Override

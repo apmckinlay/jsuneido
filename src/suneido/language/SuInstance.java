@@ -1,13 +1,9 @@
 package suneido.language;
 
-import static suneido.language.SuClass.Marker.GETMEM;
-import static suneido.language.SuClass.Marker.GETTER;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import suneido.*;
-import suneido.language.SuClass.Method;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.base.Objects;
@@ -71,11 +67,12 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public String toString() {
-		if (myclass != null && myclass instanceof SuClass
-				&& ((SuClass) myclass).get3("ToString") instanceof Method)
-			return Ops.toStr(invoke(this, "ToString"));
-		else
-			return myclass + "()";
+		if (myclass != null && myclass instanceof SuClass) {
+			Object toString = ((SuClass) myclass).get2("ToString");
+			if (toString instanceof SuFunction)
+				return Ops.toStr(((SuFunction) toString).eval(this));
+		}
+		return myclass + "()";
 	}
 
 	@Override
@@ -83,16 +80,7 @@ public class SuInstance extends SuValue {
 		Object value = ivars.get(member);
 		if (value != null)
 			return value;
-		value = ((SuClass) myclass).get2(member);
-		if (value == GETTER)
-			value = invoke(this, "Get_", member);
-		else if (value == GETMEM)
-			value = invoke(this, ("Get_" + (String) member).intern());
-		else if (value instanceof Method)
-			value = new SuMethod(this, (String) member);
-		if (value == null)
-			throw new SuException("member not found: " + member);
-		return value;
+		return ((SuClass) myclass).get(this, member);
 	}
 
 	@Override

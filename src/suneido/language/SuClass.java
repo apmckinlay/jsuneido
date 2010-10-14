@@ -1,109 +1,70 @@
 package suneido.language;
 
 import static suneido.SuException.methodNotFound;
-import static suneido.language.SuClass.Marker.*;
 
+import java.util.Collections;
 import java.util.Map;
 
 import suneido.*;
 import suneido.language.builtin.ContainerMethods;
 
 /**
- * The Java base class for compiled Suneido classes.
- * Immutable after initialization by {@link CompileGenerator.finishClass}
- * @see SuMethod
- * @see SuFunction
- * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public abstract class SuClass extends SuCallable {
-	protected String baseGlobal = null;
-	protected Map<String, Object> vars; // must be synchronized
-	protected boolean hasGetters = false;
+public class SuClass extends SuValue {
+	private final String className;
+	private final String baseGlobal;
+	private final Map<String, Object> members; // must be synchronized
+	private boolean hasGetters = true; // till we know different
 
-	// NOMETHOD is used instead of null
-	// to differentiate from map.get returning null for missing
-	public static class Marker {
-		public static final Marker NOMETHOD = new Marker();
-		public static final Marker GETTER = new Marker();
-		public static final Marker GETMEM = new Marker();
-	};
-	public static final class Method extends Marker {
-		final SuClass c;
-		public Method(SuClass c) {
-			this.c = c;
-		}
+	@SuppressWarnings("unchecked")
+	public SuClass(String className, String baseGlobal, Object members) {
+		this.className = className;
+		this.baseGlobal = baseGlobal;
+		this.members = (Map<String, Object>) (members == null ? Collections.emptyMap() : members);
+		linkMethods();
+	}
+
+	private void linkMethods() {
+		for (Object v : members.values())
+			if (v instanceof SuFunction) {
+				SuFunction f = (SuFunction) v;
+				f.myClass = this;
+				for (Object c : f.constants)
+					if (c instanceof SuCallable) // blocks
+						((SuCallable) c).myClass = this;
+			}
 	}
 
 	@Override
 	public Object get(Object member) {
-		Object value = get2(member);
-		if (value == GETTER)
-			value = invoke(this, "Get_", member);
-		else if (value == GETMEM)
-			value = invoke(this, ("Get_" + (String) member).intern());
-		else if (value instanceof Method)
-			value = new SuMethod(this, (String) member);
-		if (value == null)
-			throw new SuException("member not found: " + member);
-		return value;
+		return get(this, member);
 	}
 
-	public Object get2(Object member) {
-		Object value = get3(member);
+	public Object get(SuValue self, Object member) {
+		Object value = get2(member);
 		if (value != null)
-			return value;
-		value = getBase(member);
+			return value instanceof SuFunction && self != null
+					? new SuMethod(self, (SuFunction) value) : value;
 		if (hasGetters) {
 			String getter = ("Get_" + member).intern();
-			if (value == null || value == GETTER || value == GETMEM) {
-				if (haveGetter(getter))
-					value = GETMEM; // our Get_member beats any base getter
-				else if (value != GETMEM && haveGetter("Get_"))
-					value = GETTER; // our Get_ beats base Get_
-			}
+			value = get2(getter);
+			if (value instanceof SuFunction)
+				return ((SuFunction) value).eval(self);
+			value = get2("Get_");
+			if (value instanceof SuFunction)
+				return ((SuFunction) value).eval(self, member);
+			hasGetters = false;
 		}
-		return value;
+		throw new SuException("member not found: " + member);
 	}
 
-	public Object get3(Object member) {
-		if (vars == null)
-			return null;
-		Object value = vars.get(member);
-		if (value == null && Ops.isString(member)) {
-			String m = member.toString();
-			value = findMethod(m);
-			vars.put(m, value); // cache for next time
-		}
-		return value == NOMETHOD ? null : value;
-	}
-
-	private Object findMethod(String method) {
-		for (FunctionSpec f : params)
-			if (f.name.equals(method))
-				return new Method(this);
-		return NOMETHOD;
-	}
-
-	private boolean haveGetter(String getter) {
-		Object value = vars.get(getter);
-		if (value != null)
-			return value == GETTER ? true : false; // cached from last time
-		value = findMethod(getter);
-		if (!(value instanceof Method))
-			return false;
-		vars.put(getter, GETTER); // cache for next time
-		return true;
-	}
-
-	private Object getBase(Object member) {
-		if (baseGlobal == null)
-			return null;
-		Object base = Globals.get(baseGlobal);
-		if (!(base instanceof SuClass))
-			throw new SuException("base must be class");
-		return ((SuClass) base).get2(member);
+	protected Object get2(Object member) {
+		Object value = members.get(member);
+		if (value != null || baseGlobal == null)
+			return value;
+		return base().get2(member);
 	}
 
 	@Override
@@ -117,9 +78,15 @@ public abstract class SuClass extends SuCallable {
 	}
 
 	@Override
+	public boolean isCallable() {
+		return true;
+	}
+
+	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		// if the original method call was to an instance
 		// then self will be the instance (not the class)
+
 		if (method == "<new>")
 			return newInstance(args);
 		if (method == "Base")
@@ -139,8 +106,9 @@ public abstract class SuClass extends SuCallable {
 		if (method == "MethodClass")
 			return MethodClass(self, args);
 
-		if (baseGlobal != null)
-			return base().invoke(self, method, args);
+		Object fn = get2(method);
+		if (fn instanceof SuFunction)
+			return ((SuFunction) fn).eval(self, args);
 
 		if (method == "New")
 			return init(args);
@@ -169,11 +137,11 @@ public abstract class SuClass extends SuCallable {
 		return x;
 	}
 
-	private SuValue base() {
+	private SuClass base() {
 		Object base = Globals.get(baseGlobal);
-		if (!(base instanceof SuValue))
+		if (!(base instanceof SuClass))
 			throw new SuException("class base must be a Suneido value");
-		return (SuValue) base;
+		return (SuClass) base;
 	}
 
 	private Object Base(Object self, Object[] args) {
@@ -185,11 +153,15 @@ public abstract class SuClass extends SuCallable {
 
 	private Object BaseQ(Object self, Object[] args) {
 		args = Args.massage(FunctionSpec.value, args);
-		if (args[0] == this)
+		return hasBase(args[0]);
+	}
+
+	private Boolean hasBase(Object base) {
+		if (base == this)
 			return Boolean.TRUE;
 		if (baseGlobal == null)
 			return Boolean.FALSE;
-		return base().invoke("Base?", args);
+		return base().hasBase(base);
 	}
 
 	private static final FunctionSpec keyValueFS =
@@ -198,8 +170,8 @@ public abstract class SuClass extends SuCallable {
 	private Object GetDefault(Object self, Object[] args) {
 		args = Args.massage(keyValueFS, args);
 		String key = Ops.toStr(args[0]);
-		if (vars.containsKey(key))
-			return vars.get(key);
+		if (members.containsKey(key))
+			return members.get(key);
 		Object x = args[1];
 		if (x instanceof SuBlock)
 			x = Ops.call(x);
@@ -209,12 +181,9 @@ public abstract class SuClass extends SuCallable {
 	private SuContainer Members(Object self, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		SuContainer c = new SuContainer();
-		for (Map.Entry<String, Object> e : vars.entrySet())
-			if (e.getValue() != null && !(e.getValue() instanceof Marker))
+		for (Map.Entry<String, Object> e : members.entrySet())
+			if (e.getValue() != null)
 				c.append(e.getKey());
-		for (FunctionSpec fs : params)
-			if (fs.name != "New") // TODO skip blocks & nested functions
-				c.append(fs.name);
 		return c;
 	}
 
@@ -224,24 +193,29 @@ public abstract class SuClass extends SuCallable {
 		args = Args.massage(keyFS, args);
 		String key = Ops.toStr(args[0]);
 		Object x = get2(key);
-		return x == null || x instanceof Marker ? Boolean.FALSE : Boolean.TRUE;
+		return x == null ? Boolean.FALSE : Boolean.TRUE;
 	}
 
 	private Object MethodClass(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);
-		String key = Ops.toStr(args[0]);
-		Object x = get2(key);
-		if (x instanceof Method)
-			return ((Method) x).c;
-		else
-			return Boolean.FALSE;
+		String method = Ops.toStr(args[0]);
+		return methodClass(method);
+	}
+
+	private Object methodClass(String method) {
+		Object value = members.get(method);
+		if (value instanceof SuFunction)
+			return this;
+		if (value == null && baseGlobal != null)
+			return base().methodClass(method);
+		return Boolean.FALSE;
 	}
 
 	private Boolean MethodQ(Object self, Object[] args) {
 		args = Args.massage(keyFS, args);
 		String key = Ops.toStr(args[0]);
 		Object x = get2(key);
-		return x instanceof Method;
+		return x instanceof SuFunction;
 	}
 
 	@Override
@@ -251,10 +225,11 @@ public abstract class SuClass extends SuCallable {
 
 	@Override
 	public String toString() {
-		return super.typeName();
+		return className;
 	}
 
-	protected Object superInvoke(Object self, String member, Object... args) {
+	/** called by {@link SuFunction.superInvokeN} */
+	public Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {
 			if (member == "New")
 				return null;
@@ -262,88 +237,6 @@ public abstract class SuClass extends SuCallable {
 				throw new SuException("must have base class to use super");
 		}
 		return base().invoke(self, member, args);
-	}
-
-	protected Object superInvokeN(Object self, String member) {
-		return superInvoke(self, member);
-	}
-	protected Object superInvokeN(Object self, String member, Object a) {
-		return superInvoke(self, member, a);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b) {
-		return superInvoke(self, member, a, b);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c) {
-		return superInvoke(self, member, a, b, c);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d) {
-		return superInvoke(self, member, a, b, c, d);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e) {
-		return superInvoke(self, member, a, b, c, d, e);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f) {
-		return superInvoke(self, member, a, b, c, d, e, f);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g) {
-		return superInvoke(self, member, a, b, c, d, e, f, g);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y);
-	}
-	protected Object superInvokeN(Object self, String member, Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h, Object i, Object j, Object k, Object l, Object m, Object n, Object o, Object p, Object q, Object r, Object s, Object t, Object u, Object v, Object w, Object x, Object y, Object z) {
-		return superInvoke(self, member, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z);
 	}
 
 }

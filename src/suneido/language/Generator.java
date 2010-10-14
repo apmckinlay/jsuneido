@@ -48,15 +48,11 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T function(T params, T compound) {
+	public void functionBegin(String name, boolean isMethod) {
+	}
+
+	public T functionEnd(T params, T compound) {
 		return null;
-	}
-
-	public void startFunction(T name) {
-	}
-
-	public Object startBlock() {
-		return true;
 	}
 
 	public abstract T identifier(String text);
@@ -206,6 +202,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	/** reference */
 	public T member(T term, String identifier) {
 		return null;
 	}
@@ -239,10 +236,14 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	public Object blockBegin() {
+		return true;
+	}
+
 	public void blockParams() {
 	}
 
-	public T block(T params, T statements) {
+	public T blockEnd(T params, T statements) {
 		return null;
 	}
 
@@ -250,20 +251,23 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	public abstract T memberDefinition(T name, T value);
+
 	public abstract T memberList(MType which, T list, T member);
 
-	public void startClass() {
+	public void classBegin(String name) {
 	}
 
-	public T classConstant(String base, T members) {
+	public T classEnd(String base, T members) {
 		return null;
 	}
 
-	public abstract T memberDefinition(T name, T value);
+	public void objectBegin() {
+	}
 
 	public enum MType { OBJECT, RECORD, CLASS };
 
-	public abstract T object(MType which, T members);
+	public abstract T objectEnd(MType which, T members);
 
 	public abstract T constant(T value);
 
@@ -279,9 +283,6 @@ public abstract class Generator<T> {
 	}
 
 	public void finish() {
-	}
-
-	public void startObject() {
 	}
 
 	public T argumentListConstant(T args, Object keyword, T value) {

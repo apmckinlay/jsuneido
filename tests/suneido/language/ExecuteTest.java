@@ -166,7 +166,7 @@ public class ExecuteTest {
 	}
 
 	@Test public void test_nested_class() {
-		test("c = class { }; new c", "eval_c0()");
+		test("c = class { }; new c", "eval$c()");
 		test("c = class { F() { 123 } }; c.F()", "123");
 	}
 
@@ -185,12 +185,36 @@ public class ExecuteTest {
 		def("F", "function () { b = { .a }; b() }");
 		test("[a: 123].Eval(F)", "123");
 	}
+
+	@Test
+	public void test_naming() {
+		def("F", "function () { }");
+		test("F", "F");
+
+		def("C", "class { }");
+		test("C", "C");
+		test("C()", "C()");
+
+		def("C", "class { M() { } }");
+		test("C.M", "C.M");
+	}
+
+	@Test
+	public void test_params() {
+		test("f = function () { }; f.Params()", "'()'");
+		test("f = function (a, b = 0) { }; f.Params()", "'(a,b=0)'");
+		test("c = class { F() { } }; c.F.Params()", "'()'");
+	}
+
 	private void def(String name, String source) {
 		Globals.put(name, Compiler.compile(name, source));
 	}
 
-	public static void test(String expr, String result) {
-		assertEquals(result, display(eval(expr)));
+	public static void test(String expr, String expected) {
+		Object result = eval(expr);
+		if (result instanceof SuMethod)
+			result = ((SuMethod) result).method;
+		assertEquals(expected, display(result));
 	}
 
 }

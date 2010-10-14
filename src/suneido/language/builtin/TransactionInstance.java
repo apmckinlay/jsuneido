@@ -129,8 +129,7 @@ public class TransactionInstance extends SuValue {
 			Object value = e.getValue();
 			if (key.equals("query"))
 				continue;
-			if (key.equals("block")
-					&& (value instanceof SuCallable || value instanceof SuBlock))
+			if (key.equals("block") && SuValue.isCallable(value))
 				continue;
 			where.append(" where ")
 					.append(key).append(" = ").append(Ops.display(value));
