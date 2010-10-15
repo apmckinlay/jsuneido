@@ -1,7 +1,6 @@
 package suneido.database;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 
@@ -66,6 +65,14 @@ public class MmfileTest {
 		} finally {
 			mmf.close();
 		}
+	}
+
+	@Test
+	public void offset_conversions() {
+		long offset = 10L * 1024 * 1024 * 1024;
+		int i = Mmfile.offsetToInt(offset);
+		assertTrue(i < 0);
+		assertEquals(offset, Mmfile.intToOffset(i));
 	}
 
 	@AfterClass

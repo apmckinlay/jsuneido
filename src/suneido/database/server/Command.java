@@ -511,11 +511,13 @@ public enum Command {
 			++i;
 		if (i >= buf.limit()
 				|| Character.toUpperCase(buf.get(i)) != type
-				|| !Character.isDigit(buf.get(i + 1)))
+				|| ! (Character.isDigit(buf.get(i + 1)) ||
+					((char) buf.get(i + 1) == '-' && Character.isDigit(buf.get(i + 2)))))
 			return -1;
 		++i;
 		StringBuilder sb = new StringBuilder();
-		while (i < buf.limit() && Character.isDigit(buf.get(i)))
+		while (i < buf.limit() &&
+				(Character.isDigit(buf.get(i)) || buf.get(i) == '-'))
 			sb.append((char) buf.get(i++));
 		int n = Integer.valueOf(sb.toString());
 		while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
