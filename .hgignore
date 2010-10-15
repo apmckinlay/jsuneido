@@ -19,3 +19,4 @@ syntax: regexp
 glob:database.su
 glob:*.log
 glob:suneido.db.bak
+glob:suneido/WhenBuilt.java
