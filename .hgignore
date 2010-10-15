@@ -16,3 +16,6 @@ syntax: regexp
 ^jsuneido-dist\.jar$
 syntax: regexp
 ^etaserver\.go$
+glob:database.su
+glob:*.log
+glob:suneido.db.bak
