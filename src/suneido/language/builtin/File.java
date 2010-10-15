@@ -38,7 +38,7 @@ public class File extends BuiltinClass {
 	private static class Instance extends SuValue {
 		private final String filename;
 		private final String mode;
-		private final RandomAccessFile f;
+		private RandomAccessFile f;
 
 		private static final FunctionSpec fileFS =
 				new FunctionSpec(array("filename", "mode"), "r");
@@ -46,9 +46,22 @@ public class File extends BuiltinClass {
 		public Instance(Object[] args) {
 			args = Args.massage(fileFS, args);
 			filename = Ops.toStr(args[0]);
+			java.io.File file = new java.io.File(filename);
 			mode = Ops.toStr(args[1]);
-			if ("w".equals(mode))
-				new java.io.File(filename).delete();
+			if ("w".equals(mode) && file.exists()) {
+				if (! file.delete())
+					throw new SuException("File: can't delete " + filename);
+				// can't rely on RandomAccessFile to create file
+				// it fails intermittently on Windows
+				// 1000.Times() { PutFile("tester", "") }
+				try {
+					if (! file.createNewFile())
+						throw new SuException("File: can't create " + filename);
+				} catch (IOException e) {
+					throw new SuException("File: can't create '" + filename
+							+ "' in mode '" + mode + "'", e);
+				}
+			}
 			boolean seekEnd = false;
 			if (mode.startsWith("a"))
 				seekEnd = true;
@@ -56,7 +69,7 @@ public class File extends BuiltinClass {
 				f = new RandomAccessFile(filename, mode.equals("r") ? "r" : "rw");
 			} catch (FileNotFoundException e) {
 				throw new SuException("File: can't open '" + filename
-						+ "' in mode '" + mode + "'");
+						+ "' in mode '" + mode + "'", e);
 			}
 			if (seekEnd)
 				try {
@@ -185,7 +198,10 @@ public class File extends BuiltinClass {
 		private Object Close(Object... args) {
 			Args.massage(FunctionSpec.noParams, args);
 			try {
-				f.close();
+				if (f != null) {
+					f.close();
+					f = null;
+				}
 			} catch (IOException e) {
 				throw new SuException("File Close failed", e);
 			}
