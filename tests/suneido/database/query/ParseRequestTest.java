@@ -13,6 +13,8 @@ public class ParseRequestTest {
 	@Test
 	public void test_requests() {
 		test("drop mytable", "drop(mytable)");
+		test("destroy mytable", "drop(mytable)");
+		test("drop 'mytable'", "drop(mytable)");
 		test("Drop mytable", "drop(mytable)");
 		test("rename one to two", "rename(one, two)");
 		test("RENAME one TO two", "rename(one, two)");

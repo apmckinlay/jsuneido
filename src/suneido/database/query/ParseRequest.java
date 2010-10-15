@@ -220,7 +220,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	private T drop() {
 		match(DROP);
 		String name = lexer.getValue();
-		match(IDENTIFIER);
+		match(token == STRING ? STRING : IDENTIFIER);
 		verifyMatch(EOF);
 		return generator.drop(name);
 	}
