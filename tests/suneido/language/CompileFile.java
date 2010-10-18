@@ -1,7 +1,6 @@
 package suneido.language;
 
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 import suneido.Repl;
 
@@ -14,6 +13,17 @@ public class CompileFile {
 		int n = f.read(buf);
 		f.close();
 		String src = new String(buf, 0, n);
-		TestCompiler.compile(src);
+		compile(src);
 	}
+
+	public static Object compile(String src) {
+		Lexer lexer = new Lexer(src);
+		StringWriter sw = new StringWriter();
+		CompileGenerator generator =
+				new CompileGenerator("Test", new PrintWriter(sw));
+		ParseConstant<Object, Generator<Object>> pc =
+				new ParseConstant<Object, Generator<Object>>(lexer, generator);
+		return pc.parse();
+	}
+
 }
