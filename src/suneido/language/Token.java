@@ -53,7 +53,10 @@ public enum Token {
 	EXTEND("extend"), COUNT("count", SUMOP), TIMES("times"), BY("by"),
 	SUMMARIZE("summarize"), WHERE("where"), JOIN("join"), LEFTJOIN("leftjoin"),
 	REVERSE("reverse"), AVERAGE("average", SUMOP),
-	INTO("into"), INSERT("insert"), UPDATE("update"), SET("set");
+	INTO("into"), INSERT("insert"), UPDATE("update"), SET("set"),
+	// for AST
+	DATE, SYMBOL, CALL, MEMBER, ARG, FOR_IN, RECORD, OBJECT,
+	;
 
 	Token other;
 	public String string;

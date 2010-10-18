@@ -45,7 +45,7 @@ public abstract class Generator<T> {
 	}
 
 	public T expressionStatement(T expression) {
-		return null;
+		return expression;
 	}
 
 	public void functionBegin(String name, boolean isMethod) {
@@ -81,7 +81,7 @@ public abstract class Generator<T> {
 	public void afterStatement(T statements) {
 	}
 
-	public T statementList(T n, T next) {
+	public T statementList(T list, T next) {
 		return null;
 	}
 
@@ -269,7 +269,9 @@ public abstract class Generator<T> {
 
 	public abstract T objectEnd(MType which, T members);
 
-	public abstract T constant(T value);
+	public T constant(T value) {
+		return value;
+	}
 
 	public void addSuperInit() {
 	}
@@ -279,7 +281,7 @@ public abstract class Generator<T> {
 	}
 
 	public T lvalueForAssign(T term, Token op) {
-		return null;
+		return term;
 	}
 
 	public void finish() {

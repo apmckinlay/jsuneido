@@ -54,7 +54,7 @@ public class TestGenerator extends Generator<Object> {
 	@Override
 	public Object constant(Object value) {
 		print("constant", value);
-		return null;
+		return "constant=" + value;
 	}
 
 	@Override
@@ -96,8 +96,8 @@ public class TestGenerator extends Generator<Object> {
 
 	@Override
 	public Object number(String value) {
-		//print("number", value);
-		return value;
+		print("number", value);
+		return "number=" + value;
 	}
 
 	@Override
@@ -173,6 +173,18 @@ public class TestGenerator extends Generator<Object> {
 	public Object functionEnd(Object params, Object compound) {
 		print("functionEnd", params, compound);
 		return "functionEnd-result";
+	}
+
+	@Override
+	public Object parameters(Object list, String name, Object defaultValue) {
+		print("parameters", name, defaultValue);
+		return "parameters-result";
+	}
+
+	@Override
+	public Object statementList(Object list, Object next) {
+		print("statementList", next);
+		return "statementList";
 	}
 
 	@Override
@@ -285,7 +297,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	public static void main(String[] args) {
-		String s = "function () { return function () { } }";
+		String s = "function () { x + 123 }";
 		Lexer lexer = new Lexer(s);
 		TestGenerator generator = new TestGenerator();
 		ParseConstant<Object, Generator<Object>> pc =
