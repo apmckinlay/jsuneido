@@ -10,10 +10,17 @@ import com.google.common.base.Objects;
 
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
-	private final Map<String, Object> ivars = new HashMap<String, Object>();
+	private final Map<String, Object> ivars;
 
 	public SuInstance(SuValue myclass) {
 		this.myclass = myclass;
+		this.ivars = new HashMap<String, Object>();
+	}
+
+	/** copy constructor */
+	public SuInstance(SuInstance other) {
+		myclass = other.myclass;
+		ivars = new HashMap<String, Object>(other.ivars);
 	}
 
 	@Override
@@ -29,6 +36,8 @@ public class SuInstance extends SuValue {
 			return Base(self, args);
 		if (method == "Delete")
 			return Delete(self, args);
+		if (method == "Copy")
+			return Copy(self, args);
 		if (method == "Eval")
 			return ContainerMethods.Eval(self, args);
 		if (method == "Eval2")
@@ -44,6 +53,11 @@ public class SuInstance extends SuValue {
 		Args.massage(FunctionSpec.noParams, args);
 		return myclass;
 	}
+
+	private Object Copy(Object self, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+	        return new SuInstance(this);
+        }
 
 	private static final FunctionSpec keyFS = new FunctionSpec("key");
 
