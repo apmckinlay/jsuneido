@@ -1,6 +1,7 @@
 package suneido.language;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class TestCompile {
 
@@ -19,17 +20,16 @@ public class TestCompile {
 	}
 
 	private static Object compile(String name, String s) {
-		System.out.println("====== " + s);
-		Lexer lexer = new Lexer(s);
-		StringWriter sw = new StringWriter();
-		CompileGenerator generator =
-				new CompileGenerator(name, new PrintWriter(sw));
-		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		Object c = pc.parse();
-		String r = sw.toString();
-		System.out.println(r);
-		return c;
+		Lexer lexer = new Lexer("function () { (X.F)() }");
+		PrintWriter pw = new PrintWriter(System.out);
+		AstGenerator generator = new AstGenerator("Test");
+		ParseConstant<AstNode, Generator<AstNode>> pc =
+				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+		AstNode ast = pc.parse();
+		System.out.println(ast);
+		Object result = new AstCompile(pw).fold(ast);
+		System.out.println(result);
+		return result;
 	}
 
 }

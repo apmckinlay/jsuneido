@@ -589,4 +589,8 @@ public class SuContainer extends SuValue
 		return "Object";
 	}
 
+	public boolean isEmpty() {
+		return vec.isEmpty() && map.isEmpty();
+	}
+
 }

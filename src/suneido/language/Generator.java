@@ -14,7 +14,8 @@ public abstract class Generator<T> {
 
 	public abstract T and(Object label, T exprs, T expr);
 
-	public void andEnd(Object label) {
+	public T andEnd(Object label, T exprs) {
+		return exprs;
 	}
 
 	public Object orStart() {
@@ -23,7 +24,8 @@ public abstract class Generator<T> {
 
 	public abstract T or(Object label, T exprs, T expr);
 
-	public void orEnd(Object label) {
+	public T orEnd(Object label, T exprs) {
+		return exprs;
 	}
 
 	public Object conditionalTrue(Object label, T first) {
@@ -48,10 +50,10 @@ public abstract class Generator<T> {
 		return expression;
 	}
 
-	public void functionBegin(String name, boolean isMethod) {
+	public void functionBegin(T name, boolean isMethod) {
 	}
 
-	public T functionEnd(T params, T compound) {
+	public T functionEnd(T params, T compound, boolean isMethod) {
 		return null;
 	}
 
@@ -277,7 +279,7 @@ public abstract class Generator<T> {
 	}
 
 	public T rvalue(T expr) {
-		return null;
+		return expr;
 	}
 
 	public T lvalueForAssign(T term, Token op) {

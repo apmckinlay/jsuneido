@@ -22,7 +22,7 @@ public enum Token {
 	MATCH("=~", INFIX, B, 253), MATCHNOT("!~", INFIX, B, 254),
 	LT("<", TERMOP, B, 6), LTE("<=", TERMOP, B, 7),
 	GT(">", TERMOP, B, 8), GTE(">=", TERMOP, B, 9),
-	NOT("not", 10), INC(140), DEC(142), BITNOT("~", 11),
+	NOT("not", B, 10), INC(140), DEC(142), BITNOT("~", 11),
 	ADD("+", INFIX, N, 240), SUB("-", INFIX, N, 241), CAT("$", INFIX, O, 242),
 	MUL("*", INFIX, N, 243), DIV("/", INFIX, N, 244), MOD("%", INFIX, N, 245),
 	LSHIFT("<<", INFIX, I, 246), RSHIFT(">>", INFIX, I, 247),
@@ -55,7 +55,11 @@ public enum Token {
 	REVERSE("reverse"), AVERAGE("average", SUMOP),
 	INTO("into"), INSERT("insert"), UPDATE("update"), SET("set"),
 	// for AST
-	DATE, SYMBOL, CALL, MEMBER, ARG, FOR_IN, RECORD, OBJECT,
+	DATE, SYMBOL, CALL, MEMBER, SUBSCRIPT, ARG, FOR_IN, RECORD, OBJECT, BINARYOP,
+	SELFREF, ASSIGNOP, PREINCDEC, POSTINCDEC, CONSTANT, BLOCK, RVALUE, METHOD,
+	NOT_(NOT, "not_", B_), IS_(IS, "is_", B_), ISNT_(ISNT, "isnt_", B_),
+	MATCH_(MATCH, "match_", B_), MATCHNOT_(MATCHNOT, "matchnot_", B_),
+	LT_(LT, "lt_", B_), LTE_(LTE, "lte_", B_), GT_(GT, "gt_", B_), GTE_(GTE, "gte_", B_),
 	;
 
 	Token other;

@@ -92,10 +92,10 @@ public class Repl {
 	private static SuValue compile(String s) throws FileNotFoundException {
 		Lexer lexer = new Lexer(s);
 		PrintWriter pw = new PrintWriter(new FileOutputStream("repl.out"));
-		CompileGenerator generator = new CompileGenerator("Repl", pw);
-		ParseFunction<Object, Generator<Object>> pc =
-				new ParseFunction<Object, Generator<Object>>(lexer, generator);
-		return (SuValue) pc.parse();
+		AstGenerator generator = new AstGenerator("Repl");
+		ParseFunction<AstNode, Generator<AstNode>> pc =
+				new ParseFunction<AstNode, Generator<AstNode>>(lexer, generator);
+		return (SuValue) new AstCompile(pw).fold(pc.parse());
 	}
 
 	public static class Print extends BuiltinFunction {

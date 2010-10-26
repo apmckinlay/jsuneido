@@ -22,8 +22,9 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public void andEnd(Object label) {
+	public Object andEnd(Object label, Object exprs) {
 		print("andEnd");
+		return "and-result";
 	}
 
 	@Override
@@ -107,9 +108,21 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
+	public Object orStart() {
+		print("orStart");
+		return null;
+	}
+
+	@Override
 	public Object or(Object label, Object expr1, Object expr2) {
 		print("or", expr1, expr2);
 		return null;
+	}
+
+	@Override
+	public Object orEnd(Object label, Object exprs) {
+		print("orEnd", exprs);
+		return "or-result";
 	}
 
 //	@Override
@@ -165,12 +178,12 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public void functionBegin(String name, boolean isMethod) {
+	public void functionBegin(Object name, boolean isMethod) {
 		print("functionBegin", name, isMethod ? "isMethod" : null);
 	}
 
 	@Override
-	public Object functionEnd(Object params, Object compound) {
+	public Object functionEnd(Object params, Object compound, boolean isMethod) {
 		print("functionEnd", params, compound);
 		return "functionEnd-result";
 	}
@@ -296,8 +309,20 @@ public class TestGenerator extends Generator<Object> {
 		return null;
 	}
 
+	@Override
+	public Object selfRef() {
+		print("selfRef");
+		return "selfRef-result";
+	}
+
+	@Override
+	public Object rvalue(Object expr) {
+		print("rvalue", expr);
+		return "rvalue-" + expr;
+	}
+
 	public static void main(String[] args) {
-		String s = "function () { x + 123 }";
+		String s = "class { M() { } }";
 		Lexer lexer = new Lexer(s);
 		TestGenerator generator = new TestGenerator();
 		ParseConstant<Object, Generator<Object>> pc =

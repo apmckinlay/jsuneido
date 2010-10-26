@@ -27,18 +27,18 @@ public class AstGeneratorTest {
 
 	@Test
 	public void code() {
-		code("123 + 456", "(ADD (NUMBER=123) (NUMBER=456))");
+		code("123 + 456", "(BINARYOP (ADD) (NUMBER=123) (NUMBER=456))");
 		code("s = 'fred'", "(EQ (IDENTIFIER=s) (STRING=fred))");
 	}
 
 	private void code(String code, String expected) {
 		constant("function () { " + code + "}",
-				"(FUNCTION null (LIST " + expected + "))");
+				"(FUNCTION=Test (LIST) (LIST " + expected + "))");
 	}
 
 	private void constant(String code, String expected) {
 		Lexer lexer = new Lexer(code);
-		AstGenerator generator = new AstGenerator();
+		AstGenerator generator = new AstGenerator("Test");
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();

@@ -11,7 +11,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		super(lexer, generator);
 	}
 
-	@SuppressWarnings("unchecked")
 	public ParseExpression(Parse<T, G> parse) {
 		super(parse);
 		if (parse instanceof ParseQuery)
@@ -56,7 +55,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchSkipNewlines();
 				result = generator.or(label, result, andExpression());
 			}
-			generator.orEnd(label);
+			result = generator.orEnd(label, result);
 		}
 		return result;
 	}
@@ -70,7 +69,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchSkipNewlines();
 				result = generator.and(label, result, inExpression());
 			} while (token == AND);
-			generator.andEnd(label);
+			result = generator.andEnd(label, result);
 		}
 		return result;
 	}
@@ -303,198 +302,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return generator.superCallTarget(method);
 	}
 
-/*
-	@NotThreadSafe
-	public static class Value<T> {
-		public static enum Type { IDENTIFIER, MEMBER, SUBSCRIPT };
-		public static enum ThisOrSuper { THIS, SUPER };
-		public Type type = null;
-		public String id;
-		public T expr;
-		public ThisOrSuper thisOrSuper;
 
-		public void identifier(String id) {
-			type = Type.IDENTIFIER;
-			this.id = id;
-			expr = null;
-			thisOrSuper = null;
-		}
-		public void member(String id, ThisOrSuper thisOrSuper) {
-			type = Type.MEMBER;
-			this.id = id;
-			expr = null;
-			this.thisOrSuper = thisOrSuper;
-		}
-		public void subscript(T expr, ThisOrSuper thisOrSuper) {
-			type = Type.SUBSCRIPT;
-			id = null;
-			this.expr = expr;
-			this.thisOrSuper = thisOrSuper;
-		}
-		public void clear() {
-			type = null;
-			id = null;
-			expr = null;
-			thisOrSuper = null;
-		}
-		public boolean isSet() {
-			return type != null;
-		}
-		public boolean isIdentifier() {
-			return type == Type.IDENTIFIER;
-		}
-		public boolean isMember() {
-			return type == Type.MEMBER;
-		}
-	}
-
-	private T term2(boolean newTerm) {
-		T term = null;
-		Value<T> value = new Value<T>();
-		Token incdec = null;
-
-		if (token == INC || token == DEC) {
-			incdec = token;
-			match();
-		}
-		ThisOrSuper thisOrSuper = null;
-		switch (token) {
-		case NUMBER:
-		case STRING:
-		case HASH:
-			term = generator.constant(constant());
-			break;
-		case L_CURLY:
-			term = block();
-			break;
-		case DOT:
-			term = generator.selfRef();
-			// leave token == DOT
-			thisOrSuper = ThisOrSuper.THIS;
-			break;
-		case L_PAREN:
-			match(L_PAREN);
-			term = expression();
-			term = generator.rvalue(term);
-			match(R_PAREN);
-			break;
-		case L_BRACKET:
-			if (inQuery)
-				term = generator.constant(constant());
-			else {
-				match(L_BRACKET);
-				// TODO optimize literal part like cSuneido
-				T func = generator.identifier("Record");
-				term = generator.functionCall(func, value, argumentList(R_BRACKET));
-			}
-			break;
-		case IDENTIFIER:
-			switch (lexer.getKeyword()) {
-			case FUNCTION:
-			case CLASS:
-			case DLL:
-			case STRUCT:
-			case CALLBACK:
-				term = generator.constant(constant());
-				break;
-			case TRUE:
-			case FALSE:
-				term = generator.constant(generator.bool(lexer.getKeyword() == TRUE));
-				match();
-				break;
-			case THIS:
-				term = generator.selfRef();
-				thisOrSuper = ThisOrSuper.THIS;
-				match();
-				break;
-			case SUPER:
-				match(SUPER);
-				if (incdec != null || (token != DOT && token != L_PAREN))
-					syntaxError();
-				term = generator.superRef();
-				thisOrSuper = ThisOrSuper.SUPER;
-				if (token == L_PAREN)
-					value.member("_init", ThisOrSuper.SUPER);
-				break;
-			default:
-				if (isGlobal(lexer.getValue()) &&
-						lookAhead(! expectingCompound) == L_CURLY) {
-					term = generator.constant(constant());
-				} else {
-					value.identifier(lexer.getValue());
-					match(IDENTIFIER);
-				}
-			}
-			break;
-		default:
-			syntaxError();
-		}
-
-		while (token == DOT || token == L_BRACKET || token == L_PAREN
-				|| token == L_CURLY) {
-			if (value.isSet() && (token == DOT || token == L_BRACKET)) {
-				term = push(term, value);
-				value.clear();
-			}
-			if (newTerm && token == L_PAREN) {
-				if (value.isSet())
-					term = push(term, value);
-				return term;
-			}
-			if (token == DOT) {
-				matchSkipNewlines(DOT);
-				String id = lexer.getValue();
-				match(IDENTIFIER);
-				value.member(id, thisOrSuper);
-				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
-					match();
-			} else if (matchIf(L_BRACKET)) {
-				T expr = generator.rvalue(expression());
-				value.subscript(expr, thisOrSuper);
-				match(R_BRACKET);
-			} else if (token == L_PAREN || token == L_CURLY) {
-				if (value.isIdentifier()) {
-					term = push(term, value);
-					value.clear();
-				} else
-					generator.preFunctionCall(value);
-				term = generator.functionCall(term, value, arguments());
-				value.clear();
-			}
-			thisOrSuper = null;
-		}
-
-		if (incdec != null) {
-			generator.lvalue(value);
-			term = generator.preIncDec(term, incdec, value);
-		} else if (assign()) {
-			Token op = token;
-			matchSkipNewlines();
-			generator.lvalueForAssign(value, op);
-			T expr = expression();
-			term = generator.assignment(term, value, op, expr);
-		} else if (token == INC || token == DEC) {
-			generator.lvalue(value);
-			term = generator.postIncDec(term, token, value);
-			match();
-		} else if (value.isSet()) {
-			term = push(term, value);
-		}
-		return term;
-	}
-
-	private T push(T term, Value<T> value) {
-		switch (value.type) {
-		case IDENTIFIER:
-			return generator.identifier(value.id);
-		case MEMBER:
-			return generator.member(term, value);
-		case SUBSCRIPT:
-			return generator.subscript(term, value.expr);
-		}
-		return null;
-	}
-*/
 	private boolean assign() {
 		return (EQ_as_IS && token == EQ) ? false : token.assign();
 	}
@@ -516,7 +324,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			match();
 		if (token == L_CURLY) {
 			generator.argumentName("block");
-			args = generator.argumentList(args, "block", block());
+			args = generator.argumentList(args, generator.string("block"), block());
 		}
 		return args;
 	}
@@ -562,10 +370,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return args;
 	}
 	private Object keyword() {
-		Object keyword = lexer.getValue();
-		if (token == NUMBER)
+		Object keyword = null;
+		if (token == STRING || token == IDENTIFIER)
+			keyword = generator.string(lexer.getValue());
+		else if (token == NUMBER)
 			keyword = generator.number(lexer.getValue());
-		else if (token != IDENTIFIER && token != STRING)
+		else
 			syntaxError("invalid keyword");
 		match();
 		match(COLON);

@@ -87,7 +87,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		matchSkipNewlines(IDENTIFIER);
 		return base;
 	}
-	// base is null for non-class objects
 	private T memberList(Token open, boolean inClass) {
 		MType which = (inClass ? MType.CLASS
 				: open == L_PAREN ? MType.OBJECT : MType.RECORD);
@@ -133,17 +132,14 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			next = ahead.next();
 		return next == COLON || (inClass && next == L_PAREN);
 	}
-
 	private T memberValue(T name, boolean canBeFunction, boolean inClass) {
 		T value = null;
 		if (name != null && canBeFunction && token == L_PAREN)
-			value = functionWithoutKeyword(
-					name instanceof String ? (String) name : null, inClass);
+			value = functionWithoutKeyword(name, inClass);
 		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
 			if (token == FUNCTION) {
 				matchSkipNewlines(FUNCTION);
-				value = functionWithoutKeyword(
-						name instanceof String ? (String) name : null, inClass);
+				value = functionWithoutKeyword(name, inClass);
 			} else if (token == CLASS) {
 				value = classConstant(name instanceof String ? (String) name : null);
 			} else
@@ -154,6 +150,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			syntaxError();
 		return value;
 	}
+
 	private T bool() {
 		return matchReturn(generator.bool(lexer.getKeyword() == TRUE));
 	}
@@ -205,7 +202,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword(null, false);
 	}
 
-	private T functionWithoutKeyword(String name, boolean inClass) {
+	private T functionWithoutKeyword(T name, boolean inClass) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
 		T result = p.functionWithoutKeyword(name, inClass);
 		token = p.token;

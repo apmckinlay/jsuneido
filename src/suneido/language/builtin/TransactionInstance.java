@@ -41,9 +41,9 @@ public class TransactionInstance extends SuValue {
 			throw new SuException("usage: Transaction(read: [, block ]) "
 					+ "or Transaction(update: [, block ])");
 		if (args[0] == notPassed)
-			update = Ops.toBool(args[1]) == 1;
+			update = Ops.toIntBool(args[1]) == 1;
 		else
-			update = !(Ops.toBool(args[0]) == 1);
+			update = !(Ops.toIntBool(args[0]) == 1);
 		t = theDbms.transaction(update);
 	}
 
