@@ -228,6 +228,18 @@ public class SuClass extends SuValue {
 		return className;
 	}
 
+	public String toDebugString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(className).append(" = ").append("class");
+		if (baseGlobal != null)
+			sb.append(" : ").append(baseGlobal);
+		sb.append(" {").append("\n");
+		for (Map.Entry<String, Object> e : members.entrySet())
+			sb.append(e).append("\n");
+		sb.append("}");
+		return sb.toString();
+	}
+
 	/** called by {@link SuFunction.superInvokeN} */
 	public Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {

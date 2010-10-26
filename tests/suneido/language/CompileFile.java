@@ -16,14 +16,16 @@ public class CompileFile {
 		compile(src);
 	}
 
-	public static Object compile(String src) {
+	public static void compile(String src) {
 		Lexer lexer = new Lexer(src);
-		StringWriter sw = new StringWriter();
-		CompileGenerator generator =
-				new CompileGenerator("Test", new PrintWriter(sw));
-		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		return pc.parse();
+		PrintWriter pw = new PrintWriter(System.out);
+		AstGenerator generator = new AstGenerator("Test");
+		ParseConstant<AstNode, Generator<AstNode>> pc =
+				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+		AstNode ast = pc.parse();
+		System.out.println(ast);
+		Object result = new AstCompile(pw).fold(ast);
+		System.out.println(result);
 	}
 
 }

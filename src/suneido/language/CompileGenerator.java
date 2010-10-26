@@ -114,10 +114,6 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public void objectBegin() {
-	}
-
-	@Override
 	public Object objectEnd(MType which, Object members) {
 		if (members == null)
 			members = which == OBJECT ? new SuContainer() : new SuRecord();
@@ -169,6 +165,11 @@ public class CompileGenerator extends Generator<Object> {
 			name += def;
 	}
 
+	private void nameEnd() {
+		int i = Math.max(name.lastIndexOf('$'), name.lastIndexOf(METHOD_SEPARATOR));
+		name = i == -1 ? "" : name.substring(0, i);
+	}
+
 	@Override
 	public Object classEnd(String base, Object members) {
 		if (base != null && base.startsWith("_"))
@@ -177,11 +178,6 @@ public class CompileGenerator extends Generator<Object> {
 		suClassName.pop();
 		nameEnd();
 		return c;
-	}
-
-	private void nameEnd() {
-		int i = Math.max(name.lastIndexOf('$'), name.lastIndexOf(METHOD_SEPARATOR));
-		name = i == -1 ? "" : name.substring(0, i);
 	}
 
 	private void startJavaClass(String base, String name, boolean isMethod) {
@@ -264,9 +260,9 @@ public class CompileGenerator extends Generator<Object> {
 	// functions
 
 	@Override
-	public void functionBegin(String memberName, boolean isMethod) {
+	public void functionBegin(Object memberName, boolean isMethod) {
 		// name is either null or member if class method
-		nameBegin(memberName, isMethod ? METHOD_SEPARATOR + "f" : "$f");
+		nameBegin((String) memberName, isMethod ? METHOD_SEPARATOR + "f" : "$f");
 		startJavaClass("suneido/language/SuFunction", name, isMethod);
 
 		startMethod("call");
@@ -418,7 +414,7 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object functionEnd(Object params, Object compound) {
+	public Object functionEnd(Object params, Object compound, boolean isMethod) {
 
 		finishMethod(compound);
 
@@ -845,15 +841,14 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object and(Object olabel, Object expr1, Object expr2) {
+	public Object and(Object label, Object expr1, Object expr2) {
 		toBoolPop();
-		Label label = (Label) olabel;
-		c.mv.visitJumpInsn(IFFALSE, label);
+		c.mv.visitJumpInsn(IFFALSE, (Label) label);
 		return null;
 	}
 
 	@Override
-	public void andEnd(Object label) {
+	public Object andEnd(Object label, Object exprs) {
 		force();
 		Label l0 = new Label();
 		getBoolean("TRUE");
@@ -862,6 +857,7 @@ public class CompileGenerator extends Generator<Object> {
 		getBoolean("FALSE");
 		c.mv.visitLabel(l0);
 		pop(); // only one of the two results will be on the stack;
+		return null;
 	}
 
 	private void genBoolean(String which) {
@@ -881,15 +877,14 @@ public class CompileGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object or(Object olabel, Object expr1, Object expr2) {
+	public Object or(Object label, Object expr1, Object expr2) {
 		toBoolPop();
-		Label label = (Label) olabel;
-		c.mv.visitJumpInsn(IFTRUE, label);
+		c.mv.visitJumpInsn(IFTRUE, (Label) label);
 		return null;
 	}
 
 	@Override
-	public void orEnd(Object label) {
+	public Object orEnd(Object label, Object exprs) {
 		force();
 		Label l0 = new Label();
 		getBoolean("FALSE");
@@ -898,6 +893,7 @@ public class CompileGenerator extends Generator<Object> {
 		getBoolean("TRUE");
 		c.mv.visitLabel(l0);
 		pop(); // only one of the two results will be on the stack;
+		return null;
 	}
 
 	@Override
@@ -996,7 +992,7 @@ public class CompileGenerator extends Generator<Object> {
 
 	private void toBoolPop() {
 		force();
-		c.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toBool",
+		c.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toIntBool",
 				"(Ljava/lang/Object;)I");
 		pop();
 	}
@@ -1583,8 +1579,7 @@ public class CompileGenerator extends Generator<Object> {
 					name2 = Globals.overload(name);
 				c.mv.visitLdcInsn(name2);
 				c.mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals",
-						"get",
-						"(Ljava/lang/String;)Ljava/lang/Object;");
+						"get", "(Ljava/lang/String;)Ljava/lang/Object;");
 				return RVALUE;
 			} else if (name.equals("this")) {
 				c.mv.visitVarInsn(ALOAD, SELF);

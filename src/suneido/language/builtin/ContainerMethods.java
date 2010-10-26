@@ -320,8 +320,8 @@ public class ContainerMethods {
 
 	private static IterWhich iterWhich(Object[] args) {
 		args = Args.massage(list_named_FS, args);
-		boolean list = Ops.toBool(args[0]) == 1;
-		boolean named = Ops.toBool(args[1]) == 1;
+		boolean list = Ops.toIntBool(args[0]) == 1;
+		boolean named = Ops.toIntBool(args[1]) == 1;
 		if (list && !named)
 			return IterWhich.LIST;
 		else if (!list && named)

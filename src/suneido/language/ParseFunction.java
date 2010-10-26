@@ -24,13 +24,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		matchSkipNewlines(FUNCTION);
 		return functionWithoutKeyword(null, false);
 	}
-	protected T functionWithoutKeyword(String name, boolean inClass) {
+	protected T functionWithoutKeyword(T name, boolean inClass) {
 		generator.functionBegin(name, inClass);
 		T params = parameters();
-		if (!superInit())
-			generator.addSuperInit();
 		T body = compound(null);
-		return generator.functionEnd(params, body);
+		return generator.functionEnd(params, body, inClass);
 	}
 
 	private T parameters() {
@@ -54,16 +52,6 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 		matchSkipNewlines(R_PAREN);
 		return params;
-	}
-
-	private boolean superInit() {
-		Lexer ahead = new Lexer(lexer);
-		assert token == L_CURLY;
-		Token t;
-		do
-			t = ahead.next();
-			while (t == NEWLINE);
-		return ahead.getKeyword() == SUPER && ahead.next() == L_PAREN;
 	}
 
 	public T compound(Object loop) {

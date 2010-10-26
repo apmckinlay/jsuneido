@@ -23,7 +23,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String functionEnd(String parameters, String statementList) {
+	public String functionEnd(String parameters, String statementList, boolean isMethod) {
 		return "function (" + str(parameters) + ") { "
 				+ str("", statementList, " ") + "}";
 	}
@@ -232,7 +232,10 @@ public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
 	public String argumentList(String list, Object keyword, String expression) {
-		return str("", list, ", ") + str("", keyword, ": ")
+		String k = (String) keyword;
+		if (k != null)
+			k = k.substring(2, k.length() - 1);
+		return str("", list, ", ") + str("", k, ": ")
 				+ expression;
 	}
 

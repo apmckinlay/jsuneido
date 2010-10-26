@@ -19,7 +19,7 @@ import suneido.util.StringIterator;
 import com.google.common.base.Splitter;
 
 @ThreadSafe // all static methods
-public class Ops {
+public final class Ops {
 
 	public static SuException BREAK_EXCEPTION = new SuException("block:break");
 	public static SuException CONTINUE_EXCEPTION = new SuException("block:continue");
@@ -426,12 +426,16 @@ public class Ops {
 		return uminus(toNum(x));
 	}
 
-	public static Boolean not(Object x) {
+	public static boolean not_(Object x) {
 		if (x == Boolean.TRUE)
-			return Boolean.FALSE;
+			return false;
 		if (x == Boolean.FALSE)
-			return Boolean.TRUE;
+			return true;
 		throw new SuException("can't do: not " + typeName(x));
+	}
+
+	public static Boolean not(Object x) {
+		return not_(x);
 	}
 
 	public static Integer bitnot(Object x) {
@@ -494,7 +498,7 @@ public class Ops {
 		return date;
 	}
 
-	public static int toBool(Object x) {
+	public static int toIntBool(Object x) {
 		if (x == Boolean.TRUE)
 			return 1;
 		if (x == Boolean.FALSE)

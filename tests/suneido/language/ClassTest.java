@@ -224,7 +224,7 @@ public class ClassTest {
 	public void test_super() { // super must be first
 		try {
 			compile("A", "class { New() { F(); super() } }");
-			fail("should only allow super(...) first");
+			fail("call to super must come first");
 		} catch (SuException e) {
 			assertEquals("call to super must come first", e.toString());
 		}
