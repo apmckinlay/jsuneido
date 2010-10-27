@@ -98,7 +98,7 @@ public final class Ops {
 			yType = SuContainer.class;
 		if (xType == yType) {
 			if (x instanceof Comparable)
-				return ((Comparable) x).compareTo(y);
+				return ((Comparable<Object>) x).compareTo(y);
 			return cmpHash(xType, yType);
 		}
 		if (xType == Concat.class) {
@@ -111,7 +111,7 @@ public final class Ops {
 		}
 		if (xType == yType) {
 			if (x instanceof Comparable)
-				return ((Comparable) x).compareTo(y);
+				return ((Comparable<Object>) x).compareTo(y);
 			return cmpHash(xType, yType);
 		}
 		if (xType == Boolean.class)

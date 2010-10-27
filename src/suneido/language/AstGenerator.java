@@ -2,86 +2,40 @@ package suneido.language;
 
 import java.util.ArrayList;
 
-
 public class AstGenerator extends Generator<AstNode> {
 	private final static AstNode NIL_STATEMENT = new AstNode(Token.NIL);
 	private final static AstNode EMPTY_LIST = new AstNode(Token.LIST);
 	private final static AstNode EMPTY_COMPOUND =
 		new AstNode(Token.LIST, NIL_STATEMENT);
-	public static final char METHOD_SEPARATOR = '\u00A3';
-	private final String globalName;
-	private String curName;
-
-	public AstGenerator(String name) {
-		this.globalName = name;
-	}
 
 	@Override
-	public void classBegin(String memberName) {
-		nameBegin(memberName, "$c");
-	}
-
-	@Override
-	public AstNode classEnd(String base, AstNode members) {
+	public AstNode clazz(String base, AstNode members) {
 		AstNode baseAst = base == null ? null : new AstNode(Token.STRING, base);
 		if (members == null)
 			members = EMPTY_LIST;
-		AstNode ast = new AstNode(Token.CLASS, curName, baseAst, members);
-		nameEnd();
+		AstNode ast = new AstNode(Token.CLASS, baseAst, members);
 		return ast;
 	}
 
 	@Override
-	public void functionBegin(AstNode member, boolean isMethod) {
-		nameBegin(member == null ? null : member.value,
-				isMethod ? METHOD_SEPARATOR + "f" : "$f");
-	}
-
-	@Override
-	public AstNode functionEnd(AstNode params, AstNode body, boolean isMethod) {
+	public AstNode function(AstNode params, AstNode body, boolean isMethod) {
 		if (params == null)
 			params = EMPTY_LIST;
 		if (body == null)
 			body = EMPTY_COMPOUND;
 		AstNode f = new AstNode(isMethod ? Token.METHOD : Token.FUNCTION,
-				curName, params, body);
-		nameEnd();
+				params, body);
 		return f;
 	}
 
 	@Override
-	public Object blockBegin() {
-		nameBegin(null, "$b");
-		return true; // non-null to tell ParseFunction we're inside block
-	}
-
-	@Override
-	public AstNode blockEnd(AstNode params, AstNode body) {
+	public AstNode block(AstNode params, AstNode body) {
 		if (params == null)
 			params = EMPTY_LIST;
 		if (body == null)
 			body = EMPTY_COMPOUND;
-		AstNode block = new AstNode(Token.BLOCK, curName, params, body);
-		nameEnd();
+		AstNode block = new AstNode(Token.BLOCK, params, body);
 		return block;
-	}
-
-	private void nameBegin(String memberName, String def) {
-		if (curName == null)
-			curName = javify(globalName);
-		else if (memberName != null)
-			curName += def.substring(0, 1) + javify(memberName);
-		else
-			curName += def;
-	}
-
-	public static String javify(String name) {
-		return name.replace('?', 'Q').replace('!', 'X');
-	}
-
-	private void nameEnd() {
-		int i = Math.max(curName.lastIndexOf('$'), curName.lastIndexOf(METHOD_SEPARATOR));
-		curName = i == -1 ? "" : curName.substring(0, i);
 	}
 
 	@Override
@@ -100,7 +54,7 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode objectEnd(MType which, AstNode members) {
+	public AstNode object(MType which, AstNode members) {
 		if (members == null)
 			members = EMPTY_LIST;
 		return new AstNode(Token.valueOf(which.toString()), members.children);
@@ -114,34 +68,33 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode dowhileStatement(AstNode statement, AstNode expr, Object label) {
+	public AstNode dowhileStatement(AstNode statement, AstNode expr) {
 		return new AstNode(Token.DO, statement, expr);
 	}
 
 	@Override
-	public AstNode whileStatement(AstNode expr, AstNode statement, Object loop) {
+	public AstNode whileStatement(AstNode expr, AstNode statement) {
 		return new AstNode(Token.WHILE, expr, statement);
 	}
 
 	@Override
-	public AstNode ifStatement(AstNode expr, AstNode t, AstNode e, Object label) {
+	public AstNode ifStatement(AstNode expr, AstNode t, AstNode e) {
 		return new AstNode(Token.IF, expr, t, e);
 	}
 
 	@Override
-	public AstNode foreverStatement(AstNode statement, Object label) {
+	public AstNode foreverStatement(AstNode statement) {
 		return new AstNode(Token.FOREVER, statement);
 	}
 
 	@Override
 	public AstNode forClassicStatement(AstNode expr1, AstNode expr2,
-			AstNode expr3, AstNode statement, Object loop) {
+			AstNode expr3, AstNode statement) {
 		return new AstNode(Token.FOR, expr1, expr2, expr3, statement);
 	}
 
 	@Override
-	public AstNode forInStatement(String var, AstNode expr, AstNode statement,
-			Object loop) {
+	public AstNode forInStatement(String var, AstNode expr, AstNode statement) {
 		return new AstNode(Token.FOR_IN, var, expr, statement);
 	}
 
@@ -151,12 +104,12 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode breakStatement(Object loop) {
+	public AstNode breakStatement() {
 		return new AstNode(Token.BREAK);
 	}
 
 	@Override
-	public AstNode continueStatement(Object loop) {
+	public AstNode continueStatement() {
 		return new AstNode(Token.CONTINUE);
 	}
 
@@ -166,8 +119,7 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode tryStatement(AstNode tryStatement, AstNode catcher,
-			Object trycatch) {
+	public AstNode tryStatement(AstNode tryStatement, AstNode catcher) {
 		return new AstNode(Token.TRY, tryStatement, catcher);
 	}
 
@@ -180,29 +132,22 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode switchStatement(AstNode expr, AstNode cases, Object labels) {
+	public AstNode switchStatement(AstNode expr, AstNode cases) {
 		if (cases == null)
 			cases = EMPTY_LIST;
 		return new AstNode(Token.SWITCH, expr, cases);
 	}
 
 	@Override
-	public AstNode switchCases(AstNode cases, AstNode values,
-			AstNode statements, Object labels, boolean moreCases) {
+	public AstNode switchCases(AstNode cases, AstNode values, AstNode statements) {
 		if (values == null)
 			values = EMPTY_LIST;
 		return list(cases, new AstNode(Token.CASE, values, statements));
 	}
 
 	@Override
-	public AstNode caseValues(AstNode values, AstNode expr,
-			Object labels, boolean more) {
+	public AstNode caseValues(AstNode values, AstNode expr) {
 		return list(values, expr);
-	}
-
-	@Override
-	public AstNode expressionStatement(AstNode expr) {
-		return expr;
 	}
 
 	@Override
@@ -211,27 +156,27 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode and(Object label, AstNode list, AstNode expr) {
+	public AstNode and(AstNode list, AstNode expr) {
 		return list(list, expr);
 	}
 
 	@Override
-	public AstNode andEnd(Object label, AstNode exprs) {
+	public AstNode andEnd(AstNode exprs) {
 		return new AstNode(Token.AND, exprs.children);
 	}
 
 	@Override
-	public AstNode or(Object label, AstNode list, AstNode expr) {
+	public AstNode or(AstNode list, AstNode expr) {
 		return list(list, expr);
 	}
 
 	@Override
-	public AstNode orEnd(Object label, AstNode exprs) {
+	public AstNode orEnd(AstNode exprs) {
 		return new AstNode(Token.OR, exprs.children);
 	}
 
 	@Override
-	public AstNode conditional(AstNode expr, AstNode first, AstNode second, Object label) {
+	public AstNode conditional(AstNode expr, AstNode first, AstNode second) {
 		return new AstNode(Token.Q_MARK, expr, first, second);
 	}
 
@@ -347,7 +292,7 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode member(AstNode term, String identifier) {
+	public AstNode memberRef(AstNode term, String identifier) {
 		return new AstNode(Token.MEMBER, identifier, term);
 	}
 
@@ -366,7 +311,7 @@ public class AstGenerator extends Generator<AstNode> {
 	public static void main(String[] args) {
 		String s = "class : B { M: 1 }";
 		Lexer lexer = new Lexer(s);
-		AstGenerator generator = new AstGenerator("Test");
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();

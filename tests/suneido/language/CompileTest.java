@@ -448,11 +448,12 @@ public class CompileTest {
 //				new ParseConstant<Object, Generator<Object>>(lexer, generator);
 //		SuCallable x = (SuCallable) pc.parse();
 
-		AstGenerator generator = new AstGenerator("Test");
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
-		SuCallable x = (SuCallable) new AstCompile(new PrintWriter(sw)).fold(ast);
+		PrintWriter pw = new PrintWriter(sw);
+		SuCallable x = (SuCallable) new AstCompile("Test", pw).fold(ast);
 
 		constants = x.constants == null ? new Object[0] : x.constants;
 		return sw.toString();

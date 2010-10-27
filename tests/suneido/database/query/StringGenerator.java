@@ -13,8 +13,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String conditional(String expression, String first, String second,
-			Object label) {
+	public String conditional(String expression, String first, String second) {
 		return "(" + expression + " ? " + first + " : " + second + ")";
 	}
 
@@ -23,7 +22,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String functionEnd(String parameters, String statementList, boolean isMethod) {
+	public String function(String parameters, String statementList, boolean isMethod) {
 		return "function (" + str(parameters) + ") { "
 				+ str("", statementList, " ") + "}";
 	}
@@ -34,7 +33,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String ifStatement(String expr, String t, String f, Object label) {
+	public String ifStatement(String expr, String t, String f) {
 		return "if (" + expr + ") {" + str(" ", t, "") + " }"
 				+ str(" else { ", f, " }");
 	}
@@ -45,23 +44,17 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String expressionStatement(String expression) {
-		return expression + ";";
-	}
-
-	@Override
 	public String statementList(String list, String statement) {
 		return str("", list, " ") + str(statement);
 	}
 
 	@Override
-	public String whileStatement(String expression, String statement,
-			Object loop) {
+	public String whileStatement(String expression, String statement) {
 		return "while (" + expression + ") {" + str(" ", statement, "") + " }";
 	}
 
 	@Override
-	public String dowhileStatement(String body, String expr, Object label) {
+	public String dowhileStatement(String body, String expr) {
 		return "do {" + str(" ", body, "") + " } while (" + expr + ");";
 	}
 
@@ -101,22 +94,17 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String lvalueForAssign(String term, Token op) {
-		return term + "&";
-	}
-
-	@Override
-	public String foreverStatement(String statement, Object label) {
+	public String foreverStatement(String statement) {
 		return "forever { " + statement.trim() + " }";
 	}
 
 	@Override
-	public String breakStatement(Object loop) {
+	public String breakStatement() {
 		return "break;";
 	}
 
 	@Override
-	public String continueStatement(Object loop) {
+	public String continueStatement() {
 		return "continue;";
 	}
 
@@ -132,33 +120,29 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String tryStatement(String tryStatement, String catcher,
-			Object trycatch) {
+	public String tryStatement(String tryStatement, String catcher) {
 		return "try { " + tryStatement + " }" + str(" ", catcher, "");
 	}
 
 	@Override
-	public String caseValues(String list, String expression, Object labels,
-			boolean more) {
+	public String caseValues(String list, String expression) {
 		return str("", list, ", ") + expression;
 	}
 
 	@Override
-	public String switchCases(String list, String values, String statements,
-			Object labels, boolean moreCases) {
+	public String switchCases(String list, String values, String statements) {
 		return str("", list, " ")
 				+ (values == null ? "default:" : "case " + values + ":") + " "
 				+ statements;
 	}
 
 	@Override
-	public String switchStatement(String expression, String cases, Object labels) {
+	public String switchStatement(String expression, String cases) {
 		return "switch (" + expression + ") {" + str(" ", cases, "") + " }";
 	}
 
 	@Override
-	public String forInStatement(String var, String expr, String statement,
-			Object loop) {
+	public String forInStatement(String var, String expr, String statement) {
 		return "for (" + var + " in " + expr + ") { " + statement + " }";
 	}
 
@@ -169,7 +153,7 @@ public class StringGenerator extends QueryGenerator<String> {
 
 	@Override
 	public String forClassicStatement(String expr1, String expr2, String expr3,
-			String statement, Object loop) {
+			String statement) {
 		return "for (" + str(expr1) + "; " + str(expr2) + "; " + str(expr3)
 				+ ") { " + statement + " }";
 	}
@@ -185,7 +169,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String member(String term, String identifier) {
+	public String memberRef(String term, String identifier) {
 		return term + " ." + identifier;
 	}
 
@@ -220,7 +204,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String blockEnd(String params, String statements) {
+	public String block(String params, String statements) {
 		return "{" + str("|", params, "|") + " " + str("", statements, " ")
 				+ "}";
 	}
@@ -240,7 +224,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String classEnd(String base, String members) {
+	public String clazz(String base, String members) {
 		if ("Object".equals(base))
 			base = null;
 		return "class" + str(" : ", base, "") + " { " + str("", members, " ")
@@ -258,7 +242,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String objectEnd(MType which, String members) {
+	public String object(MType which, String members) {
 		return "#" + (which == OBJECT ? "(" : "{") + str(members)
 				+ (which == OBJECT ? ")" : "}");
 	}
@@ -272,12 +256,12 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String and(Object label, String expr1, String expr2) {
+	public String and(String expr1, String expr2) {
 		return (expr1 == null) ? expr2 : binaryExpression(AND, expr1, expr2);
 	}
 
 	@Override
-	public String or(Object label, String expr1, String expr2) {
+	public String or(String expr1, String expr2) {
 		return (expr1 == null) ? expr2 : binaryExpression(OR, expr1, expr2);
 	}
 
@@ -287,11 +271,6 @@ public class StringGenerator extends QueryGenerator<String> {
 			return expression + " in";
 		else
 			return expression + " " + constant;
-	}
-
-	@Override
-	public String constant(String value) {
-		return value;
 	}
 
 	@Override

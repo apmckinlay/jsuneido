@@ -5,17 +5,17 @@ import suneido.SuException;
 import suneido.language.Generator.MType;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
+
 	ParseConstant(Lexer lexer, G generator) {
 		super(lexer, generator);
 	}
+
 	public ParseConstant(Parse<T, G> parse) {
 		super(parse);
 	}
 
 	public T parse() {
-		T c = matchReturn(EOF, constant());
-		generator.finish();
-		return c;
+		return matchReturn(EOF, constant());
 	}
 
 	public T constant() {
@@ -66,13 +66,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T classConstant() {
-		return classConstant(null);
-	}
-	private T classConstant(String name) {
-		generator.classBegin(name);
 		String base = classBase();
 		T members = memberList(L_CURLY, true);
-		return generator.classEnd(base == "" ? null : base, members);
+		return generator.clazz(base == "" ? null : base, members);
 	}
 	private String classBase() {
 		if (lexer.getKeyword() == CLASS) {
@@ -88,8 +84,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return base;
 	}
 	private T memberList(Token open, boolean inClass) {
-		MType which = (inClass ? MType.CLASS
-				: open == L_PAREN ? MType.OBJECT : MType.RECORD);
+		MType which = (open == L_PAREN) ? MType.OBJECT : MType.RECORD;
 		match(open);
 		T members = null;
 		while (token != open.other) {
@@ -135,14 +130,14 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private T memberValue(T name, boolean canBeFunction, boolean inClass) {
 		T value = null;
 		if (name != null && canBeFunction && token == L_PAREN)
-			value = functionWithoutKeyword(name, inClass);
+			value = functionWithoutKeyword(inClass);
 		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
 			if (token == FUNCTION) {
 				matchSkipNewlines(FUNCTION);
-				value = functionWithoutKeyword(name, inClass);
-			} else if (token == CLASS) {
-				value = classConstant(name instanceof String ? (String) name : null);
-			} else
+				value = functionWithoutKeyword(inClass);
+			} else if (token == CLASS)
+				value = classConstant();
+			else
 				value = constant();
 		} else if (name != null)
 			value = generator.bool(true);
@@ -190,21 +185,21 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private T symbol() {
 		return matchReturn(generator.symbol(lexer.getValue()));
 	}
+
 	public T object() {
-		generator.objectBegin();
 		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
 		T members = memberList(token, false);
-		return generator.objectEnd(which, members);
+		return generator.object(which, members);
 	}
 
 	private T function() {
 		matchSkipNewlines(FUNCTION);
-		return functionWithoutKeyword(null, false);
+		return functionWithoutKeyword(false);
 	}
 
-	private T functionWithoutKeyword(T name, boolean inClass) {
+	private T functionWithoutKeyword(boolean inClass) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.functionWithoutKeyword(name, inClass);
+		T result = p.functionWithoutKeyword(inClass);
 		token = p.token;
 		return result;
 	}

@@ -75,7 +75,6 @@ public class RecordMethods {
 		return Util.listToCommas(r.getdeps(Ops.toStr(args[0])));
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Object Invalidate(SuRecord r, Object[] args) {
 		ArgsIterator iter = new ArgsIterator(args);
 		while (iter.hasNext()) {

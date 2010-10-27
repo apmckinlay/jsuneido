@@ -2,9 +2,8 @@ package suneido.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Arrays;
-import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
@@ -23,7 +22,7 @@ public abstract class PersistentMap<K, V> {
 	private static final int LEVEL_MASK = (1 << BITS_PER_LEVEL) - 1;
 	private static final int HASH_BITS = 32;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private static final TrieNode emptyNode = new TrieNode(0, new Object[0]);
 
 	@SuppressWarnings("unchecked")
@@ -192,7 +191,7 @@ public abstract class PersistentMap<K, V> {
 		private static <K, V> Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc,
 				K key, V value, int hash, int shift) {
 			if (shift >= HASH_BITS)
-				return new OverflowNode<K, V>(assoc, new SimpleImmutableEntry(key,
+				return new OverflowNode<K, V>(assoc, new SimpleImmutableEntry<K, V>(key,
 						value));
 			int ha = (assoc.getKey().hashCode() >> shift) & LEVEL_MASK;
 			int h = (hash >>> shift) & LEVEL_MASK;
@@ -203,7 +202,7 @@ public abstract class PersistentMap<K, V> {
 			}
 			Object[] aa = new Object[2];
 			SimpleImmutableEntry<K, V> newAssoc =
-					new SimpleImmutableEntry(key, value);
+					new SimpleImmutableEntry<K, V>(key, value);
 			if (h < ha) {
 				aa[0] = newAssoc;
 				aa[1] = assoc;
