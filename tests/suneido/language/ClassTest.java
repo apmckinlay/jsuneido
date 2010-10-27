@@ -105,7 +105,7 @@ public class ClassTest {
 
 		define("A", "class { B: class { F() { 123 } } }");
 		test("(new A.B).F()", "123");
-		test("new A.B", "A$c()");
+		test("new A.B", "A.B()");
 
 		define("A", "class { F() { 123 } N: 123 }");
 		define("B", "A { }");

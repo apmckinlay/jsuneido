@@ -40,11 +40,11 @@ public class CompileDump implements DumpReader.Processor {
 //		if (! name.equals("CLucene"))
 //			return;
 		Lexer lexer = new Lexer(source);
-		AstGenerator generator = new AstGenerator(name);
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		try {
-			new AstCompile().fold(pc.parse());
+			new AstCompile(name).fold(pc.parse());
 		} catch (SuException e) {
 			if (e.toString().matches(".*(not support|can't find _).*"))
 				return;

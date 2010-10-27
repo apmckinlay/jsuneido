@@ -25,10 +25,10 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 		this.next = next;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private final static PersistentList Nil = makeNil();
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static PersistentList makeNil() {
 		PersistentList nil = new PersistentList(null, null);
 		nil.next = nil;

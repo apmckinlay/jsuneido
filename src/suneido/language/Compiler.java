@@ -7,11 +7,11 @@ public class Compiler {
 
 	public static Object compile(String name, String src) {
 		Lexer lexer = new Lexer(src);
-		AstGenerator generator = new AstGenerator(name);
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
-		return new AstCompile().fold(ast);	}
+		return new AstCompile(name).fold(ast);	}
 
 	private static final Object[] noLocals = new Object[0];
 

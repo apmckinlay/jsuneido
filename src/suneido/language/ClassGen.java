@@ -12,7 +12,6 @@ import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.SuException;
-import suneido.language.CompileGenerator.Loader;
 
 public class ClassGen {
 	private static final int THIS = 0;
@@ -571,6 +570,12 @@ public class ClassGen {
 		callable.constants = constantsArray;
 
 		return callable;
+	}
+
+	static class Loader extends ClassLoader {
+		public Class<?> defineClass(String name, byte[] b) {
+			return defineClass(name, b, 0, b.length);
+		}
 	}
 
 	private String[] blockLocals() {

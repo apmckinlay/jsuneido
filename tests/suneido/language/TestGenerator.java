@@ -10,19 +10,13 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object and(Object label, Object expr1, Object expr2) {
+	public Object and(Object expr1, Object expr2) {
 		print("and(expr, expr)", expr1, expr2);
 		return null;
 	}
 
 	@Override
-	public Object andStart() {
-		print("andStart");
-		return "label";
-	}
-
-	@Override
-	public Object andEnd(Object label, Object exprs) {
+	public Object andEnd(Object exprs) {
 		print("andEnd");
 		return "and-result";
 	}
@@ -46,16 +40,9 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object conditional(Object primaryExpression, Object first,
-			Object second, Object label) {
-		print("conditional", primaryExpression, first, second, label);
+	public Object conditional(Object expr, Object first, Object second) {
+		print("conditional", expr, first, second);
 		return null;
-	}
-
-	@Override
-	public Object constant(Object value) {
-		print("constant", value);
-		return "constant=" + value;
 	}
 
 	@Override
@@ -89,8 +76,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object memberList(suneido.language.Generator.MType which,
-			Object list, Object member) {
+	public Object memberList(MType which, Object list, Object member) {
 		print("memberList", which, list, member);
 		return null;
 	}
@@ -102,34 +88,22 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object objectEnd(suneido.language.Generator.MType which, Object members) {
+	public Object object(suneido.language.Generator.MType which, Object members) {
 		print("object", which, members);
 		return null;
 	}
 
 	@Override
-	public Object orStart() {
-		print("orStart");
-		return null;
-	}
-
-	@Override
-	public Object or(Object label, Object expr1, Object expr2) {
+	public Object or(Object expr1, Object expr2) {
 		print("or", expr1, expr2);
 		return null;
 	}
 
 	@Override
-	public Object orEnd(Object label, Object exprs) {
+	public Object orEnd(Object exprs) {
 		print("orEnd", exprs);
 		return "or-result";
 	}
-
-//	@Override
-//	public Object rvalue(Object expr) {
-//		print("rvalue", expr);
-//		return "rvalue-result";
-//	}
 
 	@Override
 	public Object string(String value) {
@@ -156,34 +130,13 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object lvalueForAssign(Object term, Token op) {
-		print("lvalueForAssign", term, op);
-		return term;
-	}
-
-	@Override
-	public void classBegin(String name) {
-		print("classBegin", name);
-	}
-
-	@Override
-	public Object classEnd(String base, Object members) {
+	public Object clazz(String base, Object members) {
 		print("classEnd", base, members);
 		return "classEnd-result";
 	}
 
 	@Override
-	public void afterStatement(Object statements) {
-		print("afterStatement", statements);
-	}
-
-	@Override
-	public void functionBegin(Object name, boolean isMethod) {
-		print("functionBegin", name, isMethod ? "isMethod" : null);
-	}
-
-	@Override
-	public Object functionEnd(Object params, Object compound, boolean isMethod) {
+	public Object function(Object params, Object compound, boolean isMethod) {
 		print("functionEnd", params, compound);
 		return "functionEnd-result";
 	}
@@ -201,13 +154,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object functionCallTarget(Object function) {
-		print("functionCallTarget", function);
-		return "functionCallTarget-result";
-	}
-
-	@Override
-	public Object member(Object term, String identifier) {
+	public Object memberRef(Object term, String identifier) {
 		print("member", term, identifier);
 		return "member-" + identifier;
 	}
@@ -219,81 +166,27 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object forInExpression(String var, Object expr) {
-		print("forInExpression", var, expr);
-		return "forInExpression-result";
-	}
-
-	@Override
-	public Object forInStatement(String var, Object expr, Object statement,
-			Object loop) {
-		print("forInStatement", var, expr, statement, loop);
+	public Object forInStatement(String var, Object expr, Object statement) {
+		print("forInStatement", var, expr, statement);
 		return "forInStatement-result";
 	}
 
 	@Override
-	public Object ifExpr(Object expr) {
-		print("ifExpr", expr);
-		return "ifExpr-result";
-	}
-
-	@Override
-	public Object conditionalTrue(Object label, Object first) {
-		print("conditionalTrue", label, first);
-		return "conditionalTrue(" + label + ", " + first + ")";
-	}
-
-	@Override
-	public Object switchStatement(Object expression, Object cases, Object labels) {
+	public Object switchStatement(Object expression, Object cases) {
 		print("switchStatement");
 		return null;
 	}
 
 	@Override
-	public Object switchCases(Object cases, Object values, Object statements,
-			Object labels, boolean moreCases) {
-		print("switchCases " + (moreCases ? "moreCases" : ""));
+	public Object switchCases(Object cases, Object values, Object statements) {
+		print("switchCases");
 		return null;
 	}
 
 	@Override
-	public void startCase(Object labels) {
-		print("startCase");
-	}
-
-	@Override
-	public void startCaseBody(Object labels) {
-		print("startCaseBody");
-	}
-
-	@Override
-	public void startCaseValue(Object labels) {
-		print("startCaseValue");
-	}
-
-	@Override
-	public Object startSwitch() {
-		print("startSwitch");
-		return null;
-	}
-
-	@Override
-	public Object caseValues(Object values, Object expression, Object labels,
-			boolean more) {
+	public Object caseValues(Object values, Object expression) {
 		print("caseValues");
 		return null;
-	}
-
-	@Override
-	public Object startTry() {
-		print("startTry");
-		return null;
-	}
-
-	@Override
-	public void startCatch(String var, String pattern, Object trycatch) {
-		print("startCatch", var, pattern, trycatch);
-		super.startCatch(var, pattern, trycatch);
 	}
 
 	@Override
@@ -303,9 +196,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object tryStatement(Object tryStatement, Object catcher,
-			Object trycatch) {
-		print("tryStatement", tryStatement, catcher, trycatch);
+	public Object tryStatement(Object tryStatement, Object catcher) {
+		print("tryStatement", tryStatement, catcher);
 		return null;
 	}
 

@@ -38,33 +38,33 @@ public class ExprTest {
 	}
 
 	@Test
-	public void fold() {
-		String cases[] = new String[] {
-				"a", "a",
-				"f(a,b)", "f(a,b)",
-				"f(1 + 2,  3 - 4)", "f(3,-1)",
-				"123", "123",
-				"not true", "false",
-				"12 + 34", "46",
-				"12 < 34", "true", "12 >= 34", "false",
-				"'abc' =~ 'b'", "true",
-				"3 | 0xa", "11",
-				"true ? 12 : 34", "12",
-				"false ? 12 : 34", "34",
-				"true and 1 < 2 and true", "true",
-				"true and 1 < 2 and false", "false",
-				"a and 1 < 2 and true", "a",
-				"false or 1 > 2 or false",
-				"false", "false or 1 < 2 or false", "true",
-				"a or 1 > 2 or false", "a",
-				"1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)",
-				"1 + 2 in (2,3,4)", "true",
-				"3 * 4 in (2,3,4)", "false",
-		};
-		for (int i = 0; i < cases.length; i += 2) {
-			Expr e = CompileQuery.expr(cases[i]);
-			assertEquals(cases[i + 1], e.fold().toString());
-		}
+	public void fold_test() {
+		fold("a", "a");
+		fold("f(a,b)", "f(a,b)");
+		fold("f(1 + 2,  3 - 4)", "f(3,-1)");
+		fold("123", "123");
+		fold("not true", "false");
+		fold("12 + 34", "46");
+		fold("12 < 34", "true");
+		fold("12 >= 34", "false");
+		fold("'abc' =~ 'b'", "true");
+		fold("3 | 0xa", "11");
+		fold("true ? 12 : 34", "12");
+		fold("false ? 12 : 34", "34");
+		fold("true and 1 < 2 and true", "true");
+		fold("true and 1 < 2 and false", "false");
+		fold("a and 1 < 2 and true", "a");
+		fold("false or 1 > 2 or false", "false");
+		fold("false or 1 < 2 or false", "true");
+		fold("a or 1 > 2 or false", "a");
+		fold("1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)");
+		fold("1 + 2 in (2,3,4)", "true");
+		fold("3 * 4 in (2,3,4)", "false");
+	}
+
+	private void fold(String expr, String expected) {
+		Expr e = CompileQuery.expr(expr);
+		assertEquals(expected, e.fold().toString());
 	}
 
 	@Test

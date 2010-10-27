@@ -7,19 +7,27 @@ import suneido.*;
 
 public class AstCompile {
 	private final PrintWriter pw;
+	private final String globalName;
+	public static final char METHOD_SEPARATOR = '\u00A3';
 	private String suClassName = null;
 	private boolean inMethod = false;
+	private String curName = null;
 
-	public AstCompile() {
-		pw = null;
+	public AstCompile(String globalName) {
+		this(globalName, null);
 	}
 
-	public AstCompile(PrintWriter pw) {
+	public AstCompile(String globalName, PrintWriter pw) {
+		this.globalName = globalName;
 		this.pw = pw;
 	}
 
-	/** @returns value if ast can be evaluated at compile time, otherwise null */
 	public Object fold(AstNode ast) {
+		return fold(null, ast);
+	}
+
+	/** @returns value if ast can be evaluated at compile time, otherwise null */
+	public Object fold(String name, AstNode ast) {
 		if (ast == null)
 			return null;
 		Object value;
@@ -41,10 +49,10 @@ public class AstCompile {
 		case RECORD:
 			return foldObject(ast);
 		case CLASS:
-			return foldClass(ast);
+			return foldClass(name, ast);
 		case METHOD:
 		case FUNCTION:
-			return foldFunction(ast);
+			return foldFunction(name, ast);
 		case SUB:
 			value = fold(ast.first());
 			if (value != null)
@@ -87,20 +95,23 @@ public class AstCompile {
 		return c;
 	}
 
-	private Object foldClass(AstNode ast) {
+	private Object foldClass(String outerName, AstNode ast) {
+		nameBegin(outerName, "$c");
 		String prevSuClassName = suClassName;
-		suClassName = ast.value;
+		suClassName = curName;
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
 			base = Globals.overload(base);
 		Map<String, Object> members = new HashMap<String, Object>();
 		for (AstNode member : ast.second().children) {
-			Object name = fold(member.first());
-			Object value = fold(member.second());
-			members.put(privatize2((String) name), value);
+			String name = (String) fold(member.first());
+			Object value = fold(name, member.second());
+			members.put(privatize2(name), value);
 		}
 		suClassName = prevSuClassName;
-		return new SuClass(ast.value, base, members);
+		SuClass c = new SuClass(curName.replace(METHOD_SEPARATOR, '.'), base, members);
+		nameEnd();
+		return c;
 	}
 
 	private String privatize(AstNode ast, String name) {
@@ -117,22 +128,27 @@ public class AstCompile {
 		return name;
 	}
 
-	public SuCallable foldFunction(AstNode ast) {
+	public SuCallable foldFunction(String name, AstNode ast) {
+		nameBegin(name, "$f");
 		boolean prevInMethod = inMethod;
 		inMethod = (ast.token == Token.METHOD);
 		SuCallable fn = javaClass(ast, "SuFunction", "call", null, pw);
 		inMethod = prevInMethod;
+		nameEnd();
 		return fn;
 	}
 
 	public SuCallable block(ClassGen cg, AstNode ast) {
-		return javaClass(ast, "SuCallable", "eval", cg.locals, pw);
+		nameBegin(null, "$b");
+		SuCallable fn = javaClass(ast, "SuCallable", "eval", cg.locals, pw);
+		nameEnd();
+		return fn;
 	}
 
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals, PrintWriter pw) {
 		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(base, ast.value, method, locals, pw);
+		ClassGen cg = new ClassGen(base, curName, method, locals, pw);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
@@ -144,23 +160,23 @@ public class AstCompile {
 		List<AstNode> statements = ast.second().children;
 		for (int i = 0; i < statements.size(); ++i) {
 			AstNode stat = statements.get(i);
-			superChecks(ast.value, i, stat);
+			superChecks(i, stat);
 			statement(cg, stat, null, i == statements.size() - 1);
 		}
 		return cg.end();
 	}
 
-	private void superChecks(String method, int i, AstNode stat) {
+	private void superChecks(int i, AstNode stat) {
 		if (stat.token == Token.CALL &&
 				stat.first().token == Token.SUPER &&
 				stat.first().value.equals("New")) {
-			onlyAllowSuperInNew(method, stat);
+			onlyAllowSuperInNew(stat);
 			onlyAllowSuperFirst(i, stat);
 		}
 	}
 
-	private void onlyAllowSuperInNew(String method, AstNode stat) {
-		if (! method.endsWith(AstGenerator.METHOD_SEPARATOR + "New"))
+	private void onlyAllowSuperInNew(AstNode stat) {
+		if (! curName.endsWith(METHOD_SEPARATOR + "New"))
 			throw new SuException("super call only allowed in New");
 	}
 
@@ -172,7 +188,7 @@ public class AstCompile {
 	/** add super init call to New methods if not explicitly called */
 	private void superInit(ClassGen cg, AstNode ast) {
 		if (ast.token == Token.METHOD &&
-				ast.value.endsWith(AstGenerator.METHOD_SEPARATOR + "New") &&
+				curName.endsWith(METHOD_SEPARATOR + "New") &&
 				! explicitSuperCall(ast))
 			cg.superInit();
 	}
@@ -187,6 +203,24 @@ public class AstCompile {
 				return true;
 		}
 		return false;
+	}
+
+	private void nameBegin(String memberName, String def) {
+		if (curName == null)
+			curName = javify(globalName);
+		else if (memberName == null)
+			curName += def;
+		else
+			curName += METHOD_SEPARATOR + javify(memberName);
+	}
+
+	public static String javify(String name) {
+		return name.replace('?', 'Q').replace('!', 'X');
+	}
+
+	private void nameEnd() {
+		int i = Math.max(curName.lastIndexOf('$'), curName.lastIndexOf(METHOD_SEPARATOR));
+		curName = i == -1 ? "" : curName.substring(0, i);
 	}
 
 	private void compound(ClassGen cg, AstNode ast, Labels labels) {
@@ -837,14 +871,14 @@ public class AstCompile {
 	}
 
 	public static void main(String[] args) {
-		Lexer lexer = new Lexer("A { New() { super(1) } }");
+		Lexer lexer = new Lexer("class { M() { } }");
 		PrintWriter pw = new PrintWriter(System.out);
-		AstGenerator generator = new AstGenerator("Test");
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
 		System.out.println(ast);
-		Object x = new AstCompile(pw).fold(ast);
+		Object x = new AstCompile("Test", pw).fold(ast);
 //		System.out.println(x);
 System.out.println(((SuClass) x).toDebugString());
 	}

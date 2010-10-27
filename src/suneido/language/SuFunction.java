@@ -40,7 +40,7 @@ abstract public class SuFunction extends SuCallable {
 
 	@Override
 	public String toString() {
-		return super.typeName().replace(CompileGenerator.METHOD_SEPARATOR, '.');
+		return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
 	}
 
 }

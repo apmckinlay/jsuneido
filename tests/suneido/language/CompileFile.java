@@ -19,12 +19,12 @@ public class CompileFile {
 	public static void compile(String src) {
 		Lexer lexer = new Lexer(src);
 		PrintWriter pw = new PrintWriter(System.out);
-		AstGenerator generator = new AstGenerator("Test");
+		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
 		System.out.println(ast);
-		Object result = new AstCompile(pw).fold(ast);
+		Object result = new AstCompile("Test", pw).fold(ast);
 		System.out.println(result);
 	}
 

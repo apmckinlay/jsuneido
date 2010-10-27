@@ -201,12 +201,11 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object bool(boolean value) {
-		return value ? Boolean.TRUE : Boolean.FALSE;
+		return value;
 	}
 
 	@Override
-	public Object conditional(Object expr, Object iftrue, Object iffalse,
-			Object label) {
+	public Object conditional(Object expr, Object iftrue, Object iffalse) {
 		return new TriOp((Expr) expr, (Expr) iftrue, (Expr) iffalse);
 	}
 
@@ -250,7 +249,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 	@Override
 	public Object memberList(MType which, Object members, Object member) {
-		SuContainer rec = objectEnd(which, members);
+		SuContainer rec = object(which, members);
 		MemDef m = (MemDef) member;
 		if (m.name == null)
 			rec.append(m.value);
@@ -265,7 +264,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public SuContainer objectEnd(MType which, Object members) {
+	public SuContainer object(MType which, Object members) {
 		return members == null
 				? which == MType.RECORD ? new SuRecord() : new SuContainer()
 				: (SuContainer) members;
@@ -287,12 +286,12 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object and(Object label, Object expr1, Object expr2) {
+	public Object and(Object expr1, Object expr2) {
 		return (expr1 == null) ? expr2 : And.make((Expr) expr1, (Expr) expr2);
 	}
 
 	@Override
-	public Object or(Object label, Object expr1, Object expr2) {
+	public Object or(Object expr1, Object expr2) {
 		return (expr1 == null) ? expr2 : Or.make((Expr) expr1, (Expr) expr2);
 	}
 

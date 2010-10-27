@@ -1,7 +1,9 @@
 package suneido.language;
 
+import static suneido.language.ParseFunction.LOOP;
 import static suneido.language.Token.*;
 import suneido.database.query.ParseQuery;
+import suneido.language.ParseFunction.Context;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
@@ -32,15 +34,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T conditionalExpression() {
 		T first = orExpression();
 		if (token == Q_MARK) {
-			Object label = generator.ifExpr(first);
 			++statementNest;
 			match(Q_MARK);
 			T t = expression();
-			label = generator.conditionalTrue(label, t);
 			match(COLON);
 			--statementNest;
 			T f = expression();
-			return generator.conditional(first, t, f, label);
+			return generator.conditional(first, t, f);
 		} else {
 			return first;
 		}
@@ -49,13 +49,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T orExpression() {
 		T result = andExpression();
 		if (token == OR) {
-			Object label = generator.orStart();
-			result = generator.or(label, null, result);
+			result = generator.or(null, result);
 			while (token == OR) {
 				matchSkipNewlines();
-				result = generator.or(label, result, andExpression());
+				result = generator.or(result, andExpression());
 			}
-			result = generator.orEnd(label, result);
+			result = generator.orEnd(result);
 		}
 		return result;
 	}
@@ -63,13 +62,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T andExpression() {
 		T result = inExpression();
 		if (token == AND) {
-			Object label = generator.andStart();
-			result = generator.and(label, null, result);
+			result = generator.and(null, result);
 			do {
 				matchSkipNewlines();
-				result = generator.and(label, result, inExpression());
+				result = generator.and(result, inExpression());
 			} while (token == AND);
-			result = generator.andEnd(label, result);
+			result = generator.andEnd(result);
 		}
 		return result;
 	}
@@ -183,7 +181,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T newExpression() {
 		match(NEW);
 		T term = term(true);
-		generator.newCall();
 		T args = token == L_PAREN ? arguments() : null;
 		return generator.newExpression(term, args);
 	}
@@ -207,14 +204,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchSkipNewlines(DOT);
 				String id = lexer.getValue();
 				match(IDENTIFIER);
-				term = generator.member(term, id);
+				term = generator.memberRef(term, id);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
 				term = generator.subscript(term, expression());
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
-				term = generator.functionCallTarget(term);
 				term = generator.functionCall(term, arguments());
 			}
 		}
@@ -223,7 +219,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		else if (assign()) {
 			Token op = token;
 			matchSkipNewlines();
-			term = generator.lvalueForAssign(term, op);
 			T expr = expression();
 			term = generator.assignment(term, op, expr);
 		} else if (token == INC || token == DEC) {
@@ -271,7 +266,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case DLL:
 		case STRUCT:
 		case CALLBACK:
-			return generator.constant(constant());
+			return constant();
 		case TRUE:
 		case FALSE:
 			return matchReturn(generator.constant(generator.bool(lexer.getKeyword() == TRUE)));
@@ -323,7 +318,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		if (token == NEWLINE && !expectingCompound && lookAhead() == L_CURLY)
 			match();
 		if (token == L_CURLY) {
-			generator.argumentName("block");
 			args = generator.argumentList(args, generator.string("block"), block());
 		}
 		return args;
@@ -353,17 +347,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			boolean trueDefault = (keyword != null &&
 					(token == COMMA || token == closing || ahead == COLON));
 
-			if (keyword != null && isConstantArg(closing)) {
-				args = generator.argumentListConstant(args, keyword,
-						trueDefault ? generator.bool(true) : constant());
-			} else {
-				if (keyword != null)
-					generator.argumentName(keyword);
-				T value = trueDefault
-						? generator.constant(generator.bool(true))
-						: expression();
-				args = generator.argumentList(args, keyword, value);
-			}
+			args = generator.argumentList(args, keyword,
+					trueDefault ? generator.bool(true) : expression());
 			matchIf(COMMA);
 		}
 		match(closing);
@@ -381,49 +366,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		match(COLON);
 		return keyword;
 	}
-	// MAYBE factor out duplication with ParseConstant.isMemberName
-	private boolean isConstantArg(Token closing) {
-// doesn't work for #20100101.Format()
-//		if (token == HASH)
-//			return true;
-		if (!isConstant())
-			return false;
-		Lexer ahead = new Lexer(lexer);
-		Token t = ahead.nextSkipNewlines();
-		if (t == COMMA || t == closing)
-			return true;
-		if (t != IDENTIFIER && t != STRING
-				&& t != NUMBER && t != SUB && t != ADD)
-			return false;
-		if (t == SUB || t == ADD)
-			t = ahead.next();
-		t = ahead.next();
-		return t == COLON;
-	}
-
-	private boolean isConstant() {
-		switch (token) {
-		case NUMBER:
-		case STRING:
-			return true;
-		case IDENTIFIER:
-			switch (lexer.getKeyword()) {
-			case TRUE:
-			case FALSE:
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private T block() {
-		Object loop = generator.blockBegin();
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
-		generator.blockParams();
-		T statements = statementList(loop);
+		T statements = statementList(LOOP);
 		match(R_CURLY);
-		return generator.blockEnd(params, statements);
+		return generator.block(params, statements);
 	}
 	private T blockParams() {
 		match(BITOR);
@@ -448,10 +397,11 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	private T statementList(Object loop) {
+	private T statementList(Context context) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
-		T result = p.statementList(loop);
+		T result = p.statementList(context);
 		token = p.token;
 		return result;
 	}
+
 }
