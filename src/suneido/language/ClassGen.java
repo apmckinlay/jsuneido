@@ -288,6 +288,7 @@ public class ClassGen {
 		return name.equals("this") || local(name) < nParams;
 	}
 
+	// TODO separate throwers with string built in
 	public void addNullCheck(String error) {
 		Label label = new Label();
 		mv.visitInsn(DUP);

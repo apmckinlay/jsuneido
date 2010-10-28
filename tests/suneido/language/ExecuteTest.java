@@ -143,6 +143,10 @@ public class ExecuteTest {
 				"123");
 		test("function () { b = { return 123 }; do { b() } while(false); 456 }()",
 				"123");
+		test("b = { break }; try b() catch (e) return e", "'block:break'");
+		test("b = { continue }; try b() catch (e) return e", "'block:continue'");
+
+		test("b = { forever break; 123 }; b()", "123");
 	}
 	@Test public void test_exceptions() {
 		test("try return 123", "123");
