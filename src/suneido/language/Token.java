@@ -56,7 +56,7 @@ public enum Token {
 	INTO("into"), INSERT("insert"), UPDATE("update"), SET("set"),
 	// for AST
 	DATE, SYMBOL, CALL, MEMBER, SUBSCRIPT, ARG, FOR_IN, RECORD, OBJECT, BINARYOP,
-	SELFREF, ASSIGNOP, PREINCDEC, POSTINCDEC, CONSTANT, BLOCK, RVALUE, METHOD,
+	SELFREF, ASSIGNOP, PREINCDEC, POSTINCDEC, BLOCK, RVALUE, METHOD,
 	NOT_(NOT, "not_", B_), IS_(IS, "is_", B_), ISNT_(ISNT, "isnt_", B_),
 	MATCH_(MATCH, "match_", B_), MATCHNOT_(MATCHNOT, "matchnot_", B_),
 	LT_(LT, "lt_", B_), LTE_(LTE, "lte_", B_), GT_(GT, "gt_", B_), GTE_(GTE, "gte_", B_),

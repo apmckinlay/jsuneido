@@ -64,7 +64,7 @@ public class ParseConstantTest {
 		constant("Base { -12: 'abc' }",
 			"(CLASS (STRING=Base) (LIST (MEMBER (NUMBER=-12) (STRING=abc))))");
 		constant("class { a: 1; b: 2, c: 3 \n d: 4}",
-			"(CLASSnull (LIST (MEMBER (STRING=a) (NUMBER=1)) (MEMBER (STRING=b) (NUMBER=2)) (MEMBER (STRING=c) (NUMBER=3)) (MEMBER (STRING=d) (NUMBER=4))))");
+			"(CLASS null (LIST (MEMBER (STRING=a) (NUMBER=1)) (MEMBER (STRING=b) (NUMBER=2)) (MEMBER (STRING=c) (NUMBER=3)) (MEMBER (STRING=d) (NUMBER=4))))");
 		constant("class { f() { x } }",
 			"(CLASS null (LIST (MEMBER (STRING=f) (METHOD (LIST) (LIST (IDENTIFIER=x))))))");
 		constant("#()",
@@ -88,7 +88,7 @@ public class ParseConstantTest {
 				ParseConstant<AstNode, Generator<AstNode>> pc =
 						new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 				AstNode ast = pc.parse();
-				String actual = ast.toString().replace("\n", "").replaceAll(" +", " ");
+				String actual = ast.toString().replace("\n", " ").replaceAll(" +", " ");
 //System.out.println("\t\t\"" + actual.substring(23, actual.length() - 2) + "\");");
 				assertEquals(expected, actual);
 	}

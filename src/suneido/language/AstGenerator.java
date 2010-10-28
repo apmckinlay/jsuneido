@@ -60,8 +60,6 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(Token.valueOf(which.toString()), members.children);
 	}
 
-	// statements
-
 	@Override
 	public AstNode statementList(AstNode list, AstNode next) {
 		return list(list, next == null ? NIL_STATEMENT : next);
@@ -235,14 +233,8 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode argumentList(AstNode list, Object keyword, AstNode expr) {
-		Object argName = null;
-		if (keyword != null) {
-			AstNode argNameAst = (AstNode) keyword;
-			argName = (argNameAst.token == Token.NUMBER)
-				? Ops.stringToNumber(argNameAst.value) : argNameAst.value;
-		}
-		return list(list, AstNode.of(Token.ARG, argName, expr));
+	public AstNode argumentList(AstNode list, AstNode keyword, AstNode expr) {
+		return list(list, new AstNode(Token.ARG, keyword, expr));
 	}
 
 	@Override

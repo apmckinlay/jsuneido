@@ -43,8 +43,6 @@ public class AstCompile {
 			return Ops.stringToNumber(ast.value);
 		case DATE:
 			return Ops.stringToDate(ast.value);
-		case CONSTANT:
-			return ast.extra;
 		case OBJECT:
 		case RECORD:
 			return foldObject(ast);
@@ -511,9 +509,6 @@ public class AstCompile {
 		}
 		ExprType resultType = ExprType.VALUE;
 		switch (ast.token) {
-		case CONSTANT:
-			cg.constant(ast.extra);
-			break;
 		case IDENTIFIER:
 			String name = ast.value;
 			if (isGlobal(name))
@@ -715,18 +710,30 @@ public class AstCompile {
 			nargs = 2;
 		} else {
 			SuContainer constNamedArgs = new SuContainer();
-			List<AstNode> args2 = splitArgs(args.children, constNamedArgs);
-			for (AstNode arg : args2) {
-				if (arg.extra != null) {
+			for (AstNode arg : args.children) {
+				Object name = fold(arg.first());
+				if (name != null) {
+					Object value = fold(arg.second());
+					if (value != null) {
+						constNamedArgs.put(name, value);
+						continue ;
+					}
 					cg.specialArg("NAMED");
-					cg.constant(arg.extra);
+					cg.constant(name);
 					nargs += 2;
 				}
-				expression(cg, arg.first());
-				addNullCheck(cg, arg.first());
+				expression(cg, arg.second());
+				addNullCheck(cg, arg.second());
 				++nargs;
 			}
-			if (!constNamedArgs.isEmpty()) {
+			if (constNamedArgs.size() < MIN_NAMED_CONST_ARGS) {
+				for (Map.Entry<Object, Object> e : constNamedArgs.mapEntrySet()) {
+					cg.specialArg("NAMED");
+					cg.constant(e.getKey());
+					cg.constant(e.getValue());
+					nargs += 3;
+				}
+			} else {
 				cg.specialArg("EACH");
 				cg.constant(constNamedArgs);
 				nargs += 2;
@@ -734,27 +741,7 @@ public class AstCompile {
 		}
 		return nargs;
 	}
-
 	private static final int MIN_NAMED_CONST_ARGS = 10;
-
-	private List<AstNode> splitArgs(List<AstNode> args,
-			SuContainer constNamedArgs) {
-		List<AstNode> args2 = new ArrayList<AstNode>();
-		for (AstNode arg : args) {
-			Object k = fold(arg.first());
-			if (k != null)
-				arg.children.set(0, AstNode.of(Token.CONSTANT, k));
-			if (k != null && arg.extra != null)
-				constNamedArgs.put(arg.extra, k);
-			else
-				args2.add(arg);
-		}
-		if (constNamedArgs.size() < MIN_NAMED_CONST_ARGS) {
-			constNamedArgs.clear();
-			return args; // return original args folded
-		} else
-			return args2;
-	}
 
 	private static Object evalBinary(Token token, Object left, Object right) {
 		switch (token) {
