@@ -149,7 +149,7 @@ public class ClassGen {
 		return constants.size() - 1;
 	}
 
-	private int iconst(int i) {
+	public int iconst(int i) {
 		if (-1 <= i && i <= 5)
 			mv.visitInsn(ICONST_0 + i);
 		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
@@ -309,10 +309,16 @@ public class ClassGen {
 						+ ")Ljava/lang/Object;");
 	}
 
-	public void invokeDirect(String name, int nargs) {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/ArgArray",
-				"buildN",
-				"(" + args[nargs] + ")[Ljava/lang/Object;");
+	public void array(int size) {
+		iconst(size);
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+	}
+
+	public void aastore() {
+		mv.visitInsn(AASTORE);
+	}
+
+	public void invokeDirect(String name) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/ObjectClass",
 				"create",
 				"([Ljava/lang/Object;)Ljava/lang/Object;");

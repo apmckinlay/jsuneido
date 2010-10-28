@@ -682,8 +682,7 @@ public class AstCompile {
 			int nargs = callArguments(cg, args);
 			cg.invokeSuper(nargs);
 		} else if (isDirect(fn)) {
-			int nargs = callArguments(cg, args);
-			cg.invokeDirect(fn.value, nargs);
+			directCall(cg, fn, args);
 		} else {
 			expression(cg, fn);
 			int nargs = callArguments(cg, args);
@@ -693,6 +692,34 @@ public class AstCompile {
 
 	private static boolean isDirect(AstNode fn) {
 		return fn.token == Token.IDENTIFIER && fn.value.equals("Object");
+	}
+
+	private void directCall(ClassGen cg, AstNode fn, AstNode args) {
+		int nargs = 0;
+		for (AstNode arg : args.children) {
+			if (arg.first() != null)
+				nargs += 2;
+			++nargs;
+		}
+		int i = 0;
+		cg.array(nargs);
+		for (AstNode arg : args.children) {
+			if (arg.first() != null) {
+				cg.dup();
+				cg.iconst(i++);
+				cg.specialArg("NAMED");
+				cg.aastore();
+				cg.dup();
+				cg.iconst(i++);
+				cg.constant(fold(arg.first()));
+				cg.aastore();
+			}
+			cg.dup();
+			cg.iconst(i++);
+			expression(cg, arg.second());
+			cg.aastore();
+		}
+		cg.invokeDirect(fn.value);
 	}
 
 	private void newExpression(ClassGen cg, AstNode ast) {
@@ -858,7 +885,7 @@ public class AstCompile {
 	}
 
 	public static void main(String[] args) {
-		Lexer lexer = new Lexer("class { M() { } }");
+		Lexer lexer = new Lexer("function () { } }");
 		PrintWriter pw = new PrintWriter(System.out);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
