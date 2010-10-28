@@ -13,11 +13,11 @@ public class DoWithoutTriggers extends BuiltinFunction {
 		args = Args.massage(fs, args);
 		SuContainer c = Ops.toContainer(args[0]);
 		try {
-			for (Object x : c.getVec())
+			for (Object x : c.vec)
 				Triggers.disableTrigger(Ops.toStr(x));
 			return Ops.call(args[1]);
 		} finally {
-			for (Object x : c.getVec())
+			for (Object x : c.vec)
 				Triggers.enableTrigger(Ops.toStr(x));
 		}
 	}

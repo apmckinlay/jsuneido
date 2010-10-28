@@ -27,7 +27,7 @@ import suneido.util.Util;
 @NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
-	private final List<Object> vec = new ArrayList<Object>();
+	public final List<Object> vec = new ArrayList<Object>();
 	private final CanonicalMap map = new CanonicalMap();
 	private Object defval = null;
 	private boolean readonly = false;
@@ -70,10 +70,6 @@ public class SuContainer extends SuValue
 		c.append(x);
 		c.append(y);
 		return c;
-	}
-
-	public List<Object> getVec() {
-		return vec;
 	}
 
 	public Object vecGet(int i) {
