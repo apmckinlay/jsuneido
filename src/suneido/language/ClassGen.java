@@ -298,18 +298,17 @@ public class ClassGen {
 		mv.visitLabel(label);
 	}
 
-	public void invokeFunction(int nargs) {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "callN",
-				"(Ljava/lang/Object;" + args[nargs] + ")Ljava/lang/Object;");
+	public void invokeFunction() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void invokeMethod(int nargs) {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invokeN",
-				"(Ljava/lang/Object;Ljava/lang/String;" + args[nargs]
-						+ ")Ljava/lang/Object;");
+	public void invokeMethod() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
+			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void array(int size) {
+	public void anewarray(int size) {
 		iconst(size);
 		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 	}
@@ -320,8 +319,7 @@ public class ClassGen {
 
 	public void invokeDirect(String name) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/ObjectClass",
-				"create",
-				"([Ljava/lang/Object;)Ljava/lang/Object;");
+				"create", "([Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
 	public void superCallTarget(String method) {
@@ -330,17 +328,17 @@ public class ClassGen {
 		mv.visitLdcInsn(method);
 	}
 
-	public void invokeSuper(int nargs) {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuCallable",
-				"superInvokeN", "(Ljava/lang/Object;Ljava/lang/String;"
-						+ args[nargs] + ")Ljava/lang/Object;");
+	public void invokeSuper() {
+		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuCallable", "superInvoke",
+				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
 	public void superInit() {
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, SELF);
 		mv.visitLdcInsn("New");
-		invokeSuper(0);
+		anewarray(0);
+		invokeSuper();
 		mv.visitInsn(POP);
 	}
 

@@ -669,24 +669,25 @@ public class AstCompile {
 		AstNode args = ast.second();
 		if (fn.token == Token.MEMBER) {
 			member(cg, fn);
-			int nargs = callArguments(cg, args);
-			cg.invokeMethod(nargs);
+			callArguments(cg, args);
+			cg.invokeMethod();
 		} else if (fn.token == Token.SUBSCRIPT) {
 			expression(cg, fn.first());
 			expression(cg, fn.second());
 			cg.toMethodString();
-			int nargs = callArguments(cg, args);
-			cg.invokeMethod(nargs);
+			callArguments(cg, args);
+			cg.invokeMethod();
 		} else if (fn.token == Token.SUPER) {
 			cg.superCallTarget(fn.value);
-			int nargs = callArguments(cg, args);
-			cg.invokeSuper(nargs);
+			callArguments(cg, args);
+			cg.invokeSuper();
 		} else if (isDirect(fn)) {
-			directCall(cg, fn, args);
+			callArguments(cg, args);
+			cg.invokeDirect(fn.value);
 		} else {
 			expression(cg, fn);
-			int nargs = callArguments(cg, args);
-			cg.invokeFunction(nargs);
+			callArguments(cg, args);
+			cg.invokeFunction();
 		}
 	}
 
@@ -694,81 +695,151 @@ public class AstCompile {
 		return fn.token == Token.IDENTIFIER && fn.value.equals("Object");
 	}
 
-	private void directCall(ClassGen cg, AstNode fn, AstNode args) {
+	private class VarArgs {
+		int i = 0;
+		ClassGen cg;
+		VarArgs(ClassGen cg, int nargs) {
+			this.cg = cg;
+			cg.anewarray(nargs);
+		}
+		void constant(Object constant) {
+			cg.dup();
+			cg.iconst(i++);
+			cg.constant(constant);
+			cg.aastore();
+		}
+		void special(String which) {
+			cg.dup();
+			cg.iconst(i++);
+			cg.specialArg(which);
+			cg.aastore();
+		}
+		void expression(AstNode expr) {
+			cg.dup();
+			cg.iconst(i++);
+			AstCompile.this.expression(cg, expr);
+			addNullCheck(cg, expr);
+			cg.aastore();
+		}
+	}
+
+	private void newExpression(ClassGen cg, AstNode ast) {
+		expression(cg, ast.first());
+		cg.constant("<new>");
+		callArguments(cg, ast.second());
+		cg.invokeMethod();
+	}
+
+	private void callArguments(ClassGen cg, AstNode args) {
+		if (args.token == Token.AT)
+			atArgument(cg, args);
+		else if (args.children.size() < MIN_TO_OPTIMIZE)
+			simpleArguments(cg, args);
+		else
+			optimizeArguments(cg, args);
+	}
+	private static final int MIN_TO_OPTIMIZE = 10;
+
+	private void atArgument(ClassGen cg, AstNode args) {
+		VarArgs vargs = new VarArgs(cg, 2);
+		vargs.special(args.value.charAt(0) == '1' ? "EACH1" : "EACH");
+		vargs.expression(args.first());
+	}
+
+	private void simpleArguments(ClassGen cg, AstNode args) {
+		VarArgs vargs = new VarArgs(cg, countArgs(args));
+		for (AstNode arg : args.children) {
+			if (arg.first() != null) {
+				vargs.special("NAMED");
+				vargs.constant(fold(arg.first()));
+			}
+			vargs.expression(arg.second());
+		}
+	}
+
+	private int countArgs(AstNode args) {
 		int nargs = 0;
 		for (AstNode arg : args.children) {
 			if (arg.first() != null)
 				nargs += 2;
 			++nargs;
 		}
-		int i = 0;
-		cg.array(nargs);
-		for (AstNode arg : args.children) {
-			if (arg.first() != null) {
-				cg.dup();
-				cg.iconst(i++);
-				cg.specialArg("NAMED");
-				cg.aastore();
-				cg.dup();
-				cg.iconst(i++);
-				cg.constant(fold(arg.first()));
-				cg.aastore();
-			}
-			cg.dup();
-			cg.iconst(i++);
-			expression(cg, arg.second());
-			cg.aastore();
-		}
-		cg.invokeDirect(fn.value);
-	}
-
-	private void newExpression(ClassGen cg, AstNode ast) {
-		expression(cg, ast.first());
-		cg.constant("<new>");
-		int nargs = callArguments(cg, ast.second());
-		cg.invokeMethod(nargs);
-	}
-
-	private int callArguments(ClassGen cg, AstNode args) {
-		int nargs = 0;
-		if (args.token == Token.AT) {
-			cg.specialArg(args.value.charAt(0) == '1' ? "EACH1" : "EACH");
-			expression(cg, args.first());
-			nargs = 2;
-		} else {
-			SuContainer constNamedArgs = new SuContainer();
-			for (AstNode arg : args.children) {
-				Object name = fold(arg.first());
-				if (name != null) {
-					Object value = fold(arg.second());
-					if (value != null) {
-						constNamedArgs.put(name, value);
-						continue ;
-					}
-					cg.specialArg("NAMED");
-					cg.constant(name);
-					nargs += 2;
-				}
-				expression(cg, arg.second());
-				addNullCheck(cg, arg.second());
-				++nargs;
-			}
-			if (constNamedArgs.size() < MIN_NAMED_CONST_ARGS) {
-				for (Map.Entry<Object, Object> e : constNamedArgs.mapEntrySet()) {
-					cg.specialArg("NAMED");
-					cg.constant(e.getKey());
-					cg.constant(e.getValue());
-					nargs += 3;
-				}
-			} else {
-				cg.specialArg("EACH");
-				cg.constant(constNamedArgs);
-				nargs += 2;
-			}
-		}
 		return nargs;
 	}
-	private static final int MIN_NAMED_CONST_ARGS = 10;
+
+	private void move(SuContainer constArgs, List<Object> args2) {
+		args2.addAll(constArgs.vec);
+		constArgs.vec.clear();
+	}
+
+	private void optimizeArguments(ClassGen cg, AstNode args) {
+		SuContainer constArgs = new SuContainer();
+		List<Object> unnamed = new ArrayList<Object>();
+		List<AstNode> named = new ArrayList<AstNode>();
+		splitArgs(args, unnamed, named, constArgs);
+		pushArgs(cg, unnamed, named, constArgs);
+	}
+
+	private void splitArgs(AstNode args, List<Object> unnamed,
+			List<AstNode> named, SuContainer constArgs) {
+		for (AstNode arg : args.children) {
+			Object name = fold(arg.first());
+			Object value = fold(arg.second());
+			if (name == null) {
+				if (value != null)
+					constArgs.append(value);
+				else {
+					move(constArgs, unnamed);
+					unnamed.add(arg.second());
+				}
+			} else { // named
+				if (value == null)
+					named.add(arg);
+				else
+					constArgs.put(name, value);
+			}
+		}
+	}
+
+	private void pushArgs(ClassGen cg, List<Object> unnamed,
+			List<AstNode> named, SuContainer constArgs) {
+		int nargs = unnamed.size() + 3 * named.size();
+		if (constArgs.size() >= MIN_TO_OPTIMIZE) {
+			nargs += 2; // EACH constArgs
+			VarArgs vargs = new VarArgs(cg, nargs);
+			unamedArgs(vargs, unnamed);
+			namedArgs(vargs, named);
+			vargs.special("EACH");
+			vargs.constant(constArgs);
+		} else {
+			nargs += constArgs.vecSize() + 3 * constArgs.mapSize();
+			VarArgs vargs = new VarArgs(cg, nargs);
+			unamedArgs(vargs, unnamed);
+			unamedArgs(vargs, constArgs.vec);
+			namedArgs(vargs, named);
+			for (Map.Entry<Object, Object> e : constArgs.mapEntrySet()) {
+				vargs.special("NAMED");
+				vargs.constant(e.getKey());
+				vargs.constant(e.getValue());
+			}
+		}
+	}
+
+	private void namedArgs(VarArgs vargs, List<AstNode> args) {
+		for (AstNode arg : args) {
+			vargs.special("NAMED");
+			vargs.constant(fold(arg.first()));
+			vargs.expression(arg.second());
+		}
+	}
+
+	private void unamedArgs(VarArgs vargs, List<Object> args) {
+		for (Object arg : args)
+			if (arg instanceof AstNode)
+				vargs.expression((AstNode) arg);
+			else
+				vargs.constant(arg);
+	}
 
 	private static Object evalBinary(Token token, Object left, Object right) {
 		switch (token) {
@@ -885,7 +956,7 @@ public class AstCompile {
 	}
 
 	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function () { } }");
+		Lexer lexer = new Lexer("function () { a = F();; }");
 		PrintWriter pw = new PrintWriter(System.out);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
@@ -894,7 +965,7 @@ public class AstCompile {
 		System.out.println(ast);
 		Object x = new AstCompile("Test", pw).fold(ast);
 //		System.out.println(x);
-System.out.println(((SuClass) x).toDebugString());
+//System.out.println(((SuClass) x).toDebugString());
 	}
 
 }

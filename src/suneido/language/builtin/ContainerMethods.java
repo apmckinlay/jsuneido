@@ -274,7 +274,7 @@ public class ContainerMethods {
 		args = Args.massage(FunctionSpec.value, args);
 		String sep = Ops.toStr(args[0]);
 		StringBuilder sb = new StringBuilder();
-		for (Object x : c.getVec()) {
+		for (Object x : c.vec) {
 			if (Ops.isString(x))
 				sb.append(x.toString());
 			else
@@ -361,7 +361,7 @@ public class ContainerMethods {
 		if (n < 0)
 			n += vecsize - i;
 		n = max(0, min(n, vecsize - i));
-		return new SuContainer(c.getVec().subList(i, i + n));
+		return new SuContainer(c.vec.subList(i, i + n));
 	}
 
 	private static final FunctionSpec blockFS =
@@ -386,7 +386,7 @@ public class ContainerMethods {
 
 	private static Object Unique(SuContainer c, Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		List<Object> v = c.getVec();
+		List<Object> v = c.vec;
 		int dst = 1;
 		for (int src = 1; src < v.size(); ++src) {
 			if (Ops.is_(v.get(src), v.get(src - 1)))
