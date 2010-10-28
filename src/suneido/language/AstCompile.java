@@ -312,17 +312,17 @@ public class AstCompile {
 	}
 
 	private static void breakStatement(ClassGen cg, AstNode ast, Labels labels) {
-		if (cg.isBlock())
-			cg.blockThrow("BREAK_EXCEPTION");
-		else
+		if (labels != null)
 			cg.jump(labels.brk);
+		else
+			cg.blockThrow("BREAK_EXCEPTION");
 	}
 
 	private static void continueStatement(ClassGen cg, AstNode ast, Labels labels) {
-		if (cg.isBlock())
-			cg.blockThrow("CONTINUE_EXCEPTION");
-		else
+		if (labels != null)
 			cg.jump(labels.cont);
+		else
+			cg.blockThrow("CONTINUE_EXCEPTION");
 	}
 
 	private void dowhileStatement(ClassGen cg, AstNode ast) {
@@ -956,7 +956,7 @@ public class AstCompile {
 	}
 
 	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function () { a = F();; }");
+		Lexer lexer = new Lexer("function () { a = { break } }");
 		PrintWriter pw = new PrintWriter(System.out);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
