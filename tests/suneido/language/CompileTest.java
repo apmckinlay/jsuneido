@@ -71,7 +71,6 @@ public class CompileTest {
 				"&a, &b, c, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
 		test("a = b = x",
 				"&a, &b, x, null?, DUP_X2, AASTORE, DUP_X2, AASTORE, ARETURN");
-//				"&a, &b, x, DUP_X2, AASTORE, DUP_X2, AASTORE, null?, ARETURN");
 		test("a = b; return c",
  				"&a, b, AASTORE, c, ARETURN");
 		test("a.b = x",
@@ -102,7 +101,6 @@ public class CompileTest {
 				"&a, DUP2, AALOAD, DUP_X2, add1, AASTORE, ARETURN");
 		test("a--;;",
 				"&a, DUP2, AALOAD, sub1, AASTORE");
-//				"&a, DUP2, AALOAD, DUP_X2, sub1, AASTORE, POP");
 		test("a--",
 				"&a, DUP2, AALOAD, DUP_X2, sub1, AASTORE, ARETURN");
 		test("a.x",
@@ -214,11 +212,6 @@ public class CompileTest {
 				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
 						+ "a: 1, j: 10, k: 11, h: 8, i: 9), callN, ARETURN");
 
-		test("Object()",
-				"Object, ARETURN");
-		test("Object(a, b)",
-				"a, b, Object, ARETURN");
-
 		test("super.F()",
 				"this, self, 'F', superInvokeN, ARETURN");
 	}
@@ -261,16 +254,13 @@ public class CompileTest {
 	@Test public void test_loops() {
 		test("do a() while (b)",
 				"L1, a, callN, POP, L2, b, bool, IFTRUE L1, L3");
-//				"L1, a, callN, POP, L2, b, bool, IFTRUE L1, L3");
 		test("do a() while (b = c)",
 				"L1, a, callN, POP, L2, &b, c, DUP_X2, AASTORE, bool, IFTRUE L1, L3");
 
 		test("while (a) b()",
 				"GOTO L1, L2, b, callN, POP, L1, a, bool, IFTRUE L2, L3");
-//				"L1, a, bool, IFFALSE L2, b, callN, POP, GOTO L1, L2");
 		test("while (a = b) c()",
 				"GOTO L1, L2, c, callN, POP, L1, &a, b, DUP_X2, AASTORE, bool, IFTRUE L2, L3");
-//				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, callN, POP, GOTO L1, L2");
 
 		test("forever a()",
 				"L1, a, callN, POP, GOTO L1, L2");
@@ -281,20 +271,14 @@ public class CompileTest {
 				"b, callN, POP, L1, a, callN, POP, GOTO L1, L2");
 		test("for(b();c;) a()",
 				"b, callN, POP, GOTO L1, L2, a, callN, POP, L1, c, bool, IFTRUE L2, L3");
-//				"b, callN, POP, L1, c, bool, IFFALSE L2, a, callN, POP, GOTO L1, L2");
 		test("for(; a = b;) c()",
 				"GOTO L1, L2, c, callN, POP, L1, &a, b, DUP_X2, AASTORE, bool, IFTRUE L2, L3");
-//				"L1, &a, b, DUP_X2, AASTORE, bool, IFFALSE L2, c, callN, POP, GOTO L1, L2");
 		test("for(b();c;a()) A()",
 				"b, callN, POP, GOTO L1, L2, 'A', global, callN, POP, a, callN, POP, L1, c, bool, IFTRUE L2, L3");
-//				"b, callN, POP, GOTO L1, L2, a, callN, POP, L1, c, bool, IFFALSE L3, A, callN, POP, GOTO L2, L3");
 		test("for (a = 0; a < 4; ++a) b()",
 				"&a, 0, AASTORE, GOTO L1, "
 				+ "L2, b, callN, POP, &a, DUP2, AALOAD, add1, AASTORE, "
 				+ "L1, a, 4, lt_, IFTRUE L2, L3");
-//				"&a, 0, AASTORE, GOTO L1, "
-//				+ "L2, &a, DUP2, AALOAD, add1, AASTORE, "
-//				+ "L1, a, 4, lt_, IFFALSE L3, b, callN, POP, GOTO L2, L3");
 
 		test("forever { a(); break; b() }",
 				"L1, a, callN, POP, GOTO L2, b, callN, POP, GOTO L1, L2");
@@ -309,8 +293,6 @@ public class CompileTest {
 				"b, iterator, ASTORE 4, GOTO L1, " +
 				"L2, ALOAD 4, next, args, SWAP, 0, SWAP, AASTORE, c, callN, POP, " +
 				"L1, ALOAD 4, hasNext, IFTRUE L2, L3");
-//				"b, iterator, ASTORE 4, L1, ALOAD 4, hasNext, IFFALSE L2, " +
-//				"ALOAD 4, next, args, SWAP, 0, SWAP, AASTORE, c, callN, POP, GOTO L1, L2");
 
 		compile("for (a in b) try c() catch ;");
 	}
@@ -319,16 +301,12 @@ public class CompileTest {
 				"a, ASTORE 4");
 		test("switch (a) { default: b() }",
 				"a, ASTORE 4, b, callN, POP, L1, L2");
-//				"a, ASTORE 4, b, callN, POP");
 		test("switch (a) { case 123: b() }",
 				"a, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, L2, b, callN, POP, L1, L3");
-//				"a, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, b, callN, POP, L1");
 		test("switch (a = b) { case 123: b() }",
 				"&a, b, DUP_X2, AASTORE, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, L2, b, callN, POP, L1, L3");
-//				"&a, b, DUP_X2, AASTORE, ASTORE 4, 123, ALOAD 4, is_, IFFALSE L1, b, callN, POP, L1");
 		test("switch (a) { case 123,456: b() }",
 				"a, ASTORE 4, 123, ALOAD 4, is_, IFTRUE L1, 456, ALOAD 4, is_, IFFALSE L2, L1, b, callN, POP, L2, L3");
-//				"a, ASTORE 4, 123, ALOAD 4, is_, IFTRUE L1, 456, ALOAD 4, is_, IFFALSE L2, L1, b, callN, POP, L2");
 	}
 	@Test public void test_exceptions() {
 		test("throw 'oops'",
@@ -407,9 +385,14 @@ public class CompileTest {
 		}
 	}
 
-//	@Test public void test_compile_builtin_calls() {
-//		test("Object()", "");
-//	}
+	@Test public void test_compile_builtin_calls() {
+		test("Object()",
+			"0, varargs, Object, ARETURN");
+		test("Object(a, b)",
+			"2, varargs, DUP, 0, a, AASTORE, DUP, 1, b, AASTORE, Object, ARETURN");
+		test("Object(a: b)",
+			"3, varargs, DUP, 0, NAMED, AASTORE, DUP, 1, 'a', AASTORE, DUP, 2, b, AASTORE, Object, ARETURN");
+	}
 
 	private void test(String expr, String expected) {
 		test(expr, expected,
@@ -442,11 +425,6 @@ public class CompileTest {
 			s = "function (a,b,c) { " + s + " }";
 		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
-//		CompileGenerator generator =
-//				new CompileGenerator("Test", new PrintWriter(sw));
-//		ParseConstant<Object, Generator<Object>> pc =
-//				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-//		SuCallable x = (SuCallable) pc.parse();
 
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
@@ -549,6 +527,7 @@ public class CompileTest {
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" },
 			{ "NEW suneido/language/BlockReturnException, DUP_X1, SWAP, args", "block_return" },
+			{ "ANEWARRAY java/lang/Object", "varargs" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
