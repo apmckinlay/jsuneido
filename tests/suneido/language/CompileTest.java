@@ -381,8 +381,8 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { break }");
 	}
 	@Test public void test_const_named_args() {
-		test("x(0, 1, 2, a: 3, b: 4, c: 5)",
-			"x, 0, 1, 2, NAMED, 'a', 3, NAMED, 'b', 4, NAMED, 'c', 5, callN, ARETURN");
+		test("x(0, 1, 2, a: 3)",
+			"x, 0, 1, 2, NAMED, 'a', 3, callN, ARETURN");
 		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 			"x, EACH, " +
 			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
@@ -517,7 +517,7 @@ public class CompileTest {
 			{ " (Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;Object;Object;Object;Object;Object;)Object;", "" },
-			{ " (Object;Object;Object;Object;Object;Object;Object;Object;Object;Object;Object;Object;Object;)Object;", "" },
+			{ " (Object;Object;Object;Object;Object;Object;Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, LDC 'no return value', thrower (Object;)V, L1", "null?" },
 			{ "DUP, IFNONNULL L1, LDC 'uninitialized variable', thrower (Object;)V, L1", "null?" },
 			{ "DUP, IFNONNULL L2, LDC 'uninitialized variable', thrower (Object;)V, L2", "null?" },

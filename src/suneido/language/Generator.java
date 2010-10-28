@@ -132,7 +132,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public abstract T argumentList(T list, Object keyword, T expression);
+	public abstract T argumentList(T list, T keyword, T expression);
 
 	public void atArgument(String n) {
 	}

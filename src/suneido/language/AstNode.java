@@ -8,36 +8,30 @@ public class AstNode {
 	public final Token token;
 	public final String value;
 	public final List<AstNode> children;
-	public final Object extra;
 
 	public final static List<AstNode> emptyList = Collections.emptyList();
-	public final static AstNode nullNode = new AstNode(null, null, emptyList, null);
+	public final static AstNode nullNode = new AstNode(null, null, emptyList);
 
-	public AstNode(Token token, String value, List<AstNode> children, Object extra) {
+	public AstNode(Token token, String value, List<AstNode> children) {
 		this.token = token;
 		this.value = value;
 		this.children = children;
-		this.extra = extra;
 	}
 
 	public AstNode(Token token, String value) {
-		this(token, value, emptyList, null);
+		this(token, value, emptyList);
 	}
 
 	public AstNode(Token token, AstNode... children) {
-		this(token, null, Arrays.asList(children), null);
+		this(token, null, Arrays.asList(children));
 	}
 
 	public AstNode(Token token, String value, AstNode... children) {
-		this(token, value, Arrays.asList(children), null);
+		this(token, value, Arrays.asList(children));
 	}
 
 	public AstNode(Token token, List<AstNode> children) {
-		this(token, null, children, null);
-	}
-
-	public static AstNode of(Token token, Object extra, AstNode... children) {
-		return new AstNode(token, null, Arrays.asList(children), extra);
+		this(token, null, children);
 	}
 
 	public AstNode first() {
@@ -68,8 +62,6 @@ public class AstNode {
 		sb.append('(').append(token);
 		if (value != null)
 			sb.append("=").append(value);
-		if (extra != null)
-			sb.append(sep).append("*").append(extra);
 		if (children != null)
 			for (AstNode x : children)
 				sb.append(sep).append(x == null ? "null" : x.toString(childIndent));

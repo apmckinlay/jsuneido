@@ -215,8 +215,8 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String argumentList(String list, Object keyword, String expression) {
-		String k = (String) keyword;
+	public String argumentList(String list, String keyword, String expression) {
+		String k = keyword;
 		if (k != null)
 			k = k.substring(2, k.length() - 1);
 		return str("", list, ", ") + str("", k, ": ")

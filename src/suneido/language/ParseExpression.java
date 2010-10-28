@@ -336,7 +336,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T argumentList(Token closing) {
 		T args = null;
-		Object keyword = null;
+		T keyword = null;
 		while (token != closing) {
 			if (lookAhead() == COLON) {
 				keyword = keyword();
@@ -354,8 +354,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		match(closing);
 		return args;
 	}
-	private Object keyword() {
-		Object keyword = null;
+	private T keyword() {
+		T keyword = null;
 		if (token == STRING || token == IDENTIFIER)
 			keyword = generator.string(lexer.getValue());
 		else if (token == NUMBER)
