@@ -33,7 +33,7 @@ public class Library {
 				result = Compiler.compile(name, src);
 				Globals.put(name, result); // needed inside loop for overloading
 			} catch (SuException e) {
-				throw new SuException("error loading " + name + ": " + e);
+				throw new SuException("error loading " + name, e);
 			}
 		}
 		return result;

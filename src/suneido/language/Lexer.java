@@ -190,7 +190,8 @@ public class Lexer {
 			switch (charAt(si)) {
 			case '/':
 				// rest of line is comment
-				for (++si; si < source.length() && '\n' != charAt(si); ++si)
+				for (++si; si < source.length() &&
+					'\r' != charAt(si) && '\n' != charAt(si); ++si)
 					;
 				return COMMENT;
 			case '*':

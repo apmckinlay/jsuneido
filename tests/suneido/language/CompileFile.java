@@ -2,11 +2,9 @@ package suneido.language;
 
 import java.io.*;
 
-import suneido.Repl;
-
 public class CompileFile {
 	public static void main(String[] args) throws IOException {
-		Repl.setup();
+//		Repl.setup();
 
 		FileReader f = new FileReader("compilefile.src");
 		char buf[] = new char[100000];
