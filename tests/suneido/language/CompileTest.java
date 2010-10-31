@@ -431,18 +431,10 @@ public class CompileTest {
 		if (!s.startsWith("class") && !s.startsWith("function")
 				&& !s.startsWith("#("))
 			s = "function (a,b,c) { " + s + " }";
-		Lexer lexer = new Lexer(s);
 		StringWriter sw = new StringWriter();
-
-		AstGenerator generator = new AstGenerator();
-		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
-		PrintWriter pw = new PrintWriter(sw);
-		SuCallable x = (SuCallable) new AstCompile("Test", pw).fold(ast);
-
+		SuCallable x = (SuCallable) Compiler.compile("Test", s, new PrintWriter(sw));
 		constants = x.constants == null ? new Object[0] : x.constants;
-		return sw.toString();
+		return after(sw.toString(), "\n\n");
 	}
 
 	private String simplify(String r, String after) {

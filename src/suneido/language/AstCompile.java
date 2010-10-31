@@ -946,7 +946,7 @@ public class AstCompile {
 			cg.memberLoad();
 			break;
 		default:
-			throw new SuException("store: unhandled: " + ast.token);
+			throw new SuException("load: unhandled: " + ast.token);
 		}
 	}
 
@@ -958,20 +958,6 @@ public class AstCompile {
 			brk = cg.label();
 			cont = cg.label();
 		}
-	}
-
-	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function () { for (i=0; i<10; ++i) continue }");
-		PrintWriter pw = new PrintWriter(System.out);
-		AstGenerator generator = new AstGenerator();
-		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
-		System.out.println(ast);
-//		Object x =
-			new AstCompile("Test", pw).fold(ast);
-//		System.out.println(x);
-//System.out.println(((SuClass) x).toDebugString());
 	}
 
 }
