@@ -39,21 +39,17 @@ public class CompileDump implements DumpReader.Processor {
 	public static void compile(String source, String name) {
 //		if (! name.equals("CLucene"))
 //			return;
-		Lexer lexer = new Lexer(source);
-		AstGenerator generator = new AstGenerator();
-		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		try {
-			new AstCompile(name).fold(pc.parse());
+			Compiler.compile(name, source);
 		} catch (SuException e) {
 			if (e.toString().matches(".*(not support|can't find _).*"))
 				return;
 			//System.out.println(source);
-			System.out.println("line " + lexer.getLineNumber());
+			//System.out.println("line " + lexer.getLineNumber());
 			throw e;
 		} catch (Throwable e) {
 			//System.out.println(source);
-			System.out.println("line " + lexer.getLineNumber());
+			//System.out.println("line " + lexer.getLineNumber());
 			throw new SuException("", e);
 		}
 	}
