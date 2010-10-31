@@ -24,6 +24,9 @@
 
 -keep class org.objectweb.asm.Label
 -keep class com.google.common.collect.ImmutableList
--keep class suneido.language.CompileGenerator$Stack
 -keep class suneido.database.query.Row$Which
 -keep class suneido.database.query.Join$Type
+-keep class suneido.language.ParseFunction$Context
+-keep class suneido.language.AstCompile$VarArgs
+-keep class suneido.language.AstCompile$ExprOption
+-keep class suneido.language.AstCompile$ExprType
