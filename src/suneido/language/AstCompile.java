@@ -275,6 +275,9 @@ public class AstCompile {
 		case WHILE:
 			whileStatement(cg, ast);
 			break;
+		case LIST:
+			compound(cg, ast, labels);
+			break;
 		default:
 			expression(cg, ast, last ? null : ExprOption.POP);
 			if (last) {
@@ -344,16 +347,18 @@ public class AstCompile {
 		Labels labels = new Labels(cg);
 		if (init != null)
 			compound(cg, init, labels);
+		Object start = null;
 		if (cond != null)
-			cg.jump(labels.cont);
+			start = cg.jump();
 		Object loop = cg.placeLabel();
 		compound(cg, body, labels); // body
+		cg.placeLabel(labels.cont);
 		if (incr != null)
 			compound(cg, incr, labels); // increment
 		if (cond == null)
 			cg.jump(loop);
 		else {
-			cg.placeLabel(labels.cont);
+			cg.placeLabel(start);
 			boolIntExpression(cg, cond); // test
 			cg.ifTrue(loop);
 		}
@@ -956,14 +961,15 @@ public class AstCompile {
 	}
 
 	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function () { a = { break } }");
+		Lexer lexer = new Lexer("function () { for (i=0; i<10; ++i) continue }");
 		PrintWriter pw = new PrintWriter(System.out);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
 		System.out.println(ast);
-		Object x = new AstCompile("Test", pw).fold(ast);
+//		Object x =
+			new AstCompile("Test", pw).fold(ast);
 //		System.out.println(x);
 //System.out.println(((SuClass) x).toDebugString());
 	}

@@ -143,6 +143,7 @@ public class CompileTest {
 				"0=Test$f, ARETURN");
 		test("a = function () { }",
 				"&a, 0=Test$f, DUP_X2, AASTORE, ARETURN");
+		test("; { ; a ; } ;", "a, POP");
 	}
 
 	@Test
@@ -262,20 +263,29 @@ public class CompileTest {
 		test("forever a()",
 				"L1, a, call, POP, GOTO L1, L2");
 
-		test("for(;;) a()",
-				"L1, a, call, POP, GOTO L1, L2");
-		test("for(b();;) a()",
-				"b, call, POP, L1, a, call, POP, GOTO L1, L2");
-		test("for(b();c;) a()",
-				"b, call, POP, GOTO L1, L2, a, call, POP, L1, c, bool, IFTRUE L2, L3");
-		test("for(; a = b;) c()",
-				"GOTO L1, L2, c, call, POP, L1, &a, b, DUP_X2, AASTORE, bool, IFTRUE L2, L3");
-		test("for(b();c;a()) A()",
-				"b, call, POP, GOTO L1, L2, 'A', global, call, POP, a, call, POP, L1, c, bool, IFTRUE L2, L3");
+		test("for(;;) a",
+				"L1, a, POP, L2, GOTO L1, L3");
+
+		test("for(b;;) a",
+				"b, POP, L1, a, POP, L2, GOTO L1, L3");
+		test("for(;b;) a",
+				"GOTO L1, L2, a, POP, L3, L1, b, bool, IFTRUE L2, L4");
+		test("for(;;b) a",
+				"L1, a, POP, L2, b, POP, GOTO L1, L3");
+
+		test("for(;b;c) a",
+				"GOTO L1, L2, a, POP, L3, c, POP, L1, b, bool, IFTRUE L2, L4");
+
 		test("for (a = 0; a < 4; ++a) b()",
-				"&a, 0, AASTORE, GOTO L1, "
-				+ "L2, b, call, POP, &a, DUP2, AALOAD, add1, AASTORE, "
-				+ "L1, a, 4, lt_, IFTRUE L2, L3");
+				"&a, 0, AASTORE, GOTO L1, " +
+				"L2, b, call, POP, " +
+				"L3, &a, DUP2, AALOAD, add1, AASTORE, " +
+				"L1, a, 4, lt_, IFTRUE L2, L4");
+
+		test("for (a;b;c) break",
+				"a, POP, GOTO L1, L2, GOTO L3, L4, c, POP, L1, b, bool, IFTRUE L2, L3");
+		test("for (a;b;c) continue",
+				"a, POP, GOTO L1, L2, GOTO L3, L3, c, POP, L1, b, bool, IFTRUE L2, L4");
 
 		test("forever { a(); break; b() }",
 				"L1, a, call, POP, GOTO L2, b, call, POP, GOTO L1, L2");

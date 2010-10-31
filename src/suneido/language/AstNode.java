@@ -64,7 +64,9 @@ public class AstNode {
 			sb.append("=").append(value);
 		if (children != null)
 			for (AstNode x : children)
-				sb.append(sep).append(x == null ? "null" : x.toString(childIndent));
+				sb.append(sep).append(x == null
+						? Strings.repeat(" ", childIndent) + "null"
+						: x.toString(childIndent));
 		sb.append(')');
 		return sb.toString();
 	}

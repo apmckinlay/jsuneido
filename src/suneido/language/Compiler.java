@@ -11,6 +11,8 @@ public class Compiler {
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
+//System.out.println(name + "=============");
+//System.out.println(ast);
 		return new AstCompile(name).fold(ast);	}
 
 	private static final Object[] noLocals = new Object[0];
