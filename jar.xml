@@ -15,6 +15,11 @@
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/lib/asm-all-3.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/andrew/Dropbox/workspace/jSuneido/lib/guava-r07.jar"/>
         </jar>
+		<exec executable="java">
+			  <arg value="-jar"/>
+			  <arg value="lib/proguard.jar"/>
+			  <arg value="@jsuneido.pro"/>
+		</exec>
     </target>
 	<target name="when_built">
 		<tstamp>
@@ -34,7 +39,7 @@
 		</exec>
 		<exec executable="jar">
 		  <arg value="cvf"/>
-		  <arg value="WhenBuilt.jar"/>
+		  <arg value="lib/WhenBuilt.jar"/>
 		  <arg value="suneido/WhenBuilt.class"/>
 		</exec>
 	</target>
