@@ -1,7 +1,7 @@
 package suneido.language;
 
+import static suneido.Suneido.theDbms;
 import static suneido.database.Database.theDB;
-import static suneido.database.server.Command.theDbms;
 
 import java.util.ArrayList;
 import java.util.List;

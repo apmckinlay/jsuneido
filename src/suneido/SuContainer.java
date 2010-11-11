@@ -1,7 +1,7 @@
 package suneido;
 
 import static suneido.SuException.verify;
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 import static suneido.language.Ops.cmp;
 
 import java.math.BigDecimal;

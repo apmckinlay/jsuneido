@@ -1,6 +1,6 @@
 package suneido.language.builtin;
 
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
@@ -9,9 +9,8 @@ import java.util.Map;
 import suneido.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
-import suneido.database.server.DbmsTran;
-import suneido.database.server.ServerData;
 import suneido.database.server.Dbms.HeaderAndRow;
+import suneido.database.server.*;
 import suneido.language.*;
 
 /**
