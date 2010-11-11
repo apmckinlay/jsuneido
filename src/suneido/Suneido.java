@@ -15,6 +15,7 @@ import suneido.database.tools.*;
  */
 public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
+	public final static Dbms theDbms = new DbmsLocal();
 
 	public static void main(String[] args) {
 		cmdlineoptions = CommandLineOptions.parse(args);

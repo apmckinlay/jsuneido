@@ -1,6 +1,6 @@
 package suneido.language.builtin;
 
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 import suneido.SuContainer;
 import suneido.language.*;
 

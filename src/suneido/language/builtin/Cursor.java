@@ -1,11 +1,11 @@
 package suneido.language.builtin;
 
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 import static suneido.util.Util.array;
 import suneido.SuException;
 import suneido.SuRecord;
-import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
 import suneido.database.server.ServerData;
 import suneido.language.*;
 

@@ -1,5 +1,6 @@
 package suneido.database.server;
 
+import static suneido.Suneido.theDbms;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
@@ -8,8 +9,7 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.database.*;
-import suneido.database.query.Header;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
@@ -477,8 +477,6 @@ public enum Command {
 	private final static ByteBuffer OK_ = stringToBuffer("OK\r\n");
 	private final static ByteBuffer EOF_ = stringToBuffer("EOF\r\n");
 	private final static ByteBuffer TRUE_ = stringToBuffer("t\r\n");
-
-	public final static Dbms theDbms = new DbmsLocal();
 
 	static ByteBuffer badcmd() {
 		return BADCMD_.duplicate();

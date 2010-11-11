@@ -1,6 +1,6 @@
 package suneido;
 
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 
 import java.io.IOException;
 import java.io.OutputStream;

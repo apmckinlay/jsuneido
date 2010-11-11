@@ -1,7 +1,7 @@
 package suneido;
 
 import static suneido.SuException.verify;
-import static suneido.database.server.Command.theDbms;
+import static suneido.Suneido.theDbms;
 
 import java.nio.ByteBuffer;
 import java.util.*;
