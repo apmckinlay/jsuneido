@@ -9,13 +9,11 @@ import suneido.database.server.*;
 import suneido.database.tools.*;
 
 /**
- * @author Andrew McKinlay
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
 public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
-	public final static Dbms theDbms = new DbmsLocal();
 
 	public static void main(String[] args) {
 		cmdlineoptions = CommandLineOptions.parse(args);
@@ -67,7 +65,13 @@ public class Suneido {
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
-			DbmsServerBySelect.run(cmdlineoptions.serverPort);
+			DbmsServer.run(cmdlineoptions.serverPort);
+			break;
+		case CLIENT:
+System.out.println("client " + cmdlineoptions.actionArg + ":" + cmdlineoptions.serverPort);
+			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
+			Repl.main(null);
+			TheDbms.close();
 			break;
 		case DUMP:
 			if (cmdlineoptions.actionArg == null)
@@ -129,7 +133,8 @@ public class Suneido {
 		System.out.println("usage: [options] [--] [arguments]");
 		System.out.println("options:");
 		System.out.println("-s[erver]               start the server (this is the default option)");
-		System.out.println("-p[ort] #               the TCP/IP port to run the server on (default 3147)");
+		System.out.println("-c[lient]               run as client");
+		System.out.println("-p[ort] #               the TCP/IP port for server or client (default 3147)");
 		System.out.println("-repl                   interactive read-eval-print-loop command line interface");
 		System.out.println("-d[ump] [table]         dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]         load from database.su or <table> from <table>.su");
@@ -142,4 +147,5 @@ public class Suneido {
 		System.out.println("-h[elp] or -?           print this message");
 		System.out.println("--                      end the options, useful if arguments start with '-'");
 	}
+
 }

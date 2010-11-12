@@ -2,6 +2,7 @@ package suneido.database.tools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static suneido.database.Database.*;
 
 import java.io.File;
 
@@ -23,10 +24,10 @@ public class DbCheckRebuildBase extends TestBaseBase {
 	}
 
 	@After
-        public void delete() {
-        	new File(filename).deleteOnExit();
-        	new File(outfilename).deleteOnExit();
-        }
+    public void delete() {
+    	new File(filename).deleteOnExit();
+    	new File(outfilename).deleteOnExit();
+    }
 
 	protected void dbcheck() {
 		assertEquals(Status.OK, DbCheck.check(outfilename));
@@ -39,38 +40,31 @@ public class DbCheckRebuildBase extends TestBaseBase {
 		int[] values = new int[n];
 		for (int i = 0; i < n; ++i)
 			values[i] = i;
-		db = new Database(filename, Mode.OPEN);
+		TheDb.open(filename, Mode.OPEN);
 		try {
 			check("mytable", values);
-			Transaction t = db.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			TableData td = t.getTableData(t.getTable("mytable").num);
 			assertEquals(2, td.nextfield);
 			t.ck_complete();
 		} finally {
-			db.close();
-			db = null;
+			TheDb.close();
 		}
 	}
 
 	protected void checkNoTable() {
-		db = new Database(filename, Mode.OPEN);
+		TheDb.open(filename, Mode.OPEN);
 		try {
 			checkNoTable("mytable");
 		} finally {
-			db.close();
-			db = null;
+			TheDb.close();
 		}
 	}
 
 	protected void checkNoTable(String tablename) {
-		Transaction t = db.readonlyTran();
+		Transaction t = TheDb.db().readonlyTran();
 		assertNull(t.getTable(tablename));
 		t.ck_complete();
-	}
-
-	protected void closeDb() {
-		db.close();
-		db = null;
 	}
 
 }

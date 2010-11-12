@@ -6,7 +6,8 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE, LOAD2, REBUILD2, COMPACT2
+		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE, LOAD2, REBUILD2, COMPACT2,
+		CLIENT
 	}
 	public Action action;
 	public String actionArg = null;
@@ -34,7 +35,13 @@ public class CommandLineOptions {
 				setAction(Action.REPL);
 			else if (arg.equals("-server") || arg.equals("-s"))
 				setAction(Action.SERVER);
-			else if (arg.equals("-port") || arg.equals("-p")) {
+			else if (arg.equals("-client") || arg.equals("-c")) {
+				setAction(Action.CLIENT);
+				if (arg_i + 1 < args.length && ! args[arg_i + 1].startsWith("-"))
+					actionArg = args[++arg_i];
+				else
+					actionArg = "127.0.0.1";
+			} else if (arg.equals("-port") || arg.equals("-p")) {
 				try {
 					serverPort = Integer.parseInt(args[++arg_i]);
 				} catch (NumberFormatException e) {
@@ -123,13 +130,14 @@ public class CommandLineOptions {
 	private void defaults() {
 		if (action == null)
 			action = Action.SERVER;
-		if (action == Action.SERVER && serverPort == -1)
+		if (serverPort == -1 &&
+				(action == Action.SERVER || action == Action.CLIENT))
 			serverPort = DEFAULT_PORT;
 	}
 
 	private void validate() {
-		if (serverPort != -1 && action != Action.SERVER)
-			error("port should only be specifed with server, not " + action);
+		if (serverPort != -1 && action != Action.SERVER && action != Action.CLIENT)
+			error("port should only be specifed with -server or -client, not " + action);
 	}
 
 	private void remainder() {

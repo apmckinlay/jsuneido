@@ -1,15 +1,13 @@
 package suneido.database.server;
 
 import static suneido.Suneido.errlog;
-import static suneido.database.Database.theDB;
 
 import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.tools.DbDump;
@@ -39,7 +37,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		return readwrite ? theDB.readwriteTran() : theDB.readonlyTran();
+		return readwrite ? TheDb.db().readwriteTran() : TheDb.db().readonlyTran();
 	}
 
 	@Override
@@ -47,7 +45,7 @@ public class DbmsLocal implements Dbms {
 		//System.out.println("\t" + query);
 		boolean complete = (tran == null);
 		if (tran == null)
-			tran = theDB.readonlyTran();
+			tran = TheDb.db().readonlyTran();
 		try {
 			Query q = CompileQuery.query((Transaction) tran, serverData, query);
 			Row row = q.get(dir);
@@ -73,7 +71,7 @@ public class DbmsLocal implements Dbms {
 	@Override
 	public DbmsQuery cursor(ServerData serverData, String s) {
 		//System.out.println("\t" + s);
-		Transaction t = theDB.readonlyTran();
+		Transaction t = TheDb.db().readonlyTran();
 		try {
 			return new DbmsQueryLocal(
 					CompileQuery.query(t, serverData, s, true));
@@ -94,7 +92,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public SuContainer connections() {
-		return new SuContainer(DbmsServerBySelect.connections());
+		return new SuContainer(DbmsServer.connections());
 	}
 
 	@Override
@@ -117,7 +115,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public int finalSize() {
-		return theDB.finalSize();
+		return TheDb.db().finalSize();
 	}
 
 	@Override
@@ -150,7 +148,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public long size() {
-		return theDB.size();
+		return TheDb.db().size();
 	}
 
 	@Override
@@ -160,7 +158,7 @@ public class DbmsLocal implements Dbms {
 
 	@Override
 	public List<Integer> tranlist() {
-		return theDB.tranlist();
+		return TheDb.db().tranlist();
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package suneido.database.server;
 
 import static org.junit.Assert.*;
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.stringToBuffer;
 
@@ -59,7 +58,7 @@ public class CommandTest {
 
 	@Test
 	public void transaction() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer buf = Command.TRANSACTION.execute(READ, null, null);
 		assertEquals("T12\r\n", bufferToString(buf));
@@ -78,7 +77,7 @@ public class CommandTest {
 
 	@Test
 	public void cursor() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		ServerData serverData = new ServerData();
 
 		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
@@ -93,7 +92,7 @@ public class CommandTest {
 
 	@Test(expected = SuException.class)
 	public void badcursor() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		Command.CURSOR.execute(null,
 				stringToBuffer("tables sort totalsize"),
@@ -102,7 +101,7 @@ public class CommandTest {
 
 	@Test
 	public void query() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		ServerData serverData = new ServerData();
 
 		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
@@ -125,7 +124,7 @@ public class CommandTest {
 
 	@Test
 	public void header() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
 				null);
@@ -139,7 +138,7 @@ public class CommandTest {
 
 	@Test
 	public void order() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
 		assertEquals("T12\r\n", bufferToString(tbuf));
@@ -155,7 +154,7 @@ public class CommandTest {
 
 	@Test
 	public void keys() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
 				null);
@@ -170,7 +169,7 @@ public class CommandTest {
 
 	@Test
 	public void explain() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
 				null);
@@ -185,7 +184,7 @@ public class CommandTest {
 
 	@Test
 	public void rewind() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 
 		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
 				null);
@@ -200,7 +199,7 @@ public class CommandTest {
 
 	@Test
 	public void get() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		ServerData serverData = new ServerData();
 		Output output = new Output();
 
@@ -230,7 +229,7 @@ public class CommandTest {
 
 	@Test
 	public void get1() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		ServerData serverData = new ServerData();
 		Output output = new Output();
 
@@ -258,7 +257,7 @@ public class CommandTest {
 
 	@Test
 	public void output_update_erase() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		final ServerData serverData = new ServerData();
 		Output output = new Output();
 
@@ -320,7 +319,7 @@ public class CommandTest {
 
 	@Test
 	public void libget() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		final ServerData serverData = new ServerData();
 		Output output = new Output();
 
@@ -397,6 +396,10 @@ public class CommandTest {
 
 		@Override
 		public void write() {
+		}
+
+		@Override
+		public void close() {
 		}
 	}
 

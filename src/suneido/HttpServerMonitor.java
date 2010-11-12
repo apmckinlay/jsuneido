@@ -1,13 +1,11 @@
 package suneido;
 
-import static suneido.Suneido.theDbms;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-import suneido.database.server.DbmsServerBySelect;
+import suneido.database.server.DbmsServer;
 
 import com.sun.net.httpserver.*;
 
@@ -28,7 +26,7 @@ public class HttpServerMonitor {
 
 	private static class MyHandler implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
-			List<String> conns = DbmsServerBySelect.connections();
+			List<String> conns = DbmsServer.connections();
 			StringBuilder sb = new StringBuilder();
 	       	sb.append("<html>\r\n"
 	       			+ "<head>\r\n"
@@ -44,13 +42,13 @@ public class HttpServerMonitor {
 	   			.append(mb(Runtime.getRuntime().totalMemory()))
 	       		.append("mb</p>\r\n"
 	       			+ "<p>Transactions: ")
-	   			.append(theDbms.tranlist().size())
+	   			.append(TheDbms.dbms().tranlist().size())
 	       		.append("</p>\r\n"
 	       			+ "<p>Cursors: ")
-	   			.append(theDbms.cursors())
+	   			.append(TheDbms.dbms().cursors())
 	       		.append("</p>\r\n"
 	       			+ "<p>Database Size: ")
-	 	  		.append(mb(theDbms.size()))
+	 	  		.append(mb(TheDbms.dbms().size()))
 	       		.append("mb</p>\r\n"
 	       			+ "<p>Connections: (")
 		   		.append(conns.size())

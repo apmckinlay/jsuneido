@@ -43,7 +43,7 @@ public class ServerData {
 	}
 
 	/**
-	 * this is set by {@link DbmsServerBySelect} since it is per connection,
+	 * this is set by {@link DbmsServer} since it is per connection,
 	 * not really per thread, initialValue is for tests
 	 */
 	public static final ThreadLocal<ServerData> threadLocal

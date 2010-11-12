@@ -1,6 +1,5 @@
 package suneido.database.tools;
 
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.FileOutputStream;
@@ -22,12 +21,12 @@ public class DbDump {
 	}
 
 	public static int dumpDatabase(String db_filename, String output_filename) {
-		theDB = new Database(db_filename, Mode.READ_ONLY);
+		TheDb.set(new Database(db_filename, Mode.READ_ONLY));
 		try {
 			return dumpDatabase(output_filename);
 		} finally {
-			theDB.close();
-			theDB = null;
+			TheDb.db().close();
+			TheDb.set(null);
 		}
 	}
 
@@ -42,7 +41,7 @@ public class DbDump {
 	private static int dumpDatabaseImp(String filename) throws Throwable {
 		FileChannel fout = new FileOutputStream(filename).getChannel();
 		try {
-			Transaction t = theDB.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			try {
 				writeFileHeader(fout);
 				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
@@ -67,8 +66,6 @@ public class DbDump {
 	}
 
 	public static void dumpTablePrint(String tablename) {
-		if (theDB == null)
-			Database.open_theDB();
 		int n = dumpTable(tablename);
 		System.out.println("dumped " + n + " records from " + tablename);
 	}
@@ -84,7 +81,7 @@ public class DbDump {
 	private static int dumpTableImp(String tablename) throws Throwable {
 		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
-			Transaction t = theDB.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			try {
 				writeFileHeader(fout);
 				return dump1(fout, t, tablename, false);

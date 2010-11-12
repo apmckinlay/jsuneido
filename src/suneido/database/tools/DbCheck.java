@@ -1,7 +1,5 @@
 package suneido.database.tools;
 
-import static suneido.database.Database.theDB;
-
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -142,8 +140,8 @@ public class DbCheck {
 	private final static int BAD_LIMIT = 10;
 
 	protected boolean check_data_and_indexes() {
-		Database.theDB = new Database(filename, Mode.READ_ONLY);
-		Transaction t = theDB.readonlyTran();
+		TheDb.set(new Database(filename, Mode.READ_ONLY));
+		Transaction t = TheDb.db().readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
 			BtreeIndex.Iter iter = bti.iter(t).next();
@@ -164,8 +162,8 @@ public class DbCheck {
 		} finally {
 			println();
 			t.complete();
-			Database.theDB.close();
-			Database.theDB = null;
+			TheDb.db().close();
+			TheDb.set(null);
 		}
 	}
 
@@ -189,7 +187,7 @@ public class DbCheck {
 						return false;
 					}
 				prevkey = strippedKey;
-				Record rec = theDB.input(iter.keyadr());
+				Record rec = TheDb.db().input(iter.keyadr());
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;

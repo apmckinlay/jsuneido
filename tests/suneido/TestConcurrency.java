@@ -3,7 +3,6 @@
 package suneido;
 
 import static suneido.SuException.verifyEquals;
-import static suneido.database.Database.theDB;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -34,7 +33,7 @@ public class TestConcurrency {
 		Transactions.MAX_SHADOWS_SINCE_ACTIVITY = 200;
 		Transactions.MAX_FINALS_SIZE = 90;
 		Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
-		theDB = new Database(mmf, Mode.CREATE);
+		TheDb.set(new Database(mmf, Mode.CREATE));
 
 		Runnable[] actions = new Runnable[] {
 //			new MmfileTest(),
@@ -59,9 +58,9 @@ public class TestConcurrency {
 					System.out.print('.');
 				if (nreps % 40000 == 0) {
 					System.out.println();
-					theDB.readonlyTran();
+					TheDb.db().readonlyTran();
 				}
-				theDB.limitOutstandingTransactions();
+				TheDb.db().limitOutstandingTransactions();
 			}
 		}
 		System.out.println();
@@ -74,8 +73,8 @@ public class TestConcurrency {
 				System.out.println(s);
 		}
 
-		theDB.close();
-		theDB = null;
+		TheDb.db().close();
+		TheDb.set(null);
 		verifyEquals(Status.OK, DbCheck.check("concur.db"));
 
 		System.out.println("finished " + nreps + " reps with " + NTHREADS
@@ -131,7 +130,7 @@ public class TestConcurrency {
 			Request.execute("create " + tablename
 					+ " (a,b,c,d,e,f,g) key(a) index(b,c)");
 			for (int i = 0; i < N / 100; ++i) {
-				Transaction t = theDB.readwriteTran();
+				Transaction t = TheDb.db().readwriteTran();
 				for (int j = 0; j < 100; ++j)
 					t.addRecord(tablename, record());
 				t.ck_complete();
@@ -150,7 +149,7 @@ public class TestConcurrency {
 		private void addColumn() {
 			nAddColumns.incrementAndGet();
 			try {
-				theDB.addColumn(tablename, "z");
+				TheDb.db().addColumn(tablename, "z");
 			} catch (SuException e) {
 				nAddColumnFailed.incrementAndGet();
 				throwUnexpected(e);
@@ -160,7 +159,7 @@ public class TestConcurrency {
 		private void removeColumn() {
 			nRemoveColumns.incrementAndGet();
 			try {
-				theDB.removeColumn(tablename, "z");
+				TheDb.db().removeColumn(tablename, "z");
 			} catch (SuException e) {
 				nRemoveColumnFailed.incrementAndGet();
 				throwUnexpected(e);
@@ -170,7 +169,7 @@ public class TestConcurrency {
 		private void lookup() {
 			nlookups.incrementAndGet();
 			int n = random(N);
-			Transaction t = theDB.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			try {
 				Query q = CompileQuery.query(t, serverData,
 						tablename + " where b = " + n);
@@ -185,7 +184,7 @@ public class TestConcurrency {
 			nranges.incrementAndGet();
 			int from = random(N);
 			int to = from + random(N - from);
-			Transaction t = theDB.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			try {
 				Query q = CompileQuery.query(t, serverData,
 						tablename + " where b > " + from + " and b < " + to);
@@ -201,7 +200,7 @@ public class TestConcurrency {
 		}
 		private void append() {
 			nappends.incrementAndGet();
-			Transaction t = theDB.readwriteTran();
+			Transaction t = TheDb.db().readwriteTran();
 			try {
 				t.addRecord(tablename, record());
 			} catch (SuException e) {
@@ -214,7 +213,7 @@ public class TestConcurrency {
 		private void update() {
 			nupdates.incrementAndGet();
 			int n = random(N);
-			Transaction t = theDB.readwriteTran();
+			Transaction t = TheDb.db().readwriteTran();
 			try {
 				Query q = CompileQuery.parse(t, serverData,
 						"update " + tablename + " where b = " + n
@@ -284,15 +283,15 @@ public class TestConcurrency {
 	}
 
 	static class TransactionTest implements Runnable {
-		final long node = theDB.dest.alloc(4096, (byte) 1);
+		final long node = TheDb.db().dest.alloc(4096, (byte) 1);
 		AtomicInteger nreps = new AtomicInteger();
 		AtomicInteger nfailed = new AtomicInteger();
 		AtomicInteger num = new AtomicInteger();
 
 		@Override
 		public void run() {
-			Transaction t = theDB.readwriteTran();
-			DestTran dest = new DestTran(t, theDB.dest);
+			Transaction t = TheDb.db().readwriteTran();
+			DestTran dest = new DestTran(t, TheDb.db().dest);
 			try {
 				switch (random(3)) {
 				case 0:
@@ -342,13 +341,13 @@ public class TestConcurrency {
 		public NextNum(String tablename) {
 			this.tablename = tablename;
 			Request.execute("create " + tablename + " (num) key()");
-			Transaction t = theDB.readwriteTran();
+			Transaction t = TheDb.db().readwriteTran();
 			t.addRecord(tablename, rec(1));
 			t.ck_complete();
 		}
 		@Override
 		public void run() {
-			Transaction t = theDB.readwriteTran();
+			Transaction t = TheDb.db().readwriteTran();
 			Query q = CompileQuery.query(t, serverData, tablename);
 			try {
 				Row r = q.get(Dir.NEXT);

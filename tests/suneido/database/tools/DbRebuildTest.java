@@ -1,6 +1,7 @@
 package suneido.database.tools;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.database.Database.*;
 
 import java.io.File;
 
@@ -15,19 +16,19 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_empty() {
-		db = new Database(filename, Mode.CREATE);
-		closeDb();
+		TheDb.open(filename, Mode.CREATE);
+		TheDb.close();
 		dbrebuild();
 		dbcheck();
 	}
 
 	@Test
 	public void test_empty_table() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 0);
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		dbrebuild();
 		dbcheck();
@@ -36,11 +37,11 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_simple() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		dbrebuild();
 		dbcheck();
@@ -49,12 +50,12 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_add_index_with_existing_records() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
-			db.addIndex("mytable", "b", false);
+			TheDb.db().addIndex("mytable", "b", false);
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		dbrebuild();
 		dbcheck();
@@ -63,12 +64,12 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_drop() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
-			db.removeTable("mytable");
+			TheDb.db().removeTable("mytable");
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		checkNoTable();
 		dbrebuild();
@@ -78,13 +79,13 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_drop_recreate() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
-			db.removeTable("mytable");
+			TheDb.db().removeTable("mytable");
 			makeTable("mytable", 4);
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		checkTable();
 		dbrebuild();
@@ -94,15 +95,15 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_rename_table() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
 			makeTable("tmp", 4);
-			db.removeTable("tmp"); // so new db has different offsets
+			TheDb.db().removeTable("tmp"); // so new theDB() has different offsets
 			makeTable("mytable_before", 4);
-			db.renameTable("mytable_before", "mytable");
+			TheDb.db().renameTable("mytable_before", "mytable");
 			addRecords("mytable", 4, 7);
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		dbrebuild();
 		dbcheck();
@@ -111,21 +112,20 @@ public class DbRebuildTest extends DbCheckRebuildBase {
 
 	@Test
 	public void test_views() {
-		db = new Database(filename, Mode.CREATE);
+		TheDb.open(filename, Mode.CREATE);
 		try {
-			db.add_view("myview", "indexes");
+			TheDb.db().add_view("myview", "indexes");
 		} finally {
-			closeDb();
+			TheDb.close();
 		}
 		dbrebuild();
 		dbcheck();
-		db = new Database(filename, Mode.OPEN);
+		TheDb.open(filename, Mode.OPEN);
 		try {
-			Transaction t = db.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			assertEquals("indexes", Database.getView(t, "myview"));
 		} finally {
-			db.close();
-			db = null;
+			TheDb.close();
 		}
 	}
 

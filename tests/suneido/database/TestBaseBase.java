@@ -11,12 +11,11 @@ import suneido.database.server.ServerData;
 public class TestBaseBase {
 
 	protected DestMem dest;
-	protected Database db;
 	protected static final ServerData serverData = new ServerData();
 
 	protected void reopen() {
-		db.close();
-		db = new Database(dest, Mode.OPEN);
+		TheDb.db().close();
+		TheDb.set(new Database(dest, Mode.OPEN));
 	}
 
 	protected void makeTable() {
@@ -32,17 +31,17 @@ public class TestBaseBase {
 	}
 
 	protected void makeTable(String tablename, int nrecords) {
-		db.addTable(tablename);
-		db.addColumn(tablename, "a");
-		db.addColumn(tablename, "b");
-		db.addIndex(tablename, "a", true);
-		db.addIndex(tablename, "b,a", false);
+		TheDb.db().addTable(tablename);
+		TheDb.db().addColumn(tablename, "a");
+		TheDb.db().addColumn(tablename, "b");
+		TheDb.db().addIndex(tablename, "a", true);
+		TheDb.db().addIndex(tablename, "b,a", false);
 
 		addRecords(tablename, 0, nrecords - 1);
 	}
 
 	protected void addRecords(String tablename, int from, int to) {
-		Transaction t = db.readwriteTran();
+		Transaction t = TheDb.db().readwriteTran();
 		for (int i = from; i <= to; ++i)
 			t.addRecord(tablename, record(i));
 		t.ck_complete();
@@ -72,7 +71,7 @@ public class TestBaseBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction tran = db.readonlyTran();
+		Transaction tran = TheDb.db().readonlyTran();
 		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
@@ -89,7 +88,7 @@ public class TestBaseBase {
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
 		for (; !iter.eof(); iter.next())
-			recs.add(db.input(iter.keyadr()));
+			recs.add(TheDb.db().input(iter.keyadr()));
 		return recs;
 	}
 
@@ -98,7 +97,7 @@ public class TestBaseBase {
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
-		return iter.eof() ? null : db.input(iter.keyadr());
+		return iter.eof() ? null : TheDb.db().input(iter.keyadr());
 	}
 
 	protected Record getLast(String tablename, Transaction tran) {
@@ -106,7 +105,7 @@ public class TestBaseBase {
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).prev();
-		return iter.eof() ? null : db.input(iter.keyadr());
+		return iter.eof() ? null : TheDb.db().input(iter.keyadr());
 	}
 
 	protected void check(int... values) {
@@ -114,7 +113,7 @@ public class TestBaseBase {
 	}
 
 	protected void check(String filename, int... values) {
-			Transaction t = db.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			check(t, filename, values);
 			t.ck_complete();
 		}
@@ -127,7 +126,7 @@ public class TestBaseBase {
 		}
 
 	protected int req(String s) {
-		Transaction tran = db.readwriteTran();
+		Transaction tran = TheDb.db().readwriteTran();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

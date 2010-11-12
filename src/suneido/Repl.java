@@ -24,7 +24,6 @@ package suneido;
 import java.io.*;
 import java.util.Map;
 
-import suneido.database.Database;
 import suneido.language.*;
 import suneido.language.Compiler;
 
@@ -60,8 +59,6 @@ public class Repl {
 	public static void setup() {
 		if (Suneido.cmdlineoptions == null)
 			Suneido.cmdlineoptions = CommandLineOptions.parse(new String[0]);
-
-		Database.open_theDB();
 
 		Globals.builtin("Print", new Print());
 

@@ -57,4 +57,14 @@ public class OutputByChannel implements NetworkOutput {
 			fatal("network write error", e); // TODO
 		}
 	}
+
+	@Override
+	public void close() {
+		try {
+			channel.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

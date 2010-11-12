@@ -43,4 +43,13 @@ public class OutputBySocket implements NetworkOutput {
 		}
 	}
 
+	@Override
+	public void close() {
+		try {
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

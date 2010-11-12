@@ -104,7 +104,7 @@ public class StringMethods {
 			break;
 		case 'S':
 			if (method == "ServerEval")
-				return Eval(s, args);
+				return ServerEval(s, args);
 			if (method == "Size")
 				return Size(s, args);
 			if (method == "Split")
@@ -132,6 +132,11 @@ public class StringMethods {
 			break;
 		}
 		return userDefined("Strings", s, method, args);
+	}
+
+	private static Object ServerEval(String s, Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		return TheDbms.dbms().run(s);
 	}
 
 	private static Boolean AlphaQ(String s, Object[] args) {

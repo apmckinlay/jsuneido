@@ -1,20 +1,18 @@
 package suneido.database.server;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.theDB;
 
 import org.junit.Test;
 
 import suneido.database.*;
-import suneido.database.query.Header;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 
 public class DbmsLocalTest {
 	@Test
 	public void test() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		Dbms dbms = new DbmsLocal();
 		ServerData serverData = new ServerData();
 

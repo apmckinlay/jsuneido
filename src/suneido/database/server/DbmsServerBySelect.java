@@ -1,6 +1,5 @@
 package suneido.database.server;
 
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
@@ -13,7 +12,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.*;
-import suneido.database.Database;
+import suneido.database.TheDb;
 import suneido.language.Compiler;
 import suneido.language.Globals;
 import suneido.util.NetworkOutput;
@@ -22,11 +21,11 @@ import suneido.util.ServerBySelect;
 public class DbmsServerBySelect {
 	private static final Executor executor = Executors.newCachedThreadPool();
 	@GuardedBy("serverDataSet")
-	private static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
+	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
 
 	public static void run(int port) {
-		Database.open_theDB();
+		TheDb.open();
 		Globals.builtin("Print", new Repl.Print());
 		try {
 			Compiler.eval("JInit()");
@@ -37,12 +36,12 @@ public class DbmsServerBySelect {
 		inetAddress = server.getInetAddress();
 		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
-					theDB.limitOutstandingTransactions();
+					TheDb.db().limitOutstandingTransactions();
 				}
 			}, 1, 1, TimeUnit.SECONDS);
 		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
-					theDB.dest.force();
+					TheDb.db().dest.force();
 				}
 			}, 1, 1, TimeUnit.MINUTES);
 		try {
@@ -50,6 +49,10 @@ public class DbmsServerBySelect {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void schedule(Runnable fn, long delay, TimeUnit unit) {
+		ServerBySelect.scheduler.schedule(fn, delay, unit);
 	}
 
 	public static InetAddress getInetAddress() {

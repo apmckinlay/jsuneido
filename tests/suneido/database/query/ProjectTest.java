@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.theDB;
 import static suneido.database.query.Query.Dir.PREV;
 
 import org.junit.Test;
@@ -14,12 +13,12 @@ public class ProjectTest {
 
 	@Test
 	public void test() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		try {
 			Request.execute("create tmp (a,b) key(a)");
 			req("insert { a: 1 } into tmp");
 			req("insert { a: 2, b: 1 } into tmp");
-			Transaction t = theDB.readonlyTran();
+			Transaction t = TheDb.db().readonlyTran();
 			try {
 				Query q = CompileQuery.query(t, serverData, "tmp project b");
 				Record r;
@@ -33,12 +32,12 @@ public class ProjectTest {
 				t.abortIfNotComplete();
 			}
 		} finally {
-			theDB.close();
+			TheDb.db().close();
 		}
 	}
 
 	protected int req(String s) {
-		Transaction tran = theDB.readwriteTran();
+		Transaction tran = TheDb.db().readwriteTran();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

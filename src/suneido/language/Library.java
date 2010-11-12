@@ -1,12 +1,10 @@
 package suneido.language;
 
-import static suneido.Suneido.theDbms;
-import static suneido.database.Database.theDB;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.TheDbms;
 import suneido.database.*;
 import suneido.database.server.Dbms.LibGet;
 
@@ -23,7 +21,7 @@ public class Library {
 
 	public static Object load(String name) {
 		//System.out.println("LOAD " + name);
-		return load2(name, theDbms.libget(name));
+		return load2(name, TheDbms.dbms().libget(name));
 	}
 	synchronized private static Object load2(String name, List<LibGet> libgets) {
 		Object result = null;
@@ -41,12 +39,12 @@ public class Library {
 
 	public static List<LibGet> libget(String name) {
 		List<LibGet> srcs = new ArrayList<LibGet>();
-		if (theDB == null)
+		if (! TheDb.isOpen())
 			return srcs;
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
-		Transaction tran = theDB.readonlyTran();
+		Transaction tran = TheDb.db().readonlyTran();
 		try {
 			for (String lib : libraries) {
 				Table table = tran.getTable(lib);
@@ -60,7 +58,7 @@ public class Library {
 					continue; // library is invalid, ignore it
 				BtreeIndex.Iter iter = bti.iter(tran, key).next();
 				if (!iter.eof()) {
-					Record rec = theDB.input(iter.keyadr());
+					Record rec = TheDb.db().input(iter.keyadr());
 					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
 				}
 			}
@@ -74,8 +72,8 @@ public class Library {
 		if (libraries.contains(library))
 			return false;
 		try {
-			theDbms.cursor(null, library + " project group, name, text");
-			theDbms.admin(null, "ensure " + library + " key(name,group)");
+			TheDbms.dbms().cursor(null, library + " project group, name, text");
+			TheDbms.dbms().admin(null, "ensure " + library + " key(name,group)");
 		} catch (RuntimeException e) {
 			return false;
 		}
