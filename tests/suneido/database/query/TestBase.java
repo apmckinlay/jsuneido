@@ -1,7 +1,5 @@
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
-
 import org.junit.After;
 import org.junit.Before;
 
@@ -19,13 +17,13 @@ public class TestBase {
 
 	@Before
 	public void create() {
-		theDB = new Database(new DestMem(), Mode.CREATE);
+		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		makeDB();
 	}
 
 	@After
 	public void close() {
-		theDB.close();
+		TheDb.db().close();
 	}
 
 	protected void makeDB() {
@@ -109,7 +107,7 @@ public class TestBase {
 	}
 
 	protected int req(String s) {
-		Transaction tran = theDB.readwriteTran();
+		Transaction tran = TheDb.db().readwriteTran();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

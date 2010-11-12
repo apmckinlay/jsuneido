@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
+import suneido.database.TheDb;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
@@ -11,7 +11,7 @@ public class CompileQuery {
 
 	/** for tests */
 	public static Query query(ServerData serverData, String s) {
-		Transaction tran = theDB.readonlyTran();
+		Transaction tran = TheDb.db().readonlyTran();
 		try {
 			return query(tran, serverData, s);
 		} finally {
@@ -30,7 +30,7 @@ public class CompileQuery {
 
 	/** for tests */
 	public static Query parse(ServerData serverData, String s) {
-		Transaction tran = theDB.readonlyTran();
+		Transaction tran = TheDb.db().readonlyTran();
 		try {
 			return parse(tran, serverData, s);
 		} finally {

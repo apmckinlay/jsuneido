@@ -4,12 +4,12 @@
  */
 package suneido.database.query;
 
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 
 import suneido.SuException;
+import suneido.database.TheDb;
 import suneido.database.server.ServerData;
 import suneido.language.Lexer;
 
@@ -49,14 +49,14 @@ public class Request implements RequestGenerator<Object> {
 		Schema schema = (Schema) schemaOb;
 		if (!schema.hasKey())
 			throw new SuException("key required for: " + table);
-		theDB.addTable(table);
+		TheDb.db().addTable(table);
 		createSchema(table, schema);
 		return null;
 	}
 
 	private void createSchema(String table, Schema schema) {
 		for (String column : schema.columns)
-			theDB.addColumn(table, column);
+			TheDb.db().addColumn(table, column);
 		for (Index index : schema.indexes)
 			index.create(table);
 	}
@@ -65,11 +65,11 @@ public class Request implements RequestGenerator<Object> {
 	public Object ensure(String tablename, Object schemaOb) {
 		// TODO should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
-		if (theDB.ensureTable(tablename))
+		if (TheDb.db().ensureTable(tablename))
 			createSchema(tablename, schema);
 		else {
 			for (String col : schema.columns)
-					theDB.ensureColumn(tablename, col);
+					TheDb.db().ensureColumn(tablename, col);
 			for (Index index : schema.indexes)
 				index.ensure(tablename);
 		}
@@ -84,9 +84,9 @@ public class Request implements RequestGenerator<Object> {
 	public Object alterDrop(String table, Object schemaOb) {
 		Schema schema = (Schema) schemaOb;
 		for (String col : schema.columns)
-			theDB.removeColumn(table, col);
+			TheDb.db().removeColumn(table, col);
 		for (Index index : schema.indexes)
-			theDB.removeIndex(table, listToCommas(index.columns));
+			TheDb.db().removeIndex(table, listToCommas(index.columns));
 		return null;
 	}
 
@@ -97,12 +97,12 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	public Object rename(String from, String to) {
-		theDB.renameTable(from, to);
+		TheDb.db().renameTable(from, to);
 		return null;
 	}
 
 	public Object view(String name, String definition) {
-		theDB.add_view(name, definition);
+		TheDb.db().add_view(name, definition);
 		return null;
 	}
 
@@ -116,7 +116,7 @@ public class Request implements RequestGenerator<Object> {
 	public Object drop(String table) {
 		if (serverData.getSview(table) != null)
 			serverData.dropSview(table);
-		else if (!theDB.removeTable(table))
+		else if (!TheDb.db().removeTable(table))
 			throw new SuException("nonexistent table: " + table);
 		return null;
 	}
@@ -157,13 +157,13 @@ public class Request implements RequestGenerator<Object> {
 
 		void create(String table) {
 			assert (in != null);
-			theDB.addIndex(table, listToCommas(columns), key, unique, lower,
+			TheDb.db().addIndex(table, listToCommas(columns), key, unique, lower,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
 		void ensure(String table) {
 			assert (in != null);
-			theDB.ensureIndex(table, listToCommas(columns), key, unique, lower,
+			TheDb.db().ensureIndex(table, listToCommas(columns), key, unique, lower,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
@@ -190,7 +190,7 @@ public class Request implements RequestGenerator<Object> {
 			this.to = to;
 		}
 		void rename(String table) {
-			theDB.renameColumn(table, from, to);
+			TheDb.db().renameColumn(table, from, to);
 		}
 	}
 

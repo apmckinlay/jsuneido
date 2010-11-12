@@ -1,6 +1,5 @@
 package suneido.database.server;
 
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
@@ -16,7 +15,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Repl;
 import suneido.SuException;
-import suneido.database.Database;
+import suneido.database.TheDb;
 import suneido.language.Compiler;
 import suneido.language.Globals;
 import suneido.util.*;
@@ -26,23 +25,23 @@ public class DbmsServerBySocket {
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
-	public static final ScheduledExecutorService scheduler
+	private static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 
 	public static void run(int port) {
-		Database.open_theDB();
+		TheDb.open();
 		Globals.builtin("Print", new Repl.Print());
 		Compiler.eval("JInit()");
 		ServerBySocket server = new ServerBySocket(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();
 		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
-					theDB.limitOutstandingTransactions();
+					TheDb.db().limitOutstandingTransactions();
 				}
 			}, 1, 1, TimeUnit.SECONDS);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
-					theDB.dest.force();
+					TheDb.db().dest.force();
 				}
 			}, 1, 1, TimeUnit.MINUTES);
 		try {

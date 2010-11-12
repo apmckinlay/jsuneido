@@ -1,7 +1,7 @@
 package suneido.language.builtin;
 
-import static suneido.Suneido.theDbms;
 import suneido.SuContainer;
+import suneido.TheDbms;
 import suneido.language.*;
 
 public class Libraries extends BuiltinFunction {
@@ -9,7 +9,7 @@ public class Libraries extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return new SuContainer(theDbms.libraries());
+		return new SuContainer(TheDbms.dbms().libraries());
 	}
 
 }

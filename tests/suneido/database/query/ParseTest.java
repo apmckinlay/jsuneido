@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.SuException;
+import suneido.database.*;
 import suneido.database.TestBase;
-import suneido.database.Transaction;
 
 //TODO parse object constants
 
@@ -74,7 +74,7 @@ public class ParseTest extends TestBase {
 		test(s, s);
 	}
 	private void test(String s, String expect) {
-		Transaction t = db.readonlyTran();
+		Transaction t = TheDb.db().readonlyTran();
 		try {
 			assertEquals(s, expect,
 					CompileQuery.parse(t, serverData, s).toString());
@@ -84,10 +84,10 @@ public class ParseTest extends TestBase {
 	}
 
 	private void makeTable(String tablename, String... columns) {
-		db.addTable(tablename);
+		TheDb.db().addTable(tablename);
 		for (String column : columns)
-			db.addColumn(tablename, column);
-		db.addIndex(tablename, columns[0], true);
+			TheDb.db().addColumn(tablename, column);
+		TheDb.db().addIndex(tablename, columns[0], true);
 	}
 
 	@Test(expected = SuException.class)

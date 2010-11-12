@@ -1,9 +1,7 @@
 package suneido.language.builtin;
 
-import static suneido.Suneido.theDbms;
 import static suneido.util.Util.array;
-import suneido.SuException;
-import suneido.SuRecord;
+import suneido.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.ServerData;
@@ -36,7 +34,7 @@ public class Cursor extends BuiltinClass {
 		Instance(Object[] args) {
 			args = Args.massage(newFS, args);
 			query = Ops.toStr(args[0]);
-			q = theDbms.cursor(ServerData.forThread(), query);
+			q = TheDbms.dbms().cursor(ServerData.forThread(), query);
 		}
 
 		@Override

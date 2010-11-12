@@ -1,7 +1,6 @@
 package suneido;
 
 import static suneido.SuException.verify;
-import static suneido.Suneido.theDbms;
 import static suneido.language.Ops.cmp;
 
 import java.math.BigDecimal;
@@ -563,7 +562,7 @@ public class SuContainer extends SuValue
 			if (f == "-")
 				rec.addMin();
 			else if (f.equals(ts))
-				rec.add(theDbms.timestamp());
+				rec.add(TheDbms.dbms().timestamp());
 			else if (null != (x = get(f)))
 				rec.add(x);
 			else

@@ -1,7 +1,6 @@
 package suneido.database.tools;
 
 import static suneido.SuException.verify;
-import static suneido.database.Database.theDB;
 import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.*;
@@ -37,27 +36,27 @@ public class DbLoad {
 		int n = 0;
 		File dbfile = new File(dbfilename);
 		try {
-			Database.theDB = new Database(dbfile, Mode.CREATE);
+			TheDb.set(new Database(dbfile, Mode.CREATE));
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(filename));
 			try {
 				verifyFileHeader(fin);
 				String schema;
 				try {
-					theDB.setLoading(true);
+					TheDb.db().setLoading(true);
 					while (null != (schema = readTableHeader(fin))) {
 						schema = "create" + schema.substring(6);
 						load1(fin, schema);
 						++n;
 					}
 				} finally {
-					theDB.setLoading(false);
+					TheDb.db().setLoading(false);
 				}
 			} finally {
 				fin.close();
 			}
 		} finally {
-			Database.theDB.close();
+			TheDb.db().close();
 		}
 		return n;
 	}
@@ -80,7 +79,7 @@ public class DbLoad {
 			tablename = tablename.substring(0, tablename.length() - 3);
 		File dbfile = new File("suneido.db");
 		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
-		Database.theDB = new Database(dbfile, mode);
+		TheDb.set(new Database(dbfile, mode));
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(tablename + ".su"));
@@ -91,16 +90,16 @@ public class DbLoad {
 					throw new SuException("not a valid dump file");
 				schema = "create " + tablename + schema.substring(6);
 				try {
-					theDB.setLoading(true);
+					TheDb.db().setLoading(true);
 					return load1(fin, schema);
 				} finally {
-					theDB.setLoading(false);
+					TheDb.db().setLoading(false);
 				}
 			} finally {
 				fin.close();
 			}
 		} finally {
-			Database.theDB.close();
+			TheDb.db().close();
 		}
 	}
 
@@ -125,7 +124,7 @@ public class DbLoad {
 		String table = schema.substring(7, n);
 
 		if (!"views".equals(table)) {
-			Schema.removeTable(theDB, table);
+			Schema.removeTable(TheDb.db(), table);
 			Request.execute(schema);
 		}
 		return load_data(fin, table);
@@ -136,7 +135,7 @@ public class DbLoad {
 		byte[] buf = new byte[4];
 		ByteBuffer bb = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN);
 		byte[] recbuf = new byte[4096];
-		Transaction tran = theDB.readwriteTran();
+		Transaction tran = TheDb.db().readwriteTran();
 		try {
 			for (;; ++nrecs) {
 				verify(fin.read(buf) == buf.length);
@@ -148,7 +147,7 @@ public class DbLoad {
 				load_data_record(fin, tablename, tran, recbuf, n);
 				if (nrecs % 100 == 99) {
 					verify(tran.complete() == null);
-					tran = theDB.readwriteTran();
+					tran = TheDb.db().readwriteTran();
 				}
 			}
 		} finally {

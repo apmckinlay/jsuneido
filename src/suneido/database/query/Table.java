@@ -3,7 +3,6 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.*;
 
 import java.util.*;
@@ -212,7 +211,7 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.cur().key, theDB.input(iter.keyadr()));
+		Row row = new Row(iter.cur().key, TheDb.db().input(iter.keyadr()));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;

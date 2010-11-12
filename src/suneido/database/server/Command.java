@@ -1,6 +1,5 @@
 package suneido.database.server;
 
-import static suneido.Suneido.theDbms;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
@@ -8,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.TheDbms;
 import suneido.database.*;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
@@ -45,7 +45,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			theDbms.admin(ServerData.forThread(), bufferToString(line));
+			TheDbms.dbms().admin(ServerData.forThread(), bufferToString(line));
 			return t();
 		}
 	},
@@ -97,14 +97,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return valueResult(outputQueue, theDbms.connections());
+			return valueResult(outputQueue, TheDbms.dbms().connections());
 		}
 	},
 	COPY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			theDbms.copy(bufferToString(line).trim());
+			TheDbms.dbms().copy(bufferToString(line).trim());
 			return ok();
 		}
 	},
@@ -117,7 +117,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsQuery dq = theDbms.cursor(ServerData.forThread(),
+			DbmsQuery dq = TheDbms.dbms().cursor(ServerData.forThread(),
 					bufferToString(extra));
 			int cn = ServerData.forThread().addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
@@ -127,14 +127,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("N" + theDbms.cursors() + "\r\n");
+			return stringToBuffer("N" + TheDbms.dbms().cursors() + "\r\n");
 		}
 	},
 	DUMP {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			theDbms.dump(bufferToString(line).trim());
+			TheDbms.dbms().dump(bufferToString(line).trim());
 			return ok();
 		}
 	},
@@ -152,7 +152,7 @@ public enum Command {
 			DbmsTran tran =
 					ServerData.forThread().getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			theDbms.erase(tran, recadr);
+			TheDbms.dbms().erase(tran, recadr);
 			return ok();
 		}
 	},
@@ -168,7 +168,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("N" + theDbms.finalSize() + "\r\n");
+			return stringToBuffer("N" + TheDbms.dbms().finalSize() + "\r\n");
 		}
 	},
 	GET {
@@ -208,7 +208,7 @@ public enum Command {
 				throw new SuException("get1 expects + or - or 1");
 			}
 			int tn = ck_getnum('T', line);
-			HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir,
+			HeaderAndRow hr = TheDbms.dbms().get(ServerData.forThread(), dir,
 					bufferToString(extra), one,
 					ServerData.forThread().getTransaction(tn));
 			row_result(hr.row, hr.header, true, outputQueue);
@@ -237,14 +237,14 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			int nkilled = 0;
 			String sessionId = bufferToString(line).trim();
-			synchronized(DbmsServerBySocket.serverDataSet) {
-				Iterator<ServerData> iter = DbmsServerBySocket.serverDataSet.iterator();
+			synchronized(DbmsServer.serverDataSet) {
+				Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
 				while (iter.hasNext()) {
 					ServerData serverData = iter.next();
 					if (sessionId.equals(serverData.getSessionId())) {
 						++nkilled;
 						serverData.end();
-//						serverData.outputQueue.closeChannel();
+						serverData.outputQueue.close();
 						iter.remove();
 					}
 				}
@@ -256,7 +256,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			List<LibGet> srcs = theDbms.libget(bufferToString(line).trim());
+			List<LibGet> srcs = TheDbms.dbms().libget(bufferToString(line).trim());
 			StringBuilder resp = new StringBuilder();
 			for (LibGet src : srcs)
 				resp.append("L").append(src.text.limit()).append(" ");
@@ -274,14 +274,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(listToParens(theDbms.libraries()) + "\r\n");
+			return stringToBuffer(listToParens(TheDbms.dbms().libraries()) + "\r\n");
 		}
 	},
 	LOG {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			theDbms.log(bufferToString(line).trim());
+			TheDbms.dbms().log(bufferToString(line).trim());
 			return ok();
 		}
 	},
@@ -322,7 +322,7 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
-			DbmsQuery dq = theDbms.query(ServerData.forThread(), tran,
+			DbmsQuery dq = TheDbms.dbms().query(ServerData.forThread(), tran,
 					bufferToString(extra));
 			int qn = ServerData.forThread().addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
@@ -340,7 +340,7 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			DbmsTran tran =
 					ServerData.forThread().getTransaction(ck_getnum('T', line));
-			int n = theDbms.request(ServerData.forThread(), tran,
+			int n = TheDbms.dbms().request(ServerData.forThread(), tran,
 					bufferToString(extra));
 			return stringToBuffer("R" + n + "\r\n");
 		}
@@ -358,7 +358,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			Object result = theDbms.run(bufferToString(line));
+			Object result = TheDbms.dbms().run(bufferToString(line));
 			if (result == null)
 				return stringToBuffer("\r\n");
 			return ServerData.forThread().textmode
@@ -371,14 +371,14 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			return stringToBuffer(
-					theDbms.sessionid(bufferToString(line).trim()) + "\r\n");
+					TheDbms.dbms().sessionid(bufferToString(line).trim()) + "\r\n");
 		}
 	},
 	SIZE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("S" + Mmfile.offsetToInt(theDbms.size())
+			return stringToBuffer("S" + Mmfile.offsetToInt(TheDbms.dbms().size())
 					+ "\r\n");
 		}
 	},
@@ -401,14 +401,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(Ops.display(theDbms.timestamp()) + "\r\n");
+			return stringToBuffer(Ops.display(TheDbms.dbms().timestamp()) + "\r\n");
 		}
 	},
 	TRANLIST {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(listToParens(theDbms.tranlist()) + "\r\n");
+			return stringToBuffer(listToParens(TheDbms.dbms().tranlist()) + "\r\n");
 		}
 	},
 	TRANSACTION {
@@ -424,7 +424,7 @@ public enum Command {
 						+ "\r\n");
 			// MAYBE associate session id with transaction
 			int tn = ServerData.forThread().addTransaction(
-					theDbms.transaction(readwrite));
+					TheDbms.dbms().transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
 		}
 	},
@@ -443,7 +443,7 @@ public enum Command {
 					ServerData.forThread().getTransaction(ck_getnum('T', line));
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
-			recadr = theDbms.update(tran, recadr, new Record(extra));
+			recadr = TheDbms.dbms().update(tran, recadr, new Record(extra));
 			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
 		}
 	};

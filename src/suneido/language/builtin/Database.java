@@ -1,6 +1,5 @@
 package suneido.language.builtin;
 
-import static suneido.Suneido.theDbms;
 import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
@@ -16,7 +15,7 @@ public class Database extends SuValue {
 	public Object call(Object... args) {
 		args = Args.massage(requestFS, args);
 		String request = Ops.toStr(args[0]);
-		theDbms.admin(ServerData.forThread(), request);
+		TheDbms.dbms().admin(ServerData.forThread(), request);
 		return Boolean.TRUE;
 	}
 
@@ -30,6 +29,8 @@ public class Database extends SuValue {
 			return CurrentSize(args);
 		if (method == "Cursors")
 			return Cursors(args);
+		if (method == "Kill")
+			return Kill(args);
 		if (method == "SessionId")
 			return SessionId(args);
 		if (method == "TempDest")
@@ -39,32 +40,37 @@ public class Database extends SuValue {
 		return super.invoke(self, method, args);
 	}
 
+	private Object Kill(Object[] args) {
+		args = Args.massage(FunctionSpec.string, args);
+		return TheDbms.dbms().kill(Ops.toStr(args[0]));
+	}
+
 	public static SuContainer Connections(Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return theDbms.connections();
+		return TheDbms.dbms().connections();
 	}
 
 	private Object CurrentSize(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		// need BigDecimal to handle long values
-		return BigDecimal.valueOf(theDbms.size());
+		return BigDecimal.valueOf(TheDbms.dbms().size());
 	}
 
 	private int Cursors(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return theDbms.cursors();
+		return TheDbms.dbms().cursors();
 	}
 
 	public static final FunctionSpec stringFS =
-			new FunctionSpec(array("string"), "");
+		new FunctionSpec(array("string"), "");
 
 	private Object SessionId(Object[] args) {
 		args = Args.massage(stringFS, args);
-		return theDbms.sessionid(Ops.toStr(args[0]));
+		return TheDbms.dbms().sessionid(Ops.toStr(args[0]));
 	}
 
 	private Object Transactions(Object[] args) {
-		return new SuContainer(theDbms.tranlist());
+		return new SuContainer(TheDbms.dbms().tranlist());
 	}
 
 }

@@ -40,8 +40,6 @@ public class Database {
 			PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
 	public final Object commitLock = new Object();
-	public static Database theDB;
-
 	public static class TN {
 		public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
@@ -50,17 +48,6 @@ public class Database {
 		final static int NAME = 0, DEFINITION = 1;
 	}
 	private final static int VERSION = 1;
-
-	public static void open_theDB() {
-		theDB = new Database("suneido.db", Mode.OPEN);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				theDB.close();
-				theDB = null;
-			}
-		});
-	}
 
 	public Database(String filename, Mode mode) {
 		this(new File(filename), mode);

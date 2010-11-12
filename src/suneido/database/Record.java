@@ -2,7 +2,6 @@ package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
-import static suneido.database.Database.theDB;
 import static suneido.util.Util.bufferUcompare;
 
 import java.nio.ByteBuffer;
@@ -656,7 +655,7 @@ public class Record
 
 	public static Record fromRef(Object ref) {
 		return ref instanceof Long
-				? theDB.input((Long) ref)
+				? TheDb.db().input((Long) ref)
 				: new Record((ByteBuf) ref);
 	}
 }

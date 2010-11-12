@@ -1,7 +1,6 @@
 package suneido;
 
 import static suneido.SuException.verify;
-import static suneido.Suneido.theDbms;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -218,7 +217,7 @@ public class SuRecord extends SuContainer {
 			if (f == null)
 				rec.addMin();
 			else if (f.equals(ts))
-				rec.add(theDbms.timestamp());
+				rec.add(TheDbms.dbms().timestamp());
 			else if (deps.containsKey(f)) {
 				// output dependencies
 				sb.setLength(0);
@@ -260,13 +259,13 @@ public class SuRecord extends SuContainer {
 	public void update() {
 		ck_modify("Update");
 		Record newrec = toDbRecord(hdr);
-		recadr = theDbms.update(tran.getTransaction(), recadr, newrec);
+		recadr = TheDbms.dbms().update(tran.getTransaction(), recadr, newrec);
 		verify(recadr >= 0);
 	}
 
 	public void delete() {
 		ck_modify("Delete");
-		theDbms.erase(tran.getTransaction(), recadr);
+		TheDbms.dbms().erase(tran.getTransaction(), recadr);
 	}
 
 	private void ck_modify(String op) {

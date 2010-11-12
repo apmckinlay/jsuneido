@@ -1,7 +1,6 @@
 package suneido.database.tools;
 
 import static suneido.SuException.verifyEquals;
-import static suneido.database.Database.theDB;
 import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.File;
@@ -51,18 +50,18 @@ public class DbCompact {
 	private int compact() {
 		File tempfile = new File(tempfilename);
 		oldDB = new Database(dbfilename, Mode.READ_ONLY);
-		theDB = new Database(tempfile, Mode.CREATE);
+		TheDb.set(new Database(tempfile, Mode.CREATE));
 
 		int n = copy();
 
 		oldDB.close();
-		theDB.close();
+		TheDb.db().close();
 		return n;
 	}
 
 	private int copy() {
 		rt = oldDB.readonlyTran();
-		theDB.loading = true;
+		TheDb.db().loading = true;
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}
@@ -82,7 +81,7 @@ public class DbCompact {
 	private void createTable(String tablename) {
 		Request.execute("create " + tablename
 				+ oldDB.getTable(tablename).schema());
-		verifyEquals(oldDB.getTable(tablename).schema(), theDB.getTable(tablename).schema());
+		verifyEquals(oldDB.getTable(tablename).schema(), TheDb.db().getTable(tablename).schema());
 	}
 
 	private int copyData() {
@@ -110,7 +109,7 @@ public class DbCompact {
 		int i = 0;
 		long first = 0;
 		long last = 0;
-		Transaction wt = theDB.readwriteTran();
+		Transaction wt = TheDb.db().readwriteTran();
 		int tblnum = wt.ck_getTable(tablename).num;
 		for (; !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
@@ -121,7 +120,7 @@ public class DbCompact {
 				first = last;
 			if (++i % 100 == 0) {
 				wt.ck_complete();
-				wt = theDB.readwriteTran();
+				wt = TheDb.db().readwriteTran();
 			}
 		}
 		if (first != 0)
@@ -139,7 +138,7 @@ public class DbCompact {
 					continue;
 				ByteBuf buf = iter.current();
 				Record rec = new Record(buf.slice(4), iter.offset() + 4);
-				theDB.addIndexEntriesForCompact(table, index, rec);
+				TheDb.db().addIndexEntriesForCompact(table, index, rec);
 				if (iter.offset() >= last)
 					break;
 			} while (iter.next());

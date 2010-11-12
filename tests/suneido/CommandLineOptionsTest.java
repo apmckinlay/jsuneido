@@ -56,7 +56,7 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void port_without_server() {
-		assertEquals("ERROR port should only be specifed with server, not DUMP",
+		assertEquals("ERROR port should only be specifed with -server or -client, not DUMP",
 				CommandLineOptions.parse("-dump", "-port",  "123").toString());
 	}
 

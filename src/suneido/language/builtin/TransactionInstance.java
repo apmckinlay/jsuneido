@@ -1,6 +1,5 @@
 package suneido.language.builtin;
 
-import static suneido.Suneido.theDbms;
 import static suneido.language.UserDefined.userDefined;
 import static suneido.util.Util.array;
 
@@ -43,7 +42,7 @@ public class TransactionInstance extends SuValue {
 			update = Ops.toIntBool(args[1]) == 1;
 		else
 			update = !(Ops.toIntBool(args[0]) == 1);
-		t = theDbms.transaction(update);
+		t = TheDbms.dbms().transaction(update);
 	}
 
 	@Override
@@ -94,10 +93,10 @@ public class TransactionInstance extends SuValue {
 		String query = Ops.toStr(args[0]) + where;
 		Object q;
 		if (CompileQuery.isRequest(query))
-			q = theDbms.request(ServerData.forThread(), t, query);
+			q = TheDbms.dbms().request(ServerData.forThread(), t, query);
 		else
 			q = new QueryInstance(query,
-					theDbms.query(ServerData.forThread(), t, query), t);
+					TheDbms.dbms().query(ServerData.forThread(), t, query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
 		return Ops.call(args[1], q);
@@ -110,7 +109,7 @@ public class TransactionInstance extends SuValue {
 		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]) + where;
-		HeaderAndRow hr = theDbms.get(ServerData.forThread(), dir, query, single,
+		HeaderAndRow hr = TheDbms.dbms().get(ServerData.forThread(), dir, query, single,
 				t == null ? null : t.getTransaction());
 		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
 	}

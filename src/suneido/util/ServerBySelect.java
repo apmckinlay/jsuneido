@@ -223,7 +223,7 @@ public class ServerBySelect {
 			}
 			selectServer.needWrite(key);
 		}
-		public void closeChannel() {
+		public void close() {
 			try {
 				key.channel().close();
 			} catch (IOException e) {
