@@ -232,6 +232,8 @@ public class Summarize extends Query1 {
 		}
 	}
 	private static class Count extends Summary {
+		int n;
+
 		@Override
 		void init() {
 			n = 0;
@@ -244,9 +246,10 @@ public class Summarize extends Query1 {
 		Object result() {
 			return n;
 		}
-		int n;
 	}
 	private static class Total extends Summary {
+		Object total;
+
 		@Override
 		void init() {
 			total = 0;
@@ -254,18 +257,22 @@ public class Summarize extends Query1 {
 
 		@Override
 		void add(Object x) {
-			total = Ops.add(total, x);
+			try {
+				total = Ops.add(total, x);
+			} catch (Exception e) {
+			}
 		}
 
 		@Override
 		Object result() {
 			return total;
 		}
-
-		Object total;
 	}
 
 	private static class Average extends Summary {
+		int n = 0;
+		Object total;
+
 		@Override
 		void init() {
 			n = 0;
@@ -275,19 +282,21 @@ public class Summarize extends Query1 {
 		@Override
 		void add(Object x) {
 			++n;
-			total = Ops.add(total, x);
+			try {
+				total = Ops.add(total, x);
+			} catch (Exception e) {
+			}
 		}
 
 		@Override
 		Object result() {
 			return Ops.div(total, n);
 		}
-
-		int n = 0;
-		Object total;
 	}
 
 	private static class Max extends Summary {
+		Object value;
+
 		@Override
 		void init() {
 			value = null;
@@ -303,8 +312,6 @@ public class Summarize extends Query1 {
 		Object result() {
 			return value;
 		}
-
-		Object value;
 	}
 
 	private static class Min extends Summary {
@@ -328,6 +335,8 @@ public class Summarize extends Query1 {
 	}
 
 	private static class ListSum extends Summary {
+		HashSet<Object> set;
+
 		@Override
 		void init() {
 			set = new HashSet<Object>();
@@ -345,8 +354,6 @@ public class Summarize extends Query1 {
 				list.append(x);
 			return list;
 		}
-
-		HashSet<Object> set;
 	}
 
 }
