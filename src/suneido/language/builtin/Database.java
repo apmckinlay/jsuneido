@@ -5,7 +5,6 @@ import static suneido.util.Util.array;
 import java.math.BigDecimal;
 
 import suneido.*;
-import suneido.database.server.ServerData;
 import suneido.language.*;
 
 public class Database extends SuValue {
@@ -15,7 +14,7 @@ public class Database extends SuValue {
 	public Object call(Object... args) {
 		args = Args.massage(requestFS, args);
 		String request = Ops.toStr(args[0]);
-		TheDbms.dbms().admin(ServerData.forThread(), request);
+		TheDbms.dbms().admin(request);
 		return Boolean.TRUE;
 	}
 

@@ -9,7 +9,6 @@ import java.util.*;
 import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
-import suneido.database.server.DbmsQuery;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -19,7 +18,7 @@ import com.google.common.collect.ImmutableSet;
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.</small></p>
  */
-public abstract class Query implements DbmsQuery {
+public abstract class Query {
 	private final Cache cache = new Cache();
 	private boolean willneed_tempindex = false;
 	private List<String> tempindex;
@@ -34,10 +33,6 @@ public abstract class Query implements DbmsQuery {
 	protected final static int OUT_OF_ORDER = 10;
 	// allow for adding impossibles together
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
-
-	//	static Query query(ServerData serverData, String s, boolean is_cursor) {
-	//		return CompileQuery.parse(serverData, s).setup(is_cursor);
-	//	}
 
 	Query setup() {
 		return setup(false);
@@ -55,7 +50,7 @@ public abstract class Query implements DbmsQuery {
 	public abstract void setTransaction(Transaction tran);
 
 	// iteration
-	abstract public Header header();
+	public abstract Header header();
 	abstract List<List<String>> indexes();
 	public List<String> ordering() { // overridden by QSort
 		return noFields;
@@ -66,9 +61,9 @@ public abstract class Query implements DbmsQuery {
 		key_to.addMax();
 		select(index, key, key_to);
 	}
-	abstract public void rewind();
+	public abstract void rewind();
 
-	abstract public Row get(Dir dir);
+	public abstract Row get(Dir dir);
 	List<Fixed> fixed() {
 		return Collections.emptyList();
 	}

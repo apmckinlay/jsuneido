@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
+import suneido.database.server.DbmsTranLocal;
 import suneido.language.Globals;
 import suneido.language.Ops;
 import suneido.language.builtin.TransactionInstance;
@@ -26,7 +27,7 @@ public class Triggers {
 			return;
 		if (!SuValue.isCallable(fn))
 			throw new SuException(trigger + " not callable (" + Ops.typeName(fn) + ")");
-		TransactionInstance t = new TransactionInstance(tran);
+		TransactionInstance t = new TransactionInstance(new DbmsTranLocal(tran));
 		try {
 			Ops.call(fn, t,
 					oldrec == null ? false : new SuRecord(oldrec, table.fields, t),

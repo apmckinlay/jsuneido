@@ -8,7 +8,8 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.TheDbms;
-import suneido.database.*;
+import suneido.database.Mmfile;
+import suneido.database.Record;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
@@ -45,7 +46,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			TheDbms.dbms().admin(ServerData.forThread(), bufferToString(line));
+			TheDbms.dbms().admin(bufferToString(line));
 			return t();
 		}
 	},
@@ -117,8 +118,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsQuery dq = TheDbms.dbms().cursor(ServerData.forThread(),
-					bufferToString(extra));
+			DbmsQuery dq = TheDbms.dbms().cursor(bufferToString(extra));
 			int cn = ServerData.forThread().addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
@@ -149,10 +149,9 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			DbmsTran tran = getTran(line);
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
-			TheDbms.dbms().erase(tran, recadr);
+			tran.erase(recadr);
 			return ok();
 		}
 	},
@@ -207,10 +206,8 @@ public enum Command {
 			default:
 				throw new SuException("get1 expects + or - or 1");
 			}
-			int tn = ck_getnum('T', line);
-			HeaderAndRow hr = TheDbms.dbms().get(ServerData.forThread(), dir,
-					bufferToString(extra), one,
-					ServerData.forThread().getTransaction(tn));
+			DbmsTran tran = getTran(line);
+			HeaderAndRow hr = tran.get(dir,	bufferToString(extra), one);
 			row_result(hr.row, hr.header, true, outputQueue);
 			return null;
 		}
@@ -322,8 +319,7 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			int tn = ck_getnum('T', line);
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
-			DbmsQuery dq = TheDbms.dbms().query(ServerData.forThread(), tran,
-					bufferToString(extra));
+			DbmsQuery dq = tran.query(bufferToString(extra));
 			int qn = ServerData.forThread().addQuery(tn, dq);
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
@@ -338,10 +334,8 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
-			int n = TheDbms.dbms().request(ServerData.forThread(), tran,
-					bufferToString(extra));
+			DbmsTran tran = getTran(line);
+			int n = tran.request(bufferToString(extra));
 			return stringToBuffer("R" + n + "\r\n");
 		}
 	},
@@ -439,11 +433,10 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsTran tran =
-					ServerData.forThread().getTransaction(ck_getnum('T', line));
+			DbmsTran tran = getTran(line);
 			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
-			recadr = TheDbms.dbms().update(tran, recadr, new Record(extra));
+			recadr = tran.update(recadr, new Record(extra));
 			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
 		}
 	};
@@ -531,6 +524,11 @@ public enum Command {
 		return num;
 	}
 
+	private static DbmsTran getTran(ByteBuffer line) {
+		int tn = ck_getnum('T', line);
+		return ServerData.forThread().getTransaction(tn);
+	}
+
 	private static DbmsQuery q_or_c(ByteBuffer buf) {
 		DbmsQuery q = null;
 		int n;
@@ -552,7 +550,7 @@ public enum Command {
 			q = ServerData.forThread().getQuery(n);
 		else if (-1 != (tn = getnum('T', buf)) && -1 != (n = getnum('C', buf))) {
 			q = ServerData.forThread().getCursor(n);
-			q.setTransaction((Transaction) ServerData.forThread().getTransaction(tn));
+			q.setTransaction(ServerData.forThread().getTransaction(tn));
 		} else
 			throw new SuException("expecting Q# or T# C#");
 		if (q == null)

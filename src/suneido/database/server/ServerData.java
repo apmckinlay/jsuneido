@@ -6,7 +6,6 @@ import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.database.Transaction;
 import suneido.util.NetworkOutput;
 
 /**
@@ -58,7 +57,7 @@ public class ServerData {
 	}
 
 	public int addTransaction(DbmsTran tran) {
-		int num = ((Transaction) tran).num;
+		int num = ((DbmsTranLocal) tran).t.num;
 		trans.put(num, tran);
 		tranqueries.put(num, new ArrayList<Integer>());
 		return num;

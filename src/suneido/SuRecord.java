@@ -259,13 +259,13 @@ public class SuRecord extends SuContainer {
 	public void update() {
 		ck_modify("Update");
 		Record newrec = toDbRecord(hdr);
-		recadr = TheDbms.dbms().update(tran.getTransaction(), recadr, newrec);
+		recadr = tran.getTransaction().update(recadr, newrec);
 		verify(recadr >= 0);
 	}
 
 	public void delete() {
 		ck_modify("Delete");
-		TheDbms.dbms().erase(tran.getTransaction(), recadr);
+		tran.getTransaction().erase(recadr);
 	}
 
 	private void ck_modify(String op) {

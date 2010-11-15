@@ -6,6 +6,7 @@ import java.util.List;
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.*;
+import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.LibGet;
 
 public class Library {
@@ -72,8 +73,8 @@ public class Library {
 		if (libraries.contains(library))
 			return false;
 		try {
-			TheDbms.dbms().cursor(null, library + " project group, name, text");
-			TheDbms.dbms().admin(null, "ensure " + library + " key(name,group)");
+			TheDbms.dbms().get(Dir.NEXT, library + " project group, name, text", false);
+			TheDbms.dbms().admin("ensure " + library + " key(name,group)");
 		} catch (RuntimeException e) {
 			return false;
 		}

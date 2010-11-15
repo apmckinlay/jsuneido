@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import suneido.*;
-import suneido.database.query.Row;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
 import suneido.database.server.DbmsQuery;
 import suneido.database.server.DbmsTran;
 import suneido.language.*;
@@ -38,7 +38,7 @@ public class QueryInstance extends SuValue {
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
 		if (method == "Close")
-			return null;
+			return Close(args);
 		if (method == "Columns")
 			return Columns(args);
 		if (method == "Explain")
@@ -64,6 +64,12 @@ public class QueryInstance extends SuValue {
 		return super.invoke(self, method, args);
 	}
 
+	private Object Close(Object[] args) {
+		Args.massage(FunctionSpec.noParams, args);
+		q.close();
+		return null;
+	}
+
 	private Object Columns(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
 		List<String> cols = new ArrayList<String>();
@@ -75,7 +81,7 @@ public class QueryInstance extends SuValue {
 
 	private String Explain(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return q.toString();
+		return q.explain();
 	}
 
 	private Object Keys(Object[] args) {

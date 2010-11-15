@@ -9,7 +9,7 @@ public class Use extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(useFS, args);
-		return suneido.language.Library.use(Ops.toStr(args[0]));
+		return Library.use(Ops.toStr(args[0]));
 	}
 
 }
