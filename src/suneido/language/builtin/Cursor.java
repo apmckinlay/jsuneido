@@ -4,7 +4,6 @@ import static suneido.util.Util.array;
 import suneido.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
-import suneido.database.server.ServerData;
 import suneido.language.*;
 
 public class Cursor extends BuiltinClass {
@@ -34,7 +33,7 @@ public class Cursor extends BuiltinClass {
 		Instance(Object[] args) {
 			args = Args.massage(newFS, args);
 			query = Ops.toStr(args[0]);
-			q = TheDbms.dbms().cursor(ServerData.forThread(), query);
+			q = TheDbms.dbms().cursor(query);
 		}
 
 		@Override
@@ -55,7 +54,7 @@ public class Cursor extends BuiltinClass {
 			if (!(args[0] instanceof TransactionInstance))
 				throw new SuException("usage: cursor.Next/Prev(transaction)");
 			TransactionInstance t = (TransactionInstance) args[0];
-			q.setTransaction((suneido.database.Transaction) t.getTransaction());
+			q.setTransaction(t.getTransaction());
 			Row row = q.get(dir);
 			return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 		}

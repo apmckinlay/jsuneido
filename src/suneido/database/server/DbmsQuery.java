@@ -3,12 +3,11 @@ package suneido.database.server;
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
-import suneido.database.query.Header;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
 public interface DbmsQuery {
+
 	Header header();
 
 	List<String> ordering();
@@ -23,8 +22,12 @@ public interface DbmsQuery {
 
 	void output(Record rec);
 
-	void setTransaction(Transaction tran);
+	void setTransaction(DbmsTran tran);
 
 	boolean updateable();
+
+	String explain();
+
+	void close();
 
 }

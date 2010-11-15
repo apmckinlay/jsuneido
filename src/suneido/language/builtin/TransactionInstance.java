@@ -9,7 +9,7 @@ import suneido.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
-import suneido.database.server.*;
+import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
 /**
@@ -93,10 +93,9 @@ public class TransactionInstance extends SuValue {
 		String query = Ops.toStr(args[0]) + where;
 		Object q;
 		if (CompileQuery.isRequest(query))
-			q = TheDbms.dbms().request(ServerData.forThread(), t, query);
+			q = t.request(query);
 		else
-			q = new QueryInstance(query,
-					TheDbms.dbms().query(ServerData.forThread(), t, query), t);
+			q = new QueryInstance(query, t.query(query), t);
 		if (args[1] == Boolean.FALSE)
 			return q;
 		return Ops.call(args[1], q);
@@ -104,14 +103,15 @@ public class TransactionInstance extends SuValue {
 
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
-	public static Object queryOne(TransactionInstance t, Object[] args, Dir dir,
+	public static Object queryOne(TransactionInstance ti, Object[] args, Dir dir,
 			boolean single) {
 		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]) + where;
-		HeaderAndRow hr = TheDbms.dbms().get(ServerData.forThread(), dir, query, single,
-				t == null ? null : t.getTransaction());
-		return hr.row == null ? false : new SuRecord(hr.row, hr.header, t);
+		HeaderAndRow hr = (ti == null)
+			? TheDbms.dbms().get(dir, query, single)
+			: ti.t.get(dir, query, single);
+		return hr.row == null ? false : new SuRecord(hr.row, hr.header, ti);
 	}
 
 	@SuppressWarnings("unchecked")

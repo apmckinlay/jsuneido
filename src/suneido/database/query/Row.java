@@ -7,7 +7,7 @@ import java.util.*;
 
 import suneido.SuRecord;
 import suneido.database.Record;
-import suneido.database.Transaction;
+import suneido.database.server.DbmsTran;
 import suneido.language.Pack;
 
 import com.google.common.base.Objects;
@@ -19,7 +19,7 @@ public class Row {
 	final Record[] data;
 	public long recadr = 0; // if Row contains single update-able record, this
 							// is its address
-	private Transaction tran = null;
+	private DbmsTran tran = null;
 	private SuRecord surec = null;
 
 	Row(Record... data) {
@@ -129,7 +129,7 @@ public class Row {
 		}
 	}
 
-	public void setTransaction(Transaction tran) {
+	public void setTransaction(DbmsTran tran) {
 		this.tran = tran;
 	}
 

@@ -5,51 +5,40 @@ import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.Record;
-import suneido.database.query.Header;
-import suneido.database.query.Row;
+import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
 /**
  * The interface between Suneido and the database. Used to hide the difference
- * between a local database ({@link DbmsLocal}) and one accessed client server.
+ * between a local database ({@link DbmsLocal})
+ * and a remote database ({@link DbmsRemote}).
  *
- * @author Andrew McKinlay
- *         <p>
- *         <small>Copyright 2008 Suneido Software Corp. All rights reserved.
- *         Licensed under GPLv2.</small>
- *         </p>
+ * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.</small></p>
  */
-public interface Dbms {
-	DbmsTran transaction(boolean readwrite);
+public abstract class Dbms {
+	public abstract DbmsTran transaction(boolean readwrite);
 
-	void admin(ServerData serverData, String s);
-	int request(ServerData serverData, DbmsTran tran, String s);
+	public abstract void admin(String s);
 
-	DbmsQuery cursor(ServerData serverData, String s);
+	public abstract DbmsQuery cursor(String s);
 
-	DbmsQuery query(ServerData serverData, DbmsTran tran, String s);
-	List<LibGet> libget(String name);
-	List<String> libraries();
-	List<Integer> tranlist();
-	Date timestamp();
-	void dump(String filename);
-	void copy(String filename);
-	Object run(String s);
-	long size();
-	SuContainer connections();
-	void erase(DbmsTran tran, long recadr);
+	public abstract List<String> libraries();
+	public abstract List<Integer> tranlist();
+	public abstract Date timestamp();
+	public abstract void dump(String filename);
+	public abstract void copy(String filename);
+	public abstract Object run(String s);
+	public abstract long size();
+	public abstract SuContainer connections();
 
-	long update(DbmsTran tran, long recadr, Record rec);
+	public abstract int cursors();
+	public abstract String sessionid(String s);
+	public abstract int finalSize();
+	public abstract void log(String s);
+	public abstract int kill(String s);
 
-	HeaderAndRow get(ServerData serverData, Dir dir, String query, boolean one, DbmsTran tran);
-	int cursors();
-	String sessionid(String s);
-	int finalSize();
-	void log(String s);
-	int kill(String s);
-
-	static class HeaderAndRow {
+	public static class HeaderAndRow {
 		public final Header header;
 		public final Row row;
 
@@ -58,6 +47,15 @@ public interface Dbms {
 			this.row = row;
 		}
 	}
+	public final HeaderAndRow get(Dir dir, String query, boolean one) {
+		DbmsTran tran = transaction(false);
+		try {
+			return tran.get(dir, query, one);
+		} finally {
+			tran.complete();
+		}
+	}
+
 	public static class LibGet {
 		public String library;
 		public ByteBuffer text;
@@ -67,6 +65,6 @@ public interface Dbms {
 			this.text = text;
 		}
 	}
-
+	public abstract List<LibGet> libget(String name);
 
 }

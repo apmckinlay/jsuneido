@@ -17,6 +17,7 @@ import suneido.SuException;
 import suneido.database.Record;
 import suneido.database.Transaction;
 import suneido.database.query.expr.*;
+import suneido.database.server.DbmsTranLocal;
 import suneido.language.*;
 
 import com.google.common.base.Objects;
@@ -746,7 +747,7 @@ public class Select extends Query1 {
 				return false;
 		}
 		// finally check remaining expressions
-		row.setTransaction(tran);
+		row.setTransaction(new DbmsTranLocal(tran));
 		return expr.eval(hdr, row) == Boolean.TRUE;
 	}
 
