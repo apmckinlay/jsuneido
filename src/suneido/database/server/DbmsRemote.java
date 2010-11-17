@@ -231,15 +231,18 @@ System.out.println("got: " + msg);
 		return Pack.unpack(buf);
 	}
 
-	private HeaderAndRow readRecord() {
+	private HeaderAndRow readRecord(boolean withHeader) {
 		String s = io.readLine();
 		if (s.equals("EOF"))
 			return null;
 		Scanner scan = new Scanner(s);
 		long recadr = Mmfile.intToOffset(ck_getnum(scan, 'A'));
 		int reclen = ck_getnum(scan, 'R');
-		s = s.substring(s.indexOf('('));
-		Header header = parseHeader(splitList(s));
+		Header header = null;
+		if (withHeader) {
+			s = s.substring(s.indexOf('('));
+			header = parseHeader(splitList(s));
+		}
 		ByteBuffer buf = io.readNew(reclen);
 		Record record = new Record(buf);
 		Row row = new Row(record, recadr);
@@ -310,9 +313,9 @@ System.out.println("got: " + msg);
 		public HeaderAndRow get(Dir dir, String query, boolean one) {
 			io.writeBuf("GET1 " +
 					(dir == Dir.PREV ? "- " : (one ? "1 " : "+ ")) +
-					"T" + tn + " Q" + query.length());
+					"T" + tn + " Q" + query.length() + "\r\n");
 			io.write(query);
-			return readRecord();
+			return readRecord(true);
 		}
 
 	}
@@ -361,7 +364,8 @@ System.out.println("got: " + msg);
 		@Override
 		public Row get(Dir dir) {
 			io.writeLine("GET", (dir == Dir.NEXT ? "+ " : "- ") + " " + toString());
-			return readRecord().row;
+			HeaderAndRow hr = readRecord(false);
+			return hr == null ? null : hr.row;
 		}
 
 		@Override
