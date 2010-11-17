@@ -3,7 +3,6 @@ package suneido.database.server;
 import java.util.List;
 
 import suneido.database.Record;
-import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 
@@ -51,7 +50,7 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	@Override
 	public void setTransaction(DbmsTran tran) {
-		q.setTransaction((Transaction) tran);
+		q.setTransaction(((DbmsTranLocal) tran).t);
 	}
 
 	@Override
