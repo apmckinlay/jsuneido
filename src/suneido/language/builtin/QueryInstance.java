@@ -64,7 +64,7 @@ public class QueryInstance extends SuValue {
 		return super.invoke(self, method, args);
 	}
 
-	private Object Close(Object[] args) {
+	Object Close(Object... args) {
 		Args.massage(FunctionSpec.noParams, args);
 		q.close();
 		return null;

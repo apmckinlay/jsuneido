@@ -3,8 +3,8 @@ package suneido.language;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.TheDbms;
+import suneido.CommandLineOptions.Action;
+import suneido.*;
 import suneido.database.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.LibGet;
@@ -70,8 +70,11 @@ public class Library {
 	}
 
 	public static boolean use(String library) {
-		if (libraries.contains(library))
+		if (TheDbms.dbms().libraries().contains(library))
 			return false;
+		if (Suneido.cmdlineoptions.action == Action.CLIENT)
+			throw new SuException("can't Use('" + library + "')\n" +
+					"When client-server, only the server can Use");
 		try {
 			TheDbms.dbms().get(Dir.NEXT, library + " project group, name, text", false);
 			TheDbms.dbms().admin("ensure " + library + " key(name,group)");

@@ -207,8 +207,14 @@ public enum Command {
 				throw new SuException("get1 expects + or - or 1");
 			}
 			DbmsTran tran = getTran(line);
-			HeaderAndRow hr = tran.get(dir,	bufferToString(extra), one);
-			row_result(hr.row, hr.header, true, outputQueue);
+			String query = bufferToString(extra);
+			HeaderAndRow hr = (tran == null)
+				? TheDbms.dbms().get(dir, query, one)
+				: tran.get(dir,	query, one);
+			if (hr == null)
+				outputQueue.add(eof());
+			else
+				row_result(hr.row, hr.header, true, outputQueue);
 			return null;
 		}
 	},
@@ -576,18 +582,18 @@ public enum Command {
 
 	private static void get(DbmsQuery q, Dir dir, NetworkOutput outputQueue) {
 		Row row = q.get(dir);
-		if (row != null && q.updateable())
-			row.recadr = row.getFirstData().off();
-		Header hdr = q.header();
-		row_result(row, hdr, false, outputQueue);
+		if (row == null)
+			outputQueue.add(eof());
+		else {
+			if (q.updateable())
+				row.recadr = row.getFirstData().off();
+			Header hdr = q.header();
+			row_result(row, hdr, false, outputQueue);
+		}
 	}
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr,
 			NetworkOutput outputQueue) {
-		if (row == null) {
-			outputQueue.add(eof());
-			return;
-		}
 		Record rec = row.getFirstData();
 		if (row.size() > 2) {
 			rec = new Record(1000);

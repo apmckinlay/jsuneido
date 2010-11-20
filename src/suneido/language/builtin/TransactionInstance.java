@@ -111,7 +111,7 @@ public class TransactionInstance extends SuValue {
 		HeaderAndRow hr = (ti == null)
 			? TheDbms.dbms().get(dir, query, single)
 			: ti.t.get(dir, query, single);
-		return hr.row == null ? false : new SuRecord(hr.row, hr.header, ti);
+		return hr == null ? false : new SuRecord(hr.row, hr.header, ti);
 	}
 
 	@SuppressWarnings("unchecked")

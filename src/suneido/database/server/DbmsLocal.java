@@ -2,12 +2,15 @@ package suneido.database.server;
 
 import static suneido.Suneido.errlog;
 
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.*;
-import suneido.database.query.*;
+import suneido.database.TheDb;
+import suneido.database.Transaction;
+import suneido.database.query.CompileQuery;
+import suneido.database.query.Request;
 import suneido.database.tools.DbDump;
 import suneido.language.Compiler;
 import suneido.language.Library;
@@ -116,6 +119,11 @@ public class DbmsLocal extends Dbms {
 	public void log(String s) {
 		String sessionId = ServerData.forThread().getSessionId();
 		errlog(sessionId + ": " + s);
+	}
+
+	@Override
+	public InetAddress getInetAddress() {
+		return null;
 	}
 
 }
