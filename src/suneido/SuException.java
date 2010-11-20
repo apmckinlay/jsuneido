@@ -48,7 +48,7 @@ public class SuException extends RuntimeException {
 	 */
 	public static void verify(boolean expr) {
 		if (! expr)
-			throw new SuException("assertion failed");
+			throw new SuException("verify failed");
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class SuException extends RuntimeException {
 	 */
 	public static void verify(boolean expr, String msg) {
 		if (! expr)
-			throw new SuException("assertion failed - " + msg);
+			throw new SuException("verify failed - " + msg);
 	}
 
 	public static void verifyEquals(Object expected, Object actual) {

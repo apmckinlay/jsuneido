@@ -29,7 +29,7 @@ public class Row {
 	public Row(Record record, long recadr) {
 		data = new Record[] { record };
 		this.recadr = recadr;
-		verify(recadr > 0);
+		verify(recadr >= 0);
 	}
 
 	public Row(int n) {

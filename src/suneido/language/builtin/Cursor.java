@@ -22,8 +22,11 @@ public class Cursor extends BuiltinClass {
 		Instance f = newInstance(array(args[0]));
 		if (args[1] == Boolean.FALSE)
 			return f;
-		else
-			return Ops.call(args[1], f);
+		else {
+			Object result = Ops.call(args[1], f);
+			f.Close();
+			return result;
+		}
 	}
 
 	private static class Instance extends QueryInstance {

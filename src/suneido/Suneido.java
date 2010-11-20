@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import suneido.Repl.Print;
 import suneido.database.server.*;
 import suneido.database.tools.*;
+import suneido.language.Globals;
 
 /**
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -16,6 +18,8 @@ public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) {
+		//args = new String[] { "etaserver.go" };
+		//args = new String[] { "-client" };
 		cmdlineoptions = CommandLineOptions.parse(args);
 		try {
 			doAction();
@@ -60,6 +64,7 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
+			Globals.builtin("Print", new Print());
 			System.out.println(
 					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
@@ -68,7 +73,6 @@ public class Suneido {
 			DbmsServer.run(cmdlineoptions.serverPort);
 			break;
 		case CLIENT:
-System.out.println("client " + cmdlineoptions.actionArg + ":" + cmdlineoptions.serverPort);
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			Repl.main(null);
 			TheDbms.close();

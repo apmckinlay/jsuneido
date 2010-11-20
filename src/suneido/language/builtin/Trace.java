@@ -11,11 +11,11 @@ public class Trace extends BuiltinFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(fs, args);
-		// int n = Ops.toInt(args[0]);
-		// TODO Trace
+		int flags = Ops.toInt(args[0]);
+		suneido.Trace.flags = flags;
 		if (args[1] != Boolean.FALSE)
 			return Ops.call(args[1]);
-		return null;
+		return suneido.Trace.flags;
 	}
 
 }

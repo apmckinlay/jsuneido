@@ -1,5 +1,6 @@
 package suneido.database.server;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
@@ -66,5 +67,7 @@ public abstract class Dbms {
 		}
 	}
 	public abstract List<LibGet> libget(String name);
+
+	public abstract InetAddress getInetAddress();
 
 }

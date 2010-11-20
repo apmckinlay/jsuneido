@@ -1,9 +1,15 @@
 package suneido.database.server;
 
+import static suneido.Trace.CLIENTSERVER;
+import static suneido.Trace.trace;
+
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
 import suneido.util.Tr;
@@ -12,6 +18,7 @@ import suneido.util.Util;
 /**
  * Channel input/output for {@link DbmsRemote}
  */
+@NotThreadSafe
 public class DbmsChannel {
 	private SocketChannel channel;
 	private ByteBuffer rbuf = ByteBuffer.allocate(10000);
@@ -29,11 +36,9 @@ public class DbmsChannel {
 
 	/**
 	 * @return The internal buffer which should only be used temporarily
-	 * and must be left in a "clear" state
 	 */
 	public ByteBuffer read(int n) {
-		assert rbuf.position() == 0;
-		if (rbuf.remaining() < n)
+		if (rbuf.limit() < n)
 			rbuf = realloc(rbuf, n);
 		while (rbuf.position() < n) {
 			try {
@@ -42,8 +47,11 @@ public class DbmsChannel {
 				throw new SuException("error", e);
 			}
 		}
-		rbuf.flip();
-		return rbuf;
+		assert rbuf.position() == n;
+		ByteBuffer result = rbuf.duplicate();
+		rbuf.clear();
+		result.flip();
+		return result;
 	}
 
 	/**
@@ -53,8 +61,12 @@ public class DbmsChannel {
 		ByteBuffer buf = ByteBuffer.allocate(n);
 		if (rbuf.remaining() > 0) {
 			rbuf.flip();
+			int limit = rbuf.limit();
+			if (limit > n)
+				rbuf.limit(n);
 			buf.put(rbuf);
-			rbuf.clear();
+			rbuf.limit(limit);
+			rbuf.compact();
 		}
 		while (buf.position() < n) {
 			try {
@@ -69,7 +81,6 @@ public class DbmsChannel {
 
 	// may leave unread data in rbuf
 	public String readLine() {
-System.out.println("readLine");
 		int nl;
 		while (-1 == (nl = indexOf(rbuf, (byte) '\n'))) {
 			if (rbuf.remaining() == 0)
@@ -83,9 +94,9 @@ System.out.println("readLine");
 		rbuf.flip();
 		String s = getString(rbuf, nl + 1);
 		rbuf.compact();
+		trace(CLIENTSERVER, "    => " + s);
 		if (s.startsWith("ERR"))
 			throw new SuException(s.substring(4) + " (from server)");
-System.out.println("	=> " + s);
 		return s;
 	}
 
@@ -112,20 +123,33 @@ System.out.println("	=> " + s);
 		return s.substring(0, s.length() - 2);
 	}
 
+	public void writeLine(String cmd) {
+		trace(CLIENTSERVER, cmd);
+		write(cmd + "\n");
+	}
+
 	public void writeLine(String cmd, String s) {
+		trace(CLIENTSERVER, cmd + " " + s);
+		assert rbuf.position() == 0;
 		write(cmd + " " + Tr.tr(s, " \r\n", " ").trim() + "\r\n");
 	}
 
 	public void write(String s) {
-System.out.println("write " + s);
 		writeBuf(s);
 		wbuf.flip();
 		try {
 			channel.write(wbuf);
 		} catch (IOException e) {
 			throw new SuException("error", e);
+		} finally {
+			wbuf.clear();
 		}
-		wbuf.clear();
+	}
+
+	public void writeLineBuf(String cmd, String s) {
+		trace(CLIENTSERVER, cmd + " " + s);
+		assert rbuf.position() == 0;
+		writeBuf(cmd + " " + Tr.tr(s, " \r\n", " ").trim() + "\r\n");
 	}
 
 	public void writeBuf(String s) {
@@ -135,12 +159,15 @@ System.out.println("write " + s);
 	}
 
 	public void write(ByteBuffer buf) {
+		wbuf.flip();
 		wbufs[0] = wbuf;
 		wbufs[1] = buf;
 		try {
 			channel.write(wbufs);
 		} catch (IOException e) {
 			throw new SuException("error", e);
+		} finally {
+			wbuf.clear();
 		}
 	}
 
@@ -150,6 +177,10 @@ System.out.println("write " + s);
 		} catch (IOException e) {
 			throw new SuException("error", e);
 		}
+	}
+
+	public InetAddress getInetAddress() {
+		return channel.socket().getInetAddress();
 	}
 
 }

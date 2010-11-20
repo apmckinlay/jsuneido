@@ -1,5 +1,9 @@
 package suneido.database.server;
 
+import static suneido.Trace.CLIENTSERVER;
+import static suneido.Trace.trace;
+
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -32,8 +36,7 @@ public class DbmsRemote extends Dbms {
 		String msg = io.readLine();
 		if (! msg.startsWith("Suneido Database Server"))
 			throw new SuException("invalid connect response: " + msg);
-System.out.println("got: " + msg);
-		io.write("BINARY\r\n");
+		io.writeLine("BINARY");
 		ok();
 	}
 
@@ -56,7 +59,8 @@ System.out.println("got: " + msg);
 
 	@Override
 	public DbmsQuery cursor(String s) {
-		io.writeBuf("CURSOR Q" + s.length() + "\r\n");
+		io.writeLineBuf("CURSOR", "Q" + s.length());
+		trace(CLIENTSERVER, " => " + s);
 		io.write(s);
 		int cn = readInt('C');
 		return new DbmsCursorRemote(cn);
@@ -83,16 +87,19 @@ System.out.println("got: " + msg);
 	}
 
 	private Iterable<String> readList(String cmd) {
-		io.write(cmd + "\r\n");
+		io.writeLine(cmd);
 		String s = io.readLine();
 		return splitList(s);
 	}
 
 	private Iterable<String> splitList(String s) {
+		return splitList(s, Splitter.on(",").omitEmptyStrings().trimResults());
+	}
+	private Iterable<String> splitList(String s, Splitter splitter) {
 		if (! s.startsWith("(") || ! s.endsWith(")"))
 			throw new SuException("expected (...)\r\ngot: " + s);
 		s = s.substring(1, s.length() - 1);
-		return Splitter.on(',').omitEmptyStrings().trimResults().split(s);
+		return splitter.split(s);
 	}
 
 	@Override
@@ -120,7 +127,7 @@ System.out.println("got: " + msg);
 
 	@Override
 	public Date timestamp() {
-		io.write("TIMESTAMP\r\n");
+		io.writeLine("TIMESTAMP");
 		String s = io.readLine();
 		Date date = Ops.stringToDate(s);
 		if (date == null)
@@ -148,20 +155,20 @@ System.out.println("got: " + msg);
 
 	@Override
 	public long size() {
-		io.write("SIZE\r\n");
+		io.writeLine("SIZE");
 		int n = readInt('S');
 		return Mmfile.intToOffset(n);
 	}
 
 	@Override
 	public SuContainer connections() {
-		io.write("CONNECTIONS\r\n");
+		io.writeLine("CONNECTIONS");
 		return (SuContainer) readValue();
 	}
 
 	@Override
 	public int cursors() {
-		io.write("CURSORS\r\n");
+		io.writeLine("CURSORS");
 		return readInt('N');
 	}
 
@@ -173,7 +180,7 @@ System.out.println("got: " + msg);
 
 	@Override
 	public int finalSize() {
-		io.write("FINAL\r\n");
+		io.writeLine("FINAL");
 		return readInt('N');
 	}
 
@@ -262,27 +269,30 @@ System.out.println("got: " + msg);
 		@Override
 		public String complete() {
 			isEnded = true;
-			io.write("COMMIT T" + tn + "\r\n");
+			io.writeLine("COMMIT", "T" + tn);
 			String s = io.readLine();
 			return s.equals("OK") ? null : s;
 		}
 
 		@Override
 		public void abort() {
-			io.write("ABORT T" + tn + "\r\n");
+			isEnded = true;
+			io.writeLine("ABORT", "T" + tn);
 			ok();
 		}
 
 		@Override
 		public int request(String s) {
-			io.writeBuf("REQUEST T" + tn + " Q" + s.length() + "\r\n");
+			io.writeLineBuf("REQUEST", "T" + tn + " Q" + s.length());
+			trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return readInt('R');
 		}
 
 		@Override
 		public DbmsQuery query(String s) {
-			io.writeBuf("QUERY T" + tn + " Q" + s.length() + "\r\n");
+			io.writeLineBuf("QUERY", "T" + tn + " Q" + s.length());
+			trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return new DbmsQueryRemote(readInt('Q'));
 		}
@@ -311,9 +321,10 @@ System.out.println("got: " + msg);
 
 		@Override
 		public HeaderAndRow get(Dir dir, String query, boolean one) {
-			io.writeBuf("GET1 " +
+			io.writeLineBuf("GET1",
 					(dir == Dir.PREV ? "- " : (one ? "1 " : "+ ")) +
-					"T" + tn + " Q" + query.length() + "\r\n");
+					"T" + tn + " Q" + query.length());
+			trace(CLIENTSERVER, "    " + query);
 			io.write(query);
 			return readRecord(true);
 		}
@@ -323,7 +334,7 @@ System.out.println("got: " + msg);
 	private void writeRecord(String cmd, Record rec) {
 		if (rec.bufSize() > rec.packSize())
 			rec = rec.dup();
-		io.writeBuf(cmd + " R" + rec.bufSize() + "\r\n");
+		io.writeLineBuf(cmd, " R" + rec.bufSize());
 		io.write(rec.getBuffer());
 	}
 
@@ -354,9 +365,12 @@ System.out.println("got: " + msg);
 		@Override
 		public List<List<String>> keys() {
 			if (keys == null) {
+				io.writeLine("KEYS", toString());
+				String s = io.readLine();
+				s = s.substring(1, s.length() - 1); // remove outer parens
+				Iterable<String> list = splitList(s, Splitter.on("),("));
 				keys = ImmutableList.copyOf(
-						Iterables.transform(readList("KEYS " + toString()),
-								stringToList));
+						Iterables.transform(list, stringToList));
 			}
 			return keys;
 		}
@@ -447,6 +461,11 @@ System.out.println("got: " + msg);
 			return s + "C" + qn;
 		}
 
+	}
+
+	@Override
+	public InetAddress getInetAddress() {
+		return io.getInetAddress();
 	}
 
 }

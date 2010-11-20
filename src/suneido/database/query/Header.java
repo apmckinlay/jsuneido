@@ -114,7 +114,7 @@ public class Header {
 	public List<String> output_fldsyms() {
 		if (fldsyms == null) {
 			// WARNING: this depends on flds[1] being the actual fields
-			fldsyms = flds.get(1);
+			fldsyms = fields();
 		}
 		return fldsyms;
 	}
@@ -122,7 +122,7 @@ public class Header {
 	public String timestamp_field() {
 		if (timestamp == "") {
 			timestamp = null; // no timestamp
-			for (String f : flds.get(1))
+			for (String f : fields())
 				if (f.endsWith("_TS")) {
 					timestamp = f;
 					break;
