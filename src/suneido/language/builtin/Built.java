@@ -1,13 +1,12 @@
 package suneido.language.builtin;
 
 import suneido.WhenBuilt;
-import suneido.language.*;
+import suneido.language.BuiltinFunction0;
 
-public class Built extends BuiltinFunction {
+public class Built extends BuiltinFunction0 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public Object call0() {
 		return WhenBuilt.when();
 	}
 

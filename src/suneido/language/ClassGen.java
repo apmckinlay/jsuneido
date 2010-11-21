@@ -13,6 +13,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.SuException;
 
+import com.google.common.base.Strings;
+
 public class ClassGen {
 	private static final int THIS = 0;
 	private static final int SELF = 1;
@@ -176,9 +178,9 @@ public class ClassGen {
 		mv.visitInsn(ARETURN);
 	}
 
-	// note: can't use preconstructed exception
+	// note: can't use pre-constructed exception
 	// because we have to include the return value
-	// TODO use pre-constructed if return value is null (and maybe true/false)
+	// COULD use pre-constructed if return value is null (and maybe true/false)
 	private void blockReturn() {
 		// stack: value
 		mv.visitTypeInsn(NEW, "suneido/language/BlockReturnException");
@@ -302,6 +304,18 @@ public class ClassGen {
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
+	private static final int MAX_DIRECT_ARGS = 11;
+	private static final String[] directArgs = new String[MAX_DIRECT_ARGS];
+	static {
+		for (int n = 0; n < MAX_DIRECT_ARGS; ++n)
+			directArgs[n] = Strings.repeat("Ljava/lang/Object;", n);
+	}
+
+	public void invokeFunction(int nargs) {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call" + nargs,
+				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
+	}
+
 	public void invokeMethod() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
 			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
@@ -317,7 +331,7 @@ public class ClassGen {
 	}
 
 	public void invokeDirect(String name) {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/ObjectClass",
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/" + name + "Class",
 				"create", "([Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 

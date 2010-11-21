@@ -1,13 +1,12 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
 
-public class NumberQ extends BuiltinFunction {
+public class NumberQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof Number;
+	public Object call1(Object a) {
+		return a instanceof Number;
 	}
 
 }

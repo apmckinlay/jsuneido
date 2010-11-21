@@ -1,12 +1,11 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction0;
 
-public class OperatingSystem extends BuiltinFunction {
+public class OperatingSystem extends BuiltinFunction0 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public Object call0() {
 		return System.getProperty("os.name");
 	}
 

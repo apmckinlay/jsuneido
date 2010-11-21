@@ -2,13 +2,12 @@ package suneido.language.builtin;
 
 import java.util.Date;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction0;
 
-public class UnixTime extends BuiltinFunction {
+public class UnixTime extends BuiltinFunction0 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public Object call0() {
 		return new Date().getTime() / 1000;
 	}
 

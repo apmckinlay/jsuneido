@@ -2,15 +2,15 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Synchronized extends BuiltinFunction {
+public class Synchronized extends BuiltinFunction1 {
 
-	private static final FunctionSpec fs = new FunctionSpec("block");
+	{ functionSpec = new FunctionSpec("block"); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		return Ops.call(args[0]);
-		// TODO Synchronized, which is really atomic i.e. stop the world
+	public Object call1(Object a) {
+		synchronized (Synchronized.class) {
+			return Ops.call(a);
+		}
 	}
 
 }

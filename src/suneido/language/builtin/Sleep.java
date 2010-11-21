@@ -2,14 +2,13 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Sleep extends BuiltinFunction {
+public class Sleep extends BuiltinFunction1 {
 
-	private static final FunctionSpec fs = new FunctionSpec("ms");
+	{ functionSpec = new FunctionSpec("ms"); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		int n = Ops.toInt(args[0]);
+	public Object call1(Object a) {
+		int n = Ops.toInt(a);
 		try {
 			Thread.sleep(n);
 		} catch (InterruptedException e) {

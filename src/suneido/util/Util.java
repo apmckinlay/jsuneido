@@ -138,6 +138,7 @@ public class Util {
 		return ByteBuffer.wrap(data);
 	}
 
+	/** NOTE: inefficient space-wise - uses one char (2 bytes) per byte */
 	public static String bytesToString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length);
 		for (byte b : bytes)
@@ -145,6 +146,7 @@ public class Util {
 		return sb.toString();
 	}
 
+	/** NOTE: inefficient space-wise - uses one char (2 bytes) per byte */
 	public static String bytesToString(ByteBuffer buf) {
 		StringBuilder sb = new StringBuilder(buf.remaining());
 		for (int i = buf.position(); i < buf.limit(); ++i)

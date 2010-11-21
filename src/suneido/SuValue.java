@@ -87,4 +87,38 @@ public abstract class SuValue implements Packable {
 		return false;
 	}
 
+	public Object call0() {
+		return call();
+	}
+	public Object call1(Object a) {
+		return call(a);
+	}
+	public Object call2(Object a, Object b) {
+		return call(a, b);
+	}
+	public Object call3(Object a, Object b, Object c) {
+		return call(a, b, c);
+	}
+	public Object call4(Object a, Object b, Object c, Object d) {
+		return call(a, b, c, d);
+	}
+	public Object call5(Object a, Object b, Object c, Object d,	Object e) {
+		return call(a, b, c, d, e);
+	}
+	public Object call6(Object a, Object b, Object c, Object d, Object e,
+			Object f) {
+		return call(a, b, c, d, e, f);
+	}
+	public Object call7(Object a, Object b, Object c, Object d, Object e,
+			Object f, Object g) {
+		return call(a, b, c, d, e, f, g);
+	}
+	public Object call8(Object a, Object b, Object c, Object d, Object e,
+			Object f, Object g, Object h) {
+		return call(a, b, c, d, e, f, g, h);
+	}
+	public Object call9(Object a, Object b, Object c, Object d, Object e,
+			Object f, Object g, Object h, Object i) {
+		return call(a, b, c, d, e, f, g, h, i);
+	}
 }

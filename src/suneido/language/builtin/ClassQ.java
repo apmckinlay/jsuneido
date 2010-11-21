@@ -1,13 +1,13 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
+import suneido.language.SuClass;
 
-public class ClassQ extends BuiltinFunction {
+public class ClassQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof SuClass;
+	public Object call1(Object a) {
+		return a instanceof SuClass;
 	}
 
 }

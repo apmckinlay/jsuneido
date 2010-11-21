@@ -508,8 +508,14 @@ public final class Ops {
 	}
 
 	public static Boolean toBoolean(Object x) {
-		if (x == Boolean.TRUE || x == Boolean.FALSE)
-			return (Boolean) x;
+		return toBoolean_(x);
+	}
+
+	public static Boolean toBoolean_(Object x) {
+		if (x == Boolean.TRUE)
+			return true;
+		else if (x == Boolean.FALSE)
+			return false;
 		throw new SuException("can't convert " + typeName(x) + " to boolean");
 	}
 
@@ -653,6 +659,101 @@ public final class Ops {
 		throw new SuException("no value");
 	}
 
+	public static Object call0(Object x) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call0();
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x);
+	}
+	public static Object call1(Object x, Object a) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call1(a);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a);
+	}
+	public static Object call2(Object x, Object a, Object b) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call2(a, b);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b);
+	}
+	public static Object call3(Object x, Object a, Object b, Object c) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call3(a, b, c);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c);
+	}
+	public static Object call4(Object x, Object a, Object b, Object c, Object d) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call4(a, b, c, d);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d);
+	}
+	public static Object call5(Object x, Object a, Object b, Object c, Object d,
+			Object e) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call5(a, b, c, d, e);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d, e);
+	}
+	public static Object call6(Object x, Object a, Object b, Object c, Object d,
+			Object e, Object f) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call6(a, b, c, d, e, f);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d, e, f);
+	}
+	public static Object call7(Object x, Object a, Object b, Object c, Object d,
+			Object e, Object f, Object g) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call7(a, b, c, d, e, f, g);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d, e, f, g);
+	}
+	public static Object call8(Object x, Object a, Object b, Object c, Object d,
+			Object e, Object f, Object g, Object h) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call8(a, b, c, d, e, f, g, h);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d, e, f, g, h);
+	}
+	public static Object call9(Object x, Object a, Object b, Object c, Object d,
+			Object e, Object f, Object g, Object h, Object i) {
+		if (x instanceof SuValue)
+			try {
+				return ((SuValue) x).call9(a, b, c, d, e, f, g, h, i);
+			} catch (java.lang.StackOverflowError ex) {
+				throw new SuException("function call overflow", ex);
+			}
+		return call(x, a, b, c, d, e, f, g, h, i);
+	}
 	public static Object call(Object x, Object... args) {
 		try {
 			//System.out.println("call " + display(x) + display(args));
@@ -664,7 +765,7 @@ public final class Ops {
 		} catch (java.lang.StackOverflowError e) {
 			throw new SuException("function call overflow", e);
 		}
-		throw new SuException("can't call " + typeName(x));
+		throw new SuException("can't call " + typeName(x) + " (" + x + ")");
 	}
 
 	static Object callString(Object x, Object... args) {

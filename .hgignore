@@ -3,6 +3,7 @@ syntax: glob
 **.launch
 jsuneido.jar
 WhenBuilt.jar
+.DS_Store
 
 syntax: regexp
 ^\.externalToolBuilders$

@@ -2,14 +2,13 @@ package suneido.language.builtin;
 
 import java.util.Date;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
 
-public class DateQ extends BuiltinFunction {
+public class DateQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof Date;
+	public Object call1(Object a) {
+		return a instanceof Date;
 	}
 
 }

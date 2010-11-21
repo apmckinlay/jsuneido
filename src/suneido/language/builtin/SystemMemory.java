@@ -2,15 +2,14 @@ package suneido.language.builtin;
 
 import java.lang.management.ManagementFactory;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction0;
 
 import com.sun.management.OperatingSystemMXBean;
 
-public class SystemMemory extends BuiltinFunction {
+public class SystemMemory extends BuiltinFunction0 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public Object call0() {
 		return getPhysicalMemory();
 	}
 

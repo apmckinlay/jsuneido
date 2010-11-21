@@ -4,15 +4,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
+import suneido.language.Ops;
 import suneido.util.Util;
 
-public class Md5 extends BuiltinFunction {
+public class Md5 extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.value, args);
-		String s = Ops.toStr(args[0]);
+	public Object call1(Object a) {
+		String s = Ops.toStr(a);
 		byte[] data = Util.stringToBytes(s);
 		MessageDigest digest;
 		try {
