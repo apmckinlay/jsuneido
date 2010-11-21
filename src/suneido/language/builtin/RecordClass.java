@@ -4,7 +4,7 @@ import suneido.SuRecord;
 import suneido.language.Args;
 import suneido.language.BuiltinClass;
 
-public class Record extends BuiltinClass {
+public class RecordClass extends BuiltinClass {
 
 	@Override
 	public Object call(Object... args) {
@@ -13,8 +13,12 @@ public class Record extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object[] args) {
+		return create(args);
+	}
+
+	/** used by direct calls in generated code */
+	public static Object create(Object... args) {
 		return Args.collectArgs(new SuRecord(), args);
 	}
 
 }
-

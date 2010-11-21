@@ -1,13 +1,12 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
 
-public class BooleanQ extends BuiltinFunction {
+public class BooleanQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof Boolean;
+	public Object call1(Object a) {
+		return a instanceof Boolean;
 	}
 
 }

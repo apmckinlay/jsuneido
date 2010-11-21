@@ -2,14 +2,13 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class Unload extends BuiltinFunction {
+public class Unload extends BuiltinFunction1 {
 
-	private static final FunctionSpec unloadFS = new FunctionSpec("name");
+	{ functionSpec = new FunctionSpec("name"); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(unloadFS, args);
-		Globals.unload(Ops.toStr(args[0]));
+	public Object call1(Object a) {
+		Globals.unload(Ops.toStr(a));
 		return null;
 	}
 

@@ -1,13 +1,13 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
+import suneido.language.Ops;
 
-public class Not extends BuiltinFunction {
+public class Not extends BuiltinFunction1 {
 
 	@Override
-	public Boolean call(Object... args) {
-		Args.massage(FunctionSpec.value, args);
-		return Ops.not(args[0]);
+	public Boolean call1(Object a) {
+		return Ops.not(a);
 	}
 
 }

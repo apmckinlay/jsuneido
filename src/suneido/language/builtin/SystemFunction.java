@@ -3,14 +3,15 @@ package suneido.language.builtin;
 import suneido.SuException;
 import suneido.language.*;
 
-public class SystemFunction extends BuiltinFunction {
+public class SystemFunction extends BuiltinFunction1 {
+
+	{ functionSpec = FunctionSpec.string; }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.string, args);
+	public Object call1(Object a) {
 		String[] cmd = new String[3];
 		getShell(cmd);
-		cmd[2] = Ops.toStr(args[0]);
+		cmd[2] = Ops.toStr(a);
 		try {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			Process proc = pb.start();

@@ -1,14 +1,13 @@
 package suneido.language.builtin;
 
 import suneido.SuRecord;
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
 
-public class RecordQ extends BuiltinFunction {
+public class RecordQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof SuRecord;
+	public Object call1(Object a) {
+		return a instanceof SuRecord;
 	}
 
 }

@@ -170,14 +170,14 @@ public class CompileTest {
 				"a, b, c, call, ARETURN");
 		test("a(x)",
 				"a, x, null?, call, ARETURN");
-		test("a(b = c)",
-				"a, &b, c, DUP_X2, AASTORE, call, ARETURN");
+		test("a(b = c, c)",
+				"a, &b, c, DUP_X2, AASTORE, c, call, ARETURN");
 		test("a(b, x: c)",
 				"a, b, NAMED, 'x', c, call, ARETURN");
 		test("a(b, x:)",
 				"a, b, NAMED, 'x', true, call, ARETURN");
-		test("a(b = c)",
-				"a, &b, c, DUP_X2, AASTORE, call, ARETURN");
+		test("a(b = c, c)",
+				"a, &b, c, DUP_X2, AASTORE, c, call, ARETURN");
 		test("G()",
  				"'G', global, call, ARETURN");
 		test("a(@b)",
@@ -545,6 +545,16 @@ public class CompileTest {
 			{ "AASTORE, call", "call" },
 			{ "AASTORE, invoke", "invoke" },
 			{ "AASTORE, Object", "Object" },
+			{ "call0", "call" },
+			{ "call1", "call" },
+			{ "call2", "call" },
+			{ "call3", "call" },
+			{ "call4", "call" },
+			{ "call5", "call" },
+			{ "call6", "call" },
+			{ "call7", "call" },
+			{ "call8", "call" },
+			{ "call9", "call" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);

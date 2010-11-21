@@ -2,14 +2,13 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class FunctionQ extends BuiltinFunction {
+public class FunctionQ extends BuiltinFunction1 {
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.value, args);
-		return args[0] instanceof SuFunction
-				|| args[0] instanceof SuMethod
-				|| args[0] instanceof SuBlock;
+	public Object call1(Object a) {
+		return a instanceof SuFunction ||
+				a instanceof SuMethod ||
+				a instanceof SuBlock;
 	}
 
 }

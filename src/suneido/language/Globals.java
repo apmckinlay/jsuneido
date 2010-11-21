@@ -86,7 +86,7 @@ public class Globals {
 		builtins.put("QueryFirst", new QueryFirst());
 		builtins.put("QueryLast", new QueryLast());
 		builtins.put("Random", new Random());
-		builtins.put("Record", new Record());
+		builtins.put("Record", new RecordClass());
 		builtins.put("Record?", new RecordQ());
 		builtins.put("RunPiped", new RunPiped());
 		builtins.put("Scanner", new Scanner());

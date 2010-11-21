@@ -691,13 +691,21 @@ public class AstCompile {
 			cg.invokeDirect(fn.value);
 		} else {
 			expression(cg, fn);
-			callArguments(cg, args);
-			cg.invokeFunction();
+			// TODO move this into callArguments
+			if (args.token != Token.AT &&
+					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+				directArguments(cg, args);
+				cg.invokeFunction(args.children.size());
+			} else {
+				callArguments(cg, args);
+				cg.invokeFunction();
+			}
 		}
 	}
 
 	private static boolean isDirect(AstNode fn) {
-		return fn.token == Token.IDENTIFIER && fn.value.equals("Object");
+		return fn.token == Token.IDENTIFIER &&
+				(fn.value.equals("Object") || fn.value.equals("Record"));
 	}
 
 	private class VarArgs {
@@ -751,6 +759,13 @@ public class AstCompile {
 		vargs.expression(args.first());
 	}
 
+	private boolean hasNamed(AstNode args) {
+		for (AstNode arg : args.children)
+			if (arg.first() != null)
+				return true;
+		return false;
+	}
+
 	private void simpleArguments(ClassGen cg, AstNode args) {
 		VarArgs vargs = new VarArgs(cg, countArgs(args));
 		for (AstNode arg : args.children) {
@@ -759,6 +774,14 @@ public class AstCompile {
 				vargs.constant(fold(arg.first()));
 			}
 			vargs.expression(arg.second());
+		}
+	}
+
+	private void directArguments(ClassGen cg, AstNode args) {
+		for (AstNode arg : args.children) {
+			AstNode expr = arg.second();
+			expression(cg, expr);
+			addNullCheck(cg, expr);
 		}
 	}
 
