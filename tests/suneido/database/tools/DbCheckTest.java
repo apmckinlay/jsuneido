@@ -1,7 +1,6 @@
 package suneido.database.tools;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.database.Database.*;
 
 import org.junit.Test;
 
