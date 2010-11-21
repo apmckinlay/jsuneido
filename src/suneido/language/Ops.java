@@ -643,6 +643,15 @@ public final class Ops {
 	public static void thrower(Object e) {
 		throw new SuException(e);
 	}
+	public static void throwUninitializedVariable() {
+		throw new SuException("uninitialized variable");
+	}
+	public static void throwNoReturnValue() {
+		throw new SuException("no return value");
+	}
+	public static void throwNoValue() {
+		throw new SuException("no value");
+	}
 
 	public static Object call(Object x, Object... args) {
 		try {

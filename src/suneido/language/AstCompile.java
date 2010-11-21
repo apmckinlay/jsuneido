@@ -303,13 +303,13 @@ public class AstCompile {
 
 	private static String needNullCheck(ClassGen cg, AstNode ast) {
 		if (isLocal(ast) && !cg.neverNull(ast.value))
-			return "uninitialized variable";
+			return "UninitializedVariable";
 		else if (ast.token == Token.CALL)
-			return "no return value";
+			return "NoReturnValue";
 		else if (ast.token == Token.Q_MARK) {
 			if (null != needNullCheck(cg, ast.second())
 					|| null != needNullCheck(cg, ast.third()))
-				return "no value";
+				return "NoValue";
 		}
 		return null;
 	}
