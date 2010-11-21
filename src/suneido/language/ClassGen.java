@@ -288,14 +288,12 @@ public class ClassGen {
 		return name.equals("this") || local(name) < nParams;
 	}
 
-	// TODO separate throwers with string built in
 	public void addNullCheck(String error) {
 		Label label = new Label();
 		mv.visitInsn(DUP);
 		mv.visitJumpInsn(IFNONNULL, label);
-		mv.visitLdcInsn(error);
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "thrower",
-				"(Ljava/lang/Object;)V");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
+				"throw" + error, "()V");
 		mv.visitLabel(label);
 	}
 
