@@ -2,7 +2,6 @@ package suneido.database.tools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static suneido.database.Database.*;
 
 import java.io.File;
 
