@@ -11,9 +11,9 @@ import suneido.language.*;
 public class Adler32Class extends BuiltinClass {
 
 	@Override
-	public Instance newInstance(Object[] args) {
+	public Adler32Instance newInstance(Object[] args) {
 		Args.massage(FunctionSpec.noParams, args);
-		return new Instance();
+		return new Adler32Instance();
 	}
 
 	private static Object nil = new Object();
@@ -23,14 +23,14 @@ public class Adler32Class extends BuiltinClass {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(fs, args);
-		Instance f = new Instance();
+		Adler32Instance f = new Adler32Instance();
 		if (args[0] == nil)
 			return f;
 		else
 			return f.Update(args).Value();
 	}
 
-	private static class Instance extends SuValue {
+	private static class Adler32Instance extends SuValue {
 		Checksum cksum = new Adler32();
 
 		@Override
@@ -42,7 +42,7 @@ public class Adler32Class extends BuiltinClass {
 			return super.invoke(self, method, args);
 		}
 
-		private Instance Update(Object... args) {
+		private Adler32Instance Update(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);
 			String s = Ops.toStr(args[0]);
 			for (int i = 0; i < s.length(); ++i)

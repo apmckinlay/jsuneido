@@ -124,6 +124,7 @@ public class SuClass extends SuValue {
 	}
 
 	private static final Object[] noArgs = new Object[0];
+
 	@Override
 	public Object invoke0(Object self, String method) {
 		if (method == "<new>")

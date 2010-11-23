@@ -13,8 +13,8 @@ import suneido.util.Util;
 public class File extends BuiltinClass {
 
 	@Override
-	public Instance newInstance(Object[] args) {
-		return new Instance(args);
+	public FileInstance newInstance(Object[] args) {
+		return new FileInstance(args);
 	}
 
 	private static final FunctionSpec fileFS =
@@ -23,7 +23,7 @@ public class File extends BuiltinClass {
 
 	@Override
 	public Object call(Object... args) {
-		Instance f = newInstance(args);
+		FileInstance f = newInstance(args);
 		args = Args.massage(fileFS, args);
 		Object block = args[2];
 		if (block == Boolean.FALSE)
@@ -35,7 +35,7 @@ public class File extends BuiltinClass {
 		}
 	}
 
-	private static class Instance extends SuValue {
+	private static class FileInstance extends SuValue {
 		private final String filename;
 		private final String mode;
 		private RandomAccessFile f;
@@ -43,7 +43,7 @@ public class File extends BuiltinClass {
 		private static final FunctionSpec fileFS =
 				new FunctionSpec(array("filename", "mode"), "r");
 
-		public Instance(Object[] args) {
+		public FileInstance(Object[] args) {
 			args = Args.massage(fileFS, args);
 			filename = Ops.toStr(args[0]);
 			java.io.File file = new java.io.File(filename);

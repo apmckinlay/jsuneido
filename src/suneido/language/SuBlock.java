@@ -16,14 +16,14 @@ public final class SuBlock extends SuCallable {
 		this.locals = locals;
 	}
 
-	// NOTE merging args into locals is not thread safe
-	// i.e. can't call a block from more than one thread
-
 	@Override
 	public Object call(Object... args) {
 		return eval(self, args);
 	}
 
+	// NOTE merging args into locals is not thread safe
+	// i.e. can't call a block from more than one thread
+	// also not reentrant - can't recurse
 	@Override
 	public Object eval(Object newSelf, Object... args) {
 		BlockSpec bspec = (BlockSpec) block.params;

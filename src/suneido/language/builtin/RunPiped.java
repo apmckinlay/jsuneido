@@ -13,8 +13,8 @@ import suneido.language.*;
 public class RunPiped extends BuiltinClass {
 
 	@Override
-	public Instance newInstance(Object[] args) {
-		return new Instance(args);
+	public RunPipedInstance newInstance(Object[] args) {
+		return new RunPipedInstance(args);
 	}
 
 	private static final FunctionSpec fs =
@@ -22,7 +22,7 @@ public class RunPiped extends BuiltinClass {
 
 	@Override
 	public Object call(Object... args) {
-		Instance rp = new Instance(args);
+		RunPipedInstance rp = new RunPipedInstance(args);
 		args = Args.massage(fs, args);
 		if (args[1] == Boolean.FALSE)
 			return rp;
@@ -33,13 +33,13 @@ public class RunPiped extends BuiltinClass {
 		}
 	}
 
-	private static class Instance extends SuValue {
+	private static class RunPipedInstance extends SuValue {
 		private final String cmd;
 		private final Process proc;
 		private final PrintStream out;
 		private final BufferedReader in;
 
-		public Instance(Object[] args) {
+		public RunPipedInstance(Object[] args) {
 			args = Args.massage(FunctionSpec.string, args);
 			cmd = Ops.toStr(args[0]);
 			List<String> cmdargs = splitcmd(cmd);

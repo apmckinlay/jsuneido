@@ -11,18 +11,18 @@ import suneido.language.*;
 public class Scanner extends BuiltinClass {
 
 	@Override
-	public Instance newInstance(Object[] args) {
-		return new Instance(args);
+	public ScannerInstance newInstance(Object[] args) {
+		return new ScannerInstance(args);
 	}
 
-	private static class Instance extends SuValue
+	private static class ScannerInstance extends SuValue
 			implements Iterable<String>, Iterator<String> {
 		private final Lexer lexer;
 		private Token token;
 
 		private static final FunctionSpec sFS = new FunctionSpec("name");
 
-		public Instance(Object[] args) {
+		public ScannerInstance(Object[] args) {
 			args = Args.massage(sFS, args);
 			lexer = new Lexer(Ops.toStr(args[0]));
 		}
