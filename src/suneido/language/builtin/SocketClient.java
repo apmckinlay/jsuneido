@@ -13,8 +13,8 @@ import suneido.language.*;
 public class SocketClient extends BuiltinClass {
 
 	@Override
-	public Instance newInstance(Object[] args) {
-		return new Instance(args);
+	public SocketClientInstance newInstance(Object[] args) {
+		return new SocketClientInstance(args);
 	}
 
 	private static final FunctionSpec callFS =
@@ -23,7 +23,7 @@ public class SocketClient extends BuiltinClass {
 
 	@Override
 	public Object call(Object... args) {
-		Instance sc = newInstance(args);
+		SocketClientInstance sc = newInstance(args);
 		args = Args.massage(callFS, args);
 		Object block = args[3];
 		if (block == Boolean.FALSE)
@@ -35,7 +35,7 @@ public class SocketClient extends BuiltinClass {
 		}
 	}
 
-	static class Instance extends SuValue {
+	static class SocketClientInstance extends SuValue {
 		private final Socket socket;
 		private final DataInputStream input;
 		private final DataOutputStream output;
@@ -43,7 +43,7 @@ public class SocketClient extends BuiltinClass {
 		private static final FunctionSpec newFS =
 			new FunctionSpec(array("address", "port", "timeout"), 60);
 
-		public Instance(Object[] args) {
+		public SocketClientInstance(Object[] args) {
 			args = Args.massage(newFS, args);
 			String address = Ops.toStr(args[0]);
 			int port = Ops.toInt(args[1]);
@@ -59,7 +59,7 @@ public class SocketClient extends BuiltinClass {
 			}
 		}
 
-		public Instance(Socket socket) throws IOException {
+		public SocketClientInstance(Socket socket) throws IOException {
 			this.socket = socket;
 			socket.setTcpNoDelay(true); // disable nagle
 			input = new DataInputStream(socket.getInputStream());

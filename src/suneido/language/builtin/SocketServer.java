@@ -69,12 +69,12 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Instance extends SuInstance implements Runnable {
-		final SocketClient.Instance socket;
+		final SocketClient.SocketClientInstance socket;
 		final String address;
 
 		Instance(SuValue serverClass, Socket socket, String address) throws IOException {
 			super(serverClass);
-			this.socket = new SocketClient.Instance(socket);
+			this.socket = new SocketClient.SocketClientInstance(socket);
 			this.address = address;
 		}
 
