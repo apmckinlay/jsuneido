@@ -660,142 +660,219 @@ public final class Ops {
 	}
 
 	public static Object call0(Object x) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call0();
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call0()
+			: call(x);
 	}
 	public static Object call1(Object x, Object a) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call1(a);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call1(a)
+			: call(x, a);
 	}
 	public static Object call2(Object x, Object a, Object b) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call2(a, b);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call2(a, b)
+			: call(x, a, b);
 	}
 	public static Object call3(Object x, Object a, Object b, Object c) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call3(a, b, c);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call3(a, b, c)
+			: call(x, a, b, c);
 	}
 	public static Object call4(Object x, Object a, Object b, Object c, Object d) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call4(a, b, c, d);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call4(a, b, c, d)
+			: call(x, a, b, c, d);
 	}
 	public static Object call5(Object x, Object a, Object b, Object c, Object d,
 			Object e) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call5(a, b, c, d, e);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d, e);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call5(a, b, c, d, e)
+			: call(x, a, b, c, d, e);
 	}
 	public static Object call6(Object x, Object a, Object b, Object c, Object d,
 			Object e, Object f) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call6(a, b, c, d, e, f);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d, e, f);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call6(a, b, c, d, e, f)
+			: call(x, a, b, c, d, e, f);
 	}
 	public static Object call7(Object x, Object a, Object b, Object c, Object d,
 			Object e, Object f, Object g) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call7(a, b, c, d, e, f, g);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d, e, f, g);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call7(a, b, c, d, e, f, g)
+			: call(x, a, b, c, d, e, f, g);
 	}
 	public static Object call8(Object x, Object a, Object b, Object c, Object d,
 			Object e, Object f, Object g, Object h) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call8(a, b, c, d, e, f, g, h);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d, e, f, g, h);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call8(a, b, c, d, e, f, g, h)
+			: call(x, a, b, c, d, e, f, g, h);
 	}
 	public static Object call9(Object x, Object a, Object b, Object c, Object d,
 			Object e, Object f, Object g, Object h, Object i) {
-		if (x instanceof SuValue)
-			try {
-				return ((SuValue) x).call9(a, b, c, d, e, f, g, h, i);
-			} catch (java.lang.StackOverflowError ex) {
-				throw new SuException("function call overflow", ex);
-			}
-		return call(x, a, b, c, d, e, f, g, h, i);
+		return (x instanceof SuValue)
+			? ((SuValue) x).call9(a, b, c, d, e, f, g, h, i)
+			: call(x, a, b, c, d, e, f, g, h, i);
 	}
 	public static Object call(Object x, Object... args) {
-		try {
-			//System.out.println("call " + display(x) + display(args));
-			if (x instanceof SuValue)
-				return ((SuValue) x).call(args);
-			if (x instanceof String) {
-				return callString(x, args);
-			}
-		} catch (java.lang.StackOverflowError e) {
-			throw new SuException("function call overflow", e);
-		}
+		if (x instanceof SuValue)
+			return ((SuValue) x).call(args);
+		if (x instanceof String)
+			return callString(x, args);
 		throw new SuException("can't call " + typeName(x) + " (" + x + ")");
 	}
 
+	/** string(object, ...) => object[string](...) */
 	static Object callString(Object x, Object... args) {
-		// string(object, ...) => object[string](...)
 		Object ob = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
 		return invoke(ob, x.toString(), args);
 	}
 
 	public static Object invoke(Object x, String method, Object... args) {
-		try {
-			//System.out.println("invoke " + display(x) + "." + method + display(args));
-			if (x instanceof SuValue)
-				return ((SuValue) x).invoke(x, method, args);
-			Class<?> xType = x.getClass();
-			if (xType == String.class)
-				return StringMethods.invoke((String) x, method, args);
-			if (xType == Integer.class)
-				return NumberMethods.invoke((Integer) x, method, args);
-			if (xType == Long.class)
-				x = BigDecimal.valueOf((Long) x);
-			if (xType == BigDecimal.class)
-				return NumberMethods.invoke((BigDecimal) x, method, args);
-			if (xType == Date.class)
-				return DateMethods.invoke((Date) x, method, args);
-		} catch (java.lang.StackOverflowError e) {
-			throw new SuException("function call overflow");
-		}
-		throw methodNotFound(x, method);
+		return target(x).invoke(x, method, args);
 	}
+	public static Object invoke0(Object x, String method) {
+		return target(x).invoke0(x, method);
+	}
+	public static Object invoke1(Object x, String method, Object a) {
+		return target(x).invoke1(x, method, a);
+	}
+	public static Object invoke2(Object x, String method, Object a, Object b) {
+		return target(x).invoke2(x, method, a, b);
+	}
+	public static Object invoke3(Object x, String method, Object a, Object b,
+			Object c) {
+		return target(x).invoke3(x, method, a, b, c);
+	}
+	public static Object invoke4(Object x, String method, Object a, Object b,
+			Object c, Object d) {
+		return target(x).invoke4(x, method, a, b, c, d);
+	}
+	public static Object invoke5(Object x, String method, Object a, Object b,
+			Object c, Object d, Object e) {
+		return target(x).invoke5(x, method, a, b, c, d, e);
+	}
+	public static Object invoke6(Object x, String method, Object a, Object b,
+			Object c, Object d, Object e, Object f) {
+		return target(x).invoke6(x, method, a, b, c, d, e, f);
+	}
+	public static Object invoke7(Object x, String method, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g) {
+		return target(x).invoke7(x, method, a, b, c, d, e, f, g);
+	}
+	public static Object invoke8(Object x, String method, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g, Object h) {
+		return target(x).invoke8(x, method, a, b, c, d, e, f, g, h);
+	}
+	public static Object invoke9(Object x, String method, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+		return target(x).invoke9(x, method, a, b, c, d, e, f, g, h, i);
+	}
+
+	public static interface Invoker {
+		Object invoke(Object x, String method, Object... args);
+		Object invoke0(Object x, String method);
+		Object invoke1(Object x, String method, Object a);
+		Object invoke2(Object x, String method, Object a, Object b);
+		Object invoke3(Object x, String method, Object a, Object b, Object c);
+		Object invoke4(Object x, String method, Object a, Object b, Object c,
+				Object d);
+		Object invoke5(Object x, String method, Object a, Object b, Object c,
+				Object d, Object e);
+		Object invoke6(Object x, String method, Object a, Object b, Object c,
+				Object d, Object e, Object f);
+		Object invoke7(Object x, String method, Object a, Object b, Object c,
+				Object d, Object e, Object f, Object g);
+		Object invoke8(Object x, String method, Object a, Object b, Object c,
+				Object d, Object e, Object f, Object g, Object h);
+		Object invoke9(Object x, String method, Object a, Object b, Object c,
+				Object d, Object e, Object f, Object g, Object h, Object i);
+	}
+
+	public static Invoker target(Object x) {
+		if (x instanceof SuValue)
+			return (SuValue) x;
+		Class<?> xType = x.getClass();
+		if (xType == String.class)
+			return invokeString;
+		if (xType == Integer.class)
+			return invokeInteger;
+		if (xType == Long.class)
+			return invokeLong;
+		if (xType == BigDecimal.class)
+			return invokeBigDecimal;
+		if (xType == Date.class)
+			return DateMethods.instance;
+		return invokeUnknown;
+	}
+
+	private abstract static class Invoker2 implements Invoker {
+		public Object invoke0(Object x, String method) {
+			return invoke(x, method);
+		}
+		public Object invoke1(Object x, String method, Object a) {
+			return invoke(x, method, a);
+		}
+		public Object invoke2(Object x, String method, Object a, Object b) {
+			return invoke(x, method, a, b);
+		}
+		public Object invoke3(Object x, String method, Object a, Object b,
+				Object c) {
+			return invoke(x, method, a, b, c);
+		}
+		public Object invoke4(Object x, String method, Object a, Object b,
+				Object c, Object d) {
+			return invoke(x, method, a, b, c, d);
+		}
+		public Object invoke5(Object x, String method, Object a, Object b,
+				Object c, Object d, Object e) {
+			return invoke(x, method, a, b, c, d, e);
+		}
+		public Object invoke6(Object x, String method, Object a, Object b,
+				Object c, Object d, Object e, Object f) {
+			return invoke(x, method, a, b, c, d, e, f);
+		}
+		public Object invoke7(Object x, String method, Object a, Object b,
+				Object c, Object d, Object e, Object f, Object g) {
+			return invoke(x, method, a, b, c, d, e, f, g);
+		}
+		public Object invoke8(Object x, String method, Object a, Object b,
+				Object c, Object d, Object e, Object f, Object g, Object h) {
+			return invoke(x, method, a, b, c, d, e, f, g, h);
+		}
+		public Object invoke9(Object x, String method, Object a, Object b,
+				Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+			return invoke(x, method, a, b, c, d, e, f, g, h, i);
+		}
+	}
+
+	// temporary adapters
+	private static Invoker invokeString = new Invoker2() {
+		public Object invoke(Object x, String method, Object... args) {
+			return StringMethods.invoke((String) x, method, args);
+		}
+	};
+	private static Invoker invokeInteger = new Invoker2() {
+		public Object invoke(Object x, String method, Object... args) {
+			return NumberMethods.invoke((Integer) x, method, args);
+		}
+	};
+	private static Invoker invokeLong = new Invoker2() {
+		public Object invoke(Object x, String method, Object... args) {
+			return NumberMethods.invoke(BigDecimal.valueOf((Long) x), method, args);
+		}
+	};
+	private static Invoker invokeBigDecimal = new Invoker2() {
+		public Object invoke(Object x, String method, Object... args) {
+			return NumberMethods.invoke((BigDecimal) x, method, args);
+		}
+	};
+	private static Invoker invokeUnknown = new Invoker2() {
+		public Object invoke(Object x, String method, Object... args) {
+			throw methodNotFound(x, method);
+		}
+	};
 
 	public static String toMethodString(Object method) {
 		if (isString(method))

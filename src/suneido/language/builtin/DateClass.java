@@ -77,4 +77,9 @@ public class DateClass extends BuiltinClass {
 		return -offset / 60000; // convert from ms to minutes
 	}
 
+	@Override
+	public Object get(Object member) {
+		return DateMethods.instance.get(member);
+	}
+
 }

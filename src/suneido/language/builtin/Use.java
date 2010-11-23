@@ -4,7 +4,7 @@ import suneido.language.*;
 
 public class Use extends BuiltinFunction1 {
 
-	{ functionSpec = new FunctionSpec("library"); }
+	{ params = new FunctionSpec("library"); }
 
 	@Override
 	public Object call1(Object a) {

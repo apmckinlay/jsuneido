@@ -181,13 +181,14 @@ public class ExecuteTest {
 	@Test
 	public void test_eval() {
 		test("#(1).Eval(function () { this })", "#(1)");
-		test("#(1).Eval({ this })", "#(1)");
-		test("#(a: 123).Eval({ .a })", "123");
 		test("#(A: 123).Eval(function () { .A })", "123");
 		test("#(a: 123).Eval(function () { .a })", "123");
 
 		def("F", "function () { b = { .a }; b() }");
 		test("[a: 123].Eval(F)", "123");
+
+		test("#(1).Eval({ this })", "#(1)");
+		test("#(a: 123).Eval({ .a })", "123");
 	}
 
 	@Test
@@ -216,8 +217,8 @@ public class ExecuteTest {
 
 	public static void test(String expr, String expected) {
 		Object result = eval(expr);
-		if (result instanceof SuMethod)
-			result = ((SuMethod) result).method;
+		if (result instanceof SuBoundMethod)
+			result = ((SuBoundMethod) result).method;
 		assertEquals(expected, display(result));
 	}
 

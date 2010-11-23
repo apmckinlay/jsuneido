@@ -304,13 +304,6 @@ public class ClassGen {
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	private static final int MAX_DIRECT_ARGS = 11;
-	private static final String[] directArgs = new String[MAX_DIRECT_ARGS];
-	static {
-		for (int n = 0; n < MAX_DIRECT_ARGS; ++n)
-			directArgs[n] = Strings.repeat("Ljava/lang/Object;", n);
-	}
-
 	public void invokeFunction(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call" + nargs,
 				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
@@ -319,6 +312,18 @@ public class ClassGen {
 	public void invokeMethod() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
 			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
+	}
+
+	public void invokeMethod(int nargs) {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke" + nargs,
+			"(Ljava/lang/Object;Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
+	}
+
+	private static final int MAX_DIRECT_ARGS = 11;
+	private static final String[] directArgs = new String[MAX_DIRECT_ARGS];
+	static {
+		for (int n = 0; n < MAX_DIRECT_ARGS; ++n)
+			directArgs[n] = Strings.repeat("Ljava/lang/Object;", n);
 	}
 
 	public void anewarray(int size) {

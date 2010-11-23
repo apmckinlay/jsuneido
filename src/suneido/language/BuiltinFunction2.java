@@ -2,11 +2,11 @@ package suneido.language;
 
 public abstract class BuiltinFunction2 extends BuiltinFunction {
 
-	protected FunctionSpec functionSpec = FunctionSpec.value2;
+	{ params = FunctionSpec.value2; }
 
 	@Override
 	public Object call(Object... args) {
-		args = Args.massage(functionSpec, args);
+		args = Args.massage(params, args);
 		return call2(args[0], args[1]);
 	}
 

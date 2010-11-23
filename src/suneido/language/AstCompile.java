@@ -130,7 +130,7 @@ public class AstCompile {
 		nameBegin(name, "$f");
 		boolean prevInMethod = inMethod;
 		inMethod = (ast.token == Token.METHOD);
-		SuCallable fn = javaClass(ast, "SuFunction", "call", null, pw);
+		SuCallable fn = javaClass(ast, "SuFunction", "eval", null, pw);
 		inMethod = prevInMethod;
 		nameEnd();
 		return fn;
@@ -674,8 +674,14 @@ public class AstCompile {
 		AstNode args = ast.second();
 		if (fn.token == Token.MEMBER) {
 			member(cg, fn);
-			callArguments(cg, args);
-			cg.invokeMethod();
+			if (args.token != Token.AT &&
+					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+				directArguments(cg, args);
+				cg.invokeMethod(args.children.size());
+			} else {
+				callArguments(cg, args);
+				cg.invokeMethod();
+			}
 		} else if (fn.token == Token.SUBSCRIPT) {
 			expression(cg, fn.first());
 			expression(cg, fn.second());

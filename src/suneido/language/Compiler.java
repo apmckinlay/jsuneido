@@ -21,19 +21,20 @@ public class Compiler {
 			pw.append(ast.toString() + "\n\n");
 		return new AstCompile(name, pw).fold(ast);	}
 
-	private static final Object[] noLocals = new Object[0];
+	private static final Object[] noArgs = new Object[0];
 
 	public static Object eval(String s) {
 		Object f = compile("eval", "function () { " + s + " }");
-		return Ops.call(f, noLocals);
+		return Ops.call(f, noArgs);
 	}
 
 	public static void main(String[] args) {
-		String s = "function () { for (i=0; i<10; ++i) continue }";
+		String s = "function () { Date().GMTime() }";
 		PrintWriter pw = new PrintWriter(System.out);
-//		Object x =
+Object f =
 		compile("Test", s, pw);
-//		System.out.println(x);
+		Object x = Ops.call(f, noArgs);
+		System.out.println(" => " + x);
 	}
 
 }

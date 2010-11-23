@@ -361,8 +361,8 @@ public class SuRecord extends SuContainer {
 				continue;
 			aos.add(ao);
 			try {
-				if (observer instanceof SuMethod)
-					((SuMethod) observer).call(Args.Special.NAMED, "member",
+				if (observer instanceof SuBoundMethod)
+					((SuBoundMethod) observer).call(Args.Special.NAMED, "member",
 							member);
 				else if (observer instanceof SuValue)
 					((SuValue) observer).eval(this, Args.Special.NAMED,

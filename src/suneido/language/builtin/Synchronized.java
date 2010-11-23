@@ -4,7 +4,7 @@ import suneido.language.*;
 
 public class Synchronized extends BuiltinFunction1 {
 
-	{ functionSpec = new FunctionSpec("block"); }
+	{ params = new FunctionSpec("block"); }
 
 	@Override
 	public Object call1(Object a) {
