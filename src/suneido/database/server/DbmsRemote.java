@@ -108,22 +108,20 @@ public class DbmsRemote extends Dbms {
 		return ImmutableList.copyOf(Iterables.transform(iter, toInteger));
 	}
 
-	private static class ToInteger implements Function<String,Integer> {
-		@Override
-		public Integer apply(String s) {
-			return Integer.parseInt(s);
-		}
-	}
-	private static ToInteger toInteger = new ToInteger();
+	private static Function<String,Integer> toInteger =
+		new Function<String,Integer>() {
+			public Integer apply(String s) {
+				return Integer.parseInt(s);
+			}
+		};
 
-	private static class StringToList implements Function<String,List<String>> {
-		@Override
-		public List<String> apply(String s) {
-			Iterable<String> fields = Splitter.on(',').split(s);
-			return ImmutableList.copyOf(fields);
-		}
-	}
-	private static StringToList stringToList = new StringToList();
+	private static Function<String,List<String>> stringToList =
+		new Function<String,List<String>>() {
+			public List<String> apply(String s) {
+				Iterable<String> fields = Splitter.on(',').split(s);
+				return ImmutableList.copyOf(fields);
+			}
+		};
 
 	@Override
 	public Date timestamp() {
