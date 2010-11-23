@@ -1,6 +1,8 @@
-package suneido.language;
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
 
-import suneido.language.*;
+package suneido.language;
 
 public abstract class BuiltinFunction0 extends BuiltinFunction {
 

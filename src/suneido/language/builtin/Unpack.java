@@ -7,7 +7,7 @@ import suneido.util.Util;
 
 public class Unpack extends BuiltinFunction1 {
 
-	{ functionSpec = FunctionSpec.string; }
+	{ params = FunctionSpec.string; }
 
 	@Override
 	public Object call1(Object a) {

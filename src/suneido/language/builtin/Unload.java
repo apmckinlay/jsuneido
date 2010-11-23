@@ -4,7 +4,7 @@ import suneido.language.*;
 
 public class Unload extends BuiltinFunction1 {
 
-	{ functionSpec = new FunctionSpec("name"); }
+	{ params = new FunctionSpec("name"); }
 
 	@Override
 	public Object call1(Object a) {

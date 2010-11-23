@@ -5,7 +5,7 @@ import java.util.Random;
 public class SampleFunction extends SuFunction {
 
 	@Override
-	public Object call(Object self, Object... args) {
+	public Object call(Object... args) {
 		return null;
 	}
 

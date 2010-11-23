@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import java.util.HashMap;
@@ -8,6 +12,10 @@ import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.base.Objects;
 
+/**
+ * An instance of a Suneido class
+ * (which will be an instance of {@link SuClass})
+ */
 public class SuInstance extends SuValue {
 	private final SuValue myclass;
 	private final Map<String, Object> ivars;

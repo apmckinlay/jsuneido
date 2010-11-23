@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static suneido.SuException.methodNotFound;
@@ -9,8 +13,10 @@ import suneido.*;
 import suneido.language.builtin.ContainerMethods;
 
 /**
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
+ * Suneido classes are instances of SuClass
+ * with the methods stored in members.
+ * The methods are instances of generated classes derived from {@link SuFunction})
+ * Suneido instances are instances of {@link SuInstance}
  */
 public class SuClass extends SuValue {
 	private final String className;
@@ -26,7 +32,7 @@ public class SuClass extends SuValue {
 		linkMethods();
 	}
 
-	private void linkMethods() {
+	protected void linkMethods() {
 		for (Object v : members.values())
 			if (v instanceof SuFunction) {
 				SuFunction f = (SuFunction) v;
@@ -46,7 +52,7 @@ public class SuClass extends SuValue {
 		Object value = get2(member);
 		if (value != null)
 			return value instanceof SuFunction && self != null
-					? new SuMethod(self, (SuFunction) value) : value;
+					? new SuBoundMethod(self, (SuFunction) value) : value;
 		if (hasGetters) {
 			String getter = ("Get_" + member).intern();
 			value = get2(getter);
@@ -62,9 +68,9 @@ public class SuClass extends SuValue {
 
 	protected Object get2(Object member) {
 		Object value = members.get(member);
-		if (value != null || baseGlobal == null)
-			return value;
-		return base().get2(member);
+		return (value != null || baseGlobal == null)
+			? value
+			: base().get2(member);
 	}
 
 	@Override
@@ -107,23 +113,60 @@ public class SuClass extends SuValue {
 			return MethodClass(self, args);
 
 		Object fn = get2(method);
-		if (fn instanceof SuFunction)
-			return ((SuFunction) fn).eval(self, args);
+		if (fn instanceof SuCallable)
+			return ((SuCallable) fn).eval(self, args);
 
 		if (method == "New")
 			return init(args);
 		if (method == "CallClass")
-			return Ops.invoke(self, "<new>", args);
-		if (method != "Default") {
-			// if we get here, method was not found
-			// add method to beginning of args and call Default
+			return newInstance(args);
+		return notFound(self, method, args);
+	}
+
+	private static final Object[] noArgs = new Object[0];
+	@Override
+	public Object invoke0(Object self, String method) {
+		if (method == "<new>")
+			return newInstance(noArgs);
+		if (method == "Base")
+			return Base(self, noArgs);
+		if (method == "Base?")
+			return BaseQ(self, noArgs);
+		if (method == "Eval")
+			return ContainerMethods.Eval(self, noArgs);
+		if (method == "GetDefault")
+			return GetDefault(self, noArgs);
+		if (method == "Members")
+			return Members(self, noArgs);
+		if (method == "Member?")
+			return MemberQ(self, noArgs);
+		if (method == "Method?")
+			return MethodQ(self, noArgs);
+		if (method == "MethodClass")
+			return MethodClass(self, noArgs);
+
+		Object fn = get2(method);
+		if (fn instanceof SuCallable)
+			return ((SuCallable) fn).eval0(self);
+
+		if (method == "New")
+			return init(noArgs);
+		if (method == "CallClass")
+			return newInstance(noArgs);
+		return notFound(self, method, noArgs);
+	}
+
+	protected Object notFound(Object self, String method, Object... args) {
+		// if there is a Default method
+		// call it with the method added to the beginning of args
+		Object fn = get2("Default");
+		if (fn instanceof SuFunction) {
 			Object newargs[] = new Object[1 + args.length];
-			System.arraycopy(args, 0, newargs, 1, args.length);
 			newargs[0] = method;
-			return Ops.invoke(self, "Default", newargs);
-			// COULD make a defaultMethod and bypass invoke (like "call")
+			System.arraycopy(args, 0, newargs, 1, args.length);
+			return ((SuFunction) fn).eval(self, newargs);
 		}
-		throw methodNotFound(self, (String) args[0]);
+		throw methodNotFound(self, method);
 	}
 
 	private static Object init(Object[] args) {

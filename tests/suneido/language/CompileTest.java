@@ -188,19 +188,19 @@ public class CompileTest {
  				"&a, b, call, null?, AASTORE");
 
 		test("a.Size()",
-				"a, 'Size', invoke, ARETURN");
+				"a, 'Size', invoke0, ARETURN");
 		test("(a = b).F()",
-				"&a, b, DUP_X2, AASTORE, 'F', invoke, ARETURN");
+				"&a, b, DUP_X2, AASTORE, 'F', invoke0, ARETURN");
 		test("return a.Size()",
-				"a, 'Size', invoke, ARETURN");
+				"a, 'Size', invoke0, ARETURN");
 		test("a['Size']()",
 				"a, 'Size', toMethodString, invoke, ARETURN");
 		test("a.Substr(b, c)",
-				"a, 'Substr', b, c, invoke, ARETURN");
+				"a, 'Substr', b, c, invoke2, ARETURN");
 		test(".f()",
-				"self, 'f', invoke, ARETURN");
+				"self, 'f', invoke0, ARETURN");
 		test("this.f()",
-				"self, 'f', invoke, ARETURN");
+				"self, 'f', invoke0, ARETURN");
 		test("this[a]()",
 				"self, a, toMethodString, invoke, ARETURN");
 		test("a(123, x: 456)",
@@ -208,7 +208,7 @@ public class CompileTest {
 		test("a(99: 'x')",
 				"a, NAMED, 99, 'x', call, ARETURN");
 		test("A().B()",
-				"'A', global, call, 'B', invoke, ARETURN");
+				"'A', global, call, 'B', invoke0, ARETURN");
 
 		test("super.F()",
 				"this, self, 'F', superInvoke, ARETURN");
@@ -404,11 +404,11 @@ public class CompileTest {
 
 	private void test(String expr, String expected) {
 		test(expr, expected,
-				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
+				"eval(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n   L0\n");
 	}
 	private void test_e(String expr, String expected) {
 		test(expr, expected,
-				"call(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n");
+				"eval(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n");
 	}
 	private void test_b0(String expr, String expected) {
 		String s = compile(expr);
@@ -510,7 +510,7 @@ public class CompileTest {
 			{ "toIntBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, 0=aTest$b, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock, DUP, 0=Test$b, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },

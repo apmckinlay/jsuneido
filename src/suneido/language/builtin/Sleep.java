@@ -4,7 +4,7 @@ import suneido.language.*;
 
 public class Sleep extends BuiltinFunction1 {
 
-	{ functionSpec = new FunctionSpec("ms"); }
+	{ params = new FunctionSpec("ms"); }
 
 	@Override
 	public Object call1(Object a) {

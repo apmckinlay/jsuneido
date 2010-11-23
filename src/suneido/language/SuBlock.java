@@ -21,21 +21,17 @@ public final class SuBlock extends SuCallable {
 
 	@Override
 	public Object call(Object... args) {
-		return call(self, args);
+		return eval(self, args);
 	}
 
 	@Override
 	public Object eval(Object newSelf, Object... args) {
-		return call(newSelf, args);
-	}
-
-	private Object call(Object self, Object... args) {
 		BlockSpec bspec = (BlockSpec) block.params;
 		args = Args.massage(bspec, args);
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)
 			locals[bspec.iparams + i] = args[i];
-		return block.eval(self, locals);
+		return block.eval(newSelf, locals);
 	}
 
 	@Override

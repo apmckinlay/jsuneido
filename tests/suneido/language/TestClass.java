@@ -15,16 +15,16 @@ class TestClass {
 		return new SuClass("TestClass", null, methods);
 	}
 
-	private static class Test_Substr extends SuFunction {
+	private static class Test_Substr extends SuMethod {
 		@Override
-		public Object call(Object self, Object... args) {
+		public Object eval(Object self, Object... args) {
 			return "";
 		}
 	}
 
-	private static class Test_Size extends SuFunction {
+	private static class Test_Size extends SuMethod {
 		@Override
-		public Object call(Object self, Object... args) {
+		public Object eval(Object self, Object... args) {
 			return 0;
 		}
 	}

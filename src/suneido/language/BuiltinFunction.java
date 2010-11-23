@@ -7,16 +7,4 @@ public abstract class BuiltinFunction extends SuFunction {
 		return "Builtin";
 	}
 
-	// must be defined by subclasses
-	@Override
-	public abstract Object call(Object...args);
-
-	// not used by builtin functions
-	@Override
-	public Object call(Object self, Object... args) {
-		return null;
-	}
-
-	// TODO support Params
-
 }
