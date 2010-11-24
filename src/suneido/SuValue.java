@@ -127,80 +127,80 @@ public abstract class SuValue implements Packable, Ops.Invoker {
 		return call(a, b, c, d, e, f, g, h, i);
 	}
 
-	public Object invoke0(Object x, String method) {
-		return invoke(x, method);
+	public Object invoke0(Object self, String method) {
+		return invoke(self, method);
 	}
-	public Object invoke1(Object x, String method, Object a) {
-		return invoke(x, method, a);
+	public Object invoke1(Object self, String method, Object a) {
+		return invoke(self, method, a);
 	}
-	public Object invoke2(Object x, String method, Object a, Object b) {
-		return invoke(x, method, a, b);
+	public Object invoke2(Object self, String method, Object a, Object b) {
+		return invoke(self, method, a, b);
 	}
-	public Object invoke3(Object x, String method, Object a, Object b,
+	public Object invoke3(Object self, String method, Object a, Object b,
 			Object c) {
-		return invoke(x, method, a, b, c);
+		return invoke(self, method, a, b, c);
 	}
-	public Object invoke4(Object x, String method, Object a, Object b,
+	public Object invoke4(Object self, String method, Object a, Object b,
 			Object c, Object d) {
-		return invoke(x, method, a, b, c, d);
+		return invoke(self, method, a, b, c, d);
 	}
-	public Object invoke5(Object x, String method, Object a, Object b,
+	public Object invoke5(Object self, String method, Object a, Object b,
 			Object c, Object d, Object e) {
-		return invoke(x, method, a, b, c, d, e);
+		return invoke(self, method, a, b, c, d, e);
 	}
-	public Object invoke6(Object x, String method, Object a, Object b,
+	public Object invoke6(Object self, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f) {
-		return invoke(x, method, a, b, c, d, e, f);
+		return invoke(self, method, a, b, c, d, e, f);
 	}
-	public Object invoke7(Object x, String method, Object a, Object b,
+	public Object invoke7(Object self, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g) {
-		return invoke(x, method, a, b, c, d, e, f, g);
+		return invoke(self, method, a, b, c, d, e, f, g);
 	}
-	public Object invoke8(Object x, String method, Object a, Object b,
+	public Object invoke8(Object self, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return invoke(x, method, a, b, c, d, e, f, g, h);
+		return invoke(self, method, a, b, c, d, e, f, g, h);
 	}
-	public Object invoke9(Object x, String method, Object a, Object b,
+	public Object invoke9(Object self, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return invoke(x, method, a, b, c, d, e, f, g, h, i);
+		return invoke(self, method, a, b, c, d, e, f, g, h, i);
 	}
 
-	public Object eval0(Object x) {
-		return eval(x);
+	public Object eval0(Object self) {
+		return eval(self);
 	}
-	public Object eval1(Object x, Object a) {
-		return eval(x, a);
+	public Object eval1(Object self, Object a) {
+		return eval(self, a);
 	}
-	public Object eval2(Object x, Object a, Object b) {
-		return eval(x, a, b);
+	public Object eval2(Object self, Object a, Object b) {
+		return eval(self, a, b);
 	}
-	public Object eval3(Object x, Object a, Object b,
+	public Object eval3(Object self, Object a, Object b,
 			Object c) {
-		return eval(x, a, b, c);
+		return eval(self, a, b, c);
 	}
-	public Object eval4(Object x, Object a, Object b,
+	public Object eval4(Object self, Object a, Object b,
 			Object c, Object d) {
-		return eval(x, a, b, c, d);
+		return eval(self, a, b, c, d);
 	}
-	public Object eval5(Object x, Object a, Object b,
+	public Object eval5(Object self, Object a, Object b,
 			Object c, Object d, Object e) {
-		return eval(x, a, b, c, d, e);
+		return eval(self, a, b, c, d, e);
 	}
-	public Object eval6(Object x, Object a, Object b,
+	public Object eval6(Object self, Object a, Object b,
 			Object c, Object d, Object e, Object f) {
-		return eval(x, a, b, c, d, e, f);
+		return eval(self, a, b, c, d, e, f);
 	}
-	public Object eval7(Object x, Object a, Object b,
+	public Object eval7(Object self, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g) {
-		return eval(x, a, b, c, d, e, f, g);
+		return eval(self, a, b, c, d, e, f, g);
 	}
-	public Object eval8(Object x, Object a, Object b,
+	public Object eval8(Object self, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return eval(x, a, b, c, d, e, f, g, h);
+		return eval(self, a, b, c, d, e, f, g, h);
 	}
-	public Object eval9(Object x, Object a, Object b,
+	public Object eval9(Object self, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return eval(x, a, b, c, d, e, f, g, h, i);
+		return eval(self, a, b, c, d, e, f, g, h, i);
 	}
 
 }
