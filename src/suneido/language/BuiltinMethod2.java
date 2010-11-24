@@ -4,16 +4,16 @@
 
 package suneido.language;
 
-public abstract class BuiltinMethod1 extends SuMethod {
-	{ params = new FunctionSpec("value"); }
+public abstract class BuiltinMethod2 extends SuMethod {
+	{ params = new FunctionSpec("value1", "value2"); }
 
 	@Override
 	public Object eval(Object self, Object... args) {
 		args = Args.massage(params, args);
-		return eval1(self, args[0]);
+		return eval2(self, args[0], args[1]);
 	}
 
 	@Override
-	public abstract Object eval1(Object self, Object a);
+	public abstract Object eval2(Object self, Object a, Object b);
 
 }
