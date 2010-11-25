@@ -17,14 +17,11 @@ import suneido.util.FAQCalendar;
 
 import com.google.common.collect.ImmutableMap;
 
-/*
- * Needs to derive from SuClass so it can override notFound
- */
-public class DateMethods extends SuClass {
-	public static final DateMethods instance = new DateMethods();
+public class DateMethods extends PrimitiveMethods {
+	public static final DateMethods singleton = new DateMethods();
 
-	public DateMethods() {
-		super("Date", null, members());
+	private DateMethods() {
+		super("Date", members());
 	}
 
 	private static Object members() {
@@ -45,15 +42,6 @@ public class DateMethods extends SuClass {
 		b.put("Plus", new Plus());
 		b.put("WeekDay", new WeekDay());
 		return b.build();
-	}
-
-	@Override
-	protected void linkMethods() {
-	}
-
-	@Override
-	protected Object notFound(Object self, String method, Object... args) {
-		return ((DateClass) Globals.get("Date")).invoke(self, method, args);
 	}
 
 	private static class GetField extends BuiltinMethod0 {

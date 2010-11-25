@@ -24,3 +24,5 @@ glob:suneido/WhenBuilt.java
 
 syntax: regexp
 ^suneido/WhenBuilt\.java$
+syntax: regexp
+^doc$

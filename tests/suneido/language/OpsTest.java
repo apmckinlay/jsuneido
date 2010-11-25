@@ -139,7 +139,7 @@ public class OpsTest {
 		assertEquals(p81,		mul(-9, m9));
 		assertEquals(81,		mul(-9, -9));
 		assertEquals(0,			mul(-9, 0));
-		assertEquals(zero,		mul(-9, zero));
+		assertEquals(0,			mul(-9, zero));
 		assertEquals(-81,		mul(-9, 9));
 		assertEquals(m81,		mul(-9, p9));
 		assertEquals(minus_inf, mul(-9, inf));
@@ -158,7 +158,7 @@ public class OpsTest {
 		assertEquals(0,			mul(zero, 0));
 		assertEquals(0,			mul(zero, 0));
 		assertEquals(0,			mul(zero, zero));
-		assertEquals(zero,		mul(zero, 9));
+		assertEquals(0,			mul(zero, 9));
 		assertEquals(0,			mul(zero, p9));
 		assertEquals(0, 		mul(zero, inf));
 
@@ -166,7 +166,7 @@ public class OpsTest {
 		assertEquals(m81,		mul(9, m9));
 		assertEquals(-81,		mul(9, -9));
 		assertEquals(0,			mul(9, 0));
-		assertEquals(zero,		mul(9, zero));
+		assertEquals(0,			mul(9, zero));
 		assertEquals(81,		mul(9, 9));
 		assertEquals(p81,		mul(9, p9));
 		assertEquals(inf,		mul(9, inf));
