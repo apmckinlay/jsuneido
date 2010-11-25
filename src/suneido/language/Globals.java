@@ -27,7 +27,7 @@ public class Globals {
 		builtins.put("Suneido", new SuContainer());
 
 		builtins.put("Add", new Add());
-		builtins.put("Adler32", new Adler32Class());
+		builtins.put("Adler32", Adler32Class.singleton);
 		builtins.put("And", new And());
 		builtins.put("Boolean?", new BooleanQ());
 		builtins.put("Built", new Built());
