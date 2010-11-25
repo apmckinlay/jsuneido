@@ -693,6 +693,10 @@ public class AstCompile {
 			callArguments(cg, args);
 			cg.invokeSuper();
 		} else if (isDirect(fn)) {
+			/* TODO avoid argument array
+			 * build constant object/record at compile time
+			 * generate code to copy it
+			 * and to add any additional values */
 			callArguments(cg, args);
 			cg.invokeDirect(fn.value);
 		} else {
