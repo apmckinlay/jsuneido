@@ -29,21 +29,34 @@ public final class Ops {
 			return true;
 		if (x == null || y == null)
 			return false;
-		Class<?> xType = x.getClass();
-		if (xType == Integer.class) {
-			if (y.getClass() == BigDecimal.class) {
-				x = BigDecimal.valueOf((Integer) x);
-				xType = BigDecimal.class;
-			}
-		} else if (xType == BigDecimal.class) {
-			if (y.getClass() == Integer.class)
-				y = BigDecimal.valueOf((Integer) y);
+		/* NOTE: cannot compare hashCode's for inequality
+		 * because Suneido can compare different types as equal
+		 * for example String and Concat or Integer and BigDecimal */
+
+		Class<?> xClass = x.getClass();
+		Class<?> yClass = y.getClass();
+
+		// have to use compareTo for BigDecimal
+		if (xClass == yClass && xClass != BigDecimal.class)
+			return x.equals(y);
+
+		if (x instanceof Number && y instanceof Number) {
+			if ((xClass == Integer.class || xClass == Long.class ||
+					xClass == Byte.class || xClass == Short.class) &&
+					(yClass == Integer.class || yClass == Long.class ||
+					yClass == Byte.class || yClass == Short.class))
+				return ((Number) x).longValue() == ((Number) y).longValue();
+			else if ((xClass == Float.class || xClass == Double.class) &&
+					(yClass == Float.class || yClass == Double.class))
+				return ((Number) x).doubleValue() == ((Number) y).doubleValue();
+			else
+				return 0 == new BigDecimal(x.toString()).compareTo(
+						new BigDecimal(y.toString()));
 		}
-		if (xType == BigDecimal.class && y.getClass() == BigDecimal.class)
-			// need to use compareTo to ignore scale
-			return 0 == ((BigDecimal) x).compareTo((BigDecimal) y);
+
 		if (y instanceof Concat)
-			return x.equals(y.toString());
+			return y.equals(x);
+
 		return x.equals(y);
 	}
 
@@ -90,63 +103,71 @@ public final class Ops {
 	public static int cmp(Object x, Object y) {
 		if (x == y)
 			return 0;
-		Class<?> xType = x.getClass();
-		if (xType == SuRecord.class)
-			xType = SuContainer.class;
-		Class<?> yType = y.getClass();
-		if (yType == SuRecord.class)
-			yType = SuContainer.class;
-		if (xType == yType) {
-			if (x instanceof Comparable)
-				return ((Comparable<Object>) x).compareTo(y);
-			return cmpHash(xType, yType);
-		}
-		if (xType == Concat.class) {
-			x = x.toString();
-			xType = String.class;
-		}
-		if (yType == Concat.class) {
-			y = y.toString();
-			yType = String.class;
-		}
-		if (xType == yType) {
-			if (x instanceof Comparable)
-				return ((Comparable<Object>) x).compareTo(y);
-			return cmpHash(xType, yType);
-		}
-		if (xType == Boolean.class)
-			return -1;
-		if (xType == Integer.class || xType == Long.class) {
-			if (yType == Boolean.class)
-				return +1;
-			if (yType == BigDecimal.class)
-				return BigDecimal.valueOf(((Number) x).longValue()).compareTo((BigDecimal) y);
-			return -1;
-		}
-		if (xType == BigDecimal.class) {
-			if (yType == Boolean.class)
-				return +1;
-			if (yType == Integer.class || yType == Long.class)
-				return ((BigDecimal) x).compareTo(BigDecimal.valueOf(((Number) y).longValue()));
-			return -1;
-		}
-		if (xType == String.class)
-			return yType == Boolean.class || yType == Integer.class
-					|| yType == Long.class || yType == BigDecimal.class ? +1 : -1;
-		if (xType == Date.class)
-			return yType == Boolean.class || yType == Integer.class
-					|| yType == Long.class || yType == BigDecimal.class
-					|| yType == String.class ? +1 : -1;
-		if (x instanceof SuContainer)
-			return yType == Boolean.class || yType == Integer.class
-				|| yType == BigDecimal.class || yType == Long.class
-				|| yType == String.class || yType == Date.class
-				? +1 : -1;
 
-		if (yType == Boolean.class || yType == Integer.class || yType == Long.class
-				|| yType == BigDecimal.class || yType == String.class)
+		Class<?> xClass = x.getClass();
+		Class<?> yClass = y.getClass();
+
+		if (xClass == SuRecord.class)
+			xClass = SuContainer.class;
+		if (yClass == SuRecord.class)
+			yClass = SuContainer.class;
+		if (xClass == Concat.class) {
+			x = x.toString();
+			xClass = String.class;
+		}
+		if (yClass == Concat.class) {
+			y = y.toString();
+			yClass = String.class;
+		}
+		if (xClass == yClass)
+			return (x instanceof Comparable)
+				? ((Comparable<Object>) x).compareTo(y)
+				: cmpHash(xClass, yClass);
+
+		if (x instanceof Number && y instanceof Number) {
+			if ((xClass == Integer.class || xClass == Long.class ||
+					xClass == Byte.class || xClass == Short.class) &&
+					(yClass == Integer.class || yClass == Long.class ||
+					yClass == Byte.class || yClass == Short.class)) {
+				long x1 = ((Number) x).longValue();
+				long y1 = ((Number) y).longValue();
+				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
+			} else if ((xClass == Float.class || xClass == Double.class) &&
+					(yClass == Float.class || yClass == Double.class)) {
+				double x1 = ((Number) x).doubleValue();
+				double y1 = ((Number) y).doubleValue();
+				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
+			} else
+				return new BigDecimal(x.toString()).compareTo(
+						new BigDecimal(y.toString()));
+		}
+
+		if (xClass == Boolean.class)
+			return -1;
+		if (yClass == Boolean.class)
 			return +1;
-		return cmpHash(xType, yType);
+
+		if (x instanceof Number)
+			return -1;
+		if (y instanceof Number)
+			return +1;
+
+		if (xClass == String.class)
+			return -1;
+		if (yClass == String.class)
+			return +1;
+
+		if (xClass == Date.class)
+			return -1;
+		if (yClass == Date.class)
+			return +1;
+
+		if (xClass == SuContainer.class)
+			return -1;
+		if (yClass == SuContainer.class)
+			return +1;
+
+		return cmpHash(xClass, yClass);
 	}
 
 	private static int cmpHash(Class<?> xType, Class<?> yType) {
