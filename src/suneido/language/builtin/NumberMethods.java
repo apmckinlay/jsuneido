@@ -1,97 +1,113 @@
 package suneido.language.builtin;
 
-import static suneido.language.Ops.inf;
-import static suneido.language.Ops.minus_inf;
-import static suneido.language.UserDefined.userDefined;
-
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import suneido.SuException;
 import suneido.language.*;
 
-public class NumberMethods {
+import com.google.common.collect.ImmutableMap;
 
-	public static Object invoke(Integer n, String method, Object... args) {
-		if (method == "Chr")
-			return Chr(n, args);
-		if (method == "Int")
+public class NumberMethods extends PrimitiveMethods {
+	public static final NumberMethods singleton = new NumberMethods();
+
+	private NumberMethods() {
+		super("Number", members());
+	}
+
+	private static Object members() {
+		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
+		b.put("ACos", new ACos());
+		b.put("ASin", new ASin());
+		b.put("ATan", new ATan());
+		b.put("Chr", new Chr());
+		b.put("Cos", new Cos());
+		b.put("Exp", new Exp());
+		b.put("Format", new Format());
+		b.put("Frac", new Frac());
+		b.put("Hex", new Hex());
+		b.put("Int", new Int());
+		b.put("Log", new Log());
+		b.put("Log10", new Log10());
+		b.put("Pow", new Pow());
+		b.put("Sin", new Sin());
+		b.put("Sqrt", new Sqrt());
+		b.put("Tan", new Tan());
+		return b.build();
+	}
+
+	private static BigDecimal toBigDecimal(Object n) {
+		if (n instanceof BigDecimal)
+			return (BigDecimal) n;
+		if (n instanceof Integer || n instanceof Long || n instanceof Short ||
+				n instanceof Byte)
+			return BigDecimal.valueOf(((Number) n).longValue());
+		if (n instanceof Float || n instanceof Double)
+			return BigDecimal.valueOf(((Number) n).doubleValue());
+		if (n instanceof BigInteger)
+			return new BigDecimal((BigInteger) n);
+		throw SuException.unreachable();
+	}
+
+	private static boolean isInt(Object n) {
+		return n instanceof Integer || n instanceof Long ||
+				n instanceof Short || n instanceof Byte;
+	}
+
+	private static class Frac extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			if (isInt(self) || self instanceof BigInteger)
+				return 0;
+			return Ops.sub(self, trunc(self));
+		}
+	}
+
+	private static class Int extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return trunc(self);
+		}
+	}
+
+	static Object trunc(Object n) {
+		if (isInt(n) || n instanceof BigInteger)
 			return n;
-		if (method == "Hex")
-			return Hex(n, args);
-		return invoke(BigDecimal.valueOf(n), method, args);
+		if (n instanceof BigDecimal)
+			return ((BigDecimal) n).toBigInteger();
+		else
+			return (long) ((Number) n).doubleValue();
 	}
 
-	public static Object invoke(BigDecimal n, String method, Object... args) {
-		if (method == "ACos")
-			return ACos(n, args);
-		if (method == "ASin")
-			return ASin(n, args);
-		if (method == "ATan")
-			return ATan(n, args);
-		if (method == "Chr")
-			return Chr(n.intValue(), args);
-		if (method == "Cos")
-			return Cos(n, args);
-		if (method == "Exp")
-			return Exp(n, args);
-		if (method == "Format")
-			return Format(n, args);
-		if (method == "Frac")
-			return Frac(n, args);
-		if (method == "Int")
-			return Int(n, args);
-		if (method == "Hex")
-			return Hex(n, args);
-		if (method == "Log")
-			return Log(n, args);
-		if (method == "Log10")
-			return Log10(n, args);
-		if (method == "Pow")
-			return Pow(n, args);
-		if (method == "Sin")
-			return Sin(n, args);
-		if (method == "Sqrt")
-			return Sqrt(n, args);
-		if (method == "Tan")
-			return Tan(n, args);
-		return userDefined("Numbers", n, method, args);
+	private static class Hex extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			long n = ((Number) self).longValue();
+			return Long.toHexString(n);
+		}
 	}
 
-	static BigDecimal Frac(BigDecimal n, Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
-		BigDecimal i = new BigDecimal(n.toBigInteger());
-		return n.subtract(i);
+	private static class Chr extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			long n = ((Number) self).longValue();
+			return Character.toString((char) (n & 0xff));
+		}
 	}
 
-	private static BigDecimal Int(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return n == inf || n == minus_inf ? n
-				: new BigDecimal(n.toBigInteger());
+	private static class Format extends BuiltinMethod1 {
+		{ params = new FunctionSpec("mask"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			BigDecimal n = toBigDecimal(self);
+			String mask = Ops.toStr(a);
+			return format(mask, n);
+		}
 	}
 
-	private static String Hex(Integer n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return Integer.toHexString(n);
-	}
+	private static final BigDecimal half = new BigDecimal(".5");
 
-	private static String Hex(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return Long.toHexString(n.longValue());
-	}
-
-	private static String Chr(Integer n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return Character.toString((char) (n & 0xff));
-	}
-
-	private static final FunctionSpec maskFS = new FunctionSpec("mask");
-
-	static BigDecimal half = new BigDecimal(".5");
-
-	static String Format(BigDecimal n, Object... args) {
-		args = Args.massage(maskFS, args);
-		String mask = Ops.toStr(args[0]);
-
+	static String format(String mask, BigDecimal n) {
 		BigDecimal x = n.abs();
 
 		int masksize = mask.length();
@@ -163,78 +179,94 @@ public class NumberMethods {
 		return dst.toString();
 	}
 
-	private static final FunctionSpec intFS = new FunctionSpec("integer");
-	private static Object Pow(BigDecimal n, Object[] args) {
-		args = Args.massage(intFS, args);
-		return n.pow(Ops.toInt(args[0]), Ops.mc);
+	private static class Pow extends BuiltinMethod1 {
+		{ params = new FunctionSpec("number"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			double d = ((Number) self).doubleValue();
+			double e = ((Number) a).doubleValue();
+			return Math.pow(d, e);
+		}
 	}
 
-	private static BigDecimal Cos(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.cos(d), "Cos");
+	private static class Cos extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.cos(d);
+		}
 	}
 
-	private static BigDecimal Sin(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.sin(d), "Sin");
+	private static class Sin extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.sin(d);
+		}
 	}
 
-	private static BigDecimal Tan(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.tan(d), "Tan");
+	private static class Tan extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.tan(d);
+		}
 	}
 
-	private static BigDecimal ACos(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.acos(d), "ACos");
+	private static class ACos extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.acos(d);
+		}
 	}
 
-	private static BigDecimal ASin(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.asin(d), "ASin");
+	private static class ASin extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.asin(d);
+		}
 	}
 
-	private static BigDecimal ATan(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.atan(d), "ATan");
+	private static class ATan extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.atan(d);
+		}
 	}
 
-	private static BigDecimal Exp(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.exp(d), "Exp");
+	private static class Exp extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.exp(d);
+		}
 	}
 
-	private static BigDecimal Log(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.log(d), "Log");
+	private static class Log extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.log(d);
+		}
 	}
 
-	private static BigDecimal Log10(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.log10(d), "Log10");
+	private static class Log10 extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.log10(d);
+		}
 	}
 
-	private static BigDecimal Sqrt(BigDecimal n, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		double d = n.doubleValue();
-		return convert(Math.sqrt(d), "Sqrt");
-	}
-
-	private static BigDecimal convert(double d, String op) {
-		if (Double.isInfinite(d))
-			throw new SuException("infinite result");
-		if (Double.isNaN(d))
-			throw new SuException(op + ": not-a-number result");
-		return new BigDecimal(d);
+	private static class Sqrt extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			double d = ((Number) self).doubleValue();
+			return Math.sqrt(d);
+		}
 	}
 
 }

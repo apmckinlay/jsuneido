@@ -4,8 +4,7 @@ import static suneido.SuException.methodNotFound;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.MathContext;
+import java.math.*;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -229,99 +228,102 @@ public final class Ops {
 	public final static MathContext mc = new MathContext(15);
 	// must be 15 or less so Pack can multiply by 1000 and still fit in long
 
+	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
 			return (Integer) x + (Integer) y;
 		return add2(x, y);
 	}
 
+	// slow path
 	private static Number add2(Object x, Object y) {
-		Class<?> xType = x.getClass();
-		Class<?> yType = y.getClass();
-		if (xType == Integer.class) {
-			if (yType == BigDecimal.class) {
-				if (y == inf)
-					return inf;
-				if (y == minus_inf)
-					return minus_inf;
-				return BigDecimal.valueOf((Integer) x).add((BigDecimal) y, mc);
-			}
-		} else if (xType == BigDecimal.class) {
-			if (yType == Integer.class) {
-				if (x == inf)
-					return inf;
-				if (x == minus_inf)
-					return minus_inf;
-				return ((BigDecimal) x).add(BigDecimal.valueOf((Integer) y), mc);
-			}
-			if (yType == BigDecimal.class) {
-				if (x == inf)
-					return y == minus_inf ? 0 : inf;
-				if (x == minus_inf)
-					return y == inf ? 0 : minus_inf;
-				if (y == inf)
-					return inf;
-				if (y == minus_inf)
-					return minus_inf;
-				return ((BigDecimal) x).add((BigDecimal) y, mc);
-			}
-		}
-		return add(toNum(x), toNum(y));
+		x = toNum(x);
+		y = toNum(y);
+
+		boolean xIsInt = x instanceof Integer || x instanceof Long ||
+				x instanceof Short || x instanceof Byte;
+		boolean yIsInt = y instanceof Integer || y instanceof Long ||
+				y instanceof Short || y instanceof Byte;
+		if (xIsInt && yIsInt)
+			return narrow(((Number) x).longValue() + ((Number) y).longValue());
+		if ((xIsInt || x instanceof Float || x instanceof Double) &&
+				(yIsInt || y instanceof Float || y instanceof Double))
+			return ((Number) x).doubleValue() + ((Number) y).doubleValue();
+
+		if (x == inf)
+			return y == minus_inf ? 0 : inf;
+		if (y == inf)
+			return x == minus_inf ? 0 : inf;
+		if (x == minus_inf)
+			return y == inf ? 0 : minus_inf;
+		if (y == minus_inf)
+			return x == inf ? 0 : minus_inf;
+
+		return toBigDecimal(x).add(toBigDecimal(y), mc);
 	}
 
-	// used by math ops
-	private static Object toNum(Object x) {
-		Class<?> xType = x.getClass();
-		if (xType == Integer.class || xType == BigDecimal.class)
-			return x;
-		if (xType == String.class || xType == Concat.class)
+	private static Number toNum(Object x) {
+		if (x instanceof Number)
+			return (Number) x;
+		if (x instanceof String || x instanceof Concat)
 			return stringToPlainNumber(x.toString());
-		if (xType == Boolean.class)
+		if (x instanceof Boolean)
 			return (Boolean) x ? 1 : 0;
-		if (xType == Long.class)
-			return BigDecimal.valueOf((Long) x);
-		// MAYBE other types e.g. long, BigInteger or double
 		throw new SuException("can't convert " + typeName(x) + " to number");
 	}
 
+	private static Number narrow(long x) {
+		if (Integer.MIN_VALUE <= x && x <= Integer.MAX_VALUE)
+			return (int) x;
+		else
+			return x;
+	}
+
+	private static BigDecimal toBigDecimal(Object n) {
+		if (n instanceof BigDecimal)
+			return (BigDecimal) n;
+		if (n instanceof Integer || n instanceof Long || n instanceof Short ||
+				n instanceof Byte)
+			return BigDecimal.valueOf(((Number) n).longValue());
+		if (n instanceof Float || n instanceof Double)
+			return BigDecimal.valueOf(((Number) n).doubleValue());
+		if (n instanceof BigInteger)
+			return new BigDecimal((BigInteger) n);
+		throw SuException.unreachable();
+	}
+
+	// fast path, kept small in hopes of getting inlined
 	public static Number sub(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
 			return (Integer) x - (Integer) y;
 		return sub2(x, y);
 	}
 
+	// slow path
 	private static Number sub2(Object x, Object y) {
-		Class<?> xType = x.getClass();
-		Class<?> yType = y.getClass();
-		if (xType == Integer.class) {
-			if (yType == BigDecimal.class) {
-				if (y == inf)
-					return minus_inf;
-				if (y == minus_inf)
-					return inf;
-				return BigDecimal.valueOf((Integer) x).subtract((BigDecimal) y, mc);
-			}
-		} else if (xType == BigDecimal.class) {
-			if (yType == Integer.class) {
-				if (x == inf)
-					return inf;
-				if (x == minus_inf)
-					return minus_inf;
-				return ((BigDecimal) x).subtract(BigDecimal.valueOf((Integer) y), mc);
-			}
-			if (yType == BigDecimal.class) {
-				if (x == inf)
-					return y == inf ? 0 : inf;
-				if (x == minus_inf)
-					return y == minus_inf ? 0 : minus_inf;
-				if (y == inf)
-					return minus_inf;
-				if (y == minus_inf)
-					return inf;
-				return ((BigDecimal) x).subtract((BigDecimal) y, mc);
-			}
-		}
-		return sub(toNum(x), toNum(y));
+		x = toNum(x);
+		y = toNum(y);
+
+		boolean xIsInt = x instanceof Integer || x instanceof Long ||
+				x instanceof Short || x instanceof Byte;
+		boolean yIsInt = y instanceof Integer || y instanceof Long ||
+				y instanceof Short || y instanceof Byte;
+		if (xIsInt && yIsInt)
+			return narrow(((Number) x).longValue() - ((Number) y).longValue());
+		if ((xIsInt || x instanceof Float || x instanceof Double) &&
+				(yIsInt || y instanceof Float || y instanceof Double))
+			return ((Number) x).doubleValue() - ((Number) y).doubleValue();
+
+		if (x == inf)
+			return y == inf ? 0 : inf;
+		if (y == inf)
+			return x == inf ? 0 : minus_inf;
+		if (x == minus_inf)
+			return y == minus_inf ? 0 : minus_inf;
+		if (y == minus_inf)
+			return x == minus_inf ? 0 : inf;
+
+		return toBigDecimal(x).subtract(toBigDecimal(y), mc);
 	}
 
 	private static final Integer one = 1;
@@ -332,51 +334,43 @@ public final class Ops {
 		return sub(x, one);
 	}
 
+	// fast path, kept small in hopes of getting inlined
 	public static Number mul(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
 			return (Integer) x * (Integer) y;
 		return mul2(x, y);
 	}
 
+	// slow path
 	private static Number mul2(Object x, Object y) {
-		Class<?> xType = x.getClass();
-		Class<?> yType = y.getClass();
-		if (xType == Integer.class) {
-			if (yType == BigDecimal.class) {
-				if ((Integer) x == 0)
-					return 0;
-				if (y == inf)
-					return (Integer) x > 0 ? inf : minus_inf;
-				if (y == minus_inf)
-					return (Integer) x > 0 ? minus_inf : inf;
-				return BigDecimal.valueOf((Integer) x).multiply((BigDecimal) y, mc);
-			}
-		} else if (xType == BigDecimal.class) {
-			if (yType == Integer.class) {
-				if ((Integer) y == 0)
-					return 0;
-				if (x == inf)
-					return (Integer) y > 0 ? inf : minus_inf;
-				if (x == minus_inf)
-					return (Integer) y > 0 ? minus_inf : inf;
-				return ((BigDecimal) x).multiply(BigDecimal.valueOf((Integer) y), mc);
-			}
-			if (yType == BigDecimal.class) {
-				if (((BigDecimal) x).signum() == 0
-						|| ((BigDecimal) y).signum() == 0)
-					return 0;
-				if (x == inf)
-					return ((BigDecimal) y).signum() > 0 ? inf : minus_inf;
-				if (x == minus_inf)
-					return ((BigDecimal) y).signum() > 0 ? minus_inf : inf;
-				if (y == inf)
-					return ((BigDecimal) x).signum() > 0 ? inf : minus_inf;
-				if (y == minus_inf)
-					return ((BigDecimal) x).signum() > 0 ? minus_inf : inf;
-				return ((BigDecimal) x).multiply((BigDecimal) y, mc);
-			}
-		}
-		return mul(toNum(x), toNum(y));
+		x = toNum(x);
+		y = toNum(y);
+
+		boolean xIsInt = x instanceof Integer || x instanceof Long ||
+				x instanceof Short || x instanceof Byte;
+		boolean yIsInt = y instanceof Integer || y instanceof Long ||
+				y instanceof Short || y instanceof Byte;
+		if (xIsInt && yIsInt)
+			return narrow(((Number) x).longValue() * ((Number) y).longValue());
+		if ((xIsInt || x instanceof Float || x instanceof Double) &&
+				(yIsInt || y instanceof Float || y instanceof Double))
+			return ((Number) x).doubleValue() * ((Number) y).doubleValue();
+
+		BigDecimal xbd = toBigDecimal(x);
+		BigDecimal ybd = toBigDecimal(y);
+
+		if (xbd.signum() == 0 || ybd.signum() == 0)
+			return 0;
+		if (x == inf)
+			return (ybd.signum() < 0) ? minus_inf : inf;
+		if (y == inf)
+			return (xbd.signum() < 0) ? minus_inf : inf;
+		if (x == minus_inf)
+			return (ybd.signum() < 0) ? inf : minus_inf;
+		if (y == minus_inf)
+			return (xbd.signum() < 0) ? inf : minus_inf;
+
+		return xbd.multiply(ybd, mc);
 	}
 
 	public final static BigDecimal zero = BigDecimal.ZERO;
@@ -386,65 +380,60 @@ public final class Ops {
 			BigDecimal.valueOf(-1, Integer.MAX_VALUE);
 
 	public static Number div(Object x, Object y) {
-		Class<?> xType = x.getClass();
-		Class<?> yType = y.getClass();
-		if (xType == Integer.class) {
-			if ((Integer) x == 0)
-				return 0;
-			if (yType == Integer.class) {
-				if ((Integer) y == 0)
-					return ((Integer) x) < 0 ? minus_inf : inf;
-				return BigDecimal.valueOf((Integer) x).divide(
-						BigDecimal.valueOf((Integer) y), mc);
-			}
-			if (yType == BigDecimal.class) {
-				if (y == inf || y == minus_inf)
-					return 0;
-				if (((BigDecimal) y).signum() == 0)
-					return ((Integer) x) < 0 ? minus_inf : inf;
-				return BigDecimal.valueOf((Integer) x).divide((BigDecimal) y, mc);
-			}
-		} else if (xType == BigDecimal.class) {
-			if (((BigDecimal) x).signum() == 0)
-				return 0;
-			if (yType == Integer.class) {
-				if ((Integer) y == 0)
-					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
-				if (x == inf)
-					return (Integer) y >= 0 ? inf : minus_inf;
-				if (x == minus_inf)
-					return (Integer) y >= 0 ? minus_inf : inf;
-				return ((BigDecimal) x).divide(BigDecimal.valueOf((Integer) y), mc);
-			}
-			if (yType == BigDecimal.class) {
-				if (x == inf)
-					return y == inf ? 1 : y == minus_inf ? -1
-							: ((BigDecimal) y).signum() >= 0 ? inf : minus_inf;
-				if (x == minus_inf)
-					return y == inf ? -1 : y == minus_inf ? 1
-							: ((BigDecimal) y).signum() >= 0 ? minus_inf : inf;
-				if (y == inf || y == minus_inf)
-					return 0;
-				if (((BigDecimal) y).signum() == 0)
-					return ((BigDecimal) x).signum() < 0 ? minus_inf : inf;
-				return ((BigDecimal) x).divide((BigDecimal) y, mc);
-			}
-		}
-		return div(toNum(x), toNum(y));
+		x = toNum(x);
+		y = toNum(y);
+
+		boolean xIsInt = x instanceof Integer || x instanceof Long ||
+				x instanceof Short || x instanceof Byte;
+		boolean yIsInt = y instanceof Integer || y instanceof Long ||
+				y instanceof Short || y instanceof Byte;
+		if (! (xIsInt && yIsInt) &&
+				(x instanceof Float || x instanceof Double || xIsInt) &&
+				(y instanceof Float || y instanceof Double || yIsInt))
+			return ((Number) x).doubleValue() / ((Number) y).doubleValue();
+
+		BigDecimal xbd = toBigDecimal(x);
+		BigDecimal ybd = toBigDecimal(y);
+
+		if (xbd.signum() == 0)
+			return 0;
+		if (x == inf)
+			return y == inf ? +1 : y == minus_inf ? -1
+					: (ybd.signum() < 0) ? minus_inf : inf;
+		if (x == minus_inf)
+			return y == inf ? -1 : y == minus_inf ? +1
+					: (ybd.signum() < 0) ? inf : minus_inf;
+		if (y == inf || y == minus_inf)
+			return 0;
+		if (ybd.signum() == 0)
+			return xbd.signum() < 0 ? minus_inf : inf;
+
+		return xbd.divide(ybd, mc);
 	}
 
 	public static Number mod(Object x, Object y) {
-		if (x instanceof Integer && y instanceof Integer)
-			return (Integer) x % (Integer) y;
 		return toInt(x) % toInt(y);
 	}
 
 	public static Number uminus(Object x) {
+		x = toNum(x);
 		if (x instanceof Integer)
 			return -(Integer) x;
 		if (x instanceof BigDecimal)
 			return ((BigDecimal) x).negate();
-		return uminus(toNum(x));
+		if (x instanceof BigInteger)
+			return ((BigInteger) x).negate();
+		if (x instanceof Long)
+			return -(Long) x;
+		if (x instanceof Short)
+			return -(Short) x;
+		if (x instanceof Byte)
+			return -(Byte) x;
+		if (x instanceof Float)
+			return -(Float) x;
+		if (x instanceof Double)
+			return -(Double) x;
+		throw SuException.unreachable();
 	}
 
 	public static boolean not_(Object x) {
@@ -541,25 +530,48 @@ public final class Ops {
 	}
 
 	public static int toInt(Object x) {
-		Class<?> xType = x.getClass();
-		if (xType == Integer.class)
-			return ((Integer) x);
-		if (xType == BigDecimal.class)
+		if (x instanceof Integer || x instanceof Long ||
+				x instanceof Short || x instanceof Byte)
+			return ((Number) x).intValue();
+		if (x instanceof Long)
+			return toIntLong((Long) x);
+		if (x instanceof BigDecimal)
 			return toIntBD((BigDecimal) x);
-		if (xType == String.class || xType == Concat.class)
+		if (x instanceof BigInteger)
+			return toIntBI((BigInteger) x);
+		if (x instanceof String || x instanceof Concat)
 			return toIntS(x.toString());
-		if (xType == Boolean.class)
+		if (x instanceof Boolean)
 			return x == Boolean.TRUE ? 1 : 0;
 		throw new SuException("can't convert " + typeName(x) + " to integer");
 	}
 
-	public final static BigDecimal INT_MIN = new BigDecimal(Integer.MIN_VALUE);
-	public final static BigDecimal INT_MAX = new BigDecimal(Integer.MAX_VALUE);
+	public static int toIntLong(long n) {
+		if (n < Integer.MIN_VALUE)
+			return Integer.MIN_VALUE;
+		if (n > Integer.MAX_VALUE)
+			return Integer.MAX_VALUE;
+		return (int) n;
+	}
+
+	public final static BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
+	public final static BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
 
 	public static int toIntBD(BigDecimal n) {
-		if (n.compareTo(INT_MIN) == -1)
+		if (n.compareTo(BD_INT_MIN) == -1)
 			return Integer.MIN_VALUE;
-		if (n.compareTo(INT_MAX) == 1)
+		if (n.compareTo(BD_INT_MAX) == 1)
+			return Integer.MAX_VALUE;
+		return n.intValue();
+	}
+
+	public final static BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
+	public final static BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
+
+	public static int toIntBI(BigInteger n) {
+		if (n.compareTo(BI_INT_MIN) == -1)
+			return Integer.MIN_VALUE;
+		if (n.compareTo(BI_INT_MAX) == 1)
 			return Integer.MAX_VALUE;
 		return n.intValue();
 	}
@@ -791,105 +803,28 @@ public final class Ops {
 		return target(x).invoke9(x, method, a, b, c, d, e, f, g, h, i);
 	}
 
-	public static interface Invoker {
-		Object invoke(Object x, String method, Object... args);
-		Object invoke0(Object x, String method);
-		Object invoke1(Object x, String method, Object a);
-		Object invoke2(Object x, String method, Object a, Object b);
-		Object invoke3(Object x, String method, Object a, Object b, Object c);
-		Object invoke4(Object x, String method, Object a, Object b, Object c,
-				Object d);
-		Object invoke5(Object x, String method, Object a, Object b, Object c,
-				Object d, Object e);
-		Object invoke6(Object x, String method, Object a, Object b, Object c,
-				Object d, Object e, Object f);
-		Object invoke7(Object x, String method, Object a, Object b, Object c,
-				Object d, Object e, Object f, Object g);
-		Object invoke8(Object x, String method, Object a, Object b, Object c,
-				Object d, Object e, Object f, Object g, Object h);
-		Object invoke9(Object x, String method, Object a, Object b, Object c,
-				Object d, Object e, Object f, Object g, Object h, Object i);
-	}
-
-	public static Invoker target(Object x) {
+	public static SuValue target(Object x) {
 		if (x instanceof SuValue)
 			return (SuValue) x;
 		Class<?> xType = x.getClass();
 		if (xType == String.class)
 			return invokeString;
-		if (xType == Integer.class)
-			return invokeInteger;
-		if (xType == Long.class)
-			return invokeLong;
-		if (xType == BigDecimal.class)
-			return invokeBigDecimal;
+		if (x instanceof Number)
+			return NumberMethods.singleton;
 		if (xType == Date.class)
-			return DateMethods.instance;
+			return DateMethods.singleton;
 		return invokeUnknown;
 	}
 
-	private abstract static class Invoker2 implements Invoker {
-		public Object invoke0(Object x, String method) {
-			return invoke(x, method);
-		}
-		public Object invoke1(Object x, String method, Object a) {
-			return invoke(x, method, a);
-		}
-		public Object invoke2(Object x, String method, Object a, Object b) {
-			return invoke(x, method, a, b);
-		}
-		public Object invoke3(Object x, String method, Object a, Object b,
-				Object c) {
-			return invoke(x, method, a, b, c);
-		}
-		public Object invoke4(Object x, String method, Object a, Object b,
-				Object c, Object d) {
-			return invoke(x, method, a, b, c, d);
-		}
-		public Object invoke5(Object x, String method, Object a, Object b,
-				Object c, Object d, Object e) {
-			return invoke(x, method, a, b, c, d, e);
-		}
-		public Object invoke6(Object x, String method, Object a, Object b,
-				Object c, Object d, Object e, Object f) {
-			return invoke(x, method, a, b, c, d, e, f);
-		}
-		public Object invoke7(Object x, String method, Object a, Object b,
-				Object c, Object d, Object e, Object f, Object g) {
-			return invoke(x, method, a, b, c, d, e, f, g);
-		}
-		public Object invoke8(Object x, String method, Object a, Object b,
-				Object c, Object d, Object e, Object f, Object g, Object h) {
-			return invoke(x, method, a, b, c, d, e, f, g, h);
-		}
-		public Object invoke9(Object x, String method, Object a, Object b,
-				Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-			return invoke(x, method, a, b, c, d, e, f, g, h, i);
-		}
-	}
-
 	// temporary adapters
-	private static Invoker invokeString = new Invoker2() {
+	private static SuValue invokeString = new SuValue() {
+		@Override
 		public Object invoke(Object x, String method, Object... args) {
 			return StringMethods.invoke((String) x, method, args);
 		}
 	};
-	private static Invoker invokeInteger = new Invoker2() {
-		public Object invoke(Object x, String method, Object... args) {
-			return NumberMethods.invoke((Integer) x, method, args);
-		}
-	};
-	private static Invoker invokeLong = new Invoker2() {
-		public Object invoke(Object x, String method, Object... args) {
-			return NumberMethods.invoke(BigDecimal.valueOf((Long) x), method, args);
-		}
-	};
-	private static Invoker invokeBigDecimal = new Invoker2() {
-		public Object invoke(Object x, String method, Object... args) {
-			return NumberMethods.invoke((BigDecimal) x, method, args);
-		}
-	};
-	private static Invoker invokeUnknown = new Invoker2() {
+	private static SuValue invokeUnknown = new SuValue() {
+		@Override
 		public Object invoke(Object x, String method, Object... args) {
 			throw methodNotFound(x, method);
 		}

@@ -8,7 +8,6 @@ import static suneido.SuException.methodNotFound;
 
 import java.nio.ByteBuffer;
 
-import suneido.language.Ops;
 import suneido.language.SuClass;
 
 /**
@@ -17,7 +16,7 @@ import suneido.language.SuClass;
  * @see SuRecord
  * @see SuClass
  */
-public abstract class SuValue implements Packable, Ops.Invoker {
+public abstract class SuValue implements Packable {
 
 	@Override
 	public String toString() {

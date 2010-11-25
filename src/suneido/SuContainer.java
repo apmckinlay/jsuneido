@@ -4,6 +4,7 @@ import static suneido.SuException.verify;
 import static suneido.language.Ops.cmp;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -220,8 +221,20 @@ public class SuContainer extends SuValue
 	}
 
 	private static Object canonical(Object x) {
+		if (x instanceof Integer)
+			return x;
+		if (x instanceof Byte || x instanceof Short)
+			return ((Number) x).intValue();
+		if (x instanceof Long) {
+			long i = (Long) x;
+			return (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
+					? (Integer) x
+					: canonicalBD(BigDecimal.valueOf(i));
+		}
 		if (x instanceof BigDecimal)
 			return canonicalBD((BigDecimal) x);
+		if (x instanceof BigInteger)
+			return canonicalBD(new BigDecimal((BigInteger) x));
 		if (x instanceof Concat)
 			return x.toString();
 		return x;
@@ -233,7 +246,6 @@ public class SuContainer extends SuValue
 			return n.stripTrailingZeros();
 		}
 	}
-
 	@Override
 	public boolean equals(Object value) {
 		if (value == this)

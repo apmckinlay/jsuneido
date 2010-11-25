@@ -79,7 +79,7 @@ public class DateClass extends BuiltinClass {
 
 	@Override
 	public Object get(Object member) {
-		return DateMethods.instance.get(member);
+		return DateMethods.singleton.get(member);
 	}
 
 }
