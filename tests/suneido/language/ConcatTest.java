@@ -43,7 +43,13 @@ public class ConcatTest {
 		y = new Concat("fred", "dy");
 		assertEquals(+1, Integer.signum(Ops.cmp(x, y)));
 		assertEquals(-1, Integer.signum(Ops.cmp(y, x)));
+	}
 
+	@Test
+	public void equals_bug() {
+		Object x = new Concat("hello", "world");
+		Object y = new Concat("hello", "world");
+		assertEquals(x, y);
 	}
 
 }
