@@ -17,6 +17,12 @@ public class OpsTest {
 		assertFalse(is(null, 123));
 		assertFalse(is(123, null));
 		assertTrue(is(123, 123));
+		assertTrue(is((long) 123, 123));
+		assertTrue(is(123, (long) 123));
+		assertTrue(is((byte) 123, (long) 123));
+		assertTrue(is(1.0F, 1.0D));
+		assertTrue(is((byte) 1, 1.0D));
+		assertTrue(is(1.0F, BigDecimal.valueOf(1)));
 		assertTrue(is("abc", "abc"));
 		assertTrue(is(123, BigDecimal.valueOf(123)));
 		assertTrue(is(BigDecimal.valueOf(123), 123));
@@ -25,6 +31,8 @@ public class OpsTest {
 	@Test
 	public void test_cmp() {
 		assertEquals(0, cmp(123, 123));
+		assertEquals(0, cmp((long) 123, 123));
+		assertEquals(0, cmp(123, (long) 123));
 		assertEquals(0, cmp("abc", "abc"));
 		assertTrue(cmp(true, false) > 0);
 		assertTrue(cmp(true, 123) < 0);
