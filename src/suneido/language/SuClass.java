@@ -216,7 +216,7 @@ public class SuClass extends SuValue {
 		return null;
 	}
 
-	private Object newInstance(Object... args) {
+	protected Object newInstance(Object... args) {
 		SuInstance x = new SuInstance(this);
 		x.invoke(x, "New", args);
 		return x;

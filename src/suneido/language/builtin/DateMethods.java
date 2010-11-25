@@ -17,7 +17,10 @@ import suneido.util.FAQCalendar;
 
 import com.google.common.collect.ImmutableMap;
 
-public class DateMethods extends SuClass implements Ops.Invoker {
+/*
+ * Needs to derive from SuClass so it can override notFound
+ */
+public class DateMethods extends SuClass {
 	public static final DateMethods instance = new DateMethods();
 
 	public DateMethods() {
