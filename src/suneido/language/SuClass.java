@@ -40,13 +40,13 @@ public class SuClass extends SuValue {
 		ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
 		b.put("<new>", newInstanceMethod);
 		b.put("Base", new Base());
-		b.put("BaseQ", new BaseQ());
+		b.put("Base?", new BaseQ());
 		b.put("Eval", new Eval());
 		b.put("GetDefault", new GetDefault());
 		b.put("Members", new Members());
-		b.put("MemberQ", new MemberQ());
+		b.put("Member?", new MemberQ());
 		b.put("MethodClass", new MethodClass());
-		b.put("MethodQ", new MethodQ());
+		b.put("Method?", new MethodQ());
 		return b.build();
 	}
 
