@@ -277,9 +277,10 @@ public final class Ops {
 			return (int) x;
 		else
 			return x;
+		// NOTE: can't use ?: because it would convert to same type
 	}
 
-	private static BigDecimal toBigDecimal(Object n) {
+	public static BigDecimal toBigDecimal(Object n) {
 		if (n instanceof BigDecimal)
 			return (BigDecimal) n;
 		if (n instanceof Integer || n instanceof Long || n instanceof Short ||
