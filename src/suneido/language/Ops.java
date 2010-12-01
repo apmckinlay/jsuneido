@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static suneido.SuException.methodNotFound;
@@ -807,23 +811,15 @@ public final class Ops {
 	public static SuValue target(Object x) {
 		if (x instanceof SuValue)
 			return (SuValue) x;
-		Class<?> xType = x.getClass();
-		if (xType == String.class)
-			return invokeString;
-		if (x instanceof Number)
+		if (x instanceof String)
+			return StringMethods.singleton;
+		if (x instanceof Number) // e.g. Integer, Float, BigDecimal
 			return NumberMethods.singleton;
-		if (xType == Date.class)
+		if (x instanceof Date)
 			return DateMethods.singleton;
 		return invokeUnknown;
 	}
 
-	// temporary adapters
-	private static SuValue invokeString = new SuValue() {
-		@Override
-		public Object invoke(Object x, String method, Object... args) {
-			return StringMethods.invoke((String) x, method, args);
-		}
-	};
 	private static SuValue invokeUnknown = new SuValue() {
 		@Override
 		public Object invoke(Object x, String method, Object... args) {

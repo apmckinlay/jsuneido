@@ -8,6 +8,7 @@ import suneido.*;
 public class AstCompile {
 	private final PrintWriter pw;
 	private final String globalName;
+	/* british pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private String suClassName = null;
 	private boolean inMethod = false;
@@ -425,7 +426,7 @@ public class AstCompile {
 				AstNode value = values.get(j);
 				expression(cg, value);
 				cg.loadTemp(temp);
-				cg.binaryMethod(Token.IS, true);
+				cg.binaryOp(Token.IS, true);
 				if (j == values.size() - 1)
 					cg.ifFalse(nextCase);
 				else
@@ -512,6 +513,7 @@ public class AstCompile {
 				cg.constant(folded);
 			return ExprType.VALUE;
 		}
+		int ref;
 		ExprType resultType = ExprType.VALUE;
 		switch (ast.token) {
 		case IDENTIFIER:
@@ -537,7 +539,7 @@ public class AstCompile {
 			break;
 		case SUB:
 			expression(cg, ast.first());
-			cg.unaryMethod("uminus", "Number");
+			cg.unaryOp("uminus", "Number");
 			break;
 		case ADD:
 			expression(cg, ast.first());
@@ -545,59 +547,59 @@ public class AstCompile {
 			break;
 		case NOT:
 			expression(cg, ast.first());
-			cg.unaryMethod(Token.NOT, option == ExprOption.INTBOOL);
+			cg.unaryOp(Token.NOT, option == ExprOption.INTBOOL);
 			if (option == ExprOption.INTBOOL)
 				resultType = ExprType.INTBOOL;
 			break;
 		case BITNOT:
 			expression(cg, ast.first());
-			cg.unaryMethod("bitnot", "Integer");
+			cg.unaryOp("bitnot", "Integer");
 			break;
 		case BINARYOP:
 			expression(cg, ast.second());
 			expression(cg, ast.third());
-			cg.binaryMethod(ast.first().token, option == ExprOption.INTBOOL);
+			cg.binaryOp(ast.first().token, option == ExprOption.INTBOOL);
 			if (option == ExprOption.INTBOOL
 					&& ast.first().token.resultType == TokenResultType.B)
 				resultType = ExprType.INTBOOL;
 			break;
 		case EQ:
-			lvalue(cg, ast.first());
+			ref = lvalue(cg, ast.first());
 			expression(cg, ast.second());
 			addNullCheck(cg, ast.second());
 			if (option != ExprOption.POP)
-				cg.dup_x2();
-			store(cg, ast.first());
+				cg.dupUnderLvalue(ref);
+			store(cg, ref);
 			return ExprType.VALUE; // skip pop handling below
 		case ASSIGNOP:
-			lvalue(cg, ast.second());
-			cg.dup2();
-			load(cg, ast.second());
+			ref = lvalue(cg, ast.second());
+			cg.dupLvalue(ref);
+			load(cg, ref);
 			expression(cg, ast.third());
-			cg.binaryMethod(ast.first().token, false);
+			cg.binaryOp(ast.first().token, false);
 			if (option != ExprOption.POP)
-				cg.dup_x2();
-			store(cg, ast.second());
+				cg.dupUnderLvalue(ref);
+			store(cg, ref);
 			return ExprType.VALUE; // skip pop handling below
 		case PREINCDEC:
-			lvalue(cg, ast.second());
-			cg.dup2();
-			load(cg, ast.second());
-			cg.unaryMethod(ast.first().token == Token.INC ? "add1" : "sub1",
+			ref = lvalue(cg, ast.second());
+			cg.dupLvalue(ref);
+			load(cg, ref);
+			cg.unaryOp(ast.first().token == Token.INC ? "add1" : "sub1",
 					"Number");
 			if (option != ExprOption.POP)
-				cg.dup_x2();
-			store(cg, ast.second());
+				cg.dupUnderLvalue(ref);
+			store(cg, ref);
 			return ExprType.VALUE; // skip pop handling below
 		case POSTINCDEC:
-			lvalue(cg, ast.second());
-			cg.dup2();
-			load(cg, ast.second());
+			ref = lvalue(cg, ast.second());
+			cg.dupLvalue(ref);
+			load(cg, ref);
 			if (option != ExprOption.POP)
-				cg.dup_x2(); // original value
-			cg.unaryMethod(ast.first().token == Token.INC ? "add1" : "sub1",
+				cg.dupUnderLvalue(ref); // original value
+			cg.unaryOp(ast.first().token == Token.INC ? "add1" : "sub1",
 					"Number");
-			store(cg, ast.second());
+			store(cg, ref);
 			return ExprType.VALUE; // skip pop handling below
 		case CALL:
 			callExpression(cg, ast);
@@ -924,7 +926,7 @@ public class AstCompile {
 		}
 	}
 
-	private void lvalue(ClassGen cg, AstNode ast) {
+	private int lvalue(ClassGen cg, AstNode ast) {
 		switch (ast.token) {
 		case IDENTIFIER:
 			String name = ast.value;
@@ -932,15 +934,14 @@ public class AstCompile {
 				throw new SuException("globals are read-only");
 			else if (name.equals("this") || name.equals("super"))
 				throw new SuException("this and super are read-only");
-			cg.localRef(name);
-			break;
+			return cg.localRef(name);
 		case MEMBER:
 			member(cg, ast);
-			break;
+			return ClassGen.MEMBER_REF;
 		case SUBSCRIPT:
 			expression(cg, ast.first());
 			expression(cg, ast.second());
-			break;
+			return ClassGen.MEMBER_REF;
 		default:
 			throw new SuException("lvalue: unhandled: " + ast.token);
 		}
@@ -951,36 +952,19 @@ public class AstCompile {
 		return Character.isUpperCase(name.charAt(i));
 	}
 
-	private static void store(ClassGen cg, AstNode ast) {
-		switch (ast.token) {
-		case IDENTIFIER:
-			cg.localStore();
-			break;
-		case MEMBER:
-		case SUBSCRIPT:
+	private static void store(ClassGen cg, int ref) {
+		if (ref == ClassGen.MEMBER_REF)
 			cg.memberStore();
-			break;
-		default:
-			throw new SuException("store: unhandled: " + ast.token);
-		}
+		else
+			cg.localRefStore(ref);
 	}
 
 	/** lvalue is already on stack */
-	private static void load(ClassGen cg, AstNode ast) {
-		switch (ast.token) {
-		case IDENTIFIER:
-			if (isGlobal(ast.value))
-				cg.globalLoad();
-			else
-				cg.localLoad();
-			break;
-		case MEMBER:
-		case SUBSCRIPT:
+	private static void load(ClassGen cg, int ref) {
+		if (ref == ClassGen.MEMBER_REF)
 			cg.memberLoad();
-			break;
-		default:
-			throw new SuException("load: unhandled: " + ast.token);
-		}
+		else
+			cg.localRefLoad(ref);
 	}
 
 	private static class Labels {

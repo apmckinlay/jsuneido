@@ -41,7 +41,6 @@ public class SuClass extends SuValue {
 		b.put("<new>", newInstanceMethod);
 		b.put("Base", new Base());
 		b.put("Base?", new BaseQ());
-		b.put("Eval", new Eval());
 		b.put("GetDefault", new GetDefault());
 		b.put("Members", new Members());
 		b.put("Member?", new MemberQ());
@@ -102,6 +101,8 @@ public class SuClass extends SuValue {
 			return initMethod;
 		if (method == "CallClass")
 			return newInstanceMethod;
+		if (method == "Eval")
+			return eval;
 		return new NotFound(method);
 	}
 
@@ -253,7 +254,7 @@ public class SuClass extends SuValue {
 		return base().hasBase(base);
 	}
 
-	private static class Eval extends SuCallable {
+	private static SuCallable eval = new SuCallable() {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return ContainerMethods.Eval(self, args);

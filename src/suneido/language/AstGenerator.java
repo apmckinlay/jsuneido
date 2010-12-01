@@ -301,7 +301,7 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	public static void main(String[] args) {
-		String s = "class : B { M: 1 }";
+		String s = "function () { 10.Times() { } }";
 		Lexer lexer = new Lexer(s);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =

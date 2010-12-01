@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.math.BigDecimal;
@@ -8,6 +12,7 @@ import suneido.language.*;
 
 import com.google.common.collect.ImmutableMap;
 
+// self instanceof Number
 public class NumberMethods extends PrimitiveMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 

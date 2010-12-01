@@ -5,7 +5,7 @@ import static java.lang.Math.min;
 import static java.text.CharacterIterator.DONE;
 import static suneido.language.Ops.toInt;
 import static suneido.language.Ops.toStr;
-import static suneido.language.UserDefined.userDefined;
+import static suneido.util.Tr.tr;
 import static suneido.util.Util.array;
 
 import java.nio.ByteBuffer;
@@ -18,443 +18,462 @@ import java.util.regex.*;
 import suneido.*;
 import suneido.language.*;
 import suneido.language.Compiler;
-import suneido.util.Tr;
 import suneido.util.Util;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 
-public class StringMethods {
-	public static Object invoke(String s, String method, Object... args) {
-		switch (method.charAt(0)) {
-		case 'A':
-			if (method == "Asc")
-				return Asc(s, args);
-			if (method == "Alpha?")
-				return AlphaQ(s, args);
-			if (method == "AlphaNum?")
-				return AlphaNumQ(s, args);
-			break;
-		case 'C':
-			if (method == "Compile")
-				return Compile(s, args);
-			if (method == "Has?")
-				return Contains(s, args);
-			break;
-		case 'D':
-			if (method == "Detab")
-				return Detab(s, args);
-			break;
-		case 'E':
-			if (method == "EndsWith")
-				return EndsWith(s, args);
-			if (method == "Entab")
-				return Entab(s, args);
-			if (method == "Eval")
-				return Eval(s, args);
-			if (method == "Eval2")
-				return Eval2(s, args);
-			if (method == "Extract")
-				return Extract(s, args);
-			break;
-		case 'F':
-			if (method == "Find")
-				return Find(s, args);
-			if (method == "Find1of")
-				return Find1of(s, args);
-			if (method == "Findnot1of")
-				return Findnot1of(s, args);
-			if (method == "FindLast")
-				return FindLast(s, args);
-			if (method == "FindLast1of")
-				return FindLast1of(s, args);
-			if (method == "FindLastnot1of")
-				return FindLastnot1of(s, args);
-			if (method == "FromUtf8")
-				return FromUtf8(s, args);
-			break;
-		case 'H':
-			if (method == "Has?")
-				return Contains(s, args);
-			break;
-		case 'L':
-			if (method == "Lower")
-				return Lower(s, args);
-			if (method == "Lower?")
-				return LowerQ(s, args);
-			break;
-		case 'M':
-			if (method == "Match")
-				return Match(s, args);
-			break;
-		case 'N':
-			if (method == "Number?")
-				return NumberQ(s, args);
-			if (method == "Numeric?")
-				return NumericQ(s, args);
-			break;
-		case 'P':
-			if (method == "Prefix?")
-				return StartsWith(s, args);
-			break;
-		case 'R':
-			if (method == "Repeat")
-				return Repeat(s, args);
-			if (method == "Replace")
-				return Replace(s, args);
-			break;
-		case 'S':
-			if (method == "ServerEval")
-				return ServerEval(s, args);
-			if (method == "Size")
-				return Size(s, args);
-			if (method == "Split")
-				return Split(s, args);
-			if (method == "StartsWith")
-				return StartsWith(s, args);
-			if (method == "Substr")
-				return Substr(s, args);
-			if (method == "Suffix?")
-				return EndsWith(s, args);
-			break;
-		case 'T':
-			if (method == "Tr")
-				return Tr(s, args);
-			if (method == "ToUtf8")
-				return ToUtf8(s, args);
-			break;
-		case 'U':
-			if (method == "Unescape")
-				return Unescape(s, args);
-			if (method == "Upper")
-				return Upper(s, args);
-			if (method == "Upper?")
-				return UpperQ(s, args);
-			break;
+public class StringMethods extends PrimitiveMethods {
+	public static final StringMethods singleton = new StringMethods();
+
+	private StringMethods() {
+		super("String", members());
+	}
+
+	private static Object members() {
+		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
+		b.put("Alpha?", new AlphaQ());
+		b.put("AlphaNum?", new AlphaNumQ());
+		b.put("Asc", new Asc());
+		b.put("Compile", new Compile());
+		b.put("Contains", new Contains());
+		b.put("Detab", new Detab());
+		b.put("EndsWith", new EndsWith());
+		b.put("Entab", new Entab());
+		b.put("Eval", new Eval());
+		b.put("Eval2", new Eval2());
+		b.put("Extract", new Extract());
+		b.put("Find", new Find());
+		b.put("Find1of", new Find1of());
+		b.put("Findnot1of", new Findnot1of());
+		b.put("FindLast", new FindLast());
+		b.put("FindLast1of", new FindLast1of());
+		b.put("FindLastnot1of", new FindLastnot1of());
+		b.put("FromUtf8", new FromUtf8());
+		b.put("Has?", new Contains());
+		b.put("Lower", new Lower());
+		b.put("Lower?", new LowerQ());
+		b.put("Match", new Match());
+		b.put("Number?", new NumberQ());
+		b.put("Numeric?", new NumericQ());
+		b.put("Prefix?", new StartsWith());
+		b.put("Repeat", new Repeat());
+		b.put("Replace", new Replace());
+		b.put("ServerEval", new ServerEval());
+		b.put("Size", new Size());
+		b.put("Split", new Split());
+		b.put("StartsWith", new StartsWith());
+		b.put("Substr", new Substr());
+		b.put("Suffix?", new EndsWith());
+		b.put("Tr", new Tr());
+		b.put("ToUtf8", new ToUtf8());
+		b.put("Unescape", new Unescape());
+		b.put("Upper", new Upper());
+		b.put("Upper?", new UpperQ());
+		return b.build();
+	}
+
+	private static class AlphaQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			if (s.length() == 0)
+				return Boolean.FALSE;
+			for (int i = 0; i < s.length(); ++i)
+				if (!Character.isLetter(s.charAt(i)))
+					return Boolean.FALSE;
+			return Boolean.TRUE;
 		}
-		return userDefined("Strings", s, method, args);
 	}
 
-	private static Object ServerEval(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return TheDbms.dbms().run(s);
-	}
-
-	private static Boolean AlphaQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (s.length() == 0)
-			return Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i)
-			if (!Character.isLetter(s.charAt(i)))
+	private static class AlphaNumQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			if (s.length() == 0)
 				return Boolean.FALSE;
-		return Boolean.TRUE;
+			for (int i = 0; i < s.length(); ++i)
+				if (!Character.isLetterOrDigit(s.charAt(i)))
+					return Boolean.FALSE;
+			return Boolean.TRUE;
+		}
 	}
 
-	private static Boolean AlphaNumQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (s.length() == 0)
-			return Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i)
-			if (!Character.isLetterOrDigit(s.charAt(i)))
-				return Boolean.FALSE;
-		return Boolean.TRUE;
+	private static class Asc extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			return s.length() == 0 ? 0 : (int) s.charAt(0);
+		}
 	}
 
-	private static int Asc(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.length() == 0 ? 0 : (int) s.charAt(0);
+	private static class Compile extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return Compiler.compile("stringCompile", (String) self);
+		}
 	}
 
-	private static Object Compile(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return Compiler.compile("stringCompile", s);
-	}
-
-	private static Object Contains(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.contains(toStr(args[0]));
+	private static class Contains extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return ((String) self).contains(toStr(a));
+		}
 	}
 
 	private static final int TABWIDTH = 4;
 
-	private static String Detab(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		int sn = s.length();
-		StringBuilder buf = new StringBuilder(sn);
-		int col = 0;
-		for (int si = 0; si < sn; ++si) {
-			char c = s.charAt(si);
-			switch (c) {
-			case '\t':
-				do
-					buf.append(' ');
-				while (++col % TABWIDTH != 0);
-				break;
-			case '\n':
-			case '\r':
-				buf.append(c);
-				col = 0;
-				break;
-			default:
-				buf.append(c);
-				++col;
-				break;
+	private static class Detab extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			int sn = s.length();
+			StringBuilder buf = new StringBuilder(sn);
+			int col = 0;
+			for (int si = 0; si < sn; ++si) {
+				char c = s.charAt(si);
+				switch (c) {
+				case '\t':
+					do
+						buf.append(' ');
+					while (++col % TABWIDTH != 0);
+					break;
+				case '\n':
+				case '\r':
+					buf.append(c);
+					col = 0;
+					break;
+				default:
+					buf.append(c);
+					++col;
+					break;
+				}
 			}
+			return buf.toString();
 		}
-		return buf.toString();
 	}
 
-	private static final FunctionSpec sFS = new FunctionSpec("s");
+	private static class EndsWith extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return ((String) self).endsWith(toStr(a));
+		}
+	}
 
-	private static boolean EndsWith(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		return s.endsWith(toStr(args[0]));
+	private static class Entab extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			StringBuilder sb = new StringBuilder(s.length());
+			int si = 0;
+			for (;;) { // for each line
+				// convert leading spaces & tabs
+				char c;
+				int col = 0;
+				while (0 != (c = sget(s, si++))) {
+					if (c == ' ')
+						++col;
+					else if (c == '\t')
+						for (++col; !istab(col); ++col)
+							;
+					else
+						break;
+				}
+				--si;
+				int dstcol = 0;
+				for (int j = 0; j <= col; ++j)
+					if (istab(j)) {
+						sb.append('\t');
+						dstcol = j;
+					}
+				for (; dstcol < col; ++dstcol)
+					sb.append(' ');
+
+				// copy the rest of the line
+				while (0 != (c = sget(s, si++)) && c != '\n' && c != '\r')
+					sb.append(c);
+
+				// strip trailing spaces & tabs
+
+				for (int j = sb.length() - 1; j >= 0 && isTabOrSpace(sb.charAt(j)); --j)
+					sb.deleteCharAt(j);
+				if (c == 0)
+					break;
+				sb.append(c); // \n or \r
+			}
+			return sb.toString();
+		}
+		private static boolean istab(int col) {
+			return col > 0 && (col % 4) == 0;
+		}
+		private static boolean isTabOrSpace(char c) {
+			return c == ' ' || c == '\t';
+		}
+	}
+
+	private static class Eval extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			Object result = seval((String) self);
+			return result == null ? "" : result;
+		}
+	}
+
+	private static class Eval2 extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			Object value = seval((String) self);
+			SuContainer result = new SuContainer();
+			if (value != null)
+				result.append(value);
+			return result;
+		}
 	}
 
 	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
 
-	private static String Entab(String s, Object[] args) {
-		StringBuilder sb = new StringBuilder(s.length());
-		int si = 0;
-		for (;;) { // for each line
-			// convert leading spaces & tabs
-			char c;
-			int col = 0;
-			while (0 != (c = get(s, si++))) {
-				if (c == ' ')
-					++col;
-				else if (c == '\t')
-					for (++col; !istab(col); ++col)
-						;
-				else
-					break;
-			}
-			--si;
-			int dstcol = 0;
-			for (int j = 0; j <= col; ++j)
-				if (istab(j)) {
-					sb.append('\t');
-					dstcol = j;
-				}
-			for (; dstcol < col; ++dstcol)
-				sb.append(' ');
-
-			// copy the rest of the line
-			while (0 != (c = get(s, si++)) && c != '\n' && c != '\r')
-				sb.append(c);
-
-			// strip trailing spaces & tabs
-
-			for (int j = sb.length() - 1; j >= 0 && isTabOrSpace(sb.charAt(j)); --j)
-				sb.deleteCharAt(j);
-			if (c == 0)
-				break;
-			sb.append(c); // \n or \r
-		}
-		return sb.toString();
-	}
-	private static boolean istab(int col) {
-		return col > 0 && (col % 4) == 0;
-	}
-	private static boolean isTabOrSpace(char c) {
-		return c == ' ' || c == '\t';
-	}
-
-	private static Object Eval(String s, Object[] args) {
-		Object result = eval(s, args);
-		return result == null ? "" : result;
-	}
-
-	private static Object Eval2(String s, Object[] args) {
-		Object value = eval(s, args);
-		SuContainer result = new SuContainer();
-		if (value != null)
-			result.append(value);
-		return result;
-	}
-
-	private static Object eval(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return globalRx.matcher(s).matches() ? Globals.get(s)
+	private static Object seval(String s) {
+		return globalRx.matcher(s).matches()
+				? Globals.get(s)
 				: Compiler.eval(s);
 	}
 
-	private static final FunctionSpec extractFS =
-		new FunctionSpec(array("pattern", "part"), false);
-
-	static Object Extract(String s, Object... args) {
-		args = Args.massage(extractFS, args);
-		String pat = Ops.toStr(args[0]);
+	private static class Extract extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("pattern", "part"), false); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return eval2(self, a, false);
+		}
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			String s = (String) self;
+			String pat = Ops.toStr(a);
+			return extract(s, pat, b);
+		}
+	}
+	static Object extract(String s, String pat, Object part) {
 		Pattern pattern = Regex.getPat(pat, s);
 		Matcher matcher = pattern.matcher(s);
 		if (!matcher.find())
 			return Boolean.FALSE;
 		MatchResult result = matcher.toMatchResult();
-		int part;
-		if (args[1] == Boolean.FALSE)
-			part = result.groupCount() == 0 ? 0 : 1;
-		else
-			part = Ops.toInt(args[1]);
-		return result.group(part);
+		int part_i = (part == Boolean.FALSE)
+				? (result.groupCount() == 0) ? 0 : 1
+				: Ops.toInt(part);
+		return result.group(part_i);
 	}
 
-	private static final FunctionSpec findFS =
-		new FunctionSpec(array("s", "s"), 0);
+	private static final FunctionSpec siFS =
+		new FunctionSpec(array("s", "i"), 0);
 
-	private static int Find(String s, Object[] args) {
-		args = Args.massage(findFS, args);
-		int i = s.indexOf(toStr(args[0]), toInt(args[1]));
-		return i == -1 ? s.length() : i;
-	}
-
-	private static Object FindLast(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		int i = s.lastIndexOf(toStr(args[0]));
-		return i == -1 ? Boolean.FALSE : i;
-	}
-
-	private static int Find1of(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		String set = Ops.toStr(args[0]);
-		for (int i = 0; i < s.length(); ++i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j != -1)
-				return i;
+	private static class Find extends BuiltinMethod2 {
+		{ params = siFS; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return eval2(self, a, 0);
 		}
-		return s.length();
-	}
-
-	private static int Findnot1of(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		String set = Ops.toStr(args[0]);
-		for (int i = 0; i < s.length(); ++i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j == -1)
-				return i;
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			String s = (String) self;
+			int i = s.indexOf(toStr(a), toInt(b));
+			return i == -1 ? s.length() : i;
 		}
-		return s.length();
 	}
 
-	private static Object FindLast1of(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		String set = Ops.toStr(args[0]);
-		for (int i = s.length() - 1; i >= 0; --i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j != -1)
-				return i;
+	private static class FindLast extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			int i = ((String) self).lastIndexOf(toStr(a));
+			return i == -1 ? Boolean.FALSE : i;
 		}
-		return Boolean.FALSE;
 	}
 
-	private static Object FindLastnot1of(String s, Object[] args) {
-		args = Args.massage(sFS, args);
-		String set = Ops.toStr(args[0]);
-		for (int i = s.length() - 1; i >= 0; --i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j == -1)
-				return i;
+	private static class Find1of extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			String set = Ops.toStr(a);
+			for (int i = 0; i < s.length(); ++i) {
+				int j = set.indexOf(s.charAt(i));
+				if (j != -1)
+					return i;
+			}
+			return s.length();
 		}
-		return Boolean.FALSE;
 	}
 
-	private static String Lower(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.toLowerCase();
+	private static class Findnot1of extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			String set = Ops.toStr(a);
+			for (int i = 0; i < s.length(); ++i) {
+				int j = set.indexOf(s.charAt(i));
+				if (j == -1)
+					return i;
+			}
+			return s.length();
+		}
 	}
 
-	private static Boolean LowerQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		Boolean result = Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i) {
-			char c = s.charAt(i);
-			if (Character.isUpperCase(c))
+	private static class FindLast1of extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			String set = Ops.toStr(a);
+			for (int i = s.length() - 1; i >= 0; --i) {
+				int j = set.indexOf(s.charAt(i));
+				if (j != -1)
+					return i;
+			}
+			return Boolean.FALSE;
+		}
+	}
+
+	private static class FindLastnot1of extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			String set = Ops.toStr(a);
+			for (int i = s.length() - 1; i >= 0; --i) {
+				int j = set.indexOf(s.charAt(i));
+				if (j == -1)
+					return i;
+			}
+			return Boolean.FALSE;
+		}
+	}
+
+	private static class Lower extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((String) self).toLowerCase();
+		}
+	}
+
+	private static class LowerQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			Boolean result = Boolean.FALSE;
+			for (int i = 0; i < s.length(); ++i) {
+				char c = s.charAt(i);
+				if (Character.isUpperCase(c))
+					return Boolean.FALSE;
+				else if (Character.isLowerCase(c))
+					result = true;
+			}
+			return result;
+		}
+	}
+
+	private static class Match extends BuiltinMethod1 {
+		{ params = new FunctionSpec("pattern"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			Pattern pat = Regex.getPat(Ops.toStr(a), s);
+			Matcher m = pat.matcher(s);
+			if (!m.find())
 				return Boolean.FALSE;
-			else if (Character.isLowerCase(c))
-				result = true;
+			MatchResult mr = m.toMatchResult();
+			SuContainer c = new SuContainer();
+			for (int i = 0; i <= mr.groupCount(); ++i) {
+				SuContainer c2 = new SuContainer();
+				int start = mr.start(i);
+				c2.append(start);
+				c2.append(start == -1 ? -1 : mr.end() - start);
+				c.append(c2);
+			}
+			return c;
 		}
-		return result;
 	}
 
-	private static final FunctionSpec matchFS = new FunctionSpec("pattern");
-
-	private static Object Match(String s, Object[] args) {
-		args = Args.massage(matchFS, args);
-		Pattern pat = Regex.getPat(Ops.toStr(args[0]), s);
-		Matcher m = pat.matcher(s);
-		if (!m.find())
-			return Boolean.FALSE;
-		MatchResult mr = m.toMatchResult();
-		SuContainer c = new SuContainer();
-		for (int i = 0; i <= mr.groupCount(); ++i) {
-			SuContainer c2 = new SuContainer();
-			int start = mr.start(i);
-			c2.append(start);
-			c2.append(start == -1 ? -1 : mr.end() - start);
-			c.append(c2);
-		}
-		return c;
-	}
-
-	private static Boolean NumberQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		int i = 0;
-		char c = get(s, i);
-		if (c == '+' || c == '-')
-			c = get(s, ++i);
-		boolean intdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = get(s, ++i);
-		if (c == '.')
-			c = get(s, ++i);
-		boolean fracdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = get(s, ++i);
-		if (!intdigits && !fracdigits)
-			return Boolean.FALSE;
-		if (c == 'e' || c == 'E') {
-			c = get(s, ++i);
-			if (c == '-')
-				c = get(s, ++i);
+	private static class NumberQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			int i = 0;
+			char c = sget(s, i);
+			if (c == '+' || c == '-')
+				c = sget(s, ++i);
+			boolean intdigits = Character.isDigit(c);
 			while (Character.isDigit(c))
-				c = get(s, ++i);
-		}
-		return i == s.length();
-	}
-
-	private static Boolean NumericQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		if (s.length() == 0)
-			return Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i)
-			if (!Character.isDigit(s.charAt(i)))
+				c = sget(s, ++i);
+			if (c == '.')
+				c = sget(s, ++i);
+			boolean fracdigits = Character.isDigit(c);
+			while (Character.isDigit(c))
+				c = sget(s, ++i);
+			if (!intdigits && !fracdigits)
 				return Boolean.FALSE;
-		return Boolean.TRUE;
+			if (c == 'e' || c == 'E') {
+				c = sget(s, ++i);
+				if (c == '-')
+					c = sget(s, ++i);
+				while (Character.isDigit(c))
+					c = sget(s, ++i);
+			}
+			return i == s.length();
+		}
 	}
 
-	private static char get(String s, int i) {
+	private static class NumericQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			if (s.length() == 0)
+				return Boolean.FALSE;
+			for (int i = 0; i < s.length(); ++i)
+				if (!Character.isDigit(s.charAt(i)))
+					return Boolean.FALSE;
+			return Boolean.TRUE;
+		}
+	}
+
+	private static char sget(String s, int i) {
 		return i < s.length() ? s.charAt(i) : 0;
 	}
 
-	private static final FunctionSpec repeatFS = new FunctionSpec("n");
-
-	private static String Repeat(String s, Object[] args) {
-		args = Args.massage(repeatFS, args);
-		int n = Math.max(0, toInt(args[0]));
-		StringBuilder sb = new StringBuilder(n * s.length());
-		for (int i = 0; i < n; ++i)
-			sb.append(s);
-		return sb.toString();
+	private static class Repeat extends BuiltinMethod1 {
+		{ params = new FunctionSpec("n"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			int n = Math.max(0, toInt(a));
+			StringBuilder sb = new StringBuilder(n * s.length());
+			for (int i = 0; i < n; ++i)
+				sb.append(s);
+			return sb.toString();
+		}
 	}
 
-	private static final FunctionSpec replaceFS =
-			new FunctionSpec(array("pattern", "block", "count"), 99999);
-
-	static String Replace(String s, Object... args) {
-		args = Args.massage(replaceFS, args);
-		Pattern pat = Regex.getPat(Ops.toStr(args[0]), s);
+	private static class Replace extends BuiltinMethod3 {
+		{ params = new FunctionSpec(array("pattern", "block", "count"), 99999); }
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			return eval3(self, a, b, 99999);
+		}
+		@Override
+		public Object eval3(Object self, Object a, Object b, Object c) {
+			String s = (String) self;
+			String pat = Ops.toStr(a);
+			int n = toInt(c);
+			return replace(s, pat, b, n);
+		}
+	}
+	static Object replace(String s, String p, Object b, int n) {
+		Pattern pat = Regex.getPat(p, s);
 		String rep = null;
-		if (Ops.isString(args[1]))
-			rep = args[1].toString();
-		int n = toInt(args[2]);
+		if (Ops.isString(b))
+			rep = b.toString();
 
 		Matcher m = pat.matcher(s);
 		StringBuilder sb = new StringBuilder();
@@ -462,7 +481,7 @@ public class StringMethods {
 		for (int i = 0; i < n && m.find(); ++i) {
 			sb.append(s.substring(append, m.start()));
 			if (rep == null) {
-				Object t = Ops.call(args[1], m.group());
+				Object t = Ops.call(b, m.group());
 				sb.append(t == null ? m.group() : Ops.toStr(t));
 			} else
 				suneido.Regex.appendReplacement(m, sb, rep);
@@ -472,14 +491,33 @@ public class StringMethods {
 		return sb.toString();
 	}
 
-	private static int Size(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.length();
+	private static class ServerEval extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return TheDbms.dbms().run((String) self);
+		}
 	}
 
-	static SuContainer Split(String s, Object... args) {
-		args = Args.massage(sFS, args);
-		String sep = Ops.toStr(args[0]);
+	private static class Size extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return self instanceof String
+				? ((String) self).length()
+				: ((Concat) self).length();
+		}
+	}
+
+	private static class Split extends BuiltinMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String s = (String) self;
+			String sep = Ops.toStr(a);
+			return split(s, sep);
+		}
+	}
+
+	static SuContainer split(String s, String sep) {
 		if (sep.equals(""))
 			throw new SuException(
 					"string.Split: separator must not be empty string");
@@ -492,63 +530,87 @@ public class StringMethods {
 		return ob;
 	}
 
-	private static boolean StartsWith(String s, Object[] args) {
-		args = Args.massage(findFS, args);
-		return s.startsWith(toStr(args[0]), toInt(args[1]));
+	private static class StartsWith extends BuiltinMethod2 {
+		{ params = siFS; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return eval2(self, a, 0);
+		}
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			String s = (String) self;
+			return s.startsWith(toStr(a), toInt(b));
+		}
 	}
 
-	private static final FunctionSpec substrFS =
-			new FunctionSpec(array("i", "n"), Integer.MAX_VALUE);
-
-	private static String Substr(String s, Object[] args) {
-		args = Args.massage(substrFS, args);
-		int len = s.length();
-		int i = toInt(args[0]);
-		if (i < 0)
-			i += len;
-		i = max(0, min(i, len));
-		int n = toInt(args[1]);
-		if (n < 0)
-			n += len - i;
-		n = max(0, min(n, len - i));
-		return s.substring(i, i + n);
+	private static class Substr extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("i", "n"), Integer.MAX_VALUE); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return eval2(self, a, Integer.MAX_VALUE);
+		}
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			String s = (String) self;
+			int len = s.length();
+			int i = toInt(a);
+			if (i < 0)
+				i += len;
+			i = max(0, min(i, len));
+			int n = toInt(b);
+			if (n < 0)
+				n += len - i;
+			n = max(0, min(n, len - i));
+			return s.substring(i, i + n);
+		}
 	}
 
 	private static final Charset Windows1252 =
 			Charset.forName("windows-1252");
 
-	private static Object ToUtf8(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		CharBuffer cb = Windows1252.decode(
-				ByteBuffer.wrap(Util.stringToBytes(s)));
-		return Util.bytesToString(Charsets.UTF_8.encode(cb));
-        }
-
-	private static Object FromUtf8(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		CharBuffer cb = Charsets.UTF_8.decode(
-				ByteBuffer.wrap(Util.stringToBytes(s)));
-		return Util.bytesToString(Windows1252.encode(cb));
-        }
-
-	private static final FunctionSpec trFS =
-			new FunctionSpec(array("from", "to"), "");
-
-	private static String Tr(String s, Object[] args) {
-		args = Args.massage(trFS, args);
-		return Tr.tr(s, toStr(args[0]), toStr(args[1]));
+	private static class ToUtf8 extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			CharBuffer cb = Windows1252.decode(
+					ByteBuffer.wrap(Util.stringToBytes((String) self)));
+			return Util.bytesToString(Charsets.UTF_8.encode(cb));
+		}
 	}
 
-	private static String Unescape(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		CharacterIterator ci = new StringCharacterIterator(s);
-		StringBuilder sb = new StringBuilder(s.length());
-		for (char c = ci.first(); c != DONE; c = ci.next())
-			if (c == '\\')
-				sb.append(doesc(ci));
-			else
-				sb.append(c);
-		return sb.toString();
+	private static class FromUtf8 extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			CharBuffer cb = Charsets.UTF_8.decode(
+					ByteBuffer.wrap(Util.stringToBytes((String) self)));
+			return Util.bytesToString(Windows1252.encode(cb));
+	        }
+	}
+
+	private static class Tr extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("from", "to"), ""); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return eval2(self, a, "");
+		}
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			return tr((String) self, toStr(a), toStr(b));
+		}
+	}
+
+	private static class Unescape extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			CharacterIterator ci = new StringCharacterIterator(s);
+			StringBuilder sb = new StringBuilder(s.length());
+			for (char c = ci.first(); c != DONE; c = ci.next())
+				if (c == '\\')
+					sb.append(doesc(ci));
+				else
+					sb.append(c);
+			return sb.toString();
+		}
 	}
 
 	public static char doesc(CharacterIterator ci) {
@@ -590,22 +652,27 @@ public class StringMethods {
 		}
 	}
 
-	private static String Upper(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return s.toUpperCase();
+	private static class Upper extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((String) self).toUpperCase();
+		}
 	}
 
-	private static Boolean UpperQ(String s, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		Boolean result = Boolean.FALSE;
-		for (int i = 0; i < s.length(); ++i) {
-			char c = s.charAt(i);
-			if (Character.isLowerCase(c))
-				return Boolean.FALSE;
-			else if (Character.isUpperCase(c))
-				result = Boolean.TRUE;
+	private static class UpperQ extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = (String) self;
+			Boolean result = Boolean.FALSE;
+			for (int i = 0; i < s.length(); ++i) {
+				char c = s.charAt(i);
+				if (Character.isLowerCase(c))
+					return Boolean.FALSE;
+				else if (Character.isUpperCase(c))
+					result = Boolean.TRUE;
+			}
+			return result;
 		}
-		return result;
 	}
 
 }

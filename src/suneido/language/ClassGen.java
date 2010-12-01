@@ -18,18 +18,10 @@ import com.google.common.base.Strings;
 public class ClassGen {
 	private static final int THIS = 0;
 	private static final int SELF = 1;
-	private static final int ARGS = 2;
-	private static final int CONSTANTS = 3;
-	private static final Object[] arrayObject = new Object[0];
-	private static final String[] arrayString = new String[0];
-	private static final String[] args = new String[99];
-	static {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < args.length; ++i) {
-			args[i] = sb.toString();
-			sb.append("Ljava/lang/Object;");
-		}
-	}
+	private static final int ARGS = 2; // TODO not if direct
+	private static final int CONSTANTS = 3; // TODO may not be 3 if direct
+	private static final Object[] arrayOfObject = new Object[0];
+	private static final String[] arrayOfString = new String[0];
 	private final String name;
 	private final String base;
 	private final ClassWriter cw;
@@ -56,11 +48,12 @@ public class ClassGen {
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv = classVisitor(pw);
 		genInit();
+// TODO different method name and signature for direct arguments
 		mv = methodVisitor(ACC_PUBLIC, method,
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 		mv.visitCode();
 		mv.visitLabel(startLabel);
-		if (! isBlock())
+		if (! isBlock()) // TODO and not direct args
 			massage();
 		loadConstants();
 	}
@@ -202,17 +195,17 @@ public class ClassGen {
 		mv.visitInsn(ACONST_NULL);
 	}
 
-	public void unaryMethod(String method, String type) {
+	public void unaryOp(String method, String type) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", method,
 				"(Ljava/lang/Object;)Ljava/lang/" + type + ";");
 	}
-	public void unaryMethod(Token op, boolean intBool) {
+	public void unaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
 				"(Ljava/lang/Object;)" + op.resultType.type);
 	}
-	public void binaryMethod(Token op, boolean intBool) {
+	public void binaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
@@ -223,22 +216,34 @@ public class ClassGen {
 		if (name.equals("this"))
 			mv.visitVarInsn(ALOAD, SELF);
 		else {
-			localRef(name);
-			localLoad();
+			int ref = localRef(name);
+			localRefLoad(ref);
 		}
 	}
 
-	public void localLoad() {
-		mv.visitInsn(AALOAD);
-	}
+	public final static int ARGS_REF = -1;
+	public final static int MEMBER_REF = -2;
+	// >= 0 means java local index
 
 	public int localRef(String name) {
+		// TODO if name is java local just return index
 		mv.visitVarInsn(ALOAD, ARGS);
-		return iconst(local(name));
+		iconst(local(name));
+		return ARGS_REF;
 	}
 
-	public void localStore() {
-		mv.visitInsn(AASTORE);
+	public void localRefLoad(int ref) {
+		if (ref == ARGS_REF)
+			mv.visitInsn(AALOAD);
+		else
+			mv.visitVarInsn(ALOAD, ref);
+	}
+
+	public void localRefStore(int ref) {
+		if (ref == ARGS_REF)
+			mv.visitInsn(AASTORE);
+		else
+			mv.visitVarInsn(ASTORE, ref);
 	}
 
 	public int local(String name) {
@@ -278,12 +283,18 @@ public class ClassGen {
 		mv.visitInsn(DUP);
 	}
 
-	public void dup2() {
-		mv.visitInsn(DUP2);
+	public void dupLvalue(int ref) {
+		if (ref < 0)
+			mv.visitInsn(DUP2);
+		// else lvalue is java local
+		// 		nothing to dup
 	}
 
-	public void dup_x2() {
-		mv.visitInsn(DUP_X2);
+	public void dupUnderLvalue(int ref) {
+		if (ref >= 0) // lvalue is java local
+			mv.visitInsn(DUP);
+		else
+			mv.visitInsn(DUP_X2);
 	}
 
 	public boolean neverNull(String name) {
@@ -575,7 +586,7 @@ public class ClassGen {
 		}
 
 		Object[] constantsArray = (constants == null)
-				? null : constants.toArray(arrayObject);
+				? null : constants.toArray(arrayOfObject);
 
 		if (auto_it_param && ! it_param_used)
 			nParams = 0;
@@ -585,7 +596,7 @@ public class ClassGen {
 			fspec = new BlockSpec(name, blockLocals(), nParams, atParam, iBlockParams);
 			hideBlockParams();
 		} else
-			fspec = new FunctionSpec(name, locals.toArray(arrayString),
+			fspec = new FunctionSpec(name, locals.toArray(arrayOfString),
 					nParams, constantsArray, nDefaults, atParam);
 
 		callable.params = fspec;
