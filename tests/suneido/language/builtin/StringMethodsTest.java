@@ -19,7 +19,7 @@ public class StringMethodsTest {
 	}
 
 	private void split(String s, String sep, String... list) {
-		SuContainer c = StringMethods.Split(s, sep);
+		SuContainer c = StringMethods.split(s, sep);
 		assertEquals(list.length, c.size());
 		for (int i = 0; i < list.length; ++i)
 			assertEquals(list[i], c.get(i));
@@ -32,7 +32,7 @@ public class StringMethodsTest {
 	}
 
 	private void extract(String s, String pat, String result) {
-		assertEquals(result, StringMethods.Extract(s, pat));
+		assertEquals(result, StringMethods.extract(s, pat, false));
 	}
 
 	@Test
@@ -44,10 +44,10 @@ public class StringMethodsTest {
 	}
 
 	private void replace(String s, String pat, String rep, String result) {
-		assertEquals(result, StringMethods.Replace(s, pat, rep));
+		assertEquals(result, StringMethods.replace(s, pat, rep, 99999));
 	}
 	private void replace(String s, String pat, String rep, int n, String result) {
-		assertEquals(result, StringMethods.Replace(s, pat, rep, n));
+		assertEquals(result, StringMethods.replace(s, pat, rep, n));
 	}
 
 }

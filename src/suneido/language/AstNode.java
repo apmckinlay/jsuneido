@@ -86,6 +86,24 @@ public class AstNode {
 		return false;
 	}
 
+	public static abstract class Visitor {
+		/** return false to skip processing children */
+		boolean topDown(AstNode ast) {
+			return true;
+		}
+		void bottomUp(AstNode ast) {
+		}
+	}
+
+	public void depthFirst(Visitor visitor) {
+		if (! visitor.topDown(this))
+			return;
+		for (AstNode child : children)
+			if (child != null)
+				child.depthFirst(visitor);
+		visitor.bottomUp(this);
+	}
+
 	public static void main(String[] args) {
 		System.out.println(new AstNode(Token.ADD,
 				new AstNode(Token.IDENTIFIER, "x"),
