@@ -95,7 +95,11 @@ public class Args {
 			}
 			else if (args[i] == EACH)
 				c.merge(Ops.toContainer(args[++i]));
-			else
+			else if (args[i] == EACH1) {
+				int extra = c.vecSize();
+				c.merge(Ops.toContainer(args[++i]));
+				c.delete(extra);
+			} else
 				c.append(args[i]);
 		}
 		return c;
@@ -103,7 +107,7 @@ public class Args {
 
 	private static boolean simple(Object[] args) {
 		for (Object arg : args)
-			if (arg == EACH || arg == NAMED)
+			if (arg == EACH || arg == EACH1 || arg == NAMED)
 				return false;
 		return true;
 	}
