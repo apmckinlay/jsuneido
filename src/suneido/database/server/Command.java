@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import static suneido.util.Util.*;
@@ -6,8 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.TheDbms;
+import suneido.*;
 import suneido.database.Mmfile;
 import suneido.database.Record;
 import suneido.database.query.*;
@@ -16,14 +19,11 @@ import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
 import suneido.language.Ops;
 import suneido.language.Pack;
+import suneido.language.builtin.ServerEval;
 import suneido.util.NetworkOutput;
 
 /**
  * Implements the server protocol commands.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright (c) 2008 Suneido Software Corp.
- * All rights reserved. Licensed under GPLv2.</small></p>
  */
 public enum Command {
 	BADCMD {
@@ -154,6 +154,20 @@ public enum Command {
 			tran.erase(recadr);
 			return ok();
 		}
+	},
+	EXEC {
+		@Override
+		public int extra(ByteBuffer buf) {
+			return ck_getnum('P', buf);
+		}
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			SuContainer c = (SuContainer) Pack.unpack(extra);
+			Object result = ServerEval.exec(c);
+			return valueResult(outputQueue, result);
+		}
+
 	},
 	EXPLAIN {
 		@Override
@@ -618,6 +632,8 @@ public enum Command {
 	}
 
 	private static ByteBuffer valueResult(NetworkOutput outputQueue, Object result) {
+		if (result == null)
+			return stringToBuffer("\r\n");
 		ByteBuffer buf = Pack.pack(result);
 		outputQueue.add(stringToBuffer("P" + buf.remaining() + "\r\n"));
 		return buf;

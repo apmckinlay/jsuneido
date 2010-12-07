@@ -91,6 +91,7 @@ public class Globals {
 		builtins.put("RunPiped", new RunPiped());
 		builtins.put("Scanner", new Scanner());
 		builtins.put("Seq", new Seq());
+		builtins.put("ServerEval", new ServerEval());
 		builtins.put("ServerIP", new ServerIP());
 		builtins.put("ServerPort", new ServerPort());
 		builtins.put("Server?", new ServerQ());

@@ -194,6 +194,14 @@ public class DbmsRemote extends Dbms {
 		return readInt('N');
 	}
 
+	@Override
+	public Object exec(SuContainer c) {
+		int n = c.packSize();
+		io.writeLineBuf("EXEC", "P" + n);
+		io.write(Pack.pack(c));
+		return readValue();
+	}
+
 	private void ok() {
 		String s = io.readLine();
 		if (! s.equals("OK"))
