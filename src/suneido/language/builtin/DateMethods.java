@@ -29,7 +29,7 @@ public class DateMethods extends PrimitiveMethods {
 		b.put("Year", new GetField(Calendar.YEAR));
 		b.put("Month", new GetField(Calendar.MONTH, 1));
 		b.put("Day", new GetField(Calendar.DAY_OF_MONTH));
-		b.put("Hour", new GetField(Calendar.HOUR));
+		b.put("Hour", new GetField(Calendar.HOUR_OF_DAY));
 		b.put("Minute", new GetField(Calendar.MINUTE));
 		b.put("Second", new GetField(Calendar.SECOND));
 		b.put("Millisecond", new GetField(Calendar.MILLISECOND));
@@ -136,7 +136,8 @@ public class DateMethods extends PrimitiveMethods {
 		public Object eval(Object self, Object... args) {
 			args = Args.massage(params, args);
 			if (args[0] != nil)
-				throw new SuException("usage: date.Plus(years:, months:, days:, hours:, minutes:, seconds:, milliseconds:)");
+				throw new SuException("usage: date.Plus(years:, months:, days:, " +
+						"hours:, minutes:, seconds:, milliseconds:)");
 			Calendar c = Calendar.getInstance();
 			c.setTime((Date) self);
 			c.add(Calendar.YEAR, Ops.toInt(args[1]));
