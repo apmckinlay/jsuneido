@@ -3,8 +3,7 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -18,14 +17,14 @@ public class SocketClient extends BuiltinClass {
 	}
 
 	private static final FunctionSpec callFS =
-		new FunctionSpec(array("address", "port", "timeout", "block"),
-				60, false);
+		new FunctionSpec(array("address", "port", "timeout", "timeoutConnect", "block"),
+				60, 0, false);
 
 	@Override
 	public Object call(Object... args) {
 		SocketClientInstance sc = newInstance(args);
 		args = Args.massage(callFS, args);
-		Object block = args[3];
+		Object block = args[4];
 		if (block == Boolean.FALSE)
 			return sc;
 		try {
@@ -41,16 +40,23 @@ public class SocketClient extends BuiltinClass {
 		private final DataOutputStream output;
 
 		private static final FunctionSpec newFS =
-			new FunctionSpec(array("address", "port", "timeout"), 60);
+			new FunctionSpec(array("address", "port", "timeout", "timeoutConnect"),
+					60, 0);
 
 		public SocketClientInstance(Object[] args) {
 			args = Args.massage(newFS, args);
 			String address = Ops.toStr(args[0]);
 			int port = Ops.toInt(args[1]);
-			int timeout = Ops.toInt(args[2]);
+			int timeout = Ops.toInt(args[2]) * 1000;
+			int timeoutConnect = Ops.toInt(Ops.mul(args[3], 1000));
 			try {
-				socket = new Socket(address, port);
-				socket.setSoTimeout(timeout * 1000);
+				if (timeoutConnect == 0)
+					socket = new Socket(address, port); // default timeout
+				else {
+					socket = new Socket();
+					socket.connect(new InetSocketAddress(address, port), timeoutConnect);
+				}
+				socket.setSoTimeout(timeout);
 				socket.setTcpNoDelay(true); // disable nagle
 				input = new DataInputStream(socket.getInputStream());
 				output = new DataOutputStream(socket.getOutputStream());
