@@ -38,6 +38,7 @@ public abstract class Dbms {
 	public abstract int finalSize();
 	public abstract void log(String s);
 	public abstract int kill(String s);
+	public abstract Object exec(SuContainer c);
 
 	public static class HeaderAndRow {
 		public final Header header;

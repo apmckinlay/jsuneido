@@ -14,6 +14,7 @@ import suneido.database.query.Request;
 import suneido.database.tools.DbDump;
 import suneido.language.Compiler;
 import suneido.language.Library;
+import suneido.language.builtin.ServerEval;
 
 /**
  * Connects Suneido to a local database.
@@ -124,6 +125,11 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public InetAddress getInetAddress() {
 		return null;
+	}
+
+	@Override
+	public Object exec(SuContainer c) {
+		return ServerEval.exec(c);
 	}
 
 }
