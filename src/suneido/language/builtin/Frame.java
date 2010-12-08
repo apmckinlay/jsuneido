@@ -1,14 +1,17 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.BuiltinFunction1;
+import suneido.language.FunctionSpec;
 
-public class Frame extends BuiltinFunction {
-
-	private static final FunctionSpec fs = new FunctionSpec("offset");
+public class Frame extends BuiltinFunction1 {
+	{ params = new FunctionSpec("offset"); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
+	public Object call1(Object a) {
 		return Boolean.FALSE; // TODO Frame
 	}
 

@@ -7,14 +7,12 @@ import java.math.BigDecimal;
 
 import suneido.language.*;
 
-public class GetDiskFreeSpace extends BuiltinFunction {
-
-	private static FunctionSpec fs = new FunctionSpec(array("dir"), ".");
+public class GetDiskFreeSpace extends BuiltinFunction1 {
+	{ params = new FunctionSpec(array("dir"), "."); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		String dir = Ops.toStr(args[0]); 
+	public Object call1(Object a) {
+		String dir = Ops.toStr(a);
 		return BigDecimal.valueOf(new File(dir).getUsableSpace());
 	}
 

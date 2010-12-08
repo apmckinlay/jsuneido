@@ -11,6 +11,13 @@ public abstract class BuiltinFunction1 extends BuiltinFunction {
 	}
 
 	@Override
+	public Object call0() {
+		return params.ndefaults == 1
+			? call1(params.constants[0])
+			: super.call0();
+	}
+
+	@Override
 	public abstract Object call1(Object a);
 
 }

@@ -2,6 +2,8 @@ package suneido.language;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
+
 @ThreadSafe
 public class FunctionSpec {
 	final String name;
@@ -78,6 +80,12 @@ public class FunctionSpec {
 		}
 		sb.append(")");
 		return sb.toString();
+	}
+	public Object defaultFor(int i) {
+		assert i < nparams;
+		if (i < nparams - ndefaults)
+			throw new SuException("not enough arguments");
+		return constants[i - (nparams - ndefaults)];
 	}
 
 }

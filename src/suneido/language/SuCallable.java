@@ -39,4 +39,8 @@ abstract public class SuCallable extends SuValue {
 		return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
 	}
 
+	protected Object defaultFor(int i) {
+		return params.defaultFor(i);
+	}
+
 }

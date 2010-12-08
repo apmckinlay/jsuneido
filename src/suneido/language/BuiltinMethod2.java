@@ -14,6 +14,16 @@ public abstract class BuiltinMethod2 extends SuMethod {
 	}
 
 	@Override
+	public Object eval0(Object self) {
+		return eval2(self, defaultFor(0), defaultFor(1));
+	}
+
+	@Override
+	public Object eval1(Object self, Object a) {
+		return eval2(self, a, defaultFor(1));
+	}
+
+	@Override
 	public abstract Object eval2(Object self, Object a, Object b);
 
 }
