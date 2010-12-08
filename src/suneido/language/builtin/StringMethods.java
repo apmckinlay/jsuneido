@@ -21,59 +21,15 @@ import suneido.language.Compiler;
 import suneido.util.Util;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
 
 public class StringMethods extends PrimitiveMethods {
 	public static final StringMethods singleton = new StringMethods();
 
 	private StringMethods() {
-		super("String", members());
+		super("String", StringMethods.class);
 	}
 
-	private static Object members() {
-		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
-		b.put("Alpha?", new AlphaQ());
-		b.put("AlphaNum?", new AlphaNumQ());
-		b.put("Asc", new Asc());
-		b.put("Compile", new Compile());
-		b.put("Contains", new Contains());
-		b.put("Detab", new Detab());
-		b.put("EndsWith", new EndsWith());
-		b.put("Entab", new Entab());
-		b.put("Eval", new Eval());
-		b.put("Eval2", new Eval2());
-		b.put("Extract", new Extract());
-		b.put("Find", new Find());
-		b.put("Find1of", new Find1of());
-		b.put("Findnot1of", new Findnot1of());
-		b.put("FindLast", new FindLast());
-		b.put("FindLast1of", new FindLast1of());
-		b.put("FindLastnot1of", new FindLastnot1of());
-		b.put("FromUtf8", new FromUtf8());
-		b.put("Has?", new Contains());
-		b.put("Lower", new Lower());
-		b.put("Lower?", new LowerQ());
-		b.put("Match", new Match());
-		b.put("Number?", new NumberQ());
-		b.put("Numeric?", new NumericQ());
-		b.put("Prefix?", new StartsWith());
-		b.put("Repeat", new Repeat());
-		b.put("Replace", new Replace());
-		b.put("ServerEval", new ServerEval());
-		b.put("Size", new Size());
-		b.put("Split", new Split());
-		b.put("StartsWith", new StartsWith());
-		b.put("Substr", new Substr());
-		b.put("Suffix?", new EndsWith());
-		b.put("Tr", new Tr());
-		b.put("ToUtf8", new ToUtf8());
-		b.put("Unescape", new Unescape());
-		b.put("Upper", new Upper());
-		b.put("Upper?", new UpperQ());
-		return b.build();
-	}
-
-	private static class AlphaQ extends BuiltinMethod0 {
+	public static class AlphaQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -86,7 +42,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class AlphaNumQ extends BuiltinMethod0 {
+	public static class AlphaNumQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -99,7 +55,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Asc extends BuiltinMethod0 {
+	public static class Asc extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -107,24 +63,27 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Compile extends BuiltinMethod0 {
+	public static class Compile extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return Compiler.compile("stringCompile", (String) self);
 		}
 	}
 
-	private static class Contains extends BuiltinMethod1 {
+	public static class Contains extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
 			return ((String) self).contains(toStr(a));
 		}
 	}
+	public static class HasQ extends Contains {
+		{ params = FunctionSpec.string; }
+	}
 
 	private static final int TABWIDTH = 4;
 
-	private static class Detab extends BuiltinMethod0 {
+	public static class Detab extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -154,15 +113,18 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class EndsWith extends BuiltinMethod1 {
+	public static class EndsWith extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
 			return ((String) self).endsWith(toStr(a));
 		}
 	}
+	public static class SuffixQ extends EndsWith {
+		{ params = FunctionSpec.string; }
+	}
 
-	private static class Entab extends BuiltinMethod0 {
+	public static class Entab extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -213,7 +175,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Eval extends BuiltinMethod0 {
+	public static class Eval extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Object result = seval((String) self);
@@ -221,7 +183,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Eval2 extends BuiltinMethod0 {
+	public static class Eval2 extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Object value = seval((String) self);
@@ -240,12 +202,8 @@ public class StringMethods extends PrimitiveMethods {
 				: Compiler.eval(s);
 	}
 
-	private static class Extract extends BuiltinMethod2 {
+	public static class Extract extends BuiltinMethod2 {
 		{ params = new FunctionSpec(array("pattern", "part"), false); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return eval2(self, a, false);
-		}
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			String s = (String) self;
@@ -265,15 +223,8 @@ public class StringMethods extends PrimitiveMethods {
 		return result.group(part_i);
 	}
 
-	private static final FunctionSpec siFS =
-		new FunctionSpec(array("s", "i"), 0);
-
-	private static class Find extends BuiltinMethod2 {
-		{ params = siFS; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return eval2(self, a, 0);
-		}
+	public static class Find extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			String s = (String) self;
@@ -282,7 +233,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class FindLast extends BuiltinMethod1 {
+	public static class FindLast extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -291,7 +242,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Find1of extends BuiltinMethod1 {
+	public static class Find1of extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -306,7 +257,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Findnot1of extends BuiltinMethod1 {
+	public static class Findnot1of extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -321,7 +272,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class FindLast1of extends BuiltinMethod1 {
+	public static class FindLast1of extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -336,7 +287,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class FindLastnot1of extends BuiltinMethod1 {
+	public static class FindLastnot1of extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -351,14 +302,14 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Lower extends BuiltinMethod0 {
+	public static class Lower extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return ((String) self).toLowerCase();
 		}
 	}
 
-	private static class LowerQ extends BuiltinMethod0 {
+	public static class LowerQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -374,7 +325,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Match extends BuiltinMethod1 {
+	public static class Match extends BuiltinMethod1 {
 		{ params = new FunctionSpec("pattern"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -396,7 +347,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class NumberQ extends BuiltinMethod0 {
+	public static class NumberQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -425,7 +376,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class NumericQ extends BuiltinMethod0 {
+	public static class NumericQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -442,7 +393,7 @@ public class StringMethods extends PrimitiveMethods {
 		return i < s.length() ? s.charAt(i) : 0;
 	}
 
-	private static class Repeat extends BuiltinMethod1 {
+	public static class Repeat extends BuiltinMethod1 {
 		{ params = new FunctionSpec("n"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -455,12 +406,8 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Replace extends BuiltinMethod3 {
+	public static class Replace extends BuiltinMethod3 {
 		{ params = new FunctionSpec(array("pattern", "block", "count"), 99999); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			return eval3(self, a, b, 99999);
-		}
 		@Override
 		public Object eval3(Object self, Object a, Object b, Object c) {
 			String s = (String) self;
@@ -491,14 +438,14 @@ public class StringMethods extends PrimitiveMethods {
 		return sb.toString();
 	}
 
-	private static class ServerEval extends BuiltinMethod0 {
+	public static class ServerEval extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return TheDbms.dbms().run((String) self);
 		}
 	}
 
-	private static class Size extends BuiltinMethod0 {
+	public static class Size extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return self instanceof String
@@ -507,7 +454,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Split extends BuiltinMethod1 {
+	public static class Split extends BuiltinMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -530,12 +477,16 @@ public class StringMethods extends PrimitiveMethods {
 		return ob;
 	}
 
-	private static class StartsWith extends BuiltinMethod2 {
-		{ params = siFS; }
+	public static class StartsWith extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
-		public Object eval1(Object self, Object a) {
-			return eval2(self, a, 0);
+		public Object eval2(Object self, Object a, Object b) {
+			String s = (String) self;
+			return s.startsWith(toStr(a), toInt(b));
 		}
+	}
+	public static class PrefixQ extends BuiltinMethod2 {
+		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			String s = (String) self;
@@ -543,12 +494,8 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Substr extends BuiltinMethod2 {
+	public static class Substr extends BuiltinMethod2 {
 		{ params = new FunctionSpec(array("i", "n"), Integer.MAX_VALUE); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return eval2(self, a, Integer.MAX_VALUE);
-		}
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			String s = (String) self;
@@ -568,7 +515,7 @@ public class StringMethods extends PrimitiveMethods {
 	private static final Charset Windows1252 =
 			Charset.forName("windows-1252");
 
-	private static class ToUtf8 extends BuiltinMethod0 {
+	public static class ToUtf8 extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			CharBuffer cb = Windows1252.decode(
@@ -577,7 +524,7 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class FromUtf8 extends BuiltinMethod0 {
+	public static class FromUtf8 extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			CharBuffer cb = Charsets.UTF_8.decode(
@@ -586,19 +533,15 @@ public class StringMethods extends PrimitiveMethods {
 	        }
 	}
 
-	private static class Tr extends BuiltinMethod2 {
+	public static class Tr extends BuiltinMethod2 {
 		{ params = new FunctionSpec(array("from", "to"), ""); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return eval2(self, a, "");
-		}
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			return tr((String) self, toStr(a), toStr(b));
 		}
 	}
 
-	private static class Unescape extends BuiltinMethod0 {
+	public static class Unescape extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;
@@ -652,14 +595,14 @@ public class StringMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Upper extends BuiltinMethod0 {
+	public static class Upper extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return ((String) self).toUpperCase();
 		}
 	}
 
-	private static class UpperQ extends BuiltinMethod0 {
+	public static class UpperQ extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			String s = (String) self;

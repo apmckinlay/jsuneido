@@ -15,54 +15,69 @@ import suneido.SuException;
 import suneido.language.*;
 import suneido.util.FAQCalendar;
 
-import com.google.common.collect.ImmutableMap;
-
 public class DateMethods extends PrimitiveMethods {
 	public static final DateMethods singleton = new DateMethods();
 
 	private DateMethods() {
-		super("Date", members());
+		super("Date", DateMethods.class);
 	}
 
-	private static Object members() {
-		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
-		b.put("Year", new GetField(Calendar.YEAR));
-		b.put("Month", new GetField(Calendar.MONTH, 1));
-		b.put("Day", new GetField(Calendar.DAY_OF_MONTH));
-		b.put("Hour", new GetField(Calendar.HOUR_OF_DAY));
-		b.put("Minute", new GetField(Calendar.MINUTE));
-		b.put("Second", new GetField(Calendar.SECOND));
-		b.put("Millisecond", new GetField(Calendar.MILLISECOND));
-
-		b.put("FormatEn", new FormatEn());
-		b.put("GMTime", new GMTime());
-		b.put("GMTimeToLocal", new GMTimeToLocal());
-		b.put("MinusDays", new MinusDays());
-		b.put("MinusSeconds", new MinusSeconds());
-		b.put("Plus", new Plus());
-		b.put("WeekDay", new WeekDay());
-		return b.build();
-	}
-
-	private static class GetField extends BuiltinMethod0 {
-		private final int field;
-		private final int offset;
-		GetField(int field) {
-			this(field, 0);
-		}
-		GetField(int field, int offset) {
-			this.field = field;
-			this.offset = offset;
-		}
+	public static class Year extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) self);
-			return c.get(field) + offset;
+			return getField(self, Calendar.YEAR);
 		}
 	}
 
-	private static class FormatEn extends BuiltinMethod1 {
+	public static class Month extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.MONTH) + 1;
+		}
+	}
+
+	public static class Day extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.DAY_OF_MONTH);
+		}
+	}
+
+	public static class Hour extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.HOUR_OF_DAY);
+		}
+	}
+
+	public static class Minute extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.MINUTE);
+		}
+	}
+
+	public static class Second extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.SECOND);
+		}
+	}
+
+	public static class Millisecond extends BuiltinMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return getField(self, Calendar.MILLISECOND);
+		}
+	}
+
+	private static int getField(Object self, int field) {
+		Calendar c = Calendar.getInstance();
+		c.setTime((Date) self);
+		return c.get(field);
+	}
+
+	public static class FormatEn extends BuiltinMethod1 {
 		{ params = new FunctionSpec("format"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -80,7 +95,7 @@ public class DateMethods extends PrimitiveMethods {
 				.replaceAll("[^adhHmMsyE]+", "'$0'");
 	}
 
-	private static class GMTime extends BuiltinMethod0 {
+	public static class GMTime extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Date d = (Date) self;
@@ -89,7 +104,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class GMTimeToLocal extends BuiltinMethod0 {
+	public static class GMTimeToLocal extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Date d = (Date) self;
@@ -98,7 +113,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class MinusDays extends BuiltinMethod1 {
+	public static class MinusDays extends BuiltinMethod1 {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -116,7 +131,7 @@ public class DateMethods extends PrimitiveMethods {
 
 	protected static final long MILLISECS_PER_DAY = 24 * 60 * 60 * 1000;
 
-	private static class MinusSeconds extends BuiltinMethod1 {
+	public static class MinusSeconds extends BuiltinMethod1 {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -126,7 +141,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Plus extends SuMethod {
+	public static class Plus extends SuMethod {
 		static final Object nil = new Object();
 		{ params = new FunctionSpec(
 				array("arg", "years", "months", "days",
@@ -151,14 +166,13 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class WeekDay extends SuMethod {
+	public static class WeekDay extends BuiltinMethod1 {
 		{ params = new FunctionSpec(array("firstDay"), "sun"); }
 		@Override
-		public Object eval(Object self, Object... args) {
-			args = Args.massage(params, args);
-			int i = (Ops.isString(args[0]))
-					? dayNumber(Ops.toStr(args[0]).toLowerCase())
-					: Ops.toInt(args[0]);
+		public Object eval1(Object self, Object a) {
+			int i = (Ops.isString(a))
+					? dayNumber(Ops.toStr(a).toLowerCase())
+					: Ops.toInt(a);
 			Calendar c = Calendar.getInstance();
 			c.setTime((Date) self);
 			return (c.get(Calendar.DAY_OF_WEEK) - i + 6) % 7;

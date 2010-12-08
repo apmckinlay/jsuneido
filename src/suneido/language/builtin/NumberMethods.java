@@ -10,35 +10,12 @@ import java.math.BigInteger;
 import suneido.SuException;
 import suneido.language.*;
 
-import com.google.common.collect.ImmutableMap;
-
 // self instanceof Number
 public class NumberMethods extends PrimitiveMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 
 	private NumberMethods() {
-		super("Number", members());
-	}
-
-	private static Object members() {
-		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
-		b.put("ACos", new ACos());
-		b.put("ASin", new ASin());
-		b.put("ATan", new ATan());
-		b.put("Chr", new Chr());
-		b.put("Cos", new Cos());
-		b.put("Exp", new Exp());
-		b.put("Format", new Format());
-		b.put("Frac", new Frac());
-		b.put("Hex", new Hex());
-		b.put("Int", new Int());
-		b.put("Log", new Log());
-		b.put("Log10", new Log10());
-		b.put("Pow", new Pow());
-		b.put("Sin", new Sin());
-		b.put("Sqrt", new Sqrt());
-		b.put("Tan", new Tan());
-		return b.build();
+		super("Number", NumberMethods.class);
 	}
 
 	private static BigDecimal toBigDecimal(Object n) {
@@ -59,7 +36,7 @@ public class NumberMethods extends PrimitiveMethods {
 				n instanceof Short || n instanceof Byte;
 	}
 
-	private static class Frac extends BuiltinMethod0 {
+	public static class Frac extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			if (isInt(self) || self instanceof BigInteger)
@@ -68,7 +45,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Int extends BuiltinMethod0 {
+	public static class Int extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return trunc(self);
@@ -84,7 +61,7 @@ public class NumberMethods extends PrimitiveMethods {
 			return (long) ((Number) n).doubleValue();
 	}
 
-	private static class Hex extends BuiltinMethod0 {
+	public static class Hex extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			long n = ((Number) self).longValue();
@@ -92,7 +69,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Chr extends BuiltinMethod0 {
+	public static class Chr extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			long n = ((Number) self).longValue();
@@ -100,7 +77,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Format extends BuiltinMethod1 {
+	public static class Format extends BuiltinMethod1 {
 		{ params = new FunctionSpec("mask"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -184,7 +161,7 @@ public class NumberMethods extends PrimitiveMethods {
 		return dst.toString();
 	}
 
-	private static class Pow extends BuiltinMethod1 {
+	public static class Pow extends BuiltinMethod1 {
 		{ params = new FunctionSpec("number"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -194,7 +171,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Cos extends BuiltinMethod0 {
+	public static class Cos extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -202,7 +179,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Sin extends BuiltinMethod0 {
+	public static class Sin extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -210,7 +187,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Tan extends BuiltinMethod0 {
+	public static class Tan extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -218,7 +195,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class ACos extends BuiltinMethod0 {
+	public static class ACos extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -226,7 +203,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class ASin extends BuiltinMethod0 {
+	public static class ASin extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -234,7 +211,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class ATan extends BuiltinMethod0 {
+	public static class ATan extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -242,7 +219,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Exp extends BuiltinMethod0 {
+	public static class Exp extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -250,7 +227,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Log extends BuiltinMethod0 {
+	public static class Log extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -258,7 +235,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Log10 extends BuiltinMethod0 {
+	public static class Log10 extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -266,7 +243,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	private static class Sqrt extends BuiltinMethod0 {
+	public static class Sqrt extends BuiltinMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
