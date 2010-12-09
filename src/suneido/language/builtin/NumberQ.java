@@ -1,8 +1,8 @@
 package suneido.language.builtin;
 
-import suneido.language.BuiltinFunction1;
+import suneido.language.SuFunction1;
 
-public class NumberQ extends BuiltinFunction1 {
+public class NumberQ extends SuFunction1 {
 
 	@Override
 	public Object call1(Object a) {

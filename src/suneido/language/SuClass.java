@@ -230,7 +230,7 @@ public class SuClass extends SuValue {
 		return (SuClass) base;
 	}
 
-	private class Base extends BuiltinMethod0 {
+	private class Base extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			if (baseGlobal == null)
@@ -239,7 +239,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class BaseQ extends BuiltinMethod1 {
+	private class BaseQ extends SuMethod1 {
 		@Override
 		public Object eval1(Object self, Object a) {
 			return hasBase(a);
@@ -261,7 +261,7 @@ public class SuClass extends SuValue {
 		}
 	};
 
-	private class GetDefault extends BuiltinMethod2 {
+	private class GetDefault extends SuMethod2 {
 		{ params = new FunctionSpec("key", "block"); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
@@ -275,7 +275,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class Members extends BuiltinMethod0 {
+	private class Members extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			SuContainer c = new SuContainer();
@@ -286,7 +286,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class MemberQ extends BuiltinMethod1 {
+	private class MemberQ extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -296,7 +296,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class MethodClass extends BuiltinMethod1 {
+	private class MethodClass extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 			public Object eval1(Object self, Object a) {
@@ -314,7 +314,7 @@ public class SuClass extends SuValue {
 		return Boolean.FALSE;
 	}
 
-	private class MethodQ extends BuiltinMethod1 {
+	private class MethodQ extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {

@@ -3,8 +3,7 @@ package suneido.language;
 import static org.objectweb.asm.Opcodes.*;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.TryCatchBlockSorter;
@@ -15,11 +14,15 @@ import suneido.SuException;
 
 import com.google.common.base.Strings;
 
+/**
+ * Used by {@link AstCompile} to generate Java classes.
+ * Wraps use of ASM.
+ */
 public class ClassGen {
 	private static final int THIS = 0;
-	private static final int SELF = 1;
-	private static final int ARGS = 2; // TODO not if direct
-	private static final int CONSTANTS = 3; // TODO may not be 3 if direct
+	private int SELF = -1;
+	private int ARGS = -2;
+	private int CONSTANTS = -3;
 	private static final Object[] arrayOfObject = new Object[0];
 	private static final String[] arrayOfString = new String[0];
 	private final String name;
@@ -31,29 +34,62 @@ public class ClassGen {
 	private int nParams;
 	private int nDefaults = 0;
 	private boolean atParam = false;
-	private boolean auto_it_param = false;
-	private boolean it_param_used = false;
 	private final int iBlockParams; // where block params start in locals
 	private final List<Object> constants = new ArrayList<Object>();
 	final List<String> locals;
-	private int temp = CONSTANTS + 1;
+	final Map<String,Integer> javaLocals = new HashMap<String,Integer>();
+	private int nextJavaLocal;
 	private Object blockReturnCatcher = null;
+	public final boolean useArgsArray;
+//	private List<String> javaLocalsNames = new ArrayList<String>();
+//	{ Collections.addAll(javaLocalsNames, "java$this", "this", "$args", "$constants"); }
 
 	ClassGen(String base, String name, String method, List<String> locals,
-			PrintWriter pw) {
+			boolean useArgsArray, PrintWriter pw) {
+		if (! useArgsArray)
+			base += "0";
 		this.base = "suneido/language/" + base;
 		this.name = name;
 		this.locals = locals == null ? new ArrayList<String>() : locals;
+		this.useArgsArray = useArgsArray;
 		iBlockParams = this.locals.size();
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv = classVisitor(pw);
 		genInit();
-// TODO different method name and signature for direct arguments
-		mv = methodVisitor(ACC_PUBLIC, method,
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		if (useArgsArray) {
+			if (method.equals("call")) {
+				mv = methodVisitor(ACC_PUBLIC, method,
+						"([Ljava/lang/Object;)Ljava/lang/Object;");
+				ARGS = 1;
+				CONSTANTS = 2;
+				nextJavaLocal = 3;
+			} else {
+				assert method.equals("eval");
+				mv = methodVisitor(ACC_PUBLIC, method,
+						"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				SELF = 1;
+				ARGS = 2;
+				CONSTANTS = 3;
+				nextJavaLocal = 4;
+			}
+		} else {
+			if (method.equals("call")) {
+				mv = methodVisitor(ACC_PUBLIC, "call0",
+						"()Ljava/lang/Object;");
+				CONSTANTS = 1;
+				nextJavaLocal = 2;
+			} else {
+				assert method.equals("eval");
+				mv = methodVisitor(ACC_PUBLIC, "eval0",
+						"(Ljava/lang/Object;)Ljava/lang/Object;");
+				SELF = 1;
+				CONSTANTS = 2;
+				nextJavaLocal = 3;
+			}
+		}
 		mv.visitCode();
 		mv.visitLabel(startLabel);
-		if (! isBlock()) // TODO and not direct args
+		if (! isBlock() && useArgsArray)
 			massage();
 		loadConstants();
 	}
@@ -108,11 +144,6 @@ public class ClassGen {
 			++nDefaults;
 		}
 		++nParams;
-	}
-
-	public void itParam() {
-		param("it", null);
-		auto_it_param = true;
 	}
 
 	public void constant(Object value) {
@@ -226,7 +257,8 @@ public class ClassGen {
 	// >= 0 means java local index
 
 	public int localRef(String name) {
-		// TODO if name is java local just return index
+		if (! useArgsArray)
+			return javaLocal(name);
 		mv.visitVarInsn(ALOAD, ARGS);
 		iconst(local(name));
 		return ARGS_REF;
@@ -252,9 +284,16 @@ public class ClassGen {
 		if (i == -1) {
 			i = locals.size();
 			locals.add(name);
-		} else if (name.equals("it"))
-			it_param_used = true;
+		}
 		return i;
+	}
+
+	public int javaLocal(String name) {
+		Integer i = javaLocals.get(name);
+		if (i != null)
+			return i;
+		javaLocals.put(name, nextJavaLocal);
+		return nextJavaLocal++;
 	}
 
 	public void globalLoad(String name) {
@@ -485,8 +524,8 @@ public class ClassGen {
 	}
 
 	public int storeTemp() {
-		mv.visitVarInsn(ASTORE, temp);
-		return temp++;
+		mv.visitVarInsn(ASTORE, nextJavaLocal);
+		return nextJavaLocal++;
 	}
 
 	public void loadTemp(int temp) {
@@ -525,8 +564,11 @@ public class ClassGen {
 		mv.visitInsn(DUP);
 		mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(iBlockDef);
-		mv.visitInsn(AALOAD);				// block
-		mv.visitVarInsn(ALOAD, SELF); 	// self
+		mv.visitInsn(AALOAD);			// block
+		if (SELF >= 0)
+			mv.visitVarInsn(ALOAD, SELF); 	// self
+		else
+			mv.visitInsn(ACONST_NULL);
 		mv.visitVarInsn(ALOAD, ARGS); 	// locals
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuBlock",
 				"<init>",
@@ -563,10 +605,12 @@ public class ClassGen {
 		mv.visitLabel(endLabel);
 		mv.visitLocalVariable("this", "Lsuneido/language/" + name + ";",
 				null, startLabel, endLabel, THIS);
-		mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
-				startLabel, endLabel, SELF);
-		mv.visitLocalVariable("args", "[Ljava/lang/Object;", null,
-				startLabel, endLabel, ARGS);
+		if (SELF >= 0)
+			mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
+					startLabel, endLabel, SELF);
+		if (ARGS >= 0)
+			mv.visitLocalVariable("args", "[Ljava/lang/Object;", null,
+					startLabel, endLabel, ARGS);
 		mv.visitLocalVariable("constants", "[Ljava/lang/Object;", null,
 				startLabel, endLabel, CONSTANTS);
 		mv.visitMaxs(0, 0);
@@ -587,9 +631,6 @@ public class ClassGen {
 
 		Object[] constantsArray = (constants == null)
 				? null : constants.toArray(arrayOfObject);
-
-		if (auto_it_param && ! it_param_used)
-			nParams = 0;
 
 		FunctionSpec fspec;
 		if (isBlock()) {

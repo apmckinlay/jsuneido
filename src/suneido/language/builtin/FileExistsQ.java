@@ -4,7 +4,7 @@ import java.io.File;
 
 import suneido.language.*;
 
-public class FileExistsQ extends BuiltinFunction {
+public class FileExistsQ extends SuFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("filename");
 

@@ -1,6 +1,6 @@
 package suneido.language;
 
-public abstract class BuiltinFunction1 extends BuiltinFunction {
+public abstract class SuFunction1 extends SuFunction {
 
 	{ params = FunctionSpec.value; }
 

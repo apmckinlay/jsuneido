@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 import suneido.language.*;
 
-public class GetDiskFreeSpace extends BuiltinFunction1 {
+public class GetDiskFreeSpace extends SuFunction1 {
 	{ params = new FunctionSpec(array("dir"), "."); }
 
 	@Override

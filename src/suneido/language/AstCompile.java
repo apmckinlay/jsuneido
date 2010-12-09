@@ -131,7 +131,11 @@ public class AstCompile {
 		nameBegin(name, "$f");
 		boolean prevInMethod = inMethod;
 		inMethod = (ast.token == Token.METHOD);
-		SuCallable fn = javaClass(ast, "SuFunction", "eval", null, pw);
+		boolean method = inMethod || AstUsesThis.check(ast);
+		SuCallable fn = javaClass(ast,
+				method ? "SuMethod" : "SuFunction",
+				method ? "eval" : "call",
+				null, pw);
 		inMethod = prevInMethod;
 		nameEnd();
 		return fn;
@@ -144,15 +148,20 @@ public class AstCompile {
 		return fn;
 	}
 
+	/** Used by foldFunction and block
+	 * @param locals The outer locals for a block. Not used for functions.
+	 */
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals, PrintWriter pw) {
-		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(base, curName, method, locals, pw);
+		ClassGen cg = new ClassGen(base, curName, method, locals,
+base == "SuCallable" || // block
+ast.first().children.size() > 0 || // start with 0 args
+				AstSharesVars.check(ast),
+				pw);
 
+		List<AstNode> params = ast.first().children;
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
-		if (base.equals("SuCallable") && params.isEmpty())
-			cg.itParam();
 
 		superInit(cg, ast);
 
@@ -617,8 +626,12 @@ public class AstCompile {
 			trinaryExpression(cg, ast);
 			break;
 		case BLOCK:
-			int iBlockDef = cg.addConstant(block(cg, ast));
-			cg.block(iBlockDef);
+			if (cg.useArgsArray) {
+				int iBlockDef = cg.addConstant(block(cg, ast));
+				cg.block(iBlockDef);
+			} else {
+				cg.constant(foldFunction(null, ast));
+			}
 			break;
 		case RVALUE:
 			return expression(cg, ast.first(), option);

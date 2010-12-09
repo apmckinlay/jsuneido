@@ -7,7 +7,7 @@ import suneido.language.*;
 
 import com.google.common.io.Files;
 
-public class CopyFile extends BuiltinFunction {
+public class CopyFile extends SuFunction {
 
 	private static final FunctionSpec fs =
 			new FunctionSpec("from", "to", "failIfExists");

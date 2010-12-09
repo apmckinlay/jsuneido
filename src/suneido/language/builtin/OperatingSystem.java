@@ -1,8 +1,8 @@
 package suneido.language.builtin;
 
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class OperatingSystem extends BuiltinFunction0 {
+public class OperatingSystem extends SuFunction0 {
 
 	@Override
 	public Object call0() {

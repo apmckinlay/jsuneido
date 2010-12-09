@@ -9,7 +9,7 @@ import suneido.TheDbms;
 import suneido.language.*;
 import suneido.language.Compiler;
 
-public class ServerEval extends BuiltinFunction {
+public class ServerEval extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

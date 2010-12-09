@@ -2,11 +2,11 @@ package suneido.language.builtin;
 
 import java.lang.management.ManagementFactory;
 
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
 import com.sun.management.OperatingSystemMXBean;
 
-public class SystemMemory extends BuiltinFunction0 {
+public class SystemMemory extends SuFunction0 {
 
 	@Override
 	public Object call0() {

@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import suneido.language.*;
 
-public class GetTempPath extends BuiltinFunction {
+public class GetTempPath extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

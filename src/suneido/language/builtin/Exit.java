@@ -4,7 +4,7 @@ import static suneido.language.Ops.toInt;
 import static suneido.util.Util.array;
 import suneido.language.*;
 
-public class Exit extends BuiltinFunction {
+public class Exit extends SuFunction {
 
 	public static final FunctionSpec statusFS = new FunctionSpec(array("status"), 0);
 

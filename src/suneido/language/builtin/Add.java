@@ -4,10 +4,10 @@
 
 package suneido.language.builtin;
 
-import suneido.language.BuiltinFunction2;
+import suneido.language.SuFunction2;
 import suneido.language.Ops;
 
-public class Add extends BuiltinFunction2 {
+public class Add extends SuFunction2 {
 
 	@Override
 	public Object call2(Object a, Object b) {
