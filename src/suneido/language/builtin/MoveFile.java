@@ -4,7 +4,7 @@ import java.io.File;
 
 import suneido.language.*;
 
-public class MoveFile extends BuiltinFunction {
+public class MoveFile extends SuFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("from", "to");
 

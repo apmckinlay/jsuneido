@@ -9,25 +9,30 @@ import java.util.Set;
 
 import suneido.util.Stack;
 
-public class AstUtil {
+/**
+ * Determine if a function shares variables with blocks.
+ * Used by {@link AstCompile} to choose between args array and java locals.
+ */
+public class AstSharesVars {
 
-	// would be more efficient to stop search as soon as you know
-	// but later will need to identify all shared vars
-	public static boolean hasSharedVars(AstNode ast) {
-		HasSharedVars hsv = new HasSharedVars(ast);
+	public static boolean check(AstNode ast) {
+		Visitor hsv = new Visitor(ast);
 		ast.depthFirst(hsv);
 		return hsv.hasSharedVars;
 	}
-	private static class HasSharedVars extends AstNode.Visitor {
+
+	private static class Visitor extends AstNode.Visitor {
 		private final AstNode root;
 		public boolean hasSharedVars;
 		private int blockNest = 0; // > 0 means in block
 		private final Set<String> outerVars = new HashSet<String>();
 		private final Stack<Set<String>> blockParams = new Stack<Set<String>>();
 		private boolean inBlockParams;
-		HasSharedVars(AstNode root) {
+
+		Visitor(AstNode root) {
 			this.root = root;
 		}
+
 		@Override
 		boolean topDown(AstNode ast) {
 			switch (ast.token) {
@@ -53,6 +58,7 @@ public class AstUtil {
 			}
 			return true;
 		}
+
 		@Override
 		void bottomUp(AstNode ast) {
 			switch (ast.token) {

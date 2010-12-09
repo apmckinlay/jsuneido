@@ -1,9 +1,9 @@
 package suneido.language.builtin;
 
 import suneido.TheDbms;
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class Timestamp extends BuiltinFunction0 {
+public class Timestamp extends SuFunction0 {
 
 	@Override
 	public Object call0() {

@@ -1,9 +1,9 @@
 package suneido.language.builtin;
 
 import suneido.database.query.Query.Dir;
-import suneido.language.BuiltinFunction;
+import suneido.language.SuFunction;
 
-public class Query1 extends BuiltinFunction {
+public class Query1 extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

@@ -6,7 +6,7 @@ import java.io.IOException;
 import suneido.SuException;
 import suneido.language.*;
 
-public class DeleteDir extends BuiltinFunction {
+public class DeleteDir extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

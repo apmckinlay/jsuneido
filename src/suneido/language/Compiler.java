@@ -33,11 +33,12 @@ public class Compiler {
 	}
 
 	public static void main(String[] args) {
-		String s = "function () { Date().GMTime() }";
+		String s = "function () { b = { 2 * it }; b(3) }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
-		Object x = Ops.call(f, noArgs);
+		Object x = Ops.call0(f);
+//		Object x = Ops.call1(f, 1);
 		System.out.println(" => " + x);
 	}
 

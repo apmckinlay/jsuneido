@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class AstUtilTest {
+public class AstSharesVarsTest {
 
 	@Test
 	public void test_hasSharedVars() {
@@ -27,6 +27,7 @@ public class AstUtilTest {
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
-		assertEquals(hasShared, AstUtil.hasSharedVars(ast));
+		assertEquals(hasShared, AstSharesVars.check(ast));
 	}
+
 }

@@ -4,7 +4,7 @@ import java.io.File;
 
 import suneido.language.*;
 
-public class DirExistsQ extends BuiltinFunction {
+public class DirExistsQ extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

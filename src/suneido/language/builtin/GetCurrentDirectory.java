@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import suneido.SuException;
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class GetCurrentDirectory extends BuiltinFunction0 {
+public class GetCurrentDirectory extends SuFunction0 {
 
 	@Override
 	public Object call0() {

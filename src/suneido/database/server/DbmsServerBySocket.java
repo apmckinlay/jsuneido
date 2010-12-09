@@ -13,11 +13,9 @@ import java.util.concurrent.*;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.Repl;
 import suneido.SuException;
 import suneido.database.TheDb;
 import suneido.language.Compiler;
-import suneido.language.Globals;
 import suneido.util.*;
 import suneido.util.ServerBySocket.HandlerFactory;
 
@@ -30,7 +28,6 @@ public class DbmsServerBySocket {
 
 	public static void run(int port) {
 		TheDb.open();
-		Globals.builtin("Print", new Repl.Print());
 		Compiler.eval("JInit()");
 		ServerBySocket server = new ServerBySocket(new DbmsHandlerFactory());
 		inetAddress = server.getInetAddress();

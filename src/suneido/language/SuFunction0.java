@@ -4,7 +4,7 @@
 
 package suneido.language;
 
-public abstract class BuiltinFunction0 extends BuiltinFunction {
+public abstract class SuFunction0 extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

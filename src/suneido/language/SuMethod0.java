@@ -4,7 +4,7 @@
 
 package suneido.language;
 
-public abstract class BuiltinMethod0 extends SuMethod {
+public abstract class SuMethod0 extends SuMethod {
 
 	@Override
 	public Object eval(Object self, Object... args) {

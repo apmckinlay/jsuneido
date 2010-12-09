@@ -2,9 +2,9 @@ package suneido.language.builtin;
 
 import java.util.UUID;
 
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class UuidString extends BuiltinFunction0 {
+public class UuidString extends SuFunction0 {
 
 	@Override
 	public Object call0() {

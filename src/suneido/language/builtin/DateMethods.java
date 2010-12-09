@@ -22,49 +22,49 @@ public class DateMethods extends PrimitiveMethods {
 		super("Date", DateMethods.class);
 	}
 
-	public static class Year extends BuiltinMethod0 {
+	public static class Year extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.YEAR);
 		}
 	}
 
-	public static class Month extends BuiltinMethod0 {
+	public static class Month extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.MONTH) + 1;
 		}
 	}
 
-	public static class Day extends BuiltinMethod0 {
+	public static class Day extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.DAY_OF_MONTH);
 		}
 	}
 
-	public static class Hour extends BuiltinMethod0 {
+	public static class Hour extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.HOUR_OF_DAY);
 		}
 	}
 
-	public static class Minute extends BuiltinMethod0 {
+	public static class Minute extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.MINUTE);
 		}
 	}
 
-	public static class Second extends BuiltinMethod0 {
+	public static class Second extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.SECOND);
 		}
 	}
 
-	public static class Millisecond extends BuiltinMethod0 {
+	public static class Millisecond extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return getField(self, Calendar.MILLISECOND);
@@ -77,7 +77,7 @@ public class DateMethods extends PrimitiveMethods {
 		return c.get(field);
 	}
 
-	public static class FormatEn extends BuiltinMethod1 {
+	public static class FormatEn extends SuMethod1 {
 		{ params = new FunctionSpec("format"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -95,7 +95,7 @@ public class DateMethods extends PrimitiveMethods {
 				.replaceAll("[^adhHmMsyE]+", "'$0'");
 	}
 
-	public static class GMTime extends BuiltinMethod0 {
+	public static class GMTime extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Date d = (Date) self;
@@ -104,7 +104,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class GMTimeToLocal extends BuiltinMethod0 {
+	public static class GMTimeToLocal extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			Date d = (Date) self;
@@ -113,7 +113,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class MinusDays extends BuiltinMethod1 {
+	public static class MinusDays extends SuMethod1 {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -131,7 +131,7 @@ public class DateMethods extends PrimitiveMethods {
 
 	protected static final long MILLISECS_PER_DAY = 24 * 60 * 60 * 1000;
 
-	public static class MinusSeconds extends BuiltinMethod1 {
+	public static class MinusSeconds extends SuMethod1 {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -166,7 +166,7 @@ public class DateMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class WeekDay extends BuiltinMethod1 {
+	public static class WeekDay extends SuMethod1 {
 		{ params = new FunctionSpec(array("firstDay"), "sun"); }
 		@Override
 		public Object eval1(Object self, Object a) {
