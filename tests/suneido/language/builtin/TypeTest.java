@@ -13,7 +13,7 @@ public class TypeTest {
 		test("Type(1.2)", "Number");
 		test("Type(#())", "Object");
 		test("Type(#{})", "Record");
-		test("Type({|x| })", "Block");
+		test("shared = 1; Type({|x| shared })", "Block");
 		test("Type(class { })", "Class");
 		test("Type(new class { })", "Object");
 		test("Type(function () { })", "Function");

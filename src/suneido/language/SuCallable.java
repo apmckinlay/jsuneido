@@ -43,4 +43,16 @@ abstract public class SuCallable extends SuValue {
 		return params.defaultFor(i);
 	}
 
+	/**
+	 * If block return came from one of our blocks, then return the value,
+	 * otherwise, re-throw.
+	 */
+	public Object blockReturnHandler(BlockReturnException e) {
+		for (Object x : constants)
+			if (x == e.block)
+				return e.returnValue;
+		throw e;
+	}
+
+
 }

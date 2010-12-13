@@ -16,9 +16,14 @@ public class AstSharesVarsTest {
 		test(false, "10.Times() { }");
 		test(true, "10.Times() { ++p }");
 		test(true, "x=1; b={ x=2 }");
+		test(true, "b={ x=2 }; x");
 		test(false, "x=1; b={ y=2 }");
 		test(false, "x=1; b={|x| x=2 }");
 		test(true, "x=1; b={|y| x=2 }");
+		test(true, "b = { .a }");
+		test(true, "b = { this }");
+		test(false, "this; b = { }");
+		test(true, "b = { super.f() }");
 	}
 
 	public static void test(boolean hasShared, String s) {
