@@ -13,9 +13,9 @@ import com.google.common.base.Objects;
  */
 public class SuBoundMethod extends SuValue {
 	public final SuValue instance;
-	public final SuFunction method;
+	public final SuCallable method;
 
-	public SuBoundMethod(SuValue instance, SuFunction method) {
+	public SuBoundMethod(SuValue instance, SuCallable method) {
 		this.instance = instance;
 		this.method = method;
 	}

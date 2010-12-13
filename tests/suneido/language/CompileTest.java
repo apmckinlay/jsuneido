@@ -160,6 +160,12 @@ public class CompileTest {
 				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, "
 						+ "&b, 123, DUP_X2, AASTORE, GOTO L2, "
 						+ "L1, &c, 456, DUP_X2, AASTORE, L2, ARETURN");
+		test("a or b ? c : a",
+				"a, bool, IFTRUE L1, b, bool, IFFALSE L2, " +
+				"L1, c, GOTO L3, L2, a, L3, ARETURN");
+		test("a and b ? c : a",
+				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
+				"c, GOTO L2, L1, a, L2, ARETURN");
 	}
 
 	@Test
@@ -248,6 +254,12 @@ public class CompileTest {
 				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, c, call, POP, L1");
 		test("if (a) b() else c()",
 				"a, bool, IFFALSE L1, b, call, POP, GOTO L2, L1, c, call, POP, L2");
+		test("if (a && b) c else a",
+				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
+				"c, POP, GOTO L2, L1, a, POP, L2");
+		test("if (a || b) c else a",
+				"a, bool, IFTRUE L1, b, bool, IFFALSE L2, " +
+				"L1, c, POP, GOTO L3, L2, a, POP, L3");
 	}
 	@Test public void test_loops() {
 		test("do a() while (b)",
@@ -259,6 +271,12 @@ public class CompileTest {
 				"GOTO L1, L2, b, call, POP, L1, a, bool, IFTRUE L2, L3");
 		test("while (a = b) c()",
 				"GOTO L1, L2, c, call, POP, L1, &a, b, DUP_X2, AASTORE, bool, IFTRUE L2, L3");
+		test("while (a or b) c()",
+				"GOTO L1, L2, c, call, POP, " +
+				"L1, a, bool, IFTRUE L2, b, bool, IFTRUE L2, L3");
+		test("while (a and b) c()",
+				"GOTO L1, L2, c, call, POP, " +
+				"L1, a, bool, IFFALSE L3, b, bool, IFTRUE L2, L3, L4");
 
 		test("forever a()",
 				"L1, a, call, POP, GOTO L1, L2");
@@ -345,8 +363,7 @@ public class CompileTest {
 
 		test_e("b = { }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, DUP, .locals, args, IF_ACMPEQ L4, "
-				+ "ATHROW, L4, .returnValue, ARETURN");
+				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
 		compile("Plugins().Foreach(a, { })");
@@ -355,8 +372,7 @@ public class CompileTest {
 		compile("b = { .001 }");
 		test_e("b = { return 123 }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, DUP, .locals, args, IF_ACMPEQ L4, "
-				+ "ATHROW, L4, .returnValue, ARETURN");
+				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 	}
 	@Test public void test_block_break() {
 		compile("b = { break }");
@@ -438,7 +454,7 @@ public class CompileTest {
 	}
 
 	private String simplify(String r, String after) {
-System.out.println(r);
+		//System.out.println(r);
 		int SELF = 9;
 		int ARGS = 9;
 		int CONST = 9;
@@ -547,7 +563,8 @@ System.out.println(r);
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" },
-			{ "NEW suneido/language/BlockReturnException, DUP_X1, SWAP, args", "block_return" },
+			{ "NEW suneido/language/BlockReturnException, DUP_X1, SWAP, this", "block_return" },
+			{ "INVOKEVIRTUAL suneido/language/SuCallable.blockReturnHandler (Lsuneido/language/BlockReturnException;)Object;", "blockReturnHandler" },
 			{ "0, ANEWARRAY java/lang/Object, ", "" },
 			{ "1, ANEWARRAY java/lang/Object, ", "" },
 			{ "2, ANEWARRAY java/lang/Object, ", "" },

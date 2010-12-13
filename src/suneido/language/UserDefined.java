@@ -13,17 +13,17 @@ public class UserDefined {
 
 	public static Object userDefined(String where,
 			Object self, String method, Object[] args) {
-		SuFunction f = userDefinedMethod(where, method);
+		SuCallable f = userDefinedMethod(where, method);
 		if (f == null)
 			throw SuException.methodNotFound(self, method);
 		return f.eval(self, args);
 	}
 
-	public static SuFunction userDefinedMethod(String where, String method) {
+	public static SuCallable userDefinedMethod(String where, String method) {
 		Object c = Globals.tryget(where);
 		if (c instanceof SuClass) {
 			Object f = ((SuClass) c).get2(method);
-			return f instanceof SuFunction ? (SuFunction) f : null;
+			return f instanceof SuCallable ? (SuCallable) f : null;
 		}
 		return null;
 	}

@@ -21,6 +21,7 @@ public class AstUsesThisTest {
 		test(true, "return this");
 		test(true, "super()");
 		test(true, "super.f()");
+		test(true, "b = { .a }");
 	}
 
 	public static void test(boolean usesThis, String s) {

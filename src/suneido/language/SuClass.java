@@ -51,8 +51,8 @@ public class SuClass extends SuValue {
 
 	protected void linkMethods() {
 		for (Object v : members.values())
-			if (v instanceof SuFunction) {
-				SuFunction f = (SuFunction) v;
+			if (v instanceof SuCallable) {
+				SuCallable f = (SuCallable) v;
 				f.myClass = this;
 				for (Object c : f.constants)
 					if (c instanceof SuCallable) // blocks
@@ -68,16 +68,16 @@ public class SuClass extends SuValue {
 	public Object get(SuValue self, Object member) {
 		Object value = get2(member);
 		if (value != null)
-			return value instanceof SuFunction && self != null
-					? new SuBoundMethod(self, (SuFunction) value) : value;
+			return value instanceof SuCallable && self != null
+					? new SuBoundMethod(self, (SuCallable) value) : value;
 		if (hasGetters) {
 			String getter = ("Get_" + member).intern();
 			value = get2(getter);
-			if (value instanceof SuFunction)
-				return ((SuFunction) value).eval(self);
+			if (value instanceof SuCallable)
+				return ((SuCallable) value).eval(self);
 			value = get2("Get_");
-			if (value instanceof SuFunction)
-				return ((SuFunction) value).eval(self, member);
+			if (value instanceof SuCallable)
+				return ((SuCallable) value).eval(self, member);
 			hasGetters = false;
 		}
 		throw new SuException("member not found: " + member);
@@ -203,11 +203,11 @@ public class SuClass extends SuValue {
 		// if there is a Default method
 		// call it with the method added to the beginning of args
 		Object fn = get2("Default");
-		if (fn instanceof SuFunction) {
+		if (fn instanceof SuCallable) {
 			Object newargs[] = new Object[1 + args.length];
 			newargs[0] = method;
 			System.arraycopy(args, 0, newargs, 1, args.length);
-			return ((SuFunction) fn).eval(self, newargs);
+			return ((SuCallable) fn).eval(self, newargs);
 		}
 		throw methodNotFound(self, method);
 	}

@@ -27,6 +27,7 @@ public class AstSharesVars {
 		private int blockNest = 0; // > 0 means in block
 		private final Set<String> outerVars = new HashSet<String>();
 		private final Stack<Set<String>> blockParams = new Stack<Set<String>>();
+		private final Set<String> blockVars = new HashSet<String>();
 		private boolean inBlockParams;
 
 		Visitor(AstNode root) {
@@ -47,16 +48,30 @@ public class AstSharesVars {
 				++blockNest;
 				break;
 			case IDENTIFIER:
-				if (blockNest == 0)
-					outerVars.add(ast.value);
-				else if (inBlockParams)
-					blockParams.top().add(ast.value);
-				else if (outerVars.contains(ast.value) &&
-						! blockParams.top().contains(ast.value))
+				String id = ast.value;
+				if (blockNest == 0) {
+					if (blockVars.contains(id))
+						hasSharedVars = true;
+					else
+						outerVars.add(id);
+				} else if (inBlockParams)
+					blockParams.top().add(id);
+				else if ("this".equals(id))
+					hasSharedVars = true;
+				else if (! blockParams.top().contains(id)) {
+					if (outerVars.contains(id))
+						hasSharedVars = true;
+					else
+						blockVars.add(id);
+				}
+				break;
+			case SELFREF:
+			case SUPER:
+				if (blockNest > 0)
 					hasSharedVars = true;
 				break;
 			}
-			return true;
+			return ! hasSharedVars; // stop when you know
 		}
 
 		@Override

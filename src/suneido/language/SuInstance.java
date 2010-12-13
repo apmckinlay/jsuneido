@@ -91,8 +91,8 @@ public class SuInstance extends SuValue {
 	public String toString() {
 		if (myclass != null && myclass instanceof SuClass) {
 			Object toString = ((SuClass) myclass).get2("ToString");
-			if (toString instanceof SuFunction)
-				return Ops.toStr(((SuFunction) toString).eval(this));
+			if (toString instanceof SuCallable)
+				return Ops.toStr(((SuCallable) toString).eval(this));
 		}
 		return myclass + "()";
 	}
