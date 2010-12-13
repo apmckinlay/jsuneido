@@ -4,6 +4,7 @@
 
 package suneido.language;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,14 +33,15 @@ public class Compiler {
 		return Ops.call(f, noArgs);
 	}
 
-	public static void main(String[] args) {
-		String s = "function () { b = { 2 * it }; b(3) }";
+	public static void main(String[] args) throws IOException {
+//		String s = Files.toString(new File("tmp.txt"), Charsets.UTF_8);
+		String s = "function () { while (false isnt (x = A()) and false isnt (y = B())) C(x, y) }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
-		Object x = Ops.call0(f);
+//		Object x = Ops.call0(f);
 //		Object x = Ops.call1(f, 1);
-		System.out.println(" => " + x);
+//		System.out.println(" => " + x);
 	}
 
 }
