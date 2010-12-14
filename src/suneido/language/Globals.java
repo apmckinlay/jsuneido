@@ -8,8 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import suneido.SuContainer;
-import suneido.SuException;
+import suneido.*;
 import suneido.language.builtin.*;
 
 /**
@@ -107,7 +106,7 @@ public class Globals {
 		builtins.put("SystemMemory", new SystemMemory());
 		builtins.put("Thread", new ThreadFunction());
 		builtins.put("Timestamp", new Timestamp());
-		builtins.put("Trace", new Trace());
+		builtins.put("Trace", new suneido.language.builtin.Trace());
 		builtins.put("Transaction", new Transaction());
 		builtins.put("Type", new Type());
 		builtins.put("UuidString", new UuidString());
@@ -180,6 +179,50 @@ public class Globals {
 		String nameForPreviousValue = n + base;
 		globals.put(nameForPreviousValue, x);
 		return nameForPreviousValue;
+	}
+
+	/** used by generated code to call globals
+	 *  NOTE: does NOT handle calling a string in a global
+	 *  requires globals to be SuValue
+	 */
+	public static Object invoke(String name, Object... args) {
+		return ((SuValue) get(name)).call(args);
+	}
+	public static Object invoke0(String name) {
+		return ((SuValue) get(name)).call0();
+	}
+	public static Object invoke1(String name, Object a) {
+		return ((SuValue) get(name)).call1(a);
+	}
+	public static Object invoke2(String name, Object a, Object b) {
+		return ((SuValue) get(name)).call2(a, b);
+	}
+	public static Object invoke3(String name, Object a, Object b, Object c) {
+		return ((SuValue) get(name)).call3(a, b, c);
+	}
+	public static Object invoke4(String name, Object a, Object b,
+			Object c, Object d) {
+		return ((SuValue) get(name)).call4(a, b, c, d);
+	}
+	public static Object invoke5(String name, Object a, Object b,
+			Object c, Object d, Object e) {
+		return ((SuValue) get(name)).call5(a, b, c, d, e);
+	}
+	public static Object invoke6(String name, Object a, Object b,
+			Object c, Object d, Object e, Object f) {
+		return ((SuValue) get(name)).call6(a, b, c, d, e, f);
+	}
+	public static Object invoke7(String name, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g) {
+		return ((SuValue) get(name)).call7(a, b, c, d, e, f, g);
+	}
+	public static Object invoke8(String name, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g, Object h) {
+		return ((SuValue) get(name)).call8(a, b, c, d, e, f, g, h);
+	}
+	public static Object invoke9(String name, Object a, Object b,
+			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
+		return ((SuValue) get(name)).call9(a, b, c, d, e, f, g, h, i);
 	}
 
 }

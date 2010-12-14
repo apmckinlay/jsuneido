@@ -376,6 +376,15 @@ public class ClassGen {
 				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
 	}
 
+	public void invokeGlobal() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "invoke",
+				"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
+	}
+	public void invokeGlobal(int nargs) {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "invoke" + nargs,
+				"(Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
+	}
+
 	public void invokeMethod() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
 			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");

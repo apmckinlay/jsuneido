@@ -775,6 +775,16 @@ ast.first().children.size() > 0 || // start with 0 args
 			 * and to add any additional values */
 			callArguments(cg, args);
 			cg.invokeDirect(fn.value);
+		} else if (isGlobal(fn)) {
+			cg.constant(fn.value);
+			if (args.token != Token.AT &&
+					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+				directArguments(cg, args);
+				cg.invokeGlobal(args.children.size());
+			} else {
+				callArguments(cg, args);
+				cg.invokeGlobal();
+			}
 		} else {
 			expression(cg, fn);
 			// TODO move this into callArguments
@@ -792,6 +802,11 @@ ast.first().children.size() > 0 || // start with 0 args
 	private static boolean isDirect(AstNode fn) {
 		return fn.token == Token.IDENTIFIER &&
 				(fn.value.equals("Object") || fn.value.equals("Record"));
+	}
+
+	private boolean isGlobal(AstNode fn) {
+		return fn.token == Token.IDENTIFIER &&
+				Character.isUpperCase(fn.value.charAt(0));
 	}
 
 	private class VarArgs {
