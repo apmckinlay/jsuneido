@@ -15,7 +15,7 @@ public class Project extends Query1 {
 	private boolean first = true;
 	private Header hdr;
 	// used by LOOKUP
-	private TreeMap<Record, Object[]> map = null;
+	private Map<Record, Object[]> map = null;
 	private final Keyrange sel = new Keyrange();
 	private boolean rewound = true;
 	private boolean indexed;
@@ -292,7 +292,7 @@ public class Project extends Query1 {
 			first = false;
 			hdr = header();
 			if (strategy == Strategy.LOOKUP)
-				map = new TreeMap<Record, Object[]>();
+				map = new HashMap<Record, Object[]>();
 				indexed = false;
 		}
 		switch (strategy) {

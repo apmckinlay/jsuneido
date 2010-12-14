@@ -257,7 +257,10 @@ public class ByteBuf {
 
 	@Override
 	public int hashCode() {
-		throw new UnsupportedOperationException();
+		int hashCode = 1;
+		for (int i = 0; i < size(); ++i)
+		      hashCode = 31 * hashCode + get(i);
+		return hashCode;
 	}
 
 	@Override

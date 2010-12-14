@@ -603,7 +603,7 @@ public class Record
 
 	@Override
 	public int hashCode() {
-		throw new UnsupportedOperationException();
+		return buf.hashCode();
 	}
 
 	@Override
