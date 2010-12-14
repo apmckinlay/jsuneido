@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -13,9 +17,6 @@ import suneido.util.ByteBuf;
  * Btree implementation.
  * Uses {@link Slots} to store nodes.
  * @see BtreeIndex
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small>
  */
 @NotThreadSafe
 public class Btree {
@@ -106,7 +107,7 @@ public class Btree {
 			TreeNode tn = new TreeNode(adr);
 			tn.isValid(Mode.OPEN);
 			for (int i = 0; i < tn.slots.size(); ++i)
-				isValid(tn.slots.get(i).adrs[0], level + 1, links);
+				isValid(tn.slots.get(i).adr, level + 1, links);
 			isValid(tn.next(), level + 1, links);
 		} else {
 			LeafNode ln = new LeafNode(adr);
@@ -155,7 +156,7 @@ public class Btree {
 					key, adr) : tleft.insert(key, adr)))
 				throw new SuException("index entry too large to insert");
 			key = tleft.slots.back().key.dup();
-			tleft.setNext(tleft.slots.back().adrs[0]);
+			tleft.setNext(tleft.slots.back().adr);
 			tleft.slots.removeLast();
 			adr = tleft.adr;
 		}
@@ -228,9 +229,9 @@ public class Btree {
 			TreeNode node = new TreeNode(root());
 			Slots slots = node.slots;
 			int org = lowerBound(slots, new Slot(from));
-			long fromadr = org < slots.size() ? slots.get(org).adrs[0] : node.next();
+			long fromadr = org < slots.size() ? slots.get(org).adr : node.next();
 			int end = lowerBound(slots, new Slot(to));
-			long toadr = end < slots.size() ? slots.get(end).adrs[0] : node.next();
+			long toadr = end < slots.size() ? slots.get(end).adr : node.next();
 			int n = slots.size() + 1;
 			if (n > 20)
 				return (float) (end - org) / n;
@@ -412,7 +413,7 @@ public class Btree {
 		long find(Record key)
 			{
 			int i = lowerBound(slots, new Slot(key));
-			return i < slots.size() ? slots.get(i).adrs[0] : slots.next();
+			return i < slots.size() ? slots.get(i).adr : slots.next();
 			}
 
 		void erase(Record key, long adr) {
@@ -427,9 +428,9 @@ public class Btree {
 			if (slot == slots.size()) {
 				assert adr == slots.next();
 				--slot;
-				slots.setNext(slots.get(slot).adrs[0]);
+				slots.setNext(slots.get(slot).adr);
 			} else
-				assert adr == slots.get(slot).adrs[0];
+				assert adr == slots.get(slot).adr;
 			slots.remove(slot);
 		}
 		TreeNode split(Record key) {
@@ -495,7 +496,7 @@ public class Btree {
 	public Iter first() {
 		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
-			adr = new TreeNode(adr).slots.front().adrs[0];
+			adr = new TreeNode(adr).slots.front().adr;
 		LeafNode leaf = new LeafNode(adr);
 		verify(leaf.prev() == 0);
 		if (adr == root() && leaf.isEmpty())
@@ -626,7 +627,7 @@ public class Btree {
 			int i = 0;
 			for (; i < tn.slots.size(); ++i)
 				{
-				print(tn.slots.get(i).adrs[0], level + 1);
+				print(tn.slots.get(i).adr, level + 1);
 				for (int j = 0; j < level; ++j)
 					System.out.print("    ");
 				System.out.println(i + ": " + tn.slots.get(i).key.get(0));

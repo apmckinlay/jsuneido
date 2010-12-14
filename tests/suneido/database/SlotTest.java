@@ -1,6 +1,5 @@
 package suneido.database;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
@@ -20,15 +19,12 @@ public class SlotTest {
 		slot = new Slot(r, 1200);
 		assertEquals(r.packSize() + 4, slot.packSize());
 
-		slot = new Slot(r, 1200, 3400);
-		assertEquals(r.packSize() + 8, slot.packSize());
-
 		ByteBuffer buf = ByteBuffer.allocate(slot.packSize());
 		slot.pack(buf);
 		buf.rewind();
 		Slot slot2 = Slot.unpack(buf);
 		assertEquals(slot.key, slot2.key);
-		assertArrayEquals(slot.adrs, slot2.adrs);
+		assertEquals(slot.adr, slot2.adr);
 		}
 
 }
