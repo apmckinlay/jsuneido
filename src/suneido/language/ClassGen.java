@@ -3,7 +3,8 @@ package suneido.language;
 import static org.objectweb.asm.Opcodes.*;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.TryCatchBlockSorter;
@@ -13,6 +14,8 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import suneido.SuException;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 /**
  * Used by {@link AstCompile} to generate Java classes.
@@ -37,11 +40,12 @@ public class ClassGen {
 	private final int iBlockParams; // where block params start in locals
 	private final List<Object> constants = new ArrayList<Object>();
 	final List<String> locals;
-	final Map<String,Integer> javaLocals = new HashMap<String,Integer>();
+	final BiMap<String,Integer> javaLocals = HashBiMap.create();
 	private int nextJavaLocal;
 	private Object blockReturnCatcher = null;
 	public final boolean useArgsArray;
 	public final boolean isBlock;
+	public final boolean trueBlock;
 //	private List<String> javaLocalsNames = new ArrayList<String>();
 //	{ Collections.addAll(javaLocalsNames, "java$this", "this", "$args", "$constants"); }
 
@@ -54,6 +58,7 @@ public class ClassGen {
 		this.locals = locals == null ? new ArrayList<String>() : locals;
 		this.useArgsArray = useArgsArray;
 		this.isBlock = isBlock;
+		trueBlock = isBlock && base.equals("SuCallable");
 		iBlockParams = this.locals.size();
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv = classVisitor(pw);
@@ -91,7 +96,7 @@ public class ClassGen {
 		}
 		mv.visitCode();
 		mv.visitLabel(startLabel);
-		if (! isBlock && useArgsArray)
+		if (! trueBlock && useArgsArray)
 			massage();
 		loadConstants();
 	}
@@ -297,6 +302,10 @@ public class ClassGen {
 	}
 
 	public int javaLocal(String name) {
+		if (name.endsWith("?"))
+			name = name.substring(0, name.length() - 1) + "_Q_";
+		if (name.endsWith("!"))
+			name = name.substring(0, name.length() - 1) + "_E_";
 		Integer i = javaLocals.get(name);
 		if (i != null)
 			return i;
@@ -429,8 +438,9 @@ public class ClassGen {
 	}
 
 	public void thrower() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "thrower",
-				"(Ljava/lang/Object;)V");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "exception",
+				"(Ljava/lang/Object;)Lsuneido/SuException;");
+		mv.visitInsn(ATHROW);
 	}
 
 	public void blockThrow(String which) {
@@ -619,6 +629,12 @@ public class ClassGen {
 					startLabel, endLabel, ARGS);
 		mv.visitLocalVariable("constants", "[Ljava/lang/Object;", null,
 				startLabel, endLabel, CONSTANTS);
+		BiMap<Integer, String> bm = javaLocals.inverse();
+		for (int i = 0; i < nextJavaLocal; ++i)
+			if (bm.containsKey(i))
+				mv.visitLocalVariable(bm.get(i), "[Ljava/lang/Object;", null,
+						startLabel, endLabel, i);
+
 		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 		cv.visitEnd();
@@ -639,13 +655,13 @@ public class ClassGen {
 				? null : constants.toArray(arrayOfObject);
 
 		FunctionSpec fspec;
-		if (isBlock) {
+		if (trueBlock) {
 			fspec = new BlockSpec(name, blockLocals(), nParams, atParam, iBlockParams);
 			hideBlockParams();
 		} else
 			fspec = new FunctionSpec(name, locals.toArray(arrayOfString),
 					nParams, constantsArray, nDefaults, atParam);
-
+//System.out.println(name + " " + fspec);
 		callable.params = fspec;
 		callable.constants = constantsArray;
 		callable.isBlock = isBlock;

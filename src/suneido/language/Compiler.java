@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+
 @ThreadSafe
 public class Compiler {
 
@@ -34,8 +37,8 @@ public class Compiler {
 	}
 
 	public static void main(String[] args) throws IOException {
-//		String s = Files.toString(new File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { while (false isnt (x = A()) and false isnt (y = B())) C(x, y) }";
+		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
+//		String s = "function () { a = b = c = 1; return d }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);

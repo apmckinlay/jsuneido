@@ -5,6 +5,7 @@
 package suneido;
 
 /*
+ CheckLibraries()
  CheckLibrary('stdlib')
 
  TestRunner.Run(#(stdlib), skipTags: #(gui, windows), quit_on_failure:)

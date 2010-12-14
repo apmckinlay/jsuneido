@@ -63,7 +63,7 @@ abstract public class SuCallable extends SuValue {
 		return false;
 	}
 
-	private boolean isBlock(Object x) {
+	public static boolean isBlock(Object x) {
 		return x instanceof SuCallable && ((SuCallable) x).isBlock;
 	}
 

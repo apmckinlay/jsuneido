@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Suneido classes are instances of SuClass
  * with the methods stored in members.
- * The methods are instances of generated classes derived from {@link SuFunction})
+ * The methods are instances of generated classes derived from {@link SuCallable})
  * Suneido instances are instances of {@link SuInstance}
  */
 public class SuClass extends SuValue {
@@ -307,7 +307,7 @@ public class SuClass extends SuValue {
 
 	private Object methodClass(String method) {
 		Object value = members.get(method);
-		if (value instanceof SuFunction)
+		if (value instanceof SuCallable)
 			return this;
 		if (value == null && baseGlobal != null)
 			return base().methodClass(method);
@@ -320,7 +320,7 @@ public class SuClass extends SuValue {
 		public Object eval1(Object self, Object a) {
 			String key = Ops.toStr(a);
 			Object x = get2(key);
-			return x instanceof SuFunction;
+			return x instanceof SuCallable;
 		}
 	}
 

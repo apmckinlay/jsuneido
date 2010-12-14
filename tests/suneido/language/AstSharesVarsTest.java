@@ -24,6 +24,8 @@ public class AstSharesVarsTest {
 		test(true, "b = { this }");
 		test(false, "this; b = { }");
 		test(true, "b = { super.f() }");
+		test(true, "for (x in ob) Do() { x }");
+		test(true, "try f() catch (e) Do() { e }");
 	}
 
 	public static void test(boolean hasShared, String s) {
