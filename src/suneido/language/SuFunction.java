@@ -13,8 +13,9 @@ public abstract class SuFunction extends SuCallable {
 
 	@Override
 	public String typeName() {
-		// TODO return "Builtin" for suneido.language.builtin
-		return "Function";
+		return getClass().getName().startsWith("suneido.language.builtin")
+			? "Builtin"
+			: isBlock ? "Block" : "Function";
 	}
 
 	@Override

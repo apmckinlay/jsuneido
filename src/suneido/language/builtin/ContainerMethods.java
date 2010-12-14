@@ -221,7 +221,8 @@ public class ContainerMethods {
 		args = Args.massage(keyValueFS, args);
 		Object x = c.getIfPresent(args[0]);
 		if (x == null)
-			x = args[1] instanceof SuBlock ? Ops.call(args[1]) : args[1];
+			x = args[1] instanceof SuBlock || SuCallable.isBlock(args[1])
+					? Ops.call(args[1]) : args[1];
 		return x;
 	}
 

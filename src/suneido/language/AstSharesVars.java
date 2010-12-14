@@ -48,22 +48,9 @@ public class AstSharesVars {
 				++blockNest;
 				break;
 			case IDENTIFIER:
-				String id = ast.value;
-				if (blockNest == 0) {
-					if (blockVars.contains(id))
-						hasSharedVars = true;
-					else
-						outerVars.add(id);
-				} else if (inBlockParams)
-					blockParams.top().add(id);
-				else if ("this".equals(id))
-					hasSharedVars = true;
-				else if (! blockParams.top().contains(id)) {
-					if (outerVars.contains(id))
-						hasSharedVars = true;
-					else
-						blockVars.add(id);
-				}
+			case FOR_IN:
+			case CATCH:
+				check(ast.value);
 				break;
 			case SELFREF:
 			case SUPER:
@@ -72,6 +59,24 @@ public class AstSharesVars {
 				break;
 			}
 			return ! hasSharedVars; // stop when you know
+		}
+
+		private void check(String id) {
+			if (blockNest == 0) {
+				if (blockVars.contains(id))
+					hasSharedVars = true;
+				else
+					outerVars.add(id);
+			} else if (inBlockParams)
+				blockParams.top().add(id);
+			else if ("this".equals(id))
+				hasSharedVars = true;
+			else if (! blockParams.top().contains(id)) {
+				if (outerVars.contains(id))
+					hasSharedVars = true;
+				else
+					blockVars.add(id);
+			}
 		}
 
 		@Override

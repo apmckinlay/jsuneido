@@ -174,9 +174,8 @@ ast.first().children.size() > 0 || // start with 0 args
 		}
 		try {
 			return cg.end();
-		} catch (VerifyError e) {
-			System.out.println(ast);
-			throw e;
+		} catch (Error e) {
+			throw new SuException("error compiling " + curName, e);
 		}
 	}
 
@@ -581,9 +580,11 @@ ast.first().children.size() > 0 || // start with 0 args
 			String name = ast.value;
 			if (isGlobal(name))
 				cg.globalLoad(name);
-			else if (name.startsWith("_"))
-				throw new SuException("jSuneido does not support _dynamic variables");
-			else
+			else if (name.startsWith("_")) {
+				cg.constant("jSuneido does not support _dynamic variables (" + name + ")");
+				cg.thrower();
+				cg.aconst_null(); // not needed if throw is in-line
+			} else
 				cg.localLoad(name);
 			if (option == ExprOption.POP)
 				addNullCheck(cg, ast);
