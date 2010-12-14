@@ -550,7 +550,7 @@ public class CompileTest {
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
-			{ "thrower (Object;)V", "throw" },
+			{ "exception (Object;)Lsuneido/SuException;, ATHROW", "throw" },
 			{ "TRYCATCHBLOCK L0 L1 L2 suneido/SuException", "try L0 L1 L2" },
 			{ "TRYCATCHBLOCK L0 L1 L2 suneido/language/BlockReturnException", "try L0 L1 L2" },
 			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
