@@ -2,9 +2,9 @@ package suneido.language.builtin;
 
 import java.util.Date;
 
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class UnixTime extends BuiltinFunction0 {
+public class UnixTime extends SuFunction0 {
 
 	@Override
 	public Object call0() {

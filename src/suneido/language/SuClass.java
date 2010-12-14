@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Suneido classes are instances of SuClass
  * with the methods stored in members.
- * The methods are instances of generated classes derived from {@link SuFunction})
+ * The methods are instances of generated classes derived from {@link SuCallable})
  * Suneido instances are instances of {@link SuInstance}
  */
 public class SuClass extends SuValue {
@@ -51,8 +51,8 @@ public class SuClass extends SuValue {
 
 	protected void linkMethods() {
 		for (Object v : members.values())
-			if (v instanceof SuFunction) {
-				SuFunction f = (SuFunction) v;
+			if (v instanceof SuCallable) {
+				SuCallable f = (SuCallable) v;
 				f.myClass = this;
 				for (Object c : f.constants)
 					if (c instanceof SuCallable) // blocks
@@ -68,16 +68,16 @@ public class SuClass extends SuValue {
 	public Object get(SuValue self, Object member) {
 		Object value = get2(member);
 		if (value != null)
-			return value instanceof SuFunction && self != null
-					? new SuBoundMethod(self, (SuFunction) value) : value;
+			return value instanceof SuCallable && self != null
+					? new SuBoundMethod(self, (SuCallable) value) : value;
 		if (hasGetters) {
 			String getter = ("Get_" + member).intern();
 			value = get2(getter);
-			if (value instanceof SuFunction)
-				return ((SuFunction) value).eval(self);
+			if (value instanceof SuCallable)
+				return ((SuCallable) value).eval(self);
 			value = get2("Get_");
-			if (value instanceof SuFunction)
-				return ((SuFunction) value).eval(self, member);
+			if (value instanceof SuCallable)
+				return ((SuCallable) value).eval(self, member);
 			hasGetters = false;
 		}
 		throw new SuException("member not found: " + member);
@@ -203,11 +203,11 @@ public class SuClass extends SuValue {
 		// if there is a Default method
 		// call it with the method added to the beginning of args
 		Object fn = get2("Default");
-		if (fn instanceof SuFunction) {
+		if (fn instanceof SuCallable) {
 			Object newargs[] = new Object[1 + args.length];
 			newargs[0] = method;
 			System.arraycopy(args, 0, newargs, 1, args.length);
-			return ((SuFunction) fn).eval(self, newargs);
+			return ((SuCallable) fn).eval(self, newargs);
 		}
 		throw methodNotFound(self, method);
 	}
@@ -230,7 +230,7 @@ public class SuClass extends SuValue {
 		return (SuClass) base;
 	}
 
-	private class Base extends BuiltinMethod0 {
+	private class Base extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			if (baseGlobal == null)
@@ -239,7 +239,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class BaseQ extends BuiltinMethod1 {
+	private class BaseQ extends SuMethod1 {
 		@Override
 		public Object eval1(Object self, Object a) {
 			return hasBase(a);
@@ -261,7 +261,7 @@ public class SuClass extends SuValue {
 		}
 	};
 
-	private class GetDefault extends BuiltinMethod2 {
+	private class GetDefault extends SuMethod2 {
 		{ params = new FunctionSpec("key", "block"); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
@@ -275,7 +275,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class Members extends BuiltinMethod0 {
+	private class Members extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			SuContainer c = new SuContainer();
@@ -286,7 +286,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class MemberQ extends BuiltinMethod1 {
+	private class MemberQ extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -296,7 +296,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private class MethodClass extends BuiltinMethod1 {
+	private class MethodClass extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 			public Object eval1(Object self, Object a) {
@@ -307,20 +307,20 @@ public class SuClass extends SuValue {
 
 	private Object methodClass(String method) {
 		Object value = members.get(method);
-		if (value instanceof SuFunction)
+		if (value instanceof SuCallable)
 			return this;
 		if (value == null && baseGlobal != null)
 			return base().methodClass(method);
 		return Boolean.FALSE;
 	}
 
-	private class MethodQ extends BuiltinMethod1 {
+	private class MethodQ extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {
 			String key = Ops.toStr(a);
 			Object x = get2(key);
-			return x instanceof SuFunction;
+			return x instanceof SuCallable;
 		}
 	}
 

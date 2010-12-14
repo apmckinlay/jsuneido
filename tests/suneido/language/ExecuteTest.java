@@ -70,14 +70,14 @@ public class ExecuteTest {
 		test("true ? 123 : 456", "123");
 		test("false ? 123 : 456", "456");
 		test("true ? x = 1 : 2", "1");
-		test("true ? x = 1 : 2", "1");
-		test("true ? x = 1 : 2; x", "1");
+		test("true ? x = 1 : x = 2", "1");
+		test("true ? x = 1 : x = 2; x", "1");
 	}
 	@Test public void test_if() {
-		test("if (true) x = 1; x", "1");
+		test("if (true) x = 1; else x = 2; x", "1");
 		test("if (false) x = 1; else x = 2; x", "2");
 		test("if (true) x = 1; else x = 2; x", "1");
-		test("if (x = true) y = 123; y", "123");
+		test("if (x = true) y = 123; else y = 456; y", "123");
 	}
 	@Test public void test_lt() {
 		test("2 < 3", "true");
@@ -126,9 +126,9 @@ public class ExecuteTest {
 		test("for (i = 0; ; ++i) if (i > 5) break; i", "6");
 	}
 	@Test public void test_switch() {
-		test("switch(1) { case 0: ; case 1: x='one'; }; x", "'one'");
-		test("switch(1) { case 0,1,2: x='one'; }; x", "'one'");
-		test("switch(2) { case 1: x='one'; default: x='def' }; x", "'def'");
+		test("x=''; switch(1) { case 0: ; case 1: x='one'; }; x", "'one'");
+		test("x=''; switch(1) { case 0,1,2: x='one'; }; x", "'one'");
+		test("x=''; switch(2) { case 1: x='one'; default: x='def' }; x", "'def'");
 	}
 	@Test public void test_block() {
 		test("b = { 123 }; b()", "123");
@@ -143,6 +143,8 @@ public class ExecuteTest {
 				"123");
 		test("function () { b = { return 123 }; do { b() } while(false); 456 }()",
 				"123");
+		test("run = function (block) { block() }; run() { run() { return 123 } }; 456", "123");
+
 		test("b = { break }; try b() catch (e) return e", "'block:break'");
 		test("b = { continue }; try b() catch (e) return e", "'block:continue'");
 

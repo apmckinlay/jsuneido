@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.language.*;
 import suneido.util.JarPath;
 
-public class ExePath extends BuiltinFunction {
+public class ExePath extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {

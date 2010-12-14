@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.SuException;
 import suneido.language.*;
 
-public class SystemFunction extends BuiltinFunction1 {
+public class SystemFunction extends SuFunction1 {
 
 	{ params = FunctionSpec.string; }
 

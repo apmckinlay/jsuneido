@@ -36,7 +36,7 @@ public class NumberMethods extends PrimitiveMethods {
 				n instanceof Short || n instanceof Byte;
 	}
 
-	public static class Frac extends BuiltinMethod0 {
+	public static class Frac extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			if (isInt(self) || self instanceof BigInteger)
@@ -45,7 +45,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Int extends BuiltinMethod0 {
+	public static class Int extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return trunc(self);
@@ -61,7 +61,7 @@ public class NumberMethods extends PrimitiveMethods {
 			return (long) ((Number) n).doubleValue();
 	}
 
-	public static class Hex extends BuiltinMethod0 {
+	public static class Hex extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			long n = ((Number) self).longValue();
@@ -69,7 +69,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Chr extends BuiltinMethod0 {
+	public static class Chr extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			long n = ((Number) self).longValue();
@@ -77,7 +77,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Format extends BuiltinMethod1 {
+	public static class Format extends SuMethod1 {
 		{ params = new FunctionSpec("mask"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -161,7 +161,7 @@ public class NumberMethods extends PrimitiveMethods {
 		return dst.toString();
 	}
 
-	public static class Pow extends BuiltinMethod1 {
+	public static class Pow extends SuMethod1 {
 		{ params = new FunctionSpec("number"); }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -171,7 +171,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Cos extends BuiltinMethod0 {
+	public static class Cos extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -179,7 +179,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Sin extends BuiltinMethod0 {
+	public static class Sin extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -187,7 +187,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Tan extends BuiltinMethod0 {
+	public static class Tan extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -195,7 +195,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class ACos extends BuiltinMethod0 {
+	public static class ACos extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -203,7 +203,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class ASin extends BuiltinMethod0 {
+	public static class ASin extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -211,7 +211,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class ATan extends BuiltinMethod0 {
+	public static class ATan extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -219,7 +219,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Exp extends BuiltinMethod0 {
+	public static class Exp extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -227,7 +227,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Log extends BuiltinMethod0 {
+	public static class Log extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -235,7 +235,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Log10 extends BuiltinMethod0 {
+	public static class Log10 extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();
@@ -243,7 +243,7 @@ public class NumberMethods extends PrimitiveMethods {
 		}
 	}
 
-	public static class Sqrt extends BuiltinMethod0 {
+	public static class Sqrt extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			double d = ((Number) self).doubleValue();

@@ -4,7 +4,7 @@ import suneido.SuContainer;
 import suneido.database.Triggers;
 import suneido.language.*;
 
-public class DoWithoutTriggers extends BuiltinFunction {
+public class DoWithoutTriggers extends SuFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("tables", "block");
 

@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import suneido.Repl.Print;
 import suneido.database.server.*;
 import suneido.database.tools.*;
-import suneido.language.Globals;
 
 /**
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -64,7 +62,6 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			Globals.builtin("Print", new Print());
 			System.out.println(
 					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
 			if (! System.getProperty("java.vm.name").contains("Server VM"))

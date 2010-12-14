@@ -4,12 +4,12 @@ import java.io.File;
 
 import suneido.language.*;
 
-public class CreateDirectory extends BuiltinFunction {
+public class CreateDirectory extends SuFunction1 {
+	{ params = FunctionSpec.string; }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.string, args);
-		String path = Ops.toStr(args[0]);
+	public Object call1(Object a) {
+		String path = Ops.toStr(a);
 		return new File(path).mkdir();
 	}
 

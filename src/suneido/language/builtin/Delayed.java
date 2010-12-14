@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import suneido.database.server.DbmsServer;
 import suneido.language.*;
 
-public class Delayed extends BuiltinFunction {
+public class Delayed extends SuFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("ms", "function");
 

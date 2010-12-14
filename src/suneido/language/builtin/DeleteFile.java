@@ -6,7 +6,7 @@ import java.io.File;
 
 import suneido.language.*;
 
-public class DeleteFile extends BuiltinFunction {
+public class DeleteFile extends SuFunction {
 
 	private static final FunctionSpec fs = new FunctionSpec("filename");
 

@@ -131,7 +131,11 @@ public class AstCompile {
 		nameBegin(name, "$f");
 		boolean prevInMethod = inMethod;
 		inMethod = (ast.token == Token.METHOD);
-		SuCallable fn = javaClass(ast, "SuFunction", "eval", null, pw);
+		boolean method = inMethod || AstUsesThis.check(ast);
+		SuCallable fn = javaClass(ast,
+				method ? "SuMethod" : "SuFunction",
+				method ? "eval" : "call",
+				null, pw);
 		inMethod = prevInMethod;
 		nameEnd();
 		return fn;
@@ -144,15 +148,21 @@ public class AstCompile {
 		return fn;
 	}
 
+	/** Used by foldFunction and block
+	 * @param locals The outer locals for a block. Not used for functions.
+	 */
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals, PrintWriter pw) {
-		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(base, curName, method, locals, pw);
+		ClassGen cg = new ClassGen(base, curName, method, locals,
+base == "SuCallable" || // block
+ast.first().children.size() > 0 || // start with 0 args
+				AstSharesVars.check(ast),
+				ast.token == Token.BLOCK,
+				pw);
 
+		List<AstNode> params = ast.first().children;
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
-		if (base.equals("SuCallable") && params.isEmpty())
-			cg.itParam();
 
 		superInit(cg, ast);
 
@@ -162,7 +172,11 @@ public class AstCompile {
 			superChecks(i, stat);
 			statement(cg, stat, null, i == statements.size() - 1);
 		}
-		return cg.end();
+		try {
+			return cg.end();
+		} catch (Error e) {
+			throw new SuException("error compiling " + curName, e);
+		}
 	}
 
 	private void superChecks(int i, AstNode stat) {
@@ -334,8 +348,7 @@ public class AstCompile {
 		Object loop = cg.placeLabel();
 		compound(cg, ast.first(), labels);
 		cg.placeLabel(labels.cont);
-		boolIntExpression(cg, ast.second());
-		cg.ifTrue(loop);
+		whileExpr(cg, loop, ast.second());
 		cg.placeLabel(labels.brk);
 	}
 
@@ -360,8 +373,7 @@ public class AstCompile {
 			cg.jump(loop);
 		else {
 			cg.placeLabel(start);
-			boolIntExpression(cg, cond); // test
-			cg.ifTrue(loop);
+			whileExpr(cg, loop, cond); // condition
 		}
 		cg.placeLabel(labels.brk);
 	}
@@ -389,16 +401,40 @@ public class AstCompile {
 	}
 
 	private void ifStatement(ClassGen cg, AstNode ast, Labels labels) {
-		boolIntExpression(cg, ast.first());
-		Object label = cg.ifFalse();
+		Object ifFalse = cg.label();
+		ifExpr(cg, ifFalse, ast.first());
 		compound(cg, ast.second(), labels);
 		if (ast.third() != null) {
 			Object skip = cg.jump();
-			cg.placeLabel(label);
+			cg.placeLabel(ifFalse);
 			compound(cg, ast.third(), labels);
 			cg.placeLabel(skip);
 		} else
-			cg.placeLabel(label);
+			cg.placeLabel(ifFalse);
+	}
+
+	private void ifExpr(ClassGen cg, Object ifFalse, AstNode expr) {
+		if (expr.token == Token.AND) {
+			for (AstNode e : expr.children) {
+				boolIntExpression(cg, e);
+				cg.ifFalse(ifFalse);
+			}
+		} else if (expr.token == Token.OR) {
+			Object ifTrue = cg.label();
+			int n = expr.children.size();
+			for (int i = 0; i < n; ++i) {
+				AstNode e = expr.children.get(i);
+				boolIntExpression(cg, e);
+				if (i < n - 1)
+					cg.ifTrue(ifTrue);
+				else // last one
+					cg.ifFalse(ifFalse);
+			}
+			cg.placeLabel(ifTrue);
+		} else {
+			boolIntExpression(cg, expr);
+			cg.ifFalse(ifFalse);
+		}
 	}
 
 	private void boolIntExpression(ClassGen cg, AstNode ast) {
@@ -470,9 +506,33 @@ public class AstCompile {
 		Object label = cg.placeLabel();
 		compound(cg, ast.second(), labels);
 		cg.placeLabel(labels.cont);
-		boolIntExpression(cg, ast.first());
-		cg.ifTrue(label);
+		whileExpr(cg, label, ast.first());
 		cg.placeLabel(labels.brk);
+	}
+
+	/** opposite of ifExpr */
+	private void whileExpr(ClassGen cg, Object ifTrue, AstNode expr) {
+		if (expr.token == Token.OR) {
+			for (AstNode e : expr.children) {
+				boolIntExpression(cg, e);
+				cg.ifTrue(ifTrue);
+			}
+		} else if (expr.token == Token.AND) {
+			Object ifFalse = cg.label();
+			int n = expr.children.size();
+			for (int i = 0; i < n; ++i) {
+				AstNode e = expr.children.get(i);
+				boolIntExpression(cg, e);
+				if (i < n - 1)
+					cg.ifFalse(ifFalse);
+				else // last one
+					cg.ifTrue(ifTrue);
+			}
+			cg.placeLabel(ifFalse);
+		} else {
+			boolIntExpression(cg, expr);
+			cg.ifTrue(ifTrue);
+		}
 	}
 
 	private void returnStatement(ClassGen cg, AstNode ast) {
@@ -520,7 +580,11 @@ public class AstCompile {
 			String name = ast.value;
 			if (isGlobal(name))
 				cg.globalLoad(name);
-			else
+			else if (name.startsWith("_")) {
+				cg.constant("jSuneido does not support _dynamic variables (" + name + ")");
+				cg.thrower();
+				cg.aconst_null(); // not needed if throw is in-line
+			} else
 				cg.localLoad(name);
 			if (option == ExprOption.POP)
 				addNullCheck(cg, ast);
@@ -608,17 +672,27 @@ public class AstCompile {
 			newExpression(cg, ast);
 			break;
 		case AND:
-			andExpression(cg, ast);
+			andExpression(cg, ast, option == ExprOption.INTBOOL);
+			if (option == ExprOption.INTBOOL)
+				resultType = ExprType.INTBOOL;
 			break;
 		case OR:
-			orExpression(cg, ast);
+			orExpression(cg, ast, option == ExprOption.INTBOOL);
+			if (option == ExprOption.INTBOOL)
+				resultType = ExprType.INTBOOL;
 			break;
 		case Q_MARK:
 			trinaryExpression(cg, ast);
 			break;
 		case BLOCK:
-			int iBlockDef = cg.addConstant(block(cg, ast));
-			cg.block(iBlockDef);
+			if (cg.useArgsArray) {
+				int iBlockDef = cg.addConstant(block(cg, ast));
+				cg.block(iBlockDef);
+			} else {
+				SuCallable f = foldFunction(null, ast);
+				cg.constant(f);
+				cg.addBlockReturnCatcher();
+			}
 			break;
 		case RVALUE:
 			return expression(cg, ast.first(), option);
@@ -636,38 +710,38 @@ public class AstCompile {
 	}
 
 	private void trinaryExpression(ClassGen cg, AstNode ast) {
-		boolIntExpression(cg, ast.first());
-		Object f = cg.ifFalse();
+		Object ifFalse = cg.label();
+		ifExpr(cg, ifFalse, ast.first());
 		expression(cg, ast.second());
 		Object end = cg.jump();
-		cg.placeLabel(f);
+		cg.placeLabel(ifFalse);
 		expression(cg, ast.third());
 		cg.placeLabel(end);
 	}
 
-	private void andExpression(ClassGen cg, AstNode ast) {
+	private void andExpression(ClassGen cg, AstNode ast, boolean intBool) {
 		Object f = cg.label();
 		for (AstNode expr : ast.children) {
 			boolIntExpression(cg, expr);
 			cg.ifFalse(f);
 		}
-		cg.constant(Boolean.TRUE);
+		cg.bool(true, intBool);
 		Object end = cg.jump();
 		cg.placeLabel(f);
-		cg.constant(Boolean.FALSE);
+		cg.bool(false, intBool);
 		cg.placeLabel(end);
 	}
 
-	private void orExpression(ClassGen cg, AstNode ast) {
+	private void orExpression(ClassGen cg, AstNode ast, boolean intBool) {
 		Object t = cg.label();
 		for (AstNode expr : ast.children) {
 			boolIntExpression(cg, expr);
 			cg.ifTrue(t);
 		}
-		cg.constant(Boolean.FALSE);
+		cg.bool(false, intBool);
 		Object end = cg.jump();
 		cg.placeLabel(t);
-		cg.constant(Boolean.TRUE);
+		cg.bool(true, intBool);
 		cg.placeLabel(end);
 	}
 

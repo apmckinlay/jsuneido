@@ -5,24 +5,25 @@
 package suneido.language;
 
 /**
- * A Suneido function compiles to a class that extends SuFunction
- * with the definition in a "call" method
+ * Standalone functions derive from SuFunction and define eval<p>
+ * Functions that reference "this" derive from {@link SuMethod} and define eval<p>
+ * For simple args {@link SuFunction0} ... {@link SuFunction9} are used
  */
 public abstract class SuFunction extends SuCallable {
 
 	@Override
 	public String typeName() {
-		return "Function";
+		return getClass().getName().startsWith("suneido.language.builtin")
+			? "Builtin"
+			: isBlock ? "Block" : "Function";
 	}
 
-	/**
-	 * compiled Suneido functions define eval so there is a self
-	 * in case it is referenced by the code
-	 * but calls don't pass self so we need this
-	 */
 	@Override
-	public Object call(Object...args) {
-		return eval(this, args);
+	public abstract Object call(Object... args);
+
+	@Override
+	public Object eval(Object self, Object... args) {
+		return call(args);
 	}
 
 }

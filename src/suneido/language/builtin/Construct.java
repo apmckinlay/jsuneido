@@ -5,7 +5,7 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.language.*;
 
-public class Construct extends BuiltinFunction {
+public class Construct extends SuFunction {
 
 	private static final FunctionSpec constructFS =
 			new FunctionSpec(array("what", "suffix"), "");

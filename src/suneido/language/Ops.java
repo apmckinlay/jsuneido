@@ -684,8 +684,8 @@ public final class Ops {
 		return x.getClass().getName();
 	}
 
-	public static void thrower(Object e) {
-		throw new SuException(e);
+	public static SuException exception(Object e) {
+		return new SuException(e);
 	}
 	public static void throwUninitializedVariable() {
 		throw new SuException("uninitialized variable");

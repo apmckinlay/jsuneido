@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import suneido.Suneido;
 import suneido.language.*;
 
-public class ThreadFunction extends BuiltinFunction {
+public class ThreadFunction extends SuFunction {
 
 	public static final FunctionSpec fs = new FunctionSpec("callable");
 

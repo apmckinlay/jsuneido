@@ -4,9 +4,13 @@
 
 package suneido.language;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 @ThreadSafe
 public class Compiler {
@@ -32,13 +36,15 @@ public class Compiler {
 		return Ops.call(f, noArgs);
 	}
 
-	public static void main(String[] args) {
-		String s = "function () { Date().GMTime() }";
+	public static void main(String[] args) throws IOException {
+		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
+//		String s = "function () { a = b = c = 1; return d }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
-		Object x = Ops.call(f, noArgs);
-		System.out.println(" => " + x);
+//		Object x = Ops.call0(f);
+//		Object x = Ops.call1(f, 1);
+//		System.out.println(" => " + x);
 	}
 
 }

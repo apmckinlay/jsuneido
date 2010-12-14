@@ -11,10 +11,10 @@ import java.util.concurrent.*;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.Suneido;
 import suneido.database.TheDb;
 import suneido.language.Compiler;
-import suneido.language.Globals;
 import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
 
@@ -26,7 +26,6 @@ public class DbmsServerBySelect {
 
 	public static void run(int port) {
 		TheDb.open();
-		Globals.builtin("Print", new Repl.Print());
 		try {
 			Compiler.eval("JInit()");
 		} catch (Throwable e) {

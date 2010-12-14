@@ -4,7 +4,7 @@
 
 package suneido.language;
 
-public abstract class BuiltinMethod1 extends SuMethod {
+public abstract class SuMethod1 extends SuMethod {
 	{ params = new FunctionSpec("value"); }
 
 	@Override
