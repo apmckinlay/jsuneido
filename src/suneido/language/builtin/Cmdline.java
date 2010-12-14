@@ -1,9 +1,9 @@
 package suneido.language.builtin;
 
 import suneido.Suneido;
-import suneido.language.BuiltinFunction0;
+import suneido.language.SuFunction0;
 
-public class Cmdline extends BuiltinFunction0 {
+public class Cmdline extends SuFunction0 {
 
 	@Override
 	public Object call0() {

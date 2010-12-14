@@ -4,10 +4,10 @@
 
 package suneido.language.builtin;
 
-import suneido.language.BuiltinFunction1;
+import suneido.language.SuFunction1;
 import suneido.language.FunctionSpec;
 
-public class Frame extends BuiltinFunction1 {
+public class Frame extends SuFunction1 {
 	{ params = new FunctionSpec("offset"); }
 
 	@Override

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import suneido.SuContainer;
 import suneido.language.*;
 
-public class Dir extends BuiltinFunction {
+public class Dir extends SuFunction {
 
 	private static final FunctionSpec fs =
 		new FunctionSpec(array("path", "files", "details"),

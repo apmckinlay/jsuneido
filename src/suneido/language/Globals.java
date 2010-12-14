@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import java.util.Map;
@@ -11,9 +15,6 @@ import suneido.language.builtin.*;
 /**
  * Stores global names and values.
  * Uses the class itself as a singleton by making everything static.
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class Globals {
 	private static final Map<String, Object> globals =
@@ -82,6 +83,7 @@ public class Globals {
 		builtins.put("OperatingSystem", new OperatingSystem());
 		builtins.put("Or", new Or());
 		builtins.put("Pack", new suneido.language.builtin.Pack());
+		builtins.put("Print", new Print());
 		builtins.put("Query1", new Query1());
 		builtins.put("QueryFirst", new QueryFirst());
 		builtins.put("QueryLast", new QueryLast());

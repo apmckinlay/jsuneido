@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class AstUtilTest {
+public class AstSharesVarsTest {
 
 	@Test
 	public void test_hasSharedVars() {
@@ -16,9 +16,16 @@ public class AstUtilTest {
 		test(false, "10.Times() { }");
 		test(true, "10.Times() { ++p }");
 		test(true, "x=1; b={ x=2 }");
+		test(true, "b={ x=2 }; x");
 		test(false, "x=1; b={ y=2 }");
 		test(false, "x=1; b={|x| x=2 }");
 		test(true, "x=1; b={|y| x=2 }");
+		test(true, "b = { .a }");
+		test(true, "b = { this }");
+		test(false, "this; b = { }");
+		test(true, "b = { super.f() }");
+		test(true, "for (x in ob) Do() { x }");
+		test(true, "try f() catch (e) Do() { e }");
 	}
 
 	public static void test(boolean hasShared, String s) {
@@ -27,6 +34,7 @@ public class AstUtilTest {
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
 		AstNode ast = pc.parse();
-		assertEquals(hasShared, AstUtil.hasSharedVars(ast));
+		assertEquals(hasShared, AstSharesVars.check(ast));
 	}
+
 }

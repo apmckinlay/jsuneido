@@ -28,12 +28,17 @@ public class AstGenerator extends Generator<AstNode> {
 		return f;
 	}
 
+	private static final AstNode itParams = new AstNode(Token.LIST,
+			new AstNode(Token.IDENTIFIER, "it", (AstNode) null));
+
 	@Override
 	public AstNode block(AstNode params, AstNode body) {
 		if (params == null)
 			params = EMPTY_LIST;
 		if (body == null)
 			body = EMPTY_COMPOUND;
+		if (params.children.isEmpty() && AstBlockIt.check(body))
+			params = itParams;
 		AstNode block = new AstNode(Token.BLOCK, params, body);
 		return block;
 	}

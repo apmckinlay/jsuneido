@@ -27,7 +27,7 @@ public class Adler32Class extends SuInstance {
 		super(singleton);
 	}
 
-	public static class CallClass extends BuiltinMethod1 {
+	public static class CallClass extends SuMethod1 {
 		{ params = new FunctionSpec(array("string"), FALSE); }
 
 		@Override
@@ -42,7 +42,7 @@ public class Adler32Class extends SuInstance {
 		}
 	}
 
-	public static class Update extends BuiltinMethod1 {
+	public static class Update extends SuMethod1 {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
@@ -56,7 +56,7 @@ public class Adler32Class extends SuInstance {
 			cksum.update(s.charAt(i));
 	}
 
-	public static class Value extends BuiltinMethod0 {
+	public static class Value extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			return (int) (((Adler32Class) self).cksum.getValue());

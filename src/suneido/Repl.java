@@ -1,10 +1,13 @@
-/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
 package suneido;
 
 /*
+ CheckLibraries()
+ CheckLibrary('stdlib')
+
  TestRunner.Run(#(stdlib), skipTags: #(gui, windows), quit_on_failure:)
  TestRunner.Run(#(Accountinglib), skipTags: #(windows), quit_on_failure:)
  TestRunner.Run(#(etalib), skipTags: #(windows), quit_on_failure:)
@@ -26,10 +29,9 @@ package suneido;
  */
 
 import java.io.*;
-import java.util.Map;
 
-import suneido.language.*;
 import suneido.language.Compiler;
+import suneido.language.Ops;
 
 public class Repl {
 	static PrintWriter out = new PrintWriter(System.out);
@@ -64,8 +66,6 @@ public class Repl {
 		if (Suneido.cmdlineoptions == null)
 			Suneido.cmdlineoptions = CommandLineOptions.parse(new String[0]);
 
-		Globals.builtin("Print", new Print());
-
 		Compiler.eval("Use('Accountinglib')");
 		Compiler.eval("Use('etalib')");
 		Compiler.eval("Use('ticketlib')");
@@ -93,23 +93,6 @@ public class Repl {
 	private static SuValue compile(String s) throws FileNotFoundException {
 		PrintWriter pw = new PrintWriter(new FileOutputStream("repl.out"));
 		return (SuValue) Compiler.compile("Repl", s, pw);
-	}
-
-	public static class Print extends BuiltinFunction {
-		@Override
-		public Object call(Object... args) {
-			SuContainer c = Args.collectArgs(new SuContainer(), args);
-			StringBuilder sb = new StringBuilder();
-			int i = 0;
-			for (; i < c.vecSize(); ++i)
-				sb.append(i > 0 ? " " : "").append(Ops.toStr(c.get(i)));
-			for (Map.Entry<Object, Object> e : c.mapEntrySet())
-				sb.append(i++ > 0 ? " " : "").append(e.getKey()).append(": ")
-						.append(Ops.toStr(e.getValue()));
-			System.out.println(sb.toString());
-			System.out.flush();
-			return null;
-		}
 	}
 
 }

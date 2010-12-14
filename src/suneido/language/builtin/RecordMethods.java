@@ -38,7 +38,7 @@ public class RecordMethods {
 		if (method == "Update")
 			return Update(r, args);
 
-		SuFunction f = userDefinedMethod("Records", method);
+		SuCallable f = userDefinedMethod("Records", method);
 		if (f != null)
 			return f.eval(r, args);
 

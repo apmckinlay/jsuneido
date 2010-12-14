@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 import suneido.language.*;
 
-public class Trace extends BuiltinFunction {
+public class Trace extends SuFunction {
 
 	private static final FunctionSpec fs =
 			new FunctionSpec(array("flags", "block"), false);

@@ -9,25 +9,31 @@ import java.util.Set;
 
 import suneido.util.Stack;
 
-public class AstUtil {
+/**
+ * Determine if a function shares variables with blocks.
+ * Used by {@link AstCompile} to choose between args array and java locals.
+ */
+public class AstSharesVars {
 
-	// would be more efficient to stop search as soon as you know
-	// but later will need to identify all shared vars
-	public static boolean hasSharedVars(AstNode ast) {
-		HasSharedVars hsv = new HasSharedVars(ast);
+	public static boolean check(AstNode ast) {
+		Visitor hsv = new Visitor(ast);
 		ast.depthFirst(hsv);
 		return hsv.hasSharedVars;
 	}
-	private static class HasSharedVars extends AstNode.Visitor {
+
+	private static class Visitor extends AstNode.Visitor {
 		private final AstNode root;
 		public boolean hasSharedVars;
 		private int blockNest = 0; // > 0 means in block
 		private final Set<String> outerVars = new HashSet<String>();
 		private final Stack<Set<String>> blockParams = new Stack<Set<String>>();
+		private final Set<String> blockVars = new HashSet<String>();
 		private boolean inBlockParams;
-		HasSharedVars(AstNode root) {
+
+		Visitor(AstNode root) {
 			this.root = root;
 		}
+
 		@Override
 		boolean topDown(AstNode ast) {
 			switch (ast.token) {
@@ -42,17 +48,37 @@ public class AstUtil {
 				++blockNest;
 				break;
 			case IDENTIFIER:
-				if (blockNest == 0)
-					outerVars.add(ast.value);
-				else if (inBlockParams)
-					blockParams.top().add(ast.value);
-				else if (outerVars.contains(ast.value) &&
-						! blockParams.top().contains(ast.value))
+			case FOR_IN:
+			case CATCH:
+				check(ast.value);
+				break;
+			case SELFREF:
+			case SUPER:
+				if (blockNest > 0)
 					hasSharedVars = true;
 				break;
 			}
-			return true;
+			return ! hasSharedVars; // stop when you know
 		}
+
+		private void check(String id) {
+			if (blockNest == 0) {
+				if (blockVars.contains(id))
+					hasSharedVars = true;
+				else
+					outerVars.add(id);
+			} else if (inBlockParams)
+				blockParams.top().add(id);
+			else if ("this".equals(id))
+				hasSharedVars = true;
+			else if (! blockParams.top().contains(id)) {
+				if (outerVars.contains(id))
+					hasSharedVars = true;
+				else
+					blockVars.add(id);
+			}
+		}
+
 		@Override
 		void bottomUp(AstNode ast) {
 			switch (ast.token) {

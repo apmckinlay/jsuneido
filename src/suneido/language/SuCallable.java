@@ -13,6 +13,8 @@ abstract public class SuCallable extends SuValue {
 	/** used to do super calls by methods and blocks within methods
 	 *  set by {@link SuClass}.linkMethods */
 	protected SuClass myClass;
+	/** used by blockReturnHandler */
+	protected boolean isBlock;
 
 	@Override
 	public Object invoke(Object self, String method, Object... args) {
@@ -41,6 +43,28 @@ abstract public class SuCallable extends SuValue {
 
 	protected Object defaultFor(int i) {
 		return params.defaultFor(i);
+	}
+
+	/**
+	 * If block return came from one of our blocks, then return the value,
+	 * otherwise, re-throw.
+	 */
+	public Object blockReturnHandler(BlockReturnException e) {
+		if (contains(this, e.block))
+			return e.returnValue;
+		throw e;
+	}
+
+	private boolean contains(SuCallable callable, Object block) {
+		for (Object x : callable.constants)
+			if (x == block ||
+				(isBlock(x) && contains((SuCallable) x, block)))
+				return true;
+		return false;
+	}
+
+	public static boolean isBlock(Object x) {
+		return x instanceof SuCallable && ((SuCallable) x).isBlock;
 	}
 
 }
