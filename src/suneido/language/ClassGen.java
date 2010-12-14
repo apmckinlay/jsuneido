@@ -648,6 +648,7 @@ public class ClassGen {
 
 		callable.params = fspec;
 		callable.constants = constantsArray;
+		callable.isBlock = isBlock;
 
 		return callable;
 	}
