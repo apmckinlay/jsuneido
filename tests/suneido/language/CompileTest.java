@@ -185,7 +185,7 @@ public class CompileTest {
 		test("a(b = c, c)",
 				"a, &b, c, DUP_X2, AASTORE, c, call, ARETURN");
 		test("G()",
- 				"'G', global, call, ARETURN");
+ 				"'G', global call, ARETURN");
 		test("a(@b)",
  				"a, EACH, b, call, ARETURN");
 		test("a(@+1b)",
@@ -214,7 +214,7 @@ public class CompileTest {
 		test("a(99: 'x')",
 				"a, NAMED, 99, 'x', call, ARETURN");
 		test("A().B()",
-				"'A', global, call, 'B', invoke0, ARETURN");
+				"'A', global call, 'B', invoke0, ARETURN");
 
 		test("super.F()",
 				"this, self, 'F', superInvoke, ARETURN");
@@ -395,8 +395,8 @@ public class CompileTest {
 			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
 			"call, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
-				"'A', global, EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
-						+ "a: 1, j: 10, k: 11, h: 8, i: 9), call, ARETURN");
+				"'A', EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
+						+ "a: 1, j: 10, k: 11, h: 8, i: 9), global call, ARETURN");
 	}
 
 	@Test
@@ -509,6 +509,7 @@ public class CompileTest {
 			{ "GETSTATIC suneido/language/Args$Special.", "" },
 			{ " : Lsuneido/language/Args$Special;", "" },
 			{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
+			{ "INVOKESTATIC suneido/language/Globals.invoke", "global call" },
 			{ "INVOKESTATIC suneido/language/Ops.", "" },
 			{ "get (Object;Object;)Object;", "getMem" },
 			{ "put (Object;Object;Object;)V", "putMem" },
@@ -532,6 +533,8 @@ public class CompileTest {
 			{ " (Object;Object;Object;Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;[Object;)Object;", "" },
 			{ " (Object;String;[Object;)Object;", "" },
+			{ " (String;)Object;", "" },
+			{ " (String;[Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, throwNoReturnValue ()V, L1", "null?" },
 			{ "DUP, IFNONNULL L1, throwUninitializedVariable ()V, L1", "null?" },
 			{ "DUP, IFNONNULL L2, throwUninitializedVariable ()V, L2", "null?" },
@@ -579,6 +582,7 @@ public class CompileTest {
 			{ "AASTORE, DUP, 4, ", "" },
 			{ "AASTORE, DUP, 5, ", "" },
 			{ "AASTORE, call", "call" },
+			{ "AASTORE, global call", "global call" },
 			{ "AASTORE, invoke", "invoke" },
 			{ "AASTORE, Object", "Object" },
 			{ "call0", "call" },
