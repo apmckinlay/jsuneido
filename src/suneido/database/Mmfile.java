@@ -143,6 +143,7 @@ public class Mmfile extends Destination {
 			long saved_size = intToOffset(fin.readInt());
 			if (saved_size > file_size)
 				return "saved size > file size";
+
 			// in case the file wasn't truncated last time
 			file_size = Math.min(file_size, saved_size);
 			if ((file_size % ALIGN) != 0)
@@ -151,6 +152,24 @@ public class Mmfile extends Destination {
 		} catch (IOException e) {
 			return e.toString();
 		}
+	}
+
+	private void findEnd(long saved_size) throws IOException {
+		System.out.println(file_size + " - " + saved_size + " = " +
+				(file_size - saved_size));
+		fin.seek(saved_size);
+		long adr = file_size;
+		byte[] buf = new byte[ALIGN];
+		byte[] zero = new byte[ALIGN];
+		Arrays.fill(zero, (byte) 0);
+		while (true) {
+			adr -= ALIGN;
+			if (ALIGN != fin.read(buf))
+				break;
+			assert Arrays.equals(buf, zero) : buf;
+		}
+		adr += ALIGN;
+		assert adr == saved_size : "adr " + adr;
 	}
 
 	// for testing only
