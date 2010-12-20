@@ -11,13 +11,14 @@ import com.google.common.base.Objects;
 /**
  * A method bound to an instance.
  */
-public class SuBoundMethod extends SuValue {
+public class SuBoundMethod extends SuCallable {
 	public final SuValue instance;
 	public final SuCallable method;
 
 	public SuBoundMethod(SuValue instance, SuCallable method) {
 		this.instance = instance;
 		this.method = method;
+		params = method.params;
 	}
 
 	@Override
@@ -31,8 +32,8 @@ public class SuBoundMethod extends SuValue {
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		return this.method.invoke(self, method, args);
+	public SuValue lookup(String method) {
+		return this.method.lookup(method);
 	}
 
 	@Override

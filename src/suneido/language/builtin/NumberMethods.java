@@ -11,11 +11,11 @@ import suneido.SuException;
 import suneido.language.*;
 
 // self instanceof Number
-public class NumberMethods extends PrimitiveMethods {
+public class NumberMethods extends BuiltinMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 
 	private NumberMethods() {
-		super("Number", NumberMethods.class);
+		super(NumberMethods.class, "Numbers");
 	}
 
 	private static BigDecimal toBigDecimal(Object n) {

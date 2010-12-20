@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
 import static suneido.SuException.verify;
@@ -18,10 +22,7 @@ import suneido.util.Util;
 
 /**
  * Suneido's single container type.
- * Combines an extendable array plus a hash map.
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
+ * Combines an extendible array plus a hash map.
  */
 @NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
@@ -417,12 +418,6 @@ public class SuContainer extends SuValue
 		return c;
 	}
 
-	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		assert this == self;
-		return ContainerMethods.invoke(this, method, args);
-	}
-
 	public static enum IterWhich { LIST, NAMED, ALL };
 
 	public Iterator<Object> iterator() {
@@ -601,6 +596,11 @@ public class SuContainer extends SuValue
 
 	public boolean isEmpty() {
 		return vec.isEmpty() && map.isEmpty();
+	}
+
+	@Override
+	public SuValue lookup(String method) {
+		return ContainerMethods.methods.lookup(method);
 	}
 
 }

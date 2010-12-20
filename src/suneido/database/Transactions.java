@@ -68,7 +68,7 @@ public class Transactions {
 
 	/**
 	 * Remove transaction from outstanding.
-	 * Called by {@link Transaction.complete} and {@link Transaction.abort}.
+	 * Called by {@link SuTransaction.complete} and {@link SuTransaction.abort}.
 	 */
 	synchronized public void remove(Transaction tran) {
 		verify(trans.remove(tran));
@@ -141,7 +141,7 @@ public class Transactions {
 	}
 
 	/**
-	 * Called only by {@link Transaction.writeBtreeNodes}
+	 * Called only by {@link SuTransaction.writeBtreeNodes}
 	 * Gives other outstanding transactions shadow copies of any btree nodes
 	 * that this transaction is going to update so they don't see the updates
 	 * i.e. to implement snapshot isolation

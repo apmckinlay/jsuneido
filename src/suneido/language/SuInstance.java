@@ -11,14 +11,16 @@ import suneido.*;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * An instance of a Suneido class
  * (which will be an instance of {@link SuClass})
  */
 public class SuInstance extends SuValue {
-	private final SuValue myclass;
+	final SuValue myclass;
 	private final Map<String, Object> ivars;
+	private static final Map<String, SuMethod> methods = methods();
 
 	public SuInstance(SuValue myclass) {
 		this.myclass = myclass;
@@ -33,58 +35,83 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public Object call(Object... args) {
-		return myclass.invoke(this, "Call", args);
+		return myclass.lookup("Call").eval(this, args);
+	}
+	// TODO call0...9
+
+	// TODO use BuiltinMethods
+	private static Map<String, SuMethod> methods() {
+		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
+		b.put("Base", new Base());
+		b.put("Base?", new BaseQ());
+		b.put("Copy", new Copy());
+		b.put("Delete", new Delete());
+		b.put("Eval", new ContainerMethods.Eval());
+		b.put("Eval2", new ContainerMethods.Eval2());
+		b.put("Member?", new MemberQ());
+		b.put("Members", new Members());
+		return b.build();
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		// self will normally be the same as "this"
-		// except when object.Eval is used
-		if (method == "Base")
-			return Base(self, args);
-		if (method == "Delete")
-			return Delete(self, args);
-		if (method == "Copy")
-			return Copy(self, args);
-		if (method == "Eval")
-			return ContainerMethods.Eval(self, args);
-		if (method == "Eval2")
-			return ContainerMethods.Eval2(self, args);
-		if (method == "Members")
-			return Members(self, args);
-		if (method == "Member?")
-			return MemberQ(self, args);
-		return myclass.invoke(self, method, args);
+	public SuValue lookup(String method) {
+		SuMethod m = methods.get(method);
+		if (m != null)
+			return m;
+		return ((SuClass) myclass).lookup(method);
 	}
 
-	private Object Base(Object self, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return myclass;
+	public static class Base extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((SuInstance) self).myclass;
+		}
 	}
 
-	private Object Copy(Object self, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-	        return new SuInstance(this);
+	public static class BaseQ extends SuMethod1 {
+		@Override
+		public Object eval1(Object self, Object a) {
+			SuValue c = ((SuInstance) self).myclass;
+			if (c == a)
+				return true;
+			return c.lookup("Base?").eval1(this, a);
+		}
+	}
+
+	public static class Copy extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+	        return new SuInstance((SuInstance) self);
         }
-
-	private static final FunctionSpec keyFS = new FunctionSpec("key");
-
-	private Object Delete(Object self, Object[] args) {
-		args = Args.massage(keyFS, args);
-		return ivars.remove(args[0]) == null ? false : this;
 	}
 
-	private Object MemberQ(Object self, Object[] args) {
-		args = Args.massage(keyFS, args);
-		String key = Ops.toStr(args[0]);
+	public static class Delete extends SuMethod1 {
+		{ params = new FunctionSpec("key"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return ((SuInstance) self).ivars.remove(a) == null ? false : this;
+		}
+	}
+
+	public static class MemberQ extends SuMethod1 {
+		{ params = new FunctionSpec("key"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return ((SuInstance) self).hasMember(Ops.toStr(a));
+		}
+	}
+
+	private Object hasMember(String key) {
 		if (ivars.containsKey(key))
 			return true;
-		return myclass.invoke(myclass, "Member?", args);
+		return myclass.lookup("Member?").eval1(this, key);
 	}
 
-	private Object Members(Object self, Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return new SuContainer(ivars.keySet());
+	public static class Members extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return new SuContainer(((SuInstance) self).ivars.keySet());
+		}
 	}
 
 	@Override

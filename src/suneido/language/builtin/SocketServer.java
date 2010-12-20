@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
@@ -11,33 +15,35 @@ import suneido.language.*;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
 
+import com.google.common.collect.ImmutableMap;
+
 public class SocketServer extends SuClass {
+	public static final SocketServer singleton = new SocketServer();
 
-	public SocketServer() {
-		super("SocketServer", null, null);
-	}
-
-	public SocketServer(String className, String baseGlobal, Object vars) {
-		super(className, baseGlobal, vars);
+	private SocketServer() {
+		super("SocketServer", null,
+				ImmutableMap.of("CallClass", new CallClass()));
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		if (method == "CallClass")
-			return CallClass(self, args);
-		return super.invoke(self, method, args);
+	protected void linkMethods() {
 	}
 
-	private static final FunctionSpec callFS =
-			new FunctionSpec(array("name", "port"), false, false);
+	@Override
+	protected Object newInstance(Object... args) {
+		throw new SuException("cannot create instances of SocketServer");
+	}
 
-	private Object CallClass(Object self, Object[] args) {
-		args = Args.massage(callFS, args);
-		int port = Ops.toInt(args[1] != Boolean.FALSE ? args[1] : Ops.get(self, "Port"));
-		Thread thread = new Thread(new Listener((SuValue) self, port));
-		thread.setDaemon(true);
-		thread.start();
-		return null;
+	public static class CallClass extends SuMethod2 {
+		{ params = new FunctionSpec(array("name", "port"), false, false); }
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			int port = Ops.toInt(b != Boolean.FALSE ? b : Ops.get(self, "Port"));
+			Thread thread = new Thread(new Listener((SuValue) self, port));
+			thread.setDaemon(true);
+			thread.start();
+			return null;
+		}
 	}
 
 	private static class Listener implements Runnable {
@@ -69,38 +75,38 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Instance extends SuInstance implements Runnable {
-		final SocketClient.SocketClientInstance socket;
+		final SocketClient socket;
 		final String address;
 
 		Instance(SuValue serverClass, Socket socket, String address) throws IOException {
 			super(serverClass);
-			this.socket = new SocketClient.SocketClientInstance(socket);
+			this.socket = new SocketClient(socket);
 			this.address = address;
 		}
 
 		@Override
 		public void run() {
 			try {
-				invoke(this, "New");
-				invoke(this, "Run");
+				lookup("New").eval0(this);
+				lookup("Run").eval0(this);
 			} finally {
-				socket.Close();
+				socket.close();
 			}
 		}
 
 		@Override
-		public Object invoke(Object self, String method, Object... args) {
+		public SuValue lookup(String method) {
 			if (method == "RemoteUser")
-				return RemoteUser(args);
-			if (method == "Read" || method == "Readline" ||
-					method == "Write" || method == "Writeline")
-				return socket.invoke(self, method, args);
-			return super.invoke(self, method, args);
+				return RemoteUser;
+			return SocketClient.clazz.lookup(method);
 		}
 
-		private Object RemoteUser(Object[] args) {
-			return address;
-		}
+		private final SuValue RemoteUser = new SuMethod0() {
+			@Override
+			public Object eval0(Object self) {
+				return address;
+			}
+		};
 
 	}
 

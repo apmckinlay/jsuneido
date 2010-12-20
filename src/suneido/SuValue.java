@@ -8,7 +8,7 @@ import static suneido.SuException.methodNotFound;
 
 import java.nio.ByteBuffer;
 
-import suneido.language.SuClass;
+import suneido.language.*;
 
 /**
  * Base class for Suneido data types:
@@ -39,10 +39,6 @@ public abstract class SuValue implements Packable {
 	 */
 	public Object eval(Object self, Object... args) {
 		throw new SuException("can't call " + typeName());
-	}
-
-	public Object invoke(Object self, String method, Object... args) {
-		throw methodNotFound(self, method);
 	}
 
 	public String typeName() {
@@ -126,44 +122,6 @@ public abstract class SuValue implements Packable {
 		return call(a, b, c, d, e, f, g, h, i);
 	}
 
-	public Object invoke0(Object self, String method) {
-		return invoke(self, method);
-	}
-	public Object invoke1(Object self, String method, Object a) {
-		return invoke(self, method, a);
-	}
-	public Object invoke2(Object self, String method, Object a, Object b) {
-		return invoke(self, method, a, b);
-	}
-	public Object invoke3(Object self, String method, Object a, Object b,
-			Object c) {
-		return invoke(self, method, a, b, c);
-	}
-	public Object invoke4(Object self, String method, Object a, Object b,
-			Object c, Object d) {
-		return invoke(self, method, a, b, c, d);
-	}
-	public Object invoke5(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e) {
-		return invoke(self, method, a, b, c, d, e);
-	}
-	public Object invoke6(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return invoke(self, method, a, b, c, d, e, f);
-	}
-	public Object invoke7(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return invoke(self, method, a, b, c, d, e, f, g);
-	}
-	public Object invoke8(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return invoke(self, method, a, b, c, d, e, f, g, h);
-	}
-	public Object invoke9(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return invoke(self, method, a, b, c, d, e, f, g, h, i);
-	}
-
 	public Object eval0(Object self) {
 		return eval(self);
 	}
@@ -200,6 +158,22 @@ public abstract class SuValue implements Packable {
 	public Object eval9(Object self, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
 		return eval(self, a, b, c, d, e, f, g, h, i);
+	}
+
+	/** used by {@link Ops} invoke to get a named method */
+	public SuValue lookup(String method) {
+		return new NotFound(method);
+	}
+
+	public static class NotFound extends SuCallable {
+		String method;
+		public NotFound(String method) {
+			this.method = method;
+		}
+		@Override
+		public Object eval(Object self, Object... args) {
+			throw methodNotFound(self, method);
+		}
 	}
 
 }

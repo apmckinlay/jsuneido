@@ -35,7 +35,7 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { Date() }";
+		String s = "function () { for (m in #(a:, b:, c:).Members().Sort()) Print(m) }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);

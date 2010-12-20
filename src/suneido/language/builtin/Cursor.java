@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
@@ -6,66 +10,85 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.language.*;
 
-public class Cursor extends BuiltinClass {
+public class Cursor extends SuQuery {
+	private static BuiltinMethods methods = new BuiltinMethods(Cursor.class);
 
-	@Override
-	public Instance newInstance(Object[] args) {
-		return new Instance(args);
+	Cursor(String query) {
+		super(query, TheDbms.dbms().cursor(query));
 	}
 
-	private static final FunctionSpec fs =
-			new FunctionSpec(array("query", "block"), Boolean.FALSE);
-
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		Instance f = newInstance(array(args[0]));
-		if (args[1] == Boolean.FALSE)
-			return f;
-		else {
-			Object result = Ops.call(args[1], f);
-			f.Close();
-			return result;
+	public SuValue lookup(String method) {
+		SuValue m = methods.getMethod(method);
+		if (m != null)
+			return m;
+		return super.lookup(method);
+	}
+
+	public static class Next extends SuMethod1 {
+		{ params = new FunctionSpec("transaction"); }
+		@Override
+		public Object eval1(Object self, Object t) {
+			return ((Cursor) self).getrec(t, Dir.NEXT);
 		}
 	}
 
-	private static class Instance extends QueryInstance {
+	public static class Prev extends SuMethod1 {
+		{ params = new FunctionSpec("transaction"); }
+		@Override
+		public Object eval1(Object self, Object t) {
+			return ((Cursor) self).getrec(t, Dir.PREV);
+		}
+	}
 
-		private static final FunctionSpec newFS = new FunctionSpec("query");
+	public static class Output extends SuMethod {
+		@Override
+		public Object eval(Object self, Object... args) {
+			throw new SuException("cursor.Output not implemented yet"); // TODO cursor.Output
+		}
+	}
 
-		Instance(Object[] args) {
+	private Object getrec(Object arg, Dir dir) {
+		if (!(arg instanceof SuTransaction))
+			throw new SuException("usage: cursor.Next/Prev(transaction)");
+		SuTransaction t = (SuTransaction) arg;
+		q.setTransaction(t.getTransaction());
+		Row row = q.get(dir);
+		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
+	}
+
+	@Override
+	public String toString() {
+		return "Cursor(" + Ops.display(query) + ")";
+	}
+
+	@Override
+	public String typeName() {
+		return "Cursor";
+	}
+
+	public static final SuValue clazz = new BuiltinClass() {
+		FunctionSpec newFS = new FunctionSpec("query");
+		@Override
+		protected SuQuery newInstance(Object... args) {
 			args = Args.massage(newFS, args);
-			query = Ops.toStr(args[0]);
-			q = TheDbms.dbms().cursor(query);
+			return new Cursor(Ops.toStr(args[0]));
 		}
-
+		FunctionSpec callFS = new FunctionSpec(array("query", "block"), false);
 		@Override
-		public Object invoke(Object self, String method, Object... args) {
-			if (method == "Next")
-				return getrec(args, Dir.NEXT);
-			if (method == "Output")
-				throw new SuException("cursor.Output not implemented yet"); // TODO cursor.Output
-			if (method == "Prev")
-				return getrec(args, Dir.PREV);
-			return super.invoke(self, method, args);
+		public Object call(Object... args) {
+			args = Args.massage(callFS, args);
+			SuQuery query = new Cursor(Ops.toStr(args[0]));
+			if (args[1] == Boolean.FALSE)
+				return query;
+			else {
+				try {
+					return Ops.call(args[1], query);
+				} finally {
+					query.q.close();
+				}
+			}
 		}
+	};
 
-		private static final FunctionSpec getFS = new FunctionSpec("transaction");
-
-		private Object getrec(Object[] args, Dir dir) {
-			args = Args.massage(getFS, args);
-			if (!(args[0] instanceof TransactionInstance))
-				throw new SuException("usage: cursor.Next/Prev(transaction)");
-			TransactionInstance t = (TransactionInstance) args[0];
-			q.setTransaction(t.getTransaction());
-			Row row = q.get(dir);
-			return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
-		}
-
-		@Override
-		public String toString() {
-			return "Cursor(" + Ops.display(query) + ")";
-		}
-
-	}
 }

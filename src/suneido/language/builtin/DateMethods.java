@@ -15,11 +15,12 @@ import suneido.SuException;
 import suneido.language.*;
 import suneido.util.FAQCalendar;
 
-public class DateMethods extends PrimitiveMethods {
+/** used by {@link Ops} target */
+public class DateMethods extends BuiltinMethods {
 	public static final DateMethods singleton = new DateMethods();
 
 	private DateMethods() {
-		super("Date", DateMethods.class);
+		super(DateMethods.class, "Dates");
 	}
 
 	public static class Year extends SuMethod0 {
