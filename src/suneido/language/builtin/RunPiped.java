@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
@@ -10,161 +14,143 @@ import suneido.SuException;
 import suneido.SuValue;
 import suneido.language.*;
 
-public class RunPiped extends BuiltinClass {
+public class RunPiped extends SuValue {
+	private final String cmd;
+	private final Process proc;
+	private final PrintStream out;
+	private final BufferedReader in;
+	private static final BuiltinMethods methods = new BuiltinMethods(RunPiped.class);
 
-	@Override
-	public RunPipedInstance newInstance(Object[] args) {
-		return new RunPipedInstance(args);
-	}
+	public RunPiped(String cmd) {
+		this.cmd = cmd;
 
-	private static final FunctionSpec fs =
-		new FunctionSpec(array("cmd", "block"), Boolean.FALSE);
-
-	@Override
-	public Object call(Object... args) {
-		RunPipedInstance rp = new RunPipedInstance(args);
-		args = Args.massage(fs, args);
-		if (args[1] == Boolean.FALSE)
-			return rp;
+		List<String> cmdargs = splitcmd(cmd);
 		try {
-			return Ops.call(args[1], rp);
-		} finally {
-			rp.Close();
+			ProcessBuilder pb = new ProcessBuilder(cmdargs);
+			pb.redirectErrorStream(true); // merge stderr into stdout
+			proc = pb.start();
+			out = new PrintStream(proc.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+		} catch (IOException e) {
+			throw new SuException("RunPiped failed", e);
 		}
 	}
 
-	private static class RunPipedInstance extends SuValue {
-		private final String cmd;
-		private final Process proc;
-		private final PrintStream out;
-		private final BufferedReader in;
+	@Override
+	public SuValue lookup(String method) {
+		return methods.lookup(method);
+	}
 
-		public RunPipedInstance(Object[] args) {
-			args = Args.massage(FunctionSpec.string, args);
-			cmd = Ops.toStr(args[0]);
-			List<String> cmdargs = splitcmd(cmd);
-			try {
-				ProcessBuilder pb = new ProcessBuilder(cmdargs);
-				pb.redirectErrorStream(true); // merge stderr into stdout
-				proc = pb.start();
-				out = new PrintStream(proc.getOutputStream(), true);
-				in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-			} catch (IOException e) {
-				throw new SuException("RunPiped failed", e);
-			}
-		}
-
+	public static class Close extends SuMethod0 {
 		@Override
-		public Object invoke(Object self, String method, Object... args) {
-			if (method == "Close")
-				return Close(args);
-			if (method == "CloseWrite")
-				return CloseWrite(args);
-			if (method == "ExitValue")
-				return ExitValue(args);
-			if (method == "Flush")
-				return Flush(args);
-			if (method == "Read")
-				return Read(args);
-			if (method == "Readline")
-				return Readline(args);
-			if (method == "Write")
-				return Write(args);
-			if (method == "Writeline")
-				return Writeline(args);
-			throw SuException.methodNotFound("RunPiped", method);
-		}
-
-		private Object Close(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
-			if (out.checkError())
-				throw new SuException("RunPiped Close failed");
-			try {
-				in.close();
-				out.close();
-			} catch (IOException e) {
-				throw new SuException("RunPiped Close failed", e);
-			}
+		public Object eval0(Object self) {
+			((RunPiped) self).close();
 			return null;
 		}
+	}
 
-		private Object CloseWrite(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
-			if (out.checkError())
-				throw new SuException("RunPiped CloseWrite failed");
+	private void close() {
+		if (out.checkError())
+			throw new SuException("RunPiped Close failed");
+		try {
+			in.close();
 			out.close();
+		} catch (IOException e) {
+			throw new SuException("RunPiped Close failed", e);
+		}
+	}
+
+	public static class CloseWrite extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			RunPiped rp = ((RunPiped) self);
+			if (rp.out.checkError())
+				throw new SuException("RunPiped CloseWrite failed");
+			rp.out.close();
+		return null;
+		}
+	}
+
+	public static class ExitValue extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			RunPiped rp = ((RunPiped) self);
+			rp.close();
+			try {
+		        rp.proc.waitFor();
+		    } catch (InterruptedException e) {
+		        throw new SuException("RunPiped ExitValue failed", e);
+		    }
+			return rp.proc.exitValue();
+		}
+    }
+
+	public static class Flush extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			((RunPiped) self).out.flush();
 			return null;
 		}
+	}
 
-		private Object ExitValue(Object[] args) {
-                	Args.massage(FunctionSpec.noParams, args);
-                	Close();
-                	try {
-	                        proc.waitFor();
-                        } catch (InterruptedException e) {
-	                        throw new SuException("RunPiped ExitValue failed", e);
-                        }
-                        return proc.exitValue();
-                }
-
-		private Object Flush(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			out.flush();
-			return null;
-		}
-
-		private static final FunctionSpec readFS =
-			new FunctionSpec(array("nbytes"), 1024);
-
-		private Object Read(Object[] args) {
-			args = Args.massage(readFS, args);
-			int n = Ops.toInt(args[0]);
+	public static class Read extends SuMethod1 {
+		{ params = new FunctionSpec(array("nbytes"), 1024); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			int n = Ops.toInt(a);
 			try {
 				char buf[] = new char[n];
-				int nr = in.read(buf, 0, n);
+				int nr = ((RunPiped) self).in.read(buf, 0, n);
 				return nr == -1 ? false : new String(buf, 0, nr);
 			} catch (IOException e) {
 				throw new SuException("RunPiped Read failed", e);
 			}
 		}
+	}
 
-		private Object Readline(Object[] args) {
-			String s;
+	public static class Readline extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
 			try {
-				s = in.readLine();
+				String s = ((RunPiped) self).in.readLine();
+				return s == null ? Boolean.FALSE : s;
 			} catch (IOException e) {
 				throw new SuException("RunPiped Readline failed", e);
 			}
-			return s == null ? Boolean.FALSE : s;
 		}
+	}
 
-		private Object Write(Object[] args) {
-			args = Args.massage(FunctionSpec.string, args);
-			out.append(Ops.toStr(args[0]));
+	public static class Write extends SuMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			((RunPiped) self).out.append(Ops.toStr(a));
 			return null;
 		}
+	}
 
-		private Object Writeline(Object[] args) {
-			args = Args.massage(FunctionSpec.string, args);
-			out.println(Ops.toStr(args[0]));
+	public static class Writeline extends SuMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			((RunPiped) self).out.println(Ops.toStr(a));
 			return null;
 		}
+	}
 
-		@Override
-		protected void finalize() throws Throwable {
-			Close();
-		}
+	@Override
+	protected void finalize() throws Throwable {
+		close();
+	}
 
-		@Override
-		public String toString() {
-			return "RunPiped(" + cmd + ")";
-		}
-
+	@Override
+	public String toString() {
+		return "RunPiped(" + cmd + ")";
 	}
 
 	/* temporarily split a single command line string into arguments
-	 * in the long run we will switch to passing multiple arguments instead
+	 * in the long run we should switch to passing multiple arguments instead
 	 */
 	private static List<String> splitcmd(String s) {
 		ArrayList<String> args = new ArrayList<String>();
@@ -185,6 +171,27 @@ public class RunPiped extends BuiltinClass {
 		}
 		return args;
 	}
+
+	public static final BuiltinClass clazz = new BuiltinClass() {
+		@Override
+		public RunPiped newInstance(Object... args) {
+			args = Args.massage(FunctionSpec.string, args);
+			return new RunPiped(Ops.toStr(args[0]));
+		}
+		FunctionSpec fs = new FunctionSpec(array("cmd", "block"), Boolean.FALSE);
+		@Override
+		public Object call(Object... args) {
+			args = Args.massage(fs, args);
+			RunPiped rp = new RunPiped(Ops.toStr(args[0]));
+			if (args[1] == Boolean.FALSE)
+				return rp;
+			try {
+				return Ops.call(args[1], rp);
+			} finally {
+				rp.close();
+			}
+		}
+	};
 
 }
 

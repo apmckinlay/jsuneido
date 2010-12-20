@@ -4,7 +4,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.text.CharacterIterator.DONE;
 import static suneido.language.Ops.toInt;
-import static suneido.language.Ops.toStr;
 import static suneido.util.Tr.tr;
 import static suneido.util.Util.array;
 
@@ -22,17 +21,23 @@ import suneido.util.Util;
 
 import com.google.common.base.Charsets;
 
-public class StringMethods extends PrimitiveMethods {
+public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
 
 	private StringMethods() {
-		super("String", StringMethods.class);
+		super(StringMethods.class, "Strings");
+	}
+
+	private static String toStr(Object self) {
+		return self instanceof String
+				? (String) self
+				: ((Concat) self).toString();
 	}
 
 	public static class AlphaQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			if (s.length() == 0)
 				return Boolean.FALSE;
 			for (int i = 0; i < s.length(); ++i)
@@ -45,7 +50,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class AlphaNumQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			if (s.length() == 0)
 				return Boolean.FALSE;
 			for (int i = 0; i < s.length(); ++i)
@@ -58,7 +63,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Asc extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			return s.length() == 0 ? 0 : (int) s.charAt(0);
 		}
 	}
@@ -66,7 +71,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Compile extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return Compiler.compile("stringCompile", (String) self);
+			return Compiler.compile("stringCompile", toStr(self));
 		}
 	}
 
@@ -74,7 +79,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			return ((String) self).contains(toStr(a));
+			return (toStr(self)).contains(toStr(a));
 		}
 	}
 	public static class HasQ extends Contains {
@@ -83,10 +88,11 @@ public class StringMethods extends PrimitiveMethods {
 
 	private static final int TABWIDTH = 4;
 
+	// TODO factor out to util
 	public static class Detab extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			int sn = s.length();
 			StringBuilder buf = new StringBuilder(sn);
 			int col = 0;
@@ -117,17 +123,18 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			return ((String) self).endsWith(toStr(a));
+			return toStr(self).endsWith(toStr(a));
 		}
 	}
 	public static class SuffixQ extends EndsWith {
 		{ params = FunctionSpec.string; }
 	}
 
+	// TODO factor out to util
 	public static class Entab extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			StringBuilder sb = new StringBuilder(s.length());
 			int si = 0;
 			for (;;) { // for each line
@@ -178,7 +185,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Eval extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			Object result = seval((String) self);
+			Object result = seval(toStr(self));
 			return result == null ? "" : result;
 		}
 	}
@@ -186,7 +193,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Eval2 extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			Object value = seval((String) self);
+			Object value = seval(toStr(self));
 			SuContainer result = new SuContainer();
 			if (value != null)
 				result.append(value);
@@ -206,7 +213,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("pattern", "part"), false); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			String s = (String) self;
+			String s = toStr(self);
 			String pat = Ops.toStr(a);
 			return extract(s, pat, b);
 		}
@@ -227,7 +234,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			String s = (String) self;
+			String s = toStr(self);
 			int i = s.indexOf(toStr(a), toInt(b));
 			return i == -1 ? s.length() : i;
 		}
@@ -237,7 +244,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			int i = ((String) self).lastIndexOf(toStr(a));
+			int i = toStr(self).lastIndexOf(toStr(a));
 			return i == -1 ? Boolean.FALSE : i;
 		}
 	}
@@ -246,7 +253,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			String set = Ops.toStr(a);
 			for (int i = 0; i < s.length(); ++i) {
 				int j = set.indexOf(s.charAt(i));
@@ -261,7 +268,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			String set = Ops.toStr(a);
 			for (int i = 0; i < s.length(); ++i) {
 				int j = set.indexOf(s.charAt(i));
@@ -276,7 +283,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			String set = Ops.toStr(a);
 			for (int i = s.length() - 1; i >= 0; --i) {
 				int j = set.indexOf(s.charAt(i));
@@ -291,7 +298,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			String set = Ops.toStr(a);
 			for (int i = s.length() - 1; i >= 0; --i) {
 				int j = set.indexOf(s.charAt(i));
@@ -305,14 +312,14 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Lower extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return ((String) self).toLowerCase();
+			return toStr(self).toLowerCase();
 		}
 	}
 
 	public static class LowerQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			Boolean result = Boolean.FALSE;
 			for (int i = 0; i < s.length(); ++i) {
 				char c = s.charAt(i);
@@ -329,7 +336,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec("pattern"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			Pattern pat = Regex.getPat(Ops.toStr(a), s);
 			Matcher m = pat.matcher(s);
 			if (!m.find())
@@ -350,7 +357,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class NumberQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			int i = 0;
 			char c = sget(s, i);
 			if (c == '+' || c == '-')
@@ -379,7 +386,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class NumericQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			if (s.length() == 0)
 				return Boolean.FALSE;
 			for (int i = 0; i < s.length(); ++i)
@@ -397,7 +404,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec("n"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			int n = Math.max(0, toInt(a));
 			StringBuilder sb = new StringBuilder(n * s.length());
 			for (int i = 0; i < n; ++i)
@@ -410,7 +417,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("pattern", "block", "count"), 99999); }
 		@Override
 		public Object eval3(Object self, Object a, Object b, Object c) {
-			String s = (String) self;
+			String s = toStr(self);
 			String pat = Ops.toStr(a);
 			int n = toInt(c);
 			return replace(s, pat, b, n);
@@ -441,7 +448,7 @@ public class StringMethods extends PrimitiveMethods {
 	public static class ServerEval extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return TheDbms.dbms().run((String) self);
+			return TheDbms.dbms().run(toStr(self));
 		}
 	}
 
@@ -458,7 +465,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String s = (String) self;
+			String s = toStr(self);
 			String sep = Ops.toStr(a);
 			return split(s, sep);
 		}
@@ -481,7 +488,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			String s = (String) self;
+			String s = toStr(self);
 			return s.startsWith(toStr(a), toInt(b));
 		}
 	}
@@ -489,7 +496,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("s", "i"), 0); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			String s = (String) self;
+			String s = toStr(self);
 			return s.startsWith(toStr(a), toInt(b));
 		}
 	}
@@ -498,7 +505,7 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("i", "n"), Integer.MAX_VALUE); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			String s = (String) self;
+			String s = toStr(self);
 			int len = s.length();
 			int i = toInt(a);
 			if (i < 0)
@@ -519,7 +526,7 @@ public class StringMethods extends PrimitiveMethods {
 		@Override
 		public Object eval0(Object self) {
 			CharBuffer cb = Windows1252.decode(
-					ByteBuffer.wrap(Util.stringToBytes((String) self)));
+					ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
 			return Util.bytesToString(Charsets.UTF_8.encode(cb));
 		}
 	}
@@ -528,7 +535,7 @@ public class StringMethods extends PrimitiveMethods {
 		@Override
 		public Object eval0(Object self) {
 			CharBuffer cb = Charsets.UTF_8.decode(
-					ByteBuffer.wrap(Util.stringToBytes((String) self)));
+					ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
 			return Util.bytesToString(Windows1252.encode(cb));
 	        }
 	}
@@ -537,14 +544,14 @@ public class StringMethods extends PrimitiveMethods {
 		{ params = new FunctionSpec(array("from", "to"), ""); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			return tr((String) self, toStr(a), toStr(b));
+			return tr(toStr(self), toStr(a), toStr(b));
 		}
 	}
 
 	public static class Unescape extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			CharacterIterator ci = new StringCharacterIterator(s);
 			StringBuilder sb = new StringBuilder(s.length());
 			for (char c = ci.first(); c != DONE; c = ci.next())
@@ -598,14 +605,14 @@ public class StringMethods extends PrimitiveMethods {
 	public static class Upper extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return ((String) self).toUpperCase();
+			return toStr(self).toUpperCase();
 		}
 	}
 
 	public static class UpperQ extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			String s = (String) self;
+			String s = toStr(self);
 			Boolean result = Boolean.FALSE;
 			for (int i = 0; i < s.length(); ++i) {
 				char c = s.charAt(i);

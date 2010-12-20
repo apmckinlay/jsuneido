@@ -4,101 +4,98 @@ import static suneido.language.Token.EOF;
 
 import java.util.Iterator;
 
-import suneido.SuException;
 import suneido.SuValue;
 import suneido.language.*;
 
-public class Scanner extends BuiltinClass {
+public class Scanner extends SuValue implements Iterable<String>, Iterator<String> {
+	private final Lexer lexer;
+	private Token token;
+	private static final BuiltinMethods methods = new BuiltinMethods(Scanner.class);
+
+	public Scanner(String s) {
+		lexer = new Lexer(s);
+	}
 
 	@Override
-	public ScannerInstance newInstance(Object[] args) {
-		return new ScannerInstance(args);
+	public SuValue lookup(String method) {
+		return methods.lookup(method);
 	}
 
-	private static class ScannerInstance extends SuValue
-			implements Iterable<String>, Iterator<String> {
-		private final Lexer lexer;
-		private Token token;
-
-		private static final FunctionSpec sFS = new FunctionSpec("name");
-
-		public ScannerInstance(Object[] args) {
-			args = Args.massage(sFS, args);
-			lexer = new Lexer(Ops.toStr(args[0]));
-		}
-
+	public static class Position extends SuMethod0 {
 		@Override
-		public Object invoke(Object self, String method, Object... args) {
-			if (method == "Next")
-				return Next(args);
-			if (method == "Position")
-				return Position(args);
-			if (method == "Type")
-				return Type(args);
-			if (method == "Text")
-				return Text(args);
-			if (method == "Value")
-				return Value(args);
-			if (method == "Keyword")
-				return Keyword(args);
-			if (method == "Iter")
-				return Iter(args);
-			throw SuException.methodNotFound("scanner", method);
+		public Object eval0(Object self) {
+			return ((Scanner) self).lexer.end();
 		}
-
-		private Object Position(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			return lexer.end();
-		}
-
-		private Object Type(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			return token.oldnum;
-		}
-
-		private Object Text(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			return lexer.matched();
-		}
-
-		private Object Value(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			return lexer.getValue();
-		}
-
-		private Object Keyword(Object[] args) {
-			Args.massage(FunctionSpec.noParams, args);
-			return lexer.getKeyword().oldnum;
-		}
-
-		private Object Iter(Object[] args) {
-			return this;
-		}
-
-		private Object Next(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
-			token = lexer.nextAll();
-			if (token == EOF)
-				return this;
-			return lexer.matched();
-		}
-
-		public Iterator<String> iterator() {
-			return this;
-		}
-
-		public boolean hasNext() {
-			return lexer.hasNext();
-		}
-
-		public String next() {
-			return (String) Next();
-		}
-
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
+
+	public static class Type extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((Scanner) self).token.oldnum;
+		}
+	}
+
+	public static class Text extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((Scanner) self).lexer.matched();
+		}
+	}
+
+	public static class Value extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((Scanner) self).lexer.getValue();
+		}
+	}
+
+	public static class Keyword extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return ((Scanner) self).lexer.getKeyword().oldnum;
+		}
+	}
+
+	public static class Iter extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return self;
+		}
+	}
+
+	public static class Next extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			String s = ((Scanner) self).next();
+			return s == null ? self : s;
+		}
+	}
+
+	public Iterator<String> iterator() {
+		return this;
+	}
+
+	public boolean hasNext() {
+		return lexer.hasNext();
+	}
+
+	public String next() {
+		token = lexer.nextAll();
+		if (token == EOF)
+			return null;
+		return lexer.matched();
+	}
+
+	public void remove() {
+		throw new UnsupportedOperationException();
+	}
+
+	public static final BuiltinClass clazz = new BuiltinClass() {
+		@Override
+		public Scanner newInstance(Object... args) {
+			args = Args.massage(FunctionSpec.string, args);
+			return new Scanner(Ops.toStr(args[0]));
+		}
+	};
 
 }

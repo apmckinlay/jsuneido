@@ -7,7 +7,7 @@ public class QueryLast extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {
-		return TransactionInstance.queryOne(null, args, Dir.PREV, false);
+		return SuTransaction.queryOne(null, args, Dir.PREV, false);
 	}
 
 }

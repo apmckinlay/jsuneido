@@ -1,15 +1,23 @@
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
-
-import java.math.BigDecimal;
-
 import suneido.*;
 import suneido.language.*;
 
-public class Database extends SuValue {
+public class Database extends BuiltinClass {
+	public static final Database singleton = new Database();
+
+	private Database() {
+		super(Database.class);
+	}
+
+	@Override
+	protected Object newInstance(Object... args) {
+		throw new SuException("cannot create instances of Database");
+	}
 
 	private static final FunctionSpec requestFS = new FunctionSpec("request");
+
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(requestFS, args);
@@ -18,58 +26,55 @@ public class Database extends SuValue {
 		return Boolean.TRUE;
 	}
 
-	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		if (method == "<new>")
-			throw new SuException("cannot create instances of Database");
-		if (method == "Connections")
-			return Connections(args);
-		if (method == "CurrentSize")
-			return CurrentSize(args);
-		if (method == "Cursors")
-			return Cursors(args);
-		if (method == "Kill")
-			return Kill(args);
-		if (method == "SessionId")
-			return SessionId(args);
-		if (method == "TempDest")
-			return 0; // not relevant to jSuneido
-		if (method == "Transactions")
-			return Transactions(args);
-		return super.invoke(self, method, args);
+	public static class Connections extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return TheDbms.dbms().connections();
+		}
 	}
 
-	private Object Kill(Object[] args) {
-		args = Args.massage(FunctionSpec.string, args);
-		return TheDbms.dbms().kill(Ops.toStr(args[0]));
+	public static class CurrentSize extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return TheDbms.dbms().size();
+		}
 	}
 
-	public static SuContainer Connections(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return TheDbms.dbms().connections();
+	public static class Cursors extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return TheDbms.dbms().cursors();
+		}
 	}
 
-	private Object CurrentSize(Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		// need BigDecimal to handle long values
-		return BigDecimal.valueOf(TheDbms.dbms().size());
+	public static class Kill extends SuMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return TheDbms.dbms().kill(Ops.toStr(a));
+		}
 	}
 
-	private int Cursors(Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return TheDbms.dbms().cursors();
+	public static class SessionId extends SuMethod1 {
+		{ params = new FunctionSpec(array("string"), ""); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return TheDbms.dbms().sessionid(Ops.toStr(a));
+		}
 	}
 
-	public static final FunctionSpec stringFS =
-		new FunctionSpec(array("string"), "");
-
-	private Object SessionId(Object[] args) {
-		args = Args.massage(stringFS, args);
-		return TheDbms.dbms().sessionid(Ops.toStr(args[0]));
+	public static class TempDest extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return 0;
+		}
 	}
 
-	private Object Transactions(Object[] args) {
-		return new SuContainer(TheDbms.dbms().tranlist());
+	public static class Transactions extends SuMethod0 {
+		@Override
+		public Object eval0(Object self) {
+			return new SuContainer(TheDbms.dbms().tranlist());
+		}
 	}
 
 }

@@ -9,7 +9,7 @@ import suneido.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.language.Globals;
 import suneido.language.Ops;
-import suneido.language.builtin.TransactionInstance;
+import suneido.language.builtin.SuTransaction;
 
 @ThreadSafe
 public class Triggers {
@@ -27,7 +27,7 @@ public class Triggers {
 			return;
 		if (!SuValue.isCallable(fn))
 			throw new SuException(trigger + " not callable (" + Ops.typeName(fn) + ")");
-		TransactionInstance t = new TransactionInstance(new DbmsTranLocal(tran));
+		SuTransaction t = new SuTransaction(new DbmsTranLocal(tran));
 		try {
 			Ops.call(fn, t,
 					oldrec == null ? false : new SuRecord(oldrec, table.fields, t),

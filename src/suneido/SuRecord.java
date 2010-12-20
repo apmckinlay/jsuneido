@@ -13,18 +13,15 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
-import suneido.language.builtin.TransactionInstance;
+import suneido.language.builtin.SuTransaction;
 import suneido.util.Util;
 
 import com.google.common.base.Objects;
 
-/**
- * @author Andrew McKinlay
- */
 @NotThreadSafe
 public class SuRecord extends SuContainer {
 	private Header hdr;
-	private TransactionInstance tran;
+	private SuTransaction tran;
 	private long recadr;
 	private Status status;
 	private final List<Object> observers = new ArrayList<Object>();
@@ -56,14 +53,14 @@ public class SuRecord extends SuContainer {
 	}
 
 	public SuRecord(Row row, Header hdr) {
-		this(row, hdr, (TransactionInstance) null);
+		this(row, hdr, (SuTransaction) null);
 	}
 
 	public SuRecord(Row row, Header hdr, DbmsTran tran) {
-		this(row, hdr, tran == null ? null : new TransactionInstance(tran));
+		this(row, hdr, tran == null ? null : new SuTransaction(tran));
 	}
 
-	public SuRecord(Row row, Header hdr, TransactionInstance tran) {
+	public SuRecord(Row row, Header hdr, SuTransaction tran) {
 		this.hdr = hdr;
 		this.tran = tran;
 		this.recadr = row.recadr;
@@ -76,7 +73,7 @@ public class SuRecord extends SuContainer {
 		}
 	}
 
-	public SuRecord(Record rec, List<String> flds, TransactionInstance tran) {
+	public SuRecord(Record rec, List<String> flds, SuTransaction tran) {
 		hdr = null;
 		this.tran = tran;
 		recadr = 0;
@@ -250,12 +247,6 @@ public class SuRecord extends SuContainer {
 		return deps;
 	}
 
-	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		assert this == self;
-		return RecordMethods.invoke(this, method, args);
-	}
-
 	public void update() {
 		ck_modify("Update");
 		Record newrec = toDbRecord(hdr);
@@ -289,7 +280,7 @@ public class SuRecord extends SuContainer {
 		return status == Status.NEW;
 	}
 
-	public TransactionInstance getTransaction() {
+	public SuTransaction getTransaction() {
 		return tran;
 	}
 
@@ -387,6 +378,14 @@ public class SuRecord extends SuContainer {
 	public void setdeps(String field, String deps) {
 		for (String d : Util.commasToList(deps))
 			addDependency(field, d);
+	}
+
+	@Override
+	public SuValue lookup(String method) {
+		SuValue m = RecordMethods.methods.getMethod(method);
+		if (m != null)
+			return m;
+		return super.lookup(method);
 	}
 
 }

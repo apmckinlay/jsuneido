@@ -1,5 +1,7 @@
 package suneido.language;
 
+import static suneido.util.Util.array;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
@@ -24,6 +26,9 @@ public class FunctionSpec {
 			new FunctionSpec("value", "value");
 	public static final FunctionSpec string =
 			new FunctionSpec("string");
+	public static final FunctionSpec block =
+			new FunctionSpec(array("block"), Boolean.FALSE);
+	public static final Object NA = new Object();
 
 	public FunctionSpec(String... locals) {
 		this(null, locals, locals.length, noConstants, 0, false);

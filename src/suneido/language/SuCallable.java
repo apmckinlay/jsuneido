@@ -4,28 +4,30 @@
 
 package suneido.language;
 
-import static suneido.SuException.methodNotFound;
 import suneido.SuValue;
 
 abstract public class SuCallable extends SuValue {
 	protected FunctionSpec params;
-	protected Object[] constants;
+	protected Object[] constants; //TODO only generated classes need this
 	/** used to do super calls by methods and blocks within methods
 	 *  set by {@link SuClass}.linkMethods */
 	protected SuClass myClass;
 	/** used by blockReturnHandler */
-	protected boolean isBlock;
+	protected boolean isBlock = false;
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
+	public SuValue lookup(String method) {
 		if (method == "Params")
-			return Params(self, args);
-		throw methodNotFound(self, method);
+			return Params;
+		return super.lookup(method);
 	}
 
-	private Object Params(Object self, Object[] args) {
-		return params.params();
-	}
+	private static SuValue Params = new SuMethod0() {
+		@Override
+		public Object eval0(Object self) {
+			return ((SuCallable) self).params.params();
+		}
+	};
 
 	@Override
 	public boolean isCallable() {
@@ -42,6 +44,7 @@ abstract public class SuCallable extends SuValue {
 	}
 
 	protected Object defaultFor(int i) {
+		assert params != null : "" + this + " has no params";
 		return params.defaultFor(i);
 	}
 

@@ -4,8 +4,6 @@
 
 package suneido.language;
 
-import static suneido.SuException.methodNotFound;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.*;
@@ -767,45 +765,46 @@ public final class Ops {
 		return invoke(ob, x.toString(), args);
 	}
 
+	/** Used by generated code to call methods */
 	public static Object invoke(Object x, String method, Object... args) {
-		return target(x).invoke(x, method, args);
+		return target(x).lookup(method).eval(x, args);
 	}
 	public static Object invoke0(Object x, String method) {
-		return target(x).invoke0(x, method);
+		return target(x).lookup(method).eval0(x);
 	}
 	public static Object invoke1(Object x, String method, Object a) {
-		return target(x).invoke1(x, method, a);
+		return target(x).lookup(method).eval1(x, a);
 	}
 	public static Object invoke2(Object x, String method, Object a, Object b) {
-		return target(x).invoke2(x, method, a, b);
+		return target(x).lookup(method).eval2(x, a, b);
 	}
 	public static Object invoke3(Object x, String method, Object a, Object b,
 			Object c) {
-		return target(x).invoke3(x, method, a, b, c);
+		return target(x).lookup(method).eval3(x, a, b, c);
 	}
 	public static Object invoke4(Object x, String method, Object a, Object b,
 			Object c, Object d) {
-		return target(x).invoke4(x, method, a, b, c, d);
+		return target(x).lookup(method).eval4(x, a, b, c, d);
 	}
 	public static Object invoke5(Object x, String method, Object a, Object b,
 			Object c, Object d, Object e) {
-		return target(x).invoke5(x, method, a, b, c, d, e);
+		return target(x).lookup(method).eval5(x, a, b, c, d, e);
 	}
 	public static Object invoke6(Object x, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f) {
-		return target(x).invoke6(x, method, a, b, c, d, e, f);
+		return target(x).lookup(method).eval6(x, a, b, c, d, e, f);
 	}
 	public static Object invoke7(Object x, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g) {
-		return target(x).invoke7(x, method, a, b, c, d, e, f, g);
+		return target(x).lookup(method).eval7(x, a, b, c, d, e, f, g);
 	}
 	public static Object invoke8(Object x, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return target(x).invoke8(x, method, a, b, c, d, e, f, g, h);
+		return target(x).lookup(method).eval8(x, a, b, c, d, e, f, g, h);
 	}
 	public static Object invoke9(Object x, String method, Object a, Object b,
 			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return target(x).invoke9(x, method, a, b, c, d, e, f, g, h, i);
+		return target(x).lookup(method).eval9(x, a, b, c, d, e, f, g, h, i);
 	}
 
 	public static SuValue target(Object x) {
@@ -820,12 +819,7 @@ public final class Ops {
 		return invokeUnknown;
 	}
 
-	private static SuValue invokeUnknown = new SuValue() {
-		@Override
-		public Object invoke(Object x, String method, Object... args) {
-			throw methodNotFound(x, method);
-		}
-	};
+	private static SuValue invokeUnknown = new SuValue() { };
 
 	public static String toMethodString(Object method) {
 		if (isString(method))
@@ -833,12 +827,15 @@ public final class Ops {
 		throw new SuException("invalid method: " + method);
 	}
 
+	// TODO change get and put to use target
+
 	public static void put(Object x, Object member, Object value) {
 		if (x instanceof SuValue)
 			((SuValue) x).put(member, value);
 		else
 			throw new SuException(typeName(x) + " does not support put");
 	}
+
 	public static Object get(Object x, Object member) {
 		if (x == null || member == null)
 			throw new SuException("uninitialized");

@@ -1,8 +1,29 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import suneido.SuValue;
 
-public abstract class BuiltinClass extends SuValue {
+/**
+ * The base class for built-in classes such {@link Adler32} and {@link File}
+ * Inherits method handling from {@link BuiltinMethods}.
+ * Provides typeName() and toString().
+ * Derived classes must define a newInstance method to implement "new Xyz(...)"
+ * and may optionally define a call method.
+ * NOTE: This is the base for classes, not instances.
+ */
+public abstract class BuiltinClass extends BuiltinMethods {
+
+	protected BuiltinClass() {
+	}
+	protected BuiltinClass(Class<?> c) {
+		super(c);
+	}
+	protected BuiltinClass(Class<?> c, String name) {
+		super(c, name);
+	}
 
 	@Override
 	public Object call(Object... args) {
@@ -10,13 +31,21 @@ public abstract class BuiltinClass extends SuValue {
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
+	public SuValue lookup(String method) {
 		if (method == "<new>")
-			return newInstance(args);
-		return super.invoke(self, method, args);
+			return newInstance;
+		// TODO Base, Base?, etc.
+		return super.lookup(method);
 	}
 
-	abstract public Object newInstance(Object[] args);
+	private final SuValue newInstance = new SuMethod() {
+		@Override
+		public Object eval(Object self, Object... args) {
+			return newInstance(args);
+		}
+	};
+
+	abstract protected Object newInstance(Object... args);
 
 	@Override
 	public String typeName() {

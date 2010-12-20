@@ -44,7 +44,8 @@ public final class Concat extends SuValue implements Comparable<Concat> {
 	}
 
 	private static int len(Object x) {
-		return x instanceof String ? ((String) x).length()
+		return x instanceof String
+				? ((String) x).length()
 				: ((Concat) x).length();
 	}
 
@@ -106,57 +107,8 @@ public final class Concat extends SuValue implements Comparable<Concat> {
 	}
 
 	@Override
-	public Object invoke(Object self, String method, Object... args) {
-		assert this == self;
-		return StringMethods.singleton.invoke(toString(), method, args);
-	}
-
-	@Override
-	public Object invoke0(Object self, String method) {
-		return StringMethods.singleton.invoke0(toString(), method);
-	}
-	@Override
-	public Object invoke1(Object self, String method, Object a) {
-		return StringMethods.singleton.invoke1(toString(), method, a);
-	}
-	@Override
-	public Object invoke2(Object self, String method, Object a, Object b) {
-		return StringMethods.singleton.invoke2(toString(), method, a, b);
-	}
-	@Override
-	public Object invoke3(Object self, String method, Object a, Object b,
-			Object c) {
-		return StringMethods.singleton.invoke3(toString(), method, a, b, c);
-	}
-	@Override
-	public Object invoke4(Object self, String method, Object a, Object b,
-			Object c, Object d) {
-		return StringMethods.singleton.invoke4(toString(), method, a, b, c, d);
-	}
-	@Override
-	public Object invoke5(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e) {
-		return StringMethods.singleton.invoke5(toString(), method, a, b, c, d, e);
-	}
-	@Override
-	public Object invoke6(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return StringMethods.singleton.invoke6(toString(), method, a, b, c, d, e, f);
-	}
-	@Override
-	public Object invoke7(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return StringMethods.singleton.invoke7(toString(), method, a, b, c, d, e, f, g);
-	}
-	@Override
-	public Object invoke8(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return StringMethods.singleton.invoke8(toString(), method, a, b, c, d, e, f, g, h);
-	}
-	@Override
-	public Object invoke9(Object self, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return StringMethods.singleton.invoke9(toString(), method, a, b, c, d, e, f, g, h, i);
+	public SuValue lookup(String method) {
+		return StringMethods.singleton.lookup(method);
 	}
 
 }

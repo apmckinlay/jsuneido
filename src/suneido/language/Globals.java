@@ -27,7 +27,7 @@ public class Globals {
 		builtins.put("Suneido", new SuContainer());
 
 		builtins.put("Add", new Add());
-		builtins.put("Adler32", Adler32Class.singleton);
+		builtins.put("Adler32", Adler32.clazz);
 		builtins.put("And", new And());
 		builtins.put("Boolean?", new BooleanQ());
 		builtins.put("Built", new Built());
@@ -37,9 +37,9 @@ public class Globals {
 		builtins.put("Construct", new Construct());
 		builtins.put("CopyFile", new CopyFile());
 		builtins.put("CreateDirectory", new CreateDirectory());
-		builtins.put("Cursor", new Cursor());
-		builtins.put("Database", new Database());
-		builtins.put("Date", new DateClass());
+		builtins.put("Cursor", Cursor.clazz);
+		builtins.put("Database", Database.singleton);
+		builtins.put("Date", DateClass.singleton);
 		builtins.put("Date?", new DateQ());
 		builtins.put("Delayed", new Delayed());
 		builtins.put("DeleteDir", new DeleteDir());
@@ -53,7 +53,7 @@ public class Globals {
 		builtins.put("Eq", new Eq());
 		builtins.put("ExePath", new ExePath());
 		builtins.put("Exit", new Exit());
-		builtins.put("File", new File());
+		builtins.put("File", File.clazz);
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
@@ -89,16 +89,16 @@ public class Globals {
 		builtins.put("Random", new Random());
 		builtins.put("Record", new RecordClass());
 		builtins.put("Record?", new RecordQ());
-		builtins.put("RunPiped", new RunPiped());
-		builtins.put("Scanner", new Scanner());
+		builtins.put("RunPiped", RunPiped.clazz);
+		builtins.put("Scanner", Scanner.clazz);
 		builtins.put("Seq", new Seq());
 		builtins.put("ServerEval", new ServerEval());
 		builtins.put("ServerIP", new ServerIP());
 		builtins.put("ServerPort", new ServerPort());
 		builtins.put("Server?", new ServerQ());
 		builtins.put("Sleep", new Sleep());
-		builtins.put("SocketClient", new SocketClient());
-		builtins.put("SocketServer", new SocketServer());
+		builtins.put("SocketClient", SocketClient.clazz);
+		builtins.put("SocketServer", SocketServer.singleton);
 		builtins.put("String?", new StringQ());
 		builtins.put("Sub", new Sub());
 		builtins.put("Synchronized", new Synchronized());
@@ -107,7 +107,7 @@ public class Globals {
 		builtins.put("Thread", new ThreadFunction());
 		builtins.put("Timestamp", new Timestamp());
 		builtins.put("Trace", new suneido.language.builtin.Trace());
-		builtins.put("Transaction", new Transaction());
+		builtins.put("Transaction", SuTransaction.clazz);
 		builtins.put("Type", new Type());
 		builtins.put("UuidString", new UuidString());
 		builtins.put("Unload", new Unload());
