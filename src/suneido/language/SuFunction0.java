@@ -5,10 +5,11 @@
 package suneido.language;
 
 public abstract class SuFunction0 extends SuFunction {
+	{ params = FunctionSpec.noParams; }
 
 	@Override
 	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+		Args.massage(params, args);
 		return call0();
 	}
 

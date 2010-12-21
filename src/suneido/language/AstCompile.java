@@ -153,16 +153,17 @@ public class AstCompile {
 	 */
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals, PrintWriter pw) {
+		List<AstNode> params = ast.first().children;
 		ClassGen cg = new ClassGen(base, curName, method, locals,
-base == "SuCallable" || // block
-ast.first().children.size() > 0 || // start with 0 args
-				AstSharesVars.check(ast),
+				useArgsArray(ast, base, params),
 				ast.token == Token.BLOCK,
+				params.size(),
 				pw);
 
-		List<AstNode> params = ast.first().children;
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
+
+		cg.loadConstants();
 
 		superInit(cg, ast);
 
@@ -177,6 +178,16 @@ ast.first().children.size() > 0 || // start with 0 args
 		} catch (Error e) {
 			throw new SuException("error compiling " + curName, e);
 		}
+	}
+
+	private boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
+		if (base == "SuCallable") // block
+			return true;
+		if (params.size() > 4) // TODO increase
+			return true;
+		if (params.size() > 0 && params.get(0).value.startsWith("@"))
+			return true;
+		return AstSharesVars.check(ast);
 	}
 
 	private void superChecks(int i, AstNode stat) {
@@ -787,7 +798,6 @@ ast.first().children.size() > 0 || // start with 0 args
 			}
 		} else {
 			expression(cg, fn);
-			// TODO move this into callArguments
 			if (args.token != Token.AT &&
 					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
 				directArguments(cg, args);

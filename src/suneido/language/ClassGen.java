@@ -34,6 +34,7 @@ public class ClassGen {
 	private final ClassVisitor cv;
 	private final MethodVisitor mv;
 	private final Label startLabel = new Label();
+	private final int firstParam;
 	private int nParams;
 	private int nDefaults = 0;
 	private boolean atParam = false;
@@ -50,9 +51,9 @@ public class ClassGen {
 //	{ Collections.addAll(javaLocalsNames, "java$this", "this", "$args", "$constants"); }
 
 	ClassGen(String base, String name, String method, List<String> locals,
-			boolean useArgsArray, boolean isBlock, PrintWriter pw) {
+			boolean useArgsArray, boolean isBlock, int nParams, PrintWriter pw) {
 		if (! useArgsArray)
-			base += "0";
+			base += nParams;
 		this.base = "suneido/language/" + base;
 		this.name = name;
 		this.locals = locals == null ? new ArrayList<String>() : locals;
@@ -63,42 +64,35 @@ public class ClassGen {
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv = classVisitor(pw);
 		genInit();
+		javaLocals.put("this", nextJavaLocal++);
 		if (useArgsArray) {
 			if (method.equals("call")) {
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"([Ljava/lang/Object;)Ljava/lang/Object;");
-				ARGS = 1;
-				CONSTANTS = 2;
-				nextJavaLocal = 3;
+				javaLocals.put("_args_", ARGS = nextJavaLocal++);
 			} else {
 				assert method.equals("eval");
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-				SELF = 1;
-				ARGS = 2;
-				CONSTANTS = 3;
-				nextJavaLocal = 4;
+				javaLocals.put("_self_", SELF = nextJavaLocal++);
+				javaLocals.put("_args_", ARGS = nextJavaLocal++);
 			}
 		} else {
 			if (method.equals("call")) {
-				mv = methodVisitor(ACC_PUBLIC, "call0",
-						"()Ljava/lang/Object;");
-				CONSTANTS = 1;
-				nextJavaLocal = 2;
+				mv = methodVisitor(ACC_PUBLIC, "call" + nParams,
+						"(" + directArgs[nParams] + ")Ljava/lang/Object;");
 			} else {
 				assert method.equals("eval");
-				mv = methodVisitor(ACC_PUBLIC, "eval0",
-						"(Ljava/lang/Object;)Ljava/lang/Object;");
-				SELF = 1;
-				CONSTANTS = 2;
-				nextJavaLocal = 3;
+				mv = methodVisitor(ACC_PUBLIC, "eval" + nParams,
+						"(Ljava/lang/Object;" + directArgs[nParams] + ")Ljava/lang/Object;");
+				javaLocals.put("_self_", SELF = nextJavaLocal++);
 			}
 		}
+		firstParam = nextJavaLocal;
 		mv.visitCode();
 		mv.visitLabel(startLabel);
 		if (! trueBlock && useArgsArray)
 			massage();
-		loadConstants();
 	}
 
 	private ClassVisitor classVisitor(PrintWriter pw) {
@@ -130,7 +124,8 @@ public class ClassGen {
 		mv.visitVarInsn(ASTORE, ARGS);
 	}
 
-	private void loadConstants() {
+	public void loadConstants() {
+		javaLocals.put("_constants_", CONSTANTS = nextJavaLocal++);
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitFieldInsn(GETFIELD, "suneido/language/" + name,
 				"constants", "[Ljava/lang/Object;");
@@ -141,7 +136,10 @@ public class ClassGen {
 		atParam = name.startsWith("@");
 		if (atParam)
 			name = name.substring(1, name.length());
-		locals.add(name);
+		if (useArgsArray)
+			locals.add(name);
+		else
+			javaLocal(name);
 		if (defaultValue != null) {
 			int i = addConstant(defaultValue);
 			assert i == nDefaults;
@@ -628,16 +626,6 @@ public class ClassGen {
 
 		Label endLabel = new Label();
 		mv.visitLabel(endLabel);
-		mv.visitLocalVariable("this", "Lsuneido/language/" + name + ";",
-				null, startLabel, endLabel, THIS);
-		if (SELF >= 0)
-			mv.visitLocalVariable("self", "Ljava/lang/Object;", null,
-					startLabel, endLabel, SELF);
-		if (ARGS >= 0)
-			mv.visitLocalVariable("args", "[Ljava/lang/Object;", null,
-					startLabel, endLabel, ARGS);
-		mv.visitLocalVariable("constants", "[Ljava/lang/Object;", null,
-				startLabel, endLabel, CONSTANTS);
 		BiMap<Integer, String> bm = javaLocals.inverse();
 		for (int i = 0; i < nextJavaLocal; ++i)
 			if (bm.containsKey(i))
@@ -667,10 +655,16 @@ public class ClassGen {
 		if (trueBlock) {
 			fspec = new BlockSpec(name, blockLocals(), nParams, atParam, iBlockParams);
 			hideBlockParams();
-		} else
+		} else if (useArgsArray)
 			fspec = new FunctionSpec(name, locals.toArray(arrayOfString),
 					nParams, constantsArray, nDefaults, atParam);
-//System.out.println(name + " " + fspec);
+		else {
+			String[] params = new String[nParams];
+			for (int i = 0; i < nParams; ++i)
+				params[i] = bm.get(i + firstParam);
+			fspec = new FunctionSpec(name, params,
+					nParams, constantsArray, nDefaults, atParam);
+		}
 		callable.params = fspec;
 		callable.constants = constantsArray;
 		callable.isBlock = isBlock;
