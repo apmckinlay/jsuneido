@@ -89,7 +89,7 @@ public class FunctionSpec {
 	public Object defaultFor(int i) {
 		assert i < nparams;
 		if (i < nparams - ndefaults)
-			throw new SuException("not enough arguments");
+			throw new SuException("missing argument(s)");
 		return constants[i - (nparams - ndefaults)];
 	}
 

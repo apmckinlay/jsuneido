@@ -26,11 +26,6 @@ package suneido;
  Create_DemoData('CAD')
 
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
-
- ProjectDepsBugTest()
- RuleTest()
-
- for (m in #(a:, b:, c:).Members().Sort()) { Print(m) }
  */
 
 import java.io.*;

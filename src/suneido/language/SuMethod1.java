@@ -5,7 +5,7 @@
 package suneido.language;
 
 public abstract class SuMethod1 extends SuMethod {
-	{ params = new FunctionSpec("value"); }
+	{ params = FunctionSpec.value; }
 
 	@Override
 	public Object eval(Object self, Object... args) {

@@ -35,13 +35,13 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { for (m in #(a:, b:, c:).Members().Sort()) Print(m) }";
+		String s = "function () { run = function(block) {}; run() { } }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
 		Object x = Ops.call0(f);
-//		Object x = Ops.call1(f, 1);
-		System.out.println(" => " + x);
+//		Object x = Ops.call1(f, "world");
+//		System.out.println(" => " + x);
 	}
 
 }

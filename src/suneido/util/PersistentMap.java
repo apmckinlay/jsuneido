@@ -12,8 +12,6 @@ import javax.annotation.concurrent.Immutable;
  * An persistent immutable map. Based on Phil Bagwell's Hash Array Mapped Trie
  * with some help from Rich Hickey's implementation in Clojure. Uses
  * OverflowNodes instead of extended hashing and does not resize root.
- *
- * @author Andrew McKinlay
  */
 @Immutable
 public abstract class PersistentMap<K, V> {
@@ -367,14 +365,5 @@ public abstract class PersistentMap<K, V> {
 	public static <K, V> Builder<K, V> builder() {
 		return new Builder<K, V>();
 	}
-
-//	private static String hashStr(int hash) {
-//		String s = "";
-//		do {
-//			s = "." + (hash & LEVEL_MASK) + s;
-//			hash = hash >>> BITS_PER_LEVEL;
-//		} while (hash != 0);
-//		return s.substring(1);
-//	}
 
 }

@@ -12,9 +12,7 @@ public abstract class SuFunction1 extends SuFunction {
 
 	@Override
 	public Object call0() {
-		return params.ndefaults == 1
-			? call1(params.constants[0])
-			: super.call0();
+		return call1(defaultFor(0));
 	}
 
 	@Override

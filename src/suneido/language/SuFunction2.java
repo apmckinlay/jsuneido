@@ -17,7 +17,7 @@ public abstract class SuFunction2 extends SuFunction {
 
 	@Override
 	public Object call1(Object a) {
-		return call1(defaultFor(0));
+		return call2(a, defaultFor(1));
 	}
 
 	@Override
