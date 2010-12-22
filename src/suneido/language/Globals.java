@@ -204,25 +204,5 @@ public class Globals {
 			Object c, Object d) {
 		return ((SuValue) get(name)).call4(a, b, c, d);
 	}
-	public static Object invoke5(String name, Object a, Object b,
-			Object c, Object d, Object e) {
-		return ((SuValue) get(name)).call5(a, b, c, d, e);
-	}
-	public static Object invoke6(String name, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return ((SuValue) get(name)).call6(a, b, c, d, e, f);
-	}
-	public static Object invoke7(String name, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return ((SuValue) get(name)).call7(a, b, c, d, e, f, g);
-	}
-	public static Object invoke8(String name, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return ((SuValue) get(name)).call8(a, b, c, d, e, f, g, h);
-	}
-	public static Object invoke9(String name, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return ((SuValue) get(name)).call9(a, b, c, d, e, f, g, h, i);
-	}
 
 }

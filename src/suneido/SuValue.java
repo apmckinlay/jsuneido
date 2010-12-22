@@ -102,25 +102,6 @@ public abstract class SuValue implements Packable {
 	public Object call4(Object a, Object b, Object c, Object d) {
 		return call(a, b, c, d);
 	}
-	public Object call5(Object a, Object b, Object c, Object d,	Object e) {
-		return call(a, b, c, d, e);
-	}
-	public Object call6(Object a, Object b, Object c, Object d, Object e,
-			Object f) {
-		return call(a, b, c, d, e, f);
-	}
-	public Object call7(Object a, Object b, Object c, Object d, Object e,
-			Object f, Object g) {
-		return call(a, b, c, d, e, f, g);
-	}
-	public Object call8(Object a, Object b, Object c, Object d, Object e,
-			Object f, Object g, Object h) {
-		return call(a, b, c, d, e, f, g, h);
-	}
-	public Object call9(Object a, Object b, Object c, Object d, Object e,
-			Object f, Object g, Object h, Object i) {
-		return call(a, b, c, d, e, f, g, h, i);
-	}
 
 	public Object eval0(Object self) {
 		return eval(self);
@@ -138,26 +119,6 @@ public abstract class SuValue implements Packable {
 	public Object eval4(Object self, Object a, Object b,
 			Object c, Object d) {
 		return eval(self, a, b, c, d);
-	}
-	public Object eval5(Object self, Object a, Object b,
-			Object c, Object d, Object e) {
-		return eval(self, a, b, c, d, e);
-	}
-	public Object eval6(Object self, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return eval(self, a, b, c, d, e, f);
-	}
-	public Object eval7(Object self, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return eval(self, a, b, c, d, e, f, g);
-	}
-	public Object eval8(Object self, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return eval(self, a, b, c, d, e, f, g, h);
-	}
-	public Object eval9(Object self, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return eval(self, a, b, c, d, e, f, g, h, i);
 	}
 
 	/** used by {@link Ops} invoke to get a named method */

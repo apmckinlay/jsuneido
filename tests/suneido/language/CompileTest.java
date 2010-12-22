@@ -200,7 +200,7 @@ public class CompileTest {
 		test("return a.Size()",
 				"a, 'Size', invoke0, ARETURN");
 		test("a['Size']()",
-				"a, 'Size', toMethodString, invoke, ARETURN");
+				"a, 'Size', toMethodString, invoke0, ARETURN");
 		test("a.Substr(b, c)",
 				"a, 'Substr', b, c, invoke2, ARETURN");
 		test(".f()",
@@ -208,7 +208,7 @@ public class CompileTest {
 		test("this.f()",
 				"self, 'f', invoke0, ARETURN");
 		test("this[a]()",
-				"self, a, toMethodString, invoke, ARETURN");
+				"self, a, toMethodString, invoke0, ARETURN");
 		test("a(123, x: 456)",
  				"a, 123, NAMED, 'x', 456, call, ARETURN");
 		test("a(99: 'x')",
@@ -348,10 +348,10 @@ public class CompileTest {
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, POP, b, call, POP, L4");
 		test_e("try a() catch(e) b()",
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, toString, " +
-					"args, SWAP, 3, SWAP, AASTORE, b, call, POP, L4");
+					"args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
 		test_e("try a() catch(e, 'x') b()",
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
-					"'x', catchMatch, args, SWAP, 3, SWAP, AASTORE, b, call, POP, L4");
+					"'x', catchMatch, args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
 	}
 	@Test public void test_block() {
 		test_b0("Do() { this }",
@@ -446,7 +446,7 @@ public class CompileTest {
 		//System.out.println("====== " + s);
 		if (!s.startsWith("class") && !s.startsWith("function")
 				&& !s.startsWith("#("))
-			s = "function (a,b,c) { " + s + " }";
+			s = "function (a,b,c,d,e) { " + s + " }";
 		StringWriter sw = new StringWriter();
 		SuCallable x = (SuCallable) Compiler.compile("Test", s, new PrintWriter(sw));
 		constants = x.constants == null ? new Object[0] : x.constants;
@@ -462,14 +462,14 @@ public class CompileTest {
 			SELF = 1;
 			ARGS = 2;
 			CONST = 3;
-		} else if (r.contains("public eval0(")) {
+		} else if (r.contains("public eval")) {
 			SELF = 1;
 			CONST = 2;
 		} else if (r.contains("public call(")) {
 			ARGS = 1;
 			CONST = 2;
-		} else if (r.contains("public call0(")) {
-			CONST = 1;
+		} else if (r.contains("public call3")) {
+			CONST = 4;
 		} else
 			assert false : "unknown definition type";
 		r = after(r, after);
@@ -490,12 +490,13 @@ public class CompileTest {
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
 			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE " + CONST + ", ", "" },
+			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE 4" + ", ", "" },
 			{ "this, GETFIELD suneido/language/Test$b.constants : [Object;, ASTORE " + CONST + ", ", "" },
 			{ "args, ICONST_0, AALOAD", "a" },
 			{ "args, ICONST_1, AALOAD", "b" },
 			{ "args, ICONST_2, AALOAD", "c" },
-			{ "args, ICONST_3, AALOAD", "x" },
-			{ "args, ICONST_4, AALOAD", "y" },
+			{ "args, ICONST_5, AALOAD", "x" },
+			{ "args, BIPUSH 6, AALOAD", "y" },
 			{ "args, ICONST_0", "&a" },
 			{ "args, ICONST_1", "&b" },
 			{ "args, ICONST_2", "&c" },
@@ -590,11 +591,6 @@ public class CompileTest {
 			{ "call2", "call" },
 			{ "call3", "call" },
 			{ "call4", "call" },
-			{ "call5", "call" },
-			{ "call6", "call" },
-			{ "call7", "call" },
-			{ "call8", "call" },
-			{ "call9", "call" },
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
