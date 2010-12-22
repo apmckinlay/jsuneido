@@ -695,67 +695,47 @@ public final class Ops {
 		throw new SuException("no value");
 	}
 
-	public static Object call0(Object x) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call0()
-			: call(x);
-	}
-	public static Object call1(Object x, Object a) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call1(a)
-			: call(x, a);
-	}
-	public static Object call2(Object x, Object a, Object b) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call2(a, b)
-			: call(x, a, b);
-	}
-	public static Object call3(Object x, Object a, Object b, Object c) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call3(a, b, c)
-			: call(x, a, b, c);
-	}
-	public static Object call4(Object x, Object a, Object b, Object c, Object d) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call4(a, b, c, d)
-			: call(x, a, b, c, d);
-	}
-	public static Object call5(Object x, Object a, Object b, Object c, Object d,
-			Object e) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call5(a, b, c, d, e)
-			: call(x, a, b, c, d, e);
-	}
-	public static Object call6(Object x, Object a, Object b, Object c, Object d,
-			Object e, Object f) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call6(a, b, c, d, e, f)
-			: call(x, a, b, c, d, e, f);
-	}
-	public static Object call7(Object x, Object a, Object b, Object c, Object d,
-			Object e, Object f, Object g) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call7(a, b, c, d, e, f, g)
-			: call(x, a, b, c, d, e, f, g);
-	}
-	public static Object call8(Object x, Object a, Object b, Object c, Object d,
-			Object e, Object f, Object g, Object h) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call8(a, b, c, d, e, f, g, h)
-			: call(x, a, b, c, d, e, f, g, h);
-	}
-	public static Object call9(Object x, Object a, Object b, Object c, Object d,
-			Object e, Object f, Object g, Object h, Object i) {
-		return (x instanceof SuValue)
-			? ((SuValue) x).call9(a, b, c, d, e, f, g, h, i)
-			: call(x, a, b, c, d, e, f, g, h, i);
-	}
-	public static Object call(Object x, Object... args) {
+private static long n_call = 0;
+private static long n_call0 = 0;
+private static long n_call1 = 0;
+private static long n_call2 = 0;
+private static long n_call3 = 0;
+private static long n_call4 = 0;
+
+	// so far only SuValue and String are callable
+	// so don't need to use target like invoke does
+	public static Object call(Object x, Object... args) { ++n_call;
 		if (x instanceof SuValue)
 			return ((SuValue) x).call(args);
 		if (x instanceof String)
 			return callString(x, args);
 		throw new SuException("can't call " + typeName(x) + " (" + x + ")");
+	}
+
+	public static Object call0(Object x) { ++n_call0;
+		return (x instanceof SuValue)
+			? ((SuValue) x).call0()
+			: call(x);
+	}
+	public static Object call1(Object x, Object a) { ++n_call1;
+		return (x instanceof SuValue)
+			? ((SuValue) x).call1(a)
+			: call(x, a);
+	}
+	public static Object call2(Object x, Object a, Object b) { ++n_call2;
+		return (x instanceof SuValue)
+			? ((SuValue) x).call2(a, b)
+			: call(x, a, b);
+	}
+	public static Object call3(Object x, Object a, Object b, Object c) { ++n_call3;
+		return (x instanceof SuValue)
+			? ((SuValue) x).call3(a, b, c)
+			: call(x, a, b, c);
+	}
+	public static Object call4(Object x, Object a, Object b, Object c, Object d) { ++n_call4;
+		return (x instanceof SuValue)
+			? ((SuValue) x).call4(a, b, c, d)
+			: call(x, a, b, c, d);
 	}
 
 	/** string(object, ...) => object[string](...) */
@@ -769,6 +749,7 @@ public final class Ops {
 	public static Object invoke(Object x, String method, Object... args) {
 		return target(x).lookup(method).eval(x, args);
 	}
+
 	public static Object invoke0(Object x, String method) {
 		return target(x).lookup(method).eval0(x);
 	}
@@ -785,26 +766,6 @@ public final class Ops {
 	public static Object invoke4(Object x, String method, Object a, Object b,
 			Object c, Object d) {
 		return target(x).lookup(method).eval4(x, a, b, c, d);
-	}
-	public static Object invoke5(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e) {
-		return target(x).lookup(method).eval5(x, a, b, c, d, e);
-	}
-	public static Object invoke6(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f) {
-		return target(x).lookup(method).eval6(x, a, b, c, d, e, f);
-	}
-	public static Object invoke7(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g) {
-		return target(x).lookup(method).eval7(x, a, b, c, d, e, f, g);
-	}
-	public static Object invoke8(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h) {
-		return target(x).lookup(method).eval8(x, a, b, c, d, e, f, g, h);
-	}
-	public static Object invoke9(Object x, String method, Object a, Object b,
-			Object c, Object d, Object e, Object f, Object g, Object h, Object i) {
-		return target(x).lookup(method).eval9(x, a, b, c, d, e, f, g, h, i);
 	}
 
 	public static SuValue target(Object x) {

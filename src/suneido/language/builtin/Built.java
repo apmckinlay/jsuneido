@@ -7,7 +7,7 @@ public class Built extends SuFunction0 {
 
 	@Override
 	public Object call0() {
-		return WhenBuilt.when();
+		return WhenBuilt.when(); 
 	}
 
 }

@@ -10,6 +10,7 @@ public class AstCompile {
 	private final String globalName;
 	/* british pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
+	private static final int MAX_DIRECT_ARGS = 4;
 	private String suClassName = null;
 	private boolean inMethod = false;
 	private String curName = null;
@@ -183,7 +184,7 @@ public class AstCompile {
 	private boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
 		if (base == "SuCallable") // block
 			return true;
-		if (params.size() > 4) // TODO increase
+		if (params.size() > MAX_DIRECT_ARGS)
 			return true;
 		if (params.size() > 0 && params.get(0).value.startsWith("@"))
 			return true;
@@ -762,7 +763,7 @@ public class AstCompile {
 		if (fn.token == Token.MEMBER) {
 			member(cg, fn);
 			if (args.token != Token.AT &&
-					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeMethod(args.children.size());
 			} else {
@@ -773,8 +774,14 @@ public class AstCompile {
 			expression(cg, fn.first());
 			expression(cg, fn.second());
 			cg.toMethodString();
-			callArguments(cg, args);
-			cg.invokeMethod();
+			if (args.token != Token.AT &&
+					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
+				directArguments(cg, args);
+				cg.invokeMethod(args.children.size());
+			} else {
+				callArguments(cg, args);
+				cg.invokeMethod();
+			}
 		} else if (fn.token == Token.SUPER) {
 			cg.superCallTarget(fn.value);
 			callArguments(cg, args);
@@ -789,7 +796,7 @@ public class AstCompile {
 		} else if (isGlobal(fn)) {
 			cg.constant(fn.value);
 			if (args.token != Token.AT &&
-					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeGlobal(args.children.size());
 			} else {
@@ -799,7 +806,7 @@ public class AstCompile {
 		} else {
 			expression(cg, fn);
 			if (args.token != Token.AT &&
-					args.children.size() < MIN_TO_OPTIMIZE && ! hasNamed(args)) {
+					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeFunction(args.children.size());
 			} else {
