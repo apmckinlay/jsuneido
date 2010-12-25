@@ -9,6 +9,11 @@ import java.util.Set;
 
 import suneido.util.Stack;
 
+// BUG use of variable that is a parameter on a containing block is sharing
+/* e.g.
+ 	QueryApply(...) {|x| QueryApply(...) {|y| ...x... } }
+ */
+
 /**
  * Determine if a function shares variables with blocks.
  * Used by {@link AstCompile} to choose between args array and java locals.
@@ -72,11 +77,18 @@ public class AstSharesVars {
 			else if ("this".equals(id))
 				hasSharedVars = true;
 			else if (! blockParams.top().contains(id)) {
-				if (outerVars.contains(id))
+				if (outerVars.contains(id) || isOuterBlockParam(id))
 					hasSharedVars = true;
 				else
 					blockVars.add(id);
 			}
+		}
+
+		private boolean isOuterBlockParam(String id) {
+			for (int i = 0; i < blockParams.size() - 1; ++i) // all but top
+				if (blockParams.peek(i).contains(id))
+					return true;
+			return false;
 		}
 
 		@Override

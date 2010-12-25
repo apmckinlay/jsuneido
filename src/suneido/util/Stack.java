@@ -19,4 +19,10 @@ public class Stack<T> {
 	public T top() {
 		return list.get(list.size() - 1);
 	}
+	public int size() {
+		return list.size();
+	}
+	public T peek(int i) {
+		return list.get(i);
+	}
 }
