@@ -25,4 +25,7 @@ public class Stack<T> {
 	public T peek(int i) {
 		return list.get(i);
 	}
+	public boolean isEmpty() {
+		return list.isEmpty();
+	}
 }

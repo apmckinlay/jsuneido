@@ -13,8 +13,7 @@ public class AstGenerator extends Generator<AstNode> {
 		AstNode baseAst = base == null ? null : new AstNode(Token.STRING, base);
 		if (members == null)
 			members = EMPTY_LIST;
-		AstNode ast = new AstNode(Token.CLASS, baseAst, members);
-		return ast;
+		return new AstNode(Token.CLASS, baseAst, members);
 	}
 
 	@Override
@@ -23,9 +22,8 @@ public class AstGenerator extends Generator<AstNode> {
 			params = EMPTY_LIST;
 		if (body == null)
 			body = EMPTY_COMPOUND;
-		AstNode f = new AstNode(isMethod ? Token.METHOD : Token.FUNCTION,
+		return new AstNode(isMethod ? Token.METHOD : Token.FUNCTION,
 				params, body);
-		return f;
 	}
 
 	private static final AstNode itParams = new AstNode(Token.LIST,
@@ -39,8 +37,8 @@ public class AstGenerator extends Generator<AstNode> {
 			body = EMPTY_COMPOUND;
 		if (params.children.isEmpty() && AstBlockIt.check(body))
 			params = itParams;
-		AstNode block = new AstNode(Token.BLOCK, params, body);
-		return block;
+		// extra child is used by AstSharesVars to mark closures
+		return new AstNode(Token.BLOCK, params, body, null);
 	}
 
 	@Override

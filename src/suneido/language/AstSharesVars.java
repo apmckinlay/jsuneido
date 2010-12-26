@@ -4,19 +4,23 @@
 
 package suneido.language;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import suneido.util.Stack;
 
-// BUG use of variable that is a parameter on a containing block is sharing
-/* e.g.
- 	QueryApply(...) {|x| QueryApply(...) {|y| ...x... } }
- */
+import com.google.common.collect.Sets;
 
 /**
  * Determine if a function shares variables with blocks.
- * Used by {@link AstCompile} to choose between args array and java locals.
+ * Used by {@link AstCompile} to choose between args array and java locals.<p>
+ * Also marks any child blocks (possibly multiply nested)
+ * that share variables with this function
+ * and therefore require compiling as closure blocks.
+ *
+ * Tricky cases:<br>
+ * <li>where inner block shares a parameter of its containing block
+ * <li>where inner block shares a variable of its containing block
+ * <li>where sharing is with a parent several levels up
  */
 public class AstSharesVars {
 
@@ -29,14 +33,15 @@ public class AstSharesVars {
 	private static class Visitor extends AstNode.Visitor {
 		private final AstNode root;
 		public boolean hasSharedVars;
-		private int blockNest = 0; // > 0 means in block
-		private final Set<String> outerVars = new HashSet<String>();
-		private final Stack<Set<String>> blockParams = new Stack<Set<String>>();
-		private final Set<String> blockVars = new HashSet<String>();
-		private boolean inBlockParams;
+		private boolean needBlocks = false;
+		private final Set<String> outerVars;
+		private final Stack<BlockInfo> blocks = new Stack<BlockInfo>();
 
-		Visitor(AstNode root) {
-			this.root = root;
+		Visitor(AstNode ast) {
+			root = ast;
+			outerVars = AstVariables.vars(ast);
+			outerVars.add("this");
+//System.out.println("\nouter vars: " + vars);
 		}
 
 		@Override
@@ -48,59 +53,45 @@ public class AstSharesVars {
 			case FUNCTION:
 				return ast == root ? true : false;
 			case BLOCK:
-				inBlockParams = true;
-				blockParams.push(new HashSet<String>());
-				++blockNest;
+				blocks.push(new BlockInfo(ast));
 				break;
-			case IDENTIFIER:
-			case FOR_IN:
-			case CATCH:
-				check(ast.value);
-				break;
-			case SELFREF:
-			case SUPER:
-				if (blockNest > 0)
-					hasSharedVars = true;
+			default:
 				break;
 			}
-			return ! hasSharedVars; // stop when you know
-		}
-
-		private void check(String id) {
-			if (blockNest == 0) {
-				if (blockVars.contains(id))
-					hasSharedVars = true;
-				else
-					outerVars.add(id);
-			} else if (inBlockParams)
-				blockParams.top().add(id);
-			else if ("this".equals(id))
-				hasSharedVars = true;
-			else if (! blockParams.top().contains(id)) {
-				if (outerVars.contains(id) || isOuterBlockParam(id))
-					hasSharedVars = true;
-				else
-					blockVars.add(id);
-			}
-		}
-
-		private boolean isOuterBlockParam(String id) {
-			for (int i = 0; i < blockParams.size() - 1; ++i) // all but top
-				if (blockParams.peek(i).contains(id))
-					return true;
-			return false;
+			return true;
 		}
 
 		@Override
 		void bottomUp(AstNode ast) {
 			switch (ast.token) {
-			case LIST:
-				inBlockParams = false;
-				break;
 			case BLOCK:
-				blockParams.pop();
-				--blockNest;
+				if (! needBlocks) {
+					BlockInfo b = blocks.top();
+					Set<String> nonParamVars = Sets.difference(b.vars, b.params);
+//System.out.println("non param vars " + nonParamVars);
+					if (! Sets.intersection(outerVars, nonParamVars).isEmpty())
+						hasSharedVars = needBlocks = true;
+				}
+				if (needBlocks)
+					ast.children.set(2, compileAsBlock);
+				blocks.pop();
+				if (blocks.isEmpty())
+					needBlocks = false;
 				break;
+			}
+		}
+
+		private static final AstNode compileAsBlock = new AstNode(Token.CLOSURE);
+
+		private static class BlockInfo {
+			final Set<String> params;
+			final Set<String> vars;
+
+			BlockInfo(AstNode ast) {
+				assert ast.token == Token.BLOCK;
+				params = AstVariables.vars(ast.first());
+				vars = AstVariables.vars(ast);
+//System.out.println("block vars " + vars);
 			}
 		}
 	}

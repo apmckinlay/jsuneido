@@ -362,6 +362,9 @@ public class CompileTest {
 				"123, block_return");
 
 		test_e("b = { }",
+				"try L0 L1 L2, L3, &b, 0=Test$f, L0, DUP_X2, AASTORE, ARETURN, "
+				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+		test_e("b = { a }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
 				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 		compile("Foreach(a, { })");
@@ -371,6 +374,9 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
 		test_e("b = { return 123 }",
+				"try L0 L1 L2, L3, &b, 0=Test$f, L0, DUP_X2, AASTORE, ARETURN, "
+				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+		test_e("b = { a; return 123 }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
 				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 	}
@@ -490,6 +496,7 @@ public class CompileTest {
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
 			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE " + CONST + ", ", "" },
+			{ "this, GETFIELD suneido/language/Test$f.constants : [Object;, ASTORE 1" + ", ", "" },
 			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE 4" + ", ", "" },
 			{ "this, GETFIELD suneido/language/Test$b.constants : [Object;, ASTORE " + CONST + ", ", "" },
 			{ "args, ICONST_0, AALOAD", "a" },

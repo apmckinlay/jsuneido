@@ -95,22 +95,22 @@ public class ParseExpressionTest {
 		code("f(@+1 x)",
 			"(CALL (IDENTIFIER=f) (AT=1 (IDENTIFIER=x)))");
 		code("return { x }",
-			"(RETURN (BLOCK (LIST) (LIST (IDENTIFIER=x))))");
+			"(RETURN (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))");
 		code("return {|a,b| x }",
-			"(RETURN (BLOCK (LIST (IDENTIFIER=a null) (IDENTIFIER=b null)) (LIST (IDENTIFIER=x))))");
+			"(RETURN (BLOCK (LIST (IDENTIFIER=a null) (IDENTIFIER=b null)) (LIST (IDENTIFIER=x)) null))");
 		code("return {|@a| x }",
-			"(RETURN (BLOCK (LIST (IDENTIFIER=@a null)) (LIST (IDENTIFIER=x))))");
+			"(RETURN (BLOCK (LIST (IDENTIFIER=@a null)) (LIST (IDENTIFIER=x)) null))");
 		code("b = { x }",
-			"(EQ (IDENTIFIER=b) (BLOCK (LIST) (LIST (IDENTIFIER=x))))");
+			"(EQ (IDENTIFIER=b) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))");
 		code("f(a) { x }",
 			"(CALL (IDENTIFIER=f) (LIST (ARG null (IDENTIFIER=a)) " +
-				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x))))))");
+				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
 		code("function () { f(a)\n { x } }",
 			"(FUNCTION (LIST) (LIST (CALL (IDENTIFIER=f) (LIST " +
 				"(ARG null (IDENTIFIER=a)) " +
-				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x))))))))");
+				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))))");
 		code("f { x }",
-			"(CALL (IDENTIFIER=f) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x))))))");
+			"(CALL (IDENTIFIER=f) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
 		code("new c",
 			"(NEW (IDENTIFIER=c) (LIST))");
 		code("new c(a, b)",
@@ -138,13 +138,13 @@ public class ParseExpressionTest {
 		code(".x.f().\n g()",
 			"(CALL (MEMBER=g (CALL (MEMBER=f (MEMBER=x (SELFREF))) (LIST))) (LIST))");
 		code("100.Times() { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL))))))");
+			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times()\n { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL))))))");
+			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL))))))");
+			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times\n { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL))))))");
+			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
 
 		code("123 + 456",
 			"(BINARYOP (ADD) (NUMBER=123) (NUMBER=456))");
@@ -227,11 +227,11 @@ public class ParseExpressionTest {
 		code("return .x.f().\n g()",
 			"(RETURN (CALL (MEMBER=g (CALL (MEMBER=f (MEMBER=x (SELFREF))) (LIST))) (LIST)))");
 		code("args.Each {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z))))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("args.Each()\n {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z))))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("args.Each\n {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z))))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 	}
 
 	private static void code(String code, String expected) {

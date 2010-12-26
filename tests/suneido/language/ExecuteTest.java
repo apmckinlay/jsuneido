@@ -149,6 +149,7 @@ public class ExecuteTest {
 		test("b = { continue }; try b() catch (e) return e", "'block:continue'");
 
 		test("b = { forever break; 123 }; b()", "123");
+		test("b1 = {|f| this; b2 = { f }; b2() }; b1(123)", "123");
 	}
 	@Test public void test_exceptions() {
 		test("try return 123", "123");
