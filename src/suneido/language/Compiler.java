@@ -17,14 +17,18 @@ public class Compiler {
 	}
 
 	public static Object compile(String name, String src, PrintWriter pw) {
+		AstNode ast = parse(src);
+		if (pw != null)
+			pw.append(ast.toString() + "\n\n");
+		return new AstCompile(name, pw).fold(ast);	}
+
+	public static AstNode parse(String src) {
 		Lexer lexer = new Lexer(src);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
-		if (pw != null)
-			pw.append(ast.toString() + "\n\n");
-		return new AstCompile(name, pw).fold(ast);	}
+		return pc.parse();
+	}
 
 	private static final Object[] noArgs = new Object[0];
 
@@ -35,13 +39,12 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { run = function(block) {}; run() { } }";
+		String s = "function () { b1 = {|f| this; b2 = { f }; b2() }; b1(123) }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
-		Object x = Ops.call0(f);
-//		Object x = Ops.call1(f, "world");
-//		System.out.println(" => " + x);
+		System.out.println(" => " + Ops.call0(f));
+		//System.out.println(" => " + Ops.call1(f, "hello"));
 	}
 
 }

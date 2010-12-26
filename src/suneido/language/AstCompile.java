@@ -142,7 +142,21 @@ public class AstCompile {
 		return fn;
 	}
 
-	public SuCallable block(ClassGen cg, AstNode ast) {
+	public void block(ClassGen cg, AstNode ast) {
+		if (ast.third() != null) {
+			assert ast.third().token == Token.CLOSURE;
+			int iBlockDef = cg.addConstant(closure(cg, ast));
+			cg.block(iBlockDef);
+		} else {
+			SuCallable f = foldFunction(null, ast);
+			cg.constant(f);
+			cg.addBlockReturnCatcher();
+		}
+	}
+
+	public SuCallable closure(ClassGen cg, AstNode ast) {
+		// needed to check if child blocks share with this block
+		AstSharesVars.check(ast);
 		nameBegin(null, "$b");
 		SuCallable fn = javaClass(ast, "SuCallable", "eval", cg.locals, pw);
 		nameEnd();
@@ -182,13 +196,15 @@ public class AstCompile {
 	}
 
 	private boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
-		if (base == "SuCallable") // block
+		if (base == "SuCallable") // closure block
 			return true;
+		// need to call this regardless to process child blocks
+		boolean shares = AstSharesVars.check(ast);
 		if (params.size() > MAX_DIRECT_ARGS)
 			return true;
 		if (params.size() > 0 && params.get(0).value.startsWith("@"))
 			return true;
-		return AstSharesVars.check(ast);
+		return shares;
 	}
 
 	private void superChecks(int i, AstNode stat) {
@@ -697,14 +713,7 @@ public class AstCompile {
 			trinaryExpression(cg, ast);
 			break;
 		case BLOCK:
-			if (cg.useArgsArray) {
-				int iBlockDef = cg.addConstant(block(cg, ast));
-				cg.block(iBlockDef);
-			} else {
-				SuCallable f = foldFunction(null, ast);
-				cg.constant(f);
-				cg.addBlockReturnCatcher();
-			}
+			block(cg, ast);
 			break;
 		case RVALUE:
 			return expression(cg, ast.first(), option);
