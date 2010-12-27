@@ -23,6 +23,8 @@
 }
 
 -keep class org.objectweb.asm.Label
+-keep class com.google.common.base.Splitter
+-keep class com.google.common.collect.BiMap
 -keep class com.google.common.collect.ImmutableList
 -keep class suneido.database.query.Row$Which
 -keep class suneido.database.query.Join$Type
