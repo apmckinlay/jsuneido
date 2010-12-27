@@ -300,15 +300,16 @@ public class ClassGen {
 	}
 
 	public int javaLocal(String name) {
-		if (name.endsWith("?"))
-			name = name.substring(0, name.length() - 1) + "_Q_";
-		if (name.endsWith("!"))
-			name = name.substring(0, name.length() - 1) + "_E_";
+		// don't javify here because FunctionSpec needs original names
 		Integer i = javaLocals.get(name);
 		if (i != null)
 			return i;
 		javaLocals.put(name, nextJavaLocal);
 		return nextJavaLocal++;
+	}
+
+	public static String javify(String name) {
+		return name.replace("?", "_Q_").replace("!", "_X_");
 	}
 
 	public void globalLoad(String name) {
@@ -629,7 +630,7 @@ public class ClassGen {
 		BiMap<Integer, String> bm = javaLocals.inverse();
 		for (int i = 0; i < nextJavaLocal; ++i)
 			if (bm.containsKey(i))
-				mv.visitLocalVariable(bm.get(i), "[Ljava/lang/Object;", null,
+				mv.visitLocalVariable(javify(bm.get(i)), "[Ljava/lang/Object;", null,
 						startLabel, endLabel, i);
 
 		mv.visitMaxs(0, 0);
@@ -651,6 +652,15 @@ public class ClassGen {
 		Object[] constantsArray = (constants == null)
 				? null : constants.toArray(arrayOfObject);
 
+		callable.params = functionSpec(bm, constantsArray);
+		callable.constants = constantsArray;
+		callable.isBlock = isBlock;
+
+		return callable;
+	}
+
+	private FunctionSpec functionSpec(BiMap<Integer, String> bm,
+			Object[] constantsArray) {
 		FunctionSpec fspec;
 		if (trueBlock) {
 			fspec = new BlockSpec(name, blockLocals(), nParams, atParam, iBlockParams);
@@ -665,11 +675,7 @@ public class ClassGen {
 			fspec = new FunctionSpec(name, params,
 					nParams, constantsArray, nDefaults, atParam);
 		}
-		callable.params = fspec;
-		callable.constants = constantsArray;
-		callable.isBlock = isBlock;
-
-		return callable;
+		return fspec;
 	}
 
 	static class Loader extends ClassLoader {

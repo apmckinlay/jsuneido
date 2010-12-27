@@ -1,4 +1,10 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
+
+import static suneido.language.ClassGen.javify;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -143,14 +149,14 @@ public class AstCompile {
 	}
 
 	public void block(ClassGen cg, AstNode ast) {
-		if (ast.third() != null) {
-			assert ast.third().token == Token.CLOSURE;
-			int iBlockDef = cg.addConstant(closure(cg, ast));
-			cg.block(iBlockDef);
-		} else {
+		if (ast.third() == null) {
 			SuCallable f = foldFunction(null, ast);
 			cg.constant(f);
 			cg.addBlockReturnCatcher();
+		} else {
+			assert ast.third().token == Token.CLOSURE;
+			int iBlockDef = cg.addConstant(closure(cg, ast));
+			cg.block(iBlockDef);
 		}
 	}
 
@@ -253,10 +259,6 @@ public class AstCompile {
 			curName += def;
 		else
 			curName += METHOD_SEPARATOR + javify(memberName);
-	}
-
-	public static String javify(String name) {
-		return name.replace('?', 'Q').replace('!', 'X');
 	}
 
 	private void nameEnd() {
@@ -861,6 +863,15 @@ public class AstCompile {
 			addNullCheck(cg, expr);
 			cg.aastore();
 		}
+		void named(AstNode arg) {
+			if (arg.first() != null)
+				named(fold(arg.first()));
+			expression(arg.second());
+		}
+		void named(Object name) {
+			special("NAMED");
+			constant(name);
+		}
 	}
 
 	private void newExpression(ClassGen cg, AstNode ast) {
@@ -894,14 +905,7 @@ public class AstCompile {
 	}
 
 	private void simpleArguments(ClassGen cg, AstNode args) {
-		VarArgs vargs = new VarArgs(cg, countArgs(args));
-		for (AstNode arg : args.children) {
-			if (arg.first() != null) {
-				vargs.special("NAMED");
-				vargs.constant(fold(arg.first()));
-			}
-			vargs.expression(arg.second());
-		}
+		namedArgs(new VarArgs(cg, countArgs(args)), args.children);
 	}
 
 	private void directArguments(ClassGen cg, AstNode args) {
@@ -973,19 +977,15 @@ public class AstCompile {
 			unamedArgs(vargs, constArgs.vec);
 			namedArgs(vargs, named);
 			for (Map.Entry<Object, Object> e : constArgs.mapEntrySet()) {
-				vargs.special("NAMED");
-				vargs.constant(e.getKey());
+				vargs.named(e.getKey());
 				vargs.constant(e.getValue());
 			}
 		}
 	}
 
 	private void namedArgs(VarArgs vargs, List<AstNode> args) {
-		for (AstNode arg : args) {
-			vargs.special("NAMED");
-			vargs.constant(fold(arg.first()));
-			vargs.expression(arg.second());
-		}
+		for (AstNode arg : args)
+			vargs.named(arg);
 	}
 
 	private void unamedArgs(VarArgs vargs, List<Object> args) {
