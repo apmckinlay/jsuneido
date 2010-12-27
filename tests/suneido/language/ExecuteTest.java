@@ -28,6 +28,8 @@ public class ExecuteTest {
 		test("'hello world'.Size()", "11");
 		test("s = 'hello'; s.Substr(s.Size() - 2, 99)", "'lo'");
 		test("f = function (@x) { x }; f()", "#()");
+		test("f = function (adv?) { adv? }; f(adv?:)", "true");
+		test("f = function (@args) { args.adv! }; f(adv!: false)", "false");
 	}
 	@Test public void test_bigdecimal_is() {
 		test("1000 is 1e3", "true");
