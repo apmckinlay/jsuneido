@@ -30,6 +30,8 @@ public class ExecuteTest {
 		test("f = function (@x) { x }; f()", "#()");
 		test("f = function (adv?) { adv? }; f(adv?:)", "true");
 		test("f = function (@args) { args.adv! }; f(adv!: false)", "false");
+		test("f = function (a, b, c = 3, d = 4) { [a,b,c,d] }; f(1, 2, d: 9)",
+				"[1, 2, 3, 9]");
 	}
 	@Test public void test_bigdecimal_is() {
 		test("1000 is 1e3", "true");

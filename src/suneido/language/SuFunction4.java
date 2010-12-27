@@ -11,7 +11,7 @@ public abstract class SuFunction4 extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(params, args);
-		return call3(args[0], args[1], args[2]);
+		return call4(args[0], args[1], args[2], args[3]);
 	}
 
 	@Override
