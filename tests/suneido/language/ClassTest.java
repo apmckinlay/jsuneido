@@ -240,6 +240,21 @@ public class ClassTest {
 		}
 	}
 
+	@Test
+	public void test_getdefault() {
+		define("C", "class { X: 123 }");
+		test("C.GetDefault('X', 456)", "123");
+		test("C.GetDefault('Y', 456)", "456");
+		test("C.GetDefault('Y', { 456 })", "456");
+		test("C.GetDefault('Y', function () { 456 })", "eval$f");
+		test("x = C(); x.GetDefault('X', 456)", "123");
+		test("x = C(); x.GetDefault('Y', 456)", "456");
+		test("x = C(); x.GetDefault('Y', { 456 })", "456");
+		test("x = C(); x.GetDefault('Y', { x; 456 })", "456"); // closure
+		test("x = C(); x.GetDefault('Y', function () { 456 })", "eval$f");
+		test("x = C(); x.X = 999; x.GetDefault('X', 456)", "999");
+	}
+
 	private static void notFound(String expr) {
 		try {
 			eval(expr);

@@ -14,6 +14,7 @@ public final class SuBlock extends SuCallable {
 		this.block = (SuCallable) block;
 		this.self = self;
 		this.locals = locals;
+		isBlock = true;
 	}
 
 	@Override

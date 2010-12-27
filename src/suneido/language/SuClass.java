@@ -205,15 +205,16 @@ public class SuClass extends SuValue {
 		{ params = new FunctionSpec("key", "block"); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			SuClass c = (SuClass) self;
-			String key = Ops.toStr(a);
-			if (c.members.containsKey(key))
-				return c.members.get(key);
-			Object x = b;
-			if (x instanceof SuBlock)
-				x = Ops.call(x);
-			return x;
+			return ((SuClass) self).getDefault(a, b);
 		}
+	}
+
+	public Object getDefault(Object k, Object b) {
+		String key = Ops.toStr(k);
+		Object x = members.get(key);
+		if (x != null)
+			return x;
+		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
 	private static class Members extends SuMethod0 {
