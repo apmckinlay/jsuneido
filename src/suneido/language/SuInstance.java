@@ -48,6 +48,7 @@ public class SuInstance extends SuValue {
 		b.put("Delete", new Delete());
 		b.put("Eval", new ContainerMethods.Eval());
 		b.put("Eval2", new ContainerMethods.Eval2());
+		b.put("GetDefault", new GetDefault());
 		b.put("Member?", new MemberQ());
 		b.put("Members", new Members());
 		return b.build();
@@ -90,6 +91,18 @@ public class SuInstance extends SuValue {
 		@Override
 		public Object eval1(Object self, Object a) {
 			return ((SuInstance) self).ivars.remove(a) == null ? false : this;
+		}
+	}
+
+	public static class GetDefault extends SuMethod2 {
+		{ params = new FunctionSpec("key", "block"); }
+		@Override
+		public Object eval2(Object self, Object a, Object b) {
+			SuInstance si = ((SuInstance) self);
+			Object x = si.ivars.get(a);
+			if (x != null)
+				return x;
+			return ((SuClass) si.myclass).getDefault(a, b);
 		}
 	}
 

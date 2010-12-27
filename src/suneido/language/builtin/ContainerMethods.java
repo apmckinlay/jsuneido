@@ -177,10 +177,9 @@ public class ContainerMethods {
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			Object x = ((SuContainer) self).getIfPresent(a);
-			if (x == null)
-				x = b instanceof SuBlock || SuCallable.isBlock(b)
-						? Ops.call(b) : b;
-			return x;
+			if (x != null)
+				return x;
+			return SuCallable.isBlock(b) ? Ops.call(b) : b;
 		}
 	}
 
