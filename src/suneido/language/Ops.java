@@ -695,16 +695,9 @@ public final class Ops {
 		throw new SuException("no value");
 	}
 
-private static long n_call = 0;
-private static long n_call0 = 0;
-private static long n_call1 = 0;
-private static long n_call2 = 0;
-private static long n_call3 = 0;
-private static long n_call4 = 0;
-
 	// so far only SuValue and String are callable
 	// so don't need to use target like invoke does
-	public static Object call(Object x, Object... args) { ++n_call;
+	public static Object call(Object x, Object... args) {
 		if (x instanceof SuValue)
 			return ((SuValue) x).call(args);
 		if (x instanceof String)
@@ -712,27 +705,27 @@ private static long n_call4 = 0;
 		throw new SuException("can't call " + typeName(x) + " (" + x + ")");
 	}
 
-	public static Object call0(Object x) { ++n_call0;
+	public static Object call0(Object x) {
 		return (x instanceof SuValue)
 			? ((SuValue) x).call0()
 			: call(x);
 	}
-	public static Object call1(Object x, Object a) { ++n_call1;
+	public static Object call1(Object x, Object a) {
 		return (x instanceof SuValue)
 			? ((SuValue) x).call1(a)
 			: call(x, a);
 	}
-	public static Object call2(Object x, Object a, Object b) { ++n_call2;
+	public static Object call2(Object x, Object a, Object b) {
 		return (x instanceof SuValue)
 			? ((SuValue) x).call2(a, b)
 			: call(x, a, b);
 	}
-	public static Object call3(Object x, Object a, Object b, Object c) { ++n_call3;
+	public static Object call3(Object x, Object a, Object b, Object c) {
 		return (x instanceof SuValue)
 			? ((SuValue) x).call3(a, b, c)
 			: call(x, a, b, c);
 	}
-	public static Object call4(Object x, Object a, Object b, Object c, Object d) { ++n_call4;
+	public static Object call4(Object x, Object a, Object b, Object c, Object d) {
 		return (x instanceof SuValue)
 			? ((SuValue) x).call4(a, b, c, d)
 			: call(x, a, b, c, d);
