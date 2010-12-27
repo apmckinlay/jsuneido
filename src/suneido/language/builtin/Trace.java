@@ -3,18 +3,16 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 import suneido.language.*;
 
-public class Trace extends SuFunction {
+public class Trace extends SuFunction2 {
 
-	private static final FunctionSpec fs =
-			new FunctionSpec(array("flags", "block"), false);
+	{ params = new FunctionSpec(array("flags", "block"), false); }
 
 	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		int flags = Ops.toInt(args[0]);
+	public Object call2(Object a, Object b) {
+		int flags = Ops.toInt(a);
 		suneido.Trace.flags = flags;
-		if (args[1] != Boolean.FALSE)
-			return Ops.call(args[1]);
+		if (b != Boolean.FALSE)
+			return Ops.call(b);
 		return suneido.Trace.flags;
 	}
 

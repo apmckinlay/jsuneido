@@ -5,13 +5,15 @@ package suneido.language;
  * Points to a generated sub-class of SuCallable
  * which defines an eval method.
  */
-public final class SuBlock extends SuCallable {
-	private final SuCallable block;
-	private final Object self;
-	private final Object[] locals;
+public class SuBlock extends SuCallable {
+	protected final SuCallable block;
+	protected final BlockSpec bspec;
+	protected final Object self;
+	protected final Object[] locals;
 
 	public SuBlock(Object block, Object self, Object[] locals) {
 		this.block = (SuCallable) block;
+		bspec = (BlockSpec) this.block.params;
 		this.self = self;
 		this.locals = locals;
 		isBlock = true;
@@ -27,7 +29,6 @@ public final class SuBlock extends SuCallable {
 	// also not reentrant - can't recurse
 	@Override
 	public Object eval(Object newSelf, Object... args) {
-		BlockSpec bspec = (BlockSpec) block.params;
 		args = Args.massage(bspec, args);
 		// merge args into locals
 		for (int i = 0; i < bspec.nparams; ++i)

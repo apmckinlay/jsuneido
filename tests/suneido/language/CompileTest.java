@@ -556,7 +556,7 @@ public class CompileTest {
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
 			{ "NEW suneido/language/SuBlock, DUP, 0=Test$b, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
-			{ "NEW suneido/language/SuBlock, DUP, 0=Test$b, null, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock0, DUP, 0=Test$b, null, args, INVOKESPECIAL suneido/language/SuBlock0.<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },

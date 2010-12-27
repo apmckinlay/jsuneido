@@ -30,11 +30,8 @@ public class Compiler {
 		return pc.parse();
 	}
 
-	private static final Object[] noArgs = new Object[0];
-
 	public static Object eval(String s) {
-		Object f = compile("eval", "function () { " + s + " }");
-		return Ops.call(f, noArgs);
+		return Ops.call0(compile("eval", "function () { " + s + " }"));
 	}
 
 	public static void main(String[] args) throws IOException {

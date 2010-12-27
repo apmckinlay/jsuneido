@@ -156,7 +156,13 @@ public class AstCompile {
 		} else {
 			assert ast.third().token == Token.CLOSURE;
 			int iBlockDef = cg.addConstant(closure(cg, ast));
-			cg.block(iBlockDef);
+			List<AstNode> params = ast.first().children;
+			String nParams = "" + params.size();
+			if (params.size() > MAX_DIRECT_ARGS)
+				nParams = "";
+			else if (params.size() > 0 && params.get(0).value.startsWith("@"))
+				nParams = "";
+			cg.block(iBlockDef, nParams);
 		}
 	}
 
