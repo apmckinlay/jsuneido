@@ -39,7 +39,7 @@ public class SocketServer extends SuClass {
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
 			int port = Ops.toInt(b != Boolean.FALSE ? b : Ops.get(self, "Port"));
-			Thread thread = new Thread(new Listener((SuValue) self, port));
+			Thread thread = new Thread(new Listener((SuClass) self, port));
 			thread.setDaemon(true);
 			thread.start();
 			return null;
@@ -47,17 +47,17 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Listener implements Runnable {
-		SuValue serverClass;
+		SuClass serverClass;
 		int port;
 
-		Listener(SuValue serverClass, int port) {
+		Listener(SuClass serverClass, int port) {
 			this.serverClass = serverClass;
 			this.port = port;
 		}
 
 		@Override
 		public void run() {
-			ServerBySocket server = new ServerBySocket(new ListenerHandlerFactory());
+			ServerBySocket server =	new ServerBySocket(new ListenerHandlerFactory());
 			try {
 				server.run(port);
 			} catch (IOException e) {
@@ -78,7 +78,7 @@ public class SocketServer extends SuClass {
 		final SocketClient socket;
 		final String address;
 
-		Instance(SuValue serverClass, Socket socket, String address) throws IOException {
+		Instance(SuClass serverClass, Socket socket, String address) throws IOException {
 			super(serverClass);
 			this.socket = new SocketClient(socket);
 			this.address = address;
