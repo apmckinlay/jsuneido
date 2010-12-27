@@ -191,7 +191,7 @@ public class SuClass extends SuValue {
 		}
 	}
 
-	private Boolean hasBase(Object base) {
+	boolean hasBase(Object base) {
 		if (base == this)
 			return Boolean.TRUE;
 		if (baseGlobal == null)
@@ -232,13 +232,12 @@ public class SuClass extends SuValue {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			String key = Ops.toStr(a);
-			SuClass c = toClass(self);
-			if (c == null)
-				return Boolean.FALSE;
-			Object x = c.get2(key);
-			return x == null ? Boolean.FALSE : Boolean.TRUE;
+			return ((SuClass) self).hasMember(a);
 		}
+	}
+
+	boolean hasMember(Object k) {
+		return get2(Ops.toStr(k)) != null;
 	}
 
 	private static class MethodClass extends SuMethod1 {

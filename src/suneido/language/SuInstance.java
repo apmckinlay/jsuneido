@@ -18,11 +18,11 @@ import com.google.common.collect.ImmutableMap;
  * (which will be an instance of {@link SuClass})
  */
 public class SuInstance extends SuValue {
-	final SuValue myclass;
+	final SuClass myclass;
 	private final Map<String, Object> ivars;
 	private static final Map<String, SuMethod> methods = methods();
 
-	public SuInstance(SuValue myclass) {
+	public SuInstance(SuClass myclass) {
 		this.myclass = myclass;
 		this.ivars = new HashMap<String, Object>();
 	}
@@ -59,7 +59,7 @@ public class SuInstance extends SuValue {
 		SuMethod m = methods.get(method);
 		if (m != null)
 			return m;
-		return ((SuClass) myclass).lookup(method);
+		return myclass.lookup(method);
 	}
 
 	public static class Base extends SuMethod0 {
@@ -72,10 +72,10 @@ public class SuInstance extends SuValue {
 	public static class BaseQ extends SuMethod1 {
 		@Override
 		public Object eval1(Object self, Object a) {
-			SuValue c = ((SuInstance) self).myclass;
+			SuClass c = ((SuInstance) self).myclass;
 			if (c == a)
 				return true;
-			return c.lookup("Base?").eval1(this, a);
+			return c.hasBase(a);
 		}
 	}
 
@@ -98,26 +98,29 @@ public class SuInstance extends SuValue {
 		{ params = new FunctionSpec("key", "block"); }
 		@Override
 		public Object eval2(Object self, Object a, Object b) {
-			SuInstance si = ((SuInstance) self);
-			Object x = si.ivars.get(a);
-			if (x != null)
-				return x;
-			return ((SuClass) si.myclass).getDefault(a, b);
+			return ((SuInstance) self).getDefault(a, b);
 		}
+	}
+
+	private Object getDefault(Object k, Object b) {
+		Object x = ivars.get(k);
+		if (x != null)
+			return x;
+		return myclass.getDefault(k, b);
 	}
 
 	public static class MemberQ extends SuMethod1 {
 		{ params = new FunctionSpec("key"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			return ((SuInstance) self).hasMember(Ops.toStr(a));
+			return ((SuInstance) self).hasMember(a);
 		}
 	}
 
-	private Object hasMember(String key) {
+	private boolean hasMember(Object key) {
 		if (ivars.containsKey(key))
 			return true;
-		return myclass.lookup("Member?").eval1(this, key);
+		return myclass.hasMember(key);
 	}
 
 	public static class Members extends SuMethod0 {
@@ -129,11 +132,9 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public String toString() {
-		if (myclass != null && myclass instanceof SuClass) {
-			Object toString = ((SuClass) myclass).get2("ToString");
-			if (toString instanceof SuCallable)
-				return Ops.toStr(((SuCallable) toString).eval(this));
-		}
+		Object toString = myclass.get2("ToString");
+		if (toString instanceof SuCallable)
+			return Ops.toStr(((SuCallable) toString).eval(this));
 		return myclass + "()";
 	}
 
@@ -142,7 +143,7 @@ public class SuInstance extends SuValue {
 		Object value = ivars.get(member);
 		if (value != null)
 			return value;
-		return ((SuClass) myclass).get(this, member);
+		return myclass.get(this, member);
 	}
 
 	@Override
