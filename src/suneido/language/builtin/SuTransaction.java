@@ -113,6 +113,10 @@ public class SuTransaction extends SuValue {
 		public Object eval(Object self, Object... args) {
 			return queryOne((SuTransaction) self, args, Dir.NEXT, true);
 		}
+		@Override
+		public Object eval1(Object self, Object a) {
+			return queryOne((SuTransaction) self, Ops.toStr(a), Dir.NEXT, true);
+		}
 	}
 
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
@@ -121,7 +125,12 @@ public class SuTransaction extends SuValue {
 			boolean single) {
 		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
-		String query = Ops.toStr(args[0]) + where;
+		String query = Ops.toStr(args[0]) + where; //TODO insert where before sort
+		return queryOne(ti, query, dir, single);
+	}
+
+	public static Object queryOne(SuTransaction ti, String query, Dir dir,
+			boolean single) {
 		HeaderAndRow hr = (ti == null)
 			? TheDbms.dbms().get(dir, query, single)
 			: ti.t.get(dir, query, single);
@@ -219,7 +228,7 @@ public class SuTransaction extends SuValue {
 			if (args[2] == Boolean.FALSE)
 				return t;
 			try {
-				Object result = Ops.call(args[2], t);
+				Object result = Ops.call1(args[2], t);
 				t.block_complete();
 				return result;
 			} catch (BlockReturnException bre) {

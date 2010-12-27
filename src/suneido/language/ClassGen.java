@@ -584,9 +584,10 @@ public class ClassGen {
 		mv.visitInsn(AASTORE);
 	}
 
-	public void block(int iBlockDef) {
+	public void block(int iBlockDef, String nParams) {
 		// new SuBlock(block, self, locals)
-		mv.visitTypeInsn(NEW, "suneido/language/SuBlock");
+		final String className = "suneido/language/SuBlock" + nParams;
+		mv.visitTypeInsn(NEW, className);
 		mv.visitInsn(DUP);
 		mv.visitVarInsn(ALOAD, CONSTANTS);
 		iconst(iBlockDef);
@@ -597,8 +598,7 @@ public class ClassGen {
 			mv.visitInsn(ACONST_NULL);
 		assert ARGS >= 0;
 		mv.visitVarInsn(ALOAD, ARGS); 	// locals
-		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuBlock",
-				"<init>",
+		mv.visitMethodInsn(INVOKESPECIAL, className, "<init>",
 				"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)V");
 		addBlockReturnCatcher();
 	}

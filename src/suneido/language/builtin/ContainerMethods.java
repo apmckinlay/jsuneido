@@ -66,6 +66,11 @@ public class ContainerMethods {
 						+ "or to numeric positions");
 			return c;
 		}
+		@Override
+		public Object eval1(Object self, Object a) {
+			((SuContainer) self).append(a);
+			return self;
+		}
 	}
 
 	private static void addUsage() {
@@ -283,6 +288,11 @@ public class ContainerMethods {
 			return new SuSequence(((SuContainer) self)
 					.iterable(iterWhich(args), IterResult.KEY));
 		}
+		@Override
+		public Object eval0(Object self) {
+			return new SuSequence(((SuContainer) self)
+					.iterable(IterWhich.ALL, IterResult.KEY));
+		}
 	}
 
 	public static class Size extends SuMethod {
@@ -298,6 +308,10 @@ public class ContainerMethods {
 			default:
 				return c.size();
 			}
+		}
+		@Override
+		public Object eval0(Object self) {
+			return ((SuContainer) self).size();
 		}
 	}
 
