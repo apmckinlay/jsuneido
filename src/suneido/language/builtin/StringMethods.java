@@ -60,6 +60,14 @@ public class StringMethods extends BuiltinMethods {
 		}
 	}
 
+	// TODO implement exception.As
+	public static class As extends SuMethod1 {
+		@Override
+		public Object eval1(Object self, Object a) {
+			return a;
+		}
+	}
+
 	public static class Asc extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
