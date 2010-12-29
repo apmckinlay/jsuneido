@@ -3,7 +3,7 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar" depends="when_built">
-        <jar destfile="C:/Dev/workspace/jSuneido/jsuneido.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="jsuneido.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="suneido.Suneido"/>
                 <attribute name="Class-Path" value="."/>
@@ -11,10 +11,15 @@
             <fileset dir="C:/Dev/workspace/jSuneido/bin"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/Program Files/eclipse3.5/plugins/org.junit4_4.5.0.v20090824/junit.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/Program Files/eclipse3.5/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/lib/WhenBuilt.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/lib/asm-all-3.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/Dev/workspace/jSuneido/lib/guava-r07.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/WhenBuilt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/asm-all-3.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/guava-r07.jar"/>
         </jar>
+	<exec executable="java">
+		  <arg value="-jar"/>
+		  <arg value="lib/proguard.jar"/>
+		  <arg value="@windows.pro"/>
+	</exec>
     </target>
 	<target name="when_built">
 		<tstamp>
