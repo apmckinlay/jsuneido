@@ -25,7 +25,6 @@ public class ClassGen {
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
-	private static final Object[] arrayOfObject = new Object[0];
 	private final String name;
 	private final String base;
 	private final String className;
@@ -46,9 +45,11 @@ public class ClassGen {
 	public final boolean useArgsArray;
 	public final boolean isBlock;
 	public final boolean closure;
+	public final int parentId;
 
 	ClassGen(String base, String name, String method, List<String> locals,
-			boolean useArgsArray, boolean isBlock, int nParams, PrintWriter pw) {
+			boolean useArgsArray, boolean isBlock, int nParams, int parentId,
+			PrintWriter pw) {
 		if (! useArgsArray)
 			base += nParams;
 		this.base = "suneido/language/" + base;
@@ -57,6 +58,7 @@ public class ClassGen {
 		this.locals = locals == null ? new ArrayList<String>() : locals;
 		this.useArgsArray = useArgsArray;
 		this.isBlock = isBlock;
+		this.parentId = parentId;
 		closure = isBlock && base.equals("SuCallable");
 		iBlockParams = this.locals.size();
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -207,23 +209,10 @@ public class ClassGen {
 		mv.visitInsn(ARETURN);
 	}
 
-	// note: can't use pre-constructed exception
-	// because we have to include the return value
-	// COULD use pre-constructed if return value is null (and maybe true/false)
 	private void blockReturn() {
-		// stack: value
-		mv.visitTypeInsn(NEW, "suneido/language/BlockReturnException");
-		// stack: exception, value
-		mv.visitInsn(DUP_X1);
-		// stack: exception, value, exception
-		mv.visitInsn(SWAP);
-		// stack: value, exception, exception
-		mv.visitVarInsn(ALOAD, THIS);
-		mv.visitMethodInsn(INVOKESPECIAL,
-				"suneido/language/BlockReturnException",
-				"<init>",
-				"(Ljava/lang/Object;Ljava/lang/Object;)V");
-		// stack: exception
+		iconst(parentId);
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnException",
+				"(Ljava/lang/Object;I)Lsuneido/language/BlockReturnException;");
 		mv.visitInsn(ATHROW);
 	}
 
@@ -584,16 +573,13 @@ public class ClassGen {
 		final String className = "suneido/language/SuBlock" + nParams;
 		mv.visitTypeInsn(NEW, className);
 		mv.visitInsn(DUP);
-//		mv.visitVarInsn(ALOAD, CONSTANTS);
-//		iconst(iBlockDef);
-//		mv.visitInsn(AALOAD);			// block
-		loadConstant(iBlockDef);
+		loadConstant(iBlockDef);			// block
 		if (SELF >= 0)
 			mv.visitVarInsn(ALOAD, SELF); 	// self
 		else
 			mv.visitInsn(ACONST_NULL);
 		assert ARGS >= 0;
-		mv.visitVarInsn(ALOAD, ARGS); 	// locals
+		mv.visitVarInsn(ALOAD, ARGS); 		// locals
 		mv.visitMethodInsn(INVOKESPECIAL, className, "<init>",
 				"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)V");
 		addBlockReturnCatcher();
@@ -608,16 +594,13 @@ public class ClassGen {
 		TryCatch tc = (TryCatch) blockReturnCatcher;
 		mv.visitLabel(tc.label1);
 		mv.visitLabel(tc.label2);
-
-		mv.visitVarInsn(ALOAD, THIS);
-		mv.visitInsn(SWAP);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuCallable",
-				"blockReturnHandler",
-				"(Lsuneido/language/BlockReturnException;)Ljava/lang/Object;");
+		iconst(parentId);
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnHandler",
+				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;");
 		mv.visitInsn(ARETURN);
 	}
 
-	public SuCallable end() {
+	public SuCallable end(SuClass suClass) {
 		if (blockReturnCatcher != null)
 			finishBlockReturnCatcher();
 
@@ -654,11 +637,8 @@ public class ClassGen {
 			shareConstants.set(null);
 		}
 
-		Object[] constantsArray = (constants == null)
-				? null : constants.toArray(arrayOfObject);
-
+		callable.myClass = suClass;
 		callable.params = functionSpec(bm);
-		callable.constants = constantsArray; //TODO eliminate
 		callable.isBlock = isBlock;
 
 		return callable;

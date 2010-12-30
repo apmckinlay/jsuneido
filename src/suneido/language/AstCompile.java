@@ -8,6 +8,7 @@ import static suneido.language.ClassGen.javify;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import suneido.*;
 
@@ -18,8 +19,11 @@ public class AstCompile {
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private static final int MAX_DIRECT_ARGS = 4;
 	private String suClassName = null;
+	private SuClass suClass = null;
 	private boolean inMethod = false;
 	private String curName = null;
+	private static final AtomicInteger nextFnId = new AtomicInteger();
+	private int fnId = -1;
 
 	public AstCompile(String globalName) {
 		this(globalName, null);
@@ -103,19 +107,21 @@ public class AstCompile {
 
 	private Object foldClass(String outerName, AstNode ast) {
 		nameBegin(outerName, "$c");
-		String prevSuClassName = suClassName;
-		suClassName = curName;
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
 			base = Globals.overload(base);
 		Map<String, Object> members = new HashMap<String, Object>();
+		SuClass prevSuClass = suClass;
+		SuClass c = suClass = new SuClass(curName, base, members);
+		String prevSuClassName = suClassName;
+		suClassName = curName;
 		for (AstNode member : ast.second().children) {
 			String name = (String) fold(member.first());
 			Object value = fold(name, member.second());
 			members.put(privatize2(name), value);
 		}
 		suClassName = prevSuClassName;
-		SuClass c = new SuClass(curName.replace(METHOD_SEPARATOR, '.'), base, members);
+		suClass = prevSuClass;
 		nameEnd();
 		return c;
 	}
@@ -135,22 +141,30 @@ public class AstCompile {
 	}
 
 	public SuCallable foldFunction(String name, AstNode ast) {
-		nameBegin(name, "$f");
+		int prevFnId = fnId;
+		fnId = nextFnId.incrementAndGet();
 		boolean prevInMethod = inMethod;
 		inMethod = (ast.token == Token.METHOD);
-		boolean method = inMethod || AstUsesThis.check(ast);
+		SuCallable fn = function(name, ast);
+		inMethod = prevInMethod;
+		fnId = prevFnId;
+		return fn;
+	}
+
+	private SuCallable function(String name, AstNode ast) {
+		boolean method = ast.token == Token.METHOD || AstUsesThis.check(ast);
+		nameBegin(name, "$f");
 		SuCallable fn = javaClass(ast,
 				method ? "SuMethod" : "SuFunction",
 				method ? "eval" : "call",
 				null, pw);
-		inMethod = prevInMethod;
 		nameEnd();
 		return fn;
 	}
 
 	public void block(ClassGen cg, AstNode ast) {
 		if (ast.third() == null) {
-			SuCallable f = foldFunction(null, ast);
+			SuCallable f = function(null, ast);
 			cg.constant(f);
 			cg.addBlockReturnCatcher();
 		} else {
@@ -184,8 +198,7 @@ public class AstCompile {
 		ClassGen cg = new ClassGen(base, curName, method, locals,
 				useArgsArray(ast, base, params),
 				ast.token == Token.BLOCK,
-				params.size(),
-				pw);
+				params.size(), fnId, pw);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
@@ -199,7 +212,7 @@ public class AstCompile {
 			statement(cg, stat, null, i == statements.size() - 1);
 		}
 		try {
-			return cg.end();
+			return cg.end(suClass);
 		} catch (Error e) {
 			throw new SuException("error compiling " + curName, e);
 		}

@@ -358,14 +358,14 @@ public class CompileTest {
 		test_b0("Do() { .a + .b }",
 				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
 		test_b0("Do() { return 123 }",
-				"123, block_return");
+				"123, blockReturn");
 
 		test_e("b = { }",
 				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+				+ "L1, L2, blockReturnHandler, ARETURN");
 		test_e("b = { a }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+				+ "L1, L2, blockReturnHandler, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
 		compile("Plugins().Foreach(a, { })");
@@ -374,10 +374,10 @@ public class CompileTest {
 		compile("b = { .001 }");
 		test_e("b = { return 123 }",
 				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+				+ "L1, L2, blockReturnHandler, ARETURN");
 		test_e("b = { a; return 123 }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
+				+ "L1, L2, blockReturnHandler, ARETURN");
 	}
 	@Test public void test_block_break() {
 		compile("b = { break }");
@@ -438,16 +438,13 @@ public class CompileTest {
 		assertEquals(expr, expected, s);
 	}
 
-	private Object[] constants;
-
 	private String compile(String s) {
 		//System.out.println("====== " + s);
 		if (!s.startsWith("class") && !s.startsWith("function")
 				&& !s.startsWith("#("))
 			s = "function (a,b,c,d,e) { " + s + " }";
 		StringWriter sw = new StringWriter();
-		SuCallable x = (SuCallable) Compiler.compile("Test", s, new PrintWriter(sw));
-		constants = x.constants == null ? new Object[0] : x.constants;
+		Compiler.compile("Test", s, new PrintWriter(sw));
 		return after(sw.toString(), "\n\n");
 	}
 
@@ -554,8 +551,8 @@ public class CompileTest {
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" },
-			{ "NEW suneido/language/BlockReturnException, DUP_X1, SWAP, this", "block_return" },
-			{ "INVOKEVIRTUAL suneido/language/SuCallable.blockReturnHandler (Lsuneido/language/BlockReturnException;)Object;", "blockReturnHandler" },
+			{ "blockReturnException (Object;I)Lsuneido/language/BlockReturnException;, ATHROW", "blockReturn" },
+			{ "blockReturnHandler (Lsuneido/language/BlockReturnException;I)Object;", "blockReturnHandler" },
 			{ "0, ANEWARRAY java/lang/Object, ", "" },
 			{ "1, ANEWARRAY java/lang/Object, ", "" },
 			{ "2, ANEWARRAY java/lang/Object, ", "" },
@@ -581,6 +578,7 @@ public class CompileTest {
 		};
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
+		r = r.replaceAll("[0-9]+, blockReturn", "blockReturn");
 		return r;
 	}
 
