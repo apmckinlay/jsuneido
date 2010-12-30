@@ -5,7 +5,7 @@ public class BlockSpec extends FunctionSpec {
 
 	public BlockSpec(String name, String[] locals, int nparams,
 			boolean atParam, int iparams) {
-		super(name, locals, nparams, noConstants, 0, atParam);
+		super(name, locals, noDefaults, atParam);
 		this.iparams = iparams;
 	}
 

@@ -190,8 +190,6 @@ public class AstCompile {
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()));
 
-		cg.loadConstants();
-
 		superInit(cg, ast);
 
 		List<AstNode> statements = ast.second().children;
@@ -932,11 +930,6 @@ public class AstCompile {
 		return nargs;
 	}
 
-	private void move(SuContainer constArgs, List<Object> args2) {
-		args2.addAll(constArgs.vec);
-		constArgs.vec.clear();
-	}
-
 	private void optimizeArguments(ClassGen cg, AstNode args) {
 		SuContainer constArgs = new SuContainer();
 		List<Object> unnamed = new ArrayList<Object>();
@@ -954,7 +947,8 @@ public class AstCompile {
 				if (value != null)
 					constArgs.append(value);
 				else {
-					move(constArgs, unnamed);
+					unnamed.addAll(constArgs.vec);
+					constArgs.vec.clear();
 					unnamed.add(arg.second());
 				}
 			} else { // named

@@ -13,9 +13,9 @@ public class SuFunctionTest {
 		assertEquals(s, Ops.call(f, s));
 	}
 
-	static class MyFunc extends SampleFunction {
+	static class MyFunc extends SuFunction {
 		static final FunctionSpec params =
-				new FunctionSpec("", new String[] { "value" }, 1);
+				new FunctionSpec(new String[] { "value" }, 1);
 
 		@Override
 		public Object call(Object... args) {

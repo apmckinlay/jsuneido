@@ -47,14 +47,14 @@ public class SuClass extends SuValue {
 		return b.build();
 	}
 
-	// TODO does this need to be recursive ?
+	// TODO need to recurse inside closure blocks (but not functions)
 	protected void linkMethods() {
 		for (Object v : members.values())
 			if (v instanceof SuCallable) {
 				SuCallable f = (SuCallable) v;
 				f.myClass = this;
 				for (Object c : f.constants)
-					if (c instanceof SuCallable) // blocks
+					if (c instanceof SuCallable)
 						((SuCallable) c).myClass = this;
 			}
 	}

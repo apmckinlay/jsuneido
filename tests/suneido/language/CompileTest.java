@@ -2,7 +2,6 @@ package suneido.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static suneido.language.Ops.display;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -32,7 +31,7 @@ public class CompileTest {
 		test("037777777777",
 				"-1, ARETURN");
 		test("0.1",
-				"0=.1, ARETURN");
+				"const0, ARETURN");
 		test("true",
 				"true, ARETURN");
 		test("false",
@@ -136,13 +135,13 @@ public class CompileTest {
 		test("123; 456; 789;",
 				"789, ARETURN");
 		test("a = #(1, a: 2);;",
-				"&a, 0=#(1, a: 2), AASTORE");
+				"&a, const0, AASTORE");
 		test("#{1, a: 2}",
-				"0=[1, a: 2], ARETURN");
+				"const0, ARETURN");
 		test("return function () { }",
-				"0=Test$f, ARETURN");
+				"const0, ARETURN");
 		test("a = function () { }",
-				"&a, 0=Test$f, DUP_X2, AASTORE, ARETURN");
+				"&a, const0, DUP_X2, AASTORE, ARETURN");
 		test("; { ; a ; } ;", "a, POP");
 	}
 
@@ -315,23 +314,23 @@ public class CompileTest {
 				"L1, a, call, POP, GOTO L2, b, call, POP, L2, c, bool, IFTRUE L1, L3");
 
 		test("for (a in b) c()",
-				"b, iterator, ASTORE 3, GOTO L1, " +
-				"L2, ALOAD 3, next, args, SWAP, 0, SWAP, AASTORE, c, call, POP, " +
-				"L1, ALOAD 3, hasNext, IFTRUE L2, L3");
+				"b, iterator, ASTORE 2, GOTO L1, " +
+				"L2, ALOAD 2, next, args, SWAP, 0, SWAP, AASTORE, c, call, POP, " +
+				"L1, ALOAD 2, hasNext, IFTRUE L2, L3");
 
 		compile("for (a in b) try c() catch ;");
 	}
 	@Test public void test_switch() {
 		test("switch (a) { }",
-				"a, ASTORE 3");
+				"a, ASTORE 2");
 		test("switch (a) { default: b() }",
-				"a, ASTORE 3, b, call, POP, L1, L2");
+				"a, ASTORE 2, b, call, POP, L1, L2");
 		test("switch (a) { case 123: b() }",
-				"a, ASTORE 3, 123, ALOAD 3, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
+				"a, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
 		test("switch (a = b) { case 123: b() }",
-				"&a, b, DUP_X2, AASTORE, ASTORE 3, 123, ALOAD 3, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
+				"&a, b, DUP_X2, AASTORE, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
 		test("switch (a) { case 123,456: b() }",
-				"a, ASTORE 3, 123, ALOAD 3, is_, IFTRUE L1, 456, ALOAD 3, is_, IFFALSE L2, L1, b, call, POP, L2, L3");
+				"a, ASTORE 2, 123, ALOAD 2, is_, IFTRUE L1, 456, ALOAD 2, is_, IFFALSE L2, L1, b, call, POP, L2, L3");
 	}
 	@Test public void test_exceptions() {
 		test("throw 'oops'",
@@ -362,7 +361,7 @@ public class CompileTest {
 				"123, block_return");
 
 		test_e("b = { }",
-				"try L0 L1 L2, L3, &b, 0=Test$f, L0, DUP_X2, AASTORE, ARETURN, "
+				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
 				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 		test_e("b = { a }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
@@ -374,7 +373,7 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
 		test_e("b = { return 123 }",
-				"try L0 L1 L2, L3, &b, 0=Test$f, L0, DUP_X2, AASTORE, ARETURN, "
+				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
 				+ "L1, L2, this, SWAP, blockReturnHandler, ARETURN");
 		test_e("b = { a; return 123 }",
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
@@ -389,20 +388,13 @@ public class CompileTest {
 	}
 	@Test public void test_optimize_args() {
 		test("x(11, a, 22, a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
-			"x, 11, a, EACH, " +
-			"0=#(22, f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
-			"call, ARETURN");
+			"x, 11, a, EACH, const0, call, ARETURN");
 		test("x('', y(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11))",
-			"x, '', y, EACH, " +
-			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
-			"call, null?, call, ARETURN");
+			"x, '', y, EACH, const0, call, null?, call, ARETURN");
 		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
-			"x, NAMED, 'V', a, EACH, " +
-			"0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9), " +
-			"call, ARETURN");
+			"x, NAMED, 'V', a, EACH, const0, call, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
-				"'A', EACH, 0=#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, "
-						+ "a: 1, j: 10, k: 11, h: 8, i: 9), global call, ARETURN");
+			"'A', EACH, const0, global call, ARETURN");
 	}
 
 	@Test
@@ -463,19 +455,14 @@ public class CompileTest {
 		//System.out.println(r);
 		int SELF = 9;
 		int ARGS = 9;
-		int CONST = 9;
 		if (r.contains("public eval(")) {
 			SELF = 1;
 			ARGS = 2;
-			CONST = 3;
 		} else if (r.contains("public eval")) {
 			SELF = 1;
-			CONST = 2;
 		} else if (r.contains("public call(")) {
 			ARGS = 1;
-			CONST = 2;
 		} else if (r.contains("public call3")) {
-			CONST = 4;
 		} else
 			assert false : "unknown definition type";
 		r = after(r, after);
@@ -491,14 +478,9 @@ public class CompileTest {
 			{ "ALOAD 0", "this" },
 			{ "ALOAD " + SELF, "self" },
 			{ "ALOAD " + ARGS, "args" },
-			{ "ALOAD " + CONST, "const" },
 			{ "this, GETFIELD suneido/language/Test.params : Lsuneido/language/FunctionSpec;, ", "" },
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
 			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
-			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE " + CONST + ", ", "" },
-			{ "this, GETFIELD suneido/language/Test$f.constants : [Object;, ASTORE 1" + ", ", "" },
-			{ "this, GETFIELD suneido/language/Test.constants : [Object;, ASTORE 4" + ", ", "" },
-			{ "this, GETFIELD suneido/language/Test$b.constants : [Object;, ASTORE " + CONST + ", ", "" },
 			{ "args, ICONST_0, AALOAD", "a" },
 			{ "args, ICONST_1, AALOAD", "b" },
 			{ "args, ICONST_2, AALOAD", "c" },
@@ -549,14 +531,12 @@ public class CompileTest {
 			{ "DUP, IFNONNULL L3, throwUninitializedVariable ()V, L3", "null?" },
 			{ "DUP, IFNONNULL L3, throwNoValue ()V, L3", "null?" },
 			{ "LDC 'Test', INVOKESTATIC suneido/language/Constants.get (LString;)[LSuValue;, DUP, ASTORE 2", "const" },
-			{ "const, 0, AALOAD", "0=" + (constants.length > 0 ? display(constants[0]) : "") },
-			{ "const, 1, AALOAD", "1=" + (constants.length > 1 ? display(constants[1]) : "") },
-			{ "const, 2, AALOAD", "2=" + (constants.length > 2 ? display(constants[2]) : "") },
+			{ "GETSTATIC suneido/language/Test.const0 : Object;", "const0" },
 			{ "toIntBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW suneido/language/SuBlock, DUP, 0=Test$b, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
-			{ "NEW suneido/language/SuBlock0, DUP, 0=Test$b, null, args, INVOKESPECIAL suneido/language/SuBlock0.<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock, DUP, const0, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock0, DUP, const0, null, args, INVOKESPECIAL suneido/language/SuBlock0.<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },

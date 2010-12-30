@@ -9,17 +9,15 @@ import suneido.SuException;
 @ThreadSafe
 public class FunctionSpec {
 	final String name;
-	/** parameter names followed by local variable names */
-	final String[] locals;
-	/** default parameter values followed by constants */
-	final Object[] constants;
-	final int nparams;
-	final int ndefaults;
 	final boolean atParam;
-	final static Object[] noConstants = new Object[0];
+	final String[] params;
+	final Object[] defaults;
+	/** used by Args to ensure room in args array for locals */
+	final int nLocals;
+	final static Object[] noDefaults = new Object[0];
 
 	public final static FunctionSpec noParams =
-			new FunctionSpec(null, new String[0], 0);
+			new FunctionSpec(new String[0]);
 	public static final FunctionSpec value =
 			new FunctionSpec("value");
 	public static final FunctionSpec value2 =
@@ -30,42 +28,39 @@ public class FunctionSpec {
 			new FunctionSpec(array("block"), Boolean.FALSE);
 	public static final Object NA = new Object();
 
-	public FunctionSpec(String... locals) {
-		this(null, locals, locals.length, noConstants, 0, false);
+	public FunctionSpec(String... params) {
+		this(null, params, noDefaults, false, params.length);
 	}
-	public FunctionSpec(String[] locals, Object... constants) {
-		this(null, locals, locals.length, constants, constants.length, false);
+	public FunctionSpec(String[] params, Object... defaults) {
+		this(null, params, defaults, false, params.length);
 	}
-	public FunctionSpec(String name, String[] locals, int nparams) {
-		this(name, locals, nparams, noConstants, 0, false);
+	public FunctionSpec(String name, String[] params, Object[] defaults,
+			boolean atParam) {
+		this(name, params, defaults, atParam, params.length);
 	}
-	public FunctionSpec(String name, String[] locals, int nparams,
-			Object[] constants, int ndefaults, boolean atParam) {
+	public FunctionSpec(String name, String[] params, Object[] defaults,
+			boolean atParam, int nLocals) {
 		this.name = name;
-		this.locals = locals;
-		this.nparams = nparams;
-		this.constants = constants;
-		this.ndefaults = ndefaults;
+		this.params = params;
+		this.defaults = defaults;
 		this.atParam = atParam;
-		assert 0 <= nparams && nparams <= locals.length;
-		assert 0 <= ndefaults && ndefaults <= constants.length;
-		assert !atParam || (nparams == 1 && ndefaults == 0);
+		this.nLocals = nLocals;
+		assert !atParam || (params.length == 1 && defaults.length == 0);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("FunctionSpec(");
-		sb.append(name).append(", ");
-		sb.append("locals:");
+		if (name != null)
+			sb.append(name).append(", ");
+		sb.append("params:");
 		if (atParam)
 			sb.append(" @");
-		for (String t : locals)
+		for (String t : params)
 			sb.append(" ").append(t);
-		sb.append(", nparams: ").append(nparams);
-		sb.append(", constants:");
-		for (Object x : constants)
+		sb.append(", defaults:");
+		for (Object x : defaults)
 			sb.append(" ").append(x == null ? "null" : Ops.display(x));
-		sb.append(", ndefaults: " + ndefaults);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -76,21 +71,21 @@ public class FunctionSpec {
 		if (atParam)
 			sb.append("@");
 		short j = 0;
-		for (int i = 0; i < nparams; ++i) {
+		for (int i = 0; i < params.length; ++i) {
 			if (i != 0)
 				sb.append(",");
-			sb.append(locals[i]);
-			if (i >= nparams - ndefaults && i < nparams)
-				sb.append("=").append(constants[j++]);
+			sb.append(params[i]);
+			if (i >= params.length - defaults.length && i < params.length)
+				sb.append("=").append(defaults[j++]);
 		}
 		sb.append(")");
 		return sb.toString();
 	}
 	public Object defaultFor(int i) {
-		assert i < nparams;
-		if (i < nparams - ndefaults)
+		assert i < params.length;
+		if (i < params.length - defaults.length)
 			throw new SuException("missing argument(s)");
-		return constants[i - (nparams - ndefaults)];
+		return defaults[i - (params.length - defaults.length)];
 	}
 
 }
