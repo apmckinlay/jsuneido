@@ -7,14 +7,13 @@ import static suneido.language.Args.Special.NAMED;
 import static suneido.util.Util.array;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.junit.Test;
 
 import suneido.*;
 
 public class ArgsTest {
-	
+
 	@Test
 	public void massage() {
 		Object[] empty = new Object[0];
@@ -78,23 +77,19 @@ public class ArgsTest {
 		boolean atParam = (params.length == 1 && params[0].startsWith("@"));
 		if (atParam)
 			params[0] = params[0].substring(1, params[0].length());
-		String[] locals = Arrays.copyOf(params, params.length + extra);
-		for (int i = 0; i < extra; ++i)
-			locals[params.length + i] = "local" + i;
-		Object[] defaults = defaults(locals, params);
-		return new FunctionSpec("", locals, params.length, defaults,
-				defaults.length, atParam);
+		return new FunctionSpec("", params, defaults(params), atParam,
+				params.length + extra);
 	}
 
-	private Object[] defaults(String[] locals, String... params) {
+	private Object[] defaults(String... params) {
 		ArrayList<Object> defaults = new ArrayList<Object>();
 		int j;
 		for (int i = 0; i < params.length; ++i)
 			if (-1 != (j = params[i].indexOf('='))) {
-				locals[i] = params[i].substring(0, j);
 				String s = params[i].substring(j + 1);
 				defaults.add(Character.isDigit(s.charAt(0))
 						? Ops.stringToNumber(s) : s);
+				params[i] = params[i].substring(0, j);
 			}
 		return defaults.toArray(new Object[0]);
 	}

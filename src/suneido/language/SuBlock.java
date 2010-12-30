@@ -31,7 +31,7 @@ public class SuBlock extends SuCallable {
 	public Object eval(Object newSelf, Object... args) {
 		args = Args.massage(bspec, args);
 		// merge args into locals
-		for (int i = 0; i < bspec.nparams; ++i)
+		for (int i = 0; i < bspec.params.length; ++i)
 			locals[bspec.iparams + i] = args[i];
 		return block.eval(newSelf, locals);
 	}

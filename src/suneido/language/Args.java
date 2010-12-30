@@ -27,11 +27,11 @@ public class Args {
 	 * @return The locals Object array initialized from args.
 	 */
 	public static Object[] massage(FunctionSpec fs, Object[] args) {
-		final int nlocals = fs.locals.length;
+		final int nlocals = fs.nLocals;
 		final boolean args_each =
 				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
-		if (simple(args) && !fs.atParam && args.length == fs.nparams
+		if (simple(args) && !fs.atParam && args.length == fs.params.length
 				&& nlocals <= args.length)
 			// "fast" path - avoid alloc by using args as locals
 			return args;
@@ -50,12 +50,12 @@ public class Args {
 			locals[0] = c;
 			collectArgs(c, args);
 		} else {
-			assert nlocals >= fs.nparams;
+			assert nlocals >= fs.params.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i] == NAMED) {
-					for (int j = 0; j < fs.nparams; ++j)
-						if (fs.locals[j].equals(args[i + 1]))
+					for (int j = 0; j < fs.params.length; ++j)
+						if (fs.params[j].equals(args[i + 1]))
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
@@ -67,13 +67,13 @@ public class Args {
 						throw new SuException("too many arguments");
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
-					for (int j = 0; j < fs.nparams; ++j) {
-						Object x = c.get(fs.locals[j]);
+					for (int j = 0; j < fs.params.length; ++j) {
+						Object x = c.get(fs.params[j]);
 						if (x != null)
 							locals[j] = x;
 					}
 				}
-				else if (li < fs.nparams)
+				else if (li < fs.params.length)
 					locals[li++] = args[i];
 				else
 					throw new SuException("too many arguments");
@@ -113,17 +113,17 @@ public class Args {
 	}
 
 	private static void applyDefaults(FunctionSpec fn, Object[] locals) {
-		if (fn.ndefaults == 0)
+		if (fn.defaults.length == 0)
 			return;
-		for (int i = 0, j = fn.nparams - fn.ndefaults; i < fn.ndefaults; ++i, ++j)
+		for (int i = 0, j = fn.params.length - fn.defaults.length; i < fn.defaults.length; ++i, ++j)
 			if (locals[j] == null)
-				locals[j] = fn.constants[i];
+				locals[j] = fn.defaults[i];
 	}
 
 	private static void verifyAllSupplied(FunctionSpec fn, Object[] locals) {
-		for (int i = 0; i < fn.nparams; ++i)
+		for (int i = 0; i < fn.params.length; ++i)
 			if (locals[i] == null)
-				throw new SuException("missing argument: " + fn.locals[i]);
+				throw new SuException("missing argument: " + fn.params[i]);
 	}
 
 }

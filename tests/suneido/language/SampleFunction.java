@@ -1,27 +1,18 @@
 package suneido.language;
 
-import java.util.Random;
+import java.util.List;
 
 public class SampleFunction extends SuFunction {
+	private static final Object c;
+
+	static {
+		List<Object> constants = ClassGen.shareConstants.get();
+		c = constants.get(0);
+	}
 
 	@Override
 	public Object call(Object... args) {
-		return null;
-	}
-
-	public static void f(int[] a, int b) {
-		switch (b + g()) {
-		case 0:
-			g();
-		case 1:
-			g();
-		default:
-			g();
-		}
-	}
-
-	public static int g() {
-		return new Random().nextInt();
+		return c;
 	}
 
 }

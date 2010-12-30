@@ -36,7 +36,7 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { b1 = {|f| this; b2 = { f }; b2() }; b1(123) }";
+		String s = "function () { [123.456, function() {}] }";
 		PrintWriter pw = new PrintWriter(System.out);
 Object f =
 		compile("Test", s, pw);
