@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
  * Suneido instances are instances of {@link SuInstance}
  */
 public class SuClass extends SuValue {
-	private final String className;
+	private final String name;
 	private final String baseGlobal;
 	private final Map<String, Object> members; // must be synchronized
 	private boolean hasGetters = true; // till we know different
@@ -29,10 +29,9 @@ public class SuClass extends SuValue {
 
 	@SuppressWarnings("unchecked")
 	public SuClass(String className, String baseGlobal, Object members) {
-		this.className = className;
+		this.name = className.replace(AstCompile.METHOD_SEPARATOR, '.');
 		this.baseGlobal = baseGlobal;
 		this.members = (Map<String, Object>) (members == null ? Collections.emptyMap() : members);
-		linkMethods();
 	}
 
 	private static Map<String, Object> basicMethods() {
@@ -45,18 +44,6 @@ public class SuClass extends SuValue {
 		b.put("MethodClass", new MethodClass());
 		b.put("Method?", new MethodQ());
 		return b.build();
-	}
-
-	// TODO need to recurse inside closure blocks (but not functions)
-	protected void linkMethods() {
-		for (Object v : members.values())
-			if (v instanceof SuCallable) {
-				SuCallable f = (SuCallable) v;
-				f.myClass = this;
-				for (Object c : f.constants)
-					if (c instanceof SuCallable)
-						((SuCallable) c).myClass = this;
-			}
 	}
 
 	@Override
@@ -290,12 +277,12 @@ public class SuClass extends SuValue {
 
 	@Override
 	public String toString() {
-		return className;
+		return name;
 	}
 
 	public String toDebugString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(className).append(" = ").append("class");
+		sb.append(name).append(" = ").append("class");
 		if (baseGlobal != null)
 			sb.append(" : ").append(baseGlobal);
 		sb.append(" {").append("\n");

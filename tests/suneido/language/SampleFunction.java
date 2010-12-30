@@ -12,7 +12,11 @@ public class SampleFunction extends SuFunction {
 
 	@Override
 	public Object call(Object... args) {
-		return c;
+		try {
+			throw Ops.blockReturnException(c, 123);
+		} catch (BlockReturnException e) {
+			return Ops.blockReturnHandler(e, 123);
+		}
 	}
 
 }

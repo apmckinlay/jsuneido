@@ -874,4 +874,19 @@ public final class Ops {
 		throw e; // no match so rethrow
 	}
 
+	public static BlockReturnException blockReturnException(Object returnValue, int parent) {
+		return new BlockReturnException(returnValue, parent);
+	}
+
+	/**
+	 * If block return came from one of our blocks, then return the value,
+	 * otherwise, re-throw.
+	 */
+	public static Object blockReturnHandler(BlockReturnException e, int id) {
+		if (id == e.parent)
+			return e.returnValue;
+		else
+			throw e;
+	}
+
 }

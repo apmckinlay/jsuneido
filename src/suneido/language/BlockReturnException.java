@@ -6,11 +6,11 @@ package suneido.language;
 @SuppressWarnings("serial")
 public class BlockReturnException extends RuntimeException {
 	public final Object returnValue;
-	public final Object block; // used by SuCallable blockReturnHandler to identify "parent"
+	public final int parent; // used by Ops.blockReturnHandler
 
-	public BlockReturnException(Object returnValue, Object block) {
+	public BlockReturnException(Object returnValue, int parent) {
 		this.returnValue = returnValue;
-		this.block = block;
+		this.parent = parent;
 	}
 
 	@Override

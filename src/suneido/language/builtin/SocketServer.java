@@ -26,10 +26,6 @@ public class SocketServer extends SuClass {
 	}
 
 	@Override
-	protected void linkMethods() {
-	}
-
-	@Override
 	protected Object newInstance(Object... args) {
 		throw new SuException("cannot create instances of SocketServer");
 	}
