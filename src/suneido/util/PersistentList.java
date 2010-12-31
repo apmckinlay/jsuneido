@@ -10,8 +10,6 @@ import com.google.common.base.Joiner;
 
 /**
  * A persistent immutable single linked list class.
- *
- * @author Andrew McKinlay
  */
 @Immutable
 public class PersistentList<T> extends AbstractSequentialList<T> {

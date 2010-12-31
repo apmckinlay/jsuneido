@@ -6,10 +6,9 @@ package suneido.database.immudb;
 
 import suneido.util.ByteBuf;
 
-
 /**
  * Persistent immutable hash tree used for storing redirections.
- * Key and value are both int's so no hashing is required.
+ * Key and value are both int's so no hashing or overflow is required.
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">Bagwell's</a>
  */
@@ -36,47 +35,47 @@ public class DbHashTree {
 		private ByteBuf with(int key, int value, int shift) {
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present() & (bit - 1));
+			ByteBuf nu;
 			if ((present() & bit) == 0) {
-				ByteBuf nu = ByteBuf.allocate(buf.size() + ENTRY_SIZE);
+				nu = ByteBuf.allocate(buf.size() + ENTRY_SIZE);
 				nu.putInt(PRESENT, present() | bit);
 				nu.putInt(VALUE, value() | bit);
 				nu.put(ENTRIES, buf.slice(0, i * ENTRY_SIZE));
 				nu.putInt(ENTRIES + i * ENTRY_SIZE, key);
-				nu.putInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE, value);
 				nu.put(ENTRIES, buf.slice(ENTRIES + i * ENTRY_SIZE));
-				return nu;
 			} else if ((value() & bit) != 0) {
 				int entryKey = key(i);
 				int entryValue = valueOrPointer(i);
 				if (entryKey == key) {
 					if (entryValue == value)
 						return buf; // entry already exists
-					ByteBuf nu = buf.copy();
+					nu = buf.copy();
 					nu.putInt(PRESENT, present() | bit);
 					nu.putInt(VALUE, value() | bit);
 					nu.put(ENTRIES, buf.slice(0, i * ENTRY_SIZE));
 					nu.putInt(ENTRIES + i * ENTRY_SIZE, key);
-					nu.putInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE, value);
-					// fall through to bottom
 				} else { // collision
 					// push entry into child node along with new entry
-//					aa = a.clone();
-//					aa[i] = newChild(assoc, key, value, hash,
-//							shift + BITS_PER_LEVEL);
-//					return new TrieNode<K, V>(bitmap, aa);
+					nu = buf.copy();
+					nu.putInt(VALUE, value() & ~bit); // change to pointer
+					value = newChild(key, value, shift + BITS_PER_LEVEL);
 				}
 			} else { // slot points to child node
 				Node child = getNode(valueOrPointer(i));
 				ByteBuf newchild = child.with(key, value, shift + BITS_PER_LEVEL);
-//				if (newchild == child)
-//					return this; // entry already exists
-//				aa = a.clone();
-//				aa[i] = newchild;
-//				return new TrieNode<K, V>(bitmap, aa);
+				if (newchild == child.buf)
+					return buf; // entry already existed
+				nu = buf.copy();
+				value = pointerTo(newchild);
 			}
-return null;
+			valueOrPointer(nu, i, value);
+			return nu;
 		}
 
+		private int newChild(int key, int value, int i) {
+			// TODO newChild
+			return 0;
+		}
 		/** returns 0 if key not present */
 		public int get(int key) {
 			return get(key, 0);
@@ -113,10 +112,22 @@ return null;
 		int valueOrPointer(int i) {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE);
 		}
+		void valueOrPointer(ByteBuf buf, int i, int value) {
+			buf.putInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE, value);
+		}
 	}
 
 	private static Node getNode(int pointer) {
 		return null;
+	}
+
+	private static int pointerTo(ByteBuf buf) {
+		// TODO pointerTo
+		// keep a bimap of sequential id to bytebuf
+		// used to have int pointers to in-memory data
+		// prior to it being written out
+		// maybe share with other types of data
+		return 0;
 	}
 
 }
