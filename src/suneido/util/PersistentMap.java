@@ -10,8 +10,8 @@ import javax.annotation.concurrent.Immutable;
 
 /**
  * An persistent immutable map. Based on Phil Bagwell's Hash Array Mapped Trie
- * with some help from Rich Hickey's implementation in Clojure. Uses
- * OverflowNodes instead of extended hashing and does not resize root.
+ * with some help from Rich Hickey's implementation in Clojure.
+ * Uses OverflowNodes instead of extended hashing and does not resize root.
  */
 @Immutable
 public abstract class PersistentMap<K, V> {
@@ -239,7 +239,7 @@ public abstract class PersistentMap<K, V> {
 			return new TrieNode<K, V>(bitmap & ~bit, aa);
 		}
 
-		private int bit(int hash, int shift) {
+		private static int bit(int hash, int shift) {
 			int h = (hash >>> shift) & LEVEL_MASK;
 			int bit = 1 << h;
 			return bit;
