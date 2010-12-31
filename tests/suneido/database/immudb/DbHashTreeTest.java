@@ -4,6 +4,13 @@
 
 package suneido.database.immudb;
 
+import org.junit.Test;
+
 public class DbHashTreeTest {
+
+	@Test
+	public void main() {
+
+	}
 
 }
