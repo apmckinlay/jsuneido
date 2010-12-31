@@ -29,7 +29,8 @@ public class DbHashTree {
 		private static final int ENTRY_SIZE = 2 * Integer.SIZE;
 		private ByteBuf buf;
 
-		public ByteBuf with(int key, int value) {
+		@SuppressWarnings("unused")
+                public ByteBuf with(int key, int value) {
 			return with(key, value, 0);
 		}
 		private ByteBuf with(int key, int value, int shift) {
@@ -77,7 +78,8 @@ public class DbHashTree {
 			return 0;
 		}
 		/** returns 0 if key not present */
-		public int get(int key) {
+		@SuppressWarnings("unused")
+                public int get(int key) {
 			return get(key, 0);
 		}
 		private int get(int key, int shift) {

@@ -2,8 +2,9 @@ package suneido.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.*;
 import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
@@ -20,7 +21,7 @@ public abstract class PersistentMap<K, V> {
 	private static final int LEVEL_MASK = (1 << BITS_PER_LEVEL) - 1;
 	private static final int HASH_BITS = 32;
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static final TrieNode emptyNode = new TrieNode(0, new Object[0]);
 
 	@SuppressWarnings("unchecked")
