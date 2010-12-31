@@ -64,8 +64,10 @@ public class NumberMethods extends BuiltinMethods {
 	public static class Hex extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			long n = ((Number) self).longValue();
-			return Long.toHexString(n);
+			if (self instanceof Integer)
+				return Integer.toHexString((Integer) self);
+			else
+				return Long.toHexString(((Number) self).longValue());
 		}
 	}
 
