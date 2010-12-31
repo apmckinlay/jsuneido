@@ -10,7 +10,8 @@ import suneido.util.ByteBuf;
 
 @Immutable
 public class DbRecord implements Record {
-	private final ByteBuf buf;
+	@SuppressWarnings("unused")
+        private final ByteBuf buf;
 
 	public DbRecord(ByteBuf buf) {
 		this.buf = buf;

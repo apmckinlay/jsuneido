@@ -13,7 +13,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		super(lexer, generator);
 	}
 
-	public ParseExpression(Parse<T, G> parse) {
+	@SuppressWarnings("unchecked")
+        public ParseExpression(Parse<T, G> parse) {
 		super(parse);
 		if (parse instanceof ParseQuery)
 			inQuery = true;

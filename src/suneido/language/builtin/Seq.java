@@ -14,7 +14,7 @@ import com.google.common.base.Objects;
 public final class Seq extends BuiltinClass {
 
 	@Override
-	public Object newInstance(Object[] args) {
+	public Object newInstance(Object... args) {
 		return new SuSequence(new SuSeq(args));
 	}
 

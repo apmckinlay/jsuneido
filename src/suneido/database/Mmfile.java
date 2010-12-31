@@ -154,6 +154,8 @@ public class Mmfile extends Destination {
 		}
 	}
 
+	// TODO switch to using findEnd
+	@SuppressWarnings("unused")
 	private void findEnd(long saved_size) throws IOException {
 		System.out.println(file_size + " - " + saved_size + " = " +
 				(file_size - saved_size));
