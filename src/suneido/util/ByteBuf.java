@@ -9,11 +9,9 @@ import java.nio.ByteOrder;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * Abstract base class for wrapper for ByteBuffer
+ * Wrapper for ByteBuffer
  * All get's and put's are absolute.
  * ByteOrder is always BIG_ENDIAN
- *
- * @author Andrew McKinlay
  */
 @Immutable
 public class ByteBuf {
@@ -89,6 +87,9 @@ public class ByteBuf {
 		return new ByteBuf(buf, offset + index, size);
 	}
 
+	public ByteBuf copy() {
+		return copy(size);
+	}
 	public ByteBuf copy(int size) {
 		return new ByteBuf(copyByteBuffer(size));
 	}
