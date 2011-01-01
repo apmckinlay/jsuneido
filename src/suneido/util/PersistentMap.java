@@ -15,7 +15,6 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public abstract class PersistentMap<K, V> {
-
 	private static final int BITS_PER_LEVEL = 5;
 	private static final int LEVEL_MASK = (1 << BITS_PER_LEVEL) - 1;
 	private static final int HASH_BITS = 32;
@@ -43,6 +42,7 @@ public abstract class PersistentMap<K, V> {
 	private static abstract class Node<K, V> extends PersistentMap<K, V> {
 		@Override
 		public V get(Object key) {
+			checkNotNull(key);
 			return get(key, key.hashCode(), 0);
 		}
 
