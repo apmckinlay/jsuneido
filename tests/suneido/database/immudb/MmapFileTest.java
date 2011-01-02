@@ -7,10 +7,9 @@ package suneido.database.immudb;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import org.junit.*;
-
-import suneido.util.ByteBuf;
 
 public class MmapFileTest {
 
@@ -23,16 +22,17 @@ public class MmapFileTest {
 	public void main() {
 		MmapFile mmf = new MmapFile("tmp2", "rw");
 		assertEquals(0, mmf.size());
-		long offset = mmf.alloc(100);
-		ByteBuf buf = mmf.buf(offset);
-		for (byte i = 0; i < 100; ++i)
-			buf.put(i, i);
+		final int N = 128;
+		long offset = mmf.alloc(N);
+		ByteBuffer buf = mmf.buffer(offset);
+		for (int i = 0; i < N; ++i)
+			buf.put(i, (byte) i);
 		mmf.close();
 
 		mmf = new MmapFile("tmp2", "r");
-		assertEquals(100, mmf.size());
-		buf = mmf.buf(offset);
-		for (byte i = 0; i < 100; ++i)
+		assertEquals(N, mmf.size());
+		buf = mmf.buffer(offset);
+		for (int i = 0; i < N; ++i)
 			assertEquals(i, buf.get(i));
 		mmf.close();
 	}

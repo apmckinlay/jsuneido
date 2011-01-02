@@ -18,6 +18,7 @@ import suneido.util.ByteBuf;
  * Memory mapped file access.
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE (64mb)
+ * <li>allocations cannot straddle chunks and will be bumped to next chunk
  * <li>maximum file size is MAX_CHUNKS * CHUNK_SIZE (32gb)
  * <p>
  * NOTE: When opening, trailing zero bytes are ignored.
@@ -110,6 +111,7 @@ public class MmapFile {
 		return ByteBuf.wrap(fm[chunk], (int) (offset % CHUNK_SIZE));
 	}
 
+	/** @returns A ByteBuffer extending from the offset to the end of the chunk */
 	public ByteBuffer buffer(long offset) {
 		assert offset >= 0;
 		assert offset < file_size;

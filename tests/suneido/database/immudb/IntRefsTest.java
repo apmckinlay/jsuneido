@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class IntRefsTest {
@@ -23,6 +24,11 @@ public class IntRefsTest {
 		for (int i = 0; i < N; ++i) {
 			assertEquals(refs[i], IntRefs.intToRef(ints[i]));
 		}
+	}
+
+	@After
+	public void teardown() {
+		IntRefs.set(null);
 	}
 
 }
