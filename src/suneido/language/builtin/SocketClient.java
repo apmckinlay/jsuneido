@@ -159,7 +159,7 @@ public class SocketClient extends SuValue {
 		@Override
 		public Object call(Object... args) {
 			args = Args.massage(callFS, args);
-			SocketClient sc = newInstance(args);
+			SocketClient sc = new SocketClient(args);
 			Object block = args[4];
 			if (block == Boolean.FALSE)
 				return sc;
