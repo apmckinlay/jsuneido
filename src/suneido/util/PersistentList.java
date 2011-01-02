@@ -10,8 +10,6 @@ import com.google.common.base.Joiner;
 
 /**
  * A persistent immutable single linked list class.
- *
- * @author Andrew McKinlay
  */
 @Immutable
 public class PersistentList<T> extends AbstractSequentialList<T> {
@@ -25,7 +23,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 		this.next = next;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private final static PersistentList Nil = makeNil();
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -453,7 +453,7 @@ public class SuContainer extends SuValue
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static final NullIterator nullIter = new NullIterator();
 
 	public static enum IterResult {

@@ -12,7 +12,7 @@ public class ObjectClass extends BuiltinClass {
 	}
 
 	@Override
-	public Object newInstance(Object[] args) {
+	public Object newInstance(Object... args) {
 		return create(args);
 	}
 
