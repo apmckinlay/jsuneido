@@ -50,6 +50,7 @@ public class DbHashTreeTest {
 		for (int i = 0; i < N; ++i) {
 			key = r.nextInt();
 			value = r.nextInt();
+			assert tree.get(key) == 0;
 			if (key == 0 || value == 0)
 				continue ;
 			tree.with(key, value);
