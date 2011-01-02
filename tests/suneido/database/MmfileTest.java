@@ -12,6 +12,7 @@ import suneido.util.ByteBuf;
 
 // use different file names in case of delayed finalization
 public class MmfileTest {
+
 	@Test(expected=SuException.class)
 	public void cantopen() {
 		new File("tmp1").delete();
@@ -80,4 +81,5 @@ public class MmfileTest {
 		for (int i = 1; i <= 3; ++i)
 			new File("tmp" + i).delete();
 	}
+
 }

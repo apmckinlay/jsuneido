@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
@@ -22,11 +23,15 @@ import com.google.common.base.Strings;
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
  * Bagwell's Ideal Hash Trees</a>
  * Key and value are both int's so no hashing or overflow is required.
+ * <p>
+ * Similar to {@link suneido.util.PersistentMap}
  */
 public abstract class DbHashTree {
 	private static final int BITS_PER_LEVEL = 5;
 	private static final int HASH_BITS = 1 << BITS_PER_LEVEL;
 	private static final int LEVEL_MASK = HASH_BITS - 1;
+	private static final int INT_BYTES = Integer.SIZE / 8;
+	public static MmapFile mmf;
 
 	public static DbHashTree empty() {
 		return new MemoryNode();
@@ -36,11 +41,14 @@ public abstract class DbHashTree {
 
 	public abstract DbHashTree with(int key, int value);
 
-	public int countNodes() {
-		return ((MemoryNode) this).countNodes(0);
+	public abstract int persist();
+
+	public static DbHashTree from(int at) {
+		return new DbNode(at);
 	}
+
 	public void print() {
-		((MemoryNode) this).print(0);
+		((Node) this).print(0);
 	}
 
 	private abstract static class Node extends DbHashTree {
@@ -71,6 +79,10 @@ public abstract class DbHashTree {
 			return 1 << h;
 		}
 
+		protected int size() {
+			return Integer.bitCount(present());
+		}
+
 		abstract int present();
 		abstract int key(int i);
 		abstract int value(int i);
@@ -82,6 +94,25 @@ public abstract class DbHashTree {
 			return with(key, value, 0);
 		}
 		abstract protected Node with(int key, int value, int shift);
+
+		protected boolean isPointer(int i) {
+			return key(i) == 0;
+		}
+
+		private void print(int shift) {
+			String indent = Strings.repeat(" ", shift);
+			System.out.println(indent + this.getClass().getSimpleName());
+			for (int i = 0; i < size(); ++i) {
+				if (! isPointer(i))
+					System.out.println(indent + fmt(key(i)) +
+							"\t" + value(i));
+				else {
+					System.out.println(indent + ">>>>>>>>");
+					intToRef(value(i)).print(shift + BITS_PER_LEVEL);
+				}
+			}
+		}
+
 	}
 
 	/** DbNode consists of:
@@ -91,9 +122,15 @@ public abstract class DbHashTree {
 	 */
 	@Immutable
 	private static class DbNode extends Node {
-		private static final int ENTRIES = Integer.SIZE;
-		private static final int ENTRY_SIZE = 2 * Integer.SIZE;
-		private ByteBuf buf;
+		private static final int ENTRIES = INT_BYTES;
+		private static final int ENTRY_SIZE = 2 * INT_BYTES;
+		private final int at;
+		private final ByteBuf buf;
+
+		DbNode(int at) {
+			this.at = at;
+			buf = mmf.buf(IntLongs.intToLong(at));
+		}
 
 		@Override
 		protected Node with(int key, int value, int shift) {
@@ -121,8 +158,13 @@ public abstract class DbHashTree {
 		}
 
 		@Override
+		public int persist() {
+			return at;
+		}
+
+		@Override
 		int present() {
-			return buf.getShort(0);
+			return buf.getInt(0);
 		}
 
 		@Override
@@ -131,7 +173,7 @@ public abstract class DbHashTree {
 		}
 		@Override
 		int value(int i) {
-			return buf.getInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE);
+			return buf.getInt(ENTRIES + i * ENTRY_SIZE + INT_BYTES);
 		}
 
 	}
@@ -188,7 +230,7 @@ public abstract class DbHashTree {
 			} else if (keys[i] == key) {
 				values[i] = value;
 			} else if (isPointer(i)) {
-				intToRef(values[i]).with(key, value, shift + BITS_PER_LEVEL);
+				values[i] = refToInt(intToRef(values[i]).with(key, value, shift + BITS_PER_LEVEL));
 			} else { // collision, change entry to pointer
 				values[i] = refToInt(new MemoryNode(keys[i], values[i], key, value,
 					shift + BITS_PER_LEVEL));
@@ -219,6 +261,32 @@ public abstract class DbHashTree {
 		}
 
 		@Override
+		public int persist() {
+			for (int i = 0; i < size(); ++i)
+				if (isPointer(i) && IntRefs.isIntRef(values[i]))
+					values[i] = intToRef(values[i]).persist();
+			int size = byteBufSize();
+			long offset = mmf.alloc(size);
+			ByteBuffer buf = mmf.buffer(offset);
+			toByteBuf(buf);
+			return IntLongs.longToInt(offset);
+		}
+
+
+		public void toByteBuf(ByteBuffer buf) {
+			buf.putInt(present);
+			for (int i = 0; i < size(); ++i) {
+				buf.putInt(keys[i]);
+				buf.putInt(values[i]);
+			}
+		}
+
+		public int byteBufSize() {
+			return INT_BYTES + // present
+					(2 * size() * INT_BYTES); // keys and values
+		}
+
+		@Override
 		int present() {
 			return present;
 		}
@@ -231,33 +299,6 @@ public abstract class DbHashTree {
 		@Override
 		int value(int i) {
 			return values[i];
-		}
-
-		int size() {
-			return Integer.bitCount(present);
-		}
-
-		private boolean isPointer(int i) {
-			return keys[i] == 0;
-		}
-
-		private int countNodes(int shift) {
-			int n = 1;
-			for (int i = 0; i < size(); ++i)
-				if (isPointer(i))
-					n += ((MemoryNode) intToRef(values[i])).countNodes(shift + BITS_PER_LEVEL);
-			return n;
-		}
-
-		private void print(int shift) {
-			for (int i = 0; i < size(); ++i)
-				if (! isPointer(i))
-					System.out.println(Strings.repeat(" ", shift) + fmt(keys[i]) +
-							"\t" + values[i]);
-				else {
-					System.out.println(Strings.repeat(" ", shift) + ">>>>>>>>");
-					((MemoryNode) intToRef(values[i])).print(shift + BITS_PER_LEVEL);
-				}
 		}
 
 	}
@@ -275,11 +316,11 @@ public abstract class DbHashTree {
 		return IntRefs.refToInt(ref);
 	}
 
-	private static Node intToRef(int index) {
-		if (IntRefs.isIntRef(index))
-			return (Node) IntRefs.intToRef(index);
+	private static Node intToRef(int at) {
+		if (IntRefs.isIntRef(at))
+			return (Node) IntRefs.intToRef(at);
 		else
-			throw new RuntimeException("reading db not implemented"); // TODO
+			return new DbNode(at);
 	}
 
 }
