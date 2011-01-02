@@ -6,6 +6,8 @@ package suneido.database.immudb;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Arrays;
+
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,7 +50,30 @@ public abstract class DbHashTree {
 			checkArgument(key != 0);
 			return get(key, 0);
 		}
-		abstract protected int get(int key, int shift);
+		protected int get(int key, int shift) {
+			assert shift < 32;
+			int bit = bit(key, shift);
+			int present = present();
+			if ((present & bit) == 0)
+				return 0;
+			int i = Integer.bitCount(present & (bit - 1));
+			int entryKey = key(i);
+			if (entryKey != 0)
+				return entryKey == key ? value(i) : 0;
+			else { // pointer
+				Node child = intToRef(value(i));
+				return child.get(key, shift + BITS_PER_LEVEL);
+			}
+		}
+
+		protected static int bit(int key, int shift) {
+			int h = (key >>> shift) & LEVEL_MASK;
+			return 1 << h;
+		}
+
+		abstract int present();
+		abstract int key(int i);
+		abstract int value(int i);
 
 		@Override
 		public Node with(int key, int value) {
@@ -71,35 +96,20 @@ public abstract class DbHashTree {
 		private ByteBuf buf;
 
 		@Override
-		protected int get(int key, int shift) {
-			assert shift < 32;
-			int bit = bit(key, shift);
-			if ((present() & bit) == 0)
-				return 0;
-			int i = Integer.bitCount(present() & (bit - 1));
-			int entryKey = key(i);
-			if (entryKey != 0)
-				return entryKey == key ? value(i) : 0;
-			else { // pointer
-				Node child = intToRef(value(i));
-				return child.get(key, shift + BITS_PER_LEVEL);
-			}
-		}
-
-		@Override
 		protected Node with(int key, int value, int shift) {
 			assert shift < 32;
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present() & (bit - 1));
 			if ((present() & bit) == 0) {
 				return new MemoryNode(this).with(key, value, shift);
-			} else if (key(i) == key) {
+			}
+			int entryKey = key(i);
+			if (entryKey == key) {
 				return (value(i) == value)
 					? this
 					: new MemoryNode(this).with(key, value, shift);
 			}
-			int entryKey = key(i);
-			if (entryKey == 0) {
+			if (entryKey == 0) { // value is pointer to child
 				int ptr = refToInt(intToRef(value(i)).with(key, value,
 						shift + BITS_PER_LEVEL));
 				return new MemoryNode(this, i, ptr);
@@ -110,18 +120,16 @@ public abstract class DbHashTree {
 			}
 		}
 
-		private static int bit(int key, int shift) {
-			int h = (key >>> shift) & LEVEL_MASK;
-			return 1 << h;
-		}
-
-		short present() {
+		@Override
+		int present() {
 			return buf.getShort(0);
 		}
 
+		@Override
 		int key(int i) {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE);
 		}
+		@Override
 		int value(int i) {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE + Integer.SIZE);
 		}
@@ -134,20 +142,25 @@ public abstract class DbHashTree {
 	 */
 	@NotThreadSafe
 	private static class MemoryNode extends Node {
-		private final int[] keys = new int[HASH_BITS];
-		private final int[] values = new int[HASH_BITS];
+		private int present;
+		private int[] keys;
+		private int[] values;
 
 		MemoryNode() {
+			present = 0;
+			keys = new int[4];
+			values = new int[4];
 		}
 
 		MemoryNode(DbNode dbn) {
-			int present = dbn.present();
-			for (int i = 0, j = 0; i < HASH_BITS; ++i)
-				if ((present & (1 << i)) != 0) {
-					keys[i] = dbn.key(j);
-					values[i] = dbn.value(j);
-					++j;
-				}
+			present = dbn.present();
+			int n = size();
+			keys = new int[n + 1];
+			values = new int[n + 1];
+			for (int i = 0; i < n; ++i) {
+				keys[i] = dbn.key(i);
+				values[i] = dbn.value(i);
+			}
 		}
 
 		MemoryNode(DbNode dbn, int i, int ptr) {
@@ -157,24 +170,21 @@ public abstract class DbHashTree {
 		}
 
 		@Override
-		protected int get(int key, int shift) {
-			assert shift < 32;
-			int i = index(key, shift);
-			if (isEmpty(i))
-				return 0;
-			else if (isPointer(i))
-				return intToRef(values[i]).get(key, shift + BITS_PER_LEVEL);
-			else
-				return values[i];
-		}
-
-		@Override
 		protected MemoryNode with(int key, int value, int shift) {
 			assert shift < 32;
-			int i = index(key, shift);
-			if (isEmpty(i)) {
+			int bit = bit(key, shift);
+			int i = Integer.bitCount(present & (bit - 1));
+			if ((present & bit) == 0) {
+				int n = size();
+				if (n + 1 > keys.length) {
+					keys = Arrays.copyOf(keys, keys.length * 2);
+					values = Arrays.copyOf(values, values.length * 2);
+				}
+				System.arraycopy(keys, i, keys, i + 1, n - i);
+				System.arraycopy(values, i, values, i + 1, n - i);
 				keys[i] = key;
 				values[i] = value;
+				present |= bit;
 			} else if (keys[i] == key) {
 				values[i] = value;
 			} else if (isPointer(i)) {
@@ -188,59 +198,77 @@ public abstract class DbHashTree {
 		}
 
 		private MemoryNode(int key1, int value1, int key2, int value2, int shift) {
+			this();
 			assert shift < 32;
 			assert key1 != key2;
-			int i1 = index(key1, shift);
-			int i2 = index(key2, shift);
-			if (i1 != i2) {
+			int bits1 = (key1 >>> shift) & LEVEL_MASK;
+			int bits2 = (key2 >>> shift) & LEVEL_MASK;
+			if (bits1 != bits2) {
+				int i1 = bits1 < bits2 ? 0 : 1;
+				int i2 = 1 - i1;
 				keys[i1] = key1;
 				values[i1] = value1;
 				keys[i2] = key2;
 				values[i2] = value2;
-			} else // collision
-				values[i1] = refToInt(new MemoryNode(key1, value1, key2, value2,
+				present = (1 << bits1) | (1 << bits2);
+			} else { // collision
+				values[0] = refToInt(new MemoryNode(key1, value1, key2, value2,
 						shift + BITS_PER_LEVEL));
+				present = (1 << bits1);
+			}
 		}
 
-		private boolean isEmpty(int i) {
-			return values[i] == 0;
+		@Override
+		int present() {
+			return present;
+		}
+
+		@Override
+		int key(int i) {
+			return keys[i];
+		}
+
+		@Override
+		int value(int i) {
+			return values[i];
+		}
+
+		int size() {
+			return Integer.bitCount(present);
 		}
 
 		private boolean isPointer(int i) {
 			return keys[i] == 0;
 		}
 
-		private static int index(int key, int shift) {
-			return (key >>> shift) & LEVEL_MASK;
-		}
-
 		private int countNodes(int shift) {
 			int n = 1;
-			for (int i = 0; i < 32; ++i)
-				if (! isEmpty(i) && isPointer(i))
+			for (int i = 0; i < size(); ++i)
+				if (isPointer(i))
 					n += ((MemoryNode) intToRef(values[i])).countNodes(shift + BITS_PER_LEVEL);
 			return n;
 		}
 
 		private void print(int shift) {
-			for (int i = 0; i < 32; ++i)
-				if (isEmpty(i))
-					continue;
-				else if (! isPointer(i))
-					System.out.println(Strings.repeat(" ", shift) + fmt(keys[i]));
+			for (int i = 0; i < size(); ++i)
+				if (! isPointer(i))
+					System.out.println(Strings.repeat(" ", shift) + fmt(keys[i]) +
+							"\t" + values[i]);
 				else {
 					System.out.println(Strings.repeat(" ", shift) + ">>>>>>>>");
 					((MemoryNode) intToRef(values[i])).print(shift + BITS_PER_LEVEL);
 				}
 		}
 
-		private String fmt(int n) {
-			String s = "";
-			for (; n != 0; n >>>= 5)
-				s = (n & 0x1f) + "." + s;
-			return s.substring(0, s.length() - 1);
-		}
+	}
 
+	public static String fmt(int n) {
+		if (n == 0)
+			return "0";
+		String s = "";
+		for (; n != 0; n >>>= 5)
+			s = (n & 0x1f) + "." + s;
+		return s.substring(0, s.length() - 1);
 	}
 
 	private static int refToInt(Node ref) {
