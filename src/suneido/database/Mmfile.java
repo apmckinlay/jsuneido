@@ -193,7 +193,7 @@ public class Mmfile extends Destination {
 				if (fm[i] != null)
 					fm[i].force();
 		} catch (Exception e) {
-			errlog("error from MappedByteBuffer.force: " + e);
+			errlog("error from MappedByteBuffer.force " + e);
 		}
 	}
 
@@ -204,7 +204,7 @@ public class Mmfile extends Destination {
 			fc.close();
 			fin.close();
 		} catch (IOException e) {
-			throw new SuException("can't close database file");
+			throw new SuException("can't close database file", e);
 		}
 		// should truncate file but probably can't
 		// since memory mappings won't all be finalized
