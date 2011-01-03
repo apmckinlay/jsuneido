@@ -5,14 +5,11 @@
 package suneido.database.immudb;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
+import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import suneido.util.ByteBuf;
 
 /**
  * Memory mapped file access.
@@ -102,16 +99,20 @@ public class MmapFile {
 	}
 
 	/** @returns A ByteBuf extending from the offset to the end of the chunk */
-	public ByteBuf buf(long offset) {
-		assert offset >= 0;
-		assert offset < file_size
-				: "offset " + offset + " should be < file size " + file_size;
-		int chunk = (int) (offset / CHUNK_SIZE);
-		map(chunk);
-		return ByteBuf.wrap(fm[chunk], (int) (offset % CHUNK_SIZE));
-	}
+//	public ByteBuf buf(long offset) {
+//		assert offset >= 0;
+//		assert offset < file_size
+//				: "offset " + offset + " should be < file size " + file_size;
+//		int chunk = (int) (offset / CHUNK_SIZE);
+//		map(chunk);
+//		synchronized(fm[chunk]) {
+//			return ByteBuf.wrap(fm[chunk], (int) (offset % CHUNK_SIZE));
+//		}
+//	}
 
-	/** @returns A ByteBuffer extending from the offset to the end of the chunk */
+	/** @returns A unique instanced of a ByteBuffer
+	 * extending from the offset to the end of the chunk.
+	 */
 	public ByteBuffer buffer(long offset) {
 		assert offset >= 0;
 		assert offset < file_size;
@@ -133,6 +134,7 @@ public class MmapFile {
 			return;
 		try {
 			fm[chunk] = fc.map(mode, (long) chunk * CHUNK_SIZE, CHUNK_SIZE);
+			fm[chunk].order(ByteOrder.LITTLE_ENDIAN);
 		} catch (IOException e) {
 			throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
 		}
