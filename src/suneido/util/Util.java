@@ -174,8 +174,7 @@ public class Util {
 		return new ImmutableSet.Builder<T>().addAll(x).addAll(y).build();
 	}
 
-	@SuppressWarnings("unchecked")
-        public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
+	public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
 		if (y instanceof Set) {
 			Collection<T> tmp = x; x = y; y = tmp;
 		}
@@ -255,8 +254,7 @@ public class Util {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
-        public static <T> boolean setEquals(Collection<T> x, Collection<T> y) {
+	public static <T> boolean setEquals(Collection<T> x, Collection<T> y) {
 		if (y instanceof Set) {
 			Collection<T> tmp = x; x = y; y = tmp;
 		}
@@ -454,15 +452,6 @@ public class Util {
 		public String toString() {
 			return "Range(" + left + "," + right + ")";
 		}
-	}
-
-	public static void main(String[] args) {
-		ByteBuffer buf = stringToBuffer("hello world, how are you");
-		long t = System.currentTimeMillis();
-		for (int i = 0; i < 20000000; ++i) {
-			bufferToString(buf);
-		}
-		System.out.println(System.currentTimeMillis() - t);
 	}
 
 }

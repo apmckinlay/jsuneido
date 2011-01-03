@@ -269,4 +269,9 @@ public class ByteBuf {
 		return "ByteBuf@" + System.identityHashCode(this);
 	}
 
+	public void addTo(ByteBuffer buffer) {
+		for (int i = 0; i < size(); ++i)
+			buffer.put(get(i));
+	}
+
 }

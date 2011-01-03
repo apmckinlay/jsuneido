@@ -12,9 +12,9 @@ import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.util.ByteBuf;
-
 import com.google.common.base.Strings;
+
+// TODO persist values that are IntRefs
 
 /**
  * Persistent hash tree used for storing redirections.
@@ -34,7 +34,7 @@ public abstract class DbHashTree {
 	public static MmapFile mmf;
 
 	public static DbHashTree empty() {
-		return new MemoryNode();
+		return new MemNode();
 	}
 
 	public abstract int get(int key);
@@ -125,11 +125,11 @@ public abstract class DbHashTree {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
 		private final int at;
-		private final ByteBuf buf;
+		private final ByteBuffer buf;
 
 		DbNode(int at) {
 			this.at = at;
-			buf = mmf.buf(IntLongs.intToLong(at));
+			buf = mmf.buffer(IntLongs.intToLong(at));
 		}
 
 		@Override
@@ -138,22 +138,22 @@ public abstract class DbHashTree {
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present() & (bit - 1));
 			if ((present() & bit) == 0) {
-				return new MemoryNode(this).with(key, value, shift);
+				return new MemNode(this).with(key, value, shift);
 			}
 			int entryKey = key(i);
 			if (entryKey == key) {
 				return (value(i) == value)
 					? this
-					: new MemoryNode(this).with(key, value, shift);
+					: new MemNode(this).with(key, value, shift);
 			}
 			if (entryKey == 0) { // value is pointer to child
 				int ptr = refToInt(intToRef(value(i)).with(key, value,
 						shift + BITS_PER_LEVEL));
-				return new MemoryNode(this, i, ptr);
+				return new MemNode(this, i, ptr);
 			} else { // collision
-				int ptr = refToInt(new MemoryNode(key(i), value(i), key, value,
+				int ptr = refToInt(new MemNode(key(i), value(i), key, value,
 						shift + BITS_PER_LEVEL));
-				return new MemoryNode(this, i, ptr);
+				return new MemNode(this, i, ptr);
 			}
 		}
 
@@ -183,18 +183,18 @@ public abstract class DbHashTree {
 	 * If entry value is 0 then entry is unused/empty
 	 */
 	@NotThreadSafe
-	private static class MemoryNode extends Node {
+	private static class MemNode extends Node {
 		private int present;
 		private int[] keys;
 		private int[] values;
 
-		MemoryNode() {
+		MemNode() {
 			present = 0;
 			keys = new int[4];
 			values = new int[4];
 		}
 
-		MemoryNode(DbNode dbn) {
+		MemNode(DbNode dbn) {
 			present = dbn.present();
 			int n = size();
 			keys = new int[n + 1];
@@ -205,14 +205,14 @@ public abstract class DbHashTree {
 			}
 		}
 
-		MemoryNode(DbNode dbn, int i, int ptr) {
+		MemNode(DbNode dbn, int i, int ptr) {
 			this(dbn);
 			keys[i] = 0;
 			values[i] = ptr;
 		}
 
 		@Override
-		protected MemoryNode with(int key, int value, int shift) {
+		protected MemNode with(int key, int value, int shift) {
 			assert shift < 32;
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present & (bit - 1));
@@ -232,14 +232,14 @@ public abstract class DbHashTree {
 			} else if (isPointer(i)) {
 				values[i] = refToInt(intToRef(values[i]).with(key, value, shift + BITS_PER_LEVEL));
 			} else { // collision, change entry to pointer
-				values[i] = refToInt(new MemoryNode(keys[i], values[i], key, value,
+				values[i] = refToInt(new MemNode(keys[i], values[i], key, value,
 					shift + BITS_PER_LEVEL));
 				keys[i] = 0;
 			}
 			return this;
 		}
 
-		private MemoryNode(int key1, int value1, int key2, int value2, int shift) {
+		private MemNode(int key1, int value1, int key2, int value2, int shift) {
 			this();
 			assert shift < 32;
 			assert key1 != key2;
@@ -254,7 +254,7 @@ public abstract class DbHashTree {
 				values[i2] = value2;
 				present = (1 << bits1) | (1 << bits2);
 			} else { // collision
-				values[0] = refToInt(new MemoryNode(key1, value1, key2, value2,
+				values[0] = refToInt(new MemNode(key1, value1, key2, value2,
 						shift + BITS_PER_LEVEL));
 				present = (1 << bits1);
 			}
