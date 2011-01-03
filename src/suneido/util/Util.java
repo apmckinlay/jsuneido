@@ -292,8 +292,7 @@ public class Util {
 	/**
 	 * Based on C++ STL code.
 	 *
-	 * @param slot
-	 * @return The <u>first</u> position where slot could be inserted without
+	 * @return The <u>first</u> position where value could be inserted without
 	 *         changing the ordering.
 	 */
 	public static <T extends Comparable<? super T>> int lowerBound(

@@ -10,6 +10,7 @@ import javax.annotation.concurrent.Immutable;
 
 /**
  * Wraps a slice of a ByteBuffer.
+ * Used for on-disk field values.
  * Avoids slicing or duplicating the ByteBuffer
  * Does not use or modify the ByteBuffer mutable data (position, etc.)
  */
@@ -26,7 +27,7 @@ public class DataBuf extends Data {
 	}
 
 	@Override
-	public int size() {
+	public int length() {
 		return len;
 	}
 
@@ -42,6 +43,11 @@ public class DataBuf extends Data {
 		for (int i = 0; i < len; ++i)
 			bytes[i] = buf.get(idx + i);
 		return bytes;
+	}
+
+	@Override
+	public byte byteAt(int i) {
+		return buf.get(idx + i);
 	}
 
 }

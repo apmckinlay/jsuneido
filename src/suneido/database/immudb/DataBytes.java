@@ -8,8 +8,13 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Wraps a byte[] array.
+ * Used for in memory field values.
+ */
 @Immutable
 public class DataBytes extends Data {
+	public static final Data EMPTY = new DataBytes(new byte[0]);
 	private final byte[] bytes;
 
 	public DataBytes(byte[] bytes) {
@@ -17,7 +22,7 @@ public class DataBytes extends Data {
 	}
 
 	@Override
-	public int size() {
+	public int length() {
 		return bytes.length;
 	}
 
@@ -29,6 +34,11 @@ public class DataBytes extends Data {
 	@Override
 	public byte[] asArray() {
 		return bytes;
+	}
+
+	@Override
+	public byte byteAt(int i) {
+		return bytes[i];
 	}
 
 }

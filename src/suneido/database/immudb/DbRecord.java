@@ -9,8 +9,6 @@ import java.nio.ByteOrder;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.SuException;
-
 /**
  * A Record stored in a ByteBuffer.
  * Avoids slicing or duplicating the ByteBuffer
@@ -18,77 +16,70 @@ import suneido.SuException;
  */
 @Immutable
 public class DbRecord extends Record {
-	private final ByteBuffer buf;
-	private Rep rep;
+	protected final ByteBuffer buf;
+	protected final int offset;
+	protected static final ByteBuffer emptyRecBuf;
+	static {
+		emptyRecBuf = ByteBuffer.allocate(5);
+		emptyRecBuf.order(ByteOrder.LITTLE_ENDIAN);
+		emptyRecBuf.put(Type.BYTE);
+		emptyRecBuf.put((byte) 0);
+		emptyRecBuf.putShort((short) 0);
+		emptyRecBuf.put((byte) 0);
+	}
+	public static final Record EMPTY = new DbRecord();
+
+	protected DbRecord() {
+		this(emptyRecBuf);
+	}
 
 	public DbRecord(ByteBuffer buf) {
+		this(buf, 0);
+	}
+
+	public DbRecord(ByteBuffer buf, int offset) {
 		this.buf = buf;
+		this.offset = offset;
 		assert buf.order() == ByteOrder.LITTLE_ENDIAN;
-		switch (type()) {
-		case Type.BYTE:
-			rep = new ByteRep();
-			break;
-		case Type.SHORT:
-			rep = new ShortRep();
-			break;
-		case Type.INT:
-			rep = new IntRep();
-			break;
-		default:
-			throw new SuException("bad record type: " + type());
-		}
 	}
 
 	private byte type() {
-		return buf.get(Offset.TYPE);
+		return buf.get(offset + Offset.TYPE);
 	}
 
 	@Override
-	public void add(Data buf) {
+	public boolean add(Data buf) {
 		throw new UnsupportedOperationException("DbRecord.add");
 	}
 
 	@Override
 	public Data get(int i) {
 		if (i >= size())
-			return Data.EMPTY;
-		return new DataBuf(buf, rep.getOffset(i), fieldSize(i));
+			return DataBytes.EMPTY;
+		return new DataBuf(buf, offset + getOffset(i), fieldSize(i));
 	}
 
 	private int fieldSize(int i) {
 		if (i >= size())
 			return 0;
-		return rep.getOffset(i - 1) - rep.getOffset(i);
+		return getOffset(i - 1) - getOffset(i);
 	}
 
 	@Override
 	public int size() {
-		return buf.getShort(Offset.NFIELDS);
+		return buf.getShort(offset + Offset.NFIELDS);
 	}
 
-	// "strategy" object to avoid switching on type.
-	private abstract class Rep {
-		abstract int getOffset(int i);
-	}
-
-	private class ByteRep extends Rep {
-		@Override
-		int getOffset(int i) {
-			return buf.get(Offset.SIZE + i + 1) & 0xff;
-		}
-	}
-
-	private class ShortRep extends Rep {
-		@Override
-		int getOffset(int i) {
-			return buf.getShort(Offset.SIZE + 2 * (i + 1)) & 0xffff;
-		}
-	}
-
-	private class IntRep extends Rep {
-		@Override
-		int getOffset(int i) {
-			return buf.getInt(Offset.SIZE + 4 * (i + 1));
+	protected int getOffset(int i) {
+		switch (type()) {
+		case Type.BYTE:
+			return buf.get(offset + Offset.SIZE + i + 1) & 0xff;
+		case Type.SHORT:
+			return buf.getShort(offset + Offset.SIZE + 2 * (i + 1)) & 0xffff;
+		case Type.INT:
+			return buf.getInt(offset + Offset.SIZE + 4 * (i + 1));
+		default:
+			throw new Error("invalid record type: " + type());
 		}
 	}
 
@@ -107,9 +98,30 @@ public class DbRecord extends Record {
 	public void debugPrint() {
 		System.out.println("type: " + (char) type());
 		System.out.println("size: " + size());
-		System.out.println("length: " + rep.getOffset(-1));
+		System.out.println("length: " + length());
 		for (int i = 0; i < size(); ++i)
-			System.out.println("offset " + i + ": " + rep.getOffset(i));
+			System.out.println("offset " + i + ": " + getOffset(i));
+	}
+
+	@Override
+	public int length() {
+		return getOffset(-1);
+	}
+
+	@Override
+	public void addTo(ByteBuffer dst) {
+		for (int i = 0; i < length(); ++i)
+			dst.put(buf.get(offset + i));
+	}
+
+	@Override
+	public byte[] asArray() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public byte byteAt(int i) {
+		throw new UnsupportedOperationException();
 	}
 
 }

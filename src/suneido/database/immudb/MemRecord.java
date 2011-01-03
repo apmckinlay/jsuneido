@@ -23,8 +23,9 @@ public class MemRecord extends Record {
 	}
 
 	@Override
-	public void add(Data buf) {
+	public boolean add(Data buf) {
 		data.add(buf);
+		return true;
 	}
 
 	@Override
@@ -38,15 +39,15 @@ public class MemRecord extends Record {
 	}
 
 	public ByteBuffer asByteBuffer() {
-		Info info = dbSize();
-		ByteBuffer buf = ByteBuffer.allocate(info.size);
+		Info info = info();
+		ByteBuffer buf = ByteBuffer.allocate(info.length);
 		toByteBuffer(buf, info);
 		return buf;
 	}
 
 	int persist(MmapFile mmf) {
-		Info info = dbSize();
-		long offset = mmf.alloc(info.size);
+		Info info = info();
+		long offset = mmf.alloc(info.length);
 		ByteBuffer buf = mmf.buffer(offset);
 		toByteBuffer(buf, info);
 		return IntLongs.longToInt(offset);
@@ -62,22 +63,22 @@ public class MemRecord extends Record {
 		buf.putShort((short) data.size());
 		switch (info.type) {
 		case 'c':
-			byte c_offset = (byte) info.size;
+			byte c_offset = (byte) info.length;
 			buf.put(c_offset);
 			for (Data b : data)
-				buf.put(c_offset -= b.size());
+				buf.put(c_offset -= b.length());
 			break;
 		case 's':
-			short s_offset = (short) info.size;
+			short s_offset = (short) info.length;
 			buf.putShort(s_offset);
 			for (Data b : data)
-				buf.putShort(s_offset -= b.size());
+				buf.putShort(s_offset -= b.length());
 			break;
 		case 'l':
-			short l_offset = (short) info.size;
+			short l_offset = (short) info.length;
 			buf.putInt(l_offset);
 			for (Data b : data)
-				buf.putInt(l_offset -= b.size());
+				buf.putInt(l_offset -= b.length());
 			break;
 		default:
 			throw new Error("bad record type: " + info.type);
@@ -88,32 +89,52 @@ public class MemRecord extends Record {
 
 	private static class Info {
 		public final char type;
-		public final int size;
-		public Info(char type, int size) {
+		public final int length;
+		public Info(char type, int length) {
 			this.type = type;
-			this.size = size;
+			this.length = length;
 		}
 	}
 
-	private Info dbSize() {
+	private Info info() {
 		int datasize = 0;
 		for (Data b : data)
-			datasize += b.size();
+			datasize += b.length();
 		return dbSize(data.size(), datasize);
 	}
 
 	private static Info dbSize(int nfields, int datasize) {
 		int e = 1;
-		int size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
-		if (size < 0x100)
-			return new Info('c', size);
+		int length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		if (length < 0x100)
+			return new Info('c', length);
 		e = 2;
-		size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
-		if (size < 0x10000)
-			return new Info('s', size);
+		length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		if (length < 0x10000)
+			return new Info('s', length);
 		e = 4;
-		size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
-		return new Info('l', size);
+		length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		return new Info('l', length);
+	}
+
+	@Override
+	public int length() {
+		return info().length;
+	}
+
+	@Override
+	public void addTo(ByteBuffer buf) {
+		toByteBuffer(buf, info());
+	}
+
+	@Override
+	public byte[] asArray() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public byte byteAt(int i) {
+		throw new UnsupportedOperationException();
 	}
 
 }
