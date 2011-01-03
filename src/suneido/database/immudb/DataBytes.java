@@ -13,7 +13,7 @@ import javax.annotation.concurrent.Immutable;
  * Used for in memory field values.
  */
 @Immutable
-public class DataBytes extends Data {
+public class DataBytes extends AbstractData {
 	public static final Data EMPTY = new DataBytes(new byte[0]);
 	private final byte[] bytes;
 

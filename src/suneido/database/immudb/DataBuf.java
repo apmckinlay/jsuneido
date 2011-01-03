@@ -15,7 +15,7 @@ import javax.annotation.concurrent.Immutable;
  * Does not use or modify the ByteBuffer mutable data (position, etc.)
  */
 @Immutable
-public class DataBuf extends Data {
+public class DataBuf extends AbstractData {
 	private final ByteBuffer buf;
 	private final int idx;
 	private final int len;
