@@ -174,8 +174,7 @@ public class Util {
 		return new ImmutableSet.Builder<T>().addAll(x).addAll(y).build();
 	}
 
-	@SuppressWarnings("unchecked")
-        public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
+	public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
 		if (y instanceof Set) {
 			Collection<T> tmp = x; x = y; y = tmp;
 		}
@@ -255,8 +254,7 @@ public class Util {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
-        public static <T> boolean setEquals(Collection<T> x, Collection<T> y) {
+	public static <T> boolean setEquals(Collection<T> x, Collection<T> y) {
 		if (y instanceof Set) {
 			Collection<T> tmp = x; x = y; y = tmp;
 		}
