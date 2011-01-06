@@ -7,6 +7,7 @@ import static suneido.util.Util.putStringToByteBuffer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -69,6 +70,7 @@ public class Pack {
 	}
 
 	public static void pack(Object x, ByteBuffer buf) {
+		assert buf.order() == ByteOrder.BIG_ENDIAN;
 		Class<?> xType = x.getClass();
 		if (xType == Boolean.class)
 			buf.put(x == Boolean.TRUE ? Tag.TRUE : Tag.FALSE);
@@ -180,20 +182,6 @@ public class Pack {
 		return eb;
 	}
 
-	public static void packInt32(ByteBuffer buf, int n) {
-		boolean minus = n < 0;
-		if (n < 0)
-			n = -n;
-		buf.put(minus ? Tag.MINUS : Tag.PLUS);
-		buf.put(scale(3, minus));
-		assert n / 100000000 < 10000;
-		buf.putShort(digit(n / 100000000, minus));
-		n %= 100000000;
-		buf.putShort(digit(n / 10000, minus));
-		n %= 10000;
-		buf.putShort(digit(n, minus));
-	}
-
 	private static void packLongPart(ByteBuffer buf, long n, boolean minus) {
 		short sh[] = new short[5];
 		int i;
@@ -228,6 +216,7 @@ public class Pack {
 	public static Object unpack(ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			return "";
+		assert buf.order() == ByteOrder.BIG_ENDIAN;
 		switch (buf.get()) {
 		case Tag.FALSE:
 			return Boolean.FALSE;
@@ -262,7 +251,7 @@ public class Pack {
 	private static Object unpackNum(ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			return 0;
-		boolean minus = buf.get(0) == Tag.MINUS;
+		boolean minus = buf.get(buf.position() - 1) == Tag.MINUS;
 		int s = buf.get() & 0xff;
 		if (minus)
 			s = ((~s) & 0xff);

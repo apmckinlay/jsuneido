@@ -5,61 +5,36 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.AbstractList;
 
 import javax.annotation.concurrent.Immutable;
 
-/**
- * A Record stored in a ByteBuffer.
- * Avoids slicing or duplicating the ByteBuffer
- * Does not use or modify the ByteBuffer mutable data (position, etc.)
- */
 @Immutable
-public class DbRecord extends Record {
-	protected final ByteBuffer buf;
-	protected final int offset;
+public abstract class RecordBase<T> extends AbstractList<T>
+		implements Bufferable {
+	public final ByteBuffer buf;
+	public final int offset;
 	protected static final ByteBuffer emptyRecBuf;
 	static {
 		emptyRecBuf = ByteBuffer.allocate(5);
-		emptyRecBuf.order(ByteOrder.LITTLE_ENDIAN);
 		emptyRecBuf.put(Type.BYTE);
-		emptyRecBuf.put((byte) 0);
-		emptyRecBuf.putShort((short) 0);
-		emptyRecBuf.put((byte) 0);
-	}
-	public static final Record EMPTY = new DbRecord();
-
-	protected DbRecord() {
-		this(emptyRecBuf);
+		emptyRecBuf.putInt(0);
 	}
 
-	public DbRecord(ByteBuffer buf) {
-		this(buf, 0);
+	protected RecordBase() {
+		this(emptyRecBuf, 0);
 	}
 
-	public DbRecord(ByteBuffer buf, int offset) {
+	public RecordBase(ByteBuffer buf, int offset) {
 		this.buf = buf;
 		this.offset = offset;
-		assert buf.order() == ByteOrder.LITTLE_ENDIAN;
 	}
 
 	private byte type() {
 		return buf.get(offset + Offset.TYPE);
 	}
 
-	@Override
-	public boolean add(Data buf) {
-		throw new UnsupportedOperationException("DbRecord.add");
-	}
-
-	@Override
-	public Data get(int i) {
-		if (i >= size())
-			return DataBytes.EMPTY;
-		return new DataBuf(buf, offset + getOffset(i), fieldSize(i));
-	}
-
-	private int fieldSize(int i) {
+	public int fieldLength(int i) {
 		if (i >= size())
 			return 0;
 		return getOffset(i - 1) - getOffset(i);
@@ -67,17 +42,22 @@ public class DbRecord extends Record {
 
 	@Override
 	public int size() {
-		return buf.getShort(offset + Offset.NFIELDS);
+		int si = offset + Offset.NFIELDS;
+		return buf.get(si) + (buf.get(si + 1) << 8);
 	}
 
 	protected int getOffset(int i) {
+		// to match cSuneido use little endian (least significant first)
 		switch (type()) {
 		case Type.BYTE:
 			return buf.get(offset + Offset.SIZE + i + 1) & 0xff;
 		case Type.SHORT:
-			return buf.getShort(offset + Offset.SIZE + 2 * (i + 1)) & 0xffff;
+			int si = offset + Offset.SIZE + 2 * (i + 1);
+			return buf.get(si) + (buf.get(si + 1) << 8);
 		case Type.INT:
-			return buf.getInt(offset + Offset.SIZE + 4 * (i + 1));
+			int ii = offset + Offset.SIZE + 4 * (i + 1);
+			return buf.getInt(ii) + (buf.get(ii + 1) << 8) +
+			 		(buf.get(ii + 2) << 16) +  + (buf.get(ii + 3) << 24);
 		default:
 			throw new Error("invalid record type: " + type());
 		}
@@ -104,24 +84,33 @@ public class DbRecord extends Record {
 	}
 
 	@Override
+	public int nBufferable() {
+		return 1;
+	}
+
+	@Override
+	public int lengths(int[] lengths, int at) {
+		lengths[at] = getOffset(-1);
+		return 1;
+	}
+
 	public int length() {
 		return getOffset(-1);
 	}
 
 	@Override
 	public void addTo(ByteBuffer dst) {
-		for (int i = 0; i < length(); ++i)
+		int n = length();
+		for (int i = 0; i < n; ++i)
 			dst.put(buf.get(offset + i));
 	}
 
-	@Override
-	public byte[] asArray() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public byte byteAt(int i) {
-		throw new UnsupportedOperationException();
+	public void addFieldTo(int fld, ByteBuffer dst) {
+		// offset + getOffset(i), fieldLength(i)
+		int from = offset + getOffset(fld);
+		int lim = from + fieldLength(fld);
+		for (int i = from; i < lim; ++i)
+			dst.put(buf.get(i));
 	}
 
 }

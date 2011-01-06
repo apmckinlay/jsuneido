@@ -134,7 +134,7 @@ public class MmapFile {
 			return;
 		try {
 			fm[chunk] = fc.map(mode, (long) chunk * CHUNK_SIZE, CHUNK_SIZE);
-			fm[chunk].order(ByteOrder.LITTLE_ENDIAN);
+			fm[chunk].order(ByteOrder.BIG_ENDIAN);
 		} catch (IOException e) {
 			throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
 		}
