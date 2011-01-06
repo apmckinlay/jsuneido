@@ -5,6 +5,8 @@
 package suneido.database.immudb;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static suneido.database.immudb.RecordTest.record;
 
 import org.junit.Test;
 
@@ -12,11 +14,12 @@ public class BtreeLeafNodeTest {
 
 	@Test
 	public void with() {
-		Record key1 = record(RecordTest.one);
-		Record key2 = record(RecordTest.three);
-		Record key3 = record(RecordTest.two);
+		Record key1 = record("one");
+		Record key2 = record("three");
+		Record key3 = record("two");
+		Record key9 = record("z");
 
-		BtreeLeafNode node = new BtreeLeafNode();
+		BtreeLeafNode node = BtreeLeafNode.EMPTY;
 		node = node.with(key2);
 		assertEquals(key2, node.get(0));
 
@@ -29,13 +32,12 @@ public class BtreeLeafNodeTest {
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));
 		assertEquals(key3, node.get(2));
-	}
 
-	Record record(Data... datas) {
-		Record r = new MemRecord();
-		for (Data d : datas)
-			r.add(d);
-		return r;
+		assertEquals(key1, node.find(Record.EMPTY));
+		assertEquals(key1, node.find(key1));
+		assertEquals(key2, node.find(key2));
+		assertEquals(key3, node.find(key3));
+		assertNull(node.find(key9));
 	}
 
 }

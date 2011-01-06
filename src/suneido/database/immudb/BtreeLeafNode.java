@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.database.immudb.Btree.Split;
+
 /**
  * Stores one or more keys in sorted order.
  * Keys are records.
@@ -18,9 +20,10 @@ import javax.annotation.concurrent.Immutable;
  * Pointers are long offsets into database file, stored as int using {@link IntLongs}
  */
 @Immutable
-public class BtreeLeafNode extends DbRecord {
+public class BtreeLeafNode extends BtreeNode {
+	public static final BtreeLeafNode EMPTY = new BtreeLeafNode();
 
-	public BtreeLeafNode() {
+	private BtreeLeafNode() {
 		super();
 	}
 
@@ -28,11 +31,27 @@ public class BtreeLeafNode extends DbRecord {
 		super(buf);
 	}
 
-	@Override
-	public Record get(int i) {
-		if (i >= size())
-			return DbRecord.EMPTY;
-		return new DbRecord(buf, getOffset(i));
+	private BtreeLeafNode(RecordBuilder rb) {
+		this(rb.asByteBuffer());
+	}
+
+	public static BtreeLeafNode of(Object a) {
+		return new BtreeLeafNode(new RecordBuilder().add(a));
+	}
+
+	public static BtreeLeafNode of(Object a, Object b, Object c) {
+		return new BtreeLeafNode(new RecordBuilder().add(a).add(b).add(c));
+	}
+
+	/**
+	 *
+	 * @param key The value to look for, without the trailing record address
+	 * @return	The first key greater than or equal to the one specified
+	 * 			or null if there isn't one.
+	 */
+	public Record find(Record key) {
+		int at = lowerBound(this, key);
+		return at < size() ? get(at) : null;
 	}
 
 	public BtreeLeafNode with(Record key) {
@@ -40,33 +59,37 @@ public class BtreeLeafNode extends DbRecord {
 		return withAt(key, at);
 	}
 
-	// TODO optimize - shouldn't need to create temp MemRecord
 	private BtreeLeafNode withAt(Record key, int at) {
-		MemRecord mr = new MemRecord();
-		for (int i = 0; i < at; ++i)
-			mr.add(get(i));
-		mr.add(key);
-		for (int i = at; i < size(); ++i)
-			mr.add(get(i));
-		int len = mr.length();
-		ByteBuffer buf = ByteBuffer.allocate(len + 8);
-		mr.addTo(buf);
-		buf.putInt(prev());
-		buf.putInt(next());
-		return new BtreeLeafNode(buf);
+		return BtreeLeafNode.of(
+				new RecordSlice(this, 0, at),
+				key,
+				new RecordSlice(this, at, size() - at));
 	}
 
-	public int prev() {
-		return buf == emptyRecBuf ? 0 : buf.getInt(super.length());
+	Split split() {
+System.out.println("splitting " + this);
+		int at = size() / 2;
+		BtreeLeafNode leftNode = BtreeLeafNode.of(new RecordSlice(this, 0, at));
+System.out.println("-> left " + leftNode);
+		BtreeLeafNode rightNode = BtreeLeafNode.of(new RecordSlice(this, at, size() - at));
+System.out.println("-> right " + rightNode);
+		return new Split(
+				IntRefs.refToInt(leftNode),
+				IntRefs.refToInt(rightNode),
+				rightNode.get(0));
 	}
 
-	public int next() {
-		return buf == emptyRecBuf ? 0 : buf.getInt(super.length() + 4);
-	}
-
-	@Override
-	public int length() {
-		return super.length() + 8;
-	}
+//	public int prev() {
+//		return buf == emptyRecBuf ? 0 : buf.getInt(super.length());
+//	}
+//
+//	public int next() {
+//		return buf == emptyRecBuf ? 0 : buf.getInt(super.length() + 4);
+//	}
+//
+//	@Override
+//	public int length() {
+//		return super.length() + 8;
+//	}
 
 }
