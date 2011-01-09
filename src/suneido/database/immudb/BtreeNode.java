@@ -12,6 +12,11 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Strings;
 
+/**
+ * Stores a list of keys in sorted order in a ByteBuffer using {@link RecordBase}
+ * Keys are nested records.
+ * Pointers are integers as used by {@link MmapFile}
+ */
 @Immutable
 public abstract class BtreeNode extends RecordBase<Record> {
 

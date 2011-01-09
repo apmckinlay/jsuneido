@@ -17,7 +17,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE (64mb)
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
- * <li>maximum file size is MAX_CHUNKS * CHUNK_SIZE (32gb)
+ * <li>offsets are divided by ALIGN and passed as int,
+ * to reduce the space to store them
+ * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <p>
  * NOTE: When opening, trailing zero bytes are ignored.
  */
