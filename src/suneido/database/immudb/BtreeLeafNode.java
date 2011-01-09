@@ -8,22 +8,16 @@ import static suneido.util.Util.lowerBound;
 
 import java.nio.ByteBuffer;
 
-import javax.annotation.concurrent.Immutable;
-
 import suneido.database.immudb.Btree.Split;
 
 /**
  * Keys have the data record address as the last field.
  * This ensures uniqueness.
  * Has next and prev pointers stored immediately following the record.
+ * Normally immutable.
  */
-@Immutable
 public class BtreeLeafNode extends BtreeNode {
-	public static final BtreeLeafNode EMPTY = new BtreeLeafNode();
-
-	private BtreeLeafNode() {
-		super();
-	}
+	public static final BtreeLeafNode EMPTY = new BtreeLeafNode(emptyRecBuf);
 
 	public BtreeLeafNode(ByteBuffer buf) {
 		super(buf);
@@ -101,18 +95,5 @@ public class BtreeLeafNode extends BtreeNode {
 				rightAdr);
 		return new Split(adr, rightAdr, splitKey);
 	}
-
-//	public int prev() {
-//		return buf == emptyRecBuf ? 0 : buf.getInt(super.length());
-//	}
-//
-//	public int next() {
-//		return buf == emptyRecBuf ? 0 : buf.getInt(super.length() + 4);
-//	}
-//
-//	@Override
-//	public int length() {
-//		return super.length() + 8;
-//	}
 
 }

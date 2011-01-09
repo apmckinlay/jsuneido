@@ -12,13 +12,15 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public abstract class RecordBase<T> extends AbstractList<T>
 		implements Bufferable {
+	protected static final ByteBuffer emptyRecBuf = emptyRec();
 	public final ByteBuffer buf;
 	public final int offset;
-	protected static final ByteBuffer emptyRecBuf;
-	static {
-		emptyRecBuf = ByteBuffer.allocate(5);
-		emptyRecBuf.put(Type.BYTE);
-		emptyRecBuf.putInt(0);
+
+	static ByteBuffer emptyRec() {
+		ByteBuffer buf = ByteBuffer.allocate(5);
+		buf.put(Type.BYTE);
+		buf.putInt(0);
+		return buf;
 	}
 
 	protected RecordBase() {
