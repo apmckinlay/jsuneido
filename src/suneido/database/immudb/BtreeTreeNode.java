@@ -31,25 +31,70 @@ public class BtreeTreeNode extends BtreeNode {
 		this(rb.asByteBuffer());
 	}
 
-	public static BtreeTreeNode of(Record a, Record b) {
+	public static BtreeTreeNode of(Object a) {
+		return new BtreeTreeNode(new RecordBuilder().add(a));
+	}
+
+	public static BtreeTreeNode of(Object a, Object b) {
 		return new BtreeTreeNode(new RecordBuilder().add(a).add(b));
 	}
 
+	public static BtreeTreeNode of(Object a, Object b, Object c) {
+		return new BtreeTreeNode(new RecordBuilder().add(a).add(b).add(c));
+	}
+
 	public Record find(Record key) {
-		int at = lowerBound(this, key) - 1;
-		return get(at);
+		int at = lowerBound(this, key);
+		Record slot = get(at);
+		return slot.startsWith(key) ? slot : get(at - 1);
 	}
 
 	public static BtreeTreeNode newRoot(Split split) {
 		RecordBuilder key1 = new RecordBuilder();
-		for (int i = 0; i < split.key.size(); ++i)
+		for (int i = 0; i < split.key.size() - 1; ++i)
 			key1.add("");
 		key1.add(split.left);
+		return BtreeTreeNode.of(key1.build(), split.key);
+	}
 
-		Record key2 = Record.of(
-			new RecordSlice(split.key, 0, split.key.size()),
-			split.right);
-		return BtreeTreeNode.of(key1.build(), key2);
+	public BtreeTreeNode with(Record key) {
+		int at = lowerBound(this, key);
+		return withAt(key, at);
+	}
+
+	private BtreeTreeNode withAt(Record key, int at) {
+		return BtreeTreeNode.of(
+				new RecordSlice(this, 0, at),
+				key,
+				new RecordSlice(this, at, size() - at));
+	}
+
+	public Split split(Record key, int adr) {
+		// TODO if key is at end of node, just make new node
+		int keyPos = lowerBound(this, key);
+		int mid = size() / 2;
+		Record midKey = get(mid);
+		BtreeTreeNode left;
+		BtreeTreeNode right;
+		if (keyPos <= mid) {
+			left = BtreeTreeNode.of(
+					new RecordSlice(this, 0, keyPos),
+					key,
+					new RecordSlice(this, keyPos, mid - keyPos));
+			right = BtreeTreeNode.of(new RecordSlice(this, mid, size() - mid));
+		} else {
+			left = BtreeTreeNode.of(new RecordSlice(this, 0, mid));
+			right = BtreeTreeNode.of(
+					new RecordSlice(this, mid, keyPos - mid),
+					key,
+					new RecordSlice(this, keyPos, size() - keyPos));
+		}
+		Tran.redir(adr, left);
+		int rightAdr = Tran.refToInt(right);
+		midKey = Record.of(
+				new RecordSlice(midKey, 0, midKey.size() - 1),
+				rightAdr);
+		return new Split(adr, rightAdr, midKey);
 	}
 
 }

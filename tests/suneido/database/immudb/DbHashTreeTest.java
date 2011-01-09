@@ -13,12 +13,6 @@ import org.junit.*;
 
 public class DbHashTreeTest {
 
-	@After
-	public void teardown() {
-		IntRefs.set(null);
-		DbHashTree.mmf = null;
-	}
-
 	@Test
 	public void empty() {
 		DbHashTree tree = DbHashTree.empty();
@@ -28,7 +22,6 @@ public class DbHashTreeTest {
 
 	@Test
 	public void one_node() {
-		IntRefs.set(null); // shouldn't need to create more nodes
 		DbHashTree tree = DbHashTree.empty();
 		for (int i = 32; i < 64; ++i)
 			tree.with(i, i * 7);
@@ -38,18 +31,15 @@ public class DbHashTreeTest {
 
 	@Test
 	public void collisions() {
-		IntRefs.set(new IntRefs.Impl());
 		DbHashTree tree = DbHashTree.empty();
 		tree.with(0x10000, 123);
 		tree.with(0x20000, 456);
 		assertEquals(123, tree.get(0x10000));
 		assertEquals(456, tree.get(0x20000));
-		assertEquals(3, IntRefs.size());
 	}
 
 	@Test
 	public void random() {
-		IntRefs.set(new IntRefs.Impl());
 		DbHashTree tree = DbHashTree.empty();
 		Random r = new Random(123);
 		int key, value;
@@ -74,27 +64,23 @@ public class DbHashTreeTest {
 
 	@Test
 	public void persist() {
-		IntRefs.set(new IntRefs.Impl());
 		DbHashTree tree = DbHashTree.empty();
 		MmapFile mmf = new MmapFile("tmp1", "rw");
-		DbHashTree.mmf = mmf;
+		Tran.mmf(mmf);
 		int at = tree.persist();
 		assertEquals(0, at);
-		assertEquals(8, mmf.size());
 		mmf.buffer(mmf.alloc(1)).put((byte) 0xff); // ensure data isn't truncated
 		mmf.close();
 
 		mmf = new MmapFile("tmp1", "rw");
-		DbHashTree.mmf = mmf;
+		Tran.mmf(mmf);
 		tree = DbHashTree.from(at);
 		for (int i = 32; i < 64; ++i)
 			assertEquals(0, tree.get(i));
-		int at2 = tree.persist();
-		assertEquals(at, at2);
 		tree = tree.with(32, 123).with(64, 456);
 		assertEquals(123, tree.get(32));
 		assertEquals(456, tree.get(64));
-		at2 = tree.persist();
+		int at2 = tree.persist();
 		assert(at != at2);
 		assertEquals(123, tree.get(32));
 		assertEquals(456, tree.get(64));
@@ -104,7 +90,7 @@ public class DbHashTreeTest {
 		mmf.close();
 
 		mmf = new MmapFile("tmp1", "rw");
-		DbHashTree.mmf = mmf;
+		Tran.mmf(mmf);
 		tree = DbHashTree.from(at2);
 		assertEquals(123, tree.get(32));
 		assertEquals(456, tree.get(64));
@@ -123,7 +109,7 @@ public class DbHashTreeTest {
 		mmf.close();
 
 		mmf = new MmapFile("tmp1", "rw");
-		DbHashTree.mmf = mmf;
+		Tran.mmf(mmf);
 		tree = DbHashTree.from(at2);
 		for (int i = 0; i < N; ++i) {
 			key = r.nextInt();
@@ -142,6 +128,11 @@ public class DbHashTreeTest {
 			assertEquals("i=" + i + " key=" + DbHashTree.fmt(key) + " value=" + value, value, tree.get(key));
 		}
 		mmf.close();
+	}
+
+	@After
+	public void teardown() {
+		Tran.remove();
 	}
 
 	@BeforeClass

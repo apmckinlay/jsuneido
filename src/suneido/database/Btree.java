@@ -161,7 +161,7 @@ public class Btree {
 			adr = tleft.adr;
 		}
 		newRoot(key, adr);
-		return true ;
+		return true;
 	}
 	private void newRoot(Record key, long off) {
 		long roff = dest.alloc(NODESIZE, Mmfile.OTHER);

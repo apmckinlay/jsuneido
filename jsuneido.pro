@@ -1,14 +1,9 @@
 -injars jsuneido.jar
 -libraryjars /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar
--libraryjars lib/jsr305-1.3.9.jar
 -outjars jsuneido-dist.jar
 
 -dontoptimize
 -dontobfuscate
-
--keepclasseswithmembers public class * {
-    public static void main(java.lang.String[]);
-}
 
 -keep public class suneido.language.Ops {
 	<methods>;
