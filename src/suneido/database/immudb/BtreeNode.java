@@ -20,10 +20,6 @@ import com.google.common.base.Strings;
 @Immutable
 public abstract class BtreeNode extends RecordBase<Record> {
 
-	protected BtreeNode() {
-		super();
-	}
-
 	public BtreeNode(ByteBuffer buf) {
 		super(buf, 0);
 	}
