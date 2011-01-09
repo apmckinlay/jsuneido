@@ -13,11 +13,9 @@ import javax.annotation.concurrent.Immutable;
 import suneido.database.immudb.Btree.Split;
 
 /**
- * Stores one or more keys in sorted order.
- * Keys are records.
- * Keys have the data address as the last field.
+ * Keys have the data record address as the last field.
+ * This ensures uniqueness.
  * Has next and prev pointers stored immediately following the record.
- * Pointers are long offsets into database file, stored as int using {@link IntLongs}
  */
 @Immutable
 public class BtreeLeafNode extends BtreeNode {
@@ -48,7 +46,6 @@ public class BtreeLeafNode extends BtreeNode {
 	}
 
 	/**
-	 *
 	 * @param key The value to look for, without the trailing record address
 	 * @return	The first key greater than or equal to the one specified
 	 * 			or null if there isn't one.
@@ -70,32 +67,39 @@ public class BtreeLeafNode extends BtreeNode {
 				new RecordSlice(this, at, size() - at));
 	}
 
+	// identical to BtreeTreeNode.split except for adding splitKey address
 	Split split(Record key, int adr) {
-		// TODO if key is at end of node, just make new node
-		int keyPos = lowerBound(this, key);
-		int mid = size() / 2;
-		Record midKey = get(mid);
 		BtreeLeafNode left;
 		BtreeLeafNode right;
-		if (keyPos <= mid) {
-			left = BtreeLeafNode.of(
-					new RecordSlice(this, 0, keyPos),
-					key,
-					new RecordSlice(this, keyPos, mid - keyPos));
-			right = BtreeLeafNode.of(new RecordSlice(this, mid, size() - mid));
+		Record splitKey;
+		int keyPos = lowerBound(this, key);
+		if (keyPos == size()) {
+			// key is at end of node, just make new node
+			right = BtreeLeafNode.of(key);
+			splitKey = key;
 		} else {
-			left = BtreeLeafNode.of(new RecordSlice(this, 0, mid));
-			right = BtreeLeafNode.of(
-					new RecordSlice(this, mid, keyPos - mid),
-					key,
-					new RecordSlice(this, keyPos, size() - keyPos));
+			int mid = size() / 2;
+			splitKey = get(mid);
+			if (keyPos <= mid) {
+				left = BtreeLeafNode.of(
+						new RecordSlice(this, 0, keyPos),
+						key,
+						new RecordSlice(this, keyPos, mid - keyPos));
+				right = BtreeLeafNode.of(new RecordSlice(this, mid, size() - mid));
+			} else {
+				left = BtreeLeafNode.of(new RecordSlice(this, 0, mid));
+				right = BtreeLeafNode.of(
+						new RecordSlice(this, mid, keyPos - mid),
+						key,
+						new RecordSlice(this, keyPos, size() - keyPos));
+			}
+			Tran.redir(adr, left);
 		}
-		Tran.redir(adr, left);
 		int rightAdr = Tran.refToInt(right);
-		midKey = Record.of(
-				new RecordSlice(midKey, 0, midKey.size()),
+		splitKey = Record.of(
+				new RecordSlice(splitKey, 0, splitKey.size()),
 				rightAdr);
-		return new Split(adr, rightAdr, midKey);
+		return new Split(adr, rightAdr, splitKey);
 	}
 
 //	public int prev() {

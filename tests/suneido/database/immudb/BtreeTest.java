@@ -21,11 +21,11 @@ public class BtreeTest {
 		Random rand = new Random(1234);
 		for (int i = 0; i < NKEYS; ++i)
 			keys.add(randomKey(rand));
-		Collections.shuffle(keys, rand);
 
 		Btree btree = new Btree();
 		for (Record key : keys)
 			btree.add(key);
+
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat(btree.get(key), equalTo(adr(key)));
