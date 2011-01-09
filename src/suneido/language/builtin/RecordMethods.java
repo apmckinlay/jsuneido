@@ -57,8 +57,7 @@ public class RecordMethods {
 	}
 
 	public static class Invalidate extends SuMethod {
-		@SuppressWarnings("unchecked")
-                @Override
+		@Override
 		public Object eval(Object self, Object... args) {
 			ArgsIterator iter = new ArgsIterator(args);
 			SuRecord r = (SuRecord) self;
