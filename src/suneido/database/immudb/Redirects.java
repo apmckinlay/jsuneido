@@ -15,15 +15,31 @@ package suneido.database.immudb;
  * so it can't use this optimization.
  */
 public class Redirects {
-	private DbHashTree redirs = DbHashTree.empty();
+	private DbHashTree redirs;
 
-	void put(int from, int to) {
+	public Redirects() {
+		redirs = DbHashTree.empty();
+	}
+
+	public Redirects(int adr) {
+		redirs = DbHashTree.from(adr);
+	}
+
+	public void put(int from, int to) {
 		redirs = redirs.with(from, to);
 	}
 
-	int get(int from) {
+	public int get(int from) {
 		int to = redirs.get(from);
 		return to == 0 ? from : to;
+	}
+
+	public int persist() {
+		return redirs.persist();
+	}
+
+	public void print() {
+		redirs.print();
 	}
 
 }

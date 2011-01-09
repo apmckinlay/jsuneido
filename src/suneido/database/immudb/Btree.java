@@ -4,12 +4,11 @@
 
 package suneido.database.immudb;
 
-import java.io.IOException;
-import java.io.Writer;
-
+import java.io.*;
 
 /**
- * @see BtreeLeafNode, BtreeTreeNode
+ * An append-only immutable btree.
+ * @see BtreeNode, BtreeLeafNode, BtreeTreeNode
  */
 public class Btree {
 	private static final int MAX_NODE_SIZE = 20;
@@ -17,34 +16,38 @@ public class Btree {
 	private int root = 0; // an IntRef
 	private int treeLevels = 0;
 
+	public Btree() {
+		root = Tran.refToInt(BtreeNode.EMPTY_LEAF);
+		treeLevels = 0;
+	}
+
+	public Btree(int root, int treeLevels) {
+		this.root = root;
+		this.treeLevels = treeLevels;
+	}
+
 	/**
 	 * @param key A key without the final record address.
 	 * @return The record address or 0 if the key wasn't found.
 	 */
 	public int get(Record key) {
 		int adr = root;
-		BtreeTreeNode treeNodes[] = new BtreeTreeNode[MAX_LEVELS];
+		BtreeNode treeNodes[] = new BtreeNode[MAX_LEVELS];
 		int i;
 		for (i = 0; i < treeLevels; ++i) {
 			treeNodes[i] = treeNodeAt(adr);
 			Record slot = treeNodes[i].find(key);
 			adr = getAddress(slot);
 		}
-		BtreeLeafNode leaf = leafNodeAt(adr);
+		BtreeNode leaf = leafNodeAt(adr);
 		Record slot = leaf.find(key);
-		return slot.startsWith(key) ? getAddress(slot) : 0;
+		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
 
 	public void add(Record key) {
-		if (root == 0) {
-			BtreeLeafNode leaf = BtreeLeafNode.EMPTY.with(key);
-			root = Tran.refToInt(leaf);
-			return;
-		}
-
-		int adr = root;
 		// search down the tree
-		BtreeTreeNode treeNodes[] = new BtreeTreeNode[MAX_LEVELS];
+		int adr = root;
+		BtreeNode treeNodes[] = new BtreeNode[MAX_LEVELS];
 		int adrs[] = new int[MAX_LEVELS];
 		int i;
 		for (i = 0; i < treeLevels; ++i) {
@@ -54,22 +57,28 @@ public class Btree {
 			adr = getAddress(slot);
 		}
 
-		BtreeLeafNode leaf = leafNodeAt(adr);
+		BtreeNode leaf = leafNodeAt(adr);
 		if (leaf.size() < MAX_NODE_SIZE) {
+			// normal/fast path - simply insert into leaf
 			leaf = leaf.with(key);
-			Tran.redir(adr, leaf);
+			if (adr == root)
+				root = Tran.refToInt(leaf);
+			else
+				Tran.redir(adr, leaf);
 			return;
-
 		}
 		// else split leaf
 		Split split = leaf.split(key, adr);
 
 		// insert up the tree
 		for (--i; i >= 0; --i) {
-			BtreeTreeNode tree = treeNodes[i];
+			BtreeNode tree = treeNodes[i];
 			if (tree.size() < MAX_NODE_SIZE) {
 				tree = tree.with(split.key);
-				Tran.redir(adrs[i], tree);
+				if (adrs[i] == root)
+					root = Tran.refToInt(tree);
+				else
+					Tran.redir(adrs[i], tree);
 				return;
 			}
 			// else split
@@ -85,10 +94,11 @@ public class Btree {
 
 	private int newRoot(Split split) {
 		++treeLevels;
-		BtreeTreeNode node = BtreeTreeNode.newRoot(split);
+		BtreeNode node = BtreeNode.newRoot(split);
 		return Tran.refToInt(node);
 	}
 
+	/** used to return the results of a split */
 	static class Split {
 		int left;
 		int right;
@@ -101,28 +111,50 @@ public class Btree {
 		}
 	}
 
-	static BtreeTreeNode treeNodeAt(int adr) {
-		adr = Tran.redir(adr);
-		return IntRefs.isIntRef(adr)
-			? (BtreeTreeNode) Tran.intToRef(adr)
-			: new BtreeTreeNode(Tran.mmf().buffer(adr));
+	public int persist() {
+		if (IntRefs.isIntRef(root)) {
+			root = rootNode().persist();
+		}
+		return root;
 	}
 
-	static BtreeLeafNode leafNodeAt(int adr) {
+	static BtreeNode treeNodeAt(int adr) {
 		adr = Tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeLeafNode) Tran.intToRef(adr)
-			: new BtreeLeafNode(Tran.mmf().buffer(adr));
+			? (BtreeNode) Tran.intToRef(adr)
+			: BtreeNode.tree(Tran.mmf().buffer(adr));
+	}
+
+	static BtreeNode leafNodeAt(int adr) {
+		adr = Tran.redir(adr);
+		return IntRefs.isIntRef(adr)
+			? (BtreeNode) Tran.intToRef(adr)
+			: BtreeNode.leaf(Tran.mmf().buffer(adr));
+	}
+
+	public void print() {
+		print(new PrintWriter(System.out));
 	}
 
 	public void print(Writer writer) {
 		try {
-			BtreeNode node = treeLevels == 0 ? leafNodeAt(root) : treeNodeAt(root);
-			node.print(writer, treeLevels);
+			rootNode().print(writer, treeLevels);
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private BtreeNode rootNode() {
+		return treeLevels == 0 ? leafNodeAt(root) : treeNodeAt(root);
+	}
+
+	public int root() {
+		return root;
+	}
+
+	public int treeLevels() {
+		return treeLevels;
 	}
 
 }

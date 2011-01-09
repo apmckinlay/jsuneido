@@ -69,12 +69,9 @@ public class MmapFile {
 		file_size = fileLength();
 		if (file_size == 0)
 			return;
-		long offset = file_size;
-		--offset;
-		int chunk = (int) (offset / CHUNK_SIZE);
-		map(chunk);
-		ByteBuffer buf = fm[chunk];
-		int i = (int) (offset % CHUNK_SIZE);
+		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
+		ByteBuffer buf = map(chunk);
+		int i = (int) ((file_size - 1) % CHUNK_SIZE) + 1;
 		while (i > 0 && buf.getLong(i - 8) == 0)
 			i -= 8;
 		file_size = (long) chunk * CHUNK_SIZE + align(i);
@@ -119,7 +116,7 @@ public class MmapFile {
 	}
 
 	private synchronized ByteBuffer map(long offset) {
-		assert 0 <= offset && offset < file_size;
+		assert 0 <= offset && offset <= file_size;
 		int chunk = (int) (offset / CHUNK_SIZE);
 		if (fm[chunk] == null)
 			try {
@@ -148,11 +145,11 @@ public class MmapFile {
 	private static int longToInt(long n) {
 		assert (n & MASK) == 0;
 		assert n <= MAX_SIZE;
-		return (int) (n >>> SHIFT);
+		return (int) (n >>> SHIFT) + 1; // +1 to avoid 0
 	}
 
 	private static long intToLong(int n) {
-		return (n & 0xffffffffL) << SHIFT;
+		return ((n - 1) & 0xffffffffL) << SHIFT;
 	}
 
 }

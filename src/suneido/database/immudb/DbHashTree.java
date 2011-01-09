@@ -104,7 +104,7 @@ public abstract class DbHashTree {
 			for (int i = 0; i < size(); ++i) {
 				if (! isPointer(i))
 					System.out.println(indent + fmt(key(i)) +
-							"\t" + value(i));
+							"\t" + Integer.toHexString(value(i)));
 				else {
 					System.out.println(indent + ">>>>>>>>");
 					intToRef(value(i)).print(shift + BITS_PER_LEVEL);
@@ -260,10 +260,14 @@ public abstract class DbHashTree {
 		@Override
 		public int persist() {
 			for (int i = 0; i < size(); ++i)
-				if (isPointer(i) && IntRefs.isIntRef(values[i]))
-					values[i] = intToRef(values[i]).persist();
-			int size = byteBufSize();
-			int adr = Tran.mmf().alloc(size);
+				if (isPointer(i)) {
+					if (IntRefs.isIntRef(values[i]))
+						values[i] = intToRef(values[i]).persist();
+				} else {
+					if (IntRefs.isIntRef(values[i]))
+						System.out.println("ERROR redirect still intref at persist");
+				}
+			int adr = Tran.mmf().alloc(byteBufSize());
 			ByteBuffer buf = Tran.mmf().buffer(adr);
 			toByteBuf(buf);
 			return adr;

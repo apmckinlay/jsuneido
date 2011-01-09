@@ -12,16 +12,9 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public abstract class RecordBase<T> extends AbstractList<T>
 		implements Bufferable {
-	protected static final ByteBuffer emptyRecBuf = emptyRec();
+	protected static final ByteBuffer emptyRecBuf = new RecordBuilder().asByteBuffer();
 	public final ByteBuffer buf;
 	public final int offset;
-
-	static ByteBuffer emptyRec() {
-		ByteBuffer buf = ByteBuffer.allocate(5);
-		buf.put(Type.BYTE);
-		buf.putInt(0);
-		return buf;
-	}
 
 	protected RecordBase() {
 		this(emptyRecBuf, 0);
@@ -33,24 +26,37 @@ public abstract class RecordBase<T> extends AbstractList<T>
 	}
 
 	byte type() {
+		return type(buf, offset);
+	}
+	static byte type(ByteBuffer buf, int offset) {
 		return buf.get(offset + Offset.TYPE);
 	}
 
 	public int fieldLength(int i) {
-		if (i >= size())
+		return fieldLength(buf, offset, i);
+	}
+	public static int fieldLength(ByteBuffer buf, int offset, int i) {
+		if (i >= size(buf, offset))
 			return 0;
-		return getOffset(i - 1) - getOffset(i);
+		return getOffset(buf, offset, i - 1) - getOffset(buf, offset, i);
 	}
 
 	@Override
 	public int size() {
+		return size(buf, offset);
+	}
+	public static int size(ByteBuffer buf, int offset) {
 		int si = offset + Offset.NFIELDS;
 		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
 	}
 
+
 	protected int getOffset(int i) {
+		return getOffset(buf, offset, i);
+	}
+	protected static int getOffset(ByteBuffer buf, int offset, int i) {
 		// to match cSuneido use little endian (least significant first)
-		switch (type()) {
+		switch (type(buf, offset)) {
 		case Type.BYTE:
 			return buf.get(offset + Offset.SIZE + i + 1) & 0xff;
 		case Type.SHORT:
@@ -63,7 +69,7 @@ public abstract class RecordBase<T> extends AbstractList<T>
 			 		((buf.get(ii + 2) & 0xff) << 16) |
 			 		((buf.get(ii + 3) & 0xff) << 24);
 		default:
-			throw new Error("invalid record type: " + type());
+			throw new Error("invalid record type: " + type(buf, offset));
 		}
 	}
 
@@ -81,7 +87,7 @@ public abstract class RecordBase<T> extends AbstractList<T>
 
 	public String toDebugString() {
 		String s = "";
-		s += "type: " + (char) type() +
+		s += "type: " + (char) type(buf, offset) +
 				" size: " + size() +
 				" length: " + length();
 //		for (int i = 0; i < Math.min(size(), 10); ++i)
@@ -96,12 +102,12 @@ public abstract class RecordBase<T> extends AbstractList<T>
 
 	@Override
 	public int lengths(int[] lengths, int at) {
-		lengths[at] = getOffset(-1);
+		lengths[at] = getOffset(buf, offset, -1);
 		return 1;
 	}
 
 	public int length() {
-		return getOffset(-1);
+		return getOffset(buf, offset, -1);
 	}
 
 	@Override
@@ -113,10 +119,24 @@ public abstract class RecordBase<T> extends AbstractList<T>
 
 	public void addFieldTo(int fld, ByteBuffer dst) {
 		// offset + getOffset(i), fieldLength(i)
-		int from = offset + getOffset(fld);
-		int lim = from + fieldLength(fld);
+		int from = offset + getOffset(buf, offset, fld);
+		int lim = from + fieldLength(buf, offset, fld);
 		for (int i = from; i < lim; ++i)
 			dst.put(buf.get(i));
+	}
+
+	/**
+	 * Will only work on in-memory records
+	 * where buf was allocated with the correct length.
+	 */
+	public int persistRecord() {
+		int len = length();
+		int adr = Tran.mmf().alloc(len);
+		ByteBuffer dst = Tran.mmf().buffer(adr);
+		byte[] data = buf.array();
+		assert len == data.length;
+		dst.put(data);
+		return adr;
 	}
 
 }

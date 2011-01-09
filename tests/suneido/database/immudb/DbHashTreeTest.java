@@ -68,7 +68,7 @@ public class DbHashTreeTest {
 		MmapFile mmf = new MmapFile("tmp1", "rw");
 		Tran.mmf(mmf);
 		int at = tree.persist();
-		assertEquals(0, at);
+		assertEquals(1, at);
 		mmf.buffer(mmf.alloc(1)).put((byte) 0xff); // ensure data isn't truncated
 		mmf.close();
 
