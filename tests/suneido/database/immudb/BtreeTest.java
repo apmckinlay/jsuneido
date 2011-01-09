@@ -5,14 +5,22 @@
 package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.util.*;
 
 import org.junit.After;
 import org.junit.Test;
 
 public class BtreeTest {
+
+	@Test
+	public void empty() {
+		Btree btree = new Btree();
+		assertThat(btree.get(Record.of("hello", 1234)), is(0));
+	}
 
 	@Test
 	public void main() {
@@ -31,6 +39,50 @@ public class BtreeTest {
 			assertThat(btree.get(key), equalTo(adr(key)));
 	}
 
+//	@Test
+	public void persist() {
+		Tran.mmf(new MmapFile("tmp1", "rw"));
+		Btree btree = new Btree();
+		btree.persist();
+		int root = btree.root();
+		int levels = btree.treeLevels();
+		Tran.mmf().close();
+		Tran.remove();
+
+		Tran.mmf(new MmapFile("tmp1", "rw"));
+		btree = new Btree(root, levels);
+		List<Record> keys = new ArrayList<Record>();
+		int NKEYS = 30;
+		Random rand = new Random(90873);
+		for (int i = 0; i < NKEYS; ++i)
+			keys.add(randomKey(rand));
+		for (Record key : keys)
+			btree.add(key);
+System.out.println("BTREE");
+btree.print();
+System.out.println("REDIRS");
+Tran.redirs().print();
+		int redirs = Tran.redirs().persist(); // may persist btree
+		btree.persist();
+System.out.println("REDIRS after persist");
+Tran.redirs().print();
+
+		root = btree.root();
+System.out.println("root " + root);
+		levels = btree.treeLevels();
+		Tran.mmf().close();
+		Tran.remove();
+
+		Tran.mmf(new MmapFile("tmp1", "rw"));
+		Tran.setRedirs(new Redirects(redirs));
+		btree = new Btree(root, levels);
+btree.print();
+		Collections.shuffle(keys, rand);
+		for (Record key : keys)
+			assertThat(btree.get(key), equalTo(adr(key)));
+		Tran.mmf().close();
+	}
+
 	private int adr(Record key) {
 		return (Integer) key.get(1);
 	}
@@ -46,6 +98,7 @@ public class BtreeTest {
 	@After
 	public void teardown() {
 		Tran.remove();
+		new File("tmp1").delete();
 	}
 
 }

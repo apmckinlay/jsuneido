@@ -10,7 +10,7 @@ import static suneido.database.immudb.RecordTest.record;
 
 import org.junit.Test;
 
-public class BtreeLeafNodeTest {
+public class BtreeNodeTest {
 
 	@Test
 	public void with() {
@@ -19,7 +19,7 @@ public class BtreeLeafNodeTest {
 		Record key3 = record("two");
 		Record key9 = record("z");
 
-		BtreeLeafNode node = BtreeLeafNode.EMPTY;
+		BtreeNode node = BtreeNode.EMPTY_LEAF;
 		node = node.with(key2);
 		assertEquals(key2, node.get(0));
 

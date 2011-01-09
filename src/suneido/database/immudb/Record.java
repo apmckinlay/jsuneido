@@ -36,9 +36,9 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		if (i >= size())
 			return "";
 		ByteBuffer b = buf.duplicate();
-		int pos = offset + getOffset(i);
+		int pos = offset + getOffset(buf, offset, i);
 		b.position(pos);
-		b.limit(pos + fieldLength(i));
+		b.limit(pos + fieldLength(buf, offset, i));
 		return Pack.unpack(b);
 		// TODO change unpack to take buf,i,n to eliminate duplicate
 	}
@@ -54,20 +54,27 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 
 	@Override
 	public int compareTo(Record that) {
-		int len1 = this.size();
-		int len2 = that.size();
+		return compare(this.buf, this.offset, that.buf, that.offset);
+	}
+
+	public static int compare(
+			ByteBuffer buf, int offset,
+			ByteBuffer buf2, int offset2) {
+		int len1 = size(buf, offset);
+		int len2 = size(buf2, offset2);
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
-			int cmp = compare(
-					this.buf, this.offset + this.getOffset(i), this.fieldLength(i),
-					that.buf, that.offset + that.getOffset(i), that.fieldLength(i));
+			int cmp = compare1(
+					buf, offset + getOffset(buf, offset, i), fieldLength(buf, offset, i),
+					buf2, offset2 + getOffset(buf2, offset2, i), fieldLength(buf2, offset2, i));
 			if (cmp != 0)
 				return cmp;
 		}
 		return len1 - len2;
 	}
 
-	private static int compare(ByteBuffer buf1, int idx1, int len1,
+	public static int compare1(
+			ByteBuffer buf1, int idx1, int len1,
 			ByteBuffer buf2, int idx2, int len2) {
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
@@ -83,7 +90,7 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		if (n > size())
 			return false;
 		for (int i = 0; i < n; ++i)
-			if (0 != compare(
+			if (0 != compare1(
 					buf, offset + getOffset(i), fieldLength(i),
 					rec.buf, rec.offset + rec.getOffset(i), rec.fieldLength(i)))
 				return false;

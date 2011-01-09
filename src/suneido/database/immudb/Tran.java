@@ -16,7 +16,7 @@ public class Tran {
 	};
 	private MmapFile mmf;
 	private final IntRefs intrefs = new IntRefs();
-	private final Redirects redirs = new Redirects();
+	private Redirects redirs = new Redirects();
 
 	private Tran() {
 	}
@@ -50,6 +50,14 @@ public class Tran {
 			t.get().intrefs.update(from, ref);
 		else
 			t.get().redirs.put(from, refToInt(ref));
+	}
+
+	public static Redirects redirs() {
+		return t.get().redirs;
+	}
+
+	public static void setRedirs(Redirects redirs) {
+		t.get().redirs = redirs;
 	}
 
 }
