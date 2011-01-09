@@ -21,17 +21,15 @@ public class MmapFileTest {
 	@Test
 	public void main() {
 		MmapFile mmf = new MmapFile("tmp2", "rw");
-		assertEquals(0, mmf.size());
 		final int N = 128;
-		long offset = mmf.alloc(N);
-		ByteBuffer buf = mmf.buffer(offset);
+		int adr = mmf.alloc(N);
+		ByteBuffer buf = mmf.buffer(adr);
 		for (int i = 0; i < N; ++i)
 			buf.put(i, (byte) i);
 		mmf.close();
 
 		mmf = new MmapFile("tmp2", "r");
-		assertEquals(N, mmf.size());
-		buf = mmf.buffer(offset);
+		buf = mmf.buffer(adr);
 		for (int i = 0; i < N; ++i)
 			assertEquals(i, buf.get(i));
 		mmf.close();

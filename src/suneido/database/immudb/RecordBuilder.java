@@ -45,10 +45,10 @@ public class RecordBuilder {
 
 	int persist(MmapFile mmf) {
 		info();
-		long offset = mmf.alloc(length);
-		ByteBuffer buf = mmf.buffer(offset);
+		int adr = mmf.alloc(length);
+		ByteBuffer buf = mmf.buffer(adr);
 		toByteBuffer(buf);
-		return IntLongs.longToInt(offset);
+		return adr;
 	}
 
 	// format must match cSuneido

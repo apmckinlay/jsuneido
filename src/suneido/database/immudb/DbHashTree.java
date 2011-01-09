@@ -31,7 +31,6 @@ public abstract class DbHashTree {
 	private static final int HASH_BITS = 1 << BITS_PER_LEVEL;
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
-	public static MmapFile mmf;
 
 	public static DbHashTree empty() {
 		return new MemNode();
@@ -124,12 +123,10 @@ public abstract class DbHashTree {
 	private static class DbNode extends Node {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
-		private final int at;
 		private final ByteBuffer buf;
 
 		DbNode(int at) {
-			this.at = at;
-			buf = mmf.buffer(IntLongs.intToLong(at));
+			buf = Tran.mmf().buffer(at);
 		}
 
 		@Override
@@ -159,7 +156,7 @@ public abstract class DbHashTree {
 
 		@Override
 		public int persist() {
-			return at;
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -266,10 +263,10 @@ public abstract class DbHashTree {
 				if (isPointer(i) && IntRefs.isIntRef(values[i]))
 					values[i] = intToRef(values[i]).persist();
 			int size = byteBufSize();
-			long offset = mmf.alloc(size);
-			ByteBuffer buf = mmf.buffer(offset);
+			int adr = Tran.mmf().alloc(size);
+			ByteBuffer buf = Tran.mmf().buffer(adr);
 			toByteBuf(buf);
-			return IntLongs.longToInt(offset);
+			return adr;
 		}
 
 
@@ -313,12 +310,12 @@ public abstract class DbHashTree {
 	}
 
 	private static int refToInt(Node ref) {
-		return IntRefs.refToInt(ref);
+		return Tran.refToInt(ref);
 	}
 
 	private static Node intToRef(int at) {
 		if (IntRefs.isIntRef(at))
-			return (Node) IntRefs.intToRef(at);
+			return (Node) Tran.intToRef(at);
 		else
 			return new DbNode(at);
 	}

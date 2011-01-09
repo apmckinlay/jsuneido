@@ -4,7 +4,9 @@
 
 package suneido.database.immudb;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -36,6 +38,39 @@ public class RecordTest {
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
 		assertEquals(-9, r.get(2));
+	}
+
+	@Test
+	public void types() {
+		RecordBuilder rb;
+		Record r;
+
+		rb = new RecordBuilder();
+		final int N_SMALL = 18;
+		for (int i = 0; i < N_SMALL; ++i)
+			rb.add("hello world");
+		r = rb.build();
+		assertThat((char) r.type(), equalTo('c'));
+		for (int i = 0; i < N_SMALL; ++i)
+			assertThat((String) r.get(i), equalTo("hello world"));
+
+		rb = new RecordBuilder();
+		final int N_MEDIUM = 4000;
+		for (int i = 0; i < N_MEDIUM; ++i)
+			rb.add("hello world");
+		r = rb.build();
+		assertThat((char) r.type(), equalTo('s'));
+		for (int i = 0; i < N_MEDIUM; ++i)
+			assertThat((String) r.get(i), equalTo("hello world"));
+
+		final int N_LARGE = 5000;
+		rb = new RecordBuilder();
+		for (int i = 0; i < N_LARGE; ++i)
+			rb.add("hello world");
+		r = rb.build();
+		assertThat((char) r.type(), equalTo('l'));
+		for (int i = 0; i < N_LARGE; ++i)
+			assertThat("i " + i, (String) r.get(i), equalTo("hello world"));
 	}
 
 	public static Record record(Object... data) {

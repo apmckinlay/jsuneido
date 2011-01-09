@@ -4,7 +4,8 @@
 
 package suneido.database.immudb;
 
-import static suneido.database.immudb.RecordTest.record;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.util.*;
 
@@ -16,20 +17,35 @@ public class BtreeTest {
 	@Test
 	public void main() {
 		List<Record> keys = new ArrayList<Record>();
-		for (char c = 'a'; c <= 'z'; ++c)
-			keys.add(record("" + c));
+		int NKEYS = 1000;
 		Random rand = new Random(1234);
-//		Collections.shuffle(keys, rand);
+		for (int i = 0; i < NKEYS; ++i)
+			keys.add(randomKey(rand));
+		Collections.shuffle(keys, rand);
 
-		IntRefs.set(new IntRefs.Impl());
 		Btree btree = new Btree();
 		for (Record key : keys)
 			btree.add(key);
+		Collections.shuffle(keys, rand);
+		for (Record key : keys)
+			assertThat(btree.get(key), equalTo(adr(key)));
+	}
+
+	private int adr(Record key) {
+		return (Integer) key.get(1);
+	}
+
+	public Record randomKey(Random rand) {
+		int n = 1 + rand.nextInt(5);
+		String s = "";
+		for (int i = 0; i < n; ++i)
+			s += (char) ('a' + rand.nextInt(26));
+		return Record.of(s, rand.nextInt());
 	}
 
 	@After
 	public void teardown() {
-		IntRefs.set(null);
+		Tran.remove();
 	}
 
 }

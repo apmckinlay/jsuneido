@@ -67,7 +67,7 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		return len1 - len2;
 	}
 
-	private int compare(ByteBuffer buf1, int idx1, int len1,
+	private static int compare(ByteBuffer buf1, int idx1, int len1,
 			ByteBuffer buf2, int idx2, int len2) {
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
@@ -78,12 +78,30 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		return len1 - len2;
 	}
 
+	public boolean startsWith(Record rec) {
+		int n = rec.size();
+		if (n > size())
+			return false;
+		for (int i = 0; i < n; ++i)
+			if (0 != compare(
+					buf, offset + getOffset(i), fieldLength(i),
+					rec.buf, rec.offset + rec.getOffset(i), rec.fieldLength(i)))
+				return false;
+		return true;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<");
-		for (int i = 0; i < size(); ++i)
-			sb.append(get(i)).append(",");
+		for (int i = 0; i < size(); ++i) {
+			Object x = get(i);
+			if (x instanceof Integer)
+				sb.append(Integer.toHexString(((Integer) x)));
+			else
+				sb.append(x);
+			sb.append(",");
+		}
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append(">");
 		return sb.toString();

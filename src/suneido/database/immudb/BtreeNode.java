@@ -4,9 +4,13 @@
 
 package suneido.database.immudb;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
+
+import com.google.common.base.Strings;
 
 @Immutable
 public abstract class BtreeNode extends RecordBase<Record> {
@@ -35,6 +39,21 @@ public abstract class BtreeNode extends RecordBase<Record> {
 			sb.append(get(i));
 		sb.append("]");
 		return sb.toString();
+	}
+
+	void print(Writer w, int level) throws IOException {
+		String indent = Strings.repeat("     ", level);
+		w.append(indent).append(this instanceof BtreeLeafNode ? "Leaf" : "Tree").append("\n");
+		for (int i = 0; i < size(); ++i) {
+			Record slot = get(i);
+			w.append(indent).append(slot.toString()).append("\n");
+			if (level > 0) {
+				int adr = (Integer) slot.get(slot.size() - 1);
+				BtreeNode node = (level == 1)
+					? Btree.leafNodeAt(adr) : Btree.treeNodeAt(adr);
+				node.print(w, level - 1);
+			}
+		}
 	}
 
 }

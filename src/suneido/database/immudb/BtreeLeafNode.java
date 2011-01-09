@@ -39,6 +39,10 @@ public class BtreeLeafNode extends BtreeNode {
 		return new BtreeLeafNode(new RecordBuilder().add(a));
 	}
 
+	public static BtreeLeafNode of(Object a, Object b) {
+		return new BtreeLeafNode(new RecordBuilder().add(a).add(b));
+	}
+
 	public static BtreeLeafNode of(Object a, Object b, Object c) {
 		return new BtreeLeafNode(new RecordBuilder().add(a).add(b).add(c));
 	}
@@ -66,17 +70,32 @@ public class BtreeLeafNode extends BtreeNode {
 				new RecordSlice(this, at, size() - at));
 	}
 
-	Split split() {
-System.out.println("splitting " + this);
-		int at = size() / 2;
-		BtreeLeafNode leftNode = BtreeLeafNode.of(new RecordSlice(this, 0, at));
-System.out.println("-> left " + leftNode);
-		BtreeLeafNode rightNode = BtreeLeafNode.of(new RecordSlice(this, at, size() - at));
-System.out.println("-> right " + rightNode);
-		return new Split(
-				IntRefs.refToInt(leftNode),
-				IntRefs.refToInt(rightNode),
-				rightNode.get(0));
+	Split split(Record key, int adr) {
+		// TODO if key is at end of node, just make new node
+		int keyPos = lowerBound(this, key);
+		int mid = size() / 2;
+		Record midKey = get(mid);
+		BtreeLeafNode left;
+		BtreeLeafNode right;
+		if (keyPos <= mid) {
+			left = BtreeLeafNode.of(
+					new RecordSlice(this, 0, keyPos),
+					key,
+					new RecordSlice(this, keyPos, mid - keyPos));
+			right = BtreeLeafNode.of(new RecordSlice(this, mid, size() - mid));
+		} else {
+			left = BtreeLeafNode.of(new RecordSlice(this, 0, mid));
+			right = BtreeLeafNode.of(
+					new RecordSlice(this, mid, keyPos - mid),
+					key,
+					new RecordSlice(this, keyPos, size() - keyPos));
+		}
+		Tran.redir(adr, left);
+		int rightAdr = Tran.refToInt(right);
+		midKey = Record.of(
+				new RecordSlice(midKey, 0, midKey.size()),
+				rightAdr);
+		return new Split(adr, rightAdr, midKey);
 	}
 
 //	public int prev() {

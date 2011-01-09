@@ -9,7 +9,8 @@ import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Memory mapped file access.
@@ -20,15 +21,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <p>
  * NOTE: When opening, trailing zero bytes are ignored.
  */
-@NotThreadSafe
+@ThreadSafe
 public class MmapFile {
-	public static final int ALIGN = 8;
+	private static final int SHIFT = 3;
+	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
+	private static final int ALIGN = (1 << SHIFT);
+	private static final int MASK = ALIGN - 1;
 	private static final int MB = 1024 * 1024;
-	public static final int CHUNK_SIZE = 64 * MB;
-	public static final int MAX_CHUNKS = 512;
+	private static final int CHUNK_SIZE = 64 * MB;
+	private static final int MAX_CHUNKS = (int) (MAX_SIZE / CHUNK_SIZE + 1);
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
+	@GuardedBy("this")
 	private long file_size;
 	private final MappedByteBuffer[] fm = new MappedByteBuffer[MAX_CHUNKS];
 
@@ -55,21 +60,22 @@ public class MmapFile {
 			throw new RuntimeException("can't open or create " + file, e);
 		}
 		fc = fin.getChannel();
-		file_size = findEnd();
+		findEnd();
 	}
 
-	private long findEnd() {
-		long offset = fileLength();
-		if (offset == 0)
-			return 0;
+	private void findEnd() {
+		file_size = fileLength();
+		if (file_size == 0)
+			return;
+		long offset = file_size;
 		--offset;
 		int chunk = (int) (offset / CHUNK_SIZE);
 		map(chunk);
 		ByteBuffer buf = fm[chunk];
 		int i = (int) (offset % CHUNK_SIZE);
-		while (i > 0 && buf.get(i - 1) == 0)
-			--i;
-		return (long) chunk * CHUNK_SIZE + align(i);
+		while (i > 0 && buf.getLong(i - 8) == 0)
+			i -= 8;
+		file_size = (long) chunk * CHUNK_SIZE + align(i);
 	}
 
 	private long fileLength() {
@@ -80,7 +86,7 @@ public class MmapFile {
 		}
 	}
 
-	public long alloc(int n) {
+	public synchronized int alloc(int n) {
 		assert n < CHUNK_SIZE;
 		n = align(n);
 
@@ -91,57 +97,36 @@ public class MmapFile {
 
 		long offset = file_size;
 		file_size += n;
-		return offset;
+		return longToInt(offset);
 	}
 
 	private int align(int n) {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
-	/** @returns A ByteBuf extending from the offset to the end of the chunk */
-//	public ByteBuf buf(long offset) {
-//		assert offset >= 0;
-//		assert offset < file_size
-//				: "offset " + offset + " should be < file size " + file_size;
-//		int chunk = (int) (offset / CHUNK_SIZE);
-//		map(chunk);
-//		synchronized(fm[chunk]) {
-//			return ByteBuf.wrap(fm[chunk], (int) (offset % CHUNK_SIZE));
-//		}
-//	}
-
-	/** @returns A unique instanced of a ByteBuffer
+	/** @returns A unique instance of a ByteBuffer
 	 * extending from the offset to the end of the chunk.
 	 */
-	public ByteBuffer buffer(long offset) {
-		assert offset >= 0;
-		assert offset < file_size;
+	public ByteBuffer buffer(int adr) {
+		long offset = intToLong(adr);
+		ByteBuffer fmbuf = map(offset);
+		synchronized(fmbuf) {
+			fmbuf.position((int) (offset % CHUNK_SIZE));
+			return fmbuf.slice();
+		}
+	}
+
+	private synchronized ByteBuffer map(long offset) {
+		assert 0 <= offset && offset < file_size;
 		int chunk = (int) (offset / CHUNK_SIZE);
-		map(chunk);
-		ByteBuffer buf = fm[chunk];
-		synchronized(buf) {
+		if (fm[chunk] == null)
 			try {
-				buf.position((int) (offset % CHUNK_SIZE));
-				return buf.slice();
-			} finally {
-				buf.position(0);
+				fm[chunk] = fc.map(mode, (long) chunk * CHUNK_SIZE, CHUNK_SIZE);
+				fm[chunk].order(ByteOrder.BIG_ENDIAN);
+			} catch (IOException e) {
+				throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
 			}
-		}
-	}
-
-	private synchronized void map(int chunk) {
-		if (fm[chunk] != null)
-			return;
-		try {
-			fm[chunk] = fc.map(mode, (long) chunk * CHUNK_SIZE, CHUNK_SIZE);
-			fm[chunk].order(ByteOrder.BIG_ENDIAN);
-		} catch (IOException e) {
-			throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
-		}
-	}
-
-	public long size() {
-		return file_size;
+		return fm[chunk];
 	}
 
 	public void close() {
@@ -157,4 +142,15 @@ public class MmapFile {
 		// so file size will be rounded up to chunk size
 		// this is handled when re-opening
 	}
+
+	private static int longToInt(long n) {
+		assert (n & MASK) == 0;
+		assert n <= MAX_SIZE;
+		return (int) (n >>> SHIFT);
+	}
+
+	private static long intToLong(int n) {
+		return (n & 0xffffffffL) << SHIFT;
+	}
+
 }
