@@ -14,6 +14,7 @@ import suneido.SuValue;
 import suneido.language.*;
 
 public class SocketClient extends SuValue {
+	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
 	private final Socket socket;
 	private final DataInputStream input;
 	private final DataOutputStream output;
@@ -40,11 +41,16 @@ public class SocketClient extends SuValue {
 		}
 	}
 
-	public SocketClient(Socket socket) throws IOException {
+	SocketClient(Socket socket) throws IOException {
 		this.socket = socket;
 		socket.setTcpNoDelay(true); // disable nagle
 		input = new DataInputStream(socket.getInputStream());
 		output = new DataOutputStream(socket.getOutputStream());
+	}
+
+	@Override
+	public SuValue lookup(String method) {
+		return methods.lookup(method);
 	}
 
 	public static class Close extends SuMethod0 {
