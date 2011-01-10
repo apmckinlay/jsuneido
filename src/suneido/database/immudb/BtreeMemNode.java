@@ -114,7 +114,7 @@ public class BtreeMemNode extends BtreeNode {
 		for (int i = 0; i < split.key.size() - 1; ++i)
 			key1.add("");
 		key1.add(split.left);
-		return BtreeDbNode.of(Type.TREE, key1.build(), split.key);
+		return new BtreeMemNode(Type.TREE).add(key1.build()).add(split.key);
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class BtreeMemNode extends BtreeNode {
 		int keyPos = lowerBound(key.buf, key.offset);
 		if (keyPos == size()) {
 			// key is at end of node, just make new node
-			right = BtreeDbNode.of(type, key);
+			right = new BtreeMemNode(type).add(key);
 			splitKey = key;
 		} else {
 			int mid = size() / 2;
