@@ -5,13 +5,11 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.AbstractList;
 
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public abstract class RecordBase<T> extends AbstractList<T>
-		implements Bufferable {
+public class RecordBase<T> implements Bufferable {
 	protected static final ByteBuffer emptyRecBuf = new RecordBuilder().asByteBuffer();
 	public final ByteBuffer buf;
 	public final int offset;
@@ -38,10 +36,9 @@ public abstract class RecordBase<T> extends AbstractList<T>
 	public static int fieldLength(ByteBuffer buf, int offset, int i) {
 		if (i >= size(buf, offset))
 			return 0;
-		return getOffset(buf, offset, i - 1) - getOffset(buf, offset, i);
+		return fieldOffset(buf, offset, i - 1) - fieldOffset(buf, offset, i);
 	}
 
-	@Override
 	public int size() {
 		return size(buf, offset);
 	}
@@ -51,10 +48,10 @@ public abstract class RecordBase<T> extends AbstractList<T>
 	}
 
 
-	protected int getOffset(int i) {
-		return getOffset(buf, offset, i);
+	protected int fieldOffset(int i) {
+		return fieldOffset(buf, offset, i);
 	}
-	protected static int getOffset(ByteBuffer buf, int offset, int i) {
+	protected static int fieldOffset(ByteBuffer buf, int offset, int i) {
 		// to match cSuneido use little endian (least significant first)
 		switch (type(buf, offset)) {
 		case Type.BYTE:
@@ -102,12 +99,12 @@ public abstract class RecordBase<T> extends AbstractList<T>
 
 	@Override
 	public int lengths(int[] lengths, int at) {
-		lengths[at] = getOffset(buf, offset, -1);
+		lengths[at] = fieldOffset(buf, offset, -1);
 		return 1;
 	}
 
 	public int length() {
-		return getOffset(buf, offset, -1);
+		return fieldOffset(buf, offset, -1);
 	}
 
 	@Override
@@ -119,7 +116,7 @@ public abstract class RecordBase<T> extends AbstractList<T>
 
 	public void addFieldTo(int fld, ByteBuffer dst) {
 		// offset + getOffset(i), fieldLength(i)
-		int from = offset + getOffset(buf, offset, fld);
+		int from = offset + fieldOffset(buf, offset, fld);
 		int lim = from + fieldLength(buf, offset, fld);
 		for (int i = from; i < lim; ++i)
 			dst.put(buf.get(i));

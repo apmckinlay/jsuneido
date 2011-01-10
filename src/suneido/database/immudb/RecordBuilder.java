@@ -22,10 +22,6 @@ public class RecordBuilder {
 	public RecordBuilder() {
 	}
 
-	public RecordBuilder(Record r) {
-		data.addAll(r);
-	}
-
 	public RecordBuilder add(Object x) {
 		length = 0;
 		data.add(x);

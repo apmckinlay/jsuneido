@@ -39,7 +39,7 @@ public class BtreeTest {
 			assertThat(btree.get(key), equalTo(adr(key)));
 	}
 
-//	@Test
+/*	@Test
 	public void persist() {
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		Btree btree = new Btree();
@@ -82,7 +82,7 @@ btree.print();
 			assertThat(btree.get(key), equalTo(adr(key)));
 		Tran.mmf().close();
 	}
-
+*/
 	private int adr(Record key) {
 		return (Integer) key.get(1);
 	}
