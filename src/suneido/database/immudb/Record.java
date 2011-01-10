@@ -27,16 +27,19 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		super(buf, offset);
 	}
 
+	public static Record of(Object a) {
+		return new RecordBuilder().add(a).build();
+	}
+
 	public static Record of(Object a, Object b) {
 		return new RecordBuilder().add(a).add(b).build();
 	}
 
-	@Override
 	public Object get(int i) {
 		if (i >= size())
 			return "";
 		ByteBuffer b = buf.duplicate();
-		int pos = offset + getOffset(buf, offset, i);
+		int pos = offset + fieldOffset(buf, offset, i);
 		b.position(pos);
 		b.limit(pos + fieldLength(buf, offset, i));
 		return Pack.unpack(b);
@@ -65,8 +68,8 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
 			int cmp = compare1(
-					buf, offset + getOffset(buf, offset, i), fieldLength(buf, offset, i),
-					buf2, offset2 + getOffset(buf2, offset2, i), fieldLength(buf2, offset2, i));
+					buf, offset + fieldOffset(buf, offset, i), fieldLength(buf, offset, i),
+					buf2, offset2 + fieldOffset(buf2, offset2, i), fieldLength(buf2, offset2, i));
 			if (cmp != 0)
 				return cmp;
 		}
@@ -91,8 +94,8 @@ public class Record extends RecordBase<Object> implements Comparable<Record> {
 			return false;
 		for (int i = 0; i < n; ++i)
 			if (0 != compare1(
-					buf, offset + getOffset(i), fieldLength(i),
-					rec.buf, rec.offset + rec.getOffset(i), rec.fieldLength(i)))
+					buf, offset + fieldOffset(i), fieldLength(i),
+					rec.buf, rec.offset + rec.fieldOffset(i), rec.fieldLength(i)))
 				return false;
 		return true;
 	}

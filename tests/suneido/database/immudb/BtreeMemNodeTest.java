@@ -4,30 +4,37 @@
 
 package suneido.database.immudb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 import static suneido.database.immudb.RecordTest.record;
 
 import org.junit.Test;
 
-public class BtreeNodeTest {
+public class BtreeMemNodeTest {
 
 	@Test
-	public void with() {
+	public void empty() {
+		BtreeNode node = BtreeMemNode.emptyLeaf();
+		assertThat(node.size(), is(0));
+		assertThat(node.get(0), is(Record.EMPTY));
+	}
+
+	@Test
+	public void main() {
 		Record key1 = record("one");
 		Record key2 = record("three");
 		Record key3 = record("two");
 		Record key9 = record("z");
 
-		BtreeNode node = BtreeNode.EMPTY_LEAF;
-		node = node.with(key2);
+		BtreeNode node = BtreeMemNode.emptyLeaf();
+		node.with(key2);
 		assertEquals(key2, node.get(0));
 
-		node = node.with(key1);
+		node.with(key1);
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));
 
-		node = node.with(key3);
+		node.with(key3);
 		assertEquals(3, node.size());
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));

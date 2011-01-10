@@ -11,13 +11,13 @@ import java.io.*;
  * @see BtreeNode, BtreeLeafNode, BtreeTreeNode
  */
 public class Btree {
-	private static final int MAX_NODE_SIZE = 20;
+	public static final int MAX_NODE_SIZE = 20;
 	private static final int MAX_LEVELS = 20;
 	private int root = 0; // an IntRef
 	private int treeLevels = 0;
 
 	public Btree() {
-		root = Tran.refToInt(BtreeNode.EMPTY_LEAF);
+		root = Tran.refToInt(BtreeMemNode.emptyLeaf());
 		treeLevels = 0;
 	}
 
@@ -94,7 +94,7 @@ public class Btree {
 
 	private int newRoot(Split split) {
 		++treeLevels;
-		BtreeNode node = BtreeNode.newRoot(split);
+		BtreeNode node = BtreeMemNode.newRoot(split);
 		return Tran.refToInt(node);
 	}
 
@@ -111,25 +111,25 @@ public class Btree {
 		}
 	}
 
-	public int persist() {
-		if (IntRefs.isIntRef(root)) {
-			root = rootNode().persist();
-		}
-		return root;
-	}
+//	public int persist() {
+//		if (IntRefs.isIntRef(root)) {
+//			root = rootNode().persist();
+//		}
+//		return root;
+//	}
 
 	static BtreeNode treeNodeAt(int adr) {
 		adr = Tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeNode) Tran.intToRef(adr)
-			: BtreeNode.tree(Tran.mmf().buffer(adr));
+			: BtreeDbNode.tree(Tran.mmf().buffer(adr));
 	}
 
 	static BtreeNode leafNodeAt(int adr) {
 		adr = Tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeNode) Tran.intToRef(adr)
-			: BtreeNode.leaf(Tran.mmf().buffer(adr));
+			: BtreeDbNode.leaf(Tran.mmf().buffer(adr));
 	}
 
 	public void print() {
