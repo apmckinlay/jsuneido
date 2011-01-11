@@ -2,19 +2,29 @@ package suneido.util;
 
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Socket server framework using plain sockets (not NIO).
  * Uses a supplied HandlerFactory to create a new Runnable handler
  * for each accepted connection.
- * Creates a Thread per connection.
- *
- * @author Andrew McKinlay
  */
 @NotThreadSafe
 public class ServerBySocket {
+	private static final int CORE_THREADS = 4;
+	private static final int MAX_THREADS = 4;
+	private static final int QUEUE_SIZE = 4;
+	private static final ThreadFactory threadFactory =
+			new ThreadFactoryBuilder().setDaemon(true).build();
+	private static final ThreadPoolExecutor executor =
+			new ThreadPoolExecutor(CORE_THREADS, MAX_THREADS,
+					60, TimeUnit.SECONDS,
+					new ArrayBlockingQueue<Runnable>(QUEUE_SIZE),
+					threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
 	private final HandlerFactory handlerFactory;
 	private InetAddress inetAddress;
 
@@ -31,8 +41,7 @@ public class ServerBySocket {
 			// disable Nagle since we don't have gathering write
 			clientSocket.setTcpNoDelay(true);
 			Runnable handler = handlerFactory.newHandler(clientSocket, inetAddress.toString());
-			Thread worker = new Thread(handler);
-			worker.start();
+			executor.execute(handler);
 		}
 	}
 

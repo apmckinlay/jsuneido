@@ -144,10 +144,9 @@ public class CommandLineOptions {
 		if (arg_i >= args.length)
 			return;
 		StringBuilder sb = new StringBuilder();
-		for (; arg_i < args.length; ++arg_i) {
+		for (; arg_i < args.length; ++arg_i)
 			sb.append(" ").append(args[arg_i]);
-		}
-		remainder = sb.substring(1);
+		remainder = sb.toString().trim();
 	}
 
 	@Override

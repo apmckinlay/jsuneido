@@ -70,7 +70,7 @@ public class SocketServer extends SuClass {
 
 	}
 
-	private static class Instance extends SuInstance implements Runnable {
+	static class Instance extends SuInstance implements Runnable {
 		final SocketClient socket;
 		final String address;
 
@@ -83,8 +83,10 @@ public class SocketServer extends SuClass {
 		@Override
 		public void run() {
 			try {
-				lookup("New").eval0(this);
-				lookup("Run").eval0(this);
+				super.lookup("New").eval0(this);
+				super.lookup("Run").eval0(this);
+			} catch (SuException e) {
+				e.printStackTrace();
 			} finally {
 				socket.close();
 			}
@@ -94,7 +96,10 @@ public class SocketServer extends SuClass {
 		public SuValue lookup(String method) {
 			if (method == "RemoteUser")
 				return RemoteUser;
-			return SocketClient.clazz.lookup(method);
+			SuValue f = SocketClient.getMethod(method);
+			if (f != null)
+				return f;
+			return super.lookup(method);
 		}
 
 		private final SuValue RemoteUser = new SuMethod0() {

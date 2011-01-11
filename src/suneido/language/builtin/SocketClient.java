@@ -53,10 +53,14 @@ public class SocketClient extends SuValue {
 		return methods.lookup(method);
 	}
 
+	public static SuValue getMethod(String method) {
+		return methods.getMethod(method);
+	}
+
 	public static class Close extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			((SocketClient) self).close();
+			socketClient(self).close();
 			return null;
 		}
 	}
@@ -80,7 +84,7 @@ public class SocketClient extends SuValue {
 			int nr = 0;
 			try {
 				do {
-					int r = ((SocketClient) self).input.read(data);
+					int r = socketClient(self).input.read(data);
 					if (r == -1)
 						break;
 					nr += r;
@@ -101,7 +105,7 @@ public class SocketClient extends SuValue {
 		@SuppressWarnings("deprecation")
 		public Object eval0(Object self) {
 			try {
-				String line = ((SocketClient) self).input.readLine();
+				String line = socketClient(self).input.readLine();
 				if (line == null)
 					throw new SuException("socket client: lost connection or timeout");
 				return line;
@@ -117,7 +121,7 @@ public class SocketClient extends SuValue {
 		public Object eval1(Object self, Object a) {
 			String data = Ops.toStr(a);
 			try {
-				((SocketClient) self).output.write(data.getBytes());
+				socketClient(self).output.write(data.getBytes());
 			} catch (IOException e) {
 				throw new SuException("socketClient.Write failed", e);
 			}
@@ -133,13 +137,20 @@ public class SocketClient extends SuValue {
 		public Object eval1(Object self, Object a) {
 			String data = Ops.toStr(a);
 			try {
-				((SocketClient) self).output.write(data.getBytes());
-				((SocketClient) self).output.write(newline);
+				socketClient(self).output.write(data.getBytes());
+				socketClient(self).output.write(newline);
 			} catch (IOException e) {
 				throw new SuException("socketClient.Writeline failed", e);
 			}
 			return null;
 		}
+	}
+
+	// need because SocketServer shares these methods
+	private static SocketClient socketClient(Object self) {
+		return self instanceof SocketServer.Instance
+			? ((SocketServer.Instance) self).socket
+			: (SocketClient) self;
 	}
 
 	@Override
