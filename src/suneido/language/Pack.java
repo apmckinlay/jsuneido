@@ -84,7 +84,6 @@ public class Pack {
 			packString((String) x, buf);
 		else if (xType == Date.class)
 			packDate((Date) x, buf);
-
 		else if (x instanceof Packable)
 			((Packable) x).pack(buf);
 		else
@@ -139,6 +138,10 @@ public class Pack {
 		return packSizeNum(n.unscaledValue().longValue(), -n.scale());
 	}
 
+	public static int packSize(int n) {
+		return packSizeNum(n, 0);
+	}
+
 	private static int packSizeNum(long n, int e) {
 		if (n == 0)
 			return 1;
@@ -155,6 +158,10 @@ public class Pack {
 		assert n.precision() <= 15;
 		n = n.stripTrailingZeros();
 		packNum(n.unscaledValue().longValue(), -n.scale(), buf);
+	}
+
+	public static void pack(int n, ByteBuffer buf) {
+		packNum(n, 0, buf);
 	}
 
 	private static void packNum(long n, int e, ByteBuffer buf) {

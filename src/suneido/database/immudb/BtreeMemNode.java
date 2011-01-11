@@ -139,4 +139,35 @@ public class BtreeMemNode implements BtreeNode {
 		return BtreeNodeMethods.toString(this);
 	}
 
+	public int persist(int level) {
+		if (level > 0) {
+			for (int i = 0; i < size(); ++i) {
+				int ptr = pointer(i);
+				if (IntRefs.isIntRef(ptr))
+					updatePointer(i, BtreeNodeMethods.persist(ptr, level - 1));
+			}
+		}
+		return persistRecord();
+	}
+
+	private int pointer(int i) {
+		ByteBuffer buf = fieldBuf(i);
+		int offset = fieldOffset(i);
+		int size = Record.size(buf, offset);
+		return (Integer) Record.get(buf, offset, size - 1);
+	}
+
+	private void updatePointer(int i, int ptr) {
+		ByteBuffer buf = fieldBuf(i);
+		int offset = fieldOffset(i);
+		int size = Record.size(buf, offset);
+		RecordBuilder rb = new RecordBuilder();
+		rb.add(buf, offset, size - 1);
+	}
+
+	private int persistRecord() {
+		// TODO persistRecord
+		return 0;
+	}
+
 }

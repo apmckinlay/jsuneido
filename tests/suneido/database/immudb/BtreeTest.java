@@ -19,7 +19,7 @@ public class BtreeTest {
 	@Test
 	public void empty() {
 		Btree btree = new Btree();
-		assertThat(btree.get(Record.of("hello", 1234)), is(0));
+		assertThat(btree.get(record("hello", 1234)), is(0));
 	}
 
 	@Test
@@ -92,7 +92,11 @@ btree.print();
 		String s = "";
 		for (int i = 0; i < n; ++i)
 			s += (char) ('a' + rand.nextInt(26));
-		return Record.of(s, rand.nextInt());
+		return record(s, rand.nextInt());
+	}
+
+	private Record record(String s, int n) {
+		return new RecordBuilder().add(s).add(n).build();
 	}
 
 	@After

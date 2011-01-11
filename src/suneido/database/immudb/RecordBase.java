@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class RecordBase implements Bufferable {
+public class RecordBase {
 	protected static final ByteBuffer emptyRecBuf = new RecordBuilder().asByteBuffer();
 	public final ByteBuffer buf;
 	public final int offset;
@@ -82,36 +82,8 @@ public class RecordBase implements Bufferable {
 		final static int SIZE = 4; // byte, short, or int <= type
 	}
 
-	public String toDebugString() {
-		String s = "";
-		s += "type: " + (char) mode(buf, offset) +
-				" size: " + size() +
-				" length: " + length();
-//		for (int i = 0; i < Math.min(size(), 10); ++i)
-//			System.out.println("offset " + i + ": " + getOffset(i));
-		return s;
-	}
-
-	@Override
-	public int nBufferable() {
-		return 1;
-	}
-
-	@Override
-	public int lengths(int[] lengths, int at) {
-		lengths[at] = fieldOffset(buf, offset, -1);
-		return 1;
-	}
-
 	public int length() {
 		return fieldOffset(buf, offset, -1);
-	}
-
-	@Override
-	public void addTo(ByteBuffer dst) {
-		int n = length();
-		for (int i = 0; i < n; ++i)
-			dst.put(buf.get(offset + i));
 	}
 
 	public void addFieldTo(int fld, ByteBuffer dst) {
@@ -134,6 +106,16 @@ public class RecordBase implements Bufferable {
 		assert len == data.length;
 		dst.put(data);
 		return adr;
+	}
+
+	public String toDebugString() {
+		String s = "";
+		s += "type: " + (char) mode(buf, offset) +
+				" size: " + size() +
+				" length: " + length();
+//		for (int i = 0; i < Math.min(size(), 10); ++i)
+//			System.out.println("offset " + i + ": " + getOffset(i));
+		return s;
 	}
 
 }

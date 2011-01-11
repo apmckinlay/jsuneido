@@ -82,9 +82,7 @@ public class BtreeNodeMethods {
 		if (type == TREE)
 			--splitKeySize;
 		int rightAdr = Tran.refToInt(right);
-		splitKey = Record.of(
-				new RecordSlice(splitKey, 0, splitKeySize),
-				rightAdr);
+		splitKey = new RecordBuilder().add(splitKey).add(rightAdr).build();
 		return new Split(adr, rightAdr, splitKey);
 	}
 
@@ -111,6 +109,16 @@ public class BtreeNodeMethods {
 						level - 1);
 			}
 		}
+	}
+
+	public static int persist(int ptr, int level) {
+		if (! IntRefs.isIntRef(ptr))
+			return ptr; // already in database
+		BtreeMemNode node = (BtreeMemNode) ((level == 0)
+				? Btree.leafNodeAt(ptr) : Btree.treeNodeAt(ptr));
+		int adr = node.persist(level);
+		Tran.setAdr(ptr, adr);
+		return adr;
 	}
 
 }
