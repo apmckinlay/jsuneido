@@ -157,4 +157,8 @@ public class Btree {
 		return treeLevels;
 	}
 
+	public void persist() {
+		BtreeNodeMethods.persist(root, treeLevels);
+	}
+
 }

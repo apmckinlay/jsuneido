@@ -60,4 +60,12 @@ public class Tran {
 		t.get().redirs = redirs;
 	}
 
+	public static void startPersist() {
+		t.get().intrefs.startPersist();
+	}
+
+	public static void setAdr(int ptr, int adr) {
+		t.get().intrefs.setAdr(ptr, adr);
+	}
+
 }

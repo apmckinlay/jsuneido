@@ -27,16 +27,11 @@ public class Record extends RecordBase implements Comparable<Record> {
 		super(buf, offset);
 	}
 
-	public static Record of(Object a) {
-		return new RecordBuilder().add(a).build();
-	}
-
-	public static Record of(Object a, Object b) {
-		return new RecordBuilder().add(a).add(b).build();
-	}
-
 	public Object get(int i) {
-		if (i >= size())
+		return get(buf, offset, i);
+	}
+	public static Object get(ByteBuffer buf, int offset, int i) {
+		if (i >= size(buf, offset))
 			return "";
 		ByteBuffer b = buf.duplicate();
 		int pos = offset + fieldOffset(buf, offset, i);

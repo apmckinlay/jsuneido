@@ -18,8 +18,10 @@ import java.util.List;
 public class IntRefs {
 	private static final int MASK = 0xfff00000;
 	private final List<Object> list = new ArrayList<Object>();
+	private int adrs[] = null;
 
 	public int refToInt(Object ref) {
+		assert adrs == null;
 		int i = list.size();
 		assert (i & MASK) == 0 : "too many IntRefs";
 		list.add(ref);
@@ -42,6 +44,20 @@ public class IntRefs {
 
 	public void update(int index, Object ref) {
 		list.set(index ^ MASK, ref);
+	}
+
+	public void startPersist() {
+		assert adrs == null;
+		adrs = new int[list.size()];
+	}
+
+	/** record the adr that a ref has been persisted at */
+	public void setAdr(int index, int adr) {
+		adrs[index ^ MASK] = adr;
+	}
+
+	public int getAdr(int index) {
+		return adrs[index ^ MASK];
 	}
 
 }

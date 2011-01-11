@@ -76,7 +76,10 @@ public class RecordTest {
 	public static Record record(Object... data) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
-			rb.add(d);
+			if (d instanceof String)
+				rb.add((String) d);
+			else if (d instanceof Integer)
+				rb.add((Integer) d);
 		return rb.build();
 	}
 

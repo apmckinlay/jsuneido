@@ -70,11 +70,6 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 		return buf;
 	}
 
-//	public int persist() {
-//		// TODO persist children
-//		return persistRecord();
-//	}
-
 	@Override
 	public String toString() {
 		return BtreeNodeMethods.toString(this);
