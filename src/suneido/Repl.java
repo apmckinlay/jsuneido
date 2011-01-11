@@ -38,8 +38,11 @@ public class Repl {
 
 	public static void main(String[] args) throws Exception {
 		setup();
+		repl();
+	}
 
-		BufferedReader in = new BufferedReader(
+	public static void repl() throws IOException {
+	        BufferedReader in = new BufferedReader(
 				new InputStreamReader(System.in));
 		while (true) {
 			out.print("> ");
@@ -60,7 +63,7 @@ public class Repl {
 		}
 		out.println("bye");
 		out.flush();
-	}
+        }
 
 	public static void setup() {
 		if (Suneido.cmdlineoptions == null)

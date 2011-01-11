@@ -7,6 +7,7 @@ import java.util.Date;
 
 import suneido.database.server.*;
 import suneido.database.tools.*;
+import suneido.language.Compiler;
 
 /**
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -71,8 +72,8 @@ public class Suneido {
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
-			Repl.main(null);
-			TheDbms.close();
+			Compiler.eval("JInit()");
+			Repl.repl();
 			break;
 		case DUMP:
 			if (cmdlineoptions.actionArg == null)
