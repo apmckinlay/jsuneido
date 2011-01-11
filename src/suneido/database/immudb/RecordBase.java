@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class RecordBase<T> implements Bufferable {
+public class RecordBase implements Bufferable {
 	protected static final ByteBuffer emptyRecBuf = new RecordBuilder().asByteBuffer();
 	public final ByteBuffer buf;
 	public final int offset;
@@ -23,10 +23,10 @@ public class RecordBase<T> implements Bufferable {
 		this.offset = offset;
 	}
 
-	byte type() {
-		return type(buf, offset);
+	byte mode() {
+		return mode(buf, offset);
 	}
-	static byte type(ByteBuffer buf, int offset) {
+	static byte mode(ByteBuffer buf, int offset) {
 		return buf.get(offset + Offset.TYPE);
 	}
 
@@ -48,29 +48,29 @@ public class RecordBase<T> implements Bufferable {
 	}
 
 
-	protected int fieldOffset(int i) {
+	public int fieldOffset(int i) {
 		return fieldOffset(buf, offset, i);
 	}
 	protected static int fieldOffset(ByteBuffer buf, int offset, int i) {
 		// to match cSuneido use little endian (least significant first)
-		switch (type(buf, offset)) {
-		case Type.BYTE:
+		switch (mode(buf, offset)) {
+		case Mode.BYTE:
 			return buf.get(offset + Offset.SIZE + i + 1) & 0xff;
-		case Type.SHORT:
+		case Mode.SHORT:
 			int si = offset + Offset.SIZE + 2 * (i + 1);
 			return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
-		case Type.INT:
+		case Mode.INT:
 			int ii = offset + Offset.SIZE + 4 * (i + 1);
 			return (buf.get(ii) & 0xff) |
 					((buf.get(ii + 1) & 0xff) << 8) |
 			 		((buf.get(ii + 2) & 0xff) << 16) |
 			 		((buf.get(ii + 3) & 0xff) << 24);
 		default:
-			throw new Error("invalid record type: " + type(buf, offset));
+			throw new Error("invalid record type: " + mode(buf, offset));
 		}
 	}
 
-	private static class Type {
+	private static class Mode {
 		final static byte BYTE = 'c';
 		final static byte SHORT = 's';
 		final static byte INT = 'l';
@@ -84,7 +84,7 @@ public class RecordBase<T> implements Bufferable {
 
 	public String toDebugString() {
 		String s = "";
-		s += "type: " + (char) type(buf, offset) +
+		s += "type: " + (char) mode(buf, offset) +
 				" size: " + size() +
 				" length: " + length();
 //		for (int i = 0; i < Math.min(size(), 10); ++i)

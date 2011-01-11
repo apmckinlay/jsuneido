@@ -16,7 +16,7 @@ import suneido.language.Pack;
  * @see RecordBuilder
  */
 @Immutable
-public class Record extends RecordBase<Object> implements Comparable<Record> {
+public class Record extends RecordBase implements Comparable<Record> {
 	public static final Record EMPTY = new Record();
 
 	protected Record() {

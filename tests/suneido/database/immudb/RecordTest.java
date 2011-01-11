@@ -50,7 +50,7 @@ public class RecordTest {
 		for (int i = 0; i < N_SMALL; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.type(), equalTo('c'));
+		assertThat((char) r.mode(), equalTo('c'));
 		for (int i = 0; i < N_SMALL; ++i)
 			assertThat((String) r.get(i), equalTo("hello world"));
 
@@ -59,7 +59,7 @@ public class RecordTest {
 		for (int i = 0; i < N_MEDIUM; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.type(), equalTo('s'));
+		assertThat((char) r.mode(), equalTo('s'));
 		for (int i = 0; i < N_MEDIUM; ++i)
 			assertThat((String) r.get(i), equalTo("hello world"));
 
@@ -68,7 +68,7 @@ public class RecordTest {
 		for (int i = 0; i < N_LARGE; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.type(), equalTo('l'));
+		assertThat((char) r.mode(), equalTo('l'));
 		for (int i = 0; i < N_LARGE; ++i)
 			assertThat("i " + i, (String) r.get(i), equalTo("hello world"));
 	}

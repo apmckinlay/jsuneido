@@ -17,29 +17,30 @@ import suneido.database.immudb.Btree.Split;
  * are stored as buffer and offset (rather than creating a Record wrapper).
  */
 @NotThreadSafe
-public class BtreeMemNode extends BtreeNode {
+public class BtreeMemNode implements BtreeNode {
+	private final Type type;
 	private final ByteBuffer buf;
 	private final int[] data = new int[Btree.MAX_NODE_SIZE];
 	private int size;
 
 	public BtreeMemNode(Type type) {
-		super(type);
+		this.type = type;
 		buf = null;
 		size = 0;
 	}
 
 	public BtreeMemNode(Type type, ByteBuffer buf) {
-		super(type);
+		this.type = type;
 		this.buf = buf;
 		size = 0;
 	}
 
-	public BtreeMemNode(BtreeDbNode dbn) {
-		super(dbn.type);
-		buf = dbn.rec.buf;
-		size = dbn.size();
+	public BtreeMemNode(BtreeDbNode node) {
+		type = node.type();
+		buf = node.buf;
+		size = node.size();
 		for (int i = 0; i < size; ++i)
-			data[i] = dbn.rec.fieldOffset(i);
+			data[i] = node.fieldOffset(i);
 	}
 
 	public static BtreeMemNode emptyLeaf() {
@@ -49,6 +50,16 @@ public class BtreeMemNode extends BtreeNode {
 	@Override
 	public int size() {
 		return size;
+	}
+
+	@Override
+	public Type type() {
+		return type;
+	}
+
+	@Override
+	public ByteBuffer buf() {
+		return buf;
 	}
 
 	@Override
@@ -66,47 +77,25 @@ public class BtreeMemNode extends BtreeNode {
 		return this;
 	}
 
-	public BtreeMemNode add(BtreeDbNode dbn, int from, int to) {
-		for (int i = from; i < to; ++i)
-			data[size++] = dbn.rec.fieldOffset(i);
-		return this;
-	}
-
-	public BtreeMemNode add(BtreeMemNode dbn, int from, int to) {
-		for (int i = from; i < to; ++i)
-			data[size++] = dbn.data[i];
+	public BtreeMemNode add(BtreeNode node, int from, int to) {
+		if (node instanceof BtreeMemNode) {
+			BtreeMemNode mnode = (BtreeMemNode) node;
+			for (int i = from; i < to; ++i)
+				data[size++] = mnode.data[i];
+		} else {
+			for (int i = from; i < to; ++i)
+				data[size++] = node.fieldOffset(i);
+		}
 		return this;
 	}
 
 	@Override
 	public BtreeNode with(Record key) {
-		int at = lowerBound(key.buf, key.offset);
+		int at = BtreeNodeMethods.lowerBound(this, key.buf, key.offset);
 		System.arraycopy(data, at, data, at + 1, size - at);
 		data[at] = Tran.refToInt(key);
 		++size;
 		return this;
-	}
-
-	@Override
-	protected int lowerBound(ByteBuffer kbuf, int koff) {
-		int first = 0;
-		int len = size();
-		while (len > 0) {
-			int half = len >> 1;
-			int middle = first + half;
-			int cmp;
-			if (IntRefs.isIntRef(data[middle])) {
-				Record key = (Record) Tran.intToRef(data[middle]);
-				cmp = Record.compare(key.buf, key.offset, kbuf,  koff);
-			} else
-				cmp = Record.compare(buf, data[middle], kbuf, koff);
-			if (cmp < 0) {
-				first = middle + 1;
-				len -= half + 1;
-			} else
-				len = half;
-		}
-		return first;
 	}
 
 	public static BtreeNode newRoot(Split split) {
@@ -118,39 +107,36 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	public Split split(Record key, int adr) {
-		BtreeNode left;
-		BtreeNode right;
-		Record splitKey;
-		int keyPos = lowerBound(key.buf, key.offset);
-		if (keyPos == size()) {
-			// key is at end of node, just make new node
-			right = new BtreeMemNode(type).add(key);
-			splitKey = key;
-		} else {
-			int mid = size() / 2;
-			splitKey = get(mid);
-			if (keyPos <= mid) {
-				left = new BtreeMemNode(type, buf)
-						.add(this, 0, keyPos).add(key).add(this, keyPos, mid);
-				right = new BtreeMemNode(type, buf)
-						.add(this, mid, size());
-			} else {
-				left = new BtreeMemNode(type, buf)
-						.add(this, 0, mid);
-				right = new BtreeMemNode(type, buf)
-						.add(this, mid, keyPos).add(key).add(this, keyPos, size());
-			}
-			Tran.redir(adr, left);
-		}
-		int splitKeySize = splitKey.size();
-		if (type == Type.TREE)
-			--splitKeySize;
-		int rightAdr = Tran.refToInt(right);
-		splitKey = Record.of(
-				new RecordSlice(splitKey, 0, splitKeySize),
-				rightAdr);
-		return new Split(adr, rightAdr, splitKey);
+	public ByteBuffer fieldBuf(int i) {
+		if (IntRefs.isIntRef(data[i])) {
+			Record r = (Record) Tran.intToRef(data[i]);
+			return r.buf;
+		} else
+			return buf;
+	}
+
+	@Override
+	public int fieldOffset(int i) {
+		if (IntRefs.isIntRef(data[i])) {
+			Record r = (Record) Tran.intToRef(data[i]);
+			return r.offset;
+		} else
+			return data[i];
+	}
+
+	@Override
+	public Record find(Record key) {
+		return BtreeNodeMethods.find(this, key);
+	}
+
+	@Override
+	public Btree.Split split(Record key, int adr) {
+		return BtreeNodeMethods.split(this, key, adr);
+	}
+
+	@Override
+	public String toString() {
+		return BtreeNodeMethods.toString(this);
 	}
 
 }

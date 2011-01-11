@@ -121,14 +121,14 @@ public class Btree {
 	static BtreeNode treeNodeAt(int adr) {
 		adr = Tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeNode) Tran.intToRef(adr)
+			? (BtreeMemNode) Tran.intToRef(adr)
 			: BtreeDbNode.tree(Tran.mmf().buffer(adr));
 	}
 
 	static BtreeNode leafNodeAt(int adr) {
 		adr = Tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeNode) Tran.intToRef(adr)
+			? (BtreeMemNode) Tran.intToRef(adr)
 			: BtreeDbNode.leaf(Tran.mmf().buffer(adr));
 	}
 
@@ -138,7 +138,7 @@ public class Btree {
 
 	public void print(Writer writer) {
 		try {
-			rootNode().print(writer, treeLevels);
+			BtreeNodeMethods.print(writer, rootNode(), treeLevels);
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

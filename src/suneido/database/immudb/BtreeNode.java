@@ -4,71 +4,38 @@
 
 package suneido.database.immudb;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.nio.ByteBuffer;
 
 import suneido.database.immudb.Btree.Split;
 
-import com.google.common.base.Strings;
-
-public abstract class BtreeNode {
+/**
+ * Common interface for {@link BtreeDbNode} and {@link BtreeMemNode}
+ * Provides access to a list of keys in sorted order {@link RecordBase}
+ * Keys are {@link Record}'s.
+ * The final field on leaf keys is a pointer to the corresponding data record.
+ * A tree keys is a leaf key plus a pointer to the child node.
+ * Pointers are {@link MmapFile} int's
+ */
+public interface BtreeNode {
 	public enum Type { LEAF, TREE };
-	public final Type type;
 
-	BtreeNode(Type type) {
-		this.type = type;
-	}
+	public Type type();
 
-	public abstract int size();
+	public int size();
+
+	public ByteBuffer buf();
 
 	/** Inserts key in order */
-	public abstract BtreeNode with(Record key);
+	public BtreeNode with(Record key);
 
-	public abstract Record get(int i);
+	public Record get(int i);
 
-	public abstract Split split(Record key, int adr);
+	public ByteBuffer fieldBuf(int i);
 
-	/**
-	 * @param key The value to look for, without the trailing record address
-	 * @return	The first key greater than or equal to the one specified
-	 * 			or null if there isn't one.
-	 */
-	public Record find(Record key) {
-		int at = lowerBound(key.buf, key.offset);
-		Record slot = get(at);
-		if (type == Type.LEAF)
-			return at < size() ? slot : null;
-		else
-			return slot.startsWith(key) ? slot : get(at - 1);
-	}
+	public int fieldOffset(int i);
 
-	protected abstract int lowerBound(ByteBuffer kbuf, int koff);
+	public Record find(Record key);
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(type);
-		sb.append("[");
-		for (int i = 0; i < size(); ++i)
-			sb.append(get(i));
-		sb.append("]");
-		return sb.toString();
-	}
-
-	void print(Writer w, int level) throws IOException {
-		String indent = Strings.repeat("     ", level);
-		w.append(indent).append(type.toString()).append("\n");
-		for (int i = 0; i < size(); ++i) {
-			Record slot = get(i);
-			w.append(indent).append(slot.toString()).append("\n");
-			if (level > 0) {
-				int adr = (Integer) slot.get(slot.size() - 1);
-				BtreeNode node = (level == 1)
-					? Btree.leafNodeAt(adr) : Btree.treeNodeAt(adr);
-				node.print(w, level - 1);
-			}
-		}
-	}
+	public Split split(Record key, int adr);
 
 }

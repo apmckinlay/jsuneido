@@ -4,37 +4,43 @@
 
 package suneido.database.immudb;
 
+import static suneido.database.immudb.BtreeNode.Type.LEAF;
+import static suneido.database.immudb.BtreeNode.Type.TREE;
+
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.database.immudb.Btree.Split;
-
 /**
- * Provides access to a list of keys in sorted order {@link RecordBase}
- * Keys are nested records.
- * Pointers are {@link MmapFile} int's
+ * An btree node wrapping a ByteBuffer from the database.
+ * "updating" a BtreeDbNode produces a BtreeMemNode
+ * Extends RecordBase to avoid an extra layer of wrapping.
  */
 @Immutable
-public class BtreeDbNode extends BtreeNode {
-	RecordBase<Record> rec;
+public class BtreeDbNode extends RecordBase implements BtreeNode {
+	private final Type type;
 
 	public static BtreeDbNode leaf(ByteBuffer buf) {
-		return new BtreeDbNode(Type.LEAF, buf);
+		return new BtreeDbNode(LEAF, buf);
 	}
 
 	public static BtreeDbNode tree(ByteBuffer buf) {
-		return new BtreeDbNode(Type.TREE, buf);
+		return new BtreeDbNode(TREE, buf);
 	}
 
 	private BtreeDbNode(Type type, ByteBuffer buf) {
-		super(type);
-		rec = new RecordBase<Record>(buf, 0);
+		super(buf, 0);
+		this.type = type;
 	}
 
 	@Override
-	public int size() {
-		return rec.size();
+	public Type type() {
+		return type;
+	}
+
+	@Override
+	public ByteBuffer buf() {
+		return buf;
 	}
 
 	@Override
@@ -46,74 +52,32 @@ public class BtreeDbNode extends BtreeNode {
 	public Record get(int i) {
 		if (i >= size())
 			return Record.EMPTY;
-		return new Record(rec.buf, rec.offset + rec.fieldOffset(i));
+		return new Record(buf, offset + fieldOffset(i));
 	}
 
 	@Override
 	public Record find(Record key) {
-		int at = lowerBound(key.buf, key.offset);
-		Record slot = get(at);
-		if (type == Type.LEAF)
-			return at < size() ? slot : null;
-		else
-			return slot.startsWith(key) ? slot : get(at - 1);
+		return BtreeNodeMethods.find(this, key);
 	}
 
 	@Override
-	protected int lowerBound(ByteBuffer kbuf, int koff) {
-		int first = 0;
-		int len = size();
-		while (len > 0) {
-			int half = len >> 1;
-			int middle = first + half;
-			if (Record.compare(rec.buf, rec.fieldOffset(middle), kbuf, koff) < 0) {
-				first = middle + 1;
-				len -= half + 1;
-			} else
-				len = half;
-		}
-		return first;
+	public Btree.Split split(Record key, int adr) {
+		return BtreeNodeMethods.split(this, key, adr);
 	}
 
 	@Override
-	public Split split(Record key, int adr) {
-		BtreeNode left;
-		BtreeNode right;
-		Record splitKey;
-		int keyPos = lowerBound(key.buf, key.offset);
-		if (keyPos == size()) {
-			// key is at end of node, just make new node
-			right = new BtreeMemNode(type).add(key);
-			splitKey = key;
-		} else {
-			int mid = size() / 2;
-			splitKey = get(mid);
-			if (keyPos <= mid) {
-				left = new BtreeMemNode(type, rec.buf)
-						.add(this, 0, keyPos).add(key).add(this, keyPos, mid);
-				right = new BtreeMemNode(type, rec.buf)
-						.add(this, mid, size());
-			} else {
-				left = new BtreeMemNode(type, rec.buf)
-						.add(this, 0, mid);
-				right = new BtreeMemNode(type, rec.buf)
-						.add(this, mid, keyPos).add(key).add(this, keyPos, size());
-			}
-			Tran.redir(adr, left);
-		}
-		int splitKeySize = splitKey.size();
-		if (type == Type.TREE)
-			--splitKeySize;
-		int rightAdr = Tran.refToInt(right);
-		splitKey = Record.of(
-				new RecordSlice(splitKey, 0, splitKeySize),
-				rightAdr);
-		return new Split(adr, rightAdr, splitKey);
+	public ByteBuffer fieldBuf(int i) {
+		return buf;
 	}
 
 //	public int persist() {
 //		// TODO persist children
 //		return persistRecord();
 //	}
+
+	@Override
+	public String toString() {
+		return BtreeNodeMethods.toString(this);
+	}
 
 }
