@@ -9,6 +9,7 @@ import java.nio.ByteOrder;
 import java.util.List;
 
 import suneido.language.Pack;
+import suneido.util.IntArrayList;
 
 import com.google.common.collect.Lists;
 
