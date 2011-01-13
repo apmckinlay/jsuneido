@@ -39,7 +39,7 @@ public class BtreeTest {
 			assertThat(btree.get(key), equalTo(adr(key)));
 	}
 
-	@Test
+//	@Test
 	public void persist() {
 		List<Record> keys = new ArrayList<Record>();
 		Random rand = new Random(90873);
