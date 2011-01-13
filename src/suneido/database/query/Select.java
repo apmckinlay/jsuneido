@@ -298,9 +298,6 @@ public class Select extends Query1 {
 		if (nil(primary))
 			return IMPOSSIBLE;
 
-//		if (!is_cursor)
-//			cost = choose_filter(cost);
-
 		if (!freeze)
 			return cost;
 
