@@ -327,7 +327,8 @@ public class Union extends Compatible {
 	public void rewind() {
 		rewound = true;
 		source.rewind();
-		source2.select(ki, sel.org, sel.end);
+		if (disjoint == null)
+			source2.select(ki, sel.org, sel.end);
 	}
 
 	@Override
