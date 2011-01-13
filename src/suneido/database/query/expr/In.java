@@ -12,15 +12,13 @@ import suneido.database.query.Row;
 import suneido.language.Ops;
 
 public class In extends Expr {
-	public Expr expr;
-	private Boolean isterm = null;
+	public final Expr expr;
 	private final List<Object> values;
 	public final Record packed;
+	private Boolean isterm = null;
 
 	public In(Expr expr) {
-		this.expr = expr;
-		this.values = new ArrayList<Object>();
-		this.packed = new Record();
+		this(expr, new ArrayList<Object>(), new Record());
 	}
 
 	public In(Expr expr, List<Object> values, Record packed) {
@@ -47,10 +45,10 @@ public class In extends Expr {
 
 	@Override
 	public Expr fold() {
-		expr = expr.fold();
-		if (expr instanceof Constant)
-			return Constant.valueOf(eval2(((Constant) expr).value));
-		return this;
+		Expr new_expr = expr.fold();
+		if (new_expr instanceof Constant)
+			return Constant.valueOf(eval2(((Constant) new_expr).value));
+		return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 
 	@Override
@@ -91,7 +89,7 @@ public class In extends Expr {
 
 	@Override
 	public Expr replace(List<String> from, List<Expr> to) {
-		expr = expr.replace(from, to);
-		return this;
+		Expr new_expr = expr.replace(from, to);
+		return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 }
