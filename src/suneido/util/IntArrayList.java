@@ -26,6 +26,11 @@ public class IntArrayList {
 		return size;
 	}
 
+	public void set(int i, int value) {
+		assert i < size;
+		data[i] = value;
+	}
+
 	public void add(int value) {
 		allow1();
 		data[size++] = value;

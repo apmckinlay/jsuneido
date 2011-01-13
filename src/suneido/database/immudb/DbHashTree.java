@@ -264,8 +264,12 @@ public abstract class DbHashTree {
 					if (IntRefs.isIntRef(values[i]))
 						values[i] = intToRef(values[i]).persist();
 				} else {
-					if (IntRefs.isIntRef(values[i]))
-						System.out.println("ERROR redirect still intref at persist");
+					if (IntRefs.isIntRef(values[i])) {
+						int adr = Tran.getAdr(values[i]);
+						if (adr == 0)
+							throw new Error("redirect still intref at persist");
+						values[i] = adr;
+					}
 				}
 			int adr = Tran.mmf().alloc(byteBufSize());
 			ByteBuffer buf = Tran.mmf().buffer(adr);

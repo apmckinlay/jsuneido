@@ -55,13 +55,13 @@ public class RecordBase {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode(buf, offset)) {
 		case Mode.BYTE:
-			return buf.get(offset + Offset.SIZE + i + 1) & 0xff;
+			return offset + buf.get(offset + Offset.SIZE + i + 1) & 0xff;
 		case Mode.SHORT:
 			int si = offset + Offset.SIZE + 2 * (i + 1);
-			return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
+			return offset + (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
 		case Mode.INT:
 			int ii = offset + Offset.SIZE + 4 * (i + 1);
-			return (buf.get(ii) & 0xff) |
+			return offset + (buf.get(ii) & 0xff) |
 					((buf.get(ii + 1) & 0xff) << 8) |
 			 		((buf.get(ii + 2) & 0xff) << 16) |
 			 		((buf.get(ii + 3) & 0xff) << 24);
@@ -83,12 +83,15 @@ public class RecordBase {
 	}
 
 	public int length() {
-		return fieldOffset(buf, offset, -1);
+		return length(buf, offset);
+	}
+	public static int length(ByteBuffer buf, int offset) {
+		return fieldOffset(buf, offset, -1) - offset;
 	}
 
 	public void addFieldTo(int fld, ByteBuffer dst) {
 		// offset + getOffset(i), fieldLength(i)
-		int from = offset + fieldOffset(buf, offset, fld);
+		int from = fieldOffset(buf, offset, fld);
 		int lim = from + fieldLength(buf, offset, fld);
 		for (int i = from; i < lim; ++i)
 			dst.put(buf.get(i));

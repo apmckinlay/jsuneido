@@ -36,8 +36,8 @@ public class Tran {
 		return t.get().intrefs.refToInt(ref);
 	}
 
-	public static Object intToRef(int adr) {
-		return t.get().intrefs.intToRef(adr);
+	public static Object intToRef(int intref) {
+		return t.get().intrefs.intToRef(intref);
 	}
 
 	public static int redir(int from) {
@@ -64,8 +64,13 @@ public class Tran {
 		t.get().intrefs.startPersist();
 	}
 
-	public static void setAdr(int ptr, int adr) {
-		t.get().intrefs.setAdr(ptr, adr);
+	public static void setAdr(int intref, int adr) {
+System.out.println("setAdr " + Integer.toHexString(intref) + " to " + Integer.toHexString(adr));
+		t.get().intrefs.setAdr(intref, adr);
+	}
+
+	public static int getAdr(int intref) {
+		return t.get().intrefs.getAdr(intref);
 	}
 
 }
