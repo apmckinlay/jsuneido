@@ -47,10 +47,21 @@ public class RecordBuilder {
 		return this;
 	}
 
+	public RecordBuilder addNested(ByteBuffer buf, int offset) {
+System.out.println("addNested " + new Record(buf, offset));
+		add1(buf, offset, Record.length(buf, offset));
+		return this;
+	}
+
 	private void add1(Object buf, int off, int len) {
 		data.add(buf);
 		offs.add(off);
 		lens.add(len);
+	}
+
+	public int length() {
+		info();
+		return length;
 	}
 
 	public Record build() {
@@ -66,7 +77,7 @@ public class RecordBuilder {
 
 	// format must match cSuneido
 	// offsets must be stored little endian (least significant first)
-	private void toByteBuffer(ByteBuffer buf) {
+	public void toByteBuffer(ByteBuffer buf) {
 		// to match cSuneido use little endian (least significant first)
 		buf.order(ByteOrder.LITTLE_ENDIAN);
 		buf.putShort((short) type);
@@ -139,13 +150,6 @@ public class RecordBuilder {
 			for (int i = off; i < off + len; ++i)
 				dst.put(buf.get(i));
 		}
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-
-		return sb.toString();
 	}
 
 }

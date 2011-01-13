@@ -138,12 +138,14 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	public int persist(int level) {
+System.out.println("BEFORE " + this);
 		if (level > 0) { // tree
 			for (int i = 0; i < size(); ++i) {
-				int ptr = pointer(i);
+				int ptr = Tran.redir(pointer(i));
 				if (IntRefs.isIntRef(ptr))
 					updatePointer(i, BtreeNodeMethods.persist(ptr, level - 1));
 			}
+System.out.println("UPDATED " + this);
 		}
 		return persistRecord();
 	}
@@ -155,16 +157,30 @@ public class BtreeMemNode implements BtreeNode {
 		return (Integer) Record.get(buf, offset, size - 1);
 	}
 
-	private void updatePointer(int i, int ptr) {
+	void updatePointer(int i, int ptr) {
+System.out.println("updatePointer " + i + " to " + Integer.toHexString(ptr));
 		ByteBuffer buf = fieldBuf(i);
 		int offset = fieldOffset(i);
+System.out.println("   " + new Record(buf, offset));
 		int size = Record.size(buf, offset);
 		Record r = new RecordBuilder().add(buf, offset, size - 1).add(ptr).build();
+System.out.println("=> " + r);
+		data.set(i, Tran.refToInt(r));
 	}
 
 	private int persistRecord() {
-		// TODO persistRecord
-		return 0;
+		RecordBuilder rb = builder();
+		int adr = Tran.mmf().alloc(rb.length());
+		rb.toByteBuffer(Tran.mmf().buffer(adr));
+System.out.println("persistRecord => " + new Record(Tran.mmf().buffer(adr), 0));
+		return adr;
+	}
+
+	RecordBuilder builder() {
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < size(); ++i)
+			rb.addNested(fieldBuf(i), fieldOffset(i));
+		return rb;
 	}
 
 }

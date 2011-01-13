@@ -39,8 +39,11 @@ public class BtreeTest {
 			assertThat(btree.get(key), equalTo(adr(key)));
 	}
 
-/*	@Test
+	@Test
 	public void persist() {
+		List<Record> keys = new ArrayList<Record>();
+		Random rand = new Random(90873);
+
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		Btree btree = new Btree();
 		btree.persist();
@@ -51,24 +54,18 @@ public class BtreeTest {
 
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		btree = new Btree(root, levels);
-		List<Record> keys = new ArrayList<Record>();
-		int NKEYS = 30;
-		Random rand = new Random(90873);
-		for (int i = 0; i < NKEYS; ++i)
-			keys.add(randomKey(rand));
-		for (Record key : keys)
+		for (int i = 0; i < 21; ++i) {
+			Record key = randomKey(rand);
 			btree.add(key);
-System.out.println("BTREE");
+			keys.add(key);
+		}
+System.out.println("================ before first persist");
 btree.print();
-System.out.println("REDIRS");
-Tran.redirs().print();
-		int redirs = Tran.redirs().persist(); // may persist btree
 		btree.persist();
-System.out.println("REDIRS after persist");
-Tran.redirs().print();
-
+		int redirs = Tran.redirs().persist();
+System.out.println("================ after first persist");
+btree.print();
 		root = btree.root();
-System.out.println("root " + root);
 		levels = btree.treeLevels();
 		Tran.mmf().close();
 		Tran.remove();
@@ -76,13 +73,40 @@ System.out.println("root " + root);
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		Tran.setRedirs(new Redirects(redirs));
 		btree = new Btree(root, levels);
+System.out.println("================ before add");
+btree.print();
+		for (int i = 0; i < 20; ++i) {
+			Record key = randomKey(rand);
+			btree.add(key);
+			keys.add(key);
+		}
+System.out.println("================ redirs");
+Tran.redirs().print();
+System.out.println("================ before persist");
+btree.print();
+		btree.persist();
+		redirs = Tran.redirs().persist();
+System.out.println("================ redirs after persist");
+Tran.redirs().print();
+System.out.println("================ after persist");
+btree.print();
+		root = btree.root();
+		levels = btree.treeLevels();
+//		assertThat(levels, is(1));
+		Tran.mmf().close();
+		Tran.remove();
+
+		Tran.mmf(new MmapFile("tmp1", "rw"));
+		Tran.setRedirs(new Redirects(redirs));
+		btree = new Btree(root, levels);
+System.out.println("================");
 btree.print();
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat(btree.get(key), equalTo(adr(key)));
 		Tran.mmf().close();
 	}
-*/
+
 	private int adr(Record key) {
 		return (Integer) key.get(1);
 	}

@@ -4,7 +4,7 @@
 
 package suneido.database.immudb;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -50,27 +50,34 @@ public class RecordTest {
 		for (int i = 0; i < N_SMALL; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.mode(), equalTo('c'));
+		assertThat((char) r.mode(), is('c'));
 		for (int i = 0; i < N_SMALL; ++i)
-			assertThat((String) r.get(i), equalTo("hello world"));
+			assertThat((String) r.get(i), is("hello world"));
 
 		rb = new RecordBuilder();
 		final int N_MEDIUM = 4000;
 		for (int i = 0; i < N_MEDIUM; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.mode(), equalTo('s'));
+		assertThat((char) r.mode(), is('s'));
 		for (int i = 0; i < N_MEDIUM; ++i)
-			assertThat((String) r.get(i), equalTo("hello world"));
+			assertThat((String) r.get(i), is("hello world"));
 
 		final int N_LARGE = 5000;
 		rb = new RecordBuilder();
 		for (int i = 0; i < N_LARGE; ++i)
 			rb.add("hello world");
 		r = rb.build();
-		assertThat((char) r.mode(), equalTo('l'));
+		assertThat((char) r.mode(), is('l'));
 		for (int i = 0; i < N_LARGE; ++i)
-			assertThat("i " + i, (String) r.get(i), equalTo("hello world"));
+			assertThat("i " + i, (String) r.get(i), is("hello world"));
+	}
+
+	@Test
+	public void builder() {
+		Record r1 = new RecordBuilder().add("one").add(123).build();
+		Record r2 = new RecordBuilder().add(r1).build();
+		assertThat(r2, is(r1));
 	}
 
 	public static Record record(Object... data) {

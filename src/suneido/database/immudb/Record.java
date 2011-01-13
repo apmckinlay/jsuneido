@@ -31,12 +31,22 @@ public class Record extends RecordBase implements Comparable<Record> {
 		return get(buf, offset, i);
 	}
 	public static Object get(ByteBuffer buf, int offset, int i) {
-		if (i >= size(buf, offset))
+		if (i >= size(buf, offset) || fieldLength(buf, offset, i) == 0)
 			return "";
+		int pos = fieldOffset(buf, offset, i);
+		byte x = buf.get(pos);
+System.out.println("x " + x);
+		if (x == 'c' || x == 's' || x == 'l')
+			return new Record(buf, pos);
 		ByteBuffer b = buf.duplicate();
-		int pos = offset + fieldOffset(buf, offset, i);
 		b.position(pos);
 		b.limit(pos + fieldLength(buf, offset, i));
+for (int j = pos; j < b.limit(); ++j) {
+byte c = b.get(j);
+if (' ' < c && c <= '~') System.out.print((char) c + " ");
+System.out.print(c + ", ");
+}
+System.out.println();
 		return Pack.unpack(b);
 		// TODO change unpack to take buf,i,n to eliminate duplicate
 	}
@@ -63,8 +73,8 @@ public class Record extends RecordBase implements Comparable<Record> {
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
 			int cmp = compare1(
-					buf, offset + fieldOffset(buf, offset, i), fieldLength(buf, offset, i),
-					buf2, offset2 + fieldOffset(buf2, offset2, i), fieldLength(buf2, offset2, i));
+					buf, fieldOffset(buf, offset, i), fieldLength(buf, offset, i),
+					buf2, fieldOffset(buf2, offset2, i), fieldLength(buf2, offset2, i));
 			if (cmp != 0)
 				return cmp;
 		}
@@ -97,6 +107,14 @@ public class Record extends RecordBase implements Comparable<Record> {
 
 	@Override
 	public String toString() {
+System.out.println("mode " + (char) mode() + " nfields " + size() + " length " + length());
+for (int i = 0; i < size(); ++i) {
+System.out.print("    offset " + fieldOffset(i) + " length " + fieldLength(i));
+if (fieldLength(i) > 0)
+System.out.print(" first byte " + buf.get(fieldOffset(i)));
+System.out.println();
+}
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("<");
 		for (int i = 0; i < size(); ++i) {

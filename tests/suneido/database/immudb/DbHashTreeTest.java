@@ -27,6 +27,10 @@ public class DbHashTreeTest {
 			tree.with(i, i * 7);
 		for (int i = 32; i < 64; ++i)
 			assertEquals(i * 7, tree.get(i));
+
+		// update
+		tree.with(50, 555);
+		assertEquals(555, tree.get(50));
 	}
 
 	@Test

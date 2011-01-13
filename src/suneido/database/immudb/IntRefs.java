@@ -21,7 +21,6 @@ public class IntRefs {
 	private int adrs[] = null;
 
 	public int refToInt(Object ref) {
-		assert adrs == null;
 		int i = list.size();
 		assert (i & MASK) == 0 : "too many IntRefs";
 		list.add(ref);
