@@ -35,18 +35,18 @@ public class Record extends RecordBase implements Comparable<Record> {
 			return "";
 		int pos = fieldOffset(buf, offset, i);
 		byte x = buf.get(pos);
-System.out.println("x " + x);
+//System.out.println("x " + x);
 		if (x == 'c' || x == 's' || x == 'l')
 			return new Record(buf, pos);
 		ByteBuffer b = buf.duplicate();
 		b.position(pos);
 		b.limit(pos + fieldLength(buf, offset, i));
-for (int j = pos; j < b.limit(); ++j) {
-byte c = b.get(j);
-if (' ' < c && c <= '~') System.out.print((char) c + " ");
-System.out.print(c + ", ");
-}
-System.out.println();
+//for (int j = pos; j < b.limit(); ++j) {
+//byte c = b.get(j);
+//if (' ' < c && c <= '~') System.out.print((char) c + " ");
+//System.out.print(c + ", ");
+//}
+//System.out.println();
 		return Pack.unpack(b);
 		// TODO change unpack to take buf,i,n to eliminate duplicate
 	}
@@ -114,7 +114,6 @@ if (fieldLength(i) > 0)
 System.out.print(" first byte " + buf.get(fieldOffset(i)));
 System.out.println();
 }
-
 		StringBuilder sb = new StringBuilder();
 		sb.append("<");
 		for (int i = 0; i < size(); ++i) {
