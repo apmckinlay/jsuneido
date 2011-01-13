@@ -65,7 +65,7 @@ public class Tran {
 	}
 
 	public static void setAdr(int intref, int adr) {
-System.out.println("setAdr " + Integer.toHexString(intref) + " to " + Integer.toHexString(adr));
+//System.out.println("setAdr " + Integer.toHexString(intref) + " to " + Integer.toHexString(adr));
 		t.get().intrefs.setAdr(intref, adr);
 	}
 

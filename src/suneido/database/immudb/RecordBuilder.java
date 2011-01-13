@@ -48,7 +48,7 @@ public class RecordBuilder {
 	}
 
 	public RecordBuilder addNested(ByteBuffer buf, int offset) {
-System.out.println("addNested " + new Record(buf, offset));
+//System.out.println("addNested " + new Record(buf, offset));
 		add1(buf, offset, Record.length(buf, offset));
 		return this;
 	}
