@@ -48,7 +48,6 @@ public class RecordBuilder {
 	}
 
 	public RecordBuilder addNested(ByteBuffer buf, int offset) {
-//System.out.println("addNested " + new Record(buf, offset));
 		add1(buf, offset, Record.length(buf, offset));
 		return this;
 	}
@@ -85,6 +84,7 @@ public class RecordBuilder {
 		assert nfields < Short.MAX_VALUE;
 		buf.putShort((short) nfields);
 		int offset = length;
+		assert length > 0;
 		switch (type) {
 		case 'c':
 			buf.put((byte) offset);
