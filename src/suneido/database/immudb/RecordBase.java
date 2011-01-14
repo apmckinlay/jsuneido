@@ -21,6 +21,10 @@ public class RecordBase {
 	public RecordBase(ByteBuffer buf, int offset) {
 		this.buf = buf;
 		this.offset = offset;
+		assert offset >= 0;
+		assert mode() == 'c' || mode() == 's' || mode() == 'l';
+		assert size() >= 0;
+		assert length() > 0 : length();
 	}
 
 	byte mode() {
@@ -55,16 +59,16 @@ public class RecordBase {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode(buf, offset)) {
 		case Mode.BYTE:
-			return offset + buf.get(offset + Offset.SIZE + i + 1) & 0xff;
+			return offset + (buf.get(offset + Offset.SIZE + i + 1) & 0xff);
 		case Mode.SHORT:
 			int si = offset + Offset.SIZE + 2 * (i + 1);
-			return offset + (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
+			return offset + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
 		case Mode.INT:
 			int ii = offset + Offset.SIZE + 4 * (i + 1);
-			return offset + (buf.get(ii) & 0xff) |
+			return offset + ((buf.get(ii) & 0xff) |
 					((buf.get(ii + 1) & 0xff) << 8) |
 			 		((buf.get(ii + 2) & 0xff) << 16) |
-			 		((buf.get(ii + 3) & 0xff) << 24);
+			 		((buf.get(ii + 3) & 0xff) << 24));
 		default:
 			throw new Error("invalid record type: " + mode(buf, offset));
 		}

@@ -138,14 +138,12 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	public int persist(int level) {
-System.out.println("BEFORE " + this);
 		if (level > 0) { // tree
 			for (int i = 0; i < size(); ++i) {
 				int ptr = Tran.redir(pointer(i));
 				if (IntRefs.isIntRef(ptr))
 					updatePointer(i, BtreeNodeMethods.persist(ptr, level - 1));
 			}
-System.out.println("UPDATED " + this);
 		}
 		return persistRecord();
 	}
@@ -158,21 +156,18 @@ System.out.println("UPDATED " + this);
 	}
 
 	void updatePointer(int i, int ptr) {
-System.out.println("updatePointer " + i + " to " + Integer.toHexString(ptr));
 		ByteBuffer buf = fieldBuf(i);
 		int offset = fieldOffset(i);
-System.out.println("   " + new Record(buf, offset));
 		int size = Record.size(buf, offset);
 		Record r = new RecordBuilder().add(buf, offset, size - 1).add(ptr).build();
-System.out.println("=> " + r);
 		data.set(i, Tran.refToInt(r));
 	}
 
 	private int persistRecord() {
 		RecordBuilder rb = builder();
 		int adr = Tran.mmf().alloc(rb.length());
-		rb.toByteBuffer(Tran.mmf().buffer(adr));
-System.out.println("persistRecord => " + new Record(Tran.mmf().buffer(adr), 0));
+		ByteBuffer buf = Tran.mmf().buffer(adr);
+		rb.toByteBuffer(buf);
 		return adr;
 	}
 

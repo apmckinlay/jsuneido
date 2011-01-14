@@ -47,7 +47,7 @@ public class BtreeMemNodeTest {
 		assertNull(node.find(key9));
 	}
 
-//	@Test
+	@Test
 	public void persist() {
 		Record key1 = record("one", 123);
 		Record key2 = record("two", 456);
