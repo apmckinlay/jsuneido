@@ -11,6 +11,8 @@ import java.util.concurrent.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.Suneido;
+
 /**
  * Socket server framework using NIO Selector and non-blocking channels.
  * Uses a supplied HandlerFactory to create a new
@@ -65,16 +67,20 @@ public class ServerBySelect {
 	private void handleSelected() throws IOException {
 		Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
 		while (iter.hasNext()) {
-			SelectionKey key = iter.next();
-			iter.remove();
-			if (!key.isValid())
-				continue;
-			if (key.isAcceptable())
-				accept(key);
-			else if (key.isReadable())
-				read(key);
-			else if (key.isWritable())
-				write(key);
+			try {
+				SelectionKey key = iter.next();
+				iter.remove();
+				if (!key.isValid())
+					continue;
+				if (key.isAcceptable())
+					accept(key);
+				else if (key.isReadable())
+					read(key);
+				else if (key.isWritable())
+					write(key);
+			} catch (Throwable e) {
+				Suneido.errlog("error in server loop", e);
+			}
 		}
 	}
 
@@ -82,8 +88,9 @@ public class ServerBySelect {
 		Iterator<SelectionKey> iter = needWrite.iterator();
 		while (iter.hasNext()) {
 			SelectionKey key = iter.next();
-			key.interestOps(SelectionKey.OP_WRITE);
 			iter.remove();
+			if (key.isValid())
+				key.interestOps(SelectionKey.OP_WRITE);
 		}
 	}
 

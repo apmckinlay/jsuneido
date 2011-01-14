@@ -1,7 +1,6 @@
 package suneido;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -33,17 +32,19 @@ public class Suneido {
 	}
 
 	public static void fatal(String s, Throwable e) {
-		errlog("FATAL: " + s + ": " + e);
-		e.printStackTrace();
+		errlog("FATAL: " + s + ": " + e, e);
 		System.exit(-1);
 	}
 
 	public static void uncaught(String s, Throwable e) {
-		errlog("UNCAUGHT: " + s + ": " + e);
-		e.printStackTrace();
+		errlog("UNCAUGHT: " + s + ": " + e, e);
 	}
 
 	public synchronized static void errlog(String s) {
+		errlog(s, null);
+	}
+
+	public synchronized static void errlog(String s, Throwable err) {
 		System.out.println(s);
 		try {
 			FileWriter fw = new FileWriter("error.log", true);
@@ -51,6 +52,8 @@ public class Suneido {
 			fw.append(" ");
 			fw.append(s);
 			fw.append("\n");
+			if (err != null)
+				err.printStackTrace(new PrintWriter(fw));
 			fw.close();
 		} catch (IOException e) {
 			System.out.println("can't write to error.log " + e);
