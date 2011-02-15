@@ -32,16 +32,23 @@ public class ServerBySelect {
 	private Selector selector;
 	private static final int INITIAL_BUFSIZE = 16 * 1024;
 	private static final int MAX_BUFSIZE = 64 * 1024;
-	private static final int IDLE_TIMEOUT = 4 * 60 * 60 * 1000; // 4 hours
+	private int IDLE_TIMEOUT = 0;
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	private final Set<SelectionKey> needWrite
 			= new ConcurrentSkipListSet<SelectionKey>(new IdentityComparator());
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
+		this(handlerFactory, 0);
+	}
+
+	public ServerBySelect(HandlerFactory handlerFactory, int idleTimeoutSec) {
 		this.handlerFactory = handlerFactory;
-		scheduler.scheduleAtFixedRate(new CloseIdleConnections(),
-				1, 1, TimeUnit.MINUTES);
+		if (idleTimeoutSec != 0) {
+			this.IDLE_TIMEOUT = idleTimeoutSec * 1000; // convert to ms
+			scheduler.scheduleAtFixedRate(new CloseIdleConnections(),
+					1, 1, TimeUnit.MINUTES);
+		}
 	}
 
 	public void run(int port) throws IOException {

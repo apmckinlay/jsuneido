@@ -71,7 +71,7 @@ public class Suneido {
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
-			DbmsServer.run(cmdlineoptions.serverPort);
+			DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);

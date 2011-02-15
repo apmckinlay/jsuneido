@@ -1,6 +1,8 @@
 package suneido;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -78,6 +80,14 @@ public class CommandLineOptionsTest {
 				CommandLineOptions.parse("-impersonate", "1234").toString());
 		assertEquals("SERVER impersonate='1234'",
 				CommandLineOptions.parse("-i", "1234").toString());
+	}
+
+	@Test
+	public void timeout() {
+		assertThat(CommandLineOptions.parse("-timeout", "1234").toString(),
+				is("SERVER timeout=1234"));
+		assertThat(CommandLineOptions.parse("-to", "1234").toString(),
+				is("SERVER timeout=1234"));
 	}
 
 }

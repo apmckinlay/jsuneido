@@ -14,6 +14,8 @@ public class CommandLineOptions {
 	public int serverPort = -1;
 	public String remainder = "";
 	public String impersonate = WhenBuilt.when();
+	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
+	public int timeoutMin = DEFAULT_TIMEOUT;
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -42,10 +44,7 @@ public class CommandLineOptions {
 				else
 					actionArg = "127.0.0.1";
 			} else if (arg.equals("-port") || arg.equals("-p")) {
-				try {
-					serverPort = Integer.parseInt(args[++arg_i]);
-				} catch (NumberFormatException e) {
-				}
+				serverPort = getIntArg();
 				if (serverPort <= 0 | 65535 < serverPort) {
 					setAction(Action.ERROR);
 					actionArg = "invalid port: " + args[arg_i - 1];
@@ -83,7 +82,9 @@ public class CommandLineOptions {
 				impersonate = getArg();
 				if (impersonate == null)
 					error("impersonate requires value");
-			} else
+			} else if (arg.equals("-timeout") || arg.equals("-to"))
+				timeoutMin = getIntArg();
+			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
 				return this;
@@ -92,6 +93,17 @@ public class CommandLineOptions {
 		validate();
 		remainder();
 		return this;
+	}
+
+	private int getIntArg() {
+		try {
+			String arg = getArg();
+			if (arg == null)
+				return -1;
+			return Integer.parseInt(arg);
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 
 	private void setActionWithArg(Action action) {
@@ -163,6 +175,8 @@ public class CommandLineOptions {
 		}
 		if (impersonate != null && impersonate != WhenBuilt.when())
 			sb.append(" impersonate='").append(impersonate).append("'");
+		if (timeoutMin != DEFAULT_TIMEOUT)
+			sb.append(" timeout=" + timeoutMin);
 		return sb.toString();
 	}
 
