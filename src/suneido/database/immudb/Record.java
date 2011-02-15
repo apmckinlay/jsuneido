@@ -92,8 +92,8 @@ public class Record extends RecordBase implements Comparable<Record> {
 			return false;
 		for (int i = 0; i < n; ++i)
 			if (0 != compare1(
-					buf, offset + fieldOffset(i), fieldLength(i),
-					rec.buf, rec.offset + rec.fieldOffset(i), rec.fieldLength(i)))
+					buf, fieldOffset(i), fieldLength(i),
+					rec.buf, rec.fieldOffset(i), rec.fieldLength(i)))
 				return false;
 		return true;
 	}
