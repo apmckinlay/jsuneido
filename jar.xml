@@ -12,7 +12,7 @@
 			<zipfileset excludes="META-INF/*.SF LICENSE.txt META-INF/eclipse.inf" 
 				src="lib/asm-all-3.3.jar"/>
 			<zipfileset excludes="META-INF/*.SF LICENSE.txt META-INF/eclipse.inf" 
-				src="lib/guava-r07.jar"/>
+				src="lib/guava-r08.jar"/>
 			<zipfileset excludes="META-INF/*.SF LICENSE.txt META-INF/eclipse.inf" 
 				src="lib/WhenBuilt.jar"/>
 			<zipfileset excludes="META-INF/*.SF LICENSE.txt META-INF/eclipse.inf" 
