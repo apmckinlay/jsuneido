@@ -78,7 +78,7 @@ public class BtreeTest {
 		redirs = Tran.redirs().persist();
 		root = btree.root();
 		levels = btree.treeLevels();
-//		assertThat(levels, is(1));
+		assertThat(levels, is(1));
 		Tran.mmf().close();
 		Tran.remove();
 
