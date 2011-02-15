@@ -123,10 +123,12 @@ public abstract class DbHashTree {
 	private static class DbNode extends Node {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
+		private final int adr;
 		private final ByteBuffer buf;
 
-		DbNode(int at) {
-			buf = Tran.mmf().buffer(at);
+		DbNode(int adr) {
+			this.adr = adr;
+			buf = Tran.mmf().buffer(adr);
 		}
 
 		@Override
@@ -156,7 +158,7 @@ public abstract class DbHashTree {
 
 		@Override
 		public int persist() {
-			throw new UnsupportedOperationException();
+			return adr;
 		}
 
 		@Override

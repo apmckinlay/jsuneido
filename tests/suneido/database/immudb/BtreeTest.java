@@ -54,31 +54,29 @@ public class BtreeTest {
 
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		btree = new Btree(root, levels);
-		for (int i = 0; i < 21; ++i) {
-			Record key = randomKey(rand);
-			btree.add(key);
-			keys.add(key);
-		}
-		btree.persist();
-		int redirs = Tran.redirs().persist();
+		int redirs = addAndPersist(10, rand, keys, btree);
 		root = btree.root();
 		levels = btree.treeLevels();
+		assertThat("levels", btree.treeLevels(), is(0));
+		Tran.mmf().close();
+		Tran.remove();
+
+		Tran.mmf(new MmapFile("tmp1", "rw"));
+		btree = new Btree(root, levels);
+		redirs = addAndPersist(100, rand, keys, btree);
+		root = btree.root();
+		levels = btree.treeLevels();
+		assertThat("levels", btree.treeLevels(), is(1));
 		Tran.mmf().close();
 		Tran.remove();
 
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		Tran.setRedirs(new Redirects(redirs));
 		btree = new Btree(root, levels);
-		for (int i = 0; i < 20; ++i) {
-			Record key = randomKey(rand);
-			btree.add(key);
-			keys.add(key);
-		}
-		btree.persist();
-		redirs = Tran.redirs().persist();
+		redirs = addAndPersist(200, rand, keys, btree);
 		root = btree.root();
 		levels = btree.treeLevels();
-		assertThat(levels, is(1));
+		assertThat("levels", btree.treeLevels(), is(2));
 		Tran.mmf().close();
 		Tran.remove();
 
@@ -89,6 +87,16 @@ public class BtreeTest {
 		for (Record key : keys)
 			assertThat("key " + key, btree.get(key), equalTo(adr(key)));
 		Tran.mmf().close();
+	}
+
+	private int addAndPersist(int n, Random rand, List<Record> keys, Btree btree) {
+		for (int i = 0; i < n; ++i) {
+			Record key = randomKey(rand);
+			btree.add(key);
+			keys.add(key);
+		}
+		btree.persist();
+		return Tran.redirs().persist();
 	}
 
 	private int adr(Record key) {
