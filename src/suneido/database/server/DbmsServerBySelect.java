@@ -24,14 +24,14 @@ public class DbmsServerBySelect {
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
 
-	public static void run(int port) {
+	public static void run(int port, int idleTimeoutMin) {
 		TheDb.open();
 		try {
 			Compiler.eval("JInit()");
 		} catch (Throwable e) {
 			Suneido.fatal("error during init", e);
 		}
-		ServerBySelect server = new ServerBySelect(new HandlerFactory());
+		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin * 60);
 		inetAddress = server.getInetAddress();
 		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
@@ -221,6 +221,6 @@ e.printStackTrace();
 		Compiler.eval("Use('polib')");
 		Compiler.eval("Use('configlib')");
 		Compiler.eval("Use('demobookoptions')");
-		run(3147);
+		run(3147, 0);
 	}
 }
