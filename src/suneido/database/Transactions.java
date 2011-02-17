@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -8,15 +12,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.language.builtin.SuTransaction;
 import suneido.util.ByteBuf;
+import suneido.util.Print;
 
 /**
- * Manages transactions. Threadsafe.
- * Uses {@link Locks}
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
+ * Manages transactions. Uses {@link Locks}
  */
 // NOTE: don't call any synchronized Transaction methods while synchronized
 // because this can lead to deadlock.
@@ -117,7 +118,7 @@ public class Transactions {
 		// abort outside synchronized to avoid deadlock
 		if (t != null) {
 			t.abortIfNotComplete("too many concurrent update transactions");
-			System.out.println("aborted " + t + " - finals too large");
+			Print.timestamped("aborted " + t + " - finals too large");
 		}
 	}
 	private void abortStaleTrans() {
@@ -136,7 +137,7 @@ public class Transactions {
 		// abort outside synchronized to avoid deadlock
 		if (t != null) {
 			t.abortIfNotComplete("inactive too long");
-			System.out.println("aborted " + t + " - inactive too long");
+			Print.timestamped("aborted " + t + " - inactive too long");
 		}
 	}
 
