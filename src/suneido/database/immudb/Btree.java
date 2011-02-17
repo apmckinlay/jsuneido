@@ -158,7 +158,6 @@ public class Btree {
 	}
 
 	public void persist() {
-		Tran.startPersist();
 		root = BtreeNodeMethods.persist(Tran.redir(root), treeLevels);
 	}
 
