@@ -31,7 +31,7 @@ public class DbmsServerBySelect {
 		} catch (Throwable e) {
 			Suneido.fatal("error during init", e);
 		}
-		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin * 60);
+		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
 		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {

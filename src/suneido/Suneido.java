@@ -67,7 +67,8 @@ public class Suneido {
 			break;
 		case SERVER:
 			System.out.println(
-					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+					new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +
+					" starting server");
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);

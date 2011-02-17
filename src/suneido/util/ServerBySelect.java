@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -22,8 +23,6 @@ import suneido.Suneido;
  * received. The handler is given an OutputQueue to send its output to. Output
  * is gather written asynchronously. OutputQueue's are synchronized. It is up
  * to handlers to create worker threads if desired.
- *
- * @author Andrew McKinlay
  */
 @NotThreadSafe
 public class ServerBySelect {
@@ -32,23 +31,23 @@ public class ServerBySelect {
 	private Selector selector;
 	private static final int INITIAL_BUFSIZE = 16 * 1024;
 	private static final int MAX_BUFSIZE = 64 * 1024;
-	private int IDLE_TIMEOUT = 0;
+	private final int idleTimeoutMs;
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
+	private static final int ONE_MINUTE_IN_MS = 60 * 1000;
+	private static final int SELECT_TIMEOUT_MS = ONE_MINUTE_IN_MS;
+	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
 	private final Set<SelectionKey> needWrite
 			= new ConcurrentSkipListSet<SelectionKey>(new IdentityComparator());
+	private long lastIdleCheck = 0;
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
 		this(handlerFactory, 0);
 	}
 
-	public ServerBySelect(HandlerFactory handlerFactory, int idleTimeoutSec) {
+	public ServerBySelect(HandlerFactory handlerFactory, int idleTimeoutMin) {
 		this.handlerFactory = handlerFactory;
-		if (idleTimeoutSec != 0) {
-			this.IDLE_TIMEOUT = idleTimeoutSec * 1000; // convert to ms
-			scheduler.scheduleAtFixedRate(new CloseIdleConnections(),
-					1, 1, TimeUnit.MINUTES);
-		}
+		this.idleTimeoutMs = idleTimeoutMin * ONE_MINUTE_IN_MS;
 	}
 
 	public void run(int port) throws IOException {
@@ -59,11 +58,15 @@ public class ServerBySelect {
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		while (true) {
-			int nready = selector.select();
-			if (nready > 0)
-				handleSelected();
-			if (!needWrite.isEmpty())
+			try {
+				int nready = selector.select(SELECT_TIMEOUT_MS);
+				if (nready > 0)
+					handleSelected();
 				handleWriters();
+				closeIdleConnections();
+			} catch (Throwable e) {
+				Suneido.errlog("error in server loop", e);
+			}
 		}
 	}
 
@@ -74,24 +77,22 @@ public class ServerBySelect {
 	private void handleSelected() throws IOException {
 		Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
 		while (iter.hasNext()) {
-			try {
-				SelectionKey key = iter.next();
-				iter.remove();
-				if (!key.isValid())
-					continue;
-				if (key.isAcceptable())
-					accept(key);
-				else if (key.isReadable())
-					read(key);
-				else if (key.isWritable())
-					write(key);
-			} catch (Throwable e) {
-				Suneido.errlog("error in server loop", e);
-			}
+			SelectionKey key = iter.next();
+			iter.remove();
+			if (!key.isValid())
+				continue;
+			if (key.isAcceptable())
+				accept(key);
+			else if (key.isReadable())
+				read(key);
+			else if (key.isWritable())
+				write(key);
 		}
 	}
 
 	private void handleWriters() {
+		if (needWrite.isEmpty())
+			return;
 		Iterator<SelectionKey> iter = needWrite.iterator();
 		while (iter.hasNext()) {
 			SelectionKey key = iter.next();
@@ -246,24 +247,25 @@ public class ServerBySelect {
 		}
 	}
 
-	private class CloseIdleConnections implements Runnable {
-		public void run() {
-			long t = System.currentTimeMillis();
-			for (SelectionKey key : selector.keys()) {
-				Info info = (Info) key.attachment();
-				if (info == null)
-					continue;
-				if (info.idleSince == 0)
-					info.idleSince = t;
-				else if (t - info.idleSince > IDLE_TIMEOUT) {
-					info.handler.close();
-					try {
-						key.channel().close();
-						selector.wakeup();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+	private void closeIdleConnections() throws IOException {
+		if (idleTimeoutMs == 0)
+			return;
+		long t = System.currentTimeMillis();
+		if (t - lastIdleCheck < IDLE_CHECK_INTERVAL_MS)
+			return;
+		lastIdleCheck = t;
+		for (SelectionKey key : selector.keys()) {
+			Info info = (Info) key.attachment();
+			if (info == null)
+				continue;
+			if (info.idleSince == 0)
+				info.idleSince = t;
+			else if (t - info.idleSince > idleTimeoutMs) {
+				System.out.println(
+						new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +
+						" closing idle connection");
+				info.handler.close();
+				key.channel().close();
 			}
 		}
 	}
