@@ -16,7 +16,7 @@ import java.util.List;
  * to distinguish them from database offsets from {@link IntLongs}
  */
 public class IntRefs {
-	private static final int MASK = 0xfff00000;
+	public static final int MASK = 0xfff00000;
 	private final List<Object> list = new ArrayList<Object>();
 	private int adrs[] = null;
 
@@ -51,12 +51,12 @@ public class IntRefs {
 	}
 
 	/** record the adr that a ref has been persisted at */
-	public void setAdr(int index, int adr) {
-		adrs[index ^ MASK] = adr;
+	public void setAdr(int intref, int adr) {
+		adrs[intref ^ MASK] = adr;
 	}
 
-	public int getAdr(int index) {
-		return adrs[index ^ MASK];
+	public int getAdr(int intref) {
+		return adrs[intref ^ MASK];
 	}
 
 }

@@ -88,8 +88,8 @@ public class Btree {
 		root = newRoot(split);
 	}
 
-	private int getAddress(Record slot) {
-		return (Integer) slot.get(slot.size() - 1);
+	public static int getAddress(Record slot) {
+		return (int)((Number) slot.get(slot.size() - 1)).longValue();
 	}
 
 	private int newRoot(Split split) {

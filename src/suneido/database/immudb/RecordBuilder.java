@@ -23,22 +23,25 @@ public class RecordBuilder {
 	public RecordBuilder() {
 	}
 
-	/** adds each of the fields of the record, NOT a nested record */
+	/** add each of the fields of the record, NOT a nested record */
 	public RecordBuilder add(Record r) {
 		for (int i = 0; i < r.size(); ++i)
 			add1(r.buf, r.fieldOffset(i), r.fieldLength(i));
 		return this;
 	}
 
-	/** adds a prefix of the fields of the record at buf,offset */
+	/** add a prefix of the fields of the record at buf,offset */
 	public RecordBuilder add(ByteBuffer buf, int offset, int n) {
 		for (int i = 0; i < n; ++i)
 			add1(buf, Record.fieldOffset(buf, offset, i), Record.fieldLength(buf, offset, i));
 		return this;
 	}
 
+	/** add an unsigned int
+	 * needs to be unsigned so that intrefs compare > database offsets
+	 */
 	public RecordBuilder add(int n) {
-		add1(null, n, Pack.packSize(n));
+		add1(null, n, Pack.packSize(n & 0xffffffffL));
 		return this;
 	}
 
@@ -131,8 +134,8 @@ public class RecordBuilder {
 
 	private void putItem(int i, ByteBuffer dst) {
 		Object x = data.get(i);
-		if (x == null) // integer
-			Pack.pack(offs.get(i), dst);
+		if (x == null) // unsigned integer
+			Pack.pack(offs.get(i) & 0xffffffffL, dst);
 		else if (x instanceof ByteBuffer)
 			copy((ByteBuffer) x, offs.get(i), lens.get(i), dst);
 		else if (x instanceof String)

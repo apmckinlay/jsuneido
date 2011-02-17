@@ -164,6 +164,10 @@ public class Pack {
 		packNum(n, 0, buf);
 	}
 
+	public static void pack(long n, ByteBuffer buf) {
+		packNum(n, 0, buf);
+	}
+
 	private static void packNum(long n, int e, ByteBuffer buf) {
 		boolean minus = n < 0;
 		buf.put(minus ? Tag.MINUS : Tag.PLUS);
@@ -272,6 +276,8 @@ public class Pack {
 				n *= 10;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return (int) n;
+		else if (s == 0)
+			return n;
 		else {
 			BigDecimal x = new BigDecimal(BigInteger.valueOf(n), s);
 			if (x.precision() > 15)

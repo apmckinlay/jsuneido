@@ -99,8 +99,16 @@ public class BtreeTest {
 		return Tran.redirs().persist();
 	}
 
+	@Test
+	public void intref_adr_should_be_greater_than_db_offset() {
+		Record intref = record("hello", 123 | IntRefs.MASK);
+		Record offset = record("hello", 567);
+		assert intref.compareTo(offset) > 0;
+		assert offset.compareTo(intref) < 0;
+	}
+
 	private int adr(Record key) {
-		return (Integer) key.get(1);
+		return Btree.getAddress(key);
 	}
 
 	public Record randomKey(Random rand) {
