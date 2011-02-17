@@ -47,17 +47,4 @@ public class BtreeMemNodeTest {
 		assertNull(node.find(key9));
 	}
 
-	@Test
-	public void persist() {
-		Record key1 = record("one", 123);
-		Record key2 = record("two", 456);
-		BtreeMemNode node = BtreeMemNode.emptyLeaf();
-		node.with(key1);
-		node.with(key2);
-		node.updatePointer(0, 123);
-		node.updatePointer(1, 456);
-		Record r = node.builder().build();
-		assertThat(r.toString(), is("<<one,7b>,<two,1c8>>"));
-	}
-
 }

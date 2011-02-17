@@ -34,10 +34,10 @@ public class RecordTest {
 
 	@Test
 	public void int_pack() {
-		Record r = record("one", 9, -9);
+		Record r = record("one", 9, 0xffff0000);
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
-		assertEquals(-9, r.get(2));
+		assertEquals(0xffff0000L, r.get(2));
 	}
 
 	@Test

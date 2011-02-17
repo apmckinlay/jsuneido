@@ -138,44 +138,65 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	public int persist(int level) {
-		if (level > 0) { // tree
-			for (int i = 0; i < size(); ++i) {
-				int ptr = Tran.redir(pointer(i));
-				if (IntRefs.isIntRef(ptr))
-					updatePointer(i, BtreeNodeMethods.persist(ptr, level - 1));
-			}
-		}
-		return persistRecord();
-	}
-
-	private int pointer(int i) {
-		ByteBuffer buf = fieldBuf(i);
-		int offset = fieldOffset(i);
-		int size = Record.size(buf, offset);
-		return (Integer) Record.get(buf, offset, size - 1);
-	}
-
-	void updatePointer(int i, int ptr) {
-		ByteBuffer buf = fieldBuf(i);
-		int offset = fieldOffset(i);
-		int size = Record.size(buf, offset);
-		Record r = new RecordBuilder().add(buf, offset, size - 1).add(ptr).build();
-		data.set(i, Tran.refToInt(r));
-	}
-
-	private int persistRecord() {
-		RecordBuilder rb = builder();
+		RecordBuilder rb = builder(level);
 		int adr = Tran.mmf().alloc(rb.length());
 		ByteBuffer buf = Tran.mmf().buffer(adr);
 		rb.toByteBuffer(buf);
 		return adr;
 	}
 
-	RecordBuilder builder() {
+	private RecordBuilder builder(int level) {
 		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < size(); ++i)
-			rb.addNested(fieldBuf(i), fieldOffset(i));
+		for (int i = 0; i < size(); ++i) {
+			Record r = translate(i, level);
+			if (r != null)
+				rb.addNested(r.buf, r.offset);
+			else
+				rb.addNested(fieldBuf(i), fieldOffset(i));
+		}
 		return rb;
+	}
+
+	private Record translate(int i, int level) {
+		ByteBuffer buf = fieldBuf(i);
+		int offset = fieldOffset(i);
+		int size = Record.size(buf, offset);
+		boolean translate = false;
+
+		int data = Tran.redir(dataref(buf, offset, size, level));
+		if (IntRefs.isIntRef(data)) {
+			data = Tran.getAdr(data);
+			translate = true;
+		}
+		int ptr = 0;
+		if (level > 0) {
+			ptr = Tran.redir(pointer(buf, offset, size));
+			if (IntRefs.isIntRef(ptr)) {
+				ptr = BtreeNodeMethods.persist(ptr, level - 1);
+				translate = true;
+			}
+		}
+		if (! translate)
+			return null;
+
+		int prefix = size - (level > 0 ? 2 : 1);
+		RecordBuilder rb = new RecordBuilder().add(buf, offset, prefix);
+		rb.add(data);
+		if (level > 0)
+			rb.add(ptr);
+		return rb.build();
+	}
+
+	private int pointer(ByteBuffer buf, int offset, int size) {
+		return (int) ((Number) Record.get(buf, offset, size - 1)).longValue();
+	}
+
+	private int dataref(ByteBuffer buf, int offset, int size, int level) {
+		int at = size - (level > 0 ? 2 : 1);
+		Object x = Record.get(buf, offset, at);
+		if (x.equals(""))
+			return 1; // non-zero, non-intref
+		return (int) ((Number) x).longValue();
 	}
 
 }
