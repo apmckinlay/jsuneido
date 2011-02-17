@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import static suneido.util.Util.stringToBuffer;
@@ -23,6 +27,8 @@ public class DbmsServerBySelect {
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
+	private static final ScheduledExecutorService scheduler
+			= Executors.newSingleThreadScheduledExecutor();
 
 	public static void run(int port, int idleTimeoutMin) {
 		TheDb.open();
@@ -33,12 +39,12 @@ public class DbmsServerBySelect {
 		}
 		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
-		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
+		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					TheDb.db().limitOutstandingTransactions();
 				}
 			}, 1, 1, TimeUnit.SECONDS);
-		ServerBySelect.scheduler.scheduleAtFixedRate(new Runnable() {
+		scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					TheDb.db().dest.force();
 				}
@@ -51,7 +57,7 @@ public class DbmsServerBySelect {
 	}
 
 	public static void schedule(Runnable fn, long delay, TimeUnit unit) {
-		ServerBySelect.scheduler.schedule(fn, delay, unit);
+		scheduler.schedule(fn, delay, unit);
 	}
 
 	public static InetAddress getInetAddress() {

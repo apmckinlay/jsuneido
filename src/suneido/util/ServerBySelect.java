@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.util;
 
 import static suneido.util.Util.stringToBuffer;
@@ -6,9 +10,8 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,8 +35,6 @@ public class ServerBySelect {
 	private static final int INITIAL_BUFSIZE = 16 * 1024;
 	private static final int MAX_BUFSIZE = 64 * 1024;
 	private final int idleTimeoutMs;
-	public static final ScheduledExecutorService scheduler
-			= Executors.newSingleThreadScheduledExecutor();
 	private static final int ONE_MINUTE_IN_MS = 60 * 1000;
 	private static final int SELECT_TIMEOUT_MS = ONE_MINUTE_IN_MS;
 	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
@@ -261,11 +262,9 @@ public class ServerBySelect {
 			if (info.idleSince == 0)
 				info.idleSince = t;
 			else if (t - info.idleSince > idleTimeoutMs) {
-				System.out.println(
-						new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +
-						" closing idle connection");
 				info.handler.close();
 				key.channel().close();
+				Print.timestamped("closed idle connection");
 			}
 		}
 	}

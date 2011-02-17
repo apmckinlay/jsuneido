@@ -42,7 +42,7 @@ public class Repl {
 	}
 
 	public static void repl() throws IOException {
-	        BufferedReader in = new BufferedReader(
+        BufferedReader in = new BufferedReader(
 				new InputStreamReader(System.in));
 		while (true) {
 			out.print("> ");

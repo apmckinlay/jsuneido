@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
 import java.io.*;
@@ -7,6 +11,7 @@ import java.util.Date;
 import suneido.database.server.*;
 import suneido.database.tools.*;
 import suneido.language.Compiler;
+import suneido.util.Print;
 
 /**
  * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
@@ -66,11 +71,9 @@ public class Suneido {
 			Repl.main(null);
 			break;
 		case SERVER:
-			System.out.println(
-					new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +
-					" starting server");
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
+			Print.timestamped("starting server");
 			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 			DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 			break;
