@@ -110,4 +110,21 @@ public class Parse<T, G> {
 		return token;
 	}
 
+	protected boolean anyName() {
+		switch (token) {
+		case IDENTIFIER:
+		case STRING:
+			return true;
+		case IS:
+		case ISNT:
+		case AND:
+		case OR:
+		case NOT:
+			String value = lexer.getValue();
+			return Character.isLetter(value.charAt(0));
+		default:
+			return false;
+		}
+	}
+
 }
