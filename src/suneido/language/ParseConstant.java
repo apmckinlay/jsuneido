@@ -58,9 +58,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_CURLY:
 		case L_BRACKET:
 			return object();
-		case IDENTIFIER:
-			return matchReturn(IDENTIFIER, generator.string(lexer.getValue()));
 		}
+		if (anyName())
+			return matchReturn(generator.string(lexer.getValue()));
 		syntaxError();
 		return null;
 	}
@@ -118,8 +118,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return name;
 	}
 	private boolean isMemberName(boolean inClass) {
-		if (token != IDENTIFIER && token != STRING && token != NUMBER
-				&& token != SUB && token != ADD)
+		if (! anyName() && token != NUMBER && token != SUB && token != ADD)
 			return false;
 		Lexer ahead = new Lexer(lexer);
 		Token next = ahead.next();
@@ -170,14 +169,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		switch (token) {
 		case NUMBER:
 			return date();
-		case IDENTIFIER:
-		case STRING:
-			return symbol();
 		case L_PAREN:
 		case L_CURLY:
 		case L_BRACKET:
 			return object();
 		}
+		if (anyName())
+			return symbol();
 		syntaxError();
 		return null;
 	}
