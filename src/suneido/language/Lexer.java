@@ -294,6 +294,10 @@ public class Lexer {
 				value = source.substring(prev, si);
 				keyword = ignoreCase
 						? Token.lookupIgnoreCase(value) : Token.lookup(value);
+				if (charAt(si) == ':' &&
+						(keyword == Token.IS || keyword == Token.ISNT ||
+						keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
+					keyword = null;
 				return keyword != null && keyword.isOperator()
 						? keyword : IDENTIFIER;
 			}
