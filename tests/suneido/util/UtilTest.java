@@ -162,4 +162,15 @@ public class UtilTest {
 		assertEquals(new Range(3, 4), equalRange(asList(0, 123, 123, 456), 456));
 	}
 
+	@Test
+	public void test_bytes_strings() {
+		byte[] bytes = new byte[256];
+		for (int i = 0; i < 256; ++i)
+			bytes[i] = (byte) (i & 0xff);
+		String s = bytesToString(bytes);
+		bytes = stringToBytes(s);
+		for (int i = 0; i < 256; ++i)
+			assertEquals(i, (bytes[i] & 0xff));
+	}
+
 }

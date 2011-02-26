@@ -140,9 +140,14 @@ public class Util {
 
 	/** NOTE: inefficient space-wise - uses one char (2 bytes) per byte */
 	public static String bytesToString(byte[] bytes) {
-		StringBuilder sb = new StringBuilder(bytes.length);
-		for (byte b : bytes)
-			sb.append((char) (b & 0xff));
+		return bytesToString(bytes, bytes.length);
+	}
+
+	/** NOTE: inefficient space-wise - uses one char (2 bytes) per byte */
+	public static String bytesToString(byte[] bytes, int len) {
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; ++i)
+			sb.append((char) (bytes[i] & 0xff));
 		return sb.toString();
 	}
 

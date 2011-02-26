@@ -12,6 +12,7 @@ import java.net.*;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.language.*;
+import suneido.util.Util;
 
 public class SocketClient extends SuValue {
 	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
@@ -37,7 +38,7 @@ public class SocketClient extends SuValue {
 			input = new DataInputStream(socket.getInputStream());
 			output = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
-			throw new SuException("SocketClient open failed", e);
+			throw new SuException("socket open failed", e);
 		}
 	}
 
@@ -69,7 +70,7 @@ public class SocketClient extends SuValue {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			throw new SuException("socketClient.Close failed", e);
+			throw new SuException("socket Close failed", e);
 		}
 	}
 
@@ -92,11 +93,11 @@ public class SocketClient extends SuValue {
 			} catch (SocketTimeoutException e) {
 				// handled below
 			} catch (IOException e) {
-				throw new SuException("socketClient.Read failed", e);
+				throw new SuException("socket Read failed", e);
 			}
 			if (nr == 0)
-				throw new SuException("socket client: lost connection or timeout");
-			return new String(data, 0, nr);
+				throw new SuException("socket: lost connection or timeout");
+			return Util.bytesToString(data, nr);
 		}
 	}
 
@@ -110,7 +111,7 @@ public class SocketClient extends SuValue {
 					throw new SuException("socket client: lost connection or timeout");
 				return line;
 			} catch (IOException e) {
-				throw new SuException("socketClient.Readline failed", e);
+				throw new SuException("socket Readline failed", e);
 			}
 		}
 	}
@@ -121,9 +122,10 @@ public class SocketClient extends SuValue {
 		public Object eval1(Object self, Object a) {
 			String data = Ops.toStr(a);
 			try {
-				socketClient(self).output.write(data.getBytes());
+				socketClient(self).output.write(Util.stringToBytes(data));
 			} catch (IOException e) {
-				throw new SuException("socketClient.Write failed", e);
+				if (! e.toString().contains("Connection reset by peer"))
+					throw new SuException("socket Write failed", e);
 			}
 			return null;
 		}
@@ -137,10 +139,11 @@ public class SocketClient extends SuValue {
 		public Object eval1(Object self, Object a) {
 			String data = Ops.toStr(a);
 			try {
-				socketClient(self).output.write(data.getBytes());
+				socketClient(self).output.write(Util.stringToBytes(data));
 				socketClient(self).output.write(newline);
 			} catch (IOException e) {
-				throw new SuException("socketClient.Writeline failed", e);
+				if (! e.toString().contains("Connection reset by peer"))
+					throw new SuException("socket Writeline failed", e);
 			}
 			return null;
 		}
