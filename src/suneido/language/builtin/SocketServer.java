@@ -9,8 +9,7 @@ import static suneido.util.Util.array;
 import java.io.IOException;
 import java.net.Socket;
 
-import suneido.SuException;
-import suneido.SuValue;
+import suneido.*;
 import suneido.language.*;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
@@ -86,7 +85,7 @@ public class SocketServer extends SuClass {
 				super.lookup("New").eval0(this);
 				super.lookup("Run").eval0(this);
 			} catch (SuException e) {
-				e.printStackTrace();
+				Suneido.errlog("exception in SocketServer", e);
 			} finally {
 				socket.close();
 			}
