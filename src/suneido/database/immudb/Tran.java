@@ -17,6 +17,7 @@ public class Tran {
 	private MmapFile mmf;
 	private final IntRefs intrefs = new IntRefs();
 	private Redirects redirs = new Redirects();
+	private final DataRecords datarecs = new DataRecords();
 
 	private Tran() {
 	}
@@ -34,6 +35,12 @@ public class Tran {
 
 	public static int refToInt(Object ref) {
 		return t.get().intrefs.refToInt(ref);
+	}
+
+	public static int refRecordToInt(Record ref) {
+		int intref = refToInt(ref);
+		t.get().datarecs.add(intref);
+		return intref;
 	}
 
 	public static Object intToRef(int intref) {
@@ -71,6 +78,10 @@ public class Tran {
 
 	public static int getAdr(int intref) {
 		return t.get().intrefs.getAdr(intref);
+	}
+
+	public static void persistDataRecords() {
+		t.get().datarecs.persist();
 	}
 
 }

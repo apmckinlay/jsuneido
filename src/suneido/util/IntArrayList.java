@@ -4,6 +4,9 @@
 
 package suneido.util;
 
+/**
+ * not Iterable because that would require boxing
+ */
 public class IntArrayList {
 	private static final int DEFAULT_INITIAL_SIZE = 4;
 	private int[] data;
