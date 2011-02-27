@@ -27,10 +27,10 @@ public class IntRefs {
 		return MASK | i;
 	}
 
-	public Object intToRef(int index) {
+	public Object intToRef(int intref) {
 		// xor the mask bits instead of &
 		// so if they weren't correct it'll be an invalid index
-		return list.get(index ^ MASK);
+		return list.get(intref ^ MASK);
 	}
 
 	public int size() {
@@ -41,8 +41,8 @@ public class IntRefs {
 		return (n & MASK) == MASK;
 	}
 
-	public void update(int index, Object ref) {
-		list.set(index ^ MASK, ref);
+	public void update(int intref, Object ref) {
+		list.set(intref ^ MASK, ref);
 	}
 
 	public void startPersist() {

@@ -107,12 +107,14 @@ public class BtreeTest {
 	public void translate_data_refs() {
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		Btree btree = new Btree();
-		Object ref = "a data record";
-		int intref = Tran.refToInt(ref);
+		Record rec = record("a data record");
+		int intref = Tran.refRecordToInt(rec);
 		Record key = record("hello", intref);
 		btree.add(key);
 		Tran.startPersist();
-		Tran.setAdr(intref, 1234); // simulate persisting data record
+		Tran.persistDataRecords();
+		int adr = Tran.getAdr(intref);
+		assert adr != 0;
 		btree.persist();
 		int root = btree.root();
 		int levels = btree.treeLevels();
@@ -121,7 +123,7 @@ public class BtreeTest {
 
 		Tran.mmf(new MmapFile("tmp1", "rw"));
 		btree = new Btree(root, levels);
-		assertThat(btree.get(record("hello")), is(1234));
+		assertThat(btree.get(record("hello")), is(adr));
 		Tran.mmf().close();
 	}
 
