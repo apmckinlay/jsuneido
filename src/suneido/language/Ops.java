@@ -859,19 +859,20 @@ public final class Ops {
 
 	private static final Splitter catchSplitter = Splitter.on('|');
 
-	public static String catchMatch(SuException e, String patterns) {
-		String es = e.toString();
-		if (patterns == null)
-			return es;
-		for (String pat : catchSplitter.split(patterns)) {
-			if (pat.startsWith("*")) {
-				pat = pat.substring(1);
-				if (es.contains(pat))
-					return es;
-			} else if (es.startsWith(pat))
-				return es;
-		}
+	public static Except catchMatch(SuException e) {
+		return new Except(e);
+	}
+	public static Except catchMatch(SuException e, String patterns) {
+		if (catchMatch(e.toString(), patterns))
+			return new Except(e);
 		throw e; // no match so rethrow
+	}
+	private static boolean catchMatch(String es, String patterns) {
+		for (String pat : catchSplitter.split(patterns))
+			if (pat.startsWith("*")
+					? es.contains(pat.substring(1)) : es.startsWith(pat))
+				return true;
+		return false;
 	}
 
 	public static BlockReturnException blockReturnException(Object returnValue, int parent) {

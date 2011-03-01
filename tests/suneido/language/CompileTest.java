@@ -346,8 +346,8 @@ public class CompileTest {
 		test_e("try a() catch b()",
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, POP, b, call, POP, L4");
 		test_e("try a() catch(e) b()",
-				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, toString, " +
-					"args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
+				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
+					"catchMatch, args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
 		test_e("try a() catch(e, 'x') b()",
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
 					"'x', catchMatch, args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
@@ -541,7 +541,8 @@ public class CompileTest {
 			{ "exception (Object;)Lsuneido/SuException;, ATHROW", "throw" },
 			{ "TRYCATCHBLOCK L0 L1 L2 suneido/SuException", "try L0 L1 L2" },
 			{ "TRYCATCHBLOCK L0 L1 L2 suneido/language/BlockReturnException", "try L0 L1 L2" },
-			{ "catchMatch (Lsuneido/SuException;String;)String;", "catchMatch" },
+			{ "catchMatch (Lsuneido/SuException;)Lsuneido/language/Except;", "catchMatch" },
+			{ "catchMatch (Lsuneido/SuException;String;)Lsuneido/language/Except;", "catchMatch" },
 			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },

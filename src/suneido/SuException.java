@@ -9,10 +9,10 @@ import suneido.language.Ops;
  */
 public class SuException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
-	String s;
+	Object s; // could be String or Except
 
 	public SuException(Object e) {
-		this.s = e.toString();
+		this.s = e;
 		//printStackTrace();
 	}
 
@@ -22,9 +22,13 @@ public class SuException extends RuntimeException {
 		//printStackTrace();
 	}
 
+	public Object get() {
+		return s;
+	}
+
 	@Override
 	public String toString() {
-		return s;
+		return s.toString();
 	}
 
 	public static final SuException unreachable() {

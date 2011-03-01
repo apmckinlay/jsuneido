@@ -268,7 +268,6 @@ public class OpsTest {
 
 	@Test
 	public void test_catchMatch() {
-		match("abc", null);
 		match("abc", "a");
 		nomatch("abc", "b");
 		match("abc", "b|ab");
