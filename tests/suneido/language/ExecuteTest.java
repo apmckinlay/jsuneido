@@ -166,6 +166,14 @@ public class ExecuteTest {
 				"throw 'x' } catch(e) return e; " +
 				"return 'y'", "'x'");
 		blockReturn("f = function () { return { return 123 } }; b = f(); b()");
+
+		test("try throw 'abc' catch (e) return Type(e)", "'Except'");
+		test("try throw 'abc' catch (e) return e.As('def')", "'def'");
+		test("try { try throw 'abc' catch (e) throw e.As('def') } " +
+				"catch (x) return x", "'def'");
+		test("c = 0;" +
+				"try { try throw 'abc' catch (e) { c = e.Calls(); throw e.As('def') } } " +
+				"catch (x) { return c is x.Calls() }", "true");
 	}
 	private static void blockReturn(String expr) {
 		try {

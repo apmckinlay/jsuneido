@@ -16,10 +16,10 @@ import suneido.language.builtin.StringMethods;
  * Logically immutable but not physically because of flattening.
  */
 @ThreadSafe
-public final class Concat extends SuValue implements Comparable<Concat> {
+public class Concat extends SuValue implements Comparable<Concat> {
 	private Object left; // String or Concat
 	private Object right; // String or Concat or null (if flattened)
-	private final int len;
+	private int len;
 
 	Concat(Object left, Object right) {
 		this.left = left;
@@ -31,6 +31,10 @@ public final class Concat extends SuValue implements Comparable<Concat> {
 		this.left = left;
 		this.right = right;
 		this.len = len;
+	}
+
+	Concat(String s) {
+		this(s, null, s.length());
 	}
 
 	@Override
@@ -109,6 +113,12 @@ public final class Concat extends SuValue implements Comparable<Concat> {
 	@Override
 	public SuValue lookup(String method) {
 		return StringMethods.singleton.lookup(method);
+	}
+
+	protected void set(String s) {
+		left = s;
+		right = null;
+		len = s.length();
 	}
 
 }

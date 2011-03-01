@@ -464,12 +464,11 @@ public class ClassGen {
 		// exception is on stack
 		if (pattern != null) {
 			mv.visitLdcInsn(pattern);
-			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
-					"catchMatch",
-					"(Lsuneido/SuException;Ljava/lang/String;)Ljava/lang/String;");
+			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
+					"(Lsuneido/SuException;Ljava/lang/String;)Lsuneido/language/Except;");
 		} else if (var != null)
-			mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/SuException",
-					"toString", "()Ljava/lang/String;");
+			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
+					"(Lsuneido/SuException;)Lsuneido/language/Except;");
 		if (var == null)
 			mv.visitInsn(POP);
 		else

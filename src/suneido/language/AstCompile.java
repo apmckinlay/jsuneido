@@ -538,9 +538,8 @@ public class AstCompile {
 			cg.startCatch(null, null, tc);
 		else {
 			String var = catcher.value;
-			String pattern =
-					catcher.first() == null ? null
-							: Ops.toStr(fold(catcher.first()));
+			String pattern = (catcher.first() == null)
+					? null : Ops.toStr(fold(catcher.first()));
 			cg.startCatch(var, pattern, tc);
 			compound(cg, catcher.second(), labels);
 		}
