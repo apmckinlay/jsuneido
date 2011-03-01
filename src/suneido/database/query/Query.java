@@ -139,14 +139,14 @@ public abstract class Query {
 	double optimize1(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		double cost;
-		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
+		if (!freeze && 0 <= (cost = cache.get(index, needs, firstneeds, is_cursor)))
 			return cost;
 
 		cost = optimize2(index, needs, firstneeds, is_cursor, freeze);
 		verify(cost >= 0);
 
 		if (!freeze)
-			cache.add(index, needs, firstneeds, cost);
+			cache.add(index, needs, firstneeds, is_cursor, cost);
 		return cost;
 	}
 
