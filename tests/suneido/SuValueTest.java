@@ -12,12 +12,12 @@ public class SuValueTest {
 	@Test
 	public void compareTo() {
 		SuContainer c1 = new SuContainer();
-		c1.append(0);
+		c1.add(0);
 		SuContainer c2 = new SuContainer();
-		c2.append(0);
-		c2.append(1);
+		c2.add(0);
+		c2.add(1);
 		SuContainer c3 = new SuContainer();
-		c3.append(1);
+		c3.add(1);
 		Object[] values = {
 			false, true,
 			0, 123, 456, 789,

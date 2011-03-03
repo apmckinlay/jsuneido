@@ -96,7 +96,7 @@ public class SuQuery extends SuValue {
 		public Object eval0(Object self) {
 			SuContainer c = new SuContainer();
 			for (List<String> key : ((SuQuery) self).q.keys())
-				c.append(listToCommas(key));
+				c.add(listToCommas(key));
 			return c;
 		}
 	}

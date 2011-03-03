@@ -35,7 +35,7 @@ public class Dir extends SuFunction {
 			return ob;
 		for (File f : listFiles)
 			if (! files || ! f.isDirectory())
-				ob.append(details ? detailsOf(f) : nameOf(f));
+				ob.add(details ? detailsOf(f) : nameOf(f));
 		return ob;
 	}
 

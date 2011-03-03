@@ -65,7 +65,7 @@ public class SuSequence extends SuContainer
 		if (instantiated)
 			return;
 		for (Object value : iterable)
-			append(value);
+			add(value);
 		instantiated = true;
 	}
 

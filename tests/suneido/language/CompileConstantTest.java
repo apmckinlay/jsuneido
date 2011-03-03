@@ -31,13 +31,13 @@ public class CompileConstantTest {
 				compile("#20090310.1026"));
 
 		SuContainer c = new SuContainer();
-		c.append(12);
+		c.add(12);
 		c.put("ab", "cd");
 		assertEquals(c, compile("#(12, ab: cd)"));
 
 		SuContainer cc = new SuContainer();
-		cc.append(0);
-		cc.append(c);
+		cc.add(0);
+		cc.add(c);
 		assertEquals(cc, compile("#(0, (12, ab: cd))"));
 
 		compile("#(function () { }, function () { })");

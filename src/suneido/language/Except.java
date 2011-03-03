@@ -52,7 +52,7 @@ public class Except extends Concat {
 				e = ((Except) e.get()).e;
 			SuContainer calls = new SuContainer();
 			for (StackTraceElement x : e.getStackTrace())
-				calls.append(callob(x));
+				calls.add(callob(x));
 			return calls;
 		}
 	}
