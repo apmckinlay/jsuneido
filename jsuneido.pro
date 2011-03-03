@@ -1,17 +1,12 @@
 -injars jsuneido.jar
+-injars lib/asm-all-3.3.jar (!META-INF/MANIFEST.MF)
+-injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
+-injars lib/guava-r08.jar (!META-INF/MANIFEST.MF)
 -libraryjars /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar
 -outjars jsuneido-dist.jar
 
 -dontoptimize
 -dontobfuscate
-
--keep public class suneido.language.Ops {
-	<methods>;
-}
-
--keep public class suneido.language.Su* {
-	<methods>;
-}
 
 -keep public class suneido.** {
 	<methods>;
@@ -27,3 +22,5 @@
 -keep class suneido.language.AstCompile$VarArgs
 -keep class suneido.language.AstCompile$ExprOption
 -keep class suneido.language.AstCompile$ExprType
+
+-dontnote com.google.common**

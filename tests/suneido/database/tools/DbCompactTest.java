@@ -7,7 +7,7 @@ import org.junit.Test;
 import suneido.database.Mode;
 import suneido.database.TheDb;
 
-public class DbCompactTest extends DbCheckRebuildBase {
+public class DbCompactTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void empty() {

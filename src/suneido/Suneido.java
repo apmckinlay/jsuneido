@@ -8,7 +8,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import suneido.database.server.*;
+import suneido.database.server.DbmsServer;
 import suneido.database.tools.*;
 import suneido.language.Compiler;
 import suneido.util.Print;
@@ -112,20 +112,20 @@ public class Suneido {
 		case COMPACT2:
 			DbCompact.compact2("suneido.db", cmdlineoptions.actionArg);
 			break;
-		case TEST:
-			RunAllTests.run("jsuneido.jar");
-			break;
+//		case TEST:
+//			RunAllTests.run("jsuneido.jar");
+//			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
-		case TESTCLIENT:
-			TestClient.main(cmdlineoptions.actionArg);
-			break;
-		case TESTSERVER:
-			TestServer.main(new String[0]);
-			break;
+//		case TESTCLIENT:
+//			TestClient.main(cmdlineoptions.actionArg);
+//			break;
+//		case TESTSERVER:
+//			TestServer.main(new String[0]);
+//			break;
 		case ERROR:
 			System.out.println(cmdlineoptions.actionArg);
 			System.out.println();
