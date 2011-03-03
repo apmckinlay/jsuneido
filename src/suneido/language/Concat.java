@@ -19,7 +19,7 @@ import suneido.language.builtin.StringMethods;
 public class Concat extends SuValue implements Comparable<Concat> {
 	private Object left; // String or Concat
 	private Object right; // String or Concat or null (if flattened)
-	private int len;
+	private final int len;
 
 	Concat(Object left, Object right) {
 		this.left = left;
@@ -113,12 +113,6 @@ public class Concat extends SuValue implements Comparable<Concat> {
 	@Override
 	public SuValue lookup(String method) {
 		return StringMethods.singleton.lookup(method);
-	}
-
-	protected void set(String s) {
-		left = s;
-		right = null;
-		len = s.length();
 	}
 
 }
