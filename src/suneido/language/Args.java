@@ -100,7 +100,7 @@ public class Args {
 				c.merge(Ops.toContainer(args[++i]));
 				c.delete(extra);
 			} else
-				c.append(args[i]);
+				c.add(args[i]);
 		}
 		return c;
 	}

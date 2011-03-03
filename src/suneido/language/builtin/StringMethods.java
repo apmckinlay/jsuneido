@@ -204,7 +204,7 @@ public class StringMethods extends BuiltinMethods {
 			Object value = seval(toStr(self));
 			SuContainer result = new SuContainer();
 			if (value != null)
-				result.append(value);
+				result.add(value);
 			return result;
 		}
 	}
@@ -354,9 +354,9 @@ public class StringMethods extends BuiltinMethods {
 			for (int i = 0; i <= mr.groupCount(); ++i) {
 				SuContainer c2 = new SuContainer();
 				int start = mr.start(i);
-				c2.append(start);
-				c2.append(start == -1 ? -1 : mr.end() - start);
-				c.append(c2);
+				c2.add(start);
+				c2.add(start == -1 ? -1 : mr.end() - start);
+				c.add(c2);
 			}
 			return c;
 		}
@@ -486,9 +486,9 @@ public class StringMethods extends BuiltinMethods {
 		SuContainer ob = new SuContainer();
 		int i = 0;
 		for (int j; -1 != (j = s.indexOf(sep, i)); i = j + sep.length())
-			ob.append(s.substring(i, j));
+			ob.add(s.substring(i, j));
 		if (i < s.length())
-			ob.append(s.substring(i));
+			ob.add(s.substring(i));
 		return ob;
 	}
 

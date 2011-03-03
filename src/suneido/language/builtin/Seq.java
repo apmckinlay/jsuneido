@@ -86,7 +86,7 @@ public final class Seq extends BuiltinClass {
 		public SuContainer toContainer() {
 			SuContainer c = new SuContainer();
 			for (Object x : this)
-				c.append(x);
+				c.add(x);
 			return c;
 		}
 

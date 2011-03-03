@@ -67,8 +67,8 @@ public class SuContainer extends SuValue
 	}
 	public static SuContainer of(Object x, Object y) {
 		SuContainer c = new SuContainer();
-		c.append(x);
-		c.append(y);
+		c.add(x);
+		c.add(y);
 		return c;
 	}
 
@@ -85,7 +85,7 @@ public class SuContainer extends SuValue
 		return map.keySet();
 	}
 
-	public void append(Object value) {
+	public void add(Object value) {
 		checkReadonly();
 		vec.add(value);
 		migrate();
@@ -128,7 +128,7 @@ public class SuContainer extends SuValue
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
-			append(value);
+			add(value);
 		else
 			map.put(key, value);
 	}

@@ -210,7 +210,7 @@ public class SuClass extends SuValue {
 			SuContainer c = new SuContainer();
 			for (Map.Entry<String, Object> e : ((SuClass) self).members.entrySet())
 				if (e.getValue() != null)
-					c.append(e.getKey());
+					c.add(e.getKey());
 			return c;
 		}
 	}

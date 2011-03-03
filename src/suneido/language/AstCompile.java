@@ -97,7 +97,7 @@ public class AstCompile {
 			AstNode name = member.first();
 			Object value = fold(member.second());
 			if (name == null)
-				c.append(value);
+				c.add(value);
 			else
 				c.put(fold(name), value);
 		}
@@ -957,7 +957,7 @@ public class AstCompile {
 			Object value = fold(arg.second());
 			if (name == null) {
 				if (value != null)
-					constArgs.append(value);
+					constArgs.add(value);
 				else {
 					unnamed.addAll(constArgs.vec);
 					constArgs.vec.clear();

@@ -23,14 +23,14 @@ public class ArgsTest {
 		String x = "x";
 		SuContainer c = new SuContainer();
 		SuContainer ias = new SuContainer();
-		ias.append(i);
+		ias.add(i);
 		ias.put(a, s);
 		SuContainer sxi = new SuContainer();
-		sxi.append(s);
+		sxi.add(s);
 		sxi.put(x, i);
 		SuContainer isasxi = new SuContainer();
-		isasxi.append(i);
-		isasxi.append(s);
+		isasxi.add(i);
+		isasxi.add(s);
 		isasxi.put(a, s);
 		isasxi.put(x, i);
 

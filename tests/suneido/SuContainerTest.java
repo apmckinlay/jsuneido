@@ -39,7 +39,7 @@ public class SuContainerTest {
 		assertEquals(0, c.size());
 		assertEquals("#()", c.toString());
 
-		c.append(12);
+		c.add(12);
 		assertEquals(1, c.size());
 		assertEquals(12, c.get(0));
 		assertEquals("#(12)", c.toString());
@@ -73,12 +73,12 @@ public class SuContainerTest {
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
 
-		one.append(123);
+		one.add(123);
 		assert ! one.equals(two);
 		assert ! two.equals(one);
 		assert one.hashCode() != two.hashCode();
 
-		two.append(123);
+		two.add(123);
 		assertEquals(one, two);
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
@@ -100,7 +100,7 @@ public class SuContainerTest {
 		assertFalse(c.delete(0));
 		assertFalse(c.delete(""));
 		assert c.size() == 0;
-		c.append(1);
+		c.add(1);
 		c.put("a", 1);
 		assert c.size() == 2;
 		assertTrue(c.delete(0));
@@ -115,9 +115,9 @@ public class SuContainerTest {
 		assertFalse(c.erase(0));
 		assertFalse(c.erase(""));
 		assert c.size() == 0;
-		c.append(11);
-		c.append(22);
-		c.append(33);
+		c.add(11);
+		c.add(22);
+		c.add(33);
 		c.put("a", 1);
 		assert c.size() == 4;
 		assertTrue(c.erase(1));
@@ -133,14 +133,14 @@ public class SuContainerTest {
 		SuContainer c = new SuContainer();
 		assertEquals(c, unpack(pack(c)));
 
-		c.append(1);
+		c.add(1);
 		assertEquals(c, unpack(pack(c)));
 
 		c.put("", true);
 		assertEquals(c, unpack(pack(c)));
 
 		for (int i = 0; i < 5; ++i)
-			c.append(i);
+			c.add(i);
 		assertEquals(c, unpack(pack(c)));
 
 		for (int i = 100; i < 105; ++i)
@@ -148,17 +148,17 @@ public class SuContainerTest {
 		assertEquals(c, unpack(pack(c)));
 
 		SuContainer nested = new SuContainer();
-		nested.append(1);
-		c.append(nested);
+		nested.add(1);
+		c.add(nested);
 		c.put(999, nested);
 		assertEquals(c, unpack(pack(c)));
 
 		SuContainer list = new SuContainer();
-		list.append("nextfield");
-		list.append("nrows");
-		list.append("table");
-		list.append("tablename");
-		list.append("totalsize");
+		list.add("nextfield");
+		list.add("nrows");
+		list.add("table");
+		list.add("tablename");
+		list.add("totalsize");
 		ByteBuffer buf = pack(list);
 		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", bufferToHex(buf).replace(" ", ""));
 	}
@@ -166,14 +166,14 @@ public class SuContainerTest {
 	@Test(expected = SuException.class)
 	public void packNest() {
 		SuContainer c = new SuContainer();
-		c.append(c);
+		c.add(c);
 		c.packSize();
 	}
 
 	@Test(expected = SuException.class)
 	public void hashCodeNest() {
 		SuContainer c = new SuContainer();
-		c.append(c);
+		c.add(c);
 		c.hashCode();
 	}
 

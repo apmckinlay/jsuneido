@@ -68,7 +68,7 @@ public class ContainerMethods {
 		}
 		@Override
 		public Object eval1(Object self, Object a) {
-			((SuContainer) self).append(a);
+			((SuContainer) self).add(a);
 			return self;
 		}
 	}
@@ -152,7 +152,7 @@ public class ContainerMethods {
 			Object value = evaluate(self, args);
 			SuContainer result = new SuContainer();
 			if (value != null)
-				result.append(value);
+				result.add(value);
 			return result;
 		}
 	}

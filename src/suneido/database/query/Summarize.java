@@ -351,7 +351,7 @@ public class Summarize extends Query1 {
 		Object result() {
 			SuContainer list = new SuContainer();
 			for (Object x : set)
-				list.append(x);
+				list.add(x);
 			return list;
 		}
 	}

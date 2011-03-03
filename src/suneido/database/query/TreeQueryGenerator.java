@@ -252,7 +252,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 		SuContainer rec = object(which, members);
 		MemDef m = (MemDef) member;
 		if (m.name == null)
-			rec.append(m.value);
+			rec.add(m.value);
 		else
 			rec.put(m.name, m.value);
 		return rec;
