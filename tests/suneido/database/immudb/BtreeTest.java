@@ -4,7 +4,6 @@
 
 package suneido.database.immudb;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -39,7 +38,7 @@ public class BtreeTest {
 
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
-			assertThat(btree.get(key), equalTo(adr(key)));
+			assertThat(btree.get(key), is(adr(key)));
 	}
 
 	@Test
@@ -72,7 +71,7 @@ public class BtreeTest {
 		btree = new Btree(root, levels);
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
-			assertThat("key " + key, btree.get(key), equalTo(adr(key)));
+			assertThat("key " + key, btree.get(key), is(adr(key)));
 		Tran.mmf().close();
 	}
 

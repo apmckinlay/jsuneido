@@ -84,9 +84,9 @@ public class RecordTest {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
 			if (d instanceof String)
-				rb.add((String) d);
+				rb.add(d);
 			else if (d instanceof Integer)
-				rb.add((Integer) d);
+				rb.add((int)(Integer) d);
 		return rb.build();
 	}
 
