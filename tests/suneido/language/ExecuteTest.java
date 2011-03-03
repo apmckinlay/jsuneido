@@ -172,8 +172,8 @@ public class ExecuteTest {
 		test("try { try throw 'abc' catch (e) throw e.As('def') } " +
 				"catch (x) return x", "'def'");
 		test("c = 0;" +
-				"try { try throw 'abc' catch (e) { c = e.Calls(); throw e.As('def') } } " +
-				"catch (x) { return c is x.Calls() }", "true");
+				"try { try throw 'abc' catch (e) { c = e.Callstack(); throw e.As('def') } } " +
+				"catch (x) { return c is x.Callstack() }", "true");
 	}
 	private static void blockReturn(String expr) {
 		try {
