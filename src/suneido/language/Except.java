@@ -20,6 +20,11 @@ public class Except extends Concat {
 		this.e = e;
 	}
 
+	public Except(Except except, String s) {
+		super(s);
+		this.e = except.e;
+	}
+
 	@Override
 	public String typeName() {
 		return "Except";
@@ -35,12 +40,11 @@ public class Except extends Concat {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			((Except) self).set((String) a);
-			return self;
+			return new Except((Except) self, Ops.toStr(a));
 		}
 	}
 
-	public static class Calls extends SuMethod0 {
+	public static class Callstack extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
 			SuException e = ((Except) self).e;
