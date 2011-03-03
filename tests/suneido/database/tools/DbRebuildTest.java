@@ -11,7 +11,7 @@ import suneido.database.*;
 import suneido.database.tools.DbCheck.Status;
 
 
-public class DbRebuildTest extends DbCheckRebuildBase {
+public class DbRebuildTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void test_empty() {

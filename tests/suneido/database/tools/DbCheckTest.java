@@ -8,7 +8,7 @@ import suneido.database.Mode;
 import suneido.database.TheDb;
 import suneido.database.tools.DbCheck.Status;
 
-public class DbCheckTest extends DbCheckRebuildBase {
+public class DbCheckTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void test_empty() {

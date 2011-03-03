@@ -11,7 +11,7 @@ import org.junit.Before;
 import suneido.database.*;
 import suneido.database.tools.DbCheck.Status;
 
-public class DbCheckRebuildBase extends TestBaseBase {
+public class DbCheckRebuildTestBase extends TestBaseBase {
 	protected String filename;
 	protected String outfilename;
 
