@@ -30,6 +30,12 @@ public class RecordBuilder {
 		return this;
 	}
 
+	/** add a field of the record */
+	public RecordBuilder add(Record r, int i) {
+		add1(r.buf, r.fieldOffset(i), r.fieldLength(i));
+		return this;
+	}
+
 	/** add a prefix of the fields of the record at buf,offset */
 	public RecordBuilder add(ByteBuffer buf, int offset, int n) {
 		for (int i = 0; i < n; ++i)
@@ -45,8 +51,8 @@ public class RecordBuilder {
 		return this;
 	}
 
-	public RecordBuilder add(String s) {
-		add1(s, 0, Pack.packSize(s));
+	public RecordBuilder add(Object x) {
+		add1(x, 0, Pack.packSize(x));
 		return this;
 	}
 
@@ -138,10 +144,8 @@ public class RecordBuilder {
 			Pack.pack(offs.get(i) & 0xffffffffL, dst);
 		else if (x instanceof ByteBuffer)
 			copy((ByteBuffer) x, offs.get(i), lens.get(i), dst);
-		else if (x instanceof String)
-			Pack.pack(x, dst);
 		else
-			throw new Error("invalid data type");
+			Pack.pack(x, dst);
 	}
 
 	private void copy(ByteBuffer buf, int off, int len, ByteBuffer dst) {
