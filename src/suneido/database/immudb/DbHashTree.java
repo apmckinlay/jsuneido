@@ -14,7 +14,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Strings;
 
-// TODO persist values that are IntRefs
+// TODO persist values that are Tran
 
 /**
  * Persistent hash tree used for storing redirections.
@@ -32,25 +32,31 @@ public abstract class DbHashTree {
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
-	public static DbHashTree empty() {
-		return new MemNode();
+	public static DbHashTree empty(Tran tran) {
+		return new MemNode(tran);
+	}
+
+	public static DbHashTree from(Tran tran, int at) {
+		return new DbNode(tran, at);
 	}
 
 	public abstract int get(int key);
 
 	public abstract DbHashTree with(int key, int value);
 
-	public abstract int persist();
-
-	public static DbHashTree from(int at) {
-		return new DbNode(at);
-	}
+	public abstract int persist(MmapFile mmf);
 
 	public void print() {
 		((Node) this).print(0);
 	}
 
 	private abstract static class Node extends DbHashTree {
+		protected final Tran tran;
+
+		Node(Tran tran) {
+			this.tran = tran;
+		}
+
 		/** returns 0 if key not present */
 		@Override
 		public int get(int key) {
@@ -68,7 +74,7 @@ public abstract class DbHashTree {
 			if (entryKey != 0)
 				return entryKey == key ? value(i) : 0;
 			else { // pointer
-				Node child = intToRef(value(i));
+				Node child = intToRef(tran, value(i));
 				return child.get(key, shift + BITS_PER_LEVEL);
 			}
 		}
@@ -107,7 +113,7 @@ public abstract class DbHashTree {
 							"\t" + Integer.toHexString(value(i)));
 				else {
 					System.out.println(indent + ">>>>>>>>");
-					intToRef(value(i)).print(shift + BITS_PER_LEVEL);
+					intToRef(tran, value(i)).print(shift + BITS_PER_LEVEL);
 				}
 			}
 		}
@@ -126,9 +132,10 @@ public abstract class DbHashTree {
 		private final int adr;
 		private final ByteBuffer buf;
 
-		DbNode(int adr) {
+		DbNode(Tran tran, int adr) {
+			super(tran);
 			this.adr = adr;
-			buf = Tran.mmf().buffer(adr);
+			buf = tran.mmf().buffer(adr);
 		}
 
 		@Override
@@ -146,19 +153,20 @@ public abstract class DbHashTree {
 					: new MemNode(this).with(key, value, shift);
 			}
 			if (entryKey == 0) { // value is pointer to child
-				int ptr = refToInt(intToRef(value(i)).with(key, value,
+				int ptr = tran.refToInt(intToRef(tran, value(i)).with(key, value,
 						shift + BITS_PER_LEVEL));
 				return new MemNode(this, i, ptr);
 			} else { // collision
-				int ptr = refToInt(new MemNode(key(i), value(i), key, value,
+				int ptr = tran.refToInt(new MemNode(tran, key(i), value(i), key, value,
 						shift + BITS_PER_LEVEL));
 				return new MemNode(this, i, ptr);
 			}
 		}
 
 		@Override
-		public int persist() {
-			return adr;
+		public int persist(MmapFile mmf) {
+//			return adr;
+throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -187,13 +195,15 @@ public abstract class DbHashTree {
 		private int[] keys;
 		private int[] values;
 
-		MemNode() {
+		MemNode(Tran tran) {
+			super(tran);
 			present = 0;
 			keys = new int[4];
 			values = new int[4];
 		}
 
 		MemNode(DbNode dbn) {
+			super(dbn.tran);
 			present = dbn.present();
 			int n = size();
 			keys = new int[n + 1];
@@ -229,17 +239,18 @@ public abstract class DbHashTree {
 			} else if (keys[i] == key) {
 				values[i] = value;
 			} else if (isPointer(i)) {
-				values[i] = refToInt(intToRef(values[i]).with(key, value, shift + BITS_PER_LEVEL));
+				values[i] = tran.refToInt(intToRef(tran,
+						values[i]).with(key, value, shift + BITS_PER_LEVEL));
 			} else { // collision, change entry to pointer
-				values[i] = refToInt(new MemNode(keys[i], values[i], key, value,
+				values[i] = tran.refToInt(new MemNode(tran, keys[i], values[i], key, value,
 					shift + BITS_PER_LEVEL));
 				keys[i] = 0;
 			}
 			return this;
 		}
 
-		private MemNode(int key1, int value1, int key2, int value2, int shift) {
-			this();
+		private MemNode(Tran tran, int key1, int value1, int key2, int value2, int shift) {
+			this(tran);
 			assert shift < 32;
 			assert key1 != key2;
 			int bits1 = (key1 >>> shift) & LEVEL_MASK;
@@ -253,28 +264,28 @@ public abstract class DbHashTree {
 				values[i2] = value2;
 				present = (1 << bits1) | (1 << bits2);
 			} else { // collision
-				values[0] = refToInt(new MemNode(key1, value1, key2, value2,
+				values[0] = tran.refToInt(new MemNode(tran, key1, value1, key2, value2,
 						shift + BITS_PER_LEVEL));
 				present = (1 << bits1);
 			}
 		}
 
 		@Override
-		public int persist() {
+		public int persist(MmapFile mmf) {
 			for (int i = 0; i < size(); ++i)
 				if (isPointer(i)) {
 					if (IntRefs.isIntRef(values[i]))
-						values[i] = intToRef(values[i]).persist();
+						values[i] = intToRef(tran, values[i]).persist(mmf);
 				} else {
 					if (IntRefs.isIntRef(values[i])) {
-						int adr = Tran.getAdr(values[i]);
+						int adr = tran.getAdr(values[i]);
 						if (adr == 0)
 							throw new Error("redirect still intref at persist");
 						values[i] = adr;
 					}
 				}
-			int adr = Tran.mmf().alloc(byteBufSize());
-			ByteBuffer buf = Tran.mmf().buffer(adr);
+			int adr = mmf.alloc(byteBufSize());
+			ByteBuffer buf = mmf.buffer(adr);
 			toByteBuf(buf);
 			return adr;
 		}
@@ -319,15 +330,11 @@ public abstract class DbHashTree {
 		return s.substring(0, s.length() - 1);
 	}
 
-	private static int refToInt(Node ref) {
-		return Tran.refToInt(ref);
-	}
-
-	private static Node intToRef(int at) {
+	private static Node intToRef(Tran tran, int at) {
 		if (IntRefs.isIntRef(at))
-			return (Node) Tran.intToRef(at);
+			return (Node) tran.intToRef(at);
 		else
-			return new DbNode(at);
+			return new DbNode(tran, at);
 	}
 
 }

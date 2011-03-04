@@ -19,29 +19,33 @@ import suneido.util.IntArrayList;
  */
 @NotThreadSafe
 public class BtreeMemNode implements BtreeNode {
+	private final Tran tran;
 	private final Type type;
 	private final ByteBuffer buf;
 	private final IntArrayList data = new IntArrayList();
 
-	public BtreeMemNode(Type type) {
+	public BtreeMemNode(Tran tran, Type type) {
+		this.tran = tran;
 		this.type = type;
 		buf = null;
 	}
 
-	public BtreeMemNode(Type type, ByteBuffer buf) {
+	public BtreeMemNode(Tran tran, Type type, ByteBuffer buf) {
+		this.tran = tran;
 		this.type = type;
 		this.buf = buf;
 	}
 
-	public BtreeMemNode(BtreeDbNode node) {
+	public BtreeMemNode(Tran tran, BtreeDbNode node) {
+		this.tran = tran;
 		type = node.type();
 		buf = node.buf;
 		for (int i = 0; i < node.size(); ++i)
 			data.add(node.fieldOffset(i));
 	}
 
-	public static BtreeMemNode emptyLeaf() {
-		return new BtreeMemNode(Type.LEAF);
+	public static BtreeMemNode emptyLeaf(Tran tran) {
+		return new BtreeMemNode(tran, Type.LEAF);
 	}
 
 	@Override
@@ -65,13 +69,13 @@ public class BtreeMemNode implements BtreeNode {
 			return Record.EMPTY;
 		int x = data.get(i);
 		if (IntRefs.isIntRef(x))
-			return (Record) Tran.intToRef(x);
+			return (Record) tran.intToRef(x);
 		else
 			return new Record(buf, x);
 	}
 
 	public BtreeMemNode add(Record key) {
-		data.add(Tran.refToInt(key));
+		data.add(tran.refToInt(key));
 		return this;
 	}
 
@@ -88,25 +92,25 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	@Override
-	public BtreeNode with(Record key) {
+	public BtreeNode with(Tran tran, Record key) {
 		int at = BtreeNodeMethods.lowerBound(this, key.buf, key.offset);
-		data.add(at, Tran.refToInt(key));
+		data.add(at, tran.refToInt(key));
 		return this;
 	}
 
-	public static BtreeNode newRoot(Split split) {
+	public static BtreeNode newRoot(Tran tran, Split split) {
 		RecordBuilder key1 = new RecordBuilder();
 		for (int i = 0; i < split.key.size() - 1; ++i)
 			key1.add("");
 		key1.add(split.left);
-		return new BtreeMemNode(Type.TREE).add(key1.build()).add(split.key);
+		return new BtreeMemNode(tran, Type.TREE).add(key1.build()).add(split.key);
 	}
 
 	@Override
 	public ByteBuffer fieldBuf(int i) {
 		int x = data.get(i);
 		if (IntRefs.isIntRef(x)) {
-			Record r = (Record) Tran.intToRef(x);
+			Record r = (Record) tran.intToRef(x);
 			return r.buf;
 		} else
 			return buf;
@@ -116,7 +120,7 @@ public class BtreeMemNode implements BtreeNode {
 	public int fieldOffset(int i) {
 		int x = data.get(i);
 		if (IntRefs.isIntRef(x)) {
-			Record r = (Record) Tran.intToRef(x);
+			Record r = (Record) tran.intToRef(x);
 			return r.offset;
 		} else
 			return x;
@@ -128,8 +132,8 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	@Override
-	public Btree.Split split(Record key, int adr) {
-		return BtreeNodeMethods.split(this, key, adr);
+	public Btree.Split split(Tran tran, Record key, int adr) {
+		return BtreeNodeMethods.split(tran, this, key, adr);
 	}
 
 	@Override
@@ -139,8 +143,8 @@ public class BtreeMemNode implements BtreeNode {
 
 	public int persist(int level) {
 		RecordBuilder rb = builder(level);
-		int adr = Tran.mmf().alloc(rb.length());
-		ByteBuffer buf = Tran.mmf().buffer(adr);
+		int adr = tran.mmf().alloc(rb.length());
+		ByteBuffer buf = tran.mmf().buffer(adr);
 		rb.toByteBuffer(buf);
 		return adr;
 	}
@@ -163,16 +167,16 @@ public class BtreeMemNode implements BtreeNode {
 		int size = Record.size(buf, offset);
 		boolean translate = false;
 
-		int data = Tran.redir(dataref(buf, offset, size, level));
+		int data = tran.redir(dataref(buf, offset, size, level));
 		if (IntRefs.isIntRef(data)) {
-			data = Tran.getAdr(data);
+			data = tran.getAdr(data);
 			translate = true;
 		}
 		int ptr = 0;
 		if (level > 0) {
-			ptr = Tran.redir(pointer(buf, offset, size));
+			ptr = tran.redir(pointer(buf, offset, size));
 			if (IntRefs.isIntRef(ptr)) {
-				ptr = BtreeNodeMethods.persist(ptr, level - 1);
+				ptr = BtreeNodeMethods.persist(tran, ptr, level - 1);
 				translate = true;
 			}
 		}

@@ -18,11 +18,11 @@ public class DataRecords {
 	 * Must ensure database addresses are ordered the same as intrefs
 	 * so btree ordering does not change.
 	 */
-	public void persist() {
+	public void persist(Tran tran) {
 		for (int i = 0; i < records.size(); ++i) {
 			int intref = records.get(i);
-			Record r = (Record) Tran.intToRef(intref);
-			Tran.setAdr(intref, r.persistRecord());
+			Record r = (Record) tran.intToRef(intref);
+			tran.setAdr(intref, r.persistRecord(tran.mmf()));
 		}
 	}
 

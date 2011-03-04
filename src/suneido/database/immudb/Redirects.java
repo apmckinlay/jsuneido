@@ -17,12 +17,8 @@ package suneido.database.immudb;
 public class Redirects {
 	private DbHashTree redirs;
 
-	public Redirects() {
-		redirs = DbHashTree.empty();
-	}
-
-	public Redirects(int adr) {
-		redirs = DbHashTree.from(adr);
+	public Redirects(DbHashTree redirs) {
+		this.redirs = redirs;
 	}
 
 	public void put(int from, int to) {
@@ -34,8 +30,8 @@ public class Redirects {
 		return to == 0 ? from : to;
 	}
 
-	public int persist() {
-		return redirs.persist();
+	public int persist(Tran tran) {
+		return redirs.persist(tran.mmf());
 	}
 
 	public void print() {

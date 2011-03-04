@@ -44,8 +44,8 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 	}
 
 	@Override
-	public BtreeNode with(Record key) {
-		return new BtreeMemNode(this).with(key);
+	public BtreeNode with(Tran tran, Record key) {
+		return new BtreeMemNode(tran, this).with(tran, key);
 	}
 
 	@Override
@@ -61,8 +61,8 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 	}
 
 	@Override
-	public Btree.Split split(Record key, int adr) {
-		return BtreeNodeMethods.split(this, key, adr);
+	public Btree.Split split(Tran tran, Record key, int adr) {
+		return BtreeNodeMethods.split(tran, this, key, adr);
 	}
 
 	@Override

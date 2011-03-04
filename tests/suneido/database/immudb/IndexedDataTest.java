@@ -25,7 +25,8 @@ public class IndexedDataTest {
 		id.index(btree1, 0);
 		id.index(btree2, 1, 2);
 
-		id.add(record("a", "b", "c"));
+		Tran tran = mock(Tran.class);
+		id.add(tran, record("a", "b", "c"));
 
 		ArgumentCaptor<Record> arg = ArgumentCaptor.forClass(Record.class);
 		verify(btree1).add(arg.capture());

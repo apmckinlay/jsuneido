@@ -19,8 +19,8 @@ public class IndexedData {
 		return this;
 	}
 
-	public void add(Record data) {
-		int intref = Tran.refRecordToInt(data);
+	public void add(Tran tran, Record data) {
+		int intref = tran.refRecordToInt(data);
 		for (Index index : indexes)
 			index.add(data, intref);
 	}

@@ -26,7 +26,7 @@ public interface BtreeNode {
 	public ByteBuffer buf();
 
 	/** Inserts key in order */
-	public BtreeNode with(Record key);
+	public BtreeNode with(Tran tran, Record key);
 
 	public Record get(int i);
 
@@ -36,6 +36,6 @@ public interface BtreeNode {
 
 	public Record find(Record key);
 
-	public Split split(Record key, int adr);
+	public Split split(Tran tran, Record key, int adr);
 
 }

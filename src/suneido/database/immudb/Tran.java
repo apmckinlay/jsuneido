@@ -8,80 +8,74 @@ package suneido.database.immudb;
  * Transaction "context".
  */
 public class Tran {
-	private static final ThreadLocal<Tran> t = new ThreadLocal<Tran>() {
-		@Override
-		protected Tran initialValue() {
-			return new Tran();
-		};
-	};
 	private MmapFile mmf;
 	private final IntRefs intrefs = new IntRefs();
-	private Redirects redirs = new Redirects();
+	private Redirects redirs;
 	private final DataRecords datarecs = new DataRecords();
 
-	private Tran() {
+	public Tran() {
+		redirs = new Redirects(DbHashTree.empty(this));
 	}
 
-	public static MmapFile mmf() {
-		return t.get().mmf;
+	public MmapFile mmf() {
+		return mmf;
 	}
-	public static void mmf(MmapFile mmf) {
-		t.get().mmf = mmf;
-	}
-
-	public static void remove() {
-		t.remove();
+	public void mmf(MmapFile mmf) {
+		this.mmf = mmf;
 	}
 
-	public static int refToInt(Object ref) {
-		return t.get().intrefs.refToInt(ref);
+	public int refToInt(Object ref) {
+		return intrefs.refToInt(ref);
 	}
 
-	public static int refRecordToInt(Record ref) {
+	public int refRecordToInt(Record ref) {
 		int intref = refToInt(ref);
-		t.get().datarecs.add(intref);
+		datarecs.add(intref);
 		return intref;
 	}
 
-	public static Object intToRef(int intref) {
-		return t.get().intrefs.intToRef(intref);
+	public Object intToRef(int intref) {
+		return intrefs.intToRef(intref);
 	}
 
-	public static int redir(int from) {
-		return t.get().redirs.get(from);
+	public int redir(int from) {
+		return redirs.get(from);
 	}
 
-	public static void redir(int from, Object ref) {
+	public void redir(int from, Object ref) {
 		assert(! (ref instanceof Number));
 		if (IntRefs.isIntRef(from))
-			t.get().intrefs.update(from, ref);
+			intrefs.update(from, ref);
 		else
-			t.get().redirs.put(from, refToInt(ref));
+			redirs.put(from, refToInt(ref));
 	}
 
-	public static Redirects redirs() {
-		return t.get().redirs;
+	public Redirects redirs() {
+		return redirs;
 	}
 
-	public static void setRedirs(Redirects redirs) {
-		t.get().redirs = redirs;
+	public void setRedirs(Redirects redirs) {
+		this.redirs = redirs;
 	}
 
-	public static void startPersist() {
-		t.get().intrefs.startPersist();
+	public void startPersist() {
+		intrefs.startPersist();
 	}
 
-	public static void setAdr(int intref, int adr) {
-//System.out.println("setAdr " + Integer.toHexString(intref) + " to " + Integer.toHexString(adr));
-		t.get().intrefs.setAdr(intref, adr);
+	public void setAdr(int intref, int adr) {
+		intrefs.setAdr(intref, adr);
 	}
 
-	public static int getAdr(int intref) {
-		return t.get().intrefs.getAdr(intref);
+	public int getAdr(int intref) {
+		return intrefs.getAdr(intref);
 	}
 
-	public static void persistDataRecords() {
-		t.get().datarecs.persist();
+	public void persistDataRecords() {
+		datarecs.persist(this);
+	}
+
+	public int persistRedirs() {
+		return redirs.persist(this);
 	}
 
 }

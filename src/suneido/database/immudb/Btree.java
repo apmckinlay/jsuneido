@@ -13,15 +13,18 @@ import java.io.*;
 public class Btree {
 	public static final int MAX_NODE_SIZE = 20;
 	private static final int MAX_LEVELS = 20;
+	private final Tran tran;
 	private int root = 0; // an IntRef
 	private int treeLevels = 0;
 
-	public Btree() {
-		root = Tran.refToInt(BtreeMemNode.emptyLeaf());
+	public Btree(Tran tran) {
+		this.tran = tran;
+		root = tran.refToInt(BtreeMemNode.emptyLeaf(tran));
 		treeLevels = 0;
 	}
 
-	public Btree(int root, int treeLevels) {
+	public Btree(Tran tran, int root, int treeLevels) {
+		this.tran = tran;
 		this.root = root;
 		this.treeLevels = treeLevels;
 	}
@@ -60,29 +63,29 @@ public class Btree {
 		BtreeNode leaf = leafNodeAt(adr);
 		if (leaf.size() < MAX_NODE_SIZE) {
 			// normal/fast path - simply insert into leaf
-			leaf = leaf.with(key);
+			leaf = leaf.with(tran, key);
 			if (adr == root)
-				root = Tran.refToInt(leaf);
+				root = tran.refToInt(leaf);
 			else
-				Tran.redir(adr, leaf);
+				tran.redir(adr, leaf);
 			return;
 		}
 		// else split leaf
-		Split split = leaf.split(key, adr);
+		Split split = leaf.split(tran, key, adr);
 
 		// insert up the tree
 		for (--i; i >= 0; --i) {
 			BtreeNode tree = treeNodes[i];
 			if (tree.size() < MAX_NODE_SIZE) {
-				tree = tree.with(split.key);
+				tree = tree.with(tran, split.key);
 				if (adrs[i] == root)
-					root = Tran.refToInt(tree);
+					root = tran.refToInt(tree);
 				else
-					Tran.redir(adrs[i], tree);
+					tran.redir(adrs[i], tree);
 				return;
 			}
 			// else split
-			split = tree.split(split.key, adrs[i]);
+			split = tree.split(tran, split.key, adrs[i]);
 		}
 		// getting here means root was split so a new root is needed
 		root = newRoot(split);
@@ -94,8 +97,8 @@ public class Btree {
 
 	private int newRoot(Split split) {
 		++treeLevels;
-		BtreeNode node = BtreeMemNode.newRoot(split);
-		return Tran.refToInt(node);
+		BtreeNode node = BtreeMemNode.newRoot(tran, split);
+		return tran.refToInt(node);
 	}
 
 	/** used to return the results of a split */
@@ -111,25 +114,26 @@ public class Btree {
 		}
 	}
 
-//	public int persist() {
-//		if (IntRefs.isIntRef(root)) {
-//			root = rootNode().persist();
-//		}
-//		return root;
-//	}
-
-	static BtreeNode treeNodeAt(int adr) {
-		adr = Tran.redir(adr);
-		return IntRefs.isIntRef(adr)
-			? (BtreeMemNode) Tran.intToRef(adr)
-			: BtreeDbNode.tree(Tran.mmf().buffer(adr));
+	BtreeNode treeNodeAt(int adr) {
+		return treeNodeAt(tran, adr);
 	}
 
-	static BtreeNode leafNodeAt(int adr) {
-		adr = Tran.redir(adr);
+	static BtreeNode treeNodeAt(Tran tran, int adr) {
+		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeMemNode) Tran.intToRef(adr)
-			: BtreeDbNode.leaf(Tran.mmf().buffer(adr));
+			? (BtreeMemNode) tran.intToRef(adr)
+			: BtreeDbNode.tree(tran.mmf().buffer(adr));
+	}
+
+	BtreeNode leafNodeAt(int adr) {
+		return leafNodeAt(tran, adr);
+	}
+
+	static BtreeNode leafNodeAt(Tran tran, int adr) {
+		adr = tran.redir(adr);
+		return IntRefs.isIntRef(adr)
+			? (BtreeMemNode) tran.intToRef(adr)
+			: BtreeDbNode.leaf(tran.mmf().buffer(adr));
 	}
 
 	public void print() {
@@ -138,7 +142,7 @@ public class Btree {
 
 	public void print(Writer writer) {
 		try {
-			BtreeNodeMethods.print(writer, rootNode(), treeLevels);
+			BtreeNodeMethods.print(writer, tran, rootNode(), treeLevels);
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -158,7 +162,7 @@ public class Btree {
 	}
 
 	public void persist() {
-		root = BtreeNodeMethods.persist(Tran.redir(root), treeLevels);
+		root = BtreeNodeMethods.persist(tran, tran.redir(root), treeLevels);
 	}
 
 }
