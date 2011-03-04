@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 import static suneido.database.immudb.RecordTest.record;
 
 import org.junit.Test;
@@ -14,7 +15,7 @@ public class BtreeMemNodeTest {
 
 	@Test
 	public void empty() {
-		BtreeNode node = BtreeMemNode.emptyLeaf();
+		BtreeNode node = BtreeMemNode.emptyLeaf(mock(Tran.class));
 		assertThat(node.size(), is(0));
 		assertThat(node.get(0), is(Record.EMPTY));
 	}
@@ -26,15 +27,16 @@ public class BtreeMemNodeTest {
 		Record key3 = record("two");
 		Record key9 = record("z");
 
-		BtreeNode node = BtreeMemNode.emptyLeaf();
-		node.with(key2);
+		Tran tran = new Tran();
+		BtreeNode node = BtreeMemNode.emptyLeaf(tran);
+		node.with(tran, key2);
 		assertEquals(key2, node.get(0));
 
-		node.with(key1);
+		node.with(tran, key1);
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));
 
-		node.with(key3);
+		node.with(tran, key3);
 		assertEquals(3, node.size());
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));

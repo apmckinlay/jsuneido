@@ -4,39 +4,24 @@
 
 package suneido.database.immudb;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.*;
 
-import java.util.Random;
-
-import org.junit.After;
 import org.junit.Test;
 
 public class RedirectsTest {
 
 	@Test
 	public void main() {
-		Redirects r = new Redirects();
-		assertThat(r.get(123), equalTo(123));
+		DbHashTree mock = mock(DbHashTree.class);
+		when(mock.get(123)).thenReturn(456);
+		when(mock.with(anyInt(), anyInt())).thenReturn(mock);
+		Redirects r = new Redirects(mock);
+		assertThat(r.get(123), is(456));
 		r.put(123, 456);
-		assertThat(r.get(123), equalTo(456));
-
-		Random rand = new Random(8907);
-		final int N = 100;
-		int from[] = new int[N];
-		int to[] = new int[N];
-		for (int i = 0; i < N; ++i) {
-			from[i] = rand.nextInt() | 1; // ensure non-zero
-			to[i] = rand.nextInt() | 1; // ensure non-zero
-			r.put(from[i], to[i]);
-		}
-		for (int i = N - 1; i >= 0; --i)
-			assertThat(r.get(from[i]), equalTo(to[i]));
-	}
-
-	@After
-	public void teardown() {
-		Tran.remove();
+		verify(mock).with(123, 456);
 	}
 
 }
