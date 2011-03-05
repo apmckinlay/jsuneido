@@ -431,7 +431,7 @@ public class StringMethods extends BuiltinMethods {
 			return replace(s, pat, b, n);
 		}
 	}
-	static Object replace(String s, String p, Object b, int n) {
+	public static String replace(String s, String p, Object b, int n) {
 		Pattern pat = Regex.getPat(p, s);
 		String rep = null;
 		if (Ops.isString(b))

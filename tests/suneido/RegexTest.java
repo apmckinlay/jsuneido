@@ -1,10 +1,13 @@
 package suneido;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+
+import suneido.language.builtin.StringMethods;
 
 public class RegexTest {
 
@@ -70,6 +73,13 @@ public class RegexTest {
 		assertTrue(Regex.contains("_|_", "_\\|_"));
 		assertTrue(Regex.contains("_^_", "_\\^_"));
 		assertTrue(Regex.contains("_$_", "_\\$_"));
+
+		assertTrue(Regex.contains("_&_", "_\\&_"));
+	}
+
+	@Test
+	public void replace() {
+		assertThat(StringMethods.replace("a&b", "\\&", "X", 1), is("aXb"));
 	}
 
 }
