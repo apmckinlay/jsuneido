@@ -175,7 +175,6 @@ public class Regex {
 			sb.append("\\z");
 			return 2;
 		default:
-			sb.append("\\\\");
 			return 1;
 		}
 	}
