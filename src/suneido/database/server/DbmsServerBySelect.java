@@ -27,8 +27,6 @@ public class DbmsServerBySelect {
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
-	private static final ScheduledExecutorService scheduler
-			= Executors.newSingleThreadScheduledExecutor();
 
 	public static void run(int port, int idleTimeoutMin) {
 		TheDb.open();
@@ -39,25 +37,21 @@ public class DbmsServerBySelect {
 		}
 		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
-		scheduler.scheduleAtFixedRate(new Runnable() {
+		Suneido.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					TheDb.db().limitOutstandingTransactions();
 				}
-			}, 1, 1, TimeUnit.SECONDS);
-		scheduler.scheduleAtFixedRate(new Runnable() {
+			}, 1, TimeUnit.SECONDS);
+		Suneido.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					TheDb.db().dest.force();
 				}
-			}, 1, 1, TimeUnit.MINUTES);
+			}, 1, TimeUnit.MINUTES);
 		try {
 			server.run(port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static void schedule(Runnable fn, long delay, TimeUnit unit) {
-		scheduler.schedule(fn, delay, unit);
 	}
 
 	public static InetAddress getInetAddress() {

@@ -7,6 +7,7 @@ package suneido;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.*;
 
 import suneido.database.server.DbmsServer;
 import suneido.database.tools.*;
@@ -18,6 +19,8 @@ import suneido.util.Print;
  * Licensed under GPLv2.</small></p>
  */
 public class Suneido {
+	public static final ScheduledExecutorService scheduler
+			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) {
@@ -79,6 +82,7 @@ public class Suneido {
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
+			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
 			Compiler.eval("JInit()");
 			Repl.repl();
 			break;
@@ -155,6 +159,14 @@ public class Suneido {
 		System.out.println("-i[mpersonate] version  tell clients this version");
 		System.out.println("-h[elp] or -?           print this message");
 		System.out.println("--                      end the options, useful if arguments start with '-'");
+	}
+
+	public static void schedule(Runnable fn, long delay, TimeUnit unit) {
+		scheduler.schedule(fn, delay, unit);
+	}
+
+	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
+		scheduler.scheduleAtFixedRate(fn, delay, delay, unit);
 	}
 
 }

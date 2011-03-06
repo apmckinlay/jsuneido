@@ -29,6 +29,7 @@ import com.google.common.collect.Iterables;
  * Licensed under GPLv2.</small></p>
  */
 public class DbmsRemote extends Dbms {
+	public final Thread owner = Thread.currentThread();
 	DbmsChannel io;
 
 	public DbmsRemote(String ip, int port) {

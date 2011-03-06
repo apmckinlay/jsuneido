@@ -1,5 +1,7 @@
 package suneido;
 
+import java.util.*;
+
 import suneido.database.server.*;
 
 public class TheDbms {
@@ -9,14 +11,19 @@ public class TheDbms {
 	private static ThreadLocal<DbmsRemote> remoteDbms =
 		new ThreadLocal<DbmsRemote>() {
 			@Override
-	                protected DbmsRemote initialValue() {
-				return new DbmsRemote(ip, port);
+			protected DbmsRemote initialValue() {
+				DbmsRemote dbms = new DbmsRemote(ip, port);
+				dbmsRemotes.add(dbms);
+				dbms.sessionid(dbms.sessionid("") + ":" +
+						Thread.currentThread().getName());
+				return dbms;
 			};
 			@Override
-                        protected void finalize() throws Throwable {
+			protected void finalize() throws Throwable {
 				get().close();
 			};
 		};
+	private static List<DbmsRemote> dbmsRemotes = new ArrayList<DbmsRemote>();
 
 	public static Dbms dbms() {
 		if (ip == null) {
@@ -31,5 +38,21 @@ public class TheDbms {
 		TheDbms.ip = ip;
 		TheDbms.port = port;
 	}
+
+	/**
+	 * Run regularly to close connections owned by threads that SocketServer
+	 * has timed out.
+	 */
+	public static Runnable closer = new Runnable() {
+		@Override
+		public void run() {
+			Iterator<DbmsRemote> iter = dbmsRemotes.iterator();
+			while (iter.hasNext()) {
+				DbmsRemote dbms = iter.next();
+				if (! dbms.owner.isAlive())
+					dbms.close();
+			}
+		}
+	};
 
 }
