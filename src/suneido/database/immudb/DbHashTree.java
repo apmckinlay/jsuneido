@@ -7,10 +7,11 @@ package suneido.database.immudb;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import suneido.util.IntArrayList;
 
 import com.google.common.base.Strings;
 
@@ -165,8 +166,7 @@ public abstract class DbHashTree {
 
 		@Override
 		public int persist(MmapFile mmf) {
-//			return adr;
-throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
@@ -191,33 +191,34 @@ throw new UnsupportedOperationException();
 	 */
 	@NotThreadSafe
 	private static class MemNode extends Node {
+		private static final int KEY_FOR_CHILD = 0;
 		private int present;
-		private int[] keys;
-		private int[] values;
+		private final IntArrayList keys;
+		private final IntArrayList values;
 
 		MemNode(Tran tran) {
 			super(tran);
 			present = 0;
-			keys = new int[4];
-			values = new int[4];
+			keys = new IntArrayList();
+			values = new IntArrayList();
 		}
 
 		MemNode(DbNode dbn) {
 			super(dbn.tran);
 			present = dbn.present();
 			int n = size();
-			keys = new int[n + 1];
-			values = new int[n + 1];
+			keys = new IntArrayList(n + 1);
+			values = new IntArrayList(n + 1);
 			for (int i = 0; i < n; ++i) {
-				keys[i] = dbn.key(i);
-				values[i] = dbn.value(i);
+				keys.add(dbn.key(i));
+				values.add(dbn.value(i));
 			}
 		}
 
 		MemNode(DbNode dbn, int i, int ptr) {
 			this(dbn);
-			keys[i] = 0;
-			values[i] = ptr;
+			keys.set(i, KEY_FOR_CHILD);
+			values.set(i, ptr);
 		}
 
 		@Override
@@ -226,25 +227,18 @@ throw new UnsupportedOperationException();
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present & (bit - 1));
 			if ((present & bit) == 0) {
-				int n = size();
-				if (n + 1 > keys.length) {
-					keys = Arrays.copyOf(keys, keys.length * 2);
-					values = Arrays.copyOf(values, values.length * 2);
-				}
-				System.arraycopy(keys, i, keys, i + 1, n - i);
-				System.arraycopy(values, i, values, i + 1, n - i);
-				keys[i] = key;
-				values[i] = value;
+				keys.add(i, key);
+				values.add(i, value);
 				present |= bit;
-			} else if (keys[i] == key) {
-				values[i] = value;
+			} else if (keys.get(i) == key) {
+				values.set(i, value);
 			} else if (isPointer(i)) {
-				values[i] = tran.refToInt(intToRef(tran,
-						values[i]).with(key, value, shift + BITS_PER_LEVEL));
+				values.set(i, tran.refToInt(intToRef(tran,
+						values.get(i)).with(key, value, shift + BITS_PER_LEVEL)));
 			} else { // collision, change entry to pointer
-				values[i] = tran.refToInt(new MemNode(tran, keys[i], values[i], key, value,
-					shift + BITS_PER_LEVEL));
-				keys[i] = 0;
+				values.set(i, tran.refToInt(new MemNode(tran, keys.get(i), values.get(i), key, value,
+					shift + BITS_PER_LEVEL)));
+				keys.set(i, KEY_FOR_CHILD);
 			}
 			return this;
 		}
@@ -256,16 +250,22 @@ throw new UnsupportedOperationException();
 			int bits1 = (key1 >>> shift) & LEVEL_MASK;
 			int bits2 = (key2 >>> shift) & LEVEL_MASK;
 			if (bits1 != bits2) {
-				int i1 = bits1 < bits2 ? 0 : 1;
-				int i2 = 1 - i1;
-				keys[i1] = key1;
-				values[i1] = value1;
-				keys[i2] = key2;
-				values[i2] = value2;
+				if (bits1 < bits2) {
+					keys.add(key1);
+					keys.add(key2);
+					values.add(value1);
+					values.add(value2);
+				} else {
+					keys.add(key2);
+					keys.add(key1);
+					values.add(value2);
+					values.add(value1);
+				}
 				present = (1 << bits1) | (1 << bits2);
 			} else { // collision
-				values[0] = tran.refToInt(new MemNode(tran, key1, value1, key2, value2,
-						shift + BITS_PER_LEVEL));
+				keys.add(KEY_FOR_CHILD);
+				values.add(tran.refToInt(new MemNode(tran, key1, value1, key2, value2,
+						shift + BITS_PER_LEVEL)));
 				present = (1 << bits1);
 			}
 		}
@@ -274,14 +274,14 @@ throw new UnsupportedOperationException();
 		public int persist(MmapFile mmf) {
 			for (int i = 0; i < size(); ++i)
 				if (isPointer(i)) {
-					if (IntRefs.isIntRef(values[i]))
-						values[i] = intToRef(tran, values[i]).persist(mmf);
+					if (IntRefs.isIntRef(values.get(i)))
+						values.set(i, intToRef(tran, values.get(i)).persist(mmf));
 				} else {
-					if (IntRefs.isIntRef(values[i])) {
-						int adr = tran.getAdr(values[i]);
+					if (IntRefs.isIntRef(values.get(i))) {
+						int adr = tran.getAdr(values.get(i));
 						if (adr == 0)
 							throw new Error("redirect still intref at persist");
-						values[i] = adr;
+						values.set(i, adr);
 					}
 				}
 			int adr = mmf.alloc(byteBufSize());
@@ -294,8 +294,8 @@ throw new UnsupportedOperationException();
 		public void toByteBuf(ByteBuffer buf) {
 			buf.putInt(present);
 			for (int i = 0; i < size(); ++i) {
-				buf.putInt(keys[i]);
-				buf.putInt(values[i]);
+				buf.putInt(keys.get(i));
+				buf.putInt(values.get(i));
 			}
 		}
 
@@ -311,12 +311,12 @@ throw new UnsupportedOperationException();
 
 		@Override
 		int key(int i) {
-			return keys[i];
+			return keys.get(i);
 		}
 
 		@Override
 		int value(int i) {
-			return values[i];
+			return values.get(i);
 		}
 
 	}

@@ -12,12 +12,18 @@ public class IntArrayList {
 	private int[] data;
 	private int size = 0;
 
+	/**
+	 * Constructs an empty list with a small initial capacity.
+	 */
 	public IntArrayList() {
 		data = new int[DEFAULT_INITIAL_SIZE];
 	}
 
-	public IntArrayList(int n) {
-		data = new int[Math.max(n, DEFAULT_INITIAL_SIZE)];
+	/**
+	 * Constructs an empty list with the specified initial capacity.
+	 */
+	public IntArrayList(int initialCapacity) {
+		data = new int[initialCapacity];
 	}
 
 	public int get(int i) {
@@ -30,7 +36,7 @@ public class IntArrayList {
 	}
 
 	public void set(int i, int value) {
-		assert i < size;
+		assert i < size : "index " + i + " greater than size " + size;
 		data[i] = value;
 	}
 
