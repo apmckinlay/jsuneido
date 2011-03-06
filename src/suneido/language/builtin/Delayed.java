@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import java.util.concurrent.TimeUnit;
 
-import suneido.database.server.DbmsServer;
+import suneido.Suneido;
 import suneido.language.*;
 
 public class Delayed extends SuFunction {
@@ -12,7 +12,7 @@ public class Delayed extends SuFunction {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(fs, args);
-		DbmsServer.schedule(new Run(args[1]),
+		Suneido.schedule(new Run(args[1]),
 				Ops.toInt(args[0]), TimeUnit.MILLISECONDS);
 		return null;
 	}

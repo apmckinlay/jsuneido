@@ -12,17 +12,18 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * Socket server framework using plain sockets (not NIO).
  * Uses a supplied HandlerFactory to create a new Runnable handler
  * for each accepted connection.
+ * Uses bounded queue and CallerRunsPolicy to throttle requests.
  */
 @NotThreadSafe
 public class ServerBySocket {
-	private static final int CORE_THREADS = 4;
-	private static final int MAX_THREADS = 4;
-	private static final int QUEUE_SIZE = 4;
+	private static final int CORE_THREADS = 8;
+	private static final int MAX_THREADS = 8;
+	private static final int QUEUE_SIZE = 8;
 	private static final ThreadFactory threadFactory =
 			new ThreadFactoryBuilder().setDaemon(true).build();
 	private static final ThreadPoolExecutor executor =
 			new ThreadPoolExecutor(CORE_THREADS, MAX_THREADS,
-					60, TimeUnit.SECONDS,
+					30, TimeUnit.SECONDS,
 					new ArrayBlockingQueue<Runnable>(QUEUE_SIZE),
 					threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
 	private final HandlerFactory handlerFactory;
@@ -30,6 +31,7 @@ public class ServerBySocket {
 
 	public ServerBySocket(HandlerFactory handlerFactory) {
 		this.handlerFactory = handlerFactory;
+		executor.allowCoreThreadTimeOut(true);
 	}
 
 	public void run(int port) throws IOException {
