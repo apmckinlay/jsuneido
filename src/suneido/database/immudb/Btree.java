@@ -122,7 +122,7 @@ public class Btree {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeMemNode) tran.intToRef(adr)
-			: BtreeDbNode.tree(tran.mmf().buffer(adr));
+			: BtreeDbNode.tree(tran.stor.buffer(adr));
 	}
 
 	BtreeNode leafNodeAt(int adr) {
@@ -133,7 +133,7 @@ public class Btree {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeMemNode) tran.intToRef(adr)
-			: BtreeDbNode.leaf(tran.mmf().buffer(adr));
+			: BtreeDbNode.leaf(tran.stor.buffer(adr));
 	}
 
 	public void print() {

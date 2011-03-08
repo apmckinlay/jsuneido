@@ -116,7 +116,7 @@ public class BtreeNodeMethods {
 			return ptr; // already in database
 		BtreeMemNode node = (BtreeMemNode) ((level == 0)
 				? Btree.leafNodeAt(tran, ptr) : Btree.treeNodeAt(tran, ptr));
-		int adr = node.persist(level);
+		int adr = node.store(level);
 		tran.setAdr(ptr, adr);
 		return adr;
 	}

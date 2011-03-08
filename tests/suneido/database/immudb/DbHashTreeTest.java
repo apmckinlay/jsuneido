@@ -4,48 +4,48 @@
 
 package suneido.database.immudb;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-import java.io.File;
-import java.util.Random;
+import java.util.*;
 
-import org.junit.*;
+import org.junit.Test;
+
 
 public class DbHashTreeTest {
 
 	@Test
 	public void empty() {
-		DbHashTree tree = DbHashTree.empty(mock(Tran.class));
+		DbHashTree tree = DbHashTree.empty(null);
 		for (int i = 32; i < 64; ++i)
-			assertEquals(0, tree.get(i));
+			assertThat(tree.get(i), is(0));
 	}
 
 	@Test
 	public void one_node() {
-		DbHashTree tree = DbHashTree.empty(mock(Tran.class));
+		DbHashTree tree = DbHashTree.empty(null);
 		for (int i = 32; i < 64; ++i)
 			tree.with(i, i * 7);
 		for (int i = 32; i < 64; ++i)
-			assertEquals(i * 7, tree.get(i));
+			assertThat(tree.get(i), is(i * 7));
 
 		// update
 		tree.with(50, 555);
-		assertEquals(555, tree.get(50));
+		assertThat(tree.get(50), is(555));
 	}
 
 	@Test
 	public void collisions() {
-		DbHashTree tree = DbHashTree.empty(new Tran());
+		DbHashTree tree = DbHashTree.empty(null);
 		tree.with(0x10000, 123);
 		tree.with(0x20000, 456);
-		assertEquals(123, tree.get(0x10000));
-		assertEquals(456, tree.get(0x20000));
+		assertThat(tree.get(0x10000), is(123));
+		assertThat(tree.get(0x20000), is(456));
 	}
 
 	@Test
 	public void random() {
-		DbHashTree tree = DbHashTree.empty(new Tran());
+		DbHashTree tree = DbHashTree.empty(null);
 		Random r = new Random(123);
 		int key, value;
 		final int N = 10000;
@@ -63,43 +63,39 @@ public class DbHashTreeTest {
 			value = r.nextInt();
 			if (key == 0 || value == 0)
 				continue ;
-			assertEquals(value, tree.get(key));
+			assertThat(tree.get(key), is(value));
 		}
 	}
 
 	@Test
 	public void persist() {
-		Tran tran = new Tran();
-		DbHashTree tree = DbHashTree.empty(tran);
-		MmapFile mmf = new MmapFile("tmp1", "rw");
-		tran.mmf(mmf);
-		int at = tree.persist(mmf);
-		assertEquals(1, at);
-		mmf.buffer(mmf.alloc(1)).put((byte) 0xff); // ensure data isn't truncated
-		mmf.close();
+		Translator translator = new Translator() {
+			public int translate(int x) {
+				return x;
+			}
+		};
+		Storage stor = new TestStorage();
 
-		mmf = new MmapFile("tmp1", "rw");
-		tran.mmf(mmf);
-		tree = DbHashTree.from(tran, at);
+		DbHashTree tree = DbHashTree.empty(stor);
+		int at = tree.store(stor, translator);
+
+		tree = DbHashTree.from(stor, at);
 		for (int i = 32; i < 64; ++i)
-			assertEquals(0, tree.get(i));
+			assertThat(tree.get(i), is(0));
 		tree = tree.with(32, 123).with(64, 456);
-		assertEquals(123, tree.get(32));
-		assertEquals(456, tree.get(64));
-		int at2 = tree.persist(mmf);
+		assertThat(tree.get(32), is(123));
+		assertThat(tree.get(64), is(456));
+		int at2 = tree.store(stor, translator);
 		assert(at != at2);
-		assertEquals(123, tree.get(32));
-		assertEquals(456, tree.get(64));
-		tree = DbHashTree.from(tran, at2);
-		assertEquals(123, tree.get(32));
-		assertEquals(456, tree.get(64));
-		mmf.close();
+		assertThat(tree.get(32), is(123));
+		assertThat(tree.get(64), is(456));
+		tree = DbHashTree.from(stor, at2);
+		assertThat(tree.get(32), is(123));
+		assertThat(tree.get(64), is(456));
 
-		mmf = new MmapFile("tmp1", "rw");
-		tran.mmf(mmf);
-		tree = DbHashTree.from(tran, at2);
-		assertEquals(123, tree.get(32));
-		assertEquals(456, tree.get(64));
+		tree = DbHashTree.from(stor, at2);
+		assertThat(tree.get(32), is(123));
+		assertThat(tree.get(64), is(456));
 		Random r = new Random(1234);
 		int key, value;
 		final int N = 1000;
@@ -111,12 +107,9 @@ public class DbHashTreeTest {
 				continue ;
 			tree = tree.with(key, value);
 		}
-		at2 = tree.persist(mmf);
-		mmf.close();
+		at2 = tree.store(stor, translator);
 
-		mmf = new MmapFile("tmp1", "rw");
-		tran.mmf(mmf);
-		tree = DbHashTree.from(tran, at2);
+		tree = DbHashTree.from(stor, at2);
 		for (int i = 0; i < N; ++i) {
 			key = r.nextInt();
 			value = r.nextInt();
@@ -131,15 +124,9 @@ public class DbHashTreeTest {
 			value = r.nextInt();
 			if (key == 0 || value == 0)
 				continue ;
-			assertEquals("i=" + i + " key=" + DbHashTree.fmt(key) + " value=" + value, value, tree.get(key));
+			assertThat("i=" + i + " key=" + DbHashTree.fmt(key) + " value=" + value,
+					tree.get(key), is(value));
 		}
-		mmf.close();
-	}
-
-	@BeforeClass
-	@AfterClass
-	public static void cleanup() {
-		new File("tmp1").delete();
 	}
 
 }

@@ -105,10 +105,10 @@ public class RecordBase {
 	 * Will only work on in-memory records
 	 * where buf was allocated with the correct length.
 	 */
-	public int persistRecord(MmapFile mmf) {
+	public int storeRecord(Storage stor) {
 		int len = length();
-		int adr = mmf.alloc(len);
-		ByteBuffer dst = mmf.buffer(adr);
+		int adr = stor.alloc(len);
+		ByteBuffer dst = stor.buffer(adr);
 		byte[] data = buf.array();
 		assert len == data.length;
 		dst.put(data);

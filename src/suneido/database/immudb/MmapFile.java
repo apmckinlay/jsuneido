@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * NOTE: When opening, trailing zero bytes are ignored.
  */
 @ThreadSafe
-public class MmapFile {
+public class MmapFile implements Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	private static final int ALIGN = (1 << SHIFT);

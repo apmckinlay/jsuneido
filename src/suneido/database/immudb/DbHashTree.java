@@ -7,6 +7,7 @@ package suneido.database.immudb;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -14,8 +15,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.util.IntArrayList;
 
 import com.google.common.base.Strings;
-
-// TODO persist values that are Tran
 
 /**
  * Persistent hash tree used for storing redirections.
@@ -33,29 +32,29 @@ public abstract class DbHashTree {
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
-	public static DbHashTree empty(Tran tran) {
-		return new MemNode(tran);
+	public static DbHashTree empty(Storage stor) {
+		return new MemNode(stor);
 	}
 
-	public static DbHashTree from(Tran tran, int at) {
-		return new DbNode(tran, at);
+	public static DbHashTree from(Storage stor, int at) {
+		return new DbNode(stor, at);
 	}
 
 	public abstract int get(int key);
 
 	public abstract DbHashTree with(int key, int value);
 
-	public abstract int persist(MmapFile mmf);
+	public abstract int store(Storage stor, Translator translator);
 
 	public void print() {
 		((Node) this).print(0);
 	}
 
 	private abstract static class Node extends DbHashTree {
-		protected final Tran tran;
+		protected final Storage stor;
 
-		Node(Tran tran) {
-			this.tran = tran;
+		Node(Storage stor) {
+			this.stor = stor;
 		}
 
 		/** returns 0 if key not present */
@@ -75,7 +74,7 @@ public abstract class DbHashTree {
 			if (entryKey != 0)
 				return entryKey == key ? value(i) : 0;
 			else { // pointer
-				Node child = intToRef(tran, value(i));
+				Node child = child(i);
 				return child.get(key, shift + BITS_PER_LEVEL);
 			}
 		}
@@ -92,6 +91,7 @@ public abstract class DbHashTree {
 		abstract int present();
 		abstract int key(int i);
 		abstract int value(int i);
+		abstract Node child(int i);
 
 		@Override
 		public Node with(int key, int value) {
@@ -114,7 +114,7 @@ public abstract class DbHashTree {
 							"\t" + Integer.toHexString(value(i)));
 				else {
 					System.out.println(indent + ">>>>>>>>");
-					intToRef(tran, value(i)).print(shift + BITS_PER_LEVEL);
+					load(stor, value(i)).print(shift + BITS_PER_LEVEL);
 				}
 			}
 		}
@@ -130,13 +130,11 @@ public abstract class DbHashTree {
 	private static class DbNode extends Node {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
-		private final int adr;
 		private final ByteBuffer buf;
 
-		DbNode(Tran tran, int adr) {
-			super(tran);
-			this.adr = adr;
-			buf = tran.mmf().buffer(adr);
+		DbNode(Storage stor, int adr) {
+			super(stor);
+			buf = stor.buffer(adr);
 		}
 
 		@Override
@@ -154,18 +152,16 @@ public abstract class DbHashTree {
 					: new MemNode(this).with(key, value, shift);
 			}
 			if (entryKey == 0) { // value is pointer to child
-				int ptr = tran.refToInt(intToRef(tran, value(i)).with(key, value,
-						shift + BITS_PER_LEVEL));
-				return new MemNode(this, i, ptr);
+				Node node = load(stor, value(i)).with(key, value, shift + BITS_PER_LEVEL);
+				return new MemNode(this, i, node);
 			} else { // collision
-				int ptr = tran.refToInt(new MemNode(tran, key(i), value(i), key, value,
-						shift + BITS_PER_LEVEL));
-				return new MemNode(this, i, ptr);
+				Node node = new MemNode(stor, key(i), value(i), key, value, shift + BITS_PER_LEVEL);
+				return new MemNode(this, i, node);
 			}
 		}
 
 		@Override
-		public int persist(MmapFile mmf) {
+		public int store(Storage stor, Translator translator) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -183,6 +179,11 @@ public abstract class DbHashTree {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE + INT_BYTES);
 		}
 
+		@Override
+		Node child(int i) {
+			return load(stor, value(i));
+		}
+
 	}
 
 	/**
@@ -194,28 +195,28 @@ public abstract class DbHashTree {
 		private static final int KEY_FOR_CHILD = 0;
 		private int present;
 		private final IntArrayList keys;
-		private final IntArrayList values;
+		private final ArrayList<Object> values;
 
-		MemNode(Tran tran) {
-			super(tran);
+		MemNode(Storage stor) {
+			super(stor);
 			present = 0;
 			keys = new IntArrayList();
-			values = new IntArrayList();
+			values = new ArrayList<Object>();
 		}
 
 		MemNode(DbNode dbn) {
-			super(dbn.tran);
+			super(dbn.stor);
 			present = dbn.present();
 			int n = size();
 			keys = new IntArrayList(n + 1);
-			values = new IntArrayList(n + 1);
+			values = new ArrayList<Object>(n + 1);
 			for (int i = 0; i < n; ++i) {
 				keys.add(dbn.key(i));
 				values.add(dbn.value(i));
 			}
 		}
 
-		MemNode(DbNode dbn, int i, int ptr) {
+		MemNode(DbNode dbn, int i, Object ptr) {
 			this(dbn);
 			keys.set(i, KEY_FOR_CHILD);
 			values.set(i, ptr);
@@ -233,18 +234,20 @@ public abstract class DbHashTree {
 			} else if (keys.get(i) == key) {
 				values.set(i, value);
 			} else if (isPointer(i)) {
-				values.set(i, tran.refToInt(intToRef(tran,
-						values.get(i)).with(key, value, shift + BITS_PER_LEVEL)));
+				Object ptr = values.get(i);
+				if (ptr instanceof Integer)
+					ptr = load(stor, (Integer) ptr);
+				values.set(i, ((Node) ptr).with(key, value, shift + BITS_PER_LEVEL));
 			} else { // collision, change entry to pointer
-				values.set(i, tran.refToInt(new MemNode(tran, keys.get(i), values.get(i), key, value,
-					shift + BITS_PER_LEVEL)));
+				values.set(i, new MemNode(stor, keys.get(i), values.get(i), key, value,
+					shift + BITS_PER_LEVEL));
 				keys.set(i, KEY_FOR_CHILD);
 			}
 			return this;
 		}
 
-		private MemNode(Tran tran, int key1, int value1, int key2, int value2, int shift) {
-			this(tran);
+		private MemNode(Storage stor, int key1, Object value1, int key2, int value2, int shift) {
+			this(stor);
 			assert shift < 32;
 			assert key1 != key2;
 			int bits1 = (key1 >>> shift) & LEVEL_MASK;
@@ -264,28 +267,26 @@ public abstract class DbHashTree {
 				present = (1 << bits1) | (1 << bits2);
 			} else { // collision
 				keys.add(KEY_FOR_CHILD);
-				values.add(tran.refToInt(new MemNode(tran, key1, value1, key2, value2,
-						shift + BITS_PER_LEVEL)));
+				values.add(new MemNode(stor, key1, value1, key2, value2,
+						shift + BITS_PER_LEVEL));
 				present = (1 << bits1);
 			}
 		}
 
 		@Override
-		public int persist(MmapFile mmf) {
+		public int store(Storage stor, Translator translator) {
 			for (int i = 0; i < size(); ++i)
 				if (isPointer(i)) {
-					if (IntRefs.isIntRef(values.get(i)))
-						values.set(i, intToRef(tran, values.get(i)).persist(mmf));
-				} else {
-					if (IntRefs.isIntRef(values.get(i))) {
-						int adr = tran.getAdr(values.get(i));
-						if (adr == 0)
-							throw new Error("redirect still intref at persist");
+					if (values.get(i) instanceof MemNode) {
+						int adr = ((MemNode) values.get(i)).store(stor, translator);
 						values.set(i, adr);
 					}
+				} else {
+					int value = (Integer) values.get(i);
+					values.set(i, translator.translate(value));
 				}
-			int adr = mmf.alloc(byteBufSize());
-			ByteBuffer buf = mmf.buffer(adr);
+			int adr = stor.alloc(byteBufSize());
+			ByteBuffer buf = stor.buffer(adr);
 			toByteBuf(buf);
 			return adr;
 		}
@@ -295,7 +296,7 @@ public abstract class DbHashTree {
 			buf.putInt(present);
 			for (int i = 0; i < size(); ++i) {
 				buf.putInt(keys.get(i));
-				buf.putInt(values.get(i));
+				buf.putInt((Integer) values.get(i));
 			}
 		}
 
@@ -316,7 +317,16 @@ public abstract class DbHashTree {
 
 		@Override
 		int value(int i) {
-			return values.get(i);
+			return (Integer) values.get(i);
+		}
+
+		@Override
+		Node child(int i) {
+			Object ptr = values.get(i);
+			if (ptr instanceof Node)
+				return (Node) ptr;
+			else
+				return new DbNode(stor, (Integer) ptr);
 		}
 
 	}
@@ -330,11 +340,8 @@ public abstract class DbHashTree {
 		return s.substring(0, s.length() - 1);
 	}
 
-	private static Node intToRef(Tran tran, int at) {
-		if (IntRefs.isIntRef(at))
-			return (Node) tran.intToRef(at);
-		else
-			return new DbNode(tran, at);
+	private static Node load(Storage stor, int at) {
+		return new DbNode(stor, at);
 	}
 
 }
