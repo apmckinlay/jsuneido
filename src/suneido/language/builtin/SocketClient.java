@@ -91,12 +91,12 @@ public class SocketClient extends SuValue {
 					nr += r;
 				} while (nr < n);
 			} catch (SocketTimeoutException e) {
-				// handled below
+				throw new SuException("socket Read lost connection or timeout", e);
 			} catch (IOException e) {
 				throw new SuException("socket Read failed", e);
 			}
 			if (nr == 0)
-				throw new SuException("socket: lost connection or timeout");
+				throw new SuException("socket Read lost connection or timeout");
 			return Util.bytesToString(data, nr);
 		}
 	}
@@ -108,7 +108,7 @@ public class SocketClient extends SuValue {
 			try {
 				String line = socketClient(self).input.readLine();
 				if (line == null)
-					throw new SuException("socket client: lost connection or timeout");
+					throw new SuException("socket Readline lost connection or timeout");
 				return line;
 			} catch (IOException e) {
 				throw new SuException("socket Readline failed", e);
@@ -124,8 +124,7 @@ public class SocketClient extends SuValue {
 			try {
 				socketClient(self).output.write(Util.stringToBytes(data));
 			} catch (IOException e) {
-				if (! e.toString().contains("Connection reset by peer"))
-					throw new SuException("socket Write failed", e);
+				throw new SuException("socket Write failed", e);
 			}
 			return null;
 		}
@@ -142,8 +141,7 @@ public class SocketClient extends SuValue {
 				socketClient(self).output.write(Util.stringToBytes(data));
 				socketClient(self).output.write(newline);
 			} catch (IOException e) {
-				if (! e.toString().contains("Connection reset by peer"))
-					throw new SuException("socket Writeline failed", e);
+				throw new SuException("socket Writeline failed", e);
 			}
 			return null;
 		}
