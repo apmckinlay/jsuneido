@@ -16,15 +16,14 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @NotThreadSafe
 public class ServerBySocket {
-	private static final int CORE_THREADS = 8;
-	private static final int MAX_THREADS = 8;
-	private static final int QUEUE_SIZE = 8;
+	private static final int CORE_THREADS = 1;
+	private static final int MAX_THREADS = 4;
 	private static final ThreadFactory threadFactory =
 			new ThreadFactoryBuilder().setDaemon(true).build();
 	private static final ThreadPoolExecutor executor =
 			new ThreadPoolExecutor(CORE_THREADS, MAX_THREADS,
-					30, TimeUnit.SECONDS,
-					new ArrayBlockingQueue<Runnable>(QUEUE_SIZE),
+					60, TimeUnit.SECONDS,
+					new SynchronousQueue<Runnable>(),
 					threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
 	private final HandlerFactory handlerFactory;
 	private InetAddress inetAddress;
