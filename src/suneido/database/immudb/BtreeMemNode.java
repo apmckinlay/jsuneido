@@ -141,10 +141,10 @@ public class BtreeMemNode implements BtreeNode {
 		return BtreeNodeMethods.toString(this);
 	}
 
-	public int persist(int level) {
+	public int store(int level) {
 		RecordBuilder rb = builder(level);
-		int adr = tran.mmf().alloc(rb.length());
-		ByteBuffer buf = tran.mmf().buffer(adr);
+		int adr = tran.stor.alloc(rb.length());
+		ByteBuffer buf = tran.stor.buffer(adr);
 		rb.toByteBuffer(buf);
 		return adr;
 	}

@@ -7,21 +7,15 @@ package suneido.database.immudb;
 /**
  * Transaction "context".
  */
-public class Tran {
-	private MmapFile mmf;
+public class Tran implements Translator {
+	public final Storage stor;
 	private final IntRefs intrefs = new IntRefs();
 	private Redirects redirs;
 	private final DataRecords datarecs = new DataRecords();
 
-	public Tran() {
-		redirs = new Redirects(DbHashTree.empty(this));
-	}
-
-	public MmapFile mmf() {
-		return mmf;
-	}
-	public void mmf(MmapFile mmf) {
-		this.mmf = mmf;
+	public Tran(Storage stor) {
+		this.stor = stor;
+		redirs = new Redirects(DbHashTree.empty(stor));
 	}
 
 	public int refToInt(Object ref) {
@@ -70,12 +64,17 @@ public class Tran {
 		return intrefs.getAdr(intref);
 	}
 
-	public void persistDataRecords() {
-		datarecs.persist(this);
+	public void storeDataRecords() {
+		datarecs.store(this);
 	}
 
-	public int persistRedirs() {
-		return redirs.persist(this);
+	public int storeRedirs() {
+		return redirs.store(stor, this);
+	}
+
+	@Override
+	public int translate(int x) {
+		return getAdr(x);
 	}
 
 }

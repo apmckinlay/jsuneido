@@ -30,8 +30,8 @@ public class Redirects {
 		return to == 0 ? from : to;
 	}
 
-	public int persist(Tran tran) {
-		return redirs.persist(tran.mmf());
+	public int store(Storage stor, Translator translator) {
+		return redirs.store(stor, translator);
 	}
 
 	public void print() {
