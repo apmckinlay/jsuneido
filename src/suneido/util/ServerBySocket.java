@@ -2,11 +2,10 @@ package suneido.util;
 
 import java.io.*;
 import java.net.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Socket server framework using plain sockets (not NIO).
@@ -16,21 +15,13 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @NotThreadSafe
 public class ServerBySocket {
-	private static final int CORE_THREADS = 1;
-	private static final int MAX_THREADS = 4;
-	private static final ThreadFactory threadFactory =
-			new ThreadFactoryBuilder().setDaemon(true).build();
-	private static final ThreadPoolExecutor executor =
-			new ThreadPoolExecutor(CORE_THREADS, MAX_THREADS,
-					60, TimeUnit.SECONDS,
-					new SynchronousQueue<Runnable>(),
-					threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+	private final Executor executor;
 	private final HandlerFactory handlerFactory;
 	private InetAddress inetAddress;
 
-	public ServerBySocket(HandlerFactory handlerFactory) {
+	public ServerBySocket(Executor executor, HandlerFactory handlerFactory) {
+		this.executor = executor;
 		this.handlerFactory = handlerFactory;
-		executor.allowCoreThreadTimeOut(true);
 	}
 
 	public void run(int port) throws IOException {
@@ -91,7 +82,9 @@ public class ServerBySocket {
 	}
 
 	public static void main(String[] args) {
-		ServerBySocket server = new ServerBySocket(new EchoHandlerFactory());
+		ServerBySocket server = new ServerBySocket(
+				Executors.newCachedThreadPool(),
+				new EchoHandlerFactory());
 		try {
 			server.run(1234);
 		} catch (IOException e) {
