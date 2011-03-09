@@ -8,6 +8,7 @@ import static suneido.util.Util.array;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.*;
 
 import suneido.*;
 import suneido.language.*;
@@ -15,6 +16,7 @@ import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
@@ -42,6 +44,17 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Listener implements Runnable {
+		private static final int CORE_THREADS = 0;
+		private static final int MAX_THREADS = 8;
+		private static final ThreadFactory threadFactory =
+				new ThreadFactoryBuilder().setDaemon(true).build();
+		private static final ThreadPoolExecutor executor =
+				new ThreadPoolExecutor(
+					CORE_THREADS, MAX_THREADS,
+					1, TimeUnit.MINUTES,
+					new SynchronousQueue<Runnable>(),
+					threadFactory,
+					new ThreadPoolExecutor.CallerRunsPolicy());
 		SuClass serverClass;
 		int port;
 
@@ -52,7 +65,8 @@ public class SocketServer extends SuClass {
 
 		@Override
 		public void run() {
-			ServerBySocket server =	new ServerBySocket(new ListenerHandlerFactory());
+			ServerBySocket server =	new ServerBySocket(executor,
+					new ListenerHandlerFactory());
 			try {
 				server.run(port);
 			} catch (IOException e) {
