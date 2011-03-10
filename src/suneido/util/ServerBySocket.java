@@ -19,6 +19,10 @@ public class ServerBySocket {
 	private final HandlerFactory handlerFactory;
 	private InetAddress inetAddress;
 
+	public ServerBySocket(HandlerFactory handlerFactory) {
+		this(Executors.newCachedThreadPool(), handlerFactory);
+	}
+
 	public ServerBySocket(Executor executor, HandlerFactory handlerFactory) {
 		this.executor = executor;
 		this.handlerFactory = handlerFactory;
@@ -82,9 +86,7 @@ public class ServerBySocket {
 	}
 
 	public static void main(String[] args) {
-		ServerBySocket server = new ServerBySocket(
-				Executors.newCachedThreadPool(),
-				new EchoHandlerFactory());
+		ServerBySocket server = new ServerBySocket(new EchoHandlerFactory());
 		try {
 			server.run(1234);
 		} catch (IOException e) {
