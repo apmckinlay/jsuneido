@@ -14,7 +14,7 @@ import com.google.common.base.Strings;
 
 /**
  * Common interface for {@link BtreeDbNode} and {@link BtreeMemNode}
- * Provides access to a list of keys in sorted order {@link RecordBase}
+ * Provides access to a list of keys in sorted order {@link Record}
  * Keys are {@link Record}'s.
  * The final field on leaf keys is a pointer to the corresponding data record.
  * A tree keys is a leaf key plus a pointer to the child node.

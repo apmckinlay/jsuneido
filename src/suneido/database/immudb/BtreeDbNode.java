@@ -15,10 +15,10 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class BtreeDbNode extends BtreeNode {
 	private final int level; // 0 means leaf
-	private final RecordBase rec;
+	private final Record rec;
 
 	public BtreeDbNode(int level, ByteBuffer buf) {
-		rec = new RecordBase(buf, 0);
+		rec = new Record(buf, 0);
 		this.level = level;
 	}
 
