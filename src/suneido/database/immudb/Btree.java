@@ -143,7 +143,7 @@ public class Btree {
 
 	public void print(Writer writer) {
 		try {
-			BtreeNodeMethods.print(writer, tran, nodeAt(treeLevels, root));
+			nodeAt(treeLevels, root).print(writer, tran);
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
