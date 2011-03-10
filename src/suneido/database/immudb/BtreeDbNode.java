@@ -11,14 +11,14 @@ import javax.annotation.concurrent.Immutable;
 /**
  * An btree node wrapping a ByteBuffer from the database.
  * "updating" a BtreeDbNode produces a BtreeMemNode
- * Extends RecordBase to avoid an extra layer of wrapping.
  */
 @Immutable
-public class BtreeDbNode extends RecordBase implements BtreeNode {
+public class BtreeDbNode extends BtreeNode {
 	private final int level; // 0 means leaf
+	private final RecordBase rec;
 
 	public BtreeDbNode(int level, ByteBuffer buf) {
-		super(buf, 0);
+		rec = new RecordBase(buf, 0);
 		this.level = level;
 	}
 
@@ -29,7 +29,7 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 
 	@Override
 	public ByteBuffer buf() {
-		return buf;
+		return rec.buf;
 	}
 
 	@Override
@@ -41,32 +41,27 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 	public Record get(int i) {
 		if (i >= size())
 			return Record.EMPTY;
-		return new Record(buf, offset + fieldOffset(i));
-	}
-
-	@Override
-	public Record find(Record key) {
-		return BtreeNodeMethods.find(this, key);
-	}
-
-	@Override
-	public Btree.Split split(Tran tran, Record key, int adr) {
-		return BtreeNodeMethods.split(tran, this, key, adr);
+		return new Record(rec.buf, rec.offset + fieldOffset(i));
 	}
 
 	@Override
 	public ByteBuffer fieldBuf(int i) {
-		return buf;
-	}
-
-	@Override
-	public String toString() {
-		return BtreeNodeMethods.toString(this);
+		return rec.buf;
 	}
 
 	@Override
 	public int store(Tran tran) {
 		return 0;
+	}
+
+	@Override
+	public int size() {
+		return rec.size();
+	}
+
+	@Override
+	public int fieldOffset(int i) {
+		return rec.fieldOffset(i);
 	}
 
 }

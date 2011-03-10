@@ -20,7 +20,7 @@ import suneido.database.immudb.Btree.Split;
  * are stored as buffer and offset (rather than creating a Record wrapper).
  */
 @NotThreadSafe
-public class BtreeMemNode implements BtreeNode {
+public class BtreeMemNode extends BtreeNode {
 	private final int level;
 	private final ByteBuffer buf;
 	private final List<Object> data = new ArrayList<Object>();
@@ -36,7 +36,7 @@ public class BtreeMemNode implements BtreeNode {
 
 	public BtreeMemNode(BtreeDbNode node) {
 		level = node.level();
-		buf = node.buf;
+		buf = node.buf();
 		for (int i = 0; i < node.size(); ++i)
 			data.add(node.fieldOffset(i));
 	}
@@ -82,6 +82,7 @@ public class BtreeMemNode implements BtreeNode {
 			for (int i = from; i < to; ++i)
 				data.add(mnode.data.get(i));
 		} else {
+			assert buf == node.buf();
 			for (int i = from; i < to; ++i)
 				data.add(node.fieldOffset(i));
 		}
@@ -90,7 +91,7 @@ public class BtreeMemNode implements BtreeNode {
 
 	@Override
 	public BtreeNode with(Record key) {
-		int at = BtreeNodeMethods.lowerBound(this, key.buf, key.offset);
+		int at = lowerBound(key.buf, key.offset);
 		data.add(at, key);
 		return this;
 	}
@@ -113,21 +114,6 @@ public class BtreeMemNode implements BtreeNode {
 	public int fieldOffset(int i) {
 		Object x = data.get(i);
 		return (x instanceof Record) ? ((Record) x).offset : (Integer) x;
-	}
-
-	@Override
-	public Record find(Record key) {
-		return BtreeNodeMethods.find(this, key);
-	}
-
-	@Override
-	public Btree.Split split(Tran tran, Record key, int adr) {
-		return BtreeNodeMethods.split(tran, this, key, adr);
-	}
-
-	@Override
-	public String toString() {
-		return BtreeNodeMethods.toString(this);
 	}
 
 	@Override
