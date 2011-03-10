@@ -9,7 +9,7 @@ package suneido.database.immudb;
  */
 public class Tran implements Translator {
 	public final Storage stor;
-	private final IntRefs intrefs = new IntRefs();
+	final IntRefs intrefs = new IntRefs();
 	private Redirects redirs;
 	private final DataRecords datarecs = new DataRecords();
 
@@ -52,8 +52,8 @@ public class Tran implements Translator {
 		this.redirs = redirs;
 	}
 
-	public void startPersist() {
-		intrefs.startPersist();
+	public void startStore() {
+		intrefs.startStore();
 	}
 
 	public void setAdr(int intref, int adr) {

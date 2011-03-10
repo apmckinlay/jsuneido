@@ -47,48 +47,62 @@ public class BtreeTest {
 		Random rand = new Random(90873);
 
 		Btree btree = new Btree(tran);
-		persist(btree);
+		store(btree);
 
 		tran = new Tran(stor);
 		btree = new Btree(tran, root, levels);
-		addAndPersist(10, rand, keys, btree);
+		addAndStore(10, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(0));
 
 		tran = new Tran(stor);
 		btree = new Btree(tran, root, levels);
-		addAndPersist(100, rand, keys, btree);
+		addAndStore(100, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(1));
 
 		tran = new Tran(stor);
 		tran.setRedirs(new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree(tran, root, levels);
-		addAndPersist(200, rand, keys, btree);
+		addAndStore(200, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(2));
 
 		tran = new Tran(stor);
 		tran.setRedirs(new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree(tran, root, levels);
+		check(keys, rand, btree);
+	}
+
+	private void check(List<Record> keys, Random rand, Btree btree) {
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 	}
 
-	private void persist(Btree btree) {
-		tran.startPersist();
-		btree.persist();
+	private void store(Btree btree) {
+		tran.startStore();
+		btree.store();
 		root = btree.root();
 		levels = btree.treeLevels();
 		redirs = tran.storeRedirs();
 		tran = null;
 	}
 
-	private void addAndPersist(int n, Random rand, List<Record> keys, Btree btree) {
+	private void addAndStore(int n, Random rand, List<Record> keys, Btree btree) {
+//System.out.println("--------------- before add");
+//btree.print();
+		check(keys, rand, btree);
+		add(n, rand, keys, btree);
+//System.out.println("--------------- after add");
+//btree.print();
+		check(keys, rand, btree);
+		store(btree);
+	}
+
+	private void add(int n, Random rand, List<Record> keys, Btree btree) {
 		for (int i = 0; i < n; ++i) {
 			Record key = randomKey(rand);
 			btree.add(key);
 			keys.add(key);
 		}
-		persist(btree);
 	}
 
 	@Test
@@ -106,11 +120,11 @@ public class BtreeTest {
 		int intref = tran.refRecordToInt(rec);
 		Record key = record("hello", intref);
 		btree.add(key);
-		tran.startPersist();
+		tran.startStore();
 		tran.storeDataRecords();
 		int adr = tran.getAdr(intref);
 		assert adr != 0;
-		btree.persist();
+		btree.store();
 		int root = btree.root();
 		int levels = btree.treeLevels();
 
@@ -128,7 +142,7 @@ public class BtreeTest {
 		String s = "";
 		for (int i = 0; i < n; ++i)
 			s += (char) ('a' + rand.nextInt(26));
-		return record(s, rand.nextInt());
+		return record(s, rand.nextInt(Integer.MAX_VALUE));
 	}
 
 	private Record record(String s) {

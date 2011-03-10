@@ -4,9 +4,6 @@
 
 package suneido.database.immudb;
 
-import static suneido.database.immudb.BtreeNode.Type.LEAF;
-import static suneido.database.immudb.BtreeNode.Type.TREE;
-
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
@@ -18,24 +15,16 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public class BtreeDbNode extends RecordBase implements BtreeNode {
-	private final Type type;
+	private final int level; // 0 means leaf
 
-	public static BtreeDbNode leaf(ByteBuffer buf) {
-		return new BtreeDbNode(LEAF, buf);
-	}
-
-	public static BtreeDbNode tree(ByteBuffer buf) {
-		return new BtreeDbNode(TREE, buf);
-	}
-
-	private BtreeDbNode(Type type, ByteBuffer buf) {
+	public BtreeDbNode(int level, ByteBuffer buf) {
 		super(buf, 0);
-		this.type = type;
+		this.level = level;
 	}
 
 	@Override
-	public Type type() {
-		return type;
+	public int level() {
+		return level;
 	}
 
 	@Override
@@ -44,8 +33,8 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 	}
 
 	@Override
-	public BtreeNode with(Tran tran, Record key) {
-		return new BtreeMemNode(tran, this).with(tran, key);
+	public BtreeNode with(Record key) {
+		return new BtreeMemNode(this).with(key);
 	}
 
 	@Override
@@ -73,6 +62,11 @@ public class BtreeDbNode extends RecordBase implements BtreeNode {
 	@Override
 	public String toString() {
 		return BtreeNodeMethods.toString(this);
+	}
+
+	@Override
+	public int store(Tran tran) {
+		return 0;
 	}
 
 }

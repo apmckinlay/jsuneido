@@ -283,7 +283,9 @@ public abstract class DbHashTree {
 					}
 				} else {
 					int value = (Integer) values.get(i);
-					values.set(i, translator.translate(value));
+					value = translator.translate(value);
+assert(value != 0);
+					values.set(i, value);
 				}
 			int adr = stor.alloc(byteBufSize());
 			ByteBuffer buf = stor.buffer(adr);

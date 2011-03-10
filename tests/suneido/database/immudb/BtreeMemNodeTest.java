@@ -14,7 +14,7 @@ public class BtreeMemNodeTest {
 
 	@Test
 	public void empty() {
-		BtreeNode node = BtreeMemNode.emptyLeaf(null);
+		BtreeNode node = BtreeMemNode.emptyLeaf();
 		assertThat(node.size(), is(0));
 		assertThat(node.get(0), is(Record.EMPTY));
 	}
@@ -26,16 +26,15 @@ public class BtreeMemNodeTest {
 		Record key3 = record("two");
 		Record key9 = record("z");
 
-		Tran tran = new Tran(null);
-		BtreeNode node = BtreeMemNode.emptyLeaf(tran);
-		node.with(tran, key2);
+		BtreeNode node = BtreeMemNode.emptyLeaf();
+		node.with(key2);
 		assertEquals(key2, node.get(0));
 
-		node.with(tran, key1);
+		node.with(key1);
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));
 
-		node.with(tran, key3);
+		node.with(key3);
 		assertEquals(3, node.size());
 		assertEquals(key1, node.get(0));
 		assertEquals(key2, node.get(1));

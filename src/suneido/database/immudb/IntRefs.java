@@ -4,8 +4,7 @@
 
 package suneido.database.immudb;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Used to assign integer values to in-memory references
@@ -15,7 +14,7 @@ import java.util.List;
  * Returned int's have the upper 12 bits set to 1
  * to distinguish them from database offsets from {@link IntLongs}
  */
-public class IntRefs {
+public class IntRefs implements Iterable<Object> {
 	public static final int MASK = 0xfff00000;
 	private final List<Object> list = new ArrayList<Object>();
 	private int adrs[] = null;
@@ -45,7 +44,7 @@ public class IntRefs {
 		list.set(intref ^ MASK, ref);
 	}
 
-	public void startPersist() {
+	public void startStore() {
 		assert adrs == null;
 		adrs = new int[list.size()];
 	}
@@ -57,6 +56,11 @@ public class IntRefs {
 
 	public int getAdr(int intref) {
 		return adrs[intref ^ MASK];
+	}
+
+	@Override
+	public Iterator<Object> iterator() {
+		return list.iterator();
 	}
 
 }

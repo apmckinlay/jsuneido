@@ -17,16 +17,15 @@ import suneido.database.immudb.Btree.Split;
  * Pointers are {@link MmapFile} int's
  */
 public interface BtreeNode {
-	public enum Type { LEAF, TREE };
 
-	public Type type();
+	public int level();
 
 	public int size();
 
 	public ByteBuffer buf();
 
 	/** Inserts key in order */
-	public BtreeNode with(Tran tran, Record key);
+	public BtreeNode with(Record key);
 
 	public Record get(int i);
 
@@ -37,5 +36,7 @@ public interface BtreeNode {
 	public Record find(Record key);
 
 	public Split split(Tran tran, Record key, int adr);
+
+	public int store(Tran tran);
 
 }
