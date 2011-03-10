@@ -5,47 +5,44 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.immudb.Btree.Split;
-import suneido.util.IntArrayList;
 
 /**
  * An in-memory mutable btree node.
  * "updating" a {@link BtreeDbNode} produces a BtreeMemNode
- * <p>To avoid copying allocation, the keys from the original BtreeMemNode
+ * <p>
+ * To avoid copying/allocation, the keys from the original BtreeMemNode
  * are stored as buffer and offset (rather than creating a Record wrapper).
  */
 @NotThreadSafe
 public class BtreeMemNode implements BtreeNode {
-	private final Tran tran;
-	private final Type type;
+	private final int level;
 	private final ByteBuffer buf;
-	private final IntArrayList data = new IntArrayList();
+	private final List<Object> data = new ArrayList<Object>();
 
-	public BtreeMemNode(Tran tran, Type type) {
-		this.tran = tran;
-		this.type = type;
-		buf = null;
+	public BtreeMemNode(int level) {
+		this(level, null);
 	}
 
-	public BtreeMemNode(Tran tran, Type type, ByteBuffer buf) {
-		this.tran = tran;
-		this.type = type;
+	public BtreeMemNode(int level, ByteBuffer buf) {
+		this.level = level;
 		this.buf = buf;
 	}
 
-	public BtreeMemNode(Tran tran, BtreeDbNode node) {
-		this.tran = tran;
-		type = node.type();
+	public BtreeMemNode(BtreeDbNode node) {
+		level = node.level();
 		buf = node.buf;
 		for (int i = 0; i < node.size(); ++i)
 			data.add(node.fieldOffset(i));
 	}
 
-	public static BtreeMemNode emptyLeaf(Tran tran) {
-		return new BtreeMemNode(tran, Type.LEAF);
+	public static BtreeMemNode emptyLeaf() {
+		return new BtreeMemNode(0);
 	}
 
 	@Override
@@ -54,8 +51,8 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	@Override
-	public Type type() {
-		return type;
+	public int level() {
+		return level;
 	}
 
 	@Override
@@ -67,15 +64,15 @@ public class BtreeMemNode implements BtreeNode {
 	public Record get(int i) {
 		if (i >= size())
 			return Record.EMPTY;
-		int x = data.get(i);
-		if (IntRefs.isIntRef(x))
-			return (Record) tran.intToRef(x);
+		Object x = data.get(i);
+		if (x instanceof Record)
+			return (Record) x;
 		else
-			return new Record(buf, x);
+			return new Record(buf, (Integer) x);
 	}
 
 	public BtreeMemNode add(Record key) {
-		data.add(tran.refToInt(key));
+		data.add(key);
 		return this;
 	}
 
@@ -92,9 +89,9 @@ public class BtreeMemNode implements BtreeNode {
 	}
 
 	@Override
-	public BtreeNode with(Tran tran, Record key) {
+	public BtreeNode with(Record key) {
 		int at = BtreeNodeMethods.lowerBound(this, key.buf, key.offset);
-		data.add(at, tran.refToInt(key));
+		data.add(at, key);
 		return this;
 	}
 
@@ -103,27 +100,19 @@ public class BtreeMemNode implements BtreeNode {
 		for (int i = 0; i < split.key.size() - 1; ++i)
 			key1.add("");
 		key1.add(split.left);
-		return new BtreeMemNode(tran, Type.TREE).add(key1.build()).add(split.key);
+		return new BtreeMemNode(split.level + 1).add(key1.build()).add(split.key);
 	}
 
 	@Override
 	public ByteBuffer fieldBuf(int i) {
-		int x = data.get(i);
-		if (IntRefs.isIntRef(x)) {
-			Record r = (Record) tran.intToRef(x);
-			return r.buf;
-		} else
-			return buf;
+		Object x = data.get(i);
+		return (x instanceof Record) ? ((Record) x).buf : buf;
 	}
 
 	@Override
 	public int fieldOffset(int i) {
-		int x = data.get(i);
-		if (IntRefs.isIntRef(x)) {
-			Record r = (Record) tran.intToRef(x);
-			return r.offset;
-		} else
-			return x;
+		Object x = data.get(i);
+		return (x instanceof Record) ? ((Record) x).offset : (Integer) x;
 	}
 
 	@Override
@@ -141,18 +130,19 @@ public class BtreeMemNode implements BtreeNode {
 		return BtreeNodeMethods.toString(this);
 	}
 
-	public int store(int level) {
-		RecordBuilder rb = builder(level);
+	@Override
+	public int store(Tran tran) {
+		RecordBuilder rb = build(tran);
 		int adr = tran.stor.alloc(rb.length());
 		ByteBuffer buf = tran.stor.buffer(adr);
 		rb.toByteBuffer(buf);
 		return adr;
 	}
 
-	private RecordBuilder builder(int level) {
+	private RecordBuilder build(Tran tran) {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < size(); ++i) {
-			Record r = translate(i, level);
+			Record r = translate(tran, i);
 			if (r != null)
 				rb.addNested(r.buf, r.offset);
 			else
@@ -161,46 +151,59 @@ public class BtreeMemNode implements BtreeNode {
 		return rb;
 	}
 
-	private Record translate(int i, int level) {
+	private Record translate(Tran tran, int i) {
 		ByteBuffer buf = fieldBuf(i);
 		int offset = fieldOffset(i);
 		int size = Record.size(buf, offset);
 		boolean translate = false;
 
-		int data = tran.redir(dataref(buf, offset, size, level));
-		if (IntRefs.isIntRef(data)) {
-			data = tran.getAdr(data);
-			translate = true;
-		}
-		int ptr = 0;
-		if (level > 0) {
-			ptr = tran.redir(pointer(buf, offset, size));
-			if (IntRefs.isIntRef(ptr)) {
-				ptr = BtreeNodeMethods.persist(tran, ptr, level - 1);
+		int data = dataref(buf, offset, size);
+		if (data != 0) {
+			data = tran.redir(data);
+			if (IntRefs.isIntRef(data)) {
+				data = tran.getAdr(data);
+				assert data != 0;
 				translate = true;
 			}
 		}
+
+		int ptr = 0;
+		if (level > 0) {
+			int ptr1 = ptr = pointer(buf, offset, size);
+			if (! IntRefs.isIntRef(ptr1))
+				ptr = tran.redir(ptr1);
+			ptr = tran.getAdr(ptr);
+//System.out.println("pointer " + ptr1 + " translated to " + ptr);
+			assert ! IntRefs.isIntRef(ptr);
+			if (ptr1 != ptr)
+				translate = true;
+			//TODO if redirections are unique then we can remove this one
+		}
+
 		if (! translate)
 			return null;
 
 		int prefix = size - (level > 0 ? 2 : 1);
 		RecordBuilder rb = new RecordBuilder().add(buf, offset, prefix);
-		rb.add(data);
+		if (data == 0)
+			rb.add("");
+		else
+			rb.add(data);
 		if (level > 0)
 			rb.add(ptr);
 		return rb.build();
 	}
 
-	private int pointer(ByteBuffer buf, int offset, int size) {
-		return (int) ((Number) Record.get(buf, offset, size - 1)).longValue();
-	}
-
-	private int dataref(ByteBuffer buf, int offset, int size, int level) {
+	private int dataref(ByteBuffer buf, int offset, int size) {
 		int at = size - (level > 0 ? 2 : 1);
 		Object x = Record.get(buf, offset, at);
 		if (x.equals(""))
-			return 1; // non-zero, non-intref
-		return (int) ((Number) x).longValue();
+			return 0;
+		return ((Number) x).intValue();
+	}
+
+	private int pointer(ByteBuffer buf, int offset, int size) {
+		return ((Number) Record.get(buf, offset, size - 1)).intValue();
 	}
 
 }

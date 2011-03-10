@@ -4,9 +4,6 @@
 
 package suneido.database.immudb;
 
-import static suneido.database.immudb.BtreeNode.Type.LEAF;
-import static suneido.database.immudb.BtreeNode.Type.TREE;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
@@ -30,7 +27,7 @@ public class BtreeNodeMethods {
 	public static Record find(BtreeNode node, Record key) {
 		int at = lowerBound(node, key.buf, key.offset);
 		Record slot = node.get(at);
-		if (node.type() == LEAF)
+		if (node.level() == 0) // leaf
 			return at < node.size() ? slot : null;
 		else
 			return slot.startsWith(key) ? slot : node.get(at - 1);
@@ -53,72 +50,61 @@ public class BtreeNodeMethods {
 	}
 
 	public static Split split(Tran tran, BtreeNode node, Record key, int adr) {
-		BtreeNode.Type type = node.type();
+		int level = node.level();
 		BtreeNode left;
 		BtreeNode right;
 		Record splitKey;
 		int keyPos = lowerBound(node, key.buf, key.offset);
 		if (keyPos == node.size()) {
 			// key is at end of node, just make new node
-			right = new BtreeMemNode(tran, type).add(key);
+			right = new BtreeMemNode(level).add(key);
 			splitKey = key;
 		} else {
 			int mid = node.size() / 2;
 			splitKey = node.get(mid);
 			if (keyPos <= mid) {
-				left = new BtreeMemNode(tran, type, node.buf())
+				left = new BtreeMemNode(level, node.buf())
 						.add(node, 0, keyPos).add(key).add(node, keyPos, mid);
-				right = new BtreeMemNode(tran, type, node.buf())
+				right = new BtreeMemNode(level, node.buf())
 						.add(node, mid, node.size());
 			} else {
-				left = new BtreeMemNode(tran, type, node.buf())
+				left = new BtreeMemNode(level, node.buf())
 						.add(node, 0, mid);
-				right = new BtreeMemNode(tran, type, node.buf())
+				right = new BtreeMemNode(level, node.buf())
 						.add(node, mid, keyPos).add(key).add(node, keyPos, node.size());
 			}
 			tran.redir(adr, left);
 		}
 		int splitKeySize = splitKey.size();
-		if (type == TREE)
+		if (level > 0) // tree node
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
 		splitKey = new RecordBuilder().add(splitKey).add(rightAdr).build();
-		return new Split(adr, rightAdr, splitKey);
+		return new Split(level, adr, rightAdr, splitKey);
 	}
 
 	public static String toString(BtreeNode node) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(node.type());
-		sb.append("[");
+		sb.append("BtreeNode level=").append(node.level());
+		sb.append(" [");
 		for (int i = 0; i < node.size(); ++i)
 			sb.append(node.get(i));
 		sb.append("]");
 		return sb.toString();
 	}
 
-	public static void print(Writer w, Tran tran, BtreeNode node, int level) throws IOException {
+	public static void print(Writer w, Tran tran, BtreeNode node) throws IOException {
+		int level = node.level();
 		String indent = Strings.repeat("     ", level);
-		w.append(indent).append(node.type().toString()).append("\n");
+		w.append(indent).append("NODE\n");
 		for (int i = 0; i < node.size(); ++i) {
 			Record slot = node.get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0) {
-				int adr = (Integer) slot.get(slot.size() - 1);
-				print(w, tran,
-						level == 1 ? Btree.leafNodeAt(tran, adr) : Btree.treeNodeAt(tran, adr),
-						level - 1);
+				int adr = ((Number) slot.get(slot.size() - 1)).intValue();
+				print(w, tran, Btree.nodeAt(tran, level - 1, adr));
 			}
 		}
-	}
-
-	public static int persist(Tran tran, int ptr, int level) {
-		if (! IntRefs.isIntRef(ptr))
-			return ptr; // already in database
-		BtreeMemNode node = (BtreeMemNode) ((level == 0)
-				? Btree.leafNodeAt(tran, ptr) : Btree.treeNodeAt(tran, ptr));
-		int adr = node.store(level);
-		tran.setAdr(ptr, adr);
-		return adr;
 	}
 
 }

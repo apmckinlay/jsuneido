@@ -8,18 +8,23 @@ import java.io.*;
 
 /**
  * An append-only immutable btree.
- * @see BtreeNode, BtreeLeafNode, BtreeTreeNode
+ * <p>
+ * Note: If a key is unique without it's data address
+ * then it can be updated via redirection
+ * otherwise it must be updated by delete and insert
+ * since it's position may change, potentially to a different node.
+ * @see BtreeNode, BtreeLeafNode, BtreeTreeNode, BtreeNodeMethods
  */
 public class Btree {
 	public static final int MAX_NODE_SIZE = 20;
 	private static final int MAX_LEVELS = 20;
 	private final Tran tran;
-	private int root = 0; // an IntRef
+	private int root;
 	private int treeLevels = 0;
 
 	public Btree(Tran tran) {
 		this.tran = tran;
-		root = tran.refToInt(BtreeMemNode.emptyLeaf(tran));
+		root = tran.refToInt(BtreeMemNode.emptyLeaf());
 		treeLevels = 0;
 	}
 
@@ -35,14 +40,13 @@ public class Btree {
 	 */
 	public int get(Record key) {
 		int adr = root;
-		BtreeNode treeNodes[] = new BtreeNode[MAX_LEVELS];
-		int i;
-		for (i = 0; i < treeLevels; ++i) {
-			treeNodes[i] = treeNodeAt(adr);
-			Record slot = treeNodes[i].find(key);
+		for (int i = 0; i < treeLevels; ++i) {
+			int level = treeLevels - i;
+			BtreeNode node = nodeAt(level, adr);
+			Record slot = node.find(key);
 			adr = getAddress(slot);
 		}
-		BtreeNode leaf = leafNodeAt(adr);
+		BtreeNode leaf = nodeAt(0, adr);
 		Record slot = leaf.find(key);
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
@@ -55,19 +59,26 @@ public class Btree {
 		int i;
 		for (i = 0; i < treeLevels; ++i) {
 			adrs[i] = adr;
-			treeNodes[i] = treeNodeAt(adr);
+			int level = treeLevels - i;
+			treeNodes[i] = nodeAt(level, adr);
 			Record slot = treeNodes[i].find(key);
 			adr = getAddress(slot);
 		}
 
-		BtreeNode leaf = leafNodeAt(adr);
+		BtreeNode leaf = nodeAt(0, adr);
 		if (leaf.size() < MAX_NODE_SIZE) {
 			// normal/fast path - simply insert into leaf
-			leaf = leaf.with(tran, key);
-			if (adr == root)
-				root = tran.refToInt(leaf);
-			else
+			BtreeNode before = leaf;
+			leaf = leaf.with(key);
+			if (adr == root) {
+				if (leaf != before)
+					root = tran.refToInt(leaf);
+			} else
 				tran.redir(adr, leaf);
+//if (adr == root) {
+//root = tran.redir(root);
+//rootNode = leaf;
+//}
 			return;
 		}
 		// else split leaf
@@ -77,7 +88,7 @@ public class Btree {
 		for (--i; i >= 0; --i) {
 			BtreeNode tree = treeNodes[i];
 			if (tree.size() < MAX_NODE_SIZE) {
-				tree = tree.with(tran, split.key);
+				tree = tree.with(split.key);
 				if (adrs[i] == root)
 					root = tran.refToInt(tree);
 				else
@@ -88,52 +99,42 @@ public class Btree {
 			split = tree.split(tran, split.key, adrs[i]);
 		}
 		// getting here means root was split so a new root is needed
-		root = newRoot(split);
+		newRoot(split);
 	}
 
 	public static int getAddress(Record slot) {
-		return (int)((Number) slot.get(slot.size() - 1)).longValue();
+		return ((Number) slot.get(slot.size() - 1)).intValue();
 	}
 
-	private int newRoot(Split split) {
+	private void newRoot(Split split) {
 		++treeLevels;
-		BtreeNode node = BtreeMemNode.newRoot(tran, split);
-		return tran.refToInt(node);
+		root = tran.refToInt(BtreeMemNode.newRoot(tran, split));
 	}
 
 	/** used to return the results of a split */
 	static class Split {
-		int left;
-		int right;
-		Record key; // new value to go in parent, points to right half
+		final int level; // of node being split
+		final int left;
+		final int right;
+		final Record key; // new value to go in parent, points to right half
 
-		Split(int left, int right, Record key) {
+		Split(int level, int left, int right, Record key) {
+			this.level = level;
 			this.left = left;
 			this.right = right;
 			this.key = key;
 		}
 	}
 
-	BtreeNode treeNodeAt(int adr) {
-		return treeNodeAt(tran, adr);
+	BtreeNode nodeAt(int level, int adr) {
+		return nodeAt(tran, level, adr);
 	}
 
-	static BtreeNode treeNodeAt(Tran tran, int adr) {
+	static BtreeNode nodeAt(Tran tran, int level, int adr) {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeMemNode) tran.intToRef(adr)
-			: BtreeDbNode.tree(tran.stor.buffer(adr));
-	}
-
-	BtreeNode leafNodeAt(int adr) {
-		return leafNodeAt(tran, adr);
-	}
-
-	static BtreeNode leafNodeAt(Tran tran, int adr) {
-		adr = tran.redir(adr);
-		return IntRefs.isIntRef(adr)
-			? (BtreeMemNode) tran.intToRef(adr)
-			: BtreeDbNode.leaf(tran.stor.buffer(adr));
+			: new BtreeDbNode(level, tran.stor.buffer(adr));
 	}
 
 	public void print() {
@@ -142,15 +143,11 @@ public class Btree {
 
 	public void print(Writer writer) {
 		try {
-			BtreeNodeMethods.print(writer, tran, rootNode(), treeLevels);
+			BtreeNodeMethods.print(writer, tran, nodeAt(treeLevels, root));
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private BtreeNode rootNode() {
-		return treeLevels == 0 ? leafNodeAt(root) : treeNodeAt(root);
 	}
 
 	public int root() {
@@ -161,8 +158,44 @@ public class Btree {
 		return treeLevels;
 	}
 
-	public void persist() {
-		root = BtreeNodeMethods.persist(tran, tran.redir(root), treeLevels);
+	public void store() {
+//		BtreeNode[] nodes = Iterables.toArray(
+//				Iterables.filter(tran.intrefs, BtreeNode.class),
+//				BtreeNode.class);
+//		Arrays.sort(nodes, nodeLevelComparator);
+//		for (BtreeNode node : nodes)
+//			node.store(tran);
+
+//System.out.println("STORE");
+		// very crude and inefficient
+		for (int level = 0; level <= treeLevels; ++level) {
+//System.out.println("level " + level);
+			int i = -1;
+			for (Object x : tran.intrefs) {
+				++i;
+				if (x instanceof BtreeNode) {
+					BtreeNode node = (BtreeNode) x;
+					if (node.level() == level) {
+						int adr = node.store(tran);
+//System.out.println((i | IntRefs.MASK) + " stored at " + adr);
+						if (adr != 0)
+							tran.setAdr(i | IntRefs.MASK, adr);
+					}
+				}
+			}
+		}
+//System.out.println("root before " + root);
+		if (IntRefs.isIntRef(root))
+			root = tran.getAdr(root);
+//System.out.println("root after " + root);
 	}
+
+//	private static final Comparator<BtreeNode> nodeLevelComparator =
+//		new Comparator<BtreeNode>() {
+//			@Override
+//			public int compare(BtreeNode x, BtreeNode y) {
+//				return y.level() - x.level(); // reverse, biggest first
+//			}
+//		};
 
 }
