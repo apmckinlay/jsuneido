@@ -51,7 +51,7 @@ public class Btree {
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
 
-	public void add(Record key) {
+	public void add(DbRecord key) {
 		// search down the tree
 		int adr = root;
 		BtreeNode treeNodes[] = new BtreeNode[MAX_LEVELS];

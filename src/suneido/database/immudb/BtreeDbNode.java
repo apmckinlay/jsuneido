@@ -15,10 +15,10 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class BtreeDbNode extends BtreeNode {
 	private final int level; // 0 means leaf
-	private final Record rec;
+	private final DbRecord rec;
 
 	public BtreeDbNode(int level, ByteBuffer buf) {
-		rec = new Record(buf, 0);
+		rec = new DbRecord(buf, 0);
 		this.level = level;
 	}
 
@@ -40,8 +40,8 @@ public class BtreeDbNode extends BtreeNode {
 	@Override
 	public Record get(int i) {
 		if (i >= size())
-			return Record.EMPTY;
-		return new Record(rec.buf, rec.offset + fieldOffset(i));
+			return DbRecord.EMPTY;
+		return new DbRecord(rec.buf, rec.offset + fieldOffset(i));
 	}
 
 	@Override

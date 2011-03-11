@@ -26,24 +26,24 @@ public class BtreeTest {
 
 	@Test
 	public void main() {
-		List<Record> keys = new ArrayList<Record>();
+		List<DbRecord> keys = new ArrayList<DbRecord>();
 		int NKEYS = 1000;
 		Random rand = new Random(1234);
 		for (int i = 0; i < NKEYS; ++i)
 			keys.add(randomKey(rand));
 
 		Btree btree = new Btree(tran);
-		for (Record key : keys)
+		for (DbRecord key : keys)
 			btree.add(key);
 
 		Collections.shuffle(keys, rand);
-		for (Record key : keys)
+		for (DbRecord key : keys)
 			assertThat(btree.get(key), is(adr(key)));
 	}
 
 	@Test
 	public void store() {
-		List<Record> keys = new ArrayList<Record>();
+		List<DbRecord> keys = new ArrayList<DbRecord>();
 		Random rand = new Random(90873);
 
 		Btree btree = new Btree(tran);
@@ -71,9 +71,9 @@ public class BtreeTest {
 		check(keys, rand, btree);
 	}
 
-	private void check(List<Record> keys, Random rand, Btree btree) {
+	private void check(List<DbRecord> keys, Random rand, Btree btree) {
 		Collections.shuffle(keys, rand);
-		for (Record key : keys)
+		for (DbRecord key : keys)
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 	}
 
@@ -86,7 +86,7 @@ public class BtreeTest {
 		tran = null;
 	}
 
-	private void addAndStore(int n, Random rand, List<Record> keys, Btree btree) {
+	private void addAndStore(int n, Random rand, List<DbRecord> keys, Btree btree) {
 //System.out.println("--------------- before add");
 //btree.print();
 		check(keys, rand, btree);
@@ -97,9 +97,9 @@ public class BtreeTest {
 		store(btree);
 	}
 
-	private void add(int n, Random rand, List<Record> keys, Btree btree) {
+	private void add(int n, Random rand, List<DbRecord> keys, Btree btree) {
 		for (int i = 0; i < n; ++i) {
-			Record key = randomKey(rand);
+			DbRecord key = randomKey(rand);
 			btree.add(key);
 			keys.add(key);
 		}
@@ -107,8 +107,8 @@ public class BtreeTest {
 
 	@Test
 	public void intref_adr_should_be_greater_than_db_offset() {
-		Record intref = record("hello", 123 | IntRefs.MASK);
-		Record offset = record("hello", 567);
+		DbRecord intref = record("hello", 123 | IntRefs.MASK);
+		DbRecord offset = record("hello", 567);
 		assert intref.compareTo(offset) > 0;
 		assert offset.compareTo(intref) < 0;
 	}
@@ -116,9 +116,9 @@ public class BtreeTest {
 	@Test
 	public void translate_data_refs() {
 		Btree btree = new Btree(tran);
-		Record rec = record("a data record");
+		DbRecord rec = record("a data record");
 		int intref = tran.refRecordToInt(rec);
-		Record key = record("hello", intref);
+		DbRecord key = record("hello", intref);
 		btree.add(key);
 		tran.startStore();
 		tran.storeDataRecords();
@@ -133,11 +133,11 @@ public class BtreeTest {
 		assertThat(btree.get(record("hello")), is(adr));
 	}
 
-	private int adr(Record key) {
+	private int adr(DbRecord key) {
 		return Btree.getAddress(key);
 	}
 
-	public Record randomKey(Random rand) {
+	public DbRecord randomKey(Random rand) {
 		int n = 1 + rand.nextInt(5);
 		String s = "";
 		for (int i = 0; i < n; ++i)
@@ -145,11 +145,11 @@ public class BtreeTest {
 		return record(s, rand.nextInt(Integer.MAX_VALUE));
 	}
 
-	private Record record(String s) {
+	private DbRecord record(String s) {
 		return new RecordBuilder().add(s).build();
 	}
 
-	private Record record(String s, int n) {
+	private DbRecord record(String s, int n) {
 		return new RecordBuilder().add(s).add(n).build();
 	}
 

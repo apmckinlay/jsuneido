@@ -21,7 +21,7 @@ public class DataRecords {
 	public void store(Tran tran) {
 		for (int i = 0; i < records.size(); ++i) {
 			int intref = records.get(i);
-			Record r = (Record) tran.intToRef(intref);
+			DbRecord r = (DbRecord) tran.intToRef(intref);
 			tran.setAdr(intref, r.storeRecord(tran.stor));
 		}
 	}

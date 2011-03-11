@@ -21,7 +21,7 @@ import suneido.database.immudb.Btree.Split;
  */
 @NotThreadSafe
 public class BtreeMemNode extends BtreeNode {
-	private final int level;
+	private final int level; // 0 means leaf
 	private final ByteBuffer buf;
 	private final List<Object> data = new ArrayList<Object>();
 
@@ -63,12 +63,12 @@ public class BtreeMemNode extends BtreeNode {
 	@Override
 	public Record get(int i) {
 		if (i >= size())
-			return Record.EMPTY;
+			return DbRecord.EMPTY;
 		Object x = data.get(i);
 		if (x instanceof Record)
 			return (Record) x;
 		else
-			return new Record(buf, (Integer) x);
+			return new DbRecord(buf, (Integer) x);
 	}
 
 	public BtreeMemNode add(Record key) {
@@ -91,7 +91,7 @@ public class BtreeMemNode extends BtreeNode {
 
 	@Override
 	public BtreeNode with(Record key) {
-		int at = lowerBound(key.buf, key.offset);
+		int at = lowerBound(key);
 		data.add(at, key);
 		return this;
 	}
@@ -107,13 +107,13 @@ public class BtreeMemNode extends BtreeNode {
 	@Override
 	public ByteBuffer fieldBuf(int i) {
 		Object x = data.get(i);
-		return (x instanceof Record) ? ((Record) x).buf : buf;
+		return (x instanceof DbRecord) ? ((DbRecord) x).buf : buf;
 	}
 
 	@Override
 	public int fieldOffset(int i) {
 		Object x = data.get(i);
-		return (x instanceof Record) ? ((Record) x).offset : (Integer) x;
+		return (x instanceof DbRecord) ? ((DbRecord) x).offset : (Integer) x;
 	}
 
 	@Override
@@ -128,7 +128,7 @@ public class BtreeMemNode extends BtreeNode {
 	private RecordBuilder build(Tran tran) {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < size(); ++i) {
-			Record r = translate(tran, i);
+			DbRecord r = translate(tran, i);
 			if (r != null)
 				rb.addNested(r.buf, r.offset);
 			else
@@ -137,10 +137,10 @@ public class BtreeMemNode extends BtreeNode {
 		return rb;
 	}
 
-	private Record translate(Tran tran, int i) {
+	private DbRecord translate(Tran tran, int i) {
 		ByteBuffer buf = fieldBuf(i);
 		int offset = fieldOffset(i);
-		int size = Record.size(buf, offset);
+		int size = DbRecord.size(buf, offset);
 		boolean translate = false;
 
 		int data = dataref(buf, offset, size);
@@ -182,14 +182,14 @@ public class BtreeMemNode extends BtreeNode {
 
 	private int dataref(ByteBuffer buf, int offset, int size) {
 		int at = size - (level > 0 ? 2 : 1);
-		Object x = Record.get(buf, offset, at);
+		Object x = DbRecord.getField(buf, offset, at);
 		if (x.equals(""))
 			return 0;
 		return ((Number) x).intValue();
 	}
 
 	private int pointer(ByteBuffer buf, int offset, int size) {
-		return ((Number) Record.get(buf, offset, size - 1)).intValue();
+		return ((Number) DbRecord.getField(buf, offset, size - 1)).intValue();
 	}
 
 }

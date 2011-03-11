@@ -19,7 +19,7 @@ public class IndexedData {
 		return this;
 	}
 
-	public void add(Tran tran, Record data) {
+	public void add(Tran tran, DbRecord data) {
 		int intref = tran.refRecordToInt(data);
 		for (Index index : indexes)
 			index.add(data, intref);
@@ -34,11 +34,11 @@ public class IndexedData {
 			this.fields = fields;
 		}
 
-		public void add(Record data, int intref) {
+		public void add(DbRecord data, int intref) {
 			btree.add(key(data, intref));
 		}
 
-		private Record key(Record data, int intref) {
+		private DbRecord key(DbRecord data, int intref) {
 			RecordBuilder rb = new RecordBuilder();
 			for (int field : fields)
 				rb.add(data, field);
