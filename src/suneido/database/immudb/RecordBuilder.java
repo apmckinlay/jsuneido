@@ -26,12 +26,12 @@ public class RecordBuilder {
 	/** add each of the fields of the record, NOT a nested record */
 	public RecordBuilder add(Record r) {
 		for (int i = 0; i < r.size(); ++i)
-			add1(r.buf, r.fieldOffset(i), r.fieldLength(i));
+			add1(r.fieldBuffer(i), r.fieldOffset(i), r.fieldLength(i));
 		return this;
 	}
 
 	/** add a field of the record */
-	public RecordBuilder add(Record r, int i) {
+	public RecordBuilder add(DbRecord r, int i) {
 		add1(r.buf, r.fieldOffset(i), r.fieldLength(i));
 		return this;
 	}
@@ -39,7 +39,7 @@ public class RecordBuilder {
 	/** add a prefix of the fields of the record at buf,offset */
 	public RecordBuilder add(ByteBuffer buf, int offset, int n) {
 		for (int i = 0; i < n; ++i)
-			add1(buf, Record.fieldOffset(buf, offset, i), Record.fieldLength(buf, offset, i));
+			add1(buf, DbRecord.fieldOffset(buf, offset, i), DbRecord.fieldLength(buf, offset, i));
 		return this;
 	}
 
@@ -57,7 +57,7 @@ public class RecordBuilder {
 	}
 
 	public RecordBuilder addNested(ByteBuffer buf, int offset) {
-		add1(buf, offset, Record.length(buf, offset));
+		add1(buf, offset, DbRecord.length(buf, offset));
 		return this;
 	}
 
@@ -72,8 +72,8 @@ public class RecordBuilder {
 		return length;
 	}
 
-	public Record build() {
-		return new Record(asByteBuffer(), 0);
+	public DbRecord build() {
+		return new DbRecord(asByteBuffer(), 0);
 	}
 
 	public ByteBuffer asByteBuffer() {

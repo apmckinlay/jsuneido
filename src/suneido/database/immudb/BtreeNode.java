@@ -13,11 +13,11 @@ import suneido.database.immudb.Btree.Split;
 import com.google.common.base.Strings;
 
 /**
- * Common interface for {@link BtreeDbNode} and {@link BtreeMemNode}
- * Provides access to a list of keys in sorted order {@link Record}
+ * Parent type for {@link BtreeDbNode} and {@link BtreeMemNode}
+ * Provides access to a list of keys in sorted order.
  * Keys are {@link Record}'s.
- * The final field on leaf keys is a pointer to the corresponding data record.
- * A tree keys is a leaf key plus a pointer to the child node.
+ * The last field on leaf keys is a pointer to the corresponding data record.
+ * A tree key is a leaf key plus a pointer to the child node.
  * Pointers are {@link MmapFile} int's
  */
 public abstract class BtreeNode {
@@ -45,7 +45,7 @@ public abstract class BtreeNode {
 	 * 			or null if there isn't one.
 	 */
 	public Record find(Record key) {
-		int at = lowerBound(key.buf, key.offset);
+		int at = lowerBound(key);
 		Record slot = get(at);
 		if (level() == 0) // leaf
 			return at < size() ? slot : null;
@@ -53,14 +53,13 @@ public abstract class BtreeNode {
 			return slot.startsWith(key) ? slot : get(at - 1);
 	}
 
-	public int lowerBound(ByteBuffer kbuf, int koff) {
+	public int lowerBound(Record key) {
 		int first = 0;
 		int len = size();
 		while (len > 0) {
 			int half = len >> 1;
 			int middle = first + half;
-			if (Record.compare(fieldBuf(middle), fieldOffset(middle),
-					kbuf, koff) < 0) {
+			if (compare(middle, key) < 0) {
 				first = middle + 1;
 				len -= half + 1;
 			} else
@@ -69,12 +68,17 @@ public abstract class BtreeNode {
 		return first;
 	}
 
+	private int compare(int middle, Record key) {
+		return get(middle).compareTo(key);
+		//TODO avoid the Record construction in get
+	}
+
 	public Split split(Tran tran, Record key, int adr) {
 		int level = level();
 		BtreeNode left;
 		BtreeNode right;
 		Record splitKey;
-		int keyPos = lowerBound(key.buf, key.offset);
+		int keyPos = lowerBound(key);
 		if (keyPos == size()) {
 			// key is at end of node, just make new node
 			right = new BtreeMemNode(level).add(key);

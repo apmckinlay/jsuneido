@@ -14,7 +14,7 @@ public class RecordTest {
 
 	@Test
 	public void main() {
-		Record r = record("one", "two", "three");
+		DbRecord r = record("one", "two", "three");
 		assertEquals(3, r.size());
 		assertEquals("one", r.get(0));
 		assertEquals("two", r.get(1));
@@ -23,7 +23,7 @@ public class RecordTest {
 
 	@Test
 	public void compare() {
-		Record[] data = new Record[] {
+		DbRecord[] data = new DbRecord[] {
 				record(), record("one"), record("one", "three"),
 				record("one", "two"), record("three"), record("two") };
 		for (int i = 0; i < data.length; ++i)
@@ -34,7 +34,7 @@ public class RecordTest {
 
 	@Test
 	public void int_pack() {
-		Record r = record("one", 9, 0xffff0000);
+		DbRecord r = record("one", 9, 0xffff0000);
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
 		assertEquals(0xffff0000L, r.get(2));
@@ -43,7 +43,7 @@ public class RecordTest {
 	@Test
 	public void types() {
 		RecordBuilder rb;
-		Record r;
+		DbRecord r;
 
 		rb = new RecordBuilder();
 		final int N_SMALL = 18;
@@ -75,12 +75,12 @@ public class RecordTest {
 
 	@Test
 	public void builder() {
-		Record r1 = new RecordBuilder().add("one").add(123).build();
-		Record r2 = new RecordBuilder().add(r1).build();
+		DbRecord r1 = new RecordBuilder().add("one").add(123).build();
+		DbRecord r2 = new RecordBuilder().add(r1).build();
 		assertThat(r2, is(r1));
 	}
 
-	public static Record record(Object... data) {
+	public static DbRecord record(Object... data) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
 			if (d instanceof String)

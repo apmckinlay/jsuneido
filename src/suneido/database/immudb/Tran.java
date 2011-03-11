@@ -22,7 +22,7 @@ public class Tran implements Translator {
 		return intrefs.refToInt(ref);
 	}
 
-	public int refRecordToInt(Record ref) {
+	public int refRecordToInt(DbRecord ref) {
 		int intref = refToInt(ref);
 		datarecs.add(intref);
 		return intref;
