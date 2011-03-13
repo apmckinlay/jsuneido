@@ -27,7 +27,7 @@ public class Extend extends Query1 {
 		init();
 	}
 
-	private void init() {
+	void init() {
 		List<String> srccols = source.columns();
 
 		if (!Collections.disjoint(srccols, flds))

@@ -184,6 +184,7 @@ public class Project extends Query1 {
 
 				source = e.source;
 				e.source = this;
+				e.init();
 				return e.transform();
 			}
 			e.flds = orig_flds;
