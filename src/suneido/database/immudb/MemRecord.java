@@ -1,4 +1,4 @@
-/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
+import suneido.database.immudb.DbRecord.Mode;
 import suneido.language.Pack;
 import suneido.util.IntArrayList;
 
@@ -19,13 +20,6 @@ public class MemRecord extends Record {
 	private final IntArrayList lens = new IntArrayList();
 
 	public MemRecord() {
-	}
-
-	/** add each of the fields of the record, NOT a nested record */
-	public MemRecord add(Record r) {
-		for (int i = 0; i < r.size(); ++i)
-			add1(r.fieldBuffer(i), r.fieldOffset(i), r.fieldLength(i));
-		return this;
 	}
 
 	/** add a field of the record */
@@ -53,11 +47,6 @@ public class MemRecord extends Record {
 	public MemRecord add(Object x) {
 		ByteBuffer buf = Pack.pack(x);
 		add1(buf, 0, buf.remaining());
-		return this;
-	}
-
-	public MemRecord addNested(ByteBuffer buf, int offset) {
-		add1(buf, offset, DbRecord.length(buf, offset));
 		return this;
 	}
 
@@ -106,28 +95,19 @@ public class MemRecord extends Record {
 
 	public static int length(int nfields, int datasize) {
 		int e = 1;
-		// type = 'c';
-		int length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		// Mode.BYTE
+		int length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		if (length < 0x100)
 			return length;
 		e = 2;
-		// type = 's';
-		length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		// Mode.SHORT
+		length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		if (length < 0x10000)
 			return length;
 		e = 4;
-		// type = 'l';
-		length = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		// Mode.INT
+		length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		return length;
-	}
-
-	private static char type(int length) {
-		if (length < 0x100)
-			return 'c';
-		else if (length < 0x10000)
-			return 's';
-		else
-			return 'l';
 	}
 
 	@Override
@@ -138,37 +118,45 @@ public class MemRecord extends Record {
 	}
 
 	public static int packHeader(ByteBuffer dst, int length, IntArrayList lens) {
-		// format must match cSuneido
-		// to match cSuneido use little endian (least significant first)
+		// match cSuneido format
 		dst.order(ByteOrder.LITTLE_ENDIAN);
-		char type = type(length);
-		dst.putShort((short) type);
+		char mode = mode(length);
+		dst.putShort((short) mode);
 		int nfields = lens.size();
 		assert nfields < Short.MAX_VALUE;
 		dst.putShort((short) nfields);
 		int offset = length;
 		assert length > 0;
-		switch (type) {
-		case 'c':
+		switch (mode) {
+		case Mode.BYTE:
 			dst.put((byte) offset);
 			for (int i = 0; i < nfields; ++i)
 				dst.put((byte) (offset -= lens.get(i)));
 			break;
-		case 's':
+		case Mode.SHORT:
 			dst.putShort((short) offset);
 			for (int i = 0; i < nfields; ++i)
 				dst.putShort((short) (offset -= lens.get(i)));
 			break;
-		case 'l':
+		case Mode.INT:
 			dst.putInt(offset);
 			for (int i = 0; i < nfields; ++i)
 				dst.putInt(offset -= lens.get(i));
 			break;
 		default:
-			throw new Error("bad record type: " + type);
+			throw new Error("bad record mode: " + mode);
 		}
 		dst.order(ByteOrder.BIG_ENDIAN);
 		return nfields;
+	}
+
+	private static char mode(int length) {
+		if (length < 0x100)
+			return Mode.BYTE;
+		else if (length < 0x10000)
+			return Mode.SHORT;
+		else
+			return Mode.INT;
 	}
 
 	private void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {

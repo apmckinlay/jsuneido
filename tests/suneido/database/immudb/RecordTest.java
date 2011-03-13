@@ -4,13 +4,9 @@
 
 package suneido.database.immudb;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-
-import suneido.language.Pack;
 
 public class RecordTest {
 
@@ -40,43 +36,6 @@ public class RecordTest {
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
 		assertEquals(0xffff0000L, r.get(2));
-	}
-
-	@Test
-	public void types() {
-		MemRecord mr;
-		DbRecord r;
-
-		mr = new MemRecord();
-		final int N_SMALL = 18;
-		for (int i = 0; i < N_SMALL; ++i)
-			mr.add("hello world");
-		r = toDbRecord(mr);
-		assertThat((char) r.mode(), is('c'));
-		for (int i = 0; i < N_SMALL; ++i)
-			assertThat((String) r.get(i), is("hello world"));
-
-		mr = new MemRecord();
-		final int N_MEDIUM = 4000;
-		for (int i = 0; i < N_MEDIUM; ++i)
-			mr.add("hello world");
-		r = toDbRecord(mr);
-		assertThat((char) r.mode(), is('s'));
-		for (int i = 0; i < N_MEDIUM; ++i)
-			assertThat((String) r.get(i), is("hello world"));
-
-		final int N_LARGE = 5000;
-		mr = new MemRecord();
-		for (int i = 0; i < N_LARGE; ++i)
-			mr.add("hello world");
-		r = toDbRecord(mr);
-		assertThat((char) r.mode(), is('l'));
-		for (int i = 0; i < N_LARGE; ++i)
-			assertThat("i " + i, (String) r.get(i), is("hello world"));
-	}
-
-	DbRecord toDbRecord(Record mr) {
-		return new DbRecord(Pack.pack(mr), 0);
 	}
 
 	public static Record record(Object... data) {

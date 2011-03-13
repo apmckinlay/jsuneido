@@ -75,7 +75,7 @@ public class Concat extends SuValue implements Comparable<Concat> {
 
 	@Override
 	public int packSize(int nest) {
-		return Pack.packSizeString(toString());
+		return Pack.packSize(toString());
 	}
 
 	@Override

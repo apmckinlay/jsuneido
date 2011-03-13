@@ -72,7 +72,7 @@ public class BtreeMemNode extends BtreeNode {
 		return new BtreeMemNode(split.level + 1).add(key1).add(split.key);
 	}
 
-	int length() {
+	public int length() {
 		int datasize = 0;
 		for (int i = 0; i < size(); ++i)
 			datasize += get(i).length();
@@ -96,7 +96,7 @@ public class BtreeMemNode extends BtreeNode {
 			data.get(i).pack(buf);
 	}
 
-	public IntArrayList getLengths() {
+	private IntArrayList getLengths() {
 		IntArrayList lens = new IntArrayList(size());
 		for (int i = 0; i < size(); ++i)
 			lens.add(get(i).length());

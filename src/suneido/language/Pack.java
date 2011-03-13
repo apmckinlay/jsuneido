@@ -32,6 +32,27 @@ public class Pack {
 		public static final byte CLASS = 9;
 	}
 
+	public static ByteBuffer pack(Object x) {
+		ByteBuffer buf = ByteBuffer.allocate(packSize(x));
+		pack(x, buf);
+		buf.rewind();
+		return buf;
+	}
+
+	public static ByteBuffer pack(int n) {
+		ByteBuffer buf = ByteBuffer.allocate(packSize(n));
+		pack(n, buf);
+		buf.rewind();
+		return buf;
+	}
+
+	public static ByteBuffer pack(long n) {
+		ByteBuffer buf = ByteBuffer.allocate(packSize(n));
+		pack(n, buf);
+		buf.rewind();
+		return buf;
+	}
+
 	public static int packSize(Object x) {
 		Class<?> xType = x.getClass();
 		if (xType == Boolean.class)
@@ -43,7 +64,7 @@ public class Pack {
 		if (xType == BigDecimal.class)
 			return packSizeBD((BigDecimal) x);
 		if (xType == String.class)
-			return packSizeString((String) x);
+			return packSize((String) x);
 		if (xType == Date.class)
 			return packSizeDate((Date) x);
 
@@ -57,16 +78,9 @@ public class Pack {
 		return 9;
 	}
 
-	static int packSizeString(String s) {
+	public static int packSize(String s) {
 		int n = s.length();
 		return n == 0 ? 0 : 1 + n;
-	}
-
-	private static int packshorts(long n) {
-		int i = 0;
-		for (; n != 0; ++i)
-			n /= 10000;
-		return i;
 	}
 
 	public static void pack(Object x, ByteBuffer buf) {
@@ -142,6 +156,10 @@ public class Pack {
 		return packSizeNum(n, 0);
 	}
 
+	public static int packSize(long n) {
+		return packSizeNum(n, 0);
+	}
+
 	private static int packSizeNum(long n, int e) {
 		if (n == 0)
 			return 1;
@@ -152,6 +170,13 @@ public class Pack {
 		while (n % 10000 == 0)
 			n /= 10000;
 		return 2 + 2 * packshorts(n);
+	}
+
+	private static int packshorts(long n) {
+		int i = 0;
+		for (; n != 0; ++i)
+			n /= 10000;
+		return i;
 	}
 
 	private static void packBD(BigDecimal n, ByteBuffer buf) {
@@ -211,13 +236,6 @@ public class Pack {
 	public static int packSize(Object x, int nest) {
 		return x instanceof SuContainer ? ((SuContainer) x).packSize(nest)
 				: packSize(x);
-	}
-
-	public static ByteBuffer pack(Object x) {
-		ByteBuffer buf = ByteBuffer.allocate(packSize(x));
-		pack(x, buf);
-		buf.rewind();
-		return buf;
 	}
 
 	public static Object unpack(ByteBuf buf) {

@@ -30,7 +30,7 @@ public class BtreeDbNode extends BtreeNode {
 	public Record get(int i) {
 		if (i >= size())
 			return Record.EMPTY;
-		return new DbRecord(rec.buf, rec.fieldOffset(i));
+		return new DbRecord(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 
 	@Override

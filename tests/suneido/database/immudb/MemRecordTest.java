@@ -53,4 +53,17 @@ public class MemRecordTest {
 		assertThat(r2, is((Record) r));
 	}
 
+	@Test
+	public void length() {
+		assertThat(MemRecord.length(0, 0), is(5));
+		assertThat(MemRecord.length(1, 1), is(7));
+		assertThat(MemRecord.length(1, 200), is(206));
+		assertThat(MemRecord.length(1, 249), is(255));
+
+		assertThat(MemRecord.length(1, 250), is(258));
+		assertThat(MemRecord.length(1, 300), is(308));
+
+		assertThat(MemRecord.length(1, 0x10000), is(0x1000c));
+	}
+
 }
