@@ -7,7 +7,11 @@ package suneido.database.immudb;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Test;
+
+import suneido.language.Pack;
 
 public class MemRecordTest {
 
@@ -28,6 +32,25 @@ public class MemRecordTest {
 		assertThat(r.size(), is(2));
 		assertThat(r.get(1), is(String.class));
 		assertThat((String) r.get(1), is("hello"));
+	}
+
+	@Test
+	public void pack_empty() {
+		MemRecord r = new MemRecord();
+		ByteBuffer buf = Pack.pack(r);
+		DbRecord r2 = new DbRecord(buf, 0);
+		assertThat(r2, is((Record) r));
+	}
+
+	@Test
+	public void pack_with_data() {
+		MemRecord r = new MemRecord();
+		r.add(123).add("hello");
+		ByteBuffer buf = Pack.pack(r);
+		DbRecord r2 = new DbRecord(buf, 0);
+		assertThat(r2.get(0), is((Object) 123));
+		assertThat(r2.get(1), is((Object) "hello"));
+		assertThat(r2, is((Record) r));
 	}
 
 }

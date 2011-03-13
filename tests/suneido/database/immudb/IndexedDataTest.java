@@ -28,20 +28,20 @@ public class IndexedDataTest {
 		Tran tran = mock(Tran.class);
 		id.add(tran, record("a", "b", "c"));
 
-		ArgumentCaptor<DbRecord> arg = ArgumentCaptor.forClass(DbRecord.class);
+		ArgumentCaptor<Record> arg = ArgumentCaptor.forClass(Record.class);
 		verify(btree1).add(arg.capture());
-		DbRecord r = arg.getValue();
+		Record r = arg.getValue();
 		assertThat(r.size(), is(2));
 		assertThat((String) r.get(0), is("a"));
 
 		verify(btree2).add((DbRecord) anyObject());
 	}
 
-	private DbRecord record(Object... values) {
-		RecordBuilder rb = new RecordBuilder();
+	private Record record(Object... values) {
+		MemRecord rb = new MemRecord();
 		for (Object x : values)
 			rb.add(x);
-		return rb.build();
+		return rb;
 	}
 
 }

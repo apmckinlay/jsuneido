@@ -65,4 +65,15 @@ public class IntArrayList {
 		}
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		for (int i = 0; i < size(); ++i)
+			sb.append(data[i]).append(",");
+		sb.deleteCharAt(sb.length() - 1);
+		sb.append("]");
+		return sb.toString();
+	}
+
 }

@@ -10,11 +10,13 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import suneido.language.Pack;
+
 public class RecordTest {
 
 	@Test
 	public void main() {
-		DbRecord r = record("one", "two", "three");
+		Record r = record("one", "two", "three");
 		assertEquals(3, r.size());
 		assertEquals("one", r.get(0));
 		assertEquals("two", r.get(1));
@@ -23,7 +25,7 @@ public class RecordTest {
 
 	@Test
 	public void compare() {
-		DbRecord[] data = new DbRecord[] {
+		Record[] data = new Record[] {
 				record(), record("one"), record("one", "three"),
 				record("one", "two"), record("three"), record("two") };
 		for (int i = 0; i < data.length; ++i)
@@ -34,7 +36,7 @@ public class RecordTest {
 
 	@Test
 	public void int_pack() {
-		DbRecord r = record("one", 9, 0xffff0000);
+		Record r = record("one", 9, 0xffff0000);
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
 		assertEquals(0xffff0000L, r.get(2));
@@ -42,52 +44,49 @@ public class RecordTest {
 
 	@Test
 	public void types() {
-		RecordBuilder rb;
+		MemRecord mr;
 		DbRecord r;
 
-		rb = new RecordBuilder();
+		mr = new MemRecord();
 		final int N_SMALL = 18;
 		for (int i = 0; i < N_SMALL; ++i)
-			rb.add("hello world");
-		r = rb.build();
+			mr.add("hello world");
+		r = toDbRecord(mr);
 		assertThat((char) r.mode(), is('c'));
 		for (int i = 0; i < N_SMALL; ++i)
 			assertThat((String) r.get(i), is("hello world"));
 
-		rb = new RecordBuilder();
+		mr = new MemRecord();
 		final int N_MEDIUM = 4000;
 		for (int i = 0; i < N_MEDIUM; ++i)
-			rb.add("hello world");
-		r = rb.build();
+			mr.add("hello world");
+		r = toDbRecord(mr);
 		assertThat((char) r.mode(), is('s'));
 		for (int i = 0; i < N_MEDIUM; ++i)
 			assertThat((String) r.get(i), is("hello world"));
 
 		final int N_LARGE = 5000;
-		rb = new RecordBuilder();
+		mr = new MemRecord();
 		for (int i = 0; i < N_LARGE; ++i)
-			rb.add("hello world");
-		r = rb.build();
+			mr.add("hello world");
+		r = toDbRecord(mr);
 		assertThat((char) r.mode(), is('l'));
 		for (int i = 0; i < N_LARGE; ++i)
 			assertThat("i " + i, (String) r.get(i), is("hello world"));
 	}
 
-	@Test
-	public void builder() {
-		DbRecord r1 = new RecordBuilder().add("one").add(123).build();
-		DbRecord r2 = new RecordBuilder().add(r1).build();
-		assertThat(r2, is(r1));
+	DbRecord toDbRecord(Record mr) {
+		return new DbRecord(Pack.pack(mr), 0);
 	}
 
-	public static DbRecord record(Object... data) {
-		RecordBuilder rb = new RecordBuilder();
+	public static Record record(Object... data) {
+		MemRecord r = new MemRecord();
 		for (Object d : data)
 			if (d instanceof String)
-				rb.add(d);
+				r.add(d);
 			else if (d instanceof Integer)
-				rb.add((int)(Integer) d);
-		return rb.build();
+				r.add((int)(Integer) d);
+		return r;
 	}
 
 }

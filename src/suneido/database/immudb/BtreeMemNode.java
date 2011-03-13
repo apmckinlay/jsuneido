@@ -5,40 +5,30 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.immudb.Btree.Split;
+import suneido.util.IntArrayList;
+
+import com.google.common.collect.Lists;
 
 /**
- * An in-memory mutable btree node.
+ * An in-memory mutable {@link BtreeNode}.
  * "updating" a {@link BtreeDbNode} produces a BtreeMemNode
- * <p>
- * To avoid copying/allocation, the keys from the original BtreeMemNode
- * are stored as buffer and offset (rather than creating a Record wrapper).
  */
 @NotThreadSafe
 public class BtreeMemNode extends BtreeNode {
-	private final int level; // 0 means leaf
-	private final ByteBuffer buf;
-	private final List<Object> data = new ArrayList<Object>();
+	List<Record> data = Lists.newArrayList();
 
 	public BtreeMemNode(int level) {
-		this(level, null);
-	}
-
-	public BtreeMemNode(int level, ByteBuffer buf) {
-		this.level = level;
-		this.buf = buf;
+		super(level);
 	}
 
 	public BtreeMemNode(BtreeDbNode node) {
-		level = node.level();
-		buf = node.buf();
-		for (int i = 0; i < node.size(); ++i)
-			data.add(node.fieldOffset(i));
+		super(node.level());
+		add(node, 0, node.size());
 	}
 
 	public static BtreeMemNode emptyLeaf() {
@@ -51,24 +41,8 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	public int level() {
-		return level;
-	}
-
-	@Override
-	public ByteBuffer buf() {
-		return buf;
-	}
-
-	@Override
 	public Record get(int i) {
-		if (i >= size())
-			return DbRecord.EMPTY;
-		Object x = data.get(i);
-		if (x instanceof Record)
-			return (Record) x;
-		else
-			return new DbRecord(buf, (Integer) x);
+		return i < size() ? data.get(i) : Record.EMPTY;
 	}
 
 	public BtreeMemNode add(Record key) {
@@ -76,16 +50,10 @@ public class BtreeMemNode extends BtreeNode {
 		return this;
 	}
 
+	/** add a range of keys from another node */
 	public BtreeMemNode add(BtreeNode node, int from, int to) {
-		if (node instanceof BtreeMemNode) {
-			BtreeMemNode mnode = (BtreeMemNode) node;
-			for (int i = from; i < to; ++i)
-				data.add(mnode.data.get(i));
-		} else {
-			assert buf == node.buf();
-			for (int i = from; i < to; ++i)
-				data.add(node.fieldOffset(i));
-		}
+		for (int i = from; i < to; ++i)
+			data.add(node.get(i));
 		return this;
 	}
 
@@ -97,99 +65,97 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	public static BtreeNode newRoot(Tran tran, Split split) {
-		RecordBuilder key1 = new RecordBuilder();
+		MemRecord key1 = new MemRecord();
 		for (int i = 0; i < split.key.size() - 1; ++i)
 			key1.add("");
 		key1.add(split.left);
-		return new BtreeMemNode(split.level + 1).add(key1.build()).add(split.key);
+		return new BtreeMemNode(split.level + 1).add(key1).add(split.key);
 	}
 
-	@Override
-	public ByteBuffer fieldBuf(int i) {
-		Object x = data.get(i);
-		return (x instanceof DbRecord) ? ((DbRecord) x).buf : buf;
-	}
-
-	@Override
-	public int fieldOffset(int i) {
-		Object x = data.get(i);
-		return (x instanceof DbRecord) ? ((DbRecord) x).offset : (Integer) x;
+	int length() {
+		int datasize = 0;
+		for (int i = 0; i < size(); ++i)
+			datasize += get(i).length();
+		return MemRecord.length(size(), datasize);
 	}
 
 	@Override
 	public int store(Tran tran) {
-		RecordBuilder rb = build(tran);
-		int adr = tran.stor.alloc(rb.length());
+		for (int i = 0; i < size(); ++i)
+			translate(tran, i);
+
+		int adr = tran.stor.alloc(length());
 		ByteBuffer buf = tran.stor.buffer(adr);
-		rb.toByteBuffer(buf);
+		pack(buf);
 		return adr;
 	}
 
-	private RecordBuilder build(Tran tran) {
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < size(); ++i) {
-			DbRecord r = translate(tran, i);
-			if (r != null)
-				rb.addNested(r.buf, r.offset);
-			else
-				rb.addNested(fieldBuf(i), fieldOffset(i));
-		}
-		return rb;
+	public void pack(ByteBuffer buf) {
+		MemRecord.packHeader(buf, length(), getLengths());
+		for (int i = size() - 1; i >= 0; --i)
+			data.get(i).pack(buf);
 	}
 
-	private DbRecord translate(Tran tran, int i) {
-		ByteBuffer buf = fieldBuf(i);
-		int offset = fieldOffset(i);
-		int size = DbRecord.size(buf, offset);
+	public IntArrayList getLengths() {
+		IntArrayList lens = new IntArrayList(size());
+		for (int i = 0; i < size(); ++i)
+			lens.add(get(i).length());
+		return lens;
+	}
+
+	private void translate(Tran tran, int i) {
+		Record rec = data.get(i);
 		boolean translate = false;
 
-		int data = dataref(buf, offset, size);
-		if (data != 0) {
-			data = tran.redir(data);
-			if (IntRefs.isIntRef(data)) {
-				data = tran.getAdr(data);
-				assert data != 0;
+		int dref = dataref(rec);
+		if (dref != 0) {
+			dref = tran.redir(dref);
+			if (IntRefs.isIntRef(dref)) {
+				dref = tran.getAdr(dref);
+				assert dref != 0;
 				translate = true;
 			}
 		}
 
 		int ptr = 0;
 		if (level > 0) {
-			int ptr1 = ptr = pointer(buf, offset, size);
+			int ptr1 = ptr = pointer(rec);
 			if (! IntRefs.isIntRef(ptr1))
 				ptr = tran.redir(ptr1);
-			ptr = tran.getAdr(ptr);
-//System.out.println("pointer " + ptr1 + " translated to " + ptr);
-			assert ! IntRefs.isIntRef(ptr);
+			if (IntRefs.isIntRef(ptr))
+				ptr = tran.getAdr(ptr);
+			assert ptr != 0;
+			assert ! IntRefs.isIntRef(ptr) : "pointer " + ptr1 + " => " + (ptr & 0xffffffffL);
 			if (ptr1 != ptr)
 				translate = true;
 			//TODO if redirections are unique then we can remove this one
 		}
 
 		if (! translate)
-			return null;
+			return ;
 
-		int prefix = size - (level > 0 ? 2 : 1);
-		RecordBuilder rb = new RecordBuilder().add(buf, offset, prefix);
-		if (data == 0)
-			rb.add("");
+		int prefix = rec.size() - (level > 0 ? 2 : 1);
+		MemRecord r = new MemRecord().addPrefix(rec, prefix);
+		if (dref == 0)
+			r.add("");
 		else
-			rb.add(data);
+			r.add(dref);
 		if (level > 0)
-			rb.add(ptr);
-		return rb.build();
+			r.add(ptr);
+		data.set(i, r);
 	}
 
-	private int dataref(ByteBuffer buf, int offset, int size) {
-		int at = size - (level > 0 ? 2 : 1);
-		Object x = DbRecord.getField(buf, offset, at);
+	private int dataref(Record rec) {
+		int size = rec.size();
+		int i = size - (level > 0 ? 2 : 1);
+		Object x = rec.get(i);
 		if (x.equals(""))
 			return 0;
 		return ((Number) x).intValue();
 	}
 
-	private int pointer(ByteBuffer buf, int offset, int size) {
-		return ((Number) DbRecord.getField(buf, offset, size - 1)).intValue();
+	private int pointer(Record rec) {
+		return ((Number) rec.get(rec.size() - 1)).intValue();
 	}
 
 }

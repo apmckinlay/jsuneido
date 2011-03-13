@@ -11,18 +11,11 @@ import javax.annotation.concurrent.Immutable;
 /**
  * A list of values stored in a ByteBuffer in the same format as cSuneido.
  * Values are stored using {@link suneido.language.Pack}
- * @see RecordBuilder
  */
 @Immutable
 public class DbRecord extends Record {
-	protected static final ByteBuffer emptyRecBuf = new RecordBuilder().asByteBuffer();
-	public static final DbRecord EMPTY = new DbRecord();
 	public final ByteBuffer buf;
 	public final int offset;
-
-	protected DbRecord() {
-		this(emptyRecBuf, 0);
-	}
 
 	public DbRecord(ByteBuffer buf, int offset) {
 		this.buf = buf;
@@ -30,7 +23,10 @@ public class DbRecord extends Record {
 		assert offset >= 0;
 		assert mode() == 'c' || mode() == 's' || mode() == 'l';
 		assert size() >= 0;
-		assert length() > 0 : length();
+		assert length() > 0 : "length " + length();
+		assert offset < buf.capacity();
+		assert offset + length() <= buf.capacity()
+			: "offset " + offset + " + length " + length() + " > capacity " + buf.capacity();
 	}
 
 	byte mode() {
@@ -99,6 +95,7 @@ public class DbRecord extends Record {
 		final static int SIZE = 4; // byte, short, or int <= type
 	}
 
+	@Override
 	public int length() {
 		return length(buf, offset);
 	}
@@ -117,7 +114,8 @@ public class DbRecord extends Record {
 	 * Will only work on in-memory records
 	 * where buf was allocated with the correct length.
 	 */
-	public int storeRecord(Storage stor) {
+	@Override
+	public int store(Storage stor) {
 		int len = length();
 		int adr = stor.alloc(len);
 		ByteBuffer dst = stor.buffer(adr);
@@ -132,22 +130,15 @@ public class DbRecord extends Record {
 		s += "type: " + (char) mode(buf, offset) +
 				" size: " + size() +
 				" length: " + length();
-//		for (int i = 0; i < Math.min(size(), 10); ++i)
-//			System.out.println("offset " + i + ": " + getOffset(i));
+		for (int i = 0; i < Math.min(size(), 10); ++i)
+			System.out.println("offset " + i + ": " + fieldOffset(i));
 		return s;
 	}
 
-	public static Object getField(ByteBuffer buf, int offset, int i) {
-		return get(buf, fieldOffset(buf, offset, i), fieldLength(buf, offset, i));
-	}
-
 	@Override
-	public boolean equals(Object that) {
-		if (this == that)
-			return true;
-		if (that instanceof DbRecord)
-			return 0 == compareTo((DbRecord) that);
-		return false;
+	public void pack(ByteBuffer dst) {
+		for (int i = 0; i < length(); ++i)
+			dst.put(buf.get(offset + i));
 	}
 
 }

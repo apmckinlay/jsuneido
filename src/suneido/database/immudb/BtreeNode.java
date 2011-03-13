@@ -6,7 +6,6 @@ package suneido.database.immudb;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.ByteBuffer;
 
 import suneido.database.immudb.Btree.Split;
 
@@ -21,21 +20,22 @@ import com.google.common.base.Strings;
  * Pointers are {@link MmapFile} int's
  */
 public abstract class BtreeNode {
+	protected final int level; // 0 means leaf
 
-	public abstract int level();
+	public BtreeNode(int level) {
+		this.level = level;
+	}
+
+	public int level() {
+		return level;
+	}
 
 	public abstract int size();
-
-	public abstract ByteBuffer buf();
 
 	/** Inserts key in order */
 	public abstract BtreeNode with(Record key);
 
 	public abstract Record get(int i);
-
-	public abstract ByteBuffer fieldBuf(int i);
-
-	public abstract int fieldOffset(int i);
 
 	public abstract int store(Tran tran);
 
@@ -87,14 +87,14 @@ public abstract class BtreeNode {
 			int mid = size() / 2;
 			splitKey = get(mid);
 			if (keyPos <= mid) {
-				left = new BtreeMemNode(level, buf())
+				left = new BtreeMemNode(level)
 						.add(this, 0, keyPos).add(key).add(this, keyPos, mid);
-				right = new BtreeMemNode(level, buf())
+				right = new BtreeMemNode(level)
 						.add(this, mid, size());
 			} else {
-				left = new BtreeMemNode(level, buf())
+				left = new BtreeMemNode(level)
 						.add(this, 0, mid);
-				right = new BtreeMemNode(level, buf())
+				right = new BtreeMemNode(level)
 						.add(this, mid, keyPos).add(key).add(this, keyPos, size());
 			}
 			tran.redir(adr, left);
@@ -103,7 +103,7 @@ public abstract class BtreeNode {
 		if (level > 0) // tree node
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
-		splitKey = new RecordBuilder().add(splitKey).add(rightAdr).build();
+		splitKey = new MemRecord().addPrefix(splitKey, splitKeySize).add(rightAdr);
 		return new Split(level, adr, rightAdr, splitKey);
 	}
 
@@ -111,6 +111,7 @@ public abstract class BtreeNode {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("BtreeNode level=").append(level());
+		sb.append(" size=").append(size());
 		sb.append(" [");
 		for (int i = 0; i < size(); ++i)
 			sb.append(get(i));

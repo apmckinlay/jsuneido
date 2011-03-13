@@ -5,6 +5,12 @@
 package suneido.database.immudb;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
+
+import suneido.util.IntArrayList;
+
+import com.google.common.collect.Lists;
 
 /**
  * An append-only immutable btree.
@@ -16,11 +22,11 @@ import java.io.*;
  * @see BtreeNode, BtreeLeafNode, BtreeTreeNode, BtreeNodeMethods
  */
 public class Btree {
-	public static final int MAX_NODE_SIZE = 20;
-	private static final int MAX_LEVELS = 20;
+	public int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
+
 
 	public Btree(Tran tran) {
 		this.tran = tran;
@@ -51,22 +57,21 @@ public class Btree {
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
 
-	public void add(DbRecord key) {
+	public void add(Record key) {
 		// search down the tree
 		int adr = root;
-		BtreeNode treeNodes[] = new BtreeNode[MAX_LEVELS];
-		int adrs[] = new int[MAX_LEVELS];
-		int i;
-		for (i = 0; i < treeLevels; ++i) {
-			adrs[i] = adr;
-			int level = treeLevels - i;
-			treeNodes[i] = nodeAt(level, adr);
-			Record slot = treeNodes[i].find(key);
+		List<BtreeNode> treeNodes = Lists.newArrayList();
+		IntArrayList adrs = new IntArrayList();
+		for (int level = treeLevels; level > 0; --level) {
+			adrs.add(adr);
+			BtreeNode node = nodeAt(level, adr);
+			treeNodes.add(node);
+			Record slot = node.find(key);
 			adr = getAddress(slot);
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
-		if (leaf.size() < MAX_NODE_SIZE) {
+		if (leaf.size() < maxNodeSize()) {
 			// normal/fast path - simply insert into leaf
 			BtreeNode before = leaf;
 			leaf = leaf.with(key);
@@ -75,28 +80,24 @@ public class Btree {
 					root = tran.refToInt(leaf);
 			} else
 				tran.redir(adr, leaf);
-//if (adr == root) {
-//root = tran.redir(root);
-//rootNode = leaf;
-//}
 			return;
 		}
 		// else split leaf
 		Split split = leaf.split(tran, key, adr);
 
 		// insert up the tree
-		for (--i; i >= 0; --i) {
-			BtreeNode tree = treeNodes[i];
-			if (tree.size() < MAX_NODE_SIZE) {
-				tree = tree.with(split.key);
-				if (adrs[i] == root)
-					root = tran.refToInt(tree);
+		for (int i = treeNodes.size() - 1; i >= 0; --i) {
+			BtreeNode treeNode = treeNodes.get(i);
+			if (treeNode.size() < maxNodeSize()) {
+				treeNode = treeNode.with(split.key);
+				if (adrs.get(i) == root)
+					root = tran.refToInt(treeNode);
 				else
-					tran.redir(adrs[i], tree);
+					tran.redir(adrs.get(i), treeNode);
 				return;
 			}
 			// else split
-			split = tree.split(tran, split.key, adrs[i]);
+			split = treeNode.split(tran, split.key, adrs.get(i));
 		}
 		// getting here means root was split so a new root is needed
 		newRoot(split);
@@ -159,43 +160,28 @@ public class Btree {
 	}
 
 	public void store() {
-//		BtreeNode[] nodes = Iterables.toArray(
-//				Iterables.filter(tran.intrefs, BtreeNode.class),
-//				BtreeNode.class);
-//		Arrays.sort(nodes, nodeLevelComparator);
-//		for (BtreeNode node : nodes)
-//			node.store(tran);
-
-//System.out.println("STORE");
-		// very crude and inefficient
-		for (int level = 0; level <= treeLevels; ++level) {
-//System.out.println("level " + level);
-			int i = -1;
-			for (Object x : tran.intrefs) {
-				++i;
-				if (x instanceof BtreeNode) {
-					BtreeNode node = (BtreeNode) x;
-					if (node.level() == level) {
-						int adr = node.store(tran);
-//System.out.println((i | IntRefs.MASK) + " stored at " + adr);
-						if (adr != 0)
-							tran.setAdr(i | IntRefs.MASK, adr);
-					}
-				}
+		// process BtreeNode intrefs sorted by level without allocation
+		// by packing level and intref into a long
+		IntRefs intrefs = tran.intrefs;
+		long a[] = new long[intrefs.size()];
+		int i = -1;
+		for (Object x : intrefs) {
+			++i;
+			if (x instanceof BtreeNode) {
+				BtreeNode node = (BtreeNode) x;
+				a[i] = ((long) node.level() << 32) | i;
 			}
 		}
-//System.out.println("root before " + root);
+		Arrays.sort(a);
+		for (long n : a) {
+			int intref = (int) n | IntRefs.MASK;
+			BtreeNode node = (BtreeNode) intrefs.intToRef(intref);
+			int adr = node.store(tran);
+			if (adr != 0)
+				tran.setAdr(intref, adr);
+		}
 		if (IntRefs.isIntRef(root))
 			root = tran.getAdr(root);
-//System.out.println("root after " + root);
 	}
-
-//	private static final Comparator<BtreeNode> nodeLevelComparator =
-//		new Comparator<BtreeNode>() {
-//			@Override
-//			public int compare(BtreeNode x, BtreeNode y) {
-//				return y.level() - x.level(); // reverse, biggest first
-//			}
-//		};
 
 }

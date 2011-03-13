@@ -19,6 +19,7 @@ public class IntRefs implements Iterable<Object> {
 	private final List<Object> list = new ArrayList<Object>();
 	private int adrs[] = null;
 
+	/** adds the ref and returns its intref */
 	public int refToInt(Object ref) {
 		int i = list.size();
 		assert (i & MASK) == 0 : "too many IntRefs";
@@ -26,6 +27,7 @@ public class IntRefs implements Iterable<Object> {
 		return MASK | i;
 	}
 
+	/** returns the ref for an intref (that was returned by refToInt) */
 	public Object intToRef(int intref) {
 		// xor the mask bits instead of &
 		// so if they weren't correct it'll be an invalid index

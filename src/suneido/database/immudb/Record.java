@@ -6,9 +6,11 @@ package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
 
+import suneido.Packable;
 import suneido.language.Pack;
 
-public abstract class Record implements Comparable<Record> {
+public abstract class Record implements Comparable<Record>, Packable {
+	public static Record EMPTY = new MemRecord();
 
 	public abstract int size();
 
@@ -17,6 +19,23 @@ public abstract class Record implements Comparable<Record> {
 	public abstract int fieldLength(int i);
 
 	public abstract ByteBuffer fieldBuffer(int i);
+
+	public abstract int store(Storage stor);
+
+	public abstract int length();
+
+	public int packSize(int nest) {
+		return length();
+	}
+
+	@Override
+	public boolean equals(Object that) {
+		if (this == that)
+			return true;
+		if (that instanceof Record)
+			return 0 == compareTo((Record) that);
+		return false;
+	}
 
 	@Override
 	public int compareTo(Record that) {
@@ -80,13 +99,6 @@ public abstract class Record implements Comparable<Record> {
 
 	@Override
 	public String toString() {
-//System.out.println("mode " + (char) mode() + " nfields " + size() + " length " + length());
-//for (int i = 0; i < size(); ++i) {
-//System.out.print("    offset " + fieldOffset(i) + " length " + fieldLength(i));
-//if (fieldLength(i) > 0)
-//System.out.print(" first byte " + (buf.get(fieldOffset(i)) & 0xff));
-//System.out.println();
-//}
 		StringBuilder sb = new StringBuilder();
 		sb.append("<");
 		for (int i = 0; i < size(); ++i) {

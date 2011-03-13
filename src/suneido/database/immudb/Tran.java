@@ -22,8 +22,8 @@ public class Tran implements Translator {
 		return intrefs.refToInt(ref);
 	}
 
-	public int refRecordToInt(DbRecord ref) {
-		int intref = refToInt(ref);
+	public int refRecordToInt(Record rec) {
+		int intref = refToInt(rec);
 		datarecs.add(intref);
 		return intref;
 	}

@@ -9,27 +9,16 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * An btree node wrapping a ByteBuffer from the database.
- * "updating" a BtreeDbNode produces a BtreeMemNode
+ * A {@link BtreeNode} wrapping a ByteBuffer from the database.
+ * "updating" a BtreeDbNode produces a {@link BtreeMemNode}
  */
 @Immutable
 public class BtreeDbNode extends BtreeNode {
-	private final int level; // 0 means leaf
 	private final DbRecord rec;
 
 	public BtreeDbNode(int level, ByteBuffer buf) {
+		super(level);
 		rec = new DbRecord(buf, 0);
-		this.level = level;
-	}
-
-	@Override
-	public int level() {
-		return level;
-	}
-
-	@Override
-	public ByteBuffer buf() {
-		return rec.buf;
 	}
 
 	@Override
@@ -40,18 +29,8 @@ public class BtreeDbNode extends BtreeNode {
 	@Override
 	public Record get(int i) {
 		if (i >= size())
-			return DbRecord.EMPTY;
-		return new DbRecord(rec.buf, rec.offset + fieldOffset(i));
-	}
-
-	@Override
-	public ByteBuffer fieldBuf(int i) {
-		return rec.buf;
-	}
-
-	@Override
-	public int store(Tran tran) {
-		return 0;
+			return Record.EMPTY;
+		return new DbRecord(rec.buf, rec.fieldOffset(i));
 	}
 
 	@Override
@@ -60,8 +39,8 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	public int fieldOffset(int i) {
-		return rec.fieldOffset(i);
+	public int store(Tran tran) {
+		return 0;
 	}
 
 }
