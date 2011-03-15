@@ -4,28 +4,30 @@
 
 package suneido.database.immudb;
 
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.zip.Adler32;
+
 /**
  * Transaction "context".
  */
 public class Tran implements Translator {
 	public final Storage stor;
+	private final Redirects redirs;
 	final IntRefs intrefs = new IntRefs();
-	private Redirects redirs;
-	private final DataRecords datarecs = new DataRecords();
+	private Iterator<ByteBuffer> stor_iter;
 
 	public Tran(Storage stor) {
+		this(stor, new Redirects(DbHashTree.empty(stor)));
+	}
+
+	public Tran(Storage stor, Redirects redirs) {
 		this.stor = stor;
-		redirs = new Redirects(DbHashTree.empty(stor));
+		this.redirs = redirs;
 	}
 
 	public int refToInt(Object ref) {
 		return intrefs.refToInt(ref);
-	}
-
-	public int refRecordToInt(Record rec) {
-		int intref = refToInt(rec);
-		datarecs.add(intref);
-		return intref;
 	}
 
 	public Object intToRef(int intref) {
@@ -48,12 +50,19 @@ public class Tran implements Translator {
 		return redirs;
 	}
 
-	public void setRedirs(Redirects redirs) {
-		this.redirs = redirs;
+	public void startStore() {
+		stor_iter = stor.iterator();
+		intrefs.startStore();
 	}
 
-	public void startStore() {
-		intrefs.startStore();
+	public int checksum() {
+		Adler32 cksum = new Adler32();
+		while (stor_iter.hasNext()) {
+			ByteBuffer buf = stor_iter.next();
+			for (int i = 0; i < buf.limit(); ++i)
+				cksum.update(buf.get(i));
+		}
+		return (int) cksum.getValue();
 	}
 
 	public void setAdr(int intref, int adr) {
@@ -62,10 +71,6 @@ public class Tran implements Translator {
 
 	public int getAdr(int intref) {
 		return intrefs.getAdr(intref);
-	}
-
-	public void storeDataRecords() {
-		datarecs.store(this);
 	}
 
 	public int storeRedirs() {

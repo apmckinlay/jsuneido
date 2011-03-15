@@ -160,7 +160,8 @@ public class Btree {
 	}
 
 	public void store() {
-		// process BtreeNode intrefs sorted by level without allocation
+		// need to store BtreeNodes bottom up
+		// sort by level without allocation
 		// by packing level and intref into a long
 		IntRefs intrefs = tran.intrefs;
 		long a[] = new long[intrefs.size()];

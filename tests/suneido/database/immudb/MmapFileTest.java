@@ -29,7 +29,7 @@ public class MmapFileTest {
 		mmf.close();
 
 		mmf = new MmapFile("tmp2", "r");
-		buf = mmf.buffer(adr);
+		buf = mmf.buffer(-N);
 		for (int i = 0; i < N; ++i)
 			assertEquals(i, buf.get(i));
 		mmf.close();

@@ -20,7 +20,7 @@ public class IndexedData {
 	}
 
 	public void add(Tran tran, Record data) {
-		int intref = tran.refRecordToInt(data);
+		int intref = tran.refToInt(data);
 		for (Index index : indexes)
 			index.add(data, intref);
 	}
