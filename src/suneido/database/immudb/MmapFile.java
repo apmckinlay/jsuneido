@@ -8,9 +8,12 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.collect.AbstractIterator;
 
 /**
  * Memory mapped file access.
@@ -65,15 +68,16 @@ public class MmapFile implements Storage {
 		findEnd();
 	}
 
+	/** handle zero padding caused by memory mapping */
 	private void findEnd() {
 		file_size = fileLength();
 		if (file_size == 0)
 			return;
-		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
-		ByteBuffer buf = map(chunk);
+		ByteBuffer buf = map(file_size - 1);
 		int i = (int) ((file_size - 1) % CHUNK_SIZE) + 1;
 		while (i > 0 && buf.getLong(i - 8) == 0)
 			i -= 8;
+		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
 		file_size = (long) chunk * CHUNK_SIZE + align(i);
 	}
 
@@ -104,10 +108,9 @@ public class MmapFile implements Storage {
 	}
 
 	/** @returns A unique instance of a ByteBuffer
-	 * extending from the offset to the end of the chunk.
-	 */
+	 * extending from the offset to the end of the chunk */
 	public ByteBuffer buffer(int adr) {
-		long offset = intToLong(adr);
+		long offset = adr < 0 ? file_size + adr : intToLong(adr);
 		ByteBuffer fmbuf = map(offset);
 		synchronized(fmbuf) {
 			fmbuf.position((int) (offset % CHUNK_SIZE));
@@ -115,6 +118,7 @@ public class MmapFile implements Storage {
 		}
 	}
 
+	/** @return the file mapping containing the specified offset */
 	private synchronized ByteBuffer map(long offset) {
 		assert 0 <= offset && offset <= file_size;
 		int chunk = (int) (offset / CHUNK_SIZE);
@@ -150,6 +154,29 @@ public class MmapFile implements Storage {
 
 	private static long intToLong(int n) {
 		return ((n - 1) & 0xffffffffL) << SHIFT;
+	}
+
+	@Override
+	public Iterator<ByteBuffer> iterator() {
+		return new Iter();
+	}
+
+	private class Iter extends AbstractIterator<ByteBuffer> {
+		private long offset = file_size;
+
+		@Override
+		protected ByteBuffer computeNext() {
+			if (offset < file_size) {
+				ByteBuffer buf = map(offset).duplicate();
+				buf.position(0);
+				if (file_size - offset < CHUNK_SIZE) // last chunk
+					buf.limit((int) (file_size - offset));
+				offset += buf.remaining();
+				return buf;
+			}
+			return endOfData();
+		}
+
 	}
 
 }

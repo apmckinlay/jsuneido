@@ -69,14 +69,12 @@ public class BtreeTest {
 		addAndStore(3, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(1));
 
-		tran = new Tran(stor);
-		tran.setRedirs(new Redirects(DbHashTree.from(stor, redirs)));
+		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
 		addAndStore(120, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(4));
 
-		tran = new Tran(stor);
-		tran.setRedirs(new Redirects(DbHashTree.from(stor, redirs)));
+		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
 		check(keys, rand, btree);
 	}
@@ -129,11 +127,11 @@ public class BtreeTest {
 	public void translate_data_refs() {
 		Btree btree = new Btree4(tran);
 		Record rec = record("a data record");
-		int intref = tran.refRecordToInt(rec);
+		int intref = tran.refToInt(rec);
 		Record key = record("hello", intref);
 		btree.add(key);
 		tran.startStore();
-		tran.storeDataRecords();
+		DataRecords.store(tran);
 		int adr = tran.getAdr(intref);
 		assert adr != 0;
 		btree.store();
