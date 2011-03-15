@@ -52,7 +52,7 @@ public class RequestTest extends TestBase {
 
 	@Test
 	public void test_view() {
-		String def = "one join two where three = 4";
+		String def = "/*comment*/ one join two where three = 4";
 		Request.execute(serverData, "view myview = " + def);
 		Transaction t = TheDb.db().readonlyTran();
 		assertEquals(def, t.getView("myview"));

@@ -200,19 +200,20 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 
 	private T view() {
 		String name = viewName();
-		return generator.view(name, lexer.remaining());
+		return generator.view(name, lexer.remaining().trim());
 	}
 
 	private T sview() {
 		String name = viewName();
-		return generator.sview(name, lexer.remaining());
+		return generator.sview(name, lexer.remaining().trim());
 	}
 
 	private String viewName() {
 		match();
 		String name = lexer.getValue();
 		match(IDENTIFIER);
-		match(EQ);
+		verifyMatch(EQ);
+		lexer.nextAll(); // don't skip comments
 		token = EOF;
 		return name;
 	}
