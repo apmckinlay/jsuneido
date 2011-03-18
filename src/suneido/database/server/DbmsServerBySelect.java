@@ -15,7 +15,6 @@ import java.util.concurrent.*;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.SuException;
 import suneido.Suneido;
 import suneido.database.TheDb;
 import suneido.language.Compiler;
@@ -175,8 +174,6 @@ public class DbmsServerBySelect {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
-if (!(e instanceof SuException))
-e.printStackTrace();
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			line = null;
@@ -196,6 +193,11 @@ e.printStackTrace();
 				serverData.end();
 				serverDataSet.remove(serverData);
 			}
+		}
+
+		@Override
+		public String toString() {
+			return serverData.getSessionId();
 		}
 	}
 
