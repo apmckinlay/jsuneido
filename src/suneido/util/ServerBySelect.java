@@ -141,8 +141,15 @@ public class ServerBySelect {
 		}
 	}
 
-	private static void read(SelectionKey key)
-			throws IOException {
+	private static void read(SelectionKey key) {
+		try {
+			read2(key);
+		} catch (Exception e) {
+			errorClose(key, e);
+		}
+	}
+
+	private static void read2(SelectionKey key)	throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
 		ByteBuffer buf = info.readBuf;
@@ -155,16 +162,10 @@ public class ServerBySelect {
 				buf.put(oldbuf);
 				info.readBuf = buf;
 			}
-			try {
-				n = channel.read(buf);
-			} catch (IOException e) {
-				// we get this if the client aborts the connection
-				n = -1;
-			}
+			n = channel.read(buf);
 		} while (n > 0);
 		if (n < 0) {
-			info.handler.close();
-			channel.close();
+			close(key);
 			return;
 		}
 		buf.flip();
@@ -183,27 +184,51 @@ public class ServerBySelect {
 
 	private static void write(SelectionKey key) throws IOException {
 		if (write2(key))
-			key.interestOps(SelectionKey.OP_READ); // turn off write interest
+			if (key.isValid())
+				key.interestOps(SelectionKey.OP_READ); // turn off write interest
 	}
 
 	// called by selector
 	private static boolean write2(SelectionKey key) throws IOException {
-		SocketChannel channel = (SocketChannel) key.channel();
-		Info info = (Info) key.attachment();
-		channel.write(info.writeBufs);
-		return bufsEmpty(info.writeBufs);
+		return channelWrite(key);
 	}
 
 	// called by worker
 	private static boolean write3(SelectionKey key) throws IOException {
-		SocketChannel channel = (SocketChannel) key.channel();
-		Info info = (Info) key.attachment();
 		// this synchronized should not be necessary
 		// but it seems to prevent problems with garbage being sent sometimes
 		synchronized(ServerBySocket.class) {
-			channel.write(info.writeBufs);
+			return channelWrite(key);
 		}
-		return bufsEmpty(info.writeBufs);
+	}
+
+	private static boolean channelWrite(SelectionKey key) {
+		SocketChannel channel = (SocketChannel) key.channel();
+		Info info = (Info) key.attachment();
+		try {
+			channel.write(info.writeBufs);
+			return bufsEmpty(info.writeBufs);
+		} catch (IOException e) {
+			errorClose(key, e);
+			return true;
+		}
+	}
+
+	private static void errorClose(SelectionKey key, Exception e) {
+		Info info = (Info) key.attachment();
+		Suneido.errlog(info.handler + " write failed so closing", e);
+		close(key);
+	}
+
+	private static void close(SelectionKey key) {
+		Info info = (Info) key.attachment();
+		info.handler.close();
+		key.cancel();
+		try {
+			key.channel().close();
+		} catch (IOException e) {
+			// ignore error during close
+		}
 	}
 
 	private static boolean bufsEmpty(ByteBuffer[] bufs) {
@@ -240,10 +265,11 @@ public class ServerBySelect {
 			selectServer.needWrite(key);
 		}
 		public void close() {
+			key.cancel();
 			try {
 				key.channel().close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				// ignore errors during close
 			}
 		}
 	}
@@ -262,9 +288,9 @@ public class ServerBySelect {
 			if (info.idleSince == 0)
 				info.idleSince = t;
 			else if (t - info.idleSince > idleTimeoutMs) {
+				Print.timestamped("closing idle connection " + info.handler);
 				info.handler.close();
 				key.channel().close();
-				Print.timestamped("closed idle connection");
 			}
 		}
 	}
