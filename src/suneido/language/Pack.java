@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static suneido.language.Ops.typeName;
@@ -5,7 +9,6 @@ import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.putStringToByteBuffer;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Calendar;
@@ -40,14 +43,14 @@ public class Pack {
 	}
 
 	public static ByteBuffer pack(int n) {
-		ByteBuffer buf = ByteBuffer.allocate(packSize(n));
+		ByteBuffer buf = ByteBuffer.allocate(packSizeLong(n));
 		pack(n, buf);
 		buf.rewind();
 		return buf;
 	}
 
 	public static ByteBuffer pack(long n) {
-		ByteBuffer buf = ByteBuffer.allocate(packSize(n));
+		ByteBuffer buf = ByteBuffer.allocate(packSizeLong(n));
 		pack(n, buf);
 		buf.rewind();
 		return buf;
@@ -58,9 +61,9 @@ public class Pack {
 		if (xType == Boolean.class)
 			return 1;
 		if (xType == Integer.class)
-			return packSizeNum((Integer) x, 0);
+			return packSizeLong((Integer) x);
 		if (xType == Long.class)
-			return packSizeNum((Long) x, 0);
+			return packSizeLong((Long) x);
 		if (xType == BigDecimal.class)
 			return packSizeBD((BigDecimal) x);
 		if (xType == String.class)
@@ -147,17 +150,18 @@ public class Pack {
 		putStringToByteBuffer(s, buf);
 	}
 
-	private static int packSizeBD(BigDecimal n) {
-		n = n.stripTrailingZeros();
-		return packSizeNum(n.unscaledValue().longValue(), -n.scale());
-	}
+	// numbers =================================================================
 
-	public static int packSize(int n) {
+	/** 16 digits - maximum precision that cSuneido handles */
+	private static final long MAX_PREC = 		9999999999999999L;
+	private static final long MAX_PREC_DIV_10 = 999999999999999L;
+
+	public static int packSizeLong(long n) {
 		return packSizeNum(n, 0);
 	}
 
-	public static int packSize(long n) {
-		return packSizeNum(n, 0);
+	private static int packSizeBD(BigDecimal bd) {
+		return packSizeNum(bd.unscaledValue().longValue(), -bd.scale());
 	}
 
 	private static int packSizeNum(long n, int e) {
@@ -165,28 +169,38 @@ public class Pack {
 			return 1;
 		if (n < 0)
 			n = -n;
-		for (; (e % 4) != 0; --e)
+		// strip trailing zeroes
+		while ((n % 10) == 0) {
+			n /= 10;
+			e++;
+		}
+		// adjust e to a multiple of 4 (to match cSuneido)
+		while ((e % 4) != 0 && n < MAX_PREC_DIV_10) {
 			n *= 10;
-		while (n % 10000 == 0)
-			n /= 10000;
-		return 2 + 2 * packshorts(n);
+			--e;
+		}
+		while ((e % 4) != 0 || n > MAX_PREC) {
+			n /= 10;
+			++e;
+		}
+		int ps = packshorts(n);
+		e = e / 4 + ps;
+		if (e >= Byte.MAX_VALUE) {
+			return 2;
+		}
+		return 2 /* tag and exponent */ + 2 * ps;
 	}
 
 	private static int packshorts(long n) {
 		int i = 0;
 		for (; n != 0; ++i)
 			n /= 10000;
+		assert i <= 4; // cSuneido limit
 		return i;
 	}
 
-	private static void packBD(BigDecimal n, ByteBuffer buf) {
-		assert n.precision() <= 15;
-		n = n.stripTrailingZeros();
-		packNum(n.unscaledValue().longValue(), -n.scale(), buf);
-	}
-
-	public static void pack(int n, ByteBuffer buf) {
-		packNum(n, 0, buf);
+	private static void packBD(BigDecimal bd, ByteBuffer buf) {
+		packNum(bd.unscaledValue().longValue(), -bd.scale(), buf);
 	}
 
 	public static void pack(long n, ByteBuffer buf) {
@@ -200,13 +214,25 @@ public class Pack {
 			return;
 		if (n < 0)
 			n = -n;
-		for (; (e % 4) != 0; --e)
+		// strip trailing zeroes
+		while ((n % 10) == 0) {
+			n /= 10;
+			e++;
+		}
+		// make e multiple of 4, and limit precision
+		while ((e % 4) != 0 && n < MAX_PREC_DIV_10) {
 			n *= 10;
-		while (n % 10000 == 0) {
-			n /= 10000;
-			e += 4;
+			--e;
+		}
+		while ((e % 4) != 0 || n > MAX_PREC) {
+			n /= 10;
+			++e;
 		}
 		e = e / 4 + packshorts(n);
+		if (e >= Byte.MAX_VALUE) {
+			buf.put((byte) (minus ? 0 : 255));
+			return;
+		}
 		buf.put(scale(e, minus));
 		packLongPart(buf, n, minus);
 	}
@@ -219,7 +245,7 @@ public class Pack {
 	}
 
 	private static void packLongPart(ByteBuffer buf, long n, boolean minus) {
-		short sh[] = new short[5];
+		short sh[] = new short[4];
 		int i;
 		for (i = 0; n != 0; ++i) {
 			sh[i] = digit(n % 10000, minus);
@@ -277,11 +303,17 @@ public class Pack {
 		return bufferToString(buf);
 	}
 
+	private static final long MAX_LONG_DIV_10 = Long.MAX_VALUE / 10;
+
 	private static Object unpackNum(ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			return 0;
 		boolean minus = buf.get(buf.position() - 1) == Tag.MINUS;
 		int s = buf.get() & 0xff;
+		if (s == 0)
+			return Ops.MINUS_INF;
+		if (s == 255)
+			return Ops.INF;
 		if (minus)
 			s = ((~s) & 0xff);
 		s = (byte) (s ^ 0x80);
@@ -290,18 +322,14 @@ public class Pack {
 		if (n == 0)
 			return 0;
 		if (-10 <= s && s < 0)
-			for (; s < 0; ++s)
+			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
 				n *= 10;
 		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return (int) n;
 		else if (s == 0)
 			return n;
-		else {
-			BigDecimal x = new BigDecimal(BigInteger.valueOf(n), s);
-			if (x.precision() > 15)
-				x = x.round(Ops.mc);
-			return x;
-		}
+		else
+			return BigDecimal.valueOf(n, s);
 	}
 
 	private static long unpackLongPart(ByteBuffer buf, boolean minus) {

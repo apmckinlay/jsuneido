@@ -227,8 +227,8 @@ public final class Ops {
 		return x instanceof String || x instanceof Concat;
 	}
 
-	public final static MathContext mc = new MathContext(15);
-	// must be 15 or less so Pack can multiply by 1000 and still fit in long
+	public final static int PRECISION = 16; // to match cSuneido
+	public final static MathContext MC = new MathContext(PRECISION);
 
 	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
@@ -252,16 +252,16 @@ public final class Ops {
 				(yIsInt || y instanceof Float || y instanceof Double))
 			return ((Number) x).doubleValue() + ((Number) y).doubleValue();
 
-		if (x == inf)
-			return y == minus_inf ? 0 : inf;
-		if (y == inf)
-			return x == minus_inf ? 0 : inf;
-		if (x == minus_inf)
-			return y == inf ? 0 : minus_inf;
-		if (y == minus_inf)
-			return x == inf ? 0 : minus_inf;
+		if (x == INF)
+			return y == MINUS_INF ? 0 : INF;
+		if (y == INF)
+			return x == MINUS_INF ? 0 : INF;
+		if (x == MINUS_INF)
+			return y == INF ? 0 : MINUS_INF;
+		if (y == MINUS_INF)
+			return x == INF ? 0 : MINUS_INF;
 
-		return toBigDecimal(x).add(toBigDecimal(y), mc);
+		return toBigDecimal(x).add(toBigDecimal(y), MC);
 	}
 
 	private static Number toNum(Object x) {
@@ -317,16 +317,16 @@ public final class Ops {
 				(yIsInt || y instanceof Float || y instanceof Double))
 			return ((Number) x).doubleValue() - ((Number) y).doubleValue();
 
-		if (x == inf)
-			return y == inf ? 0 : inf;
-		if (y == inf)
-			return x == inf ? 0 : minus_inf;
-		if (x == minus_inf)
-			return y == minus_inf ? 0 : minus_inf;
-		if (y == minus_inf)
-			return x == minus_inf ? 0 : inf;
+		if (x == INF)
+			return y == INF ? 0 : INF;
+		if (y == INF)
+			return x == INF ? 0 : MINUS_INF;
+		if (x == MINUS_INF)
+			return y == MINUS_INF ? 0 : MINUS_INF;
+		if (y == MINUS_INF)
+			return x == MINUS_INF ? 0 : INF;
 
-		return toBigDecimal(x).subtract(toBigDecimal(y), mc);
+		return toBigDecimal(x).subtract(toBigDecimal(y), MC);
 	}
 
 	private static final Integer one = 1;
@@ -364,23 +364,23 @@ public final class Ops {
 
 		if (xbd.signum() == 0 || ybd.signum() == 0)
 			return 0;
-		if (x == inf)
-			return (ybd.signum() < 0) ? minus_inf : inf;
-		if (y == inf)
-			return (xbd.signum() < 0) ? minus_inf : inf;
-		if (x == minus_inf)
-			return (ybd.signum() < 0) ? inf : minus_inf;
-		if (y == minus_inf)
-			return (xbd.signum() < 0) ? inf : minus_inf;
+		if (x == INF)
+			return (ybd.signum() < 0) ? MINUS_INF : INF;
+		if (y == INF)
+			return (xbd.signum() < 0) ? MINUS_INF : INF;
+		if (x == MINUS_INF)
+			return (ybd.signum() < 0) ? INF : MINUS_INF;
+		if (y == MINUS_INF)
+			return (xbd.signum() < 0) ? INF : MINUS_INF;
 
-		return xbd.multiply(ybd, mc);
+		return xbd.multiply(ybd, MC);
 	}
 
-	public final static BigDecimal zero = BigDecimal.ZERO;
-	public final static BigDecimal inf =
-			BigDecimal.valueOf(1, Integer.MAX_VALUE);
-	public final static BigDecimal minus_inf =
-			BigDecimal.valueOf(-1, Integer.MAX_VALUE);
+	public final static BigDecimal ZERO = BigDecimal.ZERO;
+	public final static BigDecimal INF =
+			BigDecimal.valueOf(1, -4 * Byte.MAX_VALUE);
+	public final static BigDecimal MINUS_INF =
+			BigDecimal.valueOf(-1, -4 * Byte.MAX_VALUE);
 
 	public static Number div(Object x, Object y) {
 		x = toNum(x);
@@ -400,18 +400,18 @@ public final class Ops {
 
 		if (xbd.signum() == 0)
 			return 0;
-		if (x == inf)
-			return y == inf ? +1 : y == minus_inf ? -1
-					: (ybd.signum() < 0) ? minus_inf : inf;
-		if (x == minus_inf)
-			return y == inf ? -1 : y == minus_inf ? +1
-					: (ybd.signum() < 0) ? inf : minus_inf;
-		if (y == inf || y == minus_inf)
+		if (x == INF)
+			return y == INF ? +1 : y == MINUS_INF ? -1
+					: (ybd.signum() < 0) ? MINUS_INF : INF;
+		if (x == MINUS_INF)
+			return y == INF ? -1 : y == MINUS_INF ? +1
+					: (ybd.signum() < 0) ? INF : MINUS_INF;
+		if (y == INF || y == MINUS_INF)
 			return 0;
 		if (ybd.signum() == 0)
-			return xbd.signum() < 0 ? minus_inf : inf;
+			return xbd.signum() < 0 ? MINUS_INF : INF;
 
-		return xbd.divide(ybd, mc);
+		return xbd.divide(ybd, MC);
 	}
 
 	public static Number mod(Object x, Object y) {
@@ -486,7 +486,7 @@ public final class Ops {
 			return Integer.parseInt(s);
 		else
 			try {
-				BigDecimal n = new BigDecimal(s, mc);
+				BigDecimal n = new BigDecimal(s, MC);
 				if (n.compareTo(BigDecimal.ZERO) == 0)
 					return 0;
 				return n;
@@ -646,9 +646,9 @@ public final class Ops {
 	}
 
 	public static String toStringBD(BigDecimal n) {
-		if (n.compareTo(inf) == 0)
+		if (n.compareTo(INF) == 0)
 			return "Inf";
-		if (n.compareTo(minus_inf) == 0)
+		if (n.compareTo(MINUS_INF) == 0)
 			return "-Inf";
 		n = n.stripTrailingZeros();
 		String s = Math.abs(n.scale()) >= 20 ? n.toString() : n.toPlainString();
