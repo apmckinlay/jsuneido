@@ -61,7 +61,7 @@ public class SuValueTest {
 			return ; // skip divide by zero
 		z = div(x, y);
 		BigDecimal expected =
-				BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), mc);
+				BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), MC);
 		assertTrue(i + " / " + j + " should be " + z, is(expected, z));
 	}
 
