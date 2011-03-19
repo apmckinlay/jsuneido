@@ -162,7 +162,12 @@ public class ServerBySelect {
 				buf.put(oldbuf);
 				info.readBuf = buf;
 			}
-			n = channel.read(buf);
+			try {
+				n = channel.read(buf);
+			} catch (IOException e) {
+				// we get this if the client closes the connection
+				n = -1;
+			}
 		} while (n > 0);
 		if (n < 0) {
 			close(key);
@@ -216,7 +221,7 @@ public class ServerBySelect {
 
 	private static void errorClose(SelectionKey key, Exception e) {
 		Info info = (Info) key.attachment();
-		Suneido.errlog(info.handler + " write failed so closing", e);
+		Suneido.errlog(info.handler + " io failed so closing", e);
 		close(key);
 	}
 
