@@ -9,7 +9,6 @@ import java.util.Iterator;
 
 import suneido.SuContainer;
 import suneido.SuValue;
-import suneido.language.builtin.ContainerMethods;
 
 /**
  * A wrapper for an Iterable that can be treated like an SuContainer but doesn't
@@ -29,9 +28,10 @@ public class SuSequence extends SuContainer {
 	public SuValue lookup(String method) {
 		if (method == "Next")
 			return Next;
-		// TODO optimize Copy() to not instantiate
+		if (method == "Copy" && ! instantiated)
+			return Copy;
 		instantiate();
-		return ContainerMethods.methods.lookup(method);
+		return super.lookup(method);
 	}
 
 	private static final SuValue Next = new SuMethod0() {
@@ -39,6 +39,13 @@ public class SuSequence extends SuContainer {
 		public Object eval0(Object self) {
 			Iterator<Object> iter = ((SuSequence) self).iter;
 			return iter.hasNext() ? iter.next() : this;
+		}
+	};
+
+	private static final SuValue Copy = new SuMethod0() {
+		@Override
+		public Object eval0(Object self) {
+			return new SuContainer(((SuSequence) self).iterable);
 		}
 	};
 
@@ -77,8 +84,7 @@ public class SuSequence extends SuContainer {
 	private void instantiate() {
 		if (instantiated)
 			return;
-		for (Object value : iterable)
-			add(value);
+		addAll(iterable);
 		instantiated = true;
 	}
 

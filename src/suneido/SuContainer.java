@@ -20,6 +20,8 @@ import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.Util;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Suneido's single container type.
  * Combines an extendible array plus a hash map.
@@ -56,15 +58,18 @@ public class SuContainer extends SuValue
 
 	public SuContainer() {
 	}
-	/** create a new container and add the specified collection */
-	public SuContainer(Collection<?> c) {
-		vec.addAll(c);
+
+	/** create a new container and add the specified values */
+	public SuContainer(Iterable<?> c) {
+		addAll(c);
 	}
+
 	public SuContainer(SuContainer other) {
 		vec.addAll(other.vec);
 		map.putAll(other.map);
 		defval = other.defval;
 	}
+
 	public static SuContainer of(Object x, Object y) {
 		SuContainer c = new SuContainer();
 		c.add(x);
@@ -89,6 +94,10 @@ public class SuContainer extends SuValue
 		checkReadonly();
 		vec.add(value);
 		migrate();
+	}
+
+	public void addAll(Iterable<?> iterable) {
+		Iterables.addAll(vec, iterable);
 	}
 
 	private void checkReadonly() {
