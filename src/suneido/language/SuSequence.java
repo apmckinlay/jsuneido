@@ -4,6 +4,7 @@
 
 package suneido.language;
 
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import suneido.SuContainer;
@@ -14,8 +15,7 @@ import suneido.language.builtin.ContainerMethods;
  * A wrapper for an Iterable that can be treated like an SuContainer but doesn't
  * instantiate the object if you just iterate over it.
  */
-public class SuSequence extends SuContainer
-		implements Iterator<Object>, Iterable<Object> {
+public class SuSequence extends SuContainer {
 	private final Iterable<Object> iterable;
 	private final Iterator<Object> iter;
 	private boolean instantiated = false;
@@ -29,6 +29,7 @@ public class SuSequence extends SuContainer
 	public SuValue lookup(String method) {
 		if (method == "Next")
 			return Next;
+		// TODO optimize Copy() to not instantiate
 		instantiate();
 		return ContainerMethods.methods.lookup(method);
 	}
@@ -61,24 +62,24 @@ public class SuSequence extends SuContainer
 		return super.toString();
 	}
 
+	@Override
+	public void pack(ByteBuffer buf) {
+		instantiate();
+		super.pack(buf);
+	}
+
+	@Override
+	public int packSize(int nest) {
+		instantiate();
+		return super.packSize(nest);
+	}
+
 	private void instantiate() {
 		if (instantiated)
 			return;
 		for (Object value : iterable)
 			add(value);
 		instantiated = true;
-	}
-
-	public boolean hasNext() {
-		return iter.hasNext();
-	}
-
-	public Object next() {
-		return iter.next();
-	}
-
-	public void remove() {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override
