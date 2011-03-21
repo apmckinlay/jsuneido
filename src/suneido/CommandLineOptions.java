@@ -141,7 +141,7 @@ public class CommandLineOptions {
 
 	private void defaults() {
 		if (action == null)
-			action = Action.SERVER;
+			action = Action.REPL;
 		if (serverPort == -1 &&
 				(action == Action.SERVER || action == Action.CLIENT))
 			serverPort = DEFAULT_PORT;
