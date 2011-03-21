@@ -10,13 +10,13 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void none() {
-		assertEquals("SERVER",
+		assertEquals("REPL",
 				CommandLineOptions.parse().toString());
 	}
 
 	@Test
 	public void just_rest() {
-		assertEquals("SERVER rest: foo bar",
+		assertEquals("REPL rest: foo bar",
 				CommandLineOptions.parse("foo", "bar").toString());
 	}
 
@@ -30,7 +30,7 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void separator() {
-		assertEquals("SERVER rest: -foo -bar",
+		assertEquals("REPL rest: -foo -bar",
 				CommandLineOptions.parse("--", "-foo", "-bar").toString());
 	}
 
@@ -43,9 +43,9 @@ public class CommandLineOptionsTest {
 	@Test
 	public void port() {
 		assertEquals("SERVER port=1234",
-				CommandLineOptions.parse("-port", "1234").toString());
+				CommandLineOptions.parse("-s", "-port", "1234").toString());
 		assertEquals("SERVER port=1234",
-				CommandLineOptions.parse("-p", "1234").toString());
+				CommandLineOptions.parse("-s", "-p", "1234").toString());
 		assertEquals("SERVER port=1234",
 				CommandLineOptions.parse("-s", "-p", "1234").toString());
 	}
@@ -76,18 +76,18 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void impersonate() {
-		assertEquals("SERVER impersonate='1234'",
+		assertEquals("REPL impersonate='1234'",
 				CommandLineOptions.parse("-impersonate", "1234").toString());
-		assertEquals("SERVER impersonate='1234'",
+		assertEquals("REPL impersonate='1234'",
 				CommandLineOptions.parse("-i", "1234").toString());
 	}
 
 	@Test
 	public void timeout() {
 		assertThat(CommandLineOptions.parse("-timeout", "1234").toString(),
-				is("SERVER timeout=1234"));
+				is("REPL timeout=1234"));
 		assertThat(CommandLineOptions.parse("-to", "1234").toString(),
-				is("SERVER timeout=1234"));
+				is("REPL timeout=1234"));
 	}
 
 }
