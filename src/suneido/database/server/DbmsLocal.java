@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import static suneido.Suneido.errlog;
@@ -16,17 +20,8 @@ import suneido.language.Compiler;
 import suneido.language.Library;
 import suneido.language.builtin.ServerEval;
 
-/**
- * Connects Suneido to a local database.
- *
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
- */
+/** Connects Suneido to a local database. */
 public class DbmsLocal extends Dbms {
-
-	public DbmsLocal() {
-		TheDb.db();
-	}
 
 	@Override
 	public void admin(String s) {
