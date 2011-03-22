@@ -156,9 +156,6 @@ public class DbCheck {
 			}
 			int nbad = 0;
 			for (int i = 0; i < ntables; ++i) {
-				print(".");
-				if ((i + 1) % LINE_LENGTH == 0)
-					println();
 				String errors;
 				try {
 					errors = ecs.take().get();
@@ -182,7 +179,6 @@ public class DbCheck {
 			return false;
 		} finally {
 			executor.shutdown();
-			println();
 			t.complete();
 			TheDb.db().close();
 			TheDb.set(null);
