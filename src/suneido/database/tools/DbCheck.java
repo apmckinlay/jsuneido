@@ -1,12 +1,11 @@
 package suneido.database.tools;
 
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.*;
 
 import suneido.database.*;
 import suneido.database.Database.TN;
-import suneido.language.Pack;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
 
@@ -54,8 +53,8 @@ public class DbCheck {
 			if (!check_data_and_indexes())
 				status = Status.CORRUPTED;
 		}
-		println(filename + " " + status + " " + lastCommit(status));
 		print(details);
+		println(filename + " " + status + " " + lastCommit(status));
 		return status;
 	}
 
@@ -138,113 +137,56 @@ public class DbCheck {
 	}
 
 	private final static int BAD_LIMIT = 10;
+	private final static int N_THREADS = 8;
 
 	protected boolean check_data_and_indexes() {
+		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
+		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
 		TheDb.set(new Database(filename, Mode.READ_ONLY));
 		Transaction t = TheDb.db().readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
 			BtreeIndex.Iter iter = bti.iter(t).next();
-			int i = 0;
-			int nbad = 0;
+			int ntables = 0;
 			for (; !iter.eof(); iter.next()) {
-				print(".");
-				if (++i % LINE_LENGTH == 0)
-					println();
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
-				if (! checkTable(t, tablename)) {
-					if (++nbad > BAD_LIMIT)
-						break;
+				ecs.submit(new CheckTable(tablename));
+				++ntables;
+			}
+			int nbad = 0;
+			for (int i = 0; i < ntables; ++i) {
+				print(".");
+				if ((i + 1) % LINE_LENGTH == 0)
+					println();
+				String errors;
+				try {
+					errors = ecs.take().get();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					errors = "checkTable interrruped";
+				} catch (ExecutionException e) {
+					errors = "checkTable " + e;
+				}
+				if (! errors.isEmpty()) {
+					details += errors;
+					if (++nbad > BAD_LIMIT) {
+						executor.shutdownNow();
+						details += "TOO MANY ERRORS, GIVING UP";
+					}
 				}
 			}
 			return nbad == 0;
+		} catch (Exception e) {
+			details += e + "\n";
+			return false;
 		} finally {
+			executor.shutdown();
 			println();
 			t.complete();
 			TheDb.db().close();
 			TheDb.set(null);
 		}
-	}
-
-	private boolean checkTable(Transaction t, String tablename) {
-		boolean first_index = true;
-		Table table = t.getTable(tablename);
-		TableData td = t.getTableData(table.num);
-		int maxfields = 0;
-		for (Index index : table.indexes) {
-			int nrecords = 0;
-			long totalsize = 0;
-			BtreeIndex bti = t.getBtreeIndex(index);
-			BtreeIndex.Iter iter = bti.iter(t);
-			Record prevkey = null;
-			for (iter.next(); !iter.eof(); iter.next()) {
-				Record key = iter.cur().key;
-				Record strippedKey = BtreeIndex.stripAddress(key);
-				if (bti.iskey || (bti.unique && !BtreeIndex.isEmpty(strippedKey)))
-					if (strippedKey.equals(prevkey)) {
-						details += tablename + ": duplicate in " + index.columns + "\n";
-						return false;
-					}
-				prevkey = strippedKey;
-				Record rec = TheDb.db().input(iter.keyadr());
-				if (first_index)
-					if (!checkRecord(tablename, rec))
-						return false;
-				Record reckey = rec.project(index.colnums, iter.keyadr());
-				if (!key.equals(reckey)) {
-					details += tablename + ": index key mismatch\n";
-					return false;
-				}
-				for (Index index2 : table.indexes) {
-					Record key2 = rec.project(index2.colnums, iter.keyadr());
-					BtreeIndex bti2 = t.getBtreeIndex(index2);
-					Slot slot = bti2.find(t, key2);
-					if (slot == null) {
-						details += tablename + ": incomplete index\n";
-						return false;
-					}
-				}
-				++nrecords;
-				totalsize += rec.packSize();
-				if (rec.size() > maxfields)
-					maxfields = rec.size();
-			}
-			if (nrecords != td.nrecords) {
-				details += tablename + ": record count mismatch: index "
-						+ nrecords + " != tables " + td.nrecords + "\n";
-				return false;
-			}
-			if (totalsize != td.totalsize) {
-				details += tablename + ": table size mismatch: data "
-						+ totalsize + " != tables " + td.totalsize + "\n";
-				return false;
-			}
-		}
-		if (td.nextfield <= table.maxColumnNum()) {
-			details += tablename + ": nextfield mismatch: nextfield "
-					+ td.nextfield + " <= max column# " + table.maxColumnNum() + "\n";
-			return false;
-		}
-		if (tablename.equals("tables") || tablename.equals("indexes"))
-			maxfields -= 1; // allow for the padding
-		if (maxfields > td.nextfield) {
-			details += tablename + ": nextfield mismatch: maxfields "
-					+ maxfields + " > nextfield " + td.nextfield + "\n";
-			return false;
-		}
-		return true;
-	}
-
-	private boolean checkRecord(String tablename, Record rec) {
-		for (ByteBuffer buf : rec)
-			try {
-				Pack.unpack(buf);
-			} catch (Throwable e) {
-				details += tablename + ": " + e + "\n";
-				return false;
-			}
-		return true;
 	}
 
 	void print(String s) {
