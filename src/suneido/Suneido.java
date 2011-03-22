@@ -14,18 +14,12 @@ import suneido.database.tools.*;
 import suneido.language.Compiler;
 import suneido.util.Print;
 
-/**
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
- */
 public class Suneido {
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) {
-		//args = new String[] { "etaserver.go" };
-		//args = new String[] { "-client" };
 		cmdlineoptions = CommandLineOptions.parse(args);
 		try {
 			doAction();
@@ -71,7 +65,7 @@ public class Suneido {
 	private static void doAction() throws Throwable {
 		switch (cmdlineoptions.action) {
 		case REPL:
-			Repl.main(null);
+			Repl.repl();
 			break;
 		case SERVER:
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
@@ -116,20 +110,11 @@ public class Suneido {
 		case COMPACT2:
 			DbCompact.compact2("suneido.db", cmdlineoptions.actionArg);
 			break;
-//		case TEST:
-//			RunAllTests.run("jsuneido.jar");
-//			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
-//		case TESTCLIENT:
-//			TestClient.main(cmdlineoptions.actionArg);
-//			break;
-//		case TESTSERVER:
-//			TestServer.main(new String[0]);
-//			break;
 		case ERROR:
 			System.out.println(cmdlineoptions.actionArg);
 			System.out.println();

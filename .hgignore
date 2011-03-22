@@ -26,3 +26,5 @@ syntax: regexp
 ^suneido/WhenBuilt\.java$
 syntax: regexp
 ^doc$
+syntax: regexp
+^eta\.go$

@@ -24,6 +24,10 @@ import suneido.language.builtin.ServerEval;
  */
 public class DbmsLocal extends Dbms {
 
+	public DbmsLocal() {
+		TheDb.db();
+	}
+
 	@Override
 	public void admin(String s) {
 		Request.execute(ServerData.forThread(), s);

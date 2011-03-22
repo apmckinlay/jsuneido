@@ -9,12 +9,10 @@ import suneido.database.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.LibGet;
 
-public class Library {
+import com.google.common.collect.Lists;
 
-	private static final List<String> libraries = new ArrayList<String>();
-	static {
-		libraries.add("stdlib");
-	}
+public class Library {
+	private static final List<String> libraries = Lists.newArrayList("stdlib");
 
 	public static List<String> libraries() {
 		return libraries;
