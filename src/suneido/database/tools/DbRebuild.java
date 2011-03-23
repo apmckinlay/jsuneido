@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.tools;
 
 import static suneido.SuException.unreachable;
@@ -5,6 +9,7 @@ import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
 import static suneido.database.tools.DbTools.renameWithBackup;
+import gnu.trove.map.hash.TLongLongHashMap;
 
 import java.io.File;
 import java.util.*;
@@ -22,7 +27,7 @@ public class DbRebuild extends DbCheck {
 	private final String tempfilename;
 	private Database newdb;
 	private final BitSet deletes = new BitSet();
-	private final Map<Long,Long> tr = new HashMap<Long,Long>();
+	private final TLongLongHashMap tr = new TLongLongHashMap();
 	private int max_tblnum = -1;
 	private final Map<Integer,String> tblnames = new HashMap<Integer,String>();
 	private final Checksum cksum = new Checksum();

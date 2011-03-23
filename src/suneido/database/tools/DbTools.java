@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.tools;
 
 import java.io.*;
@@ -35,7 +39,8 @@ public class DbTools {
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();
 		//System.out.println(javaBin + " -jar " + jarPath + " " + cmd);
-		ProcessBuilder builder = new ProcessBuilder(javaBin, "-jar", jarPath, cmd);
+		ProcessBuilder builder = new ProcessBuilder(javaBin,
+				"-ea", "-server", "-XX:+UseCompressedOops", "-jar", jarPath, cmd);
 		try {
 			builder.redirectErrorStream(true); // merge stderr into stdout
 			Process process = builder.start();
