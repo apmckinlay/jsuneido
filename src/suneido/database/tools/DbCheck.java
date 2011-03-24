@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.tools;
 
 import java.text.SimpleDateFormat;
@@ -16,8 +20,6 @@ import suneido.util.Checksum;
  * @author Andrew McKinlay
  */
 public class DbCheck {
-	private static final int LINE_LENGTH = 79;
-
 	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
 	private final String filename;
 	final Mmfile mmf;

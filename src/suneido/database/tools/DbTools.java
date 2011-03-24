@@ -40,7 +40,7 @@ public class DbTools {
 		String jarPath = JarPath.jarPath();
 		//System.out.println(javaBin + " -jar " + jarPath + " " + cmd);
 		ProcessBuilder builder = new ProcessBuilder(javaBin,
-				"-ea", "-server", "-XX:+UseCompressedOops", "-jar", jarPath, cmd);
+				"-ea", "-jar", jarPath, cmd);
 		try {
 			builder.redirectErrorStream(true); // merge stderr into stdout
 			Process process = builder.start();
@@ -54,7 +54,8 @@ public class DbTools {
 			}
 			return 0 == process.waitFor();
 		} catch (IOException e) {
-			throw new SuException("unable to runWithNewJvm: " + javaBin + " -jar " + jarPath + " " + cmd, e);
+			throw new SuException("unable to runWithNewJvm: " + javaBin +
+					" -jar " + jarPath + " " + cmd, e);
 		}
 	}
 
