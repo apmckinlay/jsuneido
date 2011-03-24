@@ -103,7 +103,7 @@ public class MmapFile implements Storage {
 		return longToInt(offset);
 	}
 
-	private int align(int n) {
+	public static int align(int n) {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
@@ -111,6 +111,10 @@ public class MmapFile implements Storage {
 	 * extending from the offset to the end of the chunk */
 	public ByteBuffer buffer(int adr) {
 		long offset = adr < 0 ? file_size + adr : intToLong(adr);
+		return buf(offset);
+	}
+
+	private ByteBuffer buf(long offset) {
 		ByteBuffer fmbuf = map(offset);
 		synchronized(fmbuf) {
 			fmbuf.position((int) (offset % CHUNK_SIZE));
@@ -157,18 +161,21 @@ public class MmapFile implements Storage {
 	}
 
 	@Override
-	public Iterator<ByteBuffer> iterator() {
-		return new Iter();
+	public Iterator<ByteBuffer> iterator(int adr) {
+		return new Iter(adr);
 	}
 
 	private class Iter extends AbstractIterator<ByteBuffer> {
-		private long offset = file_size;
+		private long offset;
+
+		public Iter(int adr) {
+			offset = intToLong(adr);
+		}
 
 		@Override
 		protected ByteBuffer computeNext() {
 			if (offset < file_size) {
-				ByteBuffer buf = map(offset).duplicate();
-				buf.position(0);
+				ByteBuffer buf = buf(offset);
 				if (file_size - offset < CHUNK_SIZE) // last chunk
 					buf.limit((int) (file_size - offset));
 				offset += buf.remaining();
@@ -177,6 +184,11 @@ public class MmapFile implements Storage {
 			return endOfData();
 		}
 
+	}
+
+	@Override
+	public int sizeFrom(int adr) {
+		return (int) (file_size - intToLong(adr));
 	}
 
 }
