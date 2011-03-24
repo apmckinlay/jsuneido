@@ -8,39 +8,62 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.nio.ByteBuffer;
-import java.util.zip.Adler32;
+import java.util.Iterator;
 
 import org.junit.Test;
+
+import suneido.util.Checksum;
 
 public class TranTest {
 
 	@Test
-	public void checksum_nothing() {
+	public void check_empty_commit() {
 		Tran tran = new Tran(new TestStorage());
 		tran.startStore();
-		Adler32 adler32 = new Adler32();
-		assertThat(tran.checksum(), is((int) adler32.getValue()));
+		tran.endStore();
+
+		int size = check(tran);
+		assertThat(size, is(8)); // align
 	}
 
 	@Test
-	public void checksum() {
-		Adler32 adler32 = new Adler32();
+	public void check_one_commit() {
 		Tran tran = new Tran(new TestStorage());
 		tran.startStore();
 
-		byte[] data = new byte[] { 1, 2, 3, -1, 0, 0, 0, 0 };
+		byte[] data = new byte[] { 1 };
 		int adr = tran.stor.alloc(data.length);
-		ByteBuffer buf = tran.stor.buffer(adr);
-		buf.put(data);
-		adler32.update(data);
+		tran.stor.buffer(adr).put(data);
 
-		data = new byte[] { 12, 34, 56, 78, 0, 0, 0, 0 };
+		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		adr = tran.stor.alloc(data.length);
-		buf = tran.stor.buffer(adr);
-		buf.put(data);
-		adler32.update(data);
+		tran.stor.buffer(adr).put(data);
 
-		assertThat(tran.checksum(), is((int) adler32.getValue()));
+		tran.endStore();
+
+		int size = check(tran);
+		assertThat(size, is(32));
+	}
+
+	public int check(Tran tran) {
+		Iterator<ByteBuffer> iter = tran.stor.iterator(Storage.FIRST_ADR);
+		ByteBuffer buf = iter.next();
+		int size = buf.getInt(0);
+
+		Checksum cksum = new Checksum();
+		int n;
+		for (int i = 0; i < size; i += n) {
+			if (buf.remaining() == 0)
+				buf = iter.next();
+			n = Math.min(size - i, buf.remaining());
+			cksum.update(buf, n);
+		}
+		if (buf.remaining() == 0)
+			buf = iter.next();
+		int stor_cksum = buf.getInt();
+		assertThat(stor_cksum, is(cksum.getValue()));
+
+		return size;
 	}
 
 }

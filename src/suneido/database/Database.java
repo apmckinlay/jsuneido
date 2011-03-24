@@ -246,15 +246,15 @@ public class Database {
 		// don't checksum tables or indexes records because they get updated
 		if (output_type == Mmfile.DATA
 				&& tblnum != TN.TABLES && tblnum != TN.INDEXES)
-			checksum.add(p, 4 + n);
+			checksum.update(p, 4 + n);
 		return offset + 4; // offset of record i.e. past tblnum
 	}
 
 	void writeCommit(ByteBuffer buf) {
 		// include commit in checksum, but don't include checksum itself
 		synchronized(checksum) {
-			checksum.add(buf, buf.position());
-			buf.putInt((int) checksum.getValue());
+			checksum.update(buf, buf.position());
+			buf.putInt(checksum.getValue());
 			checksum.reset();
 		}
 	}

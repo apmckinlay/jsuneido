@@ -141,7 +141,7 @@ public class DbRebuild extends DbCheck {
 		int tblnum = buf.getInt(0);
 		if (tblnum != TN.TABLES && tblnum != TN.INDEXES) {
 			Record r = new Record(buf.slice(4));
-			cksum.add(buf.getByteBuffer(), r.bufSize() + 4);
+			cksum.update(buf.getByteBuffer(), r.bufSize() + 4);
 		}
 		tr.put(oldoff, newoff);
 	}
@@ -158,7 +158,7 @@ public class DbRebuild extends DbCheck {
 		Commit commit = new Commit(buf);
 
 		handleCommitEntries(commit);
-		cksum.add(buf.getByteBuffer(), commit.sizeWithoutChecksum());
+		cksum.update(buf.getByteBuffer(), commit.sizeWithoutChecksum());
 		commit.putChecksum(cksum.getValue());
 		cksum.reset();
 	}

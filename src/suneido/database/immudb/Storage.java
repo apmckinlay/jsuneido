@@ -7,7 +7,8 @@ package suneido.database.immudb;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-public interface Storage extends Iterable<ByteBuffer> {
+public interface Storage {
+	static final int FIRST_ADR = 1;
 
 	int alloc(int byteBufSize);
 
@@ -15,6 +16,9 @@ public interface Storage extends Iterable<ByteBuffer> {
 	ByteBuffer buffer(int adr);
 
 	/** iterates through raw storage, NOT the allocation blocks */
-	Iterator<ByteBuffer> iterator();
+	Iterator<ByteBuffer> iterator(int adr);
+
+	/** number of bytes from adr to current offset */
+	int sizeFrom(int adr);
 
 }

@@ -6,16 +6,18 @@ package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.zip.Adler32;
+
+import suneido.util.Checksum;
 
 /**
  * Transaction "context".
  */
 public class Tran implements Translator {
+	private static final int SIZEOF_INT = 4;
 	public final Storage stor;
 	private final Redirects redirs;
 	final IntRefs intrefs = new IntRefs();
-	private Iterator<ByteBuffer> stor_iter;
+	private int size_adr;
 
 	public Tran(Storage stor) {
 		this(stor, new Redirects(DbHashTree.empty(stor)));
@@ -51,18 +53,30 @@ public class Tran implements Translator {
 	}
 
 	public void startStore() {
-		stor_iter = stor.iterator();
 		intrefs.startStore();
+		size_adr = stor.alloc(SIZEOF_INT); // to hold the size of the commit
+	}
+
+	/**
+	 * Store the size at the beginning of the commit
+	 * and the checksum at the end.
+	 * The checksum includes the size.
+	 * The size does NOT include the checksum.
+	 */
+	public void endStore() {
+		int size = stor.sizeFrom(size_adr);
+		stor.buffer(size_adr).putInt(size);
+
+		int cksum = checksum();
+		stor.buffer(stor.alloc(SIZEOF_INT)).putInt(cksum);
 	}
 
 	public int checksum() {
-		Adler32 cksum = new Adler32();
-		while (stor_iter.hasNext()) {
-			ByteBuffer buf = stor_iter.next();
-			for (int i = 0; i < buf.limit(); ++i)
-				cksum.update(buf.get(i));
-		}
-		return (int) cksum.getValue();
+		Checksum cksum = new Checksum();
+		Iterator<ByteBuffer> iter = stor.iterator(size_adr);
+		while (iter.hasNext())
+			cksum.update(iter.next());
+		return cksum.getValue();
 	}
 
 	public void setAdr(int intref, int adr) {

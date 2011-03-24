@@ -10,10 +10,17 @@ public class Checksum {
 	private final Adler32 cksum = new Adler32();
 	private final static byte[] bytes = new byte[1024];
 
-	public synchronized void add(ByteBuffer buf, int len) {
+	public synchronized void update(ByteBuffer buf) {
+		update(buf, buf.limit());
+	}
+
+	/** starts at position 0, leaves position at len */
+	public synchronized void update(ByteBuffer buf, int len) {
 		buf.position(0);
-		if (buf.hasArray())
+		if (buf.hasArray()) {
 			cksum.update(buf.array(), buf.arrayOffset(), len);
+			buf.position(len);
+		}
 		else {
 			for (int i = 0; i < len; i += bytes.length) {
 				int n = Math.min(bytes.length, len - i);
@@ -23,8 +30,8 @@ public class Checksum {
 		}
 	}
 
-	public synchronized long getValue() {
-		return cksum.getValue();
+	public synchronized int getValue() {
+		return (int) cksum.getValue();
 	}
 
 	public synchronized void reset() {

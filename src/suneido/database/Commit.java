@@ -54,12 +54,12 @@ public class Commit {
 		buf.putInt(DELETES + i * INTSIZE, Mmfile.offsetToInt(offset));
 	}
 
-	public long getChecksum() {
+	public int getChecksum() {
 		return buf.getInt(CKSUM);
 	}
 
-	public void putChecksum(long value) {
-		buf.putInt(CKSUM, (int) value);
+	public void putChecksum(int value) {
+		buf.putInt(CKSUM, value);
 	}
 
 	public int sizeWithoutChecksum() {

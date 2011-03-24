@@ -86,14 +86,14 @@ public class DbCheck {
 				int tblnum = buf.getInt(0);
 				if (tblnum != TN.TABLES && tblnum != TN.INDEXES) {
 					Record r = new Record(buf.slice(4));
-					cksum.add(buf.getByteBuffer(), r.bufSize() + 4);
+					cksum.update(buf.getByteBuffer(), r.bufSize() + 4);
 					// + 4 to skip tblnum
 				}
 				break;
 			case Mmfile.COMMIT:
 				Commit commit = new Commit(buf);
-				cksum.add(buf.getByteBuffer(), commit.sizeWithoutChecksum());
-				if (commit.getChecksum() != (int) cksum.getValue()) {
+				cksum.update(buf.getByteBuffer(), commit.sizeWithoutChecksum());
+				if (commit.getChecksum() != cksum.getValue()) {
 					details += "checksum mismatch\n";
 					break loop;
 				}
