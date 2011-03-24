@@ -10,6 +10,7 @@ import org.junit.Before;
 
 import suneido.database.*;
 import suneido.database.tools.DbCheck.Status;
+import suneido.util.FileUtils;
 
 public class DbCheckRebuildTestBase extends TestBaseBase {
 	protected String filename;
@@ -17,7 +18,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 
 	@Before
 	public void create() {
-		File file = DbTools.tempfile();
+		File file = FileUtils.tempfile();
 		filename = file.toString();
 		outfilename = filename + ".out";
 	}

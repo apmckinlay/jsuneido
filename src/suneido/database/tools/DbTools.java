@@ -11,29 +11,6 @@ import suneido.util.JarPath;
 
 public class DbTools {
 
-	public static File tempfile() {
-		try {
-			File tmpfile = File.createTempFile("sudb", null, new File("."));
-			tmpfile.deleteOnExit();
-			return tmpfile;
-		} catch (IOException e) {
-			throw new SuException("Can't create temp file", e);
-		}
-	}
-
-	public static void renameWithBackup(File tmpfile, String filename) {
-		File file = new File(filename);
-		File bakfile = new File(filename + ".bak");
-		if (bakfile.exists() && !bakfile.delete())
-			throw new SuException("can't delete " + bakfile);
-		if (file.exists() && !file.renameTo(bakfile))
-			throw new SuException("can't rename " + file + " to " + bakfile);
-		if (!tmpfile.renameTo(file)) {
-			bakfile.renameTo(file);
-			throw new SuException("can't rename " + tmpfile + " to " + file);
-		}
-	}
-
 	public static boolean runWithNewJvm(String cmd) throws InterruptedException {
 		String javaHome = System.getProperty("java.home");
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";

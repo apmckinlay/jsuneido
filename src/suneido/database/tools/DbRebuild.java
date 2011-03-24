@@ -8,7 +8,6 @@ import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
-import static suneido.database.tools.DbTools.renameWithBackup;
 import gnu.trove.map.hash.TLongLongHashMap;
 
 import java.io.File;
@@ -17,8 +16,7 @@ import java.util.*;
 import suneido.SuException;
 import suneido.database.*;
 import suneido.database.Database.TN;
-import suneido.util.ByteBuf;
-import suneido.util.Checksum;
+import suneido.util.*;
 
 import com.google.common.collect.ImmutableList;
 
@@ -36,14 +34,14 @@ public class DbRebuild extends DbCheck {
 	final private int GRANULARITY = 16;
 
 	public static void rebuildOrExit(String dbfilename) {
-		File tempfile = DbTools.tempfile();
+		File tempfile = FileUtils.tempfile();
 		try {
 			if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
 				throw new SuException("rebuild failed: " + dbfilename);
 		} catch (InterruptedException e) {
 			throw new SuException("rebuild was interrupted");
 		}
-		renameWithBackup(tempfile, dbfilename);
+		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
 	public static void rebuild2(String dbfilename, String tempfilename) {

@@ -4,10 +4,13 @@
 
 package suneido.database.immudb;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import suneido.util.Checksum;
+import suneido.util.FileUtils;
 
 public class Check {
 	private final int CKSUM_SIZE;
@@ -65,6 +68,17 @@ public class Check {
 
 	public long okSize() {
 		return pos;
+	}
+
+	public void fix(String filename) throws IOException {
+		MmapFile mmf = new MmapFile(filename, "r");
+		Check check = new Check(mmf);
+		mmf.close();
+		if (check.check())
+			return;
+		File tempfile = FileUtils.tempfile();
+		FileUtils.copy(new File(filename), tempfile, check.okSize());
+		FileUtils.renameWithBackup(tempfile, filename);
 	}
 
 }
