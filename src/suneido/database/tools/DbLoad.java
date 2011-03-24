@@ -1,7 +1,6 @@
 package suneido.database.tools;
 
 import static suneido.SuException.verify;
-import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -11,15 +10,16 @@ import suneido.SuException;
 import suneido.database.*;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
+import suneido.util.FileUtils;
 
 public class DbLoad {
 
 	public static void loadDatabasePrint(String filename, String dbfilename)
 			throws InterruptedException {
-		File tempfile = DbTools.tempfile();
+		File tempfile = FileUtils.tempfile();
 		if (! DbTools.runWithNewJvm("-load:" + tempfile))
 			throw new SuException("failed to load: " + filename);
-		renameWithBackup(tempfile, dbfilename);
+		FileUtils.renameWithBackup(tempfile, dbfilename);
 		System.out.println("loaded " + filename	+ " into new " + dbfilename);
 	}
 

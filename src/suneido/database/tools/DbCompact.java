@@ -1,7 +1,6 @@
 package suneido.database.tools;
 
 import static suneido.SuException.verifyEquals;
-import static suneido.database.tools.DbTools.renameWithBackup;
 
 import java.io.File;
 import java.util.List;
@@ -11,6 +10,7 @@ import suneido.database.*;
 import suneido.database.query.Request;
 import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
+import suneido.util.FileUtils;
 
 public class DbCompact {
 	private final String dbfilename;
@@ -20,10 +20,10 @@ public class DbCompact {
 
 	public static void compactPrint(String dbfilename)
 			throws InterruptedException {
-		File tempfile = DbTools.tempfile();
+		File tempfile = FileUtils.tempfile();
 		if (!DbTools.runWithNewJvm("-compact:" + tempfile))
 			throw new SuException("compact failed: " + dbfilename);
-		renameWithBackup(tempfile, dbfilename);
+		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
 	public static void compact2(String dbfilename, String tempfilename) {
