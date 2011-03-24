@@ -30,7 +30,7 @@ import com.google.common.collect.AbstractIterator;
 public class MmapFile implements Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
-	private static final int ALIGN = (1 << SHIFT);
+	private static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
 	private static final int MB = 1024 * 1024;
 	private static final int CHUNK_SIZE = 64 * MB;
@@ -104,6 +104,7 @@ public class MmapFile implements Storage {
 	}
 
 	public static int align(int n) {
+		// requires ALIGN to be power of 2
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 

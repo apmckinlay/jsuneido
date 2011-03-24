@@ -8,62 +8,89 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 
 import org.junit.Test;
-
-import suneido.util.Checksum;
 
 public class TranTest {
 
 	@Test
 	public void check_empty_commit() {
-		Tran tran = new Tran(new TestStorage());
+		Storage stor = new TestStorage();
+		Tran tran = new Tran(stor);
 		tran.startStore();
 		tran.endStore();
 
-		int size = check(tran);
-		assertThat(size, is(8)); // align
+		check(stor, true, 8 + 8);
 	}
 
 	@Test
 	public void check_one_commit() {
-		Tran tran = new Tran(new TestStorage());
+		Storage stor = new TestStorage();
+		Tran tran = new Tran(stor);
 		tran.startStore();
 
 		byte[] data = new byte[] { 1 };
-		int adr = tran.stor.alloc(data.length);
-		tran.stor.buffer(adr).put(data);
+		int adr = stor.alloc(data.length);
+		stor.buffer(adr).put(data);
 
 		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-		adr = tran.stor.alloc(data.length);
-		tran.stor.buffer(adr).put(data);
+		adr = stor.alloc(data.length);
+		stor.buffer(adr).put(data);
 
 		tran.endStore();
 
-		int size = check(tran);
-		assertThat(size, is(32));
+		check(stor, true, 8 + 8 + 16 + 8);
 	}
 
-	public int check(Tran tran) {
-		Iterator<ByteBuffer> iter = tran.stor.iterator(Storage.FIRST_ADR);
-		ByteBuffer buf = iter.next();
-		int size = buf.getInt(0);
+	@Test
+	public void check_several_commits() {
+		Storage stor = new TestStorage();
 
-		Checksum cksum = new Checksum();
-		int n;
-		for (int i = 0; i < size; i += n) {
-			if (buf.remaining() == 0)
-				buf = iter.next();
-			n = Math.min(size - i, buf.remaining());
-			cksum.update(buf, n);
-		}
-		if (buf.remaining() == 0)
-			buf = iter.next();
-		int stor_cksum = buf.getInt();
-		assertThat(stor_cksum, is(cksum.getValue()));
+		Tran tran = new Tran(stor);
+		tran.startStore();
+		byte[] data = new byte[] { 1 };
+		stor.buffer(stor.alloc(data.length)).put(data);
+		tran.endStore();
 
-		return size;
+		stor.alloc(16); // simulate chunk padding
+
+		tran = new Tran(stor);
+		tran.startStore();
+		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+		stor.buffer(stor.alloc(data.length)).put(data);
+		tran.endStore();
+
+		check(stor, true, 24 + 16 + 32);
+	}
+
+	@Test
+	public void check_corrupt() {
+		Storage stor = new TestStorage();
+
+		Tran tran = new Tran(stor);
+		tran.startStore();
+		byte[] data = new byte[] { 1 };
+		stor.buffer(stor.alloc(data.length)).put(data);
+		tran.endStore();
+
+		tran = new Tran(stor);
+		tran.startStore();
+		data = new byte[] { 2 };
+		ByteBuffer buf = stor.buffer(stor.alloc(data.length));
+		buf.put(data);
+		tran.endStore();
+
+		check(stor, true, 48);
+
+		buf.put(0, (byte) 3); // corrupt it
+
+		check(stor, false, 24);
+	}
+
+	private void check(Storage stor, boolean result, long okSize) {
+		Check check = new Check(stor);
+		assertThat(check.check(), is(result));
+		assertThat(check.okSize(), is(okSize));
 	}
 
 }

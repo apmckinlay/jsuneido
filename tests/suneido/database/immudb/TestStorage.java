@@ -5,12 +5,14 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Lists;
 
 class TestStorage implements Storage {
-	private final List<ByteBuffer> data = new ArrayList<ByteBuffer>();
+	private final List<ByteBuffer> data = Lists.newArrayList();
 
 	@Override
 	public int alloc(int size) {

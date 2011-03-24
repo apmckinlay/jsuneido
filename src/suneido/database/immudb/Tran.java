@@ -61,7 +61,7 @@ public class Tran implements Translator {
 	 * Store the size at the beginning of the commit
 	 * and the checksum at the end.
 	 * The checksum includes the size.
-	 * The size does NOT include the checksum.
+	 * The size includes the size but NOT include the checksum.
 	 */
 	public void endStore() {
 		int size = stor.sizeFrom(size_adr);
