@@ -16,8 +16,6 @@ import suneido.util.Checksum;
 /**
  * check the consistency of a database
  * e.g. after finding it was not shutdown properly
- *
- * @author Andrew McKinlay
  */
 public class DbCheck {
 	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
