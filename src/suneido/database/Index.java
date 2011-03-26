@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -63,8 +67,8 @@ public class Index {
 
 	@Override
 	public String toString() {
-		return "Index(" + columns + ")" + (isKey() ? ".key" : "")
-				+ (unique ? ".unique" : "");
+		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
+				"(" + columns + ")";
 	}
 
 	public static String getColumns(Record r) {
