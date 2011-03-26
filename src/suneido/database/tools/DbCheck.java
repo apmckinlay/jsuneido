@@ -161,7 +161,7 @@ public class DbCheck {
 					errors = ecs.take().get();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					errors = "checkTable interrruped";
+					errors = "checkTable interrruped\n";
 				} catch (ExecutionException e) {
 					errors = "checkTable " + e;
 				}
@@ -169,7 +169,7 @@ public class DbCheck {
 					details += errors;
 					if (++nbad > BAD_LIMIT) {
 						executor.shutdownNow();
-						details += "TOO MANY ERRORS, GIVING UP";
+						details += "TOO MANY ERRORS, GIVING UP\n";
 						break;
 					}
 				}
