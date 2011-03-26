@@ -45,7 +45,7 @@ class CheckTable implements Callable<String> {
 				Record strippedKey = BtreeIndex.stripAddress(key);
 				if (bti.iskey || (bti.unique && !BtreeIndex.isEmpty(strippedKey)))
 					if (strippedKey.equals(prevkey)) {
-						details += tablename + ": duplicate in " + index.columns + "\n";
+						details += tablename + ": duplicate in " + index + "\n";
 						return false;
 					}
 				prevkey = strippedKey;
@@ -55,7 +55,7 @@ class CheckTable implements Callable<String> {
 						return false;
 				Record reckey = rec.project(index.colnums, iter.keyadr());
 				if (!key.equals(reckey)) {
-					details += tablename + ": index key mismatch\n";
+					details += tablename + ": key mismatch in " + index + "\n";
 					return false;
 				}
 				++nrecords;
@@ -64,13 +64,15 @@ class CheckTable implements Callable<String> {
 					maxfields = rec.size();
 			}
 			if (nrecords != td.nrecords) {
-				details += tablename + ": record count mismatch: index "
-						+ nrecords + " != tables " + td.nrecords + "\n";
+				details += tablename + ": record count mismatch: " +
+						index + " " + nrecords +
+						" != tables " + td.nrecords + "\n";
 				return false;
 			}
 			if (totalsize != td.totalsize) {
-				details += tablename + ": table size mismatch: data "
-						+ totalsize + " != tables " + td.totalsize + "\n";
+				details += tablename + ": data size mismatch: " +
+						index + " " + totalsize +
+						" != tables " + td.totalsize + "\n";
 				return false;
 			}
 		}
