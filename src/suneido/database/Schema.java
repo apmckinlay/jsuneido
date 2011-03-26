@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.database.Database.key;
@@ -260,6 +264,7 @@ public class Schema {
 				Data.add_any_record(tran, "indexes", btreeIndex.record);
 				List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
 				tran.updateTable(table.num, btis);
+				btreeIndex = findBtreeIndex(btis, columns);
 				Table fktable = null;
 				if (fktablename != null) {
 					fktable = tran.getTable(fktablename);
@@ -268,17 +273,19 @@ public class Schema {
 				}
 				insertExistingRecords(db, tran, columns, table, colnums,
 						fktablename, fktable, fkcolumns, btreeIndex);
-				for (BtreeIndex bti : btis)
-					if (bti.columns.equals(columns))
-						tran.addBtreeIndex(bti);
+				tran.addBtreeIndex(btreeIndex);
 				tran.ck_complete();
-			} catch (RuntimeException e) {
-				throw e;
 			} finally {
 				tran.abortIfNotComplete();
 			}
 			return true;
 		}
+	}
+	private static BtreeIndex findBtreeIndex(List<BtreeIndex> btis, String columns) {
+		for (BtreeIndex bti : btis)
+			if (bti.columns.equals(columns))
+				return bti;
+		throw SuException.unreachable();
 	}
 
 	private static void insertExistingRecords(Database db, Transaction tran, String columns,

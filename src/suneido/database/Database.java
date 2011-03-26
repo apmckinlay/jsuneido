@@ -326,7 +326,7 @@ public class Database {
 			indexes.add(new Index(r, icols, columns.nums(icols),
 					getForeignKeys(tran, tablename, icols)));
 			if (btis != null)
-				btis.add(new BtreeIndex(dest, r)); // TODO check use of dest
+				btis.add(new BtreeIndex(dest, r));
 		}
 
 		return new Table(table_rec, columns, new Indexes(indexes.build()));

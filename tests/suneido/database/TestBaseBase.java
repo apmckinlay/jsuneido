@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static org.junit.Assert.assertEquals;
@@ -9,9 +13,12 @@ import suneido.database.query.*;
 import suneido.database.server.ServerData;
 
 public class TestBaseBase {
-
 	protected DestMem dest;
 	protected static final ServerData serverData = new ServerData();
+
+	public TestBaseBase() {
+		super();
+	}
 
 	protected void reopen() {
 		TheDb.db().close();
@@ -60,10 +67,6 @@ public class TestBaseBase {
 		for (int i : values)
 			r.add(i);
 		return r;
-	}
-
-	public TestBaseBase() {
-		super();
 	}
 
 	protected List<Record> get() {
