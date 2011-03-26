@@ -80,6 +80,7 @@ public class Suneido {
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
 			Compiler.eval("JInit()");
 			Repl.repl();
+			scheduler.shutdown();
 			break;
 		case DUMP:
 			if (cmdlineoptions.actionArg == null)
