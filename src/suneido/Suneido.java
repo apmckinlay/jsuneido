@@ -20,6 +20,7 @@ public class Suneido {
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) {
+		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(args);
 		try {
 			doAction();
