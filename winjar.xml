@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project jSuneido">
+	<target name="create_run_jar" depends="when_built">
+		<jar destfile="jsuneido.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="suneido.Suneido"/>
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset dir="bin" excludes="**/*Test* suneido/database/immudb/*"/>
+		</jar>
+		<exec executable="java">
+			<arg value="-jar"/>
+			<arg value="lib/proguard.jar"/>
+			<arg value="@windows.pro"/>
+		</exec>
+	</target>
+	<target name="when_built">
+		<tstamp>
+			<format property="WHEN" pattern="MMM d yyyy HH:mm:ss" locale="ENGLISH, CANADA"/>
+		</tstamp>
+		<echo file="src/suneido/WhenBuilt.java">
+			// generated - do not edit
+			package suneido;
+			public class WhenBuilt {
+				public static String when() {
+					return "${WHEN} (Java)";
+				}
+			}
+		</echo>
+		<exec executable="javac">
+			<arg value="-d"/>
+			<arg value="bin"/>
+			<arg value="src/suneido/WhenBuilt.java"/>
+		</exec>
+	</target>
+</project>
