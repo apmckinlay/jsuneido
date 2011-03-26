@@ -172,6 +172,7 @@ public class DbCheck {
 					if (++nbad > BAD_LIMIT) {
 						executor.shutdownNow();
 						details += "TOO MANY ERRORS, GIVING UP";
+						break;
 					}
 				}
 			}
