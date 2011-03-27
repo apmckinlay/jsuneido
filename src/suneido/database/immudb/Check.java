@@ -13,16 +13,13 @@ import suneido.util.Checksum;
 import suneido.util.FileUtils;
 
 public class Check {
-	private final int CKSUM_SIZE;
+	private static final byte[] zero_tail = new byte[8];
 	private final Storage stor;
 	private long pos = 0;
 
 	Check(Storage stor) {
 		this.stor = stor;
-		CKSUM_SIZE = MmapFile.align(4);
 	}
-
-	// TODO will need length of good commits if check fails
 
 	public boolean check() {
 		Iterator<ByteBuffer> iter = stor.iterator(Storage.FIRST_ADR);
@@ -50,19 +47,20 @@ public class Check {
 
 		Checksum cksum = new Checksum();
 		int n;
-		for (int i = 0; i < size; i += n) {
+		for (int i = 0; i < size - Tran.HEAD_SIZE; i += n) {
 			if (buf.remaining() == 0)
 				buf = iter.next();
 			n = Math.min(size - i, buf.remaining());
 			cksum.update(buf, n);
 		}
+		cksum.update(zero_tail);
 		if (buf.remaining() == 0)
 			buf = iter.next();
 		int stor_cksum = buf.getInt();
-		buf.getInt(); // skip alignment
-		if (stor_cksum != cksum.getValue())
+		int tail_size = buf.getInt();
+		if (stor_cksum != cksum.getValue() || tail_size != size)
 			return null;
-		pos += size += CKSUM_SIZE;
+		pos += size;
 		return buf;
 	}
 
