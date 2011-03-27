@@ -531,7 +531,7 @@ public class AstCompile {
 	}
 
 	private void tryStatement(ClassGen cg, AstNode ast, Labels labels) {
-		Object tc = cg.tryCatch("suneido/SuException");
+		Object tc = cg.tryCatch("java/lang/Exception");
 		compound(cg, ast.first(), labels);
 		AstNode catcher = ast.second();
 		if (catcher == null)

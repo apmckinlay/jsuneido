@@ -4,18 +4,20 @@
 
 package suneido.language;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuValue;
 
 /**
- * A Suneido exception.
+ * This is the value this is assigned to a catch variable.
+ * Wraps a java.lang.Exception.
  * Can be treated as a string for backwards compatibility.
  * Derives from {@link Concat} since that is already treated as a string.
  */
 public class Except extends Concat {
-	private final SuException e;
+	private final Exception e;
 	private static final BuiltinMethods methods = new BuiltinMethods(Except.class);
 
-	public Except(SuException e) {
+	public Except(Exception e) {
 		super(e.toString());
 		this.e = e;
 	}
@@ -47,9 +49,7 @@ public class Except extends Concat {
 	public static class Callstack extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			SuException e = ((Except) self).e;
-			if (e.get() instanceof Except)
-				e = ((Except) e.get()).e;
+			Exception e = ((Except) self).e;
 			SuContainer calls = new SuContainer();
 			for (StackTraceElement x : e.getStackTrace())
 				calls.add(callob(x));

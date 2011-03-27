@@ -859,11 +859,14 @@ public final class Ops {
 
 	private static final Splitter catchSplitter = Splitter.on('|');
 
-	public static Except catchMatch(SuException e) {
+	public static Except catchMatch(Exception e) throws Exception {
+		if (e instanceof BlockReturnException)
+			throw e;
 		return new Except(e);
 	}
-	public static Except catchMatch(SuException e, String patterns) {
-		if (catchMatch(e.toString(), patterns))
+	public static Except catchMatch(Exception e, String patterns) throws Exception {
+		if (! (e instanceof BlockReturnException) &&
+				catchMatch(e.toString(), patterns))
 			return new Except(e);
 		throw e; // no match so rethrow
 	}
