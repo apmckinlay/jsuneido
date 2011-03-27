@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import suneido.*;
 import suneido.language.builtin.*;
+import suneido.language.builtin.AssertionError;
+import suneido.language.builtin.NullPointerException;
 
 /**
  * Stores global names and values.
@@ -29,6 +31,7 @@ public class Globals {
 		builtins.put("Add", new Add());
 		builtins.put("Adler32", Adler32.clazz);
 		builtins.put("And", new And());
+		builtins.put("AssertionError", new AssertionError());
 		builtins.put("Boolean?", new BooleanQ());
 		builtins.put("Built", new Built());
 		builtins.put("Cat", new Cat());
@@ -76,6 +79,7 @@ public class Globals {
 		builtins.put("Neq", new Neq());
 		builtins.put("NoMatch", new NoMatch());
 		builtins.put("Not", new Not());
+		builtins.put("NullPointerException", new NullPointerException());
 		builtins.put("Number?", new NumberQ());
 		builtins.put("Object", new ObjectClass());
 		builtins.put("Object?", new ObjectQ());

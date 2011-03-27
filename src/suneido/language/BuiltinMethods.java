@@ -26,6 +26,8 @@ public class BuiltinMethods extends SuValue {
 	private final String userDefined;
 	private final Map<String, SuMethod> methods;
 
+	// TODO use a factory method instead of doing methods() in constructor
+
 	public BuiltinMethods() {
 		userDefined = null;
 		methods = Collections.emptyMap();

@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static suneido.language.Ops.*;
 
@@ -274,17 +275,38 @@ public class OpsTest {
 		nomatch("abc", "x|y|z");
 		match("abc", "*bc|*xy");
 		nomatch("abc", "*x|*y");
+		match("abc", "*");
 	}
 
 	private void match(String exception, String pattern) {
-		catchMatch(new SuException(exception), pattern);
+		try {
+			catchMatch(new SuException(exception), pattern);
+		} catch (Exception e) {
+			fail();
+		}
 	}
 	private void nomatch(String exception, String pattern) {
 		try {
 			catchMatch(new SuException(exception), pattern);
 			fail();
-		} catch (SuException e) {
+		} catch (Exception e) {
 			// expected
+		}
+	}
+
+	@Test
+	public void dont_catch_block_return_exception() {
+		try {
+			catchMatch(new BlockReturnException(null,0));
+			fail();
+		} catch (Exception e) {
+			assertThat(e, is(BlockReturnException.class));
+		}
+		try {
+			catchMatch(new BlockReturnException(null,0), "*");
+			fail();
+		} catch (Exception e) {
+			assertThat(e, is(BlockReturnException.class));
 		}
 	}
 
