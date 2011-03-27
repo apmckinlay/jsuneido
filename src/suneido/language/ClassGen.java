@@ -465,10 +465,10 @@ public class ClassGen {
 		if (pattern != null) {
 			mv.visitLdcInsn(pattern);
 			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
-					"(Ljava/lang/Exception;Ljava/lang/String;)Lsuneido/language/Except;");
+					"(Ljava/lang/Throwable;Ljava/lang/String;)Lsuneido/language/Except;");
 		} else if (var != null)
 			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
-					"(Ljava/lang/Exception;)Lsuneido/language/Except;");
+					"(Ljava/lang/Throwable;)Lsuneido/language/Except;");
 		if (var == null)
 			mv.visitInsn(POP);
 		else

@@ -859,12 +859,12 @@ public final class Ops {
 
 	private static final Splitter catchSplitter = Splitter.on('|');
 
-	public static Except catchMatch(Exception e) throws Exception {
+	public static Except catchMatch(Throwable e) throws Throwable {
 		if (e instanceof BlockReturnException)
 			throw e;
 		return new Except(e);
 	}
-	public static Except catchMatch(Exception e, String patterns) throws Exception {
+	public static Except catchMatch(Throwable e, String patterns) throws Throwable {
 		if (! (e instanceof BlockReturnException) &&
 				catchMatch(e.toString(), patterns))
 			return new Except(e);
