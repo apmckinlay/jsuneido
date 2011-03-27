@@ -2,6 +2,10 @@ package suneido.language;
 
 /**
  * return from within block is implemented as throw BlockReturnException
+ * <p>
+ * This exception is <u>not</u> caught by the Suneido language try-catch
+ * <p>
+ * See also: {@link suneido.language.Ops} blockReturnException and catchMatch
  */
 @SuppressWarnings("serial")
 public class BlockReturnException extends RuntimeException {
