@@ -7,15 +7,13 @@ package suneido.database.immudb;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.util.Checksum;
-
 /**
  * Transaction "context".
  */
 public class Tran implements Translator {
 	private static final int SIZEOF_INT = 4;
 	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime
-	private static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
+	static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	public final Storage stor;
 	private final Redirects redirs;

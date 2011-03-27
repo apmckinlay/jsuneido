@@ -9,13 +9,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.util.Checksum;
 import suneido.util.FileUtils;
 
 public class Check {
 	private static final byte[] zero_tail = new byte[8];
 	private final Storage stor;
 	private long pos = 0;
+	private int nCommits = 0;
 
 	Check(Storage stor) {
 		this.stor = stor;
@@ -36,21 +36,25 @@ public class Check {
 			buf = iter.next();
 		int size = buf.getInt(buf.position()); // don't advance
 		if (size == 0) { // chunk padding
+			pos += buf.remaining();
 			if (! iter.hasNext()) {
 				buf.position(buf.limit());
 				return buf;
 			}
-			pos += buf.remaining();
 			buf = iter.next();
 			size = buf.getInt(0); // don't advance
 		}
 
+		if (size < Tran.HEAD_SIZE + Tran.TAIL_SIZE)
+			return null;
+
+		int notail_size = size - Tran.HEAD_SIZE;
 		Checksum cksum = new Checksum();
 		int n;
-		for (int i = 0; i < size - Tran.HEAD_SIZE; i += n) {
+		for (int i = 0; i < notail_size; i += n) {
 			if (buf.remaining() == 0)
 				buf = iter.next();
-			n = Math.min(size - i, buf.remaining());
+			n = Math.min(notail_size - i, buf.remaining());
 			cksum.update(buf, n);
 		}
 		cksum.update(zero_tail);
@@ -61,6 +65,7 @@ public class Check {
 		if (stor_cksum != cksum.getValue() || tail_size != size)
 			return null;
 		pos += size;
+		++nCommits;
 		return buf;
 	}
 
@@ -68,14 +73,18 @@ public class Check {
 		return pos;
 	}
 
-	public void fix(String filename) throws IOException {
-		MmapFile mmf = new MmapFile(filename, "r");
-		Check check = new Check(mmf);
-		mmf.close();
-		if (check.check())
-			return;
+	public int nCommits() {
+		return nCommits;
+	}
+
+	/** Fixing is easy - just copy the good prefix of the file */
+	public static void fix(String filename, long okSize) {
 		File tempfile = FileUtils.tempfile();
-		FileUtils.copy(new File(filename), tempfile, check.okSize());
+		try {
+			FileUtils.copy(new File(filename), tempfile, okSize);
+		} catch (IOException e) {
+			throw new RuntimeException("fix copy failed", e);
+		}
 		FileUtils.renameWithBackup(tempfile, filename);
 	}
 

@@ -7,25 +7,35 @@ package suneido.database.immudb;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import suneido.util.FileUtils;
+
 public class TranTest {
+	Storage stor = new TestStorage();
+//	File tempfile = FileUtils.tempfile();
+//	MmapFile stor = new MmapFile(tempfile, "rw");
+//
+//	@After
+//	public void teardown() {
+//		stor.close();
+//		tempfile.delete();
+//	}
 
 	@Test
 	public void check_empty_commit() {
-		Storage stor = new TestStorage();
 		Tran tran = new Tran(stor);
 		tran.startStore();
 		tran.endStore();
 
-		check(stor, true, 8 + 8);
+		check(stor, true, 8 + 8, 1);
 	}
 
 	@Test
 	public void check_one_commit() {
-		Storage stor = new TestStorage();
 		Tran tran = new Tran(stor);
 		tran.startStore();
 
@@ -39,34 +49,30 @@ public class TranTest {
 
 		tran.endStore();
 
-		check(stor, true, 8 + 8 + 16 + 8);
+		check(stor, true, 8 + 8 + 16 + 8, 1);
 	}
 
 	@Test
 	public void check_several_commits() {
-		Storage stor = new TestStorage();
-
 		Tran tran = new Tran(stor);
 		tran.startStore();
-		byte[] data = new byte[] { 1 };
+		byte[] data = new byte[] { 1 }; // align => 8
 		stor.buffer(stor.alloc(data.length)).put(data);
 		tran.endStore();
 
-		stor.alloc(16); // simulate chunk padding
+		stor.alloc(16); // simulate chunk padding - only works with TestStorage
 
 		tran = new Tran(stor);
 		tran.startStore();
-		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; // align => 16
 		stor.buffer(stor.alloc(data.length)).put(data);
 		tran.endStore();
 
-		check(stor, true, 24 + 16 + 32);
+		check(stor, true, 24 + 16 + 32, 2);
 	}
 
 	@Test
 	public void check_corrupt() {
-		Storage stor = new TestStorage();
-
 		Tran tran = new Tran(stor);
 		tran.startStore();
 		byte[] data = new byte[] { 1 };
@@ -80,17 +86,55 @@ public class TranTest {
 		buf.put(data);
 		tran.endStore();
 
-		check(stor, true, 48);
+		check(stor, true, 48, 2);
 
-		buf.put(0, (byte) 3); // corrupt it
+		buf.put(0, (byte) 3); // corrupt second commit
 
-		check(stor, false, 24);
+		check(stor, false, 24, 1);
 	}
 
-	private void check(Storage stor, boolean result, long okSize) {
+	private long check(Storage stor, boolean result, long okSize, int nCommits) {
 		Check check = new Check(stor);
 		assertThat(check.check(), is(result));
-		assertThat(check.okSize(), is(okSize));
+		assertThat("okSize", check.okSize(), is(okSize));
+		assertThat("nCommits", check.nCommits(), is(nCommits));
+		return check.okSize();
+	}
+
+	@Test
+	public void fix() {
+		File tempfile = FileUtils.tempfile();
+		MmapFile stor = new MmapFile(tempfile, "rw");
+		try {
+			Tran tran = new Tran(stor);
+			tran.startStore();
+			byte[] data = new byte[] { 1 };
+			stor.buffer(stor.alloc(data.length)).put(data);
+			tran.endStore();
+
+			tran = new Tran(stor);
+			tran.startStore();
+			data = new byte[] { 2 };
+			ByteBuffer buf = stor.buffer(stor.alloc(data.length));
+			buf.put(data);
+			tran.endStore();
+
+			check(stor, true, 48, 2);
+
+			buf.put(0, (byte) 3); // corrupt second commit
+
+			long okSize = check(stor, false, 24, 1);
+
+			stor.close();
+			Check.fix(tempfile.toString(), okSize);
+
+			stor = new MmapFile(tempfile, "rw");
+			check(stor, true, 24, 1);
+
+		} finally {
+			stor.close();
+			tempfile.delete();
+		}
 	}
 
 }
