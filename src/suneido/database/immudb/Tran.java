@@ -14,10 +14,13 @@ import suneido.util.Checksum;
  */
 public class Tran implements Translator {
 	private static final int SIZEOF_INT = 4;
+	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime
+	private static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
+	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	public final Storage stor;
 	private final Redirects redirs;
 	final IntRefs intrefs = new IntRefs();
-	private int size_adr;
+	private int head_adr;
 
 	public Tran(Storage stor) {
 		this(stor, new Redirects(DbHashTree.empty(stor)));
@@ -54,26 +57,35 @@ public class Tran implements Translator {
 
 	public void startStore() {
 		intrefs.startStore();
-		size_adr = stor.alloc(SIZEOF_INT); // to hold the size of the commit
+		head_adr = stor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
 	/**
-	 * Store the size at the beginning of the commit
-	 * and the checksum at the end.
-	 * The checksum includes the size.
-	 * The size includes the size but NOT include the checksum.
+	 * Store the size and date/time at the beginning of the commit (head)
+	 * and the checksum and size at the end (tail).
+	 * The checksum includes the head and a zero tail.
+	 * The size includes the head and the tail
 	 */
 	public void endStore() {
-		int size = stor.sizeFrom(size_adr);
-		stor.buffer(size_adr).putInt(size);
+		int tail_adr = stor.alloc(TAIL_SIZE);
+		int size = stor.sizeFrom(head_adr);
+		stor.buffer(head_adr).putInt(size).putInt(datetime());
 
 		int cksum = checksum();
-		stor.buffer(stor.alloc(SIZEOF_INT)).putInt(cksum);
+		stor.buffer(tail_adr).putInt(cksum).putInt(size);
+	}
+
+	/**
+	 * Returns the current time in seconds since Jan. 1, 1970 UTC
+	 * Only good till 2038
+	 */
+	private int datetime() {
+		return (int) (System.currentTimeMillis() / 1000);
 	}
 
 	public int checksum() {
 		Checksum cksum = new Checksum();
-		Iterator<ByteBuffer> iter = stor.iterator(size_adr);
+		Iterator<ByteBuffer> iter = stor.iterator(head_adr);
 		while (iter.hasNext())
 			cksum.update(iter.next());
 		return cksum.getValue();

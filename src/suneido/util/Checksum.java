@@ -30,6 +30,10 @@ public class Checksum {
 		}
 	}
 
+	public synchronized void update(byte[] bytes) {
+		cksum.update(bytes);
+	}
+
 	public synchronized int getValue() {
 		return (int) cksum.getValue();
 	}
