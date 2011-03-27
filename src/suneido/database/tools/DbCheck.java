@@ -175,7 +175,7 @@ public class DbCheck {
 				}
 			}
 			return nbad == 0;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			details += e + "\n";
 			return false;
 		} finally {
