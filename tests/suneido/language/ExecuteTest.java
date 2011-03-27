@@ -174,6 +174,10 @@ public class ExecuteTest {
 		test("c = 0;" +
 				"try { try throw 'abc' catch (e) { c = e.Callstack(); throw e.As('def') } } " +
 				"catch (x) { return c is x.Callstack() }", "true");
+		test("try NullPointerException() " +
+				"catch (e) return e.Has?('java.lang.NullPointerException')", "true");
+		test("try AssertionError() " +
+				"catch (e) return e.Has?('java.lang.AssertionError')", "true");
 	}
 	private static void blockReturn(String expr) {
 		try {

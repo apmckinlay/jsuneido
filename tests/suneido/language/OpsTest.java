@@ -281,7 +281,7 @@ public class OpsTest {
 	private void match(String exception, String pattern) {
 		try {
 			catchMatch(new SuException(exception), pattern);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			fail();
 		}
 	}
@@ -289,7 +289,7 @@ public class OpsTest {
 		try {
 			catchMatch(new SuException(exception), pattern);
 			fail();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			// expected
 		}
 	}
@@ -299,13 +299,13 @@ public class OpsTest {
 		try {
 			catchMatch(new BlockReturnException(null,0));
 			fail();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			assertThat(e, is(BlockReturnException.class));
 		}
 		try {
 			catchMatch(new BlockReturnException(null,0), "*");
 			fail();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			assertThat(e, is(BlockReturnException.class));
 		}
 	}
