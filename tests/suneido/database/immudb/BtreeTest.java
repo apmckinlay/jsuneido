@@ -12,7 +12,7 @@ import java.util.*;
 import org.junit.Test;
 
 public class BtreeTest {
-	private final Storage stor = new TestStorage();
+	private final Storage stor = new TestStorage(1024, 64);
 	private Tran tran = new Tran(stor);
 	private int root;
 	private int levels;

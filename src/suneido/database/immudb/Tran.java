@@ -66,7 +66,7 @@ public class Tran implements Translator {
 	 */
 	public void endStore() {
 		int tail_adr = stor.alloc(TAIL_SIZE);
-		int size = stor.sizeFrom(head_adr);
+		int size = (int) stor.sizeFrom(head_adr);
 		stor.buffer(head_adr).putInt(size).putInt(datetime());
 
 		int cksum = checksum();
