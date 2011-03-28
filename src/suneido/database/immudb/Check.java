@@ -4,25 +4,40 @@
 
 package suneido.database.immudb;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.util.FileUtils;
-
 public class Check {
-	private static final byte[] zero_tail = new byte[8];
+	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
+	private static final int SIZEOF_INT = 4;
 	private final Storage stor;
 	private long pos = 0;
 	private int nCommits = 0;
+	private int lastOkDatetime = 0;
 
 	Check(Storage stor) {
 		this.stor = stor;
 	}
 
-	public boolean check() {
-		Iterator<ByteBuffer> iter = stor.iterator(Storage.FIRST_ADR);
+	/** checks the last few commits */
+	public boolean fastcheck() {
+		long file_size = stor.sizeFrom(Storage.FIRST_ADR);
+		if (file_size < SIZEOF_INT)
+			return true;
+		ByteBuffer buf = stor.buffer(-SIZEOF_INT);
+		int size = buf.getInt();
+		return checkFrom(-size);
+	}
+
+	/** checks entire file */
+	public boolean fullcheck() {
+		return checkFrom(Storage.FIRST_ADR);
+	}
+
+	private boolean checkFrom(int adr) {
+		Iterator<ByteBuffer> iter = stor.iterator(adr);
+		if (! iter.hasNext())
+			return true; // empty
 		ByteBuffer buf = iter.next();
 		do
 			if (null == (buf = check1(iter, buf)))
@@ -34,6 +49,7 @@ public class Check {
 	private ByteBuffer check1(Iterator<ByteBuffer> iter, ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			buf = iter.next();
+		Checksum cksum = new Checksum();
 		int size = buf.getInt(buf.position()); // don't advance
 		if (size == 0) { // chunk padding
 			pos += buf.remaining();
@@ -41,6 +57,7 @@ public class Check {
 				buf.position(buf.limit());
 				return buf;
 			}
+			cksum.update(buf); // padding is included in checksum
 			buf = iter.next();
 			size = buf.getInt(0); // don't advance
 		}
@@ -48,8 +65,8 @@ public class Check {
 		if (size < Tran.HEAD_SIZE + Tran.TAIL_SIZE)
 			return null;
 
+		int datetime = buf.getInt(buf.position() + SIZEOF_INT); // don't advance
 		int notail_size = size - Tran.HEAD_SIZE;
-		Checksum cksum = new Checksum();
 		int n;
 		for (int i = 0; i < notail_size; i += n) {
 			if (buf.remaining() == 0)
@@ -66,6 +83,7 @@ public class Check {
 			return null;
 		pos += size;
 		++nCommits;
+		lastOkDatetime = datetime;
 		return buf;
 	}
 
@@ -77,15 +95,8 @@ public class Check {
 		return nCommits;
 	}
 
-	/** Fixing is easy - just copy the good prefix of the file */
-	public static void fix(String filename, long okSize) {
-		File tempfile = FileUtils.tempfile();
-		try {
-			FileUtils.copy(new File(filename), tempfile, okSize);
-		} catch (IOException e) {
-			throw new RuntimeException("fix copy failed", e);
-		}
-		FileUtils.renameWithBackup(tempfile, filename);
+	public int lastOkDatetime() {
+		return lastOkDatetime;
 	}
 
 }

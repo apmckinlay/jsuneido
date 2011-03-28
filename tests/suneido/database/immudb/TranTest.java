@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -26,12 +27,19 @@ public class TranTest {
 //	}
 
 	@Test
+	public void empty_database() {
+		check(stor, true, 0, 0);
+		assertTrue(new Check(stor).fastcheck());
+	}
+
+	@Test
 	public void check_empty_commit() {
 		Tran tran = new Tran(stor);
 		tran.startStore();
 		tran.endStore();
 
 		check(stor, true, 8 + 8, 1);
+		assertTrue(new Check(stor).fastcheck());
 	}
 
 	@Test
@@ -60,15 +68,13 @@ public class TranTest {
 		stor.buffer(stor.alloc(data.length)).put(data);
 		tran.endStore();
 
-		stor.alloc(16); // simulate chunk padding - only works with TestStorage
-
 		tran = new Tran(stor);
 		tran.startStore();
 		data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; // align => 16
 		stor.buffer(stor.alloc(data.length)).put(data);
 		tran.endStore();
 
-		check(stor, true, 24 + 16 + 32, 2);
+		check(stor, true, 24 + 32, 2);
 	}
 
 	@Test
@@ -91,14 +97,6 @@ public class TranTest {
 		buf.put(0, (byte) 3); // corrupt second commit
 
 		check(stor, false, 24, 1);
-	}
-
-	private long check(Storage stor, boolean result, long okSize, int nCommits) {
-		Check check = new Check(stor);
-		assertThat(check.check(), is(result));
-		assertThat("okSize", check.okSize(), is(okSize));
-		assertThat("nCommits", check.nCommits(), is(nCommits));
-		return check.okSize();
 	}
 
 	@Test
@@ -126,7 +124,7 @@ public class TranTest {
 			long okSize = check(stor, false, 24, 1);
 
 			stor.close();
-			Check.fix(tempfile.toString(), okSize);
+			Fix.fix(tempfile.toString(), okSize);
 
 			stor = new MmapFile(tempfile, "rw");
 			check(stor, true, 24, 1);
@@ -135,6 +133,14 @@ public class TranTest {
 			stor.close();
 			tempfile.delete();
 		}
+	}
+
+	private long check(Storage stor, boolean result, long okSize, int nCommits) {
+		Check check = new Check(stor);
+		assertThat(check.fullcheck(), is(result));
+		assertThat("okSize", check.okSize(), is(okSize));
+		assertThat("nCommits", check.nCommits(), is(nCommits));
+		return check.okSize();
 	}
 
 }

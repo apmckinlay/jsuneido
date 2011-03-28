@@ -7,7 +7,7 @@ package suneido.database.immudb;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.*;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -74,7 +74,7 @@ public class DbHashTreeTest {
 				return x;
 			}
 		};
-		Storage stor = new TestStorage();
+		Storage stor = new TestStorage(512, 64);
 
 		DbHashTree tree = DbHashTree.empty(stor);
 		int at = tree.store(stor, translator);

@@ -12,13 +12,16 @@ public interface Storage {
 
 	int alloc(int byteBufSize);
 
-	/** negative adr is relative to end */
+	/** Negative adr is relative to end */
 	ByteBuffer buffer(int adr);
 
-	/** iterates through raw storage, NOT the allocation blocks */
+	/**
+	 * Iterates through raw storage, NOT the allocation blocks.
+	 * Negative adr is relative to end.
+	 */
 	Iterator<ByteBuffer> iterator(int adr);
 
-	/** number of bytes from adr to current offset */
-	int sizeFrom(int adr);
+	/** @return Number of bytes from adr to current offset */
+	long sizeFrom(int adr);
 
 }
