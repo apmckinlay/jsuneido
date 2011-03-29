@@ -8,25 +8,29 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.util.IntArrayList;
 
 import com.google.common.collect.Lists;
 
+// TODO iteration
+
 /**
- * An append-only immutable btree.
+ * Controls access to an append-only immutable btree.
  * <p>
  * Note: If a key is unique without it's data address
  * then it can be updated via redirection
  * otherwise it must be updated by delete and insert
  * since it's position may change, potentially to a different node.
- * @see BtreeNode, BtreeLeafNode, BtreeTreeNode, BtreeNodeMethods
+ * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
+@NotThreadSafe
 public class Btree {
 	public int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
-
 
 	public Btree(Tran tran) {
 		this.tran = tran;
@@ -50,6 +54,8 @@ public class Btree {
 			int level = treeLevels - i;
 			BtreeNode node = nodeAt(level, adr);
 			Record slot = node.find(key);
+			if (slot == null)
+				return 0; // not found
 			adr = getAddress(slot);
 		}
 		BtreeNode leaf = nodeAt(0, adr);
@@ -101,6 +107,57 @@ public class Btree {
 		}
 		// getting here means root was split so a new root is needed
 		newRoot(split);
+	}
+
+	public boolean remove(Record key) {
+		// search down the tree
+		int adr = root;
+		List<BtreeNode> treeNodes = Lists.newArrayList();
+		IntArrayList adrs = new IntArrayList();
+		for (int level = treeLevels; level > 0; --level) {
+			adrs.add(adr);
+			BtreeNode node = nodeAt(level, adr);
+			treeNodes.add(node);
+			Record slot = node.find(key);
+			if (slot == null)
+				return false; // not found
+			adr = getAddress(slot);
+		}
+
+		// remove from leaf
+		BtreeNode leaf = nodeAt(0, adr);
+		leaf = leaf.without(key);
+		if (leaf == null)
+			return false; // not found
+		if (adr == root)
+			root = tran.refToInt(leaf);
+		else
+			tran.redir(adr, leaf);
+		if (! leaf.isEmpty() || treeLevels == 0)
+			return true;	// this is the usual path
+
+		// remove up the tree
+		for (int i = treeNodes.size() - 1; i >= 0; --i) {
+			BtreeNode treeNode = treeNodes.get(i);
+			treeNode = treeNode.without(key);
+			assert treeNode != null;
+			if (adrs.get(i) == root)
+				root = tran.refToInt(treeNode);
+			else
+				tran.redir(adrs.get(i), treeNode);
+			if (i > 0 && ! treeNode.isEmpty())
+				return true;
+		}
+
+		// remove root nodes with only a single key
+		for (; treeLevels > 0; --treeLevels) {
+			BtreeNode node = nodeAt(treeLevels, root);
+			if (node.size() > 1)
+				return true;
+			root = getAddress(node.get(0));
+		}
+
+		return true;
 	}
 
 	public static int getAddress(Record slot) {

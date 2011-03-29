@@ -45,12 +45,13 @@ public class BtreeMemNode extends BtreeNode {
 		return i < size() ? data.get(i) : Record.EMPTY;
 	}
 
+	/** appends to the data - does NOT insert in order */
 	public BtreeMemNode add(Record key) {
 		data.add(key);
 		return this;
 	}
 
-	/** add a range of keys from another node */
+	/** append a range of keys from another node - does NOT insert in order */
 	public BtreeMemNode add(BtreeNode node, int from, int to) {
 		for (int i = from; i < to; ++i)
 			data.add(node.get(i));
@@ -156,6 +157,23 @@ public class BtreeMemNode extends BtreeNode {
 
 	private int pointer(Record rec) {
 		return ((Number) rec.get(rec.size() - 1)).intValue();
+	}
+
+	@Override
+	public BtreeNode without(Record key) {
+		if (isEmpty())
+			return null;
+		int at = lowerBound(key);
+		if (isLeaf()) {
+			if (at >= data.size() || ! data.get(at).equals(key))
+				return null; // key not found
+		} else { // tree node
+			if (at >= data.size() || ! data.get(at).startsWith(key))
+				--at;
+			assert at >= 0;
+		}
+		data.remove(at);
+		return this;
 	}
 
 }

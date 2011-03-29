@@ -34,6 +34,11 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
+	public BtreeNode without(Record key) {
+		return new BtreeMemNode(this).without(key);
+	}
+
+	@Override
 	public int size() {
 		return rec.size();
 	}
