@@ -44,7 +44,7 @@ public class Repl {
 			out.print("> ");
 			out.flush();
 			String line = in.readLine();
-			if ("q".equals(line))
+			if (line == null || "q".equals(line))
 				break;
 			try {
 				Object result = Compiler.eval(line);
