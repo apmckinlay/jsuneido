@@ -17,6 +17,9 @@ import suneido.SuException;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * schema update operations
+ */
 @ThreadSafe // no state, all static methods
 public class Schema {
 
@@ -27,6 +30,7 @@ public class Schema {
 			throw new SuException("add table: table already exists: " + tablename);
 	}
 
+	/** returns false if table already exists */
 	public static boolean ensureTable(Database db, String tablename) {
 		int tblnum = db.getNextTableNum();
 		Transaction tran = db.readwriteTran();
