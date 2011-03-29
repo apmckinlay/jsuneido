@@ -17,10 +17,10 @@ import com.google.common.base.Strings;
  * Keys are {@link Record}'s.
  * The last field on leaf keys is a pointer to the corresponding data record.
  * A tree key is a leaf key plus a pointer to the child node.
- * Pointers are {@link MmapFile} int's
+ * Pointers are {@link MmapFile} adr int's
  */
 public abstract class BtreeNode {
-	protected final int level; // 0 means leaf
+	protected final int level;
 
 	public BtreeNode(int level) {
 		this.level = level;
@@ -30,10 +30,21 @@ public abstract class BtreeNode {
 		return level;
 	}
 
+	public boolean isLeaf() {
+		return level == 0;
+	}
+
 	public abstract int size();
+
+	public boolean isEmpty() {
+		return size() == 0;
+	}
 
 	/** Inserts key in order */
 	public abstract BtreeNode with(Record key);
+
+	/** @return null if key not found */
+	public abstract BtreeNode without(Record key);
 
 	public abstract Record get(int i);
 
@@ -41,16 +52,20 @@ public abstract class BtreeNode {
 
 	/**
 	 * @param key The value to look for, without the trailing record address
-	 * @return	The first key greater than or equal to the one specified
+	 * @return	For leaf nodes, the first key >= the one specified,
+	 * 			for tree nodes, the first key <= the one specified,
 	 * 			or null if there isn't one.
 	 */
 	public Record find(Record key) {
+		if (isEmpty())
+			return null;
 		int at = lowerBound(key);
 		Record slot = get(at);
-		if (level() == 0) // leaf
+		if (isLeaf())
 			return at < size() ? slot : null;
 		else
-			return slot.startsWith(key) ? slot : get(at - 1);
+			return slot.startsWith(key) ? slot
+					: at > 0 ? get(at - 1) : null;
 	}
 
 	public int lowerBound(Record key) {
@@ -110,7 +125,11 @@ public abstract class BtreeNode {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("BtreeNode level=").append(level());
+		sb.append("BtreeNode ");
+		if (isLeaf())
+			sb.append("leaf");
+		else
+			sb.append("level=").append(level());
 		sb.append(" size=").append(size());
 		sb.append(" [");
 		for (int i = 0; i < size(); ++i)

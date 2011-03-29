@@ -6,9 +6,11 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static suneido.database.immudb.BtreeTest.randomKeys;
 import static suneido.database.immudb.RecordTest.record;
 
 import java.nio.ByteBuffer;
+import java.util.*;
 
 import org.junit.Test;
 
@@ -24,7 +26,7 @@ public class BtreeMemNodeTest {
 	}
 
 	@Test
-	public void main() {
+	public void with() {
 		Record key1 = record("one");
 		Record key2 = record("three");
 		Record key3 = record("two");
@@ -49,6 +51,27 @@ public class BtreeMemNodeTest {
 		assertEquals(key2, node.find(key2));
 		assertEquals(key3, node.find(key3));
 		assertNull(node.find(key9));
+	}
+
+	@Test
+	public void without() {
+		final int NKEYS = 100;
+		List<Record> keys = randomKeys(NKEYS);
+		BtreeNode node = BtreeMemNode.emptyLeaf();
+		for (Record key : keys)
+			node = node.with(key);
+		Collections.shuffle(keys, new Random(874));
+		for (int i = 0; i < NKEYS / 2; ++i) {
+			node = node.without(keys.get(i));
+			assertNotNull(node);
+		}
+		for (int i = 0; i < NKEYS / 2; ++i)
+			assertNull(node.without(keys.get(i)));
+		assertThat(node.size(), is(NKEYS / 2));
+		for (int i = NKEYS / 2; i < NKEYS; ++i) {
+			Record key = keys.get(i);
+			assertThat(node.find(key), is(key));
+		}
 	}
 
 	@Test

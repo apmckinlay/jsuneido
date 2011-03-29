@@ -5,7 +5,7 @@
 package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 import java.util.*;
 
@@ -35,20 +35,49 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void main() {
-		List<Record> keys = new ArrayList<Record>();
-		int NKEYS = 100;
-		Random rand = new Random(1234);
-		for (int i = 0; i < NKEYS; ++i)
-			keys.add(randomKey(rand));
+	public void add_and_get() {
+		int NKEYS = 1000;
+		List<Record> keys = randomKeys(NKEYS);
 
 		Btree btree = new Btree4(tran);
 		for (Record key : keys)
 			btree.add(key);
 
-		Collections.shuffle(keys, rand);
+		Collections.shuffle(keys, new Random(345));
 		for (Record key : keys)
 			assertThat(btree.get(key), is(adr(key)));
+
+		for (int i = 0; i < NKEYS / 2; ++i)
+			assertTrue(btree.remove(keys.get(i)));
+
+		for (int i = 0; i < NKEYS / 2; ++i) {
+			Record key = keys.get(i);
+			assertThat(btree.get(key), is(0));
+			assertFalse(btree.remove(key));
+		}
+		Record minKey = record("", 0);
+		btree.add(minKey);
+		Record maxKey = record("zzzzzzz", Integer.MAX_VALUE);
+		btree.add(maxKey);
+		assertThat("key " + minKey, btree.get(minKey), is(adr(minKey)));
+		assertThat("key " + maxKey, btree.get(maxKey), is(adr(maxKey)));
+		for (int i = NKEYS / 2; i < NKEYS; ++i) {
+			Record key = keys.get(i);
+			assertThat("key " + key, btree.get(key), is(adr(key)));
+		}
+		assertTrue(btree.remove(minKey));
+		assertTrue(btree.remove(maxKey));
+		for (int i = NKEYS / 2; i < NKEYS; ++i)
+			assertTrue(btree.remove(keys.get(i)));
+		assertThat("treeLevels", btree.treeLevels(), is(0));
+	}
+
+	public static List<Record> randomKeys(int nkeys) {
+		Random rand = new Random(1234);
+		List<Record> keys = new ArrayList<Record>();
+		for (int i = 0; i < nkeys; ++i)
+			keys.add(randomKey(rand));
+		return keys;
 	}
 
 	@Test
@@ -143,11 +172,11 @@ public class BtreeTest {
 		assertThat(btree.get(record("hello")), is(adr));
 	}
 
-	private int adr(Record key) {
+	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
 
-	public Record randomKey(Random rand) {
+	public static Record randomKey(Random rand) {
 		int n = 1 + rand.nextInt(5);
 		String s = "";
 		for (int i = 0; i < n; ++i)
@@ -155,11 +184,11 @@ public class BtreeTest {
 		return record(s, rand.nextInt(Integer.MAX_VALUE));
 	}
 
-	private Record record(String s) {
+	private static Record record(String s) {
 		return new MemRecord().add(s);
 	}
 
-	private Record record(String s, int n) {
+	private static Record record(String s, int n) {
 		return new MemRecord().add(s).add(n);
 	}
 
