@@ -10,6 +10,8 @@ import java.util.Iterator;
 public class Check {
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	private static final int SIZEOF_INT = 4;
+	private static final int FAST_NCOMMITS = 8;
+	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private final Storage stor;
 	private long pos = 0;
 	private int nCommits = 0;
@@ -19,14 +21,26 @@ public class Check {
 		this.stor = stor;
 	}
 
-	/** checks the last few commits */
+	/** checks the last FAST_NCOMMITS commits */
 	public boolean fastcheck() {
-		long file_size = stor.sizeFrom(Storage.FIRST_ADR);
-		if (file_size < SIZEOF_INT)
-			return true;
-		ByteBuffer buf = stor.buffer(-SIZEOF_INT);
-		int size = buf.getInt();
-		return checkFrom(-size);
+		long fileSize = stor.sizeFrom(Storage.FIRST_ADR);
+		int pos = 0; // negative offset from end of file
+		int nCommits = 0;
+		while (nCommits < FAST_NCOMMITS && fileSize + pos > MIN_SIZE) {
+			ByteBuffer buf = stor.buffer(pos - SIZEOF_INT);
+			int size = buf.getInt();
+			if (! reasonableSize(size, fileSize + pos))
+				return false;
+			pos -= size;
+			++nCommits;
+		}
+		if (nCommits == 0)
+			return true; // empty file
+		return checkFrom(pos);
+	}
+
+	private boolean reasonableSize(int size, long maxSize) {
+		return MIN_SIZE <= size && size <= maxSize;
 	}
 
 	/** checks entire file */

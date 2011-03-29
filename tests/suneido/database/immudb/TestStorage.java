@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 class TestStorage extends ChunkedStorage {
 	TestStorage() {
-		super(32, 16);
+		super(32, 32);
 	}
 
 	TestStorage(int chunkSize, int maxChunks) {
