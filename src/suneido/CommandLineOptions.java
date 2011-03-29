@@ -6,8 +6,7 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, IMPERSONATE, LOAD2, REBUILD2, COMPACT2,
-		CLIENT
+		ERROR, TESTCLIENT, TESTSERVER, LOAD2, REBUILD2, COMPACT2, CLIENT
 	}
 	public Action action;
 	public String actionArg = null;
