@@ -77,4 +77,12 @@ public class Database extends BuiltinClass {
 		}
 	}
 
+	public static class Impersonate extends SuMethod1 {
+		{ params = FunctionSpec.string; }
+		@Override
+		public Object eval1(Object self, Object a) {
+			return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
+		}
+	}
+
 }
