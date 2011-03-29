@@ -11,7 +11,6 @@ import java.util.concurrent.*;
 
 import suneido.database.server.DbmsServer;
 import suneido.database.tools.*;
-import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
@@ -78,7 +77,6 @@ public class Suneido {
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
-			Compiler.eval("JInit()");
 			Repl.repl();
 			scheduler.shutdown();
 			break;
