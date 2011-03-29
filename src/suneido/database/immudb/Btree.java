@@ -19,6 +19,13 @@ import com.google.common.collect.Lists;
 /**
  * Controls access to an append-only immutable btree.
  * <p>
+ * Note: remove does not merge nodes. The tree will stay balanced in terms of nodes
+ * but not necessarily in terms of keys. But the number of tree levels will never
+ * shrink unless all the keys are deleted. This is based on the assumption that
+ * adds are much more common than removes. Since nodes are not a fixed size
+ * small nodes do not waste much space. And compacting the database will rebuild
+ * btrees anyway.
+ * <p>
  * Note: If a key is unique without it's data address
  * then it can be updated via redirection
  * otherwise it must be updated by delete and insert
@@ -149,13 +156,8 @@ public class Btree {
 				return true;
 		}
 
-		// remove root nodes with only a single key
-		for (; treeLevels > 0; --treeLevels) {
-			BtreeNode node = nodeAt(treeLevels, root);
-			if (node.size() > 1)
-				return true;
-			root = getAddress(node.get(0));
-		}
+		// if we get to here, root node is now empty
+		treeLevels = 0;
 
 		return true;
 	}
