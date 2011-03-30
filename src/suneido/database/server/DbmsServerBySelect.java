@@ -21,8 +21,15 @@ import suneido.language.Compiler;
 import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 public class DbmsServerBySelect {
-	private static final Executor executor = Executors.newCachedThreadPool();
+	private static final ThreadFactory threadFactory =
+		new ThreadFactoryBuilder()
+			.setNameFormat("DbmsServer-thread-%d")
+			.build();
+	private static final Executor executor =
+		Executors.newCachedThreadPool(threadFactory);
 	@GuardedBy("serverDataSet")
 	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
 	private static InetAddress inetAddress;
