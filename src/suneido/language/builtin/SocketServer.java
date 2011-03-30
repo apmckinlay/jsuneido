@@ -47,7 +47,10 @@ public class SocketServer extends SuClass {
 		private static final int CORE_THREADS = 0;
 		private static final int MAX_THREADS = 8;
 		private static final ThreadFactory threadFactory =
-				new ThreadFactoryBuilder().setDaemon(true).build();
+				new ThreadFactoryBuilder()
+					.setDaemon(true)
+					.setNameFormat("SocketServer-thread-%d")
+					.build();
 		private static final ThreadPoolExecutor executor =
 				new ThreadPoolExecutor(
 					CORE_THREADS, MAX_THREADS,
