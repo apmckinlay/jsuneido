@@ -66,11 +66,16 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	public static BtreeNode newRoot(Tran tran, Split split) {
-		MemRecord key1 = new MemRecord();
-		for (int i = 0; i < split.key.size() - 1; ++i)
-			key1.add("");
-		key1.add(split.left);
-		return new BtreeMemNode(split.level + 1).add(key1).add(split.key);
+		MemRecord minkey = minimalKey(split.key.size(), split.left);
+		return new BtreeMemNode(split.level + 1).add(minkey).add(split.key);
+	}
+
+	public static MemRecord minimalKey(int nfields, int ptr) {
+		MemRecord key = new MemRecord();
+		for (int i = 0; i < nfields - 1; ++i)
+			key.add("");
+		key.add(ptr);
+		return key;
 	}
 
 	public int length() {

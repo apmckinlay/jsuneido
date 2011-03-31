@@ -5,13 +5,13 @@
 package suneido.database.immudb;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.util.IntArrayList;
 
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 
 // TODO iteration
@@ -25,6 +25,9 @@ import com.google.common.collect.Lists;
  * adds are much more common than removes. Since nodes are not a fixed size
  * small nodes do not waste much space. And compacting the database will rebuild
  * btrees anyway.
+ * <p>
+ * Tree nodes on leftmost "edge" of btree are initialized to a minimum nil key.
+ * But removes may alter this. So BtreeNode.find assumes first key is minimum.
  * <p>
  * Note: If a key is unique without it's data address
  * then it can be updated via redirection
@@ -70,6 +73,9 @@ public class Btree {
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
 
+	/**
+	 * Add a key to the btree.
+	 */
 	public void add(Record key) {
 		// search down the tree
 		int adr = root;
@@ -116,6 +122,38 @@ public class Btree {
 		newRoot(split);
 	}
 
+	private void newRoot(Split split) {
+		++treeLevels;
+		root = tran.refToInt(BtreeMemNode.newRoot(tran, split));
+	}
+
+	/** used to return the results of a split */
+	static class Split {
+		final int level; // of node being split
+		final int left;
+		final int right;
+		final Record key; // new value to go in parent, points to right half
+
+		Split(int level, int left, int right, Record key) {
+			this.level = level;
+			this.left = left;
+			this.right = right;
+			this.key = key;
+		}
+	}
+
+	/**
+	 * Remove a key from the btree.
+	 * <p>
+	 * If you remove the last key from the leftmost leaf node
+	 * must ensure that the parent tree node
+	 * (which will be on the leftmost edge of the btree)
+	 * has a minimum key.
+	 * <p>
+	 * Does <u>not</u> merge nodes.
+	 * Tree levels will only shrink when the <u>last</u> key is removed.
+	 * @return false if the key was not found
+	 */
 	public boolean remove(Record key) {
 		// search down the tree
 		int adr = root;
@@ -162,28 +200,50 @@ public class Btree {
 		return true;
 	}
 
+	Iterator<Record> iterator() {
+		return new Iter(Record.EMPTY);
+	}
+
+	// TODO handle concurrent modification
+
+	private class Iter extends AbstractIterator<Record> {
+		private final List<BtreeNode> nodes = Lists.newArrayList();
+		private final IntArrayList adrs = new IntArrayList();
+		private int pos;
+
+		Iter(Record key) {
+			// search down the tree
+			int adr = root;
+			for (int level = treeLevels; level >= 0; --level) {
+				adrs.add(adr);
+				BtreeNode node = nodeAt(level, adr);
+				nodes.add(node);
+				if (level == 0)
+					break;
+				Record slot = node.find(key);
+				adr = getAddress(slot);
+			}
+			pos = leaf().lowerBound(key);
+		}
+
+		@Override
+		protected Record computeNext() {
+			if (pos < leaf().size())
+				return leaf().get(pos++);
+
+			// TODO advance to next leaf
+
+			return endOfData();
+		}
+
+		private BtreeNode leaf() {
+			return nodes.get(nodes.size() - 1);
+		}
+
+	}
+
 	public static int getAddress(Record slot) {
 		return ((Number) slot.get(slot.size() - 1)).intValue();
-	}
-
-	private void newRoot(Split split) {
-		++treeLevels;
-		root = tran.refToInt(BtreeMemNode.newRoot(tran, split));
-	}
-
-	/** used to return the results of a split */
-	static class Split {
-		final int level; // of node being split
-		final int left;
-		final int right;
-		final Record key; // new value to go in parent, points to right half
-
-		Split(int level, int left, int right, Record key) {
-			this.level = level;
-			this.left = left;
-			this.right = right;
-			this.key = key;
-		}
 	}
 
 	BtreeNode nodeAt(int level, int adr) {

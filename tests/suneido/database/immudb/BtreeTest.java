@@ -11,6 +11,10 @@ import java.util.*;
 
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
+// TODO test adding and removing in sorted and reverse order
+
 public class BtreeTest {
 	private final Storage stor = new TestStorage(1024, 64);
 	private Tran tran = new Tran(stor);
@@ -35,17 +39,30 @@ public class BtreeTest {
 	}
 
 	@Test
+	public void remove_first_special_case() {
+		int NKEYS = 15;
+		List<Record> keys = Lists.newArrayList();
+		Btree btree = new Btree4(tran);
+		Random rand = new Random(1234);
+		add(NKEYS, rand, keys, btree);
+		assertThat("levels", btree.treeLevels(), is(2));
+		// remove all the keys from the leftmost leaf node
+		Collections.sort(keys);
+		for (int i = 0; i < 4; ++i)
+			btree.remove(keys.get(i));
+		Record min = record("", 0);
+		btree.add(min);
+	}
+
+	@Test
 	public void add_and_get() {
 		int NKEYS = 1000;
-		List<Record> keys = randomKeys(NKEYS);
-
+		List<Record> keys = Lists.newArrayList();
 		Btree btree = new Btree4(tran);
-		for (Record key : keys)
-			btree.add(key);
+		Random rand = new Random(1234);
+		add(NKEYS, rand, keys, btree);
 
-		Collections.shuffle(keys, new Random(345));
-		for (Record key : keys)
-			assertThat(btree.get(key), is(adr(key)));
+		check(keys, rand, btree);
 
 		for (int i = 0; i < NKEYS / 2; ++i)
 			assertTrue(btree.remove(keys.get(i)));
@@ -70,14 +87,6 @@ public class BtreeTest {
 		for (int i = NKEYS / 2; i < NKEYS; ++i)
 			assertTrue(btree.remove(keys.get(i)));
 		assertThat("treeLevels", btree.treeLevels(), is(0));
-	}
-
-	public static List<Record> randomKeys(int nkeys) {
-		Random rand = new Random(1234);
-		List<Record> keys = new ArrayList<Record>();
-		for (int i = 0; i < nkeys; ++i)
-			keys.add(randomKey(rand));
-		return keys;
 	}
 
 	@Test
@@ -133,7 +142,7 @@ public class BtreeTest {
 	private void remove(int n, Random rand, List<Record> keys, Btree btree) {
 		for (int i = 0; i < n; ++i) {
 			int r = rand.nextInt(keys.size());
-			assert btree.remove(keys.get(r));
+			assertTrue(btree.remove(keys.get(r)));
 			keys.remove(r);
 		}
 	}
@@ -151,6 +160,11 @@ public class BtreeTest {
 		levels = btree.treeLevels();
 		redirs = tran.storeRedirs();
 		tran = null;
+	}
+
+	@Test
+	public void iteration() {
+
 	}
 
 	@Test
