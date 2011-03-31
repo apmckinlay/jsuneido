@@ -376,7 +376,7 @@ public class SuRecord extends SuContainer {
 	}
 
 	public void setdeps(String field, String deps) {
-		for (String d : Util.commasToList(deps))
+		for (String d : Util.commaSplitter(deps))
 			addDependency(field, d);
 	}
 
