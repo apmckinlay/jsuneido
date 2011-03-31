@@ -1,18 +1,19 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.util.Util.commaSplitter;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
-/**
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
- */
 @Immutable
 public class Indexes implements Iterable<Index> {
 
@@ -65,12 +66,12 @@ public class Indexes implements Iterable<Index> {
 	}
 
 	private List<List<String>> columns(boolean justKeys) {
-		ArrayList<List<String>> list = new ArrayList<List<String>>();
+		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
 		for (Index index : indexes)
 			if (!justKeys || index.isKey())
-				list.add(Lists.newArrayList(commaSplitter.split(index.columns)));
-		// note: can't use commasToList because it does "" => empty list
-		return list;
+				list.add(ImmutableList.copyOf(commaSplitter/*.split*/(index.columns)));
+				// note: can't use commasToList because it does "" => empty list
+		return list.build();
 	}
 
 	@Override

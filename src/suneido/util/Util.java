@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.util;
 
 import java.nio.ByteBuffer;
@@ -13,10 +17,6 @@ import com.google.common.collect.Lists;
 
 /**
  * Miscellaneous functions.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
 public class Util {
@@ -61,10 +61,15 @@ public class Util {
 
 	public static final Splitter commaSplitter = Splitter.on(',').trimResults();
 
-	public static List<String> commasToList(String s) {
+	public static Iterable<String> commaSplitter(String s) {
 		if (s.isEmpty())
 			return Collections.emptyList();
-		return Lists.newArrayList(commaSplitter.split(s));
+		else
+			return commaSplitter.split(s);
+	}
+
+	public static List<String> commasToList(String s) {
+		return Lists.newArrayList(commaSplitter(s));
 	}
 
 	public static String bufferToString(ByteBuffer buf) {
