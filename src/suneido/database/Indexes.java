@@ -69,7 +69,7 @@ public class Indexes implements Iterable<Index> {
 		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
 		for (Index index : indexes)
 			if (!justKeys || index.isKey())
-				list.add(ImmutableList.copyOf(commaSplitter/*.split*/(index.columns)));
+				list.add(ImmutableList.copyOf(commaSplitter.split(index.columns)));
 				// note: can't use commasToList because it does "" => empty list
 		return list.build();
 	}
