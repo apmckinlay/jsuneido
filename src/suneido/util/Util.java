@@ -59,7 +59,7 @@ public class Util {
 		return "(" + displayListToCommas(list) + ")";
 	}
 
-	public static final Splitter commaSplitter = Splitter.on(',');
+	public static final Splitter commaSplitter = Splitter.on(',').trimResults();
 
 	public static List<String> commasToList(String s) {
 		if (s.isEmpty())
