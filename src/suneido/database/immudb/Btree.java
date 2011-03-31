@@ -152,7 +152,7 @@ public class Btree {
 				root = tran.refToInt(treeNode);
 			else
 				tran.redir(adrs.get(i), treeNode);
-			if (i > 0 && ! treeNode.isEmpty())
+			if (! treeNode.isEmpty())
 				return true;
 		}
 

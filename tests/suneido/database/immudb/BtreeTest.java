@@ -90,22 +90,52 @@ public class BtreeTest {
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		addAndStore(3, rand, keys, btree);
+		updateAndStore(2, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(0));
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		addAndStore(3, rand, keys, btree);
+		updateAndStore(3, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(1));
 
 		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
-		addAndStore(120, rand, keys, btree);
-		assertThat("levels", btree.treeLevels(), is(4));
+		updateAndStore(400, rand, keys, btree);
+		assertThat("levels", btree.treeLevels(), is(5));
 
 		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
 		check(keys, rand, btree);
+	}
+
+	private void updateAndStore(int n, Random rand, List<Record> keys, Btree btree) {
+//System.out.println("--------------- before update");
+//btree.print();
+		check(keys, rand, btree);
+		add(2 * n, rand, keys, btree);
+		remove(n, rand, keys, btree);
+//System.out.println("--------------- after update");
+//btree.print();
+		check(keys, rand, btree);
+		store(btree);
+//System.out.println("--------------- after store");
+//btree.print();
+	}
+
+	private void add(int n, Random rand, List<Record> keys, Btree btree) {
+		for (int i = 0; i < n; ++i) {
+			Record key = randomKey(rand);
+			btree.add(key);
+			keys.add(key);
+		}
+	}
+
+	private void remove(int n, Random rand, List<Record> keys, Btree btree) {
+		for (int i = 0; i < n; ++i) {
+			int r = rand.nextInt(keys.size());
+			assert btree.remove(keys.get(r));
+			keys.remove(r);
+		}
 	}
 
 	private void check(List<Record> keys, Random rand, Btree btree) {
@@ -121,27 +151,6 @@ public class BtreeTest {
 		levels = btree.treeLevels();
 		redirs = tran.storeRedirs();
 		tran = null;
-	}
-
-	private void addAndStore(int n, Random rand, List<Record> keys, Btree btree) {
-//System.out.println("--------------- before add");
-//btree.print();
-		check(keys, rand, btree);
-		add(n, rand, keys, btree);
-//System.out.println("--------------- after add");
-//btree.print();
-		check(keys, rand, btree);
-		store(btree);
-//System.out.println("--------------- after store");
-//btree.print();
-	}
-
-	private void add(int n, Random rand, List<Record> keys, Btree btree) {
-		for (int i = 0; i < n; ++i) {
-			Record key = randomKey(rand);
-			btree.add(key);
-			keys.add(key);
-		}
 	}
 
 	@Test
