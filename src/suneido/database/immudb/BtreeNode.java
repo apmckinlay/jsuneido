@@ -53,8 +53,9 @@ public abstract class BtreeNode {
 	/**
 	 * @param key The value to look for, without the trailing record address
 	 * @return	For leaf nodes, the first key >= the one specified,
-	 * 			for tree nodes, the first key <= the one specified,
 	 * 			or null if there isn't one.
+	 * 			For tree nodes, the first key <= the one specified,
+	 *			or the first key.
 	 */
 	public Record find(Record key) {
 		if (isEmpty())
@@ -64,8 +65,7 @@ public abstract class BtreeNode {
 		if (isLeaf())
 			return at < size() ? slot : null;
 		else
-			return slot.startsWith(key) ? slot
-					: at > 0 ? get(at - 1) : null;
+			return at == 0 || slot.startsWith(key)? slot : get(at - 1);
 	}
 
 	public int lowerBound(Record key) {

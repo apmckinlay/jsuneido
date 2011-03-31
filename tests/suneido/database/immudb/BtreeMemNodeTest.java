@@ -6,7 +6,7 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static suneido.database.immudb.BtreeTest.randomKeys;
+import static suneido.database.immudb.BtreeTest.randomKey;
 import static suneido.database.immudb.RecordTest.record;
 
 import java.nio.ByteBuffer;
@@ -72,6 +72,14 @@ public class BtreeMemNodeTest {
 			Record key = keys.get(i);
 			assertThat(node.find(key), is(key));
 		}
+	}
+
+	public static List<Record> randomKeys(int nkeys) {
+		Random rand = new Random(1234);
+		List<Record> keys = new ArrayList<Record>();
+		for (int i = 0; i < nkeys; ++i)
+			keys.add(randomKey(rand));
+		return keys;
 	}
 
 	@Test
