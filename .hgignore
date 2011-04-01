@@ -5,6 +5,7 @@ jsuneido.jar
 WhenBuilt.jar
 .DS_Store
 
+install.bat
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
