@@ -40,23 +40,23 @@ public class BtreeTest {
 
 	@Test
 	public void left_edge() {
-		int NKEYS = 15;
+		int NKEYS = 100;
 		List<Record> keys = Lists.newArrayList();
 		Btree btree = new Btree4(tran);
 		Random rand = new Random(1234);
 		add(NKEYS, rand, keys, btree);
-		assertThat("levels", btree.treeLevels(), is(2));
 		check(keys, rand, btree);
 		// remove all the keys from the leftmost leaf node
 		Collections.sort(keys);
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < NKEYS/2; ++i)
 			assertTrue(btree.remove(keys.get(i)));
-		for (int i = 8; i < NKEYS; ++i) {
+		btree.check();
+
+		for (int i = NKEYS/2; i < NKEYS; ++i) {
 			Record key = keys.get(i);
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 		}
-
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < NKEYS/2; ++i)
 			btree.add(keys.get(i));
 		check(keys, rand, btree);
 
@@ -158,6 +158,7 @@ public class BtreeTest {
 	}
 
 	private void check(List<Record> keys, Random rand, Btree btree) {
+		btree.check();
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat("key " + key, btree.get(key), is(adr(key)));

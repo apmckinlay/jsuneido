@@ -299,4 +299,8 @@ public class Btree {
 			root = tran.getAdr(root);
 	}
 
+	public void check() {
+		nodeAt(treeLevels, root).check(tran, Record.EMPTY);
+	}
+
 }

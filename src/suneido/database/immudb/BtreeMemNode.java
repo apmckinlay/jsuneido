@@ -176,16 +176,18 @@ public class BtreeMemNode extends BtreeNode {
 			if (at >= data.size() || ! data.get(at).startsWith(key))
 				--at;
 			assert at >= 0;
-			if (at == 0 && data.size() > 1) {
-				// first key should always be minimal
-				int ptr = pointer(data.get(1));
-				data.set(0, minimalKey(data.get(0).size(), ptr));
-				at = 1;
-			}
-
 		}
 		data.remove(at);
+		fix();
 		return this;
+	}
+
+	public void fix() {
+		if (isLeaf())
+			return;
+		// first key should always be minimal
+		int ptr = pointer(data.get(0));
+		data.set(0, minimalKey(data.get(0).size(), ptr));
 	}
 
 }
