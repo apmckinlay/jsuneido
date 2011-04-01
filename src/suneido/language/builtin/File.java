@@ -16,6 +16,7 @@ import suneido.util.Util;
 public class File extends SuValue {
 	private final String filename;
 	private final String mode;
+	private final boolean append;
 	private RandomAccessFile f;
 	private static final BuiltinMethods methods = new BuiltinMethods(File.class);
 
@@ -37,16 +38,14 @@ public class File extends SuValue {
 						+ "' in mode '" + mode + "'", e);
 			}
 		}
-		boolean seekEnd = false;
-		if (mode.startsWith("a"))
-			seekEnd = true;
+		append = mode.startsWith("a");
 		try {
 			f = new RandomAccessFile(filename, mode.equals("r") ? "r" : "rw");
 		} catch (FileNotFoundException e) {
 			throw new SuException("File: can't open '" + filename
 					+ "' in mode '" + mode + "'", e);
 		}
-		if (seekEnd)
+		if (append)
 			try {
 				f.seek(f.length());
 			} catch (IOException e) {
@@ -145,12 +144,20 @@ public class File extends SuValue {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			try {
-				((File) self).f.writeBytes(Ops.toStr(a));
-			} catch (IOException e) {
-				throw new SuException("File Write failed", e);
-			}
+			((File) self).write(Ops.toStr(a));
 			return null;
+		}
+	}
+
+	public void write(String s) {
+		try {
+			synchronized (File.class) {
+				if (append)
+					f.seek(f.length());
+				f.writeBytes(s);
+			}
+		} catch (IOException e) {
+			throw new SuException("File Write failed", e);
 		}
 	}
 
@@ -158,14 +165,21 @@ public class File extends SuValue {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			RandomAccessFile f = ((File) self).f;
-			try {
-				f.writeBytes(Ops.toStr(a));
-				f.writeBytes("\r\n");
-			} catch (IOException e) {
-				throw new SuException("File Writeline failed", e);
-			}
+			((File) self).writeline(Ops.toStr(a));
 			return null;
+		}
+	}
+
+	public void writeline(String s) {
+		try {
+			synchronized (File.class) {
+				if (append)
+					f.seek(f.length());
+				f.writeBytes(s);
+				f.writeBytes("\r\n");
+			}
+		} catch (IOException e) {
+			throw new SuException("File Write failed", e);
 		}
 	}
 
