@@ -26,8 +26,7 @@ import com.google.common.collect.Lists;
  * small nodes do not waste much space. And compacting the database will rebuild
  * btrees anyway.
  * <p>
- * Tree nodes on leftmost "edge" of btree are initialized to a minimum nil key.
- * But removes may alter this. So BtreeNode.find assumes first key is minimum.
+ * The first key in tree nodes is always "nil", less than any real key.
  * <p>
  * Note: If a key is unique without it's data address
  * then it can be updated via redirection
@@ -145,11 +144,6 @@ public class Btree {
 	/**
 	 * Remove a key from the btree.
 	 * <p>
-	 * If you remove the last key from the leftmost leaf node
-	 * must ensure that the parent tree node
-	 * (which will be on the leftmost edge of the btree)
-	 * has a minimum key.
-	 * <p>
 	 * Does <u>not</u> merge nodes.
 	 * Tree levels will only shrink when the <u>last</u> key is removed.
 	 * @return false if the key was not found
@@ -184,14 +178,15 @@ public class Btree {
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
-			treeNode = treeNode.without(key);
-			assert treeNode != null;
-			if (adrs.get(i) == root)
-				root = tran.refToInt(treeNode);
-			else
-				tran.redir(adrs.get(i), treeNode);
-			if (! treeNode.isEmpty())
+			if (treeNode.size() > 1) {
+				treeNode = treeNode.without(key);
+				assert treeNode != null;
+				if (adrs.get(i) == root)
+					root = tran.refToInt(treeNode);
+				else
+					tran.redir(adrs.get(i), treeNode);
 				return true;
+			}
 		}
 
 		// if we get to here, root node is now empty
