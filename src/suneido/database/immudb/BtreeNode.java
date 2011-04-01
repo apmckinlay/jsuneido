@@ -90,8 +90,7 @@ public abstract class BtreeNode {
 
 	public Split split(Tran tran, Record key, int adr) {
 		int level = level();
-		BtreeNode left;
-		BtreeNode right;
+		BtreeMemNode right;
 		Record splitKey;
 		int keyPos = lowerBound(key);
 		if (keyPos == size()) {
@@ -101,6 +100,7 @@ public abstract class BtreeNode {
 		} else {
 			int mid = size() / 2;
 			splitKey = get(mid);
+			BtreeNode left;
 			if (keyPos <= mid) {
 				left = new BtreeMemNode(level)
 						.add(this, 0, keyPos).add(key).add(this, keyPos, mid);
@@ -114,6 +114,7 @@ public abstract class BtreeNode {
 			}
 			tran.redir(adr, left);
 		}
+		right.fix();
 		int splitKeySize = splitKey.size();
 		if (level > 0) // tree node
 			--splitKeySize;
@@ -150,6 +151,34 @@ public abstract class BtreeNode {
 				Btree.nodeAt(tran, level - 1, adr).print(w, tran);
 			}
 		}
+	}
+
+	void check(Tran tran, Record key) {
+		for (int i = 1; i < size(); ++i)
+			assert get(i - 1).compareTo(get(i)) < 0;
+		if (isLeaf()) {
+			key = new MemRecord().addPrefix(key, key.size() - 1);
+			assert key.compareTo(get(0)) <= 0;
+			return;
+		}
+		assert isMinimalKey(get(0)) : "minimal";
+		if (size() > 1)
+			assert key.compareTo(get(1)) <= 0;
+		int adr = Btree.getAddress(get(0));
+		Btree.nodeAt(tran, level - 1, adr).check(tran, key);
+		for (int i = 1; i < size(); ++i) {
+			Record key2 = get(i);
+			adr = Btree.getAddress(key2);
+			Btree.nodeAt(tran, level - 1, adr).check(tran, key2);
+		}
+	}
+
+	private static boolean isMinimalKey(Record key) {
+		int keySize = key.size();
+		for (int i = 0; i < keySize - 1; ++i)
+			if (key.fieldLength(i) > 0)
+				return false;
+		return true;
 	}
 
 }
