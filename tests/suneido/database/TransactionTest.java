@@ -160,7 +160,7 @@ public class TransactionTest extends TestBase {
 		assertTrue(t4.isAborted());
 		t3.ck_complete();
 		assertNotNull(t4.complete());
-		assertTrue(t4.conflict().contains("write-write conflict"));
+		assertTrue(t4.conflict().contains("conflict (write-write)"));
 
 		TheDb.db().checkTransEmpty();
 	}
@@ -180,7 +180,7 @@ public class TransactionTest extends TestBase {
 		}
 		t1.ck_complete();
 		assertNotNull(t2.complete());
-		assertTrue(t2.conflict().contains("write-write conflict"));
+		assertTrue(t2.conflict().contains("conflict (write-write)"));
 
 		TheDb.db().checkTransEmpty();
 	}
@@ -201,7 +201,7 @@ public class TransactionTest extends TestBase {
 		}
 		assert(t2.isAborted());
 		assertNotNull(t2.complete());
-		assertTrue(t2.conflict().contains("write-write conflict"));
+		assertTrue(t2.conflict().contains("conflict (write-write)"));
 
 		Transaction t3 = TheDb.db().readwriteTran();
 		try {
@@ -212,7 +212,7 @@ public class TransactionTest extends TestBase {
 		}
 		assert(t3.isAborted());
 		assertNotNull(t3.complete());
-		assertTrue(t3.conflict().contains("write-write conflict"));
+		assertTrue(t3.conflict().contains("conflict (write-write)"));
 
 		t1.ck_complete();
 
@@ -237,7 +237,7 @@ public class TransactionTest extends TestBase {
 		}
 		assert(t1.isAborted());
 		assertNotNull(t1.complete());
-		assertTrue(t1.conflict().contains("write-write conflict"));
+		assertTrue(t1.conflict().contains("conflict (write-write)"));
 
 		TheDb.db().checkTransEmpty();
 	}
@@ -276,7 +276,7 @@ public class TransactionTest extends TestBase {
 
 		t1.ck_complete();
 		assertNotNull(t2.complete());
-		assertStartsWith("write-read conflict", t2.conflict());
+		assertStartsWith("conflict (write-read)", t2.conflict());
 
 		TheDb.db().checkTransEmpty();
 	}

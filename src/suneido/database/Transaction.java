@@ -439,7 +439,7 @@ public class Transaction implements Comparable<Transaction> {
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
-				abortThrow("read-write conflict with " + writer);
+				abortThrow("conflict (read-write) with " + writer);
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
@@ -449,7 +449,7 @@ public class Transaction implements Comparable<Transaction> {
 			if (w == this || w.commitTime < asof)
 				continue;
 			if (w.outConflict)
-				abortThrow("read-write conflict with " + w);
+				abortThrow("conflict (read-write) with " + w);
 			this.outConflict = true;
 		}
 		for (Transaction w : writes)
@@ -460,11 +460,11 @@ public class Transaction implements Comparable<Transaction> {
 		notEnded();
 		Set<Transaction> readers = trans.writeLock(this, offset);
 		if (readers == null)
-			abortThrow("write-write conflict");
+			abortThrow("conflict (write-write)");
 		for (Transaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
 				if (reader.inConflict || this.outConflict)
-					abortThrow("write-read conflict with " + reader);
+					abortThrow("conflict (write-read) with " + reader);
 				this.inConflict = true;
 			}
 		for (Transaction reader : readers)

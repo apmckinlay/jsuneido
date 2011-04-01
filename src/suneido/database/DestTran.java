@@ -31,7 +31,7 @@ public class DestTran extends Destination {
 		tran.writeLock(offset);
 		ByteBuf buf = tran.nodeForWrite(dest, offset);
 		if (buf == null)
-			tran.abortThrow("write-write conflict with completed transaction");
+			tran.abortThrow("conflict (write-write) with completed transaction");
 		return buf;
 	}
 
