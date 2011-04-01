@@ -39,17 +39,27 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void remove_first_special_case() {
+	public void left_edge() {
 		int NKEYS = 15;
 		List<Record> keys = Lists.newArrayList();
 		Btree btree = new Btree4(tran);
 		Random rand = new Random(1234);
 		add(NKEYS, rand, keys, btree);
 		assertThat("levels", btree.treeLevels(), is(2));
+		check(keys, rand, btree);
 		// remove all the keys from the leftmost leaf node
 		Collections.sort(keys);
-		for (int i = 0; i < 4; ++i)
-			btree.remove(keys.get(i));
+		for (int i = 0; i < 8; ++i)
+			assertTrue(btree.remove(keys.get(i)));
+		for (int i = 8; i < NKEYS; ++i) {
+			Record key = keys.get(i);
+			assertThat("key " + key, btree.get(key), is(adr(key)));
+		}
+
+		for (int i = 0; i < 8; ++i)
+			btree.add(keys.get(i));
+		check(keys, rand, btree);
+
 		Record min = record("", 0);
 		btree.add(min);
 	}
