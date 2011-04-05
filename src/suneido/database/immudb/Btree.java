@@ -11,6 +11,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.util.IntArrayList;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 
@@ -35,7 +36,7 @@ import com.google.common.collect.Lists;
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
-public class Btree {
+public class Btree implements Iterable<Record> {
 	public int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
@@ -51,6 +52,10 @@ public class Btree {
 		this.tran = tran;
 		this.root = root;
 		this.treeLevels = treeLevels;
+	}
+
+	public boolean isEmpty() {
+		return treeLevels == 0 && nodeAt(0, root).isEmpty();
 	}
 
 	/**
@@ -191,48 +196,73 @@ public class Btree {
 
 		// if we get to here, root node is now empty
 		treeLevels = 0;
+		root = tran.refToInt(BtreeMemNode.emptyLeaf());
 
 		return true;
 	}
 
-	Iterator<Record> iterator() {
+	public Iterator<Record> iterator() {
 		return new Iter(Record.EMPTY);
 	}
 
 	// TODO handle concurrent modification
 
+	private static class Info {
+		BtreeNode node;
+		int pos;
+		Info(BtreeNode node, int pos) {
+			this.node = node;
+			this.pos = pos;
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+				.add("pos", pos)
+				.add("node", node)
+				.toString();
+		}
+	}
+
 	private class Iter extends AbstractIterator<Record> {
-		private final List<BtreeNode> nodes = Lists.newArrayList();
-		private final IntArrayList adrs = new IntArrayList();
-		private int pos;
+		// top of stack is leaf
+		private final Deque<Info> stack = new ArrayDeque<Info>();
 
 		Iter(Record key) {
-			// search down the tree
 			int adr = root;
 			for (int level = treeLevels; level >= 0; --level) {
-				adrs.add(adr);
 				BtreeNode node = nodeAt(level, adr);
-				nodes.add(node);
+				int pos = node.findPos(key);
+				stack.push(new Info(node, pos));
 				if (level == 0)
 					break;
-				Record slot = node.find(key);
+				Record slot = node.get(pos);
 				adr = getAddress(slot);
 			}
-			pos = leaf().lowerBound(key);
 		}
 
 		@Override
 		protected Record computeNext() {
-			if (pos < leaf().size())
-				return leaf().get(pos++);
+			Info leaf = stack.peek();
+			if (leaf.pos < leaf.node.size())
+				return leaf.node.get(leaf.pos++); // common case
 
-			// TODO advance to next leaf
+			while (! stack.isEmpty() &&
+					stack.peek().pos + 1 >= stack.peek().node.size())
+				stack.pop();
+			if (stack.isEmpty())
+				return endOfData();
+			++stack.peek().pos;
+			while (stack.size() < treeLevels + 1) {
+				Info info = stack.peek();
+				Record slot = info.node.get(info.pos);
+				int adr = getAddress(slot);
+				int level = info.node.level - 1;
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, 0));
+			}
 
-			return endOfData();
-		}
-
-		private BtreeNode leaf() {
-			return nodes.get(nodes.size() - 1);
+			leaf = stack.peek();
+			return leaf.node.get(leaf.pos++);
 		}
 
 	}
