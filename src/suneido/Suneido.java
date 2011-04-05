@@ -133,13 +133,12 @@ public class Suneido {
 		System.out.println("-s[erver]               start the server (this is the default option)");
 		System.out.println("-c[lient]               run as client");
 		System.out.println("-p[ort] #               the TCP/IP port for server or client (default 3147)");
-		System.out.println("-repl                   interactive read-eval-print-loop command line interface");
+		System.out.println("-repl                   (default) interactive read-eval-print-loop command line interface");
 		System.out.println("-d[ump] [table]         dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]         load from database.su or <table> from <table>.su");
 		System.out.println("-check                  check the database integrity");
 		System.out.println("-rebuild                check and rebuild the database, i.e. for crash recovery");
 		System.out.println("-compact                remove deleted records");
-		System.out.println("-t[ests[                run the built-in JUnit tests");
 		System.out.println("-v[ersion]              print the version");
 		System.out.println("-i[mpersonate] version  tell clients this version");
 		System.out.println("-h[elp] or -?           print this message");
