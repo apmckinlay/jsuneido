@@ -12,7 +12,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.util.IntArrayList;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
 
 // TODO iteration
@@ -36,11 +35,12 @@ import com.google.common.collect.Lists;
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
-public class Btree implements Iterable<Record> {
+public class Btree {
 	public int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
+	private int modified = 0; // used by Iter
 
 	public Btree(Tran tran) {
 		this.tran = tran;
@@ -81,6 +81,8 @@ public class Btree implements Iterable<Record> {
 	 * Add a key to the btree.
 	 */
 	public void add(Record key) {
+		++modified;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -154,6 +156,8 @@ public class Btree implements Iterable<Record> {
 	 * @return false if the key was not found
 	 */
 	public boolean remove(Record key) {
+		++modified;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -201,12 +205,71 @@ public class Btree implements Iterable<Record> {
 		return true;
 	}
 
-	public Iterator<Record> iterator() {
+	public Iter iterator() {
 		return new Iter(Record.EMPTY);
 	}
 
 	// TODO handle concurrent modification
 
+	public class Iter {
+		// top of stack is leaf
+		private final Deque<Info> stack = new ArrayDeque<Info>();
+		private final int valid = modified;
+		private Record cur = null;
+
+		private Iter(Record key) {
+			seek(key);
+		}
+
+		private void seek(Record key) {
+			if (isEmpty())
+				return;
+			int adr = root;
+			for (int level = treeLevels; level >= 0; --level) {
+				BtreeNode node = nodeAt(level, adr);
+				int pos = node.findPos(key);
+				stack.push(new Info(node, pos));
+				Record slot = node.get(pos);
+				if (level == 0) {
+					cur = slot;
+					break;
+				}
+				adr = getAddress(slot);
+			}
+		}
+
+		public void next() {
+			if (eof())
+				return;
+			while (! stack.isEmpty() &&
+					stack.peek().pos + 1 >= stack.peek().node.size())
+				stack.pop();
+			if (stack.isEmpty()) {
+				cur = null;
+				return;
+			}
+			++stack.peek().pos;
+			while (stack.size() < treeLevels + 1) {
+				Info info = stack.peek();
+				Record slot = info.node.get(info.pos);
+				int adr = getAddress(slot);
+				int level = info.node.level - 1;
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, 0));
+			}
+			Info leaf = stack.peek();
+			cur = leaf.node.get(leaf.pos);
+		}
+
+		public boolean eof() {
+			return cur == null;
+		}
+
+		public Record cur() {
+			return cur;
+		}
+
+	}
 	private static class Info {
 		BtreeNode node;
 		int pos;
@@ -221,50 +284,6 @@ public class Btree implements Iterable<Record> {
 				.add("node", node)
 				.toString();
 		}
-	}
-
-	private class Iter extends AbstractIterator<Record> {
-		// top of stack is leaf
-		private final Deque<Info> stack = new ArrayDeque<Info>();
-
-		Iter(Record key) {
-			int adr = root;
-			for (int level = treeLevels; level >= 0; --level) {
-				BtreeNode node = nodeAt(level, adr);
-				int pos = node.findPos(key);
-				stack.push(new Info(node, pos));
-				if (level == 0)
-					break;
-				Record slot = node.get(pos);
-				adr = getAddress(slot);
-			}
-		}
-
-		@Override
-		protected Record computeNext() {
-			Info leaf = stack.peek();
-			if (leaf.pos < leaf.node.size())
-				return leaf.node.get(leaf.pos++); // common case
-
-			while (! stack.isEmpty() &&
-					stack.peek().pos + 1 >= stack.peek().node.size())
-				stack.pop();
-			if (stack.isEmpty())
-				return endOfData();
-			++stack.peek().pos;
-			while (stack.size() < treeLevels + 1) {
-				Info info = stack.peek();
-				Record slot = info.node.get(info.pos);
-				int adr = getAddress(slot);
-				int level = info.node.level - 1;
-				BtreeNode node = nodeAt(level, adr);
-				stack.push(new Info(node, 0));
-			}
-
-			leaf = stack.peek();
-			return leaf.node.get(leaf.pos++);
-		}
-
 	}
 
 	public static int getAddress(Record slot) {
