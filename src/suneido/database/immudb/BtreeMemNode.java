@@ -42,6 +42,8 @@ public class BtreeMemNode extends BtreeNode {
 
 	@Override
 	public Record get(int i) {
+		if (i < 0 || i >= size())
+			throw new IndexOutOfBoundsException("index " + i + " size " + size());
 		return i < size() ? data.get(i) : Record.EMPTY;
 	}
 

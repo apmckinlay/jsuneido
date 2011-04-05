@@ -28,8 +28,9 @@ public class BtreeDbNode extends BtreeNode {
 
 	@Override
 	public Record get(int i) {
-		if (i >= size())
-			return Record.EMPTY;
+		if (i < 0 || i >= size())
+			throw new IndexOutOfBoundsException("index " + i + " size " + size());
+			//return Record.EMPTY;
 		return new DbRecord(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 

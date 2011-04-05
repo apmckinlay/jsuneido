@@ -58,14 +58,24 @@ public abstract class BtreeNode {
 	 *			or the first key.
 	 */
 	public Record find(Record key) {
+		int at = findPos(key);
+		return (at < 0 || at >= size()) ? null : get(at);
+	}
+
+	public int findPos(Record key) {
 		if (isEmpty())
-			return null;
+			return -1;
 		int at = lowerBound(key);
-		Record slot = get(at);
 		if (isLeaf())
-			return at < size() ? slot : null;
-		else
-			return at == 0 || slot.startsWith(key)? slot : get(at - 1);
+			return at < size() ? at : -1;
+		else {
+			if (at == 0)
+				return at;
+			if (at >= size())
+				return at - 1;
+			Record slot = get(at);
+			return slot.startsWith(key) ? at : at - 1;
+		}
 	}
 
 	public int lowerBound(Record key) {
@@ -157,8 +167,10 @@ public abstract class BtreeNode {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf()) {
-			key = new MemRecord().addPrefix(key, key.size() - 1);
-			assert key.compareTo(get(0)) <= 0;
+			if (! isEmpty()) {
+				key = new MemRecord().addPrefix(key, key.size() - 1);
+				assert key.compareTo(get(0)) <= 0;
+			}
 			return;
 		}
 		assert isMinimalKey(get(0)) : "minimal";
