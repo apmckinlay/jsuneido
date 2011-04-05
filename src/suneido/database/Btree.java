@@ -561,36 +561,34 @@ public class Btree {
 			adr = -1;
 		}
 
-		public Iter next() {
+		public void next() {
 			if (adr == 0)
-				return this;
+				return;
 			if (modified != valid)
 				if (! seek(cur.key))
-					return this;	// key has been erased so we're on the next one
+					return;	// key has been erased so we're on the next one
 			LeafNode leaf = new LeafNode(adr);
 			int t = upperBound(leaf.slots, cur);
 			if (t < leaf.slots.size())
 				cur = leaf.slots.get(t).dup();
 			else if ((adr = leaf.next()) != 0)
 				cur = new LeafNode(adr).slots.front().dup();
-			return this;
 		}
-		public Iter prev() {
+		public void prev() {
 			if (adr == 0)
-				return this;
+				return;
 			if (modified != valid)
 				seek(cur.key);
 			if (adr == 0)
-				return this;
+				return;
 			LeafNode leaf = new LeafNode(adr);
 			int t = lowerBound(leaf.slots, cur);
 			if (t > 0)
 				cur = leaf.slots.get(--t).dup();
 			else if ((adr = leaf.prev()) != 0)
 				cur = new LeafNode(adr).slots.back().dup();
-			return this;
 		}
-		public boolean seek(Record key) {
+		private boolean seek(Record key) {
 			adr = root();
 			for (int i = 0; i < treelevels; ++i)
 				adr = new TreeNode(adr).find(key);
