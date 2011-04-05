@@ -222,6 +222,11 @@ public class BtreeTest {
 	}
 
 	@Test
+	public void iterate_empty() {
+		assertTrue(btree.iterator().eof());
+	}
+
+	@Test
 	public void iterate_only_leaf() {
 		rand = new Random(1291681);
 		NKEYS = 4;
@@ -229,8 +234,8 @@ public class BtreeTest {
 		assertThat(btree.treeLevels(), is(0));
 		Collections.sort(keys);
 		int i = 0;
-		for (Record key : btree)
-			assertThat(key, is(keys.get(i++)));
+		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
 		assertThat(i, is(keys.size()));
 	}
 
@@ -240,8 +245,8 @@ public class BtreeTest {
 		add(NKEYS);
 		Collections.sort(keys);
 		int i = 0;
-		for (Record key : btree)
-			assertThat(key, is(keys.get(i++)));
+		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
 		assertThat(i, is(keys.size()));
 	}
 
