@@ -44,7 +44,7 @@ public class Btree {
 
 	public Btree(Tran tran) {
 		this.tran = tran;
-		root = tran.refToInt(BtreeMemNode.emptyLeaf());
+		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
 	}
 
@@ -200,7 +200,7 @@ public class Btree {
 
 		// if we get to here, root node is now empty
 		treeLevels = 0;
-		root = tran.refToInt(BtreeMemNode.emptyLeaf());
+		root = tran.refToInt(BtreeNode.emptyLeaf());
 
 		return true;
 	}
@@ -297,7 +297,7 @@ public class Btree {
 	static BtreeNode nodeAt(Tran tran, int level, int adr) {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeMemNode) tran.intToRef(adr)
+			? (BtreeNode) tran.intToRef(adr)
 			: new BtreeDbNode(level, tran.stor.buffer(adr));
 	}
 
