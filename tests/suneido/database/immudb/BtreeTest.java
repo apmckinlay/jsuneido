@@ -68,7 +68,7 @@ public class BtreeTest {
 	@Test
 	public void add_in_order() {
 		rand = new Random(328457);
-		keys = randomKeys(NKEYS);
+		keys = randomKeys(rand, NKEYS);
 		Collections.sort(keys);
 		for (Record key : keys)
 			btree.add(key);
@@ -79,7 +79,7 @@ public class BtreeTest {
 	@Test
 	public void add_in_reverse_order() {
 		rand = new Random(95369);
-		keys = randomKeys(NKEYS);
+		keys = randomKeys(rand, NKEYS);
 		Collections.sort(keys);
 		Collections.reverse(keys);
 		for (Record key : keys)
@@ -281,8 +281,7 @@ public class BtreeTest {
 		return Btree.getAddress(key);
 	}
 
-	public static List<Record> randomKeys(int n) {
-		Random rand = new Random(1234);
+	public static List<Record> randomKeys(Random rand, int n) {
 		List<Record> keys = new ArrayList<Record>();
 		for (int i = 0; i < n; ++i)
 			keys.add(randomKey(rand));
@@ -297,7 +296,7 @@ public class BtreeTest {
 		return record(s, rand.nextInt(Integer.MAX_VALUE));
 	}
 
-	private static Record record(String s) {
+	static Record record(String s) {
 		return new MemRecord().add(s);
 	}
 

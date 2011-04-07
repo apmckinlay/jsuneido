@@ -122,7 +122,7 @@ public abstract class DbHashTree {
 	}
 
 	/** DbNode consists of:
-	 * 		present	- bitmap of which entries are present
+	 * 		present	- bitmap (in an int) specifying which entries are present
 	 * 		entries	- up to 32 entries, each a pair of int's
 	 * 		if entry key is 0 then value points to a child node
 	 */
