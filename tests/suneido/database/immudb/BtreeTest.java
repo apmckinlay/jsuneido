@@ -17,7 +17,11 @@ import com.google.common.collect.Lists;
 
 public class BtreeTest {
 	private final Storage stor = new TestStorage(1024, 64);
+	private Random rand = new Random(123456);
 	private Tran tran = new Tran(stor);
+	private Btree btree = new Btree4(tran);
+	private List<Record> keys = Lists.newArrayList();
+	private int NKEYS = 100;
 	private int root;
 	private int levels;
 	private int redirs;
@@ -34,18 +38,14 @@ public class BtreeTest {
 
 	@Test
 	public void empty() {
-		Btree btree = new Btree4(tran);
+		assertTrue(btree.isEmpty());
 		assertThat(btree.get(record("hello", 1234)), is(0));
 	}
 
 	@Test
 	public void left_edge() {
-		int NKEYS = 100;
-		List<Record> keys = Lists.newArrayList();
-		Btree btree = new Btree4(tran);
-		Random rand = new Random(1234);
-		add(NKEYS, rand, keys, btree);
-		check(keys, rand, btree);
+		add(NKEYS);
+		check();
 		// remove all the keys from the leftmost leaf node
 		Collections.sort(keys);
 		for (int i = 0; i < NKEYS/2; ++i)
@@ -58,21 +58,72 @@ public class BtreeTest {
 		}
 		for (int i = 0; i < NKEYS/2; ++i)
 			btree.add(keys.get(i));
-		check(keys, rand, btree);
+		check();
 
 		Record min = record("", 0);
 		btree.add(min);
+		btree.check();
+	}
+
+	@Test
+	public void add_in_order() {
+		rand = new Random(328457);
+		keys = randomKeys(rand, NKEYS);
+		Collections.sort(keys);
+		for (Record key : keys)
+			btree.add(key);
+		assertThat(btree.treeLevels(), is(3));
+		check();
+	}
+
+	@Test
+	public void add_in_reverse_order() {
+		rand = new Random(95369);
+		keys = randomKeys(rand, NKEYS);
+		Collections.sort(keys);
+		Collections.reverse(keys);
+		for (Record key : keys)
+			btree.add(key);
+		assertThat(btree.treeLevels(), is(5));
+		check();
+	}
+
+	@Test
+	public void remove_in_order() {
+		rand = new Random(7645378);
+		add(NKEYS);
+		Collections.sort(keys);
+		removeAndCheck(NKEYS, rand, keys, btree);
+	}
+
+	@Test
+	public void remove_in_reverse_order() {
+		rand = new Random(156756);
+		add(NKEYS);
+		Collections.sort(keys);
+		Collections.reverse(keys);
+		removeAndCheck(NKEYS, rand, keys, btree);
+	}
+
+	private void removeAndCheck(int NKEYS, Random rand, List<Record> keys,
+			Btree btree) {
+		for (int i = 0; i < NKEYS / 2; ++i) {
+			assertTrue(btree.remove(keys.get(i)));
+			keys.remove(i);
+		}
+		check();
+		for (Record key : keys)
+			assertTrue(btree.remove(key));
+		assertTrue(btree.isEmpty());
 	}
 
 	@Test
 	public void add_and_get() {
-		int NKEYS = 1000;
-		List<Record> keys = Lists.newArrayList();
-		Btree btree = new Btree4(tran);
-		Random rand = new Random(1234);
-		add(NKEYS, rand, keys, btree);
+		rand = new Random(564367);
+		NKEYS = 1000;
+		add(NKEYS);
 
-		check(keys, rand, btree);
+		check();
 
 		for (int i = 0; i < NKEYS / 2; ++i)
 			assertTrue(btree.remove(keys.get(i)));
@@ -100,48 +151,45 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void store() {
-		List<Record> keys = new ArrayList<Record>();
-		Random rand = new Random(90873);
-
-		Btree btree = new Btree4(tran);
-		store(btree);
+	public void update_and_store() {
+		rand = new Random(789456);
+		store();
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(2, rand, keys, btree);
+		updateAndStore(2);
 		assertThat("levels", btree.treeLevels(), is(0));
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(3, rand, keys, btree);
+		updateAndStore(3);
 		assertThat("levels", btree.treeLevels(), is(1));
 
 		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(400, rand, keys, btree);
-		assertThat("levels", btree.treeLevels(), is(5));
+		updateAndStore(400);
+		assertThat("levels", btree.treeLevels(), is(6));
 
 		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
 		btree = new Btree4(tran, root, levels);
-		check(keys, rand, btree);
+		check();
 	}
 
-	private void updateAndStore(int n, Random rand, List<Record> keys, Btree btree) {
+	private void updateAndStore(int n) {
 //System.out.println("--------------- before update");
 //btree.print();
-		check(keys, rand, btree);
-		add(2 * n, rand, keys, btree);
-		remove(n, rand, keys, btree);
+		check();
+		add(2 * n);
+		remove(n);
 //System.out.println("--------------- after update");
 //btree.print();
-		check(keys, rand, btree);
-		store(btree);
+		check();
+		store();
 //System.out.println("--------------- after store");
 //btree.print();
 	}
 
-	private void add(int n, Random rand, List<Record> keys, Btree btree) {
+	private void add(int n) {
 		for (int i = 0; i < n; ++i) {
 			Record key = randomKey(rand);
 			btree.add(key);
@@ -149,7 +197,7 @@ public class BtreeTest {
 		}
 	}
 
-	private void remove(int n, Random rand, List<Record> keys, Btree btree) {
+	private void remove(int n) {
 		for (int i = 0; i < n; ++i) {
 			int r = rand.nextInt(keys.size());
 			assertTrue(btree.remove(keys.get(r)));
@@ -157,14 +205,14 @@ public class BtreeTest {
 		}
 	}
 
-	private void check(List<Record> keys, Random rand, Btree btree) {
+	private void check() {
 		btree.check();
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 	}
 
-	private void store(Btree btree) {
+	private void store() {
 		tran.startStore();
 		btree.store();
 		root = btree.root();
@@ -174,8 +222,32 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void iteration() {
+	public void iterate_empty() {
+		assertTrue(btree.iterator().eof());
+	}
 
+	@Test
+	public void iterate_only_leaf() {
+		rand = new Random(1291681);
+		NKEYS = 4;
+		add(NKEYS);
+		assertThat(btree.treeLevels(), is(0));
+		Collections.sort(keys);
+		int i = 0;
+		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(keys.size()));
+	}
+
+	@Test
+	public void iterate() {
+		rand = new Random(1291681);
+		add(NKEYS);
+		Collections.sort(keys);
+		int i = 0;
+		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(keys.size()));
 	}
 
 	@Test
@@ -188,7 +260,6 @@ public class BtreeTest {
 
 	@Test
 	public void translate_data_refs() {
-		Btree btree = new Btree4(tran);
 		Record rec = record("a data record");
 		int intref = tran.refToInt(rec);
 		Record key = record("hello", intref);
@@ -210,6 +281,13 @@ public class BtreeTest {
 		return Btree.getAddress(key);
 	}
 
+	public static List<Record> randomKeys(Random rand, int n) {
+		List<Record> keys = new ArrayList<Record>();
+		for (int i = 0; i < n; ++i)
+			keys.add(randomKey(rand));
+		return keys;
+	}
+
 	public static Record randomKey(Random rand) {
 		int n = 1 + rand.nextInt(5);
 		String s = "";
@@ -218,7 +296,7 @@ public class BtreeTest {
 		return record(s, rand.nextInt(Integer.MAX_VALUE));
 	}
 
-	private static Record record(String s) {
+	static Record record(String s) {
 		return new MemRecord().add(s);
 	}
 

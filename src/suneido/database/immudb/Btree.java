@@ -11,7 +11,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.util.IntArrayList;
 
-import com.google.common.collect.AbstractIterator;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 // TODO iteration
@@ -40,10 +40,11 @@ public class Btree {
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
+	private int modified = 0; // used by Iter
 
 	public Btree(Tran tran) {
 		this.tran = tran;
-		root = tran.refToInt(BtreeMemNode.emptyLeaf());
+		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
 	}
 
@@ -51,6 +52,10 @@ public class Btree {
 		this.tran = tran;
 		this.root = root;
 		this.treeLevels = treeLevels;
+	}
+
+	public boolean isEmpty() {
+		return treeLevels == 0 && nodeAt(0, root).isEmpty();
 	}
 
 	/**
@@ -76,6 +81,8 @@ public class Btree {
 	 * Add a key to the btree.
 	 */
 	public void add(Record key) {
+		++modified;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -149,6 +156,8 @@ public class Btree {
 	 * @return false if the key was not found
 	 */
 	public boolean remove(Record key) {
+		++modified;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -191,50 +200,90 @@ public class Btree {
 
 		// if we get to here, root node is now empty
 		treeLevels = 0;
+		root = tran.refToInt(BtreeNode.emptyLeaf());
 
 		return true;
 	}
 
-	Iterator<Record> iterator() {
+	public Iter iterator() {
 		return new Iter(Record.EMPTY);
 	}
 
 	// TODO handle concurrent modification
 
-	private class Iter extends AbstractIterator<Record> {
-		private final List<BtreeNode> nodes = Lists.newArrayList();
-		private final IntArrayList adrs = new IntArrayList();
-		private int pos;
+	public class Iter {
+		// top of stack is leaf
+		private final Deque<Info> stack = new ArrayDeque<Info>();
+		private final int valid = modified;
+		private Record cur = null;
 
-		Iter(Record key) {
-			// search down the tree
+		private Iter(Record key) {
+			seek(key);
+		}
+
+		private void seek(Record key) {
+			if (isEmpty())
+				return;
 			int adr = root;
 			for (int level = treeLevels; level >= 0; --level) {
-				adrs.add(adr);
 				BtreeNode node = nodeAt(level, adr);
-				nodes.add(node);
-				if (level == 0)
+				int pos = node.findPos(key);
+				stack.push(new Info(node, pos));
+				Record slot = node.get(pos);
+				if (level == 0) {
+					cur = slot;
 					break;
-				Record slot = node.find(key);
+				}
 				adr = getAddress(slot);
 			}
-			pos = leaf().lowerBound(key);
 		}
 
+		public void next() {
+			if (eof())
+				return;
+			while (! stack.isEmpty() &&
+					stack.peek().pos + 1 >= stack.peek().node.size())
+				stack.pop();
+			if (stack.isEmpty()) {
+				cur = null;
+				return;
+			}
+			++stack.peek().pos;
+			while (stack.size() < treeLevels + 1) {
+				Info info = stack.peek();
+				Record slot = info.node.get(info.pos);
+				int adr = getAddress(slot);
+				int level = info.node.level - 1;
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, 0));
+			}
+			Info leaf = stack.peek();
+			cur = leaf.node.get(leaf.pos);
+		}
+
+		public boolean eof() {
+			return cur == null;
+		}
+
+		public Record cur() {
+			return cur;
+		}
+
+	}
+	private static class Info {
+		BtreeNode node;
+		int pos;
+		Info(BtreeNode node, int pos) {
+			this.node = node;
+			this.pos = pos;
+		}
 		@Override
-		protected Record computeNext() {
-			if (pos < leaf().size())
-				return leaf().get(pos++);
-
-			// TODO advance to next leaf
-
-			return endOfData();
+		public String toString() {
+			return Objects.toStringHelper(this)
+				.add("pos", pos)
+				.add("node", node)
+				.toString();
 		}
-
-		private BtreeNode leaf() {
-			return nodes.get(nodes.size() - 1);
-		}
-
 	}
 
 	public static int getAddress(Record slot) {
@@ -248,7 +297,7 @@ public class Btree {
 	static BtreeNode nodeAt(Tran tran, int level, int adr) {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
-			? (BtreeMemNode) tran.intToRef(adr)
+			? (BtreeNode) tran.intToRef(adr)
 			: new BtreeDbNode(level, tran.stor.buffer(adr));
 	}
 
