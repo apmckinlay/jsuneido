@@ -8,13 +8,15 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A {@link BtreeNode} wrapping a ByteBuffer from the database.
- * "updating" a BtreeDbNode produces a {@link BtreeMemNode}
+ * "updating" a BtreeDbNode produces a {@link BtreeDbMemNode}
  */
 @Immutable
 public class BtreeDbNode extends BtreeNode {
-	private final DbRecord rec;
+	final DbRecord rec;
 
 	public BtreeDbNode(int level, ByteBuffer buf) {
 		super(level);
@@ -22,20 +24,19 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	public BtreeNode with(Record key) {
-		return new BtreeMemNode(this).with(key);
-	}
-
-	@Override
 	public Record get(int i) {
-		if (i >= size())
-			return Record.EMPTY;
+		Preconditions.checkElementIndex(i, rec.size());
 		return new DbRecord(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 
 	@Override
-	public BtreeNode without(Record key) {
-		return new BtreeMemNode(this).without(key);
+	public BtreeDbMemNode with(Record key) {
+		return BtreeDbMemNode.with(this, key);
+	}
+
+	@Override
+	protected BtreeNode without(int i) {
+		return BtreeDbMemNode.without(this, i);
 	}
 
 	@Override
@@ -45,7 +46,17 @@ public class BtreeDbNode extends BtreeNode {
 
 	@Override
 	public int store(Tran tran) {
-		return 0;
+		throw new RuntimeException("shouldn't reach here");
+	}
+
+	@Override
+	public BtreeNode slice(int from, int to) {
+		return BtreeDbMemNode.slice(this, from, to);
+	}
+
+	@Override
+	public BtreeNode sliceWith(int from, int to, int at, Record key) {
+		return BtreeDbMemNode.sliceWith(this, from, to, at, key);
 	}
 
 }

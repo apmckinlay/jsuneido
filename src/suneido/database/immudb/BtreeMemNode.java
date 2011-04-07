@@ -1,193 +1,114 @@
-/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.Arrays;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.Immutable;
 
 import suneido.database.immudb.Btree.Split;
-import suneido.util.IntArrayList;
 
-import com.google.common.collect.Lists;
+import com.google.common.base.Preconditions;
 
 /**
- * An in-memory mutable {@link BtreeNode}.
- * "updating" a {@link BtreeDbNode} produces a BtreeMemNode
+ * New nodes not derived from BtreeDbNode.
  */
-@NotThreadSafe
-public class BtreeMemNode extends BtreeNode {
-	List<Record> data = Lists.newArrayList();
+@Immutable
+public class BtreeMemNode extends BtreeStoreNode {
+	static final BtreeNode EMPTY_LEAF = new BtreeMemNode(0);
+	private final Record data[];
 
-	public BtreeMemNode(int level) {
+	BtreeMemNode(int level) {
 		super(level);
+		data = new Record[0];
 	}
 
-	public BtreeMemNode(BtreeDbNode node) {
-		super(node.level());
-		add(node, 0, node.size());
-	}
-
-	public static BtreeMemNode emptyLeaf() {
-		return new BtreeMemNode(0);
-	}
-
-	@Override
-	public int size() {
-		return data.size();
-	}
-
-	@Override
-	public Record get(int i) {
-		return i < size() ? data.get(i) : Record.EMPTY;
-	}
-
-	/** appends to the data - does NOT insert in order */
-	public BtreeMemNode add(Record key) {
-		data.add(key);
-		return this;
-	}
-
-	/** append a range of keys from another node - does NOT insert in order */
-	public BtreeMemNode add(BtreeNode node, int from, int to) {
-		for (int i = from; i < to; ++i)
-			data.add(node.get(i));
-		return this;
-	}
-
-	@Override
-	public BtreeNode with(Record key) {
-		int at = lowerBound(key);
-		data.add(at, key);
-		return this;
+	BtreeMemNode(int level, Record... data) {
+		super(level);
+		if (level > 0)
+			// leftmost key in tree nodes must be minimal
+			data[0] = minimize(data[0]);
+		this.data = data;
 	}
 
 	public static BtreeNode newRoot(Tran tran, Split split) {
 		MemRecord minkey = minimalKey(split.key.size(), split.left);
-		return new BtreeMemNode(split.level + 1).add(minkey).add(split.key);
-	}
-
-	public static MemRecord minimalKey(int nfields, int ptr) {
-		MemRecord key = new MemRecord();
-		for (int i = 0; i < nfields - 1; ++i)
-			key.add("");
-		key.add(ptr);
-		return key;
-	}
-
-	public int length() {
-		int datasize = 0;
-		for (int i = 0; i < size(); ++i)
-			datasize += get(i).length();
-		return MemRecord.length(size(), datasize);
+		return new BtreeMemNode(split.level + 1, minkey, split.key);
 	}
 
 	@Override
-	public int store(Tran tran) {
-		for (int i = 0; i < size(); ++i)
-			translate(tran, i);
-
-		int adr = tran.stor.alloc(length());
-		ByteBuffer buf = tran.stor.buffer(adr);
-		pack(buf);
-		return adr;
-	}
-
-	public void pack(ByteBuffer buf) {
-		MemRecord.packHeader(buf, length(), getLengths());
-		for (int i = size() - 1; i >= 0; --i)
-			data.get(i).pack(buf);
-	}
-
-	private IntArrayList getLengths() {
-		IntArrayList lens = new IntArrayList(size());
-		for (int i = 0; i < size(); ++i)
-			lens.add(get(i).length());
-		return lens;
-	}
-
-	private void translate(Tran tran, int i) {
-		Record rec = data.get(i);
-		boolean translate = false;
-
-		int dref = dataref(rec);
-		if (dref != 0) {
-			dref = tran.redir(dref);
-			if (IntRefs.isIntRef(dref)) {
-				dref = tran.getAdr(dref);
-				assert dref != 0;
-				translate = true;
-			}
-		}
-
-		int ptr = 0;
-		if (level > 0) {
-			int ptr1 = ptr = pointer(rec);
-			if (! IntRefs.isIntRef(ptr1))
-				ptr = tran.redir(ptr1);
-			if (IntRefs.isIntRef(ptr))
-				ptr = tran.getAdr(ptr);
-			assert ptr != 0;
-			assert ! IntRefs.isIntRef(ptr) : "pointer " + ptr1 + " => " + (ptr & 0xffffffffL);
-			if (ptr1 != ptr)
-				translate = true;
-			//TODO if redirections are unique then we can remove this one
-		}
-
-		if (! translate)
-			return ;
-
-		int prefix = rec.size() - (level > 0 ? 2 : 1);
-		MemRecord r = new MemRecord().addPrefix(rec, prefix);
-		if (dref == 0)
-			r.add("");
-		else
-			r.add(dref);
-		if (level > 0)
-			r.add(ptr);
-		data.set(i, r);
-	}
-
-	private int dataref(Record rec) {
-		int size = rec.size();
-		int i = size - (level > 0 ? 2 : 1);
-		Object x = rec.get(i);
-		if (x.equals(""))
-			return 0;
-		return ((Number) x).intValue();
-	}
-
-	private int pointer(Record rec) {
-		return ((Number) rec.get(rec.size() - 1)).intValue();
+	public int size() {
+		return data.length;
 	}
 
 	@Override
-	public BtreeNode without(Record key) {
-		if (isEmpty())
-			return null;
+	public Record get(int i) {
+		Preconditions.checkElementIndex(i, data.length);
+		return data[i];
+	}
+
+	@Override
+	public BtreeMemNode with(Record key) {
+		Record[] data2 = Arrays.copyOf(data, data.length + 1);
 		int at = lowerBound(key);
-		if (isLeaf()) {
-			if (at >= data.size() || ! data.get(at).equals(key))
-				return null; // key not found
-		} else { // tree node
-			if (at >= data.size() || ! data.get(at).startsWith(key))
-				--at;
-			assert at >= 0;
-		}
-		data.remove(at);
-		fix();
-		return this;
+		if (at < data.length)
+			System.arraycopy(data2, at, data2, at + 1, data.length - at);
+		data2[at] = key;
+		return new BtreeMemNode(level, data2);
 	}
 
-	public void fix() {
-		if (isLeaf())
-			return;
-		// first key should always be minimal
-		int ptr = pointer(data.get(0));
-		data.set(0, minimalKey(data.get(0).size(), ptr));
+	@Override
+	protected BtreeNode without(int i) {
+		return new BtreeMemNode(level, copyWithout(data, i));
+	}
+
+	Record[] copyWithout(Record[] src, int i) {
+		Record[] dst = new Record[src.length - 1];
+		System.arraycopy(src, 0, dst, 0, i);
+		System.arraycopy(src, i + 1, dst, i, src.length - i - 1);
+		return dst;
+	}
+
+	@Override
+	public BtreeNode slice(int from, int to) {
+		Preconditions.checkArgument(from < to && to <= size());
+		Record[] data2 = Arrays.copyOfRange(data, from, to);
+		return new BtreeMemNode(level, data2);
+	}
+
+	@Override
+	public BtreeNode sliceWith(int from, int to, int at, Record key) {
+		Preconditions.checkArgument(from < to && to <= size());
+		Preconditions.checkArgument(from <= at && at <= to,
+				"from " + from + " to " + to + " at " + at);
+		Record[] data2 = new Record[to - from + 1];
+		int src = from;
+		int dst = 0;
+		while (src < at)
+			data2[dst++] = data[src++];
+		data2[dst++] = key;
+		while (src < to)
+			data2[dst++] = data[src++];
+		return new BtreeMemNode(level, data2);
+	}
+
+	@Override
+	protected int length(int i) {
+		return data[i].length();
+	}
+
+	@Override
+	public void pack(ByteBuffer buf, int i) {
+		data[i].pack(buf);
+	}
+
+	@Override
+	protected void translate(Tran tran) {
+		for (int i = 0; i < data.length; ++i)
+			data[i] = translate(tran, data[i]);
 	}
 
 }
