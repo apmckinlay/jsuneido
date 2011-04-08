@@ -3,6 +3,7 @@ package suneido;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.List;
 
 import suneido.database.server.DbmsServer;
@@ -27,15 +28,16 @@ public class HttpServerMonitor {
 	private static class MyHandler implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
 			List<String> conns = DbmsServer.connections();
+			Collections.sort(conns);
 			StringBuilder sb = new StringBuilder();
-	       	sb.append("<html>\r\n"
-	       			+ "<head>\r\n"
-	       			+ "<title>Suneido Server Monitor</title>\r\n"
-	       			+ "<meta http-equiv=\"refresh\" content=\"15\" />\r\n"
-	       			+ "</head>\r\n"
-	       			+ "<body>\r\n"
-	       			+ "<h1>Suneido Server Monitor</h1>\r\n"
-	       			+ "<p>Built: ")
+		       	sb.append("<html>\r\n"
+		       			+ "<head>\r\n"
+		       			+ "<title>Suneido Server Monitor</title>\r\n"
+		       			+ "<meta http-equiv=\"refresh\" content=\"15\" />\r\n"
+		       			+ "</head>\r\n"
+		       			+ "<body>\r\n"
+		       			+ "<h1>Suneido Server Monitor</h1>\r\n"
+		       			+ "<p>Built: ")
 	       		.append(WhenBuilt.when())
 	       		.append("</p>\r\n"
 	       			+ "<p>Heap Size: ")
