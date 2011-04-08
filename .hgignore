@@ -1,0 +1,31 @@
+syntax: glob
+**.class
+**.launch
+jsuneido.jar
+WhenBuilt.jar
+.DS_Store
+
+install.bat
+syntax: regexp
+^\.externalToolBuilders$
+syntax: regexp
+\.out$
+syntax: regexp
+^repl\.txt$
+syntax: regexp
+^suneido\.db$
+syntax: regexp
+^jsuneido-dist\.jar$
+syntax: regexp
+^etaserver\.go$
+glob:database.su
+glob:*.log
+glob:suneido.db.bak
+glob:suneido/WhenBuilt.java
+
+syntax: regexp
+^suneido/WhenBuilt\.java$
+syntax: regexp
+^doc$
+syntax: regexp
+^eta\.go$
