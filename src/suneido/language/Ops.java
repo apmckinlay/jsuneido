@@ -830,7 +830,10 @@ public final class Ops {
 	}
 
 	private static Object getString(String s, int i) {
-		return 0 > i || i >= s.length() ? "" : s.substring(i, i + 1);
+		int len = s.length();
+		if (i < 0)
+			i += len;
+		return 0 <= i && i < len ? s.substring(i, i + 1) : "";
 	}
 
 	public static Object iterator(Object x) {
