@@ -315,4 +315,14 @@ public class OpsTest {
 		assertEquals("10000000000000000000", Ops.toStringBD(new BigDecimal("1e19")));
 		assertEquals("1e20", Ops.toStringBD(new BigDecimal("1e20")));
 	}
+
+	@Test
+	public void getString() {
+		assertThat(Ops.get("abcd", 0), is((Object) "a"));
+		assertThat(Ops.get("abcd", 3), is((Object) "d"));
+		assertThat(Ops.get("abcd", 4), is((Object) ""));
+		assertThat(Ops.get("abcd", -1), is((Object) "d"));
+		assertThat(Ops.get("abcd", -4), is((Object) "a"));
+		assertThat(Ops.get("abcd", -5), is((Object) ""));
+	}
 }
