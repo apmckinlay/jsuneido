@@ -232,6 +232,8 @@ public class ParseExpressionTest {
 			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("args.Each\n {|x, y|\n z }",
 			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
+		code("s[from .. to]",
+			"(SUBSCRIPT (IDENTIFIER=s) (RANGETO (IDENTIFIER=from) (IDENTIFIER=to)))");
 	}
 
 	private static void code(String code, String expected) {

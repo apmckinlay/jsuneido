@@ -1,6 +1,6 @@
 package suneido.database.query.expr;
 
-import static suneido.util.Util.listToParens;
+import static suneido.util.Util.displayListToParens;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class FunCall extends Multi {
 
 	@Override
 	public String toString() {
-		return fname + listToParens(exprs);
+		return fname + displayListToParens(exprs);
 	}
 
 	@Override

@@ -735,6 +735,15 @@ public class AstCompile {
 			break;
 		case RVALUE:
 			return expression(cg, ast.first(), option);
+		case RANGETO:
+		case RANGELEN:
+			expression(cg, ast.first());
+			expression(cg, ast.second());
+			if (ast.token == Token.RANGETO)
+				cg.rangeTo();
+			else
+				cg.rangeLen();
+			break;
 		default:
 			throw new SuException("expression: unhandled: " + ast.token);
 		}

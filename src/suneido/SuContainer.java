@@ -196,7 +196,7 @@ public class SuContainer extends SuValue
 		return sb.append(after).toString();
 	}
 	static String keyToString(Object x) {
-		return Ops.isString(x) ? keyToString(x.toString()) : Ops.toStr(x);
+		return Ops.isString(x) ? keyToString(x.toString()) : Ops.display(x);
 	}
 	static String keyToString(String s) {
 		return s.matches("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$") ? s : ("'" + s + "'");

@@ -115,6 +115,12 @@ public class LexerTest {
 		check("#20090216.EndOfDay", HASH, NUMBER, DOT, IDENTIFIER);
 	}
 
+	@Test
+	public void rangeTo() {
+		check("s[1 .. 2]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, NUMBER, R_BRACKET);
+		check("x..y", IDENTIFIER, RANGETO, IDENTIFIER);
+	}
+
 	private void check(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results)

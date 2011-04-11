@@ -177,4 +177,8 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	public T range(Token type, T expr1, T expr2) {
+		return null;
+	}
+
 }

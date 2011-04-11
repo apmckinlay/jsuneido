@@ -313,4 +313,9 @@ public class AstGenerator extends Generator<AstNode> {
 		System.out.println(ast);
 	}
 
+	@Override
+	public AstNode range(Token type, AstNode from, AstNode to) {
+		return new AstNode(type, from, to);
+	}
+
 }

@@ -237,6 +237,15 @@ public class ClassGen {
 				"(Ljava/lang/Object;Ljava/lang/Object;)" + op.resultType.type);
 	}
 
+	public void rangeTo() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeTo",
+				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
+	}
+	public void rangeLen() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeLen",
+				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
+	}
+
 	public void localLoad(String name) {
 		if (name.equals("this"))
 			mv.visitVarInsn(ALOAD, SELF);

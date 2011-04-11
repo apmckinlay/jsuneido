@@ -596,53 +596,25 @@ public final class Ops {
 		}
 	}
 
+	// used by string operations to coerce arguments
+	// automatic conversion is only done from booleans and numbers
 	public static String toStr(Object x) {
-		if (x instanceof BigDecimal)
-			return toStringBD((BigDecimal) x);
-		if (x instanceof Date)
-			return toStringDate((Date) x);
-		return x.toString();
-	}
-
-	private static String toStringDate(Date x) {
-		String s = "#" + new SimpleDateFormat("yyyyMMdd.HHmmssSSS").format(x);
-		if (s.endsWith("000000000"))
-			return s.substring(0, 9);
-		if (s.endsWith("00000"))
-			return s.substring(0, 14);
-		if (s.endsWith("000"))
-			return s.substring(0, 16);
+		String s = toStr2(x);
+		if (s == null)
+			throw new SuException("can't convert " + typeName(x) + " to String");
 		return s;
 	}
 
-	public static boolean default_single_quotes = false;
-
-	public static String display(Object x) {
-		if (isString(x)) {
-			String s = x.toString();
-			s = s.replace("\\", "\\\\");
-			boolean single_quotes = default_single_quotes
-				? !s.contains("'")
-				: (s.contains("\"") && !s.contains("'"));
-			if (single_quotes)
-				return "'" + s + "'";
-			else
-				return "\"" + s.replace("\"", "\\\"") + "\"";
-		}
-		if (x == null)
-			return "null";
-		return toStr(x);
-	}
-	public static String display(Object[] a) {
-		if (a.length == 0)
-			return "()";
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		for (Object x : a)
-			sb.append(display(x) + ", ");
-		sb.delete(sb.length() - 2, sb.length());
-		sb.append(")");
-		return sb.toString();
+	public static String toStr2(Object x) {
+		if (x == Boolean.TRUE)
+			return "true";
+		if (x == Boolean.FALSE)
+			return "false";
+		if (x instanceof BigDecimal)
+			return toStringBD((BigDecimal) x);
+		if (isString(x) || x instanceof Number)
+			return x.toString();
+		return null;
 	}
 
 	public static String toStringBD(BigDecimal n) {
@@ -657,6 +629,52 @@ public final class Ops {
 	private static String removeLeadingZero(String s) {
 		if (s.startsWith("0.") && s.length() > 2)
 			s = s.substring(1);
+		return s;
+	}
+
+	public static boolean default_single_quotes = false;
+
+	public static String display(Object x) {
+		if (x == null)
+			return "null";
+		if (isString(x)) {
+			String s = x.toString();
+			s = s.replace("\\", "\\\\");
+			boolean single_quotes = default_single_quotes
+				? !s.contains("'")
+				: (s.contains("\"") && !s.contains("'"));
+			if (single_quotes)
+				return "'" + s + "'";
+			else
+				return "\"" + s.replace("\"", "\\\"") + "\"";
+		}
+		String s = toStr2(x);
+		if (s != null)
+			return s;
+		if (x instanceof Date)
+			return toStringDate((Date) x);
+		return x.toString();
+	}
+	public static String display(Object[] a) {
+		if (a.length == 0)
+			return "()";
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		for (Object x : a)
+			sb.append(display(x) + ", ");
+		sb.delete(sb.length() - 2, sb.length());
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private static String toStringDate(Date x) {
+		String s = "#" + new SimpleDateFormat("yyyyMMdd.HHmmssSSS").format(x);
+		if (s.endsWith("000000000"))
+			return s.substring(0, 9);
+		if (s.endsWith("00000"))
+			return s.substring(0, 14);
+		if (s.endsWith("000"))
+			return s.substring(0, 16);
 		return s;
 	}
 
@@ -799,7 +817,7 @@ public final class Ops {
 				throw new SuException("uninitialized member " + member);
 			return y;
 		} else if (isString(x))
-			return getString(x.toString(), toInt(member));
+			return getString(x.toString(), member);
 		else if (x instanceof Object[])
 			return getArray((Object[]) x, toInt(member));
 		else if (x instanceof Boolean || x instanceof Number)
@@ -829,11 +847,21 @@ public final class Ops {
 		return x[i];
 	}
 
-	private static Object getString(String s, int i) {
+	private static Object getString(String s, Object m) {
+		if (m instanceof Range)
+			return ((Range) m).substr(s);
+		int i = Ops.toInt(m);
 		int len = s.length();
 		if (i < 0)
 			i += len;
 		return 0 <= i && i < len ? s.substring(i, i + 1) : "";
+	}
+
+	public static Range rangeTo(Object from, Object to) {
+		return new Range.RangeTo(Ops.toInt(from), Ops.toInt(to));
+	}
+	public static Range rangeLen(Object from, Object to) {
+		return new Range.RangeLen(Ops.toInt(from), Ops.toInt(to));
 	}
 
 	public static Object iterator(Object x) {

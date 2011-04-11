@@ -34,6 +34,8 @@ public class DateClass extends BuiltinClass {
 					"usage: Date() or Date(string [, pattern]) or "
 							+ "Date(year:, month:, day:, hour:, minute:, second:)");
 		if (args[0] != NA) {
+			if (args[0] instanceof Date)
+				return args[0];
 			Date d;
 			if (args[1] == NA)
 				d = DateParse.parse(Ops.toStr(args[0]));

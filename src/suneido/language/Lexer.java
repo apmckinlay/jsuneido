@@ -76,7 +76,6 @@ public class Lexer {
 		case '(': return L_PAREN;
 		case ')': return R_PAREN;
 		case ',': return COMMA;
-		case ':': return COLON;
 		case ';': return SEMICOLON;
 		case '?': return Q_MARK;
 		case '@': return AT;
@@ -85,6 +84,12 @@ public class Lexer {
 		case '{': return L_CURLY;
 		case '}': return R_CURLY;
 		case '~': return BITNOT;
+		case ':':
+			if (charAt(si) == ':') {
+				++si;
+				return RANGELEN;
+			} else
+				return COLON;
 		case '=' :
 			switch (charAt(si)) {
 			case '=' : ++si; return IS;
@@ -250,6 +255,10 @@ public class Lexer {
 				return value(NUMBER);
 			// fall thru
 		case '.':
+			if (charAt(si) == '.') {
+				++si;
+				return RANGETO;
+			}
 			// NOTE: this accepts ".e1"
 			while (Character.isDigit(charAt(si)))
 				++si;
