@@ -34,7 +34,7 @@ public abstract class Range {
 			if (f >= t || f > slen)
 				return "";
 			if (t > slen)
-				t = s.length();
+				t = slen;
 			return s.substring(f, t);
 		}
 	}
