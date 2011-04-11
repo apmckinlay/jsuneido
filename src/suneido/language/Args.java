@@ -68,7 +68,7 @@ public class Args {
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
 					for (int j = 0; j < fs.params.length; ++j) {
-						Object x = c.get(fs.params[j]);
+						Object x = c.getIfPresent(fs.params[j]);
 						if (x != null)
 							locals[j] = x;
 					}

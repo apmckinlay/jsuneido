@@ -33,25 +33,32 @@ public class ArgsTest {
 		isasxi.add(s);
 		isasxi.put(a, s);
 		isasxi.put(x, i);
+		SuContainer isax = new SuRecord();
+		isax.add(i);
+		isax.add(s);
+		isax.add(a);
+		isax.add(x);
 
-		//	 params					args							resulting locals
-		good(f(),					empty,							empty);
-		good(f(1),					empty,							new SuValue[1]);
-		good(f("@args"),			empty,							array(c));
-		good(f(1, "@args"),			empty,							array(c, null));
-		good(f("@args"),			array(i, NAMED, a, s),			array(ias));
-		good(f("@args"),			array(EACH, ias),				array(ias));
+		//	 params				args						resulting locals
+		good(f(),					empty,					empty);
+		good(f(1),					empty,					new SuValue[1]);
+		good(f("@args"),			empty,					array(c));
+		good(f(1, "@args"),			empty,					array(c, null));
+		good(f("@args"),			array(i, NAMED, a, s),		array(ias));
+		good(f("@args"),			array(EACH, ias),			array(ias));
+		good(f("@args"),			array(EACH, isax),			array(isax));
+		good(f("i","s","a","x"),			array(EACH, isax),			array(i, s, a, x));
 		good(f("@args"),			array(EACH, ias, EACH, sxi),	array(isasxi));
-		good(f("x"),				array(i, NAMED, a, s),			array(i));
-		good(f("x", "a"),			array(i, s),					array(i, s));
-		good(f("x", "a"),			array(i, NAMED, a, s),			array(i, s));
-		good(f("x", "a"),			array(EACH, ias),				array(i, s));
-		good(f(1, "x"),				array(EACH, sxi),				array(i, null));
-		good(f(),					array(EACH, c),					empty);
-		good(f("x=6"),				empty,							array(i));
-		good(f("a", "x=6"), 		array(s), 						array(s, i));
-		good(f("a", "x=6"), 		array(i, s), 					array(i, s));
-		good(f("a", "y=6", "x=2"),	array(i, NAMED, x, s), 			array(i, i, s));
+		good(f("x"),				array(i, NAMED, a, s),		array(i));
+		good(f("x", "a"),				array(i, s),					array(i, s));
+		good(f("x", "a"),				array(i, NAMED, a, s),		array(i, s));
+		good(f("x", "a"),				array(EACH, ias),			array(i, s));
+		good(f(1, "x"),				array(EACH, sxi),			array(i, null));
+		good(f(),					array(EACH, c),			empty);
+		good(f("x=6"),				empty,					array(i));
+		good(f("a", "x=6"), 			array(s), 					array(s, i));
+		good(f("a", "x=6"), 			array(i, s), 				array(i, s));
+		good(f("a", "y=6", "x=2"),		array(i, NAMED, x, s), 		array(i, i, s));
 
 		bad(f("x", "a"),	array(i, NAMED, x, s)); // missing a
 		bad(f("x"),			empty); // too few arguments
