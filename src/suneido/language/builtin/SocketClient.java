@@ -17,7 +17,7 @@ import suneido.util.Util;
 public class SocketClient extends SuValue {
 	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
 	private final Socket socket;
-	private final DataInputStream input;
+	private final InputStream input;
 	private final DataOutputStream output;
 
 	// args must already be massaged
@@ -35,7 +35,7 @@ public class SocketClient extends SuValue {
 			}
 			socket.setSoTimeout(timeout);
 			socket.setTcpNoDelay(true); // disable nagle
-			input = new DataInputStream(socket.getInputStream());
+			input = new BufferedInputStream(socket.getInputStream());
 			output = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			throw new SuException("socket open failed", e);
@@ -85,7 +85,7 @@ public class SocketClient extends SuValue {
 			int nr = 0;
 			try {
 				do {
-					int r = socketClient(self).input.read(data);
+					int r = socketClient(self).input.read(data, nr, n - nr);
 					if (r == -1)
 						break;
 					nr += r;
@@ -103,10 +103,9 @@ public class SocketClient extends SuValue {
 
 	public static class Readline extends SuMethod0 {
 		@Override
-		@SuppressWarnings("deprecation")
 		public Object eval0(Object self) {
 			try {
-				String line = socketClient(self).input.readLine();
+				String line = socketClient(self).readLine();
 				if (line == null)
 					throw new SuException("socket Readline lost connection or timeout");
 				return line;
@@ -114,6 +113,19 @@ public class SocketClient extends SuValue {
 				throw new SuException("socket Readline failed", e);
 			}
 		}
+	}
+
+	private String readLine() throws IOException {
+		StringBuilder sb = new StringBuilder();
+		while (true) {
+			int c = input.read();
+			if (c == '\r')
+				c = input.read();
+			if (c == '\n' || c == -1)
+				break ;
+			sb.append((char) c);
+		}
+		return sb.toString();
 	}
 
 	public static class Write extends SuMethod1 {
