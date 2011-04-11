@@ -32,6 +32,7 @@ public enum Token {
 	MULEQ("*=", ASSIGN, N, 131), DIVEQ("/=", ASSIGN, N, 132), MODEQ("%=", ASSIGN, N, 133),
 	LSHIFTEQ("<<=", ASSIGN, I, 134), RSHIFTEQ(">>=", ASSIGN, I, 135),
 	BITOREQ("|=", ASSIGN, I, 136), BITANDEQ("&=", ASSIGN, I, 137), BITXOREQ("^=", ASSIGN, I, 138),
+	RANGETO(".."), RANGELEN("::"),
 	// keywords
 	IF("if", 1), ELSE("else", 2),
 	WHILE("while", 3), DO("do", 4), FOR("for", 5), FOREVER("forever", 7),

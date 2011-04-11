@@ -189,6 +189,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
+	private static final String INT_MAX_STR = intMaxStr();
+	private static String intMaxStr()
+		{ return Integer.toString(Integer.MAX_VALUE); }
+
 	private T term(boolean newTerm) {
 		Token preincdec = null;
 		if (token == INC || token == DEC) {
@@ -208,7 +212,16 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				term = generator.subscript(term, expression());
+				T expr = (token == RANGETO || token == RANGELEN)
+						? generator.number("0") : expression();
+				if (token == RANGETO || token == RANGELEN) {
+					Token type = token;
+					match();
+					T expr2 = (token == R_BRACKET)
+							? generator.number(INT_MAX_STR) : expression();
+					expr = generator.range(type, expr, expr2);
+				}
+				term = generator.subscript(term, expr);
 				match(R_BRACKET);
 			} else if (token == L_PAREN || token == L_CURLY) {
 				term = generator.functionCall(term, arguments());

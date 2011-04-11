@@ -230,6 +230,27 @@ public class ExecuteTest {
 		test("c = class { F() { } }; c.F.Params()", "'()'");
 	}
 
+	@Test
+	public void test_range() {
+		test("'abcd'[1 .. 3]", "'bc'");
+		test("'abcd'[1 .. 9]", "'bcd'");
+		test("'abcd'[1 ..]", "'bcd'");
+		test("'abcd'[6 .. 9]", "''");
+		test("'abcd'[2 .. 1]", "''");
+		test("'abcd'[-3 .. -1]", "'bc'");
+		test("'abcd'[1 .. -1]", "'bc'");
+		test("'abcd'[.. -2]", "'ab'");
+		test("'abcd'[-2 ..]", "'cd'");
+
+		test("'abcd'[1 :: 2]", "'bc'");
+		test("'abcd'[:: 2]", "'ab'");
+		test("'abcd'[-2 :: 1]", "'c'");
+		test("'abcd'[1 :: -1]", "''");
+		test("'abcd'[1 :: 9]", "'bcd'");
+		test("'abcd'[1 ::]", "'bcd'");
+		test("'abcd'[9 :: 1]", "''");
+}
+
 	private void def(String name, String source) {
 		Globals.put(name, Compiler.compile(name, source));
 	}
