@@ -147,22 +147,13 @@ public abstract class BtreeNode {
 			BtreeNode left;
 			if (keyPos <= mid) {
 				left = sliceWith(0, mid, keyPos, key);
-//					new BtreeMemNodeOld(level)
-//						.add(this, 0, keyPos).add(key).add(this, keyPos, mid);
 				right = slice(mid, size());
-//					new BtreeMemNodeOld(level)
-//						.add(this, mid, size());
 			} else {
 				left = slice(0, mid);
-//					new BtreeMemNodeOld(level)
-//						.add(this, 0, mid);
 				right = sliceWith(mid, size(), keyPos, key);
-//					new BtreeMemNodeOld(level)
-//						.add(this, mid, keyPos).add(key).add(this, keyPos, size());
 			}
 			tran.redir(adr, left);
 		}
-//		right.fix();
 		int splitKeySize = splitKey.size();
 		if (level > 0) // tree node
 			--splitKeySize;

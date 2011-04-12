@@ -14,8 +14,6 @@ import suneido.util.IntArrayList;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-// TODO iteration
-
 /**
  * Controls access to an append-only immutable btree.
  * <p>
@@ -40,7 +38,6 @@ public class Btree {
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
-	private int modified = 0; // used by Iter
 
 	public Btree(Tran tran) {
 		this.tran = tran;
@@ -81,8 +78,6 @@ public class Btree {
 	 * Add a key to the btree.
 	 */
 	public void add(Record key) {
-		++modified;
-
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -156,7 +151,6 @@ public class Btree {
 	 * @return false if the key was not found
 	 */
 	public boolean remove(Record key) {
-		++modified;
 
 		// search down the tree
 		int adr = root;
@@ -214,7 +208,6 @@ public class Btree {
 	public class Iter {
 		// top of stack is leaf
 		private final Deque<Info> stack = new ArrayDeque<Info>();
-		private final int valid = modified;
 		private Record cur = null;
 
 		private Iter(Record key) {
