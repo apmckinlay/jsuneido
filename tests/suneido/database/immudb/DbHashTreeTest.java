@@ -11,19 +11,19 @@ import java.util.Random;
 
 import org.junit.Test;
 
-
 public class DbHashTreeTest {
+	Context context = new Context(null);
 
 	@Test
 	public void empty() {
-		DbHashTree tree = DbHashTree.empty(null);
+		DbHashTree tree = DbHashTree.empty(context);
 		for (int i = 32; i < 64; ++i)
 			assertThat(tree.get(i), is(0));
 	}
 
 	@Test
 	public void one_node() {
-		DbHashTree tree = DbHashTree.empty(null);
+		DbHashTree tree = DbHashTree.empty(context);
 		for (int i = 32; i < 64; ++i)
 			tree = tree.with(i, i * 7);
 		for (int i = 32; i < 64; ++i)
@@ -36,7 +36,7 @@ public class DbHashTreeTest {
 
 	@Test
 	public void update_existing() {
-		DbHashTree tree = DbHashTree.empty(null);
+		DbHashTree tree = DbHashTree.empty(context);
 		tree = tree.with(123, 456);
 		tree = tree.with(789, 987);
 		assertThat(tree.get(123), is(456));
@@ -49,7 +49,7 @@ public class DbHashTreeTest {
 
 	@Test
 	public void collisions() {
-		DbHashTree tree = DbHashTree.empty(null);
+		DbHashTree tree = DbHashTree.empty(context);
 		tree = tree.with(0x10000, 123);
 		tree = tree.with(0x20000, 456);
 		assertThat(tree.get(0x10000), is(123));
@@ -58,7 +58,7 @@ public class DbHashTreeTest {
 
 	@Test
 	public void random() {
-		DbHashTree tree = DbHashTree.empty(null);
+		DbHashTree tree = DbHashTree.empty(context);
 		Random r = new Random(123);
 		int key, value;
 		final int N = 10000;
@@ -87,26 +87,26 @@ public class DbHashTreeTest {
 				return x;
 			}
 		};
-		Storage stor = new TestStorage(512, 64);
+		Context context = new Context(new TestStorage(512, 64));
 
-		DbHashTree tree = DbHashTree.empty(stor);
-		int at = tree.store(stor, translator);
+		DbHashTree tree = DbHashTree.empty(context);
+		int at = tree.store(translator);
 
-		tree = DbHashTree.from(stor, at);
+		tree = DbHashTree.from(context, at);
 		for (int i = 32; i < 64; ++i)
 			assertThat(tree.get(i), is(0));
 		tree = tree.with(32, 123).with(64, 456);
 		assertThat(tree.get(32), is(123));
 		assertThat(tree.get(64), is(456));
-		int at2 = tree.store(stor, translator);
+		int at2 = tree.store(translator);
 		assert(at != at2);
 		assertThat(tree.get(32), is(123));
 		assertThat(tree.get(64), is(456));
-		tree = DbHashTree.from(stor, at2);
+		tree = DbHashTree.from(context, at2);
 		assertThat(tree.get(32), is(123));
 		assertThat(tree.get(64), is(456));
 
-		tree = DbHashTree.from(stor, at2);
+		tree = DbHashTree.from(context, at2);
 		assertThat(tree.get(32), is(123));
 		assertThat(tree.get(64), is(456));
 		Random r = new Random(1234);
@@ -120,9 +120,9 @@ public class DbHashTreeTest {
 				continue ;
 			tree = tree.with(key, value);
 		}
-		at2 = tree.store(stor, translator);
+		at2 = tree.store(translator);
 
-		tree = DbHashTree.from(stor, at2);
+		tree = DbHashTree.from(context, at2);
 		for (int i = 0; i < N; ++i) {
 			key = r.nextInt();
 			value = r.nextInt();

@@ -30,8 +30,8 @@ public class Redirects {
 		return to == 0 ? from : to;
 	}
 
-	public int store(Storage stor, Translator translator) {
-		return redirs.store(stor, translator);
+	public int store(Translator translator) {
+		return redirs.store(translator);
 	}
 
 	public void print() {

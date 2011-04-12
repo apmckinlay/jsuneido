@@ -298,7 +298,7 @@ public class Btree {
 		adr = tran.redir(adr);
 		return IntRefs.isIntRef(adr)
 			? (BtreeNode) tran.intToRef(adr)
-			: new BtreeDbNode(level, tran.stor.buffer(adr));
+			: new BtreeDbNode(level, tran.context.stor.buffer(adr));
 	}
 
 	public void print() {
@@ -326,7 +326,7 @@ public class Btree {
 		// need to store BtreeNodes bottom up
 		// sort by level without allocation
 		// by packing level and intref into a long
-		IntRefs intrefs = tran.intrefs;
+		IntRefs intrefs = tran.context.intrefs;
 		long a[] = new long[intrefs.size()];
 		int i = -1;
 		for (Object x : intrefs) {

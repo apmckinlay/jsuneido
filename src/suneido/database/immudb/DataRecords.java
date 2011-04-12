@@ -14,13 +14,13 @@ public class DataRecords {
 	 */
 	public static void store(Tran tran) {
 		int i = -1;
-		for (Object x : tran.intrefs) {
+		for (Object x : tran.context.intrefs) {
 			++i;
 			if (! (x instanceof MemRecord))
 				continue;
 			int intref = i | IntRefs.MASK;
 			Record r = (Record) tran.intToRef(intref);
-			tran.setAdr(intref, r.store(tran.stor));
+			tran.setAdr(intref, r.store(tran.context.stor));
 		}
 	}
 
