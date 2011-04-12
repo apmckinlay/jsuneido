@@ -98,7 +98,6 @@ public abstract class DbHashTree {
 		@Override
 		public Node with(int key, int value) {
 			checkArgument(key != 0);
-			checkArgument(value != 0);
 			return with(key, value, 0);
 		}
 		abstract protected Node with(int key, int value, int shift);

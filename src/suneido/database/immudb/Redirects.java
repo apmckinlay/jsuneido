@@ -22,6 +22,7 @@ public class Redirects {
 	}
 
 	public void put(int from, int to) {
+		assert ! IntRefs.isIntRef(from);
 		redirs = redirs.with(from, to);
 	}
 
