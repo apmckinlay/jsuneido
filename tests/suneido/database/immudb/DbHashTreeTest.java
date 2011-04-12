@@ -25,20 +25,33 @@ public class DbHashTreeTest {
 	public void one_node() {
 		DbHashTree tree = DbHashTree.empty(null);
 		for (int i = 32; i < 64; ++i)
-			tree.with(i, i * 7);
+			tree = tree.with(i, i * 7);
 		for (int i = 32; i < 64; ++i)
 			assertThat(tree.get(i), is(i * 7));
 
 		// update
-		tree.with(50, 555);
+		tree = tree.with(50, 555);
 		assertThat(tree.get(50), is(555));
+	}
+
+	@Test
+	public void update_existing() {
+		DbHashTree tree = DbHashTree.empty(null);
+		tree = tree.with(123, 456);
+		tree = tree.with(789, 987);
+		assertThat(tree.get(123), is(456));
+		assertThat(tree.get(789), is(987));
+		tree = tree.with(123, 321); // new value
+		tree = tree.with(789, 987); // same value
+		assertThat(tree.get(123), is(321));
+		assertThat(tree.get(789), is(987));
 	}
 
 	@Test
 	public void collisions() {
 		DbHashTree tree = DbHashTree.empty(null);
-		tree.with(0x10000, 123);
-		tree.with(0x20000, 456);
+		tree = tree.with(0x10000, 123);
+		tree = tree.with(0x20000, 456);
 		assertThat(tree.get(0x10000), is(123));
 		assertThat(tree.get(0x20000), is(456));
 	}
@@ -55,7 +68,7 @@ public class DbHashTreeTest {
 			assert tree.get(key) == 0;
 			if (key == 0 || value == 0)
 				continue ;
-			tree.with(key, value);
+			tree = tree.with(key, value);
 		}
 		r.setSeed(123);
 		for (int i = 0; i < N; ++i) {

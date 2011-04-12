@@ -7,18 +7,15 @@ package suneido.database.immudb;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import suneido.util.IntArrayList;
 
 import com.google.common.base.Strings;
 
 /**
- * Persistent hash tree used for storing redirections.
- * Immutable in the database but mutable in memory.
+ * Persistent immutable hash tree used for storing redirections.
+ * Immutability relaxed during store as values are converted to addresses.
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
  * Bagwell's Ideal Hash Trees</a>
@@ -40,8 +37,10 @@ public abstract class DbHashTree {
 		return new DbNode(stor, at);
 	}
 
+	/** returns 0 if key not present */
 	public abstract int get(int key);
 
+	/** key and value must be non-zero */
 	public abstract DbHashTree with(int key, int value);
 
 	public abstract int store(Storage stor, Translator translator);
@@ -50,14 +49,17 @@ public abstract class DbHashTree {
 		((Node) this).print(0);
 	}
 
+	/**
+	 * parent for DbNode and MemNode
+	 */
 	private abstract static class Node extends DbHashTree {
+		static final int KEY_FOR_CHILD = 0;
 		protected final Storage stor;
 
 		Node(Storage stor) {
 			this.stor = stor;
 		}
 
-		/** returns 0 if key not present */
 		@Override
 		public int get(int key) {
 			checkArgument(key != 0);
@@ -71,7 +73,7 @@ public abstract class DbHashTree {
 				return 0;
 			int i = Integer.bitCount(present & (bit - 1));
 			int entryKey = key(i);
-			if (entryKey != 0)
+			if (entryKey != KEY_FOR_CHILD)
 				return entryKey == key ? value(i) : 0;
 			else { // pointer
 				Node child = child(i);
@@ -88,10 +90,10 @@ public abstract class DbHashTree {
 			return Integer.bitCount(present());
 		}
 
-		abstract int present();
-		abstract int key(int i);
-		abstract int value(int i);
-		abstract Node child(int i);
+		abstract protected int present();
+		abstract protected int key(int i);
+		abstract protected int value(int i);
+		abstract protected Node child(int i);
 
 		@Override
 		public Node with(int key, int value) {
@@ -102,7 +104,7 @@ public abstract class DbHashTree {
 		abstract protected Node with(int key, int value, int shift);
 
 		protected boolean isPointer(int i) {
-			return key(i) == 0;
+			return key(i) == KEY_FOR_CHILD;
 		}
 
 		private void print(int shift) {
@@ -114,7 +116,7 @@ public abstract class DbHashTree {
 							"\t" + Integer.toHexString(value(i)));
 				else {
 					System.out.println(indent + ">>>>>>>>");
-					load(stor, value(i)).print(shift + BITS_PER_LEVEL);
+					child(i).print(shift + BITS_PER_LEVEL);
 				}
 			}
 		}
@@ -139,25 +141,7 @@ public abstract class DbHashTree {
 
 		@Override
 		protected Node with(int key, int value, int shift) {
-			assert shift < 32;
-			int bit = bit(key, shift);
-			int i = Integer.bitCount(present() & (bit - 1));
-			if ((present() & bit) == 0) {
-				return new MemNode(this).with(key, value, shift);
-			}
-			int entryKey = key(i);
-			if (entryKey == key) {
-				return (value(i) == value)
-					? this
-					: new MemNode(this).with(key, value, shift);
-			}
-			if (entryKey == 0) { // value is pointer to child
-				Node node = load(stor, value(i)).with(key, value, shift + BITS_PER_LEVEL);
-				return new MemNode(this, i, node);
-			} else { // collision
-				Node node = new MemNode(stor, key(i), value(i), key, value, shift + BITS_PER_LEVEL);
-				return new MemNode(this, i, node);
-			}
+			return new MemNode(this, key, value, shift);
 		}
 
 		@Override
@@ -166,110 +150,123 @@ public abstract class DbHashTree {
 		}
 
 		@Override
-		int present() {
+		protected int present() {
 			return buf.getInt(0);
 		}
 
 		@Override
-		int key(int i) {
+		protected int key(int i) {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE);
 		}
 		@Override
-		int value(int i) {
+		protected int value(int i) {
 			return buf.getInt(ENTRIES + i * ENTRY_SIZE + INT_BYTES);
 		}
 
 		@Override
-		Node child(int i) {
+		protected Node child(int i) {
 			return load(stor, value(i));
 		}
 
 	}
 
 	/**
-	 * In-memory mutable node used while transaction is in progress.
-	 * If entry value is 0 then entry is unused/empty
+	 * In-memory node used while transaction is in progress.
 	 */
-	@NotThreadSafe
+	@Immutable
 	private static class MemNode extends Node {
-		private static final int KEY_FOR_CHILD = 0;
 		private int present;
-		private final IntArrayList keys;
-		private final ArrayList<Object> values;
+		private final int[] keys;
+		private final Object[] values;
 
 		MemNode(Storage stor) {
 			super(stor);
 			present = 0;
-			keys = new IntArrayList();
-			values = new ArrayList<Object>();
+			keys = new int[0];
+			values = new Object[0];
 		}
 
-		MemNode(DbNode dbn) {
-			super(dbn.stor);
-			present = dbn.present();
+		/** clone node allowing room for a new entry */
+		private MemNode(Node node) {
+			super(node.stor);
+			present = node.present();
 			int n = size();
-			keys = new IntArrayList(n + 1);
-			values = new ArrayList<Object>(n + 1);
-			for (int i = 0; i < n; ++i) {
-				keys.add(dbn.key(i));
-				values.add(dbn.value(i));
+			if (node instanceof MemNode) {
+				MemNode mnode = (MemNode) node;
+				keys = Arrays.copyOf(mnode.keys, n + 1);
+				values = Arrays.copyOf(mnode.values, n + 1);
+			} else {
+				keys = new int[n + 1];
+				values = new Object[n + 1];
+				for (int i = 0; i < n; ++i) {
+					keys[i] = node.key(i);
+					values[i] = node.value(i); // boxing
+				}
 			}
 		}
 
-		MemNode(DbNode dbn, int i, Object ptr) {
-			this(dbn);
-			keys.set(i, KEY_FOR_CHILD);
-			values.set(i, ptr);
-		}
-
-		@Override
-		protected MemNode with(int key, int value, int shift) {
+		/** node + key,value */
+		private MemNode(Node node, int key, int value, int shift) {
+			this(node);
 			assert shift < 32;
 			int bit = bit(key, shift);
 			int i = Integer.bitCount(present & (bit - 1));
 			if ((present & bit) == 0) {
-				keys.add(i, key);
-				values.add(i, value);
+				insert(keys, i, key);
+				insert(values, i, value);
 				present |= bit;
-			} else if (keys.get(i) == key) {
-				values.set(i, value);
+			} else if (keys[i] == key) {
+				values[i] = value;
 			} else if (isPointer(i)) {
-				Object ptr = values.get(i);
+				Object ptr = values[i];
 				if (ptr instanceof Integer)
 					ptr = load(stor, (Integer) ptr);
-				values.set(i, ((Node) ptr).with(key, value, shift + BITS_PER_LEVEL));
+				values[i] = ((Node) ptr).with(key, value, shift + BITS_PER_LEVEL);
 			} else { // collision, change entry to pointer
-				values.set(i, new MemNode(stor, keys.get(i), values.get(i), key, value,
-					shift + BITS_PER_LEVEL));
-				keys.set(i, KEY_FOR_CHILD);
+				values[i] = new MemNode(stor, keys[i], values[i], key, value,
+					shift + BITS_PER_LEVEL);
+				keys[i] = KEY_FOR_CHILD;
 			}
-			return this;
 		}
 
+		private static void insert(int[] data, int i, int value) {
+			System.arraycopy(data, i, data, i + 1, data.length - i - 1);
+			data[i] = value;
+		}
+		private static void insert(Object[] data, int i, int value) {
+			System.arraycopy(data, i, data, i + 1, data.length - i - 1);
+			data[i] = value;
+		}
+
+		@Override
+		protected MemNode with(int key, int value, int shift) {
+			return new MemNode(this, key, value, shift);
+		}
+
+		/**
+		 * create a node with two entries
+		 * used to create a new child when there is a collision
+		 */
 		private MemNode(Storage stor, int key1, Object value1, int key2, int value2, int shift) {
-			this(stor);
+			super(stor);
 			assert shift < 32;
 			assert key1 != key2;
 			int bits1 = (key1 >>> shift) & LEVEL_MASK;
 			int bits2 = (key2 >>> shift) & LEVEL_MASK;
-			if (bits1 != bits2) {
+			if (bits1 == bits2) { // collision
+				keys = new int[] { KEY_FOR_CHILD };
+				values = new Object[] { new MemNode(stor,
+						key1, value1, key2, value2,	shift + BITS_PER_LEVEL) };
+				present = (1 << bits1);
+			} else {
 				if (bits1 < bits2) {
-					keys.add(key1);
-					keys.add(key2);
-					values.add(value1);
-					values.add(value2);
+					keys = new int[] { key1, key2 };
+					values = new Object[] { value1, value2 };
 				} else {
-					keys.add(key2);
-					keys.add(key1);
-					values.add(value2);
-					values.add(value1);
+					keys = new int[] { key2, key1 };
+					values = new Object[] { value2, value1 };
 				}
 				present = (1 << bits1) | (1 << bits2);
-			} else { // collision
-				keys.add(KEY_FOR_CHILD);
-				values.add(new MemNode(stor, key1, value1, key2, value2,
-						shift + BITS_PER_LEVEL));
-				present = (1 << bits1);
 			}
 		}
 
@@ -277,15 +274,14 @@ public abstract class DbHashTree {
 		public int store(Storage stor, Translator translator) {
 			for (int i = 0; i < size(); ++i)
 				if (isPointer(i)) {
-					if (values.get(i) instanceof MemNode) {
-						int adr = ((MemNode) values.get(i)).store(stor, translator);
-						values.set(i, adr);
+					if (values[i] instanceof MemNode) {
+						int adr = ((MemNode) values[i]).store(stor, translator);
+						values[i] = adr;
 					}
 				} else {
-					int value = (Integer) values.get(i);
+					int value = (Integer) values[i];
 					value = translator.translate(value);
-assert(value != 0);
-					values.set(i, value);
+					values[i] = value;
 				}
 			int adr = stor.alloc(byteBufSize());
 			ByteBuffer buf = stor.buffer(adr);
@@ -297,8 +293,8 @@ assert(value != 0);
 		public void toByteBuf(ByteBuffer buf) {
 			buf.putInt(present);
 			for (int i = 0; i < size(); ++i) {
-				buf.putInt(keys.get(i));
-				buf.putInt((Integer) values.get(i));
+				buf.putInt(keys[i]);
+				buf.putInt((Integer) values[i]);
 			}
 		}
 
@@ -308,30 +304,30 @@ assert(value != 0);
 		}
 
 		@Override
-		int present() {
+		protected int present() {
 			return present;
 		}
 
 		@Override
-		int key(int i) {
-			return keys.get(i);
+		protected int key(int i) {
+			return keys[i];
 		}
 
 		@Override
-		int value(int i) {
-			return (Integer) values.get(i);
+		protected int value(int i) {
+			return (Integer) values[i];
 		}
 
 		@Override
-		Node child(int i) {
-			Object ptr = values.get(i);
+		protected Node child(int i) {
+			Object ptr = values[i];
 			if (ptr instanceof Node)
 				return (Node) ptr;
 			else
 				return new DbNode(stor, (Integer) ptr);
 		}
 
-	}
+	} // end of MemNode
 
 	public static String fmt(int n) {
 		if (n == 0)
