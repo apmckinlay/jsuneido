@@ -189,9 +189,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
-	private static final String INT_MAX_STR = intMaxStr();
-	private static String intMaxStr()
-		{ return Integer.toString(Integer.MAX_VALUE); }
+	private static final String INT_MAX_STR;
+	static { INT_MAX_STR = Integer.toString(Integer.MAX_VALUE); }
 
 	private T term(boolean newTerm) {
 		Token preincdec = null;
