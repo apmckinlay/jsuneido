@@ -165,12 +165,12 @@ public class BtreeTest {
 		updateAndStore(3);
 		assertThat("levels", btree.treeLevels(), is(1));
 
-		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
+		tran = new Tran(stor, redirs);
 		btree = new Btree4(tran, root, levels);
 		updateAndStore(400);
 		assertThat("levels", btree.treeLevels(), is(6));
 
-		tran = new Tran(stor, new Redirects(DbHashTree.from(stor, redirs)));
+		tran = new Tran(stor, redirs);
 		btree = new Btree4(tran, root, levels);
 		check();
 	}

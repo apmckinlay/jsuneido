@@ -29,12 +29,12 @@ public abstract class DbHashTree {
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
-	public static DbHashTree empty(Storage stor) {
-		return new MemNode(stor);
+	public static DbHashTree empty(Context context) {
+		return new MemNode(context);
 	}
 
-	public static DbHashTree from(Storage stor, int at) {
-		return new DbNode(stor, at);
+	public static DbHashTree from(Context context, int at) {
+		return new DbNode(context, at);
 	}
 
 	/** returns 0 if key not present */
@@ -43,7 +43,7 @@ public abstract class DbHashTree {
 	/** key and value must be non-zero */
 	public abstract DbHashTree with(int key, int value);
 
-	public abstract int store(Storage stor, Translator translator);
+	public abstract int store(Translator translator);
 
 	public void print() {
 		((Node) this).print(0);
@@ -54,10 +54,10 @@ public abstract class DbHashTree {
 	 */
 	private abstract static class Node extends DbHashTree {
 		static final int KEY_FOR_CHILD = 0;
-		protected final Storage stor;
+		protected final Context context;
 
-		Node(Storage stor) {
-			this.stor = stor;
+		Node(Context context) {
+			this.context = context;
 		}
 
 		@Override
@@ -134,9 +134,9 @@ public abstract class DbHashTree {
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
 		private final ByteBuffer buf;
 
-		DbNode(Storage stor, int adr) {
-			super(stor);
-			buf = stor.buffer(adr);
+		DbNode(Context context, int adr) {
+			super(context);
+			buf = context.stor.buffer(adr);
 		}
 
 		@Override
@@ -145,7 +145,7 @@ public abstract class DbHashTree {
 		}
 
 		@Override
-		public int store(Storage stor, Translator translator) {
+		public int store(Translator translator) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -165,7 +165,7 @@ public abstract class DbHashTree {
 
 		@Override
 		protected Node child(int i) {
-			return load(stor, value(i));
+			return load(context, value(i));
 		}
 
 	}
@@ -177,18 +177,18 @@ public abstract class DbHashTree {
 	private static class MemNode extends Node {
 		private int present;
 		private final int[] keys;
-		private final Object[] values;
+		private final int[] values;
 
-		MemNode(Storage stor) {
-			super(stor);
+		MemNode(Context context) {
+			super(context);
 			present = 0;
 			keys = new int[0];
-			values = new Object[0];
+			values = new int[0];
 		}
 
 		/** clone node allowing room for a new entry */
 		private MemNode(Node node) {
-			super(node.stor);
+			super(node.context);
 			present = node.present();
 			int n = size();
 			if (node instanceof MemNode) {
@@ -197,10 +197,10 @@ public abstract class DbHashTree {
 				values = Arrays.copyOf(mnode.values, n + 1);
 			} else {
 				keys = new int[n + 1];
-				values = new Object[n + 1];
+				values = new int[n + 1];
 				for (int i = 0; i < n; ++i) {
 					keys[i] = node.key(i);
-					values[i] = node.value(i); // boxing
+					values[i] = node.value(i);
 				}
 			}
 		}
@@ -218,22 +218,23 @@ public abstract class DbHashTree {
 			} else if (keys[i] == key) {
 				values[i] = value;
 			} else if (isPointer(i)) {
-				Object ptr = values[i];
-				if (ptr instanceof Integer)
-					ptr = load(stor, (Integer) ptr);
-				values[i] = ((Node) ptr).with(key, value, shift + BITS_PER_LEVEL);
+				Node child;
+				int ptr = values[i];
+				if (IntRefs.isIntRef(ptr))
+					child = (Node) context.intrefs.intToRef(ptr);
+				else
+					child = load(context, ptr);
+				child = child.with(key, value, shift + BITS_PER_LEVEL);
+				values[i] = context.intrefs.refToInt(child);
 			} else { // collision, change entry to pointer
-				values[i] = new MemNode(stor, keys[i], values[i], key, value,
+				Node child = new MemNode(context, keys[i], values[i], key, value,
 					shift + BITS_PER_LEVEL);
+				values[i] = context.intrefs.refToInt(child);
 				keys[i] = KEY_FOR_CHILD;
 			}
 		}
 
 		private static void insert(int[] data, int i, int value) {
-			System.arraycopy(data, i, data, i + 1, data.length - i - 1);
-			data[i] = value;
-		}
-		private static void insert(Object[] data, int i, int value) {
 			System.arraycopy(data, i, data, i + 1, data.length - i - 1);
 			data[i] = value;
 		}
@@ -247,44 +248,44 @@ public abstract class DbHashTree {
 		 * create a node with two entries
 		 * used to create a new child when there is a collision
 		 */
-		private MemNode(Storage stor, int key1, Object value1, int key2, int value2, int shift) {
-			super(stor);
+		private MemNode(Context context, int key1, int value1, int key2, int value2, int shift) {
+			super(context);
 			assert shift < 32;
 			assert key1 != key2;
 			int bits1 = (key1 >>> shift) & LEVEL_MASK;
 			int bits2 = (key2 >>> shift) & LEVEL_MASK;
 			if (bits1 == bits2) { // collision
+				Node child = new MemNode(context,
+						key1, value1, key2, value2,	shift + BITS_PER_LEVEL);
 				keys = new int[] { KEY_FOR_CHILD };
-				values = new Object[] { new MemNode(stor,
-						key1, value1, key2, value2,	shift + BITS_PER_LEVEL) };
+				values = new int[] { context.intrefs.refToInt(child) };
 				present = (1 << bits1);
 			} else {
 				if (bits1 < bits2) {
 					keys = new int[] { key1, key2 };
-					values = new Object[] { value1, value2 };
+					values = new int[] { value1, value2 };
 				} else {
 					keys = new int[] { key2, key1 };
-					values = new Object[] { value2, value1 };
+					values = new int[] { value2, value1 };
 				}
 				present = (1 << bits1) | (1 << bits2);
 			}
 		}
 
 		@Override
-		public int store(Storage stor, Translator translator) {
-			for (int i = 0; i < size(); ++i)
+		public int store(Translator translator) {
+			for (int i = 0; i < size(); ++i) {
 				if (isPointer(i)) {
-					if (values[i] instanceof MemNode) {
-						int adr = ((MemNode) values[i]).store(stor, translator);
-						values[i] = adr;
+					int ptr = values[i];
+					if (IntRefs.isIntRef(ptr)) {
+						MemNode node = (MemNode) context.intrefs.intToRef(ptr);
+						values[i] = node.store(translator);
 					}
-				} else {
-					int value = (Integer) values[i];
-					value = translator.translate(value);
-					values[i] = value;
-				}
-			int adr = stor.alloc(byteBufSize());
-			ByteBuffer buf = stor.buffer(adr);
+				} else
+					values[i] = translator.translate(values[i]);
+			}
+			int adr = context.stor.alloc(byteBufSize());
+			ByteBuffer buf = context.stor.buffer(adr);
 			toByteBuf(buf);
 			return adr;
 		}
@@ -294,7 +295,7 @@ public abstract class DbHashTree {
 			buf.putInt(present);
 			for (int i = 0; i < size(); ++i) {
 				buf.putInt(keys[i]);
-				buf.putInt((Integer) values[i]);
+				buf.putInt(values[i]);
 			}
 		}
 
@@ -315,16 +316,16 @@ public abstract class DbHashTree {
 
 		@Override
 		protected int value(int i) {
-			return (Integer) values[i];
+			return values[i];
 		}
 
 		@Override
 		protected Node child(int i) {
-			Object ptr = values[i];
-			if (ptr instanceof Node)
-				return (Node) ptr;
+			int ptr = values[i];
+			if (IntRefs.isIntRef(ptr))
+				return (Node) context.intrefs.intToRef(ptr);
 			else
-				return new DbNode(stor, (Integer) ptr);
+				return new DbNode(context, ptr);
 		}
 
 	} // end of MemNode
@@ -338,8 +339,8 @@ public abstract class DbHashTree {
 		return s.substring(0, s.length() - 1);
 	}
 
-	private static Node load(Storage stor, int at) {
-		return new DbNode(stor, at);
+	private static Node load(Context context, int at) {
+		return new DbNode(context, at);
 	}
 
 }

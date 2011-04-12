@@ -15,26 +15,26 @@ public class Tran implements Translator {
 	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime
 	static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
-	public final Storage stor;
+	public final Context context;
 	private final Redirects redirs;
-	final IntRefs intrefs = new IntRefs();
 	private int head_adr;
 
 	public Tran(Storage stor) {
-		this(stor, new Redirects(DbHashTree.empty(stor)));
+		context = new Context(stor);
+		this.redirs = new Redirects(DbHashTree.empty(context));
 	}
 
-	public Tran(Storage stor, Redirects redirs) {
-		this.stor = stor;
-		this.redirs = redirs;
+	public Tran(Storage stor, int redirs) {
+		context = new Context(stor);
+		this.redirs = new Redirects(DbHashTree.from(context, redirs));
 	}
 
 	public int refToInt(Object ref) {
-		return intrefs.refToInt(ref);
+		return context.intrefs.refToInt(ref);
 	}
 
 	public Object intToRef(int intref) {
-		return intrefs.intToRef(intref);
+		return context.intrefs.intToRef(intref);
 	}
 
 	public int redir(int from) {
@@ -44,7 +44,7 @@ public class Tran implements Translator {
 	public void redir(int from, Object ref) {
 		assert(! (ref instanceof Number));
 		if (IntRefs.isIntRef(from))
-			intrefs.update(from, ref);
+			context.intrefs.update(from, ref);
 		else
 			redirs.put(from, refToInt(ref));
 	}
@@ -54,8 +54,8 @@ public class Tran implements Translator {
 	}
 
 	public void startStore() {
-		intrefs.startStore();
-		head_adr = stor.alloc(HEAD_SIZE); // to hold size and datetime
+		context.intrefs.startStore();
+		head_adr = context.stor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
 	/**
@@ -65,12 +65,12 @@ public class Tran implements Translator {
 	 * The size includes the head and the tail
 	 */
 	public void endStore() {
-		int tail_adr = stor.alloc(TAIL_SIZE);
-		int size = (int) stor.sizeFrom(head_adr);
-		stor.buffer(head_adr).putInt(size).putInt(datetime());
+		int tail_adr = context.stor.alloc(TAIL_SIZE);
+		int size = (int) context.stor.sizeFrom(head_adr);
+		context.stor.buffer(head_adr).putInt(size).putInt(datetime());
 
 		int cksum = checksum();
-		stor.buffer(tail_adr).putInt(cksum).putInt(size);
+		context.stor.buffer(tail_adr).putInt(cksum).putInt(size);
 	}
 
 	/**
@@ -83,22 +83,22 @@ public class Tran implements Translator {
 
 	public int checksum() {
 		Checksum cksum = new Checksum();
-		Iterator<ByteBuffer> iter = stor.iterator(head_adr);
+		Iterator<ByteBuffer> iter = context.stor.iterator(head_adr);
 		while (iter.hasNext())
 			cksum.update(iter.next());
 		return cksum.getValue();
 	}
 
 	public void setAdr(int intref, int adr) {
-		intrefs.setAdr(intref, adr);
+		context.intrefs.setAdr(intref, adr);
 	}
 
 	public int getAdr(int intref) {
-		return intrefs.getAdr(intref);
+		return context.intrefs.getAdr(intref);
 	}
 
 	public int storeRedirs() {
-		return redirs.store(stor, this);
+		return redirs.store(this);
 	}
 
 	@Override
