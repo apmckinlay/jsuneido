@@ -4,10 +4,12 @@
 
 package suneido.database.immudb;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import gnu.trove.list.array.TByteArrayList;
 
-import javax.annotation.concurrent.Immutable;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
 
@@ -17,206 +19,108 @@ import com.google.common.base.Preconditions;
  * "new data is stored in the added array.
  * The added array is not sorted (new values are added at the end)
  * and it may contain old deleted values.
+ * Since added is only appended to, it is safe to "share".
  */
-@Immutable
+@NotThreadSafe
 public class BtreeDbMemNode extends BtreeStoreNode {
-	private static final Record[] NO_RECORDS = new Record[0];
 	private final DbRecord rec;
-	private final byte[] index;
-	private Record[] added; // not final because it may be modified by fix
+	private final TByteArrayList index;
+	private final ArrayList<Record> added;
 
-	private BtreeDbMemNode(BtreeDbNode node, byte[] index, Record[] added,
-			boolean sharedAdded) {
-		this(node.level, node.rec, index, added, sharedAdded);
+	public BtreeDbMemNode(BtreeDbNode node) {
+		super(node.level);
+		rec = node.rec;
+		index = new TByteArrayList();
+		for (int i = 0; i < node.size(); ++i)
+			index.add((byte) i);
+		added = new ArrayList<Record>();
 	}
 
-	private BtreeDbMemNode(BtreeDbMemNode node, byte[] index, Record[] added,
-			boolean sharedAdded) {
-		this(node.level, node.rec, index, added, sharedAdded);
+	private BtreeDbMemNode(BtreeDbNode node, TByteArrayList index) {
+		this(node.level, node.rec, index, new ArrayList<Record>());
 	}
 
-	private BtreeDbMemNode(int level, DbRecord rec, byte[] index, Record[] added,
-			boolean sharedAdded) {
+	private BtreeDbMemNode(BtreeDbMemNode node, TByteArrayList index) {
+		this(node.level, node.rec, index, node.added);
+	}
+
+	private BtreeDbMemNode(int level, DbRecord rec, TByteArrayList index, ArrayList<Record> added) {
 		super(level);
 		this.rec = rec;
 		this.index = index;
 		this.added = added;
-		fix(sharedAdded);
-	}
-
-	/** ensure leftmost key of tree nodes is minimal */
-	private void fix(boolean sharedAdded) {
-		if (level == 0 || isEmpty())
-			return;
-		Record key = get(0);
-		if (isMinimalKey(key))
-			return;
-		key = minimize(key);
-		int idx = index[0];
-		if (idx < 0) {
-			if (sharedAdded)
-				added = added.clone();
-			added[-idx - 1] = key;
-		} else {
-			idx = added.length;
-			index[0] = (byte) (-1 - idx);
-			added = Arrays.copyOf(added, added.length + 1);
-			added[idx] = key;
-		}
-	}
-
-	// called from BtreeDbNode
-	static BtreeDbMemNode with(BtreeDbNode node, Record key) {
-		int at = node.lowerBound(key);
-		byte[] index = new byte[node.size() + 1];
-		Record[] added = new Record[] { key };
-		int i = 0;
-		for (; i < at; ++i)
-			index[i] = (byte) i;
-		index[i++] = -1;
-		for (; i < index.length; ++i)
-			index[i] = (byte) (i - 1);
-		return new BtreeDbMemNode(node, index, added, false);
+		fix();
 	}
 
 	@Override
 	public BtreeDbMemNode with(Record key) {
+		assert added.size() < Byte.MAX_VALUE;
 		int at = lowerBound(key);
-		byte[] index2 = Arrays.copyOf(index, index.length + 1);
-		System.arraycopy(index2, at, index2, at + 1, index2.length - at - 1);
-		index2[at] = (byte) (-1 - added.length);
-		Record[] added2 = Arrays.copyOf(added, added.length + 1);
-		added2[added.length] = key;
-		return new BtreeDbMemNode(this, index2, added2, false);
-	}
-
-	// called from BtreeDbNode
-	static BtreeNode without(BtreeDbNode node, int at) {
-		byte[] index = new byte[node.size() - 1];
-		int i = 0;
-		for (; i < at; ++i)
-			index[i] = (byte) i;
-		for (; i < index.length; ++i)
-			index[i] = (byte) (i + 1);
-		return new BtreeDbMemNode(node, index, NO_RECORDS, true);
+		index.insert(at, (byte) (-1 - added.size()));
+		added.add(key);
+		return this;
 	}
 
 	@Override
 	protected BtreeNode without(int i) {
-		Preconditions.checkElementIndex(i, size());
-		if (size() == 1)
-			return BtreeNode.emptyNode(level);
-		// don't bother removing from added
-		return new BtreeDbMemNode(this, copyWithout(index, i), added, true);
-	}
-
-	byte[] copyWithout(byte[] src, int i) {
-		byte[] dst = new byte[src.length - 1];
-		System.arraycopy(src, 0, dst, 0, i);
-		System.arraycopy(src, i + 1, dst, i, src.length - i - 1);
-		return dst;
+		index.removeAt(i);
+		return this;
 	}
 
 	@Override
 	public BtreeNode slice(int from, int to) {
-		Preconditions.checkArgument(from < to && to <= size());
-		byte[] index2 = Arrays.copyOfRange(index, from, to);
-		// don't bother updating added
-		return new BtreeDbMemNode(this, index2, added, true);
+		TByteArrayList index2 = new TByteArrayList(index.subList(from, to));
+		return new BtreeDbMemNode(this, index2);
 	}
 
 	// called from BtreeDbNode
 	public static BtreeNode slice(BtreeDbNode node, int from, int to) {
-		Preconditions.checkArgument(from < to && to <= node.size(),
-				"from " + from + " to " + to + " size " + node.size());
-		byte[] index = new byte[to - from];
-		int src = from;
-		int dst = 0;
-		while (src < to)
-			index[dst++] = (byte) src++;
-		return new BtreeDbMemNode(node, index, NO_RECORDS, true);
+		Preconditions.checkArgument(from < to && to <= node.size());
+		TByteArrayList index = new TByteArrayList(to - from);
+		for (int i = from; i < to; ++i)
+			index.add((byte) i);
+		return new BtreeDbMemNode(node, index);
 	}
 
 	/** at is relative to original node */
 	@Override
 	public BtreeNode sliceWith(int from, int to, int at, Record key) {
-		Preconditions.checkArgument(from < to && to <= size());
-		Preconditions.checkArgument(from <= at && at <= to);
-		byte[] index2 = copyWith(index, from, to, at, -1 - added.length);
-		Record[] added2 = Arrays.copyOf(added, added.length + 1);
-		added2[added.length] = key;
-		return new BtreeDbMemNode(this, index2, added2, false);
-	}
-
-	public static byte[] copyWith(byte[] index, int from, int to, int at, int add) {
-		byte[] index2 = new byte[to - from + 1];
-		int src = from;
-		int dst = 0;
-		while (src < at)
-			index2[dst++] = index[src++];
-		index2[dst++] = (byte) add;
-		while (src < to)
-			index2[dst++] = index[src++];
-		return index2;
-	}
-
-	// called from BtreeDbNode
-	/** at is relative to original node */
-	public static BtreeNode sliceWith(BtreeDbNode node,
-			int from, int to, int at, Record key) {
-		Preconditions.checkArgument(from < to && to <= node.size());
-		Preconditions.checkArgument(from <= at && at <= to);
-		byte[] index = copyWith(from, to, at);
-		Record[] added = new Record[] { key };
-		return new BtreeDbMemNode(node, index, added, false);
-	}
-
-	public static byte[] copyWith(int from, int to, int at) {
-		byte[] index = new byte[to - from + 1];
-		int src = from;
-		int dst = 0;
-		while (src < at)
-			index[dst++] = (byte) src++;
-		index[dst++] = -1;
-		while (src < to)
-			index[dst++] = (byte) src++;
-		return index;
+		return slice(from, to).with(key);
 	}
 
 	@Override
 	public Record get(int i) {
-		Preconditions.checkElementIndex(i, index.length);
-		int idx = index[i];
+		int idx = index.get(i);
 		return idx >= 0
 				? new DbRecord(rec.fieldBuffer(idx), rec.fieldOffset(idx))
-				: added[-idx - 1];
+				: added.get(-idx - 1);
 	}
 
 	@Override
 	public int size() {
-		return index.length;
+		return index.size();
 	}
 
 	@Override
 	protected void translate(Tran tran) {
-		for (int i : index)
+		for (int i = 0; i < index.size(); ++i)
 			if (i < 0)
-				added[-i - 1] = translate(tran, added[-i - 1]);
+				added.set(-i - 1, translate(tran, added.get(-i - 1)));
 	}
 
 	@Override
 	protected int length(int i) {
-		int idx = index[i];
+		int idx = index.get(i);
 		return idx >= 0
 				? rec.fieldLength(idx)
-				: added[-idx - 1].length();
+				: added.get(-idx - 1).length();
 	}
 
 	@Override
 	protected void pack(ByteBuffer buf, int i) {
-		int idx = index[i];
+		int idx = index.get(i);
 		if (idx < 0)
-			added[-idx - 1].pack(buf);
+			added.get(-idx - 1).pack(buf);
 		else {
 			int len = rec.fieldLength(idx);
 			int off = rec.fieldOffset(idx);
@@ -224,6 +128,18 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 			for (int j = 0; j < len; ++j)
 				buf.put(src.get(off + j));
 		}
+	}
+
+	/** ensure leftmost key of tree nodes is minimal */
+	private void fix() {
+		if (level == 0 || isEmpty())
+			return;
+		Record key = get(0);
+		if (isMinimalKey(key))
+			return;
+		key = minimize(key);
+		index.set(0, (byte) (-1 - added.size()));
+		added.add(key);
 	}
 
 }

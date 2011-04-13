@@ -35,8 +35,7 @@ public abstract class BtreeNode {
 	}
 
 	public static BtreeNode emptyNode(int level) {
-		// could cache more than leaf
-		return level == 0 ? BtreeMemNode.EMPTY_LEAF : new BtreeMemNode(level);
+		return new BtreeMemNode(level);
 	}
 
 	public int level() {
@@ -129,9 +128,10 @@ public abstract class BtreeNode {
 
 	private int compare(int middle, Record key) {
 		return get(middle).compareTo(key);
-		//TODO avoid the Record construction in get
+		// TODO avoid the Record construction in get
 	}
 
+	// TODO modify left instead of always constructing new
 	public Split split(Tran tran, Record key, int adr) {
 		int level = level();
 		BtreeNode right;

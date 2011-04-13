@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
  * <p>
  * The first key in tree nodes is always "nil", less than any real key.
  * <p>
- * Note: If a key is unique without it's data address
+ * Note: If a key is unique without its data address
  * then it can be updated via redirection
  * otherwise it must be updated by delete and insert
  * since it's position may change, potentially to a different node.
