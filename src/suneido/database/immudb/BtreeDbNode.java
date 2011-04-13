@@ -31,12 +31,12 @@ public class BtreeDbNode extends BtreeNode {
 
 	@Override
 	public BtreeDbMemNode with(Record key) {
-		return BtreeDbMemNode.with(this, key);
+		return new BtreeDbMemNode(this).with(key);
 	}
 
 	@Override
 	protected BtreeNode without(int i) {
-		return BtreeDbMemNode.without(this, i);
+		return new BtreeDbMemNode(this).without(i);
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class BtreeDbNode extends BtreeNode {
 
 	@Override
 	public BtreeNode sliceWith(int from, int to, int at, Record key) {
-		return BtreeDbMemNode.sliceWith(this, from, to, at, key);
+		return BtreeDbMemNode.slice(this, from, to).with(key);
 	}
 
 }

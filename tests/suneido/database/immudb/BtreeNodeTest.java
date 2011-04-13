@@ -59,13 +59,16 @@ public class BtreeNodeTest {
 		Random rand = new Random(87665);
 		List<Record> keys = randomKeys(rand, NKEYS);
 		BtreeNode node = BtreeNode.emptyLeaf();
+		assertThat(node.size(), is(0));
 		for (Record key : keys)
 			node = node.with(key);
+		assertThat(node.size(), is(NKEYS));
 		Collections.shuffle(keys, new Random(874));
 		for (int i = 0; i < NKEYS / 2; ++i) {
 			node = node.without(keys.get(i));
 			assertNotNull(node);
 		}
+		assertThat(node.size(), is(NKEYS / 2));
 		for (int i = 0; i < NKEYS / 2; ++i)
 			assertNull(node.without(keys.get(i)));
 		assertThat(node.size(), is(NKEYS / 2));
@@ -152,6 +155,7 @@ public class BtreeNodeTest {
 		MemRecord rec = new MemRecord()
 				.add(record("bob")).add(record("joe")).add(record("sue"));
 		BtreeNode node = new BtreeDbNode(0, Pack.pack(rec));
+		check(node, "bob", "joe", "sue");
 		return node;
 	}
 
