@@ -10,6 +10,7 @@ import static suneido.language.Ops.cmp;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -198,8 +199,10 @@ public class SuContainer extends SuValue
 	static String keyToString(Object x) {
 		return Ops.isString(x) ? keyToString(x.toString()) : Ops.display(x);
 	}
+	private static final Pattern idpat;
+	static { idpat = Pattern.compile("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$"); }
 	static String keyToString(String s) {
-		return s.matches("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$") ? s : ("'" + s + "'");
+		return idpat.matcher(s).matches() ? s : Ops.display(s);
 	}
 
 	@Override
