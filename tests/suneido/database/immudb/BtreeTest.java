@@ -230,22 +230,29 @@ public class BtreeTest {
 		NKEYS = 4;
 		add(NKEYS);
 		assertThat(btree.treeLevels(), is(0));
-		Collections.sort(keys);
-		int i = 0;
-		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
-			assertThat(iter.cur(), is(keys.get(i++)));
-		assertThat(i, is(keys.size()));
+		iterateCheck();
 	}
 
 	@Test
 	public void iterate() {
 		rand = new Random(1291681);
 		add(NKEYS);
+		iterateCheck();
+	}
+
+	public void iterateCheck() {
 		Collections.sort(keys);
 		int i = 0;
-		for (Btree.Iter iter = btree.iterator(); ! iter.eof(); iter.next())
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next())
 			assertThat(iter.cur(), is(keys.get(i++)));
 		assertThat(i, is(keys.size()));
+
+		i = keys.size();
+		iter = btree.iterator();
+		for (iter.prev(); ! iter.eof(); iter.prev())
+			assertThat(iter.cur(), is(keys.get(--i)));
+		assertThat(i, is(0));
 	}
 
 	@Test

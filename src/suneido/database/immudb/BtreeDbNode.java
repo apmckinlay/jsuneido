@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 public class BtreeDbNode extends BtreeNode {
 	final DbRecord rec;
 
-	public BtreeDbNode(int level, ByteBuffer buf) {
+	BtreeDbNode(int level, ByteBuffer buf) {
 		super(level);
 		rec = new DbRecord(buf, 0);
 	}

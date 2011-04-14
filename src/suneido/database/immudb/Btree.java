@@ -38,6 +38,7 @@ public class Btree {
 	private final Tran tran;
 	private int root;
 	private int treeLevels = 0;
+	private int modified = 0;
 
 	public Btree(Tran tran) {
 		this.tran = tran;
@@ -78,6 +79,8 @@ public class Btree {
 	 * Add a key to the btree.
 	 */
 	public void add(Record key) {
+		++modified;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -151,6 +154,7 @@ public class Btree {
 	 * @return false if the key was not found
 	 */
 	public boolean remove(Record key) {
+		++modified;
 
 		// search down the tree
 		int adr = root;
@@ -200,21 +204,52 @@ public class Btree {
 	}
 
 	public Iter iterator() {
-		return new Iter(Record.EMPTY);
+		return new Iter();
 	}
-
-	// TODO handle concurrent modification
 
 	public class Iter {
 		// top of stack is leaf
 		private final Deque<Info> stack = new ArrayDeque<Info>();
 		private Record cur = null;
+		private boolean rewound = true;
+		private int valid;
 
-		private Iter(Record key) {
-			seek(key);
+		private void first() {
+			if (isEmpty())
+				return;
+			int adr = root;
+			for (int level = treeLevels; level >= 0; --level) {
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, 0));
+				Record slot = node.get(0);
+				if (level == 0) {
+					cur = slot;
+					break;
+				}
+				adr = getAddress(slot);
+			}
+			valid = modified;
+		}
+
+		private void last() {
+			if (isEmpty())
+				return;
+			int adr = root;
+			for (int level = treeLevels; level >= 0; --level) {
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, node.size() - 1));
+				Record slot = node.get(node.size() - 1);
+				if (level == 0) {
+					cur = slot;
+					break;
+				}
+				adr = getAddress(slot);
+			}
+			valid = modified;
 		}
 
 		private void seek(Record key) {
+			stack.clear();
 			if (isEmpty())
 				return;
 			int adr = root;
@@ -229,11 +264,24 @@ public class Btree {
 				}
 				adr = getAddress(slot);
 			}
+			valid = modified;
 		}
 
 		public void next() {
+			if (rewound) {
+				first();
+				rewound = false;
+				return;
+			}
 			if (eof())
 				return;
+			if (modified != valid) {
+				Record oldcur = cur;
+				seek(cur);
+				if (! cur.equals(oldcur))
+					return;
+				// fall through
+			}
 			while (! stack.isEmpty() &&
 					stack.peek().pos + 1 >= stack.peek().node.size())
 				stack.pop();
@@ -254,8 +302,43 @@ public class Btree {
 			cur = leaf.node.get(leaf.pos);
 		}
 
+		public void prev() {
+			if (rewound) {
+				last();
+				rewound = false;
+				return;
+			}
+			if (eof())
+				return;
+			if (modified != valid) {
+				Record oldcur = cur;
+				seek(cur);
+				if (! cur.equals(oldcur))
+					return;
+				// fall through
+			}
+			while (! stack.isEmpty() &&
+					stack.peek().pos - 1 < 0)
+				stack.pop();
+			if (stack.isEmpty()) {
+				cur = null;
+				return;
+			}
+			--stack.peek().pos;
+			while (stack.size() < treeLevels + 1) {
+				Info info = stack.peek();
+				Record slot = info.node.get(info.pos);
+				int adr = getAddress(slot);
+				int level = info.node.level - 1;
+				BtreeNode node = nodeAt(level, adr);
+				stack.push(new Info(node, node.size() - 1));
+			}
+			Info leaf = stack.peek();
+			cur = leaf.node.get(leaf.pos);
+		}
+
 		public boolean eof() {
-			return cur == null;
+			return rewound ? isEmpty() : cur == null;
 		}
 
 		public Record cur() {
