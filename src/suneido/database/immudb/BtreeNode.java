@@ -95,6 +95,12 @@ public abstract class BtreeNode {
 		return (at < 0 || at >= size()) ? null : get(at);
 	}
 
+	/**
+	 * @param key The value to look for, without the trailing record address
+	 * @return	For leaf nodes, the first position >= the one specified,
+	 * 			or -1 if there isn't one.position <= the one specified,
+	 *			or the first key.
+	 */
 	public int findPos(Record key) {
 		if (isEmpty())
 			return -1;
