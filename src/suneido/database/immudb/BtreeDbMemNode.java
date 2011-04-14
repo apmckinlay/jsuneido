@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
- * When a BtreeDbNode is "modified" the result is a BtreeDbMemNode.
+ * When a BtreeDbNode is "modified" the result is a mutable BtreeDbMemNode.
  * "old" data is retrieved from the DbRecord.
- * "new data is stored in the added array.
+ * "new" data is stored in the added array.
  * The added array is not sorted (new values are added at the end)
  * and it may contain old deleted values.
  * Since added is only appended to, it is safe to "share".
@@ -25,7 +26,7 @@ import com.google.common.base.Preconditions;
 public class BtreeDbMemNode extends BtreeStoreNode {
 	private final DbRecord rec;
 	private final TByteArrayList index;
-	private final ArrayList<Record> added;
+	private ArrayList<Record> added;
 
 	public BtreeDbMemNode(BtreeDbNode node) {
 		super(node.level);
@@ -54,16 +55,43 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 
 	@Override
 	public BtreeDbMemNode with(Record key) {
-		assert added.size() < Byte.MAX_VALUE;
 		int at = lowerBound(key);
-		index.insert(at, (byte) (-1 - added.size()));
-		added.add(key);
+		add(key);
+		index.insert(at, (byte) -added.size());
+		fix();
 		return this;
+	}
+
+	private void add(Record key) {
+		if (added.size() >= Byte.MAX_VALUE)
+			cleanAdded();
+		added.add(key);
+	}
+
+	private void cleanAdded() {
+		ArrayList<Record> clean = Lists.newArrayList();
+		for (int i = 0; i < index.size(); ++i) {
+			int idx = index.get(i);
+			if (idx < 0) {
+				index.set(i, (byte) (-1 - clean.size()));
+				clean.add(added.get(-idx - 1));
+			}
+		}
+		assert clean.size() < Byte.MAX_VALUE;
+		added = clean;
 	}
 
 	@Override
 	protected BtreeNode without(int i) {
 		index.removeAt(i);
+		fix();
+		return this;
+	}
+
+	@Override
+	public BtreeNode without(int from, int to) {
+		index.remove(from, to - from);
+		fix();
 		return this;
 	}
 
@@ -82,12 +110,6 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 		return new BtreeDbMemNode(node, index);
 	}
 
-	/** at is relative to original node */
-	@Override
-	public BtreeNode sliceWith(int from, int to, int at, Record key) {
-		return slice(from, to).with(key);
-	}
-
 	@Override
 	public Record get(int i) {
 		int idx = index.get(i);
@@ -103,9 +125,11 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 
 	@Override
 	protected void translate(Tran tran) {
-		for (int i = 0; i < index.size(); ++i)
-			if (i < 0)
-				added.set(-i - 1, translate(tran, added.get(-i - 1)));
+		for (int i = 0; i < size(); ++i) {
+			int idx = index.get(i);
+			if (idx < 0)
+				added.set(-idx - 1, translate(tran, added.get(-idx - 1)));
+		}
 	}
 
 	@Override
@@ -137,9 +161,8 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 		Record key = get(0);
 		if (isMinimalKey(key))
 			return;
-		key = minimize(key);
-		index.set(0, (byte) (-1 - added.size()));
-		added.add(key);
+		add(minimize(key));
+		index.set(0, (byte) -added.size());
 	}
 
 }

@@ -13,8 +13,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-// TODO test adding and removing in sorted and reverse order
-
 public class BtreeTest {
 	private final Storage stor = new TestStorage(1024, 64);
 	private Random rand = new Random(123456);

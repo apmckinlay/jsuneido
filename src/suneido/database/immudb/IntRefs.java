@@ -53,6 +53,7 @@ public class IntRefs implements Iterable<Object> {
 
 	/** record the adr that a ref has been persisted at */
 	public void setAdr(int intref, int adr) {
+		assert ! isIntRef(adr);
 		adrs[intref ^ MASK] = adr;
 	}
 

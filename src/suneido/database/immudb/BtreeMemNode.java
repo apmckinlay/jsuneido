@@ -4,17 +4,21 @@
 
 package suneido.database.immudb;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.immudb.Btree.Split;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 /**
- * New nodes not derived from BtreeDbNode.
+ * New mutable nodes not derived from BtreeDbNode.
  */
+@NotThreadSafe
 public class BtreeMemNode extends BtreeStoreNode {
 	private final ArrayList<Record> data;
 
@@ -60,22 +64,17 @@ public class BtreeMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public BtreeNode slice(int from, int to) {
-		Preconditions.checkArgument(from < to && to <= size());
-		BtreeMemNode node = new BtreeMemNode(level);
-		node.data.addAll(data.subList(from, to));
-		node.fix();
-		return node;
+	public BtreeNode without(int from, int to) {
+		data.subList(from, to).clear();
+		fix();
+		return this;
 	}
 
 	@Override
-	public BtreeNode sliceWith(int from, int to, int at, Record key) {
-		Preconditions.checkArgument(from < to && to <= size());
-		Preconditions.checkArgument(from <= at && at <= to);
+	public BtreeNode slice(int from, int to) {
+		checkArgument(from < to && to <= size());
 		BtreeMemNode node = new BtreeMemNode(level);
-		node.data.addAll(data.subList(from, at));
-		node.data.add(key);
-		node.data.addAll(data.subList(at, to));
+		node.data.addAll(data.subList(from, to));
 		node.fix();
 		return node;
 	}
@@ -92,7 +91,7 @@ public class BtreeMemNode extends BtreeStoreNode {
 
 	@Override
 	protected void translate(Tran tran) {
-		for (int i = 0; i < data.size(); ++i)
+		for (int i = 0; i < size(); ++i)
 			data.set(i, translate(tran, data.get(i)));
 	}
 
