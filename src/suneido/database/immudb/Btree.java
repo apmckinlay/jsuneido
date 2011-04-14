@@ -37,7 +37,7 @@ public class Btree {
 	public int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
-	private int treeLevels = 0;
+	private int treeLevels;
 	private int modified = 0;
 
 	public Btree(Tran tran) {
@@ -59,6 +59,8 @@ public class Btree {
 	/**
 	 * @param key A key without the final record address.
 	 * @return The record address or 0 if the key wasn't found.
+	 * If keys are not unique without the record address
+	 * the first is returned.
 	 */
 	public int get(Record key) {
 		int adr = root;
@@ -75,10 +77,21 @@ public class Btree {
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
 
+
+
+	/** Add a unique key to the btree. */
+	public void add(Record key) {
+		boolean result = add(key, false);
+		assert result == true;
+	}
+
 	/**
 	 * Add a key to the btree.
-	 */
-	public void add(Record key) {
+	 * @return true if the key was successfully added,
+	 * false if unique is true and the key already exists
+	 * (ignoring the trailing data record address)
+	 * */
+	public boolean add(Record key, boolean unique) {
 		++modified;
 
 		// search down the tree
@@ -94,6 +107,12 @@ public class Btree {
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
+		if (unique) {
+			Record slot = leaf.find(key);
+			if (slot != null && slot.prefixEquals(key, key.size() - 1))
+				return false;
+		}
+
 		if (leaf.size() < maxNodeSize()) {
 			// normal/fast path - simply insert into leaf
 			BtreeNode before = leaf;
@@ -103,7 +122,7 @@ public class Btree {
 					root = tran.refToInt(leaf);
 			} else
 				tran.redir(adr, leaf);
-			return;
+			return true;
 		}
 		// else split leaf
 		Split split = leaf.split(tran, key, adr);
@@ -117,13 +136,14 @@ public class Btree {
 					root = tran.refToInt(treeNode);
 				else
 					tran.redir(adrs.get(i), treeNode);
-				return;
+				return true;
 			}
 			// else split
 			split = treeNode.split(tran, split.key, adrs.get(i));
 		}
 		// getting here means root was split so a new root is needed
 		newRoot(split);
+		return true;
 	}
 
 	private void newRoot(Split split) {
