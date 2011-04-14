@@ -117,6 +117,23 @@ public class BtreeNodeTest {
 	}
 
 	@Test
+	public void withoutRange() {
+		BtreeNode node;
+
+		node = dbNode().without(0, 2);
+		check(node, "sue");
+
+		node = dbNode().without(1, 3);
+		check(node, "bob");
+
+		node = memNode().without(0, 2);
+		check(node, "sue");
+
+		node = memNode().without(1, 3);
+		check(node, "bob");
+	}
+
+	@Test
 	public void sliceDbNode() {
 		slice(dbNode());
 	}
@@ -132,23 +149,6 @@ public class BtreeNodeTest {
 		node = node.with(record("new"));
 		node = node.slice(0, 2);
 		check(node, "joe", "new");
-	}
-
-	@Test
-	public void sliceWithMemNode() {
-		sliceWith(memNode());
-	}
-
-	@Test
-	public void sliceWithDbNode() {
-		sliceWith(dbNode());
-	}
-
-	private void sliceWith(BtreeNode node) {
-		node = node.sliceWith(1, 3, 2, record("new"));
-		check(node, "joe", "new", "sue");
-		node = node.sliceWith(0, 2, 0, record("art"));
-		check(node, "art", "joe", "new");
 	}
 
 	private BtreeNode dbNode() {

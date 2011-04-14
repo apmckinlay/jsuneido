@@ -55,8 +55,13 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	public BtreeNode sliceWith(int from, int to, int at, Record key) {
-		return BtreeDbMemNode.slice(this, from, to).with(key);
+	public BtreeNode without(int from, int to) {
+		if (from == 0)
+			return BtreeDbMemNode.slice(this, to, size());
+		else if (to == size())
+			return BtreeDbMemNode.slice(this, 0, from);
+		else
+			throw new IllegalArgumentException();
 	}
 
 }

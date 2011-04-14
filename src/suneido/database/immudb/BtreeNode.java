@@ -76,8 +76,8 @@ public abstract class BtreeNode {
 	/** used by split */
 	public abstract BtreeNode slice(int from, int to);
 
-	/** used by split */
-	public abstract BtreeNode sliceWith(int from, int to, int at, Record key);
+	/** used by split, either from will be 0 or to will be size */
+	public abstract BtreeNode without(int from, int to);
 
 	public abstract Record get(int i);
 
@@ -128,10 +128,8 @@ public abstract class BtreeNode {
 
 	private int compare(int middle, Record key) {
 		return get(middle).compareTo(key);
-		// TODO avoid the Record construction in get
 	}
 
-	// TODO modify left instead of always constructing new
 	public Split split(Tran tran, Record key, int adr) {
 		int level = level();
 		BtreeNode right;
@@ -145,13 +143,12 @@ public abstract class BtreeNode {
 			int mid = size() / 2;
 			splitKey = get(mid);
 			BtreeNode left;
-			if (keyPos <= mid) {
-				left = sliceWith(0, mid, keyPos, key);
-				right = slice(mid, size());
-			} else {
-				left = slice(0, mid);
-				right = sliceWith(mid, size(), keyPos, key);
-			}
+			right = slice(mid, size());
+			left = without(mid, size());
+			if (keyPos <= mid)
+				left = left.with(key);
+			else
+				right = right.with(key);
 			tran.redir(adr, left);
 		}
 		int splitKeySize = splitKey.size();

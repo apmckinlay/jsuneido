@@ -11,7 +11,6 @@ import suneido.util.IntArrayList;
 /**
  * Abstract base class for store-able nodes {@link BtreeDbMemNode} and
  * {@link BtreeMemNode}.
- * "value" is immutable, but store translates intrefs
  */
 public abstract class BtreeStoreNode extends BtreeNode {
 
