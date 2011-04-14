@@ -177,4 +177,17 @@ public class SuContainerTest {
 		c.hashCode();
 	}
 
+	@Test
+	public void escaping() {
+		SuContainer c = new SuContainer();
+		String[] strings = new String[] { "plain", "single's", "double\"s", "back\\slash" };
+		for (String s : strings)
+			c.add(s);
+		for (String s : strings)
+			c.put(s, true);
+		assertEquals("#('plain', \"single's\", 'double\"s', 'back\\\\slash', " +
+				"'back\\\\slash': true, 'double\"s': true, \"single's\": true, plain: true)",
+				c.toString());
+	}
+
 }
