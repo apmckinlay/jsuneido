@@ -54,7 +54,11 @@ public abstract class Record implements Comparable<Record>, Packable {
 		int n = rec.size();
 		if (n > size())
 			return false;
-		for (int i = 0; i < n; ++i)
+		return prefixEquals(rec, n);
+	}
+
+	public boolean prefixEquals(Record rec, int nfields) {
+		for (int i = 0; i < nfields; ++i)
 			if (0 != compare1(this, rec, i))
 				return false;
 		return true;

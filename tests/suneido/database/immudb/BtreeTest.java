@@ -190,7 +190,7 @@ public class BtreeTest {
 	private void add(int n) {
 		for (int i = 0; i < n; ++i) {
 			Record key = randomKey(rand);
-			btree.add(key);
+			assertTrue(btree.add(key, true));
 			keys.add(key);
 		}
 	}
@@ -225,22 +225,9 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void iterate_only_leaf() {
-		rand = new Random(1291681);
-		NKEYS = 4;
-		add(NKEYS);
-		assertThat(btree.treeLevels(), is(0));
-		iterateCheck();
-	}
-
-	@Test
 	public void iterate() {
 		rand = new Random(1291681);
 		add(NKEYS);
-		iterateCheck();
-	}
-
-	public void iterateCheck() {
 		Collections.sort(keys);
 		int i = 0;
 		Btree.Iter iter = btree.iterator();
@@ -282,6 +269,14 @@ public class BtreeTest {
 		assertThat(btree.get(record("hello")), is(adr));
 	}
 
+	@Test
+	public void unique() {
+		rand = new Random(1291681);
+		add(NKEYS);
+		for (Record key : keys)
+			assertFalse(btree.add(key, true));
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
@@ -294,7 +289,7 @@ public class BtreeTest {
 	}
 
 	public static Record randomKey(Random rand) {
-		int n = 1 + rand.nextInt(5);
+		int n = 3 + rand.nextInt(5);
 		String s = "";
 		for (int i = 0; i < n; ++i)
 			s += (char) ('a' + rand.nextInt(26));
