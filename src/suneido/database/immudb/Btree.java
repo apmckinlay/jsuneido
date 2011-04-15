@@ -219,6 +219,41 @@ public class Btree {
 		return true;
 	}
 
+	public boolean update(Record oldkey, Record newkey, boolean unique) {
+		if (unique)
+			return updateUnique(oldkey, newkey);
+		else {
+			if (! remove(oldkey))
+				return false;
+			add(newkey);
+			return true;
+		}
+	}
+
+	private boolean updateUnique(Record oldkey, Record newkey) {
+		++modified;
+
+		// search down the tree
+		int adr = root;
+		List<BtreeNode> treeNodes = Lists.newArrayList();
+		IntArrayList adrs = new IntArrayList();
+		for (int level = treeLevels; level > 0; --level) {
+			adrs.add(adr);
+			BtreeNode node = nodeAt(level, adr);
+			treeNodes.add(node);
+			Record slot = node.find(oldkey);
+			adr = getAddress(slot);
+		}
+
+		// remove from leaf
+		BtreeNode leaf = nodeAt(0, adr);
+		leaf = leaf.without(oldkey);
+		if (leaf == null)
+			return false; // not found
+		leaf = leaf.with(newkey);
+		return true;
+	}
+
 	public Iter iterator() {
 		return new Iter();
 	}
