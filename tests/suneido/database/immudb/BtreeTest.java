@@ -221,25 +221,102 @@ public class BtreeTest {
 
 	@Test
 	public void iterate_empty() {
-		assertTrue(btree.iterator().eof());
+		Btree.Iter iter = btree.iterator();
+		assertTrue(iter.eof());
+		iter.next();
+		assertTrue(iter.eof());
+
+		iter = btree.iterator();
+		assertTrue(iter.eof());
+		iter.prev();
+		assertTrue(iter.eof());
 	}
 
 	@Test
 	public void iterate() {
 		rand = new Random(1291681);
+		NKEYS = 100;
 		add(NKEYS);
 		Collections.sort(keys);
+
 		int i = 0;
 		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next())
-			assertThat(iter.cur(), is(keys.get(i++)));
+			assertThat("i " + i, iter.cur(), is(keys.get(i++)));
 		assertThat(i, is(keys.size()));
+		iter.next();
+		assertTrue(iter.eof());
 
 		i = keys.size();
 		iter = btree.iterator();
 		for (iter.prev(); ! iter.eof(); iter.prev())
 			assertThat(iter.cur(), is(keys.get(--i)));
 		assertThat(i, is(0));
+		iter.prev();
+		assertTrue(iter.eof());
+	}
+
+	@Test
+	public void iterate_delete_behind() {
+		rand = new Random(546453);
+		NKEYS = 100;
+		add(NKEYS);
+		Collections.sort(keys);
+
+		int i = 0;
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			assertThat(iter.cur(), is(keys.get(i)));
+			if (rand.nextInt(5) == 3)
+				btree.remove(keys.get(rand.nextInt(i)));
+			++i;
+		}
+		assertThat(i, is(keys.size()));
+	}
+
+	@Test
+	public void iterate_delete_ahead() {
+		rand = new Random(876564);
+		NKEYS = 100;
+		add(NKEYS);
+		Collections.sort(keys);
+
+		int i = 0;
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			assertThat(iter.cur(), is(keys.get(i++)));
+			if (i < keys.size() && rand.nextInt(5) == 3) {
+				int at = i + rand.nextInt(keys.size() - i);
+				btree.remove(keys.get(at));
+				keys.remove(at);
+			}
+		}
+		assertThat(i, is(keys.size()));
+	}
+
+	@Test
+	public void iterate_delete_all() {
+		rand = new Random(89876);
+		NKEYS = 100;
+		add(NKEYS);
+		Collections.sort(keys);
+
+		int i = 0;
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			assertThat(iter.cur(), is(keys.get(i)));
+			assertTrue(btree.remove(keys.get(i)));
+			++i;
+		}
+		assertThat(i, is(keys.size()));
+	}
+
+	@Test
+	public void unique() {
+		rand = new Random(1291681);
+		add(NKEYS);
+		for (Record key : keys)
+			assertFalse(btree.add(key, true));
 	}
 
 	@Test
@@ -267,14 +344,6 @@ public class BtreeTest {
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
 		assertThat(btree.get(record("hello")), is(adr));
-	}
-
-	@Test
-	public void unique() {
-		rand = new Random(1291681);
-		add(NKEYS);
-		for (Record key : keys)
-			assertFalse(btree.add(key, true));
 	}
 
 	private static int adr(Record key) {
