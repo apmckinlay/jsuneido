@@ -68,8 +68,6 @@ public class Btree {
 			int level = treeLevels - i;
 			BtreeNode node = nodeAt(level, adr);
 			Record slot = node.find(key);
-			if (slot == null)
-				return 0; // not found
 			adr = getAddress(slot);
 		}
 		BtreeNode leaf = nodeAt(0, adr);
@@ -185,8 +183,6 @@ public class Btree {
 			BtreeNode node = nodeAt(level, adr);
 			treeNodes.add(node);
 			Record slot = node.find(key);
-			if (slot == null)
-				return false; // not found
 			adr = getAddress(slot);
 		}
 
@@ -268,8 +264,11 @@ public class Btree {
 			valid = modified;
 		}
 
+		/** leaves cur = null if key not found */
 		private void seek(Record key) {
+			valid = modified;
 			stack.clear();
+			cur = null;
 			if (isEmpty())
 				return;
 			int adr = root;
@@ -284,7 +283,6 @@ public class Btree {
 				}
 				adr = getAddress(slot);
 			}
-			valid = modified;
 		}
 
 		public void next() {
@@ -298,7 +296,7 @@ public class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (! cur.equals(oldcur))
+				if (! oldcur.equals(cur))
 					return;
 				// fall through
 			}
