@@ -6,10 +6,14 @@ package suneido.language;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.SuContainer;
+
 @Immutable
 public abstract class Range {
 
 	public abstract String substr(String s);
+
+	public abstract SuContainer sublist(SuContainer c);
 
 	public static class RangeTo extends Range {
 		public final int from;
@@ -37,6 +41,12 @@ public abstract class Range {
 				t = slen;
 			return s.substring(f, t);
 		}
+
+		@Override
+                public SuContainer sublist(SuContainer c) {
+	                // TODO Auto-generated method stub
+	                return null;
+                }
 	}
 
 	public static class RangeLen extends Range {
@@ -51,14 +61,9 @@ public abstract class Range {
 		@Override
 		public String substr(String s) {
 			int slen = s.length();
-			int f = from;
+			int f = prepFrom(from, slen);
 			if (f > slen)
 				return "";
-			if (f < 0) {
-				f += slen;
-				if (f < 0)
-					f = 0;
-			}
 			int n = len;
 			if (n < 0)
 				n = 0;
@@ -66,6 +71,29 @@ public abstract class Range {
 				n = slen - f;
 			return s.substring(f, f + n);
 		}
+
+		@Override
+                public SuContainer sublist(SuContainer c) {
+	                // TODO Auto-generated method stub
+	                return null;
+                }
+	}
+
+	private static int prepFrom(int from, int len) {
+		if (from < 0) {
+			from += len;
+			if (from < 0)
+				from = 0;
+		}
+		return from;
+	}
+
+	private static int prepTo(int to, int len) {
+		if (to < 0)
+			to += len;
+		if (to > len)
+			to = len;
+		return to;
 	}
 
 }

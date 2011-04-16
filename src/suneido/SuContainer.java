@@ -150,7 +150,10 @@ public class SuContainer extends SuValue
 
 	@Override
 	public Object get(Object key) {
-		return getDefault(key, defval);
+		if (key instanceof Range)
+			return ((Range) key).sublist(this);
+		else
+			return getDefault(key, defval);
 	}
 
 	public Object getDefault(Object key, Object defval) {
