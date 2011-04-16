@@ -39,11 +39,11 @@ public class IndexedData {
 		}
 
 		private Record key(Record data, int intref) {
-			MemRecord r = new MemRecord();
+			RecordBuilder rb = new RecordBuilder();
 			for (int field : fields)
-				r.add(data, field);
-			r.add(intref);
-			return r;
+				rb.add(data, field);
+			rb.add(intref);
+			return rb.build();
 		}
 	}
 

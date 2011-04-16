@@ -16,17 +16,17 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 public class BtreeDbNode extends BtreeNode {
-	final DbRecord rec;
+	final Record rec;
 
 	BtreeDbNode(int level, ByteBuffer buf) {
 		super(level);
-		rec = new DbRecord(buf, 0);
+		rec = new Record(buf, 0);
 	}
 
 	@Override
 	public Record get(int i) {
 		Preconditions.checkElementIndex(i, rec.size());
-		return new DbRecord(rec.fieldBuffer(i), rec.fieldOffset(i));
+		return new Record(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 
 	@Override

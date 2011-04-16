@@ -8,28 +8,28 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
-import suneido.database.immudb.DbRecord.Mode;
+import suneido.database.immudb.Record.Mode;
 import suneido.language.Pack;
 import suneido.util.IntArrayList;
 
 import com.google.common.collect.Lists;
 
-public class MemRecord extends Record {
+public class RecordBuilder {
 	private final List<ByteBuffer> bufs = Lists.newArrayList();
 	private final IntArrayList offs = new IntArrayList();
 	private final IntArrayList lens = new IntArrayList();
 
-	public MemRecord() {
+	public RecordBuilder() {
 	}
 
 	/** add a field of the record */
-	public MemRecord add(Record r, int i) {
+	public RecordBuilder add(Record r, int i) {
 		add1(r.fieldBuffer(i), r.fieldOffset(i), r.fieldLength(i));
 		return this;
 	}
 
 	/** add a prefix of the fields of the record */
-	public MemRecord addPrefix(Record rec, int prefixLength) {
+	public RecordBuilder addPrefix(Record rec, int prefixLength) {
 		for (int i = 0; i < prefixLength; ++i)
 			add1(rec.fieldBuffer(i), rec.fieldOffset(i), rec.fieldLength(i));
 		return this;
@@ -38,13 +38,13 @@ public class MemRecord extends Record {
 	/** add an unsigned int
 	 * needs to be unsigned so that intrefs compare > database offsets
 	 */
-	public MemRecord add(int n) {
+	public RecordBuilder add(int n) {
 		ByteBuffer buf = Pack.pack(n & 0xffffffffL);
 		add1(buf, 0, buf.remaining());
 		return this;
 	}
 
-	public MemRecord add(Object x) {
+	public RecordBuilder add(Object x) {
 		ByteBuffer buf = Pack.pack(x);
 		add1(buf, 0, buf.remaining());
 		return this;
@@ -56,36 +56,14 @@ public class MemRecord extends Record {
 		lens.add(len);
 	}
 
-	@Override
-	public int size() {
-		return bufs.size();
+	public Record build() {
+		int length = length();
+		ByteBuffer buf = ByteBuffer.allocate(length());
+		pack(buf, length);
+		return new Record(buf, 0);
 	}
 
-	@Override
-	public int fieldOffset(int i) {
-		return offs.get(i);
-	}
-
-	@Override
-	public int fieldLength(int i) {
-		return lens.get(i);
-	}
-
-	@Override
-	public ByteBuffer fieldBuffer(int i) {
-		return bufs.get(i);
-	}
-
-	@Override
-	public int store(Storage stor) {
-		int adr = stor.alloc(length());
-		ByteBuffer buf = stor.buffer(adr);
-		pack(buf);
-		return adr;
-	}
-
-	@Override
-	public int length() {
+	private int length() {
 		int nfields = bufs.size();
 		int datasize = 0;
 		for (int i = 0; i < nfields; ++i)
@@ -110,9 +88,8 @@ public class MemRecord extends Record {
 		return length;
 	}
 
-	@Override
-	public void pack(ByteBuffer dst) {
-		int nfields = packHeader(dst, length(), lens);
+	private void pack(ByteBuffer dst, int length) {
+		int nfields = packHeader(dst, length, lens);
 		for (int i = nfields - 1; i >= 0; --i)
 			pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}
@@ -168,11 +145,6 @@ public class MemRecord extends Record {
 			for (int i = 0; i < len; ++i)
 				dst.put(buf.get(off + i));
 		}
-	}
-
-	@Override
-	public String toString() {
-		return super.toString().replace("<", "<:");
 	}
 
 }

@@ -4,7 +4,6 @@
 
 package suneido.database.immudb;
 
-
 public class DataRecords {
 
 	/**
@@ -16,7 +15,7 @@ public class DataRecords {
 		int i = -1;
 		for (Object x : tran.context.intrefs) {
 			++i;
-			if (! (x instanceof MemRecord))
+			if (! (x instanceof Record))
 				continue;
 			int intref = i | IntRefs.MASK;
 			Record r = (Record) tran.intToRef(intref);

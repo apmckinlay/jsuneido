@@ -34,14 +34,14 @@ public class IndexedDataTest {
 		assertThat(r.size(), is(2));
 		assertThat((String) r.get(0), is("a"));
 
-		verify(btree2).add((DbRecord) anyObject());
+		verify(btree2).add((Record) anyObject());
 	}
 
 	private Record record(Object... values) {
-		MemRecord rb = new MemRecord();
+		RecordBuilder rb = new RecordBuilder();
 		for (Object x : values)
 			rb.add(x);
-		return rb;
+		return rb.build();
 	}
 
 }

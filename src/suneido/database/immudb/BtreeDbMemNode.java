@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 public class BtreeDbMemNode extends BtreeStoreNode {
-	private final DbRecord rec;
+	private final Record rec;
 	private final TByteArrayList index;
 	private ArrayList<Record> added;
 
@@ -45,7 +45,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 		this(node.level, node.rec, index, node.added);
 	}
 
-	private BtreeDbMemNode(int level, DbRecord rec, TByteArrayList index, ArrayList<Record> added) {
+	private BtreeDbMemNode(int level, Record rec, TByteArrayList index, ArrayList<Record> added) {
 		super(level);
 		this.rec = rec;
 		this.index = index;
@@ -114,7 +114,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 	public Record get(int i) {
 		int idx = index.get(i);
 		return idx >= 0
-				? new DbRecord(rec.fieldBuffer(idx), rec.fieldOffset(idx))
+				? new Record(rec.fieldBuffer(idx), rec.fieldOffset(idx))
 				: added.get(-idx - 1);
 	}
 

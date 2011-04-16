@@ -9,20 +9,102 @@ import java.nio.ByteBuffer;
 import suneido.Packable;
 import suneido.language.Pack;
 
-public abstract class Record implements Comparable<Record>, Packable {
-	public static Record EMPTY = new MemRecord();
+public class Record implements Comparable<Record>, Packable {
+	public static Record EMPTY = new RecordBuilder().build();
+	static class Mode {
+		final static byte BYTE = 'c';
+		final static byte SHORT = 's';
+		final static byte INT = 'l';
+	}
+	static class Offset {
+		final static int TYPE = 0; // byte
+		final static int NFIELDS = 2; // short
+		final static int SIZE = 4; // byte, short, or int <= type
+	}
+	private final ByteBuffer buf;
+	private final int offset; // used to point to a key in a BtreeNode
 
-	public abstract int size();
+	public Record(ByteBuffer buf, int offset) {
+		this.buf = buf;
+		this.offset = offset;
+		check();
+	}
 
-	public abstract int fieldOffset(int i);
+	public void check() {
+		assert offset >= 0;
+		assert mode() == 'c' || mode() == 's' || mode() == 'l';
+		assert size() >= 0;
+		assert length() > 0 : "length " + length();
+		assert offset < buf.capacity();
+		assert offset + length() <= buf.capacity()
+			: "offset " + offset + " + length " + length() + " > capacity " + buf.capacity();
+	}
 
-	public abstract int fieldLength(int i);
+	private byte mode() {
+		return buf.get(offset + Offset.TYPE);
+	}
 
-	public abstract ByteBuffer fieldBuffer(int i);
+	public int size() {
+		int si = offset + Offset.NFIELDS;
+		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
+	}
 
-	public abstract int store(Storage stor);
+	public ByteBuffer fieldBuffer(int i) {
+		return buf;
+	}
 
-	public abstract int length();
+	public int fieldLength(int i) {
+		if (i >= size())
+			return 0;
+		return fieldOffset(i - 1) - fieldOffset(i);
+	}
+
+	public int fieldOffset(int i) {
+		// to match cSuneido use little endian (least significant first)
+		switch (mode()) {
+		case Mode.BYTE:
+			return offset + (buf.get(offset + Offset.SIZE + i + 1) & 0xff);
+		case Mode.SHORT:
+			int si = offset + Offset.SIZE + 2 * (i + 1);
+			return offset + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
+		case Mode.INT:
+			int ii = offset + Offset.SIZE + 4 * (i + 1);
+			return offset + ((buf.get(ii) & 0xff) |
+					((buf.get(ii + 1) & 0xff) << 8) |
+			 		((buf.get(ii + 2) & 0xff) << 16) |
+			 		((buf.get(ii + 3) & 0xff) << 24));
+		default:
+			throw new Error("invalid record type: " + mode());
+		}
+	}
+
+	public int length() {
+		return fieldOffset(-1) - offset;
+	}
+
+	public int store(Storage stor) {
+		int adr = stor.alloc(length());
+		ByteBuffer buf = stor.buffer(adr);
+		pack(buf);
+		return adr;
+	}
+
+	@Override
+	public void pack(ByteBuffer dst) {
+		// TODO use array if available
+		for (int i = 0; i < length(); ++i)
+			dst.put(buf.get(offset + i));
+	}
+
+	public String toDebugString() {
+		String s = "";
+		s += "type: " + (char) mode() +
+				" size: " + size() +
+				" length: " + length();
+		for (int i = 0; i < Math.min(size(), 10); ++i)
+			System.out.println("offset " + i + ": " + fieldOffset(i));
+		return s;
+	}
 
 	public int packSize(int nest) {
 		return length();
@@ -93,7 +175,7 @@ public abstract class Record implements Comparable<Record>, Packable {
 			return "";
 		byte x = buf.get(off);
 		if (x == 'c' || x == 's' || x == 'l')
-			return new DbRecord(buf, off);
+			return new Record(buf, off);
 		ByteBuffer b = buf.duplicate();
 		b.position(off);
 		b.limit(off + len);

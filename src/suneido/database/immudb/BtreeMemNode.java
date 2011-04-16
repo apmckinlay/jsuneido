@@ -34,7 +34,7 @@ public class BtreeMemNode extends BtreeStoreNode {
 	}
 
 	public static BtreeNode newRoot(Tran tran, Split split) {
-		MemRecord minkey = minimalKey(split.key.size(), split.left);
+		Record minkey = minimalKey(split.key.size(), split.left);
 		return new BtreeMemNode(split.level + 1, minkey, split.key);
 	}
 

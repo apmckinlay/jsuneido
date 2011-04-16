@@ -152,8 +152,8 @@ public class BtreeNodeTest {
 	}
 
 	private BtreeNode dbNode() {
-		MemRecord rec = new MemRecord()
-				.add(record("bob")).add(record("joe")).add(record("sue"));
+		Record rec = new RecordBuilder()
+				.add(record("bob")).add(record("joe")).add(record("sue")).build();
 		BtreeNode node = new BtreeDbNode(0, Pack.pack(rec));
 		check(node, "bob", "joe", "sue");
 		return node;
@@ -187,13 +187,9 @@ public class BtreeNodeTest {
 	@Test
 	public void pack_non_empty_MemNode() {
 		BtreeMemNode node = new BtreeMemNode(0);
-		Record key = new MemRecord().add("fzvdr").add(0x21726ef6);
-		for (int i = 0; i < 5; ++i)
+		Record key = new RecordBuilder().add("fzvdr").add(0x21726ef6).build();
+		for (int i = 0; i < 10; ++i)
 			node = node.with(key);
-		ByteBuffer keybuf = Pack.pack(key);
-		Record key2 = new DbRecord(keybuf, 0);
-		for (int i = 0; i < 5; ++i)
-			node = node.with(key2);
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeDbNode dbnode = new BtreeDbNode(0, buf);

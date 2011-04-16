@@ -4,7 +4,9 @@
 
 package suneido.database.immudb;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -17,6 +19,16 @@ public class RecordTest {
 		assertEquals("one", r.get(0));
 		assertEquals("two", r.get(1));
 		assertEquals("three", r.get(2));
+	}
+
+	@Test
+	public void test() {
+		Record r = new RecordBuilder().add(123).add("hello").build();
+		assertThat(r.size(), is(2));
+		assertThat(r.get(0), is(Integer.class));
+		assertThat((Integer) r.get(0), is(123));
+		assertThat(r.get(1), is(String.class));
+		assertThat((String) r.get(1), is("hello"));
 	}
 
 	@Test
@@ -38,14 +50,27 @@ public class RecordTest {
 		assertEquals(0xffff0000L, r.get(2));
 	}
 
+	@Test
+	public void length() {
+		assertThat(RecordBuilder.length(0, 0), is(5));
+		assertThat(RecordBuilder.length(1, 1), is(7));
+		assertThat(RecordBuilder.length(1, 200), is(206));
+		assertThat(RecordBuilder.length(1, 249), is(255));
+
+		assertThat(RecordBuilder.length(1, 250), is(258));
+		assertThat(RecordBuilder.length(1, 300), is(308));
+
+		assertThat(RecordBuilder.length(1, 0x10000), is(0x1000c));
+	}
+
 	public static Record record(Object... data) {
-		MemRecord r = new MemRecord();
+		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
 			if (d instanceof String)
-				r.add(d);
+				rb.add(d);
 			else if (d instanceof Integer)
-				r.add((int)(Integer) d);
-		return r;
+				rb.add((int)(Integer) d);
+		return rb.build();
 	}
 
 }
