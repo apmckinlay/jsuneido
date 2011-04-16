@@ -366,11 +366,11 @@ public class BtreeTest {
 	}
 
 	static Record record(String s) {
-		return new MemRecord().add(s);
+		return new RecordBuilder().add(s).build();
 	}
 
 	private static Record record(String s, int n) {
-		return new MemRecord().add(s).add(n);
+		return new RecordBuilder().add(s).add(n).build();
 	}
 
 }

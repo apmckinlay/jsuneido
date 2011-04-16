@@ -161,7 +161,8 @@ public abstract class BtreeNode {
 		if (level > 0) // tree node
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
-		splitKey = new MemRecord().addPrefix(splitKey, splitKeySize).add(rightAdr);
+		splitKey = new RecordBuilder().addPrefix(splitKey, splitKeySize)
+				.add(rightAdr).build();
 		return new Split(level, adr, rightAdr, splitKey);
 	}
 
@@ -200,7 +201,7 @@ public abstract class BtreeNode {
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf()) {
 			if (! isEmpty()) {
-				key = new MemRecord().addPrefix(key, key.size() - 1);
+				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
 				assert key.compareTo(get(0)) <= 0;
 			}
 			return;
@@ -249,12 +250,12 @@ public abstract class BtreeNode {
 		return ((Number) rec.get(rec.size() - 1)).intValue();
 	}
 
-	protected static MemRecord minimalKey(int nfields, int ptr) {
-		MemRecord key = new MemRecord();
+	protected static Record minimalKey(int nfields, int ptr) {
+		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < nfields - 1; ++i)
-			key.add("");
-		key.add(ptr);
-		return key;
+			rb.add("");
+		rb.add(ptr);
+		return rb.build();
 	}
 
 }

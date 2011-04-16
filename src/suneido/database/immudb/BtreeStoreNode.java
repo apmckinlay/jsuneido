@@ -34,13 +34,13 @@ public abstract class BtreeStoreNode extends BtreeNode {
 		int datasize = 0;
 		for (int i = 0; i < size(); ++i)
 			datasize += length(i);
-		return MemRecord.length(size(), datasize);
+		return RecordBuilder.length(size(), datasize);
 	}
 
 	abstract protected int length(int i);
 
 	public void pack(ByteBuffer buf) {
-		MemRecord.packHeader(buf, length(), getLengths());
+		RecordBuilder.packHeader(buf, length(), getLengths());
 		for (int i = size() - 1; i >= 0; --i)
 			pack(buf, i);
 	}
@@ -85,14 +85,14 @@ public abstract class BtreeStoreNode extends BtreeNode {
 			return rec;
 
 		int prefix = rec.size() - (level > 0 ? 2 : 1);
-		MemRecord r = new MemRecord().addPrefix(rec, prefix);
+		RecordBuilder rb = new RecordBuilder().addPrefix(rec, prefix);
 		if (dref == 0)
-			r.add("");
+			rb.add("");
 		else
-			r.add(dref);
+			rb.add(dref);
 		if (level > 0)
-			r.add(ptr);
-		return r;
+			rb.add(ptr);
+		return rb.build();
 	}
 
 	private int dataref(Record rec) {
