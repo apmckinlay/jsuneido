@@ -51,10 +51,9 @@ public class FractalTree<T> implements Iterable<T> {
 	}
 
 	private Object[] merge(Object[] x, Object[] y) {
-		return merge(x, y, new Object[2 * x.length]);
+		return merge(x, y, new Object[x.length + y.length]);
 	}
 	private Object[] merge(Object[] x, Object[] y, Object[] z) {
-		assert x.length == y.length;
 		int xi = 0;
 		int yi = 0;
 		for (int zi = 0; zi < z.length; ++zi)
