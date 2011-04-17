@@ -20,8 +20,7 @@ public class BtreeTest {
 	private Btree btree = new Btree4(tran);
 	private List<Record> keys = Lists.newArrayList();
 	private int NKEYS = 100;
-	private int root;
-	private int levels;
+	private Btree.Info info;
 	private int redirs;
 
 	private static class Btree4 extends Btree {
@@ -29,8 +28,8 @@ public class BtreeTest {
 		public Btree4(Tran tran) {
 			super(tran);
 		}
-		public Btree4(Tran tran, int root, int treeLevels) {
-			super(tran, root, treeLevels);
+		public Btree4(Tran tran, Info info) {
+			super(tran, info);
 		}
 	}
 
@@ -116,7 +115,7 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void add_and_get() {
+	public void add_and_remove() {
 		rand = new Random(564367);
 		NKEYS = 1000;
 		add(NKEYS);
@@ -154,22 +153,22 @@ public class BtreeTest {
 		store();
 
 		tran = new Tran(stor);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		addRemoveAndStore(2);
 		assertThat("levels", btree.treeLevels(), is(0));
 
 		tran = new Tran(stor);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		addRemoveAndStore(3);
 		assertThat("levels", btree.treeLevels(), is(1));
 
 		tran = new Tran(stor, redirs);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		addRemoveAndStore(400);
 		assertThat("levels", btree.treeLevels(), is(6));
 
 		tran = new Tran(stor, redirs);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		check();
 		checkIterate();
 	}
@@ -214,8 +213,7 @@ public class BtreeTest {
 	private void store() {
 		tran.startStore();
 		btree.store();
-		root = btree.root();
-		levels = btree.treeLevels();
+		info = btree.info();
 		redirs = tran.storeRedirs();
 		tran = null;
 	}
@@ -330,7 +328,7 @@ public class BtreeTest {
 
 		store();
 		tran = new Tran(stor);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		update(200);
 		check();
 		checkIterate();
@@ -377,11 +375,10 @@ public class BtreeTest {
 		int adr = tran.getAdr(intref);
 		assert adr != 0;
 		btree.store();
-		int root = btree.root();
-		int levels = btree.treeLevels();
+		info = btree.info();
 
 		tran = new Tran(stor);
-		btree = new Btree4(tran, root, levels);
+		btree = new Btree4(tran, info);
 		assertThat(btree.get(record("hello")), is(adr));
 	}
 

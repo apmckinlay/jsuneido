@@ -196,7 +196,8 @@ public abstract class BtreeNode {
 		}
 	}
 
-	void check(Tran tran, Record key) {
+	/** returns the number of nodes processed */
+	int check(Tran tran, Record key) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf()) {
@@ -204,18 +205,20 @@ public abstract class BtreeNode {
 				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
 				assert key.compareTo(get(0)) <= 0;
 			}
-			return;
+			return 1;
 		}
 		assert isMinimalKey(get(0)) : "minimal";
 		if (size() > 1)
 			assert key.compareTo(get(1)) <= 0;
 		int adr = Btree.getAddress(get(0));
-		Btree.nodeAt(tran, level - 1, adr).check(tran, key);
+		int nnodes = 1;
+		nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key);
 		for (int i = 1; i < size(); ++i) {
 			Record key2 = get(i);
 			adr = Btree.getAddress(key2);
-			Btree.nodeAt(tran, level - 1, adr).check(tran, key2);
+			nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key2);
 		}
+		return nnodes;
 	}
 
 	protected static boolean isMinimalKey(Record key) {
