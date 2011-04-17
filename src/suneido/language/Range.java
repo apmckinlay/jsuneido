@@ -26,27 +26,19 @@ public abstract class Range {
 
 		@Override
 		public String substr(String s) {
-			int slen = s.length();
-			int f = from;
-			if (f < 0)
-				f += slen;
-			if (f < 0)
-				f = 0;
-			int t = to;
-			if (t < 0)
-				t += slen;
-			if (f >= t || f > slen)
-				return "";
-			if (t > slen)
-				t = slen;
+			int size = s.length();
+			int f = prepFrom(from, size);
+			int t = prepTo(f, to, size);
 			return s.substring(f, t);
 		}
 
 		@Override
-                public SuContainer sublist(SuContainer c) {
-	                // TODO Auto-generated method stub
-	                return null;
-                }
+        public SuContainer sublist(SuContainer c) {
+			int size = c.size();
+			int f = prepFrom(from, size);
+			int t = prepTo(f, to, size);
+			return c.subList(f, t);
+        }
 	}
 
 	public static class RangeLen extends Range {
@@ -60,23 +52,19 @@ public abstract class Range {
 
 		@Override
 		public String substr(String s) {
-			int slen = s.length();
-			int f = prepFrom(from, slen);
-			if (f > slen)
-				return "";
-			int n = len;
-			if (n < 0)
-				n = 0;
-			else if (n > slen - f)
-				n = slen - f;
+			int size = s.length();
+			int f = prepFrom(from, size);
+			int n = prepLen(len, size - f);
 			return s.substring(f, f + n);
 		}
 
 		@Override
-                public SuContainer sublist(SuContainer c) {
-	                // TODO Auto-generated method stub
-	                return null;
-                }
+        public SuContainer sublist(SuContainer c) {
+			int size = c.size();
+			int f = prepFrom(from, size);
+			int n = prepLen(len, size - f);
+			return c.subList(f, f + n);
+        }
 	}
 
 	private static int prepFrom(int from, int len) {
@@ -85,15 +73,27 @@ public abstract class Range {
 			if (from < 0)
 				from = 0;
 		}
+		if (from > len)
+			from = len;
 		return from;
 	}
 
-	private static int prepTo(int to, int len) {
+	private static int prepTo(int from, int to, int size) {
 		if (to < 0)
-			to += len;
-		if (to > len)
-			to = len;
+			to += size;
+		if (to < from)
+			to = from;
+		if (to > size)
+			to = size;
 		return to;
+	}
+
+	private static int prepLen(int len, int size) {
+		if (len < 0)
+			len = 0;
+		if (len > size)
+			len = size;
+		return len;
 	}
 
 }
