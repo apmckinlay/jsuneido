@@ -129,10 +129,7 @@ public class Btree {
 			BtreeNode treeNode = treeNodes.get(i);
 			if (treeNode.size() < maxNodeSize()) {
 				treeNode = treeNode.with(split.key);
-				if (adrs.get(i) == root)
-					root = tran.refToInt(treeNode);
-				else
-					tran.redir(adrs.get(i), treeNode);
+				tran.redir(adrs.get(i), treeNode);
 				return true;
 			}
 			// else split
@@ -206,10 +203,7 @@ public class Btree {
 			if (treeNode.size() > 1) {
 				treeNode = treeNode.without(key);
 				assert treeNode != null;
-				if (adrs.get(i) == root)
-					root = tran.refToInt(treeNode);
-				else
-					tran.redir(adrs.get(i), treeNode);
+				tran.redir(adrs.get(i), treeNode);
 				return true;
 			}
 			--nnodes;
