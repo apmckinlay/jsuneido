@@ -16,6 +16,7 @@ package suneido.database.immudb;
  */
 public class Redirects {
 	private DbHashTree redirs;
+	boolean isEmpty = true;
 
 	public Redirects(DbHashTree redirs) {
 		this.redirs = redirs;
@@ -24,6 +25,7 @@ public class Redirects {
 	public void put(int from, int to) {
 		assert ! IntRefs.isIntRef(from);
 		redirs = redirs.with(from, to);
+		isEmpty = false;
 	}
 
 	public int get(int from) {
@@ -33,6 +35,10 @@ public class Redirects {
 
 	public int store(Translator translator) {
 		return redirs.store(translator);
+	}
+
+	public boolean isEmpty() {
+		return isEmpty;
 	}
 
 	public void print() {
