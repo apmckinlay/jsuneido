@@ -155,25 +155,26 @@ public class BtreeTest {
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(2);
+		addRemoveAndStore(2);
 		assertThat("levels", btree.treeLevels(), is(0));
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(3);
+		addRemoveAndStore(3);
 		assertThat("levels", btree.treeLevels(), is(1));
 
 		tran = new Tran(stor, redirs);
 		btree = new Btree4(tran, root, levels);
-		updateAndStore(400);
+		addRemoveAndStore(400);
 		assertThat("levels", btree.treeLevels(), is(6));
 
 		tran = new Tran(stor, redirs);
 		btree = new Btree4(tran, root, levels);
 		check();
+		checkIterate();
 	}
 
-	private void updateAndStore(int n) {
+	private void addRemoveAndStore(int n) {
 //System.out.println("--------------- before update");
 //btree.print();
 		check();
@@ -235,20 +236,11 @@ public class BtreeTest {
 	@Test
 	public void iterate() {
 		rand = new Random(1291681);
-		NKEYS = 100;
 		add(NKEYS);
-		Collections.sort(keys);
+		checkIterate();
 
-		int i = 0;
+		int i = keys.size();
 		Btree.Iter iter = btree.iterator();
-		for (iter.next(); ! iter.eof(); iter.next())
-			assertThat("i " + i, iter.cur(), is(keys.get(i++)));
-		assertThat(i, is(keys.size()));
-		iter.next();
-		assertTrue(iter.eof());
-
-		i = keys.size();
-		iter = btree.iterator();
 		for (iter.prev(); ! iter.eof(); iter.prev())
 			assertThat(iter.cur(), is(keys.get(--i)));
 		assertThat(i, is(0));
@@ -256,10 +248,20 @@ public class BtreeTest {
 		assertTrue(iter.eof());
 	}
 
+	public Btree.Iter checkIterate() {
+		Collections.sort(keys);
+
+		int i = 0;
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next())
+			assertThat("i " + i, iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(keys.size()));
+		return iter;
+	}
+
 	@Test
 	public void iterate_delete_behind() {
 		rand = new Random(546453);
-		NKEYS = 100;
 		add(NKEYS);
 		Collections.sort(keys);
 
@@ -277,7 +279,6 @@ public class BtreeTest {
 	@Test
 	public void iterate_delete_ahead() {
 		rand = new Random(876564);
-		NKEYS = 100;
 		add(NKEYS);
 		Collections.sort(keys);
 
@@ -297,7 +298,6 @@ public class BtreeTest {
 	@Test
 	public void iterate_delete_all() {
 		rand = new Random(89876);
-		NKEYS = 100;
 		add(NKEYS);
 		Collections.sort(keys);
 
@@ -317,6 +317,45 @@ public class BtreeTest {
 		add(NKEYS);
 		for (Record key : keys)
 			assertFalse(btree.add(key, true));
+	}
+
+	@Test
+	public void update() {
+		rand = new Random(456978);
+		add(NKEYS);
+		Collections.shuffle(keys, rand);
+		update(200);
+		check();
+		checkIterate();
+
+		store();
+		tran = new Tran(stor);
+		btree = new Btree4(tran, root, levels);
+		update(200);
+		check();
+		checkIterate();
+	}
+
+	public void update(int n) {
+		for (int i = 0; i < n; ++i) {
+			int k = rand.nextInt(NKEYS);
+			Record oldkey = keys.get(k);
+			Record newkey = updateKey(oldkey);
+			keys.set(k, newkey);
+			btree.update(oldkey, newkey, true);
+		}
+	}
+
+	private Record updateKey(Record oldkey) {
+		if ((rand.nextInt() % 2) == 0)
+			return randomKey(rand);
+		else {
+			// new address must be larger than old one
+			return new RecordBuilder()
+				.add(oldkey, 0)
+				.add(Btree.getAddress(oldkey) + 1)
+				.build();
+		}
 	}
 
 	@Test
@@ -362,7 +401,8 @@ public class BtreeTest {
 		String s = "";
 		for (int i = 0; i < n; ++i)
 			s += (char) ('a' + rand.nextInt(26));
-		return record(s, rand.nextInt(Integer.MAX_VALUE));
+		final int UPDATE_ALLOWANCE = 10000;
+		return record(s, rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
 	}
 
 	static Record record(String s) {
