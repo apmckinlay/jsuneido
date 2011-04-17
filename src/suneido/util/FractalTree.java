@@ -6,8 +6,6 @@ package suneido.util;
 
 import java.util.*;
 
-//import com.google.common.collect.Lists;
-
 /**
  * Add items in a random order, iterate them in order.
  * Fast (amortized) insertion.
@@ -50,16 +48,6 @@ public class FractalTree<T> implements Iterable<T> {
 			nodes[i] = null;
 		}
 		nodes[i] = tmp2;
-	}
-
-	public void add1(T x) {
-		Object[] tmp = new Object[] { x };
-		int i = 0;
-		for (; nodes[i] != null; ++i) {
-			tmp = merge(nodes[i], tmp);
-			nodes[i] = null;
-		}
-		nodes[i] = tmp;
 	}
 
 	private Object[] merge(Object[] x, Object[] y) {
