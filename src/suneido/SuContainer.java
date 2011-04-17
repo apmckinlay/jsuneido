@@ -618,4 +618,8 @@ public class SuContainer extends SuValue
 		return ContainerMethods.methods.lookup(method);
 	}
 
+	public SuContainer subList(int from, int to) {
+		return new SuContainer(vec.subList(from, to));
+	}
+
 }

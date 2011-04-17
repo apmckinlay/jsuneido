@@ -231,7 +231,7 @@ public class ExecuteTest {
 	}
 
 	@Test
-	public void test_range() {
+	public void test_string_range() {
 		test("'abcd'[1 .. 3]", "'bc'");
 		test("'abcd'[1 .. 9]", "'bcd'");
 		test("'abcd'[1 ..]", "'bcd'");
@@ -249,7 +249,28 @@ public class ExecuteTest {
 		test("'abcd'[1 :: 9]", "'bcd'");
 		test("'abcd'[1 ::]", "'bcd'");
 		test("'abcd'[9 :: 1]", "''");
-}
+	}
+
+	@Test
+	public void test_object_range() {
+		test("#(a, b, c, d)[1 .. 3]", "#('b', 'c')");
+		test("#(a, b, c, d)[1 .. 9]", "#('b', 'c', 'd')");
+		test("#(a, b, c, d)[1 ..]", "#('b', 'c', 'd')");
+		test("#(a, b, c, d)[6 .. 9]", "#()");
+		test("#(a, b, c, d)[2 .. 1]", "#()");
+		test("#(a, b, c, d)[-3 .. -1]", "#('b', 'c')");
+		test("#(a, b, c, d)[1 .. -1]", "#('b', 'c')");
+		test("#(a, b, c, d)[.. -2]", "#('a', 'b')");
+		test("#(a, b, c, d)[-2 ..]", "#('c', 'd')");
+
+		test("#(a, b, c, d)[1 :: 2]", "#('b', 'c')");
+		test("#(a, b, c, d)[:: 2]", "#('a', 'b')");
+		test("#(a, b, c, d)[-2 :: 1]", "#('c')");
+		test("#(a, b, c, d)[1 :: -1]", "#()");
+		test("#(a, b, c, d)[1 :: 9]", "#('b', 'c', 'd')");
+		test("#(a, b, c, d)[1 ::]", "#('b', 'c', 'd')");
+		test("#(a, b, c, d)[9 :: 1]", "#()");
+	}
 
 	private void def(String name, String source) {
 		Globals.put(name, Compiler.compile(name, source));
