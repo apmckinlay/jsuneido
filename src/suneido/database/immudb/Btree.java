@@ -33,18 +33,21 @@ public class Btree {
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
-	private int modified = 0;
+	private int nnodes;
+	private int modified = 0; // depends on all access via one instance
 
 	public Btree(Tran tran) {
 		this.tran = tran;
 		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
+		nnodes = 1;
 	}
 
-	public Btree(Tran tran, int root, int treeLevels) {
+	public Btree(Tran tran, Info info) {
 		this.tran = tran;
-		this.root = root;
-		this.treeLevels = treeLevels;
+		this.root = info.root;
+		this.treeLevels = info.treeLevels;
+		this.nnodes = info.nnodes;
 	}
 
 	public boolean isEmpty() {
@@ -119,6 +122,7 @@ public class Btree {
 		}
 		// else split leaf
 		Split split = leaf.split(tran, key, adr);
+		++nnodes;
 
 		// insert up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
@@ -133,9 +137,11 @@ public class Btree {
 			}
 			// else split
 			split = treeNode.split(tran, split.key, adrs.get(i));
+			++nnodes;
 		}
 		// getting here means root was split so a new root is needed
 		newRoot(split);
+		++nnodes;
 		return true;
 	}
 
@@ -192,6 +198,7 @@ public class Btree {
 			tran.redir(adr, leaf);
 		if (! leaf.isEmpty() || treeLevels == 0)
 			return true;	// this is the usual path
+		--nnodes;
 
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
@@ -205,11 +212,13 @@ public class Btree {
 					tran.redir(adrs.get(i), treeNode);
 				return true;
 			}
+			--nnodes;
 		}
 
 		// if we get to here, root node is now empty
-		treeLevels = 0;
 		root = tran.refToInt(BtreeNode.emptyLeaf());
+		treeLevels = 0;
+		nnodes = 0;
 
 		return true;
 	}
@@ -257,7 +266,7 @@ public class Btree {
 
 	public class Iter {
 		// top of stack is leaf
-		private final Deque<Info> stack = new ArrayDeque<Info>();
+		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
 		private Record cur = null;
 		private boolean rewound = true;
 		private int valid;
@@ -268,7 +277,7 @@ public class Btree {
 			int adr = root;
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
-				stack.push(new Info(node, 0));
+				stack.push(new LevelInfo(node, 0));
 				Record slot = node.get(0);
 				if (level == 0) {
 					cur = slot;
@@ -285,7 +294,7 @@ public class Btree {
 			int adr = root;
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
-				stack.push(new Info(node, node.size() - 1));
+				stack.push(new LevelInfo(node, node.size() - 1));
 				Record slot = node.get(node.size() - 1);
 				if (level == 0) {
 					cur = slot;
@@ -307,7 +316,7 @@ public class Btree {
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
 				int pos = node.findPos(key);
-				stack.push(new Info(node, pos));
+				stack.push(new LevelInfo(node, pos));
 				Record slot = node.get(pos);
 				if (level == 0) {
 					cur = slot;
@@ -341,14 +350,14 @@ public class Btree {
 			}
 			++stack.peek().pos;
 			while (stack.size() < treeLevels + 1) {
-				Info info = stack.peek();
+				LevelInfo info = stack.peek();
 				Record slot = info.node.get(info.pos);
 				int adr = getAddress(slot);
 				int level = info.node.level - 1;
 				BtreeNode node = nodeAt(level, adr);
-				stack.push(new Info(node, 0));
+				stack.push(new LevelInfo(node, 0));
 			}
-			Info leaf = stack.peek();
+			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
 		}
 
@@ -376,14 +385,14 @@ public class Btree {
 			}
 			--stack.peek().pos;
 			while (stack.size() < treeLevels + 1) {
-				Info info = stack.peek();
+				LevelInfo info = stack.peek();
 				Record slot = info.node.get(info.pos);
 				int adr = getAddress(slot);
 				int level = info.node.level - 1;
 				BtreeNode node = nodeAt(level, adr);
-				stack.push(new Info(node, node.size() - 1));
+				stack.push(new LevelInfo(node, node.size() - 1));
 			}
-			Info leaf = stack.peek();
+			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
 		}
 
@@ -396,10 +405,10 @@ public class Btree {
 		}
 
 	}
-	private static class Info {
+	private static class LevelInfo {
 		BtreeNode node;
 		int pos;
-		Info(BtreeNode node, int pos) {
+		LevelInfo(BtreeNode node, int pos) {
 			this.node = node;
 			this.pos = pos;
 		}
@@ -475,7 +484,25 @@ public class Btree {
 	}
 
 	public void check() {
-		nodeAt(treeLevels, root).check(tran, Record.EMPTY);
+		int nnodes = nodeAt(treeLevels, root).check(tran, Record.EMPTY);
+		assert nnodes == this.nnodes
+				: "nnodes " + this.nnodes + " but counted " + nnodes;
+	}
+
+	public Info info() {
+		return new Info(root, treeLevels, nnodes);
+	}
+
+	public static class Info {
+		public final int root;
+		public final int treeLevels;
+		public final int nnodes;
+
+		Info(int root, int treeLevels, int nnodes) {
+			this.root = root;
+			this.treeLevels = treeLevels;
+			this.nnodes = nnodes;
+		}
 	}
 
 }
