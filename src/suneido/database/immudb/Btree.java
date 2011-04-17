@@ -25,11 +25,6 @@ import com.google.common.collect.Lists;
  * btrees anyway.
  * <p>
  * The first key in tree nodes is always "nil", less than any real key.
- * <p>
- * Note: If a key is unique without its data address
- * then it can be updated via redirection
- * otherwise it must be updated by delete and insert
- * since it's position may change, potentially to a different node.
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
@@ -220,17 +215,18 @@ public class Btree {
 	}
 
 	public boolean update(Record oldkey, Record newkey, boolean unique) {
-		if (unique)
+		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
 		else {
 			if (! remove(oldkey))
 				return false;
-			add(newkey);
-			return true;
+			return add(newkey, unique);
 		}
 	}
 
 	private boolean updateUnique(Record oldkey, Record newkey) {
+		assert oldkey.size() == newkey.size();
+
 		++modified;
 
 		// search down the tree
@@ -245,12 +241,13 @@ public class Btree {
 			adr = getAddress(slot);
 		}
 
-		// remove from leaf
+		// update leaf
 		BtreeNode leaf = nodeAt(0, adr);
 		leaf = leaf.without(oldkey);
 		if (leaf == null)
 			return false; // not found
 		leaf = leaf.with(newkey);
+		tran.redir(adr, leaf);
 		return true;
 	}
 
