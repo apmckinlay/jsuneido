@@ -43,6 +43,9 @@ public abstract class DbHashTree {
 	/** key and value must be non-zero */
 	public abstract DbHashTree with(int key, int value);
 
+	/** call proc.apply(adr) for each new entry (where value is an intref) */
+	public abstract void traverseChanges(Process proc);
+
 	public abstract int store(Translator translator);
 
 	public void print() {
@@ -132,10 +135,12 @@ public abstract class DbHashTree {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
 		private final ByteBuffer buf;
+		private final int adr;
 
 		DbNode(Context context, int adr) {
 			super(context);
 			buf = context.stor.buffer(adr);
+			this.adr = adr;
 		}
 
 		@Override
@@ -145,7 +150,7 @@ public abstract class DbHashTree {
 
 		@Override
 		public int store(Translator translator) {
-			throw new UnsupportedOperationException();
+			return adr;
 		}
 
 		@Override
@@ -165,6 +170,11 @@ public abstract class DbHashTree {
 		@Override
 		protected Node child(int i) {
 			return load(context, value(i));
+		}
+
+		@Override
+		public void traverseChanges(Process proc) {
+			// DbNode doesn't have any changes
 		}
 
 	}
@@ -290,6 +300,11 @@ public abstract class DbHashTree {
 		}
 
 
+		public int byteBufSize() {
+			return INT_BYTES + // present
+					(2 * size() * INT_BYTES); // keys and values
+		}
+
 		public void toByteBuf(ByteBuffer buf) {
 			buf.putInt(present);
 			for (int i = 0; i < size(); ++i) {
@@ -298,9 +313,18 @@ public abstract class DbHashTree {
 			}
 		}
 
-		public int byteBufSize() {
-			return INT_BYTES + // present
-					(2 * size() * INT_BYTES); // keys and values
+		@Override
+		public void traverseChanges(Process proc) {
+			for (int i = 0; i < size(); ++i) {
+				if (isPointer(i)) {
+					int ptr = values[i];
+					if (IntRefs.isIntRef(ptr)) {
+						MemNode node = (MemNode) context.intrefs.intToRef(ptr);
+						node.traverseChanges(proc);
+					}
+				} else if (IntRefs.isIntRef(values[i]))
+					proc.apply(keys[i]);
+			}
 		}
 
 		@Override
@@ -340,6 +364,10 @@ public abstract class DbHashTree {
 
 	private static Node load(Context context, int at) {
 		return new DbNode(context, at);
+	}
+
+	public static interface Process {
+		public void apply(int adr);
 	}
 
 }

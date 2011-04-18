@@ -15,10 +15,12 @@ package suneido.database.immudb;
  * so it can't use this optimization.
  */
 public class Redirects {
+	private final DbHashTree original;
 	private DbHashTree redirs;
 	boolean isEmpty = true;
 
 	public Redirects(DbHashTree redirs) {
+		original = redirs;
 		this.redirs = redirs;
 	}
 
@@ -44,5 +46,39 @@ public class Redirects {
 	public void print() {
 		redirs.print();
 	}
+
+	public boolean checkForConflicts(DbHashTree current) {
+		DbHashTree.Process proc = new Proc(original, current);
+		try {
+			redirs.traverseChanges(proc);
+			return true;
+		} catch (Conflict conflict) {
+			return false;
+		}
+	}
+
+	private static class Proc implements DbHashTree.Process {
+		private final DbHashTree original;
+		private final DbHashTree current;
+
+		public Proc(DbHashTree original, DbHashTree current) {
+			this.original = original;
+			this.current = current;
+		}
+
+		@Override
+		public void apply(int adr) {
+			if (original.get(adr) != current.get(adr))
+				throw conflict;
+		}
+
+	}
+
+	private static class Conflict extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+	}
+
+	// preconstructed for performance
+	private static Conflict conflict = new Conflict();
 
 }
