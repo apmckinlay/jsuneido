@@ -173,6 +173,8 @@ public class BtreeTest {
 		btree = new Btree4(tran, info);
 		check();
 		checkIterate();
+
+		store();
 	}
 
 	private void addRemoveAndStore(int n) {
