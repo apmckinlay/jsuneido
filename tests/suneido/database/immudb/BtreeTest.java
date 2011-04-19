@@ -72,7 +72,7 @@ public class BtreeTest {
 		assertThat(btree.treeLevels(), is(3));
 		check();
 		assertThat(tran.context.intrefs.size(), is(btree.info().nnodes));
-		assertTrue(tran.redirs().isEmpty());
+		assertTrue(tran.redirs().noneAdded());
 	}
 
 	@Test
