@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 /**
@@ -6,8 +10,6 @@ package suneido.database;
  * rather than new versions being added to the end of the database file.
  * Almost immutable but update will change record.
  * The schema information is in {@link Table}
- *
- * @author Andrew McKinlay
  */
 public class TableData {
 	public final Record record;
