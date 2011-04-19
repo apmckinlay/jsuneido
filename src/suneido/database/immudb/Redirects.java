@@ -17,7 +17,7 @@ package suneido.database.immudb;
 public class Redirects {
 	private final DbHashTree original;
 	private DbHashTree redirs;
-	boolean isEmpty = true;
+	boolean noneAdded = true;
 
 	public Redirects(DbHashTree redirs) {
 		original = redirs;
@@ -27,7 +27,7 @@ public class Redirects {
 	public void put(int from, int to) {
 		assert ! IntRefs.isIntRef(from);
 		redirs = redirs.with(from, to);
-		isEmpty = false;
+		noneAdded = false;
 	}
 
 	public int get(int from) {
@@ -39,42 +39,49 @@ public class Redirects {
 		return redirs.store(translator);
 	}
 
-	public boolean isEmpty() {
-		return isEmpty;
+	public boolean noneAdded() {
+		return noneAdded;
 	}
 
 	public void print() {
 		redirs.print();
 	}
 
-	public boolean checkForConflicts(DbHashTree current) {
-		DbHashTree.Process proc = new Proc(original, current);
-		try {
-			redirs.traverseChanges(proc);
-			return true;
-		} catch (Conflict conflict) {
-			return false;
-		}
+	/** for tests */
+	DbHashTree redirs() {
+		return redirs;
+	}
+
+	public void merge(DbHashTree current) {
+		if (current == original)
+			return; // no concurrent changes to merge
+
+		Proc proc = new Proc(original, current);
+		redirs.traverseChanges(proc);
+		redirs = proc.merged;
 	}
 
 	private static class Proc implements DbHashTree.Process {
 		private final DbHashTree original;
 		private final DbHashTree current;
+		private DbHashTree merged;
 
 		public Proc(DbHashTree original, DbHashTree current) {
 			this.original = original;
 			this.current = current;
+			merged = current;
 		}
 
 		@Override
-		public void apply(int adr) {
+		public void apply(int adr, int value) {
 			if (original.get(adr) != current.get(adr))
 				throw conflict;
+			merged = merged.with(adr, value);
 		}
 
 	}
 
-	private static class Conflict extends RuntimeException {
+	public static class Conflict extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 	}
 

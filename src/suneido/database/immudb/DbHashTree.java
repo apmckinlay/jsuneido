@@ -316,14 +316,14 @@ public abstract class DbHashTree {
 		@Override
 		public void traverseChanges(Process proc) {
 			for (int i = 0; i < size(); ++i) {
-				if (isPointer(i)) {
-					int ptr = values[i];
-					if (IntRefs.isIntRef(ptr)) {
-						MemNode node = (MemNode) context.intrefs.intToRef(ptr);
+				int value = values[i];
+				if (IntRefs.isIntRef(value)) {
+					if (isPointer(i)) {
+						MemNode node = (MemNode) context.intrefs.intToRef(value);
 						node.traverseChanges(proc);
-					}
-				} else if (IntRefs.isIntRef(values[i]))
-					proc.apply(keys[i]);
+					} else
+						proc.apply(keys[i], value);
+				}
 			}
 		}
 
@@ -367,7 +367,7 @@ public abstract class DbHashTree {
 	}
 
 	public static interface Process {
-		public void apply(int adr);
+		public void apply(int adr, int value);
 	}
 
 }

@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.*;
 
 import java.util.Random;
 
@@ -59,34 +60,35 @@ public class DbHashTreeTest {
 	@Test
 	public void random() {
 		DbHashTree tree = DbHashTree.empty(context);
-		Random r = new Random(123);
+		Random rand = new Random(123);
 		int key, value;
 		final int N = 10000;
+		tree = addRandom(tree, rand, N);
+		rand.setSeed(123);
 		for (int i = 0; i < N; ++i) {
-			key = r.nextInt();
-			value = r.nextInt();
-			assert tree.get(key) == 0;
-			if (key == 0 || value == 0)
-				continue ;
-			tree = tree.with(key, value);
-		}
-		r.setSeed(123);
-		for (int i = 0; i < N; ++i) {
-			key = r.nextInt();
-			value = r.nextInt();
+			key = rand.nextInt();
+			value = rand.nextInt();
 			if (key == 0 || value == 0)
 				continue ;
 			assertThat(tree.get(key), is(value));
 		}
 	}
 
+	private DbHashTree addRandom(DbHashTree tree, Random rand, final int N) {
+		for (int i = 0; i < N; ++i) {
+			int key = rand.nextInt();
+			int value = rand.nextInt();
+			assert tree.get(key) == 0;
+			if (key == 0 || value == 0)
+				continue ;
+			tree = tree.with(key, value);
+		}
+		return tree;
+	}
+
 	@Test
-	public void persist() {
-		Translator translator = new Translator() {
-			public int translate(int x) {
-				return x;
-			}
-		};
+	public void store() {
+		Translator translator = new NullTranslator();
 		Context context = new Context(new TestStorage(512, 64));
 
 		DbHashTree tree = DbHashTree.empty(context);
@@ -112,25 +114,11 @@ public class DbHashTreeTest {
 		Random r = new Random(1234);
 		int key, value;
 		final int N = 1000;
-		for (int i = 0; i < N; ++i) {
-			key = r.nextInt();
-			value = r.nextInt();
-			assert tree.get(key) == 0;
-			if (key == 0 || value == 0)
-				continue ;
-			tree = tree.with(key, value);
-		}
+		tree = addRandom(tree, r, N);
 		at2 = tree.store(translator);
 
 		tree = DbHashTree.from(context, at2);
-		for (int i = 0; i < N; ++i) {
-			key = r.nextInt();
-			value = r.nextInt();
-			assert tree.get(key) == 0;
-			if (key == 0 || value == 0)
-				continue ;
-			tree = tree.with(key, value);
-		}
+		tree = addRandom(tree, r, N);
 		r.setSeed(1234);
 		for (int i = 0; i < N * 2; ++i) {
 			key = r.nextInt();
@@ -140,6 +128,49 @@ public class DbHashTreeTest {
 			assertThat("i=" + i + " key=" + DbHashTree.fmt(key) + " value=" + value,
 					tree.get(key), is(value));
 		}
+	}
+
+	private class NullTranslator implements Translator {
+		public int translate(int x) {
+			return x;
+		}
+	}
+
+	@Test
+	public void traverse() {
+		Context context = new Context(new TestStorage(512, 64));
+		DbHashTree tree = DbHashTree.empty(context);
+		DbHashTree.Process proc = mock(DbHashTree.Process.class);
+
+		tree.traverseChanges(proc);
+		verifyZeroInteractions(proc);
+
+		int val = context.intrefs.refToInt(null);
+		tree = tree.with(1, val);
+		tree.traverseChanges(proc);
+		verify(proc).apply(1, val);
+
+		Random rand = new Random(46578);
+		tree = addRandom(tree, rand, 100);
+		Translator translator = new NullTranslator();
+		int adr = tree.store(translator);
+		tree = DbHashTree.from(context, adr);
+		proc = mock(DbHashTree.Process.class);
+		tree.traverseChanges(proc);
+		verifyZeroInteractions(proc);
+
+		final int N = 10;
+		int adrs[] = new int[N];
+		int vals[] = new int[N];
+		for (int i = 0; i < N; ++i) {
+			adrs[i] = rand.nextInt();
+			vals[i] = context.intrefs.refToInt(null);
+			tree = tree.with(adrs[i], vals[i]);
+		}
+		proc = mock(DbHashTree.Process.class);
+		tree.traverseChanges(proc);
+		for (int i = 0; i < N; ++i)
+			verify(proc).apply(adrs[i], vals[i]);
 	}
 
 }
