@@ -20,7 +20,7 @@ public class BtreeTest {
 	private Btree btree = new Btree4(tran);
 	private List<Record> keys = Lists.newArrayList();
 	private int NKEYS = 100;
-	private Btree.Info info;
+	private BtreeInfo info;
 	private int redirs;
 
 	private static class Btree4 extends Btree {
@@ -28,7 +28,7 @@ public class BtreeTest {
 		public Btree4(Tran tran) {
 			super(tran);
 		}
-		public Btree4(Tran tran, Info info) {
+		public Btree4(Tran tran, BtreeInfo info) {
 			super(tran, info);
 		}
 	}

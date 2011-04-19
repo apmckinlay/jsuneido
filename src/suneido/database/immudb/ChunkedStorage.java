@@ -34,7 +34,7 @@ public abstract class ChunkedStorage implements Storage {
 	}
 
 	public synchronized int alloc(int n) {
-		assert n < CHUNK_SIZE;
+		assert n < CHUNK_SIZE : n + " not < " + CHUNK_SIZE;
 		n = align(n);
 
 		// if insufficient room in this chunk, advance to next

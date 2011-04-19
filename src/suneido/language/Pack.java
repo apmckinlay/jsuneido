@@ -324,12 +324,12 @@ public class Pack {
 		if (-10 <= s && s < 0)
 			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
 				n *= 10;
-		if (s == 0 && Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
-			return (int) n;
-		else if (s == 0)
-			return n;
-		else
+		if (s != 0)
 			return BigDecimal.valueOf(n, s);
+		else if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
+			return (int) n;
+		else
+			return n;
 	}
 
 	private static long unpackLongPart(ByteBuffer buf, boolean minus) {

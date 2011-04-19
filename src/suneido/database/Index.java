@@ -87,8 +87,6 @@ public class Index {
 		final String columns;
 		final int mode;
 
-		static final ForeignKey NIL = new ForeignKey("", "", 0);
-
 		ForeignKey(String tablename, String columns, int mode) {
 			this(tablename, columns, mode, 0);
 		}

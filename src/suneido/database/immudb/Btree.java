@@ -43,7 +43,7 @@ public class Btree {
 		nnodes = 1;
 	}
 
-	public Btree(Tran tran, Info info) {
+	public Btree(Tran tran, BtreeInfo info) {
 		this.tran = tran;
 		this.root = info.root;
 		this.treeLevels = info.treeLevels;
@@ -483,20 +483,8 @@ public class Btree {
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
 
-	public Info info() {
-		return new Info(root, treeLevels, nnodes);
-	}
-
-	public static class Info {
-		public final int root;
-		public final int treeLevels;
-		public final int nnodes;
-
-		Info(int root, int treeLevels, int nnodes) {
-			this.root = root;
-			this.treeLevels = treeLevels;
-			this.nnodes = nnodes;
-		}
+	public BtreeInfo info() {
+		return new BtreeInfo(root, treeLevels, nnodes);
 	}
 
 }

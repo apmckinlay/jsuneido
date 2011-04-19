@@ -12,7 +12,7 @@ class TestStorage extends ChunkedStorage {
 	}
 
 	TestStorage(int chunkSize, int maxChunks) {
-		super(chunkSize, maxChunks);
+		super(align(chunkSize), maxChunks);
 	}
 
 	@Override
