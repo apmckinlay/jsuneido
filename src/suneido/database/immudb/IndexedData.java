@@ -19,10 +19,11 @@ public class IndexedData {
 		return this;
 	}
 
-	public void add(Tran tran, Record data) {
+	public int add(Tran tran, Record data) {
 		int intref = tran.refToInt(data);
 		for (Index index : indexes)
 			index.add(data, intref);
+		return intref;
 	}
 
 	private static class Index {

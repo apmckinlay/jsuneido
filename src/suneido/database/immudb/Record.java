@@ -24,6 +24,10 @@ public class Record implements Comparable<Record>, Packable {
 	private final ByteBuffer buf;
 	private final int offset; // used to point to a key in a BtreeNode
 
+	public Record(ByteBuffer buf) {
+		this(buf, 0);
+	}
+
 	public Record(ByteBuffer buf, int offset) {
 		this.buf = buf;
 		this.offset = offset;
@@ -181,6 +185,24 @@ public class Record implements Comparable<Record>, Packable {
 		b.limit(off + len);
 		return Pack.unpack(b);
 		// TODO change unpack to take buf,i,n to eliminate duplicate
+	}
+
+	public int getInt(int i) {
+		// TODO avoid boxing
+		return (Integer) get(i);
+	}
+
+	public long getLong(int i) {
+		// TODO avoid boxing
+		Object x = get(i);
+		if (x instanceof Integer)
+			return (Integer) x;
+		else
+			return (Long) x;
+	}
+
+	public String getString(int i) {
+		return (String) get(i);
 	}
 
 	@Override
