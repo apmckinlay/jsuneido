@@ -14,19 +14,13 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class Index {
-
 	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
-
 	public final int tblnum;
 	public final String columns;
 	public final ImmutableList<Integer> colnums;

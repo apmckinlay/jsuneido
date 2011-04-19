@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import javax.annotation.concurrent.Immutable;
@@ -8,7 +12,6 @@ import suneido.util.PersistentMap;
  * Stores table information for {@link Database}.
  * {@link Transaction}'s are given the current state when starting.
  * Immutable persistent so threadsafe.
- * @author Andrew McKinlay
  */
 @Immutable
 public class Tables {

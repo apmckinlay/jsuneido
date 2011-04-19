@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import java.util.List;
@@ -12,7 +16,6 @@ import com.google.common.collect.ImmutableList;
 /**
  * Table schema information.
  * The mutable data: nextfield, nrows, and totalsize are stored in {@link TableData}
- * @author Andrew McKinlay
  */
 @Immutable
 public class Table {
