@@ -44,9 +44,13 @@ public class Index {
 		this.isKey = key == Boolean.TRUE;
 		this.unique = key.equals(UNIQUE);
 		fksrc = get_fksrc(record);
-		btreeInfo = new BtreeInfo(record.getInt(ROOT),
-				record.getInt(TREELEVELS), record.getInt(NNODES));
+		btreeInfo = btreeInfo(record);
 		colnums = cols.nums(columns);
+	}
+
+	public static BtreeInfo btreeInfo(Record record) {
+		return new BtreeInfo(record.getInt(ROOT),
+				record.getInt(TREELEVELS), record.getInt(NNODES));
 	}
 
 	private ForeignKey get_fksrc(Record record) {
