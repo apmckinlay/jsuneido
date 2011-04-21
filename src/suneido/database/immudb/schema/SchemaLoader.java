@@ -1,76 +1,47 @@
 package suneido.database.immudb.schema;
 
-import java.util.ArrayList;
-
 import suneido.database.Database.TN;
 import suneido.database.immudb.*;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
-public class Schema {
+public class SchemaLoader {
 	private final Storage stor;
 
-	public Schema(Storage stor) {
+	public SchemaLoader(Storage stor) {
 		this.stor = stor;
 	}
 
-	public void load(int root, int redirs) {
+	public Tables load(int root, int redirs) {
 		Tran tran = new Tran(stor, redirs);
 		Record r = new Record(stor.buffer(root));
-//System.out.println(r);
 		BtreeInfo info = Index.btreeInfo(r);
 		Btree indexesIndex = new Btree(tran, info);
 
 		int adr = indexesIndex.get(key(TN.COLUMNS, "table,column"));
 		r = new Record(stor.buffer(adr));
-//System.out.println(r);
 		info = Index.btreeInfo(r);
 		Btree columnsIndex = new Btree(tran, info);
 
 		adr = indexesIndex.get(key(TN.TABLES, "table"));
 		r = new Record(stor.buffer(adr));
-//System.out.println(r);
 		info = Index.btreeInfo(r);
 		Btree tablesIndex = new Btree(tran, info);
 
+		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
 		IndexesReader ir = new IndexesReader(indexesIndex);
+		Tables.Builder tsb = new Tables.Builder();
 		while (true) {
-			Columns columns = cr.next();
-			if (columns == null)
+			Record tblrec = tr.next();
+			if (tblrec == null)
 				break;
-System.out.println(columns);
+			Columns columns = cr.next();
 			Indexes indexes = ir.next(columns);
-System.out.println(indexes);
+			Table table = new Table(tblrec, columns, indexes);
+			tsb.add(table);
 		}
-
-		Btree.Iter iter;
-
-//		iter = columnsIndex.iterator();
-//		for (iter.next(); ! iter.eof(); iter.next()) {
-//			Record key = iter.cur();
-//			adr = Btree.getAddress(key);
-//			r = new Record(stor.buffer(adr));
-//System.out.println("column " + r);
-//		}
-/*
-		iter = indexesIndex.iterator();
-		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record key = iter.cur();
-			adr = Btree.getAddress(key);
-			r = new Record(stor.buffer(adr));
-System.out.println("index " + r);
-		}
-
-		iter = tablesIndex.iterator();
-		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record key = iter.cur();
-			adr = Btree.getAddress(key);
-			r = new Record(stor.buffer(adr));
-System.out.println("table " + r);
-		}
-*/
+		return tsb.build();
 	}
 
 	private Record key(Object... values) {
@@ -78,6 +49,21 @@ System.out.println("table " + r);
 		for (Object x : values)
 			rb.add(x);
 		return rb.build();
+	}
+
+	private class TablesReader {
+		Btree.Iter iter;
+
+		TablesReader(Btree tablesIndex) {
+			iter = tablesIndex.iterator();
+		}
+		Record next() {
+			iter.next();
+			if (iter.eof())
+				return null;
+			Record key = iter.cur();
+			return recordFromKey(key);
+		}
 	}
 
 	private class ColumnsReader {
@@ -110,55 +96,45 @@ System.out.println("table " + r);
 			return new Columns(list.build());
 		}
 		Column column(Record key) {
-			int adr = Btree.getAddress(key);
-			Record r = new Record(stor.buffer(adr));
+			Record r = recordFromKey(key);
 			return new Column(r);
 		}
 	}
 
 	private class IndexesReader {
 		Btree.Iter iter;
-		boolean first = true;
 		Record cur;
-		ArrayList<Record> list = Lists.newArrayList();
+		ImmutableList.Builder<Index> list = ImmutableList.builder();
 
 		IndexesReader(Btree indexesIndex) {
 			iter = indexesIndex.iterator();
+			iter.next();
+			cur = recordFromKey(iter.cur());
 		}
 		Indexes next(Columns cols) {
-			if (first) {
-				first = false;
-				iter.next();
-				cur = index(iter.cur());
-			}
 			if (cur == null)
 				return null;
 			while (true) {
-				list.add(cur);
+				list.add(new Index(cols, cur));
 				iter.next();
 				if (iter.eof())
 					break;
 				Record prev = cur;
-				cur = index(iter.cur());
+				cur = recordFromKey(iter.cur());
 				if (Index.tblnum(prev) != Index.tblnum(cur)) {
-					Indexes result = result(cols);
-					list = Lists.newArrayList();
+					Indexes result = new Indexes(list.build());
+					list = ImmutableList.builder();
 					return result;
 				}
 			}
 			cur = null;
-			return result(cols);
+			return new Indexes(list.build());
 		}
-		Record index(Record key) {
-			int adr = Btree.getAddress(key);
-			return new Record(stor.buffer(adr));
-		}
-		Indexes result(Columns cols) {
-			ImmutableList.Builder<Index> builder = ImmutableList.builder();
-			for (Record r : list)
-				builder.add(new Index(cols, r));
-			return new Indexes(builder.build());
-		}
+	}
+
+	private Record recordFromKey(Record key) {
+		int adr = Btree.getAddress(key);
+		return new Record(stor.buffer(adr));
 	}
 
 }
