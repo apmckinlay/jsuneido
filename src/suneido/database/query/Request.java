@@ -1,6 +1,5 @@
-/*
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
+/* Copyright 2008 Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
  */
 package suneido.database.query;
 
@@ -15,8 +14,6 @@ import suneido.language.Lexer;
 
 /**
  * Parse and execute database "requests" to create, alter, or remove tables.
- *
- * @author Andrew McKinlay
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
@@ -38,6 +35,7 @@ public class Request implements RequestGenerator<Object> {
 		pc.parse();
 	}
 
+	@Override
 	public Object columns(Object columns, String column) {
 		List<String> list = columns == null
 				? new ArrayList<String>() : (List<String>) columns;
@@ -45,6 +43,7 @@ public class Request implements RequestGenerator<Object> {
 		return list;
 	}
 
+	@Override
 	public Object create(String table, Object schemaOb) {
 		Schema schema = (Schema) schemaOb;
 		if (!schema.hasKey())
@@ -62,6 +61,7 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 
+	@Override
 	public Object ensure(String tablename, Object schemaOb) {
 		// TODO should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
@@ -76,11 +76,13 @@ public class Request implements RequestGenerator<Object> {
 		return null;
 	}
 
+	@Override
 	public Object alterCreate(String table, Object schema) {
 		createSchema(table, (Schema) schema);
 		return null;
 	}
 
+	@Override
 	public Object alterDrop(String table, Object schemaOb) {
 		Schema schema = (Schema) schemaOb;
 		for (String col : schema.columns)
@@ -90,22 +92,26 @@ public class Request implements RequestGenerator<Object> {
 		return null;
 	}
 
+	@Override
 	public Object alterRename(String table, Object renames) {
 		for (Rename r : (List<Rename>) renames)
 			r.rename(table);
 		return null;
 	}
 
+	@Override
 	public Object rename(String from, String to) {
 		TheDb.db().renameTable(from, to);
 		return null;
 	}
 
+	@Override
 	public Object view(String name, String definition) {
 		TheDb.db().add_view(name, definition);
 		return null;
 	}
 
+	@Override
 	public Object sview(String name, String definition) {
 		if (serverData.getSview(name) != null)
 			throw new SuException("sview: '" + name + "' already exists");
@@ -113,6 +119,7 @@ public class Request implements RequestGenerator<Object> {
 		return null;
 	}
 
+	@Override
 	public Object drop(String table) {
 		if (serverData.getSview(table) != null)
 			serverData.dropSview(table);
@@ -135,6 +142,7 @@ public class Request implements RequestGenerator<Object> {
 		}
 	}
 
+	@Override
 	public Object foreignKey(String table, Object columns, int mode) {
 		return new ForeignKey(table, columns, mode);
 	}
@@ -168,12 +176,14 @@ public class Request implements RequestGenerator<Object> {
 		}
 	}
 
+	@Override
 	public Object index(boolean key, boolean unique, boolean lower,
 			Object columns, Object foreignKey) {
 		return new Index(key, unique, lower, columns, foreignKey == null
 				? new ForeignKey() : foreignKey);
 	}
 
+	@Override
 	public Object indexes(Object indexes, Object index) {
 		List<Index> list = indexes == null
 				? new ArrayList<Index>() : (List<Index>) indexes;
@@ -194,6 +204,7 @@ public class Request implements RequestGenerator<Object> {
 		}
 	}
 
+	@Override
 	public Object renames(Object renames, String from, String to) {
 		List<Rename> list = renames == null
 				? new ArrayList<Rename>() : (List<Rename>) renames;
@@ -221,6 +232,7 @@ public class Request implements RequestGenerator<Object> {
 		}
 	}
 
+	@Override
 	public Object schema(Object columns, Object indexes) {
 		return new Schema(columns, indexes);
 	}
