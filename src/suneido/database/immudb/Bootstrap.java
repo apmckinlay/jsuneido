@@ -45,7 +45,6 @@ public class Bootstrap {
 		tablesIndex.store();
 		columnsIndex.store();
 		indexesIndex.store();
-		// TODO update indexes records to convert roots from intref's to adr's
 		updateIndexesRecs();
 		int redirs = tran.storeRedirs();
 
@@ -139,7 +138,6 @@ public class Bootstrap {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(root);
 		buf.putInt(redirs);
-System.out.println("store root " + root + " redirs " + redirs);
 	}
 
 }

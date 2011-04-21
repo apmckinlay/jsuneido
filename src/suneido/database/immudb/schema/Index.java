@@ -48,6 +48,10 @@ public class Index {
 		colnums = cols.nums(columns);
 	}
 
+	public static int tblnum(Record record) {
+		return record.getInt(TBLNUM);
+	}
+
 	public static BtreeInfo btreeInfo(Record record) {
 		return new BtreeInfo(record.getInt(ROOT),
 				record.getInt(TREELEVELS), record.getInt(NNODES));
@@ -87,12 +91,6 @@ public class Index {
 //		return builder.build();
 //	}
 
-	@Override
-	public String toString() {
-		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + columns + ")";
-	}
-
 	public static String getColumns(Record r) {
 		String columns = r.getString(COLUMNS);
 		if (columns.startsWith("lower:"))
@@ -108,6 +106,10 @@ public class Index {
 		return ("," + columns + ",").contains("," + name + ",");
 	}
 
-
+	@Override
+	public String toString() {
+		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
+				"(" + columns + ")";
+	}
 
 }
