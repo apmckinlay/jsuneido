@@ -2,10 +2,11 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database.immudb;
+package suneido.database.immudb.schema;
 
 import java.nio.ByteBuffer;
 
+import suneido.database.immudb.*;
 import suneido.database.immudb.schema.*;
 
 /**

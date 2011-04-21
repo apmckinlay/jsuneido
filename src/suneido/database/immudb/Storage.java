@@ -24,4 +24,6 @@ public interface Storage {
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr);
 
+	void close();
+
 }
