@@ -58,7 +58,7 @@ public class IntRefs implements Iterable<Object> {
 	}
 
 	public int getAdr(int intref) {
-		return adrs[intref ^ MASK];
+		return adrs == null ? intref : adrs[intref ^ MASK];
 	}
 
 	@Override

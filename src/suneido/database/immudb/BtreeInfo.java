@@ -17,4 +17,20 @@ public class BtreeInfo {
 		this.treeLevels = treeLevels;
 		this.nnodes = nnodes;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof BtreeInfo) {
+			BtreeInfo that = (BtreeInfo) other;
+			return this.root == that.root &&
+					this.treeLevels == that.treeLevels &&
+					this.nnodes == that.nnodes;
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
+	}
 }

@@ -103,7 +103,11 @@ public class Tran implements Translator {
 
 	@Override
 	public int translate(int x) {
-		return getAdr(x);
+		return IntRefs.isIntRef(x) ? getAdr(x) : x;
+	}
+
+	public Record getrec(int adr) {
+		return new Record(context.stor.buffer(redir(adr)));
 	}
 
 }

@@ -71,7 +71,7 @@ public class BtreeTest {
 			btree.add(key);
 		assertThat(btree.treeLevels(), is(3));
 		check();
-		assertThat(tran.context.intrefs.size(), is(btree.info().nnodes));
+		assertThat(tran.context.intrefs.size(), is(btree.nnodes));
 		assertTrue(tran.redirs().noneAdded());
 	}
 
@@ -216,7 +216,7 @@ public class BtreeTest {
 
 	private void store() {
 		tran.startStore();
-		btree.store();
+		Btree.store(tran);
 		info = btree.info();
 		redirs = tran.storeRedirs();
 		tran = null;
@@ -378,7 +378,7 @@ public class BtreeTest {
 		DataRecords.store(tran);
 		int adr = tran.getAdr(intref);
 		assert adr != 0;
-		btree.store();
+		Btree.store(tran);
 		info = btree.info();
 
 		tran = new Tran(stor);

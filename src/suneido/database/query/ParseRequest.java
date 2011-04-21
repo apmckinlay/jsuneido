@@ -5,7 +5,7 @@ import suneido.database.Index;
 import suneido.language.*;
 
 public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
-	ParseRequest(Lexer lexer, RequestGenerator<T> generator) {
+	public ParseRequest(Lexer lexer, RequestGenerator<T> generator) {
 		super(lexer, generator);
 	}
 
@@ -13,7 +13,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		super(parse);
 	}
 
-	T parse() {
+	public T parse() {
 		return matchReturn(EOF, request());
 	}
 

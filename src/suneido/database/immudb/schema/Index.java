@@ -78,7 +78,19 @@ public class Index {
 		else
 			rb.add(isKey);
 		rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
+		addBtreeInfo(rb, btreeInfo);
+		return rb.build();
+	}
+
+	public static void addBtreeInfo(RecordBuilder rb, BtreeInfo btreeInfo) {
 		rb.add(btreeInfo.root).add(btreeInfo.treeLevels).add(btreeInfo.nnodes);
+	}
+
+	public static Record updateRecord(Record rec, BtreeInfo info) {
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < ROOT; ++i)
+			rb.add(rec, i);
+		addBtreeInfo(rb, info);
 		return rb.build();
 	}
 
