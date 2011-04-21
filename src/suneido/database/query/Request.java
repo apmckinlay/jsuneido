@@ -61,7 +61,6 @@ public class Request implements RequestGenerator<Object> {
 			index.create(table);
 	}
 
-
 	@Override
 	public Object ensure(String tablename, Object schemaOb) {
 		// TODO should probably be all in one transaction
@@ -239,4 +238,3 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 }
-
