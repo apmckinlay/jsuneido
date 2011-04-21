@@ -19,9 +19,17 @@ public class Database {
 	}
 
 	public void open() {
+		check();
+		loadSchema();
+	}
+
+	private void check() {
 		Check check = new Check(stor);
 		if (false == check.fastcheck())
 			throw new RuntimeException("database open check failed");
+	}
+
+	private void loadSchema() {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int root = buf.getInt();
 		int redirs = buf.getInt();
