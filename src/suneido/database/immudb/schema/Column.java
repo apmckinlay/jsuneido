@@ -23,6 +23,7 @@ public class Column implements Comparable<Column> {
 	}
 
 	public Column(Record record) {
+//System.out.println("Columns " + record);
 		tblnum = record.getInt(TBLNUM);
 		name = record.getString(COLUMN);
 		colnum = record.getInt(FLDNUM);
