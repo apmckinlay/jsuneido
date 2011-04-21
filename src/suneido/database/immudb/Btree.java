@@ -4,6 +4,8 @@
 
 package suneido.database.immudb;
 
+import gnu.trove.list.array.TLongArrayList;
+
 import java.io.*;
 import java.util.*;
 
@@ -33,7 +35,7 @@ public class Btree {
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
-	private int nnodes;
+	int nnodes;
 	private int modified = 0; // depends on all access via one instance
 
 	public Btree(Tran tran) {
@@ -72,8 +74,6 @@ public class Btree {
 		Record slot = leaf.find(key);
 		return slot != null && slot.startsWith(key) ? getAddress(slot) : 0;
 	}
-
-
 
 	/** Add a unique key to the btree. */
 	public void add(Record key) {
@@ -451,30 +451,29 @@ public class Btree {
 		return treeLevels;
 	}
 
-	public void store() {
+	public static void store(Tran tran) {
 		// need to store BtreeNodes bottom up
 		// sort by level without allocation
 		// by packing level and intref into a long
 		IntRefs intrefs = tran.context.intrefs;
-		long a[] = new long[intrefs.size()];
+		TLongArrayList a = new TLongArrayList();
 		int i = -1;
 		for (Object x : intrefs) {
 			++i;
 			if (x instanceof BtreeNode) {
 				BtreeNode node = (BtreeNode) x;
-				a[i] = ((long) node.level() << 32) | i;
+				a.add(((long) node.level() << 32) | i);
 			}
 		}
-		Arrays.sort(a);
-		for (long n : a) {
+		a.sort();
+		for (i = 0; i < a.size(); ++i) {
+			long n = a.get(i);
 			int intref = (int) n | IntRefs.MASK;
 			BtreeNode node = (BtreeNode) intrefs.intToRef(intref);
 			int adr = node.store(tran);
 			if (adr != 0)
 				tran.setAdr(intref, adr);
 		}
-		if (IntRefs.isIntRef(root))
-			root = tran.getAdr(root);
 	}
 
 	public void check() {
@@ -484,6 +483,8 @@ public class Btree {
 	}
 
 	public BtreeInfo info() {
+		if (IntRefs.isIntRef(root))
+			root = tran.getAdr(root);
 		return new BtreeInfo(root, treeLevels, nnodes);
 	}
 

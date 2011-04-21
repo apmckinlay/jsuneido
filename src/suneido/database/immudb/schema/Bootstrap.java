@@ -7,7 +7,6 @@ package suneido.database.immudb.schema;
 import java.nio.ByteBuffer;
 
 import suneido.database.immudb.*;
-import suneido.database.immudb.schema.*;
 
 /**
  * Create a new database.
@@ -15,8 +14,8 @@ import suneido.database.immudb.schema.*;
  * and btrees point to indexes records.
  */
 public class Bootstrap {
-	static class TN
-		{ final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
+	public static class TN
+		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 	private static ForeignKey noFkey = new ForeignKey("", "", 0);
 	public final Storage stor;
 	public final Tran tran;
@@ -43,9 +42,7 @@ public class Bootstrap {
 
 		tran.startStore();
 		storeData();
-		tablesIndex.store();
-		columnsIndex.store();
-		indexesIndex.store();
+		Btree.store(tran);
 		updateIndexesRecs();
 		int redirs = tran.storeRedirs();
 

@@ -7,26 +7,30 @@ import com.google.common.collect.ImmutableList;
 
 public class SchemaLoader {
 	private final Storage stor;
+	private Tran tran;
 
 	public SchemaLoader(Storage stor) {
 		this.stor = stor;
 	}
 
 	public Tables load(int root, int redirs) {
-		Tran tran = new Tran(stor, redirs);
-		Record r = new Record(stor.buffer(root));
+		tran = new Tran(stor, redirs);
+		Record r = tran.getrec(root);
 		BtreeInfo info = Index.btreeInfo(r);
 		Btree indexesIndex = new Btree(tran, info);
+//indexesIndex.print();
 
 		int adr = indexesIndex.get(key(TN.COLUMNS, "table,column"));
-		r = new Record(stor.buffer(adr));
+		r = tran.getrec(adr);
 		info = Index.btreeInfo(r);
 		Btree columnsIndex = new Btree(tran, info);
+//columnsIndex.print();
 
 		adr = indexesIndex.get(key(TN.TABLES, "table"));
-		r = new Record(stor.buffer(adr));
+		r = tran.getrec(adr);
 		info = Index.btreeInfo(r);
 		Btree tablesIndex = new Btree(tran, info);
+//tablesIndex.print();
 
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
@@ -39,6 +43,7 @@ public class SchemaLoader {
 			Columns columns = cr.next();
 			Indexes indexes = ir.next(columns);
 			Table table = new Table(tblrec, columns, indexes);
+//System.out.println(table.name + " " + table.schema());
 			tsb.add(table);
 		}
 		return tsb.build();
@@ -134,7 +139,7 @@ public class SchemaLoader {
 
 	private Record recordFromKey(Record key) {
 		int adr = Btree.getAddress(key);
-		return new Record(stor.buffer(adr));
+		return tran.getrec(adr);
 	}
 
 }
