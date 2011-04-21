@@ -1,6 +1,7 @@
 /* Copyright 2008 Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
+
 package suneido.database.query;
 
 import static suneido.util.Util.listToCommas;
