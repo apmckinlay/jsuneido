@@ -211,8 +211,10 @@ public class Record implements Comparable<Record>, Packable {
 		sb.append("<");
 		for (int i = 0; i < size(); ++i) {
 			Object x = get(i);
-			if (x instanceof Integer)
+			/*if (x instanceof Integer)
 				sb.append(Integer.toHexString(((Integer) x)));
+			else*/ if (x instanceof String)
+				sb.append("'").append(x).append("'");
 			else
 				sb.append(x);
 			sb.append(",");

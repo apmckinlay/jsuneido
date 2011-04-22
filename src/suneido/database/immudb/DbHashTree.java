@@ -48,6 +48,15 @@ public abstract class DbHashTree {
 
 	public abstract int store(Translator translator);
 
+	public int store() {
+		return store(nilTranslator);
+	}
+
+	private static final Translator nilTranslator = new Translator() {
+			public int translate(int x) {
+				return x;
+			} };
+
 	public void print() {
 		((Node) this).print(0);
 	}

@@ -54,6 +54,7 @@ public class Tran implements Translator {
 	}
 
 	public void startStore() {
+		context.stor.protect(); // enable output
 		context.intrefs.startStore();
 		head_adr = context.stor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
@@ -71,6 +72,7 @@ public class Tran implements Translator {
 
 		int cksum = checksum();
 		context.stor.buffer(tail_adr).putInt(cksum).putInt(size);
+		context.stor.protectAll(); // can't output outside tran
 	}
 
 	/**

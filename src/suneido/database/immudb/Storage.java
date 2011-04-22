@@ -26,4 +26,7 @@ public interface Storage {
 
 	void close();
 
+	void protect();
+	void protectAll();
+
 }

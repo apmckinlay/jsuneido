@@ -8,73 +8,115 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.immudb.schema.*;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+@NotThreadSafe
 public class Transaction {
 	private final Storage stor;
 	private final Tran tran;
+	private DbHashTree dbinfo;
 	private final Tables schema;
 	private final Map<String,Btree> indexes = Maps.newHashMap();
-	private final List<NewBtree> newBtrees = Lists.newArrayList();
+	private TableBuilder tb = null;
 
-	public Transaction(Storage stor, Tables schema) {
+	public Transaction(Storage stor, int dbinfo, int redirs, Tables schema) {
 		this.stor = stor;
-		tran = new Tran(stor);
+		tran = new Tran(stor, redirs);
+		this.dbinfo = DbHashTree.from(tran.context, dbinfo);
 		this.schema = schema;
 	}
 
-	public Btree getIndex(String table) {
+	public Btree getIndex(String table) { // TODO handle multiple indexes
 		Btree btree = indexes.get(table);
 		if (btree != null)
 			return btree;
 		Table tbl = schema.get(table);
-		Index index = tbl.firstIndex();
-		btree = new Btree(tran, index.btreeInfo);
+		int adr = dbinfo.get(tbl.num);
+		Record r = tran.getrec(adr);
+		TableInfo ti = new TableInfo(r);
+		btree = new Btree(tran, ti.firstIndex());
 		indexes.put(table, btree);
 		return btree;
 	}
 
-	public int addTable(String name) {
+	public class TableBuilder {
+		final int tblnum;
+		final List<Column> columns = Lists.newArrayList();
+		final List<Index> indexes = Lists.newArrayList();
+ 		final List<Btree> btrees = Lists.newArrayList();
+
+		TableBuilder(int tblnum) {
+			this.tblnum = tblnum;
+		}
+
+		int field(String field) {
+			for (Column c : columns)
+				if (c.name.equals(field))
+					return c.field;
+			throw new RuntimeException();
+		}
+
+		public void build() {
+			// TODO handle multiple indexes
+			addTableInfo(tblnum,
+					TableInfo.toRecord(tblnum, columns.size(), 0, 0,
+							indexes.get(0).columnsString(), btrees.get(0).info()));
+		}
+
+	}
+
+	private void addTableInfo(int tblnum, Record r) {
+		int adr = r.store(stor);
+		dbinfo = dbinfo.with(tblnum, adr);
+	}
+
+	public TableBuilder createTable(String name) {
 		Btree btree = getIndex("tables");
 		IndexedData id = new IndexedData().index(btree, 0);
 		int tblnum = 4; // TODO next table num
-		Record r = Table.toRecord(tblnum, name, 0, 0, 0);
+		Record r = Table.toRecord(tblnum, name);
 		id.add(tran, r);
-		return tblnum;
+		tb = new TableBuilder(tblnum);
+		return tb;
 	}
 
-	public void addColumn(int tblnum, String column) {
+	public void addColumn(TableBuilder tb, String column) {
 		Btree btree = getIndex("columns");
 		IndexedData id = new IndexedData().index(btree, 0, 2);
-		int colnum = 0; // TODO next column num
-		Record r = Column.toRecord(tblnum, column, colnum);
+		int field = tb.columns.size();
+		Column c = new Column(tb.tblnum, field, column);
+		Record r = c.toRecord();
 		id.add(tran, r);
+		tb.columns.add(c);
 	}
 
-	private static ForeignKey noFkey = new ForeignKey("", "", 0);
+	private static final CharMatcher cm = CharMatcher.is(',');
+	private static final Splitter splitter = Splitter.on(',');
 
-	public void addIndex(int tblnum, String columns, boolean key,
+	public int[] nums(TableBuilder tb, String s) {
+		int[] cols = new int[cm.countIn(s) + 1];
+		int i = 0;
+		for (String c : splitter.split(s))
+			cols[i++] = tb.field(c);
+		return cols;
+	}
+
+	public void addIndex(TableBuilder tb, String columns, boolean key,
 			boolean unique, String fktable, String fkcolumns, int fkmode) {
 		Btree btree = getIndex("indexes");
 		IndexedData id = new IndexedData().index(btree, 0, 1);
-		Btree index = new Btree(tran);
-		Record r = Index.toRecord(tblnum, columns, key, unique, noFkey,
-				index.info());
-		int intref = id.add(tran, r);
-		newBtrees.add(new NewBtree(index, intref));
-	}
-
-	private static class NewBtree {
-		Btree btree;
-		int intref;
-
-		NewBtree(Btree btree, int intref) {
-			this.btree = btree;
-			this.intref = intref;
-		}
+		Index index = new Index(tb.tblnum, nums(tb, columns), key, unique);
+		Record r = index.toRecord();
+		id.add(tran, r);
+		tb.indexes.add(index);
+		tb.btrees.add(new Btree(tran));
 	}
 
 	// TODO synchronize
@@ -82,11 +124,14 @@ public class Transaction {
 		tran.startStore();
 		storeData();
 		Btree.store(tran);
-		updateNewBtrees();
+
+		if (tb != null)
+			tb.build();
+		updateDbInfo();
 		// TODO update nrows, totalsize
-		updateBtreeInfo();
+
 		int redirs = tran.storeRedirs();
-		store(indexesAdr(), redirs);
+		store(dbinfo.store(), redirs);
 		tran.endStore();
 	}
 
@@ -105,54 +150,24 @@ public class Transaction {
 		}
 	}
 
-	private void updateNewBtrees() {
-		for (NewBtree nb : newBtrees) {
-			Record oldrec = (Record) tran.intToRef(nb.intref);
-			Record newrec = Index.updateRecord(oldrec, nb.btree.info());
-			int newadr = newrec.store(tran.context.stor);
-			int oldadr = tran.getAdr(nb.intref);
-			tran.redirs().put(oldadr, newadr);
+	private void updateDbInfo() {
+		for (Map.Entry<String, Btree> e : indexes.entrySet()) {
+			String tableName = e.getKey();
+			int tblnum = schema.get(tableName).num;
+			Btree btree = e.getValue();
+			TableInfo ti = new TableInfo(tran.getrec(dbinfo.get(tblnum)));
+			Record r = TableInfo.toRecord(tblnum, ti.nextfield, ti.nrows, ti.totalsize,
+					ti.firstIndex().columns, btree.info());
+			addTableInfo(tblnum, r);
 		}
-	}
-
-	private void updateBtreeInfo() {
-		for (Map.Entry<String, Btree> entry : indexes.entrySet())
-			updateBtreeInfo(entry.getKey(), entry.getValue());
-	}
-
-	private void updateBtreeInfo(String table, Btree btree) {
-		Table tbl = schema.get(table);
-		Index index = tbl.firstIndex();
-		if (! btree.info().equals(index.btreeInfo)) {
-			int oldadr = indexesLookup(tbl.num, index.columns);
-			Record oldrec = tran.getrec(oldadr);
-			Record newrec = Index.updateRecord(oldrec, btree.info());
-System.out.println("oldrec " + oldrec);
-System.out.println("newrec " + newrec);
-			int newadr = newrec.store(tran.context.stor);
-System.out.println("redirect " + oldadr + " to " + newadr);
-			tran.redirs().put(oldadr, newadr);
-		}
-	}
-
-	public int indexesLookup(int tblnum, String indexColumns) {
-		Btree indexes = getIndex("indexes");
-		Record key = new RecordBuilder().add(tblnum).add(indexColumns).build();
-		return indexes.get(key);
-	}
-
-	private int indexesAdr() {
-		return indexesLookup(Bootstrap.TN.INDEXES, "table,columns");
 	}
 
 	static final int INT_SIZE = 4;
 
 	// TODO remove duplication with Bootstrap
-	private void store(int indexes, int redirs) {
-		indexes = tran.redir(indexes);
-System.out.println("indexes " + indexes);
+	private void store(int dbinfo, int redirs) {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
-		buf.putInt(indexes);
+		buf.putInt(dbinfo);
 		buf.putInt(redirs);
 	}
 

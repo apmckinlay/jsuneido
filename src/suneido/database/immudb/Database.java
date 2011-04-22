@@ -12,6 +12,7 @@ import suneido.database.immudb.schema.Tables;
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
+	private int dbinfo;
 	private int redirs;
 	private Tables schema;
 
@@ -32,9 +33,9 @@ public class Database {
 
 	private void loadSchema() {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
-		int root = buf.getInt();
+		dbinfo = buf.getInt();
 		redirs = buf.getInt();
-		schema = new SchemaLoader(stor).load(root, redirs);
+		schema = new SchemaLoader(stor).load(dbinfo, redirs);
 	}
 
 	public int redirs() {
@@ -46,7 +47,7 @@ public class Database {
 	}
 
 	public Transaction updateTran() {
-		return new Transaction(stor, schema);
+		return new Transaction(stor, dbinfo, redirs, schema);
 	}
 
 	public void close() {

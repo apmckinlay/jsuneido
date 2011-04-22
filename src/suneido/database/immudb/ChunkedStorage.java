@@ -65,6 +65,14 @@ public abstract class ChunkedStorage implements Storage {
 		return adr < 0 ? file_size + adr : intToLong(adr);
 	}
 
+	private long protect = 0;
+	public void protect() {
+		protect = file_size;
+	}
+	public void protectAll() {
+		protect = Integer.MAX_VALUE;
+	}
+
 	private synchronized ByteBuffer buf(long offset) {
 		ByteBuffer buf = map(offset);
 		long startOfLastChunk = (file_size / CHUNK_SIZE) * CHUNK_SIZE;
@@ -72,6 +80,8 @@ public abstract class ChunkedStorage implements Storage {
 			? CHUNK_SIZE
 			: (int) (file_size - startOfLastChunk));
 		buf.position((int) (offset % CHUNK_SIZE));
+if (offset < protect)
+return buf.slice().asReadOnlyBuffer();
 		return buf.slice();
 	}
 

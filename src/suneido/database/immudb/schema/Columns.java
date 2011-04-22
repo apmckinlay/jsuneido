@@ -27,8 +27,15 @@ public class Columns implements Iterable<Column> {
 	public ImmutableList<Integer> nums(String s) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
 		for (String name : commaSplitter(s))
-			builder.add(ck_find(name).colnum);
+			builder.add(ck_find(name).field);
 		return builder.build();
+	}
+
+	public String names(int[] nums) {
+		StringBuilder sb = new StringBuilder();
+		for (int n : nums)
+			sb.append(',').append(find(n).name);
+		return sb.substring(1);
 	}
 
 	private Column ck_find(String name) {
@@ -41,6 +48,13 @@ public class Columns implements Iterable<Column> {
 	public Column find(String name) {
 		for (Column c : columns)
 			if (name.equals(c.name))
+				return c;
+		return null;
+	}
+
+	public Column find(int num) {
+		for (Column c : columns)
+			if (c.field == num)
 				return c;
 		return null;
 	}
@@ -65,12 +79,12 @@ public class Columns implements Iterable<Column> {
 			return "";
 		List<String> cols = new ArrayList<String>();
 		for (Column c : columns)
-			if (c.colnum >= 0)
+			if (c.field >= 0)
 				cols.add(c.name);
 		// reverse rule order to match cSuneido
 		int i = cols.size();
 		for (Column c : columns)
-			if (c.colnum < 0)
+			if (c.field < 0)
 				cols.add(i, c.name.substring(0,1).toUpperCase() + c.name.substring(1));
 		return listToCommas(cols);
 	}
@@ -82,8 +96,8 @@ public class Columns implements Iterable<Column> {
 	public int maxNum() {
 		int maxNum = -1;
 		for (Column c : columns)
-			if (c.colnum > maxNum)
-				maxNum = c.colnum;
+			if (c.field > maxNum)
+				maxNum = c.field;
 		return maxNum;
 	}
 

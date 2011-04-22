@@ -4,13 +4,9 @@
 
 package suneido.database.immudb.schema;
 
-import static suneido.util.Util.commaSplitter;
-
 import java.util.Iterator;
-import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
-
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -58,22 +54,22 @@ public class Indexes implements Iterable<Index> {
 		return null;
 	}
 
-	public List<List<String>> columns() {
-		return columns(false);
-	}
+//	public List<List<String>> columns() {
+//		return columns(false);
+//	}
+//
+//	public List<List<String>> keysColumns() {
+//		return columns(true);
+//	}
 
-	public List<List<String>> keysColumns() {
-		return columns(true);
-	}
-
-	private List<List<String>> columns(boolean justKeys) {
-		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
-		for (Index index : indexes)
-			if (!justKeys || index.isKey())
-				list.add(ImmutableList.copyOf(commaSplitter.split(index.columns)));
-				// note: can't use commasToList because it does "" => empty list
-		return list.build();
-	}
+//	private List<List<String>> columns(boolean justKeys) {
+//		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
+//		for (Index index : indexes)
+//			if (!justKeys || index.isKey())
+//				list.add(ImmutableList.copyOf(commaSplitter.split(index.columns)));
+//				// note: can't use commasToList because it does "" => empty list
+//		return list.build();
+//	}
 
 	@Override
 	public String toString() {

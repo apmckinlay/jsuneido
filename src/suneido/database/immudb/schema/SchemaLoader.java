@@ -1,7 +1,7 @@
 package suneido.database.immudb.schema;
 
-import suneido.database.Database.TN;
 import suneido.database.immudb.*;
+import suneido.database.immudb.schema.Bootstrap.TN;
 
 import com.google.common.collect.ImmutableList;
 
@@ -15,22 +15,11 @@ public class SchemaLoader {
 
 	public Tables load(int root, int redirs) {
 		tran = new Tran(stor, redirs);
-		Record r = tran.getrec(root);
-		BtreeInfo info = Index.btreeInfo(r);
-		Btree indexesIndex = new Btree(tran, info);
-//indexesIndex.print();
 
-		int adr = indexesIndex.get(key(TN.COLUMNS, "table,column"));
-		r = tran.getrec(adr);
-		info = Index.btreeInfo(r);
-		Btree columnsIndex = new Btree(tran, info);
-//columnsIndex.print();
-
-		adr = indexesIndex.get(key(TN.TABLES, "table"));
-		r = tran.getrec(adr);
-		info = Index.btreeInfo(r);
-		Btree tablesIndex = new Btree(tran, info);
-//tablesIndex.print();
+		DbHashTree dbinfo = DbHashTree.from(tran.context, root);
+		Btree tablesIndex = getBtree(dbinfo, TN.TABLES);
+		Btree columnsIndex = getBtree(dbinfo, TN.COLUMNS);
+		Btree indexesIndex = getBtree(dbinfo, TN.INDEXES);
 
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
@@ -41,19 +30,20 @@ public class SchemaLoader {
 			if (tblrec == null)
 				break;
 			Columns columns = cr.next();
-			Indexes indexes = ir.next(columns);
+			Indexes indexes = ir.next();
 			Table table = new Table(tblrec, columns, indexes);
-//System.out.println(table.name + " " + table.schema());
 			tsb.add(table);
 		}
 		return tsb.build();
 	}
 
-	private Record key(Object... values) {
-		RecordBuilder rb = new RecordBuilder();
-		for (Object x : values)
-			rb.add(x);
-		return rb.build();
+	public Btree getBtree(DbHashTree dbinfo, int tblnum) {
+		int adr = dbinfo.get(tblnum);
+		Record r = tran.getrec(adr);
+		TableInfo ti = new TableInfo(r);
+		IndexInfo ii = ti.firstIndex();
+		Btree indexesIndex = new Btree(tran, ii);
+		return indexesIndex;
 	}
 
 	private class TablesReader {
@@ -101,32 +91,31 @@ public class SchemaLoader {
 			return new Columns(list.build());
 		}
 		Column column(Record key) {
-			Record r = recordFromKey(key);
-			return new Column(r);
+			return new Column(recordFromKey(key));
 		}
 	}
 
 	private class IndexesReader {
 		Btree.Iter iter;
-		Record cur;
+		Index cur;
 		ImmutableList.Builder<Index> list = ImmutableList.builder();
 
 		IndexesReader(Btree indexesIndex) {
 			iter = indexesIndex.iterator();
 			iter.next();
-			cur = recordFromKey(iter.cur());
+			cur = index();
 		}
-		Indexes next(Columns cols) {
+		Indexes next() {
 			if (cur == null)
 				return null;
 			while (true) {
-				list.add(new Index(cols, cur));
+				list.add(cur);
 				iter.next();
 				if (iter.eof())
 					break;
-				Record prev = cur;
-				cur = recordFromKey(iter.cur());
-				if (Index.tblnum(prev) != Index.tblnum(cur)) {
+				Index prev = cur;
+				cur = index();
+				if (prev.tblnum != cur.tblnum) {
 					Indexes result = new Indexes(list.build());
 					list = ImmutableList.builder();
 					return result;
@@ -134,6 +123,9 @@ public class SchemaLoader {
 			}
 			cur = null;
 			return new Indexes(list.build());
+		}
+		private Index index() {
+			return new Index(recordFromKey(iter.cur()));
 		}
 	}
 

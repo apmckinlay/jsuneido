@@ -25,11 +25,11 @@ public class BootstrapTest {
 
 		Tables schema = db.schema();
 		assertThat(schema.get("tables").schema(),
-				is("(table,tablename,nextfield,nrows,totalsize) key(table)"));
+				is("(table,tablename) key(table)"));
 		assertThat(schema.get("columns").schema(),
-				is("(table,column,field) key(table,column)"));
+				is("(table,field,column) key(table,field)"));
 		assertThat(schema.get("indexes").schema(),
-				is("(table,columns,key,fktable,fkcolumns,fkmode,root,treelevels,nnodes) " +
+				is("(table,columns,key,fktable,fkcolumns,fkmode) " +
 						"key(table,columns)"));
 
 		db.close();

@@ -25,6 +25,8 @@ public class RequestTest {
 
 		db = new Database(stor);
 		db.open();
+		assertThat(db.schema().get("tables").schema(),
+				is("(table,tablename) key(table)"));
 		assertThat(db.schema().get("tbl").schema(),
 				is("(a) key(a)"));
 	}
