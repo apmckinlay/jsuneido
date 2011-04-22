@@ -79,7 +79,8 @@ public abstract class PersistentMap<K, V> {
 
 		// Only used by Builder
 		protected abstract void add(K key, V value, int hash, int shift);
-	}
+
+	} // end of Node
 
 	@Immutable
 	@SuppressWarnings("unchecked")
@@ -253,7 +254,7 @@ public abstract class PersistentMap<K, V> {
 			return i + 1;
 		}
 
-	}
+	} // end of TrieNode
 
 	/** Used for overflow leaf nodes when multiple identical hash */
 	@Immutable
@@ -333,7 +334,7 @@ public abstract class PersistentMap<K, V> {
 			return i + 1;
 		}
 
-	}
+	} // end of OverflowNode
 
 	public static class Builder<K, V> {
 
