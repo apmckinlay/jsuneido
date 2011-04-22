@@ -4,6 +4,7 @@
 
 package suneido.database.immudb;
 
+/** Storage and IntRefs needed by DbHashTree */
 public class Context {
 	public final Storage stor;
 	public final IntRefs intrefs = new IntRefs();

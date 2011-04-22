@@ -6,6 +6,8 @@ package suneido.database.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Objects;
+
 @Immutable
 public class BtreeInfo {
 	public final int root;
@@ -33,4 +35,14 @@ public class BtreeInfo {
 	public int hashCode() {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("root", root)
+			.add("treeLevels", treeLevels)
+			.add("nnodes", nnodes)
+			.toString();
+	}
+
 }

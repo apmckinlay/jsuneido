@@ -11,34 +11,33 @@ import suneido.database.immudb.RecordBuilder;
 
 @Immutable
 public class Column implements Comparable<Column> {
-	public static final int TBLNUM = 0, COLUMN = 1, FLDNUM = 2;
+	public static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
 	public final int tblnum;
+	public final int field;
 	public final String name;
-	public final int colnum;
 
-	public Column(int tblnum, String column, int colnum) {
+	public Column(int tblnum, int field, String column) {
 		this.tblnum = tblnum;
 		this.name = column;
-		this.colnum = colnum;
+		this.field = field;
 	}
 
 	public Column(Record record) {
-//System.out.println("Columns " + record);
 		tblnum = record.getInt(TBLNUM);
+		field = record.getInt(FLDNUM);
 		name = record.getString(COLUMN);
-		colnum = record.getInt(FLDNUM);
 	}
 
 	public Record toRecord() {
-		return toRecord(tblnum, name, colnum);
+		return toRecord(tblnum, field, name);
 	}
 
-	public static Record toRecord(int tblnum, String name, int colnum) {
-		return new RecordBuilder().add(tblnum).add(name).add(colnum).build();
+	public static Record toRecord(int tblnum, int field, String column) {
+		return new RecordBuilder().add(tblnum).add(field).add(column).build();
 	}
 
 	public int compareTo(Column other) {
-		return colnum - other.colnum;
+		return field - other.field;
 	}
 
 	@Override
@@ -47,7 +46,7 @@ public class Column implements Comparable<Column> {
 			return true;
 		if (!(other instanceof Column))
 			return false;
-		return colnum == ((Column) other).colnum;
+		return field == ((Column) other).field;
 	}
 
 	@Override
@@ -57,7 +56,7 @@ public class Column implements Comparable<Column> {
 
 	@Override
 	public String toString() {
-		return name + ":" + colnum;
+		return name + ":" + field;
 	}
 
 }

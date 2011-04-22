@@ -5,56 +5,52 @@
 package suneido.database.immudb.schema;
 
 
-import suneido.database.immudb.*;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+import com.google.common.primitives.Ints;
 
 public class Index {
 	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
-			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5,
-			ROOT = 6, TREELEVELS = 7, NNODES = 8;
+			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
 	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
 	public final int tblnum;
-	public final String columns;
-	public final ImmutableList<Integer> colnums;
+	public final int[] columns;
 	public final boolean isKey;
 	public final boolean unique;
 	public final ForeignKey fksrc;
-	public final BtreeInfo btreeInfo;
 
 
-	/** key is false, true, or "u" */
-	public Index(Columns cols, int tblnum, String columns, Object key,
-			BtreeInfo btreeInfo) {
+	public Index(int tblnum, int[] columns, boolean key, boolean unique) {
 		this.tblnum = tblnum;
 		this.columns = columns;
-		this.isKey = key == Boolean.TRUE;
-		this.unique = key.equals(UNIQUE);
+		this.isKey = key;
+		this.unique = unique;
 		fksrc = null;
-		this.btreeInfo = btreeInfo;
-		colnums = cols.nums(columns);
 	}
 
-	public Index(Columns cols, Record record) {
+	public Index(Record record) {
 		this.tblnum = record.getInt(TBLNUM);
-		this.columns = record.getString(COLUMNS);
-		Object key = record.get(KEY);
+		this.columns = convert(record.getString(COLUMNS));
+		Object key = record.get(KEY); // key is false, true, or "u"
 		this.isKey = key == Boolean.TRUE;
 		this.unique = key.equals(UNIQUE);
 		fksrc = get_fksrc(record);
-		btreeInfo = btreeInfo(record);
-		colnums = cols.nums(columns);
 	}
 
-	public static int tblnum(Record record) {
-		return record.getInt(TBLNUM);
-	}
+	private static final CharMatcher cm = CharMatcher.is(',');
+	private static final Splitter splitter = Splitter.on(',');
 
-	public static BtreeInfo btreeInfo(Record record) {
-		return new BtreeInfo(record.getInt(ROOT),
-				record.getInt(TREELEVELS), record.getInt(NNODES));
+	public int[] convert(String s) {
+		int[] cols = new int[cm.countIn(s) + 1];
+		int i = 0;
+		for (String c : splitter.split(s))
+			cols[i++] = Integer.parseInt(c);
+		return cols;
 	}
 
 	private ForeignKey get_fksrc(Record record) {
@@ -66,31 +62,23 @@ public class Index {
 	}
 
 	public Record toRecord() {
-		return toRecord(tblnum, columns, isKey, unique, fksrc, btreeInfo);
+		return toRecord(tblnum, columnsString(), isKey, unique, fksrc);
+	}
+
+	public String columnsString() {
+		return Ints.join(",", columns);
 	}
 
 	public static Record toRecord(int tblnum, String columns, boolean isKey,
-			boolean unique, ForeignKey fksrc, BtreeInfo btreeInfo) {
+			boolean unique, ForeignKey fksrc) {
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(columns);
 		if (unique)
 			rb.add(UNIQUE);
 		else
 			rb.add(isKey);
-		rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
-		addBtreeInfo(rb, btreeInfo);
-		return rb.build();
-	}
-
-	public static void addBtreeInfo(RecordBuilder rb, BtreeInfo btreeInfo) {
-		rb.add(btreeInfo.root).add(btreeInfo.treeLevels).add(btreeInfo.nnodes);
-	}
-
-	public static Record updateRecord(Record rec, BtreeInfo info) {
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < ROOT; ++i)
-			rb.add(rec, i);
-		addBtreeInfo(rb, info);
+		if (fksrc != null)
+			rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
 		return rb.build();
 	}
 
@@ -103,12 +91,10 @@ public class Index {
 //		return builder.build();
 //	}
 
-	public static String getColumns(Record r) {
-		String columns = r.getString(COLUMNS);
-		if (columns.startsWith("lower:"))
-			columns = columns.substring(6);
-		return columns;
-	}
+//	public static String getColumns(Record r) {
+//		String columns = r.getString(COLUMNS);
+//		return columns;
+//	}
 
 	public boolean isKey() {
 		return isKey;
@@ -122,6 +108,23 @@ public class Index {
 	public String toString() {
 		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
 				"(" + columns + ")";
+	}
+
+	public String schema(StringBuilder sb, Columns cols) {
+		if (isKey)
+			sb.append(" key");
+		else
+			sb.append(" index").append(unique ? " unique" : "");
+		sb.append("(").append(cols.names(columns)).append(")");
+//		if (index.fksrc != null && !index.fksrc.tablename.equals("")) {
+//			sb.append(" in ").append(index.fksrc.tablename);
+//			if (!index.fksrc.columns.equals(index.columns))
+//				sb.append("(").append(index.fksrc.columns).append(")");
+//			if (index.fksrc.mode == Index.CASCADE)
+//				sb.append(" cascade");
+//			else if (index.fksrc.mode == Index.CASCADE_UPDATES)
+//				sb.append(" cascade update");
+		return sb.toString();
 	}
 
 }

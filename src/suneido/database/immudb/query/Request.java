@@ -9,8 +9,8 @@ import static suneido.util.Util.listToCommas;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.database.immudb.Database;
-import suneido.database.immudb.Transaction;
+import suneido.database.immudb.*;
+import suneido.database.immudb.Transaction.TableBuilder;
 import suneido.database.query.ParseRequest;
 import suneido.database.query.RequestGenerator;
 import suneido.language.Lexer;
@@ -48,17 +48,17 @@ public class Request implements RequestGenerator<Object> {
 		if (!schema.hasKey())
 			throw new SuException("key required for: " + table);
 		Transaction t = db.updateTran();
-		int tblnum = t.addTable(table);
-		createSchema(t, tblnum, schema);
+		TableBuilder tbl = t.createTable(table);
+		createSchema(t, tbl, schema);
 		t.commit();
 		return null;
 	}
 
-	private void createSchema(Transaction t, int tblnum, Schema schema) {
+	private void createSchema(Transaction t, TableBuilder tbl, Schema schema) {
 		for (String column : schema.columns)
-			t.addColumn(tblnum, column);
+			t.addColumn(tbl, column);
 		for (Index index : schema.indexes)
-			index.create(t, tblnum);
+			index.create(t, tbl);
 	}
 
 	@Override
@@ -160,9 +160,9 @@ public class Request implements RequestGenerator<Object> {
 			this.in = (ForeignKey) foreignKey;
 		}
 
-		void create(Transaction t, int tblnum) {
+		void create(Transaction t, TableBuilder tbl) {
 			assert (in != null);
-			t.addIndex(tblnum, listToCommas(columns), key, unique,
+			t.addIndex(tbl, listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 

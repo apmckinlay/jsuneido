@@ -9,9 +9,13 @@ import java.nio.ByteBuffer;
 import suneido.database.immudb.*;
 
 /**
- * Create a new database.
- * Tricky because indexes records point to btrees
- * and btrees point to indexes records.
+ * Create a new database with the initial schema:
+ * 	tables (table, tablename, nextfield, nrows, totalsize)
+ * 		key(table)
+ * 	columns (table, column, field)
+ * 		key(table, field)
+ * 	indexes (table,columns,key,fktable,fkcolumns,fkmode,root,treelevels,nnodes)
+ *		key(table,columns)
  */
 public class Bootstrap {
 	public static class TN
@@ -22,9 +26,6 @@ public class Bootstrap {
 	private Btree tablesIndex;
 	private Btree columnsIndex;
 	private Btree indexesIndex;
-	private int tablesIndexAdr;
-	private int columnsIndexAdr;
-	private int indexesIndexAdr;
 
 	public Bootstrap(Storage stor) {
 		this.stor = stor;
@@ -32,10 +33,6 @@ public class Bootstrap {
 	}
 
 	public void create() {
-		tablesIndex = new Btree(tran);
-		columnsIndex = new Btree(tran);
-		indexesIndex = new Btree(tran);
-
 		outputTables();
 		outputColumns();
 		outputIndexes();
@@ -43,63 +40,80 @@ public class Bootstrap {
 		tran.startStore();
 		storeData();
 		Btree.store(tran);
-		updateIndexesRecs();
+		int info = createInfo();
 		int redirs = tran.storeRedirs();
 
-		store(indexesIndexAdr, redirs);
+		store(info, redirs);
 
 		tran.endStore();
 	}
 
 	private void outputTables() {
+		tablesIndex = new Btree(tran);
 		IndexedData id = new IndexedData().index(tablesIndex, 0);
-		addTable(id, TN.TABLES, "tables", 5, 3, 176);
-		addTable(id, TN.COLUMNS, "columns", 3, 17, 390);
-		addTable(id, TN.INDEXES, "indexes", 9, 5, 331);
+		addTable(id, TN.TABLES, "tables");
+		addTable(id, TN.COLUMNS, "columns");
+		addTable(id, TN.INDEXES, "indexes");
 	}
 
-	private void addTable(IndexedData id, int tblnum, String name,
-			int nextfield, int nrows, long totalsize) {
-		Record r = Table.toRecord(tblnum, name, nextfield, nrows, totalsize);
+	private void addTable(IndexedData id, int tblnum, String name) {
+		Record r = Table.toRecord(tblnum, name);
 		id.add(tran, r);
 	}
 
 	private void outputColumns() {
-		IndexedData id = new IndexedData().index(columnsIndex, 0, 2);
+		columnsIndex = new Btree(tran);
+		IndexedData id = new IndexedData().index(columnsIndex, 0, 1);
 		addColumn(id, TN.TABLES, "table", 0);
 		addColumn(id, TN.TABLES, "tablename", 1);
-		addColumn(id, TN.TABLES, "nextfield", 2);
-		addColumn(id, TN.TABLES, "nrows", 3);
-		addColumn(id, TN.TABLES, "totalsize", 4);
+
 		addColumn(id, TN.COLUMNS, "table", 0);
-		addColumn(id, TN.COLUMNS, "column", 1);
-		addColumn(id, TN.COLUMNS, "field", 2);
+		addColumn(id, TN.COLUMNS, "field", 1);
+		addColumn(id, TN.COLUMNS, "column", 2);
+
 		addColumn(id, TN.INDEXES, "table", 0);
 		addColumn(id, TN.INDEXES, "columns", 1);
 		addColumn(id, TN.INDEXES, "key", 2);
 		addColumn(id, TN.INDEXES, "fktable", 3);
 		addColumn(id, TN.INDEXES, "fkcolumns", 4);
 		addColumn(id, TN.INDEXES, "fkmode", 5);
-		addColumn(id, TN.INDEXES, "root", 6);
-		addColumn(id, TN.INDEXES, "treelevels", 7);
-		addColumn(id, TN.INDEXES, "nnodes", 8);
 	}
 
 	private void addColumn(IndexedData id, int tblnum, String name, int colnum) {
-		Record r = Column.toRecord(tblnum, name, colnum);
+		Record r = Column.toRecord(tblnum, colnum, name);
 		id.add(tran, r);
 	}
 
 	private void outputIndexes() {
+		indexesIndex = new Btree(tran);
 		IndexedData id = new IndexedData().index(indexesIndex, 0, 1);
-		tablesIndexAdr = addIndex(id, TN.TABLES, "table", tablesIndex.info());
-		columnsIndexAdr = addIndex(id, TN.COLUMNS, "table,column", columnsIndex.info());
-		indexesIndexAdr = addIndex(id, TN.INDEXES, "table,columns", indexesIndex.info());
+		addIndex(id, TN.TABLES, "0");
+		addIndex(id, TN.COLUMNS, "0,1");
+		addIndex(id, TN.INDEXES, "0,1");
 	}
 
-	private int addIndex(IndexedData id, int tblnum, String columns, BtreeInfo info) {
-		Record r = Index.toRecord(tblnum, columns, true, false, noFkey, info);
+	private int addIndex(IndexedData id, int tblnum, String columns) {
+		Record r = Index.toRecord(tblnum, columns, true, false, noFkey);
 		return id.add(tran, r);
+	}
+
+	private int createInfo() {
+		DbHashTree dbinfo = DbHashTree.empty(tran.context);
+		dbinfo = addTableInfo(dbinfo, TN.TABLES,
+				TableInfo.toRecord(TN.TABLES, 2, 3, 176,
+						"0", tablesIndex.info()));
+		dbinfo = addTableInfo(dbinfo, TN.COLUMNS,
+				TableInfo.toRecord(TN.COLUMNS, 3, 11, 390,
+						"0,1", columnsIndex.info()));
+		dbinfo = addTableInfo(dbinfo, TN.INDEXES,
+				TableInfo.toRecord(TN.INDEXES, 6, 3, 331,
+						"0,1", indexesIndex.info()));
+		return dbinfo.store();
+	}
+
+	private DbHashTree addTableInfo(DbHashTree dbinfo, int tblnum, Record r) {
+		int adr = r.store(stor);
+		return dbinfo.with(tblnum, adr);
 	}
 
 	private void storeData() {
@@ -116,23 +130,9 @@ public class Bootstrap {
 		}
 	}
 
-	private void updateIndexesRecs() {
-		updateIndexesRec(tablesIndexAdr, TN.TABLES, "table", tablesIndex.info());
-		updateIndexesRec(columnsIndexAdr, TN.COLUMNS, "table,column", columnsIndex.info());
-		updateIndexesRec(indexesIndexAdr, TN.INDEXES, "table,columns", indexesIndex.info());
-	}
-
-	private void updateIndexesRec(int adr,
-			int tblnum, String columns, BtreeInfo info) {
-		Record r = Index.toRecord(tblnum, columns, true, false, noFkey, info);
-		ByteBuffer buf = stor.buffer(tran.getAdr(adr));
-		r.pack(buf); // assumes size hasn't increased
-	}
-
 	static final int INT_SIZE = 4;
 
 	private void store(int root, int redirs) {
-		root = tran.getAdr(root);
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(root);
 		buf.putInt(redirs);
