@@ -21,8 +21,8 @@ public abstract class BtreeStoreNode extends BtreeNode {
 	@Override
 	public int store(Tran tran) {
 		translate(tran);
-		int adr = tran.context.stor.alloc(length());
-		ByteBuffer buf = tran.context.stor.buffer(adr);
+		int adr = tran.stor.alloc(length());
+		ByteBuffer buf = tran.stor.buffer(adr);
 		pack(buf);
 		return adr;
 	}

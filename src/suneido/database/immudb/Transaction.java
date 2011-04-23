@@ -11,17 +11,18 @@ import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.immudb.schema.*;
+import suneido.database.immudb.schema.Table;
+import suneido.database.immudb.schema.Tables;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 
 @NotThreadSafe
 public class Transaction {
 	private final Storage stor;
 	private final Tran tran;
-	private DbHashTree dbinfo;
+	private final DbInfo dbinfo;
 	private final Tables schema;
 	private final Map<String,Btree> indexes = Maps.newHashMap();
 	private TableBuilder tb = null;
@@ -29,7 +30,7 @@ public class Transaction {
 	public Transaction(Storage stor, int dbinfo, int redirs, Tables schema) {
 		this.stor = stor;
 		tran = new Tran(stor, redirs);
-		this.dbinfo = DbHashTree.from(tran.context, dbinfo);
+		this.dbinfo = new DbInfo(tran, dbinfo);
 		this.schema = schema;
 	}
 
@@ -38,9 +39,7 @@ public class Transaction {
 		if (btree != null)
 			return btree;
 		Table tbl = schema.get(table);
-		int adr = dbinfo.get(tbl.num);
-		Record r = tran.getrec(adr);
-		TableInfo ti = new TableInfo(r);
+		TableInfo ti = dbinfo.get(tbl.num);
 		btree = new Btree(tran, ti.firstIndex());
 		indexes.put(table, btree);
 		return btree;
@@ -65,16 +64,10 @@ public class Transaction {
 
 		public void build() {
 			// TODO handle multiple indexes
-			addTableInfo(tblnum,
-					TableInfo.toRecord(tblnum, columns.size(), 0, 0,
-							indexes.get(0).columnsString(), btrees.get(0).info()));
+			dbinfo.add(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
+					new IndexInfo(indexes.get(0).columnsString(), btrees.get(0).info()))));
 		}
 
-	}
-
-	private void addTableInfo(int tblnum, Record r) {
-		int adr = r.store(stor);
-		dbinfo = dbinfo.with(tblnum, adr);
 	}
 
 	public TableBuilder createTable(String name) {
@@ -137,13 +130,13 @@ public class Transaction {
 
 	// TODO remove duplication with Bootstrap
 	private void storeData() {
-		IntRefs intrefs = tran.context.intrefs;
+		IntRefs intrefs = tran.intrefs;
 		int i = -1;
 		for (Object x : intrefs) {
 			++i;
 			if (x instanceof Record) {
 				Record r = (Record) x;
-				int adr = r.store(tran.context.stor);
+				int adr = r.store(tran.stor);
 				int intref = i | IntRefs.MASK;
 				tran.setAdr(intref, adr);
 			}
@@ -155,10 +148,11 @@ public class Transaction {
 			String tableName = e.getKey();
 			int tblnum = schema.get(tableName).num;
 			Btree btree = e.getValue();
-			TableInfo ti = new TableInfo(tran.getrec(dbinfo.get(tblnum)));
-			Record r = TableInfo.toRecord(tblnum, ti.nextfield, ti.nrows, ti.totalsize,
-					ti.firstIndex().columns, btree.info());
-			addTableInfo(tblnum, r);
+			TableInfo ti = dbinfo.get(tblnum);
+			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows, ti.totalsize,
+					ImmutableList.of(
+							new IndexInfo(ti.firstIndex().columns, btree.info())));
+			dbinfo.add(ti);
 		}
 	}
 
