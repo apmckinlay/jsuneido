@@ -40,7 +40,7 @@ public class Bootstrap {
 		outputIndexes();
 
 		tran.startStore();
-		storeData();
+		DataRecords.store(tran);
 		Btree.store(tran);
 		int dbinfo = createInfo();
 		int redirs = tran.storeRedirs();
@@ -103,20 +103,6 @@ public class Bootstrap {
 		dbinfo.add(new TableInfo(TN.INDEXES, 6, 3, 331,
 				ImmutableList.of(new IndexInfo("0,1", indexesIndex.info()))));
 		return dbinfo.store();
-	}
-
-	private void storeData() {
-		IntRefs intrefs = tran.intrefs;
-		int i = -1;
-		for (Object x : intrefs) {
-			++i;
-			if (x instanceof Record) {
-				Record r = (Record) x;
-				int adr = r.store(tran.stor);
-				int intref = i | IntRefs.MASK;
-				tran.setAdr(intref, adr);
-			}
-		}
 	}
 
 	static final int INT_SIZE = 4;
