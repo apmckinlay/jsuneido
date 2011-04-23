@@ -8,13 +8,15 @@ import java.nio.ByteBuffer;
 
 import suneido.database.immudb.*;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Create a new database with the initial schema:
- * 	tables (table, tablename, nextfield, nrows, totalsize)
+ * 	tables (table, tablename)
  * 		key(table)
  * 	columns (table, column, field)
  * 		key(table, field)
- * 	indexes (table,columns,key,fktable,fkcolumns,fkmode,root,treelevels,nnodes)
+ * 	indexes (table,columns,key,fktable,fkcolumns,fkmode)
  *		key(table,columns)
  */
 public class Bootstrap {
@@ -40,11 +42,9 @@ public class Bootstrap {
 		tran.startStore();
 		storeData();
 		Btree.store(tran);
-		int info = createInfo();
+		int dbinfo = createInfo();
 		int redirs = tran.storeRedirs();
-
-		store(info, redirs);
-
+		store(dbinfo, redirs);
 		tran.endStore();
 	}
 
@@ -55,7 +55,6 @@ public class Bootstrap {
 		addTable(id, TN.COLUMNS, "columns");
 		addTable(id, TN.INDEXES, "indexes");
 	}
-
 	private void addTable(IndexedData id, int tblnum, String name) {
 		Record r = Table.toRecord(tblnum, name);
 		id.add(tran, r);
@@ -78,7 +77,6 @@ public class Bootstrap {
 		addColumn(id, TN.INDEXES, "fkcolumns", 4);
 		addColumn(id, TN.INDEXES, "fkmode", 5);
 	}
-
 	private void addColumn(IndexedData id, int tblnum, String name, int colnum) {
 		Record r = Column.toRecord(tblnum, colnum, name);
 		id.add(tran, r);
@@ -91,39 +89,30 @@ public class Bootstrap {
 		addIndex(id, TN.COLUMNS, "0,1");
 		addIndex(id, TN.INDEXES, "0,1");
 	}
-
 	private int addIndex(IndexedData id, int tblnum, String columns) {
 		Record r = Index.toRecord(tblnum, columns, true, false, noFkey);
 		return id.add(tran, r);
 	}
 
 	private int createInfo() {
-		DbHashTree dbinfo = DbHashTree.empty(tran.context);
-		dbinfo = addTableInfo(dbinfo, TN.TABLES,
-				TableInfo.toRecord(TN.TABLES, 2, 3, 176,
-						"0", tablesIndex.info()));
-		dbinfo = addTableInfo(dbinfo, TN.COLUMNS,
-				TableInfo.toRecord(TN.COLUMNS, 3, 11, 390,
-						"0,1", columnsIndex.info()));
-		dbinfo = addTableInfo(dbinfo, TN.INDEXES,
-				TableInfo.toRecord(TN.INDEXES, 6, 3, 331,
-						"0,1", indexesIndex.info()));
+		DbInfo dbinfo = new DbInfo(tran);
+		dbinfo.add(new TableInfo(TN.TABLES, 2, 3, 176,
+				ImmutableList.of(new IndexInfo("0", tablesIndex.info()))));
+		dbinfo.add(new TableInfo(TN.COLUMNS, 3, 11, 390,
+				ImmutableList.of(new IndexInfo("0,1", columnsIndex.info()))));
+		dbinfo.add(new TableInfo(TN.INDEXES, 6, 3, 331,
+				ImmutableList.of(new IndexInfo("0,1", indexesIndex.info()))));
 		return dbinfo.store();
 	}
 
-	private DbHashTree addTableInfo(DbHashTree dbinfo, int tblnum, Record r) {
-		int adr = r.store(stor);
-		return dbinfo.with(tblnum, adr);
-	}
-
 	private void storeData() {
-		IntRefs intrefs = tran.context.intrefs;
+		IntRefs intrefs = tran.intrefs;
 		int i = -1;
 		for (Object x : intrefs) {
 			++i;
 			if (x instanceof Record) {
 				Record r = (Record) x;
-				int adr = r.store(tran.context.stor);
+				int adr = r.store(tran.stor);
 				int intref = i | IntRefs.MASK;
 				tran.setAdr(intref, adr);
 			}

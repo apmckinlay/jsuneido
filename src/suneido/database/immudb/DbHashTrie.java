@@ -32,6 +32,7 @@ public abstract class DbHashTrie {
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
+	/** NOTE: not stored, so mutable */
 	public static DbHashTrie empty() {
 		return empty(null);
 	}
@@ -49,10 +50,18 @@ public abstract class DbHashTrie {
 	}
 
 	/** returns null if key not present */
-	public abstract Entry get(int key);
+	public Entry get(int key) {
+		checkArgument(key != 0);
+		return get(key, 0);
+	}
+	protected abstract Entry get(int key, int shift);
 
 	/** key must be non-zero */
-	public abstract DbHashTrie with(Entry e);
+	public DbHashTrie with(Entry e) {
+		checkArgument(e.key() != 0);
+		return with(e, 0);
+	}
+	protected abstract DbHashTrie with(Entry e, int shift);
 
 	/** call proc.apply(adr) for each new entry (where value is an intref) */
 	public abstract void traverseChanges(Process proc);
@@ -60,8 +69,9 @@ public abstract class DbHashTrie {
 	public abstract int store(Translator translator);
 
 	public void print() {
-		((Node) this).print(0);
+		print(0);
 	}
+	protected abstract void print(int shift);
 
 	private static class Node extends DbHashTrie {
 		private static final int ENTRIES = INT_BYTES;
@@ -71,13 +81,13 @@ public abstract class DbHashTrie {
 		private int bitmap;
 		private Object data[];
 
-		Node(Storage stor) {
+		private Node(Storage stor) {
 			this.stor = stor;
 			bitmap = 0;
 			data = new Object[4];
 		}
 
-		Node(Storage stor, int adr) {
+		private Node(Storage stor, int adr) {
 			this.stor = stor;
 			this.adr = adr;
 			ByteBuffer buf = stor.buffer(adr);
@@ -91,9 +101,6 @@ public abstract class DbHashTrie {
 		}
 
 		@Override
-		public Entry get(int key) {
-			return get(key, 0);
-		}
 		protected Entry get(int key, int shift) {
 			assert shift < 32;
 			int bit = bit(key, shift);
@@ -106,28 +113,23 @@ public abstract class DbHashTrie {
 			} else { // pointer to child
 				if (data[i] instanceof Integer)
 					synchronized(this) {
-						data[i] = load(stor, (Integer) data[i]);
+						data[i] = new Node(stor, ((Integer) data[i]));
 					}
 				return ((Node) data[i]).get(key, shift + BITS_PER_LEVEL);
 			}
 		}
 
-		protected static int bit(int key, int shift) {
+		private static int bit(int key, int shift) {
 			int h = (key >>> shift) & LEVEL_MASK;
 			return 1 << h;
 		}
 
-		protected int size() {
+		private int size() {
 			return Integer.bitCount(bitmap);
 		}
 
 		@Override
-		public Node with(Entry e) {
-			checkArgument(e.key() != 0);
-			return with(e, 0);
-		}
-
-		private Node with(Entry e, int shift) {
+		protected Node with(Entry e, int shift) {
 			if (stored())
 				return new Node(this, e, shift);
 
@@ -148,7 +150,7 @@ public abstract class DbHashTrie {
 				Node child;
 				Object ptr = data[i];
 				if (ptr instanceof Integer)
-					child = load(stor, (Integer) ptr);
+					child = new Node(stor, ((Integer) ptr));
 				else
 					child = (Node) ptr;
 				data[i] = child.with(e, shift + BITS_PER_LEVEL);
@@ -219,9 +221,7 @@ public abstract class DbHashTrie {
 			}
 			return adr;
 		}
-
-
-		public int byteBufSize() {
+		private int byteBufSize() {
 			return INT_BYTES + // bitmap
 					(2 * size() * INT_BYTES); // keys and values
 		}
@@ -243,7 +243,8 @@ public abstract class DbHashTrie {
 			return adr != 0;
 		}
 
-		void print(int shift) {
+		@Override
+		protected void print(int shift) {
 			String indent = Strings.repeat(" ", shift);
 			System.out.println(indent + (adr == 0 ? "" : "db") + "Node");
 			for (int i = 0; i < size(); ++i) {
@@ -258,21 +259,16 @@ public abstract class DbHashTrie {
 					System.out.println(indent + "adr(" + data[i] + ")");
 			}
 		}
+		private static String fmt(int n) {
+			if (n == 0)
+				return "0";
+			String s = "";
+			for (; n != 0; n >>>= 5)
+				s = (n & 0x1f) + "." + s;
+			return s.substring(0, s.length() - 1);
+		}
 
 	} // end of Node
-
-	public static String fmt(int n) {
-		if (n == 0)
-			return "0";
-		String s = "";
-		for (; n != 0; n >>>= 5)
-			s = (n & 0x1f) + "." + s;
-		return s.substring(0, s.length() - 1);
-	}
-
-	private static Node load(Storage stor, int at) {
-		return new Node(stor, at);
-	}
 
 	public interface Translator {
 		public int translate(Entry e);
@@ -282,7 +278,7 @@ public abstract class DbHashTrie {
 		public void apply(Entry e);
 	}
 
-	static class IntEntry extends Entry {
+	public static class IntEntry extends Entry {
 		public final int key;
 		public final int value;
 
@@ -322,6 +318,27 @@ public abstract class DbHashTrie {
 		StoredIntEntry(int key, int value) {
 			super(key, value);
 		}
+	}
+
+	static class RefEntry<T> extends Entry {
+		private final int key;
+		private final T value;
+
+		RefEntry(int key, T value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public int key() {
+			return key;
+		}
+
+		@Override
+		public String toString() {
+			return "RefEntry(" + key + ", " + value + ")";
+		}
+
 	}
 
 }

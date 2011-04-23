@@ -16,7 +16,7 @@ public class SchemaLoader {
 	public Tables load(int root, int redirs) {
 		tran = new Tran(stor, redirs);
 
-		DbHashTree dbinfo = DbHashTree.from(tran.context, root);
+		DbInfo dbinfo = new DbInfo(tran, root);
 		Btree tablesIndex = getBtree(dbinfo, TN.TABLES);
 		Btree columnsIndex = getBtree(dbinfo, TN.COLUMNS);
 		Btree indexesIndex = getBtree(dbinfo, TN.INDEXES);
@@ -37,13 +37,10 @@ public class SchemaLoader {
 		return tsb.build();
 	}
 
-	public Btree getBtree(DbHashTree dbinfo, int tblnum) {
-		int adr = dbinfo.get(tblnum);
-		Record r = tran.getrec(adr);
-		TableInfo ti = new TableInfo(r);
+	public Btree getBtree(DbInfo dbinfo, int tblnum) {
+		TableInfo ti = dbinfo.get(tblnum);
 		IndexInfo ii = ti.firstIndex();
-		Btree indexesIndex = new Btree(tran, ii);
-		return indexesIndex;
+		return new Btree(tran, ii);
 	}
 
 	private class TablesReader {

@@ -182,16 +182,16 @@ public abstract class BtreeNode {
 		return sb.toString();
 	}
 
-	public void print(Writer w, Tran tran) throws IOException {
+	public void print(Writer w, Tran tran, int at) throws IOException {
 		int level = level();
 		String indent = Strings.repeat("     ", level);
-		w.append(indent).append("NODE\n");
+		w.append(indent).append("NODE @ " + at + "\n");
 		for (int i = 0; i < size(); ++i) {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0) {
 				int adr = ((Number) slot.get(slot.size() - 1)).intValue();
-				Btree.nodeAt(tran, level - 1, adr).print(w, tran);
+				Btree.nodeAt(tran, level - 1, adr).print(w, tran, adr);
 			}
 		}
 	}

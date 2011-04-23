@@ -4,6 +4,8 @@
 
 package suneido.database.immudb;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
@@ -15,6 +17,9 @@ public class BtreeInfo {
 	public final int nnodes;
 
 	public BtreeInfo(int root, int treeLevels, int nnodes) {
+		checkArgument(root != 0);
+		checkArgument(treeLevels >= 0);
+		checkArgument(nnodes > 0);
 		this.root = root;
 		this.treeLevels = treeLevels;
 		this.nnodes = nnodes;

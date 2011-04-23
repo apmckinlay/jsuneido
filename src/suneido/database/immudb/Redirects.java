@@ -4,6 +4,10 @@
 
 package suneido.database.immudb;
 
+import suneido.database.immudb.DbHashTrie.Entry;
+import suneido.database.immudb.DbHashTrie.IntEntry;
+import suneido.database.immudb.DbHashTrie.Translator;
+
 /**
  * Normally immutable persistent trees are "updated" by copying & updating
  * nodes all the way up to the root.
@@ -11,28 +15,28 @@ package suneido.database.immudb;
  * e.g. if we "update" a leaf, instead of updating it's parents
  * we just "redirect" the leaf's old address to it's new address.
  * <p>
- * Note: Redirections are stored in {@link DbHashTree}
+ * Note: Redirections are stored in {@link DbHashTrie}
  * so it can't use this optimization.
  */
 public class Redirects {
-	private final DbHashTree original;
-	private DbHashTree redirs;
+	private final DbHashTrie original;
+	private DbHashTrie redirs;
 	boolean noneAdded = true;
 
-	public Redirects(DbHashTree redirs) {
+	public Redirects(DbHashTrie redirs) {
 		original = redirs;
 		this.redirs = redirs;
 	}
 
 	public void put(int from, int to) {
 		assert ! IntRefs.isIntRef(from);
-		redirs = redirs.with(from, to);
+		redirs = redirs.with(new IntEntry(from, to));
 		noneAdded = false;
 	}
 
 	public int get(int from) {
-		int to = redirs.get(from);
-		return to == 0 ? from : to;
+		Entry e = redirs.get(from);
+		return e == null ? from : ((IntEntry) e).value;
 	}
 
 	public int store(Translator translator) {
@@ -48,11 +52,11 @@ public class Redirects {
 	}
 
 	/** for tests */
-	DbHashTree redirs() {
+	DbHashTrie redirs() {
 		return redirs;
 	}
 
-	public void merge(DbHashTree current) {
+	public void merge(DbHashTrie current) {
 		if (current == original)
 			return; // no concurrent changes to merge
 
@@ -61,22 +65,23 @@ public class Redirects {
 		redirs = proc.merged;
 	}
 
-	private static class Proc implements DbHashTree.Process {
-		private final DbHashTree original;
-		private final DbHashTree current;
-		private DbHashTree merged;
+	private static class Proc implements DbHashTrie.Process {
+		private final DbHashTrie original;
+		private final DbHashTrie current;
+		private DbHashTrie merged;
 
-		public Proc(DbHashTree original, DbHashTree current) {
+		public Proc(DbHashTrie original, DbHashTrie current) {
 			this.original = original;
 			this.current = current;
 			merged = current;
 		}
 
 		@Override
-		public void apply(int adr, int value) {
+		public void apply(Entry e) {
+			int adr = ((IntEntry) e).key;
 			if (original.get(adr) != current.get(adr))
 				throw conflict;
-			merged = merged.with(adr, value);
+			merged = merged.with(e);
 		}
 
 	}

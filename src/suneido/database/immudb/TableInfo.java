@@ -6,10 +6,12 @@ package suneido.database.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 @Immutable
-public class TableInfo {
+public class TableInfo extends DbHashTrie.Entry {
 	public final int tblnum;
 	public final int nextfield;
 	public final int nrows;
@@ -37,6 +39,11 @@ public class TableInfo {
 		indexInfo = list.build();
 	}
 
+	@Override
+	public int key() {
+		return tblnum;
+	}
+
 	public Record toRecord() {
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
@@ -55,6 +62,17 @@ public class TableInfo {
 
 	public IndexInfo firstIndex() {
 		return indexInfo.get(0);
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+			.add("tblnum", tblnum)
+			.add("nextfield", nextfield)
+			.add("nrows", nrows)
+			.add("totalsize", totalsize)
+			.addValue(Iterables.toString(indexInfo))
+			.toString();
 	}
 
 }
