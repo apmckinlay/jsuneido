@@ -67,8 +67,7 @@ public class Transaction {
 			dbinfo.add(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
 					new IndexInfo(indexes.get(0).columnsString(), btrees.get(0).info()))));
 		}
-
-	}
+	} // end of TableBuilder
 
 	public TableBuilder createTable(String name) {
 		Btree btree = getIndex("tables");
@@ -115,7 +114,7 @@ public class Transaction {
 	// TODO synchronize
 	public void commit() {
 		tran.startStore();
-		storeData();
+		DataRecords.store(tran);
 		Btree.store(tran);
 
 		if (tb != null)
@@ -126,21 +125,6 @@ public class Transaction {
 		int redirs = tran.storeRedirs();
 		store(dbinfo.store(), redirs);
 		tran.endStore();
-	}
-
-	// TODO remove duplication with Bootstrap
-	private void storeData() {
-		IntRefs intrefs = tran.intrefs;
-		int i = -1;
-		for (Object x : intrefs) {
-			++i;
-			if (x instanceof Record) {
-				Record r = (Record) x;
-				int adr = r.store(tran.stor);
-				int intref = i | IntRefs.MASK;
-				tran.setAdr(intref, adr);
-			}
-		}
 	}
 
 	private void updateDbInfo() {
