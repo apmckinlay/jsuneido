@@ -11,39 +11,39 @@ import suneido.database.immudb.schema.*;
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
-	private DbInfo dbinfo;
-	private Redirects redirs;
-	private Tables schema;
+	DbInfo dbinfo;
+	Redirects redirs;
+	Tables schema;
 
-	public Database(Storage stor) {
+	private Database(Storage stor, DbInfo dbinfo, Redirects redirs, Tables schema) {
 		this.stor = stor;
+		this.dbinfo = dbinfo;
+		this.redirs = redirs;
+		this.schema = schema;
 	}
 
-	public void create() {
-		dbinfo = new DbInfo(stor);
-		redirs = new Redirects(DbHashTrie.empty(stor));
-		schema = new Tables();
-		Bootstrap.create(updateTran());
+	public static Database create(Storage stor) {
+		Database db = new Database(stor, new DbInfo(stor),
+				new Redirects(DbHashTrie.empty(stor)), new Tables());
+		Bootstrap.create(db.updateTran());
+		return db;
 	}
 
-	public void open() {
-		check();
-		loadSchema();
+	public static Database open(Storage stor) {
+		check(stor);
+		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
+		int adr = buf.getInt();
+		DbInfo dbinfo = new DbInfo(stor, adr);
+		adr = buf.getInt();
+		Redirects redirs = new Redirects(DbHashTrie.from(stor, adr));
+		Tables schema = new SchemaLoader(stor).load(dbinfo, redirs);
+		return new Database(stor, dbinfo, redirs, schema);
 	}
 
-	private void check() {
+	private static void check(Storage stor) {
 		Check check = new Check(stor);
 		if (false == check.fastcheck())
 			throw new RuntimeException("database open check failed");
-	}
-
-	private void loadSchema() {
-		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
-		int adr = buf.getInt();
-		dbinfo = new DbInfo(stor, adr);
-		adr = buf.getInt();
-		redirs = new Redirects(DbHashTrie.from(stor, adr));
-		schema = new SchemaLoader(stor).load(dbinfo, redirs);
 	}
 
 	public Tables schema() {
@@ -51,7 +51,7 @@ public class Database {
 	}
 
 	public Transaction updateTran() {
-		return new Transaction(stor, dbinfo, redirs, schema);
+		return new Transaction(this);
 	}
 
 	public TableBuilder tableBuilder(String tableName) {

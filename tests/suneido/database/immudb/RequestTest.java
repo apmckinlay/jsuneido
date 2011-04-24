@@ -16,15 +16,17 @@ public class RequestTest {
 	@Test
 	public void test() {
 		TestStorage stor = new TestStorage(500, 100);
-		Database db = new Database(stor);
-		db.create();
+		Database db = Database.create(stor);
 
-		db = new Database(stor);
-		db.open();
+		db = Database.open(stor);
 		Request.execute(db, "create tbl (a) key (a)");
+		check(db);
 
-		db = new Database(stor);
-		db.open();
+		db = Database.open(stor);
+		check(db);
+	}
+
+	private void check(Database db) {
 		assertThat(db.schema().get("tables").schema(),
 				is("(table,tablename) key(table)"));
 		assertThat(db.schema().get("tbl").schema(),
