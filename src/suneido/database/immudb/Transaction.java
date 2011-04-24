@@ -18,15 +18,15 @@ import com.google.common.collect.Maps;
 @NotThreadSafe
 public class Transaction {
 	private final Storage stor;
-	final Tran tran;
+	public final Tran tran;
 	final DbInfo dbinfo;
 	Tables schema;
-	final Map<String,Btree> indexes = Maps.newHashMap();
+	public final Map<String,Btree> indexes = Maps.newHashMap();
 
-	public Transaction(Storage stor, int dbinfo, int redirs, Tables schema) {
+	public Transaction(Storage stor, DbInfo dbinfo, Redirects redirs, Tables schema) {
 		this.stor = stor;
 		tran = new Tran(stor, redirs);
-		this.dbinfo = new DbInfo(tran, dbinfo);
+		this.dbinfo = dbinfo;
 		this.schema = schema;
 	}
 

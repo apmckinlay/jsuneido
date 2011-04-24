@@ -9,7 +9,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.database.immudb.schema.Bootstrap;
 import suneido.database.immudb.schema.Tables;
 
 public class BootstrapTest {
@@ -17,10 +16,10 @@ public class BootstrapTest {
 	@Test
 	public void test() {
 		TestStorage stor = new TestStorage(500, 100);
-		Bootstrap bs = new Bootstrap(stor);
-		bs.create();
-
 		Database db = new Database(stor);
+		db.create();
+
+		db = new Database(stor);
 		db.open();
 
 		Tables schema = db.schema();

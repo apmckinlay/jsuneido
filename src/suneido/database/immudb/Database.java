@@ -6,18 +6,24 @@ package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
 
-import suneido.database.immudb.schema.SchemaLoader;
-import suneido.database.immudb.schema.Tables;
+import suneido.database.immudb.schema.*;
 
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
-	private int dbinfo;
-	private int redirs;
+	private DbInfo dbinfo;
+	private Redirects redirs;
 	private Tables schema;
 
 	public Database(Storage stor) {
 		this.stor = stor;
+	}
+
+	public void create() {
+		dbinfo = new DbInfo(stor);
+		redirs = new Redirects(DbHashTrie.empty(stor));
+		schema = new Tables();
+		Bootstrap.create(updateTran());
 	}
 
 	public void open() {
@@ -33,13 +39,11 @@ public class Database {
 
 	private void loadSchema() {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
-		dbinfo = buf.getInt();
-		redirs = buf.getInt();
+		int adr = buf.getInt();
+		dbinfo = new DbInfo(stor, adr);
+		adr = buf.getInt();
+		redirs = new Redirects(DbHashTrie.from(stor, adr));
 		schema = new SchemaLoader(stor).load(dbinfo, redirs);
-	}
-
-	public int redirs() {
-		return redirs;
 	}
 
 	public Tables schema() {
@@ -51,7 +55,12 @@ public class Database {
 	}
 
 	public TableBuilder tableBuilder(String tableName) {
-		return TableBuilder.builder(updateTran(), tableName);
+		return TableBuilder.builder(updateTran(), tableName, nextTableNum());
+	}
+
+	private int nextTableNum() {
+		// TODO
+		return 4;
 	}
 
 	public void close() {

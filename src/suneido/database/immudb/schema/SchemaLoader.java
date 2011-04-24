@@ -13,10 +13,9 @@ public class SchemaLoader {
 		this.stor = stor;
 	}
 
-	public Tables load(int root, int redirs) {
+	public Tables load(DbInfo dbinfo, Redirects redirs) {
 		tran = new Tran(stor, redirs);
 
-		DbInfo dbinfo = new DbInfo(tran, root);
 		Btree tablesIndex = getBtree(dbinfo, TN.TABLES);
 		Btree columnsIndex = getBtree(dbinfo, TN.COLUMNS);
 		Btree indexesIndex = getBtree(dbinfo, TN.INDEXES);
@@ -100,6 +99,7 @@ public class SchemaLoader {
 		IndexesReader(Btree indexesIndex) {
 			iter = indexesIndex.iterator();
 			iter.next();
+assert ! iter.eof();
 			cur = index();
 		}
 		Indexes next() {
