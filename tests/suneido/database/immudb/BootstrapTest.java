@@ -9,29 +9,26 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.database.immudb.schema.Tables;
-
 public class BootstrapTest {
 
 	@Test
 	public void test() {
 		TestStorage stor = new TestStorage(500, 100);
-		Database db = new Database(stor);
-		db.create();
+		Database db = Database.create(stor);
+		check(db);
 
-		db = new Database(stor);
-		db.open();
+		db = Database.open(stor);
+		check(db);
+	}
 
-		Tables schema = db.schema();
-		assertThat(schema.get("tables").schema(),
+	private void check(Database db) {
+		assertThat(db.schema.get("tables").schema(),
 				is("(table,tablename) key(table)"));
-		assertThat(schema.get("columns").schema(),
+		assertThat(db.schema.get("columns").schema(),
 				is("(table,field,column) key(table,field)"));
-		assertThat(schema.get("indexes").schema(),
+		assertThat(db.schema.get("indexes").schema(),
 				is("(table,columns,key,fktable,fkcolumns,fkmode) " +
 						"key(table,columns)"));
-
-		db.close();
 	}
 
 }

@@ -17,17 +17,21 @@ import com.google.common.collect.Maps;
 
 @NotThreadSafe
 public class Transaction {
+	private final Database db;
 	private final Storage stor;
 	public final Tran tran;
 	final DbInfo dbinfo;
 	Tables schema;
+	private final Tables original_schema;
 	public final Map<String,Btree> indexes = Maps.newHashMap();
 
-	public Transaction(Storage stor, DbInfo dbinfo, Redirects redirs, Tables schema) {
-		this.stor = stor;
-		tran = new Tran(stor, redirs);
-		this.dbinfo = dbinfo;
-		this.schema = schema;
+	public Transaction(Database db) {
+		this.db = db;
+		stor = db.stor;
+		dbinfo = db.dbinfo;
+		schema = db.schema;
+		original_schema = db.schema;
+		tran = new Tran(stor, db.redirs);
 	}
 
 	public Btree getIndex(String table) { // TODO handle multiple indexes
@@ -53,6 +57,10 @@ public class Transaction {
 		int redirs = tran.storeRedirs();
 		store(dbinfo.store(), redirs);
 		tran.endStore();
+
+		updateSchema();
+
+		// TODO merge dbinfo and redirs with database
 	}
 
 	private void updateDbInfo() {
@@ -71,11 +79,15 @@ public class Transaction {
 
 	static final int INT_SIZE = 4;
 
-	// TODO remove duplication with Bootstrap
 	private void store(int dbinfo, int redirs) {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);
+	}
+
+	private void updateSchema() {
+		assert db.schema == original_schema;
+		db.schema = schema;
 	}
 
 }
