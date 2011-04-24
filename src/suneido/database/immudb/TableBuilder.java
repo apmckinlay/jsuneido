@@ -19,38 +19,31 @@ public class TableBuilder {
 	private final Transaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
-	private final List<Btree> btrees = Lists.newArrayList();
 	private final ImmutableList.Builder<Column> cb = ImmutableList.builder();
 	private final ImmutableList.Builder<Index> ib = ImmutableList.builder();
 
-	public static TableBuilder builder(Transaction t, String name) {
-		TableBuilder tb = new TableBuilder(t, name);
-		tb.createTable(name);
+	public static TableBuilder builder(Transaction t, String name, int tblnum) {
+		TableBuilder tb = new TableBuilder(t, name, tblnum);
+		tb.createTable();
 		return tb;
 	}
 
-	private TableBuilder(Transaction t, String name) {
+	private TableBuilder(Transaction t, String name, int tblnum) {
 		this.t = t;
 		this.name = name;
-		this.tblnum = nextTableNum();
+		this.tblnum = tblnum;
 	}
 
-	private int nextTableNum() {
-		// TODO
-		return 4;
-	}
-
-	private void createTable(String name) {
+	private void createTable() {
 		Btree tables = t.getIndex("tables");
 		IndexedData id = new IndexedData().index(tables, 0);
-		int tblnum = 4; // TODO next table num
 		Record r = Table.toRecord(tblnum, name);
 		id.add(t.tran, r);
 	}
 
 	public void addColumn(String column) {
 		Btree btree = t.getIndex("columns");
-		IndexedData id = new IndexedData().index(btree, 0, 2);
+		IndexedData id = new IndexedData().index(btree, 0, 1);
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
 		Record r = c.toRecord();
@@ -68,9 +61,8 @@ public class TableBuilder {
 		Record r = index.toRecord();
 		id.add(t.tran, r);
 		indexes.add(index);
-		Btree btree = new Btree(t.tran);
-		btrees.add(btree);
-		t.indexes.put(name, btree);
+		if (! t.indexes.containsKey(name)) // if not bootstrap
+			t.indexes.put(name, new Btree(t.tran));
 		ib.add(new Index(tblnum, colnums, key, unique));
 		// TODO handle foreign keys
 	}
@@ -97,8 +89,12 @@ public class TableBuilder {
 		t.schema = t.schema.with(new Table(tblnum, name,
 				new Columns(cb.build()), new Indexes(ib.build())));
 		t.dbinfo.add(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
-				new IndexInfo(indexes.get(0).columnsString(), btrees.get(0).info()))));
+				new IndexInfo(indexes.get(0).columnsString(), t.indexes.get(name).info()))));
 		// TODO handle multiple indexes
+	}
+
+	public void finish() {
+		build();
 		t.commit();
 	}
 

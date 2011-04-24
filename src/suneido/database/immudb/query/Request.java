@@ -49,7 +49,7 @@ public class Request implements RequestGenerator<Object> {
 			throw new SuException("key required for: " + table);
 		TableBuilder tb = db.tableBuilder(table);
 		createSchema(tb, schema);
-		tb.build();
+		tb.finish();
 		return null;
 	}
 

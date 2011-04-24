@@ -17,8 +17,7 @@ public class DbInfoTest {
 	@Test
 	public void test() {
 		Storage stor = new TestStorage();
-		Tran tran = new Tran(stor);
-		DbInfo dbinfo = new DbInfo(tran);
+		DbInfo dbinfo = new DbInfo(stor);
 		assertNull(dbinfo.get(123));
 		ImmutableList<IndexInfo> indexes = ImmutableList.of();
 		TableInfo ti = new TableInfo(6, 5, 4, 99, indexes);
@@ -26,8 +25,7 @@ public class DbInfoTest {
 		assertThat(dbinfo.get(6), is(ti));
 		int adr = dbinfo.store();
 
-		tran = new Tran(stor);
-		dbinfo = new DbInfo(tran, adr);
+		dbinfo = new DbInfo(stor, adr);
 		TableInfo ti2 = dbinfo.get(6);
 		assertThat(ti2.nextfield, is(ti.nextfield));
 	}

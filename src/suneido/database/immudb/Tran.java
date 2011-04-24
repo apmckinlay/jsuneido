@@ -34,6 +34,11 @@ public class Tran implements Translator {
 		this.redirs = new Redirects(DbHashTrie.from(stor, redirs));
 	}
 
+	public Tran(Storage stor, Redirects redirs) {
+		this.stor = stor;
+		this.redirs = redirs;
+	}
+
 	public int refToInt(Object ref) {
 		return intrefs.refToInt(ref);
 	}
