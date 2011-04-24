@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableList;
  * Create a new database with the initial schema:
  * 	tables (table, tablename)
  * 		key(table)
- * 	columns (table, column, field)
+ * 	columns (table, field, column)
  * 		key(table, field)
  * 	indexes (table,columns,key,fktable,fkcolumns,fkmode)
  *		key(table,columns)
@@ -23,8 +23,8 @@ public class Bootstrap {
 	public static class TN
 		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 	private static ForeignKey noFkey = new ForeignKey("", "", 0);
-	public final Storage stor;
-	public final Tran tran;
+	private final Storage stor;
+	private final Tran tran;
 	private Btree tablesIndex;
 	private Btree columnsIndex;
 	private Btree indexesIndex;

@@ -50,6 +50,10 @@ public class Database {
 		return new Transaction(stor, dbinfo, redirs, schema);
 	}
 
+	public TableBuilder tableBuilder(String tableName) {
+		return TableBuilder.builder(updateTran(), tableName);
+	}
+
 	public void close() {
 		stor.close();
 	}
