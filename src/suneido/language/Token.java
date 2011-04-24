@@ -46,7 +46,7 @@ public enum Token {
 	// for queries
 	VIEW("view"), SVIEW("sview"), CREATE("create"), ENSURE("ensure"),
 	DROP("drop"), ALTER("alter"), DELETE("delete"),
-	RENAME("rename"), TO("to"), UNIQUE("unique"), LOWER("lower"),
+	RENAME("rename"), TO("to"), UNIQUE("unique"),
 	CASCADE("cascade"), UPDATES("updates"), INDEX("index"), KEY("key"),
 	TOTAL("total", SUMOP), SORT("sort"), PROJECT("project"), MAX("max", SUMOP),
 	MIN("min", SUMOP), MINUS("minus"), INTERSECT("intersect"),

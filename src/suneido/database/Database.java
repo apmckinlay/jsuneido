@@ -504,19 +504,18 @@ public class Database {
 	}
 
 	public void addIndex(String tablename, String columns, boolean isKey) {
-		addIndex(tablename, columns, isKey, false, false, null, null, 0);	}
+		addIndex(tablename, columns, isKey, false, null, null, 0);	}
 
-	public void addIndex(String tablename, String columns, boolean isKey,
-			boolean unique, boolean lower,
+	public void addIndex(String tablename, String columns, boolean isKey, boolean unique,
 			String fktablename, String fkcolumns, int fkmode) {
-		Schema.addIndex(this, tablename, columns, isKey, unique, lower,
+		Schema.addIndex(this, tablename, columns, isKey, unique,
 				fktablename, fkcolumns, fkmode);
 	}
 
-	public void ensureIndex(String tablename, String columns, boolean isKey,
-			boolean unique, boolean lower,
+	public void ensureIndex(String tablename, String columns,
+			boolean isKey, boolean unique,
 			String fktablename, String fkcolumns, int fkmode) {
-		Schema.ensureIndex(this, tablename, columns, isKey, unique, lower,
+		Schema.ensureIndex(this, tablename, columns, isKey, unique,
 				fktablename, fkcolumns, fkmode);
 	}
 

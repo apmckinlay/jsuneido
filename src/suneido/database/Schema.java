@@ -243,15 +243,15 @@ public class Schema {
 	// indexes ======================================================
 
 	public static void addIndex(Database db, String tablename, String columns,
-			boolean isKey, boolean unique, boolean lower, String fktablename,
+			boolean isKey, boolean unique, String fktablename,
 			String fkcolumns, int fkmode) {
-			if (!ensureIndex(db, tablename, columns, isKey, unique, lower,
+			if (!ensureIndex(db, tablename, columns, isKey, unique,
 				fktablename, fkcolumns, fkmode))
 				throw new SuException("add index: index already exists: " + columns
 						+ " in " + tablename);
 	}
 	public static boolean ensureIndex(Database db, String tablename, String columns,
-			boolean isKey, boolean unique, boolean lower, String fktablename,
+			boolean isKey, boolean unique, String fktablename,
 			String fkcolumns, int fkmode) {
 		if (fkcolumns == null || fkcolumns.equals(""))
 			fkcolumns = columns;

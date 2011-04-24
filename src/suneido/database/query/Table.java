@@ -242,8 +242,7 @@ public class Table extends Query {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
-		boolean lower = false; // TODO lower indexes
-		List<String> index = singleton || lower ? noFields : idx;
+		List<String> index = singleton  ? noFields : idx;
 		return new Header(asList(index, tbl.getFields()), tbl.getColumns());
 	}
 

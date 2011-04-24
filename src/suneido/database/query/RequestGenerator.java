@@ -21,7 +21,7 @@ public interface RequestGenerator<T> {
 
 	T schema(T columns, T indexes);
 
-	T index(boolean key, boolean unique, boolean lower, T columns, T foreignKey);
+	T index(boolean key, boolean unique, T columns, T foreignKey);
 
 	T foreignKey(String table, T columns, int mode);
 

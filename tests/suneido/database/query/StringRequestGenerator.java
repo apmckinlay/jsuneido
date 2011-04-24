@@ -37,10 +37,10 @@ public class StringRequestGenerator implements RequestGenerator<String> {
 				(mode != Index.BLOCK ? " cascade" : "") + (mode == Index.CASCADE_UPDATES ? " update" : "");
 	}
 
-	public String index(boolean key, boolean unique, boolean lower,
+	public String index(boolean key, boolean unique,
 			String columns, String foreignKey) {
 		return (key ? "key" : "index") +
-				(unique ? " unique" : "") + (lower ? " lower" : "") +
+				(unique ? " unique" : "") +
 				"(" + columns + ")" + str(" ", foreignKey, "");
 	}
 

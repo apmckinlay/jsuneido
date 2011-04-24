@@ -151,8 +151,7 @@ public class Request implements RequestGenerator<Object> {
 		List<String> columns;
 		ForeignKey in;
 
-		Index(boolean key, boolean unique, boolean lower, Object columns,
-				Object foreignKey) {
+		Index(boolean key, boolean unique, Object columns, Object foreignKey) {
 			this.key = key;
 			this.unique = unique;
 			this.columns = (List<String>) columns;
@@ -167,16 +166,15 @@ public class Request implements RequestGenerator<Object> {
 
 		void ensure(String table) {
 //			assert (in != null);
-//			db.ensureIndex(table, listToCommas(columns), key, unique, lower,
+//			db.ensureIndex(table, listToCommas(columns), key, unique,
 //					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
 
 	@Override
-	public Object index(boolean key, boolean unique, boolean lower,
-			Object columns, Object foreignKey) {
-		return new Index(key, unique, lower, columns, foreignKey == null
-				? new ForeignKey() : foreignKey);
+	public Object index(boolean key, boolean unique, Object columns, Object foreignKey) {
+		return new Index(key, unique, columns,
+				foreignKey == null ? new ForeignKey() : foreignKey);
 	}
 
 	@Override
