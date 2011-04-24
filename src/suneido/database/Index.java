@@ -66,18 +66,11 @@ public class Index {
 	}
 
 	public static String getColumns(Record r) {
-		String columns = r.getString(COLUMNS);
-		if (columns.startsWith("lower:"))
-			columns = columns.substring(6);
-		return columns;
+		return r.getString(COLUMNS);
 	}
 
 	public boolean isKey() {
 		return isKey;
-	}
-
-	public boolean isLower() {
-		return false; // TODO isLower
 	}
 
 	@Immutable
@@ -95,11 +88,9 @@ public class Index {
 			this(null, columns, mode, tblnum);
 		}
 
-		private ForeignKey(String tablename, String columns, int mode,
-				int tblnum) {
+		private ForeignKey(String tablename, String columns, int mode, int tblnum) {
 			this.mode = mode;
-			this.columns = columns.startsWith("lower:") ? columns.substring(6)
-					: columns;
+			this.columns = columns;
 			this.tablename = tablename;
 			this.tblnum = tblnum;
 		}

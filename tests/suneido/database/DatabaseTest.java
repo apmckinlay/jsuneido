@@ -155,8 +155,8 @@ public class DatabaseTest extends TestBase {
 		TheDb.db().addColumn("test2", "f1");
 		TheDb.db().addColumn("test2", "f2");
 		TheDb.db().addIndex("test2", "b", true);
-		TheDb.db().addIndex("test2", "f1", false, false, false, "test", "a", Index.BLOCK);
-		TheDb.db().addIndex("test2", "f2", false, false, false, "test", "a", Index.BLOCK);
+		TheDb.db().addIndex("test2", "f1", false, false, "test", "a", Index.BLOCK);
+		TheDb.db().addIndex("test2", "f2", false, false, "test", "a", Index.BLOCK);
 
 		Table test2 = TheDb.db().getTable("test2");
 		Index f1 = test2.indexes.get("f1");
@@ -202,7 +202,7 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 
 		try {
-			TheDb.db().addIndex("test", "b", false, false, false, "foo", "", Index.BLOCK);
+			TheDb.db().addIndex("test", "b", false, false, "foo", "", Index.BLOCK);
 			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
@@ -223,11 +223,11 @@ public class DatabaseTest extends TestBase {
 		t1.addRecord("test2", record(10, 1, 5));
 		t1.ck_complete();
 
-		TheDb.db().addIndex("test2", "f1", false, false, false, "test", "a",
+		TheDb.db().addIndex("test2", "f1", false, false, "test", "a",
 				Index.BLOCK);
 
 		try {
-			TheDb.db().addIndex("test2", "f2", false, false, false, "test", "a",
+			TheDb.db().addIndex("test2", "f2", false, false, "test", "a",
 					Index.BLOCK);
 			fail("expected exception");
 		} catch (SuException e) {
@@ -243,7 +243,7 @@ public class DatabaseTest extends TestBase {
 		TheDb.db().addColumn("test2", "a");
 		TheDb.db().addColumn("test2", "f");
 		TheDb.db().addIndex("test2", "a", true);
-		TheDb.db().addIndex("test2", "f", false, false, false, "test", "a",
+		TheDb.db().addIndex("test2", "f", false, false, "test", "a",
 				Index.CASCADE_DELETES);
 
 		Transaction t1 = TheDb.db().readwriteTran();
@@ -265,7 +265,7 @@ public class DatabaseTest extends TestBase {
 		TheDb.db().addColumn("test2", "a");
 		TheDb.db().addColumn("test2", "f");
 		TheDb.db().addIndex("test2", "a", true);
-		TheDb.db().addIndex("test2", "f", false, false, false, "test", "a",
+		TheDb.db().addIndex("test2", "f", false, false, "test", "a",
 				Index.CASCADE_UPDATES);
 
 		Table table = TheDb.db().getTable("test");

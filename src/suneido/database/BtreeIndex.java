@@ -148,8 +148,6 @@ public class BtreeIndex {
 	}
 
 	public boolean insert(Transaction tran, Slot x) {
-		// if (lower)
-		// lower_key(x.key);
 		if (iskey || (unique && !isEmpty(x.key)))
 			if (find(tran, stripAddress(x.key)) != null)
 				return false;

@@ -142,17 +142,14 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		boolean key = lexer.getKeyword() == KEY;
 		match();
 		boolean unique = false;
-		boolean lower = false;
 		for (;; match())
 			if (lexer.getKeyword() == UNIQUE)
 				unique = true;
-			else if (lexer.getKeyword() == LOWER)
-				lower = true;
 			else
 				break;
 		T columns = columnList();
 		T foreignKey = foreignKey();
-		return generator.index(key, unique, lower, columns, foreignKey);
+		return generator.index(key, unique, columns, foreignKey);
 	}
 
 	private T foreignKey() {

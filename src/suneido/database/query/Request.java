@@ -150,36 +150,32 @@ public class Request implements RequestGenerator<Object> {
 	static class Index {
 		boolean key;
 		boolean unique;
-		boolean lower;
 		List<String> columns;
 		ForeignKey in;
 
-		Index(boolean key, boolean unique, boolean lower, Object columns,
-				Object foreignKey) {
+		Index(boolean key, boolean unique, Object columns, Object foreignKey) {
 			this.key = key;
 			this.unique = unique;
-			this.lower = lower;
 			this.columns = (List<String>) columns;
 			this.in = (ForeignKey) foreignKey;
 		}
 
 		void create(String table) {
 			assert (in != null);
-			TheDb.db().addIndex(table, listToCommas(columns), key, unique, lower,
+			TheDb.db().addIndex(table, listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
 		void ensure(String table) {
 			assert (in != null);
-			TheDb.db().ensureIndex(table, listToCommas(columns), key, unique, lower,
+			TheDb.db().ensureIndex(table, listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
 
 	@Override
-	public Object index(boolean key, boolean unique, boolean lower,
-			Object columns, Object foreignKey) {
-		return new Index(key, unique, lower, columns, foreignKey == null
+	public Object index(boolean key, boolean unique, Object columns, Object foreignKey) {
+		return new Index(key, unique, columns, foreignKey == null
 				? new ForeignKey() : foreignKey);
 	}
 
