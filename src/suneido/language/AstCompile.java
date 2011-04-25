@@ -844,10 +844,10 @@ public class AstCompile {
 			if (args.token != Token.AT &&
 					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);
-				cg.invokeFunction(args.children.size());
+				cg.callFunction(args.children.size());
 			} else {
 				callArguments(cg, args);
-				cg.invokeFunction();
+				cg.callFunction();
 			}
 		}
 	}
