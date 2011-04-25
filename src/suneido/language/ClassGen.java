@@ -358,12 +358,12 @@ public class ClassGen {
 		mv.visitLabel(label);
 	}
 
-	public void invokeFunction() {
+	public void callFunction() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call",
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void invokeFunction(int nargs) {
+	public void callFunction(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call" + nargs,
 				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
 	}
