@@ -219,14 +219,25 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 		return Ops.stringToDate(value);
 	}
 
+	// QueryFirst('tables where tablename.Lower() is "columns"')
+
 	@Override
 	public Object functionCall(Object function, Object arguments) {
-		if (!(function instanceof Identifier))
-			throw new SuException("query functions must be called by name");
-		String fname = ((Identifier) function).ident;
+		Expr ob = null;
+		String fname;
+		if (function instanceof Identifier)
+			fname = ((Identifier) function).ident;
+		else if (function instanceof Member) {
+			Member m = (Member) function;
+			if (! (m.left instanceof Identifier))
+				throw new SuException("syntax error");
+			ob = ((Identifier) m.left);
+			fname = m.right;
+		} else
+			throw new SuException("query functions must be called by name, got " + function.getClass());
 		if (arguments == null)
 			arguments = Collections.emptyList();
-		return new FunCall(fname, (List<Expr>) arguments);
+		return new FunCall(ob, fname, (List<Expr>) arguments);
 	}
 
 	@Override
@@ -307,6 +318,11 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object rvalue(Object expr) {
 		return expr;
+	}
+
+	@Override
+	public Object memberRef(Object term, String identifier) {
+	        return new Member(term, identifier);
 	}
 
 	@Override
