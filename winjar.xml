@@ -6,7 +6,7 @@
 				<attribute name="Main-Class" value="suneido.Suneido"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
-			<fileset dir="bin" excludes="**/*Test* suneido/database/immudb/*"/>
+			<fileset dir="bin" excludes="**/*Test* suneido/database/immudb/**"/>
 		</jar>
 		<exec executable="java">
 			<arg value="-jar"/>

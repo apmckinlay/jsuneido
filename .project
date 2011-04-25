@@ -14,7 +14,6 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>net.sourceforge.metrics.nature</nature>
-		<nature>com.nwire.studio.tools.nwireNature</nature>
 	</natures>
 	<filteredResources>
 		<filter>
