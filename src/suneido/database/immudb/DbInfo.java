@@ -12,17 +12,23 @@ public class DbInfo {
 	private final Storage stor;
 	private DbHashTrie dbinfo;
 
-	/** used by Bootstrap */
-	public DbInfo(Storage stor, TableInfo... info) {
+	public DbInfo(Storage stor) {
 		this.stor = stor;
 		dbinfo = DbHashTrie.empty(stor);
-		for (TableInfo ti : info)
-			dbinfo = dbinfo.with(ti);
 	}
 
 	public DbInfo(Storage stor, int adr) {
 		this.stor = stor;
 		dbinfo = DbHashTrie.from(stor, adr);
+	}
+
+	private DbInfo(DbInfo dbinfo) {
+		this.stor = dbinfo.stor;
+		this.dbinfo = dbinfo.dbinfo;
+	}
+
+	public DbInfo snapshot() {
+		return new DbInfo(this);
 	}
 
 	public TableInfo get(int tblnum) {

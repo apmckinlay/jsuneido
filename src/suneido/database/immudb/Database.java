@@ -6,8 +6,11 @@ package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.database.immudb.schema.*;
 
+@ThreadSafe
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
