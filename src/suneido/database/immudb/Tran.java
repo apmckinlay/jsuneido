@@ -120,7 +120,7 @@ public class Tran implements Translator {
 	}
 
 	public Record getrec(int adr) {
-		return new Record(stor.buffer(redir(adr)));
+		return new Record(stor.buffer(adr));
 	}
 
 }

@@ -83,11 +83,14 @@ public class Redirects {
 
 	}
 
+	private static final Conflict conflict = new Conflict();
+
 	public static class Conflict extends RuntimeException {
 		private static final long serialVersionUID = 1L;
-	}
 
-	// preconstructed for performance
-	private static Conflict conflict = new Conflict();
+		Conflict() {
+			super("transaction conflict: concurrent index node modification");
+		}
+	}
 
 }
