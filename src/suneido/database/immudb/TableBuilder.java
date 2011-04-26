@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import java.util.List;
 
+import suneido.database.immudb.schema.Bootstrap.TN;
 import suneido.database.immudb.schema.*;
 
 import com.google.common.base.CharMatcher;
@@ -37,14 +38,14 @@ public class TableBuilder {
 
 	private void createTable() {
 		Record r = Table.toRecord(tblnum, tblname);
-		t.addRecord(r, "tables", 0);
+		t.addRecord(r, TN.TABLES, 0);
 	}
 
 	public void addColumn(String column) {
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
 		Record r = c.toRecord();
-		t.addRecord(r, "columns", 0, 1);
+		t.addRecord(r, TN.COLUMNS, 0, 1);
 		columns.add(c);
 		cb.add(new Column(tblnum, field, column));
 	}
@@ -54,11 +55,11 @@ public class TableBuilder {
 		int[] colnums = nums(columns);
 		Index index = new Index(tblnum, colnums, iskey, unique);
 		Record r = index.toRecord();
-		t.addRecord(r, "indexes", 0, 1);
+		t.addRecord(r, TN.INDEXES, 0, 1);
 		indexes.add(index);
 		String colnumsStr = Ints.join(",", colnums);
-		if (! t.hasIndex(tblname, colnumsStr)) // if not bootstrap
-			t.addIndex(tblname, colnumsStr);
+		if (! t.hasIndex(tblnum, colnumsStr)) // if not bootstrap
+			t.addIndex(tblnum, colnumsStr);
 		ib.add(index);
 		// TODO handle foreign keys
 	}
@@ -87,7 +88,7 @@ public class TableBuilder {
 		ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 		for (Index index : indexes)
 			b.add(new IndexInfo(index.columnsString(),
-					t.getIndex(tblname, index.columns).info()));
+					t.getIndex(tblnum, index.columns).info()));
 		t.addTableInfo(new TableInfo(tblnum, columns.size(), 0, 0, b.build()));
 	}
 
