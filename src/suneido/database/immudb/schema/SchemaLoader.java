@@ -10,22 +10,21 @@ import com.google.common.collect.ImmutableList;
  * Used by Database.open
  */
 public class SchemaLoader {
-	private final Storage stor;
-	private Tran tran;
+	private final ReadTransaction t;
 
-	public SchemaLoader(Storage stor) {
-		this.stor = stor;
+	public static Tables load(ReadTransaction t) {
+		SchemaLoader sl = new SchemaLoader(t);
+		return sl.load();
 	}
 
-	// TODO use a read-only Transaction
+	private SchemaLoader(ReadTransaction t) {
+		this.t = t;
+	}
 
-	public Tables load(DbHashTrie dbi, DbHashTrie redirs) {
-		tran = new Tran(stor, new Redirects(redirs));
-		DbInfo dbinfo = new DbInfo(stor, dbi);
-
-		Btree tablesIndex = getBtree(dbinfo, TN.TABLES);
-		Btree columnsIndex = getBtree(dbinfo, TN.COLUMNS);
-		Btree indexesIndex = getBtree(dbinfo, TN.INDEXES);
+	private Tables load() {
+		Btree tablesIndex = t.getIndex("tables", TN.TABLES, "0");
+		Btree columnsIndex = t.getIndex("columns", TN.COLUMNS, "0,1");
+		Btree indexesIndex = t.getIndex("indexes", TN.INDEXES, "0,1");
 
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
@@ -41,12 +40,6 @@ public class SchemaLoader {
 			tsb.add(table);
 		}
 		return tsb.build();
-	}
-
-	public Btree getBtree(DbInfo dbinfo, int tblnum) {
-		TableInfo ti = dbinfo.get(tblnum);
-		IndexInfo ii = ti.firstIndex();
-		return new Btree(tran, ii);
 	}
 
 	private class TablesReader {
@@ -134,7 +127,7 @@ public class SchemaLoader {
 
 	private Record recordFromSlot(Record slot) {
 		int adr = Btree.getAddress(slot);
-		return tran.getrec(adr);
+		return t.getrec(adr);
 	}
 
 }

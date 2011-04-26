@@ -7,59 +7,19 @@ package suneido.database.immudb;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import suneido.database.immudb.schema.Table;
 import suneido.database.immudb.schema.Tables;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
-/**
- * Transactions should be thread contained.
- * They take a "snapshot" of the database state at the start
- * and then update the database state when they commit.
- * Storage is only written during commit.
- * Commit is single-threaded.
- */
-@NotThreadSafe
-public class Transaction {
+public class UpdateTransaction extends ReadTransaction {
 	private final Database db;
-	private final Storage stor;
-	private final Tran tran;
-	private final DbInfo dbinfo;
-	private Tables schema;
 	private final Tables original_schema;
-	private final HashBasedTable<String,String,Btree> indexes = HashBasedTable.create();
 
-	public Transaction(Database db) {
+	public UpdateTransaction(Database db) {
+		super(db);
 		this.db = db;
-		stor = db.stor;
-		dbinfo = new DbInfo(stor, db.dbinfo);
-		schema = db.schema;
 		original_schema = db.schema;
-		tran = new Tran(stor, new Redirects(db.redirs));
-	}
-
-	public Btree getIndex(String table, int... indexColumns) {
-		return getIndex(table, Ints.join(",", indexColumns));
-	}
-
-	/** indexColumns are like "3,4" */
-	public Btree getIndex(String table, String indexColumns) {
-		Btree btree = indexes.get(table, indexColumns);
-		if (btree != null)
-			return btree;
-		Table tbl = schema.get(table);
-		TableInfo ti = dbinfo.get(tbl.num);
-		btree = new Btree(tran, ti.getIndex(indexColumns));
-		indexes.put(table, indexColumns, btree);
-		return btree;
-	}
-
-	public boolean hasIndex(String table, String indexColumns) {
-		return indexes.contains(table, indexColumns);
 	}
 
 	public void addIndex(String table, String indexColumns) {

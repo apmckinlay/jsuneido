@@ -17,19 +17,19 @@ import com.google.common.primitives.Ints;
 public class TableBuilder {
 	private final String tblname;
 	private final int tblnum;
-	private final Transaction t;
+	private final UpdateTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
 	private final ImmutableList.Builder<Column> cb = ImmutableList.builder();
 	private final ImmutableList.Builder<Index> ib = ImmutableList.builder();
 
-	public static TableBuilder builder(Transaction t, String name, int tblnum) {
+	public static TableBuilder builder(UpdateTransaction t, String name, int tblnum) {
 		TableBuilder tb = new TableBuilder(t, name, tblnum);
 		tb.createTable();
 		return tb;
 	}
 
-	private TableBuilder(Transaction t, String tblname, int tblnum) {
+	private TableBuilder(UpdateTransaction t, String tblname, int tblnum) {
 		this.t = t;
 		this.tblname = tblname;
 		this.tblnum = tblnum;
