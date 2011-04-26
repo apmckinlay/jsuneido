@@ -8,12 +8,14 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.database.immudb.schema.*;
+import suneido.database.immudb.schema.SchemaLoader;
+import suneido.database.immudb.schema.Tables;
 
 @ThreadSafe
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
+	final Object commitLock = new Object();
 	DbHashTrie dbinfo;
 	DbHashTrie redirs;
 	Tables schema;

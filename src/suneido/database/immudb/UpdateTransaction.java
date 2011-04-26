@@ -52,22 +52,23 @@ public class UpdateTransaction extends ReadTransaction {
 		id.add(tran, r);
 	}
 
-	// TODO synchronize
 	public void commit() {
-		tran.startStore();
-		DataRecords.store(tran);
-		Btree.store(tran);
+		synchronized(db.commitLock) {
+			tran.startStore();
+			DataRecords.store(tran);
+			Btree.store(tran);
 
-		updateDbInfo();
-		// TODO update nrows, totalsize
+			updateDbInfo();
+			// TODO update nrows, totalsize
 
-		int redirs = tran.storeRedirs();
-		store(dbinfo.store(), redirs);
-		tran.endStore();
+			int redirs = tran.storeRedirs();
+			store(dbinfo.store(), redirs);
+			tran.endStore();
 
-		updateSchema();
+			updateSchema();
 
-		// TODO merge dbinfo and redirs with database
+			// TODO merge dbinfo and redirs with database
+		}
 	}
 
 	private void updateDbInfo() {
@@ -98,11 +99,20 @@ public class UpdateTransaction extends ReadTransaction {
 		if (schema == original_schema)
 			return; // no schema changes in this transaction
 
-		// schema changes must be done while holding the commit lock
-		// so there should be no concurrent changes
-		assert db.schema == original_schema;
+		if (db.schema != original_schema)
+			throw conflict;
 
 		db.schema = schema;
+	}
+
+	private static final Conflict conflict = new Conflict();
+
+	public static class Conflict extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+
+		Conflict() {
+			super("transaction conflict: concurrent schema modification");
+		}
 	}
 
 }
