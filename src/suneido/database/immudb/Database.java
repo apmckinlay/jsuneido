@@ -39,7 +39,8 @@ public class Database {
 		DbHashTrie dbinfo = DbHashTrie.from(stor, adr);
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
-		Tables schema = new SchemaLoader(stor).load(dbinfo, redirs);
+		Tables schema = SchemaLoader.load(
+				new ReadTransaction(stor, dbinfo, null, redirs));
 		return new Database(stor, dbinfo, redirs, schema);
 	}
 
@@ -53,8 +54,12 @@ public class Database {
 		return schema;
 	}
 
-	public Transaction updateTran() {
-		return new Transaction(this);
+	public ReadTransaction readTran() {
+		return new ReadTransaction(this);
+	}
+
+	public UpdateTransaction updateTran() {
+		return new UpdateTransaction(this);
 	}
 
 	public TableBuilder tableBuilder(String tableName) {

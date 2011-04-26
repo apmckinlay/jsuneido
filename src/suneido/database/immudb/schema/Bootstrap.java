@@ -5,7 +5,7 @@
 package suneido.database.immudb.schema;
 
 import suneido.database.immudb.TableBuilder;
-import suneido.database.immudb.Transaction;
+import suneido.database.immudb.UpdateTransaction;
 
 /**
  * Create a new database with the initial schema:
@@ -20,7 +20,7 @@ public class Bootstrap {
 	public static class TN
 		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3; }
 
-	public static void create(Transaction t) {
+	public static void create(UpdateTransaction t) {
 		t.addIndex("tables", "0");
 		t.addIndex("columns", "0,1");
 		t.addIndex("indexes", "0,1");
