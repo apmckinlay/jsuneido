@@ -14,11 +14,11 @@ import suneido.database.immudb.schema.*;
 public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
-	DbInfo dbinfo;
-	Redirects redirs;
+	DbHashTrie dbinfo;
+	DbHashTrie redirs;
 	Tables schema;
 
-	private Database(Storage stor, DbInfo dbinfo, Redirects redirs, Tables schema) {
+	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
 		this.dbinfo = dbinfo;
 		this.redirs = redirs;
@@ -26,8 +26,8 @@ public class Database {
 	}
 
 	public static Database create(Storage stor) {
-		Database db = new Database(stor, new DbInfo(stor),
-				new Redirects(DbHashTrie.empty(stor)), new Tables());
+		Database db = new Database(stor, DbHashTrie.empty(stor),
+				DbHashTrie.empty(stor), new Tables());
 		Bootstrap.create(db.updateTran());
 		return db;
 	}
@@ -36,9 +36,9 @@ public class Database {
 		check(stor);
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
-		DbInfo dbinfo = new DbInfo(stor, adr);
+		DbHashTrie dbinfo = DbHashTrie.from(stor, adr);
 		adr = buf.getInt();
-		Redirects redirs = new Redirects(DbHashTrie.from(stor, adr));
+		DbHashTrie redirs = DbHashTrie.from(stor, adr);
 		Tables schema = new SchemaLoader(stor).load(dbinfo, redirs);
 		return new Database(stor, dbinfo, redirs, schema);
 	}

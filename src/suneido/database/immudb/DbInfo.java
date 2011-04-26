@@ -4,10 +4,13 @@
 
 package suneido.database.immudb;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
 
+@NotThreadSafe
 public class DbInfo {
 	private final Storage stor;
 	private DbHashTrie dbinfo;
@@ -22,13 +25,9 @@ public class DbInfo {
 		dbinfo = DbHashTrie.from(stor, adr);
 	}
 
-	private DbInfo(DbInfo dbinfo) {
-		this.stor = dbinfo.stor;
-		this.dbinfo = dbinfo.dbinfo;
-	}
-
-	public DbInfo snapshot() {
-		return new DbInfo(this);
+	public DbInfo(Storage stor, DbHashTrie dbinfo) {
+		this.stor = stor;
+		this.dbinfo = dbinfo;
 	}
 
 	public TableInfo get(int tblnum) {
