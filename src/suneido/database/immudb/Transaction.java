@@ -138,14 +138,14 @@ public class Transaction {
 		buf.putInt(redirs);
 	}
 
-	/**
-	 * schema must be done while holding the commit lock
-	 * so there should be no concurrent changes
-	 */
 	private void updateSchema() {
 		if (schema == original_schema)
 			return; // no schema changes in this transaction
+
+		// schema changes must be done while holding the commit lock
+		// so there should be no concurrent changes
 		assert db.schema == original_schema;
+
 		db.schema = schema;
 	}
 
