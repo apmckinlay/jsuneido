@@ -12,11 +12,10 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.primitives.Ints;
 
 /**
- * Transactions should be thread contained.
- * They take a "snapshot" of the database state at the start
- * and then update the database state when they commit.
- * Storage is only written during commit.
- * Commit is single-threaded.
+ * Transactions must be thread contained.
+ * They take a "snapshot" of the database state at the start.
+ * ReadTransactions require no locking
+ * since they only operate on immutable data.
  */
 @NotThreadSafe
 public class ReadTransaction {
@@ -54,10 +53,6 @@ public class ReadTransaction {
 
 	public boolean hasIndex(int tblnum, String indexColumns) {
 		return indexes.contains(tblnum, indexColumns);
-	}
-
-	public void commit() {
-		// nothing to do for read-only transaction
 	}
 
 	public Record getrec(int adr) {

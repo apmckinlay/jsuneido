@@ -12,37 +12,47 @@ import suneido.database.immudb.schema.Tables;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Transactions must be thread contained.
+ * They take a "snapshot" of the database state at the start
+ * and then update the database state when they commit.
+ * Storage is only written during commit.
+ * Commit is single-threaded.
+ */
 public class UpdateTransaction extends ReadTransaction {
 	private final Database db;
 	private final Tables original_schema;
 
-	public UpdateTransaction(Database db) {
+	/** for Database.updateTran */
+	UpdateTransaction(Database db) {
 		super(db);
 		this.db = db;
 		original_schema = db.schema;
 	}
 
-	public void addIndex(int tblnum, String indexColumns) {
+	/** for Bootstrap and TableBuilder */
+	void addIndex(int tblnum, String indexColumns) {
 		indexes.put(tblnum, indexColumns, new Btree(tran));
 	}
 
-	public void addSchemaTable(Table table) {
+	/** for TableBuilder */
+	void addSchemaTable(Table table) {
 		schema = schema.with(table);
 	}
 
-	public void addTableInfo(TableInfo ti) {
+	/** for TableBuilder */
+	void addTableInfo(TableInfo ti) {
 		dbinfo.add(ti);
 	}
 
-	// used by TableBuilder
-	public void addRecord(Record r, int tblnum, int... indexColumns) {
+	/** for TableBuilder */
+	void addRecord(Record r, int tblnum, int... indexColumns) {
 		Btree btree = getIndex(tblnum, indexColumns);
 		IndexedData id = new IndexedData().index(btree, indexColumns);
 		id.add(tran, r);
 	}
 
 	// TODO synchronize
-	@Override
 	public void commit() {
 		tran.startStore();
 		DataRecords.store(tran);

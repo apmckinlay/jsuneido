@@ -2,10 +2,8 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database.immudb.schema;
+package suneido.database.immudb;
 
-import suneido.database.immudb.TableBuilder;
-import suneido.database.immudb.UpdateTransaction;
 
 /**
  * Create a new database with the initial schema:
