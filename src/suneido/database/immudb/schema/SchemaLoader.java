@@ -60,7 +60,7 @@ public class SchemaLoader {
 			if (iter.eof())
 				return null;
 			Record key = iter.cur();
-			return recordFromKey(key);
+			return recordFromSlot(key);
 		}
 	}
 
@@ -94,7 +94,7 @@ public class SchemaLoader {
 			return new Columns(list.build());
 		}
 		Column column(Record key) {
-			return new Column(recordFromKey(key));
+			return new Column(recordFromSlot(key));
 		}
 	}
 
@@ -106,7 +106,6 @@ public class SchemaLoader {
 		IndexesReader(Btree indexesIndex) {
 			iter = indexesIndex.iterator();
 			iter.next();
-assert ! iter.eof();
 			cur = index();
 		}
 		Indexes next() {
@@ -129,12 +128,12 @@ assert ! iter.eof();
 			return new Indexes(list.build());
 		}
 		private Index index() {
-			return new Index(recordFromKey(iter.cur()));
+			return new Index(recordFromSlot(iter.cur()));
 		}
 	}
 
-	private Record recordFromKey(Record key) {
-		int adr = Btree.getAddress(key);
+	private Record recordFromSlot(Record slot) {
+		int adr = Btree.getAddress(slot);
 		return tran.getrec(adr);
 	}
 

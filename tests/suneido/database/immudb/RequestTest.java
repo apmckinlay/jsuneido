@@ -12,6 +12,7 @@ import org.junit.Test;
 import suneido.database.immudb.query.Request;
 
 public class RequestTest {
+	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
 
 	@Test
 	public void test() {
@@ -19,7 +20,8 @@ public class RequestTest {
 		Database db = Database.create(stor);
 
 		db = Database.open(stor);
-		Request.execute(db, "create tbl (a) key (a)");
+		String schema = SCHEMA;
+		Request.execute(db, "create tbl " + schema);
 		check(db);
 
 		db = Database.open(stor);
@@ -29,8 +31,7 @@ public class RequestTest {
 	private void check(Database db) {
 		assertThat(db.schema().get("tables").schema(),
 				is("(table,tablename) key(table)"));
-		assertThat(db.schema().get("tbl").schema(),
-				is("(a) key(a)"));
+		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
 	}
 
 }
