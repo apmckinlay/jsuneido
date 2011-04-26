@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 public class TableBuilder {
-	private final String name;
+	private final String tblname;
 	private final int tblnum;
 	private final Transaction t;
 	private final List<Column> columns = Lists.newArrayList();
@@ -28,41 +28,35 @@ public class TableBuilder {
 		return tb;
 	}
 
-	private TableBuilder(Transaction t, String name, int tblnum) {
+	private TableBuilder(Transaction t, String tblname, int tblnum) {
 		this.t = t;
-		this.name = name;
+		this.tblname = tblname;
 		this.tblnum = tblnum;
 	}
 
 	private void createTable() {
-		Btree tables = t.getIndex("tables");
-		IndexedData id = new IndexedData().index(tables, 0);
-		Record r = Table.toRecord(tblnum, name);
-		id.add(t.tran, r);
+		Record r = Table.toRecord(tblnum, tblname);
+		t.addRecord(r, "tables", 0);
 	}
 
 	public void addColumn(String column) {
-		Btree btree = t.getIndex("columns");
-		IndexedData id = new IndexedData().index(btree, 0, 1);
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
 		Record r = c.toRecord();
-		id.add(t.tran, r);
+		t.addRecord(r, "columns", 0, 1);
 		columns.add(c);
 		cb.add(new Column(tblnum, field, column));
 	}
 
 	public void addIndex(String columns, boolean key, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		Btree indexesIndex = t.getIndex("indexes");
-		IndexedData id = new IndexedData().index(indexesIndex, 0, 1);
 		int[] colnums = nums(columns);
 		Index index = new Index(tblnum, colnums, key, unique);
 		Record r = index.toRecord();
-		id.add(t.tran, r);
+		t.addRecord(r, "indexes", 0, 1);
 		indexes.add(index);
-		if (! t.indexes.containsKey(name)) // if not bootstrap
-			t.indexes.put(name, new Btree(t.tran));
+		if (! t.hasIndex(tblname)) // if not bootstrap
+			t.addIndex(tblname);
 		ib.add(new Index(tblnum, colnums, key, unique));
 		// TODO handle foreign keys
 	}
@@ -86,10 +80,10 @@ public class TableBuilder {
 	}
 
 	public void build() {
-		t.schema = t.schema.with(new Table(tblnum, name,
+		t.addSchemaTable(new Table(tblnum, tblname,
 				new Columns(cb.build()), new Indexes(ib.build())));
-		t.dbinfo.add(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
-				new IndexInfo(indexes.get(0).columnsString(), t.indexes.get(name).info()))));
+		t.addTableInfo(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
+				new IndexInfo(indexes.get(0).columnsString(), t.getIndex(tblname).info()))));
 		// TODO handle multiple indexes
 	}
 

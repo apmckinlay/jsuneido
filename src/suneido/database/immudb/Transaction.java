@@ -15,26 +15,33 @@ import suneido.database.immudb.schema.Tables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
+/**
+ * Transactions should be thread contained.
+ * They take a "snapshot" of the database state at the start
+ * and then update the database state when they commit.
+ * Storage is only written during commit.
+ * Commit is single-threaded.
+ */
 @NotThreadSafe
 public class Transaction {
 	private final Database db;
 	private final Storage stor;
-	public final Tran tran;
-	final DbInfo dbinfo;
-	Tables schema;
+	private final Tran tran;
+	private final DbInfo dbinfo;
+	private Tables schema;
 	private final Tables original_schema;
-	public final Map<String,Btree> indexes = Maps.newHashMap();
+	private final Map<String,Btree> indexes = Maps.newHashMap();
 
 	public Transaction(Database db) {
 		this.db = db;
 		stor = db.stor;
-		dbinfo = db.dbinfo;
+		dbinfo = db.dbinfo.snapshot();
 		schema = db.schema;
 		original_schema = db.schema;
 		tran = new Tran(stor, db.redirs);
 	}
 
-	public Btree getIndex(String table) { // TODO handle multiple indexes
+	public Btree getIndex(String table) { // TODO handle multiple indexes per table
 		Btree btree = indexes.get(table);
 		if (btree != null)
 			return btree;
@@ -43,6 +50,29 @@ public class Transaction {
 		btree = new Btree(tran, ti.firstIndex());
 		indexes.put(table, btree);
 		return btree;
+	}
+
+	public boolean hasIndex(String table) {
+		return indexes.containsKey(table);
+	}
+
+	public void addIndex(String table) {
+		indexes.put(table, new Btree(tran));
+	}
+
+	public void addSchemaTable(Table table) {
+		schema = schema.with(table);
+	}
+
+	public void addTableInfo(TableInfo ti) {
+		dbinfo.add(ti);
+	}
+
+	// used by TableBuilder
+	public void addRecord(Record r, String table, int... indexColumns) {
+		Btree btree = getIndex(table);
+		IndexedData id = new IndexedData().index(btree, indexColumns);
+		id.add(tran, r);
 	}
 
 	// TODO synchronize
