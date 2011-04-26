@@ -4,24 +4,26 @@
 
 package suneido.database.immudb;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
 
 /**
  * Normally immutable persistent trees are "updated" by copying & updating
- * nodes all the way up to the root.
+ * nodes all the way up to the root (path copying).
  * To avoid writing so many nodes to disk, we save "redirections".
- * e.g. if we "update" a leaf, instead of updating it's parents
- * we just "redirect" the leaf's old address to it's new address.
+ * e.g. if we "update" a leaf, instead of updating its parents
+ * we just "redirect" the leaf's old address to its new address.
  * <p>
  * Note: Redirections are stored in {@link DbHashTrie}
  * so it can't use this optimization.
  */
+@NotThreadSafe
 public class Redirects {
 	private final DbHashTrie original;
 	private DbHashTrie redirs;
-	boolean noneAdded = true;
 
 	public Redirects(DbHashTrie redirs) {
 		original = redirs;
@@ -31,7 +33,6 @@ public class Redirects {
 	public void put(int from, int to) {
 		assert ! IntRefs.isIntRef(from);
 		redirs = redirs.with(new IntEntry(from, to));
-		noneAdded = false;
 	}
 
 	public int get(int from) {
@@ -41,10 +42,6 @@ public class Redirects {
 
 	public int store(Translator translator) {
 		return redirs.store(translator);
-	}
-
-	public boolean noneAdded() {
-		return noneAdded;
 	}
 
 	public void print() {

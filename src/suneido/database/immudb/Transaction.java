@@ -35,10 +35,10 @@ public class Transaction {
 	public Transaction(Database db) {
 		this.db = db;
 		stor = db.stor;
-		dbinfo = db.dbinfo.snapshot();
+		dbinfo = new DbInfo(stor, db.dbinfo);
 		schema = db.schema;
 		original_schema = db.schema;
-		tran = new Tran(stor, db.redirs);
+		tran = new Tran(stor, new Redirects(db.redirs));
 	}
 
 	public Btree getIndex(String table) { // TODO handle multiple indexes per table
@@ -115,7 +115,13 @@ public class Transaction {
 		buf.putInt(redirs);
 	}
 
+	/**
+	 * schema must be done while holding the commit lock
+	 * so there should be no concurrent changes
+	 */
 	private void updateSchema() {
+		if (schema == original_schema)
+			return; // no schema changes in this transaction
 		assert db.schema == original_schema;
 		db.schema = schema;
 	}

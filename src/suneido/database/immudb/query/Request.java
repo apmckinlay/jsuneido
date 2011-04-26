@@ -48,8 +48,11 @@ public class Request implements RequestGenerator<Object> {
 		if (!schema.hasKey())
 			throw new SuException("key required for: " + table);
 		TableBuilder tb = db.tableBuilder(table);
-		createSchema(tb, schema);
-		tb.finish();
+		try {
+			createSchema(tb, schema);
+		} finally {
+			tb.finish();
+		}
 		return null;
 	}
 

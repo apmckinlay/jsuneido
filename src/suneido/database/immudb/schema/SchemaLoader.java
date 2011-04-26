@@ -5,6 +5,10 @@ import suneido.database.immudb.schema.Bootstrap.TN;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Load the database schema into memory at startup.
+ * Used by Database.open
+ */
 public class SchemaLoader {
 	private final Storage stor;
 	private Tran tran;
@@ -13,8 +17,11 @@ public class SchemaLoader {
 		this.stor = stor;
 	}
 
-	public Tables load(DbInfo dbinfo, Redirects redirs) {
-		tran = new Tran(stor, redirs);
+	// TODO use a read-only Transaction
+
+	public Tables load(DbHashTrie dbi, DbHashTrie redirs) {
+		tran = new Tran(stor, new Redirects(redirs));
+		DbInfo dbinfo = new DbInfo(stor, dbi);
 
 		Btree tablesIndex = getBtree(dbinfo, TN.TABLES);
 		Btree columnsIndex = getBtree(dbinfo, TN.COLUMNS);

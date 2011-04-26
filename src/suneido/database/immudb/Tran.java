@@ -12,7 +12,7 @@ import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
 
 /**
- * Transaction "context".
+ * Transaction "context"
  */
 public class Tran implements Translator {
 	private static final int SIZEOF_INT = 4;
