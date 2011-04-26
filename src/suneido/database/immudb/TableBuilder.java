@@ -6,7 +6,7 @@ package suneido.database.immudb;
 
 import java.util.List;
 
-import suneido.database.immudb.schema.Bootstrap.TN;
+import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.schema.*;
 
 import com.google.common.base.CharMatcher;

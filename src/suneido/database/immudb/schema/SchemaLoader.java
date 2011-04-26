@@ -1,7 +1,7 @@
 package suneido.database.immudb.schema;
 
 import suneido.database.immudb.*;
-import suneido.database.immudb.schema.Bootstrap.TN;
+import suneido.database.immudb.Bootstrap.TN;
 
 import com.google.common.collect.ImmutableList;
 
