@@ -21,9 +21,9 @@ public class Bootstrap {
 		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3; }
 
 	public static void create(Transaction t) {
-		t.addIndex("tables");
-		t.addIndex("columns");
-		t.addIndex("indexes");
+		t.addIndex("tables", "0");
+		t.addIndex("columns", "0,1");
+		t.addIndex("indexes", "0,1");
 
 		TableBuilder tb = TableBuilder.builder(t, "tables", TN.TABLES);
 		tb.addColumn("table");

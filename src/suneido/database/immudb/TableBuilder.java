@@ -12,6 +12,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 
 public class TableBuilder {
 	private final String tblname;
@@ -48,16 +49,17 @@ public class TableBuilder {
 		cb.add(new Column(tblnum, field, column));
 	}
 
-	public void addIndex(String columns, boolean key, boolean unique,
+	public void addIndex(String columns, boolean iskey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colnums = nums(columns);
-		Index index = new Index(tblnum, colnums, key, unique);
+		Index index = new Index(tblnum, colnums, iskey, unique);
 		Record r = index.toRecord();
 		t.addRecord(r, "indexes", 0, 1);
 		indexes.add(index);
-		if (! t.hasIndex(tblname)) // if not bootstrap
-			t.addIndex(tblname);
-		ib.add(new Index(tblnum, colnums, key, unique));
+		String colnumsStr = Ints.join(",", colnums);
+		if (! t.hasIndex(tblname, colnumsStr)) // if not bootstrap
+			t.addIndex(tblname, colnumsStr);
+		ib.add(index);
 		// TODO handle foreign keys
 	}
 
@@ -82,9 +84,11 @@ public class TableBuilder {
 	public void build() {
 		t.addSchemaTable(new Table(tblnum, tblname,
 				new Columns(cb.build()), new Indexes(ib.build())));
-		t.addTableInfo(new TableInfo(tblnum, columns.size(), 0, 0, ImmutableList.of(
-				new IndexInfo(indexes.get(0).columnsString(), t.getIndex(tblname).info()))));
-		// TODO handle multiple indexes
+		ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+		for (Index index : indexes)
+			b.add(new IndexInfo(index.columnsString(),
+					t.getIndex(tblname, index.columns).info()));
+		t.addTableInfo(new TableInfo(tblnum, columns.size(), 0, 0, b.build()));
 	}
 
 	public void finish() {

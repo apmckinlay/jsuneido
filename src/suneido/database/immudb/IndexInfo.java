@@ -8,7 +8,7 @@ import com.google.common.base.Objects;
 
 public class IndexInfo extends BtreeInfo {
 	public static final int NFIELDS = 4;
-	public final String columns;
+	public final String columns; // e.g. "0,1"
 
 	public IndexInfo(String columns, BtreeInfo info) {
 		super(info.root, info.treeLevels, info.nnodes);

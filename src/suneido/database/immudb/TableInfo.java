@@ -64,6 +64,13 @@ public class TableInfo extends DbHashTrie.Entry {
 		return indexInfo.get(0);
 	}
 
+	public IndexInfo getIndex(String indexColumns) {
+		for (IndexInfo ii : indexInfo)
+			if (ii.columns.equals(indexColumns))
+				return ii;
+		return null;
+	}
+
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)

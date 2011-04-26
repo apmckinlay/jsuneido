@@ -14,6 +14,7 @@ import suneido.database.immudb.schema.Tables;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 
 /**
  * Transactions should be thread contained.
@@ -30,7 +31,7 @@ public class Transaction {
 	private final DbInfo dbinfo;
 	private Tables schema;
 	private final Tables original_schema;
-	private final Map<String,Btree> indexes = Maps.newHashMap();
+	private final Map<String, Map<String,Btree>> indexes = Maps.newHashMap();
 
 	public Transaction(Database db) {
 		this.db = db;
@@ -41,23 +42,39 @@ public class Transaction {
 		tran = new Tran(stor, new Redirects(db.redirs));
 	}
 
-	public Btree getIndex(String table) { // TODO handle multiple indexes per table
-		Btree btree = indexes.get(table);
-		if (btree != null)
-			return btree;
+	public Btree getIndex(String table, int... indexColumns) {
+		return getIndex(table, Ints.join(",", indexColumns));
+	}
+
+	/** indexColumns are like "3,4" */
+	public Btree getIndex(String table, String indexColumns) {
+		Map<String,Btree> idxs = indexes.get(table);
+		if (idxs != null) {
+			Btree btree = idxs.get(indexColumns);
+			if (btree != null)
+				return btree;
+		}
 		Table tbl = schema.get(table);
 		TableInfo ti = dbinfo.get(tbl.num);
-		btree = new Btree(tran, ti.firstIndex());
-		indexes.put(table, btree);
+		Btree btree = new Btree(tran, ti.getIndex(indexColumns));
+		if (idxs == null)
+			idxs = Maps.newHashMap();
+		idxs.put(indexColumns, btree);
+		indexes.put(table, idxs);
 		return btree;
 	}
 
-	public boolean hasIndex(String table) {
-		return indexes.containsKey(table);
+	public boolean hasIndex(String table, String indexColumns) {
+		Map<String,Btree> idxs = indexes.get(table);
+		return idxs != null && idxs.containsKey(indexColumns);
 	}
 
-	public void addIndex(String table) {
-		indexes.put(table, new Btree(tran));
+	public void addIndex(String table, String indexColumns) {
+		Map<String,Btree> idxs = indexes.get(table);
+		if (idxs == null)
+			idxs = Maps.newHashMap();
+		idxs.put(indexColumns, new Btree(tran));
+		indexes.put(table, idxs);
 	}
 
 	public void addSchemaTable(Table table) {
@@ -70,7 +87,7 @@ public class Transaction {
 
 	// used by TableBuilder
 	public void addRecord(Record r, String table, int... indexColumns) {
-		Btree btree = getIndex(table);
+		Btree btree = getIndex(table, indexColumns);
 		IndexedData id = new IndexedData().index(btree, indexColumns);
 		id.add(tran, r);
 	}
@@ -94,15 +111,21 @@ public class Transaction {
 	}
 
 	private void updateDbInfo() {
-		for (Map.Entry<String, Btree> e : indexes.entrySet()) {
+		for (Map.Entry<String, Map<String,Btree>> e : indexes.entrySet()) {
 			String tableName = e.getKey();
 			int tblnum = schema.get(tableName).num;
-			Btree btree = e.getValue();
 			TableInfo ti = dbinfo.get(tblnum);
+			Map<String,Btree> idxs = e.getValue();
+			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+			for (IndexInfo ii : ti.indexInfo) {
+				Btree btree = idxs.get(ii.columns);
+				if (btree == null)
+					b.add(ii);
+				else
+					b.add(new IndexInfo(ii.columns, btree.info()));
+			}
 			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows, ti.totalsize,
-					ImmutableList.of(
-							new IndexInfo(ti.firstIndex().columns, btree.info())));
-			// TODO handle multiple indexes
+					b.build());
 			dbinfo.add(ti);
 		}
 	}
