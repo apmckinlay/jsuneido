@@ -22,8 +22,8 @@ public class UpdateTransaction extends ReadTransaction {
 		original_schema = db.schema;
 	}
 
-	public void addIndex(String table, String indexColumns) {
-		indexes.put(table, indexColumns, new Btree(tran));
+	public void addIndex(int tblnum, String indexColumns) {
+		indexes.put(tblnum, indexColumns, new Btree(tran));
 	}
 
 	public void addSchemaTable(Table table) {
@@ -35,13 +35,14 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	// used by TableBuilder
-	public void addRecord(Record r, String table, int... indexColumns) {
-		Btree btree = getIndex(table, indexColumns);
+	public void addRecord(Record r, int tblnum, int... indexColumns) {
+		Btree btree = getIndex(tblnum, indexColumns);
 		IndexedData id = new IndexedData().index(btree, indexColumns);
 		id.add(tran, r);
 	}
 
 	// TODO synchronize
+	@Override
 	public void commit() {
 		tran.startStore();
 		DataRecords.store(tran);
@@ -60,10 +61,9 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	private void updateDbInfo() {
-		for (String table : indexes.rowKeySet()) {
-			int tblnum = schema.get(table).num;
+		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
-			Map<String,Btree> idxs = indexes.row(table);
+			Map<String,Btree> idxs = indexes.row(tblnum);
 			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 			for (IndexInfo ii : ti.indexInfo) {
 				Btree btree = idxs.get(ii.columns);

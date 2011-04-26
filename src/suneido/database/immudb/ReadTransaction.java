@@ -6,7 +6,6 @@ package suneido.database.immudb;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.database.immudb.schema.Table;
 import suneido.database.immudb.schema.Tables;
 
 import com.google.common.collect.HashBasedTable;
@@ -25,7 +24,7 @@ public class ReadTransaction {
 	protected final Tran tran;
 	protected final DbInfo dbinfo;
 	protected Tables schema;
-	protected final HashBasedTable<String,String,Btree> indexes = HashBasedTable.create();
+	protected final HashBasedTable<Integer,String,Btree> indexes = HashBasedTable.create();
 
 	public ReadTransaction(Database db) {
 		this(db.stor, db.dbinfo, db.schema, db.redirs);
@@ -38,31 +37,23 @@ public class ReadTransaction {
 		tran = new Tran(stor, new Redirects(redirs));
 	}
 
-	public Btree getIndex(String table, int... indexColumns) {
-		return getIndex(table, Ints.join(",", indexColumns));
+	public Btree getIndex(int tblnum, int... indexColumns) {
+		return getIndex(tblnum, Ints.join(",", indexColumns));
 	}
 
 	/** indexColumns are like "3,4" */
-	public Btree getIndex(String table, String indexColumns) {
-		Btree btree = indexes.get(table, indexColumns);
-		if (btree != null)
-			return btree;
-		Table tbl = schema.get(table);
-		return getIndex(table, tbl.num, indexColumns);
-	}
-
-	public Btree getIndex(String table, int tblnum, String indexColumns) {
-		Btree btree = indexes.get(table, indexColumns);
+	public Btree getIndex(int tblnum, String indexColumns) {
+		Btree btree = indexes.get(tblnum, indexColumns);
 		if (btree != null)
 			return btree;
 		TableInfo ti = dbinfo.get(tblnum);
 		btree = new Btree(tran, ti.getIndex(indexColumns));
-		indexes.put(table, indexColumns, btree);
+		indexes.put(tblnum, indexColumns, btree);
 		return btree;
 	}
 
-	public boolean hasIndex(String table, String indexColumns) {
-		return indexes.contains(table, indexColumns);
+	public boolean hasIndex(int tblnum, String indexColumns) {
+		return indexes.contains(tblnum, indexColumns);
 	}
 
 	public void commit() {

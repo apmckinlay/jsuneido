@@ -22,9 +22,9 @@ public class SchemaLoader {
 	}
 
 	private Tables load() {
-		Btree tablesIndex = t.getIndex("tables", TN.TABLES, "0");
-		Btree columnsIndex = t.getIndex("columns", TN.COLUMNS, "0,1");
-		Btree indexesIndex = t.getIndex("indexes", TN.INDEXES, "0,1");
+		Btree tablesIndex = t.getIndex(TN.TABLES, "0");
+		Btree columnsIndex = t.getIndex(TN.COLUMNS, "0,1");
+		Btree indexesIndex = t.getIndex(TN.INDEXES, "0,1");
 
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
