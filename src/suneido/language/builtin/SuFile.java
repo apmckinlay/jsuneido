@@ -13,17 +13,17 @@ import suneido.SuValue;
 import suneido.language.*;
 import suneido.util.Util;
 
-public class File extends SuValue {
+public class SuFile extends SuValue {
 	private final String filename;
 	private final String mode;
 	private final boolean append;
 	private RandomAccessFile f;
-	private static final BuiltinMethods methods = new BuiltinMethods(File.class);
+	private static final BuiltinMethods methods = new BuiltinMethods(SuFile.class);
 
-	public File(String filename, String mode) {
+	public SuFile(String filename, String mode) {
 		this.filename = filename;
 		this.mode = mode;
-		java.io.File file = new java.io.File(filename);
+		File file = new File(filename);
 		if ("w".equals(mode) && file.exists()) {
 			if (! file.delete())
 				throw new SuException("File: can't delete " + filename);
@@ -62,7 +62,7 @@ public class File extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			try {
-				((File) self).f.getChannel().force(true);
+				((SuFile) self).f.getChannel().force(true);
 			} catch (IOException e) {
 				throw new SuException("File Flush failed", e);
 			}
@@ -74,7 +74,7 @@ public class File extends SuValue {
 		{ params = new FunctionSpec(array("nbytes"), Integer.MAX_VALUE); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			RandomAccessFile f = ((File) self).f;
+			RandomAccessFile f = ((SuFile) self).f;
 			int n = Ops.toInt(a);
 			long remaining;
 			try {
@@ -96,7 +96,7 @@ public class File extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			try {
-				String s = ((File) self).f.readLine();
+				String s = ((SuFile) self).f.readLine();
 				return s == null ? Boolean.FALSE : s;
 			} catch (IOException e) {
 				throw new SuException("File Readline failed", e);
@@ -110,7 +110,7 @@ public class File extends SuValue {
 		public Object eval2(Object self, Object a, Object b) {
 			long offset = Ops.toInt(a);
 			String origin = Ops.toStr(b);
-			RandomAccessFile f = ((File) self).f;
+			RandomAccessFile f = ((SuFile) self).f;
 			try {
 				if (origin.equals("cur"))
 					offset += f.getFilePointer();
@@ -133,7 +133,7 @@ public class File extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			try {
-				return (int) ((File) self).f.getFilePointer();
+				return (int) ((SuFile) self).f.getFilePointer();
 			} catch (IOException e) {
 				throw new SuException("File Tell failed", e);
 			}
@@ -144,14 +144,14 @@ public class File extends SuValue {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			((File) self).write(Ops.toStr(a));
+			((SuFile) self).write(Ops.toStr(a));
 			return null;
 		}
 	}
 
 	public void write(String s) {
 		try {
-			synchronized (File.class) {
+			synchronized (SuFile.class) {
 				if (append)
 					f.seek(f.length());
 				f.writeBytes(s);
@@ -165,14 +165,14 @@ public class File extends SuValue {
 		{ params = FunctionSpec.string; }
 		@Override
 		public Object eval1(Object self, Object a) {
-			((File) self).writeline(Ops.toStr(a));
+			((SuFile) self).writeline(Ops.toStr(a));
 			return null;
 		}
 	}
 
 	public void writeline(String s) {
 		try {
-			synchronized (File.class) {
+			synchronized (SuFile.class) {
 				if (append)
 					f.seek(f.length());
 				f.writeBytes(s);
@@ -186,7 +186,7 @@ public class File extends SuValue {
 	public static class Close extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			((File) self).close();
+			((SuFile) self).close();
 			return null;
 		}
 	}
@@ -215,16 +215,16 @@ public class File extends SuValue {
 	public static final BuiltinClass clazz = new BuiltinClass() {
 		FunctionSpec newFS = new FunctionSpec(array("filename", "mode"), "r");
 		@Override
-		public File newInstance(Object... args) {
+		public SuFile newInstance(Object... args) {
 			args = Args.massage(newFS, args);
-			return new File(Ops.toStr(args[0]), Ops.toStr(args[1]));
+			return new SuFile(Ops.toStr(args[0]), Ops.toStr(args[1]));
 		}
 		FunctionSpec callFS = new FunctionSpec(
 				array("filename", "mode", "block"), "r", Boolean.FALSE);
 		@Override
 		public Object call(Object... args) {
 			args = Args.massage(callFS, args);
-			File f = new File(Ops.toStr(args[0]), Ops.toStr(args[1]));
+			SuFile f = new SuFile(Ops.toStr(args[0]), Ops.toStr(args[1]));
 			Object block = args[2];
 			if (block == Boolean.FALSE)
 				return f;
