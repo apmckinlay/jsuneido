@@ -7,7 +7,7 @@ package suneido.language;
 import suneido.SuValue;
 
 /**
- * The base class for built-in classes such {@link Adler32} and {@link File}
+ * The base class for built-in classes such {@link Adler32} and {@link SuFile}
  * Inherits method handling from {@link BuiltinMethods}.
  * Provides typeName() and toString().
  * Derived classes must define a newInstance method to implement "new Xyz(...)"

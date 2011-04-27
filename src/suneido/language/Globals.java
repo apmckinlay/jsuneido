@@ -56,7 +56,7 @@ public class Globals {
 		builtins.put("Eq", new Eq());
 		builtins.put("ExePath", new ExePath());
 		builtins.put("Exit", new Exit());
-		builtins.put("File", File.clazz);
+		builtins.put("File", SuFile.clazz);
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
