@@ -123,4 +123,8 @@ public class Tran implements Translator {
 		return new Record(stor.buffer(adr));
 	}
 
+	public void mergeRedirs(DbHashTrie current) {
+		redirs.merge(current);
+	}
+
 }

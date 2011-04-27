@@ -15,6 +15,11 @@ public class IndexInfo extends BtreeInfo {
 		this.columns = columns;
 	}
 
+	public IndexInfo(String columns, int root, int treeLevels, int nnodes) {
+		super(root, treeLevels, nnodes);
+		this.columns = columns;
+	}
+
 	public IndexInfo(Record rec, int i) {
 		super(rec.getInt(i + 1), rec.getInt(i + 2), rec.getInt(i + 3));
 		this.columns = rec.getString(i);

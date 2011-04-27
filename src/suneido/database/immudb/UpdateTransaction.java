@@ -21,13 +21,15 @@ import com.google.common.collect.ImmutableList;
  */
 public class UpdateTransaction extends ReadTransaction {
 	private final Database db;
-	private final Tables original_schema;
+	private final Tables originalSchema;
+	private final DbHashTrie originalDbInfo;
 
 	/** for Database.updateTran */
 	UpdateTransaction(Database db) {
 		super(db);
 		this.db = db;
-		original_schema = db.schema;
+		originalSchema = db.schema;
+		originalDbInfo = db.dbinfo;
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -50,7 +52,10 @@ public class UpdateTransaction extends ReadTransaction {
 		Btree btree = getIndex(tblnum, indexColumns);
 		IndexedData id = new IndexedData().index(btree, indexColumns);
 		id.add(tran, r);
+		// TODO update nrows and totalsize
 	}
+
+	// commit -------------------------------------------------------
 
 	public void commit() {
 		synchronized(db.commitLock) {
@@ -58,20 +63,26 @@ public class UpdateTransaction extends ReadTransaction {
 			DataRecords.store(tran);
 			Btree.store(tran);
 
-			updateDbInfo();
-			// TODO update nrows, totalsize
+			updateOurDbInfo();
+			updateDatabaseDbInfo();
 
-			int redirs = tran.storeRedirs();
-			store(dbinfo.store(), redirs);
+			int redirsAdr = updateRedirs();
+			int dbinfoAdr = dbinfo.store();
+			store(dbinfoAdr, redirsAdr);
 			tran.endStore();
 
 			updateSchema();
-
-			// TODO merge dbinfo and redirs with database
 		}
 	}
 
-	private void updateDbInfo() {
+	private int updateRedirs() {
+		tran.mergeRedirs(db.redirs);
+		int redirsAdr = tran.storeRedirs();
+		db.redirs = tran.redirs().redirs();
+		return redirsAdr;
+	}
+
+	private void updateOurDbInfo() {
 		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
 			Map<String,Btree> idxs = indexes.row(tblnum);
@@ -87,6 +98,11 @@ public class UpdateTransaction extends ReadTransaction {
 		}
 	}
 
+	private void updateDatabaseDbInfo() {
+		dbinfo.merge(originalDbInfo, db.dbinfo);
+		db.dbinfo = dbinfo.dbinfo();
+	}
+
 	static final int INT_SIZE = 4;
 
 	private void store(int dbinfo, int redirs) {
@@ -96,22 +112,23 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	private void updateSchema() {
-		if (schema == original_schema)
+		if (schema == originalSchema)
 			return; // no schema changes in this transaction
 
-		if (db.schema != original_schema)
-			throw conflict;
+		if (db.schema != originalSchema)
+			throw schemaConflict;
 
 		db.schema = schema;
 	}
 
-	private static final Conflict conflict = new Conflict();
+	private static final Conflict schemaConflict =
+			new Conflict("concurrent schema modification");
 
 	public static class Conflict extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 
-		Conflict() {
-			super("transaction conflict: concurrent schema modification");
+		Conflict(String explanation) {
+			super("transaction conflict: " + explanation);
 		}
 	}
 
