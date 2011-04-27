@@ -9,6 +9,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
+import suneido.database.immudb.UpdateTransaction.Conflict;
 
 /**
  * Normally immutable persistent trees are "updated" by copying & updating
@@ -48,7 +49,6 @@ public class Redirects {
 		redirs.print();
 	}
 
-	/** for tests */
 	DbHashTrie redirs() {
 		return redirs;
 	}
@@ -83,14 +83,7 @@ public class Redirects {
 
 	}
 
-	private static final Conflict conflict = new Conflict();
-
-	public static class Conflict extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		Conflict() {
-			super("transaction conflict: concurrent index node modification");
-		}
-	}
+	private static final Conflict conflict =
+			new Conflict("concurrent index node modification");
 
 }

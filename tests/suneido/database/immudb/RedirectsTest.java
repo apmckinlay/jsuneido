@@ -39,7 +39,7 @@ public class RedirectsTest {
 		assertThat(r.redirs(), is(redirs));
 	}
 
-	@Test(expected = Redirects.Conflict.class)
+	@Test(expected = UpdateTransaction.Conflict.class)
 	public void merge_conflict() {
 		DbHashTrie master = DbHashTrie.empty();
 		Redirects r = new Redirects(DbHashTrie.empty());
