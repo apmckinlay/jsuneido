@@ -12,7 +12,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Ints;
 
-public class Index {
+public class Index implements Comparable<Index> {
 	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
 			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
 	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
@@ -125,6 +125,11 @@ public class Index {
 //			else if (index.fksrc.mode == Index.CASCADE_UPDATES)
 //				sb.append(" cascade update");
 		return sb.toString();
+	}
+
+	@Override
+	public int compareTo(Index that) {
+		return this.columnsString().compareTo(that.columnsString());
 	}
 
 }

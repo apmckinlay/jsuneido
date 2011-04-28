@@ -5,6 +5,7 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -15,6 +16,7 @@ public class Database {
 	static final int INT_SIZE = 4;
 	public final Storage stor;
 	final Object commitLock = new Object();
+	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	DbHashTrie dbinfo;
 	DbHashTrie redirs;
 	Tables schema;
@@ -63,12 +65,20 @@ public class Database {
 		return new UpdateTransaction(this);
 	}
 
-	public TableBuilder tableBuilder(String tableName) {
-		return TableBuilder.builder(updateTran(), tableName, nextTableNum());
+	public ExclusiveTransaction exclusiveTran() {
+		return new ExclusiveTransaction(this);
+	}
+
+	public TableBuilder createTable(String tableName) {
+		return TableBuilder.create(updateTran(), tableName, nextTableNum());
 	}
 
 	private int nextTableNum() {
 		return schema.maxTblNum + 1;
+	}
+
+	public TableBuilder alterTable(String tableName) {
+		return TableBuilder.alter(updateTran(), tableName);
 	}
 
 	public void close() {

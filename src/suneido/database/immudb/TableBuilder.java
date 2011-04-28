@@ -4,6 +4,7 @@
 
 package suneido.database.immudb;
 
+import java.util.Collections;
 import java.util.List;
 
 import suneido.database.immudb.Bootstrap.TN;
@@ -21,12 +22,16 @@ public class TableBuilder {
 	private final UpdateTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
-	private final ImmutableList.Builder<Column> cb = ImmutableList.builder();
-	private final ImmutableList.Builder<Index> ib = ImmutableList.builder();
 
-	public static TableBuilder builder(UpdateTransaction t, String name, int tblnum) {
-		TableBuilder tb = new TableBuilder(t, name, tblnum);
+	public static TableBuilder create(UpdateTransaction t, String tablename, int tblnum) {
+		TableBuilder tb = new TableBuilder(t, tablename, tblnum);
 		tb.createTable();
+		return tb;
+	}
+
+	public static TableBuilder alter(UpdateTransaction t, String tableName) {
+		int tblnum = t.getTable(tableName).num;
+		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
 		return tb;
 	}
 
@@ -47,7 +52,6 @@ public class TableBuilder {
 		Record r = c.toRecord();
 		t.addRecord(r, TN.COLUMNS, 0, 1);
 		columns.add(c);
-		cb.add(new Column(tblnum, field, column));
 	}
 
 	public void addIndex(String columns, boolean iskey, boolean unique,
@@ -60,7 +64,6 @@ public class TableBuilder {
 		String colnumsStr = Ints.join(",", colnums);
 		if (! t.hasIndex(tblnum, colnumsStr)) // if not bootstrap
 			t.addIndex(tblnum, colnumsStr);
-		ib.add(index);
 		// TODO handle foreign keys
 	}
 
@@ -83,17 +86,19 @@ public class TableBuilder {
 	}
 
 	public void build() {
+		Collections.sort(indexes);
 		t.addSchemaTable(new Table(tblnum, tblname,
-				new Columns(cb.build()), new Indexes(ib.build())));
-		ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+				new Columns(ImmutableList.copyOf(columns)),
+				new Indexes(ImmutableList.copyOf(indexes))));
+		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();
 		for (Index index : indexes)
-			b.add(new IndexInfo(index.columnsString(),
+			ii.add(new IndexInfo(index.columnsString(),
 					t.getIndex(tblnum, index.columns).info()));
 		TableInfo ti = t.dbinfo.get(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
 		t.addTableInfo(new TableInfo(tblnum,
-				columns.size(), nrows, totalsize, b.build()));
+				columns.size(), nrows, totalsize, ii.build()));
 	}
 
 	public void finish() {

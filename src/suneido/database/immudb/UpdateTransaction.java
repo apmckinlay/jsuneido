@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
  * Commit is single-threaded.
  */
 public class UpdateTransaction extends ReadTransaction {
-	private final Database db;
+	protected final Database db;
 	private final Tables originalSchema;
 	private final DbHashTrie originalDbInfo;
 
@@ -30,6 +30,15 @@ public class UpdateTransaction extends ReadTransaction {
 		this.db = db;
 		originalSchema = db.schema;
 		originalDbInfo = db.dbinfo;
+		lock(db);
+	}
+
+	protected void lock(Database db) {
+		db.exclusiveLock.readLock().lock();
+	}
+
+	protected void unlock() {
+		db.exclusiveLock.readLock().unlock();
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -55,34 +64,48 @@ public class UpdateTransaction extends ReadTransaction {
 		dbinfo.addrow(tblnum, r.length());
 	}
 
+	public void addRecord(String tablename, Record rec) {
+		// TODO Auto-generated method stub
+
+	}
+
 	// commit -------------------------------------------------------
 
+	public void abort() {
+		unlock();
+	}
+
+	// TODO if exception during commit, rollback storage
 	public void commit() {
-		synchronized(db.commitLock) {
-			tran.startStore();
-			DataRecords.store(tran);
-			Btree.store(tran);
+		try {
+			synchronized(db.commitLock) {
+				tran.startStore();
+				DataRecords.store(tran);
+				Btree.store(tran);
 
-			updateOurDbInfo();
-			updateDatabaseDbInfo();
+				updateOurDbInfo();
+				updateDatabaseDbInfo();
 
-			int redirsAdr = updateRedirs();
-			int dbinfoAdr = dbinfo.store();
-			store(dbinfoAdr, redirsAdr);
-			tran.endStore();
+				int redirsAdr = updateRedirs();
+				int dbinfoAdr = dbinfo.store();
+				store(dbinfoAdr, redirsAdr);
+				tran.endStore();
 
-			updateSchema();
+				updateSchema();
+			}
+		} finally {
+			unlock();
 		}
 	}
 
-	private int updateRedirs() {
+	protected int updateRedirs() {
 		tran.mergeRedirs(db.redirs);
 		int redirsAdr = tran.storeRedirs();
 		db.redirs = tran.redirs().redirs();
 		return redirsAdr;
 	}
 
-	private void updateOurDbInfo() {
+	protected void updateOurDbInfo() {
 		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
 			Map<String,Btree> idxs = indexes.row(tblnum);
@@ -98,14 +121,14 @@ public class UpdateTransaction extends ReadTransaction {
 		}
 	}
 
-	private void updateDatabaseDbInfo() {
+	protected void updateDatabaseDbInfo() {
 		dbinfo.merge(originalDbInfo, db.dbinfo);
 		db.dbinfo = dbinfo.dbinfo();
 	}
 
 	static final int INT_SIZE = 4;
 
-	private void store(int dbinfo, int redirs) {
+	protected void store(int dbinfo, int redirs) {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);

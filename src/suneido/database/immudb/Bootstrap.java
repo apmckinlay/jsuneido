@@ -4,6 +4,8 @@
 
 package suneido.database.immudb;
 
+import suneido.database.immudb.query.Request;
+
 /**
  * Create a new database with the initial schema:
  * 	tables (table, tablename)
@@ -36,7 +38,7 @@ class Bootstrap {
 	}
 
 	private static void create_tables(UpdateTransaction t) {
-		TableBuilder tb = TableBuilder.builder(t, "tables", TN.TABLES);
+		TableBuilder tb = TableBuilder.create(t, "tables", TN.TABLES);
 		tb.addColumn("table");
 		tb.addColumn("tablename");
 		tb.addIndex("table", true, false, null, null, 0);
@@ -45,7 +47,7 @@ class Bootstrap {
 
 	private static void create_columns(UpdateTransaction t) {
 		TableBuilder tb;
-		tb = TableBuilder.builder(t, "columns", TN.COLUMNS);
+		tb = TableBuilder.create(t, "columns", TN.COLUMNS);
 		tb.addColumn("table");
 		tb.addColumn("field");
 		tb.addColumn("column");
@@ -55,7 +57,7 @@ class Bootstrap {
 
 	private static void create_indexes(UpdateTransaction t) {
 		TableBuilder tb;
-		tb = TableBuilder.builder(t, "indexes", TN.INDEXES);
+		tb = TableBuilder.create(t, "indexes", TN.INDEXES);
 		tb.addColumn("table");
 		tb.addColumn("columns");
 		tb.addColumn("key");
@@ -67,13 +69,8 @@ class Bootstrap {
 	}
 
 	private static void create_views(Database db) {
-		UpdateTransaction t = db.updateTran();
-		TableBuilder tb = TableBuilder.builder(t, "views", TN.VIEWS);
-		tb.addColumn("view_name");
-		tb.addColumn("view_definition");
-		tb.addIndex("view_name", true, false, null, null, 0);
-		tb.build();
-		t.commit();
+		Request.execute(db,
+				"create views (view_name, view_definition) key(view_name)");
 	}
 
 }
