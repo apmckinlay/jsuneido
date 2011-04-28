@@ -23,12 +23,14 @@ public class BootstrapTest {
 
 	private void check(Database db) {
 		assertThat(db.schema.get("tables").schema(),
-				is("(table,tablename) key(table)"));
+				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.schema.get("columns").schema(),
 				is("(table,field,column) key(table,field)"));
 		assertThat(db.schema.get("indexes").schema(),
 				is("(table,columns,key,fktable,fkcolumns,fkmode) " +
 						"key(table,columns)"));
+		assertThat(db.schema.get("views").schema(),
+				is("(view_name,view_definition) key(view_name)"));
 	}
 
 }

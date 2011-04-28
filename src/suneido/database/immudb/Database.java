@@ -69,8 +69,7 @@ public class Database {
 	}
 
 	private int nextTableNum() {
-		// TODO next table num
-		return 4;
+		return schema.maxTblNum + 1;
 	}
 
 	public void close() {

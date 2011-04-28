@@ -30,7 +30,7 @@ public class RequestTest {
 
 	private void check(Database db) {
 		assertThat(db.schema().get("tables").schema(),
-				is("(table,tablename) key(table)"));
+				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
 	}
 
