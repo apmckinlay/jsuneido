@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import suneido.database.immudb.Bootstrap.TN;
+import suneido.database.immudb.tools.CheckTable;
 
 public class BootstrapTest {
 
@@ -35,13 +36,13 @@ public class BootstrapTest {
 				is("(view_name,view_definition) key(view_name)"));
 
 		DbInfo dbinfo = new DbInfo(db.stor, db.dbinfo);
-		TableInfo ti;
-		ti = dbinfo.get(TN.TABLES);
-		assertThat(ti.nrows(), is(4));
-		ti = dbinfo.get(TN.COLUMNS);
-		assertThat(ti.nrows(), is(13));
-		ti = dbinfo.get(TN.INDEXES);
-		assertThat(ti.nrows(), is(4));
+		assertThat(dbinfo.get(TN.TABLES).nrows(), is(4));
+		assertThat(dbinfo.get(TN.COLUMNS).nrows(), is(13));
+		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(4));
+
+		assertThat(new CheckTable(db, "tables").call(), is(""));
+		assertThat(new CheckTable(db, "columns").call(), is(""));
+		assertThat(new CheckTable(db, "indexes").call(), is(""));
 	}
 
 }

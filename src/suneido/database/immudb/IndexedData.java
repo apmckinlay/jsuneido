@@ -36,16 +36,17 @@ public class IndexedData {
 		}
 
 		public void add(Record data, int intref) {
-			btree.add(key(data, intref));
+			btree.add(key(data, fields, intref));
 		}
 
-		private Record key(Record data, int intref) {
-			RecordBuilder rb = new RecordBuilder();
-			for (int field : fields)
-				rb.add(data, field);
-			rb.add(intref);
-			return rb.build();
-		}
+	}
+
+	public static Record key(Record rec, int[] fields, int adr) {
+		RecordBuilder rb = new RecordBuilder();
+		for (int field : fields)
+			rb.add(rec, field);
+		rb.add(adr);
+		return rb.build();
 	}
 
 }
