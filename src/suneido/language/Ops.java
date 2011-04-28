@@ -524,7 +524,7 @@ public final class Ops {
 		return toBoolean_(x);
 	}
 
-	public static Boolean toBoolean_(Object x) {
+	public static boolean toBoolean_(Object x) {
 		if (x == Boolean.TRUE)
 			return true;
 		else if (x == Boolean.FALSE)
