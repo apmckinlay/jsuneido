@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.database.immudb.schema.SchemaLoader;
 import suneido.database.immudb.schema.Tables;
 
 @ThreadSafe
@@ -30,7 +29,7 @@ public class Database {
 	public static Database create(Storage stor) {
 		Database db = new Database(stor, DbHashTrie.empty(stor),
 				DbHashTrie.empty(stor), new Tables());
-		Bootstrap.create(db.updateTran());
+		Bootstrap.create(db);
 		return db;
 	}
 

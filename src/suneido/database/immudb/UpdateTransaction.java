@@ -52,7 +52,7 @@ public class UpdateTransaction extends ReadTransaction {
 		Btree btree = getIndex(tblnum, indexColumns);
 		IndexedData id = new IndexedData().index(btree, indexColumns);
 		id.add(tran, r);
-		// TODO update nrows and totalsize
+		dbinfo.addrow(tblnum, r.length());
 	}
 
 	// commit -------------------------------------------------------
@@ -92,7 +92,7 @@ public class UpdateTransaction extends ReadTransaction {
 				b.add((btree == null)
 						? ii : new IndexInfo(ii.columns, btree.info()));
 			}
-			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows, ti.totalsize,
+			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows(), ti.totalsize(),
 					b.build());
 			dbinfo.add(ti);
 		}
