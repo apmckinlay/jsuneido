@@ -18,7 +18,7 @@ public class DumpReader {
 			fin = new BufferedInputStream(new FileInputStream(filename));
 			this.proc = proc;
 		} catch (IOException e) {
-			throw new SuException("DumpReader " + e);
+			throw new SuException("DumpReader", e);
 		}
 	}
 
@@ -29,7 +29,7 @@ public class DumpReader {
 			readRecords();
 			proc.end();
 		} catch (IOException e) {
-			throw new SuException("DumpReader " + e);
+			throw new SuException("DumpReader", e);
 		}
 	}
 

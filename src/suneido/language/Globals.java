@@ -69,6 +69,7 @@ public class Globals {
 		builtins.put("Libraries", new Libraries());
 		builtins.put("Lt", new Lt());
 		builtins.put("Lte", new Lte());
+		builtins.put("Lucene", Lucene.singleton);
 		builtins.put("Match", new Match());
 		builtins.put("Md5", new Md5());
 		builtins.put("MemoryArena", new MemoryArena());
