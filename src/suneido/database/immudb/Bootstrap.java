@@ -8,15 +8,17 @@ package suneido.database.immudb;
 /**
  * Create a new database with the initial schema:
  * 	tables (table, tablename)
- * 		key(table)
+ * 		key(table) key(tablename)
  * 	columns (table, field, column)
  * 		key(table, field)
- * 	indexes (table,columns,key,fktable,fkcolumns,fkmode)
- *		key(table,columns)
+ * 	indexes (table, columns, key, fktable, fkcolumns, fkmode)
+ *		key(table, columns)
+ *	views (view_name, view_definition)
+ *		key(view_name)
  */
 public class Bootstrap {
 	public static class TN
-		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3; }
+		{ public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 
 	public static void create(UpdateTransaction t) {
 		t.addIndex(TN.TABLES, "0");
@@ -27,6 +29,7 @@ public class Bootstrap {
 		tb.addColumn("table");
 		tb.addColumn("tablename");
 		tb.addIndex("table", true, false, null, null, 0);
+		tb.addIndex("tablename", true, false, null, null, 0);
 		tb.build();
 
 		tb = TableBuilder.builder(t, "columns", TN.COLUMNS);
@@ -44,6 +47,12 @@ public class Bootstrap {
 		tb.addColumn("fkcolumns");
 		tb.addColumn("fkmode");
 		tb.addIndex("table,columns", true, false, null, null, 0);
+		tb.build();
+
+		tb = TableBuilder.builder(t, "views", TN.VIEWS);
+		tb.addColumn("view_name");
+		tb.addColumn("view_definition");
+		tb.addIndex("view_name", true, false, null, null, 0);
 		tb.build();
 
 		t.commit();
