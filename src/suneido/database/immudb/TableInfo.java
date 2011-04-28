@@ -13,7 +13,7 @@ import com.google.common.collect.Iterables;
  * Mutable within a transaction.
  */
 public class TableInfo extends DbHashTrie.Entry {
-	private boolean stored;
+	private int adr;
 	public final int tblnum;
 	public final int nextfield;
 	private int nrows;
@@ -22,7 +22,7 @@ public class TableInfo extends DbHashTrie.Entry {
 
 	public TableInfo(int tblnum, int nextfield, int nrows, long totalsize,
 			ImmutableList<IndexInfo> indexInfo) {
-		stored = false;
+		adr = 0;
 		this.tblnum = tblnum;
 		this.nextfield = nextfield;
 		this.nrows = nrows;
@@ -30,8 +30,8 @@ public class TableInfo extends DbHashTrie.Entry {
 		this.indexInfo = indexInfo;
 	}
 
-	public TableInfo(Record rec) {
-		stored = true;
+	public TableInfo(Record rec, int adr) {
+		this.adr = adr;
 		int i = 0;
 		tblnum = rec.getInt(i++);
 		nextfield = rec.getInt(i++);
@@ -56,8 +56,12 @@ public class TableInfo extends DbHashTrie.Entry {
 		return totalsize;
 	}
 
+	private boolean stored() {
+		return adr != 0;
+	}
+
 	public TableInfo with(int size) {
-		if (stored)
+		if (stored())
 			return new TableInfo(tblnum,
 					nextfield, nrows + 1, totalsize + size, indexInfo);
 		else {
@@ -68,13 +72,14 @@ public class TableInfo extends DbHashTrie.Entry {
 	}
 
 	public int store(Storage stor) {
-		assert ! stored;
-		stored = true;
-		RecordBuilder rb = new RecordBuilder();
-		rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
-		for (IndexInfo info : indexInfo)
-			info.addToRecord(rb);
-		return rb.build().store(stor);
+		if (! stored()) {
+			RecordBuilder rb = new RecordBuilder();
+			rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
+			for (IndexInfo info : indexInfo)
+				info.addToRecord(rb);
+			adr = rb.build().store(stor);
+		}
+		return adr;
 	}
 
 	public IndexInfo getIndex(String indexColumns) {

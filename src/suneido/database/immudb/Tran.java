@@ -22,7 +22,7 @@ public class Tran implements Translator {
 	public final Storage stor;
 	private final Redirects redirs;
 	public final IntRefs intrefs = new IntRefs();
-	private int head_adr;
+	private int head_adr = 0;
 
 	public Tran(Storage stor) {
 		this.stor = stor;
@@ -64,8 +64,13 @@ public class Tran implements Translator {
 	}
 
 	public void startStore() {
-		stor.protect(); // enable output
 		intrefs.startStore();
+		if (head_adr == 0)
+			allowStore();
+	}
+
+	public void allowStore() {
+		stor.protect(); // enable output
 		head_adr = stor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 

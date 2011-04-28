@@ -60,8 +60,8 @@ public class ReadTransaction {
 		return tran.getrec(adr);
 	}
 
-	public Table getTable(String tablename) {
-		return schema.get(tablename);
+	public Table getTable(String tableName) {
+		return schema.get(tableName);
 	}
 
 	public TableInfo getTableInfo(int tblnum) {

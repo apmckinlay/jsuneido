@@ -74,6 +74,7 @@ public class CheckTable implements Callable<String> {
 						" != tables " + ti.totalsize() + "\n";
 				return false;
 			}
+//break; // only check first index
 		}
 		if (ti.nextfield <= table.maxColumnNum()) {
 			details += tablename + ": nextfield mismatch: nextfield "

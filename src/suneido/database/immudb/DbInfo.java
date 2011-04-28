@@ -46,7 +46,7 @@ public class DbInfo {
 		if (e instanceof IntEntry) {
 			int adr = ((IntEntry) e).value;
 			Record rec = new Record(stor.buffer(adr));
-			TableInfo ti = new TableInfo(rec);
+			TableInfo ti = new TableInfo(rec, adr);
 			dbinfo = dbinfo.with(ti);
 			return ti;
 		} else
