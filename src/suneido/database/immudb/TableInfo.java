@@ -4,22 +4,25 @@
 
 package suneido.database.immudb;
 
-import javax.annotation.concurrent.Immutable;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-@Immutable
+/**
+ * Immutable when loaded or stored.
+ * Mutable within a transaction.
+ */
 public class TableInfo extends DbHashTrie.Entry {
+	private boolean stored;
 	public final int tblnum;
 	public final int nextfield;
-	public final int nrows;
-	public final long totalsize;
+	private int nrows;
+	private long totalsize;
 	public final ImmutableList<IndexInfo> indexInfo;
 
 	public TableInfo(int tblnum, int nextfield, int nrows, long totalsize,
 			ImmutableList<IndexInfo> indexInfo) {
+		stored = false;
 		this.tblnum = tblnum;
 		this.nextfield = nextfield;
 		this.nrows = nrows;
@@ -28,6 +31,7 @@ public class TableInfo extends DbHashTrie.Entry {
 	}
 
 	public TableInfo(Record rec) {
+		stored = true;
 		int i = 0;
 		tblnum = rec.getInt(i++);
 		nextfield = rec.getInt(i++);
@@ -44,24 +48,33 @@ public class TableInfo extends DbHashTrie.Entry {
 		return tblnum;
 	}
 
-	public Record toRecord() {
+	public int nrows() {
+		return nrows;
+	}
+
+	public long totalsize() {
+		return totalsize;
+	}
+
+	public TableInfo with(int size) {
+		if (stored)
+			return new TableInfo(tblnum,
+					nextfield, nrows + 1, totalsize + size, indexInfo);
+		else {
+			++nrows;
+			totalsize += size;
+			return this;
+		}
+	}
+
+	public int store(Storage stor) {
+		assert ! stored;
+		stored = true;
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
 		for (IndexInfo info : indexInfo)
 			info.addToRecord(rb);
-		return rb.build();
-	}
-
-	public static Record toRecord(int tblnum, int nextfield, int nrows, long totalsize,
-			String indexColumns, BtreeInfo btreeInfo) {
-		RecordBuilder rb = new RecordBuilder();
-		rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
-		IndexInfo.addToRecord(rb, indexColumns, btreeInfo);
-		return rb.build();
-	}
-
-	public IndexInfo firstIndex() {
-		return indexInfo.get(0);
+		return rb.build().store(stor);
 	}
 
 	public IndexInfo getIndex(String indexColumns) {

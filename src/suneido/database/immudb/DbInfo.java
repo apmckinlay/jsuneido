@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
@@ -56,6 +57,16 @@ public class DbInfo {
 		dbinfo = dbinfo.with(ti);
 	}
 
+	/** ++nrows, totalsize += size */
+	public void addrow(int tblnum, int size) {
+		TableInfo ti = get(tblnum);
+		if (tblnum <= TN.INDEXES && ti == null) // bootstrap
+			return;
+		TableInfo ti2 = ti.with(size);
+		if (ti2 != ti)
+			dbinfo = dbinfo.with(ti2);
+	}
+
 	public int store() {
 		return dbinfo.store(new DbInfoTranslator());
 	}
@@ -63,10 +74,9 @@ public class DbInfo {
 	private class DbInfoTranslator implements Translator {
 		@Override
 		public int translate(Entry entry) {
-			if (entry instanceof TableInfo) {
-				Record r = ((TableInfo) entry).toRecord();
-				return r.store(stor);
-			} else
+			if (entry instanceof TableInfo)
+				return ((TableInfo) entry).store(stor);
+			else
 				return ((IntEntry) entry).value;
 		}
 	}
@@ -116,8 +126,8 @@ public class DbInfo {
 				else
 					builder.add(merge(ourIdx, origIdx, curIdx));
 			}
-			int nrows = cur.nrows + (ours.nrows - orig.nrows);
-			long totalsize = cur.totalsize + (ours.totalsize - orig.totalsize);
+			int nrows = cur.nrows() + (ours.nrows() - orig.nrows());
+			long totalsize = cur.totalsize() + (ours.totalsize() - orig.totalsize());
 			return new TableInfo(cur.tblnum, cur.nextfield, nrows, totalsize,
 					builder.build());
 		}

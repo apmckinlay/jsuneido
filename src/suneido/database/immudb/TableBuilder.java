@@ -89,7 +89,11 @@ public class TableBuilder {
 		for (Index index : indexes)
 			b.add(new IndexInfo(index.columnsString(),
 					t.getIndex(tblnum, index.columns).info()));
-		t.addTableInfo(new TableInfo(tblnum, columns.size(), 0, 0, b.build()));
+		TableInfo ti = t.dbinfo.get(tblnum);
+		int nrows = (ti == null) ? 0 : ti.nrows();
+		long totalsize = (ti == null) ? 0 : ti.totalsize();
+		t.addTableInfo(new TableInfo(tblnum,
+				columns.size(), nrows, totalsize, b.build()));
 	}
 
 	public void finish() {

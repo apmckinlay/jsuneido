@@ -82,6 +82,7 @@ public class Record implements Comparable<Record>, Packable {
 		}
 	}
 
+	/** Number of bytes e.g. for storing */
 	public int length() {
 		return fieldOffset(-1) - offset;
 	}
