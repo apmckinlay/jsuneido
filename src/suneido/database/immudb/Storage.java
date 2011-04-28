@@ -29,4 +29,6 @@ public interface Storage {
 	void protect();
 	void protectAll();
 
+	int advance(int adr, int length);
+
 }

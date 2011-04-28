@@ -44,12 +44,19 @@ public abstract class ChunkedStorage implements Storage {
 
 		long offset = file_size;
 		file_size += n;
-		return longToInt(offset);
+		return offsetToAdr(offset);
 	}
 
 	public static int align(int n) {
 		// requires ALIGN to be power of 2
 		return ((n - 1) | (ALIGN - 1)) + 1;
+	}
+
+	@Override
+	public int advance(int adr, int length) {
+		long offset = adrToOffset(adr);
+		offset += align(length);
+		return offsetToAdr(offset);
 	}
 
 	/**
@@ -98,7 +105,7 @@ return buf.slice().asReadOnlyBuffer();
 
 	protected abstract ByteBuffer get(int chunk);
 
-	private static int longToInt(long n) {
+	private static int offsetToAdr(long n) {
 		assert (n & MASK) == 0;
 		assert n <= MAX_SIZE;
 		return (int) (n >>> SHIFT) + 1; // +1 to avoid 0
