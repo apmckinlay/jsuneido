@@ -107,7 +107,7 @@ public class Index {
 	@Override
 	public String toString() {
 		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + columns + ")";
+				"(" + Ints.join(",", columns) + ")";
 	}
 
 	public String schema(StringBuilder sb, Columns cols) {

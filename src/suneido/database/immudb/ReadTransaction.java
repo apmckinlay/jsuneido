@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.database.immudb.schema.Table;
 import suneido.database.immudb.schema.Tables;
 
 import com.google.common.collect.HashBasedTable;
@@ -57,6 +58,14 @@ public class ReadTransaction {
 
 	public Record getrec(int adr) {
 		return tran.getrec(adr);
+	}
+
+	public Table getTable(String tablename) {
+		return schema.get(tablename);
+	}
+
+	public TableInfo getTableInfo(int tblnum) {
+		return dbinfo.get(tblnum);
 	}
 
 }
