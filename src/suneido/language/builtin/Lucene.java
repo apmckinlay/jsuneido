@@ -1,3 +1,7 @@
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
@@ -55,11 +59,11 @@ public class Lucene extends BuiltinClass {
 		}
 	}
 
-	public static class Updater extends SuValue {
+	static class Updater extends SuValue {
 		private static BuiltinMethods methods = new BuiltinMethods(Updater.class);
 		private final IndexWriter writer;
 
-		private Updater(String dir, boolean create) {
+		Updater(String dir, boolean create) {
 			writer = writer(dir, create);
 		}
 
@@ -158,7 +162,6 @@ public class Lucene extends BuiltinClass {
 				IndexSearcher searcher = new IndexSearcher(dir);
 			    Analyzer analyzer = new StandardAnalyzer(version);
 			    QueryParser parser = new QueryParser(version, "text", analyzer);
-// TODO don't use parser, just TermQuery and BooleanQuery/Clause
 			    Query query = parser.parse(queryStr);
 			    TopDocs results = searcher.search(query, limit);
 			    ScoreDoc[] hits = results.scoreDocs;
