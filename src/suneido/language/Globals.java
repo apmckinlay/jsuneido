@@ -69,7 +69,7 @@ public class Globals {
 		builtins.put("Libraries", new Libraries());
 		builtins.put("Lt", new Lt());
 		builtins.put("Lte", new Lte());
-		builtins.put("Lucene", Lucene.singleton);
+		builtins.put("Lucene", lucene());
 		builtins.put("Match", new Match());
 		builtins.put("Md5", new Md5());
 		builtins.put("MemoryArena", new MemoryArena());
@@ -208,6 +208,15 @@ public class Globals {
 	public static Object invoke4(String name, Object a, Object b,
 			Object c, Object d) {
 		return ((SuValue) get(name)).call4(a, b, c, d);
+	}
+	
+	private static Object lucene() {
+		try {
+			Class.forName("org.apache.lucene.analysis.Analyzer");
+			return Lucene.singleton;
+		} catch (ClassNotFoundException e) {
+			return NoLucene.singleton;
+		}
 	}
 
 }

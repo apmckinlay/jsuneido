@@ -5,6 +5,7 @@
 package suneido.language;
 
 import suneido.SuValue;
+import suneido.language.builtin.SuFile;
 
 /**
  * The base class for built-in classes such {@link Adler32} and {@link SuFile}
@@ -28,6 +29,11 @@ public abstract class BuiltinClass extends BuiltinMethods {
 	@Override
 	public Object call(Object... args) {
 		return newInstance(args);
+	}
+
+	@Override
+	public Object get(Object member) {
+		return super.lookup(Ops.toStr(member));
 	}
 
 	@Override
