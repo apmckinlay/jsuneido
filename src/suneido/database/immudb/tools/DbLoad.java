@@ -11,6 +11,7 @@ import static suneido.SuException.verify;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Iterator;
 
 import suneido.SuException;
 import suneido.database.immudb.*;
@@ -145,6 +146,8 @@ new File("immu.db").delete();
 		Index index = table.indexes.first();
 		Btree btree = t.getIndex(table.num, index.columns);
 		try {
+			int first = 0;
+			int last = 0;
 			for (;; ++nrecs) {
 				verify(fin.read(buf) == buf.length);
 				int n = bb.getInt(0);
@@ -152,23 +155,47 @@ new File("immu.db").delete();
 					break;
 				if (n > recbuf.length)
 					recbuf = new byte[Math.max(n, 2 * recbuf.length)];
-				load_data_record(fin, table.num, t, recbuf, n, btree, index.columns);
+				last = load_data_record(fin, table.num, t, recbuf, n, btree, index.columns);
+				if (first == 0)
+					first = last;
 			}
+			otherIndexes(db, t, table, first, last);
 		} finally {
 			t.commit();
 		}
 		return nrecs;
 	}
 
-	private static void load_data_record(InputStream fin, int tblnum,
+	private static int load_data_record(InputStream fin, int tblnum,
 			ExclusiveTransaction t, byte[] recbuf, int n, Btree btree, int[] columns)
 			throws IOException {
 		verify(fin.read(recbuf, 0, n) == n);
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
-//		if (tablename.equals("views"))
-//			Data.add_any_record(tran, tablename, rec);
-//		else
-			t.loadRecord(tblnum, rec, btree, columns);
+		return t.loadRecord(tblnum, rec, btree, columns);
+	}
+
+	private static void otherIndexes(Database db, ExclusiveTransaction t,
+			Table table, int first, int last) {
+		t.saveBtrees();
+		Iterator<Index> iter = table.indexes.iterator();
+		iter.next(); // skip first index (already built)
+		while (iter.hasNext()) {
+			Index index = iter.next();
+			Btree btree = t.getIndex(table.num, index.columns);
+			otherIndex(db, btree, index.columns, first, last);
+System.out.println("built " + index);
+		}
+	}
+
+	private static void otherIndex(Database db, Btree btree, int[] columns,
+			int first, int last) {
+		StoredRecordIterator iter = new StoredRecordIterator(db.stor, first, last);
+		while (iter.hasNext()) {
+			int adr = iter.nextAdr();
+			Record rec = iter.next();
+			Record key = IndexedData.key(rec, columns, adr);
+			btree.add(key);
+		}
 	}
 
 	private static String getline(InputStream fin) throws IOException {
@@ -194,7 +221,9 @@ new File("immu.db").delete();
 //		System.out.println(tbl);
 //		TableInfo ti = t.getTableInfo(tbl.num);
 //		System.out.println(ti);
+		System.out.println("checking...");
 		assertThat(new CheckTable(db, "gl_transactions").call(), is(""));
+		System.out.println("...done");
 	}
 
 }

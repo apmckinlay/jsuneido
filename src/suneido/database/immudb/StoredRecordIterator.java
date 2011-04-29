@@ -44,4 +44,8 @@ public class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		return len;
 	}
 
+	public int nextAdr() {
+		return adr;
+	}
+
 }

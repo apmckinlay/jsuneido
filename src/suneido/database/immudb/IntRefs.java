@@ -66,5 +66,10 @@ public class IntRefs implements Iterable<Object> {
 		return list.iterator();
 	}
 
+	public void clear() {
+		list.clear();
+		adrs = null;
+	}
+
 }
 

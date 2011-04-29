@@ -23,11 +23,12 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		db.exclusiveLock.writeLock().unlock();
 	}
 
-	public void loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
+	public int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
 		int adr = rec.store(stor);
 		Record key = IndexedData.key(rec, fields, adr);
 		btree.add(key);
 		dbinfo.addrow(tblnum, rec.length());
+		return adr;
 	}
 
 	@Override
@@ -48,6 +49,14 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		} finally {
 			unlock();
 		}
+	}
+
+	public void saveBtrees() {
+		tran.intrefs.startStore();
+		Btree.store(tran);
+		for (Btree btree : indexes.values())
+			btree.info(); // convert roots from intrefs
+		tran.intrefs.clear();
 	}
 
 }
