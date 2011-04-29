@@ -26,9 +26,9 @@ import suneido.SuValue;
 import suneido.language.*;
 
 /*
-Lucene.Update("lucene", create:) {|u| u.Add('now', 'now is the time for all good men') }
-Lucene.Search("lucene", "good") {|id| Print(id: id) }
- */
+Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
+Lucene.Search("lucene", "good") {|key| Print(key: key) }
+*/
 
 public class Lucene extends BuiltinClass {
 	public static final Version version = Version.LUCENE_31;
@@ -41,6 +41,22 @@ public class Lucene extends BuiltinClass {
 	@Override
 	protected Object newInstance(Object... args) {
 		throw new SuException("cannot create instances of Lucene");
+	}
+
+	public static class AvailableQ extends SuMethod1 {
+		{ params = new FunctionSpec("dir"); }
+		@Override
+		public Object eval1(Object self, Object a) {
+			String path = Ops.toStr(a);
+			try {
+				FSDirectory dir = FSDirectory.open(new File(path));
+				IndexSearcher searcher = new IndexSearcher(dir);
+				searcher.close();
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
 	}
 
 	public static class Update extends SuMethod3 {
@@ -72,13 +88,13 @@ public class Lucene extends BuiltinClass {
 			return methods.lookup(method);
 		}
 
-		public static class Add extends SuMethod2 {
-			{ params = new FunctionSpec("id", "text"); }
+		public static class Insert extends SuMethod2 {
+			{ params = new FunctionSpec("key", "text"); }
 			@Override
-			public Object eval2(Object self, Object id, Object text) {
+			public Object eval2(Object self, Object key, Object text) {
 				IndexWriter writer = ((Updater) self).writer;
 				Document doc = new Document();
-				doc.add(new Field("id", Ops.toStr(id),
+				doc.add(new Field("key", Ops.toStr(key),
 						Field.Store.YES, Field.Index.NOT_ANALYZED));
 				doc.add(new Field("text", Ops.toStr(text),
 						Field.Store.NO, Field.Index.ANALYZED));
@@ -92,14 +108,14 @@ public class Lucene extends BuiltinClass {
 		}
 
 		public static class Update extends SuMethod2 {
-			{ params = new FunctionSpec("id", "text"); }
+			{ params = new FunctionSpec("key", "text"); }
 			@Override
 			public Object eval2(Object self, Object a, Object text) {
 				IndexWriter writer = ((Updater) self).writer;
-				String id = Ops.toStr(a);
-				Term term = new Term("id", id);
+				String key = Ops.toStr(a);
+				Term term = new Term("key", key);
 				Document doc = new Document();
-				doc.add(new Field("id", id,
+				doc.add(new Field("key", key,
 						Field.Store.YES, Field.Index.NOT_ANALYZED));
 				doc.add(new Field("text", Ops.toStr(text),
 						Field.Store.NO, Field.Index.ANALYZED));
@@ -112,12 +128,12 @@ public class Lucene extends BuiltinClass {
 			}
 		}
 
-		public static class Delete extends SuMethod1 {
-			{ params = new FunctionSpec("id"); }
+		public static class Remove extends SuMethod1 {
+			{ params = new FunctionSpec("key"); }
 			@Override
-			public Object eval1(Object self, Object id) {
+			public Object eval1(Object self, Object key) {
 				IndexWriter writer = ((Updater) self).writer;
-				Term term = new Term("id", Ops.toStr(id));
+				Term term = new Term("key", Ops.toStr(key));
 				try {
 					writer.deleteDocuments(term);
 				} catch (IOException e) {
@@ -167,8 +183,8 @@ public class Lucene extends BuiltinClass {
 			    ScoreDoc[] hits = results.scoreDocs;
 			    for (ScoreDoc hit : hits) {
 			        Document doc = searcher.doc(hit.doc);
-			        String id = doc.get("id");
-			        Ops.call1(c, id);
+			        String key = doc.get("key");
+			        Ops.call1(c, key);
 			    }
 			    searcher.close();
 				return null;
