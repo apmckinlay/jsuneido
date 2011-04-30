@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
 public class TableBuilder {
-	private final String tblname;
+	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
@@ -32,25 +32,30 @@ public class TableBuilder {
 	public static TableBuilder alter(UpdateTransaction t, String tableName) {
 		int tblnum = t.getTable(tableName).num;
 		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
+		tb.getSchema();
 		return tb;
 	}
 
 	private TableBuilder(UpdateTransaction t, String tblname, int tblnum) {
 		this.t = t;
-		this.tblname = tblname;
+		this.tableName = tblname;
 		this.tblnum = tblnum;
 	}
 
 	private void createTable() {
-		Record r = Table.toRecord(tblnum, tblname);
-		t.addRecord(r, TN.TABLES, 0);
+		t.addRecord(Table.toRecord(tblnum, tableName), TN.TABLES, 0);
+	}
+
+	private void getSchema() {
+		Table table = t.getTable(tableName);
+		columns.addAll(table.columnsList());
+		indexes.addAll(table.indexesList());
 	}
 
 	public void addColumn(String column) {
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
-		Record r = c.toRecord();
-		t.addRecord(r, TN.COLUMNS, 0, 1);
+		t.addRecord(c.toRecord(), TN.COLUMNS, 0, 1);
 		columns.add(c);
 	}
 
@@ -58,13 +63,25 @@ public class TableBuilder {
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colnums = nums(columns);
 		Index index = new Index(tblnum, colnums, iskey, unique);
-		Record r = index.toRecord();
-		t.addRecord(r, TN.INDEXES, 0, 1);
+		t.addRecord(index.toRecord(), TN.INDEXES, 0, 1);
 		indexes.add(index);
 		String colnumsStr = Ints.join(",", colnums);
 		if (! t.hasIndex(tblnum, colnumsStr)) // if not bootstrap
 			t.addIndex(tblnum, colnumsStr);
+		insertExistingData(index);
 		// TODO handle foreign keys
+	}
+
+	private void insertExistingData(Index newIndex) {
+		Table table = t.getTable(tableName);
+		if (table == null)
+			return;
+		Btree src = t.getIndex(tblnum, table.firstIndex().columnsString());
+		Btree btree = t.addIndex(tblnum, newIndex.columnsString());
+		Btree.Iter iter = src.iterator();
+		IndexedData id = new IndexedData().index(btree, newIndex.columns);
+		for (iter.next(); ! iter.eof(); iter.next())
+			id.add(t.tran, t.getrec(Btree.getAddress(iter.cur())));
 	}
 
 	private static final CharMatcher cm = CharMatcher.is(',');
@@ -87,7 +104,7 @@ public class TableBuilder {
 
 	public void build() {
 		Collections.sort(indexes);
-		t.addSchemaTable(new Table(tblnum, tblname,
+		t.addSchemaTable(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
 		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();

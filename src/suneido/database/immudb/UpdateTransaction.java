@@ -42,8 +42,10 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	/** for Bootstrap and TableBuilder */
-	void addIndex(int tblnum, String indexColumns) {
-		indexes.put(tblnum, indexColumns, new Btree(tran));
+	Btree addIndex(int tblnum, String indexColumns) {
+		Btree btree = new Btree(tran);
+		indexes.put(tblnum, indexColumns, btree);
+		return btree;
 	}
 
 	/** for TableBuilder */

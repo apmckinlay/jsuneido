@@ -47,20 +47,39 @@ public class Request implements RequestGenerator<Object> {
 		Schema schema = (Schema) schemaOb;
 		if (!schema.hasKey())
 			throw new SuException("key required for: " + table);
-		TableBuilder tb = db.createTable(table);
-		try {
-			createSchema(tb, schema);
-		} finally {
-			tb.finish();
-		}
+		createSchema(table, schema);
 		return null;
 	}
 
-	private void createSchema(TableBuilder tb, Schema schema) {
+	private void createSchema(String table, Schema schema) {
+		TableBuilder tb = db.createTable(table);
+		try {
+			schema(schema, tb);
+		} finally {
+			tb.finish();
+		}
+	}
+
+	private void schema(Schema schema, TableBuilder tb) {
 		for (String column : schema.columns)
 			tb.addColumn(column);
 		for (Index index : schema.indexes)
 			index.create(tb);
+	}
+
+	@Override
+	public Object alterCreate(String table, Object schema) {
+		alterSchema(table, (Schema) schema);
+		return null;
+	}
+
+	private void alterSchema(String table, Schema schema) {
+		TableBuilder tb = db.alterTable(table);
+		try {
+			schema(schema, tb);
+		} finally {
+			tb.finish();
+		}
 	}
 
 	@Override
@@ -74,12 +93,6 @@ public class Request implements RequestGenerator<Object> {
 //			for (Index index : schema.indexes)
 //				index.ensure(tablename);
 //		}
-		return null;
-	}
-
-	@Override
-	public Object alterCreate(String table, Object schema) {
-//		createSchema(table, (Schema) schema);
 		return null;
 	}
 
