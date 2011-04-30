@@ -15,6 +15,7 @@ import java.util.Iterator;
 
 import suneido.SuException;
 import suneido.database.immudb.*;
+import suneido.database.immudb.Record.Mode;
 import suneido.database.immudb.query.Request;
 import suneido.database.immudb.schema.Index;
 import suneido.database.immudb.schema.Table;
@@ -170,8 +171,59 @@ new File("immu.db").delete();
 			ExclusiveTransaction t, byte[] recbuf, int n, Btree btree, int[] columns)
 			throws IOException {
 		verify(fin.read(recbuf, 0, n) == n);
-		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n));
+
+		Record rec = convert(recbuf, n);
 		return t.loadRecord(tblnum, rec, btree, columns);
+	}
+
+	private static Record convert(byte[] recbuf, int n) {
+		// convert from cSuneido record format to jSuneido format
+		int mode = recbuf[0];
+		mode = mode == 'c' ? Mode.BYTE : mode == 's' ? Mode.SHORT : Mode.INT;
+		int nfields = (recbuf[2] & 0xff) + (recbuf[3] << 8);
+		assert recbuf[3] < 0x3f;
+		recbuf[3] = (byte) (recbuf[3] | (mode << 6));
+		switch (mode) {
+		case Mode.BYTE:
+			for (int i = 0; i < nfields + 1; ++i)
+				recbuf[4 + i] -= 2;
+			break;
+		case Mode.SHORT:
+			for (int i = 0; i < nfields + 1; ++i)
+				putShort(recbuf, i, getShort(recbuf, i) - 2);
+			break;
+		case Mode.INT:
+			for (int i = 0; i < nfields + 1; ++i)
+				putInt(recbuf, i, getInt(recbuf, i) - 2);
+			break;
+		}
+
+		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n), 2);
+		assert rec.length() == n - 2;
+		return rec;
+	}
+
+	private static int getShort(byte[] buf, int i) {
+		return (buf[4 + i * 2] & 0xff) + ((buf[5 + i * 2] & 0xff) << 8);
+	}
+
+	private static void putShort(byte[] buf, int i, int n) {
+		buf[4 + i * 2] = (byte) (n & 0xff);
+		buf[5 + i * 2] = (byte) ((n >> 8) & 0xff);
+	}
+
+	private static int getInt(byte[] buf, int i) {
+		return (buf[4 + i * 4] & 0xff) +
+				((buf[5 + i * 4] & 0xff) << 8) +
+				((buf[6 + i * 4] & 0xff) << 16) +
+				((buf[7 + i * 4] & 0xff) << 24);
+	}
+
+	private static void putInt(byte[] buf, int i, int n) {
+		buf[4 + i * 4] = (byte) (n & 0xff);
+		buf[5 + i * 4] = (byte) ((n >> 8) & 0xff);
+		buf[6 + i * 4] = (byte) ((n >> 16) & 0xff);
+		buf[7 + i * 4] = (byte) ((n >> 24) & 0xff);
 	}
 
 	private static void otherIndexes(Database db, ExclusiveTransaction t,

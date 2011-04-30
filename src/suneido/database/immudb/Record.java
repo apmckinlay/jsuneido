@@ -11,18 +11,12 @@ import suneido.language.Pack;
 
 public class Record implements Comparable<Record>, Packable {
 	public static Record EMPTY = new RecordBuilder().build();
-	static class Mode {
-		final static byte BYTE = 'c';
-		final static byte SHORT = 's';
-		final static byte INT = 'l';
-	}
+	public static class Mode {
+		public static final short BYTE = 1, SHORT = 2, INT = 3; }
 	static class Offset {
-		final static int TYPE = 0; // byte
-		final static int NFIELDS = 2; // short
-		final static int SIZE = 4; // byte, short, or int <= type
-	}
+		static final int HEADER = 0, BODY = 2; }
 	private final ByteBuffer buf;
-	private final int offset; // used to point to a key in a BtreeNode
+	private final int offset; // used when the record is a key within a BtreeNode
 
 	public Record(ByteBuffer buf) {
 		this(buf, 0);
@@ -36,21 +30,20 @@ public class Record implements Comparable<Record>, Packable {
 
 	public void check() {
 		assert offset >= 0;
-		assert mode() == 'c' || mode() == 's' || mode() == 'l';
-		assert size() >= 0;
+		assert mode() != 0;
 		assert length() > 0 : "length " + length();
 		assert offset < buf.capacity();
 		assert offset + length() <= buf.capacity()
 			: "offset " + offset + " + length " + length() + " > capacity " + buf.capacity();
 	}
 
-	private byte mode() {
-		return buf.get(offset + Offset.TYPE);
+	private int mode() {
+		return (buf.get(offset + Offset.HEADER + 1) & 0xff) >>> 6;
 	}
 
 	public int size() {
-		int si = offset + Offset.NFIELDS;
-		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
+		int si = offset + Offset.HEADER;
+		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
 	}
 
 	public ByteBuffer fieldBuffer(int i) {
@@ -67,12 +60,12 @@ public class Record implements Comparable<Record>, Packable {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode()) {
 		case Mode.BYTE:
-			return offset + (buf.get(offset + Offset.SIZE + i + 1) & 0xff);
+			return offset + (buf.get(offset + Offset.BODY + i + 1) & 0xff);
 		case Mode.SHORT:
-			int si = offset + Offset.SIZE + 2 * (i + 1);
+			int si = offset + Offset.BODY + 2 * (i + 1);
 			return offset + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
 		case Mode.INT:
-			int ii = offset + Offset.SIZE + 4 * (i + 1);
+			int ii = offset + Offset.BODY + 4 * (i + 1);
 			return offset + ((buf.get(ii) & 0xff) |
 					((buf.get(ii + 1) & 0xff) << 8) |
 			 		((buf.get(ii + 2) & 0xff) << 16) |

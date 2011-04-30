@@ -72,36 +72,47 @@ public class RecordBuilder {
 	}
 
 	public static int length(int nfields, int datasize) {
-		int e = 1;
 		// Mode.BYTE
-		int length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		int length = 2 + (1 + nfields) + datasize;
 		if (length < 0x100)
 			return length;
-		e = 2;
 		// Mode.SHORT
-		length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
+		length = 2 + 2 * (1 + nfields) + datasize;
 		if (length < 0x10000)
 			return length;
-		e = 4;
 		// Mode.INT
-		length = 2 /* mode */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
-		return length;
+		return 2 + 4 * (1 + nfields) + datasize;
 	}
 
 	private void pack(ByteBuffer dst, int length) {
-		int nfields = packHeader(dst, length, lens);
+		packHeader(dst, length, lens);
+		int nfields = lens.size();
 		for (int i = nfields - 1; i >= 0; --i)
 			pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}
 
-	public static int packHeader(ByteBuffer dst, int length, IntArrayList lens) {
-		// match cSuneido format
-		dst.order(ByteOrder.LITTLE_ENDIAN);
-		char mode = mode(length);
-		dst.putShort((short) mode);
+	public static void packHeader(ByteBuffer dst, int length, IntArrayList lens) {
+		dst.order(ByteOrder.LITTLE_ENDIAN); // to match cSuneido format
+		int mode = mode(length);
+		dst.putShort(header(mode, lens.size()));
+		packOffsets(dst, length, lens, mode);
+		dst.order(ByteOrder.BIG_ENDIAN);
+	}
+	private static int mode(int length) {
+		if (length < 0x100)
+			return Mode.BYTE;
+		else if (length < 0x10000)
+			return Mode.SHORT;
+		else
+			return Mode.INT;
+	}
+	private static short header(int mode, int nfields) {
+		assert nfields < (1 << 14);
+		return (short) ((mode << 14) | nfields);
+	}
+	private static void packOffsets(ByteBuffer dst, int length,
+			IntArrayList lens, int mode) throws Error {
 		int nfields = lens.size();
-		assert nfields < Short.MAX_VALUE;
-		dst.putShort((short) nfields);
 		int offset = length;
 		assert length > 0;
 		switch (mode) {
@@ -123,17 +134,6 @@ public class RecordBuilder {
 		default:
 			throw new Error("bad record mode: " + mode);
 		}
-		dst.order(ByteOrder.BIG_ENDIAN);
-		return nfields;
-	}
-
-	private static char mode(int length) {
-		if (length < 0x100)
-			return Mode.BYTE;
-		else if (length < 0x10000)
-			return Mode.SHORT;
-		else
-			return Mode.INT;
 	}
 
 	private void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {
