@@ -10,28 +10,38 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import suneido.database.immudb.query.Request;
+import suneido.database.immudb.tools.CheckTable;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
+	TestStorage stor = new TestStorage(500, 100);
+	Database db = Database.create(stor);
 
 	@Test
-	public void test() {
-		TestStorage stor = new TestStorage(500, 100);
-		Database db = Database.create(stor);
-
-		db = Database.open(stor);
-		String schema = SCHEMA;
-		Request.execute(db, "create tbl " + schema);
-		check(db);
-
-		db = Database.open(stor);
-		check(db);
+	public void create_table() {
+		Request.execute(db, "create tbl " + SCHEMA);
+		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
 	}
 
-	private void check(Database db) {
-		assertThat(db.schema().get("tables").schema(),
-				is("(table,tablename) key(table)"));
+	@Test
+	public void alter_table() {
+		Request.execute(db, "create tbl " + SCHEMA);
+		db = Database.open(stor);
 		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
+		Request.execute(db, "alter tbl create (d) index(c,d)");
+		assertThat(db.schema().get("tbl").schema(),
+				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+		db = Database.open(stor);
+		assertThat(db.schema().get("tbl").schema(),
+				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+	}
+
+	@Test
+	public void add_index_to_table_with_data() {
+		Request.execute(db, "alter tables create key(tablename)");
+		assertThat(db.schema().get("tables").schema(),
+				is("(table,tablename) key(table) key(tablename)"));
+		assertThat(new CheckTable(db, "tables").call(), is(""));
 	}
 
 }
