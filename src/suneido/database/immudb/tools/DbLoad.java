@@ -176,8 +176,8 @@ new File("immu.db").delete();
 		return t.loadRecord(tblnum, rec, btree, columns);
 	}
 
+	// convert from cSuneido record format to jSuneido format
 	private static Record convert(byte[] recbuf, int n) {
-		// convert from cSuneido record format to jSuneido format
 		int mode = recbuf[0];
 		mode = mode == 'c' ? Mode.BYTE : mode == 's' ? Mode.SHORT : Mode.INT;
 		int nfields = (recbuf[2] & 0xff) + (recbuf[3] << 8);
@@ -197,7 +197,6 @@ new File("immu.db").delete();
 				putInt(recbuf, i, getInt(recbuf, i) - 2);
 			break;
 		}
-
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n), 2);
 		assert rec.length() == n - 2;
 		return rec;
@@ -235,6 +234,7 @@ new File("immu.db").delete();
 			Index index = iter.next();
 			Btree btree = t.getIndex(table.num, index.columns);
 			otherIndex(db, btree, index.columns, first, last);
+			t.saveBtrees();
 System.out.println("built " + index);
 		}
 	}
