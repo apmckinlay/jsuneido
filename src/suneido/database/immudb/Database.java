@@ -78,7 +78,7 @@ public class Database {
 	}
 
 	public TableBuilder alterTable(String tableName) {
-		return TableBuilder.alter(updateTran(), tableName);
+		return TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
 	public void close() {

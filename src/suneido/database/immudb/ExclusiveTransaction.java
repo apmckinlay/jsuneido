@@ -4,7 +4,6 @@
 
 package suneido.database.immudb;
 
-
 public class ExclusiveTransaction extends UpdateTransaction {
 
 	ExclusiveTransaction(Database db) {
@@ -23,6 +22,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		db.exclusiveLock.writeLock().unlock();
 	}
 
+	// used by DbLoad
 	public int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
 		int adr = rec.store(stor);
 		Record key = IndexedData.key(rec, fields, adr);
@@ -31,26 +31,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		return adr;
 	}
 
-	@Override
-	public void commit() {
-		try {
-			synchronized(db.commitLock) {
-				tran.startStore();
-				Btree.store(tran);
-
-				updateOurDbInfo();
-				updateDatabaseDbInfo();
-
-				int redirsAdr = updateRedirs();
-				int dbinfoAdr = dbinfo.store();
-				store(dbinfoAdr, redirsAdr);
-				tran.endStore();
-			}
-		} finally {
-			unlock();
-		}
-	}
-
+	// used by DbLoad
 	public void saveBtrees() {
 		tran.intrefs.startStore();
 		Btree.store(tran);
