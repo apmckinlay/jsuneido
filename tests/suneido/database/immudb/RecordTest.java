@@ -52,15 +52,15 @@ public class RecordTest {
 
 	@Test
 	public void length() {
-		assertThat(RecordBuilder.length(0, 0), is(5));
-		assertThat(RecordBuilder.length(1, 1), is(7));
-		assertThat(RecordBuilder.length(1, 200), is(206));
-		assertThat(RecordBuilder.length(1, 249), is(255));
+		assertThat(RecordBuilder.length(0, 0), is(3));
+		assertThat(RecordBuilder.length(1, 1), is(5));
+		assertThat(RecordBuilder.length(1, 200), is(204));
+		assertThat(RecordBuilder.length(1, 250), is(254));
 
-		assertThat(RecordBuilder.length(1, 250), is(258));
-		assertThat(RecordBuilder.length(1, 300), is(308));
+		assertThat(RecordBuilder.length(1, 252), is(258));
+		assertThat(RecordBuilder.length(1, 300), is(306));
 
-		assertThat(RecordBuilder.length(1, 0x10000), is(0x1000c));
+		assertThat(RecordBuilder.length(1, 0x10000), is(0x1000a));
 	}
 
 	public static Record record(Object... data) {

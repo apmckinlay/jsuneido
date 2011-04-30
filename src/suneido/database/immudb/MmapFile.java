@@ -97,4 +97,9 @@ public class MmapFile extends ChunkedStorage {
 		// this is handled when re-opening
 	}
 
+	public static void main(String[] args) {
+		MmapFile mmf = new MmapFile("immu.db", "r");
+		System.out.println(mmf.file_size);
+	}
+
 }
