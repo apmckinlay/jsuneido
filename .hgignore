@@ -29,3 +29,8 @@ syntax: regexp
 ^doc$
 syntax: regexp
 ^eta\.go$
+
+syntax: regexp
+\.su$
+syntax: regexp
+\.db$
