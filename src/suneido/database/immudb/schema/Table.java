@@ -91,6 +91,14 @@ public class Table {
 //		return indexes.keysColumns();
 //	}
 
+	public List<Column> columnsList() {
+		return columns.columns;
+	}
+
+	public List<Index> indexesList() {
+		return indexes.indexes;
+	}
+
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */

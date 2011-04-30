@@ -18,7 +18,7 @@ import com.google.common.collect.Iterables;
 
 @Immutable
 public class Columns implements Iterable<Column> {
-	private final ImmutableList<Column> columns;
+	final ImmutableList<Column> columns;
 
 	public Columns(ImmutableList<Column> columns) {
 		this.columns = columns;

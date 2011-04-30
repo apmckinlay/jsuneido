@@ -13,7 +13,7 @@ import com.google.common.collect.Iterables;
 
 @Immutable
 public class Indexes implements Iterable<Index> {
-	private final ImmutableList<Index> indexes;
+	final ImmutableList<Index> indexes;
 
 	public Indexes(ImmutableList<Index> indexes) {
 		this.indexes = indexes;
