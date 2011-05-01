@@ -23,18 +23,23 @@ class Bootstrap {
 
 	static void create(Database db) {
 		UpdateTransaction t = db.updateTran();
+		setup(t);
+		create_tables(t);
+		create_columns(t);
+		create_indexes(t);
+		t.commit();
+
+		Request.execute(db, "alter tables create key(tablename)");
+		create_views(db);
+	}
+
+	private static void setup(UpdateTransaction t) {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
 		t.addIndex(TN.TABLES, "0");
 		t.addIndex(TN.COLUMNS, "0,1");
 		t.addIndex(TN.INDEXES, "0,1");
-		create_tables(t);
-		create_columns(t);
-		create_indexes(t);
-		t.commit();
-
-		create_views(db);
 	}
 
 	private static void create_tables(UpdateTransaction t) {

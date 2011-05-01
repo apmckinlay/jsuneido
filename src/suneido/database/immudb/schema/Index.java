@@ -4,9 +4,8 @@
 
 package suneido.database.immudb.schema;
 
-
-import suneido.database.immudb.Record;
-import suneido.database.immudb.RecordBuilder;
+import suneido.database.immudb.IndexedData.Mode;
+import suneido.database.immudb.*;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -67,6 +66,10 @@ public class Index implements Comparable<Index> {
 
 	public String columnsString() {
 		return Ints.join(",", columns);
+	}
+
+	public Mode mode() {
+		return isKey ? Mode.KEY : unique ? Mode.UNIQUE : Mode.DUPS;
 	}
 
 	public static Record toRecord(int tblnum, String columns, boolean isKey,

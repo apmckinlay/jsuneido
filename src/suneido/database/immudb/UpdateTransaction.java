@@ -7,8 +7,8 @@ package suneido.database.immudb;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import suneido.database.immudb.schema.Table;
-import suneido.database.immudb.schema.Tables;
+import suneido.database.immudb.IndexedData.Mode;
+import suneido.database.immudb.schema.*;
 
 import com.google.common.collect.ImmutableList;
 
@@ -58,11 +58,26 @@ public class UpdateTransaction extends ReadTransaction {
 		dbinfo.add(ti);
 	}
 
+	private static final int[][] bootstrap = new int[][] {
+		new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,1 }
+	};
+
 	/** for TableBuilder */
-	void addRecord(Record r, int tblnum, int... indexColumns) {
-		Btree btree = getIndex(tblnum, indexColumns);
-		IndexedData id = new IndexedData().index(btree, indexColumns);
-		id.add(tran, r);
+	void addRecord(int tblnum, Record r) {
+		IndexedData id = new IndexedData(tran);
+		Table table = getTable(tblnum);
+		if (table == null) {
+			// bootstrap
+			int[] indexColumns = bootstrap[tblnum - 1];
+			Btree btree = getIndex(tblnum, indexColumns);
+			id.index(btree, Mode.KEY, indexColumns);
+		} else {
+			for (Index index : getTable(tblnum).indexes) {
+				Btree btree = getIndex(tblnum, index.columns);
+				id.index(btree, index.mode(), index.columns);
+			}
+		}
+		id.add(r);
 		dbinfo.addrow(tblnum, r.length());
 	}
 

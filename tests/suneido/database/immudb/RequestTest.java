@@ -5,7 +5,7 @@
 package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -38,10 +38,19 @@ public class RequestTest {
 
 	@Test
 	public void add_index_to_table_with_data() {
-		Request.execute(db, "alter tables create key(tablename)");
-		assertThat(db.schema().get("tables").schema(),
-				is("(table,tablename) key(table) key(tablename)"));
+		Request.execute(db, "alter tables create key(tablename,table)");
 		assertThat(new CheckTable(db, "tables").call(), is(""));
+	}
+
+	@Test
+	public void create_when_already_exists() {
+		Request.execute(db, "create tbl " + SCHEMA);
+		try {
+			Request.execute(db, "create tbl " + SCHEMA);
+			fail();
+		} catch (RuntimeException e) {
+			assertTrue(e.toString().contains("duplicate key"));
+		}
 	}
 
 }

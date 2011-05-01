@@ -26,7 +26,7 @@ public class BootstrapTest {
 
 	private void check(Database db) {
 		assertThat(db.schema.get("tables").schema(),
-				is("(table,tablename) key(table)"));
+				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.schema.get("columns").schema(),
 				is("(table,field,column) key(table,field)"));
 		assertThat(db.schema.get("indexes").schema(),
@@ -38,7 +38,7 @@ public class BootstrapTest {
 		DbInfo dbinfo = new DbInfo(db.stor, db.dbinfo);
 		assertThat(dbinfo.get(TN.TABLES).nrows(), is(4));
 		assertThat(dbinfo.get(TN.COLUMNS).nrows(), is(13));
-		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(4));
+		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(5));
 
 		assertThat(new CheckTable(db, "tables").call(), is(""));
 		assertThat(new CheckTable(db, "columns").call(), is(""));

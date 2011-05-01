@@ -64,6 +64,10 @@ public class ReadTransaction {
 		return schema.get(tableName);
 	}
 
+	public Table getTable(int tblnum) {
+		return schema.get(tblnum);
+	}
+
 	public TableInfo getTableInfo(int tblnum) {
 		return dbinfo.get(tblnum);
 	}

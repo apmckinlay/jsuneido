@@ -43,7 +43,7 @@ public class TableBuilder {
 	}
 
 	private void createTable() {
-		t.addRecord(Table.toRecord(tblnum, tableName), TN.TABLES, 0);
+		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
 	private void getSchema() {
@@ -55,7 +55,7 @@ public class TableBuilder {
 	public void addColumn(String column) {
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
-		t.addRecord(c.toRecord(), TN.COLUMNS, 0, 1);
+		t.addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
 	}
 
@@ -63,7 +63,7 @@ public class TableBuilder {
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colnums = nums(columns);
 		Index index = new Index(tblnum, colnums, iskey, unique);
-		t.addRecord(index.toRecord(), TN.INDEXES, 0, 1);
+		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
 		String colnumsStr = Ints.join(",", colnums);
 		if (! t.hasIndex(tblnum, colnumsStr)) // if not bootstrap
@@ -79,9 +79,10 @@ public class TableBuilder {
 		Btree src = t.getIndex(tblnum, table.firstIndex().columnsString());
 		Btree btree = t.addIndex(tblnum, newIndex.columnsString());
 		Btree.Iter iter = src.iterator();
-		IndexedData id = new IndexedData().index(btree, newIndex.columns);
+		IndexedData id = new IndexedData(t.tran);
+		id.index(btree, newIndex.mode(), newIndex.columns);
 		for (iter.next(); ! iter.eof(); iter.next())
-			id.add(t.tran, t.getrec(Btree.getAddress(iter.cur())));
+			id.add(t.getrec(Btree.getAddress(iter.cur())));
 	}
 
 	private static final CharMatcher cm = CharMatcher.is(',');
