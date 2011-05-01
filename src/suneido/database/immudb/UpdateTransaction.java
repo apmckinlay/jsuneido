@@ -23,6 +23,7 @@ public class UpdateTransaction extends ReadTransaction {
 	protected final Database db;
 	private final Tables originalSchema;
 	private final DbHashTrie originalDbInfo;
+	private boolean locked = false;
 
 	/** for Database.updateTran */
 	UpdateTransaction(Database db) {
@@ -35,10 +36,12 @@ public class UpdateTransaction extends ReadTransaction {
 
 	protected void lock(Database db) {
 		db.exclusiveLock.readLock().lock();
+		locked = true;
 	}
 
 	protected void unlock() {
 		db.exclusiveLock.readLock().unlock();
+		locked = false;
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -90,6 +93,11 @@ public class UpdateTransaction extends ReadTransaction {
 
 	public void abort() {
 		unlock();
+	}
+
+	public void abortUncommitted() {
+		if (locked)
+			abort();
 	}
 
 	// TODO if exception during commit, rollback storage
