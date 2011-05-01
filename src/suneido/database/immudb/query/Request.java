@@ -58,6 +58,7 @@ public class Request implements RequestGenerator<Object> {
 		} finally {
 			tb.finish();
 		}
+		// TODO abort on exception
 	}
 
 	private void schema(Schema schema, TableBuilder tb) {
@@ -83,16 +84,17 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	@Override
-	public Object ensure(String tablename, Object schemaOb) {
-//		Schema schema = (Schema) schemaOb;
-//		if (TheDb.db().ensureTable(tablename))
-//			createSchema(tablename, schema);
-//		else {
-//			for (String col : schema.columns)
-//				TheDb.db().ensureColumn(tablename, col);
-//			for (Index index : schema.indexes)
-//				index.ensure(tablename);
-//		}
+	public Object ensure(String tableName, Object schemaOb) {
+		Schema schema = (Schema) schemaOb;
+		TableBuilder tb = db.ensureTable(tableName);
+		try {
+			for (String col : schema.columns)
+				tb.ensureColumn(col);
+			for (Index index : schema.indexes)
+				index.ensure(tb);
+		} finally {
+			tb.finish();
+		}
 		return null;
 	}
 
@@ -180,10 +182,10 @@ public class Request implements RequestGenerator<Object> {
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
-		void ensure(String table) {
-//			assert (in != null);
-//			db.ensureIndex(table, listToCommas(columns), key, unique,
-//					in.table, listToCommas(in.columns), in.mode);
+		void ensure(TableBuilder tb) {
+			assert (in != null);
+			tb.ensureIndex(listToCommas(columns), key, unique,
+					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
 
