@@ -90,6 +90,8 @@ public class Btree {
 	public boolean add(Record key, boolean unique) {
 		++modified;
 
+		Record searchKey = unique ? stripAddress(key) : key;
+
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -98,14 +100,14 @@ public class Btree {
 			adrs.add(adr);
 			BtreeNode node = nodeAt(level, adr);
 			treeNodes.add(node);
-			Record slot = node.find(key);
+			Record slot = node.find(searchKey);
 			adr = getAddress(slot);
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
 		if (unique) {
-			Record slot = leaf.find(key);
-			if (slot != null && slot.prefixEquals(key, key.size() - 1))
+			Record slot = leaf.find(searchKey);
+			if (slot != null && slot.startsWith(searchKey))
 				return false;
 		}
 
@@ -417,6 +419,10 @@ public class Btree {
 
 	public static int getAddress(Record slot) {
 		return ((Number) slot.get(slot.size() - 1)).intValue();
+	}
+
+	private static Record stripAddress(Record key) {
+		return new RecordBuilder().addPrefix(key, key.size() - 1).build();
 	}
 
 	BtreeNode nodeAt(int level, int adr) {

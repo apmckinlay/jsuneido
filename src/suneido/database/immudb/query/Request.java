@@ -89,7 +89,7 @@ public class Request implements RequestGenerator<Object> {
 //			createSchema(tablename, schema);
 //		else {
 //			for (String col : schema.columns)
-//					TheDb.db().ensureColumn(tablename, col);
+//				TheDb.db().ensureColumn(tablename, col);
 //			for (Index index : schema.indexes)
 //				index.ensure(tablename);
 //		}

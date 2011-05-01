@@ -385,6 +385,16 @@ public class BtreeTest {
 		assertThat(btree.get(record("hello")), is(adr));
 	}
 
+	@Test
+	public void duplicate() {
+		assertTrue(btree.add(record("tables", 123), true));
+		assertTrue(btree.add(record("columns", 127), true));
+		assertTrue(btree.add(record("indexes", 130), true));
+		assertTrue(btree.add(record("views", 170), true));
+		assertTrue(btree.add(record("tbl", 277), true));
+		assertFalse(btree.add(record("tbl", 406), true));
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
@@ -397,7 +407,7 @@ public class BtreeTest {
 	}
 
 	public static Record randomKey(Random rand) {
-		int n = 3 + rand.nextInt(5);
+		int n = 4 + rand.nextInt(5);
 		String s = "";
 		for (int i = 0; i < n; ++i)
 			s += (char) ('a' + rand.nextInt(26));
