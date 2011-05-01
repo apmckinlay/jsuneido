@@ -19,16 +19,16 @@ public class RequestTest {
 
 	@Test
 	public void create_table() {
-		Request.execute(db, "create tbl " + SCHEMA);
+		request("create tbl " + SCHEMA);
 		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
 	}
 
 	@Test
 	public void alter_table() {
-		Request.execute(db, "create tbl " + SCHEMA);
+		request("create tbl " + SCHEMA);
 		db = Database.open(stor);
 		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
-		Request.execute(db, "alter tbl create (d) index(c,d)");
+		request("alter tbl create (d) index(c,d)");
 		assertThat(db.schema().get("tbl").schema(),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 		db = Database.open(stor);
@@ -44,13 +44,26 @@ public class RequestTest {
 
 	@Test
 	public void create_when_already_exists() {
-		Request.execute(db, "create tbl " + SCHEMA);
+		request("create tbl " + SCHEMA);
 		try {
-			Request.execute(db, "create tbl " + SCHEMA);
+			request("create tbl " + SCHEMA);
 			fail();
 		} catch (RuntimeException e) {
 			assertTrue(e.toString().contains("duplicate key"));
 		}
+	}
+
+	@Test
+	public void ensure() {
+		request("ensure tbl " + SCHEMA);
+		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
+		request("ensure tbl (c, d) index(a) index(c,d)");
+		assertThat(db.schema().get("tbl").schema(),
+				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+	}
+
+	private void request(String request) {
+		Request.execute(db, request);
 	}
 
 }

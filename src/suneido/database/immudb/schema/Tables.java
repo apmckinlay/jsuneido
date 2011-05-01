@@ -32,8 +32,8 @@ public class Tables {
 		return bynum.get(tblnum);
 	}
 
-	public Table get(String tblname) {
-		return byname.get(tblname);
+	public Table get(String tableName) {
+		return byname.get(tableName);
 	}
 
 	public Tables with(Table tbl) {

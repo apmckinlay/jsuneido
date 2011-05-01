@@ -4,8 +4,7 @@
 
 package suneido.database.immudb;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.schema.*;
@@ -52,6 +51,11 @@ public class TableBuilder {
 		indexes.addAll(table.indexesList());
 	}
 
+	public void ensureColumn(String column) {
+		if (! hasColumn(column))
+			addColumn(column);
+	}
+
 	public void addColumn(String column) {
 		int field = columns.size();
 		Column c = new Column(tblnum, field, column);
@@ -59,10 +63,16 @@ public class TableBuilder {
 		columns.add(c);
 	}
 
-	public void addIndex(String columns, boolean iskey, boolean unique,
+	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		int[] colnums = nums(columns);
-		Index index = new Index(tblnum, colnums, iskey, unique);
+		if (! hasIndex(columnNames))
+			addIndex(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+	}
+
+	public void addIndex(String columnNames, boolean isKey, boolean unique,
+			String fktable, String fkcolumns, int fkmode) {
+		int[] colnums = nums(columnNames);
+		Index index = new Index(tblnum, colnums, isKey, unique);
 		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
 		String colnumsStr = Ints.join(",", colnums);
@@ -101,6 +111,21 @@ public class TableBuilder {
 			if (c.name.equals(field))
 				return c.field;
 		throw new RuntimeException();
+	}
+
+	private boolean hasColumn(String column) {
+		for (Column c : columns)
+			if (c.name.equals(column))
+				return true;
+		return false;
+	}
+
+	private boolean hasIndex(String columnNames) {
+		int[] columns = nums(columnNames);
+		for (Index index : indexes)
+			if (Arrays.equals(columns, index.columns))
+				return true;
+		return false;
 	}
 
 	public void build() {

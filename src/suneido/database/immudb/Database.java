@@ -81,6 +81,12 @@ public class Database {
 		return TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
+	public TableBuilder ensureTable(String tableName) {
+		return schema.get(tableName) == null
+			? TableBuilder.create(updateTran(), tableName, nextTableNum())
+			: TableBuilder.alter(exclusiveTran(), tableName);
+	}
+
 	public void close() {
 		stor.close();
 	}
