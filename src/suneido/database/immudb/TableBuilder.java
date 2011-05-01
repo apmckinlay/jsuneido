@@ -149,4 +149,8 @@ public class TableBuilder {
 		t.commit();
 	}
 
+	public void abortUnfinished() {
+		t.abortUncommitted();
+	}
+
 }

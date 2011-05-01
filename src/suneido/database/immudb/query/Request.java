@@ -55,10 +55,10 @@ public class Request implements RequestGenerator<Object> {
 		TableBuilder tb = db.createTable(table);
 		try {
 			schema(schema, tb);
-		} finally {
 			tb.finish();
+		} finally {
+			tb.abortUnfinished();
 		}
-		// TODO abort on exception
 	}
 
 	private void schema(Schema schema, TableBuilder tb) {
@@ -78,8 +78,9 @@ public class Request implements RequestGenerator<Object> {
 		TableBuilder tb = db.alterTable(table);
 		try {
 			schema(schema, tb);
-		} finally {
 			tb.finish();
+		} finally {
+			tb.abortUnfinished();
 		}
 	}
 
@@ -92,8 +93,9 @@ public class Request implements RequestGenerator<Object> {
 				tb.ensureColumn(col);
 			for (Index index : schema.indexes)
 				index.ensure(tb);
-		} finally {
 			tb.finish();
+		} finally {
+			tb.abortUnfinished();
 		}
 		return null;
 	}
