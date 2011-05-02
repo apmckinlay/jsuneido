@@ -63,6 +63,10 @@ public class TableBuilder {
 		columns.add(c);
 	}
 
+	public void removeColumn(String column) {
+		// TODO removeColumn
+	}
+
 	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (! hasIndex(columnNames))
@@ -93,6 +97,10 @@ public class TableBuilder {
 		id.index(btree, newIndex.mode(), newIndex.columns);
 		for (iter.next(); ! iter.eof(); iter.next())
 			id.add(t.getrec(Btree.getAddress(iter.cur())));
+	}
+
+	public void removeIndex(String columnNames) {
+		// TODO removeIndex
 	}
 
 	private static final CharMatcher cm = CharMatcher.is(',');

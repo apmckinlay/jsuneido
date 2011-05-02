@@ -101,12 +101,17 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	@Override
-	public Object alterDrop(String table, Object schemaOb) {
-//		Schema schema = (Schema) schemaOb;
-//		for (String col : schema.columns)
-//			TheDb.db().removeColumn(table, col);
-//		for (Index index : schema.indexes)
-//			TheDb.db().removeIndex(table, listToCommas(index.columns));
+	public Object alterDrop(String tableName, Object schemaOb) {
+		Schema schema = (Schema) schemaOb;
+		TableBuilder tb = db.alterTable(tableName);
+		try {
+			for (String col : schema.columns)
+				tb.removeColumn(col);
+			for (Index index : schema.indexes)
+				tb.removeIndex(listToCommas(index.columns));
+		} finally {
+			tb.abortUnfinished();
+		}
 		return null;
 	}
 
