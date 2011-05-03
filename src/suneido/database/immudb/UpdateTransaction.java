@@ -71,6 +71,16 @@ public class UpdateTransaction extends ReadTransaction {
 		dbinfo.addrow(tblnum, r.length());
 	}
 
+	void removeRecord(int tblnum, Record r) {
+		assert locked;
+		indexedData(tblnum).remove(r);
+	}
+
+	void updateRecord(int tblnum, Record from, Record to) {
+		assert locked;
+		indexedData(tblnum).update(from, to);
+	}
+
 	private IndexedData indexedData(int tblnum) {
 		IndexedData id = new IndexedData(tran);
 		Table table = getTable(tblnum);
@@ -90,12 +100,7 @@ public class UpdateTransaction extends ReadTransaction {
 		new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,1 }
 	};
 
-	void removeRecord(int tblnum, Record r) {
-		assert locked;
-		indexedData(tblnum).remove(r);
-	}
-
-	// commit -------------------------------------------------------
+	// commit -----------------------------------------------------------------
 
 	public void abort() {
 		assert locked;

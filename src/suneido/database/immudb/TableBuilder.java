@@ -16,12 +16,13 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
 public class TableBuilder {
-	public static final String CANT_DROP_COLUMN_IN_INDEX = "can't drop column used in index";
+	public static final String COLUMN_IN_INDEX = "column used in index";
 	public static final String TABLE_MUST_HAVE_KEY = "tables must have at least one key";
 	public static final String NONEXISTENT_TABLE = "nonexistent table";
 	public static final String NONEXISTENT_COLUMN = "nonexistent column";
 	public static final String NONEXISTENT_INDEX = "nonexistent index";
 	private static final String CANT_DROP = "can't drop ";
+	private static final String CANT_RENAME = "can't rename ";
 	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
@@ -64,6 +65,20 @@ public class TableBuilder {
 		t.commit();
 	}
 
+	public static void renameTable(ExclusiveTransaction t, String from, String to) {
+		Table oldTable = t.getTable(from);
+		if (oldTable == null)
+			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
+		t.dropTableSchema(oldTable);
+		Table newTable = new Table(oldTable.num, to,
+				new Columns(ImmutableList.copyOf(oldTable.columns)),
+				new Indexes(ImmutableList.copyOf(oldTable.indexes)));
+		t.addSchemaTable(newTable);
+		// dbinfo is ok since it doesn't use table name
+		t.updateRecord(TN.TABLES, oldTable.toRecord(), newTable.toRecord());
+		t.commit();
+	}
+
 	private void getSchema() {
 		Table table = t.getTable(tableName);
 		columns.addAll(table.columnsList());
@@ -76,7 +91,7 @@ public class TableBuilder {
 	}
 
 	public void addColumn(String column) {
-		int field = columns.size();
+		int field = columns.size();						// TODO next col num
 		Column c = new Column(tblnum, field, column);
 		t.addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
@@ -100,7 +115,7 @@ public class TableBuilder {
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Ints.contains(index.colNums, colNum))
-				fail(CANT_DROP_COLUMN_IN_INDEX + ": " + column);
+				fail(CANT_DROP + COLUMN_IN_INDEX + ": " + column);
 		}
 	}
 

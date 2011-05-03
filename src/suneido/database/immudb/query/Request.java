@@ -15,7 +15,7 @@ import suneido.database.query.RequestGenerator;
 import suneido.language.Lexer;
 
 /**
- * Parse and execute database "requests" to create, alter, or remove tables.
+ * Parse and execute database "requests" to create, alter, or drop tables.
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
@@ -93,14 +93,14 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object alterRename(String table, Object renames) {
-		for (Rename r : (List<Rename>) renames)
-			r.rename(table);
+//		for (Rename r : (List<Rename>) renames)
+//			r.rename(table);
 		return null;
 	}
 
 	@Override
 	public Object rename(String from, String to) {
-//		TheDb.db().renameTable(from, to);
+		db.renameTable(from, to);
 		return null;
 	}
 
@@ -112,17 +112,12 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object sview(String name, String definition) {
-//		if (serverData.getSview(name) != null)
-//			throw new SuException("sview: '" + name + "' already exists");
 //		serverData.addSview(name, definition);
 		return null;
 	}
 
 	@Override
 	public Object drop(String table) {
-//		if (serverData.getSview(table) != null)
-//			serverData.dropSview(table);
-//		else
 		db.dropTable(table);
 		return null;
 	}
@@ -193,9 +188,6 @@ public class Request implements RequestGenerator<Object> {
 		Rename(String from, String to) {
 			this.from = from;
 			this.to = to;
-		}
-		void rename(String table) {
-//			TheDb.db().renameColumn(table, from, to);
 		}
 	}
 

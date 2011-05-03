@@ -42,15 +42,30 @@ public class IndexedData {
 
 	public void remove(Record rec) {
 		int intref = firstKey().getKeyAdr(rec);
+		if (intref == 0)
+			throw new RuntimeException("remove couldn't find record");
 		for (Index index : indexes)
-			index.remove(rec, intref);
+			if (! index.remove(rec, intref))
+				throw new RuntimeException("remove failed");
+		// TODO handle remove failing halfway through (abort transaction?)
+	}
+
+	public void update(Record from, Record to) {
+		int fromIntref = firstKey().getKeyAdr(from);
+		if (fromIntref == 0)
+			throw new RuntimeException("update couldn't find record");
+		int toIntref = tran.refToInt(to);
+		for (Index index : indexes)
+			if (! index.update(from, fromIntref, to, toIntref))
+				throw new RuntimeException("update failed");
+		// TODO handle remove failing halfway through (abort transaction?)
 	}
 
 	private Index firstKey() {
 		for (Index index : indexes)
 			if (index.mode == Mode.KEY)
 				return index;
-		throw new RuntimeException();
+		throw new RuntimeException("no key!");
 	}
 
 	private static class Index {
@@ -64,6 +79,14 @@ public class IndexedData {
 			this.fields = fields;
 		}
 
+		boolean update(Record from, int fromIntref, Record to, int toIntref) {
+			Record fromKey = key(from, fields, fromIntref);
+			Record toKey = key(to, fields, toIntref);
+			boolean unique = (mode == Mode.KEY ||
+					(mode == Mode.UNIQUE && ! isEmptyKey(toKey)));
+			return btree.update(fromKey, toKey, unique);
+		}
+
 		boolean add(Record rec, int intref) {
 			Record key = key(rec, fields, intref);
 			boolean unique = (mode == Mode.KEY ||
@@ -71,9 +94,9 @@ public class IndexedData {
 			return btree.add(key, unique);
 		}
 
-		void remove(Record rec, int intref) {
+		boolean remove(Record rec, int intref) {
 			Record key = key(rec, fields, intref);
-			btree.remove(key);
+			return btree.remove(key);
 		}
 		int getKeyAdr(Record rec) {
 			return btree.get(searchKey(rec));

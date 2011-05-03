@@ -91,7 +91,7 @@ public class RequestTest {
 			request("alter tbl drop (b)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(CANT_DROP_COLUMN_IN_INDEX));
+			assertThat(e.getMessage(), containsString(COLUMN_IN_INDEX));
 		}
 	}
 
@@ -153,6 +153,27 @@ public class RequestTest {
 	public void drop_nonexistent_table() {
 		try {
 			request("drop tbl");
+			fail();
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString(NONEXISTENT_TABLE));
+		}
+	}
+
+	@Test
+	public void rename_table() {
+		request("ensure tbl " + SCHEMA);
+		request("rename tbl to lbt");
+		assertNull(db.schema().get("tbl"));
+		assertThat(db.schema().get("lbt").schema(), is(SCHEMA));
+		db = Database.open(stor);
+		assertNull(db.schema().get("tbl"));
+		assertThat(db.schema().get("lbt").schema(), is(SCHEMA));
+	}
+
+	@Test
+	public void rename_nonexistent_table() {
+		try {
+			request("rename tbl to lbt");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString(NONEXISTENT_TABLE));
