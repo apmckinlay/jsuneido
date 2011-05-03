@@ -23,6 +23,7 @@ public class TableBuilder {
 	public static final String NONEXISTENT_INDEX = "nonexistent index";
 	private static final String CANT_DROP = "can't drop ";
 	private static final String CANT_RENAME = "can't rename ";
+	public static final String TO_EXISTING = "to existing column";
 	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
@@ -91,23 +92,52 @@ public class TableBuilder {
 	}
 
 	public void addColumn(String column) {
-		int field = columns.size();						// TODO next col num
+		int field = nextColNum();
 		Column c = new Column(tblnum, field, column);
 		t.addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
 	}
 
+	private int nextColNum() {
+		int maxNum = -1;
+		for (Column c : columns)
+			if (c.field > maxNum)
+				maxNum = c.field;
+		return maxNum + 1;
+	}
+
+	public void renameColumn(String from, String to) {
+		if (hasColumn(to))
+			fail(CANT_RENAME + TO_EXISTING + ": " + to);
+		int i = findColumn(from);
+		if (i == -1)
+			fail(CANT_RENAME + NONEXISTENT_COLUMN + ": " + from);
+		Column c = columns.get(i);
+		Record oldRec = c.toRecord();
+		c = new Column(tblnum, c.field, to);
+		columns.set(i, c);
+		Record newRec = c.toRecord();
+		t.updateRecord(TN.COLUMNS, oldRec, newRec);
+		// don't need to update indexes because they use column numbers not names
+	}
+
 	public void dropColumn(String column) {
+		int i = findColumn(column);
+		if (i == -1)
+			fail(CANT_DROP + NONEXISTENT_COLUMN + ": " + column);
+		Column c = columns.get(i);
+		mustNotBeUsedByIndex(column);
+		t.removeRecord(TN.COLUMNS, c.toRecord());
+		columns.remove(i);
+	}
+
+	private int findColumn(String column) {
 		for (int i = 0; i < columns.size(); ++i) {
 			Column c = columns.get(i);
-			if (c.name.equals(column)) {
-				mustNotBeUsedByIndex(column);
-				t.removeRecord(TN.COLUMNS, c.toRecord());
-				columns.remove(i);
-				return;
-			}
+			if (c.name.equals(column))
+				return i;
 		}
-		fail(CANT_DROP + NONEXISTENT_COLUMN + ": " + column);
+		return -1;
 	}
 
 	private void mustNotBeUsedByIndex(String column) {
@@ -175,19 +205,15 @@ public class TableBuilder {
 		return cols;
 	}
 
-	private int colNum(String col) {
-		for (Column c : columns)
-			if (c.name.equals(col))
-				return c.field;
-		fail(NONEXISTENT_COLUMN + ": " + col);
-		return 0; // can't reach here
+	private int colNum(String column) {
+		int i = findColumn(column);
+		if (i == -1)
+			fail(NONEXISTENT_COLUMN + ": " + column);
+		return columns.get(i).field;
 	}
 
 	private boolean hasColumn(String column) {
-		for (Column c : columns)
-			if (c.name.equals(column))
-				return true;
-		return false;
+		return findColumn(column) != -1;
 	}
 
 	private boolean hasIndex(String columnNames) {

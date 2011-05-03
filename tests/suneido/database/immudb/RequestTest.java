@@ -180,6 +180,24 @@ public class RequestTest {
 		}
 	}
 
+	@Test
+	public void next_column_num() {
+		request("ensure tbl (a,b,c) key(a)");
+		request("alter tbl drop (b)");
+		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+		request("alter tbl create (d) index(d)");
+		assertThat(db.schema().get("tbl").schema(), is("(a,c,d) key(a) index(d)"));
+	}
+
+	@Test
+	public void rename_columns() {
+		request("ensure tbl " + SCHEMA);
+		request("alter tbl rename b to bb, c to cc");
+		assertThat(db.schema().get("tbl").schema(), is("(a,bb,cc) key(a) index(bb,cc)"));
+		db = Database.open(stor);
+		assertThat(db.schema().get("tbl").schema(), is("(a,bb,cc) key(a) index(bb,cc)"));
+	}
+
 	private void request(String request) {
 		Request.execute(db, request);
 	}
