@@ -35,7 +35,7 @@ public class CheckTable implements Callable<String> {
 		for (Index index : table.indexes) {
 			int nrecords = 0;
 			long totalsize = 0;
-			Btree btree = t.getIndex(table.num, index.columns);
+			Btree btree = t.getIndex(table.num, index.colNums);
 			Btree.Iter iter = btree.iterator();
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
@@ -52,7 +52,7 @@ public class CheckTable implements Callable<String> {
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;
-				Record reckey = IndexedData.key(rec, index.columns, adr);
+				Record reckey = IndexedData.key(rec, index.colNums, adr);
 				if (! key.equals(reckey)) {
 					details += tablename + ": key mismatch in " + index + "\n";
 					return false;

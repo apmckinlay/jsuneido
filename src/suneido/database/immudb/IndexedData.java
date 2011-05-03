@@ -25,19 +25,32 @@ public class IndexedData {
 		return this;
 	}
 
-	public int add(Record data) {
-		int intref = tran.refToInt(data);
+	public int add(Record rec) {
+		int intref = tran.refToInt(rec);
 		for (Index index : indexes)
-			if (! index.add(data, intref)) {
+			if (! index.add(rec, intref)) {
 				// undo previous add's
 				for (Index idx : indexes) {
 					if (idx == index)
 						break;
-					idx.remove(data, intref);
+					idx.remove(rec, intref);
 				}
 				throw new RuntimeException("duplicate key"); // TODO better msg
 			}
 		return intref;
+	}
+
+	public void remove(Record rec) {
+		int intref = firstKey().getKeyAdr(rec);
+		for (Index index : indexes)
+			index.remove(rec, intref);
+	}
+
+	private Index firstKey() {
+		for (Index index : indexes)
+			if (index.mode == Mode.KEY)
+				return index;
+		throw new RuntimeException();
 	}
 
 	private static class Index {
@@ -45,31 +58,33 @@ public class IndexedData {
 		final Mode mode;
 		final int[] fields;
 
-		public Index(Btree btree, Mode mode, int[] fields) {
+		Index(Btree btree, Mode mode, int[] fields) {
 			this.btree = btree;
 			this.mode = mode;
 			this.fields = fields;
 		}
 
-		public boolean add(Record data, int intref) {
-			Record key = key(data, fields, intref);
+		boolean add(Record rec, int intref) {
+			Record key = key(rec, fields, intref);
 			boolean unique = (mode == Mode.KEY ||
 					(mode == Mode.UNIQUE && ! isEmptyKey(key)));
 			return btree.add(key, unique);
 		}
 
-		public void remove(Record data, int intref) {
-			Record key = key(data, fields, intref);
+		void remove(Record rec, int intref) {
+			Record key = key(rec, fields, intref);
 			btree.remove(key);
+		}
+		int getKeyAdr(Record rec) {
+			return btree.get(searchKey(rec));
+		}
+		Record searchKey(Record rec) {
+			return new RecordBuilder().addFields(rec, fields).build();
 		}
 	}
 
 	public static Record key(Record rec, int[] fields, int adr) {
-		RecordBuilder rb = new RecordBuilder();
-		for (int field : fields)
-			rb.add(rec, field);
-		rb.add(adr);
-		return rb.build();
+		return new RecordBuilder().addFields(rec, fields).add(adr).build();
 	}
 
 	public static boolean isEmptyKey(Record key) {

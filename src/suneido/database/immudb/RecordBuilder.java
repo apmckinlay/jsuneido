@@ -35,6 +35,12 @@ public class RecordBuilder {
 		return this;
 	}
 
+	public RecordBuilder addFields(Record rec, int... fields) {
+		for (int f : fields)
+			add(rec, f);
+		return this;
+	}
+
 	/** add an unsigned int
 	 * needs to be unsigned so that intrefs compare > database offsets
 	 */

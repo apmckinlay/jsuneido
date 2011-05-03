@@ -145,7 +145,7 @@ new File("immu.db").delete();
 		ExclusiveTransaction t = db.exclusiveTran();
 		Table table = t.getTable(tablename);
 		Index index = table.indexes.first();
-		Btree btree = t.getIndex(table.num, index.columns);
+		Btree btree = t.getIndex(table.num, index.colNums);
 		try {
 			int first = 0;
 			int last = 0;
@@ -156,7 +156,7 @@ new File("immu.db").delete();
 					break;
 				if (n > recbuf.length)
 					recbuf = new byte[Math.max(n, 2 * recbuf.length)];
-				last = load_data_record(fin, table.num, t, recbuf, n, btree, index.columns);
+				last = load_data_record(fin, table.num, t, recbuf, n, btree, index.colNums);
 				if (first == 0)
 					first = last;
 			}
@@ -232,8 +232,8 @@ new File("immu.db").delete();
 		iter.next(); // skip first index (already built)
 		while (iter.hasNext()) {
 			Index index = iter.next();
-			Btree btree = t.getIndex(table.num, index.columns);
-			otherIndex(db, btree, index.columns, first, last);
+			Btree btree = t.getIndex(table.num, index.colNums);
+			otherIndex(db, btree, index.colNums, first, last);
 			t.saveBtrees();
 System.out.println("built " + index);
 		}

@@ -27,16 +27,16 @@ public class Indexes implements Iterable<Index> {
 		return indexes.isEmpty();
 	}
 
-	public boolean hasIndex(String columns) {
-		return get(columns) != null;
-	}
+//	public boolean hasIndex(String columns) {
+//		return get(columns) != null;
+//	}
 
-	public Index get(String columns) {
-		for (Index index : indexes)
-			if (columns.equals(index.columns))
-				return index;
-		return null;
-	}
+//	public Index get(String columns) {
+//		for (Index index : indexes)
+//			if (columns.equals(index.colNums))
+//				return index;
+//		return null;
+//	}
 
 	public Index first() {
 		return indexes.get(0);

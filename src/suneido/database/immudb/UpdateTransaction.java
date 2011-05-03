@@ -23,7 +23,7 @@ public class UpdateTransaction extends ReadTransaction {
 	protected final Database db;
 	private final Tables originalSchema;
 	private final DbHashTrie originalDbInfo;
-	private boolean locked = false;
+	protected boolean locked = false;
 
 	/** for Database.updateTran */
 	UpdateTransaction(Database db) {
@@ -46,6 +46,7 @@ public class UpdateTransaction extends ReadTransaction {
 
 	/** for Bootstrap and TableBuilder */
 	Btree addIndex(int tblnum, String indexColumns) {
+		assert locked;
 		Btree btree = new Btree(tran);
 		indexes.put(tblnum, indexColumns, btree);
 		return btree;
@@ -53,45 +54,51 @@ public class UpdateTransaction extends ReadTransaction {
 
 	/** for TableBuilder */
 	void addSchemaTable(Table table) {
+		assert locked;
 		schema = schema.with(table);
 	}
 
 	/** for TableBuilder */
 	void addTableInfo(TableInfo ti) {
+		assert locked;
 		dbinfo.add(ti);
 	}
 
-	private static final int[][] bootstrap = new int[][] {
-		new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,1 }
-	};
-
 	/** for TableBuilder */
 	void addRecord(int tblnum, Record r) {
+		assert locked;
+		indexedData(tblnum).add(r);
+		dbinfo.addrow(tblnum, r.length());
+	}
+
+	private IndexedData indexedData(int tblnum) {
 		IndexedData id = new IndexedData(tran);
 		Table table = getTable(tblnum);
 		if (table == null) {
-			// bootstrap
 			int[] indexColumns = bootstrap[tblnum - 1];
 			Btree btree = getIndex(tblnum, indexColumns);
 			id.index(btree, Mode.KEY, indexColumns);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
-				Btree btree = getIndex(tblnum, index.columns);
-				id.index(btree, index.mode(), index.columns);
+				Btree btree = getIndex(tblnum, index.colNums);
+				id.index(btree, index.mode(), index.colNums);
 			}
 		}
-		id.add(r);
-		dbinfo.addrow(tblnum, r.length());
+		return id;
 	}
+	private static final int[][] bootstrap = new int[][] {
+		new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,1 }
+	};
 
-	public void addRecord(String tablename, Record rec) {
-		// TODO Auto-generated method stub
-
+	void removeRecord(int tblnum, Record r) {
+		assert locked;
+		indexedData(tblnum).remove(r);
 	}
 
 	// commit -------------------------------------------------------
 
 	public void abort() {
+		assert locked;
 		unlock();
 	}
 
@@ -102,6 +109,7 @@ public class UpdateTransaction extends ReadTransaction {
 
 	// TODO if exception during commit, rollback storage
 	public void commit() {
+		assert locked;
 		try {
 			synchronized(db.commitLock) {
 				tran.startStore();
@@ -123,14 +131,14 @@ public class UpdateTransaction extends ReadTransaction {
 		}
 	}
 
-	protected int updateRedirs() {
+	private int updateRedirs() {
 		tran.mergeRedirs(db.redirs);
 		int redirsAdr = tran.storeRedirs();
 		db.redirs = tran.redirs().redirs();
 		return redirsAdr;
 	}
 
-	protected void updateOurDbInfo() {
+	private void updateOurDbInfo() {
 		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
 			Map<String,Btree> idxs = indexes.row(tblnum);
@@ -146,14 +154,14 @@ public class UpdateTransaction extends ReadTransaction {
 		}
 	}
 
-	protected void updateDatabaseDbInfo() {
+	private void updateDatabaseDbInfo() {
 		dbinfo.merge(originalDbInfo, db.dbinfo);
 		db.dbinfo = dbinfo.dbinfo();
 	}
 
 	static final int INT_SIZE = 4;
 
-	protected void store(int dbinfo, int redirs) {
+	private void store(int dbinfo, int redirs) {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);

@@ -8,7 +8,6 @@ import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 
-import suneido.SuException;
 import suneido.database.immudb.Database;
 import suneido.database.immudb.TableBuilder;
 import suneido.database.query.ParseRequest;
@@ -44,40 +43,19 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object create(String table, Object schemaOb) {
-		Schema schema = (Schema) schemaOb;
-		if (!schema.hasKey())
-			throw new SuException("key required for: " + table);
-		createSchema(table, schema);
+		alterCreate(db.createTable(table), (Schema) schemaOb);
 		return null;
-	}
-
-	private void createSchema(String table, Schema schema) {
-		TableBuilder tb = db.createTable(table);
-		try {
-			schema(schema, tb);
-			tb.finish();
-		} finally {
-			tb.abortUnfinished();
-		}
-	}
-
-	private void schema(Schema schema, TableBuilder tb) {
-		for (String column : schema.columns)
-			tb.addColumn(column);
-		for (Index index : schema.indexes)
-			index.create(tb);
 	}
 
 	@Override
 	public Object alterCreate(String table, Object schema) {
-		alterSchema(table, (Schema) schema);
+		alterCreate(db.alterTable(table), (Schema) schema);
 		return null;
 	}
 
-	private void alterSchema(String table, Schema schema) {
-		TableBuilder tb = db.alterTable(table);
+	private void alterCreate(TableBuilder tb, Schema schema) {
 		try {
-			schema(schema, tb);
+			schema.create(tb);
 			tb.finish();
 		} finally {
 			tb.abortUnfinished();
@@ -85,14 +63,10 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	@Override
-	public Object ensure(String tableName, Object schemaOb) {
-		Schema schema = (Schema) schemaOb;
+	public Object ensure(String tableName, Object schema) {
 		TableBuilder tb = db.ensureTable(tableName);
 		try {
-			for (String col : schema.columns)
-				tb.ensureColumn(col);
-			for (Index index : schema.indexes)
-				index.ensure(tb);
+			((Schema) schema).ensure(tb);
 			tb.finish();
 		} finally {
 			tb.abortUnfinished();
@@ -105,10 +79,12 @@ public class Request implements RequestGenerator<Object> {
 		Schema schema = (Schema) schemaOb;
 		TableBuilder tb = db.alterTable(tableName);
 		try {
-			for (String col : schema.columns)
-				tb.removeColumn(col);
+			// remove indexes first so columns aren't used
 			for (Index index : schema.indexes)
 				tb.removeIndex(listToCommas(index.columns));
+			for (String col : schema.columns)
+				tb.removeColumn(col);
+			tb.finish();
 		} finally {
 			tb.abortUnfinished();
 		}
@@ -243,11 +219,19 @@ public class Request implements RequestGenerator<Object> {
 				indexes = Collections.emptyList();
 			this.indexes = (List<Index>) indexes;
 		}
-		boolean hasKey() {
+		void create(TableBuilder tb) {
+			// add columns first so indexes can use them
+			for (String column : columns)
+				tb.addColumn(column);
 			for (Index index : indexes)
-				if (index.key)
-					return true;
-			return false;
+				index.create(tb);
+		}
+		void ensure(TableBuilder tb) {
+			// add columns first so indexes can use them
+			for (String col : columns)
+				tb.ensureColumn(col);
+			for (Index index : indexes)
+				index.ensure(tb);
 		}
 	}
 

@@ -16,6 +16,8 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
 public class TableBuilder {
+	public static final String CANT_DROP_COLUMN_IN_INDEX = "can't drop column used in index";
+	public static final String TABLE_MUST_HAVE_KEY = "tables must have at least one key";
 	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
@@ -64,7 +66,24 @@ public class TableBuilder {
 	}
 
 	public void removeColumn(String column) {
-		// TODO removeColumn
+		mustNotBeUsedByIndex(column);
+		for (int i = 0; i < columns.size(); ++i) {
+			Column c = columns.get(i);
+			if (c.name.equals(column)) {
+				t.removeRecord(TN.COLUMNS, c.toRecord());
+				columns.remove(i);
+				return;
+			}
+		}
+	}
+
+	private void mustNotBeUsedByIndex(String column) {
+		int colNum = colNum(column);
+		for (int i = 0; i < indexes.size(); ++i) {
+			Index index = indexes.get(i);
+			if (Ints.contains(index.colNums, colNum))
+				fail(CANT_DROP_COLUMN_IN_INDEX + " (" + column + ")");
+		}
 	}
 
 	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
@@ -75,13 +94,13 @@ public class TableBuilder {
 
 	public void addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		int[] colnums = nums(columnNames);
-		Index index = new Index(tblnum, colnums, isKey, unique);
+		int[] colNums = colNums(columnNames);
+		Index index = new Index(tblnum, colNums, isKey, unique);
 		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
-		String colnumsStr = Ints.join(",", colnums);
-		if (! t.hasIndex(tblnum, colnumsStr)) // if not bootstrap
-			t.addIndex(tblnum, colnumsStr);
+		String colNumsStr = Ints.join(",", colNums);
+		if (! t.hasIndex(tblnum, colNumsStr)) // if not bootstrap
+			t.addIndex(tblnum, colNumsStr);
 		insertExistingData(index);
 		// TODO handle foreign keys
 	}
@@ -90,33 +109,41 @@ public class TableBuilder {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			return;
-		Btree src = t.getIndex(tblnum, table.firstIndex().columnsString());
-		Btree btree = t.addIndex(tblnum, newIndex.columnsString());
+		Btree src = t.getIndex(tblnum, table.firstIndex().colNumsString());
+		Btree btree = t.addIndex(tblnum, newIndex.colNumsString());
 		Btree.Iter iter = src.iterator();
 		IndexedData id = new IndexedData(t.tran);
-		id.index(btree, newIndex.mode(), newIndex.columns);
+		id.index(btree, newIndex.mode(), newIndex.colNums);
 		for (iter.next(); ! iter.eof(); iter.next())
 			id.add(t.getrec(Btree.getAddress(iter.cur())));
 	}
 
 	public void removeIndex(String columnNames) {
-		// TODO removeIndex
+		int[] colNums = colNums(columnNames);
+		for (int i = 0; i < indexes.size(); ++i) {
+			Index index = indexes.get(i);
+			if (Arrays.equals(colNums, index.colNums)) {
+				t.removeRecord(TN.INDEXES, index.toRecord());
+				indexes.remove(i);
+				return;
+			}
+		}
 	}
 
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
-	private int[] nums(String s) {
+	private int[] colNums(String s) {
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
 		for (String c : splitter.split(s))
-			cols[i++] = field(c);
+			cols[i++] = colNum(c);
 		return cols;
 	}
 
-	private int field(String field) {
+	private int colNum(String col) {
 		for (Column c : columns)
-			if (c.name.equals(field))
+			if (c.name.equals(col))
 				return c.field;
 		throw new RuntimeException();
 	}
@@ -129,27 +156,48 @@ public class TableBuilder {
 	}
 
 	private boolean hasIndex(String columnNames) {
-		int[] columns = nums(columnNames);
+		int[] colNums = colNums(columnNames);
 		for (Index index : indexes)
-			if (Arrays.equals(columns, index.columns))
+			if (Arrays.equals(colNums, index.colNums))
 				return true;
 		return false;
 	}
 
 	public void build() {
-		Collections.sort(indexes);
+		mustHaveKey();
+		updateSchema();
+		updateTableInfo();
+	}
+
+	private void mustHaveKey() {
+		for (Index index : indexes)
+			if (index.isKey)
+				return;
+		fail(TABLE_MUST_HAVE_KEY);
+	}
+
+	private void updateSchema() {
+		Collections.sort(indexes); // to match SchemaLoader
 		t.addSchemaTable(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
+	}
+
+	private void updateTableInfo() {
 		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();
 		for (Index index : indexes)
-			ii.add(new IndexInfo(index.columnsString(),
-					t.getIndex(tblnum, index.columns).info()));
+			ii.add(new IndexInfo(index.colNumsString(),
+					t.getIndex(tblnum, index.colNums).info()));
 		TableInfo ti = t.dbinfo.get(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
 		t.addTableInfo(new TableInfo(tblnum,
 				columns.size(), nrows, totalsize, ii.build()));
+	}
+
+	private void fail(String msg) {
+		t.abort();
+		throw new RuntimeException(msg);
 	}
 
 	public void finish() {
