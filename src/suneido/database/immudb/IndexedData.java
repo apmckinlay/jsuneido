@@ -35,7 +35,8 @@ public class IndexedData {
 						break;
 					idx.remove(rec, intref);
 				}
-				throw new RuntimeException("duplicate key"); // TODO better msg
+				throw new RuntimeException("duplicate key: " +
+						index.searchKey(rec)); // TODO better msg
 			}
 		return intref;
 	}

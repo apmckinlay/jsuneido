@@ -93,8 +93,14 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object alterRename(String table, Object renames) {
-//		for (Rename r : (List<Rename>) renames)
-//			r.rename(table);
+		TableBuilder tb = db.alterTable(table);
+		try {
+			for (Rename r : (List<Rename>) renames)
+				tb.renameColumn(r.from, r.to);
+			tb.finish();
+		} finally {
+			tb.abortUnfinished();
+		}
 		return null;
 	}
 
