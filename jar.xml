@@ -4,9 +4,9 @@
 		<jar destfile="jsuneido.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="suneido.Suneido"/>
-				<attribute name="Class-Path" value="."/>
+				<attribute name="Class-Path" value="lucene-core-3.1.0.jar"/>
 			</manifest>
-			<fileset dir="bin" excludes="**/*Test* suneido/database/immudb/*"/>
+			<fileset dir="bin" excludes="**/*Test* suneido/database/immudb/**"/>
 		</jar>
 		<exec executable="java">
 			<arg value="-jar"/>
