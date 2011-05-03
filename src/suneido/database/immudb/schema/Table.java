@@ -66,20 +66,20 @@ public class Table {
 		return !indexes.isEmpty();
 	}
 
-	public boolean hasIndex(String columns) {
-		return indexes.hasIndex(columns);
-	}
+//	public boolean hasIndex(String columns) {
+//		return indexes.hasIndex(columns);
+//	}
 
 	public Index firstIndex() {
 		return indexes.first();
 	}
 
-	public Index getIndex(String columns) {
-		return indexes.get(columns);
-	}
+//	public Index getIndex(String columns) {
+//		return indexes.get(columns);
+//	}
 
 	public boolean singleton() {
-		return indexes.first().columns.equals("");
+		return indexes.first().colNums.equals("");
 	}
 	public List<String> getColumns() {
 		return columns.names();

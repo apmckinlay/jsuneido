@@ -24,7 +24,7 @@ public class RequestTest {
 	}
 
 	@Test
-	public void alter_table() {
+	public void alter_table_create() {
 		request("create tbl " + SCHEMA);
 		db = Database.open(stor);
 		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
@@ -60,6 +60,54 @@ public class RequestTest {
 		request("ensure tbl (c, d) index(a) index(c,d)");
 		assertThat(db.schema().get("tbl").schema(),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+	}
+
+	@Test
+	public void drop_columns() {
+		request("create tbl (a,b,c,d) key(a)");
+		request("alter tbl drop (b,d)");
+		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+		db = Database.open(stor);
+		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+	}
+
+	@Test
+	public void drop_index() {
+		request("ensure tbl " + SCHEMA);
+		request("alter tbl drop index(b,c)");
+		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+		db = Database.open(stor);
+		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+	}
+
+	@Test
+	public void drop_column_used_in_index() {
+		request("ensure tbl " + SCHEMA);
+		try {
+			request("alter tbl drop (b)");
+			fail();
+		} catch (Exception e) {
+			assertTrue(e.getMessage().contains(TableBuilder.CANT_DROP_COLUMN_IN_INDEX));
+		}
+	}
+
+	@Test
+	public void cant_create_table_without_key() {
+		try {
+			request("create tbl (a,b,c) index(a)");
+		} catch (Exception e) {
+			assertTrue(e.getMessage().contains(TableBuilder.TABLE_MUST_HAVE_KEY));
+		}
+	}
+
+	@Test
+	public void cant_remove_last_key() {
+		request("ensure tbl " + SCHEMA);
+		try {
+			request("alter tbl drop key(a)");
+		} catch (Exception e) {
+			assertTrue(e.getMessage().contains(TableBuilder.TABLE_MUST_HAVE_KEY));
+		}
 	}
 
 	private void request(String request) {

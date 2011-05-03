@@ -15,11 +15,13 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	protected void lock(Database db) {
 		if (! db.exclusiveLock.writeLock().tryLock())
 			throw new RuntimeException("ExclusiveTransaction: could not get lock");
+		locked = true;
 	}
 
 	@Override
 	protected void unlock() {
 		db.exclusiveLock.writeLock().unlock();
+		locked = false;
 	}
 
 	// used by DbLoad

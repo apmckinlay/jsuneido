@@ -18,15 +18,15 @@ public class Index implements Comparable<Index> {
 			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
 	public final int tblnum;
-	public final int[] columns;
+	public final int[] colNums;
 	public final boolean isKey;
 	public final boolean unique;
 	public final ForeignKey fksrc;
 
 
-	public Index(int tblnum, int[] columns, boolean key, boolean unique) {
+	public Index(int tblnum, int[] colNums, boolean key, boolean unique) {
 		this.tblnum = tblnum;
-		this.columns = columns;
+		this.colNums = colNums;
 		this.isKey = key;
 		this.unique = unique;
 		fksrc = null;
@@ -34,7 +34,7 @@ public class Index implements Comparable<Index> {
 
 	public Index(Record record) {
 		this.tblnum = record.getInt(TBLNUM);
-		this.columns = convert(record.getString(COLUMNS));
+		this.colNums = convert(record.getString(COLUMNS));
 		Object key = record.get(KEY); // key is false, true, or "u"
 		this.isKey = key == Boolean.TRUE;
 		this.unique = key.equals(UNIQUE);
@@ -61,11 +61,11 @@ public class Index implements Comparable<Index> {
 	}
 
 	public Record toRecord() {
-		return toRecord(tblnum, columnsString(), isKey, unique, fksrc);
+		return toRecord(tblnum, colNumsString(), isKey, unique, fksrc);
 	}
 
-	public String columnsString() {
-		return Ints.join(",", columns);
+	public String colNumsString() {
+		return Ints.join(",", colNums);
 	}
 
 	public Mode mode() {
@@ -104,13 +104,13 @@ public class Index implements Comparable<Index> {
 	}
 
 	public boolean hasColumn(String name) {
-		return ("," + columns + ",").contains("," + name + ",");
+		return ("," + colNums + ",").contains("," + name + ",");
 	}
 
 	@Override
 	public String toString() {
 		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + Ints.join(",", columns) + ")";
+				"(" + Ints.join(",", colNums) + ")";
 	}
 
 	public String schema(StringBuilder sb, Columns cols) {
@@ -118,7 +118,7 @@ public class Index implements Comparable<Index> {
 			sb.append(" key");
 		else
 			sb.append(" index").append(unique ? " unique" : "");
-		sb.append("(").append(cols.names(columns)).append(")");
+		sb.append("(").append(cols.names(colNums)).append(")");
 //		if (index.fksrc != null && !index.fksrc.tablename.equals("")) {
 //			sb.append(" in ").append(index.fksrc.tablename);
 //			if (!index.fksrc.columns.equals(index.columns))
@@ -132,7 +132,7 @@ public class Index implements Comparable<Index> {
 
 	@Override
 	public int compareTo(Index that) {
-		return this.columnsString().compareTo(that.columnsString());
+		return this.colNumsString().compareTo(that.colNumsString());
 	}
 
 }
