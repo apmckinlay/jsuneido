@@ -81,9 +81,9 @@ public class Request implements RequestGenerator<Object> {
 		try {
 			// remove indexes first so columns aren't used
 			for (Index index : schema.indexes)
-				tb.removeIndex(listToCommas(index.columns));
+				tb.dropIndex(listToCommas(index.columns));
 			for (String col : schema.columns)
-				tb.removeColumn(col);
+				tb.dropColumn(col);
 			tb.finish();
 		} finally {
 			tb.abortUnfinished();
@@ -122,8 +122,8 @@ public class Request implements RequestGenerator<Object> {
 	public Object drop(String table) {
 //		if (serverData.getSview(table) != null)
 //			serverData.dropSview(table);
-//		else if (!TheDb.db().removeTable(table))
-//			throw new SuException("nonexistent table: " + table);
+//		else
+		db.dropTable(table);
 		return null;
 	}
 

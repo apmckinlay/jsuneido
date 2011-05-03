@@ -4,8 +4,10 @@
 
 package suneido.database.immudb;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static suneido.database.immudb.TableBuilder.*;
 
 import org.junit.Test;
 
@@ -72,12 +74,14 @@ public class RequestTest {
 	}
 
 	@Test
-	public void drop_index() {
+	public void drop_nonexistent_column() {
 		request("ensure tbl " + SCHEMA);
-		request("alter tbl drop index(b,c)");
-		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
-		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+		try {
+			request("alter tbl drop (x)");
+			fail();
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString(NONEXISTENT_COLUMN));
+		}
 	}
 
 	@Test
@@ -87,7 +91,33 @@ public class RequestTest {
 			request("alter tbl drop (b)");
 			fail();
 		} catch (Exception e) {
-			assertTrue(e.getMessage().contains(TableBuilder.CANT_DROP_COLUMN_IN_INDEX));
+			assertThat(e.getMessage(), containsString(CANT_DROP_COLUMN_IN_INDEX));
+		}
+	}
+
+	@Test
+	public void drop_index() {
+		request("ensure tbl " + SCHEMA);
+		request("alter tbl drop index(b,c)");
+		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+		db = Database.open(stor);
+		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+	}
+
+	@Test
+	public void drop_nonexistent_index() {
+		request("ensure tbl " + SCHEMA);
+		try {
+			request("alter tbl drop index(x)");
+			fail();
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString(NONEXISTENT_COLUMN));
+		}
+		try {
+			request("alter tbl drop index(c,b,a)");
+			fail();
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString(NONEXISTENT_INDEX));
 		}
 	}
 
@@ -96,7 +126,7 @@ public class RequestTest {
 		try {
 			request("create tbl (a,b,c) index(a)");
 		} catch (Exception e) {
-			assertTrue(e.getMessage().contains(TableBuilder.TABLE_MUST_HAVE_KEY));
+			assertThat(e.getMessage(), containsString(TABLE_MUST_HAVE_KEY));
 		}
 	}
 
@@ -106,7 +136,26 @@ public class RequestTest {
 		try {
 			request("alter tbl drop key(a)");
 		} catch (Exception e) {
-			assertTrue(e.getMessage().contains(TableBuilder.TABLE_MUST_HAVE_KEY));
+			assertThat(e.getMessage(), containsString(TABLE_MUST_HAVE_KEY));
+		}
+	}
+
+	@Test
+	public void drop_table() {
+		request("ensure tbl " + SCHEMA);
+		request("drop tbl");
+		assertNull(db.schema().get("tbl"));
+		db = Database.open(stor);
+		assertNull(db.schema().get("tbl"));
+	}
+
+	@Test
+	public void drop_nonexistent_table() {
+		try {
+			request("drop tbl");
+			fail();
+		} catch (Exception e) {
+			assertThat(e.getMessage(), containsString(NONEXISTENT_TABLE));
 		}
 	}
 
