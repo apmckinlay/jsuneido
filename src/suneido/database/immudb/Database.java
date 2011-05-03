@@ -96,6 +96,15 @@ public class Database {
 		}
 	}
 
+	public void renameTable(String from, String to) {
+		ExclusiveTransaction t = exclusiveTran();
+		try {
+			TableBuilder.renameTable(t, from, to);
+		} finally {
+			t.abortUncommitted();
+		}
+	}
+
 	public void close() {
 		stor.close();
 	}
