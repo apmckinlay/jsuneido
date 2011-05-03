@@ -87,6 +87,15 @@ public class Database {
 			: TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
+	public void dropTable(String tableName) {
+		ExclusiveTransaction t = exclusiveTran();
+		try {
+			TableBuilder.dropTable(t, tableName);
+		} finally {
+			t.abortUncommitted();
+		}
+	}
+
 	public void close() {
 		stor.close();
 	}

@@ -18,6 +18,10 @@ import com.google.common.primitives.Ints;
 public class TableBuilder {
 	public static final String CANT_DROP_COLUMN_IN_INDEX = "can't drop column used in index";
 	public static final String TABLE_MUST_HAVE_KEY = "tables must have at least one key";
+	public static final String NONEXISTENT_TABLE = "nonexistent table";
+	public static final String NONEXISTENT_COLUMN = "nonexistent column";
+	public static final String NONEXISTENT_INDEX = "nonexistent index";
+	private static final String CANT_DROP = "can't drop ";
 	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
@@ -31,8 +35,10 @@ public class TableBuilder {
 	}
 
 	public static TableBuilder alter(UpdateTransaction t, String tableName) {
-		int tblnum = t.getTable(tableName).num;
-		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
+		Table table = t.getTable(tableName);
+		if (table == null)
+			fail(t, NONEXISTENT_TABLE + ": " + tableName);
+		TableBuilder tb = new TableBuilder(t, tableName, table.num);
 		tb.getSchema();
 		return tb;
 	}
@@ -45,6 +51,17 @@ public class TableBuilder {
 
 	private void createTable() {
 		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
+	}
+
+	public static void dropTable(ExclusiveTransaction t, String tableName) {
+		// TODO drop view
+		Table table = t.getTable(tableName);
+		if (table == null)
+			fail(t, CANT_DROP + NONEXISTENT_TABLE + ": " + tableName);
+		t.removeRecord(TN.TABLES, table.toRecord());
+		t.dropTableSchema(table);
+		// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
+		t.commit();
 	}
 
 	private void getSchema() {
@@ -65,16 +82,17 @@ public class TableBuilder {
 		columns.add(c);
 	}
 
-	public void removeColumn(String column) {
-		mustNotBeUsedByIndex(column);
+	public void dropColumn(String column) {
 		for (int i = 0; i < columns.size(); ++i) {
 			Column c = columns.get(i);
 			if (c.name.equals(column)) {
+				mustNotBeUsedByIndex(column);
 				t.removeRecord(TN.COLUMNS, c.toRecord());
 				columns.remove(i);
 				return;
 			}
 		}
+		fail(CANT_DROP + NONEXISTENT_COLUMN + ": " + column);
 	}
 
 	private void mustNotBeUsedByIndex(String column) {
@@ -82,7 +100,7 @@ public class TableBuilder {
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Ints.contains(index.colNums, colNum))
-				fail(CANT_DROP_COLUMN_IN_INDEX + " (" + column + ")");
+				fail(CANT_DROP_COLUMN_IN_INDEX + ": " + column);
 		}
 	}
 
@@ -118,7 +136,7 @@ public class TableBuilder {
 			id.add(t.getrec(Btree.getAddress(iter.cur())));
 	}
 
-	public void removeIndex(String columnNames) {
+	public void dropIndex(String columnNames) {
 		int[] colNums = colNums(columnNames);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
@@ -128,6 +146,7 @@ public class TableBuilder {
 				return;
 			}
 		}
+		fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames + ")");
 	}
 
 	private static final CharMatcher cm = CharMatcher.is(',');
@@ -145,7 +164,8 @@ public class TableBuilder {
 		for (Column c : columns)
 			if (c.name.equals(col))
 				return c.field;
-		throw new RuntimeException();
+		fail(NONEXISTENT_COLUMN + ": " + col);
+		return 0; // can't reach here
 	}
 
 	private boolean hasColumn(String column) {
@@ -162,6 +182,8 @@ public class TableBuilder {
 				return true;
 		return false;
 	}
+
+	// build -------------------------------------------------------------------
 
 	public void build() {
 		mustHaveKey();
@@ -196,6 +218,9 @@ public class TableBuilder {
 	}
 
 	private void fail(String msg) {
+		fail(t, msg);
+	}
+	private static void fail(UpdateTransaction t, String msg) {
 		t.abort();
 		throw new RuntimeException(msg);
 	}

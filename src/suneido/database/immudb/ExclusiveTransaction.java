@@ -4,6 +4,8 @@
 
 package suneido.database.immudb;
 
+import suneido.database.immudb.schema.Table;
+
 public class ExclusiveTransaction extends UpdateTransaction {
 
 	ExclusiveTransaction(Database db) {
@@ -22,6 +24,10 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	protected void unlock() {
 		db.exclusiveLock.writeLock().unlock();
 		locked = false;
+	}
+
+	public void dropTableSchema(Table table) {
+		schema = schema.without(table);
 	}
 
 	// used by DbLoad
