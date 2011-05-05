@@ -198,6 +198,14 @@ public class RequestTest {
 		assertThat(db.schema().get("tbl").schema(), is("(a,bb,cc) key(a) index(bb,cc)"));
 	}
 
+	@Test
+	public void creates() {
+		request("create Accountinglib (name,text,num,parent,group,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
+		request("create Contrib (num,parent,group,name,text,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
+		request("create ETA (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
+		request("create ETAHelp (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
+	}
+
 	private void request(String request) {
 		Request.execute(db, request);
 	}

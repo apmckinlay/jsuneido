@@ -272,7 +272,7 @@ public class TableBuilder {
 	}
 
 	public void abortUnfinished() {
-		t.abortUncommitted();
+		t.abortIfNotCommitted();
 	}
 
 }

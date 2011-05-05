@@ -12,18 +12,24 @@ import suneido.database.immudb.schema.Table;
 
 public class CheckTable implements Callable<String> {
 	final Database db;
-	final String tablename;
+	final String tableName;
 	String details = "";
 
 	public CheckTable(Database db, String tablename) {
 		this.db = db;
-		this.tablename = tablename;
+		this.tableName = tablename;
+	}
+
+	public void check() {
+		String s = call();
+		if (! s.isEmpty())
+			throw new RuntimeException("CheckTable " + tableName + " " + s);
 	}
 
 	@Override
 	public String call() {
 		ReadTransaction t = db.readTran();
-		checkTable(t, tablename);
+		checkTable(t, tableName);
 		return details;
 	}
 

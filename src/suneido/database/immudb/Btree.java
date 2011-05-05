@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
  * btrees anyway.
  * <p>
  * The first key in tree nodes is always "nil", less than any real key.
- * @see BtreeNode, BtreeDbNode, BtreeMemNode
+ * @see BtreeNode, BtreeDbNode, BtreeDbMemNode, BtreeMemNode, BtreeStoreNode
  */
 @NotThreadSafe
 public class Btree {

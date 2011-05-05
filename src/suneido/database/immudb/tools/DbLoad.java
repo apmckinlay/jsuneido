@@ -39,35 +39,31 @@ public class DbLoad {
 //		}
 //	}
 //
-//	public static int loadDatabase(String filename, String dbfilename)
-//			throws Throwable {
-//		int n = 0;
+	public static int loadDatabase(String filename, String dbfilename)
+			throws IOException {
+		int n = 0;
 //		File dbfile = new File(dbfilename);
-//		try {
-//			TheDb.set(new Database(dbfile, Mode.CREATE));
-//			InputStream fin = new BufferedInputStream(
-//					new FileInputStream(filename));
-//			try {
-//				verifyFileHeader(fin);
-//				String schema;
-//				try {
-//					TheDb.db().setLoading(true);
-//					while (null != (schema = readTableHeader(fin))) {
-//						schema = "create" + schema.substring(6);
-//						load1(fin, schema);
-//						++n;
-//					}
-//				} finally {
-//					TheDb.db().setLoading(false);
-//				}
-//			} finally {
-//				fin.close();
-//			}
-//		} finally {
-//			TheDb.db().close();
-//		}
-//		return n;
-//	}
+		new File(dbfilename).delete();
+		Database db = Database.create(new MmapFile(dbfilename, "rw"));
+		try {
+			InputStream fin = new BufferedInputStream(
+					new FileInputStream(filename));
+			try {
+				verifyFileHeader(fin);
+				String schema;
+				while (null != (schema = readTableHeader(fin))) {
+					schema = "create" + schema.substring(6);
+					load1(db, fin, schema);
+					++n;
+				}
+			} finally {
+				fin.close();
+			}
+		} finally {
+			db.close();
+		}
+		return n;
+	}
 
 	public static void loadTablePrint(String tablename) {
 		int n = loadTable(tablename);
@@ -82,7 +78,7 @@ public class DbLoad {
 		}
 	}
 
-	private static int loadTableImp(String tablename) throws Throwable {
+	private static int loadTableImp(String tablename) throws IOException  {
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
 //		File dbfile = new File("suneido.db");
@@ -126,9 +122,9 @@ new File("immu.db").delete();
 
 	private static int load1(Database db, InputStream fin, String schema)
 			throws IOException {
-		int n = schema.indexOf(' ', 7);
-		String table = schema.substring(7, n);
-
+System.out.println(schema);
+		int i = schema.indexOf(' ', 7);
+		String table = schema.substring(7, i);
 		if (! "views".equals(table)) {
 //			Schema.removeTable(TheDb.db(), table);
 			Request.execute(db, schema);
@@ -161,8 +157,9 @@ new File("immu.db").delete();
 					first = last;
 			}
 			otherIndexes(db, t, table, first, last);
-		} finally {
 			t.commit();
+		} finally {
+			t.abortIfNotCommitted();
 		}
 		return nrecs;
 	}
@@ -235,7 +232,7 @@ new File("immu.db").delete();
 			Btree btree = t.getIndex(table.num, index.colNums);
 			otherIndex(db, btree, index.colNums, first, last);
 			t.saveBtrees();
-System.out.println("built " + index);
+//System.out.println("built " + index);
 		}
 	}
 
@@ -261,11 +258,15 @@ System.out.println("built " + index);
 		return sb.toString();
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws IOException  {
 //		loadDatabasePrint("database.su", "dbload.db");
 
-		int n = loadTable("gl_transactions");
-		System.out.println("loaded " + n + " records into gl_transactions");
+//		int n = loadTable("gl_transactions");
+//		System.out.println("loaded " + n + " records into gl_transactions");
+
+		int n = loadDatabase("database.su", "immudb.db");
+		System.out.println("loaded " + n + " tables into immu.db");
+
 		Database db = Database.open(new MmapFile("immu.db", "r"));
 //		ReadTransaction t = db.readTran();
 //		Table tbl = t.getTable("gl_transactions");

@@ -92,7 +92,7 @@ public class Database {
 		try {
 			TableBuilder.dropTable(t, tableName);
 		} finally {
-			t.abortUncommitted();
+			t.abortIfNotCommitted();
 		}
 	}
 
@@ -101,7 +101,7 @@ public class Database {
 		try {
 			TableBuilder.renameTable(t, from, to);
 		} finally {
-			t.abortUncommitted();
+			t.abortIfNotCommitted();
 		}
 	}
 

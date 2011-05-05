@@ -43,4 +43,8 @@ public class IndexInfo extends BtreeInfo {
 			.toString();
 	}
 
+	public void check() {
+		assert ! IntRefs.isIntRef(root);
+	}
+
 }

@@ -105,8 +105,8 @@ public class DbHashTrieTest {
 	}
 
 	Translator nullTranslator = new Translator() {
-		@Override public int translate(Entry e) {
-			return ((IntEntry) e).value; // identity
+		@Override public Entry translate(Entry e) {
+			return e; // no translation
 		}
 	};
 
