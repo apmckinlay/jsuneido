@@ -15,13 +15,13 @@ public class CheckTable implements Callable<String> {
 	final String tableName;
 	String details = "";
 
-	public CheckTable(Database db, String tablename) {
+	public CheckTable(Database db, String tableName) {
 		this.db = db;
-		this.tableName = tablename;
+		this.tableName = tableName;
 	}
 
-	public void check() {
-		String s = call();
+	public static void check(Database db, String tableName) {
+		String s = new CheckTable(db, tableName).call();
 		if (! s.isEmpty())
 			throw new RuntimeException("CheckTable " + tableName + " " + s);
 	}

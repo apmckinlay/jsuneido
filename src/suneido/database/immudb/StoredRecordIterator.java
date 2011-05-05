@@ -33,7 +33,7 @@ public class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		if (adr < last)
 			adr = stor.advance(adr, skipPadding(buf, len));
 		else
-			++adr;
+			adr = last + 1;
 		return r;
 	}
 
