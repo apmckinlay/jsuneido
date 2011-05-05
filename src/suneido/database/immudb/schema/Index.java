@@ -41,10 +41,13 @@ public class Index implements Comparable<Index> {
 		fksrc = get_fksrc(record);
 	}
 
+	private static final int[] noColumns = new int[0];
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
 	public int[] convert(String s) {
+		if (s.equals(""))
+			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
 		for (String c : splitter.split(s))

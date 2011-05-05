@@ -4,8 +4,6 @@
 
 package suneido.database.immudb.tools;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import static suneido.SuException.verify;
 
 import java.io.*;
@@ -122,7 +120,6 @@ new File("immu.db").delete();
 
 	private static int load1(Database db, InputStream fin, String schema)
 			throws IOException {
-System.out.println(schema);
 		int i = schema.indexOf(' ', 7);
 		String table = schema.substring(7, i);
 		if (! "views".equals(table)) {
@@ -224,6 +221,8 @@ System.out.println(schema);
 
 	private static void otherIndexes(Database db, ExclusiveTransaction t,
 			Table table, int first, int last) {
+		if (first == 0)
+			return; // no data
 		t.saveBtrees();
 		Iterator<Index> iter = table.indexes.iterator();
 		iter.next(); // skip first index (already built)
@@ -232,7 +231,6 @@ System.out.println(schema);
 			Btree btree = t.getIndex(table.num, index.colNums);
 			otherIndex(db, btree, index.colNums, first, last);
 			t.saveBtrees();
-//System.out.println("built " + index);
 		}
 	}
 
@@ -264,7 +262,7 @@ System.out.println(schema);
 //		int n = loadTable("gl_transactions");
 //		System.out.println("loaded " + n + " records into gl_transactions");
 
-		int n = loadDatabase("database.su", "immudb.db");
+		int n = loadDatabase("database.su", "immu.db");
 		System.out.println("loaded " + n + " tables into immu.db");
 
 		Database db = Database.open(new MmapFile("immu.db", "r"));
@@ -275,7 +273,7 @@ System.out.println(schema);
 //		TableInfo ti = t.getTableInfo(tbl.num);
 //		System.out.println(ti);
 		System.out.println("checking...");
-		assertThat(new CheckTable(db, "gl_transactions").call(), is(""));
+		CheckTable.check(db, "etalib");
 		System.out.println("...done");
 	}
 
