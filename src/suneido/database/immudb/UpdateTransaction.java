@@ -68,17 +68,19 @@ public class UpdateTransaction extends ReadTransaction {
 	void addRecord(int tblnum, Record r) {
 		assert locked;
 		indexedData(tblnum).add(r);
-		dbinfo.addrow(tblnum, r.length());
+		dbinfo.updateRowInfo(tblnum, 1, r.length());
 	}
 
 	void removeRecord(int tblnum, Record r) {
 		assert locked;
 		indexedData(tblnum).remove(r);
+		dbinfo.updateRowInfo(tblnum, -1, -r.length());
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
 		assert locked;
 		indexedData(tblnum).update(from, to);
+		dbinfo.updateRowInfo(tblnum, 0, to.length() - from.length());
 	}
 
 	private IndexedData indexedData(int tblnum) {
@@ -107,7 +109,7 @@ public class UpdateTransaction extends ReadTransaction {
 		unlock();
 	}
 
-	public void abortUncommitted() {
+	public void abortIfNotCommitted() {
 		if (locked)
 			abort();
 	}

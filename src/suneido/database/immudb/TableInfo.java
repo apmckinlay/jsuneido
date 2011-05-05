@@ -48,6 +48,11 @@ public class TableInfo extends DbHashTrie.Entry {
 		return tblnum;
 	}
 
+	@Override
+	public int value() {
+		return adr;
+	}
+
 	public int nrows() {
 		return nrows;
 	}
@@ -60,10 +65,10 @@ public class TableInfo extends DbHashTrie.Entry {
 		return adr != 0;
 	}
 
-	public TableInfo with(int size) {
+	public TableInfo with(int nr, int size) {
 		if (stored())
 			return new TableInfo(tblnum,
-					nextfield, nrows + 1, totalsize + size, indexInfo);
+					nextfield, nrows + nr, totalsize + size, indexInfo);
 		else {
 			++nrows;
 			totalsize += size;
@@ -98,6 +103,11 @@ public class TableInfo extends DbHashTrie.Entry {
 			.add("totalsize", totalsize)
 			.addValue(Iterables.toString(indexInfo))
 			.toString();
+	}
+
+	public void check() {
+		for (IndexInfo ii : indexInfo)
+			ii.check();
 	}
 
 }

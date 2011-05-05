@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
+import suneido.database.immudb.DbHashTrie.StoredIntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
 
 /**
@@ -119,9 +120,13 @@ public class Tran implements Translator {
 	}
 
 	@Override
-	public int translate(Entry e) {
-		int x = ((IntEntry) e).value;
-		return IntRefs.isIntRef(x) ? getAdr(x) : x;
+	public Entry translate(Entry e) {
+		IntEntry ie = (IntEntry) e;
+		int key = ie.key;
+		int val = ie.value;
+		if (IntRefs.isIntRef(val))
+			val = getAdr(val);
+		return new StoredIntEntry(key, val);
 	}
 
 	public Record getrec(int adr) {

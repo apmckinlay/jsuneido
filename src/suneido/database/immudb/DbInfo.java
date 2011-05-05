@@ -11,6 +11,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
+import suneido.database.immudb.DbHashTrie.StoredIntEntry;
 import suneido.database.immudb.DbHashTrie.Translator;
 import suneido.database.immudb.UpdateTransaction.Conflict;
 import suneido.util.ParallelIterable;
@@ -57,12 +58,12 @@ public class DbInfo {
 		dbinfo = dbinfo.with(ti);
 	}
 
-	/** ++nrows, totalsize += size */
-	public void addrow(int tblnum, int size) {
+	/** update nrows and totalsize */
+	public void updateRowInfo(int tblnum, int nrows, int size) {
 		TableInfo ti = get(tblnum);
 		if (tblnum <= TN.INDEXES && ti == null) // bootstrap
 			return;
-		TableInfo ti2 = ti.with(size);
+		TableInfo ti2 = ti.with(nrows, size);
 		if (ti2 != ti)
 			dbinfo = dbinfo.with(ti2);
 	}
@@ -73,11 +74,14 @@ public class DbInfo {
 
 	private class DbInfoTranslator implements Translator {
 		@Override
-		public int translate(Entry entry) {
-			if (entry instanceof TableInfo)
-				return ((TableInfo) entry).store(stor);
-			else
-				return ((IntEntry) entry).value;
+		public Entry translate(Entry entry) {
+			if (entry instanceof TableInfo) {
+				((TableInfo) entry).store(stor);
+				return entry;
+			} else {
+				IntEntry ie = (IntEntry) entry;
+				return new StoredIntEntry(ie.key, ie.value);
+			}
 		}
 	}
 
@@ -154,5 +158,16 @@ public class DbInfo {
 
 	private static final Conflict conflict =
 			new Conflict("concurrent index modification");
+
+	public void check() {
+		dbinfo.traverseChanges(checkProc);
+	}
+	private static final CheckProc checkProc = new CheckProc();
+	private static class CheckProc implements DbHashTrie.Process {
+		@Override
+		public void apply(Entry entry) {
+			((TableInfo) entry).check();
+		}
+	}
 
 }

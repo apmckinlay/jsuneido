@@ -9,6 +9,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.base.Strings;
 
 /**
@@ -47,6 +49,7 @@ public abstract class DbHashTrie {
 
 	public abstract static class Entry {
 		public abstract int key();
+		public abstract int value();
 	}
 
 	/** returns null if key not present */
@@ -211,7 +214,10 @@ public abstract class DbHashTrie {
 				if (data[i] instanceof Entry) {
 					Entry e = (Entry) data[i];
 					key = e.key();
-					value = translator.translate(e);
+					e = translator.translate(e);
+					assert key == e.key();
+					value = e.value();
+					data[i] = e;
 				} else if (data[i] instanceof Integer)
 					value = (Integer) data[i];
 				else
@@ -271,13 +277,14 @@ public abstract class DbHashTrie {
 	} // end of Node
 
 	public interface Translator {
-		public int translate(Entry e);
+		public Entry translate(Entry e);
 	}
 
 	public interface Process {
 		public void apply(Entry e);
 	}
 
+	@Immutable
 	public static class IntEntry extends Entry {
 		public final int key;
 		public final int value;
@@ -290,6 +297,11 @@ public abstract class DbHashTrie {
 		@Override
 		public int key() {
 			return key;
+		}
+
+		@Override
+		public int value() {
+			return value;
 		}
 
 		@Override
@@ -310,11 +322,10 @@ public abstract class DbHashTrie {
 		public int hashCode() {
 			return key ^ value;
 		}
-
 	}
 
 	/** used to identify old entries */
-	private static class StoredIntEntry extends IntEntry {
+	public static class StoredIntEntry extends IntEntry {
 		StoredIntEntry(int key, int value) {
 			super(key, value);
 		}
@@ -332,6 +343,11 @@ public abstract class DbHashTrie {
 		@Override
 		public int key() {
 			return key;
+		}
+
+		@Override
+		public int value() {
+			throw new UnsupportedOperationException("RefEntry doesn't support value()");
 		}
 
 		@Override

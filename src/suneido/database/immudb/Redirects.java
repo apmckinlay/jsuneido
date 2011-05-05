@@ -80,7 +80,6 @@ public class Redirects {
 				throw conflict;
 			merged = merged.with(e);
 		}
-
 	}
 
 	private static final Conflict conflict =

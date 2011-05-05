@@ -28,9 +28,10 @@ class Bootstrap {
 		create_columns(t);
 		create_indexes(t);
 		t.commit();
-
-		Request.execute(db, "alter tables create key(tablename)");
-		create_views(db);
+		Request.execute(db,
+				"alter tables create key(tablename)");
+		Request.execute(db,
+				"create views (view_name, view_definition) key(view_name)");
 	}
 
 	private static void setup(UpdateTransaction t) {
@@ -71,11 +72,6 @@ class Bootstrap {
 		tb.addColumn("fkmode");
 		tb.addIndex("table,columns", true, false, null, null, 0);
 		tb.build();
-	}
-
-	private static void create_views(Database db) {
-		Request.execute(db,
-				"create views (view_name, view_definition) key(view_name)");
 	}
 
 }
