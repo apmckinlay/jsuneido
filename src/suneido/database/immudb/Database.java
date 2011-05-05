@@ -35,6 +35,10 @@ public class Database {
 		return db;
 	}
 
+	public static Database open(String filename, String mode) {
+		return open(new MmapFile(filename, mode));
+	}
+
 	public static Database open(Storage stor) {
 		check(stor);
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
@@ -73,7 +77,7 @@ public class Database {
 		return TableBuilder.create(updateTran(), tableName, nextTableNum());
 	}
 
-	private int nextTableNum() {
+	public int nextTableNum() {
 		return schema.maxTblNum + 1;
 	}
 
