@@ -265,16 +265,7 @@ new File("immu.db").delete();
 		int n = loadDatabase("database.su", "immu.db");
 		System.out.println("loaded " + n + " tables into immu.db");
 
-		Database db = Database.open(new MmapFile("immu.db", "r"));
-//		ReadTransaction t = db.readTran();
-//		Table tbl = t.getTable("gl_transactions");
-//		System.out.println(tbl.schema());
-//		System.out.println(tbl);
-//		TableInfo ti = t.getTableInfo(tbl.num);
-//		System.out.println(ti);
-		System.out.println("checking...");
-		CheckTable.check(db, "etalib");
-		System.out.println("...done");
+		DbCheck.checkPrintExit("immu.db");
 	}
 
 }

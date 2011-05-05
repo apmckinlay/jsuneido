@@ -5,6 +5,7 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Iterator;
 
 public class Check {
@@ -17,7 +18,7 @@ public class Check {
 	private int nCommits = 0;
 	private int lastOkDatetime = 0;
 
-	Check(Storage stor) {
+	public Check(Storage stor) {
 		this.stor = stor;
 	}
 
@@ -109,8 +110,8 @@ public class Check {
 		return nCommits;
 	}
 
-	public int lastOkDatetime() {
-		return lastOkDatetime;
+	public Date lastOkDatetime() {
+		return new Date(1000L * lastOkDatetime);
 	}
 
 }
