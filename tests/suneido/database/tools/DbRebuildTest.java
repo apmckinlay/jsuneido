@@ -113,7 +113,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 	public void test_views() {
 		TheDb.open(filename, Mode.CREATE);
 		try {
-			TheDb.db().add_view("myview", "indexes");
+			TheDb.db().addView("myview", "indexes");
 		} finally {
 			TheDb.close();
 		}

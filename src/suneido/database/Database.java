@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -20,10 +24,6 @@ import com.google.common.collect.ImmutableList;
  * Implements the Suneido database. Uses {@link Mmfile} and {@link BtreeIndex}.
  * See also {@link Schema} and {@link Data}
  * Transactions handled by {@link Transaction} and {@link Transactions}.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
 public class Database {
@@ -349,7 +349,7 @@ public class Database {
 
 	// views ========================================================
 
-	public void add_view(String name, String definition) {
+	public void addView(String name, String definition) {
 		Transaction tran = readwriteTran();
 		try {
 			if (null != getView(tran, name))

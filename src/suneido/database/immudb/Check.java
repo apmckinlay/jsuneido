@@ -8,6 +8,11 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Iterator;
 
+/**
+ * Verify checksums and sizes.<p>
+ * fastcheck is used at startup to confirm that database was closed ok<p>
+ * fullcheck is used by {@link suneido.database.immudb.tools.DbCheck}<p>
+ */
 public class Check {
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	private static final int SIZEOF_INT = 4;
@@ -65,7 +70,7 @@ public class Check {
 		if (buf.remaining() == 0)
 			buf = iter.next();
 		Checksum cksum = new Checksum();
-		int size = buf.getInt(buf.position()); // don't advance
+		int size = buf.getInt(buf.position()); // don't advance buf
 		if (size == 0) { // chunk padding
 			pos += buf.remaining();
 			if (! iter.hasNext()) {
@@ -74,13 +79,13 @@ public class Check {
 			}
 			cksum.update(buf); // padding is included in checksum
 			buf = iter.next();
-			size = buf.getInt(0); // don't advance
+			size = buf.getInt(0); // don't advance buf
 		}
 
 		if (size < Tran.HEAD_SIZE + Tran.TAIL_SIZE)
 			return null;
 
-		int datetime = buf.getInt(buf.position() + SIZEOF_INT); // don't advance
+		int datetime = buf.getInt(buf.position() + SIZEOF_INT); // don't advance buf
 		int notail_size = size - Tran.HEAD_SIZE;
 		int n;
 		for (int i = 0; i < notail_size; i += n) {

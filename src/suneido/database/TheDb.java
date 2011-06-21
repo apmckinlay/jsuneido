@@ -32,7 +32,8 @@ public class TheDb {
 	}
 
 	public static void close() {
-		theDb.close();
+		if (theDb != null)
+			theDb.close();
 		theDb = null;
 	}
 
