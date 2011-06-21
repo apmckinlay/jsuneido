@@ -112,7 +112,7 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object view(String name, String definition) {
-//		TheDb.db().add_view(name, definition);
+		db.addView(name, definition);
 		return null;
 	}
 

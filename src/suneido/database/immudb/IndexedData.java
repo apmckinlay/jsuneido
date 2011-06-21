@@ -25,6 +25,8 @@ public class IndexedData {
 		return this;
 	}
 
+	// TODO foreign keys
+
 	public int add(Record rec) {
 		int intref = tran.refToInt(rec);
 		for (Index index : indexes)

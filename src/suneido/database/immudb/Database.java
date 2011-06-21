@@ -109,6 +109,10 @@ public class Database {
 		}
 	}
 
+	public void addView(String name, String definition) {
+		// TODO add view
+	}
+
 	public void close() {
 		stor.close();
 	}
