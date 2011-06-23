@@ -13,7 +13,7 @@ import java.util.List;
 public class IndexedData {
 	public enum Mode { KEY, UNIQUE, DUPS };
 	private final Tran tran;
-	private final List<Index> indexes = new ArrayList<Index>();
+	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 
 	public IndexedData(Tran tran) {
 		this.tran = tran;
@@ -21,7 +21,7 @@ public class IndexedData {
 
 	/** setup method */
 	public IndexedData index(Btree btree, Mode mode, int... fields) {
-		indexes.add(new Index(btree, mode, fields));
+		indexes.add(new AnIndex(btree, mode, fields));
 		return this;
 	}
 
@@ -29,10 +29,10 @@ public class IndexedData {
 
 	public int add(Record rec) {
 		int intref = tran.refToInt(rec);
-		for (Index index : indexes)
+		for (AnIndex index : indexes)
 			if (! index.add(rec, intref)) {
 				// undo previous add's
-				for (Index idx : indexes) {
+				for (AnIndex idx : indexes) {
 					if (idx == index)
 						break;
 					idx.remove(rec, intref);
@@ -47,7 +47,7 @@ public class IndexedData {
 		int intref = firstKey().getKeyAdr(rec);
 		if (intref == 0)
 			throw new RuntimeException("remove couldn't find record");
-		for (Index index : indexes)
+		for (AnIndex index : indexes)
 			if (! index.remove(rec, intref))
 				throw new RuntimeException("remove failed");
 		// TODO handle remove failing halfway through (abort transaction?)
@@ -58,25 +58,25 @@ public class IndexedData {
 		if (fromIntref == 0)
 			throw new RuntimeException("update couldn't find record");
 		int toIntref = tran.refToInt(to);
-		for (Index index : indexes)
+		for (AnIndex index : indexes)
 			if (! index.update(from, fromIntref, to, toIntref))
 				throw new RuntimeException("update failed");
 		// TODO handle remove failing halfway through (abort transaction?)
 	}
 
-	private Index firstKey() {
-		for (Index index : indexes)
+	private AnIndex firstKey() {
+		for (AnIndex index : indexes)
 			if (index.mode == Mode.KEY)
 				return index;
 		throw new RuntimeException("no key!");
 	}
 
-	private static class Index {
+	private static class AnIndex {
 		final Btree btree;
 		final Mode mode;
 		final int[] fields;
 
-		Index(Btree btree, Mode mode, int[] fields) {
+		AnIndex(Btree btree, Mode mode, int[] fields) {
 			this.btree = btree;
 			this.mode = mode;
 			this.fields = fields;

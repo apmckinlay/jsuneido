@@ -10,6 +10,9 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
 
+/**
+ * root, treeLevels, and nnodes
+ */
 @Immutable
 public class BtreeInfo {
 	public final int root;

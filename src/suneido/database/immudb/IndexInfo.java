@@ -4,8 +4,14 @@
 
 package suneido.database.immudb;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.base.Objects;
 
+/**
+ * {@link BtreeInfo} plus columns
+ */
+@Immutable
 public class IndexInfo extends BtreeInfo {
 	public static final int NFIELDS = 4;
 	public final String columns; // e.g. "0,1"
