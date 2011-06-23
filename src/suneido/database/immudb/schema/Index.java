@@ -106,10 +106,6 @@ public class Index implements Comparable<Index> {
 		return isKey;
 	}
 
-	public boolean hasColumn(String name) {
-		return ("," + colNums + ",").contains("," + name + ",");
-	}
-
 	@Override
 	public String toString() {
 		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
