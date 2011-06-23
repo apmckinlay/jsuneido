@@ -79,7 +79,7 @@ public class Table {
 //	}
 
 	public boolean singleton() {
-		return indexes.first().colNums.equals("");
+		return indexes.first().colNums.length == 0;
 	}
 	public List<String> getColumns() {
 		return columns.names();
