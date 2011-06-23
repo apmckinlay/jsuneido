@@ -74,7 +74,7 @@ public class DbHashTrieTest {
 
 	int get(int key) {
 		IntEntry e = (IntEntry) tree.get(key);
-		return e == null ? null : e.value;
+		return (e == null) ? 0 : e.value;
 	}
 
 	@Test
