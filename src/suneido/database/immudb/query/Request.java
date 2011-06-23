@@ -147,7 +147,7 @@ public class Request implements RequestGenerator<Object> {
 		return new ForeignKey(table, columns, mode);
 	}
 
-	class Index {
+	static class Index {
 		boolean key;
 		boolean unique;
 		List<String> columns;
