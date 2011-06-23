@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
 import suneido.database.immudb.schema.Tables;
 
 @ThreadSafe
@@ -110,7 +111,23 @@ public class Database {
 	}
 
 	public void addView(String name, String definition) {
-		// TODO add view
+		UpdateTransaction t = updateTran();
+		try {
+			if (null != Views.getView(t, name))
+				throw new SuException("view: '" + name + "' already exists");
+			Views.addView(t, name, definition);
+		} finally {
+			t.abortIfNotCommitted();
+		}
+	}
+
+	public void dropView(String name) {
+		UpdateTransaction t = updateTran();
+		try {
+			Views.dropView(t, name);
+		} finally {
+			t.abortIfNotCommitted();
+		}
 	}
 
 	public void close() {

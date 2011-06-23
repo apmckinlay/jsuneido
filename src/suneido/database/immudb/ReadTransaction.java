@@ -60,6 +60,14 @@ public class ReadTransaction {
 		return tran.getrec(adr);
 	}
 
+	public Record lookup(int tblnum, String indexColumns, Record key) {
+		Btree btree = getIndex(tblnum, indexColumns);
+		int adr = btree.get(key);
+		if (adr == 0)
+			return null; // not found
+		return getrec(adr);
+	}
+
 	public Table getTable(String tableName) {
 		return schema.get(tableName);
 	}
@@ -70,6 +78,11 @@ public class ReadTransaction {
 
 	public TableInfo getTableInfo(int tblnum) {
 		return dbinfo.get(tblnum);
+	}
+
+	/** @return view definition, else null if view not found */
+	public String getView(String name) {
+		return Views.getView(this, name);
 	}
 
 }

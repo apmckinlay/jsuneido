@@ -56,13 +56,16 @@ public class TableBuilder {
 	}
 
 	public static void dropTable(ExclusiveTransaction t, String tableName) {
-		// TODO drop view
-		Table table = t.getTable(tableName);
-		if (table == null)
-			fail(t, CANT_DROP + NONEXISTENT_TABLE + ": " + tableName);
-		t.removeRecord(TN.TABLES, table.toRecord());
-		t.dropTableSchema(table);
-		// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
+		if (null != Views.getView(t, tableName))
+			Views.dropView(t, tableName);
+		else {
+			Table table = t.getTable(tableName);
+			if (table == null)
+				fail(t, CANT_DROP + NONEXISTENT_TABLE + ": " + tableName);
+			t.removeRecord(TN.TABLES, table.toRecord());
+			t.dropTableSchema(table);
+			// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
+		}
 		t.commit();
 	}
 

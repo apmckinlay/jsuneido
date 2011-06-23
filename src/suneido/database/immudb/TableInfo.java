@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 /**
+ * Table stats - nextfield, nrows, totalsize, indexInfo
+ * <p>
  * Immutable when loaded or stored.
  * Mutable within a transaction.
  */
