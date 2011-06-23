@@ -438,19 +438,19 @@ public class Transaction implements Comparable<Transaction> {
 		notEnded();
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
-			if (this.inConflict || writer.outConflict)
+			if (this.inConflict || writer.isOutConflict())
 				abortThrow("conflict (read-write) with " + writer);
 			writer.inConflict = true;
-			this.outConflict = true;
+			this.setOutConflict();
 		}
 
 		Set<Transaction> writes = trans.writes(offset);
 		for (Transaction w : writes) {
 			if (w == this || w.commitTime < asof)
 				continue;
-			if (w.outConflict)
+			if (w.isOutConflict())
 				abortThrow("conflict (read-write) with " + w);
-			this.outConflict = true;
+			this.setOutConflict();
 		}
 		for (Transaction w : writes)
 			w.inConflict = true;
@@ -463,12 +463,12 @@ public class Transaction implements Comparable<Transaction> {
 			abortThrow("conflict (write-write)");
 		for (Transaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
-				if (reader.inConflict || this.outConflict)
+				if (reader.inConflict || this.isOutConflict())
 					abortThrow("conflict (write-read) with " + reader);
 				this.inConflict = true;
 			}
 		for (Transaction reader : readers)
-			reader.outConflict = true;
+			reader.setOutConflict();
 	}
 
 	boolean isCommitted() {
@@ -558,6 +558,14 @@ public class Transaction implements Comparable<Transaction> {
 	@Override
 	protected void finalize() throws Throwable {
 		abortIfNotComplete();
+	}
+
+	private synchronized boolean isOutConflict() {
+		return outConflict;
+	}
+
+	private synchronized void setOutConflict() {
+		outConflict = true;
 	}
 
 }
