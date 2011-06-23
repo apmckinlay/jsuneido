@@ -80,7 +80,7 @@ public class Request implements RequestGenerator<Object> {
 		TableBuilder tb = db.alterTable(tableName);
 		try {
 			// remove indexes first so columns aren't used
-			for (Index index : schema.indexes)
+			for (AnIndex index : schema.indexes)
 				tb.dropIndex(listToCommas(index.columns));
 			for (String col : schema.columns)
 				tb.dropColumn(col);
@@ -147,13 +147,13 @@ public class Request implements RequestGenerator<Object> {
 		return new ForeignKey(table, columns, mode);
 	}
 
-	static class Index {
+	static class AnIndex {
 		boolean key;
 		boolean unique;
 		List<String> columns;
 		ForeignKey in;
 
-		Index(boolean key, boolean unique, Object columns, Object foreignKey) {
+		AnIndex(boolean key, boolean unique, Object columns, Object foreignKey) {
 			this.key = key;
 			this.unique = unique;
 			this.columns = (List<String>) columns;
@@ -175,15 +175,15 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object index(boolean key, boolean unique, Object columns, Object foreignKey) {
-		return new Index(key, unique, columns,
+		return new AnIndex(key, unique, columns,
 				foreignKey == null ? new ForeignKey() : foreignKey);
 	}
 
 	@Override
 	public Object indexes(Object indexes, Object index) {
-		List<Index> list = indexes == null
-				? new ArrayList<Index>() : (List<Index>) indexes;
-		list.add((Index) index);
+		List<AnIndex> list = indexes == null
+				? new ArrayList<AnIndex>() : (List<AnIndex>) indexes;
+		list.add((AnIndex) index);
 		return list;
 	}
 
@@ -207,7 +207,7 @@ public class Request implements RequestGenerator<Object> {
 
 	static class Schema {
 		List<String> columns;
-		List<Index> indexes;
+		List<AnIndex> indexes;
 
 		Schema(Object columns, Object indexes) {
 			if (columns == null)
@@ -215,20 +215,20 @@ public class Request implements RequestGenerator<Object> {
 			this.columns = (List<String>) columns;
 			if (indexes == null)
 				indexes = Collections.emptyList();
-			this.indexes = (List<Index>) indexes;
+			this.indexes = (List<AnIndex>) indexes;
 		}
 		void create(TableBuilder tb) {
 			// add columns first so indexes can use them
 			for (String column : columns)
 				tb.addColumn(column);
-			for (Index index : indexes)
+			for (AnIndex index : indexes)
 				index.create(tb);
 		}
 		void ensure(TableBuilder tb) {
 			// add columns first so indexes can use them
 			for (String col : columns)
 				tb.ensureColumn(col);
-			for (Index index : indexes)
+			for (AnIndex index : indexes)
 				index.ensure(tb);
 		}
 	}
