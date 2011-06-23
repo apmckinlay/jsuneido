@@ -31,7 +31,7 @@ public class DbRebuild extends DbCheck {
 	private final Checksum cksum = new Checksum();
 	// 8 byte overhead (two int's) plus 8 byte alignment
 	// means smallest block is 16 bytes
-	final private int GRANULARITY = 16;
+	private static final int GRANULARITY = 16;
 
 	public static void rebuildOrExit(String dbfilename) {
 		File tempfile = FileUtils.tempfile();
@@ -221,7 +221,6 @@ public class DbRebuild extends DbCheck {
 		int tn = rec.getInt(0);
 		if (tn <= TN.INDEXES)
 			return; // handled by Database create
-		newoff += 4;
 		switch (tblnum) {
 		case TN.TABLES:
 			handleTablesRecord(rec, renamedFrom);

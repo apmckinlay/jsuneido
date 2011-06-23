@@ -53,7 +53,7 @@ public class Lucene extends BuiltinClass {
 				IndexSearcher searcher = new IndexSearcher(dir);
 				searcher.close();
 				return true;
-			} catch (Exception e) {
+			} catch (IOException e) {
 				return false;
 			}
 		}

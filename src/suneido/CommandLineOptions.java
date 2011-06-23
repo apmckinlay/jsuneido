@@ -69,7 +69,7 @@ public class CommandLineOptions {
 				actionArg = arg.substring(9);
 			} else if (arg.equals("-tests") || arg.equals("-t"))
 				setAction(Action.TEST);
-			else if (arg.equals("-version") | arg.equals("-v"))
+			else if (arg.equals("-version") || arg.equals("-v"))
 				setAction(Action.VERSION);
 			else if (arg.equals("-help") || arg.equals("-h") || arg.equals("-?"))
 				setAction(Action.HELP);
