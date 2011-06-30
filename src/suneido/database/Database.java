@@ -471,18 +471,17 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
-	void addBtreeIndex(String key, BtreeIndex btiNew) {
-		btiNew.setDest(btiNew.getDest().unwrap());
-		btreeIndexes = btreeIndexes.with(key, btiNew);
+	void addBtreeIndex(String key, BtreeIndex bti) {
+		bti.update(); // save changes to database
+		bti.setDest(bti.getDest().unwrap());
+		btreeIndexes = btreeIndexes.with(key, bti);
 	}
 
 	void updateBtreeIndex(String key,
 			BtreeIndex btiOld, BtreeIndex btiNew) {
 		BtreeIndex bti = btreeIndexes.get(key);
 		verify(bti.update(btiOld, btiNew));
-		btiNew.update(); // save changes to database
-		btiNew.setDest(btiNew.getDest().unwrap());
-		btreeIndexes = btreeIndexes.with(key, btiNew);
+		addBtreeIndex(key, btiNew);
 	}
 
 	// delegate

@@ -14,11 +14,18 @@ public class SchemaTest extends TestBase {
 	public void create_index_on_existing_table() {
 		final int N = 200;
 		makeTable(N);
-		TheDb.db().addIndex("test", "b", false);
+		String COLS = "a,b";
+		TheDb.db().addIndex("test", COLS, false);
+		check(N, COLS);
+		reopen();
+		check(N, COLS);
+	}
+
+	private void check(final int N, String COLS) {
 		Transaction t = TheDb.db().readonlyTran();
 		Table tbl = t.getTable("test");
 		try {
-			BtreeIndex bi = t.getBtreeIndex(tbl.num, "b");
+			BtreeIndex bi = t.getBtreeIndex(tbl.num, COLS);
 			BtreeIndex.Iter iter = bi.iter(t);
 			for (int i = 0; i < N; ++i) {
 				iter.next();
