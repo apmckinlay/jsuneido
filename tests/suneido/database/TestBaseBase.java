@@ -48,10 +48,12 @@ public class TestBaseBase {
 	}
 
 	protected void addRecords(String tablename, int from, int to) {
-		Transaction t = TheDb.db().readwriteTran();
-		for (int i = from; i <= to; ++i)
-			t.addRecord(tablename, record(i));
-		t.ck_complete();
+		while (from <= to) {
+			Transaction t = TheDb.db().readwriteTran();
+			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
+				t.addRecord(tablename, record(from));
+			t.ck_complete();
+		}
 	}
 
 	protected static Record record(int i) {

@@ -4,6 +4,8 @@ import static suneido.SuException.verify;
 import static suneido.SuException.verifyEquals;
 import static suneido.database.Index.*;
 
+import com.google.common.base.Objects;
+
 /**
  * Wraps a {@link Btree} to implement database table indexes.
  * Adds transaction stuff.
@@ -307,5 +309,14 @@ public class BtreeIndex {
 			if (r1.getraw(i) != r2.getraw(i))
 				return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+		       .add("tblnum", tblnum)
+		       .add("columns", columns)
+		       .addValue(bt.toString())
+		       .toString();
 	}
 }

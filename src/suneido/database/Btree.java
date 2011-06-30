@@ -13,6 +13,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.SuException;
 import suneido.util.ByteBuf;
 
+import com.google.common.base.Objects;
+
 /**
  * Btree implementation.
  * Uses {@link Slots} to store nodes.
@@ -655,4 +657,13 @@ public class Btree {
 		if (level == 0)
 			{ System.out.println(""); }
 	}
+
+	@Override
+	public String toString() {
+		   return Objects.toStringHelper(this)
+		       .add("levels", treelevels)
+		       .add("nnodes", nnodes)
+		       .toString();
+	}
+
 }
