@@ -405,6 +405,8 @@ public class CompileTest {
 		} catch (SuException e) {
 			assertEquals("syntax error at line 1: invalid use of super", e.toString());
 		}
+
+		test("super.Fn()", "this, self, 'Fn', superInvoke, ARETURN");
 	}
 
 	@Test public void test_compile_builtin_calls() {
