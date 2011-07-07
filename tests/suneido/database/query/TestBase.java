@@ -8,6 +8,7 @@ import suneido.database.server.ServerData;
 import suneido.language.Ops;
 
 public class TestBase {
+	protected final Database db = new Database(new DestMem(), Mode.CREATE);
 	protected final ServerData serverData = new ServerData();
 
 	@Before
@@ -17,13 +18,13 @@ public class TestBase {
 
 	@Before
 	public void create() {
-		TheDb.set(new Database(new DestMem(), Mode.CREATE));
+		TheDb.set(db);
 		makeDB();
 	}
 
 	@After
 	public void close() {
-		TheDb.db().close();
+		db.close();
 	}
 
 	protected void makeDB() {
@@ -107,7 +108,7 @@ public class TestBase {
 	}
 
 	protected int req(String s) {
-		Transaction tran = TheDb.db().readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();
