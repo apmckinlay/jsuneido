@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import suneido.database.TheDb;
+import suneido.database.Database;
 import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
@@ -10,8 +10,8 @@ import suneido.language.ParseExpression;
 public class CompileQuery {
 
 	/** for tests */
-	public static Query query(ServerData serverData, String s) {
-		Transaction tran = TheDb.db().readonlyTran();
+	public static Query query(Database db, ServerData serverData, String s) {
+		Transaction tran = db.readonlyTran();
 		try {
 			return query(tran, serverData, s);
 		} finally {
@@ -29,8 +29,8 @@ public class CompileQuery {
 	}
 
 	/** for tests */
-	public static Query parse(ServerData serverData, String s) {
-		Transaction tran = TheDb.db().readonlyTran();
+	public static Query parse(Database db, ServerData serverData, String s) {
+		Transaction tran = db.readonlyTran();
 		try {
 			return parse(tran, serverData, s);
 		} finally {

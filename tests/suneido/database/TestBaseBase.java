@@ -9,21 +9,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.database.query.*;
-import suneido.database.server.ServerData;
-
 public class TestBaseBase {
-	protected DestMem dest;
-	protected static final ServerData serverData = new ServerData();
-
-	public TestBaseBase() {
-		super();
-	}
-
-	protected void reopen() {
-		TheDb.db().close();
-		TheDb.set(new Database(dest, Mode.OPEN));
-	}
 
 	protected void makeTable() {
 		makeTable(0);
@@ -54,21 +40,6 @@ public class TestBaseBase {
 				t.addRecord(tablename, record(from));
 			t.ck_complete();
 		}
-	}
-
-	protected static Record record(int i) {
-		return new Record().add(i).add("more stuff");
-	}
-
-	protected static Record key(int i) {
-		return new Record().add(i);
-	}
-
-	protected Record record(int... values) {
-		Record r = new Record();
-		for (int i : values)
-			r.add(i);
-		return r;
 	}
 
 	protected List<Record> get() {
@@ -130,16 +101,8 @@ public class TestBaseBase {
 				assertEquals(record(values[i]), recs.get(i));
 		}
 
-	protected int req(String s) {
-		Transaction tran = TheDb.db().readwriteTran();
-		try {
-			Query q = CompileQuery.parse(tran, serverData, s);
-			int n = ((QueryAction) q).execute();
-			tran.ck_complete();
-			return n;
-		} finally {
-			tran.abortIfNotComplete();
-		}
+	protected static Record record(int i) {
+		return new Record().add(i).add("more stuff");
 	}
 
 }
