@@ -125,7 +125,7 @@ public class DbLoad {
 
 		if (!"views".equals(table)) {
 			Schema.removeTable(TheDb.db(), table);
-			Request.execute(schema);
+			Request.execute(TheDb.db(), schema);
 		}
 		return load_data(fin, table);
 	}

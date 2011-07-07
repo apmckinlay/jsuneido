@@ -17,8 +17,8 @@ public class ParseTest extends TestBase {
 		makeTable("test2", "x", "y");
 		makeTable("compat", "a", "b");
 		makeTable("joinable", "x", "y", "a");
-		Request.execute(serverData, "view myview = test project a,b");
-		Request.execute(serverData, "sview myview2 = test extend x=1");
+		Request.execute(TheDb.db(), serverData, "view myview = test project a,b");
+		Request.execute(TheDb.db(), serverData, "sview myview2 = test extend x=1");
 
 		test("test");
 		test("test SORT a,b");

@@ -15,7 +15,7 @@ public class ProjectTest {
 	public void test() {
 		TheDb.set(new Database(new DestMem(), Mode.CREATE));
 		try {
-			Request.execute("create tmp (a,b) key(a)");
+			Request.execute(TheDb.db(), "create tmp (a,b) key(a)");
 			req("insert { a: 1 } into tmp");
 			req("insert { a: 2, b: 1 } into tmp");
 			Transaction t = TheDb.db().readonlyTran();

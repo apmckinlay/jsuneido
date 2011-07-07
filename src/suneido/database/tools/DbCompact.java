@@ -79,7 +79,7 @@ public class DbCompact {
 	}
 
 	private void createTable(String tablename) {
-		Request.execute("create " + tablename
+		Request.execute(TheDb.db(), "create " + tablename
 				+ oldDB.getTable(tablename).schema());
 		verifyEquals(oldDB.getTable(tablename).schema(), TheDb.db().getTable(tablename).schema());
 	}

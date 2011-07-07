@@ -104,7 +104,7 @@ public class TestBase {
 	}
 
 	protected void adm(String s) {
-		Request.execute(s);
+		Request.execute(TheDb.db(), s);
 	}
 
 	protected int req(String s) {
