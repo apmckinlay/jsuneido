@@ -40,29 +40,29 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 		int[] values = new int[n];
 		for (int i = 0; i < n; ++i)
 			values[i] = i;
-		TheDb.open(filename, Mode.OPEN);
+		db = new Database(filename, Mode.OPEN);
 		try {
 			check("mytable", values);
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			TableData td = t.getTableData(t.getTable("mytable").num);
 			assertEquals(2, td.nextfield);
 			t.ck_complete();
 		} finally {
-			TheDb.close();
+			db.close();
 		}
 	}
 
 	protected void checkNoTable() {
-		TheDb.open(filename, Mode.OPEN);
+		db = new Database(filename, Mode.OPEN);
 		try {
 			checkNoTable("mytable");
 		} finally {
-			TheDb.close();
+			db.close();
 		}
 	}
 
 	protected void checkNoTable(String tablename) {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		assertNull(t.getTable(tablename));
 		t.ck_complete();
 	}

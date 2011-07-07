@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.database.*;
 import suneido.database.TestBase;
+import suneido.database.Transaction;
 
 //TODO parse object constants
 
@@ -17,8 +17,8 @@ public class ParseTest extends TestBase {
 		makeTable("test2", "x", "y");
 		makeTable("compat", "a", "b");
 		makeTable("joinable", "x", "y", "a");
-		Request.execute(TheDb.db(), serverData, "view myview = test project a,b");
-		Request.execute(TheDb.db(), serverData, "sview myview2 = test extend x=1");
+		Request.execute(db, serverData, "view myview = test project a,b");
+		Request.execute(db, serverData, "sview myview2 = test extend x=1");
 
 		test("test");
 		test("test SORT a,b");
@@ -74,7 +74,7 @@ public class ParseTest extends TestBase {
 		test(s, s);
 	}
 	private void test(String s, String expect) {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		try {
 			assertEquals(s, expect,
 					CompileQuery.parse(t, serverData, s).toString());
@@ -84,10 +84,10 @@ public class ParseTest extends TestBase {
 	}
 
 	private void makeTable(String tablename, String... columns) {
-		TheDb.db().addTable(tablename);
+		db.addTable(tablename);
 		for (String column : columns)
-			TheDb.db().addColumn(tablename, column);
-		TheDb.db().addIndex(tablename, columns[0], true);
+			db.addColumn(tablename, column);
+		db.addIndex(tablename, columns[0], true);
 	}
 
 	@Test(expected = SuException.class)

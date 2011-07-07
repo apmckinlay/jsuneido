@@ -35,28 +35,28 @@ public class DbLoad {
 			throws Throwable {
 		int n = 0;
 		File dbfile = new File(dbfilename);
+		Database db = new Database(dbfile, Mode.CREATE);
 		try {
-			TheDb.set(new Database(dbfile, Mode.CREATE));
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(filename));
 			try {
 				verifyFileHeader(fin);
 				String schema;
 				try {
-					TheDb.db().setLoading(true);
+					db.setLoading(true);
 					while (null != (schema = readTableHeader(fin))) {
 						schema = "create" + schema.substring(6);
-						load1(fin, schema);
+						load1(db, fin, schema);
 						++n;
 					}
 				} finally {
-					TheDb.db().setLoading(false);
+					db.setLoading(false);
 				}
 			} finally {
 				fin.close();
 			}
 		} finally {
-			TheDb.db().close();
+			db.close();
 		}
 		return n;
 	}
@@ -79,7 +79,7 @@ public class DbLoad {
 			tablename = tablename.substring(0, tablename.length() - 3);
 		File dbfile = new File("suneido.db");
 		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
-		TheDb.set(new Database(dbfile, mode));
+		Database db = new Database(dbfile, mode);
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(tablename + ".su"));
@@ -90,16 +90,16 @@ public class DbLoad {
 					throw new SuException("not a valid dump file");
 				schema = "create " + tablename + schema.substring(6);
 				try {
-					TheDb.db().setLoading(true);
-					return load1(fin, schema);
+					db.setLoading(true);
+					return load1(db, fin, schema);
 				} finally {
-					TheDb.db().setLoading(false);
+					db.setLoading(false);
 				}
 			} finally {
 				fin.close();
 			}
 		} finally {
-			TheDb.db().close();
+			db.close();
 		}
 	}
 
@@ -119,23 +119,23 @@ public class DbLoad {
 		return schema;
 	}
 
-	private static int load1(InputStream fin, String schema) throws IOException {
+	private static int load1(Database db, InputStream fin, String schema) throws IOException {
 		int n = schema.indexOf(' ', 7);
 		String table = schema.substring(7, n);
 
 		if (!"views".equals(table)) {
-			Schema.removeTable(TheDb.db(), table);
-			Request.execute(TheDb.db(), schema);
+			Schema.removeTable(db, table);
+			Request.execute(db, schema);
 		}
-		return load_data(fin, table);
+		return load_data(db, fin, table);
 	}
 
-	private static int load_data(InputStream fin, String tablename) throws IOException {
+	private static int load_data(Database db, InputStream fin, String tablename) throws IOException {
 		int nrecs = 0;
 		byte[] buf = new byte[4];
 		ByteBuffer bb = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN);
 		byte[] recbuf = new byte[4096];
-		Transaction tran = TheDb.db().readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
 			for (;; ++nrecs) {
 				verify(fin.read(buf) == buf.length);
@@ -147,7 +147,7 @@ public class DbLoad {
 				load_data_record(fin, tablename, tran, recbuf, n);
 				if (nrecs % 100 == 99) {
 					verify(tran.complete() == null);
-					tran = TheDb.db().readwriteTran();
+					tran = db.readwriteTran();
 				}
 			}
 		} finally {

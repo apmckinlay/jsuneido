@@ -16,6 +16,7 @@ public class DbCompact {
 	private final String dbfilename;
 	private final String tempfilename;
 	private Database oldDB;
+	private Database newDB;
 	private Transaction rt;
 
 	public static void compactPrint(String dbfilename)
@@ -50,18 +51,18 @@ public class DbCompact {
 	private int compact() {
 		File tempfile = new File(tempfilename);
 		oldDB = new Database(dbfilename, Mode.READ_ONLY);
-		TheDb.set(new Database(tempfile, Mode.CREATE));
+		newDB = new Database(tempfile, Mode.CREATE);
 
 		int n = copy();
 
 		oldDB.close();
-		TheDb.db().close();
+		newDB.close();
 		return n;
 	}
 
 	private int copy() {
 		rt = oldDB.readonlyTran();
-		TheDb.db().loading = true;
+		newDB.loading = true;
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}
@@ -79,9 +80,9 @@ public class DbCompact {
 	}
 
 	private void createTable(String tablename) {
-		Request.execute(TheDb.db(), "create " + tablename
+		Request.execute(newDB, "create " + tablename
 				+ oldDB.getTable(tablename).schema());
-		verifyEquals(oldDB.getTable(tablename).schema(), TheDb.db().getTable(tablename).schema());
+		verifyEquals(oldDB.getTable(tablename).schema(), newDB.getTable(tablename).schema());
 	}
 
 	private int copyData() {
@@ -109,7 +110,7 @@ public class DbCompact {
 		int i = 0;
 		long first = 0;
 		long last = 0;
-		Transaction wt = TheDb.db().readwriteTran();
+		Transaction wt = newDB.readwriteTran();
 		int tblnum = wt.ck_getTable(tablename).num;
 		for (; !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
@@ -120,7 +121,7 @@ public class DbCompact {
 				first = last;
 			if (++i % 100 == 0) {
 				wt.ck_complete();
-				wt = TheDb.db().readwriteTran();
+				wt = newDB.readwriteTran();
 			}
 		}
 		if (first != 0)
@@ -138,7 +139,7 @@ public class DbCompact {
 					continue;
 				ByteBuf buf = iter.current();
 				Record rec = new Record(buf.slice(4), iter.offset() + 4);
-				TheDb.db().addIndexEntriesForCompact(table, index, rec);
+				newDB.addIndexEntriesForCompact(table, index, rec);
 				if (iter.offset() >= last)
 					break;
 			} while (iter.next());

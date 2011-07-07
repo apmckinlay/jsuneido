@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestBaseBase {
+	protected final DestMem dest = new DestMem();
+	protected Database db = new Database(dest, Mode.CREATE);
 
 	protected void makeTable() {
 		makeTable(0);
@@ -24,18 +26,18 @@ public class TestBaseBase {
 	}
 
 	protected void makeTable(String tablename, int nrecords) {
-		TheDb.db().addTable(tablename);
-		TheDb.db().addColumn(tablename, "a");
-		TheDb.db().addColumn(tablename, "b");
-		TheDb.db().addIndex(tablename, "a", true);
-		TheDb.db().addIndex(tablename, "b,a", false);
+		db.addTable(tablename);
+		db.addColumn(tablename, "a");
+		db.addColumn(tablename, "b");
+		db.addIndex(tablename, "a", true);
+		db.addIndex(tablename, "b,a", false);
 
 		addRecords(tablename, 0, nrecords - 1);
 	}
 
 	protected void addRecords(String tablename, int from, int to) {
 		while (from <= to) {
-			Transaction t = TheDb.db().readwriteTran();
+			Transaction t = db.readwriteTran();
 			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
 				t.addRecord(tablename, record(from));
 			t.ck_complete();
@@ -47,7 +49,7 @@ public class TestBaseBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction tran = TheDb.db().readonlyTran();
+		Transaction tran = db.readonlyTran();
 		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
@@ -64,7 +66,7 @@ public class TestBaseBase {
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
 		for (; !iter.eof(); iter.next())
-			recs.add(TheDb.db().input(iter.keyadr()));
+			recs.add(db.input(iter.keyadr()));
 		return recs;
 	}
 
@@ -73,7 +75,7 @@ public class TestBaseBase {
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).next();
-		return iter.eof() ? null : TheDb.db().input(iter.keyadr());
+		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
 	protected Record getLast(String tablename, Transaction tran) {
@@ -81,7 +83,7 @@ public class TestBaseBase {
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(tran).prev();
-		return iter.eof() ? null : TheDb.db().input(iter.keyadr());
+		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
 	protected void check(int... values) {
@@ -89,7 +91,7 @@ public class TestBaseBase {
 	}
 
 	protected void check(String filename, int... values) {
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			check(t, filename, values);
 			t.ck_complete();
 		}
