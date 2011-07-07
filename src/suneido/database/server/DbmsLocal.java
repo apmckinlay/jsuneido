@@ -7,8 +7,7 @@ package suneido.database.server;
 import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuContainer;
 import suneido.database.TheDb;
@@ -79,7 +78,9 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		return Library.libget(name);
+		if (! TheDb.isOpen())
+			return Collections.emptyList();
+		return Library.libget(TheDb.db(), name);
 	}
 
 	@Override
