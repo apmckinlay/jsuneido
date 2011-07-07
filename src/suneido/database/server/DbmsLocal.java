@@ -25,7 +25,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void admin(String s) {
-		Request.execute(ServerData.forThread(), s);
+		Request.execute(TheDb.db(), ServerData.forThread(), s);
 	}
 
 	@Override

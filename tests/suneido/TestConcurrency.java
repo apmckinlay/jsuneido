@@ -127,7 +127,7 @@ public class TestConcurrency {
 		}
 		BigTable(String tablename) {
 			this.tablename = tablename;
-			Request.execute("create " + tablename
+			Request.execute(TheDb.db(), "create " + tablename
 					+ " (a,b,c,d,e,f,g) key(a) index(b,c)");
 			for (int i = 0; i < N / 100; ++i) {
 				Transaction t = TheDb.db().readwriteTran();
@@ -340,7 +340,7 @@ public class TestConcurrency {
 		AtomicInteger nfailed = new AtomicInteger();
 		public NextNum(String tablename) {
 			this.tablename = tablename;
-			Request.execute("create " + tablename + " (num) key()");
+			Request.execute(TheDb.db(), "create " + tablename + " (num) key()");
 			Transaction t = TheDb.db().readwriteTran();
 			t.addRecord(tablename, rec(1));
 			t.ck_complete();

@@ -28,7 +28,7 @@ public class UpdateTest extends TestBase {
 
 	@Test
 	public void test2() {
-		Request.execute("create lib " +
+		Request.execute(TheDb.db(), "create lib " +
 				"(group, lib_committed, lib_modified, name, num, parent, text) " +
 				"key (name,group) " +
 				"key (num) " +
