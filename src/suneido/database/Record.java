@@ -659,9 +659,9 @@ public class Record
 		return dboffset == 0 ? buf : dboffset;
 	}
 
-	public static Record fromRef(Object ref) {
+	public static Record fromRef(Database db, Object ref) {
 		return ref instanceof Long
-				? TheDb.db().input((Long) ref)
+				? db.input((Long) ref)
 				: new Record((ByteBuf) ref);
 	}
 }

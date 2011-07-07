@@ -11,16 +11,18 @@ import suneido.database.*;
 import suneido.language.Pack;
 
 class CheckTable implements Callable<String> {
-	String tablename;
-	String details = "";
+	private final Database db;
+	private final String tablename;
+	private String details = "";
 
-	CheckTable(String tablename) {
+	CheckTable(Database db, String tablename) {
+		this.db = db;
 		this.tablename = tablename;
 	}
 
 	@Override
 	public String call() {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		try {
 			checkTable(t, tablename);
 			return details;
@@ -49,7 +51,7 @@ class CheckTable implements Callable<String> {
 						return false;
 					}
 				prevkey = strippedKey;
-				Record rec = TheDb.db().input(iter.keyadr());
+				Record rec = db.input(iter.keyadr());
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;

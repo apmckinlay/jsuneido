@@ -5,20 +5,12 @@
 package suneido.database;
 
 import org.junit.After;
-import org.junit.Before;
 
 import suneido.database.query.*;
 import suneido.database.server.ServerData;
 
 public class TestBase extends TestBaseBase {
-	private final DestMem dest = new DestMem();
-	protected Database db = new Database(dest, Mode.CREATE);
 	protected static final ServerData serverData = new ServerData();
-
-	@Before
-	public void create() {
-		TheDb.set(db);
-	}
 
 	@After
 	public void close() {
@@ -28,7 +20,6 @@ public class TestBase extends TestBaseBase {
 	protected void reopen() {
 		db.close();
 		db = new Database(dest, Mode.OPEN);
-		TheDb.set(db);
 	}
 
 	protected static Record key(int i) {

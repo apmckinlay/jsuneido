@@ -21,27 +21,26 @@ public class DbDump {
 	}
 
 	public static int dumpDatabase(String db_filename, String output_filename) {
-		TheDb.set(new Database(db_filename, Mode.READ_ONLY));
+		Database db = new Database(db_filename, Mode.READ_ONLY);
 		try {
-			return dumpDatabase(output_filename);
+			return dumpDatabase(db, output_filename);
 		} finally {
-			TheDb.db().close();
-			TheDb.set(null);
+			db.close();
 		}
 	}
 
-	public static int dumpDatabase(String output_filename) {
+	public static int dumpDatabase(Database db, String output_filename) {
 		try {
-			return dumpDatabaseImp(output_filename);
+			return dumpDatabaseImp(db, output_filename);
 		} catch (Throwable e) {
 			throw new SuException("dump " + output_filename + " failed", e);
 		}
 	}
 
-	private static int dumpDatabaseImp(String filename) throws Throwable {
+	private static int dumpDatabaseImp(Database db, String filename) throws Throwable {
 		FileChannel fout = new FileOutputStream(filename).getChannel();
 		try {
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			try {
 				writeFileHeader(fout);
 				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
@@ -65,23 +64,28 @@ public class DbDump {
 		}
 	}
 
-	public static void dumpTablePrint(String tablename) {
-		int n = dumpTable(tablename);
-		System.out.println("dumped " + n + " records from " + tablename);
+	public static void dumpTablePrint(String db_filename, String tablename) {
+		Database db = new Database(db_filename, Mode.READ_ONLY);
+		try {
+			int n = dumpTable(db, tablename);
+			System.out.println("dumped " + n + " records from " + tablename);
+		} finally {
+			db.close();
+		}
 	}
 
-	public static int dumpTable(String tablename) {
+	public static int dumpTable(Database db, String tablename) {
 		try {
-			return dumpTableImp(tablename);
+			return dumpTableImp(db, tablename);
 		} catch (Throwable e) {
 			throw new SuException("dump " + tablename + " failed", e);
 		}
 	}
 
-	private static int dumpTableImp(String tablename) throws Throwable {
+	private static int dumpTableImp(Database db, String tablename) throws Throwable {
 		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			try {
 				writeFileHeader(fout);
 				return dump1(fout, t, tablename, false);

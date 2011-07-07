@@ -18,7 +18,7 @@ public class TestBase {
 
 	@Before
 	public void create() {
-		TheDb.set(db);
+//		TheDb.set(db);
 		makeDB();
 	}
 
@@ -104,7 +104,7 @@ public class TestBase {
 	}
 
 	protected void adm(String s) {
-		Request.execute(TheDb.db(), s);
+		Request.execute(db, s);
 	}
 
 	protected int req(String s) {

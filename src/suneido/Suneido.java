@@ -84,7 +84,7 @@ public class Suneido {
 			if (cmdlineoptions.actionArg == null)
 				DbDump.dumpDatabasePrint("suneido.db", "database.su");
 			else
-				DbDump.dumpTablePrint(cmdlineoptions.actionArg);
+				DbDump.dumpTablePrint("suneido.db", cmdlineoptions.actionArg);
 			break;
 		case LOAD:
 			if (cmdlineoptions.actionArg != null)

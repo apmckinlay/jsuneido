@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.TheDb;
 import suneido.database.Transaction;
 import suneido.language.Ops;
 
@@ -18,7 +17,7 @@ public class ExecuteTest extends TestBase {
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
 			//System.out.println(q);
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			try {
 				Query q = CompileQuery.query(t, serverData, c[0]);
 				assertEquals(c[0], c[1], execute(q));

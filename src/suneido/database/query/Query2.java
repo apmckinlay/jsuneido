@@ -19,9 +19,9 @@ public abstract class Query2 extends Query1 {
 	}
 
 	@Override
-	Query addindex() {
-		source2 = source2.addindex();
-		return super.addindex();
+	Query addindex(Transaction t) {
+		source2 = source2.addindex(t);
+		return super.addindex(t);
 	}
 
 	@Override

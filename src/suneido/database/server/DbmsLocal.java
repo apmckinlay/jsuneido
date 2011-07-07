@@ -61,9 +61,9 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			DbDump.dumpDatabase("database.su");
+			DbDump.dumpDatabase(TheDb.db(), "database.su");
 		else
-			DbDump.dumpTable(filename);
+			DbDump.dumpTable(TheDb.db(), filename);
 	}
 
 	@Override

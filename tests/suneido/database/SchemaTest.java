@@ -15,14 +15,14 @@ public class SchemaTest extends TestBase {
 		final int N = 200;
 		makeTable(N);
 		String COLS = "a,b";
-		TheDb.db().addIndex("test", COLS, false);
+		db.addIndex("test", COLS, false);
 		check(N, COLS);
 		reopen();
 		check(N, COLS);
 	}
 
 	private void check(final int N, String COLS) {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		Table tbl = t.getTable("test");
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, COLS);

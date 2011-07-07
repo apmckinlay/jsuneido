@@ -9,16 +9,17 @@ import suneido.database.*;
 import suneido.database.server.ServerData;
 
 public class ProjectTest {
-	protected final ServerData serverData = new ServerData();
+	private final ServerData serverData = new ServerData();
+	private final Database db = new Database(new DestMem(), Mode.CREATE);
 
 	@Test
 	public void test() {
-		TheDb.set(new Database(new DestMem(), Mode.CREATE));
+//		TheDb.set(db);
 		try {
-			Request.execute(TheDb.db(), "create tmp (a,b) key(a)");
+			Request.execute(db, "create tmp (a,b) key(a)");
 			req("insert { a: 1 } into tmp");
 			req("insert { a: 2, b: 1 } into tmp");
-			Transaction t = TheDb.db().readonlyTran();
+			Transaction t = db.readonlyTran();
 			try {
 				Query q = CompileQuery.query(t, serverData, "tmp project b");
 				Record r;
@@ -32,12 +33,12 @@ public class ProjectTest {
 				t.abortIfNotComplete();
 			}
 		} finally {
-			TheDb.db().close();
+			db.close();
 		}
 	}
 
 	protected int req(String s) {
-		Transaction tran = TheDb.db().readwriteTran();
+		Transaction tran = db.readwriteTran();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

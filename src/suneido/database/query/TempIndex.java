@@ -9,20 +9,29 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Record;
+import suneido.database.Transaction;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;
 	private final boolean unique;
+	private Transaction tran;
 	private boolean first = true;
 	private boolean rewound = true;
 	private TreeMap<Record, Object[]> map = null;
 	private Map.Entry<Record, Object[]> cur;
 	private final Keyrange sel = new Keyrange();
 
-	public TempIndex(Query source, List<String> order, boolean unique) {
+	public TempIndex(Query source, Transaction tran, List<String> order, boolean unique) {
 		super(source);
+		this.tran = tran;
 		this.order = order;
 		this.unique = unique;
+	}
+
+	@Override
+	public void setTransaction(Transaction tran) {
+		this.tran = tran;
+		super.setTransaction(tran);
 	}
 
 	@Override
@@ -61,7 +70,7 @@ public class TempIndex extends Query1 {
 			}
 
 		// TODO put iter->key into row
-		return Row.fromRefs(cur.getValue());
+		return Row.fromRefs(tran.db, cur.getValue());
 	}
 
 	private void iterate_setup(Dir dir) {

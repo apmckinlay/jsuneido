@@ -4,26 +4,25 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.database.Database;
 import suneido.database.Mode;
-import suneido.database.TheDb;
 import suneido.database.tools.DbCheck.Status;
 
 public class DbCheckTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void test_empty() {
-		TheDb.open(filename, Mode.CREATE);
-		TheDb.close();
+		new Database(filename, Mode.CREATE).close();
 		dbcheck();
 	}
 
 	@Test
 	public void test_simple() {
-		TheDb.open(filename, Mode.CREATE);
+		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
 		} finally {
-			TheDb.close();
+			db.close();
 		}
 		dbcheck();
 		checkTable();
@@ -31,15 +30,15 @@ public class DbCheckTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void test_rename_table() {
-		TheDb.open(filename, Mode.CREATE);
+		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("tmp", 4);
-			TheDb.db().removeTable("tmp"); // so new theDB() has different offsets
+			db.removeTable("tmp"); // so new theDB() has different offsets
 			makeTable("mytable_before", 4);
-			TheDb.db().renameTable("mytable_before", "mytable");
+			db.renameTable("mytable_before", "mytable");
 			addRecords("mytable", 4, 7);
 		} finally {
-			TheDb.close();
+			db.close();
 		}
 		dbcheck();
 		checkTable(8);

@@ -21,11 +21,11 @@ public class CompileQuery {
 
 	public static Query query(Transaction t, ServerData serverData, String s,
 			boolean is_cursor) {
-		return parse(t, serverData, s).setup(is_cursor);
+		return parse(t, serverData, s).setup(is_cursor, t);
 	}
 
 	public static Query query(Transaction t, ServerData serverData, String s) {
-		return parse(t, serverData, s).setup();
+		return parse(t, serverData, s).setup(t);
 	}
 
 	/** for tests */
