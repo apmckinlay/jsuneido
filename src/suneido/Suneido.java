@@ -9,8 +9,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 
+import suneido.database.TheDb;
 import suneido.database.server.DbmsServer;
 import suneido.database.tools.*;
+import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
@@ -71,8 +73,7 @@ public class Suneido {
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			Print.timestamped("starting server");
-			HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
-			DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+			startServer();
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
@@ -125,6 +126,27 @@ public class Suneido {
 		default:
 			throw SuException.unreachable();
 		}
+	}
+
+	private static void startServer() {
+		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
+		TheDb.open();
+		try {
+			Compiler.eval("JInit()");
+		} catch (Throwable e) {
+			fatal("error during init", e);
+		}
+		scheduleAtFixedRate(new Runnable() {
+			public void run() {
+				TheDb.db().limitOutstandingTransactions();
+			}
+		}, 1, TimeUnit.SECONDS);
+		scheduleAtFixedRate(new Runnable() {
+			public void run() {
+				TheDb.db().dest.force();
+			}
+		}, 1, TimeUnit.MINUTES);
+		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
 	private static void printHelp() {
