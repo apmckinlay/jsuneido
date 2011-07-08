@@ -29,7 +29,8 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		return new DbmsTranLocal(readwrite);
+		Transaction t = readwrite ? TheDb.db().readwriteTran() : TheDb.db().readonlyTran();
+		return new DbmsTranLocal(t);
 	}
 
 	@Override

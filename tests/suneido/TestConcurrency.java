@@ -72,7 +72,6 @@ public class TestConcurrency {
 		}
 
 		db.close();
-		TheDb.set(null);
 		verifyEquals(Status.OK, DbCheck.check("concur.db"));
 
 		System.out.println("finished " + nreps + " reps with " + NTHREADS
