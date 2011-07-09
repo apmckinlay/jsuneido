@@ -9,7 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 
-import suneido.database.TheDb;
+import suneido.database.Database;
+import suneido.database.Mode;
 import suneido.database.server.DbmsServer;
 import suneido.database.tools.*;
 import suneido.language.Compiler;
@@ -130,7 +131,7 @@ public class Suneido {
 
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
-		TheDb.open();
+		openDbms();
 		try {
 			Compiler.eval("JInit()");
 		} catch (Throwable e) {
@@ -138,15 +139,28 @@ public class Suneido {
 		}
 		scheduleAtFixedRate(new Runnable() {
 			public void run() {
-				TheDb.db().limitOutstandingTransactions();
+				db.limitOutstandingTransactions();
 			}
 		}, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(new Runnable() {
 			public void run() {
-				TheDb.db().dest.force();
+				db.dest.force();
 			}
 		}, 1, TimeUnit.MINUTES);
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+	}
+
+	private static Database db;
+
+	public static void openDbms() {
+		db = new Database("suneido.db", Mode.OPEN);
+		TheDbms.set(db);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				db.close();
+			}
+		});
 	}
 
 	private static void printHelp() {

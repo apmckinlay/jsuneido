@@ -12,8 +12,7 @@ import suneido.database.server.Dbms.HeaderAndRow;
 public class DbmsLocalTest {
 	@Test
 	public void test() {
-		TheDb.set(new Database(new DestMem(), Mode.CREATE));
-		Dbms dbms = new DbmsLocal();
+		Dbms dbms = new DbmsLocal(new Database(new DestMem(), Mode.CREATE));
 
 		dbms.admin("create test (a, b, c) key(a)");
 

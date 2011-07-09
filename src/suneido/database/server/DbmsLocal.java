@@ -7,10 +7,11 @@ package suneido.database.server;
 import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.TheDb;
+import suneido.database.Database;
 import suneido.database.Transaction;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Request;
@@ -21,21 +22,30 @@ import suneido.language.builtin.ServerEval;
 
 /** Connects Suneido to a local database. */
 public class DbmsLocal extends Dbms {
+	private final Database db;
+
+	public DbmsLocal(Database db) {
+		this.db = db;
+	}
+
+	private Database db() {
+		return db;
+	}
 
 	@Override
 	public void admin(String s) {
-		Request.execute(TheDb.db(), ServerData.forThread(), s);
+		Request.execute(db(), ServerData.forThread(), s);
 	}
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		Transaction t = readwrite ? TheDb.db().readwriteTran() : TheDb.db().readonlyTran();
+		Transaction t = readwrite ? db().readwriteTran() : db().readonlyTran();
 		return new DbmsTranLocal(t);
 	}
 
 	@Override
 	public DbmsQuery cursor(String s) {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db().readonlyTran();
 		try {
 			return new DbmsQueryLocal(
 					CompileQuery.query(t, ServerData.forThread(), s, true));
@@ -62,14 +72,14 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			DbDump.dumpDatabase(TheDb.db(), "database.su");
+			DbDump.dumpDatabase(db(), "database.su");
 		else
-			DbDump.dumpTable(TheDb.db(), filename);
+			DbDump.dumpTable(db(), filename);
 	}
 
 	@Override
 	public int finalSize() {
-		return TheDb.db().finalSize();
+		return db().finalSize();
 	}
 
 	@Override
@@ -79,9 +89,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		if (! TheDb.isOpen())
-			return Collections.emptyList();
-		return Library.libget(TheDb.db(), name);
+		return Library.libget(db(), name);
 	}
 
 	@Override
@@ -104,7 +112,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public long size() {
-		return TheDb.db().size();
+		return db().size();
 	}
 
 	@Override
@@ -114,7 +122,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<Integer> tranlist() {
-		return TheDb.db().tranlist();
+		return db().tranlist();
 	}
 
 	@Override

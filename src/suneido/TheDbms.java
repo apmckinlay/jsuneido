@@ -2,12 +2,13 @@ package suneido;
 
 import java.util.*;
 
+import suneido.database.Database;
 import suneido.database.server.*;
 
 public class TheDbms {
 	private static String ip = null;
 	private static int port;
-	private static Dbms theDbms;
+	private static DbmsLocal theDbms;
 	private static ThreadLocal<DbmsRemote> remoteDbms =
 		new ThreadLocal<DbmsRemote>() {
 			@Override
@@ -26,17 +27,20 @@ public class TheDbms {
 	private static List<DbmsRemote> dbmsRemotes = new ArrayList<DbmsRemote>();
 
 	public static Dbms dbms() {
-		if (ip == null) {
-			if (theDbms == null)
-				theDbms = new DbmsLocal();
-			return theDbms;
-		} else
-		return remoteDbms.get();
+		return (ip == null) ? theDbms : remoteDbms.get();
 	}
 
 	public static void remote(String ip, int port) {
 		TheDbms.ip = ip;
 		TheDbms.port = port;
+	}
+
+	public static void set(Database db) {
+		theDbms = new DbmsLocal(db);
+	}
+
+	public static boolean isOpen() {
+		return theDbms != null;
 	}
 
 	/**

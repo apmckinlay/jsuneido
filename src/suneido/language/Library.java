@@ -20,7 +20,7 @@ public class Library {
 
 	public static Object load(String name) {
 		//System.out.println("LOAD " + name);
-		return load2(name, TheDbms.dbms().libget(name));
+		return TheDbms.isOpen() ? load2(name, TheDbms.dbms().libget(name)) : null;
 	}
 	synchronized private static Object load2(String name, List<LibGet> libgets) {
 		Object result = null;
