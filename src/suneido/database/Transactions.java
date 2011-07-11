@@ -22,27 +22,27 @@ import suneido.util.Print;
 // NOTE: don't call any synchronized Transaction methods while synchronized
 // because this can lead to deadlock.
 @ThreadSafe
-public class Transactions {
-	public final Database db;
+class Transactions {
+	private final Database db;
 	private final AtomicLong clock = new AtomicLong();
 	private final AtomicInteger nextNum = new AtomicInteger();
 	private final Locks locks = new Locks();
 	private final PriorityQueue<Transaction> trans = new PriorityQueue<Transaction>();
 	private final PriorityQueue<Transaction> finals = new PriorityQueue<Transaction>();
-	static final long FUTURE = Long.MAX_VALUE;
+	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
-	public static int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
-	public static int MAX_FINALS_SIZE = 200;
+	static int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
+	static int MAX_FINALS_SIZE = 200;
 
 	Transactions(Database db) {
 		this.db = db;
 	}
 
-	public long clock() {
+	long clock() {
 		return clock.incrementAndGet();
 	}
 
-	public int nextNum(boolean readonly) {
+	int nextNum(boolean readonly) {
 		int n;
 		do // loop needed for concurrency
 			n = nextNum.incrementAndGet();
@@ -52,17 +52,17 @@ public class Transactions {
 	}
 
 	// used by tests
-	public void checkTransEmpty() {
+	void checkTransEmpty() {
 		assert trans.isEmpty();
 		assert finals.isEmpty();
 		locks.checkEmpty();
 	}
 
-	synchronized public void add(Transaction tran) {
+	synchronized void add(Transaction tran) {
 		trans.add(tran);
 	}
 
-	synchronized public void addFinal(Transaction tran) {
+	synchronized void addFinal(Transaction tran) {
 		assert tran.isReadWrite();
 		finals.add(tran);
 	}
@@ -71,7 +71,7 @@ public class Transactions {
 	 * Remove transaction from outstanding.
 	 * Called by {@link SuTransaction.complete} and {@link SuTransaction.abort}.
 	 */
-	synchronized public void remove(Transaction tran) {
+	synchronized void remove(Transaction tran) {
 		verify(trans.remove(tran));
 		if (tran.isReadWrite() && tran.isCommitted())
 			locks.commit(tran);
@@ -100,7 +100,7 @@ public class Transactions {
 	}
 
 	// should be called periodically
-	public void limitOutstanding() {
+	void limitOutstanding() {
 		limitFinalsSize();
 		abortStaleTrans();
 	}
@@ -154,26 +154,26 @@ public class Transactions {
 				copy = t.shadow(db.dest, offset, copy);
 	}
 
-	public synchronized Transaction readLock(Transaction tran, long offset) {
+	synchronized Transaction readLock(Transaction tran, long offset) {
 		return locks.addRead(tran, offset);
 	}
 
-	public synchronized Set<Transaction> writeLock(Transaction tran, long offset) {
+	synchronized Set<Transaction> writeLock(Transaction tran, long offset) {
 		return locks.addWrite(tran, offset);
 	}
 
-	public synchronized Set<Transaction> writes(long offset) {
+	synchronized Set<Transaction> writes(long offset) {
 		return locks.writes(offset);
 	}
 
-	public synchronized List<Integer> tranlist() {
+	synchronized List<Integer> tranlist() {
 		List<Integer> list = new ArrayList<Integer>(trans.size());
 		for (Transaction t : trans)
 			list.add(t.num);
 		return list;
 	}
 
-	public int finalSize() {
+	int finalSize() {
 		return finals.size();
 	}
 

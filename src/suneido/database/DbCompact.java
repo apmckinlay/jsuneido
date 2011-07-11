@@ -1,4 +1,4 @@
-package suneido.database.tools;
+package suneido.database;
 
 import static suneido.SuException.verifyEquals;
 
@@ -7,8 +7,8 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.database.*;
+import suneido.database.DbCheck.Status;
 import suneido.database.query.Request;
-import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
 
@@ -62,7 +62,7 @@ public class DbCompact {
 
 	private int copy() {
 		rt = oldDB.readonlyTran();
-		newDB.loading = true;
+		newDB.setLoading(true);
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}
@@ -104,7 +104,7 @@ public class DbCompact {
 		Table table = rt.ck_getTable(tablename);
 		List<String> fields = table.getFields();
 		boolean squeeze = DbDump.needToSqueeze(fields);
-		Index index = table.indexes.first();
+		Index index = table.firstIndex();
 		BtreeIndex bti = rt.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(rt).next();
 		int i = 0;

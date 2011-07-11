@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -7,16 +11,16 @@ import java.util.Date;
 
 import suneido.util.ByteBuf;
 
-public class Session {
-	public final static int SIZE = 1 + 8;
-	public final static byte STARTUP = 0;
-	public final static byte SHUTDOWN = 1;
+class Session {
+	static final int SIZE = 1 + 8;
+	static final byte STARTUP = 0;
+	static final byte SHUTDOWN = 1;
 
-	public static void startup(Destination mmf) {
+	static void startup(Destination mmf) {
 		output(mmf, STARTUP);
 	}
 
-	public static void shutdown(Destination mmf) {
+	static void shutdown(Destination mmf) {
 		output(mmf, SHUTDOWN);
 		verify(check_shutdown(mmf));
 	}
@@ -27,21 +31,21 @@ public class Session {
 		buf.putLong(1, new Date().getTime());
 	}
 
-	public static boolean check_shutdown(Destination mmf) {
+	static boolean check_shutdown(Destination mmf) {
 		return mmf.checkEnd(Mmfile.SESSION, Session.SHUTDOWN);
 	}
 
 	private final ByteBuf buf;
 
-	public Session(ByteBuf buf) {
+	Session(ByteBuf buf) {
 		this.buf = buf;
 	}
 
-	public long getType() {
+	long getType() {
 		return buf.get(0);
 	}
 
-	public long getDate() {
+	long getDate() {
 		return buf.getLong(1);
 	}
 

@@ -15,7 +15,6 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.database.tools.DbRebuild;
 import suneido.util.*;
 
 import com.google.common.collect.ImmutableList;
@@ -29,25 +28,25 @@ import com.google.common.collect.ImmutableList;
 public class Database {
 	private final File file;
 	private final Mode mode;
-	public Destination dest; // used by tests
+	public Destination dest; // used by tests and History
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
-	public boolean loading = false;
+	private boolean loading = false;
 	private byte output_type = Mmfile.DATA;
 	private volatile Tables tables = new Tables(); // depends on Tables being immutable
 	private volatile PersistentMap<Integer, TableData> tabledata = null;
 	private volatile PersistentMap<String, BtreeIndex> btreeIndexes =
 			PersistentMap.empty();
 	private final Transactions trans = new Transactions(this);
-	public final Object commitLock = new Object();
-	public static class TN {
-		public final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
+	final Object commitLock = new Object();
+	static class TN {
+		public static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
 	private static class V {
 		@SuppressWarnings("unused")
-		final static int NAME = 0, DEFINITION = 1;
+		static final int NAME = 0, DEFINITION = 1;
 	}
-	private final static int VERSION = 1;
+	private static final int VERSION = 1;
 
 	public Database(String filename, Mode mode) {
 		this(new File(filename), mode);
@@ -60,6 +59,7 @@ public class Database {
 		init(mode);
 	}
 
+	// for tests
 	public Database(Destination dest, Mode mode) {
 		this.file = null;
 		this.mode = mode;
@@ -279,7 +279,7 @@ public class Database {
 		return slot == null ? null : input(slot.keyadr());
 	}
 
-	public Record getTableRecord(Transaction tran, int tblnum) {
+	Record getTableRecord(Transaction tran, int tblnum) {
 		BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 		return find(tran, tablenum_index, key(tblnum));
 	}
@@ -292,16 +292,16 @@ public class Database {
 
 	public Transaction readonlyTran() {
 		synchronized(commitLock) {
-			return new Transaction(trans, true, tables, tabledata, btreeIndexes);
+			return new Transaction(this, trans, true, tables, tabledata, btreeIndexes);
 		}
 	}
 	public Transaction readwriteTran() {
 		synchronized(commitLock) {
-			return new Transaction(trans, false, tables, tabledata, btreeIndexes);
+			return new Transaction(this, trans, false, tables, tabledata, btreeIndexes);
 		}
 	}
 
-	public Table loadTable(Transaction tran, Record table_rec,
+	Table loadTable(Transaction tran, Record table_rec,
 			List<BtreeIndex> btis) {
 		String tablename = table_rec.getString(Table.TABLE);
 		int tblnum = table_rec.getInt(Table.TBLNUM);
@@ -376,11 +376,11 @@ public class Database {
 		return new Record().add(s);
 	}
 
-	public long alloc(int n, byte type) {
+	long alloc(int n, byte type) {
 		return dest.alloc(n, type);
 	}
 
-	public ByteBuf adr(long offset) {
+	ByteBuf adr(long offset) {
 		return dest.adr(offset);
 	}
 
@@ -411,12 +411,12 @@ public class Database {
 			if (version != VERSION)
 				throw new SuException("invalid database");
 		}
-		public int getNextTableNum() {
+		int getNextTableNum() {
 			buf.putInt(0, ++next_table);
 			return next_table - 1;
 		}
 
-		public void setNextTableNum(int nextTableNum) {
+		void setNextTableNum(int nextTableNum) {
 			buf.putInt(0, nextTableNum);
 		}
 
@@ -427,12 +427,16 @@ public class Database {
 	}
 
 	// for rebuild
-	public void setNextTableNum(int nextTableNum) {
+	void setNextTableNum(int nextTableNum) {
 		dbhdr.setNextTableNum(nextTableNum);
 	}
 
-	public void setLoading(boolean loading) {
+	void setLoading(boolean loading) {
 		this.loading = loading;
+	}
+
+	boolean isLoading() {
+		return loading;
 	}
 
 	public long size() {
@@ -452,14 +456,14 @@ public class Database {
 
 	// called by Transaction complete for schema changes
 	// and by DbRebuild
-	public void updateTable(Table table, TableData td) {
+	void updateTable(Table table, TableData td) {
 		tables = tables.with(table);
 		tabledata = tabledata.with(td.tblnum, td);
 	}
 
 	// called by Transaction complete for schema changes
 	// and by DbRebuild
-	public void updateBtreeIndex(BtreeIndex bti) {
+	void updateBtreeIndex(BtreeIndex bti) {
 		bti.setDest(bti.getDest().unwrap());
 		btreeIndexes = btreeIndexes.with(bti.tblnum + ":" + bti.columns, bti);
 	}
@@ -539,16 +543,21 @@ public class Database {
 	}
 
 	// used by tests
-	public void checkTransEmpty() {
+	void checkTransEmpty() {
 		trans.checkTransEmpty();
 	}
 
-	// used by tests
-	public Table getTable(String tablename) {
+	// used by DbCompact and tests
+	Table getTable(String tablename) {
 		return tables.get(tablename);
 	}
 
-	public void addIndexEntriesForRebuild(int tblnum, Record rec) {
+	public String getSchema(String tablename) {
+		Table tbl = getTable(tablename);
+		return tbl == null ? null : tbl.schema();
+	}
+
+	void addIndexEntriesForRebuild(int tblnum, Record rec) {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
@@ -563,7 +572,7 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
-	public void removeIndexEntriesForRebuild(int tblnum, Record rec) {
+	void removeIndexEntriesForRebuild(int tblnum, Record rec) {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
@@ -575,7 +584,7 @@ public class Database {
 		tabledata = tabledata.with(tblnum, td);
 	}
 
-	public void addIndexEntriesForCompact(Table table, Index index, Record rec) {
+	void addIndexEntriesForCompact(Table table, Index index, Record rec) {
 		BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
 		Record key = rec.project(index.colnums, rec.off());
 		if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
@@ -594,6 +603,10 @@ public class Database {
 
 	public int finalSize() {
 		return trans.finalSize();
+	}
+
+	public void force() {
+		dest.force();
 	}
 
 }

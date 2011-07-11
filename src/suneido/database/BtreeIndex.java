@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -10,10 +14,6 @@ import com.google.common.base.Objects;
  * Wraps a {@link Btree} to implement database table indexes.
  * Adds transaction stuff.
  * Almost immutable but update will change record, and btree info may change.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class BtreeIndex {
 	public final Record record;
@@ -25,12 +25,12 @@ public class BtreeIndex {
 	final String columns;
 
 	/** Create a new index */
-	public BtreeIndex(Destination dest, int tblnum, String indexColumns,
+	BtreeIndex(Destination dest, int tblnum, String indexColumns,
 			boolean isKey, boolean unique) {
 		this(dest, tblnum, indexColumns, isKey, unique, "", "", 0);
 	}
 
-	public BtreeIndex(Destination dest, int tblnum, String columns,
+	BtreeIndex(Destination dest, int tblnum, String columns,
 			boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Btree bt = new Btree(dest);
@@ -45,7 +45,7 @@ public class BtreeIndex {
 	}
 
 	/** Open an existing index */
-	public BtreeIndex(Destination dest, Record record) {
+	BtreeIndex(Destination dest, Record record) {
 		this.dest = dest;
 		this.record = record;
 		this.bt = new Btree(dest, record.getMmoffset(ROOT),
@@ -58,7 +58,7 @@ public class BtreeIndex {
 	}
 
 	/** Copy constructor, used by {@link Transaction} */
-	public BtreeIndex(BtreeIndex bti, Destination dest) {
+	BtreeIndex(BtreeIndex bti, Destination dest) {
 		this.dest = dest;
 		record = bti.record;
 		bt = new Btree(bti.bt, dest);
@@ -68,7 +68,7 @@ public class BtreeIndex {
 		columns = bti.columns;
 	}
 
-	public static void rebuildCreate(Destination dest, Record rec) {
+	static void rebuildCreate(Destination dest, Record rec) {
 		new BtreeIndex(rec, dest);
 	}
 
@@ -91,26 +91,26 @@ public class BtreeIndex {
 		bt.setDest(dest);
 	}
 
-	public boolean differsFrom(BtreeIndex bti) {
+	boolean differsFrom(BtreeIndex bti) {
 		return bt.differsFrom(bti.bt);
 	}
 
-	public boolean update(BtreeIndex btiOld, BtreeIndex btiNew) {
+	boolean update(BtreeIndex btiOld, BtreeIndex btiNew) {
 		return bt.update(btiOld.bt, btiNew.bt);
 	}
 
 	/** updates the record in place */
-	public void update() {
+	void update() {
 		verify(record.off() != 0);
 		btreeInfo(bt, record);
 	}
 
-	public Record record(String fktable, String fkcolumns, int fkmode) {
+	Record record(String fktable, String fkcolumns, int fkmode) {
 		return record(bt, tblnum, columns, iskey, unique, fktable,
 				fkcolumns, fkmode);
 	}
 
-	public static Record record(Btree bt, int tblnum, String indexColumns,
+	static Record record(Btree bt, int tblnum, String indexColumns,
 			boolean iskey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Record r = new Record()
@@ -135,7 +135,7 @@ public class BtreeIndex {
 		verifyEquals(n, r.packSize());
 	}
 
-	public Record withColumns(String newColumns) {
+	Record withColumns(String newColumns) {
 		Record r = new Record();
 		for (int i = 0; i <= NNODES; ++i)
 			if (i == COLUMNS)
@@ -149,23 +149,27 @@ public class BtreeIndex {
 		return bt.nnodes();
 	}
 
-	public boolean insert(Transaction tran, Slot x) {
+	public int totalSize() {
+		return bt.nnodes() * Btree.NODESIZE;
+	}
+
+	boolean insert(Transaction tran, Slot x) {
 		if (iskey || (unique && !isEmpty(x.key)))
 			if (find(tran, stripAddress(x.key)) != null)
 				return false;
 		return bt.insert(x);
 	}
 
-	public static Record stripAddress(Record key) {
+	static Record stripAddress(Record key) {
 		// PERF avoid dup - maybe some kind of slice/view
 		return key.dup().truncate(key.size() - 1);
 	}
 
-	public boolean remove(Record key) {
+	boolean remove(Record key) {
 		return bt.remove(key);
 	}
 
-	public boolean isValid() {
+	boolean isValid() {
 		return bt.isValid();
 	}
 
@@ -174,7 +178,7 @@ public class BtreeIndex {
 		return f < .001 ? (float) .001 : f;
 	}
 
-	public Slot find(Transaction tran, Record key) {
+	Slot find(Transaction tran, Record key) {
 		Iter iter = iter(tran, key).next();
 		if (iter.eof())
 			return null;
@@ -182,7 +186,7 @@ public class BtreeIndex {
 		return cur.key.hasPrefix(key) ? cur : null;
 	}
 
-	public static boolean isEmpty(Record key) {
+	static boolean isEmpty(Record key) {
 		int n = key.size() - 1; // - 1 to ignore record address at end
 		if (n <= 0)
 			return true;
@@ -225,6 +229,10 @@ public class BtreeIndex {
 		public Slot cur() {
 			verify(!rewound);
 			return iter.cur();
+		}
+
+		public Record curKey() {
+			return cur().key;
 		}
 
 		public long keyadr() {
@@ -296,7 +304,6 @@ public class BtreeIndex {
 			this.prevsize = prevsize;
 		}
 	}
-
 
 	/**
 	 * @return True if the records are equal not including the last field.

@@ -1,7 +1,8 @@
-package suneido.database;
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+package suneido.database;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -11,13 +12,15 @@ import suneido.language.Globals;
 import suneido.language.Ops;
 import suneido.language.builtin.SuTransaction;
 
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
+
 @ThreadSafe
 public class Triggers {
+	private static final Multiset<String> disabledTriggers =
+			ConcurrentHashMultiset.create();
 
-	private static final Set<String> disabledTriggers =
-			new ConcurrentSkipListSet<String>();
-
-	public static void call(Transaction tran, Table table,
+	static void call(Transaction tran, Table table,
 			Record oldrec, Record newrec) {
 		if (disabledTriggers.contains(table.name))
 			return;

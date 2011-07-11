@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database.tools;
+package suneido.database;
 
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.util.*;
 

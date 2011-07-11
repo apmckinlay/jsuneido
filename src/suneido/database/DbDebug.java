@@ -1,9 +1,13 @@
-package suneido.database.tools;
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
+package suneido.database;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
-import suneido.database.*;
+import suneido.SuException;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
@@ -50,6 +54,8 @@ public class DbDebug {
 					case TN.INDEXES:
 						System.out.println(" INDEX " + tn + " " + rec.getString(Index.COLUMNS));
 						break;
+					default:
+						throw SuException.unreachable();
 					}
 				}
 				break;

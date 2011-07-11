@@ -118,6 +118,7 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object sview(String name, String definition) {
+		// TODO sview
 //		serverData.addSview(name, definition);
 		return null;
 	}

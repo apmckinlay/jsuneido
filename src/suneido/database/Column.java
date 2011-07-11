@@ -7,24 +7,25 @@ package suneido.database;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class Column implements Comparable<Column> {
-	public final String name;
-	public final int num;
+class Column implements Comparable<Column> {
+	final String name;
+	final int num;
 
-	public static final int TBLNUM = 0;
-	public static final int COLUMN = 1;
-	public static final int FLDNUM = 2;
+	static final int TBLNUM = 0;
+	static final int COLUMN = 1;
+	static final int FLDNUM = 2;
 
-	public Column(Record record) {
+	Column(Record record) {
 		name = record.getString(COLUMN);
 		num = record.getShort(FLDNUM);
 	}
 
-	public Column(String column, int colnum) {
+	Column(String column, int colnum) {
 		this.name = column;
 		this.num = colnum;
 	}
 
+	@Override
 	public int compareTo(Column other) {
 		return num - other.num;
 	}
@@ -43,7 +44,7 @@ public class Column implements Comparable<Column> {
 		throw new UnsupportedOperationException();
 	}
 
-	public static Record record(int table_num, String name, int num) {
+	static Record record(int table_num, String name, int num) {
 		return new Record().add(table_num).add(name).add(num);
 	}
 

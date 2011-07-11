@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import java.util.AbstractList;
@@ -13,24 +17,20 @@ import com.google.common.base.Objects;
  * followed by a {@link Record} holding the slots.
  * Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp.
- * All rights reserved. Licensed under GPLv2.</small></p>
  */
-public class Slots extends AbstractList<Slot> {
-	private final static int NEXT_OFFSET = 0;
-	private final static int PREV_OFFSET = 4;
-	private final static int REC_OFFSET = 8;
-	protected final static int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
+class Slots extends AbstractList<Slot> {
+	private static final int NEXT_OFFSET = 0;
+	private static final int PREV_OFFSET = 4;
+	private static final int REC_OFFSET = 8;
+	protected static final int BUFREC_SIZE = Btree.NODESIZE - REC_OFFSET;
 
 	private final ByteBuf buf;
 	private final Record rec;
 
-	public Slots(ByteBuf buf) {
+	Slots(ByteBuf buf) {
 		this(buf, Mode.OPEN);
 	}
-	public Slots(ByteBuf buf, Mode mode) {
+	Slots(ByteBuf buf, Mode mode) {
 		this.buf = buf;
 		if (mode == Mode.OPEN)
 			rec = new Record(buf.slice(REC_OFFSET, BUFREC_SIZE));
@@ -39,15 +39,6 @@ public class Slots extends AbstractList<Slot> {
 			setPrev(0);
 			rec = new Record(buf.slice(REC_OFFSET, BUFREC_SIZE), BUFREC_SIZE);
 		}
-	}
-
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-				.add("next", next())
-				.add("prev", prev())
-				.addValue(rec)
-				.toString();
 	}
 
 	@Override
@@ -62,10 +53,10 @@ public class Slots extends AbstractList<Slot> {
 		return rec.size();
 	}
 
-	public Slot front() {
+	Slot front() {
 		return get(0);
 	}
-	public Slot back() {
+	Slot back() {
 		return get(size() - 1);
 	}
 	@Override
@@ -78,13 +69,13 @@ public class Slots extends AbstractList<Slot> {
 		rec.add(slot);
 		return true;
 	}
-	public void add(Slots slots, int begin, int end) {
+	void add(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {
 			rec.add(slots.rec.getraw(i));
 		}
 	}
 
-	public boolean insert(int i, Slot slot) {
+	boolean insert(int i, Slot slot) {
 		return rec.insert(i, slot);
 	}
 
@@ -93,27 +84,27 @@ public class Slots extends AbstractList<Slot> {
 		rec.remove(i);
 		return null;
 	}
-	public void remove(int begin, int end) {
+	void remove(int begin, int end) {
 		rec.remove(begin, end);
 	}
-	public void removeLast() {
+	void removeLast() {
 		remove(size() - 1);
 	}
 
-	public int remaining() {
+	int remaining() {
 		return rec.available();
 	}
 
-	public long next() {
+	long next() {
 		return Mmfile.intToOffset(buf.getInt(NEXT_OFFSET));
 	}
-	public long prev() {
+	long prev() {
 		return Mmfile.intToOffset(buf.getInt(PREV_OFFSET));
 	}
-	public void setNext(long value) {
+	void setNext(long value) {
 		setBufNext(buf, value);
 	}
-	public void setPrev(long value) {
+	void setPrev(long value) {
 		setBufPrev(buf, value);
 	}
 
@@ -123,7 +114,7 @@ public class Slots extends AbstractList<Slot> {
 	 * @param buf
 	 * @param value
 	 */
-	public static void setBufNext(ByteBuf buf, long value) {
+	static void setBufNext(ByteBuf buf, long value) {
 		buf.putInt(NEXT_OFFSET, Mmfile.offsetToInt(value));
 	}
 
@@ -133,7 +124,7 @@ public class Slots extends AbstractList<Slot> {
 	 * @param buf
 	 * @param value
 	 */
-	public static void setBufPrev(ByteBuf buf, long value) {
+	static void setBufPrev(ByteBuf buf, long value) {
 		buf.putInt(PREV_OFFSET, Mmfile.offsetToInt(value));
 	}
 
@@ -144,6 +135,14 @@ public class Slots extends AbstractList<Slot> {
 		if (!(other instanceof Slots))
 			return false;
 		return Objects.equal(rec, ((Slots) other).rec);
+	}
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("next", next())
+				.add("prev", prev())
+				.addValue(rec)
+				.toString();
 	}
 
 }

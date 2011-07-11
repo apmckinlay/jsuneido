@@ -17,7 +17,6 @@ import java.util.Date;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
-import suneido.util.ByteBuf;
 
 @ThreadSafe // all static methods
 public class Pack {
@@ -262,10 +261,6 @@ public class Pack {
 	public static int packSize(Object x, int nest) {
 		return x instanceof SuContainer ? ((SuContainer) x).packSize(nest)
 				: packSize(x);
-	}
-
-	public static Object unpack(ByteBuf buf) {
-		return unpack(buf.getByteBuffer());
 	}
 
 	public static Object unpack(ByteBuffer buf) {

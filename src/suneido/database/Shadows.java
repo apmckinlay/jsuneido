@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import java.util.*;
@@ -15,20 +19,19 @@ import suneido.util.LruCache;
  * it gives other outstanding transactions shadow copies
  * of the old version of the Btree nodes.
  * Must be threadsafe since other transactions add shadows.
- * @author Andrew McKinlay
  */
 @ThreadSafe
-public class Shadows {
+class Shadows {
 	private final Map<Long, ByteBuf> shadows = new HashMap<Long, ByteBuf>();
 	private final LruCache<Long, ByteBuf> readcache = new LruCache<Long, ByteBuf>(20);
 
 	// used by complete > writeBtreeNodes
-	public synchronized Set<Map.Entry<Long, ByteBuf>> entrySet() {
+	synchronized Set<Map.Entry<Long, ByteBuf>> entrySet() {
 		//assert Thread.holdsLock(Database.commitLock);
 		return shadows.entrySet();
 	}
 
-	public synchronized ByteBuf node(Destination dest, long offset) {
+	synchronized ByteBuf node(Destination dest, long offset) {
 		ByteBuf buf = shadows.get(offset);
 		if (buf == null) {
 			buf = readcache.get(offset);
@@ -40,7 +43,7 @@ public class Shadows {
 		return buf;
 	}
 
-	public synchronized ByteBuf nodeForWrite(Destination dest, long offset) {
+	synchronized ByteBuf nodeForWrite(Destination dest, long offset) {
 		ByteBuf buf = shadows.get(offset);
 		if (buf == null) {
 			buf = readcache.get(offset);
@@ -56,7 +59,7 @@ public class Shadows {
 			return null; // write conflict - shadowed so another tran wrote it
 	}
 
-	public synchronized ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
+	synchronized ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
 		//assert Thread.holdsLock(Database.commitLock);
 		readcache.remove(offset);
 		ByteBuf b = shadows.get(offset);
@@ -68,7 +71,7 @@ public class Shadows {
 		return copy;
 	}
 
-	public synchronized int size() {
+	synchronized int size() {
 		return shadows.size();
 	}
 

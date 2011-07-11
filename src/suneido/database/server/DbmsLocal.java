@@ -11,11 +11,9 @@ import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.Database;
-import suneido.database.Transaction;
+import suneido.database.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Request;
-import suneido.database.tools.DbDump;
 import suneido.language.Compiler;
 import suneido.language.Library;
 import suneido.language.builtin.ServerEval;
@@ -28,24 +26,20 @@ public class DbmsLocal extends Dbms {
 		this.db = db;
 	}
 
-	private Database db() {
-		return db;
-	}
-
 	@Override
 	public void admin(String s) {
-		Request.execute(db(), ServerData.forThread(), s);
+		Request.execute(db, ServerData.forThread(), s);
 	}
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		Transaction t = readwrite ? db().readwriteTran() : db().readonlyTran();
+		Transaction t = readwrite ? db.readwriteTran() : db.readonlyTran();
 		return new DbmsTranLocal(t);
 	}
 
 	@Override
 	public DbmsQuery cursor(String s) {
-		Transaction t = db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		try {
 			return new DbmsQueryLocal(
 					CompileQuery.query(t, ServerData.forThread(), s, true));
@@ -72,14 +66,14 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			DbDump.dumpDatabase(db(), "database.su");
+			DbDump.dumpDatabase(db, "database.su");
 		else
-			DbDump.dumpTable(db(), filename);
+			DbDump.dumpTable(db, filename);
 	}
 
 	@Override
 	public int finalSize() {
-		return db().finalSize();
+		return db.finalSize();
 	}
 
 	@Override
@@ -89,7 +83,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		return Library.libget(db(), name);
+		return Library.libget(db, name);
 	}
 
 	@Override
@@ -112,7 +106,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public long size() {
-		return db().size();
+		return db.size();
 	}
 
 	@Override
@@ -122,7 +116,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<Integer> tranlist() {
-		return db().tranlist();
+		return db.tranlist();
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import com.google.common.collect.*;
 
 /** Synchronized by {@link Transactions} which is the only user */
 @NotThreadSafe
-public class Locks {
+class Locks {
 	private final SetMultimap<Transaction, Long> locksRead = HashMultimap.create();
 	private final SetMultimap<Transaction, Long> locksWrite = HashMultimap.create();
 	private final SetMultimap<Long, Transaction> readLocks = HashMultimap.create();
@@ -18,7 +18,7 @@ public class Locks {
 	/** Add a read lock, unless there's already a write lock.
 	 *  @return A transaction if it has a write lock on this adr, else null
 	 */
-	public Transaction addRead(Transaction tran, long adr) {
+	Transaction addRead(Transaction tran, long adr) {
 		assert tran.isReadWrite();
 		if (tran.isEnded())
 			return null;
@@ -34,7 +34,7 @@ public class Locks {
 	 *  or else a set (possibly empty) of other transactions that have read locks.
 	 *  NOTE: The set may contain the locking transaction.
 	 */
-	public ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
+	ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
 		assert tran.isReadWrite();
 		if (tran.isEnded())
 			return null;
@@ -55,13 +55,13 @@ public class Locks {
 	}
 
 	/** Just remove writeLocks. Other locks kept till finalization */
-	public void commit(Transaction tran) {
+	void commit(Transaction tran) {
 		for (Long adr : locksWrite.get(tran))
 			writeLocks.remove(adr);
 	}
 
 	/** Remove all locks for this transaction */
-	public void remove(Transaction tran) {
+	void remove(Transaction tran) {
 		for (Long adr : locksRead.get(tran))
 			readLocks.remove(adr, tran);
 		locksRead.removeAll(tran);
@@ -75,15 +75,15 @@ public class Locks {
 		assert !locksWrite.isEmpty() || (writeLocks.isEmpty() && writes.isEmpty());
 	}
 
-	public Set<Transaction> writes(long offset) {
+	Set<Transaction> writes(long offset) {
 		return ImmutableSet.copyOf(writes.get(offset));
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return locksRead.isEmpty() && locksWrite.isEmpty();
 	}
 
-	public void checkEmpty() {
+	void checkEmpty() {
 		assert readLocks.isEmpty();
 		assert writeLocks.isEmpty();
 		assert writes.isEmpty();
@@ -91,7 +91,7 @@ public class Locks {
 		assert locksWrite.isEmpty();
 	}
 
-	public boolean contains(Transaction tran) {
+	boolean contains(Transaction tran) {
 		return locksRead.containsKey(tran) || locksWrite.containsKey(tran);
 	}
 

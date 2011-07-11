@@ -17,15 +17,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 @Immutable
-public class Columns implements Iterable<Column> {
+class Columns implements Iterable<Column> {
 
 	private final ImmutableList<Column> columns;
 
-	public Columns(ImmutableList<Column> columns) {
+	Columns(ImmutableList<Column> columns) {
 		this.columns = columns;
 	}
 
-	public ImmutableList<Integer> nums(String s) {
+	ImmutableList<Integer> nums(String s) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
 		for (String name : commaSplitter(s))
 			builder.add(ck_find(name).num);
@@ -39,29 +39,29 @@ public class Columns implements Iterable<Column> {
 		return c;
 	}
 
-	public Column find(String name) {
+	Column find(String name) {
 		for (Column c : columns)
 			if (name.equals(c.name))
 				return c;
 		return null;
 	}
 
-	public boolean hasColumn(String name) {
+	boolean hasColumn(String name) {
 		return find(name) != null;
 	}
 
-	public int size() {
+	int size() {
 		return columns.size();
 	}
 
-	public ImmutableList<String> names() {
+	ImmutableList<String> names() {
 		ImmutableList.Builder<String> list = ImmutableList.builder();
 		for (Column c : columns)
 			list.add(c.name);
 		return list.build();
 	}
 
-	public String schemaColumns() {
+	String schemaColumns() {
 		if (columns.isEmpty())
 			return "";
 		List<String> cols = new ArrayList<String>();
@@ -80,7 +80,7 @@ public class Columns implements Iterable<Column> {
 		return columns.iterator();
 	}
 
-	public int maxNum() {
+	int maxNum() {
 		int maxNum = -1;
 		for (Column c : columns)
 			if (c.num > maxNum)

@@ -1,11 +1,10 @@
-package suneido.database.tools;
+package suneido.database;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.database.Database;
-import suneido.database.Mode;
+import suneido.database.*;
 
 public class DbCompactTest extends DbCheckRebuildTestBase {
 

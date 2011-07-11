@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.fatal;
@@ -24,10 +28,6 @@ import suneido.util.ByteBuf;
  * in 32 bit int's. Alignment also allows storing a type in the low bits of the
  * block size. Since offsets are stored shifted as int's maximum file size is
  * 32gb (max unsigned int (4gb) << 3).
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
 public class Mmfile extends Destination {
@@ -41,24 +41,24 @@ public class Mmfile extends Destination {
 	private int hi_chunk = 0;
 	private long clock = 0;
 
-	private final static int HEADER = 4; // contains size | type
-	private final static int TRAILER = 4; // contains size ^ adr
-	final static int OVERHEAD = HEADER + TRAILER;
-	final static int ALIGN = 8;
-	final static int SHIFT = 2;
-	private final static int MB_PER_CHUNK = 4;
-	private final static int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
-	private final static int MB_MAX_DB = 32 * 1024; // 32 gb
-	private final static int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
-	private final static int FILEHDR = 8; // should be multiple of align
-	private final static byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
-	private final static int FILESIZE_OFFSET = 4;
-	private final static int BEGIN_OFFSET = FILEHDR + HEADER;
-	private final static byte FILLER = 0;
-	public final static byte DATA = 1;
-	public final static byte COMMIT = 2;
-	public final static byte SESSION = 3;
-	public final static byte OTHER = 4;
+	private static final int HEADER = 4; // contains size | type
+	private static final int TRAILER = 4; // contains size ^ adr
+	static final int OVERHEAD = HEADER + TRAILER;
+	static final int ALIGN = 8;
+	static final int SHIFT = 2;
+	private static final int MB_PER_CHUNK = 4;
+	private static final int MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
+	private static final int MB_MAX_DB = 32 * 1024; // 32 gb
+	private static final int MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK;
+	private static final int FILEHDR = 8; // should be multiple of align
+	private static final byte[] magic = new byte[] { 'S', 'n', 'd', 'o' };
+	private static final int FILESIZE_OFFSET = 4;
+	private static final int BEGIN_OFFSET = FILEHDR + HEADER;
+	private static final byte FILLER = 0;
+	public static final byte DATA = 1;
+	public static final byte COMMIT = 2;
+	public static final byte SESSION = 3;
+	public static final byte OTHER = 4;
 	private static enum MmCheck {
 		OK, ERR, EOF
 	};

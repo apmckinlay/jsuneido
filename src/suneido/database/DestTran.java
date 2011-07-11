@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -5,28 +9,26 @@ import suneido.util.ByteBuf;
 
 /**
  * Wraps another Destination and handles shadowing
- *
- * @author Andrew McKinlay
  */
-public class DestTran extends Destination {
+class DestTran extends Destination {
 	private final Transaction tran;
 	private final Destination dest;
 
-	public DestTran(Transaction tran, Destination dest) {
+	DestTran(Transaction tran, Destination dest) {
 		this.tran = tran;
 		this.dest = dest;
 		assert ! (dest instanceof DestTran);
 	}
 
 	@Override
-	public ByteBuf node(long offset) {
+	ByteBuf node(long offset) {
 		if (tran.isReadWrite())
 			tran.readLock(offset);
 		return tran.node(dest, offset);
 	}
 
 	@Override
-	public ByteBuf nodeForWrite(long offset) {
+	ByteBuf nodeForWrite(long offset) {
 		verify(tran.isReadWrite());
 		tran.writeLock(offset);
 		ByteBuf buf = tran.nodeForWrite(dest, offset);
@@ -46,27 +48,27 @@ public class DestTran extends Destination {
 	}
 
 	@Override
-	public void close() {
+	void close() {
 		dest.close();
 	}
 
 	@Override
-	public long first() {
+	long first() {
 		return dest.first();
 	}
 
 	@Override
-	public int length(long adr) {
+	int length(long adr) {
 		return dest.length(adr);
 	}
 
 	@Override
-	public byte type(long adr) {
+	byte type(long adr) {
 		return dest.type(adr);
 	}
 
 	@Override
-	public long size() {
+	long size() {
 		return dest.size();
 	}
 
@@ -76,7 +78,7 @@ public class DestTran extends Destination {
 	}
 
 	@Override
-	public Destination unwrap() {
+	Destination unwrap() {
 		return dest;
 	}
 

@@ -20,13 +20,14 @@ import com.google.common.base.Objects;
  * Uses {@link Slots} to store nodes.
  * @see BtreeIndex
  */
+//TODO remove use by query Table
 @NotThreadSafe
-public class Btree {
-	public final static int MAXLEVELS = 20;
-	public final static long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
-	private final static int BLOCKSIZE = 4096;
-	public final static int NODESIZE = BLOCKSIZE - Mmfile.OVERHEAD;
-	enum Insert { OK, DUP, WONT_FIT };	// return values for insert
+class Btree {
+	private static final int MAXLEVELS = 20;
+	private static final long TREENODE_PREV = (long) Integer.MAX_VALUE << Mmfile.SHIFT;
+	private static final int BLOCKSIZE = 4096;
+	static final int NODESIZE = BLOCKSIZE - Mmfile.OVERHEAD;
+	private enum Insert { OK, DUP, WONT_FIT };	// return values for insert
 
 	private Destination dest;
 	private long root_;
@@ -35,7 +36,7 @@ public class Btree {
 	private long modified = 0;
 
 	/** Create new */
-	public Btree(Destination dest) {
+	Btree(Destination dest) {
 		this.dest = dest;
 		root_ = 0; // lazy creation
 		treelevels = 0;
@@ -43,7 +44,7 @@ public class Btree {
 	}
 
 	/** Open existing */
-	public Btree(Destination dest, long root, int treelevels, int nnodes) {
+	Btree(Destination dest, long root, int treelevels, int nnodes) {
 		this.dest = dest;
 		verify(root >= 0);
 		root_ = root;
@@ -54,20 +55,20 @@ public class Btree {
 	}
 
 	/** Copy constructor */
-	public Btree(Btree bt, Destination dest) {
+	Btree(Btree bt, Destination dest) {
 		this.dest = dest;
 		root_ = bt.root_;
 		treelevels = bt.treelevels;
 		nnodes = bt.nnodes;
 	}
 
-	public boolean differsFrom(Btree bt) {
+	boolean differsFrom(Btree bt) {
 		return root_ != bt.root_ || treelevels != bt.treelevels
 				|| nnodes != bt.nnodes;
 	}
 
 	// used when completing transactions
-	public boolean update(Btree btOld, Btree btNew) {
+	boolean update(Btree btOld, Btree btNew) {
 		if (root_ != btOld.root_)
 			return false;
 		assert treelevels == btOld.treelevels;
@@ -75,19 +76,19 @@ public class Btree {
 		return true;
 	}
 
-	public int treelevels() {
+	int treelevels() {
 		return treelevels;
 	}
 
-	public int nnodes() {
+	int nnodes() {
 		return nnodes;
 	}
 
-	public void setDest(Destination dest) {
+	void setDest(Destination dest) {
 		this.dest = dest;
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		if (nnodes == 0)
 			return true;
 		if (treelevels > 0)
@@ -97,7 +98,7 @@ public class Btree {
 	}
 
 	// not void so we can call it with assert
-	public boolean isValid() {
+	boolean isValid() {
 		long[] links = new long[] { 0, -1 };
 		isValid(root(), 0, links);
 		assert links[1] == 0; // final next should be 0
@@ -121,7 +122,7 @@ public class Btree {
 		}
 	}
 
-	public boolean insert(Slot x) { // returns false for duplicate key
+	boolean insert(Slot x) { // returns false for duplicate key
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 
 		// search down the tree
@@ -176,7 +177,7 @@ public class Btree {
 		verify(treelevels < MAXLEVELS);
 	}
 
-	public boolean remove(Record key) {
+	boolean remove(Record key) {
 		TreeNode[] nodes = new TreeNode[MAXLEVELS];
 
 		// search down the tree
@@ -214,7 +215,7 @@ public class Btree {
 		return true;
 	}
 
-	public float rangefrac(Record from, Record to) {
+	float rangefrac(Record from, Record to) {
 		// from is inclusive, end is exclusive
 		if (treelevels == 0)
 			{
@@ -481,7 +482,7 @@ public class Btree {
 		}
 	} // end TreeNode
 
-	public long root() {
+	long root() {
 		if (root_ == 0)
 			{
 			verify(nnodes == 0);
@@ -495,7 +496,7 @@ public class Btree {
 		return root_;
 	}
 
-	public Iter first() {
+	Iter first() {
 		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
 			adr = new TreeNode(adr).slots.front().adr;
@@ -505,7 +506,7 @@ public class Btree {
 			return new Iter();
 		return new Iter(adr, leaf.slots.front());
 	}
-	public Iter last() {
+	Iter last() {
 		long adr = root();
 		for (int i = 0; i < treelevels; ++i)
 			adr = new TreeNode(adr).slots.next();
@@ -515,18 +516,18 @@ public class Btree {
 			return new Iter();
 		return new Iter(adr, leaf.slots.back());
 	}
-	public Iter locate(Record key) {
+	Iter locate(Record key) {
 		return new Iter(key);
 	}
 
 	// used by BtreeIndex.setCur
-	public Iter atCur(Slot cur) {
+	Iter atCur(Slot cur) {
 		Iter iter = new Iter();
 		iter.setCur(cur);
 		return iter;
 	}
 
-	public class Iter {
+	class Iter {
 		long adr; // offset of current node
 		Slot cur;
 		long valid = modified;
@@ -543,17 +544,17 @@ public class Btree {
 			seek(key);
 		}
 
-		public boolean eof() {
+		boolean eof() {
 			return adr == 0;
 		}
-		public void seteof() {
+		void seteof() {
 			adr = 0;
 		}
 
-		public Slot cur() {
+		Slot cur() {
 			return cur;
 		}
-		public Record key() {
+		Record key() {
 			return cur.key;
 		}
 
@@ -563,7 +564,7 @@ public class Btree {
 			adr = -1;
 		}
 
-		public void next() {
+		void next() {
 			if (adr == 0)
 				return;
 			if (modified != valid)
@@ -576,7 +577,7 @@ public class Btree {
 			else if ((adr = leaf.next()) != 0)
 				cur = new LeafNode(adr).slots.front().dup();
 		}
-		public void prev() {
+		void prev() {
 			if (adr == 0)
 				return;
 			if (modified != valid)
@@ -614,7 +615,7 @@ public class Btree {
 		}
 	}
 
-	public void print() {
+	void print() {
 		print(root(), 0);
 	}
 	private void print(long adr, int level) {

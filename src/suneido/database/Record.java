@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.unreachable;
@@ -26,30 +30,26 @@ import com.google.common.collect.ImmutableList;
  * - size (also referenced as offset[-1])<br>
  * - array of offsets<br>
  * size and array elements are of the type
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class Record
 		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
-	public final static Record MINREC = new Record(5);
-	public final static Record MAXREC = new Record(8).addMax();
+	public static final Record MINREC = new Record(5);
+	public static final Record MAXREC = new Record(8).addMax();
 	private Rep rep;
 	private ByteBuf buf;
 	private long dboffset = 0;
 	private boolean growable = false;
 
 	private static class Type {
-		final static byte BYTE = 'c';
-		final static byte SHORT = 's';
-		final static byte INT = 'l';
+		static final byte BYTE = 'c';
+		static final byte SHORT = 's';
+		static final byte INT = 'l';
 	}
 
 	private static class Offset {
-		final static int TYPE = 0; // byte
-		final static int NFIELDS = 2; // short
-		final static int SIZE = 4; // byte, short, or int <= type
+		static final int TYPE = 0; // byte
+		static final int NFIELDS = 2; // short
+		static final int SIZE = 4; // byte, short, or int <= type
 	}
 
 	public Record() {
@@ -77,7 +77,7 @@ public class Record
 	 *            The size of the buffer. Used to determine the required
 	 *            representation.
 	 */
-	public Record(ByteBuf buf, int size) {
+	Record(ByteBuf buf, int size) {
 		verify(size <= buf.size());
 		this.buf = buf;
 		setType(type(size));
@@ -144,7 +144,7 @@ public class Record
 		return sb.toString();
 	}
 
-	public String toDebugString() {
+	String toDebugString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(" limit ").append(buf.size()).append(" ");
 		int nfields = getNfields();
@@ -158,7 +158,7 @@ public class Record
 		return sb.toString();
 	}
 
-	public void validate() {
+	void validate() {
 		char type = (char) getType();
 		assert type == 'c' || type == 's' || type == 'l';
 		int nfields = getNfields();
@@ -171,12 +171,6 @@ public class Record
 			assert size >= 0;
 			assert offset + size <= limit;
 		}
-	}
-
-	public static Record fromObject(Mmfile mmf, Object ob) {
-		return ob instanceof Integer
-				? new Record(mmf.adr(Mmfile.intToOffset((Integer) ob)))
-				: new Record(ByteBuf.wrap((byte[]) ob));
 	}
 
 	public long off() {
@@ -228,7 +222,7 @@ public class Record
 	}
 
 	/** convenience method */
-	public Record addMmoffset(long n) {
+	Record addMmoffset(long n) {
 		return add(Mmfile.offsetToInt(n));
 	}
 
@@ -248,7 +242,7 @@ public class Record
 	 * buffer position to it. Grows the buffer if required and the record is
 	 * growable.
 	 */
-	public int alloc(int len) {
+	int alloc(int len) {
 		if (rep.avail() < len)
 			grow(len);
 		verify(len <= rep.avail());
@@ -268,7 +262,7 @@ public class Record
 		rep = tmp.rep;
 	}
 
-	public boolean insert(int at, Object x) {
+	boolean insert(int at, Object x) {
 		int len = Pack.packSize(x);
 		if (len > rep.avail())
 			return false;
@@ -285,7 +279,7 @@ public class Record
 		return true;
 	}
 
-	public int available() {
+	int available() {
 		return rep.avail();
 	}
 
@@ -294,11 +288,11 @@ public class Record
 			buf.put(i - amount, buf.get(i));
 	}
 
-	public void remove(int at) {
+	void remove(int at) {
 		remove(at, at + 1);
 	}
 
-	public void remove(int begin, int end) {
+	void remove(int begin, int end) {
 		int n = getNfields();
 		verify(begin <= end && 0 <= begin && end <= n);
 		int len = rep.getOffset(begin - 1) - rep.getOffset(end - 1);
@@ -318,14 +312,8 @@ public class Record
 		return buf.getByteBuffer(0, bufSize());
 	}
 
-	public byte[] getBytes() {
-		byte[] bytes = new byte[bufSize()];
-		buf.get(0, bytes);
-		return bytes;
-	}
-
-	public final static ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
-	public final static ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
+	public static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
+	public static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
 			.put(0, (byte) 0x7f).asReadOnlyBuffer();
 
 	public ByteBuffer getraw(int i) {
@@ -334,7 +322,7 @@ public class Record
 		return buf.getByteBuffer(rep.getOffset(i), fieldSize(i));
 	}
 
-	public ByteBuf getbuf(int i) {
+	ByteBuf getbuf(int i) {
 		if (i >= getNfields())
 			return ByteBuf.empty();
 		return buf.slice(rep.getOffset(i), fieldSize(i));
@@ -354,25 +342,25 @@ public class Record
 		return (Integer) Pack.unpack(getraw(i));
 	}
 
-	public short getShort(int i) {
+	short getShort(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
 		int n = (Integer) Pack.unpack(getraw(i));
 		assert (Short.MIN_VALUE <= n && n <= Short.MAX_VALUE);
 		return (short) n;
 	}
 
-	public long getMmoffset(int i) {
+	long getMmoffset(int i) {
 		return Mmfile.intToOffset(getInt(i));
 	}
 
-	public boolean hasPrefix(Record r) {
+	boolean hasPrefix(Record r) {
 		for (int i = 0; i < r.size(); ++i)
 			if (!getraw(i).equals(r.getraw(i)))
 				return false;
 		return true;
 	}
 
-	public boolean prefixgt(Record r) {
+	boolean prefixgt(Record r) {
 		int n = Math.min(size(), r.size());
 		for (int i = 0; i < n; ++i) {
 			int cmp = bufferUcompare(getraw(i), r.getraw(i));
@@ -389,7 +377,7 @@ public class Record
 		return this;
 	}
 
-	public void truncateIfLarger(int n) {
+	void truncateIfLarger(int n) {
 		if (n < getNfields())
 			setNfields(n);
 	}
@@ -405,7 +393,7 @@ public class Record
 		return size() == 0;
 	}
 
-	public boolean allEmpty() {
+	boolean allEmpty() {
 		for (int i = size() - 1; i >= 0; --i)
 			if (fieldSize(i) != 0)
 				return false;
@@ -417,7 +405,7 @@ public class Record
 	 *            The index of the field to get the size of.
 	 * @return The size of the i'th field.
 	 */
-	public int fieldSize(int i) {
+	int fieldSize(int i) {
 		if (i >= getNfields())
 			return 0;
 		return rep.getOffset(i - 1) - rep.getOffset(i);
@@ -437,7 +425,7 @@ public class Record
 	 *            The total size of the field data.
 	 * @return The minimum required buffer size.
 	 */
-	public static int packSize(int nfields, int datasize) {
+	static int packSize(int nfields, int datasize) {
 		int e = 1;
 		int size = 2 /* type */+ 2 /* nfields */+ e /* size */+ nfields * e + datasize;
 		if (size < 0x100)
@@ -459,10 +447,13 @@ public class Record
 		int datasize = getSize() - rep.getOffset(n - 1);
 		return packSize(n, datasize);
 	}
+
+	@Override
 	public int packSize(int nest) {
 		return packSize();
 	}
 
+	@Override
 	public void pack(ByteBuffer dst) {
 		int dstsize = packSize();
 		if (getSize() == dstsize && dst.order() == buf.order())
@@ -503,11 +494,11 @@ public class Record
 		return rep.getOffset(-1);
 	}
 
-	public Record project(ImmutableList<Integer> fields) {
+	Record project(ImmutableList<Integer> fields) {
 		return project(fields, 0);
 	}
 
-	public Record project(ImmutableList<Integer> fields, long adr) {
+	Record project(ImmutableList<Integer> fields, long adr) {
 		Record r = new Record();
 		for (int i : fields)
 			r.add(getbuf(i));
@@ -631,10 +622,7 @@ public class Record
 		return fieldSize(fld) - rec.fieldSize(fld);
 	}
 
-	public boolean inRange(Record from, Record to) {
-		return compareTo(from) >= 0 && compareTo(to) <= 0;
-	}
-
+	@Override
 	public Iterator<ByteBuffer> iterator() {
 		return new Iter();
 	}
@@ -642,14 +630,17 @@ public class Record
 	private class Iter implements Iterator<ByteBuffer> {
 		int i = 0;
 
+		@Override
 		public boolean hasNext() {
 			return i < size();
 		}
 
+		@Override
 		public ByteBuffer next() {
 			return getraw(i++);
 		}
 
+		@Override
 		public void remove() {
 			throw unreachable();
 		}

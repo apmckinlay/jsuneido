@@ -1,6 +1,6 @@
 // -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
 
-package suneido;
+package suneido.database;
 
 import static suneido.SuException.verifyEquals;
 
@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
 import suneido.database.*;
+import suneido.database.DbCheck.Status;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
-import suneido.database.tools.DbCheck;
-import suneido.database.tools.DbCheck.Status;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {

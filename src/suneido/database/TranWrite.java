@@ -1,26 +1,29 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
-public class TranWrite {
-	enum Type {
-		CREATE, DELETE
-	}
-	Type type;
-	int tblnum;
-	long off;
-	long time;
+import javax.annotation.concurrent.Immutable;
 
-	private TranWrite(Type type, int tblnum, long off, long time) {
+@Immutable
+class TranWrite {
+	enum Type { CREATE, DELETE }
+	final Type type;
+	final int tblnum;
+	final long off;
+
+	private TranWrite(Type type, int tblnum, long off) {
 		this.type = type;
 		this.tblnum = tblnum;
 		this.off = off;
-		this.time = time;
 	}
 
-	public static TranWrite create(int tblnum, long off, long time) {
-		return new TranWrite(Type.CREATE, tblnum, off, time);
+	static TranWrite create(int tblnum, long off) {
+		return new TranWrite(Type.CREATE, tblnum, off);
 	}
 
-	public static TranWrite delete(int tblnum, long off, long time) {
-		return new TranWrite(Type.DELETE, tblnum, off, time);
+	static TranWrite delete(int tblnum, long off) {
+		return new TranWrite(Type.DELETE, tblnum, off);
 	}
 }
