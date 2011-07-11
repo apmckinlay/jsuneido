@@ -17,7 +17,7 @@ public class RuleFieldTest extends TestBase {
 		adm("create withrule (a,B) key(a)");
 		req("insert { a: 1, b: 2 } into withrule");
 
-		Query q = CompileQuery.query(serverData, "withrule");
+		Query q = CompileQuery.query(db, serverData, "withrule");
 		Header hdr = q.header();
 		assertEquals("[b, a]", hdr.columns().toString());
 		assertEquals("[a]", hdr.fields().toString());

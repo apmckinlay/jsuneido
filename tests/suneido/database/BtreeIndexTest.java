@@ -9,7 +9,7 @@ public class BtreeIndexTest extends TestBase {
 	@Test
 	public void test_iter_range() {
 		makeTable(10);
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		Table tbl = t.getTable("test");
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, "a");

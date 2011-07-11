@@ -2,7 +2,7 @@ package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
 import static suneido.util.Util.array;
-import suneido.database.tools.DbDump;
+import suneido.TheDbms;
 import suneido.language.*;
 
 public class Dump extends SuFunction {
@@ -13,9 +13,9 @@ public class Dump extends SuFunction {
 	public Object call(Object... args) {
 		args = Args.massage(FS, args);
 		if (args[0] == Boolean.FALSE)
-			DbDump.dumpDatabase("database.su");
+			TheDbms.dbms().dump("");
 		else
-			DbDump.dumpTable(toStr(args[0]));
+			TheDbms.dbms().dump(toStr(args[0]));
 		return null;
 	}
 

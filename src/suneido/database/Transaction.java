@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -18,20 +22,15 @@ import suneido.util.PersistentMap;
  * so that inactive or excessive transactions can be aborted by other threads.
  * Uses {@link Transactions} and {@link Shadows}
  * equals and hashCode are the default i.e. identity
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 @ThreadSafe
-// should only used by one session i.e. one thread at a time
 public class Transaction implements Comparable<Transaction> {
 	public final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected volatile boolean ended = false;
-	private boolean inConflict = false;
-	private boolean outConflict = false;
+	private volatile boolean inConflict = false;
+	private volatile boolean outConflict = false;
 	private String conflict = null;
 	final long start = new Date().getTime();
 	private final long asof;
@@ -438,19 +437,19 @@ public class Transaction implements Comparable<Transaction> {
 		notEnded();
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
-			if (this.inConflict || writer.isOutConflict())
+			if (this.inConflict || writer.outConflict)
 				abortThrow("conflict (read-write) with " + writer);
 			writer.inConflict = true;
-			this.setOutConflict();
+			this.outConflict = true;
 		}
 
 		Set<Transaction> writes = trans.writes(offset);
 		for (Transaction w : writes) {
 			if (w == this || w.commitTime < asof)
 				continue;
-			if (w.isOutConflict())
+			if (w.outConflict)
 				abortThrow("conflict (read-write) with " + w);
-			this.setOutConflict();
+			this.outConflict = true;
 		}
 		for (Transaction w : writes)
 			w.inConflict = true;
@@ -463,12 +462,12 @@ public class Transaction implements Comparable<Transaction> {
 			abortThrow("conflict (write-write)");
 		for (Transaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
-				if (reader.inConflict || this.isOutConflict())
+				if (reader.inConflict || this.outConflict)
 					abortThrow("conflict (write-read) with " + reader);
 				this.inConflict = true;
 			}
 		for (Transaction reader : readers)
-			reader.setOutConflict();
+			reader.outConflict = true;
 	}
 
 	boolean isCommitted() {
@@ -558,14 +557,6 @@ public class Transaction implements Comparable<Transaction> {
 	@Override
 	protected void finalize() throws Throwable {
 		abortIfNotComplete();
-	}
-
-	private synchronized boolean isOutConflict() {
-		return outConflict;
-	}
-
-	private synchronized void setOutConflict() {
-		outConflict = true;
 	}
 
 }

@@ -12,7 +12,6 @@ import suneido.database.query.expr.Expr;
 import com.google.common.collect.ImmutableSet;
 
 public class Update extends QueryAction {
-
 	private final Transaction tran;
 	private final List<String> fields;
 	private final List<Expr> exprs;
@@ -40,7 +39,7 @@ public class Update extends QueryAction {
 		List<String> bestKey = q.key_index(cols);
 		if (q.optimize(bestKey, cols, noNeeds, false, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");
-		q = q.addindex();
+		q = q.addindex(tran);
 		// cSuneido uses source.key_index
 		// but this causes problems - maybe need transform first?
 		//		List<String> bestKey = source.keys().get(0);

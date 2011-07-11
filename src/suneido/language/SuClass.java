@@ -132,12 +132,14 @@ public class SuClass extends SuValue {
 		}
 		@Override
 		public Object eval(Object self, Object... args) {
-			Object fn = toClass(self).get2("Default");
-			if (fn instanceof SuCallable) {
-				Object newargs[] = new Object[1 + args.length];
-				newargs[0] = method;
-				System.arraycopy(args, 0, newargs, 1, args.length);
-				return ((SuCallable) fn).eval(self, newargs);
+			if (method != "Default") {
+				Object fn = toClass(self).get2("Default");
+				if (fn instanceof SuCallable) {
+					Object newargs[] = new Object[1 + args.length];
+					newargs[0] = method;
+					System.arraycopy(args, 0, newargs, 1, args.length);
+					return ((SuCallable) fn).eval(self, newargs);
+				}
 			}
 			throw methodNotFound(self, method);
 		}
@@ -292,7 +294,6 @@ public class SuClass extends SuValue {
 		return sb.toString();
 	}
 
-	/** called by {@link SuFunction.superInvokeN} */
 	public Object superInvoke(Object self, String member, Object... args) {
 		if (baseGlobal == null) {
 			if (member == "New")

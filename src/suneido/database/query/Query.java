@@ -34,16 +34,16 @@ public abstract class Query {
 	// allow for adding impossibles together
 	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
-	Query setup() {
-		return setup(false);
+	Query setup(Transaction t) {
+		return setup(false, t);
 	}
 
-	Query setup(boolean is_cursor) {
+	Query setup(boolean is_cursor, Transaction t) {
 		Query q = transform();
 		if (q.optimize(noFields, ImmutableSet.copyOf(q.columns()), noNeeds,
 				is_cursor, true) >= IMPOSSIBLE)
 			throw new SuException("invalid query");
-		q = q.addindex();
+		q = q.addindex(t);
 		return q;
 	}
 
@@ -172,9 +172,9 @@ public abstract class Query {
 	abstract int columnsize();
 
 	// used to insert TempIndex nodes
-	Query addindex() { // redefined by Query1 and Query2
+	Query addindex(Transaction t) { // redefined by Query1 and Query2
 		return nil(tempindex) ? this
-				: new TempIndex(this, tempindex, isUnique(tempindex));
+				: new TempIndex(this, t, tempindex, isUnique(tempindex));
 	}
 
 	private boolean isUnique(List<String> tempindex) {

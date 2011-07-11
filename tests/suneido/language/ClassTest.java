@@ -241,6 +241,18 @@ public class ClassTest {
 	}
 
 	@Test
+	public void test_super_Default() {
+		define("A", "class { }");
+		define("B", "class : A { Default(@args) { super.Default(@args) } }");
+		try {
+			test("B.Fn()", "");
+			fail();
+		} catch (SuException e) {
+			assert(e.toString().contains("method not found"));
+		}
+	}
+
+	@Test
 	public void test_getdefault() {
 		define("C", "class { X: 123 }");
 		test("C.GetDefault('X', 456)", "123");

@@ -7,8 +7,7 @@ package suneido.database.server;
 import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import suneido.SuContainer;
 import suneido.database.TheDb;
@@ -25,12 +24,13 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void admin(String s) {
-		Request.execute(ServerData.forThread(), s);
+		Request.execute(TheDb.db(), ServerData.forThread(), s);
 	}
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		return new DbmsTranLocal(readwrite);
+		Transaction t = readwrite ? TheDb.db().readwriteTran() : TheDb.db().readonlyTran();
+		return new DbmsTranLocal(t);
 	}
 
 	@Override
@@ -62,9 +62,9 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			DbDump.dumpDatabase("database.su");
+			DbDump.dumpDatabase(TheDb.db(), "database.su");
 		else
-			DbDump.dumpTable(filename);
+			DbDump.dumpTable(TheDb.db(), filename);
 	}
 
 	@Override
@@ -79,7 +79,9 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		return Library.libget(name);
+		if (! TheDb.isOpen())
+			return Collections.emptyList();
+		return Library.libget(TheDb.db(), name);
 	}
 
 	@Override

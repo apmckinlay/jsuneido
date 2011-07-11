@@ -142,8 +142,8 @@ public class DbCheck {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		TheDb.set(new Database(filename, Mode.READ_ONLY));
-		Transaction t = TheDb.db().readonlyTran();
+		Database db = new Database(filename, Mode.READ_ONLY);
+		Transaction t = db.readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
 			BtreeIndex.Iter iter = bti.iter(t).next();
@@ -151,7 +151,7 @@ public class DbCheck {
 			for (; !iter.eof(); iter.next()) {
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
-				ecs.submit(new CheckTable(tablename));
+				ecs.submit(new CheckTable(db, tablename));
 				++ntables;
 			}
 			int nbad = 0;
@@ -181,8 +181,7 @@ public class DbCheck {
 		} finally {
 			executor.shutdown();
 			t.complete();
-			TheDb.db().close();
-			TheDb.set(null);
+			db.close();
 		}
 	}
 
