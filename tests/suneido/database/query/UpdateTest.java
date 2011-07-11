@@ -28,7 +28,7 @@ public class UpdateTest extends TestBase {
 
 	@Test
 	public void test2() {
-		Request.execute("create lib " +
+		Request.execute(db, "create lib " +
 				"(group, lib_committed, lib_modified, name, num, parent, text) " +
 				"key (name,group) " +
 				"key (num) " +
@@ -36,14 +36,14 @@ public class UpdateTest extends TestBase {
 				"index (parent,name)");
 		for (int i = 0; i < 10; ++i) {
 			Record rec = mkrec(i);
-			Transaction t = TheDb.db().readwriteTran();
+			Transaction t = db.readwriteTran();
 			t.addRecord("lib", rec);
 			t.ck_complete();
 		}
 
 		checkCount();
 
-		Transaction t = TheDb.db().readwriteTran();
+		Transaction t = db.readwriteTran();
 		// theDB().update(t, recadr, mkrec(5));
 		t.ck_complete();
 
@@ -61,7 +61,7 @@ public class UpdateTest extends TestBase {
 	}
 
 	private void checkCount() {
-		Transaction t = TheDb.db().readonlyTran();
+		Transaction t = db.readonlyTran();
 		Table table = t.getTable("lib");
 		String[] indexes = { "name,group", "num", "parent", "parent,name" };
 		for (String cols : indexes) {

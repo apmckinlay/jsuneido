@@ -36,14 +36,12 @@ public class Library {
 		return result;
 	}
 
-	public static List<LibGet> libget(String name) {
+	public static List<LibGet> libget(Database db, String name) {
 		List<LibGet> srcs = new ArrayList<LibGet>();
-		if (! TheDb.isOpen())
-			return srcs;
 		Record key = new Record();
 		key.add(name);
 		key.add(-1);
-		Transaction tran = TheDb.db().readonlyTran();
+		Transaction tran = db.readonlyTran();
 		try {
 			for (String lib : libraries) {
 				Table table = tran.getTable(lib);
@@ -57,7 +55,7 @@ public class Library {
 					continue; // library is invalid, ignore it
 				BtreeIndex.Iter iter = bti.iter(tran, key).next();
 				if (!iter.eof()) {
-					Record rec = TheDb.db().input(iter.keyadr());
+					Record rec = db.input(iter.keyadr());
 					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
 				}
 			}

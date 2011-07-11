@@ -211,7 +211,7 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.cur().key, TheDb.db().input(iter.keyadr()));
+		Row row = new Row(iter.cur().key, tran.db.input(iter.keyadr()));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;

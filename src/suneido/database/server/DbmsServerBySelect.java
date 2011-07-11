@@ -16,8 +16,6 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Suneido;
-import suneido.database.TheDb;
-import suneido.language.Compiler;
 import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
 
@@ -35,24 +33,8 @@ public class DbmsServerBySelect {
 	private static InetAddress inetAddress;
 
 	public static void run(int port, int idleTimeoutMin) {
-		TheDb.open();
-		try {
-			Compiler.eval("JInit()");
-		} catch (Throwable e) {
-			Suneido.fatal("error during init", e);
-		}
 		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
-		Suneido.scheduleAtFixedRate(new Runnable() {
-				public void run() {
-					TheDb.db().limitOutstandingTransactions();
-				}
-			}, 1, TimeUnit.SECONDS);
-		Suneido.scheduleAtFixedRate(new Runnable() {
-				public void run() {
-					TheDb.db().dest.force();
-				}
-			}, 1, TimeUnit.MINUTES);
 		try {
 			server.run(port);
 		} catch (IOException e) {
@@ -217,19 +199,4 @@ public class DbmsServerBySelect {
 		return list;
 	}
 
-	public static void main(String[] args) {
-		Compiler.eval("Use('Accountinglib')");
-		Compiler.eval("Use('etalib')");
-		Compiler.eval("Use('ticketlib')");
-		Compiler.eval("Use('joblib')");
-		Compiler.eval("Use('prlib')");
-		Compiler.eval("Use('prcadlib')");
-		Compiler.eval("Use('etaprlib')");
-		Compiler.eval("Use('invenlib')");
-		Compiler.eval("Use('wolib')");
-		Compiler.eval("Use('polib')");
-		Compiler.eval("Use('configlib')");
-		Compiler.eval("Use('demobookoptions')");
-		run(3147, 0);
-	}
 }

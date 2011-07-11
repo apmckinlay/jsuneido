@@ -22,7 +22,7 @@ public class InsertQuery extends QueryAction {
 
 	@Override
 	public int execute() {
-		Query q = source.setup();
+		Query q = source.setup(tran);
 		Header hdr = q.header();
 		List<String> fields = tran.ck_getTable(table).getFields();
 		Row row;

@@ -1,17 +1,14 @@
 package suneido.database.server;
 
 import suneido.SuException;
-import suneido.database.*;
+import suneido.database.Record;
+import suneido.database.Transaction;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 
 public class DbmsTranLocal implements DbmsTran {
 	final Transaction t;
-
-	public DbmsTranLocal(boolean readwrite) {
-		t = readwrite ? TheDb.db().readwriteTran() : TheDb.db().readonlyTran();
-	}
 
 	public DbmsTranLocal(Transaction t) {
 		this.t = t;

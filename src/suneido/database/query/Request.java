@@ -9,7 +9,7 @@ import static suneido.util.Util.listToCommas;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.database.TheDb;
+import suneido.database.Database;
 import suneido.database.server.ServerData;
 import suneido.language.Lexer;
 
@@ -18,20 +18,22 @@ import suneido.language.Lexer;
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
+	private final Database db;
 	private final ServerData serverData;
 
-	public Request(ServerData serverData) {
+	private Request(Database db, ServerData serverData) {
+		this.db = db;
 		this.serverData = serverData;
 	}
 
-	public static void execute(String s) {
-		Request.execute(null, s);
+	public static void execute(Database db, String s) {
+		Request.execute(db, null, s);
 	}
 
-	public static void execute(ServerData serverData, String s) {
+	public static void execute(Database db, ServerData serverData, String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
-		Request generator = new Request(serverData);
+		Request generator = new Request(db, serverData);
 		ParseRequest<Object> pc = new ParseRequest<Object>(lexer, generator);
 		pc.parse();
 	}
@@ -49,14 +51,14 @@ public class Request implements RequestGenerator<Object> {
 		Schema schema = (Schema) schemaOb;
 		if (!schema.hasKey())
 			throw new SuException("key required for: " + table);
-		TheDb.db().addTable(table);
+		db.addTable(table);
 		createSchema(table, schema);
 		return null;
 	}
 
 	private void createSchema(String table, Schema schema) {
 		for (String column : schema.columns)
-			TheDb.db().addColumn(table, column);
+			db.addColumn(table, column);
 		for (Index index : schema.indexes)
 			index.create(table);
 	}
@@ -65,11 +67,11 @@ public class Request implements RequestGenerator<Object> {
 	public Object ensure(String tablename, Object schemaOb) {
 		// TODO should probably be all in one transaction
 		Schema schema = (Schema) schemaOb;
-		if (TheDb.db().ensureTable(tablename))
+		if (db.ensureTable(tablename))
 			createSchema(tablename, schema);
 		else {
 			for (String col : schema.columns)
-					TheDb.db().ensureColumn(tablename, col);
+					db.ensureColumn(tablename, col);
 			for (Index index : schema.indexes)
 				index.ensure(tablename);
 		}
@@ -86,9 +88,9 @@ public class Request implements RequestGenerator<Object> {
 	public Object alterDrop(String table, Object schemaOb) {
 		Schema schema = (Schema) schemaOb;
 		for (String col : schema.columns)
-			TheDb.db().removeColumn(table, col);
+			db.removeColumn(table, col);
 		for (Index index : schema.indexes)
-			TheDb.db().removeIndex(table, listToCommas(index.columns));
+			db.removeIndex(table, listToCommas(index.columns));
 		return null;
 	}
 
@@ -101,13 +103,13 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object rename(String from, String to) {
-		TheDb.db().renameTable(from, to);
+		db.renameTable(from, to);
 		return null;
 	}
 
 	@Override
 	public Object view(String name, String definition) {
-		TheDb.db().addView(name, definition);
+		db.addView(name, definition);
 		return null;
 	}
 
@@ -123,7 +125,7 @@ public class Request implements RequestGenerator<Object> {
 	public Object drop(String table) {
 		if (serverData.getSview(table) != null)
 			serverData.dropSview(table);
-		else if (!TheDb.db().removeTable(table))
+		else if (! db.removeTable(table))
 			throw new SuException("nonexistent table: " + table);
 		return null;
 	}
@@ -147,7 +149,7 @@ public class Request implements RequestGenerator<Object> {
 		return new ForeignKey(table, columns, mode);
 	}
 
-	static class Index {
+	private class Index {
 		boolean key;
 		boolean unique;
 		List<String> columns;
@@ -162,13 +164,13 @@ public class Request implements RequestGenerator<Object> {
 
 		void create(String table) {
 			assert (in != null);
-			TheDb.db().addIndex(table, listToCommas(columns), key, unique,
+			db.addIndex(table, listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
 		void ensure(String table) {
 			assert (in != null);
-			TheDb.db().ensureIndex(table, listToCommas(columns), key, unique,
+			db.ensureIndex(table, listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
@@ -187,7 +189,7 @@ public class Request implements RequestGenerator<Object> {
 		return list;
 	}
 
-	static class Rename {
+	private class Rename {
 		String from;
 		String to;
 
@@ -196,7 +198,7 @@ public class Request implements RequestGenerator<Object> {
 			this.to = to;
 		}
 		void rename(String table) {
-			TheDb.db().renameColumn(table, from, to);
+			db.renameColumn(table, from, to);
 		}
 	}
 

@@ -4,15 +4,14 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.database.Database;
 import suneido.database.Mode;
-import suneido.database.TheDb;
 
 public class DbCompactTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void empty() {
-		TheDb.open(filename, Mode.CREATE);
-		TheDb.close();
+		new Database(filename, Mode.CREATE).close();
 		int n = dbcompact();
 		assertEquals(1, n);
 		dbcheck();
@@ -20,11 +19,11 @@ public class DbCompactTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void simple() {
-		TheDb.open(filename, Mode.CREATE);
+		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
 		} finally {
-			TheDb.close();
+			db.close();
 		}
 		dbcompact();
 		dbcheck();
