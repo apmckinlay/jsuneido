@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -12,20 +16,18 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Methods to add/update/remove records.
- *
- * @author Andrew McKinlay
  */
 @ThreadSafe
-public class Data {
+class Data {
 
 	// add record ===================================================
 
-	public static void addRecord(Transaction tran, String tablename, Record r) {
+	static void addRecord(Transaction tran, String tablename, Record r) {
 		checkForSystemTable(tablename, "add record to");
 		add_any_record(tran, tablename, r);
 	}
 
-	public static void add_any_record(Transaction tran, String tablename, Record r) {
+	static void add_any_record(Transaction tran, String tablename, Record r) {
 		add_any_record(tran, tran.ck_getTable(tablename), r);
 	}
 
@@ -37,14 +39,14 @@ public class Data {
 		verify(!table.indexes.isEmpty());
 		truncate(table, rec);
 
-		if (!tran.db.loading)
+		if (!tran.db.isLoading())
 			fkey_source_block(tran, table, rec, "add record to " + table.name);
 
 		long adr = tran.db.output(table.num, rec);
 		add_index_entries(tran, table, rec, adr);
 		tran.create_act(table.num, adr);
 
-		if (!tran.db.loading)
+		if (!tran.db.isLoading())
 			Triggers.call(tran, table, null, rec);
 
 		if (tran.isAborted())
@@ -52,7 +54,7 @@ public class Data {
 					+ " transaction conflict: " + tran.conflict());
 	}
 
-	public static long outputRecordForCompact(Transaction tran, int tblnum, Record rec) {
+	static long outputRecordForCompact(Transaction tran, int tblnum, Record rec) {
 		long adr = tran.db.output(tblnum, rec);
 		tran.create_act(tblnum, adr);
 		tran.updateTableData(tran.getTableData(tblnum).with(rec.packSize()));
@@ -216,7 +218,7 @@ public class Data {
 
 		tran.updateTableData(tran.getTableData(table.num).without(rec.packSize()));
 
-		if (!tran.db.loading)
+		if (!tran.db.isLoading())
 			Triggers.call(tran, table, rec, null);
 
 		if (tran.isAborted())

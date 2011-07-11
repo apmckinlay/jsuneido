@@ -1,18 +1,23 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import java.text.SimpleDateFormat;
 
 import suneido.util.ByteBuf;
 
+//TODO remove use by query History
 public class Commit {
 	private final ByteBuf buf;
-	final static int INTSIZE = 4;
-	final static int LONGSIZE = 8;
-	final static int DATE = 0;
-	final static int NUM = DATE + LONGSIZE;
-	final static int NCREATES = NUM + INTSIZE;
-	final static int NDELETES = NCREATES + INTSIZE;
-	final static int CREATES = NDELETES + INTSIZE;
+	static final int INTSIZE = 4;
+	static final int LONGSIZE = 8;
+	static final int DATE = 0;
+	static final int NUM = DATE + LONGSIZE;
+	static final int NCREATES = NUM + INTSIZE;
+	static final int NDELETES = NCREATES + INTSIZE;
+	static final int CREATES = NDELETES + INTSIZE;
 	final int DELETES;
 	final int CKSUM;
 

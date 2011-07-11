@@ -1,12 +1,11 @@
-package suneido.database.tools;
+package suneido.database;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.database.Database;
-import suneido.database.Mode;
-import suneido.database.tools.DbCheck.Status;
+import suneido.database.*;
+import suneido.database.DbCheck.Status;
 
 public class DbCheckTest extends DbCheckRebuildTestBase {
 

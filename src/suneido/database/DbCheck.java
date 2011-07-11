@@ -2,13 +2,12 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database.tools;
+package suneido.database;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 
-import suneido.database.*;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;

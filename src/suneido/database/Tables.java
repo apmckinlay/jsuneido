@@ -14,11 +14,11 @@ import suneido.util.PersistentMap;
  * Immutable persistent so threadsafe.
  */
 @Immutable
-public class Tables {
+class Tables {
 	private final PersistentMap<Integer, Table> bynum;
 	private final PersistentMap<String, Table> byname;
 
-	public Tables() {
+	Tables() {
 		this.bynum = PersistentMap.empty();
 		this.byname = PersistentMap.empty();
 	}
@@ -29,19 +29,19 @@ public class Tables {
 		this.byname = byname;
 	}
 
-	public Table get(int tblnum) {
+	Table get(int tblnum) {
 		return bynum.get(tblnum);
 	}
 
-	public Table get(String tblname) {
+	Table get(String tblname) {
 		return byname.get(tblname);
 	}
 
-	public Tables with(Table tbl) {
+	Tables with(Table tbl) {
 		return new Tables(bynum.with(tbl.num, tbl), byname.with(tbl.name, tbl));
 	}
 
-	public Tables without(Table tbl) {
+	Tables without(Table tbl) {
 		// look up old name to handle rename
 		Table old = bynum.get(tbl.num);
 		if (old == null)
@@ -49,18 +49,18 @@ public class Tables {
 		return new Tables(bynum.without(tbl.num), byname.without(old.name));
 	}
 
-	public static class Builder {
+	static class Builder {
 		private final PersistentMap.Builder<Integer, Table> bynum =
 				PersistentMap.builder();
 		private final PersistentMap.Builder<String, Table> byname =
 				PersistentMap.builder();
 
-		public void add(Table tbl) {
+		void add(Table tbl) {
 			bynum.put(tbl.num, tbl);
 			byname.put(tbl.name, tbl);
 		}
 
-		public Tables build() {
+		Tables build() {
 			return new Tables(bynum.build(), byname.build());
 		}
 	}

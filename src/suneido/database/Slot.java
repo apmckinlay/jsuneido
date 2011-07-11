@@ -7,22 +7,20 @@ package suneido.database;
 import java.nio.ByteBuffer;
 
 /**
- * Holds an index node "slot" while in memory.
- * Comparisons are by key only. (not address)
- * Used with {@link Slots}
- * Addresses (file offsets) are stored as int's
+ * Holds an index node "slot" while in memory. Comparisons are by key only. (not
+ * address) Used with {@link Slots} Addresses (file offsets) are stored as int's
  * by aligning and shifting right. (See {@link Mmfile})
  */
-public class Slot implements suneido.Packable, Comparable<Slot> {
-	public final Record key;
-	public final long adr;
+class Slot implements suneido.Packable, Comparable<Slot> {
+	final Record key;
+	final long adr;
 
-	public Slot(Record key) {
+	Slot(Record key) {
 		this.key = key;
 		adr = -1;
 	}
 
-	public Slot(Record key, long adr) {
+	Slot(Record key, long adr) {
 		this.key = key;
 		this.adr = adr;
 	}
@@ -36,6 +34,7 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 		return 0 == compareTo((Slot) other);
 	}
 
+	@Override
 	public int compareTo(Slot other) {
 		return key.compareTo(other.key);
 	}
@@ -45,12 +44,16 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 		throw new UnsupportedOperationException();
 	}
 
-	public int packSize() {
+	int packSize() {
 		return packSize(0);
 	}
+
+	@Override
 	public int packSize(int nest) {
 		return key.packSize(nest + 1) + (adr == -1 ? 0 : 4);
 	}
+
+	@Override
 	public void pack(ByteBuffer buf) {
 		key.pack(buf);
 		if (adr != -1)
@@ -59,11 +62,12 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 
 	/**
 	 *
-	 * @param buf A ByteBuffer containing a packed Slot.
-	 * 		<b>Note:</b> The limit of the buffer must be correct.
+	 * @param buf
+	 *            A ByteBuffer containing a packed Slot. <b>Note:</b> The limit
+	 *            of the buffer must be correct.
 	 * @return A new Slot containing the values from the buffer.
 	 */
-	public static Slot unpack(ByteBuffer buf) {
+	static Slot unpack(ByteBuffer buf) {
 		Record key = new Record(buf);
 		if (buf.limit() <= key.bufSize())
 			return new Slot(key);
@@ -81,18 +85,18 @@ public class Slot implements suneido.Packable, Comparable<Slot> {
 		return sb.toString();
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return key.isEmpty();
 	}
 
 	/**
 	 * @return The address at the end of the key. (not from adr)
 	 */
-	public long keyadr() {
+	long keyadr() {
 		return key.getMmoffset(key.size() - 1);
 	}
 
-	public Slot dup() {
+	Slot dup() {
 		return key == Record.MINREC ? this : new Slot(key.dup(), adr);
 	}
 }

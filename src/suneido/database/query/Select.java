@@ -425,9 +425,9 @@ public class Select extends Query1 {
 		int best_size = Integer.MAX_VALUE;
 		// look for smallest index starting with field
 		for (List<String> idx : theindexes)
-			if (idx.get(0).equals(field) && tbl.indexsize(idx) < best_size) {
+			if (idx.get(0).equals(field) && tbl.indexSize(idx) < best_size) {
 				best_index = idx;
-				best_size = tbl.indexsize(idx);
+				best_size = tbl.indexSize(idx);
 			}
 		if (nil(best_index))
 			return .5;
@@ -570,7 +570,7 @@ public class Select extends Query1 {
 
 	@SuppressWarnings("unchecked")
 	private double primarycost(List<String> idx) {
-		double index_read_cost = ifracs.get(idx) * tbl.indexsize(idx);
+		double index_read_cost = ifracs.get(idx) * tbl.indexSize(idx);
 
 		double data_frac =
 				idx.containsAll(select_needs) && idx.containsAll(prior_needs)
@@ -651,7 +651,7 @@ public class Select extends Query1 {
 			for (Keyrange range : selects(ix, iselects(ix))) {
 				for (source.select(ix, range.org, range.end);
 						null != source.get(Dir.NEXT); )
-					if (matches(ix, tbl.iter.cur().key)
+					if (matches(ix, tbl.iter.curKey())
 							&& (f == null || f.contains(tbl.iter.keyadr())))
 						newset.add(tbl.iter.keyadr());
 			}

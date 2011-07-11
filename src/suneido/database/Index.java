@@ -16,20 +16,20 @@ import com.google.common.collect.ImmutableList;
  * Used by {@link Database} and {@link Indexes} to handle a single index.
  */
 public class Index {
-	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
+	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
-	public final int tblnum;
+	final int tblnum;
 	public final String columns;
-	public final ImmutableList<Integer> colnums;
-	public final boolean isKey;
-	public final boolean unique;
+	final ImmutableList<Integer> colnums;
+	final boolean isKey;
+	final boolean unique;
 	final ForeignKey fksrc;
 	final ImmutableList<ForeignKey> fkdsts;
 
-	public Index(Record record, String columns, ImmutableList<Integer> colnums,
+	Index(Record record, String columns, ImmutableList<Integer> colnums,
 			List<Record> fkdstrecs) {
 		verify(record.off() != 0);
 		this.tblnum = record.getInt(TBLNUM);
@@ -65,11 +65,11 @@ public class Index {
 				"(" + columns + ")";
 	}
 
-	public static String getColumns(Record r) {
+	static String getColumns(Record r) {
 		return r.getString(COLUMNS);
 	}
 
-	public boolean isKey() {
+	boolean isKey() {
 		return isKey;
 	}
 
@@ -102,7 +102,7 @@ public class Index {
 		}
 	}
 
-	public boolean hasColumn(String name) {
+	boolean hasColumn(String name) {
 		return ("," + columns + ",").contains("," + name + ",");
 	}
 

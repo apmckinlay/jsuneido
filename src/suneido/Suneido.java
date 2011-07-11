@@ -9,10 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 
-import suneido.database.Database;
-import suneido.database.Mode;
+import suneido.database.*;
 import suneido.database.server.DbmsServer;
-import suneido.database.tools.*;
 import suneido.language.Compiler;
 import suneido.util.Print;
 
@@ -45,11 +43,11 @@ public class Suneido {
 		errlog("UNCAUGHT: " + s + ": " + e, e);
 	}
 
-	public synchronized static void errlog(String s) {
+	public static synchronized void errlog(String s) {
 		errlog(s, null);
 	}
 
-	public synchronized static void errlog(String s, Throwable err) {
+	public static synchronized void errlog(String s, Throwable err) {
 		System.out.println(s);
 		try {
 			FileWriter fw = new FileWriter("error.log", true);
@@ -144,7 +142,7 @@ public class Suneido {
 		}, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(new Runnable() {
 			public void run() {
-				db.dest.force();
+				db.force();
 			}
 		}, 1, TimeUnit.MINUTES);
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);

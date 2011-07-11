@@ -35,55 +35,55 @@ public class Table extends Query {
 	}
 
 	@Override
-		double optimize2(List<String> index, Set<String> needs,
-				Set<String> firstneeds, boolean is_cursor, boolean freeze) {
-			singleton = tbl.singleton();
+	double optimize2(List<String> index, Set<String> needs,
+			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
+		singleton = tbl.singleton();
 
-			assert columns().containsAll(needs);
-			if (!columns().containsAll(index))
-				return IMPOSSIBLE;
+		assert columns().containsAll(needs);
+		if (!columns().containsAll(index))
+			return IMPOSSIBLE;
 
-			List<List<String>> idxs = indexes();
-			if (nil(idxs))
-				return IMPOSSIBLE;
-			if (singleton) {
-				idx = nil(index) ? idxs.get(0) : index;
-				return recordsize();
-			}
-			double cost1 = IMPOSSIBLE;
-			double cost2 = IMPOSSIBLE;
-			double cost3 = IMPOSSIBLE;
-			List<String> idx1, idx2 = null, idx3 = null;
-
-			if (!nil(idx1 = match(idxs, index, needs)))
-				// index found that meets all needs
-				cost1 = nrecords() * keysize(idx1); // cost of reading index
-			if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
-				// index found that meets firstneeds
-				// assume this means we only have to read 75% of data
-				cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-				nrecords() * keysize(idx2); // cost of reading index
-			if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
-				cost3 = nrecords() * recordsize() + // cost of reading data
-				nrecords() * keysize(idx3); // cost of reading index
-			//System.out.println("Table have " + indexes() + " want " + index);
-			//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
-			//	+ idx3 + " = " + cost3);
-
-			double cost;
-			if (cost1 <= cost2 && cost1 <= cost3) {
-				cost = cost1;
-				idx = idx1;
-			} else if (cost2 <= cost1 && cost2 <= cost3) {
-				cost = cost2;
-				idx = idx2;
-			} else {
-				cost = cost3;
-				idx = idx3;
-			}
-
-			return cost;
+		List<List<String>> idxs = indexes();
+		if (nil(idxs))
+			return IMPOSSIBLE;
+		if (singleton) {
+			idx = nil(index) ? idxs.get(0) : index;
+			return recordsize();
 		}
+		double cost1 = IMPOSSIBLE;
+		double cost2 = IMPOSSIBLE;
+		double cost3 = IMPOSSIBLE;
+		List<String> idx1, idx2 = null, idx3 = null;
+
+		if (!nil(idx1 = match(idxs, index, needs)))
+			// index found that meets all needs
+			cost1 = nrecords() * keysize(idx1); // cost of reading index
+		if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
+			// index found that meets firstneeds
+			// assume this means we only have to read 75% of data
+			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
+			nrecords() * keysize(idx2); // cost of reading index
+		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
+			cost3 = nrecords() * recordsize() + // cost of reading data
+			nrecords() * keysize(idx3); // cost of reading index
+		//System.out.println("Table have " + indexes() + " want " + index);
+		//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
+		//	+ idx3 + " = " + cost3);
+
+		double cost;
+		if (cost1 <= cost2 && cost1 <= cost3) {
+			cost = cost1;
+			idx = idx1;
+		} else if (cost2 <= cost1 && cost2 <= cost3) {
+			cost = cost2;
+			idx = idx2;
+		} else {
+			cost = cost3;
+			idx = idx3;
+		}
+
+		return cost;
+	}
 
 	@Override
 	List<String> columns() {
@@ -149,14 +149,13 @@ public class Table extends Query {
 		if (nrecs == 0)
 			return 0;
 		BtreeIndex idx = getBtreeIndex(index);
-		int nnodes = idx.nnodes();
-		int nodesize = Btree.NODESIZE / (nnodes <= 1 ? 4 : 2);
-		return (nnodes * nodesize) / nrecs;
+		int usage = (idx.nnodes() <= 1 ? 4 : 2);
+		return idx.totalSize() / usage / nrecs;
 	}
 
-	public int indexsize(List<String> index) {
+	int indexSize(List<String> index) {
 		BtreeIndex idx = getBtreeIndex(index);
-		return idx.nnodes() * Btree.NODESIZE + index.size();
+		return idx.totalSize() + index.size();
 		// add index.size() to favor shorter indexes
 	}
 
@@ -211,7 +210,7 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.cur().key, tran.db.input(iter.keyadr()));
+		Row row = new Row(iter.curKey(), tran.db.input(iter.keyadr()));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;

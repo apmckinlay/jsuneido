@@ -1,4 +1,4 @@
-package suneido.database.tools;
+package suneido.database;
 
 import static suneido.util.Util.stringToBuffer;
 
@@ -123,7 +123,7 @@ public class DbDump {
 		Table table = t.getTable(tablename);
 		List<String> fields = table.getFields();
 		boolean squeeze = needToSqueeze(fields);
-		Index index = table.indexes.first();
+		Index index = table.firstIndex();
 		BtreeIndex bti = t.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter(t).next();
 		int n = 0;

@@ -18,11 +18,12 @@ public class Library {
 		return libraries;
 	}
 
-	public static Object load(String name) {
+	// client side
+	static Object load(String name) {
 		//System.out.println("LOAD " + name);
 		return TheDbms.isOpen() ? load2(name, TheDbms.dbms().libget(name)) : null;
 	}
-	synchronized private static Object load2(String name, List<LibGet> libgets) {
+	private static synchronized Object load2(String name, List<LibGet> libgets) {
 		Object result = null;
 		for (LibGet libget : libgets) {
 			String src = (String) Pack.unpack(libget.text);
@@ -36,6 +37,7 @@ public class Library {
 		return result;
 	}
 
+	// server side
 	public static List<LibGet> libget(Database db, String name) {
 		List<LibGet> srcs = new ArrayList<LibGet>();
 		Record key = new Record();
@@ -50,14 +52,11 @@ public class Library {
 				List<String> flds = table.getFields();
 				int group_fld = flds.indexOf("group");
 				int text_fld = flds.indexOf("text");
-				BtreeIndex bti = tran.getBtreeIndex(table.num, "name,group");
-				if (group_fld < 0 || text_fld < 0 || bti == null)
+				if (group_fld < 0 || text_fld < 0)
 					continue; // library is invalid, ignore it
-				BtreeIndex.Iter iter = bti.iter(tran, key).next();
-				if (!iter.eof()) {
-					Record rec = db.input(iter.keyadr());
+				Record rec = tran.lookup(table.num, "name,group", key);
+				if (rec != null)
 					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
-				}
 			}
 		} finally {
 			tran.complete();

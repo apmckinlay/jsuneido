@@ -1,4 +1,4 @@
-package suneido.database.tools;
+package suneido.database;
 
 import static suneido.SuException.verify;
 

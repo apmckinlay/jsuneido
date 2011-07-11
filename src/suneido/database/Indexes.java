@@ -15,53 +15,54 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 @Immutable
-public class Indexes implements Iterable<Index> {
+class Indexes implements Iterable<Index> {
 
 	private final ImmutableList<Index> indexes;
 
-	public Indexes(ImmutableList<Index> indexes) {
+	Indexes(ImmutableList<Index> indexes) {
 		this.indexes = indexes;
 	}
 
+	@Override
 	public Iterator<Index> iterator() {
 		return indexes.iterator();
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return indexes.isEmpty();
 	}
 
-	public boolean hasIndex(String columns) {
+	boolean hasIndex(String columns) {
 		return get(columns) != null;
 	}
 
-	public Index get(String columns) {
+	Index get(String columns) {
 		for (Index index : indexes)
 			if (columns.equals(index.columns))
 				return index;
 		return null;
 	}
 
-	public Index first() {
+	Index first() {
 		return indexes.get(0);
 	}
 
-	public int size() {
+	int size() {
 		return indexes.size();
 	}
 
-	public Index firstKey() {
+	Index firstKey() {
 		for (Index index : indexes)
 			if (index.isKey())
 				return index;
 		return null;
 	}
 
-	public List<List<String>> columns() {
+	List<List<String>> columns() {
 		return columns(false);
 	}
 
-	public List<List<String>> keysColumns() {
+	List<List<String>> keysColumns() {
 		return columns(true);
 	}
 

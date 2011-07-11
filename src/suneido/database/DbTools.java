@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database.tools;
+package suneido.database;
 
 import java.io.*;
 

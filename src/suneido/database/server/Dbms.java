@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import java.net.InetAddress;
@@ -13,9 +17,6 @@ import suneido.database.query.Query.Dir;
  * The interface between Suneido and the database. Used to hide the difference
  * between a local database ({@link DbmsLocal})
  * and a remote database ({@link DbmsRemote}).
- *
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public abstract class Dbms {
 	public abstract DbmsTran transaction(boolean readwrite);

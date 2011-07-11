@@ -19,14 +19,14 @@ import com.google.common.collect.ImmutableList;
  */
 @Immutable
 public class Table {
-	public final static int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
-	public final String name;
+	static final int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
+	final String name;
 	public final int num;
-	public final Columns columns;
-	public final Indexes indexes;
-	public final ImmutableList<String> fields;
+	final Columns columns;
+	final Indexes indexes;
+	final ImmutableList<String> fields;
 
-	public Table(Record record, Columns columns, Indexes indexes) {
+	Table(Record record, Columns columns, Indexes indexes) {
 		this.columns = columns;
 		this.indexes = indexes;
 		this.fields = get_fields();
@@ -34,23 +34,23 @@ public class Table {
 		name = record.getString(TABLE);
 	}
 
-	public boolean hasColumn(String name) {
+	boolean hasColumn(String name) {
 		return columns.hasColumn(name);
 	}
 
-	public Column getColumn(String name) {
+	Column getColumn(String name) {
 		return columns.find(name);
 	}
 
-	public int maxColumnNum() {
+	int maxColumnNum() {
 		return columns.maxNum();
 	}
 
-	public boolean hasIndexes() {
+	boolean hasIndexes() {
 		return !indexes.isEmpty();
 	}
 
-	public boolean hasIndex(String columns) {
+	boolean hasIndex(String columns) {
 		return indexes.hasIndex(columns);
 	}
 
@@ -58,7 +58,7 @@ public class Table {
 		return indexes.first();
 	}
 
-	public Index getIndex(String columns) {
+	Index getIndex(String columns) {
 		return indexes.get(columns);
 	}
 
@@ -122,12 +122,12 @@ public class Table {
 		return sb.toString();
 	}
 
-	public static Record record(String name, int num,
+	static Record record(String name, int num,
 			int nextfield, int nrecords) {
 		return record(name, num, nextfield, nrecords, totalsize(num));
 	}
 
-	public static Record record(String name, int num,
+	static Record record(String name, int num,
 			int nextfield, int nrecords, int totalsize) {
 		Record r = new Record();
 		r.add(num).add(name).add(nextfield).add(nrecords).add(totalsize);
@@ -148,7 +148,7 @@ public class Table {
 		}
 	}
 
-	public static void update(Record record, int nextfield, int nrecords, int totalsize) {
+	static void update(Record record, int nextfield, int nrecords, int totalsize) {
 		assert record.off() != 0;
 		int n = record.packSize();
 		record.truncate(Table.NEXTFIELD);

@@ -13,41 +13,41 @@ public class RequestTest extends TestBase {
 	public void test() {
 		String schema = "(a,b,c) key(a)";
 		Request.execute(db, "create test " + schema);
-		assertEquals(schema, db.getTable("test").schema());
+		assertEquals(schema, db.getSchema("test"));
 
 		Request.execute(db, "ensure test2 " + schema);
-		assertEquals(schema, db.getTable("test2").schema());
+		assertEquals(schema, db.getSchema("test2"));
 
 		Request.execute(db, "ensure test (c,d,e) KEY(a) INDEX(b,c)");
 		schema = "(a,b,c,d,e) key(a) index(b,c)";
-		assertEquals(schema, db.getTable("test").schema());
+		assertEquals(schema, db.getSchema("test"));
 
 		String extra = " index(c) in other(cc)";
 		Request.execute(db, "alter test create" + extra);
-		assertEquals(schema + extra, db.getTable("test").schema());
+		assertEquals(schema + extra, db.getSchema("test"));
 
 		Request.execute(db, "ALTER test DROP index(c)");
-		assertEquals(schema, db.getTable("test").schema());
+		assertEquals(schema, db.getSchema("test"));
 
 		Request.execute(db, "alter test rename b to bb");
 		schema = "(a,bb,c,d,e) key(a) index(bb,c)";
-		assertEquals(schema, db.getTable("test").schema());
+		assertEquals(schema, db.getSchema("test"));
 
 		Request.execute(db, "alter test drop (d,e)");
 		schema = "(a,bb,c) key(a) index(bb,c)";
-		assertEquals(schema, db.getTable("test").schema());
+		assertEquals(schema, db.getSchema("test"));
 
 		Request.execute(db, "RENAME test TO tmp");
-		assertEquals(schema, db.getTable("tmp").schema());
-		assertNull(db.getTable("test"));
+		assertEquals(schema, db.getSchema("tmp"));
+		assertNull(db.getSchema("test"));
 
 		Request.execute(db, serverData, "drop tmp");
-		assertNull(db.getTable("tmp"));
+		assertNull(db.getSchema("tmp"));
 
 		Request.execute(db, "create tmp (aField) key(aField)");
 
 		Request.execute(db, serverData, "drop tmp");
-		assertNull(db.getTable("tmp"));
+		assertNull(db.getSchema("tmp"));
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class RequestTest extends TestBase {
 	@Test
 	public void test_parse_eof() {
 		Request.execute(db, "create tmp (aField) key(aField)");
-		assertNotNull(db.getTable("tmp"));
+		assertNotNull(db.getSchema("tmp"));
 		try {
 			Request.execute(db, serverData, "drop tmp extra");
 			fail("should have got an exception");
@@ -74,7 +74,7 @@ public class RequestTest extends TestBase {
 			assertEquals("syntax error at line 1: expected: EOF got: IDENTIFIER",
 					e.toString());
 		}
-		assertNotNull(db.getTable("tmp"));
+		assertNotNull(db.getSchema("tmp"));
 	}
 
 }

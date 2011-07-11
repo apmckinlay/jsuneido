@@ -21,17 +21,17 @@ import com.google.common.collect.ImmutableList;
  * schema update operations
  */
 @ThreadSafe // no state, all static methods
-public class Schema {
+class Schema {
 
 	// tables =======================================================
 
-	public static void addTable(Database db, String tablename) {
+	static void addTable(Database db, String tablename) {
 		if (!ensureTable(db, tablename))
 			throw new SuException("add table: table already exists: " + tablename);
 	}
 
 	/** returns false if table already exists */
-	public static boolean ensureTable(Database db, String tablename) {
+	static boolean ensureTable(Database db, String tablename) {
 		int tblnum = db.getNextTableNum();
 		Transaction tran = db.readwriteTran();
 		try {
@@ -48,7 +48,7 @@ public class Schema {
 	}
 
 	/** returns false if table does not exist */
-	public static boolean removeTable(Database db, String tablename) {
+	static boolean removeTable(Database db, String tablename) {
 		checkForSystemTable(tablename, "drop");
 		Transaction tran = db.readwriteTran();
 		try {
@@ -78,7 +78,7 @@ public class Schema {
 					" system table: " + tablename);
 	}
 
-	public static boolean isSystemTable(String table) {
+	static boolean isSystemTable(String table) {
 		return table.equals("tables") || table.equals("columns")
 				|| table.equals("indexes") || table.equals("views");
 	}
@@ -99,7 +99,7 @@ public class Schema {
 				|| (table.equals("indexes") && columns.equals("table,columns"));
 	}
 
-	public static void renameTable(Database db, String oldname, String newname) {
+	static void renameTable(Database db, String oldname, String newname) {
 		if (oldname.equals(newname))
 			return ;
 
@@ -122,13 +122,13 @@ public class Schema {
 
 	// columns ======================================================
 
-	public static void addColumn(Database db, String tablename, String column) {
+	static void addColumn(Database db, String tablename, String column) {
 		if (!ensureColumn(db, tablename, column))
 			throw new SuException("add column: column already exists: "
 					+ column + " in " + tablename);
 	}
 
-	public static boolean ensureColumn(Database db, String tablename, String column) {
+	static boolean ensureColumn(Database db, String tablename, String column) {
 		synchronized(db.commitLock) {
 			Transaction tran = db.readwriteTran();
 			try {
@@ -160,7 +160,7 @@ public class Schema {
 		return Character.isUpperCase(column.charAt(0));
 	}
 
-	public static void removeColumn(Database db, String tablename, String name) {
+	static void removeColumn(Database db, String tablename, String name) {
 		if (isSystemColumn(tablename, name))
 			throw new SuException("delete column: can't delete system column: "
 					+ name + " from " + tablename);
@@ -192,7 +192,7 @@ public class Schema {
 		Data.remove_any_record(tran, "columns", "table,column", key(tbl.num, name));
 	}
 
-	public static void renameColumn(Database db, String tablename, String oldname, String newname) {
+	static void renameColumn(Database db, String tablename, String oldname, String newname) {
 		if (oldname.equals(newname))
 			return ;
 
@@ -242,7 +242,7 @@ public class Schema {
 
 	// indexes ======================================================
 
-	public static void addIndex(Database db, String tablename, String columns,
+	static void addIndex(Database db, String tablename, String columns,
 			boolean isKey, boolean unique, String fktablename,
 			String fkcolumns, int fkmode) {
 			if (!ensureIndex(db, tablename, columns, isKey, unique,
@@ -250,7 +250,7 @@ public class Schema {
 				throw new SuException("add index: index already exists: " + columns
 						+ " in " + tablename);
 	}
-	public static boolean ensureIndex(Database db, String tablename, String columns,
+	static boolean ensureIndex(Database db, String tablename, String columns,
 			boolean isKey, boolean unique, String fktablename,
 			String fkcolumns, int fkmode) {
 		if (fkcolumns == null || fkcolumns.equals(""))
@@ -322,7 +322,7 @@ public class Schema {
 		}
 	}
 
-	public static void removeIndex(Database db, String tablename, String columns) {
+	static void removeIndex(Database db, String tablename, String columns) {
 		if (isSystemIndex(tablename, columns))
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);

@@ -14,7 +14,6 @@ public class ProjectTest {
 
 	@Test
 	public void test() {
-//		TheDb.set(db);
 		try {
 			Request.execute(db, "create tmp (a,b) key(a)");
 			req("insert { a: 1 } into tmp");

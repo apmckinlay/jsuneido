@@ -48,15 +48,15 @@ public class Transaction implements Comparable<Transaction> {
 	private List<Table> update_tables = null;
 	private Table remove_table = null;
 	private /*final*/  Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
-	public static final Transaction NULLTRAN = new NullTransaction();
+	static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 5000;
 	private /*final*/  Shadows shadows = new Shadows();
 	private volatile int shadowSizeAtLastActivity = 0;
 
-	Transaction(Transactions trans, boolean readonly, Tables tables,
-			PersistentMap<Integer, TableData> tabledata,
-			PersistentMap<String, BtreeIndex> btreeIndexes) {
-		this.db = trans.db;
+	Transaction(Database db, Transactions trans, boolean readonly,
+			Tables tables,
+			PersistentMap<Integer, TableData> tabledata, PersistentMap<String, BtreeIndex> btreeIndexes) {
+		this.db = db;
 		this.trans = trans;
 		this.readonly = readonly;
 		asof = trans.clock();
@@ -197,7 +197,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	// used by Schema
-	public synchronized void addBtreeIndex(BtreeIndex bti) {
+	synchronized void addBtreeIndex(BtreeIndex bti) {
 		notEnded();
 		bti.setDest(new DestTran(this, bti.getDest()));
 		btreeIndexCopies.put(bti.tblnum + ":" + bti.columns, bti);
@@ -205,20 +205,20 @@ public class Transaction implements Comparable<Transaction> {
 
 	// actions
 
-	public synchronized void create_act(int tblnum, long adr) {
+	synchronized void create_act(int tblnum, long adr) {
 		verify(!readonly);
 		if (isAborted())
 			return;
 		notEnded();
-		addWrite(TranWrite.create(tblnum, adr, trans.clock()));
+		addWrite(TranWrite.create(tblnum, adr));
 	}
 
-	public synchronized void delete_act(int tblnum, long adr) {
+	synchronized void delete_act(int tblnum, long adr) {
 		verify(!readonly);
 		if (isAborted())
 			return;
 		notEnded();
-		addWrite(TranWrite.delete(tblnum, adr, trans.clock()));
+		addWrite(TranWrite.delete(tblnum, adr));
 	}
 
 	private void addWrite(TranWrite tw) {
@@ -232,7 +232,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	// Used by Data.update_record
-	public synchronized void undo_delete_act(int tblnum, long adr) {
+	synchronized void undo_delete_act(int tblnum, long adr) {
 		verify(!readonly);
 		TranWrite tw = writes.removeLast();
 		verify(tw.type == TranWrite.Type.DELETE && tw.tblnum == tblnum
@@ -253,7 +253,7 @@ public class Transaction implements Comparable<Transaction> {
 			abort();
 	}
 
-	public synchronized void abortIfNotComplete(String conflict) {
+	synchronized void abortIfNotComplete(String conflict) {
 		if (!ended)
 			abort(conflict);
 	}
@@ -412,6 +412,8 @@ public class Transaction implements Comparable<Transaction> {
 
 	// end of complete ---------------------------------------------------------
 
+	// need for PriorityQueue in Transactions
+	@Override
 	public int compareTo(Transaction that) {
 		return num < that.num ? -1 : num > that.num ? +1 : 0;
 	}
@@ -433,7 +435,7 @@ public class Transaction implements Comparable<Transaction> {
 		}
 	}
 
-	public synchronized void readLock(long offset) {
+	synchronized void readLock(long offset) {
 		notEnded();
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
@@ -455,7 +457,7 @@ public class Transaction implements Comparable<Transaction> {
 			w.inConflict = true;
 	}
 
-	public synchronized void writeLock(long offset) {
+	synchronized void writeLock(long offset) {
 		notEnded();
 		Set<Transaction> readers = trans.writeLock(this, offset);
 		if (readers == null)
@@ -493,7 +495,7 @@ public class Transaction implements Comparable<Transaction> {
 		return Database.getView(this, viewname);
 	}
 
-	public void removeView(String viewname) {
+	void removeView(String viewname) {
 		notEnded();
 		Database.removeView(this, viewname);
 	}
@@ -508,7 +510,7 @@ public class Transaction implements Comparable<Transaction> {
 		return Data.updateRecord(this, recadr, rec);
 	}
 
-	public void updateRecord(String table, String index, Record key,
+	void updateRecord(String table, String index, Record key,
 			Record record) {
 		notEnded();
 		Data.updateRecord(this, table, index, key, record);
@@ -519,7 +521,7 @@ public class Transaction implements Comparable<Transaction> {
 		Data.removeRecord(this, off);
 	}
 
-	public void removeRecord(String tablename, String index, Record key) {
+	void removeRecord(String tablename, String index, Record key) {
 		notEnded();
 		Data.removeRecord(this, tablename, index, key);
 	}
@@ -528,27 +530,27 @@ public class Transaction implements Comparable<Transaction> {
 		return db.input(adr);
 	}
 
-	public int shadowsSize() {
+	int shadowsSize() {
 		return shadows == null ? 0 : shadows.size();
 	}
 
-	public int shadowSizeAtLastActivity() {
+	int shadowSizeAtLastActivity() {
 		return shadowSizeAtLastActivity;
 	}
 
-	public ByteBuf node(Destination dest, long offset) {
+	ByteBuf node(Destination dest, long offset) {
 		notEnded();
 		shadowSizeAtLastActivity = shadows.size();
 		return shadows.node(dest, offset);
 	}
 
-	public ByteBuf nodeForWrite(Destination dest, long offset) {
+	ByteBuf nodeForWrite(Destination dest, long offset) {
 		notEnded();
 		shadowSizeAtLastActivity = shadows.size();
 		return shadows.nodeForWrite(dest, offset);
 	}
 
-	public ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
+	ByteBuf shadow(Destination dest, Long offset, ByteBuf copy) {
 		if (ended)
 			return copy;
 		return shadows.shadow(dest, offset, copy);
@@ -557,6 +559,15 @@ public class Transaction implements Comparable<Transaction> {
 	@Override
 	protected void finalize() throws Throwable {
 		abortIfNotComplete();
+	}
+
+	// used by Library
+	public Record lookup(int tblnum, String index, Record key) {
+		BtreeIndex bti = getBtreeIndex(tblnum, index);
+		if (bti == null)
+			return null;
+		BtreeIndex.Iter iter = bti.iter(this, key).next();
+		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
 }
