@@ -475,4 +475,16 @@ public class DbmsRemote extends Dbms {
 		return io.getInetAddress();
 	}
 
+	@Override
+	public boolean use(String library) {
+		throw new SuException("can't Use('" + library + "')\n" +
+				"When client-server, only the server can Use");
+	}
+
+	@Override
+	public boolean unuse(String library) {
+		throw new SuException("can't Unuse('" + library + "')\n" +
+				"When client-server, only the server can Unuse");
+	}
+
 }
