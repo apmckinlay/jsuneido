@@ -25,7 +25,6 @@ public abstract class Dbms {
 
 	public abstract DbmsQuery cursor(String s);
 
-	public abstract List<String> libraries();
 	public abstract List<Integer> tranlist();
 	public abstract Date timestamp();
 	public abstract void dump(String filename);
@@ -69,7 +68,9 @@ public abstract class Dbms {
 		}
 	}
 	public abstract List<LibGet> libget(String name);
+	public abstract boolean use(String library);
+	public abstract boolean unuse(String library);
+	public abstract List<String> libraries();
 
 	public abstract InetAddress getInetAddress();
-
 }

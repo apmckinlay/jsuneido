@@ -1,5 +1,6 @@
 package suneido.language.builtin;
 
+import suneido.TheDbms;
 import suneido.language.*;
 
 public class Unuse extends SuFunction1 {
@@ -8,7 +9,10 @@ public class Unuse extends SuFunction1 {
 
 	@Override
 	public Object call1(Object a) {
-		return suneido.language.Library.unuse(Ops.toStr(a));
+		if (! TheDbms.dbms().unuse(Ops.toStr(a)))
+			return false;
+		Globals.clear();
+		return true;
 	}
 
 }
