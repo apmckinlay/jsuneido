@@ -4,31 +4,26 @@
 
 package suneido.database.query;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 import suneido.database.*;
-import suneido.util.ByteBuf;
 
 import com.google.common.collect.ImmutableList;
 
 public class History extends Query {
-	String tablename;
-	final suneido.database.Table tbl;
-	private boolean rewound = true;
+	private final String tablename;
+	private final suneido.database.Table tbl;
 	private List<String> columns = null;
 	private Header header = null;
 	private List<List<String>> indexes;
 	private List<List<String>> keys;
-	private final Destination dest;
-	private Mmfile.Iter iter;
-	private Commit commit = null;
-	private int ic;
-	private int id;
+	private final HistoryIterator iter;
 
 	History(Transaction tran, String tablename) {
 		this.tablename = tablename;
 		tbl = tran.ck_getTable(tablename);
-		dest = tran.db.dest;
+		iter = new HistoryIterator(tran, tbl.num);
 	}
 
 	@Override
@@ -95,12 +90,12 @@ public class History extends Query {
 
 	@Override
 	public void rewind() {
-		rewound  = true;
+		iter.rewind();
 	}
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		rewound = true;
+		iter.rewind();
 	}
 
 	@Override
@@ -109,67 +104,10 @@ public class History extends Query {
 
 	@Override
 	public Row get(Dir dir) {
-		if (rewound) {
-			iter = ((Mmfile) dest).iterator();
-			commit = null;
-			rewound = false;
-		}
-		ByteBuf buf;
-		long offset;
-		do 	{
-			offset = dir == Dir.NEXT ? next() : prev();
-			assert ! iter.corrupt();
-			if (offset == 0)
-				return null;
-			buf = dest.adr(offset - 4);
-		} while (buf.getInt(0) != tbl.num);
-		String action = dir == Dir.NEXT
-				? 0 <= ic && ic < commit.getNCreates() ? "create" : "delete"
-				: 0 <= id && id < commit.getNDeletes() ? "delete" : "create";
-		Record r1 = new Record()
-				.add(new Date(commit.getDate()))
-				.add(action);
-		Record r2 = new Record(buf.slice(4), offset);
-		return new Row(Record.MINREC, r1, Record.MINREC, r2);
-	}
-
-	private long next() {
-		while (true) {
-			if (commit != null) {
-				if (id + 1 < commit.getNDeletes())
-					return commit.getDelete(++id);
-				id = commit.getNDeletes();
-				if (ic + 1 < commit.getNCreates())
-					return commit.getCreate(++ic);
-				commit = null;
-			}
-			do {
-				if (! iter.next())
-					return 0;
-			} while (iter.type() != Mmfile.COMMIT);
-			commit = new Commit(iter.current());
-			id = ic = -1;
-		}
-	}
-
-	private long prev() {
-		while (true) {
-			if (commit != null) {
-				if (ic > 0)
-					return commit.getCreate(--ic);
-				ic = -1;
-				if (id > 0)
-					return commit.getDelete(--id);
-				commit = null;
-			}
-			do {
-				if (! iter.prev())
-					return 0;
-			} while (iter.type() != Mmfile.COMMIT);
-			commit = new Commit(iter.current());
-			ic = commit.getNCreates();
-			id = commit.getNDeletes();
-		}
+		Record[] data = dir == Dir.NEXT ? iter.getNext() : iter.getPrev();
+		if (data == null)
+			return null;
+		return new Row(Record.MINREC, data[0], Record.MINREC, data[1]);
 	}
 
 }
