@@ -6,6 +6,8 @@ WhenBuilt.jar
 .DS_Store
 
 install.bat
+clindex_**
+test.go
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
