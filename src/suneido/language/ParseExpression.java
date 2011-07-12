@@ -199,8 +199,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			match();
 		}
 		T term = primary();
-		while (token == DOT || token == L_BRACKET ||
-				token == L_PAREN || token == L_CURLY) {
+		while (token == DOT || token == L_BRACKET || token == L_PAREN || 
+				(token == L_CURLY && ! expectingCompound)) {
 			if (newTerm && token == L_PAREN)
 				return term;
 			if (token == DOT) {
