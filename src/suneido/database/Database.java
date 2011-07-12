@@ -47,6 +47,7 @@ public class Database {
 		static final int NAME = 0, DEFINITION = 1;
 	}
 	private static final int VERSION = 1;
+	private final Triggers triggers = new Triggers();
 
 	public Database(String filename, Mode mode) {
 		this(new File(filename), mode);
@@ -607,6 +608,19 @@ public class Database {
 
 	public void force() {
 		dest.force();
+	}
+
+	public void disableTrigger(String table) {
+		triggers.disableTrigger(table);
+	}
+
+	public void enableTrigger(String table) {
+		triggers.enableTrigger(table);
+	}
+
+	public void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec) {
+		if (! isLoading())
+			triggers.call(tran, table, oldrec, newrec);
 	}
 
 }

@@ -16,12 +16,11 @@ import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 
 @ThreadSafe
-public class Triggers {
-	private static final Multiset<String> disabledTriggers =
+class Triggers {
+	private final Multiset<String> disabledTriggers =
 			ConcurrentHashMultiset.create();
 
-	static void call(Transaction tran, Table table,
-			Record oldrec, Record newrec) {
+	void call(Transaction tran, Table table, Record oldrec, Record newrec) {
 		if (disabledTriggers.contains(table.name))
 			return;
 		String trigger = "Trigger_" + table.name;
@@ -41,11 +40,11 @@ public class Triggers {
 		}
 	}
 
-	public static void disableTrigger(String table) {
+	void disableTrigger(String table) {
 		disabledTriggers.add(table);
 	}
 
-	public static void enableTrigger(String table) {
+	void enableTrigger(String table) {
 		disabledTriggers.remove(table);
 	}
 
