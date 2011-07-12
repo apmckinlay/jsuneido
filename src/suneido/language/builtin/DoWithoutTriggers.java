@@ -1,7 +1,7 @@
 package suneido.language.builtin;
 
 import suneido.SuContainer;
-import suneido.database.Triggers;
+import suneido.TheDbms;
 import suneido.language.*;
 
 public class DoWithoutTriggers extends SuFunction {
@@ -14,11 +14,11 @@ public class DoWithoutTriggers extends SuFunction {
 		SuContainer c = Ops.toContainer(args[0]);
 		try {
 			for (Object x : c.vec)
-				Triggers.disableTrigger(Ops.toStr(x));
+				TheDbms.dbms().disableTrigger(Ops.toStr(x));
 			return Ops.call(args[1]);
 		} finally {
 			for (Object x : c.vec)
-				Triggers.enableTrigger(Ops.toStr(x));
+				TheDbms.dbms().enableTrigger(Ops.toStr(x));
 		}
 	}
 

@@ -46,8 +46,7 @@ class Data {
 		add_index_entries(tran, table, rec, adr);
 		tran.create_act(table.num, adr);
 
-		if (!tran.db.isLoading())
-			Triggers.call(tran, table, null, rec);
+		tran.callTrigger(table, null, rec);
 
 		if (tran.isAborted())
 			throw new SuException("add record to " + table.name
@@ -164,7 +163,7 @@ class Data {
 		tran.create_act(table.num, newoff);
 		tran.updateTableData(tran.getTableData(table.num).with(newrec.packSize()));
 
-		Triggers.call(tran, table, oldrec, newrec);
+		tran.callTrigger(table, oldrec, newrec);
 		return newoff;
 	}
 
@@ -218,8 +217,7 @@ class Data {
 
 		tran.updateTableData(tran.getTableData(table.num).without(rec.packSize()));
 
-		if (!tran.db.isLoading())
-			Triggers.call(tran, table, rec, null);
+		tran.callTrigger(table, rec, null);
 
 		if (tran.isAborted())
 			throw new SuException("delete record from " + table.name

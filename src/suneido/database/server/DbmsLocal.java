@@ -181,4 +181,14 @@ public class DbmsLocal extends Dbms {
 		return ServerEval.exec(c);
 	}
 
+	@Override
+	public void disableTrigger(String table) {
+		db.disableTrigger(table);
+	}
+
+	@Override
+	public void enableTrigger(String table) {
+		db.enableTrigger(table);
+	}
+
 }

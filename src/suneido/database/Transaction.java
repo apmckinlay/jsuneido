@@ -570,4 +570,8 @@ public class Transaction implements Comparable<Transaction> {
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
+	public void callTrigger(Table table, Record oldrec, Record newrec) {
+		db.callTrigger(this, table, oldrec, newrec);
+	}
+
 }

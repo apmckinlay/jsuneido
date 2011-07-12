@@ -73,4 +73,8 @@ public abstract class Dbms {
 	public abstract List<String> libraries();
 
 	public abstract InetAddress getInetAddress();
+
+	public abstract void disableTrigger(String table);
+	public abstract void enableTrigger(String table);
+
 }

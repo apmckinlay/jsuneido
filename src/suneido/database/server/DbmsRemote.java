@@ -487,4 +487,13 @@ public class DbmsRemote extends Dbms {
 				"When client-server, only the server can Unuse");
 	}
 
+	@Override
+	public void disableTrigger(String table) {
+		throw new SuException("When client-server, only the server can DoWithoutTriggers");
+	}
+
+	@Override
+	public void enableTrigger(String table) {
+	}
+
 }
