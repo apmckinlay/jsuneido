@@ -4,6 +4,6 @@
 
 package suneido.database;
 
-public enum Mode {
+enum Mode {
 	CREATE, OPEN, READ_ONLY
 }

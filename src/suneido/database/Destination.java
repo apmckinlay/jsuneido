@@ -11,11 +11,11 @@ import suneido.util.ByteBuf;
  * Normally implemented by {@link Mmfile} but {@link DestMem} is used for
  * tests and in-memory temporary indexes.
  */
-public abstract class Destination {
+abstract class Destination {
 
 	abstract long alloc(int size, byte type);
 
-	public abstract ByteBuf adr(long offset);
+	abstract ByteBuf adr(long offset);
 
 	ByteBuf node(long offset) {
 		return adr(offset);
@@ -37,7 +37,7 @@ public abstract class Destination {
 
 	abstract Destination unwrap();
 
-	public void force() {
+	void force() {
 	}
 
 	abstract boolean checkEnd(byte type, byte value);

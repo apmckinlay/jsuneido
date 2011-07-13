@@ -30,7 +30,7 @@ import suneido.util.ByteBuf;
  * 32gb (max unsigned int (4gb) << 3).
  */
 @ThreadSafe
-public class Mmfile extends Destination {
+class Mmfile extends Destination {
 	private final Mode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
@@ -55,10 +55,10 @@ public class Mmfile extends Destination {
 	private static final int FILESIZE_OFFSET = 4;
 	private static final int BEGIN_OFFSET = FILEHDR + HEADER;
 	private static final byte FILLER = 0;
-	public static final byte DATA = 1;
-	public static final byte COMMIT = 2;
-	public static final byte SESSION = 3;
-	public static final byte OTHER = 4;
+	static final byte DATA = 1;
+	static final byte COMMIT = 2;
+	static final byte SESSION = 3;
+	static final byte OTHER = 4;
 	private static enum MmCheck {
 		OK, ERR, EOF
 	};
@@ -70,11 +70,11 @@ public class Mmfile extends Destination {
 	private int max_chunks_mapped = MAX_CHUNKS_MAPPED;
 
 
-	public Mmfile(String filename, Mode mode) {
+	Mmfile(String filename, Mode mode) {
 		this(new File(filename), mode);
 	}
 
-	public Mmfile(File file, Mode mode) {
+	Mmfile(File file, Mode mode) {
 		if (vmIs64Bit())
 			max_chunks_mapped = MAX_CHUNKS;
 		this.mode = mode;
@@ -187,7 +187,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	synchronized public void force() {
+	synchronized void force() {
 		try {
 			for (int i = 0; i <= hi_chunk; ++i)
 				if (fm[i] != null)
@@ -198,7 +198,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	synchronized public void close() {
+	synchronized void close() {
 		Arrays.fill(fm, null); // might help gc
 		try {
 			fc.close();
@@ -212,11 +212,11 @@ public class Mmfile extends Destination {
 		// this is handled when re-opening
 	}
 
-	public static int offsetToInt(long offset) {
+	static int offsetToInt(long offset) {
 		return (int) (offset >> SHIFT);
 	}
 
-	public static long intToOffset(int i) {
+	static long intToOffset(int i) {
 		return (i & 0xffffffffL) << SHIFT;
 	}
 
@@ -226,12 +226,12 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	public long size() {
+	long size() {
 		return file_size;
 	}
 
 	@Override
-	synchronized public long alloc(int n, byte type) {
+	synchronized long alloc(int n, byte type) {
 		verify(n < chunk_size);
 		n = align(n);
 
@@ -260,7 +260,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	synchronized public ByteBuf adr(long offset) {
+	synchronized ByteBuf adr(long offset) {
 		return buf(offset);
 	}
 
@@ -336,7 +336,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	public int length(long offset) {
+	int length(long offset) {
 		return length(buf(offset - HEADER));
 	}
 
@@ -345,7 +345,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	public byte type(long offset) {
+	byte type(long offset) {
 		return type(buf(offset - HEADER));
 	}
 
@@ -358,13 +358,13 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	public long first() {
+	long first() {
 		return file_size <= FILEHDR ? 0 : BEGIN_OFFSET;
 	}
 
 	/** avoids memory mapping */
 	@Override
-	public boolean checkEnd(byte type, byte value) {
+	boolean checkEnd(byte type, byte value) {
 		try {
 			long offset = end_offset();
 			if (offset <= BEGIN_OFFSET)
@@ -385,7 +385,7 @@ public class Mmfile extends Destination {
 	}
 
 	@Override
-	public Destination unwrap() {
+	Destination unwrap() {
 		return this;
 	}
 
@@ -396,30 +396,30 @@ public class Mmfile extends Destination {
 	 *     ByteBuf buf = iter.current();
 	 * </pre>
 	 */
-	public Iter iterator() {
+	Iter iterator() {
 		return new Iter();
 	}
 
 	/**
 	 * returns an iterator positioned at the specified offset
 	 */
-	public Iter iterator(long offset) {
+	Iter iterator(long offset) {
 		return new Iter(offset);
 	}
 
-	public class Iter {
+	class Iter {
 		private static final long REWOUND = -1;
 		private long offset = REWOUND;
 		private boolean err = false;
 
-		public Iter() {
+		Iter() {
 		}
 
-		public Iter(long offset) {
+		Iter(long offset) {
 			this.offset = offset;
 		}
 
-		public boolean next() {
+		boolean next() {
 			do {
 				if (offset == REWOUND)
 					offset = first();
@@ -439,7 +439,7 @@ public class Mmfile extends Destination {
 			return true;
 		}
 
-		public boolean prev() {
+		boolean prev() {
 			do {
 				if (offset == REWOUND)
 					offset = end_offset();
@@ -469,26 +469,26 @@ public class Mmfile extends Destination {
 			return true;
 		}
 
-		public boolean corrupt() {
+		boolean corrupt() {
 			return err;
 		}
 
-		public ByteBuf current() {
+		ByteBuf current() {
 			assert offset != REWOUND;
 			return adr(offset);
 		}
 
-		public long offset() {
+		long offset() {
 			assert offset != REWOUND;
 			return offset;
 		}
 
-		public byte type() {
+		byte type() {
 			assert offset != REWOUND;
 			return Mmfile.this.type(offset);
 		}
 
-		public int length() {
+		int length() {
 			assert offset != REWOUND;
 			return Mmfile.this.length(offset);
 		}

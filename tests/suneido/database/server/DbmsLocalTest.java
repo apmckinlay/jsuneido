@@ -1,10 +1,11 @@
 package suneido.database.server;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.database.*;
+import suneido.database.Record;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
@@ -12,7 +13,7 @@ import suneido.database.server.Dbms.HeaderAndRow;
 public class DbmsLocalTest {
 	@Test
 	public void test() {
-		Dbms dbms = new DbmsLocal(new Database(new DestMem(), Mode.CREATE));
+		Dbms dbms = new DbmsLocal(dbpkg.testdb());
 
 		dbms.admin("create test (a, b, c) key(a)");
 

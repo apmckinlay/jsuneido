@@ -1,5 +1,10 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.Trace.CLIENTSERVER;
 import static suneido.Trace.trace;
 
@@ -9,7 +14,6 @@ import java.util.*;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.database.Mmfile;
 import suneido.database.Record;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
@@ -24,9 +28,6 @@ import com.google.common.collect.Iterables;
 /**
  * Client end of client-server connection.
  * ({@link DbmsServer} is the server side.)
- *
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class DbmsRemote extends Dbms {
 	public final Thread owner = Thread.currentThread();
@@ -156,7 +157,7 @@ public class DbmsRemote extends Dbms {
 	public long size() {
 		io.writeLine("SIZE");
 		int n = readInt('S');
-		return Mmfile.intToOffset(n);
+		return dbpkg.intToOffset(n);
 	}
 
 	@Override
@@ -250,7 +251,7 @@ public class DbmsRemote extends Dbms {
 		if (s.equals("EOF"))
 			return null;
 		Scanner scan = new Scanner(s);
-		long recadr = Mmfile.intToOffset(ck_getnum(scan, 'A'));
+		long recadr = dbpkg.intToOffset(ck_getnum(scan, 'A'));
 		int reclen = ck_getnum(scan, 'R');
 		Header header = null;
 		if (withHeader) {
@@ -316,14 +317,14 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public void erase(long recadr) {
-			io.writeLine("ERASE", "T" + tn + " A" + Mmfile.offsetToInt(recadr));
+			io.writeLine("ERASE", "T" + tn + " A" + dbpkg.offsetToInt(recadr));
 			ok();
 		}
 
 		@Override
 		public long update(long recadr, Record rec) {
-			writeRecord("UPDATE T" + tn + " A" + Mmfile.offsetToInt(recadr), rec);
-			return Mmfile.intToOffset(readInt('U'));
+			writeRecord("UPDATE T" + tn + " A" + dbpkg.offsetToInt(recadr), rec);
+			return dbpkg.intToOffset(readInt('U'));
 		}
 
 		@Override
