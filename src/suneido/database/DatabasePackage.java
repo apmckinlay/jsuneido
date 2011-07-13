@@ -4,6 +4,8 @@
 
 package suneido.database;
 
+import java.nio.ByteBuffer;
+
 public class DatabasePackage implements suneido.DatabasePackage {
 
 	@Override
@@ -24,6 +26,21 @@ public class DatabasePackage implements suneido.DatabasePackage {
 	@Override
 	public Database testdb() {
 		return new Database(new DestMem(), Mode.CREATE);
+	}
+
+	@Override
+	public suneido.Record record() {
+		return new Record();
+	}
+
+	@Override
+	public suneido.Record record(int size) {
+		return new Record(size);
+	}
+
+	@Override
+	public suneido.Record record(ByteBuffer buf) {
+		return new Record(buf);
 	}
 
 }
