@@ -1,14 +1,12 @@
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
-
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.database.Database;
-import suneido.database.Transaction;
+import suneido.database.*;
 import suneido.database.server.ServerData;
 import suneido.language.Ops;
+import static suneido.Suneido.dbpkg;
 
 public class TestBase {
 	protected final Database db = dbpkg.testdb();

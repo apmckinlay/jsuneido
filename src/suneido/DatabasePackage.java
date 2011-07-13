@@ -4,6 +4,8 @@
 
 package suneido;
 
+import java.nio.ByteBuffer;
+
 import suneido.database.Database;
 
 public interface DatabasePackage {
@@ -15,5 +17,9 @@ public interface DatabasePackage {
 	int offsetToInt(long offset);
 
 	long intToOffset(int i);
+
+	Record record();
+	Record record(int size);
+	Record record(ByteBuffer buf);
 
 }

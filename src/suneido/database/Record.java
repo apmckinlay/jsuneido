@@ -31,8 +31,7 @@ import com.google.common.collect.ImmutableList;
  * - array of offsets<br>
  * size and array elements are of the type
  */
-public class Record
-		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
+public class Record implements suneido.Record {
 	public static final Record MINREC = new Record(5);
 	public static final Record MAXREC = new Record(8).addMax();
 	private Rep rep;
@@ -71,8 +70,6 @@ public class Record
 
 	/**
 	 * Create a new BufRecord using a supplied ByteBuf.
-	 *
-	 * @param buf
 	 * @param size
 	 *            The size of the buffer. Used to determine the required
 	 *            representation.
@@ -97,7 +94,7 @@ public class Record
 	 * @param buf
 	 *            Must be in BufRecord format.
 	 */
-	public Record(ByteBuf buf) {
+	Record(ByteBuf buf) {
 		this.buf = buf;
 		init();
 	}
@@ -107,7 +104,7 @@ public class Record
 		this(ByteBuf.wrap(buf));
 	}
 
-	public Record(ByteBuf buf, long dboffset) {
+	Record(ByteBuf buf, long dboffset) {
 		this.buf = buf;
 		this.dboffset = dboffset;
 		init();
@@ -191,7 +188,7 @@ public class Record
 
 	// add's ========================================================
 
-	public Record add(ByteBuf src) {
+	Record add(ByteBuf src) {
 		add(src, 0, src.size());
 		return this;
 	}
@@ -204,7 +201,7 @@ public class Record
 		return this;
 	}
 
-	public Record add(ByteBuf src, int pos, int len) {
+	private Record add(ByteBuf src, int pos, int len) {
 		int dst = alloc(len);
 		for (int i = 0; i < len; ++i)
 			buf.put(dst++, src.get(pos + i));
@@ -598,12 +595,12 @@ public class Record
 	}
 
 	@Override
-	public int compareTo(Record rec) {
+	public int compareTo(suneido.Record rec) {
 		if (this == rec)
 			return 0;
 		int n = Math.min(size(), rec.size());
 		for (int i = 0; i < n; ++i) {
-			int cmp = compare1(i, rec);
+			int cmp = compare1(i, (Record) rec);
 			if (cmp != 0)
 				return cmp;
 		}
