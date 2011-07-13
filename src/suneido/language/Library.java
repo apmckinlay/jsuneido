@@ -4,7 +4,7 @@ import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.server.Dbms.LibGet;
 
-public class Library {
+class Library {
 
 	static Object load(String name) {
 		if (! TheDbms.isOpen())

@@ -8,8 +8,7 @@ import java.text.SimpleDateFormat;
 
 import suneido.util.ByteBuf;
 
-//TODO remove use by query History
-public class Commit {
+class Commit {
 	private final ByteBuf buf;
 	static final int INTSIZE = 4;
 	static final int LONGSIZE = 8;
@@ -21,53 +20,53 @@ public class Commit {
 	final int DELETES;
 	final int CKSUM;
 
-	public Commit(ByteBuf buf) {
+	Commit(ByteBuf buf) {
 		this.buf = buf;
 		DELETES = CREATES + getNCreates() * INTSIZE;
 		CKSUM = DELETES + getNDeletes() * INTSIZE;
 	}
 
-	public long getDate() {
+	long getDate() {
 		return buf.getLong(DATE);
 	}
 
-	public int getNum() {
+	int getNum() {
 		return buf.getInt(NUM);
 	}
 
-	public int getNCreates() {
+	int getNCreates() {
 		return buf.getInt(NCREATES);
 	}
 
-	public int getNDeletes() {
+	int getNDeletes() {
 		return buf.getInt(NDELETES);
 	}
 
-	public long getCreate(int i) {
+	long getCreate(int i) {
 		return Mmfile.intToOffset(buf.getInt(CREATES + i * INTSIZE));
 	}
 
-	public void putCreate(int i, long offset) {
+	void putCreate(int i, long offset) {
 		buf.putInt(CREATES + i * INTSIZE, Mmfile.offsetToInt(offset));
 	}
 
-	public long getDelete(int i) {
+	long getDelete(int i) {
 		return Mmfile.intToOffset(buf.getInt(DELETES + i * INTSIZE));
 	}
 
-	public void putDelete(int i, long offset) {
+	void putDelete(int i, long offset) {
 		buf.putInt(DELETES + i * INTSIZE, Mmfile.offsetToInt(offset));
 	}
 
-	public int getChecksum() {
+	int getChecksum() {
 		return buf.getInt(CKSUM);
 	}
 
-	public void putChecksum(int value) {
+	void putChecksum(int value) {
 		buf.putInt(CKSUM, value);
 	}
 
-	public int sizeWithoutChecksum() {
+	int sizeWithoutChecksum() {
 		return CKSUM;
 	}
 
@@ -76,7 +75,7 @@ public class Commit {
 		return toStringBase().toString();
 	}
 
-	public String toStringVerbose() {
+	String toStringVerbose() {
 		StringBuilder sb = toStringBase();
 		sb.append(" ");
 		for (int i = 0; i < getNCreates(); ++i)

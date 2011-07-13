@@ -7,7 +7,6 @@ import java.io.File;
 import org.junit.After;
 import org.junit.Test;
 
-import suneido.database.*;
 import suneido.database.DbCheck.Status;
 
 
@@ -121,7 +120,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		db = new Database(filename, Mode.OPEN);
 		try {
 			Transaction t = db.readonlyTran();
-			assertEquals("indexes", Database.getView(t, "myview"));
+			assertEquals("indexes", db.getView(t, "myview"));
 		} finally {
 			db.close();
 		}

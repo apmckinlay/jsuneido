@@ -42,7 +42,7 @@ public class Transaction implements Comparable<Transaction> {
 	private /*final*/  PersistentMap<Integer, TableData> tabledata;
 	private /*final*/  Map<Integer, TableData> tabledataUpdates =
 			new HashMap<Integer, TableData>();
-	public /*final*/  PersistentMap<String, BtreeIndex> btreeIndexes;
+	/*final*/  PersistentMap<String, BtreeIndex> btreeIndexes;
 	private /*final*/  Map<String, BtreeIndex> btreeIndexCopies =
 			new HashMap<String, BtreeIndex>();
 	private List<Table> update_tables = null;
@@ -492,7 +492,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	public String getView(String viewname) {
 		notEnded();
-		return Database.getView(this, viewname);
+		return db.getView(this, viewname);
 	}
 
 	void removeView(String viewname) {

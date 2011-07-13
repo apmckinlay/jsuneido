@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 import static suneido.database.query.Query.Dir.PREV;
 
 import org.junit.Test;
@@ -10,7 +11,7 @@ import suneido.database.server.ServerData;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();
-	private final Database db = new Database(new DestMem(), Mode.CREATE);
+	private final Database db = dbpkg.testdb();
 
 	@Test
 	public void test() {

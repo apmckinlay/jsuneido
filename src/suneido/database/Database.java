@@ -40,7 +40,7 @@ public class Database {
 	private final Transactions trans = new Transactions(this);
 	final Object commitLock = new Object();
 	static class TN {
-		public static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
+		static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4;
 	}
 	private static class V {
 		@SuppressWarnings("unused")
@@ -363,13 +363,13 @@ public class Database {
 		}
 	}
 
-	public static String getView(Transaction tran, String viewname) {
+	String getView(Transaction tran, String viewname) {
 		BtreeIndex views_index = tran.getBtreeIndex(TN.VIEWS, "view_name");
-		Record rec = tran.db.find(tran, views_index, key(viewname));
+		Record rec = find(tran, views_index, key(viewname));
 		return rec == null ? null : rec.getString(V.DEFINITION);
 	}
 
-	public static void removeView(Transaction tran, String viewname) {
+	static void removeView(Transaction tran, String viewname) {
 		Data.remove_any_record(tran, "views", "view_name", key(viewname));
 	}
 

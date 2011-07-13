@@ -1,6 +1,7 @@
 package suneido.database.server;
 
 import static org.junit.Assert.*;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.stringToBuffer;
 
@@ -13,7 +14,8 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.TheDbms;
-import suneido.database.*;
+import suneido.database.Record;
+import suneido.database.RecordTest;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.NetworkOutput;
@@ -28,7 +30,7 @@ public class CommandTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
-		TheDbms.set(new Database(new DestMem(), Mode.CREATE));
+		TheDbms.set(dbpkg.testdb());
 	}
 
 	@Test

@@ -4,6 +4,7 @@
 
 package suneido.database.server;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.*;
 
 import java.nio.ByteBuffer;
@@ -11,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import suneido.*;
-import suneido.database.Mmfile;
 import suneido.database.Record;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
@@ -150,7 +150,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			DbmsTran tran = getTran(line);
-			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			long recadr = dbpkg.intToOffset(ck_getnum('A', line));
 			tran.erase(recadr);
 			return ok();
 		}
@@ -392,7 +392,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("S" + Mmfile.offsetToInt(TheDbms.dbms().size())
+			return stringToBuffer("S" + dbpkg.offsetToInt(TheDbms.dbms().size())
 					+ "\r\n");
 		}
 	},
@@ -454,10 +454,10 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			DbmsTran tran = getTran(line);
-			long recadr = Mmfile.intToOffset(ck_getnum('A', line));
+			long recadr = dbpkg.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
 			recadr = tran.update(recadr, new Record(extra));
-			return stringToBuffer("U" + Mmfile.offsetToInt(recadr) + "\r\n");
+			return stringToBuffer("U" + dbpkg.offsetToInt(recadr) + "\r\n");
 		}
 	};
 
@@ -485,11 +485,11 @@ public enum Command {
 
 	//==========================================================================
 
-	private final static ByteBuffer BADCMD_ = stringToBuffer("ERR bad command: ");
-	private final static ByteBuffer NOTIMP_ = stringToBuffer("ERR not implemented: ");
-	private final static ByteBuffer OK_ = stringToBuffer("OK\r\n");
-	private final static ByteBuffer EOF_ = stringToBuffer("EOF\r\n");
-	private final static ByteBuffer TRUE_ = stringToBuffer("t\r\n");
+	private static final ByteBuffer BADCMD_ = stringToBuffer("ERR bad command: ");
+	private static final ByteBuffer NOTIMP_ = stringToBuffer("ERR not implemented: ");
+	private static final ByteBuffer OK_ = stringToBuffer("OK\r\n");
+	private static final ByteBuffer EOF_ = stringToBuffer("EOF\r\n");
+	private static final ByteBuffer TRUE_ = stringToBuffer("t\r\n");
 
 	static ByteBuffer badcmd() {
 		return BADCMD_.duplicate();
@@ -622,7 +622,7 @@ public enum Command {
 		}
 
 		rec = rec.dup();
-		String s = "A" + Mmfile.offsetToInt(row.recadr) + " R" + rec.bufSize();
+		String s = "A" + dbpkg.offsetToInt(row.recadr) + " R" + rec.bufSize();
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";

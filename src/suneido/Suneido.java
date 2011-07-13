@@ -15,6 +15,7 @@ import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
+	public static final DatabasePackage dbpkg = new suneido.database.DatabasePackage();
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
@@ -151,7 +152,7 @@ public class Suneido {
 	private static Database db;
 
 	public static void openDbms() {
-		db = new Database("suneido.db", Mode.OPEN);
+		db = dbpkg.open("suneido.db");
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
