@@ -9,13 +9,13 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.Database;
-import suneido.Transaction;
-import suneido.Transaction.Table;
 import suneido.database.BtreeIndex;
 import suneido.database.Index;
 import suneido.database.Record;
 import suneido.database.server.ServerData;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.Table;
+import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 
 public class TestBase {

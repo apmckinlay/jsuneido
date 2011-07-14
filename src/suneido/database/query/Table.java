@@ -12,13 +12,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import suneido.Transaction;
 import suneido.database.BtreeIndex;
 import suneido.database.Record;
+import suneido.intfc.database.Transaction;
 
 public class Table extends Query {
 	private final String table;
-	final suneido.Transaction.Table tbl;
+	final suneido.intfc.database.Table tbl;
 	private boolean first = true;
 	private boolean rewound = true;
 	private final Keyrange sel = new Keyrange();

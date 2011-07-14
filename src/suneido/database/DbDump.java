@@ -28,7 +28,7 @@ class DbDump {
 		}
 	}
 
-	static int dumpDatabase(suneido.Database db, String output_filename) {
+	static int dumpDatabase(suneido.intfc.database.Database db, String output_filename) {
 		try {
 			return dumpDatabaseImp(db, output_filename);
 		} catch (Throwable e) {
@@ -36,7 +36,7 @@ class DbDump {
 		}
 	}
 
-	private static int dumpDatabaseImp(suneido.Database db, String filename) throws Throwable {
+	private static int dumpDatabaseImp(suneido.intfc.database.Database db, String filename) throws Throwable {
 		FileChannel fout = new FileOutputStream(filename).getChannel();
 		try {
 			Transaction t = (Transaction) db.readonlyTran();
@@ -73,7 +73,7 @@ class DbDump {
 		}
 	}
 
-	static int dumpTable(suneido.Database db, String tablename) {
+	static int dumpTable(suneido.intfc.database.Database db, String tablename) {
 		try {
 			return dumpTableImp(db, tablename);
 		} catch (Throwable e) {
@@ -81,7 +81,7 @@ class DbDump {
 		}
 	}
 
-	private static int dumpTableImp(suneido.Database db, String tablename) throws Throwable {
+	private static int dumpTableImp(suneido.intfc.database.Database db, String tablename) throws Throwable {
 		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
 			Transaction t = (Transaction) db.readonlyTran();

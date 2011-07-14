@@ -6,10 +6,10 @@ import static suneido.database.query.Query.Dir.PREV;
 
 import org.junit.Test;
 
-import suneido.Database;
-import suneido.Transaction;
 import suneido.database.Record;
 import suneido.database.server.ServerData;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.Transaction;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();

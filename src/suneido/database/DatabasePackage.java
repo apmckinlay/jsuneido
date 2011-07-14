@@ -6,10 +6,10 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-public class DatabasePackage implements suneido.DatabasePackage {
+public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
-	public suneido.Database open(String filename) {
+	public suneido.intfc.database.Database open(String filename) {
 		return new Database(filename, Mode.OPEN);
 	}
 
@@ -24,7 +24,7 @@ public class DatabasePackage implements suneido.DatabasePackage {
 	}
 
 	@Override
-	public suneido.Database testdb() {
+	public suneido.intfc.database.Database testdb() {
 		return new Database(new DestMem(), Mode.CREATE);
 	}
 
@@ -49,7 +49,7 @@ public class DatabasePackage implements suneido.DatabasePackage {
 	}
 
 	@Override
-	public int dumpDatabase(suneido.Database db, String output_filename) {
+	public int dumpDatabase(suneido.intfc.database.Database db, String output_filename) {
 		return DbDump.dumpDatabase(db, output_filename);
 	}
 
@@ -59,7 +59,7 @@ public class DatabasePackage implements suneido.DatabasePackage {
 	}
 
 	@Override
-	public int dumpTable(suneido.Database db, String tablename) {
+	public int dumpTable(suneido.intfc.database.Database db, String tablename) {
 		return DbDump.dumpTable(db, tablename);
 	}
 

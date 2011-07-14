@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import suneido.SuException;
-import suneido.Transaction;
+import suneido.intfc.database.Transaction;
 
 public class Delete extends QueryAction {
 	private final Transaction tran;

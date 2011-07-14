@@ -8,9 +8,9 @@ import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 
-import suneido.Database;
 import suneido.SuException;
 import suneido.database.server.ServerData;
+import suneido.intfc.database.Database;
 import suneido.language.Lexer;
 
 /**

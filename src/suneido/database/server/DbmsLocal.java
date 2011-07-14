@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import suneido.Database;
 import suneido.SuContainer;
-import suneido.Transaction;
-import suneido.Transaction.Table;
 import suneido.database.Record;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.Table;
+import suneido.intfc.database.Transaction;
 import suneido.language.Compiler;
 import suneido.language.builtin.ServerEval;
 

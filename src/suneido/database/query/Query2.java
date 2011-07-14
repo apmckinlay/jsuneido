@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import suneido.Transaction;
+import suneido.intfc.database.Transaction;
 
 
 public abstract class Query2 extends Query1 {

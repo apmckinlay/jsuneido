@@ -3,6 +3,7 @@ package suneido;
 import java.util.*;
 
 import suneido.database.server.*;
+import suneido.intfc.database.Database;
 
 public class TheDbms {
 	private static String ip = null;

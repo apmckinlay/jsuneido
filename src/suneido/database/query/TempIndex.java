@@ -8,8 +8,8 @@ import static suneido.util.Util.startsWith;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.Transaction;
 import suneido.database.Record;
+import suneido.intfc.database.Transaction;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;

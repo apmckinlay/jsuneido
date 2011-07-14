@@ -2,9 +2,11 @@
  * Licensed under GPLv2.
  */
 
-package suneido;
+package suneido.intfc.database;
 
 import java.nio.ByteBuffer;
+
+import suneido.Record;
 
 
 public interface DatabasePackage {
@@ -22,10 +24,10 @@ public interface DatabasePackage {
 	Record record(ByteBuffer buf);
 
 	void dumpDatabasePrint(String db_filename, String output_filename);
-	int dumpDatabase(suneido.Database db, String output_filename);
+	int dumpDatabase(suneido.intfc.database.Database db, String output_filename);
 
 	void dumpTablePrint(String db_filename, String tablename);
-	int dumpTable(suneido.Database db, String tablename);
+	int dumpTable(suneido.intfc.database.Database db, String tablename);
 
 	void checkPrintExit(String db_filename);
 

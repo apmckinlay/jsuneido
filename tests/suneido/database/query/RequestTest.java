@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.Transaction;
+import suneido.intfc.database.Transaction;
 
 public class RequestTest extends TestBase {
 

@@ -14,10 +14,10 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.Transaction;
 import suneido.database.Record;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
+import suneido.intfc.database.Transaction;
 import suneido.language.*;
 
 import com.google.common.base.Objects;
