@@ -15,8 +15,8 @@ import java.util.List;
 import suneido.Database;
 import suneido.SuContainer;
 import suneido.Transaction;
+import suneido.Transaction.Table;
 import suneido.database.Record;
-import suneido.database.Table;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
@@ -106,7 +106,7 @@ public class DbmsLocal extends Dbms {
 				int text_fld = flds.indexOf("text");
 				if (group_fld < 0 || text_fld < 0)
 					continue; // library is invalid, ignore it
-				Record rec = tran.lookup(table.num, "name,group", key);
+				Record rec = tran.lookup(table.num(), "name,group", key);
 				if (rec != null)
 					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
 			}

@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableList;
 
 public class History extends Query {
 	private final String tablename;
-	private final suneido.database.Table tbl;
+	private final suneido.Transaction.Table tbl;
 	private List<String> columns = null;
 	private Header header = null;
 	private List<List<String>> indexes;
@@ -24,7 +24,7 @@ public class History extends Query {
 	History(Transaction tran, String tablename) {
 		this.tablename = tablename;
 		tbl = tran.ck_getTable(tablename);
-		iter = tran.historyIterator(tbl.num);
+		iter = tran.historyIterator(tbl.num());
 	}
 
 	@Override

@@ -18,7 +18,7 @@ import suneido.database.Record;
 
 public class Table extends Query {
 	private final String table;
-	final suneido.database.Table tbl;
+	final suneido.Transaction.Table tbl;
 	private boolean first = true;
 	private boolean rewound = true;
 	private final Keyrange sel = new Keyrange();
@@ -124,11 +124,11 @@ public class Table extends Query {
 	}
 
 	int nrecs() {
-		return tran.nrecords(tbl.num);
+		return tran.nrecords(tbl.num());
 	}
 
 	long totalsize() {
-		return tran.totalsize(tbl.num);
+		return tran.totalsize(tbl.num());
 	}
 
 	private static List<String> match(List<List<String>> idxs,
@@ -171,7 +171,7 @@ public class Table extends Query {
 	}
 
 	private BtreeIndex getBtreeIndex(String index) {
-		return tran.getBtreeIndex(tbl.num, index);
+		return tran.getBtreeIndex(tbl.num(), index);
 	}
 
 	/* package */void select_index(List<String> index) {

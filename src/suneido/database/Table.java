@@ -18,10 +18,10 @@ import com.google.common.collect.ImmutableList;
  * The mutable data: nextfield, nrows, and totalsize are stored in {@link TableData}
  */
 @Immutable
-public class Table {
+class Table implements suneido.Transaction.Table {
 	static final int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
 	final String name;
-	public final int num;
+	final int num;
 	final Columns columns;
 	final Indexes indexes;
 	final ImmutableList<String> fields;
@@ -32,6 +32,11 @@ public class Table {
 		this.fields = get_fields();
 		num = record.getInt(TBLNUM);
 		name = record.getString(TABLE);
+	}
+
+	@Override
+	public int num() {
+		return num;
 	}
 
 	boolean hasColumn(String name) {
@@ -54,6 +59,7 @@ public class Table {
 		return indexes.hasIndex(columns);
 	}
 
+	@Override
 	public Index firstIndex() {
 		return indexes.first();
 	}
@@ -62,15 +68,19 @@ public class Table {
 		return indexes.get(columns);
 	}
 
+	@Override
 	public boolean singleton() {
 		return indexes.first().columns.equals("");
 	}
+	@Override
 	public List<String> getColumns() {
 		return columns.names();
 	}
+	@Override
 	public List<List<String>> indexesColumns() {
 		return indexes.columns();
 	}
+	@Override
 	public List<List<String>> keysColumns() {
 		return indexes.keysColumns();
 	}
@@ -78,6 +88,7 @@ public class Table {
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */
+	@Override
 	public ImmutableList<String> getFields() {
 		return fields;
 	}
@@ -96,6 +107,7 @@ public class Table {
 		return list.build();
 	}
 
+	@Override
 	public String schema() {
 		StringBuilder sb = new StringBuilder();
 
