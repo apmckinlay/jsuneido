@@ -14,6 +14,7 @@ import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.DatabaseIntfc;
 import suneido.SuException;
 import suneido.util.*;
 
@@ -25,7 +26,7 @@ import com.google.common.collect.ImmutableList;
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  */
 @ThreadSafe
-public class Database {
+class Database implements DatabaseIntfc {
 	private final File file;
 	private final Mode mode;
 	public Destination dest; // used by tests and History
@@ -49,11 +50,11 @@ public class Database {
 	private static final int VERSION = 1;
 	private final Triggers triggers = new Triggers();
 
-	public Database(String filename, Mode mode) {
+	Database(String filename, Mode mode) {
 		this(new File(filename), mode);
 	}
 
-	public Database(File file, Mode mode) {
+	Database(File file, Mode mode) {
 		this.file = file;
 		this.mode = mode;
 		dest = new Mmfile(file, mode);
@@ -61,7 +62,7 @@ public class Database {
 	}
 
 	// for tests
-	public Database(Destination dest, Mode mode) {
+	Database(Destination dest, Mode mode) {
 		this.file = null;
 		this.mode = mode;
 		this.dest = dest;
@@ -262,6 +263,7 @@ public class Database {
 
 	// not synchronized because it does not depend on state
 	// only uses dest
+	@Override
 	public Record input(long adr) {
 		verify(adr != 0);
 		return new Record(dest.adr(adr), adr);
@@ -285,17 +287,20 @@ public class Database {
 		return find(tran, tablenum_index, key(tblnum));
 	}
 
+	@Override
 	public void close() {
 		if (mode != Mode.READ_ONLY)
 			Session.shutdown(dest);
 		dest.close();
 	}
 
+	@Override
 	public Transaction readonlyTran() {
 		synchronized(commitLock) {
 			return new Transaction(this, trans, true, tables, tabledata, btreeIndexes);
 		}
 	}
+	@Override
 	public Transaction readwriteTran() {
 		synchronized(commitLock) {
 			return new Transaction(this, trans, false, tables, tabledata, btreeIndexes);
@@ -350,6 +355,7 @@ public class Database {
 
 	// views ========================================================
 
+	@Override
 	public void addView(String name, String definition) {
 		Transaction tran = readwriteTran();
 		try {
@@ -440,6 +446,7 @@ public class Database {
 		return loading;
 	}
 
+	@Override
 	public long size() {
 		return dest.size();
 	}
@@ -491,31 +498,38 @@ public class Database {
 
 	// delegate
 
+	@Override
 	public void addTable(String tablename) {
 		Schema.addTable(this, tablename);
 	}
 
+	@Override
 	public boolean ensureTable(String tablename) {
 		return Schema.ensureTable(this, tablename);
 	}
 
+	@Override
 	public void addColumn(String tablename, String column) {
 		Schema.addColumn(this, tablename, column);
 	}
 
+	@Override
 	public void ensureColumn(String tablename, String column) {
 		Schema.ensureColumn(this, tablename, column);
 	}
 
+	@Override
 	public void addIndex(String tablename, String columns, boolean isKey) {
 		addIndex(tablename, columns, isKey, false, null, null, 0);	}
 
+	@Override
 	public void addIndex(String tablename, String columns, boolean isKey, boolean unique,
 			String fktablename, String fkcolumns, int fkmode) {
 		Schema.addIndex(this, tablename, columns, isKey, unique,
 				fktablename, fkcolumns, fkmode);
 	}
 
+	@Override
 	public void ensureIndex(String tablename, String columns,
 			boolean isKey, boolean unique,
 			String fktablename, String fkcolumns, int fkmode) {
@@ -523,22 +537,27 @@ public class Database {
 				fktablename, fkcolumns, fkmode);
 	}
 
+	@Override
 	public void renameTable(String oldname, String newname) {
 		Schema.renameTable(this, oldname, newname);
 	}
 
+	@Override
 	public void renameColumn(String tablename, String oldname, String newname) {
 		Schema.renameColumn(this, tablename, oldname, newname);
 	}
 
+	@Override
 	public boolean removeTable(String tablename) {
 		return Schema.removeTable(this, tablename);
 	}
 
+	@Override
 	public void removeColumn(String tablename, String column) {
 		Schema.removeColumn(this, tablename, column);
 	}
 
+	@Override
 	public void removeIndex(String tablename, String columns) {
 		Schema.removeIndex(this, tablename, columns);
 	}
@@ -553,6 +572,7 @@ public class Database {
 		return tables.get(tablename);
 	}
 
+	@Override
 	public String getSchema(String tablename) {
 		Table tbl = getTable(tablename);
 		return tbl == null ? null : tbl.schema();
@@ -594,30 +614,37 @@ public class Database {
 		btreeIndex.update(); // PERF only update if changed
 	}
 
+	@Override
 	public List<Integer> tranlist() {
 		return trans.tranlist();
 	}
 
+	@Override
 	public void limitOutstandingTransactions() {
 		trans.limitOutstanding();
 	}
 
+	@Override
 	public int finalSize() {
 		return trans.finalSize();
 	}
 
+	@Override
 	public void force() {
 		dest.force();
 	}
 
+	@Override
 	public void disableTrigger(String table) {
 		triggers.disableTrigger(table);
 	}
 
+	@Override
 	public void enableTrigger(String table) {
 		triggers.enableTrigger(table);
 	}
 
+	@Override
 	public void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec) {
 		if (! isLoading())
 			triggers.call(tran, table, oldrec, newrec);

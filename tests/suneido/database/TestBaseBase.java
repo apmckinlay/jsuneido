@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestBaseBase {
+class TestBaseBase {
 	protected final DestMem dest = new DestMem();
 	protected Database db = new Database(dest, Mode.CREATE);
 
@@ -90,9 +90,9 @@ public class TestBaseBase {
 		check("test", values);
 	}
 
-	protected void check(String filename, int... values) {
+	protected void check(String tablename, int... values) {
 			Transaction t = db.readonlyTran();
-			check(t, filename, values);
+			check(t, tablename, values);
 			t.ck_complete();
 		}
 

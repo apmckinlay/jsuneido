@@ -9,8 +9,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import suneido.DatabaseIntfc;
 import suneido.SuException;
-import suneido.database.*;
 
 public class DbDump {
 
@@ -29,7 +29,7 @@ public class DbDump {
 		}
 	}
 
-	public static int dumpDatabase(Database db, String output_filename) {
+	public static int dumpDatabase(DatabaseIntfc db, String output_filename) {
 		try {
 			return dumpDatabaseImp(db, output_filename);
 		} catch (Throwable e) {
@@ -37,7 +37,7 @@ public class DbDump {
 		}
 	}
 
-	private static int dumpDatabaseImp(Database db, String filename) throws Throwable {
+	private static int dumpDatabaseImp(DatabaseIntfc db, String filename) throws Throwable {
 		FileChannel fout = new FileOutputStream(filename).getChannel();
 		try {
 			Transaction t = db.readonlyTran();
@@ -74,7 +74,7 @@ public class DbDump {
 		}
 	}
 
-	public static int dumpTable(Database db, String tablename) {
+	public static int dumpTable(DatabaseIntfc db, String tablename) {
 		try {
 			return dumpTableImp(db, tablename);
 		} catch (Throwable e) {
@@ -82,7 +82,7 @@ public class DbDump {
 		}
 	}
 
-	private static int dumpTableImp(Database db, String tablename) throws Throwable {
+	private static int dumpTableImp(DatabaseIntfc db, String tablename) throws Throwable {
 		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
 			Transaction t = db.readonlyTran();

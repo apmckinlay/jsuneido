@@ -6,13 +6,12 @@ package suneido;
 
 import java.nio.ByteBuffer;
 
-import suneido.database.Database;
 
 public interface DatabasePackage {
 
-	Database open(String filename);
+	DatabaseIntfc open(String filename);
 
-	Database testdb();
+	DatabaseIntfc testdb();
 
 	int offsetToInt(long offset);
 

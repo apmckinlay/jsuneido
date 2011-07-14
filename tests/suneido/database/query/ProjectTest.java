@@ -6,12 +6,13 @@ import static suneido.database.query.Query.Dir.PREV;
 
 import org.junit.Test;
 
+import suneido.DatabaseIntfc;
 import suneido.database.*;
 import suneido.database.server.ServerData;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();
-	private final Database db = dbpkg.testdb();
+	private final DatabaseIntfc db = dbpkg.testdb();
 
 	@Test
 	public void test() {

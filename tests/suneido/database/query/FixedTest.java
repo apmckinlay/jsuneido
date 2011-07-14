@@ -8,11 +8,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.database.TestBase;
 import suneido.language.Ops;
 
 public class FixedTest extends TestBase {
 
+	@Override
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;

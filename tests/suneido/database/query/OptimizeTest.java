@@ -7,6 +7,7 @@ import org.junit.Test;
 public class OptimizeTest extends TestBase {
 	@Test
 	public void test() {
+		makeDB();
 		adm("create test_minus1 (a, b, c) key(a)");
 		adm("create test_minus2 (b, c, d) key(d)");
 		for (String[] c : cases) {
