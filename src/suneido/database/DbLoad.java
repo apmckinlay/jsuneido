@@ -7,14 +7,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
-import suneido.database.*;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
 
-public class DbLoad {
+class DbLoad {
 
-	public static void loadDatabasePrint(String filename, String dbfilename)
+	static void loadDatabasePrint(String filename, String dbfilename)
 			throws InterruptedException {
 		File tempfile = FileUtils.tempfile();
 		if (! DbTools.runWithNewJvm("-load:" + tempfile))
@@ -23,7 +22,7 @@ public class DbLoad {
 		System.out.println("loaded " + filename	+ " into new " + dbfilename);
 	}
 
-	public static int load2(String filename, String dbfilename) {
+	static int load2(String filename, String dbfilename) {
 		try {
 			return loadDatabase(filename, dbfilename);
 		} catch (Throwable e) {
@@ -31,7 +30,7 @@ public class DbLoad {
 		}
 	}
 
-	public static int loadDatabase(String filename, String dbfilename)
+	static int loadDatabase(String filename, String dbfilename)
 			throws Throwable {
 		int n = 0;
 		File dbfile = new File(dbfilename);
@@ -61,12 +60,12 @@ public class DbLoad {
 		return n;
 	}
 
-	public static void loadTablePrint(String tablename) {
+	static void loadTablePrint(String tablename) {
 		int n = loadTable(tablename);
 		System.out.println("loaded " + n + " records into suneido.db");
 	}
 
-	public static int loadTable(String tablename) {
+	static int loadTable(String tablename) {
 		try {
 			return loadTableImp(tablename);
 		} catch (Throwable e) {

@@ -4,14 +4,17 @@
 
 package suneido.database;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 import suneido.SuException;
 import suneido.util.JarPath;
 
-public class DbTools {
+class DbTools {
 
-	public static boolean runWithNewJvm(String cmd) throws InterruptedException {
+	static boolean runWithNewJvm(String cmd) throws InterruptedException {
 		String javaHome = System.getProperty("java.home");
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();

@@ -3,12 +3,19 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
-import static suneido.util.Util.*;
+import static suneido.util.Util.listToCommas;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.startsWith;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import suneido.Transaction;
-import suneido.database.*;
+import suneido.database.BtreeIndex;
+import suneido.database.Record;
+import suneido.database.TableData;
 
 public class Table extends Query {
 	private final String table;

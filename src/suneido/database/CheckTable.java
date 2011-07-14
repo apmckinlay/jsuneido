@@ -7,7 +7,6 @@ package suneido.database;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
 
-import suneido.database.*;
 import suneido.language.Pack;
 
 class CheckTable implements Callable<String> {

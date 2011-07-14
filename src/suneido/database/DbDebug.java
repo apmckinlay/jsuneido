@@ -11,14 +11,14 @@ import suneido.SuException;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 
-public class DbDebug {
+class DbDebug {
 	Mmfile mmf;
 
 	protected DbDebug(String filename) {
 		mmf = new Mmfile(filename, Mode.OPEN);
 	}
 
-	public static void dump(String filename) {
+	static void dump(String filename) {
 		new DbDebug(filename).dump();
 	}
 

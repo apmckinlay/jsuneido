@@ -128,7 +128,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 
 	private void dbrebuild() {
 		DbRebuild dbr = new DbRebuild(filename, outfilename, false);
-		Status status = dbr.check();
+		Status status = dbr.checkPrint();
 		assertEquals(Status.OK, status);
 		dbr.rebuild();
 	}

@@ -11,15 +11,15 @@ import java.util.List;
 
 import suneido.SuException;
 
-public class DbDump {
+class DbDump {
 
-	public static void dumpDatabasePrint(String db_filename, String output_filename) {
+	static void dumpDatabasePrint(String db_filename, String output_filename) {
 		int n = dumpDatabase(db_filename, output_filename);
 		System.out.println("dumped " + n + " tables from " + db_filename
 				+ " to " + output_filename);
 	}
 
-	public static int dumpDatabase(String db_filename, String output_filename) {
+	static int dumpDatabase(String db_filename, String output_filename) {
 		Database db = new Database(db_filename, Mode.READ_ONLY);
 		try {
 			return dumpDatabase(db, output_filename);
@@ -28,7 +28,7 @@ public class DbDump {
 		}
 	}
 
-	public static int dumpDatabase(suneido.Database db, String output_filename) {
+	static int dumpDatabase(suneido.Database db, String output_filename) {
 		try {
 			return dumpDatabaseImp(db, output_filename);
 		} catch (Throwable e) {
@@ -63,7 +63,7 @@ public class DbDump {
 		}
 	}
 
-	public static void dumpTablePrint(String db_filename, String tablename) {
+	static void dumpTablePrint(String db_filename, String tablename) {
 		Database db = new Database(db_filename, Mode.READ_ONLY);
 		try {
 			int n = dumpTable(db, tablename);
@@ -73,7 +73,7 @@ public class DbDump {
 		}
 	}
 
-	public static int dumpTable(suneido.Database db, String tablename) {
+	static int dumpTable(suneido.Database db, String tablename) {
 		try {
 			return dumpTableImp(db, tablename);
 		} catch (Throwable e) {

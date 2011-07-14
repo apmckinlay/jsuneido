@@ -4,18 +4,22 @@
 
 package suneido.database.server;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-import suneido.*;
 import suneido.Database;
-import suneido.database.*;
+import suneido.SuContainer;
+import suneido.Transaction;
 import suneido.database.Record;
 import suneido.database.Table;
-import suneido.database.query.*;
+import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Request;
 import suneido.language.Compiler;
 import suneido.language.builtin.ServerEval;
 
@@ -70,9 +74,9 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			DbDump.dumpDatabase(db, "database.su");
+			dbpkg.dumpDatabase(db, "database.su");
 		else
-			DbDump.dumpTable(db, filename);
+			dbpkg.dumpTable(db, filename);
 	}
 
 	@Override
