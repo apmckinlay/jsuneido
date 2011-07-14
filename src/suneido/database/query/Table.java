@@ -15,7 +15,6 @@ import java.util.Set;
 import suneido.Transaction;
 import suneido.database.BtreeIndex;
 import suneido.database.Record;
-import suneido.database.TableData;
 
 public class Table extends Query {
 	private final String table;
@@ -115,8 +114,8 @@ public class Table extends Query {
 
 	@Override
 	int recordsize() {
-		TableData td = tran.getTableData(tbl.num);
-		return td.nrecords == 0 ? 0 : td.totalsize / td.nrecords;
+		int nrecs = nrecs();
+		return nrecs == 0 ? 0 : (int) (totalsize() / nrecs);
 	}
 
 	@Override
@@ -125,11 +124,11 @@ public class Table extends Query {
 	}
 
 	int nrecs() {
-		return tran.getTableData(tbl.num).nrecords;
+		return tran.nrecords(tbl.num);
 	}
 
-	int totalsize() {
-		return tran.getTableData(tbl.num).totalsize;
+	long totalsize() {
+		return tran.totalsize(tbl.num);
 	}
 
 	private static List<String> match(List<List<String>> idxs,
