@@ -11,13 +11,12 @@ package suneido.database;
  * immutable but update will change record. The schema information is in
  * {@link Table}
  */
-// used by query Table
-public class TableData {
+class TableData {
 	private final Record record;
 	final int tblnum;
 	final int nextfield;
-	public final int nrecords;
-	public final int totalsize; // TODO should be long
+	final int nrecords;
+	final int totalsize; // TODO should be long
 
 	TableData(Record record) {
 		this.record = record;

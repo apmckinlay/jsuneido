@@ -176,7 +176,16 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	// table data
 
 	@Override
-	public synchronized TableData getTableData(int tblnum) {
+	public int nrecords(int tblnum) {
+		return getTableData(tblnum).nrecords;
+	}
+
+	@Override
+	public long totalsize(int tblnum) {
+		return getTableData(tblnum).totalsize;
+	}
+
+	synchronized TableData getTableData(int tblnum) {
 		notEnded();
 		TableData td = tabledataUpdates.get(tblnum);
 		return td != null ? td : tabledata.get(tblnum);

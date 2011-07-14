@@ -4,8 +4,10 @@
 
 package suneido;
 
-import suneido.database.*;
+import suneido.database.BtreeIndex;
+import suneido.database.Index;
 import suneido.database.Record;
+import suneido.database.Table;
 
 public interface Transaction {
 
@@ -31,7 +33,8 @@ public interface Transaction {
 
 	void deleteTable(Table table);
 
-	TableData getTableData(int tblnum);
+	int nrecords(int tblnum);
+	long totalsize(int tblnum);
 
 	BtreeIndex getBtreeIndex(Index index);
 
