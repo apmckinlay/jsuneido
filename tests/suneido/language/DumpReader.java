@@ -1,4 +1,4 @@
-package suneido.database;
+package suneido.language;
 
 import static suneido.SuException.verify;
 
@@ -10,13 +10,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
+import suneido.database.Record;
 
-public class DumpReader {
+class DumpReader {
 	private final InputStream fin;
 	private final Processor proc;
 	private byte[] recbuf = new byte[100];
 
-	public DumpReader(String filename, Processor proc) {
+	DumpReader(String filename, Processor proc) {
 		try {
 			fin = new BufferedInputStream(new FileInputStream(filename));
 			this.proc = proc;
@@ -25,7 +26,7 @@ public class DumpReader {
 		}
 	}
 
-	public void process() {
+	void process() {
 		try {
 			checkHeader();
 			readSchema();
@@ -80,7 +81,7 @@ public class DumpReader {
 		return sb.toString();
 	}
 
-	public interface Processor {
+	interface Processor {
 		void schema(String s);
 
 		void record(Record rec);

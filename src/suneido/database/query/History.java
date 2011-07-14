@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.Transaction;
-import suneido.database.HistoryIterator;
 import suneido.database.Record;
 
 import com.google.common.collect.ImmutableList;
@@ -20,12 +19,12 @@ public class History extends Query {
 	private Header header = null;
 	private List<List<String>> indexes;
 	private List<List<String>> keys;
-	private final HistoryIterator iter;
+	private final Transaction.HistoryIterator iter;
 
 	History(Transaction tran, String tablename) {
 		this.tablename = tablename;
 		tbl = tran.ck_getTable(tablename);
-		iter = new HistoryIterator(tran, tbl.num);
+		iter = tran.historyIterator(tbl.num);
 	}
 
 	@Override

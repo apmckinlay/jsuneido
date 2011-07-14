@@ -1,7 +1,6 @@
 package suneido.language;
 
 import suneido.SuException;
-import suneido.database.DumpReader;
 import suneido.database.Record;
 
 public class CompileDump implements DumpReader.Processor {
