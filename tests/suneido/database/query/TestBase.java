@@ -11,10 +11,10 @@ import org.junit.Before;
 
 import suneido.Database;
 import suneido.Transaction;
+import suneido.Transaction.Table;
 import suneido.database.BtreeIndex;
 import suneido.database.Index;
 import suneido.database.Record;
-import suneido.database.Table;
 import suneido.database.server.ServerData;
 import suneido.language.Ops;
 

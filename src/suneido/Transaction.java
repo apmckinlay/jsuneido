@@ -4,10 +4,13 @@
 
 package suneido;
 
+import java.util.List;
+
 import suneido.database.BtreeIndex;
 import suneido.database.Index;
 import suneido.database.Record;
-import suneido.database.Table;
+
+import com.google.common.collect.ImmutableList;
 
 public interface Transaction {
 
@@ -68,6 +71,18 @@ public interface Transaction {
 	Record fromRef(Object ref);
 
 	HistoryIterator historyIterator(int tblnum);
+
+	public static interface Table {
+		int num();
+		Index firstIndex();
+		boolean singleton();
+		List<String> getColumns();
+		List<List<String>> indexesColumns();
+		List<List<String>> keysColumns();
+		/** @return The physical fields. 1:1 match with records */
+		ImmutableList<String> getFields();
+		String schema();
+	}
 
 	public static interface HistoryIterator {
 		void rewind();

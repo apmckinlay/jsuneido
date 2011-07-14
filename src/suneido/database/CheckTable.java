@@ -32,7 +32,7 @@ class CheckTable implements Callable<String> {
 
 	private boolean checkTable(Transaction t, String tablename) {
 		boolean first_index = true;
-		Table table = t.getTable(tablename);
+		Table table = (Table) t.getTable(tablename);
 		TableData td = t.getTableData(table.num);
 		int maxfields = 0;
 		for (Index index : table.indexes) {

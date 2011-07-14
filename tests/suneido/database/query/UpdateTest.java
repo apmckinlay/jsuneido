@@ -7,9 +7,9 @@ import java.util.List;
 import org.junit.Test;
 
 import suneido.Transaction;
+import suneido.Transaction.Table;
 import suneido.database.BtreeIndex;
 import suneido.database.Record;
-import suneido.database.Table;
 
 public class UpdateTest extends TestBase {
 
@@ -67,7 +67,7 @@ public class UpdateTest extends TestBase {
 		String[] indexes = { "name,group", "num", "parent", "parent,name" };
 		for (String cols : indexes) {
 			int n = 0;
-			BtreeIndex bti = t.getBtreeIndex(table.num, cols);
+			BtreeIndex bti = t.getBtreeIndex(table.num(), cols);
 			BtreeIndex.Iter iter = bti.iter().next();
 			for (; !iter.eof(); iter.next())
 				++n;
