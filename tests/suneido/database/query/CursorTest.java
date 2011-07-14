@@ -12,6 +12,8 @@ public class CursorTest extends TestBase {
 
 	@Test
 	public void test() {
+		makeDB();
+
 		Transaction t;
 		Query q;
 

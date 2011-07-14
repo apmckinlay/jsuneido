@@ -1,26 +1,27 @@
 package suneido.database.query;
 
+import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 
+import suneido.DatabaseIntfc;
 import suneido.database.*;
+import suneido.database.Table;
 import suneido.database.server.ServerData;
 import suneido.language.Ops;
-import static suneido.Suneido.dbpkg;
 
 public class TestBase {
-	protected final Database db = dbpkg.testdb();
+	protected final DatabaseIntfc db = dbpkg.testdb();
 	protected final ServerData serverData = new ServerData();
 
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
-	}
-
-	@Before
-	public void create() {
-//		TheDb.set(db);
-		makeDB();
 	}
 
 	@After
@@ -118,6 +119,67 @@ public class TestBase {
 		} finally {
 			tran.abortIfNotComplete();
 		}
+	}
+
+	protected void makeTable() {
+		makeTable(0);
+	}
+
+	protected void makeTable(int nrecords) {
+		makeTable("test", nrecords);
+	}
+
+	protected void makeTable(String tablename, int nrecords) {
+		adm("create test(a,b) key(a) index(b,a)");
+		addRecords(tablename, 0, nrecords - 1);
+	}
+
+	protected void addRecords(String tablename, int from, int to) {
+		while (from <= to) {
+			Transaction t = db.readwriteTran();
+			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
+				t.addRecord(tablename, record(from));
+			t.ck_complete();
+		}
+	}
+
+	protected List<Record> get(String tablename) {
+		Transaction tran = db.readonlyTran();
+		List<Record> recs = get(tablename, tran);
+		tran.ck_complete();
+		return recs;
+	}
+
+	protected List<Record> get(String tablename, Transaction tran) {
+		List<Record> recs = new ArrayList<Record>();
+		Table table = tran.getTable(tablename);
+		Index index = table.firstIndex();
+		BtreeIndex bti = tran.getBtreeIndex(index);
+		BtreeIndex.Iter iter = bti.iter(tran).next();
+		for (; !iter.eof(); iter.next())
+			recs.add(db.input(iter.keyadr()));
+		return recs;
+	}
+
+	protected void check(int... values) {
+		check("test", values);
+	}
+
+	protected void check(String tablename, int... values) {
+			Transaction t = db.readonlyTran();
+			check(t, tablename, values);
+			t.ck_complete();
+		}
+
+	protected void check(Transaction t, String filename, int... values) {
+			List<Record> recs = get(filename, t);
+			assertEquals("number of values", values.length, recs.size());
+			for (int i = 0; i < values.length; ++i)
+				assertEquals(record(values[i]), recs.get(i));
+		}
+
+	protected static Record record(int i) {
+		return new Record().add(i).add("more stuff");
 	}
 
 }

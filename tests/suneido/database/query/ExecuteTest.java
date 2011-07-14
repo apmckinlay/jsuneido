@@ -14,6 +14,8 @@ public class ExecuteTest extends TestBase {
 
 	@Test
 	public void test() {
+		makeDB();
+
 		for (String[] c : cases) {
 			//System.out.println("CASE " + c[0]);
 			//System.out.println(q);

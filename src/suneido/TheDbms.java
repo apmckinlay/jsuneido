@@ -2,7 +2,6 @@ package suneido;
 
 import java.util.*;
 
-import suneido.database.Database;
 import suneido.database.server.*;
 
 public class TheDbms {
@@ -35,7 +34,7 @@ public class TheDbms {
 		TheDbms.port = port;
 	}
 
-	public static void set(Database db) {
+	public static void set(DatabaseIntfc db) {
 		theDbms = new DbmsLocal(db);
 	}
 

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.database.TestBase;
 import suneido.database.Transaction;
 
 //TODO parse object constants

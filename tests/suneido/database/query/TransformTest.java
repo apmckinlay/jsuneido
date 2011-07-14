@@ -8,6 +8,8 @@ public class TransformTest extends TestBase {
 
 	@Test
 	public void test_transform() {
+		makeDB();
+
 		// combine extend's
 		test("customer extend a = 5 extend b = 6",
 				"customer EXTEND a = 5, b = 6");

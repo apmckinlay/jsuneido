@@ -4,12 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.database.TestBase;
-
 public class DeleteTest extends TestBase {
 
 	@Test
-	public void test() {
+	public void delete_all() {
 		makeTable(3);
 
 		assertEquals(3, get("test").size());
@@ -18,7 +16,7 @@ public class DeleteTest extends TestBase {
 	}
 
 	@Test
-	public void test2() {
+	public void delete_selected() {
 		makeTable(5);
 
 		assertEquals(5, get("test").size());

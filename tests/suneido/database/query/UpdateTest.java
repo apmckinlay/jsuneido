@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import suneido.database.*;
 import suneido.database.Table;
-import suneido.database.TestBase;
 
 public class UpdateTest extends TestBase {
 
@@ -44,7 +43,7 @@ public class UpdateTest extends TestBase {
 		checkCount();
 
 		Transaction t = db.readwriteTran();
-		// theDB().update(t, recadr, mkrec(5));
+		// db.update(t, recadr, mkrec(5));
 		t.ck_complete();
 
 		checkCount();

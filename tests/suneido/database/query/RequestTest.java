@@ -5,41 +5,41 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.database.TestBase;
 import suneido.database.Transaction;
 
 public class RequestTest extends TestBase {
+
 	@Test
 	public void test() {
 		String schema = "(a,b,c) key(a)";
-		Request.execute(db, "create test " + schema);
-		assertEquals(schema, db.getSchema("test"));
+		Request.execute(db, "create test1 " + schema);
+		assertEquals(schema, db.getSchema("test1"));
 
 		Request.execute(db, "ensure test2 " + schema);
 		assertEquals(schema, db.getSchema("test2"));
 
-		Request.execute(db, "ensure test (c,d,e) KEY(a) INDEX(b,c)");
+		Request.execute(db, "ensure test1 (c,d,e) KEY(a) INDEX(b,c)");
 		schema = "(a,b,c,d,e) key(a) index(b,c)";
-		assertEquals(schema, db.getSchema("test"));
+		assertEquals(schema, db.getSchema("test1"));
 
 		String extra = " index(c) in other(cc)";
-		Request.execute(db, "alter test create" + extra);
-		assertEquals(schema + extra, db.getSchema("test"));
+		Request.execute(db, "alter test1 create" + extra);
+		assertEquals(schema + extra, db.getSchema("test1"));
 
-		Request.execute(db, "ALTER test DROP index(c)");
-		assertEquals(schema, db.getSchema("test"));
+		Request.execute(db, "ALTER test1 DROP index(c)");
+		assertEquals(schema, db.getSchema("test1"));
 
-		Request.execute(db, "alter test rename b to bb");
+		Request.execute(db, "alter test1 rename b to bb");
 		schema = "(a,bb,c,d,e) key(a) index(bb,c)";
-		assertEquals(schema, db.getSchema("test"));
+		assertEquals(schema, db.getSchema("test1"));
 
-		Request.execute(db, "alter test drop (d,e)");
+		Request.execute(db, "alter test1 drop (d,e)");
 		schema = "(a,bb,c) key(a) index(bb,c)";
-		assertEquals(schema, db.getSchema("test"));
+		assertEquals(schema, db.getSchema("test1"));
 
-		Request.execute(db, "RENAME test TO tmp");
+		Request.execute(db, "RENAME test1 TO tmp");
 		assertEquals(schema, db.getSchema("tmp"));
-		assertNull(db.getSchema("test"));
+		assertNull(db.getSchema("test1"));
 
 		Request.execute(db, serverData, "drop tmp");
 		assertNull(db.getSchema("tmp"));

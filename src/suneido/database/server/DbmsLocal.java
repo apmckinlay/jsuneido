@@ -9,6 +9,7 @@ import static suneido.Suneido.errlog;
 import java.net.InetAddress;
 import java.util.*;
 
+import suneido.DatabaseIntfc;
 import suneido.SuContainer;
 import suneido.database.*;
 import suneido.database.Table;
@@ -21,10 +22,10 @@ import com.google.common.collect.Lists;
 
 /** Connects Suneido to a local database. */
 public class DbmsLocal extends Dbms {
-	private final Database db;
+	private final DatabaseIntfc db;
 	private static final List<String> libraries = Lists.newArrayList("stdlib");
 
-	public DbmsLocal(Database db) {
+	public DbmsLocal(DatabaseIntfc db) {
 		this.db = db;
 	}
 
