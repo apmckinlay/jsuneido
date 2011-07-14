@@ -611,4 +611,9 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 				: new Record((ByteBuf) ref);
 	}
 
+	@Override
+	public HistoryIterator historyIterator(int tblnum) {
+		return new suneido.database.HistoryIterator(db.dest, tblnum);
+	}
+
 }

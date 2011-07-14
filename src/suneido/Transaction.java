@@ -64,4 +64,12 @@ public interface Transaction {
 
 	Record fromRef(Object ref);
 
+	HistoryIterator historyIterator(int tblnum);
+
+	public static interface HistoryIterator {
+		void rewind();
+		Record[] getNext();
+		Record[] getPrev();
+	}
+
 }

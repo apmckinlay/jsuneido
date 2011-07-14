@@ -8,7 +8,7 @@ import java.util.Date;
 
 import suneido.util.ByteBuf;
 
-public class HistoryIterator {
+class HistoryIterator implements suneido.Transaction.HistoryIterator {
 	private boolean rewound = true;
 	private final Destination dest;
 	private final int tblnum;
@@ -18,19 +18,22 @@ public class HistoryIterator {
 	private int id;
 	private enum Dir { NEXT, PREV };
 
-	public HistoryIterator(suneido.Transaction tran, int tblnum) {
-		dest = ((Transaction) tran).db.dest;
+	HistoryIterator(Destination dest, int tblnum) {
+		this.dest = dest;
 		this.tblnum = tblnum;
 	}
 
+	@Override
 	public void rewind() {
 		rewound = true;
 	}
 
+	@Override
 	public Record[] getNext() {
 		return get(Dir.NEXT);
 	}
 
+	@Override
 	public Record[] getPrev() {
 		return get(Dir.PREV);
 	}
