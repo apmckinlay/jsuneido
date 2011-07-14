@@ -70,7 +70,7 @@ public class DbCompact {
 	private void copySchema() {
 		copyTable("views");
 		BtreeIndex bti = rt.getBtreeIndex(Database.TN.TABLES, "tablename");
-		BtreeIndex.Iter iter = bti.iter(rt).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		for (; !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
@@ -87,7 +87,7 @@ public class DbCompact {
 
 	private int copyData() {
 		BtreeIndex bti = rt.getBtreeIndex(Database.TN.TABLES, "tablename");
-		BtreeIndex.Iter iter = bti.iter(rt).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		int n = 0;
 		for (; !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
@@ -106,7 +106,7 @@ public class DbCompact {
 		boolean squeeze = DbDump.needToSqueeze(fields);
 		Index index = table.firstIndex();
 		BtreeIndex bti = rt.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter(rt).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		int i = 0;
 		long first = 0;
 		long last = 0;

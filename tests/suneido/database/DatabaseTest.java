@@ -70,7 +70,7 @@ public class DatabaseTest extends TestBase {
 		Table tbl = t.getTable("tables");
 		BtreeIndex bti = t.getBtreeIndex(tbl.num, "tablename");
 		Record key = new Record().add("test");
-		BtreeIndex.Iter iter = bti.iter(t, key).next();
+		BtreeIndex.Iter iter = bti.iter(key).next();
 		Record rec = db.input(iter.keyadr());
 		t.ck_complete();
 		assertEquals("test", rec.getString(Table.TABLE));
@@ -97,7 +97,7 @@ public class DatabaseTest extends TestBase {
 		Index index = table.getIndex("c");
 		int i = 0;
 		BtreeIndex bti = t.getBtreeIndex(table.num, index.columns);
-		BtreeIndex.Iter iter = bti.iter(t).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		for (; !iter.eof(); iter.next())
 			assertEquals(record(i++), db.input(iter.keyadr()));
 	}

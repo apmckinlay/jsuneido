@@ -8,8 +8,8 @@ import static suneido.util.Util.startsWith;
 import java.util.*;
 
 import suneido.SuException;
+import suneido.Transaction;
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;
@@ -70,7 +70,7 @@ public class TempIndex extends Query1 {
 			}
 
 		// TODO put iter->key into row
-		return Row.fromRefs(tran.db, cur.getValue());
+		return Row.fromRefs(tran, cur.getValue());
 	}
 
 	private void iterate_setup(Dir dir) {

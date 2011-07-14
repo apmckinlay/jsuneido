@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.Transaction;
+import suneido.Transaction;
 import suneido.language.Ops;
 
 public class ExecuteTest extends TestBase {

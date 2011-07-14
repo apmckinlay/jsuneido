@@ -9,9 +9,10 @@ import static suneido.Suneido.errlog;
 import java.net.InetAddress;
 import java.util.*;
 
+import suneido.*;
 import suneido.Database;
-import suneido.SuContainer;
 import suneido.database.*;
+import suneido.database.Record;
 import suneido.database.Table;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;

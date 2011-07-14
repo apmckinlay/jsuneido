@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import suneido.Transaction;
 import suneido.database.*;
 import suneido.database.Table;
 
@@ -66,7 +67,7 @@ public class UpdateTest extends TestBase {
 		for (String cols : indexes) {
 			int n = 0;
 			BtreeIndex bti = t.getBtreeIndex(table.num, cols);
-			BtreeIndex.Iter iter = bti.iter(t).next();
+			BtreeIndex.Iter iter = bti.iter().next();
 			for (; !iter.eof(); iter.next())
 				++n;
 			assertEquals(10, n);

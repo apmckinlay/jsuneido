@@ -5,7 +5,6 @@ import static suneido.language.Token.COUNT;
 import java.util.*;
 
 import suneido.*;
-import suneido.database.Transaction;
 import suneido.database.query.expr.*;
 import suneido.language.Ops;
 import suneido.language.Token;

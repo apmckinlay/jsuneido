@@ -18,8 +18,8 @@ public class HistoryIterator {
 	private int id;
 	private enum Dir { NEXT, PREV };
 
-	public HistoryIterator(Transaction tran, int tblnum) {
-		dest = tran.db.dest;
+	public HistoryIterator(suneido.Transaction tran, int tblnum) {
+		dest = ((Transaction) tran).db.dest;
 		this.tblnum = tblnum;
 	}
 

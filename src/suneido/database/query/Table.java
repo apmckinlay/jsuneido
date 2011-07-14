@@ -7,6 +7,7 @@ import static suneido.util.Util.*;
 
 import java.util.*;
 
+import suneido.Transaction;
 import suneido.database.*;
 
 public class Table extends Query {
@@ -221,8 +222,8 @@ public class Table extends Query {
 
 	private BtreeIndex.Iter iter() {
 		return singleton || sel == null
-				? ix.iter(tran)
-				: ix.iter(tran, sel.org, sel.end);
+				? ix.iter()
+				: ix.iter(sel.org, sel.end);
 	}
 
 	private void iterate_setup(Dir dir) {

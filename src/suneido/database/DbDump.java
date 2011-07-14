@@ -39,11 +39,11 @@ public class DbDump {
 	private static int dumpDatabaseImp(suneido.Database db, String filename) throws Throwable {
 		FileChannel fout = new FileOutputStream(filename).getChannel();
 		try {
-			Transaction t = db.readonlyTran();
+			Transaction t = (Transaction) db.readonlyTran();
 			try {
 				writeFileHeader(fout);
 				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
-				BtreeIndex.Iter iter = bti.iter(t).next();
+				BtreeIndex.Iter iter = bti.iter().next();
 				int n = 0;
 				for (; !iter.eof(); iter.next()) {
 					Record r = t.input(iter.keyadr());
@@ -84,7 +84,7 @@ public class DbDump {
 	private static int dumpTableImp(suneido.Database db, String tablename) throws Throwable {
 		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 		try {
-			Transaction t = db.readonlyTran();
+			Transaction t = (Transaction) db.readonlyTran();
 			try {
 				writeFileHeader(fout);
 				return dump1(fout, t, tablename, false);
@@ -124,7 +124,7 @@ public class DbDump {
 		boolean squeeze = needToSqueeze(fields);
 		Index index = table.firstIndex();
 		BtreeIndex bti = t.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter(t).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		int n = 0;
 		for (; !iter.eof(); iter.next()) {
 			Record r = t.input(iter.keyadr());

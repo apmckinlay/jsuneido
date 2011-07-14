@@ -2,12 +2,12 @@ package suneido.database.query;
 
 import java.util.List;
 
+import suneido.Transaction;
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class InsertQuery extends QueryAction {
 	private final Transaction tran;
-	final private String table;
+	private final String table;
 
 	InsertQuery(Transaction tran, Query source, String table) {
 		super(source);

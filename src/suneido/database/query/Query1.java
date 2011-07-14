@@ -2,8 +2,8 @@ package suneido.database.query;
 
 import java.util.*;
 
+import suneido.Transaction;
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public abstract class Query1 extends Query {
 	protected Query source;

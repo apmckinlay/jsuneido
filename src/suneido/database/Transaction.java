@@ -24,8 +24,8 @@ import suneido.util.PersistentMap;
  * equals and hashCode are the default i.e. identity
  */
 @ThreadSafe
-public class Transaction implements Comparable<Transaction> {
-	public final Database db;
+class Transaction implements suneido.Transaction, Comparable<Transaction> {
+	final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
 	protected volatile boolean ended = false;
@@ -34,7 +34,7 @@ public class Transaction implements Comparable<Transaction> {
 	private String conflict = null;
 	final long start = new Date().getTime();
 	private final long asof;
-	public final int num;
+	final int num;
 	private volatile long commitTime = Long.MAX_VALUE;
 	final String sessionId = ServerData.forThread().getSessionId();
 	// these are final except for being cleared when transaction ends
@@ -86,30 +86,37 @@ public class Transaction implements Comparable<Transaction> {
 		return "T" + (readonly ? "r" : "w") + num + sid;
 	}
 
+	@Override
 	public boolean isReadonly() {
 		return readonly;
 	}
 
+	@Override
 	public boolean isReadWrite() {
 		return !readonly;
 	}
 
+	@Override
 	public boolean isEnded() {
 		return ended;
 	}
 
+	@Override
 	public long asof() {
 		return asof;
 	}
 
+	@Override
 	public synchronized String conflict() {
 		return conflict;
 	}
 
+	@Override
 	public boolean tableExists(String table) {
 		return getTable(table) != null;
 	}
 
+	@Override
 	public Table ck_getTable(String tablename) {
 		Table tbl = getTable(tablename);
 		if (tbl == null)
@@ -117,6 +124,7 @@ public class Transaction implements Comparable<Transaction> {
 		return tbl;
 	}
 
+	@Override
 	public Table getTable(String tablename) {
 		if (tablename == null)
 			return null;
@@ -124,6 +132,7 @@ public class Transaction implements Comparable<Transaction> {
 		return tables.get(tablename);
 	}
 
+	@Override
 	public Table ck_getTable(int tblnum) {
 		Table tbl = getTable(tblnum);
 		if (tbl == null)
@@ -131,6 +140,7 @@ public class Transaction implements Comparable<Transaction> {
 		return tbl;
 	}
 
+	@Override
 	public Table getTable(int tblnum) {
 		notEnded();
 		return tables.get(tblnum);
@@ -156,6 +166,7 @@ public class Transaction implements Comparable<Transaction> {
 		return db.loadTable(this, table_rec, btis);
 	}
 
+	@Override
 	public synchronized void deleteTable(Table table) {
 		notEnded();
 		assert update_tables == null && remove_table == null;
@@ -164,6 +175,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	// table data
 
+	@Override
 	public synchronized TableData getTableData(int tblnum) {
 		notEnded();
 		TableData td = tabledataUpdates.get(tblnum);
@@ -178,10 +190,12 @@ public class Transaction implements Comparable<Transaction> {
 
 	// btree indexes
 
+	@Override
 	public BtreeIndex getBtreeIndex(Index index) {
 		return getBtreeIndex(index.tblnum, index.columns);
 	}
 
+	@Override
 	public synchronized BtreeIndex getBtreeIndex(int tblnum, String columns) {
 		notEnded();
 		String key = tblnum + ":" + columns;
@@ -248,6 +262,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	// abort -------------------------------------------------------------------
 
+	@Override
 	public synchronized void abortIfNotComplete() {
 		if (!ended)
 			abort();
@@ -268,6 +283,7 @@ public class Transaction implements Comparable<Transaction> {
 		abort();
 	}
 
+	@Override
 	public synchronized void abort() {
 		if (isAborted())
 			return;
@@ -279,12 +295,14 @@ public class Transaction implements Comparable<Transaction> {
 
 	// complete ----------------------------------------------------------------
 
+	@Override
 	public synchronized void ck_complete() {
 		String s = complete();
 		if (s != null)
 			throw new SuException("transaction commit failed: " + s);
 	}
 
+	@Override
 	public synchronized String complete() {
 		if (isAborted())
 			return conflict;
@@ -490,6 +508,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	// delegate
 
+	@Override
 	public String getView(String viewname) {
 		notEnded();
 		return db.getView(this, viewname);
@@ -500,11 +519,13 @@ public class Transaction implements Comparable<Transaction> {
 		Database.removeView(this, viewname);
 	}
 
+	@Override
 	public void addRecord(String table, Record r) {
 		notEnded();
 		Data.addRecord(this, table, r);
 	}
 
+	@Override
 	public long updateRecord(long recadr, Record rec) {
 		notEnded();
 		return Data.updateRecord(this, recadr, rec);
@@ -516,6 +537,7 @@ public class Transaction implements Comparable<Transaction> {
 		Data.updateRecord(this, table, index, key, record);
 	}
 
+	@Override
 	public void removeRecord(long off) {
 		notEnded();
 		Data.removeRecord(this, off);
@@ -526,6 +548,7 @@ public class Transaction implements Comparable<Transaction> {
 		Data.removeRecord(this, tablename, index, key);
 	}
 
+	@Override
 	public Record input(long adr) {
 		return db.input(adr);
 	}
@@ -562,16 +585,30 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	// used by Library
+	@Override
 	public Record lookup(int tblnum, String index, Record key) {
 		BtreeIndex bti = getBtreeIndex(tblnum, index);
 		if (bti == null)
 			return null;
-		BtreeIndex.Iter iter = bti.iter(this, key).next();
+		BtreeIndex.Iter iter = bti.iter(key).next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
+	@Override
 	public void callTrigger(Table table, Record oldrec, Record newrec) {
 		db.callTrigger(this, table, oldrec, newrec);
+	}
+
+	@Override
+	public int num() {
+		return num;
+	}
+
+	@Override
+	public Record fromRef(Object ref) {
+		return ref instanceof Long
+				? db.input((Long) ref)
+				: new Record((ByteBuf) ref);
 	}
 
 }

@@ -13,7 +13,7 @@ public class BtreeIndexTest extends TestBase {
 		Table tbl = t.getTable("test");
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, "a");
-			BtreeIndex.Iter iter = bi.iter(t, key(3), key(6));
+			BtreeIndex.Iter iter = bi.iter(key(3), key(6));
 			for (int i = 3; i <= 6; ++i) {
 				iter.next();
 				assertEquals(i, iter.cur().key.getInt(0));

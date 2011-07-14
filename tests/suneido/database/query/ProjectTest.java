@@ -7,7 +7,8 @@ import static suneido.database.query.Query.Dir.PREV;
 import org.junit.Test;
 
 import suneido.Database;
-import suneido.database.*;
+import suneido.Transaction;
+import suneido.database.Record;
 import suneido.database.server.ServerData;
 
 public class ProjectTest {
