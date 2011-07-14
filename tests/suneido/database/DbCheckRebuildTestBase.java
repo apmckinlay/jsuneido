@@ -8,7 +8,6 @@ import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.database.*;
 import suneido.database.DbCheck.Status;
 import suneido.util.FileUtils;
 

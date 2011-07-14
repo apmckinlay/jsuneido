@@ -7,7 +7,8 @@ import java.util.List;
 import org.junit.Test;
 
 import suneido.Transaction;
-import suneido.database.*;
+import suneido.database.BtreeIndex;
+import suneido.database.Record;
 import suneido.database.Table;
 
 public class UpdateTest extends TestBase {

@@ -6,20 +6,19 @@ import java.io.File;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.*;
 import suneido.database.DbCheck.Status;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
 
-public class DbCompact {
+class DbCompact {
 	private final String dbfilename;
 	private final String tempfilename;
 	private Database oldDB;
 	private Database newDB;
 	private Transaction rt;
 
-	public static void compactPrint(String dbfilename)
+	static void compactPrint(String dbfilename)
 			throws InterruptedException {
 		File tempfile = FileUtils.tempfile();
 		if (!DbTools.runWithNewJvm("-compact:" + tempfile))
@@ -27,7 +26,7 @@ public class DbCompact {
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
-	public static void compact2(String dbfilename, String tempfilename) {
+	static void compact2(String dbfilename, String tempfilename) {
 		Status status = DbCheck.checkPrint(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);
@@ -36,7 +35,7 @@ public class DbCompact {
 		System.out.println(dbfilename + " compacted " + n + " tables");
 	}
 
-	public static int compact(String dbfilename, String tempfilename) {
+	static int compact(String dbfilename, String tempfilename) {
 		Status status = DbCheck.check(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);

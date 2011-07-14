@@ -4,14 +4,16 @@ package suneido.database;
 
 import static suneido.SuException.verifyEquals;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.database.*;
 import suneido.database.DbCheck.Status;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;

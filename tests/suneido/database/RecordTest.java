@@ -1,6 +1,8 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.database.Record.MINREC;
 
 import java.nio.ByteBuffer;
@@ -15,8 +17,8 @@ import suneido.util.ByteBuf;
 import com.google.common.collect.ImmutableList;
 
 public class RecordTest {
-	final static String data = "abc";
-	final static String data2 = "x";
+	static final String data = "abc";
+	static final String data2 = "x";
 
 	@Test
 	public void grow() {
@@ -182,7 +184,7 @@ public class RecordTest {
 		assertEquals(1234, r.getInt(1));
 	}
 
-	public static Record make(String... args) {
+	static Record make(String... args) {
 		Record r = new Record();
 		for (String s : args)
 			r.add(s);

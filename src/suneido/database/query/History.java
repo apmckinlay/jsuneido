@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.Transaction;
-import suneido.database.*;
+import suneido.database.HistoryIterator;
+import suneido.database.Record;
 
 import com.google.common.collect.ImmutableList;
 

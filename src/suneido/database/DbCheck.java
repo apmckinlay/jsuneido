@@ -6,7 +6,10 @@ package suneido.database;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
@@ -16,7 +19,7 @@ import suneido.util.Checksum;
  * check the consistency of a database
  * e.g. after finding it was not shutdown properly
  */
-public class DbCheck {
+class DbCheck {
 	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
 	private final String filename;
 	final Mmfile mmf;
@@ -24,26 +27,26 @@ public class DbCheck {
 	String details = "";
 	protected final boolean print;
 
-	public DbCheck(String filename, boolean print) {
+	DbCheck(String filename, boolean print) {
 		this.filename = filename;
 		this.print = print;
 		mmf = new Mmfile(filename, Mode.READ_ONLY);
 	}
 
-	public static Status check(String filename) {
-		return new DbCheck(filename, false).check();
+	static Status check(String filename) {
+		return new DbCheck(filename, false).checkPrint();
 	}
 
-	public static Status checkPrint(String filename) {
-		return new DbCheck(filename, true).check();
+	static Status checkPrint(String filename) {
+		return new DbCheck(filename, true).checkPrint();
 	}
 
-	public static void checkPrintExit(String filename) {
-		Status status = new DbCheck(filename, true).check();
+	static void checkPrintExit(String filename) {
+		Status status = new DbCheck(filename, true).checkPrint();
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	public Status check() {
+	Status checkPrint() {
 		println("Checking " + filename);
 		println("Checking commits and shutdowns");
 		Status status = check_commits_and_shutdowns();
@@ -57,7 +60,7 @@ public class DbCheck {
 		return status;
 	}
 
-	public String lastCommit(Status status) {
+	String lastCommit(Status status) {
 		Date d = new Date(last_good_commit);
 		return status == Status.UNRECOVERABLE
 			? "Unrecoverable"
@@ -135,8 +138,8 @@ public class DbCheck {
 		// empty stub, overridden by DbRebuild
 	}
 
-	private final static int BAD_LIMIT = 10;
-	private final static int N_THREADS = 8;
+	private static final int BAD_LIMIT = 10;
+	private static final int N_THREADS = 8;
 
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);

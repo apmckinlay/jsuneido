@@ -1,14 +1,15 @@
 package suneido.database.server;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.database.*;
-import suneido.database.query.*;
+import suneido.database.Record;
+import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
-import static suneido.Suneido.dbpkg;
 
 public class DbmsLocalTest {
 	@Test

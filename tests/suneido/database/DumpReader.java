@@ -2,7 +2,10 @@ package suneido.database;
 
 import static suneido.SuException.verify;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -78,11 +81,11 @@ public class DumpReader {
 	}
 
 	public interface Processor {
-		public void schema(String s);
+		void schema(String s);
 
-		public void record(Record rec);
+		void record(Record rec);
 
-		public void end();
+		void end();
 	}
 
 }

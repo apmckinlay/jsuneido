@@ -15,11 +15,13 @@ import java.util.*;
 
 import suneido.SuException;
 import suneido.database.Database.TN;
-import suneido.util.*;
+import suneido.util.ByteBuf;
+import suneido.util.Checksum;
+import suneido.util.FileUtils;
 
 import com.google.common.collect.ImmutableList;
 
-public class DbRebuild extends DbCheck {
+class DbRebuild extends DbCheck {
 	private final String filename;
 	private final String tempfilename;
 	private Database newdb;
@@ -32,7 +34,7 @@ public class DbRebuild extends DbCheck {
 	// means smallest block is 16 bytes
 	private static final int GRANULARITY = 16;
 
-	public static void rebuildOrExit(String dbfilename) {
+	static void rebuildOrExit(String dbfilename) {
 		File tempfile = FileUtils.tempfile();
 		try {
 			if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
@@ -43,9 +45,9 @@ public class DbRebuild extends DbCheck {
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
-	public static void rebuild2(String dbfilename, String tempfilename) {
+	static void rebuild2(String dbfilename, String tempfilename) {
 		DbRebuild dbr = new DbRebuild(dbfilename, tempfilename, true);
-		Status status = dbr.check();
+		Status status = dbr.checkPrint();
 		switch (status) {
 		case OK:
 		case CORRUPTED:
@@ -54,6 +56,7 @@ public class DbRebuild extends DbCheck {
 			break;
 		case UNRECOVERABLE:
 			fatal("Rebuild failed " + dbfilename + " UNRECOVERABLE");
+			break;
 		default:
 			throw unreachable();
 		}
@@ -78,7 +81,7 @@ public class DbRebuild extends DbCheck {
 			newdb = null;
 
 			DbCheck dbc = new DbCheck(tempfile.getPath(), print);
-			switch (dbc.check()) {
+			switch (dbc.checkPrint()) {
 			case OK:
 				break;
 			case CORRUPTED:

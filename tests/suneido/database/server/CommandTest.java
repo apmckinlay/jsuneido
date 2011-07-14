@@ -1,6 +1,9 @@
 package suneido.database.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.stringToBuffer;
 
@@ -13,11 +16,10 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.TheDbms;
-import suneido.database.*;
+import suneido.database.Record;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.NetworkOutput;
-import static suneido.Suneido.dbpkg;
 
 public class CommandTest {
 
@@ -256,7 +258,7 @@ public class CommandTest {
 		assertEquals("Q0\r\n", bufferToString(buf));
 
 		// OUTPUT
-		Record rec = RecordTest.make("a", "b", "c");
+		Record rec = make("a", "b", "c");
 		assertEquals(14, rec.packSize());
 		Command.OUTPUT.execute(stringToBuffer("Q0 R14"), rec.getBuffer(), null);
 
@@ -268,7 +270,7 @@ public class CommandTest {
 		assertEquals("['a','b','c']", rec.toString());
 
 		// UPDATE
-		rec = RecordTest.make("A", "B", "C");
+		rec = make("A", "B", "C");
 		buf = Command.UPDATE.execute(stringToBuffer("T21 A105 R14"),
 				rec.getBuffer(), null);
 		assertEquals("U107\r\n", bufferToString(buf));
@@ -317,21 +319,21 @@ public class CommandTest {
 				stringToBuffer("stdlib"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
-		Record rec = RecordTest.make("Foo", "some text");
+		Record rec = make("Foo", "some text");
 		rec.add(-1);
 		assertEquals(26, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R26"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
-		rec = RecordTest.make("Bar", "other stuff");
+		rec = make("Bar", "other stuff");
 		rec.add(-1);
 		assertEquals(28, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R28"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
-		rec = RecordTest.make("Foo", "");
+		rec = make("Foo", "");
 		rec.add(1); // folder
 		assertEquals(16, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R16"), rec.getBuffer(),
@@ -364,7 +366,7 @@ public class CommandTest {
 
 	// =========================================================================
 
-	static public class Output implements NetworkOutput {
+	public static class Output implements NetworkOutput {
 
 		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
 
@@ -386,7 +388,14 @@ public class CommandTest {
 		}
 	}
 
-	static private ByteBuffer READ = stringToBuffer("read");
-	static private ByteBuffer UPDATE = stringToBuffer("update");
+	private static ByteBuffer READ = stringToBuffer("read");
+	private static ByteBuffer UPDATE = stringToBuffer("update");
+
+	static Record make(String... args) {
+		Record r = new Record();
+		for (String s : args)
+			r.add(s);
+		return r;
+	}
 
 }
