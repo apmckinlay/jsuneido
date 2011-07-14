@@ -34,7 +34,7 @@ public class TheDbms {
 		TheDbms.port = port;
 	}
 
-	public static void set(DatabaseIntfc db) {
+	public static void set(Database db) {
 		theDbms = new DbmsLocal(db);
 	}
 

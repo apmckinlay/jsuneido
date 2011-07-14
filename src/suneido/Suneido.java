@@ -149,7 +149,7 @@ public class Suneido {
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
-	private static DatabaseIntfc db;
+	private static Database db;
 
 	public static void openDbms() {
 		db = dbpkg.open("suneido.db");

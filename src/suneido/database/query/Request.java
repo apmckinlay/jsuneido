@@ -8,7 +8,7 @@ import static suneido.util.Util.listToCommas;
 
 import java.util.*;
 
-import suneido.DatabaseIntfc;
+import suneido.Database;
 import suneido.SuException;
 import suneido.database.server.ServerData;
 import suneido.language.Lexer;
@@ -18,19 +18,19 @@ import suneido.language.Lexer;
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
-	private final DatabaseIntfc db;
+	private final Database db;
 	private final ServerData serverData;
 
-	private Request(DatabaseIntfc db, ServerData serverData) {
+	private Request(Database db, ServerData serverData) {
 		this.db = db;
 		this.serverData = serverData;
 	}
 
-	public static void execute(DatabaseIntfc db, String s) {
+	public static void execute(Database db, String s) {
 		Request.execute(db, null, s);
 	}
 
-	public static void execute(DatabaseIntfc db, ServerData serverData, String s) {
+	public static void execute(Database db, ServerData serverData, String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
 		Request generator = new Request(db, serverData);
