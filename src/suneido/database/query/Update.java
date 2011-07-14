@@ -3,10 +3,8 @@ package suneido.database.query;
 import java.util.List;
 import java.util.Set;
 
-import suneido.SuException;
-import suneido.SuRecord;
+import suneido.*;
 import suneido.database.Record;
-import suneido.database.Transaction;
 import suneido.database.query.expr.Expr;
 
 import com.google.common.collect.ImmutableSet;

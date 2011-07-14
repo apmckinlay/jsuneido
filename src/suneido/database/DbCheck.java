@@ -145,7 +145,7 @@ public class DbCheck {
 		Transaction t = db.readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
-			BtreeIndex.Iter iter = bti.iter(t).next();
+			BtreeIndex.Iter iter = bti.iter().next();
 			int ntables = 0;
 			for (; !iter.eof(); iter.next()) {
 				Record r = t.input(iter.keyadr());

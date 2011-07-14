@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import suneido.database.Transaction;
+import suneido.Transaction;
 import suneido.database.query.Query.Dir;
 
 public class CursorTest extends TestBase {

@@ -39,12 +39,12 @@ public class IndexTest {
 		for (i = 0; i < 100; ++i)
 			ix.insert(NULLTRAN, makeslot(i));
 
-		BtreeIndex.Iter iter = ix.iter(NULLTRAN, makekey(40), makekey(60));
+		BtreeIndex.Iter iter = ix.iter(makekey(40), makekey(60));
 		for (i = 40; i <= 60; ++i)
 			assertEquals(i, iter.next().cur().key.getInt(0));
 		assertTrue(iter.next().eof());
 
-		iter = ix.iter(NULLTRAN, makekey(40), makekey(60));
+		iter = ix.iter(makekey(40), makekey(60));
 		for (i = 60; i >= 40; --i)
 			assertEquals(i, iter.prev().cur().key.getInt(0));
 		assertTrue(iter.prev().eof());

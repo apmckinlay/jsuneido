@@ -7,6 +7,7 @@ package suneido.database.query;
 import java.util.List;
 import java.util.Set;
 
+import suneido.Transaction;
 import suneido.database.*;
 
 import com.google.common.collect.ImmutableList;

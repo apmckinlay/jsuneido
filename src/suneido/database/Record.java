@@ -647,9 +647,4 @@ public class Record implements suneido.Record {
 		return dboffset == 0 ? buf : dboffset;
 	}
 
-	public static Record fromRef(suneido.Database db, Object ref) {
-		return ref instanceof Long
-				? db.input((Long) ref)
-				: new Record((ByteBuf) ref);
-	}
 }

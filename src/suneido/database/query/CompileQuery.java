@@ -1,7 +1,7 @@
 package suneido.database.query;
 
 import suneido.Database;
-import suneido.database.Transaction;
+import suneido.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
 import suneido.language.Lexer;

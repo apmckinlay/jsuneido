@@ -121,12 +121,12 @@ public class TransactionTest extends TestBase {
 		Table table = tran.getTable("test");
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter(tran).next();
+		BtreeIndex.Iter iter = bti.iter().next();
 		for (int i = 0; i < values.length / 2; iter.next(), ++i) {
 			Record r = db.input(iter.keyadr());
 			assertEquals(record(values[i]), r);
 		}
-		iter = bti.iter(tran).prev();
+		iter = bti.iter().prev();
 		for (int i = values.length - 1; i >= values.length / 2; iter.prev(), --i) {
 			Record r = db.input(iter.keyadr());
 			assertEquals(record(values[i]), r);

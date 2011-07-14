@@ -40,7 +40,7 @@ class CheckTable implements Callable<String> {
 			int nrecords = 0;
 			long totalsize = 0;
 			BtreeIndex bti = t.getBtreeIndex(index);
-			BtreeIndex.Iter iter = bti.iter(t);
+			BtreeIndex.Iter iter = bti.iter();
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
 				Record key = iter.cur().key;

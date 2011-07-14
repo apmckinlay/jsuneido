@@ -6,7 +6,6 @@ package suneido;
 
 import java.util.List;
 
-import suneido.database.*;
 import suneido.database.Record;
 
 public interface Database {
@@ -62,7 +61,5 @@ public interface Database {
 	void disableTrigger(String table);
 
 	void enableTrigger(String table);
-
-	void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec);
 
 }

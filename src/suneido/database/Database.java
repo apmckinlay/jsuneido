@@ -215,7 +215,7 @@ class Database implements suneido.Database {
 		Transaction tran = readonlyTran();
 		try {
 			BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
-			for (BtreeIndex.Iter iter = tablenum_index.iter(tran).next();
+			for (BtreeIndex.Iter iter = tablenum_index.iter().next();
 					!iter.eof(); iter.next()) {
 				Record table_rec = input(iter.keyadr());
 				Table table = loadTable(tran, table_rec, btis);
@@ -315,7 +315,7 @@ class Database implements suneido.Database {
 		// columns
 		ArrayList<Column> cols = new ArrayList<Column>();
 		BtreeIndex columns_index = tran.getBtreeIndex(TN.COLUMNS, "table,column");
-		for (BtreeIndex.Iter iter = columns_index.iter(tran, tblkey).next();
+		for (BtreeIndex.Iter iter = columns_index.iter(tblkey).next();
 				!iter.eof(); iter.next())
 			cols.add(new Column(input(iter.keyadr())));
 		Collections.sort(cols);
@@ -324,7 +324,7 @@ class Database implements suneido.Database {
 		// indexes
 		ImmutableList.Builder<Index> indexes = ImmutableList.builder();
 		BtreeIndex indexes_index = tran.getBtreeIndex(TN.INDEXES, "table,columns");
-		for (BtreeIndex.Iter iter = indexes_index.iter(tran, tblkey).next();
+		for (BtreeIndex.Iter iter = indexes_index.iter(tblkey).next();
 				!iter.eof(); iter.next()) {
 			Record r = input(iter.keyadr());
 			String icols = Index.getColumns(r);
@@ -342,7 +342,7 @@ class Database implements suneido.Database {
 			String columns) {
 		List<Record> records = new ArrayList<Record>();
 		BtreeIndex fkey_index = tran.getBtreeIndex(TN.INDEXES, "fktable,fkcolumns");
-		for (BtreeIndex.Iter iter = fkey_index.iter(tran, key(tablename, columns)).next();
+		for (BtreeIndex.Iter iter = fkey_index.iter(key(tablename, columns)).next();
 				!iter.eof(); iter.next())
 			records.add(input(iter.keyadr()));
 		return records;
@@ -643,8 +643,7 @@ class Database implements suneido.Database {
 		triggers.enableTrigger(table);
 	}
 
-	@Override
-	public void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec) {
+	void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec) {
 		if (! isLoading())
 			triggers.call(tran, table, oldrec, newrec);
 	}

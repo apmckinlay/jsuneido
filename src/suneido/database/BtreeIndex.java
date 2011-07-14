@@ -179,7 +179,7 @@ public class BtreeIndex {
 	}
 
 	Slot find(Transaction tran, Record key) {
-		Iter iter = iter(tran, key).next();
+		Iter iter = iter(key).next();
 		if (iter.eof())
 			return null;
 		Slot cur = iter.cur();
@@ -196,15 +196,15 @@ public class BtreeIndex {
 		return true;
 	}
 
-	public Iter iter(Transaction tran) {
+	public Iter iter() {
 		return new Iter(Record.MINREC, Record.MAXREC);
 	}
 
-	public Iter iter(Transaction tran, Record key) {
+	public Iter iter(Record key) {
 		return new Iter(key, key);
 	}
 
-	public Iter iter(Transaction tran, Record from, Record to) {
+	public Iter iter(Record from, Record to) {
 		return new Iter(from, to);
 	}
 

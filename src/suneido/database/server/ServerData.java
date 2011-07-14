@@ -57,7 +57,7 @@ public class ServerData {
 	}
 
 	public int addTransaction(DbmsTran tran) {
-		int num = ((DbmsTranLocal) tran).t.num;
+		int num = ((DbmsTranLocal) tran).num();
 		trans.put(num, tran);
 		tranqueries.put(num, new ArrayList<Integer>());
 		return num;

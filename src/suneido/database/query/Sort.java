@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.SuException;
+import suneido.Transaction;
 import suneido.database.Record;
-import suneido.database.Transaction;
 
 public class Sort extends Query1 {
 	private final boolean reverse;

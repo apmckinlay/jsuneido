@@ -26,7 +26,7 @@ public class SchemaTest extends TestBase {
 		Table tbl = t.getTable("test");
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, COLS);
-			BtreeIndex.Iter iter = bi.iter(t);
+			BtreeIndex.Iter iter = bi.iter();
 			for (int i = 0; i < N; ++i) {
 				iter.next();
 				assert ! iter.eof() : "premature eof at " + i;
