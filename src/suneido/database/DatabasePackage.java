@@ -6,12 +6,10 @@ package suneido.database;
 
 import java.nio.ByteBuffer;
 
-import suneido.DatabaseIntfc;
-
 public class DatabasePackage implements suneido.DatabasePackage {
 
 	@Override
-	public DatabaseIntfc open(String filename) {
+	public suneido.Database open(String filename) {
 		return new Database(filename, Mode.OPEN);
 	}
 
@@ -26,7 +24,7 @@ public class DatabasePackage implements suneido.DatabasePackage {
 	}
 
 	@Override
-	public DatabaseIntfc testdb() {
+	public suneido.Database testdb() {
 		return new Database(new DestMem(), Mode.CREATE);
 	}
 

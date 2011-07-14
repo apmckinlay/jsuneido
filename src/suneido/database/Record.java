@@ -11,7 +11,8 @@ import static suneido.util.Util.bufferUcompare;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.*;
+import suneido.Packable;
+import suneido.SuException;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.ByteBuf;
@@ -646,7 +647,7 @@ public class Record implements suneido.Record {
 		return dboffset == 0 ? buf : dboffset;
 	}
 
-	public static Record fromRef(DatabaseIntfc db, Object ref) {
+	public static Record fromRef(suneido.Database db, Object ref) {
 		return ref instanceof Long
 				? db.input((Long) ref)
 				: new Record((ByteBuf) ref);

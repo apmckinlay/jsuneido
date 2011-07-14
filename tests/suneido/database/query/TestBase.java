@@ -9,14 +9,14 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.DatabaseIntfc;
+import suneido.Database;
 import suneido.database.*;
 import suneido.database.Table;
 import suneido.database.server.ServerData;
 import suneido.language.Ops;
 
 public class TestBase {
-	protected final DatabaseIntfc db = dbpkg.testdb();
+	protected final Database db = dbpkg.testdb();
 	protected final ServerData serverData = new ServerData();
 
 	@Before

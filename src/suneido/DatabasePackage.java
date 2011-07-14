@@ -9,9 +9,9 @@ import java.nio.ByteBuffer;
 
 public interface DatabasePackage {
 
-	DatabaseIntfc open(String filename);
+	Database open(String filename);
 
-	DatabaseIntfc testdb();
+	Database testdb();
 
 	int offsetToInt(long offset);
 

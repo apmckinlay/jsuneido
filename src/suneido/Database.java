@@ -9,7 +9,7 @@ import java.util.List;
 import suneido.database.*;
 import suneido.database.Record;
 
-public interface DatabaseIntfc {
+public interface Database {
 
 	Record input(long adr);
 

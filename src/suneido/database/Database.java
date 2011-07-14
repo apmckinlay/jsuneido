@@ -14,7 +14,6 @@ import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.DatabaseIntfc;
 import suneido.SuException;
 import suneido.util.*;
 
@@ -26,7 +25,7 @@ import com.google.common.collect.ImmutableList;
  * Transactions handled by {@link Transaction} and {@link Transactions}.
  */
 @ThreadSafe
-class Database implements DatabaseIntfc {
+class Database implements suneido.Database {
 	private final File file;
 	private final Mode mode;
 	public Destination dest; // used by tests and History

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import suneido.*;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
+import suneido.language.builtin.Database;
 import suneido.language.builtin.NullPointerException;
 
 /**
@@ -209,7 +210,7 @@ public class Globals {
 			Object c, Object d) {
 		return ((SuValue) get(name)).call4(a, b, c, d);
 	}
-	
+
 	private static Object lucene() {
 		try {
 			Class.forName("org.apache.lucene.analysis.Analyzer");

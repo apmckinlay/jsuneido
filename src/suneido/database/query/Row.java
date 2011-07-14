@@ -5,7 +5,7 @@ import static suneido.SuException.verify;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import suneido.DatabaseIntfc;
+import suneido.Database;
 import suneido.SuRecord;
 import suneido.database.Record;
 import suneido.database.server.DbmsTran;
@@ -162,7 +162,7 @@ public class Row {
 		return refs;
 	}
 
-	public static Row fromRefs(DatabaseIntfc db, Object[] refs) {
+	public static Row fromRefs(Database db, Object[] refs) {
 		Record[] data = new Record[refs.length];
 		for (int i = 0; i < data.length; ++i)
 			data[i] = Record.fromRef(db, refs[i]);
