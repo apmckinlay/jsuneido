@@ -14,6 +14,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import suneido.database.server.DbmsServer;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.DatabasePackage;
 import suneido.language.Compiler;
 import suneido.util.Print;
 

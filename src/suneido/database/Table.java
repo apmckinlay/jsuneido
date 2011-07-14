@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
  * The mutable data: nextfield, nrows, and totalsize are stored in {@link TableData}
  */
 @Immutable
-class Table implements suneido.Transaction.Table {
+class Table implements suneido.intfc.database.Table {
 	static final int TBLNUM = 0, TABLE = 1, NEXTFIELD = 2, NROWS = 3, TOTALSIZE = 4;
 	final String name;
 	final int num;

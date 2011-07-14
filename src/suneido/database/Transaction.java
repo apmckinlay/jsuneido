@@ -24,7 +24,7 @@ import suneido.util.PersistentMap;
  * equals and hashCode are the default i.e. identity
  */
 @ThreadSafe
-class Transaction implements suneido.Transaction, Comparable<Transaction> {
+class Transaction implements suneido.intfc.database.Transaction, Comparable<Transaction> {
 	final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
@@ -117,15 +117,15 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	}
 
 	@Override
-	public suneido.database.Table ck_getTable(String tablename) {
-		suneido.database.Table tbl = getTable(tablename);
+	public Table ck_getTable(String tablename) {
+		Table tbl = getTable(tablename);
 		if (tbl == null)
 			throw new SuException("nonexistent table: " + tablename);
 		return tbl;
 	}
 
 	@Override
-	public suneido.database.Table getTable(String tablename) {
+	public Table getTable(String tablename) {
 		if (tablename == null)
 			return null;
 		notEnded();
@@ -133,15 +133,15 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	}
 
 	@Override
-	public suneido.database.Table ck_getTable(int tblnum) {
-		suneido.database.Table tbl = getTable(tblnum);
+	public Table ck_getTable(int tblnum) {
+		Table tbl = getTable(tblnum);
 		if (tbl == null)
 			throw new SuException("nonexistent table: " + tblnum);
 		return tbl;
 	}
 
 	@Override
-	public suneido.database.Table getTable(int tblnum) {
+	public Table getTable(int tblnum) {
 		notEnded();
 		return tables.get(tblnum);
 	}
@@ -153,24 +153,24 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	}
 
 	synchronized void updateTable(int tblnum, List<BtreeIndex> btis) {
-		suneido.database.Table table = getUpdatedTable(tblnum, btis);
+		Table table = getUpdatedTable(tblnum, btis);
 		assert remove_table == null;
 		if (update_tables == null)
-			update_tables = new ArrayList<suneido.database.Table>();
+			update_tables = new ArrayList<Table>();
 		update_tables.add(table);
 	}
 
-	private suneido.database.Table getUpdatedTable(int tblnum, List<BtreeIndex> btis) {
+	private Table getUpdatedTable(int tblnum, List<BtreeIndex> btis) {
 		Record table_rec = db.getTableRecord(this, tblnum);
 		tabledataUpdates.put(tblnum, new TableData(table_rec));
 		return db.loadTable(this, table_rec, btis);
 	}
 
 	@Override
-	public synchronized void deleteTable(Table table) {
+	public synchronized void deleteTable(suneido.intfc.database.Table table) {
 		notEnded();
 		assert update_tables == null && remove_table == null;
-		remove_table = (suneido.database.Table) table;
+		remove_table = (Table) table;
 	}
 
 	// table data
@@ -384,7 +384,7 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 		if (remove_table != null)
 			db.removeTableCommit(remove_table);
 		if (update_tables != null)
-			for (suneido.database.Table table : update_tables) {
+			for (Table table : update_tables) {
 				db.removeTableCommit(table);
 				db.updateTable(table, getTableData(table.num));
 				for (Index index : table.indexes)
@@ -604,8 +604,8 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	}
 
 	@Override
-	public void callTrigger(Table table, Record oldrec, Record newrec) {
-		db.callTrigger(this, (suneido.database.Table) table, oldrec, newrec);
+	public void callTrigger(suneido.intfc.database.Table table, Record oldrec, Record newrec) {
+		db.callTrigger(this, (Table) table, oldrec, newrec);
 	}
 
 	@Override
@@ -621,8 +621,8 @@ class Transaction implements suneido.Transaction, Comparable<Transaction> {
 	}
 
 	@Override
-	public HistoryIterator historyIterator(int tblnum) {
-		return new suneido.database.HistoryIterator(db.dest, tblnum);
+	public suneido.intfc.database.HistoryIterator historyIterator(int tblnum) {
+		return new HistoryIterator(db.dest, tblnum);
 	}
 
 }

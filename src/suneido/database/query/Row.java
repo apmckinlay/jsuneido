@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuRecord;
-import suneido.Transaction;
 import suneido.database.Record;
 import suneido.database.server.DbmsTran;
+import suneido.intfc.database.Transaction;
 import suneido.language.Pack;
 
 import com.google.common.base.Objects;

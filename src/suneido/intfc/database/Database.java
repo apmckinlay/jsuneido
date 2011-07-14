@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido;
+package suneido.intfc.database;
 
 import java.util.List;
 

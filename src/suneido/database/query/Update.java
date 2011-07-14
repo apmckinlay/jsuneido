@@ -6,6 +6,7 @@ import java.util.Set;
 import suneido.*;
 import suneido.database.Record;
 import suneido.database.query.expr.Expr;
+import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableSet;
 

@@ -6,6 +6,7 @@ import java.util.*;
 
 import suneido.*;
 import suneido.database.query.expr.*;
+import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 import suneido.language.Token;
 

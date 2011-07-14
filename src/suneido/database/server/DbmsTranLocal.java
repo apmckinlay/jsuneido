@@ -1,11 +1,11 @@
 package suneido.database.server;
 
 import suneido.SuException;
-import suneido.Transaction;
 import suneido.database.Record;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
+import suneido.intfc.database.Transaction;
 
 public class DbmsTranLocal implements DbmsTran {
 	final Transaction t;

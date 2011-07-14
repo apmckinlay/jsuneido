@@ -6,10 +6,10 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.Transaction;
-import suneido.Transaction.Table;
 import suneido.database.BtreeIndex;
 import suneido.database.Record;
+import suneido.intfc.database.Table;
+import suneido.intfc.database.Transaction;
 
 public class UpdateTest extends TestBase {
 

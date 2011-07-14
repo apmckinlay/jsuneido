@@ -7,8 +7,8 @@ import static suneido.util.Util.setUnion;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.Transaction;
 import suneido.database.Record;
+import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableSet;
 

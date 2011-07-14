@@ -8,7 +8,7 @@ import java.util.Date;
 
 import suneido.util.ByteBuf;
 
-class HistoryIterator implements suneido.Transaction.HistoryIterator {
+class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	private boolean rewound = true;
 	private final Destination dest;
 	private final int tblnum;
