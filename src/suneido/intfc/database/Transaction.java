@@ -4,11 +4,9 @@
 
 package suneido.intfc.database;
 
-
 import suneido.database.BtreeIndex;
 import suneido.database.Index;
 import suneido.database.Record;
-
 
 public interface Transaction {
 

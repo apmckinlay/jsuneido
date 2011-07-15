@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import suneido.database.Index;
+import suneido.intfc.database.Fkmode;
 
 public class StringRequestGenerator implements RequestGenerator<String> {
 
@@ -34,7 +34,8 @@ public class StringRequestGenerator implements RequestGenerator<String> {
 
 	public String foreignKey(String table, String columns, int mode) {
 		return "in " + table + str(" (", columns, ")") +
-				(mode != Index.BLOCK ? " cascade" : "") + (mode == Index.CASCADE_UPDATES ? " update" : "");
+				(mode != Fkmode.BLOCK ? " cascade" : "") +
+				(mode == Fkmode.CASCADE_UPDATES ? " update" : "");
 	}
 
 	public String index(boolean key, boolean unique,

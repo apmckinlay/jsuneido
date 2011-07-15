@@ -11,6 +11,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.database.Database.TN;
+import suneido.intfc.database.Fkmode;
 
 import com.google.common.collect.ImmutableList;
 
@@ -269,10 +270,10 @@ class Data {
 				continue ;
 			BtreeIndex.Iter iter =
 					tran.getBtreeIndex(fkidx).iter(key).next();
-			if (newkey == null && (fk.mode & Index.CASCADE_DELETES) != 0)
+			if (newkey == null && (fk.mode & Fkmode.CASCADE_DELETES) != 0)
 				for (; ! iter.eof(); iter.next())
 					cascade_delete(tran, fktbl, iter);
-			else if (newkey != null && (fk.mode & Index.CASCADE_UPDATES) != 0)
+			else if (newkey != null && (fk.mode & Fkmode.CASCADE_UPDATES) != 0)
 				for (; !iter.eof(); iter.next())
 					cascade_update(tran, newkey, fktbl, iter, fkidx.colnums);
 			else // blocking

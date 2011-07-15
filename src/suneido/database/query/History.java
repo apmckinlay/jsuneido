@@ -9,7 +9,6 @@ import java.util.Set;
 
 import suneido.database.Record;
 import suneido.intfc.database.HistoryIterator;
-import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableList;

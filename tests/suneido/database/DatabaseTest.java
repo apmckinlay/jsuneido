@@ -1,6 +1,8 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.database.Index.ForeignKey;
+import suneido.intfc.database.Fkmode;
 import suneido.util.ByteBuf;
 
 public class DatabaseTest extends TestBase {
@@ -155,8 +158,8 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test2", "f1");
 		db.addColumn("test2", "f2");
 		db.addIndex("test2", "b", true);
-		db.addIndex("test2", "f1", false, false, "test", "a", Index.BLOCK);
-		db.addIndex("test2", "f2", false, false, "test", "a", Index.BLOCK);
+		db.addIndex("test2", "f1", false, false, "test", "a", Fkmode.BLOCK);
+		db.addIndex("test2", "f2", false, false, "test", "a", Fkmode.BLOCK);
 
 		Table test2 = db.getTable("test2");
 		Index f1 = test2.indexes.get("f1");
@@ -202,7 +205,7 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 
 		try {
-			db.addIndex("test", "b", false, false, "foo", "", Index.BLOCK);
+			db.addIndex("test", "b", false, false, "foo", "", Fkmode.BLOCK);
 			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
@@ -224,11 +227,11 @@ public class DatabaseTest extends TestBase {
 		t1.ck_complete();
 
 		db.addIndex("test2", "f1", false, false, "test", "a",
-				Index.BLOCK);
+				Fkmode.BLOCK);
 
 		try {
 			db.addIndex("test2", "f2", false, false, "test", "a",
-					Index.BLOCK);
+					Fkmode.BLOCK);
 			fail("expected exception");
 		} catch (SuException e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
@@ -244,7 +247,7 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test2", "f");
 		db.addIndex("test2", "a", true);
 		db.addIndex("test2", "f", false, false, "test", "a",
-				Index.CASCADE_DELETES);
+				Fkmode.CASCADE_DELETES);
 
 		Transaction t1 = db.readwriteTran();
 		t1.addRecord("test2", record(10, 1));
@@ -266,13 +269,13 @@ public class DatabaseTest extends TestBase {
 		db.addColumn("test2", "f");
 		db.addIndex("test2", "a", true);
 		db.addIndex("test2", "f", false, false, "test", "a",
-				Index.CASCADE_UPDATES);
+				Fkmode.CASCADE_UPDATES);
 
 		Table table = db.getTable("test");
 		ForeignKey fk = table.getIndex("a").fkdsts.get(0);
 		assertEquals(db.getTable("test2").num, fk.tblnum);
 		assertEquals("f", fk.columns);
-		assertEquals(Index.CASCADE_UPDATES, fk.mode);
+		assertEquals(Fkmode.CASCADE_UPDATES, fk.mode);
 
 		Transaction t1 = db.readwriteTran();
 		t1.addRecord("test2", record(10, 1));

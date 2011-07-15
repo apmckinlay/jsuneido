@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
 import suneido.database.Database.TN;
+import suneido.intfc.database.Fkmode;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -125,9 +126,9 @@ class Table implements suneido.intfc.database.Table {
 				sb.append(" in ").append(index.fksrc.tablename);
 				if (!index.fksrc.columns.equals(index.columns))
 					sb.append("(").append(index.fksrc.columns).append(")");
-				if (index.fksrc.mode == Index.CASCADE)
+				if (index.fksrc.mode == Fkmode.CASCADE)
 					sb.append(" cascade");
-				else if (index.fksrc.mode == Index.CASCADE_UPDATES)
+				else if (index.fksrc.mode == Fkmode.CASCADE_UPDATES)
 					sb.append(" cascade update");
 			}
 		}

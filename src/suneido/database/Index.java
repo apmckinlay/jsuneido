@@ -18,11 +18,9 @@ import com.google.common.collect.ImmutableList;
 public class Index {
 	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
-	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
-			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
 	final int tblnum;
-	public final String columns;
+	final String columns;
 	final ImmutableList<Integer> colnums;
 	final boolean isKey;
 	final boolean unique;
@@ -42,6 +40,10 @@ public class Index {
 		fkdsts = get_fkdsts(fkdstrecs);
 	}
 
+	public String columns() {
+		return columns;
+	}
+
 	private ForeignKey get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
 		if (!fktable.equals(""))
@@ -57,12 +59,6 @@ public class Index {
 					ri.getString(COLUMNS),
 					ri.getInt(FKMODE)));
 		return builder.build();
-	}
-
-	@Override
-	public String toString() {
-		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + columns + ")";
 	}
 
 	static String getColumns(Record r) {
@@ -104,6 +100,12 @@ public class Index {
 
 	boolean hasColumn(String name) {
 		return ("," + columns + ",").contains("," + name + ",");
+	}
+
+	@Override
+	public String toString() {
+		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
+				"(" + columns + ")";
 	}
 
 }
