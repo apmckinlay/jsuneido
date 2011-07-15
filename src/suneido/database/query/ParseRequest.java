@@ -1,8 +1,10 @@
 package suneido.database.query;
 
 import static suneido.language.Token.*;
-import suneido.database.Index;
-import suneido.language.*;
+import suneido.intfc.database.Fkmode;
+import suneido.language.Lexer;
+import suneido.language.Parse;
+import suneido.language.Token;
 
 public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	public ParseRequest(Lexer lexer, RequestGenerator<T> generator) {
@@ -159,13 +161,13 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 		String table = lexer.getValue();
 		match(IDENTIFIER);
 		T columns = token == L_PAREN ? columnList() : null;
-		int mode = Index.BLOCK;
+		int mode = Fkmode.BLOCK;
 		if (lexer.getKeyword() == CASCADE) {
 			match();
-			mode = Index.CASCADE;
+			mode = Fkmode.CASCADE;
 			if (lexer.getKeyword() == UPDATE) {
 				match();
-				mode = Index.CASCADE_UPDATES;
+				mode = Fkmode.CASCADE_UPDATES;
 			}
 		}
 		return generator.foreignKey(table, columns, mode);
