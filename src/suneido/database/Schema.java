@@ -301,7 +301,8 @@ class Schema {
 		Index index = table.firstIndex();
 		if (index == null)
 			return;
-		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter().next();
+		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter();
+		iter.next();
 		if (iter.eof())
 			return;
 

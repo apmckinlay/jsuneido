@@ -18,7 +18,9 @@ import suneido.database.Record;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Transaction;
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Pack;
+import suneido.language.Token;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -432,7 +434,6 @@ public class Select extends Query1 {
 		if (nil(best_index))
 			return .5;
 		Iselect fsel = isels.get(field);
-//		return
 		double tmp = iselsize(best_index, asList(fsel));
 		if (Double.isNaN(tmp))
 			throw new SuException("field_frac " + field +
@@ -532,7 +533,7 @@ public class Select extends Query1 {
 			} else
 				unreachable();
 		}
-		return tbl.getBtreeIndex(index).rangefrac(org, end);
+	return tran.rangefrac(tbl.num(), listToCommas(index), org, end);
 	}
 
 	private double datafrac(List<List<String>> indexes) {
@@ -576,7 +577,7 @@ public class Select extends Query1 {
 				idx.containsAll(select_needs) && idx.containsAll(prior_needs)
 						? 0 : datafrac(asList(idx));
 
-		double data_read_cost = data_frac * tbl.totalsize();
+		double data_read_cost = data_frac * tbl.totalSize();
 
 		return index_read_cost + data_read_cost;
 	}

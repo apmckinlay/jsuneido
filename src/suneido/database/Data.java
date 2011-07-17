@@ -268,8 +268,8 @@ class Data {
 			Index fkidx = getIndex(fktbl, fk.columns); // TODO tran.getIndex ?
 			if (fkidx == null)
 				continue ;
-			BtreeIndex.Iter iter =
-					tran.getBtreeIndex(fkidx).iter(key).next();
+			BtreeIndex.Iter iter = tran.getBtreeIndex(fkidx).iter(key);
+			iter.next();
 			if (newkey == null && (fk.mode & Fkmode.CASCADE_DELETES) != 0)
 				for (; ! iter.eof(); iter.next())
 					cascade_delete(tran, fktbl, iter);

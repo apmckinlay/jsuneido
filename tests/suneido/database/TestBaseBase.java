@@ -64,8 +64,8 @@ class TestBaseBase {
 		Table table = tran.getTable(tablename);
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter().next();
-		for (; !iter.eof(); iter.next())
+		BtreeIndex.Iter iter = bti.iter();
+		for (iter.next(); ! iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));
 		return recs;
 	}
@@ -74,7 +74,8 @@ class TestBaseBase {
 		Table table = tran.getTable(tablename);
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter().next();
+		BtreeIndex.Iter iter = bti.iter();
+		iter.next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
@@ -82,7 +83,8 @@ class TestBaseBase {
 		Table table = tran.getTable(tablename);
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter().prev();
+		BtreeIndex.Iter iter = bti.iter();
+		iter.prev();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 

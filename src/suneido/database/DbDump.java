@@ -43,9 +43,9 @@ class DbDump {
 			try {
 				writeFileHeader(fout);
 				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
-				BtreeIndex.Iter iter = bti.iter().next();
+				BtreeIndex.Iter iter = bti.iter();
 				int n = 0;
-				for (; !iter.eof(); iter.next()) {
+				for (iter.next(); ! iter.eof(); iter.next()) {
 					Record r = t.input(iter.keyadr());
 					String tablename = r.getString(Table.TABLE);
 					if (Schema.isSystemTable(tablename))
@@ -124,9 +124,9 @@ class DbDump {
 		boolean squeeze = needToSqueeze(fields);
 		Index index = table.firstIndex();
 		BtreeIndex bti = t.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter().next();
+		BtreeIndex.Iter iter = bti.iter();
 		int n = 0;
-		for (; !iter.eof(); iter.next()) {
+		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = t.input(iter.keyadr());
 			if (squeeze)
 				r = squeezeRecord(r, fields);

@@ -1,6 +1,8 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.database.Transaction.NULLTRAN;
 
 import org.junit.Test;
@@ -40,14 +42,20 @@ public class IndexTest {
 			ix.insert(NULLTRAN, makeslot(i));
 
 		BtreeIndex.Iter iter = ix.iter(makekey(40), makekey(60));
-		for (i = 40; i <= 60; ++i)
-			assertEquals(i, iter.next().cur().key.getInt(0));
-		assertTrue(iter.next().eof());
+		for (i = 40; i <= 60; ++i) {
+			iter.next();
+			assertEquals(i, iter.cur().key.getInt(0));
+		}
+		iter.next();
+		assertTrue(iter.eof());
 
 		iter = ix.iter(makekey(40), makekey(60));
-		for (i = 60; i >= 40; --i)
-			assertEquals(i, iter.prev().cur().key.getInt(0));
-		assertTrue(iter.prev().eof());
+		for (i = 60; i >= 40; --i) {
+			iter.prev();
+			assertEquals(i, iter.cur().key.getInt(0));
+		}
+		iter.prev();
+		assertTrue(iter.eof());
 	}
 
 	private Slot makeslot(int ... args) {

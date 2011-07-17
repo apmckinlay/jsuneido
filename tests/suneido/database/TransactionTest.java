@@ -1,6 +1,9 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -121,12 +124,14 @@ public class TransactionTest extends TestBase {
 		Table table = tran.getTable("test");
 		Index index = table.indexes.first();
 		BtreeIndex bti = tran.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter().next();
+		BtreeIndex.Iter iter = bti.iter();
+		iter.next();
 		for (int i = 0; i < values.length / 2; iter.next(), ++i) {
 			Record r = db.input(iter.keyadr());
 			assertEquals(record(values[i]), r);
 		}
-		iter = bti.iter().prev();
+		iter = bti.iter();
+		iter.prev();
 		for (int i = values.length - 1; i >= values.length / 2; iter.prev(), --i) {
 			Record r = db.input(iter.keyadr());
 			assertEquals(record(values[i]), r);
