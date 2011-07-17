@@ -10,12 +10,16 @@ import static suneido.database.Transaction.NULLTRAN;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.util.*;
+import suneido.util.ByteBuf;
+import suneido.util.Checksum;
+import suneido.util.PersistentMap;
 
 import com.google.common.collect.ImmutableList;
 
@@ -215,8 +219,8 @@ class Database implements suneido.intfc.database.Database {
 		Transaction tran = readonlyTran();
 		try {
 			BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
-			for (BtreeIndex.Iter iter = tablenum_index.iter().next();
-					!iter.eof(); iter.next()) {
+			BtreeIndex.Iter iter = tablenum_index.iter();
+			for (iter.next(); !iter.eof(); iter.next()) {
 				Record table_rec = input(iter.keyadr());
 				Table table = loadTable(tran, table_rec, btis);
 				tablesBuilder.add(table);
@@ -315,8 +319,8 @@ class Database implements suneido.intfc.database.Database {
 		// columns
 		ArrayList<Column> cols = new ArrayList<Column>();
 		BtreeIndex columns_index = tran.getBtreeIndex(TN.COLUMNS, "table,column");
-		for (BtreeIndex.Iter iter = columns_index.iter(tblkey).next();
-				!iter.eof(); iter.next())
+		BtreeIndex.Iter iter = columns_index.iter(tblkey);
+		for (iter.next(); ! iter.eof(); iter.next())
 			cols.add(new Column(input(iter.keyadr())));
 		Collections.sort(cols);
 		Columns columns = new Columns(ImmutableList.copyOf(cols));
@@ -324,8 +328,8 @@ class Database implements suneido.intfc.database.Database {
 		// indexes
 		ImmutableList.Builder<Index> indexes = ImmutableList.builder();
 		BtreeIndex indexes_index = tran.getBtreeIndex(TN.INDEXES, "table,columns");
-		for (BtreeIndex.Iter iter = indexes_index.iter(tblkey).next();
-				!iter.eof(); iter.next()) {
+		iter = indexes_index.iter(tblkey);
+		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = input(iter.keyadr());
 			String icols = Index.getColumns(r);
 			indexes.add(new Index(r, icols, columns.nums(icols),
@@ -342,8 +346,8 @@ class Database implements suneido.intfc.database.Database {
 			String columns) {
 		List<Record> records = new ArrayList<Record>();
 		BtreeIndex fkey_index = tran.getBtreeIndex(TN.INDEXES, "fktable,fkcolumns");
-		for (BtreeIndex.Iter iter = fkey_index.iter(key(tablename, columns)).next();
-				!iter.eof(); iter.next())
+		BtreeIndex.Iter iter = fkey_index.iter(key(tablename, columns));
+		for (iter.next(); ! iter.eof(); iter.next())
 			records.add(input(iter.keyadr()));
 		return records;
 	}

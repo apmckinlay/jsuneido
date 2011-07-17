@@ -279,8 +279,8 @@ class DbRebuild extends DbCheck {
 		BtreeIndex btreeIndex = tran.getBtreeIndex(tblnum, columns);
 		ImmutableList<Integer> colnums = table.getIndex(columns).colnums;
 		Index index = table.firstIndex();
-		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter().next();
-		for (; !iter.eof(); iter.next()) {
+		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter();
+		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = newdb.input(iter.keyadr());
 			Record key = r.project(colnums, iter.cur().keyadr());
 			verify(btreeIndex.insert(tran, new Slot(key)));

@@ -7,6 +7,7 @@ package suneido.database;
 import static suneido.SuException.verify;
 import static suneido.SuException.verifyEquals;
 import static suneido.database.Index.*;
+import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
 
@@ -15,12 +16,12 @@ import com.google.common.base.Objects;
  * Adds transaction stuff.
  * Almost immutable but update will change record, and btree info may change.
  */
-public class BtreeIndex {
-	public final Record record;
+class BtreeIndex {
+	final Record record;
 	private Destination dest;
 	private final Btree bt;
-	public final boolean iskey;
-	public final boolean unique;
+	final boolean iskey;
+	final boolean unique;
 	final int tblnum;
 	final String columns;
 
@@ -30,6 +31,7 @@ public class BtreeIndex {
 		this(dest, tblnum, indexColumns, isKey, unique, "", "", 0);
 	}
 
+	/** Create a new index */
 	BtreeIndex(Destination dest, int tblnum, String columns,
 			boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
@@ -145,11 +147,11 @@ public class BtreeIndex {
 		return r;
 	}
 
-	public int nnodes() {
+	int nnodes() {
 		return bt.nnodes();
 	}
 
-	public int totalSize() {
+	int totalSize() {
 		return bt.nnodes() * Btree.NODESIZE;
 	}
 
@@ -173,13 +175,14 @@ public class BtreeIndex {
 		return bt.isValid();
 	}
 
-	public float rangefrac(Record from, Record to) {
+	float rangefrac(Record from, Record to) {
 		float f = bt.rangefrac(from, to);
 		return f < .001 ? (float) .001 : f;
 	}
 
 	Slot find(Transaction tran, Record key) {
-		Iter iter = iter(key).next();
+		Iter iter = iter(key);
+		iter.next();
 		if (iter.eof())
 			return null;
 		Slot cur = iter.cur();
@@ -196,21 +199,25 @@ public class BtreeIndex {
 		return true;
 	}
 
-	public Iter iter() {
+	Iter iter() {
 		return new Iter(Record.MINREC, Record.MAXREC);
 	}
 
-	public Iter iter(Record key) {
+	Iter iter(Record key) {
 		return new Iter(key, key);
 	}
 
-	public Iter iter(Record from, Record to) {
+	Iter iter(Record from, Record to) {
 		return new Iter(from, to);
+	}
+
+	Iter iter(IndexIter iter) {
+		return new Iter((Iter) iter);
 	}
 
 	// adds from/to range,
 	// and prevsize to skip records added/updated during iteration
-	public class Iter {
+	class Iter implements IndexIter {
 		Record from;
 		Record to;
 		boolean rewound = true;
@@ -222,19 +229,30 @@ public class BtreeIndex {
 			this.to = to;
 		}
 
+		private Iter(Iter iter) {
+			from = iter.from;
+			to = iter.to;
+			this.iter = bt.atCur(iter.cur());
+			prevsize = iter.prevsize;
+			rewound = false;
+		}
+
+		@Override
 		public boolean eof() {
 			return iter.eof();
 		}
 
-		public Slot cur() {
+		Slot cur() {
 			verify(!rewound);
 			return iter.cur();
 		}
 
+		@Override
 		public Record curKey() {
 			return cur().key;
 		}
 
+		@Override
 		public long keyadr() {
 			return cur().keyadr();
 		}
@@ -243,7 +261,8 @@ public class BtreeIndex {
 			prevsize = Long.MAX_VALUE;
 		}
 
-		public Iter next() {
+		@Override
+		public void next() {
 			boolean first = true;
 			Record prevkey = Record.MINREC;
 			if (rewound) {
@@ -261,10 +280,10 @@ public class BtreeIndex {
 				iter.seteof();
 			if (!iter.eof() && (iskey || first || !eq(iter.key(), prevkey)))
 				prevsize = dest.size();
-			return this;
 		}
 
-		public Iter prev() {
+		@Override
+		public void prev() {
 			if (rewound) {
 				iter = bt.locate(to.dup(8).addMax());
 				if (iter.eof())
@@ -278,31 +297,8 @@ public class BtreeIndex {
 			prevsize = dest.size();
 			if (!iter.eof() && iter.key().compareTo(from) < 0)
 				iter.seteof();
-			return this;
 		}
 
-		public Object getState() {
-			assert iter != null;
-			assert rewound == false;
-			return new State(cur(), prevsize);
-		}
-
-		public void setState(Object arg) {
-			State state = (State) arg;
-			assert iter == null;
-			iter = bt.atCur(state.cur);
-			rewound = false;
-			prevsize = state.prevsize;
-		}
-
-	}
-	private static class State {
-		Slot cur;
-		long prevsize;
-		State(Slot cur, long prevsize) {
-			this.cur = cur;
-			this.prevsize = prevsize;
-		}
 	}
 
 	/**

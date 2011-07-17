@@ -4,7 +4,6 @@
 
 package suneido.intfc.database;
 
-import suneido.database.BtreeIndex;
 import suneido.database.Record;
 
 public interface Transaction {
@@ -31,10 +30,11 @@ public interface Transaction {
 
 	void deleteTable(Table table);
 
-	int nrecords(int tblnum);
-	long totalsize(int tblnum);
-
-	BtreeIndex getBtreeIndex(int tblnum, String columns);
+	int tableCount(int tblnum);
+	long tableSize(int tblnum);
+	int indexSize(int tblnum, String columns);
+	int keySize(int tblnum, String columns);
+	float rangefrac(int tblnum, String columns, Record from, Record to);
 
 	void abortIfNotComplete();
 
@@ -64,5 +64,9 @@ public interface Transaction {
 	Record fromRef(Object ref);
 
 	HistoryIterator historyIterator(int tblnum);
+
+	IndexIter iter(int tblnum, String columns);
+	IndexIter iter(int tblnum, String columns, Record org, Record end);
+	IndexIter iter(int tblnum, String columns, IndexIter iter);
 
 }

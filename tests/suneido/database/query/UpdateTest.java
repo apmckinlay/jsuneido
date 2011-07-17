@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.BtreeIndex;
 import suneido.database.Record;
+import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 
@@ -67,9 +67,8 @@ public class UpdateTest extends TestBase {
 		String[] indexes = { "name,group", "num", "parent", "parent,name" };
 		for (String cols : indexes) {
 			int n = 0;
-			BtreeIndex bti = t.getBtreeIndex(table.num(), cols);
-			BtreeIndex.Iter iter = bti.iter().next();
-			for (; !iter.eof(); iter.next())
+			IndexIter iter = t.iter(table.num(), cols);
+			for (iter.next(); ! iter.eof(); iter.next())
 				++n;
 			assertEquals(10, n);
 		}

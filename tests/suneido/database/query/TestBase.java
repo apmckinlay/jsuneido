@@ -9,10 +9,10 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.database.BtreeIndex;
 import suneido.database.Record;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
+import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
@@ -155,9 +155,8 @@ public class TestBase {
 	protected List<Record> get(String tablename, Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
 		Table table = tran.getTable(tablename);
-		BtreeIndex bti = tran.getBtreeIndex(table.num(), null);
-		BtreeIndex.Iter iter = bti.iter().next();
-		for (; !iter.eof(); iter.next())
+		IndexIter iter = tran.iter(table.num(), null);
+		for (iter.next(); !iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));
 		return recs;
 	}

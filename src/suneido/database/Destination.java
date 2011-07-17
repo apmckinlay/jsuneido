@@ -9,7 +9,8 @@ import suneido.util.ByteBuf;
 /**
  * Interface from {@link Database}, {@link BtreeIndex}, {@link Btree) to storage.
  * Normally implemented by {@link Mmfile} but {@link DestMem} is used for
- * tests and in-memory temporary indexes.
+ * tests and in-memory temporary indexes. And {@link DestTran} is used for
+ * transactions.
  */
 abstract class Destination {
 

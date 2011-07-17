@@ -12,8 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import suneido.database.BtreeIndex;
 import suneido.database.Record;
+import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
 public class Table extends Query {
@@ -23,11 +23,11 @@ public class Table extends Query {
 	private boolean rewound = true;
 	private final Keyrange sel = new Keyrange();
 	private Header hdr;
-	private BtreeIndex ix;
+	private String icols; // null to use first index
 	private Transaction tran;
 	private boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
-	BtreeIndex.Iter iter;
+	IndexIter iter;
 
 	public Table(Transaction tran, String tablename) {
 		this.tran = tran;
@@ -64,15 +64,15 @@ public class Table extends Query {
 
 		if (!nil(idx1 = match(idxs, index, needs)))
 			// index found that meets all needs
-			cost1 = nrecords() * keysize(idx1); // cost of reading index
+			cost1 = nrecords() * keySize(idx1); // cost of reading index
 		if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
 			// index found that meets firstneeds
 			// assume this means we only have to read 75% of data
 			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx2); // cost of reading index
+			nrecords() * keySize(idx2); // cost of reading index
 		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
 			cost3 = nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx3); // cost of reading index
+			nrecords() * keySize(idx3); // cost of reading index
 		//System.out.println("Table have " + indexes() + " want " + index);
 		//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
 		//	+ idx3 + " = " + cost3);
@@ -115,7 +115,7 @@ public class Table extends Query {
 	@Override
 	int recordsize() {
 		int nrecs = nrecs();
-		return nrecs == 0 ? 0 : (int) (totalsize() / nrecs);
+		return nrecs == 0 ? 0 : (int) (totalSize() / nrecs);
 	}
 
 	@Override
@@ -123,12 +123,16 @@ public class Table extends Query {
 		return nrecs();
 	}
 
-	int nrecs() {
-		return tran.nrecords(tbl.num());
+	int num() {
+		return tbl.num();
 	}
 
-	long totalsize() {
-		return tran.totalsize(tbl.num());
+	int nrecs() {
+		return tran.tableCount(tbl.num());
+	}
+
+	long totalSize() {
+		return tran.tableSize(tbl.num());
 	}
 
 	private static List<String> match(List<List<String>> idxs,
@@ -151,27 +155,13 @@ public class Table extends Query {
 		return best;
 	}
 
-	int keysize(List<String> index) {
-		int nrecs = nrecs();
-		if (nrecs == 0)
-			return 0;
-		BtreeIndex idx = getBtreeIndex(index);
-		int usage = (idx.nnodes() <= 1 ? 4 : 2);
-		return idx.totalSize() / usage / nrecs;
+	int keySize(List<String> index) {
+		return tran.keySize(tbl.num(), listToCommas(index));
 	}
 
 	int indexSize(List<String> index) {
-		BtreeIndex idx = getBtreeIndex(index);
-		return idx.totalSize() + index.size();
+		return tran.indexSize(tbl.num(), listToCommas(index)) + index.size();
 		// add index.size() to favor shorter indexes
-	}
-
-	BtreeIndex getBtreeIndex(List<String> index) {
-		return getBtreeIndex(listToCommas(index));
-	}
-
-	private BtreeIndex getBtreeIndex(String index) {
-		return tran.getBtreeIndex(tbl.num(), index);
 	}
 
 	/* package */void select_index(List<String> index) {
@@ -185,11 +175,8 @@ public class Table extends Query {
 			return;
 		this.tran = tran;
 		set_ix();
-		if (iter != null) {
-			Object state = iter.getState();
-			iter = iter();
-			iter.setState(state);
-		}
+		if (iter != null)
+			iter = tran.iter(tbl.num(), icols, iter);
 	}
 
 	@Override
@@ -226,10 +213,10 @@ public class Table extends Query {
 		return row;
 	}
 
-	private BtreeIndex.Iter iter() {
+	private IndexIter iter() {
 		return singleton || sel == null
-				? ix.iter()
-				: ix.iter(sel.org, sel.end);
+				? tran.iter(tbl.num(), icols)
+				: tran.iter(tbl.num(), icols, sel.org, sel.end);
 	}
 
 	private void iterate_setup(Dir dir) {
@@ -238,9 +225,7 @@ public class Table extends Query {
 	}
 
 	private void set_ix() {
-		String icols = nil(idx) || singleton ? null : listToCommas(idx);
-		ix = getBtreeIndex(icols);
-		verify(ix != null);
+		icols = nil(idx) || singleton ? null : listToCommas(idx);
 	}
 
 	@SuppressWarnings("unchecked")

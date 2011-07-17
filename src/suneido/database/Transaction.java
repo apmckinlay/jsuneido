@@ -13,6 +13,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.database.server.ServerData;
+import suneido.intfc.database.IndexIter;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
@@ -173,16 +174,29 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		remove_table = (Table) table;
 	}
 
-	// table data
-
 	@Override
-	public int nrecords(int tblnum) {
+	public int tableCount(int tblnum) {
 		return getTableData(tblnum).nrecords;
 	}
 
 	@Override
-	public long totalsize(int tblnum) {
+	public long tableSize(int tblnum) {
 		return getTableData(tblnum).totalsize;
+	}
+
+	@Override
+	public int indexSize(int tblnum, String columns) {
+		return getBtreeIndex(tblnum, columns).totalSize();
+	}
+
+	@Override
+	public int keySize(int tblnum, String columns) {
+		int nrecs = tableCount(tblnum);
+		if (nrecs == 0)
+			return 0;
+		BtreeIndex idx = getBtreeIndex(tblnum, columns);
+		int usage = (idx.nnodes() <= 1 ? 4 : 2);
+		return idx.totalSize() / usage / nrecs;
 	}
 
 	synchronized TableData getTableData(int tblnum) {
@@ -204,8 +218,7 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	/** null columns means the first index */
-	@Override
-	public synchronized BtreeIndex getBtreeIndex(int tblnum, String columns) {
+	synchronized BtreeIndex getBtreeIndex(int tblnum, String columns) {
 		notEnded();
 		if (columns == null)
 			columns = getTable(tblnum).firstIndex().columns;
@@ -601,7 +614,8 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		BtreeIndex bti = getBtreeIndex(tblnum, index);
 		if (bti == null)
 			return null;
-		BtreeIndex.Iter iter = bti.iter(key).next();
+		BtreeIndex.Iter iter = bti.iter(key);
+		iter.next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
@@ -625,6 +639,26 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	@Override
 	public suneido.intfc.database.HistoryIterator historyIterator(int tblnum) {
 		return new HistoryIterator(db.dest, tblnum);
+	}
+
+	@Override
+	public float rangefrac(int tblnum, String columns, Record from, Record to) {
+		return getBtreeIndex(tblnum, columns).rangefrac(from, to);
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns) {
+		return getBtreeIndex(tblnum, columns).iter();
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns, Record org, Record end) {
+		return getBtreeIndex(tblnum, columns).iter(org, end);
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
+		return getBtreeIndex(tblnum, columns).iter(iter);
 	}
 
 }

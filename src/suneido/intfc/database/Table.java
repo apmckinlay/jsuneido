@@ -24,4 +24,5 @@ public interface Table {
 	ImmutableList<String> getFields();
 
 	String schema();
+
 }
