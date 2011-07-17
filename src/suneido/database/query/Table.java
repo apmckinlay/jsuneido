@@ -238,9 +238,7 @@ public class Table extends Query {
 	}
 
 	private void set_ix() {
-		String icols =
-				nil(idx) || singleton ? tbl.firstIndex().columns()
-						: listToCommas(idx);
+		String icols = nil(idx) || singleton ? null : listToCommas(idx);
 		ix = getBtreeIndex(icols);
 		verify(ix != null);
 	}

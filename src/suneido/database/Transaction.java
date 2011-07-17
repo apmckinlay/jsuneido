@@ -199,14 +199,16 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 
 	// btree indexes
 
-	@Override
-	public BtreeIndex getBtreeIndex(Index index) {
+	BtreeIndex getBtreeIndex(Index index) {
 		return getBtreeIndex(index.tblnum, index.columns);
 	}
 
+	/** null columns means the first index */
 	@Override
 	public synchronized BtreeIndex getBtreeIndex(int tblnum, String columns) {
 		notEnded();
+		if (columns == null)
+			columns = getTable(tblnum).firstIndex().columns;
 		String key = tblnum + ":" + columns;
 		BtreeIndex bti = btreeIndexCopies.get(key);
 		if (bti == null) {
