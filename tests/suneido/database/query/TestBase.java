@@ -10,7 +10,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import suneido.database.BtreeIndex;
-import suneido.database.Index;
 import suneido.database.Record;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
@@ -156,8 +155,7 @@ public class TestBase {
 	protected List<Record> get(String tablename, Transaction tran) {
 		List<Record> recs = new ArrayList<Record>();
 		Table table = tran.getTable(tablename);
-		Index index = table.firstIndex();
-		BtreeIndex bti = tran.getBtreeIndex(index);
+		BtreeIndex bti = tran.getBtreeIndex(table.num(), null);
 		BtreeIndex.Iter iter = bti.iter().next();
 		for (; !iter.eof(); iter.next())
 			recs.add(db.input(iter.keyadr()));

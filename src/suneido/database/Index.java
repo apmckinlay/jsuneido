@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Used by {@link Database} and {@link Indexes} to handle a single index.
  */
-public class Index {
+class Index {
 	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2, FKTABLE = 3,
 			FKCOLUMNS = 4, FKMODE = 5, ROOT = 6, TREELEVELS = 7, NNODES = 8;
 	static final String UNIQUE = "u";
@@ -38,10 +38,6 @@ public class Index {
 		this.unique = key.equals(UNIQUE);
 		fksrc = get_fksrc(record);
 		fkdsts = get_fkdsts(fkdstrecs);
-	}
-
-	public String columns() {
-		return columns;
 	}
 
 	private ForeignKey get_fksrc(Record record) {

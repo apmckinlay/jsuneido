@@ -60,8 +60,7 @@ class Table implements suneido.intfc.database.Table {
 		return indexes.hasIndex(columns);
 	}
 
-	@Override
-	public Index firstIndex() {
+	Index firstIndex() {
 		return indexes.first();
 	}
 
