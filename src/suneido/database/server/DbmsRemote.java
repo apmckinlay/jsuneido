@@ -10,13 +10,17 @@ import static suneido.Trace.trace;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.database.Record;
-import suneido.database.query.*;
+import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 import suneido.language.Pack;
 
@@ -259,7 +263,7 @@ public class DbmsRemote extends Dbms {
 			header = parseHeader(splitList(s));
 		}
 		ByteBuffer buf = io.readNew(reclen);
-		Record record = new Record(buf);
+		Record record = dbpkg.record(buf);
 		Row row = new Row(record, recadr);
 		return new HeaderAndRow(header, row);
 	}

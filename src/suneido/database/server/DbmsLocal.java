@@ -13,11 +13,11 @@ import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.Record;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
 import suneido.intfc.database.Database;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 import suneido.language.Compiler;
@@ -92,7 +92,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public List<LibGet> libget(String name) {
 		List<LibGet> srcs = new ArrayList<LibGet>();
-		Record key = new Record();
+		Record key = dbpkg.record();
 		key.add(name);
 		key.add(-1);
 		Transaction tran = db.readonlyTran();

@@ -4,9 +4,11 @@ import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.util.Util.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 
 public class Union extends Compatible {

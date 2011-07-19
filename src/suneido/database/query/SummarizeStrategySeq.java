@@ -5,9 +5,9 @@ import static suneido.util.Util.startsWith;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
+import suneido.intfc.database.Record;
 
 public class SummarizeStrategySeq extends SummarizeStrategy {
 	List<Summary> sums;

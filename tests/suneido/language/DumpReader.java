@@ -1,6 +1,7 @@
 package suneido.language;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -10,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 class DumpReader {
 	private final InputStream fin;
@@ -70,7 +71,7 @@ class DumpReader {
 		if (n > recbuf.length)
 			recbuf = new byte[Math.max(n, 2 * recbuf.length)];
 		verify(fin.read(recbuf, 0, n) == n);
-		return new Record(ByteBuffer.wrap(recbuf, 0, n));
+		return dbpkg.record(ByteBuffer.wrap(recbuf, 0, n));
 	}
 
 	private String getline() throws IOException {

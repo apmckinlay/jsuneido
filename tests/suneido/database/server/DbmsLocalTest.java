@@ -5,7 +5,6 @@ import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -27,7 +26,7 @@ public class DbmsLocalTest {
 
 		DbmsTran t2 = dbms.transaction(true);
 		DbmsQuery q = t2.query("test");
-		q.output(new Record().add(4).add(5).add(6));
+		q.output(dbpkg.record().add(4).add(5).add(6));
 		q.rewind();
 		Row row = q.get(Dir.PREV);
 		Header hdr = q.header();

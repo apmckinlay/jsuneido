@@ -6,8 +6,8 @@ import static suneido.util.Util.*;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.expr.Expr;
+import suneido.intfc.database.Record;
 
 public class Project extends Query1 {
 	private List<String> flds;

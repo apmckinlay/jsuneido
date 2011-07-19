@@ -185,7 +185,7 @@ public class TestConcurrency {
 						tablename + " where b > " + from + " and b < " + to);
 				Row row;
 				while (null != (row = q.get(Dir.NEXT))) {
-					Record rec = row.getFirstData();
+					Record rec = (Record) row.getFirstData();
 					int n = rec.getInt(1);
 					assert from < n && n < to;
 				}
@@ -346,7 +346,7 @@ public class TestConcurrency {
 			Query q = CompileQuery.query(t, serverData, tablename);
 			try {
 				Row r = q.get(Dir.NEXT);
-				Record rec = r.getFirstData();
+				Record rec = (Record) r.getFirstData();
 				t.updateRecord(rec.off(), rec);
 			} catch (SuException e) {
 				throwUnexpected(e);

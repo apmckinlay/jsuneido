@@ -4,7 +4,7 @@ import static suneido.SuException.unreachable;
 
 import java.util.List;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 public abstract class QueryAction extends Query1 {
 

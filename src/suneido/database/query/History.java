@@ -7,8 +7,8 @@ package suneido.database.query;
 import java.util.List;
 import java.util.Set;
 
-import suneido.database.Record;
 import suneido.intfc.database.HistoryIterator;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableList;

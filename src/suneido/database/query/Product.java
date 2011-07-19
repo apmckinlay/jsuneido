@@ -4,10 +4,12 @@ import static java.util.Collections.disjoint;
 import static suneido.SuException.verify;
 import static suneido.util.Util.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 public class Product extends Query2 {
 	private boolean rewound = true;

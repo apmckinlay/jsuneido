@@ -6,8 +6,6 @@ package suneido.intfc.database;
 
 import java.util.List;
 
-import suneido.database.Record;
-
 public interface Database {
 
 	Record input(long adr);

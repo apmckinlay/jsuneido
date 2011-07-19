@@ -6,9 +6,9 @@ import static suneido.database.query.Query.Dir.PREV;
 
 import org.junit.Test;
 
-import suneido.database.Record;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 public class ProjectTest {

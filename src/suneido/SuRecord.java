@@ -1,16 +1,17 @@
 package suneido;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
+import suneido.intfc.database.Record;
 import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
@@ -206,7 +207,7 @@ public class SuRecord extends SuContainer {
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 		// PERF don't add trailing empty fields
 
-		Record rec = new Record();
+		Record rec = dbpkg.record();
 		StringBuilder sb = new StringBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();

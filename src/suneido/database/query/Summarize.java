@@ -3,11 +3,14 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.util.Util.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 
 import com.google.common.collect.ImmutableSet;

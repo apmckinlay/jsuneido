@@ -1,8 +1,8 @@
 package suneido.language;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.StringGenerator;
+import suneido.intfc.database.Record;
 
 public class ParseDump implements DumpReader.Processor {
 

@@ -5,10 +5,12 @@ import static suneido.SuException.verify;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 public class TempIndex extends Query1 {
