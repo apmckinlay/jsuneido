@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.TheDbms;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.NetworkOutput;
@@ -202,7 +202,7 @@ public class CommandTest {
 		buf = Command.GET.execute(stringToBuffer("+ Q0"), null, output);
 		assertNull(buf);
 		assertEquals("A9 R58\r\n", bufferToString(output.get(0)));
-		Record rec = new Record(output.get(1));
+		Record rec = dbpkg.record(output.get(1));
 		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
 		assertEquals(58, rec.bufSize());
 
@@ -233,7 +233,7 @@ public class CommandTest {
 		assertNull(buf);
 		assertEquals("A9 R58 (table,tablename,nextfield,nrows,totalsize)\r\n",
 				bufferToString(output.get(0)));
-		Record rec = new Record(output.get(1));
+		Record rec = dbpkg.record(output.get(1));
 		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
 
 		tbuf.rewind();
@@ -392,7 +392,7 @@ public class CommandTest {
 	private static ByteBuffer UPDATE = stringToBuffer("update");
 
 	static Record make(String... args) {
-		Record r = new Record();
+		Record r = dbpkg.record();
 		for (String s : args)
 			r.add(s);
 		return r;

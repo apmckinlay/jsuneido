@@ -6,9 +6,6 @@ package suneido.intfc.database;
 
 import java.nio.ByteBuffer;
 
-import suneido.Record;
-
-
 public interface DatabasePackage {
 
 	Database open(String filename);
@@ -40,5 +37,8 @@ public interface DatabasePackage {
 	void loadTablePrint(String actionArg);
 	void loadDatabasePrint(String string, String string2) throws InterruptedException;
 	void load2(String string, String actionArg);
+
+	Record minRecord();
+	Record maxRecord();
 
 }

@@ -5,6 +5,7 @@
 package suneido;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 import static suneido.language.Ops.cmp;
 
 import java.math.BigDecimal;
@@ -14,9 +15,12 @@ import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.database.Record;
 import suneido.database.query.Header;
-import suneido.language.*;
+import suneido.intfc.database.Record;
+import suneido.language.Concat;
+import suneido.language.Ops;
+import suneido.language.Pack;
+import suneido.language.Range;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.Util;
@@ -580,7 +584,7 @@ public class SuContainer extends SuValue
 	}
 
 	public Record toDbRecord(Header hdr) {
-		Record rec = new Record();
+		Record rec = dbpkg.record();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : hdr.output_fldsyms())

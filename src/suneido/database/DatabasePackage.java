@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
-	public suneido.intfc.database.Database open(String filename) {
+	public Database open(String filename) {
 		return new Database(filename, Mode.OPEN);
 	}
 
@@ -24,23 +24,33 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public suneido.intfc.database.Database testdb() {
+	public Database testdb() {
 		return new Database(new DestMem(), Mode.CREATE);
 	}
 
 	@Override
-	public suneido.Record record() {
+	public Record record() {
 		return new Record();
 	}
 
 	@Override
-	public suneido.Record record(int size) {
+	public Record record(int size) {
 		return new Record(size);
 	}
 
 	@Override
-	public suneido.Record record(ByteBuffer buf) {
+	public Record record(ByteBuffer buf) {
 		return new Record(buf);
+	}
+
+	@Override
+	public Record minRecord() {
+		return Record.MINREC;
+	}
+
+	@Override
+	public Record maxRecord() {
+		return Record.MAXREC;
 	}
 
 	@Override

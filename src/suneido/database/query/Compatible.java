@@ -6,7 +6,7 @@ import static suneido.util.Util.union;
 
 import java.util.List;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 public abstract class Compatible extends Query2 {
 	protected List<String> ki;

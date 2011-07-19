@@ -1,8 +1,10 @@
 package suneido.database.query;
 
+import static suneido.Suneido.dbpkg;
+
 import java.util.List;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 public class InsertQuery extends QueryAction {
@@ -28,7 +30,7 @@ public class InsertQuery extends QueryAction {
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
-			Record r = new Record();
+			Record r = dbpkg.record();
 			for (String f : fields)
 				if (f.equals("-"))
 					r.addMin();

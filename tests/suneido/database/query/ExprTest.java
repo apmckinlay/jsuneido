@@ -1,15 +1,20 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static suneido.Suneido.dbpkg;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.database.Record;
 import suneido.database.query.expr.Expr;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 
 public class ExprTest {
@@ -105,8 +110,8 @@ public class ExprTest {
 		};
 		Header hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
 				asList("a", "b", "c", "d", "e"));
-		Record key = new Record().add(1);
-		Record rec = new Record().add(1).add(2).add(3).add(4).
+		Record key = dbpkg.record().add(1);
+		Record rec = dbpkg.record().add(1).add(2).add(3).add(4).
 				add(Ops.stringToDate("#20081216.153244828"));
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {

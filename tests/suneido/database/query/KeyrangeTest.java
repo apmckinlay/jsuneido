@@ -1,18 +1,18 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.database.Record;
-
+import suneido.intfc.database.Record;
 
 public class KeyrangeTest {
 	@Test
 	public void intersect() {
-		Record a = new Record().add("a");
-		Record b = new Record().add("b");
-		Record c = new Record().add("c");
+		Record a = dbpkg.record().add("a");
+		Record b = dbpkg.record().add("b");
+		Record c = dbpkg.record().add("c");
 
 		Keyrange x = new Keyrange(a, b);
 		Keyrange all = new Keyrange();

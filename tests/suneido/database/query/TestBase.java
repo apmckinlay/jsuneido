@@ -9,12 +9,9 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.database.Record;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
-import suneido.intfc.database.IndexIter;
+import suneido.intfc.database.*;
 import suneido.intfc.database.Table;
-import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 
 public class TestBase {
@@ -179,7 +176,7 @@ public class TestBase {
 		}
 
 	protected static Record record(int i) {
-		return new Record().add(i).add("more stuff");
+		return dbpkg.record().add(i).add("more stuff");
 	}
 
 }

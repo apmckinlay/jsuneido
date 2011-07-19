@@ -4,8 +4,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
-import static suneido.database.Record.MAX_FIELD;
-import static suneido.database.Record.MIN_FIELD;
+import static suneido.Suneido.dbpkg;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.Util.*;
@@ -14,9 +13,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 import suneido.language.Pack;
@@ -26,6 +25,9 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
 public class Select extends Query1 {
+	static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
+	static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
+			.put(0, (byte) 0x7f).asReadOnlyBuffer();
 	private Multi expr;
 	private boolean optFirst = true;
 	private boolean conflicting = false;
@@ -504,8 +506,8 @@ public class Select extends Query1 {
 		// now build the key
 		int i = 0;
 		int n = index.size();
-		Record org = new Record();
-		Record end = new Record();
+		Record org = dbpkg.record();
+		Record end = dbpkg.record();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli, ++i) {
 			Iselect isel = iselects.get(iseli);
 			verify(! isel.none());
@@ -687,8 +689,8 @@ public class Select extends Query1 {
 		// now build the keys
 		int i = 0;
 		int n = index.size();
-		Record org = new Record();
-		Record end = new Record();
+		Record org = dbpkg.record();
+		Record end = dbpkg.record();
 		if (nil(iselects))
 			end.addMax();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli) {
@@ -781,8 +783,8 @@ public class Select extends Query1 {
 			sel.setAll();
 			return ;
 		}
-		Record newfrom = new Record();
-		Record newto = new Record();
+		Record newfrom = dbpkg.record();
+		Record newto = dbpkg.record();
 		int si = 0; // source_index;
 		int ri = 0; // index;
 		Object fixval;
@@ -815,10 +817,10 @@ public class Select extends Query1 {
 			else
 				throw unreachable();
 			}
-		if (from.getraw(from.size() - 1).equals(Record.MAX_FIELD))
-			newfrom.add(Record.MAX_FIELD);
-		if (to.getraw(to.size() - 1).equals(Record.MAX_FIELD))
-			newto.add(Record.MAX_FIELD);
+		if (from.getraw(from.size() - 1).equals(MAX_FIELD))
+			newfrom.add(MAX_FIELD);
+		if (to.getraw(to.size() - 1).equals(MAX_FIELD))
+			newto.add(MAX_FIELD);
 		sel.set(newfrom, newto);
 	}
 

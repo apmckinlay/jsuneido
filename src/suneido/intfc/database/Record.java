@@ -2,12 +2,19 @@
  * Licensed under GPLv2.
  */
 
-package suneido;
+package suneido.intfc.database;
 
 import java.nio.ByteBuffer;
 
+import suneido.Suneido;
+
 public interface Record
 		extends suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
+
+	Record MINREC = Suneido.dbpkg.minRecord();
+	Record MAXREC = Suneido.dbpkg.maxRecord();
+	ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
+	ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0, (byte) 0x7f).asReadOnlyBuffer();
 
 	long off();
 
@@ -36,7 +43,7 @@ public interface Record
 	Record truncate(int n);
 
 	/**
-	 * @return The number of fields in the BufRecord.
+	 * @return The number of fields in the Record.
 	 */
 	int size();
 

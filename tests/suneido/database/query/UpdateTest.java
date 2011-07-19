@@ -1,13 +1,14 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.Record;
 import suneido.intfc.database.IndexIter;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 
@@ -23,8 +24,8 @@ public class UpdateTest extends TestBase {
 		assertEquals(4, recs.size());
 		assertEquals(record(0), recs.get(0));
 		assertEquals(record(3), recs.get(3));
-		assertEquals(new Record().add(1).add("xxx"), recs.get(1));
-		assertEquals(new Record().add(2).add("xxx"), recs.get(2));
+		assertEquals(dbpkg.record().add(1).add("xxx"), recs.get(1));
+		assertEquals(dbpkg.record().add(2).add("xxx"), recs.get(2));
 	}
 
 	@Test
@@ -52,7 +53,7 @@ public class UpdateTest extends TestBase {
 	}
 
 	private Record mkrec(int i) {
-		return new Record().add(-1) // group
+		return dbpkg.record().add(-1) // group
 				.add("") // lib_committed
 				.add("") // lib_modified
 				.add("Foo" + i) // name

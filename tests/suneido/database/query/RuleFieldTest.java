@@ -1,10 +1,11 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 public class RuleFieldTest extends TestBase {
 
@@ -26,7 +27,7 @@ public class RuleFieldTest extends TestBase {
 
 	@Test
 	public void misc() {
-		Record r = new Record();
+		Record r = dbpkg.record();
 		r.add(-1);
 		assertEquals(-1, r.getInt(0));
 	}

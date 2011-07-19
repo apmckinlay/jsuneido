@@ -1,6 +1,6 @@
 package suneido.database.query;
 
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 import com.google.common.base.Objects;
 

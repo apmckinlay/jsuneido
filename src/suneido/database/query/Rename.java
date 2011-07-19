@@ -1,12 +1,16 @@
 package suneido.database.query;
 
 import static java.util.Collections.disjoint;
-import static suneido.util.Util.*;
+import static suneido.util.Util.difference;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.nil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 
 import com.google.common.collect.ImmutableSet;
 

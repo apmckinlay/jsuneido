@@ -1,13 +1,17 @@
 package suneido.database.query;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import suneido.SuRecord;
-import suneido.database.Record;
 import suneido.database.server.DbmsTran;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 import suneido.language.Pack;
 
@@ -68,7 +72,7 @@ public class Row {
 	}
 
 	public Record project(Header hdr, List<String> flds) {
-		Record key = new Record();
+		Record key = dbpkg.record();
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
 		return key;

@@ -46,8 +46,8 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	/*final*/  PersistentMap<String, BtreeIndex> btreeIndexes;
 	private /*final*/  Map<String, BtreeIndex> btreeIndexCopies =
 			new HashMap<String, BtreeIndex>();
-	private List<suneido.database.Table> update_tables = null;
-	private suneido.database.Table remove_table = null;
+	private List<Table> update_tables = null;
+	private Table remove_table = null;
 	private /*final*/  Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 5000;
@@ -544,15 +544,15 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public void addRecord(String table, Record r) {
+	public void addRecord(String table, suneido.intfc.database.Record r) {
 		notEnded();
-		Data.addRecord(this, table, r);
+		Data.addRecord(this, table, (Record) r);
 	}
 
 	@Override
-	public long updateRecord(long recadr, Record rec) {
+	public long updateRecord(long recadr, suneido.intfc.database.Record r) {
 		notEnded();
-		return Data.updateRecord(this, recadr, rec);
+		return Data.updateRecord(this, recadr, (Record) r);
 	}
 
 	void updateRecord(String table, String index, Record key,
@@ -610,18 +610,19 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 
 	// used by Library
 	@Override
-	public Record lookup(int tblnum, String index, Record key) {
+	public Record lookup(int tblnum, String index, suneido.intfc.database.Record key) {
 		BtreeIndex bti = getBtreeIndex(tblnum, index);
 		if (bti == null)
 			return null;
-		BtreeIndex.Iter iter = bti.iter(key);
+		BtreeIndex.Iter iter = bti.iter((Record) key);
 		iter.next();
 		return iter.eof() ? null : db.input(iter.keyadr());
 	}
 
 	@Override
-	public void callTrigger(suneido.intfc.database.Table table, Record oldrec, Record newrec) {
-		db.callTrigger(this, (Table) table, oldrec, newrec);
+	public void callTrigger(suneido.intfc.database.Table table,
+			suneido.intfc.database.Record oldrec, suneido.intfc.database.Record newrec) {
+		db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
 	}
 
 	@Override
@@ -642,8 +643,9 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public float rangefrac(int tblnum, String columns, Record from, Record to) {
-		return getBtreeIndex(tblnum, columns).rangefrac(from, to);
+	public float rangefrac(int tblnum, String columns,
+			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
+		return getBtreeIndex(tblnum, columns).rangefrac((Record) from, (Record) to);
 	}
 
 	@Override
@@ -652,8 +654,9 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public IndexIter iter(int tblnum, String columns, Record org, Record end) {
-		return getBtreeIndex(tblnum, columns).iter(org, end);
+	public IndexIter iter(int tblnum, String columns,
+			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
+		return getBtreeIndex(tblnum, columns).iter((Record) org, (Record) end);
 	}
 
 	@Override

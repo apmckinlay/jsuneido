@@ -1,14 +1,18 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
-import suneido.database.Record;
 import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
+import suneido.intfc.database.Record;
 
 public class Extend extends Query1 {
 	List<String> rules;
@@ -107,7 +111,7 @@ public class Extend extends Query1 {
 		Row row = source.get(dir);
 		if (row == null)
 			return null;
-		Record results = new Record();
+		Record results = dbpkg.record();
 		row = new Row(row, Record.MINREC, results);
 		for (int i = 0; i < flds.size(); ++i)
 			results.add(exprs.get(i).eval(hdr, row));

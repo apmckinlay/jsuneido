@@ -5,18 +5,23 @@
 package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.util.Util.*;
+import static suneido.util.Util.bufferToString;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.stringToBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 
-import suneido.*;
-import suneido.database.Record;
-import suneido.database.query.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.TheDbms;
+import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.builtin.ServerEval;
@@ -323,7 +328,7 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			DbmsQuery q = q_or_tc(line);
 			// System.out.println("\t" + new Record(extra));
-			q.output(new Record(extra));
+			q.output(dbpkg.record(extra));
 			return t();
 		}
 	},
@@ -456,7 +461,7 @@ public enum Command {
 			DbmsTran tran = getTran(line);
 			long recadr = dbpkg.intToOffset(ck_getnum('A', line));
 			// System.out.println("\t" + new Record(extra));
-			recadr = tran.update(recadr, new Record(extra));
+			recadr = tran.update(recadr, dbpkg.record(extra));
 			return stringToBuffer("U" + dbpkg.offsetToInt(recadr) + "\r\n");
 		}
 	};
@@ -610,7 +615,7 @@ public enum Command {
 			NetworkOutput outputQueue) {
 		Record rec = row.getFirstData();
 		if (row.size() > 2) {
-			rec = new Record(1000);
+			rec = dbpkg.record(1000);
 			for (String f : hdr.fields())
 				rec.add(row.getraw(hdr, f));
 

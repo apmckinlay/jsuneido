@@ -12,8 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import suneido.database.Record;
 import suneido.intfc.database.IndexIter;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 public class Table extends Query {

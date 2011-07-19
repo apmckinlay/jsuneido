@@ -2,11 +2,14 @@ package suneido.database.query;
 
 import static suneido.util.Util.startsWith;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
-import suneido.database.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
+import suneido.intfc.database.Record;
 
 public class SummarizeStrategyMap extends SummarizeStrategy {
 	TreeMap<Record, List<Summary>> results =

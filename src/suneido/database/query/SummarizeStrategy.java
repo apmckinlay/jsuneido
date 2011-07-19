@@ -3,9 +3,9 @@ package suneido.database.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.database.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
+import suneido.intfc.database.Record;
 
 public abstract class SummarizeStrategy {
 	Summarize q;

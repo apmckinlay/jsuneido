@@ -1,14 +1,15 @@
 package suneido.database.query.expr;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.database.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.intfc.database.Record;
 import suneido.language.Ops;
 
 public class In extends Expr {
@@ -18,7 +19,7 @@ public class In extends Expr {
 	private Boolean isterm = null;
 
 	public In(Expr expr) {
-		this(expr, new ArrayList<Object>(), new Record());
+		this(expr, new ArrayList<Object>(), dbpkg.record());
 	}
 
 	public In(Expr expr, List<Object> values, Record packed) {

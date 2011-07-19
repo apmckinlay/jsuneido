@@ -31,9 +31,13 @@ import com.google.common.collect.ImmutableList;
  * - array of offsets<br>
  * size and array elements are of the type
  */
-public class Record implements suneido.Record {
-	public static final Record MINREC = new Record(5);
-	public static final Record MAXREC = new Record(8).addMax();
+class Record implements suneido.intfc.database.Record {
+	static final Record MINREC = new Record(5);
+	static final Record MAXREC = new Record(8).addMax();
+	static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
+	static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
+			.put(0, (byte) 0x7f).asReadOnlyBuffer();
+
 	private Rep rep;
 	private ByteBuf buf;
 	private long dboffset = 0;
@@ -51,7 +55,7 @@ public class Record implements suneido.Record {
 		static final int SIZE = 4; // byte, short, or int <= type
 	}
 
-	public Record() {
+	Record() {
 		rep = MINREC.rep;
 		buf = MINREC.buf;
 		growable = true;
@@ -63,7 +67,7 @@ public class Record implements suneido.Record {
 	 * @param size
 	 *            The required size, including both data and offsets
 	 */
-	public Record(int size) {
+	Record(int size) {
 		this(ByteBuf.allocate(size), size);
 		growable = true;
 	}
@@ -100,7 +104,7 @@ public class Record implements suneido.Record {
 	}
 
 	// position must be set correctly
-	public Record(ByteBuffer buf) {
+	Record(ByteBuffer buf) {
 		this(ByteBuf.wrap(buf));
 	}
 
@@ -170,15 +174,18 @@ public class Record implements suneido.Record {
 		}
 	}
 
+	@Override
 	public long off() {
 		verify(dboffset != 0); // should only be called on database records
 		return dboffset;
 	}
 
+	@Override
 	public Record dup() {
 		return dup(0);
 	}
 
+	@Override
 	public Record dup(int extra) {
 		Record dstRec = new Record(packSize() + extra);
 		for (int i = 0; i < getNfields(); ++i)
@@ -193,6 +200,7 @@ public class Record implements suneido.Record {
 		return this;
 	}
 
+	@Override
 	public Record add(ByteBuffer src) {
 		int len = src.remaining();
 		int dst = alloc(len);
@@ -208,6 +216,7 @@ public class Record implements suneido.Record {
 		return this;
 	}
 
+	@Override
 	public Record add(Object x) {
 		if (x == null)
 			addMin();
@@ -223,11 +232,13 @@ public class Record implements suneido.Record {
 		return add(Mmfile.offsetToInt(n));
 	}
 
+	@Override
 	public Record addMin() {
 		alloc(0);
 		return this;
 	}
 
+	@Override
 	public Record addMax() {
 		int dst = alloc(1);
 		buf.put(dst, (byte) 0x7f);
@@ -305,14 +316,12 @@ public class Record implements suneido.Record {
 
 	// get's ========================================================
 
+	@Override
 	public ByteBuffer getBuffer() {
 		return buf.getByteBuffer(0, bufSize());
 	}
 
-	public static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
-	public static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
-			.put(0, (byte) 0x7f).asReadOnlyBuffer();
-
+	@Override
 	public ByteBuffer getraw(int i) {
 		if (i >= getNfields())
 			return MIN_FIELD;
@@ -325,15 +334,18 @@ public class Record implements suneido.Record {
 		return buf.slice(rep.getOffset(i), fieldSize(i));
 	}
 
+	@Override
 	public Object get(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
 		return Pack.unpack(getraw(i));
 	}
 
+	@Override
 	public String getString(int i) {
 		return Ops.toStr(get(i));
 	}
 
+	@Override
 	public int getInt(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
 		return (Integer) Pack.unpack(getraw(i));
@@ -368,6 +380,7 @@ public class Record implements suneido.Record {
 		return false;
 	}
 
+	@Override
 	public Record truncate(int n) {
 		verify(n <= getNfields());
 		setNfields(n);
@@ -379,13 +392,12 @@ public class Record implements suneido.Record {
 			setNfields(n);
 	}
 
-	/**
-	 * @return The number of fields in the BufRecord.
-	 */
+	@Override
 	public int size() {
 		return getNfields();
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return size() == 0;
 	}
@@ -408,9 +420,7 @@ public class Record implements suneido.Record {
 		return rep.getOffset(i - 1) - rep.getOffset(i);
 	}
 
-	/**
-	 * @return The current buffer size. May be larger than the packsize.
-	 */
+	@Override
 	public int bufSize() {
 		return getSize();
 	}
@@ -595,7 +605,7 @@ public class Record implements suneido.Record {
 	}
 
 	@Override
-	public int compareTo(suneido.Record rec) {
+	public int compareTo(suneido.intfc.database.Record rec) {
 		if (this == rec)
 			return 0;
 		int n = Math.min(size(), rec.size());
@@ -643,6 +653,7 @@ public class Record implements suneido.Record {
 		}
 	}
 
+	@Override
 	public Object getRef() {
 		return dboffset == 0 ? buf : dboffset;
 	}

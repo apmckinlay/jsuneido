@@ -4,10 +4,12 @@ import static suneido.SuException.verify;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.setUnion;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
-import suneido.database.Record;
+import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableSet;
@@ -25,14 +27,14 @@ public abstract class Query {
 	public enum Dir {
 		NEXT, PREV
 	};
-	protected final static List<String> noFields = Collections.emptyList();
-	protected final static Set<String> noNeeds = Collections.emptySet();
+	protected static final List<String> noFields = Collections.emptyList();
+	protected static final Set<String> noNeeds = Collections.emptySet();
 	// cost of writing index relative to reading data
-	protected final static int WRITE_FACTOR = 4;
+	protected static final int WRITE_FACTOR = 4;
 	// minimal penalty for changing order of operations
-	protected final static int OUT_OF_ORDER = 10;
+	protected static final int OUT_OF_ORDER = 10;
 	// allow for adding impossibles together
-	protected final static double IMPOSSIBLE = Double.MAX_VALUE / 10;
+	protected static final double IMPOSSIBLE = Double.MAX_VALUE / 10;
 
 	Query setup(Transaction t) {
 		return setup(false, t);
