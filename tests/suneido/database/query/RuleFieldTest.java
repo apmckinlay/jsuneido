@@ -27,8 +27,7 @@ public class RuleFieldTest extends TestBase {
 
 	@Test
 	public void misc() {
-		Record r = dbpkg.record();
-		r.add(-1);
+		Record r = dbpkg.recordBuilder().add(-1).build();
 		assertEquals(-1, r.getInt(0));
 	}
 

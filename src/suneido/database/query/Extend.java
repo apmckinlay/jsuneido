@@ -13,6 +13,7 @@ import suneido.SuException;
 import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 
 public class Extend extends Query1 {
 	List<String> rules;
@@ -108,14 +109,15 @@ public class Extend extends Query1 {
 	public Row get(Dir dir) {
 		if (hdr == null)
 			header();
-		Row row = source.get(dir);
-		if (row == null)
+		Row srcrow = source.get(dir);
+		if (srcrow == null)
 			return null;
-		Record results = dbpkg.record();
-		row = new Row(row, Record.MINREC, results);
-		for (int i = 0; i < flds.size(); ++i)
-			results.add(exprs.get(i).eval(hdr, row));
-		return row;
+		RecordBuilder rb = dbpkg.recordBuilder();
+		for (int i = 0; i < flds.size(); ++i) {
+			Row row = new Row(srcrow, Record.MINREC, rb.build());
+			rb.add(exprs.get(i).eval(hdr, row));
+		}
+		return new Row(srcrow, Record.MINREC, rb.build());
 	}
 
 	@SuppressWarnings("unchecked")

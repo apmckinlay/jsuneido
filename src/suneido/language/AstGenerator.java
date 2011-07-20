@@ -3,9 +3,9 @@ package suneido.language;
 import java.util.ArrayList;
 
 public class AstGenerator extends Generator<AstNode> {
-	private final static AstNode NIL_STATEMENT = new AstNode(Token.NIL);
-	private final static AstNode EMPTY_LIST = new AstNode(Token.LIST);
-	private final static AstNode EMPTY_COMPOUND =
+	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
+	private static final AstNode EMPTY_LIST = new AstNode(Token.LIST);
+	private static final AstNode EMPTY_COMPOUND =
 		new AstNode(Token.LIST, NIL_STATEMENT);
 
 	@Override
@@ -189,6 +189,11 @@ public class AstGenerator extends Generator<AstNode> {
 	@Override
 	public AstNode in(AstNode expr, AstNode list) {
 		return new AstNode(Token.IN, expr, list);
+	}
+
+	@Override
+	public AstNode inConstant(AstNode list, AstNode constant) {
+		return list(list, constant);
 	}
 
 	@Override

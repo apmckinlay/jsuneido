@@ -26,7 +26,7 @@ public class DbmsLocalTest {
 
 		DbmsTran t2 = dbms.transaction(true);
 		DbmsQuery q = t2.query("test");
-		q.output(dbpkg.record().add(4).add(5).add(6));
+		q.output(dbpkg.recordBuilder().add(4).add(5).add(6).build());
 		q.rewind();
 		Row row = q.get(Dir.PREV);
 		Header hdr = q.header();

@@ -12,9 +12,14 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.regex.*;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import suneido.*;
+import suneido.Regex;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.TheDbms;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Util;
@@ -235,7 +240,8 @@ public class StringMethods extends BuiltinMethods {
 		int part_i = (part == Boolean.FALSE)
 				? (result.groupCount() == 0) ? 0 : 1
 				: Ops.toInt(part);
-		return result.group(part_i);
+		String t = result.group(part_i);
+		return t == null ? "" : t;
 	}
 
 	public static class Find extends SuMethod2 {

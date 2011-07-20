@@ -4,7 +4,7 @@ import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
-import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
 public class InsertQuery extends QueryAction {
@@ -30,13 +30,13 @@ public class InsertQuery extends QueryAction {
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
-			Record r = dbpkg.record();
+			RecordBuilder rb = dbpkg.recordBuilder();
 			for (String f : fields)
 				if (f.equals("-"))
-					r.addMin();
+					rb.addMin();
 				else
-					r.add(row.getraw(hdr, f));
-			tran.addRecord(table, r);
+					rb.add(row.getraw(hdr, f));
+			tran.addRecord(table, rb.build());
 		}
 		return n;
 	}

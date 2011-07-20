@@ -10,9 +10,9 @@ import suneido.intfc.database.Record;
 public class KeyrangeTest {
 	@Test
 	public void intersect() {
-		Record a = dbpkg.record().add("a");
-		Record b = dbpkg.record().add("b");
-		Record c = dbpkg.record().add("c");
+		Record a = dbpkg.recordBuilder().add("a").build();
+		Record b = dbpkg.recordBuilder().add("b").build();
+		Record c = dbpkg.recordBuilder().add("c").build();
 
 		Keyrange x = new Keyrange(a, b);
 		Keyrange all = new Keyrange();

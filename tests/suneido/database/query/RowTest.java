@@ -14,8 +14,8 @@ import suneido.intfc.database.Record;
 public class RowTest {
 	@Test
 	public void test() {
-		Record rec1 = dbpkg.record().add(123);
-		Record rec2 = dbpkg.record().add(123).add(456);
+		Record rec1 = dbpkg.recordBuilder().add(123).build();
+		Record rec2 = dbpkg.recordBuilder().add(123).add(456).build();
 		Row row = new Row(rec1, rec2);
 		assertEquals(2, row.size());
 		assertEquals("[123][123,456]", row.toString());
@@ -24,7 +24,7 @@ public class RowTest {
 		Header hdr = HeaderTest.makeHeader();
 		assertEquals(rec1.getraw(0), row.getraw(hdr, "a"));
 		assertEquals(rec2.getraw(1), row.getraw(hdr, "b"));
-		assertEquals(dbpkg.record().add(456), row.project(hdr, asList("b")));
+		assertEquals(dbpkg.recordBuilder().add(456).build(), row.project(hdr, asList("b")));
 
 		Iterator<Row.Entry> iter = row.iterator(hdr);
 		Row.Entry e = iter.next();

@@ -110,9 +110,9 @@ public class ExprTest {
 		};
 		Header hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
 				asList("a", "b", "c", "d", "e"));
-		Record key = dbpkg.record().add(1);
-		Record rec = dbpkg.record().add(1).add(2).add(3).add(4).
-				add(Ops.stringToDate("#20081216.153244828"));
+		Record key = dbpkg.recordBuilder().add(1).build();
+		Record rec = dbpkg.recordBuilder().add(1).add(2).add(3).add(4).
+				add(Ops.stringToDate("#20081216.153244828")).build();
 		Row row = new Row(key, rec);
 		for (int i = 0; i < cases.length; i += 2) {
 			Expr e = CompileQuery.expr(cases[i]);

@@ -16,6 +16,7 @@ import suneido.SuException;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 import suneido.language.Pack;
@@ -506,8 +507,8 @@ public class Select extends Query1 {
 		// now build the key
 		int i = 0;
 		int n = index.size();
-		Record org = dbpkg.record();
-		Record end = dbpkg.record();
+		RecordBuilder org = dbpkg.recordBuilder();
+		RecordBuilder end = dbpkg.recordBuilder();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli, ++i) {
 			Iselect isel = iselects.get(iseli);
 			verify(! isel.none());
@@ -535,7 +536,7 @@ public class Select extends Query1 {
 			} else
 				unreachable();
 		}
-	return tran.rangefrac(tbl.num(), listToCommas(index), org, end);
+	return tran.rangefrac(tbl.num(), listToCommas(index), org.build(), end.build());
 	}
 
 	private double datafrac(List<List<String>> indexes) {
@@ -689,8 +690,8 @@ public class Select extends Query1 {
 		// now build the keys
 		int i = 0;
 		int n = index.size();
-		Record org = dbpkg.record();
-		Record end = dbpkg.record();
+		RecordBuilder org = dbpkg.recordBuilder();
+		RecordBuilder end = dbpkg.recordBuilder();
 		if (nil(iselects))
 			end.addMax();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli) {
@@ -723,10 +724,10 @@ public class Select extends Query1 {
 			} else
 				throw unreachable();
 		}
-		return asList(new Keyrange(org, end));
+		return asList(new Keyrange(org.build(), end.build()));
 	}
 
-	private void addMax(int i, int n, Record end) {
+	private void addMax(int i, int n, RecordBuilder end) {
 		for (int j = i; j < n; ++j)
 			end.addMax();
 		if (i >= n) // ensure at least one added
@@ -783,8 +784,8 @@ public class Select extends Query1 {
 			sel.setAll();
 			return ;
 		}
-		Record newfrom = dbpkg.record();
-		Record newto = dbpkg.record();
+		RecordBuilder newfrom = dbpkg.recordBuilder();
+		RecordBuilder newto = dbpkg.recordBuilder();
 		int si = 0; // source_index;
 		int ri = 0; // index;
 		Object fixval;
@@ -821,7 +822,7 @@ public class Select extends Query1 {
 			newfrom.add(MAX_FIELD);
 		if (to.getraw(to.size() - 1).equals(MAX_FIELD))
 			newto.add(MAX_FIELD);
-		sel.set(newfrom, newto);
+		sel.set(newfrom.build(), newto.build());
 	}
 
 	private static Object getfixed(List<Fixed> fixed, String field) {

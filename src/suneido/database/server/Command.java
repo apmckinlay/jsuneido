@@ -22,6 +22,7 @@ import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.builtin.ServerEval;
@@ -615,17 +616,20 @@ public enum Command {
 			NetworkOutput outputQueue) {
 		Record rec = row.getFirstData();
 		if (row.size() > 2) {
-			rec = dbpkg.record(1000);
-			for (String f : hdr.fields())
-				rec.add(row.getraw(hdr, f));
+			RecordBuilder rb = dbpkg.recordBuilder();
+			int nFields = 0;
+			int nonEmpty = 0;
+			for (String f : hdr.fields()) {
+				ByteBuffer x = row.getraw(hdr, f);
+				if (x.remaining() != 0)
+					nonEmpty = nFields;
+				rb.add(x);
+			}
 
 			// strip trailing empty fields
-			int n = rec.size();
-			while (rec.getraw(n - 1).remaining() == 0)
-				--n;
-			rec.truncate(n);
+			rb.truncate(nonEmpty);
+			rec = rb.build();
 		}
-
 		rec = rec.dup();
 		String s = "A" + dbpkg.offsetToInt(row.recadr) + " R" + rec.bufSize();
 		if (sendhdr)

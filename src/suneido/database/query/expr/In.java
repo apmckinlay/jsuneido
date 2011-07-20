@@ -4,12 +4,12 @@ import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 
 public class In extends Expr {
@@ -18,20 +18,21 @@ public class In extends Expr {
 	public final Record packed;
 	private Boolean isterm = null;
 
-	public In(Expr expr) {
-		this(expr, new ArrayList<Object>(), dbpkg.record());
+	public In(Expr expr, List<Object> values) {
+		this(expr, values, convert(values));
+	}
+
+	private static Record convert(List<Object> values) {
+		RecordBuilder rb = dbpkg.recordBuilder();
+		for (Object value : values)
+			rb.add(value);
+		return rb.build();
 	}
 
 	public In(Expr expr, List<Object> values, Record packed) {
 		this.expr = expr;
 		this.values = values;
 		this.packed = packed;
-	}
-
-	public In add(Object x) {
-		values.add(x);
-		packed.add(x);
-		return this;
 	}
 
 	@Override

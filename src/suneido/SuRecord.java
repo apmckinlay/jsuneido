@@ -12,6 +12,7 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
@@ -207,26 +208,26 @@ public class SuRecord extends SuContainer {
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 		// PERF don't add trailing empty fields
 
-		Record rec = dbpkg.record();
+		RecordBuilder rb = dbpkg.recordBuilder();
 		StringBuilder sb = new StringBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : fldsyms)
 			if (f == null)
-				rec.addMin();
+				rb.addMin();
 			else if (f.equals(ts))
-				rec.add(TheDbms.dbms().timestamp());
+				rb.add(TheDbms.dbms().timestamp());
 			else if (deps.containsKey(f)) {
 				// output dependencies
 				sb.setLength(0);
 				for (Object d : deps.get(f))
 					sb.append(",").append(d);
-				rec.add(sb.substring(1));
+				rb.add(sb.substring(1));
 			} else if (null != (x = get(f)))
-				rec.add(x);
+				rb.add(x);
 			else
-				rec.addMin();
-		return rec;
+				rb.addMin();
+		return rb.build();
 	}
 
 	private Map<Object, Set<Object>> getDeps(Header hdr, List<String> fldsyms) {
