@@ -109,6 +109,20 @@ public class Util {
 		return sb.substring(1);
 	}
 
+	public static String bufferToHex(byte[] buf, int i, int n) {
+		StringBuilder sb = new StringBuilder();
+		for (; i < n; ++i)
+			sb.append(" ").append(format(buf[i]));
+		return sb.substring(1);
+	}
+
+	private static String format(byte b) {
+		String s = String.format("%02x", b);
+		if (32 <= b && b <= 126)
+			s += " '" + (char) b + "' ";
+		return s;
+	}
+
 	public static int bufferUcompare(ByteBuf b1, ByteBuf b2) {
 		int n = Math.min(b1.size(), b2.size());
 		for (int i = 0; i < n; ++i) {
