@@ -23,6 +23,8 @@ public class In extends Expr {
 	}
 
 	private static Record convert(List<Object> values) {
+		if (values == null)
+			return Record.MINREC;
 		RecordBuilder rb = dbpkg.recordBuilder();
 		for (Object value : values)
 			rb.add(value);
