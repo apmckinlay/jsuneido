@@ -65,7 +65,13 @@ public class TestGenerator extends Generator<Object> {
 
 	@Override
 	public Object in(Object expression, Object constant) {
-		print("in", expression, constant);
+		print("in", expression);
+		return null;
+	}
+
+	@Override
+	public Object inConstant(Object listOb, Object constant) {
+		print("inConstant", constant);
 		return null;
 	}
 

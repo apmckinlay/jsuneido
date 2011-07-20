@@ -29,7 +29,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public Record record() {
+	public Record recordBuilder() {
 		return new Record();
 	}
 

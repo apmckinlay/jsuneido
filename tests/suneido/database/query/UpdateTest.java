@@ -24,8 +24,8 @@ public class UpdateTest extends TestBase {
 		assertEquals(4, recs.size());
 		assertEquals(record(0), recs.get(0));
 		assertEquals(record(3), recs.get(3));
-		assertEquals(dbpkg.record().add(1).add("xxx"), recs.get(1));
-		assertEquals(dbpkg.record().add(2).add("xxx"), recs.get(2));
+		assertEquals(dbpkg.recordBuilder().add(1).add("xxx").build(), recs.get(1));
+		assertEquals(dbpkg.recordBuilder().add(2).add("xxx").build(), recs.get(2));
 	}
 
 	@Test
@@ -53,13 +53,14 @@ public class UpdateTest extends TestBase {
 	}
 
 	private Record mkrec(int i) {
-		return dbpkg.record().add(-1) // group
+		return dbpkg.recordBuilder().add(-1) // group
 				.add("") // lib_committed
 				.add("") // lib_modified
 				.add("Foo" + i) // name
 				.add(i) // num
 				.add(45) // parent
-				.add("now is the time\nfor all good\nmen"); // text
+				.add("now is the time\nfor all good\nmen") // text
+				.build();
 	}
 
 	private void checkCount() {

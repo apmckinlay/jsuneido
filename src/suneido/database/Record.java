@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableList;
  * - array of offsets<br>
  * size and array elements are of the type
  */
-class Record implements suneido.intfc.database.Record {
+class Record implements suneido.intfc.database.Record, suneido.intfc.database.RecordBuilder {
 	static final Record MINREC = new Record(5);
 	static final Record MAXREC = new Record(8).addMax();
 	static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
@@ -242,6 +242,13 @@ class Record implements suneido.intfc.database.Record {
 	public Record addMax() {
 		int dst = alloc(1);
 		buf.put(dst, (byte) 0x7f);
+		return this;
+	}
+
+	@Override
+	public Record addAll(suneido.intfc.database.Record r) {
+		for (ByteBuffer buf : r)
+			add(buf);
 		return this;
 	}
 
@@ -656,6 +663,11 @@ class Record implements suneido.intfc.database.Record {
 	@Override
 	public Object getRef() {
 		return dboffset == 0 ? buf : dboffset;
+	}
+
+	@Override
+	public Record build() {
+		return this;
 	}
 
 }

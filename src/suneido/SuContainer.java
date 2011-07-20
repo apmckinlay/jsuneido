@@ -17,6 +17,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.Concat;
 import suneido.language.Ops;
 import suneido.language.Pack;
@@ -584,7 +585,7 @@ public class SuContainer extends SuValue
 	}
 
 	public Record toDbRecord(Header hdr) {
-		Record rec = dbpkg.record();
+		RecordBuilder rec = dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : hdr.output_fldsyms())
@@ -596,7 +597,7 @@ public class SuContainer extends SuValue
 				rec.add(x);
 			else
 				rec.addMin();
-		return rec;
+		return rec.build();
 	}
 
 	public void setDefault(Object value) {

@@ -1,6 +1,7 @@
 package suneido.database.query;
 
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.setUnion;
 
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import suneido.SuException;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
 import com.google.common.collect.ImmutableSet;
@@ -59,8 +61,8 @@ public abstract class Query {
 	}
 	abstract void select(List<String> index, Record from, Record to);
 	void select(List<String> index, Record key) {
-		Record key_to = key.dup(8);
-		key_to.addMax();
+		RecordBuilder rb = dbpkg.recordBuilder();
+		Record key_to = rb.addAll(key).addMax().build();
 		select(index, key, key_to);
 	}
 	public abstract void rewind();

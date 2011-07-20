@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import suneido.SuRecord;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.language.Pack;
 
@@ -72,10 +73,10 @@ public class Row {
 	}
 
 	public Record project(Header hdr, List<String> flds) {
-		Record key = dbpkg.record();
+		RecordBuilder key = dbpkg.recordBuilder();
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
-		return key;
+		return key.build();
 	}
 
 	public Record getFirstData() {

@@ -17,6 +17,7 @@ import org.junit.Test;
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.NetworkOutput;
@@ -319,22 +320,19 @@ public class CommandTest {
 				stringToBuffer("stdlib"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
-		Record rec = make("Foo", "some text");
-		rec.add(-1);
+		Record rec = make(-1, "Foo", "some text");
 		assertEquals(26, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R26"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
-		rec = make("Bar", "other stuff");
-		rec.add(-1);
+		rec = make(-1, "Bar", "other stuff");
 		assertEquals(28, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R28"), rec.getBuffer(),
 				null);
 		assertEquals("t\r\n", bufferToString(buf));
 
-		rec = make("Foo", "");
-		rec.add(1); // folder
+		rec = make(1, "Foo", ""); // folder
 		assertEquals(16, rec.packSize());
 		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R16"), rec.getBuffer(),
 				null);
@@ -392,10 +390,18 @@ public class CommandTest {
 	private static ByteBuffer UPDATE = stringToBuffer("update");
 
 	static Record make(String... args) {
-		Record r = dbpkg.record();
+		RecordBuilder r = dbpkg.recordBuilder();
 		for (String s : args)
 			r.add(s);
-		return r;
+		return r.build();
+	}
+
+	static Record make(int n, String... args) {
+		RecordBuilder r = dbpkg.recordBuilder();
+		for (String s : args)
+			r.add(s);
+		r.add(n);
+		return r.build();
 	}
 
 }

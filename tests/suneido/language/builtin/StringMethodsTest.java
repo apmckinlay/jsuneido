@@ -29,6 +29,7 @@ public class StringMethodsTest {
 	public void test_extract() {
 		extract("hello world", ".....$", "world");
 		extract("hello world", "w(..)ld", "or");
+		extract("hello world", "h.*d(x)*", "");
 	}
 
 	private void extract(String s, String pat, String result) {

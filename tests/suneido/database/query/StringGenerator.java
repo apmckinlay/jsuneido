@@ -1,7 +1,10 @@
 package suneido.database.query;
 
 import static suneido.language.Generator.MType.OBJECT;
-import static suneido.language.Token.*;
+import static suneido.language.Token.ADD;
+import static suneido.language.Token.AND;
+import static suneido.language.Token.OR;
+import static suneido.language.Token.SUB;
 import suneido.SuValue;
 import suneido.language.Token;
 
@@ -266,11 +269,13 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String in(String expression, String constant) {
-		if (constant == null)
-			return expression + " in";
-		else
-			return expression + " " + constant;
+	public String in(String expression, String constants) {
+			return expression + " in (" + constants + ")";
+	}
+
+	@Override
+	public String inConstant(String list, String constant) {
+		return list == null ? constant : list + ", " + constant;
 	}
 
 	@Override

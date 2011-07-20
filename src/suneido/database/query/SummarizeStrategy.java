@@ -1,11 +1,14 @@
 package suneido.database.query;
 
+import static suneido.Suneido.dbpkg;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 
 public abstract class SummarizeStrategy {
 	Summarize q;
@@ -31,9 +34,11 @@ public abstract class SummarizeStrategy {
 	}
 
 	Row makeRow(Record r, List<Summary> sums) {
+		RecordBuilder rb = dbpkg.recordBuilder();
+		rb.addAll(r);
 		for (Summary s : sums)
-			r.add(s.result());
-		return new Row(Record.MINREC, r);
+			rb.add(s.result());
+		return new Row(Record.MINREC, rb.build());
 	}
 
 	abstract Row get(Dir dir, boolean rewound);

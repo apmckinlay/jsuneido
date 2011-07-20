@@ -176,7 +176,7 @@ public class TestBase {
 		}
 
 	protected static Record record(int i) {
-		return dbpkg.record().add(i).add("more stuff");
+		return dbpkg.recordBuilder().add(i).add("more stuff").build();
 	}
 
 }

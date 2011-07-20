@@ -19,28 +19,13 @@ public interface Record
 	long off();
 
 	Record dup();
-
 	Record dup(int extra);
 
-	Record add(ByteBuffer src);
-
-	Record add(Object x);
-
-	Record addMin();
-
-	Record addMax();
-
 	ByteBuffer getBuffer();
-
 	ByteBuffer getraw(int i);
-
 	Object get(int i);
-
 	String getString(int i);
-
 	int getInt(int i);
-
-	Record truncate(int n);
 
 	/**
 	 * @return The number of fields in the Record.
@@ -55,8 +40,8 @@ public interface Record
 	int bufSize();
 
 	/**
-	 * @return The minimum size the current data would fit into. <b>Note:</b>
-	 *         This may be smaller than the current buffer size.
+	 * @return The minimum size the current data would fit into.
+	 * 		   <b>Note:</b> This may be smaller than the current buffer size.
 	 */
 	int packSize();
 

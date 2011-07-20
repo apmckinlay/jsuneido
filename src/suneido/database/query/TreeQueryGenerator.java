@@ -2,9 +2,13 @@ package suneido.database.query;
 
 import static suneido.language.Token.COUNT;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuRecord;
 import suneido.database.query.expr.*;
 import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
@@ -246,8 +250,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	public static class MemDef {
-		final public Object name;
-		final public Object value;
+		public final Object name;
+		public final Object value;
 
 		public MemDef(Object name, Object value) {
 			this.name = name;
@@ -307,12 +311,16 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object in(Object expression, Object constant) {
-		if (constant == null)
-			return new In((Expr) expression);
-		In in = (In) expression;
-		in.add(constant);
-		return in;
+	public Object in(Object expr, Object list) {
+		return new In((Expr) expr, (List<Object>) list);
+	}
+
+	@Override
+	public Object inConstant(Object listOb, Object constant) {
+		List<Object> list =
+				listOb == null ? new ArrayList<Object>() : (List<Object>) listOb;
+		list.add(constant);
+		return list;
 	}
 
 	@Override

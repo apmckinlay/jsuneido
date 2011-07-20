@@ -2,6 +2,7 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuException.verify;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
 
@@ -84,8 +85,8 @@ public class TempIndex extends Query1 {
 			Record key = row.project(srchdr, order);
 			if (key.bufSize() > 4000)
 				throw new SuException("index entry size > 4000: " + order);
-			if (!unique)
-				key.add(num);
+			if (! unique)
+				key = dbpkg.recordBuilder().addAll(key).add(num).build();
 			verify(null == map.put(key, row.getRefs()));
 			}
 	}

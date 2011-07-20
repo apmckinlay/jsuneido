@@ -16,9 +16,11 @@ public interface DatabasePackage {
 
 	long intToOffset(int i);
 
-	Record record();
+	RecordBuilder recordBuilder();
 	Record record(int size);
 	Record record(ByteBuffer buf);
+	Record minRecord();
+	Record maxRecord();
 
 	void dumpDatabasePrint(String db_filename, String output_filename);
 	int dumpDatabase(suneido.intfc.database.Database db, String output_filename);
@@ -37,8 +39,5 @@ public interface DatabasePackage {
 	void loadTablePrint(String actionArg);
 	void loadDatabasePrint(String string, String string2) throws InterruptedException;
 	void load2(String string, String actionArg);
-
-	Record minRecord();
-	Record maxRecord();
 
 }

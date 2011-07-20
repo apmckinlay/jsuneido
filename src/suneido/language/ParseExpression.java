@@ -75,13 +75,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T inExpression() {
 		T expr = bitorExpression();
 		if (matchIf(IN)) {
-			expr = generator.in(expr, null);
+			T values = null;
 			match(L_PAREN);
 			while (token != R_PAREN) {
-				expr = generator.in(expr, constant());
+				values = generator.inConstant(values, constant());
 				matchIf(COMMA);
 			}
 			match(R_PAREN);
+			return generator.in(expr, values);
 		}
 		return expr;
 	}
@@ -199,7 +200,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			match();
 		}
 		T term = primary();
-		while (token == DOT || token == L_BRACKET || token == L_PAREN || 
+		while (token == DOT || token == L_BRACKET || token == L_PAREN ||
 				(token == L_CURLY && ! expectingCompound)) {
 			if (newTerm && token == L_PAREN)
 				return term;
