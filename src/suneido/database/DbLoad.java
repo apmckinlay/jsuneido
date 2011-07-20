@@ -2,7 +2,10 @@ package suneido.database;
 
 import static suneido.SuException.verify;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -36,8 +39,8 @@ class DbLoad {
 		File dbfile = new File(dbfilename);
 		Database db = new Database(dbfile, Mode.CREATE);
 		try {
-			InputStream fin = new BufferedInputStream(
-					new FileInputStream(filename));
+			// NOTE: using BufferedInputStream here causes problems
+			InputStream fin = new FileInputStream(filename);
 			try {
 				verifyFileHeader(fin);
 				String schema;
@@ -80,8 +83,7 @@ class DbLoad {
 		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
 		Database db = new Database(dbfile, mode);
 		try {
-			InputStream fin = new BufferedInputStream(
-					new FileInputStream(tablename + ".su"));
+			InputStream fin = new FileInputStream(tablename + ".su");
 			try {
 				verifyFileHeader(fin);
 				String schema = readTableHeader(fin);
@@ -157,12 +159,25 @@ class DbLoad {
 
 	private static void load_data_record(InputStream fin, String tablename,
 			Transaction tran, byte[] recbuf, int n)	throws IOException {
-		verify(fin.read(recbuf, 0, n) == n);
+		fullRead(fin, recbuf, n);
 		Record rec = new Record(ByteBuf.wrap(recbuf, 0, n));
 		if (tablename.equals("views"))
 			Data.add_any_record(tran, tablename, rec);
 		else
 			Data.addRecord(tran, tablename, rec);
+	}
+
+	private static void fullRead(InputStream fin, byte[] recbuf, int n)
+			throws IOException {
+		int nread = 0;
+		do { 
+			int nr = fin.read(recbuf, 0, n - nread);
+			if (nr == -1)
+				break;
+			nread += nr;
+		} while (nread < n);
+		if (nread != n)
+			throw new SuException("premature eof reading record of length " + n);
 	}
 
 	private static String getline(InputStream fin) throws IOException {
