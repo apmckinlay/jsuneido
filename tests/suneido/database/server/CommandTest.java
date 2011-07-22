@@ -1,7 +1,10 @@
 package suneido.database.server;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.bufferToString;
@@ -16,6 +19,8 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.TheDbms;
+import suneido.database.query.Header;
+import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
@@ -360,6 +365,33 @@ public class CommandTest {
 	public void libraries() {
 		ByteBuffer buf = Command.LIBRARIES.execute(null, null, null);
 		assertEquals("(stdlib)\r\n", bufferToString(buf));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void simple_rowToRecord() {
+		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"));
+		List<String> cols = asList("a", "b", "me", "c");
+		Header hdr = new Header(flds, cols);
+		Record rec = dbpkg.recordBuilder().add(123).add("hello").build();
+		Row row = new Row(rec);
+		assertThat(Command.rowToRecord(row, hdr), is(rec));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void multi_rowToRecord() {
+		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"),
+				asList("x"), asList("x", "y", "z"));
+		List<String> cols = asList("a", "b", "me", "c", "x", "no", "y", "z");
+		Header hdr = new Header(flds, cols);
+		Record rec1 = dbpkg.recordBuilder().add(123).build();
+		Record rec2 = dbpkg.recordBuilder().add(123).add("hi").build();
+		Record rec3 = dbpkg.recordBuilder().add(456).build();
+		Record rec4 = dbpkg.recordBuilder().add(456).add("bye").build();
+		Record rec = dbpkg.recordBuilder().add(123).add("hi").addMin().add(456).add("bye").build();
+		Row row = new Row(rec1, rec2, rec3, rec4);
+		assertThat(Command.rowToRecord(row, hdr), is(rec));
 	}
 
 	// =========================================================================

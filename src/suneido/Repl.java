@@ -28,7 +28,10 @@ package suneido;
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 import suneido.language.Compiler;
 import suneido.language.Ops;
@@ -36,7 +39,6 @@ import suneido.language.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
-		Suneido.openDbms();
 		Compiler.eval("JInit()");
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -59,6 +61,7 @@ public class Repl {
 	}
 
 	public static void main(String[] args) throws Exception {
+		Suneido.openDbms();
 		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
 		repl();
 	}

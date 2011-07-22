@@ -28,7 +28,7 @@ public class Row {
 	private DbmsTran tran = null;
 	private SuRecord surec = null;
 
-	Row(Record... data) {
+	public Row(Record... data) {
 		this.data = data;
 	}
 
