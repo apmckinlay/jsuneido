@@ -1,8 +1,12 @@
 package suneido;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import suneido.database.server.*;
+import suneido.database.server.Dbms;
+import suneido.database.server.DbmsLocal;
+import suneido.database.server.DbmsRemote;
 import suneido.intfc.database.Database;
 
 public class TheDbms {
@@ -40,7 +44,7 @@ public class TheDbms {
 	}
 
 	public static boolean isOpen() {
-		return theDbms != null;
+		return theDbms != null || ip != null;
 	}
 
 	/**

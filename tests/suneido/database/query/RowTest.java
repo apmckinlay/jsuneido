@@ -12,6 +12,7 @@ import org.junit.Test;
 import suneido.intfc.database.Record;
 
 public class RowTest {
+
 	@Test
 	public void test() {
 		Record rec1 = dbpkg.recordBuilder().add(123).build();

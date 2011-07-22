@@ -614,6 +614,16 @@ public enum Command {
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr,
 			NetworkOutput outputQueue) {
+		Record rec = rowToRecord(row, hdr);
+		String s = "A" + dbpkg.offsetToInt(row.recadr) + " R" + rec.bufSize();
+		if (sendhdr)
+			s += ' ' + listToParens(hdr.schema());
+		s += "\r\n";
+		outputQueue.add(stringToBuffer(s));
+		outputQueue.add(rec.getBuffer());
+	}
+
+	static Record rowToRecord(Row row, Header hdr) {
 		Record rec = row.getFirstData();
 		if (row.size() > 2) {
 			RecordBuilder rb = dbpkg.recordBuilder();
@@ -621,23 +631,16 @@ public enum Command {
 			int nonEmpty = 0;
 			for (String f : hdr.fields()) {
 				ByteBuffer x = row.getraw(hdr, f);
+				nFields++;
 				if (x.remaining() != 0)
 					nonEmpty = nFields;
 				rb.add(x);
 			}
-
 			// strip trailing empty fields
 			rb.truncate(nonEmpty);
 			rec = rb.build();
 		}
-		rec = rec.dup();
-		String s = "A" + dbpkg.offsetToInt(row.recadr) + " R" + rec.bufSize();
-		if (sendhdr)
-			s += ' ' + listToParens(hdr.schema());
-		s += "\r\n";
-		outputQueue.add(stringToBuffer(s));
-
-		outputQueue.add(rec.getBuffer());
+		return rec.dup();
 	}
 
 	private static ByteBuffer valueResult(NetworkOutput outputQueue, Object result) {

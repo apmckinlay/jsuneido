@@ -72,6 +72,7 @@ public class Suneido {
 	private static void doAction() throws Throwable {
 		switch (cmdlineoptions.action) {
 		case REPL:
+			Suneido.openDbms();
 			Repl.repl();
 			break;
 		case SERVER:
