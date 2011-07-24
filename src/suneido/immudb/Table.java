@@ -2,14 +2,12 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.schema;
+package suneido.immudb;
 
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.immudb.Record;
-import suneido.immudb.RecordBuilder;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;

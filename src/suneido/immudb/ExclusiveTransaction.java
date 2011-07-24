@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import suneido.immudb.schema.Table;
 
 public class ExclusiveTransaction extends UpdateTransaction {
 

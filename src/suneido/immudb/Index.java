@@ -2,9 +2,8 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.schema;
+package suneido.immudb;
 
-import suneido.immudb.*;
 import suneido.immudb.IndexedData.Mode;
 
 import com.google.common.base.CharMatcher;

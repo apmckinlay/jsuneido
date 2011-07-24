@@ -9,11 +9,12 @@ import static suneido.SuException.unreachable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
+import suneido.SuException;
 import suneido.language.Pack;
 
 public class Record implements suneido.intfc.database.Record {
-	public static Record EMPTY = new RecordBuilder().build();
-	public static class Mode {
+	static Record EMPTY = new RecordBuilder().build();
+	static class Mode {
 		public static final short BYTE = 1, SHORT = 2, INT = 3; }
 	static class Offset {
 		static final int HEADER = 0, BODY = 2; }
@@ -21,26 +22,26 @@ public class Record implements suneido.intfc.database.Record {
 	private final int bufpos; // used when the record is a key within a BtreeNode
 	private final int address;
 
-	public Record(ByteBuffer buf) {
+	Record(ByteBuffer buf) {
 		this(0, buf, 0);
 	}
 
-	public Record(int address, ByteBuffer buf) {
+	Record(int address, ByteBuffer buf) {
 		this(address, buf, 0);
 	}
 
-	public Record(ByteBuffer buf, int bufpos) {
+	Record(ByteBuffer buf, int bufpos) {
 		this(0, buf, bufpos);
 	}
 
-	public Record(int address, ByteBuffer buf, int bufpos) {
+	Record(int address, ByteBuffer buf, int bufpos) {
 		this.buf = buf;
 		this.bufpos = bufpos;
 		this.address = address;
 		check();
 	}
 
-	public void check() {
+	void check() {
 		assert bufpos >= 0;
 		assert mode() != 0;
 		assert bufSize() > 0 : "length " + bufSize();
@@ -51,22 +52,23 @@ public class Record implements suneido.intfc.database.Record {
 		return (buf.get(bufpos + Offset.HEADER + 1) & 0xff) >>> 6;
 	}
 
+	@Override
 	public int size() {
 		int si = bufpos + Offset.HEADER;
 		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
 	}
 
-	public ByteBuffer fieldBuffer(int i) {
+	ByteBuffer fieldBuffer(int i) {
 		return buf;
 	}
 
-	public int fieldLength(int i) {
+	int fieldLength(int i) {
 		if (i >= size())
 			return 0;
 		return fieldOffset(i - 1) - fieldOffset(i);
 	}
 
-	public int fieldOffset(int i) {
+	int fieldOffset(int i) {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode()) {
 		case Mode.BYTE:
@@ -86,11 +88,12 @@ public class Record implements suneido.intfc.database.Record {
 	}
 
 	/** Number of bytes e.g. for storing */
+	@Override
 	public int bufSize() {
 		return fieldOffset(-1) - bufpos;
 	}
 
-	public int store(Storage stor) {
+	int store(Storage stor) {
 		int adr = stor.alloc(bufSize());
 		ByteBuffer buf = stor.buffer(adr);
 		pack(buf);
@@ -144,14 +147,14 @@ public class Record implements suneido.intfc.database.Record {
 		return len1 - len2;
 	}
 
-	public boolean startsWith(Record rec) {
+	boolean startsWith(Record rec) {
 		int n = rec.size();
 		if (n > size())
 			return false;
 		return prefixEquals(rec, n);
 	}
 
-	public boolean prefixEquals(Record rec, int nfields) {
+	boolean prefixEquals(Record rec, int nfields) {
 		for (int i = 0; i < nfields; ++i)
 			if (0 != compare1(this, rec, i))
 				return false;
@@ -164,7 +167,7 @@ public class Record implements suneido.intfc.database.Record {
 				y.fieldBuffer(i), y.fieldOffset(i), y.fieldLength(i));
 	}
 
-	public static int compare1(
+	static int compare1(
 			ByteBuffer buf1, int off1, int len1,
 			ByteBuffer buf2, int off2, int len2) {
 		int n = Math.min(len1, len2);
@@ -176,13 +179,14 @@ public class Record implements suneido.intfc.database.Record {
 		return len1 - len2;
 	}
 
+	@Override
 	public Object get(int i) {
 		if (i >= size())
 			return "";
 		return get(fieldBuffer(i), fieldOffset(i), fieldLength(i));
 	}
 
-	public static Object get(ByteBuffer buf, int off, int len) {
+	static Object get(ByteBuffer buf, int off, int len) {
 		if (len == 0)
 			return "";
 		byte x = buf.get(off);
@@ -195,20 +199,23 @@ public class Record implements suneido.intfc.database.Record {
 		// TODO change unpack to take buf,i,n to eliminate duplicate
 	}
 
+	@Override
 	public int getInt(int i) {
-		// TODO avoid boxing
-		return (Integer) get(i);
+		long n = getLong(i);
+		if (n < Integer.MIN_VALUE || Integer.MAX_VALUE < n)
+			throw new SuException("Record getInt value out of range");
+		return (int) n;
 	}
 
-	public long getLong(int i) {
-		// TODO avoid boxing
-		Object x = get(i);
-		if (x instanceof Integer)
-			return (Integer) x;
-		else
-			return (Long) x;
+	long getLong(int i) {
+		ByteBuffer b = buf.duplicate();
+		int off = fieldOffset(i);
+		b.position(off);
+		b.limit(off + fieldLength(i));
+		return Pack.unpackLong(b);
 	}
 
+	@Override
 	public String getString(int i) {
 		return (String) get(i);
 	}
@@ -231,7 +238,7 @@ public class Record implements suneido.intfc.database.Record {
 		return sb.toString();
 	}
 
-	public String toDebugString() {
+	String toDebugString() {
 		String s = "";
 		s += "type: " + (char) mode() +
 				" size: " + size() +

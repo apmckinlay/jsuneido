@@ -14,8 +14,6 @@ import java.util.Iterator;
 import suneido.SuException;
 import suneido.immudb.Record.Mode;
 import suneido.immudb.query.Request;
-import suneido.immudb.schema.Index;
-import suneido.immudb.schema.Table;
 
 public class DbLoad {
 

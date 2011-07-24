@@ -6,8 +6,6 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.immudb.schema.Table;
-import suneido.immudb.schema.Tables;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.primitives.Ints;

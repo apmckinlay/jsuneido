@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.concurrent.*;
 
 import suneido.immudb.*;
-import suneido.immudb.schema.Table;
 
 /**
  * check the consistency of a database
