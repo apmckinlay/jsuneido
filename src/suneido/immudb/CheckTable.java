@@ -7,8 +7,6 @@ package suneido.immudb;
 import java.util.concurrent.Callable;
 
 import suneido.immudb.*;
-import suneido.immudb.schema.Index;
-import suneido.immudb.schema.Table;
 
 public class CheckTable implements Callable<String> {
 	final Database db;

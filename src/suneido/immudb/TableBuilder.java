@@ -4,10 +4,11 @@
 
 package suneido.immudb;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.schema.*;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;

@@ -294,6 +294,31 @@ public class Pack {
 		return bufferToString(buf);
 	}
 
+	public static long unpackLong(ByteBuffer buf) {
+		byte t = buf.get();
+		if (t != Tag.MINUS && t != Tag.PLUS)
+			throw new SuException("unpackLong unexpected type");
+		if (buf.remaining() == 0)
+			return 0;
+		boolean minus = (t == Tag.MINUS);
+		int s = buf.get() & 0xff;
+		if (s == 0 || s == 255)
+			throw new SuException("unpackLong got infinity");
+		if (minus)
+			s = ((~s) & 0xff);
+		s = (byte) (s ^ 0x80);
+		s = -(s - buf.remaining() / 2) * 4;
+		long n = unpackLongPart(buf, minus);
+		if (n == 0)
+			return 0;
+		if (-10 <= s && s < 0)
+			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
+				n *= 10;
+		if (s != 0)
+			throw new SuException("unpackLong got big decimal");
+		return n;
+	}
+
 	private static final long MAX_LONG_DIV_10 = Long.MAX_VALUE / 10;
 
 	private static Object unpackNum(ByteBuffer buf) {

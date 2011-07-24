@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import suneido.immudb.IndexedData.Mode;
-import suneido.immudb.schema.*;
 
 import com.google.common.collect.ImmutableList;
 

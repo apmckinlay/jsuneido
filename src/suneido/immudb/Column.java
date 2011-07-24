@@ -2,12 +2,10 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.schema;
+package suneido.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.immudb.Record;
-import suneido.immudb.RecordBuilder;
 
 @Immutable
 public class Column implements Comparable<Column> {

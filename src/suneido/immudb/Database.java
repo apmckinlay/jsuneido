@@ -10,7 +10,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.immudb.schema.Tables;
 
 @ThreadSafe
 public class Database {
