@@ -54,7 +54,7 @@ public class Update extends QueryAction {
 			for (int i = 0; i < fields.size(); ++i)
 				surec.put(fields.get(i), exprs.get(i).eval(hdr, row));
 			Record newrec = surec.toDbRecord(hdr);
-			tran.updateRecord(q.tblnum(), row.getFirstData(), newrec);
+			tran.updateRecord(q.tblnum(), row.firstData(), newrec);
 		}
 		return n;
 	}

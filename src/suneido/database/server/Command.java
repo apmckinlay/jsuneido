@@ -611,7 +611,7 @@ public enum Command {
 	private static void row_result(Row row, Header hdr, boolean sendhdr,
 			NetworkOutput outputQueue) {
 		Record rec = rowToRecord(row, hdr);
-		String s = "A" + dbpkg.offsetToInt(row.recadr) + " R" + rec.bufSize();
+		String s = "A" + row.address() + " R" + rec.bufSize();
 		if (sendhdr)
 			s += ' ' + listToParens(hdr.schema());
 		s += "\r\n";
@@ -620,7 +620,7 @@ public enum Command {
 	}
 
 	static Record rowToRecord(Row row, Header hdr) {
-		Record rec = row.getFirstData();
+		Record rec = row.firstData();
 		if (row.size() > 2) {
 			RecordBuilder rb = dbpkg.recordBuilder();
 			int nFields = 0;

@@ -45,4 +45,9 @@ public interface Record
 
 	Object getRef();
 
+	/**
+	 * Used for temp indexes and for updating
+	 */
+	int address();
+
 }

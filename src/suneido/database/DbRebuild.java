@@ -185,7 +185,7 @@ class DbRebuild extends DbCheck {
 		long newoff = tr.get(oldoff - 4) + 4;
 		ByteBuf buf = newdb.adr(newoff - 4);
 		int tblnum = buf.getInt(0);
-		Record recFrom = new Record(buf.slice(4), newoff);
+		Record recFrom = new Record(newoff, buf.slice(4));
 		newdb.removeIndexEntriesForRebuild(tblnum, recFrom);
 		return recFrom;
 	}
@@ -200,7 +200,7 @@ class DbRebuild extends DbCheck {
 			return;
 		ByteBuf buf = newdb.adr(newoff - 4);
 		int tblnum = buf.getInt(0);
-		Record rec = new Record(buf.slice(4), newoff);
+		Record rec = new Record(newoff, buf.slice(4));
 		if (tblnum <= TN.INDEXES)
 			handleSchemaRecord(tblnum, rec, newoff, renamedFrom);
 		else {

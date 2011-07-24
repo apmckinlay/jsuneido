@@ -1,6 +1,5 @@
 package suneido.database.query;
 
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
 
 import java.nio.ByteBuffer;
@@ -18,41 +17,32 @@ import suneido.language.Pack;
 
 import com.google.common.base.Objects;
 
-// maybe it would be simpler to attach header to row
+// might be simpler to attach header to row
 // rather than passing it in all the time
 
 public class Row {
 	final Record[] data;
-	public long recadr = 0; // if Row contains single update-able record, this
-							// is its address
 	private DbmsTran tran = null;
-	private SuRecord surec = null;
+	private SuRecord surec = null; // cache
 
 	public Row(Record... data) {
 		this.data = data;
 	}
 
-	public Row(Record record, long recadr) {
-		data = new Record[] { record };
-		this.recadr = recadr;
-		verify(recadr >= 0);
-	}
-
 	public Row(int n) {
-		data = new Record[n];
+		this(new Record[n]);
 		Arrays.fill(data, Record.MINREC);
 	}
 
 	// used by Project & Extend
 	public Row(Row row, Record... recs) {
-		data = new Record[row.data.length + recs.length];
-		recadr = row.recadr;
+		this(new Record[row.data.length + recs.length]);
 		System.arraycopy(row.data, 0, data, 0, row.data.length);
 		System.arraycopy(recs, 0, data, row.data.length, recs.length);
 	}
 
 	public Row(Row row1, Row row2) {
-		data = new Record[row1.data.length + row2.data.length];
+		this(new Record[row1.data.length + row2.data.length]);
 		System.arraycopy(row1.data, 0, data, 0, row1.data.length);
 		System.arraycopy(row2.data, 0, data, row1.data.length, row2.data.length);
 	}
@@ -80,8 +70,8 @@ public class Row {
 		return key.build();
 	}
 
-	public Record getFirstData() {
-		return data[data.length > 1 ? 1 : 0]; // 0 is index key
+	public Record firstData() {
+		return data[data.length > 1 ? 1 : 0]; // 0 is usually index key
 	}
 
 	ByteBuffer getrawval(Header hdr, String col) {
@@ -90,6 +80,10 @@ public class Row {
 			return getraw(w);
 		// else rule
 		return Pack.pack(surec(hdr).get(col));
+	}
+
+	public int address() {
+		return firstData().address();
 	}
 
 	public SuRecord surec(Header hdr) {
@@ -172,11 +166,7 @@ public class Row {
 		Record[] data = new Record[refs.length];
 		for (int i = 0; i < data.length; ++i)
 			data[i] = t.fromRef(refs[i]);
-		Row row = new Row(data);
-		int i = data.length > 1 ? 1 : 0;
-		if (refs[i] instanceof Long)
-			row.recadr = (Long) refs[i];
-		return row;
+		return new Row(data);
 	}
 
 	public Iterator<Entry> iterator(Header hdr) {

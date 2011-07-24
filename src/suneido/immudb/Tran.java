@@ -7,7 +7,10 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.immudb.DbHashTrie.*;
+import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.immudb.DbHashTrie.StoredIntEntry;
+import suneido.immudb.DbHashTrie.Translator;
 
 /**
  * Transaction "context"
@@ -127,7 +130,7 @@ public class Tran implements Translator {
 	}
 
 	public Record getrec(int adr) {
-		return new Record(stor.buffer(adr));
+		return new Record(adr, stor.buffer(adr));
 	}
 
 	public void mergeRedirs(DbHashTrie current) {

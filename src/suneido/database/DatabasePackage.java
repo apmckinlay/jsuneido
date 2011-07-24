@@ -44,6 +44,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
+	public Record record(int recadr, ByteBuffer buf) {
+		return new Record(Mmfile.intToOffset(recadr), buf);
+	}
+
+	@Override
 	public Record minRecord() {
 		return Record.MINREC;
 	}

@@ -255,7 +255,7 @@ public class DbmsRemote extends Dbms {
 		if (s.equals("EOF"))
 			return null;
 		Scanner scan = new Scanner(s);
-		long recadr = dbpkg.intToOffset(ck_getnum(scan, 'A'));
+		int recadr = ck_getnum(scan, 'A');
 		int reclen = ck_getnum(scan, 'R');
 		Header header = null;
 		if (withHeader) {
@@ -263,8 +263,8 @@ public class DbmsRemote extends Dbms {
 			header = parseHeader(splitList(s));
 		}
 		ByteBuffer buf = io.readNew(reclen);
-		Record record = dbpkg.record(buf);
-		Row row = new Row(record, recadr);
+		Record record = dbpkg.record(recadr, buf);
+		Row row = new Row(record);
 		return new HeaderAndRow(header, row);
 	}
 
