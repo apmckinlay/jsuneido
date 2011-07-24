@@ -4,14 +4,17 @@
 
 package suneido.immudb;
 
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
-import suneido.util.IntArrayList;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -95,7 +98,7 @@ public class Btree {
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
-		IntArrayList adrs = new IntArrayList();
+		TIntArrayList adrs = new TIntArrayList();
 		for (int level = treeLevels; level > 0; --level) {
 			adrs.add(adr);
 			BtreeNode node = nodeAt(level, adr);
@@ -177,7 +180,7 @@ public class Btree {
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
-		IntArrayList adrs = new IntArrayList();
+		TIntArrayList adrs = new TIntArrayList();
 		for (int level = treeLevels; level > 0; --level) {
 			adrs.add(adr);
 			BtreeNode node = nodeAt(level, adr);
@@ -237,7 +240,7 @@ public class Btree {
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
-		IntArrayList adrs = new IntArrayList();
+		TIntArrayList adrs = new TIntArrayList();
 		for (int level = treeLevels; level > 0; --level) {
 			adrs.add(adr);
 			BtreeNode node = nodeAt(level, adr);
