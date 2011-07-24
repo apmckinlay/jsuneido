@@ -65,7 +65,7 @@ public class SuRecord extends SuContainer {
 	public SuRecord(Row row, Header hdr, SuTransaction tran) {
 		this.hdr = hdr;
 		this.tran = tran;
-		this.recadr = row.recadr;
+		this.recadr = dbpkg.intToOffset(row.address());
 		status = Status.OLD;
 
 		verify(recadr >= 0);

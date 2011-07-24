@@ -137,7 +137,7 @@ class DbCompact {
 				if (iter.type() != Mmfile.DATA)
 					continue;
 				ByteBuf buf = iter.current();
-				Record rec = new Record(buf.slice(4), iter.offset() + 4);
+				Record rec = new Record(iter.offset() + 4, buf.slice(4));
 				newDB.addIndexEntriesForCompact(table, index, rec);
 				if (iter.offset() >= last)
 					break;

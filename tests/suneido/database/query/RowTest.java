@@ -20,7 +20,7 @@ public class RowTest {
 		Row row = new Row(rec1, rec2);
 		assertEquals(2, row.size());
 		assertEquals("[123][123,456]", row.toString());
-		assertEquals(rec2, row.getFirstData());
+		assertEquals(rec2, row.firstData());
 
 		Header hdr = HeaderTest.makeHeader();
 		assertEquals(rec1.getRaw(0), row.getraw(hdr, "a"));

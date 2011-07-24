@@ -269,7 +269,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public Record input(long adr) {
 		verify(adr != 0);
-		return new Record(dest.adr(adr), adr);
+		return new Record(adr, dest.adr(adr));
 	}
 
 	static Record key(int tblnum, String columns) {

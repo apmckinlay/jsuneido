@@ -18,33 +18,41 @@ public class Record implements suneido.intfc.database.Record {
 	static class Offset {
 		static final int HEADER = 0, BODY = 2; }
 	private final ByteBuffer buf;
-	private final int offset; // used when the record is a key within a BtreeNode
+	private final int bufpos; // used when the record is a key within a BtreeNode
+	private final int address;
 
 	public Record(ByteBuffer buf) {
-		this(buf, 0);
+		this(0, buf, 0);
 	}
 
-	public Record(ByteBuffer buf, int offset) {
+	public Record(int address, ByteBuffer buf) {
+		this(address, buf, 0);
+	}
+
+	public Record(ByteBuffer buf, int bufpos) {
+		this(0, buf, bufpos);
+	}
+
+	public Record(int address, ByteBuffer buf, int bufpos) {
 		this.buf = buf;
-		this.offset = offset;
+		this.bufpos = bufpos;
+		this.address = address;
 		check();
 	}
 
 	public void check() {
-		assert offset >= 0;
+		assert bufpos >= 0;
 		assert mode() != 0;
 		assert bufSize() > 0 : "length " + bufSize();
-		assert offset < buf.capacity();
-		assert offset + bufSize() <= buf.capacity()
-			: "offset " + offset + " + length " + bufSize() + " > capacity " + buf.capacity();
+		assert bufpos + bufSize() <= buf.capacity();
 	}
 
 	private int mode() {
-		return (buf.get(offset + Offset.HEADER + 1) & 0xff) >>> 6;
+		return (buf.get(bufpos + Offset.HEADER + 1) & 0xff) >>> 6;
 	}
 
 	public int size() {
-		int si = offset + Offset.HEADER;
+		int si = bufpos + Offset.HEADER;
 		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
 	}
 
@@ -62,13 +70,13 @@ public class Record implements suneido.intfc.database.Record {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode()) {
 		case Mode.BYTE:
-			return offset + (buf.get(offset + Offset.BODY + i + 1) & 0xff);
+			return bufpos + (buf.get(bufpos + Offset.BODY + i + 1) & 0xff);
 		case Mode.SHORT:
-			int si = offset + Offset.BODY + 2 * (i + 1);
-			return offset + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
+			int si = bufpos + Offset.BODY + 2 * (i + 1);
+			return bufpos + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
 		case Mode.INT:
-			int ii = offset + Offset.BODY + 4 * (i + 1);
-			return offset + ((buf.get(ii) & 0xff) |
+			int ii = bufpos + Offset.BODY + 4 * (i + 1);
+			return bufpos + ((buf.get(ii) & 0xff) |
 					((buf.get(ii + 1) & 0xff) << 8) |
 			 		((buf.get(ii + 2) & 0xff) << 16) |
 			 		((buf.get(ii + 3) & 0xff) << 24));
@@ -79,7 +87,7 @@ public class Record implements suneido.intfc.database.Record {
 
 	/** Number of bytes e.g. for storing */
 	public int bufSize() {
-		return fieldOffset(-1) - offset;
+		return fieldOffset(-1) - bufpos;
 	}
 
 	public int store(Storage stor) {
@@ -93,7 +101,7 @@ public class Record implements suneido.intfc.database.Record {
 	public void pack(ByteBuffer dst) {
 		// TODO use array if available
 		for (int i = 0; i < bufSize(); ++i)
-			dst.put(buf.get(offset + i));
+			dst.put(buf.get(bufpos + i));
 	}
 
 	@Override
@@ -118,7 +126,7 @@ public class Record implements suneido.intfc.database.Record {
 	@Override
 	public int hashCode() {
 		int hashCode = 1;
-		for (int i = offset; i < offset + bufSize(); ++i)
+		for (int i = bufpos; i < bufpos + bufSize(); ++i)
 		      hashCode = 31 * hashCode + buf.get(i);
 		return hashCode;
 	}
@@ -211,9 +219,7 @@ public class Record implements suneido.intfc.database.Record {
 		sb.append("<");
 		for (int i = 0; i < size(); ++i) {
 			Object x = get(i);
-			/*if (x instanceof Integer)
-				sb.append(Integer.toHexString(((Integer) x)));
-			else*/ if (x instanceof String)
+			if (x instanceof String)
 				sb.append("'").append(x).append("'");
 			else
 				sb.append(x);
@@ -266,7 +272,7 @@ public class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public ByteBuffer getBuffer() {
-		return slice(offset, bufSize());
+		return slice(bufpos, bufSize());
 	}
 
 	private ByteBuffer slice(int pos, int size) {
@@ -288,8 +294,18 @@ public class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public Object getRef() {
-		// TODO Auto-generated method stub
-		return null;
+		if (address != 0)
+			return address;
+		if (bufpos == 0)
+			return buf;
+		ByteBuffer b = buf.duplicate();
+		b.position(bufpos);
+		return b.slice();
+	}
+
+	@Override
+	public int address() {
+		return address;
 	}
 
 }

@@ -25,9 +25,9 @@ public class ProjectTest {
 			try {
 				Query q = CompileQuery.query(t, serverData, "tmp project b");
 				Record r;
-				r = q.get(PREV).getFirstData();
+				r = q.get(PREV).firstData();
 				assertEquals(1, r.get(1));
-				r = q.get(PREV).getFirstData();
+				r = q.get(PREV).firstData();
 				assertEquals("", r.get(1));
 				assertEquals(null, q.get(PREV));
 				t.complete();

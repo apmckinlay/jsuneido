@@ -37,11 +37,10 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
 	static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
 			.put(0, (byte) 0x7f).asReadOnlyBuffer();
-
 	private Rep rep;
 	private ByteBuf buf;
-	private long dboffset = 0;
-	private boolean growable = false;
+	private final long dboffset;
+	private final boolean growable;
 
 	private static class Type {
 		static final byte BYTE = 'c';
@@ -58,6 +57,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	Record() {
 		rep = MINREC.rep;
 		buf = MINREC.buf;
+		dboffset = 0;
 		growable = true;
 	}
 
@@ -68,23 +68,28 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	 *            The required size, including both data and offsets
 	 */
 	Record(int size) {
-		this(ByteBuf.allocate(size), size);
-		growable = true;
+		this(ByteBuf.allocate(size), size, true);
 	}
 
 	/**
-	 * Create a new BufRecord using a supplied ByteBuf.
+	 * Create a new BufRecord in a supplied ByteBuf.
 	 * @param size
 	 *            The size of the buffer. Used to determine the required
 	 *            representation.
 	 */
 	Record(ByteBuf buf, int size) {
+		this(buf, size, false);
+	}
+
+	Record(ByteBuf buf, int size, boolean growable) {
 		verify(size <= buf.size());
 		this.buf = buf;
 		setType(type(size));
 		init();
 		setSize(size);
 		setNfields(0);
+		dboffset = 0;
+		this.growable = growable;
 	}
 
 	private static byte type(int size) {
@@ -100,6 +105,8 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	 */
 	Record(ByteBuf buf) {
 		this.buf = buf;
+		dboffset = 0;
+		growable = false;
 		init();
 	}
 
@@ -108,9 +115,14 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 		this(ByteBuf.wrap(buf));
 	}
 
-	Record(ByteBuf buf, long dboffset) {
+	Record(long dboffset, ByteBuffer buf) {
+		this(dboffset, ByteBuf.wrap(buf));
+	}
+
+	Record(long dboffset, ByteBuf buf) {
 		this.buf = buf;
 		this.dboffset = dboffset;
+		growable = false;
 		init();
 	}
 
@@ -671,7 +683,13 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	}
 
 	@Override
+	public int address() {
+		return Mmfile.offsetToInt(dboffset);
+	}
+
+	@Override
 	public Object getRef() {
+		// TODO use ByteBuffer instead of ByteBuf (less memory)
 		return dboffset == 0 ? buf : dboffset;
 	}
 

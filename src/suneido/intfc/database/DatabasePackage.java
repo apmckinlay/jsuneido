@@ -19,6 +19,7 @@ public interface DatabasePackage {
 	RecordBuilder recordBuilder();
 	Record record(int size);
 	Record record(ByteBuffer buf);
+	Record record(int recadr, ByteBuffer buf);
 	Record minRecord();
 	Record maxRecord();
 

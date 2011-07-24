@@ -204,9 +204,7 @@ public class Table extends Query {
 			return null;
 		}
 
-		long recadr = iter.keyadr();
-		Row row = new Row(iter.curKey(), tran.input(recadr));
-		row.recadr = recadr;
+		Row row = new Row(iter.curKey(), tran.input(iter.keyadr()));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;

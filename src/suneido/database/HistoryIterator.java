@@ -59,7 +59,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 		Record r1 = new Record()
 				.add(new Date(commit.getDate()))
 				.add(action);
-		Record r2 = new Record(buf.slice(4), offset);
+		Record r2 = new Record(offset, buf.slice(4));
 		return new Record[] { r1, r2 };
 	}
 
