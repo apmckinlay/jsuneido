@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import suneido.immudb.Database;
 import suneido.immudb.query.Request;
-import suneido.immudb.tools.CheckTable;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";

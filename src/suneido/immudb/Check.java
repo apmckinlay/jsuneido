@@ -11,7 +11,7 @@ import java.util.Iterator;
 /**
  * Verify checksums and sizes.<p>
  * fastcheck is used at startup to confirm that database was closed ok<p>
- * fullcheck is used by {@link suneido.immudb.tools.DbCheck}<p>
+ * fullcheck is used by {@link suneido.immudb.DbCheck}<p>
  */
 public class Check {
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
