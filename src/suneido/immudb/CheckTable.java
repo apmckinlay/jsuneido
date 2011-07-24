@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.tools;
+package suneido.immudb;
 
 import java.util.concurrent.Callable;
 

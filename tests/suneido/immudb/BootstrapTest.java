@@ -12,7 +12,6 @@ import org.junit.Test;
 import suneido.immudb.Database;
 import suneido.immudb.DbInfo;
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.tools.CheckTable;
 
 public class BootstrapTest {
 

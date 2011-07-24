@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.tools;
+package suneido.immudb;
 
 import static suneido.SuException.verify;
 
@@ -12,7 +12,6 @@ import java.nio.ByteOrder;
 import java.util.Iterator;
 
 import suneido.SuException;
-import suneido.immudb.*;
 import suneido.immudb.Record.Mode;
 import suneido.immudb.query.Request;
 import suneido.immudb.schema.Index;

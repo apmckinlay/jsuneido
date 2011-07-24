@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.tools;
+package suneido.immudb;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
