@@ -4,9 +4,9 @@
 
 package suneido.immudb;
 
-import java.nio.ByteBuffer;
+import gnu.trove.list.array.TIntArrayList;
 
-import suneido.util.IntArrayList;
+import java.nio.ByteBuffer;
 
 /**
  * Abstract base class for store-able nodes {@link BtreeDbMemNode} and
@@ -45,8 +45,8 @@ public abstract class BtreeStoreNode extends BtreeNode {
 			pack(buf, i);
 	}
 
-	protected IntArrayList getLengths() {
-		IntArrayList lens = new IntArrayList(size());
+	protected TIntArrayList getLengths() {
+		TIntArrayList lens = new TIntArrayList(size());
 		for (int i = 0; i < size(); ++i)
 			lens.add(length(i));
 		return lens;

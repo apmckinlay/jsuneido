@@ -16,7 +16,10 @@ import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.*;
+import suneido.Packable;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuRecord;
 
 @ThreadSafe // all static methods
 public class Pack {
@@ -37,13 +40,6 @@ public class Pack {
 	public static ByteBuffer pack(Object x) {
 		ByteBuffer buf = ByteBuffer.allocate(packSize(x));
 		pack(x, buf);
-		buf.rewind();
-		return buf;
-	}
-
-	public static ByteBuffer pack(int n) {
-		ByteBuffer buf = ByteBuffer.allocate(packSizeLong(n));
-		pack(n, buf);
 		buf.rewind();
 		return buf;
 	}

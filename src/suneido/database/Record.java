@@ -219,6 +219,13 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	}
 
 	@Override
+	public Record add(long n) {
+		int pos = alloc(Pack.packSizeLong(n));
+		Pack.pack(n, buf.getByteBuffer(pos));
+		return this;
+	}
+
+	@Override
 	public Record add(Object x) {
 		if (x == null)
 			addMin();
