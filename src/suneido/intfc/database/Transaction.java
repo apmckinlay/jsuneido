@@ -47,8 +47,10 @@ public interface Transaction {
 	void addRecord(String table, Record r);
 
 	long updateRecord(long recadr, Record rec);
+	long updateRecord(int tblnum, Record oldrec, Record newrec);
 
 	void removeRecord(long off);
+	void removeRecord(int tblnum, Record rec);
 
 	Record input(long adr);
 

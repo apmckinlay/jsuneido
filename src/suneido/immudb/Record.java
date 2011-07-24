@@ -4,12 +4,14 @@
 
 package suneido.immudb;
 
-import java.nio.ByteBuffer;
+import static suneido.SuException.unreachable;
 
-import suneido.Packable;
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+
 import suneido.language.Pack;
 
-public class Record implements Comparable<Record>, Packable {
+public class Record implements suneido.intfc.database.Record {
 	public static Record EMPTY = new RecordBuilder().build();
 	public static class Mode {
 		public static final short BYTE = 1, SHORT = 2, INT = 3; }
@@ -31,10 +33,10 @@ public class Record implements Comparable<Record>, Packable {
 	public void check() {
 		assert offset >= 0;
 		assert mode() != 0;
-		assert length() > 0 : "length " + length();
+		assert bufSize() > 0 : "length " + bufSize();
 		assert offset < buf.capacity();
-		assert offset + length() <= buf.capacity()
-			: "offset " + offset + " + length " + length() + " > capacity " + buf.capacity();
+		assert offset + bufSize() <= buf.capacity()
+			: "offset " + offset + " + length " + bufSize() + " > capacity " + buf.capacity();
 	}
 
 	private int mode() {
@@ -76,12 +78,12 @@ public class Record implements Comparable<Record>, Packable {
 	}
 
 	/** Number of bytes e.g. for storing */
-	public int length() {
+	public int bufSize() {
 		return fieldOffset(-1) - offset;
 	}
 
 	public int store(Storage stor) {
-		int adr = stor.alloc(length());
+		int adr = stor.alloc(bufSize());
 		ByteBuffer buf = stor.buffer(adr);
 		pack(buf);
 		return adr;
@@ -90,22 +92,18 @@ public class Record implements Comparable<Record>, Packable {
 	@Override
 	public void pack(ByteBuffer dst) {
 		// TODO use array if available
-		for (int i = 0; i < length(); ++i)
+		for (int i = 0; i < bufSize(); ++i)
 			dst.put(buf.get(offset + i));
 	}
 
-	public String toDebugString() {
-		String s = "";
-		s += "type: " + (char) mode() +
-				" size: " + size() +
-				" length: " + length();
-		for (int i = 0; i < Math.min(size(), 10); ++i)
-			System.out.println("offset " + i + ": " + fieldOffset(i));
-		return s;
+	@Override
+	public int packSize(int nest) {
+		return bufSize();
 	}
 
-	public int packSize(int nest) {
-		return length();
+	@Override
+	public int packSize() {
+		return packSize(0);
 	}
 
 	@Override
@@ -118,12 +116,20 @@ public class Record implements Comparable<Record>, Packable {
 	}
 
 	@Override
-	public int compareTo(Record that) {
+	public int hashCode() {
+		int hashCode = 1;
+		for (int i = offset; i < offset + bufSize(); ++i)
+		      hashCode = 31 * hashCode + buf.get(i);
+		return hashCode;
+	}
+
+	@Override
+	public int compareTo(suneido.intfc.database.Record that) {
 		int len1 = this.size();
 		int len2 = that.size();
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
-			int cmp = compare1(this, that, i);
+			int cmp = compare1(this, (Record) that, i);
 			if (cmp != 0)
 				return cmp;
 		}
@@ -217,6 +223,73 @@ public class Record implements Comparable<Record>, Packable {
 			sb.deleteCharAt(sb.length() - 1);
 		sb.append(">");
 		return sb.toString();
+	}
+
+	public String toDebugString() {
+		String s = "";
+		s += "type: " + (char) mode() +
+				" size: " + size() +
+				" length: " + bufSize();
+		for (int i = 0; i < Math.min(size(), 10); ++i)
+			System.out.println("offset " + i + ": " + fieldOffset(i));
+		return s;
+	}
+
+	@Override
+	public Iterator<ByteBuffer> iterator() {
+		return new Iter();
+	}
+
+	private class Iter implements Iterator<ByteBuffer> {
+		int i = 0;
+
+		@Override
+		public boolean hasNext() {
+			return i < size();
+		}
+
+		@Override
+		public ByteBuffer next() {
+			return getRaw(i++);
+		}
+
+		@Override
+		public void remove() {
+			throw unreachable();
+		}
+	}
+
+	@Override
+	public Record squeeze() {
+		return this;
+	}
+
+	@Override
+	public ByteBuffer getBuffer() {
+		return slice(offset, bufSize());
+	}
+
+	private ByteBuffer slice(int pos, int size) {
+		ByteBuffer b = buf.duplicate();
+		b.position(pos);
+		b.limit(pos + size);
+		return b.slice();
+	}
+
+	@Override
+	public ByteBuffer getRaw(int i) {
+		return slice(fieldOffset(i), fieldLength(i));
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	@Override
+	public Object getRef() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

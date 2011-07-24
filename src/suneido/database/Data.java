@@ -93,6 +93,12 @@ class Data {
 		return update_record(tran, table, tran.db.input(recadr), rec, true);
 	}
 
+	static long updateRecord(Transaction tran, int tblnum, Record oldrec, Record newrec) {
+		Table table = tran.ck_getTable(tblnum);
+		checkForSystemTable(table.name, "update record in");
+		return update_record(tran, table, oldrec, newrec, true);
+	}
+
 	static void updateRecord(Transaction tran, String table, String index,
 			Record key, Record newrec) {
 		checkForSystemTable(table, "update record in");
@@ -184,8 +190,15 @@ class Data {
 
 	}
 
-	static void removeRecord(Transaction tran, String tablename, String index,
-			Record key) {
+	static void removeRecord(Transaction tran, int tblnum, Record rec) {
+		Table tbl = tran.ck_getTable(tblnum);
+		checkForSystemTable(tbl.name, "delete record from");
+		remove_any_record(tran, tbl, rec);
+
+	}
+
+	static void removeRecord(Transaction tran,
+			String tablename, String index, Record key) {
 		checkForSystemTable(tablename, "delete record from");
 		remove_any_record(tran, tablename, index, key);
 	}

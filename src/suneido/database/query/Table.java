@@ -204,7 +204,9 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.curKey(), tran.input(iter.keyadr()));
+		long recadr = iter.keyadr();
+		Row row = new Row(iter.curKey(), tran.input(recadr));
+		row.recadr = recadr;
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;
@@ -256,6 +258,10 @@ public class Table extends Query {
 	@Override
 	public boolean updateable() {
 		return true;
+	}
+	@Override
+	public int tblnum() {
+		return tbl.num();
 	}
 
 	@Override

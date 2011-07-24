@@ -106,7 +106,7 @@ public class DbmsLocal extends Dbms {
 					continue; // library is invalid, ignore it
 				Record rec = tran.lookup(table.num(), "name,group", key);
 				if (rec != null)
-					srcs.add(new LibGet(lib, rec.getraw(text_fld)));
+					srcs.add(new LibGet(lib, rec.getRaw(text_fld)));
 			}
 		} finally {
 			tran.complete();

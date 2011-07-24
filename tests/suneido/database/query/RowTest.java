@@ -23,20 +23,20 @@ public class RowTest {
 		assertEquals(rec2, row.getFirstData());
 
 		Header hdr = HeaderTest.makeHeader();
-		assertEquals(rec1.getraw(0), row.getraw(hdr, "a"));
-		assertEquals(rec2.getraw(1), row.getraw(hdr, "b"));
+		assertEquals(rec1.getRaw(0), row.getraw(hdr, "a"));
+		assertEquals(rec2.getRaw(1), row.getraw(hdr, "b"));
 		assertEquals(dbpkg.recordBuilder().add(456).build(), row.project(hdr, asList("b")));
 
 		Iterator<Row.Entry> iter = row.iterator(hdr);
 		Row.Entry e = iter.next();
 		assertEquals("a", e.field);
-		assertEquals(rec1.getraw(0), e.value);
+		assertEquals(rec1.getRaw(0), e.value);
 		e = iter.next();
 		assertEquals("a", e.field);
-		assertEquals(rec2.getraw(0), e.value);
+		assertEquals(rec2.getRaw(0), e.value);
 		e = iter.next();
 		assertEquals("b", e.field);
-		assertEquals(rec2.getraw(1), e.value);
+		assertEquals(rec2.getRaw(1), e.value);
 		assertFalse(iter.hasNext());
 	}
 

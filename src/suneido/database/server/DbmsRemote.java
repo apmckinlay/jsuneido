@@ -344,8 +344,7 @@ public class DbmsRemote extends Dbms {
 	}
 
 	private void writeRecord(String cmd, Record rec) {
-		if (rec.bufSize() > rec.packSize())
-			rec = rec.dup();
+		rec = rec.squeeze();
 		io.writeLineBuf(cmd, " R" + rec.bufSize());
 		io.write(rec.getBuffer());
 	}

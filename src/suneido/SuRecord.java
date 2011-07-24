@@ -82,7 +82,7 @@ public class SuRecord extends SuContainer {
 		status = Status.OLD;
 		int i = 0;
 		for (String field : flds)
-			addField(field, rec.getraw(i++));
+			addField(field, rec.getRaw(i++));
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		int adr = rec.store(stor);
 		Record key = IndexedData.key(rec, fields, adr);
 		btree.add(key);
-		dbinfo.updateRowInfo(tblnum, 1, rec.length());
+		dbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
 	}
 

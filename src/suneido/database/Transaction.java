@@ -555,16 +555,28 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		return Data.updateRecord(this, recadr, (Record) r);
 	}
 
-	void updateRecord(String table, String index, Record key,
-			Record record) {
+	void updateRecord(String table, String index, Record key, Record record) {
 		notEnded();
 		Data.updateRecord(this, table, index, key, record);
+	}
+
+	@Override
+	public long updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
+			suneido.intfc.database.Record newrec) {
+		notEnded();
+		return Data.updateRecord(this, tblnum, (Record) oldrec, (Record) newrec);
 	}
 
 	@Override
 	public void removeRecord(long off) {
 		notEnded();
 		Data.removeRecord(this, off);
+	}
+
+	@Override
+	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
+		notEnded();
+		Data.removeRecord(this, tblnum, (Record) rec);
 	}
 
 	void removeRecord(String tablename, String index, Record key) {

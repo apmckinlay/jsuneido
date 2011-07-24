@@ -754,7 +754,7 @@ public class Select extends Query1 {
 
 	private boolean matches(List<String> idx, Record key) {
 		for (int i = 0; i < idx.size(); ++i)
-			if (!isels.get(idx.get(i)).matches(key.getraw(i)))
+			if (!isels.get(idx.get(i)).matches(key.getRaw(i)))
 				return false;
 		return true;
 	}
@@ -793,8 +793,8 @@ public class Select extends Query1 {
 			String ridx = index.get(ri);
 			if (si < source_index.size() && source_index.get(si).equals(ridx)) {
 				int i = index.indexOf(ridx);
-				newfrom.add(from.getraw(i));
-				newto.add(to.getraw(i));
+				newfrom.add(from.getRaw(i));
+				newto.add(to.getRaw(i));
 				++si;
 				++ri;
 			}
@@ -818,9 +818,9 @@ public class Select extends Query1 {
 			else
 				throw unreachable();
 			}
-		if (from.getraw(from.size() - 1).equals(MAX_FIELD))
+		if (from.getRaw(from.size() - 1).equals(MAX_FIELD))
 			newfrom.add(MAX_FIELD);
-		if (to.getraw(to.size() - 1).equals(MAX_FIELD))
+		if (to.getRaw(to.size() - 1).equals(MAX_FIELD))
 			newto.add(MAX_FIELD);
 		sel.set(newfrom.build(), newto.build());
 	}

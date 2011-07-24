@@ -87,6 +87,10 @@ public abstract class Query1 extends Query {
 	public boolean updateable() {
 		return source.updateable();
 	}
+	@Override
+	public int tblnum() {
+		return updateable() ? source.tblnum() : super.tblnum();
+	}
 
 	@Override
 	public void output(Record r) {

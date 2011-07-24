@@ -192,7 +192,7 @@ new File("immu.db").delete();
 			break;
 		}
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n), 2);
-		assert rec.length() == n - 2;
+		assert rec.bufSize() == n - 2;
 		return rec;
 	}
 

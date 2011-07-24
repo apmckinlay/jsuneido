@@ -16,16 +16,14 @@ public interface Record
 	ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
 	ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0, (byte) 0x7f).asReadOnlyBuffer();
 
-	long off();
-
-	Record dup();
-	Record dup(int extra);
+	Record squeeze();
 
 	ByteBuffer getBuffer();
-	ByteBuffer getraw(int i);
-	Object get(int i);
+
+	ByteBuffer getRaw(int i);
 	String getString(int i);
 	int getInt(int i);
+	Object get(int i);
 
 	/**
 	 * @return The number of fields in the Record.
@@ -35,7 +33,7 @@ public interface Record
 	boolean isEmpty();
 
 	/**
-	 * @return The current buffer size. May be larger than the packsize.
+	 * @return The current buffer size. May be larger than packSize.
 	 */
 	int bufSize();
 

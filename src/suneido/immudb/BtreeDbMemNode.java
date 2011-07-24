@@ -137,7 +137,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 		int idx = index.get(i);
 		return idx >= 0
 				? rec.fieldLength(idx)
-				: added.get(-idx - 1).length();
+				: added.get(-idx - 1).bufSize();
 	}
 
 	@Override

@@ -46,6 +46,7 @@ public class Row {
 	// used by Project & Extend
 	public Row(Row row, Record... recs) {
 		data = new Record[row.data.length + recs.length];
+		recadr = row.recadr;
 		System.arraycopy(row.data, 0, data, 0, row.data.length);
 		System.arraycopy(recs, 0, data, row.data.length, recs.length);
 	}
@@ -98,7 +99,7 @@ public class Row {
 	}
 
 	private ByteBuffer getraw(Which w) {
-		return w == null ? ByteBuffer.allocate(0) : data[w.di].getraw(w.ri);
+		return w == null ? ByteBuffer.allocate(0) : data[w.di].getRaw(w.ri);
 	}
 
 	Which find(Header hdr, String col) {
@@ -157,8 +158,8 @@ public class Row {
 	/**
 	 * Used by TempIndex and Project
 	 *
-	 * @return An array of either Long for database records, or ByteBuffer for
-	 *         in-memory records (e.g. from Extend)
+	 * @return An array of either Long for database records,
+	 * 		   or ByteBuffer for in-memory records (e.g. from Extend)
 	 */
 	public Object[] getRefs() {
 		Object[] refs = new Object[data.length];
@@ -171,7 +172,11 @@ public class Row {
 		Record[] data = new Record[refs.length];
 		for (int i = 0; i < data.length; ++i)
 			data[i] = t.fromRef(refs[i]);
-		return new Row(data);
+		Row row = new Row(data);
+		int i = data.length > 1 ? 1 : 0;
+		if (refs[i] instanceof Long)
+			row.recadr = (Long) refs[i];
+		return row;
 	}
 
 	public Iterator<Entry> iterator(Header hdr) {
@@ -212,7 +217,7 @@ public class Row {
 		public Entry next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-			Entry e = new Entry(fields.get(i).get(j), data[i].getraw(j));
+			Entry e = new Entry(fields.get(i).get(j), data[i].getRaw(j));
 			++j;
 			skipempty();
 			return e;

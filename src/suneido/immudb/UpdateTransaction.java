@@ -68,19 +68,19 @@ public class UpdateTransaction extends ReadTransaction {
 	void addRecord(int tblnum, Record r) {
 		assert locked;
 		indexedData(tblnum).add(r);
-		dbinfo.updateRowInfo(tblnum, 1, r.length());
+		dbinfo.updateRowInfo(tblnum, 1, r.bufSize());
 	}
 
 	void removeRecord(int tblnum, Record r) {
 		assert locked;
 		indexedData(tblnum).remove(r);
-		dbinfo.updateRowInfo(tblnum, -1, -r.length());
+		dbinfo.updateRowInfo(tblnum, -1, -r.bufSize());
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
 		assert locked;
 		indexedData(tblnum).update(from, to);
-		dbinfo.updateRowInfo(tblnum, 0, to.length() - from.length());
+		dbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
 
 	private IndexedData indexedData(int tblnum) {

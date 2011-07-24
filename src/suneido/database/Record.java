@@ -139,7 +139,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 
 		StringBuilder sb = new StringBuilder("[");
 		for (int i = 0; i < getNfields(); ++i)
-			sb.append(getraw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)))
+			sb.append(getRaw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)))
 					.append(",");
 		sb.deleteCharAt(sb.length() - 1).append("]");
 		return sb.toString();
@@ -174,19 +174,21 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 		}
 	}
 
-	@Override
-	public long off() {
+	long off() {
 		verify(dboffset != 0); // should only be called on database records
 		return dboffset;
 	}
 
 	@Override
-	public Record dup() {
+	public Record squeeze() {
+		return (bufSize() > packSize()) ? dup() : this;
+	}
+
+	Record dup() {
 		return dup(0);
 	}
 
-	@Override
-	public Record dup(int extra) {
+	Record dup(int extra) {
 		Record dstRec = new Record(packSize() + extra);
 		for (int i = 0; i < getNfields(); ++i)
 			dstRec.add(buf, rep.getOffset(i), fieldSize(i));
@@ -329,7 +331,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	}
 
 	@Override
-	public ByteBuffer getraw(int i) {
+	public ByteBuffer getRaw(int i) {
 		if (i >= getNfields())
 			return MIN_FIELD;
 		return buf.getByteBuffer(rep.getOffset(i), fieldSize(i));
@@ -344,7 +346,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	@Override
 	public Object get(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		return Pack.unpack(getraw(i));
+		return Pack.unpack(getRaw(i));
 	}
 
 	@Override
@@ -355,12 +357,12 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	@Override
 	public int getInt(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		return (Integer) Pack.unpack(getraw(i));
+		return (Integer) Pack.unpack(getRaw(i));
 	}
 
 	short getShort(int i) {
 		// PERF could bypass getraw slice by setting/restoring position & limit
-		int n = (Integer) Pack.unpack(getraw(i));
+		int n = (Integer) Pack.unpack(getRaw(i));
 		assert (Short.MIN_VALUE <= n && n <= Short.MAX_VALUE);
 		return (short) n;
 	}
@@ -371,7 +373,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 
 	boolean hasPrefix(Record r) {
 		for (int i = 0; i < r.size(); ++i)
-			if (!getraw(i).equals(r.getraw(i)))
+			if (!getRaw(i).equals(r.getRaw(i)))
 				return false;
 		return true;
 	}
@@ -379,7 +381,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	boolean prefixgt(Record r) {
 		int n = Math.min(size(), r.size());
 		for (int i = 0; i < n; ++i) {
-			int cmp = bufferUcompare(getraw(i), r.getraw(i));
+			int cmp = bufferUcompare(getRaw(i), r.getRaw(i));
 			if (cmp != 0)
 				return cmp > 0;
 		}
@@ -456,6 +458,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	 * @return The minimum size the current data would fit into. <b>Note:</b>
 	 *         This may be smaller than the current buffer size.
 	 */
+	@Override
 	public int packSize() {
 		int n = getNfields();
 		int datasize = getSize() - rep.getOffset(n - 1);
@@ -651,7 +654,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 
 		@Override
 		public ByteBuffer next() {
-			return getraw(i++);
+			return getRaw(i++);
 		}
 
 		@Override

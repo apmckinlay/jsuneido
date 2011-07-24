@@ -25,7 +25,7 @@ public abstract class Query2 extends Query1 {
 
 	@Override
 	public boolean updateable() {
-		return false;
+		return false; // override Query1 source->updateable
 	}
 
 	@Override

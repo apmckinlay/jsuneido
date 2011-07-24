@@ -17,12 +17,7 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	@Override
 	public Row get(Dir dir) {
-		Row row = q.get(dir);
-		if (q.updateable() && row != null) {
-			row.recadr = row.getFirstData().off(); // [1] to skip key
-			assert row.recadr != 0;
-		}
-		return row;
+		return q.get(dir);
 	}
 
 	@Override

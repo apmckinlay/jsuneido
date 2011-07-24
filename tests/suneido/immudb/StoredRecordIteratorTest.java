@@ -26,9 +26,9 @@ public class StoredRecordIteratorTest {
 		record(17);
 		int last = record(11);
 		Iterator<Record> iter = new StoredRecordIterator(stor, first, last);
-		assertThat(iter.next().length(), is(9));
-		assertThat(iter.next().length(), is(17));
-		assertThat(iter.next().length(), is(11));
+		assertThat(iter.next().bufSize(), is(9));
+		assertThat(iter.next().bufSize(), is(17));
+		assertThat(iter.next().bufSize(), is(11));
 		assertFalse(iter.hasNext());
 	}
 
@@ -36,7 +36,7 @@ public class StoredRecordIteratorTest {
 		Record r = new RecordBuilder()
 			.add(Strings.repeat("x", len - 5))
 			.build();
-		assertThat(r.length(), is(len));
+		assertThat(r.bufSize(), is(len));
 		return r.store(stor);
 	}
 

@@ -24,7 +24,7 @@ public class Delete extends QueryAction {
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n)
-			tran.removeRecord(row.getFirstData().off());
+			tran.removeRecord(q.tblnum(), row.getFirstData());
 		return n;
 	}
 

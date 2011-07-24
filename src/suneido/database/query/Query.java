@@ -76,6 +76,9 @@ public abstract class Query {
 	public boolean updateable() {
 		return false;
 	}
+	public int tblnum() {
+		throw new UnsupportedOperationException();
+	}
 	public void output(Record record) {
 		throw new SuException("can't output to this query");
 	}

@@ -604,12 +604,8 @@ public enum Command {
 		Row row = q.get(dir);
 		if (row == null)
 			outputQueue.add(eof());
-		else {
-			if (q.updateable())
-				row.recadr = row.getFirstData().off();
-			Header hdr = q.header();
-			row_result(row, hdr, false, outputQueue);
-		}
+		else
+			row_result(row, q.header(), false, outputQueue);
 	}
 
 	private static void row_result(Row row, Header hdr, boolean sendhdr,
@@ -640,7 +636,7 @@ public enum Command {
 			rb.truncate(nonEmpty);
 			rec = rb.build();
 		}
-		return rec.dup();
+		return rec.squeeze();
 	}
 
 	private static ByteBuffer valueResult(NetworkOutput outputQueue, Object result) {

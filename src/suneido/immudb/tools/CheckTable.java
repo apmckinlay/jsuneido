@@ -64,7 +64,7 @@ public class CheckTable implements Callable<String> {
 					return false;
 				}
 				++nrecords;
-				totalsize += rec.length();
+				totalsize += rec.bufSize();
 				if (rec.size() > maxfields)
 					maxfields = rec.size();
 			}

@@ -61,7 +61,7 @@ class Slots extends AbstractList<Slot> {
 	}
 	@Override
 	public Slot get(int i) {
-		return Slot.unpack(rec.getraw(i));
+		return Slot.unpack(rec.getRaw(i));
 	}
 
 	@Override
@@ -71,7 +71,7 @@ class Slots extends AbstractList<Slot> {
 	}
 	void add(Slots slots, int begin, int end) {
 		for (int i = begin; i < end; ++i) {
-			rec.add(slots.rec.getraw(i));
+			rec.add(slots.rec.getRaw(i));
 		}
 	}
 

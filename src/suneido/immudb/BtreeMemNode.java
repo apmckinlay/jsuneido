@@ -81,7 +81,7 @@ public class BtreeMemNode extends BtreeStoreNode {
 
 	@Override
 	protected int length(int i) {
-		return data.get(i).length();
+		return data.get(i).bufSize();
 	}
 
 	@Override

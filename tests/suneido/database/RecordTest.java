@@ -39,14 +39,14 @@ public class RecordTest {
 			assertEquals(0, r.size());
 
 			assertEquals(0, r.fieldSize(0));
-			ByteBuffer bb = r.getraw(0);
+			ByteBuffer bb = r.getRaw(0);
 			assertEquals(0, bb.limit());
-			assertEquals(0, r.getraw(0).limit());
+			assertEquals(0, r.getRaw(0).limit());
 
 			r.add(data);
 			assertEquals(1, r.size());
 			assertEquals(4, r.fieldSize(0));
-			bb = r.getraw(0);
+			bb = r.getRaw(0);
 			assertEquals(4, bb.remaining());
 			assertEquals(data, Ops.toStr(Pack.unpack(bb)));
 			assertEquals(data, r.getString(0));

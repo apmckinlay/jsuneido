@@ -143,7 +143,7 @@ class BtreeIndex {
 			if (i == COLUMNS)
 				r.add(newColumns);
 			else
-				r.add(record.getraw(i));
+				r.add(record.getRaw(i));
 		return r;
 	}
 
@@ -309,7 +309,7 @@ class BtreeIndex {
 		if (n != r2.size() - 1)
 			return false;
 		for (int i = 0; i < n; ++i)
-			if (r1.getraw(i) != r2.getraw(i))
+			if (r1.getRaw(i) != r2.getRaw(i))
 				return false;
 		return true;
 	}
