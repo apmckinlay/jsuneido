@@ -56,18 +56,21 @@ public class TableBuilder {
 		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
-	public static void dropTable(ExclusiveTransaction t, String tableName) {
+	public static boolean dropTable(ExclusiveTransaction t, String tableName) {
 		if (null != Views.getView(t, tableName))
 			Views.dropView(t, tableName);
 		else {
 			Table table = t.getTable(tableName);
-			if (table == null)
-				fail(t, CANT_DROP + NONEXISTENT_TABLE + ": " + tableName);
+			if (table == null) {
+				t.abort();
+				return false;
+			}
 			t.removeRecord(TN.TABLES, table.toRecord());
 			t.dropTableSchema(table);
 			// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
 		}
 		t.commit();
+		return true;
 	}
 
 	public static void renameTable(ExclusiveTransaction t, String from, String to) {

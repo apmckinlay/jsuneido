@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -12,63 +13,64 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 @Immutable
-public class Indexes implements Iterable<Index> {
+class Indexes implements Iterable<Index> {
 	final ImmutableList<Index> indexes;
 
-	public Indexes(ImmutableList<Index> indexes) {
+	Indexes(ImmutableList<Index> indexes) {
 		this.indexes = indexes;
 	}
 
+	@Override
 	public Iterator<Index> iterator() {
 		return indexes.iterator();
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return indexes.isEmpty();
 	}
 
-//	public boolean hasIndex(String columns) {
+//	boolean hasIndex(String columns) {
 //		return get(columns) != null;
 //	}
 
-//	public Index get(String columns) {
+//	Index get(String columns) {
 //		for (Index index : indexes)
 //			if (columns.equals(index.colNums))
 //				return index;
 //		return null;
 //	}
 
-	public Index first() {
+	Index first() {
 		return indexes.get(0);
 	}
 
-	public int size() {
+	int size() {
 		return indexes.size();
 	}
 
-	public Index firstKey() {
+	Index firstKey() {
 		for (Index index : indexes)
 			if (index.isKey())
 				return index;
 		return null;
 	}
 
-//	public List<List<String>> columns() {
-//		return columns(false);
-//	}
-//
-//	public List<List<String>> keysColumns() {
-//		return columns(true);
-//	}
+	List<List<String>> columns(List<String> fields) {
+		return columns(fields, false);
+	}
 
-//	private List<List<String>> columns(boolean justKeys) {
-//		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
-//		for (Index index : indexes)
-//			if (!justKeys || index.isKey())
-//				list.add(ImmutableList.copyOf(commaSplitter.split(index.columns)));
-//				// note: can't use commasToList because it does "" => empty list
-//		return list.build();
-//	}
+	List<List<String>> keysColumns(List<String> fields) {
+		return columns(fields, true);
+	}
+
+	private List<List<String>> columns(List<String> fields, boolean justKeys) {
+		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
+		for (Index index : indexes)
+			if (!justKeys || index.isKey())
+				list.add(index.columns(fields));
+				// note: can't use commasToList because it does "" => empty list
+		return list.build();
+	}
 
 	@Override
 	public String toString() {

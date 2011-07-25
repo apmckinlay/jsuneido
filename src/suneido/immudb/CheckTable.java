@@ -6,8 +6,6 @@ package suneido.immudb;
 
 import java.util.concurrent.Callable;
 
-import suneido.immudb.*;
-
 public class CheckTable implements Callable<String> {
 	final Database db;
 	final String tableName;
@@ -26,7 +24,7 @@ public class CheckTable implements Callable<String> {
 
 	@Override
 	public String call() {
-		ReadTransaction t = db.readTran();
+		ReadTransaction t = db.readonlyTran();
 		checkTable(t, tableName);
 		return details;
 	}

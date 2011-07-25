@@ -11,10 +11,10 @@ import suneido.Suneido;
 public interface Record
 		extends suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
 
-	Record MINREC = Suneido.dbpkg.minRecord();
-	Record MAXREC = Suneido.dbpkg.maxRecord();
 	ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
 	ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0, (byte) 0x7f).asReadOnlyBuffer();
+	Record MINREC = Suneido.dbpkg.recordBuilder().build();
+	Record MAXREC = Suneido.dbpkg.recordBuilder().add(MAX_FIELD).build();
 
 	Record squeeze();
 

@@ -6,9 +6,10 @@ package suneido.immudb;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.*;
-
-import suneido.immudb.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * check the consistency of a database
@@ -71,8 +72,8 @@ public class DbCheck {
 					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(last_good_commit);
 	}
 
-	private final static int BAD_LIMIT = 10;
-	private final static int N_THREADS = 8;
+	private static final int BAD_LIMIT = 10;
+	private static final int N_THREADS = 8;
 
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
