@@ -116,6 +116,7 @@ public class DbmsRemote extends Dbms {
 
 	private static Function<String,Integer> toInteger =
 		new Function<String,Integer>() {
+			@Override
 			public Integer apply(String s) {
 				return Integer.parseInt(s);
 			}
@@ -123,6 +124,7 @@ public class DbmsRemote extends Dbms {
 
 	private static Function<String,List<String>> stringToList =
 		new Function<String,List<String>>() {
+			@Override
 			public List<String> apply(String s) {
 				Iterable<String> fields = Splitter.on(',').split(s);
 				return ImmutableList.copyOf(fields);
@@ -494,7 +496,7 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public void disableTrigger(String table) {
-//		throw new SuException("When client-server, only the server can DoWithoutTriggers");
+		throw new SuException("DoWithoutTriggers cannot be used when running as a client");
 	}
 
 	@Override
