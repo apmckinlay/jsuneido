@@ -105,13 +105,13 @@ return buf.slice().asReadOnlyBuffer();
 
 	protected abstract ByteBuffer get(int chunk);
 
-	private static int offsetToAdr(long n) {
+	static int offsetToAdr(long n) {
 		assert (n & MASK) == 0;
 		assert n <= MAX_SIZE;
 		return (int) (n >>> SHIFT) + 1; // +1 to avoid 0
 	}
 
-	private static long intToLong(int n) {
+	static long intToLong(int n) {
 		return ((n - 1) & 0xffffffffL) << SHIFT;
 	}
 

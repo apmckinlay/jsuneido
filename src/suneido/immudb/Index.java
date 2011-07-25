@@ -4,10 +4,13 @@
 
 package suneido.immudb;
 
+import java.util.List;
+
 import suneido.immudb.IndexedData.Mode;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 public class Index implements Comparable<Index> {
@@ -21,7 +24,6 @@ public class Index implements Comparable<Index> {
 	public final boolean isKey;
 	public final boolean unique;
 	public final ForeignKey fksrc;
-
 
 	public Index(int tblnum, int[] colNums, boolean key, boolean unique) {
 		this.tblnum = tblnum;
@@ -70,6 +72,13 @@ public class Index implements Comparable<Index> {
 		return Ints.join(",", colNums);
 	}
 
+	List<String> columns(List<String> fields) {
+		ImmutableList.Builder<String> cols = ImmutableList.builder();
+		for (int i : colNums)
+			cols.add(fields.get(i));
+		return cols.build();
+	}
+
 	public Mode mode() {
 		return isKey ? Mode.KEY : unique ? Mode.UNIQUE : Mode.DUPS;
 	}
@@ -105,12 +114,6 @@ public class Index implements Comparable<Index> {
 		return isKey;
 	}
 
-	@Override
-	public String toString() {
-		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + Ints.join(",", colNums) + ")";
-	}
-
 	public String schema(StringBuilder sb, Columns cols) {
 		if (isKey)
 			sb.append(" key");
@@ -131,6 +134,22 @@ public class Index implements Comparable<Index> {
 	@Override
 	public int compareTo(Index that) {
 		return this.colNumsString().compareTo(that.colNumsString());
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if (! (other instanceof Index))
+			return false;
+		Index that = (Index) other;
+		return this.colNumsString().equals(that.colNumsString());
+	}
+
+	@Override
+	public String toString() {
+		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
+				"(" + Ints.join(",", colNums) + ")";
 	}
 
 }

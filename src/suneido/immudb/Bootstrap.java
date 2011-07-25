@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import suneido.immudb.query.Request;
 
 /**
  * Create a new database with the initial schema:
@@ -19,10 +18,10 @@ import suneido.immudb.query.Request;
  */
 class Bootstrap {
 	static class TN
-		{ final static int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
+		{ static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 
 	static void create(Database db) {
-		UpdateTransaction t = db.updateTran();
+		UpdateTransaction t = db.readwriteTran();
 		setup(t);
 		create_tables(t);
 		create_columns(t);

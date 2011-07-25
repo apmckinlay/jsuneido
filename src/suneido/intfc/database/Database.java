@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface Database {
 
-	Record input(long adr);
-
 	void close();
 
 	Transaction readonlyTran();

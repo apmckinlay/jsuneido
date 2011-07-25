@@ -266,8 +266,7 @@ class Database implements suneido.intfc.database.Database {
 
 	// not synchronized because it does not depend on state
 	// only uses dest
-	@Override
-	public Record input(long adr) {
+	Record input(long adr) {
 		verify(adr != 0);
 		return new Record(adr, dest.adr(adr));
 	}

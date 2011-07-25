@@ -13,7 +13,6 @@ import java.util.Iterator;
 
 import suneido.SuException;
 import suneido.immudb.Record.Mode;
-import suneido.immudb.query.Request;
 
 public class DbLoad {
 

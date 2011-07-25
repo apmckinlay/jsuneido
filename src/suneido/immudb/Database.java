@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -12,9 +13,9 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.SuException;
 
 @ThreadSafe
-public class Database {
+class Database implements suneido.intfc.database.Database {
 	static final int INT_SIZE = 4;
-	public final Storage stor;
+	final Storage stor;
 	final Object commitLock = new Object();
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	DbHashTrie dbinfo;
@@ -28,18 +29,18 @@ public class Database {
 		this.schema = schema;
 	}
 
-	public static Database create(Storage stor) {
+	static Database create(Storage stor) {
 		Database db = new Database(stor, DbHashTrie.empty(stor),
 				DbHashTrie.empty(stor), new Tables());
 		Bootstrap.create(db);
 		return db;
 	}
 
-	public static Database open(String filename, String mode) {
+	static Database open(String filename, String mode) {
 		return open(new MmapFile(filename, mode));
 	}
 
-	public static Database open(Storage stor) {
+	static Database open(Storage stor) {
 		check(stor);
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
@@ -57,49 +58,53 @@ public class Database {
 			throw new RuntimeException("database open check failed");
 	}
 
-	public Tables schema() {
+	Tables schema() {
 		return schema;
 	}
 
-	public ReadTransaction readTran() {
+	@Override
+	public ReadTransaction readonlyTran() {
 		return new ReadTransaction(this);
 	}
 
-	public UpdateTransaction updateTran() {
+	@Override
+	public UpdateTransaction readwriteTran() {
 		return new UpdateTransaction(this);
 	}
 
-	public ExclusiveTransaction exclusiveTran() {
+	ExclusiveTransaction exclusiveTran() {
 		return new ExclusiveTransaction(this);
 	}
 
-	public TableBuilder createTable(String tableName) {
-		return TableBuilder.create(updateTran(), tableName, nextTableNum());
+	TableBuilder createTable(String tableName) {
+		return TableBuilder.create(readwriteTran(), tableName, nextTableNum());
 	}
 
-	public int nextTableNum() {
+	int nextTableNum() {
 		return schema.maxTblNum + 1;
 	}
 
-	public TableBuilder alterTable(String tableName) {
+	TableBuilder alterTable(String tableName) {
 		return TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
-	public TableBuilder ensureTable(String tableName) {
+	TableBuilder ensureTable2(String tableName) {
 		return schema.get(tableName) == null
-			? TableBuilder.create(updateTran(), tableName, nextTableNum())
+			? TableBuilder.create(readwriteTran(), tableName, nextTableNum())
 			: TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
-	public void dropTable(String tableName) {
+	@Override
+	public boolean removeTable(String tableName) {
 		ExclusiveTransaction t = exclusiveTran();
 		try {
-			TableBuilder.dropTable(t, tableName);
+			return TableBuilder.dropTable(t, tableName);
 		} finally {
 			t.abortIfNotCommitted();
 		}
 	}
 
+	@Override
 	public void renameTable(String from, String to) {
 		ExclusiveTransaction t = exclusiveTran();
 		try {
@@ -109,8 +114,9 @@ public class Database {
 		}
 	}
 
+	@Override
 	public void addView(String name, String definition) {
-		UpdateTransaction t = updateTran();
+		UpdateTransaction t = readwriteTran();
 		try {
 			if (null != Views.getView(t, name))
 				throw new SuException("view: '" + name + "' already exists");
@@ -120,8 +126,8 @@ public class Database {
 		}
 	}
 
-	public void dropView(String name) {
-		UpdateTransaction t = updateTran();
+	void dropView(String name) {
+		UpdateTransaction t = readwriteTran();
 		try {
 			Views.dropView(t, name);
 		} finally {
@@ -129,8 +135,124 @@ public class Database {
 		}
 	}
 
+	@Override
 	public void close() {
 		stor.close();
+	}
+
+	@Override
+	public long size() {
+		return stor.sizeFrom(0);
+	}
+
+	@Override
+	public void addTable(String tablename) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addColumn(String tablename, String column) {
+		ExclusiveTransaction t = exclusiveTran();
+		try {
+			TableBuilder tb = TableBuilder.alter(t, tablename);
+			tb.addColumn(column);
+			t.commit();
+		} finally {
+			t.abortIfNotCommitted();
+		}
+	}
+
+	@Override
+	public void ensureColumn(String tablename, String column) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addIndex(String tablename, String columns, boolean isKey) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addIndex(String tablename, String columns, boolean isKey,
+			boolean unique, String fktablename, String fkcolumns, int fkmode) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void ensureIndex(String tablename, String columns, boolean isKey,
+			boolean unique, String fktablename, String fkcolumns, int fkmode) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void renameColumn(String tablename, String oldname, String newname) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void removeColumn(String tablename, String column) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void removeIndex(String tablename, String columns) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getSchema(String tablename) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Integer> tranlist() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void limitOutstandingTransactions() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int finalSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void force() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void disableTrigger(String table) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void enableTrigger(String table) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean ensureTable(String tablename) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

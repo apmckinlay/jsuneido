@@ -2,16 +2,16 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb.query;
+package suneido.immudb;
 
 import static suneido.util.Util.listToCommas;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.database.query.ParseRequest;
 import suneido.database.query.RequestGenerator;
-import suneido.immudb.Database;
-import suneido.immudb.TableBuilder;
 import suneido.language.Lexer;
 
 /**
@@ -64,7 +64,7 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object ensure(String tableName, Object schema) {
-		TableBuilder tb = db.ensureTable(tableName);
+		TableBuilder tb = db.ensureTable2(tableName);
 		try {
 			((Schema) schema).ensure(tb);
 			tb.finish();
@@ -125,7 +125,8 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object drop(String table) {
-		db.dropTable(table);
+		if (! db.removeTable(table))
+			throw new RuntimeException("can't drop nonexistent table: " + table);
 		return null;
 	}
 

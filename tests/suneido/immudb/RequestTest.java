@@ -12,7 +12,6 @@ import static suneido.immudb.TableBuilder.*;
 import org.junit.Test;
 
 import suneido.immudb.Database;
-import suneido.immudb.query.Request;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";

@@ -154,7 +154,7 @@ public class TestBase {
 		Table table = tran.getTable(tablename);
 		IndexIter iter = tran.iter(table.num(), null);
 		for (iter.next(); !iter.eof(); iter.next())
-			recs.add(db.input(iter.keyadr()));
+			recs.add(tran.input(iter.keyadr()));
 		return recs;
 	}
 

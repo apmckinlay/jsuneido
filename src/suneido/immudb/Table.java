@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
@@ -16,15 +15,15 @@ import com.google.common.collect.ImmutableList;
  * Table schema information.
  */
 @Immutable
-public class Table {
-	public final static int TBLNUM = 0, TABLE = 1;
+class Table implements suneido.intfc.database.Table {
+	public static final int TBLNUM = 0, TABLE = 1;
 	public final int num;
 	public final String name;
 	public final Columns columns;
 	public final Indexes indexes;
 	public final ImmutableList<String> fields;
 
-	public Table(int num, String name, Columns columns, Indexes indexes) {
+	Table(int num, String name, Columns columns, Indexes indexes) {
 		this.num = num;
 		this.name = name;
 		this.columns = columns;
@@ -32,7 +31,7 @@ public class Table {
 		fields = buildFields();
 	}
 
-	public Table(Record record, Columns columns, Indexes indexes) {
+	Table(Record record, Columns columns, Indexes indexes) {
 		num = record.getInt(TBLNUM);
 		name = record.getString(TABLE);
 		this.columns = columns;
@@ -40,66 +39,79 @@ public class Table {
 		fields = buildFields();
 	}
 
-	public Record toRecord() {
+	@Override
+	public int num() {
+		return num;
+	}
+
+	Record toRecord() {
 		return toRecord(num, name);
 	}
 
-	public static Record toRecord(int num, String name) {
+	static Record toRecord(int num, String name) {
 		return new RecordBuilder().add(num).add(name).build();
 	}
 
-	public boolean hasColumn(String name) {
+	boolean hasColumn(String name) {
 		return columns.hasColumn(name);
 	}
 
-	public Column getColumn(String name) {
+	Column getColumn(String name) {
 		return columns.find(name);
 	}
 
-	public int maxColumnNum() {
+	int maxColumnNum() {
 		return columns.maxNum();
 	}
 
-	public boolean hasIndexes() {
+	boolean hasIndexes() {
 		return !indexes.isEmpty();
 	}
 
-//	public boolean hasIndex(String columns) {
+//	boolean hasIndex(String columns) {
 //		return indexes.hasIndex(columns);
 //	}
 
-	public Index firstIndex() {
+	Index firstIndex() {
 		return indexes.first();
 	}
 
-//	public Index getIndex(String columns) {
+//	Index getIndex(String columns) {
 //		return indexes.get(columns);
 //	}
 
+	@Override
 	public boolean singleton() {
 		return indexes.first().colNums.length == 0;
 	}
+
+	@Override
 	public List<String> getColumns() {
 		return columns.names();
 	}
-//	public List<List<String>> indexesColumns() {
-//		return indexes.columns();
-//	}
-//	public List<List<String>> keysColumns() {
-//		return indexes.keysColumns();
-//	}
 
-	public List<Column> columnsList() {
+	@Override
+	public List<List<String>> indexesColumns() {
+		return indexes.columns(fields);
+	}
+
+	@Override
+	public List<List<String>> keysColumns() {
+		return indexes.keysColumns(fields);
+	}
+
+	List<Column> columnsList() {
 		return columns.columns;
 	}
 
-	public List<Index> indexesList() {
+	List<Index> indexesList() {
 		return indexes.indexes;
 	}
 
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */
+	@Override
 	public ImmutableList<String> getFields() {
 		return fields;
 	}
@@ -118,27 +130,12 @@ public class Table {
 		return list.build();
 	}
 
+	@Override
 	public String schema() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(columns.schemaColumns()).append(")");
 		for (Index index : indexes)
 			index.schema(sb, columns);
-//		{
-//			if (index.isKey)
-//				sb.append(" key");
-//			else
-//				sb.append(" index").append(index.unique ? " unique" : "");
-//			sb.append("(").append(index.columns).append(")");
-//			if (index.fksrc != null && !index.fksrc.tablename.equals("")) {
-//				sb.append(" in ").append(index.fksrc.tablename);
-//				if (!index.fksrc.columns.equals(index.columns))
-//					sb.append("(").append(index.fksrc.columns).append(")");
-//				if (index.fksrc.mode == Index.CASCADE)
-//					sb.append(" cascade");
-//				else if (index.fksrc.mode == Index.CASCADE_UPDATES)
-//					sb.append(" cascade update");
-//			}
-//		}
 		return sb.toString();
 	}
 

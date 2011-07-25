@@ -13,15 +13,11 @@ public interface DatabasePackage {
 	Database testdb();
 
 	int offsetToInt(long offset);
-
 	long intToOffset(int i);
 
 	RecordBuilder recordBuilder();
-	Record record(int size);
 	Record record(ByteBuffer buf);
 	Record record(int recadr, ByteBuffer buf);
-	Record minRecord();
-	Record maxRecord();
 
 	void dumpDatabasePrint(String db_filename, String output_filename);
 	int dumpDatabase(suneido.intfc.database.Database db, String output_filename);
