@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import suneido.database.query.Request;
+
 
 /**
  * Create a new database with the initial schema:

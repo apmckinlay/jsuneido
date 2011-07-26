@@ -1,4 +1,4 @@
-/* Copyright 2008 Suneido Software Corp. All rights reserved.
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -6,25 +6,23 @@ package suneido.database.query;
 
 import static suneido.util.Util.listToCommas;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
+import suneido.intfc.database.TableBuilder;
 import suneido.language.Lexer;
 
 /**
- * Parse and execute database "requests" to create, alter, or remove tables.
+ * Parse and execute database "requests" to create, alter, or drop tables.
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
 	private final Database db;
 	private final ServerData serverData;
-
-	private Request(Database db, ServerData serverData) {
-		this.db = db;
-		this.serverData = serverData;
-	}
 
 	public static void execute(Database db, String s) {
 		Request.execute(db, null, s);
@@ -38,6 +36,11 @@ public class Request implements RequestGenerator<Object> {
 		pc.parse();
 	}
 
+	private Request(Database db, ServerData serverData) {
+		this.db = db;
+		this.serverData = serverData;
+	}
+
 	@Override
 	public Object columns(Object columns, String column) {
 		List<String> list = columns == null
@@ -47,57 +50,67 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	@Override
-	public Object create(String table, Object schemaOb) {
-		Schema schema = (Schema) schemaOb;
-		if (!schema.hasKey())
-			throw new SuException("key required for: " + table);
-		db.addTable(table);
-		createSchema(table, schema);
-		return null;
-	}
-
-	private void createSchema(String table, Schema schema) {
-		for (String column : schema.columns)
-			db.addColumn(table, column);
-		for (Index index : schema.indexes)
-			index.create(table);
-	}
-
-	@Override
-	public Object ensure(String tablename, Object schemaOb) {
-		// TODO should probably be all in one transaction
-		Schema schema = (Schema) schemaOb;
-		if (db.ensureTable(tablename))
-			createSchema(tablename, schema);
-		else {
-			for (String col : schema.columns)
-					db.ensureColumn(tablename, col);
-			for (Index index : schema.indexes)
-				index.ensure(tablename);
-		}
+	public Object create(String table, Object schema) {
+		if (! ((Schema) schema).hasKey())
+			throw new RuntimeException("key required for: " + table);
+		alterCreate(db.createTable(table), (Schema) schema);
 		return null;
 	}
 
 	@Override
 	public Object alterCreate(String table, Object schema) {
-		createSchema(table, (Schema) schema);
+		alterCreate(db.alterTable(table), (Schema) schema);
+		return null;
+	}
+
+	private void alterCreate(TableBuilder tb, Schema schema) {
+		try {
+			schema.create(tb);
+			tb.finish();
+		} finally {
+			tb.abortUnfinished();
+		}
+	}
+
+	@Override
+	public Object ensure(String tableName, Object schema) {
+		TableBuilder tb = db.ensureTable(tableName);
+		try {
+			((Schema) schema).ensure(tb);
+			tb.finish();
+		} finally {
+			tb.abortUnfinished();
+		}
 		return null;
 	}
 
 	@Override
-	public Object alterDrop(String table, Object schemaOb) {
+	public Object alterDrop(String tableName, Object schemaOb) {
 		Schema schema = (Schema) schemaOb;
-		for (String col : schema.columns)
-			db.removeColumn(table, col);
-		for (Index index : schema.indexes)
-			db.removeIndex(table, listToCommas(index.columns));
+		TableBuilder tb = db.alterTable(tableName);
+		try {
+			// remove indexes first so columns aren't used
+			for (AnIndex index : schema.indexes)
+				tb.dropIndex(listToCommas(index.columns));
+			for (String col : schema.columns)
+				tb.dropColumn(col);
+			tb.finish();
+		} finally {
+			tb.abortUnfinished();
+		}
 		return null;
 	}
 
 	@Override
 	public Object alterRename(String table, Object renames) {
-		for (Rename r : (List<Rename>) renames)
-			r.rename(table);
+		TableBuilder tb = db.alterTable(table);
+		try {
+			for (Rename r : (List<Rename>) renames)
+				tb.renameColumn(r.from, r.to);
+			tb.finish();
+		} finally {
+			tb.abortUnfinished();
+		}
 		return null;
 	}
 
@@ -123,10 +136,10 @@ public class Request implements RequestGenerator<Object> {
 
 	@Override
 	public Object drop(String table) {
-		if (serverData.getSview(table) != null)
+		if (serverData != null && serverData.getSview(table) != null)
 			serverData.dropSview(table);
-		else if (! db.removeTable(table))
-			throw new SuException("nonexistent table: " + table);
+		else if (! db.dropTable(table))
+			throw new RuntimeException("can't drop nonexistent table: " + table);
 		return null;
 	}
 
@@ -149,56 +162,53 @@ public class Request implements RequestGenerator<Object> {
 		return new ForeignKey(table, columns, mode);
 	}
 
-	private class Index {
+	private static class AnIndex {
 		boolean key;
 		boolean unique;
 		List<String> columns;
 		ForeignKey in;
 
-		Index(boolean key, boolean unique, Object columns, Object foreignKey) {
+		AnIndex(boolean key, boolean unique, Object columns, Object foreignKey) {
 			this.key = key;
 			this.unique = unique;
 			this.columns = (List<String>) columns;
 			this.in = (ForeignKey) foreignKey;
 		}
 
-		void create(String table) {
+		void create(TableBuilder tb) {
 			assert (in != null);
-			db.addIndex(table, listToCommas(columns), key, unique,
+			tb.addIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
-		void ensure(String table) {
+		void ensure(TableBuilder tb) {
 			assert (in != null);
-			db.ensureIndex(table, listToCommas(columns), key, unique,
+			tb.ensureIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 	}
 
 	@Override
 	public Object index(boolean key, boolean unique, Object columns, Object foreignKey) {
-		return new Index(key, unique, columns, foreignKey == null
-				? new ForeignKey() : foreignKey);
+		return new AnIndex(key, unique, columns,
+				foreignKey == null ? new ForeignKey() : foreignKey);
 	}
 
 	@Override
 	public Object indexes(Object indexes, Object index) {
-		List<Index> list = indexes == null
-				? new ArrayList<Index>() : (List<Index>) indexes;
-		list.add((Index) index);
+		List<AnIndex> list = indexes == null
+				? new ArrayList<AnIndex>() : (List<AnIndex>) indexes;
+		list.add((AnIndex) index);
 		return list;
 	}
 
-	private class Rename {
+	static class Rename {
 		String from;
 		String to;
 
 		Rename(String from, String to) {
 			this.from = from;
 			this.to = to;
-		}
-		void rename(String table) {
-			db.renameColumn(table, from, to);
 		}
 	}
 
@@ -210,9 +220,14 @@ public class Request implements RequestGenerator<Object> {
 		return list;
 	}
 
-	static class Schema {
+	@Override
+	public Object schema(Object columns, Object indexes) {
+		return new Schema(columns, indexes);
+	}
+
+	private static class Schema {
 		List<String> columns;
-		List<Index> indexes;
+		List<AnIndex> indexes;
 
 		Schema(Object columns, Object indexes) {
 			if (columns == null)
@@ -220,19 +235,28 @@ public class Request implements RequestGenerator<Object> {
 			this.columns = (List<String>) columns;
 			if (indexes == null)
 				indexes = Collections.emptyList();
-			this.indexes = (List<Index>) indexes;
+			this.indexes = (List<AnIndex>) indexes;
+		}
+		void create(TableBuilder tb) {
+			// add columns first so indexes can use them
+			for (String column : columns)
+				tb.addColumn(column);
+			for (AnIndex index : indexes)
+				index.create(tb);
+		}
+		void ensure(TableBuilder tb) {
+			// add columns first so indexes can use them
+			for (String col : columns)
+				tb.ensureColumn(col);
+			for (AnIndex index : indexes)
+				index.ensure(tb);
 		}
 		boolean hasKey() {
-			for (Index index : indexes)
+			for (AnIndex index : indexes)
 				if (index.key)
 					return true;
 			return false;
 		}
-	}
-
-	@Override
-	public Object schema(Object columns, Object indexes) {
-		return new Schema(columns, indexes);
 	}
 
 }

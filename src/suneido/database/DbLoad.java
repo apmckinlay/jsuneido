@@ -170,7 +170,7 @@ class DbLoad {
 	private static void fullRead(InputStream fin, byte[] recbuf, int n)
 			throws IOException {
 		int nread = 0;
-		do { 
+		do {
 			int nr = fin.read(recbuf, 0, n - nread);
 			if (nr == -1)
 				break;

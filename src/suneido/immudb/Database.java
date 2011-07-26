@@ -76,7 +76,8 @@ class Database implements suneido.intfc.database.Database {
 		return new ExclusiveTransaction(this);
 	}
 
-	TableBuilder createTable(String tableName) {
+	@Override
+	public TableBuilder createTable(String tableName) {
 		return TableBuilder.create(readwriteTran(), tableName, nextTableNum());
 	}
 
@@ -84,18 +85,20 @@ class Database implements suneido.intfc.database.Database {
 		return schema.maxTblNum + 1;
 	}
 
-	TableBuilder alterTable(String tableName) {
+	@Override
+	public TableBuilder alterTable(String tableName) {
 		return TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
-	TableBuilder ensureTable2(String tableName) {
+	@Override
+	public TableBuilder ensureTable(String tableName) {
 		return schema.get(tableName) == null
 			? TableBuilder.create(readwriteTran(), tableName, nextTableNum())
 			: TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
 	@Override
-	public boolean removeTable(String tableName) {
+	public boolean dropTable(String tableName) {
 		ExclusiveTransaction t = exclusiveTran();
 		try {
 			return TableBuilder.dropTable(t, tableName);
@@ -146,68 +149,6 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public void addTable(String tablename) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addColumn(String tablename, String column) {
-		ExclusiveTransaction t = exclusiveTran();
-		try {
-			TableBuilder tb = TableBuilder.alter(t, tablename);
-			tb.addColumn(column);
-			t.commit();
-		} finally {
-			t.abortIfNotCommitted();
-		}
-	}
-
-	@Override
-	public void ensureColumn(String tablename, String column) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addIndex(String tablename, String columns, boolean isKey) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addIndex(String tablename, String columns, boolean isKey,
-			boolean unique, String fktablename, String fkcolumns, int fkmode) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void ensureIndex(String tablename, String columns, boolean isKey,
-			boolean unique, String fktablename, String fkcolumns, int fkmode) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void renameColumn(String tablename, String oldname, String newname) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void removeColumn(String tablename, String column) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void removeIndex(String tablename, String columns) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public String getSchema(String tablename) {
 		// TODO Auto-generated method stub
 		return null;
@@ -222,7 +163,6 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void limitOutstandingTransactions() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -234,25 +174,16 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void force() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void disableTrigger(String table) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void enableTrigger(String table) {
 		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean ensureTable(String tablename) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 }

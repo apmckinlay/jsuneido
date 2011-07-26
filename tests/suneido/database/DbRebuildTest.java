@@ -64,7 +64,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
-			db.removeTable("mytable");
+			db.dropTable("mytable");
 		} finally {
 			db.close();
 		}
@@ -79,7 +79,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("mytable", 4);
-			db.removeTable("mytable");
+			db.dropTable("mytable");
 			makeTable("mytable", 4);
 		} finally {
 			db.close();
@@ -95,7 +95,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("tmp", 4);
-			db.removeTable("tmp"); // so new theDB() has different offsets
+			db.dropTable("tmp"); // so new theDB() has different offsets
 			makeTable("mytable_before", 4);
 			db.renameTable("mytable_before", "mytable");
 			addRecords("mytable", 4, 7);
