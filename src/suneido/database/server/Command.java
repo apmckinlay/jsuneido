@@ -156,7 +156,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			DbmsTran tran = getTran(line);
-			long recadr = dbpkg.intToOffset(ck_getnum('A', line));
+			int recadr = ck_getnum('A', line);
 			tran.erase(recadr);
 			return ok();
 		}
@@ -398,8 +398,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("S" + dbpkg.offsetToInt(TheDbms.dbms().size())
-					+ "\r\n");
+			return stringToBuffer("S" + TheDbms.dbms().size() + "\r\n");
 		}
 	},
 	TEMPDEST {
@@ -460,10 +459,10 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			DbmsTran tran = getTran(line);
-			long recadr = dbpkg.intToOffset(ck_getnum('A', line));
+			int recadr = ck_getnum('A', line);
 			// System.out.println("\t" + new Record(extra));
 			recadr = tran.update(recadr, dbpkg.record(extra));
-			return stringToBuffer("U" + dbpkg.offsetToInt(recadr) + "\r\n");
+			return stringToBuffer("U" + recadr + "\r\n");
 		}
 	};
 

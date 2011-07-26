@@ -85,12 +85,12 @@ class Data {
 
 	// update record ================================================
 
-	static long updateRecord(Transaction tran, long recadr, Record rec) {
-		verify(recadr > 0);
-		int tblnum = tran.db.adr(recadr - 4).getInt(0);
+	static long updateRecord(Transaction tran, long recoff, Record rec) {
+		verify(recoff > 0);
+		int tblnum = tran.db.adr(recoff - 4).getInt(0);
 		Table table = tran.ck_getTable(tblnum);
 		checkForSystemTable(table.name, "update record in");
-		return update_record(tran, table, tran.db.input(recadr), rec, true);
+		return update_record(tran, table, tran.db.input(recoff), rec, true);
 	}
 
 	static long updateRecord(Transaction tran, int tblnum, Record oldrec, Record newrec) {
@@ -123,7 +123,7 @@ class Data {
 					+ table.name);
 		truncate(table, newrec);
 
-		long oldoff = oldrec.off();
+		long oldoff = oldrec.offset();
 
 		// check foreign keys
 		for (Index i : table.indexes) {
@@ -225,7 +225,7 @@ class Data {
 
 		fkey_target_block(tran, table, rec, "delete from " + table.name);
 
-		tran.delete_act(table.num, rec.off());
+		tran.delete_act(table.num, rec.offset());
 
 		remove_index_entries(tran, table, rec);
 
@@ -239,7 +239,7 @@ class Data {
 	}
 
 	private static void remove_index_entries(Transaction tran, Table table, Record rec) {
-		long off = rec.off();
+		long off = rec.offset();
 		for (Index index : table.indexes) {
 			Record key = rec.project(index.colnums, off);
 			BtreeIndex btreeIndex = tran.getBtreeIndex(index);
@@ -298,7 +298,7 @@ class Data {
 
 	private static void cascade_update(Transaction tran, Record newkey, Table fktbl,
 			BtreeIndex.Iter iter, ImmutableList<Integer> colnums) {
-		Record oldrec = tran.db.input(iter.keyadr());
+		Record oldrec = tran.db.input(iter.keyoff());
 		Record newrec = new Record();
 		for (int i = 0; i < oldrec.size(); ++i) {
 			int j = colnums.indexOf(i);
@@ -312,7 +312,7 @@ class Data {
 
 	private static void cascade_delete(Transaction tran, Table fktbl,
 			BtreeIndex.Iter iter) {
-		Record r = tran.db.input(iter.keyadr());
+		Record r = tran.db.input(iter.keyoff());
 		remove_any_record(tran, fktbl, r);
 		iter.reset_prevsize();
 		// need to reset prevsize in case trigger updates other lines

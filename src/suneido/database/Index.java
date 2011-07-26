@@ -29,7 +29,7 @@ class Index {
 
 	Index(Record record, String columns, ImmutableList<Integer> colnums,
 			List<Record> fkdstrecs) {
-		verify(record.off() != 0);
+		verify(record.offset() != 0);
 		this.tblnum = record.getInt(TBLNUM);
 		this.columns = columns;
 		this.colnums = colnums;

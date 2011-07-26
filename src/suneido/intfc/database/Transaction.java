@@ -46,13 +46,13 @@ public interface Transaction {
 
 	void addRecord(String table, Record r);
 
-	long updateRecord(long recadr, Record rec);
-	long updateRecord(int tblnum, Record oldrec, Record newrec);
+	int updateRecord(int recadr, Record rec);
+	int updateRecord(int tblnum, Record oldrec, Record newrec);
 
-	void removeRecord(long off);
+	void removeRecord(int recadr);
 	void removeRecord(int tblnum, Record rec);
 
-	Record input(long adr);
+	Record input(int adr);
 
 	// used by Library
 	Record lookup(int tblnum, String index, Record key);

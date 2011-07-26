@@ -66,7 +66,7 @@ class TestBaseBase {
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter();
 		for (iter.next(); ! iter.eof(); iter.next())
-			recs.add(db.input(iter.keyadr()));
+			recs.add(db.input(iter.keyoff()));
 		return recs;
 	}
 
@@ -76,7 +76,7 @@ class TestBaseBase {
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter();
 		iter.next();
-		return iter.eof() ? null : db.input(iter.keyadr());
+		return iter.eof() ? null : db.input(iter.keyoff());
 	}
 
 	protected Record getLast(String tablename, Transaction tran) {
@@ -85,7 +85,7 @@ class TestBaseBase {
 		BtreeIndex bti = tran.getBtreeIndex(index);
 		BtreeIndex.Iter iter = bti.iter();
 		iter.prev();
-		return iter.eof() ? null : db.input(iter.keyadr());
+		return iter.eof() ? null : db.input(iter.keyoff());
 	}
 
 	protected void check(int... values) {

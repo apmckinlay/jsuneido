@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
 import static suneido.SuException.verify;
@@ -24,7 +28,7 @@ import com.google.common.base.Objects;
 public class SuRecord extends SuContainer {
 	private Header hdr;
 	private SuTransaction tran;
-	private long recadr;
+	private int recadr;
 	private Status status;
 	private final List<Object> observers = new ArrayList<Object>();
 	private final Set<Object> invalid = new HashSet<Object>();
@@ -65,7 +69,7 @@ public class SuRecord extends SuContainer {
 	public SuRecord(Row row, Header hdr, SuTransaction tran) {
 		this.hdr = hdr;
 		this.tran = tran;
-		this.recadr = dbpkg.intToOffset(row.address());
+		this.recadr = row.address();
 		status = Status.OLD;
 
 		verify(recadr >= 0);

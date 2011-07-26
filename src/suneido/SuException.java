@@ -1,12 +1,13 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
 import suneido.language.Ops;
 
-/**
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
- */
+// TODO use RuntimeException message and cause instead of s
+
 public class SuException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 	Object s; // could be String or Except

@@ -161,7 +161,7 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	static void update(Record record, int nextfield, int nrecords, int totalsize) {
-		assert record.off() != 0;
+		assert record.offset() != 0;
 		int n = record.packSize();
 		record.truncate(Table.NEXTFIELD);
 		record.add(nextfield).add(nrecords).add(totalsize);

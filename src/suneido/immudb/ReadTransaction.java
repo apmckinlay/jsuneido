@@ -109,8 +109,7 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public String conflict() {
-		// TODO Auto-generated method stub
-		return null;
+		return "";
 	}
 
 	@Override
@@ -191,18 +190,18 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public long updateRecord(long recadr, suneido.intfc.database.Record rec) {
+	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public long updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
+	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void removeRecord(long off) {
+	public void removeRecord(int off) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -212,9 +211,9 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public suneido.intfc.database.Record input(long adr) {
+	public Record input(int adr) {
 		// TODO Auto-generated method stub
-		return null;
+		return tran.getrec(adr);
 	}
 
 	@Override

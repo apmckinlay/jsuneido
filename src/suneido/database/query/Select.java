@@ -8,6 +8,7 @@ import static suneido.Suneido.dbpkg;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.Util.*;
+import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -56,7 +57,7 @@ public class Select extends Query1 {
 	private boolean newrange = true;;
 	int n_in = 0;
 	int n_out = 0;
-	private HashSet<Long> f;
+	private TIntHashSet filterSet;
 	private Header hdr;
 	private Transaction tran;
 
@@ -650,16 +651,16 @@ public class Select extends Query1 {
 			return;
 
 		for (List<String> ix : filter) {
-			HashSet<Long> newset = new HashSet<Long>();
+			TIntHashSet newset = new TIntHashSet();
 			tbl.set_index(ix);
 			for (Keyrange range : selects(ix, iselects(ix))) {
 				for (source.select(ix, range.org, range.end);
 						null != source.get(Dir.NEXT); )
 					if (matches(ix, tbl.iter.curKey())
-							&& (f == null || f.contains(tbl.iter.keyadr())))
+							&& (filterSet == null || filterSet.contains(tbl.iter.keyadr())))
 						newset.add(tbl.iter.keyadr());
 			}
-			f = newset;
+			filterSet = newset;
 		}
 		tbl.set_index(source_index); // restore primary index
 
@@ -736,7 +737,7 @@ public class Select extends Query1 {
 
 	private boolean matches(Row row) {
 		// first check against filter
-		if (f != null && !f.contains(tbl.iter.keyadr()))
+		if (filterSet != null && ! filterSet.contains(tbl.iter.keyadr()))
 			return false;
 
 		// then check against isels

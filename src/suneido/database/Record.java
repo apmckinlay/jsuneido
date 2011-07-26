@@ -186,7 +186,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 		}
 	}
 
-	long off() {
+	long offset() {
 		verify(dboffset != 0); // should only be called on database records
 		return dboffset;
 	}

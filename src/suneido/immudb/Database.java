@@ -58,6 +58,7 @@ class Database implements suneido.intfc.database.Database {
 			throw new RuntimeException("database open check failed");
 	}
 
+	// used by DbCheck
 	Tables schema() {
 		return schema;
 	}
@@ -149,9 +150,9 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public String getSchema(String tablename) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getSchema(String tableName) {
+		ReadTransaction t = readonlyTran();
+		return t.getTable(tableName).schema();
 	}
 
 	@Override
@@ -173,7 +174,6 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void force() {
-		// TODO Auto-generated method stub
 	}
 
 	@Override

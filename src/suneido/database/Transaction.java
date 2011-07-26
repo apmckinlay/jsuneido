@@ -550,9 +550,10 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public long updateRecord(long recadr, suneido.intfc.database.Record r) {
+	public int updateRecord(int adr, suneido.intfc.database.Record r) {
 		notEnded();
-		return Data.updateRecord(this, recadr, (Record) r);
+		return Mmfile.offsetToInt(
+				Data.updateRecord(this, Mmfile.intToOffset(adr), (Record) r));
 	}
 
 	void updateRecord(String table, String index, Record key, Record record) {
@@ -561,16 +562,17 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public long updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
+	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
 		notEnded();
-		return Data.updateRecord(this, tblnum, (Record) oldrec, (Record) newrec);
+		return Mmfile.offsetToInt(
+				Data.updateRecord(this, tblnum, (Record) oldrec, (Record) newrec));
 	}
 
 	@Override
-	public void removeRecord(long off) {
+	public void removeRecord(int adr) {
 		notEnded();
-		Data.removeRecord(this, off);
+		Data.removeRecord(this, Mmfile.intToOffset(adr));
 	}
 
 	@Override
@@ -585,8 +587,12 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public Record input(long adr) {
-		return db.input(adr);
+	public Record input(int adr) {
+		return db.input(Mmfile.intToOffset(adr));
+	}
+
+	Record input(long off) {
+		return db.input(off);
 	}
 
 	int shadowsSize() {
@@ -628,7 +634,7 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 			return null;
 		BtreeIndex.Iter iter = bti.iter((Record) key);
 		iter.next();
-		return iter.eof() ? null : db.input(iter.keyadr());
+		return iter.eof() ? null : db.input(iter.keyoff());
 	}
 
 	@Override
