@@ -10,7 +10,7 @@ public interface IndexIter {
 
 	Record curKey();
 
-	long keyadr();
+	int keyadr();
 
 	void next();
 

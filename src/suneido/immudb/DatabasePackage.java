@@ -14,16 +14,6 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public int offsetToInt(long offset) {
-		return ChunkedStorage.offsetToAdr(offset);
-	}
-
-	@Override
-	public long intToOffset(int i) {
-		return ChunkedStorage.intToLong(i);
-	}
-
-	@Override
 	public Database testdb() {
 		return Database.create(new TestStorage());
 	}

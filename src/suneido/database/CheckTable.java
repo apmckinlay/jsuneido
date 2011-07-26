@@ -32,7 +32,7 @@ class CheckTable implements Callable<String> {
 
 	private boolean checkTable(Transaction t, String tablename) {
 		boolean first_index = true;
-		Table table = (Table) t.getTable(tablename);
+		Table table = t.getTable(tablename);
 		TableData td = t.getTableData(table.num);
 		int maxfields = 0;
 		for (Index index : table.indexes) {
@@ -50,11 +50,11 @@ class CheckTable implements Callable<String> {
 						return false;
 					}
 				prevkey = strippedKey;
-				Record rec = db.input(iter.keyadr());
+				Record rec = db.input(iter.keyoff());
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;
-				Record reckey = rec.project(index.colnums, iter.keyadr());
+				Record reckey = rec.project(index.colnums, iter.keyoff());
 				if (!key.equals(reckey)) {
 					details += tablename + ": key mismatch in " + index + "\n";
 					return false;

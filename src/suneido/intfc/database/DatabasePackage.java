@@ -12,9 +12,6 @@ public interface DatabasePackage {
 
 	Database testdb();
 
-	int offsetToInt(long offset);
-	long intToOffset(int i);
-
 	RecordBuilder recordBuilder();
 	Record record(ByteBuffer buf);
 	Record record(int recadr, ByteBuffer buf);

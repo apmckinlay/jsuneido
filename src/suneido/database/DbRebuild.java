@@ -281,8 +281,8 @@ class DbRebuild extends DbCheck {
 		Index index = table.firstIndex();
 		BtreeIndex.Iter iter = tran.getBtreeIndex(index).iter();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record r = newdb.input(iter.keyadr());
-			Record key = r.project(colnums, iter.cur().keyadr());
+			Record r = newdb.input(iter.keyoff());
+			Record key = r.project(colnums, iter.cur().keyRecOff());
 			verify(btreeIndex.insert(tran, new Slot(key)));
 		}
 	}

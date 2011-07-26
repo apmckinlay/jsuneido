@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 public interface Storage {
-	static final int FIRST_ADR = 1;
+	int FIRST_ADR = 1;
 
 	int alloc(int byteBufSize);
 

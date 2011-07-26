@@ -13,9 +13,9 @@ public interface DbmsTran {
 
 	DbmsQuery query(String s);
 
-	void erase(long recadr);
+	void erase(int recadr);
 
-	long update(long recadr, Record rec);
+	int update(int recadr, Record rec);
 
 	HeaderAndRow get(Dir dir, String query, boolean one);
 

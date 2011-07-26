@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import suneido.immudb.IndexedData.Mode;
+import suneido.intfc.database.HistoryIterator;
+import suneido.intfc.database.IndexIter;
 
 import com.google.common.collect.ImmutableList;
 
@@ -103,6 +105,7 @@ public class UpdateTransaction extends ReadTransaction {
 
 	// commit -----------------------------------------------------------------
 
+	@Override
 	public void abort() {
 		assert locked;
 		unlock();
@@ -192,6 +195,189 @@ public class UpdateTransaction extends ReadTransaction {
 		Conflict(String explanation) {
 			super("transaction conflict: " + explanation);
 		}
+	}
+
+	@Override
+	public boolean isReadonly() {
+		return false;
+	}
+
+	@Override
+	public boolean isReadWrite() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnded() {
+		return ! locked;
+	}
+
+	@Override
+	public long asof() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String conflict() {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
+	@Override
+	public boolean tableExists(String table) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Table ck_getTable(String tablename) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Table ck_getTable(int tblnum) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteTable(suneido.intfc.database.Table table) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int tableCount(int tblnum) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long tableSize(int tblnum) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int indexSize(int tblnum, String columns) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int keySize(int tblnum, String columns) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float rangefrac(int tblnum, String columns,
+			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void abortIfNotComplete() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void ck_complete() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String complete() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addRecord(String table, suneido.intfc.database.Record r) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
+			suneido.intfc.database.Record newrec) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void removeRecord(int off) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Record lookup(int tblnum, String index,
+			suneido.intfc.database.Record key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void callTrigger(suneido.intfc.database.Table table,
+			suneido.intfc.database.Record oldrec,
+			suneido.intfc.database.Record newrec) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int num() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public Record fromRef(Object ref) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HistoryIterator historyIterator(int tblnum) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns,
+			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

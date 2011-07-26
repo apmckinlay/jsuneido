@@ -127,13 +127,13 @@ public class TransactionTest extends TestBase {
 		BtreeIndex.Iter iter = bti.iter();
 		iter.next();
 		for (int i = 0; i < values.length / 2; iter.next(), ++i) {
-			Record r = db.input(iter.keyadr());
+			Record r = db.input(iter.keyoff());
 			assertEquals(record(values[i]), r);
 		}
 		iter = bti.iter();
 		iter.prev();
 		for (int i = values.length - 1; i >= values.length / 2; iter.prev(), --i) {
-			Record r = db.input(iter.keyadr());
+			Record r = db.input(iter.keyoff());
 			assertEquals(record(values[i]), r);
 		}
 	}

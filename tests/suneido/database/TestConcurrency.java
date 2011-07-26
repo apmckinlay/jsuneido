@@ -350,7 +350,7 @@ public class TestConcurrency {
 			try {
 				Row r = q.get(Dir.NEXT);
 				Record rec = (Record) r.firstData();
-				t.updateRecord(rec.off(), rec);
+				t.updateRecord(rec.address(), rec);
 			} catch (SuException e) {
 				throwUnexpected(e);
 			}

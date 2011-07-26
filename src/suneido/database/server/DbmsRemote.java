@@ -79,7 +79,7 @@ public class DbmsRemote extends Dbms {
 		Scanner scan = new Scanner(s);
 		int n;
 		ImmutableList.Builder<LibGet> builder = ImmutableList.builder();
-		while (ERR != (n = getnum(scan, 'L'))) {
+		while (ERR != (n = getInt(scan, 'L'))) {
 			String library = io.readLine();
 			ByteBuffer code = io.readNew(n);
 			builder.add(new LibGet(library, code));
@@ -160,8 +160,7 @@ public class DbmsRemote extends Dbms {
 	@Override
 	public long size() {
 		io.writeLine("SIZE");
-		int n = readInt('S');
-		return dbpkg.intToOffset(n);
+		return readLong('S');
 	}
 
 	@Override
@@ -216,23 +215,44 @@ public class DbmsRemote extends Dbms {
 
 	private int readInt(char c) {
 		String s = io.readLine();
-		return ck_getnum(s, c);
+		return ck_getInt(s, c);
+	}
+
+	private long readLong(char c) {
+		String s = io.readLine();
+		return ck_getLong(s, c);
 	}
 
 	private static final int ERR = -1;
 
-	private static int ck_getnum(String s, char type) {
-		return ck_getnum(new Scanner(s), type);
+	private static int ck_getInt(String s, char type) {
+		return ck_getInt(new Scanner(s), type);
 	}
 
-	private static int ck_getnum(Scanner scan, char type) {
-		int num = getnum(scan, type);
+	private static int ck_getInt(Scanner scan, char type) {
+		int num = getInt(scan, type);
 		if (num == ERR)
 			throw new SuException("expecting: " + type + "#");
 		return num;
 	}
 
-	private static int getnum(Scanner scan, char type) {
+	private static int getInt(Scanner scan, char type) {
+		try {
+			scan.skip("\\s*" + type);
+			return scan.nextInt();
+		} catch (NoSuchElementException e) {
+			return ERR;
+		}
+	}
+
+	private static long ck_getLong(String s, char type) {
+		long num = getLong(new Scanner(s), type);
+		if (num == ERR)
+			throw new SuException("expecting: " + type + "#");
+		return num;
+	}
+
+	private static long getLong(Scanner scan, char type) {
 		try {
 			scan.skip("\\s*" + type);
 			return scan.nextInt();
@@ -245,7 +265,7 @@ public class DbmsRemote extends Dbms {
 		String s = io.readLine();
 		if (s.equals(""))
 			return null;
-		int n = ck_getnum(s, 'P');
+		int n = ck_getInt(s, 'P');
 		ByteBuffer buf = io.read(n);
 		return Pack.unpack(buf);
 	}
@@ -255,8 +275,8 @@ public class DbmsRemote extends Dbms {
 		if (s.equals("EOF"))
 			return null;
 		Scanner scan = new Scanner(s);
-		int recadr = ck_getnum(scan, 'A');
-		int reclen = ck_getnum(scan, 'R');
+		int recadr = ck_getInt(scan, 'A');
+		int reclen = ck_getInt(scan, 'R');
 		Header header = null;
 		if (withHeader) {
 			s = s.substring(s.indexOf('('));
@@ -320,15 +340,15 @@ public class DbmsRemote extends Dbms {
 		}
 
 		@Override
-		public void erase(long recadr) {
-			io.writeLine("ERASE", "T" + tn + " A" + dbpkg.offsetToInt(recadr));
+		public void erase(int recadr) {
+			io.writeLine("ERASE", "T" + tn + " A" + recadr);
 			ok();
 		}
 
 		@Override
-		public long update(long recadr, Record rec) {
-			writeRecord("UPDATE T" + tn + " A" + dbpkg.offsetToInt(recadr), rec);
-			return dbpkg.intToOffset(readInt('U'));
+		public int update(int recadr, Record rec) {
+			writeRecord("UPDATE T" + tn + " A" + recadr, rec);
+			return readInt('U');
 		}
 
 		@Override

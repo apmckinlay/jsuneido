@@ -312,11 +312,11 @@ class Schema {
 					+ fktablename);
 
 		for (; !iter.eof(); iter.next()) {
-			Record rec = db.input(iter.keyadr());
+			Record rec = db.input(iter.keyoff());
 			if (fktable != null)
 				Data.fkey_source_block1(tran, fktable, fkcolumns,
 						rec.project(colnums), "add index to " + table.name);
-			Record key = rec.project(colnums, iter.cur().keyadr());
+			Record key = rec.project(colnums, iter.cur().keyRecOff());
 			if (!btreeIndex.insert(tran, new Slot(key)))
 				throw new SuException("add index: duplicate key: " + columns
 						+ " = " + key + " in " + table.name);

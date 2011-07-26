@@ -92,8 +92,12 @@ class Slot implements suneido.Packable, Comparable<Slot> {
 	/**
 	 * @return The address at the end of the key. (not from adr)
 	 */
-	long keyadr() {
+	long keyRecOff() {
 		return key.getMmoffset(key.size() - 1);
+	}
+
+	int keyRecAdr() {
+		return key.getInt(key.size() - 1);
 	}
 
 	Slot dup() {

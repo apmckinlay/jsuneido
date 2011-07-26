@@ -14,16 +14,6 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public int offsetToInt(long offset) {
-		return Mmfile.offsetToInt(offset);
-	}
-
-	@Override
-	public long intToOffset(int i) {
-		return Mmfile.intToOffset(i);
-	}
-
-	@Override
 	public Database testdb() {
 		return new Database(new DestMem(), Mode.CREATE);
 	}

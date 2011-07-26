@@ -103,7 +103,7 @@ class BtreeIndex {
 
 	/** updates the record in place */
 	void update() {
-		verify(record.off() != 0);
+		verify(record.offset() != 0);
 		btreeInfo(bt, record);
 	}
 
@@ -253,8 +253,12 @@ class BtreeIndex {
 		}
 
 		@Override
-		public long keyadr() {
-			return cur().keyadr();
+		public int keyadr() {
+			return cur().keyRecAdr();
+		}
+
+		long keyoff() {
+			return cur().keyRecOff();
 		}
 
 		void reset_prevsize() {
@@ -273,7 +277,7 @@ class BtreeIndex {
 				first = false;
 				iter.next();
 			}
-			while (!iter.eof() && iter.cur().keyadr() >= prevsize)
+			while (!iter.eof() && iter.cur().keyRecOff() >= prevsize)
 				iter.next();
 			// PERF skip prefixgt if to is max
 			if (!iter.eof() && iter.key().prefixgt(to))

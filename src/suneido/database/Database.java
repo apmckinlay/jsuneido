@@ -196,7 +196,7 @@ class Database implements suneido.intfc.database.Database {
 
 		Record r = find(NULLTRAN, indexes_index,
 				key(TN.INDEXES, "table,columns"));
-		verify(!r.isEmpty() && r.off() == dbhdr.indexes);
+		verify(!r.isEmpty() && r.offset() == dbhdr.indexes);
 
 		btreeIndex(indexes_index, TN.TABLES, "table");
 		btreeIndex(indexes_index, TN.COLUMNS, "table,column");
@@ -221,7 +221,7 @@ class Database implements suneido.intfc.database.Database {
 			BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 			BtreeIndex.Iter iter = tablenum_index.iter();
 			for (iter.next(); !iter.eof(); iter.next()) {
-				Record table_rec = input(iter.keyadr());
+				Record table_rec = input(iter.keyoff());
 				Table table = loadTable(tran, table_rec, btis);
 				tablesBuilder.add(table);
 				tabledataBuilder.put(table.num, new TableData(table_rec));
@@ -281,7 +281,7 @@ class Database implements suneido.intfc.database.Database {
 
 	Record find(Transaction tran, BtreeIndex btreeIndex, Record key) {
 		Slot slot = btreeIndex.find(tran, key);
-		return slot == null ? null : input(slot.keyadr());
+		return slot == null ? null : input(slot.keyRecOff());
 	}
 
 	Record getTableRecord(Transaction tran, int tblnum) {
@@ -320,7 +320,7 @@ class Database implements suneido.intfc.database.Database {
 		BtreeIndex columns_index = tran.getBtreeIndex(TN.COLUMNS, "table,column");
 		BtreeIndex.Iter iter = columns_index.iter(tblkey);
 		for (iter.next(); ! iter.eof(); iter.next())
-			cols.add(new Column(input(iter.keyadr())));
+			cols.add(new Column(input(iter.keyoff())));
 		Collections.sort(cols);
 		Columns columns = new Columns(ImmutableList.copyOf(cols));
 
@@ -329,7 +329,7 @@ class Database implements suneido.intfc.database.Database {
 		BtreeIndex indexes_index = tran.getBtreeIndex(TN.INDEXES, "table,columns");
 		iter = indexes_index.iter(tblkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record r = input(iter.keyadr());
+			Record r = input(iter.keyoff());
 			String icols = Index.getColumns(r);
 			indexes.add(new Index(r, icols, columns.nums(icols),
 					getForeignKeys(tran, tablename, icols)));
@@ -347,7 +347,7 @@ class Database implements suneido.intfc.database.Database {
 		BtreeIndex fkey_index = tran.getBtreeIndex(TN.INDEXES, "fktable,fkcolumns");
 		BtreeIndex.Iter iter = fkey_index.iter(key(tablename, columns));
 		for (iter.next(); ! iter.eof(); iter.next())
-			records.add(input(iter.keyadr()));
+			records.add(input(iter.keyoff()));
 		return records;
 	}
 
@@ -547,7 +547,7 @@ class Database implements suneido.intfc.database.Database {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
-			Record key = rec.project(index.colnums, rec.off());
+			Record key = rec.project(index.colnums, rec.offset());
 			if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
 				throw new SuException("duplicate key: " + index.columns + " = "
 						+ key + " in " + table.name);
@@ -562,7 +562,7 @@ class Database implements suneido.intfc.database.Database {
 		Table table = tables.get(tblnum);
 		for (Index index : table.indexes) {
 			BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
-			Record key = rec.project(index.colnums, rec.off());
+			Record key = rec.project(index.colnums, rec.offset());
 			verify(btreeIndex.remove(key));
 		}
 		TableData td = tabledata.get(tblnum);
@@ -572,7 +572,7 @@ class Database implements suneido.intfc.database.Database {
 
 	void addIndexEntriesForCompact(Table table, Index index, Record rec) {
 		BtreeIndex btreeIndex = btreeIndexes.get(table.num + ":" + index.columns);
-		Record key = rec.project(index.colnums, rec.off());
+		Record key = rec.project(index.colnums, rec.offset());
 		if (!btreeIndex.insert(NULLTRAN, new Slot(key)))
 			throw new SuException("duplicate key: " + index.columns + " = "
 					+ key + " in " + table.name);

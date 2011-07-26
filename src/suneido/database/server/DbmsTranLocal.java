@@ -48,12 +48,12 @@ public class DbmsTranLocal implements DbmsTran {
 	}
 
 	@Override
-	public void erase(long recadr) {
+	public void erase(int recadr) {
 		t.removeRecord(recadr);
 	}
 
 	@Override
-	public long update(long recadr, Record rec) {
+	public int update(int recadr, Record rec) {
 		return t.updateRecord(recadr, rec);
 	}
 
