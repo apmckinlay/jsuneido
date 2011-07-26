@@ -16,28 +16,28 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
-public class TableBuilder {
-	public static final String COLUMN_IN_INDEX = "column used in index";
-	public static final String TABLE_MUST_HAVE_KEY = "tables must have at least one key";
-	public static final String NONEXISTENT_TABLE = "nonexistent table";
-	public static final String NONEXISTENT_COLUMN = "nonexistent column";
-	public static final String NONEXISTENT_INDEX = "nonexistent index";
-	private static final String CANT_DROP = "can't drop ";
-	private static final String CANT_RENAME = "can't rename ";
-	public static final String TO_EXISTING = "to existing column";
+public class TableBuilder implements suneido.intfc.database.TableBuilder {
+	static final String COLUMN_IN_INDEX = "column used in index";
+	static final String KEY_REQUIRED = "key required";
+	static final String NONEXISTENT_TABLE = "nonexistent table";
+	static final String NONEXISTENT_COLUMN = "nonexistent column";
+	static final String NONEXISTENT_INDEX = "nonexistent index";
+	static final String CANT_DROP = "can't drop ";
+	static final String CANT_RENAME = "can't rename ";
+	static final String TO_EXISTING = "to existing column";
 	private final String tableName;
 	private final int tblnum;
 	private final UpdateTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
 
-	public static TableBuilder create(UpdateTransaction t, String tablename, int tblnum) {
+	static TableBuilder create(UpdateTransaction t, String tablename, int tblnum) {
 		TableBuilder tb = new TableBuilder(t, tablename, tblnum);
 		tb.createTable();
 		return tb;
 	}
 
-	public static TableBuilder alter(UpdateTransaction t, String tableName) {
+	static TableBuilder alter(UpdateTransaction t, String tableName) {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			fail(t, NONEXISTENT_TABLE + ": " + tableName);
@@ -56,7 +56,7 @@ public class TableBuilder {
 		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
-	public static boolean dropTable(ExclusiveTransaction t, String tableName) {
+	static boolean dropTable(ExclusiveTransaction t, String tableName) {
 		if (null != Views.getView(t, tableName))
 			Views.dropView(t, tableName);
 		else {
@@ -73,7 +73,7 @@ public class TableBuilder {
 		return true;
 	}
 
-	public static void renameTable(ExclusiveTransaction t, String from, String to) {
+	static void renameTable(ExclusiveTransaction t, String from, String to) {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
 			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
@@ -93,11 +93,13 @@ public class TableBuilder {
 		indexes.addAll(table.indexesList());
 	}
 
+	@Override
 	public void ensureColumn(String column) {
 		if (! hasColumn(column))
 			addColumn(column);
 	}
 
+	@Override
 	public void addColumn(String column) {
 		int field = nextColNum();
 		Column c = new Column(tblnum, field, column);
@@ -113,6 +115,7 @@ public class TableBuilder {
 		return maxNum + 1;
 	}
 
+	@Override
 	public void renameColumn(String from, String to) {
 		if (hasColumn(to))
 			fail(CANT_RENAME + TO_EXISTING + ": " + to);
@@ -128,6 +131,7 @@ public class TableBuilder {
 		// don't need to update indexes because they use column numbers not names
 	}
 
+	@Override
 	public void dropColumn(String column) {
 		int i = findColumn(column);
 		if (i == -1)
@@ -156,12 +160,14 @@ public class TableBuilder {
 		}
 	}
 
+	@Override
 	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (! hasIndex(columnNames))
 			addIndex(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
 	}
 
+	@Override
 	public void addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(columnNames);
@@ -188,6 +194,7 @@ public class TableBuilder {
 			id.add(t.getrec(Btree.getAddress(iter.cur())));
 	}
 
+	@Override
 	public void dropIndex(String columnNames) {
 		int[] colNums = colNums(columnNames);
 		for (int i = 0; i < indexes.size(); ++i) {
@@ -236,6 +243,7 @@ public class TableBuilder {
 
 	// build -------------------------------------------------------------------
 
+	@Override
 	public void build() {
 		mustHaveKey();
 		updateSchema();
@@ -246,7 +254,7 @@ public class TableBuilder {
 		for (Index index : indexes)
 			if (index.isKey)
 				return;
-		fail(TABLE_MUST_HAVE_KEY);
+		fail(KEY_REQUIRED + " for: " + tableName);
 	}
 
 	private void updateSchema() {
@@ -276,11 +284,13 @@ public class TableBuilder {
 		throw new RuntimeException(msg);
 	}
 
+	@Override
 	public void finish() {
 		build();
 		t.commit();
 	}
 
+	@Override
 	public void abortUnfinished() {
 		t.abortIfNotCommitted();
 	}

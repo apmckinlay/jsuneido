@@ -31,7 +31,7 @@ public class DbCheckTest extends DbCheckRebuildTestBase {
 		db = new Database(filename, Mode.CREATE);
 		try {
 			makeTable("tmp", 4);
-			db.removeTable("tmp"); // so new theDB() has different offsets
+			db.dropTable("tmp"); // so new theDB() has different offsets
 			makeTable("mytable_before", 4);
 			db.renameTable("mytable_before", "mytable");
 			addRecords("mytable", 4, 7);

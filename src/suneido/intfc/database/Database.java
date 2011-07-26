@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface Database {
 
-	void close();
-
 	Transaction readonlyTran();
 
 	Transaction readwriteTran();
@@ -18,31 +16,9 @@ public interface Database {
 
 	void addView(String name, String definition);
 
-	void addTable(String tablename);
-
-	boolean ensureTable(String tablename);
-
-	void addColumn(String tablename, String column);
-
-	void ensureColumn(String tablename, String column);
-
-	void addIndex(String tablename, String columns, boolean isKey);
-
-	void addIndex(String tablename, String columns, boolean isKey,
-			boolean unique, String fktablename, String fkcolumns, int fkmode);
-
-	void ensureIndex(String tablename, String columns, boolean isKey,
-			boolean unique, String fktablename, String fkcolumns, int fkmode);
-
 	void renameTable(String oldname, String newname);
 
-	void renameColumn(String tablename, String oldname, String newname);
-
-	boolean removeTable(String tablename);
-
-	void removeColumn(String tablename, String column);
-
-	void removeIndex(String tablename, String columns);
+	boolean dropTable(String tablename);
 
 	String getSchema(String tablename);
 
@@ -57,5 +33,13 @@ public interface Database {
 	void disableTrigger(String table);
 
 	void enableTrigger(String table);
+
+	TableBuilder createTable(String tableName);
+
+	TableBuilder alterTable(String table);
+
+	TableBuilder ensureTable(String tableName);
+
+	void close();
 
 }

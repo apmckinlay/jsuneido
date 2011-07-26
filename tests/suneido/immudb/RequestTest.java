@@ -6,12 +6,15 @@ package suneido.immudb;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static suneido.immudb.TableBuilder.*;
 
 import org.junit.Test;
 
-import suneido.immudb.Database;
+import suneido.database.query.Request;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
@@ -125,7 +128,7 @@ public class RequestTest {
 		try {
 			request("create tbl (a,b,c) index(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(TABLE_MUST_HAVE_KEY));
+			assertThat(e.getMessage(), containsString(KEY_REQUIRED));
 		}
 	}
 
@@ -135,7 +138,7 @@ public class RequestTest {
 		try {
 			request("alter tbl drop key(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(TABLE_MUST_HAVE_KEY));
+			assertThat(e.getMessage(), containsString(KEY_REQUIRED));
 		}
 	}
 

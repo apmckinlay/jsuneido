@@ -12,6 +12,7 @@ import java.nio.ByteOrder;
 import java.util.Iterator;
 
 import suneido.SuException;
+import suneido.database.query.Request;
 import suneido.immudb.Record.Mode;
 
 public class DbLoad {

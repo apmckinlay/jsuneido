@@ -498,44 +498,22 @@ class Database implements suneido.intfc.database.Database {
 		addBtreeIndex(key, btiNew);
 	}
 
-	// delegate
+	// schema changes
 
-	@Override
-	public void addTable(String tablename) {
+	void addTable(String tablename) {
 		Schema.addTable(this, tablename);
 	}
 
-	@Override
-	public boolean ensureTable(String tablename) {
-		return Schema.ensureTable(this, tablename);
-	}
-
-	@Override
-	public void addColumn(String tablename, String column) {
+	void addColumn(String tablename, String column) {
 		Schema.addColumn(this, tablename, column);
 	}
 
-	@Override
-	public void ensureColumn(String tablename, String column) {
-		Schema.ensureColumn(this, tablename, column);
-	}
-
-	@Override
-	public void addIndex(String tablename, String columns, boolean isKey) {
+	void addIndex(String tablename, String columns, boolean isKey) {
 		addIndex(tablename, columns, isKey, false, null, null, 0);	}
 
-	@Override
-	public void addIndex(String tablename, String columns, boolean isKey, boolean unique,
+	void addIndex(String tablename, String columns, boolean isKey, boolean unique,
 			String fktablename, String fkcolumns, int fkmode) {
 		Schema.addIndex(this, tablename, columns, isKey, unique,
-				fktablename, fkcolumns, fkmode);
-	}
-
-	@Override
-	public void ensureIndex(String tablename, String columns,
-			boolean isKey, boolean unique,
-			String fktablename, String fkcolumns, int fkmode) {
-		Schema.ensureIndex(this, tablename, columns, isKey, unique,
 				fktablename, fkcolumns, fkmode);
 	}
 
@@ -545,23 +523,8 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public void renameColumn(String tablename, String oldname, String newname) {
-		Schema.renameColumn(this, tablename, oldname, newname);
-	}
-
-	@Override
-	public boolean removeTable(String tablename) {
+	public boolean dropTable(String tablename) {
 		return Schema.removeTable(this, tablename);
-	}
-
-	@Override
-	public void removeColumn(String tablename, String column) {
-		Schema.removeColumn(this, tablename, column);
-	}
-
-	@Override
-	public void removeIndex(String tablename, String columns) {
-		Schema.removeIndex(this, tablename, columns);
 	}
 
 	// used by tests
@@ -649,6 +612,23 @@ class Database implements suneido.intfc.database.Database {
 	void callTrigger(Transaction tran, Table table, Record oldrec, Record newrec) {
 		if (! isLoading())
 			triggers.call(tran, table, oldrec, newrec);
+	}
+
+	@Override
+	public TableBuilder createTable(String tableName) {
+		return TableBuilder.create(this, tableName);
+	}
+
+	@Override
+	public TableBuilder alterTable(String tableName) {
+		return TableBuilder.alter(this, tableName);
+	}
+
+	@Override
+	public TableBuilder ensureTable(String tableName) {
+		return getTable(tableName) == null
+				? TableBuilder.create(this, tableName)
+				: TableBuilder.alter(this, tableName);
 	}
 
 }

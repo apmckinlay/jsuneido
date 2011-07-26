@@ -19,13 +19,14 @@ import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
+import suneido.intfc.database.TableBuilder;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {
 	private static final Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
 	private static final Database db = new Database(mmf, Mode.CREATE);
 	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 20;
+	private static final int NTHREADS = 10;
 	private static final int SECONDS = 1000;
 	private static final int MINUTES = 60 * SECONDS;
 	private static final int DURATION = 20 * SECONDS;
@@ -154,7 +155,9 @@ public class TestConcurrency {
 		private void removeColumn() {
 			nRemoveColumns.incrementAndGet();
 			try {
-				db.removeColumn(tablename, "z");
+				TableBuilder tb = db.alterTable(tablename);
+				tb.dropColumn("z");
+				tb.finish();
 			} catch (SuException e) {
 				nRemoveColumnFailed.incrementAndGet();
 				throwUnexpected(e);
