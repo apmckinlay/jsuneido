@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.util.Util.commaSplitter;
+
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
@@ -106,6 +108,15 @@ class Table implements suneido.intfc.database.Table {
 
 	List<Index> indexesList() {
 		return indexes.indexes;
+	}
+
+	String namesToNums(String names) {
+		if (names.equals(""))
+			return "";
+		StringBuilder sb = new StringBuilder();
+		for (String field : commaSplitter.split(names))
+			sb.append(",").append(Integer.toString(fields.indexOf(field)));
+		return sb.substring(1);
 	}
 
 	/**
