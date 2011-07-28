@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.Immutable;
 
 import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
@@ -18,49 +18,56 @@ import com.google.common.primitives.Ints;
  * ReadTransactions require no locking
  * since they only operate on immutable data.
  */
-@NotThreadSafe
-public class ReadTransaction implements suneido.intfc.database.Transaction {
+@Immutable
+class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final Storage stor;
 	protected final Tran tran;
-	protected final DbInfo dbinfo;
-	protected Tables schema;
+	private final ReadDbInfo dbinfo;
+	protected final Tables schema;
 	protected final HashBasedTable<Integer,String,Btree> indexes = HashBasedTable.create();
+	protected final int num;
 
-	public ReadTransaction(Database db) {
-		this(db.stor, db.dbinfo, db.schema, db.redirs);
-	}
-
-	public ReadTransaction(Storage stor, DbHashTrie dbinfo, Tables schema, DbHashTrie redirs) {
+	ReadTransaction(int num,
+			Storage stor, DbHashTrie dbinfo, Tables schema, DbHashTrie redirs) {
+		this.num = num;
 		this.stor = stor;
-		this.dbinfo = new DbInfo(stor, dbinfo);
+		this.dbinfo = new ReadDbInfo(stor, dbinfo);
 		this.schema = schema;
 		tran = new Tran(stor, new Redirects(redirs));
 	}
 
-	public Btree getIndex(int tblnum, int... indexColumns) {
+	protected DbHashTrie originalDbinfo() {
+		return dbinfo.dbinfo;
+	}
+
+	protected ReadDbInfo dbinfo() {
+		return dbinfo;
+	}
+
+	Btree getIndex(int tblnum, int... indexColumns) {
 		return getIndex(tblnum, Ints.join(",", indexColumns));
 	}
 
 	/** indexColumns are like "3,4" */
-	public Btree getIndex(int tblnum, String indexColumns) {
+	Btree getIndex(int tblnum, String indexColumns) {
 		Btree btree = indexes.get(tblnum, indexColumns);
 		if (btree != null)
 			return btree;
-		TableInfo ti = dbinfo.get(tblnum);
+		TableInfo ti = dbinfo().get(tblnum);
 		btree = new Btree(tran, ti.getIndex(indexColumns));
 		indexes.put(tblnum, indexColumns, btree);
 		return btree;
 	}
 
-	public boolean hasIndex(int tblnum, String indexColumns) {
+	boolean hasIndex(int tblnum, String indexColumns) {
 		return indexes.contains(tblnum, indexColumns);
 	}
 
-	public Record getrec(int adr) {
+	Record getrec(int adr) {
 		return tran.getrec(adr);
 	}
 
-	public Record lookup(int tblnum, String indexColumns, Record key) {
+	Record lookup(int tblnum, String indexColumns, Record key) {
 		Btree btree = getIndex(tblnum, indexColumns);
 		int adr = btree.get(key);
 		if (adr == 0)
@@ -68,19 +75,22 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 		return getrec(adr);
 	}
 
+	@Override
 	public Table getTable(String tableName) {
 		return schema.get(tableName);
 	}
 
+	@Override
 	public Table getTable(int tblnum) {
 		return schema.get(tblnum);
 	}
 
-	public TableInfo getTableInfo(int tblnum) {
-		return dbinfo.get(tblnum);
+	TableInfo getTableInfo(int tblnum) {
+		return dbinfo().get(tblnum);
 	}
 
 	/** @return view definition, else null if view not found */
+	@Override
 	public String getView(String name) {
 		return Views.getView(this, name);
 	}
@@ -97,14 +107,7 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public boolean isEnded() {
-		// TODO Auto-generated method stub
 		return false;
-	}
-
-	@Override
-	public long asof() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override
@@ -128,12 +131,6 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 	public Table ck_getTable(int tblnum) {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void deleteTable(suneido.intfc.database.Table table) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -212,7 +209,6 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public Record input(int adr) {
-		// TODO Auto-generated method stub
 		return tran.getrec(adr);
 	}
 
@@ -233,8 +229,7 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public int num() {
-		// TODO Auto-generated method stub
-		return 0;
+		return num;
 	}
 
 	@Override
@@ -245,8 +240,7 @@ public class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public HistoryIterator historyIterator(int tblnum) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

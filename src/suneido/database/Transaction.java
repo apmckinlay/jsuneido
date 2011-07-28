@@ -34,8 +34,8 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	private volatile boolean outConflict = false;
 	private String conflict = null;
 	final long start = new Date().getTime();
-	private final long asof;
 	final int num;
+	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	final String sessionId = ServerData.forThread().getSessionId();
 	// these are final except for being cleared when transaction ends
@@ -102,8 +102,7 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		return ended;
 	}
 
-	@Override
-	public long asof() {
+	long asof() {
 		return asof;
 	}
 
@@ -167,8 +166,7 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		return db.loadTable(this, table_rec, btis);
 	}
 
-	@Override
-	public synchronized void deleteTable(suneido.intfc.database.Table table) {
+	synchronized void deleteTable(suneido.intfc.database.Table table) {
 		notEnded();
 		assert update_tables == null && remove_table == null;
 		remove_table = (Table) table;

@@ -15,9 +15,9 @@ import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.immudb.Record.Mode;
 
-public class DbLoad {
+class DbLoad {
 
-//	public static void loadDatabasePrint(String filename, String dbfilename)
+//	static void loadDatabasePrint(String filename, String dbfilename)
 //			throws InterruptedException {
 //		File tempfile = FileUtils.tempfile();
 //		if (! DbTools.runWithNewJvm("-load:" + tempfile))
@@ -26,7 +26,7 @@ public class DbLoad {
 //		System.out.println("loaded " + filename	+ " into new " + dbfilename);
 //	}
 //
-//	public static int load2(String filename, String dbfilename) {
+//	static int load2(String filename, String dbfilename) {
 //		try {
 //			return loadDatabase(filename, dbfilename);
 //		} catch (Throwable e) {
@@ -34,7 +34,7 @@ public class DbLoad {
 //		}
 //	}
 //
-	public static int loadDatabase(String filename, String dbfilename)
+	static int loadDatabase(String filename, String dbfilename)
 			throws IOException {
 		int n = 0;
 //		File dbfile = new File(dbfilename);
@@ -60,12 +60,12 @@ public class DbLoad {
 		return n;
 	}
 
-	public static void loadTablePrint(String tablename) {
+	static void loadTablePrint(String tablename) {
 		int n = loadTable(tablename);
 		System.out.println("loaded " + n + " records into suneido.db");
 	}
 
-	public static int loadTable(String tablename) {
+	static int loadTable(String tablename) {
 		try {
 			return loadTableImp(tablename);
 		} catch (Throwable e) {
@@ -151,9 +151,9 @@ new File("immu.db").delete();
 					first = last;
 			}
 			otherIndexes(db, t, table, first, last);
-			t.commit();
+			t.complete();
 		} finally {
-			t.abortIfNotCommitted();
+			t.abortIfNotComplete();
 		}
 		return nrecs;
 	}
@@ -253,7 +253,7 @@ new File("immu.db").delete();
 		return sb.toString();
 	}
 
-	public static void main(String[] args) throws IOException  {
+	static void main(String[] args) throws IOException  {
 //		loadDatabasePrint("database.su", "dbload.db");
 
 //		int n = loadTable("gl_transactions");

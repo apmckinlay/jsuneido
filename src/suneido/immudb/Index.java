@@ -13,19 +13,19 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
-public class Index implements Comparable<Index> {
-	public static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
+class Index implements Comparable<Index> {
+	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
 			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
-	public static final int BLOCK = 0, CASCADE_UPDATES = 1,
+	static final int BLOCK = 0, CASCADE_UPDATES = 1,
 			CASCADE_DELETES = 2, CASCADE = 3;
 	static final String UNIQUE = "u";
-	public final int tblnum;
-	public final int[] colNums;
-	public final boolean isKey;
-	public final boolean unique;
-	public final ForeignKey fksrc;
+	final int tblnum;
+	final int[] colNums;
+	final boolean isKey;
+	final boolean unique;
+	final ForeignKey fksrc;
 
-	public Index(int tblnum, int[] colNums, boolean key, boolean unique) {
+	Index(int tblnum, int[] colNums, boolean key, boolean unique) {
 		this.tblnum = tblnum;
 		this.colNums = colNums;
 		this.isKey = key;
@@ -33,7 +33,7 @@ public class Index implements Comparable<Index> {
 		fksrc = null;
 	}
 
-	public Index(Record record) {
+	Index(Record record) {
 		this.tblnum = record.getInt(TBLNUM);
 		this.colNums = convert(record.getString(COLUMNS));
 		Object key = record.get(KEY); // key is false, true, or "u"
@@ -46,7 +46,7 @@ public class Index implements Comparable<Index> {
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
-	public int[] convert(String s) {
+	int[] convert(String s) {
 		if (s.equals(""))
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
@@ -64,11 +64,11 @@ public class Index implements Comparable<Index> {
 		return null;
 	}
 
-	public Record toRecord() {
+	Record toRecord() {
 		return toRecord(tblnum, colNumsString(), isKey, unique, fksrc);
 	}
 
-	public String colNumsString() {
+	String colNumsString() {
 		return Ints.join(",", colNums);
 	}
 
@@ -79,11 +79,11 @@ public class Index implements Comparable<Index> {
 		return cols.build();
 	}
 
-	public Mode mode() {
+	Mode mode() {
 		return isKey ? Mode.KEY : unique ? Mode.UNIQUE : Mode.DUPS;
 	}
 
-	public static Record toRecord(int tblnum, String columns, boolean isKey,
+	static Record toRecord(int tblnum, String columns, boolean isKey,
 			boolean unique, ForeignKey fksrc) {
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(columns);
@@ -105,16 +105,16 @@ public class Index implements Comparable<Index> {
 //		return builder.build();
 //	}
 
-//	public static String getColumns(Record r) {
+//	static String getColumns(Record r) {
 //		String columns = r.getString(COLUMNS);
 //		return columns;
 //	}
 
-	public boolean isKey() {
+	boolean isKey() {
 		return isKey;
 	}
 
-	public String schema(StringBuilder sb, Columns cols) {
+	String schema(StringBuilder sb, Columns cols) {
 		if (isKey)
 			sb.append(" key");
 		else
@@ -144,6 +144,11 @@ public class Index implements Comparable<Index> {
 			return false;
 		Index that = (Index) other;
 		return this.colNumsString().equals(that.colNumsString());
+	}
+
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

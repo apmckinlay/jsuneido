@@ -7,11 +7,11 @@ package suneido.immudb;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-
-import suneido.immudb.*;
 
 public class ViewsTest {
 	private static final String NAME = "myview";

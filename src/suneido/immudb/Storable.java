@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-public interface Storable {
+interface Storable {
 
 	int store(Storage stor);
 

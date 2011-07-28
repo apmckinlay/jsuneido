@@ -9,10 +9,10 @@ import java.io.IOException;
 
 import suneido.util.FileUtils;
 
-public class Fix {
+class Fix {
 
 	/** Fixing is easy - just copy the good prefix of the file */
-	public static void fix(String filename, long okSize) {
+	static void fix(String filename, long okSize) {
 		File tempfile = FileUtils.tempfile();
 		try {
 			FileUtils.copy(new File(filename), tempfile, okSize);

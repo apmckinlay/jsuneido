@@ -12,10 +12,10 @@ import java.util.Iterator;
 import suneido.SuException;
 import suneido.language.Pack;
 
-public class Record implements suneido.intfc.database.Record {
+class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().build();
 	static class Mode {
-		public static final short BYTE = 1, SHORT = 2, INT = 3; }
+		static final short BYTE = 1, SHORT = 2, INT = 3; }
 	static class Offset {
 		static final int HEADER = 0, BODY = 2; }
 	private final ByteBuffer buf;

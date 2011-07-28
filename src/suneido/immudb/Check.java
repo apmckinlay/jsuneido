@@ -13,7 +13,7 @@ import java.util.Iterator;
  * fastcheck is used at startup to confirm that database was closed ok<p>
  * fullcheck is used by {@link suneido.immudb.DbCheck}<p>
  */
-public class Check {
+class Check {
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	private static final int SIZEOF_INT = 4;
 	private static final int FAST_NCOMMITS = 8;
@@ -23,12 +23,12 @@ public class Check {
 	private int nCommits = 0;
 	private int lastOkDatetime = 0;
 
-	public Check(Storage stor) {
+	Check(Storage stor) {
 		this.stor = stor;
 	}
 
 	/** checks the last FAST_NCOMMITS commits */
-	public boolean fastcheck() {
+	boolean fastcheck() {
 		long fileSize = stor.sizeFrom(Storage.FIRST_ADR);
 		int pos = 0; // negative offset from end of file
 		int nCommits = 0;
@@ -50,7 +50,7 @@ public class Check {
 	}
 
 	/** checks entire file */
-	public boolean fullcheck() {
+	boolean fullcheck() {
 		return checkFrom(Storage.FIRST_ADR);
 	}
 
@@ -107,15 +107,15 @@ public class Check {
 		return buf;
 	}
 
-	public long okSize() {
+	long okSize() {
 		return pos;
 	}
 
-	public int nCommits() {
+	int nCommits() {
 		return nCommits;
 	}
 
-	public Date lastOkDatetime() {
+	Date lastOkDatetime() {
 		return new Date(1000L * lastOkDatetime);
 	}
 

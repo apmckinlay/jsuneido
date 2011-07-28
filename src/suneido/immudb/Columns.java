@@ -7,7 +7,9 @@ package suneido.immudb;
 import static suneido.util.Util.commaSplitter;
 import static suneido.util.Util.listToCommas;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -17,21 +19,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 @Immutable
-public class Columns implements Iterable<Column> {
+class Columns implements Iterable<Column> {
 	final ImmutableList<Column> columns;
 
-	public Columns(ImmutableList<Column> columns) {
+	Columns(ImmutableList<Column> columns) {
 		this.columns = columns;
 	}
 
-	public ImmutableList<Integer> nums(String s) {
+	ImmutableList<Integer> nums(String s) {
 		ImmutableList.Builder<Integer> builder = ImmutableList.builder();
 		for (String name : commaSplitter(s))
 			builder.add(ck_find(name).field);
 		return builder.build();
 	}
 
-	public String names(int[] nums) {
+	String names(int[] nums) {
 		StringBuilder sb = new StringBuilder();
 		for (int n : nums)
 			sb.append(',').append(find(n).name);
@@ -45,36 +47,36 @@ public class Columns implements Iterable<Column> {
 		return c;
 	}
 
-	public Column find(String name) {
+	Column find(String name) {
 		for (Column c : columns)
 			if (name.equals(c.name))
 				return c;
 		return null;
 	}
 
-	public Column find(int num) {
+	Column find(int num) {
 		for (Column c : columns)
 			if (c.field == num)
 				return c;
 		return null;
 	}
 
-	public boolean hasColumn(String name) {
+	boolean hasColumn(String name) {
 		return find(name) != null;
 	}
 
-	public int size() {
+	int size() {
 		return columns.size();
 	}
 
-	public ImmutableList<String> names() {
+	ImmutableList<String> names() {
 		ImmutableList.Builder<String> list = ImmutableList.builder();
 		for (Column c : columns)
 			list.add(c.name);
 		return list.build();
 	}
 
-	public String schemaColumns() {
+	String schemaColumns() {
 		if (columns.isEmpty())
 			return "";
 		List<String> cols = new ArrayList<String>();
@@ -89,11 +91,12 @@ public class Columns implements Iterable<Column> {
 		return listToCommas(cols);
 	}
 
+	@Override
 	public Iterator<Column> iterator() {
 		return columns.iterator();
 	}
 
-	public int maxNum() {
+	int maxNum() {
 		int maxNum = -1;
 		for (Column c : columns)
 			if (c.field > maxNum)

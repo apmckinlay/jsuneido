@@ -7,17 +7,17 @@ package suneido.immudb;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class ForeignKey {
+class ForeignKey {
 	final String tablename; // used by fksrc
 	final int tblnum; // used by fkdsts
 	final String columns;
 	final int mode;
 
-	public ForeignKey(String tablename, String columns, int mode) {
+	ForeignKey(String tablename, String columns, int mode) {
 		this(tablename, columns, mode, 0);
 	}
 
-	public ForeignKey(int tblnum, String columns, int mode) {
+	ForeignKey(int tblnum, String columns, int mode) {
 		this(null, columns, mode, tblnum);
 	}
 

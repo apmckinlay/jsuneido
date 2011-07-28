@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
-public class TableBuilder implements suneido.intfc.database.TableBuilder {
+class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static final String COLUMN_IN_INDEX = "column used in index";
 	static final String KEY_REQUIRED = "key required";
 	static final String NONEXISTENT_TABLE = "nonexistent table";
@@ -69,7 +69,7 @@ public class TableBuilder implements suneido.intfc.database.TableBuilder {
 			t.dropTableSchema(table);
 			// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
 		}
-		t.commit();
+		t.complete();
 		return true;
 	}
 
@@ -84,7 +84,7 @@ public class TableBuilder implements suneido.intfc.database.TableBuilder {
 		t.addSchemaTable(newTable);
 		// dbinfo is ok since it doesn't use table name
 		t.updateRecord(TN.TABLES, oldTable.toRecord(), newTable.toRecord());
-		t.commit();
+		t.complete();
 	}
 
 	private void getSchema() {
@@ -269,7 +269,7 @@ public class TableBuilder implements suneido.intfc.database.TableBuilder {
 		for (Index index : indexes)
 			ii.add(new IndexInfo(index.colNumsString(),
 					t.getIndex(tblnum, index.colNums).info()));
-		TableInfo ti = t.dbinfo.get(tblnum);
+		TableInfo ti = t.getTableInfo(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
 		t.addTableInfo(new TableInfo(tblnum,
@@ -287,12 +287,12 @@ public class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public void finish() {
 		build();
-		t.commit();
+		t.complete();
 	}
 
 	@Override
 	public void abortUnfinished() {
-		t.abortIfNotCommitted();
+		t.abortIfNotComplete();
 	}
 
 }

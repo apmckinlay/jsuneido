@@ -6,7 +6,9 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.immudb.DbHashTrie.*;
+import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.immudb.DbHashTrie.Translator;
 import suneido.immudb.UpdateTransaction.Conflict;
 
 /**
@@ -20,30 +22,30 @@ import suneido.immudb.UpdateTransaction.Conflict;
  * so it can't use this optimization.
  */
 @NotThreadSafe
-public class Redirects {
+class Redirects {
 	private final DbHashTrie original;
 	private DbHashTrie redirs;
 
-	public Redirects(DbHashTrie redirs) {
+	Redirects(DbHashTrie redirs) {
 		original = redirs;
 		this.redirs = redirs;
 	}
 
-	public void put(int from, int to) {
+	void put(int from, int to) {
 		assert ! IntRefs.isIntRef(from);
 		redirs = redirs.with(new IntEntry(from, to));
 	}
 
-	public int get(int from) {
+	int get(int from) {
 		Entry e = redirs.get(from);
 		return e == null ? from : ((IntEntry) e).value;
 	}
 
-	public int store(Translator translator) {
+	int store(Translator translator) {
 		return redirs.store(translator);
 	}
 
-	public void print() {
+	void print() {
 		redirs.print();
 	}
 
@@ -51,7 +53,7 @@ public class Redirects {
 		return redirs;
 	}
 
-	public void merge(DbHashTrie current) {
+	void merge(DbHashTrie current) {
 		if (current == original)
 			return; // no concurrent changes to merge
 
@@ -65,7 +67,7 @@ public class Redirects {
 		private final DbHashTrie current;
 		private DbHashTrie merged;
 
-		public Proc(DbHashTrie original, DbHashTrie current) {
+		Proc(DbHashTrie original, DbHashTrie current) {
 			this.original = original;
 			this.current = current;
 			merged = current;

@@ -19,7 +19,7 @@ import com.google.common.collect.AbstractIterator;
  * to reduce the space to store them
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  */
-public abstract class ChunkedStorage implements Storage {
+abstract class ChunkedStorage implements Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	private static final int ALIGN = (1 << SHIFT); // must be power of 2
@@ -33,6 +33,7 @@ public abstract class ChunkedStorage implements Storage {
 		chunks = new ByteBuffer[maxChunks];
 	}
 
+	@Override
 	public synchronized int alloc(int n) {
 		assert n < CHUNK_SIZE : n + " not < " + CHUNK_SIZE;
 		n = align(n);
@@ -47,7 +48,7 @@ public abstract class ChunkedStorage implements Storage {
 		return offsetToAdr(offset);
 	}
 
-	public static int align(int n) {
+	static int align(int n) {
 		// requires ALIGN to be power of 2
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
@@ -63,6 +64,7 @@ public abstract class ChunkedStorage implements Storage {
 	 * @returns A unique instance of a ByteBuffer
 	 * extending from the offset to the end of the chunk.
 	 */
+	@Override
 	public ByteBuffer buffer(int adr) {
 		return buf(adrToOffset(adr));
 	}
@@ -73,9 +75,13 @@ public abstract class ChunkedStorage implements Storage {
 	}
 
 	private long protect = 0;
+
+	@Override
 	public void protect() {
 		protect = file_size;
 	}
+
+	@Override
 	public void protectAll() {
 		protect = Integer.MAX_VALUE;
 	}
@@ -123,7 +129,7 @@ return buf.slice().asReadOnlyBuffer();
 	private class Iter extends AbstractIterator<ByteBuffer> {
 		private long offset;
 
-		public Iter(int adr) {
+		Iter(int adr) {
 			offset = adrToOffset(adr);
 		}
 

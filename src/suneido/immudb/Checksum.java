@@ -7,17 +7,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 /** WARNING slightly different from suneido.util.checksum */
-public class Checksum {
+class Checksum {
 	private final Adler32 cksum = new Adler32();
-	private final static byte[] bytes = new byte[1024];
+	private static final byte[] bytes = new byte[1024];
 
 	/** starts at current position, advances position to limit */
-	public void update(ByteBuffer buf) {
+	void update(ByteBuffer buf) {
 		update(buf, buf.remaining());
 	}
 
 	/** starts at current position, advances position by len */
-	public void update(ByteBuffer buf, int len) {
+	void update(ByteBuffer buf, int len) {
 		if (buf.hasArray()) {
 			int pos = buf.position();
 			cksum.update(buf.array(), buf.arrayOffset() + pos, len);
@@ -31,15 +31,15 @@ public class Checksum {
 		}
 	}
 
-	public void update(byte[] bytes) {
+	void update(byte[] bytes) {
 		cksum.update(bytes);
 	}
 
-	public int getValue() {
+	int getValue() {
 		return (int) cksum.getValue();
 	}
 
-	public void reset() {
+	void reset() {
 		cksum.reset();
 	}
 

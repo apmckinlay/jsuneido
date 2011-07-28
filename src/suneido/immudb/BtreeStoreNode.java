@@ -12,14 +12,14 @@ import java.nio.ByteBuffer;
  * Abstract base class for store-able nodes {@link BtreeDbMemNode} and
  * {@link BtreeMemNode}.
  */
-public abstract class BtreeStoreNode extends BtreeNode {
+abstract class BtreeStoreNode extends BtreeNode {
 
 	protected BtreeStoreNode(int level) {
 		super(level);
 	}
 
 	@Override
-	public int store(Tran tran) {
+	int store(Tran tran) {
 		translate(tran);
 		int adr = tran.stor.alloc(length());
 		ByteBuffer buf = tran.stor.buffer(adr);
@@ -28,18 +28,18 @@ public abstract class BtreeStoreNode extends BtreeNode {
 	}
 
 	/** convert data record addresses and node pointers */
-	abstract protected void translate(Tran tran);
+	protected abstract void translate(Tran tran);
 
-	public int length() {
+	int length() {
 		int datasize = 0;
 		for (int i = 0; i < size(); ++i)
 			datasize += length(i);
 		return RecordBuilder.length(size(), datasize);
 	}
 
-	abstract protected int length(int i);
+	protected abstract int length(int i);
 
-	public void pack(ByteBuffer buf) {
+	void pack(ByteBuffer buf) {
 		RecordBuilder.packHeader(buf, length(), getLengths());
 		for (int i = size() - 1; i >= 0; --i)
 			pack(buf, i);
@@ -52,7 +52,7 @@ public abstract class BtreeStoreNode extends BtreeNode {
 		return lens;
 	}
 
-	abstract protected void pack(ByteBuffer buf, int i);
+	protected abstract void pack(ByteBuffer buf, int i);
 
 	protected Record translate(Tran tran, Record rec) {
 		boolean translate = false;

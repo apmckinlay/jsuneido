@@ -28,50 +28,50 @@ import com.google.common.base.Strings;
  * </ul>
  * Similar to {@link suneido.util.PersistentMap}
  */
-public abstract class DbHashTrie {
+abstract class DbHashTrie {
 	private static final int BITS_PER_LEVEL = 5;
 	private static final int HASH_BITS = 1 << BITS_PER_LEVEL;
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
 	/** NOTE: not stored, so mutable */
-	public static DbHashTrie empty() {
+	static DbHashTrie empty() {
 		return empty(null);
 	}
 
-	public static DbHashTrie empty(Storage stor) {
+	static DbHashTrie empty(Storage stor) {
 		return new Node(stor);
 	}
 
-	public static DbHashTrie from(Storage stor, int at) {
+	static DbHashTrie from(Storage stor, int at) {
 		return new Node(stor, at);
 	}
 
-	public abstract static class Entry {
-		public abstract int key();
-		public abstract int value();
+	abstract static class Entry {
+		abstract int key();
+		abstract int value();
 	}
 
 	/** returns null if key not present */
-	public Entry get(int key) {
+	Entry get(int key) {
 		checkArgument(key != 0);
 		return get(key, 0);
 	}
 	protected abstract Entry get(int key, int shift);
 
 	/** key must be non-zero */
-	public DbHashTrie with(Entry e) {
+	DbHashTrie with(Entry e) {
 		checkArgument(e.key() != 0);
 		return with(e, 0);
 	}
 	protected abstract DbHashTrie with(Entry e, int shift);
 
 	/** call proc.apply(adr) for each new entry (where value is an intref) */
-	public abstract void traverseChanges(Process proc);
+	abstract void traverseChanges(Process proc);
 
-	public abstract int store(Translator translator);
+	abstract int store(Translator translator);
 
-	public void print() {
+	void print() {
 		print(0);
 	}
 	protected abstract void print(int shift);
@@ -201,7 +201,7 @@ public abstract class DbHashTrie {
 		}
 
 		@Override
-		public int store(Translator translator) {
+		int store(Translator translator) {
 			if (stored())
 				return adr;
 
@@ -233,7 +233,7 @@ public abstract class DbHashTrie {
 		}
 
 		@Override
-		public void traverseChanges(Process proc) {
+		void traverseChanges(Process proc) {
 			if (stored())
 				return ;
 			for (int i = 0; i < size(); ++i) {
@@ -276,18 +276,18 @@ public abstract class DbHashTrie {
 
 	} // end of Node
 
-	public interface Translator {
-		public Entry translate(Entry e);
+	interface Translator {
+		Entry translate(Entry e);
 	}
 
-	public interface Process {
-		public void apply(Entry e);
+	interface Process {
+		void apply(Entry e);
 	}
 
 	@Immutable
-	public static class IntEntry extends Entry {
-		public final int key;
-		public final int value;
+	static class IntEntry extends Entry {
+		final int key;
+		final int value;
 
 		IntEntry(int key, int value) {
 			this.key = key;
@@ -295,12 +295,12 @@ public abstract class DbHashTrie {
 		}
 
 		@Override
-		public int key() {
+		int key() {
 			return key;
 		}
 
 		@Override
-		public int value() {
+		int value() {
 			return value;
 		}
 
@@ -325,7 +325,7 @@ public abstract class DbHashTrie {
 	}
 
 	/** used to identify old entries */
-	public static class StoredIntEntry extends IntEntry {
+	static class StoredIntEntry extends IntEntry {
 		StoredIntEntry(int key, int value) {
 			super(key, value);
 		}
@@ -341,12 +341,12 @@ public abstract class DbHashTrie {
 		}
 
 		@Override
-		public int key() {
+		int key() {
 			return key;
 		}
 
 		@Override
-		public int value() {
+		int value() {
 			throw new UnsupportedOperationException("RefEntry doesn't support value()");
 		}
 

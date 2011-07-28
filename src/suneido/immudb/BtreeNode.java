@@ -23,40 +23,40 @@ import com.google.common.base.Strings;
  * Pointers are {@link MmapFile} adr int's
  */
 @Immutable
-public abstract class BtreeNode {
+abstract class BtreeNode {
 	protected final int level;
 
-	public BtreeNode(int level) {
+	BtreeNode(int level) {
 		this.level = level;
 	}
 
-	public static BtreeNode emptyLeaf() {
+	static BtreeNode emptyLeaf() {
 		return emptyNode(0);
 	}
 
-	public static BtreeNode emptyNode(int level) {
+	static BtreeNode emptyNode(int level) {
 		return new BtreeMemNode(level);
 	}
 
-	public int level() {
+	int level() {
 		return level;
 	}
 
-	public boolean isLeaf() {
+	boolean isLeaf() {
 		return level == 0;
 	}
 
-	public abstract int size();
+	abstract int size();
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return size() == 0;
 	}
 
 	/** Inserts key in order */
-	public abstract BtreeStoreNode with(Record key);
+	abstract BtreeStoreNode with(Record key);
 
 	/** @return null if key not found */
-	public BtreeNode without(Record key) {
+	BtreeNode without(Record key) {
 		if (isEmpty())
 			return null;
 		int at = lowerBound(key);
@@ -74,14 +74,14 @@ public abstract class BtreeNode {
 	protected abstract BtreeNode without(int i);
 
 	/** used by split */
-	public abstract BtreeNode slice(int from, int to);
+	abstract BtreeNode slice(int from, int to);
 
 	/** used by split, either from will be 0 or to will be size */
-	public abstract BtreeNode without(int from, int to);
+	abstract BtreeNode without(int from, int to);
 
-	public abstract Record get(int i);
+	abstract Record get(int i);
 
-	public abstract int store(Tran tran);
+	abstract int store(Tran tran);
 
 	/**
 	 * @param key The value to look for, without the trailing record address
@@ -90,7 +90,7 @@ public abstract class BtreeNode {
 	 * 			For tree nodes, the first key <= the one specified,
 	 *			or the first key.
 	 */
-	public Record find(Record key) {
+	Record find(Record key) {
 		int at = findPos(key);
 		return (at < 0 || at >= size()) ? null : get(at);
 	}
@@ -101,7 +101,7 @@ public abstract class BtreeNode {
 	 * 			or -1 if there isn't one.position <= the one specified,
 	 *			or the first key.
 	 */
-	public int findPos(Record key) {
+	int findPos(Record key) {
 		if (isEmpty())
 			return -1;
 		int at = lowerBound(key);
@@ -117,7 +117,7 @@ public abstract class BtreeNode {
 		}
 	}
 
-	public int lowerBound(Record key) {
+	int lowerBound(Record key) {
 		int first = 0;
 		int len = size();
 		while (len > 0) {
@@ -136,7 +136,7 @@ public abstract class BtreeNode {
 		return get(middle).compareTo(key);
 	}
 
-	public Split split(Tran tran, Record key, int adr) {
+	Split split(Tran tran, Record key, int adr) {
 		int level = level();
 		BtreeNode right;
 		Record splitKey;
@@ -182,7 +182,7 @@ public abstract class BtreeNode {
 		return sb.toString();
 	}
 
-	public void print(Writer w, Tran tran, int at) throws IOException {
+	void print(Writer w, Tran tran, int at) throws IOException {
 		int level = level();
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append("NODE @ " + at + "\n");
@@ -242,6 +242,11 @@ public abstract class BtreeNode {
 			if (! this.get(i).equals(that.get(i)))
 				return false;
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
 	}
 
 	protected static Record minimize(Record key) {

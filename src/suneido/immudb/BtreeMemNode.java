@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
  * New mutable nodes not derived from BtreeDbNode.
  */
 @NotThreadSafe
-public class BtreeMemNode extends BtreeStoreNode {
+class BtreeMemNode extends BtreeStoreNode {
 	private final ArrayList<Record> data;
 
 	BtreeMemNode(int level) {
@@ -33,23 +33,23 @@ public class BtreeMemNode extends BtreeStoreNode {
 		fix();
 	}
 
-	public static BtreeNode newRoot(Tran tran, Split split) {
+	static BtreeNode newRoot(Tran tran, Split split) {
 		Record minkey = minimalKey(split.key.size(), split.left);
 		return new BtreeMemNode(split.level + 1, minkey, split.key);
 	}
 
 	@Override
-	public int size() {
+	int size() {
 		return data.size();
 	}
 
 	@Override
-	public Record get(int i) {
+	Record get(int i) {
 		return data.get(i);
 	}
 
 	@Override
-	public BtreeMemNode with(Record key) {
+	BtreeMemNode with(Record key) {
 		int at = lowerBound(key);
 		data.add(at, key);
 		fix();
@@ -64,14 +64,14 @@ public class BtreeMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public BtreeNode without(int from, int to) {
+	BtreeNode without(int from, int to) {
 		data.subList(from, to).clear();
 		fix();
 		return this;
 	}
 
 	@Override
-	public BtreeNode slice(int from, int to) {
+	BtreeNode slice(int from, int to) {
 		checkArgument(from < to && to <= size());
 		BtreeMemNode node = new BtreeMemNode(level);
 		node.data.addAll(data.subList(from, to));

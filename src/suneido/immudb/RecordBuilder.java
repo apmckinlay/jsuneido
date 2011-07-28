@@ -15,12 +15,12 @@ import suneido.language.Pack;
 
 import com.google.common.collect.Lists;
 
-public class RecordBuilder implements suneido.intfc.database.RecordBuilder {
+class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	private final List<ByteBuffer> bufs = Lists.newArrayList();
 	private final TIntArrayList offs = new TIntArrayList();
 	private final TIntArrayList lens = new TIntArrayList();
 
-	public RecordBuilder() {
+	RecordBuilder() {
 	}
 
 	/** add a field of the record */
@@ -30,7 +30,7 @@ public class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	}
 
 	/** add a prefix of the fields of the record */
-	public RecordBuilder addPrefix(Record rec, int prefixLength) {
+	RecordBuilder addPrefix(Record rec, int prefixLength) {
 		for (int i = 0; i < prefixLength; ++i)
 			add1(rec.fieldBuffer(i), rec.fieldOffset(i), rec.fieldLength(i));
 		return this;

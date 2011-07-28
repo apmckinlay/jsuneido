@@ -14,13 +14,23 @@ import suneido.SuException;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
-	static final int INT_SIZE = 4;
+	private static final int INT_SIZE = 4;
+	final Transactions trans = new Transactions();
 	final Storage stor;
 	final Object commitLock = new Object();
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	DbHashTrie dbinfo;
 	DbHashTrie redirs;
 	Tables schema;
+
+	// create
+
+	static Database create(Storage stor) {
+		Database db = new Database(stor, DbHashTrie.empty(stor),
+				DbHashTrie.empty(stor), new Tables());
+		Bootstrap.create(db);
+		return db;
+	}
 
 	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
@@ -29,12 +39,7 @@ class Database implements suneido.intfc.database.Database {
 		this.schema = schema;
 	}
 
-	static Database create(Storage stor) {
-		Database db = new Database(stor, DbHashTrie.empty(stor),
-				DbHashTrie.empty(stor), new Tables());
-		Bootstrap.create(db);
-		return db;
-	}
+	// open
 
 	static Database open(String filename, String mode) {
 		return open(new MmapFile(filename, mode));
@@ -47,15 +52,20 @@ class Database implements suneido.intfc.database.Database {
 		DbHashTrie dbinfo = DbHashTrie.from(stor, adr);
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
-		Tables schema = SchemaLoader.load(
-				new ReadTransaction(stor, dbinfo, null, redirs));
-		return new Database(stor, dbinfo, redirs, schema);
+		return new Database(stor, dbinfo, redirs);
 	}
 
 	private static void check(Storage stor) {
 		Check check = new Check(stor);
 		if (false == check.fastcheck())
 			throw new RuntimeException("database open check failed");
+	}
+
+	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {
+		this.stor = stor;
+		this.dbinfo = dbinfo;
+		this.redirs = redirs;
+		this.schema = SchemaLoader.load(readonlyTran());
 	}
 
 	// used by DbCheck
@@ -65,16 +75,19 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public ReadTransaction readonlyTran() {
-		return new ReadTransaction(this);
+		int num = trans.nextNum(true);
+		return new ReadTransaction(num, stor, dbinfo, schema, redirs);
 	}
 
 	@Override
 	public UpdateTransaction readwriteTran() {
-		return new UpdateTransaction(this);
+		int num = trans.nextNum(false);
+		return new UpdateTransaction(num, this);
 	}
 
 	ExclusiveTransaction exclusiveTran() {
-		return new ExclusiveTransaction(this);
+		int num = trans.nextNum(false);
+		return new ExclusiveTransaction(num, this);
 	}
 
 	@Override
@@ -104,7 +117,7 @@ class Database implements suneido.intfc.database.Database {
 		try {
 			return TableBuilder.dropTable(t, tableName);
 		} finally {
-			t.abortIfNotCommitted();
+			t.abortIfNotComplete();
 		}
 	}
 
@@ -114,7 +127,7 @@ class Database implements suneido.intfc.database.Database {
 		try {
 			TableBuilder.renameTable(t, from, to);
 		} finally {
-			t.abortIfNotCommitted();
+			t.abortIfNotComplete();
 		}
 	}
 
@@ -126,7 +139,7 @@ class Database implements suneido.intfc.database.Database {
 				throw new SuException("view: '" + name + "' already exists");
 			Views.addView(t, name, definition);
 		} finally {
-			t.abortIfNotCommitted();
+			t.abortIfNotComplete();
 		}
 	}
 
@@ -135,7 +148,7 @@ class Database implements suneido.intfc.database.Database {
 		try {
 			Views.dropView(t, name);
 		} finally {
-			t.abortIfNotCommitted();
+			t.abortIfNotComplete();
 		}
 	}
 

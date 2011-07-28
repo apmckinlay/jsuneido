@@ -12,8 +12,6 @@ public interface Transaction {
 
 	boolean isEnded();
 
-	long asof();
-
 	String conflict();
 
 	boolean tableExists(String table);
@@ -25,8 +23,6 @@ public interface Transaction {
 	Table ck_getTable(int tblnum);
 
 	Table getTable(int tblnum);
-
-	void deleteTable(Table table);
 
 	int tableCount(int tblnum);
 	long tableSize(int tblnum);
