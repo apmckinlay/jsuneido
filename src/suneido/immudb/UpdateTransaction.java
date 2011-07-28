@@ -53,10 +53,10 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	/** for Bootstrap and TableBuilder */
-	Btree addIndex(int tblnum, String indexColumns) {
+	Btree addIndex(int tblnum, int... indexColumns) {
 		assert locked;
 		Btree btree = new Btree(tran);
-		indexes.put(tblnum, indexColumns, btree);
+		indexes.put(tblnum, new ColNums(indexColumns), btree);
 		return btree;
 	}
 
@@ -170,10 +170,10 @@ class UpdateTransaction extends ReadTransaction {
 	private void updateOurDbinfo() {
 		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
-			Map<String,Btree> idxs = indexes.row(tblnum);
+			Map<ColNums,Btree> idxs = indexes.row(tblnum);
 			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 			for (IndexInfo ii : ti.indexInfo) {
-				Btree btree = idxs.get(ii.columns);
+				Btree btree = idxs.get(new ColNums(ii.columns));
 				b.add((btree == null)
 						? ii : new IndexInfo(ii.columns, btree.info()));
 			}

@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import java.util.Arrays;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -89,9 +91,9 @@ class TableInfo extends DbHashTrie.Entry {
 		return adr;
 	}
 
-	IndexInfo getIndex(String indexColumns) {
+	IndexInfo getIndex(int[] indexColumns) {
 		for (IndexInfo ii : indexInfo)
-			if (ii.columns.equals(indexColumns))
+			if (Arrays.equals(ii.columns, indexColumns))
 				return ii;
 		return null;
 	}

@@ -35,7 +35,7 @@ public class ViewsTest {
 	@Test
 	public void getView() {
 		ReadTransaction t = mock(ReadTransaction.class);
-		when(t.lookup(Bootstrap.TN.VIEWS, "0", KEY)).thenReturn(VIEW_REC);
+		when(t.lookup(Bootstrap.TN.VIEWS, new int[] { 0 }, KEY)).thenReturn(VIEW_REC);
 		assertThat(Views.getView(t, NAME), is(DEFINITION));
 	}
 

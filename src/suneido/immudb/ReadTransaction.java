@@ -11,7 +11,6 @@ import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.primitives.Ints;
 
 /**
  * Transactions must be thread contained.
@@ -25,7 +24,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final Tran tran;
 	private final ReadDbInfo dbinfo;
 	protected final Tables schema;
-	protected final HashBasedTable<Integer,String,Btree> indexes = HashBasedTable.create();
+	protected final HashBasedTable<Integer,ColNums,Btree> indexes = HashBasedTable.create();
 	protected final int num;
 
 	ReadTransaction(int num,
@@ -46,29 +45,25 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	Btree getIndex(int tblnum, int... indexColumns) {
-		return getIndex(tblnum, Ints.join(",", indexColumns));
-	}
-
-	/** indexColumns are like "3,4" */
-	Btree getIndex(int tblnum, String indexColumns) {
-		Btree btree = indexes.get(tblnum, indexColumns);
+		ColNums colNums = new ColNums(indexColumns);
+		Btree btree = indexes.get(tblnum, colNums);
 		if (btree != null)
 			return btree;
 		TableInfo ti = dbinfo().get(tblnum);
 		btree = new Btree(tran, ti.getIndex(indexColumns));
-		indexes.put(tblnum, indexColumns, btree);
+		indexes.put(tblnum, colNums, btree);
 		return btree;
 	}
 
-	boolean hasIndex(int tblnum, String indexColumns) {
-		return indexes.contains(tblnum, indexColumns);
+	boolean hasIndex(int tblnum, int[] indexColumns) {
+		return indexes.contains(tblnum, new ColNums(indexColumns));
 	}
 
 	Record getrec(int adr) {
 		return tran.getrec(adr);
 	}
 
-	Record lookup(int tblnum, String indexColumns, Record key) {
+	Record lookup(int tblnum, int[] indexColumns, Record key) {
 		Btree btree = getIndex(tblnum, indexColumns);
 		int adr = btree.get(key);
 		if (adr == 0)
@@ -254,7 +249,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
 		Table tbl = ck_getTable(tblnum);
-		String fields = tbl.namesToNums(columns);
+		int[] fields = tbl.namesToNums(columns);
 		Btree idx = getIndex(tblnum, fields);
 		return idx.iterator();
 	}

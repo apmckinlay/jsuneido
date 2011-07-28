@@ -68,7 +68,7 @@ class Index implements Comparable<Index> {
 		return toRecord(tblnum, colNumsString(), isKey, unique, fksrc);
 	}
 
-	String colNumsString() {
+	private String colNumsString() {
 		return Ints.join(",", colNums);
 	}
 
@@ -143,7 +143,7 @@ class Index implements Comparable<Index> {
 		if (! (other instanceof Index))
 			return false;
 		Index that = (Index) other;
-		return this.colNumsString().equals(that.colNumsString());
+		return this.colNums.equals(that.colNums);
 	}
 
 	@Override
