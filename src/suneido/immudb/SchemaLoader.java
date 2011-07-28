@@ -8,10 +8,10 @@ import com.google.common.collect.ImmutableList;
  * Load the database schema into memory at startup.
  * Used by Database.open
  */
-public class SchemaLoader {
+class SchemaLoader {
 	private final ReadTransaction t;
 
-	public static Tables load(ReadTransaction t) {
+	static Tables load(ReadTransaction t) {
 		SchemaLoader sl = new SchemaLoader(t);
 		return sl.load();
 	}

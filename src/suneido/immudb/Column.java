@@ -6,34 +6,34 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
-
 @Immutable
-public class Column implements Comparable<Column> {
-	public static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
-	public final int tblnum;
-	public final int field;
-	public final String name;
+class Column implements Comparable<Column> {
+	static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
+	final int tblnum;
+	final int field;
+	final String name;
 
-	public Column(int tblnum, int field, String column) {
+	Column(int tblnum, int field, String column) {
 		this.tblnum = tblnum;
 		this.name = column;
 		this.field = field;
 	}
 
-	public Column(Record record) {
+	Column(Record record) {
 		tblnum = record.getInt(TBLNUM);
 		field = record.getInt(FLDNUM);
 		name = record.getString(COLUMN);
 	}
 
-	public Record toRecord() {
+	Record toRecord() {
 		return toRecord(tblnum, field, name);
 	}
 
-	public static Record toRecord(int tblnum, int field, String column) {
+	static Record toRecord(int tblnum, int field, String column) {
 		return new RecordBuilder().add(tblnum).add(field).add(column).build();
 	}
 
+	@Override
 	public int compareTo(Column other) {
 		return field - other.field;
 	}

@@ -5,14 +5,15 @@
 package suneido.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import suneido.immudb.*;
 import suneido.util.FileUtils;
 
 public class TranTest {

@@ -4,7 +4,10 @@
 
 package suneido.immudb;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -16,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * When opening, trailing zero bytes are ignored.
  */
 @ThreadSafe
-public class MmapFile extends ChunkedStorage {
+class MmapFile extends ChunkedStorage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	private static final int MB = 1024 * 1024;
@@ -27,12 +30,12 @@ public class MmapFile extends ChunkedStorage {
 	private final FileChannel fc;
 
 	/** @param mode Must be "r" or "rw" */
-	public MmapFile(String filename, String mode) {
+	MmapFile(String filename, String mode) {
 		this(new File(filename), mode);
 	}
 
 	/** @param mode Must be "r" or "rw" */
-	public MmapFile(File file, String mode) {
+	MmapFile(File file, String mode) {
 		super(CHUNK_SIZE, MAX_CHUNKS);
 		if ("r".equals(mode)) {
 			if (!file.canRead())
@@ -84,6 +87,7 @@ public class MmapFile extends ChunkedStorage {
 		}
 	}
 
+	@Override
 	public void close() {
 		try {
 			fc.close();

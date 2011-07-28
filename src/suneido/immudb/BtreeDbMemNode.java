@@ -23,12 +23,12 @@ import com.google.common.collect.Lists;
  * Since added is only appended to, it is safe to "share".
  */
 @NotThreadSafe
-public class BtreeDbMemNode extends BtreeStoreNode {
+class BtreeDbMemNode extends BtreeStoreNode {
 	private final Record rec;
 	private final TByteArrayList index;
 	private ArrayList<Record> added;
 
-	public BtreeDbMemNode(BtreeDbNode node) {
+	BtreeDbMemNode(BtreeDbNode node) {
 		super(node.level);
 		rec = node.rec;
 		index = new TByteArrayList();
@@ -54,7 +54,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public BtreeDbMemNode with(Record key) {
+	BtreeDbMemNode with(Record key) {
 		int at = lowerBound(key);
 		add(key);
 		index.insert(at, (byte) -added.size());
@@ -89,20 +89,20 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public BtreeNode without(int from, int to) {
+	BtreeNode without(int from, int to) {
 		index.remove(from, to - from);
 		fix();
 		return this;
 	}
 
 	@Override
-	public BtreeNode slice(int from, int to) {
+	BtreeNode slice(int from, int to) {
 		TByteArrayList index2 = new TByteArrayList(index.subList(from, to));
 		return new BtreeDbMemNode(this, index2);
 	}
 
 	// called from BtreeDbNode
-	public static BtreeNode slice(BtreeDbNode node, int from, int to) {
+	static BtreeNode slice(BtreeDbNode node, int from, int to) {
 		Preconditions.checkArgument(from < to && to <= node.size());
 		TByteArrayList index = new TByteArrayList(to - from);
 		for (int i = from; i < to; ++i)
@@ -111,7 +111,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public Record get(int i) {
+	Record get(int i) {
 		int idx = index.get(i);
 		return idx >= 0
 				? new Record(rec.fieldBuffer(idx), rec.fieldOffset(idx))
@@ -119,7 +119,7 @@ public class BtreeDbMemNode extends BtreeStoreNode {
 	}
 
 	@Override
-	public int size() {
+	int size() {
 		return index.size();
 	}
 

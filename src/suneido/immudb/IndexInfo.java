@@ -12,30 +12,30 @@ import com.google.common.base.Objects;
  * {@link BtreeInfo} plus columns
  */
 @Immutable
-public class IndexInfo extends BtreeInfo {
-	public static final int NFIELDS = 4;
-	public final String columns; // e.g. "0,1"
+class IndexInfo extends BtreeInfo {
+	static final int NFIELDS = 4;
+	final String columns; // e.g. "0,1"
 
-	public IndexInfo(String columns, BtreeInfo info) {
+	IndexInfo(String columns, BtreeInfo info) {
 		super(info.root, info.treeLevels, info.nnodes);
 		this.columns = columns;
 	}
 
-	public IndexInfo(String columns, int root, int treeLevels, int nnodes) {
+	IndexInfo(String columns, int root, int treeLevels, int nnodes) {
 		super(root, treeLevels, nnodes);
 		this.columns = columns;
 	}
 
-	public IndexInfo(Record rec, int i) {
+	IndexInfo(Record rec, int i) {
 		super(rec.getInt(i + 1), rec.getInt(i + 2), rec.getInt(i + 3));
 		this.columns = rec.getString(i);
 	}
 
-	public void addToRecord(RecordBuilder rb) {
+	void addToRecord(RecordBuilder rb) {
 		rb.add(columns).add(root).add(treeLevels).add(nnodes);
 	}
 
-	public static void addToRecord(RecordBuilder rb, String columns, BtreeInfo info) {
+	static void addToRecord(RecordBuilder rb, String columns, BtreeInfo info) {
 		rb.add(columns).add(info.root).add(info.treeLevels).add(info.nnodes);
 	}
 
@@ -49,7 +49,7 @@ public class IndexInfo extends BtreeInfo {
 			.toString();
 	}
 
-	public void check() {
+	void check() {
 		assert ! IntRefs.isIntRef(root);
 	}
 

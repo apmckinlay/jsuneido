@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import suneido.immudb.Database;
-import suneido.immudb.DbInfo;
+import suneido.immudb.ReadDbInfo;
 import suneido.immudb.Bootstrap.TN;
 
 public class BootstrapTest {
@@ -36,7 +36,7 @@ public class BootstrapTest {
 		assertThat(db.schema.get("views").schema(),
 				is("(view_name,view_definition) key(view_name)"));
 
-		DbInfo dbinfo = new DbInfo(db.stor, db.dbinfo);
+		ReadDbInfo dbinfo = new ReadDbInfo(db.stor, db.dbinfo);
 		assertThat(dbinfo.get(TN.TABLES).nrows(), is(4));
 		assertThat(dbinfo.get(TN.COLUMNS).nrows(), is(13));
 		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(5));

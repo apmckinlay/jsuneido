@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-public interface Storage {
+interface Storage {
 	int FIRST_ADR = 1;
 
 	int alloc(int byteBufSize);

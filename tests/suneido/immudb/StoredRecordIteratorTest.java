@@ -12,8 +12,6 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import suneido.immudb.*;
-
 import com.google.common.base.Strings;
 
 public class StoredRecordIteratorTest {

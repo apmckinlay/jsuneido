@@ -33,29 +33,29 @@ import com.google.common.collect.Lists;
  * @see BtreeNode, BtreeDbNode, BtreeDbMemNode, BtreeMemNode, BtreeStoreNode
  */
 @NotThreadSafe
-public class Btree {
-	public int maxNodeSize() { return 20; } // overridden by test
+class Btree {
+	int maxNodeSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
 	int nnodes;
 	private int modified = 0; // depends on all access via one instance
 
-	public Btree(Tran tran) {
+	Btree(Tran tran) {
 		this.tran = tran;
 		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
 		nnodes = 1;
 	}
 
-	public Btree(Tran tran, BtreeInfo info) {
+	Btree(Tran tran, BtreeInfo info) {
 		this.tran = tran;
 		this.root = info.root;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
 	}
 
-	public boolean isEmpty() {
+	boolean isEmpty() {
 		return treeLevels == 0 && nodeAt(0, root).isEmpty();
 	}
 
@@ -65,7 +65,7 @@ public class Btree {
 	 * If keys are not unique without the record address
 	 * the first is returned.
 	 */
-	public int get(Record key) {
+	int get(Record key) {
 		int adr = root;
 		for (int i = 0; i < treeLevels; ++i) {
 			int level = treeLevels - i;
@@ -79,7 +79,7 @@ public class Btree {
 	}
 
 	/** Add a unique key to the btree. */
-	public void add(Record key) {
+	void add(Record key) {
 		boolean result = add(key, false);
 		assert result == true;
 	}
@@ -90,7 +90,7 @@ public class Btree {
 	 * false if unique is true and the key already exists
 	 * (ignoring the trailing data record address)
 	 * */
-	public boolean add(Record key, boolean unique) {
+	boolean add(Record key, boolean unique) {
 		++modified;
 
 		Record searchKey = unique ? stripAddress(key) : key;
@@ -174,7 +174,7 @@ public class Btree {
 	 * Tree levels will only shrink when the <u>last</u> key is removed.
 	 * @return false if the key was not found
 	 */
-	public boolean remove(Record key) {
+	boolean remove(Record key) {
 		++modified;
 
 		// search down the tree
@@ -222,7 +222,7 @@ public class Btree {
 		return true;
 	}
 
-	public boolean update(Record oldkey, Record newkey, boolean unique) {
+	boolean update(Record oldkey, Record newkey, boolean unique) {
 		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
 		else {
@@ -259,11 +259,11 @@ public class Btree {
 		return true;
 	}
 
-	public Iter iterator() {
+	Iter iterator() {
 		return new Iter();
 	}
 
-	public class Iter {
+	class Iter {
 		// top of stack is leaf
 		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
 		private Record cur = null;
@@ -325,7 +325,7 @@ public class Btree {
 			}
 		}
 
-		public void next() {
+		void next() {
 			if (rewound) {
 				first();
 				rewound = false;
@@ -360,7 +360,7 @@ public class Btree {
 			cur = leaf.node.get(leaf.pos);
 		}
 
-		public void prev() {
+		void prev() {
 			if (rewound) {
 				last();
 				rewound = false;
@@ -395,11 +395,11 @@ public class Btree {
 			cur = leaf.node.get(leaf.pos);
 		}
 
-		public boolean eof() {
+		boolean eof() {
 			return rewound ? isEmpty() : cur == null;
 		}
 
-		public Record cur() {
+		Record cur() {
 			return cur;
 		}
 
@@ -420,7 +420,7 @@ public class Btree {
 		}
 	}
 
-	public static int getAddress(Record slot) {
+	static int getAddress(Record slot) {
 		return ((Number) slot.get(slot.size() - 1)).intValue();
 	}
 
@@ -439,11 +439,11 @@ public class Btree {
 			: new BtreeDbNode(level, tran.stor.buffer(adr));
 	}
 
-	public void print() {
+	void print() {
 		print(new PrintWriter(System.out));
 	}
 
-	public void print(Writer writer) {
+	void print(Writer writer) {
 		try {
 			nodeAt(treeLevels, info().root).print(writer, tran, root);
 			writer.flush();
@@ -452,15 +452,15 @@ public class Btree {
 		}
 	}
 
-	public int root() {
+	int root() {
 		return root;
 	}
 
-	public int treeLevels() {
+	int treeLevels() {
 		return treeLevels;
 	}
 
-	public static void store(Tran tran) {
+	static void store(Tran tran) {
 		// need to store BtreeNodes bottom up
 		// sort by level without allocation
 		// by packing level and intref into a long
@@ -485,13 +485,13 @@ public class Btree {
 		}
 	}
 
-	public void check() {
+	void check() {
 		int nnodes = nodeAt(treeLevels, root).check(tran, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
 
-	public BtreeInfo info() {
+	BtreeInfo info() {
 		if (IntRefs.isIntRef(root))
 			root = tran.getAdr(root);
 		return new BtreeInfo(root, treeLevels, nnodes);

@@ -16,12 +16,12 @@ import com.google.common.collect.ImmutableList;
  */
 @Immutable
 class Table implements suneido.intfc.database.Table {
-	public static final int TBLNUM = 0, TABLE = 1;
-	public final int num;
-	public final String name;
-	public final Columns columns;
-	public final Indexes indexes;
-	public final ImmutableList<String> fields;
+	static final int TBLNUM = 0, TABLE = 1;
+	final int num;
+	final String name;
+	final Columns columns;
+	final Indexes indexes;
+	final ImmutableList<String> fields;
 
 	Table(int num, String name, Columns columns, Indexes indexes) {
 		this.num = num;

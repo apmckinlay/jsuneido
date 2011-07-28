@@ -10,24 +10,24 @@ import java.util.List;
 /**
  * Coordinates data records and the btrees that index them.
  */
-public class IndexedData {
-	public enum Mode { KEY, UNIQUE, DUPS };
+class IndexedData {
+	enum Mode { KEY, UNIQUE, DUPS };
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 
-	public IndexedData(Tran tran) {
+	IndexedData(Tran tran) {
 		this.tran = tran;
 	}
 
 	/** setup method */
-	public IndexedData index(Btree btree, Mode mode, int... fields) {
+	IndexedData index(Btree btree, Mode mode, int... fields) {
 		indexes.add(new AnIndex(btree, mode, fields));
 		return this;
 	}
 
 	// TODO foreign keys
 
-	public int add(Record rec) {
+	int add(Record rec) {
 		int intref = tran.refToInt(rec);
 		for (AnIndex index : indexes)
 			if (! index.add(rec, intref)) {
@@ -43,7 +43,7 @@ public class IndexedData {
 		return intref;
 	}
 
-	public void remove(Record rec) {
+	void remove(Record rec) {
 		int intref = firstKey().getKeyAdr(rec);
 		if (intref == 0)
 			throw new RuntimeException("remove couldn't find record");
@@ -53,7 +53,7 @@ public class IndexedData {
 		// TODO handle remove failing halfway through (abort transaction?)
 	}
 
-	public void update(Record from, Record to) {
+	void update(Record from, Record to) {
 		int fromIntref = firstKey().getKeyAdr(from);
 		if (fromIntref == 0)
 			throw new RuntimeException("update couldn't find record");
@@ -109,11 +109,11 @@ public class IndexedData {
 		}
 	}
 
-	public static Record key(Record rec, int[] fields, int adr) {
+	static Record key(Record rec, int[] fields, int adr) {
 		return new RecordBuilder().addFields(rec, fields).add(adr).build();
 	}
 
-	public static boolean isEmptyKey(Record key) {
+	static boolean isEmptyKey(Record key) {
 		for (int i = 0; i < key.size() - 1; ++i)
 			if (key.fieldLength(i) != 0)
 				return false;

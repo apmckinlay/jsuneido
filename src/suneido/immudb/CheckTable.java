@@ -6,17 +6,17 @@ package suneido.immudb;
 
 import java.util.concurrent.Callable;
 
-public class CheckTable implements Callable<String> {
+class CheckTable implements Callable<String> {
 	final Database db;
 	final String tableName;
 	String details = "";
 
-	public CheckTable(Database db, String tableName) {
+	CheckTable(Database db, String tableName) {
 		this.db = db;
 		this.tableName = tableName;
 	}
 
-	public static void check(Database db, String tableName) {
+	static void check(Database db, String tableName) {
 		String s = new CheckTable(db, tableName).call();
 		if (! s.isEmpty())
 			throw new RuntimeException("CheckTable " + tableName + " " + s);

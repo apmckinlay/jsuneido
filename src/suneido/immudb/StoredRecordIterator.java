@@ -8,12 +8,12 @@ import java.nio.ByteBuffer;
 
 import com.google.common.collect.UnmodifiableIterator;
 
-public class StoredRecordIterator extends UnmodifiableIterator<Record> {
+class StoredRecordIterator extends UnmodifiableIterator<Record> {
 	private final Storage stor;
 	private final int last;
 	private int adr;
 
-	public StoredRecordIterator(Storage stor, int first, int last) {
+	StoredRecordIterator(Storage stor, int first, int last) {
 		this.stor = stor;
 		this.last = last;
 		adr = first;
@@ -44,7 +44,7 @@ public class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		return len;
 	}
 
-	public int nextAdr() {
+	int nextAdr() {
 		return adr;
 	}
 

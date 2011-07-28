@@ -5,13 +5,16 @@
 package suneido.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
-
-import suneido.immudb.*;
 
 import com.google.common.collect.Lists;
 

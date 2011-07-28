@@ -15,44 +15,44 @@ import suneido.immudb.DbHashTrie.Translator;
 /**
  * Transaction "context"
  */
-public class Tran implements Translator {
+class Tran implements Translator {
 	private static final int SIZEOF_INT = 4;
 	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime
 	static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
-	public final Storage stor;
+	final Storage stor;
 	private final Redirects redirs;
-	public final IntRefs intrefs = new IntRefs();
+	final IntRefs intrefs = new IntRefs();
 	private int head_adr = 0;
 
-	public Tran(Storage stor) {
+	Tran(Storage stor) {
 		this.stor = stor;
 		redirs = new Redirects(DbHashTrie.empty(stor));
 	}
 
-	public Tran(Storage stor, int redirs) {
+	Tran(Storage stor, int redirs) {
 		this.stor = stor;
 		this.redirs = new Redirects(DbHashTrie.from(stor, redirs));
 	}
 
-	public Tran(Storage stor, Redirects redirs) {
+	Tran(Storage stor, Redirects redirs) {
 		this.stor = stor;
 		this.redirs = redirs;
 	}
 
-	public int refToInt(Object ref) {
+	int refToInt(Object ref) {
 		return intrefs.refToInt(ref);
 	}
 
-	public Object intToRef(int intref) {
+	Object intToRef(int intref) {
 		return intrefs.intToRef(intref);
 	}
 
-	public int redir(int from) {
+	int redir(int from) {
 		return redirs.get(from);
 	}
 
-	public void redir(int from, Object ref) {
+	void redir(int from, Object ref) {
 		assert(! (ref instanceof Number));
 		if (IntRefs.isIntRef(from))
 			intrefs.update(from, ref);
@@ -60,17 +60,17 @@ public class Tran implements Translator {
 			redirs.put(from, refToInt(ref));
 	}
 
-	public Redirects redirs() {
+	Redirects redirs() {
 		return redirs;
 	}
 
-	public void startStore() {
+	void startStore() {
 		intrefs.startStore();
 		if (head_adr == 0)
 			allowStore();
 	}
 
-	public void allowStore() {
+	void allowStore() {
 		stor.protect(); // enable output
 		head_adr = stor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
@@ -81,7 +81,7 @@ public class Tran implements Translator {
 	 * The checksum includes the head and a zero tail.
 	 * The size includes the head and the tail
 	 */
-	public void endStore() {
+	void endStore() {
 		int tail_adr = stor.alloc(TAIL_SIZE);
 		int size = (int) stor.sizeFrom(head_adr);
 		stor.buffer(head_adr).putInt(size).putInt(datetime());
@@ -99,7 +99,7 @@ public class Tran implements Translator {
 		return (int) (System.currentTimeMillis() / 1000);
 	}
 
-	public int checksum() {
+	int checksum() {
 		Checksum cksum = new Checksum();
 		Iterator<ByteBuffer> iter = stor.iterator(head_adr);
 		while (iter.hasNext())
@@ -107,15 +107,15 @@ public class Tran implements Translator {
 		return cksum.getValue();
 	}
 
-	public void setAdr(int intref, int adr) {
+	void setAdr(int intref, int adr) {
 		intrefs.setAdr(intref, adr);
 	}
 
-	public int getAdr(int intref) {
+	int getAdr(int intref) {
 		return intrefs.getAdr(intref);
 	}
 
-	public int storeRedirs() {
+	int storeRedirs() {
 		return redirs.store(this);
 	}
 
@@ -129,11 +129,11 @@ public class Tran implements Translator {
 		return new StoredIntEntry(key, val);
 	}
 
-	public Record getrec(int adr) {
+	Record getrec(int adr) {
 		return new Record(adr, stor.buffer(adr));
 	}
 
-	public void mergeRedirs(DbHashTrie current) {
+	void mergeRedirs(DbHashTrie current) {
 		redirs.merge(current);
 	}
 

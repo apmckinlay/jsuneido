@@ -10,11 +10,13 @@ import static suneido.immudb.BtreeTest.randomKeys;
 import static suneido.immudb.BtreeTest.record;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
-import suneido.immudb.*;
 import suneido.language.Pack;
 
 public class BtreeNodeTest {

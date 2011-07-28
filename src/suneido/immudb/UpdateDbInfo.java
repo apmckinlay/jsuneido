@@ -9,54 +9,32 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.DbHashTrie.*;
+import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.immudb.DbHashTrie.StoredIntEntry;
+import suneido.immudb.DbHashTrie.Translator;
 import suneido.immudb.UpdateTransaction.Conflict;
 import suneido.util.ParallelIterable;
 
 import com.google.common.collect.ImmutableList;
 
 @NotThreadSafe
-public class DbInfo {
-	private final Storage stor;
-	private DbHashTrie dbinfo;
+class UpdateDbInfo extends ReadDbInfo {
 
-	public DbInfo(Storage stor) {
-		this.stor = stor;
-		dbinfo = DbHashTrie.empty(stor);
+	UpdateDbInfo(Storage stor) {
+		super(stor, DbHashTrie.empty(stor));
 	}
 
-	public DbInfo(Storage stor, int adr) {
-		this.stor = stor;
-		dbinfo = DbHashTrie.from(stor, adr);
+	UpdateDbInfo(Storage stor, DbHashTrie dbinfo) {
+		super(stor, dbinfo);
 	}
 
-	public DbInfo(Storage stor, DbHashTrie dbinfo) {
-		this.stor = stor;
-		this.dbinfo = dbinfo;
-	}
-
-	DbHashTrie dbinfo() {
-		return dbinfo;
-	}
-
-	public TableInfo get(int tblnum) {
-		Entry e = dbinfo.get(tblnum);
-		if (e instanceof IntEntry) {
-			int adr = ((IntEntry) e).value;
-			Record rec = new Record(stor.buffer(adr));
-			TableInfo ti = new TableInfo(rec, adr);
-			dbinfo = dbinfo.with(ti);
-			return ti;
-		} else
-			return (TableInfo) e;
-	}
-
-	public void add(TableInfo ti) {
+	void add(TableInfo ti) {
 		dbinfo = dbinfo.with(ti);
 	}
 
 	/** update nrows and totalsize */
-	public void updateRowInfo(int tblnum, int nrows, int size) {
+	void updateRowInfo(int tblnum, int nrows, int size) {
 		TableInfo ti = get(tblnum);
 		if (tblnum <= TN.INDEXES && ti == null) // bootstrap
 			return;
@@ -65,7 +43,7 @@ public class DbInfo {
 			dbinfo = dbinfo.with(ti2);
 	}
 
-	public int store() {
+	int store() {
 		return dbinfo.store(new DbInfoTranslator());
 	}
 
@@ -82,7 +60,7 @@ public class DbInfo {
 		}
 	}
 
-	public void merge(DbHashTrie original, DbHashTrie current) {
+	void merge(DbHashTrie original, DbHashTrie current) {
 		if (current == original)
 			return; // no concurrent changes to merge
 
@@ -96,7 +74,7 @@ public class DbInfo {
 		private final DbHashTrie current;
 		private DbHashTrie merged;
 
-		public Proc(DbHashTrie original, DbHashTrie current) {
+		Proc(DbHashTrie original, DbHashTrie current) {
 			this.original = original;
 			this.current = current;
 			merged = current;
@@ -155,16 +133,5 @@ public class DbInfo {
 
 	private static final Conflict conflict =
 			new Conflict("concurrent index modification");
-
-	public void check() {
-		dbinfo.traverseChanges(checkProc);
-	}
-	private static final CheckProc checkProc = new CheckProc();
-	private static class CheckProc implements DbHashTrie.Process {
-		@Override
-		public void apply(Entry entry) {
-			((TableInfo) entry).check();
-		}
-	}
 
 }

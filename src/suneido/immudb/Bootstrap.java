@@ -28,7 +28,7 @@ class Bootstrap {
 		create_tables(t);
 		create_columns(t);
 		create_indexes(t);
-		t.commit();
+		t.complete();
 		Request.execute(db,
 				"alter tables create key(tablename)");
 		Request.execute(db,

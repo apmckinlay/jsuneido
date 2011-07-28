@@ -15,40 +15,40 @@ import java.util.concurrent.Executors;
  * check the consistency of a database
  * e.g. after finding it was not shutdown properly
  */
-public class DbCheck {
-	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
+class DbCheck {
+	enum Status { OK, CORRUPTED, UNRECOVERABLE };
 	final Storage stor;
 	final String filename;
 	Date last_good_commit;
 	String details = "";
 	protected final boolean print;
 
-	public DbCheck(Storage stor, boolean print) {
+	DbCheck(Storage stor, boolean print) {
 		this.stor = stor;
 		this.filename = "";
 		this.print = print;
 	}
 
-	public DbCheck(String filename, boolean print) {
+	DbCheck(String filename, boolean print) {
 		this.stor = new MmapFile(filename, "r");
 		this.filename = filename;
 		this.print = print;
 	}
 
-	public static Status check(String filename) {
+	static Status check(String filename) {
 		return new DbCheck(filename, false).check();
 	}
 
-	public static Status checkPrint(String filename) {
+	static Status checkPrint(String filename) {
 		return new DbCheck(filename, true).check();
 	}
 
-	public static void checkPrintExit(String filename) {
+	static void checkPrintExit(String filename) {
 		Status status = new DbCheck(filename, true).check();
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	public Status check() {
+	Status check() {
 		println("Checking " + filename);
 		println("checksums...");
 		Check check = new Check(stor);
@@ -65,7 +65,7 @@ public class DbCheck {
 		return status;
 	}
 
-	public String lastCommit(Status status) {
+	String lastCommit(Status status) {
 		return status == Status.UNRECOVERABLE
 			? "Unrecoverable"
 			: "Last " + (status == Status.CORRUPTED ? "good " : "")	+ "commit "

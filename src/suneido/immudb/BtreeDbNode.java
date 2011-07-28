@@ -15,7 +15,7 @@ import com.google.common.base.Preconditions;
  * "updating" a BtreeDbNode produces a {@link BtreeDbMemNode}
  */
 @Immutable
-public class BtreeDbNode extends BtreeNode {
+class BtreeDbNode extends BtreeNode {
 	final Record rec;
 
 	BtreeDbNode(int level, ByteBuffer buf) {
@@ -24,13 +24,13 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	public Record get(int i) {
+	Record get(int i) {
 		Preconditions.checkElementIndex(i, rec.size());
 		return new Record(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 
 	@Override
-	public BtreeDbMemNode with(Record key) {
+	BtreeDbMemNode with(Record key) {
 		return new BtreeDbMemNode(this).with(key);
 	}
 
@@ -40,22 +40,22 @@ public class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	public int size() {
+	int size() {
 		return rec.size();
 	}
 
 	@Override
-	public int store(Tran tran) {
+	int store(Tran tran) {
 		throw new RuntimeException("shouldn't reach here");
 	}
 
 	@Override
-	public BtreeNode slice(int from, int to) {
+	BtreeNode slice(int from, int to) {
 		return BtreeDbMemNode.slice(this, from, to);
 	}
 
 	@Override
-	public BtreeNode without(int from, int to) {
+	BtreeNode without(int from, int to) {
 		if (from == 0)
 			return BtreeDbMemNode.slice(this, to, size());
 		else if (to == size())

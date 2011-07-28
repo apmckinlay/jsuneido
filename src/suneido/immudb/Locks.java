@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database;
+package suneido.immudb;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,20 +17,19 @@ import com.google.common.collect.SetMultimap;
 /** Synchronized by {@link Transactions} which is the only user */
 @NotThreadSafe
 class Locks {
-	private final SetMultimap<Transaction, Long> locksRead = HashMultimap.create();
-	private final SetMultimap<Transaction, Long> locksWrite = HashMultimap.create();
-	private final SetMultimap<Long, Transaction> readLocks = HashMultimap.create();
-	private final Map<Long, Transaction> writeLocks = new HashMap<Long, Transaction>();
-	private final SetMultimap<Long, Transaction> writes = HashMultimap.create();
+	private final SetMultimap<UpdateTransaction, Long> locksRead = HashMultimap.create();
+	private final SetMultimap<UpdateTransaction, Long> locksWrite = HashMultimap.create();
+	private final SetMultimap<Long, UpdateTransaction> readLocks = HashMultimap.create();
+	private final Map<Long, UpdateTransaction> writeLocks = new HashMap<Long, UpdateTransaction>();
+	private final SetMultimap<Long, UpdateTransaction> writes = HashMultimap.create();
 
 	/** Add a read lock, unless there's already a write lock.
 	 *  @return A transaction if it has a write lock on this adr, else null
 	 */
-	Transaction addRead(Transaction tran, long adr) {
-		assert tran.isReadWrite();
+	UpdateTransaction addRead(UpdateTransaction tran, long adr) {
 		if (tran.isEnded())
 			return null;
-		Transaction prev = writeLocks.get(adr);
+		UpdateTransaction prev = writeLocks.get(adr);
 		if (prev == tran)
 			return null; // don't need readLock if already have writeLock
 		readLocks.put(adr, tran);
@@ -42,17 +41,16 @@ class Locks {
 	 *  or else a set (possibly empty) of other transactions that have read locks.
 	 *  NOTE: The set may contain the locking transaction.
 	 */
-	ImmutableSet<Transaction> addWrite(Transaction tran, long adr) {
-		assert tran.isReadWrite();
+	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, long adr) {
 		if (tran.isEnded())
 			return null;
-		Transaction prev = writeLocks.get(adr);
+		UpdateTransaction prev = writeLocks.get(adr);
 		if (prev == tran)
 			return ImmutableSet.of(); // already have write lock
 		if (prev != null)
 			return null; // write-write conflict
-		for (Transaction w : writes.get(adr)) {
-			if (w != tran && !w.committedBefore(tran))
+		for (UpdateTransaction w : writes.get(adr)) {
+			if (w != tran && ! w.committedBefore(tran))
 				return null; // write-write conflict with completed
 		}
 		writeLocks.put(adr, tran);
@@ -63,13 +61,13 @@ class Locks {
 	}
 
 	/** Just remove writeLocks. Other locks kept till finalization */
-	void commit(Transaction tran) {
+	void commit(UpdateTransaction tran) {
 		for (Long adr : locksWrite.get(tran))
 			writeLocks.remove(adr);
 	}
 
 	/** Remove all locks for this transaction */
-	void remove(Transaction tran) {
+	void remove(UpdateTransaction tran) {
 		for (Long adr : locksRead.get(tran))
 			readLocks.remove(adr, tran);
 		locksRead.removeAll(tran);
@@ -83,7 +81,7 @@ class Locks {
 		assert !locksWrite.isEmpty() || (writeLocks.isEmpty() && writes.isEmpty());
 	}
 
-	Set<Transaction> writes(long offset) {
+	Set<UpdateTransaction> writes(long offset) {
 		return ImmutableSet.copyOf(writes.get(offset));
 	}
 
@@ -99,7 +97,7 @@ class Locks {
 		assert locksWrite.isEmpty();
 	}
 
-	boolean contains(Transaction tran) {
+	boolean contains(UpdateTransaction tran) {
 		return locksRead.containsKey(tran) || locksWrite.containsKey(tran);
 	}
 
@@ -107,9 +105,9 @@ class Locks {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Locks");
-		for (Map.Entry<Long, Transaction> e : writeLocks.entrySet())
+		for (Map.Entry<Long, UpdateTransaction> e : writeLocks.entrySet())
 			sb.append(" " + e.getValue() + "w" + e.getKey());
-		for (Map.Entry<Long, Transaction> e : readLocks.entries())
+		for (Map.Entry<Long, UpdateTransaction> e : readLocks.entries())
 			sb.append(" " + e.getValue() + "r" + e.getKey());
 		return sb.toString();
 	}

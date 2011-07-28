@@ -20,18 +20,20 @@ import com.google.common.collect.ImmutableList;
  * Storage is only written during commit.
  * Commit is single-threaded.
  */
-public class UpdateTransaction extends ReadTransaction {
+class UpdateTransaction extends ReadTransaction {
 	protected final Database db;
-	private final Tables originalSchema;
-	private final DbHashTrie originalDbInfo;
+	protected Tables newSchema;
+	protected final UpdateDbInfo dbinfo;
 	protected boolean locked = false;
+//	private final long asof;
+//	private volatile long commitTime = Long.MAX_VALUE;
 
 	/** for Database.updateTran */
-	UpdateTransaction(Database db) {
-		super(db);
+	UpdateTransaction(int num, Database db) {
+		super(num, db.stor, db.dbinfo, db.schema, db.redirs);
 		this.db = db;
-		originalSchema = db.schema;
-		originalDbInfo = db.dbinfo;
+		this.dbinfo = new UpdateDbInfo(stor, db.dbinfo);
+		newSchema = schema;
 		lock(db);
 	}
 
@@ -45,6 +47,11 @@ public class UpdateTransaction extends ReadTransaction {
 		locked = false;
 	}
 
+	@Override
+	protected ReadDbInfo dbinfo() {
+		return dbinfo;
+	}
+
 	/** for Bootstrap and TableBuilder */
 	Btree addIndex(int tblnum, String indexColumns) {
 		assert locked;
@@ -56,7 +63,7 @@ public class UpdateTransaction extends ReadTransaction {
 	/** for TableBuilder */
 	void addSchemaTable(Table table) {
 		assert locked;
-		schema = schema.with(table);
+		newSchema = newSchema.with(table);
 	}
 
 	/** for TableBuilder */
@@ -70,12 +77,6 @@ public class UpdateTransaction extends ReadTransaction {
 		assert locked;
 		indexedData(tblnum).add(r);
 		dbinfo.updateRowInfo(tblnum, 1, r.bufSize());
-	}
-
-	void removeRecord(int tblnum, Record r) {
-		assert locked;
-		indexedData(tblnum).remove(r);
-		dbinfo.updateRowInfo(tblnum, -1, -r.bufSize());
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
@@ -105,19 +106,37 @@ public class UpdateTransaction extends ReadTransaction {
 
 	// commit -----------------------------------------------------------------
 
+	boolean isCommitted() {
+		// TODO isCommitted
+		// return commitTime != Long.MAX_VALUE;
+		return false;
+	}
+
+	boolean committedBefore(UpdateTransaction tran) {
+		// TODO committedBefore
+		// return commitTime < tran.asof;
+		return false;
+	}
+
+	@Override
+	public void abortIfNotComplete() {
+		abortIfNotComplete("aborted");
+	}
+
+	void abortIfNotComplete(String conflict) {
+		if (locked)
+			abort();
+	}
+
 	@Override
 	public void abort() {
 		assert locked;
 		unlock();
 	}
 
-	public void abortIfNotCommitted() {
-		if (locked)
-			abort();
-	}
-
 	// TODO if exception during commit, rollback storage
-	public void commit() {
+	@Override
+	public String complete() {
 		assert locked;
 		try {
 			synchronized(db.commitLock) {
@@ -125,7 +144,7 @@ public class UpdateTransaction extends ReadTransaction {
 				DataRecords.store(tran);
 				Btree.store(tran);
 
-				updateOurDbInfo();
+				updateOurDbinfo();
 				updateDatabaseDbInfo();
 
 				int redirsAdr = updateRedirs();
@@ -138,6 +157,7 @@ public class UpdateTransaction extends ReadTransaction {
 		} finally {
 			unlock();
 		}
+		return "";
 	}
 
 	private int updateRedirs() {
@@ -147,7 +167,7 @@ public class UpdateTransaction extends ReadTransaction {
 		return redirsAdr;
 	}
 
-	private void updateOurDbInfo() {
+	private void updateOurDbinfo() {
 		for (int tblnum : indexes.rowKeySet()) {
 			TableInfo ti = dbinfo.get(tblnum);
 			Map<String,Btree> idxs = indexes.row(tblnum);
@@ -164,7 +184,7 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	private void updateDatabaseDbInfo() {
-		dbinfo.merge(originalDbInfo, db.dbinfo);
+		dbinfo.merge(originalDbinfo(), db.dbinfo);
 		db.dbinfo = dbinfo.dbinfo();
 	}
 
@@ -177,19 +197,19 @@ public class UpdateTransaction extends ReadTransaction {
 	}
 
 	private void updateSchema() {
-		if (schema == originalSchema)
+		if (newSchema == schema)
 			return; // no schema changes in this transaction
 
-		if (db.schema != originalSchema)
+		if (db.schema != schema)
 			throw schemaConflict;
 
-		db.schema = schema;
+		db.schema = newSchema;
 	}
 
 	private static final Conflict schemaConflict =
 			new Conflict("concurrent schema modification");
 
-	public static class Conflict extends RuntimeException {
+	static class Conflict extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 
 		Conflict(String explanation) {
@@ -212,8 +232,7 @@ public class UpdateTransaction extends ReadTransaction {
 		return ! locked;
 	}
 
-	@Override
-	public long asof() {
+	long asof() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -222,79 +241,6 @@ public class UpdateTransaction extends ReadTransaction {
 	public String conflict() {
 		// TODO Auto-generated method stub
 		return "";
-	}
-
-	@Override
-	public boolean tableExists(String table) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Table ck_getTable(String tablename) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Table ck_getTable(int tblnum) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void deleteTable(suneido.intfc.database.Table table) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public int tableCount(int tblnum) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public long tableSize(int tblnum) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int indexSize(int tblnum, String columns) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int keySize(int tblnum, String columns) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public float rangefrac(int tblnum, String columns,
-			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void abortIfNotComplete() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void ck_complete() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public String complete() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -324,15 +270,9 @@ public class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public Record lookup(int tblnum, String index,
-			suneido.intfc.database.Record key) {
-		// TODO Auto-generated method stub
-		return null;
+		assert locked;
+		indexedData(tblnum).remove((Record) rec);
+		dbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
 	@Override
@@ -341,12 +281,6 @@ public class UpdateTransaction extends ReadTransaction {
 			suneido.intfc.database.Record newrec) {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public int num() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	@Override

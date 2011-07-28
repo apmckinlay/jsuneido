@@ -4,11 +4,10 @@
 
 package suneido.immudb;
 
-
 public class ExclusiveTransaction extends UpdateTransaction {
 
-	ExclusiveTransaction(Database db) {
-		super(db);
+	ExclusiveTransaction(int num, Database db) {
+		super(num, db);
 		tran.allowStore();
 	}
 
@@ -26,7 +25,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	}
 
 	public void dropTableSchema(Table table) {
-		schema = schema.without(table);
+		newSchema = newSchema.without(table);
 	}
 
 	// used by DbLoad

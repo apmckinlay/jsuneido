@@ -14,15 +14,15 @@ import com.google.common.collect.Iterables;
  * Immutable when loaded or stored.
  * Mutable within a transaction.
  */
-public class TableInfo extends DbHashTrie.Entry {
+class TableInfo extends DbHashTrie.Entry {
 	private int adr;
-	public final int tblnum;
-	public final int nextfield;
+	final int tblnum;
+	final int nextfield;
 	private int nrows;
 	private long totalsize;
-	public final ImmutableList<IndexInfo> indexInfo;
+	final ImmutableList<IndexInfo> indexInfo;
 
-	public TableInfo(int tblnum, int nextfield, int nrows, long totalsize,
+	TableInfo(int tblnum, int nextfield, int nrows, long totalsize,
 			ImmutableList<IndexInfo> indexInfo) {
 		adr = 0;
 		this.tblnum = tblnum;
@@ -32,7 +32,7 @@ public class TableInfo extends DbHashTrie.Entry {
 		this.indexInfo = indexInfo;
 	}
 
-	public TableInfo(Record rec, int adr) {
+	TableInfo(Record rec, int adr) {
 		this.adr = adr;
 		int i = 0;
 		tblnum = rec.getInt(i++);
@@ -46,20 +46,20 @@ public class TableInfo extends DbHashTrie.Entry {
 	}
 
 	@Override
-	public int key() {
+	int key() {
 		return tblnum;
 	}
 
 	@Override
-	public int value() {
+	int value() {
 		return adr;
 	}
 
-	public int nrows() {
+	int nrows() {
 		return nrows;
 	}
 
-	public long totalsize() {
+	long totalsize() {
 		return totalsize;
 	}
 
@@ -67,7 +67,7 @@ public class TableInfo extends DbHashTrie.Entry {
 		return adr != 0;
 	}
 
-	public TableInfo with(int nr, int size) {
+	TableInfo with(int nr, int size) {
 		if (stored())
 			return new TableInfo(tblnum,
 					nextfield, nrows + nr, totalsize + size, indexInfo);
@@ -78,7 +78,7 @@ public class TableInfo extends DbHashTrie.Entry {
 		}
 	}
 
-	public int store(Storage stor) {
+	int store(Storage stor) {
 		if (! stored()) {
 			RecordBuilder rb = new RecordBuilder();
 			rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
@@ -89,7 +89,7 @@ public class TableInfo extends DbHashTrie.Entry {
 		return adr;
 	}
 
-	public IndexInfo getIndex(String indexColumns) {
+	IndexInfo getIndex(String indexColumns) {
 		for (IndexInfo ii : indexInfo)
 			if (ii.columns.equals(indexColumns))
 				return ii;
@@ -107,7 +107,7 @@ public class TableInfo extends DbHashTrie.Entry {
 			.toString();
 	}
 
-	public void check() {
+	void check() {
 		for (IndexInfo ii : indexInfo)
 			ii.check();
 	}
