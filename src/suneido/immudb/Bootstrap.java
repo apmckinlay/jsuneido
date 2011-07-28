@@ -39,9 +39,9 @@ class Bootstrap {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
-		t.addIndex(TN.TABLES, "0");
-		t.addIndex(TN.COLUMNS, "0,1");
-		t.addIndex(TN.INDEXES, "0,1");
+		t.addIndex(TN.TABLES, 0);
+		t.addIndex(TN.COLUMNS, 0, 1);
+		t.addIndex(TN.INDEXES, 0, 1);
 	}
 
 	private static void create_tables(UpdateTransaction t) {

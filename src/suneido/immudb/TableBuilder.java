@@ -174,9 +174,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Index index = new Index(tblnum, colNums, isKey, unique);
 		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
-		String colNumsStr = Ints.join(",", colNums);
-		if (! t.hasIndex(tblnum, colNumsStr)) // if not bootstrap
-			t.addIndex(tblnum, colNumsStr);
+		if (! t.hasIndex(tblnum, colNums)) // if not bootstrap
+			t.addIndex(tblnum, colNums);
 		insertExistingData(index);
 		// TODO handle foreign keys
 	}
@@ -185,8 +184,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			return;
-		Btree src = t.getIndex(tblnum, table.firstIndex().colNumsString());
-		Btree btree = t.addIndex(tblnum, newIndex.colNumsString());
+		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
+		Btree btree = t.addIndex(tblnum, newIndex.colNums);
 		Btree.Iter iter = src.iterator();
 		IndexedData id = new IndexedData(t.tran);
 		id.index(btree, newIndex.mode(), newIndex.colNums);
@@ -267,7 +266,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void updateTableInfo() {
 		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();
 		for (Index index : indexes)
-			ii.add(new IndexInfo(index.colNumsString(),
+			ii.add(new IndexInfo(index.colNums,
 					t.getIndex(tblnum, index.colNums).info()));
 		TableInfo ti = t.getTableInfo(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();

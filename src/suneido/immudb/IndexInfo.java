@@ -4,9 +4,12 @@
 
 package suneido.immudb;
 
+import static suneido.util.Util.commaSplitter;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 
 /**
  * {@link BtreeInfo} plus columns
@@ -14,25 +17,41 @@ import com.google.common.base.Objects;
 @Immutable
 class IndexInfo extends BtreeInfo {
 	static final int NFIELDS = 4;
-	final String columns; // e.g. "0,1"
+	final int[] columns;
 
-	IndexInfo(String columns, BtreeInfo info) {
+	IndexInfo(int[] columns, BtreeInfo info) {
 		super(info.root, info.treeLevels, info.nnodes);
 		this.columns = columns;
 	}
 
-	IndexInfo(String columns, int root, int treeLevels, int nnodes) {
+	IndexInfo(int[] columns, int root, int treeLevels, int nnodes) {
 		super(root, treeLevels, nnodes);
 		this.columns = columns;
 	}
 
 	IndexInfo(Record rec, int i) {
 		super(rec.getInt(i + 1), rec.getInt(i + 2), rec.getInt(i + 3));
-		this.columns = rec.getString(i);
+		columns = convertColumns(rec.getString(i));
+	}
+
+	private int[] convertColumns(String s) {
+		Iterable<String> cs = commaSplitter(s);
+		int[] cols = new int[Iterables.size(cs)];
+		int c = 0;
+		for (String col : cs)
+			cols[c++] = Integer.parseInt(col);
+		return cols;
 	}
 
 	void addToRecord(RecordBuilder rb) {
-		rb.add(columns).add(root).add(treeLevels).add(nnodes);
+		rb.add(convertColumns(columns)).add(root).add(treeLevels).add(nnodes);
+	}
+
+	private String convertColumns(int[] cols) {
+		StringBuilder sb = new StringBuilder();
+		for (int c : cols)
+			sb.append(",").append(c);
+		return sb.substring(1);
 	}
 
 	static void addToRecord(RecordBuilder rb, String columns, BtreeInfo info) {

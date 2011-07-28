@@ -17,7 +17,7 @@ class Views {
 	/** @return view definition, else null if view not found */
 	static String getView(ReadTransaction t, String name) {
 		Record key = new RecordBuilder().add(name).build();
-		Record rec = t.lookup(Bootstrap.TN.VIEWS, "0", key);
+		Record rec = t.lookup(Bootstrap.TN.VIEWS, new int[] { 0 }, key);
 		if (rec == null)
 			return null;
 		return rec.getString(1);

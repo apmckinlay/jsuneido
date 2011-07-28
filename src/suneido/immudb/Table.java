@@ -12,6 +12,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 /**
  * Table schema information.
@@ -110,13 +111,13 @@ class Table implements suneido.intfc.database.Table {
 		return indexes.indexes;
 	}
 
-	String namesToNums(String names) {
-		if (names.equals(""))
-			return "";
-		StringBuilder sb = new StringBuilder();
-		for (String field : commaSplitter.split(names))
-			sb.append(",").append(Integer.toString(fields.indexOf(field)));
-		return sb.substring(1);
+	int[] namesToNums(String names) {
+		Iterable<String> cs = commaSplitter.split(names);
+		int[] nums = new int[Iterables.size(cs)];
+		int c = 0;
+		for (String field : cs)
+			nums[c++] = fields.indexOf(field);
+		return nums;
 	}
 
 	/**
