@@ -16,6 +16,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.intfc.database.IndexIter;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -263,7 +265,7 @@ class Btree {
 		return new Iter();
 	}
 
-	class Iter {
+	class Iter implements IndexIter {
 		// top of stack is leaf
 		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
 		private Record cur = null;
@@ -325,7 +327,8 @@ class Btree {
 			}
 		}
 
-		void next() {
+		@Override
+		public void next() {
 			if (rewound) {
 				first();
 				rewound = false;
@@ -360,7 +363,8 @@ class Btree {
 			cur = leaf.node.get(leaf.pos);
 		}
 
-		void prev() {
+		@Override
+		public void prev() {
 			if (rewound) {
 				last();
 				rewound = false;
@@ -395,12 +399,23 @@ class Btree {
 			cur = leaf.node.get(leaf.pos);
 		}
 
-		boolean eof() {
+		@Override
+		public boolean eof() {
 			return rewound ? isEmpty() : cur == null;
 		}
 
 		Record cur() {
 			return cur;
+		}
+
+		@Override
+		public suneido.intfc.database.Record curKey() {
+			return cur;
+		}
+
+		@Override
+		public int keyadr() {
+			return getAddress(cur);
 		}
 
 	}

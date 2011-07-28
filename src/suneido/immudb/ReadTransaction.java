@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.SuException;
 import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 
@@ -117,51 +118,55 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public boolean tableExists(String table) {
-		// TODO Auto-generated method stub
-		return false;
+		return getTable(table) != null;
 	}
 
 	@Override
 	public Table ck_getTable(String tablename) {
-		// TODO Auto-generated method stub
-		return null;
+		Table tbl = getTable(tablename);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tablename);
+		return tbl;
 	}
 
 	@Override
 	public Table ck_getTable(int tblnum) {
-		// TODO Auto-generated method stub
-		return null;
+		Table tbl = getTable(tblnum);
+		if (tbl == null)
+			throw new SuException("nonexistent table: " + tblnum);
+		return tbl;
 	}
 
 	@Override
 	public int tableCount(int tblnum) {
-		// TODO Auto-generated method stub
-		return 0;
+		return getTableInfo(tblnum).nrows();
 	}
 
 	@Override
 	public long tableSize(int tblnum) {
-		// TODO Auto-generated method stub
-		return 0;
+		return getTableInfo(tblnum).totalsize();
 	}
 
 	@Override
 	public int indexSize(int tblnum, String columns) {
-		// TODO Auto-generated method stub
-		return 0;
+		throw new UnsupportedOperationException("indexSize");
 	}
 
 	@Override
 	public int keySize(int tblnum, String columns) {
-		// TODO Auto-generated method stub
-		return 0;
+		int nrecs = tableCount(tblnum);
+		if (nrecs == 0)
+			return 0;
+		return 10;
+		// TODO keySize
+//		Btree idx = getIndex(tblnum, columns);
+//		return idx.totalSize() / nrecs;
 	}
 
 	@Override
 	public float rangefrac(int tblnum, String columns,
 			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
-		// TODO Auto-generated method stub
-		return 0;
+		throw new UnsupportedOperationException("rangefrac");
 	}
 
 	@Override
@@ -183,12 +188,12 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record r) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("addRecord");
 	}
 
 	@Override
 	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateRecord");
 	}
 
 	@Override
@@ -215,16 +220,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	@Override
 	public suneido.intfc.database.Record lookup(int tblnum, String index,
 			suneido.intfc.database.Record key) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("lookup");
 	}
 
 	@Override
 	public void callTrigger(suneido.intfc.database.Table table,
 			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException("callTrigger");
 	}
 
 	@Override
@@ -234,8 +237,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public Record fromRef(Object ref) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("fromRef");
 	}
 
 	@Override
@@ -245,21 +247,21 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("iter1");
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
-		// TODO Auto-generated method stub
-		return null;
+		Table tbl = ck_getTable(tblnum);
+		String fields = tbl.namesToNums(columns);
+		Btree idx = getIndex(tblnum, fields);
+		return idx.iterator();
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("iter3");
 	}
 
 }

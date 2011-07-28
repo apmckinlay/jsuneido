@@ -15,7 +15,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public Database testdb() {
-		return Database.create(new TestStorage());
+		return Database.create(new TestStorage(4096, 256));
 	}
 
 	@Override
