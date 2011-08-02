@@ -315,4 +315,9 @@ class Record implements suneido.intfc.database.Record {
 		return address;
 	}
 
+	int prefixSize(int i) {
+		assert 0 <= i && i <= size();
+		return fieldOffset(-1) - fieldOffset(i - 1);
+	}
+
 }

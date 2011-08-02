@@ -18,7 +18,7 @@ import suneido.database.query.Request;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
-	TestStorage stor = new TestStorage(500, 100);
+	TestStorage stor = new TestStorage(1000, 100);
 	Database db = Database.create(stor);
 
 	@Test

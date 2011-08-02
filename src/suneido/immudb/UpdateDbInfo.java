@@ -126,7 +126,8 @@ class UpdateDbInfo extends ReadDbInfo {
 			} else
 				throw conflict;
 			int nnodes = cur.nnodes + (ours.nnodes - orig.nnodes);
-			return new IndexInfo(cur.columns, root, treeLevels, nnodes);
+			int totalSize = cur.totalSize + (ours.totalSize - orig.totalSize);
+			return new IndexInfo(cur.columns, root, treeLevels, nnodes, totalSize);
 		}
 
 	}

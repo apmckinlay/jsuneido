@@ -4,6 +4,8 @@
 
 package suneido.database.query;
 
+import static suneido.Suneido.dbpkg;
+
 import java.util.List;
 import java.util.Set;
 
@@ -109,7 +111,7 @@ public class History extends Query {
 		Record[] data = dir == Dir.NEXT ? iter.getNext() : iter.getPrev();
 		if (data == null)
 			return null;
-		return new Row(Record.MINREC, data[0], Record.MINREC, data[1]);
+		return new Row(dbpkg.minRecord(), data[0], dbpkg.minRecord(), data[1]);
 	}
 
 }

@@ -5,6 +5,8 @@
 package suneido.immudb;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -29,7 +31,7 @@ public class BtreeTest {
 	private int redirs;
 
 	private static class Btree4 extends Btree {
-		@Override public int maxNodeSize() { return 4; }
+		@Override public int splitSize() { return 4; }
 		public Btree4(Tran tran) {
 			super(tran);
 		}
@@ -400,6 +402,50 @@ public class BtreeTest {
 		assertFalse(btree.add(record("tbl", 406), true));
 	}
 
+	@Test
+	public void rangefrac_one_node() {
+		btree = new Btree(tran); // normal node size
+		btree.add(record("0"));
+		btree.add(record("1"));
+		btree.add(record("2"));
+		btree.add(record("3"));
+		btree.add(record("4"));
+		btree.add(record("5"));
+		btree.add(record("6"));
+		btree.add(record("7"));
+		btree.add(record("8"));
+		btree.add(record("9"));
+		assertThat(btree.treeLevels(), is(0));
+		assertThat((double) btree.rangefrac(record("0"), record("9", 1)),
+				closeTo(1.0, .01));
+		assertThat((double) btree.rangefrac(record("0"), record("4", 1)),
+				closeTo(.5, .01));
+	}
+
+	@Test
+	public void rangefrac_multiple_nodes() {
+		btree = new Btree(tran); // normal node size
+		for (int i = 0; i < 100; ++i)
+			btree.add(record(i));
+		assertThat(btree.treeLevels(), greaterThan(0));
+		assertThat((double) btree.rangefrac(record(0), record(100)),
+				closeTo(1.0, .01));
+		assertThat((double) btree.rangefrac(record(0), record(10)),
+				closeTo(.1, .01));
+		assertThat((double) btree.rangefrac(record(15), record(85)),
+				closeTo(.7, .01));
+	}
+
+	@Test
+	public void totalSize() {
+		assertThat(btree.totalSize(), is(0));
+		add(100);
+		for (Record key : keys)
+			assertTrue(btree.remove(key));
+		assertTrue(btree.isEmpty());
+		assertThat(btree.totalSize(), is(0));
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
@@ -426,6 +472,10 @@ public class BtreeTest {
 
 	private static Record record(String s, int n) {
 		return new RecordBuilder().add(s).add(n).build();
+	}
+
+	static Record record(int n) {
+		return new RecordBuilder().add(n).build();
 	}
 
 }

@@ -1,12 +1,13 @@
 package suneido.database.query;
 
+import static suneido.Suneido.dbpkg;
 import suneido.intfc.database.Record;
 
 import com.google.common.base.Objects;
 
 public class Keyrange {
-	/* package */Record org;
-	/* package */Record end;
+	Record org;
+	Record end;
 
 	public Keyrange() {
 		setAll();
@@ -35,14 +36,14 @@ public class Keyrange {
 	}
 
 	public Keyrange setAll() {
-		org = Record.MINREC;
-		end = Record.MAXREC;
+		org = dbpkg.minRecord();
+		end = dbpkg.maxRecord();
 		return this;
 	}
 
 	public Keyrange setNone() {
-		org = Record.MAXREC;
-		end = Record.MINREC;
+		org = dbpkg.maxRecord();
+		end = dbpkg.minRecord();
 		return this;
 	}
 

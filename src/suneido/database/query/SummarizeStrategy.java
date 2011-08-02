@@ -38,7 +38,7 @@ public abstract class SummarizeStrategy {
 		rb.addAll(r);
 		for (Summary s : sums)
 			rb.add(s.result());
-		return new Row(Record.MINREC, rb.build());
+		return new Row(dbpkg.minRecord(), rb.build());
 	}
 
 	abstract Row get(Dir dir, boolean rewound);

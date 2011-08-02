@@ -31,7 +31,7 @@ public class Row {
 
 	public Row(int n) {
 		this(new Record[n]);
-		Arrays.fill(data, Record.MINREC);
+		Arrays.fill(data, dbpkg.minRecord());
 	}
 
 	// used by Project & Extend
@@ -200,10 +200,12 @@ public class Row {
 			}
 		}
 
+		@Override
 		public boolean hasNext() {
 			return i < imax;
 		}
 
+		@Override
 		public Entry next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
@@ -213,6 +215,7 @@ public class Row {
 			return e;
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}

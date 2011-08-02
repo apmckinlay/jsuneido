@@ -16,21 +16,22 @@ import com.google.common.collect.Iterables;
  */
 @Immutable
 class IndexInfo extends BtreeInfo {
-	static final int NFIELDS = 4;
+	static final int NFIELDS = 5;
 	final int[] columns;
 
 	IndexInfo(int[] columns, BtreeInfo info) {
-		super(info.root, info.treeLevels, info.nnodes);
+		super(info.root, info.treeLevels, info.nnodes, info.totalSize);
 		this.columns = columns;
 	}
 
-	IndexInfo(int[] columns, int root, int treeLevels, int nnodes) {
-		super(root, treeLevels, nnodes);
+	IndexInfo(int[] columns, int root, int treeLevels, int nnodes, int totalSize) {
+		super(root, treeLevels, nnodes, totalSize);
 		this.columns = columns;
 	}
 
 	IndexInfo(Record rec, int i) {
-		super(rec.getInt(i + 1), rec.getInt(i + 2), rec.getInt(i + 3));
+		super(rec.getInt(i + 1), rec.getInt(i + 2), rec.getInt(i + 3),
+				rec.getInt(i + 4));
 		columns = convertColumns(rec.getString(i));
 	}
 
@@ -44,7 +45,8 @@ class IndexInfo extends BtreeInfo {
 	}
 
 	void addToRecord(RecordBuilder rb) {
-		rb.add(convertColumns(columns)).add(root).add(treeLevels).add(nnodes);
+		rb.add(convertColumns(columns))
+				.add(root).add(treeLevels).add(nnodes).add(totalSize);
 	}
 
 	private String convertColumns(int[] cols) {
@@ -65,6 +67,7 @@ class IndexInfo extends BtreeInfo {
 			.add("root", root)
 			.add("treeLevels", treeLevels)
 			.add("nnodes", nnodes)
+			.add("totalSize", totalSize)
 			.toString();
 	}
 
