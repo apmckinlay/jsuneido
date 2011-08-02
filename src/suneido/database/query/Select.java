@@ -5,6 +5,8 @@ import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
+import static suneido.intfc.database.Record.MAX_FIELD;
+import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.Util.*;
@@ -27,9 +29,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
 public class Select extends Query1 {
-	static final ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
-	static final ByteBuffer MAX_FIELD = ByteBuffer.allocate(1)
-			.put(0, (byte) 0x7f).asReadOnlyBuffer();
 	private Multi expr;
 	private boolean optFirst = true;
 	private boolean conflicting = false;
@@ -781,7 +780,7 @@ public class Select extends Query1 {
 
 	private void convert_select(List<String> index, Record from, Record to) {
 		// PERF: could optimize for case where from == to
-		if (from.equals(Record.MINREC) && to.equals(Record.MAXREC)) {
+		if (from.equals(dbpkg.minRecord()) && to.equals(dbpkg.maxRecord())) {
 			sel.setAll();
 			return ;
 		}

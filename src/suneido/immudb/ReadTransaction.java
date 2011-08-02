@@ -44,6 +44,12 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		return dbinfo;
 	}
 
+	Btree getIndex(int tblnum, String columns) {
+		Table tbl = ck_getTable(tblnum);
+		int[] fields = tbl.namesToNums(columns);
+		return getIndex(tblnum, fields);
+	}
+
 	Btree getIndex(int tblnum, int... indexColumns) {
 		ColNums colNums = new ColNums(indexColumns);
 		Btree btree = indexes.get(tblnum, colNums);
@@ -144,7 +150,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public int indexSize(int tblnum, String columns) {
-		throw new UnsupportedOperationException("indexSize");
+		return getIndex(tblnum, columns).totalSize();
 	}
 
 	@Override
@@ -152,16 +158,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		int nrecs = tableCount(tblnum);
 		if (nrecs == 0)
 			return 0;
-		return 10;
-		// TODO keySize
-//		Btree idx = getIndex(tblnum, columns);
-//		return idx.totalSize() / nrecs;
+		Btree idx = getIndex(tblnum, columns);
+		return idx.totalSize() / nrecs;
 	}
 
 	@Override
 	public float rangefrac(int tblnum, String columns,
 			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
-		throw new UnsupportedOperationException("rangefrac");
+		return getIndex(tblnum, columns).rangefrac((Record) from, (Record) to);
 	}
 
 	@Override
@@ -242,16 +246,17 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
-		throw new UnsupportedOperationException("iter1");
+		Table tbl = ck_getTable(tblnum);
+		int[] fields = tbl.namesToNums(columns);
+		Btree idx = getIndex(tblnum, fields);
+		return idx.iterator();
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
-		Table tbl = ck_getTable(tblnum);
-		int[] fields = tbl.namesToNums(columns);
-		Btree idx = getIndex(tblnum, fields);
-		return idx.iterator();
+		Btree idx = getIndex(tblnum, columns);
+		return idx.iterator(); // TODO handle org and end
 	}
 
 	@Override

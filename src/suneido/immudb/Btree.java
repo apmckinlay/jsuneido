@@ -36,11 +36,12 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 class Btree {
-	int maxNodeSize() { return 20; } // overridden by test
+	protected int splitSize() { return 20; } // overridden by test
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
 	int nnodes;
+	int totalSize;
 	private int modified = 0; // depends on all access via one instance
 
 	Btree(Tran tran) {
@@ -55,6 +56,7 @@ class Btree {
 		this.root = info.root;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
+		this.totalSize = info.totalSize;
 	}
 
 	boolean isEmpty() {
@@ -116,7 +118,9 @@ class Btree {
 				return false;
 		}
 
-		if (leaf.size() < maxNodeSize()) {
+		totalSize += keySize(key);
+
+		if (hasRoom(leaf)) {
 			// normal/fast path - simply insert into leaf
 			BtreeNode before = leaf;
 			leaf = leaf.with(key);
@@ -134,7 +138,7 @@ class Btree {
 		// insert up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
-			if (treeNode.size() < maxNodeSize()) {
+			if (hasRoom(treeNode)) {
 				treeNode = treeNode.with(split.key);
 				tran.redir(adrs.get(i), treeNode);
 				return true;
@@ -147,6 +151,15 @@ class Btree {
 		newRoot(split);
 		++nnodes;
 		return true;
+	}
+
+	/** size without trailing address */
+	int keySize(Record key) {
+		return key.prefixSize(key.size() - 1);
+	}
+
+	private boolean hasRoom(BtreeNode node) {
+		return node.size() < splitSize();
 	}
 
 	private void newRoot(Split split) {
@@ -196,6 +209,9 @@ class Btree {
 		leaf = leaf.without(key);
 		if (leaf == null)
 			return false; // not found
+
+		totalSize -= keySize(key);
+
 		if (adr == root)
 			root = tran.refToInt(leaf);
 		else
@@ -509,7 +525,40 @@ class Btree {
 	BtreeInfo info() {
 		if (IntRefs.isIntRef(root))
 			root = tran.getAdr(root);
-		return new BtreeInfo(root, treeLevels, nnodes);
+		return new BtreeInfo(root, treeLevels, nnodes, totalSize);
+	}
+
+	public int totalSize() {
+		return totalSize;
+	}
+
+	/** from is inclusive, end is exclusive */
+	float rangefrac(Record from, Record to) {
+		BtreeNode node = nodeAt(0, root);
+		int org = node.lowerBound(from);
+		int end = node.lowerBound(to);
+		int n = node.size();
+		if (treeLevels == 0)
+			return (float) (end - org) / n;
+		else {
+			float pernode = (float) 1 / n;
+			int fromadr = getAddress(node.find(from));
+			int toadr = getAddress(node.find(to));
+			float result =
+					keyfracpos(toadr, to, (float) end / n, pernode) -
+					keyfracpos(fromadr, from, (float) org / n, pernode);
+			return result < 0 ? 0 : result;
+		}
+	}
+
+	/**
+	 * @param start the fraction into the index where this node starts
+	 * @param nodefrac the fraction of the index under this node
+	 */
+	private float keyfracpos(int adr, Record key, float start, float nodefrac) {
+		BtreeNode node = nodeAt(1, adr);
+		int i = node.lowerBound(key);
+		return start + (nodefrac * i) / node.size();
 	}
 
 }

@@ -10,9 +10,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.immudb.Record;
-import suneido.immudb.RecordBuilder;
-
 public class RecordTest {
 
 	@Test
@@ -64,6 +61,14 @@ public class RecordTest {
 		assertThat(RecordBuilder.length(1, 300), is(306));
 
 		assertThat(RecordBuilder.length(1, 0x10000), is(0x1000a));
+	}
+
+	@Test
+	public void prefixSize() {
+		Record rec = record("hi", "world");
+		assertThat(rec.prefixSize(0), is(0));
+		assertThat(rec.prefixSize(1), is(3));
+		assertThat(rec.prefixSize(2), is(9));
 	}
 
 	public static Record record(Object... data) {

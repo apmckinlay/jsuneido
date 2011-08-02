@@ -152,7 +152,8 @@ class BtreeIndex {
 	}
 
 	int totalSize() {
-		return bt.nnodes() * Btree.NODESIZE;
+//		int usage = (nnodes() <= 1 ? 4 : 2);
+		return nnodes() * Btree.NODESIZE;// / usage;
 	}
 
 	boolean insert(Transaction tran, Slot x) {

@@ -2,6 +2,7 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.*;
 
 import java.util.ArrayList;
@@ -271,12 +272,12 @@ public class Union extends Compatible {
 		} else {
 			// curkey is required for changing direction
 			if (src1 || before(dir, key1, 1, curkey, 2)) {
-				if (key1.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
+				if (key1.equals(dir == Dir.NEXT ? dbpkg.minRecord() : dbpkg.maxRecord()))
 					source.select(ki, sel.org, sel.end);
 				fetch1(dir);
 			}
 			if (src2 || before(dir, key2, 2, curkey, 1)) {
-				if (key2.equals(dir == Dir.NEXT ? Record.MINREC : Record.MAXREC))
+				if (key2.equals(dir == Dir.NEXT ? dbpkg.minRecord() : dbpkg.maxRecord()))
 					source2.select(ki, sel.org, sel.end);
 				fetch2(dir);
 			}
@@ -307,14 +308,14 @@ public class Union extends Compatible {
 	private void fetch1(Dir dir) {
 		row1 = source.get(dir);
 		key1 = (row1 == null
-				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
+				? (dir == Dir.NEXT ? dbpkg.maxRecord() : dbpkg.minRecord())
 				: row1.project(hdr1, ki));
 	}
 
 	private void fetch2(Dir dir) {
 		row2 = source2.get(dir);
 		key2 = (row2 == null
-				? (dir == Dir.NEXT ? Record.MAXREC : Record.MINREC)
+				? (dir == Dir.NEXT ? dbpkg.maxRecord() : dbpkg.minRecord())
 				: row2.project(hdr2, ki));
 	}
 

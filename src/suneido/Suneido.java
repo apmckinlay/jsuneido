@@ -20,7 +20,7 @@ import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
-	public static final DatabasePackage dbpkg = new suneido.database.DatabasePackage();
+	public static DatabasePackage dbpkg = new suneido.database.DatabasePackage();
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
@@ -143,11 +143,13 @@ public class Suneido {
 			fatal("error during init", e);
 		}
 		scheduleAtFixedRate(new Runnable() {
+			@Override
 			public void run() {
 				db.limitOutstandingTransactions();
 			}
 		}, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(new Runnable() {
+			@Override
 			public void run() {
 				db.force();
 			}

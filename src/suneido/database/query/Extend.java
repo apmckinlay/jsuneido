@@ -12,7 +12,6 @@ import java.util.Set;
 import suneido.SuException;
 import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
-import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 
 public class Extend extends Query1 {
@@ -114,10 +113,10 @@ public class Extend extends Query1 {
 			return null;
 		RecordBuilder rb = dbpkg.recordBuilder();
 		for (int i = 0; i < flds.size(); ++i) {
-			Row row = new Row(srcrow, Record.MINREC, rb.build());
+			Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
 			rb.add(exprs.get(i).eval(hdr, row));
 		}
-		return new Row(srcrow, Record.MINREC, rb.build());
+		return new Row(srcrow, dbpkg.minRecord(), rb.build());
 	}
 
 	@SuppressWarnings("unchecked")

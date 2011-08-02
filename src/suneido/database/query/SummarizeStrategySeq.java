@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.startsWith;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 	void select(List<String> index, Record from, Record to) {
 		// because of fixed, this index may not be the same as the source index (via)
 		if (startsWith(q.via, index) ||
-				(from.equals(Record.MINREC) && to.equals(Record.MAXREC)))
+				(from.equals(dbpkg.minRecord()) && to.equals(dbpkg.maxRecord())))
 			source.select(q.via, from, to);
 		else
 			throw new SuException(

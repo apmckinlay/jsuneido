@@ -18,14 +18,16 @@ class BtreeInfo {
 	final int root;
 	final int treeLevels;
 	final int nnodes;
+	final int totalSize;
 
-	BtreeInfo(int root, int treeLevels, int nnodes) {
+	BtreeInfo(int root, int treeLevels, int nnodes, int totalSize) {
 		checkArgument(root != 0);
 		checkArgument(treeLevels >= 0);
 		checkArgument(nnodes > 0);
 		this.root = root;
 		this.treeLevels = treeLevels;
 		this.nnodes = nnodes;
+		this.totalSize = totalSize;
 	}
 
 	@Override
