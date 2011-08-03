@@ -250,7 +250,7 @@ public class BtreeTest {
 		int i = keys.size();
 		Btree.Iter iter = btree.iterator();
 		for (iter.prev(); ! iter.eof(); iter.prev())
-			assertThat(iter.cur(), is(keys.get(--i)));
+			assertThat("i " + i, iter.cur(), is(keys.get(--i)));
 		assertThat(i, is(0));
 		iter.prev();
 		assertTrue(iter.eof());
@@ -434,6 +434,40 @@ public class BtreeTest {
 				closeTo(.1, .01));
 		assertThat((double) btree.rangefrac(record(15), record(85)),
 				closeTo(.7, .01));
+	}
+
+	@Test
+	public void iterate_range() {
+		add(100);
+		Collections.sort(keys);
+
+		Record from = keys.get(25);
+		Record to = keys.get(75);
+		Btree.Iter iter = btree.iterator(from, to);
+		int i = 25;
+		for (iter.next(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(76));
+
+		iter = btree.iterator(from, to);
+		i = 75;
+		for (iter.prev(); ! iter.eof(); iter.prev())
+			assertThat("i " + i, iter.cur(), is(keys.get(i--)));
+		assertThat(i, is(24));
+
+		from = new RecordBuilder().add(from.getRaw(0)).build();
+		to = new RecordBuilder().add(to.getRaw(0)).build();
+		iter = btree.iterator(from, to);
+		i = 25;
+		for (iter.next(); ! iter.eof(); iter.next())
+			assertThat(iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(76));
+
+		iter = btree.iterator(from, to);
+		i = 75;
+		for (iter.prev(); ! iter.eof(); iter.prev())
+			assertThat("i " + i, iter.cur(), is(keys.get(i--)));
+		assertThat(i, is(24));
 	}
 
 	@Test

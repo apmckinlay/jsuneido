@@ -20,6 +20,14 @@ public class BtreeIndexTest extends TestBase {
 			}
 			iter.next();
 			assertTrue(iter.eof());
+
+			iter = bi.iter(key(3), key(6));
+			for (int i = 6; i >= 3; --i) {
+				iter.prev();
+				assertEquals(i, iter.cur().key.getInt(0));
+			}
+			iter.prev();
+			assertTrue(iter.eof());
 		} finally {
 			t.complete();
 		}

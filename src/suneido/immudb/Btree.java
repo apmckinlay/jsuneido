@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.DatabasePackage.MAX_RECORD;
+import static suneido.immudb.DatabasePackage.MIN_RECORD;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 
@@ -281,45 +283,27 @@ class Btree {
 		return new Iter();
 	}
 
+	Iter iterator(Record org, Record end) {
+		return new Iter(org, end);
+	}
+
 	class Iter implements IndexIter {
+		private final Record from;
+		private final Record to;
 		// top of stack is leaf
 		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
 		private Record cur = null;
 		private boolean rewound = true;
 		private int valid;
 
-		private void first() {
-			if (isEmpty())
-				return;
-			int adr = root;
-			for (int level = treeLevels; level >= 0; --level) {
-				BtreeNode node = nodeAt(level, adr);
-				stack.push(new LevelInfo(node, 0));
-				Record slot = node.get(0);
-				if (level == 0) {
-					cur = slot;
-					break;
-				}
-				adr = getAddress(slot);
-			}
-			valid = modified;
+		public Iter() {
+			from = MIN_RECORD;
+			to = MAX_RECORD;
 		}
 
-		private void last() {
-			if (isEmpty())
-				return;
-			int adr = root;
-			for (int level = treeLevels; level >= 0; --level) {
-				BtreeNode node = nodeAt(level, adr);
-				stack.push(new LevelInfo(node, node.size() - 1));
-				Record slot = node.get(node.size() - 1);
-				if (level == 0) {
-					cur = slot;
-					break;
-				}
-				adr = getAddress(slot);
-			}
-			valid = modified;
+		public Iter(Record from, Record to) {
+			this.from = from;
+			this.to = to;
 		}
 
 		/** leaves cur = null if key not found */
@@ -333,6 +317,8 @@ class Btree {
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
 				int pos = node.findPos(key);
+				if (pos == -1)
+					pos = node.size() - 1;
 				stack.push(new LevelInfo(node, pos));
 				Record slot = node.get(pos);
 				if (level == 0) {
@@ -346,11 +332,11 @@ class Btree {
 		@Override
 		public void next() {
 			if (rewound) {
-				first();
+				seek(from);
 				rewound = false;
-				return;
-			}
-			if (eof())
+				if (cur != null)
+					return;
+			} else if (eof())
 				return;
 			if (modified != valid) {
 				Record oldcur = cur;
@@ -377,16 +363,18 @@ class Btree {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
+			if (cur.prefixGt(to))
+				cur = null;
 		}
 
 		@Override
 		public void prev() {
 			if (rewound) {
-				last();
+				seek(to);
 				rewound = false;
-				return;
-			}
-			if (eof())
+				if (cur != null)
+					return;
+			} else if (eof())
 				return;
 			if (modified != valid) {
 				Record oldcur = cur;
@@ -413,6 +401,8 @@ class Btree {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
+			if (cur.compareTo(from) < 0)
+				cur = null;
 		}
 
 		@Override

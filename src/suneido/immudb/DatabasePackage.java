@@ -7,8 +7,8 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
-	private static final Record MIN_RECORD = new RecordBuilder().build();
-	private static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
+	static final Record MIN_RECORD = new RecordBuilder().build();
+	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
 
 	@Override
 	public Database open(String filename) {
