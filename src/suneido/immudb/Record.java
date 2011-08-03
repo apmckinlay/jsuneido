@@ -161,6 +161,15 @@ class Record implements suneido.intfc.database.Record {
 		return true;
 	}
 
+	public boolean prefixGt(Record rec) {
+		for (int i = 0; i < rec.size(); ++i) {
+			int cmp = compare1(this, rec, i);
+			if (cmp != 0)
+				return cmp > 0;
+		}
+		return false; // prefix equal
+	}
+
 	private static int compare1(Record x, Record y, int i) {
 		return compare1(
 				x.fieldBuffer(i), x.fieldOffset(i), x.fieldLength(i),

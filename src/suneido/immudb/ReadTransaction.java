@@ -187,12 +187,12 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record r) {
-		throw new UnsupportedOperationException("addRecord");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
-		throw new UnsupportedOperationException("updateRecord");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -219,14 +219,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	@Override
 	public suneido.intfc.database.Record lookup(int tblnum, String index,
 			suneido.intfc.database.Record key) {
-		throw new UnsupportedOperationException("lookup");
+		throw new UnsupportedOperationException(); //TODO
 	}
 
 	@Override
 	public void callTrigger(suneido.intfc.database.Table table,
 			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
-		throw new UnsupportedOperationException("callTrigger");
+		throw new UnsupportedOperationException(); //TODO
 	}
 
 	@Override
@@ -236,7 +236,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public Record fromRef(Object ref) {
-		throw new UnsupportedOperationException("fromRef");
+		throw new UnsupportedOperationException(); //TODO
 	}
 
 	@Override
@@ -256,12 +256,12 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
 		Btree idx = getIndex(tblnum, columns);
-		return idx.iterator(); // TODO handle org and end
+		return idx.iterator((Record) org, (Record) end);
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
-		throw new UnsupportedOperationException("iter3");
+		throw new UnsupportedOperationException(""); //TODO
 	}
 
 }

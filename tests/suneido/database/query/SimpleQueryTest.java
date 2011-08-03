@@ -44,13 +44,39 @@ public class SimpleQueryTest {
 	}
 
 	@Test
-	public void test() {
+	public void table() {
+		Transaction t = db.readonlyTran();
+		try {
+			Query q = CompileQuery.query(t, serverData, "tables");
+			Record r = q.get(Dir.NEXT).firstData();
+			assertThat(r.getInt(0), is(1));
+			assertThat(r.getString(1), is("tables"));
+		} finally {
+			t.complete();
+		}
+	}
+
+	@Test
+	public void where() {
 		Transaction t = db.readonlyTran();
 		try {
 			Query q = CompileQuery.query(t, serverData, "tables where tablename > 'd'");
 			Record r = q.get(Dir.NEXT).firstData();
 			assertThat(r.getInt(0), is(3));
 			assertThat(r.getString(1), is("indexes"));
+		} finally {
+			t.complete();
+		}
+	}
+
+	@Test
+	public void join() {
+		Transaction t = db.readonlyTran();
+		try {
+			Query q = CompileQuery.query(t, serverData, "tables join columns");
+			Record r = q.get(Dir.NEXT).firstData();
+			assertThat(r.getInt(0), is(1));
+			assertThat(r.getString(1), is("tables"));
 		} finally {
 			t.complete();
 		}

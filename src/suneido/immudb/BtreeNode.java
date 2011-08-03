@@ -98,8 +98,9 @@ abstract class BtreeNode {
 	/**
 	 * @param key The value to look for, without the trailing record address
 	 * @return	For leaf nodes, the first position >= the one specified,
-	 * 			or -1 if there isn't one.position <= the one specified,
-	 *			or the first key.
+	 * 			or -1 if there isn't one.
+	 * 			For tree nodes, the position <= the one specified,
+	 *			or the last key.
 	 */
 	int findPos(Record key) {
 		if (isEmpty())
@@ -111,7 +112,7 @@ abstract class BtreeNode {
 			if (at == 0)
 				return at;
 			if (at >= size())
-				return at - 1;
+				return size() - 1;
 			Record slot = get(at);
 			return slot.startsWith(key) ? at : at - 1;
 		}
