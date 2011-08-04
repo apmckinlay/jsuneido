@@ -17,6 +17,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.language.Triggers;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
 import suneido.util.PersistentMap;

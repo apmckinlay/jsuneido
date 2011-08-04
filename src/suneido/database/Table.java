@@ -36,6 +36,11 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	@Override
+	public String name() {
+		return name;
+	}
+
+	@Override
 	public int num() {
 		return num;
 	}

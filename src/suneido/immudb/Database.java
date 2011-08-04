@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.language.Triggers;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
@@ -19,6 +20,7 @@ class Database implements suneido.intfc.database.Database {
 	final Storage stor;
 	final Object commitLock = new Object();
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
+	private final Triggers triggers = new Triggers();
 	DbHashTrie dbinfo;
 	DbHashTrie redirs;
 	Tables schema;
@@ -76,7 +78,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public ReadTransaction readonlyTran() {
 		int num = trans.nextNum(true);
-		return new ReadTransaction(num, stor, dbinfo, schema, redirs);
+		return new ReadTransaction(num, this);
 	}
 
 	@Override
@@ -191,12 +193,17 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void disableTrigger(String table) {
-		// TODO Auto-generated method stub
+		triggers.disableTrigger(table);
 	}
 
 	@Override
 	public void enableTrigger(String table) {
-		// TODO Auto-generated method stub
+		triggers.enableTrigger(table);
+	}
+
+	void callTrigger(
+			ReadTransaction t, Table table, Record oldrec, Record newrec) {
+		triggers.call(t, table, oldrec, newrec);
 	}
 
 }

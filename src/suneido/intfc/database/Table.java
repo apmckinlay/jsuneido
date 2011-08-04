@@ -10,6 +10,8 @@ import com.google.common.collect.ImmutableList;
 
 public interface Table {
 
+	String name();
+
 	int num();
 
 	boolean singleton();

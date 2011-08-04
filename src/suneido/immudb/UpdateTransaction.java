@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
  * Commit is single-threaded.
  */
 class UpdateTransaction extends ReadTransaction {
-	protected final Database db;
 	protected Tables newSchema;
 	protected final UpdateDbInfo dbinfo;
 	protected boolean locked = false;
@@ -30,8 +29,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	/** for Database.updateTran */
 	UpdateTransaction(int num, Database db) {
-		super(num, db.stor, db.dbinfo, db.schema, db.redirs);
-		this.db = db;
+		super(num, db);
 		this.dbinfo = new UpdateDbInfo(stor, db.dbinfo);
 		newSchema = schema;
 		lock(db);
