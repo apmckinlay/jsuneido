@@ -287,6 +287,10 @@ class Btree {
 		return new Iter(org, end);
 	}
 
+	Iter iterator(IndexIter iter) {
+		return new Iter((Iter) iter);
+	}
+
 	class Iter implements IndexIter {
 		private final Record from;
 		private final Record to;
@@ -296,37 +300,22 @@ class Btree {
 		private boolean rewound = true;
 		private int valid;
 
-		public Iter() {
+		Iter() {
 			from = MIN_RECORD;
 			to = MAX_RECORD;
 		}
 
-		public Iter(Record from, Record to) {
+		Iter(Record from, Record to) {
 			this.from = from;
 			this.to = to;
 		}
 
-		/** leaves cur = null if key not found */
-		private void seek(Record key) {
-			valid = modified;
-			stack.clear();
-			cur = null;
-			if (isEmpty())
-				return;
-			int adr = root;
-			for (int level = treeLevels; level >= 0; --level) {
-				BtreeNode node = nodeAt(level, adr);
-				int pos = node.findPos(key);
-				if (pos == -1)
-					pos = node.size() - 1;
-				stack.push(new LevelInfo(node, pos));
-				Record slot = node.get(pos);
-				if (level == 0) {
-					cur = slot;
-					break;
-				}
-				adr = getAddress(slot);
-			}
+		Iter(Iter iter) {
+			from = iter.from;
+			to = iter.to;
+			cur = iter.cur;
+			rewound = iter.rewound;
+			valid = -1;
 		}
 
 		@Override
@@ -403,6 +392,29 @@ class Btree {
 			cur = leaf.node.get(leaf.pos);
 			if (cur.compareTo(from) < 0)
 				cur = null;
+		}
+
+		/** leaves cur = null if key not found */
+		private void seek(Record key) {
+			valid = modified;
+			stack.clear();
+			cur = null;
+			if (isEmpty())
+				return;
+			int adr = root;
+			for (int level = treeLevels; level >= 0; --level) {
+				BtreeNode node = nodeAt(level, adr);
+				int pos = node.findPos(key);
+				if (pos == -1)
+					pos = node.size() - 1;
+				stack.push(new LevelInfo(node, pos));
+				Record slot = node.get(pos);
+				if (level == 0) {
+					cur = slot;
+					break;
+				}
+				adr = getAddress(slot);
+			}
 		}
 
 		@Override

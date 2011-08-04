@@ -250,22 +250,18 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
-		Table tbl = ck_getTable(tblnum);
-		int[] fields = tbl.namesToNums(columns);
-		Btree idx = getIndex(tblnum, fields);
-		return idx.iterator();
+		return getIndex(tblnum, columns).iterator();
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
-		Btree idx = getIndex(tblnum, columns);
-		return idx.iterator((Record) org, (Record) end);
+		return getIndex(tblnum, columns).iterator((Record) org, (Record) end);
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
-		throw new UnsupportedOperationException(""); //TODO
+		return getIndex(tblnum, columns).iterator(iter);
 	}
 
 }
