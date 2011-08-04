@@ -10,6 +10,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.immudb.Bootstrap.TN;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -57,7 +59,9 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	static Record toRecord(int num, String name) {
-		return new RecordBuilder().add(num).add(name).build();
+		Record r = new RecordBuilder().add(num).add(name).build();
+		r.tblnum = TN.TABLES;
+		return r;
 	}
 
 	boolean hasColumn(String name) {

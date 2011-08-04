@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import java.util.List;
 
+import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 
 import com.google.common.base.CharMatcher;
@@ -93,7 +94,9 @@ class Index implements Comparable<Index> {
 			rb.add(isKey);
 		if (fksrc != null)
 			rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
-		return rb.build();
+		Record r = rb.build();
+		r.tblnum = TN.INDEXES;
+		return r;
 	}
 
 //	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {

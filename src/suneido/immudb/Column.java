@@ -6,6 +6,8 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.immudb.Bootstrap.TN;
+
 @Immutable
 class Column implements Comparable<Column> {
 	static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
@@ -30,7 +32,9 @@ class Column implements Comparable<Column> {
 	}
 
 	static Record toRecord(int tblnum, int field, String column) {
-		return new RecordBuilder().add(tblnum).add(field).add(column).build();
+		Record r = new RecordBuilder().add(tblnum).add(field).add(column).build();
+		r.tblnum = TN.COLUMNS;
+		return r;
 	}
 
 	@Override

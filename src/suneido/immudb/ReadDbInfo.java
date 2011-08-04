@@ -32,7 +32,7 @@ class ReadDbInfo {
 		Entry e = dbinfo.get(tblnum);
 		if (e instanceof IntEntry) {
 			int adr = ((IntEntry) e).value;
-			Record rec = new Record(stor.buffer(adr));
+			Record rec = new Record(stor, adr);
 			TableInfo ti = new TableInfo(rec, adr);
 			dbinfo = dbinfo.with(ti);
 			return ti;

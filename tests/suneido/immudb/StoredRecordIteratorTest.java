@@ -35,6 +35,7 @@ public class StoredRecordIteratorTest {
 			.add(Strings.repeat("x", len - 5))
 			.build();
 		assertThat(r.bufSize(), is(len));
+		r.tblnum = 123;
 		return r.store(stor);
 	}
 

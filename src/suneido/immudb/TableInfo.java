@@ -86,7 +86,9 @@ class TableInfo extends DbHashTrie.Entry {
 			rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
 			for (IndexInfo info : indexInfo)
 				info.addToRecord(rb);
-			adr = rb.build().store(stor);
+			Record r = rb.build();
+			r.tblnum = 1;
+			adr = r.store(stor);
 		}
 		return adr;
 	}

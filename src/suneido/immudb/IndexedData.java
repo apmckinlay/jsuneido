@@ -71,7 +71,7 @@ class IndexedData {
 		throw new RuntimeException("no key!");
 	}
 
-	private static class AnIndex {
+	static class AnIndex {
 		final Btree btree;
 		final Mode mode;
 		final int[] fields;

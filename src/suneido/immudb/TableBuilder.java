@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.immudb.Bootstrap.TN;
+import suneido.immudb.IndexedData.AnIndex;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -185,12 +186,13 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		if (table == null)
 			return;
 		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
-		Btree btree = t.addIndex(tblnum, newIndex.colNums);
 		Btree.Iter iter = src.iterator();
-		IndexedData id = new IndexedData(t.tran);
-		id.index(btree, newIndex.mode(), newIndex.colNums);
-		for (iter.next(); ! iter.eof(); iter.next())
-			id.add(t.getrec(Btree.getAddress(iter.cur())));
+		Btree btree = t.addIndex(tblnum, newIndex.colNums);
+		AnIndex idx = new AnIndex(btree, newIndex.mode(), newIndex.colNums);
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			int adr = iter.keyadr();
+			idx.add(t.getrec(adr), adr);
+		}
 	}
 
 	@Override
