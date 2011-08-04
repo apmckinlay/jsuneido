@@ -82,6 +82,19 @@ public class SimpleQueryTest {
 		}
 	}
 
+	@Test
+	public void sort() {
+		Transaction t = db.readonlyTran();
+		try {
+			Query q = CompileQuery.query(t, serverData, "columns sort column");
+			Header hdr = q.header();
+			Row row = q.get(Dir.NEXT);
+			assertThat((String) row.getval(hdr, "column"), is("column"));
+		} finally {
+			t.complete();
+		}
+	}
+
 	@After
 	public void resetDbpkg() {
 		Suneido.dbpkg = new suneido.database.DatabasePackage();

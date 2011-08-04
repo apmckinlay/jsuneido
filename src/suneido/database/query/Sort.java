@@ -44,8 +44,7 @@ public class Sort extends Query1 {
 
 	@Override
 	public Row get(Dir dir) {
-		return source.get(reverse ? (dir == Dir.NEXT ? Dir.PREV : Dir.NEXT)
-				: dir);
+		return source.get(reverse ? (dir == Dir.NEXT ? Dir.PREV : Dir.NEXT) : dir);
 	}
 
 	@Override
