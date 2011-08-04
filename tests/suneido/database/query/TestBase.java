@@ -9,14 +9,20 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
+import suneido.Suneido;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.*;
 import suneido.intfc.database.Table;
 import suneido.language.Ops;
 
 public class TestBase {
-	protected final Database db = dbpkg.testdb();
+	protected final Database db;
 	protected final ServerData serverData = new ServerData();
+
+	TestBase() {
+		Suneido.dbpkg = new suneido.database.DatabasePackage();
+		db = dbpkg.testdb();
+	}
 
 	@Before
 	public void setQuoting() {
