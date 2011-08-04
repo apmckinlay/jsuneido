@@ -219,9 +219,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public suneido.intfc.database.Record lookup(int tblnum, String index,
-			suneido.intfc.database.Record key) {
-		throw new UnsupportedOperationException(); //TODO
+	public suneido.intfc.database.Record lookup(
+			int tblnum, String index, suneido.intfc.database.Record key) {
+		Btree bti = getIndex(tblnum, index);
+		if (bti == null)
+			return null;
+		Btree.Iter iter = bti.iterator((Record) key);
+		iter.next();
+		return iter.eof() ? null : tran.getrec(iter.keyadr());
 	}
 
 	@Override

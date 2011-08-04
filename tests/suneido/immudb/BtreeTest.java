@@ -501,6 +501,18 @@ public class BtreeTest {
 		assertThat(i, is(76));
 	}
 
+	@Test
+	public void seek_nonexistent() {
+		btree.add(record("andy"));
+		btree.add(record("zack"));
+		Btree.Iter iter = btree.iterator(record("fred"));
+		iter.next();
+		assertTrue(iter.eof());
+		iter = btree.iterator(record("fred"));
+		iter.prev();
+		assertTrue(iter.eof());
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}

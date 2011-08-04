@@ -287,6 +287,10 @@ class Btree {
 		return new Iter(org, end);
 	}
 
+	Iter iterator(Record key) {
+		return new Iter(key, key);
+	}
+
 	Iter iterator(IndexIter iter) {
 		return new Iter((Iter) iter);
 	}
@@ -323,8 +327,11 @@ class Btree {
 			if (rewound) {
 				seek(from);
 				rewound = false;
-				if (cur != null)
+				if (cur != null) {
+					if (cur.prefixGt(to))
+						cur = null;
 					return;
+				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
@@ -361,8 +368,11 @@ class Btree {
 			if (rewound) {
 				seek(to);
 				rewound = false;
-				if (cur != null)
+				if (cur != null) {
+					if (cur.prefixGt(to))
+						cur = null;
 					return;
+				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
