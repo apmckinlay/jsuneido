@@ -36,3 +36,10 @@ syntax: regexp
 \.su$
 syntax: regexp
 \.db$
+
+syntax: regexp
+^cstest$
+syntax: regexp
+^tests\.go$
+syntax: regexp
+^jsuneido\.ws$
