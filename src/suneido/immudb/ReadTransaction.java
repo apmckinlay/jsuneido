@@ -22,6 +22,7 @@ import com.google.common.collect.HashBasedTable;
  */
 @Immutable
 class ReadTransaction implements suneido.intfc.database.Transaction {
+	protected final Database db;
 	protected final Storage stor;
 	protected final Tran tran;
 	private final ReadDbInfo dbinfo;
@@ -29,13 +30,13 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final HashBasedTable<Integer,ColNums,Btree> indexes = HashBasedTable.create();
 	protected final int num;
 
-	ReadTransaction(int num,
-			Storage stor, DbHashTrie dbinfo, Tables schema, DbHashTrie redirs) {
+	ReadTransaction(int num, Database db) {
 		this.num = num;
-		this.stor = stor;
-		this.dbinfo = new ReadDbInfo(stor, dbinfo);
-		this.schema = schema;
-		tran = new Tran(stor, new Redirects(redirs));
+		this.db = db;
+		stor = db.stor;
+		dbinfo = new ReadDbInfo(stor, db.dbinfo);
+		schema = db.schema;
+		tran = new Tran(stor, new Redirects(db.redirs));
 	}
 
 	protected DbHashTrie originalDbinfo() {
@@ -233,7 +234,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	public void callTrigger(suneido.intfc.database.Table table,
 			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
-		throw new UnsupportedOperationException(); //TODO
+		db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
 	}
 
 	@Override

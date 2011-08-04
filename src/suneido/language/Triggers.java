@@ -2,28 +2,31 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database;
+package suneido.language;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.SuRecord;
+import suneido.SuValue;
 import suneido.database.server.DbmsTranLocal;
-import suneido.language.Globals;
-import suneido.language.Ops;
+import suneido.intfc.database.Record;
+import suneido.intfc.database.Table;
+import suneido.intfc.database.Transaction;
 import suneido.language.builtin.SuTransaction;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 
 @ThreadSafe
-class Triggers {
+public class Triggers {
 	private final Multiset<String> disabledTriggers =
 			ConcurrentHashMultiset.create();
 
-	void call(Transaction tran, Table table, Record oldrec, Record newrec) {
-		if (disabledTriggers.contains(table.name))
+	public void call(Transaction tran, Table table, Record oldrec, Record newrec) {
+		if (disabledTriggers.contains(table.name()))
 			return;
-		String trigger = "Trigger_" + table.name;
+		String trigger = "Trigger_" + table.name();
 		Object fn = Globals.tryget(trigger);
 		if (fn == null)
 			return;
@@ -32,19 +35,19 @@ class Triggers {
 		SuTransaction t = new SuTransaction(new DbmsTranLocal(tran));
 		try {
 			Ops.call(fn, t,
-					oldrec == null ? false : new SuRecord(oldrec, table.fields, t),
-					newrec == null ? false : new SuRecord(newrec, table.fields, t));
+					oldrec == null ? false : new SuRecord(oldrec, table.getFields(), t),
+					newrec == null ? false : new SuRecord(newrec, table.getFields(), t));
 		} catch (SuException e) {
 			//e.printStackTrace();
 			throw new SuException(e + " (" + trigger + ")", e);
 		}
 	}
 
-	void disableTrigger(String table) {
+	public void disableTrigger(String table) {
 		disabledTriggers.add(table);
 	}
 
-	void enableTrigger(String table) {
+	public void enableTrigger(String table) {
 		disabledTriggers.remove(table);
 	}
 
