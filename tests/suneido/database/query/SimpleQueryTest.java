@@ -28,75 +28,57 @@ import com.google.common.collect.ImmutableList;
 @RunWith(Parameterized.class)
 public class SimpleQueryTest {
 	private final Database db;
+	private final Transaction t;
 	protected final ServerData serverData = new ServerData();
 
 	@Parameters
 	public static Collection<Object[]> generateParams() {
 		return ImmutableList.of(
 				new Object[] { new suneido.database.DatabasePackage() },
-				new Object[] { new suneido.immudb.DatabasePackage() }
-				);
+				new Object[] { new suneido.immudb.DatabasePackage() });
 	}
 
 	public SimpleQueryTest(DatabasePackage dbpkg) {
 		Suneido.dbpkg = dbpkg;
 		db = dbpkg.testdb();
+		t = db.readonlyTran();
 	}
 
 	@Test
 	public void table() {
-		Transaction t = db.readonlyTran();
-		try {
-			Query q = CompileQuery.query(t, serverData, "tables");
-			Record r = q.get(Dir.NEXT).firstData();
-			assertThat(r.getInt(0), is(1));
-			assertThat(r.getString(1), is("tables"));
-		} finally {
-			t.complete();
-		}
+		Query q = CompileQuery.query(t, serverData, "tables");
+		Record r = q.get(Dir.NEXT).firstData();
+		assertThat(r.getInt(0), is(1));
+		assertThat(r.getString(1), is("tables"));
 	}
 
 	@Test
 	public void where() {
-		Transaction t = db.readonlyTran();
-		try {
-			Query q = CompileQuery.query(t, serverData, "tables where tablename > 'd'");
-			Record r = q.get(Dir.NEXT).firstData();
-			assertThat(r.getInt(0), is(3));
-			assertThat(r.getString(1), is("indexes"));
-		} finally {
-			t.complete();
-		}
+		Query q = CompileQuery.query(t, serverData, "tables where tablename > 'd'");
+		Record r = q.get(Dir.NEXT).firstData();
+		assertThat(r.getInt(0), is(3));
+		assertThat(r.getString(1), is("indexes"));
 	}
 
 	@Test
 	public void join() {
-		Transaction t = db.readonlyTran();
-		try {
-			Query q = CompileQuery.query(t, serverData, "tables join columns");
-			Record r = q.get(Dir.NEXT).firstData();
-			assertThat(r.getInt(0), is(1));
-			assertThat(r.getString(1), is("tables"));
-		} finally {
-			t.complete();
-		}
+		Query q = CompileQuery.query(t, serverData, "tables join columns");
+		Record r = q.get(Dir.NEXT).firstData();
+		assertThat(r.getInt(0), is(1));
+		assertThat(r.getString(1), is("tables"));
 	}
 
 	@Test
 	public void sort() {
-		Transaction t = db.readonlyTran();
-		try {
-			Query q = CompileQuery.query(t, serverData, "columns sort column");
-			Header hdr = q.header();
-			Row row = q.get(Dir.NEXT);
-			assertThat((String) row.getval(hdr, "column"), is("column"));
-		} finally {
-			t.complete();
-		}
+		Query q = CompileQuery.query(t, serverData, "columns sort column");
+		Header hdr = q.header();
+		Row row = q.get(Dir.NEXT);
+		assertThat((String) row.getval(hdr, "column"), is("column"));
 	}
 
 	@After
-	public void resetDbpkg() {
+	public void cleanup() {
+		t.complete();
 		Suneido.dbpkg = new suneido.database.DatabasePackage();
 	}
 

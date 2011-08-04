@@ -377,6 +377,7 @@ public class BtreeTest {
 	@Test
 	public void translate_data_refs() {
 		Record rec = record("a data record");
+		rec.tblnum = 123;
 		int intref = tran.refToInt(rec);
 		Record key = record("hello", intref);
 		btree.add(key);

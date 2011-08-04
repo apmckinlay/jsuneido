@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static com.google.common.base.Preconditions.checkState;
 import static suneido.SuException.unreachable;
 
 import java.nio.ByteBuffer;
@@ -21,6 +22,7 @@ class Record implements suneido.intfc.database.Record {
 	private final ByteBuffer buf;
 	private final int bufpos; // used when the record is a key within a BtreeNode
 	private final int address;
+	int tblnum;
 
 	Record(ByteBuffer buf) {
 		this(0, buf, 0);
@@ -39,6 +41,12 @@ class Record implements suneido.intfc.database.Record {
 		this.bufpos = bufpos;
 		this.address = address;
 		check();
+	}
+
+	Record(Storage stor, int adr) {
+		buf = stor.buffer(adr);
+		bufpos = TBLNUM_SIZE;
+		this.address = adr;
 	}
 
 	void check() {
@@ -93,16 +101,24 @@ class Record implements suneido.intfc.database.Record {
 		return fieldOffset(-1) - bufpos;
 	}
 
+	private final int TBLNUM_SIZE = 2;
+
 	int store(Storage stor) {
-		int adr = stor.alloc(bufSize());
+		checkState(1 <= tblnum && tblnum < Short.MAX_VALUE);
+		int adr = stor.alloc(storSize());
 		ByteBuffer buf = stor.buffer(adr);
+		buf.putShort((short) tblnum);
 		pack(buf);
 		return adr;
 	}
 
+	int storSize() {
+		return TBLNUM_SIZE + bufSize();
+	}
+
 	@Override
 	public void pack(ByteBuffer dst) {
-		// TODO use array if available
+		//PERF use array if available
 		for (int i = 0; i < bufSize(); ++i)
 			dst.put(buf.get(bufpos + i));
 	}
@@ -205,7 +221,7 @@ class Record implements suneido.intfc.database.Record {
 		b.position(off);
 		b.limit(off + len);
 		return Pack.unpack(b);
-		// TODO change unpack to take buf,i,n to eliminate duplicate
+		//PERF change unpack to take buf,i,n to eliminate duplicate
 	}
 
 	@Override

@@ -130,7 +130,7 @@ class Tran implements Translator {
 	}
 
 	Record getrec(int adr) {
-		return new Record(adr, stor.buffer(adr));
+		return new Record(stor, adr);
 	}
 
 	void mergeRedirs(DbHashTrie current) {
