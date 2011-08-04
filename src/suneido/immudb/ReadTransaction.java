@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import java.nio.ByteBuffer;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.SuException;
@@ -236,7 +238,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public Record fromRef(Object ref) {
-		throw new UnsupportedOperationException(); //TODO
+		return ref instanceof Integer
+				? tran.getrec((Integer) ref)
+				: new Record((ByteBuffer) ref);
 	}
 
 	@Override
