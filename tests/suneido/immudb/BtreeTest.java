@@ -480,6 +480,27 @@ public class BtreeTest {
 		assertThat(btree.totalSize(), is(0));
 	}
 
+	@Test
+	public void iter_from_iter() {
+		add(100);
+		Collections.sort(keys);
+		Record from = keys.get(25);
+		Record to = keys.get(75);
+		Btree.Iter iterOrig = btree.iterator(from, to);
+		Btree.Iter iter = btree.iterator(iterOrig);
+		int i = 25;
+		for (iter.next(); ! iter.eof(); iter.next())
+			assertThat("i " + i, iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(76));
+
+		iterOrig.next();
+		iter = btree.iterator(iterOrig);
+		i = 25;
+		for (; ! iter.eof(); iter.next())
+			assertThat("i " + i, iter.cur(), is(keys.get(i++)));
+		assertThat(i, is(76));
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
