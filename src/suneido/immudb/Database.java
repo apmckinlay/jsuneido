@@ -140,6 +140,7 @@ class Database implements suneido.intfc.database.Database {
 			if (null != Views.getView(t, name))
 				throw new SuException("view: '" + name + "' already exists");
 			Views.addView(t, name, definition);
+			t.complete();
 		} finally {
 			t.abortIfNotComplete();
 		}
@@ -167,7 +168,8 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public String getSchema(String tableName) {
 		ReadTransaction t = readonlyTran();
-		return t.getTable(tableName).schema();
+		Table tbl = t.getTable(tableName);
+		return tbl == null ? null : tbl.schema();
 	}
 
 	@Override

@@ -47,6 +47,7 @@ class Record implements suneido.intfc.database.Record {
 		buf = stor.buffer(adr);
 		bufpos = TBLNUM_SIZE;
 		this.address = adr;
+		this.tblnum = buf.getShort(0);
 	}
 
 	void check() {

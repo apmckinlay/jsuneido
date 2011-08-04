@@ -69,18 +69,50 @@ class UpdateTransaction extends ReadTransaction {
 		dbinfo.add(ti);
 	}
 
-	/** for TableBuilder */
-	void addRecord(int tblnum, Record r) {
+	@Override
+	public void addRecord(String table, suneido.intfc.database.Record rec) {
+		addRecord(getTable(table).num, (Record) rec);
+	}
+
+	void addRecord(int tblnum, Record rec) {
 		assert locked;
-		r.tblnum = tblnum;
-		indexedData(tblnum).add(r);
-		dbinfo.updateRowInfo(tblnum, 1, r.bufSize());
+		rec.tblnum = tblnum;
+		indexedData(tblnum).add(rec);
+		dbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
+	}
+
+	@Override
+	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
+		Record from = new Record(stor, fromadr);
+		updateRecord(from.tblnum, from, (Record) to);
+		return 1; //??? don't know record address till commit
+	}
+
+	@Override
+	public int updateRecord(int tblnum,
+			suneido.intfc.database.Record from,
+			suneido.intfc.database.Record to) {
+		updateRecord(tblnum, (Record) from, (Record) to);
+		return 1; //??? don't know record address till commit
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
 		assert locked;
 		indexedData(tblnum).update(from, to);
 		dbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
+	}
+
+	@Override
+	public void removeRecord(int adr) {
+		Record rec = new Record(stor, adr);
+		removeRecord(rec.tblnum, rec);
+	}
+
+	@Override
+	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
+		assert locked;
+		indexedData(tblnum).remove((Record) rec);
+		dbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
 	private IndexedData indexedData(int tblnum) {
@@ -233,38 +265,6 @@ class UpdateTransaction extends ReadTransaction {
 	@Override
 	public String conflict() {
 		return conflict ;
-	}
-
-	@Override
-	public void addRecord(String table, suneido.intfc.database.Record r) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
-			suneido.intfc.database.Record newrec) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void removeRecord(int off) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
-		assert locked;
-		indexedData(tblnum).remove((Record) rec);
-		dbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
 }
