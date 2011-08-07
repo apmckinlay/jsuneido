@@ -328,7 +328,7 @@ class Btree {
 				seek(from);
 				rewound = false;
 				if (cur != null) {
-					if (cur.prefixGt(to))
+					if (cur.compareTo(from) < 0 || cur.prefixGt(to))
 						cur = null;
 					return;
 				}
@@ -359,7 +359,7 @@ class Btree {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
-			if (cur.prefixGt(to))
+			if (cur.compareTo(from) < 0 || cur.prefixGt(to))
 				cur = null;
 		}
 
@@ -550,7 +550,9 @@ class Btree {
 		int org = node.lowerBound(from);
 		int end = node.lowerBound(to);
 		int n = node.size();
-		if (treeLevels == 0)
+		if (n == 0)
+			return 0;
+		else if (treeLevels == 0)
 			return (float) (end - org) / n;
 		else {
 			float pernode = (float) 1 / n;
@@ -569,6 +571,7 @@ class Btree {
 	 */
 	private float keyfracpos(int adr, Record key, float start, float nodefrac) {
 		BtreeNode node = nodeAt(1, adr);
+		assert node.size() > 0;
 		int i = node.lowerBound(key);
 		return start + (nodefrac * i) / node.size();
 	}

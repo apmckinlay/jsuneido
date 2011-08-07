@@ -9,8 +9,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.immudb.Database;
-import suneido.immudb.ReadDbInfo;
 import suneido.immudb.Bootstrap.TN;
 
 public class BootstrapTest {
@@ -26,14 +24,14 @@ public class BootstrapTest {
 	}
 
 	private void check(Database db) {
-		assertThat(db.schema.get("tables").schema(),
+		assertThat(db.getSchema("tables"),
 				is("(table,tablename) key(table) key(tablename)"));
-		assertThat(db.schema.get("columns").schema(),
+		assertThat(db.getSchema("columns"),
 				is("(table,field,column) key(table,field)"));
-		assertThat(db.schema.get("indexes").schema(),
+		assertThat(db.getSchema("indexes"),
 				is("(table,columns,key,fktable,fkcolumns,fkmode) " +
 						"key(table,columns)"));
-		assertThat(db.schema.get("views").schema(),
+		assertThat(db.getSchema("views"),
 				is("(view_name,view_definition) key(view_name)"));
 
 		ReadDbInfo dbinfo = new ReadDbInfo(db.stor, db.dbinfo);

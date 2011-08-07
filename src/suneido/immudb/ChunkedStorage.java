@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static com.google.common.base.Preconditions.checkElementIndex;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Iterator;
@@ -100,7 +102,7 @@ return buf.slice().asReadOnlyBuffer();
 
 	/** @return the chunk containing the specified offset */
 	protected ByteBuffer map(long offset) {
-		assert 0 <= offset && offset <= file_size;
+		checkElementIndex((int) offset, (int) file_size);
 		int chunk = (int) (offset / CHUNK_SIZE);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);

@@ -1,11 +1,8 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
-
-import suneido.intfc.database.Record;
 
 public class RuleFieldTest extends TestBase {
 
@@ -23,12 +20,6 @@ public class RuleFieldTest extends TestBase {
 		assertEquals("[b, a]", hdr.columns().toString());
 		assertEquals("[a]", hdr.fields().toString());
 		assertEquals("[b]", hdr.rules().toString());
-	}
-
-	@Test
-	public void misc() {
-		Record r = dbpkg.recordBuilder().add(-1).build();
-		assertEquals(-1, r.getInt(0));
 	}
 
 }

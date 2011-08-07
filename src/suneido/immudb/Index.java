@@ -26,17 +26,19 @@ class Index implements Comparable<Index> {
 	final boolean unique;
 	final ForeignKey fksrc;
 
-	Index(int tblnum, int[] colNums, boolean key, boolean unique) {
+	Index(int tblnum, int[] colNums, boolean key, boolean unique,
+			String fktable, int[] fkcolNums, int fkmode) {
 		this.tblnum = tblnum;
 		this.colNums = colNums;
 		this.isKey = key;
 		this.unique = unique;
-		fksrc = null;
+		fksrc = fktable == null ? null
+				: new ForeignKey(fktable, fkcolNums, fkmode);
 	}
 
 	Index(Record record) {
 		this.tblnum = record.getInt(TBLNUM);
-		this.colNums = convert(record.getString(COLUMNS));
+		this.colNums = stringToColNums(record.getString(COLUMNS));
 		Object key = record.get(KEY); // key is false, true, or "u"
 		this.isKey = key == Boolean.TRUE;
 		this.unique = key.equals(UNIQUE);
@@ -47,7 +49,7 @@ class Index implements Comparable<Index> {
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
-	int[] convert(String s) {
+	private int[] stringToColNums(String s) {
 		if (s.equals(""))
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
@@ -59,18 +61,15 @@ class Index implements Comparable<Index> {
 
 	private ForeignKey get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
-		if (!fktable.equals(""))
-			return new ForeignKey(fktable, record.getString(FKCOLUMNS),
-					record.getInt(FKMODE));
-		return null;
+		if (fktable.equals(""))
+			return null;
+		return new ForeignKey(fktable,
+				stringToColNums(record.getString(FKCOLUMNS)),
+				record.getInt(FKMODE));
 	}
 
 	Record toRecord() {
-		return toRecord(tblnum, colNumsString(), isKey, unique, fksrc);
-	}
-
-	private String colNumsString() {
-		return Ints.join(",", colNums);
+		return toRecord(tblnum, colNums, isKey, unique, fksrc);
 	}
 
 	List<String> columns(List<String> fields) {
@@ -84,20 +83,25 @@ class Index implements Comparable<Index> {
 		return isKey ? Mode.KEY : unique ? Mode.UNIQUE : Mode.DUPS;
 	}
 
-	static Record toRecord(int tblnum, String columns, boolean isKey,
+	private static Record toRecord(int tblnum, int[] colNums, boolean isKey,
 			boolean unique, ForeignKey fksrc) {
 		RecordBuilder rb = new RecordBuilder();
-		rb.add(tblnum).add(columns);
+		rb.add(tblnum).add(colNumsToString(colNums));
 		if (unique)
 			rb.add(UNIQUE);
 		else
 			rb.add(isKey);
 		if (fksrc != null)
-			rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
+			rb.add(fksrc.tablename).add(colNumsToString(/*fksrc.*/colNums)).add(fksrc.mode);
 		Record r = rb.build();
 		r.tblnum = TN.INDEXES;
 		return r;
 	}
+
+	private static String colNumsToString(int[] colNums) {
+		return Ints.join(",", colNums);
+	}
+
 
 //	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
 //		ImmutableList.Builder<ForeignKey> builder = ImmutableList.builder();
@@ -117,26 +121,34 @@ class Index implements Comparable<Index> {
 		return isKey;
 	}
 
-	String schema(StringBuilder sb, Columns cols) {
+	String schema(StringBuilder sb, Columns cols, ReadTransaction t) {
 		if (isKey)
 			sb.append(" key");
 		else
 			sb.append(" index").append(unique ? " unique" : "");
-		sb.append("(").append(cols.names(colNums)).append(")");
-//		if (index.fksrc != null && !index.fksrc.tablename.equals("")) {
-//			sb.append(" in ").append(index.fksrc.tablename);
-//			if (!index.fksrc.columns.equals(index.columns))
-//				sb.append("(").append(index.fksrc.columns).append(")");
-//			if (index.fksrc.mode == Index.CASCADE)
-//				sb.append(" cascade");
-//			else if (index.fksrc.mode == Index.CASCADE_UPDATES)
-//				sb.append(" cascade update");
+		String colNames = cols.names(colNums);
+		sb.append("(").append(colNames).append(")");
+		if (fksrc != null && ! fksrc.tablename.equals("")) {
+			sb.append(" in ").append(fksrc.tablename);
+			Table fktbl = t.getTable(fksrc.tablename);
+			String fkcolNames = fktbl.columns.names(fksrc.colNums);
+			if (! colNames.equals(fkcolNames))
+				sb.append("(").append(fkcolNames).append(")");
+			if (fksrc.mode == CASCADE)
+				sb.append(" cascade");
+			else if (fksrc.mode == CASCADE_UPDATES)
+				sb.append(" cascade update");
+		}
 		return sb.toString();
 	}
 
 	@Override
 	public int compareTo(Index that) {
 		return this.colNumsString().compareTo(that.colNumsString());
+	}
+
+	private String colNumsString() {
+		return colNumsToString(colNums);
 	}
 
 	@Override
@@ -156,8 +168,15 @@ class Index implements Comparable<Index> {
 
 	@Override
 	public String toString() {
-		return (isKey() ? "key" : "index") + (unique ? "unique" : "") +
-				"(" + Ints.join(",", colNums) + ")";
+		StringBuilder sb = new StringBuilder();
+		if (isKey())
+			sb.append("key");
+		else
+			sb.append("index").append(unique ? " unique" : "");
+		sb.append("(").append(Ints.join(",", colNums)).append(")");
+		if (fksrc != null)
+			sb.append(" in ").append(fksrc.tablename);
+		return sb.toString();
 	}
 
 }

@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.matchers.Matches;
 
 import suneido.SuException;
 import suneido.TheDbms;
@@ -28,6 +29,10 @@ import suneido.language.Pack;
 import suneido.util.NetworkOutput;
 
 public class CommandTest {
+
+	public static Matches matches(String regex){
+		return new Matches(regex);
+	}
 
 	@Before
 	public void clearServerData() {
@@ -70,7 +75,7 @@ public class CommandTest {
 	@Test
 	public void transaction() {
 		ByteBuffer buf = Command.TRANSACTION.execute(READ, null, null);
-		assertEquals("T12\r\n", bufferToString(buf));
+		assertThat(bufferToString(buf), matches("T\\d+\r\n"));
 		buf.rewind();
 		buf = Command.ABORT.execute(buf, null, null);
 		assertEquals("OK\r\n", bufferToString(buf));

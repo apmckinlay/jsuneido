@@ -506,11 +506,21 @@ public class BtreeTest {
 	public void seek_nonexistent() {
 		btree.add(record("andy"));
 		btree.add(record("zack"));
+
 		Btree.Iter iter = btree.iterator(record("fred"));
 		iter.next();
 		assertTrue(iter.eof());
+
 		iter = btree.iterator(record("fred"));
 		iter.prev();
+		assertTrue(iter.eof());
+
+		iter = btree.iterator(record("aaa"));
+		iter.prev();
+		assertTrue(iter.eof());
+
+		iter = btree.iterator(record("zzz"));
+		iter.next();
 		assertTrue(iter.eof());
 	}
 

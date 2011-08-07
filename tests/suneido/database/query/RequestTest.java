@@ -25,7 +25,7 @@ public class RequestTest extends TestBase {
 		schema = "(a,b,c,d,e) key(a) index(b,c)";
 		assertEquals(schema, db.getSchema("test1"));
 
-		String extra = " index(c) in other(cc)";
+		String extra = " index(c) in tables(table)";
 		Request.execute(db, "alter test1 create" + extra);
 		assertEquals(schema + extra, db.getSchema("test1"));
 

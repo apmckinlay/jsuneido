@@ -98,6 +98,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	void updateRecord(int tblnum, Record from, Record to) {
 		assert locked;
+		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
 		dbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
@@ -183,7 +184,7 @@ class UpdateTransaction extends ReadTransaction {
 		} finally {
 			unlock();
 		}
-		return "";
+		return null;
 	}
 
 	private int updateRedirs() {

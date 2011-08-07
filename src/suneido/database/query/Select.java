@@ -480,6 +480,7 @@ public class Select extends Query1 {
 			}
 			if (nexact > 0) {
 				int nrecs = tbl.nrecs();
+				assert nrecs > 0;
 				return nrecs != 0 ? (float) nexact / nrecs : 0;
 				// NOTE: assumes they all exist ???
 			}
@@ -552,7 +553,7 @@ public class Select extends Query1 {
 			Double f = ffracs.get(fld);
 			if (f != null)
 				frac *= f;
-			assert frac > 0;
+			assert frac >= 0;
 		}
 		return frac;
 	}

@@ -70,7 +70,7 @@ public class TranTest {
 		for (int i = 0; i < NCOMMITS; ++i) {
 			tran = new Tran(stor);
 			tran.startStore();
-			data = new byte[i];
+			data = new byte[i + 1];
 			for (int j = 0; j < data.length; ++j)
 				data[j] = (byte) j;
 			stor.buffer(stor.alloc(data.length)).put(data);
