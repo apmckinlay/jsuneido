@@ -89,9 +89,9 @@ abstract class BtreeStoreNode extends BtreeNode {
 		if (dref == 0)
 			rb.add("");
 		else
-			rb.add(dref);
+			rb.adduint(dref);
 		if (level > 0)
-			rb.add(ptr);
+			rb.adduint(ptr);
 		return rb.build();
 	}
 

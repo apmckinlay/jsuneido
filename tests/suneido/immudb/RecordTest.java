@@ -77,7 +77,7 @@ public class RecordTest {
 			if (d instanceof String)
 				rb.add(d);
 			else if (d instanceof Integer)
-				rb.add((int)(Integer) d);
+				rb.adduint((Integer) d);
 		return rb.build();
 	}
 
