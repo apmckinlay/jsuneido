@@ -64,7 +64,7 @@ public class PackTest {
 	public void pack_number_bug() {
 		assertEquals(4, packSizeLong(10000));
 
-		ByteBuffer buf = pack(10000);
+		ByteBuffer buf = packLong(10000);
 		assertEquals(4, buf.remaining());
 		assertEquals(0x03, buf.get(0));
 		assertEquals((byte) 0x82, buf.get(1));
@@ -81,7 +81,7 @@ public class PackTest {
 	}
 
 	private void t(int n) {
-		assertEquals(pack(n), pack(BigDecimal.valueOf(n)));
+		assertEquals(packLong(n), pack(BigDecimal.valueOf(n)));
 	}
 
 	@Test

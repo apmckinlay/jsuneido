@@ -163,7 +163,7 @@ abstract class BtreeNode {
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
 		splitKey = new RecordBuilder().addPrefix(splitKey, splitKeySize)
-				.add(rightAdr).build();
+				.adduint(rightAdr).build();
 		return new Split(level, adr, rightAdr, splitKey);
 	}
 
@@ -263,7 +263,7 @@ abstract class BtreeNode {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < nfields - 1; ++i)
 			rb.add("");
-		rb.add(ptr);
+		rb.adduint(ptr);
 		return rb.build();
 	}
 

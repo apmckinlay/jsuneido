@@ -44,7 +44,7 @@ public class Pack {
 		return buf;
 	}
 
-	public static ByteBuffer pack(long n) {
+	public static ByteBuffer packLong(long n) {
 		ByteBuffer buf = ByteBuffer.allocate(packSizeLong(n));
 		pack(n, buf);
 		buf.rewind();

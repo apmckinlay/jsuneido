@@ -231,7 +231,7 @@ class Record implements suneido.intfc.database.Record, suneido.intfc.database.Re
 	}
 
 	@Override
-	public Record add(long n) {
+	public Record add(int n) {
 		int pos = alloc(Pack.packSizeLong(n));
 		Pack.pack(n, buf.getByteBuffer(pos));
 		return this;

@@ -11,7 +11,7 @@ public interface RecordBuilder {
 	RecordBuilder addAll(Record r);
 	RecordBuilder add(ByteBuffer src);
 	RecordBuilder add(Object x);
-	RecordBuilder add(long n);
+	RecordBuilder add(int n);
 	RecordBuilder addMin();
 	RecordBuilder addMax();
 	RecordBuilder truncate(int n);

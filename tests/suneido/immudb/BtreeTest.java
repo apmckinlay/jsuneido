@@ -524,6 +524,19 @@ public class BtreeTest {
 		assertTrue(iter.eof());
 	}
 
+	@Test
+	public void numeric_order() {
+		btree.add(record(-1));
+		btree.add(record(0));
+		Btree.Iter iter = btree.iterator();
+		iter.next();
+		assertThat(iter.cur(), is(record(-1)));
+		iter.next();
+		assertThat(iter.cur(), is(record(0)));
+		iter.next();
+		assertTrue(iter.eof());
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
@@ -548,8 +561,8 @@ public class BtreeTest {
 		return new RecordBuilder().add(s).build();
 	}
 
-	private static Record record(String s, int n) {
-		return new RecordBuilder().add(s).add(n).build();
+	private static Record record(String s, int adr) {
+		return new RecordBuilder().add(s).adduint(adr).build();
 	}
 
 	static Record record(int n) {

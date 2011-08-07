@@ -110,7 +110,7 @@ class IndexedData {
 	}
 
 	static Record key(Record rec, int[] fields, int adr) {
-		return new RecordBuilder().addFields(rec, fields).add(adr).build();
+		return new RecordBuilder().addFields(rec, fields).adduint(adr).build();
 	}
 
 	static boolean isEmptyKey(Record key) {

@@ -42,12 +42,18 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return this;
 	}
 
+	@Override
+	public RecordBuilder add(int n) {
+		ByteBuffer buf = Pack.packLong(n);
+		add1(buf, 0, buf.remaining());
+		return this;
+	}
+
 	/** add an unsigned int
 	 * needs to be unsigned so that intrefs compare > database offsets
 	 */
-	@Override
-	public RecordBuilder add(long n) {
-		ByteBuffer buf = Pack.pack(n & 0xffffffffL);
+	public RecordBuilder adduint(int n) {
+		ByteBuffer buf = Pack.packLong(n & 0xffffffffL);
 		add1(buf, 0, buf.remaining());
 		return this;
 	}

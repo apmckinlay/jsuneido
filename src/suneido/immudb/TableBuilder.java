@@ -102,10 +102,16 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	@Override
 	public void addColumn(String column) {
-		int field = nextColNum();
+		int field = isRuleField(column) ? -1 : nextColNum();
+		if (field == -1)
+			column = column.substring(0, 1).toLowerCase() + column.substring(1);
 		Column c = new Column(tblnum, field, column);
 		t.addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
+	}
+
+	private static boolean isRuleField(String column) {
+		return Character.isUpperCase(column.charAt(0));
 	}
 
 	private int nextColNum() {
@@ -266,6 +272,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private void updateSchema() {
+		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
 		t.addSchemaTable(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
