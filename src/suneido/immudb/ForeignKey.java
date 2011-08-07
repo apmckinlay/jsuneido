@@ -10,20 +10,20 @@ import javax.annotation.concurrent.Immutable;
 class ForeignKey {
 	final String tablename; // used by fksrc
 	final int tblnum; // used by fkdsts
-	final String columns;
+	final int[] colNums;
 	final int mode;
 
-	ForeignKey(String tablename, String columns, int mode) {
-		this(tablename, columns, mode, 0);
+	ForeignKey(String tablename, int[] colNums, int mode) {
+		this(tablename, colNums, mode, 0);
 	}
 
-	ForeignKey(int tblnum, String columns, int mode) {
-		this(null, columns, mode, tblnum);
+	ForeignKey(int tblnum, int[] colNums, int mode) {
+		this(null, colNums, mode, tblnum);
 	}
 
-	private ForeignKey(String tablename, String columns, int mode, int tblnum) {
+	private ForeignKey(String tablename, int[] colNums, int mode, int tblnum) {
 		this.mode = mode;
-		this.columns = columns;
+		this.colNums = colNums;
 		this.tablename = tablename;
 		this.tblnum = tblnum;
 	}
@@ -31,6 +31,6 @@ class ForeignKey {
 	@Override
 	public String toString() {
 		return "ForeignKey(" + (tablename == null ? tblnum : tablename) +
-				", " + columns + ", " + mode + ")";
+				", " + colNums + ", " + mode + ")";
 	}
 }

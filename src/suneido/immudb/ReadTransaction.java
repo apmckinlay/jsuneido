@@ -49,7 +49,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	Btree getIndex(int tblnum, String columns) {
 		Table tbl = ck_getTable(tblnum);
-		int[] fields = tbl.namesToNums(columns);
+		int[] fields = (columns == null)
+			? tbl.firstIndex().colNums
+			: tbl.namesToNums(columns);
 		return getIndex(tblnum, fields);
 	}
 
@@ -180,12 +182,15 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public void ck_complete() {
+	public synchronized void ck_complete() {
+		String s = complete();
+		if (s != null)
+			throw new SuException("transaction commit failed: " + s);
 	}
 
 	@Override
 	public String complete() {
-		return "";
+		return null;
 	}
 
 	@Override

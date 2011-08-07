@@ -105,7 +105,8 @@ class Record implements suneido.intfc.database.Record {
 	private final int TBLNUM_SIZE = 2;
 
 	int store(Storage stor) {
-		checkState(1 <= tblnum && tblnum < Short.MAX_VALUE);
+		checkState(1 <= tblnum && tblnum < Short.MAX_VALUE,
+				"invalid tblnum %s", tblnum);
 		int adr = stor.alloc(storSize());
 		ByteBuffer buf = stor.buffer(adr);
 		buf.putShort((short) tblnum);
@@ -249,18 +250,22 @@ class Record implements suneido.intfc.database.Record {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<");
+		sb.append("[");
 		for (int i = 0; i < size(); ++i) {
-			Object x = get(i);
-			if (x instanceof String)
-				sb.append("'").append(x).append("'");
-			else
-				sb.append(x);
+			if (getRaw(i).equals(MAX_FIELD))
+				sb.append("MAX");
+			else {
+				Object x = get(i);
+				if (x instanceof String)
+					sb.append("'").append(x).append("'");
+				else
+					sb.append(x);
+			}
 			sb.append(",");
 		}
 		if (sb.length() > 1)
 			sb.deleteCharAt(sb.length() - 1);
-		sb.append(">");
+		sb.append("]");
 		return sb.toString();
 	}
 

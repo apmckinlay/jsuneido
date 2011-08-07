@@ -169,7 +169,7 @@ class Database implements suneido.intfc.database.Database {
 	public String getSchema(String tableName) {
 		ReadTransaction t = readonlyTran();
 		Table tbl = t.getTable(tableName);
-		return tbl == null ? null : tbl.schema();
+		return tbl == null ? null : tbl.schema(t);
 	}
 
 	@Override

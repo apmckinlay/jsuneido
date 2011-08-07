@@ -13,10 +13,10 @@ public class UpdateableTest extends TestBase {
 		updateable("tables extend xyz = 123");
 		updateable("tables project table");
 		not_updateable("columns project table");
-		updateable("tables sort totalsize");
-		updateable("tables sort reverse totalsize");
-		updateable("tables rename totalsize to bytes");
-		updateable("tables where totalsize > 1000");
+		updateable("indexes sort columns");
+		updateable("indexes sort reverse columns");
+		updateable("tables rename tablename to name");
+		updateable("tables where tablename > 1");
 		not_updateable("tables summarize count");
 		not_updateable("tables join columns");
 		not_updateable("tables union columns");

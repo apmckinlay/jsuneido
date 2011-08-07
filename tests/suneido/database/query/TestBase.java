@@ -18,8 +18,10 @@ import suneido.language.Ops;
 public class TestBase {
 	protected final Database db;
 	protected final ServerData serverData = new ServerData();
+	private final DatabasePackage save_dbpkg;
 
 	TestBase() {
+		save_dbpkg = Suneido.dbpkg;
 		Suneido.dbpkg = new suneido.database.DatabasePackage();
 		db = dbpkg.testdb();
 	}
@@ -32,6 +34,7 @@ public class TestBase {
 	@After
 	public void close() {
 		db.close();
+		Suneido.dbpkg = save_dbpkg;
 	}
 
 	protected void makeDB() {
@@ -65,7 +68,7 @@ public class TestBase {
 		req("insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
 
 		// create supplier file
-		adm("create supplier (supplier, name, city) index(city) key(supplier)");
+		adm("create supplier (supplier, name, city) key(supplier) index(city)");
 		req("insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
 		req("insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
 		req("insert{supplier: \"ebs\", name: \"ebssail&sport\", city: \"saskatoon\"} into supplier");

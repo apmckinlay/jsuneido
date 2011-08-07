@@ -172,13 +172,18 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public void addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(columnNames);
-		Index index = new Index(tblnum, colNums, isKey, unique);
+		Index index = new Index(tblnum, colNums, isKey, unique,
+				fktable, fkcolumns(fkcolumns), fkmode);
 		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
 		if (! t.hasIndex(tblnum, colNums)) // if not bootstrap
 			t.addIndex(tblnum, colNums);
 		insertExistingData(index);
 		// TODO handle foreign keys
+	}
+
+	private int[] fkcolumns(String fkcolumns) {
+		return new int[] { 0 };
 	}
 
 	private void insertExistingData(Index newIndex) {
@@ -214,6 +219,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private static final Splitter splitter = Splitter.on(',');
 
 	private int[] colNums(String s) {
+		if (s == null)
+			return null;
 		if (s.equals(""))
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];

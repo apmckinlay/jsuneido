@@ -10,7 +10,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static suneido.immudb.TableBuilder.*;
 
 import org.junit.Test;
 
@@ -24,19 +23,19 @@ public class RequestTest {
 	@Test
 	public void create_table() {
 		request("create tbl " + SCHEMA);
-		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), is(SCHEMA));
 	}
 
 	@Test
 	public void alter_table_create() {
 		request("create tbl " + SCHEMA);
 		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), is(SCHEMA));
 		request("alter tbl create (d) index(c,d)");
-		assertThat(db.schema().get("tbl").schema(),
+		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(),
+		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
 
@@ -60,9 +59,9 @@ public class RequestTest {
 	@Test
 	public void ensure() {
 		request("ensure tbl " + SCHEMA);
-		assertThat(db.schema().get("tbl").schema(), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), is(SCHEMA));
 		request("ensure tbl (c, d) index(a) index(c,d)");
-		assertThat(db.schema().get("tbl").schema(),
+		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
 
@@ -70,9 +69,9 @@ public class RequestTest {
 	public void drop_columns() {
 		request("create tbl (a,b,c,d) key(a)");
 		request("alter tbl drop (b,d)");
-		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
 		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
 	}
 
 	@Test
@@ -82,7 +81,7 @@ public class RequestTest {
 			request("alter tbl drop (x)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(NONEXISTENT_COLUMN));
+			assertThat(e.getMessage(), containsString("nonexistent column"));
 		}
 	}
 
@@ -93,7 +92,7 @@ public class RequestTest {
 			request("alter tbl drop (b)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(COLUMN_IN_INDEX));
+			assertThat(e.getMessage(), containsString("column used in index"));
 		}
 	}
 
@@ -101,9 +100,9 @@ public class RequestTest {
 	public void drop_index() {
 		request("ensure tbl " + SCHEMA);
 		request("alter tbl drop index(b,c)");
-		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
 		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(), is("(a,b,c) key(a)"));
+		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
 	}
 
 	@Test
@@ -113,13 +112,13 @@ public class RequestTest {
 			request("alter tbl drop index(x)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(NONEXISTENT_COLUMN));
+			assertThat(e.getMessage(), containsString("nonexistent column"));
 		}
 		try {
 			request("alter tbl drop index(c,b,a)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(NONEXISTENT_INDEX));
+			assertThat(e.getMessage(), containsString("nonexistent index"));
 		}
 	}
 
@@ -128,7 +127,7 @@ public class RequestTest {
 		try {
 			request("create tbl (a,b,c) index(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(KEY_REQUIRED));
+			assertThat(e.getMessage(), containsString("key required"));
 		}
 	}
 
@@ -138,7 +137,7 @@ public class RequestTest {
 		try {
 			request("alter tbl drop key(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(KEY_REQUIRED));
+			assertThat(e.getMessage(), containsString("key required"));
 		}
 	}
 
@@ -157,7 +156,7 @@ public class RequestTest {
 			request("drop tbl");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(NONEXISTENT_TABLE));
+			assertThat(e.getMessage(), containsString("nonexistent table"));
 		}
 	}
 
@@ -165,11 +164,11 @@ public class RequestTest {
 	public void rename_table() {
 		request("ensure tbl " + SCHEMA);
 		request("rename tbl to lbt");
-		assertNull(db.schema().get("tbl"));
-		assertThat(db.schema().get("lbt").schema(), is(SCHEMA));
+		assertNull(db.getSchema("tbl"));
+		assertThat(db.getSchema("lbt"), is(SCHEMA));
 		db = Database.open(stor);
-		assertNull(db.schema().get("tbl"));
-		assertThat(db.schema().get("lbt").schema(), is(SCHEMA));
+		assertNull(db.getSchema("tbl"));
+		assertThat(db.getSchema("lbt"), is(SCHEMA));
 	}
 
 	@Test
@@ -178,7 +177,7 @@ public class RequestTest {
 			request("rename tbl to lbt");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString(NONEXISTENT_TABLE));
+			assertThat(e.getMessage(), containsString("nonexistent table"));
 		}
 	}
 
@@ -186,18 +185,18 @@ public class RequestTest {
 	public void next_column_num() {
 		request("ensure tbl (a,b,c) key(a)");
 		request("alter tbl drop (b)");
-		assertThat(db.schema().get("tbl").schema(), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
 		request("alter tbl create (d) index(d)");
-		assertThat(db.schema().get("tbl").schema(), is("(a,c,d) key(a) index(d)"));
+		assertThat(db.getSchema("tbl"), is("(a,c,d) key(a) index(d)"));
 	}
 
 	@Test
 	public void rename_columns() {
 		request("ensure tbl " + SCHEMA);
 		request("alter tbl rename b to bb, c to cc");
-		assertThat(db.schema().get("tbl").schema(), is("(a,bb,cc) key(a) index(bb,cc)"));
+		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
 		db = Database.open(stor);
-		assertThat(db.schema().get("tbl").schema(), is("(a,bb,cc) key(a) index(bb,cc)"));
+		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
 	}
 
 	@Test

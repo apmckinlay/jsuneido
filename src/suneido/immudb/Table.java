@@ -151,12 +151,11 @@ class Table implements suneido.intfc.database.Table {
 		return list.build();
 	}
 
-	@Override
-	public String schema() {
+	public String schema(ReadTransaction t) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(columns.schemaColumns()).append(")");
 		for (Index index : indexes)
-			index.schema(sb, columns);
+			index.schema(sb, columns, t);
 		return sb.toString();
 	}
 

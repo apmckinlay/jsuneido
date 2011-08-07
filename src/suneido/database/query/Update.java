@@ -49,12 +49,20 @@ public class Update extends QueryAction {
 		Header hdr = q.header();
 		Row row;
 		int n = 0;
-		for (; null != (row = q.get(Dir.NEXT)); ++n) {
+		Record prevKey = null;
+		while (null != (row = q.get(Dir.NEXT))) {
+			Record key = row.project(hdr, bestKey);
+			// avoid getting stuck on the same key
+			// should maybe be in Btree Iter
+			if (key.equals(prevKey))
+				continue;
+			prevKey = key;
 			SuRecord surec = row.surec(hdr);
 			for (int i = 0; i < fields.size(); ++i)
 				surec.put(fields.get(i), exprs.get(i).eval(hdr, row));
 			Record newrec = surec.toDbRecord(hdr);
 			tran.updateRecord(q.tblnum(), row.firstData(), newrec);
+			++n;
 		}
 		return n;
 	}

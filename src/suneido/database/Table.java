@@ -112,7 +112,6 @@ class Table implements suneido.intfc.database.Table {
 		return list.build();
 	}
 
-	@Override
 	public String schema() {
 		StringBuilder sb = new StringBuilder();
 
