@@ -378,7 +378,7 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (! cur.equals(oldcur))
+				if (! oldcur.equals(cur))
 					return;
 				// fall through
 			}
