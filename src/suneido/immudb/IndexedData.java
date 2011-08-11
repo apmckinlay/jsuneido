@@ -59,9 +59,17 @@ class IndexedData {
 			throw new RuntimeException("update couldn't find record");
 		int toIntref = tran.refToInt(to);
 		for (AnIndex index : indexes)
-			if (! index.update(from, fromIntref, to, toIntref))
-				throw new RuntimeException("update failed");
-		// TODO handle remove failing halfway through (abort transaction?)
+			switch (index.update(from, fromIntref, to, toIntref)) {
+			case NOT_FOUND:
+				throw new RuntimeException("update failed: old record not found");
+			case ADD_FAILED:
+				throw new RuntimeException("update failed: duplicate key");
+			case OK:
+				break;
+			default:
+				throw new RuntimeException("unhandled update result");
+			}
+		// TODO handle update failing halfway through (abort transaction?)
 	}
 
 	private AnIndex firstKey() {
@@ -82,7 +90,7 @@ class IndexedData {
 			this.fields = fields;
 		}
 
-		boolean update(Record from, int fromIntref, Record to, int toIntref) {
+		Btree.Update update(Record from, int fromIntref, Record to, int toIntref) {
 			Record fromKey = key(from, fields, fromIntref);
 			Record toKey = key(to, fields, toIntref);
 			boolean unique = (mode == Mode.KEY ||

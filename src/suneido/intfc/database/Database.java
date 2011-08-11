@@ -40,6 +40,9 @@ public interface Database {
 
 	TableBuilder ensureTable(String tableName);
 
+	/** used for tests */
+	Database reopen();
+
 	void close();
 
 }

@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.SuException.verify;
@@ -9,10 +13,6 @@ import suneido.util.ByteBuf;
 
 /**
  * Used by tests for in-memory databases.
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public class DestMem extends Destination {
 	private final ArrayList<ByteBuffer> nodes = new ArrayList<ByteBuffer>();

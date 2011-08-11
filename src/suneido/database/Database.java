@@ -73,6 +73,12 @@ class Database implements suneido.intfc.database.Database {
 		init(mode);
 	}
 
+	@Override
+	public suneido.intfc.database.Database reopen() {
+		close();
+		return new Database(dest, Mode.OPEN);
+	}
+
 	private void init(Mode mode) {
 		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
 			errlog("database not shut down properly last time");

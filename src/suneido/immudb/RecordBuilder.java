@@ -97,10 +97,10 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	@Override
 	public RecordBuilder truncate(int n) {
-		for (int i = bufs.size() - 1; i > n; --i) {
+		for (int i = bufs.size() - 1; i >= n; --i) {
 			bufs.remove(i);
-			offs.remove(i);
-			lens.remove(i);
+			offs.removeAt(i);
+			lens.removeAt(i);
 		}
 		return this;
 	}
@@ -109,6 +109,7 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	@Override
 	public Record build() {
+		assert bufs.size() == lens.size() && lens.size() == offs.size();
 		int length = length();
 		ByteBuffer buf = ByteBuffer.allocate(length());
 		pack(buf, length);
@@ -138,7 +139,7 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	private void pack(ByteBuffer dst, int length) {
 		packHeader(dst, length, lens);
-		int nfields = lens.size();
+		int nfields = bufs.size();
 		for (int i = nfields - 1; i >= 0; --i)
 			pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}

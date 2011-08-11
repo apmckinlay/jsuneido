@@ -47,55 +47,55 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public void dumpDatabasePrint(String db_filename, String output_filename) {
-		// TODO Auto-generated method stub
+		// TODO dumpDatabasePrint
 	}
 
 	@Override
 	public int dumpDatabase(suneido.intfc.database.Database db,
 			String output_filename) {
-		// TODO Auto-generated method stub
+		// TODO dumpDatabase
 		return 0;
 	}
 
 	@Override
 	public void dumpTablePrint(String db_filename, String tablename) {
-		// TODO Auto-generated method stub
+		// TODO dumpTablePrint
 	}
 
 	@Override
 	public int dumpTable(suneido.intfc.database.Database db, String tablename) {
-		// TODO Auto-generated method stub
+		// TODO dumpTable
 		return 0;
 	}
 
 	@Override
 	public void compactPrint(String db_filename) throws InterruptedException {
-		// TODO Auto-generated method stub
+		// TODO compactPrint
 	}
 
 	@Override
 	public void compact2(String db_filename, String tempfilename) {
-		// TODO Auto-generated method stub
+		// TODO compact2
 	}
 
 	@Override
 	public void rebuildOrExit(String db_filename) {
-		// TODO Auto-generated method stub
+		// TODO rebuildOrExit
 	}
 
 	@Override
 	public void rebuild2(String db_filename, String tempfilename) {
-		// TODO Auto-generated method stub
+		// TODO rebuild2
 	}
 
 	@Override
 	public void loadDatabasePrint(String string, String string2) throws InterruptedException {
-		// TODO Auto-generated method stub
+		// TODO loadDatabasePrint
 	}
 
 	@Override
 	public void load2(String string, String actionArg) {
-		// TODO Auto-generated method stub
+		// TODO load2
 	}
 
 	@Override

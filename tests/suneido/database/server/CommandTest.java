@@ -1,7 +1,8 @@
 package suneido.database.server;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -82,7 +83,7 @@ public class CommandTest {
 		assertTrue(ServerData.forThread().isEmpty());
 
 		buf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertEquals("T13\r\n", bufferToString(buf));
+		assertThat(bufferToString(buf), matches("T\\d+\r\n"));
 		buf.rewind();
 		buf = Command.COMMIT.execute(buf, null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
@@ -117,9 +118,10 @@ public class CommandTest {
 		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		assertEquals("T12\r\n", bufferToString(tbuf));
+		String t = bufferToString(tbuf).trim();
+		assertThat(t, matches("T\\d+"));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T12 Q7"),
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q7"),
 				stringToBuffer("tables"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
@@ -140,22 +142,22 @@ public class CommandTest {
 
 		buf.rewind();
 		buf = Command.HEADER.execute(buf, null, null);
-		assertEquals("(table,tablename,nextfield,nrows,totalsize)\r\n",
-				bufferToString(buf));
+		assertThat(bufferToString(buf), startsWith("(table,tablename"));
 	}
 
 	@Test
 	public void order() {
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		assertEquals("T12\r\n", bufferToString(tbuf));
+		String t = bufferToString(tbuf).trim();
+		assertThat(t, matches("T\\d+"));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T12 Q27"),
-				stringToBuffer("tables sort nrows,totalsize"), null);
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q27"),
+				stringToBuffer("indexes sort columns,fktable"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
 		buf.rewind();
 		buf = Command.ORDER.execute(buf, null, null);
-		assertEquals("(nrows,totalsize)\r\n", bufferToString(buf));
+		assertEquals("(columns,fktable)\r\n", bufferToString(buf));
 	}
 
 	@Test
@@ -203,19 +205,19 @@ public class CommandTest {
 		Output output = new Output();
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		assertEquals("T12\r\n", bufferToString(tbuf));
+		String t = bufferToString(tbuf).trim();
+		assertThat(t, startsWith("T"));
 
-		assertEquals(7, Command.QUERY.extra(stringToBuffer("T12 Q7")));
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T12 Q7"),
+		assertEquals(7, Command.QUERY.extra(stringToBuffer(t + " Q7")));
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q7"),
 				stringToBuffer("tables"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
 		buf = Command.GET.execute(stringToBuffer("+ Q0"), null, output);
 		assertNull(buf);
-		assertEquals("A9 R58\r\n", bufferToString(output.get(0)));
+		assertThat(bufferToString(output.get(0)), matches("A\\d+ R\\d+\r\n"));
 		Record rec = dbpkg.record(output.get(1));
-		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
-		assertEquals(58, rec.bufSize());
+		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q0"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
@@ -232,20 +234,20 @@ public class CommandTest {
 		Output output = new Output();
 
 		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		assertEquals("T12\r\n", bufferToString(tbuf));
+		String t = bufferToString(tbuf).trim();
+		assertThat(t, startsWith("T"));
 
-		ByteBuffer line = stringToBuffer("+ T12 Q6");
-
+		ByteBuffer line = stringToBuffer("+ " + t + " Q6");
 		assertEquals(6, Command.GET1.extra(line));
 		line.rewind();
 		ByteBuffer buf = Command.GET1.execute(line,
 				stringToBuffer("tables"),
 				output);
 		assertNull(buf);
-		assertEquals("A9 R58 (table,tablename,nextfield,nrows,totalsize)\r\n",
-				bufferToString(output.get(0)));
+		assertThat(bufferToString(output.get(0)),
+				matches("A\\d+ R\\d+ \\(table,tablename.*\\)\r\n"));
 		Record rec = dbpkg.record(output.get(1));
-		assertEquals("[1,'tables',5,4,224,false]", rec.toString());
+		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
 		tbuf.rewind();
 		buf = Command.COMMIT.execute(tbuf, null, null);
@@ -255,63 +257,81 @@ public class CommandTest {
 
 	@Test
 	public void output_update_erase() {
-		final ServerData serverData = new ServerData();
-		Output output = new Output();
-
-		Command.ADMIN.execute(stringToBuffer("create test (a, b, c) key(a)"),
-				null, null);
-
-		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertEquals("T21\r\n", bufferToString(tbuf));
-
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T21 Q5"),
-				stringToBuffer("test"), null);
-		assertEquals("Q0\r\n", bufferToString(buf));
+		admin("create test (a, b, c) key(a)");
 
 		// OUTPUT
-		Record rec = make("a", "b", "c");
-		assertEquals(14, rec.packSize());
-		Command.OUTPUT.execute(stringToBuffer("Q0 R14"), rec.getBuffer(), null);
-
-		buf = Command.GET1.execute(stringToBuffer("+ T21 Q5"),
-				stringToBuffer("test"), output);
-		assertNull(buf);
-		assertEquals("A105 R14 (a,b,c)\r\n",
-				bufferToString(output.get(0)));
-		assertEquals("['a','b','c']", rec.toString());
+		String t = updateTran();
+		String q = query(t);
+		output(q, make("a", "b", "c"));
+		commit(t);
 
 		// UPDATE
-		rec = make("A", "B", "C");
-		buf = Command.UPDATE.execute(stringToBuffer("T21 A105 R14"),
-				rec.getBuffer(), null);
-		assertEquals("U107\r\n", bufferToString(buf));
-
-		buf = Command.REWIND.execute(stringToBuffer("Q0"), null, null);
-		output = new Output();
-		buf = Command.GET1.execute(stringToBuffer("+ T21 Q5"),
-				stringToBuffer("test"), output);
-		assertNull(buf);
-		assertEquals("A107 R14 (a,b,c)\r\n",
-				bufferToString(output.get(0)));
-		assertEquals("['A','B','C']", rec.toString());
+		t = updateTran();
+		String adr = get(t, "['a','b','c']");
+		update(t, adr, make("A", "B", "C"));
+		get(t, "['A','B','C']");
+		commit(t);
 
 		// ERASE
-		buf = Command.ERASE.execute(stringToBuffer("T21 A107"), rec.getBuffer(),
-				null);
+		t = updateTran();
+		adr = get(t, "['A','B','C']");
+		erase(t, adr);
+		geteof(t);
+		commit(t);
+	}
+	private void admin(String s) {
+		Command.ADMIN.execute(stringToBuffer(s),
+				null, null);
+	}
+	private String updateTran() {
+		ByteBuffer buf = Command.TRANSACTION.execute(UPDATE, null, null);
+		String t = bufferToString(buf).trim();
+		assertThat(t, startsWith("T"));
+		return t;
+	}
+	private String query(String t) {
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q5"),
+				stringToBuffer("test"), null);
+		String q = bufferToString(buf).trim();
+		assertThat(q, startsWith("Q"));
+		return q;
+	}
+	private void output(String q, Record rec) {
+		Command.OUTPUT.execute(stringToBuffer(q + " R" + rec.packSize()),
+				rec.getBuffer(), null);
+	}
+	private void commit(String t) {
+		ByteBuffer buf = Command.COMMIT.execute(stringToBuffer(t + "\r\n"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
-		output = new Output();
-		buf = Command.GET1.execute(stringToBuffer("+ T21 Q4"),
+	}
+	private String get(String t, String expected) {
+		Output output = new Output();
+		ByteBuffer buf = Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
 				stringToBuffer("test"), output);
 		assertNull(buf);
+		String s = bufferToString(output.get(0));
+		assertThat(s, matches("A\\d+ R\\d+ \\(a,b,c\\)\r\n"));
+		Record rec = dbpkg.record(output.get(1));
+		assertThat(rec.toString(), is(expected));
+		return s.substring(0, s.indexOf(' '));
+	}
+	private void update(String t, String adr, Record rec) {
+		ByteBuffer buf = Command.UPDATE.execute(
+				stringToBuffer(t + " " + adr + " R" + rec.packSize()),
+				rec.getBuffer(), null);
+		assertThat(bufferToString(buf), startsWith("U"));
+	}
+	private void erase(String t, String adr) {
+		ByteBuffer buf = Command.ERASE.execute(stringToBuffer(t + " " + adr), null,
+				null);
+		assertEquals("OK\r\n", bufferToString(buf));
+	}
+
+	private void geteof(String t) {
+		Output output = new Output();
+		Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
+				stringToBuffer("test"), output);
 		assertEquals("EOF\r\n", bufferToString(output.get(0)));
-
-		buf = Command.CLOSE.execute(stringToBuffer("Q0"), null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-
-		tbuf.rewind();
-		buf = Command.COMMIT.execute(tbuf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		assertTrue(serverData.isEmpty());
 	}
 
 	@Test
@@ -323,36 +343,30 @@ public class CommandTest {
 				stringToBuffer("create stdlib (name,text,group) key(name,group)"),
 				null, null);
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertEquals("T21\r\n", bufferToString(tbuf));
+		String t = updateTran();
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer("T21 Q6"),
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q6"),
 				stringToBuffer("stdlib"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
 		Record rec = make(-1, "Foo", "some text");
-		assertEquals(26, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R26"), rec.getBuffer(),
-				null);
+		buf = Command.OUTPUT.execute(
+				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = make(-1, "Bar", "other stuff");
-		assertEquals(28, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R28"), rec.getBuffer(),
-				null);
+		buf = Command.OUTPUT.execute(
+				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		rec = make(1, "Foo", ""); // folder
-		assertEquals(16, rec.packSize());
-		buf = Command.OUTPUT.execute(stringToBuffer("Q0 R16"), rec.getBuffer(),
-				null);
+		buf = Command.OUTPUT.execute(
+				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
 		assertEquals("t\r\n", bufferToString(buf));
 
 		buf = Command.CLOSE.execute(stringToBuffer("Q0"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
-		tbuf.rewind();
-		buf = Command.COMMIT.execute(tbuf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		commit(t);
 		assertTrue(serverData.isEmpty());
 
 		buf = Command.LIBGET.execute(stringToBuffer("Foo"), null, output);

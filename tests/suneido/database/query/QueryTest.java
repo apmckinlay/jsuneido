@@ -1,6 +1,9 @@
 package suneido.database.query;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static suneido.database.query.Query.Dir.NEXT;
 
 import java.util.List;
@@ -11,6 +14,20 @@ import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 
 public class QueryTest extends TestBase {
+
+	@Test
+	public void address() {
+		makeTable("test", 1);
+		Transaction t = db.readonlyTran();
+		try {
+			Query q = CompileQuery.query(t, serverData, "test");
+			Row row = q.get(NEXT);
+			assertThat(row.address(), not(is(0)));
+			t.complete();
+		} finally {
+			t.abortIfNotComplete();
+		}
+	}
 
 	@Test
 	public void tests() {
