@@ -22,7 +22,7 @@ public class TestBase {
 
 	TestBase() {
 		save_dbpkg = Suneido.dbpkg;
-//		Suneido.dbpkg = new suneido.immudb.DatabasePackage();
+		// Suneido.dbpkg = new suneido.immudb.DatabasePackage();
 		db = dbpkg.testdb();
 	}
 

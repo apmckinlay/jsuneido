@@ -242,17 +242,19 @@ class Btree {
 		return true;
 	}
 
-	boolean update(Record oldkey, Record newkey, boolean unique) {
+	enum Update { OK, NOT_FOUND, ADD_FAILED };
+
+	Update update(Record oldkey, Record newkey, boolean unique) {
 		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
 		else {
 			if (! remove(oldkey))
-				return false;
-			return add(newkey, unique);
+				return Update.NOT_FOUND;
+			return add(newkey, unique) ? Update.OK : Update.ADD_FAILED;
 		}
 	}
 
-	private boolean updateUnique(Record oldkey, Record newkey) {
+	private Update updateUnique(Record oldkey, Record newkey) {
 		assert oldkey.size() == newkey.size();
 
 		++modified;
@@ -273,10 +275,10 @@ class Btree {
 		BtreeNode leaf = nodeAt(0, adr);
 		leaf = leaf.without(oldkey);
 		if (leaf == null)
-			return false; // not found
+			return Update.NOT_FOUND;
 		leaf = leaf.with(newkey);
 		tran.redir(adr, leaf);
-		return true;
+		return Update.OK;
 	}
 
 	Iter iterator() {

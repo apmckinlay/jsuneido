@@ -30,6 +30,7 @@ public class SimpleQueryTest {
 	private final Database db;
 	private final Transaction t;
 	protected final ServerData serverData = new ServerData();
+	private final DatabasePackage save_dbpkg;
 
 	@Parameters
 	public static Collection<Object[]> generateParams() {
@@ -39,6 +40,7 @@ public class SimpleQueryTest {
 	}
 
 	public SimpleQueryTest(DatabasePackage dbpkg) {
+		save_dbpkg = Suneido.dbpkg;
 		Suneido.dbpkg = dbpkg;
 		db = dbpkg.testdb();
 		t = db.readonlyTran();
@@ -79,7 +81,7 @@ public class SimpleQueryTest {
 	@After
 	public void cleanup() {
 		t.complete();
-		Suneido.dbpkg = new suneido.database.DatabasePackage();
+		Suneido.dbpkg = save_dbpkg;
 	}
 
 }

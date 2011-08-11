@@ -41,6 +41,11 @@ class Database implements suneido.intfc.database.Database {
 		this.schema = schema;
 	}
 
+	@Override
+	public suneido.intfc.database.Database reopen() {
+		return Database.open(stor);
+	}
+
 	// open
 
 	static Database open(String filename, String mode) {
@@ -174,19 +179,17 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public List<Integer> tranlist() {
-		// TODO Auto-generated method stub
-		return null;
+		return trans.tranlist();
 	}
 
 	@Override
 	public void limitOutstandingTransactions() {
-		// TODO Auto-generated method stub
+		trans.limitOutstanding();
 	}
 
 	@Override
 	public int finalSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return trans.finalSize();
 	}
 
 	@Override

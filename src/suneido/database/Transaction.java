@@ -560,7 +560,8 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	}
 
 	@Override
-	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
+	public int updateRecord(int tblnum,
+			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
 		notEnded();
 		return Mmfile.offsetToInt(

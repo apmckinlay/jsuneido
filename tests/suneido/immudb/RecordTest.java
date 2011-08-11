@@ -71,6 +71,20 @@ public class RecordTest {
 		assertThat(rec.prefixSize(2), is(9));
 	}
 
+	@Test
+	public void truncate() {
+		RecordBuilder rb = new RecordBuilder();
+		rb.truncate(0);
+		assertThat(rb.build().size(), is(0));
+		rb.truncate(5);
+		assertThat(rb.build().size(), is(0));
+		rb.add("a").add("b").add("c");
+		rb.truncate(5);
+		assertThat(rb.build().size(), is(3));
+		rb.truncate(2);
+		assertThat(rb.build().size(), is(2));
+	}
+
 	public static Record record(Object... data) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
