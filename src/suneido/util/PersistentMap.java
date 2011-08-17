@@ -3,7 +3,8 @@ package suneido.util;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;

@@ -10,4 +10,15 @@ public class Fkmode {
 		CASCADE_UPDATES = 1,
 		CASCADE_DELETES = 2,
 		CASCADE = 3;
+
+	public static String toString(int mode) {
+		switch (mode) {
+		case Fkmode.BLOCK: return "block";
+		case Fkmode.CASCADE: return "cascade";
+		case Fkmode.CASCADE_DELETES: return "cascade deletes";
+		case Fkmode.CASCADE_UPDATES: return "cascade updates";
+		default: throw new RuntimeException("unknown fkmode " + mode);
+		}
+	}
+
 }

@@ -42,7 +42,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public suneido.intfc.database.Database reopen() {
+	public Database reopen() {
 		return Database.open(stor);
 	}
 
@@ -99,7 +99,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public TableBuilder createTable(String tableName) {
-		return TableBuilder.create(readwriteTran(), tableName, nextTableNum());
+		return TableBuilder.create(exclusiveTran(), tableName, nextTableNum());
 	}
 
 	int nextTableNum() {
@@ -114,7 +114,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public TableBuilder ensureTable(String tableName) {
 		return schema.get(tableName) == null
-			? TableBuilder.create(readwriteTran(), tableName, nextTableNum())
+			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
 			: TableBuilder.alter(exclusiveTran(), tableName);
 	}
 

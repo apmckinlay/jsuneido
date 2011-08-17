@@ -28,46 +28,49 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	@Override
-	public void ensureColumn(String column) {
+	public TableBuilder ensureColumn(String column) {
 		Schema.ensureColumn(db, tableName, column);
+		return this;
 	}
 
 	@Override
-	public void addColumn(String column) {
+	public TableBuilder addColumn(String column) {
 		Schema.addColumn(db, tableName, column);
+		return this;
 	}
 
 	@Override
-	public void renameColumn(String from, String to) {
+	public TableBuilder renameColumn(String from, String to) {
 		Schema.renameColumn(db, tableName, from, to);
+		return this;
 	}
 
 	@Override
-	public void dropColumn(String column) {
+	public TableBuilder dropColumn(String column) {
 		Schema.removeColumn(db, tableName, column);
+		return this;
 	}
 
 	@Override
-	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Schema.ensureIndex(db, tableName, columnNames, isKey, unique,
 				fktable, fkcolumns, fkmode);
+		return this;
 	}
 
 	@Override
-	public void addIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Schema.addIndex(db, tableName, columnNames, isKey, unique,
 				fktable, fkcolumns, fkmode);
+		return this;
 	}
 
 	@Override
-	public void dropIndex(String columnNames) {
+	public TableBuilder dropIndex(String columnNames) {
 		Schema.removeIndex(db, tableName, columnNames);
-	}
-
-	@Override
-	public void build() {
+		return this;
 	}
 
 	@Override

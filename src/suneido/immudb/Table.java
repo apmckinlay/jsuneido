@@ -80,17 +80,17 @@ class Table implements suneido.intfc.database.Table {
 		return !indexes.isEmpty();
 	}
 
-//	boolean hasIndex(String columns) {
-//		return indexes.hasIndex(columns);
-//	}
-
 	Index firstIndex() {
 		return indexes.first();
 	}
 
-//	Index getIndex(String columns) {
-//		return indexes.get(columns);
-//	}
+	Index getIndex(String colNames) {
+		return getIndex(namesToNums(colNames));
+	}
+
+	Index getIndex(int[] colNums) {
+		return indexes.getIndex(colNums);
+	}
 
 	@Override
 	public boolean singleton() {
@@ -127,6 +127,10 @@ class Table implements suneido.intfc.database.Table {
 		for (String field : cs)
 			nums[c++] = fields.indexOf(field);
 		return nums;
+	}
+
+	String numsToNames(int[] nums) {
+		return columns.names(nums);
 	}
 
 	/**

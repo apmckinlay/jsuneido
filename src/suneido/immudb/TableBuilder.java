@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.IndexedData.AnIndex;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -28,17 +27,19 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static final String TO_EXISTING = "to existing column";
 	private final String tableName;
 	private final int tblnum;
-	private final UpdateTransaction t;
+	private final ExclusiveTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
 
-	static TableBuilder create(UpdateTransaction t, String tablename, int tblnum) {
-		TableBuilder tb = new TableBuilder(t, tablename, tblnum);
+	static TableBuilder create(ExclusiveTransaction t, String tableName, int tblNum) {
+		if (t.getTable(tableName) != null)
+			fail(t, "can't create existing table: " + tableName);
+		TableBuilder tb = new TableBuilder(t, tableName, tblNum);
 		tb.createTable();
 		return tb;
 	}
 
-	static TableBuilder alter(UpdateTransaction t, String tableName) {
+	static TableBuilder alter(ExclusiveTransaction t, String tableName) {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			fail(t, NONEXISTENT_TABLE + ": " + tableName);
@@ -47,7 +48,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return tb;
 	}
 
-	private TableBuilder(UpdateTransaction t, String tblname, int tblnum) {
+	private TableBuilder(ExclusiveTransaction t, String tblname, int tblnum) {
 		this.t = t;
 		this.tableName = tblname;
 		this.tblnum = tblnum;
@@ -95,19 +96,21 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	@Override
-	public void ensureColumn(String column) {
+	public TableBuilder ensureColumn(String column) {
 		if (! hasColumn(column))
 			addColumn(column);
+		return this;
 	}
 
 	@Override
-	public void addColumn(String column) {
+	public TableBuilder addColumn(String column) {
 		int field = isRuleField(column) ? -1 : nextColNum();
 		if (field == -1)
 			column = column.substring(0, 1).toLowerCase() + column.substring(1);
 		Column c = new Column(tblnum, field, column);
 		t.addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
+		return this;
 	}
 
 	private static boolean isRuleField(String column) {
@@ -123,10 +126,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	@Override
-	public void renameColumn(String from, String to) {
+	public TableBuilder renameColumn(String from, String to) {
 		if (hasColumn(to))
 			fail(CANT_RENAME + TO_EXISTING + ": " + to);
-		int i = findColumn(from);
+		int i = findColumn(columns, from);
 		if (i == -1)
 			fail(CANT_RENAME + NONEXISTENT_COLUMN + ": " + from);
 		Column c = columns.get(i);
@@ -136,30 +139,23 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Record newRec = c.toRecord();
 		t.updateRecord(TN.COLUMNS, oldRec, newRec);
 		// don't need to update indexes because they use column numbers not names
+		return this;
 	}
 
 	@Override
-	public void dropColumn(String column) {
-		int i = findColumn(column);
+	public TableBuilder dropColumn(String column) {
+		int i = findColumn(columns, column);
 		if (i == -1)
 			fail(CANT_DROP + NONEXISTENT_COLUMN + ": " + column);
 		Column c = columns.get(i);
 		mustNotBeUsedByIndex(column);
 		t.removeRecord(TN.COLUMNS, c.toRecord());
 		columns.remove(i);
-	}
-
-	private int findColumn(String column) {
-		for (int i = 0; i < columns.size(); ++i) {
-			Column c = columns.get(i);
-			if (c.name.equals(column))
-				return i;
-		}
-		return -1;
+		return this;
 	}
 
 	private void mustNotBeUsedByIndex(String column) {
-		int colNum = colNum(column);
+		int colNum = colNum(columns, column);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Ints.contains(index.colNums, colNum))
@@ -168,56 +164,39 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	@Override
-	public void ensureIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (! hasIndex(columnNames))
 			addIndex(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+		return this;
 	}
 
 	@Override
-	public void addIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(columnNames);
 		Index index = new Index(tblnum, colNums, isKey, unique,
-				fktable, fkcolumns(fkcolumns), fkmode);
+				fktable, fkcolumns, fkmode);
 		t.addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
-		if (! t.hasIndex(tblnum, colNums)) // if not bootstrap
-			t.addIndex(tblnum, colNums);
-		insertExistingData(index);
-		// TODO handle foreign keys
-	}
-
-	private int[] fkcolumns(String fkcolumns) {
-		return new int[] { 0 };
-	}
-
-	private void insertExistingData(Index newIndex) {
-		Table table = t.getTable(tableName);
-		if (table == null)
-			return;
-		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
-		Btree.Iter iter = src.iterator();
-		Btree btree = t.addIndex(tblnum, newIndex.colNums);
-		AnIndex idx = new AnIndex(btree, newIndex.mode(), newIndex.colNums);
-		for (iter.next(); ! iter.eof(); iter.next()) {
-			int adr = iter.keyadr();
-			idx.add(t.getrec(adr), adr);
-		}
+		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
+			t.addIndex(tblnum, index.colNums);
+		return this;
 	}
 
 	@Override
-	public void dropIndex(String columnNames) {
+	public TableBuilder dropIndex(String columnNames) {
 		int[] colNums = colNums(columnNames);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Arrays.equals(colNums, index.colNums)) {
 				t.removeRecord(TN.INDEXES, index.toRecord());
 				indexes.remove(i);
-				return;
+				return this;
 			}
 		}
 		fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames + ")");
+		return this; // unreachable
 	}
 
 	private static final int[] noColumns = new int[0];
@@ -232,19 +211,28 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
 		for (String c : splitter.split(s))
-			cols[i++] = colNum(c);
+			cols[i++] = colNum(columns, c);
 		return cols;
 	}
 
-	private int colNum(String column) {
-		int i = findColumn(column);
+	private int colNum(List<Column> columns, String column) {
+		int i = findColumn(columns, column);
 		if (i == -1)
 			fail(NONEXISTENT_COLUMN + ": " + column);
 		return columns.get(i).field;
 	}
 
+	private int findColumn(List<Column> columns, String column) {
+		for (int i = 0; i < columns.size(); ++i) {
+			Column c = columns.get(i);
+			if (c.name.equals(column))
+				return i;
+		}
+		return -1;
+	}
+
 	private boolean hasColumn(String column) {
-		return findColumn(column) != -1;
+		return findColumn(columns, column) != -1;
 	}
 
 	private boolean hasIndex(String columnNames) {
@@ -257,10 +245,12 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	// build -------------------------------------------------------------------
 
-	@Override
-	public void build() {
+	/** for Bootstrap, normally should call finish() instead */
+	void build() {
 		mustHaveKey();
 		updateSchema();
+		for (Index index : indexes)
+			insertExistingData(index);
 		updateTableInfo();
 	}
 
@@ -274,9 +264,26 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void updateSchema() {
 		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
-		t.addSchemaTable(new Table(tblnum, tableName,
+		t.updateSchemaTable(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
+	}
+
+	private void insertExistingData(Index newIndex) {
+		Table table = t.getTable(tableName);
+		if (table == null)
+			return;
+		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
+		Btree.Iter iter = src.iterator();
+		Btree btree = t.addIndex(tblnum, newIndex.colNums);
+		IndexedData id = new IndexedData(t)
+				.index(btree, newIndex.mode(), newIndex.colNums, newIndex.fksrc,
+						t.getForeignKeys(tableName,
+								table.numsToNames(newIndex.colNums)));
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			int adr = iter.keyadr();
+			id.add(t.getrec(adr), adr);
+		}
 	}
 
 	private void updateTableInfo() {
