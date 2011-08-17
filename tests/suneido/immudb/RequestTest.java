@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -52,7 +51,7 @@ public class RequestTest {
 			request("create tbl " + SCHEMA);
 			fail();
 		} catch (RuntimeException e) {
-			assertTrue(e.toString().contains("duplicate key"));
+			assertThat(e.toString(), containsString("existing table"));
 		}
 	}
 

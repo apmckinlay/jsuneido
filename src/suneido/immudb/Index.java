@@ -4,7 +4,10 @@
 
 package suneido.immudb;
 
+import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.concurrent.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
@@ -14,6 +17,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
+@Immutable
 class Index implements Comparable<Index> {
 	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
 			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
@@ -24,16 +28,16 @@ class Index implements Comparable<Index> {
 	final int[] colNums;
 	final boolean isKey;
 	final boolean unique;
-	final ForeignKey fksrc;
+	final ForeignKeySource fksrc;
 
 	Index(int tblnum, int[] colNums, boolean key, boolean unique,
-			String fktable, int[] fkcolNums, int fkmode) {
+			String fktable, String fkcolumns, int fkmode) {
 		this.tblnum = tblnum;
 		this.colNums = colNums;
 		this.isKey = key;
 		this.unique = unique;
-		fksrc = fktable == null ? null
-				: new ForeignKey(fktable, fkcolNums, fkmode);
+		fksrc = fktable == null || fktable.equals("") ? null
+				: new ForeignKeySource(fktable, fkcolumns, fkmode);
 	}
 
 	Index(Record record) {
@@ -59,12 +63,12 @@ class Index implements Comparable<Index> {
 		return cols;
 	}
 
-	private ForeignKey get_fksrc(Record record) {
+	private ForeignKeySource get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
 		if (fktable.equals(""))
 			return null;
-		return new ForeignKey(fktable,
-				stringToColNums(record.getString(FKCOLUMNS)),
+		return new ForeignKeySource(fktable,
+				record.getString(FKCOLUMNS),
 				record.getInt(FKMODE));
 	}
 
@@ -84,7 +88,7 @@ class Index implements Comparable<Index> {
 	}
 
 	private static Record toRecord(int tblnum, int[] colNums, boolean isKey,
-			boolean unique, ForeignKey fksrc) {
+			boolean unique, ForeignKeySource fksrc) {
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(colNumsToString(colNums));
 		if (unique)
@@ -92,7 +96,7 @@ class Index implements Comparable<Index> {
 		else
 			rb.add(isKey);
 		if (fksrc != null)
-			rb.add(fksrc.tablename).add(colNumsToString(/*fksrc.*/colNums)).add(fksrc.mode);
+			rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
 		Record r = rb.build();
 		r.tblnum = TN.INDEXES;
 		return r;
@@ -101,21 +105,6 @@ class Index implements Comparable<Index> {
 	private static String colNumsToString(int[] colNums) {
 		return Ints.join(",", colNums);
 	}
-
-
-//	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
-//		ImmutableList.Builder<ForeignKey> builder = ImmutableList.builder();
-//		for (Record ri : fkdstrecs)
-//			builder.add(new ForeignKey(ri.getInt(TBLNUM),
-//					ri.getString(COLUMNS),
-//					ri.getInt(FKMODE)));
-//		return builder.build();
-//	}
-
-//	static String getColumns(Record r) {
-//		String columns = r.getString(COLUMNS);
-//		return columns;
-//	}
 
 	boolean isKey() {
 		return isKey;
@@ -130,10 +119,8 @@ class Index implements Comparable<Index> {
 		sb.append("(").append(colNames).append(")");
 		if (fksrc != null && ! fksrc.tablename.equals("")) {
 			sb.append(" in ").append(fksrc.tablename);
-			Table fktbl = t.getTable(fksrc.tablename);
-			String fkcolNames = fktbl.columns.names(fksrc.colNums);
-			if (! colNames.equals(fkcolNames))
-				sb.append("(").append(fkcolNames).append(")");
+			if (! colNames.equals(fksrc.columns))
+				sb.append("(").append(fksrc.columns).append(")");
 			if (fksrc.mode == CASCADE)
 				sb.append(" cascade");
 			else if (fksrc.mode == CASCADE_UPDATES)
@@ -158,12 +145,12 @@ class Index implements Comparable<Index> {
 		if (! (other instanceof Index))
 			return false;
 		Index that = (Index) other;
-		return this.colNums.equals(that.colNums);
+		return this.tblnum == that.tblnum && this.colNums.equals(that.colNums);
 	}
 
 	@Override
 	public int hashCode() {
-		throw new UnsupportedOperationException();
+		return tblnum ^ Arrays.hashCode(colNums);
 	}
 
 	@Override

@@ -4,27 +4,35 @@
 
 package suneido.immudb;
 
+import java.util.Map;
+import java.util.Set;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.util.PersistentMap;
+
+import com.google.common.collect.Maps;
 
 @Immutable
 class Tables {
 	private final PersistentMap<Integer, Table> bynum;
 	private final PersistentMap<String, Table> byname;
-//	final PersistentMap<Index, ImmutableList<ForeignKey>> fkdsts;
+	private final ForeignKeyTargets fkdsts;
 	final int maxTblNum;
 
 	Tables() {
 		bynum = PersistentMap.empty();
 		byname = PersistentMap.empty();
+		fkdsts = ForeignKeyTargets.empty();
 		maxTblNum = 0;
 	}
 
 	private Tables(PersistentMap<Integer, Table> bynum,
-			PersistentMap<String, Table> byname, int maxTblNum) {
+			PersistentMap<String, Table> byname,
+			ForeignKeyTargets fkdsts, int maxTblNum) {
 		this.bynum = bynum;
 		this.byname = byname;
+		this.fkdsts = fkdsts;
 		this.maxTblNum = maxTblNum;
 	}
 
@@ -36,17 +44,37 @@ class Tables {
 		return byname.get(tableName);
 	}
 
-	Tables with(Table tbl) {
+	Tables with(UpdateTransaction t, Table tbl) {
+		ForeignKeyTargets fkd = fkdsts;
+		for (Index idx : tbl.indexes) {
+			ForeignKeySource fksrc = idx.fksrc;
+			if (fksrc == null)
+				continue;
+			fkd = fkd.with(fksrc,
+					new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
+		}
 		return new Tables(bynum.with(tbl.num, tbl), byname.with(tbl.name, tbl),
-				Math.max(tbl.num, maxTblNum));
+				fkd, Math.max(tbl.num, maxTblNum));
 	}
 
-	Tables without(Table tbl) {
+	Tables without(UpdateTransaction t, Table tbl) {
 		// look up old name to handle rename
 		Table old = bynum.get(tbl.num);
 		if (old == null)
 			return this;
-		return new Tables(bynum.without(tbl.num), byname.without(old.name), maxTblNum);
+		ForeignKeyTargets fkd = fkdsts;
+		for (Index idx : tbl.indexes) {
+			ForeignKeySource fksrc = idx.fksrc;
+			if (fksrc != null)
+				fkd = fkd.without(fksrc,
+					new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
+		}
+		return new Tables(bynum.without(tbl.num), byname.without(old.name),
+				fkd, maxTblNum);
+	}
+
+	Set<ForeignKeyTarget> getFkdsts(String tablename, String columns) {
+		return fkdsts.get(tablename, columns);
 	}
 
 	static class Builder {
@@ -54,6 +82,7 @@ class Tables {
 				PersistentMap.builder();
 		private final PersistentMap.Builder<String, Table> byname =
 				PersistentMap.builder();
+		private final Map<String, Table> tables = Maps.newHashMap();
 		int maxTblNum = 0;
 
 		void add(Table tbl) {
@@ -61,10 +90,24 @@ class Tables {
 			byname.put(tbl.name, tbl);
 			if (tbl.num > maxTblNum)
 				maxTblNum = tbl.num;
+			tables.put(tbl.name, tbl);
 		}
 
 		Tables build() {
-			return new Tables(bynum.build(), byname.build(), maxTblNum);
+			return new Tables(bynum.build(), byname.build(), buildFkdsts(), maxTblNum);
+		}
+
+		private ForeignKeyTargets buildFkdsts() {
+			ForeignKeyTargets.Builder fkdsts = ForeignKeyTargets.builder();
+			for (Table tbl : tables.values()) {
+				for (Index idx : tbl.indexesList()) {
+					ForeignKeySource fksrc = idx.fksrc;
+					if (fksrc != null)
+						fkdsts.add(fksrc,
+							new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
+				}
+			 }
+			return fkdsts.build();
 		}
 	}
 

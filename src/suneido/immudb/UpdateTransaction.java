@@ -7,9 +7,11 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Ints;
 
 /**
  * Transactions must be thread contained.
@@ -45,6 +47,16 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	@Override
+	public Table getTable(String tableName) {
+		return newSchema.get(tableName);
+	}
+
+	@Override
+	public Table getTable(int tblnum) {
+		return newSchema.get(tblnum);
+	}
+
+	@Override
 	protected ReadDbInfo dbinfo() {
 		return dbinfo;
 	}
@@ -55,18 +67,6 @@ class UpdateTransaction extends ReadTransaction {
 		Btree btree = new Btree(tran);
 		indexes.put(tblnum, new ColNums(indexColumns), btree);
 		return btree;
-	}
-
-	/** for TableBuilder */
-	void addSchemaTable(Table table) {
-		assert locked;
-		newSchema = newSchema.with(table);
-	}
-
-	/** for TableBuilder */
-	void addTableInfo(TableInfo ti) {
-		assert locked;
-		dbinfo.add(ti);
 	}
 
 	@Override
@@ -103,6 +103,19 @@ class UpdateTransaction extends ReadTransaction {
 		dbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
 
+	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
+		Iter iter = getIndex(tblnum, colNums).iterator(oldkey);
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			Record oldrec = input(iter.keyadr());
+			RecordBuilder rb = new RecordBuilder();
+			for (int i = 0; i < oldrec.size(); ++i) {
+				int j = Ints.indexOf(colNums, i);
+				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
+			}
+			updateRecord(tblnum, oldrec, rb.build());
+		}
+	}
+
 	@Override
 	public void removeRecord(int adr) {
 		Record rec = new Record(stor, adr);
@@ -116,17 +129,26 @@ class UpdateTransaction extends ReadTransaction {
 		dbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
+	public void removeAll(int tblnum, int[] colNums, Record key) {
+		Iter iter = getIndex(tblnum, colNums).iterator(key);
+		for (iter.next(); ! iter.eof(); iter.next())
+			removeRecord(iter.keyadr());
+	}
+
+	//PERF cache?
 	private IndexedData indexedData(int tblnum) {
-		IndexedData id = new IndexedData(tran);
+		IndexedData id = new IndexedData(this);
 		Table table = getTable(tblnum);
 		if (table == null) {
 			int[] indexColumns = bootstrap[tblnum - 1];
 			Btree btree = getIndex(tblnum, indexColumns);
-			id.index(btree, Mode.KEY, indexColumns);
+			id.index(btree, Mode.KEY, indexColumns, null, null);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
 				Btree btree = getIndex(tblnum, index.colNums);
-				id.index(btree, index.mode(), index.colNums);
+				id.index(btree, index.mode(), index.colNums,
+						index.fksrc, schema.getFkdsts(table.name,
+								table.numsToNames(index.colNums)));
 			}
 		}
 		return id;

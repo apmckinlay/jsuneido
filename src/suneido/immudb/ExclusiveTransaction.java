@@ -24,12 +24,34 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		locked = false;
 	}
 
-	public void dropTableSchema(Table table) {
-		newSchema = newSchema.without(table);
+	// used by TableBuilder
+	void addSchemaTable(Table tbl) {
+		assert locked;
+		newSchema = newSchema.with(this, tbl);
+	}
+
+	// used by TableBuilder and Bootstrap
+	void addTableInfo(TableInfo ti) {
+		assert locked;
+		dbinfo.add(ti);
+	}
+
+	// used by TableBuilder
+	void updateSchemaTable(Table tbl) {
+		assert locked;
+		Table oldTbl = getTable(tbl.num);
+		if (oldTbl != null)
+			newSchema = newSchema.without(this, oldTbl);
+		newSchema = newSchema.with(this, tbl);
+	}
+
+	// used by TableBuilder
+	void dropTableSchema(Table table) {
+		newSchema = newSchema.without(this, table);
 	}
 
 	// used by DbLoad
-	public int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
+	int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
 		int adr = rec.store(stor);
 		Record key = IndexedData.key(rec, fields, adr);
 		btree.add(key);
@@ -38,7 +60,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	}
 
 	// used by DbLoad
-	public void saveBtrees() {
+	void saveBtrees() {
 		tran.intrefs.startStore();
 		Btree.store(tran);
 		for (Btree btree : indexes.values())

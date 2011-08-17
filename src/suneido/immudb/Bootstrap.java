@@ -23,7 +23,7 @@ class Bootstrap {
 		{ static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 
 	static void create(Database db) {
-		UpdateTransaction t = db.readwriteTran();
+		ExclusiveTransaction t = db.exclusiveTran();
 		setup(t);
 		create_tables(t);
 		create_columns(t);
@@ -35,7 +35,7 @@ class Bootstrap {
 				"create views (view_name, view_definition) key(view_name)");
 	}
 
-	private static void setup(UpdateTransaction t) {
+	private static void setup(ExclusiveTransaction t) {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
@@ -44,7 +44,7 @@ class Bootstrap {
 		t.addIndex(TN.INDEXES, 0, 1);
 	}
 
-	private static void create_tables(UpdateTransaction t) {
+	private static void create_tables(ExclusiveTransaction t) {
 		TableBuilder tb = TableBuilder.create(t, "tables", TN.TABLES);
 		tb.addColumn("table");
 		tb.addColumn("tablename");
@@ -52,7 +52,7 @@ class Bootstrap {
 		tb.build();
 	}
 
-	private static void create_columns(UpdateTransaction t) {
+	private static void create_columns(ExclusiveTransaction t) {
 		TableBuilder tb;
 		tb = TableBuilder.create(t, "columns", TN.COLUMNS);
 		tb.addColumn("table");
@@ -62,7 +62,7 @@ class Bootstrap {
 		tb.build();
 	}
 
-	private static void create_indexes(UpdateTransaction t) {
+	private static void create_indexes(ExclusiveTransaction t) {
 		TableBuilder tb;
 		tb = TableBuilder.create(t, "indexes", TN.INDEXES);
 		tb.addColumn("table");

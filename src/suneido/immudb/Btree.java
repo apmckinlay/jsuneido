@@ -339,6 +339,9 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
+				if (cur != null &&
+						(cur.compareTo(from) < 0 || cur.prefixGt(to)))
+					cur = null;
 				if (! oldcur.equals(cur))
 					return;
 				// fall through
@@ -371,7 +374,7 @@ class Btree {
 				seek(to);
 				rewound = false;
 				if (cur != null) {
-					if (cur.prefixGt(to))
+					if (cur.compareTo(from) < 0 || cur.prefixGt(to))
 						cur = null;
 					return;
 				}
@@ -380,6 +383,9 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
+				if (cur != null &&
+						(cur.compareTo(from) < 0 || cur.prefixGt(to)))
+					cur = null;
 				if (! oldcur.equals(cur))
 					return;
 				// fall through

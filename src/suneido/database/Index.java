@@ -50,10 +50,9 @@ class Index {
 
 	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
 		ImmutableList.Builder<ForeignKey> builder = ImmutableList.builder();
-		for (Record ri : fkdstrecs)
-			builder.add(new ForeignKey(ri.getInt(TBLNUM),
-					ri.getString(COLUMNS),
-					ri.getInt(FKMODE)));
+		for (Record r : fkdstrecs)
+			builder.add(new ForeignKey(
+					r.getInt(TBLNUM), r.getString(COLUMNS), r.getInt(FKMODE)));
 		return builder.build();
 	}
 

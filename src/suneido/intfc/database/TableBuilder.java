@@ -6,23 +6,21 @@ package suneido.intfc.database;
 
 public interface TableBuilder {
 
-	void ensureColumn(String column);
+	TableBuilder ensureColumn(String column);
 
-	void addColumn(String column);
+	TableBuilder addColumn(String column);
 
-	void renameColumn(String from, String to);
+	TableBuilder renameColumn(String from, String to);
 
-	void dropColumn(String column);
+	TableBuilder dropColumn(String column);
 
-	void ensureIndex(String columnNames, boolean isKey, boolean unique,
+	TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode);
 
-	void addIndex(String columnNames, boolean isKey, boolean unique,
+	TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode);
 
-	void dropIndex(String columnNames);
-
-	void build();
+	TableBuilder dropIndex(String columnNames);
 
 	void finish();
 

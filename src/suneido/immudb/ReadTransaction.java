@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -47,11 +48,15 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		return dbinfo;
 	}
 
-	Btree getIndex(int tblnum, String columns) {
+	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
+		return schema.getFkdsts(tableName, colNames);
+	}
+
+	Btree getIndex(int tblnum, String colNames) {
 		Table tbl = ck_getTable(tblnum);
-		int[] fields = (columns == null)
+		int[] fields = (colNames == null)
 			? tbl.firstIndex().colNums
-			: tbl.namesToNums(columns);
+			: tbl.namesToNums(colNames);
 		return getIndex(tblnum, fields);
 	}
 
@@ -80,6 +85,10 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		if (adr == 0)
 			return null; // not found
 		return getrec(adr);
+	}
+
+	boolean exists(int tblnum, int[] indexColumns, Record key) {
+		return 0 != getIndex(tblnum, indexColumns).get(key);
 	}
 
 	@Override
@@ -232,7 +241,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 			return null;
 		Btree.Iter iter = bti.iterator((Record) key);
 		iter.next();
-		return iter.eof() ? null : tran.getrec(iter.keyadr());
+		return iter.eof() ? null : input(iter.keyadr());
 	}
 
 	@Override

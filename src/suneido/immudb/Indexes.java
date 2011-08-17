@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,19 +30,15 @@ class Indexes implements Iterable<Index> {
 		return indexes.isEmpty();
 	}
 
-//	boolean hasIndex(String columns) {
-//		return get(columns) != null;
-//	}
-
-//	Index get(String columns) {
-//		for (Index index : indexes)
-//			if (columns.equals(index.colNums))
-//				return index;
-//		return null;
-//	}
-
 	Index first() {
 		return indexes.get(0);
+	}
+
+	Index getIndex(int[] colNums) {
+		for (Index index : indexes)
+			if (Arrays.equals(colNums, index.colNums))
+				return index;
+		return null;
 	}
 
 	int size() {
