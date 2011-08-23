@@ -52,6 +52,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 
 	// used by DbLoad
 	int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
+		rec.tblnum = tblnum;
 		int adr = rec.store(stor);
 		Record key = IndexedData.key(rec, fields, adr);
 		btree.add(key);

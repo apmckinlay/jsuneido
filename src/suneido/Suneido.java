@@ -20,6 +20,7 @@ import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
+	private static final String dbName = "suneido.db";
 	public static DatabasePackage dbpkg = new suneido.database.DatabasePackage();
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
@@ -89,33 +90,33 @@ public class Suneido {
 			break;
 		case DUMP:
 			if (cmdlineoptions.actionArg == null)
-				dbpkg.dumpDatabasePrint("suneido.db", "database.su");
+				dbpkg.dumpDatabasePrint(dbName, "database.su");
 			else
-				dbpkg.dumpTablePrint("suneido.db", cmdlineoptions.actionArg);
+				dbpkg.dumpTablePrint(dbName, cmdlineoptions.actionArg);
 			break;
 		case LOAD:
 			if (cmdlineoptions.actionArg != null)
 				dbpkg.loadTablePrint(cmdlineoptions.actionArg);
 			else
-				dbpkg.loadDatabasePrint("database.su", "suneido.db");
+				dbpkg.loadDatabasePrint("database.su", dbName);
 			break;
 		case LOAD2:
 			dbpkg.load2("database.su", cmdlineoptions.actionArg);
 			break;
 		case CHECK:
-			dbpkg.checkPrintExit("suneido.db");
+			dbpkg.checkPrintExit(dbName);
 			break;
 		case REBUILD:
-			dbpkg.rebuildOrExit("suneido.db");
+			dbpkg.rebuildOrExit(dbName);
 			break;
 		case REBUILD2:
-			dbpkg.rebuild2("suneido.db", cmdlineoptions.actionArg);
+			dbpkg.rebuild2(dbName, cmdlineoptions.actionArg);
 			break;
 		case COMPACT:
-			dbpkg.compactPrint("suneido.db");
+			dbpkg.compactPrint(dbName);
 			break;
 		case COMPACT2:
-			dbpkg.compact2("suneido.db", cmdlineoptions.actionArg);
+			dbpkg.compact2(dbName, cmdlineoptions.actionArg);
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
@@ -160,7 +161,7 @@ public class Suneido {
 	private static Database db;
 
 	public static void openDbms() {
-		db = dbpkg.open("suneido.db");
+		db = dbpkg.open(dbName);
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

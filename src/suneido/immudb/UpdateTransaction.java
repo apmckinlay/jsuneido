@@ -140,7 +140,7 @@ class UpdateTransaction extends ReadTransaction {
 		IndexedData id = new IndexedData(this);
 		Table table = getTable(tblnum);
 		if (table == null) {
-			int[] indexColumns = bootstrap[tblnum - 1];
+			int[] indexColumns = Bootstrap.indexColumns[tblnum];
 			Btree btree = getIndex(tblnum, indexColumns);
 			id.index(btree, Mode.KEY, indexColumns, null, null);
 		} else {
@@ -153,9 +153,6 @@ class UpdateTransaction extends ReadTransaction {
 		}
 		return id;
 	}
-	private static final int[][] bootstrap = new int[][] {
-		new int[] { 0 }, new int[] { 0,1 }, new int[] { 0,1 }
-	};
 
 	// commit -----------------------------------------------------------------
 

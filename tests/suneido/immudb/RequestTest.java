@@ -56,6 +56,14 @@ public class RequestTest {
 	}
 
 	@Test
+	public void create_with_rule_fields() {
+		String schema = "(a,b,C,D) key(a)";
+		request("create tbl " + schema);
+		assertThat(db.getSchema("tbl"), is(schema));
+
+	}
+
+	@Test
 	public void ensure() {
 		request("ensure tbl " + SCHEMA);
 		assertThat(db.getSchema("tbl"), is(SCHEMA));

@@ -1,8 +1,14 @@
 package suneido.immudb;
 
+import static suneido.immudb.Bootstrap.indexColumns;
+
+import java.util.Collections;
+import java.util.List;
+
 import suneido.immudb.Bootstrap.TN;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * Load the database schema into memory at startup.
@@ -21,9 +27,9 @@ class SchemaLoader {
 	}
 
 	private Tables load() {
-		Btree tablesIndex = t.getIndex(TN.TABLES, 0); // table
-		Btree columnsIndex = t.getIndex(TN.COLUMNS, 0, 1); // table, field
-		Btree indexesIndex = t.getIndex(TN.INDEXES, 0, 1); // table, columns
+		Btree tablesIndex = t.getIndex(TN.TABLES, indexColumns[TN.TABLES]); // table
+		Btree columnsIndex = t.getIndex(TN.COLUMNS, indexColumns[TN.COLUMNS]); // table, column
+		Btree indexesIndex = t.getIndex(TN.INDEXES, indexColumns[TN.INDEXES]); // table, columns
 
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
@@ -59,7 +65,7 @@ class SchemaLoader {
 	private class ColumnsReader {
 		Btree.Iter iter;
 		Column cur;
-		ImmutableList.Builder<Column> list = ImmutableList.builder();
+		List<Column> list = Lists.newArrayList();
 
 		ColumnsReader(Btree columnsIndex) {
 			iter = columnsIndex.iterator();
@@ -77,16 +83,20 @@ class SchemaLoader {
 				Column prev = cur;
 				cur = column(iter.cur());
 				if (prev.tblnum != cur.tblnum) {
-					Columns cols = new Columns(list.build());
-					list = ImmutableList.builder();
+					Columns cols = columns();
+					list = Lists.newArrayList();
 					return cols;
 				}
 			}
 			cur = null;
-			return new Columns(list.build());
+			return columns();
 		}
 		Column column(Record key) {
 			return new Column(recordFromSlot(key));
+		}
+		Columns columns() {
+			Collections.sort(list);
+			return new Columns(ImmutableList.copyOf(list));
 		}
 	}
 
