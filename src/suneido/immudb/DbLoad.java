@@ -48,6 +48,7 @@ class DbLoad {
 				String schema;
 				while (null != (schema = readTableHeader(fin))) {
 					schema = "create" + schema.substring(6);
+System.out.println(schema);
 					load1(db, fin, schema);
 					++n;
 				}
@@ -122,6 +123,9 @@ new File("immu.db").delete();
 		if (! "views".equals(table)) {
 //			Schema.removeTable(TheDb.db(), table);
 			Request.execute(db, schema);
+System.out.println(" schema in " + schema.substring(i + 1));
+System.out.println("schema out " + db.getSchema(table));
+//assert schema.substring(i + 1).equals(db.getSchema(table));
 		}
 		return load_data(db, fin, table);
 	}
@@ -135,6 +139,7 @@ new File("immu.db").delete();
 		ExclusiveTransaction t = db.exclusiveTran();
 		Table table = t.getTable(tablename);
 		Index index = table.indexes.first();
+		//TODO don't build first index while loading data
 		Btree btree = t.getIndex(table.num, index.colNums);
 		try {
 			int first = 0;
@@ -187,9 +192,12 @@ new File("immu.db").delete();
 			for (int i = 0; i < nfields + 1; ++i)
 				putInt(recbuf, i, getInt(recbuf, i) - 2);
 			break;
+		default:
+			throw new RuntimeException("bad record type");
 		}
 		Record rec = new Record(ByteBuffer.wrap(recbuf, 0, n), 2);
 		assert rec.bufSize() == n - 2;
+		rec.check();
 		return rec;
 	}
 
@@ -216,6 +224,7 @@ new File("immu.db").delete();
 		buf[7 + i * 4] = (byte) ((n >> 24) & 0xff);
 	}
 
+	//TODO if table is "small" build indexes in parallel with threads
 	private static void otherIndexes(Database db, ExclusiveTransaction t,
 			Table table, int first, int last) {
 		if (first == 0)
@@ -253,7 +262,7 @@ new File("immu.db").delete();
 		return sb.toString();
 	}
 
-	static void main(String[] args) throws IOException  {
+	public static void main(String[] args) throws IOException  {
 //		loadDatabasePrint("database.su", "dbload.db");
 
 //		int n = loadTable("gl_transactions");

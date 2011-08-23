@@ -20,7 +20,9 @@ import suneido.database.query.Request;
  */
 class Bootstrap {
 	static class TN
-		{ static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
+			{ static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
+	static final int[][] indexColumns =
+			new int[][] { { }, { 0 }, { 0,2 }, { 0,1 } };
 
 	static void create(Database db) {
 		ExclusiveTransaction t = db.exclusiveTran();
@@ -39,40 +41,38 @@ class Bootstrap {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
-		t.addIndex(TN.TABLES, 0);
-		t.addIndex(TN.COLUMNS, 0, 1);
-		t.addIndex(TN.INDEXES, 0, 1);
+		t.addIndex(TN.TABLES, indexColumns[TN.TABLES]);
+		t.addIndex(TN.COLUMNS, indexColumns[TN.COLUMNS]);
+		t.addIndex(TN.INDEXES, indexColumns[TN.INDEXES]);
 	}
 
 	private static void create_tables(ExclusiveTransaction t) {
-		TableBuilder tb = TableBuilder.create(t, "tables", TN.TABLES);
-		tb.addColumn("table");
-		tb.addColumn("tablename");
-		tb.addIndex("table", true, false, null, null, 0);
-		tb.build();
+		TableBuilder.create(t, "tables", TN.TABLES)
+			.addColumn("table")
+			.addColumn("tablename")
+			.addIndex("table", true, false, null, null, 0)
+			.build();
 	}
 
 	private static void create_columns(ExclusiveTransaction t) {
-		TableBuilder tb;
-		tb = TableBuilder.create(t, "columns", TN.COLUMNS);
-		tb.addColumn("table");
-		tb.addColumn("field");
-		tb.addColumn("column");
-		tb.addIndex("table,field", true, false, null, null, 0);
-		tb.build();
+		TableBuilder.create(t, "columns", TN.COLUMNS)
+			.addColumn("table")
+			.addColumn("field")
+			.addColumn("column")
+			.addIndex("table,column", true, false, null, null, 0)
+			.build();
 	}
 
 	private static void create_indexes(ExclusiveTransaction t) {
-		TableBuilder tb;
-		tb = TableBuilder.create(t, "indexes", TN.INDEXES);
-		tb.addColumn("table");
-		tb.addColumn("columns");
-		tb.addColumn("key");
-		tb.addColumn("fktable");
-		tb.addColumn("fkcolumns");
-		tb.addColumn("fkmode");
-		tb.addIndex("table,columns", true, false, null, null, 0);
-		tb.build();
+		TableBuilder.create(t, "indexes", TN.INDEXES)
+			.addColumn("table")
+			.addColumn("columns")
+			.addColumn("key")
+			.addColumn("fktable")
+			.addColumn("fkcolumns")
+			.addColumn("fkmode")
+			.addIndex("table,columns", true, false, null, null, 0)
+			.build();
 	}
 
 }

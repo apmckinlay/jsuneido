@@ -74,7 +74,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public suneido.intfc.database.Database reopen() {
+	public Database reopen() {
 		close();
 		return new Database(dest, Mode.OPEN);
 	}

@@ -13,15 +13,30 @@ import java.util.Iterator;
 import suneido.SuException;
 import suneido.language.Pack;
 
+/**
+ * Slightly different from cSuneido format.
+ * Mode is 1,2,3 instead of 'c', 's', 'l'
+ * and is stored in the high bits of the number of fields.
+ * This reduces the max number of fields to 8192 instead of 32768
+ * but saves two bytes per record.
+ * Records stored in the database are prefixed with their table number.
+ * The packed format, e.g. keys in Btree nodes, does NOT include table number.
+ */
 class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().build();
+	/** Don't use zero for Mode, so zero memory is invalid
+	 *  and so no overlap with Pack types */
 	static class Mode {
 		static final short BYTE = 1, SHORT = 2, INT = 3; }
 	static class Offset {
 		static final int HEADER = 0, BODY = 2; }
 	private final ByteBuffer buf;
-	private final int bufpos; // used when the record is a key within a BtreeNode
+	/** non-zero when the record is a key within a BtreeNode */
+	private final int bufpos;
+	/** used for stored data records */
 	private final int address;
+	/** used for stored data records
+	 *  needed so you can update a record via just it's address */
 	int tblnum;
 
 	Record(ByteBuffer buf) {
@@ -47,12 +62,12 @@ class Record implements suneido.intfc.database.Record {
 		buf = stor.buffer(adr);
 		bufpos = TBLNUM_SIZE;
 		this.address = adr;
-		this.tblnum = buf.getShort(0);
+		this.tblnum = (buf.get(0) & 0xff) + ((buf.get(1) & 0xff) << 8);
 	}
 
 	void check() {
 		assert bufpos >= 0;
-		assert mode() != 0;
+		assert mode() != 0 : "invalid zero mode";
 		assert bufSize() > 0 : "length " + bufSize();
 		assert bufpos + bufSize() <= buf.capacity();
 	}
@@ -109,8 +124,12 @@ class Record implements suneido.intfc.database.Record {
 				"invalid tblnum %s", tblnum);
 		int adr = stor.alloc(storSize());
 		ByteBuffer buf = stor.buffer(adr);
-		buf.putShort((short) tblnum);
+		// store least significant first so first byte isn't 0
+		// as required by StoredRecordIterator
+		buf.put((byte) (tblnum & 0xff));
+		buf.put((byte) (tblnum >> 8));
 		pack(buf);
+		assert buf.get(0) != 0;
 		return adr;
 	}
 

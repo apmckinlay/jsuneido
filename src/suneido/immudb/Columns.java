@@ -83,11 +83,10 @@ class Columns implements Iterable<Column> {
 		for (Column c : columns)
 			if (c.field >= 0)
 				cols.add(c.name);
-		// reverse rule order to match cSuneido
-		int i = cols.size();
+		// NOT reversing rule order like cSuneido
 		for (Column c : columns)
 			if (c.field < 0)
-				cols.add(i, c.name.substring(0,1).toUpperCase() + c.name.substring(1));
+				cols.add(c.name.substring(0,1).toUpperCase() + c.name.substring(1));
 		return listToCommas(cols);
 	}
 

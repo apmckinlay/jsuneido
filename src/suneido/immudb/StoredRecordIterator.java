@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import com.google.common.collect.UnmodifiableIterator;
 
+// used by DbLoad
 class StoredRecordIterator extends UnmodifiableIterator<Record> {
 	private final Storage stor;
 	private final int last;
@@ -29,6 +30,7 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		assert hasNext();
 		ByteBuffer buf = stor.buffer(adr);
 		Record r = new Record(stor, adr);
+r.check();
 		int len = r.storSize();
 		if (adr < last)
 			adr = stor.advance(adr, skipPadding(buf, len));
