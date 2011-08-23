@@ -24,7 +24,7 @@ import com.google.common.collect.AbstractIterator;
 abstract class ChunkedStorage implements Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
-	private static final int ALIGN = (1 << SHIFT); // must be power of 2
+	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
 	protected final ByteBuffer[] chunks;
 	protected final int CHUNK_SIZE;

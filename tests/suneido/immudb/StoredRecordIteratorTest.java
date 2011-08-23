@@ -15,7 +15,7 @@ import org.junit.Test;
 import com.google.common.base.Strings;
 
 public class StoredRecordIteratorTest {
-	Storage stor = new TestStorage(32, 32);
+	Storage stor = new TestStorage(64, 32);
 
 	@Test
 	public void test() {
@@ -35,7 +35,7 @@ public class StoredRecordIteratorTest {
 			.add(Strings.repeat("x", len - 5))
 			.build();
 		assertThat(r.bufSize(), is(len));
-		r.tblnum = 123;
+		r.tblnum = 512;
 		return r.store(stor);
 	}
 

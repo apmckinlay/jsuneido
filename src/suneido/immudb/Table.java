@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static suneido.util.Util.commaSplitter;
 
 import java.util.List;
@@ -29,6 +30,8 @@ class Table implements suneido.intfc.database.Table {
 	final ImmutableList<String> fields;
 
 	Table(int num, String name, Columns columns, Indexes indexes) {
+		checkNotNull(columns);
+		checkNotNull(indexes);
 		this.num = num;
 		this.name = name;
 		this.columns = columns;
@@ -37,11 +40,7 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	Table(Record record, Columns columns, Indexes indexes) {
-		num = record.getInt(TBLNUM);
-		name = record.getString(TABLE);
-		this.columns = columns;
-		this.indexes = indexes;
-		fields = buildFields();
+		this(record.getInt(TBLNUM), record.getString(TABLE), columns, indexes);
 	}
 
 	@Override

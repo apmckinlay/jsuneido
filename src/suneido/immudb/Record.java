@@ -124,12 +124,9 @@ class Record implements suneido.intfc.database.Record {
 				"invalid tblnum %s", tblnum);
 		int adr = stor.alloc(storSize());
 		ByteBuffer buf = stor.buffer(adr);
-		// store least significant first so first byte isn't 0
-		// as required by StoredRecordIterator
 		buf.put((byte) (tblnum & 0xff));
 		buf.put((byte) (tblnum >> 8));
 		pack(buf);
-		assert buf.get(0) != 0;
 		return adr;
 	}
 

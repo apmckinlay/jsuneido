@@ -34,6 +34,8 @@ class Columns implements Iterable<Column> {
 	}
 
 	String names(int[] nums) {
+		if (nums.length == 0)
+			return "";
 		StringBuilder sb = new StringBuilder();
 		for (int n : nums)
 			sb.append(',').append(find(n).name);
