@@ -50,6 +50,8 @@ class IndexInfo extends BtreeInfo {
 	}
 
 	private String convertColumns(int[] cols) {
+		if (cols.length == 0)
+			return "";
 		StringBuilder sb = new StringBuilder();
 		for (int c : cols)
 			sb.append(",").append(c);

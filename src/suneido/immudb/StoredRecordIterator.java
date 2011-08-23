@@ -30,7 +30,6 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		assert hasNext();
 		ByteBuffer buf = stor.buffer(adr);
 		Record r = new Record(stor, adr);
-r.check();
 		int len = r.storSize();
 		if (adr < last)
 			adr = stor.advance(adr, skipPadding(buf, len));
@@ -39,10 +38,12 @@ r.check();
 		return r;
 	}
 
+	// assumes ALIGN = long (8)
 	private int skipPadding(ByteBuffer buf, int len) {
+		len = ChunkedStorage.align(len);
 		int limit = buf.limit();
-		while (len < limit && buf.get(len) == 0)
-			++len;
+		while (len < limit && buf.getLong(len) == 0)
+			len += ChunkedStorage.ALIGN;
 		return len;
 	}
 

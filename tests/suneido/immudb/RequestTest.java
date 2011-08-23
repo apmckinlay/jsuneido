@@ -28,12 +28,12 @@ public class RequestTest {
 	@Test
 	public void alter_table_create() {
 		request("create tbl " + SCHEMA);
-		db = Database.open(stor);
+		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is(SCHEMA));
 		request("alter tbl create (d) index(c,d)");
 		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
@@ -60,7 +60,22 @@ public class RequestTest {
 		String schema = "(a,b,C,D) key(a)";
 		request("create tbl " + schema);
 		assertThat(db.getSchema("tbl"), is(schema));
+	}
 
+	@Test
+	public void empty_key() {
+		String schema = "(a,b,c) key()";
+		request("create tbl " + schema);
+		assertThat(db.getSchema("tbl"), is(schema));
+	}
+
+	@Test
+	public void no_columns() {
+		String schema = "() key()";
+		request("create tbl " + schema);
+		assertThat(db.getSchema("tbl"), is(schema));
+		db = db.reopen();
+		assertThat(db.getSchema("tbl"), is(schema));
 	}
 
 	@Test
@@ -77,7 +92,7 @@ public class RequestTest {
 		request("create tbl (a,b,c,d) key(a)");
 		request("alter tbl drop (b,d)");
 		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
 	}
 
@@ -108,7 +123,7 @@ public class RequestTest {
 		request("ensure tbl " + SCHEMA);
 		request("alter tbl drop index(b,c)");
 		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
 	}
 
@@ -153,7 +168,7 @@ public class RequestTest {
 		request("ensure tbl " + SCHEMA);
 		request("drop tbl");
 		assertNull(db.schema().get("tbl"));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertNull(db.schema().get("tbl"));
 	}
 
@@ -173,7 +188,7 @@ public class RequestTest {
 		request("rename tbl to lbt");
 		assertNull(db.getSchema("tbl"));
 		assertThat(db.getSchema("lbt"), is(SCHEMA));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertNull(db.getSchema("tbl"));
 		assertThat(db.getSchema("lbt"), is(SCHEMA));
 	}
@@ -202,7 +217,7 @@ public class RequestTest {
 		request("ensure tbl " + SCHEMA);
 		request("alter tbl rename b to bb, c to cc");
 		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
-		db = Database.open(stor);
+		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
 	}
 

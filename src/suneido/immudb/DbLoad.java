@@ -48,7 +48,6 @@ class DbLoad {
 				String schema;
 				while (null != (schema = readTableHeader(fin))) {
 					schema = "create" + schema.substring(6);
-System.out.println(schema);
 					load1(db, fin, schema);
 					++n;
 				}
@@ -123,9 +122,8 @@ new File("immu.db").delete();
 		if (! "views".equals(table)) {
 //			Schema.removeTable(TheDb.db(), table);
 			Request.execute(db, schema);
-System.out.println(" schema in " + schema.substring(i + 1));
-System.out.println("schema out " + db.getSchema(table));
-//assert schema.substring(i + 1).equals(db.getSchema(table));
+//System.out.println(" schema in " + schema.substring(i + 1));
+//System.out.println("schema out " + db.getSchema(table));
 		}
 		return load_data(db, fin, table);
 	}

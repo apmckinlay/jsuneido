@@ -39,7 +39,8 @@ class SchemaLoader {
 			Record tblrec = tr.next();
 			if (tblrec == null)
 				break;
-			Columns columns = cr.next();
+			int tblnum = tblrec.getInt(Table.TBLNUM);
+			Columns columns = cr.next(tblnum);
 			Indexes indexes = ir.next();
 			Table table = new Table(tblrec, columns, indexes);
 			tsb.add(table);
@@ -62,33 +63,35 @@ class SchemaLoader {
 		}
 	}
 
+	static final ImmutableList<Column> noColumns = ImmutableList.of();
+
 	private class ColumnsReader {
 		Btree.Iter iter;
-		Column cur;
+		Column next;
 		List<Column> list = Lists.newArrayList();
 
 		ColumnsReader(Btree columnsIndex) {
 			iter = columnsIndex.iterator();
 			iter.next();
-			cur = column(iter.cur());
+			next = column(iter.cur());
 		}
-		Columns next() {
-			if (cur == null)
-				return null;
+		Columns next(int tblnum) {
+			if (next == null || next.tblnum > tblnum)
+				return new Columns(noColumns);
 			while (true) {
-				list.add(cur);
+				list.add(next);
 				iter.next();
 				if (iter.eof())
 					break;
-				Column prev = cur;
-				cur = column(iter.cur());
-				if (prev.tblnum != cur.tblnum) {
+				Column prev = next;
+				next = column(iter.cur());
+				if (prev.tblnum != next.tblnum) {
 					Columns cols = columns();
 					list = Lists.newArrayList();
 					return cols;
 				}
 			}
-			cur = null;
+			next = null;
 			return columns();
 		}
 		Column column(Record key) {
@@ -102,31 +105,31 @@ class SchemaLoader {
 
 	private class IndexesReader {
 		Btree.Iter iter;
-		Index cur;
+		Index next;
 		ImmutableList.Builder<Index> list = ImmutableList.builder();
 
 		IndexesReader(Btree indexesIndex) {
 			iter = indexesIndex.iterator();
 			iter.next();
-			cur = index();
+			next = index();
 		}
 		Indexes next() {
-			if (cur == null)
+			if (next == null)
 				return null;
 			while (true) {
-				list.add(cur);
+				list.add(next);
 				iter.next();
 				if (iter.eof())
 					break;
-				Index prev = cur;
-				cur = index();
-				if (prev.tblnum != cur.tblnum) {
+				Index prev = next;
+				next = index();
+				if (prev.tblnum != next.tblnum) {
 					Indexes result = new Indexes(list.build());
 					list = ImmutableList.builder();
 					return result;
 				}
 			}
-			cur = null;
+			next = null;
 			return new Indexes(list.build());
 		}
 		private Index index() {

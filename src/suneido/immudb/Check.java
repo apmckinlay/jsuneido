@@ -51,6 +51,7 @@ class Check {
 
 	/** checks entire file */
 	boolean fullcheck() {
+		// TODO check concurrently forwards from beginning and backwards from end
 		return checkFrom(Storage.FIRST_ADR);
 	}
 
