@@ -27,6 +27,10 @@ class Database implements suneido.intfc.database.Database {
 
 	// create
 
+	static Database create(String filename, String mode) {
+		return create(new MmapFile(filename, mode));
+	}
+
 	static Database create(Storage stor) {
 		Database db = new Database(stor, DbHashTrie.empty(stor),
 				DbHashTrie.empty(stor), new Tables());
@@ -39,11 +43,6 @@ class Database implements suneido.intfc.database.Database {
 		this.dbinfo = dbinfo;
 		this.redirs = redirs;
 		this.schema = schema;
-	}
-
-	@Override
-	public Database reopen() {
-		return Database.open(stor);
 	}
 
 	// open
@@ -60,6 +59,11 @@ class Database implements suneido.intfc.database.Database {
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
 		return new Database(stor, dbinfo, redirs);
+	}
+
+	@Override
+	public Database reopen() {
+		return Database.open(stor);
 	}
 
 	private static void check(Storage stor) {

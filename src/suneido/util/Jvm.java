@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database;
+package suneido.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,11 +10,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import suneido.SuException;
-import suneido.util.JarPath;
 
-class DbTools {
+public class Jvm {
 
-	static boolean runWithNewJvm(String cmd) throws InterruptedException {
+	public static boolean runWithNewJvm(String cmd) throws InterruptedException {
 		String javaHome = System.getProperty("java.home");
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();

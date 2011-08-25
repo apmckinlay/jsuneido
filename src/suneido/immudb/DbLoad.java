@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import static suneido.SuException.verify;
+import static suneido.immudb.DatabasePackage.DB_FILENAME;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -14,32 +15,31 @@ import java.util.Iterator;
 import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.immudb.Record.Mode;
+import suneido.util.FileUtils;
 
 class DbLoad {
 
-//	static void loadDatabasePrint(String filename, String dbfilename)
-//			throws InterruptedException {
-//		File tempfile = FileUtils.tempfile();
-//		if (! DbTools.runWithNewJvm("-load:" + tempfile))
-//			throw new SuException("failed to load: " + filename);
-//		FileUtils.renameWithBackup(tempfile, dbfilename);
-//		System.out.println("loaded " + filename	+ " into new " + dbfilename);
-//	}
-//
-//	static int load2(String filename, String dbfilename) {
-//		try {
-//			return loadDatabase(filename, dbfilename);
-//		} catch (Throwable e) {
-//			throw new SuException("load " + filename + " failed", e);
-//		}
-//	}
-//
+	static void loadDatabasePrint(String filename, String dbfilename) {
+		File tempfile = FileUtils.tempfile();
+		int n = load2(filename, tempfile.getPath());
+		FileUtils.renameWithBackup(tempfile, dbfilename);
+		System.out.println("loaded " + n + " tables from " + filename +
+				" into new " + dbfilename);
+	}
+
+	static int load2(String filename, String dbfilename) {
+		try {
+			return loadDatabase(filename, dbfilename);
+		} catch (Throwable e) {
+			throw new SuException("load " + filename + " failed", e);
+		}
+	}
+
 	static int loadDatabase(String filename, String dbfilename)
 			throws IOException {
 		int n = 0;
-//		File dbfile = new File(dbfilename);
-		new File(dbfilename).delete();
-		Database db = Database.create(new MmapFile(dbfilename, "rw"));
+		deleteIfExisting(dbfilename);
+		Database db = Database.create(dbfilename, "rw");
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(filename));
@@ -60,27 +60,33 @@ class DbLoad {
 		return n;
 	}
 
-	static void loadTablePrint(String tablename) {
-		int n = loadTable(tablename);
-		System.out.println("loaded " + n + " records into suneido.db");
+	private static void deleteIfExisting(String dbfilename) {
+		File dbfile = new File(dbfilename);
+		if (dbfile.exists())
+			verify(dbfile.delete(), "delete failed " + dbfilename);
 	}
 
-	static int loadTable(String tablename) {
+	static void loadTablePrint(String tablename, String dbfilename) {
+		int n = loadTable(tablename, dbfilename);
+		System.out.println("loaded " + n + " records into " + tablename +
+				" in " + dbfilename);
+	}
+
+	static int loadTable(String tablename, String dbfilename) {
 		try {
-			return loadTableImp(tablename);
+			return loadTableImp(tablename, dbfilename);
 		} catch (Throwable e) {
 			throw new SuException("load " + tablename + " failed", e);
 		}
 	}
 
-	private static int loadTableImp(String tablename) throws IOException  {
+	private static int loadTableImp(String tablename, String dbfilename)
+			throws IOException  {
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
-//		File dbfile = new File("suneido.db");
-//		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
-//		TheDb.set(new Database(dbfile, mode));
-new File("immu.db").delete();
-		Database db = Database.create(new MmapFile("immu.db", "rw"));
+		Database db = new File(dbfilename).exists()
+			? Database.create(dbfilename, "rw")
+			: Database.open(dbfilename, "rw");
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(tablename + ".su"));
@@ -90,6 +96,7 @@ new File("immu.db").delete();
 				if (schema == null)
 					throw new SuException("not a valid dump file");
 				schema = "create " + tablename + schema.substring(6);
+				db.dropTable(tablename);
 				return load1(db, fin, schema);
 			} finally {
 				fin.close();
@@ -119,12 +126,8 @@ new File("immu.db").delete();
 			throws IOException {
 		int i = schema.indexOf(' ', 7);
 		String table = schema.substring(7, i);
-		if (! "views".equals(table)) {
-//			Schema.removeTable(TheDb.db(), table);
+		if (! "views".equals(table))
 			Request.execute(db, schema);
-//System.out.println(" schema in " + schema.substring(i + 1));
-//System.out.println("schema out " + db.getSchema(table));
-		}
 		return load_data(db, fin, table);
 	}
 
@@ -137,7 +140,6 @@ new File("immu.db").delete();
 		ExclusiveTransaction t = db.exclusiveTran();
 		Table table = t.getTable(tablename);
 		Index index = table.indexes.first();
-		//TODO don't build first index while loading data
 		Btree btree = t.getIndex(table.num, index.colNums);
 		try {
 			int first = 0;
@@ -170,7 +172,7 @@ new File("immu.db").delete();
 		return t.loadRecord(tblnum, rec, btree, columns);
 	}
 
-	// convert from cSuneido record format to jSuneido format
+	/** convert from cSuneido record format to jSuneido format */
 	private static Record convert(byte[] recbuf, int n) {
 		int mode = recbuf[0];
 		mode = mode == 'c' ? Mode.BYTE : mode == 's' ? Mode.SHORT : Mode.INT;
@@ -261,15 +263,9 @@ new File("immu.db").delete();
 	}
 
 	public static void main(String[] args) throws IOException  {
-//		loadDatabasePrint("database.su", "dbload.db");
-
-//		int n = loadTable("gl_transactions");
-//		System.out.println("loaded " + n + " records into gl_transactions");
-
-		int n = loadDatabase("database.su", "immu.db");
-		System.out.println("loaded " + n + " tables into immu.db");
-
-		DbCheck.checkPrintExit("immu.db");
+		loadDatabasePrint("database.su", DB_FILENAME);
+		//loadTablePrint("gl_transactions", DB_FILENAME);
+		DbCheck.checkPrintExit(DB_FILENAME);
 	}
 
 }

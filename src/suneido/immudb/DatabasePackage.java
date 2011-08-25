@@ -7,6 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
+	static final String DB_FILENAME = "immu.db";
 	static final Record MIN_RECORD = new RecordBuilder().build();
 	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
 
@@ -42,7 +43,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public void loadTablePrint(String tablename) {
-		DbLoad.loadTablePrint(tablename);
+		DbLoad.loadTablePrint(tablename, DB_FILENAME);
 	}
 
 	@Override
@@ -106,6 +107,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public Record maxRecord() {
 		return MAX_RECORD;
+	}
+
+	@Override
+	public String dbFilename() {
+		return DB_FILENAME;
 	}
 
 }

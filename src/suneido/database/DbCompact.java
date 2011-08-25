@@ -10,6 +10,7 @@ import suneido.database.DbCheck.Status;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
+import suneido.util.Jvm;
 
 class DbCompact {
 	private final String dbfilename;
@@ -21,7 +22,7 @@ class DbCompact {
 	static void compactPrint(String dbfilename)
 			throws InterruptedException {
 		File tempfile = FileUtils.tempfile();
-		if (!DbTools.runWithNewJvm("-compact:" + tempfile))
+		if (!Jvm.runWithNewJvm("-compact:" + tempfile))
 			throw new SuException("compact failed: " + dbfilename);
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}

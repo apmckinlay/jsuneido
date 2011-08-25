@@ -69,4 +69,10 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		tran.intrefs.clear();
 	}
 
+	@Override
+	public void abort() {
+		tran.endStore();
+		super.abort();
+	}
+
 }

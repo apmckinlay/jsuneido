@@ -18,6 +18,7 @@ import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
 import suneido.util.FileUtils;
+import suneido.util.Jvm;
 
 import com.google.common.collect.ImmutableList;
 
@@ -37,7 +38,7 @@ class DbRebuild extends DbCheck {
 	static void rebuildOrExit(String dbfilename) {
 		File tempfile = FileUtils.tempfile();
 		try {
-			if (!DbTools.runWithNewJvm("-rebuild:" + tempfile))
+			if (!Jvm.runWithNewJvm("-rebuild:" + tempfile))
 				throw new SuException("rebuild failed: " + dbfilename);
 		} catch (InterruptedException e) {
 			throw new SuException("rebuild was interrupted");
