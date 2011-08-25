@@ -7,6 +7,7 @@ package suneido.database;
 import java.nio.ByteBuffer;
 
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
+	static final String DB_FILENAME = "suneido.db";
 	private static final Record MIN_RECORD = new Record();
 	private static final Record MAX_RECORD = new Record().add(Record.MAX_FIELD);
 
@@ -104,6 +105,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public Record maxRecord() {
 		return MAX_RECORD;
+	}
+
+	@Override
+	public String dbFilename() {
+		return DB_FILENAME;
 	}
 
 }

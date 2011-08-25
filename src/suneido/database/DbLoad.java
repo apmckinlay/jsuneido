@@ -1,6 +1,7 @@
 package suneido.database;
 
 import static suneido.SuException.verify;
+import static suneido.database.DatabasePackage.DB_FILENAME;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,13 +14,14 @@ import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
+import suneido.util.Jvm;
 
 class DbLoad {
 
 	static void loadDatabasePrint(String filename, String dbfilename)
 			throws InterruptedException {
 		File tempfile = FileUtils.tempfile();
-		if (! DbTools.runWithNewJvm("-load:" + tempfile))
+		if (! Jvm.runWithNewJvm("-load:" + tempfile))
 			throw new SuException("failed to load: " + filename);
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 		System.out.println("loaded " + filename	+ " into new " + dbfilename);
@@ -65,7 +67,7 @@ class DbLoad {
 
 	static void loadTablePrint(String tablename) {
 		int n = loadTable(tablename);
-		System.out.println("loaded " + n + " records into suneido.db");
+		System.out.println("loaded " + n + " records into " + DB_FILENAME);
 	}
 
 	static int loadTable(String tablename) {
@@ -79,7 +81,7 @@ class DbLoad {
 	private static int loadTableImp(String tablename) throws Throwable {
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
-		File dbfile = new File("suneido.db");
+		File dbfile = new File(DB_FILENAME);
 		Mode mode = dbfile.exists() ? Mode.OPEN : Mode.CREATE;
 		Database db = new Database(dbfile, mode);
 		try {

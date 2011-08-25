@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 
 public interface DatabasePackage {
 
+	String dbFilename();
+
 	Database open(String filename);
 
 	Database testdb();
@@ -16,18 +18,18 @@ public interface DatabasePackage {
 	Record record(ByteBuffer buf);
 	Record record(int recadr, ByteBuffer buf);
 
-	void dumpDatabasePrint(String db_filename, String output_filename);
-	int dumpDatabase(suneido.intfc.database.Database db, String output_filename);
+	void dumpDatabasePrint(String dbFilename, String outputFilename);
+	int dumpDatabase(suneido.intfc.database.Database db, String outputFilename);
 
-	void dumpTablePrint(String db_filename, String tablename);
+	void dumpTablePrint(String dbFilename, String tablename);
 	int dumpTable(suneido.intfc.database.Database db, String tablename);
 
-	void checkPrintExit(String db_filename);
+	void checkPrintExit(String dbFilename);
 
-	void compactPrint(String db_filename) throws InterruptedException;
+	void compactPrint(String dbFilename) throws InterruptedException;
 	void compact2(String db_filename, String tempfilename);
 
-	void rebuildOrExit(String db_filename);
+	void rebuildOrExit(String dbFilename);
 	void rebuild2(String db_filename, String tempfilename);
 
 	void loadTablePrint(String actionArg);
