@@ -6,7 +6,7 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, LOAD2, REBUILD2, COMPACT2, CLIENT
+		ERROR, TESTCLIENT, TESTSERVER, REBUILD2, COMPACT2, CLIENT
 	}
 	public Action action;
 	public String actionArg = null;
@@ -52,10 +52,7 @@ public class CommandLineOptions {
 				setActionWithArg(Action.DUMP);
 			else if (arg.equals("-load") || arg.equals("-l"))
 				setActionWithArg(Action.LOAD);
-			else if (arg.startsWith("-load:")) {
-				setActionWithArg(Action.LOAD2);
-				actionArg = arg.substring(6);
-			} else if (arg.equals("-check"))
+			else if (arg.equals("-check"))
 				setAction(Action.CHECK);
 			else if (arg.equals("-rebuild"))
 				setAction(Action.REBUILD);

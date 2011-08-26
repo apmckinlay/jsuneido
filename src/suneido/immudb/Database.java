@@ -103,6 +103,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public TableBuilder createTable(String tableName) {
+		checkForSystemTable(tableName, "create");
 		return TableBuilder.create(exclusiveTran(), tableName, nextTableNum());
 	}
 
@@ -112,11 +113,13 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public TableBuilder alterTable(String tableName) {
+		checkForSystemTable(tableName, "alter");
 		return TableBuilder.alter(exclusiveTran(), tableName);
 	}
 
 	@Override
 	public TableBuilder ensureTable(String tableName) {
+		checkForSystemTable(tableName, "ensure");
 		return schema.get(tableName) == null
 			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
 			: TableBuilder.alter(exclusiveTran(), tableName);
@@ -124,6 +127,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public boolean dropTable(String tableName) {
+		checkForSystemTable(tableName, "drop");
 		ExclusiveTransaction t = exclusiveTran();
 		try {
 			return TableBuilder.dropTable(t, tableName);
@@ -134,6 +138,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void renameTable(String from, String to) {
+		checkForSystemTable(from, "rename");
 		ExclusiveTransaction t = exclusiveTran();
 		try {
 			TableBuilder.renameTable(t, from, to);
@@ -144,6 +149,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void addView(String name, String definition) {
+		checkForSystemTable(name, "create view");
 		UpdateTransaction t = readwriteTran();
 		try {
 			if (null != Views.getView(t, name))
@@ -162,6 +168,17 @@ class Database implements suneido.intfc.database.Database {
 		} finally {
 			t.abortIfNotComplete();
 		}
+	}
+
+	static void checkForSystemTable(String tablename, String operation) {
+		if (isSystemTable(tablename))
+			throw new SuException("can't " + operation +
+					" system table: " + tablename);
+	}
+
+	static boolean isSystemTable(String table) {
+		return table.equals("tables") || table.equals("columns")
+				|| table.equals("indexes") || table.equals("views");
 	}
 
 	@Override

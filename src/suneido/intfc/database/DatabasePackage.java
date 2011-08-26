@@ -34,7 +34,6 @@ public interface DatabasePackage {
 
 	void loadTablePrint(String actionArg);
 	void loadDatabasePrint(String string, String string2) throws InterruptedException;
-	void load2(String string, String actionArg);
 
 	Record minRecord();
 	Record maxRecord();

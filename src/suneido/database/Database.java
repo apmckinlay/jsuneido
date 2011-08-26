@@ -531,7 +531,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public boolean dropTable(String tablename) {
-		return Schema.removeTable(this, tablename);
+		return Schema.dropTable(this, tablename);
 	}
 
 	// used by tests

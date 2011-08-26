@@ -236,7 +236,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	static final int INT_SIZE = 4;
 
-	private void store(int dbinfo, int redirs) {
+	protected void store(int dbinfo, int redirs) {
 		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);

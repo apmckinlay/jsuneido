@@ -73,12 +73,14 @@ class DbCheck {
 	}
 
 	private static final int BAD_LIMIT = 10;
-	private static final int N_THREADS = 8;
+	private static final int N_THREADS = Runtime.getRuntime().availableProcessors();
 
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		Database db = Database.open(filename, "r");
+		Database db = filename.equals("")
+				? Database.open(stor)
+				: Database.open(filename, "r");
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);
@@ -119,7 +121,7 @@ class DbCheck {
 				errors = "checkTable " + e;
 			}
 			if (! errors.isEmpty()) {
-				details += errors;
+				details += errors + "\n";
 				if (++nbad > BAD_LIMIT) {
 					executor.shutdownNow();
 					details += "TOO MANY ERRORS, GIVING UP\n";

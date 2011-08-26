@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.SuException.verify;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +69,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				t.abort();
 				return false;
 			}
+			TableBuilder tb = alter(t, tableName);
+			for (Index index : table.indexes)
+				verify(tb.dropIndex(index.colNums));
+			for (Column column : table.columns)
+				tb.dropColumn(column.name);
 			t.removeRecord(TN.TABLES, table.toRecord());
 			t.dropTableSchema(table);
 			// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
@@ -187,16 +194,21 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public TableBuilder dropIndex(String columnNames) {
 		int[] colNums = colNums(columnNames);
+		if (! dropIndex(colNums))
+			fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames + ")");
+		return this;
+	}
+
+	private boolean dropIndex(int[] colNums) {
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Arrays.equals(colNums, index.colNums)) {
 				t.removeRecord(TN.INDEXES, index.toRecord());
 				indexes.remove(i);
-				return this;
+				return true;
 			}
 		}
-		fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames + ")");
-		return this; // unreachable
+		return false;
 	}
 
 	private static final int[] noColumns = new int[0];
@@ -295,13 +307,21 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
 		t.addTableInfo(new TableInfo(tblnum,
-				columns.size(), nrows, totalsize, ii.build()));
+				maxColNum() + 1, nrows, totalsize, ii.build()));
+	}
+
+	private int maxColNum() {
+		int max = 0;
+		for (Column c : columns)
+			if (c.field > max)
+				max = c.field;
+		return max;
 	}
 
 	private void fail(String msg) {
 		fail(t, msg);
 	}
-	private static void fail(UpdateTransaction t, String msg) {
+	private static void fail(ExclusiveTransaction t, String msg) {
 		t.abort();
 		throw new RuntimeException(msg);
 	}

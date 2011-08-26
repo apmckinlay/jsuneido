@@ -48,7 +48,7 @@ class Schema {
 	}
 
 	/** returns false if table does not exist */
-	static boolean removeTable(Database db, String tablename) {
+	static boolean dropTable(Database db, String tablename) {
 		checkForSystemTable(tablename, "drop");
 		Transaction tran = db.readwriteTran();
 		try {

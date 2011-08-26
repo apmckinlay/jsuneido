@@ -14,20 +14,18 @@ import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
 import suneido.util.FileUtils;
-import suneido.util.Jvm;
 
 class DbLoad {
 
-	static void loadDatabasePrint(String filename, String dbfilename)
-			throws InterruptedException {
+	static void loadDatabasePrint(String filename, String dbfilename) {
 		File tempfile = FileUtils.tempfile();
-		if (! Jvm.runWithNewJvm("-load:" + tempfile))
-			throw new SuException("failed to load: " + filename);
+		int n = load2(filename, tempfile.getPath());
 		FileUtils.renameWithBackup(tempfile, dbfilename);
-		System.out.println("loaded " + filename	+ " into new " + dbfilename);
+		System.out.println("loaded " + n + " tables from " + filename +
+				" into new " + dbfilename);
 	}
 
-	static int load2(String filename, String dbfilename) {
+	private static int load2(String filename, String dbfilename) {
 		try {
 			return loadDatabase(filename, dbfilename);
 		} catch (Throwable e) {
@@ -35,7 +33,7 @@ class DbLoad {
 		}
 	}
 
-	static int loadDatabase(String filename, String dbfilename)
+	private static int loadDatabase(String filename, String dbfilename)
 			throws Throwable {
 		int n = 0;
 		File dbfile = new File(dbfilename);
@@ -127,7 +125,7 @@ class DbLoad {
 		String table = schema.substring(7, n);
 
 		if (!"views".equals(table)) {
-			Schema.removeTable(db, table);
+			Schema.dropTable(db, table);
 			Request.execute(db, schema);
 		}
 		return load_data(db, fin, table);

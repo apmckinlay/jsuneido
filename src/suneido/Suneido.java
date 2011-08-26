@@ -99,9 +99,6 @@ public class Suneido {
 			else
 				dbpkg.loadDatabasePrint("database.su", dbpkg.dbFilename());
 			break;
-		case LOAD2:
-			dbpkg.load2("database.su", cmdlineoptions.actionArg);
-			break;
 		case CHECK:
 			dbpkg.checkPrintExit(dbpkg.dbFilename());
 			break;
