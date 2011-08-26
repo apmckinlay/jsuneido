@@ -6,7 +6,7 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, REBUILD2, COMPACT2, CLIENT
+		ERROR, TESTCLIENT, TESTSERVER, REBUILD2, CLIENT
 	}
 	public Action action;
 	public String actionArg = null;
@@ -61,10 +61,7 @@ public class CommandLineOptions {
 				actionArg = arg.substring(9);
 			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);
-			else if (arg.startsWith("-compact:")) {
-				setAction(Action.COMPACT2);
-				actionArg = arg.substring(9);
-			} else if (arg.equals("-tests") || arg.equals("-t"))
+			else if (arg.equals("-tests") || arg.equals("-t"))
 				setAction(Action.TEST);
 			else if (arg.equals("-version") || arg.equals("-v"))
 				setAction(Action.VERSION);

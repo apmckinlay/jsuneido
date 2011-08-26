@@ -50,12 +50,10 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		newSchema = newSchema.without(this, table);
 	}
 
-	// used by DbLoad
-	int loadRecord(int tblnum, Record rec, Btree btree, int[] fields) {
+	// used by DbLoad and DbCompact
+	int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
 		int adr = rec.store(stor);
-		Record key = IndexedData.key(rec, fields, adr);
-		btree.add(key);
 		dbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
 	}

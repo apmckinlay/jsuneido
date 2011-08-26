@@ -20,7 +20,7 @@ import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = new suneido.database.DatabasePackage();
+	public static DatabasePackage dbpkg = new suneido.immudb.DatabasePackage();
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
@@ -110,9 +110,6 @@ public class Suneido {
 			break;
 		case COMPACT:
 			dbpkg.compactPrint(dbpkg.dbFilename());
-			break;
-		case COMPACT2:
-			dbpkg.compact2(dbpkg.dbFilename(), cmdlineoptions.actionArg);
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
