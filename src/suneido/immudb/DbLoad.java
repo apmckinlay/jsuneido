@@ -139,8 +139,6 @@ class DbLoad {
 		byte[] recbuf = new byte[4096];
 		ExclusiveTransaction t = db.exclusiveTran();
 		Table table = t.getTable(tablename);
-		Index index = table.indexes.first();
-		Btree btree = t.getIndex(table.num, index.colNums);
 		try {
 			int first = 0;
 			int last = 0;
@@ -151,12 +149,12 @@ class DbLoad {
 					break;
 				if (n > recbuf.length)
 					recbuf = new byte[Math.max(n, 2 * recbuf.length)];
-				last = load_data_record(fin, table.num, t, recbuf, n, btree, index.colNums);
+				last = load_data_record(fin, table.num, t, recbuf, n);
 				if (first == 0)
 					first = last;
 			}
-			otherIndexes(db, t, table, first, last);
-			t.complete();
+			createIndexes(db, t, table, first, last);
+			t.ck_complete();
 		} finally {
 			t.abortIfNotComplete();
 		}
@@ -164,12 +162,11 @@ class DbLoad {
 	}
 
 	private static int load_data_record(InputStream fin, int tblnum,
-			ExclusiveTransaction t, byte[] recbuf, int n, Btree btree, int[] columns)
+			ExclusiveTransaction t, byte[] recbuf, int n)
 			throws IOException {
 		verify(fin.read(recbuf, 0, n) == n);
-
 		Record rec = convert(recbuf, n);
-		return t.loadRecord(tblnum, rec, btree, columns);
+		return t.loadRecord(tblnum, rec);
 	}
 
 	/** convert from cSuneido record format to jSuneido format */
@@ -225,13 +222,11 @@ class DbLoad {
 	}
 
 	//TODO if table is "small" build indexes in parallel with threads
-	private static void otherIndexes(Database db, ExclusiveTransaction t,
+	static void createIndexes(Database db, ExclusiveTransaction t,
 			Table table, int first, int last) {
 		if (first == 0)
 			return; // no data
-		t.saveBtrees();
 		Iterator<Index> iter = table.indexes.iterator();
-		iter.next(); // skip first index (already built)
 		while (iter.hasNext()) {
 			Index index = iter.next();
 			Btree btree = t.getIndex(table.num, index.colNums);

@@ -1,4 +1,8 @@
-package suneido.database;
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
+package suneido.immudb;
 
 import static suneido.SuException.verifyEquals;
 
@@ -6,9 +10,9 @@ import java.io.File;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.database.DbCheck.Status;
 import suneido.database.query.Request;
-import suneido.util.ByteBuf;
+import suneido.immudb.DbCheck.Status;
+import suneido.intfc.database.IndexIter;
 import suneido.util.FileUtils;
 
 class DbCompact {
@@ -16,7 +20,7 @@ class DbCompact {
 	private final String tempfilename;
 	private Database oldDB;
 	private Database newDB;
-	private Transaction rt;
+	private ReadTransaction rt;
 
 	static void compactPrint(String dbfilename)
 			throws InterruptedException {
@@ -47,9 +51,8 @@ class DbCompact {
 	}
 
 	private int compact() {
-		File tempfile = new File(tempfilename);
-		oldDB = new Database(dbfilename, Mode.READ_ONLY);
-		newDB = new Database(tempfile, Mode.CREATE);
+		oldDB = Database.open(dbfilename, "r");
+		newDB = Database.create(tempfilename, "rw");
 
 		int n = copy();
 
@@ -60,37 +63,34 @@ class DbCompact {
 
 	private int copy() {
 		rt = oldDB.readonlyTran();
-		newDB.setLoading(true);
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}
 
 	private void copySchema() {
 		copyTable("views");
-		BtreeIndex bti = rt.getBtreeIndex(Database.TN.TABLES, "tablename");
-		BtreeIndex.Iter iter = bti.iter();
+		IndexIter iter = rt.iter(Bootstrap.TN.TABLES, "tablename");
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (!Schema.isSystemTable(tablename))
+			if (! Database.isSystemTable(tablename))
 				createTable(tablename);
 		}
 	}
 
 	private void createTable(String tablename) {
-		Request.execute(newDB, "create " + tablename
-				+ oldDB.getTable(tablename).schema());
-		verifyEquals(oldDB.getTable(tablename).schema(), newDB.getTable(tablename).schema());
+		String schema = rt.getTable(tablename).schema(rt);
+		Request.execute(newDB, "create " + tablename + schema);
+		verifyEquals(schema, newDB.getSchema(tablename));
 	}
 
 	private int copyData() {
-		BtreeIndex bti = rt.getBtreeIndex(Database.TN.TABLES, "tablename");
-		BtreeIndex.Iter iter = bti.iter();
+		IndexIter iter = rt.iter(Bootstrap.TN.TABLES, "tablename");
 		int n = 0;
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (!Schema.isSystemTable(tablename)) {
+			if (! Database.isSystemTable(tablename)) {
 				copyTable(tablename);
 				++n;
 			}
@@ -99,53 +99,43 @@ class DbCompact {
 	}
 
 	private void copyTable(String tablename) {
-		Table table = rt.ck_getTable(tablename);
-		List<String> fields = table.getFields();
-		boolean squeeze = DbDump.needToSqueeze(fields);
-		Index index = table.firstIndex();
-		BtreeIndex bti = rt.getBtreeIndex(index);
-		BtreeIndex.Iter iter = bti.iter();
-		int i = 0;
-		long first = 0;
-		long last = 0;
-		Transaction wt = newDB.readwriteTran();
-		int tblnum = wt.ck_getTable(tablename).num;
+		Table oldtable = rt.ck_getTable(tablename);
+		List<String> fields = oldtable.getFields();
+		boolean squeeze = needToSqueeze(fields);
+		int first = 0;
+		int last = 0;
+		ExclusiveTransaction t = newDB.exclusiveTran();
+		Table newtable = t.ck_getTable(tablename);
+		IndexIter iter = rt.iter(oldtable.num, null);
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			if (squeeze)
-				r = DbDump.squeezeRecord(r, fields);
-			last = Data.outputRecordForCompact(wt, tblnum, r);
+				r = squeezeRecord(r, fields);
+			last = t.loadRecord(newtable.num, r);
 			if (first == 0)
 				first = last;
-			if (++i % 100 == 0) {
-				wt.ck_complete();
-				wt = newDB.readwriteTran();
-			}
 		}
-		if (first != 0)
-			createIndexes(wt, tblnum, first - 4, last - 4);
-		wt.ck_complete();
+		DbLoad.createIndexes(newDB, t, newtable, first, last);
+		t.ck_complete();
 	}
 
-	private void createIndexes(Transaction wt, int tblnum, long first, long last) {
-		Table table = wt.ck_getTable(tblnum);
-		Mmfile mmf = (Mmfile) wt.db.dest;
-		for (Index index : table.indexes) {
-			Mmfile.Iter iter = mmf.iterator(first);
-			do {
-				if (iter.type() != Mmfile.DATA)
-					continue;
-				ByteBuf buf = iter.current();
-				Record rec = new Record(iter.offset() + 4, buf.slice(4));
-				newDB.addIndexEntriesForCompact(table, index, rec);
-				if (iter.offset() >= last)
-					break;
-			} while (iter.next());
+	private static boolean needToSqueeze(List<String> fields) {
+		return fields.indexOf("-") != -1;
+	}
+
+	static Record squeezeRecord(Record rec, List<String> fields) {
+		RecordBuilder rb = new RecordBuilder();
+		int i = 0;
+		for (String f : fields) {
+			if (!f.equals("-"))
+				rb.add(rec.getRaw(i));
+			++i;
 		}
+		return rb.build();
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		compactPrint("suneido.db");
+		compactPrint("immu.db");
 	}
 
 }
