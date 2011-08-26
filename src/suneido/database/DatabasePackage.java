@@ -37,18 +37,18 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void dumpDatabasePrint(String db_filename, String output_filename) {
-		DbDump.dumpDatabasePrint(db_filename, output_filename);
+	public void dumpDatabasePrint(String dbFilename, String outputFilename) {
+		DbDump.dumpDatabasePrint(dbFilename, outputFilename);
 	}
 
 	@Override
-	public int dumpDatabase(suneido.intfc.database.Database db, String output_filename) {
-		return DbDump.dumpDatabase(db, output_filename);
+	public int dumpDatabase(suneido.intfc.database.Database db, String outputFilename) {
+		return DbDump.dumpDatabase(db, outputFilename);
 	}
 
 	@Override
-	public void dumpTablePrint(String db_filename, String tablename) {
-		DbDump.dumpTablePrint(db_filename, tablename);
+	public void dumpTablePrint(String dbFilename, String tablename) {
+		DbDump.dumpTablePrint(dbFilename, tablename);
 	}
 
 	@Override
@@ -62,39 +62,34 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void compactPrint(String db_filename) throws InterruptedException {
-		DbCompact.compactPrint(db_filename);
+	public void compactPrint(String dbFilename) throws InterruptedException {
+		DbCompact.compactPrint(dbFilename);
 
 	}
 
 	@Override
-	public void compact2(String db_filename, String tempfilename) {
-		DbCompact.compact2(db_filename, tempfilename);
+	public void compact2(String dbFilename, String tempfilename) {
+		DbCompact.compact2(dbFilename, tempfilename);
 	}
 
 	@Override
-	public void rebuildOrExit(String db_filename) {
-		DbRebuild.rebuildOrExit(db_filename);
+	public void rebuildOrExit(String dbFilename) {
+		DbRebuild.rebuildOrExit(dbFilename);
 	}
 
 	@Override
-	public void rebuild2(String db_filename, String tempfilename) {
-		DbRebuild.rebuild2(db_filename, tempfilename);
+	public void rebuild2(String dbFilename, String tempfilename) {
+		DbRebuild.rebuild2(dbFilename, tempfilename);
+	}
+
+	@Override
+	public void loadDatabasePrint(String filename, String dbFilename) throws InterruptedException {
+		DbLoad.loadDatabasePrint(filename, dbFilename);
 	}
 
 	@Override
 	public void loadTablePrint(String tablename) {
 		DbLoad.loadTablePrint(tablename);
-	}
-
-	@Override
-	public void loadDatabasePrint(String filename, String db_filename) throws InterruptedException {
-		DbLoad.loadDatabasePrint(filename, db_filename);
-	}
-
-	@Override
-	public void load2(String filename, String db_filename) {
-		DbLoad.load2(filename, db_filename);
 	}
 
 	@Override

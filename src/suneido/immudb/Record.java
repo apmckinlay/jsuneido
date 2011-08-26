@@ -24,6 +24,7 @@ import suneido.language.Pack;
  */
 class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().build();
+	static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 	/** Don't use zero for Mode, so zero memory is invalid
 	 *  and so no overlap with Pack types */
 	static class Mode {
@@ -287,11 +288,11 @@ class Record implements suneido.intfc.database.Record {
 
 	String toDebugString() {
 		String s = "";
-		s += "type: " + (char) mode() +
+		s += "type: " + mode() +
 				" size: " + size() +
 				" length: " + bufSize();
 		for (int i = 0; i < Math.min(size(), 10); ++i)
-			System.out.println("offset " + i + ": " + fieldOffset(i));
+			s += " offset " + i + ": " + fieldOffset(i);
 		return s;
 	}
 
@@ -338,6 +339,8 @@ class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public ByteBuffer getRaw(int i) {
+		if (i >= size())
+			return EMPTY_BUF;
 		return slice(fieldOffset(i), fieldLength(i));
 	}
 

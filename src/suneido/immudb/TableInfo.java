@@ -74,7 +74,7 @@ class TableInfo extends DbHashTrie.Entry {
 			return new TableInfo(tblnum,
 					nextfield, nrows + nr, totalsize + size, indexInfo);
 		else {
-			++nrows;
+			nrows += nr;
 			totalsize += size;
 			return this;
 		}

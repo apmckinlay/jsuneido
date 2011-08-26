@@ -52,6 +52,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		return schema.getFkdsts(tableName, colNames);
 	}
 
+	/** if colNames is null returns firstIndex */
 	Btree getIndex(int tblnum, String colNames) {
 		Table tbl = ck_getTable(tblnum);
 		int[] fields = (colNames == null)
@@ -268,6 +269,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		throw new UnsupportedOperationException();
 	}
 
+	/** if columns is null returns firstIndex */
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
 		return getIndex(tblnum, columns).iterator();

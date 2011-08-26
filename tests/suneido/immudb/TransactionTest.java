@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import suneido.intfc.database.Transaction;
 
-public class ReadTransactionTest {
+public class TransactionTest {
 
 	@Test
 	public void lookup() {
@@ -25,6 +25,15 @@ public class ReadTransactionTest {
 		key = new RecordBuilder().add("fred").build();
 		r = (Record) t.lookup(1, "tablename", key);
 		assertNull(r);
+	}
+
+	@Test
+	public void exclusive_abort() {
+		TestStorage stor = new TestStorage(1000, 100);
+		Database db = Database.create(stor);
+		db.exclusiveTran().abort();
+		db.close();
+		assertThat(new DbCheck(stor, false).check(), is(DbCheck.Status.OK));
 	}
 
 }

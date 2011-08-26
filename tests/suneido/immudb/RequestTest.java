@@ -10,9 +10,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.Test;
 
 import suneido.database.query.Request;
+import suneido.immudb.DbCheck.Status;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
@@ -23,6 +25,17 @@ public class RequestTest {
 	public void create_table() {
 		request("create tbl " + SCHEMA);
 		assertThat(db.getSchema("tbl"), is(SCHEMA));
+	}
+
+	@Test
+	public void create_when_already_exists() {
+		request("create tbl " + SCHEMA);
+		try {
+			request("create tbl " + SCHEMA);
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("existing table"));
+		}
 	}
 
 	@Test
@@ -40,19 +53,8 @@ public class RequestTest {
 
 	@Test
 	public void add_index_to_table_with_data() {
-		Request.execute(db, "alter tables create key(tablename,table)");
-		assertThat(new CheckTable(db, "tables").call(), is(""));
-	}
-
-	@Test
-	public void create_when_already_exists() {
 		request("create tbl " + SCHEMA);
-		try {
-			request("create tbl " + SCHEMA);
-			fail();
-		} catch (RuntimeException e) {
-			assertThat(e.toString(), containsString("existing table"));
-		}
+		Request.execute(db, "alter tbl create index(c,a)");
 	}
 
 	@Test
@@ -227,6 +229,14 @@ public class RequestTest {
 		request("create Contrib (num,parent,group,name,text,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
 		request("create ETA (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
 		request("create ETAHelp (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
+	}
+
+	@After
+	public void check() {
+		db.close();
+		DbCheck ck = new DbCheck(stor, false);
+		Status r = ck.check();
+		assertThat(ck.details, r, is(DbCheck.Status.OK));
 	}
 
 	private void request(String request) {

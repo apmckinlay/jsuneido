@@ -7,14 +7,17 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
 
 /**
- * Transaction "context"
+ * Transaction "context". Manages IntRefs and Redirects and Storage.
  */
+@NotThreadSafe
 class Tran implements Translator {
 	private static final int SIZEOF_INT = 4;
 	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime

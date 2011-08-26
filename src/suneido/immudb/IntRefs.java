@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Used to assign integer values to in-memory references
  * so they can be stored in data structures that normally
@@ -16,6 +18,7 @@ import java.util.List;
  * Returned int's have the upper 12 bits set to 1
  * to distinguish them from database offsets from {@link IntLongs}
  */
+@NotThreadSafe
 class IntRefs implements Iterable<Object> {
 	static final int MASK = 0xfff00000;
 	private final List<Object> list = new ArrayList<Object>();

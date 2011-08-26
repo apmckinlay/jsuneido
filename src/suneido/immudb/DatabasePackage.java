@@ -42,61 +42,54 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void loadTablePrint(String tablename) {
-		DbLoad.loadTablePrint(tablename, DB_FILENAME);
-	}
-
-	@Override
-	public void dumpDatabasePrint(String db_filename, String output_filename) {
-		// TODO dumpDatabasePrint
+	public void dumpDatabasePrint(String dbFilename, String outputFilename) {
+		DbDump.dumpDatabasePrint(DB_FILENAME, "database.su");
 	}
 
 	@Override
 	public int dumpDatabase(suneido.intfc.database.Database db,
-			String output_filename) {
-		// TODO dumpDatabase
-		return 0;
+			String outputFilename) {
+		return DbDump.dumpDatabase(DB_FILENAME, "database.su");
 	}
 
 	@Override
-	public void dumpTablePrint(String db_filename, String tablename) {
-		// TODO dumpTablePrint
+	public void dumpTablePrint(String dbFilename, String tablename) {
+		DbDump.dumpTablePrint(DB_FILENAME, tablename);
 	}
 
 	@Override
 	public int dumpTable(suneido.intfc.database.Database db, String tablename) {
-		// TODO dumpTable
-		return 0;
+		return DbDump.dumpTable((Database) db, tablename);
 	}
 
 	@Override
-	public void compactPrint(String db_filename) throws InterruptedException {
+	public void compactPrint(String dbFilename) throws InterruptedException {
 		// TODO compactPrint
 	}
 
 	@Override
-	public void compact2(String db_filename, String tempfilename) {
+	public void compact2(String dbFilename, String tempfilename) {
 		// TODO compact2
 	}
 
 	@Override
-	public void rebuildOrExit(String db_filename) {
+	public void rebuildOrExit(String dbFilename) {
 		// TODO rebuildOrExit
 	}
 
 	@Override
-	public void rebuild2(String db_filename, String tempfilename) {
+	public void rebuild2(String dbFilename, String tempfilename) {
 		// TODO rebuild2
 	}
 
 	@Override
-	public void loadDatabasePrint(String string, String string2) throws InterruptedException {
-		// TODO loadDatabasePrint
+	public void loadDatabasePrint(String filename, String dbFilename) throws InterruptedException {
+		DbLoad.loadDatabasePrint(filename, dbFilename);
 	}
 
 	@Override
-	public void load2(String string, String actionArg) {
-		// TODO load2
+	public void loadTablePrint(String tablename) {
+		DbLoad.loadTablePrint(tablename, DB_FILENAME);
 	}
 
 	@Override

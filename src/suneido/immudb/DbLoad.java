@@ -85,8 +85,8 @@ class DbLoad {
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
 		Database db = new File(dbfilename).exists()
-			? Database.create(dbfilename, "rw")
-			: Database.open(dbfilename, "rw");
+			? Database.open(dbfilename, "rw")
+			: Database.create(dbfilename, "rw");
 		try {
 			InputStream fin = new BufferedInputStream(
 					new FileInputStream(tablename + ".su"));
@@ -263,7 +263,8 @@ class DbLoad {
 	}
 
 	public static void main(String[] args) throws IOException  {
-		loadDatabasePrint("database.su", DB_FILENAME);
+		//loadDatabasePrint("database.su", DB_FILENAME);
+		loadDatabasePrint("immudb.su", "immu2.db");
 		//loadTablePrint("gl_transactions", DB_FILENAME);
 		DbCheck.checkPrintExit(DB_FILENAME);
 	}
