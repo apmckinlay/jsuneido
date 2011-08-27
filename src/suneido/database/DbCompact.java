@@ -25,7 +25,7 @@ class DbCompact {
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
-	static void compact2(String dbfilename, String tempfilename) {
+	private static void compact2(String dbfilename, String tempfilename) {
 		Status status = DbCheck.checkPrint(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);

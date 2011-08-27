@@ -64,22 +64,12 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public void compactPrint(String dbFilename) throws InterruptedException {
-		// TODO compactPrint
-	}
-
-	@Override
-	public void compact2(String dbFilename, String tempfilename) {
-		// TODO compact2
+		DbCompact.compactPrint(dbFilename);
 	}
 
 	@Override
 	public void rebuildOrExit(String dbFilename) {
-		// TODO rebuildOrExit
-	}
-
-	@Override
-	public void rebuild2(String dbFilename, String tempfilename) {
-		// TODO rebuild2
+		DbRebuild.rebuildOrExit(dbFilename);
 	}
 
 	@Override

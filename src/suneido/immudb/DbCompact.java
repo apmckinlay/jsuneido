@@ -29,7 +29,7 @@ class DbCompact {
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
-	static void compact2(String dbfilename, String tempfilename) {
+	private static void compact2(String dbfilename, String tempfilename) {
 		Status status = DbCheck.checkPrint(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);
@@ -38,7 +38,7 @@ class DbCompact {
 		System.out.println(dbfilename + " compacted " + n + " tables");
 	}
 
-	static int compact(String dbfilename, String tempfilename) {
+	private static int compact(String dbfilename, String tempfilename) {
 		Status status = DbCheck.check(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);
@@ -123,7 +123,7 @@ class DbCompact {
 		return fields.indexOf("-") != -1;
 	}
 
-	static Record squeezeRecord(Record rec, List<String> fields) {
+	private static Record squeezeRecord(Record rec, List<String> fields) {
 		RecordBuilder rb = new RecordBuilder();
 		int i = 0;
 		for (String f : fields) {
