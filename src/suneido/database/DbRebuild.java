@@ -46,7 +46,7 @@ class DbRebuild extends DbCheck {
 		FileUtils.renameWithBackup(tempfile, dbfilename);
 	}
 
-	static void rebuild2(String dbfilename, String tempfilename) {
+	private static void rebuild2(String dbfilename, String tempfilename) {
 		DbRebuild dbr = new DbRebuild(dbfilename, tempfilename, true);
 		Status status = dbr.checkPrint();
 		switch (status) {
@@ -63,13 +63,13 @@ class DbRebuild extends DbCheck {
 		}
 	}
 
-	protected DbRebuild(String filename, String tempfilename, boolean print) {
+	DbRebuild(String filename, String tempfilename, boolean print) {
 		super(filename, print);
 		this.filename = filename;
 		this.tempfilename = tempfilename;
 	}
 
-	protected void rebuild() {
+	void rebuild() {
 		println("Rebuilding " + filename);
 		File tempfile = new File(tempfilename);
 		try {

@@ -68,18 +68,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void compact2(String dbFilename, String tempfilename) {
-		DbCompact.compact2(dbFilename, tempfilename);
-	}
-
-	@Override
 	public void rebuildOrExit(String dbFilename) {
 		DbRebuild.rebuildOrExit(dbFilename);
-	}
-
-	@Override
-	public void rebuild2(String dbFilename, String tempfilename) {
-		DbRebuild.rebuild2(dbFilename, tempfilename);
 	}
 
 	@Override

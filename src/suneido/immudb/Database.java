@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.Suneido.errlog;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,21 +40,24 @@ class Database implements suneido.intfc.database.Database {
 		return db;
 	}
 
-	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
+	private Database(Storage stor,
+			DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
 		this.dbinfo = dbinfo;
 		this.redirs = redirs;
-		this.schema = schema;
+		this.schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
 	}
 
 	// open
 
 	static Database open(String filename, String mode) {
-		return open(new MmapFile(filename, mode));
+		return open(check(filename, mode));
 	}
 
 	static Database open(Storage stor) {
-		check(stor);
+		Check check = new Check(stor);
+		if (! check.fastcheck())
+			throw new SuException("database integrity check failed");
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.from(stor, adr);
@@ -61,22 +66,26 @@ class Database implements suneido.intfc.database.Database {
 		return new Database(stor, dbinfo, redirs);
 	}
 
+	/** reopens with same Storage, if MmapFile it is NOT closed and reopened */
 	@Override
 	public Database reopen() {
 		return Database.open(stor);
 	}
 
-	private static void check(Storage stor) {
+	private static Storage check(String filename, String mode) {
+		Storage stor = new MmapFile(filename, mode);
 		Check check = new Check(stor);
-		if (false == check.fastcheck())
-			throw new RuntimeException("database open check failed");
+		if (! check.fastcheck()) {
+			errlog("database not shut down properly last time");
+			stor.close();
+			DbRebuild.rebuildOrExit(filename);
+			stor = new MmapFile(filename, mode);
+		}
+		return stor;
 	}
 
 	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {
-		this.stor = stor;
-		this.dbinfo = dbinfo;
-		this.redirs = redirs;
-		this.schema = SchemaLoader.load(readonlyTran());
+		this(stor, dbinfo, redirs, null);
 	}
 
 	// used by DbCheck
