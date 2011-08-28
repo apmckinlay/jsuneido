@@ -106,8 +106,7 @@ public class Join extends Query2 {
 	private double opt(Query src1, Query src2, Type typ, List<String> index,
 			Set<String> needs1, Set<String> needs2, boolean is_cursor,
 			boolean freeze) {
-		// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
-		final double SELECT_COST = 1000;
+		final double SELECT_COST = 50;
 
 		// always have to read all of source 1
 		double cost1 = src1.optimize(index, needs1, ImmutableSet.copyOf(joincols),
@@ -126,17 +125,19 @@ public class Join extends Query2 {
 		double nrecs2 = src2.nrecords();
 
 		boolean is_cursor2 = is_cursor;
-		if (type == Type.N_ONE && nrecs1 >= 0 && nrecs2 > 0) {
+		if ((type == Type.N_ONE || type == Type.ONE_ONE) && nrecs1 >= 0 && nrecs2 > 0) {
+			// can't read any more records from right side than left side
+			// if right side is bigger, try passing is_cursor = true to avoid temp indexes
 			double p = nrecs1 / nrecs2;
-			if (!is_cursor && p < .2) {
-				// "1" side can be no bigger than "n" side
-				// if "1" side is a lot bigger, then pass is_cursor = true to avoid temp or filter indexes
+			if (! is_cursor && p < 1) {
 				double cost2b = src2.optimize(joincols, needs2, noNeeds, true, false);
-				if (cost2b < IMPOSSIBLE) {
+				if (cost2b * p < cost2) {
 					is_cursor2 = true;
 					cost2 = cost2b;
 				}
 			}
+			if (p < 1 && is_cursor2)
+				cost2 *= p;
 		}
 		if (freeze)
 			src2.optimize(joincols, needs2, noNeeds, is_cursor2, true);
@@ -157,12 +158,10 @@ public class Join extends Query2 {
 		default:
 			throw unreachable();
 		}
-		nrecs /= 2; // convert from max to guess of expected
+		nrecs /= 2; // convert from max to guess of expected PROBABLY TOO LOW
 
 		if (nrecs <= 0)
 			cost2 = 0;
-		else if (is_cursor2 || !src2.tempindexed())
-			cost2 = nrecs * (cost2 / nrecs2);
 
 		return cost1 + cost2;
 	}
