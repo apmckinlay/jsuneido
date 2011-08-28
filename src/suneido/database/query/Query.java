@@ -24,11 +24,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public abstract class Query {
 	private final Cache cache = new Cache();
-	private boolean willneed_tempindex = false;
 	private List<String> tempindex;
-	public enum Dir {
-		NEXT, PREV
-	};
+	public enum Dir { NEXT, PREV };
 	protected static final List<String> noFields = Collections.emptyList();
 	protected static final Set<String> noNeeds = Collections.emptySet();
 	// cost of writing index relative to reading data
@@ -127,7 +124,6 @@ public abstract class Query {
 		//	+ " nrecords " + nrecords() + " keysize " + keysize);
 
 		double cost = Math.min(cost1, cost2);
-		willneed_tempindex = (cost2 < cost1);
 		if (!freeze)
 			return cost;
 
@@ -191,7 +187,4 @@ public abstract class Query {
 		return false;
 	}
 
-	protected boolean tempindexed() {
-		return willneed_tempindex;
-	}
 }
