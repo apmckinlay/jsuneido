@@ -16,7 +16,7 @@ public class TransactionTest {
 
 	@Test
 	public void lookup() {
-		Database db = new DatabasePackage().testdb();
+		Database db = DatabasePackage.dbpkg.testdb();
 		Transaction t = db.readonlyTran();
 		Record key = new RecordBuilder().add("indexes").build();
 		Record r = (Record) t.lookup(1, "tablename", key);

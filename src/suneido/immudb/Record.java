@@ -93,6 +93,7 @@ class Record implements suneido.intfc.database.Record {
 		return fieldOffset(i - 1) - fieldOffset(i);
 	}
 
+	// TODO use getShort and getInt
 	int fieldOffset(int i) {
 		// to match cSuneido use little endian (least significant first)
 		switch (mode()) {

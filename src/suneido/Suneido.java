@@ -16,11 +16,12 @@ import java.util.concurrent.TimeUnit;
 import suneido.database.server.DbmsServer;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
+import suneido.intfc.database.DbTools;
 import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = new suneido.database.DatabasePackage();
+	public static DatabasePackage dbpkg = suneido.database.DatabasePackage.dbpkg;
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
@@ -70,6 +71,7 @@ public class Suneido {
 	}
 
 	private static void doAction() throws Throwable {
+		String dbFilename = dbpkg.dbFilename();
 		switch (cmdlineoptions.action) {
 		case REPL:
 			Suneido.openDbms();
@@ -88,25 +90,27 @@ public class Suneido {
 			scheduler.shutdown();
 			break;
 		case DUMP:
-			if (cmdlineoptions.actionArg == null)
-				dbpkg.dumpDatabasePrint(dbpkg.dbFilename(), "database.su");
+			String dumptablename = cmdlineoptions.actionArg;
+			if (dumptablename == null)
+				DbTools.dumpDatabasePrint(dbpkg, dbFilename, "database.su");
 			else
-				dbpkg.dumpTablePrint(dbpkg.dbFilename(), cmdlineoptions.actionArg);
+				DbTools.dumpTablePrint(dbpkg, dbFilename, dumptablename);
 			break;
 		case LOAD:
-			if (cmdlineoptions.actionArg != null)
-				dbpkg.loadTablePrint(cmdlineoptions.actionArg);
+			String loadtablename = cmdlineoptions.actionArg;
+			if (loadtablename != null)
+				DbTools.loadTablePrint(dbpkg, dbFilename, loadtablename);
 			else
-				dbpkg.loadDatabasePrint("database.su", dbpkg.dbFilename());
+				DbTools.loadDatabasePrint(dbpkg, dbFilename, "database.su");
 			break;
 		case CHECK:
-			dbpkg.checkPrintExit(dbpkg.dbFilename());
+			dbpkg.checkPrintExit(dbFilename);
 			break;
 		case REBUILD:
-			dbpkg.rebuildOrExit(dbpkg.dbFilename());
+			dbpkg.rebuildOrExit(dbFilename);
 			break;
 		case COMPACT:
-			dbpkg.compactPrint(dbpkg.dbFilename());
+			dbpkg.compactPrint(dbFilename);
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());

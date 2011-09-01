@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static suneido.immudb.DatabasePackage.dbpkg;
 
 import java.util.List;
 import java.util.Set;
@@ -17,7 +18,6 @@ import suneido.intfc.database.Fkmode;
 import com.google.common.collect.Ordering;
 
 public class ForeignKeyTest {
-	private final DatabasePackage dbpkg = new DatabasePackage();
 	private Database db = dbpkg.testdb();
 
 	@Test

@@ -4,12 +4,26 @@
 
 package suneido.immudb;
 
+import java.io.File;
+
+import suneido.util.FileUtils;
 
 public class DbRebuild {
 
 	public static void rebuildOrExit(String dbfilename) {
+		File tempfile = FileUtils.tempfile();
+		if (! rebuild(dbfilename, tempfile.getPath()))
+			System.exit(-1);
+	}
+
+	public static boolean rebuild(String dbfilename, String tempfilename) {
 		long okSize = check(dbfilename);
-		Fix.fix(dbfilename, okSize);
+		try {
+			Fix.fix(dbfilename, okSize);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	private static long check(String dbfilename) {

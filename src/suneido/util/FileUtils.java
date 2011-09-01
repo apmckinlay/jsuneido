@@ -4,8 +4,15 @@
 
 package suneido.util;
 
-import java.io.*;
+import static suneido.util.Verify.verify;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 
 import suneido.SuException;
 
@@ -56,20 +63,59 @@ public class FileUtils {
 			tmpfile.deleteOnExit();
 			return tmpfile;
 		} catch (IOException e) {
-			throw new SuException("Can't create temp file", e);
+			throw new RuntimeException("Can't create temp file", e);
 		}
+	}
+
+	public static void deleteIfExisting(String filename) {
+		File file = new File(filename);
+		if (file.exists())
+			verify(file.delete(), "delete failed " + filename);
+	}
+
+	/** NOTE: assumes starting at beginning of buffer */
+	public static void fullRead(ReadableByteChannel in, ByteBuffer buf, int n)
+			throws IOException {
+		buf.limit(n);
+		do {
+			if (in.read(buf) < 1)
+				throw new SuException("premature eof in fullRead " + n);
+		} while (buf.hasRemaining());
+		buf.position(0);
+	}
+
+	public static String getline(ReadableByteChannel in) throws IOException {
+		ByteBuffer buf = ByteBuffer.allocate(1);
+		StringBuilder sb = new StringBuilder();
+		while (true) {
+			buf.rewind();
+			if (in.read(buf) != 1)
+				return null;
+			char c = (char) buf.get(0);
+			if (c == '\n')
+				break;
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
+	public static int readInt(ReadableByteChannel in, ByteBuffer buf)
+			throws IOException {
+		buf.rewind();
+		verify(in.read(buf) == 4);
+		return buf.getInt(0);
 	}
 
 	public static void renameWithBackup(File tmpfile, String filename) {
 		File file = new File(filename);
 		File bakfile = new File(filename + ".bak");
 		if (bakfile.exists() && !bakfile.delete())
-			throw new SuException("can't delete " + bakfile);
+			throw new RuntimeException("can't delete " + bakfile);
 		if (file.exists() && !file.renameTo(bakfile))
-			throw new SuException("can't rename " + file + " to " + bakfile);
+			throw new RuntimeException("can't rename " + file + " to " + bakfile);
 		if (!tmpfile.renameTo(file)) {
 			bakfile.renameTo(file);
-			throw new SuException("can't rename " + tmpfile + " to " + file);
+			throw new RuntimeException("can't rename " + tmpfile + " to " + file);
 		}
 	}
 

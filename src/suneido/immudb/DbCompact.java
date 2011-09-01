@@ -38,7 +38,7 @@ class DbCompact {
 		System.out.println(dbfilename + " compacted " + n + " tables");
 	}
 
-	private static int compact(String dbfilename, String tempfilename) {
+	static int compact(String dbfilename, String tempfilename) {
 		Status status = DbCheck.check(dbfilename);
 		if (status != Status.OK)
 			throw new SuException("Compact FAILED " + dbfilename + " " + status);
@@ -51,8 +51,8 @@ class DbCompact {
 	}
 
 	private int compact() {
-		oldDB = Database.open(dbfilename, "r");
-		newDB = Database.create(tempfilename, "rw");
+		oldDB = Database.openReadonly(dbfilename);
+		newDB = Database.create(tempfilename);
 
 		int n = copy();
 

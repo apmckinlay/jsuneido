@@ -43,14 +43,14 @@ class MmapFile extends ChunkedStorage {
 			this.mode = FileChannel.MapMode.READ_ONLY;
 		} else if ("rw".equals(mode)) {
 			if (file.exists() && (! file.canRead() || ! file.canWrite()))
-				throw new RuntimeException("can't open " + file);
+				throw new RuntimeException("can't open " + file + " read-write");
 			this.mode = FileChannel.MapMode.READ_WRITE;
 		} else
 			throw new RuntimeException("invalid mode " + mode);
 		try {
 			fin = new RandomAccessFile(file, mode);
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("can't open or create " + file, e);
+			throw new RuntimeException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
 		findEnd();
