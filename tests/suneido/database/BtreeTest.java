@@ -1,9 +1,14 @@
 package suneido.database;
 
-import static org.junit.Assert.*;
-import static suneido.SuException.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static suneido.util.Verify.verify;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.TreeSet;
 
 import org.junit.Test;
 

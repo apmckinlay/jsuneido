@@ -1,6 +1,6 @@
 package suneido.database;
 
-import static suneido.SuException.verifyEquals;
+import static suneido.util.Verify.verifyEquals;
 
 import java.io.File;
 

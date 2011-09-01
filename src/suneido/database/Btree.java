@@ -4,9 +4,9 @@
 
 package suneido.database;
 
-import static suneido.SuException.verify;
 import static suneido.util.Util.lowerBound;
 import static suneido.util.Util.upperBound;
+import static suneido.util.Verify.verify;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

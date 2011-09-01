@@ -4,9 +4,9 @@
 
 package suneido.database;
 
-import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
 import static suneido.database.Transaction.NULLTRAN;
+import static suneido.util.Verify.verify;
 
 import java.io.File;
 import java.nio.ByteBuffer;

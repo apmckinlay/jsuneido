@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import static suneido.SuException.verifyEquals;
+import static suneido.util.Verify.verifyEquals;
 
 import java.io.File;
 import java.util.List;

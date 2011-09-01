@@ -2,7 +2,7 @@
 
 package suneido.database;
 
-import static suneido.SuException.verifyEquals;
+import static suneido.util.Verify.verifyEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,6 +132,7 @@ public class TestConcurrency {
 				t.ck_complete();
 			}
 		}
+		@Override
 		public void run() {
 			switch (random(6)) {
 			case 0: range(); break;
@@ -399,7 +400,8 @@ public class TestConcurrency {
 			}
 	        try {
 	            exec.execute(new Runnable() {
-	                public void run() {
+	                @Override
+					public void run() {
 	                    try {
 	                        command.run();
 	                    } finally {

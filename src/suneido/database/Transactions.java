@@ -4,9 +4,12 @@
 
 package suneido.database;
 
-import static suneido.SuException.verify;
+import static suneido.util.Verify.verify;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 

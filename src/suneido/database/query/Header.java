@@ -1,7 +1,9 @@
 package suneido.database.query;
 
-import static suneido.SuException.verify;
-import static suneido.util.Util.*;
+import static suneido.util.Util.concat;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.union;
+import static suneido.util.Verify.verify;
 
 import java.util.ArrayList;
 import java.util.List;

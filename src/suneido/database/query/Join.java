@@ -2,8 +2,8 @@ package suneido.database.query;
 
 import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
-import static suneido.SuException.verify;
 import static suneido.util.Util.*;
+import static suneido.util.Verify.verify;
 
 import java.util.ArrayList;
 import java.util.List;

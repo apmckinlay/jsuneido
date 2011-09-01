@@ -4,9 +4,9 @@
 
 package suneido;
 
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
 import static suneido.language.Ops.cmp;
+import static suneido.util.Verify.verify;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -289,6 +289,7 @@ public class SuContainer extends SuValue
 		//TODO handle stack overflow from self-reference
 	}
 
+	@Override
 	public int compareTo(SuContainer other) {
 		int ord;
 		for (int i = 0; i < vec.size() && i < other.vec.size(); ++i)
@@ -440,6 +441,7 @@ public class SuContainer extends SuValue
 
 	public static enum IterWhich { LIST, NAMED, ALL };
 
+	@Override
 	public Iterator<Object> iterator() {
 		return iterator(IterWhich.ALL, IterResult.VALUE);
 	}
@@ -468,6 +470,7 @@ public class SuContainer extends SuValue
 			this.iterResult = iterResult;
 		}
 
+		@Override
 		public Iterator<Object> iterator() {
 			return SuContainer.this.iterator(iterWhich, iterResult);
 		}
@@ -492,9 +495,11 @@ public class SuContainer extends SuValue
 			this.mapiter = mapiter;
 			this.iterResult = iterResult;
 		}
+		@Override
 		public boolean hasNext() {
 			return veciter.hasNext() || mapiter.hasNext();
 		}
+		@Override
 		public Object next() {
 			if (veciter.hasNext())
 				return result(vec_i++, veciter.next());
@@ -519,6 +524,7 @@ public class SuContainer extends SuValue
 				throw SuException.unreachable();
 			}
 		}
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
@@ -545,6 +551,7 @@ public class SuContainer extends SuValue
 			Collections.sort(vec, Ops.comp);
 		else
 			Collections.sort(vec, new Comparator<Object>() {
+				@Override
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}
@@ -556,6 +563,7 @@ public class SuContainer extends SuValue
 			return Util.lowerBound(vec, value, Ops.comp);
 		else
 			return Util.lowerBound(vec, value, new Comparator<Object>() {
+				@Override
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}
@@ -567,6 +575,7 @@ public class SuContainer extends SuValue
 			return Util.upperBound(vec, value, Ops.comp);
 		else
 			return Util.upperBound(vec, value, new Comparator<Object>() {
+				@Override
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}
@@ -578,6 +587,7 @@ public class SuContainer extends SuValue
 			return Util.equalRange(vec, value, Ops.comp);
 		else
 			return Util.equalRange(vec, value, new Comparator<Object>() {
+				@Override
 				public int compare(Object x, Object y) {
 					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
 				}

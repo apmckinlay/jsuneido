@@ -1,9 +1,9 @@
 package suneido.database.query;
 
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.setUnion;
+import static suneido.util.Verify.verify;
 
 import java.util.Collections;
 import java.util.List;
