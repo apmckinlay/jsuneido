@@ -1,10 +1,10 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
+import static suneido.util.Verify.verify;
 
 import java.util.List;
 import java.util.Map;

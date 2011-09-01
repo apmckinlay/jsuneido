@@ -5,8 +5,8 @@
 package suneido.database;
 
 import static suneido.SuException.unreachable;
-import static suneido.SuException.verify;
 import static suneido.util.Util.bufferUcompare;
+import static suneido.util.Verify.verify;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;

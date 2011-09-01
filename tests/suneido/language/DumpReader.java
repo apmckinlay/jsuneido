@@ -1,7 +1,7 @@
 package suneido.language;
 
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
+import static suneido.util.Verify.verify;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;

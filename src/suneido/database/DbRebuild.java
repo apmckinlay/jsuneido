@@ -5,9 +5,9 @@
 package suneido.database;
 
 import static suneido.SuException.unreachable;
-import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
+import static suneido.util.Verify.verify;
 import gnu.trove.map.hash.TLongLongHashMap;
 
 import java.io.File;

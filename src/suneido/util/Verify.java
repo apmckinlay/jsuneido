@@ -6,14 +6,23 @@ package suneido.util;
 
 public class Verify {
 
-	public static void verify(boolean arg) {
-		if (! arg)
-			throw new RuntimeException("verify failed");
-	}
-
 	public static void verify(boolean arg, String msg) {
 		if (! arg)
-			throw new RuntimeException("verify failed: " + msg);
+			throw new RuntimeException("verify failed " + msg);
+	}
+
+	public static void verify(boolean arg) {
+		verify(arg, "");
+	}
+
+	public static void verifyEquals(long expected, long actual) {
+		verify(expected == actual,
+				"expected " + expected + " got: " + actual);
+	}
+
+	public static void verifyEquals(Object expected, Object actual) {
+		verify(expected.equals(actual),
+				"expected " + expected + " got: " + actual);
 	}
 
 }

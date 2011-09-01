@@ -46,31 +46,4 @@ public class SuException extends RuntimeException {
 		throw new SuException("FATAL " + msg);
 	}
 
-	/**
-	 * Similar to assert, but always enabled
-	 * so it may be used around actual code.
-	 * @param expr
-	 */
-	public static void verify(boolean expr) {
-		if (! expr)
-			throw new SuException("verify failed");
-	}
-
-	/**
-	 * Similar to assert, but always enabled
-	 * so it may be used around actual code.
-	 * @param expr
-	 * @param msg An additional explanatory message.
-	 */
-	public static void verify(boolean expr, String msg) {
-		if (! expr)
-			throw new SuException("verify failed - " + msg);
-	}
-
-	public static void verifyEquals(Object expected, Object actual) {
-		if (!expected.equals(actual))
-			throw new SuException("verify failed: expected " + expected
-					+ " got: " + actual);
-	}
-
 }

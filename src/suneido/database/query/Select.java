@@ -3,13 +3,13 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
-import static suneido.SuException.verify;
 import static suneido.Suneido.dbpkg;
 import static suneido.intfc.database.Record.MAX_FIELD;
 import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.Util.*;
+import static suneido.util.Verify.verify;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;

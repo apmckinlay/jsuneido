@@ -5,10 +5,13 @@
 package suneido.database;
 
 import static suneido.SuException.fatal;
-import static suneido.SuException.verify;
 import static suneido.Suneido.errlog;
+import static suneido.util.Verify.verify;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;

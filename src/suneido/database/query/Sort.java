@@ -1,8 +1,8 @@
 package suneido.database.query;
 
-import static suneido.SuException.verify;
 import static suneido.util.Util.difference;
 import static suneido.util.Util.listToCommas;
+import static suneido.util.Verify.verify;
 
 import java.util.List;
 import java.util.Set;

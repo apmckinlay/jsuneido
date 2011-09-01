@@ -4,9 +4,9 @@
 
 package suneido.database;
 
-import static suneido.SuException.verify;
-import static suneido.SuException.verifyEquals;
 import static suneido.database.Index.*;
+import static suneido.util.Verify.verify;
+import static suneido.util.Verify.verifyEquals;
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
