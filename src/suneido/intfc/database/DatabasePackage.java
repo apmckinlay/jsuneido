@@ -5,12 +5,17 @@
 package suneido.intfc.database;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 public interface DatabasePackage {
 
 	String dbFilename();
 
+	Database create(String filename);
+
 	Database open(String filename);
+	Database openReadonly(String filename);
 
 	Database testdb();
 
@@ -18,19 +23,19 @@ public interface DatabasePackage {
 	Record record(ByteBuffer buf);
 	Record record(int recadr, ByteBuffer buf);
 
-	void dumpDatabasePrint(String dbFilename, String outputFilename);
-	int dumpDatabase(suneido.intfc.database.Database db, String outputFilename);
+	int dumpDatabase(Database db, WritableByteChannel out);
+	int dumpTable(Database db, String tablename, WritableByteChannel out);
 
-	void dumpTablePrint(String dbFilename, String tablename);
-	int dumpTable(suneido.intfc.database.Database db, String tablename);
+	int loadDatabase(Database db, ReadableByteChannel in);
+	int loadTable(Database db, String tablename, ReadableByteChannel in);
 
-	void loadTablePrint(String actionArg);
-	void loadDatabasePrint(String string, String string2) throws InterruptedException;
-
+	/** for tests */ void check(String dbFilename);
 	void checkPrintExit(String dbFilename);
 
+	/** for tests */ void compact(String dbFilename, String tempfilename);
 	void compactPrint(String dbFilename) throws InterruptedException;
 
+	/** for tests*/ void rebuild(String dbFilename, String tempfilename);
 	void rebuildOrExit(String dbFilename);
 
 	Record minRecord();

@@ -13,12 +13,10 @@ import gnu.trove.map.hash.TLongLongHashMap;
 import java.io.File;
 import java.util.*;
 
-import suneido.SuException;
 import suneido.database.Database.TN;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
 import suneido.util.FileUtils;
-import suneido.util.Jvm;
 
 import com.google.common.collect.ImmutableList;
 
@@ -35,32 +33,28 @@ class DbRebuild extends DbCheck {
 	// means smallest block is 16 bytes
 	private static final int GRANULARITY = 16;
 
-	static void rebuildOrExit(String dbfilename) {
+	static void rebuildOrExit(String dbFilename) {
 		File tempfile = FileUtils.tempfile();
-		try {
-			if (!Jvm.runWithNewJvm("-rebuild:" + tempfile))
-				throw new SuException("rebuild failed: " + dbfilename);
-		} catch (InterruptedException e) {
-			throw new SuException("rebuild was interrupted");
-		}
-		FileUtils.renameWithBackup(tempfile, dbfilename);
-	}
-
-	private static void rebuild2(String dbfilename, String tempfilename) {
-		DbRebuild dbr = new DbRebuild(dbfilename, tempfilename, true);
-		Status status = dbr.checkPrint();
+		DbRebuild dbr = new DbRebuild(dbFilename, tempfile.getPath(), true);
+		Status status = dbr.docheck();
 		switch (status) {
 		case OK:
 		case CORRUPTED:
 			dbr.rebuild();
-			errlog("Rebuilt " + dbfilename + " was " + status + " " + dbr.lastCommit(status));
+			errlog("Rebuilt " + dbFilename + " was " + status + " " + dbr.lastCommit(status));
 			break;
 		case UNRECOVERABLE:
-			fatal("Rebuild failed " + dbfilename + " UNRECOVERABLE");
+			fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
 			break;
 		default:
 			throw unreachable();
 		}
+		FileUtils.renameWithBackup(tempfile, dbFilename);
+	}
+
+	/** for tests */
+	static void rebuild(String dbFilename, String tempfilename) {
+		new DbRebuild(dbFilename, tempfilename, false).rebuild();
 	}
 
 	DbRebuild(String filename, String tempfilename, boolean print) {
@@ -82,7 +76,7 @@ class DbRebuild extends DbCheck {
 			newdb = null;
 
 			DbCheck dbc = new DbCheck(tempfile.getPath(), print);
-			switch (dbc.checkPrint()) {
+			switch (dbc.docheck()) {
 			case OK:
 				break;
 			case CORRUPTED:
@@ -338,7 +332,7 @@ class DbRebuild extends DbCheck {
 	}
 
 	public static void main(String[] args) {
-		rebuild2("suneido.db", "rebuilt.db");
+		rebuild("suneido.db", "rebuilt.db");
 	}
 
 }

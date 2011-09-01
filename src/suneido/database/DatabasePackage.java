@@ -5,15 +5,31 @@
 package suneido.database;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
+	public static final DatabasePackage dbpkg = new DatabasePackage();
 	static final String DB_FILENAME = "suneido.db";
 	private static final Record MIN_RECORD = new Record();
 	private static final Record MAX_RECORD = new Record().add(Record.MAX_FIELD);
 
+	private DatabasePackage() {
+	}
+
+	@Override
+	public Database create(String filename) {
+		return new Database(filename, Mode.CREATE);
+	}
+
 	@Override
 	public Database open(String filename) {
 		return new Database(filename, Mode.OPEN);
+	}
+
+	@Override
+	public Database openReadonly(String filename) {
+		return new Database(filename, Mode.READ_ONLY);
 	}
 
 	@Override
@@ -37,28 +53,40 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void dumpDatabasePrint(String dbFilename, String outputFilename) {
-		DbDump.dumpDatabasePrint(dbFilename, outputFilename);
+	public int dumpDatabase(suneido.intfc.database.Database db, WritableByteChannel out) {
+		return DbDump.dumpDatabase((Database) db, out);
 	}
 
 	@Override
-	public int dumpDatabase(suneido.intfc.database.Database db, String outputFilename) {
-		return DbDump.dumpDatabase(db, outputFilename);
+	public int dumpTable(suneido.intfc.database.Database db, String tablename,
+			WritableByteChannel out) {
+		return DbDump.dumpTable((Database) db, tablename, out);
 	}
 
 	@Override
-	public void dumpTablePrint(String dbFilename, String tablename) {
-		DbDump.dumpTablePrint(dbFilename, tablename);
+	public int loadDatabase(suneido.intfc.database.Database db, ReadableByteChannel in) {
+		return DbLoad.loadDatabase((Database) db, in);
 	}
 
 	@Override
-	public int dumpTable(suneido.intfc.database.Database db, String tablename) {
-		return DbDump.dumpTable(db, tablename);
+	public int loadTable(suneido.intfc.database.Database db, String tablename,
+			ReadableByteChannel in) {
+		return DbLoad.loadTable((Database) db, tablename, in);
+	}
+
+	@Override
+	public void check(String dbFilename) {
+
 	}
 
 	@Override
 	public void checkPrintExit(String filename) {
 		DbCheck.checkPrintExit(filename);
+	}
+
+	@Override
+	public void compact(String dbFilename, String tempfilename) {
+		DbCompact.compact(dbFilename, tempfilename);
 	}
 
 	@Override
@@ -68,18 +96,13 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
+	public void rebuild(String dbFilename, String tempfilename) {
+		DbRebuild.rebuild(dbFilename, tempfilename);
+	}
+
+	@Override
 	public void rebuildOrExit(String dbFilename) {
 		DbRebuild.rebuildOrExit(dbFilename);
-	}
-
-	@Override
-	public void loadDatabasePrint(String filename, String dbFilename) throws InterruptedException {
-		DbLoad.loadDatabasePrint(filename, dbFilename);
-	}
-
-	@Override
-	public void loadTablePrint(String tablename) {
-		DbLoad.loadTablePrint(tablename);
 	}
 
 	@Override

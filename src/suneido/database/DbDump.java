@@ -1,122 +1,78 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database;
 
 import static suneido.util.Util.stringToBuffer;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.SuException;
+import suneido.intfc.database.DbTools;
 
 class DbDump {
 
-	static void dumpDatabasePrint(String db_filename, String output_filename) {
-		int n = dumpDatabase(db_filename, output_filename);
-		System.out.println("dumped " + n + " tables from " + db_filename
-				+ " to " + output_filename);
-	}
-
-	static int dumpDatabase(String db_filename, String output_filename) {
-		Database db = new Database(db_filename, Mode.READ_ONLY);
+	static int dumpDatabase(Database db, WritableByteChannel out) {
+		Transaction t = db.readonlyTran();
 		try {
-			return dumpDatabase(db, output_filename);
-		} finally {
-			db.close();
-		}
-	}
-
-	static int dumpDatabase(suneido.intfc.database.Database db, String output_filename) {
-		try {
-			return dumpDatabaseImp(db, output_filename);
-		} catch (Throwable e) {
-			throw new SuException("dump " + output_filename + " failed", e);
-		}
-	}
-
-	private static int dumpDatabaseImp(suneido.intfc.database.Database db, String filename) throws Throwable {
-		FileChannel fout = new FileOutputStream(filename).getChannel();
-		try {
-			Transaction t = (Transaction) db.readonlyTran();
-			try {
-				writeFileHeader(fout);
-				BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
-				BtreeIndex.Iter iter = bti.iter();
-				int n = 0;
-				for (iter.next(); ! iter.eof(); iter.next()) {
-					Record r = t.input(iter.keyadr());
-					String tablename = r.getString(Table.TABLE);
-					if (Schema.isSystemTable(tablename))
-						continue;
-					dump1(fout, t, tablename, true);
-					++n;
-				}
-				dump1(fout, t, "views", true);
-				return ++n;
-			} finally {
-				t.complete();
+			writeFileHeader(out);
+			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
+			BtreeIndex.Iter iter = bti.iter();
+			int n = 0;
+			for (iter.next(); ! iter.eof(); iter.next()) {
+				Record r = t.input(iter.keyadr());
+				String tablename = r.getString(Table.TABLE);
+				if (Schema.isSystemTable(tablename))
+					continue;
+				dump1(out, t, tablename, true);
+				++n;
 			}
+			dump1(out, t, "views", true);
+			return ++n;
+		} catch (IOException e) {
+			throw new RuntimeException("dump failed", e);
 		} finally {
-			fout.close();
+			t.complete();
 		}
 	}
 
-	static void dumpTablePrint(String db_filename, String tablename) {
-		Database db = new Database(db_filename, Mode.READ_ONLY);
+	static int dumpTable(Database db, String tablename, WritableByteChannel out) {
+		Transaction t = db.readonlyTran();
 		try {
-			int n = dumpTable(db, tablename);
-			System.out.println("dumped " + n + " records from " + tablename);
+			writeFileHeader(out);
+			return dump1(out, t, tablename, false);
+		} catch (IOException e) {
+			throw new RuntimeException("dump table failed", e);
 		} finally {
-			db.close();
+			t.complete();
 		}
 	}
 
-	static int dumpTable(suneido.intfc.database.Database db, String tablename) {
-		try {
-			return dumpTableImp(db, tablename);
-		} catch (Throwable e) {
-			throw new SuException("dump " + tablename + " failed", e);
-		}
+	private static void writeFileHeader(WritableByteChannel out) throws IOException {
+		write(out, "Suneido dump 1.0\n");
 	}
 
-	private static int dumpTableImp(suneido.intfc.database.Database db, String tablename) throws Throwable {
-		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
-		try {
-			Transaction t = (Transaction) db.readonlyTran();
-			try {
-				writeFileHeader(fout);
-				return dump1(fout, t, tablename, false);
-			} finally {
-				t.complete();
-			}
-		} finally {
-			fout.close();
-		}
-	}
-
-	private static void writeFileHeader(FileChannel fout) throws IOException {
-		write(fout, "Suneido dump 1.0\n");
-	}
-
-	private static int dump1(FileChannel fout, Transaction t, String tablename,
+	private static int dump1(WritableByteChannel out, Transaction t, String tablename,
 			boolean outputName) throws IOException {
-		writeTableHeader(fout, t, tablename, outputName);
-		return writeTableData(fout, t, tablename);
+		writeTableHeader(out, t, tablename, outputName);
+		return writeTableData(out, t, tablename);
 	}
 
-	private static void writeTableHeader(FileChannel fout, Transaction t,
+	private static void writeTableHeader(WritableByteChannel out, Transaction t,
 			String tablename, boolean outputName) throws IOException {
 		String schema = t.ck_getTable(tablename).schema();
 		String header = "====== ";
 		if (outputName)
 			header += tablename + " ";
 		header += schema + "\n";
-		write(fout, header);
+		write(out, header);
 	}
 
-	private static int writeTableData(FileChannel fout, Transaction t,
+	private static int writeTableData(WritableByteChannel out, Transaction t,
 			String tablename) throws IOException {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
@@ -130,11 +86,11 @@ class DbDump {
 			Record r = t.input(iter.keyadr());
 			if (squeeze)
 				r = squeezeRecord(r, fields);
-			writeInt(fout, buf, r.bufSize());
-			fout.write(r.getBuffer());
+			writeInt(out, buf, r.bufSize());
+			out.write(r.getBuffer());
 			++n;
 		}
-		writeInt(fout, buf, 0);
+		writeInt(out, buf, 0);
 		return n;
 	}
 
@@ -155,20 +111,19 @@ class DbDump {
 		return newrec.dup();
 	}
 
-	private static void writeInt(FileChannel fout, ByteBuffer buf, int n)
+	private static void writeInt(WritableByteChannel out, ByteBuffer buf, int n)
 			throws IOException {
 		buf.putInt(0, n);
 		buf.rewind();
-		fout.write(buf);
+		out.write(buf);
 	}
 
-	private static void write(FileChannel fout, String s) throws IOException {
-		fout.write(stringToBuffer(s));
+	private static void write(WritableByteChannel out, String s) throws IOException {
+		out.write(stringToBuffer(s));
 	}
 
 	public static void main(String[] args) {
-		dumpDatabasePrint("suneido.db", "database2.su");
-//		dumpTablePrint("test");
+		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "suneido.db", "database.su");
 	}
 
 }

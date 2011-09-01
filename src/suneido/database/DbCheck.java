@@ -34,19 +34,19 @@ class DbCheck {
 	}
 
 	static Status check(String filename) {
-		return new DbCheck(filename, false).checkPrint();
+		return new DbCheck(filename, false).docheck();
 	}
 
 	static Status checkPrint(String filename) {
-		return new DbCheck(filename, true).checkPrint();
+		return new DbCheck(filename, true).docheck();
 	}
 
 	static void checkPrintExit(String filename) {
-		Status status = new DbCheck(filename, true).checkPrint();
+		Status status = new DbCheck(filename, true).docheck();
 		System.exit(status == Status.OK ? 0 : -1);
 	}
 
-	Status checkPrint() {
+	Status docheck() {
 		println("Checking " + filename);
 		println("Checking commits and shutdowns");
 		Status status = check_commits_and_shutdowns();

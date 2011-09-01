@@ -80,7 +80,7 @@ class DbCheck {
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
 		Database db = filename.equals("")
 				? Database.open(stor)
-				: Database.open(filename, "r");
+				: Database.openReadonly(filename);
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);

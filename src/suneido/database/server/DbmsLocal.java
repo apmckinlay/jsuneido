@@ -16,10 +16,7 @@ import suneido.SuContainer;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
-import suneido.intfc.database.Database;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.Table;
-import suneido.intfc.database.Transaction;
+import suneido.intfc.database.*;
 import suneido.language.Compiler;
 import suneido.language.builtin.ServerEval;
 
@@ -74,9 +71,9 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void dump(String filename) {
 		if (filename.equals(""))
-			dbpkg.dumpDatabase(db, "database.su");
+			DbTools.dumpDatabase(dbpkg, db, "database.su");
 		else
-			dbpkg.dumpTable(db, filename);
+			DbTools.dumpTable(dbpkg, db, filename);
 	}
 
 	@Override

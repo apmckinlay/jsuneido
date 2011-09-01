@@ -14,6 +14,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 import suneido.language.Triggers;
+import suneido.util.FileUtils;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
@@ -29,8 +30,9 @@ class Database implements suneido.intfc.database.Database {
 
 	// create
 
-	static Database create(String filename, String mode) {
-		return create(new MmapFile(filename, mode));
+	static Database create(String dbfilename) {
+		FileUtils.deleteIfExisting(dbfilename);
+		return create(new MmapFile(dbfilename, "rw"));
 	}
 
 	static Database create(Storage stor) {
@@ -50,8 +52,12 @@ class Database implements suneido.intfc.database.Database {
 
 	// open
 
-	static Database open(String filename, String mode) {
-		return open(check(filename, mode));
+	static Database open(String filename) {
+		return open(check(filename, "rw"));
+	}
+
+	static Database openReadonly(String filename) {
+		return open(check(filename, "r"));
 	}
 
 	static Database open(Storage stor) {

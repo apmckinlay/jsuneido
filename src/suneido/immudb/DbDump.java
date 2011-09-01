@@ -4,126 +4,77 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.DatabasePackage.DB_FILENAME;
 import static suneido.util.Util.stringToBuffer;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.SuException;
+import suneido.intfc.database.DbTools;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 
 public class DbDump {
 
-	static void dumpDatabasePrint(String dbFilename, String outputFilename) {
-		int n = dumpDatabase(dbFilename, outputFilename);
-		System.out.println("dumped " + n + " tables from " + dbFilename
-				+ " to " + outputFilename);
-	}
-
-	static int dumpDatabase(String dbFilename, String outputFilename) {
-		Database db = Database.open(dbFilename, "r");
+	static int dumpDatabase(Database db, WritableByteChannel out) {
+		ReadTransaction t = db.readonlyTran();
 		try {
-			return dumpDatabase(db, outputFilename);
-		} finally {
-			db.close();
-		}
-	}
-
-	static int dumpDatabase(Database db, String outputFilename) {
-		try {
-			return dumpDatabaseImp(db, outputFilename);
-		} catch (Throwable e) {
-			throw new SuException("dump " + outputFilename + " failed", e);
-		}
-	}
-
-	private static int dumpDatabaseImp(Database db, String filename) throws Throwable {
-		FileChannel fout = new FileOutputStream(filename).getChannel();
-		try {
-			ReadTransaction t = db.readonlyTran();
-			try {
-				writeFileHeader(fout);
-				IndexIter iter = t.iter(Bootstrap.TN.TABLES, "tablename");
-				int n = 0;
-				for (iter.next(); ! iter.eof(); iter.next()) {
-					Record r = t.input(iter.keyadr());
-					String tablename = r.getString(Table.TABLE);
-					if (Database.isSystemTable(tablename))
-						continue;
-					dump1(fout, t, tablename, true);
-					++n;
-				}
-				dump1(fout, t, "views", true);
-				return ++n;
-			} finally {
-				t.complete();
+			writeFileHeader(out);
+			IndexIter iter = t.iter(Bootstrap.TN.TABLES, "tablename");
+			int n = 0;
+			for (iter.next(); ! iter.eof(); iter.next()) {
+				Record r = t.input(iter.keyadr());
+				String tablename = r.getString(Table.TABLE);
+				if (Database.isSystemTable(tablename))
+					continue;
+				dump1(out, t, tablename, true);
+				++n;
 			}
+			dump1(out, t, "views", true);
+			return ++n;
+		} catch (Exception e) {
+			throw new RuntimeException("dump failed", e);
 		} finally {
-			fout.close();
+			t.complete();
 		}
 	}
 
-	static void dumpTablePrint(String dbFilename, String tablename) {
-		Database db = Database.open(dbFilename, "r");
+	static int dumpTable(Database db, String tablename, WritableByteChannel out) {
+		ReadTransaction t = db.readonlyTran();
 		try {
-			int n = dumpTable(db, tablename);
-			System.out.println("dumped " + n + " records from " + tablename);
+			writeFileHeader(out);
+			return dump1(out, t, tablename, false);
+		} catch (Exception e) {
+			throw new RuntimeException("dump failed", e);
 		} finally {
-			db.close();
+			t.complete();
 		}
 	}
 
-	static int dumpTable(Database db, String tablename) {
-		try {
-			return dumpTableImp(db, tablename);
-		} catch (Throwable e) {
-			throw new SuException("dump " + tablename + " failed", e);
-		}
+	private static void writeFileHeader(WritableByteChannel out) throws IOException {
+		write(out, "Suneido dump 1.0\n");
 	}
 
-	private static int dumpTableImp(Database db, String tablename) throws Throwable {
-		FileChannel fout = new FileOutputStream(tablename + ".su").getChannel();
-		try {
-			ReadTransaction t = db.readonlyTran();
-			try {
-				writeFileHeader(fout);
-				return dump1(fout, t, tablename, false);
-			} finally {
-				t.complete();
-			}
-		} finally {
-			fout.close();
-		}
-	}
-
-	private static void writeFileHeader(FileChannel fout) throws IOException {
-		write(fout, "Suneido dump 1.0\n");
-	}
-
-	private static int dump1(FileChannel fout, ReadTransaction t, String tablename,
+	private static int dump1(WritableByteChannel out, ReadTransaction t, String tablename,
 			boolean outputName) throws IOException {
-		writeTableHeader(fout, t, tablename, outputName);
-		return writeTableData(fout, t, tablename);
+		writeTableHeader(out, t, tablename, outputName);
+		return writeTableData(out, t, tablename);
 	}
 
-	private static void writeTableHeader(FileChannel fout, ReadTransaction t,
+	private static void writeTableHeader(WritableByteChannel out, ReadTransaction t,
 			String tablename, boolean outputName) throws IOException {
 		String schema = t.ck_getTable(tablename).schema(t);
 		String header = "====== ";
 		if (outputName)
 			header += tablename + " ";
 		header += schema + "\n";
-		write(fout, header);
+		write(out, header);
 	}
 
-	private static int writeTableData(FileChannel fout, ReadTransaction t,
+	private static int writeTableData(WritableByteChannel out, ReadTransaction t,
 			String tablename) throws IOException {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
@@ -133,11 +84,11 @@ public class DbDump {
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = t.input(iter.keyadr());
 			r = convert(r, fields);
-			writeInt(fout, buf, r.bufSize());
-			fout.write(r.getBuffer());
+			writeInt(out, buf, r.bufSize());
+			out.write(r.getBuffer());
 			++n;
 		}
-		writeInt(fout, buf, 0);
+		writeInt(out, buf, 0);
 		return n;
 	}
 
@@ -156,19 +107,19 @@ public class DbDump {
 		return rb.build();
 	}
 
-	private static void writeInt(FileChannel fout, ByteBuffer buf, int n)
+	private static void writeInt(WritableByteChannel out, ByteBuffer buf, int n)
 			throws IOException {
 		buf.putInt(0, n);
 		buf.rewind();
-		fout.write(buf);
+		out.write(buf);
 	}
 
-	private static void write(FileChannel fout, String s) throws IOException {
-		fout.write(stringToBuffer(s));
+	private static void write(WritableByteChannel out, String s) throws IOException {
+		out.write(stringToBuffer(s));
 	}
 
 	public static void main(String[] args) {
-		dumpDatabasePrint(DB_FILENAME, "immudb.su");
+		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immudb.db", "immudb.su");
 //		dumpTablePrint("test");
 	}
 
