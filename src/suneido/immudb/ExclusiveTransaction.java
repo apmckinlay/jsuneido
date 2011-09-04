@@ -4,14 +4,14 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.ThreadConfined;
 
 /**
  * Transactions must be thread confined.
  * Load and compact bend the rules and write data prior to commit
  * using loadRecord and saveBtrees
  */
-@NotThreadSafe
+@ThreadConfined
 public class ExclusiveTransaction extends UpdateTransaction {
 
 	ExclusiveTransaction(int num, Database db) {
