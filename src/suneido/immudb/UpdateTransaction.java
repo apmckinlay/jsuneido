@@ -9,6 +9,7 @@ import java.util.Map;
 
 import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
+import suneido.util.ThreadConfined;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
@@ -20,6 +21,7 @@ import com.google.common.primitives.Ints;
  * Storage is only written during commit.
  * Commit is single-threaded.
  */
+@ThreadConfined
 class UpdateTransaction extends ReadTransaction {
 	protected final UpdateDbInfo udbinfo;
 	protected Tables newSchema;

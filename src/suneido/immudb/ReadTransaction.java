@@ -7,22 +7,21 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Set;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import suneido.SuException;
 import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
+import suneido.util.ThreadConfined;
 
 import com.google.common.collect.HashBasedTable;
 
 /**
- * Effectively immutable, but dbinfo and indexes are cached
+ * Effectively immutable, but indexes are cached
  * Transactions must be thread confined.
  * They take a "snapshot" of the database state at the start.
  * ReadTransactions require no locking
  * since they only operate on immutable data.
  */
-@NotThreadSafe
+@ThreadConfined
 class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final int num;
 	protected final Database db;

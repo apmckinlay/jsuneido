@@ -18,6 +18,8 @@ import com.google.common.base.Strings;
  * Persistent semi-immutable hash tree used for storing dbinfo and redirections.
  * loaded => immutable => with => mutable => store => immutable
  * Mutable within a thread confined transaction.
+ * EXCEPT even when "immutable" get will load nodes on demand
+ * so Node methods that access data are synchronized
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
  * Bagwell's Ideal Hash Trees</a>
@@ -92,6 +94,10 @@ abstract class DbHashTrie {
 			super(stor);
 		}
 		@Override
+		Entry get(int key) {
+			return null;
+		}
+		@Override
 		protected Node with(Entry e, int shift) {
 			return new Node(this, e, shift);
 		}
@@ -101,7 +107,6 @@ abstract class DbHashTrie {
 		}
 	}
 
-	/** stored nodes are immutable */
 	private static class Node extends DbHashTrie {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
@@ -129,8 +134,9 @@ abstract class DbHashTrie {
 			}
 		}
 
+		/** WARNING loads child nodes on demand so NOT immutable */
 		@Override
-		protected Entry get(int key, int shift) {
+		protected synchronized Entry get(int key, int shift) {
 			assert shift < 32;
 			int bit = bit(key, shift);
 			if ((bitmap & bit) == 0)
@@ -185,13 +191,17 @@ abstract class DbHashTrie {
 			return this;
 		}
 		private Node(Node node, Entry e, int shift) {
+			assert node.immutable();
 			stor = node.stor;
 			bitmap = node.bitmap;
 			int n = size();
-			data = Arrays.copyOf(node.data, n + 1);
+			synchronized (node) {
+				data = Arrays.copyOf(node.data, n + 1);
+			}
 			with(e, shift);
 		}
 		private void insert(int i, Entry e) {
+			assert ! stored();
 			int n = size();
 			data = ensureCapacity(data, n + 1, 2);
 			if (n > i)
@@ -224,6 +234,7 @@ abstract class DbHashTrie {
 			}
 		}
 
+		/** recursive */
 		private Node load(Translator translator) {
 			Object newdata[] = new Entry[size()];
 			for (int i = 0; i < size(); ++i)
@@ -264,6 +275,7 @@ abstract class DbHashTrie {
 			}
 			return adr;
 		}
+
 		private int byteBufSize() {
 			return INT_BYTES + // bitmap
 					(2 * size() * INT_BYTES); // keys and values
@@ -272,7 +284,8 @@ abstract class DbHashTrie {
 		@Override
 		void traverseChanges(Process proc) {
 			if (stored())
-				return ;
+				return;
+
 			for (int i = 0; i < size(); ++i) {
 				if (data[i] instanceof Node)
 					((Node) data[i]).traverseChanges(proc);
