@@ -34,7 +34,7 @@ public class BootstrapTest {
 		assertThat(db.getSchema("views"),
 				is("(view_name,view_definition) key(view_name)"));
 
-		ReadDbInfo dbinfo = new ReadDbInfo(db.stor, db.dbinfo);
+		ReadDbInfo dbinfo = new ReadDbInfo(db.getDbinfo());
 		assertThat(dbinfo.get(TN.TABLES).nrows(), is(4));
 		assertThat(dbinfo.get(TN.COLUMNS).nrows(), is(13));
 		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(5));

@@ -4,56 +4,22 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import suneido.immudb.DbHashTrie.Entry;
-import suneido.immudb.DbHashTrie.IntEntry;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * Wrapper for read-only access to dbinfo.
- * Effectively immutable, but loads (and caches) dbinfo
- * Thread confined since used by single transactions which are thread confined
  */
-@NotThreadSafe
+@Immutable
 class ReadDbInfo {
-	protected final Storage stor;
-	protected DbHashTrie dbinfo;
+	protected final DbHashTrie dbinfo;
 
-	ReadDbInfo(Storage stor, int adr) {
-		this.stor = stor;
-		dbinfo = DbHashTrie.from(stor, adr);
-	}
-
-	ReadDbInfo(Storage stor, DbHashTrie dbinfo) {
-		this.stor = stor;
+	ReadDbInfo(DbHashTrie dbinfo) {
 		this.dbinfo = dbinfo;
-	}
-
-	DbHashTrie dbinfo() {
-		return dbinfo;
+		assert dbinfo.immutable();
 	}
 
 	TableInfo get(int tblnum) {
-		Entry e = dbinfo.get(tblnum);
-		if (e instanceof IntEntry) {
-			int adr = ((IntEntry) e).value;
-			Record rec = new Record(stor, adr);
-			TableInfo ti = new TableInfo(rec, adr);
-			dbinfo = dbinfo.with(ti);
-			return ti;
-		} else
-			return (TableInfo) e;
-	}
-
-	void check() {
-		dbinfo.traverseChanges(checkProc);
-	}
-	private static final CheckProc checkProc = new CheckProc();
-	private static class CheckProc implements DbHashTrie.Process {
-		@Override
-		public void apply(Entry entry) {
-			((TableInfo) entry).check();
-		}
+		return (TableInfo) dbinfo.get(tblnum);
 	}
 
 }

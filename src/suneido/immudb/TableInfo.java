@@ -13,8 +13,9 @@ import com.google.common.collect.Iterables;
 /**
  * Table stats - nextfield, nrows, totalsize, indexInfo
  * <p>
- * Immutable when loaded or stored.
- * Mutable within a transaction.
+ * Semi-immutable
+ * loaded => immutable => with => mutable => store => immutable
+ * Mutable within a thread confined transaction.
  */
 class TableInfo extends DbHashTrie.Entry {
 	private int adr;

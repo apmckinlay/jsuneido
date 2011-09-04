@@ -27,6 +27,7 @@ class Redirects {
 	private DbHashTrie redirs;
 
 	Redirects(DbHashTrie redirs) {
+		assert redirs.immutable();
 		original = redirs;
 		this.redirs = redirs;
 	}

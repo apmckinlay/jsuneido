@@ -10,41 +10,49 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Strings;
 
 /**
- * Persistent semi-immutable hash tree used for storing redirections.
+ * Persistent semi-immutable hash tree used for storing dbinfo and redirections.
+ * loaded => immutable => with => mutable => store => immutable
+ * Mutable within a thread confined transaction.
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
  * Bagwell's Ideal Hash Trees</a>
  * <p>
  * Keys are int's so no hashing or overflow is required.
  * <p>
- * Nodes are stored as:<ul>
+ * Nodes are:<ul>
  * <li>bitmap	- an int where the bits specify which entries are present
- * <li>entries	- up to 32 entries, each a pair of int's (key and value)
- * 		if key is 0 then value points to a child node
+ * <li>entries	- up to 32 Object entries, each is one of:
+ * Integer storage address of child node, Node child node, or Entry.
+ * Entry is abstract and has sub-classes IntEntry, StoredIntEntry, and RefEntry.
  * </ul>
+ * Node entries are stored as pairs of int's,
+ * if key is 0 then value is address of child node
+ * <p>
  * Similar to {@link suneido.util.PersistentMap}
  */
+@NotThreadSafe
 abstract class DbHashTrie {
 	private static final int BITS_PER_LEVEL = 5;
 	private static final int HASH_BITS = 1 << BITS_PER_LEVEL;
 	private static final int LEVEL_MASK = HASH_BITS - 1;
 	private static final int INT_BYTES = Integer.SIZE / 8;
 
-	/** NOTE: not stored, so mutable */
-	static DbHashTrie empty() {
-		return empty(null);
-	}
-
 	static DbHashTrie empty(Storage stor) {
-		return new Node(stor);
+		return new EmptyNode(stor);
 	}
 
 	static DbHashTrie from(Storage stor, int at) {
 		return new Node(stor, at);
+	}
+
+	/** loads the entire tree into memory */
+	static DbHashTrie load(Storage stor, int at, Translator translator) {
+		return new Node(stor, at).load(translator);
 	}
 
 	abstract static class Entry {
@@ -71,10 +79,27 @@ abstract class DbHashTrie {
 
 	abstract int store(Translator translator);
 
+	abstract boolean stored();
+	abstract boolean immutable();
+
 	void print() {
 		print(0);
 	}
 	protected abstract void print(int shift);
+
+	private static class EmptyNode extends Node {
+		private EmptyNode(Storage stor) {
+			super(stor);
+		}
+		@Override
+		protected Node with(Entry e, int shift) {
+			return new Node(this, e, shift);
+		}
+		@Override
+		boolean immutable() {
+			return true;
+		}
+	}
 
 	/** stored nodes are immutable */
 	private static class Node extends DbHashTrie {
@@ -116,9 +141,7 @@ abstract class DbHashTrie {
 				return e.key() == key ? e : null;
 			} else { // pointer to child
 				if (data[i] instanceof Integer)
-					synchronized(this) {
-						data[i] = new Node(stor, ((Integer) data[i]));
-					}
+					data[i] = new Node(stor, ((Integer) data[i]));
 				return ((Node) data[i]).get(key, shift + BITS_PER_LEVEL);
 			}
 		}
@@ -201,6 +224,19 @@ abstract class DbHashTrie {
 			}
 		}
 
+		private Node load(Translator translator) {
+			Object newdata[] = new Entry[size()];
+			for (int i = 0; i < size(); ++i)
+				if (data[i] instanceof StoredIntEntry)
+					newdata[i] = translator.translate((Entry) data[i]);
+				else if (data[i] instanceof Integer)
+					newdata[i] = new Node(stor, (Integer) data[i]).load(translator);
+				else
+					throw new RuntimeException("DbHashTrie load unhandled type " + data[i]);
+			data = newdata;
+			return this;
+		}
+
 		@Override
 		int store(Translator translator) {
 			if (stored())
@@ -246,8 +282,13 @@ abstract class DbHashTrie {
 			}
 		}
 
-		private boolean stored() {
+		@Override
+		boolean stored() {
 			return adr != 0;
+		}
+		@Override
+		boolean immutable() {
+			return stored();
 		}
 
 		@Override
