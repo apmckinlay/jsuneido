@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
  * Since added is only appended to, it is safe to "share".
  */
 @NotThreadSafe
-class BtreeDbMemNode extends BtreeStoreNode {
+class BtreeDbMemNode extends BtreeStorableNode {
 	private final Record rec;
 	private final TByteArrayList index;
 	private ArrayList<Record> added;

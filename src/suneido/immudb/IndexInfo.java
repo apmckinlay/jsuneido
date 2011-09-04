@@ -6,6 +6,8 @@ package suneido.immudb;
 
 import static suneido.util.Util.commaSplitter;
 
+import java.util.Arrays;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
@@ -65,7 +67,7 @@ class IndexInfo extends BtreeInfo {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-			.add("columns", columns)
+			.add("columns", Arrays.toString(columns))
 			.add("root", root)
 			.add("treeLevels", treeLevels)
 			.add("nnodes", nnodes)

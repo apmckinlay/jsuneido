@@ -211,7 +211,7 @@ public class BtreeNodeTest {
 		pack(dbNode().with(record("new")));
 	}
 
-	private void pack(BtreeStoreNode node) {
+	private void pack(BtreeStorableNode node) {
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeNode dbnode = new BtreeDbNode(0, buf);

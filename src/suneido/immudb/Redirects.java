@@ -45,6 +45,14 @@ class Redirects {
 		return redirs.store(translator);
 	}
 
+	void assertNoChanges() {
+		redirs.traverseChanges(new DbHashTrie.Process() {
+			@Override
+			public void apply(Entry e ) {
+				assert false : "should not be any changes";
+			}});
+	}
+
 	void print() {
 		redirs.print();
 	}
@@ -60,6 +68,10 @@ class Redirects {
 		Proc proc = new Proc(original, current);
 		redirs.traverseChanges(proc);
 		redirs = proc.merged;
+	}
+
+	void assertNoChanges(DbHashTrie current) {
+		assert current == original;
 	}
 
 	private static class Proc implements DbHashTrie.Process {

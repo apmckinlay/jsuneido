@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Set;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
 import suneido.intfc.database.HistoryIterator;
@@ -16,36 +16,34 @@ import suneido.intfc.database.IndexIter;
 import com.google.common.collect.HashBasedTable;
 
 /**
- * Transactions must be thread contained.
+ * Effectively immutable, but dbinfo and indexes are cached
+ * Transactions must be thread confined.
  * They take a "snapshot" of the database state at the start.
  * ReadTransactions require no locking
  * since they only operate on immutable data.
  */
-@Immutable
+@NotThreadSafe
 class ReadTransaction implements suneido.intfc.database.Transaction {
+	protected final int num;
 	protected final Database db;
 	protected final Storage stor;
 	protected final Tran tran;
-	private final ReadDbInfo dbinfo;
+	private final ReadDbInfo rdbinfo;
 	protected final Tables schema;
-	protected final HashBasedTable<Integer,ColNums,Btree> indexes = HashBasedTable.create();
-	protected final int num;
+	protected final com.google.common.collect.Table<Integer,ColNums,Btree> indexes;
 
 	ReadTransaction(int num, Database db) {
 		this.num = num;
 		this.db = db;
 		stor = db.stor;
-		dbinfo = new ReadDbInfo(stor, db.dbinfo);
+		rdbinfo = new ReadDbInfo(stor, db.dbinfo);
 		schema = db.schema;
 		tran = new Tran(stor, new Redirects(db.redirs));
-	}
-
-	protected DbHashTrie originalDbinfo() {
-		return dbinfo.dbinfo;
+		indexes = HashBasedTable.create();
 	}
 
 	protected ReadDbInfo dbinfo() {
-		return dbinfo;
+		return rdbinfo;
 	}
 
 	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {

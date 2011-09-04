@@ -76,6 +76,7 @@ abstract class DbHashTrie {
 	}
 	protected abstract void print(int shift);
 
+	/** stored nodes are immutable */
 	private static class Node extends DbHashTrie {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
@@ -325,12 +326,14 @@ abstract class DbHashTrie {
 	}
 
 	/** used to identify old entries */
+	@Immutable
 	static class StoredIntEntry extends IntEntry {
 		StoredIntEntry(int key, int value) {
 			super(key, value);
 		}
 	}
 
+	@Immutable
 	static class RefEntry<T> extends Entry {
 		private final int key;
 		private final T value;

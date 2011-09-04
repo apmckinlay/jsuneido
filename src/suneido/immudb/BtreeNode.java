@@ -53,7 +53,7 @@ abstract class BtreeNode {
 	}
 
 	/** Inserts key in order */
-	abstract BtreeStoreNode with(Record key);
+	abstract BtreeStorableNode with(Record key);
 
 	/** @return null if key not found */
 	BtreeNode without(Record key) {

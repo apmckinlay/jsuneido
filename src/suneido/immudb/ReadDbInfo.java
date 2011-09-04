@@ -4,12 +4,17 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 
-@Immutable
+/**
+ * Wrapper for read-only access to dbinfo.
+ * Effectively immutable, but loads (and caches) dbinfo
+ * Thread confined since used by single transactions which are thread confined
+ */
+@NotThreadSafe
 class ReadDbInfo {
 	protected final Storage stor;
 	protected DbHashTrie dbinfo;

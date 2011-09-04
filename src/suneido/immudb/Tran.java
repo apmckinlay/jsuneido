@@ -142,4 +142,8 @@ class Tran implements Translator {
 		redirs.merge(current);
 	}
 
+	public void assertNoRedirChanges(DbHashTrie current) {
+		redirs.assertNoChanges(current);
+	}
+
 }

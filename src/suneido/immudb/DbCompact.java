@@ -102,21 +102,25 @@ class DbCompact {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
 		boolean squeeze = needToSqueeze(fields);
-		int first = 0;
-		int last = 0;
 		ExclusiveTransaction t = newDB.exclusiveTran();
-		Table newtable = t.ck_getTable(tablename);
-		IndexIter iter = rt.iter(oldtable.num, null);
-		for (iter.next(); !iter.eof(); iter.next()) {
-			Record r = rt.input(iter.keyadr());
-			if (squeeze)
-				r = squeezeRecord(r, fields);
-			last = t.loadRecord(newtable.num, r);
-			if (first == 0)
-				first = last;
+		try {
+			int first = 0;
+			int last = 0;
+			Table newtable = t.ck_getTable(tablename);
+			IndexIter iter = rt.iter(oldtable.num, null);
+			for (iter.next(); ! iter.eof(); iter.next()) {
+				Record r = rt.input(iter.keyadr());
+				if (squeeze)
+					r = squeezeRecord(r, fields);
+				last = t.loadRecord(newtable.num, r);
+				if (first == 0)
+					first = last;
+			}
+			DbLoad.createIndexes(t, newtable, first, last);
+			t.ck_complete();
+		} finally {
+			t.abortIfNotComplete();
 		}
-		DbLoad.createIndexes(newDB, t, newtable, first, last);
-		t.ck_complete();
 	}
 
 	private static boolean needToSqueeze(List<String> fields) {

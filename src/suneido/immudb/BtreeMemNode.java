@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
  * New mutable nodes not derived from BtreeDbNode.
  */
 @NotThreadSafe
-class BtreeMemNode extends BtreeStoreNode {
+class BtreeMemNode extends BtreeStorableNode {
 	private final ArrayList<Record> data;
 
 	BtreeMemNode(int level) {

@@ -21,8 +21,9 @@ import com.google.common.primitives.Ints;
  * Commit is single-threaded.
  */
 class UpdateTransaction extends ReadTransaction {
+	protected final DbHashTrie originalDbinfo;
+	protected final UpdateDbInfo udbinfo;
 	protected Tables newSchema;
-	protected final UpdateDbInfo dbinfo;
 	protected boolean locked = false;
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
@@ -30,7 +31,8 @@ class UpdateTransaction extends ReadTransaction {
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
-		this.dbinfo = new UpdateDbInfo(stor, db.dbinfo);
+		originalDbinfo = db.dbinfo;
+		udbinfo = new UpdateDbInfo(stor, db.dbinfo);
 		newSchema = schema;
 		asof = db.trans.clock();
 		lock(db);
@@ -58,7 +60,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	protected ReadDbInfo dbinfo() {
-		return dbinfo;
+		return udbinfo;
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -78,7 +80,7 @@ class UpdateTransaction extends ReadTransaction {
 		assert locked;
 		rec.tblnum = tblnum;
 		indexedData(tblnum).add(rec);
-		dbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
+		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 	}
 
 	@Override
@@ -100,7 +102,7 @@ class UpdateTransaction extends ReadTransaction {
 		assert locked;
 		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
-		dbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
+		udbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
 
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
@@ -126,7 +128,7 @@ class UpdateTransaction extends ReadTransaction {
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
 		assert locked;
 		indexedData(tblnum).remove((Record) rec);
-		dbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
+		udbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
 	public void removeAll(int tblnum, int[] colNums, Record key) {
@@ -194,7 +196,7 @@ class UpdateTransaction extends ReadTransaction {
 				updateDatabaseDbInfo();
 
 				int redirsAdr = updateRedirs();
-				int dbinfoAdr = dbinfo.store();
+				int dbinfoAdr = udbinfo.store();
 				store(dbinfoAdr, redirsAdr);
 				tran.endStore();
 
@@ -206,16 +208,9 @@ class UpdateTransaction extends ReadTransaction {
 		return null;
 	}
 
-	private int updateRedirs() {
-		tran.mergeRedirs(db.redirs);
-		int redirsAdr = tran.storeRedirs();
-		db.redirs = tran.redirs().redirs();
-		return redirsAdr;
-	}
-
 	private void updateOurDbinfo() {
 		for (int tblnum : indexes.rowKeySet()) {
-			TableInfo ti = dbinfo.get(tblnum);
+			TableInfo ti = udbinfo.get(tblnum);
 			Map<ColNums,Btree> idxs = indexes.row(tblnum);
 			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 			for (IndexInfo ii : ti.indexInfo) {
@@ -225,13 +220,24 @@ class UpdateTransaction extends ReadTransaction {
 			}
 			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows(), ti.totalsize(),
 					b.build());
-			dbinfo.add(ti);
+			udbinfo.add(ti);
 		}
 	}
 
-	private void updateDatabaseDbInfo() {
-		dbinfo.merge(originalDbinfo(), db.dbinfo);
-		db.dbinfo = dbinfo.dbinfo();
+	protected void updateDatabaseDbInfo() {
+		udbinfo.merge(originalDbinfo, db.dbinfo);
+		db.dbinfo = udbinfo.dbinfo();
+	}
+
+	protected int updateRedirs() {
+		tran.mergeRedirs(db.redirs);
+		return updateRedirs2();
+	}
+
+	protected int updateRedirs2() {
+		int redirsAdr = tran.storeRedirs();
+		db.redirs = tran.redirs().redirs();
+		return redirsAdr;
 	}
 
 	static final int INT_SIZE = 4;
