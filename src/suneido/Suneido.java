@@ -21,7 +21,7 @@ import suneido.language.Compiler;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
+	public static DatabasePackage dbpkg = suneido.database.DatabasePackage.dbpkg;
 	public static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor();
 	public static CommandLineOptions cmdlineoptions;
