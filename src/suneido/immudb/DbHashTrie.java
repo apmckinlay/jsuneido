@@ -236,7 +236,7 @@ abstract class DbHashTrie {
 
 		/** recursive */
 		private Node load(Translator translator) {
-			Object newdata[] = new Entry[size()];
+			Object newdata[] = new Object[size()];
 			for (int i = 0; i < size(); ++i)
 				if (data[i] instanceof StoredIntEntry)
 					newdata[i] = translator.translate((Entry) data[i]);
