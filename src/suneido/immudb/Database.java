@@ -10,9 +10,12 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
@@ -21,11 +24,15 @@ class Database implements suneido.intfc.database.Database {
 	private static final int INT_SIZE = 4;
 	final Transactions trans = new Transactions();
 	final Storage stor;
-	final Object commitLock = new Object();
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
-	DbHashTrie dbinfo;
+	final Object commitLock = new Object();
+	@GuardedBy("commitLock")
+	private DbHashTrie dbinfo;
+	@GuardedBy("commitLock")
+	private
 	DbHashTrie redirs;
+	@GuardedBy("commitLock")
 	Tables schema;
 
 	// create
@@ -45,8 +52,8 @@ class Database implements suneido.intfc.database.Database {
 	private Database(Storage stor,
 			DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
-		this.dbinfo = dbinfo;
-		this.redirs = redirs;
+		this.setDbinfo(dbinfo);
+		this.setRedirs(redirs);
 		this.schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
 	}
 
@@ -66,10 +73,29 @@ class Database implements suneido.intfc.database.Database {
 			throw new SuException("database integrity check failed");
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
-		DbHashTrie dbinfo = DbHashTrie.from(stor, adr);
+		DbHashTrie dbinfo =
+				DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
 		return new Database(stor, dbinfo, redirs);
+	}
+
+	static class DbinfoTranslator implements DbHashTrie.Translator {
+		final Storage stor;
+
+		DbinfoTranslator(Storage stor) {
+			this.stor = stor;
+		}
+
+		@Override
+		public Entry translate(Entry e) {
+			if (e instanceof IntEntry) {
+				int adr = ((IntEntry) e).value;
+				Record rec = new Record(stor, adr);
+				return new TableInfo(rec, adr);
+			} else
+				throw new RuntimeException("DbinfoTranslator bad type " + e);
+		}
 	}
 
 	/** reopens with same Storage, if MmapFile it is NOT closed and reopened */
@@ -245,6 +271,26 @@ class Database implements suneido.intfc.database.Database {
 	void callTrigger(
 			ReadTransaction t, Table table, Record oldrec, Record newrec) {
 		triggers.call(t, table, oldrec, newrec);
+	}
+
+	DbHashTrie getDbinfo() {
+		assert dbinfo.immutable();
+		return dbinfo;
+	}
+
+	void setDbinfo(DbHashTrie dbinfo) {
+		assert dbinfo.immutable();
+		this.dbinfo = dbinfo;
+	}
+
+	DbHashTrie getRedirs() {
+		assert redirs.immutable();
+		return redirs;
+	}
+
+	void setRedirs(DbHashTrie redirs) {
+		assert redirs.immutable();
+		this.redirs = redirs;
 	}
 
 }

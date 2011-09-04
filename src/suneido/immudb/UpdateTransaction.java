@@ -14,14 +14,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 /**
- * Transactions must be thread contained.
+ * Transactions must be thread confined.
  * They take a "snapshot" of the database state at the start
  * and then update the database state when they commit.
  * Storage is only written during commit.
  * Commit is single-threaded.
  */
 class UpdateTransaction extends ReadTransaction {
-	protected final DbHashTrie originalDbinfo;
 	protected final UpdateDbInfo udbinfo;
 	protected Tables newSchema;
 	protected boolean locked = false;
@@ -31,8 +30,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
-		originalDbinfo = db.dbinfo;
-		udbinfo = new UpdateDbInfo(stor, db.dbinfo);
+		udbinfo = new UpdateDbInfo(stor, db.getDbinfo());
 		newSchema = schema;
 		asof = db.trans.clock();
 		lock(db);
@@ -59,8 +57,8 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	@Override
-	protected ReadDbInfo dbinfo() {
-		return udbinfo;
+	TableInfo getTableInfo(int tblnum) {
+		return udbinfo.get(tblnum);
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -131,7 +129,7 @@ class UpdateTransaction extends ReadTransaction {
 		udbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
-	public void removeAll(int tblnum, int[] colNums, Record key) {
+	void removeAll(int tblnum, int[] colNums, Record key) {
 		Iter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
@@ -193,13 +191,15 @@ class UpdateTransaction extends ReadTransaction {
 				Btree.store(tran);
 
 				updateOurDbinfo();
-				updateDatabaseDbInfo();
+				mergeDatabaseDbInfo();
 
+				mergeRedirs();
 				int redirsAdr = updateRedirs();
 				int dbinfoAdr = udbinfo.store();
 				store(dbinfoAdr, redirsAdr);
 				tran.endStore();
 
+				db.setDbinfo(udbinfo.dbinfo());
 				updateSchema();
 			}
 		} finally {
@@ -224,19 +224,17 @@ class UpdateTransaction extends ReadTransaction {
 		}
 	}
 
-	protected void updateDatabaseDbInfo() {
-		udbinfo.merge(originalDbinfo, db.dbinfo);
-		db.dbinfo = udbinfo.dbinfo();
+	protected void mergeDatabaseDbInfo() {
+		udbinfo.merge(rdbinfo.dbinfo, db.getDbinfo());
 	}
 
-	protected int updateRedirs() {
-		tran.mergeRedirs(db.redirs);
-		return updateRedirs2();
+	protected void mergeRedirs() {
+		tran.mergeRedirs(db.getRedirs());
 	}
 
-	protected int updateRedirs2() {
+	private int updateRedirs() {
 		int redirsAdr = tran.storeRedirs();
-		db.redirs = tran.redirs().redirs();
+		db.setRedirs(tran.redirs().redirs());
 		return redirsAdr;
 	}
 

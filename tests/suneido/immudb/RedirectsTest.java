@@ -25,6 +25,7 @@ public class RedirectsTest {
 		DbHashTrie tree = mock(DbHashTrie.class);
 		when(tree.get(123)).thenReturn(new IntEntry(123, 456));
 		when(tree.with(any(Entry.class))).thenReturn(tree);
+		when(tree.immutable()).thenReturn(true);
 		Redirects r = new Redirects(tree);
 		assertThat(r.get(123), is(456));
 		r.put(123, 456);
@@ -34,6 +35,7 @@ public class RedirectsTest {
 	@Test
 	public void merge_with_no_concurrent_change() {
 		DbHashTrie original = mock(DbHashTrie.class);
+		when(original.immutable()).thenReturn(true);
 		Redirects r = new Redirects(original);
 		r.put(123, 456);
 		DbHashTrie redirs = r.redirs();
@@ -43,8 +45,8 @@ public class RedirectsTest {
 
 	@Test(expected = UpdateTransaction.Conflict.class)
 	public void merge_conflict() {
-		DbHashTrie master = DbHashTrie.empty();
-		Redirects r = new Redirects(DbHashTrie.empty());
+		DbHashTrie master = DbHashTrie.empty(null);
+		Redirects r = new Redirects(DbHashTrie.empty(null));
 		r.put(123, 456);
 		master = master.with(new IntEntry(123, 789));
 		r.merge(master);
@@ -53,7 +55,7 @@ public class RedirectsTest {
 	@Test
 	public void merge() {
 		IntRefs intrefs = new IntRefs();
-		DbHashTrie master = DbHashTrie.empty();
+		DbHashTrie master = DbHashTrie.empty(null);
 		Redirects r = new Redirects(master);
 		final int N = 100;
 		int adrs[] = new int[N];

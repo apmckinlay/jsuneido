@@ -28,7 +28,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final Database db;
 	protected final Storage stor;
 	protected final Tran tran;
-	private final ReadDbInfo rdbinfo;
+	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
 	protected final com.google.common.collect.Table<Integer,ColNums,Btree> indexes;
 
@@ -36,9 +36,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		this.num = num;
 		this.db = db;
 		stor = db.stor;
-		rdbinfo = new ReadDbInfo(stor, db.dbinfo);
+		rdbinfo = new ReadDbInfo(db.getDbinfo());
 		schema = db.schema;
-		tran = new Tran(stor, new Redirects(db.redirs));
+		tran = new Tran(stor, new Redirects(db.getRedirs()));
 		indexes = HashBasedTable.create();
 	}
 
@@ -64,7 +64,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		Btree btree = indexes.get(tblnum, colNums);
 		if (btree != null)
 			return btree;
-		TableInfo ti = dbinfo().get(tblnum);
+		TableInfo ti = getTableInfo(tblnum);
 		btree = new Btree(tran, ti.getIndex(indexColumns));
 		indexes.put(tblnum, colNums, btree);
 		return btree;
@@ -101,7 +101,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	TableInfo getTableInfo(int tblnum) {
-		return dbinfo().get(tblnum);
+		return rdbinfo.get(tblnum);
 	}
 
 	/** @return view definition, else null if view not found */

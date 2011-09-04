@@ -25,7 +25,8 @@ public class DbInfoTest {
 		assertThat(dbinfo.get(6), is(ti));
 		int adr = dbinfo.store();
 
-		ReadDbInfo rdbinfo = new ReadDbInfo(stor, adr);
+		ReadDbInfo rdbinfo = new ReadDbInfo(
+				DbHashTrie.load(stor, adr, new Database.DbinfoTranslator(stor)));
 		TableInfo ti2 = rdbinfo.get(6);
 		assertThat(ti2.nextfield, is(ti.nextfield));
 	}

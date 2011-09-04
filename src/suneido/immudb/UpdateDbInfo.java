@@ -23,18 +23,30 @@ import com.google.common.collect.ImmutableList;
  * Thread confined since used by single transactions which are thread confined
  */
 @NotThreadSafe
-class UpdateDbInfo extends ReadDbInfo {
+class UpdateDbInfo {
+	private final Storage stor;
+	private DbHashTrie dbinfo;
+
 
 	UpdateDbInfo(Storage stor) {
-		super(stor, DbHashTrie.empty(stor));
+		this(stor, DbHashTrie.empty(stor));
 	}
 
 	UpdateDbInfo(Storage stor, DbHashTrie dbinfo) {
-		super(stor, dbinfo);
+		this.stor = stor;
+		this.dbinfo = dbinfo;
 	}
 
 	void add(TableInfo ti) {
 		dbinfo = dbinfo.with(ti);
+	}
+
+	TableInfo get(int tblnum) {
+		return (TableInfo) dbinfo.get(tblnum);
+	}
+
+	DbHashTrie dbinfo() {
+		return dbinfo;
 	}
 
 	/** update nrows and totalsize */

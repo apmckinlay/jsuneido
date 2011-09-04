@@ -4,6 +4,14 @@
 
 package suneido.immudb;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+/**
+ * Transactions must be thread confined.
+ * Load and compact bend the rules and write data prior to commit
+ * using loadRecord and saveBtrees
+ */
+@NotThreadSafe
 public class ExclusiveTransaction extends UpdateTransaction {
 
 	ExclusiveTransaction(int num, Database db) {
@@ -59,15 +67,13 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	}
 
 	@Override
-	protected void updateDatabaseDbInfo() {
-		assert originalDbinfo == db.dbinfo;
-		db.dbinfo = udbinfo.dbinfo();
+	protected void mergeDatabaseDbInfo() {
+		assert rdbinfo.dbinfo == db.getDbinfo();
 	}
 
 	@Override
-	protected int updateRedirs() {
-		tran.assertNoRedirChanges(db.redirs);
-		return updateRedirs2();
+	protected void mergeRedirs() {
+		tran.assertNoRedirChanges(db.getRedirs());
 	}
 
 	// used by DbLoad
@@ -81,8 +87,8 @@ public class ExclusiveTransaction extends UpdateTransaction {
 
 	@Override
 	public void abort() {
-		int redirsAdr = db.redirs.store(null);
-		int dbinfoAdr = db.dbinfo.store(null);
+		int redirsAdr = db.getRedirs().store(null);
+		int dbinfoAdr = db.getDbinfo().store(null);
 		store(dbinfoAdr, redirsAdr);
 		tran.endStore();
 		super.abort();

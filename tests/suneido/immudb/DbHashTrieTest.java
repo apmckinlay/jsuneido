@@ -7,18 +7,20 @@ package suneido.immudb;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import java.util.Random;
 
 import org.junit.Test;
 
-import suneido.immudb.DbHashTrie;
-import suneido.immudb.Storage;
-import suneido.immudb.DbHashTrie.*;
+import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.immudb.DbHashTrie.Translator;
 
 public class DbHashTrieTest {
-	DbHashTrie tree = DbHashTrie.empty();
+	DbHashTrie tree = DbHashTrie.empty(null);
 
 	DbHashTrie.Entry entry(int key, int value) {
 		return new IntEntry(key, value);
