@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Date;
-import java.util.Iterator;
 
 import suneido.SuException;
 import suneido.database.query.Request;
@@ -84,8 +82,8 @@ class DbLoad {
 		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		ByteBuffer recbuf = ByteBuffer.allocate(4096).order(ByteOrder.LITTLE_ENDIAN);
 		ExclusiveTransaction t = db.exclusiveTran();
-		Table table = t.getTable(tablename);
 		try {
+			Table table = t.getTable(tablename);
 			int first = 0;
 			int last = 0;
 			for (;; ++nrecs) {
@@ -99,7 +97,7 @@ class DbLoad {
 				if (first == 0)
 					first = last;
 			}
-			createIndexes(db, t, table, first, last);
+			createIndexes(t, table, first, last);
 			t.ck_complete();
 		} finally {
 			t.abortIfNotComplete();
@@ -145,29 +143,25 @@ class DbLoad {
 		return rec;
 	}
 
-	//PERF if table is "small" build indexes in parallel with threads
-	static void createIndexes(Database db, ExclusiveTransaction t,
+	static void createIndexes(ExclusiveTransaction t,
 			Table table, int first, int last) {
 		if (first == 0)
 			return; // no data
-		Iterator<Index> iter = table.indexes.iterator();
-		while (iter.hasNext()) {
-			Index index = iter.next();
-			Btree btree = t.getIndex(table.num, index.colNums);
-			otherIndex(db, btree, index.colNums, first, last);
-			t.saveBtrees();
-		}
+		for (Index index : table.indexes)
+			createIndex(t, first, last, index);
 	}
 
-	private static void otherIndex(Database db, Btree btree, int[] columns,
-			int first, int last) {
-		StoredRecordIterator iter = new StoredRecordIterator(db.stor, first, last);
+	private static void createIndex(ExclusiveTransaction t,
+			int first, int last, Index index) {
+		Btree btree = t.getIndex(index.tblnum, index.colNums);
+		StoredRecordIterator iter = new StoredRecordIterator(t.stor, first, last);
 		while (iter.hasNext()) {
 			int adr = iter.nextAdr();
 			Record rec = iter.next();
-			Record key = IndexedData.key(rec, columns, adr);
+			Record key = IndexedData.key(rec, index.colNums, adr);
 			btree.add(key);
 		}
+		t.saveBtrees();
 	}
 
 	public static void main(String[] args) throws IOException  {
@@ -175,6 +169,7 @@ class DbLoad {
 		DbTools.loadDatabasePrint(DatabasePackage.dbpkg, "immu.db", "database.su");
 		System.out.println((System.currentTimeMillis() - t) + " ms");
 		//loadTablePrint("gl_transactions", 'immu.db");
+		DbCheck.checkPrint("immu.db");
 	}
 
 }

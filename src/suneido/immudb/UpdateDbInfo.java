@@ -18,6 +18,10 @@ import suneido.util.ParallelIterable;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Wrapper for read-write access to dbinfo.
+ * Thread confined since used by single transactions which are thread confined
+ */
 @NotThreadSafe
 class UpdateDbInfo extends ReadDbInfo {
 
@@ -124,7 +128,7 @@ class UpdateDbInfo extends ReadDbInfo {
 				root = cur.root;
 				treeLevels = cur.treeLevels;
 			} else
-				throw conflict;
+				throw conflict();
 			int nnodes = cur.nnodes + (ours.nnodes - orig.nnodes);
 			int totalSize = cur.totalSize + (ours.totalSize - orig.totalSize);
 			return new IndexInfo(cur.columns, root, treeLevels, nnodes, totalSize);
@@ -132,7 +136,8 @@ class UpdateDbInfo extends ReadDbInfo {
 
 	}
 
-	private static final Conflict conflict =
-			new Conflict("concurrent index modification");
+	private static Conflict conflict() {
+			return new Conflict("concurrent index modification");
+	}
 
 }

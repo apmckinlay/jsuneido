@@ -10,6 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Iterator;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.AbstractIterator;
 
 /**
@@ -21,6 +23,7 @@ import com.google.common.collect.AbstractIterator;
  * to reduce the space to store them
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  */
+@ThreadSafe
 abstract class ChunkedStorage implements Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
@@ -95,6 +98,7 @@ abstract class ChunkedStorage implements Storage {
 			? CHUNK_SIZE
 			: (int) (file_size - startOfLastChunk));
 		buf.position((int) (offset % CHUNK_SIZE));
+// TODO remove in production (10% faster for load)
 if (offset < protect)
 return buf.slice().asReadOnlyBuffer();
 		return buf.slice();

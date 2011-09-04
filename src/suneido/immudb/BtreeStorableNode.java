@@ -12,9 +12,9 @@ import java.nio.ByteBuffer;
  * Abstract base class for store-able nodes {@link BtreeDbMemNode} and
  * {@link BtreeMemNode}.
  */
-abstract class BtreeStoreNode extends BtreeNode {
+abstract class BtreeStorableNode extends BtreeNode {
 
-	protected BtreeStoreNode(int level) {
+	protected BtreeStorableNode(int level) {
 		super(level);
 	}
 

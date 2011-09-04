@@ -70,7 +70,7 @@ public class DbTools {
 	public static void loadDatabasePrint(DatabasePackage dbpkg, String dbFilename,
 			String filename) {
 		File tempfile = FileUtils.tempfile();
-		Database db = dbpkg.create(dbFilename);
+		Database db = dbpkg.create(tempfile.getPath());
 		try {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {

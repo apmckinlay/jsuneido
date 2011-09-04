@@ -33,7 +33,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	// used by TableBuilder and Bootstrap
 	void addTableInfo(TableInfo ti) {
 		assert locked;
-		dbinfo.add(ti);
+		udbinfo.add(ti);
 	}
 
 	// used by TableBuilder
@@ -54,8 +54,20 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
 		int adr = rec.store(stor);
-		dbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
+		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
+	}
+
+	@Override
+	protected void updateDatabaseDbInfo() {
+		assert originalDbinfo == db.dbinfo;
+		db.dbinfo = udbinfo.dbinfo();
+	}
+
+	@Override
+	protected int updateRedirs() {
+		tran.assertNoRedirChanges(db.redirs);
+		return updateRedirs2();
 	}
 
 	// used by DbLoad
