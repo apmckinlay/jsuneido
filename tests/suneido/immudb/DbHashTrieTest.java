@@ -4,9 +4,11 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -28,6 +30,8 @@ public class DbHashTrieTest {
 
 	@Test
 	public void empty() {
+		assertFalse(tree.stored());
+		assertTrue(tree.immutable());
 		for (int i = 32; i < 64; ++i)
 			assertNull(tree.get(i));
 	}
@@ -36,6 +40,7 @@ public class DbHashTrieTest {
 	public void one_entry() {
 		add(123, 456);
 		assertThat(get(123), is(456));
+		assertFalse(tree.immutable());
 	}
 
 	@Test

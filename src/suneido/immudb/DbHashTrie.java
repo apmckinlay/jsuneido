@@ -19,7 +19,8 @@ import com.google.common.base.Strings;
  * loaded => immutable => with => mutable => store => immutable
  * Mutable within a thread confined transaction.
  * EXCEPT even when "immutable" get will load nodes on demand
- * so Node methods that access data are synchronized
+ * This uses the racy single-check idiom so no volatile or synchronized,
+ * with the only drawback being that a node could get loaded by multiple threads.
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
  * Bagwell's Ideal Hash Trees</a>
@@ -136,7 +137,7 @@ abstract class DbHashTrie {
 
 		/** WARNING loads child nodes on demand so NOT immutable */
 		@Override
-		protected synchronized Entry get(int key, int shift) {
+		protected Entry get(int key, int shift) {
 			assert shift < 32;
 			int bit = bit(key, shift);
 			if ((bitmap & bit) == 0)
@@ -146,9 +147,10 @@ abstract class DbHashTrie {
 				Entry e = (Entry) data[i];
 				return e.key() == key ? e : null;
 			} else { // pointer to child
-				if (data[i] instanceof Integer)
-					data[i] = new Node(stor, ((Integer) data[i]));
-				return ((Node) data[i]).get(key, shift + BITS_PER_LEVEL);
+				Object e = data[i];
+				if (e instanceof Integer)
+					data[i] = e = new Node(stor, ((Integer) data[i]));
+				return ((Node) e).get(key, shift + BITS_PER_LEVEL);
 			}
 		}
 
@@ -195,9 +197,7 @@ abstract class DbHashTrie {
 			stor = node.stor;
 			bitmap = node.bitmap;
 			int n = size();
-			synchronized (node) {
-				data = Arrays.copyOf(node.data, n + 1);
-			}
+			data = Arrays.copyOf(node.data, n + 1);
 			with(e, shift);
 		}
 		private void insert(int i, Entry e) {

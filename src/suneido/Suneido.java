@@ -120,7 +120,8 @@ public class Suneido {
 		case ERROR:
 			System.out.println(cmdlineoptions.actionArg);
 			System.out.println();
-			// fall through
+			printHelp();
+			break;
 		case HELP:
 			printHelp();
 			break;
