@@ -6,7 +6,9 @@ package suneido.database;
 
 import org.junit.After;
 
-import suneido.database.query.*;
+import suneido.database.query.CompileQuery;
+import suneido.database.query.Query;
+import suneido.database.query.QueryAction;
 import suneido.database.server.ServerData;
 
 public class TestBase extends TestBaseBase {
@@ -18,8 +20,7 @@ public class TestBase extends TestBaseBase {
 	}
 
 	protected void reopen() {
-		db.close();
-		db = new Database(dest, Mode.OPEN);
+		db.reopen();
 	}
 
 	protected static Record key(int i) {

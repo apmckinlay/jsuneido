@@ -2,65 +2,29 @@ package suneido.database;
 
 import static suneido.util.Verify.verifyEquals;
 
-import java.io.File;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.database.DbCheck.Status;
+import suneido.DbTools;
 import suneido.database.query.Request;
 import suneido.util.ByteBuf;
-import suneido.util.FileUtils;
 
 class DbCompact {
-	private final String dbfilename;
-	private final String tempfilename;
-	private Database oldDB;
-	private Database newDB;
+	private final Database olddb;
+	private final Database newdb;
 	private Transaction rt;
 
-	static void compactPrint(String dbfilename)
-			throws InterruptedException {
-		File tempfile = FileUtils.tempfile();
-		compact2(dbfilename, tempfile.getPath());
-		FileUtils.renameWithBackup(tempfile, dbfilename);
+	static int compact(Database olddb, Database newdb) {
+		return new DbCompact(olddb, newdb).compact();
 	}
 
-	private static void compact2(String dbfilename, String tempfilename) {
-		Status status = DbCheck.checkPrint(dbfilename);
-		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + dbfilename + " " + status);
-		System.out.println("Compacting " + dbfilename);
-		int n = new DbCompact(dbfilename, tempfilename).compact();
-		System.out.println(dbfilename + " compacted " + n + " tables");
-	}
-
-	static int compact(String dbfilename, String tempfilename) {
-		Status status = DbCheck.check(dbfilename);
-		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + dbfilename + " " + status);
-		return new DbCompact(dbfilename, tempfilename).compact();
-	}
-
-	private DbCompact(String dbfilename, String tempfilename) {
-		this.dbfilename = dbfilename;
-		this.tempfilename = tempfilename;
+	private DbCompact(Database olddb, Database newdb) {
+		this.olddb = olddb;
+		this.newdb = newdb;
 	}
 
 	private int compact() {
-		File tempfile = new File(tempfilename);
-		oldDB = new Database(dbfilename, Mode.READ_ONLY);
-		newDB = new Database(tempfile, Mode.CREATE);
-
-		int n = copy();
-
-		oldDB.close();
-		newDB.close();
-		return n;
-	}
-
-	private int copy() {
-		rt = oldDB.readonlyTran();
-		newDB.setLoading(true);
+		rt = olddb.readonlyTran();
+		newdb.setLoading(true);
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}
@@ -78,9 +42,9 @@ class DbCompact {
 	}
 
 	private void createTable(String tablename) {
-		Request.execute(newDB, "create " + tablename
-				+ oldDB.getTable(tablename).schema());
-		verifyEquals(oldDB.getTable(tablename).schema(), newDB.getTable(tablename).schema());
+		Request.execute(newdb, "create " + tablename
+				+ olddb.getTable(tablename).schema());
+		verifyEquals(olddb.getTable(tablename).schema(), newdb.getTable(tablename).schema());
 	}
 
 	private int copyData() {
@@ -108,7 +72,7 @@ class DbCompact {
 		int i = 0;
 		long first = 0;
 		long last = 0;
-		Transaction wt = newDB.readwriteTran();
+		Transaction wt = newdb.readwriteTran();
 		int tblnum = wt.ck_getTable(tablename).num;
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
@@ -119,7 +83,7 @@ class DbCompact {
 				first = last;
 			if (++i % 100 == 0) {
 				wt.ck_complete();
-				wt = newDB.readwriteTran();
+				wt = newdb.readwriteTran();
 			}
 		}
 		if (first != 0)
@@ -137,15 +101,15 @@ class DbCompact {
 					continue;
 				ByteBuf buf = iter.current();
 				Record rec = new Record(iter.offset() + 4, buf.slice(4));
-				newDB.addIndexEntriesForCompact(table, index, rec);
+				newdb.addIndexEntriesForCompact(table, index, rec);
 				if (iter.offset() >= last)
 					break;
 			} while (iter.next());
 		}
 	}
 
-	public static void main(String[] args) throws InterruptedException {
-		compactPrint("suneido.db");
+	public static void main(String[] args) {
+		DbTools.compactPrintExit(DatabasePackage.dbpkg, "suneido.db");
 	}
 
 }

@@ -4,11 +4,9 @@
 
 package suneido.database;
 
-import static suneido.Suneido.errlog;
 import static suneido.database.Transaction.NULLTRAN;
 import static suneido.util.Verify.verify;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,9 +29,8 @@ import com.google.common.collect.ImmutableList;
  */
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
-	private final File file;
 	private final Mode mode;
-	public Destination dest; // used by tests and History
+	public Destination dest;
 	private Dbhdr dbhdr;
 	private final Checksum checksum = new Checksum();
 	private boolean loading = false;
@@ -54,47 +51,50 @@ class Database implements suneido.intfc.database.Database {
 	private static final int VERSION = 1;
 	private final Triggers triggers = new Triggers();
 
-	Database(String filename, Mode mode) {
-		this(new File(filename), mode);
+	static Database create(String dbFilename) {
+		return new Database(new Mmfile(dbFilename, Mode.CREATE));
 	}
 
-	Database(File file, Mode mode) {
-		this.file = file;
-		this.mode = mode;
-		dest = new Mmfile(file, mode);
-		init(mode);
+	static Database testdb() {
+		return new Database(new DestMem());
 	}
 
-	// for tests
-	Database(Destination dest, Mode mode) {
-		this.file = null;
+	private Database(Destination dest) {
+		mode = Mode.CREATE;
+		this.dest = dest;
+		output_type = Mmfile.OTHER;
+		create();
+		output_type = Mmfile.DATA;
+		loadSchema();
+	}
+
+	static Database open(String filename) {
+		return open(filename, Mode.OPEN);
+	}
+
+	static Database openReadonly(String filename) {
+		return open(filename, Mode.READ_ONLY);
+	}
+
+	static Database open(String filename, Mode mode) {
+		Destination dest = new Mmfile(filename, mode);
+		return Session.check_shutdown(dest)
+			? new Database(dest, mode)
+			: null;
+	}
+
+	private Database(Destination dest, Mode mode) {
 		this.mode = mode;
 		this.dest = dest;
-		init(mode);
+		open();
+		loadSchema();
 	}
 
 	@Override
 	public Database reopen() {
-		close();
+		if (mode != Mode.READ_ONLY)
+			Session.shutdown(dest);
 		return new Database(dest, Mode.OPEN);
-	}
-
-	private void init(Mode mode) {
-		if (mode == Mode.OPEN && ! Session.check_shutdown(dest)) {
-			errlog("database not shut down properly last time");
-			if (file == null)
-				throw new SuException("database not shut down properly last time");
-			dest.close();
-			DbRebuild.rebuildOrExit(file.getPath());
-			dest = new Mmfile(file, mode);
-		}
-		if (mode == Mode.CREATE) {
-			output_type = Mmfile.OTHER;
-			create();
-			output_type = Mmfile.DATA;
-		} else
-			open();
-		loadSchema();
 	}
 
 	private void create() {

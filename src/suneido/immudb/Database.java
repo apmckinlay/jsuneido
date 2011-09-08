@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.Suneido.errlog;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -60,21 +58,22 @@ class Database implements suneido.intfc.database.Database {
 	// open
 
 	static Database open(String filename) {
-		return open(check(filename, "rw"));
+		return open(new MmapFile(filename, "rw"));
 	}
 
 	static Database openReadonly(String filename) {
-		return open(check(filename, "r"));
+		return open(new MmapFile(filename, "r"));
 	}
 
 	static Database open(Storage stor) {
 		Check check = new Check(stor);
-		if (! check.fastcheck())
-			throw new SuException("database integrity check failed");
+		if (! check.fastcheck()) {
+			stor.close();
+			return null;
+		}
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
-		DbHashTrie dbinfo =
-				DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
+		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
 		return new Database(stor, dbinfo, redirs);
@@ -98,22 +97,10 @@ class Database implements suneido.intfc.database.Database {
 		}
 	}
 
-	/** reopens with same Storage, if MmapFile it is NOT closed and reopened */
+	/** reopens with same Storage */
 	@Override
 	public Database reopen() {
 		return Database.open(stor);
-	}
-
-	private static Storage check(String filename, String mode) {
-		Storage stor = new MmapFile(filename, mode);
-		Check check = new Check(stor);
-		if (! check.fastcheck()) {
-			errlog("database not shut down properly last time");
-			stor.close();
-			DbRebuild.rebuildOrExit(filename);
-			stor = new MmapFile(filename, mode);
-		}
-		return stor;
 	}
 
 	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {

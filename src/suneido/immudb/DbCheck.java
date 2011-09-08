@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.intfc.database.DatabasePackage.nullObserver;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -11,45 +13,42 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import suneido.DbTools;
+import suneido.intfc.database.DatabasePackage.Observer;
+import suneido.intfc.database.DatabasePackage.Status;
+
 /**
  * check the consistency of a database
  * e.g. after finding it was not shutdown properly
  */
 class DbCheck {
-	enum Status { OK, CORRUPTED, UNRECOVERABLE };
 	final Storage stor;
-	final String filename;
+	final Observer ob;
 	Date last_good_commit;
 	String details = "";
-	protected final boolean print;
 
-	DbCheck(Storage stor, boolean print) {
+	static Status check(String dbFilename, Observer ob) {
+		Storage stor = new MmapFile(dbFilename, "r");
+		try {
+			return check(stor, ob);
+		} finally {
+			stor.close();
+		}
+	}
+
+	static Status check(Storage stor) {
+		return check(stor, nullObserver);
+	}
+	static Status check(Storage stor, Observer ob) {
+		return new DbCheck(stor, ob).check();
+	}
+
+	DbCheck(Storage stor, Observer ob) {
 		this.stor = stor;
-		this.filename = "";
-		this.print = print;
-	}
-
-	DbCheck(String filename, boolean print) {
-		this.stor = new MmapFile(filename, "r");
-		this.filename = filename;
-		this.print = print;
-	}
-
-	static Status check(String filename) {
-		return new DbCheck(filename, false).check();
-	}
-
-	static Status checkPrint(String filename) {
-		return new DbCheck(filename, true).check();
-	}
-
-	static void checkPrintExit(String filename) {
-		Status status = new DbCheck(filename, true).check();
-		System.exit(status == Status.OK ? 0 : -1);
+		this.ob = ob;
 	}
 
 	Status check() {
-		println("Checking " + filename);
 		println("checksums...");
 		Check check = new Check(stor);
 		Status status = Status.CORRUPTED;
@@ -61,7 +60,7 @@ class DbCheck {
 				status = Status.OK;
 		}
 		print(details);
-		println(filename + " " + status + " " + lastCommit(status));
+		println(status + " " + lastCommit(status));
 		return status;
 	}
 
@@ -78,9 +77,7 @@ class DbCheck {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		Database db = filename.equals("")
-				? Database.open(stor)
-				: Database.openReadonly(filename);
+		Database db = Database.open(stor);
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);
@@ -133,20 +130,14 @@ class DbCheck {
 	}
 
 	void print(String s) {
-		if (print)
-			System.out.print(s);
-	}
-	void println() {
-		if (print)
-			System.out.println();
+		ob.print(s);
 	}
 	void println(String s) {
-		if (print)
-			System.out.println(s);
+		ob.print(s + "\n");
 	}
 
 	public static void main(String[] args) {
-		checkPrintExit("immu.db");
+		DbTools.checkPrintExit(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }

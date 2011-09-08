@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class TestBaseBase {
-	protected final DestMem dest = new DestMem();
-	protected Database db = new Database(dest, Mode.CREATE);
+	protected Database db = Database.testdb();
 
 	protected void makeTable() {
 		makeTable(0);

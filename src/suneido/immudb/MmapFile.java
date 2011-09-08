@@ -80,8 +80,11 @@ class MmapFile extends ChunkedStorage {
 	/** @return the file mapping containing the specified offset */
 	@Override
 	protected synchronized ByteBuffer get(int chunk) {
+		long pos = (long) chunk * CHUNK_SIZE;
+		long len = mode == FileChannel.MapMode.READ_WRITE
+				? CHUNK_SIZE : Math.min(CHUNK_SIZE, file_size - pos);
 		try {
-			return fc.map(mode, (long) chunk * CHUNK_SIZE, CHUNK_SIZE);
+			return fc.map(mode, pos, len);
 		} catch (IOException e) {
 			throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
 		}

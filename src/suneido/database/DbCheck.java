@@ -4,6 +4,8 @@
 
 package suneido.database;
 
+import static suneido.intfc.database.DatabasePackage.nullObserver;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -11,7 +13,10 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import suneido.DbTools;
 import suneido.database.Database.TN;
+import suneido.intfc.database.DatabasePackage.Observer;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
 
@@ -20,34 +25,27 @@ import suneido.util.Checksum;
  * e.g. after finding it was not shutdown properly
  */
 class DbCheck {
-	public enum Status { OK, CORRUPTED, UNRECOVERABLE };
-	private final String filename;
+	private final String dbFilename;
 	final Mmfile mmf;
 	long last_good_commit = 0; // offset
 	String details = "";
-	protected final boolean print;
+	protected final Observer ob;
 
-	DbCheck(String filename, boolean print) {
-		this.filename = filename;
-		this.print = print;
-		mmf = new Mmfile(filename, Mode.READ_ONLY);
+	static Status check(String dbFilename) {
+		return check(dbFilename, nullObserver);
 	}
 
-	static Status check(String filename) {
-		return new DbCheck(filename, false).docheck();
+	static Status check(String dbFilename, Observer ob) {
+		return new DbCheck(dbFilename, ob).check();
 	}
 
-	static Status checkPrint(String filename) {
-		return new DbCheck(filename, true).docheck();
+	DbCheck(String dbFilename, Observer ob) {
+		this.dbFilename = dbFilename;
+		this.ob = ob;
+		mmf = new Mmfile(dbFilename, Mode.READ_ONLY);
 	}
 
-	static void checkPrintExit(String filename) {
-		Status status = new DbCheck(filename, true).docheck();
-		System.exit(status == Status.OK ? 0 : -1);
-	}
-
-	Status docheck() {
-		println("Checking " + filename);
+	Status check() {
 		println("Checking commits and shutdowns");
 		Status status = check_commits_and_shutdowns();
 		if (status == Status.OK) {
@@ -56,7 +54,7 @@ class DbCheck {
 				status = Status.CORRUPTED;
 		}
 		print(details);
-		println(filename + " " + status + " " + lastCommit(status));
+		println(dbFilename + " " + status + " " + lastCommit(status));
 		return status;
 	}
 
@@ -144,7 +142,7 @@ class DbCheck {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		Database db = new Database(filename, Mode.READ_ONLY);
+		Database db = Database.openReadonly(dbFilename);
 		Transaction t = db.readonlyTran();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
@@ -188,21 +186,19 @@ class DbCheck {
 		}
 	}
 
-	void print(String s) {
-		if (print)
-			System.out.print(s);
+	private void print(String s) {
+		ob.print(s);
 	}
-	void println() {
-		if (print)
-			System.out.println();
+	private void println() {
+		ob.print("\n");
 	}
-	void println(String s) {
-		if (print)
-			System.out.println(s);
+	private void println(String s) {
+		print(s);
+		println();
 	}
 
 	public static void main(String[] args) {
-		checkPrintExit("suneido.db");
+		DbTools.checkPrintExit(DatabasePackage.dbpkg, "suneido.db");
 	}
 
 }

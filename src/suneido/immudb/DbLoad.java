@@ -14,10 +14,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
+import suneido.DbTools;
 import suneido.SuException;
 import suneido.database.query.Request;
 import suneido.immudb.Record.Mode;
-import suneido.intfc.database.DbTools;
 
 class DbLoad {
 
@@ -169,7 +169,7 @@ class DbLoad {
 		DbTools.loadDatabasePrint(DatabasePackage.dbpkg, "immu.db", "database.su");
 		System.out.println((System.currentTimeMillis() - t) + " ms");
 		//loadTablePrint("gl_transactions", 'immu.db");
-		DbCheck.checkPrint("immu.db");
+		DbTools.checkPrint(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }

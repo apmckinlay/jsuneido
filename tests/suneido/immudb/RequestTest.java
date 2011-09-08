@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import suneido.database.query.Request;
-import suneido.immudb.DbCheck.Status;
+import suneido.intfc.database.DatabasePackage.Status;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
@@ -233,10 +233,7 @@ public class RequestTest {
 
 	@After
 	public void check() {
-		db.close();
-		DbCheck ck = new DbCheck(stor, false);
-		Status r = ck.check();
-		assertThat(ck.details, r, is(DbCheck.Status.OK));
+		assertThat(DbCheck.check(stor), is(Status.OK));
 	}
 
 	private void request(String request) {

@@ -63,7 +63,7 @@ class Check {
 		do
 			if (null == (buf = check1(iter, buf)))
 				return false;
-		while (buf.remaining() > 0 || iter.hasNext());
+			while (buf.remaining() > 0 || iter.hasNext());
 		return true;
 	}
 

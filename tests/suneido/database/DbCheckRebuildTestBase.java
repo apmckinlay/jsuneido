@@ -8,7 +8,7 @@ import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.database.DbCheck.Status;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.FileUtils;
 
 public class DbCheckRebuildTestBase extends TestBaseBase {
@@ -28,7 +28,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
     	new File(outfilename).deleteOnExit();
     }
 
-	protected void dbcheck() {
+	protected void dbcheckout() {
 		assertEquals(Status.OK, DbCheck.check(outfilename));
 	}
 
@@ -39,7 +39,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 		int[] values = new int[n];
 		for (int i = 0; i < n; ++i)
 			values[i] = i;
-		db = new Database(filename, Mode.OPEN);
+		db = Database.openReadonly(filename);
 		try {
 			check("mytable", values);
 			Transaction t = db.readonlyTran();
@@ -52,7 +52,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 	}
 
 	protected void checkNoTable() {
-		db = new Database(filename, Mode.OPEN);
+		db = Database.openReadonly(filename);
 		try {
 			checkNoTable("mytable");
 		} finally {

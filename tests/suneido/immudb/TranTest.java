@@ -107,6 +107,7 @@ public class TranTest {
 	@Test
 	public void fix() {
 		File tempfile = FileUtils.tempfile();
+		File tempfile2 = FileUtils.tempfile();
 		MmapFile stor = new MmapFile(tempfile, "rw");
 		try {
 			Tran tran = new Tran(stor);
@@ -129,14 +130,15 @@ public class TranTest {
 			long okSize = check(stor, false, 24, 1);
 
 			stor.close();
-			Fix.fix(tempfile.toString(), okSize);
+			DbRebuild.fix(tempfile.getPath(), tempfile2.getPath(), okSize);
 
-			stor = new MmapFile(tempfile, "rw");
+			stor = new MmapFile(tempfile2, "rw");
 			check(stor, true, 24, 1);
 
 		} finally {
 			stor.close();
 			tempfile.delete();
+			tempfile2.delete();
 		}
 	}
 
