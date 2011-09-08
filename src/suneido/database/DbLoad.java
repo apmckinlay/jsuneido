@@ -14,9 +14,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
+import suneido.DbTools;
 import suneido.SuException;
 import suneido.database.query.Request;
-import suneido.intfc.database.DbTools;
 
 class DbLoad {
 

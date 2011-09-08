@@ -8,27 +8,37 @@ public class DbCompactTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void empty() {
-		new Database(filename, Mode.CREATE).close();
+		Database.create(filename).close();
 		int n = dbcompact();
 		assertEquals(1, n);
-		dbcheck();
+		dbcheckout();
 	}
 
 	@Test
 	public void simple() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 4);
 		} finally {
 			db.close();
 		}
 		dbcompact();
-		dbcheck();
+		dbcheckout();
 		checkTable();
 	}
 
 	private int dbcompact() {
-		return DbCompact.compact(filename, outfilename);
+		db = Database.openReadonly(filename);
+		try {
+			Database outdb = Database.create(outfilename);
+			try {
+				return DbCompact.compact(db, outdb);
+			} finally {
+				outdb.close();
+			}
+		} finally {
+			db.close();
+		}
 	}
 
 }

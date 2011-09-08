@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.intfc.database.DbTools;
+import suneido.DbTools;
 
 class DbDump {
 

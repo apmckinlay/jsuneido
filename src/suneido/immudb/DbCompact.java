@@ -6,59 +6,46 @@ package suneido.immudb;
 
 import static suneido.util.Verify.verifyEquals;
 
-import java.io.File;
 import java.util.List;
 
-import suneido.SuException;
+import suneido.DbTools;
 import suneido.database.query.Request;
-import suneido.immudb.DbCheck.Status;
 import suneido.intfc.database.IndexIter;
-import suneido.util.FileUtils;
 
 class DbCompact {
-	private final String dbfilename;
-	private final String tempfilename;
-	private Database oldDB;
-	private Database newDB;
+//	private final String dbfilename;
+//	private final String tempfilename;
+	private final Database oldDB;
+	private final Database newDB;
 	private ReadTransaction rt;
 
-	static void compactPrint(String dbfilename)
-			throws InterruptedException {
-		File tempfile = FileUtils.tempfile();
-		compact2(dbfilename, tempfile.getPath());
-		FileUtils.renameWithBackup(tempfile, dbfilename);
+//	static void compactPrint(String dbfilename)
+//			throws InterruptedException {
+//		File tempfile = FileUtils.tempfile();
+//		compact2(dbfilename, tempfile.getPath());
+//		FileUtils.renameWithBackup(tempfile, dbfilename);
+//	}
+//
+//	private static void compact2(String dbfilename, String tempfilename) {
+//		Status status = DbCheck.checkPrint(dbfilename);
+//		if (status != Status.OK)
+//			throw new SuException("Compact FAILED " + dbfilename + " " + status);
+//		System.out.println("Compacting " + dbfilename);
+//		int n = new DbCompact(dbfilename, tempfilename).compact();
+//		System.out.println(dbfilename + " compacted " + n + " tables");
+//	}
+
+	static int compact(Database olddb, Database newdb) {
+		return new DbCompact(olddb, newdb).compact();
 	}
 
-	private static void compact2(String dbfilename, String tempfilename) {
-		Status status = DbCheck.checkPrint(dbfilename);
-		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + dbfilename + " " + status);
-		System.out.println("Compacting " + dbfilename);
-		int n = new DbCompact(dbfilename, tempfilename).compact();
-		System.out.println(dbfilename + " compacted " + n + " tables");
-	}
-
-	static int compact(String dbfilename, String tempfilename) {
-		Status status = DbCheck.check(dbfilename);
-		if (status != Status.OK)
-			throw new SuException("Compact FAILED " + dbfilename + " " + status);
-		return new DbCompact(dbfilename, tempfilename).compact();
-	}
-
-	private DbCompact(String dbfilename, String tempfilename) {
-		this.dbfilename = dbfilename;
-		this.tempfilename = tempfilename;
+	private DbCompact(Database olddb, Database newdb) {
+		this.oldDB = olddb;
+		this.newDB = newdb;
 	}
 
 	private int compact() {
-		oldDB = Database.openReadonly(dbfilename);
-		newDB = Database.create(tempfilename);
-
-		int n = copy();
-
-		oldDB.close();
-		newDB.close();
-		return n;
+		return copy();
 	}
 
 	private int copy() {
@@ -139,7 +126,7 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		compactPrint("immu.db");
+		DbTools.compactPrintExit(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }

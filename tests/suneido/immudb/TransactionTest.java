@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.Transaction;
 
 public class TransactionTest {
@@ -32,8 +33,7 @@ public class TransactionTest {
 		TestStorage stor = new TestStorage(1000, 100);
 		Database db = Database.create(stor);
 		db.exclusiveTran().abort();
-		db.close();
-		assertThat(new DbCheck(stor, false).check(), is(DbCheck.Status.OK));
+		assertThat(DbCheck.check(stor), is(Status.OK));
 	}
 
 }

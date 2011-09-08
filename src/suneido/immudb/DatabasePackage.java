@@ -54,13 +54,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void check(String dbFilename) {
-		DbCheck.check(dbFilename);
-	}
-
-	@Override
-	public void checkPrintExit(String dbFilename) {
-		DbCheck.checkPrintExit(dbFilename);
+	public Status check(String dbFilename, Observer ob) {
+		return DbCheck.check(dbFilename, ob);
 	}
 
 	@Override
@@ -86,23 +81,14 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void compact(String dbFilename, String tempfilename) {
-		DbCompact.compact(dbFilename, tempfilename);
+	public int compact(suneido.intfc.database.Database srcdb,
+			suneido.intfc.database.Database dstdb) {
+		return DbCompact.compact((Database) srcdb, (Database) dstdb);
 	}
 
 	@Override
-	public void compactPrint(String dbFilename) throws InterruptedException {
-		DbCompact.compactPrint(dbFilename);
-	}
-
-	@Override
-	public void rebuild(String dbFilename, String tempfilename) {
-		DbRebuild.rebuild(dbFilename, tempfilename);
-	}
-
-	@Override
-	public void rebuildOrExit(String dbFilename) {
-		DbRebuild.rebuildOrExit(dbFilename);
+	public String rebuild(String dbFilename, String tempfilename) {
+		return DbRebuild.rebuild(dbFilename, tempfilename);
 	}
 
 	@Override

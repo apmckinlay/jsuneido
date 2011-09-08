@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import suneido.database.server.DbmsServer;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
-import suneido.intfc.database.DbTools;
 import suneido.language.Compiler;
 import suneido.util.Print;
 
@@ -104,13 +103,13 @@ public class Suneido {
 				DbTools.loadDatabasePrint(dbpkg, dbFilename, "database.su");
 			break;
 		case CHECK:
-			dbpkg.checkPrintExit(dbFilename);
+			DbTools.checkPrintExit(dbpkg, dbFilename);
 			break;
 		case REBUILD:
-			dbpkg.rebuildOrExit(dbFilename);
+			DbTools.rebuildOrExit(dbpkg, dbFilename);
 			break;
 		case COMPACT:
-			dbpkg.compactPrint(dbFilename);
+			DbTools.compactPrintExit(dbpkg, dbFilename);
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());

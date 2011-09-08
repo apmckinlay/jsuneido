@@ -1,53 +1,51 @@
 package suneido.database;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
 import org.junit.After;
 import org.junit.Test;
 
-import suneido.database.DbCheck.Status;
-
-
 public class DbRebuildTest extends DbCheckRebuildTestBase {
 
 	@Test
 	public void test_empty() {
-		new Database(filename, Mode.CREATE).close();
+		Database.create(filename).close();
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 	}
 
 	@Test
 	public void test_empty_table() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 0);
 		} finally {
 			db.close();
 		}
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkTable(0);
 	}
 
 	@Test
 	public void test_simple() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 4);
 		} finally {
 			db.close();
 		}
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkTable();
 	}
 
 	@Test
 	public void test_add_index_with_existing_records() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 4);
 			db.addIndex("mytable", "b", false);
@@ -55,13 +53,13 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 			db.close();
 		}
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkTable();
 	}
 
 	@Test
 	public void test_drop() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 4);
 			db.dropTable("mytable");
@@ -70,13 +68,13 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		}
 		checkNoTable();
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkNoTable();
 	}
 
 	@Test
 	public void test_drop_recreate() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("mytable", 4);
 			db.dropTable("mytable");
@@ -86,13 +84,13 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		}
 		checkTable();
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkTable();
 	}
 
 	@Test
 	public void test_rename_table() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			makeTable("tmp", 4);
 			db.dropTable("tmp"); // so new theDB() has different offsets
@@ -103,21 +101,21 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 			db.close();
 		}
 		dbrebuild();
-		dbcheck();
+		dbcheckout();
 		checkTable(8);
 	}
 
 	@Test
 	public void test_views() {
-		db = new Database(filename, Mode.CREATE);
+		db = Database.create(filename);
 		try {
 			db.addView("myview", "indexes");
 		} finally {
 			db.close();
 		}
 		dbrebuild();
-		dbcheck();
-		db = new Database(filename, Mode.OPEN);
+		dbcheckout();
+		db = Database.openReadonly(filename);
 		try {
 			Transaction t = db.readonlyTran();
 			assertEquals("indexes", db.getView(t, "myview"));
@@ -127,10 +125,8 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 	}
 
 	private void dbrebuild() {
-		DbRebuild dbr = new DbRebuild(filename, outfilename, false);
-		Status status = dbr.docheck();
-		assertEquals(Status.OK, status);
-		dbr.rebuild();
+		String result = DbRebuild.rebuild(filename, outfilename);
+		assertTrue(result != null);
 	}
 
 	@After

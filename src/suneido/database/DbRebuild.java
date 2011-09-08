@@ -5,24 +5,21 @@
 package suneido.database;
 
 import static suneido.SuException.unreachable;
-import static suneido.Suneido.errlog;
-import static suneido.Suneido.fatal;
+import static suneido.intfc.database.DatabasePackage.nullObserver;
 import static suneido.util.Verify.verify;
 import gnu.trove.map.hash.TLongLongHashMap;
 
-import java.io.File;
 import java.util.*;
 
+import suneido.DbTools;
 import suneido.database.Database.TN;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
-import suneido.util.FileUtils;
 
 import com.google.common.collect.ImmutableList;
 
 class DbRebuild extends DbCheck {
-	private final String filename;
-	private final String tempfilename;
 	private Database newdb;
 	private final BitSet deletes = new BitSet();
 	private final TLongLongHashMap tr = new TLongLongHashMap();
@@ -33,65 +30,32 @@ class DbRebuild extends DbCheck {
 	// means smallest block is 16 bytes
 	private static final int GRANULARITY = 16;
 
-	static void rebuildOrExit(String dbFilename) {
-		File tempfile = FileUtils.tempfile();
-		DbRebuild dbr = new DbRebuild(dbFilename, tempfile.getPath(), true);
-		Status status = dbr.docheck();
-		switch (status) {
-		case OK:
-		case CORRUPTED:
-			dbr.rebuild();
-			errlog("Rebuilt " + dbFilename + " was " + status + " " + dbr.lastCommit(status));
-			break;
-		case UNRECOVERABLE:
-			fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
-			break;
-		default:
-			throw unreachable();
-		}
-		FileUtils.renameWithBackup(tempfile, dbFilename);
+	static String rebuild(String dbFilename, String tempfilename) {
+		DbRebuild dbr = new DbRebuild(dbFilename);
+		Status status = dbr.check();
+		if (status == Status.UNRECOVERABLE)
+			return null;
+		if (! dbr.rebuild(tempfilename))
+			return null;
+		return dbr.lastCommit(status);
 	}
 
-	/** for tests */
-	static void rebuild(String dbFilename, String tempfilename) {
-		new DbRebuild(dbFilename, tempfilename, false).rebuild();
+	DbRebuild(String filename) {
+		super(filename, nullObserver);
 	}
 
-	DbRebuild(String filename, String tempfilename, boolean print) {
-		super(filename, print);
-		this.filename = filename;
-		this.tempfilename = tempfilename;
-	}
-
-	void rebuild() {
-		println("Rebuilding " + filename);
-		File tempfile = new File(tempfilename);
+	boolean rebuild(String tempfilename) {
+		newdb = Database.create(tempfilename);
 		try {
-			newdb = new Database(tempfile, Mode.CREATE);
 			tblnames.put(4, "views");
 			copy();
 			newdb.setNextTableNum(max_tblnum + 1);
 			mmf.close();
-			newdb.close();
-			newdb = null;
-
-			DbCheck dbc = new DbCheck(tempfile.getPath(), print);
-			switch (dbc.docheck()) {
-			case OK:
-				break;
-			case CORRUPTED:
-			case UNRECOVERABLE:
-				System.out.println("Rebuild FAILED still corrupt after rebuild");
-				return ;
-			default:
-				throw unreachable();
-			}
-			println(filename + " rebuilt");
+			return true;
 		} catch (Throwable e) {
-			System.out.println("Rebuild FAILED " + e);
+			return false;
 		} finally {
-			if (newdb != null)
-				newdb.close();
+			newdb.close();
 		}
 	}
 
@@ -332,7 +296,7 @@ class DbRebuild extends DbCheck {
 	}
 
 	public static void main(String[] args) {
-		rebuild("suneido.db", "rebuilt.db");
+		DbTools.rebuildOrExit(DatabasePackage.dbpkg, "suneido.db");
 	}
 
 }

@@ -19,22 +19,22 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public Database create(String filename) {
-		return new Database(filename, Mode.CREATE);
+		return Database.create(filename);
 	}
 
 	@Override
 	public Database open(String filename) {
-		return new Database(filename, Mode.OPEN);
+		return Database.open(filename);
 	}
 
 	@Override
 	public Database openReadonly(String filename) {
-		return new Database(filename, Mode.READ_ONLY);
+		return Database.openReadonly(filename);
 	}
 
 	@Override
 	public Database testdb() {
-		return new Database(new DestMem(), Mode.CREATE);
+		return Database.testdb();
 	}
 
 	@Override
@@ -75,34 +75,19 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public void check(String dbFilename) {
-
+	public Status check(String dbFilename, Observer ob) {
+		return DbCheck.check(dbFilename, ob);
 	}
 
 	@Override
-	public void checkPrintExit(String filename) {
-		DbCheck.checkPrintExit(filename);
+	public int compact(suneido.intfc.database.Database srcdb,
+			suneido.intfc.database.Database dstdb) {
+		return DbCompact.compact((Database) srcdb, (Database) dstdb);
 	}
 
 	@Override
-	public void compact(String dbFilename, String tempfilename) {
-		DbCompact.compact(dbFilename, tempfilename);
-	}
-
-	@Override
-	public void compactPrint(String dbFilename) throws InterruptedException {
-		DbCompact.compactPrint(dbFilename);
-
-	}
-
-	@Override
-	public void rebuild(String dbFilename, String tempfilename) {
-		DbRebuild.rebuild(dbFilename, tempfilename);
-	}
-
-	@Override
-	public void rebuildOrExit(String dbFilename) {
-		DbRebuild.rebuildOrExit(dbFilename);
+	public String rebuild(String dbFilename, String tempfilename) {
+		return DbRebuild.rebuild(dbFilename, tempfilename);
 	}
 
 	@Override

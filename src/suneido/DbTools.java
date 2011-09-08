@@ -2,7 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido;
+
+import static suneido.intfc.database.DatabasePackage.printObserver;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +12,10 @@ import java.io.FileOutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import suneido.intfc.database.Database;
+import suneido.intfc.database.DatabasePackage;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.FileUtils;
-
 
 public class DbTools {
 
@@ -109,6 +113,54 @@ public class DbTools {
 			db.close();
 		}
 
+	}
+
+	public static void checkPrintExit(DatabasePackage dbpkg, String dbFilename) {
+		Status status = checkPrint(dbpkg, dbFilename);
+		System.exit(status == Status.OK ? 0 : -1);
+	}
+
+	public static Status checkPrint(DatabasePackage dbpkg, String dbFilename) {
+		System.out.println("Checking " + dbFilename + " ...");
+		return dbpkg.check(dbFilename, printObserver);
+	}
+
+	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
+		System.out.println("Checking " + dbFilename + " ...");
+		Status status = dbpkg.check(dbFilename, printObserver);
+		if (status != Status.OK)
+			System.exit(-1);
+		Database srcdb = dbpkg.openReadonly(dbFilename);
+		try {
+			File tempfile = FileUtils.tempfile();
+			Database dstdb = dbpkg.create(tempfile.getPath());
+			try {
+				System.out.println("Compacting...");
+				int n = dbpkg.compact(srcdb, dstdb);
+				FileUtils.renameWithBackup(tempfile, dbFilename);
+				System.out.println("Compacted " + n + " tables in " + dbFilename);
+			} finally {
+				dstdb.close();
+			}
+		} finally {
+			srcdb.close();
+		}
+		System.exit(0);
+	}
+
+	public static void rebuildOrExit(DatabasePackage dbpkg, String dbFilename) {
+		System.out.println("Rebuilding " + dbFilename + " ...");
+		File tempfile = FileUtils.tempfile();
+		String result = dbpkg.rebuild(dbFilename, tempfile.getPath());
+		if (result == null)
+			Suneido.fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
+		else if (Status.OK != dbpkg.check(tempfile.getPath(), printObserver))
+			Suneido.fatal("Check failed after rebuild " + dbFilename + " " + result);
+		else {
+			Suneido.errlog("Rebuilt " + dbFilename + " " + result);
+			System.out.println("Rebuild SUCCEEDED");
+			FileUtils.renameWithBackup(tempfile, dbFilename);
+		}
 	}
 
 }

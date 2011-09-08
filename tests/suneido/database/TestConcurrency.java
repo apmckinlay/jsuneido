@@ -14,19 +14,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.database.DbCheck.Status;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.TableBuilder;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {
-	private static final Mmfile mmf = new Mmfile("concur.db", Mode.CREATE);
-	private static final Database db = new Database(mmf, Mode.CREATE);
+	private static final Database db = Database.testdb();
 	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 10;
+	private static final int NTHREADS = 8;
 	private static final int SECONDS = 1000;
 	private static final int MINUTES = 60 * SECONDS;
 	private static final int DURATION = 20 * SECONDS;
@@ -51,6 +50,7 @@ public class TestConcurrency {
 		int nreps = 0;
 		while (true) {
 			exec.submitTask(actions[random(actions.length)]);
+			// actions[random(actions.length)].run();
 			if (++nreps % 100 == 0) {
 				long elapsed = System.currentTimeMillis() - t;
 				if (elapsed > DURATION)
@@ -97,7 +97,7 @@ public class TestConcurrency {
 		return (t / 10) + "." + (t % 10) + " " + units;
 	}
 
-	synchronized static int random(int n) {
+	static synchronized int random(int n) {
 		return rand.nextInt(n);
 	}
 

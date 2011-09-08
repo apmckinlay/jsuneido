@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.intfc.database.DbTools;
+import suneido.DbTools;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;

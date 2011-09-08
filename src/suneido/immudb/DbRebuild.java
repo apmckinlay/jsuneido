@@ -5,37 +5,47 @@
 package suneido.immudb;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 
+import suneido.DbTools;
 import suneido.util.FileUtils;
 
 public class DbRebuild {
 
-	public static void rebuildOrExit(String dbfilename) {
-		File tempfile = FileUtils.tempfile();
-		if (! rebuild(dbfilename, tempfile.getPath()))
-			System.exit(-1);
-	}
-
-	public static boolean rebuild(String dbfilename, String tempfilename) {
-		long okSize = check(dbfilename);
+	public static String rebuild(String dbFilename, String tempFilename) {
+		Check check = check(dbFilename);
 		try {
-			Fix.fix(dbfilename, okSize);
-			return true;
+			DbRebuild.fix(dbFilename, tempFilename, check.okSize());
+			return "Last commit " +
+					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(check.lastOkDatetime());
 		} catch (Exception e) {
-			return false;
+			return null;
 		}
 	}
 
-	private static long check(String dbfilename) {
-		Storage stor = new MmapFile(dbfilename, "r");
-		Check check = new Check(stor);
-		check.fullcheck();
-		stor.close();
-		return check.okSize();
+	private static Check check(String dbFilename) {
+		Storage stor = new MmapFile(dbFilename, "r");
+		try {
+			Check check = new Check(stor);
+			check.fullcheck();
+			return check;
+		} finally {
+			stor.close();
+		}
+	}
+
+	/** Fixing is easy - just copy the good prefix of the file */
+	static void fix(String filename, String tempFilename, long okSize) {
+		try {
+			FileUtils.copy(new File(filename), new File(tempFilename), okSize);
+		} catch (IOException e) {
+			throw new RuntimeException("Rebuild copy failed", e);
+		}
 	}
 
 	public static void main(String[] args) {
-		rebuildOrExit("immu.db");
+		DbTools.rebuildOrExit(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }
