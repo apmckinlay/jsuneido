@@ -237,7 +237,7 @@ public class QueryTest extends TestBase {
 		Transaction t = db.readonlyTran();
 		try {
 			Query q = CompileQuery.query(t, serverData, query);
-			assertEquals(query, result, execute(q));
+			assertEquals(q.toString(), result, execute(q));
 			t.complete();
 		} finally {
 			t.abortIfNotComplete();
