@@ -6,14 +6,18 @@ import static suneido.util.Util.*;
 import java.util.*;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
+
+import com.google.common.collect.ImmutableList;
 
 public class Project extends Query1 {
 	private List<String> flds;
 	private Strategy strategy = Strategy.NONE;
 	private boolean first = true;
-	private Header hdr;
+	private Header projHdr;
+	private Header srcHdr;
 	// used by LOOKUP
 	private Map<Record, Object[]> map = null;
 	private final Keyrange sel = new Keyrange();
@@ -165,30 +169,41 @@ public class Project extends Query1 {
 					new_flds.add(e.flds.get(i));
 					new_exprs.add(e.exprs.get(i));
 				}
+			List<String> new_rules = new ArrayList<String>();
+			for (String r : e.rules)
+				if (flds.contains(r))
+					new_rules.add(r);
 			List<String> orig_flds = e.flds;
 			e.flds = new_flds;
 			List<Expr> orig_exprs = e.exprs;
 			e.exprs = new_exprs;
+			List<String> orig_rules = e.rules;
+			e.rules = new_rules;
 
 			// project must include all fields required by extend
-			List<String> eflds = new ArrayList<String>();
-			for (Expr ex : e.exprs)
-				addUnique(eflds, ex.fields());
-			if (flds.containsAll(eflds)) {
-				// remove extend fields from project
-				List<String> new_fields = new ArrayList<String>();
-				for (String f : flds)
-					if (!e.flds.contains(f))
-						new_fields.add(f);
-				flds = new_fields;
+			// there must be no rules left
+			// since we don't know fields are required by rules
+			if (nil(e.rules)) {
+				List<String> eflds = new ArrayList<String>();
+				for (Expr ex : e.exprs)
+					addUnique(eflds, ex.fields());
+				if (flds.containsAll(eflds)) {
+					// remove extend fields from project
+					List<String> new_fields = new ArrayList<String>();
+					for (String f : flds)
+						if (!e.flds.contains(f))
+							new_fields.add(f);
+					flds = new_fields;
 
-				source = e.source;
-				e.source = this;
-				e.init();
-				return e.transform();
+					source = e.source;
+					e.source = this;
+					e.init();
+					return e.transform();
+				}
 			}
 			e.flds = orig_flds;
 			e.exprs = orig_exprs;
+			e.rules = orig_rules;
 		}
 		// distribute project over union/intersect (NOT difference)
 		else if (source instanceof Union || source instanceof Intersect) {
@@ -281,22 +296,25 @@ public class Project extends Query1 {
 
 	@Override
 	public Header header() {
-		return source.header().project(flds);
+		return new Header(
+				ImmutableList.of(Collections.<String> emptyList(), flds),
+				flds);
 	}
 
 	@Override
 	public Row get(Dir dir) {
-		if (strategy == Strategy.COPY)
-			return source.get(dir);
-
 		if (first) {
 			first = false;
-			hdr = header();
-			if (strategy == Strategy.LOOKUP)
+			srcHdr = source.header();
+			projHdr = srcHdr.project(flds);
+			if (strategy == Strategy.LOOKUP) {
 				map = new HashMap<Record, Object[]>();
 				indexed = false;
+			}
 		}
 		switch (strategy) {
+		case COPY:
+			return getCopy(dir);
 		case SEQUENTIAL:
 			return getSequential(dir);
 		case LOOKUP:
@@ -304,6 +322,19 @@ public class Project extends Query1 {
 		default:
 			throw unreachable();
 		}
+	}
+
+	private Row getCopy(Dir dir) {
+		Row row = source.get(dir);
+		return result(row);
+	}
+
+	private Row result(Row row) {
+		return row == null ? null : result(row.project(srcHdr, flds));
+	}
+
+	private Row result(Record rec) {
+		return new Row(Suneido.dbpkg.minRecord(), rec);
 	}
 
 	private Row getSequential(Dir dir) {
@@ -315,11 +346,11 @@ public class Project extends Query1 {
 			do
 				if (null == (row = source.get(Dir.NEXT)))
 					return null;
-				while (!rewound && hdr.equal(row, currow));
+				while (! rewound && projHdr.equal(row, currow));
 			rewound = false;
 			prevrow = currow;
 			currow = row;
-			return row;
+			return result(row);
 		case PREV:
 			// output the last of each group
 			// i.e. output when next record is different
@@ -331,10 +362,10 @@ public class Project extends Query1 {
 				if (null == (row = prevrow))
 					return null;
 				prevrow = source.get(Dir.PREV);
-			} while (hdr.equal(row, prevrow));
+			} while (projHdr.equal(row, prevrow));
 			// output the last row of a group
 			currow = row;
-			return row;
+			return result(row);
 		default:
 			throw SuException.unreachable();
 		}
@@ -348,13 +379,13 @@ public class Project extends Query1 {
 		}
 		Row row;
 		while (null != (row = source.get(dir))) {
-			Record key = row.project(hdr, flds);
+			Record key = row.project(srcHdr, flds);
 			Object[] data = map.get(key);
 			if (data == null) {
 				map.put(key, row.getRefs());
-				return row;
+				return result(key);
 			} else if (Arrays.equals(data, row.getRefs()))
-				return row;
+				return result(key);
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
@@ -364,7 +395,7 @@ public class Project extends Query1 {
 	private void buildLookupIndex() {
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
-			Record key = row.project(hdr, flds);
+			Record key = row.project(projHdr, flds);
 			if (null == map.get(key))
 				map.put(key, row.getRefs());
 		}

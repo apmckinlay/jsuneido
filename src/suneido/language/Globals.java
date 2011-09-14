@@ -8,10 +8,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuValue;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
-import suneido.language.builtin.Database;
 import suneido.language.builtin.NullPointerException;
 
 /**
@@ -159,7 +160,6 @@ public class Globals {
 		globals.put(name, x == null ? nonExistent : x);
 		return x;
 	}
-
 
 	/** used by tests */
 	public static void put(String name, Object x) {

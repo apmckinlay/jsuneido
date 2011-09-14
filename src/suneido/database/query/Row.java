@@ -55,6 +55,16 @@ public class Row {
 		return sb.toString();
 	}
 
+	String toString(Header hdr) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Row{");
+		for (String col : hdr.columns())
+			sb.append(col).append(": ").append(getval(hdr, col).toString()).append(", ");
+		sb.delete(sb.length() - 2, sb.length());
+		sb.append("}");
+		return sb.toString();
+	}
+
 	public int size() {
 		return data.length;
 	}
@@ -107,7 +117,7 @@ public class Row {
 
 	public Object getval(Header hdr, String col) {
 		Which w = find(hdr, col);
-		if (w != null || !hdr.cols.contains(col))
+		if (w != null || ! hdr.cols.contains(col))
 			return Pack.unpack(getraw(w));
 		// else rule
 		return surec(hdr).get(col);
