@@ -79,6 +79,7 @@ public class DbTools {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {
 				int n = dbpkg.loadDatabase(db, fin);
+				db.close();
 				FileUtils.renameWithBackup(tempfile, dbFilename);
 				System.out.println("loaded " + n + " tables from " + filename +
 						" into new " + dbFilename);
@@ -87,8 +88,6 @@ public class DbTools {
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("load failed", e);
-		} finally {
-			db.close();
 		}
 	}
 
