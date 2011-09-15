@@ -296,9 +296,11 @@ public class Project extends Query1 {
 
 	@Override
 	public Header header() {
-		return new Header(
-				ImmutableList.of(Collections.<String> emptyList(), flds),
-				flds);
+		return strategy == Strategy.COPY
+				? source.header().project(flds)
+				: new Header(
+					ImmutableList.of(Collections.<String> emptyList(), flds),
+					flds);
 	}
 
 	@Override
@@ -325,8 +327,7 @@ public class Project extends Query1 {
 	}
 
 	private Row getCopy(Dir dir) {
-		Row row = source.get(dir);
-		return result(row);
+		return source.get(dir);
 	}
 
 	private Row result(Row row) {
