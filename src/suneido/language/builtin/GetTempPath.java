@@ -1,13 +1,12 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.SuFunction0;
 
-public class GetTempPath extends SuFunction {
+public class GetTempPath extends SuFunction0 {
 
 	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
-		return System.getProperty("java.io.tmpdir");
+	public Object call0() {
+		return System.getProperty("java.io.tmpdir").replace('\\', '/');
 	}
 
 	public static void main(String[] args) {

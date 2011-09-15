@@ -62,9 +62,12 @@ public class Globals {
 		builtins.put("FileExists?", new FileExistsQ());
 		builtins.put("Frame", new Frame());
 		builtins.put("Function?", new FunctionQ());
+		builtins.put("GetComputerName", new GetComputerName());
 		builtins.put("GetCurrentDirectory", new GetCurrentDirectory());
 		builtins.put("GetDiskFreeSpace", new GetDiskFreeSpace());
+		builtins.put("Getenv", new Getenv());
 		builtins.put("GetMacAddress", new GetMacAddress());
+		builtins.put("GetTempFileName", new GetTempFileName());
 		builtins.put("GetTempPath", new GetTempPath());
 		builtins.put("Gt", new Gt());
 		builtins.put("Gte", new Gte());
