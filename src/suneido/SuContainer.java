@@ -553,7 +553,8 @@ public class SuContainer extends SuValue
 			Collections.sort(vec, new Comparator<Object>() {
 				@Override
 				public int compare(Object x, Object y) {
-					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
+					return Ops.call(fn, x, y) == Boolean.TRUE ? -1
+							: Ops.call(fn, y, x) == Boolean.TRUE ? 1 : 0;
 				}
 			});
 	}
