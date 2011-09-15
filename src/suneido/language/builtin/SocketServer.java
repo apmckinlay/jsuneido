@@ -8,9 +8,13 @@ import static suneido.util.Util.array;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.SuValue;
+import suneido.Suneido;
 import suneido.language.*;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
@@ -44,20 +48,13 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Listener implements Runnable {
-		private static final int CORE_THREADS = 0;
-		private static final int MAX_THREADS = 8;
 		private static final ThreadFactory threadFactory =
 				new ThreadFactoryBuilder()
 					.setDaemon(true)
 					.setNameFormat("SocketServer-thread-%d")
 					.build();
-		private static final ThreadPoolExecutor executor =
-				new ThreadPoolExecutor(
-					CORE_THREADS, MAX_THREADS,
-					1, TimeUnit.MINUTES,
-					new SynchronousQueue<Runnable>(),
-					threadFactory,
-					new ThreadPoolExecutor.CallerRunsPolicy());
+		private static final ExecutorService executor = 
+				Executors.newCachedThreadPool(threadFactory);
 		SuClass serverClass;
 		int port;
 
