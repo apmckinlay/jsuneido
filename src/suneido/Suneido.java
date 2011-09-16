@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import suneido.database.server.DbmsServer;
@@ -19,10 +20,17 @@ import suneido.intfc.database.DatabasePackage;
 import suneido.language.Compiler;
 import suneido.util.Print;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 public class Suneido {
 	public static DatabasePackage dbpkg = suneido.database.DatabasePackage.dbpkg;
-	public static final ScheduledExecutorService scheduler
-			= Executors.newSingleThreadScheduledExecutor();
+	private static final ThreadFactory threadFactory =
+		new ThreadFactoryBuilder()
+			.setDaemon(true)
+			.setNameFormat("suneido-thread-%d")
+			.build();
+	private static final ScheduledExecutorService scheduler
+			= Executors.newSingleThreadScheduledExecutor(threadFactory);
 	public static CommandLineOptions cmdlineoptions;
 
 	public static void main(String[] args) {
@@ -85,8 +93,10 @@ public class Suneido {
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
-			Repl.repl();
-			scheduler.shutdown();
+			if ("".equals(cmdlineoptions.remainder))
+				Repl.repl();
+			else
+				Compiler.eval("JInit()");
 			break;
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
