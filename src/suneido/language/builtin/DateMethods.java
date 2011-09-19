@@ -9,7 +9,9 @@ import static suneido.util.Util.array;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 import suneido.SuException;
 import suneido.language.*;
@@ -111,6 +113,17 @@ public class DateMethods extends BuiltinMethods {
 			Date d = (Date) self;
 			int offset = TimeZone.getDefault().getOffset(d.getTime());
 			return new Date(d.getTime() + offset);
+		}
+	}
+
+	public static class GetLocalGMTBias extends SuMethod0 {
+		private static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
+
+		@Override
+		public Object eval0(Object self) {
+			Date d = (Date) self;
+			return -TimeZone.getDefault().getOffset(d.getTime()) 
+					/ MILLISECONDS_PER_MINUTE;
 		}
 	}
 

@@ -100,7 +100,7 @@ public class DbDump {
 		RecordBuilder rb = new suneido.database.Record(rec.bufSize() + 2);
 		int i = 0;
 		for (String f : fields) {
-			if (! f.equals("-"))
+			if (! f.equals(DELETED))
 				rb.add(rec.getRaw(i));
 			++i;
 		}
