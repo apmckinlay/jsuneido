@@ -95,7 +95,7 @@ public class DbDump {
 	private static final String DELETED = "-";
 
 	/** convert record to old format */
-	private static Record convert(Record rec, List<String> fields) {
+	static Record convert(Record rec, List<String> fields) {
 		((suneido.immudb.Record) rec).check();
 		RecordBuilder rb = new suneido.database.Record(rec.bufSize() + 2);
 		int i = 0;

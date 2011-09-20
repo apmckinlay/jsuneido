@@ -13,6 +13,8 @@ import java.util.Iterator;
 import suneido.SuException;
 import suneido.language.Pack;
 
+import com.google.common.base.Objects;
+
 /**
  * Slightly different from cSuneido format.
  * Mode is 1,2,3 instead of 'c', 's', 'l'
@@ -288,13 +290,13 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	String toDebugString() {
-		String s = "";
-		s += "type: " + mode() +
-				" size: " + size() +
-				" length: " + bufSize();
+		Objects.ToStringHelper tsh = Objects.toStringHelper(this);
+		tsh.add("type", mode())
+			.add("size", size())
+			.add("length", bufSize());
 		for (int i = 0; i < Math.min(size(), 10); ++i)
-			s += " offset " + i + ": " + fieldOffset(i);
-		return s;
+			tsh.add("offset" + i, fieldOffset(i));
+		return tsh.toString();
 	}
 
 	@Override

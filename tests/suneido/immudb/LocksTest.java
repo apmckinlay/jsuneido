@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.database;
+package suneido.immudb;
 
 import static org.junit.Assert.*;
 
@@ -14,13 +14,16 @@ public class LocksTest {
 
 	@Test
 	public void test() {
-		Transaction t1 = new Transaction();
-		Transaction t2 = new Transaction();
-		Transaction t3 = new Transaction();
+		Database db = DatabasePackage.dbpkg.testdb();
+		UpdateTransaction t1 = db.readwriteTran();
+		UpdateTransaction t2 = db.readwriteTran();
+		UpdateTransaction t3 = db.readwriteTran();
 
 		Locks locks = new Locks();
 
+		locks.checkEmpty();
 		assertTrue(locks.isEmpty());
+		assertEquals(locks.toString(), "Locks{}");
 
 		assertNull(locks.addRead(t1, 123));
 		assertFalse(locks.isEmpty());

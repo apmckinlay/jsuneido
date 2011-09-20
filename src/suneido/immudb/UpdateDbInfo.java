@@ -135,7 +135,7 @@ class UpdateDbInfo {
 				assert orig.treeLevels == cur.treeLevels;
 				root = ours.root;
 				treeLevels = ours.treeLevels;
-			} else if (ours.root == orig.root) { // we didn't changes it
+			} else if (ours.root == orig.root) { // we didn't change it
 				assert ours.treeLevels == orig.treeLevels;
 				root = cur.root;
 				treeLevels = cur.treeLevels;

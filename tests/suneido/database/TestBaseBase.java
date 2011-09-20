@@ -92,17 +92,17 @@ class TestBaseBase {
 	}
 
 	protected void check(String tablename, int... values) {
-			Transaction t = db.readonlyTran();
-			check(t, tablename, values);
-			t.ck_complete();
-		}
+		Transaction t = db.readonlyTran();
+		check(t, tablename, values);
+		t.ck_complete();
+	}
 
 	protected void check(Transaction t, String filename, int... values) {
-			List<Record> recs = get(filename, t);
-			assertEquals("number of values", values.length, recs.size());
-			for (int i = 0; i < values.length; ++i)
-				assertEquals(record(values[i]), recs.get(i));
-		}
+		List<Record> recs = get(filename, t);
+		assertEquals("number of values", values.length, recs.size());
+		for (int i = 0; i < values.length; ++i)
+			assertEquals(record(values[i]), recs.get(i));
+	}
 
 	protected static Record record(int i) {
 		return new Record().add(i).add("more stuff");

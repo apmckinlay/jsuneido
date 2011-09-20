@@ -30,10 +30,9 @@ public class TransactionTest {
 
 	@Test
 	public void exclusive_abort() {
-		TestStorage stor = new TestStorage(1000, 100);
-		Database db = Database.create(stor);
+		Database db = DatabasePackage.dbpkg.testdb();
 		db.exclusiveTran().abort();
-		assertThat(DbCheck.check(stor), is(Status.OK));
+		assertThat(db.check(), is(Status.OK));
 	}
 
 }

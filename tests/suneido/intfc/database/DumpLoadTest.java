@@ -15,7 +15,7 @@ import suneido.util.BufferByteChannel;
 public class DumpLoadTest extends TestBase {
 
 	@Test
-	public void test() {
+	public void dump_load_database() {
 		makeTable(7);
 		check();
 
@@ -26,6 +26,21 @@ public class DumpLoadTest extends TestBase {
 		b.flip();
 		db = dbpkg.testdb();
 		dbpkg.loadDatabase(db, b);
+		check();
+	}
+
+	@Test
+	public void dump_load_table() {
+		makeTable(7);
+		check();
+
+		BufferByteChannel b = new BufferByteChannel(1000);
+		dbpkg.dumpTable(db, "test", b);
+		db.close();
+
+		b.flip();
+		db = dbpkg.testdb();
+		dbpkg.loadTable(db, "test", b);
 		check();
 	}
 

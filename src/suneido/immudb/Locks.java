@@ -104,12 +104,12 @@ class Locks {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Locks");
+		sb.append("Locks").append("{");
 		for (Map.Entry<Long, UpdateTransaction> e : writeLocks.entrySet())
 			sb.append(" " + e.getValue() + "w" + e.getKey());
 		for (Map.Entry<Long, UpdateTransaction> e : readLocks.entries())
 			sb.append(" " + e.getValue() + "r" + e.getKey());
-		return sb.toString();
+		return sb.append("}").toString();
 	}
 
 }

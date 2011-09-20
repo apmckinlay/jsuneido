@@ -4,17 +4,22 @@
 
 package suneido.intfc.database;
 
-import static suneido.Suneido.dbpkg;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.Suneido;
+
 public class TestBase {
+	protected Database db = dbpkg().testdb();
 
-	protected Database db = dbpkg.testdb();
+	protected DatabasePackage dbpkg() {
+		return Suneido.dbpkg;
+	}
 
-	protected static Record record(int i) {
-		return dbpkg.recordBuilder().add(i).add("more stuff").build();
+	protected Record record(int i) {
+		return dbpkg().recordBuilder().add(i).add("more stuff").build();
 	}
 
 	protected Table getTable(String tableName) {
@@ -40,7 +45,11 @@ public class TestBase {
 		makeTable("test", nrecords);
 	}
 
-	private void makeTable(String tablename, int nrecords) {
+	protected void makeTable(String tablename) {
+		makeTable(tablename, 0);
+	}
+
+	protected void makeTable(String tablename, int nrecords) {
 		db.createTable(tablename)
 			.addColumn("a")
 			.addColumn("b")
@@ -59,15 +68,11 @@ public class TestBase {
 		}
 	}
 
-	protected static Record record(int... args) {
-		RecordBuilder rb = dbpkg.recordBuilder();
+	protected Record record(int... args) {
+		RecordBuilder rb = dbpkg().recordBuilder();
 		for (int arg : args)
 			rb.add(arg);
 		return rb.build();
-	}
-
-	public TestBase() {
-		super();
 	}
 
 	protected List<Record> get() {
@@ -94,6 +99,13 @@ public class TestBase {
 		return recs;
 	}
 
+	protected Record getFirst(String tablename, Transaction tran) {
+		Table tbl = tran.getTable(tablename);
+		IndexIter iter = tran.iter(tbl.num(), null);
+		iter.next();
+		return iter.eof() ? null : tran.input(iter.keyadr());
+	}
+
 	protected int count(String tablename) {
 		Transaction tran = db.readonlyTran();
 		int n = count(tablename, tran);
@@ -108,6 +120,27 @@ public class TestBase {
 		for (iter.next(); ! iter.eof(); iter.next())
 			n++;
 		return n;
+	}
+
+	protected void check(int... values) {
+		check("test", values);
+	}
+
+	protected void check(String tablename, int... values) {
+		Transaction t = db.readonlyTran();
+		check(t, tablename, values);
+		t.ck_complete();
+	}
+
+	protected void check(Transaction t, String filename, int... values) {
+		List<Record> recs = get(filename, t);
+		assertEquals("number of values", values.length, recs.size());
+		for (int i = 0; i < values.length; ++i)
+			assertEquals(record(values[i]), recs.get(i));
+	}
+
+	protected Record key(int i) {
+		return dbpkg().recordBuilder().add(i).build();
 	}
 
 }

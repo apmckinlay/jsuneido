@@ -113,8 +113,11 @@ class DbLoad {
 		return t.loadRecord(tblnum, rec);
 	}
 
-	/** convert from cSuneido record format to jSuneido format */
-	private static Record convert(ByteBuffer recbuf, int n) {
+	/** convert from cSuneido record format to jSuneido format
+	 *	WARNING: modifies recbuf in place
+	 */
+	static Record convert(ByteBuffer recbuf, int n) {
+		assert recbuf.order() == ByteOrder.LITTLE_ENDIAN;
 		int mode = recbuf.get(0);
 		mode = mode == 'c' ? Mode.BYTE : mode == 's' ? Mode.SHORT : Mode.INT;
 		int nfields = (recbuf.get(2) & 0xff) + (recbuf.get(3) << 8);
@@ -126,9 +129,8 @@ class DbLoad {
 				recbuf.put(4 + i, (byte) (recbuf.get(4 + i) - 2));
 			break;
 		case Mode.SHORT:
-			for (int i = 0; i < nfields + 1; ++i) {
+			for (int i = 0; i < nfields + 1; ++i)
 				recbuf.putShort(4 + i * 2, (short) ((recbuf.getShort(4 + i * 2) & 0xffff) - 2));
-			}
 			break;
 		case Mode.INT:
 			for (int i = 0; i < nfields + 1; ++i)
