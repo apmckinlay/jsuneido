@@ -14,6 +14,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
@@ -101,6 +102,11 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public Database reopen() {
 		return Database.open(stor);
+	}
+
+	/** used by tests */
+	Status check() {
+		return DbCheck.check(stor);
 	}
 
 	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {

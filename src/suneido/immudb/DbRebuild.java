@@ -16,7 +16,7 @@ public class DbRebuild {
 	public static String rebuild(String dbFilename, String tempFilename) {
 		Check check = check(dbFilename);
 		try {
-			DbRebuild.fix(dbFilename, tempFilename, check.okSize());
+			fix(dbFilename, tempFilename, check.okSize());
 			return "Last commit " +
 					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(check.lastOkDatetime());
 		} catch (Exception e) {

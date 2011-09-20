@@ -71,11 +71,13 @@ class IndexedData {
 	void remove(Record rec) {
 		for (AnIndex index : indexes)
 			index.fkeyHandleRemove(rec);
-		int intref = firstKey().getKeyAdr(rec);
-		if (intref == 0)
+		int adr = rec.address();
+		if (adr == 0)
+			adr = firstKey().getKeyAdr(rec);
+		if (adr == 0)
 			throw new RuntimeException("remove couldn't find record");
 		for (AnIndex index : indexes)
-			if (! index.remove(rec, intref))
+			if (! index.remove(rec, adr))
 				throw new RuntimeException("remove failed");
 		// TODO handle remove failing halfway through (abort transaction?)
 	}

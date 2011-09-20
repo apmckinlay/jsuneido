@@ -18,14 +18,6 @@ import suneido.util.FileUtils;
 
 public class TranTest {
 	Storage stor = new TestStorage();
-//	File tempfile = FileUtils.tempfile();
-//	MmapFile stor = new MmapFile(tempfile, "rw");
-//
-//	@After
-//	public void teardown() {
-//		stor.close();
-//		tempfile.delete();
-//	}
 
 	@Test
 	public void empty_database() {
@@ -127,10 +119,7 @@ public class TranTest {
 
 			buf.put(0, (byte) 3); // corrupt second commit
 
-			long okSize = check(stor, false, 24, 1);
-
-			stor.close();
-			DbRebuild.fix(tempfile.getPath(), tempfile2.getPath(), okSize);
+			DbRebuild.rebuild(tempfile.getPath(), tempfile2.getPath());
 
 			stor = new MmapFile(tempfile2, "rw");
 			check(stor, true, 24, 1);
