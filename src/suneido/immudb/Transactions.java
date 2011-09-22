@@ -6,10 +6,7 @@ package suneido.immudb;
 
 import static suneido.util.Verify.verify;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -20,6 +17,7 @@ import suneido.util.Print;
 
 /**
  * Manages transactions. Uses {@link Locks}
+ * Only deals with {@link UpdateTransactions}
  */
 // NOTE: don't call any synchronized UpdateTransaction methods while synchronized
 // because this can lead to deadlock.
@@ -28,8 +26,10 @@ class Transactions {
 	private final AtomicLong clock = new AtomicLong();
 	private final AtomicInteger nextNum = new AtomicInteger();
 	private final Locks locks = new Locks();
-	private final PriorityQueue<UpdateTransaction> trans = new PriorityQueue<UpdateTransaction>();
-	private final PriorityQueue<UpdateTransaction> finals = new PriorityQueue<UpdateTransaction>();
+	private final PriorityQueue<UpdateTransaction> trans =
+			new PriorityQueue<UpdateTransaction>(100, tranCmp);
+	private final PriorityQueue<UpdateTransaction> finals =
+			new PriorityQueue<UpdateTransaction>(100, tranCmp);
 	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
 	static int MAX_FINALS_SIZE = 200;
@@ -59,7 +59,6 @@ class Transactions {
 	}
 
 	synchronized void addFinal(UpdateTransaction tran) {
-		assert tran.isReadWrite();
 		finals.add(tran);
 	}
 
@@ -69,7 +68,7 @@ class Transactions {
 	 */
 	synchronized void remove(UpdateTransaction tran) {
 		verify(trans.remove(tran));
-		if (tran.isReadWrite() && tran.isCommitted())
+		if (tran.isCommitted())
 			locks.commit(tran);
 		else
 			locks.remove(tran);
@@ -77,22 +76,19 @@ class Transactions {
 	}
 
 	/**
-	 * Finalize any completed update transactions that are obsolete
+	 * Finalize any completed transactions that are obsolete
 	 * i.e. older than the oldest outstanding update transaction.
 	 */
 	private void finalization() {
-		long oldest = oldestReadWriteTran();
-		while (!finals.isEmpty() && finals.peek().asof() < oldest)
+		long oldest = oldestAsof();
+		while (! finals.isEmpty() && finals.peek().asof() < oldest)
 			locks.remove(finals.poll());
-		assert !trans.isEmpty() || finals.isEmpty();
-		assert !trans.isEmpty() || locks.isEmpty();
+		assert ! trans.isEmpty() || finals.isEmpty();
+		assert ! trans.isEmpty() || locks.isEmpty();
 	}
 
-	private long oldestReadWriteTran() {
-		for (UpdateTransaction t : trans)
-			if (t.isReadWrite())
-				return t.asof();
-		return FUTURE;
+	private long oldestAsof() {
+		return trans.isEmpty() ? FUTURE : trans.peek().asof();
 	}
 
 	// should be called periodically
@@ -101,11 +97,7 @@ class Transactions {
 		synchronized (this) {
 			if (finals.size() <= MAX_FINALS_SIZE)
 				return;
-			for (UpdateTransaction tran : trans)
-				if (tran.isReadWrite()) {
-					t = tran;
-					break;
-				}
+			t = trans.peek();
 		}
 		// abort outside synchronized to avoid deadlock
 		if (t != null) {
@@ -114,16 +106,16 @@ class Transactions {
 		}
 	}
 
-	synchronized UpdateTransaction readLock(UpdateTransaction tran, long offset) {
-		return locks.addRead(tran, offset);
+	synchronized UpdateTransaction readLock(UpdateTransaction tran, int adr) {
+		return locks.addRead(tran, adr);
 	}
 
-	synchronized Set<UpdateTransaction> writeLock(UpdateTransaction tran, long offset) {
-		return locks.addWrite(tran, offset);
+	synchronized Set<UpdateTransaction> writeLock(UpdateTransaction tran, int adr) {
+		return locks.addWrite(tran, adr);
 	}
 
-	synchronized Set<UpdateTransaction> writes(long offset) {
-		return locks.writes(offset);
+	synchronized Set<UpdateTransaction> writes(int adr) {
+		return locks.writes(adr);
 	}
 
 	synchronized List<Integer> tranlist() {
@@ -136,5 +128,23 @@ class Transactions {
 	synchronized int finalSize() {
 		return finals.size();
 	}
+
+	/** for tests */
+	boolean isLocksEmpty() {
+		return locks.isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		return locks.toString();
+	}
+
+	private static final Comparator<UpdateTransaction> tranCmp =
+			new Comparator<UpdateTransaction>() {
+		@Override
+		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
+			return t1.num < t2.num ? -1 : t1.num > t2.num ? +1 : 0;
+		}
+	};
 
 }

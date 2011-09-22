@@ -4,7 +4,9 @@
 
 package suneido.immudb;
 
-import java.util.HashMap;
+import gnu.trove.iterator.TIntObjectIterator;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -17,16 +19,17 @@ import com.google.common.collect.SetMultimap;
 /** Synchronized by {@link Transactions} which is the only user */
 @NotThreadSafe
 class Locks {
-	private final SetMultimap<UpdateTransaction, Long> locksRead = HashMultimap.create();
-	private final SetMultimap<UpdateTransaction, Long> locksWrite = HashMultimap.create();
-	private final SetMultimap<Long, UpdateTransaction> readLocks = HashMultimap.create();
-	private final Map<Long, UpdateTransaction> writeLocks = new HashMap<Long, UpdateTransaction>();
-	private final SetMultimap<Long, UpdateTransaction> writes = HashMultimap.create();
+	private final SetMultimap<UpdateTransaction, Integer> locksRead = HashMultimap.create();
+	private final SetMultimap<UpdateTransaction, Integer> locksWrite = HashMultimap.create();
+	private final SetMultimap<Integer, UpdateTransaction> readLocks = HashMultimap.create();
+	private final SetMultimap<Integer, UpdateTransaction> writes = HashMultimap.create();
+	private final TIntObjectHashMap<UpdateTransaction> writeLocks =
+			new TIntObjectHashMap<UpdateTransaction>();
 
 	/** Add a read lock, unless there's already a write lock.
 	 *  @return A transaction if it has a write lock on this adr, else null
 	 */
-	UpdateTransaction addRead(UpdateTransaction tran, long adr) {
+	UpdateTransaction addRead(UpdateTransaction tran, int adr) {
 		if (tran.isEnded())
 			return null;
 		UpdateTransaction prev = writeLocks.get(adr);
@@ -41,7 +44,7 @@ class Locks {
 	 *  or else a set (possibly empty) of other transactions that have read locks.
 	 *  NOTE: The set may contain the locking transaction.
 	 */
-	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, long adr) {
+	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, int adr) {
 		if (tran.isEnded())
 			return null;
 		UpdateTransaction prev = writeLocks.get(adr);
@@ -62,18 +65,18 @@ class Locks {
 
 	/** Just remove writeLocks. Other locks kept till finalization */
 	void commit(UpdateTransaction tran) {
-		for (Long adr : locksWrite.get(tran))
+		for (Integer adr : locksWrite.get(tran))
 			writeLocks.remove(adr);
 	}
 
 	/** Remove all locks for this transaction */
 	void remove(UpdateTransaction tran) {
-		for (Long adr : locksRead.get(tran))
+		for (Integer adr : locksRead.get(tran))
 			readLocks.remove(adr, tran);
 		locksRead.removeAll(tran);
 		assert !locksRead.isEmpty() || readLocks.isEmpty();
 
-		for (Long adr : locksWrite.get(tran)) {
+		for (Integer adr : locksWrite.get(tran)) {
 			writeLocks.remove(adr);
 			writes.remove(adr, tran);
 		}
@@ -81,8 +84,8 @@ class Locks {
 		assert !locksWrite.isEmpty() || (writeLocks.isEmpty() && writes.isEmpty());
 	}
 
-	Set<UpdateTransaction> writes(long offset) {
-		return ImmutableSet.copyOf(writes.get(offset));
+	Set<UpdateTransaction> writes(int adr) {
+		return ImmutableSet.copyOf(writes.get(adr));
 	}
 
 	boolean isEmpty() {
@@ -105,11 +108,14 @@ class Locks {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Locks").append("{");
-		for (Map.Entry<Long, UpdateTransaction> e : writeLocks.entrySet())
-			sb.append(" " + e.getValue() + "w" + e.getKey());
-		for (Map.Entry<Long, UpdateTransaction> e : readLocks.entries())
-			sb.append(" " + e.getValue() + "r" + e.getKey());
-		return sb.append("}").toString();
+		TIntObjectIterator<UpdateTransaction> iter = writeLocks.iterator();
+		while (iter.hasNext()) {
+			iter.advance();
+			sb.append(" " + iter.value() + "-w" + iter.key());
+		}
+		for (Map.Entry<Integer, UpdateTransaction> e : readLocks.entries())
+			sb.append(" " + e.getValue() + "-r" + e.getKey());
+		return sb.append(" }").toString();
 	}
 
 }

@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 @NotThreadSafe
 class Btree {
 	protected int splitSize() { return 20; } // overridden by test
+	private final Locking locking;
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
@@ -46,15 +47,17 @@ class Btree {
 	int totalSize;
 	private int modified = 0; // depends on all access via one instance
 
-	Btree(Tran tran) {
+	Btree(Tran tran, Locking locking) {
 		this.tran = tran;
+		this.locking = locking;
 		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
 		nnodes = 1;
 	}
 
-	Btree(Tran tran, BtreeInfo info) {
+	Btree(Tran tran, Locking locking, BtreeInfo info) {
 		this.tran = tran;
+		this.locking = locking;
 		this.root = info.root;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
@@ -480,6 +483,7 @@ class Btree {
 	}
 
 	BtreeNode nodeAt(int level, int adr) {
+		locking.readLock(adr);
 		return nodeAt(tran, level, adr);
 	}
 
@@ -517,13 +521,13 @@ class Btree {
 		// by packing level and intref into a long
 		IntRefs intrefs = tran.intrefs;
 		TLongArrayList a = new TLongArrayList();
-		int i = -1;
+		int i = 0;
 		for (Object x : intrefs) {
-			++i;
 			if (x instanceof BtreeNode) {
 				BtreeNode node = (BtreeNode) x;
 				a.add(((long) node.level() << 32) | i);
 			}
+			++i;
 		}
 		a.sort();
 		for (i = 0; i < a.size(); ++i) {

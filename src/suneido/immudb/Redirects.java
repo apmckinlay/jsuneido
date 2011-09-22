@@ -90,12 +90,9 @@ class Redirects {
 		public void apply(Entry e) {
 			int adr = ((IntEntry) e).key;
 			if (original.get(adr) != current.get(adr))
-				throw conflict;
+				throw new Conflict("concurrent index node modification");
 			merged = merged.with(e);
 		}
 	}
-
-	private static final Conflict conflict =
-			new Conflict("concurrent index node modification");
 
 }

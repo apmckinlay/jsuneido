@@ -106,6 +106,13 @@ public class TestBase {
 		return iter.eof() ? null : tran.input(iter.keyadr());
 	}
 
+	protected Record getLast(String tablename, Transaction tran) {
+		Table tbl = tran.getTable(tablename);
+		IndexIter iter = tran.iter(tbl.num(), null);
+		iter.prev();
+		return iter.eof() ? null : tran.input(iter.keyadr());
+	}
+
 	protected int count(String tablename) {
 		Transaction tran = db.readonlyTran();
 		int n = count(tablename, tran);

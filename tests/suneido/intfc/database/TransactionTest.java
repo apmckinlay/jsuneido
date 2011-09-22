@@ -4,7 +4,10 @@
 
 package suneido.intfc.database;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -98,7 +101,7 @@ public class TransactionTest extends TestBase {
 		Transaction t = db.readwriteTran();
 		checkBefore(t);
 		t.addRecord("test", record(9999));
-		t.removeRecord(t.getTable("test").num(), getFirst("test", t));
+		removeFirst(t);
 		checkAfter(t); // uncommitted ARE visible to their transaction
 		return t;
 	}
@@ -135,37 +138,50 @@ public class TransactionTest extends TestBase {
 		}
 	}
 
-//	@Test
-//	public void delete_conflict() {
-//		makeTable(1000);
-//
-//		// deleting different btree nodes doesn't conflict
-//		Transaction t1 = db.readwriteTran();
-//		t1.removeRecord("test", "a", key(1));
-//		Transaction t2 = db.readwriteTran();
-//		t2.removeRecord("test", "a", key(999));
-//		t2.ck_complete();
-//		t1.ck_complete();
-//
-//		db.tranlist().isEmpty();
-//
-//		// deleting from the same btree node conflicts
-//		Transaction t3 = db.readwriteTran();
-//		t3.removeRecord("test", "a", key(4));
-//		Transaction t4 = db.readwriteTran();
-//		try {
-//			t4.removeRecord("test", "a", key(5));
+	@Test
+	public void delete_conflict() {
+		makeTable(1000);
+
+		// deleting different btree nodes doesn't conflict
+		Transaction t1 = db.readwriteTran();
+		removeFirst(t1);
+		Transaction t2 = db.readwriteTran();
+		removeLast(t2);
+		t2.ck_complete();
+		t1.ck_complete();
+
+		db.tranlist().isEmpty();
+
+		// deleting in same btree node conflicts
+		Transaction t3 = db.readwriteTran();
+		remove(t3, 3);
+		Transaction t4 = db.readwriteTran();
+		try {
+			remove(t4, 4);
 //			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assertTrue(t4.isAborted());
-//		t3.ck_complete();
-//		assertNotNull(t4.complete());
-//		assertTrue(t4.conflict().contains("conflict (write-write)"));
-//
-//		db.tranlist().isEmpty();
-//	}
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		t3.ck_complete();
+		assertNotNull(t4.complete());
+		assertThat(t4.conflict(), containsString("conflict"));
+
+		db.tranlist().isEmpty();
+	}
+
+	private void remove(Transaction t, int i) {
+		int tblnum = t.getTable("test").num();
+		Record r = t.lookup(tblnum, "a", key(i));
+		t.removeRecord(tblnum, r);
+	}
+
+	private void removeFirst(Transaction t) {
+		t.removeRecord(t.getTable("test").num(), getFirst("test", t));
+	}
+
+	private void removeLast(Transaction t) {
+		t.removeRecord(t.getTable("test").num(), getLast("test", t));
+	}
 
 //	@Test
 //	public void add_conflict() {

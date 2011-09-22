@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Set;
 
 import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
@@ -28,22 +29,30 @@ class UpdateTransaction extends ReadTransaction {
 	protected boolean locked = false;
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
-	private final String conflict = null;
+	private String conflict = null;
+	private final Transactions trans;
+	private volatile boolean inConflict = false;
+	private volatile boolean outConflict = false;
+	private boolean onlyReads = false; // TODO
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
 		udbinfo = new UpdateDbInfo(stor, db.getDbinfo());
 		newSchema = schema;
 		asof = db.trans.clock();
+		trans = db.trans;
 		lock(db);
 	}
 
 	protected void lock(Database db) {
 		db.exclusiveLock.readLock().lock();
+		trans.add(this);
 		locked = true;
 	}
 
 	protected void unlock() {
+		trans.addFinal(this);
+		trans.remove(this);
 		db.exclusiveLock.readLock().unlock();
 		locked = false;
 	}
@@ -66,7 +75,7 @@ class UpdateTransaction extends ReadTransaction {
 	/** for Bootstrap and TableBuilder */
 	Btree addIndex(int tblnum, int... indexColumns) {
 		assert locked;
-		Btree btree = new Btree(tran);
+		Btree btree = new Btree(tran, this);
 		indexes.put(tblnum, new ColNums(indexColumns), btree);
 		return btree;
 	}
@@ -182,10 +191,14 @@ class UpdateTransaction extends ReadTransaction {
 		unlock();
 	}
 
-	// TODO if exception during commit, rollback storage
+	// TODO if exception during commit, nullify by writing same trailer as last commit
 	@Override
 	public String complete() {
 		assert locked;
+		if (onlyReads) {
+			abort();
+			return null;
+		}
 		try {
 			synchronized(db.commitLock) {
 				tran.startStore();
@@ -203,7 +216,12 @@ class UpdateTransaction extends ReadTransaction {
 
 				db.setDbinfo(udbinfo.dbinfo());
 				updateSchema();
+
+				commitTime = trans.clock();
 			}
+		} catch(Conflict c) {
+			conflict = c.toString();
+			return conflict;
 		} finally {
 			unlock();
 		}
@@ -291,6 +309,70 @@ class UpdateTransaction extends ReadTransaction {
 	@Override
 	public String conflict() {
 		return conflict ;
+	}
+
+	private void notEnded() {
+		if (isEnded())
+			throw new RuntimeException("cannot use ended transaction");
+	}
+
+	private boolean isActive() {
+		return ! isEnded();
+	}
+
+	private void abortThrow(String conflict) {
+		this.conflict = conflict;
+		abort();
+		throw new RuntimeException("transaction " + conflict);
+	}
+
+	private boolean committedAfter(UpdateTransaction t) {
+		return isCommitted() && commitTime > t.asof;
+	}
+
+	@Override
+	public void readLock(int adr) {
+		notEnded();
+		UpdateTransaction writer = trans.readLock(this, adr);
+		if (writer != null) {
+			if (this.inConflict || writer.outConflict)
+				abortThrow("conflict (read-write) with " + writer);
+			writer.inConflict = true;
+			this.outConflict = true;
+		}
+
+		Set<UpdateTransaction> writes = trans.writes(adr);
+		for (UpdateTransaction w : writes) {
+			if (w == this || w.commitTime < asof)
+				continue;
+			if (w.outConflict)
+				abortThrow("conflict (read-write) with " + w);
+			this.outConflict = true;
+		}
+		for (UpdateTransaction w : writes)
+			w.inConflict = true;
+	}
+
+	@Override
+	public void writeLock(int adr) {
+		notEnded();
+		onlyReads = false;
+		Set<UpdateTransaction> readers = trans.writeLock(this, adr);
+		if (readers == null)
+			abortThrow("conflict (write-write)");
+		for (UpdateTransaction reader : readers)
+			if (reader.isActive() || reader.committedAfter(this)) {
+				if (reader.inConflict || this.outConflict)
+					abortThrow("conflict (write-read) with " + reader);
+				this.inConflict = true;
+			}
+		for (UpdateTransaction reader : readers)
+			reader.outConflict = true;
+	}
+
+	@Override
+	public String toString() {
+		return "ut" + num;
 	}
 
 }

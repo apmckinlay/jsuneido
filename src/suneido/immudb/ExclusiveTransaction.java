@@ -94,4 +94,17 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		super.abort();
 	}
 
+	@Override
+	public void readLock(int adr) {
+	}
+
+	@Override
+	public void writeLock(int adr) {
+	}
+
+	@Override
+	public String toString() {
+		return "et" + num;
+	}
+
 }
