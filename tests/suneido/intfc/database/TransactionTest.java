@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -149,7 +150,6 @@ public class TransactionTest extends TestBase {
 		removeLast(t2);
 		t2.ck_complete();
 		t1.ck_complete();
-
 		db.tranlist().isEmpty();
 
 		// deleting in same btree node conflicts
@@ -158,7 +158,7 @@ public class TransactionTest extends TestBase {
 		Transaction t4 = db.readwriteTran();
 		try {
 			remove(t4, 4);
-//			fail();
+			fail();
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
