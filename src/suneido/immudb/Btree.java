@@ -122,6 +122,7 @@ class Btree {
 			if (slot != null && slot.startsWith(searchKey))
 				return false;
 		}
+		locking.writeLock(adr);
 
 		totalSize += keySize(key);
 
@@ -143,6 +144,7 @@ class Btree {
 		// insert up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
+			locking.writeLock(adrs.get(i));
 			if (hasRoom(treeNode)) {
 				treeNode = treeNode.with(split.key);
 				tran.redir(adrs.get(i), treeNode);
@@ -212,7 +214,7 @@ class Btree {
 		// remove from leaf
 		BtreeNode leaf = nodeAt(0, adr);
 		leaf = leaf.without(key);
-locking.writeLock(adr);
+		locking.writeLock(adr);
 		if (leaf == null)
 			return false; // not found
 
@@ -229,7 +231,7 @@ locking.writeLock(adr);
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
-locking.writeLock(adrs.get(i));
+			locking.writeLock(adrs.get(i));
 			if (treeNode.size() > 1) {
 				treeNode = treeNode.without(key);
 				assert treeNode != null;
@@ -282,6 +284,7 @@ locking.writeLock(adrs.get(i));
 		if (leaf == null)
 			return Update.NOT_FOUND;
 		leaf = leaf.with(newkey);
+		locking.writeLock(adr);
 		tran.redir(adr, leaf);
 		return Update.OK;
 	}

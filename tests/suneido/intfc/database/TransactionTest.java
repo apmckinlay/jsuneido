@@ -5,10 +5,7 @@
 package suneido.intfc.database;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -183,82 +180,88 @@ public class TransactionTest extends TestBase {
 		t.removeRecord(t.getTable("test").num(), getLast("test", t));
 	}
 
-//	@Test
-//	public void add_conflict() {
-//		makeTable();
-//
-//		Transaction t1 = db.readwriteTran();
-//		t1.addRecord("test", record(99));
-//		Transaction t2 = db.readwriteTran();
-//		try {
-//			t2.addRecord("test", record(99));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		t1.ck_complete();
-//		assertNotNull(t2.complete());
-//		assertTrue(t2.conflict().contains("conflict (write-write)"));
-//
-//		db.tranlist().isEmpty();
-//	}
+	@Test
+	public void add_conflict() {
+		makeTable();
 
-//	@Test
-//	public void update_conflict() {
-//		makeTable(3);
-//
-//		Transaction t1 = db.readwriteTran();
-//		t1.updateRecord("test", "a", key(1), record(5));
-//
-//		Transaction t2 = db.readwriteTran();
-//		try {
-//			t2.updateRecord("test", "a", key(1), record(6));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assert(t2.isAborted());
-//		assertNotNull(t2.complete());
-//		assertTrue(t2.conflict().contains("conflict (write-write)"));
-//
-//		Transaction t3 = db.readwriteTran();
-//		try {
-//			t3.updateRecord("test", "a", key(1), record(6));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assert(t3.isAborted());
-//		assertNotNull(t3.complete());
-//		assertTrue(t3.conflict().contains("conflict (write-write)"));
-//
-//		t1.ck_complete();
-//
-//		db.tranlist().isEmpty();
-//	}
-//
-//	@Test
-//	public void update_conflict_2() {
-//		makeTable(3);
-//
-//		Transaction t1 = db.readwriteTran();
-//
-//		Transaction t2 = db.readwriteTran();
-//		t2.updateRecord("test", "a", key(1), record(6));
-//		t2.ck_complete();
-//
-//		try {
-//			t1.updateRecord("test", "a", key(1), record(6));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assert(t1.isAborted());
-//		assertNotNull(t1.complete());
-//		assertTrue(t1.conflict().contains("conflict (write-write)"));
-//
-//		db.tranlist().isEmpty();
-//	}
+		Transaction t1 = db.readwriteTran();
+		t1.addRecord("test", record(99));
+		Transaction t2 = db.readwriteTran();
+		try {
+			t2.addRecord("test", record(99));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		t1.ck_complete();
+		assertNotNull(t2.complete());
+		assertThat(t2.conflict(), containsString("conflict (write-write)"));
+
+		db.tranlist().isEmpty();
+	}
+
+	@Test
+	public void update_conflict() {
+		makeTable(3);
+
+		Transaction t1 = db.readwriteTran();
+		update(t1, 1, record(5));
+
+		Transaction t2 = db.readwriteTran();
+		try {
+			update(t2, 1, record(6));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assert(t2.isAborted());
+		assertNotNull(t2.complete());
+		assertThat(t2.conflict(), containsString("conflict (write-write)"));
+
+		Transaction t3 = db.readwriteTran();
+		try {
+			update(t3, 1, record(6));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assert(t3.isAborted());
+		assertNotNull(t3.complete());
+		assertThat(t3.conflict(), containsString("conflict (write-write)"));
+
+		t1.ck_complete();
+
+		db.tranlist().isEmpty();
+	}
+
+	private void update(Transaction t, int i, Record newrec) {
+		int tblnum = t.getTable("test").num();
+		Record oldrec = t.lookup(tblnum, "a", key(i));
+		t.updateRecord(tblnum, oldrec, newrec);
+	}
+
+	@Test
+	public void update_conflict_2() {
+		makeTable(3);
+
+		Transaction t1 = db.readwriteTran();
+
+		Transaction t2 = db.readwriteTran();
+		update(t2, 1, record(6));
+		t2.ck_complete();
+
+		try {
+			update(t1, 1, record(6));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assert(t1.isAborted());
+		assertNotNull(t1.complete());
+		assertThat(t1.conflict(), containsString("conflict (write-write)"));
+
+		db.tranlist().isEmpty();
+	}
 
 	@Test
 	public void update_visibility() {
@@ -272,68 +275,62 @@ public class TransactionTest extends TestBase {
 		db.tranlist().isEmpty();
 	}
 
-//	@Test
-//	public void write_skew() {
-//		makeTable(1000);
-//		Transaction t1  = db.readwriteTran();
-//		Transaction t2  = db.readwriteTran();
-//
-//		getFirst("test", t1);
-//		getLast("test", t1);
-//		t1.updateRecord("test", "a", key(1), record(1));
-//
-//		getFirst("test", t2);
-//		getLast("test", t2);
-//		try {
-//			t2.updateRecord("test", "a", key(999), record(999));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assert(t2.isAborted());
-//
-//		t1.ck_complete();
-//		assertNotNull(t2.complete());
-//		assertStartsWith("conflict (write-read)", t2.conflict());
-//
-//		db.tranlist().isEmpty();
-//	}
-//
-//	private void assertStartsWith(String expectedPrefix, String s) {
-//		assertTrue("expected to startWith: <" + expectedPrefix + ">" +
-//				" but was <" + s + ">",
-//				s.startsWith(expectedPrefix));
-//	}
-//
-//	@Test
-//	public void phantoms() {
-//		makeTable(1000);
-//		Transaction t1  = db.readwriteTran();
-//		getLast("test", t1);
-//		t1.updateRecord("test", "a", key(1), record(1));
-//
-//		Transaction t2  = db.readwriteTran();
-//		try {
-//			t2.addRecord("test", record(1000));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assertTrue(t2.isAborted());
-//
-//		Transaction t3  = db.readwriteTran();
-//		try {
-//			t3.removeRecord("test", "a", key(999));
-//			fail();
-//		} catch (SuException e) {
-//			assertTrue(e.toString().contains("conflict"));
-//		}
-//		assertTrue(t3.isAborted());
-//
-//		t1.ck_complete();
-//
-//		db.tranlist().isEmpty();
-//	}
+	@Test
+	public void write_skew() {
+		makeTable(1000);
+		Transaction t1  = db.readwriteTran();
+		Transaction t2  = db.readwriteTran();
+
+		getFirst("test", t1);
+		getLast("test", t1);
+		update(t1, 1, record(1));
+
+		getFirst("test", t2);
+		getLast("test", t2);
+		try {
+			update(t2, 999, record(999));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assert(t2.isAborted());
+
+		t1.ck_complete();
+		assertNotNull(t2.complete());
+		assertThat(t2.conflict(), containsString("conflict (write-read)"));
+
+		db.tranlist().isEmpty();
+	}
+
+	@Test
+	public void phantoms() {
+		makeTable(1000);
+		Transaction t1  = db.readwriteTran();
+		getLast("test", t1);
+		update(t1, 1, record(1));
+
+		Transaction t2  = db.readwriteTran();
+		try {
+			t2.addRecord("test", record(1000));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assertTrue(t2.isAborted());
+
+		Transaction t3  = db.readwriteTran();
+		try {
+			remove(t3, 999);
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+		assertTrue(t3.isAborted());
+
+		t1.ck_complete();
+
+		db.tranlist().isEmpty();
+	}
 
 	@Test
 	public void nested() {

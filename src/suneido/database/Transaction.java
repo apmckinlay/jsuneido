@@ -263,7 +263,8 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 			abortThrow("too many writes in one transaction");
 	}
 
-	synchronized boolean isAborted() {
+	@Override
+	public synchronized boolean isAborted() {
 		return isEnded() && !isCommitted();
 	}
 

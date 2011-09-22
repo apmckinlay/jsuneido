@@ -65,4 +65,6 @@ public interface Transaction {
 	IndexIter iter(int tblnum, String columns, Record org, Record end);
 	IndexIter iter(int tblnum, String columns, IndexIter iter);
 
+	boolean isAborted();
+
 }

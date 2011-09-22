@@ -296,4 +296,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return "rt" + num;
 	}
 
+	@Override
+	public boolean isAborted() {
+		return false;
+	}
+
 }
