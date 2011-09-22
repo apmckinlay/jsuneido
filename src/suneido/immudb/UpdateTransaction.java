@@ -191,9 +191,15 @@ class UpdateTransaction extends ReadTransaction {
 		unlock();
 	}
 
+	boolean isAborted() {
+		return isEnded() && !isCommitted();
+	}
+
 	// TODO if exception during commit, nullify by writing same trailer as last commit
 	@Override
 	public String complete() {
+		if (isAborted())
+			return conflict;
 		assert locked;
 		if (onlyReads) {
 			abort();

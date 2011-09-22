@@ -212,6 +212,7 @@ class Btree {
 		// remove from leaf
 		BtreeNode leaf = nodeAt(0, adr);
 		leaf = leaf.without(key);
+locking.writeLock(adr);
 		if (leaf == null)
 			return false; // not found
 
@@ -228,6 +229,7 @@ class Btree {
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
+locking.writeLock(adrs.get(i));
 			if (treeNode.size() > 1) {
 				treeNode = treeNode.without(key);
 				assert treeNode != null;
