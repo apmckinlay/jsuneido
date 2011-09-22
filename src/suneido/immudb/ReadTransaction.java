@@ -22,7 +22,7 @@ import com.google.common.collect.HashBasedTable;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction implements suneido.intfc.database.Transaction {
+class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	protected final int num;
 	protected final Database db;
 	protected final Storage stor;
@@ -64,7 +64,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		if (btree != null)
 			return btree;
 		TableInfo ti = getTableInfo(tblnum);
-		btree = new Btree(tran, ti.getIndex(indexColumns));
+		btree = new Btree(tran, this, ti.getIndex(indexColumns));
 		indexes.put(tblnum, colNums, btree);
 		return btree;
 	}
@@ -281,6 +281,19 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
 		return getIndex(tblnum, columns).iterator(iter);
+	}
+
+	@Override
+	public void readLock(int adr) {
+	}
+
+	@Override
+	public void writeLock(int adr) {
+	}
+
+	@Override
+	public String toString() {
+		return "rt" + num;
 	}
 
 }

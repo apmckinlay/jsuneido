@@ -23,7 +23,7 @@ public class LocksTest {
 
 		locks.checkEmpty();
 		assertTrue(locks.isEmpty());
-		assertEquals(locks.toString(), "Locks{}");
+		assertEquals(locks.toString(), "Locks{ }");
 
 		assertNull(locks.addRead(t1, 123));
 		assertFalse(locks.isEmpty());

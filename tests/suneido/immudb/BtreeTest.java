@@ -4,9 +4,9 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -33,10 +33,10 @@ public class BtreeTest {
 	private static class Btree4 extends Btree {
 		@Override public int splitSize() { return 4; }
 		public Btree4(Tran tran) {
-			super(tran);
+			super(tran, Locking.noLocking);
 		}
 		public Btree4(Tran tran, BtreeInfo info) {
-			super(tran, info);
+			super(tran, Locking.noLocking, info);
 		}
 	}
 
@@ -110,8 +110,8 @@ public class BtreeTest {
 		removeAndCheck(NKEYS, rand, keys, btree);
 	}
 
-	private void removeAndCheck(int NKEYS, Random rand, List<Record> keys,
-			Btree btree) {
+	private void removeAndCheck(
+			int NKEYS, Random rand, List<Record> keys, Btree btree) {
 		for (int i = 0; i < NKEYS / 2; ++i) {
 			assertTrue(btree.remove(keys.get(i)));
 			keys.remove(i);
@@ -405,7 +405,7 @@ public class BtreeTest {
 
 	@Test
 	public void rangefrac_one_node() {
-		btree = new Btree(tran); // normal node size
+		btree = new Btree(tran, Locking.noLocking); // normal node size
 		btree.add(record("0"));
 		btree.add(record("1"));
 		btree.add(record("2"));
@@ -425,7 +425,7 @@ public class BtreeTest {
 
 	@Test
 	public void rangefrac_multiple_nodes() {
-		btree = new Btree(tran); // normal node size
+		btree = new Btree(tran, Locking.noLocking); // normal node size
 		for (int i = 0; i < 100; ++i)
 			btree.add(record(i));
 		assertThat(btree.treeLevels(), greaterThan(0));

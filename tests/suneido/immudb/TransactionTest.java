@@ -5,11 +5,14 @@
 package suneido.immudb;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import suneido.immudb.Bootstrap.TN;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.Transaction;
 
@@ -33,6 +36,32 @@ public class TransactionTest {
 		Database db = DatabasePackage.dbpkg.testdb();
 		db.exclusiveTran().abort();
 		assertThat(db.check(), is(Status.OK));
+	}
+
+	@Test
+	public void locking() {
+		Database db = DatabasePackage.dbpkg.testdb();
+		db.trans.checkTransEmpty();
+		UpdateTransaction t = db.readwriteTran();
+		t.ck_complete();
+		db.trans.checkTransEmpty();
+
+		t = db.readwriteTran();
+		assertNotNull(t.lookup(TN.TABLES, Bootstrap.indexColumns[TN.TABLES],
+				new RecordBuilder().add(TN.TABLES).build()));
+		assertTrue(! db.trans.isLocksEmpty());
+		t.ck_complete();
+		assertTrue(t.isCommitted());
+		db.trans.checkTransEmpty();
+
+		UpdateTransaction t2 = db.readwriteTran();
+		t = db.readwriteTran();
+		assertNotNull(t.lookup(TN.TABLES, Bootstrap.indexColumns[TN.TABLES],
+				new RecordBuilder().add(TN.TABLES).build()));
+		t.ck_complete();
+		assertTrue(! db.trans.isLocksEmpty()); // waiting for finalization
+		t2.ck_complete();
+		db.trans.checkTransEmpty();
 	}
 
 }
