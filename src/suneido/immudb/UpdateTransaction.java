@@ -191,7 +191,8 @@ class UpdateTransaction extends ReadTransaction {
 		unlock();
 	}
 
-	boolean isAborted() {
+	@Override
+	public boolean isAborted() {
 		return isEnded() && !isCommitted();
 	}
 
