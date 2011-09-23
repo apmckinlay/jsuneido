@@ -65,7 +65,11 @@ class Btree {
 	}
 
 	boolean isEmpty() {
-		return treeLevels == 0 && nodeAt(0, root).isEmpty();
+		return treeLevels == 0 && rootNode().isEmpty();
+	}
+
+	private BtreeNode rootNode() {
+		return nodeAt(treeLevels, root);
 	}
 
 	/**
@@ -546,7 +550,7 @@ class Btree {
 	}
 
 	void check() {
-		int nnodes = nodeAt(treeLevels, root).check(tran, Record.EMPTY);
+		int nnodes = rootNode().check(tran, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
@@ -563,7 +567,7 @@ class Btree {
 
 	/** from is inclusive, end is exclusive */
 	float rangefrac(Record from, Record to) {
-		BtreeNode node = nodeAt(treeLevels, root);
+		BtreeNode node = rootNode();
 		int org = node.lowerBound(from);
 		int end = node.lowerBound(to);
 		int n = node.size();
