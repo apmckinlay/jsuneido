@@ -148,7 +148,6 @@ class Btree {
 		// insert up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
-			locking.writeLock(adrs.get(i));
 			if (hasRoom(treeNode)) {
 				treeNode = treeNode.with(split.key);
 				tran.redir(adrs.get(i), treeNode);
@@ -235,7 +234,6 @@ class Btree {
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
-			locking.writeLock(adrs.get(i));
 			if (treeNode.size() > 1) {
 				treeNode = treeNode.without(key);
 				assert treeNode != null;
@@ -492,7 +490,8 @@ class Btree {
 	}
 
 	BtreeNode nodeAt(int level, int adr) {
-		locking.readLock(adr);
+		if (level == 0) // only lock if leaf
+			locking.readLock(adr);
 		return nodeAt(tran, level, adr);
 	}
 
