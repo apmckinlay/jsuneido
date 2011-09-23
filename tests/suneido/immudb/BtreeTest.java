@@ -426,14 +426,14 @@ public class BtreeTest {
 	@Test
 	public void rangefrac_multiple_nodes() {
 		btree = new Btree(tran, Locking.noLocking); // normal node size
-		for (int i = 0; i < 100; ++i)
+		for (int i = 10; i < 210; i += 2)
 			btree.add(record(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
-		assertThat((double) btree.rangefrac(record(0), record(100)),
+		assertThat((double) btree.rangefrac(record(11), record(211)),
 				closeTo(1.0, .01));
-		assertThat((double) btree.rangefrac(record(0), record(10)),
+		assertThat((double) btree.rangefrac(record(10), record(30)),
 				closeTo(.1, .01));
-		assertThat((double) btree.rangefrac(record(15), record(85)),
+		assertThat((double) btree.rangefrac(record(40), record(180)),
 				closeTo(.7, .01));
 	}
 
