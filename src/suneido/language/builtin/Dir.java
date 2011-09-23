@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
@@ -10,7 +14,9 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import suneido.SuContainer;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.FunctionSpec;
+import suneido.language.SuFunction;
 
 public class Dir extends SuFunction {
 
@@ -48,7 +54,7 @@ public class Dir extends SuFunction {
 
 	private SuContainer detailsOf(File f) {
 		SuContainer ob = new SuContainer();
-		ob.put("name", f.getName());
+		ob.put("name", nameOf(f));
 		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
 				: BigDecimal.valueOf(f.length()));
 		ob.put("date", new Date(f.lastModified()));
@@ -56,9 +62,9 @@ public class Dir extends SuFunction {
 		return ob;
 	}
 
-	private static final int READONLY = 1;
-	private static final int HIDDEN = 2;
-	private static final int DIRECTORY = 16;
+	static final int READONLY = 1;
+	static final int HIDDEN = 2;
+	static final int DIRECTORY = 16;
 
 	private int attrOf(File f) {
 		return (f.canWrite() ? 0 : READONLY)

@@ -107,6 +107,7 @@ public class Globals {
 		builtins.put("ServerPort", new ServerPort());
 		builtins.put("Server?", new ServerQ());
 		builtins.put("Sleep", new Sleep());
+		builtins.put("SetFileWritable", new SetFileWritable());
 		builtins.put("SocketClient", SocketClient.clazz);
 		builtins.put("SocketServer", SocketServer.singleton);
 		builtins.put("String?", new StringQ());
