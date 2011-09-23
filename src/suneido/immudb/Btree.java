@@ -563,7 +563,7 @@ class Btree {
 
 	/** from is inclusive, end is exclusive */
 	float rangefrac(Record from, Record to) {
-		BtreeNode node = nodeAt(0, root);
+		BtreeNode node = nodeAt(treeLevels, root);
 		int org = node.lowerBound(from);
 		int end = node.lowerBound(to);
 		int n = node.size();
