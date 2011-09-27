@@ -39,6 +39,7 @@ import suneido.language.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
+		System.out.println(Suneido.dbpkg.dbFilename());
 		Compiler.eval("JInit()");
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));

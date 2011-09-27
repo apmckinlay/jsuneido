@@ -63,7 +63,7 @@ public class Request implements RequestGenerator<Object> {
 		return null;
 	}
 
-	private void alterCreate(TableBuilder tb, Schema schema) {
+	private static void alterCreate(TableBuilder tb, Schema schema) {
 		try {
 			schema.create(tb);
 			tb.finish();
@@ -173,6 +173,8 @@ public class Request implements RequestGenerator<Object> {
 			this.unique = unique;
 			this.columns = (List<String>) columns;
 			this.in = (ForeignKey) foreignKey;
+			if (in.table != null && in.columns == null)
+				in.columns = (List<String>) columns;
 		}
 
 		void create(TableBuilder tb) {

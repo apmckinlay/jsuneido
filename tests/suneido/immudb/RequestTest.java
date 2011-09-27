@@ -54,7 +54,7 @@ public class RequestTest {
 	@Test
 	public void add_index_to_table_with_data() {
 		request("create tbl " + SCHEMA);
-		Request.execute(db, "alter tbl create index(c,a)");
+		request("alter tbl create index(c,a)");
 	}
 
 	@Test

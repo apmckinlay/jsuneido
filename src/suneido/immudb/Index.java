@@ -53,7 +53,7 @@ class Index implements Comparable<Index> {
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
-	private int[] stringToColNums(String s) {
+	private static int[] stringToColNums(String s) {
 		if (s.equals(""))
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
@@ -63,7 +63,7 @@ class Index implements Comparable<Index> {
 		return cols;
 	}
 
-	private ForeignKeySource get_fksrc(Record record) {
+	private static ForeignKeySource get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
 		if (fktable.equals(""))
 			return null;
@@ -145,7 +145,8 @@ class Index implements Comparable<Index> {
 		if (! (other instanceof Index))
 			return false;
 		Index that = (Index) other;
-		return this.tblnum == that.tblnum && this.colNums.equals(that.colNums);
+		return this.tblnum == that.tblnum &&
+				Arrays.equals(this.colNums, that.colNums);
 	}
 
 	@Override
