@@ -6,7 +6,9 @@ package suneido.language;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,7 +16,9 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
-import suneido.language.builtin.*;
+import suneido.language.builtin.DateMethods;
+import suneido.language.builtin.NumberMethods;
+import suneido.language.builtin.StringMethods;
 import suneido.util.StringIterator;
 
 import com.google.common.base.Splitter;
@@ -178,6 +182,7 @@ public final class Ops {
 	}
 
 	public static final class Comp implements Comparator<Object> {
+		@Override
 		public int compare(Object x, Object y) {
 			return cmp(x, y);
 		}
@@ -227,8 +232,8 @@ public final class Ops {
 		return x instanceof String || x instanceof Concat;
 	}
 
-	public final static int PRECISION = 16; // to match cSuneido
-	public final static MathContext MC = new MathContext(PRECISION);
+	public static final int PRECISION = 16; // to match cSuneido
+	public static final MathContext MC = new MathContext(PRECISION);
 
 	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
@@ -376,10 +381,10 @@ public final class Ops {
 		return xbd.multiply(ybd, MC);
 	}
 
-	public final static BigDecimal ZERO = BigDecimal.ZERO;
-	public final static BigDecimal INF =
+	public static final BigDecimal ZERO = BigDecimal.ZERO;
+	public static final BigDecimal INF =
 			BigDecimal.valueOf(1, -4 * Byte.MAX_VALUE);
-	public final static BigDecimal MINUS_INF =
+	public static final BigDecimal MINUS_INF =
 			BigDecimal.valueOf(-1, -4 * Byte.MAX_VALUE);
 
 	public static Number div(Object x, Object y) {
@@ -557,8 +562,8 @@ public final class Ops {
 		return (int) n;
 	}
 
-	public final static BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
-	public final static BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
+	public static final BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
+	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
 
 	public static int toIntBD(BigDecimal n) {
 		if (n.compareTo(BD_INT_MIN) == -1)
@@ -568,8 +573,8 @@ public final class Ops {
 		return n.intValue();
 	}
 
-	public final static BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
-	public final static BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
+	public static final BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
+	public static final BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
 
 	public static int toIntBI(BigInteger n) {
 		if (n.compareTo(BI_INT_MIN) == -1)

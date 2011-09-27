@@ -127,7 +127,7 @@ class Mmfile extends Destination {
 		}
 	}
 
-	private boolean vmIs64Bit() {
+	private static boolean vmIs64Bit() {
 		return System.getProperty("java.vm.name").contains("64-Bit");
 	}
 
@@ -136,7 +136,7 @@ class Mmfile extends Destination {
 		try {
 			byte[] m = new byte[4];
 			fin.seek(0);
-			fin.read(m);
+			verify(fin.read(m) == m.length);
 			if (!Arrays.equals(m, magic))
 				return "bad magic";
 			if (file_size >= (long) MB_MAX_DB * 1024 * 1024)
@@ -258,7 +258,7 @@ class Mmfile extends Destination {
 		return offset;
 	}
 
-	private int align(int n) {
+	private static int align(int n) {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 

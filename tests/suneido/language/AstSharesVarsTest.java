@@ -61,7 +61,7 @@ public class AstSharesVarsTest {
 			"(CALL (Q) ((ARG (STRING=block) (BLOCK () ((f)) null))))) (CLOSURE)))))");
 	}
 
-	private void ast(String code, String expected) {
+	private static void ast(String code, String expected) {
 		AstNode ast = Compiler.parse("function (p) { " + code + "\n}");
 		AstSharesVars.check(ast);
 		ast = ast.second();

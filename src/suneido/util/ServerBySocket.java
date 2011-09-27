@@ -1,7 +1,11 @@
 package suneido.util;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -45,8 +49,8 @@ public class ServerBySocket {
 		return inetAddress;
 	}
 
-	public static interface HandlerFactory {
-		public Runnable newHandler(Socket socket, String address) throws IOException;
+	public interface HandlerFactory {
+		Runnable newHandler(Socket socket, String address) throws IOException;
 	}
 
 	//==========================================================================

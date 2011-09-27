@@ -7,7 +7,9 @@ package suneido.language.builtin;
 import static suneido.language.FunctionSpec.NA;
 import static suneido.util.Util.array;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 import suneido.SuException;
 import suneido.language.*;
@@ -47,13 +49,13 @@ public class DateClass extends BuiltinClass {
 		} else
 			return new Date();
 	}
-	private boolean hasFields(Object[] args) {
+	private static boolean hasFields(Object[] args) {
 		for (int i = 2; i <= 8; ++i)
 			if (args[i] != NA)
 				return true;
 		return false;
 	}
-	private Date named(Object[] args) {
+	private static Date named(Object[] args) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
 		if (args[2] != NA)

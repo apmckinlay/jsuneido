@@ -9,7 +9,9 @@ import static suneido.SuException.methodNotFound;
 import java.util.Collections;
 import java.util.Map;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.collect.ImmutableMap;
@@ -95,7 +97,7 @@ public class SuClass extends SuValue {
 		return new NotFound(method);
 	}
 
-	private final static SuCallable initMethod = new SuCallable() {
+	private static final SuCallable initMethod = new SuCallable() {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return init(args);

@@ -192,7 +192,7 @@ public class DatabaseTest extends TestBase {
 		t1.ck_complete();
 	}
 
-	private void shouldBlock(Transaction t1, Record rec) {
+	private static void shouldBlock(Transaction t1, Record rec) {
 		try {
 			t1.addRecord("test2", rec);
 			fail("expected exception");

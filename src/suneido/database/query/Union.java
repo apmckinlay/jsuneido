@@ -168,7 +168,7 @@ public class Union extends Compatible {
 		return asList(source.columns());
 	}
 
-	private List<List<String>> intersect_prefix(List<List<String>> keys1,
+	private static List<List<String>> intersect_prefix(List<List<String>> keys1,
 			List<List<String>> keys2) {
 		List<List<String>> kout = new ArrayList<List<String>>();
 		for (List<String> k1 : keys1)
@@ -319,7 +319,7 @@ public class Union extends Compatible {
 				: row2.project(hdr2, ki));
 	}
 
-	private boolean before(Dir dir, Record key1, int src1, Record key2, int src2) {
+	private static boolean before(Dir dir, Record key1, int src1, Record key2, int src2) {
 		if (key1.equals(key2))
 			return dir == Dir.NEXT ? src1 < src2 : src1 > src2;
 		else

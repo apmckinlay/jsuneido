@@ -189,7 +189,7 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		}
 	}
 
-	private void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {
+	private static void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {
 		if (buf.hasArray()) {
 			byte[] a = buf.array();
 			off += buf.arrayOffset();

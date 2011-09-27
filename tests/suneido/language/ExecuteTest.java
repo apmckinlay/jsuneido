@@ -272,7 +272,7 @@ public class ExecuteTest {
 		test("#(a, b, c, d)[9 :: 1]", "#()");
 	}
 
-	private void def(String name, String source) {
+	private static void def(String name, String source) {
 		Globals.put(name, Compiler.compile(name, source));
 	}
 

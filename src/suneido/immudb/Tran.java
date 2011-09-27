@@ -98,7 +98,7 @@ class Tran implements Translator {
 	 * Returns the current time in seconds since Jan. 1, 1970 UTC
 	 * Only good till 2038
 	 */
-	private int datetime() {
+	private static int datetime() {
 		return (int) (System.currentTimeMillis() / 1000);
 	}
 

@@ -234,7 +234,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return columns.get(i).field;
 	}
 
-	private int findColumn(List<Column> columns, String column) {
+	private static int findColumn(List<Column> columns, String column) {
 		for (int i = 0; i < columns.size(); ++i) {
 			Column c = columns.get(i);
 			if (c.name.equals(column))

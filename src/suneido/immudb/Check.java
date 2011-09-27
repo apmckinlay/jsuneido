@@ -45,7 +45,7 @@ class Check {
 		return checkFrom(pos);
 	}
 
-	private boolean reasonableSize(int size, long maxSize) {
+	private static boolean reasonableSize(int size, long maxSize) {
 		return MIN_SIZE <= size && size <= maxSize;
 	}
 

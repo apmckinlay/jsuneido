@@ -5,7 +5,9 @@
 package suneido.language;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.Pack.*;
 
 import java.math.BigDecimal;
@@ -80,7 +82,7 @@ public class PackTest {
 		t(10001);
 	}
 
-	private void t(int n) {
+	private static void t(int n) {
 		assertEquals(packLong(n), pack(BigDecimal.valueOf(n)));
 	}
 

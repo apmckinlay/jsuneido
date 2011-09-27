@@ -2,7 +2,9 @@ package suneido.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.AbstractSequentialList;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -24,7 +26,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 	}
 
 	@SuppressWarnings({ "rawtypes" })
-	private final static PersistentList Nil = makeNil();
+	private static final PersistentList Nil = makeNil();
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static PersistentList makeNil() {
@@ -221,15 +223,18 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 			this.list = new PersistentList<T>(null, list);
 		}
 
+		@Override
 		public boolean hasNext() {
 			return list.tail() != Nil;
 		}
 
+		@Override
 		public T next() {
 			list = list.tail();
 			return list.head();
 		}
 
+		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
