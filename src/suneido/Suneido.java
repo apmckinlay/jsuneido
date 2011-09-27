@@ -166,6 +166,13 @@ public class Suneido {
 
 	public static void openDbms() {
 		db = dbpkg.open(dbpkg.dbFilename());
+		if (db == null) {
+			errlog("database not shut down properly last time");
+			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
+			db = dbpkg.open(dbpkg.dbFilename());
+			if (db == null)
+				fatal("could not open database after rebuild");
+		}
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
