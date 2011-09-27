@@ -80,50 +80,50 @@ public class TestBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction tran = db.readonlyTran();
-		List<Record> recs = get(tablename, tran);
-		tran.ck_complete();
+		Transaction t = db.readonlyTran();
+		List<Record> recs = get(tablename, t);
+		t.ck_complete();
 		return recs;
 	}
 
-	protected List<Record> get(Transaction tran) {
-		return get("test", tran);
+	protected List<Record> get(Transaction t) {
+		return get("test", t);
 	}
 
-	private List<Record> get(String tablename, Transaction tran) {
+	private static List<Record> get(String tablename, Transaction t) {
 		List<Record> recs = new ArrayList<Record>();
-		Table tbl = tran.getTable(tablename);
-		IndexIter iter = tran.iter(tbl.num(), null);
+		Table tbl = t.getTable(tablename);
+		IndexIter iter = t.iter(tbl.num(), null);
 		for (iter.next(); ! iter.eof(); iter.next())
-			recs.add(tran.input(iter.keyadr()));
+			recs.add(t.input(iter.keyadr()));
 		return recs;
 	}
 
-	protected Record getFirst(String tablename, Transaction tran) {
-		Table tbl = tran.getTable(tablename);
-		IndexIter iter = tran.iter(tbl.num(), null);
+	protected Record getFirst(String tablename, Transaction t) {
+		Table tbl = t.getTable(tablename);
+		IndexIter iter = t.iter(tbl.num(), null);
 		iter.next();
-		return iter.eof() ? null : tran.input(iter.keyadr());
+		return iter.eof() ? null : t.input(iter.keyadr());
 	}
 
-	protected Record getLast(String tablename, Transaction tran) {
-		Table tbl = tran.getTable(tablename);
-		IndexIter iter = tran.iter(tbl.num(), null);
+	protected Record getLast(String tablename, Transaction t) {
+		Table tbl = t.getTable(tablename);
+		IndexIter iter = t.iter(tbl.num(), null);
 		iter.prev();
-		return iter.eof() ? null : tran.input(iter.keyadr());
+		return iter.eof() ? null : t.input(iter.keyadr());
 	}
 
 	protected int count(String tablename) {
-		Transaction tran = db.readonlyTran();
-		int n = count(tablename, tran);
-		tran.ck_complete();
+		Transaction t = db.readonlyTran();
+		int n = count(tablename, t);
+		t.ck_complete();
 		return n;
 	}
 
-	private int count(String tablename, Transaction tran) {
+	private static int count(String tablename, Transaction t) {
 		int n = 0;
-		Table tbl = tran.getTable(tablename);
-		IndexIter iter = tran.iter(tbl.num(), null);
+		Table tbl = t.getTable(tablename);
+		IndexIter iter = t.iter(tbl.num(), null);
 		for (iter.next(); ! iter.eof(); iter.next())
 			n++;
 		return n;

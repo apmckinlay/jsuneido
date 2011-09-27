@@ -18,7 +18,18 @@ class ForeignKeySource extends ForeignKey {
 
 	ForeignKeySource(String tablename, String columns, int mode) {
 		super(tablename, columns);
+		assert ! columns.equals("");
 		this.mode = mode;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return super.equals(other);
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 
 	@Override
