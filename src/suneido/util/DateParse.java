@@ -1,14 +1,16 @@
 package suneido.util;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 import suneido.SuException;
 
 public class DateParse {
-	private final static String[] month =
+	private static final String[] month =
 		{ "January", "February", "March", "April", "May", "June", "July",
 			"August", "September", "October", "November", "December" };
-	private final static String[] weekday =
+	private static final String[] weekday =
 		{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 			"Saturday" };
 

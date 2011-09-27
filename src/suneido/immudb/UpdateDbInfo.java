@@ -127,9 +127,9 @@ class UpdateDbInfo {
 					builder.build());
 		}
 
-		private IndexInfo merge(IndexInfo ours, IndexInfo orig, IndexInfo cur) {
-			assert ours.columns.equals(orig.columns);
-			assert orig.columns.equals(cur.columns);
+		private static IndexInfo merge(IndexInfo ours, IndexInfo orig, IndexInfo cur) {
+			assert ours.columns == orig.columns;
+			assert orig.columns == cur.columns;
 			int root, treeLevels;
 			if (orig.root == cur.root) { // no one else has changed it
 				assert orig.treeLevels == cur.treeLevels;

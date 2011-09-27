@@ -9,6 +9,7 @@ import java.util.Date;
 import org.junit.Test;
 
 public class DateParseTest {
+
 	@Test
 	public void test() {
 		d("090625", "yMd", "2009 Jun 25");
@@ -23,14 +24,15 @@ public class DateParseTest {
 		bad("25252525", "yMd");
 	}
 
-	private void d(String ds, String fmt, String result) {
+	private static void d(String ds, String fmt, String result) {
 		Date d = DateParse.parse(ds, fmt);
 		assertNotNull(d);
 		assertEquals(result, new SimpleDateFormat("yyyy MMM d").format(d));
 	}
 
-	private void bad(String ds, String fmt) {
+	private static void bad(String ds, String fmt) {
 		Date d = DateParse.parse(ds, fmt);
 		assertEquals(null, d);
 	}
+
 }

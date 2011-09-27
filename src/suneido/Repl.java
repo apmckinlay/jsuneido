@@ -39,7 +39,8 @@ import suneido.language.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
-		System.out.println(Suneido.dbpkg.dbFilename());
+		if (Suneido.dbpkg == suneido.immudb.DatabasePackage.dbpkg)
+			System.out.println("ImmuDb");
 		Compiler.eval("JInit()");
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));

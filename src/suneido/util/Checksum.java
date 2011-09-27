@@ -8,7 +8,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class Checksum {
 	private final Adler32 cksum = new Adler32();
-	private final static byte[] bytes = new byte[1024];
+	private static final byte[] bytes = new byte[1024];
 
 	public synchronized void update(ByteBuffer buf) {
 		update(buf, buf.limit());

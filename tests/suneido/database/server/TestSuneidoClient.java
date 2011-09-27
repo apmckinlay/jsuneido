@@ -1,6 +1,8 @@
 package suneido.database.server;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -8,7 +10,7 @@ public class TestSuneidoClient {
 	private static final int NTHREADS = 80;
 	private static final long DURATION = 5 * 60 * 1000;
 //	private static final int MAX_B = 80000;
-	private final static int MAXDATA = 1000;
+	private static final int MAXDATA = 1000;
 
 	public static void main(String... args)
 			throws UnknownHostException, IOException {
@@ -27,6 +29,7 @@ public class TestSuneidoClient {
 			this.address = address;
 		}
 
+		@Override
 		public void run() {
 			try {
 				run2();

@@ -35,7 +35,7 @@ public interface DatabasePackage {
 	int loadTable(Database db, String tablename, ReadableByteChannel in);
 
 	enum Status { OK, CORRUPTED, UNRECOVERABLE };
-	static interface Observer {
+	interface Observer {
 		void print(String msg);
 	}
 	Status check(String dbFilename, Observer ob);

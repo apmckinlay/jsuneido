@@ -15,7 +15,7 @@ public class Log {
 	private static int size = 0;
 	private static boolean disabled = false;
 
-	public synchronized static void xadd(String s) {
+	public static synchronized void xadd(String s) {
 		if (disabled)
 			return;
 		if (size >= MAXSIZE)
@@ -25,12 +25,12 @@ public class Log {
 		list.addLast(s);
 	}
 
-	public synchronized static void print() {
+	public static synchronized void print() {
 		for (String s : list)
 			System.out.println(s);
 	}
 
-	public synchronized static void save() {
+	public static synchronized void save() {
 		try {
 			RandomAccessFile f = new RandomAccessFile("log.txt", "rw");
 			for (String s : list) {

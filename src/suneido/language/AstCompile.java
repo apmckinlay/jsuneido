@@ -7,10 +7,15 @@ package suneido.language;
 import static suneido.language.ClassGen.javify;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuRecord;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -218,8 +223,8 @@ public class AstCompile {
 		}
 	}
 
-	private boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
-		if (base == "SuCallable") // closure block
+	private static boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
+		if (base.equals("SuCallable")) // closure block
 			return true;
 		// need to call this regardless to process child blocks
 		boolean shares = AstSharesVars.check(ast);
@@ -244,7 +249,7 @@ public class AstCompile {
 			throw new SuException("super call only allowed in New");
 	}
 
-	private void onlyAllowSuperFirst(int i, AstNode stat) {
+	private static void onlyAllowSuperFirst(int i, AstNode stat) {
 		if (i != 0)
 			throw new SuException("call to super must come first");
 	}
@@ -257,7 +262,7 @@ public class AstCompile {
 			cg.superInit();
 	}
 
-	private boolean explicitSuperCall(AstNode ast) {
+	private static boolean explicitSuperCall(AstNode ast) {
 		List<AstNode> statements = ast.second().children;
 		if (!statements.isEmpty()) {
 			AstNode stat = statements.get(0);
@@ -857,7 +862,7 @@ public class AstCompile {
 				(fn.value.equals("Object") || fn.value.equals("Record"));
 	}
 
-	private boolean isGlobal(AstNode fn) {
+	private static boolean isGlobal(AstNode fn) {
 		return fn.token == Token.IDENTIFIER &&
 				Character.isUpperCase(fn.value.charAt(0));
 	}
@@ -922,7 +927,7 @@ public class AstCompile {
 		vargs.expression(args.first());
 	}
 
-	private boolean hasNamed(AstNode args) {
+	private static boolean hasNamed(AstNode args) {
 		for (AstNode arg : args.children)
 			if (arg.first() != null)
 				return true;
@@ -941,7 +946,7 @@ public class AstCompile {
 		}
 	}
 
-	private int countArgs(AstNode args) {
+	private static int countArgs(AstNode args) {
 		int nargs = 0;
 		for (AstNode arg : args.children) {
 			if (arg.first() != null)
@@ -1004,12 +1009,12 @@ public class AstCompile {
 		}
 	}
 
-	private void namedArgs(VarArgs vargs, List<AstNode> args) {
+	private static void namedArgs(VarArgs vargs, List<AstNode> args) {
 		for (AstNode arg : args)
 			vargs.named(arg);
 	}
 
-	private void unamedArgs(VarArgs vargs, List<Object> args) {
+	private static void unamedArgs(VarArgs vargs, List<Object> args) {
 		for (Object arg : args)
 			if (arg instanceof AstNode)
 				vargs.expression((AstNode) arg);

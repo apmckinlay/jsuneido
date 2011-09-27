@@ -69,7 +69,7 @@ public class ParseQueryTest {
 		parse("a leftjoin by() b");
 	}
 
-	private String parse(String s) {
+	private static String parse(String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
 		StringGenerator generator = new StringGenerator();

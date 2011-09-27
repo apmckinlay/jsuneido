@@ -11,7 +11,7 @@ import org.junit.Test;
 import suneido.SuException;
 
 public class CompileTest {
-	//@Test
+//TODO	@Test
 	public void blocks() {
 		test("return { }",
 				"block, ARETURN");
@@ -218,6 +218,7 @@ public class CompileTest {
 		test("super.F()",
 				"this, self, 'F', superInvoke, ARETURN");
 	}
+
 	@Test
 	public void andor() {
 		test("a or b",
@@ -232,7 +233,9 @@ public class CompileTest {
 				"c, bool, IFFALSE L1, " +
 				"true, GOTO L2, L1, false, L2, ARETURN");
 	}
-	@Test public void test_new() {
+
+	@Test
+	public void test_new() {
 		test("new c",
 				"c, '<new>', invoke, ARETURN");
 		test("new c(123)",
@@ -244,7 +247,8 @@ public class CompileTest {
 		test("new this(a)",
 				"self, '<new>', a, invoke, ARETURN");
 	}
-	@Test public void test_if() {
+	@Test
+	public void test_if() {
 		test("if (a) b()",
 				"a, bool, IFFALSE L1, b, call, POP, L1");
 		test("if (a < b) c()",
@@ -260,7 +264,9 @@ public class CompileTest {
 				"a, bool, IFTRUE L1, b, bool, IFFALSE L2, " +
 				"L1, c, POP, GOTO L3, L2, a, POP, L3");
 	}
-	@Test public void test_loops() {
+
+	@Test
+	public void test_loops() {
 		test("do a() while (b)",
 				"L1, a, call, POP, L2, b, bool, IFTRUE L1, L3");
 		test("do a() while (b = c)",
@@ -320,7 +326,9 @@ public class CompileTest {
 
 		compile("for (a in b) try c() catch ;");
 	}
-	@Test public void test_switch() {
+
+	@Test
+	public void test_switch() {
 		test("switch (a) { }",
 				"a, ASTORE 2");
 		test("switch (a) { default: b() }",
@@ -332,7 +340,9 @@ public class CompileTest {
 		test("switch (a) { case 123,456: b() }",
 				"a, ASTORE 2, 123, ALOAD 2, is_, IFTRUE L1, 456, ALOAD 2, is_, IFFALSE L2, L1, b, call, POP, L2, L3");
 	}
-	@Test public void test_exceptions() {
+
+	@Test
+	public void test_exceptions() {
 		test("throw 'oops'",
 				"'oops', throw");
 		test("throw a",
@@ -352,7 +362,9 @@ public class CompileTest {
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
 					"'x', catchMatch, args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");
 	}
-	@Test public void test_block() {
+
+	@Test
+	public void test_block() {
 		test_b0("Do() { this }",
 				"self, ARETURN");
 		test_b0("Do() { .a + .b }",
@@ -379,14 +391,18 @@ public class CompileTest {
 				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
 				+ "L1, L2, blockReturnHandler, ARETURN");
 	}
-	@Test public void test_block_break() {
+
+	@Test
+	public void test_block_break() {
 		compile("b = { break }");
 		compile("Foreach(a, { break })");
 		compile("Foreach(a) { break }");
 		compile("Plugins().Foreach(a, { break })");
 		compile("Plugins().Foreach(a) { break }");
 	}
-	@Test public void test_optimize_args() {
+
+	@Test
+	public void test_optimize_args() {
 		test("x(11, a, 22, a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 			"x, 11, a, EACH, const0, call, ARETURN");
 		test("x('', y(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11))",
@@ -409,7 +425,8 @@ public class CompileTest {
 		test("super.Fn()", "this, self, 'Fn', superInvoke, ARETURN");
 	}
 
-	@Test public void test_compile_builtin_calls() {
+	@Test
+	public void test_compile_builtin_calls() {
 		test("Object()",
 			"Object, ARETURN");
 		test("Object(a, b)",
@@ -418,29 +435,29 @@ public class CompileTest {
 			"NAMED, 'a', b, Object, ARETURN");
 	}
 
-	private void test(String expr, String expected) {
+	private static void test(String expr, String expected) {
 		test(expr, expected,
 				")Ljava/lang/Object;\n   L0\n");
 	}
-	private void test_e(String expr, String expected) {
+	private static void test_e(String expr, String expected) {
 		test(expr, expected,
 				")Ljava/lang/Object;\n");
 	}
-	private void test_b0(String expr, String expected) {
+	private static void test_b0(String expr, String expected) {
 		String s = compile(expr);
 		s = simplify(s,
 				")Ljava/lang/Object;\n   L0");
 		s = before(s, ", INVOKESPECIAL suneido/language/BlockReturnException.<init>");
 		assertEquals(expr, expected, s);
 	}
-	private void test(String expr, String expected, String after) {
+	private static void test(String expr, String expected, String after) {
 		String s = compile(expr);
 		s = after(s, "class suneido/language/Test ");
 		s = simplify(s, after);
 		assertEquals(expr, expected, s);
 	}
 
-	private String compile(String s) {
+	private static String compile(String s) {
 		//System.out.println("====== " + s);
 		if (!s.startsWith("class") && !s.startsWith("function")
 				&& !s.startsWith("#("))
@@ -450,7 +467,7 @@ public class CompileTest {
 		return after(sw.toString(), "\n\n");
 	}
 
-	private String simplify(String r, String after) {
+	private static String simplify(String r, String after) {
 		//System.out.println(r);
 		int SELF = 9;
 		int ARGS = 9;

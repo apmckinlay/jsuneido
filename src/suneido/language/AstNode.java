@@ -1,6 +1,8 @@
 package suneido.language;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import com.google.common.base.Strings;
 
@@ -9,8 +11,8 @@ public class AstNode {
 	public final String value;
 	public final List<AstNode> children;
 
-	public final static List<AstNode> emptyList = Collections.emptyList();
-	public final static AstNode nullNode = new AstNode(null, null, emptyList);
+	public static final List<AstNode> emptyList = Collections.emptyList();
+	public static final AstNode nullNode = new AstNode(null, null, emptyList);
 
 	public AstNode(Token token, String value, List<AstNode> children) {
 		this.token = token;
@@ -86,7 +88,7 @@ public class AstNode {
 		return false;
 	}
 
-	public static abstract class Visitor {
+	public abstract static class Visitor {
 		/** return false to skip processing children */
 		boolean topDown(AstNode ast) {
 			return true;

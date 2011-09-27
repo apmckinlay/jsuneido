@@ -550,11 +550,11 @@ public class BtreeTest {
 
 	public static Record randomKey(Random rand) {
 		int n = 4 + rand.nextInt(5);
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < n; ++i)
-			s += (char) ('a' + rand.nextInt(26));
+			sb.append((char) ('a' + rand.nextInt(26)));
 		final int UPDATE_ALLOWANCE = 10000;
-		return record(s, rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
+		return record(sb.toString(), rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
 	}
 
 	static Record record(String s) {

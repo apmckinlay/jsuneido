@@ -10,7 +10,7 @@ interface Locking {
 
 	void writeLock(int adr);
 
-	static Locking noLocking = new Locking() {
+	Locking noLocking = new Locking() {
 		@Override
 		public void readLock(int adr) {
 		}

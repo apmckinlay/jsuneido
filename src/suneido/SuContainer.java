@@ -363,9 +363,9 @@ public class SuContainer extends SuValue
 		return ps;
 	}
 
-	final static int NESTING_LIMIT = 20;
+	static final int NESTING_LIMIT = 20;
 
-	private void checkNest(int nest) {
+	private static void checkNest(int nest) {
 		if (nest > NESTING_LIMIT)
 			throw new SuException("pack: object nesting limit ("
 					+ NESTING_LIMIT + ") exceeded");
@@ -391,7 +391,7 @@ public class SuContainer extends SuValue
 		}
 	}
 
-	private void packvalue(ByteBuffer buf, Object x) {
+	private static void packvalue(ByteBuffer buf, Object x) {
 		buf.putInt(Pack.packSize(x) ^ 0x80000000);
 		Pack.pack(x, buf);
 	}

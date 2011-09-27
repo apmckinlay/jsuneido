@@ -3,7 +3,9 @@ package suneido.util;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -67,8 +69,8 @@ public class ServerByChannel {
 //		}
 //	}
 
-	public static interface HandlerFactory {
-		public Runnable newHandler(SocketChannel channel, String address);
+	public interface HandlerFactory {
+		Runnable newHandler(SocketChannel channel, String address);
 	}
 
 	//==========================================================================

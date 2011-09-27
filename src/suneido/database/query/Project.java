@@ -75,7 +75,7 @@ public class Project extends Query1 {
 		return s + " " + listToParens(flds);
 	}
 
-	private boolean hasKey(Query source, List<String> flds) {
+	private static boolean hasKey(Query source, List<String> flds) {
 		for (List<String> k : source.keys())
 			if (flds.containsAll(k))
 				return true;
@@ -334,7 +334,7 @@ public class Project extends Query1 {
 		return row == null ? null : result(row.project(srcHdr, flds));
 	}
 
-	private Row result(Record rec) {
+	private static Row result(Record rec) {
 		return new Row(Suneido.dbpkg.minRecord(), rec);
 	}
 

@@ -14,9 +14,9 @@ public class FunctionSpec {
 	final Object[] defaults;
 	/** used by Args to ensure room in args array for locals */
 	final int nLocals;
-	final static Object[] noDefaults = new Object[0];
+	static final Object[] noDefaults = new Object[0];
 
-	public final static FunctionSpec noParams =
+	public static final FunctionSpec noParams =
 			new FunctionSpec(new String[0]);
 	public static final FunctionSpec value =
 			new FunctionSpec("value");

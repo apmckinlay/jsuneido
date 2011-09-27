@@ -98,10 +98,10 @@ public class DbmsRemote extends Dbms {
 		return splitList(s);
 	}
 
-	private Iterable<String> splitList(String s) {
+	private static Iterable<String> splitList(String s) {
 		return splitList(s, Splitter.on(",").omitEmptyStrings().trimResults());
 	}
-	private Iterable<String> splitList(String s, Splitter splitter) {
+	private static Iterable<String> splitList(String s, Splitter splitter) {
 		if (! s.startsWith("(") || ! s.endsWith(")"))
 			throw new SuException("expected (...)\r\ngot: " + s);
 		s = s.substring(1, s.length() - 1);
@@ -116,6 +116,7 @@ public class DbmsRemote extends Dbms {
 
 	private static Function<String,Integer> toInteger =
 		new Function<String,Integer>() {
+			@Override
 			public Integer apply(String s) {
 				return Integer.parseInt(s);
 			}
@@ -123,6 +124,7 @@ public class DbmsRemote extends Dbms {
 
 	private static Function<String,List<String>> stringToList =
 		new Function<String,List<String>>() {
+			@Override
 			public List<String> apply(String s) {
 				Iterable<String> fields = Splitter.on(',').split(s);
 				return ImmutableList.copyOf(fields);

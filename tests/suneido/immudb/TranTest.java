@@ -131,7 +131,7 @@ public class TranTest {
 		}
 	}
 
-	private long check(Storage stor, boolean result, long okSize, int nCommits) {
+	private static long check(Storage stor, boolean result, long okSize, int nCommits) {
 		Check check = new Check(stor);
 		assertThat(check.fullcheck(), is(result));
 		if (okSize != 0)

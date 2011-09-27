@@ -1,9 +1,14 @@
 package suneido.language.builtin;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.FunctionSpec;
+import suneido.language.SuFunction;
 
 public class GetMacAddress extends SuFunction {
 
@@ -20,13 +25,13 @@ public class GetMacAddress extends SuFunction {
 		}
 	}
 
-	private byte[] getMacAddress() throws UnknownHostException, SocketException {
+	private static byte[] getMacAddress() throws UnknownHostException, SocketException {
 		InetAddress address = InetAddress.getLocalHost();
 		NetworkInterface ni = NetworkInterface.getByInetAddress(address);
 		return ni.getHardwareAddress();
 	}
 
-	private Object bytesToString(byte[] bytes) {
+	private static Object bytesToString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < bytes.length; i++)
 			sb.append((char) (bytes[i] & 0xff));

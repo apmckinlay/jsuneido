@@ -66,9 +66,10 @@ public class Concat extends SuValue implements Comparable<Concat> {
 	public boolean equals(Object other) {
 		if (this == other)
 			return true;
-		return other.equals(toString());
+		return other != null && other.equals(toString());
 	}
 
+	@Override
 	public int compareTo(Concat other) {
 		return toString().compareTo(other.toString());
 	}

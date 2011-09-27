@@ -2,7 +2,7 @@ package suneido.language;
 
 public class TestGenerator extends Generator<Object> {
 
-	private void print(Object... args) {
+	private static void print(Object... args) {
 		for (Object arg : args)
 			if (arg != null)
 				System.out.print(arg + " ");

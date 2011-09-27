@@ -26,7 +26,7 @@ public class AstVariablesTest {
 		test("function (@args) { }", "args");
 	}
 
-	private void test(String code, String... vars) {
+	private static void test(String code, String... vars) {
 		Set<String> expected = ImmutableSet.copyOf(vars);
 		if (! code.startsWith("function"))
 			code = "function () { " + code + "\n}";

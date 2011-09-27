@@ -138,7 +138,7 @@ public class BtreeTest {
 		check(bt, N);
 	}
 
-	private void check(Btree bt, final int N) {
+	private static void check(Btree bt, final int N) {
 		assertTrue(bt.isValid());
 
 		Btree.Iter iter = bt.first();
@@ -177,7 +177,7 @@ public class BtreeTest {
 		assertfeq(0, bt.rangefrac(emptykey, emptykey));
 		assertfeq(0, bt.rangefrac(makerec(999, 0), endkey(999)));
 	}
-	private Record endkey(int i) {
+	private static Record endkey(int i) {
 		Record r = makerec(i, 0);
 		r.addMax();
 		return r;
@@ -194,16 +194,16 @@ public class BtreeTest {
 		assertfeq(0, bt.rangefrac(emptykey, emptykey));
 		assertfeq(0, bt.rangefrac(makerec(999), endkey(999)));
 	}
-	private void assertfeq(float x, float y) {
+	private static void assertfeq(float x, float y) {
 		assertEquals(x, y, .05);
 	}
-	final private static Record emptykey = new Record(10);
+	private static final Record emptykey = new Record(10);
 
-	final private static int NFILLER = 10;
-	private Btree maketree(final int N) {
+	private static final int NFILLER = 10;
+	private static Btree maketree(final int N) {
 		return maketree(N, NFILLER);
 	}
-	private Btree maketree(final int N, int nfiller) {
+	private static Btree maketree(final int N, int nfiller) {
 		Destination dest = new DestMem();
 		Btree bt = new Btree(dest);
 		// seed chosen to cover both 25% and 75% splits
@@ -215,7 +215,7 @@ public class BtreeTest {
 		return new Btree(dest, bt.root(), bt.treelevels(), bt.nnodes());
 	}
 
-	private ArrayList<Integer> shuffled(final int N, int seed) {
+	private static ArrayList<Integer> shuffled(final int N, int seed) {
 		ArrayList<Integer> v = new ArrayList<Integer>();
 		for (int i = 0; i < N; ++i)
 			v.add(i);
@@ -235,7 +235,7 @@ public class BtreeTest {
 			r.add(filler);
 		return r;
 	}
-	final private static String filler =
+	private static final String filler =
 			"hellooooooooooooooooooooooooooooooooooooooooooo";
 
 }

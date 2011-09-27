@@ -23,7 +23,7 @@ public class BootstrapTest {
 		check(db);
 	}
 
-	private void check(Database db) {
+	private static void check(Database db) {
 		assertThat(db.getSchema("tables"),
 				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.getSchema("columns"),

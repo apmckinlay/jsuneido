@@ -279,32 +279,32 @@ public class CommandTest {
 		geteof(t);
 		commit(t);
 	}
-	private void admin(String s) {
+	private static void admin(String s) {
 		Command.ADMIN.execute(stringToBuffer(s),
 				null, null);
 	}
-	private String updateTran() {
+	private static String updateTran() {
 		ByteBuffer buf = Command.TRANSACTION.execute(UPDATE, null, null);
 		String t = bufferToString(buf).trim();
 		assertThat(t, startsWith("T"));
 		return t;
 	}
-	private String query(String t) {
+	private static String query(String t) {
 		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q5"),
 				stringToBuffer("test"), null);
 		String q = bufferToString(buf).trim();
 		assertThat(q, startsWith("Q"));
 		return q;
 	}
-	private void output(String q, Record rec) {
+	private static void output(String q, Record rec) {
 		Command.OUTPUT.execute(stringToBuffer(q + " R" + rec.packSize()),
 				rec.getBuffer(), null);
 	}
-	private void commit(String t) {
+	private static void commit(String t) {
 		ByteBuffer buf = Command.COMMIT.execute(stringToBuffer(t + "\r\n"), null, null);
 		assertEquals("OK\r\n", bufferToString(buf));
 	}
-	private String get(String t, String expected) {
+	private static String get(String t, String expected) {
 		Output output = new Output();
 		ByteBuffer buf = Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
 				stringToBuffer("test"), output);
@@ -315,19 +315,19 @@ public class CommandTest {
 		assertThat(rec.toString(), is(expected));
 		return s.substring(0, s.indexOf(' '));
 	}
-	private void update(String t, String adr, Record rec) {
+	private static void update(String t, String adr, Record rec) {
 		ByteBuffer buf = Command.UPDATE.execute(
 				stringToBuffer(t + " " + adr + " R" + rec.packSize()),
 				rec.getBuffer(), null);
 		assertThat(bufferToString(buf), startsWith("U"));
 	}
-	private void erase(String t, String adr) {
+	private static void erase(String t, String adr) {
 		ByteBuffer buf = Command.ERASE.execute(stringToBuffer(t + " " + adr), null,
 				null);
 		assertEquals("OK\r\n", bufferToString(buf));
 	}
 
-	private void geteof(String t) {
+	private static void geteof(String t) {
 		Output output = new Output();
 		Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
 				stringToBuffer("test"), output);
