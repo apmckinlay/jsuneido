@@ -43,3 +43,5 @@ syntax: regexp
 ^tests\.go$
 syntax: regexp
 ^jsuneido\.ws$
+syntax: regexp
+\.tmp$
