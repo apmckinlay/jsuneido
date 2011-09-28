@@ -15,7 +15,7 @@ import org.junit.Test;
 import com.google.common.base.Strings;
 
 public class StoredRecordIteratorTest {
-	Storage stor = new TestStorage(64, 32);
+	Storage stor = new MemStorage(64, 32);
 
 	@Test
 	public void test() {

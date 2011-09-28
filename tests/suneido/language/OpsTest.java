@@ -55,9 +55,9 @@ public class OpsTest {
 		assertEquals("1two", cat(1, "two"));
 	}
 
-	private final static Object x = 123;
-	private final static Object y = 456;
-	private final static Object z = BigDecimal.valueOf(.9);
+	private static final Object x = 123;
+	private static final Object y = 456;
+	private static final Object z = BigDecimal.valueOf(.9);
 
 	@Test
 	public void test_add() {
@@ -112,10 +112,10 @@ public class OpsTest {
 		assertEquals(MINUS_INF, sub(MINUS_INF, INF));
 	}
 
-	private final static Object p9 = BigDecimal.valueOf(9);
-	private final static Object m9 = BigDecimal.valueOf(-9);
-	private final static Object p81 = BigDecimal.valueOf(81);
-	private final static Object m81 = BigDecimal.valueOf(-81);
+	private static final Object p9 = BigDecimal.valueOf(9);
+	private static final Object m9 = BigDecimal.valueOf(-9);
+	private static final Object p81 = BigDecimal.valueOf(81);
+	private static final Object m81 = BigDecimal.valueOf(-81);
 
 	@Test
 	public void test_mul() {
@@ -278,14 +278,14 @@ public class OpsTest {
 		match("abc", "*");
 	}
 
-	private void match(String exception, String pattern) {
+	private static void match(String exception, String pattern) {
 		try {
 			catchMatch(new SuException(exception), pattern);
 		} catch (Throwable e) {
 			fail();
 		}
 	}
-	private void nomatch(String exception, String pattern) {
+	private static void nomatch(String exception, String pattern) {
 		try {
 			catchMatch(new SuException(exception), pattern);
 			fail();

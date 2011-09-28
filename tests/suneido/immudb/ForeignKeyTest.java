@@ -105,7 +105,7 @@ public class ForeignKeyTest {
 		return sort(fkdsts).toString();
 	}
 
-	private List<ForeignKeyTarget> sort(Set<ForeignKeyTarget> fks) {
+	private static List<ForeignKeyTarget> sort(Set<ForeignKeyTarget> fks) {
 		return Ordering.usingToString().sortedCopy(fks);
 	}
 

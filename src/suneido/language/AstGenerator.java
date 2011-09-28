@@ -301,7 +301,7 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(Token.SUBSCRIPT, term, expression);
 	}
 
-	private AstNode list(AstNode list, AstNode next) {
+	private static AstNode list(AstNode list, AstNode next) {
 		if (list == null)
 			list = new AstNode(Token.LIST, new ArrayList<AstNode>());
 		list.children.add(next);

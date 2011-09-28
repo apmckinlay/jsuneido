@@ -100,7 +100,7 @@ public class DbmsChannel {
 		return s;
 	}
 
-	private ByteBuffer realloc(ByteBuffer oldbuf, int n) {
+	private static ByteBuffer realloc(ByteBuffer oldbuf, int n) {
 		ByteBuffer buf = ByteBuffer.allocateDirect(n);
 		oldbuf.flip();
 		buf.put(oldbuf);

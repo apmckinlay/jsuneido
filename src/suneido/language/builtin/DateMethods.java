@@ -122,7 +122,7 @@ public class DateMethods extends BuiltinMethods {
 		@Override
 		public Object eval0(Object self) {
 			Date d = (Date) self;
-			return -TimeZone.getDefault().getOffset(d.getTime()) 
+			return -TimeZone.getDefault().getOffset(d.getTime())
 					/ MILLISECONDS_PER_MINUTE;
 		}
 	}
@@ -193,7 +193,7 @@ public class DateMethods extends BuiltinMethods {
 		}
 	}
 
-	private final static String[] weekday = { "sunday", "monday", "tuesday",
+	private static final String[] weekday = { "sunday", "monday", "tuesday",
 			"wednesday", "thursday", "friday", "saturday" };
 	private static int dayNumber(String day) {
 		for (int i = 0; i < weekday.length; ++i)

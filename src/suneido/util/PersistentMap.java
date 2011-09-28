@@ -40,7 +40,7 @@ public abstract class PersistentMap<K, V> {
 		return get(key) != null;
 	}
 
-	private static abstract class Node<K, V> extends PersistentMap<K, V> {
+	private abstract static class Node<K, V> extends PersistentMap<K, V> {
 		@Override
 		public V get(Object key) {
 			checkNotNull(key);

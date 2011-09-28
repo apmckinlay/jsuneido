@@ -49,7 +49,7 @@ public class CompileConstantTest {
 		assertTrue(compile("function () { }") instanceof SuFunction);
 	}
 
-	private Object compile(String s) {
+	private static Object compile(String s) {
 		return Compiler.compile("Test", s);
 	}
 }

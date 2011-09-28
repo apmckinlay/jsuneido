@@ -4,7 +4,9 @@
 
 package suneido.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Add items in a random order, iterate them in order.
@@ -50,10 +52,10 @@ public class FractalTree<T> implements Iterable<T> {
 		nodes[i] = tmp2;
 	}
 
-	private Object[] merge(Object[] x, Object[] y) {
+	private static Object[] merge(Object[] x, Object[] y) {
 		return merge(x, y, new Object[x.length + y.length]);
 	}
-	private Object[] merge(Object[] x, Object[] y, Object[] z) {
+	private static Object[] merge(Object[] x, Object[] y, Object[] z) {
 		int xi = 0;
 		int yi = 0;
 		for (int zi = 0; zi < z.length; ++zi)
@@ -65,7 +67,7 @@ public class FractalTree<T> implements Iterable<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private int cmp(Object x, Object y) {
+	private static int cmp(Object x, Object y) {
 		return ((Comparable<Object>) x).compareTo(y);
 	}
 

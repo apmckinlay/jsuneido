@@ -91,7 +91,7 @@ class DbCheck {
 		}
 	}
 
-	private int submitTasks(ExecutorCompletionService<String> ecs, Database db) {
+	private static int submitTasks(ExecutorCompletionService<String> ecs, Database db) {
 		int ntables = 0;
 		int maxTblnum = db.nextTableNum();
 		for (int tblnum = 0; tblnum < maxTblnum; ++tblnum) {

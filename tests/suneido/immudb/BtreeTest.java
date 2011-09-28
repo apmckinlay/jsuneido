@@ -21,7 +21,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 public class BtreeTest {
-	private final Storage stor = new TestStorage(1024, 64);
+	private final Storage stor = new MemStorage(1024, 64);
 	private Random rand = new Random(123456);
 	private Tran tran = new Tran(stor);
 	private Btree btree = new Btree4(tran);
@@ -550,11 +550,11 @@ public class BtreeTest {
 
 	public static Record randomKey(Random rand) {
 		int n = 4 + rand.nextInt(5);
-		String s = "";
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < n; ++i)
-			s += (char) ('a' + rand.nextInt(26));
+			sb.append((char) ('a' + rand.nextInt(26)));
 		final int UPDATE_ALLOWANCE = 10000;
-		return record(s, rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
+		return record(sb.toString(), rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
 	}
 
 	static Record record(String s) {

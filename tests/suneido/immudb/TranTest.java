@@ -17,7 +17,7 @@ import org.junit.Test;
 import suneido.util.FileUtils;
 
 public class TranTest {
-	Storage stor = new TestStorage();
+	Storage stor = new MemStorage();
 
 	@Test
 	public void empty_database() {
@@ -131,7 +131,7 @@ public class TranTest {
 		}
 	}
 
-	private long check(Storage stor, boolean result, long okSize, int nCommits) {
+	private static long check(Storage stor, boolean result, long okSize, int nCommits) {
 		Check check = new Check(stor);
 		assertThat(check.fullcheck(), is(result));
 		if (okSize != 0)

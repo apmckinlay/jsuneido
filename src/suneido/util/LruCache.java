@@ -23,19 +23,19 @@ public class LruCache<K,V> {
 		};
 	}
 
-	synchronized public V get(K key) {
+	public synchronized V get(K key) {
 		return map.get(key);
 	}
 
-	synchronized public void put(K key, V value) {
+	public synchronized void put(K key, V value) {
 		map.put(key, value);
 	}
 
-	synchronized public void remove(Object key) {
+	public synchronized void remove(Object key) {
 		map.remove(key);
 	}
 
-	synchronized public void clear() {
+	public synchronized void clear() {
 		map.clear();
 	}
 

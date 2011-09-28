@@ -46,6 +46,7 @@ public class AstVariables {
 			case SELFREF:
 			case SUPER:
 				vars.add("this");
+				return true;
 			default:
 				return true;
 			}

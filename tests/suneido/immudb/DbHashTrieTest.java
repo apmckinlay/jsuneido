@@ -119,7 +119,7 @@ public class DbHashTrieTest {
 
 	@Test
 	public void store() {
-		Storage stor = new TestStorage(512, 64);
+		Storage stor = new MemStorage(512, 64);
 		tree = DbHashTrie.empty(stor);
 
 		int at = tree.store(nullTranslator);
@@ -164,7 +164,7 @@ public class DbHashTrieTest {
 
 	@Test
 	public void traverse() {
-		Storage stor = new TestStorage(512, 64);
+		Storage stor = new MemStorage(512, 64);
 		tree = DbHashTrie.empty(stor);
 		DbHashTrie.Process proc = mock(DbHashTrie.Process.class);
 

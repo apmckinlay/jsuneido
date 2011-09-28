@@ -66,7 +66,7 @@ public class IndexTest {
 		return new Slot(r);
 	}
 
-	private Record makekey(int ... args) {
+	private static Record makekey(int ... args) {
 		Record r = new Record(100);
 		for (int i : args)
 			r.add(i);

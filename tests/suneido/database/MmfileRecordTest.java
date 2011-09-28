@@ -10,7 +10,7 @@ import org.junit.Test;
 import suneido.util.ByteBuf;
 
 public class MmfileRecordTest {
-	private final static String file = "MmfileRecordTest";
+	private static final String file = "MmfileRecordTest";
 	@Test
 	public void test() {
 		String data1 = "hello";

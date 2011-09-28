@@ -6,7 +6,9 @@ package suneido.language.builtin;
 
 import java.util.Map;
 
-import suneido.language.*;
+import suneido.language.ArgsIterator;
+import suneido.language.Ops;
+import suneido.language.SuFunction;
 
 public class Print extends SuFunction {
 
@@ -31,7 +33,7 @@ public class Print extends SuFunction {
 		return null;
 	}
 
-	private void print(Object x) {
+	private static void print(Object x) {
 		System.out.print(Ops.isString(x) ? Ops.toStr(x) : Ops.display(x));
 	}
 

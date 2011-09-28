@@ -67,7 +67,7 @@ public class ExprTest {
 		fold("3 * 4 in (2,3,4)", "false");
 	}
 
-	private void fold(String expr, String expected) {
+	private static void fold(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);
 		assertEquals(expected, e.fold().toString());
 	}

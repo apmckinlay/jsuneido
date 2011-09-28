@@ -78,13 +78,13 @@ public class IndexedDataTest {
 		verify(btree4, never()).remove(any(Record.class));
 	}
 
-	private Btree mockBtree() {
+	private static Btree mockBtree() {
 		Btree btree1 = mock(Btree.class);
 		when(btree1.add(any(Record.class), anyBoolean())).thenReturn(true);
 		return btree1;
 	}
 
-	private Record record(Object... values) {
+	private static Record record(Object... values) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object x : values)
 			rb.add(x);

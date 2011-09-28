@@ -244,7 +244,7 @@ public class QueryTest extends TestBase {
 		}
 	}
 
-	private Object execute(Query q) {
+	private static Object execute(Query q) {
 		StringBuilder sb = new StringBuilder();
 		Header hdr = q.header();
 		List<String> columns = hdr.columns();

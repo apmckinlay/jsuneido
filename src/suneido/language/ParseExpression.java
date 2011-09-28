@@ -314,7 +314,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private boolean assign() {
 		return (EQ_as_IS && token == EQ) ? false : token.assign();
 	}
-	private boolean isGlobal(String value) {
+	private static boolean isGlobal(String value) {
 		char c = value.charAt(0);
 		if (c == '_')
 			c = value.charAt(1);

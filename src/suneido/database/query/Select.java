@@ -731,7 +731,7 @@ public class Select extends Query1 {
 		return asList(new Keyrange(org.build(), end.build()));
 	}
 
-	private void addMax(int i, int n, RecordBuilder end) {
+	private static void addMax(int i, int n, RecordBuilder end) {
 		for (int j = i; j < n; ++j)
 			end.addMax();
 		if (i >= n) // ensure at least one added

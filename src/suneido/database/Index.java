@@ -40,7 +40,7 @@ class Index {
 		fkdsts = get_fkdsts(fkdstrecs);
 	}
 
-	private ForeignKey get_fksrc(Record record) {
+	private static ForeignKey get_fksrc(Record record) {
 		String fktable = record.getString(FKTABLE);
 		if (!fktable.equals(""))
 			return new ForeignKey(fktable, record.getString(FKCOLUMNS),
@@ -48,7 +48,7 @@ class Index {
 		return null;
 	}
 
-	private ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
+	private static ImmutableList<ForeignKey> get_fkdsts(List<Record> fkdstrecs) {
 		ImmutableList.Builder<ForeignKey> builder = ImmutableList.builder();
 		for (Record r : fkdstrecs)
 			builder.add(new ForeignKey(

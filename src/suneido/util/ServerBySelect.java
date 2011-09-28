@@ -7,10 +7,15 @@ package suneido.util;
 import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -253,9 +258,11 @@ public class ServerBySelect {
 			this.selectServer = selectServer;
 			this.key = key;
 		}
+		@Override
 		public void add(ByteBuffer output) {
 			writeQueue.add(output);
 		}
+		@Override
 		public void write() {
 			Info info = (Info) key.attachment();
 			info.idleSince = 0;
@@ -269,6 +276,7 @@ public class ServerBySelect {
 			}
 			selectServer.needWrite(key);
 		}
+		@Override
 		public void close() {
 			key.cancel();
 			try {
@@ -300,14 +308,14 @@ public class ServerBySelect {
 		}
 	}
 
-	public static interface HandlerFactory {
-		public Handler newHandler(NetworkOutput outputQueue, String address);
+	public interface HandlerFactory {
+		Handler newHandler(NetworkOutput outputQueue, String address);
 	}
 
-	public static interface Handler {
-		public void start();
-		public void moreInput(ByteBuffer buf);
-		public void close();
+	public interface Handler {
+		void start();
+		void moreInput(ByteBuffer buf);
+		void close();
 	}
 
 	//==========================================================================
