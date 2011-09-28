@@ -15,7 +15,7 @@ public class BootstrapTest {
 
 	@Test
 	public void test() {
-		TestStorage stor = new TestStorage(500, 100);
+		MemStorage stor = new MemStorage(500, 100);
 		Database db = Database.create(stor);
 		check(db);
 

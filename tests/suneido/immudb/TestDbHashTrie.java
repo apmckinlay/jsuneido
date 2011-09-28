@@ -21,7 +21,7 @@ public class TestDbHashTrie {
 	static final int N = 1000000;
 	static final int N_THREADS = 8;
 	static final int N_OPS = 10000000;
-	static Storage stor = new TestStorage(100000, 200);
+	static Storage stor = new MemStorage(100000, 200);
 	static DbHashTrie t = DbHashTrie.empty(stor);
 	static TIntIntMap entries = new TIntIntHashMap();
 	static long start;
