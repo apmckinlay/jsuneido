@@ -1,47 +1,64 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import static suneido.util.Verify.verify;
+import gnu.trove.map.TObjectDoubleMap;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import suneido.Suneido;
+import com.google.common.base.Objects;
 
 public class Cache {
-	List<CacheEntry> entries = new ArrayList<CacheEntry>();
+	TObjectDoubleMap<CacheKey> entries = 
+		new TObjectDoubleHashMap<CacheKey>(5, .5f, -1.0);
 
 	public void add(List<String> index, Set<String> needs, Set<String> firstneeds,
 			boolean is_cursor, double cost) {
 		verify(cost >= 0);
-		entries.add(new CacheEntry(index, needs, firstneeds, is_cursor, cost));
-		if (entries.size() > 20)
-			Suneido.errlog("large query cache " + entries.size());
-		}
+		CacheKey key = new CacheKey(index, needs, firstneeds, is_cursor);
+		entries.put(key, cost);
+	}
 
 	public double get(List<String> index, Set<String> needs, Set<String> firstneeds,
-			boolean is_cursor)
-		{
-		for (CacheEntry c : entries)
-			if (index.equals(c.index) && needs.equals(c.needs) &&
-					firstneeds.equals(c.firstneeds) && is_cursor == c.is_cursor)
-				return c.cost;
-		return -1;
-		}
-
-	private static class CacheEntry {
-		CacheEntry(List<String> index, Set<String> needs,
-				Set<String> firstneeds, boolean is_cursor, double cost) {
+			boolean is_cursor) {
+		CacheKey key = new CacheKey(index, needs, firstneeds, is_cursor);
+		return entries.get(key);
+	}
+	
+	private static class CacheKey {
+		final List<String> index;
+		final Set<String> needs;
+		final Set<String> firstneeds;
+		final boolean is_cursor;
+		
+		CacheKey(List<String> index, Set<String> needs,	Set<String> firstneeds, 
+				boolean is_cursor) {
 			this.index = index;
 			this.needs = needs;
 			this.firstneeds = firstneeds;
 			this.is_cursor = is_cursor;
-			this.cost = cost;
 		}
-		List<String> index;
-		Set<String> needs;
-		Set<String> firstneeds;
-		boolean is_cursor;
-		double cost;
+		
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(index, needs, firstneeds, is_cursor);
+		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (! (other instanceof CacheKey))
+				return false;
+			CacheKey that = (CacheKey) other;
+			return index.equals(that.index) && needs.equals(that.needs) &&
+					firstneeds.equals(that.firstneeds) && is_cursor == that.is_cursor;
+		}
+		
 	}
 }
