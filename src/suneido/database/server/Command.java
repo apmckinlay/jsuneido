@@ -623,7 +623,7 @@ public enum Command {
 		Record rec = row.firstData();
 		if (row.size() > 2 ||
 				// if immudb then need to convert record format
-				Suneido.dbpkg == suneido.immudb.DatabasePackage.dbpkg) {
+				Suneido.dbpkg.dbFilename().equals("immu.db")) {
 			RecordBuilder rb = suneido.database.DatabasePackage.dbpkg.recordBuilder();
 			int nFields = 0;
 			int nonEmpty = 0;
