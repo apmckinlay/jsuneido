@@ -45,7 +45,7 @@ public class ParseRequestTest {
 		parse("create a key(b)"); // no columns
 	}
 
-	private String parse(String s) {
+	private static String parse(String s) {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
 		StringRequestGenerator generator = new StringRequestGenerator();

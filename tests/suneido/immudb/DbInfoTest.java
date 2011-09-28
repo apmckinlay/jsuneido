@@ -16,7 +16,7 @@ public class DbInfoTest {
 
 	@Test
 	public void test() {
-		Storage stor = new TestStorage();
+		Storage stor = new MemStorage();
 		UpdateDbInfo dbinfo = new UpdateDbInfo(stor);
 		assertNull(dbinfo.get(123));
 		ImmutableList<IndexInfo> indexes = ImmutableList.of();

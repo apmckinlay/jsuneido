@@ -15,6 +15,7 @@ import java.util.List;
 
 import suneido.SuContainer;
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
@@ -620,8 +621,10 @@ public enum Command {
 
 	static Record rowToRecord(Row row, Header hdr) {
 		Record rec = row.firstData();
-		if (row.size() > 2) {
-			RecordBuilder rb = dbpkg.recordBuilder();
+		if (row.size() > 2 ||
+				// if immudb then need to convert record format
+				Suneido.dbpkg.dbFilename().equals("immu.db")) {
+			RecordBuilder rb = suneido.database.DatabasePackage.dbpkg.recordBuilder();
 			int nFields = 0;
 			int nonEmpty = 0;
 			for (String f : hdr.fields()) {

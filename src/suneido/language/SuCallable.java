@@ -6,7 +6,7 @@ package suneido.language;
 
 import suneido.SuValue;
 
-abstract public class SuCallable extends SuValue {
+public abstract class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected boolean isBlock = false;

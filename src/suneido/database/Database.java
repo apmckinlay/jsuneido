@@ -358,7 +358,7 @@ class Database implements suneido.intfc.database.Database {
 		return records;
 	}
 
-	private Record key(String name, String columns) {
+	private static Record key(String name, String columns) {
 		return new Record().add(name).add(columns);
 	}
 

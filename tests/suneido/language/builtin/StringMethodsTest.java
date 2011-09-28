@@ -18,7 +18,7 @@ public class StringMethodsTest {
 		split("one<>two<>three", "<>", "one", "two", "three");
 	}
 
-	private void split(String s, String sep, String... list) {
+	private static void split(String s, String sep, String... list) {
 		SuContainer c = StringMethods.split(s, sep);
 		assertEquals(list.length, c.size());
 		for (int i = 0; i < list.length; ++i)
@@ -32,7 +32,7 @@ public class StringMethodsTest {
 		extract("hello world", "h.*d(x)*", "");
 	}
 
-	private void extract(String s, String pat, String result) {
+	private static void extract(String s, String pat, String result) {
 		assertEquals(result, StringMethods.extract(s, pat, false));
 	}
 
@@ -44,10 +44,10 @@ public class StringMethodsTest {
 		replace("now is the time", "[a-z]+", "(&)", 2, "(now) (is) the time");
 	}
 
-	private void replace(String s, String pat, String rep, String result) {
+	private static void replace(String s, String pat, String rep, String result) {
 		assertEquals(result, StringMethods.replace(s, pat, rep, 99999));
 	}
-	private void replace(String s, String pat, String rep, int n, String result) {
+	private static void replace(String s, String pat, String rep, int n, String result) {
 		assertEquals(result, StringMethods.replace(s, pat, rep, n));
 	}
 

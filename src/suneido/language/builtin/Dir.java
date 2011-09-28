@@ -45,16 +45,16 @@ public class Dir extends SuFunction {
 		return ob;
 	}
 
-	private String nameOf(File f) {
+	private static String nameOf(File f) {
 		String s = f.getName();
 		if (f.isDirectory())
 			s += "/";
 		return s;
 	}
 
-	private SuContainer detailsOf(File f) {
+	private static SuContainer detailsOf(File f) {
 		SuContainer ob = new SuContainer();
-		ob.put("name", nameOf(f));
+		ob.put("name", f.getName());
 		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
 				: BigDecimal.valueOf(f.length()));
 		ob.put("date", new Date(f.lastModified()));
@@ -62,11 +62,11 @@ public class Dir extends SuFunction {
 		return ob;
 	}
 
-	static final int READONLY = 1;
-	static final int HIDDEN = 2;
-	static final int DIRECTORY = 16;
+	private static final int READONLY = 1;
+	private static final int HIDDEN = 2;
+	private static final int DIRECTORY = 16;
 
-	private int attrOf(File f) {
+	private static int attrOf(File f) {
 		return (f.canWrite() ? 0 : READONLY)
 				| (f.isHidden() ? HIDDEN : 0)
 				| (f.isDirectory() ? DIRECTORY : 0);
@@ -79,7 +79,7 @@ public class Dir extends SuFunction {
 			pattern = Pattern.compile(convert(s), Pattern.CASE_INSENSITIVE);
 		}
 
-		private String convert(String s) {
+		private static String convert(String s) {
 			return s.replace("*.*", "*") // for compatibility with windows
 					.replace(".", "\\.").replace("?", ".").replace("*", ".*");
 		}

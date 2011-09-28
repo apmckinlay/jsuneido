@@ -1,6 +1,8 @@
 package suneido.database.server;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -22,6 +24,7 @@ public class TestClient {
 			this.address = address;
 		}
 
+		@Override
 		public void run() {
 			try {
 				run2();
@@ -57,7 +60,7 @@ public class TestClient {
 		System.out.println("done " + i);
 		}
 
-		private void expect(DataInputStream inputstream,
+		private static void expect(DataInputStream inputstream,
 				char expected, String expected2) throws IOException {
 			int c = inputstream.read();
 			if (c != expected)

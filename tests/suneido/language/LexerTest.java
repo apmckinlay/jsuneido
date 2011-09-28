@@ -121,13 +121,13 @@ public class LexerTest {
 		check("x..y", IDENTIFIER, RANGETO, IDENTIFIER);
 	}
 
-	private void check(String source, Token... results) {
+	private static void check(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results)
 			assertEquals(result, lexer.next());
 		assertEquals(source, EOF, lexer.next());
 	}
-	private void checkValue(String source, Token... results) {
+	private static void checkValue(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results) {
 			assertEquals(source, result, lexer.next());
@@ -135,7 +135,7 @@ public class LexerTest {
 		}
 		assertEquals(source, EOF, lexer.next());
 	}
-	private void checkKeywords(String source) {
+	private static void checkKeywords(String source) {
 		Lexer lexer = new Lexer(source);
 		Token token;
 		while (EOF != (token = lexer.next())) {
@@ -146,7 +146,7 @@ public class LexerTest {
 		}
 		assertEquals(source, EOF, lexer.next());
 	}
-	private void checkValue(String[] source, Token... results) {
+	private static void checkValue(String[] source, Token... results) {
 		Lexer lexer = new Lexer(source[0]);
 		for (Token result : results) {
 			assertEquals(source[0], result, lexer.next());
@@ -154,7 +154,7 @@ public class LexerTest {
 		}
 		assertEquals(source[0], EOF, lexer.next());
 	}
-	private void checkAll(String source, Token... results) {
+	private static void checkAll(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results)
 			assertEquals(source, result, lexer.nextAll());

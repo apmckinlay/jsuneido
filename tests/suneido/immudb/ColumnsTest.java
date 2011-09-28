@@ -24,7 +24,7 @@ public class ColumnsTest {
 	}
 
 	private static final int TBLNUM = 1;
-	private Column column(int num, String name ) {
+	private static Column column(int num, String name ) {
 		return new Column(TBLNUM, num, name);
 	}
 

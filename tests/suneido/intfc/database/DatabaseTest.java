@@ -260,7 +260,7 @@ public class DatabaseTest extends TestBase {
 		Transaction t = db.readwriteTran();
 		t.removeRecord(t.getTable("test").num(), get("test").get(1));
 		t.ck_complete();
-		assertEquals(0, get("test2").size());
+		assertEquals(0, count("test2"));
 	}
 
 	@Test

@@ -255,8 +255,8 @@ public class ClassGen {
 		}
 	}
 
-	public final static int ARGS_REF = -1;
-	public final static int MEMBER_REF = -2;
+	public static final int ARGS_REF = -1;
+	public static final int MEMBER_REF = -2;
 	// >= 0 means java local index
 
 	public int localRef(String name) {

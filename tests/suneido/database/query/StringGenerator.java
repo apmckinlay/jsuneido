@@ -250,7 +250,7 @@ public class StringGenerator extends QueryGenerator<String> {
 				+ (which == OBJECT ? ")" : "}");
 	}
 
-	private String str(String x) {
+	private static String str(String x) {
 		return x == null ? "" : (String) x;
 	}
 

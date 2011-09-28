@@ -313,7 +313,7 @@ public class TestConcurrency {
 				nreps.incrementAndGet();
 			}
 		}
-		private void check(ByteBuf buf) {
+		private static void check(ByteBuf buf) {
 			int n = buf.getInt(0);
 			for (int i = 0; i < 10; ++i) {
 				Thread.yield();

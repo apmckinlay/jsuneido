@@ -39,7 +39,7 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 	}
 
 	// assumes ALIGN = long (8)
-	private int skipPadding(ByteBuffer buf, int len) {
+	private static int skipPadding(ByteBuffer buf, int len) {
 		len = ChunkedStorage.align(len);
 		int limit = buf.limit();
 		while (len < limit && buf.getLong(len) == 0)

@@ -15,7 +15,7 @@ public class BootstrapTest {
 
 	@Test
 	public void test() {
-		TestStorage stor = new TestStorage(500, 100);
+		MemStorage stor = new MemStorage(500, 100);
 		Database db = Database.create(stor);
 		check(db);
 
@@ -23,7 +23,7 @@ public class BootstrapTest {
 		check(db);
 	}
 
-	private void check(Database db) {
+	private static void check(Database db) {
 		assertThat(db.getSchema("tables"),
 				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.getSchema("columns"),

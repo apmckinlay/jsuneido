@@ -46,13 +46,13 @@ public class UpdateTest extends TestBase {
 		checkCount();
 
 		Transaction t = db.readwriteTran();
-		// db.update(t, recadr, mkrec(5));
+//TODO		db.update(t, recadr, mkrec(5));
 		t.ck_complete();
 
 		checkCount();
 	}
 
-	private Record mkrec(int i) {
+	private static Record mkrec(int i) {
 		return dbpkg.recordBuilder().add(-1) // group
 				.add("") // lib_committed
 				.add("") // lib_modified

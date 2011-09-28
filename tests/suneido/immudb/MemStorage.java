@@ -8,13 +8,13 @@ import java.nio.ByteBuffer;
 
 import suneido.immudb.ChunkedStorage;
 
-class TestStorage extends ChunkedStorage {
+class MemStorage extends ChunkedStorage {
 
-	TestStorage() {
+	MemStorage() {
 		super(32, 32);
 	}
 
-	TestStorage(int chunkSize, int maxChunks) {
+	MemStorage(int chunkSize, int maxChunks) {
 		super(align(chunkSize), maxChunks);
 	}
 

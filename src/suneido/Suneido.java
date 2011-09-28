@@ -165,7 +165,16 @@ public class Suneido {
 	private static Database db;
 
 	public static void openDbms() {
+		if (Suneido.dbpkg.dbFilename().equals("immu.db"))
+			System.out.println("immu.db");
 		db = dbpkg.open(dbpkg.dbFilename());
+		if (db == null) {
+			errlog("database not shut down properly last time");
+			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
+			db = dbpkg.open(dbpkg.dbFilename());
+			if (db == null)
+				fatal("could not open database after rebuild");
+		}
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

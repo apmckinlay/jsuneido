@@ -163,7 +163,7 @@ public class CommandLineOptions {
 			if (remainder != "")
 				sb.append(" rest: ").append(remainder);
 		}
-		if (impersonate != null && impersonate != WhenBuilt.when())
+		if (impersonate != null && ! impersonate.equals(WhenBuilt.when()))
 			sb.append(" impersonate='").append(impersonate).append("'");
 		if (timeoutMin != DEFAULT_TIMEOUT)
 			sb.append(" timeout=" + timeoutMin);

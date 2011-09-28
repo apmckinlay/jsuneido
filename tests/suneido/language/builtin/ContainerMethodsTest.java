@@ -77,7 +77,7 @@ public class ContainerMethodsTest {
 		testjoin("1<>2<>3", "<>", 1, 2, 3);
 	}
 
-	private void testjoin(String result, String sep, Object... values) {
+	private static void testjoin(String result, String sep, Object... values) {
 		SuContainer c = new SuContainer(Arrays.asList(values));
 		assertEquals(result, ContainerMethods.methods.lookup("Join").eval1(c, sep));
 	}

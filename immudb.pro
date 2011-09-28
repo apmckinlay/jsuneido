@@ -1,11 +1,11 @@
--injars jsuneido.jar
+-injars immudb.jar
 -injars lib/asm-all-3.3.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
 -injars lib/guava-r09.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.0.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-3.1.0.jar
 -libraryjars /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar
--outjars jsuneido-dist.jar
+-outjars immudb-dist.jar
 
 -dontoptimize
 -dontobfuscate
@@ -24,5 +24,9 @@
 -keep class suneido.language.AstCompile$VarArgs
 -keep class suneido.language.AstCompile$ExprOption
 -keep class suneido.language.AstCompile$ExprType
+
+-keep class suneido.immudb.Database
+-keep class suneido.immudb.ReadTransaction
+-keep class suneido.immudb.Record
 
 -dontnote com.google.common.**

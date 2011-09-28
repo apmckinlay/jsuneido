@@ -1,7 +1,9 @@
 package suneido.language.builtin;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
+import suneido.language.SuFunction1;
 
 public class SystemFunction extends SuFunction1 {
 
@@ -21,7 +23,7 @@ public class SystemFunction extends SuFunction1 {
 		}
 	}
 
-	private void getShell(String[] cmd) {
+	private static void getShell(String[] cmd) {
 		cmd[0] = System.getenv("COMSPEC");
 		if (cmd[0] != null) {
 			cmd[1] = "/c";

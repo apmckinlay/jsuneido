@@ -46,7 +46,7 @@ public class SuValueTest {
 				math1(x, y);
 	}
 
-	private void math1(Object x, Object y) {
+	private static void math1(Object x, Object y) {
 		//System.out.println(Ops.typeName(x) + " " + x + " " + Ops.typeName(y) + " " + y);
 		int i = toInt(x);
 		int j = toInt(y);

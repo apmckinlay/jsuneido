@@ -112,7 +112,7 @@ public class BtreeNodeTest {
 		without(memNode());
 	}
 
-	private void without(BtreeNode node) {
+	private static void without(BtreeNode node) {
 		node = node.without(1);
 		check(node, "bob", "sue");
 		node = node.with(record("new"));
@@ -146,7 +146,7 @@ public class BtreeNodeTest {
 		slice(memNode());
 	}
 
-	private void slice(BtreeNode node) {
+	private static void slice(BtreeNode node) {
 		node = node.slice(1, 3);
 		check(node, "joe", "sue");
 		node = node.with(record("new"));
@@ -154,7 +154,7 @@ public class BtreeNodeTest {
 		check(node, "joe", "new");
 	}
 
-	private BtreeNode dbNode() {
+	private static BtreeNode dbNode() {
 		Record rec = new RecordBuilder()
 				.add(record("bob")).add(record("joe")).add(record("sue")).build();
 		BtreeNode node = new BtreeDbNode(0, Pack.pack(rec));
@@ -162,16 +162,16 @@ public class BtreeNodeTest {
 		return node;
 	}
 
-	private BtreeMemNode memNode() {
+	private static BtreeMemNode memNode() {
 		return new BtreeMemNode(0, record("bob"), record("joe"), record("sue"));
 	}
 
-	private void check(BtreeNode node, String... keys) {
+	private static void check(BtreeNode node, String... keys) {
 		if (node.size() != keys.length || ! equals(node, keys))
 			fail("Expected: " + Arrays.toString(keys) + "\n   got: " + node);
 	}
 
-	private boolean equals(BtreeNode node, String... keys) {
+	private static boolean equals(BtreeNode node, String... keys) {
 		for (int i = 0; i < keys.length; ++i)
 			if (!node.get(i).equals(record(keys[i])))
 				return false;
@@ -211,7 +211,7 @@ public class BtreeNodeTest {
 		pack(dbNode().with(record("new")));
 	}
 
-	private void pack(BtreeStorableNode node) {
+	private static void pack(BtreeStorableNode node) {
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeNode dbnode = new BtreeDbNode(0, buf);

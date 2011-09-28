@@ -51,7 +51,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 		}
 	};
 
-	abstract protected Object newInstance(Object... args);
+	protected abstract Object newInstance(Object... args);
 
 	@Override
 	public String typeName() {

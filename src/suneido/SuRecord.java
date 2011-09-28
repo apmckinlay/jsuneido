@@ -109,7 +109,7 @@ public class SuRecord extends SuContainer {
 	}
 
 	/** remove "_deps" suffix */
-	private String baseFieldName(String field) {
+	private static String baseFieldName(String field) {
 		return field.substring(0, field.length() - 5);
 	}
 

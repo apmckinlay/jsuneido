@@ -10,7 +10,10 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuRecord;
+import suneido.SuValue;
 
 public class ArgsTest {
 
@@ -65,10 +68,10 @@ public class ArgsTest {
 		bad(f(),			array(s)); // too many arguments
 		bad(f("x"),			array(EACH, ias, EACH, sxi)); // too many arguments
 	}
-	private void good(FunctionSpec f, Object[] args, Object[] locals) {
+	private static void good(FunctionSpec f, Object[] args, Object[] locals) {
 		assertArrayEquals(locals, Args.massage(f, args));
 	}
-	private void bad(FunctionSpec f, Object[] args) {
+	private static void bad(FunctionSpec f, Object[] args) {
 		try {
 			Args.massage(f, args);
 			fail();
@@ -76,11 +79,11 @@ public class ArgsTest {
 		}
 	}
 
-	private FunctionSpec f(String... params) {
+	private static FunctionSpec f(String... params) {
 		return f(0, params);
 	}
 
-	private FunctionSpec f(int extra, String... params) {
+	private static FunctionSpec f(int extra, String... params) {
 		boolean atParam = (params.length == 1 && params[0].startsWith("@"));
 		if (atParam)
 			params[0] = params[0].substring(1, params[0].length());
@@ -88,7 +91,7 @@ public class ArgsTest {
 				params.length + extra);
 	}
 
-	private Object[] defaults(String... params) {
+	private static Object[] defaults(String... params) {
 		ArrayList<Object> defaults = new ArrayList<Object>();
 		int j;
 		for (int i = 0; i < params.length; ++i)
