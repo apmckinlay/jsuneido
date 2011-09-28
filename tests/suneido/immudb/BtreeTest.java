@@ -21,7 +21,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 public class BtreeTest {
-	private final Storage stor = new TestStorage(1024, 64);
+	private final Storage stor = new MemStorage(1024, 64);
 	private Random rand = new Random(123456);
 	private Tran tran = new Tran(stor);
 	private Btree btree = new Btree4(tran);

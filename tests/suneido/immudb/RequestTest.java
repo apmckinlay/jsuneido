@@ -18,7 +18,7 @@ import suneido.intfc.database.DatabasePackage.Status;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
-	TestStorage stor = new TestStorage(1000, 100);
+	MemStorage stor = new MemStorage(1000, 100);
 	Database db = Database.create(stor);
 
 	@Test

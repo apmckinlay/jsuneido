@@ -17,7 +17,7 @@ import org.junit.Test;
 import suneido.util.FileUtils;
 
 public class TranTest {
-	Storage stor = new TestStorage();
+	Storage stor = new MemStorage();
 
 	@Test
 	public void empty_database() {
