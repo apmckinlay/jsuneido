@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import static suneido.Suneido.dbpkg;
@@ -18,9 +22,6 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Base class for query operation classes.
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 public abstract class Query {
 	private final Cache cache = new Cache();
