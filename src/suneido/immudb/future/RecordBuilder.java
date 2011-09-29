@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb;
+package suneido.immudb.future;
 
 import gnu.trove.list.array.TIntArrayList;
 
@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
-import suneido.immudb.Record.Mode;
+import suneido.immudb.future.Record.Mode;
 import suneido.language.Pack;
 
 import com.google.common.collect.Lists;
@@ -126,15 +126,15 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	static int length(int nfields, int datasize) {
 		// Mode.BYTE
-		int length = 4 + (1 + nfields) + datasize;
+		int length = 2 + (1 + nfields) + datasize;
 		if (length < 0x100)
 			return length;
 		// Mode.SHORT
-		length = 4 + 2 * (1 + nfields) + datasize;
+		length = 2 + 2 * (1 + nfields) + datasize;
 		if (length < 0x10000)
 			return length;
 		// Mode.INT
-		return 4 + 4 * (1 + nfields) + datasize;
+		return 2 + 4 * (1 + nfields) + datasize;
 	}
 
 	private void pack(ByteBuffer dst, int length) {
@@ -146,21 +146,22 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens) {
 		dst.order(ByteOrder.LITTLE_ENDIAN); // to match cSuneido format
-		byte mode = mode(length);
-		dst.put(mode);
-		dst.put((byte) 0);
-		assert 0 <= lens.size() && lens.size() <= Short.MAX_VALUE;
-		dst.putShort((short) lens.size());
+		int mode = mode(length);
+		dst.putShort(header(mode, lens.size()));
 		packOffsets(dst, length, lens, mode);
 		dst.order(ByteOrder.BIG_ENDIAN);
 	}
-	private static byte mode(int length) {
+	private static int mode(int length) {
 		if (length < 0x100)
 			return Mode.BYTE;
 		else if (length < 0x10000)
 			return Mode.SHORT;
 		else
 			return Mode.INT;
+	}
+	private static short header(int mode, int nfields) {
+		assert nfields < (1 << 14);
+		return (short) ((mode << 14) | nfields);
 	}
 	private static void packOffsets(ByteBuffer dst, int length,
 			TIntArrayList lens, int mode) throws Error {
