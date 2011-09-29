@@ -87,11 +87,14 @@ public class ExclusiveTransaction extends UpdateTransaction {
 
 	@Override
 	public void abort() {
-		int redirsAdr = db.getRedirs().store(null);
-		int dbinfoAdr = db.getDbinfo().store(null);
-		store(dbinfoAdr, redirsAdr);
-		tran.endStore();
-		super.abort();
+		try {
+			int redirsAdr = db.getRedirs().store(null);
+			int dbinfoAdr = db.getDbinfo().store(null);
+			store(dbinfoAdr, redirsAdr);
+			tran.endStore();
+		} finally {
+			super.abort();
+		}
 	}
 
 	@Override

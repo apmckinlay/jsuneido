@@ -45,3 +45,7 @@ syntax: regexp
 ^jsuneido\.ws$
 syntax: regexp
 \.tmp$
+syntax: regexp
+^immudb-dist\.jar$
+syntax: regexp
+^immudb\.jar$

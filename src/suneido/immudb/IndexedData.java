@@ -122,23 +122,23 @@ class IndexedData {
 			this.fields = fields;
 		}
 
-		Btree.Update update(Record from, int fromIntref, Record to, int toIntref) {
-			Record fromKey = key(from, fields, fromIntref);
-			Record toKey = key(to, fields, toIntref);
+		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
+			Record fromKey = key(from, fields, fromAdr);
+			Record toKey = key(to, fields, toAdr);
 			boolean unique = (mode == Mode.KEY ||
 					(mode == Mode.UNIQUE && ! isEmptyKey(toKey)));
 			return btree.update(fromKey, toKey, unique);
 		}
 
-		boolean add(Record rec, int intref) {
-			Record key = key(rec, fields, intref);
+		boolean add(Record rec, int adr) {
+			Record key = key(rec, fields, adr);
 			boolean unique = (mode == Mode.KEY ||
 					(mode == Mode.UNIQUE && ! isEmptyKey(key)));
 			return btree.add(key, unique);
 		}
 
-		boolean remove(Record rec, int intref) {
-			Record key = key(rec, fields, intref);
+		boolean remove(Record rec, int adr) {
+			Record key = key(rec, fields, adr);
 			return btree.remove(key);
 		}
 

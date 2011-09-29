@@ -153,7 +153,7 @@ return buf.slice().asReadOnlyBuffer();
 
 	@Override
 	public long sizeFrom(int adr) {
-		return file_size - intToLong(adr);
+		return adr == 0 ? file_size : file_size - intToLong(adr);
 	}
 
 }
