@@ -14,8 +14,6 @@ import java.util.List;
 
 import suneido.DbTools;
 import suneido.intfc.database.IndexIter;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 
 public class DbDump {
 
@@ -79,11 +77,13 @@ public class DbDump {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
 		List<String> fields = table.getFields();
+		boolean squeeze = needToSqueeze(fields);
 		IndexIter iter = t.iter(table.num, null);
 		int n = 0;
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = t.input(iter.keyadr());
-			r = convert(r, fields);
+			if (squeeze)
+				r = squeezeRecord(r, fields);
 			writeInt(out, buf, r.bufSize());
 			out.write(r.getBuffer());
 			++n;
@@ -94,10 +94,12 @@ public class DbDump {
 
 	private static final String DELETED = "-";
 
-	/** convert record to old format */
-	static Record convert(Record rec, List<String> fields) {
-		((suneido.immudb.Record) rec).check();
-		RecordBuilder rb = new suneido.database.Record(rec.bufSize() + 2);
+	static boolean needToSqueeze(List<String> fields) {
+		return fields.indexOf(DELETED) != -1;
+	}
+
+	static Record squeezeRecord(Record rec, List<String> fields) {
+		RecordBuilder rb = new RecordBuilder();
 		int i = 0;
 		for (String f : fields) {
 			if (! f.equals(DELETED))

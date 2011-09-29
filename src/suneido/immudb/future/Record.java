@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.immudb;
+package suneido.immudb.future;
 
 import static com.google.common.base.Preconditions.checkState;
 import static suneido.SuException.unreachable;
@@ -11,11 +11,17 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import suneido.SuException;
+import suneido.immudb.Storage;
 import suneido.language.Pack;
 
 import com.google.common.base.Objects;
 
 /**
+ * Slightly different from cSuneido format.
+ * Mode is 1,2,3 instead of 'c', 's', 'l'
+ * and is stored in the high bits of the number of fields.
+ * This reduces the max number of fields to 8192 instead of 32768
+ * but saves two bytes per record.
  * Records stored in the database are prefixed with their table number.
  * The packed format, e.g. keys in Btree nodes, does NOT include table number.
  */
@@ -25,9 +31,9 @@ class Record implements suneido.intfc.database.Record {
 	/** Don't use zero for Mode, so zero memory is invalid
 	 *  and so no overlap with Pack types */
 	static class Mode {
-		static final byte BYTE = 'c', SHORT = 's', INT = 'l'; }
+		static final short BYTE = 1, SHORT = 2, INT = 3; }
 	static class Offset {
-		static final int MODE = 0, NFIELDS = 2, BODY = 4; }
+		static final int HEADER = 0, BODY = 2; }
 	private final ByteBuffer buf;
 	/** non-zero when the record is a key within a BtreeNode */
 	private final int bufpos;
@@ -71,12 +77,12 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	private int mode() {
-		return buf.get(bufpos + Offset.MODE);
+		return (buf.get(bufpos + Offset.HEADER + 1) & 0xff) >>> 6;
 	}
 
 	@Override
 	public int size() {
-		int si = bufpos + Offset.NFIELDS;
+		int si = bufpos + Offset.HEADER;
 		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
 	}
 

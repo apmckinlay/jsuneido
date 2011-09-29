@@ -104,7 +104,7 @@ class DbDump {
 		Record newrec = new Record(rec.packSize());
 		int i = 0;
 		for (String f : fields) {
-			if (!f.equals("-"))
+			if (! f.equals("-"))
 				newrec.add(rec.getbuf(i));
 			++i;
 		}

@@ -17,7 +17,6 @@ import java.nio.channels.ReadableByteChannel;
 import suneido.DbTools;
 import suneido.SuException;
 import suneido.database.query.Request;
-import suneido.immudb.Record.Mode;
 
 class DbLoad {
 
@@ -109,40 +108,8 @@ class DbLoad {
 			ExclusiveTransaction t, ByteBuffer recbuf, int n)
 			throws IOException {
 		fullRead(in, recbuf, n);
-		Record rec = convert(recbuf, n);
+		Record rec = new Record(recbuf);
 		return t.loadRecord(tblnum, rec);
-	}
-
-	/** convert from cSuneido record format to jSuneido format
-	 *	WARNING: modifies recbuf in place
-	 */
-	static Record convert(ByteBuffer recbuf, int n) {
-		assert recbuf.order() == ByteOrder.LITTLE_ENDIAN;
-		int mode = recbuf.get(0);
-		mode = mode == 'c' ? Mode.BYTE : mode == 's' ? Mode.SHORT : Mode.INT;
-		int nfields = (recbuf.get(2) & 0xff) + (recbuf.get(3) << 8);
-		assert recbuf.get(3) < 0x3f;
-		recbuf.put(3, (byte) (recbuf.get(3) | (mode << 6)));
-		switch (mode) {
-		case Mode.BYTE:
-			for (int i = 0; i < nfields + 1; ++i)
-				recbuf.put(4 + i, (byte) (recbuf.get(4 + i) - 2));
-			break;
-		case Mode.SHORT:
-			for (int i = 0; i < nfields + 1; ++i)
-				recbuf.putShort(4 + i * 2, (short) ((recbuf.getShort(4 + i * 2) & 0xffff) - 2));
-			break;
-		case Mode.INT:
-			for (int i = 0; i < nfields + 1; ++i)
-				recbuf.putInt(4 + i * 4, recbuf.getInt(4 + i * 4) - 2);
-			break;
-		default:
-			throw new RuntimeException("bad record type");
-		}
-		Record rec = new Record(recbuf, 2);
-		assert rec.bufSize() == n - 2;
-		rec.check();
-		return rec;
 	}
 
 	static void createIndexes(ExclusiveTransaction t,

@@ -329,8 +329,7 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			DbmsQuery q = q_or_tc(line);
-			// System.out.println("\t" + new Record(extra));
-			q.output(dbpkg.record(extra));
+			q.output(makeRecord(extra));
 			return t();
 		}
 	},
@@ -461,8 +460,7 @@ public enum Command {
 				NetworkOutput outputQueue) {
 			DbmsTran tran = getTran(line);
 			int recadr = ck_getnum('A', line);
-			// System.out.println("\t" + new Record(extra));
-			recadr = tran.update(recadr, dbpkg.record(extra));
+			recadr = tran.update(recadr, makeRecord(extra));
 			return stringToBuffer("U" + recadr + "\r\n");
 		}
 	};
@@ -621,10 +619,8 @@ public enum Command {
 
 	static Record rowToRecord(Row row, Header hdr) {
 		Record rec = row.firstData();
-		if (row.size() > 2 ||
-				// if immudb then need to convert record format
-				Suneido.dbpkg.dbFilename().equals("immu.db")) {
-			RecordBuilder rb = suneido.database.DatabasePackage.dbpkg.recordBuilder();
+		if (row.size() > 2) {
+			RecordBuilder rb = dbpkg.recordBuilder();
 			int nFields = 0;
 			int nonEmpty = 0;
 			for (String f : hdr.fields()) {
@@ -639,6 +635,16 @@ public enum Command {
 			rec = rb.build();
 		}
 		return rec.squeeze();
+	}
+
+	private static Record makeRecord(ByteBuffer extra) {
+		if (Suneido.dbpkg.dbFilename().equals("immu.db")) {
+			ByteBuffer buf = ByteBuffer.allocate(extra.remaining());
+			buf.put(extra);
+			buf.rewind();
+			return dbpkg.record(buf);
+		} else
+			return dbpkg.record(extra);
 	}
 
 	private static ByteBuffer valueResult(NetworkOutput outputQueue, Object result) {
