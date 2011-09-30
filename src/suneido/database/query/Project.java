@@ -363,7 +363,7 @@ public class Project extends Query1 {
 				if (null == (row = prevrow))
 					return null;
 				prevrow = source.get(Dir.PREV);
-			} while (projHdr.equal(row, prevrow));
+			} while (prevrow != null && projHdr.equal(row, prevrow));
 			// output the last row of a group
 			currow = row;
 			return result(row);
