@@ -21,8 +21,10 @@ public class ExclusiveTransaction extends UpdateTransaction {
 
 	@Override
 	protected void lock(Database db) {
+		assert ! db.exclusiveLock.isWriteLocked() : "already exclusively locked";
 		if (! db.exclusiveLock.writeLock().tryLock())
-			throw new RuntimeException("ExclusiveTransaction: could not get lock");
+			throw new RuntimeException("can't make schema changes " +
+					"when there are outstanding update transactions");
 		locked = true;
 	}
 

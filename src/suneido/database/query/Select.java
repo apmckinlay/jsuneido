@@ -616,7 +616,7 @@ public class Select extends Query1 {
 		if (rewound) {
 			rewound = false;
 			newrange = true;
-			range_i = (dir == Dir.NEXT ? -1 : ranges.size()); // allow for ++
+			range_i = (dir == Dir.NEXT ? -1 : ranges.size()); // allow for ++/--
 		}
 		while (true) {
 			if (newrange) {
