@@ -6,12 +6,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static suneido.database.query.Query.Dir.NEXT;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
+import suneido.database.query.Query.Dir;
 import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
+
+import com.google.common.collect.Lists;
 
 public class QueryTest extends TestBase {
 
@@ -39,6 +43,9 @@ public class QueryTest extends TestBase {
 			"'c'	'calac'	'calgary'\n" +
 			"'e'	'emerald'	'vancouver'\n" +
 			"'i'	'intercon'	'saskatoon'\n");
+		test1("customer where id = 'e'",
+			"id	name	city\n" +
+			"'e'	'emerald'	'vancouver'\n");
 		test1("hist",
 			"date	item	id	cost\n" +
 			"970101	'disk'	'a'	100\n" +
@@ -234,17 +241,22 @@ public class QueryTest extends TestBase {
 	}
 
 	private void test1(String query, String result) {
+		one_way(Dir.NEXT, query, result);
+		one_way(Dir.PREV, query, result);
+	}
+
+	private void one_way(Dir dir, String query, String result) {
 		Transaction t = db.readonlyTran();
 		try {
 			Query q = CompileQuery.query(t, serverData, query);
-			assertEquals(q.toString(), result, execute(q));
+			assertEquals(q.toString(), result, execute(dir, q));
 			t.complete();
 		} finally {
 			t.abortIfNotComplete();
 		}
 	}
 
-	private static Object execute(Query q) {
+	private static Object execute(Dir dir, Query q) {
 		StringBuilder sb = new StringBuilder();
 		Header hdr = q.header();
 		List<String> columns = hdr.columns();
@@ -252,10 +264,15 @@ public class QueryTest extends TestBase {
 			sb.append(f).append("\t");
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append("\n");
+		List<Row> rows = Lists.newArrayList();
 		Row row;
-		while (null != (row = q.get(NEXT))) {
+		while (null != (row = q.get(dir)))
+			rows.add(row);
+		if (dir == Dir.PREV)
+			Collections.reverse(rows);
+		for (Row r : rows) {
 			for (String f : columns)
-				sb.append(Ops.display(row.getval(hdr, f))).append("\t");
+				sb.append(Ops.display(r.getval(hdr, f))).append("\t");
 			sb.deleteCharAt(sb.length() - 1);
 			sb.append("\n");
 		}

@@ -188,6 +188,8 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	boolean prefixEquals(Record rec, int nfields) {
+		if (rec.size() < nfields)
+			return false;
 		for (int i = 0; i < nfields; ++i)
 			if (0 != compare1(this, rec, i))
 				return false;

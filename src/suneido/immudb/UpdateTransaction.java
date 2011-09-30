@@ -51,10 +51,14 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	protected void unlock() {
-		trans.addFinal(this);
-		trans.remove(this);
-		db.exclusiveLock.readLock().unlock();
-		locked = false;
+		assert(locked);
+		try {
+			trans.addFinal(this);
+			trans.remove(this);
+		} finally {
+			db.exclusiveLock.readLock().unlock();
+			locked = false;
+		}
 	}
 
 	@Override
@@ -187,7 +191,6 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public void abort() {
-		assert locked;
 		unlock();
 	}
 

@@ -19,6 +19,7 @@ import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
 @ThreadSafe
+public // temporary
 class Database implements suneido.intfc.database.Database {
 	private static final int INT_SIZE = 4;
 	final Transactions trans = new Transactions();
@@ -284,6 +285,11 @@ class Database implements suneido.intfc.database.Database {
 	void setRedirs(DbHashTrie redirs) {
 		assert redirs.immutable();
 		this.redirs = redirs;
+	}
+
+	public void checkLock() {
+		if (exclusiveLock.isWriteLocked())
+			throw new RuntimeException("should not be locked");
 	}
 
 }

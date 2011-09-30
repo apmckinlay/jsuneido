@@ -384,9 +384,12 @@ class Btree {
 				seek(to);
 				rewound = false;
 				if (cur != null) {
-					if (cur.compareTo(from) < 0 || cur.prefixGt(to))
+					if (cur.compareTo(from) < 0) {
 						cur = null;
-					return;
+						return;
+					}
+					if (! cur.prefixGt(to))
+						return;
 				}
 			} else if (eof())
 				return;
@@ -418,11 +421,11 @@ class Btree {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
-			if (cur.compareTo(from) < 0)
+			if (cur.compareTo(from) < 0 || cur.prefixGt(to))
 				cur = null;
 		}
 
-		/** leaves cur = null if key not found */
+		/** seek to the first slot >= key */
 		private void seek(Record key) {
 			valid = modified;
 			stack.clear();
