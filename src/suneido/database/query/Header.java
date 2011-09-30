@@ -69,7 +69,7 @@ public class Header {
 
 	public boolean equal(Row r1, Row r2) {
 		for (String f : columns())
-			if (!r1.getraw(this, f).equals(r2.getraw(this, f)))
+			if (! r1.getraw(this, f).equals(r2.getraw(this, f)))
 				return false;
 		return true;
 	}
