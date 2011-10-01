@@ -1,37 +1,38 @@
 package suneido;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import suneido.database.server.Dbms;
 import suneido.database.server.DbmsLocal;
 import suneido.database.server.DbmsRemote;
 import suneido.intfc.database.Database;
+import suneido.util.Print;
 
 public class TheDbms {
+	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
 	private static String ip = null;
 	private static int port;
-	private static DbmsLocal theDbms;
-	private static ThreadLocal<DbmsRemote> remoteDbms =
-		new ThreadLocal<DbmsRemote>() {
-			@Override
-			protected DbmsRemote initialValue() {
-				DbmsRemote dbms = new DbmsRemote(ip, port);
-				dbmsRemotes.add(dbms);
-				dbms.sessionid(dbms.sessionid("") + ":" +
-						Thread.currentThread().getName());
-				return dbms;
-			};
-			@Override
-			protected void finalize() throws Throwable {
-				get().close();
-			};
-		};
-	private static List<DbmsRemote> dbmsRemotes = new ArrayList<DbmsRemote>();
+	private static DbmsLocal localDbms;
+	private static final ThreadLocal<DbmsRemote> remoteDbms =
+			new ThreadLocal<DbmsRemote>();
+	private static final Set<DbmsRemote> dbmsRemotes =
+			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 
 	public static Dbms dbms() {
-		return (ip == null) ? theDbms : remoteDbms.get();
+		if (ip == null)
+			return localDbms;
+		DbmsRemote dbms = remoteDbms.get();
+		if (dbms == null) {
+			dbms = new DbmsRemote(ip, port);
+			dbmsRemotes.add(dbms);
+			dbms.sessionid(dbms.sessionid("") + ":" +
+					Thread.currentThread().getName());
+			remoteDbms.set(dbms);
+		}
+		return dbms;
 	}
 
 	public static void remote(String ip, int port) {
@@ -40,25 +41,44 @@ public class TheDbms {
 	}
 
 	public static void set(Database db) {
-		theDbms = new DbmsLocal(db);
+		localDbms = new DbmsLocal(db);
 	}
 
-	public static boolean isOpen() {
-		return theDbms != null || ip != null;
+	public static boolean isAvailable() {
+		return localDbms != null || ip != null;
+	}
+
+	public static void closeIfIdle() {
+		DbmsRemote dr = remoteDbms.get();
+		if (dr == null)
+			return;
+		long t = System.currentTimeMillis();
+		if (dr.idleSince == 0)
+			dr.idleSince = t;
+		else if (t - dr.idleSince > IDLE_TIMEOUT_MS) {
+			Print.timestamped("closing idle dbms connection for " +
+					Thread.currentThread().getName());
+			dbmsRemotes.remove(dr);
+			remoteDbms.set(null);
+			dr.close();
+		}
 	}
 
 	/**
-	 * Run regularly to close connections owned by threads that SocketServer
-	 * has timed out.
+	 * Run regularly to close connections owned by threads that have ended
 	 */
 	public static Runnable closer = new Runnable() {
 		@Override
 		public void run() {
-			Iterator<DbmsRemote> iter = dbmsRemotes.iterator();
-			while (iter.hasNext()) {
-				DbmsRemote dbms = iter.next();
-				if (! dbms.owner.isAlive())
-					dbms.close();
+			synchronized(dbmsRemotes) {
+				Iterator<DbmsRemote> iter = dbmsRemotes.iterator();
+				while (iter.hasNext()) {
+					DbmsRemote dr = iter.next();
+					if (! dr.owner.isAlive()) {
+						iter.remove();
+						dr.close();
+					}
+				}
 			}
 		}
 	};
