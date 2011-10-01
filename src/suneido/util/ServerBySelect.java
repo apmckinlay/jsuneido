@@ -136,7 +136,7 @@ public class ServerBySelect {
 	}
 
 	private static class Info {
-		long idleSince = 0;
+		volatile long idleSince = 0;
 		final Handler handler;
 		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
 		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write

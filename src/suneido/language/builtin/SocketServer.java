@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadFactory;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.Suneido;
+import suneido.TheDbms;
 import suneido.language.*;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
@@ -53,7 +54,7 @@ public class SocketServer extends SuClass {
 					.setDaemon(true)
 					.setNameFormat("SocketServer-thread-%d")
 					.build();
-		private static final ExecutorService executor = 
+		private static final ExecutorService executor =
 				Executors.newCachedThreadPool(threadFactory);
 		SuClass serverClass;
 		int port;
@@ -80,7 +81,6 @@ public class SocketServer extends SuClass {
 				return new Instance(serverClass, socket, address);
 			}
 		}
-
 	}
 
 	static class Instance extends SuInstance implements Runnable {
@@ -102,6 +102,13 @@ public class SocketServer extends SuClass {
 				Suneido.errlog("exception in SocketServer", e);
 			} finally {
 				socket.close();
+				TheDbms.closeIfIdle();
+				/*
+				 * need to close idle connections because threads may be active
+				 * but only rarely use the database connection
+				 * so the connection will get timed out by the database server
+				 * and then if we try to use it again we'll get an error
+				 */
 			}
 		}
 

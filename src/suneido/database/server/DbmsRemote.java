@@ -35,6 +35,7 @@ import com.google.common.collect.Iterables;
  */
 public class DbmsRemote extends Dbms {
 	public final Thread owner = Thread.currentThread();
+	public volatile long idleSince = 0; // used by TheDbms.closeIfIdle
 	DbmsChannel io;
 
 	public DbmsRemote(String ip, int port) {
@@ -42,7 +43,7 @@ public class DbmsRemote extends Dbms {
 		String msg = io.readLine();
 		if (! msg.startsWith("Suneido Database Server"))
 			throw new SuException("invalid connect response: " + msg);
-		io.writeLine("BINARY");
+		writeLine("BINARY");
 		ok();
 	}
 
@@ -50,22 +51,35 @@ public class DbmsRemote extends Dbms {
 		io.close();
 	}
 
+	private void writeLine(String cmd) {
+		io.writeLine(cmd);
+		idleSince = 0;
+	}
+	private void writeLine(String cmd, String s) {
+		io.writeLine(cmd, s);
+		idleSince = 0;
+	}
+	private void writeLineBuf(String cmd, String s) {
+		io.writeLineBuf(cmd, s);
+		idleSince = 0;
+	}
+
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		io.writeLine("TRANSACTION", (readwrite ? "update" : "read"));
+		writeLine("TRANSACTION", (readwrite ? "update" : "read"));
 		int tn = readInt('T');
 		return new DbmsTranRemote(tn, !readwrite);
 	}
 
 	@Override
 	public void admin(String s) {
-		io.writeLine("ADMIN", s);
+		writeLine("ADMIN", s);
 		assert io.readLine().equals("t");
 	}
 
 	@Override
 	public DbmsQuery cursor(String s) {
-		io.writeLineBuf("CURSOR", "Q" + s.length());
+		writeLineBuf("CURSOR", "Q" + s.length());
 		trace(CLIENTSERVER, " => " + s);
 		io.write(s);
 		int cn = readInt('C');
@@ -74,7 +88,7 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		io.writeLine("LIBGET", name);
+		writeLine("LIBGET", name);
 		String s = io.readLine();
 		Scanner scan = new Scanner(s);
 		int n;
@@ -93,7 +107,7 @@ public class DbmsRemote extends Dbms {
 	}
 
 	private Iterable<String> readList(String cmd) {
-		io.writeLine(cmd);
+		writeLine(cmd);
 		String s = io.readLine();
 		return splitList(s);
 	}
@@ -133,7 +147,7 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public Date timestamp() {
-		io.writeLine("TIMESTAMP");
+		writeLine("TIMESTAMP");
 		String s = io.readLine();
 		Date date = Ops.stringToDate(s);
 		if (date == null)
@@ -143,68 +157,68 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public void dump(String filename) {
-		io.writeLine("DUMP", filename);
+		writeLine("DUMP", filename);
 		ok();
 	}
 
 	@Override
 	public void copy(String filename) {
-		io.writeLine("COPY", filename);
+		writeLine("COPY", filename);
 		ok();
 	}
 
 	@Override
 	public Object run(String s) {
-		io.writeLine("RUN", s);
+		writeLine("RUN", s);
 		return readValue();
 	}
 
 	@Override
 	public long size() {
-		io.writeLine("SIZE");
+		writeLine("SIZE");
 		return readLong('S');
 	}
 
 	@Override
 	public SuContainer connections() {
-		io.writeLine("CONNECTIONS");
+		writeLine("CONNECTIONS");
 		return (SuContainer) readValue();
 	}
 
 	@Override
 	public int cursors() {
-		io.writeLine("CURSORS");
+		writeLine("CURSORS");
 		return readInt('N');
 	}
 
 	@Override
 	public String sessionid(String s) {
-		io.writeLine("SESSIONID", s);
+		writeLine("SESSIONID", s);
 		return io.readLine();
 	}
 
 	@Override
 	public int finalSize() {
-		io.writeLine("FINAL");
+		writeLine("FINAL");
 		return readInt('N');
 	}
 
 	@Override
 	public void log(String s) {
-		io.writeLine("LOG", s);
+		writeLine("LOG", s);
 		ok();
 	}
 
 	@Override
 	public int kill(String s) {
-		io.writeLine("KILL", s);
+		writeLine("KILL", s);
 		return readInt('N');
 	}
 
 	@Override
 	public Object exec(SuContainer c) {
 		int n = c.packSize();
-		io.writeLineBuf("EXEC", "P" + n);
+		writeLineBuf("EXEC", "P" + n);
 		io.write(Pack.pack(c));
 		return readValue();
 	}
@@ -303,7 +317,7 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public String complete() {
 			isEnded = true;
-			io.writeLine("COMMIT", "T" + tn);
+			writeLine("COMMIT", "T" + tn);
 			String s = io.readLine();
 			return s.equals("OK") ? null : s;
 		}
@@ -311,13 +325,13 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public void abort() {
 			isEnded = true;
-			io.writeLine("ABORT", "T" + tn);
+			writeLine("ABORT", "T" + tn);
 			ok();
 		}
 
 		@Override
 		public int request(String s) {
-			io.writeLineBuf("REQUEST", "T" + tn + " Q" + s.length());
+			writeLineBuf("REQUEST", "T" + tn + " Q" + s.length());
 			trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return readInt('R');
@@ -325,7 +339,7 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public DbmsQuery query(String s) {
-			io.writeLineBuf("QUERY", "T" + tn + " Q" + s.length());
+			writeLineBuf("QUERY", "T" + tn + " Q" + s.length());
 			trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return new DbmsQueryRemote(readInt('Q'));
@@ -343,7 +357,7 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public void erase(int recadr) {
-			io.writeLine("ERASE", "T" + tn + " A" + recadr);
+			writeLine("ERASE", "T" + tn + " A" + recadr);
 			ok();
 		}
 
@@ -355,7 +369,7 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public HeaderAndRow get(Dir dir, String query, boolean one) {
-			io.writeLineBuf("GET1",
+			writeLineBuf("GET1",
 					(dir == Dir.PREV ? "- " : (one ? "1 " : "+ ")) +
 					"T" + tn + " Q" + query.length());
 			trace(CLIENTSERVER, "    " + query);
@@ -367,7 +381,7 @@ public class DbmsRemote extends Dbms {
 
 	private void writeRecord(String cmd, Record rec) {
 		rec = rec.squeeze();
-		io.writeLineBuf(cmd, " R" + rec.bufSize());
+		writeLineBuf(cmd, " R" + rec.bufSize());
 		io.write(rec.getBuffer());
 	}
 
@@ -398,7 +412,7 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public List<List<String>> keys() {
 			if (keys == null) {
-				io.writeLine("KEYS", toString());
+				writeLine("KEYS", toString());
 				String s = io.readLine();
 				s = s.substring(1, s.length() - 1); // remove outer parens
 				Iterable<String> list = splitList(s, Splitter.on("),("));
@@ -410,20 +424,20 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public Row get(Dir dir) {
-			io.writeLine("GET", (dir == Dir.NEXT ? "+ " : "- ") + " " + toString());
+			writeLine("GET", (dir == Dir.NEXT ? "+ " : "- ") + " " + toString());
 			HeaderAndRow hr = readRecord(false);
 			return hr == null ? null : hr.row;
 		}
 
 		@Override
 		public void rewind() {
-			io.writeLine("REWIND", toString());
+			writeLine("REWIND", toString());
 			ok();
 		}
 
 		@Override
 		public void close() {
-			io.writeLine("CLOSE", toString());
+			writeLine("CLOSE", toString());
 			ok();
 		}
 
@@ -446,7 +460,7 @@ public class DbmsRemote extends Dbms {
 
 		@Override
 		public String explain() {
-			io.writeLine("EXPLAIN", toString());
+			writeLine("EXPLAIN", toString());
 			return io.readLine();
 		}
 

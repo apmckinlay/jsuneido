@@ -7,7 +7,7 @@ import suneido.database.server.Dbms.LibGet;
 class Library {
 
 	static Object load(String name) {
-		if (! TheDbms.isOpen())
+		if (! TheDbms.isAvailable())
 			return null;
 		// System.out.println("LOAD " + name);
 		Object result = null;

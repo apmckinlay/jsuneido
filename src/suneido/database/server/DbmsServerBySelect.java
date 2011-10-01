@@ -9,8 +9,13 @@ import static suneido.util.Util.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -21,6 +26,9 @@ import suneido.util.ServerBySelect;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * Uses {@link suneido.util.ServerBySelect}
+ */
 public class DbmsServerBySelect {
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
