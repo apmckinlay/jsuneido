@@ -5,7 +5,10 @@ import static suneido.util.Util.array;
 
 import java.util.Map;
 
-import suneido.*;
+import suneido.SuException;
+import suneido.SuRecord;
+import suneido.SuValue;
+import suneido.TheDbms;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
@@ -234,10 +237,8 @@ public class SuTransaction extends SuValue {
 			} catch (BlockReturnException bre) {
 				t.block_complete();
 				throw bre;
-			} catch (SuException e) {
-				//e.printStackTrace();
+			} finally {
 				t.abort();
-				throw e;
 			}
 		}
 	};

@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import suneido.SuException;
 import suneido.intfc.database.Transaction;
 
 public class RequestTest extends TestBase {
@@ -96,7 +95,7 @@ public class RequestTest extends TestBase {
 		try {
 			Request.execute(db, serverData, "drop tmp extra");
 			fail("should have got an exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertEquals("syntax error at line 1: expected: EOF got: IDENTIFIER",
 					e.toString());
 		}

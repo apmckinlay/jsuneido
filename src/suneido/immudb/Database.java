@@ -11,7 +11,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
@@ -188,7 +187,7 @@ class Database implements suneido.intfc.database.Database {
 		UpdateTransaction t = readwriteTran();
 		try {
 			if (null != Views.getView(t, name))
-				throw new SuException("view: '" + name + "' already exists");
+				throw new RuntimeException("view: '" + name + "' already exists");
 			Views.addView(t, name, definition);
 			t.complete();
 		} finally {
@@ -207,7 +206,7 @@ class Database implements suneido.intfc.database.Database {
 
 	static void checkForSystemTable(String tablename, String operation) {
 		if (isSystemTable(tablename))
-			throw new SuException("can't " + operation +
+			throw new RuntimeException("can't " + operation +
 					" system table: " + tablename);
 	}
 

@@ -9,8 +9,6 @@ import static suneido.language.ExecuteTest.test;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.SuException;
-
 public class ClassTest {
 
 	@Before
@@ -225,7 +223,7 @@ public class ClassTest {
 		try {
 			compile("A", "class { New() { F(); super() } }");
 			fail("call to super must come first");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertEquals("call to super must come first", e.toString());
 		}
 	}
@@ -235,7 +233,7 @@ public class ClassTest {
 		try {
 			compile("A", "class { F() { super() } }");
 			fail("should only allow super(...) in New");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertEquals("super call only allowed in New", e.toString());
 		}
 	}
@@ -247,7 +245,7 @@ public class ClassTest {
 		try {
 			test("B.Fn()", "");
 			fail();
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assert(e.toString().contains("method not found"));
 		}
 	}
@@ -271,7 +269,7 @@ public class ClassTest {
 		try {
 			eval(expr);
 			fail();
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assert e.toString().startsWith("member not found");
 		}
 	}

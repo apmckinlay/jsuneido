@@ -14,6 +14,7 @@ public class CompileDump implements DumpReader.Processor {
 		new DumpReader("etalib.su", new CompileDump()).process();
 	}
 
+	@Override
 	public void schema(String s) {
 		if (s.contains("(name,text"))
 			iname = 0;
@@ -24,6 +25,7 @@ public class CompileDump implements DumpReader.Processor {
 		itext = iname + 1;
 	}
 
+	@Override
 	public void record(Record rec) {
 		String source = rec.getString(itext);
 		if (source.equals(""))
@@ -40,7 +42,7 @@ public class CompileDump implements DumpReader.Processor {
 //			return;
 		try {
 			Compiler.compile(name, source);
-		} catch (SuException e) {
+		} catch (RuntimeException e) {
 			if (e.toString().matches(".*(not support|can't find _).*"))
 				return;
 			//System.out.println(source);
@@ -49,10 +51,11 @@ public class CompileDump implements DumpReader.Processor {
 		} catch (Throwable e) {
 			//System.out.println(source);
 			//System.out.println("line " + lexer.getLineNumber());
-			throw new SuException("", e);
+			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
 	public void end() {
 	}
 

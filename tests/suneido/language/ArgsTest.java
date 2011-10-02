@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import suneido.SuContainer;
-import suneido.SuException;
 import suneido.SuRecord;
 import suneido.SuValue;
 
@@ -75,7 +74,7 @@ public class ArgsTest {
 		try {
 			Args.massage(f, args);
 			fail();
-		} catch (SuException e) {
+		} catch (Exception e) {
 		}
 	}
 

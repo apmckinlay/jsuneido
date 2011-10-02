@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.SuException;
 import suneido.database.Index.ForeignKey;
 import suneido.intfc.database.Fkmode;
 import suneido.util.ByteBuf;
@@ -114,7 +113,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			t.addRecord("test", record(1));
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("duplicate key: a"));
 		} finally {
 			t.ck_complete();
@@ -136,7 +135,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			t.updateRecord("test", "a", new Record().add(1), record(2));
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("update record: duplicate key: a"));
 		} finally {
 			t.ck_complete();
@@ -186,7 +185,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			t1.removeRecord("test", "a", key(1));
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
 		t1.ck_complete();
@@ -196,7 +195,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			t1.addRecord("test2", rec);
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
 	}
@@ -208,7 +207,7 @@ public class DatabaseTest extends TestBase {
 		try {
 			db.addIndex("test", "b", false, false, "foo", "", Fkmode.BLOCK);
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
 	}
@@ -234,7 +233,7 @@ public class DatabaseTest extends TestBase {
 			db.addIndex("test2", "f2", false, false, "test", "a",
 					Fkmode.BLOCK);
 			fail("expected exception");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertTrue(e.toString().contains("blocked by foreign key"));
 		}
 	}

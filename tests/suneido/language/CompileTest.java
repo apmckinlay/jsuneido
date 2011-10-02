@@ -8,8 +8,6 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 
-import suneido.SuException;
-
 public class CompileTest {
 //TODO	@Test
 	public void blocks() {
@@ -418,7 +416,7 @@ public class CompileTest {
 		try {
 			test("a = super.y", "");
 			fail("invalid use of super");
-		} catch (SuException e) {
+		} catch (Exception e) {
 			assertEquals("syntax error at line 1: invalid use of super", e.toString());
 		}
 

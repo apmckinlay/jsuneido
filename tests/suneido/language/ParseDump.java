@@ -15,6 +15,7 @@ public class ParseDump implements DumpReader.Processor {
 		new DumpReader("etalib.su", new ParseDump()).process();
 	}
 
+	@Override
 	public void schema(String s) {
 		if (s.contains("(name,text"))
 			name = 0;
@@ -25,6 +26,7 @@ public class ParseDump implements DumpReader.Processor {
 		text = name + 1;
 	}
 
+	@Override
 	public void record(Record rec) {
 		String source = rec.getString(text);
 		if (source.equals(""))
@@ -38,18 +40,19 @@ public class ParseDump implements DumpReader.Processor {
 				new ParseConstant<String, Generator<String>>(lexer, generator);
 		try {
 			pc.parse();
-		} catch (SuException e) {
+		} catch (RuntimeException e) {
 			if (e.toString().contains("not supported"))
 				return;
 			//System.out.println(source);
 			throw e;
-		} catch (RuntimeException e) {
+		} catch (Throwable e) {
 			//System.out.println(source);
 			System.out.println("line " + lexer.getLineNumber());
-			throw e;
+			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
 	public void end() {
 	}
 
