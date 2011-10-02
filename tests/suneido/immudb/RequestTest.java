@@ -231,6 +231,14 @@ public class RequestTest {
 		request("create ETAHelp (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
 	}
 
+	@Test
+	public void ensure_readonly() {
+		request("ensure tbl " + SCHEMA);
+		ExclusiveTransaction t = db.exclusiveTran();
+		request("ensure tbl " + SCHEMA);
+		t.abort();
+	}
+
 	@After
 	public void check() {
 		assertThat(DbCheck.check(stor), is(Status.OK));

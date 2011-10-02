@@ -157,7 +157,7 @@ class Database implements suneido.intfc.database.Database {
 		checkForSystemTable(tableName, "ensure");
 		return schema.get(tableName) == null
 			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
-			: TableBuilder.alter(exclusiveTran(), tableName);
+			: TableBuilder.alter(readonlyTran(), tableName);
 	}
 
 	@Override
