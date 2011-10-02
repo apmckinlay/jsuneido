@@ -16,7 +16,7 @@ class Library {
 			try {
 				result = Compiler.compile(name, src);
 				Globals.put(name, result); // needed inside loop for overloading
-			} catch (SuException e) {
+			} catch (Exception e) {
 				throw new SuException("error loading " + name, e);
 			}
 		}

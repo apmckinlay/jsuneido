@@ -37,7 +37,7 @@ public class Triggers {
 			Ops.call(fn, t,
 					oldrec == null ? false : new SuRecord(oldrec, table.getFields(), t),
 					newrec == null ? false : new SuRecord(newrec, table.getFields(), t));
-		} catch (SuException e) {
+		} catch (Exception e) {
 			//e.printStackTrace();
 			throw new SuException(e + " (" + trigger + ")", e);
 		}

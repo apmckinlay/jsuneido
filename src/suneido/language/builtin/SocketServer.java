@@ -98,7 +98,7 @@ public class SocketServer extends SuClass {
 			try {
 				super.lookup("New").eval0(this);
 				super.lookup("Run").eval0(this);
-			} catch (SuException e) {
+			} catch (Exception e) {
 				Suneido.errlog("exception in SocketServer", e);
 			} finally {
 				socket.close();

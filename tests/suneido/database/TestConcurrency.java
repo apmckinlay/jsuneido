@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
@@ -147,7 +146,7 @@ public class TestConcurrency {
 			nAddColumns.incrementAndGet();
 			try {
 				db.addColumn(tablename, "z");
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				nAddColumnFailed.incrementAndGet();
 				throwUnexpected(e);
 			}
@@ -159,7 +158,7 @@ public class TestConcurrency {
 				TableBuilder tb = db.alterTable(tablename);
 				tb.dropColumn("z");
 				tb.finish();
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				nRemoveColumnFailed.incrementAndGet();
 				throwUnexpected(e);
 			}
@@ -202,7 +201,7 @@ public class TestConcurrency {
 			Transaction t = db.readwriteTran();
 			try {
 				t.addRecord(tablename, record());
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				throwUnexpected(e);
 			} finally {
 				if (t.complete() != null)
@@ -219,7 +218,7 @@ public class TestConcurrency {
 						+ " set c = " + random(N));
 				((QueryAction) q).execute();
 				t.ck_complete();
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				nupdatesfailed.incrementAndGet();
 				t.abort();
 				throwUnexpected(e);
@@ -305,7 +304,7 @@ public class TestConcurrency {
 					t.create_act(123, 456); // otherwise doesn't commit
 					break;
 				}
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				throwUnexpected(e);
 			} finally {
 				if (t.complete() != null)
@@ -352,7 +351,7 @@ public class TestConcurrency {
 				Row r = q.get(Dir.NEXT);
 				Record rec = (Record) r.firstData();
 				t.updateRecord(rec.address(), rec);
-			} catch (SuException e) {
+			} catch (RuntimeException e) {
 				throwUnexpected(e);
 			}
 			if (t.complete() != null)
@@ -374,7 +373,7 @@ public class TestConcurrency {
 		return r;
 	}
 
-	private static void throwUnexpected(SuException e) {
+	private static void throwUnexpected(RuntimeException e) {
 		if (! e.toString().contains("conflict")
 				&& ! e.toString().contains("aborted")
 				&& ! e.toString().contains("ended")

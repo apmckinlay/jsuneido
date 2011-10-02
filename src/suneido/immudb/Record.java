@@ -10,7 +10,6 @@ import static suneido.SuException.unreachable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.SuException;
 import suneido.language.Pack;
 
 import com.google.common.base.Objects;
@@ -247,7 +246,7 @@ class Record implements suneido.intfc.database.Record {
 	public int getInt(int i) {
 		long n = getLong(i);
 		if (n < Integer.MIN_VALUE || Integer.MAX_VALUE < n)
-			throw new SuException("Record getInt value out of range");
+			throw new RuntimeException("Record getInt value out of range");
 		return (int) n;
 	}
 

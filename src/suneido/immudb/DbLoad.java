@@ -15,7 +15,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
 import suneido.DbTools;
-import suneido.SuException;
 import suneido.database.query.Request;
 
 class DbLoad {
@@ -41,7 +40,7 @@ class DbLoad {
 			verifyFileHeader(in);
 			String schema = readTableHeader(in);
 			if (schema == null)
-				throw new SuException("not a valid dump file");
+				throw new RuntimeException("not a valid dump file");
 			schema = "create " + tablename + schema.substring(6);
 			db.dropTable(tablename);
 			return load1(db, in, schema);
@@ -54,7 +53,7 @@ class DbLoad {
 			throws IOException {
 		String s = getline(in);
 		if (s == null || ! s.startsWith("Suneido dump"))
-			throw new SuException("not a valid dump file");
+			throw new RuntimeException("not a valid dump file");
 	}
 
 	private static String readTableHeader(ReadableByteChannel in)
