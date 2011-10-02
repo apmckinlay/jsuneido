@@ -27,9 +27,9 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static final String CANT_DROP = "can't drop ";
 	static final String CANT_RENAME = "can't rename ";
 	static final String TO_EXISTING = "to existing column";
+	private ReadTransaction t;
 	private final String tableName;
 	private final int tblnum;
-	private final ExclusiveTransaction t;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
 
@@ -41,23 +41,30 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return tb;
 	}
 
-	static TableBuilder alter(ExclusiveTransaction t, String tableName) {
-		Table table = t.getTable(tableName);
-		if (table == null)
-			fail(t, NONEXISTENT_TABLE + ": " + tableName);
-		TableBuilder tb = new TableBuilder(t, tableName, table.num);
-		tb.getSchema();
-		return tb;
+	static TableBuilder alter(ReadTransaction rt, String tableName) {
+		return new TableBuilder(rt, tableName);
 	}
 
-	private TableBuilder(ExclusiveTransaction t, String tblname, int tblnum) {
-		this.t = t;
-		this.tableName = tblname;
+	private TableBuilder(ReadTransaction et, String tableName, int tblnum) {
+		this.t = et;
+		this.tableName = tableName;
 		this.tblnum = tblnum;
 	}
 
+	private TableBuilder(ReadTransaction t, String tableName) {
+		this(t, tableName, tblnum(t, tableName));
+		getSchema();
+	}
+
+	private static int tblnum(ReadTransaction t, String tableName) {
+		Table table = t.getTable(tableName);
+		if (table == null)
+			fail(t, NONEXISTENT_TABLE + ": " + tableName);
+		return table.num;
+	}
+
 	private void createTable() {
-		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
+		et().addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
 	static boolean dropTable(ExclusiveTransaction t, String tableName) {
@@ -105,19 +112,26 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public TableBuilder ensureColumn(String column) {
 		if (! hasColumn(column))
-			addColumn(column);
+			addColumn2(column);
 		return this;
 	}
 
 	@Override
 	public TableBuilder addColumn(String column) {
+		if (hasColumn(column))
+			throw new RuntimeException("add column: column already exists: "
+					+ column + " in " + tableName);
+		addColumn2(column);
+		return this;
+	}
+
+	public void addColumn2(String column) {
 		int field = isRuleField(column) ? -1 : nextColNum();
 		if (field == -1)
 			column = column.substring(0, 1).toLowerCase() + column.substring(1);
 		Column c = new Column(tblnum, field, column);
-		t.addRecord(TN.COLUMNS, c.toRecord());
+		et().addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
-		return this;
 	}
 
 	private static boolean isRuleField(String column) {
@@ -174,21 +188,29 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (! hasIndex(columnNames))
-			addIndex(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+			addIndex2(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
 
 	@Override
 	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
+		if (hasIndex(columnNames))
+			throw new RuntimeException("add index: index already exists: " +
+					columnNames + " in " + tableName);
+		addIndex2(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+		return this;
+	}
+
+	public void addIndex2(String columnNames, boolean isKey, boolean unique,
+			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(columnNames);
 		Index index = new Index(tblnum, colNums, isKey, unique,
 				fktable, fkcolumns, fkmode);
-		t.addRecord(TN.INDEXES, index.toRecord());
+		et().addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
 		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
-			t.addIndex(tblnum, index.colNums);
-		return this;
+			et().addIndex(tblnum, index.colNums);
 	}
 
 	@Override
@@ -276,7 +298,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void updateSchema() {
 		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
-		t.updateSchemaTable(new Table(tblnum, tableName,
+		et().updateSchemaTable(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
 	}
@@ -287,8 +309,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
 		Btree.Iter iter = src.iterator();
-		Btree btree = t.addIndex(tblnum, newIndex.colNums);
-		IndexedData id = new IndexedData(t)
+		Btree btree = et().addIndex(tblnum, newIndex.colNums);
+		IndexedData id = new IndexedData(et())
 				.index(btree, newIndex.mode(), newIndex.colNums, newIndex.fksrc,
 						t.getForeignKeys(tableName,
 								table.numsToNames(newIndex.colNums)));
@@ -306,7 +328,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		TableInfo ti = t.getTableInfo(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
-		t.addTableInfo(new TableInfo(tblnum,
+		et().addTableInfo(new TableInfo(tblnum,
 				maxColNum() + 1, nrows, totalsize, ii.build()));
 	}
 
@@ -321,20 +343,32 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void fail(String msg) {
 		fail(t, msg);
 	}
-	private static void fail(ExclusiveTransaction t, String msg) {
+	private static void fail(ReadTransaction t, String msg) {
 		t.abort();
 		throw new RuntimeException(msg);
 	}
 
 	@Override
 	public void finish() {
-		build();
+		if (t instanceof ExclusiveTransaction)
+			build();
 		t.complete();
 	}
 
 	@Override
 	public void abortUnfinished() {
 		t.abortIfNotComplete();
+	}
+
+	private ExclusiveTransaction et() {
+		if (t instanceof ExclusiveTransaction)
+			return (ExclusiveTransaction) t;
+		else {
+			ExclusiveTransaction et = t.db.exclusiveTran();
+			t.complete();
+			t = et;
+			return et;
+		}
 	}
 
 }

@@ -1,9 +1,8 @@
 package suneido.database.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -51,6 +50,30 @@ public class RequestTest extends TestBase {
 
 		Request.execute(db, serverData, "drop tmp");
 		assertNull(db.getSchema("tmp"));
+	}
+
+	@Test
+	public void test_ensure() {
+		Request.execute(db, "create xxx (a,b,c) key(a) index(b)");
+		Request.execute(db, "ensure xxx (b,c,d) index(b) index(c) index(d)");
+		assertThat(db.getSchema("xxx"),
+				is("(a,b,c,d) key(a) index(b) index(c) index(d)"));
+	}
+
+	@Test
+	public void test_existing() {
+		Request.execute(db, "create xxx (a,b,c) key(a) index(b)");
+		shouldFail("alter xxx create (b)", "column already exists");
+		shouldFail("alter xxx create index(b)", "index already exists");
+	}
+
+	private void shouldFail(String request, String expected) {
+		try {
+			Request.execute(db, request);
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString(expected));
+		}
 	}
 
 	@Test
