@@ -4,10 +4,10 @@ public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
 	private int arg_i = 0;
-	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, CLIENT
-	}
+	public enum Action
+		{ REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
+		ERROR, TESTCLIENT, TESTSERVER, CLIENT,
+		LOAD2, COMPACT2, REBUILD2 }
 	public Action action;
 	public String actionArg = null;
 	public int serverPort = -1;
@@ -52,13 +52,24 @@ public class CommandLineOptions {
 				setActionWithArg(Action.DUMP);
 			else if (arg.equals("-load") || arg.equals("-l"))
 				setActionWithArg(Action.LOAD);
-			else if (arg.equals("-check"))
+			else if (arg.startsWith("-load:")) {
+				setActionWithArg(Action.LOAD2);
+				actionArg = arg.substring(6);
+			} else if (arg.startsWith("-check")) {
 				setAction(Action.CHECK);
-			else if (arg.equals("-rebuild"))
+				if (arg.startsWith("-check:"))
+					actionArg = arg.substring(7);
+			} else if (arg.equals("-rebuild"))
 				setAction(Action.REBUILD);
-			else if (arg.equals("-compact"))
+			else if (arg.startsWith("-rebuild:")) {
+				setAction(Action.REBUILD2);
+				actionArg = arg.substring(9);
+			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);
-			else if (arg.equals("-tests") || arg.equals("-t"))
+			else if (arg.startsWith("-compact:")) {
+				setAction(Action.COMPACT2);
+				actionArg = arg.substring(9);
+			} else if (arg.equals("-tests") || arg.equals("-t"))
 				setAction(Action.TEST);
 			else if (arg.equals("-version") || arg.equals("-v"))
 				setAction(Action.VERSION);

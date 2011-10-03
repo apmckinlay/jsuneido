@@ -78,9 +78,11 @@ class Database implements suneido.intfc.database.Database {
 
 	static Database open(String filename, Mode mode) {
 		Destination dest = new Mmfile(filename, mode);
-		return Session.check_shutdown(dest)
-			? new Database(dest, mode)
-			: null;
+		if (! Session.check_shutdown(dest)) {
+			dest.close();
+			return null;
+		}	
+		return new Database(dest, mode);
 	}
 
 	private Database(Destination dest, Mode mode) {

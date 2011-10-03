@@ -54,7 +54,8 @@ class DbCheck {
 				status = Status.CORRUPTED;
 		}
 		print(details);
-		println(dbFilename + " " + status + " " + lastCommit(status));
+		println((dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") +
+				status + " " + lastCommit(status));
 		return status;
 	}
 
