@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuException;
 import suneido.language.Lexer;
 
 
@@ -54,17 +53,17 @@ public class ParseQueryTest {
 		}
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void bad() {
 		parse("");
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void empty_join_by() {
 		parse("a join by() b");
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void empty_leftjoin_by() {
 		parse("a leftjoin by() b");
 	}

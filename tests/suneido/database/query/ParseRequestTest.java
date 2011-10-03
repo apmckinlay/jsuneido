@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuException;
 import suneido.language.Lexer;
 
 
@@ -40,7 +39,7 @@ public class ParseRequestTest {
 		assertEquals(result, parse(request));
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void bad() {
 		parse("create a key(b)"); // no columns
 	}
