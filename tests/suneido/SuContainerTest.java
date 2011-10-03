@@ -1,6 +1,8 @@
 package suneido;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.Pack.pack;
 import static suneido.language.Pack.unpack;
 import static suneido.util.Util.bufferToHex;
@@ -163,14 +165,14 @@ public class SuContainerTest {
 		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", bufferToHex(buf).replace(" ", ""));
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void packNest() {
 		SuContainer c = new SuContainer();
 		c.add(c);
 		c.packSize();
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void hashCodeNest() {
 		SuContainer c = new SuContainer();
 		c.add(c);

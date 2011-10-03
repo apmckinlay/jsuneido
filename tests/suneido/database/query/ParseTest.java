@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuException;
 import suneido.Suneido;
 import suneido.intfc.database.TableBuilder;
 import suneido.intfc.database.Transaction;
@@ -93,17 +92,17 @@ public class ParseTest extends TestBase {
 		tb.finish();
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void lexer_error() {
 		CompileQuery.parse(db, serverData, "test where x = 1e~3");
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void queryEof() {
 		CompileQuery.parse(db, serverData, "test 123");
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void exprEof() {
 		CompileQuery.expr("x + 1 y");
 	}

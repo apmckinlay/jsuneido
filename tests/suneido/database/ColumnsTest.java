@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuException;
-
 import com.google.common.collect.ImmutableList;
 
 public class ColumnsTest {
@@ -16,7 +14,7 @@ public class ColumnsTest {
 		assertEquals(ImmutableList.of(3, 2), columns.nums("c,b"));
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void column_not_found() {
 		Columns columns = new Columns(ImmutableList.of(new Column("c", 3)));
 		columns.nums("a,b");

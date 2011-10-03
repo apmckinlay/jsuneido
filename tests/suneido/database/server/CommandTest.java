@@ -19,7 +19,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.internal.matchers.Matches;
 
-import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
@@ -104,7 +103,7 @@ public class CommandTest {
 		assertTrue(serverData.isEmpty());
 	}
 
-	@Test(expected = SuException.class)
+	@Test(expected = RuntimeException.class)
 	public void badcursor() {
 		Command.CURSOR.execute(null,
 				stringToBuffer("tables sort totalsize"),
