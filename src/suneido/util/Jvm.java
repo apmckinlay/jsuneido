@@ -9,11 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import suneido.SuException;
-
 public class Jvm {
 
-	public static boolean runWithNewJvm(String cmd) throws InterruptedException {
+	public static boolean runWithNewJvm(String cmd) {
 		String javaHome = System.getProperty("java.home");
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();
@@ -33,12 +31,15 @@ public class Jvm {
 			}
 			return 0 == process.waitFor();
 		} catch (IOException e) {
-			throw new SuException("unable to runWithNewJvm: " + javaBin +
+			throw new RuntimeException("unable to runWithNewJvm: " + javaBin +
 					" -jar " + jarPath + " " + cmd, e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("runWithNewJvm interrupted", e);
 		}
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) {
 		System.out.println("success? " + runWithNewJvm("-load:fred"));
 	}
 

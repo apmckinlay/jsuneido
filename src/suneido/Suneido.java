@@ -112,14 +112,24 @@ public class Suneido {
 			else
 				DbTools.loadDatabasePrint(dbpkg, dbFilename, "database.su");
 			break;
+		case LOAD2:
+			DbTools.load2(dbpkg, cmdlineoptions.actionArg);
+			break;
 		case CHECK:
-			DbTools.checkPrintExit(dbpkg, dbFilename);
+			DbTools.checkPrintExit(dbpkg, cmdlineoptions.actionArg == null 
+					? dbFilename : cmdlineoptions.actionArg);
 			break;
 		case REBUILD:
 			DbTools.rebuildOrExit(dbpkg, dbFilename);
 			break;
+		case REBUILD2:
+			DbTools.rebuild2(dbpkg, cmdlineoptions.actionArg);
+			break;
 		case COMPACT:
 			DbTools.compactPrintExit(dbpkg, dbFilename);
+			break;
+		case COMPACT2:
+			DbTools.compact2(dbpkg, cmdlineoptions.actionArg);
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());

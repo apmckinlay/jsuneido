@@ -4,6 +4,8 @@
 
 package suneido;
 
+import static suneido.Suneido.errlog;
+import static suneido.Suneido.fatal;
 import static suneido.intfc.database.DatabasePackage.printObserver;
 
 import java.io.File;
@@ -16,8 +18,10 @@ import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.FileUtils;
+import suneido.util.Jvm;
 
 public class DbTools {
+	private static final String SEPARATOR = "!!";
 
 	public static void dumpDatabasePrint(DatabasePackage dbpkg, String dbFilename,
 			String outputFilename) {
@@ -74,20 +78,30 @@ public class DbTools {
 	public static void loadDatabasePrint(DatabasePackage dbpkg, String dbFilename,
 			String filename) {
 		File tempfile = FileUtils.tempfile();
-		Database db = dbpkg.create(tempfile.getPath());
+		if (! Jvm.runWithNewJvm("-load:" + filename + SEPARATOR + tempfile))
+			System.exit(-1);
+		if (! Jvm.runWithNewJvm("-check:" + tempfile))
+			fatal("Check failed after Load " + dbFilename);
+		FileUtils.renameWithBackup(tempfile, dbFilename);
+	}
+	
+	static void load2(DatabasePackage dbpkg, String arg) {
+		int i = arg.indexOf(SEPARATOR);
+		String filename = arg.substring(0, i);
+		String tempfile = arg.substring(i + SEPARATOR.length());
+		Database db = dbpkg.create(tempfile);
 		try {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {
 				int n = dbpkg.loadDatabase(db, fin);
-				db.close();
-				FileUtils.renameWithBackup(tempfile, dbFilename);
-				System.out.println("loaded " + n + " tables from " + filename +
-						" into new " + dbFilename);
+				System.out.println("loaded " + n + " tables from " + filename);
 			} finally {
 				fin.close();
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("load failed", e);
+		} finally {
+			db.close();
 		}
 	}
 
@@ -111,7 +125,6 @@ public class DbTools {
 		} finally {
 			db.close();
 		}
-
 	}
 
 	public static void checkPrintExit(DatabasePackage dbpkg, String dbFilename) {
@@ -120,23 +133,32 @@ public class DbTools {
 	}
 
 	public static Status checkPrint(DatabasePackage dbpkg, String dbFilename) {
-		System.out.println("Checking " + dbFilename + " ...");
+		System.out.println("Checking " + 
+				(dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") + "...");
 		return dbpkg.check(dbFilename, printObserver);
 	}
 
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
-		System.out.println("Checking " + dbFilename + " ...");
-		Status status = dbpkg.check(dbFilename, printObserver);
-		if (status != Status.OK)
+		if (! Jvm.runWithNewJvm("-check:" + dbFilename))
 			System.exit(-1);
+		File tempfile = FileUtils.tempfile();
+		if (! Jvm.runWithNewJvm("-compact:" + dbFilename + SEPARATOR + tempfile))
+			System.exit(-1);
+		if (! Jvm.runWithNewJvm("-check:" + tempfile))
+			fatal("Check failed after Compact " + dbFilename);
+		FileUtils.renameWithBackup(tempfile, dbFilename);
+	}
+	
+	static void compact2(DatabasePackage dbpkg, String arg) {
+		int i = arg.indexOf(SEPARATOR);
+		String dbFilename = arg.substring(0, i);
+		String tempfile = arg.substring(i + SEPARATOR.length());
 		Database srcdb = dbpkg.openReadonly(dbFilename);
 		try {
-			File tempfile = FileUtils.tempfile();
-			Database dstdb = dbpkg.create(tempfile.getPath());
+			Database dstdb = dbpkg.create(tempfile);
 			try {
 				System.out.println("Compacting...");
 				int n = dbpkg.compact(srcdb, dstdb);
-				FileUtils.renameWithBackup(tempfile, dbFilename);
 				System.out.println("Compacted " + n + " tables in " + dbFilename);
 			} finally {
 				dstdb.close();
@@ -144,21 +166,28 @@ public class DbTools {
 		} finally {
 			srcdb.close();
 		}
-		System.exit(0);
 	}
 
 	public static void rebuildOrExit(DatabasePackage dbpkg, String dbFilename) {
 		System.out.println("Rebuilding " + dbFilename + " ...");
 		File tempfile = FileUtils.tempfile();
-		String result = dbpkg.rebuild(dbFilename, tempfile.getPath());
+		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
+			fatal("Rebuild failed " + dbFilename);
+		if (! Jvm.runWithNewJvm("-check:" + tempfile))
+			fatal("Check failed after Rebuild " + dbFilename);
+		FileUtils.renameWithBackup(tempfile, dbFilename);
+	}
+	
+	static void rebuild2(DatabasePackage dbpkg, String arg) {
+		int i = arg.indexOf(SEPARATOR);
+		String dbFilename = arg.substring(0, i);
+		String tempfile = arg.substring(i + SEPARATOR.length());
+		String result = dbpkg.rebuild(dbFilename, tempfile);	
 		if (result == null)
-			Suneido.fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
-		else if (Status.OK != dbpkg.check(tempfile.getPath(), printObserver))
-			Suneido.fatal("Check failed after rebuild " + dbFilename + " " + result);
+			fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
 		else {
-			Suneido.errlog("Rebuilt " + dbFilename + " " + result);
+			errlog("Rebuilt " + dbFilename + " " + result);
 			System.out.println("Rebuild SUCCEEDED");
-			FileUtils.renameWithBackup(tempfile, dbFilename);
 		}
 	}
 
