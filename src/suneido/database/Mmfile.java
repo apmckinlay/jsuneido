@@ -191,13 +191,13 @@ class Mmfile extends Destination {
 
 	@Override
 	synchronized void force() {
-		try {
-			for (int i = 0; i <= hi_chunk; ++i)
-				if (fm[i] != null)
+		for (int i = 0; i <= hi_chunk; ++i)
+			if (fm[i] != null)
+				try {
 					fm[i].force();
-		} catch (Exception e) {
-			errlog("error from MappedByteBuffer.force " + e);
-		}
+				} catch (Exception e) {
+					// ignore intermittent IoExceptions on Windows
+				}
 	}
 
 	@Override
