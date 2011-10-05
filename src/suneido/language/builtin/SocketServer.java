@@ -66,8 +66,8 @@ public class SocketServer extends SuClass {
 
 		@Override
 		public void run() {
-			ServerBySocket server =	new ServerBySocket(executor,
-					new ListenerHandlerFactory());
+			ServerBySocket server =	
+					new ServerBySocket(executor, new ListenerHandlerFactory());
 			try {
 				server.run(port);
 			} catch (IOException e) {
@@ -77,20 +77,18 @@ public class SocketServer extends SuClass {
 
 		private class ListenerHandlerFactory implements HandlerFactory {
 			@Override
-			public Runnable newHandler(Socket socket, String address) throws IOException {
-				return new Instance(serverClass, socket, address);
+			public Runnable newHandler(Socket socket) throws IOException {
+				return new Instance(serverClass, socket);
 			}
 		}
 	}
 
 	static class Instance extends SuInstance implements Runnable {
 		final SocketClient socket;
-		final String address;
 
-		Instance(SuClass serverClass, Socket socket, String address) throws IOException {
+		Instance(SuClass serverClass, Socket socket) throws IOException {
 			super(serverClass);
 			this.socket = new SocketClient(socket);
-			this.address = address;
 		}
 
 		@Override
@@ -125,7 +123,7 @@ public class SocketServer extends SuClass {
 		private final SuValue RemoteUser = new SuMethod0() {
 			@Override
 			public Object eval0(Object self) {
-				return address;
+				return socket.getInetAddress();
 			}
 		};
 

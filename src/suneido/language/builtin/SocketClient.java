@@ -7,7 +7,9 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 
 import java.io.*;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -200,5 +202,9 @@ public class SocketClient extends SuValue {
 			}
 		}
 	};
+
+	public String getInetAddress() {
+		return socket.getInetAddress().getHostAddress();
+	}
 
 }

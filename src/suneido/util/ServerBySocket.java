@@ -3,7 +3,6 @@ package suneido.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executor;
@@ -21,7 +20,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ServerBySocket {
 	private final Executor executor;
 	private final HandlerFactory handlerFactory;
-	private InetAddress inetAddress;
 
 	public ServerBySocket(HandlerFactory handlerFactory) {
 		this(Executors.newCachedThreadPool(), handlerFactory);
@@ -35,29 +33,24 @@ public class ServerBySocket {
 	public void run(int port) throws IOException {
 		ServerSocket serverSocket = new ServerSocket(port);
 		serverSocket.setReuseAddress(true);
-		inetAddress = serverSocket.getInetAddress();
 		while (true) {
 			Socket clientSocket = serverSocket.accept();
 			// disable Nagle since we don't have gathering write
 			clientSocket.setTcpNoDelay(true);
-			Runnable handler = handlerFactory.newHandler(clientSocket, inetAddress.toString());
+			Runnable handler = handlerFactory.newHandler(clientSocket);
 			executor.execute(handler);
 		}
 	}
 
-	public InetAddress getInetAddress() {
-		return inetAddress;
-	}
-
 	public interface HandlerFactory {
-		Runnable newHandler(Socket socket, String address) throws IOException;
+		Runnable newHandler(Socket socket) throws IOException;
 	}
 
 	//==========================================================================
 
 	static class EchoHandlerFactory implements HandlerFactory {
 		@Override
-		public Runnable newHandler(Socket socket, String address) throws IOException {
+		public Runnable newHandler(Socket socket) throws IOException {
 			return new EchoHandler(socket);
 		}
 	}
