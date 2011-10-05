@@ -207,7 +207,7 @@ public class ServerBySelect {
 	private static boolean write3(SelectionKey key) throws IOException {
 		// this synchronized should not be necessary
 		// but it seems to prevent problems with garbage being sent sometimes
-		synchronized(ServerBySocket.class) {
+		synchronized(ServerBySelect.class) {
 			return channelWrite(key);
 		}
 	}
