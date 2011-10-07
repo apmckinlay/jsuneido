@@ -85,6 +85,9 @@ class DbCompact {
 		return n;
 	}
 
+	// TODO do NOT use DbLoad.createIndexes
+	// create each index by reading via the same index in the source
+	// so that keys are added optimally in order
 	private void copyTable(String tablename) {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
