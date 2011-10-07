@@ -231,7 +231,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	}
 
 	@Override
-	public suneido.intfc.database.Record lookup(
+	public Record lookup(
 			int tblnum, String index, suneido.intfc.database.Record key) {
 		Btree bti = getIndex(tblnum, index);
 		if (bti == null)
