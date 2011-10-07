@@ -28,5 +28,7 @@
 -keep class suneido.immudb.Database
 -keep class suneido.immudb.ReadTransaction
 -keep class suneido.immudb.Record
+-keep class suneido.immudb.Table
+-keep class suneido.immudb.DbHashTrie
 
 -dontnote com.google.common.**
