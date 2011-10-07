@@ -64,6 +64,9 @@ public class RequestTest extends TestBase {
 		Request.execute(db, "create xxx (a,b,c) key(a) index(b)");
 		shouldFail("alter xxx create (b)", "column already exists");
 		shouldFail("alter xxx create index(b)", "index already exists");
+
+		Request.execute(db, "create yyy (k) key(k)");
+		shouldFail("rename yyy to xxx", "exist");
 	}
 
 	private void shouldFail(String request, String expected) {
