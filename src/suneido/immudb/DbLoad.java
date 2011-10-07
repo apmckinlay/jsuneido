@@ -136,7 +136,6 @@ class DbLoad {
 		long t = System.currentTimeMillis();
 		DbTools.loadDatabasePrint(DatabasePackage.dbpkg, "immu.db", "database.su");
 		System.out.println((System.currentTimeMillis() - t) + " ms");
-		//loadTablePrint("gl_transactions", 'immu.db");
 		DbTools.checkPrint(DatabasePackage.dbpkg, "immu.db");
 	}
 
