@@ -93,6 +93,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
 			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
+		if (t.getTable(to) != null)
+			fail(t, CANT_RENAME + " to existing table name");
 		t.dropTableSchema(oldTable);
 		Table newTable = new Table(oldTable.num, to,
 				new Columns(ImmutableList.copyOf(oldTable.columns)),
