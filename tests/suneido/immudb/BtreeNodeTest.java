@@ -4,8 +4,12 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static suneido.immudb.BtreeTest.randomKeys;
 import static suneido.immudb.BtreeTest.record;
 
@@ -173,7 +177,7 @@ public class BtreeNodeTest {
 
 	private static boolean equals(BtreeNode node, String... keys) {
 		for (int i = 0; i < keys.length; ++i)
-			if (!node.get(i).equals(record(keys[i])))
+			if (! node.get(i).equals(record(keys[i])))
 				return false;
 		return true;
 	}
@@ -216,6 +220,78 @@ public class BtreeNodeTest {
 		node.pack(buf);
 		BtreeNode dbnode = new BtreeDbNode(0, buf);
 		assertThat(dbnode, is((BtreeNode) node));
+	}
+
+	@Test
+	public void mimimize() {
+		Record k = new RecordBuilder().add("a").add("b").adduint(7685).build();
+		Record m = new RecordBuilder().addMin().addMin().adduint(7685).build();
+		assertThat(BtreeNode.minimize(k), is(m));
+		assertFalse(BtreeNode.isMinimalKey(k));
+		assertTrue(BtreeNode.isMinimalKey(m));
+	}
+
+	@Test
+	public void split_leaf_at_end() {
+		BtreeNode node = node("a", "b", "c");
+		Tran tran = mock(Tran.class);
+		when(tran.refToInt(anyObject())).thenReturn(456);
+		Btree.Split split = node.split(tran, key("d"), 999);
+		verify(tran).refToInt(node("d"));
+		assertThat(split.key, is(key("d", 456)));
+
+		BtreeNode root = BtreeMemNode.newRoot(tran, split);
+		assertThat(root, is(node(1, key("c", 999), key("d", 456))));
+	}
+
+	@Test
+	public void split_with_key_in_left() {
+		BtreeNode node = node("a", "c", "e", "g");
+		Tran tran = mock(Tran.class);
+		when(tran.refToInt(anyObject())).thenReturn(456);
+		Btree.Split split = node.split(tran, key("b"), 999);
+		verify(tran).redir(999, node("a", "b", "c"));
+		verify(tran).refToInt(node("e", "g"));
+		assertThat(split.key, is(key("e", 456)));
+
+		BtreeNode root = BtreeMemNode.newRoot(tran, split);
+		assertThat(root, is(node(1, min(999), key("e", 456))));
+	}
+
+	@Test
+	public void split_with_key_in_right() {
+		BtreeNode node = node("a", "c", "e", "g");
+		Tran tran = mock(Tran.class);
+		when(tran.refToInt(anyObject())).thenReturn(456);
+		Btree.Split split = node.split(tran, key("f"), 999);
+		verify(tran).redir(999, node("a", "c"));
+		verify(tran).refToInt(node("e", "f", "g"));
+		assertThat(split.key, is(key("e", 456)));
+	}
+
+	private static BtreeNode node(String... args) {
+		return node(0, args);
+	}
+	private static BtreeNode node(int level, String... args) {
+		Record keys[] = new Record[args.length];
+		for (int i = 0; i < args.length; ++i)
+			keys[i] = level == 0 ? key(args[i]) : key(args[i], 456);
+		return new BtreeMemNode(level, keys);
+	}
+	private static BtreeNode node(int level, Record... keys) {
+		return new BtreeMemNode(level, keys);
+	}
+
+	private static Record key(String s) {
+		return new RecordBuilder().add(s).adduint(123).build();
+	}
+
+	private static Record key(String s, int treeAdr) {
+		return new RecordBuilder().add(s).addMin().adduint(treeAdr).build();
+	}
+
+	private static Record min(int adr) {
+		return new RecordBuilder().addMin().addMin().adduint(adr).build();
 	}
 
 }

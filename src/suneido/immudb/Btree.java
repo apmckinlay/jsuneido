@@ -106,8 +106,6 @@ class Btree {
 	boolean add(Record key, boolean unique) {
 		++modified;
 
-		Record searchKey = unique ? stripAddress(key) : key;
-
 		// search down the tree
 		int adr = root;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
@@ -116,12 +114,13 @@ class Btree {
 			adrs.add(adr);
 			BtreeNode node = nodeAt(level, adr);
 			treeNodes.add(node);
-			Record slot = node.find(searchKey);
+			Record slot = node.find(key);
 			adr = getAddress(slot);
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
-		if (unique) {
+		if (! leaf.isEmpty() && unique) {
+			Record searchKey = unique ? stripAddress(key) : key;
 			Record slot = leaf.find(searchKey);
 			if (slot != null && slot.startsWith(searchKey))
 				return false;
@@ -181,14 +180,21 @@ class Btree {
 	static class Split {
 		final int level; // of node being split
 		final int left;
-		final int right;
 		final Record key; // new value to go in parent, points to right half
 
-		Split(int level, int left, int right, Record key) {
+		Split(int level, int left, Record key) {
 			this.level = level;
 			this.left = left;
-			this.right = right;
 			this.key = key;
+		}
+
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.add("level", level)
+					.add("left", left)
+					.add("oldkey", key)
+					.toString();
 		}
 	}
 
@@ -436,7 +442,7 @@ class Btree {
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
 				int pos = node.findPos(key);
-				if (pos == -1)
+				if (pos >= node.size())
 					pos = node.size() - 1;
 				stack.push(new LevelInfo(node, pos));
 				Record slot = node.get(pos);

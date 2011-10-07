@@ -43,8 +43,58 @@ public class BtreeTest {
 	@Test
 	public void empty() {
 		assertTrue(btree.isEmpty());
-		assertThat(btree.get(record("hello", 1234)), is(0));
+		assertThat(btree.get(record("hello", 123)), is(0));
 	}
+
+	@Test
+	public void add1() {
+		btree.add(record("hello", 123));
+		assertThat(btree.get(record("hello", 123)), is(123));
+	}
+
+//	@Test
+//	public void first_leaf_split_end() {
+//		btree.add(record("a", 1));
+//		btree.add(record("b", 2));
+//		btree.add(record("c", 3));
+//		btree.add(record("d", 4));
+//		btree.add(record("e", 5));
+//		btree.print();
+//	}
+//
+//	@Test
+//	public void first_leaf_split_left() {
+//		btree.add(record("a", 1));
+//		btree.add(record("c", 3));
+//		btree.add(record("d", 4));
+//		btree.add(record("e", 5));
+//		btree.add(record("b", 2));
+//		btree.print();
+//	}
+//
+//	@Test
+//	public void first_leaf_split_right() {
+//		btree.add(record("a", 1));
+//		btree.add(record("b", 2));
+//		btree.add(record("c", 3));
+//		btree.add(record("e", 5));
+//		btree.add(record("d", 4));
+//		btree.print();
+//	}
+//
+//	@Test
+//	public void first_leaf_insert() {
+//		btree.add(record("a", 1));
+//		btree.add(record("b", 2));
+//		btree.add(record("c", 3));
+//		btree.add(record("d", 4));
+//		btree.add(record("e", 5));
+//		btree.add(record("f", 5));
+//		btree.add(record("g", 5));
+//		btree.add(record("h", 5));
+//		btree.add(record("i", 5));
+//		btree.print();
+//	}
 
 	@Test
 	public void left_edge() {
@@ -322,7 +372,7 @@ public class BtreeTest {
 	@Test
 	public void unique() {
 		rand = new Random(1291681);
-		add(NKEYS);
+		add(10);//NKEYS);
 		for (Record key : keys)
 			assertFalse(btree.add(key, true));
 	}
@@ -435,6 +485,8 @@ public class BtreeTest {
 				closeTo(.1, .01));
 		assertThat((double) btree.rangefrac(record(40), record(180)),
 				closeTo(.7, .01));
+		assertThat((double) btree.rangefrac(record(60), record(160)),
+				closeTo(.5, .01));
 	}
 
 	@Test
@@ -537,6 +589,21 @@ public class BtreeTest {
 		assertTrue(iter.eof());
 	}
 
+	@Test
+	public void composite_range() {
+		assertTrue(btree.add(record(43, "a", 123), true));
+		assertTrue(btree.add(record(43, "b", 127), true));
+		assertTrue(btree.add(record(43, "c", 130), true));
+		assertTrue(btree.add(record(43, "d", 170), true));
+		assertTrue(btree.add(record(43, "e", 277), true));
+		Record from = new RecordBuilder().add(43).build();
+		Record to = new RecordBuilder().add(43).addMax().build();
+		Btree.Iter iter = btree.iterator(from, to);
+		iter.next();
+		assertThat(iter.curKey().getString(1), is("a"));
+
+	}
+
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
 	}
@@ -566,7 +633,11 @@ public class BtreeTest {
 	}
 
 	static Record record(int n) {
-		return new RecordBuilder().add(n).build();
+		return new RecordBuilder().add(n).adduint(n * 10).build();
+	}
+
+	static Record record(int n, String s, int adr) {
+		return new RecordBuilder().add(n).add(s).adduint(adr).build();
 	}
 
 }

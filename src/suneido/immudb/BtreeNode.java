@@ -83,38 +83,17 @@ abstract class BtreeNode {
 
 	abstract int store(Tran tran);
 
-	/**
-	 * @param key The value to look for, without the trailing record address
-	 * @return	For leaf nodes, the first key >= the one specified,
-	 * 			or null if there isn't one.
-	 * 			For tree nodes, the first key <= the one specified,
-	 *			or the first key.
-	 */
 	Record find(Record key) {
 		int at = findPos(key);
 		return (at < 0 || at >= size()) ? null : get(at);
 	}
 
-	/**
-	 * @param key The value to look for, without the trailing record address
-	 * @return	For leaf nodes, the first position >= the one specified,
-	 * 			or -1 if there isn't one.
-	 * 			For tree nodes, the position <= the one specified,
-	 *			or the last key.
-	 */
 	int findPos(Record key) {
-		if (isEmpty())
-			return -1;
 		int at = lowerBound(key);
 		if (isLeaf())
-			return at < size() ? at : -1;
-		else {
-			if (at == 0)
-				return at;
-			if (at >= size())
-				return size() - 1;
-			Record slot = get(at);
-			return slot.startsWith(key) ? at : at - 1;
+			return at;
+		else { // tree node
+			return Math.max(0, at - 1);
 		}
 	}
 
@@ -137,6 +116,19 @@ abstract class BtreeNode {
 		return get(middle).compareTo(key);
 	}
 
+	/*
+	 * e.g. this node has 10 keys
+	 * mid = 5
+	 * splitKey is node[4]
+	 * if keyPos is 0 to 4, key goes in left
+	 * if keyPos is 5 to 9, key goes in right
+	 */
+	/**
+	 * @param key The key being added
+	 * @param adr Address of this node
+	 *
+	 * @return a Split containing the key to be inserted into the parent
+	 */
 	Split split(Tran tran, Record key, int adr) {
 		int level = level();
 		BtreeNode right;
@@ -158,13 +150,13 @@ abstract class BtreeNode {
 				right = right.with(key);
 			tran.redir(adr, left);
 		}
-		int splitKeySize = splitKey.size();
+		int splitKeySize = splitKey.size() - 1;
 		if (level > 0) // tree node
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
 		splitKey = new RecordBuilder().addPrefix(splitKey, splitKeySize)
-				.adduint(rightAdr).build();
-		return new Split(level, adr, rightAdr, splitKey);
+				.addMin().adduint(rightAdr).build();
+		return new Split(level, adr, splitKey);
 	}
 
 	@Override
@@ -186,7 +178,7 @@ abstract class BtreeNode {
 	void print(Writer w, Tran tran, int at) throws IOException {
 		int level = level();
 		String indent = Strings.repeat("     ", level);
-		w.append(indent).append("NODE @ " + at + "\n");
+		w.append(indent).append("NODE @ " + (at & 0xffffffffL) + "\n");
 		for (int i = 0; i < size(); ++i) {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
