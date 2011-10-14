@@ -106,7 +106,8 @@ public class Join extends Query2 {
 	private double opt(Query src1, Query src2, Type typ, List<String> index,
 			Set<String> needs1, Set<String> needs2, boolean is_cursor,
 			boolean freeze) {
-		final double SELECT_COST = 50;
+		/** SELECT_COST needs to be high to discourage N to 1 when N is large */
+		final double SELECT_COST = 1000;
 
 		// always have to read all of source 1
 		double cost1 = src1.optimize(index, needs1, ImmutableSet.copyOf(joincols),
