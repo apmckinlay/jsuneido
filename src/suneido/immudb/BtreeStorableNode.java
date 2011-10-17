@@ -98,10 +98,9 @@ abstract class BtreeStorableNode extends BtreeNode {
 	private int dataref(Record rec) {
 		int size = rec.size();
 		int i = size - (level > 0 ? 2 : 1);
-		Object x = rec.get(i);
-		if (x.equals(""))
+		if (rec.fieldLength(i) == 0)
 			return 0;
-		return ((Number) x).intValue();
+		return (int) rec.getLong(i);
 	}
 
 }

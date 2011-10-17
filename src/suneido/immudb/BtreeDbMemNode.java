@@ -50,7 +50,6 @@ class BtreeDbMemNode extends BtreeStorableNode {
 		this.rec = rec;
 		this.index = index;
 		this.added = added;
-		fix();
 	}
 
 	@Override
@@ -58,7 +57,6 @@ class BtreeDbMemNode extends BtreeStorableNode {
 		int at = lowerBound(key);
 		add(key);
 		index.insert(at, (byte) -added.size());
-		fix();
 		return this;
 	}
 
@@ -84,14 +82,12 @@ class BtreeDbMemNode extends BtreeStorableNode {
 	@Override
 	protected BtreeNode without(int i) {
 		index.removeAt(i);
-		fix();
 		return this;
 	}
 
 	@Override
 	BtreeNode without(int from, int to) {
 		index.remove(from, to - from);
-		fix();
 		return this;
 	}
 
@@ -154,10 +150,9 @@ class BtreeDbMemNode extends BtreeStorableNode {
 		}
 	}
 
-	/** ensure leftmost key of tree nodes is minimal */
-	private void fix() {
-		if (level == 0 || isEmpty())
-			return;
+	@Override
+	void minimizeLeftMost() {
+		assert isTree();
 		Record key = get(0);
 		if (isMinimalKey(key))
 			return;

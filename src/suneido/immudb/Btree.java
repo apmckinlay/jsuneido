@@ -29,11 +29,10 @@ import com.google.common.collect.Lists;
  * Note: remove does not merge nodes. The tree will stay balanced in terms of nodes
  * but not necessarily in terms of keys. But the number of tree levels will never
  * shrink unless all the keys are deleted. This is based on the assumption that
- * adds are much more common than removes. Since nodes are not a fixed size
+ * adds are much more common than removes. Since nodes are variable size
  * small nodes do not waste much space. And compacting the database will rebuild
  * btrees anyway.
  * <p>
- * The first key in tree nodes is always "nil", less than any real key.
  * @see BtreeNode, BtreeDbNode, BtreeDbMemNode, BtreeMemNode, BtreeStoreNode
  */
 @NotThreadSafe
@@ -93,16 +92,20 @@ class Btree {
 
 	/** Add a unique key to the btree. */
 	void add(Record key) {
-		boolean result = add(key, false);
+		boolean result = add(key, true);
 		assert result == true;
 	}
 
 	/**
-	 * Add a key to the btree.
+	 * Add a key with a trailing record address to the btree.
 	 * @return true if the key was successfully added,
 	 * false if unique is true and the key already exists
 	 * (ignoring the trailing data record address)
-	 * */
+	 * <p>
+	 * NOTE: unique dup check assumes that if only data address changes
+	 * then old and new keys will be in same leaf node
+	 * for this to work, split must set data address to MAXADR in tree keys
+	 */
 	boolean add(Record key, boolean unique) {
 		++modified;
 
@@ -119,8 +122,8 @@ class Btree {
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
-		if (! leaf.isEmpty() && unique) {
-			Record searchKey = unique ? stripAddress(key) : key;
+		if (unique && ! leaf.isEmpty()) {
+			Record searchKey = withoutAddress(key);
 			Record slot = leaf.find(searchKey);
 			if (slot != null && slot.startsWith(searchKey))
 				return false;
@@ -241,7 +244,8 @@ class Btree {
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
 			BtreeNode treeNode = treeNodes.get(i);
 			if (treeNode.size() > 1) {
-				treeNode = treeNode.without(key);
+				treeNode = treeNode.without(treeNode.findPos(key));
+				treeNode.minimizeLeftMost();
 				assert treeNode != null;
 				tran.redir(adrs.get(i), treeNode);
 				return true;
@@ -252,13 +256,18 @@ class Btree {
 		// if we get to here, root node is now empty
 		root = tran.refToInt(BtreeNode.emptyLeaf());
 		treeLevels = 0;
-		nnodes = 0;
+		nnodes = 1;
 
 		return true;
 	}
 
 	enum Update { OK, NOT_FOUND, ADD_FAILED };
 
+	/*
+	 * NOTE: updateUnique assumes that if only data address changes
+	 * then old and new keys will be in same leaf node.
+	 * For this to work, split must set data address to MAXADR in tree keys
+	 */
 	Update update(Record oldkey, Record newkey, boolean unique) {
 		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
@@ -494,8 +503,21 @@ class Btree {
 		return ((Number) slot.get(slot.size() - 1)).intValue();
 	}
 
-	private static Record stripAddress(Record key) {
-		return new RecordBuilder().addPrefix(key, key.size() - 1).build();
+	private static Record withoutAddress(Record key) {
+		return new RecordPrefix(key, key.size() - 1);
+	}
+
+	private static class RecordPrefix extends Record {
+		int len;
+		RecordPrefix(Record rec, int len) {
+			super(rec);
+			assert len < rec.size();
+			this.len = len;
+		}
+		@Override
+		public int size() {
+			return len;
+		}
 	}
 
 	BtreeNode nodeAt(int level, int adr) {
@@ -542,7 +564,7 @@ class Btree {
 		for (Object x : intrefs) {
 			if (x instanceof BtreeNode) {
 				BtreeNode node = (BtreeNode) x;
-				a.add(((long) node.level() << 32) | i);
+				a.add(((long) node.level << 32) | i);
 			}
 			++i;
 		}

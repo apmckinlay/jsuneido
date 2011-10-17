@@ -21,9 +21,18 @@ import com.google.common.base.Strings;
  * The last field on leaf keys is a pointer to the corresponding data record.
  * A tree node key is a leaf key plus a pointer to the child node.
  * Pointers are {@link MmapFile} adr int's
+ * <p>
+ * The first/leftmost key in tree nodes is always "minimal",
+ * less than any real key.
+ * <p>
+ * Tree keys lead to leaf keys greater than themselves.
+ * In unique btrees tree keys have their data address set to MAXADR
+ * so updates (or remove/add) keep key in same node.
+ * <p>
  */
 @Immutable
 abstract class BtreeNode {
+	/** level = 0 for leaf, level = treeLevels for root */
 	protected final int level;
 
 	BtreeNode(int level) {
@@ -38,12 +47,12 @@ abstract class BtreeNode {
 		return new BtreeMemNode(level);
 	}
 
-	int level() {
-		return level;
-	}
-
 	boolean isLeaf() {
 		return level == 0;
+	}
+
+	boolean isTree() {
+		return level != 0;
 	}
 
 	abstract int size();
@@ -57,21 +66,18 @@ abstract class BtreeNode {
 
 	/** @return null if key not found */
 	BtreeNode without(Record key) {
+		assert isLeaf();
 		if (isEmpty())
 			return null;
 		int at = lowerBound(key);
-		if (isLeaf()) {
-			if (at >= size() || ! get(at).equals(key))
-				return null; // key not found
-		} else { // tree node
-			if (at >= size() || ! get(at).startsWith(key))
-				--at;
-			assert at >= 0;
-		}
+		if (at >= size() || ! get(at).equals(key))
+			return null; // key not found
 		return without(at);
 	}
 
 	protected abstract BtreeNode without(int i);
+
+	abstract void minimizeLeftMost();
 
 	/** used by split */
 	abstract BtreeNode slice(int from, int to);
@@ -90,11 +96,7 @@ abstract class BtreeNode {
 
 	int findPos(Record key) {
 		int at = lowerBound(key);
-		if (isLeaf())
-			return at;
-		else { // tree node
-			return Math.max(0, at - 1);
-		}
+		return isLeaf() ? at : Math.max(0, at - 1);
 	}
 
 	int lowerBound(Record key) {
@@ -130,18 +132,15 @@ abstract class BtreeNode {
 	 * @return a Split containing the key to be inserted into the parent
 	 */
 	Split split(Tran tran, Record key, int adr) {
-		int level = level();
+		BtreeNode left;
 		BtreeNode right;
-		Record splitKey;
 		int keyPos = lowerBound(key);
 		if (keyPos == size()) {
 			// key is at end of node, just make new node
+			left = this;
 			right = new BtreeMemNode(level, key);
-			splitKey = key;
 		} else {
 			int mid = size() / 2;
-			splitKey = get(mid);
-			BtreeNode left;
 			right = slice(mid, size());
 			left = without(mid, size());
 			if (keyPos <= mid)
@@ -150,13 +149,37 @@ abstract class BtreeNode {
 				right = right.with(key);
 			tran.redir(adr, left);
 		}
-		int splitKeySize = splitKey.size() - 1;
-		if (level > 0) // tree node
+		Record splitKey = isLeaf() ? left.last() : right.first();
+		boolean max = splitMaxAdr(left.last(), right.first());
+		if (isTree())
+			right.minimizeLeftMost();
+		int splitKeySize = splitKey.size();
+		if (isTree())
 			--splitKeySize;
 		int rightAdr = tran.refToInt(right);
-		splitKey = new RecordBuilder().addPrefix(splitKey, splitKeySize)
-				.addMin().adduint(rightAdr).build();
+		/*
+		 * if unique, set splitKey data address to MAXADR
+		 * so that if only data address changes, key will stay in same node
+		 * this simplifies add duplicate check and allows optimized update
+		 */
+		splitKey = max
+			? new RecordBuilder().addPrefix(splitKey, splitKeySize - 1)
+					.adduint(IntRefs.MAXADR).adduint(rightAdr).build()
+			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
+					.adduint(rightAdr).build();
 		return new Split(level, adr, splitKey);
+	}
+
+	private boolean splitMaxAdr(Record last, Record first) {
+		return isLeaf() && ! last.prefixEquals(first, first.size() - 1);
+	}
+
+	private Record first() {
+		return get(0);
+	}
+
+	private Record last() {
+		return get(size() - 1);
 	}
 
 	@Override
@@ -166,7 +189,7 @@ abstract class BtreeNode {
 		if (isLeaf())
 			sb.append("leaf");
 		else
-			sb.append("level=").append(level());
+			sb.append("level=").append(level);
 		sb.append(" size=").append(size());
 		sb.append(" [");
 		for (int i = 0; i < size(); ++i)
@@ -176,7 +199,6 @@ abstract class BtreeNode {
 	}
 
 	void print(Writer w, Tran tran, int at) throws IOException {
-		int level = level();
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append("NODE @ " + (at & 0xffffffffL) + "\n");
 		for (int i = 0; i < size(); ++i) {
@@ -248,7 +270,7 @@ abstract class BtreeNode {
 	}
 
 	protected static int pointer(Record rec) {
-		return ((Number) rec.get(rec.size() - 1)).intValue();
+		return (int) rec.getLong(rec.size() - 1);
 	}
 
 	protected static Record minimalKey(int nfields, int ptr) {

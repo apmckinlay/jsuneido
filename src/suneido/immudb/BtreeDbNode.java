@@ -64,4 +64,9 @@ class BtreeDbNode extends BtreeNode {
 			throw new IllegalArgumentException();
 	}
 
+	@Override
+	void minimizeLeftMost() {
+		throw new UnsupportedOperationException();
+	}
+
 }

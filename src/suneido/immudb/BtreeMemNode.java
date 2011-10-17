@@ -30,7 +30,6 @@ class BtreeMemNode extends BtreeStorableNode {
 	BtreeMemNode(int level, Record... data) {
 		super(level);
 		this.data = Lists.newArrayList(data);
-		fix();
 	}
 
 	static BtreeNode newRoot(Tran tran, Split split) {
@@ -52,21 +51,18 @@ class BtreeMemNode extends BtreeStorableNode {
 	BtreeMemNode with(Record key) {
 		int at = lowerBound(key);
 		data.add(at, key);
-		fix();
 		return this;
 	}
 
 	@Override
 	protected BtreeNode without(int i) {
 		data.remove(i);
-		fix();
 		return this;
 	}
 
 	@Override
 	BtreeNode without(int from, int to) {
 		data.subList(from, to).clear();
-		fix();
 		return this;
 	}
 
@@ -75,7 +71,6 @@ class BtreeMemNode extends BtreeStorableNode {
 		checkArgument(from < to && to <= size());
 		BtreeMemNode node = new BtreeMemNode(level);
 		node.data.addAll(data.subList(from, to));
-		node.fix();
 		return node;
 	}
 
@@ -95,10 +90,10 @@ class BtreeMemNode extends BtreeStorableNode {
 			data.set(i, translate(tran, data.get(i)));
 	}
 
-	private void fix() {
-		if (level > 0)
-			// leftmost key in tree nodes must be minimal
-			data.set(0, minimize(data.get(0)));
+	@Override
+	void minimizeLeftMost() {
+		assert isTree();
+		data.set(0, minimize(data.get(0)));
 	}
 
 }

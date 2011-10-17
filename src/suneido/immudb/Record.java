@@ -17,6 +17,7 @@ import com.google.common.base.Objects;
 /**
  * Records stored in the database are prefixed with their table number.
  * The packed format, e.g. keys in Btree nodes, does NOT include table number.
+ * Data is immutable, but tblnum is set after construction.
  */
 class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().build();
@@ -60,6 +61,10 @@ class Record implements suneido.intfc.database.Record {
 		bufpos = TBLNUM_SIZE;
 		this.address = adr;
 		this.tblnum = (buf.get(0) & 0xff) + ((buf.get(1) & 0xff) << 8);
+	}
+
+	protected Record(Record rec) {
+		this(rec.address, rec.buf, rec.bufpos);
 	}
 
 	void check() {
@@ -180,10 +185,7 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	boolean startsWith(Record rec) {
-		int n = rec.size();
-		if (n > size())
-			return false;
-		return prefixEquals(rec, n);
+		return prefixCompareTo(rec) == 0;
 	}
 
 	boolean prefixEquals(Record rec, int nfields) {
@@ -195,13 +197,21 @@ class Record implements suneido.intfc.database.Record {
 		return true;
 	}
 
-	public boolean prefixGt(Record rec) {
-		for (int i = 0; i < rec.size(); ++i) {
-			int cmp = compare1(this, rec, i);
+	/** @return true if this > rec
+	 * comparing only as many fields as contained in rec
+	 */
+	boolean prefixGt(Record rec) {
+		return prefixCompareTo(rec) > 0;
+	}
+
+	private int prefixCompareTo(Record that) {
+		int n = that.size();
+		for (int i = 0; i < n; ++i) {
+			int cmp = compare1(this, that, i);
 			if (cmp != 0)
-				return cmp > 0;
+				return cmp;
 		}
-		return false; // prefix equal
+		return 0;
 	}
 
 	private static int compare1(Record x, Record y, int i) {
@@ -274,6 +284,8 @@ class Record implements suneido.intfc.database.Record {
 				Object x = get(i);
 				if (x instanceof String)
 					sb.append("'").append(x).append("'");
+				else if (x instanceof Number && ((Number) x).intValue() == IntRefs.MAXADR)
+					sb.append("MAXADR");
 				else
 					sb.append(x);
 			}
