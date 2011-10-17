@@ -84,6 +84,17 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return getrec(adr);
 	}
 
+	@Override
+	public Record lookup(
+			int tblnum, String index, suneido.intfc.database.Record key) {
+		Btree bti = getIndex(tblnum, index);
+		if (bti == null)
+			return null;
+		Btree.Iter iter = bti.iterator((Record) key);
+		iter.next();
+		return iter.eof() ? null : input(iter.keyadr());
+	}
+
 	boolean exists(int tblnum, int[] indexColumns, Record key) {
 		return 0 != getIndex(tblnum, indexColumns).get(key);
 	}
@@ -228,17 +239,6 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	@Override
 	public Record input(int adr) {
 		return tran.getrec(adr);
-	}
-
-	@Override
-	public Record lookup(
-			int tblnum, String index, suneido.intfc.database.Record key) {
-		Btree bti = getIndex(tblnum, index);
-		if (bti == null)
-			return null;
-		Btree.Iter iter = bti.iterator((Record) key);
-		iter.next();
-		return iter.eof() ? null : input(iter.keyadr());
 	}
 
 	@Override

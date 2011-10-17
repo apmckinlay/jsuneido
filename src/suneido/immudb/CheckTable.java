@@ -42,13 +42,12 @@ class CheckTable implements Callable<String> {
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
 				Record key = iter.cur();
-				Record strippedKey = new RecordBuilder().addPrefix(key, key.size() - 1).build();
-				if (index.isKey())// || (index.unique && ! BtreeIndex.isEmpty(strippedKey)))
-					if (strippedKey.equals(prevkey)) {
-						details += tablename + ": duplicate in " + index + "\n";
-						return false;
-					}
-				prevkey = strippedKey;
+				if (prevkey != null && isUnique(index, key) &&
+					key.prefixEquals(prevkey, key.size() - 1)) {
+					details += tablename + ": duplicate in " + index + " " + key + "\n";
+					return false;
+				}
+				prevkey = key;
 				int adr = Btree.getAddress(key);
 				Record rec = t.getrec(adr);
 				if (first_index)
@@ -90,6 +89,10 @@ class CheckTable implements Callable<String> {
 			return false;
 		}
 		return true;
+	}
+
+	private static boolean isUnique(Index index, Record key) {
+		return index.isKey() || (index.unique && ! IndexedData.isEmptyKey(key));
 	}
 
 	private boolean checkRecord(String tablename, Record rec) {

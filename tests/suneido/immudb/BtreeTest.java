@@ -18,6 +18,8 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import suneido.immudb.Btree.Update;
+
 import com.google.common.collect.Lists;
 
 public class BtreeTest {
@@ -43,56 +45,78 @@ public class BtreeTest {
 	@Test
 	public void empty() {
 		assertTrue(btree.isEmpty());
-		assertThat(btree.get(record("hello", 123)), is(0));
+		assertThat(btree.get(key("hello", 123)), is(0));
 	}
 
 	@Test
 	public void add1() {
-		btree.add(record("hello", 123));
-		assertThat(btree.get(record("hello", 123)), is(123));
+		btree.add(key("hello", 123));
+		assertThat(btree.get(key("hello", 123)), is(123));
 	}
 
 //	@Test
 //	public void first_leaf_split_end() {
-//		btree.add(record("a", 1));
-//		btree.add(record("b", 2));
-//		btree.add(record("c", 3));
-//		btree.add(record("d", 4));
-//		btree.add(record("e", 5));
+//		btree.add(rec("a", 1));
+//		btree.add(rec("b", 2));
+//		btree.add(rec("c", 3));
+//		btree.add(rec("d", 4));
+//		btree.add(rec("e", 5));
 //		btree.print();
 //	}
 //
 //	@Test
 //	public void first_leaf_split_left() {
-//		btree.add(record("a", 1));
-//		btree.add(record("c", 3));
-//		btree.add(record("d", 4));
-//		btree.add(record("e", 5));
-//		btree.add(record("b", 2));
+//		btree.add(rec("a", 1));
+//		btree.add(rec("c", 3));
+//		btree.add(rec("d", 4));
+//		btree.add(rec("e", 5));
+//		btree.add(rec("b", 2));
 //		btree.print();
 //	}
 //
 //	@Test
 //	public void first_leaf_split_right() {
-//		btree.add(record("a", 1));
-//		btree.add(record("b", 2));
-//		btree.add(record("c", 3));
-//		btree.add(record("e", 5));
-//		btree.add(record("d", 4));
+//		btree.add(rec("a", 1));
+//		btree.add(rec("b", 2));
+//		btree.add(rec("c", 3));
+//		btree.add(rec("e", 5));
+//		btree.add(rec("d", 4));
 //		btree.print();
 //	}
 //
 //	@Test
 //	public void first_leaf_insert() {
-//		btree.add(record("a", 1));
-//		btree.add(record("b", 2));
-//		btree.add(record("c", 3));
-//		btree.add(record("d", 4));
-//		btree.add(record("e", 5));
-//		btree.add(record("f", 5));
-//		btree.add(record("g", 5));
-//		btree.add(record("h", 5));
-//		btree.add(record("i", 5));
+//		btree.add(rec("a", 1));
+//		btree.add(rec("b", 2));
+//		btree.add(rec("c", 3));
+//		btree.add(rec("d", 4));
+//		btree.add(rec("e", 5));
+//		btree.add(rec("f", 5));
+//		btree.add(rec("g", 5));
+//		btree.add(rec("h", 5));
+//		btree.add(rec("i", 5));
+//		btree.print();
+//	}
+
+//	@Test
+//	public void first_leaf_split() {
+//		btree.add(key("a"));
+//		btree.add(key("b"));
+//		btree.add(key("c"));
+//		btree.add(key("d"));
+//		btree.add(key("e"));
+//		btree.add(key("f"));
+//		btree.add(key("g"));
+//		btree.add(key("h"));
+//		btree.add(key("i"));
+//		btree.add(key("j"));
+//		btree.add(key("k"));
+//		btree.add(key("l"));
+//		btree.add(key("m"));
+//		btree.add(key("n"));
+//		btree.add(key("o"));
+//		btree.add(key("p"));
+//		btree.add(key("q"));
 //		btree.print();
 //	}
 
@@ -105,7 +129,6 @@ public class BtreeTest {
 		for (int i = 0; i < NKEYS/2; ++i)
 			assertTrue(btree.remove(keys.get(i)));
 		btree.check();
-
 		for (int i = NKEYS/2; i < NKEYS; ++i) {
 			Record key = keys.get(i);
 			assertThat("key " + key, btree.get(key), is(adr(key)));
@@ -114,7 +137,7 @@ public class BtreeTest {
 			btree.add(keys.get(i));
 		check();
 
-		Record min = record("", 0);
+		Record min = key("", 0);
 		btree.add(min);
 		btree.check();
 	}
@@ -188,9 +211,9 @@ public class BtreeTest {
 			assertThat(btree.get(key), is(0));
 			assertFalse(btree.remove(key));
 		}
-		Record minKey = record("", 0);
+		Record minKey = key("", 0);
 		btree.add(minKey);
-		Record maxKey = record("zzzzzzz", Integer.MAX_VALUE);
+		Record maxKey = key("zzzzzzz", Integer.MAX_VALUE);
 		btree.add(maxKey);
 		assertThat("key " + minKey, btree.get(minKey), is(adr(minKey)));
 		assertThat("key " + maxKey, btree.get(maxKey), is(adr(maxKey)));
@@ -202,7 +225,7 @@ public class BtreeTest {
 		assertTrue(btree.remove(maxKey));
 		for (int i = NKEYS / 2; i < NKEYS; ++i)
 			assertTrue(btree.remove(keys.get(i)));
-		assertThat("treeLevels", btree.treeLevels(), is(0));
+		assertTrue(btree.isEmpty());
 	}
 
 	@Test
@@ -250,7 +273,7 @@ public class BtreeTest {
 	private void add(int n) {
 		for (int i = 0; i < n; ++i) {
 			Record key = randomKey(rand);
-			assertTrue(btree.add(key, true));
+			btree.add(key);
 			keys.add(key);
 		}
 	}
@@ -418,18 +441,18 @@ public class BtreeTest {
 
 	@Test
 	public void intref_adr_should_be_greater_than_db_offset() {
-		Record intref = record("hello", 123 | IntRefs.MASK);
-		Record offset = record("hello", 567);
+		Record intref = key("hello", 123 | IntRefs.MASK);
+		Record offset = key("hello", 567);
 		assert intref.compareTo(offset) > 0;
 		assert offset.compareTo(intref) < 0;
 	}
 
 	@Test
 	public void translate_data_refs() {
-		Record rec = record("a data record");
+		Record rec = rec("a data record");
 		rec.tblnum = 123;
 		int intref = tran.refToInt(rec);
-		Record key = record("hello", intref);
+		Record key = key("hello", intref);
 		btree.add(key);
 		tran.startStore();
 		DataRecords.store(tran);
@@ -440,36 +463,36 @@ public class BtreeTest {
 
 		tran = new Tran(stor);
 		btree = new Btree4(tran, info);
-		assertThat(btree.get(record("hello")), is(adr));
+		assertThat(btree.get(rec("hello")), is(adr));
 	}
 
 	@Test
 	public void duplicate() {
-		assertTrue(btree.add(record("tables", 123), true));
-		assertTrue(btree.add(record("columns", 127), true));
-		assertTrue(btree.add(record("indexes", 130), true));
-		assertTrue(btree.add(record("views", 170), true));
-		assertTrue(btree.add(record("tbl", 277), true));
-		assertFalse(btree.add(record("tbl", 406), true));
+		btree.add(key("tables", 123));
+		btree.add(key("columns", 127));
+		btree.add(key("indexes", 130));
+		btree.add(key("views", 170));
+		btree.add(key("tbl", 277));
+		assertFalse(btree.add(key("tbl", 406), true));
 	}
 
 	@Test
 	public void rangefrac_one_node() {
 		btree = new Btree(tran, Locking.noLocking); // normal node size
-		btree.add(record("0"));
-		btree.add(record("1"));
-		btree.add(record("2"));
-		btree.add(record("3"));
-		btree.add(record("4"));
-		btree.add(record("5"));
-		btree.add(record("6"));
-		btree.add(record("7"));
-		btree.add(record("8"));
-		btree.add(record("9"));
+		btree.add(key("0"));
+		btree.add(key("1"));
+		btree.add(key("2"));
+		btree.add(key("3"));
+		btree.add(key("4"));
+		btree.add(key("5"));
+		btree.add(key("6"));
+		btree.add(key("7"));
+		btree.add(key("8"));
+		btree.add(key("9"));
 		assertThat(btree.treeLevels(), is(0));
-		assertThat((double) btree.rangefrac(record("0"), record("9", 1)),
+		assertThat((double) btree.rangefrac(rec("0"), rec("90")),
 				closeTo(1.0, .01));
-		assertThat((double) btree.rangefrac(record("0"), record("4", 1)),
+		assertThat((double) btree.rangefrac(rec("0"), rec("40")),
 				closeTo(.5, .01));
 	}
 
@@ -477,15 +500,15 @@ public class BtreeTest {
 	public void rangefrac_multiple_nodes() {
 		btree = new Btree(tran, Locking.noLocking); // normal node size
 		for (int i = 10; i < 210; i += 2)
-			btree.add(record(i));
+			btree.add(key(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
-		assertThat((double) btree.rangefrac(record(11), record(211)),
+		assertThat((double) btree.rangefrac(key(11), key(211)),
 				closeTo(1.0, .01));
-		assertThat((double) btree.rangefrac(record(10), record(30)),
+		assertThat((double) btree.rangefrac(key(10), key(30)),
 				closeTo(.1, .01));
-		assertThat((double) btree.rangefrac(record(40), record(180)),
+		assertThat((double) btree.rangefrac(key(40), key(180)),
 				closeTo(.7, .01));
-		assertThat((double) btree.rangefrac(record(60), record(160)),
+		assertThat((double) btree.rangefrac(key(60), key(160)),
 				closeTo(.5, .01));
 	}
 
@@ -556,53 +579,100 @@ public class BtreeTest {
 
 	@Test
 	public void seek_nonexistent() {
-		btree.add(record("andy"));
-		btree.add(record("zack"));
+		btree.add(key("andy"));
+		btree.add(key("zack"));
 
-		Btree.Iter iter = btree.iterator(record("fred"));
+		Btree.Iter iter = btree.iterator(key("fred"));
 		iter.next();
 		assertTrue(iter.eof());
 
-		iter = btree.iterator(record("fred"));
+		iter = btree.iterator(key("fred"));
 		iter.prev();
 		assertTrue(iter.eof());
 
-		iter = btree.iterator(record("aaa"));
+		iter = btree.iterator(key("aaa"));
 		iter.prev();
 		assertTrue(iter.eof());
 
-		iter = btree.iterator(record("zzz"));
+		iter = btree.iterator(key("zzz"));
 		iter.next();
 		assertTrue(iter.eof());
 	}
 
 	@Test
 	public void numeric_order() {
-		btree.add(record(-1));
-		btree.add(record(0));
+		btree.add(key(-1));
+		btree.add(key(0));
 		Btree.Iter iter = btree.iterator();
 		iter.next();
-		assertThat(iter.cur(), is(record(-1)));
+		assertThat(iter.cur(), is(key(-1)));
 		iter.next();
-		assertThat(iter.cur(), is(record(0)));
+		assertThat(iter.cur(), is(key(0)));
 		iter.next();
 		assertTrue(iter.eof());
 	}
 
 	@Test
 	public void composite_range() {
-		assertTrue(btree.add(record(43, "a", 123), true));
-		assertTrue(btree.add(record(43, "b", 127), true));
-		assertTrue(btree.add(record(43, "c", 130), true));
-		assertTrue(btree.add(record(43, "d", 170), true));
-		assertTrue(btree.add(record(43, "e", 277), true));
+		btree.add(key(43, "a", 123));
+		btree.add(key(43, "b", 127));
+		btree.add(key(43, "c", 130));
+		btree.add(key(43, "d", 170));
+		btree.add(key(43, "e", 277));
 		Record from = new RecordBuilder().add(43).build();
 		Record to = new RecordBuilder().add(43).addMax().build();
 		Btree.Iter iter = btree.iterator(from, to);
 		iter.next();
 		assertThat(iter.curKey().getString(1), is("a"));
-
 	}
+
+	@Test
+	public void lookup() {
+		btree.add(rec("A", -1, 1));
+		btree.add(rec("B", -1, 2));
+		btree.add(rec("C", -1, 3));
+		btree.add(rec("D", -1, 4));
+		btree.add(rec("E", -1, 5));
+		btree.add(rec("F", -1, 6));
+		assertThat(btree.get(rec("E", -1)), is(5));
+
+		Btree.Iter iter = btree.iterator(rec("E", -1));
+		iter.next();
+		assertFalse(iter.eof());
+		assertThat(iter.keyadr(), is(5));
+	}
+
+	@Test
+	public void lots_of_duplicates() {
+		final int NKEYS = 100;
+		for (int i = 0; i < NKEYS; ++i) {
+			Record key = key("abc", i);
+			btree.add(key, false);
+			keys.add(key);
+		}
+		check();
+		for (int i = NKEYS - 1; i >= 0; i -= 2)
+			assertTrue(btree.remove(keys.remove(i)));
+		check();
+		checkIterate();
+		for (Record k : keys) {
+			Record newkey = key("abc", k.getInt(1) + 100);
+			assertThat(btree.update(k, newkey, false), is(Update.OK));
+		}
+	}
+
+	@Test
+	public void unique_check_failure_when_tree_key() {
+		btree.add(rec("a", 1));
+		btree.add(rec("b", 2));
+		btree.add(rec("c", 3));
+		btree.add(rec("d", 4));
+		btree.add(rec("e", 5));
+		// "d" should now be tree key
+		assertFalse(btree.add(rec("d", 6), true));
+	}
+
+	//--------------------------------------------------------------------------
 
 	private static int adr(Record key) {
 		return Btree.getAddress(key);
@@ -621,23 +691,33 @@ public class BtreeTest {
 		for (int i = 0; i < n; ++i)
 			sb.append((char) ('a' + rand.nextInt(26)));
 		final int UPDATE_ALLOWANCE = 10000;
-		return record(sb.toString(), rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
+		return key(sb.toString(), rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
 	}
 
-	static Record record(String s) {
-		return new RecordBuilder().add(s).build();
+	static Record key(String s) {
+		return new RecordBuilder().add(s).adduint(123).build();
 	}
 
-	private static Record record(String s, int adr) {
+	private static Record key(String s, int adr) {
 		return new RecordBuilder().add(s).adduint(adr).build();
 	}
 
-	static Record record(int n) {
+	static Record key(int n) {
 		return new RecordBuilder().add(n).adduint(n * 10).build();
 	}
 
-	static Record record(int n, String s, int adr) {
+	static Record key(int n, String s, int adr) {
 		return new RecordBuilder().add(n).add(s).adduint(adr).build();
+	}
+
+	static Record rec(Object... data) {
+		RecordBuilder rb = new RecordBuilder();
+		for (Object x : data)
+			if (x instanceof String)
+				rb.add(x);
+			else if (x instanceof Integer)
+				rb.add(x);
+		return rb.build();
 	}
 
 }

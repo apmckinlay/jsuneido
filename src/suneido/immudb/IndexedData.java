@@ -251,7 +251,7 @@ class IndexedData {
 	}
 
 	/** ignores final address field */
-	private static boolean isEmptyKey(Record key) {
+	static boolean isEmptyKey(Record key) {
 		assert key.size() > 1;
 		for (int i = 0; i < key.size() - 1; ++i)
 			if (key.fieldLength(i) != 0)

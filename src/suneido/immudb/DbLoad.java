@@ -9,6 +9,7 @@ import static suneido.util.FileUtils.getline;
 import static suneido.util.FileUtils.readInt;
 import static suneido.util.Verify.verify;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -127,14 +128,16 @@ class DbLoad {
 			int adr = iter.nextAdr();
 			Record rec = iter.next();
 			Record key = IndexedData.key(rec, index.colNums, adr);
-			btree.add(key);
+			btree.add(key, false);
 		}
 		t.saveBtrees();
 	}
 
 	public static void main(String[] args) throws IOException  {
 		long t = System.currentTimeMillis();
-		DbTools.loadDatabasePrint(DatabasePackage.dbpkg, "immu.db", "database.su");
+		Database db = DatabasePackage.dbpkg.create("immu.db");
+		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
+		loadDatabase(db, fin);
 		System.out.println((System.currentTimeMillis() - t) + " ms");
 		DbTools.checkPrint(DatabasePackage.dbpkg, "immu.db");
 	}

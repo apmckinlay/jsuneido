@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static suneido.immudb.BtreeTest.randomKeys;
-import static suneido.immudb.BtreeTest.record;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -34,10 +33,10 @@ public class BtreeNodeTest {
 
 	@Test
 	public void memNode_with() {
-		Record key1 = record("one");
-		Record key2 = record("three");
-		Record key3 = record("two");
-		Record key9 = record("z");
+		Record key1 = key("one");
+		Record key2 = key("three");
+		Record key3 = key("two");
+		Record key9 = key("z");
 
 		BtreeNode node = BtreeNode.emptyLeaf();
 		node = node.with(key2);
@@ -96,7 +95,7 @@ public class BtreeNodeTest {
 	}
 
 	public void with(BtreeNode node) {
-		node = node.with(record("new"));
+		node = node.with(key("new"));
 		check(node, "bob", "joe", "new", "sue");
 		node = node.without(1);
 		check(node, "bob", "new", "sue");
@@ -119,7 +118,7 @@ public class BtreeNodeTest {
 	private static void without(BtreeNode node) {
 		node = node.without(1);
 		check(node, "bob", "sue");
-		node = node.with(record("new"));
+		node = node.with(key("new"));
 		check(node, "bob", "new", "sue");
 	}
 
@@ -153,21 +152,21 @@ public class BtreeNodeTest {
 	private static void slice(BtreeNode node) {
 		node = node.slice(1, 3);
 		check(node, "joe", "sue");
-		node = node.with(record("new"));
+		node = node.with(key("new"));
 		node = node.slice(0, 2);
 		check(node, "joe", "new");
 	}
 
 	private static BtreeNode dbNode() {
 		Record rec = new RecordBuilder()
-				.add(record("bob")).add(record("joe")).add(record("sue")).build();
+				.add(key("bob")).add(key("joe")).add(key("sue")).build();
 		BtreeNode node = new BtreeDbNode(0, Pack.pack(rec));
 		check(node, "bob", "joe", "sue");
 		return node;
 	}
 
 	private static BtreeMemNode memNode() {
-		return new BtreeMemNode(0, record("bob"), record("joe"), record("sue"));
+		return new BtreeMemNode(0, key("bob"), key("joe"), key("sue"));
 	}
 
 	private static void check(BtreeNode node, String... keys) {
@@ -177,7 +176,7 @@ public class BtreeNodeTest {
 
 	private static boolean equals(BtreeNode node, String... keys) {
 		for (int i = 0; i < keys.length; ++i)
-			if (! node.get(i).equals(record(keys[i])))
+			if (! node.get(i).equals(key(keys[i])))
 				return false;
 		return true;
 	}
@@ -212,7 +211,7 @@ public class BtreeNodeTest {
 
 	@Test
 	public void pack_DbMemNode() {
-		pack(dbNode().with(record("new")));
+		pack(dbNode().with(key("new")));
 	}
 
 	private static void pack(BtreeStorableNode node) {
@@ -233,49 +232,73 @@ public class BtreeNodeTest {
 
 	@Test
 	public void split_leaf_at_end() {
-		BtreeNode node = node("a", "b", "c");
+		BtreeNode node = leaf("a", "b", "c");
 		Tran tran = mock(Tran.class);
 		when(tran.refToInt(anyObject())).thenReturn(456);
 		Btree.Split split = node.split(tran, key("d"), 999);
-		verify(tran).refToInt(node("d"));
-		assertThat(split.key, is(key("d", 456)));
+		verify(tran).refToInt(leaf("d"));
+		assertThat(split.key, is(max("c", 456)));
 
 		BtreeNode root = BtreeMemNode.newRoot(tran, split);
-		assertThat(root, is(node(1, key("c", 999), key("d", 456))));
+		assertThat(root, is(node(1, min(999), max("c", 456))));
 	}
 
 	@Test
 	public void split_with_key_in_left() {
-		BtreeNode node = node("a", "c", "e", "g");
+		BtreeNode node = leaf("a", "c", "e", "g");
 		Tran tran = mock(Tran.class);
 		when(tran.refToInt(anyObject())).thenReturn(456);
 		Btree.Split split = node.split(tran, key("b"), 999);
-		verify(tran).redir(999, node("a", "b", "c"));
-		verify(tran).refToInt(node("e", "g"));
-		assertThat(split.key, is(key("e", 456)));
+		verify(tran).redir(999, leaf("a", "b", "c"));
+		verify(tran).refToInt(leaf("e", "g"));
+		assertThat(split.key, is(max("c", 456)));
 
 		BtreeNode root = BtreeMemNode.newRoot(tran, split);
-		assertThat(root, is(node(1, min(999), key("e", 456))));
+		assertThat(root, is(node(1, min(999), max("c", 456))));
 	}
 
 	@Test
 	public void split_with_key_in_right() {
-		BtreeNode node = node("a", "c", "e", "g");
+		BtreeNode node = leaf("a", "c", "e", "g");
 		Tran tran = mock(Tran.class);
 		when(tran.refToInt(anyObject())).thenReturn(456);
 		Btree.Split split = node.split(tran, key("f"), 999);
-		verify(tran).redir(999, node("a", "c"));
-		verify(tran).refToInt(node("e", "f", "g"));
-		assertThat(split.key, is(key("e", 456)));
+		verify(tran).redir(999, leaf("a", "c"));
+		verify(tran).refToInt(leaf("e", "f", "g"));
+		assertThat(split.key, is(max("c", 456)));
 	}
 
-	private static BtreeNode node(String... args) {
+	@Test
+	public void split_tree_node() {
+		BtreeNode node = tree("a", "c", "e", "g");
+		Tran tran = mock(Tran.class);
+		when(tran.refToInt(anyObject())).thenReturn(456);
+		Btree.Split split = node.split(tran, key("f", 123, 456), 999);
+		verify(tran).redir(999, tree("a", "c"));
+		verify(tran).refToInt(tree(min(456), "f", "g"));
+		assertThat(split.key, is(key("e", 123, 456)));
+	}
+
+	@Test
+	public void split_between_leaf_duplicates() {
+		BtreeNode node = new BtreeMemNode(0, key(1), key(2), key(4), key(5));
+		Tran tran = mock(Tran.class);
+		when(tran.refToInt(anyObject())).thenReturn(456);
+		Btree.Split split = node.split(tran, key(3), 999);
+		assertThat(split.key, is(key("dup", 3, 456)));
+	}
+
+	private static BtreeNode leaf(Object... args) {
 		return node(0, args);
 	}
-	private static BtreeNode node(int level, String... args) {
+	private static BtreeNode tree(Object... args) {
+		return node(1, args);
+	}
+	private static BtreeNode node(int level, Object... args) {
 		Record keys[] = new Record[args.length];
 		for (int i = 0; i < args.length; ++i)
-			keys[i] = level == 0 ? key(args[i]) : key(args[i], 456);
+			keys[i] = args[i] instanceof Record ? (Record) args[i]
+					: level == 0 ? key((String) args[i]) : key((String) args[i], 123, 456);
 		return new BtreeMemNode(level, keys);
 	}
 	private static BtreeNode node(int level, Record... keys) {
@@ -286,12 +309,21 @@ public class BtreeNodeTest {
 		return new RecordBuilder().add(s).adduint(123).build();
 	}
 
-	private static Record key(String s, int treeAdr) {
-		return new RecordBuilder().add(s).addMin().adduint(treeAdr).build();
+	private static Record key(int adr) {
+		return new RecordBuilder().add("dup").adduint(adr).build();
+	}
+
+	private static Record key(String s, int dataAdr, int treeAdr) {
+		return new RecordBuilder().add(s)
+				.adduint(dataAdr).adduint(treeAdr).build();
 	}
 
 	private static Record min(int adr) {
 		return new RecordBuilder().addMin().addMin().adduint(adr).build();
+	}
+
+	private static Record max(String s, int treeAdr) {
+		return key(s, IntRefs.MAXADR, treeAdr);
 	}
 
 }

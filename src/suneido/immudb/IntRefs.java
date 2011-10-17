@@ -21,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 class IntRefs implements Iterable<Object> {
 	static final int MASK = 0xfff00000;
+	public static final int MAXADR = 0xffefffff;
 	private final List<Object> list = new ArrayList<Object>();
 	private int adrs[] = null;
 
