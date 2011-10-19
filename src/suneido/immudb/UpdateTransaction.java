@@ -93,6 +93,7 @@ class UpdateTransaction extends ReadTransaction {
 		assert locked;
 		rec.tblnum = tblnum;
 		indexedData(tblnum).add(rec);
+		callTrigger(getTable(tblnum), null, rec);
 		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 	}
 
@@ -115,6 +116,7 @@ class UpdateTransaction extends ReadTransaction {
 		assert locked;
 		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
+		callTrigger(ck_getTable(tblnum), from, to);
 		udbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
 
@@ -141,6 +143,7 @@ class UpdateTransaction extends ReadTransaction {
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
 		assert locked;
 		indexedData(tblnum).remove((Record) rec);
+		callTrigger(ck_getTable(tblnum), rec, null);
 		udbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 

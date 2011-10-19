@@ -245,7 +245,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public void callTrigger(suneido.intfc.database.Table table,
 			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
-		db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
+		if (table != null)
+			db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
 	}
 
 	@Override
