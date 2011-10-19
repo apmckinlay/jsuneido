@@ -51,20 +51,20 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	/** if colNames is null returns firstIndex */
 	Btree getIndex(int tblnum, String colNames) {
 		Table tbl = ck_getTable(tblnum);
-		int[] fields = (colNames == null)
+		int[] colNums = (colNames == null)
 			? tbl.firstIndex().colNums
 			: tbl.namesToNums(colNames);
-		return getIndex(tblnum, fields);
+		return getIndex(tblnum, colNums);
 	}
 
-	Btree getIndex(int tblnum, int... indexColumns) {
-		ColNums colNums = new ColNums(indexColumns);
-		Btree btree = indexes.get(tblnum, colNums);
+	Btree getIndex(int tblnum, int... colNums) {
+		ColNums colNumsKey = new ColNums(colNums);
+		Btree btree = indexes.get(tblnum, colNumsKey);
 		if (btree != null)
 			return btree;
 		TableInfo ti = getTableInfo(tblnum);
-		btree = new Btree(tran, this, ti.getIndex(indexColumns));
-		indexes.put(tblnum, colNums, btree);
+		btree = new Btree(tran, this, ti.getIndex(colNums));
+		indexes.put(tblnum, colNumsKey, btree);
 		return btree;
 	}
 
@@ -76,8 +76,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return tran.getrec(adr);
 	}
 
-	Record lookup(int tblnum, int[] indexColumns, Record key) {
-		Btree btree = getIndex(tblnum, indexColumns);
+	Record lookup(int tblnum, int[] colNums, Record key) {
+		Btree btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);
 		if (adr == 0)
 			return null; // not found
@@ -95,8 +95,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return iter.eof() ? null : input(iter.keyadr());
 	}
 
-	boolean exists(int tblnum, int[] indexColumns, Record key) {
-		return 0 != getIndex(tblnum, indexColumns).get(key);
+	boolean exists(int tblnum, int[] colNums, Record key) {
+		return 0 != getIndex(tblnum, colNums).get(key);
 	}
 
 	@Override

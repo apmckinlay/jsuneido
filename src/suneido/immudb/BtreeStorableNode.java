@@ -67,16 +67,16 @@ abstract class BtreeStorableNode extends BtreeNode {
 			}
 		}
 
-		int ptr = 0;
+		int adr = 0;
 		if (level > 0) {
-			int ptr1 = ptr = pointer(rec);
-			if (! IntRefs.isIntRef(ptr1))
-				ptr = tran.redir(ptr1);
-			if (IntRefs.isIntRef(ptr))
-				ptr = tran.getAdr(ptr);
-			assert ptr != 0;
-			assert ! IntRefs.isIntRef(ptr) : "pointer " + ptr1 + " => " + (ptr & 0xffffffffL);
-			if (ptr1 != ptr)
+			int adr1 = adr = adr(rec);
+			if (! IntRefs.isIntRef(adr1))
+				adr = tran.redir(adr1);
+			if (IntRefs.isIntRef(adr))
+				adr = tran.getAdr(adr);
+			assert adr != 0;
+			assert ! IntRefs.isIntRef(adr) : "adr " + adr1 + " => " + (adr & 0xffffffffL);
+			if (adr1 != adr)
 				translate = true;
 			//TODO if redirections are unique then we can remove this one
 		}
@@ -91,7 +91,7 @@ abstract class BtreeStorableNode extends BtreeNode {
 		else
 			rb.adduint(dref);
 		if (level > 0)
-			rb.adduint(ptr);
+			rb.adduint(adr);
 		return rb.build();
 	}
 

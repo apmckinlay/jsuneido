@@ -77,5 +77,9 @@ class IntRefs implements Iterable<Object> {
 		adrs = null;
 	}
 
+	int next() {
+		return MASK | list.size();
+	}
+
 }
 

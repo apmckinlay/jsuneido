@@ -7,6 +7,7 @@ package suneido.immudb;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -670,6 +671,32 @@ public class BtreeTest {
 		btree.add(rec("e", 5));
 		// "d" should now be tree key
 		assertFalse(btree.add(rec("d", 6), true));
+	}
+
+	@Test
+	public void update_during_iteration() {
+		btree.add(key("a"));
+		btree.add(key("c"));
+		Btree.Iter iter = btree.iterator();
+		iter.next();
+		Record oldkey = iter.curKey();
+		Record newkey = key("b", tran.refToInt(new Object()));
+		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
+		iter.next();
+		assertThat(iter.curKey(), not(newkey));
+	}
+
+	@Test
+	public void update_during_reverse_iteration() {
+		btree.add(key("a"));
+		btree.add(key("c"));
+		Btree.Iter iter = btree.iterator();
+		iter.prev();
+		Record oldkey = iter.curKey();
+		Record newkey = key("b", tran.refToInt(new Object()));
+		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
+		iter.prev();
+		assertThat(iter.curKey(), not(newkey));
 	}
 
 	//--------------------------------------------------------------------------

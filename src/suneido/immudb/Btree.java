@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.BtreeNode.adr;
 import static suneido.immudb.DatabasePackage.MAX_RECORD;
 import static suneido.immudb.DatabasePackage.MIN_RECORD;
 import gnu.trove.list.array.TIntArrayList;
@@ -22,6 +23,7 @@ import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Longs;
 
 /**
  * Controls access to an append-only immutable btree.
@@ -323,34 +325,40 @@ class Btree {
 	}
 
 	class Iter implements IndexIter {
+		private static final int UINT_MAX = 0xffffffff;
 		private final Record from;
 		private final Record to;
 		// top of stack is leaf
 		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
-		private Record cur = null;
-		private boolean rewound = true;
-		private int valid;
+		private Record cur;
+		private boolean rewound;
+		private int valid = -1;
+		private int prevAdr;
 
-		Iter() {
-			from = MIN_RECORD;
-			to = MAX_RECORD;
+		private Iter() {
+			this(MIN_RECORD, MAX_RECORD);
 		}
 
-		Iter(Record from, Record to) {
+		private Iter(Record from, Record to) {
+			this(from, to, null, true, UINT_MAX);
+		}
+
+		private Iter(Iter iter) {
+			this(iter.from, iter.to, iter.cur, iter.rewound, iter.prevAdr);
+		}
+
+		private Iter(Record from, Record to, Record cur, boolean rewound, int prevAdr) {
 			this.from = from;
 			this.to = to;
-		}
-
-		Iter(Iter iter) {
-			from = iter.from;
-			to = iter.to;
-			cur = iter.cur;
-			rewound = iter.rewound;
-			valid = -1;
+			this.cur = cur;
+			this.rewound = rewound;
+			this.prevAdr = prevAdr;
 		}
 
 		@Override
 		public void next() {
+			int prevAdr = this.prevAdr;
+			this.prevAdr = tran.intrefs.next();
 			if (rewound) {
 				seek(from);
 				rewound = false;
@@ -364,10 +372,10 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (cur != null &&
-						(cur.compareTo(from) < 0 || cur.prefixGt(to)))
+				if (cur != null && (cur.compareTo(from) < 0 || cur.prefixGt(to)))
 					cur = null;
-				if (! oldcur.equals(cur))
+				if (cur == null ||
+						(! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0))
 					return;
 				// fall through
 			}
@@ -395,6 +403,8 @@ class Btree {
 
 		@Override
 		public void prev() {
+			int prevAdr = this.prevAdr;
+			this.prevAdr = tran.intrefs.next();
 			if (rewound) {
 				seek(to);
 				rewound = false;
@@ -411,10 +421,10 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (cur != null &&
-						(cur.compareTo(from) < 0 || cur.prefixGt(to)))
+				if (cur != null && (cur.compareTo(from) < 0 || cur.prefixGt(to)))
 					cur = null;
-				if (! oldcur.equals(cur))
+				if (cur == null ||
+						(! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0))
 					return;
 				// fall through
 			}
@@ -473,7 +483,7 @@ class Btree {
 		}
 
 		@Override
-		public suneido.intfc.database.Record curKey() {
+		public Record curKey() {
 			return cur;
 		}
 
@@ -483,6 +493,11 @@ class Btree {
 		}
 
 	}
+
+	static int uCmp(int x, int y) {
+		return Longs.compare(x & 0xffffffffL, y & 0xffffffffL);
+	}
+
 	private static class LevelInfo {
 		BtreeNode node;
 		int pos;

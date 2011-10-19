@@ -265,19 +265,18 @@ abstract class BtreeNode {
 	}
 
 	protected static Record minimize(Record key) {
-		int ptr = pointer(key);
-		return minimalKey(key.size(), ptr);
+		return minimalKey(key.size(), adr(key));
 	}
 
-	protected static int pointer(Record rec) {
+	protected static int adr(Record rec) {
 		return (int) rec.getLong(rec.size() - 1);
 	}
 
-	protected static Record minimalKey(int nfields, int ptr) {
+	protected static Record minimalKey(int nfields, int adr) {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < nfields - 1; ++i)
 			rb.add("");
-		rb.adduint(ptr);
+		rb.adduint(adr);
 		return rb.build();
 	}
 
