@@ -55,12 +55,16 @@ public class Row {
 		return sb.toString();
 	}
 
-	String toString(Header hdr) {
+	public String toString(Header hdr) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Row{");
-		for (String col : hdr.columns())
-			sb.append(col).append(": ").append(getval(hdr, col).toString()).append(", ");
-		sb.delete(sb.length() - 2, sb.length());
+		for (String col : hdr.columns()) {
+			String val = getval(hdr, col).toString();
+			if (! "".equals(val))
+				sb.append(col).append(": ").append(val).append(", ");
+		}
+		if (sb.length() > 4)
+			sb.delete(sb.length() - 2, sb.length());
 		sb.append("}");
 		return sb.toString();
 	}

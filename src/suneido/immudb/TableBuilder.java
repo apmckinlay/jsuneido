@@ -32,6 +32,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private final int tblnum;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
+	private int nextField = 0;
 
 	static TableBuilder create(ExclusiveTransaction t, String tableName, int tblNum) {
 		if (t.getTable(tableName) != null)
@@ -53,6 +54,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private TableBuilder(ReadTransaction t, String tableName) {
 		this(t, tableName, tblnum(t, tableName));
+		nextField = t.getTableInfo(tblnum).nextfield;
 		getSchema();
 	}
 
@@ -128,7 +130,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	public void addColumn2(String column) {
-		int field = isRuleField(column) ? -1 : nextColNum();
+		int field = isRuleField(column) ? -1 : nextField++;
 		if (field == -1)
 			column = column.substring(0, 1).toLowerCase() + column.substring(1);
 		Column c = new Column(tblnum, field, column);
@@ -138,14 +140,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private static boolean isRuleField(String column) {
 		return Character.isUpperCase(column.charAt(0));
-	}
-
-	private int nextColNum() {
-		int maxNum = -1;
-		for (Column c : columns)
-			if (c.field > maxNum)
-				maxNum = c.field;
-		return maxNum + 1;
 	}
 
 	@Override
@@ -330,16 +324,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		TableInfo ti = t.getTableInfo(tblnum);
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
-		et().addTableInfo(new TableInfo(tblnum,
-				maxColNum() + 1, nrows, totalsize, ii.build()));
-	}
-
-	private int maxColNum() {
-		int max = 0;
-		for (Column c : columns)
-			if (c.field > max)
-				max = c.field;
-		return max;
+		et().addTableInfo(
+				new TableInfo(tblnum, nextField, nrows, totalsize, ii.build()));
 	}
 
 	private void fail(String msg) {
