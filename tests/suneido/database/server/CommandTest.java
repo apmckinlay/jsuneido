@@ -309,7 +309,7 @@ public class CommandTest {
 				stringToBuffer("test"), output);
 		assertNull(buf);
 		String s = bufferToString(output.get(0));
-		assertThat(s, matches("A\\d+ R\\d+ \\(a,b,c\\)\r\n"));
+		assertThat(s, matches("A[-0-9]+ R\\d+ \\(a,b,c\\)\r\n"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), is(expected));
 		return s.substring(0, s.indexOf(' '));

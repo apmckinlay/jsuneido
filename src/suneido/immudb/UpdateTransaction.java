@@ -99,7 +99,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
-		Record from = new Record(stor, fromadr);
+		Record from = tran.getrec(fromadr);
 		updateRecord(from.tblnum, from, (Record) to);
 		return 1; //TODO don't know record address till commit
 	}
@@ -135,7 +135,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public void removeRecord(int adr) {
-		Record rec = new Record(stor, adr);
+		Record rec = tran.getrec(adr);
 		removeRecord(rec.tblnum, rec);
 	}
 
