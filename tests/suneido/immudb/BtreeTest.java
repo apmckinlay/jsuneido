@@ -699,6 +699,20 @@ public class BtreeTest {
 		assertThat(iter.curKey(), not(newkey));
 	}
 
+	@Test
+	public void range_starts_at_end_of_node() {
+		btree.add(rec("aa", 1));
+		btree.add(rec("bb", 2));
+		btree.add(rec("cc", 3));
+		btree.add(rec("dd", 4));
+		btree.add(rec("ed", 5));
+		// "dd" should now be tree key
+		btree.remove(rec("dd", 4));
+		Btree.Iter iter = btree.iterator(rec("d"), rec("z"));
+		iter.next();
+		assertThat(iter.curKey(), is(rec("ed", 5)));
+	}
+
 	//--------------------------------------------------------------------------
 
 	private static int adr(Record key) {
