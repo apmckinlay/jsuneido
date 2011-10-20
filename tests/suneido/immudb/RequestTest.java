@@ -13,25 +13,29 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Test;
 
-import suneido.database.query.Request;
+import suneido.database.query.*;
+import suneido.database.query.Query.Dir;
+import suneido.database.server.ServerData;
 import suneido.intfc.database.DatabasePackage.Status;
+import suneido.intfc.database.Transaction;
 
 public class RequestTest {
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
+	private static final ServerData serverData = new ServerData();
 	MemStorage stor = new MemStorage(1000, 100);
 	Database db = Database.create(stor);
 
 	@Test
 	public void create_table() {
-		request("create tbl " + SCHEMA);
+		req("create tbl " + SCHEMA);
 		assertThat(db.getSchema("tbl"), is(SCHEMA));
 	}
 
 	@Test
 	public void create_when_already_exists() {
-		request("create tbl " + SCHEMA);
+		req("create tbl " + SCHEMA);
 		try {
-			request("create tbl " + SCHEMA);
+			req("create tbl " + SCHEMA);
 			fail();
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("existing table"));
@@ -40,10 +44,10 @@ public class RequestTest {
 
 	@Test
 	public void alter_table_create() {
-		request("create tbl " + SCHEMA);
+		req("create tbl " + SCHEMA);
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is(SCHEMA));
-		request("alter tbl create (d) index(c,d)");
+		req("alter tbl create (d) index(c,d)");
 		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 		db = db.reopen();
@@ -53,28 +57,28 @@ public class RequestTest {
 
 	@Test
 	public void add_index_to_table_with_data() {
-		request("create tbl " + SCHEMA);
-		request("alter tbl create index(c,a)");
+		req("create tbl " + SCHEMA);
+		req("alter tbl create index(c,a)");
 	}
 
 	@Test
 	public void create_with_rule_fields() {
 		String schema = "(a,b,C,D) key(a)";
-		request("create tbl " + schema);
+		req("create tbl " + schema);
 		assertThat(db.getSchema("tbl"), is(schema));
 	}
 
 	@Test
 	public void empty_key() {
 		String schema = "(a,b,c) key()";
-		request("create tbl " + schema);
+		req("create tbl " + schema);
 		assertThat(db.getSchema("tbl"), is(schema));
 	}
 
 	@Test
 	public void no_columns() {
 		String schema = "() key()";
-		request("create tbl " + schema);
+		req("create tbl " + schema);
 		assertThat(db.getSchema("tbl"), is(schema));
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is(schema));
@@ -82,17 +86,17 @@ public class RequestTest {
 
 	@Test
 	public void ensure() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		assertThat(db.getSchema("tbl"), is(SCHEMA));
-		request("ensure tbl (c, d) index(a) index(c,d)");
+		req("ensure tbl (c, d) index(a) index(c,d)");
 		assertThat(db.getSchema("tbl"),
 				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
 
 	@Test
 	public void drop_columns() {
-		request("create tbl (a,b,c,d) key(a)");
-		request("alter tbl drop (b,d)");
+		req("create tbl (a,b,c,d) key(a)");
+		req("alter tbl drop (b,d)");
 		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
@@ -100,9 +104,9 @@ public class RequestTest {
 
 	@Test
 	public void drop_nonexistent_column() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		try {
-			request("alter tbl drop (x)");
+			req("alter tbl drop (x)");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("nonexistent column"));
@@ -111,9 +115,9 @@ public class RequestTest {
 
 	@Test
 	public void drop_column_used_in_index() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		try {
-			request("alter tbl drop (b)");
+			req("alter tbl drop (b)");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("column used in index"));
@@ -122,8 +126,8 @@ public class RequestTest {
 
 	@Test
 	public void drop_index() {
-		request("ensure tbl " + SCHEMA);
-		request("alter tbl drop index(b,c)");
+		req("ensure tbl " + SCHEMA);
+		req("alter tbl drop index(b,c)");
 		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
@@ -131,15 +135,15 @@ public class RequestTest {
 
 	@Test
 	public void drop_nonexistent_index() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		try {
-			request("alter tbl drop index(x)");
+			req("alter tbl drop index(x)");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("nonexistent column"));
 		}
 		try {
-			request("alter tbl drop index(c,b,a)");
+			req("alter tbl drop index(c,b,a)");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("nonexistent index"));
@@ -149,7 +153,7 @@ public class RequestTest {
 	@Test
 	public void cant_create_table_without_key() {
 		try {
-			request("create tbl (a,b,c) index(a)");
+			req("create tbl (a,b,c) index(a)");
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("key required"));
 		}
@@ -157,9 +161,9 @@ public class RequestTest {
 
 	@Test
 	public void cant_remove_last_key() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		try {
-			request("alter tbl drop key(a)");
+			req("alter tbl drop key(a)");
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("key required"));
 		}
@@ -167,8 +171,8 @@ public class RequestTest {
 
 	@Test
 	public void drop_table() {
-		request("ensure tbl " + SCHEMA);
-		request("drop tbl");
+		req("ensure tbl " + SCHEMA);
+		req("drop tbl");
 		assertNull(db.schema().get("tbl"));
 		db = db.reopen();
 		assertNull(db.schema().get("tbl"));
@@ -177,7 +181,7 @@ public class RequestTest {
 	@Test
 	public void drop_nonexistent_table() {
 		try {
-			request("drop tbl");
+			req("drop tbl");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("nonexistent table"));
@@ -186,8 +190,8 @@ public class RequestTest {
 
 	@Test
 	public void rename_table() {
-		request("ensure tbl " + SCHEMA);
-		request("rename tbl to lbt");
+		req("ensure tbl " + SCHEMA);
+		req("rename tbl to lbt");
 		assertNull(db.getSchema("tbl"));
 		assertThat(db.getSchema("lbt"), is(SCHEMA));
 		db = db.reopen();
@@ -198,7 +202,7 @@ public class RequestTest {
 	@Test
 	public void rename_nonexistent_table() {
 		try {
-			request("rename tbl to lbt");
+			req("rename tbl to lbt");
 			fail();
 		} catch (Exception e) {
 			assertThat(e.getMessage(), containsString("nonexistent table"));
@@ -207,17 +211,17 @@ public class RequestTest {
 
 	@Test
 	public void next_column_num() {
-		request("ensure tbl (a,b,c) key(a)");
-		request("alter tbl drop (b)");
+		req("ensure tbl (a,b,c) key(a)");
+		req("alter tbl drop (b)");
 		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
-		request("alter tbl create (d) index(d)");
+		req("alter tbl create (d) index(d)");
 		assertThat(db.getSchema("tbl"), is("(a,c,d) key(a) index(d)"));
 	}
 
 	@Test
 	public void rename_columns() {
-		request("ensure tbl " + SCHEMA);
-		request("alter tbl rename b to bb, c to cc");
+		req("ensure tbl " + SCHEMA);
+		req("alter tbl rename b to bb, c to cc");
 		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
@@ -225,18 +229,39 @@ public class RequestTest {
 
 	@Test
 	public void creates() {
-		request("create Accountinglib (name,text,num,parent,group,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
-		request("create Contrib (num,parent,group,name,text,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
-		request("create ETA (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
-		request("create ETAHelp (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
+		req("create Accountinglib (name,text,num,parent,group,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
+		req("create Contrib (num,parent,group,name,text,lib_committed,lib_modified) key(name,group) key(num) index(parent,name)");
+		req("create ETA (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
+		req("create ETAHelp (path,name,order,text,num,lib_committed,lib_modified,plugin) index(name) key(num) index(order,name) key(path,name) index(path,order,name) index(plugin)");
 	}
 
 	@Test
 	public void ensure_readonly() {
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		ExclusiveTransaction t = db.exclusiveTran();
-		request("ensure tbl " + SCHEMA);
+		req("ensure tbl " + SCHEMA);
 		t.abort();
+	}
+
+	@Test
+	public void add_remove_fields() {
+		req("create tbl (a, b, c, d, e, f, g) key(b)");
+		assertThat(db.getSchema("tbl"), is("(a,b,c,d,e,f,g) key(b)"));
+		exec("insert { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7 } into tbl");
+		req("alter tbl drop (a, c, e, g)");
+		assertThat(db.getSchema("tbl"), is("(b,d,f) key(b)"));
+		req("alter tbl create (h, i, j, k)");
+		assertThat(db.getSchema("tbl"), is("(b,d,f,h,i,j,k) key(b)"));
+		assertThat(first(), is("Row{b: 2, d: 4, f: 6}"));
+	}
+
+	private String first() {
+		Transaction t = db.readonlyTran();
+		Query q = CompileQuery.query(t, serverData, "tbl");
+		Header hdr = q.header();
+		Row row = q.get(Dir.NEXT);
+		t.ck_complete();
+		return row == null ? null : row.toString(hdr);
 	}
 
 	@After
@@ -244,8 +269,20 @@ public class RequestTest {
 		assertThat(DbCheck.check(stor), is(Status.OK));
 	}
 
-	private void request(String request) {
+	private void req(String request) {
 		Request.execute(db, request);
+	}
+
+	protected int exec(String s) {
+		Transaction t = db.readwriteTran();
+		try {
+			Query q = CompileQuery.parse(t, serverData, s);
+			int n = ((QueryAction) q).execute();
+			t.ck_complete();
+			return n;
+		} finally {
+			t.abortIfNotComplete();
+		}
 	}
 
 }
