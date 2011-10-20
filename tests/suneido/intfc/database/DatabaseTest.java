@@ -234,9 +234,7 @@ public class DatabaseTest extends TestBase {
 			.addIndex("a", true, false, "", "", 0)
 			.finish();
 
-		Transaction t1 = db.readwriteTran();
-		t1.addRecord("test2", record(10, 1, 5));
-		t1.ck_complete();
+		add("test2", record(10, 1, 5));
 
 		db.alterTable("test2")
 				.addIndex("f1", false, false, "test", "a", Fkmode.BLOCK)
@@ -275,6 +273,36 @@ public class DatabaseTest extends TestBase {
 		assertEquals(2, recs.size());
 		assertEquals(record(10, 111), recs.get(0));
 		assertEquals(record(11, 111), recs.get(1));
+	}
+
+	@Test
+	public void create_index_blocked() {
+		db.createTable("source")
+			.addColumn("id")
+			.addColumn("date")
+			.addIndex("id,date", true, false, "", "", 0)
+			.finish();
+		add("source", record(1, 990101));
+		assertThat(count("source"), is(1));
+		db.createTable("target")
+			.addColumn("id")
+			.addColumn("name")
+			.addIndex("id", true, false, "", "", 0)
+			.finish();
+		try {
+			db.alterTable("source")
+				.addIndex("id", false, false, "target", "id", Fkmode.BLOCK)
+				.finish();
+			fail();
+		} catch (Exception e) {
+			assertThat(e.toString(), containsString("blocked"));
+		}
+	}
+
+	private void add(String table, Record rec) {
+		Transaction t = db.readwriteTran();
+		t.addRecord(table, rec);
+		t.ck_complete();
 	}
 
 	private void make_test2(int fkmode) {

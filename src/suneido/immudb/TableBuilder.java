@@ -32,6 +32,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private final int tblnum;
 	private final List<Column> columns = Lists.newArrayList();
 	private final List<Index> indexes = Lists.newArrayList();
+	private final List<Index> newIndexes = Lists.newArrayList();
+	private Index firstIndex;
 	private int nextField = 0;
 
 	static TableBuilder create(ExclusiveTransaction t, String tableName, int tblNum) {
@@ -111,6 +113,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Table table = t.getTable(tableName);
 		columns.addAll(table.columnsList());
 		indexes.addAll(table.indexesList());
+		firstIndex = indexes.get(0);
 	}
 
 	@Override
@@ -205,6 +208,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				fktable, fkcolumns, fkmode);
 		et().addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
+		newIndexes.add(index);
 		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
 			et().addIndex(tblnum, index.colNums);
 	}
@@ -279,7 +283,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	void build() {
 		mustHaveKey();
 		updateSchema();
-		for (Index index : indexes)
+		for (Index index : newIndexes)
 			insertExistingData(index);
 		updateTableInfo();
 	}
@@ -303,7 +307,9 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			return;
-		Btree src = t.getIndex(tblnum, table.firstIndex().colNums);
+		if (firstIndex == null)
+			return;
+		Btree src = t.getIndex(tblnum, firstIndex.colNums);
 		Btree.Iter iter = src.iterator();
 		Btree btree = et().addIndex(tblnum, newIndex.colNums);
 		IndexedData id = new IndexedData(et())
