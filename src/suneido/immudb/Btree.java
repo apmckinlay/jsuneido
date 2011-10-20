@@ -461,10 +461,8 @@ class Btree {
 			for (int level = treeLevels; level >= 0; --level) {
 				BtreeNode node = nodeAt(level, adr);
 				int pos = node.findPos(key);
-				if (pos >= node.size())
-					pos = node.size() - 1;
 				stack.push(new LevelInfo(node, pos));
-				Record slot = node.get(pos);
+				Record slot = pos < node.size() ? node.get(pos) : null;
 				if (level == 0) {
 					cur = slot;
 					break;
