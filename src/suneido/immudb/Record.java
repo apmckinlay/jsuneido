@@ -57,6 +57,7 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	Record(Storage stor, int adr) {
+		assert ! IntRefs.isIntRef(adr);
 		buf = stor.buffer(adr);
 		bufpos = TBLNUM_SIZE;
 		this.address = adr;
@@ -65,6 +66,11 @@ class Record implements suneido.intfc.database.Record {
 
 	protected Record(Record rec) {
 		this(rec.address, rec.buf, rec.bufpos);
+	}
+
+	Record(Record rec, int adr) {
+		this(adr, rec.buf, rec.bufpos);
+		tblnum = rec.tblnum;
 	}
 
 	void check() {

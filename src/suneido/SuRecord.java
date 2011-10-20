@@ -72,7 +72,6 @@ public class SuRecord extends SuContainer {
 		this.recadr = row.address();
 		status = Status.OLD;
 
-		verify(recadr >= 0);
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
 			Row.Entry e = iter.next();
 			addField(e.field, e.value);
