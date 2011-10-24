@@ -20,7 +20,7 @@ public class DestMem extends Destination {
 
 	@Override
 	public long alloc(int size, byte type) {
-		nodes.add(ByteBuffer.allocateDirect(size));
+		nodes.add(ByteBuffer.allocate(size));
 		types.add(type);
 		return nodes.size() * Mmfile.ALIGN; // start at one not zero
 	}

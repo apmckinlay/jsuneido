@@ -19,10 +19,12 @@ import suneido.language.builtin.SuTransaction;
 import suneido.util.ByteBuf;
 import suneido.util.Print;
 
+import com.google.common.collect.Sets;
+
 /**
  * Manages transactions. Uses {@link Locks}
  */
-// NOTE: don't call any synchronized Transaction methods while synchronized
+// NOTE: don't call any Transaction synchronized methods while synchronized
 // because this can lead to deadlock.
 @ThreadSafe
 class Transactions {
@@ -30,8 +32,14 @@ class Transactions {
 	private final AtomicLong clock = new AtomicLong();
 	private final AtomicInteger nextNum = new AtomicInteger();
 	private final Locks locks = new Locks();
-	private final PriorityQueue<Transaction> trans = new PriorityQueue<Transaction>();
-	private final PriorityQueue<Transaction> finals = new PriorityQueue<Transaction>();
+	/** all active transactions */
+	private final Set<Transaction> trans = Sets.newHashSet();
+	/** active read-write transactions */
+	private final PriorityQueue<Transaction> rwtrans =
+			new PriorityQueue<Transaction>(MAX_FINALS_SIZE, Transaction.byAsof);
+	/** committed read-write transactions waiting to be finalized */
+	private final PriorityQueue<Transaction> finals =
+			new PriorityQueue<Transaction>(MAX_FINALS_SIZE, Transaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
 	static int MAX_SHADOWS_SINCE_ACTIVITY = 1000;
@@ -57,29 +65,34 @@ class Transactions {
 	// used by tests
 	void checkTransEmpty() {
 		assert trans.isEmpty();
+		assert rwtrans.isEmpty();
 		assert finals.isEmpty();
 		locks.checkEmpty();
 	}
 
-	synchronized void add(Transaction tran) {
-		trans.add(tran);
+	synchronized void add(Transaction t) {
+		trans.add(t);
+		if (t.isReadWrite())
+			rwtrans.add(t);
 	}
 
-	synchronized void addFinal(Transaction tran) {
-		assert tran.isReadWrite();
-		finals.add(tran);
+	synchronized void addFinal(Transaction t) {
+		assert t.isReadWrite();
+		finals.add(t);
 	}
 
 	/**
 	 * Remove transaction from outstanding.
 	 * Called by {@link SuTransaction.complete} and {@link SuTransaction.abort}.
 	 */
-	synchronized void remove(Transaction tran) {
-		verify(trans.remove(tran));
-		if (tran.isReadWrite() && tran.isCommitted())
-			locks.commit(tran);
-		else
-			locks.remove(tran);
+	synchronized void remove(Transaction t) {
+		verify(trans.remove(t));
+		if (t.isReadWrite())
+			verify(rwtrans.remove(t));
+		if (t.isCommitted())
+			locks.removeWriteLocks(t);
+		else // abort
+			locks.remove(t);
 		finalization();
 	}
 
@@ -88,18 +101,11 @@ class Transactions {
 	 * i.e. older than the oldest outstanding update transaction.
 	 */
 	private void finalization() {
-		long oldest = oldestReadWriteTran();
-		while (!finals.isEmpty() && finals.peek().asof() < oldest)
+		long oldest = rwtrans.isEmpty() ? FUTURE : rwtrans.peek().asof();
+		while (! finals.isEmpty() && finals.peek().commitTime() < oldest)
 			locks.remove(finals.poll());
-		assert !trans.isEmpty() || finals.isEmpty();
-		assert !trans.isEmpty() || locks.isEmpty();
-	}
-
-	private long oldestReadWriteTran() {
-		for (Transaction t : trans)
-			if (t.isReadWrite())
-				return t.asof();
-		return FUTURE;
+		assert ! rwtrans.isEmpty() || finals.isEmpty();
+		assert ! rwtrans.isEmpty() || locks.isEmpty();
 	}
 
 	// should be called periodically
@@ -107,23 +113,20 @@ class Transactions {
 		limitFinalsSize();
 		abortStaleTrans();
 	}
+
+	/** if finals get too large abort oldest update transaction */
 	private void limitFinalsSize() {
 		Transaction t = null;
-		synchronized (this) {
+		synchronized(this) {
 			if (finals.size() <= MAX_FINALS_SIZE)
 				return;
-			for (Transaction tran : trans)
-				if (tran.isReadWrite()) {
-					t = tran;
-					break;
-				}
+			t = rwtrans.peek();
 		}
-		// abort outside synchronized to avoid deadlock
-		if (t != null) {
-			t.abortIfNotComplete("too many concurrent update transactions");
-			Print.timestamped("aborted " + t + " - finals too large");
-		}
+		t.abortIfNotComplete("too many concurrent update transactions");
+		Print.timestamped("aborted " + t + " - finals too large");
 	}
+
+	/** abort inactive transactions that accumulate too many shadows */
 	private void abortStaleTrans() {
 		Transaction t = null;
 		synchronized (this) {
@@ -161,6 +164,7 @@ class Transactions {
 		return locks.addRead(tran, offset);
 	}
 
+	/** @return set of readlocks for item */
 	synchronized Set<Transaction> writeLock(Transaction tran, long offset) {
 		return locks.addWrite(tran, offset);
 	}

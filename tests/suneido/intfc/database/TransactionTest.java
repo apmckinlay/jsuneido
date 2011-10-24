@@ -7,43 +7,42 @@ package suneido.intfc.database;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.*;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class TransactionTest extends TestBase {
 
 	@Test
 	public void cleanup() {
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		Transaction t1 = db.readonlyTran();
 		getFirst("tables", t1);
 		t1.ck_complete();
 
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		makeTable(3);
 
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		Transaction t2 = db.readwriteTran();
 		t2.ck_complete();
 
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		Transaction t3 = db.readwriteTran();
-		getFirst("test", t3);
+		readFirst(t3);
 		t3.ck_complete();
-
-		db.tranlist().isEmpty();
 	}
 
 	@Test
 	public void visibility() {
 		db.tranlist().isEmpty();
 
-		makeTable(1000);
-		before = new int[] { 0, 1, 2, 997, 998, 999 };
-		after = new int[] { 1, 2, 3, 998, 999, 9999 };
+		makeTable(300);
+		before = new int[] { 0, 1, 2, 297, 298, 299 };
+		after = new int[] { 1, 2, 3, 298, 299, 9999 };
 
 		Transaction t1 = add_remove();
 
@@ -69,8 +68,6 @@ public class TransactionTest extends TestBase {
 		t2.ck_complete();
 		checkBefore(t3);
 		t3.ck_complete();
-
-		db.tranlist().isEmpty();
 	}
 
 	@Test
@@ -79,20 +76,17 @@ public class TransactionTest extends TestBase {
 		before = new int[] { 0, 1, 2, 3 };
 		after = new int[] { 1, 2, 3, 9999 };
 
-		Transaction t1 = add_remove();
-		t1.abort(); // should abort outstanding transactions
+		add_remove().abort();
 
 		// aborted updates not visible
 		checkBefore();
 
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		db.reopen();
 
 		// aborted updates still not visible
 		checkBefore();
-
-		db.tranlist().isEmpty();
 	}
 
 	private Transaction add_remove() {
@@ -138,7 +132,7 @@ public class TransactionTest extends TestBase {
 
 	@Test
 	public void delete_conflict() {
-		makeTable(1000);
+		makeTable(300);
 
 		// deleting different btree nodes doesn't conflict
 		Transaction t1 = db.readwriteTran();
@@ -147,7 +141,7 @@ public class TransactionTest extends TestBase {
 		removeLast(t2);
 		t2.ck_complete();
 		t1.ck_complete();
-		db.tranlist().isEmpty();
+		check_all_gone();
 
 		// deleting in same btree node conflicts
 		Transaction t3 = db.readwriteTran();
@@ -162,8 +156,6 @@ public class TransactionTest extends TestBase {
 		t3.ck_complete();
 		assertNotNull(t4.complete());
 		assertThat(t4.conflict(), containsString("conflict"));
-
-		db.tranlist().isEmpty();
 	}
 
 	private void remove(Transaction t, int i) {
@@ -185,7 +177,7 @@ public class TransactionTest extends TestBase {
 		makeTable();
 
 		Transaction t1 = db.readwriteTran();
-		t1.addRecord("test", record(99));
+		t1.addRecord("test", record(98));
 		Transaction t2 = db.readwriteTran();
 		try {
 			t2.addRecord("test", record(99));
@@ -197,7 +189,18 @@ public class TransactionTest extends TestBase {
 		assertNotNull(t2.complete());
 		assertThat(t2.conflict(), containsString("conflict (write-write)"));
 
-		db.tranlist().isEmpty();
+	}
+
+	@Test
+	public void add_aborted_no_conflict() {
+		makeTable();
+
+		Transaction t1 = db.readwriteTran();
+		t1.addRecord("test", record(98));
+		Transaction t2 = db.readwriteTran();
+		t1.abort();
+		t2.addRecord("test", record(99));
+		t2.ck_complete();
 	}
 
 	@Test
@@ -230,8 +233,6 @@ public class TransactionTest extends TestBase {
 		assertThat(t3.conflict(), containsString("conflict (write-write)"));
 
 		t1.ck_complete();
-
-		db.tranlist().isEmpty();
 	}
 
 	private void update(Transaction t, int i, Record newrec) {
@@ -259,8 +260,6 @@ public class TransactionTest extends TestBase {
 		assert(t1.isAborted());
 		assertNotNull(t1.complete());
 		assertThat(t1.conflict(), containsString("conflict (write-write)"));
-
-		db.tranlist().isEmpty();
 	}
 
 	@Test
@@ -271,65 +270,90 @@ public class TransactionTest extends TestBase {
 		check(0, 1, 2, 3, 4);
 		t.ck_complete();
 		check(1, 2, 3, 4, 9);
-
-		db.tranlist().isEmpty();
 	}
 
 	@Test
 	public void write_skew() {
-		makeTable(1000);
+		makeTable(300);
 		Transaction t1  = db.readwriteTran();
 		Transaction t2  = db.readwriteTran();
 
-		getFirst("test", t1);
-		getLast("test", t1);
-		update(t1, 1, record(1));
+		readLast(t1);
+		updateFirst(t1);
 
-		getFirst("test", t2);
-		getLast("test", t2);
+		readFirst(t2);
+		updateLastConflict(t2);
+
+		t1.ck_complete();
+	}
+
+	@Test
+	public void write_skew_with_completed() {
+		makeTable(300);
+		Transaction t1  = db.readwriteTran();
+		Transaction t2  = db.readwriteTran();
+
+		readLast(t1);
+		updateFirst(t1);
+		t1.ck_complete();
+
+		readFirst(t2);
+		updateLastConflict(t2);
+	}
+
+	private void updateLastConflict(Transaction t2) {
 		try {
-			update(t2, 999, record(999));
+			updateLast(t2);
 			fail();
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
 		assert(t2.isAborted());
-
-		t1.ck_complete();
-		assertNotNull(t2.complete());
 		assertThat(t2.conflict(), containsString("conflict (write-read)"));
+		assertNotNull(t2.complete());
+	}
 
-		db.tranlist().isEmpty();
+	private void readFirst(Transaction t) {
+		getFirst("test", t);
+	}
+
+	private void readLast(Transaction t) {
+		getLast("test", t);
+	}
+
+	private void updateFirst(Transaction t) {
+		update(t, 1, record(1));
+	}
+
+	private void updateLast(Transaction t) {
+		update(t, 299, record(999));
 	}
 
 	@Test
-	public void phantoms() {
-		makeTable(1000);
+	public void phantom() {
+		/*
+		 * if locking was by row
+		 * the phantom would not be detected
+		 * because neither transaction explicitly reads a record
+		 * that the other transaction writes
+		 * (but because locking is by btree node it is detected)
+		 */
+		makeTable(300);
 		Transaction t1  = db.readwriteTran();
-		getLast("test", t1);
-		update(t1, 1, record(1));
+		readFirst(t1);
+		t1.addRecord("test", record(1000));
 
-		Transaction t2  = db.readwriteTran();
+		Transaction t2 = db.readwriteTran();
+		readLast(t2);
 		try {
-			t2.addRecord("test", record(1000));
+			t2.addRecord("test", record(-1));
 			fail();
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
 		assertTrue(t2.isAborted());
 
-		Transaction t3  = db.readwriteTran();
-		try {
-			remove(t3, 999);
-			fail();
-		} catch (RuntimeException e) {
-			assertThat(e.toString(), containsString("conflict"));
-		}
-		assertTrue(t3.isAborted());
-
 		t1.ck_complete();
-
-		db.tranlist().isEmpty();
 	}
 
 	@Test
@@ -348,8 +372,64 @@ public class TransactionTest extends TestBase {
 
 		check("test1", 123);
 		check("test2", 456);
+	}
 
-		db.tranlist().isEmpty();
+	// t1-------u---
+	//     t2-------------u---
+	@Test
+	public void conflict_with_completed() {
+		makeTable(100);
+		Transaction t1 = db.readwriteTran();
+		update(t1, 1, record(1000));
+		Transaction t2 = db.readwriteTran();
+		t1.ck_complete();
+		try {
+			update(t2, 3, record(1002));
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
+	}
+
+	@Test
+	public void not_concurrent_so_no_conflict() {
+		makeTable(100);
+		Transaction t0 = db.readwriteTran();
+		Transaction t1 = db.readwriteTran();
+		updateFirst(t1);
+		t1.ck_complete();
+		Transaction t2 = db.readwriteTran();
+		updateFirst(t2);
+		t2.ck_complete();
+		t0.ck_complete();
+	}
+
+	@Test
+	public void concurrent_but_disjoint_so_no_conflict() {
+		makeTable(300);
+		Transaction t1 = db.readwriteTran();
+		Transaction t2 = db.readwriteTran();
+		updateFirst(t1);
+		update(t2, 299, record(999));
+		t2.ck_complete();
+		t1.ck_complete();
+	}
+
+//	private Transaction t;
+//
+//	@Before
+//	public void before() {
+//		t = db.readwriteTran();
+//	}
+//
+//	@After
+//	public void after() {
+//		t.ck_complete();
+//	}
+
+	@After
+	public void check_all_gone() {
+		db.checkTransEmpty();
 	}
 
 }

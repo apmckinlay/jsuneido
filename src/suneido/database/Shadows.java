@@ -4,7 +4,9 @@
 
 package suneido.database;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,7 +55,7 @@ class Shadows {
 				readcache.remove(offset);
 			shadows.put(offset, buf);
 			return buf;
-		} else if (!buf.isReadOnly())
+		} else if (! buf.isReadOnly())
 			return buf;
 		else
 			return null; // write conflict - shadowed so another tran wrote it

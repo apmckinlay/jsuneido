@@ -22,13 +22,11 @@ import suneido.intfc.database.TableBuilder;
 import suneido.util.ByteBuf;
 
 public class TestConcurrency {
-	private static final Database db = Database.testdb();
+	private static final Database db = Database.create("concur.db");
 	private static final ServerData serverData = new ServerData();
 	private static final int NTHREADS = 8;
-	private static final int SECONDS = 1000;
-	private static final int MINUTES = 60 * SECONDS;
-	private static final int DURATION = 20 * SECONDS;
 	private static final int QUEUE_SIZE = 100;
+	private static final long DURATION = TimeUnit.MINUTES.toMillis(5);
 	private static final Random rand = new Random();
 
 	public static void main(String[] args) {
@@ -46,6 +44,7 @@ public class TestConcurrency {
 		BoundedExecutor exec = new BoundedExecutor(QUEUE_SIZE, NTHREADS);
 
 		long t = System.currentTimeMillis();
+		Transaction rt = null;
 		int nreps = 0;
 		while (true) {
 			exec.submitTask(actions[random(actions.length)]);
@@ -58,12 +57,16 @@ public class TestConcurrency {
 					System.out.print('.');
 				if (nreps % 40000 == 0) {
 					System.out.println();
-					db.readonlyTran();
+					if (rt != null)
+						rt.abort();
+					rt = db.readonlyTran();
 				}
 				db.limitOutstandingTransactions();
 			}
 		}
 		System.out.println();
+		if (rt != null)
+			rt.abort();
 		exec.finish();
 		t = System.currentTimeMillis() - t;
 
@@ -72,15 +75,16 @@ public class TestConcurrency {
 			if (!s.equals(""))
 				System.out.println(s);
 		}
-
-		db.close();
-		verifyEquals(Status.OK, DbCheck.check("concur.db"));
-
 		System.out.println("finished " + nreps + " reps with " + NTHREADS
 				+ " threads in " + readableDuration(t));
+
+		db.checkTransEmpty();
+		db.close();
+		verifyEquals(Status.OK, DbCheck.check("concur.db",
+				suneido.intfc.database.DatabasePackage.printObserver));
 	}
 
-	static final int MINUTE_MS = MINUTES;
+	static final int MINUTE_MS = 60 * 1000;
 	static final int SECOND_MS = 1000;
 	static String readableDuration(long ms) {
 		long div = 1;
@@ -218,6 +222,9 @@ public class TestConcurrency {
 						+ " set c = " + random(N));
 				((QueryAction) q).execute();
 				t.ck_complete();
+			} catch (OutOfMemoryError e) {
+				System.out.println(e);
+				System.exit(-1);
 			} catch (RuntimeException e) {
 				nupdatesfailed.incrementAndGet();
 				t.abort();

@@ -291,4 +291,9 @@ class Database implements suneido.intfc.database.Database {
 			throw new RuntimeException("should not be locked");
 	}
 
+	@Override
+	public void checkTransEmpty() {
+		trans.checkTransEmpty();
+	}
+
 }
