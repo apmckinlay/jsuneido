@@ -4,20 +4,21 @@
 
 package suneido.util;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 import org.junit.Test;
-
-import suneido.util.FractalTree;
 
 import com.google.common.collect.Lists;
 
 public class FractalTreeTest {
 
-	@Test public void main() {
+	@Test 
+	public void main() {
 		Random rand = new Random(98707);
 
 		ArrayList<Integer> keys = Lists.newArrayList();
@@ -25,15 +26,21 @@ public class FractalTreeTest {
 		for (int i = 0; i < NKEYS; ++i)
 			keys.add(rand.nextInt(NKEYS));
 
-		FractalTree<Integer> ft = new FractalTree<Integer>();
+		FractalTree2<Integer> ft = new FractalTree2<Integer>();
 		for (Integer key : keys)
 			ft.add(key);
+		assertThat(ft.size(), is(NKEYS));
 		Collections.sort(keys);
 
 		int i = 0;
 		for (Integer x : ft)
 			assertThat(x, is(keys.get(i++)));
 		assertThat(i, is(NKEYS));
+		
+		Integer[] data = ft.toArray(new Integer[0]);
+		assertThat(data.length, is(NKEYS));
+		for (i = 0; i < NKEYS; ++i)
+			assertThat(data[i], is(keys.get(i)));
 	}
-
+	
 }

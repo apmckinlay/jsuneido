@@ -256,7 +256,7 @@ public class SuRecord extends SuContainer {
 		ck_modify("Update");
 		Record newrec = toDbRecord(hdr);
 		recadr = tran.getTransaction().update(recadr, newrec);
-		verify(recadr >= 0);
+		verify(recadr != 0);
 	}
 
 	public void delete() {

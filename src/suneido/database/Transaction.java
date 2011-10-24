@@ -507,7 +507,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
-				abortThrow("conflict (read-write) with " + writer);
+				abortThrow("conflict (read-write) " + this + " with " + writer);
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
@@ -523,7 +523,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 		for (Transaction w : writes)
 			if (w != this && w.committedAfter(this)) {
 				if (this.inConflict || w.outConflict)
-					abortThrow("conflict (read-write) with " + w);
+					abortThrow("conflict (read-write) " + this + " with " + w);
 				this.outConflict = true;
 			}
 		// do this after we're sure we're not going to abort
@@ -547,7 +547,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 		for (Transaction r : reads)
 			if (r.isActive() || r.committedAfter(this)) {
 				if (r.inConflict || this.outConflict)
-					abortThrow("conflict (write-read) with " + r);
+					abortThrow("conflict (write-read) " + this + " with " + r);
 				this.inConflict = true;
 			}
 		// do this after we're sure we're not going to abort
@@ -570,7 +570,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 	private boolean isActive() {
 		return commitTime == Long.MAX_VALUE && !ended;
 	}
-
+	
 	// delegate
 
 	@Override
