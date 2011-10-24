@@ -7,8 +7,11 @@ package suneido.util;
 public class Verify {
 
 	public static void verify(boolean arg, String msg) {
-		if (! arg)
-			throw new RuntimeException("verify failed " + msg);
+		if (! arg) {
+			RuntimeException e = new RuntimeException("verify failed " + msg);
+e.printStackTrace();
+			throw e;
+		}
 	}
 
 	public static void verify(boolean arg) {

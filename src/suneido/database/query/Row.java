@@ -175,11 +175,24 @@ public class Row {
 			refs[i] = data[i].getRef();
 		return refs;
 	}
+	public Object[] getRefs(Object extra) {
+		Object[] refs = new Object[1 + data.length];
+		refs[0] = extra;
+		for (int i = 0; i < data.length; ++i)
+			refs[1 + i] = data[i].getRef();
+		return refs;
+	}
 
 	public static Row fromRefs(Transaction t, Object[] refs) {
 		Record[] data = new Record[refs.length];
 		for (int i = 0; i < data.length; ++i)
 			data[i] = t.fromRef(refs[i]);
+		return new Row(data);
+	}
+	public static Row fromRefsSkip(Transaction t, Object[] refs) {
+		Record[] data = new Record[refs.length - 1];
+		for (int i = 0; i < data.length; ++i)
+			data[i] = t.fromRef(refs[i + 1]);
 		return new Row(data);
 	}
 
