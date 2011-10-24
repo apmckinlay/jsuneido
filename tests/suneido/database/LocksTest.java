@@ -5,18 +5,23 @@
 package suneido.database;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 
 public class LocksTest {
+	private static final RuntimeException wwe = mock(RuntimeException.class);
 
 	@Test
 	public void test() {
-		Transaction t1 = new Transaction();
-		Transaction t2 = new Transaction();
-		Transaction t3 = new Transaction();
+		Transaction t1 = mockTran();
+		Transaction t2 = mockTran();
+		Transaction t3 = mockTran();
 
 		Locks locks = new Locks();
 
@@ -33,7 +38,12 @@ public class LocksTest {
 		assertTrue(locks.addWrite(t1, 123).isEmpty());
 		assertTrue(locks.addWrite(t1, 123).isEmpty());
 
-		assertNull(locks.addWrite(t2, 123));
+		try {
+			locks.addWrite(t2, 123);
+			fail();
+		} catch(RuntimeException e) {
+			assertSame(wwe, e);
+		}
 		assertTrue(locks.addWrite(t2, 456).isEmpty());
 
 		assertSame(t1, locks.addRead(t2, 123));
@@ -47,6 +57,13 @@ public class LocksTest {
 		locks.remove(t3);
 		locks.remove(t2);
 		assertTrue(locks.isEmpty());
+	}
+
+	private static Transaction mockTran() {
+		Transaction t = mock(Transaction.class);
+		when(t.isReadWrite()).thenReturn(true);
+		doThrow(wwe).when(t).abortThrow(anyString());
+		return t;
 	}
 
 }

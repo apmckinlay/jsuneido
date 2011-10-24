@@ -45,4 +45,6 @@ public interface Database {
 
 	void close();
 
+	void checkTransEmpty();
+
 }

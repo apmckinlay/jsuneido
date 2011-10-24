@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import suneido.DbTools;
 import suneido.database.Database.TN;
 import suneido.intfc.database.DatabasePackage.Observer;
 import suneido.intfc.database.DatabasePackage.Status;
@@ -199,7 +198,7 @@ class DbCheck {
 	}
 
 	public static void main(String[] args) {
-		DbTools.checkPrintExit(DatabasePackage.dbpkg, "suneido.db");
+		check("suneido.db", suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
 }

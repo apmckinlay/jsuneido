@@ -126,10 +126,11 @@ public class ByteBuf {
 	private ByteBuffer duplicate(int index) {
 		return duplicate(index, size - index);
 	}
-	private ByteBuffer duplicate(int index, int size) {
+	private ByteBuffer duplicate(int i, int n) {
+		//Preconditions.checkPositionIndexes(i, i + n, size);
 		ByteBuffer buffer = buf.duplicate();
-		buffer.position(offset + index);
-		buffer.limit(offset + index + size);
+		buffer.position(offset + i);
+		buffer.limit(offset + i + n);
 		buffer.order(ByteOrder.BIG_ENDIAN);
 		return buffer;
 	}

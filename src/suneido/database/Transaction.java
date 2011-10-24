@@ -17,15 +17,21 @@ import suneido.intfc.database.IndexIter;
 import suneido.util.ByteBuf;
 import suneido.util.PersistentMap;
 
+import com.google.common.primitives.Longs;
+
 /**
  * Handles a single readonly or readwrite transaction.
  * Mostly thread-contained, but needs to be threadsafe
  * so that inactive or excessive transactions can be aborted by other threads.
  * Uses {@link Transactions} and {@link Shadows}
  * equals and hashCode are the default i.e. identity
+ * <p>
+ * Based on
+ * <a href="http://cs.nyu.edu/courses/fall11/CSCI-GA.2434-001/p729-cahill.pdf">
+ * Serializable Isolation for Snapshot Databases</a>
  */
 @ThreadSafe
-class Transaction implements suneido.intfc.database.Transaction, Comparable<Transaction> {
+class Transaction implements suneido.intfc.database.Transaction {
 	final Database db;
 	private final Transactions trans;
 	private final boolean readonly;
@@ -54,9 +60,9 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	private /*final*/  Shadows shadows = new Shadows();
 	private volatile int shadowSizeAtLastActivity = 0;
 
-	Transaction(Database db, Transactions trans, boolean readonly,
-			Tables tables,
-			PersistentMap<Integer, TableData> tabledata, PersistentMap<String, BtreeIndex> btreeIndexes) {
+	Transaction(Database db, Transactions trans, boolean readonly, Tables tables,
+			PersistentMap<Integer, TableData> tabledata,
+			PersistentMap<String, BtreeIndex> btreeIndexes) {
 		this.db = db;
 		this.trans = trans;
 		this.readonly = readonly;
@@ -104,6 +110,10 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 
 	long asof() {
 		return asof;
+	}
+
+	long commitTime() {
+		return commitTime;
 	}
 
 	@Override
@@ -340,7 +350,7 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 	private void end() {
 		ended = true;
 		trans.remove(this);
-		// release memory
+		// release memory (since transaction stays referenced longer by locks)
 		shadows = null;
 		tables = null;
 		tabledata = null;
@@ -453,11 +463,19 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 
 	// end of complete ---------------------------------------------------------
 
-	// need for PriorityQueue in Transactions
-	@Override
-	public int compareTo(Transaction that) {
-		return num < that.num ? -1 : num > that.num ? +1 : 0;
-	}
+	// need for PriorityQueue's in Transactions
+	static final Comparator<Transaction> byCommit = new Comparator<Transaction>() {
+		@Override
+		public int compare(Transaction t1, Transaction t2) {
+			return Longs.compare(t1.commitTime, t2.commitTime);
+		}
+	};
+	static final Comparator<Transaction> byAsof = new Comparator<Transaction>() {
+		@Override
+		public int compare(Transaction t1, Transaction t2) {
+			return Longs.compare(t1.asof, t2.asof);
+		}
+	};
 
 	// WARNING: don't define equals based on num
 	// it causes errors e.g. in TestConcurrency
@@ -476,8 +494,16 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 		}
 	}
 
+	// Q should readLock and writeLock be synchronized on trans ?
+
 	synchronized void readLock(long offset) {
 		notEnded();
+		/*
+		get lock(key=x, owner=T, mode=SIREAD)
+		if there is a WRITE lock(wl) on x
+			set wl.owner.inConflict = true
+			set T.outConflict = true
+		 */
 		Transaction writer = trans.readLock(this, offset);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
@@ -485,32 +511,48 @@ class Transaction implements suneido.intfc.database.Transaction, Comparable<Tran
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
-
+		/*
+		for each version (xNew) of x that is newer than what T read:
+			if xNew.creator is committed and xNew.creator.outConflict:
+				abort(T)
+				return UNSAFE_ERROR
+			set xNew.creator.inConflict = true
+			set T.outConflict = true
+		*/
 		Set<Transaction> writes = trans.writes(offset);
-		for (Transaction w : writes) {
-			if (w == this || w.commitTime < asof)
-				continue;
-			if (w.outConflict)
-				abortThrow("conflict (read-write) with " + w);
-			this.outConflict = true;
-		}
+		for (Transaction w : writes)
+			if (w != this && w.committedAfter(this)) {
+				if (this.inConflict || w.outConflict)
+					abortThrow("conflict (read-write) with " + w);
+				this.outConflict = true;
+			}
+		// do this after we're sure we're not going to abort
 		for (Transaction w : writes)
 			w.inConflict = true;
 	}
 
 	synchronized void writeLock(long offset) {
 		notEnded();
-		Set<Transaction> readers = trans.writeLock(this, offset);
-		if (readers == null)
-			abortThrow("conflict (write-write)");
-		for (Transaction reader : readers)
-			if (reader.isActive() || reader.committedAfter(this)) {
-				if (reader.inConflict || this.outConflict)
-					abortThrow("conflict (write-read) with " + reader);
+		/*
+		get lock(key=x, locker=T, mode=WRITE)
+		if there is a SIREAD lock(rl) on x
+			with rl.owner is running or commit(rl.owner) > begin(T):
+			if rl.owner is committed and rl.owner.inConflict:
+				abort(T)
+				return UNSAFE_ERROR
+			set rl.owner.outConflict = true
+			set T.inConflict = true
+		 */
+		Set<Transaction> reads = trans.writeLock(this, offset);
+		for (Transaction r : reads)
+			if (r.isActive() || r.committedAfter(this)) {
+				if (r.inConflict || this.outConflict)
+					abortThrow("conflict (write-read) with " + r);
 				this.inConflict = true;
 			}
-		for (Transaction reader : readers)
-			reader.outConflict = true;
+		// do this after we're sure we're not going to abort
+		for (Transaction r : reads)
+			r.outConflict = true;
 	}
 
 	boolean isCommitted() {

@@ -81,7 +81,7 @@ class Database implements suneido.intfc.database.Database {
 		if (! Session.check_shutdown(dest)) {
 			dest.close();
 			return null;
-		}	
+		}
 		return new Database(dest, mode);
 	}
 
@@ -537,7 +537,8 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	// used by tests
-	void checkTransEmpty() {
+	@Override
+	public void checkTransEmpty() {
 		trans.checkTransEmpty();
 	}
 
