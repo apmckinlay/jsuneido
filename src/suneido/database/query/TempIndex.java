@@ -1,18 +1,17 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
 import static suneido.util.Verify.verify;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import suneido.SuException;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
+import suneido.util.MergeTree;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;
@@ -20,8 +19,8 @@ public class TempIndex extends Query1 {
 	private Transaction tran;
 	private boolean first = true;
 	private boolean rewound = true;
-	private TreeMap<Record, Object[]> map = null;
-	private Map.Entry<Record, Object[]> cur;
+	private final MergeTree<Object[]> keys = new MergeTree<Object[]>(cmp);
+	private MergeTree<Object[]>.Iter iter;
 	private final Keyrange sel = new Keyrange();
 
 	public TempIndex(Query source, Transaction tran, List<String> order, boolean unique) {
@@ -58,38 +57,44 @@ public class TempIndex extends Query1 {
 		if (rewound) {
 			rewound = false;
 			if (dir == Dir.NEXT)
-				cur = map.ceilingEntry(sel.org);
-			else
-				cur = map.floorEntry(sel.end);
+				iter.seekFirst(new Object[] { sel.org });
+			else // prev
+				iter.seekLast(new Object[] { sel.end });
 		}
-		else if (dir == Dir.NEXT)
-			cur = map.higherEntry(cur.getKey());
-		else // dir == PREV
-			cur = map.lowerEntry(cur.getKey());
-		if (cur == null || !sel.contains(cur.getKey()))
-			{
+		Object[] cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
+		if (cur == null || ! sel.contains((Record) cur[0])) {
 			rewound = true;
 			return null;
-			}
+		}
 
 		// TODO put iter->key into row
-		return Row.fromRefs(tran, cur.getValue());
+		return Row.fromRefsSkip(tran, cur);
 	}
 
+	// TODO pack keys into something (ChunkedStorage?)
+	// to reduce per-object overhead
+	// maybe pack refs along with keys so MergeTree just has offsets
 	private void iterate_setup(Dir dir) {
+		keys.clear();
 		Header srchdr = source.header();
-		map = new TreeMap<Record, Object[]>();
 		Row row;
-		for (int num = 0; null != (row = source.get(Dir.NEXT)); ++num)
-			{
+		while (null != (row = source.get(Dir.NEXT))) {
 			Record key = row.project(srchdr, order);
 			if (key.bufSize() > 4000)
 				throw new SuException("index entry size > 4000: " + order);
-			if (! unique)
-				key = dbpkg.recordBuilder().addAll(key).add(num).build();
-			verify(null == map.put(key, row.getRefs()));
-			}
+			keys.add(row.getRefs(key));
+		}
+		iter = keys.iter();
 	}
+
+	private static final Comparator<Object[]> cmp = new Comparator<Object[]>() {
+		@Override
+		public int compare(Object[] x, Object[] y) {
+			Record xkey = (Record) x[0];
+			Record ykey = (Record) y[0];
+			return xkey.compareTo(ykey);
+		}
+	};
 
 	@Override
 	public void rewind() {

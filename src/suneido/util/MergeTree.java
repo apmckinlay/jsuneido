@@ -5,23 +5,23 @@
 package suneido.util;
 
 import java.lang.ref.SoftReference;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
- * Add items in a random order, iterate them in order.
+ * Add items in a random order, iterate them in order. Stable sort.
  * Fast (amortized) insertion.
  * Not very good for lookups (so none implemented)
  * Cache oblivious.
  * Cache friendly - mostly sequential access.
  * Optimal memory space (e.g. as opposed to array size doubling)
  */
-public class MergeTree<T> implements Iterable<T> {
+public class MergeTree<T> {
 	private static final int MAX_LEVELS = 32;
 	private final Object[][] nodes = new Object[MAX_LEVELS][];
 	@SuppressWarnings("unchecked")
 	private final SoftReference<Object[]>[] cache = new SoftReference[MAX_LEVELS];
-	private final Object[] tmp = new Object[1];
-	private final int[] pos = new int[MAX_LEVELS];
+	private final int[] pos = new int[MAX_LEVELS]; // temp for merge
 	private final Comparator<T> cmp;
 	private int size = 0;
 
@@ -75,29 +75,28 @@ public class MergeTree<T> implements Iterable<T> {
 
 	private void merge(T x, int n, Object[] dst) {
 		int di = 0;
-		tmp[0] = x;
-		nodes[n] = tmp;
-		Arrays.fill(pos, 0, n + 1, 0);
+		Arrays.fill(pos, 0, n, 0);
 		while (true) {
-			int iMin = 0;
-			Object min = null;
-			for (int i = 0; i <= n; ++i)
+			int iMin = -1;
+			Object min = x;
+			for (int i = 0; i < n; ++i)
 				if (pos[i] < nodes[i].length) {
 					Object val = nodes[i][pos[i]];
-					assert val != null;
-					if (min == null || cmp(val, min) < 0) {
+					if (min == null || cmp(val, min) <= 0) {
 						min = val;
 						iMin = i;
 					}
 				}
 			if (min == null)
 				break;
-			++pos[iMin];
+			if (iMin == -1)
+				x = null;
+			else
+				++pos[iMin];
 			dst[di++] = min;
 		}
 		assert di == dst.length;
 		Arrays.fill(nodes, 0, n, null);
-		nodes[n] = dst;
 	}
 
 	Object[] alloc(int i) {
@@ -112,41 +111,81 @@ public class MergeTree<T> implements Iterable<T> {
 		return cmp.compare((T) x, (T) y);
 	}
 
-	@Override
-	public Iterator<T> iterator() {
+	public void clear() {
+		size = 0;
+		Arrays.fill(nodes, 0, MAX_LEVELS, null);
+	}
+
+	public Iter iter() {
 		return new Iter();
 	}
 
-	private class Iter implements Iterator<T> {
-		private final ArrayList<NodeIter> lists = new ArrayList<NodeIter>();
+	public class Iter {
+		private final int n;
+		private final NodeIter[] data;
+		private boolean rewound = true;
 
-		Iter() {
+		private Iter() {
+			n = Integer.bitCount(size);
+			data = new NodeIter[n];
+			int di = 0;
 			for (int i = 0; i < MAX_LEVELS; ++i)
 				if (nodes[i] != null)
-					lists.add(new NodeIter(nodes[i]));
-		}
-
-		@Override
-		public boolean hasNext() {
-			return ! lists.isEmpty();
+					data[di++] = new NodeIter(nodes[i]);
 		}
 
 		@SuppressWarnings("unchecked")
-		@Override
 		public T next() {
-			int iMinList = 0;
-			Object minValue = lists.get(0).peek();
-			for (int i = 1; i < lists.size(); ++i)
-				if (cmp(lists.get(i).peek(), minValue) < 0)
-					minValue = lists.get(iMinList = i).peek();
-			if (! lists.get(iMinList).next())
-				lists.remove(iMinList);
-			return (T) minValue;
+			if (rewound)
+				setPos(true);
+			int iMin = 0;
+			Object min = null;
+			for (int i = 0; i < n; ++i)
+				if (data[i].hasNext())
+					if (min == null || cmp(data[i].peekNext(), min) <= 0)
+						min = data[iMin = i].peekNext();
+			if (min == null)
+				rewound = true;
+			else
+				data[iMin].next();
+			return (T) min;
 		}
 
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
+		@SuppressWarnings("unchecked")
+		public T prev() {
+			if (rewound)
+				setPos(false);
+			int iMax = 0;
+			Object max = null;
+			for (int i = n - 1; i >= 0; --i)
+				if (data[i].hasPrev())
+					if (max == null || cmp(data[i].peekPrev(), max) >= 0)
+						max = data[iMax = i].peekPrev();
+			if (max == null)
+				rewound = true;
+			else
+				data[iMax].prev();
+			return (T) max;
+		}
+
+		private void setPos(boolean first) {
+			for (int i = 0; i < n; ++i)
+				data[i].setPos(first ? -1 : data[i].node.length);
+			rewound = false;
+		}
+
+		@SuppressWarnings("unchecked")
+		public void seekFirst(T x) {
+			for (int i = 0; i < n; ++i)
+				data[i].setPos(Util.lowerBound((T[]) data[i].node, x, cmp) - 1);
+			rewound = false;
+		}
+
+		@SuppressWarnings("unchecked")
+		public void seekLast(T x) {
+			for (int i = 0; i < n; ++i)
+				data[i].setPos(Util.upperBound((T[]) data[i].node, x, cmp));
+			rewound = false;
 		}
 
 	}
@@ -157,15 +196,37 @@ public class MergeTree<T> implements Iterable<T> {
 
 		NodeIter(Object[] node) {
 			this.node = node;
+			assert node.length > 0;
 		}
 
-		Object peek() {
-			return node[pos];
+		boolean hasNext() {
+			return pos + 1 < node.length;
 		}
 
-		boolean next() {
-			return ++pos < node.length;
+		boolean hasPrev() {
+			return pos > 0;
 		}
+
+		Object peekNext() {
+			return node[pos + 1];
+		}
+
+		Object peekPrev() {
+			return node[pos - 1];
+		}
+
+		void next() {
+			++pos;
+		}
+
+		void prev() {
+			--pos;
+		}
+
+		void setPos(int pos) {
+			this.pos = pos;
+		}
+
 	}
 
 	public void print() {
