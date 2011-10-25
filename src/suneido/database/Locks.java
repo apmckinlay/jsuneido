@@ -16,6 +16,7 @@ import com.google.common.collect.SetMultimap;
 /** Synchronized by {@link Transactions} which is the only user */
 @NotThreadSafe
 class Locks {
+	// TODO put locksRead and lockWrite in Transaction as TLongSet
 	private final SetMultimap<Transaction, Long> locksRead = HashMultimap.create();
 	private final SetMultimap<Transaction, Long> locksWrite = HashMultimap.create();
 	private final SetMultimap<Long, Transaction> readLocks = HashMultimap.create();

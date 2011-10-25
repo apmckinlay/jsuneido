@@ -12,6 +12,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ByteBuf;
@@ -57,6 +58,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 	private /*final*/  Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 10000;
+	private static final long LONG_UPDATE = 3000; // ms
 	private /*final*/  Shadows shadows = new Shadows();
 	private volatile int shadowSizeAtLastActivity = 0;
 
@@ -360,6 +362,12 @@ class Transaction implements suneido.intfc.database.Transaction {
 		update_tables = null;
 		remove_table = null;
 		writes = null;
+
+		if (! readonly) {
+			long t = new Date().getTime() - start;
+			if (t > LONG_UPDATE)
+				Suneido.errlog("long update transaction " + this + " " + t + "ms");
+		}
 	}
 
 	private void commit() {
@@ -570,7 +578,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 	private boolean isActive() {
 		return commitTime == Long.MAX_VALUE && !ended;
 	}
-	
+
 	// delegate
 
 	@Override
