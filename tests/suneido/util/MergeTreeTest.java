@@ -8,9 +8,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 
 import org.junit.Test;
 
@@ -24,7 +22,7 @@ public class MergeTreeTest {
 		Random rand = new Random(98707);
 
 		ArrayList<Integer> keys = Lists.newArrayList();
-		final int NKEYS = 1000;
+		final int NKEYS = 10;
 		for (int i = 0; i < NKEYS; ++i)
 			keys.add(rand.nextInt(NKEYS));
 
@@ -34,16 +32,20 @@ public class MergeTreeTest {
 		assertThat(mt.size(), is(NKEYS));
 		Collections.sort(keys);
 
+//mt.print();
 		int i = 0;
 		MergeTree<Integer>.Iter iter = mt.iter();
-		for (Integer x = iter.next(); x != null; x = iter.next())
-			assertThat(x, is(keys.get(i++)));
+		for (Integer x = iter.next(); x != null; x = iter.next()) {
+			assertThat("i=" + i, x, is(keys.get(i++)));
+		}
 		assertThat(i, is(NKEYS));
 
 		i = NKEYS;
 		iter = mt.iter();
-		for (Integer x = iter.prev(); x != null; x = iter.prev())
-			assertThat(x, is(keys.get(--i)));
+		for (Integer x = iter.prev(); x != null; x = iter.prev()) {
+//iter.print();
+			assertThat("i=" + i, x, is(keys.get(--i)));
+		}
 		assertThat(i, is(0));
 	}
 
@@ -69,12 +71,39 @@ public class MergeTreeTest {
 	@Test
 	public void switch_direction() {
 		MergeTree<Integer> mt = new MergeTree<Integer>();
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < 6; ++i)
 			mt.add(i);
+mt.print();
 		MergeTree<Integer>.Iter iter = mt.iter();
 		assertThat(iter.next(), is(0));
-		assertNull(iter.prev());
+		assertThat(iter.prev(), is((Integer) null));
 		assertThat(iter.next(), is(0));
+
+		iter = mt.iter();
+		assertThat(iter.prev(), is(5));
+		assertThat(iter.prev(), is(4));
+		assertThat(iter.next(), is(5));
+		assertNull(iter.next());
+		assertThat(iter.prev(), is(5));
+
+		/* tree is:
+		 * 		[4, 5]
+		 * 		[0, 1, 2, 3]
+		 * test reading next/prev at node boundary
+		 */
+		iter = mt.iter();
+		assertThat(iter.prev(), is(5));
+		assertThat(iter.prev(), is(4));
+		assertThat(iter.prev(), is(3));
+		assertThat(iter.next(), is(4));
+
+		iter = mt.iter();
+		assertThat(iter.next(), is(0));
+		assertThat(iter.next(), is(1));
+		assertThat(iter.next(), is(2));
+		assertThat(iter.next(), is(3));
+		assertThat(iter.next(), is(4));
+		assertThat(iter.prev(), is(3));
 	}
 
 	@Test
