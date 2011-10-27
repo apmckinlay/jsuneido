@@ -8,7 +8,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -32,7 +34,6 @@ public class MergeTreeTest {
 		assertThat(mt.size(), is(NKEYS));
 		Collections.sort(keys);
 
-//mt.print();
 		int i = 0;
 		MergeTree<Integer>.Iter iter = mt.iter();
 		for (Integer x = iter.next(); x != null; x = iter.next()) {
@@ -43,7 +44,6 @@ public class MergeTreeTest {
 		i = NKEYS;
 		iter = mt.iter();
 		for (Integer x = iter.prev(); x != null; x = iter.prev()) {
-//iter.print();
 			assertThat("i=" + i, x, is(keys.get(--i)));
 		}
 		assertThat(i, is(0));
@@ -73,7 +73,7 @@ public class MergeTreeTest {
 		MergeTree<Integer> mt = new MergeTree<Integer>();
 		for (int i = 0; i < 6; ++i)
 			mt.add(i);
-mt.print();
+
 		MergeTree<Integer>.Iter iter = mt.iter();
 		assertThat(iter.next(), is(0));
 		assertThat(iter.prev(), is((Integer) null));
@@ -104,6 +104,26 @@ mt.print();
 		assertThat(iter.next(), is(3));
 		assertThat(iter.next(), is(4));
 		assertThat(iter.prev(), is(3));
+	}
+
+	@Test
+	public void switch_direction2() {
+		MergeTree<Integer> mt = new MergeTree<Integer>();
+		final int N = 1023;
+		for (int i = 0; i < N; ++i)
+			mt.add(i);
+		MergeTree<Integer>.Iter iter = mt.iter();
+		for (int i = 0; i < N - 1; ++i) {
+			assertThat(iter.next(), is(i));
+			assertThat(iter.next(), is(i + 1));
+			assertThat(iter.prev(), is(i));
+		}
+		iter = mt.iter();
+		for (int i = N - 1; i > 0; --i) {
+			assertThat(iter.prev(), is(i));
+			assertThat(iter.prev(), is(i - 1));
+			assertThat(iter.next(), is(i));
+		}
 	}
 
 	@Test
