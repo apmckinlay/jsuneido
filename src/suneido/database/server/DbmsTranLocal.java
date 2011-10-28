@@ -71,4 +71,9 @@ public class DbmsTranLocal implements DbmsTran {
 		return t.num();
 	}
 
+	@Override
+	public String toString() {
+		return t.toString();
+	}
+
 }
