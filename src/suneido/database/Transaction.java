@@ -58,7 +58,7 @@ class Transaction implements suneido.intfc.database.Transaction {
 	private /*final*/  Deque<TranWrite> writes = new ArrayDeque<TranWrite>();
 	static final Transaction NULLTRAN = new NullTransaction();
 	private static final int MAX_WRITES_PER_TRANSACTION = 10000;
-	private static final long LONG_UPDATE = 3000; // ms
+	private static final long LONG_UPDATE = 5000; // ms
 	private /*final*/  Shadows shadows = new Shadows();
 	private volatile int shadowSizeAtLastActivity = 0;
 
