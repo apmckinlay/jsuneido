@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.Test;
@@ -123,6 +124,27 @@ public class MergeTreeTest {
 			assertThat(iter.prev(), is(i));
 			assertThat(iter.prev(), is(i - 1));
 			assertThat(iter.next(), is(i));
+		}
+	}
+
+	@Test
+	public void switch_direction3() {
+		Random rand = new Random(98707);
+		for (int reps = 0; reps < 100; ++reps) {
+			final int NKEYS = 5 + rand.nextInt(95);
+			MergeTree<Integer> mt = new MergeTree<Integer>();
+			for (int i = 0; i < NKEYS; ++i)
+				mt.add(rand.nextInt(NKEYS));
+			List<Integer> keys = Lists.newArrayList();
+			MergeTree<Integer>.Iter iter = mt.iter();
+			for (int i = 0; i < NKEYS / 5; ++i)
+				keys.add(iter.prev());
+			iter.prev();
+			Collections.reverse(keys);
+			for (int i = 0; i < NKEYS / 5; ++i) {
+				assertThat(iter.next(), is(keys.get(i)));
+			}
+			assertThat(iter.next(), is((Integer) null));
 		}
 	}
 
