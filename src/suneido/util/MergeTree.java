@@ -120,10 +120,12 @@ public class MergeTree<T> {
 		return new Iter();
 	}
 
+	private enum Dir { NEXT, PREV };
+
 	public class Iter {
 		private final int n;
 		private final NodeIter[] iters;
-		private boolean rewound = true;
+		private Dir dir = null;
 
 		private Iter() {
 			n = Integer.bitCount(size);
@@ -134,70 +136,85 @@ public class MergeTree<T> {
 					iters[di++] = new NodeIter(nodes[i]);
 		}
 
-		@SuppressWarnings("unchecked")
 		public T next() {
-			if (rewound)
+			if (dir == null)
 				first();
+			else if (dir == Dir.PREV)
+				next2(); // have to skip when changing direction
+			return next2();
+		}
+
+		@SuppressWarnings("unchecked")
+		private T next2() {
 			int iMin = 0;
 			Object min = null;
 			for (int i = 0; i < n; ++i)
 				if (iters[i].hasNext())
 					if (min == null || cmp(iters[i].peekNext(), min) <= 0)
 						min = iters[iMin = i].peekNext();
-			if (min != null)
+			if (min == null)
+				dir = Dir.PREV;
+			else {
+				dir = Dir.NEXT;
 				iters[iMin].next();
+			}
 			return (T) min;
 		}
 
-		@SuppressWarnings("unchecked")
 		public T prev() {
-			if (rewound)
+			if (dir == null)
 				last();
+			else if (dir == Dir.NEXT)
+				prev2(); // have to skip when changing direction
+			return prev2();
+		}
+
+		@SuppressWarnings("unchecked")
+		private T prev2() {
 			int iMax = 0;
 			Object max = null;
 			for (int i = n - 1; i >= 0; --i)
 				if (iters[i].hasPrev())
 					if (max == null || cmp(iters[i].peekPrev(), max) >= 0)
 						max = iters[iMax = i].peekPrev();
-			if (max != null)
+			if (max == null)
+				dir = Dir.NEXT;
+			else {
+				dir = Dir.PREV;
 				iters[iMax].prev();
+			}
 			return (T) max;
 		}
 
 		private void first() {
 			for (int i = 0; i < n; ++i)
-				iters[i].setPos(-1);
-			rewound = false;
+				iters[i].setPos(0);
 		}
 
 		private void last() {
 			for (int i = 0; i < n; ++i)
 				iters[i].setPos(iters[i].node.length);
-			rewound = false;
 		}
 
 		@SuppressWarnings("unchecked")
 		public void seekFirst(T x) {
 			for (int i = 0; i < n; ++i)
-				iters[i].setPos(Util.lowerBound((T[]) iters[i].node, x, cmp) - 1);
-			rewound = false;
+				iters[i].setPos(Util.lowerBound((T[]) iters[i].node, x, cmp));
+			dir = Dir.NEXT;
 		}
 
 		@SuppressWarnings("unchecked")
 		public void seekLast(T x) {
 			for (int i = 0; i < n; ++i)
 				iters[i].setPos(Util.upperBound((T[]) iters[i].node, x, cmp));
-			rewound = false;
+			dir = Dir.PREV;
 		}
 
 		public void print() {
-			System.out.println("\nIter:");
-			if (rewound)
-				System.out.println("rewound");
-			else {
+			System.out.println("\nIter: dir " + dir);
+			if (dir != null)
 				for (int i = 0; i < n; ++i)
 					System.out.println(iters[i]);
-			}
 		}
 
 	}
@@ -215,19 +232,15 @@ public class MergeTree<T> {
 		}
 
 		boolean hasNext() {
-			if (pos == node.length - 1)
-				pos = node.length;
-			return (pos + 1) < node.length;
+			return pos < node.length;
 		}
 
 		boolean hasPrev() {
-			if (pos == 0)
-				pos = -1;
 			return (pos - 1) >= 0;
 		}
 
 		Object peekNext() {
-			return node[pos + 1];
+			return node[pos];
 		}
 
 		Object peekPrev() {
