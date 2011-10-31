@@ -114,4 +114,8 @@ public class History extends Query {
 		return new Row(dbpkg.minRecord(), data[0], dbpkg.minRecord(), data[1]);
 	}
 
+	@Override
+	public void close() {
+	}
+
 }

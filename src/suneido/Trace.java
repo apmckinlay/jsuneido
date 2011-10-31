@@ -1,32 +1,25 @@
 package suneido;
 
 public class Trace {
-	public static final int NONE = 0;
-	public static final int FUNCTIONS =		1 << 0;
-	public static final int STATEMENTS =	1 << 1;
-	public static final int OPCODES =		1 << 2;
-	public static final int STACK =			1 << 3;
-	public static final int LIBLOAD =		1 << 4;
-	public static final int SLOWQUERY =		1 << 5;
-	public static final int QUERY =			1 << 6;
-	public static final int SYMBOL =		1 << 7;
-	public static final int ALLINDEX =		1 << 8;
-	public static final int TABLE =			1 << 9;
-	public static final int SELECT =		1 << 10;
-	public static final int TEMPINDEX =		1 << 11;
-	public static final int QUERYOPT =		1 << 12;
+	public enum Type {
+		NONE(0), FUNCTIONS(1 << 0), STATEMENTS(1 << 1), OPCODES(1 << 2),
+		STACK(1 << 3), LIBLOAD(1 << 4), SLOWQUERY(1 << 5), QUERY(1 << 6),
+		SYMBOL(1 << 7), ALLINDEX(1 << 8), TABLE(1 << 9), SELECT(1 << 10),
+		TEMPINDEX(1 << 11), QUERYOPT(1 << 12), CONSOLE(1 << 13), LOGFILE(1 << 14),
+		CLIENTSERVER(1 << 15), EXCEPTIONS(1 << 16), GLOBALS(1 << 17);
+		public final int bit;
+		Type(int bit) {
+			this.bit = bit;
+		}
+	}
+	public static int flags = 0;
 
-	public static final int CONSOLE =		1 << 13;
-	public static final int LOGFILE =		1 << 14;
+	public static void trace(Type type, String s) {
+		if ((flags & type.bit) != 0)
+			println(type + " " + s);
+	}
 
-	public static final int CLIENTSERVER =	1 << 15;
-	public static final int EXCEPTIONS =	1 << 16;
-	public static final int GLOBALS =		1 << 17;
-
-	public static int flags = NONE;
-
-	public static void trace(int type, String s) {
-		if ((flags & type) != 0)
-			System.out.println(s);
+	public static void println(String s) {
+		System.out.println(s);
 	}
 }

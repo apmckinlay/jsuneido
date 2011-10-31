@@ -5,8 +5,8 @@
 package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.Trace.CLIENTSERVER;
 import static suneido.Trace.trace;
+import static suneido.Trace.Type.CLIENTSERVER;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;

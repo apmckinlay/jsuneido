@@ -9,7 +9,10 @@ import static suneido.util.Util.listToCommas;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuRecord;
+import suneido.SuValue;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsQuery;
@@ -163,6 +166,10 @@ public class SuQuery extends SuValue {
 	@Override
 	public String typeName() {
 		return "Query";
+	}
+
+	public void close() {
+		q.close();
 	}
 
 }

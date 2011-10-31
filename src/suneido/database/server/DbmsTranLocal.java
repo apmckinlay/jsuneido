@@ -39,12 +39,16 @@ public class DbmsTranLocal implements DbmsTran {
 	@Override
 	public HeaderAndRow get(Dir dir, String query, boolean one) {
 		Query q = CompileQuery.query(t, ServerData.forThread(), query);
-		Row row = q.get(dir);
-		if (row == null)
-			return null;
-		if (one && q.get(dir) != null)
-			throw new SuException("Query1 not unique: " + query);
-		return new HeaderAndRow(q.header(), row);
+		try {
+			Row row = q.get(dir);
+			if (row == null)
+				return null;
+			if (one && q.get(dir) != null)
+				throw new SuException("Query1 not unique: " + query);
+			return new HeaderAndRow(q.header(), row);
+		} finally {
+			q.close();
+		}
 	}
 
 	@Override

@@ -117,7 +117,7 @@ public class Globals {
 		builtins.put("SystemMemory", new SystemMemory());
 		builtins.put("Thread", new ThreadFunction());
 		builtins.put("Timestamp", new Timestamp());
-		builtins.put("Trace", new suneido.language.builtin.Trace());
+		builtins.put("Trace", new SuTrace());
 		builtins.put("Transaction", SuTransaction.clazz);
 		builtins.put("Type", new Type());
 		builtins.put("UuidString", new UuidString());
