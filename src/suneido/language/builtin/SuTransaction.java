@@ -1,7 +1,7 @@
 package suneido.language.builtin;
 
-import static suneido.Trace.QUERY;
 import static suneido.Trace.trace;
+import static suneido.Trace.Type.QUERY;
 import static suneido.language.FunctionSpec.NA;
 import static suneido.util.Util.array;
 
@@ -86,14 +86,20 @@ public class SuTransaction extends SuValue {
 			String query = Ops.toStr(args[0]) + where;
 			SuTransaction tran = (SuTransaction) self;
 			trace(QUERY, tran + " " + query);
-			Object q;
-			if (CompileQuery.isRequest(query))
-				q = tran.t.request(query);
-			else
-				q = new suneido.language.builtin.SuQuery(query, tran.t.query(query), tran.t);
+			if (CompileQuery.isRequest(query)) {
+				if (args[1] != Boolean.FALSE)
+					throw new RuntimeException(
+							"transaction.Query: block not allowed on request");
+				return tran.t.request(query);
+			}
+			SuQuery q = new SuQuery(query, tran.t.query(query), tran.t);
 			if (args[1] == Boolean.FALSE)
 				return q;
-			return Ops.call(args[1], q);
+			try {
+				return Ops.call(args[1], q);
+			} finally {
+				q.close();
+			}
 		}
 	}
 

@@ -152,4 +152,9 @@ public abstract class Query1 extends Query {
 		return false;
 	}
 
+	@Override
+	public void close() {
+		source.close();
+	}
+
 }

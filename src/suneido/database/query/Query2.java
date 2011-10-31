@@ -39,4 +39,10 @@ public abstract class Query2 extends Query1 {
 		return new Header(source.header(), source2.header());
 	}
 
+	@Override
+	public void close() {
+		super.close();
+		source2.close();
+	}
+
 }
