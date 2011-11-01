@@ -15,6 +15,7 @@ public class CommandLineOptions {
 	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
+	public boolean snapshotIsolation = false;
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -85,6 +86,8 @@ public class CommandLineOptions {
 					error("impersonate requires value");
 			} else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
+			else if (arg.equals("-si"))
+				snapshotIsolation = true;
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)

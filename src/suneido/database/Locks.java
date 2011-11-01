@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.Suneido;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -33,8 +35,10 @@ class Locks {
 		Transaction prev = writeLocks.get(adr);
 		if (prev == t)
 			return null; // already have writeLock
-		readLocks.put(adr, t);
-		locksRead.put(t, adr);
+		if (! Suneido.cmdlineoptions.snapshotIsolation) {
+			readLocks.put(adr, t);
+			locksRead.put(t, adr);
+		}
 		return prev;
 	}
 
