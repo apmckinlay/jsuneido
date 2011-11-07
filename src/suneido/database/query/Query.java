@@ -188,4 +188,7 @@ public abstract class Query {
 		return false;
 	}
 
+	/** used for trace, e.g. slow queries in Select */
+	public abstract void close();
+
 }

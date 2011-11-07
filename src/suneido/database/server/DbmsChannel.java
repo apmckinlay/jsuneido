@@ -1,7 +1,7 @@
 package suneido.database.server;
 
-import static suneido.Trace.CLIENTSERVER;
 import static suneido.Trace.trace;
+import static suneido.Trace.Type.CLIENTSERVER;
 
 import java.io.IOException;
 import java.net.InetAddress;
