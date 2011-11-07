@@ -67,6 +67,7 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	@Override
 	public void close() {
+		q.close();
 	}
 
 }

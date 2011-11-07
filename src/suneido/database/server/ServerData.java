@@ -64,8 +64,12 @@ public class ServerData {
 	}
 
 	public void endTransaction(int tn) {
-		for (Integer qn : tranqueries.get(tn))
+		for (Integer qn : tranqueries.get(tn)) {
+			DbmsQuery q = getQuery(qn);
+			if (q != null)
+				q.close();
 			queries.remove(qn);
+		}
 		verify(trans.remove(tn) != null);
 		if (trans.isEmpty())
 			verify(queries.isEmpty());
@@ -78,6 +82,7 @@ public class ServerData {
 	}
 
 	public void endQuery(int qn) {
+		getQuery(qn).close();
 		verify(queries.remove(qn) != null);
 	}
 
@@ -88,6 +93,7 @@ public class ServerData {
 	}
 
 	public void endCursor(int qn) {
+		getCursor(qn).close();
 		verify(cursors.remove(qn) != null);
 	}
 

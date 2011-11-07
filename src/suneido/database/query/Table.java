@@ -267,4 +267,8 @@ public class Table extends Query {
 		tran.addRecord(table, r);
 	}
 
+	@Override
+	public void close() {
+	}
+
 }

@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.dbpkg;
+import static suneido.Trace.Type.SLOWQUERY;
 import static suneido.intfc.database.Record.MAX_FIELD;
 import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
@@ -16,6 +17,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuException;
+import suneido.Trace;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
@@ -1023,6 +1025,13 @@ public class Select extends Query1 {
 		for (ByteBuffer b : values)
 			sb.append(" ").append(valueToString(b));
 		return sb.toString();
+	}
+
+	@Override
+	public void close() {
+		if (n_in > 100 && n_in > 100 * n_out)
+			Trace.trace(SLOWQUERY, n_in + "->" + n_out + "  " + this);
+		super.close();
 	}
 
 }
