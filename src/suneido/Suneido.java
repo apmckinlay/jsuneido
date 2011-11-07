@@ -31,7 +31,8 @@ public class Suneido {
 			.build();
 	private static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor(threadFactory);
-	public static CommandLineOptions cmdlineoptions;
+	public static CommandLineOptions cmdlineoptions =
+			CommandLineOptions.parse(); // for tests
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
@@ -116,7 +117,7 @@ public class Suneido {
 			DbTools.load2(dbpkg, cmdlineoptions.actionArg);
 			break;
 		case CHECK:
-			DbTools.checkPrintExit(dbpkg, cmdlineoptions.actionArg == null 
+			DbTools.checkPrintExit(dbpkg, cmdlineoptions.actionArg == null
 					? dbFilename : cmdlineoptions.actionArg);
 			break;
 		case REBUILD:
