@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ import suneido.util.ThreadConfined;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 /**
  * Transactions must be thread confined.
@@ -319,6 +321,10 @@ class UpdateTransaction extends ReadTransaction {
 		return asof;
 	}
 
+	long commitTime() {
+		return commitTime;
+	}
+
 	@Override
 	public String conflict() {
 		return conflict ;
@@ -333,7 +339,7 @@ class UpdateTransaction extends ReadTransaction {
 		return ! isEnded();
 	}
 
-	private void abortThrow(String conflict) {
+	void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
 		throw new RuntimeException("transaction " + conflict);
@@ -346,22 +352,23 @@ class UpdateTransaction extends ReadTransaction {
 	@Override
 	public void readLock(int adr) {
 		notEnded();
+
 		UpdateTransaction writer = trans.readLock(this, adr);
 		if (writer != null) {
 			if (this.inConflict || writer.outConflict)
-				abortThrow("conflict (read-write) with " + writer);
+				abortThrow("conflict (read-write) " + this + " with " + writer);
 			writer.inConflict = true;
 			this.outConflict = true;
 		}
 
 		Set<UpdateTransaction> writes = trans.writes(adr);
-		for (UpdateTransaction w : writes) {
-			if (w == this || w.commitTime < asof)
-				continue;
-			if (w.outConflict)
-				abortThrow("conflict (read-write) with " + w);
-			this.outConflict = true;
-		}
+		for (UpdateTransaction w : writes)
+			if (w != this && w.committedAfter(this)) {
+				if (this.inConflict || w.outConflict)
+					abortThrow("conflict (read-write) " + this + " with " + w);
+				this.outConflict = true;
+			}
+
 		for (UpdateTransaction w : writes)
 			w.inConflict = true;
 	}
@@ -371,8 +378,6 @@ class UpdateTransaction extends ReadTransaction {
 		notEnded();
 		onlyReads = false;
 		Set<UpdateTransaction> readers = trans.writeLock(this, adr);
-		if (readers == null)
-			abortThrow("conflict (write-write)");
 		for (UpdateTransaction reader : readers)
 			if (reader.isActive() || reader.committedAfter(this)) {
 				if (reader.inConflict || this.outConflict)
@@ -382,6 +387,20 @@ class UpdateTransaction extends ReadTransaction {
 		for (UpdateTransaction reader : readers)
 			reader.outConflict = true;
 	}
+
+	// need for PriorityQueue's in Transactions
+	static final Comparator<UpdateTransaction> byCommit = new Comparator<UpdateTransaction>() {
+		@Override
+		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
+			return Longs.compare(t1.commitTime, t2.commitTime);
+		}
+	};
+	static final Comparator<UpdateTransaction> byAsof = new Comparator<UpdateTransaction>() {
+		@Override
+		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
+			return Longs.compare(t1.asof, t2.asof);
+		}
+	};
 
 	@Override
 	public String toString() {

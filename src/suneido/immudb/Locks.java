@@ -4,9 +4,6 @@
 
 package suneido.immudb;
 
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +11,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 
 /** Synchronized by {@link Transactions} which is the only user */
@@ -23,8 +21,7 @@ class Locks {
 	private final SetMultimap<UpdateTransaction, Integer> locksWrite = HashMultimap.create();
 	private final SetMultimap<Integer, UpdateTransaction> readLocks = HashMultimap.create();
 	private final SetMultimap<Integer, UpdateTransaction> writes = HashMultimap.create();
-	private final TIntObjectHashMap<UpdateTransaction> writeLocks =
-			new TIntObjectHashMap<UpdateTransaction>();
+	private final Map<Integer, UpdateTransaction> writeLocks = Maps.newHashMap();
 
 	/** Add a read lock, unless there's already a write lock.
 	 *  @return A transaction if it has a write lock on this adr, else null
@@ -40,22 +37,18 @@ class Locks {
 		return prev;
 	}
 
-	/** @return null if another transaction already has write lock,
-	 *  or else a set (possibly empty) of other transactions that have read locks.
-	 *  NOTE: The set may contain the locking transaction.
-	 */
-	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, int adr) {
-		if (tran.isEnded())
-			return null;
+	/** @return the set (possibly empty) of transactions that have read locks */
+	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, int a) {
+		assert ! tran.isEnded();
+		Integer adr = a;
 		UpdateTransaction prev = writeLocks.get(adr);
 		if (prev == tran)
 			return ImmutableSet.of(); // already have write lock
 		if (prev != null)
-			return null; // write-write conflict
-		for (UpdateTransaction w : writes.get(adr)) {
+			tran.abortThrow("conflict (write-write) " + tran + " with " + prev);
+		for (UpdateTransaction w : writes.get(adr))
 			if (w != tran && ! w.committedBefore(tran))
-				return null; // write-write conflict with completed
-		}
+				tran.abortThrow("conflict (write-write) " + tran + " with " + w);
 		writeLocks.put(adr, tran);
 		writes.put(adr, tran);
 		readLocks.remove(adr, tran); // read lock not needed when write lock
@@ -108,11 +101,8 @@ class Locks {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Locks").append("{");
-		TIntObjectIterator<UpdateTransaction> iter = writeLocks.iterator();
-		while (iter.hasNext()) {
-			iter.advance();
-			sb.append(" " + iter.value() + "-w" + iter.key());
-		}
+		for (Map.Entry<Integer, UpdateTransaction> e : writeLocks.entrySet())
+			sb.append(" " + e.getValue() + "-w" + e.getKey());
 		for (Map.Entry<Integer, UpdateTransaction> e : readLocks.entries())
 			sb.append(" " + e.getValue() + "-r" + e.getKey());
 		return sb.append(" }").toString();

@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
@@ -36,7 +37,6 @@ public class LocksTest {
 		assertTrue(locks.addWrite(t1, 123).isEmpty());
 		assertTrue(locks.addWrite(t1, 123).isEmpty());
 
-		assertNull(locks.addWrite(t2, 123));
 		assertTrue(locks.addWrite(t2, 456).isEmpty());
 
 		assertSame(t1, locks.addRead(t2, 123));
@@ -45,6 +45,13 @@ public class LocksTest {
 		assertNull(locks.addRead(t1, 789));
 		assertNull(locks.addRead(t2, 789));
 		assertEquals(ImmutableSet.of(t1, t2), locks.addWrite(t3, 789));
+
+		try {
+			locks.addWrite(t2, 123);
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("conflict"));
+		}
 
 		locks.remove(t1);
 		locks.remove(t3);
