@@ -6,7 +6,10 @@ package suneido.immudb;
 
 import static suneido.util.Verify.verify;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -14,6 +17,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.language.builtin.SuTransaction;
 import suneido.util.Print;
+
+import com.google.common.collect.Sets;
 
 /**
  * Manages transactions. Uses {@link Locks}
@@ -26,10 +31,14 @@ class Transactions {
 	private final AtomicLong clock = new AtomicLong();
 	private final AtomicInteger nextNum = new AtomicInteger();
 	private final Locks locks = new Locks();
-	private final PriorityQueue<UpdateTransaction> trans =
-			new PriorityQueue<UpdateTransaction>(100, tranCmp);
+	/** all active transactions */
+	private final Set<UpdateTransaction> trans = Sets.newHashSet();
+	/** active read-write transactions */
+	private final PriorityQueue<UpdateTransaction> rwtrans =
+			new PriorityQueue<UpdateTransaction>(MAX_FINALS_SIZE, UpdateTransaction.byAsof);
+	/** committed read-write transactions waiting to be finalized */
 	private final PriorityQueue<UpdateTransaction> finals =
-			new PriorityQueue<UpdateTransaction>(100, tranCmp);
+			new PriorityQueue<UpdateTransaction>(MAX_FINALS_SIZE, UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
 	static int MAX_FINALS_SIZE = 200;
@@ -50,12 +59,14 @@ class Transactions {
 	// used by tests
 	synchronized void checkTransEmpty() {
 		assert trans.isEmpty();
+		assert rwtrans.isEmpty();
 		assert finals.isEmpty();
 		locks.checkEmpty();
 	}
 
 	synchronized void add(UpdateTransaction tran) {
 		trans.add(tran);
+		rwtrans.add(tran);
 	}
 
 	synchronized void addFinal(UpdateTransaction tran) {
@@ -68,6 +79,7 @@ class Transactions {
 	 */
 	synchronized void remove(UpdateTransaction tran) {
 		verify(trans.remove(tran));
+		verify(rwtrans.remove(tran));
 		if (tran.isCommitted())
 			locks.commit(tran);
 		else
@@ -80,15 +92,11 @@ class Transactions {
 	 * i.e. older than the oldest outstanding update transaction.
 	 */
 	private void finalization() {
-		long oldest = oldestAsof();
-		while (! finals.isEmpty() && finals.peek().asof() < oldest)
+		long oldest = rwtrans.isEmpty() ? FUTURE : rwtrans.peek().asof();
+		while (! finals.isEmpty() && finals.peek().commitTime() <= oldest)
 			locks.remove(finals.poll());
-		assert ! trans.isEmpty() || finals.isEmpty();
-		assert ! trans.isEmpty() || locks.isEmpty();
-	}
-
-	private long oldestAsof() {
-		return trans.isEmpty() ? FUTURE : trans.peek().asof();
+		assert ! rwtrans.isEmpty() || finals.isEmpty();
+		assert ! rwtrans.isEmpty() || locks.isEmpty();
 	}
 
 	// should be called periodically
@@ -97,13 +105,11 @@ class Transactions {
 		synchronized (this) {
 			if (finals.size() <= MAX_FINALS_SIZE)
 				return;
-			t = trans.peek();
+			t = rwtrans.peek();
 		}
 		// abort outside synchronized to avoid deadlock
-		if (t != null) {
-			t.abortIfNotComplete("too many concurrent update transactions");
-			Print.timestamped("aborted " + t + " - finals too large");
-		}
+		t.abortIfNotComplete("too many concurrent update transactions");
+		Print.timestamped("aborted " + t + " - finals too large");
 	}
 
 	synchronized UpdateTransaction readLock(UpdateTransaction tran, int adr) {
@@ -138,13 +144,5 @@ class Transactions {
 	public String toString() {
 		return locks.toString();
 	}
-
-	private static final Comparator<UpdateTransaction> tranCmp =
-			new Comparator<UpdateTransaction>() {
-		@Override
-		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
-			return t1.num < t2.num ? -1 : t1.num > t2.num ? +1 : 0;
-		}
-	};
 
 }
