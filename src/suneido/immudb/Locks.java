@@ -26,54 +26,54 @@ class Locks {
 	/** Add a read lock, unless there's already a write lock.
 	 *  @return A transaction if it has a write lock on this adr, else null
 	 */
-	UpdateTransaction addRead(UpdateTransaction tran, int adr) {
-		if (tran.isEnded())
+	UpdateTransaction addRead(UpdateTransaction t, int adr) {
+		if (t.isEnded())
 			return null;
 		UpdateTransaction prev = writeLocks.get(adr);
-		if (prev == tran)
+		if (prev == t)
 			return null; // don't need readLock if already have writeLock
-		readLocks.put(adr, tran);
-		locksRead.put(tran, adr);
+		readLocks.put(adr, t);
+		locksRead.put(t, adr);
 		return prev;
 	}
 
 	/** @return the set (possibly empty) of transactions that have read locks */
-	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction tran, int a) {
-		assert ! tran.isEnded();
+	ImmutableSet<UpdateTransaction> addWrite(UpdateTransaction t, int a) {
+		assert ! t.isEnded();
 		Integer adr = a;
 		UpdateTransaction prev = writeLocks.get(adr);
-		if (prev == tran)
+		if (prev == t)
 			return ImmutableSet.of(); // already have write lock
 		if (prev != null)
-			tran.abortThrow("conflict (write-write) " + tran + " with " + prev);
+			t.abortThrow("conflict (write-write) " + t + " with " + prev);
 		for (UpdateTransaction w : writes.get(adr))
-			if (w != tran && ! w.committedBefore(tran))
-				tran.abortThrow("conflict (write-write) " + tran + " with " + w);
-		writeLocks.put(adr, tran);
-		writes.put(adr, tran);
-		readLocks.remove(adr, tran); // read lock not needed when write lock
-		locksWrite.put(tran, adr);
+			if (w != t && ! w.committedBefore(t))
+				t.abortThrow("conflict (write-write) " + t + " with " + w);
+		writeLocks.put(adr, t);
+		writes.put(adr, t);
+		readLocks.remove(adr, t); // read lock not needed when write lock
+		locksWrite.put(t, adr);
 		return ImmutableSet.copyOf(readLocks.get(adr));
 	}
 
 	/** Just remove writeLocks. Other locks kept till finalization */
-	void commit(UpdateTransaction tran) {
-		for (Integer adr : locksWrite.get(tran))
+	void commit(UpdateTransaction t) {
+		for (Integer adr : locksWrite.get(t))
 			writeLocks.remove(adr);
 	}
 
 	/** Remove all locks for this transaction */
-	void remove(UpdateTransaction tran) {
-		for (Integer adr : locksRead.get(tran))
-			readLocks.remove(adr, tran);
-		locksRead.removeAll(tran);
+	void remove(UpdateTransaction t) {
+		for (Integer adr : locksRead.get(t))
+			readLocks.remove(adr, t);
+		locksRead.removeAll(t);
 		assert !locksRead.isEmpty() || readLocks.isEmpty();
 
-		for (Integer adr : locksWrite.get(tran)) {
+		for (Integer adr : locksWrite.get(t)) {
 			writeLocks.remove(adr);
-			writes.remove(adr, tran);
+			writes.remove(adr, t);
 		}
-		locksWrite.removeAll(tran);
+		locksWrite.removeAll(t);
 		assert !locksWrite.isEmpty() || (writeLocks.isEmpty() && writes.isEmpty());
 	}
 
@@ -93,8 +93,8 @@ class Locks {
 		assert locksWrite.isEmpty();
 	}
 
-	boolean contains(UpdateTransaction tran) {
-		return locksRead.containsKey(tran) || locksWrite.containsKey(tran);
+	boolean contains(UpdateTransaction t) {
+		return locksRead.containsKey(t) || locksWrite.containsKey(t);
 	}
 
 	@Override
