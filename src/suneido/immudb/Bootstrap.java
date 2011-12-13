@@ -71,12 +71,12 @@ class Bootstrap {
 	private static void create_indexes(ExclusiveTransaction t) {
 		TableBuilder.create(t, "indexes", TN.INDEXES)
 			.addColumn("table")
-			.addColumn("columns")
+			.addColumn("fields")
 			.addColumn("key")
 			.addColumn("fktable")
 			.addColumn("fkcolumns")
 			.addColumn("fkmode")
-			.addIndex("table,columns", true, false, null, null, 0)
+			.addIndex("table,fields", true, false, null, null, 0)
 			.build();
 	}
 
