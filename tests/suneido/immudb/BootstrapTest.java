@@ -29,8 +29,8 @@ public class BootstrapTest {
 		assertThat(db.getSchema("columns"),
 				is("(table,field,column) key(table,column)"));
 		assertThat(db.getSchema("indexes"),
-				is("(table,columns,key,fktable,fkcolumns,fkmode) " +
-						"key(table,columns)"));
+				is("(table,fields,key,fktable,fkcolumns,fkmode) " +
+						"key(table,fields)"));
 		assertThat(db.getSchema("views"),
 				is("(view_name,view_definition) key(view_name)"));
 

@@ -13,8 +13,8 @@ public class UpdateableTest extends TestBase {
 		updateable("tables extend xyz = 123");
 		updateable("tables project table");
 		not_updateable("columns project table");
-		updateable("indexes sort columns");
-		updateable("indexes sort reverse columns");
+		updateable("columns sort column");
+		updateable("columns sort reverse column");
 		updateable("tables rename tablename to name");
 		updateable("tables where tablename > 1");
 		not_updateable("tables summarize count");

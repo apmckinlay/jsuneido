@@ -150,13 +150,13 @@ public class CommandTest {
 		String t = bufferToString(tbuf).trim();
 		assertThat(t, matches("T\\d+"));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q27"),
-				stringToBuffer("indexes sort columns,fktable"), null);
+		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q25"),
+				stringToBuffer("columns sort column,table"), null);
 		assertEquals("Q0\r\n", bufferToString(buf));
 
 		buf.rewind();
 		buf = Command.ORDER.execute(buf, null, null);
-		assertEquals("(columns,fktable)\r\n", bufferToString(buf));
+		assertEquals("(column,table)\r\n", bufferToString(buf));
 	}
 
 	@Test

@@ -2,10 +2,8 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
-import static suneido.util.Util.listToCommas;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.startsWith;
+import static suneido.Suneido.dbpkg;
+import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 
 import java.util.Collection;
@@ -14,7 +12,10 @@ import java.util.Set;
 
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
+
+import com.google.common.collect.ImmutableList;
 
 public class Table extends Query {
 	private final String table;
@@ -28,6 +29,8 @@ public class Table extends Query {
 	private boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
 	IndexIter iter;
+	private final List<String> immudb_indexes_fields = ImmutableList.of(
+			"table", "fields", "key", "fktable", "fkcolumns", "fkmode", "columns");
 
 	public Table(Transaction tran, String tablename) {
 		this.tran = tran;
@@ -94,7 +97,7 @@ public class Table extends Query {
 
 	@Override
 	List<String> columns() {
-		return tbl.getColumns();
+		return immudb_indexes() ? immudb_indexes_fields : tbl.getColumns();
 	}
 
 	@Override
@@ -204,7 +207,8 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.curKey(), tran.input(iter.keyadr()));
+		Row row = new Row(iter.curKey(),
+				expand_immudb_columns(tran.input(iter.keyadr())));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;
@@ -228,11 +232,40 @@ public class Table extends Query {
 		icols = nil(idx) || singleton ? null : listToCommas(idx);
 	}
 
+	private Record expand_immudb_columns(Record rec) {
+		if (immudb_indexes()) {
+			RecordBuilder rb = dbpkg.recordBuilder();
+			rb.addAll(rec);
+			for (int i = rec.size(); i < 6; ++i)
+				rb.add("");
+			rb.add(expand(rec));
+			rec = rb.build();
+		}
+		return rec;
+	}
+
+	private boolean immudb_indexes() {
+		return table.equals("indexes") &&
+				dbpkg == suneido.immudb.DatabasePackage.dbpkg;
+	}
+
+	private String expand(Record rec) {
+		String colnums = rec.getString(1);
+		if (colnums.isEmpty())
+			return "";
+		List<String> fields = tran.ck_getTable(rec.getInt(0)).getFields();
+		StringBuilder sb = new StringBuilder();
+		for (String col : commaSplitter(colnums))
+			sb.append(",").append(fields.get(Integer.parseInt(col)));
+		return sb.substring(1);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		List<String> index = singleton  ? noFields : idx;
-		return new Header(asList(index, tbl.getFields()), tbl.getColumns());
+		List<String> fields = immudb_indexes() ? immudb_indexes_fields : tbl.getFields();
+		return new Header(asList(index, fields), tbl.getColumns());
 	}
 
 	@Override
