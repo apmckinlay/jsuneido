@@ -66,7 +66,7 @@ public class Suneido {
 		System.out.println(s);
 		try {
 			FileWriter fw = new FileWriter("error.log", true);
-			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 			fw.append(" ");
 			fw.append(s);
 			fw.append("\n");
