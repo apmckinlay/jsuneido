@@ -506,6 +506,8 @@ class Transaction implements suneido.intfc.database.Transaction {
 
 	synchronized void readLock(long offset) {
 		notEnded();
+		if (Suneido.cmdlineoptions.snapshotIsolation)
+			return;
 		/*
 		get lock(key=x, owner=T, mode=SIREAD)
 		if there is a WRITE lock(wl) on x
