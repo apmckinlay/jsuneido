@@ -263,7 +263,7 @@ public class Table extends Query {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
-		List<String> index = singleton  ? noFields : idx;
+		List<String> index = singleton || idx == null ? noFields : idx;
 		List<String> fields = immudb_indexes() ? immudb_indexes_fields : tbl.getFields();
 		return new Header(asList(index, fields), tbl.getColumns());
 	}
