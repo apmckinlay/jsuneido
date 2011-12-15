@@ -312,10 +312,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		Btree src = t.getIndex(tblnum, firstIndex.colNums);
 		Btree.Iter iter = src.iterator();
 		Btree btree = et().addIndex(tblnum, newIndex.colNums);
+		String colNames = table.numsToNames(newIndex.colNums);
 		IndexedData id = new IndexedData(et())
-				.index(btree, newIndex.mode(), newIndex.colNums, newIndex.fksrc,
-						t.getForeignKeys(tableName,
-								table.numsToNames(newIndex.colNums)));
+				.index(btree, newIndex.mode(), newIndex.colNums, colNames,
+						newIndex.fksrc, t.getForeignKeys(tableName, colNames));
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			int adr = iter.keyadr();
 			id.add(t.getrec(adr), adr);
