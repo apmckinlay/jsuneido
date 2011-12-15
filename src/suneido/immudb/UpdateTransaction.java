@@ -162,13 +162,13 @@ class UpdateTransaction extends ReadTransaction {
 		if (table == null) {
 			int[] indexColumns = Bootstrap.indexColumns[tblnum];
 			Btree btree = getIndex(tblnum, indexColumns);
-			id.index(btree, Mode.KEY, indexColumns, null, null);
+			id.index(btree, Mode.KEY, indexColumns, "", null, null);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
 				Btree btree = getIndex(tblnum, index.colNums);
-				id.index(btree, index.mode(), index.colNums,
-						index.fksrc, schema.getFkdsts(table.name,
-								table.numsToNames(index.colNums)));
+				String colNames = table.numsToNames(index.colNums);
+				id.index(btree, index.mode(), index.colNums, colNames,
+						index.fksrc, schema.getFkdsts(table.name, colNames));
 			}
 		}
 		return id;

@@ -32,16 +32,17 @@ class IndexedData {
 	}
 
 	/** setup method */
-	IndexedData index(Btree btree, Mode mode, int[] colNums,
+	IndexedData index(Btree btree, Mode mode, int[] colNums, String colNames,
 			ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 		assert t != null;
-		indexes.add(new AnIndexWithFkeys(t, btree, mode, colNums, fksrc, fkdsts));
+		indexes.add(new AnIndexWithFkeys(
+				t, btree, mode, colNums, colNames, fksrc, fkdsts));
 		return this;
 	}
 
 	// for tests (without foreign keys)
 	IndexedData index(Btree btree, Mode mode, int... fields) {
-		indexes.add(new AnIndex(btree, mode, fields));
+		indexes.add(new AnIndex(btree, mode, fields, ""));
 		return this;
 	}
 
@@ -64,7 +65,7 @@ class IndexedData {
 					idx.remove(rec, adr);
 				}
 				throw new RuntimeException("duplicate key: " +
-						index.searchKey(rec)); // TODO better msg
+						index.columns + " = " + index.searchKey(rec));
 			}
 	}
 
@@ -95,7 +96,8 @@ class IndexedData {
 			case NOT_FOUND:
 				throw new RuntimeException("update failed: old record not found");
 			case ADD_FAILED:
-				throw new RuntimeException("update failed: duplicate key");
+				throw new RuntimeException("update failed: duplicate key" +
+						index.columns + " = " + index.searchKey(to));
 			case OK:
 				break;
 			default:
@@ -115,11 +117,13 @@ class IndexedData {
 		final Btree btree;
 		final Mode mode;
 		final int[] fields;
+		final String columns;
 
-		AnIndex(Btree btree, Mode mode, int[] fields) {
+		AnIndex(Btree btree, Mode mode, int[] fields, String columns) {
 			this.btree = btree;
 			this.mode = mode;
 			this.fields = fields;
+			this.columns = columns;
 		}
 
 		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
@@ -165,9 +169,10 @@ class IndexedData {
 		final ForeignKeySource fksrc;
 		final Set<ForeignKeyTarget> fkdsts;
 
-		AnIndexWithFkeys(UpdateTransaction t, Btree btree, Mode mode, int[] fields,
+		AnIndexWithFkeys(UpdateTransaction t, Btree btree, Mode mode,
+				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
-			super(btree, mode, fields);
+			super(btree, mode, fields, columns);
 			this.t = t;
 			this.fksrc = fksrc;
 			if (fkdsts == null)
