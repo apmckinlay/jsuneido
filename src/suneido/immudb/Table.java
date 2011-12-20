@@ -120,6 +120,8 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	int[] namesToNums(String names) {
+		if (names.isEmpty())
+			return new int[0];
 		Iterable<String> cs = commaSplitter.split(names);
 		int[] nums = new int[Iterables.size(cs)];
 		int c = 0;
