@@ -1,10 +1,16 @@
 package suneido.language;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static suneido.language.Token.*;
 
+import java.util.List;
+
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 public class LexerTest {
 	@Test
@@ -119,13 +125,20 @@ public class LexerTest {
 	public void rangeTo() {
 		check("s[1 .. 2]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, NUMBER, R_BRACKET);
 		check("x..y", IDENTIFIER, RANGETO, IDENTIFIER);
+		check("x[1..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
+		check("x[1 ..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
 	}
 
 	private static void check(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
-		for (Token result : results)
-			assertEquals(result, lexer.next());
-		assertEquals(source, EOF, lexer.next());
+		List<Token> tokens = Lists.newArrayList();
+		while (true) {
+			Token token = lexer.next();
+			if (token == EOF)
+				break;
+			tokens.add(token);
+		}
+		assertThat(tokens.toArray(new Token[0]), is(results));
 	}
 	private static void checkValue(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
