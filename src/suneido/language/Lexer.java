@@ -1,5 +1,6 @@
 package suneido.language;
 
+import static java.lang.Character.isDigit;
 import static suneido.language.Token.*;
 
 public class Lexer {
@@ -247,35 +248,15 @@ public class Lexer {
 		case '7':
 		case '8':
 		case '9':
-			while (Character.isDigit(charAt(si)))
-				++si;
-			if (charAt(si) == '.')
-				++si;
-			else if (charAtLower(si) != 'e')
-				return value(NUMBER);
-			// fall thru
+			return scanNumber();
 		case '.':
 			if (charAt(si) == '.') {
 				++si;
 				return RANGETO;
-			}
-			// NOTE: this accepts ".e1"
-			while (Character.isDigit(charAt(si)))
-				++si;
-			if (c == '.' && si == prev + 1)
+			} else if (isDigit(charAt(si)))
+				return scanNumber();
+			else
 				return DOT;
-			if (charAtLower(si) == 'e') {
-				++si;
-				if (charAt(si) == '+' || charAt(si) == '-')
-					++si;
-				while (Character.isDigit(charAt(si)))
-					++si;
-			}
-			if (charAtLower(si - 1) == 'e')
-				--si;
-			if (charAt(si - 1) == '.')
-				--si;
-			return value(NUMBER);
 		case '"' :
 		case '\'' :
 			char quote = c;
@@ -312,6 +293,26 @@ public class Lexer {
 			}
 			return ERROR;
 		}
+	}
+
+	private Token scanNumber() {
+		while (isDigit(charAt(si)))
+			++si;
+		if (charAt(si) == '.' && charAt(si + 1) != '.') {
+			++si;
+			while (isDigit(charAt(si)))
+				++si;
+		}
+		if (charAtLower(si) == 'e' && (
+				isDigit(charAt(si + 1)) ||
+				((charAt(si + 1) == '+' || charAt(si + 1) == '-') && isDigit(charAt(si + 2))))) {
+			si += 2;
+			while (isDigit(charAt(si)))
+				++si;
+		}
+		if (charAt(si - 1) == '.')
+			--si;
+		return value(NUMBER);
 	}
 
 	private Token whitespace() {
