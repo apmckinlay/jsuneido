@@ -79,8 +79,7 @@ class IndexedData {
 			throw new RuntimeException("remove couldn't find record");
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
-				throw new RuntimeException("remove failed");
-		// TODO handle remove failing halfway through (abort transaction?)
+				t.abortThrow("remove failed");
 	}
 
 	void update(Record from, Record to) {
