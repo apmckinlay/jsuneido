@@ -372,13 +372,21 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (cur != null && (cur.compareTo(from) < 0 || cur.prefixGt(to)))
-					cur = null;
-				if (cur == null ||
-						(! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0))
-					return;
+				if (cur != null) {
+					if (cur.compareTo(from) < 0 || cur.prefixGt(to)) {
+						cur = null;
+						return;
+					}
+					if (! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0)
+						return; // already on the next key
+				}
 				// fall through
 			}
+			advance();
+		}
+
+		private void advance() {
+			// advance position
 			while (! stack.isEmpty() &&
 					stack.peek().pos + 1 >= stack.peek().node.size())
 				stack.pop();
@@ -421,11 +429,20 @@ class Btree {
 			if (modified != valid) {
 				Record oldcur = cur;
 				seek(cur);
-				if (cur != null && (cur.compareTo(from) < 0 || cur.prefixGt(to)))
-					cur = null;
-				if (cur == null ||
-						(! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0))
-					return;
+				if (cur == null && ! stack.isEmpty()) {
+					--stack.peek().pos;
+					LevelInfo leaf = stack.peek();
+					cur = leaf.node.get(leaf.pos);
+				}
+				if (cur != null) {
+					if (cur.compareTo(from) < 0) {
+						cur = null;
+						return;
+					}
+					if (! cur.prefixGt(to) &&
+							! oldcur.equals(cur) && uCmp(adr(cur), prevAdr) < 0)
+						return;
+				}
 				// fall through
 			}
 			while (! stack.isEmpty() &&
@@ -450,7 +467,11 @@ class Btree {
 				cur = null;
 		}
 
-		/** seek to the first slot >= key */
+		/**
+		 * seek to the first slot >= key
+		 * on return, cur will be null if btree is empty
+		 * or if position is past end of node
+		 */
 		private void seek(Record key) {
 			valid = modified;
 			stack.clear();
@@ -552,7 +573,9 @@ class Btree {
 
 	void print(Writer writer) {
 		try {
+			writer.append("---------------------------\n");
 			nodeAt(treeLevels, info().root).print(writer, tran, root);
+			writer.append("---------------------------\n");
 			writer.flush();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

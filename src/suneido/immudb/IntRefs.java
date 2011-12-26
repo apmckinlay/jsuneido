@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 class IntRefs implements Iterable<Object> {
 	static final int MASK = 0xfff00000;
-	public static final int MAXADR = 0xffefffff;
+	public static final int MAXADR = 0xffffffff;
 	private final List<Object> list = new ArrayList<Object>();
 	private int adrs[] = null;
 
@@ -45,7 +45,7 @@ class IntRefs implements Iterable<Object> {
 	}
 
 	static boolean isIntRef(int n) {
-		return (n & MASK) == MASK;
+		return (n & MASK) == MASK && n != MAXADR;
 	}
 
 	void update(int intref, Object ref) {

@@ -7,7 +7,6 @@ package suneido.immudb;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -41,6 +40,50 @@ public class BtreeTest {
 		public Btree4(Tran tran, BtreeInfo info) {
 			super(tran, Locking.noLocking, info);
 		}
+	}
+
+	@Test
+	public void iter_remove_bug() {
+		btree.add(key("test0"));
+		btree.add(key("test1"));
+		btree.add(key("test2"));
+		btree.add(key("test3"));
+		btree.add(key("test4"));
+		btree.add(key("test5"));
+		Btree.Iter iter = btree.iterator(rec("test2"), rec("test4"));
+		iter.next();
+		assertThat(iter.curKey().getString(0), is("test2"));
+		assertTrue(btree.remove(iter.curKey()));
+		iter.next();
+		assertThat(iter.curKey().getString(0), is("test3"));
+		assertTrue(btree.remove(iter.curKey()));
+		iter.next();
+		assertThat(iter.curKey().getString(0), is("test4")); // in next node
+		assertTrue(btree.remove(iter.curKey()));
+		iter.next();
+		assertTrue(iter.eof());
+	}
+
+	@Test
+	public void iter_remove_reverse_bug() {
+		btree.add(key("test0"));
+		btree.add(key("test1"));
+		btree.add(key("test2"));
+		btree.add(key("test3"));
+		btree.add(key("test4"));
+		btree.add(key("test5"));
+		Btree.Iter iter = btree.iterator(rec("test2"), rec("test4"));
+		iter.prev();
+		assertThat(iter.curKey().getString(0), is("test4"));
+		assertTrue(btree.remove(iter.curKey()));
+		iter.prev();
+		assertThat(iter.curKey().getString(0), is("test3"));
+		assertTrue(btree.remove(iter.curKey()));
+		iter.prev();
+		assertThat(iter.curKey().getString(0), is("test2")); // in next node
+		assertTrue(btree.remove(iter.curKey()));
+		iter.prev();
+		assertTrue(iter.eof());
 	}
 
 	@Test
@@ -683,7 +726,7 @@ public class BtreeTest {
 		Record newkey = key("b", tran.refToInt(new Object()));
 		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
 		iter.next();
-		assertThat(iter.curKey(), not(newkey));
+		assertThat(iter.curKey().getString(0), is("c"));
 	}
 
 	@Test
@@ -696,7 +739,54 @@ public class BtreeTest {
 		Record newkey = key("b", tran.refToInt(new Object()));
 		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
 		iter.prev();
-		assertThat(iter.curKey(), not(newkey));
+		assertThat(iter.curKey().getString(0), is("a"));
+	}
+
+	// update during iteration of duplicates is NOT handled
+//	@Test
+//	public void update_iteration() {
+//		rand = new Random(89876);
+//		add(NKEYS);
+//		// make 5 duplicates of every 5th key
+//		for (int i = NKEYS - 1; i >= 0; i -= 5) {
+//			Record key = keys.get(i);
+//			for (int j = 0; j < 5; ++j) {
+//				Record newkey = key(key.getString(0), key.getInt(1) + j + 1);
+//				keys.add(newkey);
+//				assertTrue(btree.add(newkey, false));
+//			}
+//		}
+//		Collections.sort(keys);
+//
+//		int i = 0;
+//		Btree.Iter iter = btree.iterator();
+//		for (iter.next(); ! iter.eof(); iter.next(), ++i) {
+//			Record oldkey = iter.curKey();
+//			assertThat(oldkey, is(keys.get(i)));
+//			Record newkey = key(oldkey.getString(0), tran.refToInt(new Object()));
+//			assertThat(btree.update(oldkey, newkey, false), is(Update.OK));
+//		}
+//		assertThat(i, is(keys.size()));
+//	}
+
+	@Test
+	public void update_iteration_dups() {
+		assertTrue(btree.add(key("fred", 1), false));
+		assertTrue(btree.add(key("suzy", 1), false));
+		assertTrue(btree.add(key("suzy", 2), false));
+		assertTrue(btree.add(key("suzy", 3), false));
+		assertTrue(btree.add(key("suzy", 4), false));
+		assertTrue(btree.add(key("suzy", 5), false));
+		assertTrue(btree.add(key("zoe", 1), false));
+		Btree.Iter iter = btree.iterator();
+		iter.next();
+		iter.next();
+		iter.next();
+		iter.next();
+		assertThat(iter.curKey(), is(key("suzy", 3)));
+		assertThat(btree.update(iter.curKey(), key("suzy", 6), false), is(Update.OK));
+		iter.next();
+		assertThat(iter.curKey(), is(key("suzy", 4)));
 	}
 
 	@Test

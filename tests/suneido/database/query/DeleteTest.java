@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.intfc.database.Transaction;
+
 public class DeleteTest extends TestBase {
 
 	@Test
@@ -17,11 +19,20 @@ public class DeleteTest extends TestBase {
 
 	@Test
 	public void delete_selected() {
-		makeTable(5);
+		makeTable(100);
 
-		assertEquals(5, get("test").size());
-		assertEquals(2, req("delete test where a >= 1 and a <= 2 "));
-		assertEquals(3, get("test").size());
+		assertEquals(100, get("test").size());
+		assertEquals(10, req("delete test where a >= 80 and a < 90 "));
+		assertEquals(90, get("test").size());
+
+		Transaction t = db.readwriteTran();
+		for (int i = 80; i < 90; ++i)
+			t.addRecord("test", record(i));
+		t.ck_complete();
+
+		assertEquals(100, get("test").size());
+		assertEquals(10, req("delete test where a >= 80 and a < 90 "));
+		assertEquals(90, get("test").size());
 	}
 
 }

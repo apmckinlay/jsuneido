@@ -218,7 +218,7 @@ abstract class BtreeNode {
 		if (isLeaf()) {
 			if (! isEmpty()) {
 				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
-				assert key.compareTo(get(0)) <= 0;
+				assert key.compareTo(get(0)) <= 0 : "first " + get(0) + " NOT >= key " + key;
 			}
 			return 1;
 		}
