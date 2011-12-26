@@ -16,6 +16,7 @@ import com.google.common.collect.Iterables;
 @Immutable
 class Indexes implements Iterable<Index> {
 	final ImmutableList<Index> indexes;
+	private final List<String> emptyKey = ImmutableList.of("");
 
 	Indexes(ImmutableList<Index> indexes) {
 		this.indexes = indexes;
@@ -63,9 +64,11 @@ class Indexes implements Iterable<Index> {
 	private List<List<String>> columns(List<String> fields, boolean justKeys) {
 		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
 		for (Index index : indexes)
-			if (!justKeys || index.isKey())
-				list.add(index.columns(fields));
-				// note: can't use commasToList because it does "" => empty list
+			if (!justKeys || index.isKey()) {
+				List<String> columns = index.columns(fields);
+				list.add(columns.isEmpty() ? emptyKey  : columns);
+				// other code uses nil(...) so can't return empty columns
+			}
 		return list.build();
 	}
 
