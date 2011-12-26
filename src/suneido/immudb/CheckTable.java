@@ -38,6 +38,7 @@ class CheckTable implements Callable<String> {
 			int nrecords = 0;
 			long totalsize = 0;
 			Btree btree = t.getIndex(table.num, index.colNums);
+			btree.check();
 			Btree.Iter iter = btree.iterator();
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
