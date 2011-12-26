@@ -44,7 +44,7 @@ public abstract class Query {
 		Query q = transform();
 		if (q.optimize(noFields, ImmutableSet.copyOf(q.columns()), noNeeds,
 				is_cursor, true) >= IMPOSSIBLE)
-			throw new SuException("invalid query");
+			throw new SuException("invalid query " + q);
 		q = q.addindex(t);
 		return q;
 	}
