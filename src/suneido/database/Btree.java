@@ -240,7 +240,8 @@ class Btree {
 				return (float) (end - org) / n;
 			// not enough keys in root, look at next level
 			float pernode = (float) 1 / n;
-			float result = keyfracpos(toadr, to, 1, (float) end / n, pernode) -
+			float result =
+				keyfracpos(toadr, to, 1, (float) end / n, pernode) -
 				keyfracpos(fromadr, from, 1, (float) org / n, pernode);
 			return result < 0 ? 0 : result;
 			}
