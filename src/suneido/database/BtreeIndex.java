@@ -177,7 +177,7 @@ class BtreeIndex {
 
 	float rangefrac(Record from, Record to) {
 		float f = bt.rangefrac(from, to);
-		return f < .001 ? (float) .001 : f;
+		return f < .001f ? .001f : f;
 	}
 
 	Slot find(Transaction tran, Record key) {
