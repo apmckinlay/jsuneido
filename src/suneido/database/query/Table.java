@@ -29,7 +29,7 @@ public class Table extends Query {
 	private Header hdr;
 	private String icols; // null to use first index
 	private Transaction tran;
-	private boolean singleton; // i.e. key()
+	final boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
 	IndexIter iter;
 
@@ -37,7 +37,7 @@ public class Table extends Query {
 		this.tran = tran;
 		table = tablename;
 		tbl = tran.ck_getTable(table);
-		singleton = indexes().get(0).isEmpty();
+		singleton = tbl.singleton();
 	}
 
 	@Override
@@ -48,8 +48,6 @@ public class Table extends Query {
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
-		singleton = tbl.singleton();
-
 		assert columns().containsAll(needs);
 		if (!columns().containsAll(index))
 			return IMPOSSIBLE;

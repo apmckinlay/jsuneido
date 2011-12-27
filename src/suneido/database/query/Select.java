@@ -35,10 +35,9 @@ public class Select extends Query1 {
 	private boolean optFirst = true;
 	private boolean conflicting = false;
 	private List<Fixed> fix;
-	private List<String> source_index = noFields; // may have extra stuff on
-												// the end, or be
-												// missing fields that are fixed
-	private List<List<String>> filter = null;
+	private List<String> source_index;	// may have extra stuff on the end
+										// or be missing fields that are fixed
+	private List<List<String>> filter;
 	private Set<String> select_needs;
 	private Table tbl;
 	private List<String> primary;
@@ -82,7 +81,7 @@ public class Select extends Query1 {
 			return sb.append(" nothing").toString();
 		if (! nil(source_index))
 			sb.append("^").append(listToParens(source_index));
-		if (!nil(filter)) {
+		if (filter != null) {
 			sb.append("%(");
 			for (List<String> f : filter)
 				sb.append(listToParens(f)).append(",");
@@ -274,13 +273,13 @@ public class Select extends Query1 {
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (optFirst) {
-			prior_needs = noNeeds; // needs;
+			prior_needs = needs;
 			select_needs = ImmutableSet.copyOf(expr.fields());
 			tbl = source instanceof Table ? (Table) source : null;
 			isels = new HashMap<String, Iselect>();
 		}
 		if (tbl == null || // source isnt a Table
-				nil(tbl.indexes())) { // empty key() singleton, index irrelevant
+				tbl.singleton) { // empty key() singleton, index irrelevant
 			optFirst = false;
 			source_index = index;
 			double cost = source.optimize(index, setUnion(needs, select_needs),
@@ -302,7 +301,7 @@ public class Select extends Query1 {
 		filter = null;
 
 		double cost = choose_primary(index);
-		if (nil(primary))
+		if (primary == null)
 			return IMPOSSIBLE;
 
 		if (!freeze)
@@ -436,7 +435,7 @@ public class Select extends Query1 {
 				best_index = idx;
 				best_size = tbl.indexSize(idx);
 			}
-		if (nil(best_index))
+		if (best_index == null)
 			return .5;
 		Iselect fsel = isels.get(field);
 		double tmp = iselsize(best_index, asList(fsel));
@@ -451,7 +450,7 @@ public class Select extends Query1 {
 		// ifracs = fraction selected from each index
 		for (List<String> idx : theindexes) {
 			List<Iselect> multisel = iselects(idx);
-			ifracs.put(idx, nil(multisel) ? (double) 1 : iselsize(idx, multisel));
+			ifracs.put(idx, multisel.isEmpty() ? (double) 1 : iselsize(idx, multisel));
 		}
 	}
 	private List<Iselect> iselects(List<String> idx) {

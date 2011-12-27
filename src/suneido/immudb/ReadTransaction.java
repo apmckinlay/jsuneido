@@ -187,7 +187,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	@Override
 	public float rangefrac(int tblnum, String columns,
 			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
-		return getIndex(tblnum, columns).rangefrac((Record) from, (Record) to);
+		float frac = getIndex(tblnum, columns).rangefrac((Record) from, (Record) to);
+		return frac < .001f ? .001f : frac;
 	}
 
 	@Override
