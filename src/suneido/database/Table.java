@@ -77,14 +77,17 @@ class Table implements suneido.intfc.database.Table {
 	public boolean singleton() {
 		return indexes.first().columns.equals("");
 	}
+
 	@Override
 	public List<String> getColumns() {
 		return columns.names();
 	}
+
 	@Override
 	public List<List<String>> indexesColumns() {
 		return indexes.columns();
 	}
+
 	@Override
 	public List<List<String>> keysColumns() {
 		return indexes.keysColumns();
