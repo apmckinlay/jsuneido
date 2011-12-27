@@ -634,12 +634,12 @@ class Btree {
 	/** from is inclusive, end is exclusive */
 	float rangefrac(Record from, Record to) {
 		BtreeNode node = rootNode();
-		int org = node.lowerBound(from);
-		int end = node.lowerBound(to);
 		int n = node.size();
 		if (n == 0)
 			return 0;
-		else if (treeLevels == 0)
+		int org = node.lowerBound(from);
+		int end = node.lowerBound(to);
+		if (treeLevels == 0)
 			return (float) (end - org) / n;
 		else {
 			float pernode = (float) 1 / n;
