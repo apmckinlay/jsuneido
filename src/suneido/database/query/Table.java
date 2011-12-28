@@ -95,11 +95,8 @@ public class Table extends Query {
 
 	private Set<Idx> getIndexSizes(List<List<String>> indexes) {
 		ImmutableSet.Builder<Idx> idxs = ImmutableSet.builder();
-		for (List<String> index : indexes) {
-			int size = tran.indexSize(tbl.num(), listToCommas(index)) +
-					index.size(); // favor fewer fields
-			idxs.add(new Idx(index, size));
-		}
+		for (List<String> index : indexes)
+			idxs.add(new Idx(index, indexSize(index)));
 		return idxs.build();
 	}
 
