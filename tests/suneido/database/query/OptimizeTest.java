@@ -2,10 +2,24 @@ package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
+import suneido.intfc.database.Transaction;
+
 public class OptimizeTest extends TestBase {
+
+	@Test
+	public void table_index_selection() {
+		adm("create test (a,b,c) index(a) key(b) index(c)");
+		String big = "now is the time for all good men";
+		Transaction t = db.readwriteTran();
+		for (int i = 0; i < 100; ++i)
+			t.addRecord("test", dbpkg.recordBuilder().add(big).add(i).add(big).build());
+		t.ck_complete();
+		test1("test", "test^(b)");
+	}
 
 	@Test
 	public void test() {

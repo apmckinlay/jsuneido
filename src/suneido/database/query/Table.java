@@ -20,6 +20,8 @@ import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
+import com.google.common.collect.ImmutableSet;
+
 public class Table extends Query {
 	private final String table;
 	final suneido.intfc.database.Table tbl;
@@ -52,47 +54,71 @@ public class Table extends Query {
 		if (!columns().containsAll(index))
 			return IMPOSSIBLE;
 
-		List<List<String>> idxs = indexes();
-		if (nil(idxs))
+		List<List<String>> indexes = indexes();
+		if (nil(indexes))
 			return IMPOSSIBLE;
 		if (singleton) {
-			idx = nil(index) ? idxs.get(0) : index;
+			idx = nil(index) ? indexes.get(0) : index;
 			return recordsize();
 		}
+
+		Set<Idx> idxs = getIndexSizes(indexes);
+
 		double cost1 = IMPOSSIBLE;
 		double cost2 = IMPOSSIBLE;
 		double cost3 = IMPOSSIBLE;
-		List<String> idx1, idx2 = null, idx3 = null;
 
-		if (!nil(idx1 = match(idxs, index, needs)))
+		Idx idx1, idx2 = null, idx3 = null;
+		if (null != (idx1 = match(idxs, index, needs)))
 			// index found that meets all needs
-			cost1 = nrecords() * keySize(idx1); // cost of reading index
-		if (!nil(firstneeds) && !nil(idx2 = match(idxs, index, firstneeds)))
+			cost1 = idx1.size; // cost of reading index
+		if (!nil(firstneeds) && null != (idx2 = match(idxs, index, firstneeds)))
 			// index found that meets firstneeds
 			// assume this means we only have to read 75% of data
-			cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-			nrecords() * keySize(idx2); // cost of reading index
-		if (!nil(needs) && !nil(idx3 = match(idxs, index, noFields)))
-			cost3 = nrecords() * recordsize() + // cost of reading data
-			nrecords() * keySize(idx3); // cost of reading index
-		//System.out.println("Table have " + indexes() + " want " + index);
-		//System.out.println(idx1 + " = " + cost1 + ", " + idx2 + " = " + cost2 + ", "
-		//	+ idx3 + " = " + cost3);
+			cost2 = .75 * totalSize() + // cost of reading data
+					idx2.size; // cost of reading index
+		if (!nil(needs) && null != (idx3 = match(idxs, index, noFields)))
+			cost3 = totalSize() + // cost of reading data
+					idx3.size; // cost of reading index
 
-		double cost;
 		if (cost1 <= cost2 && cost1 <= cost3) {
-			cost = cost1;
-			idx = idx1;
+			idx = idx1 == null ? null : idx1.index;
+			return cost1;
 		} else if (cost2 <= cost1 && cost2 <= cost3) {
-			cost = cost2;
-			idx = idx2;
+			idx = idx2.index;
+			return cost2;
 		} else {
-			cost = cost3;
-			idx = idx3;
+			idx = idx3.index;
+			return cost3;
+		}
+	}
+
+	private Set<Idx> getIndexSizes(List<List<String>> indexes) {
+		ImmutableSet.Builder<Idx> idxs = ImmutableSet.builder();
+		for (List<String> index : indexes) {
+			int size = tran.indexSize(tbl.num(), listToCommas(index)) +
+					index.size(); // favor fewer fields
+			idxs.add(new Idx(index, size));
+		}
+		return idxs.build();
+	}
+
+	private static class Idx {
+		final List<String> index;
+		final int size;
+
+		public Idx(List<String> index, int size) {
+			this.index = index;
+			this.size = size;
+		}
+		@Override
+		public String toString() {
+			return "Idx [index=" + index + ", size=" + size + "]";
 		}
 
-		return cost;
 	}
+
+
 
 	@Override
 	List<String> columns() {
@@ -137,23 +163,16 @@ public class Table extends Query {
 		return tran.tableSize(tbl.num());
 	}
 
-	private static List<String> match(List<List<String>> idxs,
+	// find the smallest index with index as a prefix & containing needs
+	private Idx match(Set<Idx> idxs,
 			List<String> index, Collection<String> needs) {
-		List<String> best = null;
-		int bestremainder = 9999;
-		for (List<String> idx : idxs) {
-			int i;
-			for (i = 0; i < idx.size() && i < index.size(); ++i)
-				if (!idx.get(i).equals(index.get(i)))
-					break;
-			if (i < index.size() || !idx.containsAll(needs))
-				continue;
-			int remainder = idx.size();
-			if (remainder < bestremainder) {
-				best = idx;
-				bestremainder = remainder;
+		Idx best = null;
+		for (Idx idx : idxs)
+			if (startsWith(idx.index, index) && idx.index.containsAll(needs)) {
+				if (best == null ||
+						best.size > idx.size + idx.index.size()) // favor fewer fields
+					best = idx;
 			}
-		}
 		return best;
 	}
 
