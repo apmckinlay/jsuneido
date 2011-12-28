@@ -164,7 +164,7 @@ public class Table extends Query {
 	}
 
 	// find the smallest index with index as a prefix & containing needs
-	private Idx match(Set<Idx> idxs,
+	private static Idx match(Set<Idx> idxs,
 			List<String> index, Collection<String> needs) {
 		Idx best = null;
 		for (Idx idx : idxs)
