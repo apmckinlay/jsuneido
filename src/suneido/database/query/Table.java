@@ -82,7 +82,7 @@ public class Table extends Query {
 					idx3.size; // cost of reading index
 
 		if (cost1 <= cost2 && cost1 <= cost3) {
-			idx = idx1 == null ? null : idx1.index;
+			idx = (idx1 == null) ? null : idx1.index;
 			return cost1;
 		} else if (cost2 <= cost1 && cost2 <= cost3) {
 			idx = idx2.index;
@@ -115,10 +115,7 @@ public class Table extends Query {
 		public String toString() {
 			return "Idx [index=" + index + ", size=" + size + "]";
 		}
-
 	}
-
-
 
 	@Override
 	List<String> columns() {
@@ -168,11 +165,9 @@ public class Table extends Query {
 			List<String> index, Collection<String> needs) {
 		Idx best = null;
 		for (Idx idx : idxs)
-			if (startsWith(idx.index, index) && idx.index.containsAll(needs)) {
-				if (best == null ||
-						best.size > idx.size + idx.index.size()) // favor fewer fields
+			if (startsWith(idx.index, index) && idx.index.containsAll(needs))
+				if (best == null || best.size > idx.size)
 					best = idx;
-			}
 		return best;
 	}
 
