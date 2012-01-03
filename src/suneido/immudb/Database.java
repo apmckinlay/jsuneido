@@ -184,7 +184,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
-		UpdateTransaction t = readwriteTran();
+		ExclusiveTransaction t = exclusiveTran();
 		try {
 			if (null != Views.getView(t, name))
 				throw new RuntimeException("view: '" + name + "' already exists");
@@ -196,7 +196,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	void dropView(String name) {
-		UpdateTransaction t = readwriteTran();
+		ExclusiveTransaction t = exclusiveTran();
 		try {
 			Views.dropView(t, name);
 		} finally {

@@ -34,6 +34,10 @@ public class ExclusiveTransaction extends UpdateTransaction {
 		locked = false;
 	}
 
+	@Override
+	void verifyNotSystemTable(int tblnum, String what) {
+	}
+
 	// used by TableBuilder
 	void addSchemaTable(Table tbl) {
 		assert locked;

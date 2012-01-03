@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
+import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
 import suneido.util.ThreadConfined;
@@ -92,6 +93,7 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	void addRecord(int tblnum, Record rec) {
+		verifyNotSystemTable(tblnum, "output");
 		assert locked;
 		rec.tblnum = tblnum;
 		indexedData(tblnum).add(rec);
@@ -115,6 +117,7 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
+		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
@@ -143,6 +146,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
+		verifyNotSystemTable(tblnum, "delete");
 		assert locked;
 		indexedData(tblnum).remove((Record) rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
@@ -153,6 +157,10 @@ class UpdateTransaction extends ReadTransaction {
 		Iter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
+	}
+	void verifyNotSystemTable(int tblnum, String what) {
+		if (tblnum <= TN.VIEWS)
+			throw new RuntimeException("can't " + what + " system table");
 	}
 
 	//PERF cache?
