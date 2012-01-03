@@ -10,11 +10,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +24,14 @@ public class IndexedDataTest {
 	Btree btree2 = mockBtree();
 	Btree btree3 = mockBtree();
 	Btree btree4 = mockBtree();
-	IndexedData id = new IndexedData(mock(Tran.class))
+	RuntimeException e = new RuntimeException("aborted");
+	UpdateTransaction t = mock(UpdateTransaction.class);
+	{
+		Tran tran = mock(Tran.class);
+		when(t.tran()).thenReturn(tran);
+		doThrow(e).when(t).abortThrow(anyString());
+	}
+	IndexedData id = new IndexedData(t)
 		.index(btree1, Mode.KEY, 0)
 		.index(btree2, Mode.DUPS, 2)
 		.index(btree3, Mode.UNIQUE, 1, 2)
@@ -62,11 +67,13 @@ public class IndexedDataTest {
 	@Test
 	public void dup_undo() {
 		when(btree3.add(any(Record.class), anyBoolean())).thenReturn(false);
+		when(btree1.remove(any(Record.class))).thenReturn(true);
+		when(btree2.remove(any(Record.class))).thenReturn(true);
 		try {
 			id.add(record("a", "b", "c"));
 			fail();
 		} catch (RuntimeException e) {
-			assertTrue(e.toString().contains("duplicate key"));
+			assertTrue(e.toString(), e.toString().contains("duplicate key"));
 		}
 		verify(btree1).add(any(Record.class), anyBoolean());
 		verify(btree2).add(any(Record.class), anyBoolean());

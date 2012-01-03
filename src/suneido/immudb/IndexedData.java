@@ -22,13 +22,7 @@ class IndexedData {
 
 	IndexedData(UpdateTransaction t) {
 		this.t = t;
-		tran = t.tran;
-	}
-
-	// for tests (without foreign keys)
-	IndexedData(Tran tran) {
-		this.tran = tran;
-		t = null;
+		tran = t.tran();
 	}
 
 	/** setup method */
@@ -62,7 +56,8 @@ class IndexedData {
 				for (AnIndex idx : indexes) {
 					if (idx == index)
 						break;
-					idx.remove(rec, adr);
+					if (! idx.remove(rec, adr))
+						t.abortThrow("aborted: possible corruption");
 				}
 				throw new RuntimeException("duplicate key: " +
 						index.columns + " = " + index.searchKey(rec));
@@ -79,7 +74,7 @@ class IndexedData {
 			throw new RuntimeException("remove couldn't find record");
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
-				t.abortThrow("remove failed");
+				t.abortThrow("aborted: index remove failed (possible corruption)");
 	}
 
 	void update(Record from, Record to) {
@@ -93,16 +88,16 @@ class IndexedData {
 		for (AnIndex index : indexes)
 			switch (index.update(from, fromIntref, to, toIntref)) {
 			case NOT_FOUND:
-				throw new RuntimeException("update failed: old record not found");
+				t.abortThrow("aborted: update failed: old record not found " +
+						"(possible corruption)");
 			case ADD_FAILED:
-				throw new RuntimeException("update failed: duplicate key" +
+				t.abortThrow("aborted: update failed: duplicate key: " +
 						index.columns + " = " + index.searchKey(to));
 			case OK:
 				break;
 			default:
 				throw new RuntimeException("unhandled update result");
 			}
-		// TODO handle update failing halfway through (abort transaction?)
 	}
 
 	private AnIndex firstKey() {
