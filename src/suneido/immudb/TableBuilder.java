@@ -44,12 +44,12 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return tb;
 	}
 
-	static TableBuilder alter(ReadTransaction rt, String tableName) {
-		return new TableBuilder(rt, tableName);
+	static TableBuilder alter(ReadTransaction t, String tableName) {
+		return new TableBuilder(t, tableName);
 	}
 
-	private TableBuilder(ReadTransaction et, String tableName, int tblnum) {
-		this.t = et;
+	private TableBuilder(ReadTransaction t, String tableName, int tblnum) {
+		this.t = t;
 		this.tableName = tableName;
 		this.tblnum = tblnum;
 	}
