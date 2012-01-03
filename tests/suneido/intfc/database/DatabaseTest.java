@@ -118,7 +118,7 @@ public class DatabaseTest extends TestBase {
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("duplicate key"));
 		} finally {
-			t.ck_complete();
+			t.abortIfNotComplete();
 		}
 
 		t = db.readonlyTran();

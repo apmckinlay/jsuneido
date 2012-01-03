@@ -302,4 +302,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return false;
 	}
 
+	protected Tran tran() {
+		return tran;
+	}
+
 }
