@@ -29,6 +29,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
 	protected final com.google.common.collect.Table<Integer,ColNums,Btree> indexes;
+	private boolean ended = false;
 
 	ReadTransaction(int num, Database db) {
 		this.num = num;
@@ -131,7 +132,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 
 	@Override
 	public boolean isEnded() {
-		return false;
+		return ended;
 	}
 
 	@Override
@@ -197,6 +198,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 
 	@Override
 	public void abort() {
+		ended = true;
 	}
 
 	@Override
@@ -208,6 +210,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 
 	@Override
 	public String complete() {
+		ended = true;
 		return null;
 	}
 
