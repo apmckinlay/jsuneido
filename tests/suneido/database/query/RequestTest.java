@@ -87,7 +87,7 @@ public class RequestTest extends TestBase {
 		t.complete();
 		Request.execute(db, serverData, "drop myview");
 		t = db.readonlyTran();
-		assertNull(t.getView("myview"));
+		assertEquals(null, t.getView("myview"));
 		t.complete();
 	}
 

@@ -61,9 +61,11 @@ class MmapFile extends ChunkedStorage {
 		file_size = fileLength();
 		if (file_size == 0)
 			return;
+		assert file_size % ALIGN == 0;
 		ByteBuffer buf = map(file_size - 1);
 		int i = (int) ((file_size - 1) % CHUNK_SIZE) + 1;
-		while (i > 0 && buf.getLong(i - 8) == 0) // assumes ALIGN = long (8)
+		assert ALIGN >= 8;
+		while (i > 0 && buf.getLong(i - 8) == 0)
 			i -= 8;
 		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
 		file_size = (long) chunk * CHUNK_SIZE + align(i);
