@@ -342,6 +342,7 @@ public class BtreeTest {
 		Btree.store(tran);
 		info = btree.info();
 		redirs = tran.storeRedirs();
+		tran.endStore();
 		tran = null;
 	}
 

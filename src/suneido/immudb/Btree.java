@@ -151,6 +151,7 @@ class Btree {
 
 		// insert up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
+			locking.writeLock(adrs.get(i));
 			BtreeNode treeNode = treeNodes.get(i);
 			if (hasRoom(treeNode)) {
 				treeNode = treeNode.with(split.key);
@@ -244,6 +245,7 @@ class Btree {
 
 		// remove up the tree
 		for (int i = treeNodes.size() - 1; i >= 0; --i) {
+			locking.writeLock(adrs.get(i));
 			BtreeNode treeNode = treeNodes.get(i);
 			if (treeNode.size() > 1) {
 				treeNode = treeNode.without(treeNode.findPos(key));

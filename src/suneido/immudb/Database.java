@@ -72,6 +72,10 @@ class Database implements suneido.intfc.database.Database {
 			stor.close();
 			return null;
 		}
+		return openWithoutCheck(stor);
+	}
+
+	static Database openWithoutCheck(Storage stor) {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
@@ -190,15 +194,6 @@ class Database implements suneido.intfc.database.Database {
 				throw new RuntimeException("view: '" + name + "' already exists");
 			Views.addView(t, name, definition);
 			t.complete();
-		} finally {
-			t.abortIfNotComplete();
-		}
-	}
-
-	void dropView(String name) {
-		ExclusiveTransaction t = exclusiveTran();
-		try {
-			Views.dropView(t, name);
 		} finally {
 			t.abortIfNotComplete();
 		}

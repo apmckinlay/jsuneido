@@ -83,11 +83,13 @@ abstract class ChunkedStorage implements Storage {
 
 	@Override
 	public void protect() {
+		assert protect == 0 || protect == Integer.MAX_VALUE;
 		protect = file_size;
 	}
 
 	@Override
 	public void protectAll() {
+		assert protect != Integer.MAX_VALUE;
 		protect = Integer.MAX_VALUE;
 	}
 
@@ -154,6 +156,13 @@ return buf.slice().asReadOnlyBuffer();
 	@Override
 	public long sizeFrom(int adr) {
 		return adr == 0 ? file_size : file_size - intToLong(adr);
+	}
+
+	@Override
+	public boolean isValidPos(long pos) {
+		if (pos < 0)
+			pos += file_size;
+		return 0 <= pos && pos < file_size;
 	}
 
 }

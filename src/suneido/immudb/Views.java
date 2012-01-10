@@ -8,6 +8,7 @@ package suneido.immudb;
  * Static methods for adding, getting, and removing views.
  */
 class Views {
+	static final int[] INDEX_COLS = new int[] { 0 };
 
 	static void addView(UpdateTransaction t, String name, String definition) {
 		Record r = new RecordBuilder().add(name).add(definition).build();
@@ -16,17 +17,24 @@ class Views {
 
 	/** @return view definition, else null if view not found */
 	static String getView(ReadTransaction t, String name) {
-		Record key = new RecordBuilder().add(name).build();
-		Record rec = t.lookup(Bootstrap.TN.VIEWS, new int[] { 0 }, key);
+		Record rec = getViewRecord(t, name);
 		if (rec == null)
 			return null;
 		return rec.getString(1);
 	}
 
-	static void dropView(UpdateTransaction t, String name) {
+	static boolean dropView(UpdateTransaction t, String name) {
 		// WARNING: assumes views is only indexed on name
-		Record rec = new RecordBuilder().add(name).build();
+		Record rec = getViewRecord(t, name);
+		if (rec == null)
+			return false;
 		t.removeRecord(Bootstrap.TN.VIEWS, rec);
+		return true;
+	}
+
+	private static Record getViewRecord(ReadTransaction t, String name) {
+		Record key = new RecordBuilder().add(name).build();
+		return t.lookup(Bootstrap.TN.VIEWS, INDEX_COLS, key);
 	}
 
 }

@@ -103,6 +103,8 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
+		if (fromadr == 1)
+			throw new RuntimeException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
 		updateRecord(from.tblnum, from, (Record) to);
 		return 1; //TODO don't know record address till commit
@@ -225,17 +227,20 @@ class UpdateTransaction extends ReadTransaction {
 		try {
 			synchronized(db.commitLock) {
 				tran.startStore();
-				DataRecords.store(tran);
-				Btree.store(tran);
+				try {
+					DataRecords.store(tran);
+					Btree.store(tran);
 
-				updateOurDbinfo();
-				mergeDatabaseDbInfo();
+					updateOurDbinfo();
+					mergeDatabaseDbInfo();
 
-				mergeRedirs();
-				int redirsAdr = updateRedirs();
-				int dbinfoAdr = udbinfo.store();
-				store(dbinfoAdr, redirsAdr);
-				tran.endStore();
+					mergeRedirs();
+					int redirsAdr = updateRedirs();
+					int dbinfoAdr = udbinfo.store();
+					store(dbinfoAdr, redirsAdr);
+				} finally {
+					tran.endStore();
+				}
 
 				db.setDbinfo(udbinfo.dbinfo());
 				updateSchema();

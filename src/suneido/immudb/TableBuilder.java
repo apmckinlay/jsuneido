@@ -72,9 +72,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	static boolean dropTable(ExclusiveTransaction t, String tableName) {
-		if (null != Views.getView(t, tableName))
-			Views.dropView(t, tableName);
-		else {
+		if (! Views.dropView(t, tableName)) {
 			Table table = t.getTable(tableName);
 			if (table == null) {
 				t.abort();

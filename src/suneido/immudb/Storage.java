@@ -31,4 +31,6 @@ public interface Storage {
 
 	int advance(int adr, int length);
 
+	boolean isValidPos(long pos);
+
 }

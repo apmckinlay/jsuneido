@@ -35,15 +35,16 @@ public class ViewsTest {
 	@Test
 	public void getView() {
 		ReadTransaction t = mock(ReadTransaction.class);
-		when(t.lookup(Bootstrap.TN.VIEWS, new int[] { 0 }, KEY)).thenReturn(VIEW_REC);
+		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
 		assertThat(Views.getView(t, NAME), is(DEFINITION));
 	}
 
 	@Test
 	public void dropView() {
 		UpdateTransaction t = mock(UpdateTransaction.class);
+		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
 		Views.dropView(t, NAME);
-		verify(t).removeRecord(Bootstrap.TN.VIEWS, KEY);
+		verify(t).removeRecord(Bootstrap.TN.VIEWS, VIEW_REC);
 	}
 
 }
