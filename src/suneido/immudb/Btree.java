@@ -229,10 +229,10 @@ class Btree {
 		// remove from leaf
 		BtreeNode leaf = nodeAt(0, adr);
 		leaf = leaf.without(key);
-		locking.writeLock(adr);
 		if (leaf == null)
 			return false; // not found
 
+		locking.writeLock(adr);
 		totalSize -= keySize(key);
 
 		if (adr == root)
