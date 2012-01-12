@@ -11,6 +11,8 @@ import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.Translator;
 import suneido.immudb.UpdateTransaction.Conflict;
 
+import com.google.common.base.Objects;
+
 /**
  * Normally immutable persistent trees are "updated" by copying & updating
  * nodes all the way up to the root (path copying).
@@ -89,7 +91,7 @@ class Redirects {
 		@Override
 		public void apply(Entry e) {
 			int adr = ((IntEntry) e).key;
-			if (original.get(adr) != current.get(adr))
+			if (! Objects.equal(original.get(adr), current.get(adr)))
 				throw new Conflict("concurrent index node modification");
 			merged = merged.with(e);
 		}

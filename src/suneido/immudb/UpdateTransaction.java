@@ -388,6 +388,8 @@ class UpdateTransaction extends ReadTransaction {
 
 	@Override
 	public void writeLock(int adr) {
+		if (IntRefs.isIntRef(adr))
+			return;
 		notEnded();
 		onlyReads = false;
 		Set<UpdateTransaction> readers = trans.writeLock(this, adr);

@@ -61,6 +61,14 @@ abstract class DbHashTrie {
 	abstract static class Entry {
 		abstract int key();
 		abstract int value();
+
+		@Override
+		public boolean equals(Object other) {
+			if (! (other instanceof Entry))
+				return false;
+			Entry that = (Entry) other;
+			return this.key() == that.key() && this.value() == that.value();
+		}
 	}
 
 	/** returns null if key not present */
