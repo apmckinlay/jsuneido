@@ -7,6 +7,7 @@ package suneido.language.builtin;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import suneido.SuException;
 import suneido.language.SuFunction0;
 
 public class GetComputerName extends SuFunction0 {
@@ -18,7 +19,7 @@ public class GetComputerName extends SuFunction0 {
 					? System.getenv("COMPUTERNAME")
 					: InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
-			throw new RuntimeException("GetComputerName", e);
+			throw new SuException("GetComputerName", e);
 		}
 	}
 

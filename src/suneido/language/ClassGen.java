@@ -440,7 +440,7 @@ public class ClassGen {
 
 	public void thrower() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "exception",
-				"(Ljava/lang/Object;)Lsuneido/SuException;");
+				"(Ljava/lang/Object;)Ljava/lang/Throwable;");
 		mv.visitInsn(ATHROW);
 	}
 

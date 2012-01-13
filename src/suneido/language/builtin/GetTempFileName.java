@@ -7,6 +7,7 @@ package suneido.language.builtin;
 import java.io.File;
 import java.io.IOException;
 
+import suneido.SuException;
 import suneido.language.FunctionSpec;
 import suneido.language.Ops;
 import suneido.language.SuFunction2;
@@ -25,7 +26,7 @@ public class GetTempFileName extends SuFunction2 {
 			tmpfile.deleteOnExit();
 			return tmpfile.getPath().replace('\\', '/');
 		} catch (IOException e) {
-			throw new RuntimeException(
+			throw new SuException(
 					"GetTempFileName(" + path + ", " + prefix + ")", e);
 		}
 	}

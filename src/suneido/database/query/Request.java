@@ -52,7 +52,7 @@ public class Request implements RequestGenerator<Object> {
 	@Override
 	public Object create(String table, Object schema) {
 		if (! ((Schema) schema).hasKey())
-			throw new RuntimeException("key required for: " + table);
+			throw new SuException("key required for: " + table);
 		alterCreate(db.createTable(table), (Schema) schema);
 		return null;
 	}
@@ -139,7 +139,7 @@ public class Request implements RequestGenerator<Object> {
 		if (serverData != null && serverData.getSview(table) != null)
 			serverData.dropSview(table);
 		else if (! db.dropTable(table))
-			throw new RuntimeException("can't drop nonexistent table: " + table);
+			throw new SuException("can't drop nonexistent table: " + table);
 		return null;
 	}
 

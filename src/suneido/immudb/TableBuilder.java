@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 
 import com.google.common.base.CharMatcher;
@@ -124,7 +125,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public TableBuilder addColumn(String column) {
 		if (hasColumn(column))
-			throw new RuntimeException("add column: column already exists: "
+			throw new SuException("add column: column already exists: "
 					+ column + " in " + tableName);
 		addColumn2(column);
 		return this;
@@ -193,7 +194,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (hasIndex(columnNames))
-			throw new RuntimeException("add index: index already exists: " +
+			throw new SuException("add index: index already exists: " +
 					columnNames + " in " + tableName);
 		addIndex2(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
@@ -337,7 +338,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 	private static void fail(ReadTransaction t, String msg) {
 		t.abort();
-		throw new RuntimeException(msg);
+		throw new SuException(msg);
 	}
 
 	@Override

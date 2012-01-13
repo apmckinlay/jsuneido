@@ -8,10 +8,7 @@ public class Built extends SuFunction0 {
 
 	@Override
 	public Object call0() {
-		String s = WhenBuilt.when();
-		if (Suneido.dbpkg == suneido.immudb.DatabasePackage.dbpkg)
-			s += "(immudb)";
-		return s;
+		return WhenBuilt.when() + Suneido.dbpkg.name();
 	}
 
 }

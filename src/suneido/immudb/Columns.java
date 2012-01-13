@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.SuException;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -43,7 +45,7 @@ class Columns implements Iterable<Column> {
 	private Column ck_find(String name) {
 		Column c = find(name);
 		if (c == null)
-			throw new RuntimeException("column not found: " + name);
+			throw new SuException("column not found: " + name);
 		return c;
 	}
 

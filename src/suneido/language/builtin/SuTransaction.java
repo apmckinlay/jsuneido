@@ -88,7 +88,7 @@ public class SuTransaction extends SuValue {
 			trace(QUERY, tran + " " + query);
 			if (CompileQuery.isRequest(query)) {
 				if (args[1] != Boolean.FALSE)
-					throw new RuntimeException(
+					throw new SuException(
 							"transaction.Query: block not allowed on request");
 				return tran.t.request(query);
 			}

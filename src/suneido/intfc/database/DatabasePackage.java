@@ -60,4 +60,6 @@ public interface DatabasePackage {
 		public void print(String msg) {
 		} };
 
+	String name();
+
 }

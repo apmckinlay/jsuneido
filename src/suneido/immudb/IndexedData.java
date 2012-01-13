@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import suneido.SuException;
 import suneido.intfc.database.Fkmode;
 
 /**
@@ -59,7 +60,7 @@ class IndexedData {
 					if (! idx.remove(rec, adr))
 						t.abortThrow("aborted: possible corruption");
 				}
-				throw new RuntimeException("duplicate key: " +
+				throw new SuException("duplicate key: " +
 						index.columns + " = " + index.searchKey(rec));
 			}
 	}
@@ -71,7 +72,7 @@ class IndexedData {
 		if (adr == 0)
 			adr = firstKey().getKeyAdr(rec);
 		if (adr == 0)
-			throw new RuntimeException("remove couldn't find record");
+			throw new SuException("remove couldn't find record");
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				t.abortThrow("aborted: index remove failed (possible corruption)");
@@ -83,7 +84,7 @@ class IndexedData {
 
 		int fromIntref = firstKey().getKeyAdr(from);
 		if (fromIntref == 0)
-			throw new RuntimeException("update couldn't find record");
+			throw new SuException("update couldn't find record");
 		int toIntref = tran.refToInt(to);
 		for (AnIndex index : indexes)
 			switch (index.update(from, fromIntref, to, toIntref)) {
@@ -96,7 +97,7 @@ class IndexedData {
 			case OK:
 				break;
 			default:
-				throw new RuntimeException("unhandled update result");
+				throw new SuException("unhandled update result");
 			}
 	}
 
@@ -104,7 +105,7 @@ class IndexedData {
 		for (AnIndex index : indexes)
 			if (index.mode == Mode.KEY)
 				return index;
-		throw new RuntimeException("no key!");
+		throw new SuException("no key!");
 	}
 
 	private static class AnIndex {
@@ -188,7 +189,7 @@ class IndexedData {
 			Table fktbl = t.getTable(fksrc.tablename);
 			if (fktbl == null ||
 					! t.exists(fktbl.num, fktbl.namesToNums(fksrc.columns), key))
-				throw new RuntimeException(action + " record blocked by foreign key to "
+				throw new SuException(action + " record blocked by foreign key to "
 						+ fksrc.tablename + " " + key);
 		}
 
@@ -210,7 +211,7 @@ class IndexedData {
 				return;
 			if (fk.mode == Fkmode.BLOCK &&
 					t.exists(fk.tblnum, fk.colNums, key))
-				throw new RuntimeException(action +
+				throw new SuException(action +
 						" record blocked by foreign key in " + fk.tablename);
 		}
 

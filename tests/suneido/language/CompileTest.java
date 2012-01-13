@@ -555,7 +555,7 @@ public class CompileTest {
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },
 			{ "LDC ", "" },
-			{ "exception (Object;)Lsuneido/SuException;, ATHROW", "throw" },
+			{ "exception (Object;)Throwable;, ATHROW", "throw" },
 			{ "TRYCATCHBLOCK L0 L1 L2 java/lang/Throwable", "try L0 L1 L2" },
 			{ "TRYCATCHBLOCK L0 L1 L2 suneido/language/BlockReturnException", "try L0 L1 L2" },
 			{ "catchMatch (Throwable;)Lsuneido/language/Except;", "catchMatch" },
