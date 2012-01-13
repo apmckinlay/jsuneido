@@ -13,6 +13,8 @@ import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
+
 /**
  * Memory mapped file access.
  * <p>
@@ -39,18 +41,18 @@ class MmapFile extends ChunkedStorage {
 		super(CHUNK_SIZE, MAX_CHUNKS);
 		if ("r".equals(mode)) {
 			if (!file.canRead())
-				throw new RuntimeException("can't open " + file + " read-only");
+				throw new SuException("can't open " + file + " read-only");
 			this.mode = FileChannel.MapMode.READ_ONLY;
 		} else if ("rw".equals(mode)) {
 			if (file.exists() && (! file.canRead() || ! file.canWrite()))
-				throw new RuntimeException("can't open " + file + " read-write");
+				throw new SuException("can't open " + file + " read-write");
 			this.mode = FileChannel.MapMode.READ_WRITE;
 		} else
-			throw new RuntimeException("invalid mode " + mode);
+			throw new SuException("invalid mode " + mode);
 		try {
 			fin = new RandomAccessFile(file, mode);
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("can't open/create " + file, e);
+			throw new SuException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
 		findEnd();
@@ -75,7 +77,7 @@ class MmapFile extends ChunkedStorage {
 		try {
 			return fin.length();
 		} catch (IOException e) {
-			throw new RuntimeException("can't get file length", e);
+			throw new SuException("can't get file length", e);
 		}
 	}
 
@@ -88,7 +90,7 @@ class MmapFile extends ChunkedStorage {
 		try {
 			return fc.map(mode, pos, len);
 		} catch (IOException e) {
-			throw new RuntimeException("MmapFile can't map chunk " + chunk, e);
+			throw new SuException("MmapFile can't map chunk " + chunk, e);
 		}
 	}
 
@@ -98,7 +100,7 @@ class MmapFile extends ChunkedStorage {
 			fc.close();
 			fin.close();
 		} catch (IOException e) {
-			throw new RuntimeException("MmapFile close failed", e);
+			throw new SuException("MmapFile close failed", e);
 		}
 		// should truncate file but probably can't
 		// since memory mappings won't all be finalized

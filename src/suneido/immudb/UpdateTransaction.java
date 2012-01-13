@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
+import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
@@ -104,7 +105,7 @@ class UpdateTransaction extends ReadTransaction {
 	@Override
 	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
 		if (fromadr == 1)
-			throw new RuntimeException("can't update the same record multiple times");
+			throw new SuException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
 		updateRecord(from.tblnum, from, (Record) to);
 		return 1; //TODO don't know record address till commit
@@ -162,7 +163,7 @@ class UpdateTransaction extends ReadTransaction {
 	}
 	void verifyNotSystemTable(int tblnum, String what) {
 		if (tblnum <= TN.VIEWS)
-			throw new RuntimeException("can't " + what + " system table");
+			throw new SuException("can't " + what + " system table");
 	}
 
 	//PERF cache?
@@ -307,7 +308,7 @@ class UpdateTransaction extends ReadTransaction {
 	private static final Conflict schemaConflict =
 			new Conflict("concurrent schema modification");
 
-	static class Conflict extends RuntimeException {
+	static class Conflict extends SuException {
 		private static final long serialVersionUID = 1L;
 
 		Conflict(String explanation) {
@@ -345,7 +346,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	private void notEnded() {
 		if (isEnded())
-			throw new RuntimeException("cannot use ended transaction");
+			throw new SuException("cannot use ended transaction");
 	}
 
 	private boolean isActive() {
@@ -355,7 +356,7 @@ class UpdateTransaction extends ReadTransaction {
 	void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
-		throw new RuntimeException("transaction " + conflict);
+		throw new SuException("transaction " + conflict);
 	}
 
 	private boolean committedAfter(UpdateTransaction t) {

@@ -124,7 +124,7 @@ public class RequestTest {
 			req("alter tbl drop (x)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("nonexistent column"));
+			assertThat(e.toString(), containsString("nonexistent column"));
 		}
 	}
 
@@ -135,7 +135,7 @@ public class RequestTest {
 			req("alter tbl drop (b)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("column used in index"));
+			assertThat(e.toString(), containsString("column used in index"));
 		}
 	}
 
@@ -155,13 +155,13 @@ public class RequestTest {
 			req("alter tbl drop index(x)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("nonexistent column"));
+			assertThat(e.toString(), containsString("nonexistent column"));
 		}
 		try {
 			req("alter tbl drop index(c,b,a)");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("nonexistent index"));
+			assertThat(e.toString(), containsString("nonexistent index"));
 		}
 	}
 
@@ -170,7 +170,7 @@ public class RequestTest {
 		try {
 			req("create tbl (a,b,c) index(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("key required"));
+			assertThat(e.toString(), containsString("key required"));
 		}
 	}
 
@@ -180,7 +180,7 @@ public class RequestTest {
 		try {
 			req("alter tbl drop key(a)");
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("key required"));
+			assertThat(e.toString(), containsString("key required"));
 		}
 	}
 
@@ -199,7 +199,7 @@ public class RequestTest {
 			req("drop tbl");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("nonexistent table"));
+			assertThat(e.toString(), containsString("nonexistent table"));
 		}
 	}
 
@@ -220,7 +220,7 @@ public class RequestTest {
 			req("rename tbl to lbt");
 			fail();
 		} catch (Exception e) {
-			assertThat(e.getMessage(), containsString("nonexistent table"));
+			assertThat(e.toString(), containsString("nonexistent table"));
 		}
 	}
 
@@ -258,17 +258,17 @@ public class RequestTest {
 		t.abort();
 	}
 
-//	@Test
-//	public void add_remove_fields() {
-//		req("create tbl (a, b, c, d, e, f, g) key(b)");
-//		assertThat(db.getSchema("tbl"), is("(a,b,c,d,e,f,g) key(b)"));
-//		exec("insert { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7 } into tbl");
-//		req("alter tbl drop (a, c, e, g)");
-//		assertThat(db.getSchema("tbl"), is("(b,d,f) key(b)"));
-//		req("alter tbl create (h, i, j, k)");
-//		assertThat(db.getSchema("tbl"), is("(b,d,f,h,i,j,k) key(b)"));
-//		assertThat(first(), is("Row{b: 2, d: 4, f: 6}"));
-//	}
+	@Test
+	public void add_remove_fields() {
+		req("create tbl (a, b, c, d, e, f, g) key(b)");
+		assertThat(db.getSchema("tbl"), is("(a,b,c,d,e,f,g) key(b)"));
+		exec("insert { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7 } into tbl");
+		req("alter tbl drop (a, c, e, g)");
+		assertThat(db.getSchema("tbl"), is("(b,d,f) key(b)"));
+		req("alter tbl create (h, i, j, k)");
+		assertThat(db.getSchema("tbl"), is("(b,d,f,h,i,j,k) key(b)"));
+		assertThat(first(), is("Row{b: 2, d: 4, f: 6}"));
+	}
 
 	private String first() {
 		Transaction t = db.readonlyTran();

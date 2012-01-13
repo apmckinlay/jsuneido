@@ -7,6 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Set;
 
+import suneido.SuException;
 import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
@@ -149,7 +150,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public Table ck_getTable(String tablename) {
 		Table tbl = getTable(tablename);
 		if (tbl == null)
-			throw new RuntimeException("nonexistent table: " + tablename);
+			throw new SuException("nonexistent table: " + tablename);
 		return tbl;
 	}
 
@@ -157,7 +158,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public Table ck_getTable(int tblnum) {
 		Table tbl = getTable(tblnum);
 		if (tbl == null)
-			throw new RuntimeException("nonexistent table: " + tblnum);
+			throw new SuException("nonexistent table: " + tblnum);
 		return tbl;
 	}
 
@@ -205,7 +206,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public synchronized void ck_complete() {
 		String s = complete();
 		if (s != null)
-			throw new RuntimeException("transaction commit failed: " + s);
+			throw new SuException("transaction commit failed: " + s);
 	}
 
 	@Override

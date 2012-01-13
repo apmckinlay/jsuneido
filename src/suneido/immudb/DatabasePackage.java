@@ -106,4 +106,9 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 		return DB_FILENAME;
 	}
 
+	@Override
+	public String name() {
+		return "(immudb)";
+	}
+
 }

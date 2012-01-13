@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import suneido.SuException;
 import suneido.util.ThreadConfined;
 
 /**
@@ -23,7 +24,7 @@ public class ExclusiveTransaction extends UpdateTransaction {
 	protected void lock(Database db) {
 		assert ! db.exclusiveLock.isWriteLocked() : "already exclusively locked";
 		if (! db.exclusiveLock.writeLock().tryLock())
-			throw new RuntimeException("can't make schema changes " +
+			throw new SuException("can't make schema changes " +
 					"when there are outstanding update transactions");
 		locked = true;
 	}

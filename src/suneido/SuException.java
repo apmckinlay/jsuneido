@@ -6,30 +6,28 @@ package suneido;
 
 import suneido.language.Ops;
 
-// TODO use RuntimeException message and cause instead of s
-
 public class SuException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
-	Object s; // could be String or Except
 
-	public SuException(Object e) {
-		this.s = e;
-		//printStackTrace();
+	public SuException(String s) {
+		super(s);
 	}
 
 	public SuException(String s, Throwable e) {
-		this.s = s + " (" + e + ")";
-		initCause(e);
-		//printStackTrace();
+		super(s + " (" + e + ")", e);
+	}
+
+	public SuException(Throwable e, String s) {
+		super(s, e);
 	}
 
 	public Object get() {
-		return s;
+		return getMessage();
 	}
 
 	@Override
 	public String toString() {
-		return s.toString();
+		return getMessage();
 	}
 
 	public static final SuException unreachable() {
