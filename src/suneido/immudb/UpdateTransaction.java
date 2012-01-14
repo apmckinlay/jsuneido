@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
@@ -37,7 +38,7 @@ class UpdateTransaction extends ReadTransaction {
 	private final Transactions trans;
 	private volatile boolean inConflict = false;
 	private volatile boolean outConflict = false;
-	private boolean onlyReads = false; // TODO
+	private boolean onlyReads = false;
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
@@ -366,6 +367,8 @@ class UpdateTransaction extends ReadTransaction {
 	@Override
 	public void readLock(int adr) {
 		notEnded();
+		if (Suneido.cmdlineoptions.snapshotIsolation)
+			return;
 
 		UpdateTransaction writer = trans.readLock(this, adr);
 		if (writer != null) {
