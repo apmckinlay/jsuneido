@@ -25,4 +25,4 @@
 -keep class suneido.language.AstCompile$ExprOption
 -keep class suneido.language.AstCompile$ExprType
 
--dontnote com.google.common.**
+-dontnote com.google.common**
