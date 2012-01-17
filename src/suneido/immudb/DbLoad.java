@@ -108,7 +108,7 @@ class DbLoad {
 			ExclusiveTransaction t, ByteBuffer recbuf, int n)
 			throws IOException {
 		fullRead(in, recbuf, n);
-		Record rec = new Record(recbuf);
+		Record rec = Record.from(recbuf);
 		return t.loadRecord(tblnum, rec);
 	}
 

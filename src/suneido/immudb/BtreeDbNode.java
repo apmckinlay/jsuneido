@@ -20,13 +20,13 @@ class BtreeDbNode extends BtreeNode {
 
 	BtreeDbNode(int level, ByteBuffer buf) {
 		super(level);
-		rec = new Record(buf, 0);
+		rec = Record.from(buf, 0);
 	}
 
 	@Override
 	Record get(int i) {
 		Preconditions.checkElementIndex(i, rec.size());
-		return new Record(rec.fieldBuffer(i), rec.fieldOffset(i));
+		return Record.from(rec.fieldBuffer(i), rec.fieldOffset(i));
 	}
 
 	@Override

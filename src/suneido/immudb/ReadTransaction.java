@@ -263,7 +263,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public Record fromRef(Object ref) {
 		return ref instanceof Integer
 				? tran.getrec((Integer) ref)
-				: new Record((ByteBuffer) ref);
+				: Record.from((ByteBuffer) ref);
 	}
 
 	@Override

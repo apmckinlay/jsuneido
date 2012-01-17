@@ -45,12 +45,12 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public Record record(ByteBuffer buf) {
-		return new Record(buf);
+		return Record.from(buf);
 	}
 
 	@Override
 	public Record record(int recadr, ByteBuffer buf) {
-		return new Record(recadr, buf);
+		return Record.from(recadr, buf);
 	}
 
 	@Override

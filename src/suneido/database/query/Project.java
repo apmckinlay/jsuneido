@@ -380,7 +380,7 @@ public class Project extends Query1 {
 		}
 		Row row;
 		while (null != (row = source.get(dir))) {
-			Record key = row.project(srcHdr, flds);
+			Record key = row.project(srcHdr, flds).squeeze();
 			Object[] data = map.get(key);
 			if (data == null) {
 				map.put(key, row.getRefs());
@@ -396,7 +396,7 @@ public class Project extends Query1 {
 	private void buildLookupIndex() {
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
-			Record key = row.project(projHdr, flds);
+			Record key = row.project(projHdr, flds).squeeze();
 			if (null == map.get(key))
 				map.put(key, row.getRefs());
 		}

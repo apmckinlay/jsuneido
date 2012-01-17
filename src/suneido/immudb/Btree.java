@@ -543,19 +543,6 @@ class Btree {
 		return new RecordPrefix(key, key.size() - 1);
 	}
 
-	private static class RecordPrefix extends Record {
-		int len;
-		RecordPrefix(Record rec, int len) {
-			super(rec);
-			assert len < rec.size();
-			this.len = len;
-		}
-		@Override
-		public int size() {
-			return len;
-		}
-	}
-
 	BtreeNode nodeAt(int level, int adr) {
 		if (level == 0) // only lock if leaf
 			locking.readLock(adr);
