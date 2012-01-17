@@ -95,7 +95,7 @@ class Database implements suneido.intfc.database.Database {
 		public Entry translate(Entry e) {
 			if (e instanceof IntEntry) {
 				int adr = ((IntEntry) e).value;
-				Record rec = new Record(stor, adr);
+				Record rec = Record.from(stor, adr);
 				return new TableInfo(rec, adr);
 			} else
 				throw new RuntimeException("DbinfoTranslator bad type " + e);

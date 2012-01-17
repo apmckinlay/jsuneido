@@ -12,121 +12,62 @@ import java.util.Iterator;
 
 import suneido.language.Pack;
 
-import com.google.common.base.Objects;
-
 /**
+ * Abstract base class with common code for BufRecord and ArrayRecord.
  * Records stored in the database are prefixed with their table number.
  * The packed format, e.g. keys in Btree nodes, does NOT include table number.
- * Data is immutable, but tblnum is set after construction.
+ * Mostly immutable. Constructed using RecordBuilder.
  */
-class Record implements suneido.intfc.database.Record {
+abstract class Record implements suneido.intfc.database.Record {
+	protected static final int TBLNUM_SIZE = 2;
 	static final Record EMPTY = new RecordBuilder().build();
 	static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
-	/** Don't use zero for Mode, so zero memory is invalid
-	 *  and so no overlap with Pack types */
-	static class Mode {
-		static final byte BYTE = 'c', SHORT = 's', INT = 'l'; }
-	static class Offset {
-		static final int MODE = 0, NFIELDS = 2, BODY = 4; }
-	private final ByteBuffer buf;
-	/** non-zero when the record is a key within a BtreeNode */
-	private final int bufpos;
 	/** used for stored data records */
-	private final int address;
+	int address;
 	/** used for stored data records
 	 *  needed so you can update a record via just it's address */
 	int tblnum;
 
-	Record(ByteBuffer buf) {
-		this(0, buf, 0);
+	Record() {
+		this(0);
 	}
 
-	Record(int address, ByteBuffer buf) {
-		this(address, buf, 0);
-	}
-
-	Record(ByteBuffer buf, int bufpos) {
-		this(0, buf, bufpos);
-	}
-
-	Record(int address, ByteBuffer buf, int bufpos) {
-		this.buf = buf;
-		this.bufpos = bufpos;
+	Record(int address) {
 		this.address = address;
-		check();
+		tblnum = 0;
 	}
 
-	Record(Storage stor, int adr) {
-		assert ! IntRefs.isIntRef(adr);
-		buf = stor.buffer(adr);
-		bufpos = TBLNUM_SIZE;
-		this.address = adr;
-		this.tblnum = (buf.get(0) & 0xff) + ((buf.get(1) & 0xff) << 8);
+	static Record from(ByteBuffer buf) {
+		return new BufRecord(buf);
 	}
 
-	protected Record(Record rec) {
-		this(rec.address, rec.buf, rec.bufpos);
+	static Record from(int address, ByteBuffer buf) {
+		return new BufRecord(address, buf);
 	}
 
-	Record(Record rec, int adr) {
-		this(adr, rec.buf, rec.bufpos);
-		tblnum = rec.tblnum;
+	static Record from(ByteBuffer buf, int bufpos) {
+		return new BufRecord(0, buf, bufpos);
 	}
 
-	void check() {
-		assert bufpos >= 0;
-		assert mode() != 0 : "invalid zero mode";
-		assert bufSize() > 0 : "length " + bufSize();
-		assert bufpos + bufSize() <= buf.capacity();
+	static Record from(int address, ByteBuffer buf, int bufpos) {
+		return new BufRecord(address, buf, bufpos);
 	}
 
-	private int mode() {
-		return buf.get(bufpos + Offset.MODE);
+	static Record from(Storage stor, int adr) {
+		return new BufRecord(stor, adr);
 	}
 
-	@Override
-	public int size() {
-		int si = bufpos + Offset.NFIELDS;
-		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
-	}
+	abstract ByteBuffer fieldBuffer(int i);
 
-	ByteBuffer fieldBuffer(int i) {
-		return buf;
-	}
+	abstract int fieldLength(int i);
 
-	int fieldLength(int i) {
-		if (i >= size())
-			return 0;
-		return fieldOffset(i - 1) - fieldOffset(i);
-	}
-
-	// TODO use getShort and getInt
-	int fieldOffset(int i) {
-		// to match cSuneido use little endian (least significant first)
-		switch (mode()) {
-		case Mode.BYTE:
-			return bufpos + (buf.get(bufpos + Offset.BODY + i + 1) & 0xff);
-		case Mode.SHORT:
-			int si = bufpos + Offset.BODY + 2 * (i + 1);
-			return bufpos + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
-		case Mode.INT:
-			int ii = bufpos + Offset.BODY + 4 * (i + 1);
-			return bufpos + ((buf.get(ii) & 0xff) |
-					((buf.get(ii + 1) & 0xff) << 8) |
-			 		((buf.get(ii + 2) & 0xff) << 16) |
-			 		((buf.get(ii + 3) & 0xff) << 24));
-		default:
-			throw new Error("invalid record type: " + mode());
-		}
-	}
+	abstract int fieldOffset(int i);
 
 	/** Number of bytes e.g. for storing */
 	@Override
 	public int bufSize() {
-		return fieldOffset(-1) - bufpos;
+		return packSize();
 	}
-
-	private final int TBLNUM_SIZE = 2;
 
 	int store(Storage stor) {
 		checkState(1 <= tblnum && tblnum < Short.MAX_VALUE,
@@ -144,20 +85,13 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	@Override
-	public void pack(ByteBuffer dst) {
-		//PERF use array if available
-		for (int i = 0; i < bufSize(); ++i)
-			dst.put(buf.get(bufpos + i));
-	}
-
-	@Override
 	public int packSize(int nest) {
-		return bufSize();
+		return packSize();
 	}
 
 	@Override
-	public int packSize() {
-		return packSize(0);
+	public int hashCode() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -167,14 +101,6 @@ class Record implements suneido.intfc.database.Record {
 		if (that instanceof Record)
 			return 0 == compareTo((Record) that);
 		return false;
-	}
-
-	@Override
-	public int hashCode() {
-		int hashCode = 1;
-		for (int i = bufpos; i < bufpos + bufSize(); ++i)
-		      hashCode = 31 * hashCode + buf.get(i);
-		return hashCode;
 	}
 
 	@Override
@@ -245,12 +171,12 @@ class Record implements suneido.intfc.database.Record {
 		return get(fieldBuffer(i), fieldOffset(i), fieldLength(i));
 	}
 
-	static Object get(ByteBuffer buf, int off, int len) {
+	private static Object get(ByteBuffer buf, int off, int len) {
 		if (len == 0)
 			return "";
 		byte x = buf.get(off);
 		if (x == 'c' || x == 's' || x == 'l')
-			return new Record(buf, off);
+			return Record.from(buf, off);
 		ByteBuffer b = buf.duplicate();
 		b.position(off);
 		b.limit(off + len);
@@ -267,7 +193,7 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	long getLong(int i) {
-		ByteBuffer b = buf.duplicate();
+		ByteBuffer b = fieldBuffer(i).duplicate();
 		int off = fieldOffset(i);
 		b.position(off);
 		b.limit(off + fieldLength(i));
@@ -303,16 +229,6 @@ class Record implements suneido.intfc.database.Record {
 		return sb.toString();
 	}
 
-	String toDebugString() {
-		Objects.ToStringHelper tsh = Objects.toStringHelper(this);
-		tsh.add("type", mode())
-			.add("size", size())
-			.add("length", bufSize());
-		for (int i = 0; i < Math.min(size(), 10); ++i)
-			tsh.add("offset" + i, fieldOffset(i));
-		return tsh.toString();
-	}
-
 	@Override
 	public Iterator<ByteBuffer> iterator() {
 		return new Iter();
@@ -343,22 +259,21 @@ class Record implements suneido.intfc.database.Record {
 	}
 
 	@Override
-	public ByteBuffer getBuffer() {
-		return slice(bufpos, bufSize());
-	}
-
-	private ByteBuffer slice(int pos, int size) {
-		ByteBuffer b = buf.duplicate();
-		b.position(pos);
-		b.limit(pos + size);
-		return b.slice();
-	}
-
-	@Override
 	public ByteBuffer getRaw(int i) {
 		if (i >= size())
 			return EMPTY_BUF;
-		return slice(fieldOffset(i), fieldLength(i));
+		return slice(fieldBuffer(i), fieldOffset(i), fieldLength(i));
+	}
+
+	private static ByteBuffer slice(ByteBuffer buf, int pos, int size) {
+		if (size == 0)
+			return EMPTY_BUF;
+		ByteBuffer b = buf.duplicate();
+		if (pos == 0 && size == buf.limit())
+			return b;
+		b.position(pos);
+		b.limit(pos + size);
+		return b.slice();
 	}
 
 	@Override
@@ -368,13 +283,7 @@ class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public Object getRef() {
-		if (address != 0)
-			return address;
-		if (bufpos == 0)
-			return buf;
-		ByteBuffer b = buf.duplicate();
-		b.position(bufpos);
-		return b.slice();
+		return (address != 0) ? address : getBuffer();
 	}
 
 	@Override
@@ -384,7 +293,10 @@ class Record implements suneido.intfc.database.Record {
 
 	int prefixSize(int i) {
 		assert 0 <= i && i <= size();
-		return fieldOffset(-1) - fieldOffset(i - 1);
+		int size = 0;
+		for (--i; i >= 0; --i)
+			size += fieldLength(i);
+		return size;
 	}
 
 }

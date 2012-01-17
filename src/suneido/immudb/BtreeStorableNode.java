@@ -34,13 +34,13 @@ abstract class BtreeStorableNode extends BtreeNode {
 		int datasize = 0;
 		for (int i = 0; i < size(); ++i)
 			datasize += length(i);
-		return RecordBuilder.length(size(), datasize);
+		return ArrayRecord.length(size(), datasize);
 	}
 
 	protected abstract int length(int i);
 
 	void pack(ByteBuffer buf) {
-		RecordBuilder.packHeader(buf, length(), getLengths());
+		ArrayRecord.packHeader(buf, length(), getLengths());
 		for (int i = size() - 1; i >= 0; --i)
 			pack(buf, i);
 	}

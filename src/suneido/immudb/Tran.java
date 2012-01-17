@@ -133,9 +133,12 @@ class Tran implements Translator {
 	}
 
 	Record getrec(int adr) {
-		return IntRefs.isIntRef(adr)
-				? new Record((Record) intToRef(adr), adr)
-				: new Record(stor, adr);
+		if (IntRefs.isIntRef(adr)) {
+			Record r = (Record) intToRef(adr);
+			r.address = adr;
+			return r;
+		} else
+			return Record.from(stor, adr);
 	}
 
 	void mergeRedirs(DbHashTrie current) {

@@ -110,7 +110,7 @@ class BtreeDbMemNode extends BtreeStorableNode {
 	Record get(int i) {
 		int idx = index.get(i);
 		return idx >= 0
-				? new Record(rec.fieldBuffer(idx), rec.fieldOffset(idx))
+				? Record.from(rec.fieldBuffer(idx), rec.fieldOffset(idx))
 				: added.get(-idx - 1);
 	}
 
