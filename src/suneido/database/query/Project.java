@@ -18,8 +18,7 @@ public class Project extends Query1 {
 	private boolean first = true;
 	private Header projHdr;
 	private Header srcHdr;
-	// used by LOOKUP
-	private Map<Record, Object[]> map = null;
+	private Lookup map = null;
 	private final Keyrange sel = new Keyrange();
 	private boolean rewound = true;
 	private boolean indexed;
@@ -310,7 +309,7 @@ public class Project extends Query1 {
 			srcHdr = source.header();
 			projHdr = srcHdr.project(flds);
 			if (strategy == Strategy.LOOKUP) {
-				map = new HashMap<Record, Object[]>();
+				map = new Lookup();
 				indexed = false;
 			}
 		}
