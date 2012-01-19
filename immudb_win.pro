@@ -5,7 +5,7 @@
 -injars lib/trove-3.0.0.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-3.1.0.jar
 -libraryjars  <java.home>/lib/rt.jar
--outjars jsuneido-dist.jar
+-outjars immudb-dist.jar
 
 -dontoptimize
 -dontobfuscate
@@ -30,5 +30,6 @@
 -keep class suneido.immudb.Record
 -keep class suneido.immudb.Table
 -keep class suneido.immudb.DbHashTrie
+-keep class gnu.trove.list.array.TIntArrayList
 
 -dontnote com.google.common.**
