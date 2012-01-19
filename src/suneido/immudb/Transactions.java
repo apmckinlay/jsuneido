@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.util.Verify.verify;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -69,8 +67,10 @@ class Transactions {
 		rwtrans.add(tran);
 	}
 
+	/** called by complete */
 	synchronized void addFinal(UpdateTransaction tran) {
-		finals.add(tran);
+		if (tran.commitTime() > oldest())
+			finals.add(tran);
 	}
 
 	/**
@@ -78,8 +78,8 @@ class Transactions {
 	 * Called by {@link SuTransaction.complete} and {@link SuTransaction.abort}.
 	 */
 	synchronized void remove(UpdateTransaction tran) {
-		verify(trans.remove(tran));
-		verify(rwtrans.remove(tran));
+		trans.remove(tran);
+		rwtrans.remove(tran);
 		if (tran.isCommitted())
 			locks.commit(tran);
 		else
@@ -92,11 +92,15 @@ class Transactions {
 	 * i.e. older than the oldest outstanding update transaction.
 	 */
 	private void finalization() {
-		long oldest = rwtrans.isEmpty() ? FUTURE : rwtrans.peek().asof();
+		long oldest = oldest();
 		while (! finals.isEmpty() && finals.peek().commitTime() <= oldest)
 			locks.remove(finals.poll());
 		assert ! rwtrans.isEmpty() || finals.isEmpty();
 		assert ! rwtrans.isEmpty() || locks.isEmpty();
+	}
+
+	private long oldest() {
+		return rwtrans.isEmpty() ? FUTURE : rwtrans.peek().asof();
 	}
 
 	// should be called periodically

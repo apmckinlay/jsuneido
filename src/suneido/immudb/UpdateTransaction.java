@@ -58,7 +58,6 @@ class UpdateTransaction extends ReadTransaction {
 	protected void unlock() {
 		assert(locked);
 		try {
-			trans.addFinal(this);
 			trans.remove(this);
 		} finally {
 			db.exclusiveLock.readLock().unlock();
@@ -239,7 +238,7 @@ class UpdateTransaction extends ReadTransaction {
 					mergeRedirs();
 					int redirsAdr = updateRedirs();
 					int dbinfoAdr = udbinfo.store();
-					store(dbinfoAdr, redirsAdr);
+					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
 				} finally {
 					tran.endStore();
 				}
@@ -248,6 +247,7 @@ class UpdateTransaction extends ReadTransaction {
 				updateSchema();
 
 				commitTime = trans.clock();
+				trans.addFinal(this);
 			}
 		} catch(Conflict c) {
 			conflict = c.toString();
