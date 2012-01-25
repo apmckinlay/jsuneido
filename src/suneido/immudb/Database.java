@@ -18,7 +18,6 @@ import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
 @ThreadSafe
-public // temporary
 class Database implements suneido.intfc.database.Database {
 	private static final int INT_SIZE = 4;
 	final Transactions trans = new Transactions();
@@ -29,8 +28,7 @@ class Database implements suneido.intfc.database.Database {
 	@GuardedBy("commitLock")
 	private DbHashTrie dbinfo;
 	@GuardedBy("commitLock")
-	private
-	DbHashTrie redirs;
+	private DbHashTrie redirs;
 	@GuardedBy("commitLock")
 	Tables schema;
 

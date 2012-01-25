@@ -28,11 +28,11 @@ abstract class Record implements suneido.intfc.database.Record {
 	 *  needed so you can update a record via just it's address */
 	int tblnum;
 
-	Record() {
+	protected Record() {
 		this(0);
 	}
 
-	Record(int address) {
+	protected Record(int address) {
 		this.address = address;
 		tblnum = 0;
 	}
