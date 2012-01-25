@@ -496,7 +496,7 @@ class Btree {
 
 		@Override
 		public boolean eof() {
-			return rewound ? isEmpty() : cur == null;
+			return cur == null;
 		}
 
 		Record cur() {
