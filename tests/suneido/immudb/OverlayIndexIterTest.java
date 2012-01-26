@@ -6,15 +6,18 @@ package suneido.immudb;
 
 import org.junit.Test;
 
-import suneido.intfc.database.IndexIter;
-
 public class OverlayIndexIterTest extends IndexIterTestBase {
 
 	@Test
 	public void test() {
-		IndexIter global = iter(1, 2, 3, 4);
-		IndexIter local = iter(2, 3, 5);
-		checkNext(a(1, 4, 5), new OverlayIndexIter(global, local));
+		checkNext(a(1, 2, 3, 4, 5),
+				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5)));
+		checkPrev(a(1, 2, 3, 4, 5),
+				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5)));
+		checkNext(a(1, 4, 5),
+				new OverlayIndexIter(iter(1, 2, 3, 4), iter(2, 3, 5)));
+		checkPrev(a(1, 4, 5),
+				new OverlayIndexIter(iter(1, 2, 3, 4), iter(2, 3, 5)));
 	}
 
 }
