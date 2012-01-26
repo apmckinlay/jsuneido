@@ -11,11 +11,10 @@ import suneido.intfc.database.Record;
  * Extends MergeIndexIter to handle deletes.
  * Inserts are recorded as ProjectRecord's.
  * Actual keys are unique (because they contain the data record address)
- *
- * So you only have to peek ahead one record to check for a delete
+ * So a duplicate is assumed to be a delete
+ * And you only have to peek ahead one record to check for a delete
  */
 public class OverlayIndexIter extends MergeIndexIter {
-	private Record cur;
 
 	public OverlayIndexIter(IndexIter global, IndexIter local) {
 		// put global first so local delete of global record has delete second
@@ -25,6 +24,7 @@ public class OverlayIndexIter extends MergeIndexIter {
 
 	@Override
 	public void next() {
+		Record cur;
 		do {
 			super.next();
 			if (eof())
@@ -32,15 +32,24 @@ public class OverlayIndexIter extends MergeIndexIter {
 			cur = super.curKey();
 			if (cur.equals(peekNext())) {
 				super.next();
-				assert ! (super.curKey() instanceof ProjectRecord); // delete
 				cur = null;
 			}
 		} while (cur == null);
 	}
 
 	@Override
-	public Record curKey() {
-		return cur;
+	public void prev() {
+		Record cur;
+		do {
+			super.prev();
+			if (eof())
+				return;
+			cur = super.curKey();
+			if (cur.equals(peekPrev())) {
+				super.prev();
+				cur = null;
+			}
+		} while (cur == null);
 	}
 
 }
