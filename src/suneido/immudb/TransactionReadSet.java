@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -18,25 +18,27 @@ import com.google.common.collect.Range;
  */
 @Immutable
 public class TransactionReadSet {
-	private final ArrayList<Range<Record>> list;
+	private final Range<Record>[] reads;
+	private final int rlen;
 
-	TransactionReadSet(ArrayList<Range<Record>> list) {
-		this.list = list;
+	TransactionReadSet(Range<Record>[] reads, int rlen) {
+		this.reads = reads;
+		this.rlen = rlen;
 	}
 
 	boolean contains(Record rec) {
 		int i = lowerBound(rec);
-		return i < list.size() && list.get(i).contains(rec);
+		return i < rlen && reads[i].contains(rec);
 	}
 
 	// use our own binary search so we can compare Range to Record
 	private int lowerBound(Record value) {
 		int first = 0;
-		int len = list.size();
+		int len = rlen;
 		while (len > 0) {
 			int half = len >> 1;
 			int middle = first + half;
-			if (compare(list.get(middle), value) < 0) {
+			if (compare(reads[middle], value) < 0) {
 				first = middle + 1;
 				len -= half + 1;
 			} else
@@ -48,5 +50,10 @@ public class TransactionReadSet {
 	private static int compare(Range<Record> range, Record value) {
 		int cmp = range.lowerEndpoint().compareTo(value);
 		return cmp != 0 ? cmp : -1;
+	}
+
+	@Override
+	public String toString() {
+		return Arrays.toString(Arrays.copyOf(reads, rlen));
 	}
 }
