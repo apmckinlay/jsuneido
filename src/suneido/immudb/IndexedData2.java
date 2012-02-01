@@ -1,3 +1,7 @@
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 /* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
@@ -10,24 +14,24 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.SuException;
+import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.Fkmode;
 
 /**
  * Coordinates data records and the btrees that index them.
  */
-class IndexedData {
-	enum Mode { KEY, UNIQUE, DUPS };
-	private final UpdateTransaction t;
+class IndexedData2 {
+	private final UpdateTransaction2 t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 
-	IndexedData(UpdateTransaction t) {
+	IndexedData2(UpdateTransaction2 t) {
 		this.t = t;
 		tran = t.tran();
 	}
 
 	/** setup method */
-	IndexedData index(Btree btree, Mode mode, int[] colNums, String colNames,
+	IndexedData2 index(TranIndex btree, Mode mode, int[] colNums, String colNames,
 			ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 		assert t != null;
 		indexes.add(new AnIndexWithFkeys(
@@ -36,7 +40,7 @@ class IndexedData {
 	}
 
 	// for tests (without foreign keys)
-	IndexedData index(Btree btree, Mode mode, int... fields) {
+	IndexedData2 index(TranIndex btree, Mode mode, int... fields) {
 		indexes.add(new AnIndex(btree, mode, fields, ""));
 		return this;
 	}
@@ -92,9 +96,11 @@ class IndexedData {
 			case NOT_FOUND:
 				t.abortThrow("aborted: update failed: old record not found " +
 						"(possible corruption)");
+				break;
 			case ADD_FAILED:
 				t.abortThrow("aborted: update failed: duplicate key: " +
 						index.columns + " = " + index.searchKey(to));
+				break;
 			case OK:
 				break;
 			default:
@@ -110,12 +116,12 @@ class IndexedData {
 	}
 
 	private static class AnIndex {
-		final Btree btree;
+		final TranIndex btree;
 		final Mode mode;
 		final int[] fields;
 		final String columns;
 
-		AnIndex(Btree btree, Mode mode, int[] fields, String columns) {
+		AnIndex(TranIndex btree, Mode mode, int[] fields, String columns) {
 			this.btree = btree;
 			this.mode = mode;
 			this.fields = fields;
@@ -161,11 +167,11 @@ class IndexedData {
 	}
 
 	private static class AnIndexWithFkeys extends AnIndex {
-		final UpdateTransaction t;
+		final UpdateTransaction2 t;
 		final ForeignKeySource fksrc;
 		final Set<ForeignKeyTarget> fkdsts;
 
-		AnIndexWithFkeys(UpdateTransaction t, Btree btree, Mode mode,
+		AnIndexWithFkeys(UpdateTransaction2 t, TranIndex btree, Mode mode,
 				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 			super(btree, mode, fields, columns);

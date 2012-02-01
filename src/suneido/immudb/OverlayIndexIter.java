@@ -17,8 +17,7 @@ import suneido.intfc.database.Record;
 public class OverlayIndexIter extends MergeIndexIter {
 
 	public OverlayIndexIter(IndexIter global, IndexIter local) {
-		// put global first so local delete of global record has delete second
-		// to match local delete of local record
+		// put local second to maintain default insertion order
 		super(global, local);
 	}
 

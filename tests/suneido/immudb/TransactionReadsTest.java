@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import com.google.common.collect.Ranges;
 
-public class TransactionReadListTest {
-	private final TransactionReadList list = new TransactionReadList();
+public class TransactionReadsTest {
+	private final TransactionReads list = new TransactionReads();
 
 	@Test
 	public void empty() {
@@ -52,7 +52,8 @@ public class TransactionReadListTest {
 	}
 
 	String str() {
-		return list.build().toString();
+		list.build();
+		return list.toString();
 	}
 
 }

@@ -11,7 +11,7 @@ import suneido.intfc.database.Record;
  * Merges two IndexIter's.
  * In the case of duplicates, iter1 is treated as "before" iter2.
  * Hard part is switching directions.
- * Used to combine global Btree and transaction local MergeTree.
+ * Used to combine global index and transaction local index.
  */
 public class MergeIndexIter implements IndexIter {
 	private final IndexIter iter1;

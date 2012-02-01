@@ -1,4 +1,4 @@
-/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -7,16 +7,14 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Set;
 
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.Btree.Iter;
 import suneido.immudb.IndexedData.Mode;
+import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
@@ -28,7 +26,7 @@ import com.google.common.primitives.Longs;
  * Commit is single-threaded.
  */
 @ThreadConfined
-class UpdateTransaction extends ReadTransaction {
+class UpdateTransaction2 extends ReadTransaction2 {
 	protected final UpdateDbInfo udbinfo;
 	protected Tables newSchema;
 	protected boolean locked = false;
@@ -36,11 +34,10 @@ class UpdateTransaction extends ReadTransaction {
 	private volatile long commitTime = Long.MAX_VALUE;
 	private String conflict = null;
 	private final Transactions trans;
-	private volatile boolean inConflict = false;
-	private volatile boolean outConflict = false;
-	private boolean onlyReads = false;
+	private final boolean onlyReads = false;
+	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
 
-	UpdateTransaction(int num, Database db) {
+	UpdateTransaction2(int num, Database db) {
 		super(num, db);
 		udbinfo = new UpdateDbInfo(stor, db.getDbinfo());
 		newSchema = schema;
@@ -84,7 +81,7 @@ class UpdateTransaction extends ReadTransaction {
 	Btree addIndex(int tblnum, int... indexColumns) {
 		assert locked;
 		Btree btree = new Btree(tran, this);
-		indexes.put(tblnum, new ColNums(indexColumns), btree);
+		indexes.put(index(tblnum, indexColumns), btree);
 		return btree;
 	}
 
@@ -130,7 +127,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	// used by foreign key cascade
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
-		Iter iter = getIndex(tblnum, colNums).iterator(oldkey);
+		IndexIter iter = getIndex(tblnum, colNums).iterator(oldkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
 			RecordBuilder rb = new RecordBuilder();
@@ -159,7 +156,7 @@ class UpdateTransaction extends ReadTransaction {
 
 	// used by foreign key cascade
 	void removeAll(int tblnum, int[] colNums, Record key) {
-		Iter iter = getIndex(tblnum, colNums).iterator(key);
+		IndexIter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
 	}
@@ -170,16 +167,16 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	//PERF cache?
-	private IndexedData indexedData(int tblnum) {
-		IndexedData id = new IndexedData(this);
+	private IndexedData2 indexedData(int tblnum) {
+		IndexedData2 id = new IndexedData2(this);
 		Table table = getTable(tblnum);
 		if (table == null) {
 			int[] indexColumns = Bootstrap.indexColumns[tblnum];
-			Btree btree = getIndex(tblnum, indexColumns);
+			TranIndex btree = getIndex(tblnum, indexColumns);
 			id.index(btree, Mode.KEY, indexColumns, "", null, null);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
-				Btree btree = getIndex(tblnum, index.colNums);
+				TranIndex btree = getIndex(tblnum, index.colNums);
 				String colNames = table.numsToNames(index.colNums);
 				id.index(btree, index.mode(), index.colNums, colNames,
 						index.fksrc, schema.getFkdsts(table.name, colNames));
@@ -194,7 +191,7 @@ class UpdateTransaction extends ReadTransaction {
 		return commitTime != Long.MAX_VALUE;
 	}
 
-	boolean committedBefore(UpdateTransaction tran) {
+	boolean committedBefore(UpdateTransaction2 tran) {
 		return commitTime < tran.asof;
 	}
 
@@ -235,11 +232,6 @@ class UpdateTransaction extends ReadTransaction {
 					DataRecords.store(tran);
 					Btree.store(tran);
 
-					updateOurDbinfo();
-					mergeDatabaseDbInfo();
-
-					mergeRedirs();
-					int redirsAdr = updateRedirs();
 					int dbinfoAdr = udbinfo.store();
 					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
 				} finally {
@@ -259,36 +251,6 @@ class UpdateTransaction extends ReadTransaction {
 			unlock();
 		}
 		return null;
-	}
-
-	private void updateOurDbinfo() {
-		for (int tblnum : indexes.rowKeySet()) {
-			TableInfo ti = udbinfo.get(tblnum);
-			Map<ColNums,Btree> idxs = indexes.row(tblnum);
-			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
-			for (IndexInfo ii : ti.indexInfo) {
-				Btree btree = idxs.get(new ColNums(ii.columns));
-				b.add((btree == null)
-						? ii : new IndexInfo(ii.columns, btree.info()));
-			}
-			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows(), ti.totalsize(),
-					b.build());
-			udbinfo.add(ti);
-		}
-	}
-
-	protected void mergeDatabaseDbInfo() {
-		udbinfo.merge(rdbinfo.dbinfo, db.getDbinfo());
-	}
-
-	protected void mergeRedirs() {
-		tran.mergeRedirs(db.getRedirs());
-	}
-
-	private int updateRedirs() {
-		int redirsAdr = tran.storeRedirs();
-		db.setRedirs(tran.redirs().redirs());
-		return redirsAdr;
 	}
 
 	static final int INT_SIZE = 4;
@@ -363,63 +325,20 @@ class UpdateTransaction extends ReadTransaction {
 		throw new SuException("transaction " + conflict);
 	}
 
-	private boolean committedAfter(UpdateTransaction t) {
+	private boolean committedAfter(UpdateTransaction2 t) {
 		return isCommitted() && commitTime > t.asof;
 	}
 
-	@Override
-	public void readLock(int adr) {
-		notEnded();
-		if (Suneido.cmdlineoptions.snapshotIsolation)
-			return;
-
-		UpdateTransaction writer = trans.readLock(this, adr);
-		if (writer != null) {
-			if (this.inConflict || writer.outConflict)
-				abortThrow("conflict (read-write) " + this + " with " + writer);
-			writer.inConflict = true;
-			this.outConflict = true;
-		}
-
-		Set<UpdateTransaction> writes = trans.writes(adr);
-		for (UpdateTransaction w : writes)
-			if (w != this && w.committedAfter(this)) {
-				if (this.inConflict || w.outConflict)
-					abortThrow("conflict (read-write) " + this + " with " + w);
-				this.outConflict = true;
-			}
-
-		for (UpdateTransaction w : writes)
-			w.inConflict = true;
-	}
-
-	@Override
-	public void writeLock(int adr) {
-		if (IntRefs.isIntRef(adr))
-			return;
-		notEnded();
-		onlyReads = false;
-		Set<UpdateTransaction> readers = trans.writeLock(this, adr);
-		for (UpdateTransaction reader : readers)
-			if (reader.isActive() || reader.committedAfter(this)) {
-				if (reader.inConflict || this.outConflict)
-					abortThrow("conflict (write-read) with " + reader);
-				this.inConflict = true;
-			}
-		for (UpdateTransaction reader : readers)
-			reader.outConflict = true;
-	}
-
 	// need for PriorityQueue's in Transactions
-	static final Comparator<UpdateTransaction> byCommit = new Comparator<UpdateTransaction>() {
+	static final Comparator<UpdateTransaction2> byCommit = new Comparator<UpdateTransaction2>() {
 		@Override
-		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
+		public int compare(UpdateTransaction2 t1, UpdateTransaction2 t2) {
 			return Longs.compare(t1.commitTime, t2.commitTime);
 		}
 	};
-	static final Comparator<UpdateTransaction> byAsof = new Comparator<UpdateTransaction>() {
+	static final Comparator<UpdateTransaction2> byAsof = new Comparator<UpdateTransaction2>() {
 		@Override
-		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
+		public int compare(UpdateTransaction2 t1, UpdateTransaction2 t2) {
 			return Longs.compare(t1.asof, t2.asof);
 		}
 	};

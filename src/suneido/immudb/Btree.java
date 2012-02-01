@@ -38,7 +38,7 @@ import com.google.common.primitives.Longs;
  * @see BtreeNode, BtreeDbNode, BtreeDbMemNode, BtreeMemNode, BtreeStoreNode
  */
 @NotThreadSafe
-class Btree {
+class Btree implements TranIndex {
 	protected int splitSize() { return 20; } // overridden by test
 	private final Locking locking;
 	private final Tran tran;
@@ -79,7 +79,8 @@ class Btree {
 	 * If keys are not unique without the record address
 	 * the first is returned.
 	 */
-	int get(Record key) {
+	@Override
+	public int get(Record key) {
 		int adr = root;
 		for (int i = 0; i < treeLevels; ++i) {
 			int level = treeLevels - i;
@@ -100,15 +101,20 @@ class Btree {
 
 	/**
 	 * Add a key with a trailing record address to the btree.
-	 * @return true if the key was successfully added,
-	 * false if unique is true and the key already exists
-	 * (ignoring the trailing data record address)
+	 * <p>
+	 * unique means keys should be unique <u>without</u> trailing data address.
+	 * <p>
+	 * Keys must always be unique <u>with</u> the trailing data address.
 	 * <p>
 	 * NOTE: unique dup check assumes that if only data address changes
 	 * then old and new keys will be in same leaf node
 	 * for this to work, split must set data address to MAXADR in tree keys
+	 * @return true if the key was successfully added,
+	 * false if unique is true and the key already exists
+	 * (ignoring the trailing data record address)
 	 */
-	boolean add(Record key, boolean unique) {
+	@Override
+	public boolean add(Record key, boolean unique) {
 		++modified;
 
 		// search down the tree
@@ -124,8 +130,8 @@ class Btree {
 		}
 
 		BtreeNode leaf = nodeAt(0, adr);
-		if (unique && ! leaf.isEmpty()) {
-			Record searchKey = withoutAddress(key);
+		if (! leaf.isEmpty()) {
+			Record searchKey = unique ? withoutAddress(key) : key;
 			Record slot = leaf.find(searchKey);
 			if (slot != null && slot.startsWith(searchKey))
 				return false;
@@ -211,7 +217,8 @@ class Btree {
 	 * Tree levels will only shrink when the <u>last</u> key is removed.
 	 * @return false if the key was not found
 	 */
-	boolean remove(Record key) {
+	@Override
+	public boolean remove(Record key) {
 		++modified;
 
 		// search down the tree
@@ -272,7 +279,8 @@ class Btree {
 	 * then old and new keys will be in same leaf node.
 	 * For this to work, split must set data address to MAXADR in tree keys
 	 */
-	Update update(Record oldkey, Record newkey, boolean unique) {
+	@Override
+	public Update update(Record oldkey, Record newkey, boolean unique) {
 		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
 		else {
@@ -310,19 +318,23 @@ class Btree {
 		return Update.OK;
 	}
 
-	Iter iterator() {
+	@Override
+	public Iter iterator() {
 		return new Iter();
 	}
 
-	Iter iterator(Record org, Record end) {
+	@Override
+	public Iter iterator(Record org, Record end) {
 		return new Iter(org, end);
 	}
 
-	Iter iterator(Record key) {
+	@Override
+	public Iter iterator(Record key) {
 		return new Iter(key, key);
 	}
 
-	Iter iterator(IndexIter iter) {
+	@Override
+	public Iter iterator(IndexIter iter) {
 		return new Iter((Iter) iter);
 	}
 
@@ -616,12 +628,14 @@ class Btree {
 		return new BtreeInfo(root, treeLevels, nnodes, totalSize);
 	}
 
+	@Override
 	public int totalSize() {
 		return totalSize;
 	}
 
 	/** from is inclusive, end is exclusive */
-	float rangefrac(Record from, Record to) {
+	@Override
+	public float rangefrac(Record from, Record to) {
 		BtreeNode node = rootNode();
 		int n = node.size();
 		if (n == 0)
