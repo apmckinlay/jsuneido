@@ -519,6 +519,7 @@ public class BtreeTest {
 		btree.add(key("views", 170));
 		btree.add(key("tbl", 277));
 		assertFalse(btree.add(key("tbl", 406), true));
+		assertFalse(btree.add(key("columns", 127), false));
 	}
 
 	@Test

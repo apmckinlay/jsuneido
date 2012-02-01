@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.Set;
 
 import suneido.SuException;
@@ -12,7 +13,7 @@ import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
-import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Maps;
 
 /**
  * Effectively immutable, but indexes are cached
@@ -22,24 +23,24 @@ import com.google.common.collect.HashBasedTable;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
+class ReadTransaction2 implements suneido.intfc.database.Transaction, Locking {
 	protected final int num;
 	protected final Database db;
 	protected final Storage stor;
 	protected final Tran tran;
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
-	protected final com.google.common.collect.Table<Integer,ColNums,Btree> indexes;
+	protected final Map<Index,TranIndex> indexes = Maps.newHashMap();
 	private boolean ended = false;
 
-	ReadTransaction(int num, Database db) {
+	ReadTransaction2(int num, Database db) {
 		this.num = num;
 		this.db = db;
 		stor = db.stor;
+		//BUG need to get dbinfo, schema, and redirs atomically
 		rdbinfo = new ReadDbInfo(db.getDbinfo());
 		schema = db.schema;
 		tran = new Tran(stor, new Redirects(db.getRedirs()));
-		indexes = HashBasedTable.create();
 	}
 
 	protected ReadDbInfo dbinfo() {
@@ -51,7 +52,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	}
 
 	/** if colNames is null returns firstIndex */
-	Btree getIndex(int tblnum, String colNames) {
+	TranIndex getIndex(int tblnum, String colNames) {
 		Table tbl = ck_getTable(tblnum);
 		int[] colNums = (colNames == null)
 			? tbl.firstIndex().colNums
@@ -59,19 +60,23 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return getIndex(tblnum, colNums);
 	}
 
-	Btree getIndex(int tblnum, int... colNums) {
-		ColNums colNumsKey = new ColNums(colNums);
-		Btree btree = indexes.get(tblnum, colNumsKey);
+	TranIndex getIndex(int tblnum, int... colNums) {
+		Index index = index(tblnum, colNums);
+		TranIndex btree = indexes.get(index);
 		if (btree != null)
 			return btree;
 		TableInfo ti = getTableInfo(tblnum);
 		btree = new Btree(tran, this, ti.getIndex(colNums));
-		indexes.put(tblnum, colNumsKey, btree);
+		indexes.put(index, btree);
 		return btree;
 	}
 
-	boolean hasIndex(int tblnum, int[] indexColumns) {
-		return indexes.contains(tblnum, new ColNums(indexColumns));
+	boolean hasIndex(int tblnum, int[] colNums) {
+		return indexes.containsKey(index(tblnum, colNums));
+	}
+
+	protected Index index(int tblnum, int[] colNums) {
+		return schema.get(tblnum).getIndex(colNums);
 	}
 
 	Record getrec(int adr) {
@@ -80,7 +85,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 
 	// used for fetching view definitions
 	Record lookup(int tblnum, int[] colNums, Record key) {
-		Btree btree = getIndex(tblnum, colNums);
+		TranIndex btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);
 		if (adr == 0)
 			return null; // not found
@@ -90,10 +95,10 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	@Override
 	public Record lookup(
 			int tblnum, String index, suneido.intfc.database.Record key) {
-		Btree bti = getIndex(tblnum, index);
+		TranIndex bti = getIndex(tblnum, index);
 		if (bti == null)
 			return null;
-		Btree.Iter iter = bti.iterator((Record) key);
+		IndexIter iter = bti.iterator((Record) key);
 		iter.next();
 		return iter.eof() ? null : input(iter.keyadr());
 	}
@@ -119,7 +124,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	/** @return view definition, else null if view not found */
 	@Override
 	public String getView(String name) {
-		return Views.getView(this, name);
+		return null; //Views.getView(this, name);
 	}
 
 	@Override
@@ -183,7 +188,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		int nrecs = tableCount(tblnum);
 		if (nrecs == 0)
 			return 0;
-		Btree idx = getIndex(tblnum, columns);
+		TranIndex idx = getIndex(tblnum, columns);
 		return idx.totalSize() / nrecs;
 	}
 
@@ -251,8 +256,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	public void callTrigger(suneido.intfc.database.Table table,
 			suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec) {
-		if (table != null)
-			db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
+//		if (table != null)
+//			db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
 	}
 
 	@Override
