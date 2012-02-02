@@ -110,7 +110,7 @@ class Index implements Comparable<Index> {
 		return isKey;
 	}
 
-	String schema(StringBuilder sb, Columns cols, ReadTransaction t) {
+	String schema(StringBuilder sb, Columns cols) {
 		if (isKey)
 			sb.append(" key");
 		else

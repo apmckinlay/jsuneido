@@ -21,8 +21,8 @@ class Bootstrap {
 	static final int[][] indexColumns =
 			new int[][] { { }, { 0 }, { 0,2 }, { 0,1 } };
 
-	static void create(Database db) {
-		ExclusiveTransaction t = db.exclusiveTran();
+	static void create(ExclusiveTransaction t) {
+//		ExclusiveTransaction t = db.exclusiveTran();
 		try {
 			setup(t);
 			create_tables(t);

@@ -25,22 +25,26 @@ import com.google.common.collect.Maps;
 @ThreadConfined
 class ReadTransaction2 implements suneido.intfc.database.Transaction, Locking {
 	protected final int num;
-	protected final Database db;
+	protected final Database2 db;
 	protected final Storage stor;
 	protected final Tran tran;
+	protected final DatabaseState dbstate;
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
 	protected final Map<Index,TranIndex> indexes = Maps.newHashMap();
+	protected final Transactions2 trans;
 	private boolean ended = false;
 
-	ReadTransaction2(int num, Database db) {
+	ReadTransaction2(int num, Database2 db) {
 		this.num = num;
 		this.db = db;
 		stor = db.stor;
-		//BUG need to get dbinfo, schema, and redirs atomically
-		rdbinfo = new ReadDbInfo(db.getDbinfo());
-		schema = db.schema;
-		tran = new Tran(stor, new Redirects(db.getRedirs()));
+		dbstate = db.state;
+		schema = dbstate.schema;
+		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
+		tran = new Tran(stor, new Redirects(dbstate.redirs));
+		trans = db.trans;
+		trans.add(this);
 	}
 
 	protected ReadDbInfo dbinfo() {
@@ -48,7 +52,7 @@ class ReadTransaction2 implements suneido.intfc.database.Transaction, Locking {
 	}
 
 	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
-		return schema.getFkdsts(tableName, colNames);
+		return dbstate.schema.getFkdsts(tableName, colNames);
 	}
 
 	/** if colNames is null returns firstIndex */
@@ -205,7 +209,7 @@ class ReadTransaction2 implements suneido.intfc.database.Transaction, Locking {
 
 	@Override
 	public void abort() {
-		ended = true;
+		end();
 	}
 
 	@Override
@@ -217,8 +221,13 @@ class ReadTransaction2 implements suneido.intfc.database.Transaction, Locking {
 
 	@Override
 	public String complete() {
-		ended = true;
+		end();
 		return null;
+	}
+
+	private void end() {
+		trans.abort(this);
+		ended = true;
 	}
 
 	@Override

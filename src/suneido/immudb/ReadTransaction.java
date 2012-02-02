@@ -32,6 +32,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 	protected final com.google.common.collect.Table<Integer,ColNums,Btree> indexes;
 	private boolean ended = false;
 
+//BUG doesn't add/remove from trans for Database.Transactions()
+
 	ReadTransaction(int num, Database db) {
 		this.num = num;
 		this.db = db;
@@ -78,7 +80,6 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return tran.getrec(adr);
 	}
 
-	// used for fetching view definitions
 	Record lookup(int tblnum, int[] colNums, Record key) {
 		Btree btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);

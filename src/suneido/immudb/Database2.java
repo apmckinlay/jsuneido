@@ -1,4 +1,4 @@
-/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.immudb.DbHashTrie.Entry;
@@ -18,53 +17,47 @@ import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
 @ThreadSafe
-class Database implements suneido.intfc.database.Database {
+class Database2 implements suneido.intfc.database.Database {
 	private static final int INT_SIZE = 4;
-	final Transactions trans = new Transactions();
+	final Transactions2 trans = new Transactions2();
 	final Storage stor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
-	@GuardedBy("commitLock")
-	private DbHashTrie dbinfo;
-	@GuardedBy("commitLock")
-	private DbHashTrie redirs;
-	@GuardedBy("commitLock")
-	Tables schema;
+	volatile DatabaseState state;
 
 	// create
 
-	static Database create(String dbfilename) {
+	static Database2 create(String dbfilename) {
 		FileUtils.deleteIfExisting(dbfilename);
 		return create(new MmapFile(dbfilename, "rw"));
 	}
 
-	static Database create(Storage stor) {
-		Database db = new Database(stor, DbHashTrie.empty(stor),
+	static Database2 create(Storage stor) {
+		Database2 db = new Database2(stor, DbHashTrie.empty(stor),
 				DbHashTrie.empty(stor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
 		return db;
 	}
 
-	private Database(Storage stor,
+	private Database2(Storage stor,
 			DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
-		this.setDbinfo(dbinfo);
-		this.setRedirs(redirs);
-		this.schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
+		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
+		this.state = new DatabaseState(dbinfo, redirs, schema);
 	}
 
 	// open
 
-	static Database open(String filename) {
+	static Database2 open(String filename) {
 		return open(new MmapFile(filename, "rw"));
 	}
 
-	static Database openReadonly(String filename) {
+	static Database2 openReadonly(String filename) {
 		return open(new MmapFile(filename, "r"));
 	}
 
-	static Database open(Storage stor) {
+	static Database2 open(Storage stor) {
 		Check check = new Check(stor);
 		if (! check.fastcheck()) {
 			stor.close();
@@ -73,13 +66,13 @@ class Database implements suneido.intfc.database.Database {
 		return openWithoutCheck(stor);
 	}
 
-	static Database openWithoutCheck(Storage stor) {
+	static Database2 openWithoutCheck(Storage stor) {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
 		adr = buf.getInt();
 		DbHashTrie redirs = DbHashTrie.from(stor, adr);
-		return new Database(stor, dbinfo, redirs);
+		return new Database2(stor, dbinfo, redirs);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
@@ -102,8 +95,8 @@ class Database implements suneido.intfc.database.Database {
 
 	/** reopens with same Storage */
 	@Override
-	public Database reopen() {
-		return Database.open(stor);
+	public Database2 reopen() {
+		return Database2.open(stor);
 	}
 
 	/** used by tests */
@@ -111,25 +104,25 @@ class Database implements suneido.intfc.database.Database {
 		return DbCheck.check(stor);
 	}
 
-	private Database(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {
+	private Database2(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {
 		this(stor, dbinfo, redirs, null);
 	}
 
 	// used by DbCheck
 	Tables schema() {
-		return schema;
+		return state.schema;
 	}
 
 	@Override
-	public ReadTransaction readonlyTran() {
+	public ReadTransaction2 readonlyTran() {
 		int num = trans.nextNum(true);
-		return new ReadTransaction(num, this);
+		return new ReadTransaction2(num, this);
 	}
 
 	@Override
-	public UpdateTransaction readwriteTran() {
+	public UpdateTransaction2 readwriteTran() {
 		int num = trans.nextNum(false);
-		return new UpdateTransaction(num, this);
+		return new UpdateTransaction2(num, this);
 	}
 
 	ExclusiveTransaction exclusiveTran() {
@@ -144,7 +137,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	int nextTableNum() {
-		return schema.maxTblNum + 1;
+		return state.schema.maxTblNum + 1;
 	}
 
 	@Override
@@ -156,7 +149,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public TableBuilder ensureTable(String tableName) {
 		checkForSystemTable(tableName, "ensure");
-		return schema.get(tableName) == null
+		return state.schema.get(tableName) == null
 			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
 			: TableBuilder.alter(readonlyTran(), tableName);
 	}
@@ -220,7 +213,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public String getSchema(String tableName) {
-		ReadTransaction t = readonlyTran();
+		ReadTransaction2 t = readonlyTran();
 		try {
 			Table tbl = t.getTable(tableName);
 			return tbl == null ? null : tbl.schema();
@@ -263,27 +256,7 @@ class Database implements suneido.intfc.database.Database {
 		triggers.call(t, table, oldrec, newrec);
 	}
 
-	DbHashTrie getDbinfo() {
-		assert dbinfo.immutable();
-		return dbinfo;
-	}
-
-	void setDbinfo(DbHashTrie dbinfo) {
-		assert dbinfo.immutable();
-		this.dbinfo = dbinfo;
-	}
-
-	DbHashTrie getRedirs() {
-		assert redirs.immutable();
-		return redirs;
-	}
-
-	void setRedirs(DbHashTrie redirs) {
-		assert redirs.immutable();
-		this.redirs = redirs;
-	}
-
-	public void checkLock() {
+	void checkLock() {
 		if (exclusiveLock.isWriteLocked())
 			throw new RuntimeException("should not be locked");
 	}
