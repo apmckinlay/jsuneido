@@ -156,11 +156,11 @@ class Table implements suneido.intfc.database.Table {
 		return list.build();
 	}
 
-	public String schema(ReadTransaction t) {
+	public String schema() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(columns.schemaColumns()).append(")");
 		for (Index index : indexes)
-			index.schema(sb, columns, t);
+			index.schema(sb, columns);
 		return sb.toString();
 	}
 

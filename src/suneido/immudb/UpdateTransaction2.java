@@ -33,33 +33,27 @@ class UpdateTransaction2 extends ReadTransaction2 {
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private String conflict = null;
-	private final Transactions trans;
 	private final boolean onlyReads = false;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
 
-	UpdateTransaction2(int num, Database db) {
+	UpdateTransaction2(int num, Database2 db) {
 		super(num, db);
-		udbinfo = new UpdateDbInfo(stor, db.getDbinfo());
+		udbinfo = new UpdateDbInfo(stor, dbstate.dbinfo);
 		newSchema = schema;
 		asof = db.trans.clock();
-		trans = db.trans;
 		lock(db);
 	}
 
-	protected void lock(Database db) {
+	protected void lock(Database2 db) {
+		assert ! locked;
 		db.exclusiveLock.readLock().lock();
-		trans.add(this);
 		locked = true;
 	}
 
 	protected void unlock() {
-		assert(locked);
-		try {
-			trans.remove(this);
-		} finally {
-			db.exclusiveLock.readLock().unlock();
-			locked = false;
-		}
+		assert locked;
+		db.exclusiveLock.readLock().unlock();
+		locked = false;
 	}
 
 	@Override
@@ -207,6 +201,7 @@ class UpdateTransaction2 extends ReadTransaction2 {
 
 	@Override
 	public void abort() {
+		trans.abort(this);
 		unlock();
 	}
 
@@ -233,16 +228,16 @@ class UpdateTransaction2 extends ReadTransaction2 {
 					Btree.store(tran);
 
 					int dbinfoAdr = udbinfo.store();
-					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
+//					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
 				} finally {
 					tran.endStore();
 				}
 
-				db.setDbinfo(udbinfo.dbinfo());
+//				db.setDbinfo(udbinfo.dbinfo());
 				updateSchema();
 
 				commitTime = trans.clock();
-				trans.addFinal(this);
+				trans.commit(this);
 			}
 		} catch(Conflict c) {
 			conflict = c.toString();
@@ -265,10 +260,10 @@ class UpdateTransaction2 extends ReadTransaction2 {
 		if (newSchema == schema)
 			return; // no schema changes in this transaction
 
-		if (db.schema != schema)
-			throw schemaConflict;
-
-		db.schema = newSchema;
+//		if (db.schema != schema)
+//			throw schemaConflict;
+//
+//		db.schema = newSchema;
 	}
 
 	private static final Conflict schemaConflict =
