@@ -13,7 +13,7 @@ import suneido.intfc.database.Record;
  * Hard part is switching directions.
  * Used to combine global index and transaction local index.
  */
-public class MergeIndexIter implements IndexIter {
+public class MergeIndexIter implements TranIndex.Iter {
 	private final IndexIter iter1;
 	private final IndexIter iter2;
 	private IndexIter curIter;

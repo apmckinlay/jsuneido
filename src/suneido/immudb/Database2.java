@@ -125,9 +125,9 @@ class Database2 implements suneido.intfc.database.Database {
 		return new UpdateTransaction2(num, this);
 	}
 
-	ExclusiveTransaction exclusiveTran() {
+	ExclusiveTransaction2 exclusiveTran() {
 		int num = trans.nextNum(false);
-		return new ExclusiveTransaction(num, this);
+		return new ExclusiveTransaction2(num, this);
 	}
 
 	@Override
@@ -157,7 +157,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public boolean dropTable(String tableName) {
 		checkForSystemTable(tableName, "drop");
-		ExclusiveTransaction t = exclusiveTran();
+		ExclusiveTransaction2 t = exclusiveTran();
 		try {
 			return TableBuilder.dropTable(t, tableName);
 		} finally {
@@ -168,7 +168,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public void renameTable(String from, String to) {
 		checkForSystemTable(from, "rename");
-		ExclusiveTransaction t = exclusiveTran();
+		ExclusiveTransaction2 t = exclusiveTran();
 		try {
 			TableBuilder.renameTable(t, from, to);
 		} finally {
@@ -179,7 +179,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
-		ExclusiveTransaction t = exclusiveTran();
+		ExclusiveTransaction2 t = exclusiveTran();
 		try {
 			if (null != Views.getView(t, name))
 				throw new RuntimeException("view: '" + name + "' already exists");

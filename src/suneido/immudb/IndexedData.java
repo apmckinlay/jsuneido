@@ -17,11 +17,11 @@ import suneido.intfc.database.Fkmode;
  */
 class IndexedData {
 	enum Mode { KEY, UNIQUE, DUPS };
-	private final UpdateTransaction t;
+	private final ImmuUpdateTran t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 
-	IndexedData(UpdateTransaction t) {
+	IndexedData(ImmuUpdateTran t) {
 		this.t = t;
 		tran = t.tran();
 	}
@@ -161,11 +161,11 @@ class IndexedData {
 	}
 
 	private static class AnIndexWithFkeys extends AnIndex {
-		final UpdateTransaction t;
+		final ImmuUpdateTran t;
 		final ForeignKeySource fksrc;
 		final Set<ForeignKeyTarget> fkdsts;
 
-		AnIndexWithFkeys(UpdateTransaction t, Btree btree, Mode mode,
+		AnIndexWithFkeys(ImmuUpdateTran t, Btree btree, Mode mode,
 				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 			super(btree, mode, fields, columns);

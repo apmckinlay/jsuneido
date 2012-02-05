@@ -338,7 +338,7 @@ class Btree implements TranIndex {
 		return new Iter((Iter) iter);
 	}
 
-	class Iter implements IndexIter {
+	class Iter implements TranIndex.Iter {
 		private static final int UINT_MAX = 0xffffffff;
 		private final Record from;
 		private final Record to;
@@ -511,10 +511,6 @@ class Btree implements TranIndex {
 			return cur == null;
 		}
 
-		Record cur() {
-			return cur;
-		}
-
 		@Override
 		public Record curKey() {
 			return cur;
@@ -622,7 +618,8 @@ class Btree implements TranIndex {
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
 
-	BtreeInfo info() {
+	@Override
+	public BtreeInfo info() {
 		if (IntRefs.isIntRef(root))
 			root = tran.getAdr(root);
 		return new BtreeInfo(root, treeLevels, nnodes, totalSize);

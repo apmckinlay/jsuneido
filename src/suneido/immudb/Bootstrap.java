@@ -21,8 +21,7 @@ class Bootstrap {
 	static final int[][] indexColumns =
 			new int[][] { { }, { 0 }, { 0,2 }, { 0,1 } };
 
-	static void create(ExclusiveTransaction t) {
-//		ExclusiveTransaction t = db.exclusiveTran();
+	static void create(ImmuExclTran t) {
 		try {
 			setup(t);
 			create_tables(t);
@@ -42,7 +41,7 @@ class Bootstrap {
 		}
 	}
 
-	private static void setup(ExclusiveTransaction t) {
+	private static void setup(ImmuExclTran t) {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
@@ -51,7 +50,7 @@ class Bootstrap {
 		t.addIndex(TN.INDEXES, indexColumns[TN.INDEXES]);
 	}
 
-	private static void create_tables(ExclusiveTransaction t) {
+	private static void create_tables(ImmuExclTran t) {
 		TableBuilder.create(t, "tables", TN.TABLES)
 			.addColumn("table")
 			.addColumn("tablename")
@@ -59,7 +58,7 @@ class Bootstrap {
 			.build();
 	}
 
-	private static void create_columns(ExclusiveTransaction t) {
+	private static void create_columns(ImmuExclTran t) {
 		TableBuilder.create(t, "columns", TN.COLUMNS)
 			.addColumn("table")
 			.addColumn("field")
@@ -68,7 +67,7 @@ class Bootstrap {
 			.build();
 	}
 
-	private static void create_indexes(ExclusiveTransaction t) {
+	private static void create_indexes(ImmuExclTran t) {
 		TableBuilder.create(t, "indexes", TN.INDEXES)
 			.addColumn("table")
 			.addColumn("fields")

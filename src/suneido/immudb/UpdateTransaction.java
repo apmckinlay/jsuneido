@@ -28,7 +28,7 @@ import com.google.common.primitives.Longs;
  * Commit is single-threaded.
  */
 @ThreadConfined
-class UpdateTransaction extends ReadTransaction {
+class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 	protected final UpdateDbInfo udbinfo;
 	protected Tables newSchema;
 	protected boolean locked = false;
@@ -76,12 +76,13 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	@Override
-	TableInfo getTableInfo(int tblnum) {
+	public TableInfo getTableInfo(int tblnum) {
 		return udbinfo.get(tblnum);
 	}
 
 	/** for Bootstrap and TableBuilder */
-	Btree addIndex(int tblnum, int... indexColumns) {
+	@Override
+	public Btree addIndex(int tblnum, int... indexColumns) {
 		assert locked;
 		Btree btree = new Btree(tran, this);
 		indexes.put(tblnum, new ColNums(indexColumns), btree);
@@ -93,7 +94,8 @@ class UpdateTransaction extends ReadTransaction {
 		addRecord(getTable(table).num, (Record) rec);
 	}
 
-	void addRecord(int tblnum, Record rec) {
+	@Override
+	public void addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
 		rec.tblnum = tblnum;
@@ -129,7 +131,8 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	// used by foreign key cascade
-	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
+	@Override
+	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		Iter iter = getIndex(tblnum, colNums).iterator(oldkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
@@ -158,7 +161,8 @@ class UpdateTransaction extends ReadTransaction {
 	}
 
 	// used by foreign key cascade
-	void removeAll(int tblnum, int[] colNums, Record key) {
+	@Override
+	public void removeAll(int tblnum, int[] colNums, Record key) {
 		Iter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
@@ -357,7 +361,8 @@ class UpdateTransaction extends ReadTransaction {
 		return ! isEnded();
 	}
 
-	void abortThrow(String conflict) {
+	@Override
+	public void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
 		throw new SuException("transaction " + conflict);

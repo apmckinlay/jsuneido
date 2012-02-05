@@ -1,3 +1,7 @@
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 /* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
@@ -13,16 +17,16 @@ import suneido.util.ThreadConfined;
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-public class ExclusiveTransaction extends UpdateTransaction
+public class ExclusiveTransaction2 extends UpdateTransaction2
 		implements ImmuExclTran {
 
-	ExclusiveTransaction(int num, Database db) {
+	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
 		tran.allowStore();
 	}
 
 	@Override
-	protected void lock(Database db) {
+	protected void lock(Database2 db) {
 		assert ! db.exclusiveLock.isWriteLocked() : "already exclusively locked";
 		if (! db.exclusiveLock.writeLock().tryLock())
 			throw new SuException("can't make schema changes " +
@@ -78,31 +82,31 @@ public class ExclusiveTransaction extends UpdateTransaction
 		return adr;
 	}
 
-	@Override
-	protected void mergeDatabaseDbInfo() {
-		assert rdbinfo.dbinfo == db.getDbinfo();
-	}
+//	@Override
+//	protected void mergeDatabaseDbInfo() {
+//		assert rdbinfo.dbinfo == db.getDbinfo();
+//	}
+//
+//	@Override
+//	protected void mergeRedirs() {
+//		tran.assertNoRedirChanges(db.getRedirs());
+//	}
 
-	@Override
-	protected void mergeRedirs() {
-		tran.assertNoRedirChanges(db.getRedirs());
-	}
-
-	// used by DbLoad
-	void saveBtrees() {
-		tran.intrefs.startStore();
-		Btree.store(tran);
-		for (Btree btree : indexes.values())
-			btree.info(); // convert roots from intrefs
-		tran.intrefs.clear();
-	}
+//	// used by DbLoad
+//	void saveBtrees() {
+//		tran.intrefs.startStore();
+//		Btree.store(tran);
+//		for (Btree btree : indexes.values())
+//			btree.info(); // convert roots from intrefs
+//		tran.intrefs.clear();
+//	}
 
 	@Override
 	public void abort() {
 		try {
-			int redirsAdr = db.getRedirs().store(null);
-			int dbinfoAdr = db.getDbinfo().store(null);
-			store(dbinfoAdr, redirsAdr);
+//			int redirsAdr = db.getRedirs().store(null);
+//			int dbinfoAdr = db.getDbinfo().store(null);
+//			store(dbinfoAdr, redirsAdr);
 			tran.endStore();
 		} finally {
 			super.abort();

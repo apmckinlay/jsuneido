@@ -59,25 +59,25 @@ class OverlayTranIndex implements TranIndex {
 	}
 
 	@Override
-	public IndexIter iterator() {
+	public TranIndex.Iter iterator() {
 		return new OverlayIndexIter(
 				global.iterator(), local.iterator());
 	}
 
 	@Override
-	public IndexIter iterator(Record key) {
+	public TranIndex.Iter iterator(Record key) {
 		return new OverlayIndexIter(
 				global.iterator(key), local.iterator(key));
 	}
 
 	@Override
-	public IndexIter iterator(Record org, Record end) {
+	public TranIndex.Iter iterator(Record org, Record end) {
 		return new OverlayIndexIter(
 				global.iterator(org, end), local.iterator(org, end));
 	}
 
 	@Override
-	public IndexIter iterator(IndexIter iter) {
+	public TranIndex.Iter iterator(IndexIter iter) {
 		return new OverlayIndexIter(
 				global.iterator(iter), local.iterator(iter));
 	}
@@ -90,6 +90,12 @@ class OverlayTranIndex implements TranIndex {
 	@Override
 	public float rangefrac(Record from, Record to) {
 		return global.rangefrac(from, to);
+	}
+
+	@Override
+	public BtreeInfo info() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
