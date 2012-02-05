@@ -42,7 +42,7 @@ class CheckTable implements Callable<String> {
 			Btree.Iter iter = btree.iterator();
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
-				Record key = iter.cur();
+				Record key = iter.curKey();
 				if (prevkey != null && isUnique(index, key) &&
 					key.prefixEquals(prevkey, key.size() - 1)) {
 					details += tablename + ": duplicate in " + index + " " + key + "\n";
@@ -50,7 +50,7 @@ class CheckTable implements Callable<String> {
 				}
 				prevkey = key;
 				int adr = Btree.getAddress(key);
-				Record rec = t.getrec(adr);
+				Record rec = t.input(adr);
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;

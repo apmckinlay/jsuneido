@@ -22,7 +22,7 @@ import com.google.common.collect.HashBasedTable;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
+class ReadTransaction implements ImmuReadTran, Locking {
 	protected final int num;
 	protected final Database db;
 	protected final Storage stor;
@@ -48,7 +48,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return rdbinfo;
 	}
 
-	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
+	@Override
+	public Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
 		return schema.getFkdsts(tableName, colNames);
 	}
 
@@ -61,7 +62,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return getIndex(tblnum, colNums);
 	}
 
-	Btree getIndex(int tblnum, int... colNums) {
+	@Override
+	public Btree getIndex(int tblnum, int... colNums) {
 		ColNums colNumsKey = new ColNums(colNums);
 		Btree btree = indexes.get(tblnum, colNumsKey);
 		if (btree != null)
@@ -72,20 +74,18 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return btree;
 	}
 
-	boolean hasIndex(int tblnum, int[] indexColumns) {
+	@Override
+	public boolean hasIndex(int tblnum, int[] indexColumns) {
 		return indexes.contains(tblnum, new ColNums(indexColumns));
 	}
 
-	Record getrec(int adr) {
-		return tran.getrec(adr);
-	}
-
-	Record lookup(int tblnum, int[] colNums, Record key) {
+	@Override
+	public Record lookup(int tblnum, int[] colNums, Record key) {
 		Btree btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);
 		if (adr == 0)
 			return null; // not found
-		return getrec(adr);
+		return input(adr);
 	}
 
 	@Override
@@ -99,7 +99,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return iter.eof() ? null : input(iter.keyadr());
 	}
 
-	boolean exists(int tblnum, int[] colNums, Record key) {
+	@Override
+	public boolean exists(int tblnum, int[] colNums, Record key) {
 		return 0 != getIndex(tblnum, colNums).get(key);
 	}
 
@@ -113,7 +114,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return schema.get(tblnum);
 	}
 
-	TableInfo getTableInfo(int tblnum) {
+	@Override
+	public TableInfo getTableInfo(int tblnum) {
 		return rdbinfo.get(tblnum);
 	}
 
@@ -308,8 +310,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction, Locking {
 		return false;
 	}
 
-	protected Tran tran() {
+	@Override
+	public Tran tran() {
 		return tran;
+	}
+
+	@Override
+	public ExclusiveTransaction exclusiveTran() {
+		return db.exclusiveTran();
 	}
 
 }

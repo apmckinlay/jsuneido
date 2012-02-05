@@ -44,7 +44,7 @@ class Tables {
 		return byname.get(tableName);
 	}
 
-	Tables with(UpdateTransaction t, Table tbl) {
+	Tables with(Table tbl) {
 		ForeignKeyTargets fkd = fkdsts;
 		for (Index idx : tbl.indexes) {
 			ForeignKeySource fksrc = idx.fksrc;
@@ -57,7 +57,7 @@ class Tables {
 				fkd, Math.max(tbl.num, maxTblNum));
 	}
 
-	Tables without(UpdateTransaction t, Table tbl) {
+	Tables without(Table tbl) {
 		// look up old name to handle rename
 		Table old = bynum.get(tbl.num);
 		if (old == null)

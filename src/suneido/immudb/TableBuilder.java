@@ -28,7 +28,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static final String CANT_DROP = "can't drop ";
 	static final String CANT_RENAME = "can't rename ";
 	static final String TO_EXISTING = "to existing column";
-	private ReadTransaction t;
+	private ImmuReadTran t;
 	private final String tableName;
 	private final int tblnum;
 	private final List<Column> columns = Lists.newArrayList();
@@ -37,7 +37,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private Index firstIndex;
 	private int nextField = 0;
 
-	static TableBuilder create(ExclusiveTransaction t, String tableName, int tblNum) {
+	/** @param t must be an exclusive transaction */
+	static TableBuilder create(ImmuReadTran t, String tableName, int tblNum) {
 		if (t.getTable(tableName) != null)
 			fail(t, "can't create existing table: " + tableName);
 		TableBuilder tb = new TableBuilder(t, tableName, tblNum);
@@ -45,23 +46,23 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return tb;
 	}
 
-	static TableBuilder alter(ReadTransaction t, String tableName) {
+	static TableBuilder alter(ImmuReadTran t, String tableName) {
 		return new TableBuilder(t, tableName);
 	}
 
-	private TableBuilder(ReadTransaction t, String tableName, int tblnum) {
+	private TableBuilder(ImmuReadTran t, String tableName, int tblnum) {
 		this.t = t;
 		this.tableName = tableName;
 		this.tblnum = tblnum;
 	}
 
-	private TableBuilder(ReadTransaction t, String tableName) {
+	private TableBuilder(ImmuReadTran t, String tableName) {
 		this(t, tableName, tblnum(t, tableName));
 		nextField = t.getTableInfo(tblnum).nextfield;
 		getSchema();
 	}
 
-	private static int tblnum(ReadTransaction t, String tableName) {
+	private static int tblnum(ImmuReadTran t, String tableName) {
 		Table table = t.getTable(tableName);
 		if (table == null)
 			fail(t, NONEXISTENT_TABLE + ": " + tableName);
@@ -72,7 +73,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		et().addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
-	static boolean dropTable(ExclusiveTransaction t, String tableName) {
+	static boolean dropTable(ImmuExclTran t, String tableName) {
 		if (! Views.dropView(t, tableName)) {
 			Table table = t.getTable(tableName);
 			if (table == null) {
@@ -92,7 +93,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return true;
 	}
 
-	static void renameTable(ExclusiveTransaction t, String from, String to) {
+	static void renameTable(ImmuExclTran t, String from, String to) {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
 			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
@@ -308,8 +309,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		if (firstIndex == null)
 			return;
-		Btree src = t.getIndex(tblnum, firstIndex.colNums);
-		Btree.Iter iter = src.iterator();
+		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
+		TranIndex.Iter iter = src.iterator();
 		Btree btree = et().addIndex(tblnum, newIndex.colNums);
 		String colNames = table.numsToNames(newIndex.colNums);
 		IndexedData id = new IndexedData(et())
@@ -317,7 +318,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 						newIndex.fksrc, t.getForeignKeys(tableName, colNames));
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			int adr = iter.keyadr();
-			id.add(t.getrec(adr), adr);
+			id.add(t.input(adr), adr);
 		}
 	}
 
@@ -336,7 +337,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void fail(String msg) {
 		fail(t, msg);
 	}
-	private static void fail(ReadTransaction t, String msg) {
+	private static void fail(ImmuReadTran t, String msg) {
 		t.abort();
 		throw new SuException(msg);
 	}
@@ -353,11 +354,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		t.abortIfNotComplete();
 	}
 
-	private ExclusiveTransaction et() {
-		if (t instanceof ExclusiveTransaction)
-			return (ExclusiveTransaction) t;
+	private ImmuExclTran et() {
+		if (t instanceof ImmuExclTran)
+			return (ImmuExclTran) t;
 		else {
-			ExclusiveTransaction et = t.db.exclusiveTran();
+			ImmuExclTran et = t.exclusiveTran();
 			t.complete();
 			t = et;
 			return et;

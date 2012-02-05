@@ -17,15 +17,21 @@ interface TranIndex {
 
 	boolean remove(Record key);
 
-	IndexIter iterator();
+	Iter iterator();
 
-	IndexIter iterator(Record key);
+	Iter iterator(Record key);
 
-	IndexIter iterator(Record org, Record end);
+	Iter iterator(Record org, Record end);
 
-	IndexIter iterator(IndexIter iter);
+	Iter iterator(IndexIter iter);
 
 	int totalSize();
 	float rangefrac(Record from, Record to);
+
+	BtreeInfo info();
+
+	interface Iter extends IndexIter {
+
+	}
 
 }
