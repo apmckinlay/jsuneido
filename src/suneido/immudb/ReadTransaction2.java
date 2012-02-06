@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import suneido.SuException;
+import suneido.immudb.Bootstrap.TN;
 import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
@@ -82,8 +83,27 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		return indexes.containsKey(index(tblnum, colNums));
 	}
 
+	private static final Index tables_index =
+			new Index(TN.TABLES, Bootstrap.indexColumns[TN.TABLES]);
+	private static final Index columns_index =
+			new Index(TN.COLUMNS, Bootstrap.indexColumns[TN.COLUMNS]);
+	private static final Index indexes_index =
+			new Index(TN.INDEXES, Bootstrap.indexColumns[TN.INDEXES]);
+
+	/**
+	 * Complicated by bootstrapping because schema tables aren't in schema.
+	 * @return A map key for an index.
+	 */
 	protected Index index(int tblnum, int[] colNums) {
-		return schema.get(tblnum).getIndex(colNums);
+		switch (tblnum) {
+		case TN.TABLES: return tables_index;
+		case TN.COLUMNS: return columns_index;
+		case TN.INDEXES: return indexes_index;
+		default:
+			Table table = schema.get(tblnum);
+			return table == null ? null : table.getIndex(colNums);
+		}
+
 	}
 
 	// used for fetching view definitions

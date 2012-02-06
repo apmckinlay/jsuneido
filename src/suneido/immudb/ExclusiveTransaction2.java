@@ -2,17 +2,12 @@
  * Licensed under GPLv2.
  */
 
-/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.
- */
-
 package suneido.immudb;
 
 import suneido.SuException;
 import suneido.util.ThreadConfined;
 
 /**
- * Transactions must be thread confined.
  * Load and compact bend the rules and write data prior to commit
  * using loadRecord and saveBtrees
  */

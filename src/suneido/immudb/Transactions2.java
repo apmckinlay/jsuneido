@@ -28,11 +28,11 @@ class Transactions2 {
 	/** all active transactions (read and update), for Database.Transactions() */
 	private final Set<Transaction> trans = Sets.newHashSet();
 	/** active update transactions */
-	private final PriorityQueue<UpdateTransaction> utrans =
-			new PriorityQueue<UpdateTransaction>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
+	private final PriorityQueue<UpdateTransaction2> utrans =
+			new PriorityQueue<UpdateTransaction2>(MAX_OVERLAPPING, UpdateTransaction2.byAsof);
 	/** committed read-write transactions that overlap outstanding transactions */
-	private final TreeSet<UpdateTransaction> overlapping =
-			new TreeSet<UpdateTransaction>(UpdateTransaction.byCommit);
+	private final TreeSet<UpdateTransaction2> overlapping =
+			new TreeSet<UpdateTransaction2>(UpdateTransaction2.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
 	static int MAX_OVERLAPPING = 200;
@@ -59,16 +59,16 @@ class Transactions2 {
 
 	synchronized void add(Transaction t) {
 		trans.add(t);
-		if (t instanceof UpdateTransaction)
-			utrans.add((UpdateTransaction) t);
+		if (t instanceof UpdateTransaction2)
+			utrans.add((UpdateTransaction2) t);
 	}
 
 	synchronized void commit(Transaction t) {
 		verify(trans.remove(t));
-		if (t instanceof UpdateTransaction) {
+		if (t instanceof UpdateTransaction2) {
 			verify(utrans.remove(t));
 			if (! utrans.isEmpty())
-				overlapping.add((UpdateTransaction) t);
+				overlapping.add((UpdateTransaction2) t);
 		}
 	}
 
@@ -91,7 +91,7 @@ class Transactions2 {
 
 	// should be called periodically
 	void limitOutstanding() {
-		UpdateTransaction t = null;
+		UpdateTransaction2 t = null;
 		synchronized (this) {
 			if (overlapping.size() <= MAX_OVERLAPPING)
 				return;
