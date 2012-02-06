@@ -1,7 +1,7 @@
 package suneido.database.query.expr;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.util.Util.listToParens;
+import static suneido.util.Util.displayListToParens;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -39,7 +39,7 @@ public class In extends Expr {
 
 	@Override
 	public String toString() {
-		return expr + " in " + listToParens(values);
+		return expr + " in " + displayListToParens(values);
 	}
 
 	@Override
