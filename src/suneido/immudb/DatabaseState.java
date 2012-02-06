@@ -6,6 +6,10 @@ package suneido.immudb;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Packages dbinfo, redirs, and schema together
+ * so they can be updated atomically.
+ */
 @Immutable
 public class DatabaseState {
 	final DbHashTrie dbinfo;

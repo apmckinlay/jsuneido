@@ -40,6 +40,10 @@ class Index implements Comparable<Index> {
 				: new ForeignKeySource(fktable, fkcolumns, fkmode);
 	}
 
+	Index(int tblnum, int[] colNums) {
+		this(tblnum, colNums, true, false, null, null, 0);
+	}
+
 	Index(Record record) {
 		this.tblnum = record.getInt(TBLNUM);
 		this.colNums = stringToColNums(record.getString(COLUMNS));
