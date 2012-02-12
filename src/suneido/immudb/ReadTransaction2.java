@@ -73,9 +73,13 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		if (btree != null)
 			return btree;
 		TableInfo ti = getTableInfo(tblnum);
-		btree = new Btree(tran, this, ti.getIndex(colNums));
+		btree = getIndex(ti.getIndex(colNums));
 		indexes.put(index, btree);
 		return btree;
+	}
+
+	protected TranIndex getIndex(IndexInfo info) {
+		return new Btree(tran, this, info);
 	}
 
 	@Override

@@ -43,8 +43,9 @@ class Database2 implements suneido.intfc.database.Database {
 	private Database2(Storage stor,
 			DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
 		this.stor = stor;
+		state = new DatabaseState(dbinfo, redirs, null);
 		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
-		this.state = new DatabaseState(dbinfo, redirs, schema);
+		state = new DatabaseState(dbinfo, redirs, schema);
 	}
 
 	// open

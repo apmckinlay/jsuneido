@@ -71,6 +71,13 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		return udbinfo.get(tblnum);
 	}
 
+	@Override
+	protected TranIndex getIndex(IndexInfo info) {
+		return new OverlayTranIndex(tran,
+				new Btree(tran, this, info),
+				new Btree(tran, this));
+	}
+
 	/** for Bootstrap and TableBuilder */
 	@Override
 	public Btree addIndex(int tblnum, int... indexColumns) {
