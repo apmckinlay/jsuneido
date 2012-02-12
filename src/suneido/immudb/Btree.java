@@ -48,6 +48,7 @@ class Btree implements TranIndex {
 	int totalSize;
 	private int modified = 0; // depends on all access via one instance
 
+	/** Create a new index */
 	Btree(Tran tran, Locking locking) {
 		this.tran = tran;
 		this.locking = locking;
@@ -56,6 +57,7 @@ class Btree implements TranIndex {
 		nnodes = 1;
 	}
 
+	/** Open an existing index */
 	Btree(Tran tran, Locking locking, BtreeInfo info) {
 		this.tran = tran;
 		this.locking = locking;

@@ -35,6 +35,12 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		locked = false;
 	}
 
+	// override UpdateTransaction
+	@Override
+	protected TranIndex getIndex(IndexInfo info) {
+		return new Btree(tran, this, info);
+	}
+
 	@Override
 	void verifyNotSystemTable(int tblnum, String what) {
 	}

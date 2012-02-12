@@ -74,7 +74,8 @@ class Transactions2 {
 
 	synchronized void abort(Transaction t) {
 		verify(trans.remove(t));
-		verify(utrans.remove(t));
+		if (t instanceof UpdateTransaction2)
+			verify(utrans.remove(t));
 		cleanOverlapping();
 	}
 
