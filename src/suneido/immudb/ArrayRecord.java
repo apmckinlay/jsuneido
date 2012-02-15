@@ -11,24 +11,30 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 import suneido.immudb.BufRecord.Mode;
+import suneido.language.Pack;
 
 /**
- * The result of RecordBuilder
+ * The result of RecordBuilder.
  * Certain operations will convert on-demand to a {@link BufRecord}
- * Effectively immutable, except for bufrec
+ * Effectively immutable, only bufrec changes and it is just a cache.
+ * ref is used for btree key child node references.
+ * It is NOT visible in any operations except pack.
  */
 public class ArrayRecord extends Record {
-	protected final ArrayList<ByteBuffer> bufs;
-	protected final TIntArrayList offs;
-	protected final TIntArrayList lens;
+	private final ArrayList<ByteBuffer> bufs;
+	private final TIntArrayList offs;
+	private final TIntArrayList lens;
+	private final Storable ref;
 	private BufRecord bufrec;
 
-	protected ArrayRecord(ArrayList<ByteBuffer> bufs, TIntArrayList offs, TIntArrayList lens) {
+	ArrayRecord(ArrayList<ByteBuffer> bufs, TIntArrayList offs, TIntArrayList lens,
+			Object ref) {
 		assert offs.size() == bufs.size();
 		assert lens.size() == bufs.size();
 		this.bufs = bufs;
 		this.offs = offs;
 		this.lens = lens;
+		this.ref = (Storable) ref;
 	}
 
 	@Override
@@ -69,6 +75,11 @@ public class ArrayRecord extends Record {
 		return bufRecord();
 	}
 
+	@Override
+	Storable childRef() {
+		return ref;
+	}
+
 	// convert to BufRecord ----------------------------------------------------
 
 	private BufRecord bufRecord() {
@@ -87,6 +98,8 @@ public class ArrayRecord extends Record {
 		int datasize = 0;
 		for (int i = 0; i < nfields; ++i)
 			datasize += lens.get(i);
+		if (ref != null)
+			datasize += Pack.packSizeLong(ref.store());
 		return length(nfields, datasize);
 	}
 
@@ -104,10 +117,18 @@ public class ArrayRecord extends Record {
 	}
 
 	private void pack(ByteBuffer dst, int length) {
+		int refAdr = 0;
+		if (ref != null) {
+			refAdr = ref.store();
+			lens.set(lens.size() - 1, Pack.packSizeLong(refAdr));
+		}
 		packHeader(dst, length, lens);
 		int nfields = bufs.size();
 		for (int i = nfields - 1; i >= 0; --i)
-			pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
+			if (i == nfields - 1 && ref != null)
+				Pack.pack(refAdr, dst);
+			else
+				pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}
 
 	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens) {
@@ -115,8 +136,9 @@ public class ArrayRecord extends Record {
 		byte mode = mode(length);
 		dst.put(mode);
 		dst.put((byte) 0);
-		assert 0 <= lens.size() && lens.size() <= Short.MAX_VALUE;
-		dst.putShort((short) lens.size());
+		int nfields = lens.size();
+		assert 0 <= nfields && nfields <= Short.MAX_VALUE;
+		dst.putShort((short) nfields);
 		packOffsets(dst, length, lens, mode);
 		dst.order(ByteOrder.BIG_ENDIAN);
 	}

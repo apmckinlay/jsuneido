@@ -32,7 +32,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 	protected final DatabaseState dbstate;
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
-	protected final Map<Index,TranIndex> indexes = Maps.newHashMap();
+	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions2 trans;
 	private boolean ended = false;
 

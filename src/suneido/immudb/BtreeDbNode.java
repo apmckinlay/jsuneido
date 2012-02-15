@@ -17,10 +17,12 @@ import com.google.common.base.Preconditions;
 @Immutable
 class BtreeDbNode extends BtreeNode {
 	final Record rec;
+	final int adr;
 
-	BtreeDbNode(int level, ByteBuffer buf) {
+	BtreeDbNode(int level, ByteBuffer buf, int adr) {
 		super(level);
 		rec = Record.from(buf, 0);
+		this.adr = adr;
 	}
 
 	@Override
@@ -30,18 +32,23 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	BtreeDbMemNode with(Record key) {
-		return new BtreeDbMemNode(this).with(key);
+	BtreeMemNode with(Record key) {
+		return new BtreeMemNode(this).with(key);
 	}
 
 	@Override
 	protected BtreeNode without(int i) {
-		return new BtreeDbMemNode(this).without(i);
+		return new BtreeMemNode(this).without(i);
 	}
 
 	@Override
 	int size() {
 		return rec.size();
+	}
+
+	@Override
+	int getAdr() {
+		return adr;
 	}
 
 	@Override
@@ -51,15 +58,15 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	BtreeNode slice(int from, int to) {
-		return BtreeDbMemNode.slice(this, from, to);
+		return BtreeMemNode.slice(this, from, to);
 	}
 
 	@Override
 	BtreeNode without(int from, int to) {
 		if (from == 0)
-			return BtreeDbMemNode.slice(this, to, size());
+			return BtreeMemNode.slice(this, to, size());
 		else if (to == size())
-			return BtreeDbMemNode.slice(this, 0, from);
+			return BtreeMemNode.slice(this, 0, from);
 		else
 			throw new IllegalArgumentException();
 	}
@@ -67,6 +74,15 @@ class BtreeDbNode extends BtreeNode {
 	@Override
 	void minimizeLeftMost() {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	void freeze() {
+	}
+
+	@Override
+	String printName() {
+		return "DbNode @ " + adr;
 	}
 
 }

@@ -212,6 +212,8 @@ abstract class Record implements suneido.intfc.database.Record {
 		for (int i = 0; i < size(); ++i) {
 			if (getRaw(i).equals(MAX_FIELD))
 				sb.append("MAX");
+			else if (i == size() - 1 && childRef() != null)
+				sb.append("REF");
 			else {
 				Object x = get(i);
 				if (x instanceof String)
@@ -297,6 +299,14 @@ abstract class Record implements suneido.intfc.database.Record {
 		for (--i; i >= 0; --i)
 			size += fieldLength(i);
 		return size;
+	}
+
+	Storable childRef() {
+		return null;
+	}
+
+	Record withChildRef(Storable ref) {
+		return new RecordBuilder().addAll(this).addRef(ref).build();
 	}
 
 }

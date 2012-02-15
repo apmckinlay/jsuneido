@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.BtreeNode.adr;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 
@@ -112,7 +113,7 @@ public class MergeIndexIter implements TranIndex.Iter {
 
 	@Override
 	public int keyadr() {
-		return Btree.getAddress((suneido.immudb.Record) cur);
+		return adr((suneido.immudb.Record) cur);
 	}
 
 }

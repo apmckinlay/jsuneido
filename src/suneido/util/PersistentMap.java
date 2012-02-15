@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * An persistent immutable map.
+ * A persistent immutable map.
  * Based on Phil Bagwell's Hash Array Mapped Trie
  * with some help from Rich Hickey's implementation in Clojure.
  * Uses OverflowNodes instead of extended hashing and does not resize root.

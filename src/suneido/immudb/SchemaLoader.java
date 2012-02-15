@@ -1,6 +1,7 @@
 package suneido.immudb;
 
 import static suneido.immudb.Bootstrap.indexColumns;
+import static suneido.immudb.BtreeNode.adr;
 
 import java.util.Collections;
 import java.util.List;
@@ -139,7 +140,7 @@ class SchemaLoader {
 	}
 
 	private Record recordFromSlot(Record slot) {
-		int adr = Btree.getAddress(slot);
+		int adr = adr(slot);
 		return t.input(adr);
 	}
 

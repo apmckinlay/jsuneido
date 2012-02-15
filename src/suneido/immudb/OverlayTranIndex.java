@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import suneido.immudb.Btree.Update;
 import suneido.intfc.database.IndexIter;
 
 /**
@@ -96,6 +95,10 @@ class OverlayTranIndex implements TranIndex {
 	public BtreeInfo info() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	Btree local() {
+		return local;
 	}
 
 }

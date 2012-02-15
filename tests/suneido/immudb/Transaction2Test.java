@@ -20,7 +20,12 @@ public class Transaction2Test {
 		Database2 db = Database2.open(stor);
 		check(db.readonlyTran());
 		check(db.readwriteTran());
-		check(db.exclusiveTran());
+//		check(db.exclusiveTran());
+	}
+	private static void check(ImmuReadTran t) {
+		Record[] recs = { rec(1, "tables"), rec(2, "columns"), rec(3, "indexes"),
+				rec(4, "views") };
+		check(t, Bootstrap.TN.TABLES, recs);
 	}
 
 	@Test
@@ -36,15 +41,20 @@ public class Transaction2Test {
 
 		Database2 db = Database2.open(stor);
 		ImmuUpdateTran t = db.readwriteTran();
+		t.addRecord("tmp", rec(123, "foo"));
+		check(t, "tmp", rec(123, "foo"));
 
-		t.complete();
+//		check(db.readonlyTran(), "tmp", rec(123, "foo"));
 	}
 
-	private void check(ImmuReadTran t) {
-		IndexIter iter = t.iter(Bootstrap.TN.TABLES, "table");
-		Record[] recs = { rec(1, "tables"), rec(2, "columns"), rec(3, "indexes"),
-				rec(4, "views") };
+	private static void check(ImmuReadTran t, String tableName, Record... recs) {
+		Table tbl = t.getTable(tableName);
+		check(t, tbl.num, recs);
+	}
+
+	private static void check(ImmuReadTran t, int tblnum, Record... recs) {
 		int i = 0;
+		IndexIter iter = t.iter(tblnum, null);
 		for (iter.next(); ! iter.eof(); iter.next(), ++i)
 			assertThat(t.input(iter.keyadr()), is(recs[i]));
 		assertThat(i, is(recs.length));
