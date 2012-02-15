@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.BtreeNode.adr;
+
 import java.util.concurrent.Callable;
 
 class CheckTable implements Callable<String> {
@@ -49,7 +51,7 @@ class CheckTable implements Callable<String> {
 					return false;
 				}
 				prevkey = key;
-				int adr = Btree.getAddress(key);
+				int adr = adr(key);
 				Record rec = t.input(adr);
 				if (first_index)
 					if (!checkRecord(tablename, rec))

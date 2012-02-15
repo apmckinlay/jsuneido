@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import suneido.immudb.Btree.Update;
 import suneido.intfc.database.IndexIter;
 
 interface TranIndex {
@@ -33,5 +32,7 @@ interface TranIndex {
 	interface Iter extends IndexIter {
 
 	}
+
+	enum Update { OK, NOT_FOUND, ADD_FAILED }
 
 }

@@ -9,13 +9,10 @@ import java.io.Writer;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.immudb.Btree.Split;
-
 import com.google.common.base.Strings;
 
 /**
- * Parent type for {@link BtreeDbNode}, {@link BtreeDbMemNode},
- * and {@link BtreeMemNode}
+ * Parent type for {@link BtreeDbNode}, {@link BtreeMemNode}.
  * Provides access to a list of keys in sorted order.
  * Keys are {@link Record}'s.
  * The last field on leaf keys is a pointer to the corresponding data record.
@@ -31,7 +28,7 @@ import com.google.common.base.Strings;
  * <p>
  */
 @Immutable
-abstract class BtreeNode {
+abstract class BtreeNode implements Storable {
 	/** level = 0 for leaf, level = treeLevels for root */
 	protected final int level;
 
@@ -62,7 +59,7 @@ abstract class BtreeNode {
 	}
 
 	/** Inserts key in order */
-	abstract BtreeStorableNode with(Record key);
+	abstract BtreeNode with(Record key);
 
 	/** @return null if key not found */
 	BtreeNode without(Record key) {
@@ -131,14 +128,14 @@ abstract class BtreeNode {
 	 *
 	 * @return a Split containing the key to be inserted into the parent
 	 */
-	Split split(Tran tran, Record key, int adr) {
+	BtreeSplit split(Tran tran, Record key, int adr) {
 		BtreeNode left;
 		BtreeNode right;
 		int keyPos = lowerBound(key);
 		if (keyPos == size()) {
 			// key is at end of node, just make new node
 			left = this;
-			right = new BtreeMemNode(level, key);
+			right = BtreeMemNode.from(level, key);
 		} else {
 			int mid = size() / 2;
 			right = slice(mid, size());
@@ -167,18 +164,18 @@ abstract class BtreeNode {
 					.adduint(IntRefs.MAXADR).adduint(rightAdr).build()
 			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
 					.adduint(rightAdr).build();
-		return new Split(level, adr, splitKey);
+		return new BtreeSplit(level, adr, splitKey);
 	}
 
 	private boolean splitMaxAdr(Record last, Record first) {
 		return isLeaf() && ! last.prefixEquals(first, first.size() - 1);
 	}
 
-	private Record first() {
+	Record first() {
 		return get(0);
 	}
 
-	private Record last() {
+	Record last() {
 		return get(size() - 1);
 	}
 
@@ -211,6 +208,19 @@ abstract class BtreeNode {
 		}
 	}
 
+	void print2(Writer w, Tran tran) throws IOException {
+		String indent = Strings.repeat("     ", level);
+		w.append(indent).append(printName() + "\n");
+		for (int i = 0; i < size(); ++i) {
+			Record slot = get(i);
+			w.append(indent).append(slot.toString()).append("\n");
+			if (level > 0)
+				Btree2.childNode(tran, level - 1, slot).print2(w, tran);
+		}
+	}
+
+	abstract String printName();
+
 	/** returns the number of nodes processed */
 	int check(Tran tran, Record key) {
 		for (int i = 1; i < size(); ++i)
@@ -225,13 +235,36 @@ abstract class BtreeNode {
 		assert isMinimalKey(get(0)) : "minimal";
 		if (size() > 1)
 			assert key.compareTo(get(1)) <= 0;
-		int adr = Btree.getAddress(get(0));
+		int adr = adr(get(0));
 		int nnodes = 1;
 		nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key);
 		for (int i = 1; i < size(); ++i) {
 			Record key2 = get(i);
-			adr = Btree.getAddress(key2);
+			adr = adr(key2);
 			nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key2);
+		}
+		return nnodes;
+	}
+
+	/** returns the number of nodes processed */
+	int check2(Tran tran, Record key) {
+		for (int i = 1; i < size(); ++i)
+			assert get(i - 1).compareTo(get(i)) < 0;
+		if (isLeaf()) {
+			if (! isEmpty()) {
+				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
+				assert key.compareTo(get(0)) <= 0 : "first " + get(0) + " NOT >= key " + key;
+			}
+			return 1;
+		}
+		assert isMinimalKey(get(0)) : "minimal";
+		if (size() > 1)
+			assert key.compareTo(get(1)) <= 0;
+		int nnodes = 1;
+		nnodes += Btree2.childNode(tran, level - 1, get(0)).check2(tran, key);
+		for (int i = 1; i < size(); ++i) {
+			Record key2 = get(i);
+			nnodes += Btree2.childNode(tran, level - 1, key2).check2(tran, key2);
 		}
 		return nnodes;
 	}
@@ -265,7 +298,9 @@ abstract class BtreeNode {
 	}
 
 	protected static Record minimize(Record key) {
-		return minimalKey(key.size(), adr(key));
+		return key.childRef() == null
+				? minimalKey(key.size(), adr(key))
+				: minimalKey(key.size(), key.childRef());
 	}
 
 	protected static int adr(Record rec) {
@@ -279,5 +314,27 @@ abstract class BtreeNode {
 		rb.adduint(adr);
 		return rb.build();
 	}
+
+	protected static Record minimalKey(int nfields, Storable childRef) {
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < nfields - 1; ++i)
+			rb.add("");
+		rb.addRef(childRef);
+		return rb.build();
+	}
+
+	@Override
+	public int store() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public BtreeNode withUpdate(int i, BtreeNode child) {
+		throw new UnsupportedOperationException();
+	}
+
+	abstract int getAdr();
+
+	abstract void freeze();
 
 }

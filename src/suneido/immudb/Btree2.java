@@ -1,4 +1,4 @@
-/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.UnsignedInts;
 
 /**
- * Controls access to an append-only immutable btree.
+ * Append-only immutable btrees.
  * <p>
  * Note: remove does not merge nodes. The tree will stay balanced in terms of nodes
  * but not necessarily in terms of keys. But the number of tree levels will never
@@ -35,44 +35,41 @@ import com.google.common.primitives.UnsignedInts;
  * small nodes do not waste much space. And compacting the database will rebuild
  * btrees anyway.
  * <p>
- * @see BtreeNode, BtreeDbNode, BtreeDbMemNode, BtreeMemNode, BtreeStoreNode
+ * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
+//TODO keep root, since every operation needs it
 @NotThreadSafe
-class Btree implements TranIndex {
+class Btree2 implements TranIndex {
 	protected int splitSize() { return 20; } // overridden by test
-	private final Locking locking;
 	private final Tran tran;
 	private int root;
 	private int treeLevels;
 	int nnodes;
 	int totalSize;
 	private int modified = 0; // depends on all access via one instance
+	BtreeNode rootNode;
 
 	/** Create a new index */
-	Btree(Tran tran, Locking locking) {
+	Btree2(Tran tran) {
 		this.tran = tran;
-		this.locking = locking;
-		root = tran.refToInt(BtreeNode.emptyLeaf());
+		rootNode = BtreeNode.emptyLeaf();
+		root = -1;
 		treeLevels = 0;
 		nnodes = 1;
 	}
 
 	/** Open an existing index */
-	Btree(Tran tran, Locking locking, BtreeInfo info) {
+	Btree2(Tran tran, BtreeInfo info) {
 		this.tran = tran;
-		this.locking = locking;
 		this.root = info.root;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
 		this.totalSize = info.totalSize;
+		rootNode = nodeAt(treeLevels, root);
 	}
 
 	boolean isEmpty() {
-		return treeLevels == 0 && rootNode().isEmpty();
-	}
-
-	private BtreeNode rootNode() {
-		return nodeAt(treeLevels, root);
+		return treeLevels == 0 && rootNode.isEmpty();
 	}
 
 	/**
@@ -83,15 +80,10 @@ class Btree implements TranIndex {
 	 */
 	@Override
 	public int get(Record key) {
-		int adr = root;
-		for (int i = 0; i < treeLevels; ++i) {
-			int level = treeLevels - i;
-			BtreeNode node = nodeAt(level, adr);
-			Record slot = node.find(key);
-			adr = adr(slot);
-		}
-		BtreeNode leaf = nodeAt(0, adr);
-		Record slot = leaf.find(key);
+		BtreeNode node = rootNode;
+		for (int level = treeLevels - 1; level >= 0; --level)
+			node = childNode(level, node.find(key));
+		Record slot = node.find(key);
 		return slot != null && slot.startsWith(key) ? adr(slot) : 0;
 	}
 
@@ -117,63 +109,73 @@ class Btree implements TranIndex {
 	 */
 	@Override
 	public boolean add(Record key, boolean unique) {
-		++modified;
-
 		// search down the tree
-		int adr = root;
+		BtreeNode node = rootNode;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
-		TIntArrayList adrs = new TIntArrayList();
-		for (int level = treeLevels; level > 0; --level) {
-			adrs.add(adr);
-			BtreeNode node = nodeAt(level, adr);
+		TIntArrayList idxs = new TIntArrayList();
+		for (int level = treeLevels - 1; level >= 0; --level) {
 			treeNodes.add(node);
-			Record slot = node.find(key);
-			adr = adr(slot);
+			int i = node.findPos(key);
+			idxs.add(i);
+			node = childNode(level - 1, node.get(i));
 		}
 
-		BtreeNode leaf = nodeAt(0, adr);
-		if (! leaf.isEmpty()) {
+		if (! node.isEmpty()) {
 			Record searchKey = unique ? withoutAddress(key) : key;
-			Record slot = leaf.find(searchKey);
+			Record slot = node.find(searchKey);
 			if (slot != null && slot.startsWith(searchKey))
-				return false;
+				return false; // duplicate
 		}
-		locking.writeLock(adr);
-
 		totalSize += keySize(key);
 
-		if (hasRoom(leaf)) {
+		assert treeNodes.size() == treeLevels;
+		int level = treeLevels - 1;
+		if (hasRoom(node)) {
 			// normal/fast path - simply insert into leaf
-			BtreeNode before = leaf;
-			leaf = leaf.with(key);
-			if (adr == root) {
-				if (leaf != before)
-					root = tran.refToInt(leaf);
-			} else
-				tran.redir(adr, leaf);
-			return true;
-		}
-		// else split leaf
-		BtreeSplit split = leaf.split(tran, key, adr);
-		++nnodes;
-
-		// insert up the tree
-		for (int i = treeNodes.size() - 1; i >= 0; --i) {
-			locking.writeLock(adrs.get(i));
-			BtreeNode treeNode = treeNodes.get(i);
-			if (hasRoom(treeNode)) {
-				treeNode = treeNode.with(split.key);
-				tran.redir(adrs.get(i), treeNode);
+			node = insert(node, key);
+			if (node == null)
+				return true;
+		} else {
+			BtreeSplit2 split = BtreeSplit2.split(tran, node, key);
+			++nnodes;
+			// insert up the tree, continue while nodes are full and must be split
+			for (; level >= 0; --level) {
+				node = treeNodes.get(level);
+				if (hasRoom(node)) {
+					node = insert(node, split.key);
+					if (node == null)
+						return true;
+					--level;
+					break;
+				}
+				// else split
+				split = BtreeSplit2.split(tran, node, split.key);
+				++nnodes;
+			}
+			if (level == -1) {
+				// root was split so create a new root
+				newRoot(split);
 				return true;
 			}
-			// else split
-			split = treeNode.split(tran, split.key, adrs.get(i));
-			++nnodes;
 		}
-		// getting here means root was split so a new root is needed
-		newRoot(split);
-		++nnodes;
+
+		pathCopy(treeNodes, idxs, level, node);
 		return true;
+	}
+
+	/** @return null if the node was root or already mutable and we're all done */
+	private BtreeNode insert(BtreeNode node, Record key) {
+		BtreeNode before = node;
+		node = node.with(key);
+		if (treeLevels == 0)
+			rootNode = node;
+		return (treeLevels == 0 || node == before) ? null : node;
+	}
+
+	private void newRoot(BtreeSplit2 split) {
+		++nnodes;
+		++treeLevels;
+		rootNode = BtreeMemNode.newRoot(tran, split);
 	}
 
 	/** size without trailing address */
@@ -183,11 +185,6 @@ class Btree implements TranIndex {
 
 	private boolean hasRoom(BtreeNode node) {
 		return node.size() < splitSize();
-	}
-
-	private void newRoot(BtreeSplit split) {
-		++treeLevels;
-		root = tran.refToInt(BtreeMemNode.newRoot(tran, split));
 	}
 
 	/**
@@ -202,54 +199,74 @@ class Btree implements TranIndex {
 		++modified;
 
 		// search down the tree
-		int adr = root;
+		BtreeNode node = rootNode;
 		List<BtreeNode> treeNodes = Lists.newArrayList();
-		TIntArrayList adrs = new TIntArrayList();
-		for (int level = treeLevels; level > 0; --level) {
-			adrs.add(adr);
-			BtreeNode node = nodeAt(level, adr);
+		TIntArrayList idxs = new TIntArrayList();
+		for (int level = treeLevels - 1; level >= 0; --level) {
 			treeNodes.add(node);
-			Record slot = node.find(key);
-			adr = adr(slot);
+			int i = node.findPos(key);
+			idxs.add(i);
+			node = childNode(level - 1, node.get(i));
 		}
 
 		// remove from leaf
-		BtreeNode leaf = nodeAt(0, adr);
-		leaf = leaf.without(key);
-		if (leaf == null)
+		BtreeNode before = node;
+		node = node.without(key);
+		if (node == null)
 			return false; // not found
-
-		locking.writeLock(adr);
 		totalSize -= keySize(key);
+		if (treeLevels == 0)
+			rootNode = node;
+		if (treeLevels == 0 || (node == before && ! node.isEmpty()))
+			return true; // all done
 
-		if (adr == root)
-			root = tran.refToInt(leaf);
-		else
-			tran.redir(adr, leaf);
-		if (! leaf.isEmpty() || treeLevels == 0)
-			return true;	// this is the usual path
-		--nnodes;
 
-		// remove up the tree
-		for (int i = treeNodes.size() - 1; i >= 0; --i) {
-			locking.writeLock(adrs.get(i));
-			BtreeNode treeNode = treeNodes.get(i);
-			if (treeNode.size() > 1) {
-				treeNode = treeNode.without(treeNode.findPos(key));
-				treeNode.minimizeLeftMost();
-				assert treeNode != null;
-				tran.redir(adrs.get(i), treeNode);
+		int level = treeLevels - 1;
+		if (node.isEmpty()) {
+			// remove up the tree, continue while resulting nodes are empty
+			--nnodes;
+			for (; level >= 0; --level) {
+				node = treeNodes.get(level);
+				// if node only has one key don't bother updating it to empty
+				// since we're going to remove the pointer to it anyway
+				if (node.size() > 1) {
+					before = node;
+					node = node.without(node.findPos(key));
+					node.minimizeLeftMost();
+					if (node == before)
+						return true; // mutable so pathCopy not required
+					else {
+						--level;
+						break;
+					}
+				}
+				--nnodes;
+			}
+			if (level == -1) {
+				// root node is now empty
+				rootNode = BtreeNode.emptyLeaf();
+				treeLevels = 0;
+				nnodes = 1;
 				return true;
 			}
-			--nnodes;
 		}
 
-		// if we get to here, root node is now empty
-		root = tran.refToInt(BtreeNode.emptyLeaf());
-		treeLevels = 0;
-		nnodes = 1;
-
+		pathCopy(treeNodes, idxs, level, node);
 		return true;
+	}
+
+	// path copy the rest of the way up, stopping if we hit a mutable node
+	private void pathCopy(List<BtreeNode> treeNodes, TIntArrayList idxs,
+			int level, BtreeNode node) {
+		for (int i = level; i >= 0; --i) {
+			BtreeNode child = node;
+			node = treeNodes.get(i);
+			BtreeNode before = node;
+			node = node.withUpdate(idxs.get(i), child);
+			if (node == before) // node was already mutable
+				break;
+		}
+		rootNode = node;
 	}
 
 	/*
@@ -259,9 +276,9 @@ class Btree implements TranIndex {
 	 */
 	@Override
 	public Update update(Record oldkey, Record newkey, boolean unique) {
-		if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
+		/*if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
 			return updateUnique(oldkey, newkey);
-		else {
+		else*/ {
 			if (! remove(oldkey))
 				return Update.NOT_FOUND;
 			return add(newkey, unique) ? Update.OK : Update.ADD_FAILED;
@@ -291,7 +308,6 @@ class Btree implements TranIndex {
 		if (leaf == null)
 			return Update.NOT_FOUND;
 		leaf = leaf.with(newkey);
-		locking.writeLock(adr);
 		tran.redir(adr, leaf);
 		return Update.OK;
 	}
@@ -391,9 +407,8 @@ class Btree implements TranIndex {
 			while (stack.size() < treeLevels + 1) {
 				LevelInfo info = stack.peek();
 				Record slot = info.node.get(info.pos);
-				int adr = adr(slot);
 				int level = info.node.level - 1;
-				BtreeNode node = nodeAt(level, adr);
+				BtreeNode node = childNode(level, slot);
 				stack.push(new LevelInfo(node, 0));
 			}
 			LevelInfo leaf = stack.peek();
@@ -449,9 +464,8 @@ class Btree implements TranIndex {
 			while (stack.size() < treeLevels + 1) {
 				LevelInfo info = stack.peek();
 				Record slot = info.node.get(info.pos);
-				int adr = adr(slot);
 				int level = info.node.level - 1;
-				BtreeNode node = nodeAt(level, adr);
+				BtreeNode node = childNode(level, slot);
 				stack.push(new LevelInfo(node, node.size() - 1));
 			}
 			LevelInfo leaf = stack.peek();
@@ -471,9 +485,8 @@ class Btree implements TranIndex {
 			cur = null;
 			if (isEmpty())
 				return;
-			int adr = root;
+			BtreeNode node = rootNode;
 			for (int level = treeLevels; level >= 0; --level) {
-				BtreeNode node = nodeAt(level, adr);
 				int pos = node.findPos(key);
 				stack.push(new LevelInfo(node, pos));
 				Record slot = pos < node.size() ? node.get(pos) : null;
@@ -481,7 +494,7 @@ class Btree implements TranIndex {
 					cur = slot;
 					break;
 				}
-				adr = adr(slot);
+				node = childNode(level - 1, slot);
 			}
 		}
 
@@ -522,17 +535,26 @@ class Btree implements TranIndex {
 		return new RecordPrefix(key, key.size() - 1);
 	}
 
+	BtreeNode childNode(int level, Record key) {
+		Object child = key.childRef();
+		return (child != null) ? (BtreeNode) child : nodeAt(level, adr(key));
+	}
+
+	static BtreeNode childNode(Tran tran, int level, Record key) {
+		Object child = key.childRef();
+		return (child != null) ? (BtreeNode) child : nodeAt(tran, level, adr(key));
+	}
+
 	BtreeNode nodeAt(int level, int adr) {
-		if (level == 0) // only lock if leaf
-			locking.readLock(adr);
 		return nodeAt(tran, level, adr);
 	}
 
 	static BtreeNode nodeAt(Tran tran, int level, int adr) {
-		adr = tran.redir(adr);
-		return IntRefs.isIntRef(adr)
-			? (BtreeNode) tran.intToRef(adr)
-			: new BtreeDbNode(level, tran.stor.buffer(adr), adr);
+		return new BtreeDbNode(level, tran.stor.buffer(adr), adr);
+	}
+
+	void freeze() {
+		rootNode.freeze();
 	}
 
 	void print() {
@@ -542,7 +564,7 @@ class Btree implements TranIndex {
 	void print(Writer writer) {
 		try {
 			writer.append("---------------------------\n");
-			nodeAt(treeLevels, info().root).print(writer, tran, root);
+			rootNode.print2(writer, tran);
 			writer.append("---------------------------\n");
 			writer.flush();
 		} catch (IOException e) {
@@ -584,7 +606,7 @@ class Btree implements TranIndex {
 	}
 
 	void check() {
-		int nnodes = rootNode().check(tran, Record.EMPTY);
+		int nnodes = rootNode.check2(tran, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
@@ -604,7 +626,7 @@ class Btree implements TranIndex {
 	/** from is inclusive, end is exclusive */
 	@Override
 	public float rangefrac(Record from, Record to) {
-		BtreeNode node = rootNode();
+		BtreeNode node = rootNode;
 		int n = node.size();
 		if (n == 0)
 			return 0;
@@ -614,11 +636,11 @@ class Btree implements TranIndex {
 			return (float) (end - org) / n;
 		else {
 			float pernode = (float) 1 / n;
-			int fromadr = adr(node.find(from));
-			int toadr = adr(node.find(to));
+			BtreeNode fromNode = childNode(1, node.find(from));
+			BtreeNode toNode = childNode(1, node.find(to));
 			float result =
-					keyfracpos(toadr, to, (float) end / n, pernode) -
-					keyfracpos(fromadr, from, (float) org / n, pernode);
+					keyfracpos(toNode, to, (float) end / n, pernode) -
+					keyfracpos(fromNode, from, (float) org / n, pernode);
 			return result < 0 ? 0 : result;
 		}
 	}
@@ -627,8 +649,7 @@ class Btree implements TranIndex {
 	 * @param start the fraction into the index where this node starts
 	 * @param nodefrac the fraction of the index under this node
 	 */
-	private float keyfracpos(int adr, Record key, float start, float nodefrac) {
-		BtreeNode node = nodeAt(1, adr);
+	private float keyfracpos(BtreeNode node, Record key, float start, float nodefrac) {
 		assert node.size() > 0;
 		int i = node.lowerBound(key);
 		return start + (nodefrac * i) / node.size();

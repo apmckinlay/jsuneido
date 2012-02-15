@@ -7,6 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
@@ -236,7 +237,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 				tran.startStore();
 				try {
 					DataRecords.store(tran);
-					Btree.store(tran);
+					updateBtrees();
+//					Btree.store(tran);
 
 					int dbinfoAdr = udbinfo.store();
 //					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
@@ -257,6 +259,52 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			unlock();
 		}
 		return null;
+	}
+
+	private void updateBtrees() {
+System.out.println("updateBtrees");
+		ImmuReadTran t = db.readonlyTran();
+		for (Entry<Index, TranIndex> e : indexes.entrySet())
+			updateBtree(t, e);
+	}
+
+	private void updateBtree(ImmuReadTran t, Entry<Index, TranIndex> e) {
+		Index index = e.getKey();
+System.out.println(index);
+		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
+		TranIndex global = t.getIndex(index.tblnum, index.colNums);
+		Btree local = oti.local();
+		Btree.Iter iter = local.iterator();
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			Record key = translate(iter.curKey());
+System.out.println("+ " + key);
+			global.add(key, true);
+		}
+	}
+
+	private Record translate(Record key) {
+		RecordBuilder rb = new RecordBuilder().addPrefix(key, key.size() - 1);
+		int adr = BtreeNode.adr(key);
+		assert IntRefs.isIntRef(adr);
+		adr = tran.getAdr(adr);
+		rb.adduint(adr);
+		return rb.build();
+	}
+
+	private void updateOurDbinfo() {
+//		for (int tblnum : indexes.rowKeySet()) {
+//			TableInfo ti = udbinfo.get(tblnum);
+//			Map<ColNums,Btree> idxs = indexes.row(tblnum);
+//			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+//			for (IndexInfo ii : ti.indexInfo) {
+//				Btree btree = idxs.get(new ColNums(ii.columns));
+//				b.add((btree == null)
+//						? ii : new IndexInfo(ii.columns, btree.info()));
+//			}
+//			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows(), ti.totalsize(),
+//					b.build());
+//			udbinfo.add(ti);
+//		}
 	}
 
 	static final int INT_SIZE = 4;
