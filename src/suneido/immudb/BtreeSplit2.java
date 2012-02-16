@@ -33,7 +33,7 @@ class BtreeSplit2 {
 				.toString();
 	}
 
-	static BtreeSplit2 split(Tran tran, BtreeNode node, Record key) {
+	static BtreeSplit2 split(BtreeNode node, Record key) {
 		BtreeNode left;
 		BtreeNode right;
 		int keyPos = node.lowerBound(key);

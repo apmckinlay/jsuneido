@@ -27,7 +27,7 @@ class IndexedData {
 	}
 
 	/** setup method */
-	IndexedData index(Btree btree, Mode mode, int[] colNums, String colNames,
+	IndexedData index(TranIndex btree, Mode mode, int[] colNums, String colNames,
 			ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 		assert t != null;
 		indexes.add(new AnIndexWithFkeys(
@@ -110,12 +110,12 @@ class IndexedData {
 	}
 
 	private static class AnIndex {
-		final Btree btree;
+		final TranIndex btree;
 		final Mode mode;
 		final int[] fields;
 		final String columns;
 
-		AnIndex(Btree btree, Mode mode, int[] fields, String columns) {
+		AnIndex(TranIndex btree, Mode mode, int[] fields, String columns) {
 			this.btree = btree;
 			this.mode = mode;
 			this.fields = fields;
@@ -165,7 +165,7 @@ class IndexedData {
 		final ForeignKeySource fksrc;
 		final Set<ForeignKeyTarget> fkdsts;
 
-		AnIndexWithFkeys(ImmuUpdateTran t, Btree btree, Mode mode,
+		AnIndexWithFkeys(ImmuUpdateTran t, TranIndex btree, Mode mode,
 				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 			super(btree, mode, fields, columns);

@@ -12,7 +12,7 @@ interface ImmuUpdateTran extends ImmuReadTran {
 
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey);
 
-	Btree addIndex(int tblnum, int... colNums);
+	TranIndex addIndex(int tblnum, int... colNums);
 
 	void addRecord(int indexes, Record record);
 

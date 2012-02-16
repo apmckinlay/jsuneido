@@ -187,7 +187,7 @@ class Btree implements TranIndex {
 
 	private void newRoot(BtreeSplit split) {
 		++treeLevels;
-		root = tran.refToInt(BtreeMemNode.newRoot(tran, split));
+		root = tran.refToInt(BtreeMemNode.newRoot(split));
 	}
 
 	/**

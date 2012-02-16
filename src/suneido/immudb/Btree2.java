@@ -37,13 +37,12 @@ import com.google.common.primitives.UnsignedInts;
  * <p>
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
-//TODO keep root, since every operation needs it
 @NotThreadSafe
-class Btree2 implements TranIndex {
-	protected int splitSize() { return 20; } // overridden by test
+class Btree2 implements TranIndex, Cloneable {
+	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
-	private int root;
-	private int treeLevels;
+	private final int root;
+	int treeLevels;
 	int nnodes;
 	int totalSize;
 	private int modified = 0; // depends on all access via one instance
@@ -56,16 +55,19 @@ class Btree2 implements TranIndex {
 		root = -1;
 		treeLevels = 0;
 		nnodes = 1;
+		totalSize = 0;
 	}
 
 	/** Open an existing index */
 	Btree2(Tran tran, BtreeInfo info) {
 		this.tran = tran;
 		this.root = info.root;
+		this.rootNode = info.rootNode ;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
 		this.totalSize = info.totalSize;
-		rootNode = nodeAt(treeLevels, root);
+		if (info.rootNode == null)
+			rootNode = nodeAt(treeLevels, root);
 	}
 
 	boolean isEmpty() {
@@ -136,7 +138,7 @@ class Btree2 implements TranIndex {
 			if (node == null)
 				return true;
 		} else {
-			BtreeSplit2 split = BtreeSplit2.split(tran, node, key);
+			BtreeSplit2 split = BtreeSplit2.split(node, key);
 			++nnodes;
 			// insert up the tree, continue while nodes are full and must be split
 			for (; level >= 0; --level) {
@@ -149,7 +151,7 @@ class Btree2 implements TranIndex {
 					break;
 				}
 				// else split
-				split = BtreeSplit2.split(tran, node, split.key);
+				split = BtreeSplit2.split(node, split.key);
 				++nnodes;
 			}
 			if (level == -1) {
@@ -175,7 +177,7 @@ class Btree2 implements TranIndex {
 	private void newRoot(BtreeSplit2 split) {
 		++nnodes;
 		++treeLevels;
-		rootNode = BtreeMemNode.newRoot(tran, split);
+		rootNode = BtreeMemNode.newRoot(split);
 	}
 
 	/** size without trailing address */
@@ -285,32 +287,32 @@ class Btree2 implements TranIndex {
 		}
 	}
 
-	private Update updateUnique(Record oldkey, Record newkey) {
-		assert oldkey.size() == newkey.size();
-
-		++modified;
-
-		// search down the tree
-		int adr = root;
-		List<BtreeNode> treeNodes = Lists.newArrayList();
-		TIntArrayList adrs = new TIntArrayList();
-		for (int level = treeLevels; level > 0; --level) {
-			adrs.add(adr);
-			BtreeNode node = nodeAt(level, adr);
-			treeNodes.add(node);
-			Record slot = node.find(oldkey);
-			adr = adr(slot);
-		}
-
-		// update leaf
-		BtreeNode leaf = nodeAt(0, adr);
-		leaf = leaf.without(oldkey);
-		if (leaf == null)
-			return Update.NOT_FOUND;
-		leaf = leaf.with(newkey);
-		tran.redir(adr, leaf);
-		return Update.OK;
-	}
+//	private Update updateUnique(Record oldkey, Record newkey) {
+//		assert oldkey.size() == newkey.size();
+//
+//		++modified;
+//
+//		// search down the tree
+//		int adr = root;
+//		List<BtreeNode> treeNodes = Lists.newArrayList();
+//		TIntArrayList adrs = new TIntArrayList();
+//		for (int level = treeLevels; level > 0; --level) {
+//			adrs.add(adr);
+//			BtreeNode node = nodeAt(level, adr);
+//			treeNodes.add(node);
+//			Record slot = node.find(oldkey);
+//			adr = adr(slot);
+//		}
+//
+//		// update leaf
+//		BtreeNode leaf = nodeAt(0, adr);
+//		leaf = leaf.without(oldkey);
+//		if (leaf == null)
+//			return Update.NOT_FOUND;
+//		leaf = leaf.with(newkey);
+//		tran.redir(adr, leaf);
+//		return Update.OK;
+//	}
 
 	@Override
 	public Iter iterator() {
@@ -613,8 +615,6 @@ class Btree2 implements TranIndex {
 
 	@Override
 	public BtreeInfo info() {
-		if (IntRefs.isIntRef(root))
-			root = tran.getAdr(root);
 		return new BtreeInfo(root, treeLevels, nnodes, totalSize);
 	}
 

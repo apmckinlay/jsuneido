@@ -16,10 +16,11 @@ import com.google.common.base.Strings;
 
 /**
  * Persistent semi-immutable hash tree used for storing dbinfo and redirections.
- * loaded => immutable => with => mutable => store => immutable
+ * loaded => immutable => with => mutable => freeze/store => immutable
  * Mutable within a thread confined transaction.
  * EXCEPT even when "immutable" get will load nodes on demand
- * This uses the racy single-check idiom so no volatile or synchronized,
+ * (unless the entire tree was loaded)
+ * On demand loading uses the racy single-check idiom so no volatile or synchronized,
  * with the only drawback being that a node could get loaded by multiple threads.
  * <p>
  * Based on <a href="http://lampwww.epfl.ch/papers/idealhashtrees.pdf">
@@ -87,6 +88,8 @@ abstract class DbHashTrie {
 
 	/** call proc.apply(adr) for each new entry (where value is an intref) */
 	abstract void traverseChanges(Process proc);
+
+	abstract void freeze();
 
 	abstract int store(Translator translator);
 
@@ -257,6 +260,16 @@ abstract class DbHashTrie {
 		}
 
 		@Override
+		void freeze() {
+			if (immutable())
+				return;
+			adr = -1;
+			for (int i = 0; i < size(); ++i)
+				if (data[i] instanceof Node)
+					((Node) data[i]).freeze();
+		}
+
+		@Override
 		int store(Translator translator) {
 			if (stored())
 				return adr;
@@ -305,11 +318,11 @@ abstract class DbHashTrie {
 
 		@Override
 		boolean stored() {
-			return adr != 0;
+			return adr != 0 && adr != -1;
 		}
 		@Override
 		boolean immutable() {
-			return stored();
+			return adr == -1 || stored();
 		}
 
 		@Override

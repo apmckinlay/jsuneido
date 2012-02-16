@@ -11,7 +11,7 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Objects;
 
 /**
- * root, treeLevels, and nnodes
+ * root, treeLevels, nnodes, totalsize
  */
 @Immutable
 class BtreeInfo {
@@ -19,6 +19,7 @@ class BtreeInfo {
 	final int treeLevels;
 	final int nnodes;
 	final int totalSize;
+	final BtreeNode rootNode;
 
 	BtreeInfo(int root, int treeLevels, int nnodes, int totalSize) {
 		checkArgument(root != 0);
@@ -28,10 +29,12 @@ class BtreeInfo {
 		this.treeLevels = treeLevels;
 		this.nnodes = nnodes;
 		this.totalSize = totalSize;
+		this.rootNode = null;
 	}
 
 	@Override
 	public boolean equals(Object other) {
+assert false : "hey";
 		if (other instanceof BtreeInfo) {
 			BtreeInfo that = (BtreeInfo) other;
 			return this.root == that.root &&
@@ -52,6 +55,7 @@ class BtreeInfo {
 			.add("root", root)
 			.add("treeLevels", treeLevels)
 			.add("nnodes", nnodes)
+			.add("totalSize", totalSize)
 			.toString();
 	}
 

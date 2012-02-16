@@ -8,8 +8,8 @@ import suneido.intfc.database.IndexIter;
 
 /**
  * Interface between UpdateTransaction and database indexes.
- * Read-only access goes directly to the Btree.
- * Any writes require creating a local index which is merged with the Btree
+ * Read-only access goes directly to the Btree2.
+ * Any writes require creating a local index which is merged with the Btree2
  * using MergeIndexIter.
  * The global btree is read-only.
  * Deletes from the global btree are recorded by adding the key to the local btree.
@@ -17,10 +17,10 @@ import suneido.intfc.database.IndexIter;
  * whereas actual new keys will have intref addresses.
  */
 class OverlayTranIndex implements TranIndex {
-	private final Btree global;
-	private final Btree local;
+	private final Btree2 global;
+	private final Btree2 local;
 
-	OverlayTranIndex(Tran tran, Btree global, Btree local) {
+	OverlayTranIndex(Tran tran, Btree2 global, Btree2 local) {
 		this.global = global;
 		this.local = local;
 	}
@@ -97,7 +97,7 @@ class OverlayTranIndex implements TranIndex {
 		return null;
 	}
 
-	Btree local() {
+	Btree2 local() {
 		return local;
 	}
 

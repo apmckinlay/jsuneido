@@ -311,7 +311,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
 		TranIndex.Iter iter = src.iterator();
-		Btree btree = et().addIndex(tblnum, newIndex.colNums);
+		TranIndex btree = et().addIndex(tblnum, newIndex.colNums);
 		String colNames = table.numsToNames(newIndex.colNums);
 		IndexedData id = new IndexedData(et())
 				.index(btree, newIndex.mode(), newIndex.colNums, colNames,

@@ -17,12 +17,10 @@ import com.google.common.base.Preconditions;
 @Immutable
 class BtreeDbNode extends BtreeNode {
 	final Record rec;
-	final int adr;
 
 	BtreeDbNode(int level, ByteBuffer buf, int adr) {
 		super(level);
-		rec = Record.from(buf, 0);
-		this.adr = adr;
+		rec = Record.from(adr, buf, 0);
 	}
 
 	@Override
@@ -48,7 +46,7 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	int getAdr() {
-		return adr;
+		return rec.address();
 	}
 
 	@Override
@@ -82,7 +80,7 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	String printName() {
-		return "DbNode @ " + adr;
+		return "DbNode @ " + getAdr();
 	}
 
 }

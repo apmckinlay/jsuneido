@@ -64,12 +64,12 @@ public class BtreeMemNode extends BtreeNode {
 		this.added = added;
 	}
 
-	static BtreeNode newRoot(Tran tran, BtreeSplit split) {
+	static BtreeNode newRoot(BtreeSplit split) {
 		Record minkey = minimalKey(split.key.size(), split.left);
 		return BtreeMemNode.from(split.level + 1, minkey, split.key);
 	}
 
-	static BtreeNode newRoot(Tran tran, BtreeSplit2 split) {
+	static BtreeNode newRoot(BtreeSplit2 split) {
 		Record minkey = minimalKey(split.key.size(), split.left);
 		return BtreeMemNode.from(split.level + 1, minkey, split.key);
 	}

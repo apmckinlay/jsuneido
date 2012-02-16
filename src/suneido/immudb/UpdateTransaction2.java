@@ -75,15 +75,15 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
 		return new OverlayTranIndex(tran,
-				new Btree(tran, this, info),
-				new Btree(tran, this));
+				new Btree2(tran, info),
+				new Btree2(tran));
 	}
 
 	/** for Bootstrap and TableBuilder */
 	@Override
-	public Btree addIndex(int tblnum, int... indexColumns) {
+	public Btree2 addIndex(int tblnum, int... indexColumns) {
 		assert locked;
-		Btree btree = new Btree(tran, this);
+		Btree2 btree = new Btree2(tran);
 		indexes.put(index(tblnum, indexColumns), btree);
 		return btree;
 	}
@@ -238,7 +238,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 				try {
 					DataRecords.store(tran);
 					updateBtrees();
-//					Btree.store(tran);
+//					Btree2.store(tran);
 
 					int dbinfoAdr = udbinfo.store();
 //					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
@@ -273,8 +273,8 @@ System.out.println("updateBtrees");
 System.out.println(index);
 		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
 		TranIndex global = t.getIndex(index.tblnum, index.colNums);
-		Btree local = oti.local();
-		Btree.Iter iter = local.iterator();
+		Btree2 local = oti.local();
+		Btree2.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = translate(iter.curKey());
 System.out.println("+ " + key);
@@ -294,10 +294,10 @@ System.out.println("+ " + key);
 	private void updateOurDbinfo() {
 //		for (int tblnum : indexes.rowKeySet()) {
 //			TableInfo ti = udbinfo.get(tblnum);
-//			Map<ColNums,Btree> idxs = indexes.row(tblnum);
+//			Map<ColNums,Btree2> idxs = indexes.row(tblnum);
 //			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 //			for (IndexInfo ii : ti.indexInfo) {
-//				Btree btree = idxs.get(new ColNums(ii.columns));
+//				Btree2 btree = idxs.get(new ColNums(ii.columns));
 //				b.add((btree == null)
 //						? ii : new IndexInfo(ii.columns, btree.info()));
 //			}

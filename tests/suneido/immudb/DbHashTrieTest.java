@@ -101,6 +101,7 @@ public class DbHashTrieTest {
 	}
 
 	private void addRandom(Random rand, final int N) {
+		Random r = new Random(789);
 		for (int i = 0; i < N; ++i) {
 			int key = rand.nextInt();
 			int value = rand.nextInt();
@@ -108,6 +109,8 @@ public class DbHashTrieTest {
 			if (key == 0 || value == 0)
 				continue ;
 			add(key, value);
+			if (r.nextInt(91) == 71)
+				tree.freeze();
 		}
 	}
 
