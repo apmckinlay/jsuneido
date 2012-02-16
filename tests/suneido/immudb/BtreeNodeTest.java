@@ -239,7 +239,7 @@ public class BtreeNodeTest {
 		verify(tran).refToInt(leaf("d"));
 		assertThat(split.key, is(max("c", 456)));
 
-		BtreeNode root = BtreeMemNode.newRoot(tran, split);
+		BtreeNode root = BtreeMemNode.newRoot(split);
 		assertThat(root, is(node(1, min(999), max("c", 456))));
 	}
 
@@ -253,7 +253,7 @@ public class BtreeNodeTest {
 		verify(tran).refToInt(leaf("e", "g"));
 		assertThat(split.key, is(max("c", 456)));
 
-		BtreeNode root = BtreeMemNode.newRoot(tran, split);
+		BtreeNode root = BtreeMemNode.newRoot(split);
 		assertThat(root, is(node(1, min(999), max("c", 456))));
 	}
 

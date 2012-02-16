@@ -18,7 +18,7 @@ import suneido.language.Pack;
  * Certain operations will convert on-demand to a {@link BufRecord}
  * Effectively immutable, only bufrec changes and it is just a cache.
  * ref is used for btree key child node references.
- * It is NOT visible in any operations except pack.
+ * ref is NOT visible in any operations except pack.
  */
 public class ArrayRecord extends Record {
 	private final ArrayList<ByteBuffer> bufs;

@@ -78,8 +78,9 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		return btree;
 	}
 
+	/** Overridden in UpdateTransaction */
 	protected TranIndex getIndex(IndexInfo info) {
-		return new Btree(tran, this, info);
+		return new Btree2(tran, info);
 	}
 
 	@Override
