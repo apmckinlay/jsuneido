@@ -22,7 +22,7 @@ class IndexInfo extends BtreeInfo {
 	final int[] columns;
 
 	IndexInfo(int[] columns, BtreeInfo info) {
-		super(info.root, info.treeLevels, info.nnodes, info.totalSize);
+		super(info.root, info.rootNode, info.treeLevels, info.nnodes, info.totalSize);
 		this.columns = columns;
 	}
 
@@ -69,6 +69,7 @@ class IndexInfo extends BtreeInfo {
 		return Objects.toStringHelper(this)
 			.add("columns", Arrays.toString(columns))
 			.add("root", root)
+			.add("rootNode", rootNode)
 			.add("treeLevels", treeLevels)
 			.add("nnodes", nnodes)
 			.add("totalSize", totalSize)

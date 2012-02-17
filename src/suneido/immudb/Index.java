@@ -14,6 +14,7 @@ import suneido.immudb.IndexedData.Mode;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
@@ -135,11 +136,11 @@ class Index implements Comparable<Index> {
 
 	@Override
 	public int compareTo(Index that) {
-		return this.colNumsString().compareTo(that.colNumsString());
-	}
-
-	private String colNumsString() {
-		return colNumsToString(colNums);
+		return ComparisonChain.start()
+				.compare(this.tblnum, that.tblnum)
+				.compare(this.colNums, that.colNums,
+						Ints.lexicographicalComparator())
+				.result();
 	}
 
 	@Override

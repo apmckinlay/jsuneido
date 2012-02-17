@@ -41,7 +41,6 @@ import com.google.common.primitives.UnsignedInts;
 class Btree2 implements TranIndex, Cloneable {
 	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
-	private final int root;
 	int treeLevels;
 	int nnodes;
 	int totalSize;
@@ -52,7 +51,6 @@ class Btree2 implements TranIndex, Cloneable {
 	Btree2(Tran tran) {
 		this.tran = tran;
 		rootNode = BtreeNode.emptyLeaf();
-		root = -1;
 		treeLevels = 0;
 		nnodes = 1;
 		totalSize = 0;
@@ -61,13 +59,12 @@ class Btree2 implements TranIndex, Cloneable {
 	/** Open an existing index */
 	Btree2(Tran tran, BtreeInfo info) {
 		this.tran = tran;
-		this.root = info.root;
 		this.rootNode = info.rootNode ;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
 		this.totalSize = info.totalSize;
 		if (info.rootNode == null)
-			rootNode = nodeAt(treeLevels, root);
+			rootNode = nodeAt(treeLevels, info.root);
 	}
 
 	boolean isEmpty() {
@@ -574,10 +571,6 @@ class Btree2 implements TranIndex, Cloneable {
 		}
 	}
 
-	int root() {
-		return root;
-	}
-
 	int treeLevels() {
 		return treeLevels;
 	}
@@ -615,7 +608,7 @@ class Btree2 implements TranIndex, Cloneable {
 
 	@Override
 	public BtreeInfo info() {
-		return new BtreeInfo(root, treeLevels, nnodes, totalSize);
+		return new BtreeInfo(0, rootNode, treeLevels, nnodes, totalSize);
 	}
 
 	@Override
@@ -649,7 +642,7 @@ class Btree2 implements TranIndex, Cloneable {
 	 * @param start the fraction into the index where this node starts
 	 * @param nodefrac the fraction of the index under this node
 	 */
-	private float keyfracpos(BtreeNode node, Record key, float start, float nodefrac) {
+	private static float keyfracpos(BtreeNode node, Record key, float start, float nodefrac) {
 		assert node.size() > 0;
 		int i = node.lowerBound(key);
 		return start + (nodefrac * i) / node.size();

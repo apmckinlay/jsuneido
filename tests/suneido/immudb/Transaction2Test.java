@@ -44,7 +44,7 @@ public class Transaction2Test {
 		t.addRecord("tmp", rec(123, "foo"));
 		check(t, "tmp", rec(123, "foo"));
 
-//		check(db.readonlyTran(), "tmp", rec(123, "foo"));
+		check(db.readonlyTran(), "tmp", rec(123, "foo"));
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {
