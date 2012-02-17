@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -15,6 +16,7 @@ import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -234,21 +236,18 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		}
 		try {
 			synchronized(db.commitLock) {
-				tran.startStore();
+				storeData();
+				// use a read transaction to get access to global indexes
+				ReadTransaction2 t = db.readonlyTran();
 				try {
-					DataRecords.store(tran);
-					updateBtrees();
-//					Btree2.store(tran);
-
-					int dbinfoAdr = udbinfo.store();
-//					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
+					updateBtrees(t);
+					UpdateDbInfo udbi = new UpdateDbInfo(stor, t.rdbinfo.dbinfo);
+					updateDbInfo(t.indexes, udbi);
+					udbi.dbinfo().freeze();
+					db.setState(new DatabaseState2(udbi.dbinfo(), newSchema));
 				} finally {
-					tran.endStore();
+					t.complete();
 				}
-
-//				db.setDbinfo(udbinfo.dbinfo());
-				updateSchema();
-
 				commitTime = trans.clock();
 				trans.commit(this);
 			}
@@ -261,9 +260,18 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		return null;
 	}
 
-	private void updateBtrees() {
+	private void storeData() {
+		tran.startStore();
+		try {
+			DataRecords.store(tran);
+		} finally {
+			tran.endStore();
+		}
+	}
+
+	private void updateBtrees(ImmuReadTran t) {
 System.out.println("updateBtrees");
-		ImmuReadTran t = db.readonlyTran();
+		//TODO update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
 			updateBtree(t, e);
 	}
@@ -278,8 +286,9 @@ System.out.println(index);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = translate(iter.curKey());
 System.out.println("+ " + key);
-			global.add(key, true);
+			global.add(key, true); // TODO handle duplicate failure
 		}
+		((Btree2) global).freeze();
 	}
 
 	private Record translate(Record key) {
@@ -291,7 +300,37 @@ System.out.println("+ " + key);
 		return rb.build();
 	}
 
-	private void updateOurDbinfo() {
+	 static void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbinfo) {
+		if (indexes.isEmpty())
+			return;
+System.out.println("update dbinfo");
+		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
+		Entry<Index,TranIndex> e = iter.next();
+		int tblnum = e.getKey().tblnum;
+		do {
+			// before table
+			TableInfo ti = udbinfo.get(tblnum);
+System.out.println("before " + ti);
+			// indexes
+			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+			do {
+System.out.println(e.getKey());
+				Btree2 btree = (Btree2) e.getValue();
+				b.add(new IndexInfo(e.getKey().colNums, btree.info()));
+				if (! iter.hasNext())
+					break;
+				e = iter.next();
+			} while (e.getKey().tblnum == tblnum);
+
+			// after table
+			ti = new TableInfo(
+					tblnum, ti.nextfield, ti.nrows(), ti.totalsize(), b.build());
+System.out.println("after " + ti);
+			udbinfo.add(ti);
+		} while (iter.hasNext());
+	}
+
+//	private void updateOurDbinfo() {
 //		for (int tblnum : indexes.rowKeySet()) {
 //			TableInfo ti = udbinfo.get(tblnum);
 //			Map<ColNums,Btree2> idxs = indexes.row(tblnum);
@@ -305,7 +344,7 @@ System.out.println("+ " + key);
 //					b.build());
 //			udbinfo.add(ti);
 //		}
-	}
+//	}
 
 	static final int INT_SIZE = 4;
 
@@ -315,15 +354,15 @@ System.out.println("+ " + key);
 		buf.putInt(redirs);
 	}
 
-	private void updateSchema() {
-		if (newSchema == schema)
-			return; // no schema changes in this transaction
-
+//	private void updateSchema() {
+//		if (newSchema == schema)
+//			return; // no schema changes in this transaction
+//
 //		if (db.schema != schema)
 //			throw schemaConflict;
 //
 //		db.schema = newSchema;
-	}
+//	}
 
 	private static final Conflict schemaConflict =
 			new Conflict("concurrent schema modification");

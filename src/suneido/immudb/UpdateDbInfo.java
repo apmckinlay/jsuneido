@@ -80,17 +80,17 @@ class UpdateDbInfo {
 		if (current == original)
 			return; // no concurrent changes to merge
 
-		Proc proc = new Proc(original, current);
+		MergeProc proc = new MergeProc(original, current);
 		dbinfo.traverseChanges(proc);
 		dbinfo = proc.merged;
 	}
 
-	private static class Proc implements DbHashTrie.Process {
+	private static class MergeProc implements DbHashTrie.Process {
 		private final DbHashTrie original;
 		private final DbHashTrie current;
 		private DbHashTrie merged;
 
-		Proc(DbHashTrie original, DbHashTrie current) {
+		MergeProc(DbHashTrie original, DbHashTrie current) {
 			this.original = original;
 			this.current = current;
 			merged = current;

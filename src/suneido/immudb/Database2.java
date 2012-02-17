@@ -24,7 +24,7 @@ class Database2 implements suneido.intfc.database.Database {
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
-	volatile DatabaseState state;
+	volatile DatabaseState2 state;
 
 	// create
 
@@ -34,18 +34,16 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	static Database2 create(Storage stor) {
-		Database2 db = new Database2(stor, DbHashTrie.empty(stor),
-				DbHashTrie.empty(stor), new Tables());
+		Database2 db = new Database2(stor, DbHashTrie.empty(stor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
 		return db;
 	}
 
-	private Database2(Storage stor,
-			DbHashTrie dbinfo, DbHashTrie redirs, Tables schema) {
+	private Database2(Storage stor, DbHashTrie dbinfo, Tables schema) {
 		this.stor = stor;
-		state = new DatabaseState(dbinfo, redirs, null);
+		state = new DatabaseState2(dbinfo, null);
 		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
-		state = new DatabaseState(dbinfo, redirs, schema);
+		state = new DatabaseState2(dbinfo, schema);
 	}
 
 	// open
@@ -71,9 +69,7 @@ class Database2 implements suneido.intfc.database.Database {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
-		adr = buf.getInt();
-		DbHashTrie redirs = DbHashTrie.from(stor, adr);
-		return new Database2(stor, dbinfo, redirs);
+		return new Database2(stor, dbinfo);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
@@ -105,8 +101,8 @@ class Database2 implements suneido.intfc.database.Database {
 		return DbCheck.check(stor);
 	}
 
-	private Database2(Storage stor, DbHashTrie dbinfo, DbHashTrie redirs) {
-		this(stor, dbinfo, redirs, null);
+	private Database2(Storage stor, DbHashTrie dbinfo) {
+		this(stor, dbinfo, null);
 	}
 
 	// used by DbCheck
@@ -265,6 +261,11 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public void checkTransEmpty() {
 		trans.checkTransEmpty();
+	}
+
+	/** called by transaction commit */
+	void setState(DatabaseState2 state) {
+		this.state = state;
 	}
 
 }

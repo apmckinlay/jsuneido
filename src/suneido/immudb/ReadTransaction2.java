@@ -29,7 +29,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 	protected final Database2 db;
 	protected final Storage stor;
 	protected final Tran tran;
-	protected final DatabaseState dbstate;
+	protected final DatabaseState2 dbstate;
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
@@ -43,7 +43,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		dbstate = db.state;
 		schema = dbstate.schema;
 		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
-		tran = new Tran(stor, new Redirects(dbstate.redirs));
+		tran = new Tran(stor, new Redirects(DbHashTrie.empty(stor)));
 		trans = db.trans;
 		trans.add(this);
 	}
