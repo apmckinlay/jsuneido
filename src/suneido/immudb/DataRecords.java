@@ -18,8 +18,8 @@ class DataRecords {
 			if (! (x instanceof Record))
 				continue;
 			int intref = i | IntRefs.MASK;
-			Record r = (Record) tran.intToRef(intref);
-			tran.setAdr(intref, r.store(tran.stor));
+			assert (Record) tran.intToRef(intref) == x;
+			tran.setAdr(intref, ((Record) x).store(tran.stor));
 		}
 	}
 

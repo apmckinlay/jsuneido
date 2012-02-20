@@ -20,7 +20,7 @@ class OverlayTranIndex implements TranIndex {
 	private final Btree2 global;
 	private final Btree2 local;
 
-	OverlayTranIndex(Tran tran, Btree2 global, Btree2 local) {
+	OverlayTranIndex(Btree2 global, Btree2 local) {
 		this.global = global;
 		this.local = local;
 	}
@@ -35,8 +35,8 @@ class OverlayTranIndex implements TranIndex {
 	@Override
 	public int get(Record key) {
 		int adr = local.get(key);
-		if (adr == 0 || ! IntRefs.isIntRef(adr))
-			return 0;
+		if (adr != 0)
+			return IntRefs.isIntRef(adr) ? adr : 0;
 		return global.get(key);
 	}
 

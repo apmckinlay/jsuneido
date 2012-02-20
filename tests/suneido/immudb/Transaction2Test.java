@@ -5,6 +5,8 @@
 package suneido.immudb;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -29,7 +31,7 @@ public class Transaction2Test {
 	}
 
 	@Test
-	public void update() {
+	public void add_remove() {
 		Storage stor = new MemStorage(1024, 1024);
 		Database db1 = Database.create(stor);
 		db1.createTable("tmp")
@@ -40,11 +42,32 @@ public class Transaction2Test {
 		db1.close();
 
 		Database2 db = Database2.open(stor);
+
 		ImmuUpdateTran t = db.readwriteTran();
+		int tblnum = t.getTable("tmp").num;
 		t.addRecord("tmp", rec(123, "foo"));
+		assertNotNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
 		check(t, "tmp", rec(123, "foo"));
 
+		ImmuReadTran rt = db.readonlyTran();
+		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
+		rt.complete();
+
 		check(db.readonlyTran(), "tmp", rec(123, "foo"));
+
+		t = db.readwriteTran();
+		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
+		t.removeRecord(tblnum, r);
+		assertNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
+		check(t, "tmp");
+
+		t = db.readwriteTran();
+		t.addRecord(tblnum, rec(456, "bar"));
+		r = t.lookup(tblnum, new int[] { 0 }, rec(456));
+		t.removeRecord(tblnum, r);
+		check(t, "tmp");
+
+		check(db.readonlyTran(), "tmp");
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

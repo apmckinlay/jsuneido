@@ -24,6 +24,7 @@ class Database2 implements suneido.intfc.database.Database {
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
+	/** only updated when holding commitLock */
 	volatile DatabaseState2 state;
 
 	// create
