@@ -40,6 +40,15 @@ public class ExclusiveTransaction extends UpdateTransaction
 	void verifyNotSystemTable(int tblnum, String what) {
 	}
 
+	// used by Bootstrap and TableBuilder
+	@Override
+	public Btree addIndex(Index index) {
+		assert locked;
+		Btree btree = new Btree(tran, this);
+		indexes.put(index.tblnum, new ColNums(index.colNums), btree);
+		return btree;
+	}
+
 	// used by TableBuilder
 	@Override
 	public void addSchemaTable(Table tbl) {

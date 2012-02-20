@@ -5,6 +5,8 @@
 package suneido;
 
 /*
+ -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
+
  CheckLibraries(Libraries())
  CheckLibrary('stdlib')
 
@@ -24,8 +26,6 @@ package suneido;
 
  BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
  Create_DemoData('CAD')
-
- -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
  */
 
 import java.io.BufferedReader;

@@ -14,4 +14,6 @@ interface ImmuExclTran extends ImmuUpdateTran {
 
 	void addSchemaTable(Table newTable);
 
+	TranIndex addIndex(Index index);
+
 }

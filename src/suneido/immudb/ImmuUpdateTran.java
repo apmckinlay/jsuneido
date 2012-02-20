@@ -12,8 +12,6 @@ interface ImmuUpdateTran extends ImmuReadTran {
 
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey);
 
-	TranIndex addIndex(int tblnum, int... colNums);
-
 	void addRecord(int indexes, Record record);
 
 }

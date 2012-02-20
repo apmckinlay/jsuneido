@@ -45,9 +45,9 @@ class Bootstrap {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
-		t.addIndex(TN.TABLES, indexColumns[TN.TABLES]);
-		t.addIndex(TN.COLUMNS, indexColumns[TN.COLUMNS]);
-		t.addIndex(TN.INDEXES, indexColumns[TN.INDEXES]);
+		t.addIndex(ReadTransaction2.tables_index);
+		t.addIndex(ReadTransaction2.columns_index);
+		t.addIndex(ReadTransaction2.indexes_index);
 	}
 
 	private static void create_tables(ImmuExclTran t) {

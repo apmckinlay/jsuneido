@@ -8,16 +8,20 @@ import suneido.SuException;
 import suneido.util.ThreadConfined;
 
 /**
+ * Used for schema changes and for load and compact.
+ * Changes are made directly to master btrees (no overlay).
  * Load and compact bend the rules and write data prior to commit
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
 public class ExclusiveTransaction2 extends UpdateTransaction2
 		implements ImmuExclTran {
-	protected Tables newSchema;
+	private final UpdateDbInfo udbinfo;
+	private Tables newSchema;
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
+		udbinfo = new UpdateDbInfo(stor, dbstate.dbinfo);
 		newSchema = schema;
 		tran.allowStore();
 	}
@@ -33,14 +37,20 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	protected void unlock() {
+		tran.endStore();
 		db.exclusiveLock.writeLock().unlock();
 		locked = false;
 	}
 
-	// override UpdateTransaction
+	@Override
+	public TableInfo getTableInfo(int tblnum) {
+		return udbinfo.get(tblnum);
+	}
+
+	// override UpdateTransaction (back to the same as ReadTransaction)
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
-		return new Btree(tran, this, info);
+		return new Btree2(tran, info);
 	}
 
 	@Override
@@ -55,6 +65,20 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	void verifyNotSystemTable(int tblnum, String what) {
+	}
+
+	@Override
+	protected void updateRowInfo(int tblnum, int nrows, int size) {
+		udbinfo.updateRowInfo(tblnum, nrows, size);
+	}
+
+	// used by Bootstrap and TableBuilder
+	@Override
+	public Btree2 addIndex(Index index) {
+		assert locked;
+		Btree2 btree = new Btree2(tran);
+		indexes.put(index, btree);
+		return btree;
 	}
 
 	// used by TableBuilder
@@ -95,24 +119,21 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		return adr;
 	}
 
-//	@Override
-//	protected void mergeDatabaseDbInfo() {
-//		assert rdbinfo.dbinfo == db.getDbinfo();
-//	}
-//
-//	@Override
-//	protected void mergeRedirs() {
-//		tran.assertNoRedirChanges(db.getRedirs());
-//	}
+	@Override
+	protected void storeData() {
+		// not required since we are storing as we go
+	}
 
-//	// used by DbLoad
-//	void saveBtrees() {
-//		tran.intrefs.startStore();
-//		Btree.store(tran);
-//		for (Btree btree : indexes.values())
-//			btree.info(); // convert roots from intrefs
-//		tran.intrefs.clear();
-//	}
+	@Override
+	protected void updateBtrees(ImmuReadTran t) {
+		// not required since we are updating master directly
+	}
+
+	@Override
+	protected void updateDbInfo(ReadTransaction2 t) {
+		udbinfo.dbinfo().freeze();
+		db.setState(new DatabaseState2(udbinfo.dbinfo(), newSchema));
+	}
 
 	@Override
 	public void abort() {
@@ -124,14 +145,6 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		} finally {
 			super.abort();
 		}
-	}
-
-	@Override
-	public void readLock(int adr) {
-	}
-
-	@Override
-	public void writeLock(int adr) {
 	}
 
 	@Override
