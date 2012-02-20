@@ -552,6 +552,7 @@ class Btree2 implements TranIndex, Cloneable {
 		return new BtreeDbNode(level, tran.stor.buffer(adr), adr);
 	}
 
+	//TODO squeeze
 	void freeze() {
 		rootNode.freeze();
 	}

@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import gnu.trove.iterator.TIntIterator;
+
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -20,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 
 /**
  * Transactions must be thread confined.
@@ -31,7 +34,6 @@ import com.google.common.primitives.Longs;
 @ThreadConfined
 class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	protected final UpdateDbInfo udbinfo;
-	protected Tables newSchema;
 	protected boolean locked = false;
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
@@ -42,7 +44,6 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	UpdateTransaction2(int num, Database2 db) {
 		super(num, db);
 		udbinfo = new UpdateDbInfo(stor, dbstate.dbinfo);
-		newSchema = schema;
 		asof = db.trans.clock();
 		lock(db);
 	}
@@ -60,25 +61,13 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	}
 
 	@Override
-	public Table getTable(String tableName) {
-		return newSchema.get(tableName);
-	}
-
-	@Override
-	public Table getTable(int tblnum) {
-		return newSchema.get(tblnum);
-	}
-
-	@Override
 	public TableInfo getTableInfo(int tblnum) {
 		return udbinfo.get(tblnum);
 	}
 
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
-		return new OverlayTranIndex(tran,
-				new Btree2(tran, info),
-				new Btree2(tran));
+		return new OverlayTranIndex(new Btree2(tran, info), new Btree2(tran));
 	}
 
 	/** for Bootstrap and TableBuilder */
@@ -234,8 +223,10 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			abort();
 			return null;
 		}
+System.out.println("COMMIT =====================");
 		try {
 			synchronized(db.commitLock) {
+				//TODO read validation
 				storeData();
 				// use a read transaction to get access to global indexes
 				ReadTransaction2 t = db.readonlyTran();
@@ -244,7 +235,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 					UpdateDbInfo udbi = new UpdateDbInfo(stor, t.rdbinfo.dbinfo);
 					updateDbInfo(t.indexes, udbi);
 					udbi.dbinfo().freeze();
-					db.setState(new DatabaseState2(udbi.dbinfo(), newSchema));
+					db.setState(new DatabaseState2(udbi.dbinfo(), db.state.schema));
 				} finally {
 					t.complete();
 				}
@@ -263,14 +254,41 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private void storeData() {
 		tran.startStore();
 		try {
-			DataRecords.store(tran);
+			storeAdds();
+			storeRemoves();
 		} finally {
 			tran.endStore();
 		}
 	}
 
+	private void storeAdds() {
+		int i = -1;
+		for (Object x : tran.intrefs) {
+			++i;
+			if (x instanceof Record) { // add
+System.out.print("store add " + x);
+				int intref = i | IntRefs.MASK;
+				assert (Record) tran.intToRef(intref) == x;
+				tran.setAdr(intref, ((Record) x).store(tran.stor));
+System.out.println(" @" + tran.getAdr(intref));
+			}
+		}
+	}
+
+	private void storeRemoves() {
+		int nr = tran.removes.size();
+		int size = Shorts.BYTES + (1 + nr) * Ints.BYTES;
+		ByteBuffer buf = stor.buffer(stor.alloc(size));
+		buf.putShort((short) 0xffff); // mark start of removes
+		buf.putInt(nr);
+		for (TIntIterator iter = tran.removes.iterator(); iter.hasNext(); ) {
+			int adr = iter.next();
+System.out.println("store remove " + adr);
+			buf.putInt(adr);
+		}
+	}
+
 	private void updateBtrees(ImmuReadTran t) {
-System.out.println("updateBtrees");
 		//TODO update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
 			updateBtree(t, e);
@@ -278,15 +296,16 @@ System.out.println("updateBtrees");
 
 	private void updateBtree(ImmuReadTran t, Entry<Index, TranIndex> e) {
 		Index index = e.getKey();
-System.out.println(index);
 		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
 		TranIndex global = t.getIndex(index.tblnum, index.colNums);
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record key = translate(iter.curKey());
-System.out.println("+ " + key);
-			global.add(key, true); // TODO handle duplicate failure
+			Record key = iter.curKey();
+			if (IntRefs.isIntRef(BtreeNode.adr(key)))
+				global.add(translate(key), true); // TODO handle duplicate failure
+			else
+				global.remove(key);
 		}
 		((Btree2) global).freeze();
 	}
@@ -303,18 +322,15 @@ System.out.println("+ " + key);
 	 static void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbinfo) {
 		if (indexes.isEmpty())
 			return;
-System.out.println("update dbinfo");
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		Entry<Index,TranIndex> e = iter.next();
 		int tblnum = e.getKey().tblnum;
 		do {
 			// before table
 			TableInfo ti = udbinfo.get(tblnum);
-System.out.println("before " + ti);
 			// indexes
 			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 			do {
-System.out.println(e.getKey());
 				Btree2 btree = (Btree2) e.getValue();
 				b.add(new IndexInfo(e.getKey().colNums, btree.info()));
 				if (! iter.hasNext())
@@ -325,26 +341,9 @@ System.out.println(e.getKey());
 			// after table
 			ti = new TableInfo(
 					tblnum, ti.nextfield, ti.nrows(), ti.totalsize(), b.build());
-System.out.println("after " + ti);
 			udbinfo.add(ti);
 		} while (iter.hasNext());
 	}
-
-//	private void updateOurDbinfo() {
-//		for (int tblnum : indexes.rowKeySet()) {
-//			TableInfo ti = udbinfo.get(tblnum);
-//			Map<ColNums,Btree2> idxs = indexes.row(tblnum);
-//			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
-//			for (IndexInfo ii : ti.indexInfo) {
-//				Btree2 btree = idxs.get(new ColNums(ii.columns));
-//				b.add((btree == null)
-//						? ii : new IndexInfo(ii.columns, btree.info()));
-//			}
-//			ti = new TableInfo(tblnum, ti.nextfield, ti.nrows(), ti.totalsize(),
-//					b.build());
-//			udbinfo.add(ti);
-//		}
-//	}
 
 	static final int INT_SIZE = 4;
 
@@ -353,19 +352,6 @@ System.out.println("after " + ti);
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);
 	}
-
-//	private void updateSchema() {
-//		if (newSchema == schema)
-//			return; // no schema changes in this transaction
-//
-//		if (db.schema != schema)
-//			throw schemaConflict;
-//
-//		db.schema = newSchema;
-//	}
-
-	private static final Conflict schemaConflict =
-			new Conflict("concurrent schema modification");
 
 	static class Conflict extends SuException {
 		private static final long serialVersionUID = 1L;
@@ -403,24 +389,11 @@ System.out.println("after " + ti);
 		return conflict ;
 	}
 
-	private void notEnded() {
-		if (isEnded())
-			throw new SuException("cannot use ended transaction");
-	}
-
-	private boolean isActive() {
-		return ! isEnded();
-	}
-
 	@Override
 	public void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
 		throw new SuException("transaction " + conflict);
-	}
-
-	private boolean committedAfter(UpdateTransaction2 t) {
-		return isCommitted() && commitTime > t.asof;
 	}
 
 	// need for PriorityQueue's in Transactions

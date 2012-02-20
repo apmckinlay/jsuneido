@@ -12,6 +12,8 @@ import java.util.Iterator;
 
 import suneido.language.Pack;
 
+import com.google.common.primitives.UnsignedInts;
+
 /**
  * Abstract base class with common code for BufRecord and ArrayRecord.
  * Records stored in the database are prefixed with their table number.
@@ -228,6 +230,8 @@ abstract class Record implements suneido.intfc.database.Record {
 		if (sb.length() > 1)
 			sb.deleteCharAt(sb.length() - 1);
 		sb.append("]");
+		if (address != 0)
+			sb.append("@").append(UnsignedInts.toString(address));
 		return sb.toString();
 	}
 

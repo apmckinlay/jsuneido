@@ -14,9 +14,11 @@ import suneido.util.ThreadConfined;
 @ThreadConfined
 public class ExclusiveTransaction2 extends UpdateTransaction2
 		implements ImmuExclTran {
+	protected Tables newSchema;
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
+		newSchema = schema;
 		tran.allowStore();
 	}
 
@@ -39,6 +41,16 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
 		return new Btree(tran, this, info);
+	}
+
+	@Override
+	public Table getTable(String tableName) {
+		return newSchema.get(tableName);
+	}
+
+	@Override
+	public Table getTable(int tblnum) {
+		return newSchema.get(tblnum);
 	}
 
 	@Override

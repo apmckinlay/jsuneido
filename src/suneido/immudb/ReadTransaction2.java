@@ -43,7 +43,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		dbstate = db.state;
 		schema = dbstate.schema;
 		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
-		tran = new Tran(stor, new Redirects(DbHashTrie.empty(stor)));
+		tran = new Tran(stor);
 		trans = db.trans;
 		trans.add(this);
 	}
@@ -319,6 +319,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		return getIndex(tblnum, columns).iterator();
 	}
 
+	//PERF if key and org == end, could use get instead of iterator
 	@Override
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {

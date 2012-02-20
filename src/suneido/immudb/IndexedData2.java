@@ -77,19 +77,32 @@ class IndexedData2 {
 			adr = firstKey().getKeyAdr(rec);
 		if (adr == 0)
 			throw new SuException("remove couldn't find record");
+		trackRemove(adr);
 		//TODO check if record exists (in case it was already deleted)
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				t.abortThrow("aborted: index remove failed (possible corruption)");
 	}
 
+	static final Object removed = new Object();
+
+	private void trackRemove(int adr) {
+		if (IntRefs.isIntRef(adr))
+			tran.redir(adr, removed); // not really redir, just updates intref
+		else
+			tran.trackRemove(adr);
+	}
+
 	void update(Record from, Record to) {
 		for (AnIndex index : indexes)
 			index.fkeyHandleUpdate(from, to);
 
-		int fromIntref = firstKey().getKeyAdr(from);
+		int fromIntref = from.address();
+		if (fromIntref == 0)
+			fromIntref = firstKey().getKeyAdr(from);
 		if (fromIntref == 0)
 			throw new SuException("update couldn't find record");
+		trackRemove(fromIntref);
 		int toIntref = tran.refToInt(to);
 		for (AnIndex index : indexes)
 			switch (index.update(from, fromIntref, to, toIntref)) {
