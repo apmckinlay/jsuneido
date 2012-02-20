@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
@@ -33,17 +34,17 @@ import com.google.common.primitives.Shorts;
  */
 @ThreadConfined
 class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
-	protected final UpdateDbInfo udbinfo;
 	protected boolean locked = false;
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private String conflict = null;
 	private final boolean onlyReads = false;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	private final TIntObjectHashMap<TableInfoDelta> tidelta =
+			new TIntObjectHashMap<TableInfoDelta>();
 
 	UpdateTransaction2(int num, Database2 db) {
 		super(num, db);
-		udbinfo = new UpdateDbInfo(stor, dbstate.dbinfo);
 		asof = db.trans.clock();
 		lock(db);
 	}
@@ -61,22 +62,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	}
 
 	@Override
-	public TableInfo getTableInfo(int tblnum) {
-		return udbinfo.get(tblnum);
-	}
-
-	@Override
 	protected TranIndex getIndex(IndexInfo info) {
 		return new OverlayTranIndex(new Btree2(tran, info), new Btree2(tran));
-	}
-
-	/** for Bootstrap and TableBuilder */
-	@Override
-	public Btree2 addIndex(int tblnum, int... indexColumns) {
-		assert locked;
-		Btree2 btree = new Btree2(tran);
-		indexes.put(index(tblnum, indexColumns), btree);
-		return btree;
 	}
 
 	@Override
@@ -91,7 +78,27 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		rec.tblnum = tblnum;
 		indexedData(tblnum).add(rec);
 		callTrigger(getTable(tblnum), null, rec);
-		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
+		updateRowInfo(tblnum, 1, rec.bufSize());
+	}
+
+	protected void updateRowInfo(int tblnum, int nrows, int size) {
+		tidelta(tblnum).update(nrows, size);
+	}
+	private TableInfoDelta tidelta(int tblnum) {
+		TableInfoDelta d = tidelta.get(tblnum);
+		if (d == null)
+			tidelta.put(tblnum, d = new TableInfoDelta());
+		return d;
+	}
+
+	@Override
+	public int tableCount(int tblnum) {
+		return getTableInfo(tblnum).nrows() + tidelta(tblnum).nrows;
+	}
+
+	@Override
+	public long tableSize(int tblnum) {
+		return getTableInfo(tblnum).totalsize() + tidelta(tblnum).size;
 	}
 
 	@Override
@@ -117,7 +124,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
 		callTrigger(ck_getTable(tblnum), from, to);
-		udbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
+		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 	}
 
 	// used by foreign key cascade
@@ -147,7 +154,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		assert locked;
 		indexedData(tblnum).remove((Record) rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
-		udbinfo.updateRowInfo(tblnum, -1, -rec.bufSize());
+		updateRowInfo(tblnum, -1, -rec.bufSize());
 	}
 
 	// used by foreign key cascade
@@ -213,6 +220,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		return isEnded() && !isCommitted();
 	}
 
+	// complete ================================================================
+
 	// TODO if exception during commit, nullify by writing same trailer as last commit
 	@Override
 	public String complete() {
@@ -232,10 +241,7 @@ System.out.println("COMMIT =====================");
 				ReadTransaction2 t = db.readonlyTran();
 				try {
 					updateBtrees(t);
-					UpdateDbInfo udbi = new UpdateDbInfo(stor, t.rdbinfo.dbinfo);
-					updateDbInfo(t.indexes, udbi);
-					udbi.dbinfo().freeze();
-					db.setState(new DatabaseState2(udbi.dbinfo(), db.state.schema));
+					updateDbInfo(t);
 				} finally {
 					t.complete();
 				}
@@ -251,7 +257,9 @@ System.out.println("COMMIT =====================");
 		return null;
 	}
 
-	private void storeData() {
+	// store data --------------------------------------------------------------
+
+	protected void storeData() {
 		tran.startStore();
 		try {
 			storeAdds();
@@ -268,7 +276,7 @@ System.out.println("COMMIT =====================");
 			if (x instanceof Record) { // add
 System.out.print("store add " + x);
 				int intref = i | IntRefs.MASK;
-				assert (Record) tran.intToRef(intref) == x;
+				assert tran.intToRef(intref) == x;
 				tran.setAdr(intref, ((Record) x).store(tran.stor));
 System.out.println(" @" + tran.getAdr(intref));
 			}
@@ -288,7 +296,9 @@ System.out.println("store remove " + adr);
 		}
 	}
 
-	private void updateBtrees(ImmuReadTran t) {
+	// update btrees -----------------------------------------------------------
+
+	protected void updateBtrees(ImmuReadTran t) {
 		//TODO update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
 			updateBtree(t, e);
@@ -319,7 +329,16 @@ System.out.println("store remove " + adr);
 		return rb.build();
 	}
 
-	 static void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbinfo) {
+	// update dbinfo -----------------------------------------------------------
+
+	protected void updateDbInfo(ReadTransaction2 t) {
+		UpdateDbInfo udbi = new UpdateDbInfo(stor, db.state.dbinfo);
+		updateDbInfo(t.indexes, udbi);
+		udbi.dbinfo().freeze();
+		db.setState(new DatabaseState2(udbi.dbinfo(), db.state.schema));
+	}
+
+	void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbi) {
 		if (indexes.isEmpty())
 			return;
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
@@ -327,7 +346,8 @@ System.out.println("store remove " + adr);
 		int tblnum = e.getKey().tblnum;
 		do {
 			// before table
-			TableInfo ti = udbinfo.get(tblnum);
+			TableInfo ti = udbi.get(tblnum);
+
 			// indexes
 			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 			do {
@@ -339,19 +359,14 @@ System.out.println("store remove " + adr);
 			} while (e.getKey().tblnum == tblnum);
 
 			// after table
-			ti = new TableInfo(
-					tblnum, ti.nextfield, ti.nrows(), ti.totalsize(), b.build());
-			udbinfo.add(ti);
+			TableInfoDelta d = tidelta(tblnum);
+			ti = new TableInfo(tblnum, ti.nextfield,
+					ti.nrows() + d.nrows, ti.totalsize() + d.size, b.build());
+			udbi.add(ti);
 		} while (iter.hasNext());
 	}
 
-	static final int INT_SIZE = 4;
-
-	protected void store(int dbinfo, int redirs) {
-		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
-		buf.putInt(dbinfo);
-		buf.putInt(redirs);
-	}
+	// end of complete =========================================================
 
 	static class Conflict extends SuException {
 		private static final long serialVersionUID = 1L;
@@ -409,6 +424,16 @@ System.out.println("store remove " + adr);
 			return Longs.compare(t1.asof, t2.asof);
 		}
 	};
+
+	private static class TableInfoDelta {
+		int nrows = 0;
+		long size = 0;
+
+		void update(int nrows, int size) {
+			this.nrows += nrows;
+			this.size += size;
+		}
+	}
 
 	@Override
 	public String toString() {

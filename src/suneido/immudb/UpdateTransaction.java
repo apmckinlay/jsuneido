@@ -80,15 +80,6 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 		return udbinfo.get(tblnum);
 	}
 
-	/** for Bootstrap and TableBuilder */
-	@Override
-	public Btree addIndex(int tblnum, int... indexColumns) {
-		assert locked;
-		Btree btree = new Btree(tran, this);
-		indexes.put(tblnum, new ColNums(indexColumns), btree);
-		return btree;
-	}
-
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record rec) {
 		addRecord(getTable(table).num, (Record) rec);

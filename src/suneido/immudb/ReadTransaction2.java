@@ -24,7 +24,7 @@ import com.google.common.collect.Maps;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction2 implements ImmuReadTran, Locking {
+class ReadTransaction2 implements ImmuReadTran {
 	protected final int num;
 	protected final Database2 db;
 	protected final Storage stor;
@@ -85,14 +85,15 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 
 	@Override
 	public boolean hasIndex(int tblnum, int[] colNums) {
-		return indexes.containsKey(index(tblnum, colNums));
+		Index index = index(tblnum, colNums);
+		return index != null && indexes.containsKey(index);
 	}
 
-	private static final Index tables_index =
+	static final Index tables_index =
 			new Index(TN.TABLES, Bootstrap.indexColumns[TN.TABLES]);
-	private static final Index columns_index =
+	static final Index columns_index =
 			new Index(TN.COLUMNS, Bootstrap.indexColumns[TN.COLUMNS]);
-	private static final Index indexes_index =
+	static final Index indexes_index =
 			new Index(TN.INDEXES, Bootstrap.indexColumns[TN.INDEXES]);
 
 	/**
@@ -105,7 +106,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		case TN.COLUMNS: return columns_index;
 		case TN.INDEXES: return indexes_index;
 		default:
-			Table table = schema.get(tblnum);
+			Table table = getTable(tblnum);
 			return table == null ? null : table.getIndex(colNums);
 		}
 
@@ -147,6 +148,7 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 		return schema.get(tblnum);
 	}
 
+	/** @return The table info as of the start of the transaction */
 	@Override
 	public TableInfo getTableInfo(int tblnum) {
 		return rdbinfo.get(tblnum);
@@ -329,14 +331,6 @@ class ReadTransaction2 implements ImmuReadTran, Locking {
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
 		return getIndex(tblnum, columns).iterator(iter);
-	}
-
-	@Override
-	public void readLock(int adr) {
-	}
-
-	@Override
-	public void writeLock(int adr) {
 	}
 
 	@Override

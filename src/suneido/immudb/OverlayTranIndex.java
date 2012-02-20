@@ -93,8 +93,7 @@ class OverlayTranIndex implements TranIndex {
 
 	@Override
 	public BtreeInfo info() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	Btree2 local() {

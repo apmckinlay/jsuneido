@@ -210,7 +210,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		indexes.add(index);
 		newIndexes.add(index);
 		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
-			et().addIndex(tblnum, index.colNums);
+			et().addIndex(index);
 	}
 
 	@Override
@@ -311,7 +311,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
 		TranIndex.Iter iter = src.iterator();
-		TranIndex btree = et().addIndex(tblnum, newIndex.colNums);
+		TranIndex btree = et().addIndex(newIndex);
 		String colNames = table.numsToNames(newIndex.colNums);
 		IndexedData id = new IndexedData(et())
 				.index(btree, newIndex.mode(), newIndex.colNums, colNames,
@@ -344,7 +344,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	@Override
 	public void finish() {
-		if (t instanceof ExclusiveTransaction)
+		if (t instanceof ImmuExclTran)
 			build();
 		t.complete();
 	}
