@@ -101,15 +101,14 @@ class ReadTransaction2 implements ImmuReadTran {
 	 * @return A map key for an index.
 	 */
 	protected Index index(int tblnum, int[] colNums) {
-		switch (tblnum) {
-		case TN.TABLES: return tables_index;
-		case TN.COLUMNS: return columns_index;
-		case TN.INDEXES: return indexes_index;
-		default:
-			Table table = getTable(tblnum);
-			return table == null ? null : table.getIndex(colNums);
+		Table table = getTable(tblnum);
+		if (table == null)
+			switch (tblnum) {
+			case TN.TABLES: return tables_index;
+			case TN.COLUMNS: return columns_index;
+			case TN.INDEXES: return indexes_index;
 		}
-
+		return table == null ? null : table.getIndex(colNums);
 	}
 
 	// used for fetching view definitions

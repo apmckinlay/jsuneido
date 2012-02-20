@@ -38,7 +38,7 @@ class BufRecord extends Record {
 
 	BufRecord(Storage stor, int adr) {
 		this(adr, stor.buffer(adr), TBLNUM_SIZE);
-		tblnum = (buf.get(0) & 0xff) + ((buf.get(1) & 0xff) << 8);
+		tblnum = buf.getShort(0);
 	}
 
 	BufRecord(int address, ByteBuffer buf, int bufpos) {
