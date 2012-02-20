@@ -46,9 +46,11 @@ class IndexedData2 {
 	}
 
 	int add(Record rec) {
-		int intref = tran.refToInt(rec);
-		add(rec, intref);
-		return intref;
+		int adr = rec.address(); // if exclusive tran it will already be saved
+		if (adr == 0)
+			adr = tran.refToInt(rec);
+		add(rec, adr);
+		return adr;
 	}
 
 	// used by TableBuilder to add indexes to existing tables
@@ -97,15 +99,17 @@ class IndexedData2 {
 		for (AnIndex index : indexes)
 			index.fkeyHandleUpdate(from, to);
 
-		int fromIntref = from.address();
-		if (fromIntref == 0)
-			fromIntref = firstKey().getKeyAdr(from);
-		if (fromIntref == 0)
+		int fromAdr = from.address();
+		if (fromAdr == 0)
+			fromAdr = firstKey().getKeyAdr(from);
+		if (fromAdr == 0)
 			throw new SuException("update couldn't find record");
-		trackRemove(fromIntref);
-		int toIntref = tran.refToInt(to);
+		trackRemove(fromAdr);
+		int toAdr = to.address();
+		if (toAdr == 0) // if exclusive tran it will already be saved
+			toAdr = tran.refToInt(to);
 		for (AnIndex index : indexes)
-			switch (index.update(from, fromIntref, to, toIntref)) {
+			switch (index.update(from, fromAdr, to, toAdr)) {
 			case NOT_FOUND:
 				t.abortThrow("aborted: update failed: old record not found " +
 						"(possible corruption)");

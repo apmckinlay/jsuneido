@@ -4,8 +4,13 @@
 
 package suneido.immudb;
 
+import java.nio.ByteBuffer;
+
 import suneido.SuException;
 import suneido.util.ThreadConfined;
+
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Shorts;
 
 /**
  * Used for schema changes and for load and compact.
@@ -40,6 +45,20 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		tran.endStore();
 		db.exclusiveLock.writeLock().unlock();
 		locked = false;
+	}
+
+	@Override
+	public void addRecord(int tblnum, Record rec) {
+		rec.tblnum = tblnum;
+		rec.address = rec.store(stor);
+		super.addRecord(tblnum, rec);
+	}
+
+	@Override
+	public void updateRecord(int tblnum, Record from, Record to) {
+		to.tblnum = tblnum;
+		to.address = to.store(stor);
+		super.updateRecord(tblnum, from, to);
 	}
 
 	@Override
@@ -122,6 +141,11 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	protected void storeData() {
 		// not required since we are storing as we go
+		// just output an empty deletes section
+		ByteBuffer buf = stor.buffer(stor.alloc(Shorts.BYTES + Ints.BYTES));
+		buf.putShort((short) 0xffff); // mark start of removes
+		buf.putInt(0);
+
 	}
 
 	@Override
@@ -133,18 +157,6 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	protected void updateDbInfo(ReadTransaction2 t) {
 		udbinfo.dbinfo().freeze();
 		db.setState(new DatabaseState2(udbinfo.dbinfo(), newSchema));
-	}
-
-	@Override
-	public void abort() {
-		try {
-//			int redirsAdr = db.getRedirs().store(null);
-//			int dbinfoAdr = db.getDbinfo().store(null);
-//			store(dbinfoAdr, redirsAdr);
-			tran.endStore();
-		} finally {
-			super.abort();
-		}
 	}
 
 	@Override

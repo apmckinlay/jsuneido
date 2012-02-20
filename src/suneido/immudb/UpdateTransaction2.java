@@ -232,7 +232,6 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			abort();
 			return null;
 		}
-System.out.println("COMMIT =====================");
 		try {
 			synchronized(db.commitLock) {
 				//TODO read validation
@@ -274,11 +273,9 @@ System.out.println("COMMIT =====================");
 		for (Object x : tran.intrefs) {
 			++i;
 			if (x instanceof Record) { // add
-System.out.print("store add " + x);
 				int intref = i | IntRefs.MASK;
 				assert tran.intToRef(intref) == x;
 				tran.setAdr(intref, ((Record) x).store(tran.stor));
-System.out.println(" @" + tran.getAdr(intref));
 			}
 		}
 	}
@@ -291,7 +288,6 @@ System.out.println(" @" + tran.getAdr(intref));
 		buf.putInt(nr);
 		for (TIntIterator iter = tran.removes.iterator(); iter.hasNext(); ) {
 			int adr = iter.next();
-System.out.println("store remove " + adr);
 			buf.putInt(adr);
 		}
 	}

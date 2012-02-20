@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Iterator;
 
+import com.google.common.primitives.Ints;
+
 /**
  * Verify checksums and sizes.<p>
  * fastcheck is used at startup to confirm that database was closed ok<p>
@@ -15,7 +17,6 @@ import java.util.Iterator;
  */
 class Check {
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
-	private static final int SIZEOF_INT = 4;
 	private static final int FAST_NCOMMITS = 8;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private final Storage stor;
@@ -33,7 +34,7 @@ class Check {
 		int pos = 0; // negative offset from end of file
 		int nCommits = 0;
 		while (nCommits < FAST_NCOMMITS && fileSize + pos > MIN_SIZE) {
-			ByteBuffer buf = stor.buffer(pos - SIZEOF_INT);
+			ByteBuffer buf = stor.buffer(pos - Ints.BYTES);
 			int size = buf.getInt();
 			if (! isValidSize(pos, size))
 				return false;
@@ -75,7 +76,7 @@ class Check {
 		int size = buf.getInt(buf.position()); // don't advance buf
 		if (! isValidSize(pos, size))
 			return null;
-		int datetime = buf.getInt(buf.position() + SIZEOF_INT); // don't advance buf
+		int datetime = buf.getInt(buf.position() + Ints.BYTES); // don't advance buf
 		int notail_size = size - Tran.HEAD_SIZE;
 		int n;
 		for (int i = 0; i < notail_size; i += n) {

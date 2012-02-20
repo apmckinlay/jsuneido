@@ -17,15 +17,15 @@ public class Transaction2Test {
 
 	@Test
 	public void bootstrap() {
-		Storage stor = new MemStorage(1024, 1024);
+		Storage stor = new MemStorage(64, 1024);
 		Database2.create(stor);
+		//DumpData.dump(stor);
 	}
 
 	@Test
 	public void read_tables() {
 		Storage stor = new MemStorage(1024, 1024);
-		Database.create(stor).close();
-		Database2 db = Database2.open(stor);
+		Database2 db = Database2.create(stor);
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
@@ -38,16 +38,7 @@ public class Transaction2Test {
 
 	@Test
 	public void add_remove() {
-		Storage stor = new MemStorage(1024, 1024);
-//		Database db1 = Database.create(stor);
-//		db1.createTable("tmp")
-//			.addColumn("a")
-//			.addColumn("b")
-//			.addIndex("a", true, false, null, null, 0)
-//			.finish();
-//		db1.close();
-
-//		Database2 db = Database2.open(stor);
+		Storage stor = new MemStorage(64, 1024);
 		Database2 db = Database2.create(stor);
 		db.createTable("tmp")
 				.addColumn("a")
@@ -94,6 +85,7 @@ public class Transaction2Test {
 		t = null;
 
 		check(db.readonlyTran(), "tmp");
+		//DumpData.dump(stor);
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

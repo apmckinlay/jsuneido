@@ -76,8 +76,7 @@ abstract class Record implements suneido.intfc.database.Record {
 				"invalid tblnum %s", tblnum);
 		int adr = stor.alloc(storSize());
 		ByteBuffer buf = stor.buffer(adr);
-		buf.put((byte) (tblnum & 0xff));
-		buf.put((byte) (tblnum >> 8));
+		buf.putShort((short) tblnum);
 		pack(buf);
 		return adr;
 	}
