@@ -35,7 +35,7 @@ public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage 
 
 	@Override
 	public Database2 testdb() {
-		return Database2.create(new MemStorage(1024, 1024));
+		return Database2.create(new MemStorage(1024, 1024), new MemStorage(1024, 1024));
 	}
 
 	@Override

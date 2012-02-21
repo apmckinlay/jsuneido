@@ -16,14 +16,15 @@ import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
 
+import com.google.common.primitives.Ints;
+
 /**
  * Transaction "context". Manages IntRefs and Redirects and Storage.
  */
 @NotThreadSafe
 class Tran implements Translator {
-	private static final int SIZEOF_INT = 4;
-	static final int HEAD_SIZE = 2 * SIZEOF_INT; // size and datetime
-	static final int TAIL_SIZE = 2 * SIZEOF_INT; // checksum and size
+	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
+	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	final Storage stor;
 	private final Redirects redirs;
@@ -101,13 +102,16 @@ class Tran implements Translator {
 	 * Returns the current time in seconds since Jan. 1, 1970 UTC
 	 * Only good till 2038
 	 */
-	private static int datetime() {
+	static int datetime() {
 		return (int) (System.currentTimeMillis() / 1000);
 	}
 
-	int checksum() {
+	private int checksum() {
+		return checksum(stor.iterator(head_adr));
+	}
+
+	static int checksum(Iterator<ByteBuffer> iter) {
 		Checksum cksum = new Checksum();
-		Iterator<ByteBuffer> iter = stor.iterator(head_adr);
 		while (iter.hasNext())
 			cksum.update(iter.next());
 		return cksum.getValue();

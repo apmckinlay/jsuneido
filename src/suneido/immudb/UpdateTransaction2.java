@@ -222,7 +222,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 
 	// complete ================================================================
 
-	// TODO if exception during commit, nullify by writing same trailer as last commit
+	// TODO if exception during commit, need to undo storage somehow
+	// so crash recovery doesn't see it
 	@Override
 	public String complete() {
 		if (isAborted())

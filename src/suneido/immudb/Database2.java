@@ -21,6 +21,7 @@ class Database2 implements suneido.intfc.database.Database {
 	private static final int INT_SIZE = 4;
 	final Transactions2 trans = new Transactions2();
 	final Storage stor;
+	final Storage istor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
@@ -31,17 +32,19 @@ class Database2 implements suneido.intfc.database.Database {
 
 	static Database2 create(String dbfilename) {
 		FileUtils.deleteIfExisting(dbfilename);
-		return create(new MmapFile(dbfilename, "rw"));
+		return create(new MmapFile(dbfilename + "d", "rw"),
+				new MmapFile(dbfilename + "i", "rw"));
 	}
 
-	static Database2 create(Storage stor) {
-		Database2 db = new Database2(stor, DbHashTrie.empty(stor), new Tables());
+	static Database2 create(Storage stor, Storage istor) {
+		Database2 db = new Database2(stor, istor, DbHashTrie.empty(stor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
 		return db;
 	}
 
-	private Database2(Storage stor, DbHashTrie dbinfo, Tables schema) {
+	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, Tables schema) {
 		this.stor = stor;
+		this.istor = istor;
 		state = new DatabaseState2(dbinfo, null);
 		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
 		state = new DatabaseState2(dbinfo, schema);
@@ -50,27 +53,29 @@ class Database2 implements suneido.intfc.database.Database {
 	// open
 
 	static Database2 open(String filename) {
-		return open(new MmapFile(filename, "rw"));
+		return open(new MmapFile(filename + "d", "rw"),
+				new MmapFile(filename + "i", "rw"));
 	}
 
 	static Database2 openReadonly(String filename) {
-		return open(new MmapFile(filename, "r"));
+		return open(new MmapFile(filename + "d", "r"),
+				new MmapFile(filename + "i", "r"));
 	}
 
-	static Database2 open(Storage stor) {
+	static Database2 open(Storage stor, Storage istor) {
 		Check check = new Check(stor);
 		if (! check.fastcheck()) {
 			stor.close();
 			return null;
 		}
-		return openWithoutCheck(stor);
+		return openWithoutCheck(stor, istor);
 	}
 
-	static Database2 openWithoutCheck(Storage stor) {
+	static Database2 openWithoutCheck(Storage stor, Storage istor) {
 		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
-		return new Database2(stor, dbinfo);
+		return new Database2(stor, istor, dbinfo);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
@@ -94,7 +99,7 @@ class Database2 implements suneido.intfc.database.Database {
 	/** reopens with same Storage */
 	@Override
 	public Database2 reopen() {
-		return Database2.open(stor);
+		return Database2.open(stor, istor);
 	}
 
 	/** used by tests */
@@ -102,8 +107,8 @@ class Database2 implements suneido.intfc.database.Database {
 		return DbCheck.check(stor);
 	}
 
-	private Database2(Storage stor, DbHashTrie dbinfo) {
-		this(stor, dbinfo, null);
+	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo) {
+		this(stor, istor, dbinfo, null);
 	}
 
 	// used by DbCheck
