@@ -16,16 +16,19 @@ import suneido.intfc.database.IndexIter;
 public class Transaction2Test {
 
 	@Test
-	public void bootstrap() {
+	public void create() {
 		Storage stor = new MemStorage(64, 1024);
-		Database2.create(stor);
+		Storage istor = new MemStorage(1024, 1024);
+		Database2 db = Database2.create(stor, istor);
 		//DumpData.dump(stor);
+		Persist.persist(db);
 	}
 
 	@Test
 	public void read_tables() {
-		Storage stor = new MemStorage(1024, 1024);
-		Database2 db = Database2.create(stor);
+		Storage stor = new MemStorage(64, 1024);
+		Storage istor = new MemStorage(1024, 1024);
+		Database2 db = Database2.create(stor, istor);
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
@@ -39,7 +42,8 @@ public class Transaction2Test {
 	@Test
 	public void add_remove() {
 		Storage stor = new MemStorage(64, 1024);
-		Database2 db = Database2.create(stor);
+		Storage istor = new MemStorage(1024, 1024);
+		Database2 db = Database2.create(stor, istor);
 		db.createTable("tmp")
 				.addColumn("a")
 				.addColumn("b")
