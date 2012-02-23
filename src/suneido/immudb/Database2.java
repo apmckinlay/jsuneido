@@ -7,6 +7,7 @@ package suneido.immudb;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.immudb.DbHashTrie.Entry;
@@ -24,7 +25,7 @@ class Database2 implements suneido.intfc.database.Database {
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
 	/** only updated when holding commitLock */
-	volatile DatabaseState2 state;
+	volatile State state;
 
 	// create
 
@@ -43,9 +44,9 @@ class Database2 implements suneido.intfc.database.Database {
 	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, Tables schema) {
 		this.stor = stor;
 		this.istor = istor;
-		state = new DatabaseState2(dbinfo, null);
+		state = new State(dbinfo, null);
 		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
-		state = new DatabaseState2(dbinfo, schema);
+		state = new State(dbinfo, schema);
 	}
 
 	// open
@@ -61,6 +62,7 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	static Database2 open(Storage stor, Storage istor) {
+		// TODO check
 //		Check check = new Check(stor);
 //		if (! check.fastcheck()) {
 //			stor.close();
@@ -96,6 +98,7 @@ class Database2 implements suneido.intfc.database.Database {
 	/** reopens with same Storage */
 	@Override
 	public Database2 reopen() {
+		Persist.persist(this);
 		return Database2.open(stor, istor);
 	}
 
@@ -203,7 +206,9 @@ class Database2 implements suneido.intfc.database.Database {
 
 	@Override
 	public void close() {
+		Persist.persist(this);
 		stor.close();
+		istor.close();
 	}
 
 	@Override
@@ -266,9 +271,21 @@ class Database2 implements suneido.intfc.database.Database {
 		trans.checkTransEmpty();
 	}
 
-	/** called by transaction commit */
-	void setState(DatabaseState2 state) {
-		this.state = state;
+	/** called by transaction commit and by persist */
+	void setState(DbHashTrie dbinfo, Tables schema) {
+		this.state = new State(dbinfo, schema);
+	}
+
+	@Immutable
+	static class State {
+		final DbHashTrie dbinfo;
+		final Tables schema;
+
+		public State(DbHashTrie dbinfo, Tables schema) {
+			assert dbinfo.immutable();
+			this.dbinfo = dbinfo;
+			this.schema = schema;
+		}
 	}
 
 }

@@ -332,7 +332,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		UpdateDbInfo udbi = new UpdateDbInfo(db.state.dbinfo);
 		updateDbInfo(t.indexes, udbi);
 		udbi.dbinfo().freeze();
-		db.setState(new DatabaseState2(udbi.dbinfo(), db.state.schema));
+		db.setState(udbi.dbinfo(), db.state.schema);
 	}
 
 	void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbi) {

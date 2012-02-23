@@ -22,6 +22,7 @@ public class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
+	private final Database2 db;
 	private final DbHashTrie dbinfo;
 	private final Storage istor;
 	private DbHashTrie newdbinfo;
@@ -33,16 +34,20 @@ public class Persist {
 	}
 
 	public Persist(Database2 db) {
+		this.db = db;
 		dbinfo = newdbinfo = db.state.dbinfo;
 		istor = db.istor;
 	}
 
 	private void run() {
-		start();
-		storeBtrees();
-		int adr = storeDbinfo();
-		istor.buffer(istor.alloc(Ints.BYTES)).putInt(adr);
-		finish();
+		synchronized(db.commitLock) {
+			start();
+			storeBtrees();
+			int adr = storeDbinfo();
+			istor.buffer(istor.alloc(Ints.BYTES)).putInt(adr);
+			finish();
+			db.setState(newdbinfo, db.state.schema);
+		}
 	}
 
 	static int dbinfoAdr(Storage istor) {

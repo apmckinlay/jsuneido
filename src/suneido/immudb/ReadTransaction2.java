@@ -28,7 +28,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	protected final int num;
 	protected final Database2 db;
 	protected final Tran tran;
-	protected final DatabaseState2 dbstate;
+	protected final Database2.State dbstate;
 	protected final ReadDbInfo rdbinfo;
 	protected final Tables schema;
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
@@ -38,7 +38,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	ReadTransaction2(int num, Database2 db) {
 		this.num = num;
 		this.db = db;
-		dbstate = db.state;
+		dbstate = db.state; // don't inline, read only once
 		schema = dbstate.schema;
 		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
 		tran = new Tran(db.stor, db.istor);
@@ -52,7 +52,7 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	@Override
 	public Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
-		return dbstate.schema.getFkdsts(tableName, colNames);
+		return schema.getFkdsts(tableName, colNames);
 	}
 
 	/** if colNames is null returns firstIndex */

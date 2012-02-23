@@ -160,7 +160,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	protected void updateDbInfo(ReadTransaction2 t) {
 		udbinfo.dbinfo().freeze();
-		db.setState(new DatabaseState2(udbinfo.dbinfo(), newSchema));
+		db.setState(udbinfo.dbinfo(), newSchema);
 	}
 
 	@Override

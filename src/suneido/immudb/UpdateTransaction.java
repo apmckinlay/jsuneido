@@ -101,7 +101,7 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 			throw new SuException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
 		updateRecord(from.tblnum, from, (Record) to);
-		return 1; //TODO don't know record address till commit
+		return 1; // don't know record address till commit
 	}
 
 	@Override
@@ -109,7 +109,7 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 			suneido.intfc.database.Record from,
 			suneido.intfc.database.Record to) {
 		updateRecord(tblnum, (Record) from, (Record) to);
-		return 1; //TODO don't know record address till commit
+		return 1; // don't know record address till commit
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
