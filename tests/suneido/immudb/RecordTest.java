@@ -91,7 +91,7 @@ public class RecordTest {
 	public void ref() {
 		Storable ref = new Storable() {
 			@Override
-			public int store() {
+			public int address() {
 				return 456;
 			} };
 		Record r = new RecordBuilder().add(123).addRef(ref).build();

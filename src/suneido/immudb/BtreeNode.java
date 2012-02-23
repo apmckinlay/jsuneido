@@ -72,7 +72,7 @@ abstract class BtreeNode implements Storable {
 		return without(at);
 	}
 
-	protected abstract BtreeNode without(int i);
+	abstract BtreeNode without(int i);
 
 	abstract void minimizeLeftMost();
 
@@ -85,6 +85,7 @@ abstract class BtreeNode implements Storable {
 	abstract Record get(int i);
 
 	abstract int store(Tran tran);
+	abstract int store2(Storage stor);
 
 	Record find(Record key) {
 		int at = findPos(key);
@@ -323,17 +324,9 @@ abstract class BtreeNode implements Storable {
 		return rb.build();
 	}
 
-	@Override
-	public int store() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 	public BtreeNode withUpdate(int i, BtreeNode child) {
 		throw new UnsupportedOperationException();
 	}
-
-	abstract int getAdr();
 
 	abstract void freeze();
 

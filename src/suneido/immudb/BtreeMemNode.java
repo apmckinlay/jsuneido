@@ -24,6 +24,8 @@ public class BtreeMemNode extends BtreeNode {
 	private final TByteArrayList index;
 	private ArrayList<Record> added;
 	private boolean immutable = false;
+	/** set after node is stored */
+	private int address;
 
 	/** Create a new node, not based on an existing record */
 	BtreeMemNode(int level) {
@@ -106,7 +108,7 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	protected BtreeNode without(int i) {
+	BtreeNode without(int i) {
 		if (immutable)
 			return new BtreeMemNode(this).without(i);
 		else {
@@ -167,15 +169,7 @@ public class BtreeMemNode extends BtreeNode {
 		return index.size();
 	}
 
-	protected void translate(Tran tran) {
-		for (int i = 0; i < size(); ++i) {
-			int idx = index.get(i);
-			if (idx < 0)
-				added.set(-idx - 1, translate(tran, added.get(-idx - 1)));
-		}
-	}
-
-	protected int length(int i) {
+	private int length(int i) {
 		int idx = index.get(i);
 		return idx >= 0
 				? rec.fieldLength(idx)
@@ -218,6 +212,28 @@ public class BtreeMemNode extends BtreeNode {
 		return adr;
 	}
 
+	private void translate(Tran tran) {
+		for (int i = 0; i < size(); ++i) {
+			int idx = index.get(i);
+			if (idx < 0)
+				added.set(-idx - 1, translate(tran, added.get(-idx - 1)));
+		}
+	}
+
+	@Override
+	int store2(Storage stor) {
+		translate2(stor);
+		int adr = stor.alloc(length());
+		ByteBuffer buf = stor.buffer(adr);
+		pack(buf);
+		return address = adr;
+	}
+
+	private void translate2(Storage stor) {
+		// TODO Auto-generated method stub
+
+	}
+
 	int length() {
 		int datasize = 0;
 		for (int i = 0; i < size(); ++i)
@@ -231,14 +247,14 @@ public class BtreeMemNode extends BtreeNode {
 			pack(buf, i);
 	}
 
-	protected TIntArrayList getLengths() {
+	private TIntArrayList getLengths() {
 		TIntArrayList lens = new TIntArrayList(size());
 		for (int i = 0; i < size(); ++i)
 			lens.add(length(i));
 		return lens;
 	}
 
-	protected void pack(ByteBuffer buf, int i) {
+	private void pack(ByteBuffer buf, int i) {
 		int idx = index.get(i);
 		if (idx < 0)
 			added.get(-idx - 1).pack(buf);
@@ -251,7 +267,7 @@ public class BtreeMemNode extends BtreeNode {
 		}
 	}
 
-	protected Record translate(Tran tran, Record rec) {
+	private Record translate(Tran tran, Record rec) {
 		boolean translate = false;
 
 		int dref = dataref(rec);
@@ -301,13 +317,13 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	int getAdr() {
-		return 0;
+	String printName() {
+		return "MemNode" + (immutable ? "(frozen)" : "");
 	}
 
 	@Override
-	String printName() {
-		return "MemNode" + (immutable ? "(frozen)" : "");
+	public int address() {
+		return address;
 	}
 
 }

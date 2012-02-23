@@ -6,6 +6,6 @@ package suneido.immudb;
 
 interface Storable {
 
-	int store();
+	int address();
 
 }
