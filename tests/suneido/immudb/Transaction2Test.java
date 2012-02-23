@@ -29,11 +29,11 @@ public class Transaction2Test {
 		Storage stor = new MemStorage(64, 1024);
 		Storage istor = new MemStorage(1024, 1024);
 		Database2 db = Database2.create(stor, istor);
-		Persist.persist(db);
 		db.reopen();
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
+		db.close();
 	}
 	private static void check(ImmuReadTran t) {
 		Record[] recs = { rec(1, "tables"), rec(2, "columns"), rec(3, "indexes"),
@@ -62,6 +62,9 @@ public class Transaction2Test {
 		assertNotNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
+
+		db.reopen();
+		check(db.readonlyTran(), "tmp", rec(123, "foo"));
 
 		ImmuReadTran rt = db.readonlyTran();
 		assertThat(rt.tableCount(tblnum), is(1));
@@ -92,7 +95,7 @@ public class Transaction2Test {
 
 		check(db.readonlyTran(), "tmp");
 		//DumpData.dump(stor);
-		Persist.persist(db);
+		db.close();
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

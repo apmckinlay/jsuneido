@@ -51,7 +51,7 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	int store2(Storage stor) {
-		throw new RuntimeException("shouldn't reach here");
+		return rec.address();
 	}
 
 	@Override
