@@ -29,7 +29,7 @@ public class Transaction2Test {
 		Storage stor = new MemStorage(64, 1024);
 		Storage istor = new MemStorage(1024, 1024);
 		Database2 db = Database2.create(stor, istor);
-		db.reopen();
+		db = db.reopen();
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
@@ -63,7 +63,7 @@ public class Transaction2Test {
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
 
-		db.reopen();
+		db = db.reopen();
 		check(db.readonlyTran(), "tmp", rec(123, "foo"));
 
 		ImmuReadTran rt = db.readonlyTran();

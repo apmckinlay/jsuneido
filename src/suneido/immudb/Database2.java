@@ -36,17 +36,17 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	static Database2 create(Storage stor, Storage istor) {
-		Database2 db = new Database2(stor, istor, DbHashTrie.empty(stor), new Tables());
+		Database2 db = new Database2(stor, istor, DbHashTrie.empty(stor), new Tables(), 0);
 		Bootstrap.create(db.exclusiveTran());
 		return db;
 	}
 
-	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, Tables schema) {
+	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, Tables schema, int cksum) {
 		this.stor = stor;
 		this.istor = istor;
-		state = new State(dbinfo, null);
+		state = new State(dbinfo, null, cksum);
 		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
-		state = new State(dbinfo, schema);
+		state = new State(dbinfo, schema, cksum);
 	}
 
 	// open
@@ -62,19 +62,23 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	static Database2 open(Storage stor, Storage istor) {
-		// TODO check
-//		Check check = new Check(stor);
-//		if (! check.fastcheck()) {
-//			stor.close();
-//			return null;
-//		}
+		// TODO check that stor matches istor
+		if (! new Check(stor).fastcheck()) {
+			stor.close();
+			return null;
+		}
+		if (! new Check(istor).fastcheck()) {
+			istor.close();
+			return null;
+		}
 		return openWithoutCheck(stor, istor);
 	}
 
 	static Database2 openWithoutCheck(Storage stor, Storage istor) {
-		int adr = Persist.dbinfoAdr(istor);
-		DbHashTrie dbinfo = DbHashTrie.load(istor, adr, new DbinfoTranslator(istor));
-		return new Database2(stor, istor, dbinfo);
+		Persist.Info info = Persist.info(istor);
+		DbHashTrie dbinfo =
+				DbHashTrie.load(istor, info.dbinfoadr, new DbinfoTranslator(istor));
+		return new Database2(stor, istor, dbinfo, info.lastcksum);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
@@ -107,8 +111,8 @@ class Database2 implements suneido.intfc.database.Database {
 		return DbCheck.check(stor);
 	}
 
-	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo) {
-		this(stor, istor, dbinfo, null);
+	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, int cksum) {
+		this(stor, istor, dbinfo, null, cksum);
 	}
 
 	// used by DbCheck
@@ -272,19 +276,22 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	/** called by transaction commit and by persist */
-	void setState(DbHashTrie dbinfo, Tables schema) {
-		this.state = new State(dbinfo, schema);
+	void setState(DbHashTrie dbinfo, Tables schema, int cksum) {
+		this.state = new State(dbinfo, schema, cksum);
 	}
 
 	@Immutable
 	static class State {
 		final DbHashTrie dbinfo;
 		final Tables schema;
+		/** checksum of last commit */
+		final int lastcksum;
 
-		public State(DbHashTrie dbinfo, Tables schema) {
+		public State(DbHashTrie dbinfo, Tables schema, int lastcksum) {
 			assert dbinfo.immutable();
 			this.dbinfo = dbinfo;
 			this.schema = schema;
+			this.lastcksum = lastcksum;
 		}
 	}
 

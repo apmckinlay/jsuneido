@@ -43,13 +43,13 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	protected void unlock() {
-		tran.endStore();
 		db.exclusiveLock.writeLock().unlock();
 		locked = false;
 	}
 
 	@Override
 	public void addRecord(int tblnum, Record rec) {
+//System.out.println("X addRecord " + tblnum + " += " + rec);
 		rec.tblnum = tblnum;
 		rec.address = rec.store(tran.stor);
 		super.addRecord(tblnum, rec);
@@ -85,11 +85,6 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	void verifyNotSystemTable(int tblnum, String what) {
-	}
-
-	@Override
-	protected void updateRowInfo(int tblnum, int nrows, int size) {
-		udbinfo.updateRowInfo(tblnum, nrows, size);
 	}
 
 	// used by Bootstrap and TableBuilder
@@ -140,13 +135,13 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	@Override
-	protected void storeData() {
+	protected int storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
 		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort((short) 0xffff); // mark start of removes
 		buf.putInt(0);
-
+		return tran.endStore();
 	}
 
 	@Override
@@ -158,9 +153,10 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	@Override
-	protected void updateDbInfo(ReadTransaction2 t) {
+	protected void updateDbInfo(ReadTransaction2 t, int cksum) {
+		updateDbInfo(indexes, udbinfo);
 		udbinfo.dbinfo().freeze();
-		db.setState(udbinfo.dbinfo(), newSchema);
+		db.setState(udbinfo.dbinfo(), newSchema, cksum);
 	}
 
 	@Override
