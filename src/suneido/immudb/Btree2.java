@@ -539,20 +539,19 @@ class Btree2 implements TranIndex, Cloneable {
 		return (child != null) ? (BtreeNode) child : nodeAt(level, adr(key));
 	}
 
-	static BtreeNode childNode(Tran tran, int level, Record key) {
+	static BtreeNode childNode(Storage stor, int level, Record key) {
 		Object child = key.childRef();
-		return (child != null) ? (BtreeNode) child : nodeAt(tran, level, adr(key));
+		return (child != null) ? (BtreeNode) child : nodeAt(stor, level, adr(key));
 	}
 
 	BtreeNode nodeAt(int level, int adr) {
-		return nodeAt(tran, level, adr);
+		return nodeAt(tran.stor, level, adr);
 	}
 
-	static BtreeNode nodeAt(Tran tran, int level, int adr) {
-		return new BtreeDbNode(level, tran.stor.buffer(adr), adr);
+	static BtreeNode nodeAt(Storage stor, int level, int adr) {
+		return new BtreeDbNode(level, stor.buffer(adr), adr);
 	}
 
-	//TODO squeeze
 	void freeze() {
 		rootNode.freeze();
 	}
@@ -564,7 +563,7 @@ class Btree2 implements TranIndex, Cloneable {
 	void print(Writer writer) {
 		try {
 			writer.append("---------------------------\n");
-			rootNode.print2(writer, tran);
+			rootNode.print2(writer, tran.stor);
 			writer.append("---------------------------\n");
 			writer.flush();
 		} catch (IOException e) {
@@ -602,7 +601,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	void check() {
-		int nnodes = rootNode.check2(tran, Record.EMPTY);
+		int nnodes = rootNode.check2(tran.stor, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
