@@ -4,7 +4,9 @@
 
 package suneido.immudb;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import suneido.immudb.DbHashTrie.Entry;
 
 import com.google.common.primitives.Ints;
@@ -19,7 +21,6 @@ public class Persist {
 	private final DbHashTrie dbinfo;
 	private final Storage stor;
 	private int head_adr = 0;
-	private final TObjectIntHashMap map = new TObjectIntHashMap();
 
 	static void persist(Database2 db) {
 		Persist p = new Persist(db);
@@ -54,8 +55,22 @@ System.out.println(ti);
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
 System.out.println("\t" + ii);
+//System.out.println("BEFORE -------------------");
+//print(ii);
 						storeBtree(ii.rootNode);
+//System.out.println("AFTER --------------------");
+//print(ii);
 					}
+			}
+		}
+
+		private void print(IndexInfo ii) {
+			try {
+				PrintWriter writer = new PrintWriter(System.out);
+				ii.rootNode.print2(writer, stor);
+				writer.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 

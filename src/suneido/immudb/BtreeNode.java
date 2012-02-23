@@ -183,7 +183,7 @@ abstract class BtreeNode implements Storable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("BtreeNode ");
+		sb.append(printName()).append(" ");
 		if (isLeaf())
 			sb.append("leaf");
 		else
@@ -209,14 +209,14 @@ abstract class BtreeNode implements Storable {
 		}
 	}
 
-	void print2(Writer w, Tran tran) throws IOException {
+	void print2(Writer w, Storage stor) throws IOException {
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append(printName() + "\n");
 		for (int i = 0; i < size(); ++i) {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0)
-				Btree2.childNode(tran, level - 1, slot).print2(w, tran);
+				Btree2.childNode(stor, level - 1, slot).print2(w, stor);
 		}
 	}
 
@@ -248,7 +248,7 @@ abstract class BtreeNode implements Storable {
 	}
 
 	/** returns the number of nodes processed */
-	int check2(Tran tran, Record key) {
+	int check2(Storage stor, Record key) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf()) {
@@ -262,10 +262,10 @@ abstract class BtreeNode implements Storable {
 		if (size() > 1)
 			assert key.compareTo(get(1)) <= 0;
 		int nnodes = 1;
-		nnodes += Btree2.childNode(tran, level - 1, get(0)).check2(tran, key);
+		nnodes += Btree2.childNode(stor, level - 1, get(0)).check2(stor, key);
 		for (int i = 1; i < size(); ++i) {
 			Record key2 = get(i);
-			nnodes += Btree2.childNode(tran, level - 1, key2).check2(tran, key2);
+			nnodes += Btree2.childNode(stor, level - 1, key2).check2(stor, key2);
 		}
 		return nnodes;
 	}

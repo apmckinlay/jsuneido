@@ -90,6 +90,7 @@ public class Transaction2Test {
 
 		check(db.readonlyTran(), "tmp");
 		//DumpData.dump(stor);
+		Persist.persist(db);
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

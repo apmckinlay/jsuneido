@@ -214,9 +214,9 @@ public class BtreeMemNode extends BtreeNode {
 
 	private void translate(Tran tran) {
 		for (int i = 0; i < size(); ++i) {
-			int idx = index.get(i);
-			if (idx < 0)
-				added.set(-idx - 1, translate(tran, added.get(-idx - 1)));
+			int j = index.get(i);
+			if (j < 0)
+				added.set(-j - 1, translate(tran, added.get(-j - 1)));
 		}
 	}
 
@@ -230,8 +230,14 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	private void translate2(Storage stor) {
-		// TODO Auto-generated method stub
-
+		for (int i = 0; i < size(); ++i) {
+			int j = index.get(i);
+			if (j < 0) {
+				Record r = added.get(-j - 1);
+				if (r.childRef() != null)
+					((BtreeMemNode) r.childRef()).store2(stor);
+			}
+		}
 	}
 
 	int length() {
@@ -318,7 +324,8 @@ public class BtreeMemNode extends BtreeNode {
 
 	@Override
 	String printName() {
-		return "MemNode" + (immutable ? "(frozen)" : "");
+		return "MemNode" + (immutable ? "(frozen)" : "") +
+				(address == 0 ? "" : "@" + address);
 	}
 
 	@Override
