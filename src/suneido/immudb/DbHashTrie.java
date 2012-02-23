@@ -92,6 +92,7 @@ abstract class DbHashTrie {
 	abstract void freeze();
 
 	abstract int store(Translator translator);
+	abstract int store(Storage stor, Translator translator);
 
 	abstract boolean stored();
 	abstract boolean immutable();
@@ -271,6 +272,12 @@ abstract class DbHashTrie {
 
 		@Override
 		int store(Translator translator) {
+			assert stor != null;
+			return store(stor, translator);
+		}
+
+		@Override
+		int store(Storage stor, Translator translator) {
 			if (stored())
 				return adr;
 

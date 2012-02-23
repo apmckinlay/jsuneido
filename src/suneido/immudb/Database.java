@@ -17,9 +17,10 @@ import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
+import com.google.common.primitives.Ints;
+
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
-	private static final int INT_SIZE = 4;
 	final Transactions trans = new Transactions();
 	final Storage stor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
@@ -74,7 +75,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	static Database openWithoutCheck(Storage stor) {
-		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
+		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * Ints.BYTES));
 		int adr = buf.getInt();
 		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
 		adr = buf.getInt();

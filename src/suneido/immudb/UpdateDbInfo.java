@@ -24,16 +24,14 @@ import com.google.common.collect.ImmutableList;
  */
 @NotThreadSafe
 class UpdateDbInfo {
-	private final Storage stor;
 	private DbHashTrie dbinfo;
 
 
-	UpdateDbInfo(Storage stor) {
-		this(stor, DbHashTrie.empty(stor));
+	UpdateDbInfo() {
+		this(DbHashTrie.empty(null));
 	}
 
-	UpdateDbInfo(Storage stor, DbHashTrie dbinfo) {
-		this.stor = stor;
+	UpdateDbInfo(DbHashTrie dbinfo) {
 		this.dbinfo = dbinfo;
 	}
 
@@ -59,11 +57,17 @@ class UpdateDbInfo {
 			dbinfo = dbinfo.with(ti2);
 	}
 
-	int store() {
-		return dbinfo.store(new DbInfoTranslator());
+	int store(Storage stor) {
+		return dbinfo.store(stor, new DbInfoTranslator(stor));
 	}
 
-	private class DbInfoTranslator implements Translator {
+	static class DbInfoTranslator implements Translator {
+		final Storage stor;
+
+		public DbInfoTranslator(Storage stor) {
+			this.stor = stor;
+		}
+
 		@Override
 		public Entry translate(Entry entry) {
 			if (entry instanceof TableInfo) {

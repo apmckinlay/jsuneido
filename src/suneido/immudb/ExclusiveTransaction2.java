@@ -27,7 +27,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
-		udbinfo = new UpdateDbInfo(stor, dbstate.dbinfo);
+		udbinfo = new UpdateDbInfo(dbstate.dbinfo);
 		newSchema = schema;
 		tran.allowStore();
 	}
@@ -51,14 +51,14 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	public void addRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
-		rec.address = rec.store(stor);
+		rec.address = rec.store(tran.stor);
 		super.addRecord(tblnum, rec);
 	}
 
 	@Override
 	public void updateRecord(int tblnum, Record from, Record to) {
 		to.tblnum = tblnum;
-		to.address = to.store(stor);
+		to.address = to.store(tran.stor);
 		super.updateRecord(tblnum, from, to);
 	}
 
@@ -134,7 +134,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	// used by DbLoad and DbCompact
 	int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
-		int adr = rec.store(stor);
+		int adr = rec.store(tran.stor);
 		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
 	}
@@ -143,7 +143,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	protected void storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
-		ByteBuffer buf = stor.buffer(stor.alloc(Shorts.BYTES + Ints.BYTES));
+		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort((short) 0xffff); // mark start of removes
 		buf.putInt(0);
 

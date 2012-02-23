@@ -42,7 +42,7 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
-		udbinfo = new UpdateDbInfo(stor, db.getDbinfo());
+		udbinfo = new UpdateDbInfo(db.getDbinfo());
 		newSchema = schema;
 		asof = db.trans.clock();
 		trans = db.trans;
@@ -235,7 +235,7 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 
 					mergeRedirs();
 					int redirsAdr = updateRedirs();
-					int dbinfoAdr = udbinfo.store();
+					int dbinfoAdr = udbinfo.store(stor);
 					store(dbinfoAdr, redirsAdr); //BUG if exception, won't get done
 				} finally {
 					tran.endStore();
@@ -286,10 +286,8 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 		return redirsAdr;
 	}
 
-	static final int INT_SIZE = 4;
-
 	protected void store(int dbinfo, int redirs) {
-		ByteBuffer buf = stor.buffer(stor.alloc(2 * INT_SIZE));
+		ByteBuffer buf = stor.buffer(stor.alloc(2 * Ints.BYTES));
 		buf.putInt(dbinfo);
 		buf.putInt(redirs);
 	}

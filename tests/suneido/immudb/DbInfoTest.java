@@ -17,13 +17,13 @@ public class DbInfoTest {
 	@Test
 	public void test() {
 		Storage stor = new MemStorage();
-		UpdateDbInfo dbinfo = new UpdateDbInfo(stor);
+		UpdateDbInfo dbinfo = new UpdateDbInfo();
 		assertNull(dbinfo.get(123));
 		ImmutableList<IndexInfo> indexes = ImmutableList.of();
 		TableInfo ti = new TableInfo(6, 5, 4, 99, indexes);
 		dbinfo.add(ti);
 		assertThat(dbinfo.get(6), is(ti));
-		int adr = dbinfo.store();
+		int adr = dbinfo.store(stor);
 
 		ReadDbInfo rdbinfo = new ReadDbInfo(
 				DbHashTrie.load(stor, adr, new Database.DbinfoTranslator(stor)));

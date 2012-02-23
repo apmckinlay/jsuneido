@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -18,7 +17,6 @@ import suneido.util.FileUtils;
 
 @ThreadSafe
 class Database2 implements suneido.intfc.database.Database {
-	private static final int INT_SIZE = 4;
 	final Transactions2 trans = new Transactions2();
 	final Storage stor;
 	final Storage istor;
@@ -63,18 +61,17 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	static Database2 open(Storage stor, Storage istor) {
-		Check check = new Check(stor);
-		if (! check.fastcheck()) {
-			stor.close();
-			return null;
-		}
+//		Check check = new Check(stor);
+//		if (! check.fastcheck()) {
+//			stor.close();
+//			return null;
+//		}
 		return openWithoutCheck(stor, istor);
 	}
 
 	static Database2 openWithoutCheck(Storage stor, Storage istor) {
-		ByteBuffer buf = stor.buffer(-(Tran.TAIL_SIZE + 2 * INT_SIZE));
-		int adr = buf.getInt();
-		DbHashTrie dbinfo = DbHashTrie.load(stor, adr, new DbinfoTranslator(stor));
+		int adr = Persist.dbinfoAdr(istor);
+		DbHashTrie dbinfo = DbHashTrie.load(istor, adr, new DbinfoTranslator(istor));
 		return new Database2(stor, istor, dbinfo);
 	}
 

@@ -27,23 +27,37 @@ class Tran implements Translator {
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	final Storage stor;
+	/** for version 2 */
+	final Storage istor;
+	/** for version 1 */
 	private final Redirects redirs;
 	final IntRefs intrefs = new IntRefs();
+	/** for version 2 */
 	final TIntArrayList removes = new TIntArrayList();
 	private int head_adr = 0;
 
 	Tran(Storage stor) {
 		this.stor = stor;
+		this.istor = null;
 		redirs = new Redirects(DbHashTrie.empty(stor));
+	}
+
+	/** only used by version 2 so no redirs */
+	Tran(Storage stor, Storage istor) {
+		this.stor = stor;
+		this.istor = istor;
+		redirs = null;
 	}
 
 	Tran(Storage stor, int redirs) {
 		this.stor = stor;
+		istor = null;
 		this.redirs = new Redirects(DbHashTrie.from(stor, redirs));
 	}
 
 	Tran(Storage stor, Redirects redirs) {
 		this.stor = stor;
+		istor = null;
 		this.redirs = redirs;
 	}
 

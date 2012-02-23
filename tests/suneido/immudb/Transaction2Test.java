@@ -29,6 +29,8 @@ public class Transaction2Test {
 		Storage stor = new MemStorage(64, 1024);
 		Storage istor = new MemStorage(1024, 1024);
 		Database2 db = Database2.create(stor, istor);
+		Persist.persist(db);
+		db.reopen();
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
