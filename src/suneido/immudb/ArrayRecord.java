@@ -99,7 +99,7 @@ public class ArrayRecord extends Record {
 		for (int i = 0; i < nfields; ++i)
 			datasize += lens.get(i);
 		if (ref != null)
-			datasize += Pack.packSizeLong(ref.store());
+			datasize += Pack.packSizeLong(ref.address());
 		return length(nfields, datasize);
 	}
 
@@ -119,7 +119,7 @@ public class ArrayRecord extends Record {
 	private void pack(ByteBuffer dst, int length) {
 		int refAdr = 0;
 		if (ref != null) {
-			refAdr = ref.store();
+			refAdr = ref.address();
 			lens.set(lens.size() - 1, Pack.packSizeLong(refAdr));
 		}
 		packHeader(dst, length, lens);

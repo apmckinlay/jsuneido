@@ -35,7 +35,7 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	protected BtreeNode without(int i) {
+	BtreeNode without(int i) {
 		return new BtreeMemNode(this).without(i);
 	}
 
@@ -45,13 +45,18 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	int getAdr() {
-		return rec.address();
+	int store(Tran tran) {
+		throw new RuntimeException("shouldn't reach here");
 	}
 
 	@Override
-	int store(Tran tran) {
+	int store2(Storage stor) {
 		throw new RuntimeException("shouldn't reach here");
+	}
+
+	@Override
+	public int address() {
+		return rec.address();
 	}
 
 	@Override
@@ -80,7 +85,7 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	String printName() {
-		return "DbNode @ " + getAdr();
+		return "DbNode @ " + address();
 	}
 
 }

@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import gnu.trove.map.hash.TObjectIntHashMap;
 import suneido.immudb.DbHashTrie.Entry;
 
 import com.google.common.primitives.Ints;
@@ -18,6 +19,7 @@ public class Persist {
 	private final DbHashTrie dbinfo;
 	private final Storage stor;
 	private int head_adr = 0;
+	private final TObjectIntHashMap map = new TObjectIntHashMap();
 
 	static void persist(Database2 db) {
 		Persist p = new Persist(db);
@@ -58,8 +60,7 @@ System.out.println("\t" + ii);
 		}
 
 		private void storeBtree(BtreeNode rootNode) {
-			// TODO Auto-generated method stub
-
+			rootNode.store2(stor);
 		}
 	};
 
