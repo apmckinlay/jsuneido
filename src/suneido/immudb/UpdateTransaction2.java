@@ -20,7 +20,6 @@ import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -39,7 +38,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private volatile long commitTime = Long.MAX_VALUE;
 	private String conflict = null;
 	private final boolean onlyReads = false;
-	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+//	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
 	private final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
 
@@ -81,7 +80,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		updateRowInfo(tblnum, 1, rec.bufSize());
 	}
 
-	protected void updateRowInfo(int tblnum, int nrows, int size) {
+	private void updateRowInfo(int tblnum, int nrows, int size) {
 		tidelta(tblnum).update(nrows, size);
 	}
 	private TableInfoDelta tidelta(int tblnum) {
@@ -236,12 +235,12 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		try {
 			synchronized(db.commitLock) {
 				//TODO read validation
-				storeData();
+				int cksum = storeData();
 				// use a read transaction to get access to global indexes
 				ReadTransaction2 t = db.readonlyTran();
 				try {
 					updateBtrees(t);
-					updateDbInfo(t);
+					updateDbInfo(t, cksum);
 				} finally {
 					t.complete();
 				}
@@ -259,14 +258,16 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 
 	// store data --------------------------------------------------------------
 
-	protected void storeData() {
+	protected int storeData() {
 		tran.startStore();
+		int cksum = 0;
 		try {
 			storeAdds();
 			storeRemoves();
 		} finally {
-			tran.endStore();
+			cksum = tran.endStore();
 		}
+		return cksum;
 	}
 
 	private void storeAdds() {
@@ -328,21 +329,21 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 
 	// update dbinfo -----------------------------------------------------------
 
-	protected void updateDbInfo(ReadTransaction2 t) {
+	protected void updateDbInfo(ReadTransaction2 t, int cksum) {
 		UpdateDbInfo udbi = new UpdateDbInfo(db.state.dbinfo);
 		updateDbInfo(t.indexes, udbi);
 		udbi.dbinfo().freeze();
-		db.setState(udbi.dbinfo(), db.state.schema);
+		db.setState(udbi.dbinfo(), db.state.schema, cksum);
 	}
 
-	void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbi) {
+	protected void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbi) {
 		if (indexes.isEmpty())
 			return;
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		Entry<Index,TranIndex> e = iter.next();
-		int tblnum = e.getKey().tblnum;
 		do {
 			// before table
+			int tblnum = e.getKey().tblnum;
 			TableInfo ti = udbi.get(tblnum);
 
 			// indexes
@@ -350,17 +351,15 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			do {
 				Btree2 btree = (Btree2) e.getValue();
 				b.add(new IndexInfo(e.getKey().colNums, btree.info()));
-				if (! iter.hasNext())
-					break;
-				e = iter.next();
-			} while (e.getKey().tblnum == tblnum);
+				e = iter.hasNext() ? iter.next() : null;
+			} while (e != null && e.getKey().tblnum == tblnum);
 
 			// after table
 			TableInfoDelta d = tidelta(tblnum);
 			ti = new TableInfo(tblnum, ti.nextfield,
 					ti.nrows() + d.nrows, ti.totalsize() + d.size, b.build());
 			udbi.add(ti);
-		} while (iter.hasNext());
+		} while (e != null);
 	}
 
 	// end of complete =========================================================

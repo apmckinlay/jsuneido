@@ -101,8 +101,9 @@ class Tran implements Translator {
 	 * and the checksum and size at the end (tail).
 	 * The checksum includes the head and a zero tail.
 	 * The size includes the head and the tail
+	 * @return The checksum of the commit
 	 */
-	void endStore() {
+	int endStore() {
 		int tail_adr = stor.alloc(TAIL_SIZE);
 		int size = (int) stor.sizeFrom(head_adr);
 		stor.buffer(head_adr).putInt(size).putInt(datetime());
@@ -110,6 +111,8 @@ class Tran implements Translator {
 		int cksum = checksum();
 		stor.buffer(tail_adr).putInt(cksum).putInt(size);
 		stor.protectAll(); // can't output outside tran
+
+		return cksum;
 	}
 
 	/**

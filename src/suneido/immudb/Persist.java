@@ -6,8 +6,7 @@ package suneido.immudb;
 
 import static suneido.immudb.ChunkedStorage.align;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.UpdateDbInfo.DbInfoTranslator;
@@ -23,6 +22,7 @@ public class Persist {
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	private final Database2 db;
+	private final Database2.State dbstate;
 	private final DbHashTrie dbinfo;
 	private final Storage istor;
 	private DbHashTrie newdbinfo;
@@ -35,7 +35,8 @@ public class Persist {
 
 	public Persist(Database2 db) {
 		this.db = db;
-		dbinfo = newdbinfo = db.state.dbinfo;
+		dbstate = db.state;
+		dbinfo = newdbinfo = dbstate.dbinfo;
 		istor = db.istor;
 	}
 
@@ -44,14 +45,26 @@ public class Persist {
 			start();
 			storeBtrees();
 			int adr = storeDbinfo();
-			istor.buffer(istor.alloc(Ints.BYTES)).putInt(adr);
+			istor.buffer(istor.alloc(2 * Ints.BYTES))
+					.putInt(adr).putInt(dbstate.lastcksum);
 			finish();
-			db.setState(newdbinfo, db.state.schema);
+			db.setState(newdbinfo, dbstate.schema, dbstate.lastcksum);
 		}
 	}
 
-	static int dbinfoAdr(Storage istor) {
-		return istor.buffer(-(Persist.TAIL_SIZE + align(Ints.BYTES))).getInt();
+	static Info info(Storage istor) {
+		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(2 * Ints.BYTES)));
+		return new Info(buf.getInt(), buf.getInt());
+	}
+
+	static class Info {
+		final int dbinfoadr;
+		final int lastcksum;
+		public Info(int dbinfoadr, int lastcksum) {
+			super();
+			this.dbinfoadr = dbinfoadr;
+			this.lastcksum = lastcksum;
+		}
 	}
 
 	private void start() {
@@ -62,38 +75,25 @@ public class Persist {
 	private void storeBtrees() {
 		dbinfo.traverseChanges(proc);
 	}
-	DbHashTrie.Process proc = new DbHashTrie.Process() {
-		@Override
-		public void apply(Entry e) {
-			if (e instanceof TableInfo) {
-				TableInfo ti = (TableInfo) e;
-//System.out.println(ti);
-				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
-				for (IndexInfo ii : ti.indexInfo)
-					if (ii.rootNode != null) {
-//System.out.println("\t" + ii);
-//System.out.println("BEFORE -------------------");
-//print(ii);
-						int root = ii.rootNode.store2(istor);
-//System.out.println("AFTER --------------------");
-//print(ii);
-//print(Btree2.nodeAt(stor, 0, ii.rootNode.address()));
-						b.add(new IndexInfo(ii, root));
-					}
-				newdbinfo = newdbinfo.with(new TableInfo(ti, b.build()));
-			}
-		}
 
-		private void print(BtreeNode node) {
-			try {
-				PrintWriter writer = new PrintWriter(System.out);
-				node.print2(writer, istor);
-				writer.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
+	DbHashTrie.Process proc = new DbHashTrie.Process() {
+			@Override
+			public void apply(Entry e) {
+				if (e instanceof TableInfo) {
+					TableInfo ti = (TableInfo) e;
+//System.out.println(ti);
+					ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+					for (IndexInfo ii : ti.indexInfo)
+						if (ii.rootNode != null) {
+							int root = ii.rootNode.store2(istor);
+//System.out.println("\t" + ii.rootNode);
+							b.add(new IndexInfo(ii, root));
+						}
+					newdbinfo = newdbinfo.with(new TableInfo(ti, b.build()));
+				}
 			}
-		}
-	};
+
+		};
 
 	private int storeDbinfo() {
 		return newdbinfo.store(istor, new DbInfoTranslator(istor));
