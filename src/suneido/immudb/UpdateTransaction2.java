@@ -284,7 +284,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private void storeRemoves() {
 		int nr = tran.removes.size();
 		int size = Shorts.BYTES + (1 + nr) * Ints.BYTES;
-		ByteBuffer buf = stor.buffer(stor.alloc(size));
+		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(size));
 		buf.putShort((short) 0xffff); // mark start of removes
 		buf.putInt(nr);
 		for (TIntIterator iter = tran.removes.iterator(); iter.hasNext(); ) {
@@ -329,7 +329,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	// update dbinfo -----------------------------------------------------------
 
 	protected void updateDbInfo(ReadTransaction2 t) {
-		UpdateDbInfo udbi = new UpdateDbInfo(stor, db.state.dbinfo);
+		UpdateDbInfo udbi = new UpdateDbInfo(db.state.dbinfo);
 		updateDbInfo(t.indexes, udbi);
 		udbi.dbinfo().freeze();
 		db.setState(new DatabaseState2(udbi.dbinfo(), db.state.schema));

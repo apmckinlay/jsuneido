@@ -37,6 +37,10 @@ class IndexInfo extends BtreeInfo {
 		columns = convertColumns(rec.getString(i));
 	}
 
+	IndexInfo(IndexInfo ii, int root) {
+		this(ii.columns, root, ii.treeLevels, ii.nnodes, ii.totalSize);
+	}
+
 	private static int[] convertColumns(String s) {
 		Iterable<String> cs = commaSplitter(s);
 		int[] cols = new int[Iterables.size(cs)];

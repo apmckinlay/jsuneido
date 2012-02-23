@@ -545,7 +545,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	BtreeNode nodeAt(int level, int adr) {
-		return nodeAt(tran.stor, level, adr);
+		return nodeAt(tran.istor, level, adr);
 	}
 
 	static BtreeNode nodeAt(Storage stor, int level, int adr) {
@@ -563,7 +563,7 @@ class Btree2 implements TranIndex, Cloneable {
 	void print(Writer writer) {
 		try {
 			writer.append("---------------------------\n");
-			rootNode.print2(writer, tran.stor);
+			rootNode.print2(writer, tran.istor);
 			writer.append("---------------------------\n");
 			writer.flush();
 		} catch (IOException e) {
@@ -601,7 +601,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	void check() {
-		int nnodes = rootNode.check2(tran.stor, Record.EMPTY);
+		int nnodes = rootNode.check2(tran.istor, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}

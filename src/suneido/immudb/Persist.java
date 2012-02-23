@@ -4,11 +4,15 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.ChunkedStorage.align;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import suneido.immudb.DbHashTrie.Entry;
+import suneido.immudb.UpdateDbInfo.DbInfoTranslator;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 /**
@@ -19,7 +23,8 @@ public class Persist {
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	private final DbHashTrie dbinfo;
-	private final Storage stor;
+	private final Storage istor;
+	private DbHashTrie newdbinfo;
 	private int head_adr = 0;
 
 	static void persist(Database2 db) {
@@ -28,19 +33,25 @@ public class Persist {
 	}
 
 	public Persist(Database2 db) {
-		dbinfo = db.state.dbinfo;
-		stor = db.istor;
+		dbinfo = newdbinfo = db.state.dbinfo;
+		istor = db.istor;
 	}
 
 	private void run() {
 		start();
 		storeBtrees();
-		//storeDbinfo();
+		int adr = storeDbinfo();
+		istor.buffer(istor.alloc(Ints.BYTES)).putInt(adr);
 		finish();
 	}
 
+	static int dbinfoAdr(Storage istor) {
+		return istor.buffer(-(Persist.TAIL_SIZE + align(Ints.BYTES))).getInt();
+	}
+
 	private void start() {
-		head_adr = stor.alloc(HEAD_SIZE); // to hold size and datetime
+		istor.protect(); // enable output
+		head_adr = istor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
 	private void storeBtrees() {
@@ -51,41 +62,45 @@ public class Persist {
 		public void apply(Entry e) {
 			if (e instanceof TableInfo) {
 				TableInfo ti = (TableInfo) e;
-System.out.println(ti);
+//System.out.println(ti);
+				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
-System.out.println("\t" + ii);
+//System.out.println("\t" + ii);
 //System.out.println("BEFORE -------------------");
 //print(ii);
-						storeBtree(ii.rootNode);
+						int root = ii.rootNode.store2(istor);
 //System.out.println("AFTER --------------------");
 //print(ii);
+//print(Btree2.nodeAt(stor, 0, ii.rootNode.address()));
+						b.add(new IndexInfo(ii, root));
 					}
+				newdbinfo = newdbinfo.with(new TableInfo(ti, b.build()));
 			}
 		}
 
-		private void print(IndexInfo ii) {
+		private void print(BtreeNode node) {
 			try {
 				PrintWriter writer = new PrintWriter(System.out);
-				ii.rootNode.print2(writer, stor);
+				node.print2(writer, istor);
 				writer.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
-		private void storeBtree(BtreeNode rootNode) {
-			rootNode.store2(stor);
-		}
 	};
 
-	void finish() {
-		int tail_adr = stor.alloc(TAIL_SIZE);
-		int size = (int) stor.sizeFrom(head_adr);
-		stor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
+	private int storeDbinfo() {
+		return newdbinfo.store(istor, new DbInfoTranslator(istor));
+	}
 
-		int cksum = Tran.checksum(stor.iterator(head_adr));
-		stor.buffer(tail_adr).putInt(cksum).putInt(size);
-		stor.protectAll(); // can't output outside tran
+	void finish() {
+		int tail_adr = istor.alloc(TAIL_SIZE);
+		int size = (int) istor.sizeFrom(head_adr);
+		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
+
+		int cksum = Tran.checksum(istor.iterator(head_adr));
+		istor.buffer(tail_adr).putInt(cksum).putInt(size);
+		istor.protectAll(); // can't output outside tran
 	}
 }

@@ -48,6 +48,10 @@ class TableInfo extends DbHashTrie.Entry {
 		indexInfo = list.build();
 	}
 
+	TableInfo(TableInfo ti, ImmutableList<IndexInfo> indexInfo) {
+		this(ti.tblnum, ti.nextfield, ti.nrows, ti.totalsize, indexInfo);
+	}
+
 	@Override
 	int key() {
 		return tblnum;

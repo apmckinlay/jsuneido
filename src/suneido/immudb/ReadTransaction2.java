@@ -27,7 +27,6 @@ import com.google.common.collect.Maps;
 class ReadTransaction2 implements ImmuReadTran {
 	protected final int num;
 	protected final Database2 db;
-	protected final Storage stor;
 	protected final Tran tran;
 	protected final DatabaseState2 dbstate;
 	protected final ReadDbInfo rdbinfo;
@@ -39,11 +38,10 @@ class ReadTransaction2 implements ImmuReadTran {
 	ReadTransaction2(int num, Database2 db) {
 		this.num = num;
 		this.db = db;
-		stor = db.stor;
 		dbstate = db.state;
 		schema = dbstate.schema;
 		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
-		tran = new Tran(stor);
+		tran = new Tran(db.stor, db.istor);
 		trans = db.trans;
 		trans.add(this);
 	}
@@ -144,7 +142,8 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	@Override
 	public Table getTable(int tblnum) {
-		return schema.get(tblnum);
+		// schema is null while loading the schema
+		return schema == null ? null : schema.get(tblnum);
 	}
 
 	/** @return The table info as of the start of the transaction */
