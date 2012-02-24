@@ -530,7 +530,7 @@ class Btree2 implements TranIndex, Cloneable {
 		}
 	}
 
-	private static Record withoutAddress(Record key) {
+	static Record withoutAddress(Record key) {
 		return new RecordPrefix(key, key.size() - 1);
 	}
 

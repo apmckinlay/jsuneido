@@ -22,6 +22,7 @@ public class Transaction2Test {
 		Database2 db = Database2.create(stor, istor);
 		//DumpData.dump(stor);
 		Persist.persist(db);
+		db.checkTransEmpty();
 	}
 
 	@Test
@@ -29,10 +30,12 @@ public class Transaction2Test {
 		Storage stor = new MemStorage(64, 1024);
 		Storage istor = new MemStorage(1024, 1024);
 		Database2 db = Database2.create(stor, istor);
+		db.checkTransEmpty();
 		db = db.reopen();
 		check(db.readonlyTran());
 		check(db.readwriteTran());
 		check(db.exclusiveTran());
+		db.checkTransEmpty();
 		db.close();
 	}
 	private static void check(ImmuReadTran t) {
@@ -63,6 +66,7 @@ public class Transaction2Test {
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
 
+		db.checkTransEmpty();
 		db = db.reopen();
 		check(db.readonlyTran(), "tmp", rec(123, "foo"));
 
@@ -70,10 +74,17 @@ public class Transaction2Test {
 		assertThat(rt.tableCount(tblnum), is(1));
 		assertThat(rt.tableSize(tblnum), is(15L));
 		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
+		assertThat(r, is(rec(123, "foo")));
 		rt.complete();
 		rt = null;
 
 		check(db.readonlyTran(), "tmp", rec(123, "foo"));
+
+		t = db.readwriteTran();
+		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
+		t.updateRecord(tblnum, r, rec(123, "foo"));
+		check(t, "tmp", rec(123, "foo"));
+		t = null;
 
 		t = db.readwriteTran();
 		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
@@ -95,6 +106,7 @@ public class Transaction2Test {
 
 		check(db.readonlyTran(), "tmp");
 		//DumpData.dump(stor);
+		db.checkTransEmpty();
 		db.close();
 	}
 
