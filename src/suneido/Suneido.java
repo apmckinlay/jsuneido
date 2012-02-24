@@ -23,7 +23,7 @@ import suneido.util.Print;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = suneido.database.DatabasePackage.dbpkg;
+	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
 			.setDaemon(true)
@@ -180,7 +180,7 @@ public class Suneido {
 			System.out.println("immu.db");
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
-			errlog("database not shut down properly last time");
+			errlog("database corrupt");
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
 			if (db == null)

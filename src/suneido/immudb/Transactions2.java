@@ -52,9 +52,9 @@ class Transactions2 {
 
 	// used by tests
 	synchronized void checkTransEmpty() {
-		assert trans.isEmpty();
-		assert utrans.isEmpty();
-		assert overlapping.isEmpty();
+		assert trans.isEmpty() : "trans " + trans;
+		assert utrans.isEmpty() : "utrans " + utrans;
+		assert overlapping.isEmpty() : "overlapping " + overlapping;
 	}
 
 	synchronized void add(Transaction t) {
@@ -67,6 +67,7 @@ class Transactions2 {
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction2) {
 			verify(utrans.remove(t));
+			cleanOverlapping();
 			if (! utrans.isEmpty())
 				overlapping.add((UpdateTransaction2) t);
 		}

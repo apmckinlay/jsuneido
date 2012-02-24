@@ -8,9 +8,7 @@ import suneido.intfc.database.IndexIter;
 
 /**
  * Interface between UpdateTransaction and database indexes.
- * Read-only access goes directly to the Btree2.
- * Any writes require creating a local index which is merged with the Btree2
- * using MergeIndexIter.
+ * Any writes go to a local index which is later merged with the master.
  * The global btree is read-only.
  * Deletes from the global btree are recorded by adding the key to the local btree.
  * Keys recording deletes will have a real address,
@@ -27,9 +25,9 @@ class OverlayTranIndex implements TranIndex {
 
 	@Override
 	public boolean add(Record key, boolean unique) {
-		if (unique && global.get(key) != 0)
+		if (unique && get(Btree2.withoutAddress(key)) != 0)
 			return false;
-		return local.add(key, unique);
+		return local.add(key, false);
 	}
 
 	@Override

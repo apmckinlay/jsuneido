@@ -47,6 +47,7 @@ class SchemaLoader {
 			Table table = new Table(tblrec, columns, indexes);
 			tsb.add(table);
 		}
+		t.complete();
 		return tsb.build();
 	}
 
