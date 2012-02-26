@@ -197,6 +197,15 @@ class Database2 implements suneido.intfc.database.Database {
 		}
 	}
 
+	String getView(String name) {
+		ReadTransaction2 t = readonlyTran();
+		try {
+			return Views.getView(t, name);
+		} finally {
+			t.complete();
+		}
+	}
+
 	static void checkForSystemTable(String tablename, String operation) {
 		if (isSystemTable(tablename))
 			throw new RuntimeException("can't " + operation +
