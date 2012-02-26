@@ -7,7 +7,6 @@ package suneido.immudb;
 import static suneido.immudb.BtreeNode.adr;
 import static suneido.immudb.DatabasePackage.MAX_RECORD;
 import static suneido.immudb.DatabasePackage.MIN_RECORD;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 
 import java.io.IOException;
@@ -15,14 +14,12 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -86,6 +83,8 @@ class Btree2 implements TranIndex, Cloneable {
 		return slot != null && slot.startsWith(key) ? adr(slot) : 0;
 	}
 
+	// add ---------------------------------------------------------------------
+
 	/** Add a unique key to the btree. */
 	void add(Record key) {
 		boolean result = add(key, true);
@@ -108,73 +107,80 @@ class Btree2 implements TranIndex, Cloneable {
 	 */
 	@Override
 	public boolean add(Record key, boolean unique) {
-		// search down the tree
-		BtreeNode node = rootNode;
-		List<BtreeNode> treeNodes = Lists.newArrayList();
-		TIntArrayList idxs = new TIntArrayList();
-		for (int level = treeLevels - 1; level >= 0; --level) {
-			treeNodes.add(node);
-			int i = node.findPos(key);
-			idxs.add(i);
-			node = childNode(level - 1, node.get(i));
-		}
+		Object result = add(rootNode, key, unique);
+		if (result == Boolean.FALSE)
+			return false;
+		else if (result instanceof BtreeNode)
+			rootNode = (BtreeNode) result;
+		else if (result instanceof Split)
+			newRoot((Split) result);
+		else
+			throw new RuntimeException("unhandled result type");
+		return true;
+	}
 
+	private Object add(BtreeNode node, Record key, boolean unique) {
+		return (node.level == 0) ?
+				addToLeaf(node, key, unique) : addToTree(node, key, unique);
+	}
+
+	private Object addToTree(BtreeNode node, Record key, boolean unique) {
+		int i = node.findPos(key);
+		BtreeNode child = childNode(node.level - 1, node.get(i));
+		Object result = add(child, key, unique); // recurse
+		if (result == Boolean.FALSE)
+			return result;
+		else if (result instanceof BtreeNode)
+			return pathCopy(node, i, (BtreeNode) result);
+		else if (result instanceof Split)
+			return handleSplit(node, i, (Split) result);
+		else
+			throw new RuntimeException("unhandled result type");
+	}
+
+	private static BtreeNode pathCopy(BtreeNode node, int i, BtreeNode child) {
+		return node.withUpdate(i, child);
+	}
+
+	private Object handleSplit(BtreeNode node, int i, Split split) {
+		node = node.withUpdate(i, split.left);
+		return insertOrSplit(node, split.key);
+	}
+
+	/**
+	 * potential results
+	 * - false = duplicate
+	 * - BtreeNode = inserted
+	 * - BtreeSplit = split
+	 */
+	private Object addToLeaf(BtreeNode node, Record key, boolean unique) {
 		if (! node.isEmpty()) {
 			Record searchKey = unique ? withoutAddress(key) : key;
 			Record slot = node.find(searchKey);
 			if (slot != null && slot.startsWith(searchKey))
 				return false; // duplicate
 		}
+		++modified;
 		totalSize += keySize(key);
+		return insertOrSplit(node, key);
+	}
 
-		assert treeNodes.size() == treeLevels;
-		int level = treeLevels - 1;
-		if (hasRoom(node)) {
-			// normal/fast path - simply insert into leaf
-			node = insert(node, key);
-			if (node == null)
-				return true;
-		} else {
-			BtreeSplit2 split = BtreeSplit2.split(node, key);
+	/** @return updated node or BtreeSplit */
+	private Object insertOrSplit(BtreeNode node, Record key) {
+		if (hasRoom(node))
+			// normal/fast path - simply insert
+			return node.with(key);
+		else {
 			++nnodes;
-			// insert up the tree, continue while nodes are full and must be split
-			for (; level >= 0; --level) {
-				node = treeNodes.get(level);
-				if (hasRoom(node)) {
-					node = insert(node, split.key);
-					if (node == null)
-						return true;
-					--level;
-					break;
-				}
-				// else split
-				split = BtreeSplit2.split(node, split.key);
-				++nnodes;
-			}
-			if (level == -1) {
-				// root was split so create a new root
-				newRoot(split);
-				return true;
-			}
+			return split(node, key);
 		}
-
-		pathCopy(treeNodes, idxs, level, node);
-		return true;
 	}
 
-	/** @return null if the node was root or already mutable and we're all done */
-	private BtreeNode insert(BtreeNode node, Record key) {
-		BtreeNode before = node;
-		node = node.with(key);
-		if (treeLevels == 0)
-			rootNode = node;
-		return (treeLevels == 0 || node == before) ? null : node;
-	}
-
-	private void newRoot(BtreeSplit2 split) {
+	private void newRoot(Split split) {
 		++nnodes;
 		++treeLevels;
-		rootNode = BtreeMemNode.newRoot(split);
+		Record minkey = BtreeNode.minimalKey(split.key.size(), split.left);
+		rootNode = BtreeMemNode.from(treeLevels, minkey, split.key);
 	}
 
 	/** size without trailing address */
@@ -186,6 +192,70 @@ class Btree2 implements TranIndex, Cloneable {
 		return node.size() < splitSize();
 	}
 
+	static Split split(BtreeNode node, Record key) {
+		BtreeNode left;
+		BtreeNode right;
+		int keyPos = node.lowerBound(key);
+		boolean leftSame = keyPos == node.size();
+		if (leftSame) {
+			// key is at end of node, just make new node
+			left = node;
+			right = BtreeMemNode.from(node.level, key);
+		} else {
+			int mid = node.size() / 2;
+			right = node.slice(mid, node.size());
+			left = node.without(mid, node.size());
+			if (keyPos <= mid)
+				left = left.with(key);
+			else
+				right = right.with(key);
+		}
+		Record splitKey = node.isLeaf() ? left.last() : right.first();
+		boolean max = node.isLeaf() && splitMaxAdr(left.last(), right.first());
+		if (node.isTree())
+			right.minimizeLeftMost();
+		int splitKeySize = splitKey.size();
+		if (node.isTree())
+			--splitKeySize;
+		/*
+		 * if unique, set splitKey data address to MAXADR
+		 * so that if only data address changes, key will stay in same node
+		 * this simplifies add duplicate check and allows optimized update
+		 */
+		splitKey = max
+			? new RecordBuilder().addPrefix(splitKey, splitKeySize - 1)
+					.adduint(IntRefs.MAXADR).addRef(right).build()
+			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
+					.addRef(right).build();
+		return new Split(left, splitKey);
+	}
+
+	private static boolean splitMaxAdr(Record last, Record first) {
+		return ! last.prefixEquals(first, first.size() - 1);
+	}
+
+	/** used to return the results of a split */
+	private static class Split {
+		final BtreeNode left;
+		final Record key; // new value to go in parent, points to right half
+
+		Split(BtreeNode left, Record key) {
+			this.left = left;
+			this.key = key;
+		}
+
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.add("left", left)
+					.add("key", key)
+					.toString();
+		}
+
+	}
+	
+	// remove ------------------------------------------------------------------
+
 	/**
 	 * Remove a key from the btree.
 	 * <p>
@@ -195,121 +265,54 @@ class Btree2 implements TranIndex, Cloneable {
 	 */
 	@Override
 	public boolean remove(Record key) {
-		++modified;
-
-		// search down the tree
-		BtreeNode node = rootNode;
-		List<BtreeNode> treeNodes = Lists.newArrayList();
-		TIntArrayList idxs = new TIntArrayList();
-		for (int level = treeLevels - 1; level >= 0; --level) {
-			treeNodes.add(node);
-			int i = node.findPos(key);
-			idxs.add(i);
-			node = childNode(level - 1, node.get(i));
-		}
-
-		// remove from leaf
-		BtreeNode before = node;
-		node = node.without(key);
-		if (node == null)
-			return false; // not found
+		BtreeNode result = remove(rootNode, key);
+		if (result == null)
+			return false;
 		totalSize -= keySize(key);
-		if (treeLevels == 0)
-			rootNode = node;
-		if (treeLevels == 0 || (node == before && ! node.isEmpty()))
-			return true; // all done
-
-
-		int level = treeLevels - 1;
-		if (node.isEmpty()) {
-			// remove up the tree, continue while resulting nodes are empty
-			--nnodes;
-			for (; level >= 0; --level) {
-				node = treeNodes.get(level);
-				// if node only has one key don't bother updating it to empty
-				// since we're going to remove the pointer to it anyway
-				if (node.size() > 1) {
-					before = node;
-					node = node.without(node.findPos(key));
-					node.minimizeLeftMost();
-					if (node == before)
-						return true; // mutable so pathCopy not required
-					else {
-						--level;
-						break;
-					}
-				}
-				--nnodes;
-			}
-			if (level == -1) {
-				// root node is now empty
-				rootNode = BtreeNode.emptyLeaf();
-				treeLevels = 0;
-				nnodes = 1;
-				return true;
-			}
+		if (result.isEmpty()) {
+			rootNode = BtreeNode.emptyLeaf();
+			treeLevels = 0;
+			assert totalSize == 0;
+			assert nnodes == 1;
+			totalSize = 0;
+			nnodes = 1;
+		} else {
+			rootNode = result;
 		}
-
-		pathCopy(treeNodes, idxs, level, node);
+		++modified;
 		return true;
 	}
 
-	// path copy the rest of the way up, stopping if we hit a mutable node
-	private void pathCopy(List<BtreeNode> treeNodes, TIntArrayList idxs,
-			int level, BtreeNode node) {
-		for (int i = level; i >= 0; --i) {
-			BtreeNode child = node;
-			node = treeNodes.get(i);
-			BtreeNode before = node;
-			node = node.withUpdate(idxs.get(i), child);
-			if (node == before) // node was already mutable
-				break;
-		}
-		rootNode = node;
+	/** @return null if key not found, otherwise updated node */
+	private BtreeNode remove(BtreeNode node, Record key) {
+		return (node.level == 0) ?
+				removeFromLeaf(node, key) : removeFromTree(node, key);
 	}
 
-	/*
-	 * NOTE: updateUnique assumes that if only data address changes
-	 * then old and new keys will be in same leaf node.
-	 * For this to work, split must set data address to MAXADR in tree keys
-	 */
+	private BtreeNode removeFromTree(BtreeNode node, Record key) {
+		int i = node.findPos(key);
+		BtreeNode child = childNode(node.level - 1, node.get(i));
+		BtreeNode result = remove(child, key); // recurse
+		if (result == null)
+			return null;
+		if (result.isEmpty()) {
+			--nnodes;
+			node = node.without(i).minimizeLeftMost();
+		} else
+			node = pathCopy(node, i, result);
+		return node;
+	}
+
+	private static BtreeNode removeFromLeaf(BtreeNode node, Record key) {
+		return node.without(key);
+	}
+
 	@Override
 	public Update update(Record oldkey, Record newkey, boolean unique) {
-		/*if (unique && oldkey.prefixEquals(newkey, oldkey.size() - 1))
-			return updateUnique(oldkey, newkey);
-		else*/ {
-			if (! remove(oldkey))
-				return Update.NOT_FOUND;
-			return add(newkey, unique) ? Update.OK : Update.ADD_FAILED;
-		}
+		if (! remove(oldkey))
+			return Update.NOT_FOUND;
+		return add(newkey, unique) ? Update.OK : Update.ADD_FAILED;
 	}
-
-//	private Update updateUnique(Record oldkey, Record newkey) {
-//		assert oldkey.size() == newkey.size();
-//
-//		++modified;
-//
-//		// search down the tree
-//		int adr = root;
-//		List<BtreeNode> treeNodes = Lists.newArrayList();
-//		TIntArrayList adrs = new TIntArrayList();
-//		for (int level = treeLevels; level > 0; --level) {
-//			adrs.add(adr);
-//			BtreeNode node = nodeAt(level, adr);
-//			treeNodes.add(node);
-//			Record slot = node.find(oldkey);
-//			adr = adr(slot);
-//		}
-//
-//		// update leaf
-//		BtreeNode leaf = nodeAt(0, adr);
-//		leaf = leaf.without(oldkey);
-//		if (leaf == null)
-//			return Update.NOT_FOUND;
-//		leaf = leaf.with(newkey);
-//		tran.redir(adr, leaf);
-//		return Update.OK;
-//	}
 
 	@Override
 	public Iter iterator() {
@@ -535,6 +538,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	BtreeNode childNode(int level, Record key) {
+		assert level >= 0;
 		Object child = key.childRef();
 		return (child != null) ? (BtreeNode) child : nodeAt(level, adr(key));
 	}
@@ -554,6 +558,10 @@ class Btree2 implements TranIndex, Cloneable {
 
 	void freeze() {
 		rootNode.freeze();
+	}
+
+	boolean frozen() {
+		return rootNode.frozen();
 	}
 
 	void print() {
@@ -601,7 +609,8 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	void check() {
-		int nnodes = rootNode.check2(tran.istor, Record.EMPTY);
+		assert rootNode.level == treeLevels;
+		int nnodes = rootNode.check2(tran.istor, Record.EMPTY, null);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}

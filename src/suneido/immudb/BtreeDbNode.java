@@ -75,12 +75,17 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	void minimizeLeftMost() {
+	BtreeNode minimizeLeftMost() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	void freeze() {
+	}
+
+	@Override
+	boolean frozen() {
+		return true;
 	}
 
 	@Override

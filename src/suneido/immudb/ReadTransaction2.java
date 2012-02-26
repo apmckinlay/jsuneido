@@ -66,12 +66,15 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	@Override
 	public TranIndex getIndex(int tblnum, int... colNums) {
-		Index index = index(tblnum, colNums);
+		return getIndex(index(tblnum, colNums));
+	}
+
+	protected TranIndex getIndex(Index index) {
 		TranIndex btree = indexes.get(index);
 		if (btree != null)
 			return btree;
-		TableInfo ti = getTableInfo(tblnum);
-		btree = getIndex(ti.getIndex(colNums));
+		TableInfo ti = getTableInfo(index.tblnum);
+		btree = getIndex(ti.getIndex(index.colNums));
 		indexes.put(index, btree);
 		return btree;
 	}

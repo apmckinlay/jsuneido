@@ -255,6 +255,11 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 		make_test2(Fkmode.CASCADE_DELETES);
 
+		List<Record> recs = get("test2");
+		assertEquals(2, recs.size());
+		assertEquals(record(10, 1), recs.get(0));
+		assertEquals(record(11, 1), recs.get(1));
+
 		Transaction t = db.readwriteTran();
 		t.removeRecord(t.getTable("test").num(), get("test").get(1));
 		t.ck_complete();
@@ -309,8 +314,8 @@ public class DatabaseTest extends TestBase {
 		db.createTable("test2")
 			.addColumn("a")
 			.addColumn("f")
-			.addIndex("a", true, false, "", "", 0)
 			.addIndex("f", false, false, "test", "a", fkmode)
+			.addIndex("a", true, false, "", "", 0)
 			.finish();
 
 		Transaction t1 = db.readwriteTran();

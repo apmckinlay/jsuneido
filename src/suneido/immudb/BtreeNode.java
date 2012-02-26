@@ -33,6 +33,7 @@ abstract class BtreeNode implements Storable {
 	protected final int level;
 
 	BtreeNode(int level) {
+		assert level >= 0;
 		this.level = level;
 	}
 
@@ -74,7 +75,7 @@ abstract class BtreeNode implements Storable {
 
 	abstract BtreeNode without(int i);
 
-	abstract void minimizeLeftMost();
+	abstract BtreeNode minimizeLeftMost();
 
 	/** used by split */
 	abstract BtreeNode slice(int from, int to);
@@ -211,7 +212,7 @@ abstract class BtreeNode implements Storable {
 
 	void print2(Writer w, Storage stor) throws IOException {
 		String indent = Strings.repeat("     ", level);
-		w.append(indent).append(printName() + "\n");
+		w.append(indent).append(printName() + " level " + level + "\n");
 		for (int i = 0; i < size(); ++i) {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
@@ -248,26 +249,45 @@ abstract class BtreeNode implements Storable {
 	}
 
 	/** returns the number of nodes processed */
-	int check2(Storage stor, Record key) {
+	int check2(Storage stor, Record from, Record to) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
-		if (isLeaf()) {
-			if (! isEmpty()) {
-				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
-				assert key.compareTo(get(0)) <= 0 : "first " + get(0) + " NOT >= key " + key;
-			}
-			return 1;
-		}
+		if (isLeaf())
+			return checkLeaf(from, to);
+		else
+			return checkTree(stor, from, to);
+	}
+
+
+	private int checkTree(Storage stor, Record from, Record to) {
 		assert isMinimalKey(get(0)) : "minimal";
 		if (size() > 1)
-			assert key.compareTo(get(1)) <= 0;
+			assert from.compareTo(get(1)) <= 0;
+		assert to == null || to.compareTo(get(size() - 1)) > 0;
 		int nnodes = 1;
-		nnodes += Btree2.childNode(stor, level - 1, get(0)).check2(stor, key);
+		to = 1 < size() ? get(1) : null;
+		nnodes += Btree2.childNode(stor, level - 1, get(0)).check2(stor, from, to);
 		for (int i = 1; i < size(); ++i) {
-			Record key2 = get(i);
-			nnodes += Btree2.childNode(stor, level - 1, key2).check2(stor, key2);
+			from = get(i);
+			to = i + 1 < size() ? get(i + 1) : null;
+			nnodes += Btree2.childNode(stor, level - 1, from).check2(stor, from, to);
 		}
 		return nnodes;
+	}
+
+	private int checkLeaf(Record from, Record to) {
+		if (! isEmpty()) {
+			from = new RecordBuilder().addPrefix(from, from.size() - 1).build();
+			assert get(0).compareTo(from) > 0
+					: "first " + get(0) + " NOT > " + from;
+			if (to != null ) {
+				to = new RecordBuilder().addPrefix(to, to.size() - 1).build();
+				assert get(size() - 1).compareTo(to) <= 0
+						: "last " + get(size() - 1) + " NOT <= " + to;
+			}
+
+		}
+		return 1;
 	}
 
 	protected static boolean isMinimalKey(Record key) {
@@ -330,4 +350,5 @@ abstract class BtreeNode implements Storable {
 
 	abstract void freeze();
 
+	abstract boolean frozen();
 }

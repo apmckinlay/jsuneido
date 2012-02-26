@@ -23,7 +23,7 @@ import suneido.util.Print;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
+	public static DatabasePackage dbpkg = suneido.database.DatabasePackage.dbpkg;
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
 			.setDaemon(true)
