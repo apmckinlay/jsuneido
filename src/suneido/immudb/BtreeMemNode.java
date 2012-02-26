@@ -71,11 +71,6 @@ public class BtreeMemNode extends BtreeNode {
 		return BtreeMemNode.from(split.level + 1, minkey, split.key);
 	}
 
-	static BtreeNode newRoot(BtreeSplit2 split) {
-		Record minkey = minimalKey(split.key.size(), split.left);
-		return BtreeMemNode.from(split.level + 1, minkey, split.key);
-	}
-
 	@Override
 	BtreeMemNode with(Record key) {
 		if (immutable)
@@ -129,11 +124,14 @@ public class BtreeMemNode extends BtreeNode {
 
 	@Override
 	public BtreeNode withUpdate(int i, BtreeNode child) {
-		if (immutable)
+		Record key = get(i);
+		if (key.childRef() == child)
+			return this;
+		else if (immutable)
 			return new BtreeMemNode(this).withUpdate(i, child);
 		else {
-			Record key = get(i);
-			Record newkey = new RecordBuilder().addAll(key).addRef(child).build();
+			Record newkey = new RecordBuilder()
+					.addPrefix(key, key.size() - 1).addRef(child).build();
 			add(newkey); // added is shared so can't update directly
 			index.set(i, (byte) -added.size());
 			return this;
@@ -177,14 +175,17 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	void minimizeLeftMost() {
+	BtreeMemNode minimizeLeftMost() {
 		assert ! immutable;
 		assert isTree();
+		if (size() == 0)
+			return this;
 		Record key = get(0);
 		if (isMinimalKey(key))
-			return;
+			return this;
 		add(minimize(key));
 		index.set(0, (byte) -added.size());
+		return this;
 	}
 
 	/** NOTE: Assumes immutable nodes cannot have mutable children */
@@ -199,6 +200,11 @@ public class BtreeMemNode extends BtreeNode {
 			if (child != null)
 				child.freeze();
 		}
+	}
+
+	@Override
+	boolean frozen() {
+		return immutable;
 	}
 
 	// store -------------------------------------------------------------------

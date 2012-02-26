@@ -5,12 +5,13 @@
 package suneido.immudb;
 
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.iterator.hash.TObjectHashIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.hash.TCustomHashSet;
+import gnu.trove.strategy.HashingStrategy;
 
 import java.nio.ByteBuffer;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import suneido.SuException;
@@ -179,7 +180,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			id.index(btree, Mode.KEY, indexColumns, "", null, null);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
-				TranIndex btree = getIndex(tblnum, index.colNums);
+				TranIndex btree = getIndex(index);
 				String colNames = table.numsToNames(index.colNums);
 				id.index(btree, index.mode(), index.colNums, colNames,
 						index.fksrc, schema.getFkdsts(table.name, colNames));
@@ -296,26 +297,33 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 
 	// update btrees -----------------------------------------------------------
 
-	protected void updateBtrees(ImmuReadTran t) {
-		//TODO update in parallel
+	protected void updateBtrees(ReadTransaction2 t) {
+		//PERF update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
 			updateBtree(t, e);
 	}
 
-	private void updateBtree(ImmuReadTran t, Entry<Index, TranIndex> e) {
+	private void updateBtree(ReadTransaction2 t, Entry<Index, TranIndex> e) {
 		Index index = e.getKey();
 		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
-		TranIndex global = t.getIndex(index.tblnum, index.colNums);
+		TranIndex global = t.getIndex(index);
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();
+		boolean updated = false;
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
-			if (IntRefs.isIntRef(BtreeNode.adr(key)))
-				global.add(translate(key), true); // TODO handle duplicate failure
-			else
+			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
+//				boolean unique = (mode == Mode.KEY ||
+//				(mode == Mode.UNIQUE && ! isEmptyKey(key)));
+				global.add(translate(key), false); // TODO handle duplicates
+			} else
 				global.remove(key);
+			updated = true;
 		}
-		((Btree2) global).freeze();
+		if (updated)
+			((Btree2) global).freeze();
+		else
+			t.indexes.remove(index); // don't need to update dbinfo
 	}
 
 	private Record translate(Record key) {
@@ -347,20 +355,43 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			TableInfo ti = udbi.get(tblnum);
 
 			// indexes
-			ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+			TCustomHashSet<IndexInfo> info = new TCustomHashSet<IndexInfo>(iihash);
 			do {
 				Btree2 btree = (Btree2) e.getValue();
-				b.add(new IndexInfo(e.getKey().colNums, btree.info()));
+				info.add(new IndexInfo(e.getKey().colNums, btree.info()));
 				e = iter.hasNext() ? iter.next() : null;
 			} while (e != null && e.getKey().tblnum == tblnum);
+			for (IndexInfo ii : ti.indexInfo)
+				info.add(ii); // no dups, so only adds ones not already there
 
 			// after table
+			assert ti.indexInfo.size() == info.size();
 			TableInfoDelta d = tidelta(tblnum);
 			ti = new TableInfo(tblnum, ti.nextfield,
-					ti.nrows() + d.nrows, ti.totalsize() + d.size, b.build());
+					ti.nrows() + d.nrows, ti.totalsize() + d.size, toList(info));
 			udbi.add(ti);
 		} while (e != null);
 	}
+
+	private static ImmutableList<IndexInfo> toList(TCustomHashSet<IndexInfo> info) {
+		ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+		TObjectHashIterator<IndexInfo> infoiter = info.iterator();
+		while (infoiter.hasNext())
+			b.add(infoiter.next());
+		return b.build();
+	}
+
+	@SuppressWarnings("serial")
+	private static HashingStrategy<IndexInfo> iihash = new HashingStrategy<IndexInfo>() {
+			@Override
+			public int computeHashCode(IndexInfo ii) {
+				return Arrays.hashCode(ii.columns);
+			}
+			@Override
+			public boolean equals(IndexInfo x, IndexInfo y) {
+				return Arrays.equals(x.columns, y.columns);
+			}
+		};
 
 	// end of complete =========================================================
 

@@ -26,12 +26,10 @@ import com.google.common.collect.Lists;
 public class Btree2Test {
 	private final Storage stor = new MemStorage(1024, 64);
 	private Random rand = new Random(123456);
-	private Tran tran = new Tran(stor);
+	private final Tran tran = new Tran(stor);
 	private Btree2 btree = new Btree4(tran);
 	private List<Record> keys = Lists.newArrayList();
 	private int NKEYS = 100;
-	private BtreeInfo info;
-	private int redirs;
 
 	private static class Btree4 extends Btree2 {
 		@Override public int splitSize() { return 4; }
@@ -62,50 +60,68 @@ public class Btree2Test {
 
 	@Test
 	public void first_leaf_split_end() {
-		btree.add(rec("a", 1));
-		btree.add(rec("b", 2));
-		btree.add(rec("c", 3));
-		btree.add(rec("d", 4));
-		btree.add(rec("e", 5));
+		add("a", 1);
+		add("b", 2);
+		add("c", 3);
+		add("d", 4);
+		add("e", 5);
 		btree.check();
 	}
 
 	@Test
 	public void first_leaf_split_left() {
-		btree.add(rec("a", 1));
-		btree.add(rec("c", 3));
-		btree.add(rec("d", 4));
-		btree.add(rec("e", 5));
-		btree.add(rec("b", 2));
+		add("a", 1);
+		add("c", 3);
+		add("d", 4);
+		add("e", 5);
+		add("b", 2);
 		btree.check();
 	}
 
 	@Test
 	public void first_leaf_split_right() {
-		btree.add(rec("a", 1));
-		btree.add(rec("b", 2));
-		btree.add(rec("c", 3));
-		btree.add(rec("e", 5));
-		btree.add(rec("d", 4));
+		add("a", 1);
+		add("b", 2);
+		add("c", 3);
+		add("e", 5);
+		add("d", 4);
 		btree.check();
 	}
 
 	@Test
-	public void first_leaf_insert() {
-		btree.add(rec("a", 1));
-		btree.add(rec("b", 2));
-		btree.add(rec("c", 3));
-		btree.add(rec("d", 4));
-		btree.add(rec("e", 5));
-		btree.add(rec("f", 5));
-		btree.add(rec("g", 5));
-		btree.add(rec("h", 5));
-		btree.add(rec("i", 5));
+	public void first_tree_insert() {
+		add("a", 1);
+		add("b", 2);
+		add("c", 3);
+		add("d", 4);
+		add("a1", 5); // first split, new root
+		add("a2", 5);
+		add("a3", 5); // second split, insert into root
 		btree.check();
 	}
 
 	@Test
-	public void first_leaf_split() {
+	public void first_tree_insert_end() {
+		add("a", 1);
+		add("b", 2);
+		add("c", 3);
+		add("d", 4);
+		add("e", 5);
+		add("f", 5);
+		add("g", 5);
+		add("h", 5);
+		add("i", 5);
+		btree.check();
+	}
+
+	private void add(Object... values) {
+		btree.add(rec(values));
+		btree.freeze();
+		btree.check();
+	}
+
+	@Test
+	public void first_tree_split() {
 		btree.add(key("a"));
 		btree.add(key("b"));
 		btree.add(key("c"));
@@ -181,13 +197,16 @@ public class Btree2Test {
 
 	@Test
 	public void add_remove_treeLevel() {
-		keys = randomKeys(rand, 5);
-		Collections.sort(keys);
-		for (Record key : keys)
-			btree.add(key);
+		add(15);
 		assertFalse(btree.remove(key("dkfjsdkfjds")));
-		for (Record key : keys)
+		for (Record key : keys) {
 			assertTrue(btree.remove(key));
+		}
+		assertTrue(btree.isEmpty());
+		for (Record key : keys)
+			assertFalse(btree.remove(key));
+		for (Record key : keys)
+			assertThat(btree.get(key), is(0));
 		assertTrue(btree.isEmpty());
 	}
 
@@ -196,7 +215,7 @@ public class Btree2Test {
 		rand = new Random(7645378);
 		add(NKEYS);
 		Collections.sort(keys);
-		removeAndCheck(NKEYS, rand, keys, btree);
+		removeAndCheck();
 	}
 
 	@Test
@@ -205,12 +224,11 @@ public class Btree2Test {
 		add(NKEYS);
 		Collections.sort(keys);
 		Collections.reverse(keys);
-		removeAndCheck(NKEYS, rand, keys, btree);
+		removeAndCheck();
 	}
 
-	private void removeAndCheck(
-			int NKEYS, Random rand, List<Record> keys, Btree2 btree) {
-		for (int i = 0; i < NKEYS / 2; ++i) {
+	private void removeAndCheck() {
+		for (int i = NKEYS - 1; i > NKEYS / 2; --i) {
 			assertTrue(btree.remove(keys.get(i)));
 			keys.remove(i);
 		}
@@ -300,6 +318,8 @@ public class Btree2Test {
 			Record key = randomKey(rand);
 			btree.add(key);
 			keys.add(key);
+			if (i % 3 == 0)
+				btree.freeze();
 		}
 	}
 
@@ -318,14 +338,14 @@ public class Btree2Test {
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 	}
 
-	private void store() {
-		tran.startStore();
-		Btree2.store(tran);
-		info = btree.info();
-		redirs = tran.storeRedirs();
-		tran.endStore();
-		tran = null;
-	}
+//	private void store() {
+//		tran.startStore();
+//		Btree2.store(tran);
+//		info = btree.info();
+//		redirs = tran.storeRedirs();
+//		tran.endStore();
+//		tran = null;
+//	}
 
 	@Test
 	public void iterate_empty() {

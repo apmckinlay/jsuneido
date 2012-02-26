@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import suneido.intfc.database.IndexIter;
+import suneido.intfc.database.Transaction;
 
 public class Transaction2Test {
 
@@ -110,14 +111,40 @@ public class Transaction2Test {
 		db.close();
 	}
 
+	@Test
+	public void test_non_unique_index() {
+		Storage stor = new MemStorage(64, 1024);
+		Storage istor = new MemStorage(1024, 1024);
+		Database2 db = Database2.create(stor, istor);
+		db.createTable("test2")
+			.addColumn("a")
+			.addColumn("f")
+			.addIndex("a", true, false, "", "", 0)
+			.addIndex("f", false, false, "", "", 0)
+			.finish();
+
+		Transaction t = db.readwriteTran();
+		int tblnum = t.getTable("test2").num();
+		t.addRecord("test2", rec(10, 1));
+		t.addRecord("test2", rec(11, 1));
+		t.ck_complete();
+
+		check(db.readonlyTran(), tblnum, "f", rec(10, 1), rec(11, 1));
+	}
+
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {
 		Table tbl = t.getTable(tableName);
 		check(t, tbl.num, recs);
 	}
 
 	private static void check(ImmuReadTran t, int tblnum, Record... recs) {
+		check(t, tblnum, null, recs);
+	}
+
+	private static void check(ImmuReadTran t, int tblnum, String columns,
+			Record... recs) {
 		int i = 0;
-		IndexIter iter = t.iter(tblnum, null);
+		IndexIter iter = t.iter(tblnum, columns);
 		for (iter.next(); ! iter.eof(); iter.next(), ++i)
 			assertThat(t.input(iter.keyadr()), is(recs[i]));
 		assertThat(i, is(recs.length));

@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import suneido.SuException;
@@ -145,11 +146,17 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	@Override
-	protected void updateBtrees(ImmuReadTran t) {
+	protected void updateBtrees(ReadTransaction2 t) {
 		// no update required since we are updating master directly
 		// just need to freeze
-		for (Entry<Index, TranIndex> e : indexes.entrySet())
-			((Btree2) e.getValue()).freeze();
+		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
+		while (iter.hasNext()) {
+			Btree2 btree = (Btree2) iter.next().getValue();
+			if (btree.frozen())
+				iter.remove(); // since we don't need to update dbinfo
+			else
+				btree.freeze();
+		}
 	}
 
 	@Override
