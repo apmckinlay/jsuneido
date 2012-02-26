@@ -15,12 +15,12 @@ import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
 public class Transaction2Test {
+	private final Storage stor = new MemStorage(64, 1024);
+	private final Storage istor = new MemStorage(1024, 1024);
+	private Database2 db = Database2.create(stor, istor);
 
 	@Test
 	public void create() {
-		Storage stor = new MemStorage(64, 1024);
-		Storage istor = new MemStorage(1024, 1024);
-		Database2 db = Database2.create(stor, istor);
 		//DumpData.dump(stor);
 		Persist.persist(db);
 		db.checkTransEmpty();
@@ -28,9 +28,6 @@ public class Transaction2Test {
 
 	@Test
 	public void read_tables() {
-		Storage stor = new MemStorage(64, 1024);
-		Storage istor = new MemStorage(1024, 1024);
-		Database2 db = Database2.create(stor, istor);
 		db.checkTransEmpty();
 		db = db.reopen();
 		check(db.readonlyTran());
@@ -47,9 +44,6 @@ public class Transaction2Test {
 
 	@Test
 	public void add_remove() {
-		Storage stor = new MemStorage(64, 1024);
-		Storage istor = new MemStorage(1024, 1024);
-		Database2 db = Database2.create(stor, istor);
 		db.createTable("tmp")
 				.addColumn("a")
 				.addColumn("b")
@@ -113,9 +107,6 @@ public class Transaction2Test {
 
 	@Test
 	public void test_non_unique_index() {
-		Storage stor = new MemStorage(64, 1024);
-		Storage istor = new MemStorage(1024, 1024);
-		Database2 db = Database2.create(stor, istor);
 		db.createTable("test2")
 			.addColumn("a")
 			.addColumn("f")
@@ -130,6 +121,12 @@ public class Transaction2Test {
 		t.ck_complete();
 
 		check(db.readonlyTran(), tblnum, "f", rec(10, 1), rec(11, 1));
+	}
+
+	@Test
+	public void test_views() {
+		db.addView("myview", "tables join columns");
+		assertThat(db.getView("myview"), is("tables join columns"));
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

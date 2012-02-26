@@ -158,7 +158,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	/** @return view definition, else null if view not found */
 	@Override
 	public String getView(String name) {
-		return null; //Views.getView(this, name);
+		return Views.getView(this, name);
 	}
 
 	@Override
