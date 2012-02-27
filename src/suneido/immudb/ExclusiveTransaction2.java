@@ -168,7 +168,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	public void abort() {
-		tran.endStore(); //TODO prevent any output from being seen by rebuild
+		tran.endStore(); //TODO prevent output from being seen by rebuild
 		super.abort();
 	}
 

@@ -4,10 +4,12 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -121,6 +123,69 @@ public class Transaction2Test {
 		t.ck_complete();
 
 		check(db.readonlyTran(), tblnum, "f", rec(10, 1), rec(11, 1));
+	}
+
+	@Test
+	public void test_duplicates() {
+		db.createTable("tmp")
+		.addColumn("a")
+		.addColumn("b")
+		.addIndex("a", true, false, null, null, 0)
+		.finish();
+
+		ImmuUpdateTran t = db.readwriteTran();
+		t.addRecord("tmp", rec(123, "foo"));
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // within same transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
+
+		t = db.readwriteTran();
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
+
+		t = db.readwriteTran();
+		ImmuUpdateTran t2 = db.readwriteTran();
+		t.addRecord("tmp", rec(456, "foo"));
+		t2.addRecord("tmp", rec(456, "bar"));
+		t.ck_complete();
+		assertThat(t2.complete(), containsString("duplicate"));
+	}
+
+	@Test
+	public void test_duplicates_exclusive() {
+		db.createTable("tmp")
+		.addColumn("a")
+		.addColumn("b")
+		.addIndex("a", true, false, null, null, 0)
+		.finish();
+
+		ImmuUpdateTran t = db.exclusiveTran();
+		t.addRecord("tmp", rec(123, "foo"));
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // within same transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
+
+		t = db.exclusiveTran();
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
 	}
 
 	@Test
