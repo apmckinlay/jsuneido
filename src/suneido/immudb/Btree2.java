@@ -91,6 +91,10 @@ class Btree2 implements TranIndex, Cloneable {
 		assert result == true;
 	}
 
+	boolean add(Record key, boolean isKey, boolean unique) {
+		return add(key, (isKey || (unique && ! IndexedData2.isEmptyKey(key))));
+	}
+
 	/**
 	 * Add a key with a trailing record address to the btree.
 	 * <p>
@@ -253,7 +257,7 @@ class Btree2 implements TranIndex, Cloneable {
 		}
 
 	}
-	
+
 	// remove ------------------------------------------------------------------
 
 	/**
