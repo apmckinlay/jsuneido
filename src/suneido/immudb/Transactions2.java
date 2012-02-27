@@ -63,6 +63,24 @@ class Transactions2 {
 			utrans.add((UpdateTransaction2) t);
 	}
 
+	/** return the set of transactions that committed since asof */
+	synchronized Set<UpdateTransaction2> getOverlapping(long asof) {
+		if (overlapping.isEmpty())
+			return Collections.emptySet();
+		boolean inclusive = true;
+		UpdateTransaction2 t = overlapping.first();
+		Iterator<UpdateTransaction2> iter = overlapping.descendingIterator();
+		while (iter.hasNext()) {
+			t = iter.next();
+			if (t.commitTime() < asof) {
+				inclusive = false;
+				break;
+			}
+		}
+		return overlapping.tailSet(t, inclusive);
+
+	}
+
 	synchronized void commit(Transaction t) {
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction2) {

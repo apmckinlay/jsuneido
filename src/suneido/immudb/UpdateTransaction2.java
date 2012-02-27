@@ -8,6 +8,7 @@ import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.hash.TObjectHashIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.hash.TCustomHashSet;
+import gnu.trove.set.hash.TIntHashSet;
 import gnu.trove.strategy.HashingStrategy;
 
 import java.nio.ByteBuffer;
@@ -40,6 +41,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private String conflict = null;
 	private final boolean onlyReads = false;
 //	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	private final TIntHashSet deletes = new TIntHashSet();
 	private final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
 
@@ -155,6 +157,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		indexedData(tblnum).remove((Record) rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
 		updateRowInfo(tblnum, -1, -rec.bufSize());
+		deletes.add(rec.address());
 	}
 
 	// used by foreign key cascade
@@ -235,7 +238,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		}
 		try {
 			synchronized(db.commitLock) {
-				//TODO read validation
+				checkForConflicts();
 				int cksum = storeData();
 				// use a read transaction to get access to global indexes
 				ReadTransaction2 t = db.readonlyTran();
@@ -254,6 +257,19 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			unlock();
 		}
 		return conflict;
+	}
+
+	private void checkForConflicts() {
+		// TODO read validation
+		Set<UpdateTransaction2> overlapping = trans.getOverlapping(asof);
+		for (UpdateTransaction2 t : overlapping) {
+			TIntIterator iter = t.deletes.iterator();
+			while (iter.hasNext()) {
+				int del = iter.next();
+				if (deletes.contains(del))
+					throw new Conflict("delete conflict");
+			}
+		}
 	}
 
 	// store data --------------------------------------------------------------
