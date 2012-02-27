@@ -134,6 +134,9 @@ public class TransactionTest extends TestBase {
 
 	@Test
 	public void delete_conflict() {
+		if (Suneido.dbpkg.dbFilename().equals("immu2.db"))
+			return; // immudb2 works differently
+
 		makeTable(300);
 
 		// deleting different btree nodes doesn't conflict

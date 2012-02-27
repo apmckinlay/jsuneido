@@ -128,10 +128,10 @@ public class Transaction2Test {
 	@Test
 	public void test_duplicates() {
 		db.createTable("tmp")
-		.addColumn("a")
-		.addColumn("b")
-		.addIndex("a", true, false, null, null, 0)
-		.finish();
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
 
 		ImmuUpdateTran t = db.readwriteTran();
 		t.addRecord("tmp", rec(123, "foo"));
@@ -208,6 +208,27 @@ public class Transaction2Test {
 		t2.addRecord("tmp", rec(456, "bar"));
 		t1.ck_complete();
 		t2.ck_complete();
+	}
+
+	@Test
+	public void test_delete_conflict() {
+		db.createTable("tmp")
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
+
+		Transaction t = db.readwriteTran();
+		int tmp = t.getTable("tmp").num();
+		t.addRecord("tmp", rec(123, "foo"));
+		t.ck_complete();
+
+		Transaction t1 = db.readwriteTran();
+		Transaction t2 = db.readwriteTran();
+		t1.removeRecord(tmp, rec(123, "foo"));
+		t2.removeRecord(tmp, rec(123, "foo"));
+		t1.ck_complete();
+		assertThat(t2.complete(), containsString("delete conflict"));
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {
