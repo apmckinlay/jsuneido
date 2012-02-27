@@ -163,10 +163,10 @@ public class Transaction2Test {
 	@Test
 	public void test_duplicates_exclusive() {
 		db.createTable("tmp")
-		.addColumn("a")
-		.addColumn("b")
-		.addIndex("a", true, false, null, null, 0)
-		.finish();
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
 
 		ImmuUpdateTran t = db.exclusiveTran();
 		t.addRecord("tmp", rec(123, "foo"));
@@ -192,6 +192,22 @@ public class Transaction2Test {
 	public void test_views() {
 		db.addView("myview", "tables join columns");
 		assertThat(db.getView("myview"), is("tables join columns"));
+	}
+
+	@Test
+	public void test_concurrent_appends() {
+		db.createTable("tmp")
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
+
+		Transaction t1 = db.readwriteTran();
+		t1.addRecord("tmp", rec(123, "foo"));
+		Transaction t2 = db.readwriteTran();
+		t2.addRecord("tmp", rec(456, "bar"));
+		t1.ck_complete();
+		t2.ck_complete();
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {

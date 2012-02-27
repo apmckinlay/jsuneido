@@ -10,6 +10,8 @@ import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Test;
 
+import suneido.Suneido;
+
 public class TransactionTest extends TestBase {
 
 	@Test
@@ -174,6 +176,9 @@ public class TransactionTest extends TestBase {
 
 	@Test
 	public void add_conflict() {
+		if (Suneido.dbpkg.dbFilename().equals("immu2.db"))
+			return; // immudb2 allows concurrent adds
+
 		makeTable();
 
 		Transaction t1 = db.readwriteTran();
@@ -188,7 +193,6 @@ public class TransactionTest extends TestBase {
 		t1.ck_complete();
 		assertNotNull(t2.complete());
 		assertThat(t2.conflict(), containsString("conflict (write-write)"));
-
 	}
 
 	@Test
