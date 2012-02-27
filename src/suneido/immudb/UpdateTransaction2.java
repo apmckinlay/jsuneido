@@ -107,7 +107,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			throw new SuException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
 		updateRecord(from.tblnum, from, (Record) to);
-		return 1; //TODO don't know record address till commit
+		return 1; // don't know record address till commit
 	}
 
 	@Override
@@ -115,7 +115,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			suneido.intfc.database.Record from,
 			suneido.intfc.database.Record to) {
 		updateRecord(tblnum, (Record) from, (Record) to);
-		return 1; //TODO don't know record address till commit
+		return 1; // don't know record address till commit
 	}
 
 	void updateRecord(int tblnum, Record from, Record to) {
@@ -306,22 +306,20 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private void updateBtree(ReadTransaction2 t, Entry<Index, TranIndex> e) {
 		Index index = e.getKey();
 		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
-		TranIndex global = t.getIndex(index);
+		Btree2 global = (Btree2) t.getIndex(index);
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();
 		boolean updated = false;
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
 			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
-//				boolean unique = (mode == Mode.KEY ||
-//				(mode == Mode.UNIQUE && ! isEmptyKey(key)));
-				global.add(translate(key), false); // TODO handle duplicates
+				global.add(translate(key), index.isKey, index.unique); // TODO handle duplicates
 			} else
 				global.remove(key);
 			updated = true;
 		}
 		if (updated)
-			((Btree2) global).freeze();
+			global.freeze();
 		else
 			t.indexes.remove(index); // don't need to update dbinfo
 	}
