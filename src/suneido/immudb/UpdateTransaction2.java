@@ -250,11 +250,10 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			}
 		} catch(Conflict c) {
 			conflict = c.toString();
-			return conflict;
 		} finally {
 			unlock();
 		}
-		return null;
+		return conflict;
 	}
 
 	// store data --------------------------------------------------------------
@@ -313,7 +312,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
 			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
-				global.add(translate(key), index.isKey, index.unique); // TODO handle duplicates
+				if (false == global.add(translate(key), index.isKey, index.unique))
+					throw new Conflict("duplicate key");
 			} else
 				global.remove(key);
 			updated = true;
@@ -433,7 +433,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	public void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
-		throw new SuException("transaction " + conflict);
+		throw new Conflict(conflict);
 	}
 
 	// need for PriorityQueue's in Transactions
