@@ -87,7 +87,7 @@ abstract class DbHashTrie {
 	protected abstract DbHashTrie with(Entry e, int shift);
 
 	/** call proc.apply(adr) for each new entry (where value is an intref) */
-	abstract void traverseChanges(Process proc);
+	abstract void traverseUnstored(Process proc);
 
 	abstract void freeze();
 
@@ -120,10 +120,13 @@ abstract class DbHashTrie {
 		}
 	}
 
+	// Node --------------------------------------------------------------------
+
 	private static class Node extends DbHashTrie {
 		private static final int ENTRIES = INT_BYTES;
 		private static final int ENTRY_SIZE = 2 * INT_BYTES;
 		protected final Storage stor;
+		/** 0 means mutable, -1 means frozen/immutable, else it's stored */
 		private int adr = 0;
 		private int bitmap;
 		private Object data[];
@@ -177,7 +180,7 @@ abstract class DbHashTrie {
 
 		@Override
 		protected Node with(Entry e, int shift) {
-			if (stored())
+			if (immutable())
 				return new Node(this, e, shift);
 
 			assert shift < 32;
@@ -213,7 +216,7 @@ abstract class DbHashTrie {
 			with(e, shift);
 		}
 		private void insert(int i, Entry e) {
-			assert ! stored();
+			assert ! immutable();
 			int n = size();
 			data = ensureCapacity(data, n + 1, 2);
 			if (n > i)
@@ -310,13 +313,13 @@ abstract class DbHashTrie {
 		}
 
 		@Override
-		void traverseChanges(Process proc) {
+		void traverseUnstored(Process proc) {
 			if (stored())
 				return;
 
 			for (int i = 0; i < size(); ++i) {
 				if (data[i] instanceof Node)
-					((Node) data[i]).traverseChanges(proc);
+					((Node) data[i]).traverseUnstored(proc);
 				else if (data[i] instanceof Entry &&
 						! (data[i] instanceof StoredIntEntry))
 					proc.apply((Entry) data[i]);
@@ -335,7 +338,8 @@ abstract class DbHashTrie {
 		@Override
 		protected void print(int shift) {
 			String indent = Strings.repeat(" ", shift);
-			System.out.println(indent + (adr == 0 ? "" : "db") + "Node");
+			System.out.println(indent + "Node " +
+					(adr == 0 ? "" : (adr == -1 ? "frozen" : "stored")));
 			for (int i = 0; i < size(); ++i) {
 				if (data[i] instanceof Entry) {
 					Entry e = (Entry) data[i];
@@ -357,7 +361,9 @@ abstract class DbHashTrie {
 			return s.substring(0, s.length() - 1);
 		}
 
-	} // end of Node
+	}
+
+	// end of Node -------------------------------------------------------------
 
 	interface Translator {
 		Entry translate(Entry e);
