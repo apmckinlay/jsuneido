@@ -296,7 +296,7 @@ class Database2 implements suneido.intfc.database.Database {
 		/** checksum of last commit */
 		final int lastcksum;
 
-		public State(DbHashTrie dbinfo, Tables schema, int lastcksum) {
+		private State(DbHashTrie dbinfo, Tables schema, int lastcksum) {
 			assert dbinfo.immutable();
 			this.dbinfo = dbinfo;
 			this.schema = schema;

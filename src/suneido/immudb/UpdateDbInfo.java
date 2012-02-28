@@ -85,7 +85,7 @@ class UpdateDbInfo {
 			return; // no concurrent changes to merge
 
 		MergeProc proc = new MergeProc(original, current);
-		dbinfo.traverseChanges(proc);
+		dbinfo.traverseUnstored(proc);
 		dbinfo = proc.merged;
 	}
 

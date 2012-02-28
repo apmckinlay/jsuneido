@@ -49,7 +49,7 @@ class Redirects {
 	}
 
 	void assertNoChanges() {
-		redirs.traverseChanges(new DbHashTrie.Process() {
+		redirs.traverseUnstored(new DbHashTrie.Process() {
 			@Override
 			public void apply(Entry e ) {
 				assert false : "should not be any changes";
@@ -69,7 +69,7 @@ class Redirects {
 			return; // no concurrent changes to merge
 
 		Proc proc = new Proc(original, current);
-		redirs.traverseChanges(proc);
+		redirs.traverseUnstored(proc);
 		redirs = proc.merged;
 	}
 

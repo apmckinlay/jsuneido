@@ -171,11 +171,11 @@ public class DbHashTrieTest {
 		tree = DbHashTrie.empty(stor);
 		DbHashTrie.Process proc = mock(DbHashTrie.Process.class);
 
-		tree.traverseChanges(proc);
+		tree.traverseUnstored(proc);
 		verifyZeroInteractions(proc);
 
 		add(123, 456);
-		tree.traverseChanges(proc);
+		tree.traverseUnstored(proc);
 		verify(proc).apply(entry(123, 456));
 
 		Random rand = new Random(46578);
@@ -183,7 +183,7 @@ public class DbHashTrieTest {
 		int adr = tree.store(nullTranslator);
 		tree = DbHashTrie.from(stor, adr);
 		proc = mock(DbHashTrie.Process.class);
-		tree.traverseChanges(proc);
+		tree.traverseUnstored(proc);
 		verifyZeroInteractions(proc);
 
 		final int N = 10;
@@ -193,7 +193,7 @@ public class DbHashTrieTest {
 			tree = tree.with(entries[i]);
 		}
 		proc = mock(DbHashTrie.Process.class);
-		tree.traverseChanges(proc);
+		tree.traverseUnstored(proc);
 		for (int i = 0; i < N; ++i)
 			verify(proc).apply(entries[i]);
 	}

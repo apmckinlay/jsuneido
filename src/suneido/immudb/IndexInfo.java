@@ -51,6 +51,7 @@ class IndexInfo extends BtreeInfo {
 	}
 
 	void addToRecord(RecordBuilder rb) {
+		assert root != 0;
 		rb.add(convertColumns(columns))
 				.add(root).add(treeLevels).add(nnodes).add(totalSize);
 	}

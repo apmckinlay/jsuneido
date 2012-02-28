@@ -338,6 +338,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			global.freeze();
 		else
 			t.indexes.remove(index); // don't need to update dbinfo
+		assert global.frozen();
 	}
 
 	private Record translate(Record key) {

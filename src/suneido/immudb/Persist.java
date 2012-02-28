@@ -73,7 +73,7 @@ public class Persist {
 	}
 
 	private void storeBtrees() {
-		dbinfo.traverseChanges(proc);
+		dbinfo.traverseUnstored(proc);
 	}
 
 	DbHashTrie.Process proc = new DbHashTrie.Process() {
@@ -81,12 +81,11 @@ public class Persist {
 			public void apply(Entry e) {
 				if (e instanceof TableInfo) {
 					TableInfo ti = (TableInfo) e;
-//System.out.println(ti);
 					ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 					for (IndexInfo ii : ti.indexInfo)
 						if (ii.rootNode != null) {
 							int root = ii.rootNode.store2(istor);
-//System.out.println("\t" + ii.rootNode);
+							assert root != 0;
 							b.add(new IndexInfo(ii, root));
 						}
 					newdbinfo = newdbinfo.with(new TableInfo(ti, b.build()));

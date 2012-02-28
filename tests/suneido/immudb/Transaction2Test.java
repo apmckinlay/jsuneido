@@ -195,6 +195,27 @@ public class Transaction2Test {
 	}
 
 	@Test
+	public void test_delete_visibility() {
+		db.createTable("tmp")
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
+
+		UpdateTransaction2 t = db.readwriteTran();
+		int tmp = t.getTable("tmp").num();
+		t.addRecord("tmp", rec(123, "foo"));
+		t.ck_complete();
+
+		UpdateTransaction2 t1 = db.readwriteTran();
+		UpdateTransaction2 t2 = db.readwriteTran();
+		t1.removeRecord(tmp, rec(123, "foo"));
+		t1.ck_complete();
+		assertThat(t2.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
+		t2.ck_complete();
+	}
+
+	@Test
 	public void test_concurrent_appends() {
 		db.createTable("tmp")
 			.addColumn("a")
