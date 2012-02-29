@@ -10,8 +10,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import com.google.common.collect.Ranges;
-
 public class TransactionReadsTest {
 	private final TransactionReads list = new TransactionReads();
 
@@ -23,7 +21,7 @@ public class TransactionReadsTest {
 	@Test
 	public void single() {
 		add(123, 456);
-		assertEquals(str(), "[[[123]‥[456]]]");
+		assertEquals("[[[123]..[456]]]", str());
 	}
 
 	@Test
@@ -31,7 +29,7 @@ public class TransactionReadsTest {
 		add(1, 2);
 		add(3, 4);
 		add(5, 6);
-		assertEquals(str(), "[[[1]‥[2]], [[3]‥[4]], [[5]‥[6]]]");
+		assertEquals(str(), "[[[1]..[2]], [[3]..[4]], [[5]..[6]]]");
 	}
 
 	@Test
@@ -40,11 +38,11 @@ public class TransactionReadsTest {
 		add(3, 5);
 		add(4, 6);
 		add(7, 8);
-		assertEquals(str(), "[[[1]‥[2]], [[3]‥[6]], [[7]‥[8]]]");
+		assertEquals(str(), "[[[1]..[2]], [[3]..[6]], [[7]..[8]]]");
 	}
 
 	void add(int lo, int hi) {
-		list.add(Ranges.closed(rec(lo), rec(hi)));
+		list.add(new IndexRange(rec(lo), rec(hi)));
 	}
 
 	Record rec(int n) {

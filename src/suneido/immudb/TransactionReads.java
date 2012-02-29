@@ -8,8 +8,6 @@ import java.util.Arrays;
 
 import suneido.util.MergeTree;
 
-import com.google.common.collect.Range;
-
 /**
  * Accumulates reads done by a transaction on a single index.
  * Operates in two stages, first simply accumulating a list of reads.
@@ -17,12 +15,11 @@ import com.google.common.collect.Range;
  * After build, contains can be used to validate a transaction's reads.
  */
 public class TransactionReads {
-	static final RangeComparator<Record> cmp = new RangeComparator<Record>();
-	private final MergeTree<Range<Record>> list  = new MergeTree<Range<Record>>(cmp);
-	private Range<Record>[] reads;
+	private final MergeTree<IndexRange> list  = new MergeTree<IndexRange>();
+	private IndexRange[] reads;
 	private int rlen;
 
-	void add(Range<Record> keyRange) {
+	void add(IndexRange keyRange) {
 		list.add(keyRange);
 	}
 
@@ -32,21 +29,21 @@ public class TransactionReads {
 
 	void build() {
 		int i = 0;
-		@SuppressWarnings("unchecked")
-		Range<Record>[] a = new Range[list.size()];
+		IndexRange[] a = new IndexRange[list.size()];
 		if (a.length > 0) {
-			MergeTree<Range<Record>>.Iter iter = list.iter();
-			Range<Record> prev = iter.next();
-			Range<Record> x;
+			MergeTree<IndexRange>.Iter iter = list.iter();
+			IndexRange prev = iter.next();
+			IndexRange x;
 			while (null != (x = iter.next()))
 				if (prev.isConnected(x))
-					prev = prev.span(x);
+					prev.extendToSpan(x);
 				else {
 					a[i++] = prev;
 					prev = x;
 				}
 			a[i++] = prev;
 		}
+		list.clear();
 		reads = a;
 		rlen = i;
 	}
@@ -77,8 +74,8 @@ public class TransactionReads {
 		return first;
 	}
 
-	private static int compare(Range<Record> range, Record value) {
-		int cmp = range.lowerEndpoint().compareTo(value);
+	private static int compare(IndexRange range, Record value) {
+		int cmp = range.lo.compareTo(value);
 		return cmp != 0 ? cmp : -1;
 	}
 
