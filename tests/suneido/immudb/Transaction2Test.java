@@ -46,11 +46,7 @@ public class Transaction2Test {
 
 	@Test
 	public void add_remove() {
-		db.createTable("tmp")
-				.addColumn("a")
-				.addColumn("b")
-				.addIndex("a", true, false, null, null, 0)
-				.finish();
+		make_tmp();
 
 		ImmuUpdateTran t = db.readwriteTran();
 		int tblnum = t.getTable("tmp").num;
@@ -127,11 +123,7 @@ public class Transaction2Test {
 
 	@Test
 	public void test_duplicates() {
-		db.createTable("tmp")
-			.addColumn("a")
-			.addColumn("b")
-			.addIndex("a", true, false, null, null, 0)
-			.finish();
+		make_tmp();
 
 		ImmuUpdateTran t = db.readwriteTran();
 		t.addRecord("tmp", rec(123, "foo"));
@@ -162,11 +154,7 @@ public class Transaction2Test {
 
 	@Test
 	public void test_duplicates_exclusive() {
-		db.createTable("tmp")
-			.addColumn("a")
-			.addColumn("b")
-			.addIndex("a", true, false, null, null, 0)
-			.finish();
+		make_tmp();
 
 		ImmuUpdateTran t = db.exclusiveTran();
 		t.addRecord("tmp", rec(123, "foo"));
@@ -196,11 +184,7 @@ public class Transaction2Test {
 
 	@Test
 	public void test_delete_visibility() {
-		db.createTable("tmp")
-			.addColumn("a")
-			.addColumn("b")
-			.addIndex("a", true, false, null, null, 0)
-			.finish();
+		make_tmp();
 
 		UpdateTransaction2 t = db.readwriteTran();
 		int tmp = t.getTable("tmp").num();
@@ -217,11 +201,7 @@ public class Transaction2Test {
 
 	@Test
 	public void test_concurrent_appends() {
-		db.createTable("tmp")
-			.addColumn("a")
-			.addColumn("b")
-			.addIndex("a", true, false, null, null, 0)
-			.finish();
+		make_tmp();
 
 		Transaction t1 = db.readwriteTran();
 		t1.addRecord("tmp", rec(123, "foo"));
@@ -233,11 +213,7 @@ public class Transaction2Test {
 
 	@Test
 	public void test_delete_conflict() {
-		db.createTable("tmp")
-			.addColumn("a")
-			.addColumn("b")
-			.addIndex("a", true, false, null, null, 0)
-			.finish();
+		make_tmp();
 
 		Transaction t = db.readwriteTran();
 		int tmp = t.getTable("tmp").num();
@@ -250,6 +226,30 @@ public class Transaction2Test {
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
 		assertThat(t2.complete(), containsString("delete conflict"));
+	}
+
+	@Test
+	public void test_read_validation() {
+		make_tmp();
+
+		Transaction t1 = db.readwriteTran();
+		int tmp = t1.getTable("tmp").num();
+		t1.addRecord("tmp", rec(123, "foo"));
+		assertNull(t1.lookup(tmp, "a", rec(456)));
+
+		Transaction t2 = db.readwriteTran();
+		t2.addRecord("tmp", rec(456, "foo"));
+		t2.ck_complete();
+
+		assertThat(t1.complete(), containsString("read conflict"));
+	}
+
+	private void make_tmp() {
+		db.createTable("tmp")
+			.addColumn("a")
+			.addColumn("b")
+			.addIndex("a", true, false, null, null, 0)
+			.finish();
 	}
 
 	private static void check(ImmuReadTran t, String tableName, Record... recs) {
