@@ -17,7 +17,7 @@ import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
 @ThreadSafe
-class Database2 implements suneido.intfc.database.Database {
+class Database2 implements ImmuDatabase {
 	final Transactions2 trans = new Transactions2();
 	final Storage stor;
 	final Storage istor;
@@ -132,7 +132,8 @@ class Database2 implements suneido.intfc.database.Database {
 		return new UpdateTransaction2(num, this);
 	}
 
-	ExclusiveTransaction2 exclusiveTran() {
+	@Override
+	public ExclusiveTransaction2 exclusiveTran() {
 		int num = trans.nextNum(false);
 		return new ExclusiveTransaction2(num, this);
 	}

@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 public class TransactionReadsTest {
-	private final TransactionReads list = new TransactionReads();
+	private final TransactionReads trs = new TransactionReads();
 
 	@Test
 	public void empty() {
@@ -19,17 +19,39 @@ public class TransactionReadsTest {
 	}
 
 	@Test
-	public void single() {
+	public void singleValue() {
+		add(123, 123);
+		assertEquals("[[[123]..[123]]]", str());
+		assert trs.contains(rec(123));
+	}
+
+	@Test
+	public void singleRange() {
 		add(123, 456);
 		assertEquals("[[[123]..[456]]]", str());
+
+		trs.add(new IndexRange(DatabasePackage.MIN_RECORD, DatabasePackage.MAX_RECORD));
+		trs.build();
+		assert trs.contains(rec(1));
 	}
 
 	@Test
 	public void nonOverlapping() {
-		add(1, 2);
-		add(3, 4);
-		add(5, 6);
-		assertEquals(str(), "[[[1]..[2]], [[3]..[4]], [[5]..[6]]]");
+		add(1, 3);
+		add(4, 6);
+		add(8, 9);
+		assertEquals(str(), "[[[1]..[3]], [[4]..[6]], [[8]..[9]]]");
+		assert ! trs.contains(rec(0));
+		assert trs.contains(rec(1));
+		assert trs.contains(rec(2));
+		assert trs.contains(rec(3));
+		assert trs.contains(rec(4));
+		assert trs.contains(rec(5));
+		assert trs.contains(rec(6));
+		assert ! trs.contains(rec(7));
+		assert trs.contains(rec(8));
+		assert trs.contains(rec(9));
+		assert ! trs.contains(rec(10));
 	}
 
 	@Test
@@ -42,7 +64,7 @@ public class TransactionReadsTest {
 	}
 
 	void add(int lo, int hi) {
-		list.add(new IndexRange(rec(lo), rec(hi)));
+		trs.add(new IndexRange(rec(lo), rec(hi)));
 	}
 
 	Record rec(int n) {
@@ -50,8 +72,8 @@ public class TransactionReadsTest {
 	}
 
 	String str() {
-		list.build();
-		return list.toString();
+		trs.build();
+		return trs.toString();
 	}
 
 }

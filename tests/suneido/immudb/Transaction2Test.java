@@ -196,7 +196,7 @@ public class Transaction2Test {
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
 		assertThat(t2.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
-		t2.ck_complete();
+		t2.abort();
 	}
 
 	@Test
@@ -228,17 +228,37 @@ public class Transaction2Test {
 		assertThat(t2.complete(), containsString("delete conflict"));
 	}
 
+	// successful read conflicting with delete
 	@Test
-	public void test_read_validation() {
+	public void test_read_validation_for_delete() {
 		make_tmp();
 
-		Transaction t1 = db.readwriteTran();
-		int tmp = t1.getTable("tmp").num();
-		t1.addRecord("tmp", rec(123, "foo"));
-		assertNull(t1.lookup(tmp, "a", rec(456)));
+		Transaction t = db.readwriteTran();
+		int tmp = t.getTable("tmp").num();
+		t.addRecord("tmp", rec(123, "foo"));
+		t.ck_complete(); t = null;
 
-		Transaction t2 = db.readwriteTran();
-		t2.addRecord("tmp", rec(456, "foo"));
+		UpdateTransaction2 t1 = db.readwriteTran();
+		assertThat(t1.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
+
+		UpdateTransaction2 t2 = db.readwriteTran();
+		t2.removeRecord(tmp, rec(123, "foo"));
+		t2.ck_complete();
+
+		assertThat(t1.complete(), containsString("read conflict"));
+	}
+
+	// unsuccessful read conflicting with add
+	@Test
+	public void test_read_validation_for_add() {
+		make_tmp();
+
+		UpdateTransaction2 t1 = db.readwriteTran();
+		int tmp = t1.getTable("tmp").num();
+		assertNull(t1.lookup(tmp, "a", rec(123)));
+
+		UpdateTransaction2 t2 = db.readwriteTran();
+		t2.addRecord("tmp", rec(123, "foo"));
 		t2.ck_complete();
 
 		assertThat(t1.complete(), containsString("read conflict"));

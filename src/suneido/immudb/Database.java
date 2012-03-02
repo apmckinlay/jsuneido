@@ -20,7 +20,7 @@ import suneido.util.FileUtils;
 import com.google.common.primitives.Ints;
 
 @ThreadSafe
-class Database implements suneido.intfc.database.Database {
+class Database implements ImmuDatabase {
 	final Transactions trans = new Transactions();
 	final Storage stor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
@@ -133,7 +133,8 @@ class Database implements suneido.intfc.database.Database {
 		return new UpdateTransaction(num, this);
 	}
 
-	ExclusiveTransaction exclusiveTran() {
+	@Override
+	public ExclusiveTransaction exclusiveTran() {
 		int num = trans.nextNum(false);
 		return new ExclusiveTransaction(num, this);
 	}

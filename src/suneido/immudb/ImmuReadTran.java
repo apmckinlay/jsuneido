@@ -14,6 +14,9 @@ interface ImmuReadTran extends suneido.intfc.database.Transaction {
 	@Override
 	Table getTable(String tblname);
 
+	@Override
+	Table ck_getTable(String tblname);
+
 	TranIndex getIndex(int tblnum, int... colNums);
 
 	boolean hasIndex(int tblnum, int[] colNums);

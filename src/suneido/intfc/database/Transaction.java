@@ -36,6 +36,7 @@ public interface Transaction {
 
 	void ck_complete();
 
+	/** @return null if successful, an error string if there is a conflict */
 	String complete();
 
 	String getView(String viewname);

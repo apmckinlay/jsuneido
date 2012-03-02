@@ -75,8 +75,9 @@ public class TransactionReads {
 	}
 
 	private static int compare(IndexRange range, Record value) {
-		int cmp = range.lo.compareTo(value);
-		return cmp != 0 ? cmp : -1;
+		if (range.lo.compareTo(value) > 0)
+			return +1;
+		return range.hi.compareTo(value) < 0 ? -1 : +1;
 	}
 
 	@Override

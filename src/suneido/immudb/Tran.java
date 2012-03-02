@@ -112,6 +112,7 @@ class Tran implements Translator {
 		stor.buffer(tail_adr).putInt(cksum).putInt(size);
 		stor.protectAll(); // can't output outside tran
 
+		head_adr = 0;
 		return cksum;
 	}
 

@@ -17,9 +17,9 @@ public class IndexRange implements Comparable<IndexRange> {
 	Record lo = DatabasePackage2.MAX_RECORD;
 	Record hi;
 
-	public IndexRange(Record org, Record end) {
-		this.lo = org;
-		this.hi = end;
+	public IndexRange(Record lo, Record hi) {
+		this.lo = lo;
+		this.hi = hi;
 	}
 
 	boolean isConnected(IndexRange that) {

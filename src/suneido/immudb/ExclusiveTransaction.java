@@ -80,7 +80,8 @@ public class ExclusiveTransaction extends UpdateTransaction
 	}
 
 	// used by DbLoad and DbCompact
-	int loadRecord(int tblnum, Record rec) {
+	@Override
+	public int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
 		int adr = rec.store(stor);
 		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
@@ -98,12 +99,18 @@ public class ExclusiveTransaction extends UpdateTransaction
 	}
 
 	// used by DbLoad
-	void saveBtrees() {
+	@Override
+	public void saveBtrees() {
 		tran.intrefs.startStore();
 		Btree.store(tran);
 		for (Btree btree : indexes.values())
 			btree.info(); // convert roots from intrefs
 		tran.intrefs.clear();
+	}
+
+	@Override
+	public StoredRecordIterator storedRecordIterator(int first, int last) {
+		return new StoredRecordIterator(stor, first, last);
 	}
 
 	@Override
