@@ -22,6 +22,7 @@ import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -40,7 +41,8 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	private volatile long commitTime = Long.MAX_VALUE;
 	private String conflict = null;
 	private final boolean onlyReads = false;
-//	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	private final TIntHashSet inserts = new TIntHashSet();
 	private final TIntHashSet deletes = new TIntHashSet();
 	private final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
@@ -124,9 +126,10 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		to.tblnum = tblnum;
-		indexedData(tblnum).update(from, to);
+		int adr = indexedData(tblnum).update(from, to);
 		callTrigger(ck_getTable(tblnum), from, to);
 		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
+		trackDelete(adr);
 	}
 
 	// used by foreign key cascade
@@ -154,10 +157,16 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
 		verifyNotSystemTable(tblnum, "delete");
 		assert locked;
-		indexedData(tblnum).remove((Record) rec);
+		int adr = indexedData(tblnum).remove((Record) rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
 		updateRowInfo(tblnum, -1, -rec.bufSize());
-		deletes.add(rec.address());
+		trackDelete(adr);
+	}
+
+	private void trackDelete(int adr) {
+		assert adr != 0;
+		if (! IntRefs.isIntRef(adr))
+			deletes.add(adr);
 	}
 
 	// used by foreign key cascade
@@ -190,6 +199,29 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			}
 		}
 		return id;
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns) {
+		Index index = index(tblnum, columns);
+		trackReads(index, DatabasePackage2.MIN_RECORD, DatabasePackage2.MAX_RECORD);
+		return getIndex(index).iterator();
+	}
+
+	//TODO track actual range read
+	private void trackReads(Index index, Record from, Record to) {
+		TransactionReads tr = reads.get(index);
+		if (tr == null)
+			reads.put(index, tr = new TransactionReads());
+		tr.add(new IndexRange(from, to));
+	}
+
+	@Override
+	public IndexIter iter(int tblnum, String columns,
+			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
+		Index index = index(tblnum, columns);
+		trackReads(index, (Record) org, (Record) end);
+		return getIndex(index).iterator((Record) org, (Record) end);
 	}
 
 	// commit -----------------------------------------------------------------
@@ -237,6 +269,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			return null;
 		}
 		try {
+			buildReads();
 			synchronized(db.commitLock) {
 				checkForConflicts();
 				int cksum = storeData();
@@ -253,23 +286,57 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			}
 		} catch(Conflict c) {
 			conflict = c.toString();
+			trans.abort(this);
 		} finally {
 			unlock();
 		}
 		return conflict;
 	}
 
-	private void checkForConflicts() {
-		// TODO read validation
+	protected void buildReads() {
+		for (TransactionReads tr : reads.values()) {
+			tr.build();
+		}
+	}
+
+	protected void checkForConflicts() {
 		Set<UpdateTransaction2> overlapping = trans.getOverlapping(asof);
 		for (UpdateTransaction2 t : overlapping) {
 			TIntIterator iter = t.deletes.iterator();
 			while (iter.hasNext()) {
 				int del = iter.next();
-				if (deletes.contains(del))
-					throw new Conflict("delete conflict");
+				readValidation(del);
+				checkForWriteConflict(del);
 			}
+			iter = t.inserts.iterator();
+			while (iter.hasNext())
+				readValidation(iter.next());
 		}
+	}
+
+	// COULD make reads a Table<tblnum,index>
+	// so you could easily get all the indexes for a tblnum
+	private void readValidation(int adr) {
+		Record r = input(adr);
+		Table table = ck_getTable(r.tblnum);
+		List<Index> indexes = table.indexesList();
+		for (Index index : indexes) {
+			TransactionReads tr = reads.get(index);
+			if (tr == null)
+				continue;
+			Record key = key(r, index.colNums);
+			if (tr.contains(key))
+				throw new Conflict("read conflict");
+		}
+	}
+
+	private static Record key(Record r, int[] colNums) {
+		return new RecordBuilder().addFields(r, colNums).build();
+	}
+
+	private void checkForWriteConflict(int del) {
+		if (deletes.contains(del))
+			throw new Conflict("delete conflict");
 	}
 
 	// store data --------------------------------------------------------------
@@ -293,7 +360,9 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 			if (x instanceof Record) { // add
 				int intref = i | IntRefs.MASK;
 				assert tran.intToRef(intref) == x;
-				tran.setAdr(intref, ((Record) x).store(tran.stor));
+				int adr = ((Record) x).store(tran.stor);
+				tran.setAdr(intref, adr);
+				inserts.add(adr);
 			}
 		}
 	}
@@ -453,7 +522,7 @@ class UpdateTransaction2 extends ReadTransaction2 implements ImmuUpdateTran {
 		throw new Conflict(conflict);
 	}
 
-	// need for PriorityQueue's in Transactions
+	// needed for PriorityQueue's in Transactions
 	static final Comparator<UpdateTransaction2> byCommit = new Comparator<UpdateTransaction2>() {
 		@Override
 		public int compare(UpdateTransaction2 t1, UpdateTransaction2 t2) {

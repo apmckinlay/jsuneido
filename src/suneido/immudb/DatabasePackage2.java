@@ -60,30 +60,30 @@ public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage 
 
 	@Override
 	public int dumpDatabase(suneido.intfc.database.Database db, WritableByteChannel out) {
-		return DbDump.dumpDatabase((Database) db, out);
+		return DbDump.dumpDatabase((Database2) db, out);
 	}
 
 	@Override
 	public int dumpTable(suneido.intfc.database.Database db, String tablename,
 			WritableByteChannel out) {
-		return DbDump.dumpTable((Database) db, tablename, out);
+		return DbDump.dumpTable((Database2) db, tablename, out);
 	}
 
 	@Override
 	public int loadDatabase(suneido.intfc.database.Database db, ReadableByteChannel in) {
-		return DbLoad.loadDatabase((Database) db, in);
+		return DbLoad.loadDatabase((Database2) db, in);
 	}
 
 	@Override
 	public int loadTable(suneido.intfc.database.Database db, String tablename,
 			ReadableByteChannel in) {
-		return DbLoad.loadTable((Database) db, tablename, in);
+		return DbLoad.loadTable((Database2) db, tablename, in);
 	}
 
 	@Override
 	public int compact(suneido.intfc.database.Database srcdb,
 			suneido.intfc.database.Database dstdb) {
-		return DbCompact.compact((Database) srcdb, (Database) dstdb);
+		return 0; //TODO DbCompact.compact((Database2) srcdb, (Database) dstdb);
 	}
 
 	@Override

@@ -71,7 +71,7 @@ class IndexedData2 {
 			}
 	}
 
-	void remove(Record rec) {
+	int remove(Record rec) {
 		for (AnIndex index : indexes)
 			index.fkeyHandleRemove(rec);
 		int adr = rec.address();
@@ -84,6 +84,7 @@ class IndexedData2 {
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				t.abortThrow("aborted: index remove failed (possible corruption)");
+		return adr;
 	}
 
 	static final Object removed = new Object();
@@ -95,7 +96,8 @@ class IndexedData2 {
 			tran.trackRemove(adr);
 	}
 
-	void update(Record from, Record to) {
+	/** @return the address of the from record */
+	int update(Record from, Record to) {
 		for (AnIndex index : indexes)
 			index.fkeyHandleUpdate(from, to);
 
@@ -123,6 +125,7 @@ class IndexedData2 {
 			default:
 				throw new SuException("unhandled update result");
 			}
+		return fromAdr;
 	}
 
 	private AnIndex firstKey() {

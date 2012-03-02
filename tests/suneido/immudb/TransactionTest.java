@@ -20,7 +20,7 @@ public class TransactionTest {
 
 	@Test
 	public void lookup() {
-		Database db = DatabasePackage.dbpkg.testdb();
+		ImmuDatabase db = DatabasePackage.dbpkg.testdb();
 		Transaction t = db.readonlyTran();
 		Record key = new RecordBuilder().add("indexes").build();
 		Record r = (Record) t.lookup(1, "tablename", key);
@@ -33,18 +33,18 @@ public class TransactionTest {
 
 	@Test
 	public void exclusive_abort() {
-		Database db = DatabasePackage.dbpkg.testdb();
+		Database db = (Database) DatabasePackage.dbpkg.testdb();
 		db.exclusiveTran().abort();
 		assertThat(db.check(), is(Status.OK));
 	}
 
 	@Test
 	public void locking() {
-		Database db = DatabasePackage.dbpkg.testdb();
-		db.trans.checkTransEmpty();
+		Database db = (Database) DatabasePackage.dbpkg.testdb();
+		db.checkTransEmpty();
 		UpdateTransaction t = db.readwriteTran();
 		t.ck_complete();
-		db.trans.checkTransEmpty();
+		db.checkTransEmpty();
 
 		t = db.readwriteTran();
 		assertNotNull(t.lookup(TN.TABLES, Bootstrap.indexColumns[TN.TABLES],
@@ -52,7 +52,7 @@ public class TransactionTest {
 		assertTrue(! db.trans.isLocksEmpty());
 		t.ck_complete();
 		assertTrue(t.isCommitted());
-		db.trans.checkTransEmpty();
+		db.checkTransEmpty();
 
 		UpdateTransaction t2 = db.readwriteTran();
 		t = db.readwriteTran();
@@ -61,7 +61,7 @@ public class TransactionTest {
 		t.ck_complete();
 		assertTrue(! db.trans.isLocksEmpty()); // waiting for finalization
 		t2.ck_complete();
-		db.trans.checkTransEmpty();
+		db.checkTransEmpty();
 	}
 
 }

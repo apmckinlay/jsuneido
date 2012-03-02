@@ -57,11 +57,7 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	/** if colNames is null returns firstIndex */
 	TranIndex getIndex(int tblnum, String colNames) {
-		Table tbl = ck_getTable(tblnum);
-		int[] colNums = (colNames == null)
-			? tbl.firstIndex().colNums
-			: tbl.namesToNums(colNames);
-		return getIndex(tblnum, colNums);
+		return getIndex(index(tblnum, colNames));
 	}
 
 	@Override
@@ -90,6 +86,18 @@ class ReadTransaction2 implements ImmuReadTran {
 		return index != null && indexes.containsKey(index);
 	}
 
+	protected Index index(int tblnum, int[] colNums) {
+		return index(getTable(tblnum), tblnum, colNums);
+	}
+
+	protected Index index(int tblnum, String colNames) {
+		Table table = ck_getTable(tblnum);
+		int[] colNums = (colNames == null)
+			? table.firstIndex().colNums
+			: table.namesToNums(colNames);
+		return index(table, tblnum, colNums);
+	}
+
 	static final Index tables_index =
 			new Index(TN.TABLES, Bootstrap.indexColumns[TN.TABLES]);
 	static final Index columns_index =
@@ -101,8 +109,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	 * Complicated by bootstrapping because schema tables aren't in schema.
 	 * @return A map key for an index.
 	 */
-	protected Index index(int tblnum, int[] colNums) {
-		Table table = getTable(tblnum);
+	private static Index index(Table table, int tblnum, int[] colNums) {
 		if (table == null)
 			switch (tblnum) {
 			case TN.TABLES: return tables_index;
@@ -128,7 +135,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		TranIndex bti = getIndex(tblnum, index);
 		if (bti == null)
 			return null;
-		IndexIter iter = bti.iterator((Record) key);
+		IndexIter iter = iter(tblnum, index, key, key);
 		iter.next();
 		return iter.eof() ? null : input(iter.keyadr());
 	}
@@ -316,7 +323,6 @@ class ReadTransaction2 implements ImmuReadTran {
 		throw new UnsupportedOperationException();
 	}
 
-	/** if columns is null returns firstIndex */
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
 		return getIndex(tblnum, columns).iterator();

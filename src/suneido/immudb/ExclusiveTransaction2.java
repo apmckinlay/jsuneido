@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import suneido.SuException;
+import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
 import com.google.common.primitives.Ints;
@@ -128,11 +129,48 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	// used by DbLoad and DbCompact
-	int loadRecord(int tblnum, Record rec) {
+	@Override
+	public int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
 		int adr = rec.store(tran.stor);
 		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
+	}
+
+	// used by DbLoad to do incremental commit
+	@Override
+	public void saveBtrees() {
+		int cksum = tran.endStore();
+		updateBtrees(null);
+		updateDbInfo(null, cksum);
+		Persist.persist(db);
+		tran.startStore();
+	}
+
+	// override UpdateTransaction (back to the same as ReadTransaction)
+	@Override
+	public IndexIter iter(int tblnum, String columns) {
+		return getIndex(tblnum, columns).iterator();
+	}
+
+	// override UpdateTransaction (back to the same as ReadTransaction)
+	@Override
+	public IndexIter iter(int tblnum, String columns,
+			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
+		return getIndex(tblnum, columns).iterator((Record) org, (Record) end);
+	}
+
+	@Override
+	public StoredRecordIterator storedRecordIterator(int first, int last) {
+		return new StoredRecordIterator(tran.stor, first, last);
+	}
+
+	@Override
+	protected void buildReads() {
+	}
+
+	@Override
+	protected void checkForConflicts() {
 	}
 
 	@Override

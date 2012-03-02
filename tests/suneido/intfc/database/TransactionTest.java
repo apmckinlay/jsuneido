@@ -5,7 +5,10 @@
 package suneido.intfc.database;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Test;
@@ -215,31 +218,27 @@ public class TransactionTest extends TestBase {
 		makeTable(3);
 
 		Transaction t1 = db.readwriteTran();
-		update(t1, 1, record(5));
-
 		Transaction t2 = db.readwriteTran();
+		Transaction t3 = db.readwriteTran();
+
+		update(t1, 1, record(5));
+		t1.ck_complete();
+
 		try {
 			update(t2, 1, record(6));
-			fail();
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
-		assert(t2.isAborted());
-		assertNotNull(t2.complete());
-		assertThat(t2.conflict(), containsString("conflict (write-write)"));
+		assertThat(t2.complete(), containsString("conflict"));
 
-		Transaction t3 = db.readwriteTran();
 		try {
 			update(t3, 1, record(6));
-			fail();
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
-		assert(t3.isAborted());
-		assertNotNull(t3.complete());
-		assertThat(t3.conflict(), containsString("conflict (write-write)"));
-
-		t1.ck_complete();
+		assertThat(t3.complete(), containsString("conflict"));
 	}
 
 	private void update(Transaction t, int i, Record newrec) {
@@ -259,14 +258,12 @@ public class TransactionTest extends TestBase {
 		t2.ck_complete();
 
 		try {
-			update(t1, 1, record(6));
-			fail();
+			update(t1, 1, record(7));
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
-		assert(t1.isAborted());
-		assertNotNull(t1.complete());
-		assertThat(t1.conflict(), containsString("conflict (write-write)"));
+		assertThat(t1.complete(), containsString("conflict"));
 	}
 
 	@Test
@@ -287,11 +284,10 @@ public class TransactionTest extends TestBase {
 
 		readLast(t1);
 		updateFirst(t1);
+		t1.ck_complete();
 
 		readFirst(t2);
 		updateLastConflict(t2);
-
-		t1.ck_complete();
 	}
 
 	@Test
@@ -311,13 +307,11 @@ public class TransactionTest extends TestBase {
 	private void updateLastConflict(Transaction t2) {
 		try {
 			updateLast(t2);
-			fail();
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
-		assert(t2.isAborted());
-		assertThat(t2.conflict(), containsString("conflict (write-read)"));
-		assertNotNull(t2.complete());
+		assertThat(t2.complete(), containsString("conflict"));
 	}
 
 	private void readFirst(Transaction t) {
@@ -347,20 +341,21 @@ public class TransactionTest extends TestBase {
 		 */
 		makeTable(300);
 		Transaction t1  = db.readwriteTran();
+		Transaction t2 = db.readwriteTran();
+
 		readFirst(t1);
 		t1.addRecord("test", record(1000));
+		t1.ck_complete();
 
-		Transaction t2 = db.readwriteTran();
 		readLast(t2);
 		try {
 			t2.addRecord("test", record(-1));
-			fail();
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
-		assertTrue(t2.isAborted());
+		assertThat(t2.complete(), containsString("conflict"));
 
-		t1.ck_complete();
 	}
 
 	@Test
@@ -391,11 +386,12 @@ public class TransactionTest extends TestBase {
 		Transaction t2 = db.readwriteTran();
 		t1.ck_complete();
 		try {
-			update(t2, 3, record(1002));
-			fail();
+			update(t2, 1, record(1002));
+			// don't fail here because immudb2 doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
+		assertThat(t2.complete(), containsString("conflict"));
 	}
 
 	@Test

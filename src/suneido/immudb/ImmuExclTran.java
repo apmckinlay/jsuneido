@@ -16,4 +16,10 @@ interface ImmuExclTran extends ImmuUpdateTran {
 
 	TranIndex addIndex(Index index);
 
+	int loadRecord(int tblnum, Record rec);
+
+	void saveBtrees();
+
+	StoredRecordIterator storedRecordIterator(int first, int last);
+
 }
