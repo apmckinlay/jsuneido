@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import suneido.SuException;
-import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
 import com.google.common.primitives.Ints;
@@ -22,7 +21,7 @@ import com.google.common.primitives.Shorts;
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-public class ExclusiveTransaction2 extends UpdateTransaction2
+public class ExclusiveTransaction2 extends ReadWriteTransaction
 		implements ImmuExclTran {
 	private final UpdateDbInfo udbinfo;
 	private Tables newSchema;
@@ -57,21 +56,19 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	@Override
-	public void updateRecord(int tblnum, Record from, Record to) {
+	public int updateRecord(int tblnum, Record from, Record to) {
 		to.tblnum = tblnum;
 		to.address = to.store(tran.stor);
-		super.updateRecord(tblnum, from, to);
+		return super.updateRecord(tblnum, from, to);
+	}
+
+	@Override
+	void verifyNotSystemTable(int tblnum, String what) {
 	}
 
 	@Override
 	public TableInfo getTableInfo(int tblnum) {
 		return udbinfo.get(tblnum);
-	}
-
-	// override UpdateTransaction (back to the same as ReadTransaction)
-	@Override
-	protected TranIndex getIndex(IndexInfo info) {
-		return new Btree2(tran, info);
 	}
 
 	@Override
@@ -82,10 +79,6 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	public Table getTable(int tblnum) {
 		return newSchema.get(tblnum);
-	}
-
-	@Override
-	void verifyNotSystemTable(int tblnum, String what) {
 	}
 
 	// used by Bootstrap and TableBuilder
@@ -140,24 +133,11 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	@Override
 	public void saveBtrees() {
 		int cksum = tran.endStore();
-		updateBtrees(null);
-		updateDbInfo(null, cksum);
+		freezeBtrees();
+		updateDbInfo(cksum);
 		Persist.persist(db);
 		tran.reset();
 		tran.allowStore();
-	}
-
-	// override UpdateTransaction (back to the same as ReadTransaction)
-	@Override
-	public IndexIter iter(int tblnum, String columns) {
-		return getIndex(tblnum, columns).iterator();
-	}
-
-	// override UpdateTransaction (back to the same as ReadTransaction)
-	@Override
-	public IndexIter iter(int tblnum, String columns,
-			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
-		return getIndex(tblnum, columns).iterator((Record) org, (Record) end);
 	}
 
 	@Override
@@ -166,15 +146,14 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 	}
 
 	@Override
-	protected void buildReads() {
+	protected void commit() {
+		int cksum = storeData();
+		freezeBtrees();
+		updateDbInfo(cksum);
+		trans.commit(this);
 	}
 
-	@Override
-	protected void checkForConflicts() {
-	}
-
-	@Override
-	protected int storeData() {
+	private int storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
 		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
@@ -183,10 +162,8 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		return tran.endStore();
 	}
 
-	@Override
-	protected void updateBtrees(ReadTransaction2 t) {
-		// no update required since we are updating master directly
-		// just need to freeze
+	private void freezeBtrees() {
+		// no actual update required since we are updating master directly
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		while (iter.hasNext()) {
 			Btree2 btree = (Btree2) iter.next().getValue();
@@ -197,8 +174,7 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		}
 	}
 
-	@Override
-	protected void updateDbInfo(ReadTransaction2 t, int cksum) {
+	private void updateDbInfo(int cksum) {
 		updateDbInfo(indexes, udbinfo);
 		udbinfo.dbinfo().freeze();
 		db.setState(udbinfo.dbinfo(), newSchema, cksum);

@@ -100,25 +100,25 @@ class UpdateTransaction extends ReadTransaction implements ImmuUpdateTran {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
-		updateRecord(from.tblnum, from, (Record) to);
-		return 1; // don't know record address till commit
+		return updateRecord(from.tblnum, from, (Record) to);
 	}
 
 	@Override
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
 			suneido.intfc.database.Record to) {
-		updateRecord(tblnum, (Record) from, (Record) to);
-		return 1; // don't know record address till commit
+		return updateRecord(tblnum, (Record) from, (Record) to);
 	}
 
-	void updateRecord(int tblnum, Record from, Record to) {
+	@Override
+	public int updateRecord(int tblnum, Record from, Record to) {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		to.tblnum = tblnum;
 		indexedData(tblnum).update(from, to);
 		callTrigger(ck_getTable(tblnum), from, to);
 		udbinfo.updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
+		return 1; // don't know record address till commit
 	}
 
 	// used by foreign key cascade

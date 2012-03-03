@@ -242,6 +242,8 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	@Override
 	public void abortIfNotComplete() {
+		if (! isEnded())
+			abort();
 	}
 
 	@Override
