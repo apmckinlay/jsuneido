@@ -21,11 +21,11 @@ import suneido.intfc.database.Fkmode;
  * Coordinates data records and the btrees that index them.
  */
 class IndexedData2 {
-	private final UpdateTransaction2 t;
+	private final ReadWriteTransaction t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 
-	IndexedData2(UpdateTransaction2 t) {
+	IndexedData2(ReadWriteTransaction t) {
 		this.t = t;
 		tran = t.tran();
 	}
@@ -187,11 +187,11 @@ class IndexedData2 {
 	}
 
 	private static class AnIndexWithFkeys extends AnIndex {
-		final UpdateTransaction2 t;
+		final ReadWriteTransaction t;
 		final ForeignKeySource fksrc;
 		final Set<ForeignKeyTarget> fkdsts;
 
-		AnIndexWithFkeys(UpdateTransaction2 t, TranIndex btree, Mode mode,
+		AnIndexWithFkeys(ReadWriteTransaction t, TranIndex btree, Mode mode,
 				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 			super(btree, mode, fields, columns);

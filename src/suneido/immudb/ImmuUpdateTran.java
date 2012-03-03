@@ -14,4 +14,6 @@ interface ImmuUpdateTran extends ImmuReadTran {
 
 	void addRecord(int indexes, Record record);
 
+	int updateRecord(int tblnum, Record from, Record to);
+
 }
