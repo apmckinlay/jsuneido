@@ -178,4 +178,12 @@ class Tran implements Translator {
 		removes.add(adr);
 	}
 
+	/** for ExclusiveTransaction */
+	void reset() {
+		head_adr = 0;
+		intrefs.clear();
+		removes.clear();
+		assert redirs == null;
+	}
+
 }

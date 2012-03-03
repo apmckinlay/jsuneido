@@ -51,7 +51,6 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 
 	@Override
 	public void addRecord(int tblnum, Record rec) {
-//System.out.println("X addRecord " + tblnum + " += " + rec);
 		rec.tblnum = tblnum;
 		rec.address = rec.store(tran.stor);
 		super.addRecord(tblnum, rec);
@@ -144,7 +143,8 @@ public class ExclusiveTransaction2 extends UpdateTransaction2
 		updateBtrees(null);
 		updateDbInfo(null, cksum);
 		Persist.persist(db);
-		tran.startStore();
+		tran.reset();
+		tran.allowStore();
 	}
 
 	// override UpdateTransaction (back to the same as ReadTransaction)
