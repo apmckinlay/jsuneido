@@ -42,13 +42,13 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		Transaction t = readwrite ? db.readwriteTran() : db.readonlyTran();
+		Transaction t = readwrite ? db.updateTransaction() : db.readTransaction();
 		return new DbmsTranLocal(t);
 	}
 
 	@Override
 	public DbmsQuery cursor(String s) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			return new DbmsQueryLocal(
 					CompileQuery.query(t, ServerData.forThread(), s, true));
@@ -94,7 +94,7 @@ public class DbmsLocal extends Dbms {
 	public List<LibGet> libget(String name) {
 		List<LibGet> srcs = new ArrayList<LibGet>();
 		Record key = dbpkg.recordBuilder().add(name).add(-1).build();
-		Transaction tran = db.readonlyTran();
+		Transaction tran = db.readTransaction();
 		try {
 			for (String lib : libraries) {
 				Table table = tran.getTable(lib);

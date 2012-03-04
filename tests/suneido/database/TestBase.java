@@ -35,7 +35,7 @@ public class TestBase extends TestBaseBase {
 	}
 
 	protected int req(String s) {
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

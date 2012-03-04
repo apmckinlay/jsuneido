@@ -11,7 +11,7 @@ public class CompileQuery {
 
 	/** for tests */
 	public static Query query(Database db, ServerData serverData, String s) {
-		Transaction tran = db.readonlyTran();
+		Transaction tran = db.readTransaction();
 		try {
 			return query(tran, serverData, s);
 		} finally {
@@ -30,7 +30,7 @@ public class CompileQuery {
 
 	/** for tests */
 	public static Query parse(Database db, ServerData serverData, String s) {
-		Transaction tran = db.readonlyTran();
+		Transaction tran = db.readTransaction();
 		try {
 			return parse(tran, serverData, s);
 		} finally {

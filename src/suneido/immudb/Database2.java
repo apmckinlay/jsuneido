@@ -46,7 +46,7 @@ class Database2 implements ImmuDatabase {
 		this.stor = stor;
 		this.istor = istor;
 		state = new State(dbinfo, null, cksum);
-		schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
+		schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
 		state = new State(dbinfo, schema, cksum);
 	}
 
@@ -124,13 +124,13 @@ class Database2 implements ImmuDatabase {
 	}
 
 	@Override
-	public ReadTransaction2 readonlyTran() {
+	public ReadTransaction2 readTransaction() {
 		int num = trans.nextNum(true);
 		return new ReadTransaction2(num, this);
 	}
 
 	@Override
-	public UpdateTransaction2 readwriteTran() {
+	public UpdateTransaction2 updateTransaction() {
 		int num = trans.nextNum(false);
 		return new UpdateTransaction2(num, this);
 	}
@@ -162,7 +162,7 @@ class Database2 implements ImmuDatabase {
 		checkForSystemTable(tableName, "ensure");
 		return state.schema.get(tableName) == null
 			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
-			: TableBuilder.alter(readonlyTran(), tableName);
+			: TableBuilder.alter(readTransaction(), tableName);
 	}
 
 	@Override
@@ -202,7 +202,7 @@ class Database2 implements ImmuDatabase {
 	}
 
 	String getView(String name) {
-		ReadTransaction2 t = readonlyTran();
+		ReadTransaction2 t = readTransaction();
 		try {
 			return Views.getView(t, name);
 		} finally {
@@ -235,7 +235,7 @@ class Database2 implements ImmuDatabase {
 
 	@Override
 	public String getSchema(String tableName) {
-		ReadTransaction2 t = readonlyTran();
+		ReadTransaction2 t = readTransaction();
 		try {
 			Table tbl = t.getTable(tableName);
 			return tbl == null ? null : tbl.schema();

@@ -224,7 +224,7 @@ class DbRebuild extends DbCheck {
 		BtreeIndex.rebuildCreate(newdb.dest, indexes_rec);
 		reloadTable(indexes_rec.getInt(Index.TBLNUM));
 
-		Transaction tran = newdb.readwriteTran();
+		Transaction tran = newdb.updateTransaction();
 		insertExistingRecords(tran, indexes_rec);
 		tran.complete();
 	}
@@ -247,14 +247,14 @@ class DbRebuild extends DbCheck {
 	}
 
 	private void reloadTable(int tblnum) {
-		Transaction tran = newdb.readonlyTran();
+		Transaction tran = newdb.readTransaction();
 		Record table_rec = newdb.getTableRecord(tran, tblnum);
 		reloadTable(tran, table_rec);
 		tran.complete();
 	}
 
 	private void reloadTable(Record rec) {
-		Transaction tran = newdb.readonlyTran();
+		Transaction tran = newdb.readTransaction();
 		reloadTable(tran, rec);
 		tran.complete();
 	}

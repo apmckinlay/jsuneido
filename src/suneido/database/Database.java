@@ -225,7 +225,7 @@ class Database implements suneido.intfc.database.Database {
 		PersistentMap.Builder<String, BtreeIndex> btreeIndexBuilder =
 				PersistentMap.builder();
 		List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
-		Transaction tran = readonlyTran();
+		Transaction tran = readTransaction();
 		try {
 			BtreeIndex tablenum_index = tran.getBtreeIndex(TN.TABLES, "table");
 			BtreeIndex.Iter iter = tablenum_index.iter();
@@ -306,13 +306,13 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public Transaction readonlyTran() {
+	public Transaction readTransaction() {
 		synchronized(commitLock) {
 			return new Transaction(this, trans, true, tables, tabledata, btreeIndexes);
 		}
 	}
 	@Override
-	public Transaction readwriteTran() {
+	public Transaction updateTransaction() {
 		synchronized(commitLock) {
 			return new Transaction(this, trans, false, tables, tabledata, btreeIndexes);
 		}
@@ -368,7 +368,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void addView(String name, String definition) {
-		Transaction tran = readwriteTran();
+		Transaction tran = updateTransaction();
 		try {
 			if (null != getView(tran, name))
 				throw new SuException("view: '" + name + "' already exists");

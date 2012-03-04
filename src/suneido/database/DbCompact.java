@@ -23,7 +23,7 @@ class DbCompact {
 	}
 
 	private int compact() {
-		rt = olddb.readonlyTran();
+		rt = olddb.readTransaction();
 		newdb.setLoading(true);
 		copySchema();
 		return copyData() + 1; // + 1 for views
@@ -72,7 +72,7 @@ class DbCompact {
 		int i = 0;
 		long first = 0;
 		long last = 0;
-		Transaction wt = newdb.readwriteTran();
+		Transaction wt = newdb.updateTransaction();
 		int tblnum = wt.ck_getTable(tablename).num;
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
@@ -83,7 +83,7 @@ class DbCompact {
 				first = last;
 			if (++i % 100 == 0) {
 				wt.ck_complete();
-				wt = newdb.readwriteTran();
+				wt = newdb.updateTransaction();
 			}
 		}
 		if (first != 0)

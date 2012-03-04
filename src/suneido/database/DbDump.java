@@ -17,7 +17,7 @@ import suneido.DbTools;
 class DbDump {
 
 	static int dumpDatabase(Database db, WritableByteChannel out) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
@@ -41,7 +41,7 @@ class DbDump {
 	}
 
 	static int dumpTable(Database db, String tablename, WritableByteChannel out) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			return dump1(out, t, tablename, false);

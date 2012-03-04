@@ -38,14 +38,14 @@ public class UpdateTest extends TestBase {
 				"index (parent,name)");
 		for (int i = 0; i < 10; ++i) {
 			Record rec = mkrec(i);
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			t.addRecord("lib", rec);
 			t.ck_complete();
 		}
 
 		checkCount();
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 //TODO		db.update(t, recadr, mkrec(5));
 		t.ck_complete();
 
@@ -64,7 +64,7 @@ public class UpdateTest extends TestBase {
 	}
 
 	private void checkCount() {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table table = t.getTable("lib");
 		String[] indexes = { "name,group", "num", "parent", "parent,name" };
 		for (String cols : indexes) {

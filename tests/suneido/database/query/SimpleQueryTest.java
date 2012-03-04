@@ -43,7 +43,7 @@ public class SimpleQueryTest {
 		save_dbpkg = Suneido.dbpkg;
 		Suneido.dbpkg = dbpkg;
 		db = dbpkg.testdb();
-		t = db.readonlyTran();
+		t = db.readTransaction();
 	}
 
 	@Test

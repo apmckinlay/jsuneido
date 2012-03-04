@@ -36,7 +36,7 @@ class TestBaseBase {
 
 	protected void addRecords(String tablename, int from, int to) {
 		while (from <= to) {
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
 				t.addRecord(tablename, record(from));
 			t.ck_complete();
@@ -48,7 +48,7 @@ class TestBaseBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction tran = db.readonlyTran();
+		Transaction tran = db.readTransaction();
 		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
@@ -92,7 +92,7 @@ class TestBaseBase {
 	}
 
 	protected void check(String tablename, int... values) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		check(t, tablename, values);
 		t.ck_complete();
 	}

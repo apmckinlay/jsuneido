@@ -90,7 +90,7 @@ class DbLoad {
 		int nrecs = 0;
 		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		ByteBuffer recbuf = ByteBuffer.allocate(4096);
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			for (;; ++nrecs) {
 				int n = readInt(in, intbuf);
@@ -101,7 +101,7 @@ class DbLoad {
 				load_data_record(in, tablename, tran, recbuf, n);
 				if (nrecs % 100 == 99) {
 					tran.ck_complete();
-					tran = db.readwriteTran();
+					tran = db.updateTransaction();
 				}
 			}
 		} finally {

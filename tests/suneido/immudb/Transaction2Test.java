@@ -32,8 +32,8 @@ public class Transaction2Test {
 	public void read_tables() {
 		db.checkTransEmpty();
 		db = db.reopen();
-		check(db.readonlyTran());
-		check(db.readwriteTran());
+		check(db.readTransaction());
+		check(db.updateTransaction());
 		check(db.exclusiveTran());
 		db.checkTransEmpty();
 		db.close();
@@ -48,7 +48,7 @@ public class Transaction2Test {
 	public void add_remove() {
 		make_tmp();
 
-		ImmuUpdateTran t = db.readwriteTran();
+		ImmuUpdateTran t = db.updateTransaction();
 		int tblnum = t.getTable("tmp").num;
 		assertThat(t.tableCount(tblnum), is(0));
 		assertThat(t.tableSize(tblnum), is(0L));
@@ -61,9 +61,9 @@ public class Transaction2Test {
 
 		db.checkTransEmpty();
 		db = db.reopen();
-		check(db.readonlyTran(), "tmp", rec(123, "foo"));
+		check(db.readTransaction(), "tmp", rec(123, "foo"));
 
-		ImmuReadTran rt = db.readonlyTran();
+		ImmuReadTran rt = db.readTransaction();
 		assertThat(rt.tableCount(tblnum), is(1));
 		assertThat(rt.tableSize(tblnum), is(15L));
 		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
@@ -71,15 +71,15 @@ public class Transaction2Test {
 		rt.complete();
 		rt = null;
 
-		check(db.readonlyTran(), "tmp", rec(123, "foo"));
+		check(db.readTransaction(), "tmp", rec(123, "foo"));
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
 		t.updateRecord(tblnum, r, rec(123, "foo"));
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
 		t.removeRecord(tblnum, r);
 		assertThat(t.tableCount(tblnum), is(0));
@@ -88,7 +88,7 @@ public class Transaction2Test {
 		check(t, "tmp");
 		t = null;
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		assertThat(t.tableCount(tblnum), is(0));
 		assertThat(t.tableSize(tblnum), is(0L));
 		t.addRecord(tblnum, rec(456, "bar"));
@@ -97,7 +97,7 @@ public class Transaction2Test {
 		check(t, "tmp");
 		t = null;
 
-		check(db.readonlyTran(), "tmp");
+		check(db.readTransaction(), "tmp");
 		//DumpData.dump(stor);
 		db.checkTransEmpty();
 		db.close();
@@ -112,20 +112,20 @@ public class Transaction2Test {
 			.addIndex("f", false, false, "", "", 0)
 			.finish();
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		int tblnum = t.getTable("test2").num();
 		t.addRecord("test2", rec(10, 1));
 		t.addRecord("test2", rec(11, 1));
 		t.ck_complete();
 
-		check(db.readonlyTran(), tblnum, "f", rec(10, 1), rec(11, 1));
+		check(db.readTransaction(), tblnum, "f", rec(10, 1), rec(11, 1));
 	}
 
 	@Test
 	public void test_duplicates() {
 		make_tmp();
 
-		ImmuUpdateTran t = db.readwriteTran();
+		ImmuUpdateTran t = db.updateTransaction();
 		t.addRecord("tmp", rec(123, "foo"));
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // within same transaction
@@ -135,7 +135,7 @@ public class Transaction2Test {
 		}
 		t.ck_complete();
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
 			fail();
@@ -144,8 +144,8 @@ public class Transaction2Test {
 		}
 		t.ck_complete();
 
-		t = db.readwriteTran();
-		ImmuUpdateTran t2 = db.readwriteTran();
+		t = db.updateTransaction();
+		ImmuUpdateTran t2 = db.updateTransaction();
 		t.addRecord("tmp", rec(456, "foo"));
 		t2.addRecord("tmp", rec(456, "bar"));
 		t.ck_complete();
@@ -186,13 +186,13 @@ public class Transaction2Test {
 	public void test_delete_visibility() {
 		make_tmp();
 
-		UpdateTransaction2 t = db.readwriteTran();
+		UpdateTransaction2 t = db.updateTransaction();
 		int tmp = t.getTable("tmp").num();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.ck_complete();
 
-		UpdateTransaction2 t1 = db.readwriteTran();
-		UpdateTransaction2 t2 = db.readwriteTran();
+		UpdateTransaction2 t1 = db.updateTransaction();
+		UpdateTransaction2 t2 = db.updateTransaction();
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
 		assertThat(t2.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
@@ -203,9 +203,9 @@ public class Transaction2Test {
 	public void test_concurrent_appends() {
 		make_tmp();
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		t1.addRecord("tmp", rec(123, "foo"));
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		t2.addRecord("tmp", rec(456, "bar"));
 		t1.ck_complete();
 		t2.ck_complete();
@@ -215,13 +215,13 @@ public class Transaction2Test {
 	public void test_delete_conflict() {
 		make_tmp();
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		int tmp = t.getTable("tmp").num();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.ck_complete();
 
-		Transaction t1 = db.readwriteTran();
-		Transaction t2 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
+		Transaction t2 = db.updateTransaction();
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
@@ -233,15 +233,15 @@ public class Transaction2Test {
 	public void test_read_validation_for_delete() {
 		make_tmp();
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		int tmp = t.getTable("tmp").num();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.ck_complete(); t = null;
 
-		UpdateTransaction2 t1 = db.readwriteTran();
+		UpdateTransaction2 t1 = db.updateTransaction();
 		assertThat(t1.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
 
-		UpdateTransaction2 t2 = db.readwriteTran();
+		UpdateTransaction2 t2 = db.updateTransaction();
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t2.ck_complete();
 
@@ -253,11 +253,11 @@ public class Transaction2Test {
 	public void test_read_validation_for_add() {
 		make_tmp();
 
-		UpdateTransaction2 t1 = db.readwriteTran();
+		UpdateTransaction2 t1 = db.updateTransaction();
 		int tmp = t1.getTable("tmp").num();
 		assertNull(t1.lookup(tmp, "a", rec(123)));
 
-		UpdateTransaction2 t2 = db.readwriteTran();
+		UpdateTransaction2 t2 = db.updateTransaction();
 		t2.addRecord("tmp", rec(123, "foo"));
 		t2.ck_complete();
 

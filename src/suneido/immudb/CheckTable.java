@@ -28,7 +28,7 @@ class CheckTable implements Callable<String> {
 
 	@Override
 	public String call() {
-		ImmuReadTran t = db.readonlyTran();
+		ImmuReadTran t = db.readTransaction();
 		checkTable(t, tableName);
 		return details;
 	}

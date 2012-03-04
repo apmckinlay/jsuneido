@@ -21,7 +21,7 @@ public class TransactionTest {
 	@Test
 	public void lookup() {
 		ImmuDatabase db = DatabasePackage.dbpkg.testdb();
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Record key = new RecordBuilder().add("indexes").build();
 		Record r = (Record) t.lookup(1, "tablename", key);
 		assertThat(r.getString(1), is("indexes"));
@@ -42,11 +42,11 @@ public class TransactionTest {
 	public void locking() {
 		Database db = (Database) DatabasePackage.dbpkg.testdb();
 		db.checkTransEmpty();
-		UpdateTransaction t = db.readwriteTran();
+		UpdateTransaction t = db.updateTransaction();
 		t.ck_complete();
 		db.checkTransEmpty();
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		assertNotNull(t.lookup(TN.TABLES, Bootstrap.indexColumns[TN.TABLES],
 				new RecordBuilder().add(TN.TABLES).build()));
 		assertTrue(! db.trans.isLocksEmpty());
@@ -54,8 +54,8 @@ public class TransactionTest {
 		assertTrue(t.isCommitted());
 		db.checkTransEmpty();
 
-		UpdateTransaction t2 = db.readwriteTran();
-		t = db.readwriteTran();
+		UpdateTransaction t2 = db.updateTransaction();
+		t = db.updateTransaction();
 		assertNotNull(t.lookup(TN.TABLES, Bootstrap.indexColumns[TN.TABLES],
 				new RecordBuilder().add(TN.TABLES).build()));
 		t.ck_complete();

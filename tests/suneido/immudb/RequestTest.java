@@ -271,7 +271,7 @@ public class RequestTest {
 	}
 
 	private String first() {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Query q = CompileQuery.query(t, serverData, "tbl");
 		Header hdr = q.header();
 		Row row = q.get(Dir.NEXT);
@@ -289,7 +289,7 @@ public class RequestTest {
 	}
 
 	protected int exec(String s) {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		try {
 			Query q = CompileQuery.parse(t, serverData, s);
 			int n = ((QueryAction) q).execute();

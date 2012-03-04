@@ -21,7 +21,7 @@ public class TransactionTest extends TestBase {
 	public void cleanup() {
 		check_all_gone();
 
-		Transaction t1 = db.readonlyTran();
+		Transaction t1 = db.readTransaction();
 		getFirst("tables", t1);
 		t1.ck_complete();
 
@@ -31,12 +31,12 @@ public class TransactionTest extends TestBase {
 
 		check_all_gone();
 
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		t2.ck_complete();
 
 		check_all_gone();
 
-		Transaction t3 = db.readwriteTran();
+		Transaction t3 = db.updateTransaction();
 		readFirst(t3);
 		t3.ck_complete();
 	}
@@ -52,18 +52,18 @@ public class TransactionTest extends TestBase {
 		Transaction t1 = add_remove();
 
 		// uncommitted NOT visible to other transactions
-		Transaction t2 = db.readonlyTran();
+		Transaction t2 = db.readTransaction();
 		checkBefore(t2);
-		Transaction t3 = db.readwriteTran();
+		Transaction t3 = db.updateTransaction();
 		checkBefore(t3);
 
 		t1.ck_complete();
 
 		// committed updates visible to later transactions
-		Transaction t4 = db.readonlyTran();
+		Transaction t4 = db.readTransaction();
 		checkAfter(t4);
 		t4.ck_complete();
-		Transaction t5 = db.readwriteTran();
+		Transaction t5 = db.updateTransaction();
 		checkAfter(t5);
 		t5.ck_complete();
 
@@ -95,7 +95,7 @@ public class TransactionTest extends TestBase {
 	}
 
 	private Transaction add_remove() {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		checkBefore(t);
 		t.addRecord("test", record(9999));
 		removeFirst(t);
@@ -143,18 +143,18 @@ public class TransactionTest extends TestBase {
 		makeTable(300);
 
 		// deleting different btree nodes doesn't conflict
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		removeFirst(t1);
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		removeLast(t2);
 		t2.ck_complete();
 		t1.ck_complete();
 		check_all_gone();
 
 		// deleting in same btree node conflicts
-		Transaction t3 = db.readwriteTran();
+		Transaction t3 = db.updateTransaction();
 		remove(t3, 3);
-		Transaction t4 = db.readwriteTran();
+		Transaction t4 = db.updateTransaction();
 		try {
 			remove(t4, 4);
 			fail();
@@ -187,9 +187,9 @@ public class TransactionTest extends TestBase {
 
 		makeTable();
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		t1.addRecord("test", record(98));
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		try {
 			t2.addRecord("test", record(99));
 			fail();
@@ -205,9 +205,9 @@ public class TransactionTest extends TestBase {
 	public void add_aborted_no_conflict() {
 		makeTable();
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		t1.addRecord("test", record(98));
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		t1.abort();
 		t2.addRecord("test", record(99));
 		t2.ck_complete();
@@ -217,9 +217,9 @@ public class TransactionTest extends TestBase {
 	public void update_conflict() {
 		makeTable(3);
 
-		Transaction t1 = db.readwriteTran();
-		Transaction t2 = db.readwriteTran();
-		Transaction t3 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
+		Transaction t2 = db.updateTransaction();
+		Transaction t3 = db.updateTransaction();
 
 		update(t1, 1, record(5));
 		t1.ck_complete();
@@ -251,9 +251,9 @@ public class TransactionTest extends TestBase {
 	public void update_conflict_2() {
 		makeTable(3);
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		update(t2, 1, record(6));
 		t2.ck_complete();
 
@@ -269,7 +269,7 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void update_visibility() {
 		makeTable(5);
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		t.updateRecord(t.getTable("test").num(), getFirst("test", t), record(9));
 		check(0, 1, 2, 3, 4);
 		t.ck_complete();
@@ -279,8 +279,8 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void write_skew() {
 		makeTable(300);
-		Transaction t1  = db.readwriteTran();
-		Transaction t2  = db.readwriteTran();
+		Transaction t1  = db.updateTransaction();
+		Transaction t2  = db.updateTransaction();
 
 		readLast(t1);
 		updateFirst(t1);
@@ -293,8 +293,8 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void write_skew_with_completed() {
 		makeTable(300);
-		Transaction t1  = db.readwriteTran();
-		Transaction t2  = db.readwriteTran();
+		Transaction t1  = db.updateTransaction();
+		Transaction t2  = db.updateTransaction();
 
 		readLast(t1);
 		updateFirst(t1);
@@ -340,8 +340,8 @@ public class TransactionTest extends TestBase {
 		 * (but because locking is by btree node it is detected)
 		 */
 		makeTable(300);
-		Transaction t1  = db.readwriteTran();
-		Transaction t2 = db.readwriteTran();
+		Transaction t1  = db.updateTransaction();
+		Transaction t2 = db.updateTransaction();
 
 		readFirst(t1);
 		t1.addRecord("test", record(1000));
@@ -363,10 +363,10 @@ public class TransactionTest extends TestBase {
 		makeTable("test1");
 		makeTable("test2");
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		t1.addRecord("test1", record(123));
 
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		t2.addRecord("test2", record(456));
 		t2.ck_complete();
 
@@ -381,9 +381,9 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void conflict_with_completed() {
 		makeTable(100);
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		update(t1, 1, record(1000));
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		t1.ck_complete();
 		try {
 			update(t2, 1, record(1002));
@@ -397,11 +397,11 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void not_concurrent_so_no_conflict() {
 		makeTable(100);
-		Transaction t0 = db.readwriteTran();
-		Transaction t1 = db.readwriteTran();
+		Transaction t0 = db.updateTransaction();
+		Transaction t1 = db.updateTransaction();
 		updateFirst(t1);
 		t1.ck_complete();
-		Transaction t2 = db.readwriteTran();
+		Transaction t2 = db.updateTransaction();
 		updateFirst(t2);
 		t2.ck_complete();
 		t0.ck_complete();
@@ -410,8 +410,8 @@ public class TransactionTest extends TestBase {
 	@Test
 	public void concurrent_but_disjoint_so_no_conflict() {
 		makeTable(300);
-		Transaction t1 = db.readwriteTran();
-		Transaction t2 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
+		Transaction t2 = db.updateTransaction();
 		updateFirst(t1);
 		update(t2, 299, record(999));
 		t2.ck_complete();

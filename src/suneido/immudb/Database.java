@@ -52,7 +52,7 @@ class Database implements ImmuDatabase {
 		this.stor = stor;
 		this.setDbinfo(dbinfo);
 		this.setRedirs(redirs);
-		this.schema = schema == null ? SchemaLoader.load(readonlyTran()) : schema;
+		this.schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
 	}
 
 	// open
@@ -123,13 +123,13 @@ class Database implements ImmuDatabase {
 	}
 
 	@Override
-	public ReadTransaction readonlyTran() {
+	public ReadTransaction readTransaction() {
 		int num = trans.nextNum(true);
 		return new ReadTransaction(num, this);
 	}
 
 	@Override
-	public UpdateTransaction readwriteTran() {
+	public UpdateTransaction updateTransaction() {
 		int num = trans.nextNum(false);
 		return new UpdateTransaction(num, this);
 	}
@@ -161,7 +161,7 @@ class Database implements ImmuDatabase {
 		checkForSystemTable(tableName, "ensure");
 		return schema.get(tableName) == null
 			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
-			: TableBuilder.alter(readonlyTran(), tableName);
+			: TableBuilder.alter(readTransaction(), tableName);
 	}
 
 	@Override
@@ -223,7 +223,7 @@ class Database implements ImmuDatabase {
 
 	@Override
 	public String getSchema(String tableName) {
-		ReadTransaction t = readonlyTran();
+		ReadTransaction t = readTransaction();
 		try {
 			Table tbl = t.getTable(tableName);
 			return tbl == null ? null : tbl.schema();

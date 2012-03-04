@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface Database {
 
-	Transaction readonlyTran();
+	Transaction readTransaction();
 
-	Transaction readwriteTran();
+	Transaction updateTransaction();
 
 	long size();
 

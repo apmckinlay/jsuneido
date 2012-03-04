@@ -59,7 +59,7 @@ public class TestConcurrency {
 					System.out.println();
 					if (rt != null)
 						rt.abort();
-					rt = db.readonlyTran();
+					rt = db.readTransaction();
 				}
 				db.limitOutstandingTransactions();
 			}
@@ -129,7 +129,7 @@ public class TestConcurrency {
 			Request.execute(db, "create " + tablename
 					+ " (a,b,c,d,e,f,g) key(a) index(b,c)");
 			for (int i = 0; i < N / 100; ++i) {
-				Transaction t = db.readwriteTran();
+				Transaction t = db.updateTransaction();
 				for (int j = 0; j < 100; ++j)
 					t.addRecord(tablename, record());
 				t.ck_complete();
@@ -171,7 +171,7 @@ public class TestConcurrency {
 		private void lookup() {
 			nlookups.incrementAndGet();
 			int n = random(N);
-			Transaction t = db.readonlyTran();
+			Transaction t = db.readTransaction();
 			try {
 				Query q = CompileQuery.query(t, serverData,
 						tablename + " where b = " + n);
@@ -186,7 +186,7 @@ public class TestConcurrency {
 			nranges.incrementAndGet();
 			int from = random(N);
 			int to = from + random(N - from);
-			Transaction t = db.readonlyTran();
+			Transaction t = db.readTransaction();
 			try {
 				Query q = CompileQuery.query(t, serverData,
 						tablename + " where b > " + from + " and b < " + to);
@@ -202,7 +202,7 @@ public class TestConcurrency {
 		}
 		private void append() {
 			nappends.incrementAndGet();
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			try {
 				t.addRecord(tablename, record());
 			} catch (RuntimeException e) {
@@ -215,7 +215,7 @@ public class TestConcurrency {
 		private void update() {
 			nupdates.incrementAndGet();
 			int n = random(N);
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			try {
 				Query q = CompileQuery.parse(t, serverData,
 						"update " + tablename + " where b = " + n
@@ -295,7 +295,7 @@ public class TestConcurrency {
 
 		@Override
 		public void run() {
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			DestTran dest = new DestTran(t, db.dest);
 			try {
 				switch (random(3)) {
@@ -346,13 +346,13 @@ public class TestConcurrency {
 		public NextNum(String tablename) {
 			this.tablename = tablename;
 			Request.execute(db, "create " + tablename + " (num) key()");
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			t.addRecord(tablename, rec(1));
 			t.ck_complete();
 		}
 		@Override
 		public void run() {
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			Query q = CompileQuery.query(t, serverData, tablename);
 			try {
 				Row r = q.get(Dir.NEXT);
