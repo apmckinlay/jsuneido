@@ -344,9 +344,7 @@ abstract class BtreeNode implements Storable {
 		return rb.build();
 	}
 
-	public BtreeNode withUpdate(int i, BtreeNode child) {
-		throw new UnsupportedOperationException();
-	}
+	abstract BtreeNode withUpdate(int i, BtreeNode child);
 
 	abstract void freeze();
 

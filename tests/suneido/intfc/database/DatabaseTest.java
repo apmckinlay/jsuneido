@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.Test;
 
 public class DatabaseTest extends TestBase {
+
 	@Test
 	public void address() {
 		makeTable(1);

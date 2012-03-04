@@ -16,10 +16,11 @@ public class DbInfoTest {
 
 	@Test
 	public void test() {
-		Storage stor = new MemStorage();
+		Storage stor = new MemStorage(64, 32);
 		UpdateDbInfo dbinfo = new UpdateDbInfo();
 		assertNull(dbinfo.get(123));
-		ImmutableList<IndexInfo> indexes = ImmutableList.of();
+		ImmutableList<IndexInfo> indexes = ImmutableList.of(
+				new IndexInfo(new int[0], 123, 0, 1, 0));
 		TableInfo ti = new TableInfo(6, 5, 4, 99, indexes);
 		dbinfo.add(ti);
 		assertThat(dbinfo.get(6), is(ti));

@@ -9,14 +9,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.intfc.database.DatabasePackage.Status;
-import suneido.intfc.database.TestBase;
 
 public class DbCheckTest extends TestBase {
-
-	@Override
-	protected DatabasePackage dbpkg() {
-		return DatabasePackage.dbpkg;
-	}
 
 	@Test
 	public void test_empty() {
@@ -30,7 +24,7 @@ public class DbCheckTest extends TestBase {
 	}
 
 	protected void dbcheck() {
-		assertEquals(Status.OK, ((Database) db).check());
+		assertEquals(Status.OK, ((ImmuDatabase) db).check());
 	}
 
 }

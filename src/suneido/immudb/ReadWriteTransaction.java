@@ -22,6 +22,9 @@ import suneido.intfc.database.IndexIter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
+/**
+ * Base class with common code for UpdateTransaction2 and ExclusiveTransaction2
+ */
 abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpdateTran {
 	protected boolean locked = false;
 	private String conflict = null;
@@ -247,6 +250,8 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 			if (locked)
 				unlock();
 		}
+//		if (conflict == null)
+//			Persist.persist(db);
 		return conflict;
 	}
 

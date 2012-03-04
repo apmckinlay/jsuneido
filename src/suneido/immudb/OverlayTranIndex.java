@@ -98,4 +98,9 @@ class OverlayTranIndex implements TranIndex {
 		return local;
 	}
 
+	@Override
+	public void check() {
+		throw new UnsupportedOperationException();
+	}
+
 }

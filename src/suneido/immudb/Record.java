@@ -211,10 +211,10 @@ abstract class Record implements suneido.intfc.database.Record {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < size(); ++i) {
-			if (getRaw(i).equals(MAX_FIELD))
-				sb.append("MAX");
-			else if (i == size() - 1 && childRef() != null)
+			if (i == size() - 1 && childRef() != null)
 				sb.append("REF");
+			else if (getRaw(i).equals(MAX_FIELD))
+				sb.append("MAX");
 			else {
 				Object x = get(i);
 				if (x instanceof String)

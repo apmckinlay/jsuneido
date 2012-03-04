@@ -15,9 +15,9 @@ import suneido.intfc.database.IndexIter;
 class DbCompact {
 //	private final String dbfilename;
 //	private final String tempfilename;
-	private final Database oldDB;
-	private final Database newDB;
-	private ReadTransaction rt;
+	private final ImmuDatabase oldDB;
+	private final ImmuDatabase newDB;
+	private ImmuReadTran rt;
 
 //	static void compactPrint(String dbfilename)
 //			throws InterruptedException {
@@ -35,11 +35,11 @@ class DbCompact {
 //		System.out.println(dbfilename + " compacted " + n + " tables");
 //	}
 
-	static int compact(Database olddb, Database newdb) {
+	static int compact(ImmuDatabase olddb, ImmuDatabase newdb) {
 		return new DbCompact(olddb, newdb).compact();
 	}
 
-	private DbCompact(Database olddb, Database newdb) {
+	private DbCompact(ImmuDatabase olddb, ImmuDatabase newdb) {
 		this.oldDB = olddb;
 		this.newDB = newdb;
 	}
@@ -85,14 +85,13 @@ class DbCompact {
 		return n;
 	}
 
-	// TODO do NOT use DbLoad.createIndexes
-	// create each index by reading via the same index in the source
+	// TODO create each index by reading via the same index in the source
 	// so that keys are added optimally in order
 	private void copyTable(String tablename) {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
 		boolean squeeze = needToSqueeze(fields);
-		ExclusiveTransaction t = newDB.exclusiveTran();
+		ImmuExclTran t = newDB.exclusiveTran();
 		try {
 			int first = 0;
 			int last = 0;

@@ -240,7 +240,7 @@ public class BtreeMemNode extends BtreeNode {
 			int j = index.get(i);
 			if (j < 0) {
 				Record r = added.get(-j - 1);
-				if (r.childRef() != null)
+				if (r.childRef() instanceof BtreeMemNode)
 					((BtreeMemNode) r.childRef()).store2(stor);
 			}
 		}
@@ -254,7 +254,7 @@ public class BtreeMemNode extends BtreeNode {
 	}
 
 	void pack(ByteBuffer buf) {
-		ArrayRecord.packHeader(buf, length(), getLengths());
+		ArrayRecord.packHeader(buf, length(), getLengths(), 0);
 		for (int i = size() - 1; i >= 0; --i)
 			pack(buf, i);
 	}
