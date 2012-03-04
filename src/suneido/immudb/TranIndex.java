@@ -35,4 +35,6 @@ interface TranIndex {
 
 	enum Update { OK, NOT_FOUND, ADD_FAILED }
 
+	void check();
+
 }

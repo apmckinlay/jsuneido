@@ -38,6 +38,7 @@ class Database2 implements ImmuDatabase {
 	static Database2 create(Storage stor, Storage istor) {
 		Database2 db = new Database2(stor, istor, DbHashTrie.empty(stor), new Tables(), 0);
 		Bootstrap.create(db.exclusiveTran());
+		Persist.persist(db);
 		return db;
 	}
 
@@ -107,8 +108,10 @@ class Database2 implements ImmuDatabase {
 	}
 
 	/** used by tests */
-	Status check() {
-		return DbCheck.check(stor);
+	@Override
+	public Status check() {
+		Persist.persist(this);
+		return DbCheck2.check(stor, istor);
 	}
 
 	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, int cksum) {
@@ -271,7 +274,7 @@ class Database2 implements ImmuDatabase {
 	}
 
 	void callTrigger(
-			ReadTransaction t, Table table, Record oldrec, Record newrec) {
+			ReadTransaction2 t, Table table, Record oldrec, Record newrec) {
 		triggers.call(t, table, oldrec, newrec);
 	}
 

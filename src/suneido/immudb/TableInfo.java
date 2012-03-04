@@ -33,6 +33,7 @@ class TableInfo extends DbHashTrie.Entry {
 		this.nrows = nrows;
 		this.totalsize = totalsize;
 		this.indexInfo = indexInfo;
+		assert indexInfo == null || ! indexInfo.isEmpty();
 	}
 
 	TableInfo(Record rec, int adr) {

@@ -33,7 +33,7 @@ public class Persist {
 		p.run();
 	}
 
-	public Persist(Database2 db) {
+	private Persist(Database2 db) {
 		this.db = db;
 		dbstate = db.state;
 		dbinfo = newdbinfo = dbstate.dbinfo;
@@ -77,22 +77,22 @@ public class Persist {
 	}
 
 	DbHashTrie.Process proc = new DbHashTrie.Process() {
-			@Override
-			public void apply(Entry e) {
-				if (e instanceof TableInfo) {
-					TableInfo ti = (TableInfo) e;
-					ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
-					for (IndexInfo ii : ti.indexInfo)
-						if (ii.rootNode != null) {
-							int root = ii.rootNode.store2(istor);
-							assert root != 0;
-							b.add(new IndexInfo(ii, root));
-						}
-					newdbinfo = newdbinfo.with(new TableInfo(ti, b.build()));
-				}
+		@Override
+		public void apply(Entry e) {
+			if (e instanceof TableInfo) {
+				TableInfo ti = (TableInfo) e;
+				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
+				for (IndexInfo ii : ti.indexInfo)
+					if (ii.rootNode != null) {
+						int root = ii.rootNode.store2(istor);
+						assert root != 0;
+						b.add(new IndexInfo(ii, root));
+					} else
+						b.add(ii);
+				TableInfo ti2 = new TableInfo(ti, b.build());
+				newdbinfo = newdbinfo.with(ti2);
 			}
-
-		};
+		}};
 
 	private int storeDbinfo() {
 		return newdbinfo.store(istor, new DbInfoTranslator(istor));

@@ -108,7 +108,8 @@ class Database implements ImmuDatabase {
 	}
 
 	/** used by tests */
-	Status check() {
+	@Override
+	public Status check() {
 		return DbCheck.check(stor);
 	}
 

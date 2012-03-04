@@ -83,7 +83,7 @@ public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage 
 	@Override
 	public int compact(suneido.intfc.database.Database srcdb,
 			suneido.intfc.database.Database dstdb) {
-		return 0; //TODO DbCompact.compact((Database2) srcdb, (Database) dstdb);
+		return DbCompact.compact((Database2) srcdb, (Database2) dstdb);
 	}
 
 	@Override

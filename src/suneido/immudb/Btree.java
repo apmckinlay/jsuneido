@@ -583,7 +583,8 @@ class Btree implements TranIndex {
 		}
 	}
 
-	void check() {
+	@Override
+	public void check() {
 		int nnodes = rootNode().check(tran, Record.EMPTY);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;

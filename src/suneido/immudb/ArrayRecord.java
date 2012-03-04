@@ -118,11 +118,12 @@ public class ArrayRecord extends Record {
 
 	private void pack(ByteBuffer dst, int length) {
 		int refAdr = 0;
+		int refLen = 0;
 		if (ref != null) {
 			refAdr = ref.address();
-			lens.set(lens.size() - 1, Pack.packSizeLong(refAdr));
+			refLen = Pack.packSizeLong(refAdr);
 		}
-		packHeader(dst, length, lens);
+		packHeader(dst, length, lens, refLen);
 		int nfields = bufs.size();
 		for (int i = nfields - 1; i >= 0; --i)
 			if (i == nfields - 1 && ref != null)
@@ -131,7 +132,7 @@ public class ArrayRecord extends Record {
 				pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}
 
-	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens) {
+	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens, int refLen) {
 		dst.order(ByteOrder.LITTLE_ENDIAN); // to match cSuneido format
 		byte mode = mode(length);
 		dst.put(mode);
@@ -139,7 +140,7 @@ public class ArrayRecord extends Record {
 		int nfields = lens.size();
 		assert 0 <= nfields && nfields <= Short.MAX_VALUE;
 		dst.putShort((short) nfields);
-		packOffsets(dst, length, lens, mode);
+		packOffsets(dst, length, lens, refLen, mode);
 		dst.order(ByteOrder.BIG_ENDIAN);
 	}
 	private static byte mode(int length) {
@@ -151,7 +152,7 @@ public class ArrayRecord extends Record {
 			return Mode.INT;
 	}
 	private static void packOffsets(ByteBuffer dst, int length,
-			TIntArrayList lens, int mode) throws Error {
+			TIntArrayList lens, int refLen, int mode) throws Error {
 		int nfields = lens.size();
 		int offset = length;
 		assert length > 0;
@@ -159,21 +160,25 @@ public class ArrayRecord extends Record {
 		case Mode.BYTE:
 			dst.put((byte) offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.put((byte) (offset -= lens.get(i)));
+				dst.put((byte) (offset -= get(lens, refLen, i)));
 			break;
 		case Mode.SHORT:
 			dst.putShort((short) offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.putShort((short) (offset -= lens.get(i)));
+				dst.putShort((short) (offset -= get(lens, refLen, i)));
 			break;
 		case Mode.INT:
 			dst.putInt(offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.putInt(offset -= lens.get(i));
+				dst.putInt(offset -= get(lens, refLen, i));
 			break;
 		default:
 			throw new Error("bad record mode: " + mode);
 		}
+	}
+
+	private static int get(TIntArrayList lens, int refLen, int i) {
+		return refLen != 0 && i == lens.size() - 1 ? refLen : lens.get(i);
 	}
 
 	private static void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {

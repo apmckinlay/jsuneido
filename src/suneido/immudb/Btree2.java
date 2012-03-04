@@ -612,7 +612,8 @@ class Btree2 implements TranIndex, Cloneable {
 		}
 	}
 
-	void check() {
+	@Override
+	public void check() {
 		assert rootNode.level == treeLevels;
 		int nnodes = rootNode.check2(tran.istor, Record.EMPTY, null);
 		assert nnodes == this.nnodes

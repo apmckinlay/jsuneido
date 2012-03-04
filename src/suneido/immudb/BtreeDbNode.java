@@ -40,6 +40,11 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
+	public BtreeNode withUpdate(int i, BtreeNode child) {
+		return new BtreeMemNode(this).withUpdate(i, child);
+	}
+
+	@Override
 	int size() {
 		return rec.size();
 	}
