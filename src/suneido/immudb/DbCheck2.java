@@ -144,7 +144,7 @@ class DbCheck2 {
 	}
 
 	public static void main(String[] args) {
-		DbTools.checkPrintExit(DatabasePackage.dbpkg, "immu.db");
+		DbTools.checkPrintExit(DatabasePackage2.dbpkg, "immu.db");
 	}
 
 }
