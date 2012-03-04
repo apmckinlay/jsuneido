@@ -9,10 +9,10 @@ import suneido.intfc.database.DatabasePackage.Status;
 interface ImmuDatabase extends suneido.intfc.database.Database {
 
 	@Override
-	ImmuReadTran readonlyTran();
+	ImmuReadTran readTransaction();
 
 	@Override
-	ImmuUpdateTran readwriteTran();
+	ImmuUpdateTran updateTransaction();
 
 	ImmuExclTran exclusiveTran();
 

@@ -49,7 +49,7 @@ class DbCompact {
 	}
 
 	private int copy() {
-		rt = oldDB.readonlyTran();
+		rt = oldDB.readTransaction();
 		copySchema();
 		return copyData() + 1; // + 1 for views
 	}

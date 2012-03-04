@@ -19,7 +19,7 @@ public class RuleFieldTest extends TestBase {
 	public void rule_fields_not_saved() {
 		adm("create withrule (a,B) key(a)");
 
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		suneido.intfc.database.Table tbl = t.ck_getTable("withrule");
 		assertEquals("[b, a]", tbl.getColumns().toString());
 		t.complete();

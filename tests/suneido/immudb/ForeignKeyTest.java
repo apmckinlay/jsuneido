@@ -98,7 +98,7 @@ public class ForeignKeyTest {
 	}
 
 	private String fkdsts(String tableName, String indexColumns) {
-		ReadTransaction t = db.readonlyTran();
+		ReadTransaction t = db.readTransaction();
 		Set<ForeignKeyTarget> fkdsts = t.getForeignKeys(tableName, indexColumns);
 		assert fkdsts != null;
 		return sort(fkdsts).toString();

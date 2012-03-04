@@ -82,11 +82,11 @@ public class RequestTest extends TestBase {
 	public void test_view() {
 		String def = "/*comment*/ one join two where three = 4";
 		Request.execute(db, serverData, "view myview = " + def);
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		assertEquals(def, t.getView("myview"));
 		t.complete();
 		Request.execute(db, serverData, "drop myview");
-		t = db.readonlyTran();
+		t = db.readTransaction();
 		assertEquals(null, t.getView("myview"));
 		t.complete();
 	}

@@ -42,7 +42,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 		db = Database.openReadonly(filename);
 		try {
 			check("mytable", values);
-			Transaction t = db.readonlyTran();
+			Transaction t = db.readTransaction();
 			TableData td = t.getTableData(t.getTable("mytable").num);
 			assertEquals(2, td.nextfield);
 			t.ck_complete();
@@ -61,7 +61,7 @@ public class DbCheckRebuildTestBase extends TestBaseBase {
 	}
 
 	protected void checkNoTable(String tablename) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		assertNull(t.getTable(tablename));
 		t.ck_complete();
 	}

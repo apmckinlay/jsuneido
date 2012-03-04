@@ -23,14 +23,14 @@ public class TestBase {
 	}
 
 	protected Table getTable(String tableName) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table tbl = t.getTable(tableName);
 		t.complete();
 		return tbl;
 	}
 
 	protected int getNrecords(String tableName) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table tbl = t.getTable(tableName);
 		int n = t.tableCount(tbl.num());
 		t.complete();
@@ -61,7 +61,7 @@ public class TestBase {
 
 	private void addRecords(String tablename, int from, int to) {
 		while (from <= to) {
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
 				t.addRecord(tablename, record(from));
 			t.ck_complete();
@@ -80,7 +80,7 @@ public class TestBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		List<Record> recs = get(tablename, t);
 		t.ck_complete();
 		return recs;
@@ -114,7 +114,7 @@ public class TestBase {
 	}
 
 	protected int count(String tablename) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		int n = count(tablename, t);
 		t.ck_complete();
 		return n;
@@ -134,7 +134,7 @@ public class TestBase {
 	}
 
 	protected void check(String tablename, int... values) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		check(t, tablename, values);
 		t.ck_complete();
 	}

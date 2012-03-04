@@ -75,7 +75,7 @@ public class ParseTest extends TestBase {
 		test(s, s);
 	}
 	private void test(String s, String expect) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			assertEquals(s, expect,
 					CompileQuery.parse(t, serverData, s).toString());

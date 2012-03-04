@@ -23,7 +23,7 @@ public class DatabaseTest extends TestBase {
 	@Test
 	public void empty_table() {
 		makeTable();
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table tbl = t.getTable("test");
 		assertThat(t.tableCount(tbl.num()), is(0));
 		assertThat(t.tableSize(tbl.num()), is(0L));
@@ -37,7 +37,7 @@ public class DatabaseTest extends TestBase {
 		makeTable();
 
 		Record r = dbpkg.recordBuilder().add(12).add(34).build();
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		t.addRecord("test", r);
 		t.ck_complete();
 
@@ -53,7 +53,7 @@ public class DatabaseTest extends TestBase {
 		assertThat(recs.get(0), is(r));
 		assertThat(getNrecords("test"), is(1));
 
-		t = db.readwriteTran();
+		t = db.updateTransaction();
 		t.removeRecord(getTable("test").num(), recs.get(0));
 		t.ck_complete();
 
@@ -76,7 +76,7 @@ public class DatabaseTest extends TestBase {
 		tb.addColumn("c");
 		tb.addIndex("c", false, false, null, null, 0);
 		tb.finish();
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table table = t.getTable("test");
 		int i = 0;
 		IndexIter iter = t.iter(table.num(), "c");
@@ -89,7 +89,7 @@ public class DatabaseTest extends TestBase {
 	public void duplicate_key_add() {
 		makeTable(3);
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		try {
 			t.addRecord("test", record(1));
 			fail("expected exception");
@@ -99,7 +99,7 @@ public class DatabaseTest extends TestBase {
 			t.ck_complete();
 		}
 
-		t = db.readonlyTran();
+		t = db.readTransaction();
 		try {
 			assertEquals(3, getNrecords("test"));
 		} finally {
@@ -111,7 +111,7 @@ public class DatabaseTest extends TestBase {
 	public void duplicate_key_update() {
 		makeTable(3);
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		List<Record> recs = get(t);
 		try {
 			t.updateRecord(t.getTable("test").num(), recs.get(1), record(2));
@@ -122,7 +122,7 @@ public class DatabaseTest extends TestBase {
 			t.abortIfNotComplete();
 		}
 
-		t = db.readonlyTran();
+		t = db.readTransaction();
 		try {
 			assertEquals(3, getNrecords("test"));
 		} finally {
@@ -150,7 +150,7 @@ public class DatabaseTest extends TestBase {
 		List<Record> recs = get("test");
 
 		assertRecords(0);
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		Record rec2 = record(10, 1, 2);
 		t.addRecord("test2", rec2);
 		t.ck_complete();
@@ -171,13 +171,13 @@ public class DatabaseTest extends TestBase {
 
 	private void assertRecords(int n) {
 		Transaction t;
-		t = db.readonlyTran();
+		t = db.readTransaction();
 		assertThat(t.tableCount(t.getTable("test2").num()), is(n));
 		t.ck_complete();
 	}
 
 	private void addShouldBlock(Record rec) {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		try {
 			t.addRecord("test2", rec);
 			fail("expected exception");
@@ -188,7 +188,7 @@ public class DatabaseTest extends TestBase {
 	}
 
 	private void removeShouldBlock(Record rec) {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		Table tbl = getTable("test");
 		try {
 			t.removeRecord(tbl.num(), rec);
@@ -200,7 +200,7 @@ public class DatabaseTest extends TestBase {
 	}
 
 	private void updateShouldBlock(String table, Record oldrec, Record newrec) {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		Table tbl = getTable(table);
 		try {
 			t.updateRecord(tbl.num(), oldrec, newrec);
@@ -261,7 +261,7 @@ public class DatabaseTest extends TestBase {
 		assertEquals(record(10, 1), recs.get(0));
 		assertEquals(record(11, 1), recs.get(1));
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		t.removeRecord(t.getTable("test").num(), get("test").get(1));
 		t.ck_complete();
 		assertEquals(0, count("test2"));
@@ -272,7 +272,7 @@ public class DatabaseTest extends TestBase {
 		makeTable(3);
 		make_test2(Fkmode.CASCADE_UPDATES);
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		t.updateRecord(t.getTable("test").num(), get("test").get(1), record(111));
 		t.ck_complete();
 		List<Record> recs = get("test2");
@@ -306,7 +306,7 @@ public class DatabaseTest extends TestBase {
 	}
 
 	private void add(String table, Record rec) {
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		t.addRecord(table, rec);
 		t.ck_complete();
 	}
@@ -319,7 +319,7 @@ public class DatabaseTest extends TestBase {
 			.addIndex("a", true, false, "", "", 0)
 			.finish();
 
-		Transaction t1 = db.readwriteTran();
+		Transaction t1 = db.updateTransaction();
 		t1.addRecord("test2", record(10, 1));
 		t1.addRecord("test2", record(11, 1));
 		t1.ck_complete();

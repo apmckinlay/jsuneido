@@ -22,7 +22,7 @@ public class SchemaTest extends TestBase {
 	}
 
 	private void check(final int N, String COLS) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Table tbl = t.getTable("test");
 		try {
 			BtreeIndex bi = t.getBtreeIndex(tbl.num, COLS);

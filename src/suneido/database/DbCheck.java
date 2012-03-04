@@ -143,7 +143,7 @@ class DbCheck {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
 		Database db = Database.openReadonly(dbFilename);
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			BtreeIndex bti = t.getBtreeIndex(Database.TN.TABLES, "tablename");
 			BtreeIndex.Iter iter = bti.iter();

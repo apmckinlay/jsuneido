@@ -118,7 +118,7 @@ public class TestBase {
 	}
 
 	protected int req(String s) {
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();
@@ -144,7 +144,7 @@ public class TestBase {
 
 	protected void addRecords(String tablename, int from, int to) {
 		while (from <= to) {
-			Transaction t = db.readwriteTran();
+			Transaction t = db.updateTransaction();
 			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
 				t.addRecord(tablename, record(from));
 			t.ck_complete();
@@ -152,7 +152,7 @@ public class TestBase {
 	}
 
 	protected List<Record> get(String tablename) {
-		Transaction tran = db.readonlyTran();
+		Transaction tran = db.readTransaction();
 		List<Record> recs = get(tablename, tran);
 		tran.ck_complete();
 		return recs;
@@ -172,7 +172,7 @@ public class TestBase {
 	}
 
 	protected void check(String tablename, int... values) {
-			Transaction t = db.readonlyTran();
+			Transaction t = db.readTransaction();
 			check(t, tablename, values);
 			t.ck_complete();
 		}

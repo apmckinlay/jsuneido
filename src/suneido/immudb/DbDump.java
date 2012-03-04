@@ -18,7 +18,7 @@ import suneido.intfc.database.IndexIter;
 public class DbDump {
 
 	static int dumpDatabase(ImmuDatabase db, WritableByteChannel out) {
-		ImmuReadTran t = db.readonlyTran();
+		ImmuReadTran t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			IndexIter iter = t.iter(Bootstrap.TN.TABLES, "tablename");
@@ -41,7 +41,7 @@ public class DbDump {
 	}
 
 	static int dumpTable(ImmuDatabase db, String tablename, WritableByteChannel out) {
-		ImmuReadTran t = db.readonlyTran();
+		ImmuReadTran t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			return dump1(out, t, tablename, false);

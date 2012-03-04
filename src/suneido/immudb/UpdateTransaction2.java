@@ -141,7 +141,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 			checkForConflicts();
 			int cksum = storeData();
 			// use a read transaction to get access to global indexes
-			ReadTransaction2 t = db.readonlyTran();
+			ReadTransaction2 t = db.readTransaction();
 			try {
 				updateBtrees(t);
 				updateDbInfo(t, cksum);

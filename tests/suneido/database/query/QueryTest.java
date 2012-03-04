@@ -22,7 +22,7 @@ public class QueryTest extends TestBase {
 	@Test
 	public void address() {
 		makeTable("test", 1);
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			Query q = CompileQuery.query(t, serverData, "test");
 			Row row = q.get(NEXT);
@@ -246,7 +246,7 @@ public class QueryTest extends TestBase {
 	}
 
 	private void one_way(Dir dir, String query, String result) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			Query q = CompileQuery.query(t, serverData, query);
 			assertEquals(q.toString(), result, execute(dir, q));

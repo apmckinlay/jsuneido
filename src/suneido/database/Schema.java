@@ -33,7 +33,7 @@ class Schema {
 	/** returns false if table already exists */
 	static boolean ensureTable(Database db, String tablename) {
 		int tblnum = db.getNextTableNum();
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			if (tran.tableExists(tablename))
 				return false;
@@ -50,7 +50,7 @@ class Schema {
 	/** returns false if table does not exist */
 	static boolean dropTable(Database db, String tablename) {
 		checkForSystemTable(tablename, "drop");
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			if (tran.getView(tablename) != null) {
 				tran.removeView(tablename);
@@ -105,7 +105,7 @@ class Schema {
 
 		checkForSystemTable(oldname, "rename");
 
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			if (tran.tableExists(newname))
 				throw new SuException("rename table: table already exists: " + newname);
@@ -130,7 +130,7 @@ class Schema {
 
 	static boolean ensureColumn(Database db, String tablename, String column) {
 		synchronized(db.commitLock) {
-			Transaction tran = db.readwriteTran();
+			Transaction tran = db.updateTransaction();
 			try {
 				Table table = tran.ck_getTable(tablename);
 				TableData td = tran.getTableData(table.num);
@@ -166,7 +166,7 @@ class Schema {
 					+ name + " from " + tablename);
 
 		synchronized(db.commitLock) {
-			Transaction tran = db.readwriteTran();
+			Transaction tran = db.updateTransaction();
 			try {
 				Table table = tran.ck_getTable(tablename);
 				if (table.columns.find(name) == null)
@@ -201,7 +201,7 @@ class Schema {
 					+ oldname + " in " + tablename);
 
 		synchronized(db.commitLock) {
-			Transaction tran = db.readwriteTran();
+			Transaction tran = db.updateTransaction();
 			try {
 				Table table = tran.ck_getTable(tablename);
 				if (table.hasColumn(newname))
@@ -257,7 +257,7 @@ class Schema {
 			fkcolumns = columns;
 
 		synchronized(db.commitLock) {
-			Transaction tran = db.readwriteTran();
+			Transaction tran = db.updateTransaction();
 			try {
 				Table table = tran.ck_getTable(tablename);
 				ImmutableList<Integer> colnums = table.columns.nums(columns);
@@ -328,7 +328,7 @@ class Schema {
 			throw new SuException("delete index: can't delete system index: "
 					+ columns + " from " + tablename);
 		synchronized(db.commitLock) {
-			Transaction tran = db.readwriteTran();
+			Transaction tran = db.updateTransaction();
 			try {
 				Table table = tran.ck_getTable(tablename);
 				if (table.indexes.size() == 1)

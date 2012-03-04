@@ -33,7 +33,7 @@ public class ProjectTest {
 	}
 
 	private void test(String query, List<String> cols, String strategy) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Query q = CompileQuery.query(t, serverData, query);
 		assertThat(q.columns(), is(cols));
 		assertThat(q.toString(), is(strategy));
@@ -54,7 +54,7 @@ public class ProjectTest {
 	}
 
 	private void test(String query, String result) {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Query q = CompileQuery.query(t, serverData, query);
 		Header hdr = q.header();
 		Row row = q.get(NEXT);
@@ -66,7 +66,7 @@ public class ProjectTest {
 		Request.execute(db, "create tmp (a,b) key(a)");
 		req("insert { a: 1 } into tmp");
 		req("insert { a: 2, b: 1 } into tmp");
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		Query q = CompileQuery.query(t, serverData, "tmp project b");
 		Header hdr = q.header();
 		Row row;
@@ -78,7 +78,7 @@ public class ProjectTest {
 	}
 
 	protected int req(String s) {
-		Transaction tran = db.readwriteTran();
+		Transaction tran = db.updateTransaction();
 		try {
 			Query q = CompileQuery.parse(tran, serverData, s);
 			int n = ((QueryAction) q).execute();

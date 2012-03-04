@@ -16,9 +16,9 @@ public class LocksTest {
 	@Test
 	public void test() {
 		Database db = DatabasePackage.dbpkg.testdb();
-		UpdateTransaction t1 = db.readwriteTran();
-		UpdateTransaction t2 = db.readwriteTran();
-		UpdateTransaction t3 = db.readwriteTran();
+		UpdateTransaction t1 = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
+		UpdateTransaction t3 = db.updateTransaction();
 
 		Locks locks = new Locks();
 

@@ -117,7 +117,7 @@ public class DbRebuildTest extends DbCheckRebuildTestBase {
 		dbcheckout();
 		db = Database.openReadonly(filename);
 		try {
-			Transaction t = db.readonlyTran();
+			Transaction t = db.readTransaction();
 			assertEquals("indexes", db.getView(t, "myview"));
 		} finally {
 			db.close();

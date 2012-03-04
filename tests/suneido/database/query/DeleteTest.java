@@ -25,7 +25,7 @@ public class DeleteTest extends TestBase {
 		assertEquals(10, req("delete test where a >= 80 and a < 90 "));
 		assertEquals(90, get("test").size());
 
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		for (int i = 80; i < 90; ++i)
 			t.addRecord("test", record(i));
 		t.ck_complete();

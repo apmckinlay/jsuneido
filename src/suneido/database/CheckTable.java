@@ -21,7 +21,7 @@ class CheckTable implements Callable<String> {
 
 	@Override
 	public String call() {
-		Transaction t = db.readonlyTran();
+		Transaction t = db.readTransaction();
 		try {
 			checkTable(t, tablename);
 			return details;

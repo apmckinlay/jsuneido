@@ -14,7 +14,7 @@ public class OptimizeTest extends TestBase {
 	public void table_index_selection() {
 		adm("create test (a,b,c) index(a) key(b) index(c)");
 		String big = "now is the time for all good men";
-		Transaction t = db.readwriteTran();
+		Transaction t = db.updateTransaction();
 		for (int i = 0; i < 100; ++i)
 			t.addRecord("test", dbpkg.recordBuilder().add(big).add(i).add(big).build());
 		t.ck_complete();
