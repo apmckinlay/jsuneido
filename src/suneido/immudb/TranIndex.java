@@ -31,6 +31,9 @@ interface TranIndex {
 
 	interface Iter extends IndexIter {
 
+		@Override
+		public Record curKey();
+
 	}
 
 	enum Update { OK, NOT_FOUND, ADD_FAILED }

@@ -57,26 +57,22 @@ class OverlayTranIndex implements TranIndex {
 
 	@Override
 	public TranIndex.Iter iterator() {
-		return new OverlayIndexIter(
-				global.iterator(), local.iterator());
+		return new OverlayIndexIter(global, local);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(Record key) {
-		return new OverlayIndexIter(
-				global.iterator(key), local.iterator(key));
+		return new OverlayIndexIter(global, local, key, key);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(Record org, Record end) {
-		return new OverlayIndexIter(
-				global.iterator(org, end), local.iterator(org, end));
+		return new OverlayIndexIter(global, local, org, end);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(IndexIter iter) {
-		return new OverlayIndexIter(
-				global.iterator(iter), local.iterator(iter));
+		return new OverlayIndexIter(global, local, (OverlayIndexIter) iter);
 	}
 
 	@Override

@@ -290,20 +290,6 @@ public class TransactionTest extends TestBase {
 		updateLastConflict(t2);
 	}
 
-	@Test
-	public void write_skew_with_completed() {
-		makeTable(300);
-		Transaction t1  = db.updateTransaction();
-		Transaction t2  = db.updateTransaction();
-
-		readLast(t1);
-		updateFirst(t1);
-		t1.ck_complete();
-
-		readFirst(t2);
-		updateLastConflict(t2);
-	}
-
 	private void updateLastConflict(Transaction t2) {
 		try {
 			updateLast(t2);
@@ -323,7 +309,7 @@ public class TransactionTest extends TestBase {
 	}
 
 	private void updateFirst(Transaction t) {
-		update(t, 1, record(1));
+		update(t, 0, record(0));
 	}
 
 	private void updateLast(Transaction t) {
