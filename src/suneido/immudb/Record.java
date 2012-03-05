@@ -137,9 +137,13 @@ abstract class Record implements suneido.intfc.database.Record {
 		return prefixCompareTo(rec) > 0;
 	}
 
-	private int prefixCompareTo(Record that) {
+	/** compares only as many fields as contained in that
+	 *  ignores any additional fields on "this" */
+	int prefixCompareTo(Record that) {
 		int n = that.size();
 		for (int i = 0; i < n; ++i) {
+			if (i >= this.size())
+				return -1;
 			int cmp = compare1(this, that, i);
 			if (cmp != 0)
 				return cmp;

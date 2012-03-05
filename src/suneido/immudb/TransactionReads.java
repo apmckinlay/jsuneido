@@ -51,6 +51,7 @@ public class TransactionReads {
 	/**
 	 * Uses a binary search.
 	 * Note: Cannot be used until after build
+	 * @param key is assumed to have the correct number of fields for the index
 	 * @return Whether or not the key is contained in any of the ranges.
 	 */
 	boolean contains(Record key) {
@@ -75,9 +76,10 @@ public class TransactionReads {
 	}
 
 	private static int compare(IndexRange range, Record value) {
-		if (range.lo.compareTo(value) > 0)
+		// use prefixCompareTo to ignore any addresses on range
+		if (range.lo.prefixCompareTo(value) > 0)
 			return +1;
-		return range.hi.compareTo(value) < 0 ? -1 : +1;
+		return range.hi.prefixCompareTo(value) < 0 ? -1 : +1;
 	}
 
 	@Override
