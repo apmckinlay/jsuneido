@@ -14,8 +14,14 @@ import com.google.common.collect.Ordering;
  */
 public class IndexRange implements Comparable<IndexRange> {
 	private static final Ordering<Record> ord = Ordering.natural();
-	Record lo = DatabasePackage2.MAX_RECORD;
+	Record lo;
 	Record hi;
+
+	/** create an empty range (lo > hi) */
+	public IndexRange() {
+		lo = DatabasePackage2.MAX_RECORD;
+		hi = DatabasePackage2.MIN_RECORD;
+	}
 
 	public IndexRange(Record lo, Record hi) {
 		this.lo = lo;

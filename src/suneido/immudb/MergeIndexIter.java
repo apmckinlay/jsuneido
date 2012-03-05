@@ -5,8 +5,6 @@
 package suneido.immudb;
 
 import static suneido.immudb.BtreeNode.adr;
-import suneido.intfc.database.IndexIter;
-import suneido.intfc.database.Record;
 
 /**
  * Merges two IndexIter's.
@@ -15,14 +13,14 @@ import suneido.intfc.database.Record;
  * Used to combine global index and transaction local index.
  */
 public class MergeIndexIter implements TranIndex.Iter {
-	private final IndexIter iter1;
-	private final IndexIter iter2;
-	private IndexIter curIter;
+	private final TranIndex.Iter iter1;
+	private final TranIndex.Iter iter2;
+	private TranIndex.Iter curIter;
 	private Record cur = null;
-	private enum State { REWOUND, NEXT, PREV, START, END };
-	private State state = State.REWOUND;
+	protected enum State { REWOUND, NEXT, PREV, START, END };
+	protected State state = State.REWOUND;
 
-	public MergeIndexIter(IndexIter iter1, IndexIter iter2) {
+	public MergeIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2) {
 		this.iter1 = iter1;
 		this.iter2 = iter2;
 	}
@@ -113,7 +111,7 @@ public class MergeIndexIter implements TranIndex.Iter {
 
 	@Override
 	public int keyadr() {
-		return adr((suneido.immudb.Record) cur);
+		return adr(cur);
 	}
 
 }

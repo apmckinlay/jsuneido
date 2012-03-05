@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
 
+import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
@@ -65,6 +66,23 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		return adr;
 	}
 
+	// used by foreign key cascade
+	@Override
+	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
+		Index index = index(tblnum, colNums);
+		Iter iter = getIndex(index).iterator(oldkey);
+		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		for (iter.next(); ! iter.eof(); iter.next()) {
+			Record oldrec = input(iter.keyadr());
+			RecordBuilder rb = new RecordBuilder();
+			for (int i = 0; i < oldrec.size(); ++i) {
+				int j = Ints.indexOf(colNums, i);
+				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
+			}
+			updateRecord(tblnum, oldrec, rb.build());
+		}
+	}
+
 	@Override
 	public int removeRecord(int tblnum, Record rec) {
 		int adr = super.removeRecord(tblnum, rec);
@@ -78,30 +96,51 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 			deletes.add(adr);
 	}
 
+	// used by foreign key cascade
+	@Override
+	public void removeAll(int tblnum, int[] colNums, Record key) {
+		Index index = index(tblnum, colNums);
+		Iter iter = getIndex(index).iterator();
+		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		for (iter.next(); ! iter.eof(); iter.next())
+			removeRecord(iter.keyadr());
+	}
+
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
 		Index index = index(tblnum, columns);
-		trackReads(index, DatabasePackage2.MIN_RECORD, DatabasePackage2.MAX_RECORD);
-		return getIndex(index).iterator();
-	}
-
-	//TODO track actual range read
-	private void trackReads(Index index, Record from, Record to) {
-		TransactionReads tr = reads.get(index);
-		if (tr == null)
-			reads.put(index, tr = new TransactionReads());
-		tr.add(new IndexRange(from, to));
+		Iter iter = getIndex(index).iterator();
+		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		return iter;
 	}
 
 	@Override
 	public IndexIter iter(int tblnum, String columns,
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
 		Index index = index(tblnum, columns);
-		trackReads(index, (Record) org, (Record) end);
-		return getIndex(index).iterator((Record) org, (Record) end);
+		Iter iter = getIndex(index).iterator((Record) org, (Record) end);
+		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		return iter;
 	}
 
-	// commit -----------------------------------------------------------------
+	@Override
+	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
+		Index index = index(tblnum, columns);
+		Iter iter2 = getIndex(index).iterator(iter);
+		((OverlayIndexIter) iter2).trackRange(trackReads(index));
+		return iter2;
+	}
+
+	private IndexRange trackReads(Index index) {
+		TransactionReads tr = reads.get(index);
+		if (tr == null)
+			reads.put(index, tr = new TransactionReads());
+		IndexRange ir = new IndexRange();
+		tr.add(ir);
+		return ir;
+	}
+
+	// -------------------------------------------------------------------------
 
 	boolean isCommitted() {
 		return commitTime != Long.MAX_VALUE;
