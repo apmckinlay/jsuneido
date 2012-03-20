@@ -103,22 +103,38 @@ class Tran implements Translator {
 	 * The size includes the head and the tail
 	 * @return The checksum of the commit
 	 */
-	int endStore() {
-		int tail_adr = stor.alloc(TAIL_SIZE);
-		int size = (int) stor.sizeFrom(head_adr);
-		stor.buffer(head_adr).putInt(size).putInt(datetime());
+	StoreInfo endStore() {
+		try {
+			int tail_adr = stor.alloc(TAIL_SIZE);
+			int size = (int) stor.sizeFrom(head_adr);
+			stor.buffer(head_adr).putInt(size).putInt(datetime());
 
-		int cksum = checksum();
-		stor.buffer(tail_adr).putInt(cksum).putInt(size);
-		stor.protectAll(); // can't output outside tran
+			int cksum = checksum();
+			stor.buffer(tail_adr).putInt(cksum).putInt(size);
+			stor.protectAll(); // can't output outside tran
 
-		head_adr = 0;
-		return cksum;
+			return new StoreInfo(cksum, head_adr);
+		} finally {
+			head_adr = 0;
+		}
+	}
+
+	static class StoreInfo {
+		final int cksum;
+		final int adr;
+
+		public StoreInfo(int cksum, int adr) {
+			this.cksum = cksum;
+			this.adr = adr;
+		}
 	}
 
 	/**
 	 * Returns the current time in seconds since Jan. 1, 1970 UTC
-	 * Only good till 2038
+	 * Only good till 2038.
+	 * NOTE: Could be a performance bottleneck - in which case
+	 * a background thread could update a "current time" at larger intervals
+	 * e.g. once per second.
 	 */
 	static int datetime() {
 		return (int) (System.currentTimeMillis() / 1000);

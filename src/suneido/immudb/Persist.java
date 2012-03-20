@@ -29,6 +29,7 @@ public class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
+	static final int ENDING_SIZE = 3 * Ints.BYTES;
 	private final Database2 db;
 	private final Database2.State dbstate;
 	private final DbHashTrie dbinfo;
@@ -36,9 +37,10 @@ public class Persist {
 	private DbHashTrie newdbinfo;
 	private int head_adr = 0;
 
-	static void persist(Database2 db) {
+	static Database2.State persist(Database2 db) {
 		Persist p = new Persist(db);
 		p.run();
+		return p.dbstate;
 	}
 
 	private Persist(Database2 db) {
@@ -53,10 +55,10 @@ public class Persist {
 			start();
 			storeBtrees();
 			int adr = storeDbinfo();
-			istor.buffer(istor.alloc(2 * Ints.BYTES))
-					.putInt(adr).putInt(dbstate.lastcksum);
+			istor.buffer(istor.alloc(ENDING_SIZE))
+					.putInt(adr).putInt(dbstate.lastcksum).putInt(dbstate.lastadr);
 			finish();
-			db.setState(newdbinfo, dbstate.schema, dbstate.lastcksum);
+			db.setState(newdbinfo, dbstate.schema, dbstate.lastcksum, dbstate.lastadr);
 		}
 	}
 
@@ -67,7 +69,7 @@ public class Persist {
 	}
 
 	static Info info(Storage istor) {
-		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(2 * Ints.BYTES)));
+		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
 		return new Info(buf.getInt(), buf.getInt());
 	}
 

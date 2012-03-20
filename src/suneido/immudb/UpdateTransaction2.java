@@ -178,12 +178,12 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		buildReads();
 		synchronized(db.commitLock) {
 			checkForConflicts();
-			int cksum = storeData();
+			Tran.StoreInfo info = storeData();
 			// use a read transaction to get access to global indexes
 			ReadTransaction2 t = db.readTransaction();
 			try {
 				updateBtrees(t);
-				updateDbInfo(t, cksum);
+				updateDbInfo(t, info.cksum, info.adr);
 			} finally {
 				t.complete();
 			}
@@ -234,16 +234,16 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 
 	// store data --------------------------------------------------------------
 
-	private int storeData() {
+	private Tran.StoreInfo storeData() {
 		tran.startStore();
-		int cksum = 0;
+		Tran.StoreInfo info = null;
 		try {
 			storeAdds();
 			storeRemoves();
 		} finally {
-			cksum = tran.endStore();
+			info = tran.endStore();
 		}
-		return cksum;
+		return info;
 	}
 
 	private void storeAdds() {
@@ -314,11 +314,11 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 
 	// update dbinfo -----------------------------------------------------------
 
-	private void updateDbInfo(ReadTransaction2 t, int cksum) {
+	private void updateDbInfo(ReadTransaction2 t, int cksum, int adr) {
 		UpdateDbInfo udbi = new UpdateDbInfo(db.state.dbinfo);
 		updateDbInfo(t.indexes, udbi);
 		udbi.dbinfo().freeze();
-		db.setState(udbi.dbinfo(), db.state.schema, cksum);
+		db.setState(udbi.dbinfo(), db.state.schema, cksum, adr);
 	}
 
 	// end of commit =========================================================

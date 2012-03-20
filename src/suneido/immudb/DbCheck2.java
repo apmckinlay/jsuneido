@@ -27,7 +27,7 @@ import suneido.intfc.database.DatabasePackage.Status;
  * TODO: Verifies that index store matches data store.
  */
 class DbCheck2 {
-	final Storage stor;
+	final Storage dstor;
 	final Storage istor;
 	final Observer ob;
 	Date last_good_commit;
@@ -47,18 +47,41 @@ class DbCheck2 {
 		return check(stor, istor, nullObserver);
 	}
 	static Status check(Storage stor, Storage istor, Observer ob) {
-		return new DbCheck2(stor, istor, ob).check();
+//		return new DbCheck2(stor, istor, ob).check();
+		return new DbCheck2(stor, istor, ob).check2();
 	}
 
 	DbCheck2(Storage stor, Storage istor, Observer ob) {
-		this.stor = stor;
+		this.dstor = stor;
 		this.istor = istor;
 		this.ob = ob;
 	}
 
+	/** Check dstor and istor in parallel */
+	Status check2() {
+		Check2.Iter dIter = new Check2.Iter(dstor);
+		Check2.Iter iIter = new Check2.Iter(istor);
+		Tran.StoreInfo iInfo = null;
+		while (! dIter.eof() && ! iIter.eof()) {
+			if (iInfo == null)
+				iInfo = iIter.info();
+			if (iInfo.cksum == dIter.cksum()) {
+				dIter.advance();
+				iIter.advance();
+				iInfo = null;
+			} else if (dIter.adr() < iInfo.adr)
+				dIter.advance();
+			else
+				return Status.CORRUPTED;
+		}
+		if (! dIter.eof() || ! iIter.eof())
+			return Status.CORRUPTED;
+		return Status.OK;
+	}
+
 	Status check() {
 		println("checksums...");
-		Check check = new Check(stor);
+		Check check = new Check(dstor);
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDatetime();
@@ -85,7 +108,7 @@ class DbCheck2 {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		Database2 db = Database2.openWithoutCheck(stor, istor);
+		Database2 db = Database2.openWithoutCheck(dstor, istor);
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);

@@ -16,6 +16,8 @@ import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
+import com.google.common.base.Objects;
+
 @ThreadSafe
 class Database2 implements ImmuDatabase {
 	final Transactions2 trans = new Transactions2();
@@ -26,6 +28,7 @@ class Database2 implements ImmuDatabase {
 	final Object commitLock = new Object();
 	/** only updated when holding commitLock */
 	volatile State state;
+	State lastPersistState;
 
 	// create
 
@@ -36,18 +39,18 @@ class Database2 implements ImmuDatabase {
 	}
 
 	static Database2 create(Storage dstor, Storage istor) {
-		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(dstor), new Tables(), 0);
+		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(dstor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
-		Persist.persist(db);
+		db.persist();
 		return db;
 	}
 
-	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema, int cksum) {
+	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema) {
 		this.dstor = dstor;
 		this.istor = istor;
-		state = new State(dbinfo, null, cksum);
+		state = new State(dbinfo, null, 0, 0);
 		schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
-		state = new State(dbinfo, schema, cksum);
+		state = new State(dbinfo, schema, 0, 0);
 	}
 
 	// open
@@ -65,7 +68,6 @@ class Database2 implements ImmuDatabase {
 	static Database2 open(Storage dstor, Storage istor) {
 		if (Persist.lastCksum(dstor) != Persist.info(istor).lastcksum)
 			return null;
-
 		if (! new Check(dstor).fastcheck()) {
 			dstor.close();
 			return null;
@@ -81,7 +83,7 @@ class Database2 implements ImmuDatabase {
 		Persist.Info info = Persist.info(istor);
 		DbHashTrie dbinfo =
 				DbHashTrie.load(istor, info.dbinfoadr, new DbinfoTranslator(istor));
-		return new Database2(dstor, istor, dbinfo, info.lastcksum);
+		return new Database2(dstor, istor, dbinfo);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
@@ -105,19 +107,19 @@ class Database2 implements ImmuDatabase {
 	/** reopens with same Storage */
 	@Override
 	public Database2 reopen() {
-		Persist.persist(this);
+		persist();
 		return Database2.open(dstor, istor);
 	}
 
 	/** used by tests */
 	@Override
 	public Status check() {
-		Persist.persist(this);
+		persist();
 		return DbCheck2.check(dstor, istor);
 	}
 
-	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, int cksum) {
-		this(dstor, istor, dbinfo, null, cksum);
+	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo) {
+		this(dstor, istor, dbinfo, null);
 	}
 
 	// used by DbCheck
@@ -225,9 +227,16 @@ class Database2 implements ImmuDatabase {
 
 	@Override
 	public void close() {
-		Persist.persist(this);
+		persist();
 		dstor.close();
 		istor.close();
+	}
+
+	void persist() {
+		if (state == lastPersistState)
+			return;
+		Persist.persist(this);
+		lastPersistState = state;
 	}
 
 	@Override
@@ -291,22 +300,35 @@ class Database2 implements ImmuDatabase {
 	}
 
 	/** called by transaction commit and by persist */
-	void setState(DbHashTrie dbinfo, Tables schema, int cksum) {
-		this.state = new State(dbinfo, schema, cksum);
+	void setState(DbHashTrie dbinfo, Tables schema, int cksum, int adr) {
+		assert adr != 0;
+		this.state = new State(dbinfo, schema, cksum, adr);
 	}
 
 	@Immutable
 	static class State {
 		final DbHashTrie dbinfo;
 		final Tables schema;
-		/** checksum of last commit */
+		/** checksum of last data commit */
 		final int lastcksum;
+		/** address of last data commit */
+		final int lastadr;
 
-		private State(DbHashTrie dbinfo, Tables schema, int lastcksum) {
+		private State(DbHashTrie dbinfo, Tables schema,
+				int lastcksum, int lastadr) {
 			assert dbinfo.immutable();
 			this.dbinfo = dbinfo;
 			this.schema = schema;
 			this.lastcksum = lastcksum;
+			this.lastadr = lastadr;
+		}
+
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.add("lastadr", lastadr)
+					.add("lastcksum", lastcksum)
+					.toString();
 		}
 	}
 

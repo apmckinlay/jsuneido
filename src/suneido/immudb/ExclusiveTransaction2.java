@@ -132,9 +132,9 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	// used by DbLoad to do incremental commit
 	@Override
 	public void saveBtrees() {
-		int cksum = tran.endStore();
+		Tran.StoreInfo info = tran.endStore();
 		freezeBtrees();
-		updateDbInfo(cksum);
+		updateDbInfo(info.cksum, info.adr);
 		Persist.persist(db);
 		tran.reset();
 		tran.allowStore();
@@ -147,13 +147,13 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 
 	@Override
 	protected void commit() {
-		int cksum = storeData();
+		Tran.StoreInfo info = storeData();
 		freezeBtrees();
-		updateDbInfo(cksum);
+		updateDbInfo(info.cksum, info.adr);
 		trans.commit(this);
 	}
 
-	private int storeData() {
+	private Tran.StoreInfo storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
 		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
@@ -174,10 +174,10 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		}
 	}
 
-	private void updateDbInfo(int cksum) {
+	private void updateDbInfo(int cksum, int adr) {
 		updateDbInfo(indexes, udbinfo);
 		udbinfo.dbinfo().freeze();
-		db.setState(udbinfo.dbinfo(), newSchema, cksum);
+		db.setState(udbinfo.dbinfo(), newSchema, cksum, adr);
 	}
 
 	@Override
