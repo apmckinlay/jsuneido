@@ -22,8 +22,9 @@ import suneido.intfc.database.DatabasePackage.Observer;
 import suneido.intfc.database.DatabasePackage.Status;
 
 /**
- * check the consistency of a database
- * e.g. after finding it was not shutdown properly
+ * Check the consistency of a database.
+ * Verifies checksums within data store and index store.
+ * TODO: Verifies that index store matches data store.
  */
 class DbCheck2 {
 	final Storage stor;

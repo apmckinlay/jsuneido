@@ -16,6 +16,14 @@ import com.google.common.primitives.Ints;
 
 /**
  * Save dbinfo and btrees to storage (periodically).
+ * Uses a similar layout to Tran,
+ * but saves to a separate file, not the data file.
+ * <p>
+ * Each persist consists of:<br>
+ * header - size and datetime<br>
+ * body - btrees and dbinfo<br>
+ * dbinfo root and dbstate.lastcksum<br>
+ * tail - checksum and size<br
  */
 public class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
@@ -50,6 +58,12 @@ public class Persist {
 			finish();
 			db.setState(newdbinfo, dbstate.schema, dbstate.lastcksum);
 		}
+	}
+
+	/** applicable to both data and index stores */
+	static int lastCksum(Storage stor) {
+		ByteBuffer buf = stor.buffer(-Persist.TAIL_SIZE);
+		return buf.getInt();
 	}
 
 	static Info info(Storage istor) {
@@ -105,6 +119,6 @@ public class Persist {
 
 		int cksum = Tran.checksum(istor.iterator(head_adr));
 		istor.buffer(tail_adr).putInt(cksum).putInt(size);
-		istor.protectAll(); // can't output outside tran
+		istor.protectAll();
 	}
 }

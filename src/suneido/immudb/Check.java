@@ -16,6 +16,8 @@ import com.google.common.primitives.Ints;
  * fullcheck is used by {@link suneido.immudb.DbCheck}<p>
  */
 class Check {
+	private static final int EMPTY = -2;
+	private static final int CORRUPT = -1;
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	private static final int FAST_NCOMMITS = 8;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
@@ -28,22 +30,32 @@ class Check {
 		this.stor = stor;
 	}
 
-	/** checks the last FAST_NCOMMITS commits */
+	/** check the last FAST_NCOMMITS commits */
 	boolean fastcheck() {
+		int pos = findLast(FAST_NCOMMITS);
+		return (pos == CORRUPT) ? false : (pos == EMPTY) ? true : checkFrom(pos);
+	}
+
+	/**
+	 * Read backwards from the end nCommits commits
+	 * (or to the beginning if there are fewer total commits).
+	 * @return The address of the commit.
+	 */
+	private int findLast(int nCommits) {
 		long fileSize = stor.sizeFrom(Storage.FIRST_ADR);
 		int pos = 0; // negative offset from end of file
-		int nCommits = 0;
-		while (nCommits < FAST_NCOMMITS && fileSize + pos > MIN_SIZE) {
+		int n = 0;
+		while (n < nCommits && fileSize + pos > MIN_SIZE) {
 			ByteBuffer buf = stor.buffer(pos - Ints.BYTES);
 			int size = buf.getInt();
 			if (! isValidSize(pos, size))
-				return false;
+				return CORRUPT;
 			pos -= size;
-			++nCommits;
+			++n;
 		}
-		if (nCommits == 0)
-			return true; // empty file
-		return checkFrom(pos);
+		if (n == 0)
+			return EMPTY; // empty file
+		return pos;
 	}
 
 	private boolean isValidSize(long pos, int size) {
