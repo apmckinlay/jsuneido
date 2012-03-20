@@ -41,7 +41,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		dbstate = db.state; // don't inline, read only once
 		schema = dbstate.schema;
 		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
-		tran = new Tran(db.stor, db.istor);
+		tran = new Tran(db.dstor, db.istor);
 		trans = db.trans;
 		trans.add(this);
 	}

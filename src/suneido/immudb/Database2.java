@@ -19,7 +19,7 @@ import suneido.util.FileUtils;
 @ThreadSafe
 class Database2 implements ImmuDatabase {
 	final Transactions2 trans = new Transactions2();
-	final Storage stor;
+	final Storage dstor;
 	final Storage istor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
 	private final Triggers triggers = new Triggers();
@@ -35,15 +35,15 @@ class Database2 implements ImmuDatabase {
 				new MmapFile(dbfilename + "i", "rw"));
 	}
 
-	static Database2 create(Storage stor, Storage istor) {
-		Database2 db = new Database2(stor, istor, DbHashTrie.empty(stor), new Tables(), 0);
+	static Database2 create(Storage dstor, Storage istor) {
+		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(dstor), new Tables(), 0);
 		Bootstrap.create(db.exclusiveTran());
 		Persist.persist(db);
 		return db;
 	}
 
-	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, Tables schema, int cksum) {
-		this.stor = stor;
+	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema, int cksum) {
+		this.dstor = dstor;
 		this.istor = istor;
 		state = new State(dbinfo, null, cksum);
 		schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
@@ -62,38 +62,40 @@ class Database2 implements ImmuDatabase {
 				new MmapFile(filename + "i", "r"));
 	}
 
-	static Database2 open(Storage stor, Storage istor) {
-		// TODO check that stor matches istor
-		if (! new Check(stor).fastcheck()) {
-			stor.close();
+	static Database2 open(Storage dstor, Storage istor) {
+		if (Persist.lastCksum(dstor) != Persist.info(istor).lastcksum)
+			return null;
+
+		if (! new Check(dstor).fastcheck()) {
+			dstor.close();
 			return null;
 		}
 		if (! new Check(istor).fastcheck()) {
 			istor.close();
 			return null;
 		}
-		return openWithoutCheck(stor, istor);
+		return openWithoutCheck(dstor, istor);
 	}
 
-	static Database2 openWithoutCheck(Storage stor, Storage istor) {
+	static Database2 openWithoutCheck(Storage dstor, Storage istor) {
 		Persist.Info info = Persist.info(istor);
 		DbHashTrie dbinfo =
 				DbHashTrie.load(istor, info.dbinfoadr, new DbinfoTranslator(istor));
-		return new Database2(stor, istor, dbinfo, info.lastcksum);
+		return new Database2(dstor, istor, dbinfo, info.lastcksum);
 	}
 
 	static class DbinfoTranslator implements DbHashTrie.Translator {
-		final Storage stor;
+		final Storage dstor;
 
-		DbinfoTranslator(Storage stor) {
-			this.stor = stor;
+		DbinfoTranslator(Storage dstor) {
+			this.dstor = dstor;
 		}
 
 		@Override
 		public Entry translate(Entry e) {
 			if (e instanceof IntEntry) {
 				int adr = ((IntEntry) e).value;
-				Record rec = Record.from(stor, adr);
+				Record rec = Record.from(dstor, adr);
 				return new TableInfo(rec, adr);
 			} else
 				throw new RuntimeException("DbinfoTranslator bad type " + e);
@@ -104,18 +106,18 @@ class Database2 implements ImmuDatabase {
 	@Override
 	public Database2 reopen() {
 		Persist.persist(this);
-		return Database2.open(stor, istor);
+		return Database2.open(dstor, istor);
 	}
 
 	/** used by tests */
 	@Override
 	public Status check() {
 		Persist.persist(this);
-		return DbCheck2.check(stor, istor);
+		return DbCheck2.check(dstor, istor);
 	}
 
-	private Database2(Storage stor, Storage istor, DbHashTrie dbinfo, int cksum) {
-		this(stor, istor, dbinfo, null, cksum);
+	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, int cksum) {
+		this(dstor, istor, dbinfo, null, cksum);
 	}
 
 	// used by DbCheck
@@ -224,13 +226,13 @@ class Database2 implements ImmuDatabase {
 	@Override
 	public void close() {
 		Persist.persist(this);
-		stor.close();
+		dstor.close();
 		istor.close();
 	}
 
 	@Override
 	public long size() {
-		return stor.sizeFrom(0);
+		return dstor.sizeFrom(0);
 	}
 
 	@Override
