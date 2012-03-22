@@ -28,8 +28,8 @@ import com.google.common.primitives.Ints;
 public class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
-	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
-	static final int ENDING_SIZE = 3 * Ints.BYTES;
+	{ assert TAIL_SIZE == ChunkedStorage.align(TAIL_SIZE); }
+	static final int ENDING_SIZE = ChunkedStorage.align(3 * Ints.BYTES);
 	private final Database2 db;
 	private final Database2.State dbstate;
 	private final DbHashTrie dbinfo;
@@ -62,22 +62,15 @@ public class Persist {
 		}
 	}
 
-	/** applicable to both data and index stores */
-	static int lastCksum(Storage stor) {
-		ByteBuffer buf = stor.buffer(-Persist.TAIL_SIZE);
-		return buf.getInt();
-	}
-
-	static Info info(Storage istor) {
+	static int dbinfoadr(Storage istor) {
 		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
-		return new Info(buf.getInt(), buf.getInt());
+		return buf.getInt();
 	}
 
 	static class Info {
 		final int dbinfoadr;
 		final int lastcksum;
 		public Info(int dbinfoadr, int lastcksum) {
-			super();
 			this.dbinfoadr = dbinfoadr;
 			this.lastcksum = lastcksum;
 		}

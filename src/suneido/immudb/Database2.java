@@ -50,7 +50,7 @@ class Database2 implements ImmuDatabase {
 		this.istor = istor;
 		state = new State(dbinfo, null, 0, 0);
 		schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
-		state = new State(dbinfo, schema, 0, 0);
+		state = lastPersistState = new State(dbinfo, schema, 0, 0);
 	}
 
 	// open
@@ -66,13 +66,8 @@ class Database2 implements ImmuDatabase {
 	}
 
 	static Database2 open(Storage dstor, Storage istor) {
-		if (Persist.lastCksum(dstor) != Persist.info(istor).lastcksum)
-			return null;
-		if (! new Check(dstor).fastcheck()) {
+		if (! new Check2(dstor, istor).fastcheck()) {
 			dstor.close();
-			return null;
-		}
-		if (! new Check(istor).fastcheck()) {
 			istor.close();
 			return null;
 		}
@@ -80,9 +75,8 @@ class Database2 implements ImmuDatabase {
 	}
 
 	static Database2 openWithoutCheck(Storage dstor, Storage istor) {
-		Persist.Info info = Persist.info(istor);
-		DbHashTrie dbinfo =
-				DbHashTrie.load(istor, info.dbinfoadr, new DbinfoTranslator(istor));
+		DbHashTrie dbinfo = DbHashTrie.load(istor,
+				Persist.dbinfoadr(istor), new DbinfoTranslator(istor));
 		return new Database2(dstor, istor, dbinfo);
 	}
 
