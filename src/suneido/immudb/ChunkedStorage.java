@@ -61,7 +61,7 @@ abstract class ChunkedStorage implements Storage {
 	// TODO handle advancing over chunk boundary (with possible filler)
 	@Override
 	public int advance(int adr, int length) {
-		long offset = adrToOffset(adr);
+		long offset = posToOffset(adr);
 		offset += align(length);
 		return offsetToAdr(offset);
 	}
@@ -72,12 +72,15 @@ abstract class ChunkedStorage implements Storage {
 	 */
 	@Override
 	public ByteBuffer buffer(int adr) {
-		return buf(adrToOffset(adr));
+		return buf(posToOffset(adr));
 	}
 
-	/** Converts negative adr to relative to file_size */
-	private long adrToOffset(int adr) {
-		return adr < 0 ? file_size + adr : intToLong(adr);
+	/**
+	 * @param pos Is either an address
+	 * or a negative offset from the end of the file
+	 */
+	private long posToOffset(int pos) {
+		return pos < 0 ? file_size + pos : adrToOffset(pos);
 	}
 
 	private long protect = 0;
@@ -126,7 +129,7 @@ return buf.slice().asReadOnlyBuffer();
 		return (int) (n >>> SHIFT) + 1; // +1 to avoid 0
 	}
 
-	static long intToLong(int n) {
+	static long adrToOffset(int n) {
 		return ((n - 1) & 0xffffffffL) << SHIFT;
 	}
 
@@ -139,7 +142,7 @@ return buf.slice().asReadOnlyBuffer();
 		private long offset;
 
 		Iter(int adr) {
-			offset = adrToOffset(adr);
+			offset = posToOffset(adr);
 		}
 
 		@Override
@@ -156,7 +159,7 @@ return buf.slice().asReadOnlyBuffer();
 
 	@Override
 	public long sizeFrom(int adr) {
-		return adr == 0 ? file_size : file_size - intToLong(adr);
+		return adr == 0 ? file_size : file_size - posToOffset(adr);
 	}
 
 	@Override

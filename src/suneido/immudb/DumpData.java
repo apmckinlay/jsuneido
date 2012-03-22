@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Iterator;
 
+/** for debugging - prints info about raw data */
 public class DumpData {
 
 	static void dump(Storage stor) {

@@ -2,10 +2,6 @@
  * Licensed under GPLv2.
  */
 
-/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.
- */
-
 package suneido.immudb;
 
 import static suneido.intfc.database.DatabasePackage.nullObserver;
@@ -23,8 +19,8 @@ import suneido.intfc.database.DatabasePackage.Status;
 
 /**
  * Check the consistency of a database.
- * Verifies checksums within data store and index store.
- * TODO: Verifies that index store matches data store.
+ * Verifies sizes and checksums within data store and index store.
+ * Verifies that index store matches data store.
  */
 class DbCheck2 {
 	final Storage dstor;
@@ -47,36 +43,13 @@ class DbCheck2 {
 		return check(stor, istor, nullObserver);
 	}
 	static Status check(Storage stor, Storage istor, Observer ob) {
-//		return new DbCheck2(stor, istor, ob).check();
-		return new DbCheck2(stor, istor, ob).check2();
+		return new DbCheck2(stor, istor, ob).check();
 	}
 
 	DbCheck2(Storage stor, Storage istor, Observer ob) {
 		this.dstor = stor;
 		this.istor = istor;
 		this.ob = ob;
-	}
-
-	/** Check dstor and istor in parallel */
-	Status check2() {
-		Check2.Iter dIter = new Check2.Iter(dstor);
-		Check2.Iter iIter = new Check2.Iter(istor);
-		Tran.StoreInfo iInfo = null;
-		while (! dIter.eof() && ! iIter.eof()) {
-			if (iInfo == null)
-				iInfo = iIter.info();
-			if (iInfo.cksum == dIter.cksum()) {
-				dIter.advance();
-				iIter.advance();
-				iInfo = null;
-			} else if (dIter.adr() < iInfo.adr)
-				dIter.advance();
-			else
-				return Status.CORRUPTED;
-		}
-		if (! dIter.eof() || ! iIter.eof())
-			return Status.CORRUPTED;
-		return Status.OK;
 	}
 
 	Status check() {
