@@ -58,7 +58,6 @@ abstract class ChunkedStorage implements Storage {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
-	// TODO handle advancing over chunk boundary (with possible filler)
 	@Override
 	public int advance(int adr, int length) {
 		long offset = posToOffset(adr);
