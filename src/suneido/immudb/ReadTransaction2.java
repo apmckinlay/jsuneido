@@ -30,7 +30,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	protected final Tran tran;
 	protected Database2.State dbstate; // not final - modified by ExclusiveTran
 	protected DbHashTrie dbinfo;
-	protected final Tables schema;
+	protected Tables schema; // not final - modified by ExclusiveTran
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions2 trans;
 	private boolean ended = false;

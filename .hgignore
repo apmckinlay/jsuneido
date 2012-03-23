@@ -49,3 +49,9 @@ syntax: regexp
 ^immudb-dist\.jar$
 syntax: regexp
 ^immudb\.jar$
+syntax: regexp
+\.dbd$
+syntax: regexp
+\.dbd$
+syntax: regexp
+\.dbi$
