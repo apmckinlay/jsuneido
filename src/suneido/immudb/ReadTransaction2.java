@@ -28,8 +28,8 @@ class ReadTransaction2 implements ImmuReadTran {
 	protected final int num;
 	protected final Database2 db;
 	protected final Tran tran;
-	protected final Database2.State dbstate;
-	protected final ReadDbInfo rdbinfo;
+	protected Database2.State dbstate; // not final - modified by ExclusiveTran
+	protected DbHashTrie dbinfo;
 	protected final Tables schema;
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions2 trans;
@@ -40,14 +40,10 @@ class ReadTransaction2 implements ImmuReadTran {
 		this.db = db;
 		dbstate = db.state; // don't inline, read only once
 		schema = dbstate.schema;
-		rdbinfo = new ReadDbInfo(dbstate.dbinfo);
+		dbinfo = dbstate.dbinfo;
 		tran = new Tran(db.dstor, db.istor);
 		trans = db.trans;
 		trans.add(this);
-	}
-
-	protected ReadDbInfo dbinfo() {
-		return rdbinfo;
 	}
 
 	@Override
@@ -159,7 +155,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	/** @return The table info as of the start of the transaction */
 	@Override
 	public TableInfo getTableInfo(int tblnum) {
-		return rdbinfo.get(tblnum);
+		return (TableInfo) dbinfo.get(tblnum);
 	}
 
 	/** @return view definition, else null if view not found */

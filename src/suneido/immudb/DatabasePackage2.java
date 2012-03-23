@@ -55,7 +55,7 @@ public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage 
 
 	@Override
 	public Status check(String dbFilename, Observer ob) {
-		return DbCheck.check(dbFilename, ob);
+		return DbCheck2.check(dbFilename, ob);
 	}
 
 	@Override

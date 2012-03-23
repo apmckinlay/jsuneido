@@ -16,6 +16,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
 import suneido.DbTools;
+import suneido.Suneido;
 import suneido.database.query.Request;
 
 class DbLoad {
@@ -96,6 +97,7 @@ class DbLoad {
 				if (first == 0)
 					first = last;
 			}
+System.out.println(tablename + " " + nrecs);
 			createIndexes(t, table, first, last);
 			t.ck_complete();
 		} finally {
@@ -133,11 +135,11 @@ class DbLoad {
 
 	public static void main(String[] args) throws IOException  {
 		long t = System.currentTimeMillis();
-		ImmuDatabase db = DatabasePackage.dbpkg.create("immu.db");
+		ImmuDatabase db = (ImmuDatabase) Suneido.dbpkg.create("immu.db");
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
 		System.out.println((System.currentTimeMillis() - t) + " ms");
-		DbTools.checkPrint(DatabasePackage.dbpkg, "immu.db");
+		DbTools.checkPrint(Suneido.dbpkg, "immu.db");
 	}
 
 }

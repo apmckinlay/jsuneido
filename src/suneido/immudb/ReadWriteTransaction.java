@@ -187,11 +187,13 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 
 	@Override
 	public int tableCount(int tblnum) {
+		// PERF don't create tidelta
 		return getTableInfo(tblnum).nrows() + tidelta(tblnum).nrows;
 	}
 
 	@Override
 	public long tableSize(int tblnum) {
+		// PERF don't create tidelta
 		return getTableInfo(tblnum).totalsize() + tidelta(tblnum).size;
 	}
 
@@ -257,7 +259,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 
 	protected abstract void commit();
 
-	protected void updateDbInfo(Map<Index,TranIndex> indexes, UpdateDbInfo udbi) {
+	protected void updateDbInfo(Map<Index,TranIndex> indexes) {
 		if (indexes.isEmpty())
 			return;
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
@@ -265,7 +267,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		do {
 			// before table
 			int tblnum = e.getKey().tblnum;
-			TableInfo ti = udbi.get(tblnum);
+			TableInfo ti = (TableInfo) dbinfo.get(tblnum);
 
 			// indexes
 			TCustomHashSet<IndexInfo> info = new TCustomHashSet<IndexInfo>(iihash);
@@ -282,8 +284,9 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 			TableInfoDelta d = tidelta(tblnum);
 			ti = new TableInfo(tblnum, ti.nextfield,
 					ti.nrows() + d.nrows, ti.totalsize() + d.size, toList(info));
-			udbi.add(ti);
+			dbinfo = dbinfo.with(ti);
 		} while (e != null);
+		dbinfo.freeze();
 	}
 
 	@SuppressWarnings("serial")
