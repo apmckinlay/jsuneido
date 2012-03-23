@@ -23,11 +23,9 @@ import com.google.common.primitives.Shorts;
 @ThreadConfined
 public class ExclusiveTransaction2 extends ReadWriteTransaction
 		implements ImmuExclTran {
-	private Tables newSchema; // TODO remove this ???
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
-		newSchema = schema;
 		tran.allowStore();
 	}
 
@@ -64,16 +62,6 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	void verifyNotSystemTable(int tblnum, String what) {
 	}
 
-	@Override
-	public Table getTable(String tableName) {
-		return newSchema.get(tableName);
-	}
-
-	@Override
-	public Table getTable(int tblnum) {
-		return newSchema.get(tblnum);
-	}
-
 	// used by Bootstrap and TableBuilder
 	@Override
 	public Btree2 addIndex(Index index) {
@@ -87,7 +75,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	@Override
 	public void addSchemaTable(Table tbl) {
 		assert locked;
-		newSchema = newSchema.with(tbl);
+		schema = schema.with(tbl);
 	}
 
 	// used by TableBuilder and Bootstrap
@@ -103,14 +91,14 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		assert locked;
 		Table oldTbl = getTable(tbl.num);
 		if (oldTbl != null)
-			newSchema = newSchema.without(oldTbl);
-		newSchema = newSchema.with(tbl);
+			schema = schema.without(oldTbl);
+		schema = schema.with(tbl);
 	}
 
 	// used by TableBuilder
 	@Override
 	public void dropTableSchema(Table table) {
-		newSchema = newSchema.without(table);
+		schema = schema.without(table);
 	}
 
 	// used by DbLoad and DbCompact
@@ -169,7 +157,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 
 	private void updateDbInfo(int cksum, int adr) {
 		updateDbInfo(indexes);
-		db.setState(dbinfo, newSchema, cksum, adr);
+		db.setState(dbinfo, schema, cksum, adr);
 	}
 
 	@Override
