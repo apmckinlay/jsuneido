@@ -328,4 +328,8 @@ class Database2 implements ImmuDatabase {
 		}
 	}
 
+	void dump() {
+		Dump2.dump(dstor, istor);
+	}
+
 }

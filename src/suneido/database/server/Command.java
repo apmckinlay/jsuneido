@@ -638,7 +638,7 @@ public enum Command {
 	}
 
 	private static Record makeRecord(ByteBuffer extra) {
-		if (Suneido.dbpkg.dbFilename().equals("immu.db")) {
+		if (Suneido.dbpkg.dbFilename().contains("immu")) {
 			ByteBuffer buf = ByteBuffer.allocate(extra.remaining());
 			buf.put(extra);
 			buf.rewind();

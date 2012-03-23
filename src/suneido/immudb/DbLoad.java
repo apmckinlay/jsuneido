@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static suneido.Suneido.dbpkg;
 import static suneido.util.FileUtils.fullRead;
 import static suneido.util.FileUtils.getline;
 import static suneido.util.FileUtils.readInt;
@@ -134,12 +135,12 @@ class DbLoad {
 
 	public static void main(String[] args) throws IOException  {
 		long t = System.currentTimeMillis();
-		ImmuDatabase db = (ImmuDatabase) Suneido.dbpkg.create("immu.db");
+		ImmuDatabase db = (ImmuDatabase) dbpkg.create(dbpkg.dbFilename());
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
 		db.close();
 		System.out.println((System.currentTimeMillis() - t) + " ms");
-		DbTools.checkPrint(Suneido.dbpkg, "immu.db");
+		DbTools.checkPrint(Suneido.dbpkg, dbpkg.dbFilename());
 	}
 
 }
