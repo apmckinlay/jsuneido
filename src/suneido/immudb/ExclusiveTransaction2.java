@@ -23,6 +23,8 @@ import com.google.common.primitives.Shorts;
 @ThreadConfined
 public class ExclusiveTransaction2 extends ReadWriteTransaction
 		implements ImmuExclTran {
+	private boolean data_committed = false;
+	private Tran.StoreInfo storeInfo = null;
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
@@ -114,14 +116,15 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	// used by DbLoad to do incremental commit
 	@Override
 	public void saveBtrees() {
-		Tran.StoreInfo info = tran.endStore();
-		freezeBtrees();
-		updateDbInfo(info.cksum, info.adr);
+		if (! data_committed) {
+			commitData();
+		} else {
+			freezeBtrees();
+			updateDbInfo();
+		}
 		db.persist();
 		dbstate = db.state;
 		dbinfo = dbstate.dbinfo;
-		tran.reset();
-		tran.allowStore();
 		tidelta.clear();
 	}
 
@@ -132,19 +135,25 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 
 	@Override
 	protected void commit() {
-		Tran.StoreInfo info = storeData();
-		freezeBtrees();
-		updateDbInfo(info.cksum, info.adr);
+		if (! data_committed)
+			commitData();
 		trans.commit(this);
 	}
 
-	private Tran.StoreInfo storeData() {
+	private void commitData() {
+		storeData();
+		freezeBtrees();
+		updateDbInfo();
+		data_committed = true;
+	}
+
+	private void storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
 		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort((short) 0xffff); // mark start of removes
-		buf.putInt(0);
-		return tran.endStore();
+		buf.putInt(0); // mark end of removes
+		storeInfo = tran.endStore();
 	}
 
 	private void freezeBtrees() {
@@ -159,14 +168,17 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		}
 	}
 
-	private void updateDbInfo(int cksum, int adr) {
+	private void updateDbInfo() {
 		updateDbInfo(indexes);
-		db.setState(dbinfo, schema, cksum, adr);
+		db.setState(dbinfo, schema, storeInfo.cksum, storeInfo.adr);
 	}
 
 	@Override
 	public void abort() {
-		tran.endStore(); //TODO prevent output from being seen by rebuild
+		if (! data_committed)
+			storeData();
+		// else
+			//TODO prevent output from being seen by rebuild
 		super.abort();
 	}
 

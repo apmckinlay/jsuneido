@@ -30,6 +30,7 @@ class DbCheck2 {
 	String details = "";
 
 	static Status check(String dbFilename, Observer ob) {
+		ob.print("checking " + dbFilename);
 		Storage dstor = new MmapFile(dbFilename + "d", "r");
 		Storage istor = new MmapFile(dbFilename + "i", "r");
 		try {
@@ -40,22 +41,22 @@ class DbCheck2 {
 		}
 	}
 
-	static Status check(Storage stor, Storage istor) {
-		return check(stor, istor, nullObserver);
+	static Status check(Storage dstor, Storage istor) {
+		return check(dstor, istor, nullObserver);
 	}
-	static Status check(Storage stor, Storage istor, Observer ob) {
-		return new DbCheck2(stor, istor, ob).check();
+	static Status check(Storage dstor, Storage istor, Observer ob) {
+		return new DbCheck2(dstor, istor, ob).check();
 	}
 
-	DbCheck2(Storage stor, Storage istor, Observer ob) {
-		this.dstor = stor;
+	DbCheck2(Storage dstor, Storage istor, Observer ob) {
+		this.dstor = dstor;
 		this.istor = istor;
 		this.ob = ob;
 	}
 
 	Status check() {
 		println("checksums...");
-		Check check = new Check(dstor);
+		Check2 check = new Check2(dstor, istor);
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDatetime();
@@ -142,7 +143,9 @@ class DbCheck2 {
 	}
 
 	public static void main(String[] args) {
-		DbTools.checkPrintExit(DatabasePackage2.dbpkg, "immu.db");
+		System.out.println("fastcheck " +
+				(Check2.fastcheck("immu2.db") ? "succeeded" : "FAILED"));
+		DbTools.checkPrintExit(DatabasePackage2.dbpkg, "immu2.db");
 	}
 
 }

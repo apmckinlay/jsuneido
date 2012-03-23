@@ -127,6 +127,11 @@ class Tran implements Translator {
 			this.cksum = cksum;
 			this.adr = adr;
 		}
+
+		@Override
+		public String toString() {
+			return "adr " + adr + " cksum " + Integer.toHexString(cksum);
+		}
 	}
 
 	/**

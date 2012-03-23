@@ -18,6 +18,20 @@ class Check2 {
 	private final Storage istor;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
+	long dOkSize = 0;
+	long iOkSize = 0;
+	private int lastOkDatetime = 0;
+
+	static boolean fastcheck(String dbFilename) {
+		Storage dstor = new MmapFile(dbFilename + "d", "r");
+		Storage istor = new MmapFile(dbFilename + "i", "r");
+		try {
+			return new Check2(dstor, istor).fullcheck();
+		} finally {
+			dstor.close();
+			istor.close();
+		}
+	}
 
 	Check2(Storage dstor, Storage istor) {
 		this.dstor = dstor;
@@ -79,17 +93,27 @@ class Check2 {
 			if (iInfo == null)
 				iInfo = iIter.info();
 			if (iInfo.cksum == dIter.cksum()) {
-				dIter.advance();
 				iIter.advance();
 				iInfo = null;
+				if (iIter.eof())
+					dIter.advance();
 			} else if (dIter.adr() < iInfo.adr)
 				dIter.advance();
 			else
 				return false;
+			lastOkDatetime = dIter.date();
+			dOkSize = dIter.okSize;
+			iOkSize = iIter.okSize;
 		}
+if (! dIter.eof())
+return false;
 		if (! dIter.eof() || ! iIter.eof())
 			return false;
 		return true;
+	}
+
+	Date lastOkDatetime() {
+		return new Date(1000L * lastOkDatetime);
 	}
 
 	/**
@@ -101,9 +125,9 @@ class Check2 {
 		final Storage stor;
 		private int adr; // of current commit/persist
 		private int size; // of current commit/persist
+		private int date = 0;
 		private int cksum; // of current commit/persist
-		private long okSize = 0;
-		private int lastOkDatetime = 0;
+		long okSize = 0;
 
 		Iter(Storage stor, int adr) {
 			this.stor = stor;
@@ -123,7 +147,7 @@ class Check2 {
 			if (endsize != size)
 				throw new RuntimeException("storage size mismatch");
 			okSize = ChunkedStorage.adrToOffset(stor.advance(adr, size));
-			lastOkDatetime = buf.getInt();
+			date = buf.getInt();
 		}
 
 		boolean eof() {
@@ -138,16 +162,16 @@ class Check2 {
 			return adr;
 		}
 
+		int size() {
+			return size;
+		}
+
+		int date() {
+			return date;
+		}
+
 		int cksum() {
 			return cksum;
-		}
-
-		long okSize() {
-			return okSize;
-		}
-
-		Date lastOkDatetime() {
-			return new Date(1000L * lastOkDatetime);
 		}
 
 		/** Only works on index store */
