@@ -5,11 +5,13 @@
 package suneido.intfc.database;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.BufferByteChannel;
 
 public class DumpLoadTest extends TestBase {
@@ -45,6 +47,7 @@ public class DumpLoadTest extends TestBase {
 	}
 
 	private void check() {
+		assertEquals(Status.OK, db.check());
 		assertThat(db.getSchema("test"), is("(a,b) key(a) index(b,a)"));
 		assertThat(getNrecords("test"), is(7));
 	}

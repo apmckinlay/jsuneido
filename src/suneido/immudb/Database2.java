@@ -40,7 +40,7 @@ class Database2 implements ImmuDatabase {
 	}
 
 	static Database2 create(Storage dstor, Storage istor) {
-		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(dstor), new Tables());
+		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(istor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
 		db.persist();
 		return db;
@@ -111,6 +111,7 @@ class Database2 implements ImmuDatabase {
 	public Status check() {
 		persist();
 		return DbCheck2.check(dstor, istor);
+				//suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
 	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo) {

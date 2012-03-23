@@ -29,7 +29,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	protected boolean locked = false;
 	private String conflict = null;
 	protected final boolean onlyReads = false;
-	private final TIntObjectHashMap<TableInfoDelta> tidelta =
+	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
 
 	ReadWriteTransaction(int num, Database2 db) {
@@ -158,7 +158,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 			throw new SuException("can't " + what + " system table");
 	}
 
-	private void updateRowInfo(int tblnum, int nrows, int size) {
+	protected void updateRowInfo(int tblnum, int nrows, int size) {
 		tidelta(tblnum).update(nrows, size);
 	}
 	private TableInfoDelta tidelta(int tblnum) {

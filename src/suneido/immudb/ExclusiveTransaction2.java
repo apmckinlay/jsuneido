@@ -102,9 +102,12 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	}
 
 	// used by DbLoad and DbCompact
+	// doesn't use addRecord because we don't want to update indexes
 	@Override
 	public int loadRecord(int tblnum, Record rec) {
-		addRecord(tblnum, rec);
+		rec.tblnum = tblnum;
+		rec.address = rec.store(tran.stor);
+		updateRowInfo(tblnum, 1, rec.bufSize());
 		return rec.address;
 	}
 
@@ -119,6 +122,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		dbinfo = dbstate.dbinfo;
 		tran.reset();
 		tran.allowStore();
+		tidelta.clear();
 	}
 
 	@Override
