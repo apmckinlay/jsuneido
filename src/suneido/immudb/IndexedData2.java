@@ -274,7 +274,7 @@ class IndexedData2 {
 	}
 
 	static Record key(Record rec, int[] fields, int adr) {
-		return new RecordBuilder().addFields(rec, fields).adduint(adr).build();
+		return new RecordBuilder().addFields(rec, fields).adduint(adr).build().squeeze();
 	}
 
 	/** ignores final address field */

@@ -304,6 +304,7 @@ abstract class DbHashTrie {
 				buf.putInt(key);
 				buf.putInt(value);
 			}
+			assert stored();
 			return adr;
 		}
 

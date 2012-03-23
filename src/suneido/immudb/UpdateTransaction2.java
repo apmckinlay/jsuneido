@@ -315,10 +315,10 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	// update dbinfo -----------------------------------------------------------
 
 	private void updateDbInfo(ReadTransaction2 t, int cksum, int adr) {
-		UpdateDbInfo udbi = new UpdateDbInfo(db.state.dbinfo);
-		updateDbInfo(t.indexes, udbi);
-		udbi.dbinfo().freeze();
-		db.setState(udbi.dbinfo(), db.state.schema, cksum, adr);
+		dbinfo = db.state.dbinfo; // the latest
+		updateDbInfo(t.indexes);
+		assert dbstate.schema == db.state.schema;
+		db.setState(dbinfo, db.state.schema, cksum, adr);
 	}
 
 	// end of commit =========================================================

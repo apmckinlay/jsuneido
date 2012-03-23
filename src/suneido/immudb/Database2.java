@@ -33,7 +33,8 @@ class Database2 implements ImmuDatabase {
 	// create
 
 	static Database2 create(String dbfilename) {
-		FileUtils.deleteIfExisting(dbfilename);
+		FileUtils.deleteIfExisting(dbfilename + "d");
+		FileUtils.deleteIfExisting(dbfilename + "i");
 		return create(new MmapFile(dbfilename + "d", "rw"),
 				new MmapFile(dbfilename + "i", "rw"));
 	}

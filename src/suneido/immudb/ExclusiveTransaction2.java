@@ -23,12 +23,10 @@ import com.google.common.primitives.Shorts;
 @ThreadConfined
 public class ExclusiveTransaction2 extends ReadWriteTransaction
 		implements ImmuExclTran {
-	private final UpdateDbInfo udbinfo;
-	private Tables newSchema;
+	private Tables newSchema; // TODO remove this ???
 
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
-		udbinfo = new UpdateDbInfo(dbstate.dbinfo);
 		newSchema = schema;
 		tran.allowStore();
 	}
@@ -67,11 +65,6 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	}
 
 	@Override
-	public TableInfo getTableInfo(int tblnum) {
-		return udbinfo.get(tblnum);
-	}
-
-	@Override
 	public Table getTable(String tableName) {
 		return newSchema.get(tableName);
 	}
@@ -101,7 +94,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	@Override
 	public void addTableInfo(TableInfo ti) {
 		assert locked;
-		udbinfo.add(ti);
+		dbinfo = dbinfo.with(ti);
 	}
 
 	// used by TableBuilder
@@ -123,10 +116,8 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	// used by DbLoad and DbCompact
 	@Override
 	public int loadRecord(int tblnum, Record rec) {
-		rec.tblnum = tblnum;
-		int adr = rec.store(tran.stor);
-		udbinfo.updateRowInfo(tblnum, 1, rec.bufSize());
-		return adr;
+		addRecord(tblnum, rec);
+		return rec.address;
 	}
 
 	// used by DbLoad to do incremental commit
@@ -135,7 +126,9 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		Tran.StoreInfo info = tran.endStore();
 		freezeBtrees();
 		updateDbInfo(info.cksum, info.adr);
-		Persist.persist(db);
+		db.persist();
+		dbstate = db.state;
+		dbinfo = dbstate.dbinfo;
 		tran.reset();
 		tran.allowStore();
 	}
@@ -175,9 +168,8 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	}
 
 	private void updateDbInfo(int cksum, int adr) {
-		updateDbInfo(indexes, udbinfo);
-		udbinfo.dbinfo().freeze();
-		db.setState(udbinfo.dbinfo(), newSchema, cksum, adr);
+		updateDbInfo(indexes);
+		db.setState(dbinfo, newSchema, cksum, adr);
 	}
 
 	@Override

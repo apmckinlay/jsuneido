@@ -89,6 +89,7 @@ public class Persist {
 		@Override
 		public void apply(Entry e) {
 			if (e instanceof TableInfo) {
+				boolean modified = false;
 				TableInfo ti = (TableInfo) e;
 				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
@@ -96,10 +97,13 @@ public class Persist {
 						int root = ii.rootNode.store2(istor);
 						assert root != 0;
 						b.add(new IndexInfo(ii, root));
+						modified = true;
 					} else
 						b.add(ii);
-				TableInfo ti2 = new TableInfo(ti, b.build());
-				newdbinfo = newdbinfo.with(ti2);
+				if (modified) {
+					TableInfo ti2 = new TableInfo(ti, b.build());
+					newdbinfo = newdbinfo.with(ti2);
+				}
 			}
 		}};
 
