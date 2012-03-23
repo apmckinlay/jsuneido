@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import suneido.intfc.database.DatabasePackage.Status;
 
 interface ImmuDatabase extends suneido.intfc.database.Database {
 
@@ -15,7 +14,5 @@ interface ImmuDatabase extends suneido.intfc.database.Database {
 	ImmuUpdateTran updateTransaction();
 
 	ImmuExclTran exclusiveTran();
-
-	Status check();
 
 }

@@ -15,6 +15,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.ByteBuf;
 import suneido.util.Checksum;
@@ -639,6 +640,12 @@ class Database implements suneido.intfc.database.Database {
 		return getTable(tableName) == null
 				? TableBuilder.create(this, tableName)
 				: TableBuilder.alter(this, tableName);
+	}
+
+	@Override
+	public Status check() {
+		// TODO check
+		return Status.OK;
 	}
 
 }

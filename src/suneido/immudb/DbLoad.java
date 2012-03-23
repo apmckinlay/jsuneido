@@ -97,7 +97,6 @@ class DbLoad {
 				if (first == 0)
 					first = last;
 			}
-System.out.println(tablename + " " + nrecs);
 			createIndexes(t, table, first, last);
 			t.ck_complete();
 		} finally {
@@ -138,6 +137,7 @@ System.out.println(tablename + " " + nrecs);
 		ImmuDatabase db = (ImmuDatabase) Suneido.dbpkg.create("immu.db");
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
+		db.close();
 		System.out.println((System.currentTimeMillis() - t) + " ms");
 		DbTools.checkPrint(Suneido.dbpkg, "immu.db");
 	}

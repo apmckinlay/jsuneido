@@ -30,6 +30,7 @@ class MmapFile extends ChunkedStorage {
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
+	private final File file;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -39,6 +40,7 @@ class MmapFile extends ChunkedStorage {
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
 		super(CHUNK_SIZE, MAX_CHUNKS);
+		this.file = file;
 		if ("r".equals(mode)) {
 			if (!file.canRead())
 				throw new SuException("can't open " + file + " read-only");
@@ -96,6 +98,8 @@ class MmapFile extends ChunkedStorage {
 
 	@Override
 	public void close() {
+if (mode == FileChannel.MapMode.READ_WRITE)
+System.out.println(file + " size " + file_size);
 		try {
 			fc.close();
 			fin.close();
