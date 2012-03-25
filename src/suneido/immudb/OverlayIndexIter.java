@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import gnu.trove.set.hash.TIntHashSet;
+
 /**
  * Extends MergeIndexIter to handle deletes.
  * Inserts are recorded as ProjectRecord's.
@@ -12,32 +14,40 @@ package suneido.immudb;
  * And you only have to peek ahead one record to check for a delete
  */
 public class OverlayIndexIter extends MergeIndexIter {
+	private final TIntHashSet deletes;
 	private IndexRange ir;
 	private final Record from;
 	private final Record to;
 
-	OverlayIndexIter(TranIndex global, TranIndex local) {
+	OverlayIndexIter(TranIndex global, TranIndex local, TIntHashSet deletes) {
 		super(global.iterator(), local.iterator());
+		this.deletes = deletes;
 		from = DatabasePackage2.MIN_RECORD;
 		to = DatabasePackage2.MAX_RECORD;
 	}
 
 	/** for tests */
-	OverlayIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2) {
+	OverlayIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2, TIntHashSet deletes) {
 		super(iter1, iter2);
+		this.deletes = deletes;
 		from = DatabasePackage2.MIN_RECORD;
 		to = DatabasePackage2.MAX_RECORD;
 		ir = new IndexRange();
 	}
 
-	OverlayIndexIter(TranIndex global, TranIndex local, Record from, Record to) {
+	OverlayIndexIter(TranIndex global, TranIndex local, TIntHashSet deletes,
+			Record from, Record to) {
 		super(global.iterator(from, to), local.iterator(from, to));
+		this.deletes = deletes;
 		this.from = from;
 		this.to = to;
 	}
 
-	OverlayIndexIter(Btree2 global, Btree2 local, OverlayIndexIter iter) {
-		super(global.iterator(iter), local.iterator(iter));
+	/** copy constructor, used for Cursor set transaction */
+	OverlayIndexIter(TranIndex global, TranIndex local, TIntHashSet deletes,
+			OverlayIndexIter iter) {
+		super(global.iterator(iter.iter1), local.iterator(iter.iter2), iter);
+		this.deletes = deletes;
 		from = iter.from;
 		to = iter.to;
 	}
@@ -48,42 +58,36 @@ public class OverlayIndexIter extends MergeIndexIter {
 
 	@Override
 	public void next() {
-		if (state == State.REWOUND)
+		if (eof())
+			return;
+		if (rewound)
 			ir.lo = from;
-		Record cur;
 		do {
 			super.next();
 			if (eof()) {
 				ir.hi = to;
 				return;
 			}
-			cur = super.curKey();
-			if (cur.equals(peekNext())) {
-				super.next();
-				cur = null;
-			}
-		} while (cur == null);
-		if (cur.compareTo(ir.hi) > 0)
-			ir.hi = cur;
+		} while (deletes.contains(keyadr()));
+		if (curKey().compareTo(ir.hi) > 0)
+			ir.hi = curKey();
 	}
 
 	@Override
 	public void prev() {
-		if (state == State.REWOUND)
+		if (eof())
+			return;
+		if (rewound)
 			ir.hi = to;
-		Record cur;
 		do {
 			super.prev();
-			if (eof())
+			if (eof()) {
+				ir.lo = from;
 				return;
-			cur = super.curKey();
-			if (cur.equals(peekPrev())) {
-				super.prev();
-				cur = null;
 			}
-		} while (cur == null);
-		if (cur.compareTo(ir.lo) < 0)
-			ir.lo = cur;
+		} while (deletes.contains(keyadr()));
+		if (curKey().compareTo(ir.lo) < 0)
+			ir.lo = curKey();
 	}
 
 }

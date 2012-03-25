@@ -34,6 +34,8 @@ interface TranIndex {
 		@Override
 		public Record curKey();
 
+		public void rewind();
+
 	}
 
 	enum Update { OK, NOT_FOUND, ADD_FAILED }

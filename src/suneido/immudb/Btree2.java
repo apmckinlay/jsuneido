@@ -338,6 +338,9 @@ class Btree2 implements TranIndex, Cloneable {
 		return new Iter((Iter) iter);
 	}
 
+	/**
+	 * Note: Iterators "stick" when they hit eof().
+	 */
 	class Iter implements TranIndex.Iter {
 		private static final int UINT_MAX = 0xffffffff;
 		private final Record from;
@@ -517,6 +520,13 @@ class Btree2 implements TranIndex, Cloneable {
 		@Override
 		public int keyadr() {
 			return adr(cur);
+		}
+
+		@Override
+		public void rewind() {
+			cur = null;
+			rewound = true;
+			prevAdr = UINT_MAX;
 		}
 
 	}

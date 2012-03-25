@@ -7,6 +7,7 @@ package suneido.immudb;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -850,6 +851,43 @@ public class Btree2Test {
 		Btree2.Iter iter = btree.iterator(rec("d"), rec("z"));
 		iter.next();
 		assertThat(iter.curKey(), is(rec("ed", 5)));
+	}
+
+	@Test
+	public void switch_direction() {
+		add(10);
+		Collections.sort(keys);
+		Btree2.Iter iter;
+
+		// iterators stick at eof
+		iter = btree.iterator();
+		testNext(iter, 0);
+		testPrev(iter, -1);
+		testPrev(iter, -1);
+		testNext(iter, -1);
+
+		// just reading last item doesn't trigger eof, can still reverse
+		iter = btree.iterator();
+		testPrev(iter, 9);
+		testPrev(iter, 8);
+		testPrev(iter, 7);
+		testNext(iter, 8);
+		testNext(iter, 9); // last
+		testPrev(iter, 8);
+	}
+	private void testPrev(TranIndex.Iter iter, int i) {
+		iter.prev();
+		test(iter, i);
+	}
+	private void testNext(TranIndex.Iter iter, int i) {
+		iter.next();
+		test(iter, i);
+	}
+	private void test(TranIndex.Iter iter, int i) {
+		if (i == -1)
+			assertTrue(iter.eof());
+		else
+			assertEquals(keys.get(i), iter.curKey());
 	}
 
 	//--------------------------------------------------------------------------
