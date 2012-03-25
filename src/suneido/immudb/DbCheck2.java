@@ -30,7 +30,6 @@ class DbCheck2 {
 	String details = "";
 
 	static Status check(String dbFilename, Observer ob) {
-		ob.print("checking " + dbFilename);
 		Storage dstor = new MmapFile(dbFilename + "d", "r");
 		Storage istor = new MmapFile(dbFilename + "i", "r");
 		try {
