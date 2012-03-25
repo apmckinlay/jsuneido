@@ -92,7 +92,7 @@ class Check2 {
 		while (! dIter.eof() && ! iIter.eof()) {
 			if (iInfo == null)
 				iInfo = iIter.info();
-			if (iInfo.cksum == dIter.cksum()) {
+			if (iInfo.cksum == dIter.cksum() && iInfo.adr == dIter.adr) {
 				iIter.advance();
 				iInfo = null;
 				if (iIter.eof())
@@ -105,8 +105,6 @@ class Check2 {
 			dOkSize = dIter.okSize;
 			iOkSize = iIter.okSize;
 		}
-if (! dIter.eof())
-return false;
 		if (! dIter.eof() || ! iIter.eof())
 			return false;
 		return true;

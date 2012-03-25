@@ -500,6 +500,11 @@ class Btree implements TranIndex {
 			return adr(cur);
 		}
 
+		@Override
+		public void rewind() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class LevelInfo {

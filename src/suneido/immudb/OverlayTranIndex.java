@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import gnu.trove.set.hash.TIntHashSet;
 import suneido.intfc.database.IndexIter;
 
 /**
@@ -17,10 +18,12 @@ import suneido.intfc.database.IndexIter;
 class OverlayTranIndex implements TranIndex {
 	private final Btree2 global;
 	private final Btree2 local;
+	private final TIntHashSet deletes;
 
-	OverlayTranIndex(Btree2 global, Btree2 local) {
+	OverlayTranIndex(Btree2 global, Btree2 local, TIntHashSet deletes) {
 		this.global = global;
 		this.local = local;
+		this.deletes = deletes;
 	}
 
 	@Override
@@ -57,22 +60,22 @@ class OverlayTranIndex implements TranIndex {
 
 	@Override
 	public TranIndex.Iter iterator() {
-		return new OverlayIndexIter(global, local);
+		return new OverlayIndexIter(global, local, deletes);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(Record key) {
-		return new OverlayIndexIter(global, local, key, key);
+		return new OverlayIndexIter(global, local, deletes, key, key);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(Record org, Record end) {
-		return new OverlayIndexIter(global, local, org, end);
+		return new OverlayIndexIter(global, local, deletes, org, end);
 	}
 
 	@Override
 	public TranIndex.Iter iterator(IndexIter iter) {
-		return new OverlayIndexIter(global, local, (OverlayIndexIter) iter);
+		return new OverlayIndexIter(global, local, deletes, (OverlayIndexIter) iter);
 	}
 
 	@Override

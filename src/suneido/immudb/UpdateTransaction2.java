@@ -56,7 +56,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
-		return new OverlayTranIndex(new Btree2(tran, info), new Btree2(tran));
+		return new OverlayTranIndex(new Btree2(tran, info), new Btree2(tran), deletes);
 	}
 
 	@Override

@@ -4,7 +4,9 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.BtreeNode.adr;
+import suneido.database.query.Query.Dir;
+import suneido.immudb.TranIndex.Iter;
+
 
 /**
  * Merges two IndexIter's.
@@ -13,105 +15,116 @@ import static suneido.immudb.BtreeNode.adr;
  * Used to combine global index and transaction local index.
  */
 public class MergeIndexIter implements TranIndex.Iter {
-	private final TranIndex.Iter iter1;
-	private final TranIndex.Iter iter2;
+	protected final TranIndex.Iter iter1;
+	protected final TranIndex.Iter iter2;
+	protected boolean rewound = true;
 	private TranIndex.Iter curIter;
-	private Record cur = null;
-	protected enum State { REWOUND, NEXT, PREV, START, END };
-	protected State state = State.REWOUND;
+	private Dir lastDir;
 
 	public MergeIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2) {
 		this.iter1 = iter1;
 		this.iter2 = iter2;
 	}
 
+	public MergeIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2, MergeIndexIter iter) {
+		this.iter1 = iter1;
+		this.iter2 = iter2;
+		if (iter.curIter == iter.iter1)
+			curIter = iter1;
+		else if (iter.curIter == iter.iter2)
+			curIter = iter2;
+		else
+			assert iter.curIter == null;
+		rewound = iter.rewound;
+		lastDir = iter.lastDir;
+	}
+
 	@Override
 	public boolean eof() {
-		return cur == null;
+		return curIter != null && curIter.eof();
 	}
 
 	@Override
 	public void next() {
-		if (state == State.END)
+		if (eof())
 			return;
-		if (state == State.PREV)
+		if (rewound) {
+			iter1.next();
+			iter2.next();
+			rewound = false;
+		} else if (lastDir == Dir.NEXT)
 			curIter.next();
-		if (state != State.NEXT) {
-			iter1.next();
-			iter2.next();
-			state = State.NEXT;
+		else { // switched direction
+			next(iter1);
+			next(iter2);
 		}
-		if (! iter1.eof() &&
-				(iter2.eof() || iter1.curKey().compareTo(iter2.curKey()) <= 0)) {
-			cur = iter1.curKey();
-			curIter = iter1;
-			iter1.next();
-		} else if (! iter2.eof()) {
-			cur = iter2.curKey();
-			curIter = iter2;
-			iter2.next();
-		} else { // eof on both
-			cur = null;
-			curIter = null;
-			state = State.END;
-		}
+		curIter = minIter();
+		lastDir = Dir.NEXT;
 	}
 
 	@Override
 	public void prev() {
-		if (state == State.START)
+		if (eof())
 			return;
-		if (state == State.NEXT)
+		if (rewound) {
+			iter1.prev();
+			iter2.prev();
+			rewound = false;
+		} else if (lastDir == Dir.PREV) {
 			curIter.prev();
-		if (state != State.PREV) {
-			iter1.prev();
-			iter2.prev();
-			state = State.PREV;
+		} else { // switched direction
+			prev(iter1);
+			prev(iter2);
 		}
-		if (! iter1.eof() &&
-				(iter2.eof() || iter1.curKey().compareTo(iter2.curKey()) > 0)) {
-			cur = iter1.curKey();
-			curIter = iter1;
-			iter1.prev();
-		} else if (! iter2.eof()) {
-			cur = iter2.curKey();
-			curIter = iter2;
-			iter2.prev();
-		} else { // eof on both
-			cur = null;
-			curIter = null;
-			state = State.START;
-		}
+		curIter = maxIter();
+		lastDir = Dir.PREV;
 	}
 
-	protected Record peekNext() {
-		if (! iter1.eof() &&
-				(iter2.eof() || iter1.curKey().compareTo(iter2.curKey()) <= 0))
-			return iter1.curKey();
-		else if (! iter2.eof())
-			return iter2.curKey();
-		else // eof on both
-			return null;
+	void next(TranIndex.Iter iter) {
+		if (iter.eof())
+			iter.rewind();
+		iter.next();
 	}
 
-	protected Record peekPrev() {
-		if (! iter1.eof() &&
-				(iter2.eof() || iter1.curKey().compareTo(iter2.curKey()) > 0))
-			return iter1.curKey();
-		else if (! iter2.eof())
-			return iter2.curKey();
-		else // eof on both
-			return null;
+	void prev(TranIndex.Iter iter) {
+		if (iter.eof())
+			iter.rewind();
+		iter.prev();
+	}
+
+	private Iter minIter() {
+		if (iter1.eof())
+			return iter2;
+		else if (iter2.eof())
+			return iter1;
+		return iter1.curKey().compareTo(iter2.curKey()) <= 0 ? iter1 : iter2;
+	}
+
+	private Iter maxIter() {
+		if (iter1.eof())
+			return iter2;
+		else if (iter2.eof())
+			return iter1;
+		return iter1.curKey().compareTo(iter2.curKey()) > 0 ? iter1 : iter2;
 	}
 
 	@Override
 	public Record curKey() {
-		return cur;
+		return curIter.curKey();
 	}
 
 	@Override
 	public int keyadr() {
-		return adr(cur);
+		return curIter.keyadr();
+	}
+
+	@Override
+	public void rewind() {
+		rewound = true;
+		curIter = null;
+		iter1.rewind();
+		iter2.rewind();
+		lastDir = null;
 	}
 
 }
