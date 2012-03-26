@@ -13,13 +13,13 @@ public class OverlayIndexIterTest extends IndexIterTestBase {
 	@Test
 	public void test() {
 		checkNext(a(1, 2, 3, 4, 5),
-				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5), dels()));
+				new OverlayIndex.Iter(iter(1, 2, 3, 4), iter(5), dels()));
 		checkPrev(a(1, 2, 3, 4, 5),
-				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5), dels()));
+				new OverlayIndex.Iter(iter(1, 2, 3, 4), iter(5), dels()));
 		checkNext(a(1, 4, 5),
-				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5), dels(2, 3)));
+				new OverlayIndex.Iter(iter(1, 2, 3, 4), iter(5), dels(2, 3)));
 		checkPrev(a(1, 4, 5),
-				new OverlayIndexIter(iter(1, 2, 3, 4), iter(5), dels(2, 3)));
+				new OverlayIndex.Iter(iter(1, 2, 3, 4), iter(5), dels(2, 3)));
 	}
 
 	TIntHashSet dels(int... values) {

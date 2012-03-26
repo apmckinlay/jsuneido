@@ -56,7 +56,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
-		return new OverlayTranIndex(new Btree2(tran, info), new Btree2(tran), deletes);
+		return new OverlayIndex(new Btree2(tran, info), new Btree2(tran), deletes);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(oldkey);
-		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
 			RecordBuilder rb = new RecordBuilder();
@@ -101,7 +101,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	public void removeAll(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator();
-		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
 	}
@@ -110,7 +110,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	public IndexIter iter(int tblnum, String columns) {
 		Index index = index(tblnum, columns);
 		Iter iter = getIndex(index).iterator();
-		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
 		return iter;
 	}
 
@@ -119,7 +119,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
 		Index index = index(tblnum, columns);
 		Iter iter = getIndex(index).iterator((Record) org, (Record) end);
-		((OverlayIndexIter) iter).trackRange(trackReads(index));
+		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
 		return iter;
 	}
 
@@ -127,7 +127,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
 		Index index = index(tblnum, columns);
 		Iter iter2 = getIndex(index).iterator(iter);
-		((OverlayIndexIter) iter2).trackRange(trackReads(index));
+		((OverlayIndex.Iter) iter2).trackRange(trackReads(index));
 		return iter2;
 	}
 
@@ -238,6 +238,8 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		tran.startStore();
 		Tran.StoreInfo info = null;
 		try {
+			// TODO store removes first
+			// reprocessing needs to do them first to avoid duplicate keys
 			storeAdds();
 			storeRemoves();
 		} finally {
@@ -282,7 +284,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 
 	private void updateBtree(ReadTransaction2 t, Entry<Index, TranIndex> e) {
 		Index index = e.getKey();
-		OverlayTranIndex oti = (OverlayTranIndex) e.getValue();
+		OverlayIndex oti = (OverlayIndex) e.getValue();
 		Btree2 global = (Btree2) t.getIndex(index);
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();

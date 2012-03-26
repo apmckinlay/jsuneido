@@ -87,7 +87,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				tb.dropColumn(column.name);
 			t.removeRecord(TN.TABLES, table.toRecord());
 			t.dropTableSchema(table);
-			// NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
+			//NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
+			//TODO at least replace dbinfo with a "null" entry
 		}
 		t.complete();
 		return true;
