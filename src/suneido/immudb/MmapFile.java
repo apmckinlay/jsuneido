@@ -31,6 +31,7 @@ class MmapFile extends ChunkedStorage {
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
 	private final File file;
+	private long starting_file_size;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -73,6 +74,7 @@ class MmapFile extends ChunkedStorage {
 			i -= 8;
 		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
 		file_size = (long) chunk * CHUNK_SIZE + align(i);
+		starting_file_size = file_size;
 	}
 
 	private long fileLength() {
@@ -99,7 +101,8 @@ class MmapFile extends ChunkedStorage {
 	@Override
 	public void close() {
 if (mode == FileChannel.MapMode.READ_WRITE)
-System.out.println(file + " size " + file_size);
+System.out.println(file + " size " + file_size +
+		" grew " + (file_size - starting_file_size));
 		try {
 			fc.close();
 			fin.close();

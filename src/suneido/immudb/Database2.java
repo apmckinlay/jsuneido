@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
@@ -20,6 +21,7 @@ import com.google.common.base.Objects;
 
 @ThreadSafe
 class Database2 implements ImmuDatabase {
+	private static final int PERSIST_EVERY = 1000;
 	final Transactions2 trans = new Transactions2();
 	final Storage dstor;
 	final Storage istor;
@@ -29,6 +31,7 @@ class Database2 implements ImmuDatabase {
 	/** only updated when holding commitLock */
 	volatile State state;
 	State lastPersistState;
+	AtomicInteger nUpdateTran = new AtomicInteger();
 
 	// create
 
@@ -131,6 +134,13 @@ class Database2 implements ImmuDatabase {
 
 	@Override
 	public UpdateTransaction2 updateTransaction() {
+		// MAYBE do this inside UpdateTransaction commit
+		// then you don't need Atomic
+		// and you already have commit lock
+		if (nUpdateTran.incrementAndGet() > PERSIST_EVERY) {
+			nUpdateTran.set(0);
+			persist();
+		}
 		int num = trans.nextNum(false);
 		return new UpdateTransaction2(num, this);
 	}

@@ -14,6 +14,8 @@ import suneido.immudb.UpdateDbInfo.DbInfoTranslator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
+//TODO make sure dropped tables are not persisted
+
 /**
  * Save dbinfo and btrees to storage (periodically).
  * Uses a similar layout to Tran,
