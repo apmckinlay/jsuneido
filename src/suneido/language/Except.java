@@ -4,8 +4,12 @@
 
 package suneido.language;
 
+import java.util.ArrayList;
+
 import suneido.SuContainer;
 import suneido.SuValue;
+
+import com.google.common.collect.Lists;
 
 /**
  * This is the value this is assigned to a catch variable.
@@ -54,10 +58,26 @@ public class Except extends Concat {
 		@Override
 		public Object eval0(Object self) {
 			Throwable e = ((Except) self).e;
+			ArrayList<StackTraceElement> stack = Lists.newArrayList();
+			getStack(e, stack);
 			SuContainer calls = new SuContainer();
-			for (StackTraceElement x : e.getStackTrace())
-				calls.add(callob(x));
+			for (int i = stack.size() - 1; i >= 0; --i)
+				if (! stack.get(i).toString().contains(".java:"))
+					calls.add(callob(stack.get(i)));
 			return calls;
+		}
+
+		private void getStack(Throwable e, ArrayList<StackTraceElement> dest) {
+			if (e.getCause() != null)
+				getStack(e.getCause(), dest); // bottom up
+			StackTraceElement[] stackTrace = e.getStackTrace();
+			// skip duplication with cause
+			int i = stackTrace.length - 1;
+			for (int idest = 0; i >= 0 && idest < dest.size() &&
+					stackTrace[i].equals(dest.get(idest)); --i, ++idest) {
+			}
+			for (; i >= 0; --i)
+				dest.add(stackTrace[i]); // reverse order
 		}
 	}
 
