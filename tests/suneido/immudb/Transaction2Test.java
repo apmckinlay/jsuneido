@@ -288,7 +288,7 @@ public class Transaction2Test {
 		for (iter.next(); ! iter.eof(); iter.next(), ++i)
 			assertThat(t.input(iter.keyadr()), is(recs[i]));
 		assertThat(i, is(recs.length));
-		t.complete();
+		t.ck_complete();
 	}
 
 	static Record rec(Object... values) {

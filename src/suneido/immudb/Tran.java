@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import gnu.trove.list.array.TIntArrayList;
-
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
@@ -33,7 +31,6 @@ class Tran implements Translator {
 	private final Redirects redirs;
 	final IntRefs intrefs = new IntRefs();
 	/** for version 2 */
-	final TIntArrayList removes = new TIntArrayList();
 	private int head_adr = 0;
 
 	Tran(Storage stor) {
@@ -195,15 +192,10 @@ class Tran implements Translator {
 		redirs.assertNoChanges(current);
 	}
 
-	void trackRemove(int adr) {
-		removes.add(adr);
-	}
-
 	/** for ExclusiveTransaction */
 	void reset() {
 		head_adr = 0;
 		intrefs.clear();
-		removes.clear();
 		assert redirs == null;
 	}
 

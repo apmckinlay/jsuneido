@@ -92,8 +92,6 @@ class IndexedData2 {
 	private void trackRemove(int adr) {
 		if (IntRefs.isIntRef(adr))
 			tran.redir(adr, removed); // not really redir, just updates intref
-		else
-			tran.trackRemove(adr);
 	}
 
 	/** @return the address of the from record */
