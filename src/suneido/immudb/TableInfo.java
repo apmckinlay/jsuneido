@@ -33,7 +33,6 @@ class TableInfo extends DbHashTrie.Entry {
 		this.nrows = nrows;
 		this.totalsize = totalsize;
 		this.indexInfo = indexInfo;
-		assert indexInfo == null || ! indexInfo.isEmpty();
 	}
 
 	TableInfo(Record rec, int adr) {
@@ -51,6 +50,11 @@ class TableInfo extends DbHashTrie.Entry {
 
 	TableInfo(TableInfo ti, ImmutableList<IndexInfo> indexInfo) {
 		this(ti.tblnum, ti.nextfield, ti.nrows, ti.totalsize, indexInfo);
+	}
+
+	/** When a table is dropped, its table info is replaced by an empty entry */
+	static TableInfo empty(int tblnum) {
+		return new TableInfo(tblnum, 0, 0, 0, ImmutableList.<IndexInfo>of());
 	}
 
 	@Override

@@ -100,6 +100,8 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	// used by TableBuilder
 	@Override
 	public void dropTableSchema(Table table) {
+		// "remove" from dbinfo so indexes won't be persisted
+		dbinfo = dbinfo.with(TableInfo.empty(table.num));
 		schema = schema.without(table);
 	}
 

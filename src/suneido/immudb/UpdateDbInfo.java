@@ -58,13 +58,13 @@ class UpdateDbInfo {
 	}
 
 	int store(Storage stor) {
-		return dbinfo.store(stor, new DbInfoTranslator(stor));
+		return dbinfo.store(stor, new DbInfoStorer(stor));
 	}
 
-	static class DbInfoTranslator implements Translator {
+	static class DbInfoStorer implements Translator {
 		final Storage stor;
 
-		public DbInfoTranslator(Storage stor) {
+		public DbInfoStorer(Storage stor) {
 			this.stor = stor;
 		}
 

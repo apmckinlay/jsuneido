@@ -80,14 +80,14 @@ class Database2 implements ImmuDatabase {
 
 	static Database2 openWithoutCheck(Storage dstor, Storage istor) {
 		DbHashTrie dbinfo = DbHashTrie.load(istor,
-				Persist.dbinfoadr(istor), new DbinfoTranslator(istor));
+				Persist.dbinfoadr(istor), new DbinfoLoader(istor));
 		return new Database2(dstor, istor, dbinfo);
 	}
 
-	static class DbinfoTranslator implements DbHashTrie.Translator {
+	static class DbinfoLoader implements DbHashTrie.Translator {
 		final Storage dstor;
 
-		DbinfoTranslator(Storage dstor) {
+		DbinfoLoader(Storage dstor) {
 			this.dstor = dstor;
 		}
 
@@ -137,7 +137,7 @@ class Database2 implements ImmuDatabase {
 		// MAYBE do this inside UpdateTransaction commit
 		// then you don't need Atomic
 		// and you already have commit lock
-		if (nUpdateTran.incrementAndGet() > PERSIST_EVERY) {
+		if (nUpdateTran.incrementAndGet() >= PERSIST_EVERY) {
 			nUpdateTran.set(0);
 			persist();
 		}

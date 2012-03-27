@@ -74,6 +74,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	static boolean dropTable(ImmuExclTran t, String tableName) {
+		// check for view first
 		if (! Views.dropView(t, tableName)) {
 			Table table = t.getTable(tableName);
 			if (table == null) {
