@@ -31,6 +31,8 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	protected final boolean onlyReads = false;
 	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
+	protected final TIntObjectHashMap<IndexedData2> indexedData =
+			new TIntObjectHashMap<IndexedData2>();
 
 	ReadWriteTransaction(int num, Database2 db) {
 		super(num, db);
@@ -57,8 +59,14 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		updateRowInfo(tblnum, 1, rec.bufSize());
 	}
 
-	//PERF cache?
 	protected IndexedData2 indexedData(int tblnum) {
+		IndexedData2 id = indexedData.get(tblnum);
+		if (id == null)
+			indexedData.put(tblnum, id = indexedData2(tblnum));
+		return id;
+	}
+
+	private IndexedData2 indexedData2(int tblnum) {
 		IndexedData2 id = new IndexedData2(this);
 		Table table = getTable(tblnum);
 		if (table == null) {

@@ -263,13 +263,14 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	}
 
 	private void storeRemoves() {
-		int nr = tran.removes.size();
+		int nr = deletes.size();
 		int size = Shorts.BYTES + (1 + nr) * Ints.BYTES;
 		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(size));
 		buf.putShort((short) 0xffff); // mark start of removes
 		buf.putInt(nr);
-		for (TIntIterator iter = tran.removes.iterator(); iter.hasNext(); ) {
+		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
 			int adr = iter.next();
+assert ! IntRefs.isIntRef(adr);
 			buf.putInt(adr);
 		}
 	}

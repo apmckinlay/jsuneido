@@ -35,10 +35,13 @@ class OverlayIndex implements TranIndex {
 
 	@Override
 	public int get(Record key) {
+		// probably better to check globals first
+		// but can't because deletes hasn't been updated yet
 		int adr = local.get(key);
 		if (adr != 0)
 			return IntRefs.isIntRef(adr) ? adr : 0;
-		return global.get(key);
+		adr = global.get(key);
+		return deletes.contains(adr) ? 0 : adr;
 	}
 
 	@Override

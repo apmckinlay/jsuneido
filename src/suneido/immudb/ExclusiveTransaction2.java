@@ -78,6 +78,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	public void addSchemaTable(Table tbl) {
 		assert locked;
 		schema = schema.with(tbl);
+		indexedData.remove(tbl.num);
 	}
 
 	// used by TableBuilder and Bootstrap
@@ -95,6 +96,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		if (oldTbl != null)
 			schema = schema.without(oldTbl);
 		schema = schema.with(tbl);
+		indexedData.remove(tbl.num);
 	}
 
 	// used by TableBuilder
@@ -103,6 +105,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 		// "remove" from dbinfo so indexes won't be persisted
 		dbinfo = dbinfo.with(TableInfo.empty(table.num));
 		schema = schema.without(table);
+		indexedData.remove(table.num);
 	}
 
 	// used by DbLoad and DbCompact
