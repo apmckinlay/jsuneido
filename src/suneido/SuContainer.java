@@ -28,6 +28,8 @@ import suneido.util.Util;
 
 import com.google.common.collect.Iterables;
 
+//TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
+
 /**
  * Suneido's single container type.
  * Combines an extendible array plus a hash map.
