@@ -9,12 +9,10 @@ import static suneido.immudb.ChunkedStorage.align;
 import java.nio.ByteBuffer;
 
 import suneido.immudb.DbHashTrie.Entry;
-import suneido.immudb.UpdateDbInfo.DbInfoTranslator;
+import suneido.immudb.UpdateDbInfo.DbInfoStorer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
-
-//TODO make sure dropped tables are not persisted
 
 /**
  * Save dbinfo and btrees to storage (periodically).
@@ -110,7 +108,7 @@ public class Persist {
 		}};
 
 	private int storeDbinfo() {
-		return newdbinfo.store(istor, new DbInfoTranslator(istor));
+		return newdbinfo.store(istor, new DbInfoStorer(istor));
 	}
 
 	void finish() {

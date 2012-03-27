@@ -32,12 +32,14 @@ import com.google.common.base.Strings;
  * <li>bitmap	- an int where the bits specify which entries are present
  * <li>entries	- up to 32 Object entries, each is one of:
  * Integer storage address of child node, Node child node, or Entry.
- * Entry is abstract and has sub-classes IntEntry, StoredIntEntry, and RefEntry.
+ * Entry is abstract and has sub-classes IntEntry and StoredIntEntry.
  * </ul>
  * Node entries are stored as pairs of int's,
  * if key is 0 then value is address of child node
  * <p>
  * Similar to {@link suneido.util.PersistentMap}
+ * <p>
+ * NOTE: Does not support removing entries.
  */
 @NotThreadSafe
 abstract class DbHashTrie {
@@ -420,33 +422,6 @@ abstract class DbHashTrie {
 		StoredIntEntry(int key, int value) {
 			super(key, value);
 		}
-	}
-
-	@Immutable
-	static class RefEntry<T> extends Entry {
-		private final int key;
-		private final T value;
-
-		RefEntry(int key, T value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		int key() {
-			return key;
-		}
-
-		@Override
-		int value() {
-			throw new UnsupportedOperationException("RefEntry doesn't support value()");
-		}
-
-		@Override
-		public String toString() {
-			return "RefEntry(" + key + ", " + value + ")";
-		}
-
 	}
 
 }
