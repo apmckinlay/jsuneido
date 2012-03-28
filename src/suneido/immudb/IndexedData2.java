@@ -8,6 +8,8 @@
 
 package suneido.immudb;
 
+import gnu.trove.set.hash.TIntHashSet;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,10 +26,16 @@ class IndexedData2 {
 	private final ReadWriteTransaction t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
+	private TIntHashSet deletes;
 
 	IndexedData2(ReadWriteTransaction t) {
 		this.t = t;
 		tran = t.tran();
+	}
+
+	IndexedData2 setDeletes(TIntHashSet deletes) {
+		this.deletes = deletes;
+		return this;
 	}
 
 	/** setup method */
@@ -87,13 +95,6 @@ class IndexedData2 {
 		return adr;
 	}
 
-	static final Object removed = new Object();
-
-	private void trackRemove(int adr) {
-		if (IntRefs.isIntRef(adr))
-			tran.redir(adr, removed); // not really redir, just updates intref
-	}
-
 	/** @return the address of the from record */
 	int update(Record from, Record to) {
 		for (AnIndex index : indexes)
@@ -124,6 +125,15 @@ class IndexedData2 {
 				throw new SuException("unhandled update result");
 			}
 		return fromAdr;
+	}
+
+	static final Object removed = new Object();
+
+	private void trackRemove(int adr) {
+		if (IntRefs.isIntRef(adr))
+			tran.redir(adr, removed); // not really redir, just updates intref
+		else if (deletes != null)
+			deletes.add(adr);
 	}
 
 	private AnIndex firstKey() {

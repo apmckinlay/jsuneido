@@ -5,7 +5,12 @@
 package suneido.immudb;
 
 import gnu.trove.set.hash.TIntHashSet;
+
+import java.util.ArrayList;
+
 import suneido.intfc.database.IndexIter;
+
+import com.google.common.collect.Lists;
 
 /**
  * Interface between UpdateTransaction and database indexes.
@@ -14,11 +19,14 @@ import suneido.intfc.database.IndexIter;
  * Deletes from the global btree are recorded by adding the key to the local btree.
  * Keys recording deletes will have a real address,
  * whereas actual new keys will have intref addresses.
+ * The delete entries are used by UpdateTransaction updateBtrees
  */
 class OverlayIndex implements TranIndex {
 	private final Btree2 global;
 	private final Btree2 local;
+	/** a reference to the transaction deletes */
 	private final TIntHashSet deletes;
+	final ArrayList<Record> removedKeys = Lists.newArrayList();
 
 	OverlayIndex(Btree2 global, Btree2 local, TIntHashSet deletes) {
 		this.global = global;
@@ -33,15 +41,15 @@ class OverlayIndex implements TranIndex {
 		return local.add(key, false);
 	}
 
+	/** WARNING: assumes keys are unique excluding address */
 	@Override
 	public int get(Record key) {
-		// probably better to check globals first
-		// but can't because deletes hasn't been updated yet
+		// check local first to handle where global was deleted and local added
 		int adr = local.get(key);
 		if (adr != 0)
-			return IntRefs.isIntRef(adr) ? adr : 0;
+			return adr;
 		adr = global.get(key);
-		return deletes.contains(adr) ? 0 : adr;
+		return adr == 0 || deletes.contains(adr) ? 0 : adr;
 	}
 
 	@Override
@@ -55,10 +63,14 @@ class OverlayIndex implements TranIndex {
 
 	@Override
 	public boolean remove(Record key) {
-		if (! local.remove(key))
-			// global, so add a delete record to local
-			return local.add(key, false);
-		return true;
+		if (IntRefs.isIntRef(BtreeNode.adr(key)))
+			return local.remove(key);
+		else { // global
+			if (global.get(key) == 0)
+				return false;
+			removedKeys.add(key);
+			return true;
+		}
 	}
 
 	@Override

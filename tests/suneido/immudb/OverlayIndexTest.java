@@ -32,7 +32,12 @@ public class OverlayIndexTest extends IndexIterTestBase {
 		assertEquals(d, index.get(rec("d")));
 
 		assertTrue(index.remove(key("b", 2)));
+		deletes.add(2);
 		assertEquals(0, index.get(rec("b")));
+
+		int b = tran.refToInt(new Object());
+		assertTrue(index.add(key("b", b), true)); // new version of b
+		assertEquals(b, index.get(rec("b")));
 
 		assertTrue(index.remove(key("d", d)));
 		assertEquals(0, index.get(rec("d")));
