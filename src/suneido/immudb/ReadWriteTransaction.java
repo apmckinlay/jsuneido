@@ -66,7 +66,8 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		return id;
 	}
 
-	private IndexedData2 indexedData2(int tblnum) {
+	/** overridden by UpdateTransaction */
+	protected IndexedData2 indexedData2(int tblnum) {
 		IndexedData2 id = new IndexedData2(this);
 		Table table = getTable(tblnum);
 		if (table == null) {

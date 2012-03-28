@@ -8,8 +8,10 @@ import static com.google.common.base.Preconditions.checkState;
 import static suneido.SuException.unreachable;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Iterator;
 
+import suneido.language.Ops;
 import suneido.language.Pack;
 
 import com.google.common.primitives.UnsignedInts;
@@ -225,6 +227,8 @@ abstract class Record implements suneido.intfc.database.Record {
 					sb.append("'").append(x).append("'");
 				else if (x instanceof Number && ((Number) x).intValue() == IntRefs.MAXADR)
 					sb.append("MAXADR");
+				else if (x instanceof Date)
+					sb.append(Ops.display(x));
 				else
 					sb.append(x);
 			}

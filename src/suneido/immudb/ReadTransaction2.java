@@ -138,7 +138,12 @@ class ReadTransaction2 implements ImmuReadTran {
 
 	@Override
 	public boolean exists(int tblnum, int[] colNums, Record key) {
-		return 0 != getIndex(tblnum, colNums).get(key);
+		TranIndex index = getIndex(tblnum, colNums);
+		if (index.get(key) == 0)
+			return false;
+		else
+			return true;
+//		return 0 != index.get(key);
 	}
 
 	@Override

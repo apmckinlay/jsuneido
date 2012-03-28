@@ -55,15 +55,13 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	}
 
 	@Override
-	protected TranIndex getIndex(IndexInfo info) {
-		return new OverlayIndex(new Btree2(tran, info), new Btree2(tran), deletes);
+	protected IndexedData2 indexedData2(int tblnum) {
+		return super.indexedData2(tblnum).setDeletes(deletes);
 	}
 
 	@Override
-	public int updateRecord(int tblnum, Record from, Record to) {
-		int adr = super.updateRecord(tblnum, from, to);
-		trackDelete(adr);
-		return adr;
+	protected TranIndex getIndex(IndexInfo info) {
+		return new OverlayIndex(new Btree2(tran, info), new Btree2(tran), deletes);
 	}
 
 	// used by foreign key cascade
@@ -81,19 +79,6 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 			}
 			updateRecord(tblnum, oldrec, rb.build());
 		}
-	}
-
-	@Override
-	public int removeRecord(int tblnum, Record rec) {
-		int adr = super.removeRecord(tblnum, rec);
-		trackDelete(adr);
-		return adr;
-	}
-
-	private void trackDelete(int adr) {
-		assert adr != 0;
-		if (! IntRefs.isIntRef(adr))
-			deletes.add(adr);
 	}
 
 	// used by foreign key cascade
@@ -270,7 +255,6 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		buf.putInt(nr);
 		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
 			int adr = iter.next();
-assert ! IntRefs.isIntRef(adr);
 			buf.putInt(adr);
 		}
 	}
@@ -287,16 +271,21 @@ assert ! IntRefs.isIntRef(adr);
 		Index index = e.getKey();
 		OverlayIndex oti = (OverlayIndex) e.getValue();
 		Btree2 global = (Btree2) t.getIndex(index);
+
+		for (Record key : oti.removedKeys)
+			global.remove(key);
+
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();
-		boolean updated = false;
+		boolean updated = ! oti.removedKeys.isEmpty();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
-			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
+assert IntRefs.isIntRef(BtreeNode.adr(key));
+//			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
 				if (false == global.add(translate(key), index.isKey, index.unique))
 					throw new Conflict("duplicate key");
-			} else
-				global.remove(key);
+//			} else
+//				global.remove(key);
 			updated = true;
 		}
 		if (updated)
