@@ -249,33 +249,33 @@ abstract class BtreeNode implements Storable {
 	}
 
 	/** returns the number of nodes processed */
-	int check2(Storage stor, Record from, Record to) {
+	int check2(Tran tran, Record from, Record to) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf())
-			return checkLeaf(from, to);
+			return checkLeaf(tran, from, to);
 		else
-			return checkTree(stor, from, to);
+			return checkTree(tran, from, to);
 	}
 
 
-	private int checkTree(Storage stor, Record from, Record to) {
+	private int checkTree(Tran tran, Record from, Record to) {
 		assert isMinimalKey(get(0)) : "minimal";
 		if (size() > 1)
 			assert from.compareTo(get(1)) <= 0;
 		assert to == null || to.compareTo(get(size() - 1)) > 0;
 		int nnodes = 1;
 		to = 1 < size() ? get(1) : null;
-		nnodes += Btree2.childNode(stor, level - 1, get(0)).check2(stor, from, to);
+		nnodes += Btree2.childNode(tran.istor, level - 1, get(0)).check2(tran, from, to);
 		for (int i = 1; i < size(); ++i) {
 			from = get(i);
 			to = i + 1 < size() ? get(i + 1) : null;
-			nnodes += Btree2.childNode(stor, level - 1, from).check2(stor, from, to);
+			nnodes += Btree2.childNode(tran.istor, level - 1, from).check2(tran, from, to);
 		}
 		return nnodes;
 	}
 
-	private int checkLeaf(Record from, Record to) {
+	private int checkLeaf(Tran tran, Record from, Record to) {
 		if (! isEmpty()) {
 			from = new RecordBuilder().addPrefix(from, from.size() - 1).build();
 			assert get(0).compareTo(from) > 0
@@ -285,7 +285,11 @@ abstract class BtreeNode implements Storable {
 				assert get(size() - 1).compareTo(to) <= 0
 						: "last " + get(size() - 1) + " NOT <= " + to;
 			}
-
+		}
+		for (int i = 1; i < size(); ++i) {
+			int adr = adr(get(i));
+			if (IntRefs.isIntRef(adr))
+				assert tran.intToRef(adr) instanceof Record;
 		}
 		return 1;
 	}

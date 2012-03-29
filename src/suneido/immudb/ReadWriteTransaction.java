@@ -28,7 +28,7 @@ import com.google.common.primitives.Ints;
 abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpdateTran {
 	protected boolean locked = false;
 	private String conflict = null;
-	protected final boolean onlyReads = false;
+	protected boolean onlyReads = true;
 	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
 	protected final TIntObjectHashMap<IndexedData2> indexedData =
@@ -53,6 +53,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	public void addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
+		onlyReads = false;
 		rec.tblnum = tblnum;
 		indexedData(tblnum).add(rec);
 		callTrigger(getTable(tblnum), null, rec);
@@ -108,6 +109,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	public int updateRecord(int tblnum, Record from, Record to) {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
+		onlyReads = false;
 		to.tblnum = tblnum;
 		int adr = indexedData(tblnum).update(from, to);
 		callTrigger(ck_getTable(tblnum), from, to);
@@ -146,6 +148,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	public int removeRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "delete");
 		assert locked;
+		onlyReads = false;
 		int adr = indexedData(tblnum).remove(rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
 		updateRowInfo(tblnum, -1, -rec.bufSize());
@@ -261,8 +264,6 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 			if (locked)
 				unlock();
 		}
-//		if (conflict == null)
-//			Persist.persist(db);
 		return conflict;
 	}
 

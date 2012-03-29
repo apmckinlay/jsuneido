@@ -257,14 +257,20 @@ public class DatabaseTest extends TestBase {
 		make_test2(Fkmode.CASCADE_DELETES);
 
 		List<Record> recs = get("test2");
-		assertEquals(2, recs.size());
-		assertEquals(record(10, 1), recs.get(0));
-		assertEquals(record(11, 1), recs.get(1));
+		assertEquals(4, recs.size());
+		assertEquals(record(100, 0), recs.get(0));
+		assertEquals(record(110, 1), recs.get(1));
+		assertEquals(record(111, 1), recs.get(2));
+		assertEquals(record(120, 2), recs.get(3));
 
 		Transaction t = db.updateTransaction();
 		t.removeRecord(t.getTable("test").num(), get("test").get(1));
 		t.ck_complete();
-		assertEquals(0, count("test2"));
+
+		recs = get("test2");
+		assertEquals(2, recs.size());
+		assertEquals(record(100, 0), recs.get(0));
+		assertEquals(record(120, 2), recs.get(1));
 	}
 
 	@Test
@@ -273,12 +279,15 @@ public class DatabaseTest extends TestBase {
 		make_test2(Fkmode.CASCADE_UPDATES);
 
 		Transaction t = db.updateTransaction();
-		t.updateRecord(t.getTable("test").num(), get("test").get(1), record(111));
+		t.updateRecord(t.getTable("test").num(), get("test").get(1), record(11));
 		t.ck_complete();
+
 		List<Record> recs = get("test2");
-		assertEquals(2, recs.size());
-		assertEquals(record(10, 111), recs.get(0));
-		assertEquals(record(11, 111), recs.get(1));
+		assertEquals(4, recs.size());
+		assertEquals(record(100, 0), recs.get(0));
+		assertEquals(record(110, 11), recs.get(1));
+		assertEquals(record(111, 11), recs.get(2));
+		assertEquals(record(120, 2), recs.get(3));
 	}
 
 	@Test
@@ -320,8 +329,10 @@ public class DatabaseTest extends TestBase {
 			.finish();
 
 		Transaction t1 = db.updateTransaction();
-		t1.addRecord("test2", record(10, 1));
-		t1.addRecord("test2", record(11, 1));
+		t1.addRecord("test2", record(100, 0));
+		t1.addRecord("test2", record(110, 1));
+		t1.addRecord("test2", record(111, 1));
+		t1.addRecord("test2", record(120, 2));
 		t1.ck_complete();
 	}
 

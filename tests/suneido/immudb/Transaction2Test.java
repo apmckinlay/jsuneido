@@ -239,6 +239,7 @@ public class Transaction2Test {
 		t.ck_complete(); t = null;
 
 		UpdateTransaction2 t1 = db.updateTransaction();
+		t1.onlyReads = false;
 		assertThat(t1.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
 
 		UpdateTransaction2 t2 = db.updateTransaction();
@@ -254,6 +255,7 @@ public class Transaction2Test {
 		make_tmp();
 
 		UpdateTransaction2 t1 = db.updateTransaction();
+		t1.onlyReads = false;
 		int tmp = t1.getTable("tmp").num();
 		assertNull(t1.lookup(tmp, "a", rec(123)));
 

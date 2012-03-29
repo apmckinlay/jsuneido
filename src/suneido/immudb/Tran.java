@@ -78,6 +78,10 @@ class Tran implements Translator {
 			redirs.put(from, refToInt(ref));
 	}
 
+	void update(int intref, Object ref) {
+		intrefs.update(intref, ref);
+	}
+
 	Redirects redirs() {
 		return redirs;
 	}

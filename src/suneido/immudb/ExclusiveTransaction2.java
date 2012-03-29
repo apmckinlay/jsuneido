@@ -29,6 +29,7 @@ public class ExclusiveTransaction2 extends ReadWriteTransaction
 	ExclusiveTransaction2(int num, Database2 db) {
 		super(num, db);
 		tran.allowStore();
+onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	@Override
