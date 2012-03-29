@@ -87,9 +87,8 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(key);
 		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
-		for (iter.next(); ! iter.eof(); iter.next()) {
+		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
-		}
 	}
 
 	@Override

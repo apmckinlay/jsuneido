@@ -60,32 +60,6 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		updateRowInfo(tblnum, 1, rec.bufSize());
 	}
 
-	protected IndexedData2 indexedData(int tblnum) {
-		IndexedData2 id = indexedData.get(tblnum);
-		if (id == null)
-			indexedData.put(tblnum, id = indexedData2(tblnum));
-		return id;
-	}
-
-	/** overridden by UpdateTransaction */
-	protected IndexedData2 indexedData2(int tblnum) {
-		IndexedData2 id = new IndexedData2(this);
-		Table table = getTable(tblnum);
-		if (table == null) {
-			int[] indexColumns = Bootstrap.indexColumns[tblnum];
-			TranIndex btree = getIndex(tblnum, indexColumns);
-			id.index(btree, Mode.KEY, indexColumns, "", null, null);
-		} else {
-			for (Index index : getTable(tblnum).indexes) {
-				TranIndex btree = getIndex(index);
-				String colNames = table.numsToNames(index.colNums);
-				id.index(btree, index.mode(), index.colNums, colNames,
-						index.fksrc, schema.getFkdsts(table.name, colNames));
-			}
-		}
-		return id;
-	}
-
 	// update ------------------------------------------------------------------
 
 	@Override
@@ -164,6 +138,32 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	}
 
 	// -------------------------------------------------------------------------
+
+	protected IndexedData2 indexedData(int tblnum) {
+		IndexedData2 id = indexedData.get(tblnum);
+		if (id == null)
+			indexedData.put(tblnum, id = indexedData2(tblnum));
+		return id;
+	}
+
+	/** overridden by UpdateTransaction */
+	protected IndexedData2 indexedData2(int tblnum) {
+		IndexedData2 id = new IndexedData2(this);
+		Table table = getTable(tblnum);
+		if (table == null) {
+			int[] indexColumns = Bootstrap.indexColumns[tblnum];
+			TranIndex btree = getIndex(tblnum, indexColumns);
+			id.index(btree, Mode.KEY, indexColumns, "", null, null);
+		} else {
+			for (Index index : getTable(tblnum).indexes) {
+				TranIndex btree = getIndex(index);
+				String colNames = table.numsToNames(index.colNums);
+				id.index(btree, index.mode(), index.colNums, colNames,
+						index.fksrc, schema.getFkdsts(table.name, colNames));
+			}
+		}
+		return id;
+	}
 
 	void verifyNotSystemTable(int tblnum, String what) {
 		if (tblnum <= TN.VIEWS)
