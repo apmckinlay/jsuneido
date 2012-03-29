@@ -113,8 +113,8 @@ class Database2 implements ImmuDatabase {
 	@Override
 	public Status check() {
 		persist();
-		return DbCheck2.check(dstor, istor);
-				//suneido.intfc.database.DatabasePackage.printObserver);
+		return DbCheck2.check(dstor, istor,
+				suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
 	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo) {

@@ -92,7 +92,6 @@ class DbCheck2 {
 			return false;
 		} finally {
 			executor.shutdown();
-			db.close();
 		}
 	}
 

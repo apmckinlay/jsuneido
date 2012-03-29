@@ -79,6 +79,7 @@ class IndexedData2 {
 			}
 	}
 
+	/** @return the address of the record */
 	int remove(Record rec) {
 		for (AnIndex index : indexes)
 			index.fkeyHandleRemove(rec);
@@ -87,11 +88,12 @@ class IndexedData2 {
 			adr = firstKey().getKeyAdr(rec);
 		if (adr == 0)
 			throw new SuException("remove couldn't find record");
-		trackRemove(adr);
 		//TODO check if record exists (in case it was already deleted)
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
-				t.abortThrow("aborted: index remove failed (possible corruption)");
+				// can't undo like add, may have cascaded
+				t.abortThrow("aborted: index remove failed (possible corruption?)");
+		trackRemove(adr);
 		return adr;
 	}
 
@@ -105,35 +107,45 @@ class IndexedData2 {
 			fromAdr = firstKey().getKeyAdr(from);
 		if (fromAdr == 0)
 			throw new SuException("update couldn't find record");
-		trackRemove(fromAdr);
-		int toAdr = to.address();
-		if (toAdr == 0) // if exclusive tran it will already be saved
-			toAdr = tran.refToInt(to);
-		for (AnIndex index : indexes)
-			switch (index.update(from, fromAdr, to, toAdr)) {
-			case NOT_FOUND:
-				t.abortThrow("aborted: update failed: old record not found " +
-						"(possible corruption)");
-				break;
-			case ADD_FAILED:
-				t.abortThrow("aborted: update failed: duplicate key: " +
-						index.columns + " = " + index.searchKey(to));
-				break;
-			case OK:
-				break;
-			default:
-				throw new SuException("unhandled update result");
-			}
+		Object oldref = trackRemove(fromAdr);
+		try {
+			int toAdr = to.address();
+			if (toAdr == 0) // if exclusive tran it will already be saved
+				toAdr = tran.refToInt(to);
+			for (AnIndex index : indexes)
+				switch (index.update(from, fromAdr, to, toAdr)) {
+				case NOT_FOUND:
+					t.abortThrow("aborted: update failed: old record not found " +
+							"(possible corruption)");
+					break;
+				case ADD_FAILED:
+					t.abortThrow("aborted: update failed: duplicate key: " +
+							index.columns + " = " + index.searchKey(to));
+					break;
+				case OK:
+					oldref = null; // succeeded, so don't restore
+					break;
+				default:
+					throw new SuException("unhandled update result");
+				}
+		} finally {
+			// restore old reference if we didn't succeed
+			if (oldref != null)
+				tran.update(fromAdr, oldref);
+		}
 		return fromAdr;
 	}
 
 	static final Object removed = new Object();
 
-	private void trackRemove(int adr) {
-		if (IntRefs.isIntRef(adr))
-			tran.redir(adr, removed); // not really redir, just updates intref
-		else if (deletes != null)
+	private Object trackRemove(int adr) {
+		Object oldref = null;
+		if (IntRefs.isIntRef(adr)) {
+			oldref = tran.intToRef(adr);
+			tran.update(adr, removed);
+		} else if (deletes != null)
 			deletes.add(adr);
+		return oldref;
 	}
 
 	private AnIndex firstKey() {

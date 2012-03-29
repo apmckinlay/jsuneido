@@ -85,10 +85,11 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	@Override
 	public void removeAll(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
-		Iter iter = getIndex(index).iterator();
+		Iter iter = getIndex(index).iterator(key);
 		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
-		for (iter.next(); ! iter.eof(); iter.next())
+		for (iter.next(); ! iter.eof(); iter.next()) {
 			removeRecord(iter.keyadr());
+		}
 	}
 
 	@Override
@@ -180,6 +181,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 	private void checkForConflicts() {
 		Set<UpdateTransaction2> overlapping = trans.getOverlapping(asof);
 		for (UpdateTransaction2 t : overlapping) {
+			assert t != this;
 			TIntIterator iter = t.deletes.iterator();
 			while (iter.hasNext()) {
 				int del = iter.next();
@@ -204,7 +206,7 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 				continue;
 			Record key = key(r, index.colNums);
 			if (tr.contains(key))
-				throw new Conflict("read conflict");
+				throw new Conflict("read conflict in " + table.name);
 		}
 	}
 
@@ -272,20 +274,16 @@ class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran 
 		OverlayIndex oti = (OverlayIndex) e.getValue();
 		Btree2 global = (Btree2) t.getIndex(index);
 
+		boolean updated = ! oti.removedKeys.isEmpty();
 		for (Record key : oti.removedKeys)
 			global.remove(key);
 
 		Btree2 local = oti.local();
 		Btree2.Iter iter = local.iterator();
-		boolean updated = ! oti.removedKeys.isEmpty();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
-assert IntRefs.isIntRef(BtreeNode.adr(key));
-//			if (IntRefs.isIntRef(BtreeNode.adr(key))) {
-				if (false == global.add(translate(key), index.isKey, index.unique))
-					throw new Conflict("duplicate key");
-//			} else
-//				global.remove(key);
+			if (false == global.add(translate(key), index.isKey, index.unique))
+				throw new Conflict("duplicate key");
 			updated = true;
 		}
 		if (updated)
