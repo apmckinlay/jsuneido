@@ -22,7 +22,7 @@ import suneido.database.query.Request;
 
 class DbLoad {
 
-	static int loadDatabase(ImmuDatabase db, ReadableByteChannel in) {
+	static int loadDatabase(Database2 db, ReadableByteChannel in) {
 		try {
 			verifyFileHeader(in);
 			String schema;
@@ -38,7 +38,7 @@ class DbLoad {
 		}
 	}
 
-	static int loadTable(ImmuDatabase db, String tablename, ReadableByteChannel in) {
+	static int loadTable(Database2 db, String tablename, ReadableByteChannel in) {
 		try {
 			verifyFileHeader(in);
 			String schema = readTableHeader(in);
@@ -68,7 +68,7 @@ class DbLoad {
 		return schema;
 	}
 
-	private static int load1(ImmuDatabase db, ReadableByteChannel in, String schema)
+	private static int load1(Database2 db, ReadableByteChannel in, String schema)
 			throws IOException {
 		int i = schema.indexOf(' ', 7);
 		String table = schema.substring(7, i);
@@ -77,12 +77,12 @@ class DbLoad {
 		return load_data(db, in, table);
 	}
 
-	private static int load_data(ImmuDatabase db, ReadableByteChannel in, String tablename)
+	private static int load_data(Database2 db, ReadableByteChannel in, String tablename)
 			throws IOException {
 		int nrecs = 0;
 		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		ByteBuffer recbuf = ByteBuffer.allocate(4096).order(ByteOrder.LITTLE_ENDIAN);
-		ImmuExclTran t = db.exclusiveTran();
+		ExclusiveTransaction2 t = db.exclusiveTran();
 		try {
 			Table table = t.getTable(tablename);
 			int first = 0;
@@ -107,21 +107,21 @@ class DbLoad {
 	}
 
 	private static int load_data_record(ReadableByteChannel in, int tblnum,
-			ImmuExclTran t, ByteBuffer recbuf, int n)
+			ExclusiveTransaction2 t, ByteBuffer recbuf, int n)
 			throws IOException {
 		fullRead(in, recbuf, n);
 		Record rec = Record.from(recbuf);
 		return t.loadRecord(tblnum, rec);
 	}
 
-	static void createIndexes(ImmuExclTran t, Table table, int first, int last) {
+	static void createIndexes(ExclusiveTransaction2 t, Table table, int first, int last) {
 		if (first == 0)
 			return; // no data
 		for (Index index : table.indexes)
 			createIndex(t, first, last, index);
 	}
 
-	private static void createIndex(ImmuExclTran t, int first, int last, Index index) {
+	private static void createIndex(ExclusiveTransaction2 t, int first, int last, Index index) {
 		TranIndex btree = t.getIndex(index.tblnum, index.colNums);
 		StoredRecordIterator iter = t.storedRecordIterator(first, last);
 		while (iter.hasNext()) {
@@ -135,7 +135,7 @@ class DbLoad {
 
 	public static void main(String[] args) throws IOException  {
 		long t = System.currentTimeMillis();
-		ImmuDatabase db = (ImmuDatabase) dbpkg.create(dbpkg.dbFilename());
+		Database2 db = (Database2) dbpkg.create(dbpkg.dbFilename());
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
 		db.close();

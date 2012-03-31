@@ -21,8 +21,7 @@ import com.google.common.primitives.Shorts;
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-class ExclusiveTransaction2 extends ReadWriteTransaction
-		implements ImmuExclTran {
+class ExclusiveTransaction2 extends ReadWriteTransaction {
 	private boolean data_committed = false;
 	private Tran.StoreInfo storeInfo = null;
 
@@ -66,8 +65,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by Bootstrap and TableBuilder
-	@Override
-	public Btree2 addIndex(Index index) {
+	Btree2 addIndex(Index index) {
 		assert locked;
 		Btree2 btree = new Btree2(tran);
 		indexes.put(index, btree);
@@ -75,23 +73,20 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by TableBuilder
-	@Override
-	public void addSchemaTable(Table tbl) {
+	void addSchemaTable(Table tbl) {
 		assert locked;
 		schema = schema.with(tbl);
 		indexedData.remove(tbl.num);
 	}
 
 	// used by TableBuilder and Bootstrap
-	@Override
-	public void addTableInfo(TableInfo ti) {
+	void addTableInfo(TableInfo ti) {
 		assert locked;
 		dbinfo = dbinfo.with(ti);
 	}
 
 	// used by TableBuilder
-	@Override
-	public void updateSchemaTable(Table tbl) {
+	void updateSchemaTable(Table tbl) {
 		assert locked;
 		Table oldTbl = getTable(tbl.num);
 		if (oldTbl != null)
@@ -101,8 +96,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by TableBuilder
-	@Override
-	public void dropTableSchema(Table table) {
+	void dropTableSchema(Table table) {
 		// "remove" from dbinfo so indexes won't be persisted
 		dbinfo = dbinfo.with(TableInfo.empty(table.num));
 		schema = schema.without(table);
@@ -111,8 +105,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	// used by DbLoad and DbCompact
 	// doesn't use addRecord because we don't want to update indexes
-	@Override
-	public int loadRecord(int tblnum, Record rec) {
+	int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
 		rec.address = rec.store(tran.dstor);
 		updateRowInfo(tblnum, 1, rec.bufSize());
@@ -120,8 +113,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by DbLoad to do incremental commit
-	@Override
-	public void saveBtrees() {
+	void saveBtrees() {
 		if (! data_committed) {
 			commitData();
 		} else {
@@ -134,8 +126,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 		tidelta.clear();
 	}
 
-	@Override
-	public StoredRecordIterator storedRecordIterator(int first, int last) {
+	StoredRecordIterator storedRecordIterator(int first, int last) {
 		return new StoredRecordIterator(tran.dstor, first, last);
 	}
 

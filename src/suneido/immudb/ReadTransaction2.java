@@ -24,7 +24,7 @@ import com.google.common.collect.Maps;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction2 implements ImmuReadTran {
+class ReadTransaction2 implements suneido.intfc.database.Transaction {
 	protected final int num;
 	protected final Database2 db;
 	protected final Tran tran;
@@ -46,8 +46,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		trans.add(this);
 	}
 
-	@Override
-	public Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
+	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {
 		return schema.getFkdsts(tableName, colNames);
 	}
 
@@ -56,8 +55,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		return getIndex(index(tblnum, colNames));
 	}
 
-	@Override
-	public TranIndex getIndex(int tblnum, int... colNums) {
+	TranIndex getIndex(int tblnum, int... colNums) {
 		return getIndex(index(tblnum, colNums));
 	}
 
@@ -76,8 +74,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		return new Btree2(tran, info);
 	}
 
-	@Override
-	public boolean hasIndex(int tblnum, int[] colNums) {
+	boolean hasIndex(int tblnum, int[] colNums) {
 		Index index = index(tblnum, colNums);
 		return index != null && indexes.containsKey(index);
 	}
@@ -116,8 +113,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	}
 
 	// used for fetching view definitions
-	@Override
-	public Record lookup(int tblnum, int[] colNums, Record key) {
+	Record lookup(int tblnum, int[] colNums, Record key) {
 		TranIndex btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);
 		if (adr == 0)
@@ -136,8 +132,7 @@ class ReadTransaction2 implements ImmuReadTran {
 		return iter.eof() ? null : input(iter.keyadr());
 	}
 
-	@Override
-	public boolean exists(int tblnum, int[] colNums, Record key) {
+	boolean exists(int tblnum, int[] colNums, Record key) {
 		TranIndex index = getIndex(tblnum, colNums);
 		if (index.get(key) == 0)
 			return false;
@@ -158,8 +153,7 @@ class ReadTransaction2 implements ImmuReadTran {
 	}
 
 	/** @return The table info as of the start of the transaction */
-	@Override
-	public TableInfo getTableInfo(int tblnum) {
+	TableInfo getTableInfo(int tblnum) {
 		return (TableInfo) dbinfo.get(tblnum);
 	}
 
@@ -353,13 +347,11 @@ class ReadTransaction2 implements ImmuReadTran {
 		return false;
 	}
 
-	@Override
-	public Tran tran() {
+	Tran tran() {
 		return tran;
 	}
 
-	@Override
-	public ExclusiveTransaction2 exclusiveTran() {
+	ExclusiveTransaction2 exclusiveTran() {
 		return db.exclusiveTran();
 	}
 

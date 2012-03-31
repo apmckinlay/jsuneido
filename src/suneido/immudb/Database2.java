@@ -20,7 +20,7 @@ import suneido.util.FileUtils;
 import com.google.common.base.Objects;
 
 @ThreadSafe
-class Database2 implements ImmuDatabase {
+class Database2 implements suneido.intfc.database.Database {
 	private static final int PERSIST_EVERY = 1000;
 	final Transactions2 trans = new Transactions2();
 	final Storage dstor;
@@ -145,8 +145,7 @@ class Database2 implements ImmuDatabase {
 		return new UpdateTransaction2(num, this);
 	}
 
-	@Override
-	public ExclusiveTransaction2 exclusiveTran() {
+	ExclusiveTransaction2 exclusiveTran() {
 		int num = trans.nextNum(false);
 		return new ExclusiveTransaction2(num, this);
 	}

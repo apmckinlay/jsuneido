@@ -339,14 +339,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void fail(String msg) {
 		fail(t, msg);
 	}
-	private static void fail(ImmuReadTran t, String msg) {
+	private static void fail(ReadTransaction2 t, String msg) {
 		t.abort();
 		throw new SuException(msg);
 	}
 
 	@Override
 	public void finish() {
-		if (t instanceof ImmuExclTran)
+		if (t instanceof ExclusiveTransaction2)
 			build();
 		t.complete();
 	}

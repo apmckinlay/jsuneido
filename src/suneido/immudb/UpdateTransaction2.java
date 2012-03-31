@@ -28,7 +28,7 @@ import com.google.common.primitives.Shorts;
  * Commit is single-threaded.
  */
 @ThreadConfined
-class UpdateTransaction2 extends ReadWriteTransaction implements ImmuUpdateTran {
+class UpdateTransaction2 extends ReadWriteTransaction {
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();

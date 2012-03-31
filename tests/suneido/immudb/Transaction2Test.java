@@ -85,7 +85,7 @@ public class Transaction2Test {
 		db.checkTransEmpty();
 		db.close();
 	}
-	private static void check(ImmuReadTran t) {
+	private static void check(ReadTransaction2 t) {
 		Record[] recs = { rec(1, "tables"), rec(2, "columns"), rec(3, "indexes"),
 				rec(4, "views") };
 		check(t, Bootstrap.TN.TABLES, recs);
@@ -95,7 +95,7 @@ public class Transaction2Test {
 	public void add_remove() {
 		make_tmp();
 
-		ImmuUpdateTran t = db.updateTransaction();
+		UpdateTransaction2 t = db.updateTransaction();
 		int tblnum = t.getTable("tmp").num;
 		assertThat(t.tableCount(tblnum), is(0));
 		assertThat(t.tableSize(tblnum), is(0L));
@@ -110,7 +110,7 @@ public class Transaction2Test {
 		db = db.reopen();
 		check(db.readTransaction(), "tmp", rec(123, "foo"));
 
-		ImmuReadTran rt = db.readTransaction();
+		ReadTransaction2 rt = db.readTransaction();
 		assertThat(rt.tableCount(tblnum), is(1));
 		assertThat(rt.tableSize(tblnum), is(15L));
 		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
@@ -172,7 +172,7 @@ public class Transaction2Test {
 	public void test_duplicates() {
 		make_tmp();
 
-		ImmuUpdateTran t = db.updateTransaction();
+		UpdateTransaction2 t = db.updateTransaction();
 		t.addRecord("tmp", rec(123, "foo"));
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // within same transaction
@@ -192,7 +192,7 @@ public class Transaction2Test {
 		t.ck_complete();
 
 		t = db.updateTransaction();
-		ImmuUpdateTran t2 = db.updateTransaction();
+		UpdateTransaction2 t2 = db.updateTransaction();
 		t.addRecord("tmp", rec(456, "foo"));
 		t2.addRecord("tmp", rec(456, "bar"));
 		t.ck_complete();
@@ -203,7 +203,7 @@ public class Transaction2Test {
 	public void test_duplicates_exclusive() {
 		make_tmp();
 
-		ImmuUpdateTran t = db.exclusiveTran();
+		ExclusiveTransaction2 t = db.exclusiveTran();
 		t.addRecord("tmp", rec(123, "foo"));
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // within same transaction
@@ -326,16 +326,16 @@ public class Transaction2Test {
 			.finish();
 	}
 
-	private static void check(ImmuReadTran t, String tableName, Record... recs) {
+	private static void check(ReadTransaction2 t, String tableName, Record... recs) {
 		Table tbl = t.getTable(tableName);
 		check(t, tbl.num, recs);
 	}
 
-	private static void check(ImmuReadTran t, int tblnum, Record... recs) {
+	private static void check(ReadTransaction2 t, int tblnum, Record... recs) {
 		check(t, tblnum, null, recs);
 	}
 
-	private static void check(ImmuReadTran t, int tblnum, String columns,
+	private static void check(ReadTransaction2 t, int tblnum, String columns,
 			Record... recs) {
 		int i = 0;
 		IndexIter iter = t.iter(tblnum, columns);

@@ -24,7 +24,7 @@ public class DbCheckTest extends TestBase {
 	}
 
 	protected void dbcheck() {
-		assertEquals(Status.OK, ((ImmuDatabase) db).check());
+		assertEquals(Status.OK, db.check());
 	}
 
 }
