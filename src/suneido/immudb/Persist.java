@@ -32,20 +32,20 @@ public class Persist {
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == ChunkedStorage.align(TAIL_SIZE); }
 	static final int ENDING_SIZE = ChunkedStorage.align(3 * Ints.BYTES);
-	private final Database2 db;
-	private final Database2.State dbstate;
+	private final Database db;
+	private final Database.State dbstate;
 	private final DbHashTrie dbinfo;
 	private final Storage istor;
 	private DbHashTrie newdbinfo;
 	private int head_adr = 0;
 
-	static Database2.State persist(Database2 db) {
+	static Database.State persist(Database db) {
 		Persist p = new Persist(db);
 		p.run();
 		return p.dbstate;
 	}
 
-	private Persist(Database2 db) {
+	private Persist(Database db) {
 		this.db = db;
 		dbstate = db.state;
 		dbinfo = newdbinfo = dbstate.dbinfo;

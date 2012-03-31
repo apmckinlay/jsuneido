@@ -15,9 +15,9 @@ import suneido.intfc.database.IndexIter;
 class DbCompact {
 //	private final String dbfilename;
 //	private final String tempfilename;
-	private final Database2 oldDB;
-	private final Database2 newDB;
-	private ReadTransaction2 rt;
+	private final Database oldDB;
+	private final Database newDB;
+	private ReadTransaction rt;
 
 //	static void compactPrint(String dbfilename)
 //			throws InterruptedException {
@@ -35,11 +35,11 @@ class DbCompact {
 //		System.out.println(dbfilename + " compacted " + n + " tables");
 //	}
 
-	static int compact(Database2 olddb, Database2 newdb) {
+	static int compact(Database olddb, Database newdb) {
 		return new DbCompact(olddb, newdb).compact();
 	}
 
-	private DbCompact(Database2 olddb, Database2 newdb) {
+	private DbCompact(Database olddb, Database newdb) {
 		this.oldDB = olddb;
 		this.newDB = newdb;
 	}
@@ -60,7 +60,7 @@ class DbCompact {
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (! Database2.isSystemTable(tablename))
+			if (! Database.isSystemTable(tablename))
 				createTable(tablename);
 		}
 	}
@@ -77,7 +77,7 @@ class DbCompact {
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (! Database2.isSystemTable(tablename)) {
+			if (! Database.isSystemTable(tablename)) {
 				copyTable(tablename);
 				++n;
 			}
@@ -91,7 +91,7 @@ class DbCompact {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
 		boolean squeeze = needToSqueeze(fields);
-		ExclusiveTransaction2 t = newDB.exclusiveTran();
+		ExclusiveTransaction t = newDB.exclusiveTran();
 		try {
 			int first = 0;
 			int last = 0;
@@ -128,7 +128,7 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		DbTools.compactPrintExit(DatabasePackage2.dbpkg, "immu.db");
+		DbTools.compactPrintExit(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }

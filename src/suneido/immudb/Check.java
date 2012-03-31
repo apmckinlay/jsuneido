@@ -9,7 +9,7 @@ import java.util.Date;
 
 import com.google.common.primitives.Ints;
 
-class Check2 {
+class Check {
 	private static final int FAST_NPERSISTS = 2;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final int EMPTY = -2;
@@ -26,14 +26,14 @@ class Check2 {
 		Storage dstor = new MmapFile(dbFilename + "d", "r");
 		Storage istor = new MmapFile(dbFilename + "i", "r");
 		try {
-			return new Check2(dstor, istor).fullcheck();
+			return new Check(dstor, istor).fullcheck();
 		} finally {
 			dstor.close();
 			istor.close();
 		}
 	}
 
-	Check2(Storage dstor, Storage istor) {
+	Check(Storage dstor, Storage istor) {
 		this.dstor = dstor;
 		this.istor = istor;
 	}
@@ -86,8 +86,8 @@ class Check2 {
 
 	/** Check dstor and istor in parallel */
 	private boolean checkFrom(int dAdr, int iAdr) {
-		Check2.Iter dIter = new Check2.Iter(dstor, dAdr);
-		Check2.Iter iIter = new Check2.Iter(istor, iAdr);
+		Check.Iter dIter = new Check.Iter(dstor, dAdr);
+		Check.Iter iIter = new Check.Iter(istor, iAdr);
 		Tran.StoreInfo iInfo = null;
 		while (! dIter.eof() && ! iIter.eof()) {
 			if (iInfo == null)
@@ -174,7 +174,7 @@ class Check2 {
 
 		/** Only works on index store */
 		Tran.StoreInfo info() {
-			return Check2.info(stor, adr, size);
+			return Check.info(stor, adr, size);
 		}
 
 		// need to handle spanning multiple storage chunks

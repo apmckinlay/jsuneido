@@ -17,7 +17,7 @@ import suneido.intfc.database.Fkmode;
 import com.google.common.collect.Ordering;
 
 public class ForeignKeyTest {
-	private Database2 db = DatabasePackage2.dbpkg.testdb();
+	private Database db = DatabasePackage.dbpkg.testdb();
 
 	@Test
 	public void schema() {
@@ -98,7 +98,7 @@ public class ForeignKeyTest {
 	}
 
 	private String fkdsts(String tableName, String indexColumns) {
-		ReadTransaction2 t = db.readTransaction();
+		ReadTransaction t = db.readTransaction();
 		Set<ForeignKeyTarget> fkdsts = t.getForeignKeys(tableName, indexColumns);
 		assert fkdsts != null;
 		return sort(fkdsts).toString();

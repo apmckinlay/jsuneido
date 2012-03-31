@@ -22,17 +22,17 @@ import com.google.common.collect.Sets;
  * Mostly deals with {@link UpdateTransactions}
  */
 @ThreadSafe
-class Transactions2 {
+class Transactions {
 	private final AtomicLong clock = new AtomicLong();
 	private final AtomicInteger nextNum = new AtomicInteger();
 	/** all active transactions (read and update), for Database.Transactions() */
 	private final Set<Transaction> trans = Sets.newHashSet();
 	/** active update transactions */
-	private final PriorityQueue<UpdateTransaction2> utrans =
-			new PriorityQueue<UpdateTransaction2>(MAX_OVERLAPPING, UpdateTransaction2.byAsof);
+	private final PriorityQueue<UpdateTransaction> utrans =
+			new PriorityQueue<UpdateTransaction>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
 	/** committed read-write transactions that overlap outstanding transactions */
-	private final TreeSet<UpdateTransaction2> overlapping =
-			new TreeSet<UpdateTransaction2>(UpdateTransaction2.byCommit);
+	private final TreeSet<UpdateTransaction> overlapping =
+			new TreeSet<UpdateTransaction>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	// only overridden by tests, otherwise could be private final
 	static int MAX_OVERLAPPING = 200;
@@ -59,17 +59,17 @@ class Transactions2 {
 
 	synchronized void add(Transaction t) {
 		trans.add(t);
-		if (t instanceof UpdateTransaction2)
-			utrans.add((UpdateTransaction2) t);
+		if (t instanceof UpdateTransaction)
+			utrans.add((UpdateTransaction) t);
 	}
 
 	/** return the set of transactions that committed since asof */
-	synchronized Set<UpdateTransaction2> getOverlapping(long asof) {
+	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
 		boolean inclusive = true;
-		UpdateTransaction2 t = overlapping.first();
-		Iterator<UpdateTransaction2> iter = overlapping.descendingIterator();
+		UpdateTransaction t = overlapping.first();
+		Iterator<UpdateTransaction> iter = overlapping.descendingIterator();
 		while (iter.hasNext()) {
 			t = iter.next();
 			if (t.commitTime() < asof) {
@@ -83,17 +83,17 @@ class Transactions2 {
 
 	synchronized void commit(Transaction t) {
 		verify(trans.remove(t));
-		if (t instanceof UpdateTransaction2) {
+		if (t instanceof UpdateTransaction) {
 			verify(utrans.remove(t));
 			cleanOverlapping();
 			if (! utrans.isEmpty())
-				overlapping.add((UpdateTransaction2) t);
+				overlapping.add((UpdateTransaction) t);
 		}
 	}
 
 	synchronized void abort(Transaction t) {
 		verify(trans.remove(t));
-		if (t instanceof UpdateTransaction2)
+		if (t instanceof UpdateTransaction)
 			verify(utrans.remove(t));
 		cleanOverlapping();
 	}
@@ -111,7 +111,7 @@ class Transactions2 {
 
 	// should be called periodically
 	void limitOutstanding() {
-		UpdateTransaction2 t = null;
+		UpdateTransaction t = null;
 		synchronized (this) {
 			if (overlapping.size() <= MAX_OVERLAPPING)
 				return;

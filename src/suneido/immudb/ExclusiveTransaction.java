@@ -21,18 +21,18 @@ import com.google.common.primitives.Shorts;
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-class ExclusiveTransaction2 extends ReadWriteTransaction {
+class ExclusiveTransaction extends ReadWriteTransaction {
 	private boolean data_committed = false;
 	private Tran.StoreInfo storeInfo = null;
 
-	ExclusiveTransaction2(int num, Database2 db) {
+	ExclusiveTransaction(int num, Database db) {
 		super(num, db);
 		tran.allowStore();
 onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	@Override
-	protected void lock(Database2 db) {
+	protected void lock(Database db) {
 		assert ! db.exclusiveLock.isWriteLocked() : "already exclusively locked";
 		if (! db.exclusiveLock.writeLock().tryLock())
 			throw new SuException("can't make schema changes " +
@@ -65,9 +65,9 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by Bootstrap and TableBuilder
-	Btree2 addIndex(Index index) {
+	Btree addIndex(Index index) {
 		assert locked;
-		Btree2 btree = new Btree2(tran);
+		Btree btree = new Btree(tran);
 		indexes.put(index, btree);
 		return btree;
 	}
@@ -157,7 +157,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 		// no actual update required since we are updating master directly
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		while (iter.hasNext()) {
-			Btree2 btree = (Btree2) iter.next().getValue();
+			Btree btree = (Btree) iter.next().getValue();
 			if (btree.frozen())
 				iter.remove(); // since we don't need to update dbinfo
 			else

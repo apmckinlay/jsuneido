@@ -21,27 +21,27 @@ public class ViewsTest {
 
 	@Test
 	public void addView() {
-		ExclusiveTransaction2 t = mock(ExclusiveTransaction2.class);
+		ExclusiveTransaction t = mock(ExclusiveTransaction.class);
 		Views.addView(t, NAME, DEFINITION);
 		verify(t).addRecord(Bootstrap.TN.VIEWS, VIEW_REC);
 	}
 
 	@Test
 	public void getView_missing() {
-		ReadTransaction2 t = mock(ReadTransaction2.class);
+		ReadTransaction t = mock(ReadTransaction.class);
 		assertNull(Views.getView(t, NAME));
 	}
 
 	@Test
 	public void getView() {
-		ReadTransaction2 t = mock(ReadTransaction2.class);
+		ReadTransaction t = mock(ReadTransaction.class);
 		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
 		assertThat(Views.getView(t, NAME), is(DEFINITION));
 	}
 
 	@Test
 	public void dropView() {
-		ExclusiveTransaction2 t = mock(ExclusiveTransaction2.class);
+		ExclusiveTransaction t = mock(ExclusiveTransaction.class);
 		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
 		Views.dropView(t, NAME);
 		verify(t).removeRecord(Bootstrap.TN.VIEWS, VIEW_REC);

@@ -225,7 +225,7 @@ public class BtreeNodeTest {
 	@Test
 	public void split_leaf_at_end() {
 		BtreeNode node = leaf("a", "b", "c");
-		Btree2.Split split = Btree2.split(node, key("d"));
+		Btree.Split split = Btree.split(node, key("d"));
 		assertThat(split.left, is(node));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
 		assertThat((BtreeNode) split.key.childRef(), is(leaf("d")));
@@ -234,7 +234,7 @@ public class BtreeNodeTest {
 	@Test
 	public void split_with_key_in_left() {
 		BtreeNode node = leaf("a", "c", "e", "g");
-		Btree2.Split split = Btree2.split(node, key("b"));
+		Btree.Split split = Btree.split(node, key("b"));
 		assertThat(split.left, is(leaf("a", "b", "c")));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
 		assertThat((BtreeNode) split.key.childRef(), is(leaf("e", "g")));
@@ -243,7 +243,7 @@ public class BtreeNodeTest {
 	@Test
 	public void split_with_key_in_right() {
 		BtreeNode node = leaf("a", "c", "e", "g");
-		Btree2.Split split = Btree2.split(node, key("f"));
+		Btree.Split split = Btree.split(node, key("f"));
 		assertThat(split.left, is(leaf("a", "c")));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
 		assertThat((BtreeNode) split.key.childRef(), is(leaf("e", "f", "g")));
@@ -252,7 +252,7 @@ public class BtreeNodeTest {
 	@Test
 	public void split_tree_node() {
 		BtreeNode node = tree("a", "c", "e", "g");
-		Btree2.Split split = Btree2.split(node, key("f", 123, 456));
+		Btree.Split split = Btree.split(node, key("f", 123, 456));
 		assertThat(split.left, is(tree("a", "c")));
 		assertThat(split.key.toString(), is("['e',123,REF]"));
 		assertThat((BtreeNode) split.key.childRef(),
@@ -262,7 +262,7 @@ public class BtreeNodeTest {
 	@Test
 	public void split_between_leaf_duplicates() {
 		BtreeNode node = leaf(dup(1), dup(2), dup(4), dup(5));
-		Btree2.Split split = Btree2.split(node, dup(3));
+		Btree.Split split = Btree.split(node, dup(3));
 		assertThat(split.left, is(leaf(dup(1), dup(2), dup(3))));
 		assertThat(split.key.toString(), is("['dup',3,REF]"));
 		assertThat((BtreeNode) split.key.childRef(), is(leaf(dup(4), dup(5))));

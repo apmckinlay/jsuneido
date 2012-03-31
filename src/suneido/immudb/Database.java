@@ -20,9 +20,9 @@ import suneido.util.FileUtils;
 import com.google.common.base.Objects;
 
 @ThreadSafe
-class Database2 implements suneido.intfc.database.Database {
+class Database implements suneido.intfc.database.Database {
 	private static final int PERSIST_EVERY = 1000;
-	final Transactions2 trans = new Transactions2();
+	final Transactions trans = new Transactions();
 	final Storage dstor;
 	final Storage istor;
 	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
@@ -35,21 +35,21 @@ class Database2 implements suneido.intfc.database.Database {
 
 	// create
 
-	static Database2 create(String dbfilename) {
+	static Database create(String dbfilename) {
 		FileUtils.deleteIfExisting(dbfilename + "d");
 		FileUtils.deleteIfExisting(dbfilename + "i");
 		return create(new MmapFile(dbfilename + "d", "rw"),
 				new MmapFile(dbfilename + "i", "rw"));
 	}
 
-	static Database2 create(Storage dstor, Storage istor) {
-		Database2 db = new Database2(dstor, istor, DbHashTrie.empty(istor), new Tables());
+	static Database create(Storage dstor, Storage istor) {
+		Database db = new Database(dstor, istor, DbHashTrie.empty(istor), new Tables());
 		Bootstrap.create(db.exclusiveTran());
 		db.persist();
 		return db;
 	}
 
-	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema) {
+	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema) {
 		this.dstor = dstor;
 		this.istor = istor;
 		state = new State(dbinfo, null, 0, 0);
@@ -59,18 +59,18 @@ class Database2 implements suneido.intfc.database.Database {
 
 	// open
 
-	static Database2 open(String filename) {
+	static Database open(String filename) {
 		return open(new MmapFile(filename + "d", "rw"),
 				new MmapFile(filename + "i", "rw"));
 	}
 
-	static Database2 openReadonly(String filename) {
+	static Database openReadonly(String filename) {
 		return open(new MmapFile(filename + "d", "r"),
 				new MmapFile(filename + "i", "r"));
 	}
 
-	static Database2 open(Storage dstor, Storage istor) {
-		if (! new Check2(dstor, istor).fastcheck()) {
+	static Database open(Storage dstor, Storage istor) {
+		if (! new Check(dstor, istor).fastcheck()) {
 			dstor.close();
 			istor.close();
 			return null;
@@ -78,10 +78,10 @@ class Database2 implements suneido.intfc.database.Database {
 		return openWithoutCheck(dstor, istor);
 	}
 
-	static Database2 openWithoutCheck(Storage dstor, Storage istor) {
+	static Database openWithoutCheck(Storage dstor, Storage istor) {
 		DbHashTrie dbinfo = DbHashTrie.load(istor,
 				Persist.dbinfoadr(istor), new DbinfoLoader(istor));
-		return new Database2(dstor, istor, dbinfo);
+		return new Database(dstor, istor, dbinfo);
 	}
 
 	static class DbinfoLoader implements DbHashTrie.Translator {
@@ -104,20 +104,20 @@ class Database2 implements suneido.intfc.database.Database {
 
 	/** reopens with same Storage */
 	@Override
-	public Database2 reopen() {
+	public Database reopen() {
 		persist();
-		return Database2.open(dstor, istor);
+		return Database.open(dstor, istor);
 	}
 
 	/** used by tests */
 	@Override
 	public Status check() {
 		persist();
-		return DbCheck2.check(dstor, istor,
+		return DbCheck.check(dstor, istor,
 				suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
-	private Database2(Storage dstor, Storage istor, DbHashTrie dbinfo) {
+	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo) {
 		this(dstor, istor, dbinfo, null);
 	}
 
@@ -127,13 +127,13 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	@Override
-	public ReadTransaction2 readTransaction() {
+	public ReadTransaction readTransaction() {
 		int num = trans.nextNum(true);
-		return new ReadTransaction2(num, this);
+		return new ReadTransaction(num, this);
 	}
 
 	@Override
-	public UpdateTransaction2 updateTransaction() {
+	public UpdateTransaction updateTransaction() {
 		// MAYBE do this inside UpdateTransaction commit
 		// then you don't need Atomic
 		// and you already have commit lock
@@ -142,12 +142,12 @@ class Database2 implements suneido.intfc.database.Database {
 			persist();
 		}
 		int num = trans.nextNum(false);
-		return new UpdateTransaction2(num, this);
+		return new UpdateTransaction(num, this);
 	}
 
-	ExclusiveTransaction2 exclusiveTran() {
+	ExclusiveTransaction exclusiveTran() {
 		int num = trans.nextNum(false);
-		return new ExclusiveTransaction2(num, this);
+		return new ExclusiveTransaction(num, this);
 	}
 
 	@Override
@@ -177,7 +177,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public boolean dropTable(String tableName) {
 		checkForSystemTable(tableName, "drop");
-		ExclusiveTransaction2 t = exclusiveTran();
+		ExclusiveTransaction t = exclusiveTran();
 		try {
 			return TableBuilder.dropTable(t, tableName);
 		} finally {
@@ -188,7 +188,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public void renameTable(String from, String to) {
 		checkForSystemTable(from, "rename");
-		ExclusiveTransaction2 t = exclusiveTran();
+		ExclusiveTransaction t = exclusiveTran();
 		try {
 			TableBuilder.renameTable(t, from, to);
 		} finally {
@@ -199,7 +199,7 @@ class Database2 implements suneido.intfc.database.Database {
 	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
-		ExclusiveTransaction2 t = exclusiveTran();
+		ExclusiveTransaction t = exclusiveTran();
 		try {
 			if (null != Views.getView(t, name))
 				throw new RuntimeException("view: '" + name + "' already exists");
@@ -211,7 +211,7 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	String getView(String name) {
-		ReadTransaction2 t = readTransaction();
+		ReadTransaction t = readTransaction();
 		try {
 			return Views.getView(t, name);
 		} finally {
@@ -251,7 +251,7 @@ class Database2 implements suneido.intfc.database.Database {
 
 	@Override
 	public String getSchema(String tableName) {
-		ReadTransaction2 t = readTransaction();
+		ReadTransaction t = readTransaction();
 		try {
 			Table tbl = t.getTable(tableName);
 			return tbl == null ? null : tbl.schema();
@@ -290,7 +290,7 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	void callTrigger(
-			ReadTransaction2 t, Table table, Record oldrec, Record newrec) {
+			ReadTransaction t, Table table, Record oldrec, Record newrec) {
 		triggers.call(t, table, oldrec, newrec);
 	}
 
@@ -338,7 +338,7 @@ class Database2 implements suneido.intfc.database.Database {
 	}
 
 	void dump() {
-		Dump2.dump(dstor, istor);
+		Dump.dump(dstor, istor);
 	}
 
 }

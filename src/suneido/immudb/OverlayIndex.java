@@ -22,13 +22,13 @@ import com.google.common.collect.Lists;
  * The delete entries are used by UpdateTransaction updateBtrees
  */
 class OverlayIndex implements TranIndex {
-	private final Btree2 global;
-	private final Btree2 local;
+	private final Btree global;
+	private final Btree local;
 	/** a reference to the transaction deletes */
 	private final TIntHashSet deletes;
 	final ArrayList<Record> removedKeys = Lists.newArrayList();
 
-	OverlayIndex(Btree2 global, Btree2 local, TIntHashSet deletes) {
+	OverlayIndex(Btree global, Btree local, TIntHashSet deletes) {
 		this.global = global;
 		this.local = local;
 		this.deletes = deletes;
@@ -36,7 +36,7 @@ class OverlayIndex implements TranIndex {
 
 	@Override
 	public boolean add(Record key, boolean unique) {
-		if (unique && get(Btree2.withoutAddress(key)) != 0)
+		if (unique && get(Btree.withoutAddress(key)) != 0)
 			return false;
 		return local.add(key, false);
 	}
@@ -108,7 +108,7 @@ class OverlayIndex implements TranIndex {
 		throw new UnsupportedOperationException();
 	}
 
-	Btree2 local() {
+	Btree local() {
 		return local;
 	}
 
@@ -133,16 +133,16 @@ class OverlayIndex implements TranIndex {
 		Iter(TranIndex global, TranIndex local, TIntHashSet deletes) {
 			super(global.iterator(), local.iterator());
 			this.deletes = deletes;
-			from = DatabasePackage2.MIN_RECORD;
-			to = DatabasePackage2.MAX_RECORD;
+			from = DatabasePackage.MIN_RECORD;
+			to = DatabasePackage.MAX_RECORD;
 		}
 
 		/** for tests */
 		Iter(TranIndex.Iter iter1, TranIndex.Iter iter2, TIntHashSet deletes) {
 			super(iter1, iter2);
 			this.deletes = deletes;
-			from = DatabasePackage2.MIN_RECORD;
-			to = DatabasePackage2.MAX_RECORD;
+			from = DatabasePackage.MIN_RECORD;
+			to = DatabasePackage.MAX_RECORD;
 			ir = new IndexRange();
 		}
 

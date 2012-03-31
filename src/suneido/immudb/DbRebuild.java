@@ -14,7 +14,7 @@ import suneido.util.FileUtils;
 public class DbRebuild {
 
 	public static String rebuild(String dbFilename, String tempFilename) {
-		Check2 check = check(dbFilename);
+		Check check = check(dbFilename);
 		try {
 			fix(dbFilename, tempFilename, check.dOkSize, check.iOkSize);
 			return "Last commit " +
@@ -24,11 +24,11 @@ public class DbRebuild {
 		}
 	}
 
-	private static Check2 check(String dbFilename) {
+	private static Check check(String dbFilename) {
 		Storage dstor = new MmapFile(dbFilename + "d", "r");
 		Storage istor = new MmapFile(dbFilename + "i", "r");
 		try {
-			Check2 check = new Check2(dstor, istor);
+			Check check = new Check(dstor, istor);
 			check.fullcheck();
 			return check;
 		} finally {
@@ -49,7 +49,7 @@ public class DbRebuild {
 	}
 
 	public static void main(String[] args) {
-		DbTools.rebuildOrExit(DatabasePackage2.dbpkg, "immu.db");
+		DbTools.rebuildOrExit(DatabasePackage.dbpkg, "immu.db");
 	}
 
 }

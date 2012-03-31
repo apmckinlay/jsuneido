@@ -28,20 +28,20 @@ import com.google.common.primitives.Shorts;
  * Commit is single-threaded.
  */
 @ThreadConfined
-class UpdateTransaction2 extends ReadWriteTransaction {
+class UpdateTransaction extends ReadWriteTransaction {
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
 	private final TIntHashSet inserts = new TIntHashSet();
 	private final TIntHashSet deletes = new TIntHashSet();
 
-	UpdateTransaction2(int num, Database2 db) {
+	UpdateTransaction(int num, Database db) {
 		super(num, db);
 		asof = db.trans.clock();
 	}
 
 	@Override
-	protected void lock(Database2 db) {
+	protected void lock(Database db) {
 		assert ! locked;
 		db.exclusiveLock.readLock().lock();
 		locked = true;
@@ -55,13 +55,13 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected IndexedData2 indexedData2(int tblnum) {
+	protected IndexedData indexedData2(int tblnum) {
 		return super.indexedData2(tblnum).setDeletes(deletes);
 	}
 
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
-		return new OverlayIndex(new Btree2(tran, info), new Btree2(tran), deletes);
+		return new OverlayIndex(new Btree(tran, info), new Btree(tran), deletes);
 	}
 
 	// used by foreign key cascade
@@ -131,7 +131,7 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 		return commitTime != Long.MAX_VALUE;
 	}
 
-	boolean committedBefore(UpdateTransaction2 tran) {
+	boolean committedBefore(UpdateTransaction tran) {
 		return commitTime < tran.asof;
 	}
 
@@ -165,7 +165,7 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 			checkForConflicts();
 			Tran.StoreInfo info = storeData();
 			// use a read transaction to get access to global indexes
-			ReadTransaction2 t = db.readTransaction();
+			ReadTransaction t = db.readTransaction();
 			try {
 				updateBtrees(t);
 				updateDbInfo(t, info.cksum, info.adr);
@@ -178,8 +178,8 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 	}
 
 	private void checkForConflicts() {
-		Set<UpdateTransaction2> overlapping = trans.getOverlapping(asof);
-		for (UpdateTransaction2 t : overlapping) {
+		Set<UpdateTransaction> overlapping = trans.getOverlapping(asof);
+		for (UpdateTransaction t : overlapping) {
 			assert t != this;
 			TIntIterator iter = t.deletes.iterator();
 			while (iter.hasNext()) {
@@ -262,23 +262,23 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 
 	// update btrees -----------------------------------------------------------
 
-	private void updateBtrees(ReadTransaction2 t) {
+	private void updateBtrees(ReadTransaction t) {
 		//PERF update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
 			updateBtree(t, e);
 	}
 
-	private void updateBtree(ReadTransaction2 t, Entry<Index, TranIndex> e) {
+	private void updateBtree(ReadTransaction t, Entry<Index, TranIndex> e) {
 		Index index = e.getKey();
 		OverlayIndex oti = (OverlayIndex) e.getValue();
-		Btree2 global = (Btree2) t.getIndex(index);
+		Btree global = (Btree) t.getIndex(index);
 
 		boolean updated = ! oti.removedKeys.isEmpty();
 		for (Record key : oti.removedKeys)
 			global.remove(key);
 
-		Btree2 local = oti.local();
-		Btree2.Iter iter = local.iterator();
+		Btree local = oti.local();
+		Btree.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
 			if (false == global.add(translate(key), index.isKey, index.unique))
@@ -303,7 +303,7 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 
 	// update dbinfo -----------------------------------------------------------
 
-	private void updateDbInfo(ReadTransaction2 t, int cksum, int adr) {
+	private void updateDbInfo(ReadTransaction t, int cksum, int adr) {
 		dbinfo = db.state.dbinfo; // the latest
 		updateDbInfo(t.indexes);
 		assert dbstate.schema == db.state.schema;
@@ -321,15 +321,15 @@ class UpdateTransaction2 extends ReadWriteTransaction {
 	}
 
 	// needed for PriorityQueue's in Transactions
-	static final Comparator<UpdateTransaction2> byCommit = new Comparator<UpdateTransaction2>() {
+	static final Comparator<UpdateTransaction> byCommit = new Comparator<UpdateTransaction>() {
 		@Override
-		public int compare(UpdateTransaction2 t1, UpdateTransaction2 t2) {
+		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
 			return Longs.compare(t1.commitTime, t2.commitTime);
 		}
 	};
-	static final Comparator<UpdateTransaction2> byAsof = new Comparator<UpdateTransaction2>() {
+	static final Comparator<UpdateTransaction> byAsof = new Comparator<UpdateTransaction>() {
 		@Override
-		public int compare(UpdateTransaction2 t1, UpdateTransaction2 t2) {
+		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
 			return Longs.compare(t1.asof, t2.asof);
 		}
 	};

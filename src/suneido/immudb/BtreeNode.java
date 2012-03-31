@@ -147,7 +147,7 @@ abstract class BtreeNode implements Storable {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0)
-				Btree2.childNode(stor, level - 1, slot).print2(w, stor);
+				Btree.childNode(stor, level - 1, slot).print2(w, stor);
 		}
 	}
 
@@ -171,11 +171,11 @@ abstract class BtreeNode implements Storable {
 		assert to == null || to.compareTo(get(size() - 1)) > 0;
 		int nnodes = 1;
 		to = 1 < size() ? get(1) : null;
-		nnodes += Btree2.childNode(tran.istor, level - 1, get(0)).check2(tran, from, to);
+		nnodes += Btree.childNode(tran.istor, level - 1, get(0)).check2(tran, from, to);
 		for (int i = 1; i < size(); ++i) {
 			from = get(i);
 			to = i + 1 < size() ? get(i + 1) : null;
-			nnodes += Btree2.childNode(tran.istor, level - 1, from).check2(tran, from, to);
+			nnodes += Btree.childNode(tran.istor, level - 1, from).check2(tran, from, to);
 		}
 		return nnodes;
 	}
