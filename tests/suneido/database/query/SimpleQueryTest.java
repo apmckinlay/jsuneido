@@ -36,7 +36,7 @@ public class SimpleQueryTest {
 	public static Collection<Object[]> generateParams() {
 		return ImmutableList.of(
 				new Object[] { suneido.database.DatabasePackage.dbpkg },
-				new Object[] { suneido.immudb.DatabasePackage.dbpkg });
+				new Object[] { suneido.immudb.DatabasePackage2.dbpkg });
 	}
 
 	public SimpleQueryTest(DatabasePackage dbpkg) {

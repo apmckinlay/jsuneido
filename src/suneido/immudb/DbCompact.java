@@ -60,7 +60,7 @@ class DbCompact {
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (! Database.isSystemTable(tablename))
+			if (! Database2.isSystemTable(tablename))
 				createTable(tablename);
 		}
 	}
@@ -77,7 +77,7 @@ class DbCompact {
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record r = rt.input(iter.keyadr());
 			String tablename = r.getString(Table.TABLE);
-			if (! Database.isSystemTable(tablename)) {
+			if (! Database2.isSystemTable(tablename)) {
 				copyTable(tablename);
 				++n;
 			}
@@ -128,7 +128,7 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		DbTools.compactPrintExit(DatabasePackage.dbpkg, "immu.db");
+		DbTools.compactPrintExit(DatabasePackage2.dbpkg, "immu.db");
 	}
 
 }

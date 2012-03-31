@@ -66,11 +66,6 @@ public class BtreeMemNode extends BtreeNode {
 		this.added = added;
 	}
 
-	static BtreeNode newRoot(BtreeSplit split) {
-		Record minkey = minimalKey(split.key.size(), split.left);
-		return BtreeMemNode.from(split.level + 1, minkey, split.key);
-	}
-
 	@Override
 	BtreeMemNode with(Record key) {
 		if (immutable)
@@ -210,23 +205,6 @@ public class BtreeMemNode extends BtreeNode {
 	// store -------------------------------------------------------------------
 
 	@Override
-	int store(Tran tran) {
-		translate(tran);
-		int adr = tran.stor.alloc(length());
-		ByteBuffer buf = tran.stor.buffer(adr);
-		pack(buf);
-		return adr;
-	}
-
-	private void translate(Tran tran) {
-		for (int i = 0; i < size(); ++i) {
-			int j = index.get(i);
-			if (j < 0)
-				added.set(-j - 1, translate(tran, added.get(-j - 1)));
-		}
-	}
-
-	@Override
 	int store2(Storage stor) {
 		translate2(stor);
 		int adr = stor.alloc(length());
@@ -277,55 +255,6 @@ public class BtreeMemNode extends BtreeNode {
 			for (int j = 0; j < len; ++j)
 				buf.put(src.get(off + j));
 		}
-	}
-
-	private Record translate(Tran tran, Record rec) {
-		boolean translate = false;
-
-		int dref = dataref(rec);
-		if (dref != 0) {
-			dref = tran.redir(dref);
-			if (IntRefs.isIntRef(dref)) {
-				dref = tran.getAdr(dref);
-				assert dref != 0;
-				translate = true;
-			}
-		}
-
-		int adr = 0;
-		if (level > 0) {
-			int adr1 = adr = adr(rec);
-			if (! IntRefs.isIntRef(adr1))
-				adr = tran.redir(adr1);
-			if (IntRefs.isIntRef(adr))
-				adr = tran.getAdr(adr);
-			assert adr != 0;
-			assert ! IntRefs.isIntRef(adr) : "adr " + adr1 + " => " + (adr & 0xffffffffL);
-			if (adr1 != adr)
-				translate = true;
-			//TODO if redirections are unique then we can remove this one
-		}
-
-		if (! translate)
-			return rec;
-
-		int prefix = rec.size() - (level > 0 ? 2 : 1);
-		RecordBuilder rb = new RecordBuilder().addPrefix(rec, prefix);
-		if (dref == 0)
-			rb.add("");
-		else
-			rb.adduint(dref);
-		if (level > 0)
-			rb.adduint(adr);
-		return rb.build();
-	}
-
-	private int dataref(Record rec) {
-		int size = rec.size();
-		int i = size - (level > 0 ? 2 : 1);
-		if (rec.fieldLength(i) == 0)
-			return 0;
-		return (int) rec.getLong(i);
 	}
 
 	@Override

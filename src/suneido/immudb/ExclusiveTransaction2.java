@@ -21,7 +21,7 @@ import com.google.common.primitives.Shorts;
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-public class ExclusiveTransaction2 extends ReadWriteTransaction
+class ExclusiveTransaction2 extends ReadWriteTransaction
 		implements ImmuExclTran {
 	private boolean data_committed = false;
 	private Tran.StoreInfo storeInfo = null;
@@ -50,14 +50,14 @@ onlyReads = false; //TODO remove this once we handle aborts
 	@Override
 	public void addRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
-		rec.address = rec.store(tran.stor);
+		rec.address = rec.store(tran.dstor);
 		super.addRecord(tblnum, rec);
 	}
 
 	@Override
 	public int updateRecord(int tblnum, Record from, Record to) {
 		to.tblnum = tblnum;
-		to.address = to.store(tran.stor);
+		to.address = to.store(tran.dstor);
 		return super.updateRecord(tblnum, from, to);
 	}
 
@@ -114,7 +114,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	@Override
 	public int loadRecord(int tblnum, Record rec) {
 		rec.tblnum = tblnum;
-		rec.address = rec.store(tran.stor);
+		rec.address = rec.store(tran.dstor);
 		updateRowInfo(tblnum, 1, rec.bufSize());
 		return rec.address;
 	}
@@ -136,7 +136,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	@Override
 	public StoredRecordIterator storedRecordIterator(int first, int last) {
-		return new StoredRecordIterator(tran.stor, first, last);
+		return new StoredRecordIterator(tran.dstor, first, last);
 	}
 
 	@Override
@@ -156,7 +156,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	private void storeData() {
 		// not required since we are storing as we go
 		// just output an empty deletes section
-		ByteBuffer buf = tran.stor.buffer(tran.stor.alloc(Shorts.BYTES + Ints.BYTES));
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort((short) 0xffff); // mark start of removes
 		buf.putInt(0); // mark end of removes
 		storeInfo = tran.endStore();
@@ -183,6 +183,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	public void abort() {
 		if (! data_committed)
 			storeData();
+		db.setState(dbinfo, schema, storeInfo.cksum, storeInfo.adr);
 		// else
 			//TODO prevent output from being seen by rebuild
 		super.abort();

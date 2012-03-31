@@ -26,7 +26,7 @@ public class DbDump {
 			for (iter.next(); ! iter.eof(); iter.next()) {
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
-				if (Database.isSystemTable(tablename))
+				if (Database2.isSystemTable(tablename))
 					continue;
 				dump1(out, t, tablename, true);
 				++n;
@@ -121,7 +121,7 @@ public class DbDump {
 	}
 
 	public static void main(String[] args) {
-		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immudb.db", "immudb.su");
+		DbTools.dumpDatabasePrint(DatabasePackage2.dbpkg, "immudb.db", "immudb.su");
 //		dumpTablePrint("test");
 	}
 

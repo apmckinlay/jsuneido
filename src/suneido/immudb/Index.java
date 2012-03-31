@@ -10,7 +10,7 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.IndexedData.Mode;
+import suneido.immudb.IndexedData2.Mode;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;

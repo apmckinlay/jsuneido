@@ -17,21 +17,21 @@ import static org.mockito.Mockito.*;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import suneido.immudb.IndexedData.Mode;
+import suneido.immudb.IndexedData2.Mode;
 
 public class IndexedDataTest {
-	Btree btree1 = mockBtree();
-	Btree btree2 = mockBtree();
-	Btree btree3 = mockBtree();
-	Btree btree4 = mockBtree();
+	Btree2 btree1 = mockBtree();
+	Btree2 btree2 = mockBtree();
+	Btree2 btree3 = mockBtree();
+	Btree2 btree4 = mockBtree();
 	RuntimeException e = new RuntimeException("aborted");
-	UpdateTransaction t = mock(UpdateTransaction.class);
+	UpdateTransaction2 t = mock(UpdateTransaction2.class);
 	{
 		Tran tran = mock(Tran.class);
 		when(t.tran()).thenReturn(tran);
 		doThrow(e).when(t).abortThrow(anyString());
 	}
-	IndexedData id = new IndexedData(t)
+	IndexedData2 id = new IndexedData2(t)
 		.index(btree1, Mode.KEY, 0)
 		.index(btree2, Mode.DUPS, 2)
 		.index(btree3, Mode.UNIQUE, 1, 2)
@@ -85,8 +85,8 @@ public class IndexedDataTest {
 		verify(btree4, never()).remove(any(Record.class));
 	}
 
-	private static Btree mockBtree() {
-		Btree btree1 = mock(Btree.class);
+	private static Btree2 mockBtree() {
+		Btree2 btree1 = mock(Btree2.class);
 		when(btree1.add(any(Record.class), anyBoolean())).thenReturn(true);
 		return btree1;
 	}

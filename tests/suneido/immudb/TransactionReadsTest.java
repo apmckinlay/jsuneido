@@ -30,7 +30,7 @@ public class TransactionReadsTest {
 		add(123, 456);
 		assertEquals("[[[123]..[456]]]", str());
 
-		trs.add(new IndexRange(DatabasePackage.MIN_RECORD, DatabasePackage.MAX_RECORD));
+		trs.add(new IndexRange(DatabasePackage2.MIN_RECORD, DatabasePackage2.MAX_RECORD));
 		trs.build();
 		assert trs.contains(rec(1));
 	}

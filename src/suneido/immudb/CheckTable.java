@@ -58,7 +58,7 @@ class CheckTable implements Callable<String> {
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;
-				Record reckey = IndexedData.key(rec, index.colNums, adr);
+				Record reckey = IndexedData2.key(rec, index.colNums, adr);
 				if (! key.equals(reckey)) {
 					details += tablename + ": key mismatch in " + index + "\n";
 					return false;
@@ -97,7 +97,7 @@ class CheckTable implements Callable<String> {
 	}
 
 	private static boolean isUnique(Index index, Record key) {
-		return index.isKey() || (index.unique && ! IndexedData.isEmptyKey(key));
+		return index.isKey() || (index.unique && ! IndexedData2.isEmptyKey(key));
 	}
 
 	private boolean checkRecord(String tablename, Record rec) {
