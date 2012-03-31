@@ -5,9 +5,8 @@
 package suneido.immudb;
 
 import static suneido.immudb.BtreeNode.adr;
-import static suneido.immudb.DatabasePackage.MAX_RECORD;
-import static suneido.immudb.DatabasePackage.MIN_RECORD;
-import gnu.trove.list.array.TLongArrayList;
+import static suneido.immudb.DatabasePackage2.MAX_RECORD;
+import static suneido.immudb.DatabasePackage2.MIN_RECORD;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -239,7 +238,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	/** used to return the results of a split */
-	private static class Split {
+	static class Split {
 		final BtreeNode left;
 		final Record key; // new value to go in parent, points to right half
 
@@ -595,31 +594,6 @@ class Btree2 implements TranIndex, Cloneable {
 
 	int treeLevels() {
 		return treeLevels;
-	}
-
-	static void store(Tran tran) {
-		// need to store BtreeNodes bottom up
-		// sort by level without allocation
-		// by packing level and intref into a long
-		IntRefs intrefs = tran.intrefs;
-		TLongArrayList a = new TLongArrayList();
-		int i = 0;
-		for (Object x : intrefs) {
-			if (x instanceof BtreeNode) {
-				BtreeNode node = (BtreeNode) x;
-				a.add(((long) node.level << 32) | i);
-			}
-			++i;
-		}
-		a.sort();
-		for (i = 0; i < a.size(); ++i) {
-			long n = a.get(i);
-			int intref = (int) n | IntRefs.MASK;
-			BtreeNode node = (BtreeNode) intrefs.intToRef(intref);
-			int adr = node.store(tran);
-			if (adr != 0)
-				tran.setAdr(intref, adr);
-		}
 	}
 
 	@Override

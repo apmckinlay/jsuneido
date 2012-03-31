@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 public class Btree2Test {
 	private final Storage stor = new MemStorage(1024, 64);
 	private Random rand = new Random(123456);
-	private final Tran tran = new Tran(stor);
+	private final Tran tran = new Tran(stor, null);
 	private Btree2 btree = new Btree4(tran);
 	private List<Record> keys = Lists.newArrayList();
 	private int NKEYS = 100;

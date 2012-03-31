@@ -9,7 +9,9 @@ import static suneido.immudb.ChunkedStorage.align;
 import java.nio.ByteBuffer;
 
 import suneido.immudb.DbHashTrie.Entry;
-import suneido.immudb.UpdateDbInfo.DbInfoStorer;
+import suneido.immudb.DbHashTrie.IntEntry;
+import suneido.immudb.DbHashTrie.StoredIntEntry;
+import suneido.immudb.DbHashTrie.Translator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
@@ -109,6 +111,25 @@ public class Persist {
 
 	private int storeDbinfo() {
 		return newdbinfo.store(istor, new DbInfoStorer(istor));
+	}
+
+	static class DbInfoStorer implements Translator {
+		final Storage stor;
+
+		public DbInfoStorer(Storage stor) {
+			this.stor = stor;
+		}
+
+		@Override
+		public Entry translate(Entry entry) {
+			if (entry instanceof TableInfo) {
+				((TableInfo) entry).store(stor);
+				return entry;
+			} else {
+				IntEntry ie = (IntEntry) entry;
+				return new StoredIntEntry(ie.key, ie.value);
+			}
+		}
 	}
 
 	void finish() {

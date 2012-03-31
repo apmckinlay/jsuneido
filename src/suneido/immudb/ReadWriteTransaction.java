@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.IndexedData.Mode;
+import suneido.immudb.IndexedData2.Mode;
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.collect.ImmutableList;

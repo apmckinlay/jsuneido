@@ -15,15 +15,16 @@ public class BootstrapTest {
 
 	@Test
 	public void test() {
-		MemStorage stor = new MemStorage(500, 100);
-		Database db = Database.create(stor);
+		MemStorage dstor = new MemStorage(500, 100);
+		MemStorage istor = new MemStorage(500, 100);
+		Database2 db = Database2.create(dstor, istor);
 		check(db);
 
-		db = Database.open(stor);
+		db = Database2.open(dstor, istor);
 		check(db);
 	}
 
-	private static void check(Database db) {
+	private static void check(Database2 db) {
 		assertThat(db.getSchema("tables"),
 				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.getSchema("columns"),
@@ -34,10 +35,10 @@ public class BootstrapTest {
 		assertThat(db.getSchema("views"),
 				is("(view_name,view_definition) key(view_name)"));
 
-		ReadDbInfo dbinfo = new ReadDbInfo(db.getDbinfo());
-		assertThat(dbinfo.get(TN.TABLES).nrows(), is(4));
-		assertThat(dbinfo.get(TN.COLUMNS).nrows(), is(13));
-		assertThat(dbinfo.get(TN.INDEXES).nrows(), is(5));
+		DbHashTrie dbinfo = db.state.dbinfo;
+		assertThat(((TableInfo) dbinfo.get(TN.TABLES)).nrows(), is(4));
+		assertThat(((TableInfo) dbinfo.get(TN.COLUMNS)).nrows(), is(13));
+		assertThat(((TableInfo) dbinfo.get(TN.INDEXES)).nrows(), is(5));
 
 		assertThat(new CheckTable(db, "tables").call(), is(""));
 		assertThat(new CheckTable(db, "columns").call(), is(""));

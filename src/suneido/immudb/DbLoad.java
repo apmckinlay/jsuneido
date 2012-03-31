@@ -127,7 +127,7 @@ class DbLoad {
 		while (iter.hasNext()) {
 			int adr = iter.nextAdr();
 			Record rec = iter.next();
-			Record key = IndexedData.key(rec, index.colNums, adr);
+			Record key = IndexedData2.key(rec, index.colNums, adr);
 			btree.add(key, false);
 		}
 		t.saveBtrees();

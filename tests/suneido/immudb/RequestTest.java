@@ -19,20 +19,20 @@ import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.DatabasePackage;
-import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.Transaction;
 
 public class RequestTest {
 	private DatabasePackage save_dbpkg;
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
 	private static final ServerData serverData = new ServerData();
-	MemStorage stor = new MemStorage(1000, 100);
-	Database db = Database.create(stor);
+	MemStorage dstor = new MemStorage(1000, 100);
+	MemStorage istor = new MemStorage(1000, 100);
+	Database2 db = Database2.create(dstor, istor);
 
 	@Before
 	public void setup() {
 		save_dbpkg = Suneido.dbpkg;
-		Suneido.dbpkg = suneido.immudb.DatabasePackage.dbpkg;
+		Suneido.dbpkg = suneido.immudb.DatabasePackage2.dbpkg;
 	}
 
 	@After
@@ -253,7 +253,7 @@ public class RequestTest {
 	@Test
 	public void ensure_readonly() {
 		req("ensure tbl " + SCHEMA);
-		ExclusiveTransaction t = db.exclusiveTran();
+		ExclusiveTransaction2 t = db.exclusiveTran();
 		req("ensure tbl " + SCHEMA);
 		t.abort();
 	}
@@ -281,7 +281,7 @@ public class RequestTest {
 
 	@After
 	public void check() {
-		assertThat(DbCheck.check(stor), is(Status.OK));
+//		assertThat(db.check(), is(Status.OK));
 	}
 
 	private void req(String request) {

@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.SuException;
-import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.Fkmode;
 
 /**
  * Coordinates data records and the btrees that index them.
  */
 class IndexedData2 {
+	enum Mode { KEY, UNIQUE, DUPS };
 	private final ReadWriteTransaction t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
@@ -168,7 +168,7 @@ class IndexedData2 {
 			this.columns = columns;
 		}
 
-		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
+		Btree2.Update update(Record from, int fromAdr, Record to, int toAdr) {
 			Record fromKey = key(from, fields, fromAdr);
 			Record toKey = key(to, fields, toAdr);
 			boolean unique = (mode == Mode.KEY ||

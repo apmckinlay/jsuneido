@@ -85,7 +85,6 @@ abstract class BtreeNode implements Storable {
 
 	abstract Record get(int i);
 
-	abstract int store(Tran tran);
 	abstract int store2(Storage stor);
 
 	Record find(Record key) {
@@ -117,62 +116,6 @@ abstract class BtreeNode implements Storable {
 		return get(middle).compareTo(key);
 	}
 
-	/*
-	 * e.g. this node has 10 keys
-	 * mid = 5
-	 * splitKey is node[4]
-	 * if keyPos is 0 to 4, key goes in left
-	 * if keyPos is 5 to 9, key goes in right
-	 */
-	/**
-	 * @param key The key being added
-	 * @param adr Address of this node
-	 *
-	 * @return a Split containing the key to be inserted into the parent
-	 */
-	BtreeSplit split(Tran tran, Record key, int adr) {
-		BtreeNode left;
-		BtreeNode right;
-		int keyPos = lowerBound(key);
-		if (keyPos == size()) {
-			// key is at end of node, just make new node
-			left = this;
-			right = BtreeMemNode.from(level, key);
-		} else {
-			int mid = size() / 2;
-			right = slice(mid, size());
-			left = without(mid, size());
-			if (keyPos <= mid)
-				left = left.with(key);
-			else
-				right = right.with(key);
-			tran.redir(adr, left);
-		}
-		Record splitKey = isLeaf() ? left.last() : right.first();
-		boolean max = splitMaxAdr(left.last(), right.first());
-		if (isTree())
-			right.minimizeLeftMost();
-		int splitKeySize = splitKey.size();
-		if (isTree())
-			--splitKeySize;
-		int rightAdr = tran.refToInt(right);
-		/*
-		 * if unique, set splitKey data address to MAXADR
-		 * so that if only data address changes, key will stay in same node
-		 * this simplifies add duplicate check and allows optimized update
-		 */
-		splitKey = max
-			? new RecordBuilder().addPrefix(splitKey, splitKeySize - 1)
-					.adduint(IntRefs.MAXADR).adduint(rightAdr).build()
-			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
-					.adduint(rightAdr).build();
-		return new BtreeSplit(level, adr, splitKey);
-	}
-
-	private boolean splitMaxAdr(Record last, Record first) {
-		return isLeaf() && ! last.prefixEquals(first, first.size() - 1);
-	}
-
 	Record first() {
 		return get(0);
 	}
@@ -197,19 +140,6 @@ abstract class BtreeNode implements Storable {
 		return sb.toString();
 	}
 
-	void print(Writer w, Tran tran, int at) throws IOException {
-		String indent = Strings.repeat("     ", level);
-		w.append(indent).append("NODE @ " + (at & 0xffffffffL) + "\n");
-		for (int i = 0; i < size(); ++i) {
-			Record slot = get(i);
-			w.append(indent).append(slot.toString()).append("\n");
-			if (level > 0) {
-				int adr = ((Number) slot.get(slot.size() - 1)).intValue();
-				Btree.nodeAt(tran, level - 1, adr).print(w, tran, adr);
-			}
-		}
-	}
-
 	void print2(Writer w, Storage stor) throws IOException {
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append(printName() + " level " + level + "\n");
@@ -222,31 +152,6 @@ abstract class BtreeNode implements Storable {
 	}
 
 	abstract String printName();
-
-	/** returns the number of nodes processed */
-	int check(Tran tran, Record key) {
-		for (int i = 1; i < size(); ++i)
-			assert get(i - 1).compareTo(get(i)) < 0;
-		if (isLeaf()) {
-			if (! isEmpty()) {
-				key = new RecordBuilder().addPrefix(key, key.size() - 1).build();
-				assert key.compareTo(get(0)) <= 0 : "first " + get(0) + " NOT >= key " + key;
-			}
-			return 1;
-		}
-		assert isMinimalKey(get(0)) : "minimal";
-		if (size() > 1)
-			assert key.compareTo(get(1)) <= 0;
-		int adr = adr(get(0));
-		int nnodes = 1;
-		nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key);
-		for (int i = 1; i < size(); ++i) {
-			Record key2 = get(i);
-			adr = adr(key2);
-			nnodes += Btree.nodeAt(tran, level - 1, adr).check(tran, key2);
-		}
-		return nnodes;
-	}
 
 	/** returns the number of nodes processed */
 	int check2(Tran tran, Record from, Record to) {

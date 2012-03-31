@@ -19,7 +19,7 @@ class DataRecords {
 				continue;
 			int intref = i | IntRefs.MASK;
 			assert (Record) tran.intToRef(intref) == x;
-			tran.setAdr(intref, ((Record) x).store(tran.stor));
+			tran.setAdr(intref, ((Record) x).store(tran.dstor));
 		}
 	}
 

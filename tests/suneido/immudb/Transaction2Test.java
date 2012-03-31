@@ -11,8 +11,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.Test;
 
+import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
@@ -23,9 +25,54 @@ public class Transaction2Test {
 
 	@Test
 	public void create() {
-		//DumpData.dump(stor);
 		Persist.persist(db);
 		db.checkTransEmpty();
+	}
+
+	@Test
+	public void check_empty_commit() {
+		UpdateTransaction2 t = db.updateTransaction();
+		t.onlyReads = false; // force commit output
+		t.commit();
+	}
+
+	@Test
+	public void check_one_add() {
+		make_tmp();
+		UpdateTransaction2 t = db.updateTransaction();
+		t.addRecord("tmp", rec(123, "foo"));
+		t.commit();
+	}
+
+	@Test
+	public void check_multiple_commits() {
+		make_tmp();
+		UpdateTransaction2 t = db.updateTransaction();
+		t.addRecord("tmp", rec(123, "foo"));
+		t.commit();
+		t = db.updateTransaction();
+		t.addRecord("tmp", rec(456, "bar"));
+		t.commit();
+	}
+
+	@Test
+	public void lookup() {
+		Database2 db = DatabasePackage2.dbpkg.testdb();
+		Transaction t = db.readTransaction();
+		Record key = new RecordBuilder().add("indexes").build();
+		Record r = (Record) t.lookup(1, "tablename", key);
+		assertThat(r.getString(1), is("indexes"));
+
+		key = new RecordBuilder().add("fred").build();
+		r = (Record) t.lookup(1, "tablename", key);
+		assertNull(r);
+	}
+
+	@Test
+	public void exclusive_abort() {
+		Database2 db = DatabasePackage2.dbpkg.testdb();
+		db.exclusiveTran().abort();
+		assertThat(db.check(), is(Status.OK));
 	}
 
 	@Test
@@ -264,6 +311,11 @@ public class Transaction2Test {
 		t2.ck_complete();
 
 		assertThat(t1.complete(), containsString("read conflict"));
+	}
+
+	@After
+	public void check() {
+		db.check();
 	}
 
 	private void make_tmp() {
