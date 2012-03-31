@@ -9,33 +9,33 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /** singleton */
-public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage {
-	public static final DatabasePackage2 dbpkg = new DatabasePackage2();
+public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
+	public static final DatabasePackage dbpkg = new DatabasePackage();
 	static final String DB_FILENAME = "immu2.db";
 	static final Record MIN_RECORD = new RecordBuilder().build();
 	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
 
-	private DatabasePackage2() {
+	private DatabasePackage() {
 	}
 
 	@Override
-	public Database2 create(String filename) {
-		return Database2.create(filename);
+	public Database create(String filename) {
+		return Database.create(filename);
 	}
 
 	@Override
-	public Database2 open(String filename) {
-		return Database2.open(filename);
+	public Database open(String filename) {
+		return Database.open(filename);
 	}
 
 	@Override
-	public Database2 openReadonly(String filename) {
-		return Database2.openReadonly(filename);
+	public Database openReadonly(String filename) {
+		return Database.openReadonly(filename);
 	}
 
 	@Override
-	public Database2 testdb() {
-		return Database2.create(new MemStorage(1024, 1024), new MemStorage(1024, 1024));
+	public Database testdb() {
+		return Database.create(new MemStorage(1024, 1024), new MemStorage(1024, 1024));
 	}
 
 	@Override
@@ -55,35 +55,35 @@ public class DatabasePackage2 implements suneido.intfc.database.DatabasePackage 
 
 	@Override
 	public Status check(String dbFilename, Observer ob) {
-		return DbCheck2.check(dbFilename, ob);
+		return DbCheck.check(dbFilename, ob);
 	}
 
 	@Override
 	public int dumpDatabase(suneido.intfc.database.Database db, WritableByteChannel out) {
-		return DbDump.dumpDatabase((Database2) db, out);
+		return DbDump.dumpDatabase((Database) db, out);
 	}
 
 	@Override
 	public int dumpTable(suneido.intfc.database.Database db, String tablename,
 			WritableByteChannel out) {
-		return DbDump.dumpTable((Database2) db, tablename, out);
+		return DbDump.dumpTable((Database) db, tablename, out);
 	}
 
 	@Override
 	public int loadDatabase(suneido.intfc.database.Database db, ReadableByteChannel in) {
-		return DbLoad.loadDatabase((Database2) db, in);
+		return DbLoad.loadDatabase((Database) db, in);
 	}
 
 	@Override
 	public int loadTable(suneido.intfc.database.Database db, String tablename,
 			ReadableByteChannel in) {
-		return DbLoad.loadTable((Database2) db, tablename, in);
+		return DbLoad.loadTable((Database) db, tablename, in);
 	}
 
 	@Override
 	public int compact(suneido.intfc.database.Database srcdb,
 			suneido.intfc.database.Database dstdb) {
-		return DbCompact.compact((Database2) srcdb, (Database2) dstdb);
+		return DbCompact.compact((Database) srcdb, (Database) dstdb);
 	}
 
 	@Override

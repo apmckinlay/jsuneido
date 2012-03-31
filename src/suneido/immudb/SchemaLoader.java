@@ -17,14 +17,14 @@ import com.google.common.collect.Lists;
  * Used by Database.open
  */
 class SchemaLoader {
-	private final ReadTransaction2 t;
+	private final ReadTransaction t;
 
-	static Tables load(ReadTransaction2 t) {
+	static Tables load(ReadTransaction t) {
 		SchemaLoader sl = new SchemaLoader(t);
 		return sl.load();
 	}
 
-	private SchemaLoader(ReadTransaction2 t) {
+	private SchemaLoader(ReadTransaction t) {
 		this.t = t;
 	}
 

@@ -18,10 +18,10 @@ import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
-public class Transaction2Test {
+public class TransactionTest {
 	private final Storage stor = new MemStorage(64, 1024);
 	private final Storage istor = new MemStorage(1024, 1024);
-	private Database2 db = Database2.create(stor, istor);
+	private Database db = Database.create(stor, istor);
 
 	@Test
 	public void create() {
@@ -31,7 +31,7 @@ public class Transaction2Test {
 
 	@Test
 	public void check_empty_commit() {
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		t.onlyReads = false; // force commit output
 		t.commit();
 	}
@@ -39,7 +39,7 @@ public class Transaction2Test {
 	@Test
 	public void check_one_add() {
 		make_tmp();
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.commit();
 	}
@@ -47,7 +47,7 @@ public class Transaction2Test {
 	@Test
 	public void check_multiple_commits() {
 		make_tmp();
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.commit();
 		t = db.updateTransaction();
@@ -57,7 +57,7 @@ public class Transaction2Test {
 
 	@Test
 	public void lookup() {
-		Database2 db = DatabasePackage2.dbpkg.testdb();
+		Database db = DatabasePackage.dbpkg.testdb();
 		Transaction t = db.readTransaction();
 		Record key = new RecordBuilder().add("indexes").build();
 		Record r = (Record) t.lookup(1, "tablename", key);
@@ -70,7 +70,7 @@ public class Transaction2Test {
 
 	@Test
 	public void exclusive_abort() {
-		Database2 db = DatabasePackage2.dbpkg.testdb();
+		Database db = DatabasePackage.dbpkg.testdb();
 		db.exclusiveTran().abort();
 		assertThat(db.check(), is(Status.OK));
 	}
@@ -85,7 +85,7 @@ public class Transaction2Test {
 		db.checkTransEmpty();
 		db.close();
 	}
-	private static void check(ReadTransaction2 t) {
+	private static void check(ReadTransaction t) {
 		Record[] recs = { rec(1, "tables"), rec(2, "columns"), rec(3, "indexes"),
 				rec(4, "views") };
 		check(t, Bootstrap.TN.TABLES, recs);
@@ -95,7 +95,7 @@ public class Transaction2Test {
 	public void add_remove() {
 		make_tmp();
 
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		int tblnum = t.getTable("tmp").num;
 		assertThat(t.tableCount(tblnum), is(0));
 		assertThat(t.tableSize(tblnum), is(0L));
@@ -110,7 +110,7 @@ public class Transaction2Test {
 		db = db.reopen();
 		check(db.readTransaction(), "tmp", rec(123, "foo"));
 
-		ReadTransaction2 rt = db.readTransaction();
+		ReadTransaction rt = db.readTransaction();
 		assertThat(rt.tableCount(tblnum), is(1));
 		assertThat(rt.tableSize(tblnum), is(15L));
 		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
@@ -172,7 +172,7 @@ public class Transaction2Test {
 	public void test_duplicates() {
 		make_tmp();
 
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		t.addRecord("tmp", rec(123, "foo"));
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // within same transaction
@@ -192,7 +192,7 @@ public class Transaction2Test {
 		t.ck_complete();
 
 		t = db.updateTransaction();
-		UpdateTransaction2 t2 = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
 		t.addRecord("tmp", rec(456, "foo"));
 		t2.addRecord("tmp", rec(456, "bar"));
 		t.ck_complete();
@@ -203,7 +203,7 @@ public class Transaction2Test {
 	public void test_duplicates_exclusive() {
 		make_tmp();
 
-		ExclusiveTransaction2 t = db.exclusiveTran();
+		ExclusiveTransaction t = db.exclusiveTran();
 		t.addRecord("tmp", rec(123, "foo"));
 		try {
 			t.addRecord("tmp", rec(123, "bar")); // within same transaction
@@ -233,13 +233,13 @@ public class Transaction2Test {
 	public void test_delete_visibility() {
 		make_tmp();
 
-		UpdateTransaction2 t = db.updateTransaction();
+		UpdateTransaction t = db.updateTransaction();
 		int tmp = t.getTable("tmp").num();
 		t.addRecord("tmp", rec(123, "foo"));
 		t.ck_complete();
 
-		UpdateTransaction2 t1 = db.updateTransaction();
-		UpdateTransaction2 t2 = db.updateTransaction();
+		UpdateTransaction t1 = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
 		assertThat(t2.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
@@ -285,11 +285,11 @@ public class Transaction2Test {
 		t.addRecord("tmp", rec(123, "foo"));
 		t.ck_complete(); t = null;
 
-		UpdateTransaction2 t1 = db.updateTransaction();
+		UpdateTransaction t1 = db.updateTransaction();
 		t1.onlyReads = false;
 		assertThat(t1.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
 
-		UpdateTransaction2 t2 = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t2.ck_complete();
 
@@ -301,12 +301,12 @@ public class Transaction2Test {
 	public void test_read_validation_for_add() {
 		make_tmp();
 
-		UpdateTransaction2 t1 = db.updateTransaction();
+		UpdateTransaction t1 = db.updateTransaction();
 		t1.onlyReads = false;
 		int tmp = t1.getTable("tmp").num();
 		assertNull(t1.lookup(tmp, "a", rec(123)));
 
-		UpdateTransaction2 t2 = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
 		t2.addRecord("tmp", rec(123, "foo"));
 		t2.ck_complete();
 
@@ -326,16 +326,16 @@ public class Transaction2Test {
 			.finish();
 	}
 
-	private static void check(ReadTransaction2 t, String tableName, Record... recs) {
+	private static void check(ReadTransaction t, String tableName, Record... recs) {
 		Table tbl = t.getTable(tableName);
 		check(t, tbl.num, recs);
 	}
 
-	private static void check(ReadTransaction2 t, int tblnum, Record... recs) {
+	private static void check(ReadTransaction t, int tblnum, Record... recs) {
 		check(t, tblnum, null, recs);
 	}
 
-	private static void check(ReadTransaction2 t, int tblnum, String columns,
+	private static void check(ReadTransaction t, int tblnum, String columns,
 			Record... recs) {
 		int i = 0;
 		IndexIter iter = t.iter(tblnum, columns);

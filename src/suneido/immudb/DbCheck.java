@@ -22,7 +22,7 @@ import suneido.intfc.database.DatabasePackage.Status;
  * Verifies sizes and checksums within data store and index store.
  * Verifies that index store matches data store.
  */
-class DbCheck2 {
+class DbCheck {
 	final Storage dstor;
 	final Storage istor;
 	final Observer ob;
@@ -44,10 +44,10 @@ class DbCheck2 {
 		return check(dstor, istor, nullObserver);
 	}
 	static Status check(Storage dstor, Storage istor, Observer ob) {
-		return new DbCheck2(dstor, istor, ob).check();
+		return new DbCheck(dstor, istor, ob).check();
 	}
 
-	DbCheck2(Storage dstor, Storage istor, Observer ob) {
+	DbCheck(Storage dstor, Storage istor, Observer ob) {
 		this.dstor = dstor;
 		this.istor = istor;
 		this.ob = ob;
@@ -55,7 +55,7 @@ class DbCheck2 {
 
 	Status check() {
 		println("checksums...");
-		Check2 check = new Check2(dstor, istor);
+		Check check = new Check(dstor, istor);
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDatetime();
@@ -82,7 +82,7 @@ class DbCheck2 {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
-		Database2 db = Database2.openWithoutCheck(dstor, istor);
+		Database db = Database.openWithoutCheck(dstor, istor);
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);
@@ -95,7 +95,7 @@ class DbCheck2 {
 		}
 	}
 
-	private static int submitTasks(ExecutorCompletionService<String> ecs, Database2 db) {
+	private static int submitTasks(ExecutorCompletionService<String> ecs, Database db) {
 		int ntables = 0;
 		int maxTblnum = db.nextTableNum();
 		for (int tblnum = 0; tblnum < maxTblnum; ++tblnum) {
@@ -142,8 +142,8 @@ class DbCheck2 {
 
 	public static void main(String[] args) {
 		System.out.println("fastcheck " +
-				(Check2.fastcheck("immu2.db") ? "succeeded" : "FAILED"));
-		DbTools.checkPrintExit(DatabasePackage2.dbpkg, "immu2.db");
+				(Check.fastcheck("immu2.db") ? "succeeded" : "FAILED"));
+		DbTools.checkPrintExit(DatabasePackage.dbpkg, "immu2.db");
 	}
 
 }

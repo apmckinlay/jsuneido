@@ -11,13 +11,13 @@ import java.util.Date;
 import java.util.Iterator;
 
 /** for debugging - prints info about raw data */
-public class Dump2 {
+public class Dump {
 
 	static void dump(Storage dstor, Storage istor) {
 		System.out.println("index -----------------------------");
-		Dump2.index(istor);
+		Dump.index(istor);
 		System.out.println("data ------------------------------");
-		Dump2.data(dstor);
+		Dump.data(dstor);
 	}
 
 	static void data(Storage stor) {
@@ -79,7 +79,7 @@ public class Dump2 {
 
 	static void index(Storage stor) {
 		try {
-			for (Check2.Iter iter = new Check2.Iter(stor, Storage.FIRST_ADR);
+			for (Check.Iter iter = new Check.Iter(stor, Storage.FIRST_ADR);
 					! iter.eof(); iter.advance()) {
 				System.out.println("size " + iter.size() +
 						" cksum " + Integer.toHexString(iter.cksum()) +

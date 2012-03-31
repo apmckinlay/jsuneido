@@ -24,15 +24,15 @@ import suneido.immudb.TranIndex.Update;
 
 import com.google.common.collect.Lists;
 
-public class Btree2Test {
+public class BtreeTest {
 	private final Storage stor = new MemStorage(1024, 64);
 	private Random rand = new Random(123456);
 	private final Tran tran = new Tran(stor, null);
-	private Btree2 btree = new Btree4(tran);
+	private Btree btree = new Btree4(tran);
 	private List<Record> keys = Lists.newArrayList();
 	private int NKEYS = 100;
 
-	private static class Btree4 extends Btree2 {
+	private static class Btree4 extends Btree {
 		@Override public int splitSize() { return 4; }
 		public Btree4(Tran tran) {
 			super(tran);
@@ -350,7 +350,7 @@ public class Btree2Test {
 
 	@Test
 	public void iterate_empty() {
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		assertTrue(iter.eof());
 		iter.next();
 		assertTrue(iter.eof());
@@ -368,7 +368,7 @@ public class Btree2Test {
 		checkIterate();
 
 		int i = keys.size();
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		for (iter.prev(); ! iter.eof(); iter.prev())
 			assertThat("i " + i, iter.curKey(), is(keys.get(--i)));
 		assertThat(i, is(0));
@@ -376,11 +376,11 @@ public class Btree2Test {
 		assertTrue(iter.eof());
 	}
 
-	public Btree2.Iter checkIterate() {
+	public Btree.Iter checkIterate() {
 		Collections.sort(keys);
 
 		int i = 0;
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next())
 			assertThat("i " + i, iter.curKey(), is(keys.get(i++)));
 		assertThat(i, is(keys.size()));
@@ -394,7 +394,7 @@ public class Btree2Test {
 		Collections.sort(keys);
 
 		int i = 0;
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			assertThat(iter.curKey(), is(keys.get(i)));
 			if (rand.nextInt(5) == 3)
@@ -411,7 +411,7 @@ public class Btree2Test {
 		Collections.sort(keys);
 
 		int i = 0;
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			assertThat(iter.curKey(), is(keys.get(i++)));
 			if (i < keys.size() && rand.nextInt(5) == 3) {
@@ -430,7 +430,7 @@ public class Btree2Test {
 		Collections.sort(keys);
 
 		int i = 0;
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			assertThat(iter.curKey(), is(keys.get(i)));
 			assertTrue(btree.remove(keys.get(i)));
@@ -447,7 +447,7 @@ public class Btree2Test {
 		btree.add(key("test3"));
 		btree.add(key("test4"));
 		btree.add(key("test5"));
-		Btree2.Iter iter = btree.iterator(rec("test2"), rec("test4"));
+		Btree.Iter iter = btree.iterator(rec("test2"), rec("test4"));
 		iter.next();
 		assertThat(iter.curKey().getString(0), is("test2"));
 		assertTrue(btree.remove(iter.curKey()));
@@ -469,7 +469,7 @@ public class Btree2Test {
 		btree.add(key("test3"));
 		btree.add(key("test4"));
 		btree.add(key("test5"));
-		Btree2.Iter iter = btree.iterator(rec("test2"), rec("test4"));
+		Btree.Iter iter = btree.iterator(rec("test2"), rec("test4"));
 		iter.prev();
 		assertThat(iter.curKey().getString(0), is("test4"));
 		assertTrue(btree.remove(iter.curKey()));
@@ -570,7 +570,7 @@ public class Btree2Test {
 
 	@Test
 	public void rangefrac_one_node() {
-		btree = new Btree2(tran); // normal node size
+		btree = new Btree(tran); // normal node size
 		btree.add(key("0"));
 		btree.add(key("1"));
 		btree.add(key("2"));
@@ -590,7 +590,7 @@ public class Btree2Test {
 
 	@Test
 	public void rangefrac_multiple_nodes() {
-		btree = new Btree2(tran); // normal node size
+		btree = new Btree(tran); // normal node size
 		for (int i = 10; i < 210; i += 2)
 			btree.add(key(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
@@ -611,7 +611,7 @@ public class Btree2Test {
 
 		Record from = keys.get(25);
 		Record to = keys.get(75);
-		Btree2.Iter iter = btree.iterator(from, to);
+		Btree.Iter iter = btree.iterator(from, to);
 		int i = 25;
 		for (iter.next(); ! iter.eof(); iter.next())
 			assertThat(iter.curKey(), is(keys.get(i++)));
@@ -654,8 +654,8 @@ public class Btree2Test {
 		Collections.sort(keys);
 		Record from = keys.get(25);
 		Record to = keys.get(75);
-		Btree2.Iter iterOrig = btree.iterator(from, to);
-		Btree2.Iter iter = btree.iterator(iterOrig);
+		Btree.Iter iterOrig = btree.iterator(from, to);
+		Btree.Iter iter = btree.iterator(iterOrig);
 		int i = 25;
 		for (iter.next(); ! iter.eof(); iter.next())
 			assertThat("i " + i, iter.curKey(), is(keys.get(i++)));
@@ -674,7 +674,7 @@ public class Btree2Test {
 		btree.add(key("andy"));
 		btree.add(key("zack"));
 
-		Btree2.Iter iter = btree.iterator(key("fred"));
+		Btree.Iter iter = btree.iterator(key("fred"));
 		iter.next();
 		assertTrue(iter.eof());
 
@@ -695,7 +695,7 @@ public class Btree2Test {
 	public void numeric_order() {
 		btree.add(key(-1));
 		btree.add(key(0));
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		iter.next();
 		assertThat(iter.curKey(), is(key(-1)));
 		iter.next();
@@ -713,7 +713,7 @@ public class Btree2Test {
 		btree.add(key(43, "e", 277));
 		Record from = new RecordBuilder().add(43).build();
 		Record to = new RecordBuilder().add(43).addMax().build();
-		Btree2.Iter iter = btree.iterator(from, to);
+		Btree.Iter iter = btree.iterator(from, to);
 		iter.next();
 		assertThat(iter.curKey().getString(1), is("a"));
 	}
@@ -728,7 +728,7 @@ public class Btree2Test {
 		btree.add(rec("F", -1, 6));
 		assertThat(btree.get(rec("E", -1)), is(5));
 
-		Btree2.Iter iter = btree.iterator(rec("E", -1));
+		Btree.Iter iter = btree.iterator(rec("E", -1));
 		iter.next();
 		assertFalse(iter.eof());
 		assertThat(iter.keyadr(), is(5));
@@ -768,7 +768,7 @@ public class Btree2Test {
 	public void update_during_iteration() {
 		btree.add(key("a"));
 		btree.add(key("c"));
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		iter.next();
 		Record oldkey = iter.curKey();
 		Record newkey = key("b", tran.refToInt(new Object()));
@@ -781,7 +781,7 @@ public class Btree2Test {
 	public void update_during_reverse_iteration() {
 		btree.add(key("a"));
 		btree.add(key("c"));
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		iter.prev();
 		Record oldkey = iter.curKey();
 		Record newkey = key("b", tran.refToInt(new Object()));
@@ -828,7 +828,7 @@ public class Btree2Test {
 		assertTrue(btree.add(key("suzy", 4), false));
 		assertTrue(btree.add(key("suzy", 5), false));
 		assertTrue(btree.add(key("zoe", 1), false));
-		Btree2.Iter iter = btree.iterator();
+		Btree.Iter iter = btree.iterator();
 		iter.next();
 		iter.next();
 		iter.next();
@@ -848,7 +848,7 @@ public class Btree2Test {
 		btree.add(rec("ed", 5));
 		// "dd" should now be tree key
 		btree.remove(rec("dd", 4));
-		Btree2.Iter iter = btree.iterator(rec("d"), rec("z"));
+		Btree.Iter iter = btree.iterator(rec("d"), rec("z"));
 		iter.next();
 		assertThat(iter.curKey(), is(rec("ed", 5)));
 	}
@@ -857,7 +857,7 @@ public class Btree2Test {
 	public void switch_direction() {
 		add(10);
 		Collections.sort(keys);
-		Btree2.Iter iter;
+		Btree.Iter iter;
 
 		// iterators stick at eof
 		iter = btree.iterator();

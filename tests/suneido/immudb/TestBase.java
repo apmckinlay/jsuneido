@@ -8,7 +8,7 @@ public class TestBase extends suneido.intfc.database.TestBase {
 
 	@Override
 	protected suneido.intfc.database.DatabasePackage dbpkg() {
-		return DatabasePackage2.dbpkg;
+		return DatabasePackage.dbpkg;
 	}
 
 }

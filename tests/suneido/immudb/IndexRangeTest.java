@@ -16,7 +16,7 @@ public class IndexRangeTest {
 	@Test
 	public void single() {
 		assert range(123, 123).contains(rec(123));
-		assert new IndexRange(DatabasePackage2.MIN_RECORD, DatabasePackage2.MAX_RECORD)
+		assert new IndexRange(DatabasePackage.MIN_RECORD, DatabasePackage.MAX_RECORD)
 			.contains(rec(1));
 	}
 

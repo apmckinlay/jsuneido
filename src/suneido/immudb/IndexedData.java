@@ -21,25 +21,25 @@ import suneido.intfc.database.Fkmode;
 /**
  * Coordinates data records and the btrees that index them.
  */
-class IndexedData2 {
+class IndexedData {
 	enum Mode { KEY, UNIQUE, DUPS };
 	private final ReadWriteTransaction t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
 	private TIntHashSet deletes;
 
-	IndexedData2(ReadWriteTransaction t) {
+	IndexedData(ReadWriteTransaction t) {
 		this.t = t;
 		tran = t.tran();
 	}
 
-	IndexedData2 setDeletes(TIntHashSet deletes) {
+	IndexedData setDeletes(TIntHashSet deletes) {
 		this.deletes = deletes;
 		return this;
 	}
 
 	/** setup method */
-	IndexedData2 index(TranIndex btree, Mode mode, int[] colNums, String colNames,
+	IndexedData index(TranIndex btree, Mode mode, int[] colNums, String colNames,
 			ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 		assert t != null;
 		indexes.add(new AnIndexWithFkeys(
@@ -48,7 +48,7 @@ class IndexedData2 {
 	}
 
 	// for tests (without foreign keys)
-	IndexedData2 index(TranIndex btree, Mode mode, int... fields) {
+	IndexedData index(TranIndex btree, Mode mode, int... fields) {
 		indexes.add(new AnIndex(btree, mode, fields, ""));
 		return this;
 	}
@@ -168,7 +168,7 @@ class IndexedData2 {
 			this.columns = columns;
 		}
 
-		Btree2.Update update(Record from, int fromAdr, Record to, int toAdr) {
+		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
 			Record fromKey = key(from, fields, fromAdr);
 			Record toKey = key(to, fields, toAdr);
 			boolean unique = (mode == Mode.KEY ||

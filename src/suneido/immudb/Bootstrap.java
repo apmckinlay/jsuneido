@@ -21,7 +21,7 @@ class Bootstrap {
 	static final int[][] indexColumns =
 			new int[][] { { }, { 0 }, { 0,2 }, { 0,1 } };
 
-	static void create(ExclusiveTransaction2 t) {
+	static void create(ExclusiveTransaction t) {
 		try {
 			setup(t);
 			create_tables(t);
@@ -41,16 +41,16 @@ class Bootstrap {
 		}
 	}
 
-	private static void setup(ExclusiveTransaction2 t) {
+	private static void setup(ExclusiveTransaction t) {
 		t.addTableInfo(new TableInfo(TN.TABLES, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.COLUMNS, 0, 0, 0, null));
 		t.addTableInfo(new TableInfo(TN.INDEXES, 0, 0, 0, null));
-		t.addIndex(ReadTransaction2.tables_index);
-		t.addIndex(ReadTransaction2.columns_index);
-		t.addIndex(ReadTransaction2.indexes_index);
+		t.addIndex(ReadTransaction.tables_index);
+		t.addIndex(ReadTransaction.columns_index);
+		t.addIndex(ReadTransaction.indexes_index);
 	}
 
-	private static void create_tables(ExclusiveTransaction2 t) {
+	private static void create_tables(ExclusiveTransaction t) {
 		TableBuilder.create(t, "tables", TN.TABLES)
 			.addColumn("table")
 			.addColumn("tablename")
@@ -58,7 +58,7 @@ class Bootstrap {
 			.build();
 	}
 
-	private static void create_columns(ExclusiveTransaction2 t) {
+	private static void create_columns(ExclusiveTransaction t) {
 		TableBuilder.create(t, "columns", TN.COLUMNS)
 			.addColumn("table")
 			.addColumn("field")
@@ -67,7 +67,7 @@ class Bootstrap {
 			.build();
 	}
 
-	private static void create_indexes(ExclusiveTransaction2 t) {
+	private static void create_indexes(ExclusiveTransaction t) {
 		TableBuilder.create(t, "indexes", TN.INDEXES)
 			.addColumn("table")
 			.addColumn("fields")

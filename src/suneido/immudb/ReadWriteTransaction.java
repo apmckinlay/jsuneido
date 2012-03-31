@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.IndexedData2.Mode;
+import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.collect.ImmutableList;
@@ -25,21 +25,21 @@ import com.google.common.primitives.Ints;
 /**
  * Base class with common code for UpdateTransaction2 and ExclusiveTransaction2
  */
-abstract class ReadWriteTransaction extends ReadTransaction2 {
+abstract class ReadWriteTransaction extends ReadTransaction {
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
 	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
-	protected final TIntObjectHashMap<IndexedData2> indexedData =
-			new TIntObjectHashMap<IndexedData2>();
+	protected final TIntObjectHashMap<IndexedData> indexedData =
+			new TIntObjectHashMap<IndexedData>();
 
-	ReadWriteTransaction(int num, Database2 db) {
+	ReadWriteTransaction(int num, Database db) {
 		super(num, db);
 		lock(db);
 	}
 
-	abstract void lock(Database2 db);
+	abstract void lock(Database db);
 	abstract void unlock();
 
 	// add ---------------------------------------------------------------------
@@ -135,16 +135,16 @@ abstract class ReadWriteTransaction extends ReadTransaction2 {
 
 	// -------------------------------------------------------------------------
 
-	protected IndexedData2 indexedData(int tblnum) {
-		IndexedData2 id = indexedData.get(tblnum);
+	protected IndexedData indexedData(int tblnum) {
+		IndexedData id = indexedData.get(tblnum);
 		if (id == null)
 			indexedData.put(tblnum, id = indexedData2(tblnum));
 		return id;
 	}
 
 	/** overridden by UpdateTransaction */
-	protected IndexedData2 indexedData2(int tblnum) {
-		IndexedData2 id = new IndexedData2(this);
+	protected IndexedData indexedData2(int tblnum) {
+		IndexedData id = new IndexedData(this);
 		Table table = getTable(tblnum);
 		if (table == null) {
 			int[] indexColumns = Bootstrap.indexColumns[tblnum];
@@ -277,7 +277,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 {
 			// indexes
 			TCustomHashSet<IndexInfo> info = new TCustomHashSet<IndexInfo>(iihash);
 			do {
-				Btree2 btree = (Btree2) e.getValue();
+				Btree btree = (Btree) e.getValue();
 				info.add(new IndexInfo(e.getKey().colNums, btree.info()));
 				e = iter.hasNext() ? iter.next() : null;
 			} while (e != null && e.getKey().tblnum == tblnum);

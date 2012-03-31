@@ -17,14 +17,14 @@ public class BootstrapTest {
 	public void test() {
 		MemStorage dstor = new MemStorage(500, 100);
 		MemStorage istor = new MemStorage(500, 100);
-		Database2 db = Database2.create(dstor, istor);
+		Database db = Database.create(dstor, istor);
 		check(db);
 
-		db = Database2.open(dstor, istor);
+		db = Database.open(dstor, istor);
 		check(db);
 	}
 
-	private static void check(Database2 db) {
+	private static void check(Database db) {
 		assertThat(db.getSchema("tables"),
 				is("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.getSchema("columns"),

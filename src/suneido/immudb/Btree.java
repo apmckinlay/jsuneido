@@ -5,8 +5,8 @@
 package suneido.immudb;
 
 import static suneido.immudb.BtreeNode.adr;
-import static suneido.immudb.DatabasePackage2.MAX_RECORD;
-import static suneido.immudb.DatabasePackage2.MIN_RECORD;
+import static suneido.immudb.DatabasePackage.MAX_RECORD;
+import static suneido.immudb.DatabasePackage.MIN_RECORD;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,7 +34,7 @@ import com.google.common.primitives.UnsignedInts;
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
-class Btree2 implements TranIndex, Cloneable {
+class Btree implements TranIndex, Cloneable {
 	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
 	int treeLevels;
@@ -44,7 +44,7 @@ class Btree2 implements TranIndex, Cloneable {
 	BtreeNode rootNode;
 
 	/** Create a new index */
-	Btree2(Tran tran) {
+	Btree(Tran tran) {
 		this.tran = tran;
 		rootNode = BtreeNode.emptyLeaf();
 		treeLevels = 0;
@@ -53,7 +53,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	/** Open an existing index */
-	Btree2(Tran tran, BtreeInfo info) {
+	Btree(Tran tran, BtreeInfo info) {
 		this.tran = tran;
 		this.rootNode = info.rootNode ;
 		this.treeLevels = info.treeLevels;
@@ -91,7 +91,7 @@ class Btree2 implements TranIndex, Cloneable {
 	}
 
 	boolean add(Record key, boolean isKey, boolean unique) {
-		return add(key, (isKey || (unique && ! IndexedData2.isEmptyKey(key))));
+		return add(key, (isKey || (unique && ! IndexedData.isEmptyKey(key))));
 	}
 
 	/**

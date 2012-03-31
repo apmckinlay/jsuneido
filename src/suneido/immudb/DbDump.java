@@ -17,8 +17,8 @@ import suneido.intfc.database.IndexIter;
 
 public class DbDump {
 
-	static int dumpDatabase(Database2 db, WritableByteChannel out) {
-		ReadTransaction2 t = db.readTransaction();
+	static int dumpDatabase(Database db, WritableByteChannel out) {
+		ReadTransaction t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			IndexIter iter = t.iter(Bootstrap.TN.TABLES, "tablename");
@@ -26,7 +26,7 @@ public class DbDump {
 			for (iter.next(); ! iter.eof(); iter.next()) {
 				Record r = t.input(iter.keyadr());
 				String tablename = r.getString(Table.TABLE);
-				if (Database2.isSystemTable(tablename))
+				if (Database.isSystemTable(tablename))
 					continue;
 				dump1(out, t, tablename, true);
 				++n;
@@ -40,8 +40,8 @@ public class DbDump {
 		}
 	}
 
-	static int dumpTable(Database2 db, String tablename, WritableByteChannel out) {
-		ReadTransaction2 t = db.readTransaction();
+	static int dumpTable(Database db, String tablename, WritableByteChannel out) {
+		ReadTransaction t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			return dump1(out, t, tablename, false);
@@ -56,13 +56,13 @@ public class DbDump {
 		write(out, "Suneido dump 1.0\n");
 	}
 
-	private static int dump1(WritableByteChannel out, ReadTransaction2 t, String tablename,
+	private static int dump1(WritableByteChannel out, ReadTransaction t, String tablename,
 			boolean outputName) throws IOException {
 		writeTableHeader(out, t, tablename, outputName);
 		return writeTableData(out, t, tablename);
 	}
 
-	private static void writeTableHeader(WritableByteChannel out, ReadTransaction2 t,
+	private static void writeTableHeader(WritableByteChannel out, ReadTransaction t,
 			String tablename, boolean outputName) throws IOException {
 		String schema = t.ck_getTable(tablename).schema();
 		String header = "====== ";
@@ -72,7 +72,7 @@ public class DbDump {
 		write(out, header);
 	}
 
-	private static int writeTableData(WritableByteChannel out, ReadTransaction2 t,
+	private static int writeTableData(WritableByteChannel out, ReadTransaction t,
 			String tablename) throws IOException {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
@@ -121,7 +121,7 @@ public class DbDump {
 	}
 
 	public static void main(String[] args) {
-		DbTools.dumpDatabasePrint(DatabasePackage2.dbpkg, "immudb.db", "immudb.su");
+		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immudb.db", "immudb.su");
 //		dumpTablePrint("test");
 	}
 

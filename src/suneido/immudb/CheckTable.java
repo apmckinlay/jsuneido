@@ -11,16 +11,16 @@ import java.util.concurrent.Callable;
 import suneido.intfc.database.IndexIter;
 
 class CheckTable implements Callable<String> {
-	final Database2 db;
+	final Database db;
 	final String tableName;
 	String details = "";
 
-	CheckTable(Database2 db, String tableName) {
+	CheckTable(Database db, String tableName) {
 		this.db = db;
 		this.tableName = tableName;
 	}
 
-	static void check(Database2 db, String tableName) {
+	static void check(Database db, String tableName) {
 		String s = new CheckTable(db, tableName).call();
 		if (! s.isEmpty())
 			throw new RuntimeException("CheckTable " + tableName + " " + s);
@@ -28,12 +28,12 @@ class CheckTable implements Callable<String> {
 
 	@Override
 	public String call() {
-		ReadTransaction2 t = db.readTransaction();
+		ReadTransaction t = db.readTransaction();
 		checkTable(t, tableName);
 		return details;
 	}
 
-	private boolean checkTable(ReadTransaction2 t, String tablename) {
+	private boolean checkTable(ReadTransaction t, String tablename) {
 		boolean first_index = true;
 		Table table = t.getTable(tablename);
 		TableInfo ti = t.getTableInfo(table.num);
@@ -58,7 +58,7 @@ class CheckTable implements Callable<String> {
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;
-				Record reckey = IndexedData2.key(rec, index.colNums, adr);
+				Record reckey = IndexedData.key(rec, index.colNums, adr);
 				if (! key.equals(reckey)) {
 					details += tablename + ": key mismatch in " + index + "\n";
 					return false;
@@ -97,7 +97,7 @@ class CheckTable implements Callable<String> {
 	}
 
 	private static boolean isUnique(Index index, Record key) {
-		return index.isKey() || (index.unique && ! IndexedData2.isEmptyKey(key));
+		return index.isKey() || (index.unique && ! IndexedData.isEmptyKey(key));
 	}
 
 	private boolean checkRecord(String tablename, Record rec) {

@@ -24,18 +24,18 @@ import com.google.common.collect.Maps;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction2 implements suneido.intfc.database.Transaction {
+class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final int num;
-	protected final Database2 db;
+	protected final Database db;
 	protected final Tran tran;
-	protected Database2.State dbstate; // not final - modified by ExclusiveTran
+	protected Database.State dbstate; // not final - modified by ExclusiveTran
 	protected DbHashTrie dbinfo;
 	protected Tables schema; // not final - modified by ExclusiveTran
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
-	protected final Transactions2 trans;
+	protected final Transactions trans;
 	private boolean ended = false;
 
-	ReadTransaction2(int num, Database2 db) {
+	ReadTransaction(int num, Database db) {
 		this.num = num;
 		this.db = db;
 		dbstate = db.state; // don't inline, read only once
@@ -71,7 +71,7 @@ class ReadTransaction2 implements suneido.intfc.database.Transaction {
 
 	/** Overridden in UpdateTransaction */
 	protected TranIndex getIndex(IndexInfo info) {
-		return new Btree2(tran, info);
+		return new Btree(tran, info);
 	}
 
 	boolean hasIndex(int tblnum, int[] colNums) {
@@ -351,7 +351,7 @@ class ReadTransaction2 implements suneido.intfc.database.Transaction {
 		return tran;
 	}
 
-	ExclusiveTransaction2 exclusiveTran() {
+	ExclusiveTransaction exclusiveTran() {
 		return db.exclusiveTran();
 	}
 
