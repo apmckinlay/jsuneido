@@ -25,7 +25,7 @@ import com.google.common.primitives.Ints;
 /**
  * Base class with common code for UpdateTransaction2 and ExclusiveTransaction2
  */
-abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpdateTran {
+abstract class ReadWriteTransaction extends ReadTransaction2 {
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
@@ -49,8 +49,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		addRecord(getTable(table).num, (Record) rec);
 	}
 
-	@Override
-	public void addRecord(int tblnum, Record rec) {
+	void addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
 		onlyReads = false;
@@ -79,8 +78,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		return 1; // don't know record address till commit
 	}
 
-	@Override
-	public int updateRecord(int tblnum, Record from, Record to) {
+	int updateRecord(int tblnum, Record from, Record to) {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		onlyReads = false;
@@ -92,8 +90,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	}
 
 	// used by foreign key cascade
-	@Override
-	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
+	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		IndexIter iter = getIndex(tblnum, colNums).iterator(oldkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
@@ -130,8 +127,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 	}
 
 	// used by foreign key cascade
-	@Override
-	public void removeAll(int tblnum, int[] colNums, Record key) {
+	void removeAll(int tblnum, int[] colNums, Record key) {
 		IndexIter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
@@ -209,8 +205,7 @@ abstract class ReadWriteTransaction extends ReadTransaction2 implements ImmuUpda
 		return getTableInfo(tblnum).totalsize() + tidelta(tblnum).size;
 	}
 
-	@Override
-	public void abortThrow(String conflict) {
+	void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
 		throw new Conflict(conflict);

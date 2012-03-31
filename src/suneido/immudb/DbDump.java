@@ -17,8 +17,8 @@ import suneido.intfc.database.IndexIter;
 
 public class DbDump {
 
-	static int dumpDatabase(ImmuDatabase db, WritableByteChannel out) {
-		ImmuReadTran t = db.readTransaction();
+	static int dumpDatabase(Database2 db, WritableByteChannel out) {
+		ReadTransaction2 t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			IndexIter iter = t.iter(Bootstrap.TN.TABLES, "tablename");
@@ -40,8 +40,8 @@ public class DbDump {
 		}
 	}
 
-	static int dumpTable(ImmuDatabase db, String tablename, WritableByteChannel out) {
-		ImmuReadTran t = db.readTransaction();
+	static int dumpTable(Database2 db, String tablename, WritableByteChannel out) {
+		ReadTransaction2 t = db.readTransaction();
 		try {
 			writeFileHeader(out);
 			return dump1(out, t, tablename, false);
@@ -56,13 +56,13 @@ public class DbDump {
 		write(out, "Suneido dump 1.0\n");
 	}
 
-	private static int dump1(WritableByteChannel out, ImmuReadTran t, String tablename,
+	private static int dump1(WritableByteChannel out, ReadTransaction2 t, String tablename,
 			boolean outputName) throws IOException {
 		writeTableHeader(out, t, tablename, outputName);
 		return writeTableData(out, t, tablename);
 	}
 
-	private static void writeTableHeader(WritableByteChannel out, ImmuReadTran t,
+	private static void writeTableHeader(WritableByteChannel out, ReadTransaction2 t,
 			String tablename, boolean outputName) throws IOException {
 		String schema = t.ck_getTable(tablename).schema();
 		String header = "====== ";
@@ -72,7 +72,7 @@ public class DbDump {
 		write(out, header);
 	}
 
-	private static int writeTableData(WritableByteChannel out, ImmuReadTran t,
+	private static int writeTableData(WritableByteChannel out, ReadTransaction2 t,
 			String tablename) throws IOException {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
