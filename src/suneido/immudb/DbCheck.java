@@ -142,8 +142,8 @@ class DbCheck {
 
 	public static void main(String[] args) {
 		System.out.println("fastcheck " +
-				(Check.fastcheck("immu2.db") ? "succeeded" : "FAILED"));
-		DbTools.checkPrintExit(DatabasePackage.dbpkg, "immu2.db");
+				(Check.fastcheck(DatabasePackage.dbpkg.dbFilename()) ? "succeeded" : "FAILED"));
+		DbTools.checkPrintExit(DatabasePackage.dbpkg, DatabasePackage.dbpkg.dbFilename());
 	}
 
 }

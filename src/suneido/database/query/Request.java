@@ -155,6 +155,13 @@ public class Request implements RequestGenerator<Object> {
 		}
 		ForeignKey() {
 		}
+
+		@Override
+		public String toString() {
+			if (table == null)
+				return "";
+			return " in " + table + " " + columns + mode;
+		}
 	}
 
 	@Override
@@ -187,6 +194,12 @@ public class Request implements RequestGenerator<Object> {
 			assert (in != null);
 			tb.ensureIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
+		}
+
+		@Override
+		public String toString() {
+			return (key ? "key" : ((unique ? "unique" : "") + " index")) +
+					columns + in;
 		}
 	}
 

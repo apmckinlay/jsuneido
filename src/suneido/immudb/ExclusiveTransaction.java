@@ -174,7 +174,8 @@ onlyReads = false; //TODO remove this once we handle aborts
 	public void abort() {
 		if (! data_committed)
 			storeData();
-		db.setState(dbinfo, schema, storeInfo.cksum, storeInfo.adr);
+		Database.State state = db.state;
+		db.setState(state.dbinfo, state.schema, storeInfo.cksum, storeInfo.adr);
 		// else
 			//TODO prevent output from being seen by rebuild
 		super.abort();
