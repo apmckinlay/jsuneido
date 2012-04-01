@@ -6,14 +6,10 @@ package suneido.intfc.database;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Test;
-
-import suneido.Suneido;
 
 public class TransactionTest extends TestBase {
 
@@ -137,9 +133,6 @@ public class TransactionTest extends TestBase {
 
 	@Test
 	public void delete_conflict() {
-		if (Suneido.dbpkg.dbFilename().equals("immu2.db"))
-			return; // immudb2 works differently
-
 		makeTable(300);
 
 		// deleting different btree nodes doesn't conflict
@@ -156,14 +149,12 @@ public class TransactionTest extends TestBase {
 		remove(t3, 3);
 		Transaction t4 = db.updateTransaction();
 		try {
-			remove(t4, 4);
-			fail();
+			remove(t4, 3);
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
 		t3.ck_complete();
-		assertNotNull(t4.complete());
-		assertThat(t4.conflict(), containsString("conflict"));
+		assertThat(t4.complete(), containsString("conflict"));
 	}
 
 	private void remove(Transaction t, int i) {
@@ -178,27 +169,6 @@ public class TransactionTest extends TestBase {
 
 	private void removeLast(Transaction t) {
 		t.removeRecord(t.getTable("test").num(), getLast("test", t));
-	}
-
-	@Test
-	public void add_conflict() {
-		if (Suneido.dbpkg.dbFilename().equals("immu2.db"))
-			return; // immudb2 allows concurrent adds
-
-		makeTable();
-
-		Transaction t1 = db.updateTransaction();
-		t1.addRecord("test", record(98));
-		Transaction t2 = db.updateTransaction();
-		try {
-			t2.addRecord("test", record(99));
-			fail();
-		} catch (RuntimeException e) {
-			assertThat(e.toString(), containsString("conflict"));
-		}
-		t1.ck_complete();
-		assertNotNull(t2.complete());
-		assertThat(t2.conflict(), containsString("conflict (write-write)"));
 	}
 
 	@Test
@@ -226,7 +196,7 @@ public class TransactionTest extends TestBase {
 
 		try {
 			update(t2, 1, record(6));
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -234,7 +204,7 @@ public class TransactionTest extends TestBase {
 
 		try {
 			update(t3, 1, record(6));
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -259,7 +229,7 @@ public class TransactionTest extends TestBase {
 
 		try {
 			update(t1, 1, record(7));
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -293,7 +263,7 @@ public class TransactionTest extends TestBase {
 	private void updateLastConflict(Transaction t2) {
 		try {
 			updateLast(t2);
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -336,7 +306,7 @@ public class TransactionTest extends TestBase {
 		readLast(t2);
 		try {
 			t2.addRecord("test", record(-1));
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -373,7 +343,7 @@ public class TransactionTest extends TestBase {
 		t1.ck_complete();
 		try {
 			update(t2, 1, record(1002));
-			// don't fail here because immudb2 doesn't conflict till commit
+			// don't fail here because immudb doesn't conflict till commit
 		} catch (RuntimeException e) {
 			assertThat(e.toString(), containsString("conflict"));
 		}
@@ -403,18 +373,6 @@ public class TransactionTest extends TestBase {
 		t2.ck_complete();
 		t1.ck_complete();
 	}
-
-//	private Transaction t;
-//
-//	@Before
-//	public void before() {
-//		t = db.readwriteTran();
-//	}
-//
-//	@After
-//	public void after() {
-//		t.ck_complete();
-//	}
 
 	@After
 	public void check_all_gone() {
