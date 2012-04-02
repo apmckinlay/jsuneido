@@ -91,6 +91,12 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
+	public String forceRebuild(String dbFilename, String tempfilename) {
+		// nothing extra required to force rebuild
+		return rebuild(dbFilename, tempfilename);
+	}
+
+	@Override
 	public Record minRecord() {
 		return MIN_RECORD;
 	}

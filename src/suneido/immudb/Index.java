@@ -58,7 +58,7 @@ class Index implements Comparable<Index> {
 	private static final CharMatcher cm = CharMatcher.is(',');
 	private static final Splitter splitter = Splitter.on(',');
 
-	private static int[] stringToColNums(String s) {
+	static int[] stringToColNums(String s) {
 		if (s.equals(""))
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];

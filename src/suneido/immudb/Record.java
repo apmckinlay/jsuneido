@@ -14,6 +14,7 @@ import java.util.Iterator;
 import suneido.language.Ops;
 import suneido.language.Pack;
 
+import com.google.common.primitives.Shorts;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -23,7 +24,7 @@ import com.google.common.primitives.UnsignedInts;
  * Mostly immutable. Constructed using RecordBuilder.
  */
 abstract class Record implements suneido.intfc.database.Record {
-	protected static final int TBLNUM_SIZE = 2;
+	protected static final int TBLNUM_SIZE = Shorts.BYTES;
 	static final Record EMPTY = new RecordBuilder().build();
 	static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 	/** used for stored data records */

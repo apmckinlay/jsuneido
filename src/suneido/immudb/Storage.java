@@ -5,7 +5,6 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 
 public interface Storage {
 	int FIRST_ADR = 1;
@@ -14,12 +13,6 @@ public interface Storage {
 
 	/** Negative adr is relative to end */
 	ByteBuffer buffer(int adr);
-
-	/**
-	 * Iterates through raw storage, NOT the allocation blocks.
-	 * Negative adr is relative to end.
-	 */
-	Iterator<ByteBuffer> iterator(int adr);
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr);
@@ -32,5 +25,7 @@ public interface Storage {
 	int advance(int adr, int length);
 
 	boolean isValidPos(long pos);
+
+	int checksum(int adr);
 
 }

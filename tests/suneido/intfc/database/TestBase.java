@@ -12,6 +12,7 @@ import java.util.List;
 import suneido.Suneido;
 
 public class TestBase {
+	private static final String DEFAULT_TABLENAME = "test";
 	protected Database db = dbpkg().testdb();
 
 	protected DatabasePackage dbpkg() {
@@ -42,7 +43,7 @@ public class TestBase {
 	}
 
 	protected void makeTable(int nrecords) {
-		makeTable("test", nrecords);
+		makeTable(DEFAULT_TABLENAME, nrecords);
 	}
 
 	protected void makeTable(String tablename) {
@@ -59,7 +60,7 @@ public class TestBase {
 		addRecords(tablename, 0, nrecords - 1);
 	}
 
-	private void addRecords(String tablename, int from, int to) {
+	protected void addRecords(String tablename, int from, int to) {
 		while (from <= to) {
 			Transaction t = db.updateTransaction();
 			for (int i = 0; i < 1000 && from <= to; ++i, ++from)
@@ -76,7 +77,7 @@ public class TestBase {
 	}
 
 	protected List<Record> get() {
-		return get("test");
+		return get(DEFAULT_TABLENAME);
 	}
 
 	protected List<Record> get(String tablename) {
@@ -87,7 +88,7 @@ public class TestBase {
 	}
 
 	protected List<Record> get(Transaction t) {
-		return get("test", t);
+		return get(DEFAULT_TABLENAME, t);
 	}
 
 	private static List<Record> get(String tablename, Transaction t) {
@@ -113,6 +114,10 @@ public class TestBase {
 		return iter.eof() ? null : t.input(iter.keyadr());
 	}
 
+	protected int count() {
+		return count(DEFAULT_TABLENAME);
+	}
+
 	protected int count(String tablename) {
 		Transaction t = db.readTransaction();
 		int n = count(tablename, t);
@@ -123,6 +128,7 @@ public class TestBase {
 	private static int count(String tablename, Transaction t) {
 		int n = 0;
 		Table tbl = t.getTable(tablename);
+		assert tbl != null : "nonexistent table: " + tablename;
 		IndexIter iter = t.iter(tbl.num(), null);
 		for (iter.next(); ! iter.eof(); iter.next())
 			n++;
@@ -130,7 +136,7 @@ public class TestBase {
 	}
 
 	protected void check(int... values) {
-		check("test", values);
+		check(DEFAULT_TABLENAME, values);
 	}
 
 	protected void check(String tablename, int... values) {

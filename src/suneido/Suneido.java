@@ -190,7 +190,7 @@ public class Suneido {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-db.check();
+				// db.check();
 				db.close();
 			}
 		});

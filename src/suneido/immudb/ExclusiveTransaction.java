@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import suneido.SuException;
 import suneido.util.ThreadConfined;
 
-import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 
 /**
@@ -28,6 +27,10 @@ class ExclusiveTransaction extends ReadWriteTransaction {
 	ExclusiveTransaction(int num, Database db) {
 		super(num, db);
 		tran.allowStore();
+		// no removes
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(2 * Shorts.BYTES));
+		buf.putShort((short) 'e');
+		buf.putShort((short) 0);
 onlyReads = false; //TODO remove this once we handle aborts
 	}
 
@@ -73,7 +76,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by TableBuilder
-	void addSchemaTable(Table tbl) {
+	void addTableSchema(Table tbl) {
 		assert locked;
 		schema = schema.with(tbl);
 		indexedData.remove(tbl.num);
@@ -86,7 +89,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by TableBuilder
-	void updateSchemaTable(Table tbl) {
+	void updateTableSchema(Table tbl) {
 		assert locked;
 		Table oldTbl = getTable(tbl.num);
 		if (oldTbl != null)
@@ -96,11 +99,11 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	// used by TableBuilder
-	void dropTableSchema(Table table) {
+	void dropTableSchema(Table tbl) {
 		// "remove" from dbinfo so indexes won't be persisted
-		dbinfo = dbinfo.with(TableInfo.empty(table.num));
-		schema = schema.without(table);
-		indexedData.remove(table.num);
+		dbinfo = dbinfo.with(TableInfo.empty(tbl.num));
+		schema = schema.without(tbl);
+		indexedData.remove(tbl.num);
 	}
 
 	// used by DbLoad and DbCompact
@@ -145,11 +148,8 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	private void storeData() {
-		// not required since we are storing as we go
-		// just output an empty deletes section
-		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
-		buf.putShort((short) 0xffff); // mark start of removes
-		buf.putInt(0); // mark end of removes
+		// we are storing as we go, so just output the end marker
+		UpdateTransaction.markEndOfAdds(tran.dstor);
 		storeInfo = tran.endStore();
 	}
 

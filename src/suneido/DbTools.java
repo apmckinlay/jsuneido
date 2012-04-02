@@ -84,7 +84,7 @@ public class DbTools {
 			fatal("Check failed after Load " + dbFilename);
 		FileUtils.renameWithBackup(tempfile, dbFilename);
 	}
-	
+
 	static void load2(DatabasePackage dbpkg, String arg) {
 		int i = arg.indexOf(SEPARATOR);
 		String filename = arg.substring(0, i);
@@ -133,7 +133,7 @@ public class DbTools {
 	}
 
 	public static Status checkPrint(DatabasePackage dbpkg, String dbFilename) {
-		System.out.println("Checking " + 
+		System.out.println("Checking " +
 				(dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") + "...");
 		return dbpkg.check(dbFilename, printObserver);
 	}
@@ -148,7 +148,7 @@ public class DbTools {
 			fatal("Check failed after Compact " + dbFilename);
 		FileUtils.renameWithBackup(tempfile, dbFilename);
 	}
-	
+
 	static void compact2(DatabasePackage dbpkg, String arg) {
 		int i = arg.indexOf(SEPARATOR);
 		String dbFilename = arg.substring(0, i);
@@ -177,12 +177,13 @@ public class DbTools {
 			fatal("Check failed after Rebuild " + dbFilename);
 		FileUtils.renameWithBackup(tempfile, dbFilename);
 	}
-	
+
+	/** called in the new jvm */
 	static void rebuild2(DatabasePackage dbpkg, String arg) {
 		int i = arg.indexOf(SEPARATOR);
 		String dbFilename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
-		String result = dbpkg.rebuild(dbFilename, tempfile);	
+		String result = dbpkg.rebuild(dbFilename, tempfile);
 		if (result == null)
 			fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
 		else {

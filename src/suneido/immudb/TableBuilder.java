@@ -101,11 +101,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
 		if (t.getTable(to) != null)
 			fail(t, CANT_RENAME + " to existing table name");
-		t.dropTableSchema(oldTable);
 		Table newTable = new Table(oldTable.num, to,
 				new Columns(ImmutableList.copyOf(oldTable.columns)),
 				new Indexes(ImmutableList.copyOf(oldTable.indexes)));
-		t.addSchemaTable(newTable);
+		t.updateTableSchema(newTable);
 		// dbinfo is ok since it doesn't use table name
 		t.updateRecord(TN.TABLES, oldTable.toRecord(), newTable.toRecord());
 		t.complete();
@@ -189,7 +188,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (! hasIndex(columnNames))
-			addIndex2(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+			addIndex2(colNums(columnNames), isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
 
@@ -199,13 +198,19 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		if (hasIndex(columnNames))
 			throw new SuException("add index: index already exists: " +
 					columnNames + " in " + tableName);
-		addIndex2(columnNames, isKey, unique, fktable, fkcolumns, fkmode);
+		addIndex2(colNums(columnNames), isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
 
-	public void addIndex2(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder addIndex(int[] colNums, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		int[] colNums = colNums(columnNames);
+		assert ! hasIndex(colNums);
+		addIndex2(colNums, isKey, unique, fktable, fkcolumns, fkmode);
+		return this;
+	}
+
+	public void addIndex2(int[] colNums, boolean isKey, boolean unique,
+			String fktable, String fkcolumns, int fkmode) {
 		Index index = new Index(tblnum, colNums, isKey, unique,
 				fktable, fkcolumns, fkmode);
 		et().addRecord(TN.INDEXES, index.toRecord());
@@ -272,7 +277,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private boolean hasIndex(String columnNames) {
-		int[] colNums = colNums(columnNames);
+		return hasIndex(colNums(columnNames));
+	}
+
+	private boolean hasIndex(int[] colNums) {
 		for (Index index : indexes)
 			if (Arrays.equals(colNums, index.colNums))
 				return true;
@@ -300,7 +308,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void updateSchema() {
 		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
-		et().updateSchemaTable(new Table(tblnum, tableName,
+		et().updateTableSchema(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
 	}

@@ -137,7 +137,7 @@ public class Persist {
 		int size = (int) istor.sizeFrom(head_adr);
 		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
 
-		int cksum = Tran.checksum(istor.iterator(head_adr));
+		int cksum = istor.checksum(head_adr);
 		istor.buffer(tail_adr).putInt(cksum).putInt(size);
 		istor.protectAll();
 	}

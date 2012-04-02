@@ -224,10 +224,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 		tran.startStore();
 		Tran.StoreInfo info = null;
 		try {
-			// TODO store removes first
-			// reprocessing needs to do them first to avoid duplicate keys
-			storeAdds();
+			// store removes first because
+			// rebuild needs to process them first to avoid duplicate keys
 			storeRemoves();
+			storeAdds();
 		} finally {
 			info = tran.endStore();
 		}
@@ -246,14 +246,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 				inserts.add(adr);
 			}
 		}
+		markEndOfAdds(tran.dstor);
+	}
+
+	static void markEndOfAdds(Storage dstor) {
+		// mark end
+		dstor.buffer(dstor.alloc(Shorts.BYTES)).putShort((short) -1);
 	}
 
 	private void storeRemoves() {
 		int nr = deletes.size();
-		int size = Shorts.BYTES + (1 + nr) * Ints.BYTES;
+		int size = 2 * Shorts.BYTES + nr * Ints.BYTES;
 		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(size));
-		buf.putShort((short) 0xffff); // mark start of removes
-		buf.putInt(nr);
+		buf.putShort((short) 'u');
+		assert nr < Short.MAX_VALUE;
+		buf.putShort((short) nr);
 		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
 			int adr = iter.next();
 			buf.putInt(adr);
