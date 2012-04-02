@@ -7,10 +7,12 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import suneido.immudb.StorageIter.Status;
+
 import com.google.common.primitives.Ints;
 
 class Check {
-	private static final int FAST_NPERSISTS = 2;
+	private static final int FAST_NPERSISTS = 4;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final int EMPTY = -2;
 	private static final int CORRUPT = -1;
@@ -18,15 +20,21 @@ class Check {
 	private final Storage istor;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
-	long dOkSize = 0;
-	long iOkSize = 0;
-	private int lastOkDatetime = 0;
+	private long dOkSize = 0;
+	private long iOkSize = 0;
+	private Date lastOkDate = null;
+	StorageIter dIter;
+	StorageIter iIter;
 
+	/**
+	 * Used when opening a database to quickly check it,
+	 * primarily to confirm it was closed properly.
+	 */
 	static boolean fastcheck(String dbFilename) {
 		Storage dstor = new MmapFile(dbFilename + "d", "r");
 		Storage istor = new MmapFile(dbFilename + "i", "r");
 		try {
-			return new Check(dstor, istor).fullcheck();
+			return new Check(dstor, istor).fastcheck();
 		} finally {
 			dstor.close();
 			istor.close();
@@ -38,7 +46,7 @@ class Check {
 		this.istor = istor;
 	}
 
-	/** checks entire file */
+	/** Checks entire database. Used by DbCheck and DbRebuild */
 	boolean fullcheck() {
 		//PERF check concurrently forwards from beginning and backwards from end
 		return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
@@ -75,7 +83,7 @@ class Check {
 	}
 
 	/** Only works on index store */
-	private static Tran.StoreInfo info(Storage stor, int adr, int size) {
+	static Tran.StoreInfo info(Storage stor, int adr, int size) {
 		ByteBuffer buf = stor.buffer(stor.advance(adr,
 				size - Persist.ENDING_SIZE - Persist.TAIL_SIZE));
 		buf.getInt(); // skip dbinfo adr
@@ -84,14 +92,17 @@ class Check {
 		return new Tran.StoreInfo(lastcksum, lastadr);
 	}
 
-	/** Check dstor and istor in parallel */
+	/**
+	 * Check dstor and istor in parallel.
+	 * @return true if no problems found
+	 */
 	private boolean checkFrom(int dAdr, int iAdr) {
-		Check.Iter dIter = new Check.Iter(dstor, dAdr);
-		Check.Iter iIter = new Check.Iter(istor, iAdr);
+		dIter = new StorageIter(dstor, dAdr);
+		iIter = new StorageIter(istor, iAdr);
 		Tran.StoreInfo iInfo = null;
 		while (! dIter.eof() && ! iIter.eof()) {
 			if (iInfo == null)
-				iInfo = iIter.info();
+				iInfo = Check.info(istor, iIter.adr, iIter.size);
 			if (iInfo.cksum == dIter.cksum() && iInfo.adr == dIter.adr) {
 				iIter.advance();
 				iInfo = null;
@@ -99,107 +110,21 @@ class Check {
 					dIter.advance();
 			} else if (dIter.adr() < iInfo.adr)
 				dIter.advance();
-			else
-				return false;
-			lastOkDatetime = dIter.date();
+			else // diter has gone past iIter with no match - no point continuing
+				break;
+			if (dIter.status != Status.OK || iIter.status != Status.OK)
+				break;
+			lastOkDate = dIter.date();
 			dOkSize = dIter.okSize;
 			iOkSize = iIter.okSize;
 		}
-		if (! dIter.eof() || ! iIter.eof())
-			return false;
-		return true;
+assert dOkSize == dIter.okSize;
+assert iOkSize == iIter.okSize;
+		return dIter.eof() && iIter.eof();  // matched all the way to the end
 	}
 
-	Date lastOkDatetime() {
-		return new Date(1000L * lastOkDatetime);
+	Date lastOkDate() {
+		return lastOkDate;
 	}
-
-	/**
-	 * Iterate through data commits or index persists.
-	 * Check sizes and checksums.
-	 */
-	static class Iter {
-		private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
-		final Storage stor;
-		private int adr; // of current commit/persist
-		private int size; // of current commit/persist
-		private int date = 0;
-		private int cksum; // of current commit/persist
-		long okSize = 0;
-
-		Iter(Storage stor, int adr) {
-			this.stor = stor;
-			seek(adr);
-		}
-
-		void seek(int adr) {
-			this.adr = adr;
-			if (eof())
-				return ;
-			ByteBuffer buf = stor.buffer(adr);
-			size = buf.getInt();
-			ByteBuffer endbuf = stor.buffer(stor.advance(adr, size - Tran.TAIL_SIZE));
-			cksum = endbuf.getInt();
-			verifyCksum();
-			int endsize = endbuf.getInt();
-			if (endsize != size)
-				throw new RuntimeException("storage size mismatch");
-			okSize = ChunkedStorage.adrToOffset(stor.advance(adr, size));
-			date = buf.getInt();
-		}
-
-		boolean eof() {
-			return stor.sizeFrom(adr) == 0;
-		}
-
-		void advance() {
-			seek(stor.advance(adr, size));
-		}
-
-		int adr() {
-			return adr;
-		}
-
-		int size() {
-			return size;
-		}
-
-		int date() {
-			return date;
-		}
-
-		int cksum() {
-			return cksum;
-		}
-
-		/** Only works on index store */
-		Tran.StoreInfo info() {
-			return Check.info(stor, adr, size);
-		}
-
-		// need to handle spanning multiple storage chunks
-		// depends on buf.remaining() going to end of chunk
-		private void verifyCksum() {
-			Checksum cs = new Checksum();
-			int remaining = size - Tran.HEAD_SIZE;
-			int pos = adr;
-			while (remaining > 0) {
-				ByteBuffer buf = stor.buffer(pos);
-				int n = Math.min(buf.remaining(), remaining);
-				cs.update(buf, n);
-				remaining -= n;
-				pos = stor.advance(pos, n);
-			}
-			cs.update(zero_tail);
-			if (cksum != cs.getValue())
-				throw new RuntimeException("invalid checksum");
-		}
-
-		@Override
-		public String toString() {
-			return "Iter(adr " + adr + (eof() ? " eof" : "") + ")";
-		}
-
-	} // end of Iter
 
 }

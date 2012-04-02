@@ -46,6 +46,9 @@ public interface DatabasePackage {
 	/** @return null if rebuild fails, otherwise result description */
 	String rebuild(String dbFilename, String tempFilename);
 
+	/** for testing */
+	String forceRebuild(String dbFilename, String tempFilename);
+
 	Record minRecord();
 	Record maxRecord();
 

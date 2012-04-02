@@ -58,7 +58,7 @@ class DbCheck {
 		Check check = new Check(dstor, istor);
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
-		last_good_commit = check.lastOkDatetime();
+		last_good_commit = check.lastOkDate();
 		if (ok) {
 			println("tables...");
 			if (check_data_and_indexes())

@@ -100,9 +100,9 @@ class MmapFile extends ChunkedStorage {
 
 	@Override
 	public void close() {
-if (mode == FileChannel.MapMode.READ_WRITE)
-System.out.println(file + " size " + file_size +
-		" grew " + (file_size - starting_file_size));
+//		if (mode == FileChannel.MapMode.READ_WRITE)
+//			System.out.println(file + " size " + file_size +
+//					" grew " + (file_size - starting_file_size));
 		try {
 			fc.close();
 			fin.close();

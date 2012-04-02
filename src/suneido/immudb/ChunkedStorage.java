@@ -8,11 +8,10 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Iterator;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.collect.AbstractIterator;
+import com.google.common.primitives.Longs;
 
 /**
  * Chunked storage access.
@@ -22,6 +21,7 @@ import com.google.common.collect.AbstractIterator;
  * <li>long offsets are divided by ALIGN and passed as int,
  * to reduce the space to store them
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
+ * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 @ThreadSafe
 abstract class ChunkedStorage implements Storage {
@@ -62,6 +62,12 @@ abstract class ChunkedStorage implements Storage {
 	public int advance(int adr, int length) {
 		long offset = posToOffset(adr);
 		offset += align(length);
+		if (offset < file_size) {
+			ByteBuffer buf = buf(offset);
+			if (buf.getLong() == 0)
+				// skip end of chunk padding
+				offset += Longs.BYTES + buf.remaining();
+		}
 		return offsetToAdr(offset);
 	}
 
@@ -132,28 +138,17 @@ return buf.slice().asReadOnlyBuffer();
 		return ((n - 1) & 0xffffffffL) << SHIFT;
 	}
 
+	/** @return checksum for bytes from adr to end of file */
 	@Override
-	public Iterator<ByteBuffer> iterator(int adr) {
-		return new Iter(adr);
-	}
-
-	private class Iter extends AbstractIterator<ByteBuffer> {
-		private long offset;
-
-		Iter(int adr) {
-			offset = posToOffset(adr);
+	public int checksum(int adr) {
+		Checksum cksum = new Checksum();
+		long offset = posToOffset(adr);
+		while (offset < file_size) {
+			ByteBuffer buf = buf(offset);
+			offset += buf.remaining();
+			cksum.update(buf);
 		}
-
-		@Override
-		protected ByteBuffer computeNext() {
-			if (offset < file_size) {
-				ByteBuffer buf = buf(offset);
-				offset += buf.remaining();
-				return buf;
-			}
-			return endOfData();
-		}
-
+		return cksum.getValue();
 	}
 
 	@Override

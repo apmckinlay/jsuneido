@@ -130,7 +130,6 @@ public class DatabaseTest extends TestBase {
 		}
 	}
 
-
 	@Test
 	public void foreign_key_block() {
 		// create test2 before test

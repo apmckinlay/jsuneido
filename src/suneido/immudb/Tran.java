@@ -4,9 +4,6 @@
 
 package suneido.immudb;
 
-import java.nio.ByteBuffer;
-import java.util.Iterator;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.immudb.DbHashTrie.Entry;
@@ -71,7 +68,7 @@ class Tran implements Translator {
 			int size = (int) dstor.sizeFrom(head_adr);
 			dstor.buffer(head_adr).putInt(size).putInt(datetime());
 
-			int cksum = checksum();
+			int cksum = dstor.checksum(head_adr);
 			dstor.buffer(tail_adr).putInt(cksum).putInt(size);
 			dstor.protectAll(); // can't output outside tran
 
@@ -105,17 +102,6 @@ class Tran implements Translator {
 	 */
 	static int datetime() {
 		return (int) (System.currentTimeMillis() / 1000);
-	}
-
-	private int checksum() {
-		return checksum(dstor.iterator(head_adr));
-	}
-
-	static int checksum(Iterator<ByteBuffer> iter) {
-		Checksum cksum = new Checksum();
-		while (iter.hasNext())
-			cksum.update(iter.next());
-		return cksum.getValue();
 	}
 
 	void setAdr(int intref, int adr) {
