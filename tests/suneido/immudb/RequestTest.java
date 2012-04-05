@@ -253,7 +253,7 @@ public class RequestTest {
 	@Test
 	public void ensure_readonly() {
 		req("ensure tbl " + SCHEMA);
-		ExclusiveTransaction t = db.exclusiveTran();
+		BulkTransaction t = db.bulkTransaction();
 		req("ensure tbl " + SCHEMA);
 		t.abort();
 	}
@@ -281,7 +281,7 @@ public class RequestTest {
 
 	@After
 	public void check() {
-//		assertThat(db.check(), is(Status.OK));
+		assertThat(db.check(), is(DatabasePackage.Status.OK));
 	}
 
 	private void req(String request) {

@@ -116,7 +116,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		removeRecord(tblnum, (Record) rec);
 	}
 
-	public int removeRecord(int tblnum, Record rec) {
+	protected int removeRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "delete");
 		assert locked;
 		onlyReads = false;
@@ -163,7 +163,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	void verifyNotSystemTable(int tblnum, String what) {
 		if (tblnum <= TN.VIEWS)
-			throw new SuException("can't " + what + " system table");
+			throw new SuException("can't " + what + " system table ");
 	}
 
 	protected void updateRowInfo(int tblnum, int nrows, int size) {
@@ -285,8 +285,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 				info.add(ii); // no dups, so only adds ones not already there
 
 			// after table
-			assert ti.indexInfo.size() == info.size();
 			TableInfoDelta d = tidelta(tblnum);
+			assert ! info.isEmpty();
 			ti = new TableInfo(tblnum, ti.nextfield,
 					ti.nrows() + d.nrows, ti.totalsize() + d.size, toList(info));
 			dbinfo = dbinfo.with(ti);

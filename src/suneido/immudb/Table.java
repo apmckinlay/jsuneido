@@ -37,6 +37,9 @@ class Table implements suneido.intfc.database.Table {
 		this.columns = columns;
 		this.indexes = indexes;
 		fields = buildFields();
+
+		for (Index idx : indexes)
+			assert idx.tblnum == num;
 	}
 
 	Table(Record record, Columns columns, Indexes indexes) {

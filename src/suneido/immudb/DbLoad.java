@@ -82,7 +82,7 @@ class DbLoad {
 		int nrecs = 0;
 		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		ByteBuffer recbuf = ByteBuffer.allocate(4096).order(ByteOrder.LITTLE_ENDIAN);
-		ExclusiveTransaction t = db.exclusiveTran();
+		BulkTransaction t = db.bulkTransaction();
 		try {
 			Table table = t.getTable(tablename);
 			int first = 0;
@@ -107,21 +107,21 @@ class DbLoad {
 	}
 
 	private static int load_data_record(ReadableByteChannel in, int tblnum,
-			ExclusiveTransaction t, ByteBuffer recbuf, int n)
+			BulkTransaction t, ByteBuffer recbuf, int n)
 			throws IOException {
 		fullRead(in, recbuf, n);
 		Record rec = Record.from(recbuf);
 		return t.loadRecord(tblnum, rec);
 	}
 
-	static void createIndexes(ExclusiveTransaction t, Table table, int first, int last) {
+	static void createIndexes(BulkTransaction t, Table table, int first, int last) {
 		if (first == 0)
 			return; // no data
 		for (Index index : table.indexes)
 			createIndex(t, first, last, index);
 	}
 
-	private static void createIndex(ExclusiveTransaction t, int first, int last, Index index) {
+	private static void createIndex(BulkTransaction t, int first, int last, Index index) {
 		TranIndex btree = t.getIndex(index.tblnum, index.colNums);
 		StoredRecordIterator iter = t.storedRecordIterator(first, last);
 		while (iter.hasNext()) {

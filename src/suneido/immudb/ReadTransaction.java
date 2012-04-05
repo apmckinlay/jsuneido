@@ -31,6 +31,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected Database.State dbstate; // not final - modified by ExclusiveTran
 	protected DbHashTrie dbinfo;
 	protected Tables schema; // not final - modified by ExclusiveTran
+	/** needs to be ordered for ReadWriteTransaction updateDbInfo */
 	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions trans;
 	private boolean ended = false;
@@ -133,12 +134,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	boolean exists(int tblnum, int[] colNums, Record key) {
-		TranIndex index = getIndex(tblnum, colNums);
-		if (index.get(key) == 0)
-			return false;
-		else
-			return true;
-//		return 0 != index.get(key);
+		return 0 != getIndex(tblnum, colNums).get(key);
 	}
 
 	@Override
@@ -351,8 +347,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		return tran;
 	}
 
-	ExclusiveTransaction exclusiveTran() {
-		return db.exclusiveTran();
+	/** used by TableBuilder */
+	SchemaTransaction schemaTran() {
+		return db.schemaTransaction();
 	}
 
 }

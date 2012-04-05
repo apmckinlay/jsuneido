@@ -14,17 +14,16 @@ import suneido.util.ThreadConfined;
 import com.google.common.primitives.Shorts;
 
 /**
- * Used for schema changes and for load and compact.
+ * Used for load and compact.
  * Changes are made directly to master btrees (no overlay).
- * Load and compact bend the rules and write data prior to commit
+ * Unlike other transactions, data is written prior to commit (not deferred)
  * using loadRecord and saveBtrees
  */
 @ThreadConfined
-class ExclusiveTransaction extends ReadWriteTransaction {
-	private boolean data_committed = false;
-	private Tran.StoreInfo storeInfo = null;
+class BulkTransaction extends ReadWriteTransaction {
+	protected Tran.StoreInfo storeInfo = null;
 
-	ExclusiveTransaction(int num, Database db) {
+	BulkTransaction(int num, Database db) {
 		super(num, db);
 		tran.allowStore();
 		// no removes
@@ -51,59 +50,17 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	@Override
 	public void addRecord(int tblnum, Record rec) {
-		rec.tblnum = tblnum;
-		rec.address = rec.store(tran.dstor);
-		super.addRecord(tblnum, rec);
+		throw new UnsupportedOperationException("BulkTransaction addRecord");
 	}
 
 	@Override
 	public int updateRecord(int tblnum, Record from, Record to) {
-		to.tblnum = tblnum;
-		to.address = to.store(tran.dstor);
-		return super.updateRecord(tblnum, from, to);
+		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 
 	@Override
-	void verifyNotSystemTable(int tblnum, String what) {
-	}
-
-	// used by Bootstrap and TableBuilder
-	Btree addIndex(Index index) {
-		assert locked;
-		Btree btree = new Btree(tran);
-		indexes.put(index, btree);
-		return btree;
-	}
-
-	// used by TableBuilder
-	void addTableSchema(Table tbl) {
-		assert locked;
-		schema = schema.with(tbl);
-		indexedData.remove(tbl.num);
-	}
-
-	// used by TableBuilder and Bootstrap
-	void addTableInfo(TableInfo ti) {
-		assert locked;
-		dbinfo = dbinfo.with(ti);
-	}
-
-	// used by TableBuilder
-	void updateTableSchema(Table tbl) {
-		assert locked;
-		Table oldTbl = getTable(tbl.num);
-		if (oldTbl != null)
-			schema = schema.without(oldTbl);
-		schema = schema.with(tbl);
-		indexedData.remove(tbl.num);
-	}
-
-	// used by TableBuilder
-	void dropTableSchema(Table tbl) {
-		// "remove" from dbinfo so indexes won't be persisted
-		dbinfo = dbinfo.with(TableInfo.empty(tbl.num));
-		schema = schema.without(tbl);
-		indexedData.remove(tbl.num);
+	public int removeRecord(int tblnum, Record rec) {
+		throw new UnsupportedOperationException("BulkTransaction removeRecord");
 	}
 
 	// used by DbLoad and DbCompact
@@ -115,9 +72,9 @@ onlyReads = false; //TODO remove this once we handle aborts
 		return rec.address;
 	}
 
-	// used by DbLoad to do incremental commit
+	/** called after creating each btree to save and persist it */
 	void saveBtrees() {
-		if (! data_committed) {
+		if (storeInfo == null) {
 			commitData();
 		} else {
 			freezeBtrees();
@@ -135,19 +92,18 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	@Override
 	protected void commit() {
-		if (! data_committed)
+		if (storeInfo == null)
 			commitData();
 		trans.commit(this);
 	}
 
 	private void commitData() {
-		storeData();
+		endData();
 		freezeBtrees();
 		updateDbInfo();
-		data_committed = true;
 	}
 
-	private void storeData() {
+	private void endData() {
 		// we are storing as we go, so just output the end marker
 		UpdateTransaction.markEndOfAdds(tran.dstor);
 		storeInfo = tran.endStore();
@@ -172,18 +128,17 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	@Override
 	public void abort() {
-		if (! data_committed)
-			storeData();
+		if (storeInfo == null)
+			endData();
 		Database.State state = db.state;
 		db.setState(state.dbinfo, state.schema, storeInfo.cksum, storeInfo.adr);
-		// else
-			//TODO prevent output from being seen by rebuild
+		//TODO prevent output from being seen by rebuild
 		super.abort();
 	}
 
 	@Override
 	public String toString() {
-		return "et" + num;
+		return "bt" + num;
 	}
 
 }

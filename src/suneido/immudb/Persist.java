@@ -96,7 +96,7 @@ public class Persist {
 				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
-						int root = ii.rootNode.store2(istor);
+						int root = ii.rootNode.store(istor);
 						assert root != 0;
 						b.add(new IndexInfo(ii, root));
 						modified = true;

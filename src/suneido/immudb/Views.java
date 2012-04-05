@@ -10,7 +10,7 @@ package suneido.immudb;
 class Views {
 	static final int[] INDEX_COLS = new int[] { 0 };
 
-	static void addView(ExclusiveTransaction t, String name, String definition) {
+	static void addView(SchemaTransaction t, String name, String definition) {
 		Record r = new RecordBuilder().add(name).add(definition).build();
 		t.addRecord(Bootstrap.TN.VIEWS, r);
 	}
@@ -23,7 +23,7 @@ class Views {
 		return rec.getString(1);
 	}
 
-	static boolean dropView(ExclusiveTransaction t, String name) {
+	static boolean dropView(SchemaTransaction t, String name) {
 		// WARNING: assumes views is only indexed on name
 		Record rec = getViewRecord(t, name);
 		if (rec == null)

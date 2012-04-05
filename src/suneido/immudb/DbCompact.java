@@ -91,7 +91,7 @@ class DbCompact {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
 		boolean squeeze = needToSqueeze(fields);
-		ExclusiveTransaction t = newDB.exclusiveTran();
+		BulkTransaction t = newDB.bulkTransaction();
 		try {
 			int first = 0;
 			int last = 0;
