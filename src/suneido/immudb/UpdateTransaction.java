@@ -76,7 +76,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public int addRecord(int tblnum, Record rec) {
 		int adr = super.addRecord(tblnum, rec);
 		actions.add(adr);
-//System.out.println("addRecord " + adr + " = " + rec);
 		return adr;
 	}
 
@@ -201,13 +200,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	@Override
 	protected void commit() {
-//System.out.println("UpdateTran commit");
 		buildReads();
 		synchronized(db.commitLock) {
 			checkForConflicts();
 			Tran.StoreInfo info = storeData();
 			updateBtrees();
-			updateDbInfo(info.cksum, info.adr);
+			updateDbInfo(info);
 			commitTime = trans.clock();
 			trans.commit(this);
 		}
@@ -262,8 +260,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 		try {
 			startOfCommit();
 			storeActions();
-//			storeRemoves();
-//			storeAdds();
 			endOfCommit(tran.dstor);
 		} finally {
 			info = tran.endStore();
@@ -292,7 +288,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 					int adr = ((Record) tran.intToRef(act)).store(tran.dstor);
 					tran.setAdr(act, adr);
 					inserts.add(adr);
-//System.out.println("add " + act + " = " + adr + " = " + tran.intToRef(act));
 				}
 			} else { // remove
 				ByteBuffer buf = tran.dstor.buffer(
@@ -303,29 +298,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 			}
 		}
 	}
-
-//	private void storeRemoves() {
-//		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
-//			ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
-//			int adr = iter.next();
-//			buf.putShort(REMOVE);
-//			buf.putInt(adr);
-//		}
-//	}
-//
-//	private void storeAdds() {
-//		int i = -1;
-//		for (Object x : tran.intrefs) {
-//			++i;
-//			if (x instanceof Record) { // add
-//				int intref = i | IntRefs.MASK;
-//				assert tran.intToRef(intref) == x;
-//				int adr = ((Record) x).store(tran.dstor);
-//				tran.setAdr(intref, adr);
-//				inserts.add(adr);
-//			}
-//		}
-//	}
 
 	static void endOfCommit(Storage stor) {
 		stor.buffer(stor.alloc(Shorts.BYTES)).putShort(END);
@@ -384,7 +356,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 		int intref = BtreeNode.adr(key);
 		assert IntRefs.isIntRef(intref);
 		int adr = tran.getAdr(intref);
-//System.out.println("translate " + intref + " = " + adr + " in " + key);
 		assert adr != 0;
 		rb.adduint(adr);
 		return rb.build();
@@ -393,11 +364,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// update dbinfo -----------------------------------------------------------
 
 	/** overridden by SchemaTransaction */
-	protected void updateDbInfo(int cksum, int adr) {
+	protected void updateDbInfo(Tran.StoreInfo info) {
 		dbinfo = db.state.dbinfo; // the latest
 		updateDbInfo(updatedIndexes);
 		assert dbstate.schema == db.state.schema;
-		db.setState(dbinfo, db.state.schema, cksum, adr);
+		db.setState(dbinfo, db.state.schema, info.cksum, info.adr);
 	}
 
 	// end of commit =========================================================
