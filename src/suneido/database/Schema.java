@@ -228,7 +228,7 @@ class Schema {
 					Record newRecord = tran.getBtreeIndex(index).withColumns(newColumns);
 					Data.update_any_record(tran, "indexes", "table,columns",
 							key(table.num, index.columns), newRecord);
-					}
+				}
 				List<BtreeIndex> btis = new ArrayList<BtreeIndex>();
 				tran.updateTable(table.num, btis);
 				for (BtreeIndex bti : btis)
