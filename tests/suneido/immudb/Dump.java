@@ -34,11 +34,11 @@ public class Dump {
 		}
 		@Override
 		void remove(Record r) {
-			System.out.println("remove " + r);
+			System.out.println("remove " + r.tblnum + " - " + r);
 		}
 		@Override
 		void add(Record r) {
-			System.out.println("add table " + r.tblnum + " " + r);
+			System.out.println("add " + r.tblnum + " + " + r);
 		}
 		@Override
 		void after() {

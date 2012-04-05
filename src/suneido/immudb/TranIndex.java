@@ -6,6 +6,9 @@ package suneido.immudb;
 
 import suneido.intfc.database.IndexIter;
 
+/**
+ * Common interface for Btree and OverlayIndex
+ */
 interface TranIndex {
 
 	boolean add(Record key, boolean unique);

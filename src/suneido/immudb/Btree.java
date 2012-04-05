@@ -34,7 +34,7 @@ import com.google.common.primitives.UnsignedInts;
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
-class Btree implements TranIndex, Cloneable {
+class Btree implements TranIndex {
 	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
 	int treeLevels;

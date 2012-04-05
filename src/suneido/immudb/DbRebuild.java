@@ -8,8 +8,12 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
+
+import com.google.common.collect.Lists;
 
 public class DbRebuild {
 	private final String dbFilename;
@@ -87,6 +91,7 @@ Dump.data(dstor);
 		boolean skip;
 		TableBuilder tb;
 		UpdateTransaction t;
+		List<Record> schemaRemoves = Lists.newArrayList();
 
 		Proc(Database db, Storage stor, int adrFrom) {
 			super(stor, adrFrom);
@@ -103,8 +108,32 @@ Dump.data(dstor);
 
 		@Override
 		void remove(Record r) {
+System.out.println("remove " + r.tblnum + " - " + r);
 			r.address = 0;
-			t.removeRecord(r.tblnum, r);
+			if (type == 's') {
+				schemaRemoves.add(r);
+//				switch (r.tblnum) {
+//				case TN.TABLES:
+//					String tablename = r.getString(1);
+//					db.dropTable(tablename);
+//					break;
+//				case TN.COLUMNS:
+//					Column col = new Column(r);
+//					tbEnsure(col.tblnum);
+//					tb.dropColumn(col.name);
+//					break;
+//				case TN.INDEXES:
+//					Index ix = new Index(r);
+//					tbEnsure(ix.tblnum);
+//					tb.dropIndex(ix.colNums);
+//					break;
+//				default:
+//					assert false : "invalid schema table number " + r.tblnum;
+//				}
+			} else  if (type == 'u') {
+				t.removeRecord(r.tblnum, r);
+			}
+			//TODO handle load/compact transactions
 		}
 
 		//TODO handle table numbers changing
@@ -112,37 +141,78 @@ Dump.data(dstor);
 
 		@Override
 		void add(Record r) {
+System.out.println("add " + r.tblnum + " + " + r);
 			if (skip)
 				return;
-			if (type == 'e') {
-				// assume schema tran
-				if (r.tblnum == 1) {
+			if (type == 's') {
+				if (rename(r))
+					return;
+				handleSchemaRemoves();
+				switch (r.tblnum) {
+				case TN.TABLES:
 					String tablename = r.getString(1);
 					tb = db.createTable(tablename);
 					tblnames.put(r.getInt(0), tablename);
-				} else if (r.tblnum == 2) {
+					break;
+				case TN.COLUMNS:
 					Column col = new Column(r);
 					tbEnsure(col.tblnum);
 					tb.addColumn(col.name);
-				} else if (r.tblnum == 3) {
+					break;
+				case TN.INDEXES:
 					Index ix = new Index(r);
 					tbEnsure(ix.tblnum);
 					tb.addIndex(ix.colNums, ix.isKey, ix.unique,
 							ix.fksrc == null ? "" : ix.fksrc.tablename,
 							ix.fksrc == null ? "" : ix.fksrc.columns,
 							ix.fksrc == null ? 0 : ix.fksrc.mode);
+					break;
+				default:
+					 //TODO handle load/compact transactions
+					throw new UnsupportedOperationException();
 				}
 			} else if (type == 'u') {
 				t.addRecord(r.tblnum, r);
 			}
 		}
 
+		private boolean rename(Record r) {
+			if (r.tblnum != TN.TABLES && r.tblnum != TN.COLUMNS)
+				return false;
+			if (schemaRemoves.size() != 1 ||
+					schemaRemoves.get(0).tblnum != r.tblnum)
+				return false;
+			Record rr = schemaRemoves.get(0);
+			int tblnum = r.getInt(0);
+			if (rr.getInt(0) != tblnum)
+				return false;
+			if (r.tblnum == TN.TABLES) {
+				String from = rr.getString(1);
+				String to = r.getString(1);
+System.out.println("renameTable " + from + " => " + to);
+				db.renameTable(from, to);
+			} else { // TN.COLUMNS
+				String from = rr.getString(2);
+				String to = r.getString(2);
+				TableBuilder tb = db.alterTable(tableName(tblnum));
+System.out.println("renameColumn " + from + " => " + to);
+				tb.renameColumn(from, to);
+				tb.finish();
+			}
+			schemaRemoves.clear();
+			return true;
+		}
+
 		private void tbEnsure(int tblnum) {
 			if (tb != null)
 				return;
+			tb = db.alterTable(tableName(tblnum));
+		}
+
+		protected String tableName(int tblnum) {
 			String tableName = tblnames.get(tblnum);
 			assert tableName != null : "unknown tblnum " + tblnum;
-			tb = db.alterTable(tableName);
+			return tableName;
 		}
 
 		@Override
@@ -151,6 +221,41 @@ Dump.data(dstor);
 				tb.finish();
 			else if (t != null)
 				t.ck_complete();
+			else
+				handleSchemaRemoves();
+		}
+
+		private void handleSchemaRemoves() {
+			if (schemaRemoves.isEmpty())
+				return;
+			handleSchemaRemoves2();
+			schemaRemoves.clear();
+		}
+
+		private void handleSchemaRemoves2() {
+			for (Record r : schemaRemoves)
+				if (r.tblnum == TN.TABLES) {
+					String tablename = r.getString(1);
+System.out.println("dropTable " + tablename);
+					db.dropTable(tablename);
+					return;
+				}
+			for (Record r : schemaRemoves)
+				if (r.tblnum == TN.INDEXES) {
+					Index ix = new Index(r);
+					tbEnsure(ix.tblnum);
+System.out.println("dropIndex " + ix);
+					tb.dropIndex(ix.colNums);
+				}
+			for (Record r : schemaRemoves)
+				if (r.tblnum == TN.COLUMNS) {
+					Column col = new Column(r);
+					tbEnsure(col.tblnum);
+System.out.println("dropColumn " + col);
+					tb.dropColumn(col.name);
+				}
+			tb.finish();
+			tb = null;
 		}
 
 	}

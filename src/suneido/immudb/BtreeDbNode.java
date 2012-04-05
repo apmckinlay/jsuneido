@@ -50,7 +50,7 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	int store2(Storage stor) {
+	int store(Storage stor) {
 		return rec.address();
 	}
 

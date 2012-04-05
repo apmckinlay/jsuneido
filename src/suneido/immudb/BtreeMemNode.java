@@ -205,21 +205,21 @@ public class BtreeMemNode extends BtreeNode {
 	// store -------------------------------------------------------------------
 
 	@Override
-	int store2(Storage stor) {
-		translate2(stor);
+	int store(Storage stor) {
+		translate(stor);
 		int adr = stor.alloc(length());
 		ByteBuffer buf = stor.buffer(adr);
 		pack(buf);
 		return address = adr;
 	}
 
-	private void translate2(Storage stor) {
+	private void translate(Storage stor) {
 		for (int i = 0; i < size(); ++i) {
 			int j = index.get(i);
 			if (j < 0) {
 				Record r = added.get(-j - 1);
 				if (r.childRef() instanceof BtreeMemNode)
-					((BtreeMemNode) r.childRef()).store2(stor);
+					((BtreeMemNode) r.childRef()).store(stor);
 			}
 		}
 	}

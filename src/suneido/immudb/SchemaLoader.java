@@ -82,6 +82,7 @@ class SchemaLoader {
 			if (next == null || next.tblnum > tblnum)
 				return new Columns(noColumns);
 			while (true) {
+				assert next.tblnum == tblnum;
 				list.add(next);
 				iter.next();
 				if (iter.eof())

@@ -85,7 +85,7 @@ abstract class BtreeNode implements Storable {
 
 	abstract Record get(int i);
 
-	abstract int store2(Storage stor);
+	abstract int store(Storage stor);
 
 	Record find(Record key) {
 		int at = findPos(key);

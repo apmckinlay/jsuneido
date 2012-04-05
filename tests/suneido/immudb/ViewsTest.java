@@ -21,7 +21,7 @@ public class ViewsTest {
 
 	@Test
 	public void addView() {
-		ExclusiveTransaction t = mock(ExclusiveTransaction.class);
+		SchemaTransaction t = mock(SchemaTransaction.class);
 		Views.addView(t, NAME, DEFINITION);
 		verify(t).addRecord(Bootstrap.TN.VIEWS, VIEW_REC);
 	}
@@ -41,7 +41,7 @@ public class ViewsTest {
 
 	@Test
 	public void dropView() {
-		ExclusiveTransaction t = mock(ExclusiveTransaction.class);
+		SchemaTransaction t = mock(SchemaTransaction.class);
 		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
 		Views.dropView(t, NAME);
 		verify(t).removeRecord(Bootstrap.TN.VIEWS, VIEW_REC);

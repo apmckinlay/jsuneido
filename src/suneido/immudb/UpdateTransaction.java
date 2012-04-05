@@ -32,8 +32,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	protected final TIntHashSet deletes = new TIntHashSet();
+	/** used after commit by other transactions checking for conflicts */
 	private final TIntHashSet inserts = new TIntHashSet();
-	private final TIntHashSet deletes = new TIntHashSet();
+	protected final Map<Index,TranIndex> updatedIndexes = Maps.newTreeMap(); //TODO why tree map?
+
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
@@ -61,6 +64,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	@Override
 	protected TranIndex getIndex(IndexInfo info) {
+		assert info != null : "missing IndexInfo";
 		return new OverlayIndex(new Btree(tran, info), new Btree(tran), deletes);
 	}
 
@@ -69,7 +73,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(oldkey);
-		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
+		trackReads(index, iter);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
 			RecordBuilder rb = new RecordBuilder();
@@ -86,7 +90,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public void removeAll(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(key);
-		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
+		trackReads(index, iter);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
 	}
@@ -95,7 +99,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public IndexIter iter(int tblnum, String columns) {
 		Index index = index(tblnum, columns);
 		Iter iter = getIndex(index).iterator();
-		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
+		trackReads(index, iter);
 		return iter;
 	}
 
@@ -104,7 +108,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
 		Index index = index(tblnum, columns);
 		Iter iter = getIndex(index).iterator((Record) org, (Record) end);
-		((OverlayIndex.Iter) iter).trackRange(trackReads(index));
+		trackReads(index, iter);
 		return iter;
 	}
 
@@ -112,11 +116,16 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
 		Index index = index(tblnum, columns);
 		Iter iter2 = getIndex(index).iterator(iter);
-		((OverlayIndex.Iter) iter2).trackRange(trackReads(index));
+		trackReads(index, iter2);
 		return iter2;
 	}
 
-	private IndexRange trackReads(Index index) {
+	/** overrridden by SchemaTransaction */
+	protected void trackReads(Index index, Iter iter) {
+		((OverlayIndex.Iter) iter).trackRange(indexRange(index));
+	}
+
+	private IndexRange indexRange(Index index) {
 		TransactionReads tr = reads.get(index);
 		if (tr == null)
 			reads.put(index, tr = new TransactionReads());
@@ -164,20 +173,14 @@ class UpdateTransaction extends ReadWriteTransaction {
 		synchronized(db.commitLock) {
 			checkForConflicts();
 			Tran.StoreInfo info = storeData();
-			// use a read transaction to get access to global indexes
-			ReadTransaction t = db.readTransaction();
-			try {
-				updateBtrees(t);
-				updateDbInfo(t, info.cksum, info.adr);
-			} finally {
-				t.complete();
-			}
+			updateBtrees();
+			updateDbInfo(info.cksum, info.adr);
 			commitTime = trans.clock();
 			trans.commit(this);
 		}
 	}
 
-	private void checkForConflicts() {
+	protected void checkForConflicts() {
 		Set<UpdateTransaction> overlapping = trans.getOverlapping(asof);
 		for (UpdateTransaction t : overlapping) {
 			assert t != this;
@@ -220,7 +223,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// store data --------------------------------------------------------------
 
-	private Tran.StoreInfo storeData() {
+	protected Tran.StoreInfo storeData() {
 		tran.startStore();
 		Tran.StoreInfo info = null;
 		try {
@@ -232,6 +235,24 @@ class UpdateTransaction extends ReadWriteTransaction {
 			info = tran.endStore();
 		}
 		return info;
+	}
+
+	private void storeRemoves() {
+		int nr = deletes.size();
+		int size = 2 * Shorts.BYTES + nr * Ints.BYTES;
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(size));
+		buf.putShort((short) tranType());
+		assert nr < Short.MAX_VALUE;
+		buf.putShort((short) nr);
+		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
+			int adr = iter.next();
+			buf.putInt(adr);
+		}
+	}
+
+	/** overridden by SchemaTransaction */
+	protected char tranType() {
+		return 'u';
 	}
 
 	private void storeAdds() {
@@ -249,42 +270,37 @@ class UpdateTransaction extends ReadWriteTransaction {
 		markEndOfAdds(tran.dstor);
 	}
 
-	static void markEndOfAdds(Storage dstor) {
-		// mark end
-		dstor.buffer(dstor.alloc(Shorts.BYTES)).putShort((short) -1);
-	}
-
-	private void storeRemoves() {
-		int nr = deletes.size();
-		int size = 2 * Shorts.BYTES + nr * Ints.BYTES;
-		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(size));
-		buf.putShort((short) 'u');
-		assert nr < Short.MAX_VALUE;
-		buf.putShort((short) nr);
-		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
-			int adr = iter.next();
-			buf.putInt(adr);
-		}
+	static void markEndOfAdds(Storage stor) {
+		stor.buffer(stor.alloc(Shorts.BYTES)).putShort((short) -1);
 	}
 
 	// update btrees -----------------------------------------------------------
 
-	private void updateBtrees(ReadTransaction t) {
+	private void updateBtrees() {
 		//PERF update in parallel
 		for (Entry<Index, TranIndex> e : indexes.entrySet())
-			updateBtree(t, e);
+			updateBtree(e.getKey(), e.getValue());
 	}
 
-	private void updateBtree(ReadTransaction t, Entry<Index, TranIndex> e) {
-		Index index = e.getKey();
-		OverlayIndex oti = (OverlayIndex) e.getValue();
-		Btree global = (Btree) t.getIndex(index);
-
-		boolean updated = ! oti.removedKeys.isEmpty();
-		for (Record key : oti.removedKeys)
-			global.remove(key);
-
-		Btree local = oti.local();
+	private void updateBtree(Index index, TranIndex idx) {
+		Btree global = getLatestIndex(index);
+		Btree local;
+		boolean updated;
+		if (idx instanceof Btree) {
+			local = (Btree) idx;
+			updated = true;
+			if (local.frozen()) {
+				// created by TableBuilder
+				updatedIndexes.put(index, local);
+				return;
+			}
+		} else {
+			OverlayIndex oti = (OverlayIndex) idx;
+			updated = ! oti.removedKeys.isEmpty();
+			for (Record key : oti.removedKeys)
+				global.remove(key);
+			local = oti.local();
+		}
 		Btree.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record key = iter.curKey();
@@ -292,11 +308,18 @@ class UpdateTransaction extends ReadWriteTransaction {
 				throw new Conflict("duplicate key");
 			updated = true;
 		}
-		if (updated)
+		if (updated) {
 			global.freeze();
-		else
-			t.indexes.remove(index); // don't need to update dbinfo
+			updatedIndexes.put(index, global);
+		}
 		assert global.frozen();
+	}
+
+	/** overridden by SchemaTransaction */
+	protected Btree getLatestIndex(Index index) {
+		TableInfo ti = (TableInfo) db.state.dbinfo.get(index.tblnum);
+		IndexInfo ii = ti.getIndex(index.colNums);
+		return new Btree(tran, ii);
 	}
 
 	private Record translate(Record key) {
@@ -310,9 +333,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// update dbinfo -----------------------------------------------------------
 
-	private void updateDbInfo(ReadTransaction t, int cksum, int adr) {
+	/** overridden by SchemaTransaction */
+	protected void updateDbInfo(int cksum, int adr) {
 		dbinfo = db.state.dbinfo; // the latest
-		updateDbInfo(t.indexes);
+		updateDbInfo(updatedIndexes);
 		assert dbstate.schema == db.state.schema;
 		db.setState(dbinfo, db.state.schema, cksum, adr);
 	}

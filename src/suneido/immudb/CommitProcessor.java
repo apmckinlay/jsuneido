@@ -27,7 +27,7 @@ abstract class CommitProcessor {
 
 		// removes - one chunk
 		char c = (char) buf.getShort();
-		assert c == 'u' || c == 'e';
+		assert c == 'u' || c == 's';
 		type(c);
 		int nremoves = buf.getShort();
 		for (int i = 0; i < nremoves; ++i)
@@ -39,11 +39,6 @@ abstract class CommitProcessor {
 			short tblnum = buf.getShort();
 			if (tblnum == -1)
 				break;
-if (tblnum == 0) {
-for (int i = 0; i < 16; ++i)
-	System.out.print(buf.get(i) + " ");
-System.out.println();
-}
 			assert tblnum > 0;
 			Record r = new BufRecord(buf.slice());
 			r.tblnum = tblnum;

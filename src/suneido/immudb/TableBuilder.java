@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.util.Verify.verify;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -70,10 +68,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private void createTable() {
-		et().addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
+		st().addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 	}
 
-	static boolean dropTable(ExclusiveTransaction t, String tableName) {
+	static boolean dropTable(SchemaTransaction t, String tableName) {
 		// check for view first
 		if (! Views.dropView(t, tableName)) {
 			Table table = t.getTable(tableName);
@@ -81,21 +79,21 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				t.abort();
 				return false;
 			}
+			t.removeRecord(TN.TABLES, table.toRecord());
 			TableBuilder tb = alter(t, tableName);
 			for (Index index : table.indexes)
-				verify(tb.dropIndex(index.colNums));
+				t.removeRecord(TN.INDEXES, index.toRecord());
+//				tb.dropIndex(index.colNums);
 			for (Column column : table.columns)
-				tb.dropColumn(column.name);
-			t.removeRecord(TN.TABLES, table.toRecord());
-			t.dropTableSchema(table);
-			//NOTE: leaves dbinfo (DbHashTrie doesn't have remove)
-			//TODO at least replace dbinfo with a "null" entry
+				t.removeRecord(TN.COLUMNS, column.toRecord());
+//				tb.dropColumn(column.name);
+			t.dropTable(table);
 		}
-		t.complete();
+		t.ck_complete();
 		return true;
 	}
 
-	static void renameTable(ExclusiveTransaction t, String from, String to) {
+	static void renameTable(SchemaTransaction t, String from, String to) {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
 			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
@@ -107,7 +105,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		t.updateTableSchema(newTable);
 		// dbinfo is ok since it doesn't use table name
 		t.updateRecord(TN.TABLES, oldTable.toRecord(), newTable.toRecord());
-		t.complete();
+		t.ck_complete();
 	}
 
 	private void getSchema() {
@@ -138,7 +136,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		if (field == -1)
 			column = column.substring(0, 1).toLowerCase() + column.substring(1);
 		Column c = new Column(tblnum, field, column);
-		et().addRecord(TN.COLUMNS, c.toRecord());
+		st().addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
 	}
 
@@ -213,31 +211,38 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			String fktable, String fkcolumns, int fkmode) {
 		Index index = new Index(tblnum, colNums, isKey, unique,
 				fktable, fkcolumns, fkmode);
-		et().addRecord(TN.INDEXES, index.toRecord());
+		st().addRecord(TN.INDEXES, index.toRecord());
 		indexes.add(index);
 		newIndexes.add(index);
 		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
-			et().addIndex(index);
+			st().addIndex(index);
 	}
 
 	@Override
 	public TableBuilder dropIndex(String columnNames) {
-		int[] colNums = colNums(columnNames);
-		if (! dropIndex(colNums))
-			fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames + ")");
+		dropIndex(colNums(columnNames));
 		return this;
 	}
 
-	private boolean dropIndex(int[] colNums) {
+	void dropIndex(int[] colNums) {
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			if (Arrays.equals(colNums, index.colNums)) {
 				t.removeRecord(TN.INDEXES, index.toRecord());
 				indexes.remove(i);
-				return true;
+				return;
 			}
 		}
-		return false;
+		fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames(colNums) + ")");
+	}
+
+	private String columnNames(int[] colNums) {
+		if (colNums.length == 0)
+			return "";
+		StringBuilder sb = new StringBuilder();
+		for (int colNum : colNums)
+			sb.append(",").append(columns.get(colNum));
+		return sb.substring(1);
 	}
 
 	private static final int[] noColumns = new int[0];
@@ -308,7 +313,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void updateSchema() {
 		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
-		et().updateTableSchema(new Table(tblnum, tableName,
+		st().updateTableSchema(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
 	}
@@ -321,26 +326,33 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
 		TranIndex.Iter iter = src.iterator();
-		TranIndex btree = et().addIndex(newIndex);
+		if (iter instanceof OverlayIndex.Iter)
+			((OverlayIndex.Iter) iter).trackRange(new IndexRange());
+		Btree btree = st().addIndex(newIndex);
 		String colNames = table.numsToNames(newIndex.colNums);
-		IndexedData id = new IndexedData(et())
+		IndexedData id = new IndexedData(st())
 				.index(btree, newIndex.mode(), newIndex.colNums, colNames,
 						newIndex.fksrc, t.getForeignKeys(tableName, colNames));
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			int adr = iter.keyadr();
 			id.add(t.input(adr), adr);
 		}
+		btree.freeze();
 	}
 
 	private void updateTableInfo() {
-		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();
-		for (Index index : indexes)
-			ii.add(new IndexInfo(index.colNums,
-					t.getIndex(tblnum, index.colNums).info()));
 		TableInfo ti = t.getTableInfo(tblnum);
+		ImmutableList.Builder<IndexInfo> ii = ImmutableList.builder();
+		if (ti != null && ti.indexInfo != null)
+			ii.addAll(ti.indexInfo);
+		for (Index index : indexes) {
+			TranIndex idx = t.getIndex(tblnum, index.colNums);
+			if (idx instanceof Btree)
+				ii.add(new IndexInfo(index.colNums, idx.info()));
+		}
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
-		et().addTableInfo(
+		st().addTableInfo(
 				new TableInfo(tblnum, nextField, nrows, totalsize, ii.build()));
 	}
 
@@ -354,9 +366,9 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	@Override
 	public void finish() {
-		if (t instanceof ExclusiveTransaction)
+		if (t instanceof SchemaTransaction)
 			build();
-		t.complete();
+		t.ck_complete();
 	}
 
 	@Override
@@ -364,14 +376,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		t.abortIfNotComplete();
 	}
 
-	private ExclusiveTransaction et() {
-		if (t instanceof ExclusiveTransaction)
-			return (ExclusiveTransaction) t;
+	private SchemaTransaction st() {
+		if (t instanceof SchemaTransaction)
+			return (SchemaTransaction) t;
 		else {
-			ExclusiveTransaction et = t.exclusiveTran();
-			t.complete();
-			t = et;
-			return et;
+			SchemaTransaction st = t.schemaTran();
+			t.ck_complete();
+			t = st;
+			return st;
 		}
 	}
 

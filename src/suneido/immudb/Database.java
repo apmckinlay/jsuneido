@@ -44,7 +44,7 @@ class Database implements suneido.intfc.database.Database {
 
 	static Database create(Storage dstor, Storage istor) {
 		Database db = new Database(dstor, istor, DbHashTrie.empty(istor), new Tables());
-		Bootstrap.create(db.exclusiveTran());
+		Bootstrap.create(db.schemaTransaction());
 		db.persist();
 		return db;
 	}
@@ -145,15 +145,22 @@ class Database implements suneido.intfc.database.Database {
 		return new UpdateTransaction(num, this);
 	}
 
-	ExclusiveTransaction exclusiveTran() {
+	SchemaTransaction schemaTransaction() {
 		int num = trans.nextNum(false);
-		return new ExclusiveTransaction(num, this);
+		return new SchemaTransaction(num, this);
 	}
+
+	BulkTransaction bulkTransaction() {
+		int num = trans.nextNum(false);
+		return new BulkTransaction(num, this);
+	}
+
+	// schema updates ----------------------------------------------------------
 
 	@Override
 	public TableBuilder createTable(String tableName) {
 		checkForSystemTable(tableName, "create");
-		return TableBuilder.create(exclusiveTran(), tableName, nextTableNum());
+		return TableBuilder.create(schemaTransaction(), tableName, nextTableNum());
 	}
 
 	int nextTableNum() {
@@ -163,21 +170,21 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public TableBuilder alterTable(String tableName) {
 		checkForSystemTable(tableName, "alter");
-		return TableBuilder.alter(exclusiveTran(), tableName);
+		return TableBuilder.alter(schemaTransaction(), tableName);
 	}
 
 	@Override
 	public TableBuilder ensureTable(String tableName) {
 		checkForSystemTable(tableName, "ensure");
 		return state.schema.get(tableName) == null
-			? TableBuilder.create(exclusiveTran(), tableName, nextTableNum())
+			? TableBuilder.create(schemaTransaction(), tableName, nextTableNum())
 			: TableBuilder.alter(readTransaction(), tableName);
 	}
 
 	@Override
 	public boolean dropTable(String tableName) {
 		checkForSystemTable(tableName, "drop");
-		ExclusiveTransaction t = exclusiveTran();
+		SchemaTransaction t = schemaTransaction();
 		try {
 			return TableBuilder.dropTable(t, tableName);
 		} finally {
@@ -188,7 +195,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void renameTable(String from, String to) {
 		checkForSystemTable(from, "rename");
-		ExclusiveTransaction t = exclusiveTran();
+		SchemaTransaction t = schemaTransaction();
 		try {
 			TableBuilder.renameTable(t, from, to);
 		} finally {
@@ -199,7 +206,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
-		ExclusiveTransaction t = exclusiveTran();
+		SchemaTransaction t = schemaTransaction();
 		try {
 			if (null != Views.getView(t, name))
 				throw new RuntimeException("view: '" + name + "' already exists");
@@ -209,6 +216,8 @@ class Database implements suneido.intfc.database.Database {
 			t.abortIfNotComplete();
 		}
 	}
+
+	//--------------------------------------------------------------------------
 
 	String getView(String name) {
 		ReadTransaction t = readTransaction();
