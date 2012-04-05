@@ -91,9 +91,9 @@ public class SchemaTransaction extends UpdateTransaction {
 	}
 
 	@Override
-	protected void updateDbInfo(int cksum, int adr) {
+	protected void updateDbInfo(Tran.StoreInfo info) {
 		updateDbInfo(updatedIndexes);
-		db.setState(dbinfo, schema, cksum, adr);
+		db.setState(dbinfo, schema, info.cksum, info.adr);
 	}
 
 	@Override

@@ -25,8 +25,7 @@ class BulkTransaction extends ReadWriteTransaction {
 		super(num, db);
 		tran.allowStore();
 		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
-		buf.put((byte) 'e');
-onlyReads = false; //TODO remove this once we handle aborts
+		buf.put((byte) 'b');
 	}
 
 	@Override

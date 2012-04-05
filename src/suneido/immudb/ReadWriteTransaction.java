@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 /**
- * Base class with common code for UpdateTransaction2 and ExclusiveTransaction2
+ * Base class with common code for UpdateTransaction and BulkTransaction
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
 	protected final static short UPDATE = (short) 0;

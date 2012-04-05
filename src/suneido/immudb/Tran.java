@@ -14,7 +14,7 @@ import suneido.immudb.DbHashTrie.Translator;
 import com.google.common.primitives.Ints;
 
 /**
- * Transaction "context". Manages IntRefs and Redirects and Storage.
+ * Transaction "context". Manages IntRefs and Storage.
  */
 @NotThreadSafe
 class Tran implements Translator {
@@ -26,7 +26,6 @@ class Tran implements Translator {
 	final IntRefs intrefs = new IntRefs();
 	private int head_adr = 0;
 
-	/** only used by version 2 so no redirs */
 	Tran(Storage stor, Storage istor) {
 		this.dstor = stor;
 		this.istor = istor;
