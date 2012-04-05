@@ -144,6 +144,7 @@ class BtreeIndex {
 				r.add(newColumns);
 			else
 				r.add(record.getRaw(i));
+		r.alloc(24);
 		return r;
 	}
 
