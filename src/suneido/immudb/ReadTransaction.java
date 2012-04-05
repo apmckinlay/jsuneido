@@ -5,8 +5,8 @@
 package suneido.immudb;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
@@ -32,7 +32,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected DbHashTrie dbinfo;
 	protected Tables schema; // not final - modified by ExclusiveTran
 	/** needs to be ordered for ReadWriteTransaction updateDbInfo */
-	protected final Map<Index,TranIndex> indexes = Maps.newTreeMap();
+	protected final TreeMap<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions trans;
 	private boolean ended = false;
 

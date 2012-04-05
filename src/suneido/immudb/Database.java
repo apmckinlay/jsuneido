@@ -113,8 +113,8 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public Status check() {
 		persist();
-		return DbCheck.check(dstor, istor,
-				suneido.intfc.database.DatabasePackage.printObserver);
+		return DbCheck.check(dstor, istor);
+				//suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
 	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo) {

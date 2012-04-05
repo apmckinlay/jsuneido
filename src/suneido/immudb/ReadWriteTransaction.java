@@ -11,8 +11,8 @@ import gnu.trove.strategy.HashingStrategy;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
@@ -26,6 +26,9 @@ import com.google.common.primitives.Ints;
  * Base class with common code for UpdateTransaction2 and ExclusiveTransaction2
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
+	protected final static short UPDATE = (short) 0;
+	protected final static short REMOVE = (short) -1;
+	protected final static short END = (short) -2;
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
@@ -49,14 +52,15 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		addRecord(getTable(table).num, (Record) rec);
 	}
 
-	void addRecord(int tblnum, Record rec) {
+	int addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
 		onlyReads = false;
 		rec.tblnum = tblnum;
-		indexedData(tblnum).add(rec);
+		int adr = indexedData(tblnum).add(rec);
 		callTrigger(getTable(tblnum), null, rec);
 		updateRowInfo(tblnum, 1, rec.bufSize());
+		return adr;
 	}
 
 	// update ------------------------------------------------------------------
@@ -264,7 +268,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	protected abstract void commit();
 
-	protected void updateDbInfo(Map<Index,TranIndex> indexes) {
+	protected void updateDbInfo(TreeMap<Index,TranIndex> indexes) {
 		if (indexes.isEmpty())
 			return;
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
