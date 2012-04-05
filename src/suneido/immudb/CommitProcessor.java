@@ -4,9 +4,14 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.ReadWriteTransaction.END;
+import static suneido.immudb.ReadWriteTransaction.REMOVE;
+import static suneido.immudb.ReadWriteTransaction.UPDATE;
+
 import java.nio.ByteBuffer;
 
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Shorts;
 
 abstract class CommitProcessor {
 	private final Storage stor;
@@ -25,25 +30,34 @@ abstract class CommitProcessor {
 		ByteBuffer buf = stor.buffer(adr);
 		buf = advance(Tran.HEAD_SIZE);
 
-		// removes - one chunk
-		char c = (char) buf.getShort();
+		char c = (char) buf.get();
 		assert c == 'u' || c == 's';
 		type(c);
-		int nremoves = buf.getShort();
-		for (int i = 0; i < nremoves; ++i)
-			remove(new BufRecord(stor, buf.getInt()));
-		buf = advance((nremoves + 1) * Ints.BYTES);
+		buf = advance(1);
 
-		// added records - one chunk per record
+		Record from = null;
 		while (true) {
-			short tblnum = buf.getShort();
-			if (tblnum == -1)
+			short b = buf.getShort();
+			if (b == END)
 				break;
-			assert tblnum > 0;
-			Record r = new BufRecord(buf.slice());
-			r.tblnum = tblnum;
-			add(r);
-			buf = advance(r.storSize());
+			else if (b == REMOVE || b == UPDATE) {
+				BufRecord r = new BufRecord(stor, buf.getInt());
+				if (b == REMOVE)
+					remove(r);
+				else
+					from = r;
+				buf = advance(Shorts.BYTES + Ints.BYTES);
+			} else { // add
+				Record r = new BufRecord(buf.slice());
+				r.tblnum = b;
+				if (from == null)
+					add(r);
+				else {
+					update(from, r);
+					from = null;
+				}
+				buf = advance(r.storSize());
+			}
 		}
 		after();
 	}
@@ -54,6 +68,8 @@ abstract class CommitProcessor {
 	}
 
 	abstract void type(char c);
+
+	abstract void update(Record from, Record to);
 
 	abstract void remove(Record r);
 

@@ -11,8 +11,6 @@ import java.util.Map.Entry;
 import suneido.SuException;
 import suneido.util.ThreadConfined;
 
-import com.google.common.primitives.Shorts;
-
 /**
  * Used for load and compact.
  * Changes are made directly to master btrees (no overlay).
@@ -26,10 +24,8 @@ class BulkTransaction extends ReadWriteTransaction {
 	BulkTransaction(int num, Database db) {
 		super(num, db);
 		tran.allowStore();
-		// no removes
-		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(2 * Shorts.BYTES));
-		buf.putShort((short) 'e');
-		buf.putShort((short) 0);
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
+		buf.put((byte) 'e');
 onlyReads = false; //TODO remove this once we handle aborts
 	}
 
@@ -49,7 +45,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 	}
 
 	@Override
-	public void addRecord(int tblnum, Record rec) {
+	public int addRecord(int tblnum, Record rec) {
 		throw new UnsupportedOperationException("BulkTransaction addRecord");
 	}
 
@@ -105,7 +101,7 @@ onlyReads = false; //TODO remove this once we handle aborts
 
 	private void endData() {
 		// we are storing as we go, so just output the end marker
-		UpdateTransaction.markEndOfAdds(tran.dstor);
+		UpdateTransaction.endOfCommit(tran.dstor);
 		storeInfo = tran.endStore();
 	}
 

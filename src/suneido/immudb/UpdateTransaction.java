@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
@@ -32,10 +33,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
+	/** updated by IndexedData, used by OverlayIndex */
 	protected final TIntHashSet deletes = new TIntHashSet();
 	/** used after commit by other transactions checking for conflicts */
 	private final TIntHashSet inserts = new TIntHashSet();
-	protected final Map<Index,TranIndex> updatedIndexes = Maps.newTreeMap(); //TODO why tree map?
+	/** needs to be ordered tree for ReadWriteTransaction updateDbInfo */
+	protected final TreeMap<Index,TranIndex> updatedIndexes = Maps.newTreeMap();
+	private final TIntArrayList actions = new TIntArrayList();
 
 
 	UpdateTransaction(int num, Database db) {
@@ -66,6 +70,34 @@ class UpdateTransaction extends ReadWriteTransaction {
 	protected TranIndex getIndex(IndexInfo info) {
 		assert info != null : "missing IndexInfo";
 		return new OverlayIndex(new Btree(tran, info), new Btree(tran), deletes);
+	}
+
+	@Override
+	public int addRecord(int tblnum, Record rec) {
+		int adr = super.addRecord(tblnum, rec);
+		actions.add(adr);
+//System.out.println("addRecord " + adr + " = " + rec);
+		return adr;
+	}
+
+	@Override
+	public int updateRecord(int tblnum, Record from, Record to) {
+		to.address = tran.refToInt(to);
+		int fromadr = super.updateRecord(tblnum, from, to);
+		actions.add(UPDATE);
+		actions.add(fromadr);
+		actions.add(to.address);
+		return fromadr;
+	}
+
+	@Override
+	public int removeRecord(int tblnum, Record rec) {
+		int adr = super.removeRecord(tblnum, rec);
+		if (IntRefs.isIntRef(adr))
+			tran.update(adr, null); // don't record delete of new record
+		else
+			actions.add(adr);
+		return adr;
 	}
 
 	// used by foreign key cascade
@@ -169,6 +201,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	@Override
 	protected void commit() {
+//System.out.println("UpdateTran commit");
 		buildReads();
 		synchronized(db.commitLock) {
 			checkForConflicts();
@@ -227,27 +260,20 @@ class UpdateTransaction extends ReadWriteTransaction {
 		tran.startStore();
 		Tran.StoreInfo info = null;
 		try {
-			// store removes first because
-			// rebuild needs to process them first to avoid duplicate keys
-			storeRemoves();
-			storeAdds();
+			startOfCommit();
+			storeActions();
+//			storeRemoves();
+//			storeAdds();
+			endOfCommit(tran.dstor);
 		} finally {
 			info = tran.endStore();
 		}
 		return info;
 	}
 
-	private void storeRemoves() {
-		int nr = deletes.size();
-		int size = 2 * Shorts.BYTES + nr * Ints.BYTES;
-		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(size));
-		buf.putShort((short) tranType());
-		assert nr < Short.MAX_VALUE;
-		buf.putShort((short) nr);
-		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
-			int adr = iter.next();
-			buf.putInt(adr);
-		}
+	protected void startOfCommit() {
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
+		buf.put((byte) tranType());
 	}
 
 	/** overridden by SchemaTransaction */
@@ -255,23 +281,54 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return 'u';
 	}
 
-	private void storeAdds() {
-		int i = -1;
-		for (Object x : tran.intrefs) {
-			++i;
-			if (x instanceof Record) { // add
-				int intref = i | IntRefs.MASK;
-				assert tran.intToRef(intref) == x;
-				int adr = ((Record) x).store(tran.dstor);
-				tran.setAdr(intref, adr);
-				inserts.add(adr);
+	private void storeActions() {
+		short type = REMOVE;
+		for (TIntIterator iter = actions.iterator(); iter.hasNext(); ) {
+			int act = iter.next();
+			if (act == UPDATE)
+				type = UPDATE;
+			else if (IntRefs.isIntRef(act)) { //  add
+				if (tran.intToRef(act) != null) { // don't store if deleted
+					int adr = ((Record) tran.intToRef(act)).store(tran.dstor);
+					tran.setAdr(act, adr);
+					inserts.add(adr);
+//System.out.println("add " + act + " = " + adr + " = " + tran.intToRef(act));
+				}
+			} else { // remove
+				ByteBuffer buf = tran.dstor.buffer(
+						tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+				buf.putShort(type);
+				buf.putInt(act);
+				type = REMOVE;
 			}
 		}
-		markEndOfAdds(tran.dstor);
 	}
 
-	static void markEndOfAdds(Storage stor) {
-		stor.buffer(stor.alloc(Shorts.BYTES)).putShort((short) -1);
+//	private void storeRemoves() {
+//		for (TIntIterator iter = deletes.iterator(); iter.hasNext(); ) {
+//			ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+//			int adr = iter.next();
+//			buf.putShort(REMOVE);
+//			buf.putInt(adr);
+//		}
+//	}
+//
+//	private void storeAdds() {
+//		int i = -1;
+//		for (Object x : tran.intrefs) {
+//			++i;
+//			if (x instanceof Record) { // add
+//				int intref = i | IntRefs.MASK;
+//				assert tran.intToRef(intref) == x;
+//				int adr = ((Record) x).store(tran.dstor);
+//				tran.setAdr(intref, adr);
+//				inserts.add(adr);
+//			}
+//		}
+//	}
+
+	static void endOfCommit(Storage stor) {
+		stor.buffer(stor.alloc(Shorts.BYTES)).putShort(END);
 	}
 
 	// update btrees -----------------------------------------------------------
@@ -324,9 +381,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	private Record translate(Record key) {
 		RecordBuilder rb = new RecordBuilder().addPrefix(key, key.size() - 1);
-		int adr = BtreeNode.adr(key);
-		assert IntRefs.isIntRef(adr);
-		adr = tran.getAdr(adr);
+		int intref = BtreeNode.adr(key);
+		assert IntRefs.isIntRef(intref);
+		int adr = tran.getAdr(intref);
+//System.out.println("translate " + intref + " = " + adr + " in " + key);
+		assert adr != 0;
 		rb.adduint(adr);
 		return rb.build();
 	}

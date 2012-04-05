@@ -44,6 +44,11 @@ public class Dump {
 		void after() {
 			System.out.println("--------------------------");
 		}
+		@Override
+		void update(Record from, Record to) {
+			System.out.println("update " + from.tblnum + " " + from);
+			System.out.println("    to " + to);
+		}
 	}
 
 	static void index(Storage istor) {

@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
-import static suneido.intfc.database.DatabasePackage.printObserver;
+import static suneido.intfc.database.DatabasePackage.nullObserver;
 
 import java.io.File;
 
@@ -111,20 +111,48 @@ public class DbRebuildTest extends TestBase {
 		makeTable("tmp", 3);
 		db.dropTable("tmp"); // so new database has different offsets
 		makeTable(2);
+		assertThat(db.getSchema("test"), is("(a,b) key(a) index(b,a)"));
 		db.alterTable("test").renameColumn("b", "bb").finish();
 		addRecords("test", 2, 3);
+		assertThat(db.getSchema("test"), is("(a,bb) key(a) index(bb,a)"));
 		rebuild();
+		db = dbpkg.openReadonly(outfilename);
+		assertThat(db.getSchema("test"), is("(a,bb) key(a) index(bb,a)"));
 		checkTable();
 	}
 
-//	@Test
-//	public void test_views() {
-//		db.addView("myview", "indexes");
-//		rebuild();
-//		db = dbpkg.openReadonly(filename);
-//		Transaction t = db.readTransaction();
-//		assertEquals("indexes", t.getView("myview"));
-//	}
+	@Test
+	public void test_update() {
+		makeTable(4);
+		Transaction t = db.updateTransaction();
+		Table tbl = t.getTable("test");
+		Record oldrec = t.lookup(tbl.num(), "a", key(2));
+		t.updateRecord(tbl.num(), oldrec, record(99));
+		t.ck_complete();
+		rebuild();
+		checkTable(0, 1, 3, 99);
+	}
+
+	@Test
+	public void test_add_view() {
+		db.addView("myview", "indexes");
+		rebuild();
+		db = dbpkg.openReadonly(outfilename);
+		Transaction t = db.readTransaction();
+		assertEquals("indexes", t.getView("myview"));
+		t.ck_complete();
+	}
+
+	@Test
+	public void test_drop_view() {
+		db.addView("myview", "indexes");
+		db.dropTable("myview");
+		rebuild();
+		db = dbpkg.openReadonly(outfilename);
+		Transaction t = db.readTransaction();
+		assertNull(t.getView("myview"));
+		t.ck_complete();
+	}
 
 	// -------------------------------------------------------------------------
 
@@ -132,21 +160,26 @@ public class DbRebuildTest extends TestBase {
 		db.close();
 		db = null;
 		assertNotNull(dbpkg.forceRebuild(filename, outfilename));
-		assertEquals(Status.OK, dbpkg.check(outfilename, printObserver));//nullObserver));
+		assertEquals(Status.OK, dbpkg.check(outfilename, nullObserver));
 	}
 
 	private void checkTable() {
+		checkTable(0, 1, 2, 3);
+	}
+
+	private void checkTable(int... values) {
 		if (db == null)
 			db = dbpkg.openReadonly(outfilename);
 		try {
-			check(0, 1, 2, 3);
+			check(values);
 		} finally {
 			db.close();
 		}
 	}
 
 	private void checkNoTable() {
-		db = dbpkg.openReadonly(outfilename);
+		if (db == null)
+			db = dbpkg.openReadonly(outfilename);
 		Transaction t = db.readTransaction();
 		assertNull(t.getTable("test"));
 		t.ck_complete();

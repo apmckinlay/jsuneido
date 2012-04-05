@@ -95,7 +95,9 @@ public class IndexedDataTest {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object x : values)
 			rb.add(x);
-		return rb.build();
+		Record rec = rb.build();
+		rec.address = 1;
+		return rec;
 	}
 
 }

@@ -63,6 +63,7 @@ class IndexedData {
 
 	// used by TableBuilder to add indexes to existing tables
 	void add(Record rec, int adr) {
+		assert adr != 0;
 		for (AnIndex index : indexes)
 			index.fkeyHandleAdd(rec);
 		for (AnIndex index : indexes)
