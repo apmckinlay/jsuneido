@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
  * Mutable within a transaction.
  * Changed to immutable via freeze before going into global database state.
  */
-public class BtreeMemNode extends BtreeNode {
+class BtreeMemNode extends BtreeNode {
 	private final Record rec;
 	private final TByteArrayList index;
 	private ArrayList<Record> added;

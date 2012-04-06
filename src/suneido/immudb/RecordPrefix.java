@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class RecordPrefix extends Record {
+class RecordPrefix extends Record {
 	private final Record rec;
 	private final int len;
 

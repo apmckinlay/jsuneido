@@ -7,7 +7,7 @@ package suneido.immudb;
 import suneido.SuException;
 import suneido.immudb.TranIndex.Iter;
 
-public class SchemaTransaction extends UpdateTransaction {
+class SchemaTransaction extends UpdateTransaction {
 
 	SchemaTransaction(int num, Database db) {
 		super(num, db);

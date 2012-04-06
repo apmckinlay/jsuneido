@@ -20,7 +20,7 @@ import suneido.language.Pack;
  * ref is used for btree key child node references.
  * ref is NOT visible in any operations except pack.
  */
-public class ArrayRecord extends Record {
+class ArrayRecord extends Record {
 	private final ArrayList<ByteBuffer> bufs;
 	private final TIntArrayList offs;
 	private final TIntArrayList lens;

@@ -12,7 +12,7 @@ import java.io.IOException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
 
-public class DbRebuild {
+class DbRebuild {
 	private final String dbFilename;
 	private final String tempFilename;
 	private final Storage dstor;
