@@ -35,9 +35,9 @@ interface TranIndex {
 	interface Iter extends IndexIter {
 
 		@Override
-		public Record curKey();
+		Record curKey();
 
-		public void rewind();
+		void rewind();
 
 	}
 

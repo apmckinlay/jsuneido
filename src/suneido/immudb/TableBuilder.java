@@ -80,13 +80,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				return false;
 			}
 			t.removeRecord(TN.TABLES, table.toRecord());
-			TableBuilder tb = alter(t, tableName);
 			for (Index index : table.indexes)
 				t.removeRecord(TN.INDEXES, index.toRecord());
-//				tb.dropIndex(index.colNums);
 			for (Column column : table.columns)
 				t.removeRecord(TN.COLUMNS, column.toRecord());
-//				tb.dropColumn(column.name);
 			t.dropTable(table);
 		}
 		t.ck_complete();
