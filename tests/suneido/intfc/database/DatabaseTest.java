@@ -150,12 +150,12 @@ public class DatabaseTest extends TestBase {
 
 		assertRecords(0);
 		Transaction t = db.updateTransaction();
-		Record rec2 = record(10, 1, 2);
+		Record rec2 = rec(10, 1, 2);
 		t.addRecord("test2", rec2);
 		t.ck_complete();
 
-		addShouldBlock(record(11, 5, 1));
-		addShouldBlock(record(11, 1, 5));
+		addShouldBlock(rec(11, 5, 1));
+		addShouldBlock(rec(11, 1, 5));
 		assertRecords(1);
 
 		removeShouldBlock(recs.get(1));
@@ -163,7 +163,7 @@ public class DatabaseTest extends TestBase {
 		assertRecords(1);
 
 		updateShouldBlock("test", recs.get(1), record(9)); // test2 => 1
-		updateShouldBlock("test2", get("test2").get(0), record(10, 1, 9));
+		updateShouldBlock("test2", get("test2").get(0), rec(10, 1, 9));
 
 		assertRecords(1);
 	}
@@ -234,7 +234,7 @@ public class DatabaseTest extends TestBase {
 			.addIndex("a", true, false, "", "", 0)
 			.finish();
 
-		add("test2", record(10, 1, 5));
+		add("test2", rec(10, 1, 5));
 
 		db.alterTable("test2")
 				.addIndex("f1", false, false, "test", "a", Fkmode.BLOCK)
@@ -257,10 +257,10 @@ public class DatabaseTest extends TestBase {
 
 		List<Record> recs = get("test2");
 		assertEquals(4, recs.size());
-		assertEquals(record(100, 0), recs.get(0));
-		assertEquals(record(110, 1), recs.get(1));
-		assertEquals(record(111, 1), recs.get(2));
-		assertEquals(record(120, 2), recs.get(3));
+		assertEquals(rec(100, 0), recs.get(0));
+		assertEquals(rec(110, 1), recs.get(1));
+		assertEquals(rec(111, 1), recs.get(2));
+		assertEquals(rec(120, 2), recs.get(3));
 
 		Transaction t = db.updateTransaction();
 		t.removeRecord(t.getTable("test").num(), get("test").get(1));
@@ -268,8 +268,8 @@ public class DatabaseTest extends TestBase {
 
 		recs = get("test2");
 		assertEquals(2, recs.size());
-		assertEquals(record(100, 0), recs.get(0));
-		assertEquals(record(120, 2), recs.get(1));
+		assertEquals(rec(100, 0), recs.get(0));
+		assertEquals(rec(120, 2), recs.get(1));
 	}
 
 	@Test
@@ -283,10 +283,10 @@ public class DatabaseTest extends TestBase {
 
 		List<Record> recs = get("test2");
 		assertEquals(4, recs.size());
-		assertEquals(record(100, 0), recs.get(0));
-		assertEquals(record(110, 11), recs.get(1));
-		assertEquals(record(111, 11), recs.get(2));
-		assertEquals(record(120, 2), recs.get(3));
+		assertEquals(rec(100, 0), recs.get(0));
+		assertEquals(rec(110, 11), recs.get(1));
+		assertEquals(rec(111, 11), recs.get(2));
+		assertEquals(rec(120, 2), recs.get(3));
 	}
 
 	@Test
@@ -296,7 +296,7 @@ public class DatabaseTest extends TestBase {
 			.addColumn("date")
 			.addIndex("id,date", true, false, "", "", 0)
 			.finish();
-		add("source", record(1, 990101));
+		add("source", rec(1, 990101));
 		assertThat(count("source"), is(1));
 		db.createTable("target")
 			.addColumn("id")
@@ -328,10 +328,10 @@ public class DatabaseTest extends TestBase {
 			.finish();
 
 		Transaction t1 = db.updateTransaction();
-		t1.addRecord("test2", record(100, 0));
-		t1.addRecord("test2", record(110, 1));
-		t1.addRecord("test2", record(111, 1));
-		t1.addRecord("test2", record(120, 2));
+		t1.addRecord("test2", rec(100, 0));
+		t1.addRecord("test2", rec(110, 1));
+		t1.addRecord("test2", rec(111, 1));
+		t1.addRecord("test2", rec(120, 2));
 		t1.ck_complete();
 	}
 

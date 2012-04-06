@@ -17,6 +17,8 @@ import org.junit.Test;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
+//TODO use TestBase
+
 public class TransactionTest {
 	private final Storage stor = new MemStorage(64, 1024);
 	private final Storage istor = new MemStorage(1024, 1024);
@@ -143,7 +145,7 @@ public class TransactionTest {
 	}
 
 	@Test
-	public void test_non_unique_index() {
+	public void non_unique_index() {
 		db.createTable("test2")
 			.addColumn("a")
 			.addColumn("f")
@@ -161,7 +163,7 @@ public class TransactionTest {
 	}
 
 	@Test
-	public void test_duplicate_abort() {
+	public void duplicate_abort_during_commit() {
 		make_tmp();
 
 		UpdateTransaction t = db.updateTransaction();
@@ -193,16 +195,14 @@ public class TransactionTest {
 		assertThat(t2.complete(), containsString("duplicate"));
 	}
 
-	//TODO test rebuild after aborted store
-
 	@Test
-	public void test_views() {
+	public void views() {
 		db.addView("myview", "tables join columns");
 		assertThat(db.getView("myview"), is("tables join columns"));
 	}
 
 	@Test
-	public void test_delete_visibility() {
+	public void delete_visibility() {
 		make_tmp();
 
 		UpdateTransaction t = db.updateTransaction();
@@ -219,7 +219,7 @@ public class TransactionTest {
 	}
 
 	@Test
-	public void test_concurrent_appends() {
+	public void concurrent_appends() {
 		make_tmp();
 
 		Transaction t1 = db.updateTransaction();
@@ -231,7 +231,7 @@ public class TransactionTest {
 	}
 
 	@Test
-	public void test_delete_conflict() {
+	public void delete_conflict() {
 		make_tmp();
 
 		Transaction t = db.updateTransaction();
@@ -249,7 +249,7 @@ public class TransactionTest {
 
 	// successful read conflicting with delete
 	@Test
-	public void test_read_validation_for_delete() {
+	public void read_validation_for_delete() {
 		make_tmp();
 
 		Transaction t = db.updateTransaction();
@@ -270,7 +270,7 @@ public class TransactionTest {
 
 	// unsuccessful read conflicting with add
 	@Test
-	public void test_read_validation_for_add() {
+	public void read_validation_for_add() {
 		make_tmp();
 
 		UpdateTransaction t1 = db.updateTransaction();

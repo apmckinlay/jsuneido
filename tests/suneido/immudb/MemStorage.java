@@ -6,8 +6,6 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 
-import suneido.immudb.ChunkedStorage;
-
 class MemStorage extends ChunkedStorage {
 
 	MemStorage() {

@@ -13,36 +13,45 @@ import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
 
 class DbRebuild {
-	private final String dbFilename;
-	private final String tempFilename;
+	private final String oldFilename;
+	private final String newFilename;
 	private final Storage dstor;
 	private final Storage istor;
-	private final Check check;
+	private Check check;
 
 	/** @return A completion string if successful, null if not. */
-	public static String rebuild(String dbFilename, String tempFilename) {
-		return new DbRebuild(dbFilename, tempFilename).rebuild();
+	public static String rebuild(String oldFilename, String newFilename) {
+		return new DbRebuild(oldFilename, newFilename).rebuild();
 	}
 
-	private DbRebuild(String dbFilename, String tempFilename) {
-		this.dbFilename = dbFilename;
-		this.tempFilename = tempFilename;
-		dstor = new MmapFile(dbFilename + "d", "r");
-		istor = //new MmapFile(dbFilename + "i", "r");
-new MemStorage(); // TODO
-//Dump.data(dstor);
+	private DbRebuild(String oldFilename, String newFilename) {
+		this.oldFilename = oldFilename;
+		this.newFilename = newFilename;
+		dstor = new MmapFile(oldFilename + "d", "r");
+		if (new File(oldFilename + "i").canRead())
+			istor = new MmapFile(oldFilename + "i", "r");
+		else
+			istor = new MemStorage();
+	}
+
+	// for tests
+	DbRebuild(Storage dstor, Storage istor) {
+		this.oldFilename = "infile";
+		this.newFilename = "outfile";
+		this.dstor = dstor;
+		this.istor = istor;
+	}
+
+	protected String rebuild() {
 		check = new Check(dstor, istor);
-	}
-
-	private String rebuild() {
 		try {
 			check.fullcheck();
 			fix();
-			return "Last commit "; //TODO use last good data date
-					// + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(check.lastOkDate());
-		} /*catch (Exception e) {
+			return "Last commit "; //TODO
+					//+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(check.lastOkDate());
+		} catch (Exception e) {
 			return null;
-		} */ finally {
+		} finally {
 //System.out.println("AFTER ======================");
 //Dump.data(dstor);
 			dstor.close();
@@ -50,18 +59,26 @@ new MemStorage(); // TODO
 		}
 	}
 
-	private void fix() {
+	/** overridden by tests */
+	protected void fix() {
 		copyGoodPrefix();
-		reprocess();
+		Database db = (check.dIter.okSize == 0)
+				? Database.create(newFilename)
+				: Database.open(newFilename);
+		try {
+			reprocess(db);
+		} finally {
+			db.close();
+		}
 	}
 
 	private void copyGoodPrefix() {
 		if (check.dIter.okSize == 0)
 			return;
 		try {
-			FileUtils.copy(new File(dbFilename + "d"), new File(tempFilename + "d"),
+			FileUtils.copy(new File(oldFilename + "d"), new File(newFilename + "d"),
 					check.dIter.okSize);
-			FileUtils.copy(new File(dbFilename + "i"), new File(tempFilename + "i"),
+			FileUtils.copy(new File(oldFilename + "i"), new File(newFilename + "i"),
 					check.iIter.okSize);
 		} catch (IOException e) {
 			throw new RuntimeException("Rebuild copy failed", e);
@@ -71,10 +88,7 @@ new MemStorage(); // TODO
 	/** reprocess any good data after last matching persist */
 	// could copy remaining good data and then process in place
 	// but to start it's simpler to not copy and to apply normally to new db
-	private void reprocess() {
-		Database db = check.dIter.okSize == 0
-				? Database.create(tempFilename)
-				: Database.open(tempFilename);
+	void reprocess(Database db) {
 		while (check.dIter.hasNext()) {
 			new Proc(db, dstor, check.dIter.adr).process();
 			check.dIter.advance();
@@ -89,7 +103,11 @@ new MemStorage(); // TODO
 		char type;
 		boolean skip;
 		TableBuilder tb;
-		UpdateTransaction t;
+		UpdateTransaction ut;
+		BulkTransaction bt;
+		int bulkTblnum = 0;
+		int first = 0;
+		int last = 0;
 
 		Proc(Database db, Storage stor, int adrFrom) {
 			super(stor, adrFrom);
@@ -101,11 +119,10 @@ new MemStorage(); // TODO
 			type = c;
 			skip = (commitAdr == Storage.FIRST_ADR); // skip bootstrap commit
 			if (type == 'u')
-				t = db.updateTransaction();
+				ut = db.updateTransaction();
+			else if (type == 'b')
+				bt = db.bulkTransaction();
 		}
-
-		//TODO handle load/compact transactions
-		//TODO handle aborted transactions
 
 		@Override
 		void add(Record r) {
@@ -113,7 +130,7 @@ new MemStorage(); // TODO
 				return;
 			r.address = 0;
 			if (type == 'u') {
-				t.addRecord(r.tblnum, r);
+				ut.addRecord(r.tblnum, r);
 			} else if (type == 's') {
 				switch (r.tblnum) {
 				case TN.TABLES:
@@ -140,14 +157,22 @@ new MemStorage(); // TODO
 				default:
 					assert false : "invalid schema table number " + r.tblnum;
 				}
-			}
+			} else if (type == 'b') {
+				if (bulkTblnum == 0)
+					bulkTblnum = r.tblnum;
+				assert r.tblnum == bulkTblnum;
+				last = bt.loadRecord(r.tblnum, r);
+				if (first == 0)
+					first = last;
+			} else
+				assert false : "invalid type " + type;
 		}
 
 		@Override
 		void remove(Record r) {
 			r.address = 0;
 			if (type == 'u') {
-				t.removeRecord(r.tblnum, r);
+				ut.removeRecord(r.tblnum, r);
 			} else if (type == 's') {
 				switch (r.tblnum) {
 				case TN.TABLES:
@@ -176,14 +201,15 @@ new MemStorage(); // TODO
 				default:
 					assert false : "invalid schema table number " + r.tblnum;
 				}
-			}
+			} else
+				assert false : "invalid type " + type;
 		}
 
 		@Override
 		void update(Record from, Record to) {
 			assert from.tblnum == to.tblnum;
 			if (type == 'u') {
-				t.updateRecord(from.tblnum, from, to);
+				ut.updateRecord(from.tblnum, from, to);
 			} else if (type == 's') {
 				if (from.tblnum == TN.TABLES) {
 					String before = from.getString(1);
@@ -197,7 +223,8 @@ new MemStorage(); // TODO
 					tb.renameColumn(before, after);
 					tb.finish();
 				}
-			}
+			} else
+				assert false : "invalid type " + type;
 		}
 
 		private void tbEnsure(int tblnum) {
@@ -216,8 +243,12 @@ new MemStorage(); // TODO
 		void after() {
 			if (tb != null)
 				tb.finish();
-			else if (t != null)
-				t.ck_complete();
+			else if (ut != null)
+				ut.ck_complete();
+			else if (bt != null) {
+				DbLoad.createIndexes(bt, bt.getTable(bulkTblnum), first, last);
+				bt.ck_complete();
+			}
 		}
 
 	} // end of Proc

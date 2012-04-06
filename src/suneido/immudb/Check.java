@@ -21,8 +21,6 @@ class Check {
 	private final Storage istor;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
-	private long dOkSize = 0; //TODO remove ?
-	private long iOkSize = 0;
 	private Date lastOkDate = null;
 	StorageIter dIter;
 	StorageIter iIter;
@@ -137,11 +135,7 @@ class Check {
 				break;
 			if (dIter.date() != null)
 				lastOkDate = dIter.date();
-			dOkSize = dIter.okSize;
-			iOkSize = iIter.okSize;
 		}
-assert dOkSize == dIter.okSize;
-assert iOkSize == iIter.okSize;
 		return dIter.eof() && iIter.eof();  // matched all the way to the end
 	}
 

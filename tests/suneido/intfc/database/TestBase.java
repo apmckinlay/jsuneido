@@ -69,12 +69,16 @@ public class TestBase {
 		}
 	}
 
-	protected Record record(int... args) {
+	protected Record rec(Object... values) {
 		RecordBuilder rb = dbpkg().recordBuilder();
-		for (int arg : args)
-			rb.add(arg);
+		for (Object val : values)
+			if (val instanceof Integer)
+				rb.add(((Integer) val).intValue());
+			else
+				rb.add(val);
 		return rb.build();
 	}
+
 
 	protected List<Record> get() {
 		return get(DEFAULT_TABLENAME);
