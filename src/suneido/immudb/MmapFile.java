@@ -30,8 +30,8 @@ class MmapFile extends ChunkedStorage {
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
-	private final File file;
-	private long starting_file_size;
+	final File file;
+	long starting_file_size;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {

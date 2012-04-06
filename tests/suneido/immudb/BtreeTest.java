@@ -272,48 +272,6 @@ public class BtreeTest {
 		assertTrue(btree.isEmpty());
 	}
 
-//	@Test
-//	public void update_and_store() {
-//		rand = new Random(789456);
-//		store();
-//
-//		tran = new Tran(stor);
-//		btree = new Btree4(tran, info);
-//		addRemoveAndStore(2);
-//		assertThat("levels", btree.treeLevels(), is(0));
-//
-//		tran = new Tran(stor);
-//		btree = new Btree4(tran, info);
-//		addRemoveAndStore(3);
-//		assertThat("levels", btree.treeLevels(), is(1));
-//
-//		tran = new Tran(stor, redirs);
-//		btree = new Btree4(tran, info);
-//		addRemoveAndStore(400);
-//		assertThat("levels", btree.treeLevels(), is(6));
-//
-//		tran = new Tran(stor, redirs);
-//		btree = new Btree4(tran, info);
-//		check();
-//		checkIterate();
-//
-//		store();
-//	}
-
-	private void addRemoveAndStore(int n) {
-//System.out.println("--------------- before update");
-//btree.print();
-		check();
-		add(2 * n);
-		remove(n);
-//System.out.println("--------------- after update");
-//btree.print();
-		check();
-//		store();
-//System.out.println("--------------- after store");
-//btree.print();
-	}
-
 	private void add(int n) {
 		for (int i = 0; i < n; ++i) {
 			Record key = randomKey(rand);
@@ -324,29 +282,12 @@ public class BtreeTest {
 		}
 	}
 
-	private void remove(int n) {
-		for (int i = 0; i < n; ++i) {
-			int r = rand.nextInt(keys.size());
-			assertTrue(btree.remove(keys.get(r)));
-			keys.remove(r);
-		}
-	}
-
 	private void check() {
 		btree.check();
 		Collections.shuffle(keys, rand);
 		for (Record key : keys)
 			assertThat("key " + key, btree.get(key), is(adr(key)));
 	}
-
-//	private void store() {
-//		tran.startStore();
-//		Btree2.store(tran);
-//		info = btree.info();
-//		redirs = tran.storeRedirs();
-//		tran.endStore();
-//		tran = null;
-//	}
 
 	@Test
 	public void iterate_empty() {
@@ -499,13 +440,6 @@ public class BtreeTest {
 		update(200);
 		check();
 		checkIterate();
-
-//		store();
-//		tran = new Tran(stor);
-//		btree = new Btree4(tran, info);
-		update(200);
-		check();
-		checkIterate();
 	}
 
 	public void update(int n) {
@@ -537,25 +471,6 @@ public class BtreeTest {
 		assert intref.compareTo(offset) > 0;
 		assert offset.compareTo(intref) < 0;
 	}
-
-//	@Test
-//	public void translate_data_refs() {
-//		Record rec = rec("a data record");
-//		rec.tblnum = 123;
-//		int intref = tran.refToInt(rec);
-//		Record key = key("hello", intref);
-//		btree.add(key);
-//		tran.startStore();
-//		DataRecords.store(tran);
-//		int adr = tran.getAdr(intref);
-//		assert adr != 0;
-//		Btree2.store(tran);
-//		info = btree.info();
-//
-//		tran = new Tran(stor);
-//		btree = new Btree4(tran, info);
-//		assertThat(btree.get(rec("hello")), is(adr));
-//	}
 
 	@Test
 	public void duplicate() {

@@ -5,7 +5,6 @@
 package suneido.database;
 
 import static suneido.SuException.fatal;
-import static suneido.Suneido.errlog;
 import static suneido.util.Verify.verify;
 
 import java.io.File;
@@ -94,6 +93,8 @@ class Mmfile extends Destination {
 			if (!file.canRead())
 				throw new SuException("can't open " + file + " read-only");
 			break;
+		default:
+			assert false : "invalid mode " + mode;
 		}
 		try {
 			fin = new RandomAccessFile(file, mode == Mode.READ_ONLY ? "r" : "rw");

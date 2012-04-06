@@ -26,9 +26,9 @@ import com.google.common.primitives.Ints;
  * Base class with common code for UpdateTransaction and BulkTransaction
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
-	protected final static short UPDATE = (short) 0;
-	protected final static short REMOVE = (short) -1;
-	protected final static short END = (short) -2;
+	protected static final short UPDATE = (short) 0;
+	protected static final short REMOVE = (short) -1;
+	protected static final short END = (short) -2;
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
