@@ -62,6 +62,7 @@ class Tran implements Translator {
 	 * @return The checksum of the commit
 	 */
 	StoreInfo endStore() {
+		assert head_adr != 0;
 		try {
 			int tail_adr = dstor.alloc(TAIL_SIZE);
 			int size = (int) dstor.sizeFrom(head_adr);
@@ -75,6 +76,21 @@ class Tran implements Translator {
 		} finally {
 			head_adr = 0;
 		}
+	}
+
+	/**
+	 * Abort a store by writing a zero date in the header.
+	 * Don't bother calculating checksum, just store zero.
+	 */
+	void abortIncompleteStore() {
+		if (head_adr == 0)
+			return;
+		int tail_adr = dstor.alloc(TAIL_SIZE);
+		int size = (int) dstor.sizeFrom(head_adr);
+		dstor.buffer(head_adr).putInt(size).putInt(0); // zero date
+		dstor.buffer(tail_adr).putInt(0).putInt(size); // zero checksum
+		dstor.protectAll(); // can't output outside tran
+		head_adr = 0;
 	}
 
 	static class StoreInfo {

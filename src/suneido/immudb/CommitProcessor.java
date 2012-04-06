@@ -31,7 +31,7 @@ abstract class CommitProcessor {
 		buf = advance(Tran.HEAD_SIZE);
 
 		char c = (char) buf.get();
-		assert c == 'u' || c == 's';
+		assert c == 'u' || c == 's' || c == 'b';
 		type(c);
 		buf = advance(1);
 

@@ -68,12 +68,12 @@ public class SchemaTransaction extends UpdateTransaction {
 
 	//--------------------------------------------------------------------------
 
-	//disable tracking and conflict detection - not needed when exclusive
-
+	// don't need to track reads when exclusive
 	@Override
 	protected void trackReads(Index index, Iter iter) {
 	}
 
+	// don't need to check for conflicts when exclusive
 	@Override
 	protected void checkForConflicts() {
 	}
@@ -91,9 +91,8 @@ public class SchemaTransaction extends UpdateTransaction {
 	}
 
 	@Override
-	protected void updateDbInfo(Tran.StoreInfo info) {
+	protected void updateDbInfo() {
 		updateDbInfo(updatedIndexes);
-		db.setState(dbinfo, schema, info.cksum, info.adr);
 	}
 
 	@Override

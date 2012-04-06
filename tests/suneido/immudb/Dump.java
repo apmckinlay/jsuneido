@@ -17,9 +17,10 @@ public class Dump {
 	}
 
 	static void data(Storage dstor) {
-		for (StorageIter iter = new StorageIter(dstor); ! iter.eof(); iter.advance()) {
+		for (StorageIter iter = new StorageIter(dstor); ! iter.eof(); iter.advance2()) {
 			System.out.println("size " + iter.size +
-					" date " + Ops.display(iter.date()));
+					" date " + Ops.display(iter.date()) +
+					" checksum " + Integer.toHexString(iter.cksum()));
 			new Proc(dstor, iter.adr).process();
 		}
 	}
@@ -52,7 +53,7 @@ public class Dump {
 	}
 
 	static void index(Storage istor) {
-		for (StorageIter iter = new StorageIter(istor); ! iter.eof(); iter.advance()) {
+		for (StorageIter iter = new StorageIter(istor); ! iter.eof(); iter.advance2()) {
 			assert iter.status == StorageIter.Status.OK : "CORRUPT!";
 			System.out.println("size " + iter.size() +
 					" cksum " + Integer.toHexString(iter.cksum()) +

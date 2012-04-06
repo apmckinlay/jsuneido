@@ -9,11 +9,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Test;
 
-import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
@@ -65,13 +65,6 @@ public class TransactionTest {
 		key = new RecordBuilder().add("fred").build();
 		r = (Record) t.lookup(1, "tablename", key);
 		assertNull(r);
-	}
-
-	@Test
-	public void exclusive_abort() {
-		Database db = DatabasePackage.dbpkg.testdb();
-		db.bulkTransaction().abort();
-		assertThat(db.check(), is(Status.OK));
 	}
 
 	@Test
@@ -167,62 +160,40 @@ public class TransactionTest {
 		check(db.readTransaction(), tblnum, "f", rec(10, 1), rec(11, 1));
 	}
 
-//TODO handle exception during commit
-//	@Test
-//	public void test_duplicates() {
-//		make_tmp();
-//
-//		UpdateTransaction t = db.updateTransaction();
-//		t.addRecord("tmp", rec(123, "foo"));
-//		try {
-//			t.addRecord("tmp", rec(123, "bar")); // within same transaction
-//			fail();
-//		} catch (RuntimeException e) {
-//			assertThat(e.toString(), containsString("duplicate"));
-//		}
-//		t.ck_complete();
-//
-//		t = db.updateTransaction();
-//		try {
-//			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
-//			fail();
-//		} catch (RuntimeException e) {
-//			assertThat(e.toString(), containsString("duplicate"));
-//		}
-//		t.ck_complete();
-//
-//		t = db.updateTransaction();
-//		UpdateTransaction t2 = db.updateTransaction();
-//		t.addRecord("tmp", rec(456, "foo"));
-//		t2.addRecord("tmp", rec(456, "bar"));
-//		t.ck_complete();
-//		assertThat(t2.complete(), containsString("duplicate"));
-//	}
+	@Test
+	public void test_duplicate_abort() {
+		make_tmp();
 
-//TODO use loadRecord
-//	@Test
-//	public void test_duplicates_exclusive() {
-//		make_tmp();
-//
-//		BulkTransaction t = db.bulkTransaction();
-//		t.addRecord("tmp", rec(123, "foo"));
-//		try {
-//			t.addRecord("tmp", rec(123, "bar")); // within same transaction
-//			fail();
-//		} catch (RuntimeException e) {
-//			assertThat(e.toString(), containsString("duplicate"));
-//		}
-//		t.ck_complete();
-//
-//		t = db.bulkTransaction();
-//		try {
-//			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
-//			fail();
-//		} catch (RuntimeException e) {
-//			assertThat(e.toString(), containsString("duplicate"));
-//		}
-//		t.ck_complete();
-//	}
+		UpdateTransaction t = db.updateTransaction();
+		t.addRecord("tmp", rec(123, "foo"));
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // within same transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
+
+		t = db.updateTransaction();
+		try {
+			t.addRecord("tmp", rec(123, "bar")); // in a separate transaction
+			fail();
+		} catch (RuntimeException e) {
+			assertThat(e.toString(), containsString("duplicate"));
+		}
+		t.ck_complete();
+
+		// duplicate while updating btrees in commit
+		// data commit will need to be aborted
+		t = db.updateTransaction();
+		UpdateTransaction t2 = db.updateTransaction();
+		t.addRecord("tmp", rec(456, "foo"));
+		t2.addRecord("tmp", rec(456, "bar"));
+		t.ck_complete();
+		assertThat(t2.complete(), containsString("duplicate"));
+	}
+
+	//TODO test rebuild after aborted store
 
 	@Test
 	public void test_views() {
@@ -314,9 +285,62 @@ public class TransactionTest {
 		assertThat(t1.complete(), containsString("read conflict"));
 	}
 
+	@Test
+	public void empty_bulk_transaction() {
+		BulkTransaction t = db.bulkTransaction();
+		t.ck_complete();
+	}
+
+	@Test
+	public void abort_empty_bulk_transaction() {
+		BulkTransaction t = db.bulkTransaction();
+		t.abort();
+	}
+
+	@Test
+	public void bulk_transaction() {
+		make_tmp(4);
+		BulkTransaction t = db.bulkTransaction();
+		Table tbl = t.getTable("tmp");
+		int first = t.loadRecord(tbl.num, rec(123, "foo"));
+		int last = t.loadRecord(tbl.num, rec(456, "bar"));
+		DbLoad.createIndexes(t, tbl, first, last);
+		t.ck_complete();
+	}
+
+	@Test
+	public void abort_bulk_transaction1() {
+		make_tmp(4);
+		BulkTransaction t = db.bulkTransaction();
+		Table tbl = t.getTable("tmp");
+		t.loadRecord(tbl.num, rec(123, "foo"));
+		t.abort();
+	}
+
+	@Test
+	public void abort_bulk_transaction2() {
+		make_tmp(4);
+		BulkTransaction t = db.bulkTransaction();
+		Table tbl = t.getTable("tmp");
+		int first = t.loadRecord(tbl.num, rec(123, "foo"));
+		int last = t.loadRecord(tbl.num, rec(456, "bar"));
+		DbLoad.createIndexes(t, tbl, first, last);
+		t.abort();
+	}
+
+	//--------------------------------------------------------------------------
+
 	@After
 	public void check() {
 		assert db.check() == DatabasePackage.Status.OK;
+	}
+
+	private void make_tmp(int nrecs) {
+		make_tmp();
+		UpdateTransaction t = db.updateTransaction();
+		for (int i = 0; i < nrecs; ++i)
+			t.addRecord("tmp", rec(i, i));
+		t.ck_complete();
 	}
 
 	private void make_tmp() {

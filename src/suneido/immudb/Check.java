@@ -9,6 +9,7 @@ import java.util.Date;
 
 import suneido.immudb.StorageIter.Status;
 
+import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 
 class Check {
@@ -20,7 +21,7 @@ class Check {
 	private final Storage istor;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
-	private long dOkSize = 0;
+	private long dOkSize = 0; //TODO remove ?
 	private long iOkSize = 0;
 	private Date lastOkDate = null;
 	StorageIter dIter;
@@ -48,7 +49,7 @@ class Check {
 
 	/** Checks entire database. Used by DbCheck and DbRebuild */
 	boolean fullcheck() {
-		//PERF check concurrently forwards from beginning and backwards from end
+//Dump.dump(dstor, istor);
 		return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
 	}
 
@@ -74,7 +75,7 @@ class Check {
 		}
 		if (n == 0)
 			return EMPTY; // empty file
-		lastadr = info(istor, pos, size).adr;
+		lastadr = info(istor, pos, size).lastadr;
 		return pos;
 	}
 
@@ -83,13 +84,33 @@ class Check {
 	}
 
 	/** Only works on index store */
-	static Tran.StoreInfo info(Storage stor, int adr, int size) {
+	static PersistInfo info(Storage stor, int adr, int size) {
 		ByteBuffer buf = stor.buffer(stor.advance(adr,
 				size - Persist.ENDING_SIZE - Persist.TAIL_SIZE));
-		buf.getInt(); // skip dbinfo adr
+		int dbinfoadr = buf.getInt();
 		int lastcksum = buf.getInt();
 		int lastadr = buf.getInt();
-		return new Tran.StoreInfo(lastcksum, lastadr);
+		return new PersistInfo(dbinfoadr, lastcksum, lastadr);
+	}
+
+	static class PersistInfo {
+		final int dbinfoadr;
+		final int lastadr;
+		final int lastcksum;
+
+		public PersistInfo(int dbinfoadr, int lastcksum, int lastadr) {
+			this.dbinfoadr = dbinfoadr;
+			this.lastcksum = lastcksum;
+			this.lastadr = lastadr;
+		}
+		@Override
+		public String toString() {
+			return Objects.toStringHelper(this)
+					.add("dbinfoadr", dbinfoadr)
+					.add("lastadr", lastadr)
+					.add("lastcksum", Integer.toHexString(lastcksum))
+					.toString();
+		}
 	}
 
 	/**
@@ -99,22 +120,23 @@ class Check {
 	private boolean checkFrom(int dAdr, int iAdr) {
 		dIter = new StorageIter(dstor, dAdr);
 		iIter = new StorageIter(istor, iAdr);
-		Tran.StoreInfo iInfo = null;
+		PersistInfo iInfo = null;
 		while (! dIter.eof() && ! iIter.eof()) {
 			if (iInfo == null)
 				iInfo = Check.info(istor, iIter.adr, iIter.size);
-			if (iInfo.cksum == dIter.cksum() && iInfo.adr == dIter.adr) {
+			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr) {
 				iIter.advance();
 				iInfo = null;
 				if (iIter.eof())
 					dIter.advance();
-			} else if (dIter.adr() < iInfo.adr)
+			} else if (dIter.adr() < iInfo.lastadr)
 				dIter.advance();
 			else // diter has gone past iIter with no match - no point continuing
 				break;
 			if (dIter.status != Status.OK || iIter.status != Status.OK)
 				break;
-			lastOkDate = dIter.date();
+			if (dIter.date() != null)
+				lastOkDate = dIter.date();
 			dOkSize = dIter.okSize;
 			iOkSize = iIter.okSize;
 		}

@@ -151,7 +151,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return iter2;
 	}
 
-	/** overrridden by SchemaTransaction */
+	/** overridden by SchemaTransaction */
 	protected void trackReads(Index index, Iter iter) {
 		((OverlayIndex.Iter) iter).trackRange(indexRange(index));
 	}
@@ -192,23 +192,25 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// commit ------------------------------------------------------------------
 
-	private void buildReads() {
-		for (TransactionReads tr : reads.values()) {
-			tr.build();
-		}
-	}
-
 	@Override
 	protected void commit() {
 		buildReads();
 		synchronized(db.commitLock) {
 			checkForConflicts();
-			Tran.StoreInfo info = storeData();
-			updateBtrees();
-			updateDbInfo(info);
-			commitTime = trans.clock();
-			trans.commit(this);
+			storeData();
+			try {
+				updateBtrees();
+				updateDbInfo();
+				finish();
+			} finally {
+				tran.abortIncompleteStore();
+			}
 		}
+	}
+
+	private void buildReads() {
+		for (TransactionReads tr : reads.values())
+			tr.build();
 	}
 
 	protected void checkForConflicts() {
@@ -254,17 +256,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// store data --------------------------------------------------------------
 
-	protected Tran.StoreInfo storeData() {
+	protected void storeData() {
 		tran.startStore();
-		Tran.StoreInfo info = null;
-		try {
-			startOfCommit();
-			storeActions();
-			endOfCommit(tran.dstor);
-		} finally {
-			info = tran.endStore();
-		}
-		return info;
+		startOfCommit();
+		storeActions();
+		endOfCommit(tran.dstor);
 	}
 
 	protected void startOfCommit() {
@@ -361,14 +357,24 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return rb.build();
 	}
 
-	// update dbinfo -----------------------------------------------------------
+	// -------------------------------------------------------------------------
 
 	/** overridden by SchemaTransaction */
-	protected void updateDbInfo(Tran.StoreInfo info) {
+	protected void updateDbInfo() {
 		dbinfo = db.state.dbinfo; // the latest
 		updateDbInfo(updatedIndexes);
-		assert dbstate.schema == db.state.schema;
-		db.setState(dbinfo, db.state.schema, info.cksum, info.adr);
+		assert schema == db.state.schema;
+	}
+
+	/**
+	 * This is the final step that makes the commit permanent.
+	 * An exception part way through this will be bad.
+	 */
+	private void finish() {
+		Tran.StoreInfo info = tran.endStore();
+		db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
+		commitTime = trans.clock();
+		trans.commit(this);
 	}
 
 	// end of commit =========================================================

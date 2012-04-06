@@ -243,8 +243,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	// complete ----------------------------------------------------------------
 
-	// TODO if exception during commit, need to undo storage somehow
-	// so crash recovery doesn't see it
 	@Override
 	public String complete() {
 		if (isAborted())
@@ -268,6 +266,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	protected abstract void commit();
 
+	/** Update dbinfo with tidelta and index information and then freezes it */
 	protected void updateDbInfo(TreeMap<Index,TranIndex> indexes) {
 		if (indexes.isEmpty())
 			return;
