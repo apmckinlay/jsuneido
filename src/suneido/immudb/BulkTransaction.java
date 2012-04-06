@@ -19,13 +19,11 @@ import suneido.util.ThreadConfined;
  */
 @ThreadConfined
 class BulkTransaction extends ReadWriteTransaction {
-	protected Tran.StoreInfo storeInfo = null;
+	private boolean storeStarted = false;
+	private Persist persist = null;
 
 	BulkTransaction(int num, Database db) {
 		super(num, db);
-		tran.allowStore();
-		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
-		buf.put((byte) 'b');
 	}
 
 	@Override
@@ -43,6 +41,26 @@ class BulkTransaction extends ReadWriteTransaction {
 		locked = false;
 	}
 
+	// used by DbLoad and DbCompact
+	// doesn't use addRecord because we don't want to update indexes yet
+	int loadRecord(int tblnum, Record rec) {
+		ensureStore();
+		rec.tblnum = tblnum;
+		rec.address = rec.store(tran.dstor);
+		updateRowInfo(tblnum, 1, rec.bufSize());
+		onlyReads = false;
+		return rec.address;
+	}
+
+	protected void ensureStore() {
+		if (storeStarted)
+			return;
+		tran.allowStore();
+		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
+		buf.put((byte) 'b');
+		storeStarted = true;
+	}
+
 	@Override
 	public int addRecord(int tblnum, Record rec) {
 		throw new UnsupportedOperationException("BulkTransaction addRecord");
@@ -58,50 +76,20 @@ class BulkTransaction extends ReadWriteTransaction {
 		throw new UnsupportedOperationException("BulkTransaction removeRecord");
 	}
 
-	// used by DbLoad and DbCompact
-	// doesn't use addRecord because we don't want to update indexes
-	int loadRecord(int tblnum, Record rec) {
-		rec.tblnum = tblnum;
-		rec.address = rec.store(tran.dstor);
-		updateRowInfo(tblnum, 1, rec.bufSize());
-		return rec.address;
-	}
-
-	/** called after creating each btree to save and persist it */
+	/** called after creating each btree to persist it */
 	void saveBtrees() {
-		if (storeInfo == null) {
-			commitData();
-		} else {
-			freezeBtrees();
-			updateDbInfo();
-		}
-		db.persist();
-		dbstate = db.state;
-		dbinfo = dbstate.dbinfo;
+		ensurePersist();
+		freezeBtrees();
+		updateDbInfo(indexes);
+		persist.storeBtrees(dbinfo);
 		tidelta.clear();
 	}
 
-	StoredRecordIterator storedRecordIterator(int first, int last) {
-		return new StoredRecordIterator(tran.dstor, first, last);
-	}
-
-	@Override
-	protected void commit() {
-		if (storeInfo == null)
-			commitData();
-		trans.commit(this);
-	}
-
-	private void commitData() {
-		endData();
-		freezeBtrees();
-		updateDbInfo();
-	}
-
-	private void endData() {
-		// we are storing as we go, so just output the end marker
-		UpdateTransaction.endOfCommit(tran.dstor);
-		storeInfo = tran.endStore();
+	private void ensurePersist() {
+		if (persist != null)
+			return;
+		persist = new Persist(dbinfo, db.istor);
+		persist.startStore();
 	}
 
 	private void freezeBtrees() {
@@ -116,18 +104,32 @@ class BulkTransaction extends ReadWriteTransaction {
 		}
 	}
 
-	private void updateDbInfo() {
-		updateDbInfo(indexes);
-		db.setState(dbinfo, schema, storeInfo.cksum, storeInfo.adr);
+	/** used by DbLoad createIndexes to iterate through data */
+	StoredRecordIterator storedRecordIterator(int first, int last) {
+		return new StoredRecordIterator(tran.dstor, first, last);
+	}
+
+	@Override
+	protected void commit() {
+		Tran.StoreInfo info = endDataStore();
+		persist.finish(db, schema, info.cksum, info.adr);
+		trans.commit(this);
+	}
+
+	private Tran.StoreInfo endDataStore() {
+		// we are storing as we go, so just output the end marker
+		UpdateTransaction.endOfCommit(tran.dstor);
+		return tran.endStore();
 	}
 
 	@Override
 	public void abort() {
-		if (storeInfo == null)
-			endData();
-		Database.State state = db.state;
-		db.setState(state.dbinfo, state.schema, storeInfo.cksum, storeInfo.adr);
-		//TODO prevent output from being seen by rebuild
+		if (storeStarted) {
+			UpdateTransaction.endOfCommit(tran.dstor); // so dump works
+			tran.abortIncompleteStore();
+		}
+		if (persist != null)
+			persist.abort(db.state);
 		super.abort();
 	}
 

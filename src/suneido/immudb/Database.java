@@ -52,9 +52,7 @@ class Database implements suneido.intfc.database.Database {
 	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema) {
 		this.dstor = dstor;
 		this.istor = istor;
-		state = new State(dbinfo, null, 0, 0);
-		schema = schema == null ? SchemaLoader.load(readTransaction()) : schema;
-		state = lastPersistState = new State(dbinfo, schema, 0, 0);
+		state = lastPersistState = new State(0, dbinfo, schema, 0, 0);
 	}
 
 	// open
@@ -79,9 +77,17 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	static Database openWithoutCheck(Storage dstor, Storage istor) {
-		DbHashTrie dbinfo = DbHashTrie.load(istor,
-				Persist.dbinfoadr(istor), new DbinfoLoader(istor));
-		return new Database(dstor, istor, dbinfo);
+		return new Database(dstor, istor);
+	}
+
+	private Database(Storage dstor, Storage istor) {
+		this.dstor = dstor;
+		this.istor = istor;
+		int dbinfoadr = Persist.dbinfoadr(istor);
+		DbHashTrie dbinfo = DbHashTrie.load(istor, dbinfoadr, new DbinfoLoader(istor));
+		state = new State(0, dbinfo, null, 0, 0); // enough to load schema
+		Tables schema = SchemaLoader.load(readTransaction());
+		state = lastPersistState = new State(dbinfoadr, dbinfo, schema, 0, 0);
 	}
 
 	static class DbinfoLoader implements DbHashTrie.Translator {
@@ -117,10 +123,6 @@ class Database implements suneido.intfc.database.Database {
 				//suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
-	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo) {
-		this(dstor, istor, dbinfo, null);
-	}
-
 	// used by DbCheck
 	Tables schema() {
 		return state.schema;
@@ -137,6 +139,7 @@ class Database implements suneido.intfc.database.Database {
 		// MAYBE do this inside UpdateTransaction commit
 		// then you don't need Atomic
 		// and you already have commit lock
+		// TODO do in separate thread so user's commit can return
 		if (nUpdateTran.incrementAndGet() >= PERSIST_EVERY) {
 			nUpdateTran.set(0);
 			persist();
@@ -151,6 +154,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	BulkTransaction bulkTransaction() {
+		persist();
 		int num = trans.nextNum(false);
 		return new BulkTransaction(num, this);
 	}
@@ -250,6 +254,9 @@ class Database implements suneido.intfc.database.Database {
 		if (state == lastPersistState)
 			return;
 		Persist.persist(this);
+	}
+
+	void setPersistState() {
 		lastPersistState = state;
 	}
 
@@ -314,23 +321,25 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	/** called by transaction commit and by persist */
-	void setState(DbHashTrie dbinfo, Tables schema, int cksum, int adr) {
-		assert adr != 0;
-		this.state = new State(dbinfo, schema, cksum, adr);
+	void setState(int dbinfoadr, DbHashTrie dbinfo, Tables schema, int lastcksum, int lastadr) {
+		assert lastadr != 0;
+		this.state = new State(dbinfoadr, dbinfo, schema, lastcksum, lastadr);
 	}
 
 	@Immutable
 	static class State {
 		final DbHashTrie dbinfo;
+		final int dbinfoadr;
 		final Tables schema;
 		/** checksum of last data commit */
 		final int lastcksum;
 		/** address of last data commit */
 		final int lastadr;
 
-		private State(DbHashTrie dbinfo, Tables schema,
+		private State(int dbinfoadr, DbHashTrie dbinfo, Tables schema,
 				int lastcksum, int lastadr) {
 			assert dbinfo.immutable();
+			this.dbinfoadr = dbinfoadr;
 			this.dbinfo = dbinfo;
 			this.schema = schema;
 			this.lastcksum = lastcksum;
@@ -340,6 +349,7 @@ class Database implements suneido.intfc.database.Database {
 		@Override
 		public String toString() {
 			return Objects.toStringHelper(this)
+					.add("dbinfoadr", dbinfoadr)
 					.add("lastadr", lastadr)
 					.add("lastcksum", lastcksum)
 					.toString();

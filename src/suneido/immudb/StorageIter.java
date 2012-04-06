@@ -10,6 +10,7 @@ import java.util.Date;
 /**
  * Iterate through data commits or index persists.
  * Check sizes and checksums.
+ * CommitProcessor handles structure within commit.
  */
 class StorageIter {
 	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL };
@@ -40,13 +41,15 @@ class StorageIter {
 		date = buf.getInt();
 		ByteBuffer endbuf = stor.buffer(stor.advance(adr, size - Tran.TAIL_SIZE));
 		cksum = endbuf.getInt();
-		if (! verifyCksum()) {
-			status = Status.CHECKSUM_FAIL;
-			return;
-		}
 		int endsize = endbuf.getInt();
 		if (endsize != size) {
 			status = Status.SIZE_MISMATCH;
+			return;
+		}
+		if (date == 0) // aborted
+			return;
+		if (! verifyCksum()) {
+			status = Status.CHECKSUM_FAIL;
 			return;
 		}
 	}
@@ -55,7 +58,15 @@ class StorageIter {
 		return stor.sizeFrom(adr) <= 0;
 	}
 
+	/** skips aborted commits */
 	void advance() {
+		do
+			seek(stor.advance(adr, size));
+		while (date == 0 && ! eof());
+		okSize = ChunkedStorage.adrToOffset(adr);
+	}
+
+	void advance2() {
 		seek(stor.advance(adr, size));
 		okSize = ChunkedStorage.adrToOffset(adr);
 	}
@@ -68,16 +79,16 @@ class StorageIter {
 		return size;
 	}
 
+	/** @return null for aborted commit */
 	Date date() {
-		return new Date(1000L * date);
+		return date == 0 ? null : new Date(1000L * date);
 	}
 
 	int cksum() {
 		return cksum;
 	}
 
-	// need to handle spanning multiple storage chunks
-	// depends on buf.remaining() going to end of chunk
+	// depends on buf.remaining() going to end of storage chunk
 	private boolean verifyCksum() {
 		Checksum cs = new Checksum();
 		int remaining = size - Tran.HEAD_SIZE;

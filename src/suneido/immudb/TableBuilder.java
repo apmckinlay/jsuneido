@@ -35,7 +35,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private Index firstIndex;
 	private int nextField = 0;
 
-	/** @param t must be an exclusive transaction */
+	/** @param t must be an schema transaction */
 	static TableBuilder create(ReadTransaction t, String tableName, int tblNum) {
 		if (t.getTable(tableName) != null)
 			fail(t, "can't create existing table: " + tableName);

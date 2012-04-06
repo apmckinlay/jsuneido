@@ -18,74 +18,62 @@ import com.google.common.primitives.Ints;
 
 /**
  * Save dbinfo and btrees to storage (periodically).
- * Uses a similar layout to Tran,
- * but saves to a separate file, not the data file.
+ * Uses the same layout as Tran
+ * but saves to the index storage instead of the data storage.
  * <p>
  * Each persist consists of:<br>
- * header - size and datetime<br>
+ * header - size and timestamp (timestamp zero if aborted)<br>
  * body - btrees and dbinfo<br>
  * dbinfo root and dbstate.lastcksum<br>
- * tail - checksum and size<br
+ * tail - checksum and size (checksum zero if aborted)
  */
 public class Persist {
-	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
+	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and timestamp
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == ChunkedStorage.align(TAIL_SIZE); }
 	static final int ENDING_SIZE = ChunkedStorage.align(3 * Ints.BYTES);
-	private final Database db;
-	private final Database.State dbstate;
-	private final DbHashTrie dbinfo;
 	private final Storage istor;
-	private DbHashTrie newdbinfo;
+	private DbHashTrie dbinfo;
 	private int head_adr = 0;
+	private int dbinfoadr;
 
-	static Database.State persist(Database db) {
-		Persist p = new Persist(db);
-		p.run();
-		return p.dbstate;
-	}
-
-	private Persist(Database db) {
-		this.db = db;
-		dbstate = db.state;
-		dbinfo = newdbinfo = dbstate.dbinfo;
-		istor = db.istor;
-	}
-
-	private void run() {
+	static void persist(Database db) {
 		synchronized(db.commitLock) {
-			start();
-			storeBtrees();
-			int adr = storeDbinfo();
-			istor.buffer(istor.alloc(ENDING_SIZE))
-					.putInt(adr).putInt(dbstate.lastcksum).putInt(dbstate.lastadr);
-			finish();
-			db.setState(newdbinfo, dbstate.schema, dbstate.lastcksum, dbstate.lastadr);
+			Persist p = new Persist(db.state.dbinfo, db.istor);
+			p.run(db);
 		}
 	}
 
-	static int dbinfoadr(Storage istor) {
-		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
-		return buf.getInt();
+	Persist(DbHashTrie dbinfo, Storage istor) {
+		this.dbinfo = dbinfo;
+		this.istor = istor;
 	}
 
-	static class Info {
-		final int dbinfoadr;
-		final int lastcksum;
-		public Info(int dbinfoadr, int lastcksum) {
-			this.dbinfoadr = dbinfoadr;
-			this.lastcksum = lastcksum;
-		}
+	private void run(Database db) {
+		Database.State dbstate = db.state;
+		startStore();
+		storeBtrees();
+		finish(db, dbstate.schema, dbstate.lastcksum, dbstate.lastadr);
 	}
 
-	private void start() {
+	/** also called by BulkTransaction */
+	void startStore() {
 		istor.protect(); // enable output
 		head_adr = istor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
-	private void storeBtrees() {
+	/** used by BulkTransaction */
+	void storeBtrees(DbHashTrie dbinfo) {
+		this.dbinfo = dbinfo;
+		storeBtrees();
+	}
+
+	/** stores btrees and frees up memory */
+	void storeBtrees() {
 		dbinfo.traverseUnstored(proc);
 	}
+
+	//TODO instead of discarding in-memory btree nodes, use SoftReference
 
 	DbHashTrie.Process proc = new DbHashTrie.Process() {
 		@Override
@@ -96,6 +84,9 @@ public class Persist {
 				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
+						// store the btree
+						// and change the dbinfo root to an address
+						// to allow garbage collection of in-memory btree nodes
 						int root = ii.rootNode.store(istor);
 						assert root != 0;
 						b.add(new IndexInfo(ii, root));
@@ -104,16 +95,34 @@ public class Persist {
 						b.add(ii);
 				if (modified) {
 					TableInfo ti2 = new TableInfo(ti, b.build());
-					newdbinfo = newdbinfo.with(ti2);
+					dbinfo = dbinfo.with(ti2);
 				}
 			}
 		}};
 
-	private int storeDbinfo() {
-		return newdbinfo.store(istor, new DbInfoStorer(istor));
+	/** also called by BulkTransaction */
+	void finish(Database db, Tables schema, int lastcksum, int lastadr) {
+		dbinfoadr = storeDbinfo();
+		istor.buffer(istor.alloc(ENDING_SIZE))
+				.putInt(dbinfoadr).putInt(lastcksum).putInt(lastadr);
+
+		int tail_adr = istor.alloc(TAIL_SIZE);
+		int size = (int) istor.sizeFrom(head_adr);
+		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
+
+		int cksum = istor.checksum(head_adr);
+		istor.buffer(tail_adr).putInt(cksum).putInt(size);
+		istor.protectAll();
+
+		db.setState(dbinfoadr, dbinfo, schema, lastcksum, lastadr);
+		db.setPersistState();
 	}
 
-	static class DbInfoStorer implements Translator {
+	private int storeDbinfo() {
+		return dbinfo.store(istor, new DbInfoStorer(istor));
+	}
+
+	private static class DbInfoStorer implements Translator {
 		final Storage stor;
 
 		public DbInfoStorer(Storage stor) {
@@ -132,13 +141,21 @@ public class Persist {
 		}
 	}
 
-	void finish() {
+	/** used by BulkTransaction */
+	void abort(Database.State dbstate) {
+		istor.buffer(istor.alloc(ENDING_SIZE))
+				.putInt(dbstate.dbinfoadr).putInt(dbstate.lastcksum).putInt(dbstate.lastadr);
 		int tail_adr = istor.alloc(TAIL_SIZE);
 		int size = (int) istor.sizeFrom(head_adr);
-		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
-
-		int cksum = istor.checksum(head_adr);
-		istor.buffer(tail_adr).putInt(cksum).putInt(size);
+		istor.buffer(head_adr).putInt(size).putInt(0);
+		istor.buffer(tail_adr).putInt(0).putInt(size);
 		istor.protectAll();
 	}
+
+	/** used by Database open */
+	static int dbinfoadr(Storage istor) {
+		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
+		return buf.getInt();
+	}
+
 }
