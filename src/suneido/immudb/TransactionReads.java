@@ -14,7 +14,7 @@ import suneido.util.MergeTree;
  * Then build combines overlapping ranges.
  * After build, contains can be used to validate a transaction's reads.
  */
-public class TransactionReads {
+class TransactionReads {
 	private final MergeTree<IndexRange> list  = new MergeTree<IndexRange>();
 	private IndexRange[] reads;
 	private int rlen;

@@ -12,7 +12,7 @@ import com.google.common.collect.Ordering;
  * Needs to be mutable because it is passed to the iterator which updates it.
  * Based somewhat on Guava Range (but it's immutable)
  */
-public class IndexRange implements Comparable<IndexRange> {
+class IndexRange implements Comparable<IndexRange> {
 	private static final Ordering<Record> ord = Ordering.natural();
 	Record lo;
 	Record hi;

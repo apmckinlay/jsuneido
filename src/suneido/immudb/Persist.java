@@ -27,7 +27,7 @@ import com.google.common.primitives.Ints;
  * dbinfo root and dbstate.lastcksum<br>
  * tail - checksum and size (checksum zero if aborted)
  */
-public class Persist {
+class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and timestamp
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == ChunkedStorage.align(TAIL_SIZE); }

@@ -14,7 +14,7 @@ import suneido.immudb.TranIndex.Iter;
  * Hard part is switching directions.
  * Used to combine global index and transaction local index.
  */
-public class MergeIndexIter implements TranIndex.Iter {
+class MergeIndexIter implements TranIndex.Iter {
 	protected final TranIndex.Iter iter1;
 	protected final TranIndex.Iter iter2;
 	protected boolean rewound = true;

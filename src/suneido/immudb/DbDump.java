@@ -15,7 +15,7 @@ import java.util.List;
 import suneido.DbTools;
 import suneido.intfc.database.IndexIter;
 
-public class DbDump {
+class DbDump {
 
 	static int dumpDatabase(Database db, WritableByteChannel out) {
 		ReadTransaction t = db.readTransaction();
