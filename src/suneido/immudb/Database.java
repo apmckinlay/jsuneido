@@ -123,6 +123,10 @@ class Database implements suneido.intfc.database.Database {
 				//suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
+	void dump() {
+		Dump.dump(dstor, istor);
+	}
+
 	// used by DbCheck
 	Tables schema() {
 		return state.schema;
@@ -354,10 +358,6 @@ class Database implements suneido.intfc.database.Database {
 					.add("lastcksum", lastcksum)
 					.toString();
 		}
-	}
-
-	void dump() {
-		Dump.dump(dstor, istor);
 	}
 
 }

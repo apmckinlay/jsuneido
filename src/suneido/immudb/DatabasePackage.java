@@ -94,7 +94,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public String forceRebuild(String dbFilename, String tempfilename) {
-		// remove index file to force reprocessing data
+		// remove index file to force reprocessing all the data
 		new File(dbFilename + "i").delete();
 		return rebuild(dbFilename, tempfilename);
 	}
