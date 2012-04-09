@@ -266,7 +266,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public long size() {
-		return dstor.sizeFrom(0);
+		return dstor.sizeFrom(0) + istor.sizeFrom(0);
 	}
 
 	@Override

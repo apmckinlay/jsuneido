@@ -27,7 +27,7 @@ public class OverlayIndexTest extends IndexIterTestBase {
 		assertEquals(2, index.get(rec("b")));
 		assertEquals(3, index.get(rec("c")));
 
-		int d = tran.refToInt(new Object());
+		int d = tran.refToInt(rec(""));
 		assertTrue(index.add(key("d", d), true));
 		assertEquals(d, index.get(rec("d")));
 
@@ -35,7 +35,7 @@ public class OverlayIndexTest extends IndexIterTestBase {
 		deletes.add(2);
 		assertEquals(0, index.get(rec("b")));
 
-		int b = tran.refToInt(new Object());
+		int b = tran.refToInt(rec(""));
 		assertTrue(index.add(key("b", b), true)); // new version of b
 		assertEquals(b, index.get(rec("b")));
 

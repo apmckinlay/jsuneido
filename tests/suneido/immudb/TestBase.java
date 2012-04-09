@@ -11,6 +11,10 @@ public class TestBase extends suneido.intfc.database.TestBase {
 		return DatabasePackage.dbpkg;
 	}
 
+	ReadTransaction readTransaction() {
+		return ((Database) db).readTransaction();
+	}
+
 	BulkTransaction bulkTransaction() {
 		return ((Database) db).bulkTransaction();
 	}

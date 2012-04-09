@@ -15,7 +15,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	private final ArrayList<ByteBuffer> bufs = new ArrayList<ByteBuffer>();
 	private final TIntArrayList offs = new TIntArrayList();
 	private final TIntArrayList lens = new TIntArrayList();
-	private Storable ref;
 
 	/** add a field of the record */
 	RecordBuilder add(Record r, int i) {
@@ -92,15 +91,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		lens.add(len);
 	}
 
-	/** Add an object reference. Used for btree key child node reference. */
-	RecordBuilder addRef(Storable ref) {
-		addMin(); // placeholder so record is same size
-		assert this.ref == null;
-		assert ref != null;
-		this.ref = ref;
-		return this;
-	}
-
 	@Override
 	public RecordBuilder truncate(int n) {
 		for (int i = bufs.size() - 1; i >= n; --i) {
@@ -117,9 +107,21 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 
 	@Override
 	public Record build() {
+		trimToSize();
+		return new ArrayRecord(bufs, offs, lens);
+	}
+
+	TreeKeyRecord treeKeyRecord(BtreeNode child) {
+		trimToSize();
+		return new TreeKeyRecord(bufs, offs, lens, child);
+	}
+
+	private void trimToSize() {
 		assert offs.size() == bufs.size();
 		assert lens.size() == bufs.size();
-		return new ArrayRecord(bufs, offs, lens, ref);
+		bufs.trimToSize();
+		offs.trimToSize();
+		lens.trimToSize();
 	}
 
 }

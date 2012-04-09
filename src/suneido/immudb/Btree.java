@@ -77,9 +77,13 @@ class Btree implements TranIndex {
 	public int get(Record key) {
 		BtreeNode node = rootNode;
 		for (int level = treeLevels - 1; level >= 0; --level)
-			node = childNode(level, node.find(key));
+			node = childNode(node, node.findPos(key));
 		Record slot = node.find(key);
 		return slot != null && slot.startsWith(key) ? adr(slot) : 0;
+	}
+
+	private BtreeNode childNode(BtreeNode node, int i) {
+		return node.childNode(tran.istor, i);
 	}
 
 	// add ---------------------------------------------------------------------
@@ -129,7 +133,7 @@ class Btree implements TranIndex {
 
 	private Object addToTree(BtreeNode node, Record key, boolean unique) {
 		int i = node.findPos(key);
-		BtreeNode child = childNode(node.level - 1, node.get(i));
+		BtreeNode child = childNode(node, i);
 		Object result = add(child, key, unique); // recurse
 		if (result == Boolean.FALSE)
 			return result;
@@ -150,6 +154,17 @@ class Btree implements TranIndex {
 		return insertOrSplit(node, split.key);
 	}
 
+	/** @return updated node or BtreeSplit */
+	private Object insertOrSplit(BtreeNode node, Record key) {
+		if (hasRoom(node))
+			// normal/fast path - simply insert
+			return node.with(key);
+		else {
+			++nnodes;
+			return split(node, key);
+		}
+	}
+
 	/**
 	 * potential results
 	 * - false = duplicate
@@ -166,17 +181,6 @@ class Btree implements TranIndex {
 		++modified;
 		totalSize += keySize(key);
 		return insertOrSplit(node, key);
-	}
-
-	/** @return updated node or BtreeSplit */
-	private Object insertOrSplit(BtreeNode node, Record key) {
-		if (hasRoom(node))
-			// normal/fast path - simply insert
-			return node.with(key);
-		else {
-			++nnodes;
-			return split(node, key);
-		}
 	}
 
 	private void newRoot(Split split) {
@@ -225,12 +229,12 @@ class Btree implements TranIndex {
 		 * so that if only data address changes, key will stay in same node
 		 * this simplifies add duplicate check and allows optimized update
 		 */
-		splitKey = max
+		TreeKeyRecord treeKey = max
 			? new RecordBuilder().addPrefix(splitKey, splitKeySize - 1)
-					.adduint(IntRefs.MAXADR).addRef(right).build()
+					.adduint(IntRefs.MAXADR).add("").treeKeyRecord(right)
 			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
-					.addRef(right).build();
-		return new Split(left, splitKey);
+					.add("").treeKeyRecord(right);
+		return new Split(left, treeKey);
 	}
 
 	private static boolean splitMaxAdr(Record last, Record first) {
@@ -240,9 +244,9 @@ class Btree implements TranIndex {
 	/** used to return the results of a split */
 	static class Split {
 		final BtreeNode left;
-		final Record key; // new value to go in parent, points to right half
+		final TreeKeyRecord key; // new value to go in parent, points to right half
 
-		Split(BtreeNode left, Record key) {
+		Split(BtreeNode left, TreeKeyRecord key) {
 			this.left = left;
 			this.key = key;
 		}
@@ -294,7 +298,7 @@ class Btree implements TranIndex {
 
 	private BtreeNode removeFromTree(BtreeNode node, Record key) {
 		int i = node.findPos(key);
-		BtreeNode child = childNode(node.level - 1, node.get(i));
+		BtreeNode child = childNode(node, i);
 		BtreeNode result = remove(child, key); // recurse
 		if (result == null)
 			return null;
@@ -414,9 +418,7 @@ class Btree implements TranIndex {
 			++stack.peek().pos;
 			while (stack.size() < treeLevels + 1) {
 				LevelInfo info = stack.peek();
-				Record slot = info.node.get(info.pos);
-				int level = info.node.level - 1;
-				BtreeNode node = childNode(level, slot);
+				BtreeNode node = childNode(info.node, info.pos);
 				stack.push(new LevelInfo(node, 0));
 			}
 			LevelInfo leaf = stack.peek();
@@ -471,9 +473,7 @@ class Btree implements TranIndex {
 			--stack.peek().pos;
 			while (stack.size() < treeLevels + 1) {
 				LevelInfo info = stack.peek();
-				Record slot = info.node.get(info.pos);
-				int level = info.node.level - 1;
-				BtreeNode node = childNode(level, slot);
+				BtreeNode node = childNode(info.node, info.pos);
 				stack.push(new LevelInfo(node, node.size() - 1));
 			}
 			LevelInfo leaf = stack.peek();
@@ -497,12 +497,11 @@ class Btree implements TranIndex {
 			for (int level = treeLevels; level >= 0; --level) {
 				int pos = node.findPos(key);
 				stack.push(new LevelInfo(node, pos));
-				Record slot = pos < node.size() ? node.get(pos) : null;
 				if (level == 0) {
-					cur = slot;
+					cur = pos < node.size() ? node.get(pos) : null;
 					break;
 				}
-				node = childNode(level - 1, slot);
+				node = childNode(node, pos);
 			}
 		}
 
@@ -550,18 +549,7 @@ class Btree implements TranIndex {
 		return new RecordPrefix(key, key.size() - 1);
 	}
 
-	BtreeNode childNode(int level, Record key) {
-		assert level >= 0;
-		Object child = key.childRef();
-		return (child != null) ? (BtreeNode) child : nodeAt(level, adr(key));
-	}
-
-	static BtreeNode childNode(Storage stor, int level, Record key) {
-		Object child = key.childRef();
-		return (child != null) ? (BtreeNode) child : nodeAt(stor, level, adr(key));
-	}
-
-	BtreeNode nodeAt(int level, int adr) {
+	private BtreeNode nodeAt(int level, int adr) {
 		return nodeAt(tran.istor, level, adr);
 	}
 
@@ -584,7 +572,7 @@ class Btree implements TranIndex {
 	void print(Writer writer) {
 		try {
 			writer.append("---------------------------\n");
-			rootNode.print2(writer, tran.istor);
+			rootNode.print(writer, tran.istor);
 			writer.append("---------------------------\n");
 			writer.flush();
 		} catch (IOException e) {
@@ -599,7 +587,7 @@ class Btree implements TranIndex {
 	@Override
 	public void check() {
 		assert rootNode.level == treeLevels;
-		int nnodes = rootNode.check2(tran, Record.EMPTY, null);
+		int nnodes = rootNode.check(tran, Record.EMPTY, null);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
@@ -627,8 +615,8 @@ class Btree implements TranIndex {
 			return (float) (end - org) / n;
 		else {
 			float pernode = (float) 1 / n;
-			BtreeNode fromNode = childNode(1, node.find(from));
-			BtreeNode toNode = childNode(1, node.find(to));
+			BtreeNode fromNode = childNode(node, node.findPos(from));
+			BtreeNode toNode = childNode(node, node.findPos(to));
 			float result =
 					keyfracpos(toNode, to, (float) end / n, pernode) -
 					keyfracpos(fromNode, from, (float) org / n, pernode);

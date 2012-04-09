@@ -280,7 +280,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 			if (act == UPDATE)
 				type = UPDATE;
 			else if (IntRefs.isIntRef(act)) { //  add
-				if (tran.intToRef(act) != null) { // don't store if deleted
+				if (tran.intToRef(act) instanceof Record) { // don't store if deleted
 					int adr = ((Record) tran.intToRef(act)).store(tran.dstor);
 					tran.setAdr(act, adr);
 					inserts.add(adr);
@@ -375,6 +375,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
 		commitTime = trans.clock();
 		trans.commit(this);
+		//db.persist(); // for testing - persist after every transaction
 	}
 
 	// end of commit =========================================================

@@ -49,7 +49,9 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record rec) {
-		addRecord(getTable(table).num, (Record) rec);
+		Table tbl = getTable(table);
+		addRecord(tbl.num, (Record) rec);
+		callTrigger(tbl, null, rec); // must be final step - may throw
 	}
 
 	int addRecord(int tblnum, Record rec) {
@@ -58,7 +60,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		onlyReads = false;
 		rec.tblnum = tblnum;
 		int adr = indexedData(tblnum).add(rec);
-		callTrigger(getTable(tblnum), null, rec);
 		updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
 	}
