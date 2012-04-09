@@ -16,25 +16,20 @@ import suneido.language.Pack;
 /**
  * The result of RecordBuilder.
  * Certain operations will convert on-demand to a {@link BufRecord}
- * Effectively immutable, only bufrec changes and it is just a cache.
- * ref is used for btree key child node references.
- * ref is NOT visible in any operations except pack.
+ * Almost immutable, bufrec is just a cache
  */
 class ArrayRecord extends Record {
 	private final ArrayList<ByteBuffer> bufs;
 	private final TIntArrayList offs;
 	private final TIntArrayList lens;
-	private final Storable ref;
 	private BufRecord bufrec;
 
-	ArrayRecord(ArrayList<ByteBuffer> bufs, TIntArrayList offs, TIntArrayList lens,
-			Object ref) {
+	ArrayRecord(ArrayList<ByteBuffer> bufs, TIntArrayList offs, TIntArrayList lens) {
 		assert offs.size() == bufs.size();
 		assert lens.size() == bufs.size();
 		this.bufs = bufs;
 		this.offs = offs;
 		this.lens = lens;
-		this.ref = (Storable) ref;
 	}
 
 	@Override
@@ -75,9 +70,11 @@ class ArrayRecord extends Record {
 		return bufRecord();
 	}
 
-	@Override
-	Storable childRef() {
-		return ref;
+	void setLast(int adr) {
+		ByteBuffer buf = Pack.packLong(adr & 0xffffffffL);
+		bufs.set(size() - 1, buf);
+		offs.set(size() - 1, 0);
+		lens.set(size() - 1, buf.remaining());
 	}
 
 	// convert to BufRecord ----------------------------------------------------
@@ -98,8 +95,6 @@ class ArrayRecord extends Record {
 		int datasize = 0;
 		for (int i = 0; i < nfields; ++i)
 			datasize += lens.get(i);
-		if (ref != null)
-			datasize += Pack.packSizeLong(ref.address());
 		return length(nfields, datasize);
 	}
 
@@ -117,22 +112,13 @@ class ArrayRecord extends Record {
 	}
 
 	private void pack(ByteBuffer dst, int length) {
-		int refAdr = 0;
-		int refLen = 0;
-		if (ref != null) {
-			refAdr = ref.address();
-			refLen = Pack.packSizeLong(refAdr);
-		}
-		packHeader(dst, length, lens, refLen);
+		packHeader(dst, length, lens);
 		int nfields = bufs.size();
 		for (int i = nfields - 1; i >= 0; --i)
-			if (i == nfields - 1 && ref != null)
-				Pack.pack(refAdr, dst);
-			else
-				pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
+			pack1(dst, bufs.get(i), offs.get(i), lens.get(i));
 	}
 
-	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens, int refLen) {
+	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens) {
 		dst.order(ByteOrder.LITTLE_ENDIAN); // to match cSuneido format
 		byte mode = mode(length);
 		dst.put(mode);
@@ -140,7 +126,7 @@ class ArrayRecord extends Record {
 		int nfields = lens.size();
 		assert 0 <= nfields && nfields <= Short.MAX_VALUE;
 		dst.putShort((short) nfields);
-		packOffsets(dst, length, lens, refLen, mode);
+		packOffsets(dst, length, lens, mode);
 		dst.order(ByteOrder.BIG_ENDIAN);
 	}
 	private static byte mode(int length) {
@@ -152,7 +138,7 @@ class ArrayRecord extends Record {
 			return Mode.INT;
 	}
 	private static void packOffsets(ByteBuffer dst, int length,
-			TIntArrayList lens, int refLen, int mode) throws Error {
+			TIntArrayList lens, int mode) throws Error {
 		int nfields = lens.size();
 		int offset = length;
 		assert length > 0;
@@ -160,25 +146,21 @@ class ArrayRecord extends Record {
 		case Mode.BYTE:
 			dst.put((byte) offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.put((byte) (offset -= get(lens, refLen, i)));
+				dst.put((byte) (offset -= lens.get(i)));
 			break;
 		case Mode.SHORT:
 			dst.putShort((short) offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.putShort((short) (offset -= get(lens, refLen, i)));
+				dst.putShort((short) (offset -= lens.get(i)));
 			break;
 		case Mode.INT:
 			dst.putInt(offset);
 			for (int i = 0; i < nfields; ++i)
-				dst.putInt(offset -= get(lens, refLen, i));
+				dst.putInt(offset -= lens.get(i));
 			break;
 		default:
 			throw new Error("bad record mode: " + mode);
 		}
-	}
-
-	private static int get(TIntArrayList lens, int refLen, int i) {
-		return refLen != 0 && i == lens.size() - 1 ? refLen : lens.get(i);
 	}
 
 	private static void pack1(ByteBuffer dst, ByteBuffer buf, int off, int len) {

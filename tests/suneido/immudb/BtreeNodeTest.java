@@ -217,7 +217,7 @@ public class BtreeNodeTest {
 	public void mimimize() {
 		Record k = new RecordBuilder().add("a").add("b").adduint(7685).build();
 		Record m = new RecordBuilder().addMin().addMin().adduint(7685).build();
-		assertThat(BtreeNode.minimize(k), is(m));
+		assertThat(k.minimize(), is(m));
 		assertFalse(BtreeNode.isMinimalKey(k));
 		assertTrue(BtreeNode.isMinimalKey(m));
 	}
@@ -228,7 +228,7 @@ public class BtreeNodeTest {
 		Btree.Split split = Btree.split(node, key("d"));
 		assertThat(split.left, is(node));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat((BtreeNode) split.key.childRef(), is(leaf("d")));
+		assertThat(split.key.child, is(leaf("d")));
 	}
 
 	@Test
@@ -237,7 +237,7 @@ public class BtreeNodeTest {
 		Btree.Split split = Btree.split(node, key("b"));
 		assertThat(split.left, is(leaf("a", "b", "c")));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat((BtreeNode) split.key.childRef(), is(leaf("e", "g")));
+		assertThat(split.key.child, is(leaf("e", "g")));
 	}
 
 	@Test
@@ -246,16 +246,16 @@ public class BtreeNodeTest {
 		Btree.Split split = Btree.split(node, key("f"));
 		assertThat(split.left, is(leaf("a", "c")));
 		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat((BtreeNode) split.key.childRef(), is(leaf("e", "f", "g")));
+		assertThat(split.key.child, is(leaf("e", "f", "g")));
 	}
 
 	@Test
 	public void split_tree_node() {
 		BtreeNode node = tree("a", "c", "e", "g");
-		Btree.Split split = Btree.split(node, key("f", 123, 456));
+		Btree.Split split = Btree.split(node, treekey("f", 123, 456));
 		assertThat(split.left, is(tree("a", "c")));
 		assertThat(split.key.toString(), is("['e',123,REF]"));
-		assertThat((BtreeNode) split.key.childRef(),
+		assertThat(split.key.child,
 				is(tree("e", "f", "g").minimizeLeftMost()));
 	}
 
@@ -265,7 +265,7 @@ public class BtreeNodeTest {
 		Btree.Split split = Btree.split(node, dup(3));
 		assertThat(split.left, is(leaf(dup(1), dup(2), dup(3))));
 		assertThat(split.key.toString(), is("['dup',3,REF]"));
-		assertThat((BtreeNode) split.key.childRef(), is(leaf(dup(4), dup(5))));
+		assertThat(split.key.child, is(leaf(dup(4), dup(5))));
 	}
 
 	private static BtreeNode leaf(Object... args) {
@@ -317,6 +317,11 @@ public class BtreeNodeTest {
 	private static Record key(String s, int dataAdr, int treeAdr) {
 		return new RecordBuilder().add(s)
 				.adduint(dataAdr).adduint(treeAdr).build();
+	}
+
+	private static Record treekey(String s, int dataAdr, int treeAdr) {
+		return new RecordBuilder().add(s)
+				.adduint(dataAdr).adduint(treeAdr).treeKeyRecord(null);
 	}
 
 }

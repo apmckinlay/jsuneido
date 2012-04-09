@@ -71,6 +71,18 @@ public class RequestTest {
 	}
 
 	@Test
+	public void add_delete_column() {
+		req("create tbl (a,b,c,d,e,f,g,h,i,j,k) key(a)");
+		db = db.reopen();
+		req("ensure tbl (a, foo)");
+		req("alter tbl drop (foo)");
+		req("ensure tbl (a, foo)");
+		db = db.reopen();
+		req("alter tbl drop (foo)");
+		req("ensure tbl (a, foo)");
+	}
+
+	@Test
 	public void add_index_to_table_with_data() {
 		req("create tbl " + SCHEMA);
 		req("alter tbl create index(c,a)");

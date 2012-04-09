@@ -42,23 +42,23 @@ abstract class Record implements suneido.intfc.database.Record {
 		tblnum = 0;
 	}
 
-	static Record from(ByteBuffer buf) {
+	static BufRecord from(ByteBuffer buf) {
 		return new BufRecord(buf);
 	}
 
-	static Record from(int address, ByteBuffer buf) {
+	static BufRecord from(int address, ByteBuffer buf) {
 		return new BufRecord(address, buf);
 	}
 
-	static Record from(ByteBuffer buf, int bufpos) {
+	static BufRecord from(ByteBuffer buf, int bufpos) {
 		return new BufRecord(0, buf, bufpos);
 	}
 
-	static Record from(int address, ByteBuffer buf, int bufpos) {
+	static BufRecord from(int address, ByteBuffer buf, int bufpos) {
 		return new BufRecord(address, buf, bufpos);
 	}
 
-	static Record from(Storage stor, int adr) {
+	static BufRecord from(Storage stor, int adr) {
 		return new BufRecord(stor, adr);
 	}
 
@@ -215,32 +215,34 @@ abstract class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public String toString() {
+		if (size() == 0)
+			return "[]";
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < size(); ++i) {
-			if (i == size() - 1 && childRef() != null)
-				sb.append("REF");
-			else if (getRaw(i).equals(MAX_FIELD))
+			if (getRaw(i).equals(MAX_FIELD))
 				sb.append("MAX");
-			else {
-				Object x = get(i);
-				if (x instanceof String)
-					sb.append("'").append(x).append("'");
-				else if (x instanceof Number && ((Number) x).intValue() == IntRefs.MAXADR)
-					sb.append("MAXADR");
-				else if (x instanceof Date)
-					sb.append(Ops.display(x));
-				else
-					sb.append(x);
-			}
+			else
+				append(sb, i);
 			sb.append(",");
 		}
-		if (sb.length() > 1)
-			sb.deleteCharAt(sb.length() - 1);
+		sb.deleteCharAt(sb.length() - 1);
 		sb.append("]");
 		if (address != 0)
 			sb.append("@").append(UnsignedInts.toString(address));
 		return sb.toString();
+	}
+
+	protected void append(StringBuilder sb, int i) {
+		Object x = get(i);
+		if (x instanceof String)
+			sb.append("'").append(x).append("'");
+		else if (x instanceof Number && ((Number) x).intValue() == IntRefs.MAXADR)
+			sb.append("MAXADR");
+		else if (x instanceof Date)
+			sb.append(Ops.display(x));
+		else
+			sb.append(x);
 	}
 
 	@Override
@@ -305,6 +307,14 @@ abstract class Record implements suneido.intfc.database.Record {
 		return address;
 	}
 
+	Record minimize() {
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < size() - 1; ++i)
+			rb.add("");
+		rb.add(getRaw(size() - 1));
+		return rb.build();
+	}
+
 	int prefixSize(int i) {
 		assert 0 <= i && i <= size();
 		int size = 0;
@@ -313,12 +323,8 @@ abstract class Record implements suneido.intfc.database.Record {
 		return size;
 	}
 
-	Storable childRef() {
-		return null;
-	}
+	void freeze() {
 
-	Record withChildRef(Storable ref) {
-		return new RecordBuilder().addAll(this).addRef(ref).build();
 	}
 
 }

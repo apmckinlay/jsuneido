@@ -28,7 +28,7 @@ import com.google.common.base.Strings;
  * <p>
  */
 @Immutable
-abstract class BtreeNode implements Storable {
+abstract class BtreeNode {
 	/** level = 0 for leaf, level = treeLevels for root */
 	protected final int level;
 
@@ -85,7 +85,9 @@ abstract class BtreeNode implements Storable {
 
 	abstract Record get(int i);
 
-	abstract int store(Storage stor);
+	abstract BtreeDbNode store(Storage stor);
+
+	abstract int address();
 
 	Record find(Record key) {
 		int at = findPos(key);
@@ -140,21 +142,21 @@ abstract class BtreeNode implements Storable {
 		return sb.toString();
 	}
 
-	void print2(Writer w, Storage stor) throws IOException {
+	void print(Writer w, Storage stor) throws IOException {
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append(printName() + " level " + level + "\n");
 		for (int i = 0; i < size(); ++i) {
 			Record slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0)
-				Btree.childNode(stor, level - 1, slot).print2(w, stor);
+				childNode(stor, i).print(w, stor);
 		}
 	}
 
 	abstract String printName();
 
 	/** returns the number of nodes processed */
-	int check2(Tran tran, Record from, Record to) {
+	int check(Tran tran, Record from, Record to) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf())
@@ -163,19 +165,18 @@ abstract class BtreeNode implements Storable {
 			return checkTree(tran, from, to);
 	}
 
-
 	private int checkTree(Tran tran, Record from, Record to) {
-		assert isMinimalKey(get(0)) : "minimal";
+		assert isMinimalKey(get(0)) : "not minimal " + get(0);
 		if (size() > 1)
 			assert from.compareTo(get(1)) <= 0;
 		assert to == null || to.compareTo(get(size() - 1)) > 0;
 		int nnodes = 1;
 		to = 1 < size() ? get(1) : null;
-		nnodes += Btree.childNode(tran.istor, level - 1, get(0)).check2(tran, from, to);
+		nnodes += childNode(tran.istor, 0).check(tran, from, to);
 		for (int i = 1; i < size(); ++i) {
 			from = get(i);
 			to = i + 1 < size() ? get(i + 1) : null;
-			nnodes += Btree.childNode(tran.istor, level - 1, from).check2(tran, from, to);
+			nnodes += childNode(tran.istor, i).check(tran, from, to);
 		}
 		return nnodes;
 	}
@@ -227,30 +228,15 @@ abstract class BtreeNode implements Storable {
 		throw new UnsupportedOperationException();
 	}
 
-	protected static Record minimize(Record key) {
-		return key.childRef() == null
-				? minimalKey(key.size(), adr(key))
-				: minimalKey(key.size(), key.childRef());
+	protected static Record minimalKey(int nfields, BtreeNode child) {
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < nfields; ++i)
+			rb.add("");
+		return rb.treeKeyRecord(child);
 	}
 
 	protected static int adr(Record rec) {
 		return (int) rec.getLong(rec.size() - 1);
-	}
-
-	protected static Record minimalKey(int nfields, int adr) {
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < nfields - 1; ++i)
-			rb.add("");
-		rb.adduint(adr);
-		return rb.build();
-	}
-
-	protected static Record minimalKey(int nfields, Storable childRef) {
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < nfields - 1; ++i)
-			rb.add("");
-		rb.addRef(childRef);
-		return rb.build();
 	}
 
 	abstract BtreeNode withUpdate(int i, BtreeNode child);
@@ -258,4 +244,7 @@ abstract class BtreeNode implements Storable {
 	abstract void freeze();
 
 	abstract boolean frozen();
+
+	abstract BtreeNode childNode(Storage stor, int i);
+
 }

@@ -4,23 +4,31 @@
 
 package suneido.immudb;
 
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-
-import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Preconditions;
 
 /**
  * A {@link BtreeNode} wrapping a ByteBuffer from the database.
  * "updating" a BtreeDbNode produces a {@link BtreeDbMemNode}
+ * Immutable except for refs.
  */
-@Immutable
 class BtreeDbNode extends BtreeNode {
 	final Record rec;
+	final SoftReference<BtreeDbNode>[] refs; // cache child nodes
 
+	@SuppressWarnings("unchecked")
 	BtreeDbNode(int level, ByteBuffer buf, int adr) {
 		super(level);
 		rec = Record.from(adr, buf, 0);
+		refs = new SoftReference[rec.size()];
+	}
+
+	BtreeDbNode(int level, ByteBuffer buf, int adr, SoftReference<BtreeDbNode>[] refs) {
+		super(level);
+		rec = Record.from(adr, buf, 0);
+		this.refs = refs;
 	}
 
 	@Override
@@ -50,8 +58,8 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
-	int store(Storage stor) {
-		return rec.address();
+	BtreeDbNode store(Storage stor) {
+		return this;
 	}
 
 	@Override
@@ -79,6 +87,19 @@ class BtreeDbNode extends BtreeNode {
 		throw new UnsupportedOperationException();
 	}
 
+	TreeKeyRecord minimize(int idx) {
+		Record key = get(idx);
+		RecordBuilder rb = new RecordBuilder();
+		for (int i = 0; i < key.size() - 1; ++i)
+			rb.add("");
+		rb.add(key.getRaw(key.size() - 1)); // keep the child address
+		BtreeDbNode child = (refs[idx] != null && refs[idx].get() != null)
+			? refs[idx].get()
+			: null;
+		return rb.treeKeyRecord(child);
+
+	}
+
 	@Override
 	void freeze() {
 	}
@@ -86,6 +107,18 @@ class BtreeDbNode extends BtreeNode {
 	@Override
 	boolean frozen() {
 		return true;
+	}
+
+	@Override
+	BtreeDbNode childNode(Storage stor, int i) {
+		if (refs[i] != null) {
+			BtreeDbNode ref = refs[i].get();
+			if (ref != null)
+				return ref;
+		}
+		BtreeDbNode child = (BtreeDbNode) Btree.nodeAt(stor, level - 1, adr(get(i)));
+		refs[i]  = new SoftReference<BtreeDbNode>(child); // cache
+		return child;
 	}
 
 	@Override

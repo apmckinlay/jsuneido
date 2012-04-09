@@ -37,8 +37,9 @@ class IndexInfo extends BtreeInfo {
 		columns = convertColumns(rec.getString(i));
 	}
 
-	IndexInfo(IndexInfo ii, int root) {
-		this(ii.columns, root, ii.treeLevels, ii.nnodes, ii.totalSize);
+	IndexInfo(IndexInfo info, BtreeNode rootNode) {
+		super(rootNode.address(), rootNode, info.treeLevels, info.nnodes, info.totalSize);
+		this.columns = info.columns;
 	}
 
 	private static int[] convertColumns(String s) {

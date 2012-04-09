@@ -43,11 +43,6 @@ public class BtreeTest {
 	}
 
 	@Test
-	public void add_one() {
-		btree.add(key("test"));
-	}
-
-	@Test
 	public void empty() {
 		assertTrue(btree.isEmpty());
 		assertThat(btree.get(key("hello", 123)), is(0));
@@ -178,7 +173,7 @@ public class BtreeTest {
 
 	@Test
 	public void add_in_reverse_order() {
-		rand = new Random(95369);
+		rand = new Random(95367);
 		keys = randomKeys(rand, NKEYS);
 		Collections.sort(keys);
 		Collections.reverse(keys);
@@ -427,7 +422,7 @@ public class BtreeTest {
 	@Test
 	public void unique() {
 		rand = new Random(1291681);
-		add(10);//NKEYS);
+		add(NKEYS);
 		for (Record key : keys)
 			assertFalse(btree.add(key, true));
 	}
@@ -686,7 +681,7 @@ public class BtreeTest {
 		Btree.Iter iter = btree.iterator();
 		iter.next();
 		Record oldkey = iter.curKey();
-		Record newkey = key("b", tran.refToInt(new Object()));
+		Record newkey = key("b", tran.refToInt(rec("")));
 		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
 		iter.next();
 		assertThat(iter.curKey().getString(0), is("c"));
@@ -699,7 +694,7 @@ public class BtreeTest {
 		Btree.Iter iter = btree.iterator();
 		iter.prev();
 		Record oldkey = iter.curKey();
-		Record newkey = key("b", tran.refToInt(new Object()));
+		Record newkey = key("b", tran.refToInt(rec("")));
 		assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
 		iter.prev();
 		assertThat(iter.curKey().getString(0), is("a"));

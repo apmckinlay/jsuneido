@@ -328,6 +328,15 @@ public class TransactionTest {
 		t.abort();
 	}
 
+	@Test
+	public void add_delete_column() {
+		make_tmp(100);
+		db.ensureTable("tmp").addColumn("foo").finish();
+		db.alterTable("tmp").dropColumn("foo").finish();
+		db.ensureTable("tmp").addColumn("foo").finish();
+		db.alterTable("tmp").dropColumn("foo").finish();
+	}
+
 	//--------------------------------------------------------------------------
 
 	@After

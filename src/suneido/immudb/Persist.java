@@ -87,8 +87,7 @@ class Persist {
 						// store the btree
 						// and change the dbinfo root to an address
 						// to allow garbage collection of in-memory btree nodes
-						int root = ii.rootNode.store(istor);
-						assert root != 0;
+						BtreeDbNode root = ii.rootNode.store(istor);
 						b.add(new IndexInfo(ii, root));
 						modified = true;
 					} else

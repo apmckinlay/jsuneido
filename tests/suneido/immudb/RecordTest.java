@@ -8,8 +8,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.nio.ByteBuffer;
-
 import org.junit.Test;
 
 public class RecordTest {
@@ -85,22 +83,6 @@ public class RecordTest {
 		assertThat(rb.size(), is(3));
 		rb.truncate(2);
 		assertThat(rb.size(), is(2));
-	}
-
-	@Test
-	public void ref() {
-		Storable ref = new Storable() {
-			@Override
-			public int address() {
-				return 456;
-			} };
-		Record r = new RecordBuilder().add(123).addRef(ref).build();
-		ByteBuffer buf = ByteBuffer.allocate(r.packSize());
-		r.pack(buf);
-		Record r2 = new BufRecord(buf);
-		assertThat(r2.size(), is(2));
-		assertThat(r2.getInt(0), is(123));
-		assertThat(r2.getInt(1), is(456));
 	}
 
 	public static Record record(Object... data) {

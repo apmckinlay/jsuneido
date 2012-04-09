@@ -55,3 +55,5 @@ syntax: regexp
 \.dbd$
 syntax: regexp
 \.dbi$
+syntax: regexp
+\.zip$
