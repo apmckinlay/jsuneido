@@ -707,7 +707,8 @@ public final class Ops {
 
 	public static Throwable exception(Object e) {
 		return e instanceof Except
-				? new SuException(((Except) e).getThrowable(), e.toString()) : new SuException((String) e);
+				? new SuException(((Except) e).getThrowable(), e.toString())
+				: new SuException(toStr(e));
 	}
 	public static void throwUninitializedVariable() {
 		throw new SuException("uninitialized variable");
