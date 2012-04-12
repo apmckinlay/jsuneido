@@ -8,6 +8,8 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
@@ -18,6 +20,8 @@ class DbRebuild {
 	private final Storage dstor;
 	private final Storage istor;
 	private Check check;
+	private Date lastOkDate;
+	private long copiedDataSize;
 
 	/** @return A completion string if successful, null if not. */
 	public static String rebuild(String oldFilename, String newFilename) {
@@ -46,14 +50,16 @@ class DbRebuild {
 		check = new Check(dstor, istor);
 		try {
 			check.fullcheck();
+			lastOkDate = check.lastOkDate();
 			fix();
-			return "Last commit "; //TODO
-					//+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(check.lastOkDate());
+			if (lastOkDate == null)
+				return null;
+			return "Last commit " +
+					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lastOkDate);
 		} catch (Exception e) {
+			e.printStackTrace(System.out);
 			return null;
 		} finally {
-//System.out.println("AFTER ======================");
-//Dump.data(dstor);
 			dstor.close();
 			istor.close();
 		}
@@ -78,6 +84,7 @@ class DbRebuild {
 		try {
 			FileUtils.copy(new File(oldFilename + "d"), new File(newFilename + "d"),
 					check.dIter.okSize);
+			copiedDataSize = check.dIter.okSize;
 			FileUtils.copy(new File(oldFilename + "i"), new File(newFilename + "i"),
 					check.iIter.okSize);
 		} catch (IOException e) {
@@ -89,9 +96,10 @@ class DbRebuild {
 	// could copy remaining good data and then process in place
 	// but to start it's simpler to not copy and to apply normally to new db
 	void reprocess(Database db) {
-		while (check.dIter.hasNext()) {
+		while (check.dIter.notFinished()) {
 			new Proc(db, dstor, check.dIter.adr).process();
 			check.dIter.advance();
+			lastOkDate = check.dIter.date();
 		}
 		db.close();
 	}
@@ -119,7 +127,7 @@ class DbRebuild {
 			type = c;
 			skip = (commitAdr == Storage.FIRST_ADR); // skip bootstrap commit
 			if (type == 'u')
-				ut = db.updateTransaction();
+				ut = new RebuildTransaction(db);
 			else if (type == 'b')
 				bt = db.bulkTransaction();
 		}
@@ -136,12 +144,14 @@ class DbRebuild {
 				case TN.TABLES:
 					String tablename = r.getString(1);
 					tb = db.createTable(tablename);
-					tblnames.put(r.getInt(0), tablename);
+					int tblnum = r.getInt(0);
+					assert tb.tblnum() == tblnum;
+					tblnames.put(tblnum, tablename);
 					break;
 				case TN.COLUMNS:
 					Column col = new Column(r);
 					tbEnsure(col.tblnum);
-					tb.addColumn(col.name);
+					tb.addColumn(col.field >= 0 ? col.name : capitalize(col.name));
 					break;
 				case TN.INDEXES:
 					Index ix = new Index(r);
@@ -168,9 +178,14 @@ class DbRebuild {
 				assert false : "invalid type " + type;
 		}
 
+		private String capitalize(String name) {
+			return name.substring(0, 1).toUpperCase() + name.substring(1);
+		}
+
 		@Override
 		void remove(Record r) {
-			r.address = 0;
+			if (r.address >= copiedDataSize)
+				r.address = 0; // may have changed
 			if (type == 'u') {
 				ut.removeRecord(r.tblnum, r);
 			} else if (type == 's') {
@@ -207,8 +222,12 @@ class DbRebuild {
 
 		@Override
 		void update(Record from, Record to) {
-			assert from.tblnum == to.tblnum;
+			if (from.address >= copiedDataSize)
+				from.address = 0; // may have changed
+			to.address = 0;
+			assert from.tblnum == to.tblnum : "from " + from.tblnum + " to " + to.tblnum;
 			if (type == 'u') {
+				assert from.tblnum == to.tblnum;
 				ut.updateRecord(from.tblnum, from, to);
 			} else if (type == 's') {
 				if (from.tblnum == TN.TABLES) {
@@ -219,9 +238,9 @@ class DbRebuild {
 					String before = from.getString(2);
 					String after = to.getString(2);
 					int tblnum = from.getInt(0);
-					TableBuilder tb = db.alterTable(tableName(tblnum));
-					tb.renameColumn(before, after);
-					tb.finish();
+					db.alterTable(tableName(tblnum))
+							.renameColumn(before, after)
+							.finish();
 				}
 			} else
 				assert false : "invalid type " + type;
@@ -253,8 +272,31 @@ class DbRebuild {
 
 	} // end of Proc
 
+	/** no foreign keys or triggers */
+	private static class RebuildTransaction extends UpdateTransaction {
+		RebuildTransaction(Database db) {
+			super(db.trans.nextNum(false), db);
+		}
+		@Override
+		protected void indexedDataIndex(IndexedData id, Table table,
+				Index index, TranIndex btree, String colNames) {
+			id.index(btree, index.mode(), index.colNums, colNames);
+		}
+		@Override
+		public void callTrigger(suneido.intfc.database.Table table,
+				suneido.intfc.database.Record oldrec,
+				suneido.intfc.database.Record newrec) {
+		}
+	}
+
 	public static void main(String[] args) {
-		rebuild("immu.db", "immu.rbld");
+		new File("immu.dbi").renameTo(new File("immu.dbi.bak")); // force complete rebuild
+		String result = rebuild("immu.db", "immu.rbld");
+		if (result == null)
+			System.out.println("rebuild failed");
+		else
+			System.out.println("rebuilt as of " + result);
+		new File("immu.dbi.bak").renameTo(new File("immu.dbi"));
 	}
 
 }

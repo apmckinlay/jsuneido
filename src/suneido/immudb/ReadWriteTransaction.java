@@ -57,6 +57,10 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	int addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
+if (tblnum > 3) {
+TableInfo ti = getTableInfo(tblnum);
+assert rec.size() <= ti.nextfield;
+}
 		onlyReads = false;
 		rec.tblnum = tblnum;
 		int adr = indexedData(tblnum).add(rec);
@@ -71,7 +75,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
 		Record from = tran.getrec(fromadr);
-		updateRecord(from.tblnum, from, (Record) to);
+		updateRecord(from.tblnum, from, to);
 		return 1; // don't know record address till commit
 	}
 
@@ -79,17 +83,17 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
 			suneido.intfc.database.Record to) {
-		updateRecord(tblnum, (Record) from, (Record) to);
+		updateRecord2(tblnum, (Record) from, (Record) to);
+		callTrigger(ck_getTable(tblnum), from, to); // must be final step - may throw
 		return 1; // don't know record address till commit
 	}
 
-	int updateRecord(int tblnum, Record from, Record to) {
+	int updateRecord2(int tblnum, Record from, Record to) {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		onlyReads = false;
 		to.tblnum = tblnum;
 		int adr = indexedData(tblnum).update(from, to);
-		callTrigger(ck_getTable(tblnum), from, to);
 		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 		return adr;
 	}
@@ -154,16 +158,22 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		if (table == null) {
 			int[] indexColumns = Bootstrap.indexColumns[tblnum];
 			TranIndex btree = getIndex(tblnum, indexColumns);
-			id.index(btree, Mode.KEY, indexColumns, "", null, null);
+			id.index(btree, Mode.KEY, indexColumns);
 		} else {
 			for (Index index : getTable(tblnum).indexes) {
 				TranIndex btree = getIndex(index);
 				String colNames = table.numsToNames(index.colNums);
-				id.index(btree, index.mode(), index.colNums, colNames,
-						index.fksrc, schema.getFkdsts(table.name, colNames));
+				indexedDataIndex(id, table, index, btree, colNames);
 			}
 		}
 		return id;
+	}
+
+	/** overridden by DbRebuild.RebuildTransaction */
+	protected void indexedDataIndex(IndexedData id, Table table, Index index,
+			TranIndex btree, String colNames) {
+		id.index(btree, index.mode(), index.colNums, colNames,
+				index.fksrc, schema.getFkdsts(table.name, colNames));
 	}
 
 	void verifyNotSystemTable(int tblnum, String what) {

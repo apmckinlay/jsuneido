@@ -65,8 +65,11 @@ class CheckTable implements Callable<String> {
 				}
 				++nrecords;
 				totalsize += rec.bufSize();
-				if (rec.size() > maxfields)
-					maxfields = rec.size();
+				if (rec.size() > ti.nextfield) {
+					details += tablename + ": nextfield mismatch: maxfields "
+							+ maxfields + " > nextfield " + ti.nextfield + "\n";
+					return false;
+				}
 			}
 			if (nrecords != ti.nrows()) {
 				details += tablename + ": record count mismatch: " +
@@ -84,13 +87,6 @@ class CheckTable implements Callable<String> {
 		if (ti.nextfield <= table.maxColumnNum()) {
 			details += tablename + ": nextfield mismatch: nextfield "
 					+ ti.nextfield + " <= max column# " + table.maxColumnNum() + "\n";
-			return false;
-		}
-		if (tablename.equals("tables") || tablename.equals("indexes"))
-			maxfields -= 1; // allow for the padding
-		if (maxfields > ti.nextfield) {
-			details += tablename + ": nextfield mismatch: maxfields "
-					+ maxfields + " > nextfield " + ti.nextfield + "\n";
 			return false;
 		}
 		return true;

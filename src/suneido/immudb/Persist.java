@@ -31,7 +31,7 @@ class Persist {
 	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and timestamp
 	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
 	{ assert TAIL_SIZE == ChunkedStorage.align(TAIL_SIZE); }
-	static final int ENDING_SIZE = ChunkedStorage.align(3 * Ints.BYTES);
+	static final int ENDING_SIZE = ChunkedStorage.align(4 * Ints.BYTES);
 	private final Storage istor;
 	private DbHashTrie dbinfo;
 	private int head_adr = 0;
@@ -73,8 +73,6 @@ class Persist {
 		dbinfo.traverseUnstored(proc);
 	}
 
-	//TODO instead of discarding in-memory btree nodes, use SoftReference
-
 	DbHashTrie.Process proc = new DbHashTrie.Process() {
 		@Override
 		public void apply(Entry e) {
@@ -84,9 +82,6 @@ class Persist {
 				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
-						// store the btree
-						// and change the dbinfo root to an address
-						// to allow garbage collection of in-memory btree nodes
 						BtreeDbNode root = ii.rootNode.store(istor);
 						b.add(new IndexInfo(ii, root));
 						modified = true;
@@ -102,8 +97,7 @@ class Persist {
 	/** also called by BulkTransaction */
 	void finish(Database db, Tables schema, int lastcksum, int lastadr) {
 		dbinfoadr = storeDbinfo();
-		istor.buffer(istor.alloc(ENDING_SIZE))
-				.putInt(dbinfoadr).putInt(lastcksum).putInt(lastadr);
+		ending(dbinfoadr, schema.maxTblnum, lastcksum, lastadr);
 
 		int tail_adr = istor.alloc(TAIL_SIZE);
 		int size = (int) istor.sizeFrom(head_adr);
@@ -115,6 +109,12 @@ class Persist {
 
 		db.setState(dbinfoadr, dbinfo, schema, lastcksum, lastadr);
 		db.setPersistState();
+	}
+
+	private void ending(int dbinfoadr, int maxTblnum, int lastcksum, int lastadr) {
+		istor.buffer(istor.alloc(ENDING_SIZE))
+				.putInt(dbinfoadr).putInt(maxTblnum)
+				.putInt(lastcksum).putInt(lastadr);
 	}
 
 	private int storeDbinfo() {
@@ -142,8 +142,8 @@ class Persist {
 
 	/** used by BulkTransaction */
 	void abort(Database.State dbstate) {
-		istor.buffer(istor.alloc(ENDING_SIZE))
-				.putInt(dbstate.dbinfoadr).putInt(dbstate.lastcksum).putInt(dbstate.lastadr);
+		ending(dbstate.dbinfoadr, dbstate.schema.maxTblnum,
+				dbstate.lastcksum, dbstate.lastadr);
 		int tail_adr = istor.alloc(TAIL_SIZE);
 		int size = (int) istor.sizeFrom(head_adr);
 		istor.buffer(head_adr).putInt(size).putInt(0);
@@ -154,6 +154,11 @@ class Persist {
 	/** used by Database open */
 	static int dbinfoadr(Storage istor) {
 		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
+		return buf.getInt();
+	}
+	static int maxTblnum(Storage istor) {
+		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
+		buf.getInt(); // dbinfoadr
 		return buf.getInt();
 	}
 

@@ -4,36 +4,17 @@
 
 package suneido.immudb;
 
-import static suneido.util.Verify.verifyEquals;
+import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
-import suneido.DbTools;
 import suneido.database.query.Request;
 import suneido.intfc.database.IndexIter;
 
 class DbCompact {
-//	private final String dbfilename;
-//	private final String tempfilename;
 	private final Database oldDB;
 	private final Database newDB;
 	private ReadTransaction rt;
-
-//	static void compactPrint(String dbfilename)
-//			throws InterruptedException {
-//		File tempfile = FileUtils.tempfile();
-//		compact2(dbfilename, tempfile.getPath());
-//		FileUtils.renameWithBackup(tempfile, dbfilename);
-//	}
-//
-//	private static void compact2(String dbfilename, String tempfilename) {
-//		Status status = DbCheck.checkPrint(dbfilename);
-//		if (status != Status.OK)
-//			throw new SuException("Compact FAILED " + dbfilename + " " + status);
-//		System.out.println("Compacting " + dbfilename);
-//		int n = new DbCompact(dbfilename, tempfilename).compact();
-//		System.out.println(dbfilename + " compacted " + n + " tables");
-//	}
 
 	static int compact(Database olddb, Database newdb) {
 		return new DbCompact(olddb, newdb).compact();
@@ -68,7 +49,7 @@ class DbCompact {
 	private void createTable(String tablename) {
 		String schema = rt.getTable(tablename).schema();
 		Request.execute(newDB, "create " + tablename + schema);
-		verifyEquals(schema, newDB.getSchema(tablename));
+//		verifyEquals(schema, newDB.getSchema(tablename)); //TODO canonical
 	}
 
 	private int copyData() {
@@ -128,7 +109,12 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		DbTools.compactPrintExit(DatabasePackage.dbpkg, "immu.db");
+		Database dbin = (Database) dbpkg.openReadonly("immu.db");
+		Database dbout = (Database) dbpkg.create("immu.compact");
+		long t = System.currentTimeMillis();
+		int n = compact(dbin, dbout);
+		System.out.println("compacted " + n + " tables " +
+				"in " + (System.currentTimeMillis() - t) + " ms");
 	}
 
 }

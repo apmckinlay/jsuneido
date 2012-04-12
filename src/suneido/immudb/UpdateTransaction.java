@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
@@ -80,9 +81,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int updateRecord(int tblnum, Record from, Record to) {
+	public int updateRecord2(int tblnum, Record from, Record to) {
 		to.address = tran.refToInt(to);
-		int fromadr = super.updateRecord(tblnum, from, to);
+		int fromadr = super.updateRecord2(tblnum, from, to);
 		actions.add(UPDATE);
 		actions.add(fromadr);
 		actions.add(to.address);
@@ -92,10 +93,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public int removeRecord(int tblnum, Record rec) {
 		int adr = super.removeRecord(tblnum, rec);
-		if (IntRefs.isIntRef(adr))
-			tran.update(adr, null); // don't record delete of new record
-		else
-			actions.add(adr);
+		actions.add(adr);
 		return adr;
 	}
 
@@ -274,25 +272,90 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	private void storeActions() {
-		short type = REMOVE;
+		TIntIntHashMap updates = new TIntIntHashMap();
 		for (TIntIterator iter = actions.iterator(); iter.hasNext(); ) {
 			int act = iter.next();
-			if (act == UPDATE)
-				type = UPDATE;
-			else if (IntRefs.isIntRef(act)) { //  add
-				if (tran.intToRef(act) instanceof Record) { // don't store if deleted
-					int adr = ((Record) tran.intToRef(act)).store(tran.dstor);
-					tran.setAdr(act, adr);
-					inserts.add(adr);
-				}
-			} else { // remove
-				ByteBuffer buf = tran.dstor.buffer(
-						tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
-				buf.putShort(type);
-				buf.putInt(act);
-				type = REMOVE;
+			if (act == UPDATE) {
+				int rem = iter.next();
+				int add = iter.next();
+				updateAction(updates, rem, add);
+			} else if (IntRefs.isIntRef(act)) {
+				addAction(act);
+			} else {
+				removeAction(act);
 			}
 		}
+	}
+
+	private void addAction(int act) {
+		if (wasDeleted(act))
+			return;
+		storeAdd(act);
+	}
+
+	/** overridden by tests */
+	protected void storeAdd(int act) {
+		Record rec = (Record) tran.intToRef(act);
+		int adr = rec.store(tran.dstor);
+		tran.setAdr(act, adr);
+		inserts.add(adr);
+	}
+
+	private void removeAction(int act) {
+		if (newRecord(act))
+			return;
+		storeRemove(act);
+	}
+
+	/** overridden by tests */
+	protected void storeRemove(int act) {
+		ByteBuffer buf = tran.dstor.buffer(
+				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+		buf.putShort(REMOVE);
+		buf.putInt(act);
+	}
+
+	private void updateAction(TIntIntHashMap updates, int from, int to) {
+		if (updates.contains(from))
+			from = updates.get(from);
+		if (updatedAgainLater(updates, from, to))
+			return;
+		else if (newRecord(from)) {
+			if (wasDeleted(to))
+				return;
+			else
+				storeAdd(to);
+		} else { // from is old
+			if (wasDeleted(to))
+				storeRemove(from);
+			else
+				storeUpdate(from, to);
+		}
+	}
+
+	private boolean updatedAgainLater(TIntIntHashMap updates, int from, int to) {
+		if (tran.intToRef(to) != IndexedData.UPDATED)
+			return false;
+		updates.put(to, from); // so subsequent update can be from first "from"
+		return true;
+	}
+
+	/** overridden by tests */
+	protected void storeUpdate(int from, int to) {
+		ByteBuffer buf = tran.dstor.buffer(
+				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+		buf.putShort(UPDATE);
+		buf.putInt(from);
+		storeAdd(to);
+	}
+
+	private static boolean newRecord(int act) {
+		return IntRefs.isIntRef(act);
+	}
+
+	private boolean wasDeleted(int act) {
+		Object ref = tran.intToRef(act);
+		return ref == IndexedData.REMOVED || ref == IndexedData.UPDATED;
 	}
 
 	static void endOfCommit(Storage stor) {

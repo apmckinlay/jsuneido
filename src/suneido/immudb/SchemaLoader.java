@@ -19,16 +19,16 @@ import com.google.common.collect.Lists;
 class SchemaLoader {
 	private final ReadTransaction t;
 
-	static Tables load(ReadTransaction t) {
+	static Tables load(ReadTransaction t, int maxTblnum) {
 		SchemaLoader sl = new SchemaLoader(t);
-		return sl.load();
+		return sl.load(maxTblnum);
 	}
 
 	private SchemaLoader(ReadTransaction t) {
 		this.t = t;
 	}
 
-	private Tables load() {
+	private Tables load(int maxTblnum) {
 		TranIndex tablesIndex = t.getIndex(TN.TABLES, indexColumns[TN.TABLES]);
 		TranIndex columnsIndex = t.getIndex(TN.COLUMNS, indexColumns[TN.COLUMNS]);
 		TranIndex indexesIndex = t.getIndex(TN.INDEXES, indexColumns[TN.INDEXES]);
@@ -36,7 +36,7 @@ class SchemaLoader {
 		TablesReader tr = new TablesReader(tablesIndex);
 		ColumnsReader cr = new ColumnsReader(columnsIndex);
 		IndexesReader ir = new IndexesReader(indexesIndex);
-		Tables.Builder tsb = new Tables.Builder();
+		Tables.Builder tsb = new Tables.Builder(maxTblnum);
 		while (true) {
 			Record tblrec = tr.next();
 			if (tblrec == null)

@@ -67,7 +67,7 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int updateRecord(int tblnum, Record from, Record to) {
+	public int updateRecord2(int tblnum, Record from, Record to) {
 		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 
