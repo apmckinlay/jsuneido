@@ -113,10 +113,10 @@ public class Extend extends Query1 {
 			return null;
 		RecordBuilder rb = dbpkg.recordBuilder();
 		for (int i = 0; i < flds.size(); ++i) {
-			Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
+			Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
 			rb.add(exprs.get(i).eval(hdr, row));
 		}
-		return new Row(srcrow, dbpkg.minRecord(), rb.build());
+		return new Row(srcrow, rb.build(), dbpkg.minRecord());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -124,7 +124,7 @@ public class Extend extends Query1 {
 	public Header header() {
 		if (hdr == null)
 			hdr = new Header(source.header(),
-					new Header(asList(noFields, flds), union(flds, rules)));
+					new Header(asList(flds, noFields), union(flds, rules)));
 		return hdr;
 	}
 
