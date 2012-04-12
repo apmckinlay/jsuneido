@@ -41,10 +41,12 @@ abstract class CommitProcessor {
 			if (b == END)
 				break;
 			else if (b == REMOVE || b == UPDATE) {
-				BufRecord r = new BufRecord(stor, buf.getInt());
+				assert from == null;
+				int recadr = buf.getInt();
+				BufRecord r = new BufRecord(stor, recadr);
 				if (b == REMOVE)
 					remove(r);
-				else
+				else // UPDATE
 					from = r;
 				buf = advance(Shorts.BYTES + Ints.BYTES);
 			} else { // add

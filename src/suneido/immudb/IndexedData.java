@@ -41,9 +41,15 @@ class IndexedData {
 	/** setup method */
 	IndexedData index(TranIndex btree, Mode mode, int[] colNums, String colNames,
 			ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
-		assert t != null;
-		indexes.add(new AnIndexWithFkeys(
-				t, btree, mode, colNums, colNames, fksrc, fkdsts));
+		indexes.add(fksrc == null && fkdsts == null
+				? new AnIndex(btree, mode, colNums, colNames)
+				: new AnIndexWithFkeys(
+						t, btree, mode, colNums, colNames, fksrc, fkdsts));
+		return this;
+	}
+
+	IndexedData index(TranIndex btree, Mode mode, int[] colNums, String colNames) {
+		indexes.add(new AnIndex(btree, mode, colNums, colNames));
 		return this;
 	}
 
@@ -94,7 +100,7 @@ class IndexedData {
 			if (! index.remove(rec, adr))
 				// can't undo like add, may have cascaded
 				t.abortThrow("aborted: index remove failed (possible corruption?)");
-		trackRemove(adr);
+		trackRemove(adr, REMOVED);
 		return adr;
 	}
 
@@ -108,7 +114,7 @@ class IndexedData {
 			fromAdr = firstKey().getKeyAdr(from);
 		if (fromAdr == 0)
 			throw new SuException("update couldn't find record");
-		Object oldref = trackRemove(fromAdr);
+		Object oldref = trackRemove(fromAdr, UPDATED);
 		try {
 			int toAdr = to.address();
 			if (toAdr == 0) // if exclusive tran it will already be saved
@@ -137,13 +143,19 @@ class IndexedData {
 		return fromAdr;
 	}
 
-	static final Object removed = new Object();
+	static final Object REMOVED = new Object();
+	static final Object UPDATED = new Object();
 
-	private Object trackRemove(int adr) {
+	/**
+	 * If new record (intref) then updates intref
+	 * to either REMOVED or UPDATED.
+	 * This is used by UpdateTransaction storeData.
+	 */
+	private Object trackRemove(int adr, Object how) {
 		Object oldref = null;
 		if (IntRefs.isIntRef(adr)) {
 			oldref = tran.intToRef(adr);
-			tran.update(adr, removed);
+			tran.update(adr, how);
 		} else if (deletes != null)
 			deletes.add(adr);
 		return oldref;
@@ -216,6 +228,7 @@ class IndexedData {
 				int[] fields, String columns,
 				ForeignKeySource fksrc, Set<ForeignKeyTarget> fkdsts) {
 			super(btree, mode, fields, columns);
+			assert t != null;
 			this.t = t;
 			this.fksrc = fksrc;
 			if (fkdsts == null)

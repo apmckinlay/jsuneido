@@ -47,7 +47,6 @@ class Check {
 
 	/** Checks entire database. Used by DbCheck and DbRebuild */
 	boolean fullcheck() {
-//Dump.dump(dstor, istor);
 		return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
 	}
 
@@ -86,18 +85,21 @@ class Check {
 		ByteBuffer buf = stor.buffer(stor.advance(adr,
 				size - Persist.ENDING_SIZE - Persist.TAIL_SIZE));
 		int dbinfoadr = buf.getInt();
+		int maxtblnum = buf.getInt();
 		int lastcksum = buf.getInt();
 		int lastadr = buf.getInt();
-		return new PersistInfo(dbinfoadr, lastcksum, lastadr);
+		return new PersistInfo(dbinfoadr, maxtblnum, lastcksum, lastadr);
 	}
 
 	static class PersistInfo {
 		final int dbinfoadr;
+		final int maxtblnum;
 		final int lastadr;
 		final int lastcksum;
 
-		public PersistInfo(int dbinfoadr, int lastcksum, int lastadr) {
+		public PersistInfo(int dbinfoadr, int maxtblnum, int lastcksum, int lastadr) {
 			this.dbinfoadr = dbinfoadr;
+			this.maxtblnum = maxtblnum;
 			this.lastcksum = lastcksum;
 			this.lastadr = lastadr;
 		}
@@ -105,6 +107,7 @@ class Check {
 		public String toString() {
 			return Objects.toStringHelper(this)
 					.add("dbinfoadr", dbinfoadr)
+					.add("maxtblnum", maxtblnum)
 					.add("lastadr", lastadr)
 					.add("lastcksum", Integer.toHexString(lastcksum))
 					.toString();

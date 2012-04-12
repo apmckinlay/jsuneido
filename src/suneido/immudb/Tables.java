@@ -18,22 +18,22 @@ class Tables {
 	private final PersistentMap<Integer, Table> bynum;
 	private final PersistentMap<String, Table> byname;
 	private final ForeignKeyTargets fkdsts;
-	final int maxTblNum;
+	final int maxTblnum;
 
 	Tables() {
 		bynum = PersistentMap.empty();
 		byname = PersistentMap.empty();
 		fkdsts = ForeignKeyTargets.empty();
-		maxTblNum = 0;
+		maxTblnum = 0;
 	}
 
 	private Tables(PersistentMap<Integer, Table> bynum,
 			PersistentMap<String, Table> byname,
-			ForeignKeyTargets fkdsts, int maxTblNum) {
+			ForeignKeyTargets fkdsts, int maxTblnum) {
 		this.bynum = bynum;
 		this.byname = byname;
 		this.fkdsts = fkdsts;
-		this.maxTblNum = maxTblNum;
+		this.maxTblnum = maxTblnum;
 	}
 
 	Table get(int tblnum) {
@@ -54,7 +54,7 @@ class Tables {
 					new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
 		}
 		return new Tables(bynum.with(tbl.num, tbl), byname.with(tbl.name, tbl),
-				fkd, Math.max(tbl.num, maxTblNum));
+				fkd, Math.max(tbl.num, maxTblnum));
 	}
 
 	Tables without(Table tbl) {
@@ -70,7 +70,7 @@ class Tables {
 					new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
 		}
 		return new Tables(bynum.without(tbl.num), byname.without(old.name),
-				fkd, maxTblNum);
+				fkd, maxTblnum);
 	}
 
 	Set<ForeignKeyTarget> getFkdsts(String tablename, String columns) {
@@ -83,18 +83,22 @@ class Tables {
 		private final PersistentMap.Builder<String, Table> byname =
 				PersistentMap.builder();
 		private final Map<String, Table> tables = Maps.newHashMap();
-		int maxTblNum = 0;
+		int maxTblnum;
+
+		Builder(int maxTblnum) {
+			this.maxTblnum = maxTblnum;
+		}
 
 		void add(Table tbl) {
 			bynum.put(tbl.num, tbl);
 			byname.put(tbl.name, tbl);
-			if (tbl.num > maxTblNum)
-				maxTblNum = tbl.num;
+			if (tbl.num > maxTblnum)
+				maxTblnum = tbl.num;
 			tables.put(tbl.name, tbl);
 		}
 
 		Tables build() {
-			return new Tables(bynum.build(), byname.build(), buildFkdsts(), maxTblNum);
+			return new Tables(bynum.build(), byname.build(), buildFkdsts(), maxTblnum);
 		}
 
 		private ForeignKeyTargets buildFkdsts() {

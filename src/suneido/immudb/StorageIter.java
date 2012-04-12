@@ -46,7 +46,7 @@ class StorageIter {
 			status = Status.SIZE_MISMATCH;
 			return;
 		}
-		if (date == 0) // aborted
+		if (date == 0) // aborted commit
 			return;
 		if (! verifyCksum()) {
 			status = Status.CHECKSUM_FAIL;
@@ -109,7 +109,7 @@ class StorageIter {
 		return "Iter(adr " + adr + (eof() ? " eof" : "") + ")";
 	}
 
-	public boolean hasNext() {
+	public boolean notFinished() {
 		return ! eof() && status == Status.OK;
 	}
 

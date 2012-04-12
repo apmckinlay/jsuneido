@@ -121,7 +121,7 @@ class DbDump {
 	}
 
 	public static void main(String[] args) {
-		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immudb.db", "immudb.su");
+		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immu.compact", "immu.su");
 //		dumpTablePrint("test");
 	}
 

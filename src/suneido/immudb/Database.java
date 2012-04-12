@@ -84,9 +84,10 @@ class Database implements suneido.intfc.database.Database {
 		this.dstor = dstor;
 		this.istor = istor;
 		int dbinfoadr = Persist.dbinfoadr(istor);
+		int maxTblnum = Persist.maxTblnum(istor);
 		DbHashTrie dbinfo = DbHashTrie.load(istor, dbinfoadr, new DbinfoLoader(istor));
 		state = new State(0, dbinfo, null, 0, 0); // enough to load schema
-		Tables schema = SchemaLoader.load(readTransaction());
+		Tables schema = SchemaLoader.load(readTransaction(), maxTblnum);
 		state = lastPersistState = new State(dbinfoadr, dbinfo, schema, 0, 0);
 	}
 
@@ -172,7 +173,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	int nextTableNum() {
-		return state.schema.maxTblNum + 1;
+		return state.schema.maxTblnum + 1;
 	}
 
 	@Override

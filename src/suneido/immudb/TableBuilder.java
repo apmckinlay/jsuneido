@@ -36,10 +36,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private int nextField = 0;
 
 	/** @param t must be an schema transaction */
-	static TableBuilder create(ReadTransaction t, String tableName, int tblNum) {
+	static TableBuilder create(ReadTransaction t, String tableName, int tblnum) {
 		if (t.getTable(tableName) != null)
 			fail(t, "can't create existing table: " + tableName);
-		TableBuilder tb = new TableBuilder(t, tableName, tblNum);
+		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
 		tb.createTable();
 		return tb;
 	}
@@ -58,6 +58,10 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		this(t, tableName, tblnum(t, tableName));
 		nextField = t.getTableInfo(tblnum).nextfield;
 		getSchema();
+	}
+
+	int tblnum() {
+		return tblnum;
 	}
 
 	private static int tblnum(ReadTransaction t, String tableName) {
@@ -191,8 +195,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		if (hasIndex(columnNames))
-			throw new SuException("add index: index already exists: " +
-					columnNames + " in " + tableName);
+			fail("add index: index already exists: " + columnNames);
 		addIndex2(colNums(columnNames), isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
@@ -304,7 +307,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		for (Index index : indexes)
 			if (index.isKey)
 				return;
-		fail(KEY_REQUIRED + " for: " + tableName);
+		fail(KEY_REQUIRED);
 	}
 
 	private void updateSchema() {
@@ -354,7 +357,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private void fail(String msg) {
-		fail(t, msg);
+		fail(t, msg + " in " + tableName);
 	}
 	private static void fail(ReadTransaction t, String msg) {
 		t.abort();
