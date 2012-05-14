@@ -65,4 +65,6 @@ public interface DatabasePackage {
 
 	String name();
 
+	void renameDbWithBackup(String tempfile, String dbFilename);
+
 }

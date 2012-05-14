@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import suneido.util.FileUtils;
+
 /** singleton */
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	public static final DatabasePackage dbpkg = new DatabasePackage();
@@ -117,6 +119,12 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public String name() {
 		return "(immudb)";
+	}
+
+	@Override
+	public void renameDbWithBackup(String tempfile, String dbFilename) {
+		FileUtils.renameWithBackup(tempfile + "d", dbFilename + "d");
+		FileUtils.renameWithBackup(tempfile + "i", dbFilename + "i");
 	}
 
 }

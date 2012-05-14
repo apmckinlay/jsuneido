@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import suneido.util.FileUtils;
+
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	public static final DatabasePackage dbpkg = new DatabasePackage();
 	static final String DB_FILENAME = "suneido.db";
@@ -114,6 +116,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public String name() {
 		return "";
+	}
+
+	@Override
+	public void renameDbWithBackup(String tempfile, String dbFilename) {
+		FileUtils.renameWithBackup(tempfile, dbFilename);
 	}
 
 }

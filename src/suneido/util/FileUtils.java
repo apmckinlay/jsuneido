@@ -106,9 +106,12 @@ public class FileUtils {
 		return buf.getInt(0);
 	}
 
-	public static void renameWithBackup(File tmpfile, String filename) {
-		File file = new File(filename);
-		File bakfile = new File(filename + ".bak");
+	public static void renameWithBackup(String tmpfile, String filename) {
+		renameWithBackup(new File(tmpfile), new File(filename));
+	}
+
+	public static void renameWithBackup(File tmpfile, File file) {
+		File bakfile = new File(file + ".bak");
 		if (bakfile.exists() && !bakfile.delete())
 			throw new RuntimeException("can't delete " + bakfile);
 		if (file.exists() && !file.renameTo(bakfile))
