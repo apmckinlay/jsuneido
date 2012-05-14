@@ -77,18 +77,19 @@ public class DbTools {
 
 	public static void loadDatabasePrint(DatabasePackage dbpkg, String dbFilename,
 			String filename) {
-		File tempfile = FileUtils.tempfile();
+		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-load:" + filename + SEPARATOR + tempfile))
 			System.exit(-1);
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			fatal("Check failed after Load " + dbFilename);
-		FileUtils.renameWithBackup(tempfile, dbFilename);
+		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
 	static void load2(DatabasePackage dbpkg, String arg) {
 		int i = arg.indexOf(SEPARATOR);
 		String filename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
+System.out.println(arg + " = '" + filename + "', '" + tempfile + "'");
 		Database db = dbpkg.create(tempfile);
 		try {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
@@ -141,7 +142,7 @@ public class DbTools {
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
 		if (! Jvm.runWithNewJvm("-check:" + dbFilename))
 			System.exit(-1);
-		File tempfile = FileUtils.tempfile();
+		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-compact:" + dbFilename + SEPARATOR + tempfile))
 			System.exit(-1);
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
@@ -170,7 +171,7 @@ public class DbTools {
 
 	public static void rebuildOrExit(DatabasePackage dbpkg, String dbFilename) {
 		System.out.println("Rebuilding " + dbFilename + " ...");
-		File tempfile = FileUtils.tempfile();
+		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
 			fatal("Rebuild failed " + dbFilename);
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
