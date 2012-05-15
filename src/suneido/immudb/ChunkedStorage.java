@@ -102,16 +102,15 @@ abstract class ChunkedStorage implements Storage {
 		protect = Integer.MAX_VALUE;
 	}
 
-	private synchronized ByteBuffer buf(long offset) {
-		ByteBuffer buf = map(offset);
-		long startOfLastChunk = (file_size / CHUNK_SIZE) * CHUNK_SIZE;
-		buf.limit((offset < startOfLastChunk)
-			? CHUNK_SIZE
-			: (int) (file_size - startOfLastChunk));
+	private ByteBuffer buf(long offset) {
+		ByteBuffer buf = map(offset).duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
-// TODO remove in production (10% faster for load)
-if (offset < protect)
-return buf.slice().asReadOnlyBuffer();
+		long startOfLastChunk = (file_size / CHUNK_SIZE) * CHUNK_SIZE;
+		if (offset >= startOfLastChunk)
+			buf.limit((int) (file_size - startOfLastChunk));
+		// remove in production (10% faster for load)
+		//if (offset < protect)
+		//	return buf.slice().asReadOnlyBuffer();
 		return buf.slice();
 	}
 

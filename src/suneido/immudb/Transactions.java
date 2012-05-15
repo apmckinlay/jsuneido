@@ -15,6 +15,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.intfc.database.Transaction;
 import suneido.util.Print;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -77,7 +78,7 @@ class Transactions {
 				break;
 			}
 		}
-		return overlapping.tailSet(t, inclusive);
+		return ImmutableSet.copyOf(overlapping.tailSet(t, inclusive));
 
 	}
 

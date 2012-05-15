@@ -5,7 +5,7 @@
 package suneido.immudb;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
-	private static final int PERSIST_EVERY = 1000;
+	private static final long PERSIST_EVERY_MS = TimeUnit.SECONDS.toMillis(5);
 	final Transactions trans = new Transactions();
 	final Storage dstor;
 	final Storage istor;
@@ -30,8 +30,8 @@ class Database implements suneido.intfc.database.Database {
 	final Object commitLock = new Object();
 	/** only updated when holding commitLock */
 	volatile State state;
-	State lastPersistState;
-	AtomicInteger nUpdateTran = new AtomicInteger();
+	private State lastPersistState;
+	private volatile long lastPersistTime = 0;
 
 	// create
 
@@ -141,16 +141,17 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public UpdateTransaction updateTransaction() {
-		// MAYBE do this inside UpdateTransaction commit
-		// then you don't need Atomic
-		// and you already have commit lock
-		// TODO do in separate thread so user's commit can return
-		if (nUpdateTran.incrementAndGet() >= PERSIST_EVERY) {
-			nUpdateTran.set(0);
-			persist();
-		}
+		persistRegularly();
+
 		int num = trans.nextNum(false);
 		return new UpdateTransaction(num, this);
+	}
+
+	synchronized protected void persistRegularly() {
+		// MAYBE do this inside UpdateTransaction commit so already have commit lock
+		// TODO use separate thread so commit can return
+		if (System.currentTimeMillis() - lastPersistTime > PERSIST_EVERY_MS)
+			persist();
 	}
 
 	SchemaTransaction schemaTransaction() {
@@ -258,7 +259,9 @@ class Database implements suneido.intfc.database.Database {
 	void persist() {
 		if (state == lastPersistState)
 			return;
+		lastPersistTime = System.currentTimeMillis();
 		Persist.persist(this);
+		//System.out.print("!");
 	}
 
 	void setPersistState() {
