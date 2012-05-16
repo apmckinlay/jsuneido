@@ -22,7 +22,7 @@ public class TestConcurrency {
 	static final Database db = dbpkg.create("concur.db");
 	static final ServerData serverData = new ServerData();
 	static final int NTHREADS = 8;
-	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(61);
+	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(10);
 	static final Runnable[] actions = new Runnable[] {
 			new NextNum("nextnum"),
 			new NextNum("nextnum2"),
