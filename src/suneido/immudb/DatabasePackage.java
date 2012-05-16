@@ -14,7 +14,7 @@ import suneido.util.FileUtils;
 /** singleton */
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	public static final DatabasePackage dbpkg = new DatabasePackage();
-	static final String DB_FILENAME = "immu.db";
+	static final String DB_FILENAME = "suneido.db"; // will have .dbd and .dbi
 	static final Record MIN_RECORD = new RecordBuilder().build();
 	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
 
