@@ -89,7 +89,6 @@ public class DbTools {
 		int i = arg.indexOf(SEPARATOR);
 		String filename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
-System.out.println(arg + " = '" + filename + "', '" + tempfile + "'");
 		Database db = dbpkg.create(tempfile);
 		try {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
@@ -147,7 +146,7 @@ System.out.println(arg + " = '" + filename + "', '" + tempfile + "'");
 			System.exit(-1);
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			fatal("Check failed after Compact " + dbFilename);
-		FileUtils.renameWithBackup(tempfile, dbFilename);
+		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
 	static void compact2(DatabasePackage dbpkg, String arg) {
@@ -176,7 +175,7 @@ System.out.println(arg + " = '" + filename + "', '" + tempfile + "'");
 			fatal("Rebuild failed " + dbFilename);
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			fatal("Check failed after Rebuild " + dbFilename);
-		FileUtils.renameWithBackup(tempfile, dbFilename);
+		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
 	/** called in the new jvm */
