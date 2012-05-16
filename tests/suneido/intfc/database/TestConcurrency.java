@@ -7,10 +7,8 @@ package suneido.intfc.database;
 import static suneido.util.Verify.verifyEquals;
 
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.Suneido;
 import suneido.database.query.*;
@@ -20,63 +18,71 @@ import suneido.database.server.Timestamp;
 import suneido.intfc.database.DatabasePackage.Status;
 
 public class TestConcurrency {
-	private static final DatabasePackage dbpkg = Suneido.dbpkg;
-	private static final Database db = dbpkg.create("concur.db");
-	private static final ServerData serverData = new ServerData();
-	private static final int NTHREADS = 4;
-	private static final int QUEUE_SIZE = 100;
-	private static final long DURATION_MS = TimeUnit.SECONDS.toMillis(10);
-
-	public static void main(String[] args) {
-		Runnable[] actions = new Runnable[] {
+	static final DatabasePackage dbpkg = Suneido.dbpkg;
+	static final Database db = dbpkg.create("concur.db");
+	static final ServerData serverData = new ServerData();
+	static final int NTHREADS = 8;
+	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(61);
+	static final Runnable[] actions = new Runnable[] {
 			new NextNum("nextnum"),
 			new NextNum("nextnum2"),
 			new BigTable("bigtable"),
 			new BigTable("bigtable2"),
-		};
-		BoundedExecutor exec = new BoundedExecutor(QUEUE_SIZE, NTHREADS);
-		Random rand = newRandom();
+			};
+	static final long t = System.currentTimeMillis();
+	static final Thread[] threads = new Thread[NTHREADS];
+	static final AtomicInteger nops = new AtomicInteger();
 
-		long t = System.currentTimeMillis();
-		Transaction rt = null;
-		int nreps = 0;
-		while (true) {
-			exec.submitTask(actions[rand.nextInt(actions.length)]);
-			// actions[random(actions.length)].run();
-			if (++nreps % 100 == 0) {
-				long elapsed = System.currentTimeMillis() - t;
-				if (elapsed > DURATION_MS)
-					break;
-				if (nreps % 500 == 0)
-					System.out.print('.');
-				if (nreps % 40000 == 0) {
-					System.out.println();
-					if (rt != null)
-						rt.abort();
-					rt = db.readTransaction();
-				}
-				db.limitOutstandingTransactions();
-			}
-		}
-		System.out.println();
-		if (rt != null)
-			rt.abort();
-		exec.finish();
-		t = System.currentTimeMillis() - t;
 
-		for (Runnable r : actions) {
-			String s = r.toString();
-			if (!s.equals(""))
-				System.out.println(s);
+	public static void main(String[] args) throws InterruptedException {
+		for (int i = 0; i < NTHREADS; ++i) {
+			threads[i] = new Thread(new Client());
+			threads[i].start();
 		}
-		System.out.println(NTHREADS + " threads finished " + nreps + " ops" +
-				" in " + readableDuration(t) +
-				" = " + (nreps / (t / 1000)) + " per second");
+		for (Thread thread : threads)
+			thread.join();
+		long d = System.currentTimeMillis() - t;
+
+		for (Runnable r : actions)
+			System.out.println(r.toString());
+		System.out.println(NTHREADS + " threads finished " + nops.get() + " ops" +
+				" in " + readableDuration(d) +
+				" = " + (nops.get() / (d / 1000)) + " per second");
 
 		db.checkTransEmpty();
 		db.close();
 		verifyEquals(Status.OK, dbpkg.check("concur.db",
 				suneido.intfc.database.DatabasePackage.printObserver));
+	}
+
+	static class Client implements Runnable {
+		@Override
+		public void run() {
+			Random rand = newRandom();
+			Transaction rt = null;
+			int nreps = 0;
+			while (true) {
+				try {
+					actions[rand.nextInt(actions.length)].run();
+				} catch (Throwable e) {
+					System.out.println(e);
+				}
+				if (++nreps % 100 == 0) {
+					nops.addAndGet(100);
+					long elapsed = System.currentTimeMillis() - t;
+					if (elapsed > DURATION_MS)
+						break;
+					if (nreps % 40000 == 0) {
+						if (rt != null)
+							rt.abort();
+						rt = db.readTransaction();
+					}
+					db.limitOutstandingTransactions();
+				}
+			}
+			if (rt != null)
+				rt.abort();
+		}
 	}
 
 	static Random newRandom() {
@@ -189,13 +195,9 @@ public class TestConcurrency {
 						+ " set c = " + random(N));
 				((QueryAction) q).execute();
 				t.ck_complete();
-			} catch (OutOfMemoryError e) {
-				System.out.println(e);
-				System.exit(-1);
 			} catch (RuntimeException e) {
-//System.out.println("\n" + e);
 				nupdatesfailed.incrementAndGet();
-/*BUG*/				t.abort();
+				t.abortIfNotComplete();
 				throwUnexpected(e);
 			}
 		}
@@ -265,47 +267,5 @@ public class TestConcurrency {
 				&& ! e.toString().contains("ended")
 				&& ! e.toString().contains("exist"))
 			throw e;
-	}
-
-	@ThreadSafe
-	public static class BoundedExecutor {
-	    private final ExecutorService exec;
-	    private final Semaphore semaphore;
-
-	    public BoundedExecutor(int bound, int nthreads) {
-	        this.exec = Executors.newFixedThreadPool(nthreads);
-	        this.semaphore = new Semaphore(bound);
-	    }
-
-	    public void submitTask(final Runnable command) {
-	    	try {
-		        semaphore.acquire();
-			} catch (InterruptedException e) {
-				System.out.println(e);
-			}
-	        try {
-	            exec.execute(new Runnable() {
-	                @Override
-					public void run() {
-	                    try {
-	                        command.run();
-	                    } finally {
-	                        semaphore.release();
-	                    }
-	                }
-	            });
-	        } catch (RejectedExecutionException e) {
-	            semaphore.release();
-	        }
-	   }
-
-	   void finish() {
-			exec.shutdown();
-			try {
-				exec.awaitTermination(10, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-				System.out.println("interrupted");
-			}
-	   }
 	}
 }
