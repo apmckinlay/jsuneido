@@ -109,7 +109,8 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		Database dbin = (Database) dbpkg.openReadonly("immu.db");
+		String dbfilename = DatabasePackage.dbpkg.dbFilename();
+		Database dbin = (Database) dbpkg.openReadonly(dbfilename);
 		Database dbout = (Database) dbpkg.create("immu.compact");
 		long t = System.currentTimeMillis();
 		int n = compact(dbin, dbout);

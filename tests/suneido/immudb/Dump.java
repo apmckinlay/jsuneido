@@ -64,7 +64,7 @@ public class Dump {
 
 	public static void main(String[] args) {
 //		Database db = DatabasePackage.dbpkg.testdb();
-		Database db = DatabasePackage.dbpkg.openReadonly("immu.db");
+		Database db = DatabasePackage.dbpkg.openReadonly("suneido.db");
 		dump(db.dstor, db.istor);
 //		data(db.dstor);
 	}

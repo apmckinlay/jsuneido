@@ -290,13 +290,13 @@ class DbRebuild {
 	}
 
 	public static void main(String[] args) {
-		new File("immu.dbi").renameTo(new File("immu.dbi.bak")); // force complete rebuild
-		String result = rebuild("immu.db", "immu.rbld");
+		new File("suneido.dbi").renameTo(new File("suneido.dbi.bak")); // force complete rebuild
+		String result = rebuild("suneido.db", "suneido.rbld");
 		if (result == null)
 			System.out.println("rebuild failed");
 		else
 			System.out.println("rebuilt as of " + result);
-		new File("immu.dbi.bak").renameTo(new File("immu.dbi"));
+		new File("suneido.dbi.bak").renameTo(new File("suneido.dbi"));
 	}
 
 }
