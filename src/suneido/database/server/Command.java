@@ -15,7 +15,6 @@ import java.util.List;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
@@ -638,13 +637,7 @@ public enum Command {
 	}
 
 	private static Record makeRecord(ByteBuffer extra) {
-		if (Suneido.dbpkg.dbFilename().contains("immu")) {
-			ByteBuffer buf = ByteBuffer.allocate(extra.remaining());
-			buf.put(extra);
-			buf.rewind();
-			return dbpkg.record(buf);
-		} else
-			return dbpkg.record(extra);
+		return dbpkg.recordCopy(extra);
 	}
 
 	private static ByteBuffer valueResult(NetworkOutput outputQueue, Object result) {

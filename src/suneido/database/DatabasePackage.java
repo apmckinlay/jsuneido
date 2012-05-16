@@ -50,6 +50,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
+	public Record recordCopy(ByteBuffer buf) {
+		return new Record(buf);
+	}
+
+	@Override
 	public Record record(int recadr, ByteBuffer buf) {
 		return new Record(Mmfile.intToOffset(recadr), buf);
 	}
