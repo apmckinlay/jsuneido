@@ -21,7 +21,15 @@ public interface DatabasePackage {
 	Database testdb();
 
 	RecordBuilder recordBuilder();
+
 	Record record(ByteBuffer buf);
+
+	/**
+	 * used when buf must be copied
+	 * i.e. calling code will reuse buf
+	 */
+	Record recordCopy(ByteBuffer buf);
+
 	Record record(int recadr, ByteBuffer buf);
 
 	/** @return the number of tables dumped */
@@ -63,6 +71,7 @@ public interface DatabasePackage {
 		public void print(String msg) {
 		} };
 
+	/** used by Built() */
 	String name();
 
 	void renameDbWithBackup(String tempfile, String dbFilename);

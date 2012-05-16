@@ -57,6 +57,14 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
+	public Record recordCopy(ByteBuffer inbuf) {
+		ByteBuffer buf = ByteBuffer.allocate(inbuf.remaining());
+		buf.put(inbuf);
+		buf.rewind();
+		return record(buf);
+	}
+
+	@Override
 	public Status check(String dbFilename, Observer ob) {
 		return DbCheck.check(dbFilename, ob);
 	}
