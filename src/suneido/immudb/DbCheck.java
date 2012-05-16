@@ -141,7 +141,7 @@ class DbCheck {
 	}
 
 	public static void main(String[] args) {
-		String dbfilename = "immu.db";
+		String dbfilename = DatabasePackage.dbpkg.dbFilename();
 		System.out.println("Fastcheck " + dbfilename + " " +
 				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
 		DbTools.checkPrintExit(DatabasePackage.dbpkg, dbfilename);
