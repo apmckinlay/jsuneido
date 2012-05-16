@@ -8,6 +8,7 @@ WhenBuilt.jar
 install.bat
 clindex_**
 test.go
+*.bak
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
