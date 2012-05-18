@@ -57,10 +57,11 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	int addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
-if (tblnum > 3) {
-TableInfo ti = getTableInfo(tblnum);
-assert rec.size() <= ti.nextfield;
-}
+		if (tblnum > 3) {
+			// for client-server extend bug
+			TableInfo ti = getTableInfo(tblnum);
+			assert rec.size() <= ti.nextfield;
+		}
 		onlyReads = false;
 		rec.tblnum = tblnum;
 		int adr = indexedData(tblnum).add(rec);
@@ -223,7 +224,7 @@ assert rec.size() <= ti.nextfield;
 	void abortThrow(String conflict) {
 		this.conflict = conflict;
 		abort();
-		throw new Conflict(conflict);
+		throw new SuException(conflict);
 	}
 
 	@Override
@@ -248,6 +249,8 @@ assert rec.size() <= ti.nextfield;
 
 	@Override
 	public void abort() {
+		if (isEnded())
+			return;
 		super.abort();
 		unlock();
 	}

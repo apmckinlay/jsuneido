@@ -104,6 +104,12 @@ public class Extend extends Query1 {
 		return source.recordsize() + flds.size() * columnsize();
 	}
 
+	// the changes below are so that the fields (used for output)
+	// don't include the extended fields
+	// since they should not be output
+	// BUT had to undo these changes because they don't work client-server
+	// since Header.schema and DbmsQueryRemote.parseHeader don't handle it
+
 	@Override
 	public Row get(Dir dir) {
 		if (hdr == null)
@@ -113,10 +119,12 @@ public class Extend extends Query1 {
 			return null;
 		RecordBuilder rb = dbpkg.recordBuilder();
 		for (int i = 0; i < flds.size(); ++i) {
-			Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
+//			Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
+			Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
 			rb.add(exprs.get(i).eval(hdr, row));
 		}
-		return new Row(srcrow, rb.build(), dbpkg.minRecord());
+//		return new Row(srcrow, rb.build(), dbpkg.minRecord());
+		return new Row(srcrow, dbpkg.minRecord(), rb.build());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -124,7 +132,8 @@ public class Extend extends Query1 {
 	public Header header() {
 		if (hdr == null)
 			hdr = new Header(source.header(),
-					new Header(asList(flds, noFields), union(flds, rules)));
+//					new Header(asList(flds, noFields), union(flds, rules)));
+					new Header(asList(noFields, flds), union(flds, rules)));
 		return hdr;
 	}
 

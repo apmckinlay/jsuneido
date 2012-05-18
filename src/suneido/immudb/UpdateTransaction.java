@@ -239,7 +239,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				continue;
 			Record key = key(r, index.colNums);
 			if (tr.contains(key))
-				throw new Conflict("read conflict in " + table.name);
+				throw new Conflict("read in " + table.name);
 		}
 	}
 
@@ -249,7 +249,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	private void checkForWriteConflict(int del) {
 		if (deletes.contains(del))
-			throw new Conflict("delete conflict");
+			throw new Conflict("delete");
 	}
 
 	// store data --------------------------------------------------------------
