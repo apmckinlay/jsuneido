@@ -244,7 +244,7 @@ public class TransactionTest {
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
-		assertThat(t2.complete(), containsString("delete conflict"));
+		assertThat(t2.complete(), containsString("transaction conflict: delete"));
 	}
 
 	// successful read conflicting with delete
@@ -265,7 +265,7 @@ public class TransactionTest {
 		t2.removeRecord(tmp, rec(123, "foo"));
 		t2.ck_complete();
 
-		assertThat(t1.complete(), containsString("read conflict"));
+		assertThat(t1.complete(), containsString("transaction conflict: read"));
 	}
 
 	// unsuccessful read conflicting with add
@@ -282,7 +282,7 @@ public class TransactionTest {
 		t2.addRecord("tmp", rec(123, "foo"));
 		t2.ck_complete();
 
-		assertThat(t1.complete(), containsString("read conflict"));
+		assertThat(t1.complete(), containsString("transaction conflict: read"));
 	}
 
 	@Test

@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import suneido.Suneido;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
@@ -34,12 +35,14 @@ public class Table extends Query {
 	final boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
 	IndexIter iter;
+	private final int nfields;
 
 	public Table(Transaction tran, String tablename) {
 		this.tran = tran;
 		table = tablename;
 		tbl = tran.ck_getTable(table);
 		singleton = tbl.singleton();
+		nfields = tbl.getFields().size();
 	}
 
 	@Override
@@ -244,6 +247,7 @@ public class Table extends Query {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
+		// MAYBE cache
 		List<String> index = singleton || idx == null ? noFields : idx;
 		List<String> fields = tbl.getFields();
 		return new Header(asList(index, fields), tbl.getColumns());
@@ -278,6 +282,8 @@ public class Table extends Query {
 
 	@Override
 	public void output(Record r) {
+		if (r.size() > nfields) // for client-server extend bug
+			r = Suneido.dbpkg.recordBuilder().addAll(r).truncate(nfields).build();
 		tran.addRecord(table, r);
 	}
 

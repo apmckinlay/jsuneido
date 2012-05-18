@@ -256,6 +256,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	private void end() {
+		if (isEnded())
+			return;
 		trans.abort(this);
 		ended = true;
 	}

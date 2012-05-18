@@ -2,14 +2,16 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static suneido.util.Util.union;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
+@SuppressWarnings("unchecked")
 public class HeaderTest {
-	@SuppressWarnings("unchecked")
+
 	@Test
 	public void test() {
 		List<List<String>> flds = new ArrayList<List<String>>();
@@ -38,7 +40,24 @@ public class HeaderTest {
 		assertEquals(flds, hdr.flds);
 	}
 
-	@SuppressWarnings("unchecked")
+	// extend issue - see version control 2012-04-12
+	@Test
+	public void extend() {
+		List<String> cols = asList("a", "b", "c");
+		List<List<String>> flds = asList(asList("a"), cols);
+		Header srchdr = new Header(flds, cols);
+
+		List<String> ecols = asList("e1", "e2");
+		List<String> rules = asList("r1", "r2");
+		Header hdr = new Header(srchdr,
+				new Header(asList(ecols, Query.noFields), union(ecols, rules)));
+		assertEquals(asList("a", "b", "c", "e1", "e2", "r1", "r2"), hdr.columns());
+		assertEquals(asList("a", "b", "c"), hdr.fields());
+		List<String> schema = hdr.schema();
+		assertEquals(asList("a", "b", "c", "R1", "R2"), schema);
+		// BUG: doesn't include e1, e2
+	}
+
 	static Header makeHeader() {
 		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"),
 				asList("x"), asList("x", "y", "z"));
