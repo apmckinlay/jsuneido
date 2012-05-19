@@ -5,7 +5,6 @@
 package suneido.immudb;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
@@ -21,7 +20,6 @@ import com.google.common.base.Objects;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
-	private static final long PERSIST_EVERY_MS = TimeUnit.SECONDS.toMillis(5);
 	final Transactions trans = new Transactions();
 	final Storage dstor;
 	final Storage istor;
@@ -31,7 +29,6 @@ class Database implements suneido.intfc.database.Database {
 	/** only updated when holding commitLock */
 	volatile State state;
 	private State lastPersistState;
-	private volatile long lastPersistTime = 0;
 
 	// create
 
@@ -141,17 +138,20 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public UpdateTransaction updateTransaction() {
-		persistRegularly();
-
 		int num = trans.nextNum(false);
 		return new UpdateTransaction(num, this);
 	}
 
-	synchronized protected void persistRegularly() {
-		// MAYBE do this inside UpdateTransaction commit so already have commit lock
-		// TODO use separate thread so commit can return
-		if (System.currentTimeMillis() - lastPersistTime > PERSIST_EVERY_MS)
-			persist();
+	void persist() {
+		if (state == lastPersistState)
+			return;
+		Persist.persist(this);
+System.out.println("PERSIST");
+	}
+
+	// called by Persist when it's finished
+	void setPersistState() {
+		lastPersistState = state;
 	}
 
 	SchemaTransaction schemaTransaction() {
@@ -256,18 +256,6 @@ class Database implements suneido.intfc.database.Database {
 		istor.close();
 	}
 
-	void persist() {
-		if (state == lastPersistState)
-			return;
-		lastPersistTime = System.currentTimeMillis();
-		Persist.persist(this);
-		//System.out.print("!");
-	}
-
-	void setPersistState() {
-		lastPersistState = state;
-	}
-
 	@Override
 	public long size() {
 		return dstor.sizeFrom(0) + istor.sizeFrom(0);
@@ -301,6 +289,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void force() {
+		persist();
 	}
 
 	@Override

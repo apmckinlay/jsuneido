@@ -7,6 +7,8 @@ package suneido.intfc.database;
 import static suneido.util.Verify.verifyEquals;
 
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,6 +37,16 @@ public class TestConcurrency {
 
 
 	public static void main(String[] args) throws InterruptedException {
+		ScheduledExecutorService scheduler
+				= Executors.newSingleThreadScheduledExecutor();
+		scheduler.scheduleAtFixedRate(
+				new Runnable() {
+					@Override
+					public void run() {
+						db.force();
+					}
+				}, 5, 5, TimeUnit.SECONDS);
+
 		for (int i = 0; i < NTHREADS; ++i) {
 			threads[i] = new Thread(new Client());
 			threads[i].start();
