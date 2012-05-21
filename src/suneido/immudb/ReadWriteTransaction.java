@@ -58,11 +58,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	int addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
-if (tblnum > 3) {
-	// for client-server extend bug
-	TableInfo ti = getTableInfo(tblnum);
-	assert rec.size() <= ti.nextfield;
-}
 		onlyReads = false;
 		rec.tblnum = tblnum;
 		int adr = indexedData(tblnum).add(rec);
