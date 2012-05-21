@@ -9,6 +9,7 @@ import static suneido.util.Verify.verifyEquals;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,6 +19,8 @@ import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
 import suneido.intfc.database.DatabasePackage.Status;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class TestConcurrency {
 	static final DatabasePackage dbpkg = Suneido.dbpkg;
@@ -35,10 +38,11 @@ public class TestConcurrency {
 	static final Thread[] threads = new Thread[NTHREADS];
 	static final AtomicInteger nops = new AtomicInteger();
 
-
 	public static void main(String[] args) throws InterruptedException {
+		ThreadFactory threadFactory = new ThreadFactoryBuilder()
+					.setDaemon(true).build();
 		ScheduledExecutorService scheduler
-				= Executors.newSingleThreadScheduledExecutor();
+				= Executors.newSingleThreadScheduledExecutor(threadFactory);
 		scheduler.scheduleAtFixedRate(
 				new Runnable() {
 					@Override

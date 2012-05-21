@@ -189,7 +189,7 @@ abstract class Record implements suneido.intfc.database.Record {
 		b.position(off);
 		b.limit(off + len);
 		return Pack.unpack(b);
-		//PERF change unpack to take buf,i,n to eliminate duplicate
+		//PERF change unpack to take buf,i,n and not mutate to eliminate duplicate
 	}
 
 	@Override
@@ -206,6 +206,7 @@ abstract class Record implements suneido.intfc.database.Record {
 		b.position(off);
 		b.limit(off + fieldLength(i));
 		return Pack.unpackLong(b);
+		//PERF change unpackLong to take buf,i,n and not mutate to eliminate duplicate
 	}
 
 	@Override
