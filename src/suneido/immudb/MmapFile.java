@@ -21,7 +21,7 @@ import suneido.SuException;
  * When opening, trailing zero bytes are ignored.
  */
 @ThreadSafe
-class MmapFile extends ChunkedStorage {
+class MmapFile extends Storage {
 	private static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	private static final int MB = 1024 * 1024;
@@ -99,7 +99,7 @@ class MmapFile extends ChunkedStorage {
 	}
 
 	@Override
-	public void close() {
+	void close() {
 //		if (mode == FileChannel.MapMode.READ_WRITE)
 //			System.out.println(file + " size " + file_size +
 //					" grew " + (file_size - starting_file_size));
