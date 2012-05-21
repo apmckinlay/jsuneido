@@ -48,25 +48,36 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// add ---------------------------------------------------------------------
 
 	@Override
-	public void addRecord(String table, suneido.intfc.database.Record rec) {
+	public void addRecord(String table, suneido.intfc.database.Record r) {
 		Table tbl = getTable(table);
-		addRecord(tbl.num, (Record) rec);
+		Record rec = truncateRecord(tbl.num, r);
+		addRecord(tbl.num, rec);
 		callTrigger(tbl, null, rec); // must be final step - may throw
 	}
 
 	int addRecord(int tblnum, Record rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
-		if (tblnum > 3) {
-			// for client-server extend bug
-			TableInfo ti = getTableInfo(tblnum);
-			assert rec.size() <= ti.nextfield;
-		}
+if (tblnum > 3) {
+	// for client-server extend bug
+	TableInfo ti = getTableInfo(tblnum);
+	assert rec.size() <= ti.nextfield;
+}
 		onlyReads = false;
 		rec.tblnum = tblnum;
 		int adr = indexedData(tblnum).add(rec);
 		updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
+	}
+
+	/** for client-server extend bug */
+	private Record truncateRecord(int tblnum, suneido.intfc.database.Record r) {
+		if (tblnum > 3) {
+			TableInfo ti = getTableInfo(tblnum);
+			if (r.size() > ti.nextfield)
+				return new RecordBuilder().addAll(r).truncate(ti.nextfield).build();
+		}
+		return (Record) r;
 	}
 
 	// update ------------------------------------------------------------------
@@ -83,9 +94,11 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	@Override
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
-			suneido.intfc.database.Record to) {
-		updateRecord2(tblnum, (Record) from, (Record) to);
-		callTrigger(ck_getTable(tblnum), from, to); // must be final step - may throw
+			suneido.intfc.database.Record r) {
+		Record to = truncateRecord(tblnum, r);
+		updateRecord2(tblnum, (Record) from, to);
+		// must be final step - may throw
+		callTrigger(ck_getTable(tblnum), from, to);
 		return 1; // don't know record address till commit
 	}
 

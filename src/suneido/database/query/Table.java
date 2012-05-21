@@ -282,8 +282,6 @@ public class Table extends Query {
 
 	@Override
 	public void output(Record r) {
-		if (r.size() > nfields) // for client-server extend bug
-			r = Suneido.dbpkg.recordBuilder().addAll(r).truncate(nfields).build();
 		tran.addRecord(table, r);
 	}
 
