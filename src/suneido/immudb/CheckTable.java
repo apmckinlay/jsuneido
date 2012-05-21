@@ -10,6 +10,10 @@ import java.util.concurrent.Callable;
 
 import suneido.intfc.database.IndexIter;
 
+/**
+ * Check records and indexes with dbinfo for a single table.
+ * Run in parallel by DbCheck.
+ */
 class CheckTable implements Callable<String> {
 	final Database db;
 	final String tableName;
@@ -37,7 +41,6 @@ class CheckTable implements Callable<String> {
 		boolean first_index = true;
 		Table table = t.getTable(tablename);
 		TableInfo ti = t.getTableInfo(table.num);
-		int maxfields = 0;
 		for (Index index : table.indexes) {
 			int nrecords = 0;
 			long totalsize = 0;
@@ -66,27 +69,28 @@ class CheckTable implements Callable<String> {
 				++nrecords;
 				totalsize += rec.bufSize();
 				if (rec.size() > ti.nextfield) {
-					details += tablename + ": nextfield mismatch: maxfields "
-							+ maxfields + " > nextfield " + ti.nextfield + "\n";
+					details += tablename + ": nextfield mismatch: rec size "
+							+ rec.size() + " should not be > nextfield " + ti.nextfield + "\n";
 					return false;
 				}
 			}
 			if (nrecords != ti.nrows()) {
 				details += tablename + ": record count mismatch: " +
 						index + " " + nrecords +
-						" != tables " + ti.nrows() + "\n";
+						" should = tables " + ti.nrows() + "\n";
 				return false;
 			}
 			if (totalsize != ti.totalsize()) {
 				details += tablename + ": data size mismatch: " +
 						index + " " + totalsize +
-						" != tables " + ti.totalsize() + "\n";
+						" should = tables " + ti.totalsize() + "\n";
 				return false;
 			}
 		}
 		if (ti.nextfield <= table.maxColumnNum()) {
-			details += tablename + ": nextfield mismatch: nextfield "
-					+ ti.nextfield + " <= max column# " + table.maxColumnNum() + "\n";
+			details += tablename + ": nextfield mismatch:" +
+					" nextfield " + ti.nextfield +
+					" should not be <= max column# " + table.maxColumnNum() + "\n";
 			return false;
 		}
 		return true;

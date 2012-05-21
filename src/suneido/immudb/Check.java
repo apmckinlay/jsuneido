@@ -12,6 +12,11 @@ import suneido.immudb.StorageIter.Status;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 
+/**
+ * Check database checksums.
+ * Used by DbCheck and DbRebuild.
+ * Database.open uses fastcheck.
+ */
 class Check {
 	private static final int FAST_NPERSISTS = 4;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;

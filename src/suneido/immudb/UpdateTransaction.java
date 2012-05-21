@@ -42,7 +42,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	protected final TreeMap<Index,TranIndex> updatedIndexes = Maps.newTreeMap();
 	private final TIntArrayList actions = new TIntArrayList();
 
-
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
 		asof = db.trans.clock();
