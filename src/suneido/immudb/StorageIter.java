@@ -63,12 +63,12 @@ class StorageIter {
 		do
 			seek(stor.advance(adr, size));
 		while (date == 0 && ! eof());
-		okSize = ChunkedStorage.adrToOffset(adr);
+		okSize = Storage.adrToOffset(adr);
 	}
 
 	void advance2() {
 		seek(stor.advance(adr, size));
-		okSize = ChunkedStorage.adrToOffset(adr);
+		okSize = Storage.adrToOffset(adr);
 	}
 
 	int adr() {

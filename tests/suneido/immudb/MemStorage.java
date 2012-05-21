@@ -6,7 +6,7 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 
-class MemStorage extends ChunkedStorage {
+class MemStorage extends Storage {
 
 	MemStorage() {
 		super(32, 32);
@@ -19,10 +19,6 @@ class MemStorage extends ChunkedStorage {
 	@Override
 	protected ByteBuffer get(int chunk) {
 		return ByteBuffer.allocate(CHUNK_SIZE);
-	}
-
-	@Override
-	public void close() {
 	}
 
 }
