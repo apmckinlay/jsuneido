@@ -37,8 +37,8 @@ class BufRecord extends Record {
 	}
 
 	BufRecord(Storage stor, int adr) {
-		this(adr, stor.buffer(adr), TBLNUM_SIZE);
-		tblnum = buf.getShort(0);
+		this(adr, stor.bufferBase(adr), stor.bufferPos(adr) + TBLNUM_SIZE);
+		tblnum = buf.getShort(bufpos - TBLNUM_SIZE);
 	}
 
 	BufRecord(int address, ByteBuffer buf, int bufpos) {
@@ -78,7 +78,6 @@ class BufRecord extends Record {
 		return fieldOffset(i - 1) - fieldOffset(i);
 	}
 
-	// TODO use getShort and getInt
 	@Override
 	public int fieldOffset(int i) {
 		// to match cSuneido use little endian (least significant first)

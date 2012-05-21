@@ -225,7 +225,8 @@ class Btree implements TranIndex {
 		if (node.isTree())
 			--splitKeySize;
 		/*
-		 * if unique, set splitKey data address to MAXADR
+		 * if splitting between keys that differ ignoring address
+		 * then set splitKey data address to MAXADR
 		 * so that if only data address changes, key will stay in same node
 		 * this simplifies add duplicate check and allows optimized update
 		 */

@@ -146,7 +146,6 @@ class Database implements suneido.intfc.database.Database {
 		if (state == lastPersistState)
 			return;
 		Persist.persist(this);
-System.out.println("PERSIST");
 	}
 
 	// called by Persist when it's finished
@@ -289,6 +288,7 @@ System.out.println("PERSIST");
 
 	@Override
 	public void force() {
+System.out.println("PERSIST");
 		persist();
 	}
 

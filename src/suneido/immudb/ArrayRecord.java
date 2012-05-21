@@ -16,7 +16,7 @@ import suneido.language.Pack;
 /**
  * The result of RecordBuilder.
  * Certain operations will convert on-demand to a {@link BufRecord}
- * Almost immutable, bufrec is just a cache
+ * Mostly immutable, except for bufrec (cache) and setLast
  */
 class ArrayRecord extends Record {
 	private final ArrayList<ByteBuffer> bufs;

@@ -71,13 +71,19 @@ abstract class ChunkedStorage implements Storage {
 		return offsetToAdr(offset);
 	}
 
-	/**
-	 * @returns A unique instance of a ByteBuffer
-	 * extending from the offset to the end of the chunk.
-	 */
 	@Override
 	public ByteBuffer buffer(int adr) {
 		return buf(posToOffset(adr));
+	}
+
+	@Override
+	public ByteBuffer bufferBase(int adr) {
+		return map(posToOffset(adr));
+	}
+
+	@Override
+	public int bufferPos(int adr) {
+		return (int) (posToOffset(adr) % CHUNK_SIZE);
 	}
 
 	/**
@@ -103,14 +109,12 @@ abstract class ChunkedStorage implements Storage {
 	}
 
 	private ByteBuffer buf(long offset) {
-		ByteBuffer buf = map(offset).duplicate();
+		ByteBuffer buf = map(offset);
+		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
 		long startOfLastChunk = (file_size / CHUNK_SIZE) * CHUNK_SIZE;
 		if (offset >= startOfLastChunk)
 			buf.limit((int) (file_size - startOfLastChunk));
-		// remove in production (10% faster for load)
-		//if (offset < protect)
-		//	return buf.slice().asReadOnlyBuffer();
 		return buf.slice();
 	}
 

@@ -11,8 +11,23 @@ public interface Storage {
 
 	int alloc(int byteBufSize);
 
-	/** Negative adr is relative to end */
+	/**
+	 * @param adr Negative value is relative to end.
+	 * @returns A unique instance of a ByteBuffer
+	 * i.e. not shared so it may be modified.
+	 * extending from the offset to the end of the chunk.
+	 */
 	ByteBuffer buffer(int adr);
+
+	/**
+	 * Faster than buffer because it does not duplicate and slice.
+	 * @return The buffer containing the address.
+	 * NOTE: This ByteBuffer is shared and must not be modified.
+	 */
+	ByteBuffer bufferBase(int adr);
+
+	/** @return The position of adr in bufferBase */
+	int bufferPos(int adr);
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr);
