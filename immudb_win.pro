@@ -15,22 +15,24 @@
 }
 
 -keep class org.objectweb.asm.Label
+
 -keep class com.google.common.base.Splitter
 -keep class com.google.common.collect.BiMap
 -keep class com.google.common.collect.ImmutableList
 -dontwarn com.google.common.collect.MinMaxPriorityQueue
+
 -keep class suneido.database.query.Row$Which
 -keep class suneido.database.query.Join$Type
 -keep class suneido.language.ParseFunction$Context
 -keep class suneido.language.AstCompile$VarArgs
 -keep class suneido.language.AstCompile$ExprOption
 -keep class suneido.language.AstCompile$ExprType
-
 -keep class suneido.immudb.Database
 -keep class suneido.immudb.ReadTransaction
 -keep class suneido.immudb.Record
 -keep class suneido.immudb.Table
 -keep class suneido.immudb.DbHashTrie
+
 -keep class gnu.trove.list.array.TIntArrayList
 
 -dontnote com.google.common.**
