@@ -7,7 +7,7 @@ package suneido.immudb;
 import suneido.language.Ops;
 
 /** for debugging - prints info about file contents */
-public class Dump {
+class Dump {
 
 	static void dump(Storage dstor, Storage istor) {
 		System.out.println("index -----------------------------");
