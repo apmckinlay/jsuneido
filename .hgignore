@@ -9,6 +9,7 @@ install.bat
 clindex_**
 test.go
 *.bak
+iminstall.bat
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
