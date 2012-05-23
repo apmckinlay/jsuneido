@@ -176,7 +176,7 @@ public class DbmsRemote extends Dbms {
 	@Override
 	public long size() {
 		writeLine("SIZE");
-		return readLong('S');
+		return readLong('S') << 2;
 	}
 
 	@Override
