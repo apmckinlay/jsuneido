@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import suneido.Suneido;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
@@ -35,14 +34,12 @@ public class Table extends Query {
 	final boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
 	IndexIter iter;
-	private final int nfields;
 
 	public Table(Transaction tran, String tablename) {
 		this.tran = tran;
 		table = tablename;
 		tbl = tran.ck_getTable(table);
 		singleton = tbl.singleton();
-		nfields = tbl.getFields().size();
 	}
 
 	@Override
