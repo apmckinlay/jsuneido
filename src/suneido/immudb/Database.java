@@ -5,7 +5,6 @@
 package suneido.immudb;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -15,6 +14,7 @@ import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
+import suneido.util.NreReadWriteLock;
 
 import com.google.common.base.Objects;
 
@@ -23,7 +23,7 @@ class Database implements suneido.intfc.database.Database {
 	final Transactions trans = new Transactions();
 	final Storage dstor;
 	final Storage istor;
-	final ReentrantReadWriteLock exclusiveLock = new ReentrantReadWriteLock();
+	final NreReadWriteLock exclusiveLock = new NreReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
 	/** only updated when holding commitLock */
@@ -305,11 +305,6 @@ System.out.println("PERSIST");
 	void callTrigger(
 			ReadTransaction t, Table table, Record oldrec, Record newrec) {
 		triggers.call(t, table, oldrec, newrec);
-	}
-
-	void checkLock() {
-		if (exclusiveLock.isWriteLocked())
-			throw new RuntimeException("should not be locked");
 	}
 
 	@Override

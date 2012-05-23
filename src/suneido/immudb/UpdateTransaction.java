@@ -50,14 +50,14 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	protected void lock(Database db) {
 		assert ! locked;
-		db.exclusiveLock.readLock().lock();
+		db.exclusiveLock.readLock();
 		locked = true;
 	}
 
 	@Override
 	protected void unlock() {
 		assert locked;
-		db.exclusiveLock.readLock().unlock();
+		db.exclusiveLock.readUnlock();
 		locked = false;
 	}
 
