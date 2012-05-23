@@ -15,8 +15,7 @@ class SchemaTransaction extends UpdateTransaction {
 
 	@Override
 	protected void lock(Database db) {
-		assert ! db.exclusiveLock.isWriteLocked() : "already exclusively locked";
-		if (! db.exclusiveLock.writeLock().tryLock())
+		if (! db.exclusiveLock.tryWriteLock())
 			throw new SuException("can't make schema changes " +
 					"when there are outstanding update transactions");
 		locked = true;
@@ -24,7 +23,7 @@ class SchemaTransaction extends UpdateTransaction {
 
 	@Override
 	protected void unlock() {
-		db.exclusiveLock.writeLock().unlock();
+		db.exclusiveLock.writeUnlock();
 		locked = false;
 	}
 
