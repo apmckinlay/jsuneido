@@ -32,6 +32,7 @@
 -keep class suneido.immudb.Record
 -keep class suneido.immudb.Table
 -keep class suneido.immudb.DbHashTrie
+
 -keep class gnu.trove.list.array.TIntArrayList
 
 -dontnote com.google.common.**
