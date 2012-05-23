@@ -1,7 +1,7 @@
 -injars jsuneido.jar
 -injars lib/asm-all-3.3.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
--injars lib/guava-r09.jar (!META-INF/MANIFEST.MF)
+-injars lib/guava-11.0.1.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.0.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-3.1.0.jar
 -libraryjars /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar
