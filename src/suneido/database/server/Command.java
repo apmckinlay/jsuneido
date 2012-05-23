@@ -397,7 +397,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("S" + TheDbms.dbms().size() + "\r\n");
+			return stringToBuffer("S" + (TheDbms.dbms().size() >> 2) + "\r\n");
 		}
 	},
 	TEMPDEST {
