@@ -183,7 +183,7 @@ public class SuContainer extends SuValue
 
 	public boolean containsKey(Object key) {
 		int i = index(key);
-		return 0 <= i && i < vec.size() ? true : map.containsKey(key);
+		return (0 <= i && i < vec.size()) || map.containsKey(key);
 	}
 
 	public int size() {
