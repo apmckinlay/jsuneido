@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static com.google.common.base.Preconditions.checkElementIndex;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -133,7 +131,7 @@ abstract class Storage {
 
 	/** @return the chunk containing the specified offset */
 	protected ByteBuffer map(long offset) {
-		checkElementIndex((int) offset, (int) file_size);
+		assert 0 <= offset && offset < file_size;
 		int chunk = (int) (offset / CHUNK_SIZE);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);
