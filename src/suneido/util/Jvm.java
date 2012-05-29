@@ -16,8 +16,11 @@ public class Jvm {
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();
 		//System.out.println(javaBin + " -jar " + jarPath + " " + cmd);
+		// use same max heap on child process
+		long maxMemory = Runtime.getRuntime().maxMemory();
 		ProcessBuilder builder = new ProcessBuilder(javaBin,
-				"-ea", "-jar", jarPath, cmd);
+				"-ea", "-server", "-Xmx" + maxMemory, "-XX:+UseCompressedOops",
+				"-jar", jarPath, cmd);
 		try {
 			builder.redirectErrorStream(true); // merge stderr into stdout
 			Process process = builder.start();
