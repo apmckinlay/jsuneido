@@ -20,35 +20,17 @@ import com.google.common.base.Objects;
 class BufRecord extends Record {
 	static class Mode { static final byte BYTE = 'c', SHORT = 's', INT = 'l'; }
 	static class Offset { static final int MODE = 0, NFIELDS = 2, BODY = 4; }
-	private final ByteBuffer buf;
+	protected final ByteBuffer buf;
 	/** non-zero when the record is a key within a BtreeNode */
-	private final int bufpos;
+	protected final int bufpos;
 
 	BufRecord(ByteBuffer buf) {
-		this(0, buf, 0);
+		this(buf, 0);
 	}
 
 	BufRecord(ByteBuffer buf, int bufpos) {
-		this(0, buf, bufpos);
-	}
-
-	BufRecord(int address, ByteBuffer buf) {
-		this(address, buf, 0);
-	}
-
-	BufRecord(Storage stor, int adr) {
-		this(adr, stor.bufferBase(adr), stor.bufferPos(adr) + TBLNUM_SIZE);
-		tblnum = buf.getShort(bufpos - TBLNUM_SIZE);
-	}
-
-	BufRecord(int address, ByteBuffer buf, int bufpos) {
-		super(address);
 		this.buf = buf;
 		this.bufpos = bufpos;
-	}
-
-	protected BufRecord(BufRecord rec) {
-		this(rec.buf, rec.bufpos);
 	}
 
 	void check() {

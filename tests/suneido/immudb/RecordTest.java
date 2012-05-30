@@ -47,7 +47,7 @@ public class RecordTest {
 		Record r = record("one", 9, 0xffff0000);
 		assertEquals("one", r.get(0));
 		assertEquals(9, r.get(1));
-		assertEquals(0xffff0000L, r.get(2));
+		assertEquals(0xffff0000, r.get(2));
 	}
 
 	@Test
@@ -66,9 +66,7 @@ public class RecordTest {
 	@Test
 	public void prefixSize() {
 		Record rec = record("hi", "world");
-		assertThat(rec.prefixSize(0), is(0));
-		assertThat(rec.prefixSize(1), is(3));
-		assertThat(rec.prefixSize(2), is(9));
+		assertThat(rec.dataSize(), is(9));
 	}
 
 	@Test
@@ -90,8 +88,8 @@ public class RecordTest {
 		for (Object d : data)
 			if (d instanceof String)
 				rb.add(d);
-			else if (d instanceof Integer)
-				rb.adduint((Integer) d);
+			else // if (d instanceof Integer)
+				rb.add((int) (Integer) d);
 		return rb.build();
 	}
 

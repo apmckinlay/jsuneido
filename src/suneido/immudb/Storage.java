@@ -82,6 +82,7 @@ abstract class Storage {
 	 * extending from the offset to the end of the chunk.
 	 */
 	ByteBuffer buffer(int adr) {
+		assert adr != 0 : "storage address should never be 0";
 		return buf(posToOffset(adr));
 	}
 

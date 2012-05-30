@@ -16,7 +16,8 @@ public class ViewsTest {
 	private static final String NAME = "myview";
 	private static final Record KEY = new RecordBuilder().add(NAME).build();
 	private static final String DEFINITION = "tables join columns";
-	private static final Record VIEW_REC = new RecordBuilder().add(NAME).add(DEFINITION).build();
+	private static final DataRecord VIEW_REC =
+			new RecordBuilder().add(NAME).add(DEFINITION).build();
 
 	//TODO
 

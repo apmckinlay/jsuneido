@@ -27,13 +27,13 @@ class Column implements Comparable<Column> {
 		name = record.getString(COLUMN);
 	}
 
-	Record toRecord() {
+	DataRecord toRecord() {
 		return toRecord(tblnum, field, name);
 	}
 
-	static Record toRecord(int tblnum, int field, String column) {
-		Record r = new RecordBuilder().add(tblnum).add(field).add(column).build();
-		r.tblnum = TN.COLUMNS;
+	static DataRecord toRecord(int tblnum, int field, String column) {
+		DataRecord r = new RecordBuilder().add(tblnum).add(field).add(column).build();
+		r.tblnum(TN.COLUMNS);
 		return r;
 	}
 

@@ -63,9 +63,10 @@ class Persist {
 	}
 
 	/** used by BulkTransaction */
-	void storeBtrees(DbHashTrie dbinfo) {
+	DbHashTrie storeBtrees(DbHashTrie dbinfo) {
 		this.dbinfo = dbinfo;
 		storeBtrees();
+		return this.dbinfo;
 	}
 
 	/** stores btrees and frees up memory */

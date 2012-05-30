@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import static com.google.common.base.Preconditions.checkState;
 import static suneido.SuException.unreachable;
 
 import java.nio.ByteBuffer;
@@ -14,9 +13,6 @@ import java.util.Iterator;
 import suneido.language.Ops;
 import suneido.language.Pack;
 
-import com.google.common.primitives.Shorts;
-import com.google.common.primitives.UnsignedInts;
-
 /**
  * Abstract base class with common code for BufRecord and ArrayRecord.
  * Records stored in the database are prefixed with their table number.
@@ -24,22 +20,10 @@ import com.google.common.primitives.UnsignedInts;
  * Mostly immutable. Constructed using RecordBuilder.
  */
 abstract class Record implements suneido.intfc.database.Record {
-	protected static final int TBLNUM_SIZE = Shorts.BYTES;
-	static final Record EMPTY = new RecordBuilder().build();
+	static final Record EMPTY = new RecordBuilder().bufRec();
 	static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
-	/** used for stored data records */
-	int address;
-	/** used for stored data records
-	 *  needed so you can update a record via just it's address */
-	int tblnum;
 
 	protected Record() {
-		this(0);
-	}
-
-	protected Record(int address) {
-		this.address = address;
-		tblnum = 0;
 	}
 
 	static BufRecord from(ByteBuffer buf) {
@@ -47,19 +31,19 @@ abstract class Record implements suneido.intfc.database.Record {
 	}
 
 	static BufRecord from(int address, ByteBuffer buf) {
-		return new BufRecord(address, buf);
+		return new DataRecord(address, buf, 0);
 	}
 
 	static BufRecord from(ByteBuffer buf, int bufpos) {
-		return new BufRecord(0, buf, bufpos);
+		return new BufRecord(buf, bufpos);
 	}
 
 	static BufRecord from(int address, ByteBuffer buf, int bufpos) {
-		return new BufRecord(address, buf, bufpos);
+		return new DataRecord(address, buf, bufpos);
 	}
 
 	static BufRecord from(Storage stor, int adr) {
-		return new BufRecord(stor, adr);
+		return new DataRecord(stor, adr);
 	}
 
 	abstract ByteBuffer fieldBuffer(int i);
@@ -72,20 +56,6 @@ abstract class Record implements suneido.intfc.database.Record {
 	@Override
 	public int bufSize() {
 		return packSize();
-	}
-
-	int store(Storage stor) {
-		checkState(1 <= tblnum && tblnum < Short.MAX_VALUE,
-				"invalid tblnum %s", tblnum);
-		int adr = stor.alloc(storSize());
-		ByteBuffer buf = stor.buffer(adr);
-		buf.putShort((short) tblnum);
-		pack(buf);
-		return adr;
-	}
-
-	int storSize() {
-		return TBLNUM_SIZE + bufSize();
 	}
 
 	@Override
@@ -118,40 +88,6 @@ abstract class Record implements suneido.intfc.database.Record {
 				return cmp;
 		}
 		return len1 - len2;
-	}
-
-	boolean startsWith(Record rec) {
-		return prefixCompareTo(rec) == 0;
-	}
-
-	boolean prefixEquals(Record rec, int nfields) {
-		if (rec.size() < nfields)
-			return false;
-		for (int i = 0; i < nfields; ++i)
-			if (0 != compare1(this, rec, i))
-				return false;
-		return true;
-	}
-
-	/** @return true if this > rec
-	 * comparing only as many fields as contained in rec
-	 */
-	boolean prefixGt(Record rec) {
-		return prefixCompareTo(rec) > 0;
-	}
-
-	/** compares only as many fields as contained in that
-	 *  ignores any additional fields on "this" */
-	int prefixCompareTo(Record that) {
-		int n = that.size();
-		for (int i = 0; i < n; ++i) {
-			if (i >= this.size())
-				return -1;
-			int cmp = compare1(this, that, i);
-			if (cmp != 0)
-				return cmp;
-		}
-		return 0;
 	}
 
 	private static int compare1(Record x, Record y, int i) {
@@ -189,7 +125,7 @@ abstract class Record implements suneido.intfc.database.Record {
 		b.position(off);
 		b.limit(off + len);
 		return Pack.unpack(b);
-		//PERF change unpack to take buf,i,n and not mutate to eliminate duplicate
+		//PERF change unpack to take buf,i,n and not mutate to eliminate duplicate()
 	}
 
 	@Override
@@ -216,30 +152,23 @@ abstract class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public String toString() {
-		if (size() == 0)
-			return "[]";
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < size(); ++i) {
+			sb.append(i == 0 ? "" : ",");
 			if (getRaw(i).equals(MAX_FIELD))
 				sb.append("MAX");
 			else
 				append(sb, i);
-			sb.append(",");
 		}
-		sb.deleteCharAt(sb.length() - 1);
 		sb.append("]");
-		if (address != 0)
-			sb.append("@").append(UnsignedInts.toString(address));
 		return sb.toString();
 	}
 
-	protected void append(StringBuilder sb, int i) {
+	private void append(StringBuilder sb, int i) {
 		Object x = get(i);
 		if (x instanceof String)
 			sb.append("'").append(x).append("'");
-		else if (x instanceof Number && ((Number) x).intValue() == IntRefs.MAXADR)
-			sb.append("MAXADR");
 		else if (x instanceof Date)
 			sb.append(Ops.display(x));
 		else
@@ -300,32 +229,19 @@ abstract class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public Object getRef() {
-		return (address != 0) ? address : getBuffer();
+		return getBuffer();
 	}
 
 	@Override
 	public int address() {
-		return address;
+		return 0;
 	}
 
-	Record minimize() {
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < size() - 1; ++i)
-			rb.add("");
-		rb.add(getRaw(size() - 1));
-		return rb.build();
-	}
-
-	int prefixSize(int i) {
-		assert 0 <= i && i <= size();
-		int size = 0;
-		for (--i; i >= 0; --i)
-			size += fieldLength(i);
-		return size;
-	}
-
-	void freeze() {
-
+	int dataSize() {
+		int dataSize = 0;
+		for (int i = 0; i < size(); ++i)
+			dataSize += fieldLength(i);
+		return dataSize;
 	}
 
 }

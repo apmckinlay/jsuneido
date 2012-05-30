@@ -34,20 +34,20 @@ class Dump {
 			System.out.println("type " + c);
 		}
 		@Override
-		void remove(Record r) {
-			System.out.println("remove " + r.tblnum + " - " + r);
+		void remove(DataRecord r) {
+			System.out.println("remove " + r.tblnum() + " - " + r);
 		}
 		@Override
-		void add(Record r) {
-			System.out.println("add " + r.tblnum + " + " + r);
+		void add(DataRecord r) {
+			System.out.println("add " + r.tblnum() + " + " + r);
 		}
 		@Override
 		void after() {
 			System.out.println("--------------------------");
 		}
 		@Override
-		void update(Record from, Record to) {
-			System.out.println("update " + from.tblnum + " " + from);
+		void update(DataRecord from, DataRecord to) {
+			System.out.println("update " + from.tblnum() + " " + from);
 			System.out.println("    to " + to);
 		}
 	}

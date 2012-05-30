@@ -99,7 +99,8 @@ class IndexedData {
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				// can't undo like add, may have cascaded
-				t.abortThrow("aborted: index remove failed (possible corruption?)");
+				t.abortThrow("aborted: index remove failed (possible corruption?)" +
+						" " + index.columns + " = " + index.searchKey(rec));
 		trackRemove(adr, REMOVED);
 		return adr;
 	}
@@ -181,24 +182,24 @@ class IndexedData {
 			this.columns = columns;
 		}
 
-		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
-			Record fromKey = key(from, fields, fromAdr);
-			Record toKey = key(to, fields, toAdr);
-			boolean unique = (mode == Mode.KEY ||
-					(mode == Mode.UNIQUE && ! isEmptyKey(toKey)));
-			return btree.update(fromKey, toKey, unique);
-		}
-
 		boolean add(Record rec, int adr) {
-			Record key = key(rec, fields, adr);
+			BtreeKey key = key(rec, fields, adr);
 			boolean unique = (mode == Mode.KEY ||
-					(mode == Mode.UNIQUE && ! isEmptyKey(key)));
+					(mode == Mode.UNIQUE && ! key.isEmptyKey()));
 			return btree.add(key, unique);
 		}
 
 		boolean remove(Record rec, int adr) {
-			Record key = key(rec, fields, adr);
+			BtreeKey key = key(rec, fields, adr);
 			return btree.remove(key);
+		}
+
+		Btree.Update update(Record from, int fromAdr, Record to, int toAdr) {
+			BtreeKey fromKey = key(from, fields, fromAdr);
+			BtreeKey toKey = key(to, fields, toAdr);
+			boolean unique = (mode == Mode.KEY ||
+					(mode == Mode.UNIQUE && ! toKey.isEmptyKey()));
+			return btree.update(fromKey, toKey, unique);
 		}
 
 		int getKeyAdr(Record rec) {
@@ -206,7 +207,7 @@ class IndexedData {
 		}
 
 		Record searchKey(Record rec) {
-			return new RecordBuilder().addFields(rec, fields).build();
+			return new RecordBuilder().addFields(rec, fields).arrayRec();
 		}
 
 		void fkeyHandleAdd(Record rec) {
@@ -299,25 +300,17 @@ class IndexedData {
 				t.updateAll(fk.tblnum, fk.colNums, oldkey, newkey);
 		}
 
-		private static boolean isEmptyKey(Record key) {
-			for (int i = 0; i < key.size(); ++i)
-				if (key.fieldLength(i) != 0)
-					return false;
-			return true;
-		}
 	}
 
-	static Record key(Record rec, int[] fields, int adr) {
-		return new RecordBuilder().addFields(rec, fields).adduint(adr).build().squeeze();
-	}
-
-	/** ignores final address field */
 	static boolean isEmptyKey(Record key) {
-		assert key.size() > 1;
-		for (int i = 0; i < key.size() - 1; ++i)
+		for (int i = 0; i < key.size(); ++i)
 			if (key.fieldLength(i) != 0)
 				return false;
 		return true;
+	}
+
+	static BtreeKey key(Record rec, int[] fields, int adr) {
+		return new RecordBuilder().addFields(rec, fields).btreeKey(adr);
 	}
 
 }

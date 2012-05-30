@@ -133,14 +133,14 @@ class DbRebuild {
 		}
 
 		@Override
-		void add(Record r) {
+		void add(DataRecord r) {
 			if (skip)
 				return;
-			r.address = 0;
+			r.address(0);
 			if (type == 'u') {
-				ut.addRecord(r.tblnum, r);
+				ut.addRecord(r.tblnum(), r);
 			} else if (type == 's') {
-				switch (r.tblnum) {
+				switch (r.tblnum()) {
 				case TN.TABLES:
 					String tablename = r.getString(1);
 					tb = db.createTable(tablename);
@@ -165,13 +165,13 @@ class DbRebuild {
 					db.addView(r.getString(0), r.getString(1));
 					break;
 				default:
-					assert false : "invalid schema table number " + r.tblnum;
+					assert false : "invalid schema table number " + r.tblnum();
 				}
 			} else if (type == 'b') {
 				if (bulkTblnum == 0)
-					bulkTblnum = r.tblnum;
-				assert r.tblnum == bulkTblnum;
-				last = bt.loadRecord(r.tblnum, r);
+					bulkTblnum = r.tblnum();
+				assert r.tblnum() == bulkTblnum;
+				last = bt.loadRecord(r.tblnum(), r);
 				if (first == 0)
 					first = last;
 			} else
@@ -183,13 +183,13 @@ class DbRebuild {
 		}
 
 		@Override
-		void remove(Record r) {
-			if (r.address >= copiedDataSize)
-				r.address = 0; // may have changed
+		void remove(DataRecord r) {
+			if (r.address() >= copiedDataSize)
+				r.address(0); // may have changed
 			if (type == 'u') {
-				ut.removeRecord(r.tblnum, r);
+				ut.removeRecord(r.tblnum(), r);
 			} else if (type == 's') {
-				switch (r.tblnum) {
+				switch (r.tblnum()) {
 				case TN.TABLES:
 					String tablename = r.getString(1);
 					db.dropTable(tablename);
@@ -214,27 +214,27 @@ class DbRebuild {
 					db.dropTable(r.getString(0));
 					break;
 				default:
-					assert false : "invalid schema table number " + r.tblnum;
+					assert false : "invalid schema table number " + r.tblnum();
 				}
 			} else
 				assert false : "invalid type " + type;
 		}
 
 		@Override
-		void update(Record from, Record to) {
-			if (from.address >= copiedDataSize)
-				from.address = 0; // may have changed
-			to.address = 0;
-			assert from.tblnum == to.tblnum : "from " + from.tblnum + " to " + to.tblnum;
+		void update(DataRecord from, DataRecord to) {
+			if (from.address() >= copiedDataSize)
+				from.address(0); // may have changed
+			to.address(0);
+			assert from.tblnum() == to.tblnum() : "from " + from.tblnum() + " to " + to.tblnum();
 			if (type == 'u') {
-				assert from.tblnum == to.tblnum;
-				ut.updateRecord(from.tblnum, from, to);
+				assert from.tblnum() == to.tblnum();
+				ut.updateRecord(from.tblnum(), from, to);
 			} else if (type == 's') {
-				if (from.tblnum == TN.TABLES) {
+				if (from.tblnum() == TN.TABLES) {
 					String before = from.getString(1);
 					String after = to.getString(1);
 					db.renameTable(before, after);
-				} else if (from.tblnum == TN.COLUMNS) {
+				} else if (from.tblnum() == TN.COLUMNS) {
 					String before = from.getString(2);
 					String after = to.getString(2);
 					int tblnum = from.getInt(0);

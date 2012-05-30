@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.BtreeNode.adr;
 import static suneido.immudb.DatabasePackage.MAX_RECORD;
 import static suneido.immudb.DatabasePackage.MIN_RECORD;
 
@@ -55,7 +54,7 @@ class Btree implements TranIndex {
 	/** Open an existing index */
 	Btree(Tran tran, BtreeInfo info) {
 		this.tran = tran;
-		this.rootNode = info.rootNode ;
+		this.rootNode = info.rootNode;
 		this.treeLevels = info.treeLevels;
 		this.nnodes = info.nnodes;
 		this.totalSize = info.totalSize;
@@ -67,19 +66,24 @@ class Btree implements TranIndex {
 		return treeLevels == 0 && rootNode.isEmpty();
 	}
 
+
+
 	/**
-	 * @param key A key without the final record address.
 	 * @return The record address or 0 if the key wasn't found.
 	 * If keys are not unique without the record address
 	 * the first is returned.
 	 */
 	@Override
-	public int get(Record key) {
+	public int get(Record rec) {
+		return get(new BtreeKey(rec));
+	}
+
+	int get(BtreeKey key) {
 		BtreeNode node = rootNode;
 		for (int level = treeLevels - 1; level >= 0; --level)
 			node = childNode(node, node.findPos(key));
-		Record slot = node.find(key);
-		return slot != null && slot.startsWith(key) ? adr(slot) : 0;
+		BtreeKey slot = node.find(key);
+		return slot != null && key.key.equals(slot.key) ? slot.adr() : 0;
 	}
 
 	private BtreeNode childNode(BtreeNode node, int i) {
@@ -89,13 +93,13 @@ class Btree implements TranIndex {
 	// add ---------------------------------------------------------------------
 
 	/** Add a unique key to the btree. */
-	void add(Record key) {
+	void add(BtreeKey key) {
 		boolean result = add(key, true);
 		assert result == true;
 	}
 
-	boolean add(Record key, boolean isKey, boolean unique) {
-		return add(key, (isKey || (unique && ! IndexedData.isEmptyKey(key))));
+	boolean add(BtreeKey key, boolean isKey, boolean unique) {
+		return add(key, (isKey || (unique && ! key.isEmptyKey())));
 	}
 
 	/**
@@ -113,7 +117,7 @@ class Btree implements TranIndex {
 	 * (ignoring the trailing data record address)
 	 */
 	@Override
-	public boolean add(Record key, boolean unique) {
+	public boolean add(BtreeKey key, boolean unique) {
 		Object result = add(rootNode, key, unique);
 		if (result == Boolean.FALSE)
 			return false;
@@ -126,12 +130,12 @@ class Btree implements TranIndex {
 		return true;
 	}
 
-	private Object add(BtreeNode node, Record key, boolean unique) {
-		return (node.level == 0) ?
+	private Object add(BtreeNode node, BtreeKey key, boolean unique) {
+		return node.isLeaf() ?
 				addToLeaf(node, key, unique) : addToTree(node, key, unique);
 	}
 
-	private Object addToTree(BtreeNode node, Record key, boolean unique) {
+	private Object addToTree(BtreeNode node, BtreeKey key, boolean unique) {
 		int i = node.findPos(key);
 		BtreeNode child = childNode(node, i);
 		Object result = add(child, key, unique); // recurse
@@ -155,7 +159,7 @@ class Btree implements TranIndex {
 	}
 
 	/** @return updated node or BtreeSplit */
-	private Object insertOrSplit(BtreeNode node, Record key) {
+	private Object insertOrSplit(BtreeNode node, BtreeKey key) {
 		if (hasRoom(node))
 			// normal/fast path - simply insert
 			return node.with(key);
@@ -171,35 +175,30 @@ class Btree implements TranIndex {
 	 * - BtreeNode = inserted
 	 * - BtreeSplit = split
 	 */
-	private Object addToLeaf(BtreeNode node, Record key, boolean unique) {
+	private Object addToLeaf(BtreeNode node, BtreeKey key, boolean unique) {
 		if (! node.isEmpty()) {
-			Record searchKey = unique ? withoutAddress(key) : key;
-			Record slot = node.find(searchKey);
-			if (slot != null && slot.startsWith(searchKey))
+			BtreeKey searchKey = unique ? new BtreeKey(key.key) : key;
+			BtreeKey slot = node.find(searchKey);
+			if (slot != null && slot.key.equals(searchKey.key))
 				return false; // duplicate
 		}
 		++modified;
-		totalSize += keySize(key);
+		totalSize += key.keySize();
 		return insertOrSplit(node, key);
 	}
 
 	private void newRoot(Split split) {
 		++nnodes;
 		++treeLevels;
-		Record minkey = BtreeNode.minimalKey(split.key.size(), split.left);
+		BtreeKey minkey = new BtreeTreeKey(Record.EMPTY, 0, 0, split.left);
 		rootNode = BtreeMemNode.from(treeLevels, minkey, split.key);
-	}
-
-	/** size without trailing address */
-	int keySize(Record key) {
-		return key.prefixSize(key.size() - 1);
 	}
 
 	private boolean hasRoom(BtreeNode node) {
 		return node.size() < splitSize();
 	}
 
-	static Split split(BtreeNode node, Record key) {
+	static Split split(BtreeNode node, BtreeKey key) {
 		BtreeNode left;
 		BtreeNode right;
 		int keyPos = node.lowerBound(key);
@@ -217,37 +216,32 @@ class Btree implements TranIndex {
 			else
 				right = right.with(key);
 		}
-		Record splitKey = node.isLeaf() ? left.last() : right.first();
-		boolean max = node.isLeaf() && splitMaxAdr(left.last(), right.first());
+		BtreeKey splitKey = node.isLeaf() ? left.last() : right.first();
+		boolean max = node.isLeaf() && areUnique(left.last(), right.first());
 		if (node.isTree())
 			right.minimizeLeftMost();
-		int splitKeySize = splitKey.size();
-		if (node.isTree())
-			--splitKeySize;
 		/*
 		 * if splitting between keys that differ ignoring address
 		 * then set splitKey data address to MAXADR
 		 * so that if only data address changes, key will stay in same node
 		 * this simplifies add duplicate check and allows optimized update
 		 */
-		TreeKeyRecord treeKey = max
-			? new RecordBuilder().addPrefix(splitKey, splitKeySize - 1)
-					.adduint(IntRefs.MAXADR).add("").treeKeyRecord(right)
-			: new RecordBuilder().addPrefix(splitKey, splitKeySize)
-					.add("").treeKeyRecord(right);
+		BtreeTreeKey treeKey = max
+			? new BtreeTreeKey(splitKey.key, IntRefs.MAXADR, 0, right)
+			: new BtreeTreeKey(splitKey.key, splitKey.adr(), 0, right);
 		return new Split(left, treeKey);
 	}
 
-	private static boolean splitMaxAdr(Record last, Record first) {
-		return ! last.prefixEquals(first, first.size() - 1);
+	private static boolean areUnique(BtreeKey last, BtreeKey first) {
+		return ! last.key.equals(first.key);
 	}
 
 	/** used to return the results of a split */
 	static class Split {
 		final BtreeNode left;
-		final TreeKeyRecord key; // new value to go in parent, points to right half
+		final BtreeTreeKey key; // new value to go in parent, points to right half
 
-		Split(BtreeNode left, TreeKeyRecord key) {
+		Split(BtreeNode left, BtreeTreeKey key) {
 			this.left = left;
 			this.key = key;
 		}
@@ -259,7 +253,6 @@ class Btree implements TranIndex {
 					.add("key", key)
 					.toString();
 		}
-
 	}
 
 	// remove ------------------------------------------------------------------
@@ -272,11 +265,11 @@ class Btree implements TranIndex {
 	 * @return false if the key was not found
 	 */
 	@Override
-	public boolean remove(Record key) {
+	public boolean remove(BtreeKey key) {
 		BtreeNode result = remove(rootNode, key);
 		if (result == null)
 			return false;
-		totalSize -= keySize(key);
+		totalSize -= key.keySize();
 		if (result.isEmpty()) {
 			rootNode = BtreeNode.emptyLeaf();
 			treeLevels = 0;
@@ -292,12 +285,12 @@ class Btree implements TranIndex {
 	}
 
 	/** @return null if key not found, otherwise updated node */
-	private BtreeNode remove(BtreeNode node, Record key) {
+	private BtreeNode remove(BtreeNode node, BtreeKey key) {
 		return (node.level == 0) ?
 				removeFromLeaf(node, key) : removeFromTree(node, key);
 	}
 
-	private BtreeNode removeFromTree(BtreeNode node, Record key) {
+	private BtreeNode removeFromTree(BtreeNode node, BtreeKey key) {
 		int i = node.findPos(key);
 		BtreeNode child = childNode(node, i);
 		BtreeNode result = remove(child, key); // recurse
@@ -311,12 +304,12 @@ class Btree implements TranIndex {
 		return node;
 	}
 
-	private static BtreeNode removeFromLeaf(BtreeNode node, Record key) {
+	private static BtreeNode removeFromLeaf(BtreeNode node, BtreeKey key) {
 		return node.without(key);
 	}
 
 	@Override
-	public Update update(Record oldkey, Record newkey, boolean unique) {
+	public Update update(BtreeKey oldkey, BtreeKey newkey, boolean unique) {
 		if (! remove(oldkey))
 			return Update.NOT_FOUND;
 		return add(newkey, unique) ? Update.OK : Update.ADD_FAILED;
@@ -347,11 +340,11 @@ class Btree implements TranIndex {
 	 */
 	class Iter implements TranIndex.Iter {
 		private static final int UINT_MAX = 0xffffffff;
-		private final Record from;
-		private final Record to;
+		private final BtreeKey from;
+		private final BtreeKey to;
 		// top of stack is leaf
 		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
-		private Record cur;
+		private BtreeKey cur;
 		private boolean rewound;
 		private int valid = -1;
 		private int prevAdr;
@@ -361,14 +354,14 @@ class Btree implements TranIndex {
 		}
 
 		private Iter(Record from, Record to) {
-			this(from, to, null, true, UINT_MAX);
+			this(new BtreeKey(from), new BtreeKey(to, IntRefs.MAXADR), null, true, UINT_MAX);
 		}
 
 		private Iter(Iter iter) {
 			this(iter.from, iter.to, iter.cur, iter.rewound, iter.prevAdr);
 		}
 
-		private Iter(Record from, Record to, Record cur, boolean rewound, int prevAdr) {
+		private Iter(BtreeKey from, BtreeKey to, BtreeKey cur, boolean rewound, int prevAdr) {
 			this.from = from;
 			this.to = to;
 			this.cur = cur;
@@ -384,22 +377,22 @@ class Btree implements TranIndex {
 				seek(from);
 				rewound = false;
 				if (cur != null) {
-					if (cur.compareTo(from) < 0 || cur.prefixGt(to))
+					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
 						cur = null;
 					return;
 				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
-				Record oldcur = cur;
+				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur != null) {
-					if (cur.compareTo(from) < 0 || cur.prefixGt(to)) {
+					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0) {
 						cur = null;
 						return;
 					}
 					if (! oldcur.equals(cur) &&
-							UnsignedInts.compare(adr(cur), prevAdr) < 0)
+							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
 						return; // already on the next key
 				}
 				// fall through
@@ -424,7 +417,7 @@ class Btree implements TranIndex {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
-			if (cur.compareTo(from) < 0 || cur.prefixGt(to))
+			if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
 				cur = null;
 		}
 
@@ -440,13 +433,13 @@ class Btree implements TranIndex {
 						cur = null;
 						return;
 					}
-					if (! cur.prefixGt(to))
+					if (cur.compareTo(to) < 0)
 						return;
 				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
-				Record oldcur = cur;
+				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur == null && ! stack.isEmpty()) {
 					--stack.peek().pos;
@@ -458,8 +451,8 @@ class Btree implements TranIndex {
 						cur = null;
 						return;
 					}
-					if (! cur.prefixGt(to) && ! oldcur.equals(cur) &&
-							UnsignedInts.compare(adr(cur), prevAdr) < 0)
+					if (cur.compareTo(to) < 0 && ! oldcur.equals(cur) &&
+							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
 						return;
 				}
 				// fall through
@@ -479,7 +472,7 @@ class Btree implements TranIndex {
 			}
 			LevelInfo leaf = stack.peek();
 			cur = leaf.node.get(leaf.pos);
-			if (cur.compareTo(from) < 0 || cur.prefixGt(to))
+			if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
 				cur = null;
 		}
 
@@ -488,7 +481,7 @@ class Btree implements TranIndex {
 		 * on return, cur will be null if btree is empty
 		 * or if position is past end of node
 		 */
-		private void seek(Record key) {
+		private void seek(BtreeKey key) {
 			valid = modified;
 			stack.clear();
 			cur = null;
@@ -513,12 +506,16 @@ class Btree implements TranIndex {
 
 		@Override
 		public Record curKey() {
+			return cur.key;
+		}
+
+		BtreeKey cur() {
 			return cur;
 		}
 
 		@Override
 		public int keyadr() {
-			return adr(cur);
+			return cur.adr();
 		}
 
 		@Override
@@ -544,10 +541,6 @@ class Btree implements TranIndex {
 				.add("node", node)
 				.toString();
 		}
-	}
-
-	static Record withoutAddress(Record key) {
-		return new RecordPrefix(key, key.size() - 1);
 	}
 
 	private BtreeNode nodeAt(int level, int adr) {
@@ -588,7 +581,7 @@ class Btree implements TranIndex {
 	@Override
 	public void check() {
 		assert rootNode.level == treeLevels;
-		int nnodes = rootNode.check(tran, Record.EMPTY, null);
+		int nnodes = rootNode.check(tran, new BtreeKey(Record.EMPTY), null);
 		assert nnodes == this.nnodes
 				: "nnodes " + this.nnodes + " but counted " + nnodes;
 	}
@@ -606,6 +599,10 @@ class Btree implements TranIndex {
 	/** from is inclusive, end is exclusive */
 	@Override
 	public float rangefrac(Record from, Record to) {
+		return rangefrac(new BtreeKey(from), new BtreeKey(to));
+	}
+
+	float rangefrac(BtreeKey from, BtreeKey to) {
 		BtreeNode node = rootNode;
 		int n = node.size();
 		if (n == 0)
@@ -629,10 +626,20 @@ class Btree implements TranIndex {
 	 * @param start the fraction into the index where this node starts
 	 * @param nodefrac the fraction of the index under this node
 	 */
-	private static float keyfracpos(BtreeNode node, Record key, float start, float nodefrac) {
+	private static float keyfracpos(BtreeNode node, BtreeKey key, float start, float nodefrac) {
 		assert node.size() > 0;
 		int i = node.lowerBound(key);
 		return start + (nodefrac * i) / node.size();
+	}
+
+	public static void main(String[] args) {
+		Database db = Database.open("suneido.db");
+		ReadTransaction t = db.readTransaction();
+		Table tbl = t.getTable("gl_accounts");
+		Btree btree = (Btree) t.getIndex(tbl.num, "glacct_abbrev");
+		btree.print();
+		t.ck_complete();
+		db.close();
 	}
 
 }

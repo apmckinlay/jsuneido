@@ -76,10 +76,9 @@ class TransactionReads {
 	}
 
 	private static int compare(IndexRange range, Record value) {
-		// use prefixCompareTo to ignore any addresses on range
-		if (range.lo.prefixCompareTo(value) > 0)
+		if (range.lo.compareTo(value) > 0)
 			return +1;
-		return range.hi.prefixCompareTo(value) < 0 ? -1 : +1;
+		return range.hi.compareTo(value) < 0 ? -1 : +1;
 	}
 
 	@Override

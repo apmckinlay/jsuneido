@@ -8,11 +8,14 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
-import suneido.language.Pack;
+import com.google.common.collect.Lists;
 
 public class BtreeNodeTest {
 
@@ -25,10 +28,10 @@ public class BtreeNodeTest {
 
 	@Test
 	public void memNode_with() {
-		Record key1 = key("one");
-		Record key2 = key("three");
-		Record key3 = key("two");
-		Record key9 = key("z");
+		BtreeKey key1 = key("one");
+		BtreeKey key2 = key("three");
+		BtreeKey key3 = key("two");
+		BtreeKey key9 = key("z");
 
 		BtreeNode node = BtreeNode.emptyLeaf();
 		node = node.with(key2);
@@ -44,7 +47,7 @@ public class BtreeNodeTest {
 		assertEquals(key2, node.get(1));
 		assertEquals(key3, node.get(2));
 
-		assertEquals(key1, node.find(Record.EMPTY));
+		assertEquals(key1, node.find(BtreeKey.EMPTY));
 		assertEquals(key1, node.find(key1));
 		assertEquals(key2, node.find(key2));
 		assertEquals(key3, node.find(key3));
@@ -55,10 +58,10 @@ public class BtreeNodeTest {
 	public void memNode_without() {
 		final int NKEYS = 100;
 		Random rand = new Random(87665);
-		List<Record> keys = randomKeys(rand, NKEYS);
+		List<BtreeKey> keys = randomKeys(rand, NKEYS);
 		BtreeNode node = BtreeNode.emptyLeaf();
 		assertThat(node.size(), is(0));
-		for (Record key : keys)
+		for (BtreeKey key : keys)
 			node = node.with(key);
 		assertThat(node.size(), is(NKEYS));
 		Collections.shuffle(keys, new Random(874));
@@ -71,7 +74,7 @@ public class BtreeNodeTest {
 			assertNull(node.without(keys.get(i)));
 		assertThat(node.size(), is(NKEYS / 2));
 		for (int i = NKEYS / 2; i < NKEYS; ++i) {
-			Record key = keys.get(i);
+			BtreeKey key = keys.get(i);
 			assertThat(node.find(key), is(key));
 		}
 	}
@@ -150,9 +153,11 @@ public class BtreeNodeTest {
 	}
 
 	private static BtreeNode dbNode() {
-		Record rec = new RecordBuilder()
-				.add(key("bob")).add(key("joe")).add(key("sue")).build();
-		BtreeNode node = new BtreeDbNode(0, Pack.pack(rec), 0);
+		BtreeMemNode memNode = new BtreeMemNode(0);
+		memNode.with(key("bob")).with(key("joe")).with(key("sue"));
+		ByteBuffer buf = ByteBuffer.allocate(memNode.length());
+		memNode.pack(buf);
+		BtreeNode node = new BtreeDbNode(0, buf, 0);
 		check(node, "bob", "joe", "sue");
 		return node;
 	}
@@ -183,14 +188,28 @@ public class BtreeNodeTest {
 	}
 
 	@Test
-	public void pack_non_empty_MemNode() {
-		BtreeMemNode node = new BtreeMemNode(0);
-		Record key = new RecordBuilder().add("fzvdr").add(0x21726ef6).build();
+	public void pack_non_empty_leaf_MemNode() {
+		BtreeMemNode memNode = new BtreeMemNode(0);
+		BtreeKey key = key("fzvdr", 0x21726ef6);
 		for (int i = 0; i < 10; ++i)
-			node = node.with(key);
-		ByteBuffer buf = ByteBuffer.allocate(node.length());
-		node.pack(buf);
+			memNode = memNode.with(key);
+		ByteBuffer buf = ByteBuffer.allocate(memNode.length());
+		memNode.pack(buf);
 		BtreeDbNode dbnode = new BtreeDbNode(0, buf, 0);
+		assertThat("size", dbnode.size(), is(10));
+		for (int i = 0; i < 10; ++i)
+			assertThat(dbnode.get(i), is((Object) key));
+	}
+
+	@Test
+	public void pack_non_empty_tree_MemNode() {
+		BtreeMemNode memNode = new BtreeMemNode(1);
+		BtreeKey key = treekey("lsdkf", 0x21726ef6, 0x8745675);
+		for (int i = 0; i < 10; ++i)
+			memNode = memNode.with(key);
+		ByteBuffer buf = ByteBuffer.allocate(memNode.length());
+		memNode.pack(buf);
+		BtreeDbNode dbnode = new BtreeDbNode(1, buf, 0);
 		assertThat("size", dbnode.size(), is(10));
 		for (int i = 0; i < 10; ++i)
 			assertThat(dbnode.get(i), is((Object) key));
@@ -215,11 +234,11 @@ public class BtreeNodeTest {
 
 	@Test
 	public void mimimize() {
-		Record k = new RecordBuilder().add("a").add("b").adduint(7685).build();
-		Record m = new RecordBuilder().addMin().addMin().adduint(7685).build();
+		BtreeKey k = new RecordBuilder().add("a").add("b").btreeTreeKey(123, 456);
+		BtreeKey m = new RecordBuilder().btreeTreeKey(0, 456);
 		assertThat(k.minimize(), is(m));
-		assertFalse(BtreeNode.isMinimalKey(k));
-		assertTrue(BtreeNode.isMinimalKey(m));
+		assertFalse(k.isMinimalKey());
+		assertTrue(m.isMinimalKey());
 	}
 
 	@Test
@@ -227,8 +246,8 @@ public class BtreeNodeTest {
 		BtreeNode node = leaf("a", "b", "c");
 		Btree.Split split = Btree.split(node, key("d"));
 		assertThat(split.left, is(node));
-		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat(split.key.child, is(leaf("d")));
+		assertThat(split.key.toString(), is("['c']*MAX^REF"));
+		assertThat(split.key.child(), is(leaf("d")));
 	}
 
 	@Test
@@ -236,8 +255,8 @@ public class BtreeNodeTest {
 		BtreeNode node = leaf("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, key("b"));
 		assertThat(split.left, is(leaf("a", "b", "c")));
-		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat(split.key.child, is(leaf("e", "g")));
+		assertThat(split.key.toString(), is("['c']*MAX^REF"));
+		assertThat(split.key.child(), is(leaf("e", "g")));
 	}
 
 	@Test
@@ -245,8 +264,8 @@ public class BtreeNodeTest {
 		BtreeNode node = leaf("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, key("f"));
 		assertThat(split.left, is(leaf("a", "c")));
-		assertThat(split.key.toString(), is("['c',MAXADR,REF]"));
-		assertThat(split.key.child, is(leaf("e", "f", "g")));
+		assertThat(split.key.toString(), is("['c']*MAX^REF"));
+		assertThat(split.key.child(), is(leaf("e", "f", "g")));
 	}
 
 	@Test
@@ -254,8 +273,8 @@ public class BtreeNodeTest {
 		BtreeNode node = tree("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, treekey("f", 123, 456));
 		assertThat(split.left, is(tree("a", "c")));
-		assertThat(split.key.toString(), is("['e',123,REF]"));
-		assertThat(split.key.child,
+		assertThat(split.key.toString(), is("['e']*123^REF"));
+		assertThat(split.key.child(),
 				is(tree("e", "f", "g").minimizeLeftMost()));
 	}
 
@@ -264,9 +283,11 @@ public class BtreeNodeTest {
 		BtreeNode node = leaf(dup(1), dup(2), dup(4), dup(5));
 		Btree.Split split = Btree.split(node, dup(3));
 		assertThat(split.left, is(leaf(dup(1), dup(2), dup(3))));
-		assertThat(split.key.toString(), is("['dup',3,REF]"));
-		assertThat(split.key.child, is(leaf(dup(4), dup(5))));
+		assertThat(split.key.toString(), is("['dup']*3^REF"));
+		assertThat(split.key.child(), is(leaf(dup(4), dup(5))));
 	}
+
+	//--------------------------------------------------------------------------
 
 	private static BtreeNode leaf(Object... args) {
 		return node(0, args);
@@ -275,21 +296,21 @@ public class BtreeNodeTest {
 		return node(1, args);
 	}
 	private static BtreeNode node(int level, Object... args) {
-		Record keys[] = new Record[args.length];
+		BtreeKey keys[] = new BtreeKey[args.length];
 		for (int i = 0; i < args.length; ++i)
-			keys[i] = args[i] instanceof Record ? (Record) args[i]
-					: level == 0 ? key((String) args[i]) : key((String) args[i], 123, 456);
+			keys[i] = args[i] instanceof BtreeKey ? (BtreeKey) args[i]
+					: level == 0 ? key((String) args[i]) : treekey((String) args[i], 123, 456);
 		return BtreeMemNode.from(level, keys);
 	}
 
-	public static List<Record> randomKeys(Random rand, int n) {
-		List<Record> keys = new ArrayList<Record>();
+	public static List<BtreeKey> randomKeys(Random rand, int n) {
+		List<BtreeKey> keys = Lists.newArrayList();
 		for (int i = 0; i < n; ++i)
 			keys.add(randomKey(rand));
 		return keys;
 	}
 
-	public static Record randomKey(Random rand) {
+	public static BtreeKey randomKey(Random rand) {
 		int n = 4 + rand.nextInt(5);
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < n; ++i)
@@ -298,30 +319,24 @@ public class BtreeNodeTest {
 		return key(sb.toString(), rand.nextInt(Integer.MAX_VALUE - UPDATE_ALLOWANCE));
 	}
 
-	private static Record key(String s, int adr) {
-		return new RecordBuilder().add(s).adduint(adr).build();
+	private static BtreeKey key(String s, int adr) {
+		return new RecordBuilder().add(s).btreeKey(adr);
 	}
 
-	static Record key(int n, String s, int adr) {
-		return new RecordBuilder().add(n).add(s).adduint(adr).build();
+	static BtreeKey key(int n, String s, int adr) {
+		return new RecordBuilder().add(n).add(s).btreeKey(adr);
 	}
 
-	private static Record key(String s) {
-		return new RecordBuilder().add(s).adduint(123).build();
+	private static BtreeKey key(String s) {
+		return new RecordBuilder().add(s).btreeKey(123);
 	}
 
-	private static Record dup(int adr) {
-		return new RecordBuilder().add("dup").adduint(adr).build();
+	private static BtreeKey dup(int adr) {
+		return new RecordBuilder().add("dup").btreeKey(adr);
 	}
 
-	private static Record key(String s, int dataAdr, int treeAdr) {
-		return new RecordBuilder().add(s)
-				.adduint(dataAdr).adduint(treeAdr).build();
-	}
-
-	private static Record treekey(String s, int dataAdr, int treeAdr) {
-		return new RecordBuilder().add(s)
-				.adduint(dataAdr).adduint(treeAdr).treeKeyRecord(null);
+	private static BtreeTreeKey treekey(String s, int dataAdr, int childAdr) {
+		return new RecordBuilder().add(s).btreeTreeKey(dataAdr, childAdr);
 	}
 
 }

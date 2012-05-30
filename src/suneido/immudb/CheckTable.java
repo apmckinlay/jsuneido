@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.BtreeNode.adr;
-
 import java.util.concurrent.Callable;
 
 import suneido.intfc.database.IndexIter;
@@ -50,19 +48,18 @@ class CheckTable implements Callable<String> {
 			Record prevkey = null;
 			for (iter.next(); !iter.eof(); iter.next()) {
 				Record key = (Record) iter.curKey();
-				if (prevkey != null && isUnique(index, key) &&
-					key.prefixEquals(prevkey, key.size() - 1)) {
+				if (prevkey != null && isUnique(index, key) && key.equals(prevkey)) {
 					details += tablename + ": duplicate in " + index + " " + key + "\n";
 					return false;
 				}
 				prevkey = key;
-				int adr = adr(key);
+				int adr = iter.keyadr();
 				Record rec = t.input(adr);
 				if (first_index)
 					if (!checkRecord(tablename, rec))
 						return false;
-				Record reckey = IndexedData.key(rec, index.colNums, adr);
-				if (! key.equals(reckey)) {
+				BtreeKey reckey = IndexedData.key(rec, index.colNums, adr);
+				if (! key.equals(reckey.key)) {
 					details += tablename + ": key mismatch in " + index + "\n";
 					return false;
 				}

@@ -106,7 +106,7 @@ class DbDump {
 				rb.add(rec.getRaw(i));
 			++i;
 		}
-		return rb.build();
+		return rb.bufRec();
 	}
 
 	private static void writeInt(WritableByteChannel out, ByteBuffer buf, int n)

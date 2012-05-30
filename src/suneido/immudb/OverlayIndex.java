@@ -25,7 +25,7 @@ class OverlayIndex implements TranIndex {
 	private final Btree local;
 	/** a reference to the transaction deletes */
 	private final TIntHashSet deletes;
-	final ArrayList<Record> removedKeys = Lists.newArrayList();
+	final ArrayList<BtreeKey> removedKeys = Lists.newArrayList();
 
 	OverlayIndex(Btree global, Btree local, TIntHashSet deletes) {
 		this.global = global;
@@ -34,8 +34,8 @@ class OverlayIndex implements TranIndex {
 	}
 
 	@Override
-	public boolean add(Record key, boolean unique) {
-		if (unique && get(Btree.withoutAddress(key)) != 0)
+	public boolean add(BtreeKey key, boolean unique) {
+		if (unique && get(key.key) != 0)
 			return false;
 		return local.add(key, false);
 	}
@@ -52,7 +52,7 @@ class OverlayIndex implements TranIndex {
 	}
 
 	@Override
-	public Update update(Record oldkey, Record newkey, boolean unique) {
+	public Update update(BtreeKey oldkey, BtreeKey newkey, boolean unique) {
 		if (! remove(oldkey))
 			return Update.NOT_FOUND;
 		if (! add(newkey, unique))
@@ -61,8 +61,8 @@ class OverlayIndex implements TranIndex {
 	}
 
 	@Override
-	public boolean remove(Record key) {
-		if (IntRefs.isIntRef(BtreeNode.adr(key)))
+	public boolean remove(BtreeKey key) {
+		if (IntRefs.isIntRef(key.adr()))
 			return local.remove(key);
 		else { // global
 			if (global.get(key) == 0)

@@ -56,13 +56,13 @@ class Table implements suneido.intfc.database.Table {
 		return num;
 	}
 
-	Record toRecord() {
+	DataRecord toRecord() {
 		return toRecord(num, name);
 	}
 
-	static Record toRecord(int num, String name) {
-		Record r = new RecordBuilder().add(num).add(name).build();
-		r.tblnum = TN.TABLES;
+	static DataRecord toRecord(int num, String name) {
+		DataRecord r = new RecordBuilder().add(num).add(name).build();
+		r.tblnum(TN.TABLES);
 		return r;
 	}
 

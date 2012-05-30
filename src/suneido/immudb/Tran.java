@@ -137,13 +137,13 @@ class Tran implements Translator {
 		return new StoredIntEntry(key, val);
 	}
 
-	Record getrec(int adr) {
+	DataRecord getrec(int adr) {
 		if (IntRefs.isIntRef(adr)) {
-			Record r = (Record) intToRef(adr);
-			r.address = adr;
+			DataRecord r = (DataRecord) intToRef(adr);
+			r.address(adr); //TODO check if this is necessary
 			return r;
 		} else
-			return Record.from(dstor, adr);
+			return new DataRecord(dstor, adr);
 	}
 
 	/** for ExclusiveTransaction */

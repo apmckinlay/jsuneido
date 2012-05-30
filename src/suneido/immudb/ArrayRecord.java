@@ -11,12 +11,14 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 import suneido.immudb.BufRecord.Mode;
-import suneido.language.Pack;
 
 /**
- * The result of RecordBuilder.
+ * A record stored as arrays.
+ * This is the most direct result of RecordBuilder
+ * but should only be used for short term values
+ * since it uses more memory than BufRecord.
  * Certain operations will convert on-demand to a {@link BufRecord}
- * Mostly immutable, except for bufrec (cache) and setLast
+ * Mostly immutable, except for bufrec (cache).
  */
 class ArrayRecord extends Record {
 	private final ArrayList<ByteBuffer> bufs;
@@ -66,27 +68,27 @@ class ArrayRecord extends Record {
 	}
 
 	@Override
-	public Record squeeze() {
+	public BufRecord squeeze() {
 		return bufRecord();
 	}
 
-	void setLast(int adr) {
-		ByteBuffer buf = Pack.packLong(adr & 0xffffffffL);
-		bufs.set(size() - 1, buf);
-		offs.set(size() - 1, 0);
-		lens.set(size() - 1, buf.remaining());
+	DataRecord dataRecord() {
+		return new DataRecord(pack());
 	}
 
 	// convert to BufRecord ----------------------------------------------------
 
 	private BufRecord bufRecord() {
-		if (bufrec == null) {
-			int length = packSize();
-			ByteBuffer buf = ByteBuffer.allocate(length);
-			pack(buf, length);
-			bufrec = new BufRecord(buf);
-		}
+		if (bufrec == null)
+			bufrec = new BufRecord(pack());
 		return bufrec;
+	}
+
+	private ByteBuffer pack() {
+		int length = packSize();
+		ByteBuffer buf = ByteBuffer.allocate(length);
+		pack(buf, length);
+		return buf;
 	}
 
 	@Override

@@ -107,7 +107,7 @@ public class TransactionTest {
 		ReadTransaction rt = db.readTransaction();
 		assertThat(rt.tableCount(tblnum), is(1));
 		assertThat(rt.tableSize(tblnum), is(15L));
-		Record r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
+		DataRecord r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
 		assertThat(r, is(rec(123, "foo")));
 		rt.complete();
 		rt = null;
@@ -379,7 +379,7 @@ public class TransactionTest {
 		t.ck_complete();
 	}
 
-	static Record rec(Object... values) {
+	static DataRecord rec(Object... values) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object val : values)
 			if (val instanceof Integer)
