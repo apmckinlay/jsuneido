@@ -16,29 +16,29 @@ import com.google.common.base.Preconditions;
  */
 class BtreeDbNode extends BtreeNode {
 	final Record rec;
-	final SoftReference<BtreeDbNode>[] refs; // cache child nodes
+	private SoftReference<BtreeDbNode>[] refs = null; // cache tree child nodes
 
-	@SuppressWarnings("unchecked")
 	BtreeDbNode(int level, ByteBuffer buf, int adr) {
 		super(level);
 		rec = Record.from(adr, buf, 0);
-		refs = new SoftReference[rec.size()];
-	}
-
-	BtreeDbNode(int level, ByteBuffer buf, int adr, SoftReference<BtreeDbNode>[] refs) {
-		super(level);
-		rec = Record.from(adr, buf, 0);
-		this.refs = refs;
 	}
 
 	@Override
-	Record get(int i) {
+	BtreeKey get(int i) {
 		Preconditions.checkElementIndex(i, rec.size());
-		return Record.from(rec.fieldBuffer(i), rec.fieldOffset(i));
+		ByteBuffer buf = rec.fieldBuffer(i);
+		int pos = rec.fieldOffset(i);
+		return isLeaf()
+				? BtreeKey.unpack(buf, pos)
+				: BtreeTreeKey.unpack(buf, pos, ref(i));
+	}
+
+	protected BtreeDbNode ref(int i) {
+		return refs == null || refs[i] == null ? null : refs[i].get();
 	}
 
 	@Override
-	BtreeMemNode with(Record key) {
+	BtreeMemNode with(BtreeKey key) {
 		return new BtreeMemNode(this).with(key);
 	}
 
@@ -87,19 +87,6 @@ class BtreeDbNode extends BtreeNode {
 		throw new UnsupportedOperationException();
 	}
 
-	TreeKeyRecord minimize(int idx) {
-		Record key = get(idx);
-		RecordBuilder rb = new RecordBuilder();
-		for (int i = 0; i < key.size() - 1; ++i)
-			rb.add("");
-		rb.add(key.getRaw(key.size() - 1)); // keep the child address
-		BtreeDbNode child = (refs[idx] != null && refs[idx].get() != null)
-			? refs[idx].get()
-			: null;
-		return rb.treeKeyRecord(child);
-
-	}
-
 	@Override
 	void freeze() {
 	}
@@ -110,13 +97,15 @@ class BtreeDbNode extends BtreeNode {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	BtreeDbNode childNode(Storage stor, int i) {
-		if (refs[i] != null) {
-			BtreeDbNode ref = refs[i].get();
-			if (ref != null)
-				return ref;
-		}
-		BtreeDbNode child = (BtreeDbNode) Btree.nodeAt(stor, level - 1, adr(get(i)));
+		BtreeDbNode ref = ref(i);
+		if (ref != null)
+			return ref;
+		int childAdr = ((BtreeTreeKey) get(i)).childAddress();
+		BtreeDbNode child = (BtreeDbNode) Btree.nodeAt(stor, level - 1, childAdr);
+		if (refs == null)
+			refs = new SoftReference[rec.size()];
 		refs[i]  = new SoftReference<BtreeDbNode>(child); // cache
 		return child;
 	}

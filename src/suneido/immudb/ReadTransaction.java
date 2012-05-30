@@ -28,7 +28,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final int num;
 	protected final Database db;
 	protected final Tran tran;
-	protected Database.State dbstate; // not final - modified by ExclusiveTran
+	protected final Database.State dbstate;
 	protected DbHashTrie dbinfo;
 	protected Tables schema; // not final - modified by ExclusiveTran
 	/** needs to be ordered for ReadWriteTransaction updateDbInfo */
@@ -114,7 +114,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	// used for fetching view definitions
-	Record lookup(int tblnum, int[] colNums, Record key) {
+	DataRecord lookup(int tblnum, int[] colNums, Record key) {
 		TranIndex btree = getIndex(tblnum, colNums);
 		int adr = btree.get(key);
 		if (adr == 0)
@@ -123,7 +123,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public Record lookup(
+	public DataRecord lookup(
 			int tblnum, String index, suneido.intfc.database.Record key) {
 		TranIndex bti = getIndex(tblnum, index);
 		if (bti == null)
@@ -289,7 +289,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public Record input(int adr) {
+	public DataRecord input(int adr) {
 		return tran.getrec(adr);
 	}
 

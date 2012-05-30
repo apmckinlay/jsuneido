@@ -42,13 +42,13 @@ class BulkTransaction extends ReadWriteTransaction {
 
 	// used by DbLoad and DbCompact
 	// doesn't use addRecord because we don't want to update indexes yet
-	int loadRecord(int tblnum, Record rec) {
+	int loadRecord(int tblnum, DataRecord rec) {
 		ensureStore();
-		rec.tblnum = tblnum;
-		rec.address = rec.store(tran.dstor);
+		rec.tblnum(tblnum);
+		rec.store(tran.dstor);
 		updateRowInfo(tblnum, 1, rec.bufSize());
 		onlyReads = false;
-		return rec.address;
+		return rec.address();
 	}
 
 	protected void ensureStore() {
@@ -61,12 +61,12 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int addRecord(int tblnum, Record rec) {
+	public int addRecord(int tblnum, DataRecord rec) {
 		throw new UnsupportedOperationException("BulkTransaction addRecord");
 	}
 
 	@Override
-	public int updateRecord2(int tblnum, Record from, Record to) {
+	public int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 
@@ -80,8 +80,10 @@ class BulkTransaction extends ReadWriteTransaction {
 		ensurePersist();
 		freezeBtrees();
 		updateDbInfo(indexes);
-		persist.storeBtrees(dbinfo);
+		dbinfo = persist.storeBtrees(dbinfo);
 		tidelta.clear();
+		indexes.clear();
+		indexedData.clear();
 	}
 
 	private void ensurePersist() {

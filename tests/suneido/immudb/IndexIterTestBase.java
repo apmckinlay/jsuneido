@@ -7,7 +7,6 @@ package suneido.immudb;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static suneido.immudb.BtreeNode.adr;
 import suneido.intfc.database.IndexIter;
 
 public abstract class IndexIterTestBase {
@@ -75,7 +74,7 @@ public abstract class IndexIterTestBase {
 
 		@Override
 		public int keyadr() {
-			return adr(curKey());
+			return curKey().getInt(0);
 		}
 
 		@Override

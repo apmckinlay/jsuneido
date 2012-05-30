@@ -1,7 +1,6 @@
 package suneido.immudb;
 
 import static suneido.immudb.Bootstrap.indexColumns;
-import static suneido.immudb.BtreeNode.adr;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,8 +60,7 @@ class SchemaLoader {
 			iter.next();
 			if (iter.eof())
 				return null;
-			Record key = (Record) iter.curKey();
-			return recordFromSlot(key);
+			return input(iter.keyadr());
 		}
 	}
 
@@ -99,7 +97,7 @@ class SchemaLoader {
 			return columns();
 		}
 		Column column() {
-			return new Column(recordFromSlot((Record) iter.curKey()));
+			return new Column(input(iter.keyadr()));
 		}
 		Columns columns() {
 			Collections.sort(list);
@@ -137,12 +135,11 @@ class SchemaLoader {
 			return new Indexes(list.build());
 		}
 		private Index index() {
-			return new Index(recordFromSlot((Record) iter.curKey()));
+			return new Index(input(iter.keyadr()));
 		}
 	}
 
-	private Record recordFromSlot(Record slot) {
-		int adr = adr(slot);
+	private Record input(int adr) {
 		return t.input(adr);
 	}
 

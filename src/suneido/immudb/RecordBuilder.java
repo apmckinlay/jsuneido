@@ -45,15 +45,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return this;
 	}
 
-	/** add an unsigned int
-	 * needs to be unsigned so that intrefs compare > database offsets
-	 */
-	public RecordBuilder adduint(int n) {
-		ByteBuffer buf = Pack.packLong(n & 0xffffffffL);
-		add1(buf, 0, buf.remaining());
-		return this;
-	}
-
 	@Override
 	public RecordBuilder add(Object x) {
 		ByteBuffer buf = Pack.pack(x);
@@ -106,22 +97,28 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	}
 
 	@Override
-	public Record build() {
-		trimToSize();
+	public DataRecord build() {
+		return arrayRec().dataRecord();
+	}
+
+	BtreeKey btreeKey(int dataAdr) {
+		return new BtreeKey(bufRec(), dataAdr);
+	}
+
+	BtreeTreeKey btreeTreeKey(int dataAdr, int childAdr) {
+		return new BtreeTreeKey(bufRec(), dataAdr, childAdr);
+	}
+
+	BtreeTreeKey btreeTreeKey(BtreeNode child) {
+		return new BtreeTreeKey(bufRec(), 0, 0, child);
+	}
+
+	BufRecord bufRec() {
+		return arrayRec().squeeze();
+	}
+
+	ArrayRecord arrayRec() {
 		return new ArrayRecord(bufs, offs, lens);
-	}
-
-	TreeKeyRecord treeKeyRecord(BtreeNode child) {
-		trimToSize();
-		return new TreeKeyRecord(bufs, offs, lens, child);
-	}
-
-	private void trimToSize() {
-		assert offs.size() == bufs.size();
-		assert lens.size() == bufs.size();
-		bufs.trimToSize();
-		offs.trimToSize();
-		lens.trimToSize();
 	}
 
 }

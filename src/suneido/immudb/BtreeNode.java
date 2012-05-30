@@ -60,10 +60,10 @@ abstract class BtreeNode {
 	}
 
 	/** Inserts key in order */
-	abstract BtreeNode with(Record key);
+	abstract BtreeNode with(BtreeKey key);
 
 	/** @return null if key not found */
-	BtreeNode without(Record key) {
+	BtreeNode without(BtreeKey key) {
 		assert isLeaf();
 		if (isEmpty())
 			return null;
@@ -83,23 +83,23 @@ abstract class BtreeNode {
 	/** used by split, either from will be 0 or to will be size */
 	abstract BtreeNode without(int from, int to);
 
-	abstract Record get(int i);
+	abstract BtreeKey get(int i);
 
 	abstract BtreeDbNode store(Storage stor);
 
 	abstract int address();
 
-	Record find(Record key) {
+	BtreeKey find(BtreeKey key) {
 		int at = findPos(key);
 		return (at < 0 || at >= size()) ? null : get(at);
 	}
 
-	int findPos(Record key) {
+	int findPos(BtreeKey key) {
 		int at = lowerBound(key);
 		return isLeaf() ? at : Math.max(0, at - 1);
 	}
 
-	int lowerBound(Record key) {
+	int lowerBound(BtreeKey key) {
 		int first = 0;
 		int len = size();
 		while (len > 0) {
@@ -114,15 +114,15 @@ abstract class BtreeNode {
 		return first;
 	}
 
-	private int compare(int middle, Record key) {
+	private int compare(int middle, BtreeKey key) {
 		return get(middle).compareTo(key);
 	}
 
-	Record first() {
+	BtreeKey first() {
 		return get(0);
 	}
 
-	Record last() {
+	BtreeKey last() {
 		return get(size() - 1);
 	}
 
@@ -137,7 +137,7 @@ abstract class BtreeNode {
 		sb.append(" size=").append(size());
 		sb.append(" [");
 		for (int i = 0; i < size(); ++i)
-			sb.append(get(i));
+			sb.append(i > 0 ? "," : "").append(get(i));
 		sb.append("]");
 		return sb.toString();
 	}
@@ -146,7 +146,7 @@ abstract class BtreeNode {
 		String indent = Strings.repeat("     ", level);
 		w.append(indent).append(printName() + " level " + level + "\n");
 		for (int i = 0; i < size(); ++i) {
-			Record slot = get(i);
+			BtreeKey slot = get(i);
 			w.append(indent).append(slot.toString()).append("\n");
 			if (level > 0)
 				childNode(stor, i).print(w, stor);
@@ -156,7 +156,7 @@ abstract class BtreeNode {
 	abstract String printName();
 
 	/** returns the number of nodes processed */
-	int check(Tran tran, Record from, Record to) {
+	int check(Tran tran, BtreeKey from, BtreeKey to) {
 		for (int i = 1; i < size(); ++i)
 			assert get(i - 1).compareTo(get(i)) < 0;
 		if (isLeaf())
@@ -165,8 +165,8 @@ abstract class BtreeNode {
 			return checkTree(tran, from, to);
 	}
 
-	private int checkTree(Tran tran, Record from, Record to) {
-		assert isMinimalKey(get(0)) : "not minimal " + get(0);
+	private int checkTree(Tran tran, BtreeKey from, BtreeKey to) {
+		assert get(0).isMinimalKey() : "not minimal " + get(0);
 		if (size() > 1)
 			assert from.compareTo(get(1)) <= 0;
 		assert to == null || to.compareTo(get(size() - 1)) > 0;
@@ -181,19 +181,17 @@ abstract class BtreeNode {
 		return nnodes;
 	}
 
-	private int checkLeaf(Tran tran, Record from, Record to) {
+	private int checkLeaf(Tran tran, BtreeKey from, BtreeKey to) {
 		if (! isEmpty()) {
-			from = new RecordBuilder().addPrefix(from, from.size() - 1).build();
+			from = new BtreeKey(from.key);
 			assert get(0).compareTo(from) > 0
 					: "first " + get(0) + " NOT > " + from;
-			if (to != null ) {
-				to = new RecordBuilder().addPrefix(to, to.size() - 1).build();
+			if (to != null )
 				assert get(size() - 1).compareTo(to) <= 0
 						: "last " + get(size() - 1) + " NOT <= " + to;
-			}
 		}
 		for (int i = 1; i < size(); ++i) {
-			int adr = adr(get(i));
+			int adr = get(i).adr();
 			if (IntRefs.isIntRef(adr))
 				assert tran.intToRef(adr) instanceof Record;
 		}
@@ -228,15 +226,11 @@ abstract class BtreeNode {
 		throw new UnsupportedOperationException();
 	}
 
-	protected static Record minimalKey(int nfields, BtreeNode child) {
+	protected static BtreeTreeKey minimalKey(int nfields, BtreeNode child) {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < nfields; ++i)
 			rb.add("");
-		return rb.treeKeyRecord(child);
-	}
-
-	protected static int adr(Record rec) {
-		return (int) rec.getLong(rec.size() - 1);
+		return rb.btreeTreeKey(child);
 	}
 
 	abstract BtreeNode withUpdate(int i, BtreeNode child);

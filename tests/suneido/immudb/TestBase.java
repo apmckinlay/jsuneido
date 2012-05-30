@@ -24,8 +24,8 @@ public class TestBase extends suneido.intfc.database.TestBase {
 	}
 
 	@Override
-	protected Record rec(Object... values) {
-		return (Record) super.rec(values);
+	protected DataRecord rec(Object... values) {
+		return (DataRecord) super.rec(values);
 	}
 
 }

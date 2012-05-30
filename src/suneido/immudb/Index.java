@@ -77,7 +77,7 @@ class Index implements Comparable<Index> {
 				record.getInt(FKMODE));
 	}
 
-	Record toRecord() {
+	DataRecord toRecord() {
 		return toRecord(tblnum, colNums, isKey, unique, fksrc);
 	}
 
@@ -92,7 +92,7 @@ class Index implements Comparable<Index> {
 		return isKey ? Mode.KEY : unique ? Mode.UNIQUE : Mode.DUPS;
 	}
 
-	private static Record toRecord(int tblnum, int[] colNums, boolean isKey,
+	private static DataRecord toRecord(int tblnum, int[] colNums, boolean isKey,
 			boolean unique, ForeignKeySource fksrc) {
 		RecordBuilder rb = new RecordBuilder();
 		rb.add(tblnum).add(colNumsToString(colNums));
@@ -102,8 +102,8 @@ class Index implements Comparable<Index> {
 			rb.add(isKey);
 		if (fksrc != null)
 			rb.add(fksrc.tablename).add(fksrc.columns).add(fksrc.mode);
-		Record r = rb.build();
-		r.tblnum = TN.INDEXES;
+		DataRecord r = rb.build();
+		r.tblnum(TN.INDEXES);
 		return r;
 	}
 

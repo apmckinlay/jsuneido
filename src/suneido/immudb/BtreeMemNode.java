@@ -7,7 +7,6 @@ package suneido.immudb;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 
-import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,18 +25,18 @@ class BtreeMemNode extends BtreeNode {
 	private BtreeDbNode dbnode;
 	private final TByteArrayList index;
 	/** almost final, but rebuilt by without(from, to) */
-	private List<Record> added;
+	private List<BtreeKey> added;
 	private boolean immutable = false;
 	/** set after node is stored */
 	private int address;
 
 	/** Create a new node, not based on an existing record */
 	BtreeMemNode(int level) {
-		this(level, null, new TByteArrayList(), new ArrayList<Record>());
+		this(level, null, new TByteArrayList(), new ArrayList<BtreeKey>());
 	}
 
 	BtreeMemNode(BtreeDbNode node) {
-		this(node.level, node, dbnodeIndex(node.size()), new ArrayList<Record>());
+		this(node.level, node, dbnodeIndex(node.size()), new ArrayList<BtreeKey>());
 	}
 
 	private static TByteArrayList dbnodeIndex(int n) {
@@ -53,7 +52,7 @@ class BtreeMemNode extends BtreeNode {
 	}
 
 	/** used by Btree split and newRoot */
-	static BtreeMemNode from(int level, Record... data) {
+	static BtreeMemNode from(int level, BtreeKey... data) {
 		TByteArrayList index = new TByteArrayList(data.length);
 		for (int i = 0; i < data.length; ++i)
 			index.add((byte) (-i - 1));
@@ -73,8 +72,8 @@ class BtreeMemNode extends BtreeNode {
 	}
 
 	/** copies just the referenced elements of node.added */
-	private static List<Record> copyAdded(TByteArrayList index, List<Record> added) {
-		List<Record> copy = new ArrayList<Record>(countAdded(index));
+	private static List<BtreeKey> copyAdded(TByteArrayList index, List<BtreeKey> added) {
+		List<BtreeKey> copy = new ArrayList<BtreeKey>(countAdded(index));
 		for (int i = 0; i < index.size(); ++i) {
 			int idx = index.get(i);
 			if (idx < 0) {
@@ -95,7 +94,7 @@ class BtreeMemNode extends BtreeNode {
 
 	/** added must not be shared */
 	private BtreeMemNode(int level, BtreeDbNode dbnode,
-			TByteArrayList index, List<Record> added) {
+			TByteArrayList index, List<BtreeKey> added) {
 		super(level);
 		this.dbnode = haveDbnodeRefs(index) ? dbnode : null;
 		this.index = index;
@@ -105,7 +104,7 @@ class BtreeMemNode extends BtreeNode {
 	//--------------------------------------------------------------------------
 
 	@Override
-	BtreeMemNode with(Record key) {
+	BtreeMemNode with(BtreeKey key) {
 		if (immutable)
 			return new BtreeMemNode(this).with(key);
 		else {
@@ -116,9 +115,9 @@ class BtreeMemNode extends BtreeNode {
 		}
 	}
 
-	private void add(Record key) {
+	private void add(BtreeKey key) {
 		assert ! immutable;
-		assert isLeaf() || key instanceof TreeKeyRecord;
+		assert isLeaf() || key instanceof BtreeTreeKey;
 		added.add(key);
 		assert added.size() < Byte.MAX_VALUE;
 	}
@@ -151,33 +150,26 @@ class BtreeMemNode extends BtreeNode {
 		else if (immutable)
 			return new BtreeMemNode(this).withUpdate(i, child);
 		else {
-			Record oldkey = get(i);
-			TreeKeyRecord key = new RecordBuilder()
-					.addPrefix(oldkey, oldkey.size() - 1).add("").treeKeyRecord(child);
-			update(i, key);
+			update(i, ((BtreeTreeKey) get(i)).withChild(child));
 			return this;
-		}
-	}
-
-	private void update(int i, Record key) {
-		int idx = index.get(i);
-		if (idx < 0)
-			added.set(-idx - 1, key);
-		else {
-			add(key);
-			index.set(i, (byte) -added.size());
 		}
 	}
 
 	private BtreeNode ref(int i) {
 		int idx = index.get(i);
 		if (idx < 0)
-			return ((TreeKeyRecord) get(i)).child;
+			return ((BtreeTreeKey) get(i)).child();
+		else
+			return dbnode.ref(idx);
+	}
+
+	private void update(int i, BtreeKey key) {
+		int idx = index.get(i);
+		if (idx < 0)
+			added.set(-idx - 1, key);
 		else {
-			Object ref = dbnode.refs[idx];
-			if (ref instanceof SoftReference)
-				ref = ((SoftReference<?>) ref).get();
-			return (BtreeNode) ref;
+			add(key);
+			index.set(i, (byte) -added.size());
 		}
 	}
 
@@ -194,14 +186,14 @@ class BtreeMemNode extends BtreeNode {
 		TByteArrayList index = new TByteArrayList(to - from);
 		for (int i = from; i < to; ++i)
 			index.add((byte) i);
-		return new BtreeMemNode(node.level, node, index, new ArrayList<Record>());
+		return new BtreeMemNode(node.level, node, index, new ArrayList<BtreeKey>());
 	}
 
 	@Override
-	Record get(int i) {
+	BtreeKey get(int i) {
 		int idx = index.get(i);
 		return idx >= 0
-				? Record.from(dbnode.rec.fieldBuffer(idx), dbnode.rec.fieldOffset(idx))
+				? dbnode.get(idx)
 				: added.get(-idx - 1);
 	}
 
@@ -210,27 +202,16 @@ class BtreeMemNode extends BtreeNode {
 		return index.size();
 	}
 
-	private int length(int i) {
-		int idx = index.get(i);
-		return idx >= 0
-				? dbnode.rec.fieldLength(idx)
-				: added.get(-idx - 1).bufSize();
-	}
-
 	@Override
 	BtreeMemNode minimizeLeftMost() {
 		assert ! immutable;
 		assert isTree();
 		if (size() == 0)
 			return this;
-		Record key = get(0);
-		if (isMinimalKey(key))
+		BtreeKey key = get(0);
+		if (key.isMinimalKey())
 			return this;
-		int idx = index.get(0);
-		if (idx >= 0)
-			key = dbnode.minimize(idx);
-		else
-			key = key.minimize();
+		key = key.minimize();
 		update(0, key);
 		return this;
 	}
@@ -262,37 +243,25 @@ class BtreeMemNode extends BtreeNode {
 
 	@Override
 	BtreeDbNode store(Storage stor) {
-		SoftReference<BtreeDbNode>[] refs = translate(stor);
-		int adr = stor.alloc(length());
-		ByteBuffer buf = stor.buffer(adr);
+		if (isTree())
+			storeChildren(stor);
+		address = stor.alloc(length());
+		ByteBuffer buf = stor.buffer(address);
 		pack(buf);
-		BtreeDbNode node = new BtreeDbNode(level, buf, adr, refs);
-		assert node.address() == adr;
+		BtreeDbNode node = new BtreeDbNode(level, buf, address);
+		assert node.address() == address;
 		return node;
 	}
 
-	/** store children */
-	private SoftReference<BtreeDbNode>[] translate(Storage stor) {
-		if (isLeaf())
-			return null;
-		@SuppressWarnings("unchecked")
-		SoftReference<BtreeDbNode>[] refs = new SoftReference[size()];
+	private void storeChildren(Storage stor) {
 		for (int i = 0; i < size(); ++i) {
 			byte idx = index.get(i);
 			if (idx < 0) {
-				TreeKeyRecord key = (TreeKeyRecord) added.get(-idx - 1);
-				if (key.child != null) {
-					BtreeDbNode dbnode = key.child.store(stor); // recursive
-					key.setLast(dbnode.address());
-					refs[i] = new SoftReference<BtreeDbNode>(dbnode);
-				}
-			} else {
-				SoftReference<BtreeDbNode> ref = dbnode.refs[idx];
-				if (ref != null && ref.get() != null) // only keep if still good
-					refs[i] = ref;
+				BtreeTreeKey key = (BtreeTreeKey) added.get(-idx - 1);
+				if (key.child() != null)
+					key.child().store(stor); // recursive
 			}
 		}
-		return refs;
 	}
 
 	int length() {
@@ -300,6 +269,13 @@ class BtreeMemNode extends BtreeNode {
 		for (int i = 0; i < size(); ++i)
 			datasize += length(i);
 		return ArrayRecord.length(size(), datasize);
+	}
+
+	private int length(int i) {
+		int idx = index.get(i);
+		return idx >= 0
+				? dbnode.rec.fieldLength(idx)
+				: added.get(-idx - 1).packSize();
 	}
 
 	void pack(ByteBuffer buf) {
@@ -333,10 +309,12 @@ class BtreeMemNode extends BtreeNode {
 		int idx = index.get(i);
 		if (idx >= 0)
 			return dbnode.childNode(stor, idx);
-		TreeKeyRecord key = (TreeKeyRecord) added.get(-idx - 1);
-		if (key.child == null)
-			key.child = Btree.nodeAt(stor, level - 1, adr(key)); // cache
-		return key.child;
+		BtreeTreeKey key = (BtreeTreeKey) added.get(-idx - 1);
+		if (key.child() == null) {
+			BtreeNode node = Btree.nodeAt(stor, level - 1, key.childAddress());
+			key.setChild(node); // cache
+		}
+		return key.child();
 	}
 
 	@Override

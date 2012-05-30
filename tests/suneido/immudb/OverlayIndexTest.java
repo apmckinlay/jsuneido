@@ -43,8 +43,8 @@ public class OverlayIndexTest extends IndexIterTestBase {
 		assertEquals(0, index.get(rec("d")));
 	}
 
-	private static Record key(String s, int adr) {
-		return new RecordBuilder().add(s).adduint(adr).build();
+	private static BtreeKey key(String s, int adr) {
+		return new RecordBuilder().add(s).btreeKey(adr);
 	}
 
 	private static Record rec(String s) {

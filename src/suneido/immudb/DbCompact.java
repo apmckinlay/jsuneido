@@ -79,7 +79,7 @@ class DbCompact {
 			Table newtable = t.ck_getTable(tablename);
 			IndexIter iter = rt.iter(oldtable.num, null);
 			for (iter.next(); ! iter.eof(); iter.next()) {
-				Record r = rt.input(iter.keyadr());
+				DataRecord r = rt.input(iter.keyadr());
 				if (squeeze)
 					r = squeezeRecord(r, fields);
 				last = t.loadRecord(newtable.num, r);
@@ -97,7 +97,7 @@ class DbCompact {
 		return fields.indexOf("-") != -1;
 	}
 
-	private static Record squeezeRecord(Record rec, List<String> fields) {
+	private static DataRecord squeezeRecord(DataRecord rec, List<String> fields) {
 		RecordBuilder rb = new RecordBuilder();
 		int i = 0;
 		for (String f : fields) {

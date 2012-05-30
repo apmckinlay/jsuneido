@@ -79,6 +79,7 @@ class DbLoad {
 
 	private static int load_data(Database db, ReadableByteChannel in, String tablename)
 			throws IOException {
+		print(tablename);
 		int nrecs = 0;
 		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		ByteBuffer recbuf = ByteBuffer.allocate(4096).order(ByteOrder.LITTLE_ENDIAN);
@@ -88,6 +89,8 @@ class DbLoad {
 			int first = 0;
 			int last = 0;
 			for (;; ++nrecs) {
+				if (nrecs % 10000 == 0)
+					print(".");
 				int n = readInt(in, intbuf);
 				if (n == 0)
 					break;
@@ -98,6 +101,7 @@ class DbLoad {
 				if (first == 0)
 					first = last;
 			}
+			print(nrecs + "\n");
 			createIndexes(t, table, first, last);
 			t.ck_complete();
 		} finally {
@@ -110,27 +114,38 @@ class DbLoad {
 			BulkTransaction t, ByteBuffer recbuf, int n)
 			throws IOException {
 		fullRead(in, recbuf, n);
-		Record rec = Record.from(recbuf);
+		DataRecord rec = new DataRecord(recbuf);
 		return t.loadRecord(tblnum, rec);
 	}
 
 	static void createIndexes(BulkTransaction t, Table table, int first, int last) {
 		if (first == 0)
 			return; // no data
-		for (Index index : table.indexes)
+		for (Index index : table.indexes) {
+			print("\t" + index.columns(table.fields));
 			createIndex(t, first, last, index);
+		}
 	}
 
 	private static void createIndex(BulkTransaction t, int first, int last, Index index) {
 		TranIndex btree = t.getIndex(index.tblnum, index.colNums);
 		StoredRecordIterator iter = t.storedRecordIterator(first, last);
+		int i = 0;
 		while (iter.hasNext()) {
+			if (i++ % 10000 == 0)
+				print(".");
 			int adr = iter.nextAdr();
 			Record rec = iter.next();
-			Record key = IndexedData.key(rec, index.colNums, adr);
+			BtreeKey key = IndexedData.key(rec, index.colNums, adr);
 			btree.add(key, false);
 		}
+		print("^");
 		t.saveBtrees();
+		print("\n");
+	}
+
+	private static void print(String s) {
+		//System.out.print(s);
 	}
 
 	public static void main(String[] args) throws IOException  {

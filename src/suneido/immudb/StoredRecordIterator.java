@@ -26,10 +26,10 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 	}
 
 	@Override
-	public Record next() {
+	public DataRecord next() {
 		assert hasNext();
 		ByteBuffer buf = stor.buffer(adr);
-		Record r = Record.from(stor, adr);
+		DataRecord r = new DataRecord(stor, adr);
 		int len = r.storSize();
 		if (adr < last)
 			adr = stor.advance(adr, skipPadding(buf, len));

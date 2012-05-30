@@ -41,6 +41,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 	/** needs to be ordered tree for ReadWriteTransaction updateDbInfo */
 	protected final TreeMap<Index,TranIndex> updatedIndexes = Maps.newTreeMap();
 	private final TIntArrayList actions = new TIntArrayList();
+	protected static final short UPDATE = (short) 0;
+	protected static final short REMOVE = (short) -1;
+	protected static final short END = (short) -2;
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
@@ -73,19 +76,19 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int addRecord(int tblnum, Record rec) {
+	public int addRecord(int tblnum, DataRecord rec) {
 		int adr = super.addRecord(tblnum, rec);
 		actions.add(adr);
 		return adr;
 	}
 
 	@Override
-	public int updateRecord2(int tblnum, Record from, Record to) {
-		to.address = tran.refToInt(to);
+	public int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+		to.address(tran.refToInt(to));
 		int fromadr = super.updateRecord2(tblnum, from, to);
 		actions.add(UPDATE);
 		actions.add(fromadr);
-		actions.add(to.address);
+		actions.add(to.address());
 		return fromadr;
 	}
 
@@ -229,8 +232,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// COULD make reads a Table<tblnum,index>
 	// so you could easily get all the indexes for a tblnum
 	private void readValidation(int adr) {
-		Record r = input(adr);
-		Table table = ck_getTable(r.tblnum);
+		DataRecord r = input(adr);
+		Table table = ck_getTable(r.tblnum());
 		List<Index> indexes = table.indexesList();
 		for (Index index : indexes) {
 			TransactionReads tr = reads.get(index);
@@ -243,7 +246,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	private static Record key(Record r, int[] colNums) {
-		return new RecordBuilder().addFields(r, colNums).build();
+		return new RecordBuilder().addFields(r, colNums).arrayRec();
 	}
 
 	private void checkForWriteConflict(int del) {
@@ -294,7 +297,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	/** overridden by tests */
 	protected void storeAdd(int act) {
-		Record rec = (Record) tran.intToRef(act);
+		DataRecord rec = (DataRecord) tran.intToRef(act);
 		int adr = rec.store(tran.dstor);
 		tran.setAdr(act, adr);
 		inserts.add(adr);
@@ -384,14 +387,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 		} else {
 			OverlayIndex oti = (OverlayIndex) idx;
 			updated = ! oti.removedKeys.isEmpty();
-			for (Record key : oti.removedKeys)
+			for (BtreeKey key : oti.removedKeys)
 				global.remove(key);
 			local = oti.local();
 		}
 		Btree.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			Record key = iter.curKey();
-			if (false == global.add(translate(key), index.isKey, index.unique))
+			if (false == global.add(translate(iter.cur()), index.isKey, index.unique))
 				throw new Conflict("duplicate key");
 			updated = true;
 		}
@@ -409,14 +411,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return new Btree(tran, ii);
 	}
 
-	private Record translate(Record key) {
-		RecordBuilder rb = new RecordBuilder().addPrefix(key, key.size() - 1);
-		int intref = BtreeNode.adr(key);
+	private BtreeKey translate(BtreeKey key) {
+		int intref = key.adr();
 		assert IntRefs.isIntRef(intref);
 		int adr = tran.getAdr(intref);
 		assert adr != 0;
-		rb.adduint(adr);
-		return rb.build();
+		return new BtreeKey(key.key, adr);
 	}
 
 	// -------------------------------------------------------------------------
@@ -437,7 +437,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
 		commitTime = trans.clock();
 		trans.commit(this);
-		//db.persist(); // for testing - persist after every transaction
+		// db.persist(); // for testing - persist after every transaction
 	}
 
 	// end of commit =========================================================

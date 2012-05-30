@@ -6,6 +6,8 @@ package suneido.immudb;
 
 import java.util.Arrays;
 
+import suneido.immudb.Bootstrap.TN;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -96,8 +98,8 @@ class TableInfo extends DbHashTrie.Entry {
 			rb.add(tblnum).add(nextfield).add(nrows).add(totalsize);
 			for (IndexInfo info : indexInfo)
 				info.addToRecord(rb);
-			Record r = rb.build();
-			r.tblnum = 1;
+			DataRecord r = rb.build();
+			r.tblnum(TN.TABLES);
 			adr = r.store(stor);
 		}
 		return adr;

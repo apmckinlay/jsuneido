@@ -26,9 +26,6 @@ import com.google.common.primitives.Ints;
  * Base class with common code for UpdateTransaction and BulkTransaction
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
-	protected static final short UPDATE = (short) 0;
-	protected static final short REMOVE = (short) -1;
-	protected static final short END = (short) -2;
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
@@ -50,29 +47,29 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record r) {
 		Table tbl = getTable(table);
-		Record rec = truncateRecord(tbl.num, r);
+		DataRecord rec = truncateRecord(tbl.num, r);
 		addRecord(tbl.num, rec);
 		callTrigger(tbl, null, rec); // must be final step - may throw
 	}
 
-	int addRecord(int tblnum, Record rec) {
+	int addRecord(int tblnum, DataRecord rec) {
 		verifyNotSystemTable(tblnum, "output");
 		assert locked;
 		onlyReads = false;
-		rec.tblnum = tblnum;
+		rec.tblnum(tblnum);
 		int adr = indexedData(tblnum).add(rec);
 		updateRowInfo(tblnum, 1, rec.bufSize());
 		return adr;
 	}
 
 	/** for client-server extend bug */
-	private Record truncateRecord(int tblnum, suneido.intfc.database.Record r) {
+	private DataRecord truncateRecord(int tblnum, suneido.intfc.database.Record r) {
 		if (tblnum > 3) {
 			TableInfo ti = getTableInfo(tblnum);
 			if (r.size() > ti.nextfield)
 				return new RecordBuilder().addAll(r).truncate(ti.nextfield).build();
 		}
-		return (Record) r;
+		return (DataRecord) r;
 	}
 
 	// update ------------------------------------------------------------------
@@ -81,8 +78,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
-		Record from = tran.getrec(fromadr);
-		updateRecord(from.tblnum, from, to);
+		DataRecord from = tran.getrec(fromadr);
+		updateRecord(from.tblnum(), from, to);
 		return 1; // don't know record address till commit
 	}
 
@@ -90,18 +87,18 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
 			suneido.intfc.database.Record r) {
-		Record to = truncateRecord(tblnum, r);
-		updateRecord2(tblnum, (Record) from, to);
+		DataRecord to = truncateRecord(tblnum, r);
+		updateRecord2(tblnum, (DataRecord) from, to);
 		// must be final step - may throw
 		callTrigger(ck_getTable(tblnum), from, to);
 		return 1; // don't know record address till commit
 	}
 
-	int updateRecord2(int tblnum, Record from, Record to) {
+	int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		verifyNotSystemTable(tblnum, "update");
 		assert locked;
 		onlyReads = false;
-		to.tblnum = tblnum;
+		to.tblnum(tblnum);
 		int adr = indexedData(tblnum).update(from, to);
 		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 		return adr;
@@ -125,8 +122,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	@Override
 	public void removeRecord(int adr) {
-		Record rec = tran.getrec(adr);
-		removeRecord(rec.tblnum, rec);
+		DataRecord rec = tran.getrec(adr);
+		removeRecord(rec.tblnum(), rec);
 	}
 
 	@Override

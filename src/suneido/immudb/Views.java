@@ -11,7 +11,7 @@ class Views {
 	static final int[] INDEX_COLS = new int[] { 0 };
 
 	static void addView(SchemaTransaction t, String name, String definition) {
-		Record r = new RecordBuilder().add(name).add(definition).build();
+		DataRecord r = new RecordBuilder().add(name).add(definition).build();
 		t.addRecord(Bootstrap.TN.VIEWS, r);
 	}
 
@@ -33,7 +33,7 @@ class Views {
 	}
 
 	private static Record getViewRecord(ReadTransaction t, String name) {
-		Record key = new RecordBuilder().add(name).build();
+		Record key = new RecordBuilder().add(name).arrayRec();
 		return t.lookup(Bootstrap.TN.VIEWS, INDEX_COLS, key);
 	}
 

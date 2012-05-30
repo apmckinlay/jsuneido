@@ -15,8 +15,8 @@ import suneido.util.FileUtils;
 public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	public static final DatabasePackage dbpkg = new DatabasePackage();
 	static final String DB_FILENAME = "suneido.db"; // will have .dbd and .dbi
-	static final Record MIN_RECORD = new RecordBuilder().build();
-	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).build();
+	static final Record MIN_RECORD = Record.EMPTY;
+	static final Record MAX_RECORD = new RecordBuilder().add(Record.MAX_FIELD).bufRec();
 
 	private DatabasePackage() {
 	}
@@ -63,7 +63,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 		ByteBuffer buf = ByteBuffer.allocate(inbuf.remaining());
 		buf.put(inbuf);
 		buf.rewind();
-		return record(buf);
+		return new DataRecord(buf);
 	}
 
 	@Override

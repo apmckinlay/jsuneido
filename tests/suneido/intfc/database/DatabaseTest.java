@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class DatabaseTest extends TestBase {
 	public void add_remove() {
 		makeTable();
 
-		Record r = dbpkg.recordBuilder().add(12).add(34).build();
+		Record r = rec(12, 34);
 		Transaction t = db.updateTransaction();
 		t.addRecord("test", r);
 		t.ck_complete();

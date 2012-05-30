@@ -41,53 +41,44 @@ public class IndexedDataTest {
 	public void test() {
 		id.add(record("a", "b", "c"));
 
-		ArgumentCaptor<Record> arg = ArgumentCaptor.forClass(Record.class);
+		ArgumentCaptor<BtreeKey> arg = ArgumentCaptor.forClass(BtreeKey.class);
 		verify(btree1).add(arg.capture(), eq(true));
-		Record r = arg.getValue();
-		assertThat(r.size(), is(2));
-		assertThat((String) r.get(0), is("a"));
+		assertThat(arg.getValue().key, is(record("a")));
 
 		verify(btree2).add(arg.capture(), eq(false));
-		r = arg.getValue();
-		assertThat(r.size(), is(2));
-		assertThat((String) r.get(0), is("c"));
+		assertThat(arg.getValue().key, is(record("c")));
 
 		verify(btree3).add(arg.capture(), eq(true));
-		r = arg.getValue();
-		assertThat(r.size(), is(3));
-		assertThat((String) r.get(0), is("b"));
-		assertThat((String) r.get(1), is("c"));
+		assertThat(arg.getValue().key, is(record("b", "c")));
 
 		verify(btree4).add(arg.capture(), eq(false));
-		r = arg.getValue();
-		assertThat(r.size(), is(2));
-		assertThat((String) r.get(0), is(""));
+		assertThat(arg.getValue().key, is(record("")));
 	}
 
 	@Test
 	public void dup_undo() {
-		when(btree3.add(any(Record.class), anyBoolean())).thenReturn(false);
-		when(btree1.remove(any(Record.class))).thenReturn(true);
-		when(btree2.remove(any(Record.class))).thenReturn(true);
+		when(btree3.add(any(BtreeKey.class), anyBoolean())).thenReturn(false);
+		when(btree1.remove(any(BtreeKey.class))).thenReturn(true);
+		when(btree2.remove(any(BtreeKey.class))).thenReturn(true);
 		try {
 			id.add(record("a", "b", "c"));
 			fail();
 		} catch (RuntimeException e) {
 			assertTrue(e.toString(), e.toString().contains("duplicate key"));
 		}
-		verify(btree1).add(any(Record.class), anyBoolean());
-		verify(btree2).add(any(Record.class), anyBoolean());
-		verify(btree3).add(any(Record.class), anyBoolean());
-		verify(btree4, never()).add(any(Record.class), anyBoolean());
-		verify(btree1).remove(any(Record.class));
-		verify(btree2).remove(any(Record.class));
-		verify(btree3, never()).remove(any(Record.class));
-		verify(btree4, never()).remove(any(Record.class));
+		verify(btree1).add(any(BtreeKey.class), anyBoolean());
+		verify(btree2).add(any(BtreeKey.class), anyBoolean());
+		verify(btree3).add(any(BtreeKey.class), anyBoolean());
+		verify(btree4, never()).add(any(BtreeKey.class), anyBoolean());
+		verify(btree1).remove(any(BtreeKey.class));
+		verify(btree2).remove(any(BtreeKey.class));
+		verify(btree3, never()).remove(any(BtreeKey.class));
+		verify(btree4, never()).remove(any(BtreeKey.class));
 	}
 
 	private static Btree mockBtree() {
 		Btree btree1 = mock(Btree.class);
-		when(btree1.add(any(Record.class), anyBoolean())).thenReturn(true);
+		when(btree1.add(any(BtreeKey.class), anyBoolean())).thenReturn(true);
 		return btree1;
 	}
 
@@ -95,8 +86,8 @@ public class IndexedDataTest {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object x : values)
 			rb.add(x);
-		Record rec = rb.build();
-		rec.address = 1;
+		DataRecord rec = rb.build();
+		rec.address(1);
 		return rec;
 	}
 

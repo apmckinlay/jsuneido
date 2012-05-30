@@ -41,9 +41,10 @@ public class TransactionTest extends TestBase {
 	public void visibility() {
 		db.tranlist().isEmpty();
 
-		makeTable(300);
-		before = new int[] { 0, 1, 2, 297, 298, 299 };
-		after = new int[] { 1, 2, 3, 298, 299, 9999 };
+		final int N = 300;
+		makeTable(N);
+		before = new int[] { 0, 1, 2, N-3, N-2, N-1 };
+		after = new int[] { 1, 2, 3, N-2, N-1, 9999 };
 
 		Transaction t1 = add_remove();
 

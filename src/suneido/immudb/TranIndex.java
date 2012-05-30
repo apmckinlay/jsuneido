@@ -11,13 +11,13 @@ import suneido.intfc.database.IndexIter;
  */
 interface TranIndex {
 
-	boolean add(Record key, boolean unique);
+	boolean add(BtreeKey key, boolean unique);
 
 	int get(Record key);
 
-	Update update(Record oldkey, Record newkey, boolean unique);
+	Update update(BtreeKey oldkey, BtreeKey newkey, boolean unique);
 
-	boolean remove(Record key);
+	boolean remove(BtreeKey key);
 
 	Iter iterator();
 

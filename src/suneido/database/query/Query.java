@@ -66,6 +66,7 @@ public abstract class Query {
 	public abstract void rewind();
 
 	public abstract Row get(Dir dir);
+
 	List<Fixed> fixed() {
 		return Collections.emptyList();
 	}

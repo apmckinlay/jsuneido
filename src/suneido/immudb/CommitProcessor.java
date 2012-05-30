@@ -4,9 +4,9 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.ReadWriteTransaction.END;
-import static suneido.immudb.ReadWriteTransaction.REMOVE;
-import static suneido.immudb.ReadWriteTransaction.UPDATE;
+import static suneido.immudb.UpdateTransaction.END;
+import static suneido.immudb.UpdateTransaction.REMOVE;
+import static suneido.immudb.UpdateTransaction.UPDATE;
 
 import java.nio.ByteBuffer;
 
@@ -35,7 +35,7 @@ abstract class CommitProcessor {
 		type(c);
 		buf = advance(1);
 
-		Record from = null;
+		DataRecord from = null;
 		while (true) {
 			short b = buf.getShort();
 			if (b == END)
@@ -43,15 +43,15 @@ abstract class CommitProcessor {
 			else if (b == REMOVE || b == UPDATE) {
 				assert from == null;
 				int recadr = buf.getInt();
-				BufRecord r = new BufRecord(stor, recadr);
+				DataRecord r = new DataRecord(stor, recadr);
 				if (b == REMOVE)
 					remove(r);
 				else // UPDATE
 					from = r;
 				buf = advance(Shorts.BYTES + Ints.BYTES);
 			} else { // add
-				Record r = new BufRecord(buf.slice());
-				r.tblnum = b;
+				DataRecord r = new DataRecord(buf.slice());
+				r.tblnum(b);
 				if (from == null)
 					add(r);
 				else {
@@ -71,11 +71,11 @@ abstract class CommitProcessor {
 
 	abstract void type(char c);
 
-	abstract void update(Record from, Record to);
+	abstract void update(DataRecord from, DataRecord to);
 
-	abstract void remove(Record r);
+	abstract void remove(DataRecord r);
 
-	abstract void add(Record r);
+	abstract void add(DataRecord r);
 
 	abstract void after();
 
