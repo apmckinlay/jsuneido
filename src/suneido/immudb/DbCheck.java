@@ -141,7 +141,7 @@ class DbCheck {
 	}
 
 	public static void main(String[] args) {
-		String dbfilename = DatabasePackage.dbpkg.dbFilename();
+		String dbfilename = "suneido.db";
 		System.out.println("Fastcheck " + dbfilename + " " +
 				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
 		DbTools.checkPrintExit(DatabasePackage.dbpkg, dbfilename);

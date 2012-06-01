@@ -95,7 +95,6 @@ class IndexedData {
 			adr = firstKey().getKeyAdr(rec);
 		if (adr == 0)
 			throw new SuException("remove couldn't find record");
-		//TODO check if record exists (in case it was already deleted)
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				// can't undo like add, may have cascaded

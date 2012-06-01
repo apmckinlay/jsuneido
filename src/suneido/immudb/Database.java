@@ -54,6 +54,7 @@ class Database implements suneido.intfc.database.Database {
 
 	// open
 
+	/** @return null if fast check fails */
 	static Database open(String filename) {
 		return open(new MmapFile(filename + "d", "rw"),
 				new MmapFile(filename + "i", "rw"));
@@ -288,7 +289,7 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void force() {
-System.out.println("PERSIST");
+		//System.out.println("PERSIST");
 		persist();
 	}
 

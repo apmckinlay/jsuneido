@@ -171,6 +171,7 @@ public class DbmsServerBySelect {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
+e.printStackTrace();
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			line = null;

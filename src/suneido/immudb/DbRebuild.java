@@ -14,6 +14,8 @@ import java.util.Date;
 import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
 
+//TODO also display last good index persist
+
 class DbRebuild {
 	private final String oldFilename;
 	private final String newFilename;
@@ -47,14 +49,20 @@ class DbRebuild {
 	}
 
 	protected String rebuild() {
+		System.out.println("Checking...");
 		check = new Check(dstor, istor);
 		try {
 			check.fullcheck();
 			lastOkDate = check.lastOkDate();
+			if (lastOkDate == null)
+				System.out.println("No usable indexes");
+			else
+				System.out.println("Database intact up to " +
+						new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lastOkDate));
 			fix();
 			if (lastOkDate == null)
 				return null;
-			return "Last commit " +
+			return "Last good commit " +
 					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lastOkDate);
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
@@ -71,7 +79,10 @@ class DbRebuild {
 		Database db = (check.dIter.okSize == 0)
 				? Database.create(newFilename)
 				: Database.open(newFilename);
+		assert db != null;
 		try {
+			if (check.dIter.notFinished())
+				System.out.println("Reprocessing remaining data...");
 			reprocess(db);
 		} finally {
 			db.close();
@@ -82,9 +93,14 @@ class DbRebuild {
 		if (check.dIter.okSize == 0)
 			return;
 		try {
+			System.out.println("Copying " + check.dIter.okSize + " bytes of data file...");
 			FileUtils.copy(new File(oldFilename + "d"), new File(newFilename + "d"),
 					check.dIter.okSize);
 			copiedDataSize = check.dIter.okSize;
+//			if (check.iIter.okSize > 0)
+			long discard = istor.sizeFrom(0) - check.iIter.okSize;
+			System.out.println("Copying " + check.iIter.okSize + " bytes of index file" +
+					" (discarding " + discard + ")...");
 			FileUtils.copy(new File(oldFilename + "i"), new File(newFilename + "i"),
 					check.iIter.okSize);
 		} catch (IOException e) {
@@ -102,6 +118,11 @@ class DbRebuild {
 			lastOkDate = check.dIter.date();
 		}
 		db.close();
+		long discard = dstor.sizeFrom(0) - check.dIter.okSize;
+		if (discard == 0)
+			System.out.println("Recovered all data");
+		else
+			System.out.println("Could not recover " + discard + " bytes of data");
 	}
 
 	private final TIntObjectHashMap<String> tblnames = new TIntObjectHashMap<String>();
@@ -290,13 +311,13 @@ class DbRebuild {
 	}
 
 	public static void main(String[] args) {
-		new File("suneido.dbi").renameTo(new File("suneido.dbi.bak")); // force complete rebuild
+		//new File("suneido.dbi").renameTo(new File("suneido.dbi.bak")); // force complete rebuild
 		String result = rebuild("suneido.db", "suneido.rbld");
 		if (result == null)
 			System.out.println("rebuild failed");
 		else
 			System.out.println("rebuilt as of " + result);
-		new File("suneido.dbi.bak").renameTo(new File("suneido.dbi"));
+		//new File("suneido.dbi.bak").renameTo(new File("suneido.dbi"));
 	}
 
 }
