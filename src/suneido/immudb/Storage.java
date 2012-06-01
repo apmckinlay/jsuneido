@@ -29,7 +29,7 @@ abstract class Storage {
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
 	protected final ByteBuffer[] chunks;
-	protected final int CHUNK_SIZE;
+	final int CHUNK_SIZE;
 	protected volatile long file_size;
 
 	Storage(int chunkSize, int maxChunks) {
