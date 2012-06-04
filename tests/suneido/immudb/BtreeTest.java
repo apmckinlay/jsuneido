@@ -310,6 +310,23 @@ public class BtreeTest {
 		assertTrue(iter.eof());
 	}
 
+	@Test
+	public void iters_stick_at_eof() {
+		add(3);
+		Btree.Iter iter = btree.iterator();
+		for (iter.next(); ! iter.eof(); iter.next())
+			;
+		assertTrue(iter.eof());
+		iter.next();
+		assertTrue(iter.eof());
+		iter.prev();
+		assertTrue(iter.eof());
+		Btree.Iter iter2 = btree.iterator(iter);
+		assertTrue(iter2.eof());
+		iter.next();
+		assertTrue(iter2.eof());
+	}
+
 	public Btree.Iter checkIterate() {
 		Collections.sort(keys);
 

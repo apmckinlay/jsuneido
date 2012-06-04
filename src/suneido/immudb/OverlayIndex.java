@@ -125,11 +125,8 @@ class OverlayIndex implements TranIndex {
 	}
 
 	/**
-	 * Extends MergeIndexIter to handle deletes.
-	 * Inserts are recorded as ProjectRecord's.
-	 * Actual keys are unique (because they contain the data record address)
-	 * So a duplicate is assumed to be a delete
-	 * And you only have to peek ahead one record to check for a delete
+	 * Extends MergeIndexIter to handle deletes
+	 * and to track the range of keys iterated over (for read validation).
 	 */
 	static class Iter extends MergeIndexIter {
 		private final TIntHashSet deletes;

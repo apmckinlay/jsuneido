@@ -5,9 +5,10 @@
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
-import suneido.*;
+import suneido.SuException;
+import suneido.SuValue;
+import suneido.TheDbms;
 import suneido.database.query.Query.Dir;
-import suneido.database.query.Row;
 import suneido.language.*;
 
 public class Cursor extends SuQuery {
@@ -53,8 +54,7 @@ public class Cursor extends SuQuery {
 			throw new SuException("usage: cursor.Next/Prev(transaction)");
 		SuTransaction t = (SuTransaction) arg;
 		q.setTransaction(t.getTransaction());
-		Row row = q.get(dir);
-		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
+		return super.getrec(dir);
 	}
 
 	@Override
