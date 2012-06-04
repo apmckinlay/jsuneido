@@ -125,7 +125,7 @@ public class SuQuery extends SuValue {
 		}
 	}
 
-	private Object getrec(Dir dir) {
+	protected Object getrec(Dir dir) {
 		if (eof == dir)
 			return Boolean.FALSE;
 		Row row = q.get(dir);

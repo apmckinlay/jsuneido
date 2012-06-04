@@ -359,6 +359,7 @@ class Btree implements TranIndex {
 
 		private Iter(Iter iter) {
 			this(iter.from, iter.to, iter.cur, iter.rewound, iter.prevAdr);
+			assert eof() == iter.eof();
 		}
 
 		private Iter(BtreeKey from, BtreeKey to, BtreeKey cur, boolean rewound, int prevAdr) {

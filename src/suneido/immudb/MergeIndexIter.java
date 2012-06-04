@@ -35,6 +35,7 @@ class MergeIndexIter implements TranIndex.Iter {
 			curIter = iter2;
 		else
 			assert iter.curIter == null;
+		assert eof() == iter.eof();
 		rewound = iter.rewound;
 		lastDir = iter.lastDir;
 	}
