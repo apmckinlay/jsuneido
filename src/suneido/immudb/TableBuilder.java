@@ -135,10 +135,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	public void addColumn2(String column) {
 		int field = isRuleField(column) ? -1 : nextField++;
 		if (field == -1)
-			column = column.substring(0, 1).toLowerCase() + column.substring(1);
+			column = uncapitalize(column);
 		Column c = new Column(tblnum, field, column);
 		st().addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
+	}
+
+	private static String uncapitalize(String column) {
+		return column.substring(0, 1).toLowerCase() + column.substring(1);
 	}
 
 	private static boolean isRuleField(String column) {
@@ -269,6 +273,8 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private static int findColumn(List<Column> columns, String column) {
+		if (isRuleField(column))
+			column = uncapitalize(column);
 		for (int i = 0; i < columns.size(); ++i) {
 			Column c = columns.get(i);
 			if (c.name.equals(column))
