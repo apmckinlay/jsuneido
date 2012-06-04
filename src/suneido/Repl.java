@@ -23,9 +23,6 @@ package suneido;
  TestRunner.Run(#(polib), skipTags: #(windows), quit_on_failure:)
 
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
-
- BookModel.Create('ETA'); LibTreeModel.Create('configlib'); Wipeout_DemoData()
- Create_DemoData('CAD')
  */
 
 import java.io.BufferedReader;
