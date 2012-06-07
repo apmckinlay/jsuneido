@@ -185,9 +185,9 @@ public class DbTools {
 		String tempfile = arg.substring(i + SEPARATOR.length());
 		String result = dbpkg.rebuild(dbFilename, tempfile);
 		if (result == null)
-			fatal("Rebuild failed " + dbFilename + " UNRECOVERABLE");
+			fatal("Rebuild " + dbFilename + ": FAILED");
 		else {
-			errlog("Rebuilt " + dbFilename + " " + result);
+			errlog("Rebuild " + dbFilename + ": " + result);
 			System.out.println("Rebuild SUCCEEDED");
 		}
 	}

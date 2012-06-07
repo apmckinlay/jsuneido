@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,6 +33,7 @@ class MmapFile extends Storage {
 	private final FileChannel fc;
 	final File file;
 	long starting_file_size;
+	private int last_force;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -59,6 +61,7 @@ class MmapFile extends Storage {
 		}
 		fc = fin.getChannel();
 		findEnd();
+		last_force = offsetToChunk(file_size);
 	}
 
 	/** handle zero padding caused by memory mapping */
@@ -99,10 +102,23 @@ class MmapFile extends Storage {
 	}
 
 	@Override
+	synchronized void force() {
+		for (int i = last_force; i <= offsetToChunk(file_size); ++i)
+			if (chunks[i] != null)
+				try {
+					((MappedByteBuffer) chunks[i]).force();
+					last_force = i;
+				} catch (Exception e) {
+					// ignore intermittent IoExceptions on Windows
+				}
+	}
+
+	@Override
 	void close() {
 //		if (mode == FileChannel.MapMode.READ_WRITE)
 //			System.out.println(file + " size " + file_size +
 //					" grew " + (file_size - starting_file_size));
+		force();
 		try {
 			fc.close();
 			fin.close();

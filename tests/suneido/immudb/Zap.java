@@ -13,9 +13,9 @@ import java.nio.ByteBuffer;
 public class Zap {
 
 	public static void main(String[] args) {
-		String filename = "suneido.dbd";
+		String filename = "suneido.dbi";
 		MmapFile mmf = new MmapFile(filename, "rw");
-		final int N = -10000;
+		final int N = -200000; // negative for end relative
 		ByteBuffer buf = mmf.buffer(N);
 		buf.putLong(~0L);
 		mmf.close();
