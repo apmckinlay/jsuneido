@@ -126,6 +126,10 @@ public class SuQuery extends SuValue {
 	}
 
 	protected Object getrec(Dir dir) {
+		return getrec(dir, t);
+	}
+
+	protected Object getrec(Dir dir, DbmsTran t) {
 		if (eof == dir)
 			return Boolean.FALSE;
 		Row row = q.get(dir);
