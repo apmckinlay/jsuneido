@@ -9,6 +9,7 @@ import suneido.SuException;
 import suneido.SuValue;
 import suneido.TheDbms;
 import suneido.database.query.Query.Dir;
+import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
 public class Cursor extends SuQuery {
@@ -52,9 +53,9 @@ public class Cursor extends SuQuery {
 	private Object getrec(Object arg, Dir dir) {
 		if (!(arg instanceof SuTransaction))
 			throw new SuException("usage: cursor.Next/Prev(transaction)");
-		SuTransaction t = (SuTransaction) arg;
-		q.setTransaction(t.getTransaction());
-		return super.getrec(dir);
+		DbmsTran t = ((SuTransaction) arg).getTransaction();
+		q.setTransaction(t);
+		return super.getrec(dir, t);
 	}
 
 	@Override
