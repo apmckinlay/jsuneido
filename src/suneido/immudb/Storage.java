@@ -133,12 +133,16 @@ abstract class Storage {
 	/** @return the chunk containing the specified offset */
 	protected ByteBuffer map(long offset) {
 		assert 0 <= offset && offset < file_size;
-		int chunk = (int) (offset / CHUNK_SIZE);
+		int chunk = offsetToChunk(offset);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);
 			chunks[chunk].order(ByteOrder.BIG_ENDIAN);
 		}
 		return chunks[chunk];
+	}
+
+	protected int offsetToChunk(long offset) {
+		return (int) (offset / CHUNK_SIZE);
 	}
 
 	protected abstract ByteBuffer get(int chunk);
@@ -174,6 +178,9 @@ abstract class Storage {
 		if (pos < 0)
 			pos += file_size;
 		return 0 <= pos && pos < file_size;
+	}
+
+	void force() {
 	}
 
 	void close() {

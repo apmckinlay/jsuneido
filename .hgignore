@@ -59,3 +59,6 @@ syntax: regexp
 \.dbi$
 syntax: regexp
 \.zip$
+
+syntax: regexp
+^axis\.go$

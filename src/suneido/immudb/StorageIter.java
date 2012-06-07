@@ -16,12 +16,14 @@ class StorageIter {
 	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL };
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
-	int adr; // of current commit/persist
-	int size; // of current commit/persist
-	Status status = Status.OK;
+	/** address (not offset) of current commit/persist */
+	private int adr;
+	/** size of current commit/persist */
+	private int size;
+	/** date/time of current commit/persist */
 	private int date = 0;
+	private Status status = Status.OK;
 	private int cksum; // of current commit/persist
-	long okSize = 0;
 
 	StorageIter(Storage stor) {
 		this(stor, Storage.FIRST_ADR);
@@ -63,14 +65,14 @@ class StorageIter {
 		do
 			seek(stor.advance(adr, size));
 		while (date == 0 && ! eof());
-		if (status == Status.OK)
-			okSize = Storage.adrToOffset(adr);
 	}
 
 	void advance2() {
 		seek(stor.advance(adr, size));
-		if (status == Status.OK)
-			okSize = Storage.adrToOffset(adr);
+	}
+
+	Status status() {
+		return status;
 	}
 
 	int adr() {
@@ -79,6 +81,11 @@ class StorageIter {
 
 	int size() {
 		return size;
+	}
+
+	/** size of file up to and including the current commit/persist */
+	long sizeInc() {
+		return Storage.adrToOffset(adr) + size;
 	}
 
 	/** @return null for aborted commit */

@@ -14,8 +14,6 @@ import java.util.Date;
 import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
 
-//TODO also display last good index persist
-
 class DbRebuild {
 	private final String oldFilename;
 	private final String newFilename;
@@ -52,12 +50,13 @@ class DbRebuild {
 		System.out.println("Checking...");
 		check = new Check(dstor, istor);
 		try {
-			check.fullcheck();
+			if (check.fullcheck())
+				return "database appears OK, no rebuild done";
 			lastOkDate = check.lastOkDate();
 			if (lastOkDate == null)
 				System.out.println("No usable indexes");
 			else
-				System.out.println("Database intact up to " +
+				System.out.println("Data and indexes match up to " +
 						new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lastOkDate));
 			fix();
 			if (lastOkDate == null)
@@ -76,7 +75,7 @@ class DbRebuild {
 	/** overridden by tests */
 	protected void fix() {
 		copyGoodPrefix();
-		Database db = (check.dIter.okSize == 0)
+		Database db = (check.dOkSize() == 0)
 				? Database.create(newFilename)
 				: Database.open(newFilename);
 		assert db != null;
@@ -90,45 +89,52 @@ class DbRebuild {
 	}
 
 	private void copyGoodPrefix() {
-		if (check.dIter.okSize == 0)
+		if (check.dOkSize() == 0)
 			return;
 		try {
-			System.out.println("Copying " + check.dIter.okSize + " bytes of data file...");
+			System.out.println("Copying " + fmt(check.dOkSize()) + " bytes of data file...");
 			FileUtils.copy(new File(oldFilename + "d"), new File(newFilename + "d"),
-					check.dIter.okSize);
-			copiedDataSize = check.dIter.okSize;
-//			if (check.iIter.okSize > 0)
-			long discard = istor.sizeFrom(0) - check.iIter.okSize;
-			System.out.println("Copying " + check.iIter.okSize + " bytes of index file" +
-					" (discarding " + discard + ")...");
+					check.dOkSize());
+			copiedDataSize = check.dOkSize();
+			long discard = istor.sizeFrom(0) - check.iOkSize();
+			System.out.println("Copying " + fmt(check.iOkSize()) + " bytes of index file" +
+					" (discarding " + fmt(discard) + ")...");
 			FileUtils.copy(new File(oldFilename + "i"), new File(newFilename + "i"),
-					check.iIter.okSize);
+					check.iOkSize());
 		} catch (IOException e) {
 			throw new RuntimeException("Rebuild copy failed", e);
 		}
 	}
 
+	String fmt(long n) {
+		return String.format("%,d", n);
+	}
+
 	/** reprocess any good data after last matching persist */
 	// could copy remaining good data and then process in place
-	// but to start it's simpler to not copy and to apply normally to new db
+	// but simpler to not copy and to apply normally to new db
 	void reprocess(Database db) {
-		while (check.dIter.notFinished()) {
-			new Proc(db, dstor, check.dIter.adr).process();
-			check.dIter.advance();
-			lastOkDate = check.dIter.date();
+		long lastOkSize = check.dOkSize();
+		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(check.dOkSize()));
+		while (dIter.notFinished()) {
+			new Proc(db, dstor, dIter.adr()).process();
+			lastOkDate = dIter.date();
+			lastOkSize = dIter.sizeInc();
+			dIter.advance();
 		}
 		db.close();
-		long discard = dstor.sizeFrom(0) - check.dIter.okSize;
+		long discard = dstor.sizeFrom(0) - lastOkSize;
 		if (discard == 0)
 			System.out.println("Recovered all data");
 		else
-			System.out.println("Could not recover " + discard + " bytes of data");
+			System.out.println("Could not recover " + fmt(discard) + " bytes of data");
 	}
 
 	private final TIntObjectHashMap<String> tblnames = new TIntObjectHashMap<String>();
 
 	private class Proc extends CommitProcessor {
 		private final Database db;
+		private final ReadTransaction rt;
 		char type;
 		boolean skip;
 		TableBuilder tb;
@@ -141,6 +147,7 @@ class DbRebuild {
 		Proc(Database db, Storage stor, int adrFrom) {
 			super(stor, adrFrom);
 			this.db = db;
+			this.rt = db.readTransaction();
 		}
 
 		@Override
@@ -205,8 +212,7 @@ class DbRebuild {
 
 		@Override
 		void remove(DataRecord r) {
-			if (r.address() >= copiedDataSize)
-				r.address(0); // may have changed
+			clearAddress(r);
 			if (type == 'u') {
 				ut.removeRecord(r.tblnum(), r);
 			} else if (type == 's') {
@@ -243,8 +249,7 @@ class DbRebuild {
 
 		@Override
 		void update(DataRecord from, DataRecord to) {
-			if (from.address() >= copiedDataSize)
-				from.address(0); // may have changed
+			clearAddress(from);
 			to.address(0);
 			assert from.tblnum() == to.tblnum() : "from " + from.tblnum() + " to " + to.tblnum();
 			if (type == 'u') {
@@ -267,6 +272,11 @@ class DbRebuild {
 				assert false : "invalid type " + type;
 		}
 
+		void clearAddress(DataRecord r) {
+			if (Storage.adrToOffset(r.address()) >= copiedDataSize)
+				r.address(0); // may have changed
+		}
+
 		private void tbEnsure(int tblnum) {
 			if (tb != null)
 				return;
@@ -275,6 +285,8 @@ class DbRebuild {
 
 		protected String tableName(int tblnum) {
 			String tableName = tblnames.get(tblnum);
+			if (tableName == null)
+				tableName = rt.getTable(tblnum).name;
 			assert tableName != null : "unknown tblnum " + tblnum;
 			return tableName;
 		}
@@ -311,13 +323,12 @@ class DbRebuild {
 	}
 
 	public static void main(String[] args) {
-		//new File("suneido.dbi").renameTo(new File("suneido.dbi.bak")); // force complete rebuild
-		String result = rebuild("suneido.db", "suneido.rbld");
+		String dbname = "suneido.db";
+		String result = rebuild(dbname, dbname + "rb");
 		if (result == null)
-			System.out.println("rebuild failed");
+			System.out.println("Rebuild " + dbname + ": FAILED");
 		else
-			System.out.println("rebuilt as of " + result);
-		//new File("suneido.dbi.bak").renameTo(new File("suneido.dbi"));
+			System.out.println("Rebuild " + dbname + ": " + result);
 	}
 
 }

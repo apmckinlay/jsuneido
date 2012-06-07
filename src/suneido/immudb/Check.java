@@ -7,18 +7,16 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import suneido.immudb.StorageIter.Status;
-
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 
 /**
- * Check database checksums.
+ * Check database integrity..
  * Used by DbCheck and DbRebuild.
- * Database.open uses fastcheck.
+ * Database.open uses fastcheck which only checks the end part of the database.
  */
 class Check {
-	private static final int FAST_NPERSISTS = 4;
+	private static final int FAST_NPERSISTS = 5;
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final int EMPTY = -2;
 	private static final int CORRUPT = -1;
@@ -28,7 +26,9 @@ class Check {
 	private int lastadr = 0;
 	private Date lastOkDate = null;
 	StorageIter dIter;
-	StorageIter iIter;
+	private StorageIter iIter;
+	private long dOkSize = 0;
+	private long iOkSize = 0;
 
 	/**
 	 * Used when opening a database to quickly check it,
@@ -50,7 +50,11 @@ class Check {
 		this.istor = istor;
 	}
 
-	/** Checks entire database. Used by DbCheck and DbRebuild */
+	/**
+	 * Checks entire database. Used by DbCheck and DbRebuild.
+	 * Verifies checksums and confirms that data and index files match.
+	 * @return true if the entire database appears valid
+	 */
 	boolean fullcheck() {
 		return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
 	}
@@ -61,7 +65,7 @@ class Check {
 		return (pos == CORRUPT) ? false : (pos == EMPTY) ? true : checkFrom(lastadr, pos);
 	}
 
-	/** scan backwards to find the n'th last persist */
+	/** Scan backwards to find the n'th last persist */
 	private int findLast(int nPersists) {
 		long fileSize = istor.sizeFrom(0);
 		int pos = 0; // negative offset from end of file
@@ -111,9 +115,9 @@ class Check {
 		@Override
 		public String toString() {
 			return Objects.toStringHelper(this)
-					.add("dbinfoadr", dbinfoadr)
+					.add("dbinfoadr", Storage.adrToOffset(dbinfoadr))
 					.add("maxtblnum", maxtblnum)
-					.add("lastadr", lastadr)
+					.add("lastadr", Storage.adrToOffset(lastadr))
 					.add("lastcksum", Integer.toHexString(lastcksum))
 					.toString();
 		}
@@ -127,10 +131,14 @@ class Check {
 		dIter = new StorageIter(dstor, dAdr);
 		iIter = new StorageIter(istor, iAdr);
 		PersistInfo iInfo = null;
-		while (! dIter.eof() && ! iIter.eof()) {
+		while (dIter.notFinished() && iIter.notFinished()) {
 			if (iInfo == null)
-				iInfo = Check.info(istor, iIter.adr, iIter.size);
-			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr) {
+				iInfo = Check.info(istor, iIter.adr(), iIter.size());
+			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr()) {
+				dOkSize = dIter.sizeInc();
+				iOkSize = iIter.sizeInc();
+				if (dIter.date() != null)
+					lastOkDate = dIter.date();
 				iIter.advance();
 				iInfo = null;
 				if (iIter.eof())
@@ -139,16 +147,22 @@ class Check {
 				dIter.advance();
 			else // diter has gone past iIter with no match - no point continuing
 				break;
-			if (dIter.status != Status.OK || iIter.status != Status.OK)
-				break;
-			if (dIter.date() != null)
-				lastOkDate = dIter.date();
 		}
 		return dIter.eof() && iIter.eof();  // matched all the way to the end
 	}
 
 	Date lastOkDate() {
 		return lastOkDate;
+	}
+
+	/** The size of data where data and indexes match */
+	long dOkSize() {
+		return dOkSize;
+	}
+
+	/** The size of indexes where data and indexes match */
+	long iOkSize() {
+		return iOkSize;
 	}
 
 }

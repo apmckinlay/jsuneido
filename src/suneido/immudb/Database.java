@@ -290,7 +290,9 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void force() {
 		//System.out.println("PERSIST");
+		dstor.force();
 		persist();
+		istor.force();
 	}
 
 	@Override

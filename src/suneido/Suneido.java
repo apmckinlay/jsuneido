@@ -165,13 +165,6 @@ public class Suneido {
 						db.limitOutstandingTransactions();
 					}
 				}, 1, TimeUnit.SECONDS);
-		scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.force();
-					}
-				}, 1, TimeUnit.MINUTES);
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
@@ -194,6 +187,13 @@ public class Suneido {
 				db.close();
 			}
 		});
+		scheduleAtFixedRate(
+				new Runnable() {
+					@Override
+					public void run() {
+						db.force();
+					}
+				}, 1, TimeUnit.MINUTES);
 	}
 
 	private static void printHelp() {
