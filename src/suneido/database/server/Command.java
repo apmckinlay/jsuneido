@@ -79,13 +79,15 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
+			getnum('T', line); // ignore
 			int n;
 			if (-1 != (n = getnum('Q', line)))
 				ServerData.forThread().endQuery(n);
 			else if (-1 != (n = getnum('C', line)))
 				ServerData.forThread().endCursor(n);
 			else
-				throw new SuException("CLOSE expects Q# or C#");
+				throw new SuException("CLOSE expects Q# or C# got: " +
+						bufferToString(line));
 			return ok();
 		}
 	},
@@ -368,6 +370,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
+			getnum('T', line); // ignore
 			DbmsQuery q = q_or_c(line);
 			q.rewind();
 			return ok();
@@ -514,9 +517,6 @@ public enum Command {
 	 * Skips whitespace then looks for 'type' char followed by digits, starting
 	 * at buf's current position. If successful, advances buf's position to past
 	 * digits and following whitespace
-	 *
-	 * @param type
-	 * @param buf
 	 * @return The digits converted to an int, or -1 if unsuccessful.
 	 */
 	static int getnum(char type, ByteBuffer buf) {
@@ -560,7 +560,7 @@ public enum Command {
 		else if (-1 != (n = getnum('C', buf)))
 			q = ServerData.forThread().getCursor(n);
 		else
-			throw new SuException("expecting Q# or C#");
+			throw new SuException("expecting Q# or C# got: " + bufferToString(buf));
 		if (q == null)
 			throw new SuException("valid query or cursor required");
 		return q;

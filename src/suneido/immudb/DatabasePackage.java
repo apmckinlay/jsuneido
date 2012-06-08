@@ -4,7 +4,6 @@
 
 package suneido.immudb;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -106,9 +105,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public String forceRebuild(String dbFilename, String tempfilename) {
-		// remove index file to force reprocessing all the data
-		new File(dbFilename + "i").delete();
-		return rebuild(dbFilename, tempfilename);
+		return DbRebuild.forceRebuild(dbFilename, tempfilename);
 	}
 
 	@Override
