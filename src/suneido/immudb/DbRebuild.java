@@ -25,14 +25,19 @@ class DbRebuild {
 
 	/** @return A completion string if successful, null if not. */
 	public static String rebuild(String oldFilename, String newFilename) {
-		return new DbRebuild(oldFilename, newFilename).rebuild();
+		return new DbRebuild(oldFilename, newFilename, false).rebuild();
 	}
 
-	private DbRebuild(String oldFilename, String newFilename) {
+	/** used by tests */
+	public static String forceRebuild(String oldFilename, String newFilename) {
+		return new DbRebuild(oldFilename, newFilename, true).rebuild();
+	}
+
+	private DbRebuild(String oldFilename, String newFilename, boolean force) {
 		this.oldFilename = oldFilename;
 		this.newFilename = newFilename;
 		dstor = new MmapFile(oldFilename + "d", "r");
-		if (new File(oldFilename + "i").canRead())
+		if (! force && new File(oldFilename + "i").canRead())
 			istor = new MmapFile(oldFilename + "i", "r");
 		else
 			istor = new MemStorage();
