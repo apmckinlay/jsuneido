@@ -118,8 +118,22 @@ class BtreeMemNode extends BtreeNode {
 	private void add(BtreeKey key) {
 		assert ! immutable;
 		assert isLeaf() || key instanceof BtreeTreeKey;
+		if (added.size() >= Byte.MAX_VALUE)
+			cleanAdded();
 		added.add(key);
-		assert added.size() < Byte.MAX_VALUE;
+	}
+
+	private void cleanAdded() {
+		ArrayList<BtreeKey> clean = Lists.newArrayList();
+		for (int i = 0; i < index.size(); ++i) {
+			int idx = index.get(i);
+			if (idx < 0) {
+				index.set(i, (byte) (-1 - clean.size()));
+				clean.add(added.get(-idx - 1));
+			}
+		}
+		assert clean.size() < Byte.MAX_VALUE;
+		added = clean;
 	}
 
 	@Override
