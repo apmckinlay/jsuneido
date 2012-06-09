@@ -452,6 +452,21 @@ public class BtreeTest {
 		checkIterate();
 	}
 
+	@Test
+	public void update_many() {
+		rand = new Random(456978);
+		add(NKEYS);
+		Collections.shuffle(keys, rand);
+		for (int i = 0; i < 200; ++i) {
+			BtreeKey oldkey = keys.get(1);
+			BtreeKey newkey = new BtreeKey(oldkey.key, oldkey.adr() + 1);
+			keys.set(1, newkey);
+			assertThat(btree.update(oldkey, newkey, true), is(Update.OK));
+		}
+		check();
+		checkIterate();
+	}
+
 	private void update(int n) {
 		for (int i = 0; i < n; ++i) {
 			int k = rand.nextInt(NKEYS);
