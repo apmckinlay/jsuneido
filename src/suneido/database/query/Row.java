@@ -1,5 +1,6 @@
 package suneido.database.query;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static suneido.Suneido.dbpkg;
 
 import java.nio.ByteBuffer;
@@ -164,35 +165,41 @@ public class Row {
 	}
 
 	/**
-	 * Used by TempIndex and Project
-	 *
-	 * @return An array of either Long for database records,
+	 * Used by Project lookup
+	 * @return An array of either Integer for database records,
 	 * 		   or ByteBuffer for in-memory records (e.g. from Extend)
 	 */
 	public Object[] getRefs() {
-		Object[] refs = new Object[data.length];
-		for (int i = 0; i < data.length; ++i)
-			refs[i] = data[i].getRef();
-		return refs;
-	}
-	public Object[] getRefs(Object extra) {
-		Object[] refs = new Object[1 + data.length];
-		refs[0] = extra;
-		for (int i = 0; i < data.length; ++i)
-			refs[1 + i] = data[i].getRef();
+		assert data.length > 1 && (data.length % 2) == 0;
+		Object[] refs = new Object[data.length / 2];
+		int ri = 0;
+		for (int di = 1; di < data.length; di += 2)
+			refs[ri++] = checkNotNull(data[di].getRef());
 		return refs;
 	}
 
-	public static Row fromRefs(Transaction t, Object[] refs) {
-		Record[] data = new Record[refs.length];
-		for (int i = 0; i < data.length; ++i)
-			data[i] = t.fromRef(refs[i]);
-		return new Row(data);
+	/**
+	 * Used by TempIndex. extra is the sort key.<p>
+	 * NOTE: Depends on actual data being in every second data record.
+	 * @return An array of either Integer for database records,
+	 * 		   or ByteBuffer for in-memory records (e.g. from Extend)
+	 */
+	public Object[] getRefs(Object extra) {
+		assert data.length > 1 && (data.length % 2) == 0;
+		Object[] refs = new Object[1 + data.length / 2];
+		refs[0] = extra;
+		int ri = 1;
+		for (int di = 1; di < data.length; di += 2)
+			refs[ri++] = checkNotNull(data[di].getRef());
+		return refs;
 	}
 	public static Row fromRefsSkip(Transaction t, Object[] refs) {
-		Record[] data = new Record[refs.length - 1];
-		for (int i = 0; i < data.length; ++i)
-			data[i] = t.fromRef(refs[i + 1]);
+		Record[] data = new Record[2 * (refs.length - 1)];
+		int di = 0;
+		for (int i = 1; i < refs.length; ++i) {
+			data[di++] = null;
+			data[di++] = t.fromRef(refs[i]);
+		}
 		return new Row(data);
 	}
 
@@ -215,7 +222,11 @@ public class Row {
 		}
 
 		private void set_jmax() {
-			jmax = Math.min(data[i].size(), fields.get(i).size());
+			jmax = Math.min(datasize(i), fields.get(i).size());
+		}
+
+		private int datasize(int i) {
+			return data[i] == null ? 0 : data[i].size();
 		}
 
 		private void skipempty() {

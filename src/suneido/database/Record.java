@@ -4,6 +4,7 @@
 
 package suneido.database;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static suneido.SuException.unreachable;
 import static suneido.util.Util.bufferUcompare;
 import static suneido.util.Verify.verify;
@@ -105,7 +106,7 @@ public class Record implements suneido.intfc.database.Record,
 	 *            Must be in BufRecord format.
 	 */
 	Record(ByteBuf buf) {
-		this.buf = buf;
+		this.buf = checkNotNull(buf);
 		dboffset = 0;
 		growable = false;
 		init();
@@ -121,7 +122,7 @@ public class Record implements suneido.intfc.database.Record,
 	}
 
 	Record(long dboffset, ByteBuf buf) {
-		this.buf = buf;
+		this.buf = checkNotNull(buf);
 		this.dboffset = dboffset;
 		growable = false;
 		init();
