@@ -140,7 +140,7 @@ class Tran implements Translator {
 	DataRecord getrec(int adr) {
 		if (IntRefs.isIntRef(adr)) {
 			DataRecord r = (DataRecord) intToRef(adr);
-			r.address(adr); //TODO check if this is necessary
+			r.address(adr);
 			return r;
 		} else
 			return new DataRecord(dstor, adr);

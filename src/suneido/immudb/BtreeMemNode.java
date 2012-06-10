@@ -109,31 +109,24 @@ class BtreeMemNode extends BtreeNode {
 			return new BtreeMemNode(this).with(key);
 		else {
 			int at = lowerBound(key);
-			add(key);
-			index.insert(at, (byte) -added.size());
+			index.insert(at, add(key));
 			return this;
 		}
 	}
 
-	private void add(BtreeKey key) {
+	/** @return the value to put in the index list */
+	private byte add(BtreeKey key) {
 		assert ! immutable;
 		assert isLeaf() || key instanceof BtreeTreeKey;
-		if (added.size() >= Byte.MAX_VALUE)
-			cleanAdded();
-		added.add(key);
-	}
-
-	private void cleanAdded() {
-		ArrayList<BtreeKey> clean = Lists.newArrayList();
-		for (int i = 0; i < index.size(); ++i) {
-			int idx = index.get(i);
-			if (idx < 0) {
-				index.set(i, (byte) (-1 - clean.size()));
-				clean.add(added.get(-idx - 1));
-			}
+		// reuse free (null) added entries
+		int i = added.indexOf(null);
+		if (i != -1) {
+			added.set(i, key);
+			return (byte) -(i + 1);
 		}
-		assert clean.size() < Byte.MAX_VALUE;
-		added = clean;
+		added.add(key);
+		assert added.size() < Byte.MAX_VALUE;
+		return (byte) -added.size();
 	}
 
 	@Override
@@ -141,6 +134,9 @@ class BtreeMemNode extends BtreeNode {
 		if (immutable)
 			return new BtreeMemNode(this).without(i);
 		else {
+			int idx = index.get(i);
+			if (idx < 0)
+				added.set(-idx - 1, null);
 			index.removeAt(i);
 			return this;
 		}
@@ -181,10 +177,8 @@ class BtreeMemNode extends BtreeNode {
 		int idx = index.get(i);
 		if (idx < 0)
 			added.set(-idx - 1, key);
-		else {
-			add(key);
-			index.set(i, (byte) -added.size());
-		}
+		else
+			index.set(i, add(key));
 	}
 
 	/** returns a new node containing a range of this node */
