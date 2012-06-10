@@ -81,7 +81,7 @@ public class TempIndex extends Query1 {
 		while (null != (row = source.get(Dir.NEXT))) {
 			Record key = row.project(srchdr, order);
 			if (key.bufSize() > 4000)
-				throw new SuException("index entry size > 4000: " + order);
+				throw new SuException("temp index entry size > 4000: " + order);
 			keys.add(row.getRefs(key));
 		}
 		iter = keys.iter();
