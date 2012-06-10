@@ -49,7 +49,6 @@ class DbCompact {
 	private void createTable(String tablename) {
 		String schema = rt.getTable(tablename).schema();
 		Request.execute(newDB, "create " + tablename + schema);
-//		verifyEquals(schema, newDB.getSchema(tablename)); //TODO canonical
 	}
 
 	private int copyData() {
