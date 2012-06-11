@@ -1,10 +1,12 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
+import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
 import static suneido.util.Verify.verify;
 
+import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.List;
 
@@ -57,12 +59,12 @@ public class TempIndex extends Query1 {
 		if (rewound) {
 			rewound = false;
 			if (dir == Dir.NEXT)
-				iter.seekFirst(new Object[] { sel.org });
+				iter.seekFirst(new Object[] { sel.org.getBuffer() });
 			else // prev
-				iter.seekLast(new Object[] { sel.end });
+				iter.seekLast(new Object[] { sel.end.getBuffer() });
 		}
 		Object[] cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
-		if (cur == null || ! sel.contains((Record) cur[0])) {
+		if (cur == null || ! sel.contains(dbpkg.record((ByteBuffer) cur[0]))) {
 			rewound = true;
 			return null;
 		}
@@ -82,7 +84,7 @@ public class TempIndex extends Query1 {
 			Record key = row.project(srchdr, order);
 			if (key.bufSize() > 4000)
 				throw new SuException("temp index entry size > 4000: " + order);
-			keys.add(row.getRefs(key));
+			keys.add(row.getRefs(key.getBuffer()));
 		}
 		iter = keys.iter();
 	}
@@ -90,8 +92,8 @@ public class TempIndex extends Query1 {
 	private static final Comparator<Object[]> cmp = new Comparator<Object[]>() {
 		@Override
 		public int compare(Object[] x, Object[] y) {
-			Record xkey = (Record) x[0];
-			Record ykey = (Record) y[0];
+			Record xkey = dbpkg.record((ByteBuffer) x[0]);
+			Record ykey = dbpkg.record((ByteBuffer) y[0]);
 			return xkey.compareTo(ykey);
 		}
 	};
