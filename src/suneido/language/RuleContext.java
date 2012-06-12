@@ -10,11 +10,16 @@ import suneido.SuRecord;
 
 /**
  * used to auto-register dependencies
- *
- * @author Andrew McKinlay
  */
 @ThreadSafe
 public class RuleContext {
+	private static final ThreadLocal<Deque<Rule>> activeRules =
+			new ThreadLocal<Deque<Rule>>() {
+				@Override
+				public Deque<Rule> initialValue() {
+					return new ArrayDeque<Rule>();
+				}
+			};
 
 	public static void push(SuRecord rec, Object member) {
 		activeRules.get().push(new Rule(rec, member));
@@ -39,13 +44,5 @@ public class RuleContext {
 			this.member = member;
 		}
 	}
-
-	private static final ThreadLocal<Deque<Rule>> activeRules =
-			new ThreadLocal<Deque<Rule>>() {
-				@Override
-				public Deque<Rule> initialValue() {
-					return new ArrayDeque<Rule>();
-				}
-			};
 
 }
