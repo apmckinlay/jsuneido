@@ -13,6 +13,7 @@ import java.util.List;
 import suneido.SuException;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
+import suneido.util.ArraysList;
 import suneido.util.MergeTree;
 
 public class TempIndex extends Query1 {
@@ -21,9 +22,11 @@ public class TempIndex extends Query1 {
 	private Transaction tran;
 	private boolean first = true;
 	private boolean rewound = true;
-	private final MergeTree<Object[]> keys = new MergeTree<Object[]>(cmp);
-	private MergeTree<Object[]>.Iter iter;
+	private final ArraysList<Object> refs = new ArraysList<Object>();
+	private final MergeTree<ByteBuffer> keys = new MergeTree<ByteBuffer>(cmp);
+	private MergeTree<ByteBuffer>.Iter iter;
 	private final Keyrange sel = new Keyrange();
+	private boolean single;
 
 	public TempIndex(Query source, Transaction tran, List<String> order, boolean unique) {
 		super(source);
@@ -59,41 +62,44 @@ public class TempIndex extends Query1 {
 		if (rewound) {
 			rewound = false;
 			if (dir == Dir.NEXT)
-				iter.seekFirst(new Object[] { sel.org.getBuffer() });
+				iter.seekFirst(sel.org.getBuffer());
 			else // prev
-				iter.seekLast(new Object[] { sel.end.getBuffer() });
+				iter.seekLast(sel.end.getBuffer());
 		}
-		Object[] cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
-		if (cur == null || ! sel.contains(dbpkg.record((ByteBuffer) cur[0]))) {
+		ByteBuffer cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
+		Record key;
+		if (cur == null || ! sel.contains(key = dbpkg.record(cur))) {
 			rewound = true;
 			return null;
 		}
-
-		// TODO put iter->key into row
-		return Row.fromRefsSkip(tran, cur);
+		int adr = key.getInt(key.size() - 1);
+		return single
+				? new Row(new Record[] { null, tran.input(adr) })
+				: Row.fromRefs(tran, refs, adr);
 	}
 
-	// TODO pack keys into something (ChunkedStorage?)
-	// to reduce per-object overhead
-	// maybe pack refs along with keys so MergeTree just has offsets
+	//TODO pack keys into MemStorage to reduce per-object overhead
 	private void iterate_setup(Dir dir) {
 		keys.clear();
+		refs.clear();
 		Header srchdr = source.header();
+		single = (srchdr.size() <= 2);
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
-			Record key = row.project(srchdr, order);
+			int adr = single ? row.firstData().address() : row.getRefs(refs);
+			Record key = row.project(srchdr, order, adr);
 			if (key.bufSize() > 4000)
 				throw new SuException("temp index entry size > 4000: " + order);
-			keys.add(row.getRefs(key.getBuffer()));
+			keys.add(key.getBuffer());
 		}
 		iter = keys.iter();
 	}
 
-	private static final Comparator<Object[]> cmp = new Comparator<Object[]>() {
+	private static final Comparator<ByteBuffer> cmp = new Comparator<ByteBuffer>() {
 		@Override
-		public int compare(Object[] x, Object[] y) {
-			Record xkey = dbpkg.record((ByteBuffer) x[0]);
-			Record ykey = dbpkg.record((ByteBuffer) y[0]);
+		public int compare(ByteBuffer x, ByteBuffer y) {
+			Record xkey = dbpkg.record(x);
+			Record ykey = dbpkg.record(y);
 			return xkey.compareTo(ykey);
 		}
 	};

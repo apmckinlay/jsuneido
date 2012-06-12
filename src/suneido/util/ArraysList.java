@@ -9,7 +9,7 @@ import com.google.common.collect.Lists;
 
 @NotThreadSafe
 public class ArraysList<E> extends AbstractList<E> {
-	final static int CHUNK_SIZE = 100;
+	final static int CHUNK_SIZE = 512;
 	private final ArrayList<E[]> chunks = Lists.newArrayList();
 	private int size = 0;
 

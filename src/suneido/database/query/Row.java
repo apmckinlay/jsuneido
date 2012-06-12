@@ -85,6 +85,15 @@ public class Row {
 		return key.build();
 	}
 
+	/** used by TempIndex */
+	Record project(Header hdr, List<String> flds, int offset) {
+		RecordBuilder key = dbpkg.recordBuilder();
+		for (String f : flds)
+			key.add(getrawval(hdr, f));
+		key.add(offset);
+		return key.build();
+	}
+
 	public Record firstData() {
 		return data[data.length > 1 ? 1 : 0]; // 0 is usually index key
 	}
@@ -179,29 +188,38 @@ public class Row {
 	}
 
 	/**
-	 * Used by TempIndex. extra is the sort key.<p>
+	 * Used by TempIndex.
+	 * Adds to refs either Integers for database records,
+	 * or ByteBuffers for in-memory records (e.g. from Extend)
 	 * NOTE: Depends on actual data being in every second data record.
-	 * @return An array of either Integer for database records,
-	 * 		   or ByteBuffer for in-memory records (e.g. from Extend)
+	 * @return The starting position in refs.
 	 */
-	public Object[] getRefs(Object extra) {
+	int getRefs(List<Object> refs) {
 		assert data.length > 1 && (data.length % 2) == 0;
-		Object[] refs = new Object[1 + data.length / 2];
-		refs[0] = extra;
-		int ri = 1;
+		int offset = refs.size();
 		for (int di = 1; di < data.length; di += 2)
-			refs[ri++] = checkNotNull(data[di].getRef());
-		return refs;
+			refs.add(checkNotNull(data[di].getRef()));
+		refs.add(END);
+		return offset;
 	}
-	public static Row fromRefsSkip(Transaction t, Object[] refs) {
-		Record[] data = new Record[2 * (refs.length - 1)];
+	static Row fromRefs(Transaction t, List<Object> refs, int offset) {
+		int n = size(refs, offset);
+		Record[] data = new Record[2 * n];
 		int di = 0;
-		for (int i = 1; i < refs.length; ++i) {
+		for (int i = 0; i < n; ++i) {
 			data[di++] = null;
-			data[di++] = t.fromRef(refs[i]);
+			data[di++] = t.fromRef(refs.get(offset + i));
 		}
 		return new Row(data);
 	}
+	private static int size(List<Object> refs, int i) {
+		int n = 0;
+		for (; refs.get(i) != END; ++i)
+			++n;
+		return n;
+	}
+
+	private final static Object END = new Object();
 
 	public Iterator<Entry> iterator(Header hdr) {
 		return new Iter(hdr.flds);

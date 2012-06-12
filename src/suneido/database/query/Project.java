@@ -6,11 +6,8 @@ import static suneido.util.Util.*;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
-
-import com.google.common.collect.ImmutableList;
 
 public class Project extends Query1 {
 	private List<String> flds;
@@ -295,11 +292,7 @@ public class Project extends Query1 {
 
 	@Override
 	public Header header() {
-		return strategy == Strategy.COPY
-				? source.header().project(flds)
-				: new Header(
-					ImmutableList.of(Collections.<String> emptyList(), flds),
-					flds);
+		return source.header().project(flds);
 	}
 
 	@Override
@@ -329,14 +322,6 @@ public class Project extends Query1 {
 		return source.get(dir);
 	}
 
-	private Row result(Row row) {
-		return row == null ? null : result(row.project(srcHdr, flds));
-	}
-
-	private static Row result(Record rec) {
-		return new Row(Suneido.dbpkg.minRecord(), rec);
-	}
-
 	private Row getSequential(Dir dir) {
 		Row row;
 		switch (dir) {
@@ -350,7 +335,7 @@ public class Project extends Query1 {
 			rewound = false;
 			prevrow = currow;
 			currow = row;
-			return result(row);
+			return row;
 		case PREV:
 			// output the last of each group
 			// i.e. output when next record is different
@@ -365,12 +350,13 @@ public class Project extends Query1 {
 			} while (prevrow != null && projHdr.equal(row, prevrow));
 			// output the last row of a group
 			currow = row;
-			return result(row);
+			return row;
 		default:
 			throw SuException.unreachable();
 		}
 	}
 
+	//TODO pack keys into MemStorage to reduce per-object overhead
 	private Row getLookup(Dir dir) {
 		if (rewound) {
 			rewound = false;
@@ -383,9 +369,9 @@ public class Project extends Query1 {
 			Object[] data = map.get(key);
 			if (data == null) {
 				map.put(key, row.getRefs());
-				return result(key);
+				return row;
 			} else if (Arrays.equals(data, row.getRefs()))
-				return result(key);
+				return row;
 		}
 		if (dir == Dir.NEXT)
 			indexed = true;
