@@ -356,7 +356,8 @@ public class Project extends Query1 {
 		}
 	}
 
-	//TODO pack keys into MemStorage to reduce per-object overhead
+	//TODO pack keys into RecordStorage to reduce per-object overhead
+	// not easy because then you need int to object map with custom hash
 	private Row getLookup(Dir dir) {
 		if (rewound) {
 			rewound = false;
