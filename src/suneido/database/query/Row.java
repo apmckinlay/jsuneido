@@ -86,11 +86,11 @@ public class Row {
 	}
 
 	/** used by TempIndex */
-	Record project(Header hdr, List<String> flds, int offset) {
+	Record project(Header hdr, List<String> flds, int adr) {
 		RecordBuilder key = dbpkg.recordBuilder();
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
-		key.add(offset);
+		key.add(adr);
 		return key.build();
 	}
 

@@ -1,20 +1,20 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.startsWith;
 import static suneido.util.Verify.verify;
 
-import java.nio.ByteBuffer;
-import java.util.Comparator;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordStore;
 import suneido.intfc.database.Transaction;
 import suneido.util.ArraysList;
-import suneido.util.MergeTree;
+import suneido.util.IntComparator;
+import suneido.util.IntMergeTree;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;
@@ -22,9 +22,18 @@ public class TempIndex extends Query1 {
 	private Transaction tran;
 	private boolean first = true;
 	private boolean rewound = true;
+	private RecordStore stor;
 	private final ArraysList<Object> refs = new ArraysList<Object>();
-	private final MergeTree<ByteBuffer> keys = new MergeTree<ByteBuffer>(cmp);
-	private MergeTree<ByteBuffer>.Iter iter;
+	private final IntComparator cmp = new IntComparator() {
+		@Override
+		public int compare(int xi, int yi) {
+			Record xkey = stor.get(xi);
+			Record ykey = stor.get(yi);
+			return xkey.compareTo(ykey);
+		}
+	};
+	private final IntMergeTree index = new IntMergeTree(cmp);
+	private IntMergeTree.Iter iter;
 	private final Keyrange sel = new Keyrange();
 	private boolean single;
 
@@ -62,13 +71,14 @@ public class TempIndex extends Query1 {
 		if (rewound) {
 			rewound = false;
 			if (dir == Dir.NEXT)
-				iter.seekFirst(sel.org.getBuffer());
+				iter.seekFirst(stor.add(sel.org));
 			else // prev
-				iter.seekLast(sel.end.getBuffer());
+				iter.seekLast(stor.add(sel.end));
 		}
-		ByteBuffer cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
 		Record key;
-		if (cur == null || ! sel.contains(key = dbpkg.record(cur))) {
+		int cur = (dir == Dir.NEXT) ? iter.next() : iter.prev();
+		if (cur == Integer.MIN_VALUE || cur == Integer.MAX_VALUE ||
+				! sel.contains(key = stor.get(cur))) {
 			rewound = true;
 			return null;
 		}
@@ -78,9 +88,9 @@ public class TempIndex extends Query1 {
 				: Row.fromRefs(tran, refs, adr);
 	}
 
-	//TODO pack keys into MemStorage to reduce per-object overhead
 	private void iterate_setup(Dir dir) {
-		keys.clear();
+		stor = Suneido.dbpkg.recordStore();
+		index.clear();
 		refs.clear();
 		Header srchdr = source.header();
 		single = (srchdr.size() <= 2);
@@ -90,19 +100,10 @@ public class TempIndex extends Query1 {
 			Record key = row.project(srchdr, order, adr);
 			if (key.bufSize() > 4000)
 				throw new SuException("temp index entry size > 4000: " + order);
-			keys.add(key.getBuffer());
+			index.add(stor.add(key));
 		}
-		iter = keys.iter();
+		iter = index.iter();
 	}
-
-	private static final Comparator<ByteBuffer> cmp = new Comparator<ByteBuffer>() {
-		@Override
-		public int compare(ByteBuffer x, ByteBuffer y) {
-			Record xkey = dbpkg.record(x);
-			Record ykey = dbpkg.record(y);
-			return xkey.compareTo(ykey);
-		}
-	};
 
 	@Override
 	public void rewind() {

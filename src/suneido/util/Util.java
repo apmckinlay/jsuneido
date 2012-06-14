@@ -379,6 +379,20 @@ public class Util {
 		}
 		return first;
 	}
+	public static int lowerBound(int[] list, int value, IntComparator cmp) {
+		int first = 0;
+		int len = list.length;
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (cmp.compare(list[middle], value) < 0) {
+				first = middle + 1;
+				len -= half + 1;
+			} else
+				len = half;
+		}
+		return first;
+	}
 
 	/**
 	 * Based on C++ STL code.
@@ -426,6 +440,21 @@ public class Util {
 			int half = len >> 1;
 			int middle = first + half;
 			if (comp.compare(value, list[middle]) < 0)
+				len = half;
+			else {
+				first = middle + 1;
+				len -= half + 1;
+			}
+		}
+		return first;
+	}
+	public static int upperBound(int[] list, int value, IntComparator cmp) {
+		int first = 0;
+		int len = list.length;
+		while (len > 0) {
+			int half = len >> 1;
+			int middle = first + half;
+			if (cmp.compare(value, list[middle]) < 0)
 				len = half;
 			else {
 				first = middle + 1;

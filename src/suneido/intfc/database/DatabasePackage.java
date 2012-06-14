@@ -32,6 +32,8 @@ public interface DatabasePackage {
 
 	Record record(int recadr, ByteBuffer buf);
 
+	RecordStore recordStore();
+
 	/** @return the number of tables dumped */
 	int dumpDatabase(Database db, WritableByteChannel out);
 	/** @return the number of records dumped */
