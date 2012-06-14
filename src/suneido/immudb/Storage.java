@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,13 +29,13 @@ abstract class Storage {
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
-	protected final ByteBuffer[] chunks;
+	protected ByteBuffer[] chunks;
 	final int CHUNK_SIZE;
 	protected volatile long file_size;
 
-	Storage(int chunkSize, int maxChunks) {
+	Storage(int chunkSize, int initChunks) {
 		CHUNK_SIZE = chunkSize;
-		chunks = new ByteBuffer[maxChunks];
+		chunks = new ByteBuffer[initChunks];
 	}
 
 	/**
@@ -55,7 +56,16 @@ abstract class Storage {
 
 		long offset = file_size;
 		file_size += n;
+
+		int chunk = offsetToChunk(offset);
+		if (chunk >= chunks.length)
+			growChunks(chunk);
+
 		return offsetToAdr(offset);
+	}
+
+	private void growChunks(int chunk) {
+		chunks = Arrays.copyOf(chunks, 2 * chunk);
 	}
 
 	static int align(int n) {

@@ -128,4 +128,9 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 		FileUtils.renameWithBackup(tempfile, dbFilename);
 	}
 
+	@Override
+	public RecordStore recordStore() {
+		return new RecordStore();
+	}
+
 }

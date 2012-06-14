@@ -54,6 +54,7 @@ class ArrayRecord extends Record {
 		return lens.get(i);
 	}
 
+	/** pack into the supplied buffer */
 	@Override
 	public void pack(ByteBuffer dst) {
 		if (bufrec != null)

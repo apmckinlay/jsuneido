@@ -12,8 +12,8 @@ class MemStorage extends Storage {
 		super(32, 32);
 	}
 
-	MemStorage(int chunkSize, int maxChunks) {
-		super(align(chunkSize), maxChunks);
+	MemStorage(int chunkSize, int initChunks) {
+		super(align(chunkSize), initChunks);
 	}
 
 	@Override
