@@ -48,11 +48,11 @@ public class ArraysList<E> extends AbstractList<E> {
 		return size;
 	}
 
-	private int chunkFor(int i) {
+	private static int chunkFor(int i) {
 		return i / CHUNK_SIZE;
 	}
 
-	private int indexFor(int i) {
+	private static int indexFor(int i) {
 		return i % CHUNK_SIZE;
 	}
 
