@@ -4,6 +4,7 @@
 
 package suneido.intfc.database;
 
+//TODO convert to enum
 public class Fkmode {
 	public static final int
 		BLOCK = 0,

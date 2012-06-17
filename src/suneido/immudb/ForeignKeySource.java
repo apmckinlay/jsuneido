@@ -8,10 +8,8 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.intfc.database.Fkmode;
 
-/*
- * Have to keep tablename and columns as strings (rather than tblnum and colnums)
- * because the table may not exist yet.
- */
+import com.google.common.base.Objects;
+
 @Immutable
 class ForeignKeySource extends ForeignKey {
 	final int mode;
@@ -23,19 +21,12 @@ class ForeignKeySource extends ForeignKey {
 	}
 
 	@Override
-	public boolean equals(Object other) {
-		return super.equals(other);
-	}
-
-	@Override
-	public int hashCode() {
-		return super.hashCode();
-	}
-
-	@Override
 	public String toString() {
-		return "ForeignKeySource(" + tablename + ", " +
-				columns + ", " + Fkmode.toString(mode) + ")";
+		return Objects.toStringHelper(this)
+				.addValue(tablename)
+				.addValue(columns)
+				.addValue(Fkmode.toString(mode))
+				.toString();
 	}
 
 }

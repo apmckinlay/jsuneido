@@ -20,6 +20,8 @@ import suneido.DbTools;
 import suneido.Suneido;
 import suneido.database.query.Request;
 
+import com.google.common.base.Stopwatch;
+
 class DbLoad {
 
 	static int loadDatabase(Database db, ReadableByteChannel in) {
@@ -149,12 +151,12 @@ class DbLoad {
 	}
 
 	public static void main(String[] args) throws IOException  {
-		long t = System.currentTimeMillis();
+		Stopwatch sw = new Stopwatch().start();
 		Database db = (Database) dbpkg.create(dbpkg.dbFilename());
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
 		db.close();
-		System.out.println((System.currentTimeMillis() - t) + " ms");
+		System.out.println(sw);
 		DbTools.checkPrint(Suneido.dbpkg, dbpkg.dbFilename());
 	}
 

@@ -259,7 +259,7 @@ public class ByteBuf {
 
 	@Override
 	public int hashCode() {
-		int hashCode = 1;
+		int hashCode = 17;
 		for (int i = 0; i < size(); ++i)
 		      hashCode = 31 * hashCode + get(i);
 		return hashCode;

@@ -7,6 +7,8 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.google.common.base.Objects;
+
 /**
  * Iterate through data commits or index persists.
  * Check sizes and checksums.
@@ -115,7 +117,10 @@ class StorageIter {
 
 	@Override
 	public String toString() {
-		return "Iter(adr " + adr + (eof() ? " eof" : "") + ")";
+		return Objects.toStringHelper(this)
+				.add("adr", adr)
+				.add("eof", eof())
+				.toString();
 	}
 
 	public boolean notFinished() {

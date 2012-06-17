@@ -22,7 +22,7 @@ public class MergeTree<T> {
 	@SuppressWarnings("unchecked")
 	private final SoftReference<Object[]>[] cache = new SoftReference[MAX_LEVELS];
 	private final int[] pos = new int[MAX_LEVELS]; // temp for merge
-	private final Comparator<T> cmp;
+	private final Comparator<? super T> cmp;
 	private int size = 0;
 
 	public MergeTree() {
@@ -35,7 +35,7 @@ public class MergeTree<T> {
 			});
 	}
 
-	public MergeTree(Comparator<T> cmp) {
+	public MergeTree(Comparator<? super T> cmp) {
 		this.cmp = cmp;
 	}
 
