@@ -42,9 +42,9 @@ public class ForeignKeyTest {
 			.finish();
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget(src, [1], block)]"));
+				is("[ForeignKeyTarget{src, [1], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget(src, [3], cascade)]"));
+				is("[ForeignKeyTarget{src, [3], cascade}]"));
 
 		db = db.reopen();
 
@@ -70,9 +70,9 @@ public class ForeignKeyTest {
 						"index(f2) in dest(b) cascade"));
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget(src, [1], block), ForeignKeyTarget(src, [2], block)]"));
+				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget(src, [3], cascade), ForeignKeyTarget(src2, [1], block)]"));
+				is("[ForeignKeyTarget{src, [3], cascade}, ForeignKeyTarget{src2, [1], block}]"));
 
 		db.alterTable("src")
 			.dropIndex("f2")
@@ -84,14 +84,14 @@ public class ForeignKeyTest {
 						"index(f1) in dest(a)"));
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget(src, [1], block), ForeignKeyTarget(src, [2], block)]"));
+				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget(src2, [1], block)]"));
+				is("[ForeignKeyTarget{src2, [1], block}]"));
 
 		db.dropTable("src2");
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget(src, [1], block), ForeignKeyTarget(src, [2], block)]"));
+				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
 				is("[]"));
 

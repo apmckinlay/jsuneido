@@ -10,6 +10,8 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.intfc.database.Fkmode;
 
+import com.google.common.base.Objects;
+
 @Immutable
 class ForeignKeyTarget {
 	final String tablename;
@@ -50,8 +52,11 @@ class ForeignKeyTarget {
 
 	@Override
 	public String toString() {
-		return "ForeignKeyTarget(" + tablename + ", " +
-				Arrays.toString(colNums) + ", " + Fkmode.toString(mode) + ")";
+		return Objects.toStringHelper(this)
+				.addValue(tablename)
+				.addValue(Arrays.toString(colNums))
+				.addValue(Fkmode.toString(mode))
+				.toString();
 	}
 
 }

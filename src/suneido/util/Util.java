@@ -540,10 +540,7 @@ public class Util {
 
 		@Override
 		public int hashCode() {
-			int result = 17;
-			result = 31 * result + left;
-			result = 31 * result + right;
-			return result;
+			return left ^ right;
 		}
 
 		@Override

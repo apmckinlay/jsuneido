@@ -4,6 +4,15 @@
 
 package suneido.immudb;
 
+import javax.annotation.concurrent.Immutable;
+
+import com.google.common.base.Objects;
+
+/*
+ * Have to keep tablename and columns as strings (rather than tblnum and colnums)
+ * because the table may not exist yet.
+ */
+@Immutable
 class ForeignKey {
 	protected final String tablename;
 	protected final String columns;
@@ -27,10 +36,7 @@ class ForeignKey {
 
 	@Override
 	public int hashCode() {
-		int hash = 17;
-		hash = 31 * hash + tablename.hashCode();
-		hash = 31 * hash + columns.hashCode();
-		return hash;
+		return Objects.hashCode(tablename, columns);
 	}
 
 }
