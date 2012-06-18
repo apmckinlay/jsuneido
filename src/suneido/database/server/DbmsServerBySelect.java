@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.Suneido;
 import suneido.util.NetworkOutput;
+import suneido.util.Print;
 import suneido.util.ServerBySelect;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -171,8 +172,10 @@ public class DbmsServerBySelect {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
-				if (! (e instanceof RuntimeException))
+				if (! (e instanceof RuntimeException)) {
+					Print.timestamp();
 					e.printStackTrace();
+				}
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			line = null;
