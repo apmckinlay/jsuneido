@@ -15,11 +15,19 @@ import suneido.util.MergeTree;
  * After build, contains can be used to validate a transaction's reads.
  */
 class TransactionReads {
+	private static final int MAX_READS = 10000;
+	private final UpdateTransaction t;
 	private final MergeTree<IndexRange> list  = new MergeTree<IndexRange>();
 	private IndexRange[] reads;
 	private int rlen;
 
+	TransactionReads(UpdateTransaction t) {
+		this.t = t;
+	}
+
 	void add(IndexRange keyRange) {
+		if (list.size() > MAX_READS)
+			t.abortThrow("too many reads in update transaction");
 		list.add(keyRange);
 	}
 
@@ -43,6 +51,8 @@ class TransactionReads {
 				}
 			a[i++] = prev;
 		}
+		if (i < list.size() / 2)
+			a = Arrays.copyOf(a, i);
 		list.clear();
 		reads = a;
 		rlen = i;

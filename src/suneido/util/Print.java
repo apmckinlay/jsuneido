@@ -9,10 +9,16 @@ import java.util.Date;
 
 public class Print {
 
+	/** System.out.print a time stamp */
+	public static void timestamp() {
+		System.out.print(
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())
+				+ " ");
+	}
+
 	public static void timestamped(String s) {
-		System.out.println(
-				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +
-				" " + s);
+		timestamp();
+		System.out.println(s);
 	}
 
 }
