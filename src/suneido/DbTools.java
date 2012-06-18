@@ -20,6 +20,8 @@ import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.FileUtils;
 import suneido.util.Jvm;
 
+import com.google.common.base.Stopwatch;
+
 public class DbTools {
 	private static final String SEPARATOR = "!!";
 
@@ -27,9 +29,11 @@ public class DbTools {
 			String outputFilename) {
 		Database db = dbpkg.openReadonly(dbFilename);
 		try {
+			Stopwatch sw = new Stopwatch().start();
 			int n = dumpDatabase(dbpkg, db, outputFilename);
 			System.out.println("dumped " + n + " tables " +
-					"from " + dbFilename + " to " + outputFilename);
+					"from " + dbFilename + " to " + outputFilename +
+					" in " + sw);
 		} finally {
 			db.close();
 		}
@@ -93,8 +97,10 @@ public class DbTools {
 		try {
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {
+				Stopwatch sw = new Stopwatch().start();
 				int n = dbpkg.loadDatabase(db, fin);
-				System.out.println("loaded " + n + " tables from " + filename);
+				System.out.println("loaded " + n + " tables from " + filename +
+						" in " + sw);
 			} finally {
 				fin.close();
 			}
@@ -158,8 +164,10 @@ public class DbTools {
 			Database dstdb = dbpkg.create(tempfile);
 			try {
 				System.out.println("Compacting...");
+				Stopwatch sw = new Stopwatch().start();
 				int n = dbpkg.compact(srcdb, dstdb);
-				System.out.println("Compacted " + n + " tables in " + dbFilename);
+				System.out.println("Compacted " + n + " tables in " + dbFilename +
+						" in " + sw);
 			} finally {
 				dstdb.close();
 			}
@@ -183,12 +191,13 @@ public class DbTools {
 		int i = arg.indexOf(SEPARATOR);
 		String dbFilename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
+		Stopwatch sw = new Stopwatch().start();
 		String result = dbpkg.rebuild(dbFilename, tempfile);
 		if (result == null)
 			fatal("Rebuild " + dbFilename + ": FAILED");
 		else {
 			errlog("Rebuild " + dbFilename + ": " + result);
-			System.out.println("Rebuild SUCCEEDED");
+			System.out.println("Rebuild SUCCEEDED in " + sw);
 		}
 	}
 

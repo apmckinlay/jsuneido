@@ -11,6 +11,8 @@ import java.util.List;
 import suneido.database.query.Request;
 import suneido.intfc.database.IndexIter;
 
+import com.google.common.base.Stopwatch;
+
 class DbCompact {
 	private final Database oldDB;
 	private final Database newDB;
@@ -108,13 +110,11 @@ class DbCompact {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		String dbfilename = DatabasePackage.dbpkg.dbFilename();
-		Database dbin = (Database) dbpkg.openReadonly(dbfilename);
+		Database dbin = (Database) dbpkg.openReadonly("/test/sample/suneido.db");
 		Database dbout = (Database) dbpkg.create("immu.compact");
-		long t = System.currentTimeMillis();
+		Stopwatch sw = new Stopwatch().start();
 		int n = compact(dbin, dbout);
-		System.out.println("compacted " + n + " tables " +
-				"in " + (System.currentTimeMillis() - t) + " ms");
+		System.out.println("compacted " + n + " tables " + "in " + sw);
 	}
 
 }
