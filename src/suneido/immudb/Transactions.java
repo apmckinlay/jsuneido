@@ -7,6 +7,7 @@ package suneido.immudb;
 import static suneido.util.Verify.verify;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -35,8 +36,8 @@ class Transactions {
 	private final TreeSet<UpdateTransaction> overlapping =
 			new TreeSet<UpdateTransaction>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
-	// only overridden by tests, otherwise could be private final
-	static int MAX_OVERLAPPING = 200;
+	private static final int MAX_OVERLAPPING = 200;
+	private static final int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -47,7 +48,7 @@ class Transactions {
 		do // loop needed for concurrency
 			n = nextNum.incrementAndGet();
 			while ((n % 2) != (readonly ? 0 : 1));
-			// client expects readonly tran# to be even, update to be odd
+			// client requires readonly tran# to be even, update to be odd
 		return n;
 	}
 
@@ -112,6 +113,11 @@ class Transactions {
 
 	// should be called periodically
 	void limitOutstanding() {
+		limitOverlapping();
+		limitUpdateDuration();
+	}
+
+	private void limitOverlapping() {
 		UpdateTransaction t = null;
 		synchronized (this) {
 			if (overlapping.size() <= MAX_OVERLAPPING)
@@ -119,8 +125,27 @@ class Transactions {
 			t = utrans.peek();
 		}
 		// abort outside synchronized to avoid deadlock
-		t.abortIfNotComplete("too many concurrent update transactions");
-		Print.timestamped("aborted " + t + " - finals too large");
+		abort(t, "too many concurrent update transactions");
+	}
+
+	private void limitUpdateDuration() {
+		while (true) {
+			UpdateTransaction t = null;
+			synchronized (this) {
+				if (utrans.isEmpty())
+					return;
+				t = utrans.peek();
+				if (t.stopwatch == null ||
+						t.stopwatch.elapsedTime(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
+					return;
+			}
+			abort(t, "update transaction longer than " + MAX_UPDATE_TRAN_DURATION_SEC + " seconds");
+		}
+	}
+
+	private static void abort(UpdateTransaction t, String msg) {
+		t.abortIfNotComplete(msg);
+		Print.timestamped("aborted " + t + " - " + msg);
 	}
 
 	synchronized List<Integer> tranlist() {
@@ -133,10 +158,5 @@ class Transactions {
 	synchronized int finalSize() {
 		return overlapping.size();
 	}
-
-//	@Override
-//	public String toString() {
-//		return locks.toString();
-//	}
 
 }

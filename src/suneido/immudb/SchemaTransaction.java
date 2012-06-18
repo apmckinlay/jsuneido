@@ -28,7 +28,7 @@ class SchemaTransaction extends UpdateTransaction {
 	}
 
 	@Override
-	void verifyNotSystemTable(int tblnum, String what) {
+	protected void checkNotSystemTable(int tblnum, String op) {
 	}
 
 	void addTableInfo(TableInfo ti) {

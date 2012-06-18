@@ -17,17 +17,22 @@ import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 /**
- * Transactions must be thread confined.
+ * Transactions are thread confined
+ * (except for Transactions.limitOutstanding)
  * They take a "snapshot" of the database state at the start
  * and then update the database state when they commit.
  * Storage is only written during commit.
  * Commit is single-threaded.
+ * <p>
+ * Need to synchronize abort and commit because transactions may be aborted
+ * from Transactions.limitOutstanding.
  */
 @ThreadConfined
 class UpdateTransaction extends ReadWriteTransaction {
@@ -41,9 +46,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 	/** needs to be ordered tree for ReadWriteTransaction updateDbInfo */
 	protected final TreeMap<Index,TranIndex> updatedIndexes = Maps.newTreeMap();
 	private final TIntArrayList actions = new TIntArrayList();
+	private static final int MAX_WRITES_PER_TRANSACTION = 10000;
 	protected static final short UPDATE = (short) 0;
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
+	final Stopwatch stopwatch = new Stopwatch().start();
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
@@ -78,7 +85,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public int addRecord(int tblnum, DataRecord rec) {
 		int adr = super.addRecord(tblnum, rec);
-		actions.add(adr);
+		addAction(adr);
 		return adr;
 	}
 
@@ -86,7 +93,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		to.address(tran.refToInt(to));
 		int fromadr = super.updateRecord2(tblnum, from, to);
-		actions.add(UPDATE);
+		addAction(UPDATE);
 		actions.add(fromadr);
 		actions.add(to.address());
 		return fromadr;
@@ -95,8 +102,14 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public int removeRecord(int tblnum, Record rec) {
 		int adr = super.removeRecord(tblnum, rec);
-		actions.add(adr);
+		addAction(adr);
 		return adr;
+	}
+
+	private void addAction(int action) {
+		if (actions.size() > MAX_WRITES_PER_TRANSACTION)
+			abortThrow("too many writes (output, update, or delete) in one transaction");
+		actions.add(action);
 	}
 
 	// used by foreign key cascade
@@ -159,7 +172,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	private IndexRange indexRange(Index index) {
 		TransactionReads tr = reads.get(index);
 		if (tr == null)
-			reads.put(index, tr = new TransactionReads());
+			reads.put(index, tr = new TransactionReads(this));
 		IndexRange ir = new IndexRange();
 		tr.add(ir);
 		return ir;
@@ -180,9 +193,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 		abortIfNotComplete("aborted");
 	}
 
-	void abortIfNotComplete(String conflict) {
+	synchronized void abortIfNotComplete(String conflict) {
 		if (locked)
-			abort();
+			abort(conflict);
 	}
 
 	@Override
@@ -190,10 +203,15 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return isEnded() && !isCommitted();
 	}
 
+	@Override
+	synchronized public void abort() {
+		super.abort();
+	}
+
 	// commit ------------------------------------------------------------------
 
 	@Override
-	protected void commit() {
+	synchronized protected void commit() {
 		buildReads();
 		synchronized(db.commitLock) {
 			checkForConflicts();
@@ -282,17 +300,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 				int add = iter.next();
 				updateAction(updates, rem, add);
 			} else if (IntRefs.isIntRef(act)) {
-				addAction(act);
+				if (! wasDeleted(act))
+					storeAdd(act);
 			} else {
-				removeAction(act);
+				if (! newRecord(act))
+					storeRemove(act);
 			}
 		}
-	}
-
-	private void addAction(int act) {
-		if (wasDeleted(act))
-			return;
-		storeAdd(act);
 	}
 
 	/** overridden by tests */
@@ -301,12 +315,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 		int adr = rec.store(tran.dstor);
 		tran.setAdr(act, adr);
 		inserts.add(adr);
-	}
-
-	private void removeAction(int act) {
-		if (newRecord(act))
-			return;
-		storeRemove(act);
 	}
 
 	/** overridden by tests */

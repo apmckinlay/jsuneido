@@ -158,13 +158,6 @@ public class Suneido {
 		} catch (Throwable e) {
 			fatal("error during init", e);
 		}
-		scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.limitOutstandingTransactions();
-					}
-				}, 1, TimeUnit.SECONDS);
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
@@ -187,6 +180,13 @@ public class Suneido {
 				db.close();
 			}
 		});
+		scheduleAtFixedRate(
+				new Runnable() {
+					@Override
+					public void run() {
+						db.limitOutstandingTransactions();
+					}
+				}, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(
 				new Runnable() {
 					@Override

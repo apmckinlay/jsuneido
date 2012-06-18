@@ -20,6 +20,7 @@ import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
 import suneido.intfc.database.DatabasePackage.Status;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class TestConcurrency {
@@ -27,14 +28,14 @@ public class TestConcurrency {
 	static final Database db = dbpkg.create("concur.db");
 	static final ServerData serverData = new ServerData();
 	static final int NTHREADS = 8;
-	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(10);
+	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(30);
 	static final Runnable[] actions = new Runnable[] {
 			new NextNum("nextnum"),
 			new NextNum("nextnum2"),
 			new BigTable("bigtable"),
 			new BigTable("bigtable2"),
 			};
-	static final long t = System.currentTimeMillis();
+	static final Stopwatch stopwatch = new Stopwatch().start();
 	static final Thread[] threads = new Thread[NTHREADS];
 	static final AtomicInteger nops = new AtomicInteger();
 
@@ -50,6 +51,13 @@ public class TestConcurrency {
 						db.force();
 					}
 				}, 5, 5, TimeUnit.SECONDS);
+		scheduler.scheduleAtFixedRate(
+				new Runnable() {
+					@Override
+					public void run() {
+						db.limitOutstandingTransactions();
+					}
+				}, 200, 200, TimeUnit.MILLISECONDS);
 
 		for (int i = 0; i < NTHREADS; ++i) {
 			threads[i] = new Thread(new Client());
@@ -57,13 +65,12 @@ public class TestConcurrency {
 		}
 		for (Thread thread : threads)
 			thread.join();
-		long d = System.currentTimeMillis() - t;
 
 		for (Runnable r : actions)
 			System.out.println(r.toString());
 		System.out.println(NTHREADS + " threads finished " + nops.get() + " ops" +
-				" in " + readableDuration(d) +
-				" = " + (nops.get() / (d / 1000)) + " per second");
+				" in " + stopwatch +
+				" = " + (nops.get() / (stopwatch.elapsedMillis() / 1000)) + " per second");
 
 		db.checkTransEmpty();
 		db.close();
@@ -85,15 +92,13 @@ public class TestConcurrency {
 				}
 				if (++nreps % 100 == 0) {
 					nops.addAndGet(100);
-					long elapsed = System.currentTimeMillis() - t;
-					if (elapsed > DURATION_MS)
+					if (stopwatch.elapsedMillis() > DURATION_MS)
 						break;
 					if (nreps % 40000 == 0) {
 						if (rt != null)
 							rt.abort();
 						rt = db.readTransaction();
 					}
-					db.limitOutstandingTransactions();
 				}
 			}
 			if (rt != null)
@@ -103,22 +108,6 @@ public class TestConcurrency {
 
 	static Random newRandom() {
 		return new Random(84576);
-	}
-
-	static final int MINUTE_MS = 60 * 1000;
-	static final int SECOND_MS = 1000;
-	static String readableDuration(long ms) {
-		long div = 1;
-		String units = "ms";
-		if (ms > MINUTE_MS) {
-			div = MINUTE_MS;
-			units = "min";
-		} else if (ms > SECOND_MS) {
-			div = SECOND_MS;
-			units = "sec";
-		}
-		long t = (ms * 10 + div / 2) / div;
-		return (t / 10) + "." + (t % 10) + " " + units;
 	}
 
 	static class BigTable implements Runnable {

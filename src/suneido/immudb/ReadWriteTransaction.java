@@ -18,6 +18,7 @@ import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
+import suneido.util.Print;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
@@ -53,8 +54,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	int addRecord(int tblnum, DataRecord rec) {
-		verifyNotSystemTable(tblnum, "output");
-		assert locked;
+		check(tblnum, "output");
 		onlyReads = false;
 		rec.tblnum(tblnum);
 		int adr = indexedData(tblnum).add(rec);
@@ -95,8 +95,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
-		verifyNotSystemTable(tblnum, "update");
-		assert locked;
+		check(tblnum, "update");
 		onlyReads = false;
 		to.tblnum(tblnum);
 		int adr = indexedData(tblnum).update(from, to);
@@ -132,8 +131,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	protected int removeRecord(int tblnum, Record rec) {
-		verifyNotSystemTable(tblnum, "delete");
-		assert locked;
+		check(tblnum, "delete");
 		onlyReads = false;
 		int adr = indexedData(tblnum).remove(rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
@@ -146,6 +144,19 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		IndexIter iter = getIndex(tblnum, colNums).iterator(key);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
+	}
+
+	private void check(int tblnum, String op) {
+		checkNotEnded(op);
+		checkNotSystemTable(tblnum, op);
+	}
+	private void checkNotEnded(String op) {
+		if (isEnded())
+			throw new SuException(this + " " + op + " on ended transaction");
+	}
+	protected void checkNotSystemTable(int tblnum, String op) {
+		if (tblnum <= TN.VIEWS)
+			throw new SuException("can't " + op + " system table ");
 	}
 
 	// -------------------------------------------------------------------------
@@ -180,11 +191,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 			TranIndex btree, String colNames) {
 		id.index(btree, index.mode(), index.colNums, colNames,
 				index.fksrc, schema.getFkdsts(table.name, colNames));
-	}
-
-	void verifyNotSystemTable(int tblnum, String what) {
-		if (tblnum <= TN.VIEWS)
-			throw new SuException("can't " + what + " system table ");
 	}
 
 	protected void updateRowInfo(int tblnum, int nrows, int size) {
@@ -227,8 +233,9 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	void abortThrow(String conflict) {
-		this.conflict = conflict;
-		abort();
+		conflict = "aborted: " + this + " - " + conflict;
+		Print.timestamped(conflict);
+		abort(conflict);
 		throw new SuException(conflict);
 	}
 
@@ -250,6 +257,11 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	@Override
 	public boolean isEnded() {
 		return ! locked;
+	}
+
+	void abort(String message) {
+		conflict = message;
+		abort();
 	}
 
 	@Override

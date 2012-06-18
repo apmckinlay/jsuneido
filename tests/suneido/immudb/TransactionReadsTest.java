@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 public class TransactionReadsTest {
-	private final TransactionReads trs = new TransactionReads();
+	private final TransactionReads trs = new TransactionReads(null);
 
 	@Test
 	public void empty() {

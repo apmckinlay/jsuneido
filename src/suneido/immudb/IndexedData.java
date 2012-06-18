@@ -79,7 +79,7 @@ class IndexedData {
 					if (idx == index)
 						break;
 					if (! idx.remove(rec, adr))
-						t.abortThrow("aborted: possible corruption");
+						t.abortThrow("possible corruption");
 				}
 				throw new SuException("duplicate key: " +
 						index.columns + " = " + index.searchKey(rec));
@@ -98,7 +98,7 @@ class IndexedData {
 		for (AnIndex index : indexes)
 			if (! index.remove(rec, adr))
 				// can't undo like add, may have cascaded
-				t.abortThrow("aborted: index remove failed (possible corruption?)" +
+				t.abortThrow("index remove failed (possible corruption?)" +
 						" " + index.columns + " = " + index.searchKey(rec));
 		trackRemove(adr, REMOVED);
 		return adr;
@@ -122,11 +122,11 @@ class IndexedData {
 			for (AnIndex index : indexes)
 				switch (index.update(from, fromAdr, to, toAdr)) {
 				case NOT_FOUND:
-					t.abortThrow("aborted: update failed: old record not found " +
+					t.abortThrow("update failed: old record not found " +
 							"(possible corruption)");
 					break;
 				case ADD_FAILED:
-					t.abortThrow("aborted: update failed: duplicate key: " +
+					t.abortThrow("update failed: duplicate key: " +
 							index.columns + " = " + index.searchKey(to));
 					break;
 				case OK:
