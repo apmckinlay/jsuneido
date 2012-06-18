@@ -65,7 +65,6 @@ class DataRecord extends BufRecord {
 	}
 
 	void tblnum(int tblnum) {
-		assert this.tblnum == tblnum || this.tblnum == 0;
 		this.tblnum = tblnum;
 	}
 
