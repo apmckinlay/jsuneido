@@ -75,16 +75,16 @@ class BtreeTreeKey extends BtreeKey {
 	}
 
 	@Override
+	void freeze() {
+		if (child != null)
+			child.freeze();
+	}
+
+	@Override
 	public String toString() {
 		return super.toString() +
 				(childAdr == 0 ? "" : "^" + childAdr) +
 				(child == null ? "" : "^REF");
-	}
-
-	@Override
-	void freeze() {
-		if (child != null)
-			child.freeze();
 	}
 
 }

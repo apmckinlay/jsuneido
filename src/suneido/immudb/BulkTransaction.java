@@ -12,10 +12,11 @@ import suneido.SuException;
 import suneido.util.ThreadConfined;
 
 /**
- * Used for load and compact.
- * Changes are made directly to master btrees (no overlay).
+ * Used by {@link DbLoad}, {@link DbCompact}, and {@link DbRebuild}.
+ * Must be run exclusively i.e. no other concurrent update transactions.
+ * Changes are made directly to the master btrees (no overlay).
  * Unlike other transactions, data is written prior to commit (not deferred)
- * using loadRecord and saveBtrees
+ * using loadRecord and saveBtrees.
  */
 @ThreadConfined
 class BulkTransaction extends ReadWriteTransaction {
@@ -66,7 +67,7 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 
@@ -94,7 +95,6 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	private void freezeBtrees() {
-		// no actual update required since we are updating master directly
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		while (iter.hasNext()) {
 			Btree btree = (Btree) iter.next().getValue();
@@ -119,14 +119,14 @@ class BulkTransaction extends ReadWriteTransaction {
 
 	private Tran.StoreInfo endDataStore() {
 		// we are storing as we go, so just output the end marker
-		UpdateTransaction.endOfCommit(tran.dstor);
+		UpdateTransaction.endCommit(tran.dstor);
 		return tran.endStore();
 	}
 
 	@Override
 	public void abort() {
 		if (storeStarted) {
-			UpdateTransaction.endOfCommit(tran.dstor); // so dump works
+			UpdateTransaction.endCommit(tran.dstor); // so dump works
 			tran.abortIncompleteStore();
 		}
 		if (persist != null)

@@ -13,6 +13,10 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
+/**
+ * A wrapper for a list of {@link Index}'s.
+ * Used by {@link Table}.
+ */
 @Immutable
 class Indexes implements Iterable<Index> {
 	final ImmutableList<Index> indexes;

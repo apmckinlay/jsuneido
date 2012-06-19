@@ -34,6 +34,7 @@ import com.google.common.primitives.UnsignedInts;
  */
 @NotThreadSafe
 class Btree implements TranIndex {
+	//TODO find optimal splitSize
 	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
 	int treeLevels;
@@ -66,7 +67,7 @@ class Btree implements TranIndex {
 		return treeLevels == 0 && rootNode.isEmpty();
 	}
 
-
+	// get ---------------------------------------------------------------------
 
 	/**
 	 * @return The record address or 0 if the key wasn't found.
@@ -170,10 +171,10 @@ class Btree implements TranIndex {
 	}
 
 	/**
-	 * potential results
-	 * - false = duplicate
-	 * - BtreeNode = inserted
-	 * - BtreeSplit = split
+	 * @return
+	 * false if duplicate,
+	 * BtreeNode if inserted,
+	 * BtreeSplit if split
 	 */
 	private Object addToLeaf(BtreeNode node, BtreeKey key, boolean unique) {
 		if (! node.isEmpty()) {
@@ -202,8 +203,7 @@ class Btree implements TranIndex {
 		BtreeNode left;
 		BtreeNode right;
 		int keyPos = node.lowerBound(key);
-		boolean leftSame = keyPos == node.size();
-		if (leftSame) {
+		if (keyPos == node.size()) {
 			// key is at end of node, just make new node
 			left = node;
 			right = BtreeMemNode.from(node.level, key);
@@ -624,23 +624,13 @@ class Btree implements TranIndex {
 	}
 
 	/**
-	 * @param start the fraction into the index where this node starts
-	 * @param nodefrac the fraction of the index under this node
+	 * @param start The fraction into the index where this node starts
+	 * @param nodefrac The fraction of the index under this node
 	 */
 	private static float keyfracpos(BtreeNode node, BtreeKey key, float start, float nodefrac) {
 		assert node.size() > 0;
 		int i = node.lowerBound(key);
 		return start + (nodefrac * i) / node.size();
-	}
-
-	public static void main(String[] args) {
-		Database db = Database.open("suneido.db");
-		ReadTransaction t = db.readTransaction();
-		Table tbl = t.getTable("gl_accounts");
-		Btree btree = (Btree) t.getIndex(tbl.num, "glacct_abbrev");
-		btree.print();
-		t.ck_complete();
-		db.close();
 	}
 
 }

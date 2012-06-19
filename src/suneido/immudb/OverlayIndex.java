@@ -16,15 +16,13 @@ import com.google.common.collect.Lists;
  * Interface between UpdateTransaction and database indexes.
  * Any writes go to a local index which is later merged with the master.
  * The global btree is read-only.
- * Keys recording deletes will have a real address,
- * whereas actual new keys will have intref addresses.
- * The delete entries are used by UpdateTransaction updateBtrees
  */
 class OverlayIndex implements TranIndex {
 	private final Btree global;
 	private final Btree local;
 	/** a reference to the transaction deletes */
 	private final TIntHashSet deletes;
+	/** used by UpdateTransaction updateBtrees */
 	final ArrayList<BtreeKey> removedKeys = Lists.newArrayList();
 
 	OverlayIndex(Btree global, Btree local, TIntHashSet deletes) {
@@ -203,6 +201,6 @@ class OverlayIndex implements TranIndex {
 			if (curKey().compareTo(ir.lo) < 0)
 				ir.lo = curKey();
 		}
-	} // end of Iter
+	}
 
 }

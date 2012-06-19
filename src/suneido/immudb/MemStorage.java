@@ -6,6 +6,10 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 
+/**
+ * In-memory storage used by {@link RecordStore} and tests.
+ * @see MmapFile
+ */
 class MemStorage extends Storage {
 
 	MemStorage() {

@@ -21,6 +21,8 @@ import suneido.intfc.database.DatabasePackage.Status;
  * Check the consistency of a database.
  * Verifies sizes and checksums within data store and index store.
  * Verifies that index store matches data store.
+ * Verifies that all fields of data records can be unpacked.
+ * Uses {@link CheckTable}
  */
 class DbCheck {
 	final Storage dstor;
@@ -144,7 +146,7 @@ class DbCheck {
 		String dbfilename = "suneido.db";
 		System.out.println("Fastcheck " + dbfilename + " " +
 				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
-		DbTools.checkPrintExit(DatabasePackage.dbpkg, dbfilename);
+		DbTools.checkPrint(DatabasePackage.dbpkg, dbfilename);
 	}
 
 }

@@ -24,14 +24,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 /**
- * Base class with common code for UpdateTransaction and BulkTransaction
+ * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
 	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
+	/** Stores changes in table sizes */
 	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
 			new TIntObjectHashMap<TableInfoDelta>();
+	/** Caches {@link IndexedData} instances */
 	protected final TIntObjectHashMap<IndexedData> indexedData =
 			new TIntObjectHashMap<IndexedData>();
 
@@ -53,7 +55,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		callTrigger(tbl, null, rec); // must be final step - may throw
 	}
 
-	int addRecord(int tblnum, DataRecord rec) {
+	protected int addRecord(int tblnum, DataRecord rec) {
 		check(tblnum, "output");
 		onlyReads = false;
 		rec.tblnum(tblnum);
@@ -94,7 +96,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		return 1; // don't know record address till commit
 	}
 
-	int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		check(tblnum, "update");
 		onlyReads = false;
 		to.tblnum(tblnum);
@@ -186,7 +188,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		return id;
 	}
 
-	/** overridden by DbRebuild.RebuildTransaction */
+	/** overridden by {@link DbRebuild}.RebuildTransaction */
 	protected void indexedDataIndex(IndexedData id, Table table, Index index,
 			TranIndex btree, String colNames) {
 		id.index(btree, index.mode(), index.colNums, colNames,
@@ -196,12 +198,14 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	protected void updateRowInfo(int tblnum, int nrows, int size) {
 		tidelta(tblnum).update(nrows, size);
 	}
+
 	private TableInfoDelta tidelta(int tblnum) {
 		TableInfoDelta d = tidelta.get(tblnum);
 		if (d == null)
 			tidelta.put(tblnum, d = new TableInfoDelta());
 		return d;
 	}
+
 	private static class TableInfoDelta {
 		int nrows = 0;
 		long size = 0;
@@ -212,13 +216,12 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	protected static class Conflict extends SuException {
-			private static final long serialVersionUID = 1L;
-
-			Conflict(String explanation) {
-				super("transaction conflict: " + explanation);
-			}
+		Conflict(String explanation) {
+			super("transaction conflict: " + explanation);
 		}
+	}
 
 	@Override
 	public int tableCount(int tblnum) {
@@ -297,7 +300,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	protected abstract void commit();
 
-	/** Update dbinfo with tidelta and index information and then freezes it */
+	/** Update dbinfo with tidelta and index information and then freeze it */
 	protected void updateDbInfo(TreeMap<Index,TranIndex> indexes) {
 		if (indexes.isEmpty())
 			return;
@@ -329,7 +332,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	@SuppressWarnings("serial")
-	private static HashingStrategy<IndexInfo> iihash = new HashingStrategy<IndexInfo>() {
+	private static HashingStrategy<IndexInfo> iihash =
+		new HashingStrategy<IndexInfo>() {
 			@Override
 			public int computeHashCode(IndexInfo ii) {
 				return Arrays.hashCode(ii.columns);

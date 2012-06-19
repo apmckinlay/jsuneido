@@ -15,7 +15,8 @@ import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 
 /**
- * Transaction "context". Manages IntRefs and Storage.
+ * Low level "context" for Transactions.
+ * Manages {@link IntRefs} and {@link Storage}.
  */
 @NotThreadSafe
 class Tran implements Translator {
@@ -148,12 +149,6 @@ class Tran implements Translator {
 			return r;
 		} else
 			return new DataRecord(dstor, adr);
-	}
-
-	/** for ExclusiveTransaction */
-	void reset() {
-		head_adr = 0;
-		intrefs.clear();
 	}
 
 }

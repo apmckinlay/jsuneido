@@ -10,9 +10,10 @@ import java.util.Map.Entry;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * A persistent immutable map.
+ * A persistent immutable map.<p>
+ * Uses hashCode and equals on keys.<p>
  * Based on Phil Bagwell's Hash Array Mapped Trie
- * with some help from Rich Hickey's implementation in Clojure.
+ * with some help from Rich Hickey's implementation in Clojure.<p>
  * Uses OverflowNodes instead of extended hashing and does not resize root.
  */
 @Immutable

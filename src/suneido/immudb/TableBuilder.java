@@ -35,8 +35,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private Index firstIndex;
 	private int nextField = 0;
 
-	/** @param t must be an schema transaction */
-	static TableBuilder create(ReadTransaction t, String tableName, int tblnum) {
+	static TableBuilder create(SchemaTransaction t, String tableName, int tblnum) {
 		if (t.getTable(tableName) != null)
 			fail(t, "can't create existing table: " + tableName);
 		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
@@ -132,7 +131,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return this;
 	}
 
-	public void addColumn2(String column) {
+	private void addColumn2(String column) {
 		int field = isRuleField(column) ? -1 : nextField++;
 		if (field == -1)
 			column = uncapitalize(column);
@@ -211,7 +210,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return this;
 	}
 
-	public void addIndex2(int[] colNums, boolean isKey, boolean unique,
+	private void addIndex2(int[] colNums, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Index index = new Index(tblnum, colNums, isKey, unique,
 				fktable, fkcolumns, fkmode);
@@ -298,9 +297,16 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return false;
 	}
 
-	// build -------------------------------------------------------------------
+	//--------------------------------------------------------------------------
 
-	/** for Bootstrap, normally should call finish() instead */
+	@Override
+	public void finish() {
+		if (t instanceof SchemaTransaction)
+			build();
+		t.ck_complete();
+	}
+
+	/** for Bootstrap (normally should call finish instead) */
 	void build() {
 		mustHaveKey();
 		updateSchema();
@@ -368,13 +374,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private static void fail(ReadTransaction t, String msg) {
 		t.abort();
 		throw new SuException(msg);
-	}
-
-	@Override
-	public void finish() {
-		if (t instanceof SchemaTransaction)
-			build();
-		t.ck_complete();
 	}
 
 	@Override

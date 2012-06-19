@@ -17,12 +17,14 @@ import com.google.common.collect.Lists;
 /**
  * New and modified btree nodes.
  * Stored immutable nodes are in {@link BtreeDbNode}
+ * Can overlay a BtreeDbNode, storing only the changes.
  * Mutable within a transaction.
  * Changed to immutable via freeze before going into global database state.
  */
 class BtreeMemNode extends BtreeNode {
 	/** almost final, but cleared by freeze if not needed */
 	private BtreeDbNode dbnode;
+	/** Positive values point to dbnode, negative values to added */
 	private final TByteArrayList index;
 	/** almost final, but rebuilt by without(from, to) */
 	private List<BtreeKey> added;
@@ -71,7 +73,7 @@ class BtreeMemNode extends BtreeNode {
 		this(level, dbnode, index, copyAdded(index, node.added));
 	}
 
-	/** copies just the referenced elements of node.added */
+	/** copies just the referenced elements of added */
 	private static List<BtreeKey> copyAdded(TByteArrayList index, List<BtreeKey> added) {
 		List<BtreeKey> copy = new ArrayList<BtreeKey>(countAdded(index));
 		for (int i = 0; i < index.size(); ++i) {
@@ -154,7 +156,7 @@ class BtreeMemNode extends BtreeNode {
 	}
 
 	@Override
-	public BtreeNode withUpdate(int i, BtreeNode child) {
+	BtreeNode withUpdate(int i, BtreeNode child) {
 		if (ref(i) == child)
 			return this;
 		else if (immutable)
@@ -189,7 +191,7 @@ class BtreeMemNode extends BtreeNode {
 	}
 
 	// called from BtreeDbNode
-	static BtreeNode slice(BtreeDbNode node, int from, int to) {
+	protected static BtreeNode slice(BtreeDbNode node, int from, int to) {
 		Preconditions.checkArgument(from < to && to <= node.size());
 		TByteArrayList index = new TByteArrayList(to - from);
 		for (int i = from; i < to; ++i)

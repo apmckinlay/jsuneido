@@ -141,7 +141,10 @@ public class DbTools {
 	public static Status checkPrint(DatabasePackage dbpkg, String dbFilename) {
 		System.out.println("Checking " +
 				(dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") + "...");
-		return dbpkg.check(dbFilename, printObserver);
+		Stopwatch sw = new Stopwatch().start();
+		Status result = dbpkg.check(dbFilename, printObserver);
+		System.out.println(sw);
+		return result;
 	}
 
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {

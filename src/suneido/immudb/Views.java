@@ -24,7 +24,6 @@ class Views {
 	}
 
 	static boolean dropView(SchemaTransaction t, String name) {
-		// WARNING: assumes views is only indexed on name
 		Record rec = getViewRecord(t, name);
 		if (rec == null)
 			return false;

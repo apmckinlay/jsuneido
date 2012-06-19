@@ -15,6 +15,8 @@ import com.google.common.collect.Iterables;
 
 /**
  * {@link BtreeInfo} plus columns
+ * <p>
+ * Used by {@link TableInfo}
  */
 @Immutable
 class IndexInfo extends BtreeInfo {
@@ -70,6 +72,10 @@ class IndexInfo extends BtreeInfo {
 		rb.add(columns).add(info.root).add(info.treeLevels).add(info.nnodes);
 	}
 
+	void check() {
+		assert ! IntRefs.isIntRef(root);
+	}
+
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
@@ -80,10 +86,6 @@ class IndexInfo extends BtreeInfo {
 			.add("nnodes", nnodes)
 			.add("totalSize", totalSize)
 			.toString();
-	}
-
-	void check() {
-		assert ! IntRefs.isIntRef(root);
 	}
 
 }

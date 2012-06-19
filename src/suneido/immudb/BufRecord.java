@@ -14,7 +14,8 @@ import com.google.common.base.Objects;
  * A record stored in a ByteBuffer in the same format as cSuneido.
  * Used for records read from the database.
  * Also used to store keys within Btree nodes,
- * which themselves are stored as records.
+ * which are themselves stored as records.
+ * @see DataRecord
  */
 @Immutable
 class BufRecord extends Record {
@@ -95,7 +96,7 @@ class BufRecord extends Record {
 
 	@Override
 	public int hashCode() {
-		int hashCode = 1;
+		int hashCode = 17;
 		for (int i = bufpos; i < bufpos + packSize(); ++i)
 		      hashCode = 31 * hashCode + buf.get(i);
 		return hashCode;

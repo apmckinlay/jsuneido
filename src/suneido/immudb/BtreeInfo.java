@@ -11,7 +11,7 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Objects;
 
 /**
- * root, treeLevels, nnodes, totalsize
+ * Holds root, treeLevels, nnodes, totalsize
  */
 @Immutable
 class BtreeInfo {
@@ -38,14 +38,7 @@ class BtreeInfo {
 
 	@Override
 	public boolean equals(Object other) {
-assert false : "hey";
-		if (other instanceof BtreeInfo) {
-			BtreeInfo that = (BtreeInfo) other;
-			return this.root == that.root &&
-					this.treeLevels == that.treeLevels &&
-					this.nnodes == that.nnodes;
-		}
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

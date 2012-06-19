@@ -14,10 +14,8 @@ import suneido.language.Ops;
 import suneido.language.Pack;
 
 /**
- * Abstract base class with common code for BufRecord and ArrayRecord.
- * Records stored in the database are prefixed with their table number.
- * The packed format, e.g. keys in Btree nodes, does NOT include table number.
- * Mostly immutable. Constructed using RecordBuilder.
+ * Abstract base class for {@link BufRecord} and {@link ArrayRecord}.
+ * @see RecordBuilder
  */
 abstract class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().bufRec();

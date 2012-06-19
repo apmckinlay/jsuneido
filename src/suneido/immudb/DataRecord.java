@@ -12,6 +12,7 @@ import com.google.common.primitives.UnsignedInts;
 /**
  * A BufRecord containing a data record (not just a key).
  * Tracks its address and tblnum as well as the data.
+ * Records stored in the database are prefixed with their table number.
  */
 class DataRecord extends BufRecord {
 	private static final int TBLNUM_SIZE = Shorts.BYTES;

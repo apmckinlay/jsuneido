@@ -8,7 +8,9 @@ import java.nio.ByteBuffer;
 
 import com.google.common.collect.UnmodifiableIterator;
 
-// used by DbLoad
+/**
+ * Used by {@link DbLoad} and {@link BulkTransaction}
+ */
 class StoredRecordIterator extends UnmodifiableIterator<Record> {
 	private final Storage stor;
 	private final int last;
