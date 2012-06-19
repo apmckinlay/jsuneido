@@ -18,13 +18,16 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
+/**
+ * Wrapper for a record from the indexes table.
+ * Used by {@link Indexes}.
+ */
 @Immutable
 class Index implements Comparable<Index> {
-	static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
+	private static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
 			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
-	static final int BLOCK = 0, CASCADE_UPDATES = 1,
-			CASCADE_DELETES = 2, CASCADE = 3;
-	static final String UNIQUE = "u";
+	private static final int CASCADE_UPDATE = 1, CASCADE_DELETE = 2, CASCADE = 3;
+	private static final String UNIQUE = "u";
 	final int tblnum;
 	final int[] colNums;
 	final boolean isKey;
@@ -116,10 +119,7 @@ class Index implements Comparable<Index> {
 	}
 
 	String schema(StringBuilder sb, Columns cols) {
-		if (isKey)
-			sb.append(" key");
-		else
-			sb.append(" index").append(unique ? " unique" : "");
+		appendType(sb);
 		String colNames = cols.names(colNums);
 		sb.append("(").append(colNames).append(")");
 		if (fksrc != null && ! fksrc.tablename.equals("")) {
@@ -128,10 +128,19 @@ class Index implements Comparable<Index> {
 				sb.append("(").append(fksrc.columns).append(")");
 			if (fksrc.mode == CASCADE)
 				sb.append(" cascade");
-			else if (fksrc.mode == CASCADE_UPDATES)
+			else if (fksrc.mode == CASCADE_UPDATE)
 				sb.append(" cascade update");
+			else if (fksrc.mode == CASCADE_DELETE)
+				sb.append(" cascade delete");
 		}
 		return sb.toString();
+	}
+
+	private void appendType(StringBuilder sb) {
+		if (isKey)
+			sb.append(" key");
+		else
+			sb.append(" index").append(unique ? " unique" : "");
 	}
 
 	@Override
@@ -163,10 +172,7 @@ class Index implements Comparable<Index> {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("tbl ").append(tblnum).append(" ");
-		if (isKey())
-			sb.append("key");
-		else
-			sb.append("index").append(unique ? " unique" : "");
+		appendType(sb);
 		sb.append("(").append(Ints.join(",", colNums)).append(")");
 		if (fksrc != null)
 			sb.append(" in ").append(fksrc.tablename);

@@ -51,10 +51,11 @@ class ForeignKeyTargets {
 		return targets.get(new ForeignKey(tablename, columns));
 	}
 
-	static suneido.immudb.ForeignKeyTargets.Builder builder() {
+	static Builder builder() {
 		return new Builder();
 	}
 
+	/** Used by {@link Tables} */
 	static class Builder {
 		private final Map<ForeignKey, ImmutableSet.Builder<ForeignKeyTarget>> targets =
 				Maps.newHashMap();

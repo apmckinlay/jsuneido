@@ -12,27 +12,22 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 
 /**
- * Parent type for {@link BtreeDbNode}, {@link BtreeMemNode}.
- * Provides access to a list of keys in sorted order.
- * Keys are {@link Record}'s.
- * The last field on leaf keys is a pointer to the corresponding data record.
- * A tree node key is a leaf key plus a pointer to the child node.
- * Pointers are {@link MmapFile} adr int's
+ * Parent type for {@link BtreeDbNode} and {@link BtreeMemNode}.
+ * Provides access to a list of {@link BtreeKey}'s in sorted order.
  * <p>
  * The first/leftmost key in tree nodes is always "minimal",
- * less than any real key.
+ * i.e. less than any real key.
  * <p>
  * Tree keys lead to leaf keys greater than themselves.
  * In unique btrees tree keys have their data address set to MAXADR
  * so updates (or remove/add) keep key in same node.
- * <p>
  */
 @Immutable
 abstract class BtreeNode {
 	/** level = 0 for leaf, level = treeLevels for root */
 	protected final int level;
 
-	BtreeNode(int level) {
+	protected BtreeNode(int level) {
 		assert level >= 0;
 		this.level = level;
 	}

@@ -4,10 +4,10 @@
 
 package suneido.immudb;
 
+import static com.google.common.base.Preconditions.checkElementIndex;
+
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-
-import com.google.common.base.Preconditions;
 
 /**
  * A {@link BtreeNode} wrapping a ByteBuffer from the database.
@@ -16,7 +16,7 @@ import com.google.common.base.Preconditions;
  */
 class BtreeDbNode extends BtreeNode {
 	final Record rec;
-	private SoftReference<BtreeDbNode>[] refs = null; // cache tree child nodes
+	private SoftReference<BtreeDbNode>[] refs = null; // cache child nodes
 
 	BtreeDbNode(int level, ByteBuffer buf, int adr) {
 		super(level);
@@ -25,7 +25,7 @@ class BtreeDbNode extends BtreeNode {
 
 	@Override
 	BtreeKey get(int i) {
-		Preconditions.checkElementIndex(i, rec.size());
+		checkElementIndex(i, rec.size());
 		ByteBuffer buf = rec.fieldBuffer(i);
 		int pos = rec.fieldOffset(i);
 		return isLeaf()

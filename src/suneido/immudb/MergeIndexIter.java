@@ -7,7 +7,6 @@ package suneido.immudb;
 import suneido.database.query.Query.Dir;
 import suneido.immudb.TranIndex.Iter;
 
-
 /**
  * Merges two IndexIter's.
  * In the case of duplicates, iter1 is treated as "before" iter2.
@@ -81,13 +80,13 @@ class MergeIndexIter implements TranIndex.Iter {
 		lastDir = Dir.PREV;
 	}
 
-	void next(TranIndex.Iter iter) {
+	private static void next(TranIndex.Iter iter) {
 		if (iter.eof())
 			iter.rewind();
 		iter.next();
 	}
 
-	void prev(TranIndex.Iter iter) {
+	private static void prev(TranIndex.Iter iter) {
 		if (iter.eof())
 			iter.rewind();
 		iter.prev();

@@ -13,6 +13,8 @@ import com.google.common.base.Objects;
  * Iterate through data commits or index persists.
  * Check sizes and checksums.
  * CommitProcessor handles structure within commit.
+ * <p>
+ * Used by {@link Check} and {@link DbRebuild}
  */
 class StorageIter {
 	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL };
@@ -36,7 +38,7 @@ class StorageIter {
 		seek(adr);
 	}
 
-	void seek(int adr) {
+	private void seek(int adr) {
 		this.adr = adr;
 		if (eof())
 			return ;
@@ -115,16 +117,16 @@ class StorageIter {
 		return cksum == cs.getValue();
 	}
 
+	public boolean notFinished() {
+		return ! eof() && status == Status.OK;
+	}
+
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
 				.add("adr", adr)
 				.add("eof", eof())
 				.toString();
-	}
-
-	public boolean notFinished() {
-		return ! eof() && status == Status.OK;
 	}
 
 }

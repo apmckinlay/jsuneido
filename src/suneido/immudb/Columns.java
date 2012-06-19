@@ -18,6 +18,10 @@ import suneido.SuException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
+/**
+ * A wrapper for a list of {@link Column}'s.
+ * Used by {@link Table}.
+ */
 @Immutable
 class Columns implements Iterable<Column> {
 	final ImmutableList<Column> columns;

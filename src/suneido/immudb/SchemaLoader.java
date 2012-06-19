@@ -1,3 +1,7 @@
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.immudb;
 
 import static suneido.immudb.Bootstrap.indexColumns;
@@ -12,8 +16,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
- * Load the database schema into memory at startup.
- * Used by Database.open
+ * Load the database schema into memory at startup
+ * by reading the system tables.
+ * Used by {@link Database}.open
  */
 class SchemaLoader {
 	private final ReadTransaction t;
@@ -64,7 +69,7 @@ class SchemaLoader {
 		}
 	}
 
-	static final ImmutableList<Column> noColumns = ImmutableList.of();
+	private static final ImmutableList<Column> noColumns = ImmutableList.of();
 
 	private class ColumnsReader {
 		IndexIter iter;

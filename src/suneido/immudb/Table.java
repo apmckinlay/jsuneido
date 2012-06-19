@@ -19,6 +19,8 @@ import com.google.common.collect.Iterables;
 
 /**
  * Table schema information.
+ * @see Columns
+ * @see Indexes
  */
 @Immutable
 class Table implements suneido.intfc.database.Table {
@@ -32,12 +34,15 @@ class Table implements suneido.intfc.database.Table {
 	Table(int num, String name, Columns columns, Indexes indexes) {
 		checkNotNull(columns);
 		checkNotNull(indexes);
+		checkIndexTblnum(num, indexes);
 		this.num = num;
 		this.name = name;
 		this.columns = columns;
 		this.indexes = indexes;
 		fields = buildFields();
+	}
 
+	private static void checkIndexTblnum(int num, Indexes indexes) {
 		for (Index idx : indexes)
 			assert idx.tblnum == num;
 	}
@@ -159,7 +164,7 @@ class Table implements suneido.intfc.database.Table {
 		return list.build();
 	}
 
-	public String schema() {
+	String schema() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(columns.schemaColumns()).append(")");
 		for (Index index : indexes)

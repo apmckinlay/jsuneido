@@ -5,7 +5,6 @@
 package suneido.immudb;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -17,9 +16,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <p>
  * Returned int's have the upper 12 bits set to 1
  * to distinguish them from database offsets from {@link IntLongs}
+ * <p>
+ * Operates in two phases:
+ * in the first phase references are added with refToInt,
+ * after startStore, addresses for references may be added.
  */
 @NotThreadSafe
-class IntRefs implements Iterable<Object> {
+class IntRefs {
 	static final int MASK = 0xfff00000;
 	public static final int MAXADR = 0xffffffff;
 	private final List<Object> list = new ArrayList<Object>();
@@ -38,10 +41,6 @@ class IntRefs implements Iterable<Object> {
 		// xor the mask bits instead of &
 		// so if they weren't correct it'll be an invalid index
 		return list.get(intref ^ MASK);
-	}
-
-	int size() {
-		return list.size();
 	}
 
 	static boolean isIntRef(int n) {
@@ -64,17 +63,7 @@ class IntRefs implements Iterable<Object> {
 	}
 
 	int getAdr(int intref) {
-		return adrs == null ? intref : adrs[intref ^ MASK];
-	}
-
-	@Override
-	public Iterator<Object> iterator() {
-		return list.iterator();
-	}
-
-	void clear() {
-		list.clear();
-		adrs = null;
+		return adrs[intref ^ MASK];
 	}
 
 	int next() {

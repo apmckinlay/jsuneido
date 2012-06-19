@@ -7,13 +7,15 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 
 /**
- * Check database integrity..
- * Used by DbCheck and DbRebuild.
- * Database.open uses fastcheck which only checks the end part of the database.
+ * Check database integrity.<p>
+ * Used by {@link DbCheck} and {@link DbRebuild}.<p>
+ * {@link Database}.open uses fastcheck which only checks the end part of the database.
  */
 class Check {
 	private static final int FAST_NPERSISTS = 5;
@@ -62,7 +64,8 @@ class Check {
 	/** check the last FAST_NPERSISTS persists */
 	boolean fastcheck() {
 		int pos = findLast(FAST_NPERSISTS);
-		return (pos == CORRUPT) ? false : (pos == EMPTY) ? true : checkFrom(lastadr, pos);
+		return (pos == CORRUPT) ? false
+				: (pos == EMPTY) ? true : checkFrom(lastadr, pos);
 	}
 
 	/** Scan backwards to find the n'th last persist */
@@ -100,6 +103,7 @@ class Check {
 		return new PersistInfo(dbinfoadr, maxtblnum, lastcksum, lastadr);
 	}
 
+	@Immutable
 	static class PersistInfo {
 		final int dbinfoadr;
 		final int maxtblnum;
@@ -151,16 +155,17 @@ class Check {
 		return dIter.eof() && iIter.eof();  // matched all the way to the end
 	}
 
+	/** The date/time of the last data commit where data and indexes matched */
 	Date lastOkDate() {
 		return lastOkDate;
 	}
 
-	/** The size of data where data and indexes match */
+	/** The size of data at the last data and indexes match */
 	long dOkSize() {
 		return dOkSize;
 	}
 
-	/** The size of indexes where data and indexes match */
+	/** The size of indexes at the last data and indexes match */
 	long iOkSize() {
 		return iOkSize;
 	}

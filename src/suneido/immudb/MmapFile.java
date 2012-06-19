@@ -20,6 +20,7 @@ import suneido.SuException;
  * Memory mapped file access.
  * <p>
  * When opening, trailing zero bytes are ignored.
+ * @see MemStorage
  */
 @ThreadSafe
 class MmapFile extends Storage {

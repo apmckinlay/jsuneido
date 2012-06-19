@@ -50,6 +50,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	protected static final short UPDATE = (short) 0;
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
+	/** Used by {@link Transactions} limitOutstanding */
 	final Stopwatch stopwatch = new Stopwatch().start();
 
 	UpdateTransaction(int num, Database db) {
@@ -90,7 +91,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
 		to.address(tran.refToInt(to));
 		int fromadr = super.updateRecord2(tblnum, from, to);
 		addAction(UPDATE);
@@ -114,7 +115,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// used by foreign key cascade
 	@Override
-	public void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
+	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(oldkey);
 		trackReads(index, iter);
@@ -131,7 +132,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// used by foreign key cascade
 	@Override
-	public void removeAll(int tblnum, int[] colNums, Record key) {
+	void removeAll(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
 		Iter iter = getIndex(index).iterator(key);
 		trackReads(index, iter);
@@ -180,12 +181,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// -------------------------------------------------------------------------
 
-	boolean isCommitted() {
+	private boolean isCommitted() {
 		return commitTime != Long.MAX_VALUE;
-	}
-
-	boolean committedBefore(UpdateTransaction tran) {
-		return commitTime < tran.asof;
 	}
 
 	@Override
@@ -276,12 +273,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	protected void storeData() {
 		tran.startStore();
-		startOfCommit();
+		startCommit();
 		storeActions();
-		endOfCommit(tran.dstor);
+		endCommit(tran.dstor);
 	}
 
-	protected void startOfCommit() {
+	protected void startCommit() {
 		ByteBuffer buf = tran.dstor.buffer(tran.dstor.alloc(1));
 		buf.put((byte) tranType());
 	}
@@ -368,7 +365,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return ref == IndexedData.REMOVED || ref == IndexedData.UPDATED;
 	}
 
-	static void endOfCommit(Storage stor) {
+	protected static void endCommit(Storage stor) {
 		stor.buffer(stor.alloc(Shorts.BYTES)).putShort(END);
 	}
 

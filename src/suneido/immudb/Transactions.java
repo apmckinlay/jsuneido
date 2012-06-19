@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Manages transactions.
- * Mostly deals with {@link UpdateTransactions}
+ * Mostly for {@link UpdateTransactions}
  */
 @ThreadSafe
 class Transactions {
@@ -80,7 +80,6 @@ class Transactions {
 			}
 		}
 		return ImmutableSet.copyOf(overlapping.tailSet(t, inclusive));
-
 	}
 
 	synchronized void commit(Transaction t) {
@@ -139,6 +138,7 @@ class Transactions {
 						t.stopwatch.elapsedTime(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
 					return;
 			}
+			// abort outside synchronized to avoid deadlock
 			abort(t, "update transaction longer than " + MAX_UPDATE_TRAN_DURATION_SEC + " seconds");
 		}
 	}

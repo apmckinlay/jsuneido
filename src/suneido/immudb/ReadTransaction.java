@@ -17,7 +17,7 @@ import suneido.util.ThreadConfined;
 import com.google.common.collect.Maps;
 
 /**
- * Effectively immutable, but indexes are cached
+ * Effectively immutable, but indexes are cached.
  * Transactions must be thread confined.
  * They take a "snapshot" of the database state at the start.
  * ReadTransactions require no locking
@@ -30,7 +30,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	protected final Tran tran;
 	protected final Database.State dbstate;
 	protected DbHashTrie dbinfo;
-	protected Tables schema; // not final - modified by ExclusiveTran
+	protected Tables schema; // not final - modified by SchemaTran
 	/** needs to be ordered for ReadWriteTransaction updateDbInfo */
 	protected final TreeMap<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions trans;
@@ -315,6 +315,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public HistoryIterator historyIterator(int tblnum) {
+		//TODO history
 		throw new UnsupportedOperationException();
 	}
 

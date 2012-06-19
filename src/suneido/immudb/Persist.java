@@ -18,7 +18,7 @@ import com.google.common.primitives.Ints;
 
 /**
  * Save dbinfo and btrees to storage (periodically).
- * Uses the same layout as Tran
+ * Uses the same storage layout as Tran
  * but saves to the index storage instead of the data storage.
  * <p>
  * Each persist consists of:<br>

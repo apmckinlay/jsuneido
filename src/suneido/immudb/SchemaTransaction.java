@@ -7,6 +7,10 @@ package suneido.immudb;
 import suneido.SuException;
 import suneido.immudb.TranIndex.Iter;
 
+/**
+ * Used by {@link TableBuilder} to make schema changes.
+ * Exclusive like {@link BulkTransaction}.
+ */
 class SchemaTransaction extends UpdateTransaction {
 
 	SchemaTransaction(int num, Database db) {
@@ -27,6 +31,7 @@ class SchemaTransaction extends UpdateTransaction {
 		locked = false;
 	}
 
+	/** allow modifying system tables */
 	@Override
 	protected void checkNotSystemTable(int tblnum, String op) {
 	}

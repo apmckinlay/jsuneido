@@ -8,9 +8,13 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
 
+/**
+ * Wrapper for a record from the columns table.
+ * Used by {@link Columns}.
+ */
 @Immutable
 class Column implements Comparable<Column> {
-	static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
+	private static final int TBLNUM = 0, FLDNUM = 1, COLUMN = 2;
 	final int tblnum;
 	final int field;
 	final String name;

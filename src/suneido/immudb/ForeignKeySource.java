@@ -10,6 +10,10 @@ import suneido.intfc.database.Fkmode;
 
 import com.google.common.base.Objects;
 
+/**
+ * Used by {@link Index}
+ * @see ForeignKeyTarget
+ */
 @Immutable
 class ForeignKeySource extends ForeignKey {
 	final int mode;

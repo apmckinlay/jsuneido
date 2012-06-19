@@ -19,7 +19,7 @@ import suneido.SuException;
 import suneido.intfc.database.Fkmode;
 
 /**
- * Coordinates data records and the btrees that index them.
+ * Coordinates index updates for a table.
  */
 class IndexedData {
 	enum Mode { KEY, UNIQUE, DUPS };
@@ -53,7 +53,7 @@ class IndexedData {
 		return this;
 	}
 
-	// for tests (without foreign keys)
+	/** for tests (without foreign keys) */
 	IndexedData index(TranIndex btree, Mode mode, int... fields) {
 		indexes.add(new AnIndex(btree, mode, fields, ""));
 		return this;

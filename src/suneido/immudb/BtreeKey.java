@@ -12,7 +12,8 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 
 /**
- * A Btree leaf key.
+ * A Btree leaf key. Holds the key record and the data record address.
+ * Also used as the base for BtreeTreeKey.
  */
 @Immutable
 class BtreeKey implements Comparable<BtreeKey> {
@@ -43,9 +44,14 @@ class BtreeKey implements Comparable<BtreeKey> {
 	}
 
 	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public int compareTo(BtreeKey other) {
 		int cmp = key.compareTo(other.key);
-		return cmp == 0 ? UnsignedInts.compare(dataAdr, other.dataAdr) : cmp;
+		return (cmp != 0) ? cmp : UnsignedInts.compare(dataAdr, other.dataAdr);
 	}
 
 	boolean isEmptyKey() {
@@ -83,14 +89,15 @@ class BtreeKey implements Comparable<BtreeKey> {
 		return new BtreeKey(key, adr);
 	}
 
+	/** overridden by BtreeTreeKey */
+	void freeze() {
+	}
+
 	@Override
 	public String toString() {
 		return key.toString() +
 				(dataAdr == 0 ? "" : "*" +
 						(dataAdr == IntRefs.MAXADR ? "MAX" : dataAdr));
-	}
-
-	void freeze() {
 	}
 
 }

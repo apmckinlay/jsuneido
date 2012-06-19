@@ -13,6 +13,9 @@ import suneido.util.PersistentMap;
 
 import com.google.common.collect.Maps;
 
+/**
+ * Stores the database schema in memory.
+ */
 @Immutable
 class Tables {
 	private final PersistentMap<Integer, Table> bynum;
@@ -77,6 +80,7 @@ class Tables {
 		return fkdsts.get(tablename, columns);
 	}
 
+	/** Used by {@link SchemaLoader */
 	static class Builder {
 		private final PersistentMap.Builder<Integer, Table> bynum =
 				PersistentMap.builder();

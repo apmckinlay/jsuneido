@@ -9,6 +9,8 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Objects;
 
 /*
+ * Base class for {@link ForeignKeySource} and {@link ForeignKeyTarget}
+ * <p>
  * Have to keep tablename and columns as strings (rather than tblnum and colnums)
  * because the table may not exist yet.
  */

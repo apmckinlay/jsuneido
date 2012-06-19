@@ -15,9 +15,16 @@ import com.google.common.collect.Iterables;
 /**
  * Table stats - nextfield, nrows, totalsize, indexInfo
  * <p>
- * Semi-immutable
+ * Semi-immutable:
  * loaded => immutable => with => mutable => store => immutable
- * Mutable within a thread confined transaction.
+ * <p>
+ * Only mutable within a thread confined transaction.
+ * <p>
+ * Unlike cSuneido, table and index info is not kept in the system tables
+ * since that requires more expensive updates.
+ * <p>
+ * Index info is stored one after another following the table info
+ * in the same record.
  */
 class TableInfo extends DbHashTrie.Entry {
 	private int adr;
@@ -92,6 +99,7 @@ class TableInfo extends DbHashTrie.Entry {
 		}
 	}
 
+	/** @return the address of the stored record */
 	int store(Storage stor) {
 		if (! stored()) {
 			RecordBuilder rb = new RecordBuilder();
@@ -112,6 +120,11 @@ class TableInfo extends DbHashTrie.Entry {
 		return null;
 	}
 
+	void check() {
+		for (IndexInfo ii : indexInfo)
+			ii.check();
+	}
+
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
@@ -121,11 +134,6 @@ class TableInfo extends DbHashTrie.Entry {
 			.add("totalsize", totalsize)
 			.addValue(Iterables.toString(indexInfo))
 			.toString();
-	}
-
-	void check() {
-		for (IndexInfo ii : indexInfo)
-			ii.check();
 	}
 
 }
