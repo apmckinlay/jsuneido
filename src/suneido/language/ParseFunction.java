@@ -241,7 +241,9 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private T switchStatement(Context context) {
 		context = new Context(true, context.continueAllowed);
 		match(SWITCH);
-		T expr = generator.rvalue(optionalParensExpression());
+		T expr = (token == L_CURLY)
+			? generator.constant(generator.bool(true))
+			: generator.rvalue(optionalParensExpression());
 		T cases = null;
 		match(L_CURLY);
 		while (matchIf(CASE))
