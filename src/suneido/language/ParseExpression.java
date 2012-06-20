@@ -243,8 +243,11 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T primary() {
 		switch (token) {
-		case NUMBER:
 		case STRING:
+			// don't call constant because it allows concatenation
+			return matchReturn(STRING,
+					generator.constant(generator.string(lexer.getValue())));
+		case NUMBER:
 		case HASH:
 			return generator.constant(constant());
 		case L_CURLY:
