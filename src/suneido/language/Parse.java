@@ -67,18 +67,18 @@ public class Parse<T, G> {
 		matchKeepNewline();
 	}
 	protected void matchKeepNewline() {
-			switch (token) {
-			case L_CURLY:
-			case L_PAREN:
-			case L_BRACKET:
-				++statementNest;
-				break;
-			case R_CURLY:
-			case R_PAREN:
-			case R_BRACKET:
-				--statementNest;
-				break;
-			}
+		switch (token) {
+		case L_CURLY:
+		case L_PAREN:
+		case L_BRACKET:
+			++statementNest;
+			break;
+		case R_CURLY:
+		case R_PAREN:
+		case R_BRACKET:
+			--statementNest;
+			break;
+		}
 		token = lexer.next();
 		//System.out.println(token + " " + lexer.getValue());
 	}
