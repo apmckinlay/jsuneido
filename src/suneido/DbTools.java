@@ -143,7 +143,7 @@ public class DbTools {
 				(dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") + "...");
 		Stopwatch sw = new Stopwatch().start();
 		Status result = dbpkg.check(dbFilename, printObserver);
-		System.out.println(sw);
+		System.out.println("Checked in " + sw);
 		return result;
 	}
 
