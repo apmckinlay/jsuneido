@@ -154,7 +154,15 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T string() {
-		return matchReturn(STRING, generator.string(lexer.getValue()));
+		String s = "";
+		while (true) {
+			s += lexer.getValue();
+			match(STRING);
+			if (token != CAT || lookAhead() != STRING)
+				break;
+			matchSkipNewlines(CAT);
+		}
+		return generator.string(s);
 	}
 
 	private T date() {
