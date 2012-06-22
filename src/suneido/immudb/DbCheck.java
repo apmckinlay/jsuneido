@@ -143,10 +143,7 @@ class DbCheck {
 	}
 
 	public static void main(String[] args) {
-		String dbfilename = "suneido.db";
-		System.out.println("Fastcheck " + dbfilename + " " +
-				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
-		DbTools.checkPrint(DatabasePackage.dbpkg, dbfilename);
+		DbTools.checkPrint(DatabasePackage.dbpkg, "suneido.db");
 	}
 
 }

@@ -154,11 +154,11 @@ class Persist {
 
 	/** used by Database open */
 	static int dbinfoadr(Storage istor) {
-		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
+		ByteBuffer buf = istor.rbuffer(-(Persist.TAIL_SIZE + ENDING_SIZE));
 		return buf.getInt();
 	}
 	static int maxTblnum(Storage istor) {
-		ByteBuffer buf = istor.buffer(-(Persist.TAIL_SIZE + align(ENDING_SIZE)));
+		ByteBuffer buf = istor.rbuffer(-(Persist.TAIL_SIZE + ENDING_SIZE));
 		buf.getInt(); // dbinfoadr
 		return buf.getInt();
 	}
