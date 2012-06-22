@@ -10,7 +10,6 @@ import java.util.Date;
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
-import com.google.common.primitives.Ints;
 
 /**
  * Check database integrity.<p>
@@ -19,7 +18,6 @@ import com.google.common.primitives.Ints;
  */
 class Check {
 	private static final int FAST_NPERSISTS = 5;
-	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final int EMPTY = -2;
 	private static final int CORRUPT = -1;
 	private final Storage dstor;
@@ -63,39 +61,27 @@ class Check {
 
 	/** check the last FAST_NPERSISTS persists */
 	boolean fastcheck() {
-		int pos = findLast(FAST_NPERSISTS);
-		return (pos == CORRUPT) ? false
-				: (pos == EMPTY) ? true : checkFrom(lastadr, pos);
+		int adr = findLast(FAST_NPERSISTS);
+		return (adr == CORRUPT) ? false
+				: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
 	}
 
 	/** Scan backwards to find the n'th last persist */
 	private int findLast(int nPersists) {
-		long fileSize = istor.sizeFrom(0);
-		int pos = 0; // negative offset from end of file
-		int n = 0;
-		int size = 0;
-		while (n < nPersists && fileSize + pos > MIN_SIZE) {
-			ByteBuffer buf = istor.buffer(pos - Ints.BYTES);
-			size = buf.getInt();
-			if (! isValidSize(istor, pos, size))
-				return CORRUPT;
-			pos -= size;
-			++n;
-		}
-		if (n == 0)
-			return EMPTY; // empty file
-		lastadr = info(istor, pos, size).lastadr;
-		return pos;
+		StorageIterReverse iter = new StorageIterReverse(istor);
+		int adr = 0;
+		for (int n = 0; n < nPersists && iter.hasPrev(); ++n)
+			adr = iter.prev();
+		if (adr == 0)
+			return EMPTY;
+		int size = istor.buffer(adr).getInt();
+		lastadr = info(istor, adr, size).lastadr;
+		return adr;
 	}
 
-	private static boolean isValidSize(Storage stor, long pos, int size) {
-		return MIN_SIZE <= size && stor.isValidPos(pos - size);
-	}
-
-	/** Only works on index store */
-	static PersistInfo info(Storage stor, int adr, int size) {
-		ByteBuffer buf = stor.buffer(stor.advance(adr,
-				size - Persist.ENDING_SIZE - Persist.TAIL_SIZE));
+	static PersistInfo info(Storage istor, int adr, int size) {
+		adr = istor.advance(adr, size - Persist.ENDING_SIZE - Persist.TAIL_SIZE);
+		ByteBuffer buf = istor.buffer(adr);
 		int dbinfoadr = buf.getInt();
 		int maxtblnum = buf.getInt();
 		int lastcksum = buf.getInt();
@@ -168,6 +154,12 @@ class Check {
 	/** The size of indexes at the last data and indexes match */
 	long iOkSize() {
 		return iOkSize;
+	}
+
+	public static void main(String[] args) {
+		String dbfilename = "suneido.db";
+		System.out.println("Fastcheck " + dbfilename + " " +
+				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
 	}
 
 }

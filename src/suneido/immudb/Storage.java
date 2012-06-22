@@ -74,7 +74,7 @@ abstract class Storage {
 	}
 
 	int advance(int adr, int length) {
-		long offset = posToOffset(adr);
+		long offset = adrToOffset(adr);
 		offset += align(length);
 		if (offset < file_size) {
 			ByteBuffer buf = buf(offset);
@@ -86,36 +86,41 @@ abstract class Storage {
 	}
 
 	/**
-	 * @param adr Negative value is relative to end.
+	 * @param offset An address (not an offset) as returned by alloc
 	 * @returns A unique instance of a ByteBuffer
 	 * i.e. not shared so it may be modified.
 	 * extending from the offset to the end of the chunk.
 	 */
 	ByteBuffer buffer(int adr) {
 		assert adr != 0 : "storage address should never be 0";
-		return buf(posToOffset(adr));
+		return buf(adrToOffset(adr));
 	}
 
 	/**
-	 * Faster than buffer because it does not duplicate and slice.
-	 * @return The buffer containing the address.
+	 * @param rpos A negative offset from the end of the file
+	 */
+	ByteBuffer rbuffer(long rpos) {
+		assert rpos < 0;
+		return buf(file_size + rpos);
+	}
+
+	int rposToAdr(long rpos) {
+		assert rpos < 0;
+		return offsetToAdr(file_size + rpos);
+	}
+
+	/**
+	 * Faster than buffer because it does not duplicate and slice.<p>
 	 * NOTE: This ByteBuffer is shared and must not be modified.
+	 * @return The buffer containing the address.
 	 */
 	ByteBuffer bufferBase(int adr) {
-		return map(posToOffset(adr));
+		return map(adrToOffset(adr));
 	}
 
 	/** @return The position of adr in bufferBase */
 	int bufferPos(int adr) {
-		return (int) (posToOffset(adr) % CHUNK_SIZE);
-	}
-
-	/**
-	 * @param pos Is either an address
-	 * or a negative offset from the end of the file
-	 */
-	private long posToOffset(int pos) {
-		return pos < 0 ? file_size + pos : adrToOffset(pos);
+		return (int) (adrToOffset(adr) % CHUNK_SIZE);
 	}
 
 	private long protect = 0;
@@ -163,14 +168,14 @@ abstract class Storage {
 		return (int) (n >>> SHIFT) + 1; // +1 to avoid 0
 	}
 
-	static long adrToOffset(int n) {
-		return ((n - 1) & 0xffffffffL) << SHIFT;
+	static long adrToOffset(int adr) {
+		return ((adr - 1) & 0xffffffffL) << SHIFT;
 	}
 
 	/** @return checksum for bytes from adr to end of file */
 	int checksum(int adr) {
 		Checksum cksum = new Checksum();
-		long offset = posToOffset(adr);
+		long offset = adrToOffset(adr);
 		while (offset < file_size) {
 			ByteBuffer buf = buf(offset);
 			offset += buf.remaining();
@@ -181,7 +186,7 @@ abstract class Storage {
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr) {
-		return adr == 0 ? file_size : file_size - posToOffset(adr);
+		return adr == 0 ? file_size : file_size - adrToOffset(adr);
 	}
 
 	boolean isValidPos(long pos) {

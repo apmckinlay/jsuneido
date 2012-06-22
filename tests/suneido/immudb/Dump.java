@@ -11,12 +11,8 @@ import java.nio.ByteBuffer;
 
 import suneido.language.Ops;
 
-import com.google.common.primitives.Ints;
-
 /** for debugging - prints info about file contents */
 class Dump {
-	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
-
 	static void dump(Storage dstor, Storage istor) {
 		try {
 			dump(dstor, Storage.FIRST_ADR, istor, Storage.FIRST_ADR);
@@ -41,18 +37,12 @@ class Dump {
 	}
 
 	/** Scan backwards to find the n'th last persist */
-	static int findLast(Storage stor, int nChunks) {
-		long fileSize = stor.sizeFrom(0);
-		int pos = 0; // negative offset from end of file
-		int n = 0;
-		int size = 0;
-		while (n < nChunks && fileSize + pos > MIN_SIZE) {
-			ByteBuffer buf = stor.buffer(pos - Ints.BYTES);
-			size = buf.getInt();
-			pos -= size;
-			++n;
-		}
-		return pos;
+	static int findLast(Storage stor, int nBlocks) {
+		StorageIterReverse iter = new StorageIterReverse(stor);
+		int adr = 0;
+		for (int n = 0; n < nBlocks && iter.hasPrev(); ++n)
+			adr = iter.prev();
+		return adr;
 	}
 
 	static void indexFrom(Storage istor, int iAdr) {

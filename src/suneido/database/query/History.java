@@ -57,7 +57,7 @@ public class History extends Query {
 			header = new Header(
 					ImmutableList.of(
 						noFields, ImmutableList.of("_date", "_action"),
-						noFields, tbl.getColumns()),
+						noFields, tbl.getFields()),
 					columns());
 		return header;
 	}
@@ -108,7 +108,7 @@ public class History extends Query {
 
 	@Override
 	public Row get(Dir dir) {
-		Record[] data = dir == Dir.NEXT ? iter.getNext() : iter.getPrev();
+		Record[] data = (dir == Dir.NEXT) ? iter.getNext() : iter.getPrev();
 		if (data == null)
 			return null;
 		return new Row(dbpkg.minRecord(), data[0], dbpkg.minRecord(), data[1]);

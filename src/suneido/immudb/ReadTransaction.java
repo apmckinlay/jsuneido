@@ -10,7 +10,6 @@ import java.util.TreeMap;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
-import suneido.intfc.database.HistoryIterator;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
@@ -315,8 +314,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public HistoryIterator historyIterator(int tblnum) {
-		//TODO history
-		throw new UnsupportedOperationException();
+		return new HistoryIterator(db.dstor, tblnum);
 	}
 
 	@Override

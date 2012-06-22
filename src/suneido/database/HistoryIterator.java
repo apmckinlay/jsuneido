@@ -47,7 +47,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 		ByteBuf buf;
 		long offset;
 		do 	{
-			offset = dir == Dir.NEXT ? next() : prev();
+			offset = (dir == Dir.NEXT) ? next() : prev();
 			assert ! iter.corrupt();
 			if (offset == 0)
 				return null;

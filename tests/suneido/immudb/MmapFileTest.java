@@ -9,9 +9,9 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.nio.ByteBuffer;
 
-import org.junit.*;
-
-import suneido.immudb.MmapFile;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class MmapFileTest {
 
@@ -31,7 +31,7 @@ public class MmapFileTest {
 		mmf.close();
 
 		mmf = new MmapFile("tmp2", "r");
-		buf = mmf.buffer(-N);
+		buf = mmf.rbuffer(-N);
 		for (int i = 0; i < N; ++i)
 			assertEquals(i, buf.get(i));
 		mmf.close();
