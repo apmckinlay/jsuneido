@@ -2,14 +2,6 @@
  * Licensed under GPLv2.
  */
 
-/*
-QueryFirst('history(tables)')
-
-QueryFirst('history(gl_transactions)')
-
-QueryApply('tables') {|t| n = 0; QueryApply('history(' $ t.tablename $ ')') {|x| ++n}; Print(t.tablename,n) }
-*/
-
 package suneido.immudb;
 
 import static suneido.immudb.UpdateTransaction.END;
@@ -19,6 +11,7 @@ import static suneido.immudb.UpdateTransaction.UPDATE;
 import java.nio.ByteBuffer;
 
 import suneido.intfc.database.Record;
+import suneido.util.IntArraysList;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
@@ -30,6 +23,9 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	private StorageIter iter;
 	private int adr;
 	private ByteBuffer buf;
+	private StorageIterReverse riter;
+	private IntArraysList rlist = null;
+	private int ri;
 
 	HistoryIterator(Storage dstor, int tblnum) {
 		this.dstor = dstor;
@@ -95,8 +91,41 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	public Record[] getPrev() {
 		if (rewound) {
 			rewound = false;
-//			iter = new StorageIter(dstor, Storage.LAST_ADR);
+			riter = new StorageIterReverse(dstor);
+			rlist = null;
 		}
+		while (true) {
+			while (ri == 0) {
+				if (! riter.hasPrev())
+					return null;
+//TODO skip aborted commits
+				rlist = readList();
+				ri = rlist.size();
+			}
+			--ri;
+			int adr = rlist.get(ri);
+			if (adr == UPDATE || adr == REMOVE) {
+				adr = rlist.get(--ri);
+				DataRecord r = new DataRecord(dstor, adr);
+				if (r.tblnum() != tblnum)
+					continue;
+				return result("delete", r);
+				// create half of update will be handled next time as add
+			} else { // add
+				DataRecord r = new DataRecord(dstor, adr);
+				if (r.tblnum() != tblnum)
+					continue;
+				return result("create", r);
+			}
+		}
+	}
+
+	/**
+	 * read the contents of the commit into a list so we can iterate in reverse
+	 * (can't iterate through stored commit in reverse)
+	 */
+	private IntArraysList readList() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

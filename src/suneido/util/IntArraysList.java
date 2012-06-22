@@ -4,50 +4,45 @@
 
 package suneido.util;
 
-import java.util.AbstractList;
 import java.util.ArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.collect.Lists;
 
+/**
+ * Equivalent to {@link ArraysList} but for int's
+ */
 @NotThreadSafe
-public class ArraysList<E> extends AbstractList<E> {
+public class IntArraysList {
 	final static int CHUNK_SIZE = 512;
-	private final ArrayList<E[]> chunks = Lists.newArrayList();
+	private final ArrayList<int[]> chunks = Lists.newArrayList();
 	private int size = 0;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public boolean add(E value) {
+	public boolean add(int value) {
 		if (chunkFor(size) >= chunks.size())
-			chunks.add((E[]) new Object[CHUNK_SIZE]);
+			chunks.add(new int[CHUNK_SIZE]);
 		chunks.get(chunkFor(size))[indexFor(size)] = value;
 		++size;
-		++modCount;
 		return true;
 	}
 
-	@Override
 	public void clear() {
 		chunks.clear();
 		size = 0;
 	}
 
-	@Override
-	public E get(int i) {
+	public int get(int i) {
 		return chunks.get(chunkFor(i))[indexFor(i)];
 	}
 
-	@Override
-	public E set(int i, E value) {
-		E[] chunk = chunks.get(chunkFor(i));
-		E prev = chunk[indexFor(i)];
+	public int set(int i, int value) {
+		int[] chunk = chunks.get(chunkFor(i));
+		int prev = chunk[indexFor(i)];
 		chunk[indexFor(i)] = value;
 		return prev;
 	}
 
-	@Override
 	public int size() {
 		return size;
 	}
