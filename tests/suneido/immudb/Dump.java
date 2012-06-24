@@ -27,7 +27,7 @@ class Dump {
 		indexFrom(istor, iAdr);
 		System.out.close();
 	    System.setOut(new PrintStream(new FileOutputStream("dump-data.txt")));
-		dataFrom(dstor, dAdr, false);
+		dataFrom(dstor, dAdr, true);
 	}
 
 	static void ending(Storage dstor, Storage istor) throws FileNotFoundException {
@@ -46,7 +46,8 @@ class Dump {
 	}
 
 	static void indexFrom(Storage istor, int iAdr) {
-		for (StorageIter iter = new StorageIter(istor, iAdr); ! iter.eof(); iter.advance2()) {
+		for (StorageIter iter = new StorageIter(istor, iAdr).dontChecksum();
+				! iter.eof(); iter.advance2()) {
 			assert iter.status() == StorageIter.Status.OK : "CORRUPT!";
 			System.out.println(Storage.adrToOffset(iter.adr()) +
 					" size " + iter.size() +
@@ -57,7 +58,8 @@ class Dump {
 	}
 
 	static void dataFrom(Storage dstor, int dAdr, boolean detail) {
-		for (StorageIter iter = new StorageIter(dstor, dAdr); ! iter.eof(); iter.advance2()) {
+		for (StorageIter iter = new StorageIter(dstor, dAdr).dontChecksum();
+				! iter.eof(); iter.advance2()) {
 			ByteBuffer buf = dstor.buffer(iter.adr());
 			char c = (char) buf.get(Tran.HEAD_SIZE);
 			System.out.println(Storage.adrToOffset(iter.adr()) +

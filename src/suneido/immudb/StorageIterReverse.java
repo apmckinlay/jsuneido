@@ -6,6 +6,10 @@ package suneido.immudb;
 
 import com.google.common.primitives.Ints;
 
+/**
+ * Minimal reverse iterator.
+ * @see StorageIter
+ */
 public class StorageIterReverse {
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private final Storage stor;

@@ -9,6 +9,7 @@ import static suneido.immudb.UpdateTransaction.REMOVE;
 import static suneido.immudb.UpdateTransaction.UPDATE;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
@@ -17,6 +18,7 @@ abstract class CommitProcessor {
 	private final Storage stor;
 	protected final int commitAdr;
 	private int adr;
+	private DataRecord addrec;
 
 	CommitProcessor(Storage stor, int adr) {
 		this.stor = stor;
@@ -28,6 +30,13 @@ abstract class CommitProcessor {
 		if (stor.sizeFrom(adr) <= 0)
 			return;
 		ByteBuffer buf = stor.buffer(adr);
+		buf.getInt(); // size
+		int date = buf.getInt();
+		if (date == 0) { // aborted
+			date(null);
+			return;
+		}
+		date(new Date(1000L * date));
 		buf = advance(Tran.HEAD_SIZE);
 
 		char c = (char) buf.get();
@@ -35,30 +44,29 @@ abstract class CommitProcessor {
 		type(c);
 		buf = advance(1);
 
-		DataRecord from = null;
+		int from = 0;
 		while (true) {
 			short b = buf.getShort();
 			if (b == END)
 				break;
 			else if (b == REMOVE || b == UPDATE) {
-				assert from == null;
+				assert from == 0;
 				int recadr = buf.getInt();
-				DataRecord r = new DataRecord(stor, recadr);
 				if (b == REMOVE)
-					remove(r);
+					remove(recadr);
 				else // UPDATE
-					from = r;
+					from = recadr;
 				buf = advance(Shorts.BYTES + Ints.BYTES);
 			} else { // add
-				DataRecord r = new DataRecord(buf.slice());
-				r.tblnum(b);
-				if (from == null)
-					add(r);
+				addrec = new DataRecord(buf.slice());
+				addrec.tblnum(b);
+				if (from == 0)
+					add(b, adr);
 				else {
-					update(from, r);
-					from = null;
+					update(from, adr);
+					from = 0;
 				}
-				buf = advance(r.storSize());
+				buf = advance(addrec.storSize());
 			}
 		}
 		after();
@@ -69,14 +77,31 @@ abstract class CommitProcessor {
 		return stor.buffer(adr);
 	}
 
-	abstract void type(char c);
+	void type(char c) {
+	}
 
-	abstract void update(DataRecord from, DataRecord to);
+	void date(Date date) {
+	}
 
-	abstract void remove(DataRecord r);
+	void add(int tblnum, int adr) {
+		add(addrec);
+	}
+	void add(DataRecord r) {
+	}
 
-	abstract void add(DataRecord r);
+	void update(int from, int to) {
+		update(new DataRecord(stor, from), addrec);
+	}
+	void update(DataRecord from, DataRecord to) {
+	}
 
-	abstract void after();
+	void remove(int adr) {
+		remove(new DataRecord(stor, adr));
+	}
+	void remove(DataRecord r) {
+	}
+
+	void after() {
+	}
 
 }

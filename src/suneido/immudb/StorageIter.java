@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
  * CommitProcessor handles structure within commit.
  * <p>
  * Used by {@link Check} and {@link DbRebuild}
+ * @see StorageIterReverse
  */
 class StorageIter {
 	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL };
@@ -28,6 +29,7 @@ class StorageIter {
 	private int date = 0;
 	private Status status = Status.OK;
 	private int cksum; // of current commit/persist
+	private boolean verifyChecksums = true;
 
 	StorageIter(Storage stor) {
 		this(stor, Storage.FIRST_ADR);
@@ -36,6 +38,11 @@ class StorageIter {
 	StorageIter(Storage stor, int adr) {
 		this.stor = stor;
 		seek(adr);
+	}
+
+	StorageIter dontChecksum() {
+		verifyChecksums = false;
+		return this;
 	}
 
 	private void seek(int adr) {
@@ -54,7 +61,7 @@ class StorageIter {
 		}
 		if (date == 0) // aborted commit
 			return;
-		if (! verifyCksum()) {
+		if (verifyChecksums && ! verifyChecksum()) {
 			status = Status.CHECKSUM_FAIL;
 			return;
 		}
@@ -102,7 +109,7 @@ class StorageIter {
 	}
 
 	// depends on buf.remaining() going to end of storage chunk
-	private boolean verifyCksum() {
+	private boolean verifyChecksum() {
 		Checksum cs = new Checksum();
 		int remaining = size - Tran.HEAD_SIZE;
 		int pos = adr;
