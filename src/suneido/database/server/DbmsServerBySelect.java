@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadFactory;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.SuException;
 import suneido.Suneido;
 import suneido.util.NetworkOutput;
 import suneido.util.Print;
@@ -172,7 +173,8 @@ public class DbmsServerBySelect {
 				ServerData.threadLocal.set(serverData);
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
-				if (! (e instanceof RuntimeException)) {
+				Class<? extends Throwable> c = e.getClass();
+				if (c != RuntimeException.class && c != SuException.class) {
 					Print.timestamp();
 					e.printStackTrace();
 				}
