@@ -63,6 +63,11 @@ public class History extends Query {
 	}
 
 	@Override
+	boolean singleDbTable() {
+		return false;
+	}
+
+	@Override
 	List<List<String>> indexes() {
 		if (indexes == null)
 			indexes = ImmutableList.of((List<String>) ImmutableList.of("_date"));

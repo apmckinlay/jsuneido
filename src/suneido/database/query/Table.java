@@ -251,6 +251,11 @@ public class Table extends Query {
 	}
 
 	@Override
+	boolean singleDbTable() {
+		return true;
+	}
+
+	@Override
 	public void rewind() {
 		rewound = true;
 	}

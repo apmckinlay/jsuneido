@@ -27,6 +27,10 @@ public abstract class QueryAction extends Query1 {
 		throw unreachable();
 	}
 	@Override
+	boolean singleDbTable() {
+		throw unreachable();
+	}
+	@Override
 	List<List<String>> indexes() {
 		throw unreachable();
 	}

@@ -35,13 +35,14 @@ public class TempIndex extends Query1 {
 	private final IntMergeTree index = new IntMergeTree(cmp);
 	private IntMergeTree.Iter iter;
 	private final Keyrange sel = new Keyrange();
-	private boolean single;
+	private final boolean single;
 
 	public TempIndex(Query source, Transaction tran, List<String> order, boolean unique) {
 		super(source);
 		this.tran = tran;
 		this.order = order;
 		this.unique = unique;
+		single = source.singleDbTable();
 	}
 
 	@Override
@@ -93,10 +94,10 @@ public class TempIndex extends Query1 {
 		index.clear();
 		refs.clear();
 		Header srchdr = source.header();
-		single = (srchdr.size() <= 2);
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
 			int adr = single ? row.firstData().address() : row.getRefs(refs);
+			assert ! single || adr != 0;
 			Record key = row.project(srchdr, order, adr);
 			if (key.bufSize() > 4000)
 				throw new SuException("temp index entry size > 4000: " + order);
