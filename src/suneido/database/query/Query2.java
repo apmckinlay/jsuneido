@@ -25,7 +25,7 @@ public abstract class Query2 extends Query1 {
 
 	@Override
 	public boolean updateable() {
-		return false; // override Query1 source->updateable
+		return false; // override Query1 source.updateable()
 	}
 
 	@Override
@@ -37,6 +37,11 @@ public abstract class Query2 extends Query1 {
 	@Override
 	public Header header() {
 		return new Header(source.header(), source2.header());
+	}
+
+	@Override
+	boolean singleDbTable() {
+		return false;
 	}
 
 	@Override

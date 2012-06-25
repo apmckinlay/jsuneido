@@ -172,6 +172,11 @@ public class Summarize extends Query1 {
 		return new Header(asList(noFields, flds), flds);
 	}
 
+	@Override
+	boolean singleDbTable() {
+		return false;
+	}
+
 	private void iterate_setup() {
 		first = false;
 		hdr = source.header();

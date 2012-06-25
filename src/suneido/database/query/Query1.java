@@ -79,6 +79,11 @@ public abstract class Query1 extends Query {
 	}
 
 	@Override
+	boolean singleDbTable() {
+		return source.singleDbTable();
+	}
+
+	@Override
 	public void rewind() {
 		source.rewind();
 	}

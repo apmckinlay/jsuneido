@@ -189,6 +189,9 @@ public abstract class Query {
 		return false;
 	}
 
+	/** Used by TempIndex to optimize sorting a single database table */
+	abstract boolean singleDbTable();
+
 	/** used for trace, e.g. slow queries in Select */
 	public abstract void close();
 

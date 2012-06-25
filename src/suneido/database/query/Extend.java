@@ -138,6 +138,11 @@ public class Extend extends Query1 {
 	}
 
 	@Override
+	boolean singleDbTable() {
+		return false;
+	}
+
+	@Override
 	List<Fixed> fixed() {
 		if (fix != null)
 			return fix;
