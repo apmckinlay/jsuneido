@@ -64,7 +64,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void copy(String filename) {
-		// TODO copy
+		throw new UnsupportedOperationException("copy");
 	}
 
 	@Override
