@@ -9,8 +9,12 @@ import static suneido.language.UserDefined.userDefinedMethod;
 import java.util.Collections;
 import java.util.Map;
 
-import suneido.*;
-import suneido.language.builtin.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuValue;
+import suneido.language.builtin.ContainerMethods;
+import suneido.language.builtin.NumberMethods;
+import suneido.language.builtin.StringMethods;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -26,7 +30,7 @@ public class BuiltinMethods extends SuValue {
 	private final String userDefined;
 	private final Map<String, SuMethod> methods;
 
-	// TODO use a factory method instead of doing methods() in constructor
+	// MAYBE use a factory method instead of doing methods() in constructor
 
 	public BuiltinMethods() {
 		userDefined = null;
