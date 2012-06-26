@@ -66,7 +66,7 @@ public class StringMethods extends BuiltinMethods {
 		}
 	}
 
-	// TODO implement exception.As
+	/** implemented in Except.As */
 	public static class As extends SuMethod1 {
 		@Override
 		public Object eval1(Object self, Object a) {
