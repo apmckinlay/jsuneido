@@ -4,13 +4,12 @@
 
 package suneido.intfc.database;
 
-//TODO convert to enum
 public class Fkmode {
 	public static final int
 		BLOCK = 0,
 		CASCADE_UPDATES = 1,
 		CASCADE_DELETES = 2,
-		CASCADE = 3;
+		CASCADE = CASCADE_UPDATES | CASCADE_DELETES;
 
 	public static String toString(int mode) {
 		switch (mode) {
