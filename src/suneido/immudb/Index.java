@@ -11,6 +11,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
+import suneido.intfc.database.Fkmode;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -26,7 +27,6 @@ import com.google.common.primitives.Ints;
 class Index implements Comparable<Index> {
 	private static final int TBLNUM = 0, COLUMNS = 1, KEY = 2,
 			FKTABLE = 3, FKCOLUMNS = 4, FKMODE = 5;
-	private static final int CASCADE_UPDATE = 1, CASCADE_DELETE = 2, CASCADE = 3;
 	private static final String UNIQUE = "u";
 	final int tblnum;
 	final int[] colNums;
@@ -126,12 +126,10 @@ class Index implements Comparable<Index> {
 			sb.append(" in ").append(fksrc.tablename);
 			if (! colNames.equals(fksrc.columns))
 				sb.append("(").append(fksrc.columns).append(")");
-			if (fksrc.mode == CASCADE)
+			if (fksrc.mode == Fkmode.CASCADE)
 				sb.append(" cascade");
-			else if (fksrc.mode == CASCADE_UPDATE)
+			else if (fksrc.mode == Fkmode.CASCADE_UPDATES)
 				sb.append(" cascade update");
-			else if (fksrc.mode == CASCADE_DELETE)
-				sb.append(" cascade delete");
 		}
 		return sb.toString();
 	}
