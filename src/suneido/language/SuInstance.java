@@ -7,7 +7,9 @@ package suneido.language;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.base.Objects;
@@ -37,9 +39,28 @@ public class SuInstance extends SuValue {
 	public Object call(Object... args) {
 		return myclass.lookup("Call").eval(this, args);
 	}
-	// TODO call0...9
 
-	// TODO use BuiltinMethods
+	@Override
+	public Object call0() {
+		return myclass.lookup("Call").eval0(this);
+	}
+	@Override
+	public Object call1(Object a) {
+		return myclass.lookup("Call").eval1(this, a);
+	}
+	@Override
+	public Object call2(Object a, Object b) {
+		return myclass.lookup("Call").eval2(this, a, b);
+	}
+	@Override
+	public Object call3(Object a, Object b, Object c) {
+		return myclass.lookup("Call").eval3(this, a, b, c);
+	}
+	@Override
+	public Object call4(Object a, Object b, Object c, Object d) {
+		return myclass.lookup("Call").eval4(this, a, b, c, d);
+	}
+
 	private static Map<String, SuMethod> methods() {
 		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
 		b.put("Base", new Base());
