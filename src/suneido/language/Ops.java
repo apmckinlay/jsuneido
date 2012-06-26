@@ -114,8 +114,16 @@ public final class Ops {
 
 		if (xClass == SuRecord.class)
 			xClass = SuContainer.class;
+		if (xClass == SuSequence.class) {
+			((SuSequence) x).instantiate();
+			xClass = SuContainer.class;
+		}
 		if (yClass == SuRecord.class)
 			yClass = SuContainer.class;
+		if (yClass == SuSequence.class) {
+			((SuSequence) y).instantiate();
+			yClass = SuContainer.class;
+		}
 		if (xClass == Concat.class) {
 			x = x.toString();
 			xClass = String.class;
@@ -124,7 +132,7 @@ public final class Ops {
 			y = y.toString();
 			yClass = String.class;
 		}
-		if (xClass == yClass)
+		if (xClass == yClass) // most common case e.g. 80%
 			return (x instanceof Comparable)
 				? ((Comparable<Object>) x).compareTo(y)
 				: cmpHash(xClass, yClass);

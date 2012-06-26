@@ -49,8 +49,6 @@ public class SuSequence extends SuContainer {
 		}
 	};
 
-	// TODO handle compareTo (also in Ops.cmp)
-
 	@Override
 	public boolean equals(Object other) {
 		instantiate();
@@ -81,7 +79,7 @@ public class SuSequence extends SuContainer {
 		return super.packSize(nest);
 	}
 
-	private void instantiate() {
+	void instantiate() {
 		if (instantiated)
 			return;
 		addAll(iterable);
