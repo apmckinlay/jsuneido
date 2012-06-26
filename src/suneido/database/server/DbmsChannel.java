@@ -28,7 +28,7 @@ public class DbmsChannel {
 	public DbmsChannel(String ip, int port) {
 		try {
 			channel = SocketChannel.open(new InetSocketAddress(ip, port));
-			channel.socket().setSoTimeout(5000); // TODO set higher
+			channel.socket().setSoTimeout(20000); // 20 seconds
 		} catch (Exception e) {
 			throw new SuException("can't connect to " + ip + ":" + port, e);
 		}
