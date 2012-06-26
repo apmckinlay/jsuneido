@@ -115,11 +115,52 @@ public class SuClass extends SuValue {
 	public Object call(Object... args) {
 		return lookup("CallClass").eval(this, args);
 	}
-	// TODO call0...9
+
+	@Override
+	public Object call0() {
+		return lookup("CallClass").eval0(this);
+	}
+	@Override
+	public Object call1(Object a) {
+		return lookup("CallClass").eval1(this, a);
+	}
+	@Override
+	public Object call2(Object a, Object b) {
+		return lookup("CallClass").eval2(this, a, b);
+	}
+	@Override
+	public Object call3(Object a, Object b, Object c) {
+		return lookup("CallClass").eval3(this, a, b, c);
+	}
+	@Override
+	public Object call4(Object a, Object b, Object c, Object d) {
+		return lookup("CallClass").eval4(this, a, b, c, d);
+	}
 
 	@Override
 	public Object eval(Object self, Object... args) {
 		return lookup("CallClass").eval(self, args);
+	}
+
+	@Override
+	public Object eval0(Object self) {
+		return lookup("CallClass").eval0(self);
+	}
+	@Override
+	public Object eval1(Object self, Object a) {
+		return lookup("CallClass").eval1(self, a);
+	}
+	@Override
+	public Object eval2(Object self, Object a, Object b) {
+		return lookup("CallClass").eval2(self, a, b);
+	}
+	@Override
+	public Object eval3(Object self, Object a, Object b, Object c) {
+		return lookup("CallClass").eval3(self, a, b, c);
+	}
+	@Override
+	public Object eval4(Object self, Object a, Object b, Object c, Object d) {
+		return lookup("CallClass").eval4(self, a, b, c, d);
 	}
 
 	@Override
@@ -260,7 +301,7 @@ public class SuClass extends SuValue {
 			SuClass c = toClass(self);
 			if (c == null)
 				return Boolean.FALSE;
-			// TODO use lookup, except it throws
+			// can't use lookup because it throws
 			Object x = c.get2(method);
 			return x instanceof SuCallable;
 		}
