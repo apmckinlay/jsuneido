@@ -34,7 +34,6 @@ import com.google.common.primitives.UnsignedInts;
  */
 @NotThreadSafe
 class Btree implements TranIndex {
-	//TODO find optimal splitSize
 	protected int splitSize() { return 20; } // overridden by tests
 	private final Tran tran;
 	int treeLevels;
