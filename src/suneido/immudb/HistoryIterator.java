@@ -38,7 +38,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	public void rewind() {
 		rewound = true;
 		rlist = new IntArraysList();
-		ri = 0;
+		ri = -1;
 	}
 
 	@Override
@@ -48,14 +48,14 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 			rpos = 1; // special value handled by nextCommit
 		}
 		while (true) {
-			if (ri >= rlist.size())
+			if (ri + 1 >= rlist.size())
 				if (! nextCommit()) {
 					rewind();
 					return null; // eof
 				}
-			int adr = rlist.get(ri++);
+			int adr = rlist.get(++ri);
 			if (adr == REMOVE) {
-				adr = rlist.get(ri++);
+				adr = rlist.get(++ri);
 				return result("delete", new DataRecord(dstor, adr));
 				// create half of update will be handled next time as add
 			} else // add
@@ -77,7 +77,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 			}
 			readList();
 		} while (date == null || rlist.size() == 0); // skip aborted or empty
-		ri = 0;
+		ri = -1;
 		return true;
 	}
 
