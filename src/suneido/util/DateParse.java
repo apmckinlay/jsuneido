@@ -90,7 +90,7 @@ public class DateParse {
 		final int NOTSET = 9999;
 		DateTime dt = new DateTime(9999, 0, 0, NOTSET, NOTSET, NOTSET, 0);
 
-		String[] date_patterns =
+		final String[] date_patterns =
 			{
 			"", // set to supplied order
 			"md",
@@ -232,6 +232,7 @@ public class DateParse {
 			if (t == p.length() && t == ntokens)
 				break ;
 		}
+		assert p != null;
 
 		DateTime now = new DateTime();
 
