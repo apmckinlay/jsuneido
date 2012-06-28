@@ -153,6 +153,7 @@ class DbLoad {
 	public static void main(String[] args) throws IOException  {
 		Stopwatch sw = new Stopwatch().start();
 		Database db = (Database) dbpkg.create(dbpkg.dbFilename());
+		@SuppressWarnings("resource")
 		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 		loadDatabase(db, fin);
 		db.close();

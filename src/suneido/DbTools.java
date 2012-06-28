@@ -42,6 +42,7 @@ public class DbTools {
 	public static int dumpDatabase(DatabasePackage dbpkg, Database db,
 			String outputFilename) {
 		try {
+			@SuppressWarnings("resource")
 			WritableByteChannel fout = new FileOutputStream(outputFilename).getChannel();
 			try {
 				return dbpkg.dumpDatabase(db, fout);
@@ -68,6 +69,7 @@ public class DbTools {
 	public static int dumpTable(DatabasePackage dbpkg, Database db,
 			String tablename) {
 		try {
+			@SuppressWarnings("resource")
 			WritableByteChannel fout = new FileOutputStream(tablename + ".su").getChannel();
 			try {
 				return dbpkg.dumpTable(db, tablename, fout);
@@ -95,6 +97,7 @@ public class DbTools {
 		String tempfile = arg.substring(i + SEPARATOR.length());
 		Database db = dbpkg.create(tempfile);
 		try {
+			@SuppressWarnings("resource")
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {
 				Stopwatch sw = new Stopwatch().start();
@@ -118,6 +121,7 @@ public class DbTools {
 		Database db = new File(dbFilename).exists()
 				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);
 		try {
+			@SuppressWarnings("resource")
 			ReadableByteChannel fin = new FileInputStream(tablename + ".su").getChannel();
 			try {
 				int n = dbpkg.loadTable(db, tablename, fin);
