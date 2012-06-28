@@ -9,11 +9,6 @@ import java.io.StringWriter;
 import org.junit.Test;
 
 public class CompileTest {
-//TODO	@Test
-	public void blocks() {
-		test("return { }",
-				"block, ARETURN");
-	}
 
 	/*
 	 * a, b, c are parameters (so no null checks)
@@ -370,12 +365,18 @@ public class CompileTest {
 		test_b0("Do() { return 123 }",
 				"123, blockReturn");
 
+		test_e("return { }",
+				"try L0 L1 L2, L3, const0, L0, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
+		test_e("return { this }",
+				"try L0 L1 L2, L3, block, L0, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
 		test_e("b = { }",
-				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, blockReturnHandler, ARETURN");
+				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
 		test_e("b = { a }",
-				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, blockReturnHandler, ARETURN");
+				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
 		compile("Foreach(a, { })");
 		compile("Foreach(a) { }");
 		compile("Plugins().Foreach(a, { })");
@@ -383,11 +384,11 @@ public class CompileTest {
 		compile("Plugins().Foreach(a) { }");
 		compile("b = { .001 }");
 		test_e("b = { return 123 }",
-				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, blockReturnHandler, ARETURN");
+				"try L0 L1 L2, L3, &b, const0, L0, DUP_X2, AASTORE, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
 		test_e("b = { a; return 123 }",
-				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, "
-				+ "L1, L2, blockReturnHandler, ARETURN");
+				"try L0 L1 L2, L3, &b, block, L0, DUP_X2, AASTORE, ARETURN, " +
+				"L1, L2, blockReturnHandler, ARETURN");
 	}
 
 	@Test
@@ -550,6 +551,7 @@ public class CompileTest {
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
 			{ "NEW suneido/language/SuBlock, DUP, const0, self, args, INVOKESPECIAL suneido/language/SuBlock.<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW suneido/language/SuBlock0, DUP, const0, self, args, INVOKESPECIAL suneido/language/SuBlock0.<init> (Object;Object;[Object;)V", "block" },
 			{ "NEW suneido/language/SuBlock0, DUP, const0, null, args, INVOKESPECIAL suneido/language/SuBlock0.<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
