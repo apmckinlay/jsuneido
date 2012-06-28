@@ -85,9 +85,11 @@ public class Table extends Query {
 			idx = (idx1 == null) ? null : idx1.index;
 			return cost1;
 		} else if (cost2 <= cost1 && cost2 <= cost3) {
-			idx = idx2.index;
+			assert idx2 != null;
+			idx = idx2.index; // suppress warning
 			return cost2;
 		} else {
+			assert idx3 != null; // suppress warning
 			idx = idx3.index;
 			return cost3;
 		}

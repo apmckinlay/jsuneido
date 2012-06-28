@@ -66,7 +66,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private static int tblnum(ReadTransaction t, String tableName) {
 		Table table = t.getTable(tableName);
 		if (table == null)
-			fail(t, NONEXISTENT_TABLE + ": " + tableName);
+			throw fail(t, NONEXISTENT_TABLE + ": " + tableName);
 		return table.num;
 	}
 
@@ -96,7 +96,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static void renameTable(SchemaTransaction t, String from, String to) {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
-			fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
+			throw fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
 		if (t.getTable(to) != null)
 			fail(t, CANT_RENAME + " to existing table name");
 		Table newTable = new Table(oldTable.num, to,
@@ -371,7 +371,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private void fail(String msg) {
 		fail(t, msg + " in " + tableName);
 	}
-	private static void fail(ReadTransaction t, String msg) {
+	private static SuException fail(ReadTransaction t, String msg) {
 		t.abort();
 		throw new SuException(msg);
 	}
