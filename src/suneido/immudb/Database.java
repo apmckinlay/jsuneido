@@ -14,7 +14,6 @@ import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
-import suneido.util.NreReadWriteLock;
 
 import com.google.common.base.Objects;
 
@@ -23,7 +22,6 @@ class Database implements suneido.intfc.database.Database {
 	final Transactions trans = new Transactions();
 	final Storage dstor;
 	final Storage istor;
-	final NreReadWriteLock exclusiveLock = new NreReadWriteLock();
 	private final Triggers triggers = new Triggers();
 	final Object commitLock = new Object();
 	/** only updated when holding commitLock */
@@ -186,9 +184,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public TableBuilder ensureTable(String tableName) {
 		checkForSystemTable(tableName, "ensure");
-		return state.schema.get(tableName) == null
-			? TableBuilder.create(schemaTransaction(), tableName, nextTableNum())
-			: TableBuilder.alter(readTransaction(), tableName);
+		return TableBuilder.ensure(schemaTransaction(), tableName, nextTableNum());
 	}
 
 	@Override
@@ -216,12 +212,13 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
+		// use SchemaTransaction to allow modifying system tables
 		SchemaTransaction t = schemaTransaction();
 		try {
 			if (null != Views.getView(t, name))
 				throw new RuntimeException("view: '" + name + "' already exists");
 			Views.addView(t, name, definition);
-			t.complete();
+			t.ck_complete();
 		} finally {
 			t.abortIfNotComplete();
 		}

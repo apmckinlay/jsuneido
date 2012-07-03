@@ -27,7 +27,6 @@ import com.google.common.primitives.Ints;
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
-	protected boolean locked = false;
 	private String conflict = null;
 	protected boolean onlyReads = true;
 	/** Stores changes in table sizes */
@@ -39,11 +38,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	ReadWriteTransaction(int num, Database db) {
 		super(num, db);
-		lock(db);
 	}
-
-	abstract void lock(Database db);
-	abstract void unlock();
 
 	// add ---------------------------------------------------------------------
 
@@ -153,7 +148,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		checkNotSystemTable(tblnum, op);
 	}
 	private void checkNotEnded(String op) {
-		if (isEnded())
+		if (ended)
 			throw new SuException(this + " " + op + " on ended transaction");
 	}
 	protected void checkNotSystemTable(int tblnum, String op) {
@@ -257,11 +252,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		return true;
 	}
 
-	@Override
-	public boolean isEnded() {
-		return ! locked;
-	}
-
 	void abort(String message) {
 		conflict = message;
 		abort();
@@ -269,10 +259,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	@Override
 	public void abort() {
-		if (isEnded())
-			return;
-		super.abort();
-		unlock();
+		if (! ended)
+			super.abort();
 	}
 
 	// complete ----------------------------------------------------------------
@@ -281,19 +269,19 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	public String complete() {
 		if (isAborted())
 			return conflict;
-		assert locked;
+		assert ! ended;
 		if (onlyReads) {
 			abort();
 			return null;
 		}
 		try {
 			commit();
+			ended = true;
 		} catch(Conflict c) {
 			conflict = c.toString();
-			abort();
 		} finally {
-			if (locked)
-				unlock();
+			if (! ended)
+				abort();
 		}
 		return conflict;
 	}

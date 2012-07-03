@@ -59,20 +59,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected void lock(Database db) {
-		assert ! locked;
-		db.exclusiveLock.readLock();
-		locked = true;
-	}
-
-	@Override
-	protected void unlock() {
-		assert locked;
-		db.exclusiveLock.readUnlock();
-		locked = false;
-	}
-
-	@Override
 	protected IndexedData indexedData2(int tblnum) {
 		return super.indexedData2(tblnum).setDeletes(deletes);
 	}
@@ -165,8 +151,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return iter2;
 	}
 
-	/** overridden by SchemaTransaction */
-	protected void trackReads(Index index, Iter iter) {
+	private void trackReads(Index index, Iter iter) {
 		((OverlayIndex.Iter) iter).trackRange(indexRange(index));
 	}
 
@@ -191,13 +176,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	synchronized void abortIfNotComplete(String conflict) {
-		if (locked)
+		if (! ended)
 			abort(conflict);
 	}
 
 	@Override
 	public boolean isAborted() {
-		return isEnded() && !isCommitted();
+		return ended && ! isCommitted();
 	}
 
 	@Override
@@ -211,6 +196,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 	synchronized protected void commit() {
 		buildReads();
 		synchronized(db.commitLock) {
+			if (db.state.schema != dbstate.schema)
+				throw new Conflict("schema changed");
 			checkForConflicts();
 			storeData();
 			try {

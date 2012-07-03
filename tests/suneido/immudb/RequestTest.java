@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.SuException;
 import suneido.Suneido;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
@@ -53,7 +54,7 @@ public class RequestTest {
 			req("create tbl " + SCHEMA);
 			fail();
 		} catch (RuntimeException e) {
-			assertThat(e.toString(), containsString("existing table"));
+			assertThat(e.toString(), containsString("table already exists"));
 		}
 	}
 
@@ -265,9 +266,52 @@ public class RequestTest {
 	@Test
 	public void ensure_readonly() {
 		req("ensure tbl " + SCHEMA);
-		BulkTransaction t = db.bulkTransaction();
+		UpdateTransaction t = db.updateTransaction();
+		try {
+			req("ensure tbl " + SCHEMA);
+		} finally {
+			t.abort();
+		}
+	}
+
+	@Test(expected=SuException.class)
+	public void conflicting_schema_transactions() {
 		req("ensure tbl " + SCHEMA);
-		t.abort();
+		TableBuilder tb = db.alterTable("tbl").addColumn("d");
+		db.alterTable("tbl").addColumn("e").finish();
+		tb.finish();
+	}
+
+	@Test
+	public void conflicting_schema_and_update() {
+		req("ensure tbl " + SCHEMA);
+		UpdateTransaction t = db.updateTransaction();
+		t.addRecord(t.getTable("tbl").num, new RecordBuilder().add(1).build());
+		db.alterTable("tbl").addColumn("d").finish();
+		assertThat(t.complete(), containsString("conflict: schema changed"));
+	}
+
+	@Test(expected=SuException.class)
+	public void add_index_with_data_requires_exclusive() {
+		req("ensure tbl " + SCHEMA);
+		exec("insert { a: 1 } into tbl");
+		UpdateTransaction t = db.updateTransaction();
+		try {
+			req("alter tbl create index(c)");
+		} finally {
+			t.abort();
+		}
+	}
+
+	@Test
+	public void add_index_without_data_is_not_exclusive() {
+		req("ensure tbl " + SCHEMA);
+		UpdateTransaction t = db.updateTransaction();
+		try {
+			req("alter tbl create index(c)");
+		} finally {
+			t.abort();
+		}
 	}
 
 	@Test

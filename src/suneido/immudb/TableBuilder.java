@@ -18,15 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
 class TableBuilder implements suneido.intfc.database.TableBuilder {
-	static final String COLUMN_IN_INDEX = "column used in index";
-	static final String KEY_REQUIRED = "key required";
-	static final String NONEXISTENT_TABLE = "nonexistent table";
-	static final String NONEXISTENT_COLUMN = "nonexistent column";
-	static final String NONEXISTENT_INDEX = "nonexistent index";
-	static final String CANT_DROP = "can't drop ";
-	static final String CANT_RENAME = "can't rename ";
-	static final String TO_EXISTING = "to existing column";
-	private ReadTransaction t;
+	private final SchemaTransaction t;
 	private final String tableName;
 	private final int tblnum;
 	private final List<Column> columns = Lists.newArrayList();
@@ -36,24 +28,26 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private int nextField = 0;
 
 	static TableBuilder create(SchemaTransaction t, String tableName, int tblnum) {
-		if (t.getTable(tableName) != null)
-			fail(t, "can't create existing table: " + tableName);
-		TableBuilder tb = new TableBuilder(t, tableName, tblnum);
-		tb.createTable();
-		return tb;
+		return new TableBuilder(t, tableName, tblnum).createTable();
 	}
 
-	static TableBuilder alter(ReadTransaction t, String tableName) {
+	static TableBuilder alter(SchemaTransaction t, String tableName) {
 		return new TableBuilder(t, tableName);
 	}
 
-	private TableBuilder(ReadTransaction t, String tableName, int tblnum) {
+	static TableBuilder ensure(SchemaTransaction t, String tableName, int tblnum) {
+		return (t.getTable(tableName) == null)
+				? create(t, tableName, tblnum)
+				: alter(t, tableName);
+	}
+
+	private TableBuilder(SchemaTransaction t, String tableName, int tblnum) {
 		this.t = t;
 		this.tableName = tableName;
 		this.tblnum = tblnum;
 	}
 
-	private TableBuilder(ReadTransaction t, String tableName) {
+	private TableBuilder(SchemaTransaction t, String tableName) {
 		this(t, tableName, tblnum(t, tableName));
 		nextField = t.getTableInfo(tblnum).nextfield;
 		getSchema();
@@ -63,15 +57,18 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return tblnum;
 	}
 
-	private static int tblnum(ReadTransaction t, String tableName) {
+	private static int tblnum(SchemaTransaction t, String tableName) {
 		Table table = t.getTable(tableName);
 		if (table == null)
-			throw fail(t, NONEXISTENT_TABLE + ": " + tableName);
+			throw fail(t, "alter table: nonexistent table: " + tableName);
 		return table.num;
 	}
 
-	private void createTable() {
-		st().addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
+	private TableBuilder createTable() {
+		verify(t.getTable(tableName) == null,
+				"create table: table already exists: " + tableName);
+		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
+		return this;
 	}
 
 	static boolean dropTable(SchemaTransaction t, String tableName) {
@@ -96,12 +93,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	static void renameTable(SchemaTransaction t, String from, String to) {
 		Table oldTable = t.getTable(from);
 		if (oldTable == null)
-			throw fail(t, CANT_RENAME + NONEXISTENT_TABLE + ": " + from);
+			throw fail(t, "rename table: nonexistent table: " + from);
 		if (t.getTable(to) != null)
-			fail(t, CANT_RENAME + " to existing table name");
+			fail(t, "rename table: table already exists: " + to);
 		Table newTable = new Table(oldTable.num, to,
-				new Columns(ImmutableList.copyOf(oldTable.columns)),
-				new Indexes(ImmutableList.copyOf(oldTable.indexes)));
+				oldTable.columns, oldTable.indexes);
 		t.updateTableSchema(newTable);
 		// dbinfo is ok since it doesn't use table name
 		t.updateRecord(TN.TABLES, oldTable.toRecord(), newTable.toRecord());
@@ -118,61 +114,52 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public TableBuilder ensureColumn(String column) {
 		if (! hasColumn(column))
-			addColumn2(column);
+			addColumn(column);
 		return this;
 	}
 
 	@Override
 	public TableBuilder addColumn(String column) {
-		if (hasColumn(column))
-			throw new SuException("add column: column already exists: "
-					+ column + " in " + tableName);
-		addColumn2(column);
-		return this;
-	}
-
-	private void addColumn2(String column) {
-		int field = isRuleField(column) ? -1 : nextField++;
-		if (field == -1)
-			column = uncapitalize(column);
+		verify(! hasColumn(column),
+				"add column: column already exists: " + column);
+		boolean isRuleField = isRuleField(column);
+		column = isRuleField ? uncapitalize(column) : column;
+		int field = isRuleField ? -1 : nextField++;
 		Column c = new Column(tblnum, field, column);
-		st().addRecord(TN.COLUMNS, c.toRecord());
 		columns.add(c);
-	}
-
-	private static String uncapitalize(String column) {
-		return column.substring(0, 1).toLowerCase() + column.substring(1);
+		t.addRecord(TN.COLUMNS, c.toRecord());
+		return this;
 	}
 
 	private static boolean isRuleField(String column) {
 		return Character.isUpperCase(column.charAt(0));
 	}
 
+	private static String uncapitalize(String column) {
+		return column.substring(0, 1).toLowerCase() + column.substring(1);
+	}
+
 	@Override
 	public TableBuilder renameColumn(String from, String to) {
-		if (hasColumn(to))
-			fail(CANT_RENAME + TO_EXISTING + ": " + to);
+		verify(hasColumn(from),
+				"rename column: nonexistent column: " + from);
+		verify(! hasColumn(to),
+				"rename column: column already exists: " + to);
 		int i = findColumn(columns, from);
-		if (i == -1)
-			fail(CANT_RENAME + NONEXISTENT_COLUMN + ": " + from);
-		Column c = columns.get(i);
-		Record oldRec = c.toRecord();
-		c = new Column(tblnum, c.field, to);
-		columns.set(i, c);
-		Record newRec = c.toRecord();
-		t.updateRecord(TN.COLUMNS, oldRec, newRec);
-		// don't need to update indexes because they use column numbers not names
+		Column cOld = columns.get(i);
+		Column cNew = new Column(tblnum, cOld.field, to);
+		t.updateRecord(TN.COLUMNS, cOld.toRecord(), cNew.toRecord());
+		columns.set(i, cNew);
 		return this;
 	}
 
 	@Override
 	public TableBuilder dropColumn(String column) {
-		int i = findColumn(columns, column);
-		if (i == -1)
-			fail(CANT_DROP + NONEXISTENT_COLUMN + ": " + column);
-		Column c = columns.get(i);
+		verify(hasColumn(column),
+				"drop column: nonexistent column: " + column);
 		mustNotBeUsedByIndex(column);
-		t.removeRecord(TN.COLUMNS, c.toRecord());
+		int i = findColumn(columns, column);
+		t.removeRecord(TN.COLUMNS, columns.get(i).toRecord());
 		columns.remove(i);
 		return this;
 	}
@@ -181,72 +168,60 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		int colNum = colNum(columns, column);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
-			if (Ints.contains(index.colNums, colNum))
-				fail(CANT_DROP + COLUMN_IN_INDEX + ": " + column);
+			verify(! Ints.contains(index.colNums, colNum),
+				"drop column: column used in index: " + column);
 		}
 	}
 
 	@Override
-	public TableBuilder ensureIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder ensureIndex(String colNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		if (! hasIndex(columnNames))
-			addIndex2(colNums(columnNames), isKey, unique, fktable, fkcolumns, fkmode);
+		int[] colNums = colNums(colNames);
+		if (! hasIndex(colNums))
+			addIndex(colNums, isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
 
 	@Override
-	public TableBuilder addIndex(String columnNames, boolean isKey, boolean unique,
+	public TableBuilder addIndex(String colNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
-		if (hasIndex(columnNames))
-			fail("add index: index already exists: " + columnNames);
-		addIndex2(colNums(columnNames), isKey, unique, fktable, fkcolumns, fkmode);
+		int[] colNums = colNums(colNames);
+		verify(! hasIndex(colNums),
+				"add index: index already exists: " + colNames);
+		addIndex(colNums, isKey, unique, fktable, fkcolumns, fkmode);
 		return this;
 	}
 
-	public TableBuilder addIndex(int[] colNums, boolean isKey, boolean unique,
-			String fktable, String fkcolumns, int fkmode) {
-		assert ! hasIndex(colNums);
-		addIndex2(colNums, isKey, unique, fktable, fkcolumns, fkmode);
-		return this;
-	}
-
-	private void addIndex2(int[] colNums, boolean isKey, boolean unique,
+	void addIndex(int[] colNums, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		Index index = new Index(tblnum, colNums, isKey, unique,
 				fktable, fkcolumns, fkmode);
-		st().addRecord(TN.INDEXES, index.toRecord());
+		addIndex(index);
+	}
+
+	private void addIndex(Index index) {
+		t.addRecord(TN.INDEXES, index.toRecord());
+		t.addIndex(index);
 		indexes.add(index);
 		newIndexes.add(index);
-		if (! t.hasIndex(tblnum, index.colNums)) // if not bootstrap
-			st().addIndex(index);
 	}
 
 	@Override
-	public TableBuilder dropIndex(String columnNames) {
-		dropIndex(colNums(columnNames));
+	public TableBuilder dropIndex(String colNames) {
+		int[] colNums = colNums(colNames);
+		verify(hasIndex(colNums),
+				"drop index: nonexistent index: " + colNames);
+		dropIndex(colNums);
 		return this;
 	}
 
 	void dropIndex(int[] colNums) {
-		for (int i = 0; i < indexes.size(); ++i) {
-			Index index = indexes.get(i);
-			if (Arrays.equals(colNums, index.colNums)) {
-				t.removeRecord(TN.INDEXES, index.toRecord());
-				indexes.remove(i);
-				return;
-			}
-		}
-		fail(CANT_DROP + NONEXISTENT_INDEX + " (" + columnNames(colNums) + ")");
+		Index index = indexes.get(findIndex(colNums));
+		t.removeRecord(TN.INDEXES, index.toRecord());
+		indexes.remove(findIndex(colNums));
 	}
 
-	private String columnNames(int[] colNums) {
-		if (colNums.length == 0)
-			return "";
-		StringBuilder sb = new StringBuilder();
-		for (int colNum : colNums)
-			sb.append(",").append(columns.get(colNum));
-		return sb.substring(1);
-	}
+	//--------------------------------------------------------------------------
 
 	private static final int[] noColumns = new int[0];
 	private static final CharMatcher cm = CharMatcher.is(',');
@@ -267,47 +242,48 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private int colNum(List<Column> columns, String column) {
 		int i = findColumn(columns, column);
 		if (i == -1)
-			fail(NONEXISTENT_COLUMN + ": " + column);
+			fail("nonexistent column: " + column);
 		return columns.get(i).field;
 	}
 
 	private static int findColumn(List<Column> columns, String column) {
 		if (isRuleField(column))
 			column = uncapitalize(column);
-		for (int i = 0; i < columns.size(); ++i) {
-			Column c = columns.get(i);
-			if (c.name.equals(column))
+		for (int i = 0; i < columns.size(); ++i)
+			if (columns.get(i).name.equals(column))
 				return i;
-		}
 		return -1;
 	}
 
 	private boolean hasColumn(String column) {
-		return findColumn(columns, column) != -1;
-	}
-
-	private boolean hasIndex(String columnNames) {
-		return hasIndex(colNums(columnNames));
+		return findColumn(columns, column) >= 0;
 	}
 
 	private boolean hasIndex(int[] colNums) {
-		for (Index index : indexes)
-			if (Arrays.equals(colNums, index.colNums))
-				return true;
-		return false;
+		return findIndex(colNums) >= 0;
+	}
+
+	int findIndex(int[] colNums) {
+		for (int i = 0; i < indexes.size(); ++i)
+			if (Arrays.equals(colNums, indexes.get(i).colNums))
+				return i;
+		return -1;
 	}
 
 	//--------------------------------------------------------------------------
 
 	@Override
 	public void finish() {
-		if (t instanceof SchemaTransaction)
-			build();
-		t.ck_complete();
+		try {
+			buildButDontComplete();
+			t.ck_complete();
+		} finally {
+			t.abortIfNotComplete();
+		}
 	}
 
-	/** for Bootstrap (normally should call finish instead) */
-	void build() {
+	/** used by Bootstrap */
+	void buildButDontComplete() {
 		mustHaveKey();
 		updateSchema();
 		for (Index index : newIndexes)
@@ -319,13 +295,13 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		for (Index index : indexes)
 			if (index.isKey)
 				return;
-		fail(KEY_REQUIRED);
+		fail("key required");
 	}
 
 	private void updateSchema() {
 		Collections.sort(columns);
 		Collections.sort(indexes); // to match SchemaLoader
-		st().updateTableSchema(new Table(tblnum, tableName,
+		t.updateTableSchema(new Table(tblnum, tableName,
 				new Columns(ImmutableList.copyOf(columns)),
 				new Indexes(ImmutableList.copyOf(indexes))));
 	}
@@ -336,16 +312,20 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return;
 		if (firstIndex == null)
 			return;
+		Btree btree = (Btree) t.getIndex(newIndex);
 		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
+		if (src instanceof OverlayIndex)
+			src = ((OverlayIndex) src).global;
 		TranIndex.Iter iter = src.iterator();
-		if (iter instanceof OverlayIndex.Iter)
-			((OverlayIndex.Iter) iter).trackRange(new IndexRange());
-		Btree btree = st().addIndex(newIndex);
+		iter.next();
+		if (iter.eof())
+			return; // no data
+		t.exclusive();
 		String colNames = table.numsToNames(newIndex.colNums);
-		IndexedData id = new IndexedData(st())
+		IndexedData id = new IndexedData(t)
 				.index(btree, newIndex.mode(), newIndex.colNums, colNames,
 						newIndex.fksrc, t.getForeignKeys(tableName, colNames));
-		for (iter.next(); ! iter.eof(); iter.next()) {
+		for (; ! iter.eof(); iter.next()) {
 			int adr = iter.keyadr();
 			id.add(t.input(adr), adr);
 		}
@@ -364,10 +344,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		}
 		int nrows = (ti == null) ? 0 : ti.nrows();
 		long totalsize = (ti == null) ? 0 : ti.totalsize();
-		st().addTableInfo(
+		t.addTableInfo(
 				new TableInfo(tblnum, nextField, nrows, totalsize, ii.build()));
 	}
 
+	private void verify(boolean cond, String msg) {
+		if (! cond)
+			fail(msg);
+	}
 	private void fail(String msg) {
 		fail(t, msg + " in " + tableName);
 	}
@@ -379,17 +363,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	@Override
 	public void abortUnfinished() {
 		t.abortIfNotComplete();
-	}
-
-	private SchemaTransaction st() {
-		if (t instanceof SchemaTransaction)
-			return (SchemaTransaction) t;
-		else {
-			SchemaTransaction st = t.schemaTran();
-			t.ck_complete();
-			t = st;
-			return st;
-		}
 	}
 
 }

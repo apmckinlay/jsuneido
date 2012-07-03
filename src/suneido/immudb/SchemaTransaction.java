@@ -4,12 +4,9 @@
 
 package suneido.immudb;
 
-import suneido.SuException;
-import suneido.immudb.TranIndex.Iter;
-
 /**
  * Used by {@link TableBuilder} to make schema changes.
- * Exclusive like {@link BulkTransaction}.
+ * Starts out non-exclusive but upgraded to exclusive to add index.
  */
 class SchemaTransaction extends UpdateTransaction {
 
@@ -17,18 +14,9 @@ class SchemaTransaction extends UpdateTransaction {
 		super(num, db);
 	}
 
-	@Override
-	protected void lock(Database db) {
-		if (! db.exclusiveLock.tryWriteLock())
-			throw new SuException("can't make schema changes " +
-					"when there are outstanding update transactions");
-		locked = true;
-	}
-
-	@Override
-	protected void unlock() {
-		db.exclusiveLock.writeUnlock();
-		locked = false;
+	/** upgrade to exclusive, used by TableBuilder for adding index */
+	void exclusive() {
+		trans.setExclusive(this);
 	}
 
 	/** allow modifying system tables */
@@ -37,25 +25,20 @@ class SchemaTransaction extends UpdateTransaction {
 	}
 
 	void addTableInfo(TableInfo ti) {
-		assert locked;
+		assert ! ended;
 		dbinfo = dbinfo.with(ti);
 	}
 
-	Btree addIndex(Index index) {
-		assert locked;
+	void addIndex(Index index) {
+		assert ! ended;
+		if (hasIndex(index.tblnum, index.colNums))
+			return; // bootstrap
 		Btree btree = new Btree(tran);
 		indexes.put(index, btree);
-		return btree;
-	}
-
-	void addTableSchema(Table tbl) {
-		assert locked;
-		schema = schema.with(tbl);
-		indexedData.remove(tbl.num);
 	}
 
 	void updateTableSchema(Table tbl) {
-		assert locked;
+		assert ! ended;
 		Table oldTbl = getTable(tbl.num);
 		if (oldTbl != null)
 			schema = schema.without(oldTbl);
@@ -64,6 +47,7 @@ class SchemaTransaction extends UpdateTransaction {
 	}
 
 	void dropTable(Table tbl) {
+		assert ! ended;
 		// "remove" from dbinfo so indexes won't be persisted
 		dbinfo = dbinfo.with(TableInfo.empty(tbl.num));
 		schema = schema.without(tbl);
@@ -71,16 +55,6 @@ class SchemaTransaction extends UpdateTransaction {
 	}
 
 	//--------------------------------------------------------------------------
-
-	// don't need to track reads when exclusive
-	@Override
-	protected void trackReads(Index index, Iter iter) {
-	}
-
-	// don't need to check for conflicts when exclusive
-	@Override
-	protected void checkForConflicts() {
-	}
 
 	@Override
 	protected Btree getLatestIndex(Index index) {

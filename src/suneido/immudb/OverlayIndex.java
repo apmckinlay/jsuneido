@@ -18,8 +18,8 @@ import com.google.common.collect.Lists;
  * The global btree is read-only.
  */
 class OverlayIndex implements TranIndex {
-	private final Btree global;
-	private final Btree local;
+	final Btree global;
+	final Btree local;
 	/** a reference to the transaction deletes */
 	private final TIntHashSet deletes;
 	/** used by UpdateTransaction updateBtrees */

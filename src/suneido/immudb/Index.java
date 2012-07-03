@@ -34,11 +34,11 @@ class Index implements Comparable<Index> {
 	final boolean unique;
 	final ForeignKeySource fksrc;
 
-	Index(int tblnum, int[] colNums, boolean key, boolean unique,
+	Index(int tblnum, int[] colNums, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		this.tblnum = tblnum;
 		this.colNums = colNums;
-		this.isKey = key;
+		this.isKey = isKey;
 		this.unique = unique;
 		fksrc = fktable == null || fktable.equals("") ? null
 				: new ForeignKeySource(fktable, fkcolumns, fkmode);
