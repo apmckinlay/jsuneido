@@ -29,12 +29,12 @@ class Bootstrap {
 			create_indexes(t);
 			TableBuilder.alter(t, "tables")
 				.addIndex("tablename", true, false, null, null, 0)
-				.build();
+				.buildButDontComplete();
 			TableBuilder.create(t, "views", TN.VIEWS)
 				.addColumn("view_name")
 				.addColumn("view_definition")
 				.addIndex("view_name", true, false, null, null, 0)
-				.build();
+				.buildButDontComplete();
 			t.complete();
 		} finally {
 			t.abortIfNotComplete();
@@ -55,7 +55,7 @@ class Bootstrap {
 			.addColumn("table")
 			.addColumn("tablename")
 			.addIndex("table", true, false, null, null, 0)
-			.build();
+			.buildButDontComplete();
 	}
 
 	private static void create_columns(SchemaTransaction t) {
@@ -64,7 +64,7 @@ class Bootstrap {
 			.addColumn("field")
 			.addColumn("column")
 			.addIndex("table,column", true, false, null, null, 0)
-			.build();
+			.buildButDontComplete();
 	}
 
 	private static void create_indexes(SchemaTransaction t) {
@@ -76,7 +76,7 @@ class Bootstrap {
 			.addColumn("fkcolumns")
 			.addColumn("fkmode")
 			.addIndex("table,fields", true, false, null, null, 0)
-			.build();
+			.buildButDontComplete();
 	}
 
 }

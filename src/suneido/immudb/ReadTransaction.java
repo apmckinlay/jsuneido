@@ -33,7 +33,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	/** needs to be ordered for ReadWriteTransaction updateDbInfo */
 	protected final TreeMap<Index,TranIndex> indexes = Maps.newTreeMap();
 	protected final Transactions trans;
-	private boolean ended = false;
+	protected boolean ended = false;
 
 	ReadTransaction(int num, Database db) {
 		this.num = num;
@@ -232,7 +232,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public void abortIfNotComplete() {
-		if (! isEnded())
+		if (! ended)
 			abort();
 	}
 
@@ -255,7 +255,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	private void end() {
-		if (isEnded())
+		if (ended)
 			return;
 		trans.abort(this);
 		ended = true;

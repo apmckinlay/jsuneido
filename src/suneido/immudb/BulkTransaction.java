@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import suneido.SuException;
 import suneido.util.ThreadConfined;
 
 /**
@@ -25,20 +24,7 @@ class BulkTransaction extends ReadWriteTransaction {
 
 	BulkTransaction(int num, Database db) {
 		super(num, db);
-	}
-
-	@Override
-	protected void lock(Database db) {
-		if (! db.exclusiveLock.tryWriteLock())
-			throw new SuException("can't make schema changes " +
-					"when there are outstanding update transactions");
-		locked = true;
-	}
-
-	@Override
-	protected void unlock() {
-		db.exclusiveLock.writeUnlock();
-		locked = false;
+		trans.setExclusive(this);
 	}
 
 	// used by DbLoad and DbCompact

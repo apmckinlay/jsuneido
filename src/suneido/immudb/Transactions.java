@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
 import suneido.intfc.database.Transaction;
 import suneido.util.Print;
 
@@ -38,6 +39,7 @@ class Transactions {
 	private static final long FUTURE = Long.MAX_VALUE;
 	private static final int MAX_OVERLAPPING = 200;
 	private static final int MAX_UPDATE_TRAN_DURATION_SEC = 10;
+	private boolean exclusive = false;
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -60,9 +62,20 @@ class Transactions {
 	}
 
 	synchronized void add(Transaction t) {
-		trans.add(t);
-		if (t instanceof UpdateTransaction)
+		if (t instanceof UpdateTransaction) {
+			if (exclusive)
+				throw new SuException("blocked by exclusive transaction");
 			utrans.add((UpdateTransaction) t);
+		}
+		trans.add(t);
+	}
+
+	synchronized void setExclusive(Transaction t) {
+		if ((t instanceof BulkTransaction)
+				? ! utrans.isEmpty()
+				: utrans.size() != 1 || utrans.peek() != t)
+			throw new SuException("cannot make transaction exclusive");
+		exclusive = true;
 	}
 
 	/** return the set of transactions that committed since asof */
@@ -87,7 +100,9 @@ class Transactions {
 		if (t instanceof UpdateTransaction) {
 			verify(utrans.remove(t));
 			cleanOverlapping();
-			if (! utrans.isEmpty())
+			if (utrans.isEmpty())
+				exclusive = false;
+			else
 				overlapping.add((UpdateTransaction) t);
 		}
 	}
@@ -97,6 +112,8 @@ class Transactions {
 		if (t instanceof UpdateTransaction)
 			verify(utrans.remove(t));
 		cleanOverlapping();
+		if (utrans.isEmpty())
+			exclusive = false;
 	}
 
 	/**
