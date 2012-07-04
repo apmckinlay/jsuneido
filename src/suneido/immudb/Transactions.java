@@ -96,24 +96,22 @@ class Transactions {
 	}
 
 	synchronized void commit(Transaction t) {
+		exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction) {
 			verify(utrans.remove(t));
 			cleanOverlapping();
-			if (utrans.isEmpty())
-				exclusive = false;
-			else
+			if (! utrans.isEmpty())
 				overlapping.add((UpdateTransaction) t);
 		}
 	}
 
 	synchronized void abort(Transaction t) {
+		exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction)
 			verify(utrans.remove(t));
 		cleanOverlapping();
-		if (utrans.isEmpty())
-			exclusive = false;
 	}
 
 	/**
