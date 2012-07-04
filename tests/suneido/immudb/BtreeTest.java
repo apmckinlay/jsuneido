@@ -435,6 +435,35 @@ public class BtreeTest {
 	}
 
 	@Test
+	public void iter_update_bug() {
+		btree.add(key("test0"));
+		btree.add(key("test1"));
+		btree.add(key("test2"));
+		btree.add(key("test3"));
+		btree.add(key("test4"));
+		btree.add(key("test5"));
+		Btree.Iter iter = btree.iterator();
+		iter = next(iter);
+		assertThat("i 0", iter.curKey().getString(0), is("test0"));
+		iter = next(iter);
+		assertThat("i 1", iter.curKey().getString(0), is("test1"));
+		btree = new Btree4(new Tran(stor, null), btree.info());
+		assert btree.remove(key("test1"));
+		assert btree.add(key("test1", btree.tran.refToInt(new Object())), true);
+		iter = next(iter);
+		assertThat("i 2", iter.curKey().getString(0), is("test2"));
+	}
+	// simulate cursor using new transactions
+	private Btree.Iter next(Btree.Iter iter) {
+		btree = new Btree4(new Tran(stor, null), btree.info());
+		btree.tran.refToInt(new Object());
+		btree.tran.refToInt(new Object());
+		iter = btree.iterator(iter);
+		iter.next();
+		return iter;
+	}
+
+	@Test
 	public void unique() {
 		rand = new Random(1291681);
 		add(NKEYS);
