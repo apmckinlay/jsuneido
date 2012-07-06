@@ -10,14 +10,14 @@ import static suneido.immudb.DatabasePackage.MIN_RECORD;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -342,62 +342,77 @@ class Btree implements TranIndex {
 		private final BtreeKey from;
 		private final BtreeKey to;
 		// top of stack is leaf
-		private final Deque<LevelInfo> stack = new ArrayDeque<LevelInfo>();
+		private final Stack stack = new Stack();
 		private BtreeKey cur;
 		private boolean rewound;
 		private int valid = -1;
 		private int prevAdr;
+		private BtreeKey next = null;
 
 		private Iter() {
 			this(MIN_RECORD, MAX_RECORD);
 		}
 
 		private Iter(Record from, Record to) {
-			this(new BtreeKey(from), new BtreeKey(to, IntRefs.MAXADR), null, true, UINT_MAX);
+			this(new BtreeKey(from), new BtreeKey(to, IntRefs.MAXADR), null, null, true, UINT_MAX);
 		}
 
 		private Iter(Iter iter) {
-			this(iter.from, iter.to, iter.cur, iter.rewound, iter.prevAdr);
+			this(iter.from, iter.to, iter.cur, iter.next, iter.rewound, UINT_MAX);
 			assert eof() == iter.eof();
 		}
 
-		private Iter(BtreeKey from, BtreeKey to, BtreeKey cur, boolean rewound, int prevAdr) {
+		private Iter(BtreeKey from, BtreeKey to, BtreeKey cur, BtreeKey next,
+				boolean rewound, int prevAdr) {
 			this.from = from;
 			this.to = to;
 			this.cur = cur;
+			this.next = next;
 			this.rewound = rewound;
 			this.prevAdr = prevAdr;
 		}
 
 		@Override
 		public void next() {
+//System.out.println("next ---------------------");
 			int prevAdr = this.prevAdr;
 			this.prevAdr = tran.intrefs.next();
 			if (rewound) {
+//System.out.println("rewound");
 				seek(from);
 				rewound = false;
 				if (cur != null) {
 					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
-						cur = null;
+						cur = next = null;
+					else
+						next = peekNext();
 					return;
 				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
+//System.out.println("modified");
 				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur != null) {
 					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0) {
-						cur = null;
+						cur = next = null;
 						return;
 					}
-					if (! oldcur.equals(cur) &&
-							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
+//					if (! oldcur.equals(cur) &&
+//							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
+//						return; // already on the next key
+//System.out.println("equals? cur " + cur + " next " + next);
+					if (cur.equals(next)) {
+						next = peekNext();
 						return; // already on the next key
+					}
 				}
 				// fall through
 			}
+//System.out.println("advance");
 			advance();
+			next = peekNext();
 		}
 
 		private void advance() {
@@ -419,6 +434,25 @@ class Btree implements TranIndex {
 			cur = leaf.node.get(leaf.pos);
 			if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
 				cur = null;
+		}
+
+		private BtreeKey peekNext() {
+			int i = stack.size() - 1;
+			while (i >= 0 &&
+					stack.get(i).pos + 1 >= stack.get(i).node.size())
+				--i;
+			if (i < 0)
+				return null;
+			LevelInfo info = stack.get(i);
+			int pos = info.pos + 1;
+			while (i < treeLevels) {
+				BtreeNode node = childNode(info.node, pos);
+				info = new LevelInfo(node, 0);
+				pos = 0;
+				++i;
+			}
+//System.out.println("cur " + cur + " next " + info.node.get(pos));
+			return info.node.get(pos);
 		}
 
 		@Override
@@ -525,10 +559,37 @@ class Btree implements TranIndex {
 			prevAdr = UINT_MAX;
 		}
 
+	} // end of Iter
+
+	private static class Stack {
+		ArrayList<LevelInfo> list = Lists.newArrayList();
+
+		void push(LevelInfo x) {
+			list.add(x);
+		}
+		void pop() {
+			list.remove(list.size() - 1);
+		}
+		boolean isEmpty() {
+			return list.isEmpty();
+		}
+		int size() {
+			return list.size();
+		}
+		LevelInfo peek() {
+			return list.get(size() - 1);
+		}
+		// top is size() - 1, bottom is 0
+		LevelInfo get(int i) {
+			return list.get(i);
+		}
+		void clear() {
+			list.clear();
+		}
 	}
 
 	private static class LevelInfo {
-		BtreeNode node;
+		final BtreeNode node;
 		int pos;
 		LevelInfo(BtreeNode node, int pos) {
 			this.node = node;

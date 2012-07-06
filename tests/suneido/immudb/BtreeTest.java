@@ -347,7 +347,7 @@ public class BtreeTest {
 		int i = 0;
 		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			assertThat(iter.curKey(), is(keys.get(i).key));
+			assertThat("i " + i, iter.curKey(), is(keys.get(i).key));
 			if (rand.nextInt(5) == 3)
 				btree.remove(keys.get(rand.nextInt(i)));
 			++i;
@@ -383,7 +383,7 @@ public class BtreeTest {
 		int i = 0;
 		Btree.Iter iter = btree.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			assertThat(iter.curKey(), is(keys.get(i).key));
+			assertThat("i " + i, iter.curKey(), is(keys.get(i).key));
 			assertTrue(btree.remove(keys.get(i)));
 			++i;
 		}
@@ -447,7 +447,7 @@ public class BtreeTest {
 		assertThat("i 0", iter.curKey().getString(0), is("test0"));
 		iter = next(iter);
 		assertThat("i 1", iter.curKey().getString(0), is("test1"));
-		btree = new Btree4(new Tran(stor, null), btree.info());
+//		btree = new Btree4(new Tran(stor, null), btree.info());
 		assert btree.remove(key("test1"));
 		assert btree.add(key("test1", btree.tran.refToInt(new Object())), true);
 		iter = next(iter);
@@ -456,11 +456,27 @@ public class BtreeTest {
 	// simulate cursor using new transactions
 	private Btree.Iter next(Btree.Iter iter) {
 		btree = new Btree4(new Tran(stor, null), btree.info());
-		btree.tran.refToInt(new Object());
-		btree.tran.refToInt(new Object());
 		iter = btree.iterator(iter);
 		iter.next();
 		return iter;
+	}
+
+	@Test
+	public void iter_delete_bug() {
+		btree.add(key("test0"));
+		btree.add(key("test1"));
+		btree.add(key("test2"));
+		btree.add(key("test3"));
+		btree.add(key("test4"));
+		btree.add(key("test5"));
+		Btree.Iter iter = btree.iterator();
+		iter = next(iter);
+		assertThat("i 0", iter.curKey().getString(0), is("test0"));
+		iter = next(iter);
+		assertThat("i 1", iter.curKey().getString(0), is("test1"));
+		assert btree.remove(key("test1"));
+		iter = next(iter);
+		assertThat("i 2", iter.curKey().getString(0), is("test2"));
 	}
 
 	@Test
