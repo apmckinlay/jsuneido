@@ -33,7 +33,8 @@ public class StorageIterReverse {
 				break;
 			rpos -= Ints.BYTES;
 		}
-		assert isValidSize(stor, rpos, size);
+		if (! isValidSize(stor, rpos, size))
+			throw new RuntimeException("bad size " + size);
 		rpos -= size;
 		return stor.rposToAdr(rpos);
 	}
