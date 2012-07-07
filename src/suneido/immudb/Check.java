@@ -61,9 +61,14 @@ class Check {
 
 	/** check the last FAST_NPERSISTS persists */
 	boolean fastcheck() {
-		int adr = findLast(FAST_NPERSISTS);
-		return (adr == CORRUPT) ? false
-				: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
+		try {
+			int adr = findLast(FAST_NPERSISTS);
+			return (adr == CORRUPT) ? false
+					: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
+		} catch (RuntimeException e) {
+			System.out.println(e);
+			return false;
+		}
 	}
 
 	/** Scan backwards to find the n'th last persist */
