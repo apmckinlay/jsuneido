@@ -18,7 +18,6 @@ import suneido.intfc.database.IndexIter;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.primitives.UnsignedInts;
 
 /**
  * Append-only immutable btrees.
@@ -338,7 +337,7 @@ class Btree implements TranIndex {
 	 * Note: Iterators "stick" when they hit eof().
 	 */
 	class Iter implements TranIndex.Iter {
-		private static final int UINT_MAX = 0xffffffff;
+//		private static final int UINT_MAX = 0xffffffff;
 		private final BtreeKey from;
 		private final BtreeKey to;
 		// top of stack is leaf
@@ -346,7 +345,7 @@ class Btree implements TranIndex {
 		private BtreeKey cur;
 		private boolean rewound;
 		private int valid = -1;
-		private int prevAdr;
+//		private int prevAdr;
 		private BtreeKey next = null;
 
 		private Iter() {
@@ -354,29 +353,29 @@ class Btree implements TranIndex {
 		}
 
 		private Iter(Record from, Record to) {
-			this(new BtreeKey(from), new BtreeKey(to, IntRefs.MAXADR), null, null, true, UINT_MAX);
+			this(new BtreeKey(from), new BtreeKey(to, IntRefs.MAXADR), null, null, true);
 		}
 
 		private Iter(Iter iter) {
-			this(iter.from, iter.to, iter.cur, iter.next, iter.rewound, UINT_MAX);
+			this(iter.from, iter.to, iter.cur, iter.next, iter.rewound);
 			assert eof() == iter.eof();
 		}
 
-		private Iter(BtreeKey from, BtreeKey to, BtreeKey cur, BtreeKey next,
-				boolean rewound, int prevAdr) {
+		private Iter(BtreeKey from, BtreeKey to,
+				BtreeKey cur, BtreeKey next, boolean rewound) {
 			this.from = from;
 			this.to = to;
 			this.cur = cur;
 			this.next = next;
 			this.rewound = rewound;
-			this.prevAdr = prevAdr;
+//			this.prevAdr = prevAdr;
 		}
 
 		@Override
 		public void next() {
 //System.out.println("next ---------------------");
-			int prevAdr = this.prevAdr;
-			this.prevAdr = tran.intrefs.next();
+//			int prevAdr = this.prevAdr;
+//			this.prevAdr = tran.intrefs.next();
 			if (rewound) {
 //System.out.println("rewound");
 				seek(from);
@@ -392,7 +391,7 @@ class Btree implements TranIndex {
 				return;
 			if (modified != valid) {
 //System.out.println("modified");
-				BtreeKey oldcur = cur;
+//				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur != null) {
 					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0) {
@@ -457,8 +456,8 @@ class Btree implements TranIndex {
 
 		@Override
 		public void prev() {
-			int prevAdr = this.prevAdr;
-			this.prevAdr = tran.intrefs.next();
+//			int prevAdr = this.prevAdr;
+//			this.prevAdr = tran.intrefs.next();
 			if (rewound) {
 				seek(to);
 				rewound = false;
@@ -485,9 +484,12 @@ class Btree implements TranIndex {
 						cur = null;
 						return;
 					}
-					if (cur.compareTo(to) < 0 && ! oldcur.equals(cur) &&
-							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
+					if (cur.compareTo(to) < 0 && cur.compareTo(oldcur) < 0)
 						return;
+
+//					if (! oldcur.equals(cur) &&
+//							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
+//						return;
 				}
 				// fall through
 			}
@@ -556,7 +558,7 @@ class Btree implements TranIndex {
 		public void rewind() {
 			cur = null;
 			rewound = true;
-			prevAdr = UINT_MAX;
+//			prevAdr = UINT_MAX;
 		}
 
 	} // end of Iter
