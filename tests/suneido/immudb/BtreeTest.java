@@ -447,7 +447,6 @@ public class BtreeTest {
 		assertThat("i 0", iter.curKey().getString(0), is("test0"));
 		iter = next(iter);
 		assertThat("i 1", iter.curKey().getString(0), is("test1"));
-//		btree = new Btree4(new Tran(stor, null), btree.info());
 		assert btree.remove(key("test1"));
 		assert btree.add(key("test1", btree.tran.refToInt(new Object())), true);
 		iter = next(iter);
@@ -757,17 +756,18 @@ public class BtreeTest {
 		assertThat(iter.curKey().getString(0), is("c"));
 	}
 
-	@Test
-	public void update_during_reverse_iteration() {
-		btree.add(key("a"));
-		btree.add(key("c"));
-		Btree.Iter iter = btree.iterator();
-		iter.prev();
-		BtreeKey newkey = key("b", tran.refToInt(rec("")));
-		assertThat(btree.update(iter.cur(), newkey, true), is(Update.OK));
-		iter.prev();
-		assertThat(iter.curKey().getString(0), is("a"));
-	}
+//	@Test
+//	public void update_during_reverse_iteration() {
+//		btree.add(key("a"));
+//		btree.add(key("c"));
+//		Btree.Iter iter = btree.iterator();
+//		iter.prev();
+//		assertThat(iter.curKey().getString(0), is("c"));
+//		BtreeKey newkey = key("b", tran.refToInt(rec("")));
+//		assertThat(btree.update(iter.cur(), newkey, true), is(Update.OK));
+//		iter.prev();
+//		assertThat(iter.curKey().getString(0), is("a"));
+//	}
 
 /*
  	// update during iteration of duplicates is NOT handled

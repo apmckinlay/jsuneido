@@ -337,7 +337,6 @@ class Btree implements TranIndex {
 	 * Note: Iterators "stick" when they hit eof().
 	 */
 	class Iter implements TranIndex.Iter {
-//		private static final int UINT_MAX = 0xffffffff;
 		private final BtreeKey from;
 		private final BtreeKey to;
 		// top of stack is leaf
@@ -345,7 +344,6 @@ class Btree implements TranIndex {
 		private BtreeKey cur;
 		private boolean rewound;
 		private int valid = -1;
-//		private int prevAdr;
 		private BtreeKey next = null;
 
 		private Iter() {
@@ -368,50 +366,37 @@ class Btree implements TranIndex {
 			this.cur = cur;
 			this.next = next;
 			this.rewound = rewound;
-//			this.prevAdr = prevAdr;
 		}
 
 		@Override
 		public void next() {
-//System.out.println("next ---------------------");
-//			int prevAdr = this.prevAdr;
-//			this.prevAdr = tran.intrefs.next();
+			next2();
+			next = (cur == null) ? null : peekNext();
+		}
+
+		private void next2() {
 			if (rewound) {
-//System.out.println("rewound");
 				seek(from);
 				rewound = false;
 				if (cur != null) {
 					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
-						cur = next = null;
-					else
-						next = peekNext();
+						cur = null;
 					return;
 				}
 			} else if (eof())
 				return;
 			if (modified != valid) {
-//System.out.println("modified");
-//				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur != null) {
 					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0) {
-						cur = next = null;
+						cur = null;
 						return;
 					}
-//					if (! oldcur.equals(cur) &&
-//							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
-//						return; // already on the next key
-//System.out.println("equals? cur " + cur + " next " + next);
-					if (cur.equals(next)) {
-						next = peekNext();
+					if (cur.equals(next))
 						return; // already on the next key
-					}
 				}
-				// fall through
 			}
-//System.out.println("advance");
 			advance();
-			next = peekNext();
 		}
 
 		private void advance() {
@@ -450,14 +435,16 @@ class Btree implements TranIndex {
 				pos = 0;
 				++i;
 			}
-//System.out.println("cur " + cur + " next " + info.node.get(pos));
 			return info.node.get(pos);
 		}
 
 		@Override
 		public void prev() {
-//			int prevAdr = this.prevAdr;
-//			this.prevAdr = tran.intrefs.next();
+			prev2();
+			next = (cur == null) ? null : peekNext();
+		}
+
+		private void prev2() {
 			if (rewound) {
 				seek(to);
 				rewound = false;
@@ -475,9 +462,8 @@ class Btree implements TranIndex {
 				BtreeKey oldcur = cur;
 				seek(cur);
 				if (cur == null && ! stack.isEmpty()) {
-					--stack.peek().pos;
 					LevelInfo leaf = stack.peek();
-					cur = leaf.node.get(leaf.pos);
+					cur = leaf.node.get(--leaf.pos);
 				}
 				if (cur != null) {
 					if (cur.compareTo(from) < 0) {
@@ -486,12 +472,7 @@ class Btree implements TranIndex {
 					}
 					if (cur.compareTo(to) < 0 && cur.compareTo(oldcur) < 0)
 						return;
-
-//					if (! oldcur.equals(cur) &&
-//							UnsignedInts.compare(cur.adr(), prevAdr) < 0)
-//						return;
 				}
-				// fall through
 			}
 			while (! stack.isEmpty() &&
 					stack.peek().pos - 1 < 0)
@@ -558,7 +539,6 @@ class Btree implements TranIndex {
 		public void rewind() {
 			cur = null;
 			rewound = true;
-//			prevAdr = UINT_MAX;
 		}
 
 	} // end of Iter
