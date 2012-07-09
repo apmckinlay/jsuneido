@@ -14,8 +14,6 @@ import java.util.ArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.intfc.database.IndexIter;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -28,7 +26,7 @@ import com.google.common.collect.Lists;
  * adds are much more common than removes. Since nodes are variable size
  * small nodes do not waste much space. And compacting the database will rebuild
  * btrees anyway.
- * <p>
+ *
  * @see BtreeNode, BtreeDbNode, BtreeMemNode
  */
 @NotThreadSafe
@@ -111,6 +109,7 @@ class Btree implements TranIndex {
 	 * NOTE: unique dup check assumes that if only data address changes
 	 * then old and new keys will be in same leaf node
 	 * for this to work, split must set data address to MAXADR in tree keys
+	 *
 	 * @return true if the key was successfully added,
 	 * false if unique is true and the key already exists
 	 * (ignoring the trailing data record address)
@@ -316,27 +315,31 @@ class Btree implements TranIndex {
 	@Override
 	public Iter iterator() {
 		return new Iter();
+		//return new IndexIter(new Iter());
 	}
 
 	@Override
 	public Iter iterator(Record org, Record end) {
 		return new Iter(org, end);
+		//return new IndexIter(new Iter(org, end));
 	}
 
 	@Override
 	public Iter iterator(Record key) {
 		return new Iter(key, key);
+		//return new IndexIter(new Iter(key, key));
 	}
 
 	@Override
-	public Iter iterator(IndexIter iter) {
+	public Iter iterator(suneido.intfc.database.IndexIter iter) {
 		return new Iter((Iter) iter);
+		//return new IndexIter(new Iter((Iter) iter));
 	}
 
 	/**
 	 * Note: Iterators "stick" when they hit eof().
 	 */
-	class Iter implements TranIndex.Iter {
+	class Iter implements TranIndex.IterPlus {
 		private final BtreeKey from;
 		private final BtreeKey to;
 		// top of stack is leaf
@@ -376,30 +379,30 @@ class Btree implements TranIndex {
 
 		private void next2() {
 			if (rewound) {
-				seek(from);
 				rewound = false;
-				if (cur != null) {
-					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0)
-						cur = null;
-					return;
-				}
-			} else if (eof())
+				seekNext(from);
 				return;
-			if (modified != valid) {
-				seek(cur);
-				if (cur != null) {
-					if (cur.compareTo(from) < 0 || cur.compareTo(to) > 0) {
-						cur = null;
-						return;
-					}
-					if (cur.equals(next))
-						return; // already on the next key
-				}
 			}
-			advance();
+			if (next == null)
+				cur = null;
+			if (eof())
+				return;
+			if (isIndexModified())
+				seekNext(next);
+			else
+				nextViaStack(); // fast path
 		}
 
-		private void advance() {
+		private void seekNext(BtreeKey key) {
+			seek(key);
+			if (cur == null)
+				nextViaStack();
+			if (cur != null &&
+					(cur.compareTo(from) < 0 || cur.compareTo(to) > 0))
+				cur = null;
+		}
+
+		private void nextViaStack() {
 			// advance position
 			while (! stack.isEmpty() &&
 					stack.peek().pos + 1 >= stack.peek().node.size())
@@ -446,36 +449,18 @@ class Btree implements TranIndex {
 
 		private void prev2() {
 			if (rewound) {
-				seek(to);
 				rewound = false;
-				if (cur != null) {
-					if (cur.compareTo(from) < 0) {
-						cur = null;
-						return;
-					}
-					if (cur.compareTo(to) < 0)
-						return;
-				}
+				seek(to);
+				// fall through to prevViaStack
 			} else if (eof())
 				return;
-			if (modified != valid) {
-				BtreeKey oldcur = cur;
+			if (isIndexModified())
 				seek(cur);
-				if (cur == null && ! stack.isEmpty()) {
-					LevelInfo leaf = stack.peek();
-					cur = leaf.node.get(--leaf.pos);
-				}
-				if (cur != null) {
-					if (cur.compareTo(from) < 0) {
-						cur = null;
-						return;
-					}
-					if (cur.compareTo(to) < 0 && cur.compareTo(oldcur) < 0)
-						return;
-				}
-			}
-			while (! stack.isEmpty() &&
-					stack.peek().pos - 1 < 0)
+			prevViaStack();
+		}
+
+		private void prevViaStack() {
+			while (! stack.isEmpty() && stack.peek().pos - 1 < 0)
 				stack.pop();
 			if (stack.isEmpty()) {
 				cur = null;
@@ -498,19 +483,21 @@ class Btree implements TranIndex {
 		 * on return, cur will be null if btree is empty
 		 * or if position is past end of node
 		 */
-		private void seek(BtreeKey key) {
+		@Override
+		public void seek(BtreeKey key) {
 			valid = modified;
 			stack.clear();
 			cur = null;
 			if (isEmpty())
 				return;
 			BtreeNode node = rootNode;
-			for (int level = treeLevels; level >= 0; --level) {
+			assert treeLevels >= 0;
+			for (int level = treeLevels; ; --level) {
 				int pos = node.findPos(key);
 				stack.push(new LevelInfo(node, pos));
 				if (level == 0) {
-					cur = pos < node.size() ? node.get(pos) : null;
-					break;
+					cur = (pos < node.size()) ? node.get(pos) : null;
+					return;
 				}
 				node = childNode(node, pos);
 			}
@@ -526,7 +513,8 @@ class Btree implements TranIndex {
 			return cur.key;
 		}
 
-		BtreeKey cur() {
+		@Override
+		public BtreeKey cur() {
 			return cur;
 		}
 
@@ -539,6 +527,21 @@ class Btree implements TranIndex {
 		public void rewind() {
 			cur = null;
 			rewound = true;
+		}
+
+		@Override
+		public BtreeKey oldNext() {
+			return next;
+		}
+
+		@Override
+		public boolean isIndexModified() {
+			return modified != valid;
+		}
+
+		@Override
+		public boolean isRewound() {
+			return rewound;
 		}
 
 	} // end of Iter

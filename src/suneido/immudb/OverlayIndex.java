@@ -123,7 +123,7 @@ class OverlayIndex implements TranIndex {
 	}
 
 	/**
-	 * Extends MergeIndexIter to handle deletes
+	 * Extends {@link MergeIndexIter} to handle deletes
 	 * and to track the range of keys iterated over (for read validation).
 	 */
 	static class Iter extends MergeIndexIter {
