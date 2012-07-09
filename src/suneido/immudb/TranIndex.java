@@ -7,7 +7,7 @@ package suneido.immudb;
 import suneido.intfc.database.IndexIter;
 
 /**
- * Common interface for Btree and OverlayIndex
+ * Common interface for {@link Btree} and {@link OverlayIndex}
  */
 interface TranIndex {
 
@@ -38,6 +38,27 @@ interface TranIndex {
 		Record curKey();
 
 		void rewind();
+
+	}
+
+	/**
+	 * Used to handle "resetting" the iterator when the index is modified
+	 */
+	interface IterPlus extends Iter {
+
+		boolean isRewound();
+
+		BtreeKey cur();
+
+		BtreeKey oldNext();
+
+		void seek(BtreeKey key);
+
+		/**
+		 * @return true if the underlying index has been modified
+		 * since the iterator was constructed
+		 */
+		boolean isIndexModified();
 
 	}
 
