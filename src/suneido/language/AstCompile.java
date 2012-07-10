@@ -828,10 +828,8 @@ public class AstCompile {
 			callArguments(cg, args);
 			cg.invokeSuper();
 		} else if (isDirect(fn)) {
-			/* TODO avoid argument array
-			 * build constant object/record at compile time
-			 * generate code to copy it
-			 * and to add any additional values */
+			// PERF if args are all constant e.g. [a: 1, b: 'fred']
+			// then call a copy function (or better copy-on-write)
 			callArguments(cg, args);
 			cg.invokeDirect(fn.value);
 		} else if (isGlobal(fn)) {
@@ -857,6 +855,7 @@ public class AstCompile {
 		}
 	}
 
+	/** Helper calls to Object and Record */
 	private static boolean isDirect(AstNode fn) {
 		return fn.token == Token.IDENTIFIER &&
 				(fn.value.equals("Object") || fn.value.equals("Record"));
@@ -956,6 +955,10 @@ public class AstCompile {
 		return nargs;
 	}
 
+	/**
+	 * If there are at least MIN_TO_OPTIMIZE constant arguments
+	 * then put them in an SuContainer and pass them with EACH
+	 */
 	private void optimizeArguments(ClassGen cg, AstNode args) {
 		SuContainer constArgs = new SuContainer();
 		List<Object> unnamed = new ArrayList<Object>();

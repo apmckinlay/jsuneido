@@ -9,6 +9,18 @@ import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * The components of the compiler are:
+ * <ul>
+ * <li>{@link Lexer} - scanner
+ * <li>{@link ParseConstant}
+ * <li>{@link ParseFunction}
+ * <li>{@link ParseExpression}
+ * <li>{@link AstGenerator} - generates an AST, based on calls from parsers
+ * <li>{@link AstNode} - make up the AST
+ * <li>{@link AstCompile} - compiles an AST to Java byte code
+ * </ul>
+ */
 @ThreadSafe
 public class Compiler {
 
@@ -36,11 +48,11 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { [123.456, function() {}] }";
+		String s = "function () { [a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11] }";
 		PrintWriter pw = new PrintWriter(System.out);
-Object f =
+		//Object f =
 		compile("Test", s, pw);
-		System.out.println(" => " + Ops.call0(f));
+		//System.out.println(" => " + Ops.call0(f));
 		//System.out.println(" => " + Ops.call1(f, "hello"));
 	}
 
