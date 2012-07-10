@@ -263,7 +263,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				return generator.constant(constant());
 			else {
 				match(L_BRACKET);
-				// TODO optimize literal part like cSuneido
 				T func = generator.identifier("Record");
 				return generator.functionCall(func, argumentList(R_BRACKET));
 			}

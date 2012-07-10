@@ -814,8 +814,6 @@ public final class Ops {
 		throw new SuException("invalid method: " + method);
 	}
 
-	// TODO change get and put to use target
-
 	public static void put(Object x, Object member, Object value) {
 		if (x instanceof SuValue)
 			((SuValue) x).put(member, value);

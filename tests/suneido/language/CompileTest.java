@@ -410,6 +410,8 @@ public class CompileTest {
 			"x, NAMED, 'V', a, EACH, const0, call, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 			"'A', EACH, const0, global call, ARETURN");
+		test("[a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11]",
+				"NAMED, 'V', a, EACH, const0, Record, ARETURN");
 	}
 
 	@Test
@@ -571,6 +573,7 @@ public class CompileTest {
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" },
 			{ "INVOKESTATIC suneido/language/builtin/ObjectClass.create ([Object;)Object;", "Object" },
+			{ "INVOKESTATIC suneido/language/builtin/RecordClass.create ([Object;)Object;", "Record" },
 			{ "blockReturnException (Object;I)Lsuneido/language/BlockReturnException;, ATHROW", "blockReturn" },
 			{ "blockReturnHandler (Lsuneido/language/BlockReturnException;I)Object;", "blockReturnHandler" },
 			{ "0, ANEWARRAY java/lang/Object, ", "" },
@@ -590,6 +593,7 @@ public class CompileTest {
 			{ "AASTORE, global call", "global call" },
 			{ "AASTORE, invoke", "invoke" },
 			{ "AASTORE, Object", "Object" },
+			{ "AASTORE, Record", "Record" },
 			{ "call0", "call" },
 			{ "call1", "call" },
 			{ "call2", "call" },
