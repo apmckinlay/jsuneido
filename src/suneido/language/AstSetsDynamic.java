@@ -1,24 +1,20 @@
-/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
 package suneido.language;
 
-/**
- * Determine if a function references "this" or "super"
- * Used by {@link AstCompile} to choose between eval and call
- */
-public class AstUsesThis {
+public class AstSetsDynamic {
 
 	public static boolean check(AstNode ast) {
 		Visitor v = new Visitor(ast);
 		ast.depthFirst(v);
-		return v.usesThis;
+		return v.setsDynamic;
 	}
 
 	private static class Visitor extends AstNode.Visitor {
 		private final AstNode root;
-		public boolean usesThis = false;
+		public boolean setsDynamic = false;
 
 		Visitor(AstNode root) {
 			this.root = root;
@@ -33,16 +29,22 @@ public class AstUsesThis {
 				return false;
 			case FUNCTION:
 				return ast == root;
-			case SELFREF:
-			case SUPER:
-				usesThis = true;
+			case EQ:
+				checkLvalue(ast.first());
 				break;
-			case IDENTIFIER:
-				if ("this".equals(ast.value) || "super".equals(ast.value))
-					usesThis = true;
+			case ASSIGNOP:
+			case PREINCDEC:
+			case POSTINCDEC:
+				checkLvalue(ast.second());
 				break;
 			}
-			return usesThis == false;
+			return setsDynamic == false;
+		}
+
+		private void checkLvalue(AstNode lvalue) {
+			if (lvalue.token == Token.IDENTIFIER &&
+					AstCompile.isDynamic(lvalue.value))
+				setsDynamic = true;
 		}
 
 	}

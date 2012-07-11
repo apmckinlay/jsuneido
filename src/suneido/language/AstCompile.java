@@ -156,13 +156,14 @@ public class AstCompile {
 		return fn;
 	}
 
+	/** used for functions, methods, and blocks that don't need to be closures */
 	private SuCallable function(String name, AstNode ast) {
 		boolean method = ast.token == Token.METHOD || AstUsesThis.check(ast);
 		nameBegin(name, "$f");
 		SuCallable fn = javaClass(ast,
 				method ? "SuMethod" : "SuFunction",
 				method ? "eval" : "call",
-				null, pw);
+				null);
 		nameEnd();
 		return fn;
 	}
@@ -189,7 +190,7 @@ public class AstCompile {
 		// needed to check if child blocks share with this block
 		AstSharesVars.check(ast);
 		nameBegin(null, "$b");
-		SuCallable fn = javaClass(ast, "SuCallable", "eval", cg.locals, pw);
+		SuCallable fn = javaClass(ast, "SuCallable", "eval", cg.locals);
 		nameEnd();
 		return fn;
 	}
@@ -198,7 +199,7 @@ public class AstCompile {
 	 * @param locals The outer locals for a block. Not used for functions.
 	 */
 	private SuCallable javaClass(AstNode ast, String base, String method,
-			List<String> locals, PrintWriter pw) {
+			List<String> locals) {
 		List<AstNode> params = ast.first().children;
 		ClassGen cg = new ClassGen(base, curName, method, locals,
 				useArgsArray(ast, base, params),
@@ -209,6 +210,9 @@ public class AstCompile {
 			cg.param(param.value, fold(param.first()));
 
 		superInit(cg, ast);
+
+		if (AstSetsDynamic.check(ast))
+			cg.addDynamicPushPop();
 
 		List<AstNode> statements = ast.second().children;
 		for (int i = 0; i < statements.size(); ++i) {
@@ -628,17 +632,7 @@ public class AstCompile {
 		ExprType resultType = ExprType.VALUE;
 		switch (ast.token) {
 		case IDENTIFIER:
-			String name = ast.value;
-			if (isGlobal(name))
-				cg.globalLoad(name);
-			else if (name.startsWith("_")) {
-				cg.constant("jSuneido does not support _dynamic variables (" + name + ")");
-				cg.thrower();
-				cg.aconst_null(); // not needed if throw is in-line
-			} else
-				cg.localLoad(name);
-			if (option == ExprOption.POP)
-				addNullCheck(cg, ast);
+			identifier(cg, ast, option);
 			break;
 		case SELFREF:
 			cg.localLoad("this");
@@ -755,6 +749,22 @@ public class AstCompile {
 		if (option == ExprOption.POP)
 			cg.pop();
 		return resultType;
+	}
+
+	private static void identifier(ClassGen cg, AstNode ast, ExprOption option) {
+		String name = ast.value;
+		if (isGlobal(name))
+			cg.globalLoad(name);
+		else if (isDynamic(name))
+			cg.dynamicLoad(name);
+		else
+			cg.localLoad(name);
+		if (option == ExprOption.POP)
+			addNullCheck(cg, ast);
+	}
+
+	static boolean isDynamic(String name) {
+		return name.startsWith("_");
 	}
 
 	private void member(ClassGen cg, AstNode ast) {
@@ -1076,9 +1086,12 @@ public class AstCompile {
 			String name = ast.value;
 			if (isGlobal(name))
 				throw new SuException("globals are read-only");
+			else if (isDynamic(name))
+				return cg.dynamicRef(name);
 			else if (name.equals("this") || name.equals("super"))
 				throw new SuException("this and super are read-only");
-			return cg.localRef(name);
+			else
+				return cg.localRef(name);
 		case MEMBER:
 			member(cg, ast);
 			return ClassGen.MEMBER_REF;
@@ -1099,6 +1112,8 @@ public class AstCompile {
 	private static void store(ClassGen cg, int ref) {
 		if (ref == ClassGen.MEMBER_REF)
 			cg.memberStore();
+		else if (ref == ClassGen.DYNAMIC_REF)
+			cg.dynamicStore();
 		else
 			cg.localRefStore(ref);
 	}
@@ -1107,6 +1122,8 @@ public class AstCompile {
 	private static void load(ClassGen cg, int ref) {
 		if (ref == ClassGen.MEMBER_REF)
 			cg.memberLoad();
+		else if (ref == ClassGen.DYNAMIC_REF)
+			cg.dynamicLoad();
 		else
 			cg.localRefLoad(ref);
 	}

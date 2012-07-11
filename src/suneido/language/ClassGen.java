@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -41,7 +45,8 @@ public class ClassGen {
 	final List<String> locals;
 	final BiMap<String,Integer> javaLocals = HashBiMap.create();
 	private int nextJavaLocal;
-	private Object blockReturnCatcher = null;
+	private TryCatch blockReturnCatcher = null;
+	private TryCatch dynamicFinally = null;
 	public final boolean useArgsArray;
 	public final boolean isBlock;
 	public final boolean closure;
@@ -206,6 +211,8 @@ public class ClassGen {
 	}
 
 	public void areturn() {
+		if (dynamicFinally != null)
+			dynamicPop();
 		mv.visitInsn(ARETURN);
 	}
 
@@ -257,6 +264,7 @@ public class ClassGen {
 
 	public static final int ARGS_REF = -1;
 	public static final int MEMBER_REF = -2;
+	public static final int DYNAMIC_REF = -3;
 	// >= 0 means java local index
 
 	public int localRef(String name) {
@@ -327,12 +335,35 @@ public class ClassGen {
 				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
 	}
 
+	int dynamicRef(String name) {
+		mv.visitLdcInsn(name);
+		return DYNAMIC_REF;
+	}
+
+	void dynamicLoad(String name) {
+		mv.visitLdcInsn(name);
+		dynamicLoad();
+	}
+
+	void dynamicLoad() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic",
+				"get", "(Ljava/lang/String;)Ljava/lang/Object;");
+	}
+
+	/** name and value should be on the stack already */
+	void dynamicStore() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic",
+				"put", "(Ljava/lang/String;Ljava/lang/Object;)V");
+	}
+
 	public void dup() {
 		mv.visitInsn(DUP);
 	}
 
 	public void dupLvalue(int ref) {
-		if (ref < 0)
+		if (ref == DYNAMIC_REF)
+			mv.visitInsn(DUP);
+		else if (ref < 0)
 			mv.visitInsn(DUP2);
 		// else lvalue is java local
 		// 		nothing to dup
@@ -341,6 +372,8 @@ public class ClassGen {
 	public void dupUnderLvalue(int ref) {
 		if (ref >= 0) // lvalue is java local
 			mv.visitInsn(DUP);
+		else if (ref == DYNAMIC_REF)
+			mv.visitInsn(DUP_X1);
 		else
 			mv.visitInsn(DUP_X2);
 	}
@@ -458,6 +491,10 @@ public class ClassGen {
 	}
 
 	public Object tryCatch(String exception) {
+		return startTryCatch(exception);
+	}
+
+	private TryCatch startTryCatch(String exception) {
 		TryCatch tc = new TryCatch();
 		mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2, exception);
 		mv.visitLabel(tc.label0);
@@ -595,22 +632,44 @@ public class ClassGen {
 
 	public void addBlockReturnCatcher() {
 		if (!isBlock && blockReturnCatcher == null)
-			blockReturnCatcher = tryCatch("suneido/language/BlockReturnException");
+			blockReturnCatcher = startTryCatch("suneido/language/BlockReturnException");
 	}
 
 	private void finishBlockReturnCatcher() {
-		TryCatch tc = (TryCatch) blockReturnCatcher;
-		mv.visitLabel(tc.label1);
-		mv.visitLabel(tc.label2);
+		mv.visitLabel(blockReturnCatcher.label1);
+		mv.visitLabel(blockReturnCatcher.label2);
 		iconst(parentId);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnHandler",
 				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;");
 		mv.visitInsn(ARETURN);
 	}
 
+	void addDynamicPushPop() {
+		dynamicPush();
+		dynamicFinally = startTryCatch(null);
+	}
+
+	private void dynamicPush() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "push", "()V");
+	}
+
+	/** catcher that just pops and rethrows */
+	private void finishDynamicPushPop() {
+		mv.visitLabel(dynamicFinally.label1);
+		mv.visitLabel(dynamicFinally.label2);
+		dynamicPop();
+		mv.visitInsn(ATHROW);
+	}
+
+	private void dynamicPop() {
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "pop", "()V");
+	}
+
 	public SuCallable end(SuClass suClass) {
 		if (blockReturnCatcher != null)
 			finishBlockReturnCatcher();
+		if (dynamicFinally != null)
+			finishDynamicPushPop();
 
 		Label endLabel = new Label();
 		mv.visitLabel(endLabel);
