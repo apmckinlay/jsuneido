@@ -18,11 +18,7 @@ public class AstBlockItTest {
 	}
 
 	public static void test(boolean blockIt, String s) {
-		Lexer lexer = new Lexer("function () { " + s + "\n}");
-		AstGenerator generator = new AstGenerator();
-		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
+		AstNode ast = Compiler.parse("function () { " + s + "\n}");
 		assertEquals(blockIt, AstBlockIt.check(ast.second()));
 	}
 

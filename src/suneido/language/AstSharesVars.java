@@ -25,9 +25,9 @@ import com.google.common.collect.Sets;
 public class AstSharesVars {
 
 	public static boolean check(AstNode ast) {
-		Visitor hsv = new Visitor(ast);
-		ast.depthFirst(hsv);
-		return hsv.hasSharedVars;
+		Visitor v = new Visitor(ast);
+		ast.depthFirst(v);
+		return v.hasSharedVars;
 	}
 
 	private static class Visitor extends AstNode.Visitor {
