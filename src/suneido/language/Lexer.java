@@ -11,7 +11,6 @@ public class Lexer {
 	private Token keyword;
 	private boolean ignoreCase = false;
 	private int lineNumber = 1;
-	//private String debug = ">";
 
 	public Lexer(String source) {
 		this.source = source;
@@ -22,7 +21,6 @@ public class Lexer {
 		prev = lexer.prev;
 		value = lexer.value;
 		keyword = lexer.keyword;
-		//debug = ">>";
 	}
 
 	public void ignoreCase() {
@@ -54,7 +52,6 @@ public class Lexer {
 		do
 			token = nextAll();
 			while (token == WHITE || token == COMMENT);
-		//System.out.println(debug + " " + token + (value == null ? "" : " " + value));
 		return token;
 	}
 
@@ -257,8 +254,17 @@ public class Lexer {
 				return scanNumber();
 			else
 				return DOT;
-		case '"' :
-		case '\'' :
+		case '`': {
+			// backquoted strings not escaped, can contain anything except backquotes
+			StringBuilder sb = new StringBuilder();
+			for (; si < source.length() && (c = source.charAt(si)) != '`'; ++si)
+				sb.append(c);
+			if (si < source.length())
+				++si;	// skip closing quote
+			value = sb.toString();
+			return STRING; }
+		case '"':
+		case '\'': {
 			char quote = c;
 			StringBuilder sb = new StringBuilder();
 			for (; si < source.length() && (c = source.charAt(si)) != quote; ++si)
@@ -269,7 +275,7 @@ public class Lexer {
 			if (si < source.length())
 				++si;	// skip closing quote
 			value = sb.toString();
-			return STRING;
+			return STRING; }
 		default:
 			if (Character.isLetter(c) || c == '_') {
 				while (true) {

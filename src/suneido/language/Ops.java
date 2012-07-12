@@ -21,11 +21,11 @@ import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
 import suneido.util.StringIterator;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
 @ThreadSafe // all static methods
 public final class Ops {
-
 	public static SuException BREAK_EXCEPTION = new SuException("block:break");
 	public static SuException CONTINUE_EXCEPTION = new SuException("block:continue");
 
@@ -650,23 +650,30 @@ public final class Ops {
 	public static String display(Object x) {
 		if (x == null)
 			return "null";
-		if (isString(x)) {
-			String s = x.toString();
-			s = s.replace("\\", "\\\\");
-			boolean single_quotes = default_single_quotes
-				? !s.contains("'")
-				: (s.contains("\"") && !s.contains("'"));
-			if (single_quotes)
-				return "'" + s + "'";
-			else
-				return "\"" + s.replace("\"", "\\\"") + "\"";
-		}
+		if (isString(x))
+			return displayString(x);
 		String s = toStr2(x);
 		if (s != null)
 			return s;
 		if (x instanceof Date)
 			return toStringDate((Date) x);
 		return x.toString();
+	}
+
+	static final CharMatcher printable = CharMatcher.inRange(' ', '~');
+
+	private static String displayString(Object x) {
+		String s = x.toString();
+		if (! s.contains("`") && s.contains("\\") && printable.matchesAllOf(s))
+			return "`" + s + "`";
+		s = s.replace("\\", "\\\\");
+		boolean single_quotes = default_single_quotes
+			? !s.contains("'")
+			: (s.contains("\"") && !s.contains("'"));
+		if (single_quotes)
+			return "'" + s + "'";
+		else
+			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
 	public static String display(Object[] a) {
 		if (a.length == 0)

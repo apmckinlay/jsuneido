@@ -187,8 +187,8 @@ public class SuContainerTest {
 			c.add(s);
 		for (String s : strings)
 			c.put(s, true);
-		assertEquals("#('plain', \"single's\", 'double\"s', 'back\\\\slash', " +
-				"'back\\\\slash': true, 'double\"s': true, \"single's\": true, plain: true)",
+		assertEquals("#('plain', \"single's\", 'double\"s', `back\\slash`, " +
+				"`back\\slash`: true, 'double\"s': true, \"single's\": true, plain: true)",
 				c.toString());
 	}
 
