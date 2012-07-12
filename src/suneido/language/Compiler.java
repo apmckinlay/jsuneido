@@ -48,7 +48,7 @@ public class Compiler {
 
 	public static void main(String[] args) throws IOException {
 //		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-		String s = "function () { _x = 5 }";
+		String s = "function () { b = { return }; function (b) { b(); _x = 5 }(b) }";
 		PrintWriter pw = new PrintWriter(System.out);
 		Object f =
 		compile("Test", s, pw);
