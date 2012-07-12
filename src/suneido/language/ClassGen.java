@@ -641,7 +641,7 @@ public class ClassGen {
 		iconst(parentId);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnHandler",
 				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;");
-		mv.visitInsn(ARETURN);
+		areturn();
 	}
 
 	void addDynamicPushPop() {

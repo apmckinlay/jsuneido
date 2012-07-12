@@ -27,6 +27,7 @@ public class AstSetsDynamic {
 			// but do process blocks
 			case CLASS:
 				return false;
+			case BLOCK:
 			case FUNCTION:
 				return ast == root;
 			case EQ:
