@@ -16,17 +16,17 @@ public abstract class SuFunction3 extends SuFunction {
 
 	@Override
 	public Object call0() {
-		return call3(defaultFor(0), defaultFor(1), defaultFor(2));
+		return call3(fillin(0), fillin(1), fillin(2));
 	}
 
 	@Override
 	public Object call1(Object a) {
-		return call3(a, defaultFor(1), defaultFor(2));
+		return call3(a, fillin(1), fillin(2));
 	}
 
 	@Override
 	public Object call2(Object a, Object b) {
-		return call3(a, b, defaultFor(2));
+		return call3(a, b, fillin(2));
 	}
 
 	@Override

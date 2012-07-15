@@ -402,4 +402,13 @@ public class Lexer {
 	public String sourceWithPosition() {
 		return source.substring(0, prev) + " @HERE@ " + source.substring(prev);
 	}
+
+	public static void main(String[] args) {
+		Lexer lexer = new Lexer("function (.param, _param) { }");
+		while (lexer.hasNext()) {
+			Token token = lexer.next();
+			System.out.println(token);
+		}
+	}
+
 }

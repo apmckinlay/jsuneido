@@ -37,7 +37,12 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		} else {
 			T defaultValue = null;
 			while (token != R_PAREN) {
+				boolean dot = (token == DOT);
+				if (dot)
+					match(DOT);
 				String name = lexer.getValue();
+				if (dot)
+					name = "." + name;
 				match(IDENTIFIER);
 				if (matchIf(EQ))
 					defaultValue = constant();
@@ -341,5 +346,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	static final Context LOOP = new Context(true, true);
 	static final Context NORMAL = new Context(false, false);
+
+	public static void main(String[] args) {
+		AstNode ast = Compiler.parse("function (.a, _b, ._c) { a + b }");
+		System.out.println(ast);
+	}
 
 }

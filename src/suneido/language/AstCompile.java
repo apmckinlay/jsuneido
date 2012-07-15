@@ -207,7 +207,8 @@ public class AstCompile {
 				params.size(), fnId, pw);
 
 		for (AstNode param : params)
-			cg.param(param.value, fold(param.first()));
+			cg.param(param.value, fold(param.first()),
+					inMethod ? suClassName + "_" : "");
 
 		superInit(cg, ast);
 

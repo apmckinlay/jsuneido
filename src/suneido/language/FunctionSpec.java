@@ -10,11 +10,18 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 
+/**
+ * Stores the parameters for function and methods.
+ * Created by {@link ClassGen}.
+ * Used by {@link Args}.
+ * @see BlockSpec
+ */
 @ThreadSafe
 public class FunctionSpec {
 	final String name;
 	final boolean atParam;
 	final String[] params;
+	final String[] dynParams;
 	final Object[] defaults;
 	/** used by Args to ensure room in args array for locals */
 	final int nLocals;
@@ -33,19 +40,24 @@ public class FunctionSpec {
 	public static final Object NA = new Object();
 
 	public FunctionSpec(String... params) {
-		this(null, params, noDefaults, false, params.length);
+		this(null, params, noDefaults, false, null, params.length);
 	}
 	public FunctionSpec(String[] params, Object... defaults) {
-		this(null, params, defaults, false, params.length);
+		this(null, params, defaults, false, null, params.length);
 	}
 	public FunctionSpec(String name, String[] params, Object[] defaults,
 			boolean atParam) {
-		this(name, params, defaults, atParam, params.length);
+		this(name, params, defaults, atParam, null, params.length);
 	}
 	public FunctionSpec(String name, String[] params, Object[] defaults,
-			boolean atParam, int nLocals) {
+			boolean atParam, String[] dynParams) {
+		this(name, params, defaults, atParam, dynParams, params.length);
+	}
+	public FunctionSpec(String name, String[] params, Object[] defaults,
+			boolean atParam, String[] dynParams, int nLocals) {
 		this.name = name;
 		this.params = params;
+		this.dynParams = dynParams;
 		this.defaults = defaults;
 		this.atParam = atParam;
 		this.nLocals = nLocals;
@@ -78,6 +90,8 @@ public class FunctionSpec {
 		for (int i = 0; i < params.length; ++i) {
 			if (i != 0)
 				sb.append(",");
+			if (isDynParam(params[i]))
+				sb.append("_");
 			sb.append(params[i]);
 			if (i >= params.length - defaults.length && i < params.length)
 				sb.append("=").append(defaults[j++]);
@@ -85,6 +99,15 @@ public class FunctionSpec {
 		sb.append(")");
 		return sb.toString();
 	}
+
+	boolean isDynParam(String name) {
+		if (dynParams != null)
+			for (String dp : dynParams)
+				if (dp.equals(name))
+					return true;
+		return false;
+	}
+
 	public Object defaultFor(int i) {
 		assert i < params.length;
 		if (i < params.length - defaults.length)

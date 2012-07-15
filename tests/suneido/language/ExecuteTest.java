@@ -272,6 +272,29 @@ public class ExecuteTest {
 		test("#(a, b, c, d)[9 :: 1]", "#()");
 	}
 
+	@Test
+	public void test_dot_parameters() {
+		test("c = class { New(.P) { x = p } A() { .P } }; i = c(123); i.A()", "123");
+		test("c = class { New(.p) { } A() { .p } }; i = c(123); i.A()", "123");
+		test("c = class { New(a, b, .p, .q = 4) { } A() { [.p, .q] } }; " +
+				"i = c(1, 2, 3); i.A()", "[3, 4]");
+		test("c = class { New(a, b, .p, .q = 4) { } A() { [.p, .q] } }; " +
+				"i = c(1, 2, 33, 44); i.A()", "[33, 44]");
+	}
+
+	@Test
+	public void test_dynamic_implicit_parameters() {
+		test("function(_p){ p }(123)", "123");
+		test("try function(_p){ p }() catch (e) return e", "'missing argument(s)'");
+		test("_p = 123; function(_p){ p }()", "123");
+		test("function(_p = 0){ p }()", "0");
+		test("function(_p = 0){ p }()", "0");
+		test("function(_p = 0){ p }(123)", "123");
+		test("_p = 123; function(_p = 0){ p }()", "123");
+		test("c = class { New(._p) { } A() { .p } }; _p = 123; i = c(); i.A()", "123");
+		test("c = class { New(._P) { } A() { .P } }; _p = 123; i = c(); i.A()", "123");
+	}
+
 	private static void def(String name, String source) {
 		Globals.put(name, Compiler.compile(name, source));
 	}

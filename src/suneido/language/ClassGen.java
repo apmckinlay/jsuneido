@@ -20,6 +20,7 @@ import suneido.SuException;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 
 /**
  * Used by {@link AstCompile} to generate Java classes.
@@ -41,7 +42,7 @@ public class ClassGen {
 	private int nDefaults = 0;
 	private boolean atParam = false;
 	private final int iBlockParams; // where block params start in locals
-	private final List<Object> constants = new ArrayList<Object>();
+	private final List<Object> constants = Lists.newArrayList();
 	final List<String> locals;
 	final BiMap<String,Integer> javaLocals = HashBiMap.create();
 	private int nextJavaLocal;
@@ -51,6 +52,7 @@ public class ClassGen {
 	public final boolean isBlock;
 	public final boolean closure;
 	public final int parentId;
+	private final List<String> dynParams = Lists.newArrayList();
 
 	ClassGen(String base, String name, String method, List<String> locals,
 			boolean useArgsArray, boolean isBlock, int nParams, int parentId,
@@ -129,10 +131,11 @@ public class ClassGen {
 		mv.visitVarInsn(ASTORE, ARGS);
 	}
 
-	public void param(String name, Object defaultValue) {
-		atParam = name.startsWith("@");
-		if (atParam)
-			name = name.substring(1, name.length());
+	public void param(String param, Object defaultValue, String privatePrefix) {
+		atParam = param.startsWith("@");
+		boolean dotParam = param.startsWith(".");
+		boolean dynParam = param.startsWith("_") || param.startsWith("._");
+		String name = AstVariables.paramToName(param);
 		if (useArgsArray)
 			locals.add(name);
 		else
@@ -143,6 +146,20 @@ public class ClassGen {
 			++nDefaults;
 		}
 		++nParams;
+
+		if (dotParam) {
+			// member ref lvalue
+			localLoad("this");
+			String afterPrefix = param.substring(dotParam && dynParam ? 2 : 1);
+			String prefix = Character.isLowerCase(afterPrefix.charAt(0)) ? privatePrefix : "";
+			constant(prefix + afterPrefix);
+			// parameter value
+			localLoad(name);
+			// .name = name
+			memberStore();
+		}
+		if (dynParam)
+			dynParams.add(name);
 	}
 
 	public void constant(Object value) {
@@ -711,6 +728,8 @@ public class ClassGen {
 		return callable;
 	}
 
+	static String[] stringArray = new String[0];
+
 	private FunctionSpec functionSpec(BiMap<Integer,String> bm) {
 		FunctionSpec fspec;
 		String[] params = new String[nParams];
@@ -723,11 +742,12 @@ public class ClassGen {
 			for (int i = 0; i < nParams; ++i)
 				params[i] = locals.get(i);
 			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
-					locals.size());
+					dynParams.toArray(stringArray), locals.size());
 		} else {
 			for (int i = 0; i < nParams; ++i)
 				params[i] = bm.get(i + firstParam);
-			fspec = new FunctionSpec(name, params, constantsArray(), atParam);
+			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
+					dynParams.toArray(stringArray));
 		}
 		return fspec;
 	}

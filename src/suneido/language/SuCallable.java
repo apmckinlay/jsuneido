@@ -39,8 +39,17 @@ public abstract class SuCallable extends SuValue {
 		return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
 	}
 
-	protected Object defaultFor(int i) {
+	/**
+	 * Supply missing argument from dynamic implicit or default
+	 * This is also done by {@link Args} applyDefaults and dynamicImplicits
+	 */
+	protected Object fillin(int i) {
 		assert params != null : "" + this + " has no params";
+		if (params.isDynParam(params.params[i])) {
+			Object value = Dynamic.getOrNull("_" + params.params[i]);
+			if (value != null)
+				return value;
+		}
 		return params.defaultFor(i);
 	}
 

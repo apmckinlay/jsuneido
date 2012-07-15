@@ -12,12 +12,12 @@ public abstract class SuFunction2 extends SuFunction {
 
 	@Override
 	public Object call0() {
-		return call2(defaultFor(0), defaultFor(1));
+		return call2(fillin(0), fillin(1));
 	}
 
 	@Override
 	public Object call1(Object a) {
-		return call2(a, defaultFor(1));
+		return call2(a, fillin(1));
 	}
 
 	@Override

@@ -15,22 +15,22 @@ public abstract class SuMethod4 extends SuMethod {
 
 	@Override
 	public Object eval0(Object self) {
-		return eval4(self, defaultFor(0), defaultFor(1), defaultFor(2), defaultFor(3));
+		return eval4(self, fillin(0), fillin(1), fillin(2), fillin(3));
 	}
 
 	@Override
 	public Object eval1(Object self, Object a) {
-		return eval4(self, a, defaultFor(1), defaultFor(2), defaultFor(3));
+		return eval4(self, a, fillin(1), fillin(2), fillin(3));
 	}
 
 	@Override
 	public Object eval2(Object self, Object a, Object b) {
-		return eval4(self, a, b, defaultFor(2), defaultFor(3));
+		return eval4(self, a, b, fillin(2), fillin(3));
 	}
 
 	@Override
 	public Object eval3(Object self, Object a, Object b, Object c) {
-		return eval4(self, a, b, c, defaultFor(3));
+		return eval4(self, a, b, c, fillin(3));
 	}
 
 	@Override

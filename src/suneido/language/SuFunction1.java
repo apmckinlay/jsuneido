@@ -12,7 +12,7 @@ public abstract class SuFunction1 extends SuFunction {
 
 	@Override
 	public Object call0() {
-		return call1(defaultFor(0));
+		return call1(fillin(0));
 	}
 
 	@Override

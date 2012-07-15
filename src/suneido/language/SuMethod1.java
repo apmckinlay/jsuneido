@@ -15,7 +15,7 @@ public abstract class SuMethod1 extends SuMethod {
 
 	@Override
 	public Object eval0(Object self) {
-		return eval1(self, defaultFor(0));
+		return eval1(self, fillin(0));
 	}
 
 	@Override

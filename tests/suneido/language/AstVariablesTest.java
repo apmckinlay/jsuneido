@@ -4,7 +4,9 @@
 
 package suneido.language;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
@@ -24,6 +26,7 @@ public class AstVariablesTest {
 		test("++x", "x");
 		test("function (a, b) { }", "a", "b");
 		test("function (@args) { }", "args");
+		test("function (_a, .b, .C, ._d, ._E) { }", "a", "b", "c", "d", "e");
 	}
 
 	private static void test(String code, String... vars) {
@@ -32,6 +35,17 @@ public class AstVariablesTest {
 			code = "function () { " + code + "\n}";
 		AstNode ast = Compiler.parse(code);
 		assertEquals(expected, AstVariables.vars(ast));
+	}
+
+	@Test
+	public void paramToName() {
+		assertThat(AstVariables.paramToName("@name"), is("name"));
+		assertThat(AstVariables.paramToName(".name"), is("name"));
+		assertThat(AstVariables.paramToName(".Name"), is("name"));
+		assertThat(AstVariables.paramToName("_name"), is("name"));
+		assertThat(AstVariables.paramToName("._name"), is("name"));
+		assertThat(AstVariables.paramToName("._Name"), is("name"));
+		assertThat(AstVariables.paramToName("Name"), is("Name"));
 	}
 
 }
