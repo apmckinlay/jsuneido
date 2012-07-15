@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.util.Util.uncapitalize;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -133,10 +135,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private static boolean isRuleField(String column) {
 		return Character.isUpperCase(column.charAt(0));
-	}
-
-	private static String uncapitalize(String column) {
-		return column.substring(0, 1).toLowerCase() + column.substring(1);
 	}
 
 	@Override

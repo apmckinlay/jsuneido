@@ -1,6 +1,8 @@
 package suneido.language;
 
-import static suneido.language.Args.Special.*;
+import static suneido.language.Args.Special.EACH;
+import static suneido.language.Args.Special.EACH1;
+import static suneido.language.Args.Special.NAMED;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -80,6 +82,8 @@ public class Args {
 			}
 		}
 
+		dynamicImplicits(fs, locals);
+
 		applyDefaults(fs, locals);
 
 		verifyAllSupplied(fs, locals);
@@ -112,6 +116,14 @@ public class Args {
 		return true;
 	}
 
+	/** also done by {@link SuCallable} fillin */
+	private static void dynamicImplicits(FunctionSpec fs, Object[] locals) {
+		for (int i = 0; i < fs.params.length; ++i)
+			if (fs.isDynParam(fs.params[i]) && locals[i] == null)
+				locals[i] = Dynamic.getOrNull("_" + fs.params[i]);
+	}
+
+	/** also done by {@link SuCallable} fillin */
 	private static void applyDefaults(FunctionSpec fn, Object[] locals) {
 		if (fn.defaults.length == 0)
 			return;

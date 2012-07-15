@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static suneido.util.Util.capitalize;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
@@ -209,10 +210,6 @@ class DbRebuild {
 					first = last;
 			} else
 				assert false : "invalid type " + type;
-		}
-
-		private String capitalize(String name) {
-			return name.substring(0, 1).toUpperCase() + name.substring(1);
 		}
 
 		@Override

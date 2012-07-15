@@ -4,6 +4,8 @@
 
 package suneido.language;
 
+import static suneido.util.Util.uncapitalize;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,9 +38,7 @@ public class AstVariables {
 			case FOR_IN:
 			case CATCH:
 				if (ast.value != null) {
-					String var = ast.value;
-					if (var.charAt(0) == '@')
-						var = var.substring(1);
+					String var = paramToName(ast.value);
 					if (Character.isLowerCase(var.charAt(0)))
 						vars.add(var);
 				}
@@ -51,7 +51,24 @@ public class AstVariables {
 				return true;
 			}
 		}
+
 	}
 
+	/** &#64;name .name .Name _name ._name ._Name => name */
+	static String paramToName(String name) {
+		int i = 0;
+		if (name.startsWith("@"))
+			return name.substring(1);
+		if (name.startsWith("."))
+			i = 1;
+		if (name.charAt(i) == '_')
+			++i;
+		return (i == 0) ? name : uncapitalize(name.substring(i));
+	}
+
+	public static void main(String[] args) {
+		AstNode ast = Compiler.parse("function (@x) { a + b }");
+		System.out.println(vars(ast));
+	}
 
 }

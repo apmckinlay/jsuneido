@@ -21,12 +21,19 @@ public class Dynamic {
 	}
 
 	public static Object get(String name) {
+		Object value = getOrNull(name);
+		if (value == null)
+			throw new SuException("uninitialized " + name);
+		return value;
+	}
+
+	static Object getOrNull(String name) {
 		for (Map<String,Object> map : stack) {
 			Object value = map.get(name);
 			if (value != null)
 				return value;
 		}
-		throw new SuException("uninitialized " + name);
+		return null;
 	}
 
 	/** called at the start of functions that set dynamic variables */

@@ -4,6 +4,8 @@
 
 package suneido.language;
 
+import static suneido.util.Util.capitalize;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -849,7 +851,7 @@ public final class Ops {
 
 	private static Object getProperty(Object x, String member) {
 		try {
-			Method m = x.getClass().getMethod("get" + capitalized(member));
+			Method m = x.getClass().getMethod("get" + capitalize(member));
 			return m.invoke(x);
 		} catch (SecurityException e) {
 		} catch (NoSuchMethodException e) {
@@ -858,9 +860,6 @@ public final class Ops {
 		} catch (InvocationTargetException e) {
 		}
 		throw new SuException("get property failed: " + x + "." + member);
-	}
-	private static String capitalized(String s) {
-		return s.substring(0, 1).toUpperCase() + s.substring(1);
 	}
 
 	private static Object getArray(Object[] x, int i) {

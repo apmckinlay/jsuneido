@@ -21,6 +21,14 @@ import com.google.common.collect.Lists;
 @ThreadSafe
 public class Util {
 
+	public static String capitalize(String s) {
+		return s.substring(0, 1).toUpperCase() + s.substring(1);
+	}
+
+	public static String uncapitalize(String s) {
+		return s.substring(0, 1).toLowerCase() + s.substring(1);
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T> String listToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())

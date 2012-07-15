@@ -86,7 +86,7 @@ public class ArgsTest {
 		boolean atParam = (params.length == 1 && params[0].startsWith("@"));
 		if (atParam)
 			params[0] = params[0].substring(1, params[0].length());
-		return new FunctionSpec("", params, defaults(params), atParam,
+		return new FunctionSpec("", params, defaults(params), atParam, null,
 				params.length + extra);
 	}
 

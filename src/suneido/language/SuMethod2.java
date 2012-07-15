@@ -15,12 +15,12 @@ public abstract class SuMethod2 extends SuMethod {
 
 	@Override
 	public Object eval0(Object self) {
-		return eval2(self, defaultFor(0), defaultFor(1));
+		return eval2(self, fillin(0), fillin(1));
 	}
 
 	@Override
 	public Object eval1(Object self, Object a) {
-		return eval2(self, a, defaultFor(1));
+		return eval2(self, a, fillin(1));
 	}
 
 	@Override
