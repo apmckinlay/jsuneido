@@ -285,11 +285,13 @@ public class ExecuteTest {
 	@Test
 	public void test_dynamic_implicit_parameters() {
 		test("function(_p){ p }(123)", "123");
+		test("function(_p){ p }(p: 123)", "123");
 		test("try function(_p){ p }() catch (e) return e", "'missing argument(s)'");
 		test("_p = 123; function(_p){ p }()", "123");
 		test("function(_p = 0){ p }()", "0");
 		test("function(_p = 0){ p }()", "0");
 		test("function(_p = 0){ p }(123)", "123");
+		test("function(_p = 0){ p }(p: 123)", "123");
 		test("_p = 123; function(_p = 0){ p }()", "123");
 		test("c = class { New(._p) { } A() { .p } }; _p = 123; i = c(); i.A()", "123");
 		test("c = class { New(._P) { } A() { .P } }; _p = 123; i = c(); i.A()", "123");
