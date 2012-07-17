@@ -177,12 +177,18 @@ class Btree implements TranIndex {
 		if (! node.isEmpty()) {
 			BtreeKey searchKey = unique ? new BtreeKey(key.key) : key;
 			BtreeKey slot = node.find(searchKey);
-			if (slot != null && slot.key.equals(searchKey.key))
-				return false; // duplicate
+			if (sameKey(unique, key, slot))
+					return false; // duplicate
 		}
 		++modified;
 		totalSize += key.keySize();
 		return insertOrSplit(node, key);
+	}
+
+	private boolean sameKey(boolean unique, BtreeKey key, BtreeKey slot) {
+		if (slot == null)
+			return false;
+		return unique ? slot.key.equals(key.key) : slot.equals(key);
 	}
 
 	private void newRoot(Split split) {
@@ -390,7 +396,7 @@ class Btree implements TranIndex {
 			if (isIndexModified())
 				seekNext(next);
 			else
-				nextViaStack(); // fast path
+				nextViaStack(); // usual fast path
 		}
 
 		private void seekNext(BtreeKey key) {
@@ -456,7 +462,7 @@ class Btree implements TranIndex {
 				return;
 			if (isIndexModified())
 				seek(cur);
-			prevViaStack();
+			prevViaStack(); // usual fast path
 		}
 
 		private void prevViaStack() {
