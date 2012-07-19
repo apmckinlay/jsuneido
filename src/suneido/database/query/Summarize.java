@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
@@ -14,6 +18,7 @@ import suneido.intfc.database.Record;
 import suneido.language.Ops;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 public class Summarize extends Query1 {
 	final List<String> by;
@@ -86,42 +91,58 @@ public class Summarize extends Query1 {
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
-		Set<String> srcneeds = 	setUnion(ImmutableSet.copyOf(without(on, null)),
-				setDifference(needs, cols));
+		Set<String> srcneeds =
+				setUnion(without(on, null), setDifference(needs, cols));
+		if (strategy == Strategy.COPY)
+			return optimizeCopy(index, is_cursor, freeze, srcneeds);
+		else
+			return optimizeNonCopy(index, is_cursor, freeze, srcneeds);
+	}
 
-		if (strategy == Strategy.COPY) {
-			if (freeze)
-				via = index;
-			return source.optimize(index, srcneeds, ImmutableSet.copyOf(by),
-					is_cursor, freeze);
+	private double optimizeCopy(List<String> index, boolean is_cursor,
+			boolean freeze, Set<String> srcneeds) {
+		if (freeze)
+			via = index;
+		return source.optimize(index, srcneeds, ImmutableSet.copyOf(by),
+				is_cursor, freeze);
+	}
+
+	private double optimizeNonCopy(List<String> index, boolean is_cursor,
+			boolean freeze, Set<String> srcneeds) {
+		List<List<String>> indexes = sourceIndexes(index);
+
+		Best best = best_prefixed(indexes, by, srcneeds, is_cursor);
+
+		ImmutableSet<String> firstneeds = ImmutableSet.copyOf(by);
+		double mapCost = startsWith(by, index)
+				? 1.5 * source.optimize1(noFields, srcneeds, firstneeds, is_cursor, false)
+				: IMPOSSIBLE;
+
+		if (! freeze)
+			return Math.min(best.cost, mapCost);
+
+		if (mapCost < best.cost) {
+			strategy = Strategy.MAP;
+			return source.optimize(noFields, srcneeds, firstneeds, is_cursor, freeze);
+		} else {
+			strategy = Strategy.SEQUENTIAL;
+			via = best.index;
+			return source.optimize(best.index, srcneeds, noNeeds, is_cursor, freeze);
 		}
+	}
 
-		List<List<String>> indexes;
+	/** @return the indexes that satisfy the required index */
+	private List<List<String>> sourceIndexes(List<String> index) {
 		if (nil(index))
-			indexes = source.indexes();
+			return source.indexes();
 		else {
 			List<Fixed> fixed = source.fixed();
-			indexes = new ArrayList<List<String>>();
+			List<List<String>> indexes = Lists.newArrayList();
 			for (List<String> idx : source.indexes())
 				if (prefixed(idx, index, fixed))
 					indexes.add(idx);
+			return indexes;
 		}
-		Best best = best_prefixed(indexes, by, srcneeds, is_cursor, new Best());
-		if (nil(best.index) && startsWith(by, index)) {
-			// accumulate results in memory
-			// doesn't require any order, can only supply in order of "by"
-			strategy = Strategy.MAP;
-			return source.optimize(noFields, srcneeds, ImmutableSet.copyOf(by),
-					is_cursor, freeze);
-		}
-		if (nil(best.index))
-			return IMPOSSIBLE;
-		strategy = Strategy.SEQUENTIAL;
-		if (!freeze)
-			return best.cost;
-		via = best.index;
-		return source.optimize(best.index, srcneeds, noNeeds, is_cursor,
-				freeze);
 	}
 
 	@Override

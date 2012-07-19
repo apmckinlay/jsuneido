@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
@@ -272,7 +276,10 @@ public class OptimizeTest extends TestBase {
 			"trans^(item) SUMMARIZE-SEQ ^(item) (item) x = total cost");
 
 		test1("trans summarize total cost",
-			"trans^(item) SUMMARIZE-COPY total_cost = total cost");
+				"trans^(item) SUMMARIZE-COPY total_cost = total cost");
+
+		test1("trans summarize id, total cost",
+				"trans^(item) SUMMARIZE-MAP (id) total_cost = total cost");
 
 		test1("(inven leftjoin trans) where date = 960204",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +

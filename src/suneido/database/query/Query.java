@@ -53,7 +53,6 @@ public abstract class Query {
 
 	// iteration
 	public abstract Header header();
-	abstract List<List<String>> indexes();
 	public List<String> ordering() { // overridden by QSort
 		return noFields;
 	}
@@ -89,6 +88,8 @@ public abstract class Query {
 
 	public abstract List<List<String>> keys();
 
+	abstract List<List<String>> indexes();
+
 	Query transform() {
 		return this;
 	}
@@ -114,8 +115,9 @@ public abstract class Query {
 		// tempindex
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
-		cost2 = optimize1(noFields, needs, nil(firstneeds) ? firstneeds
-				: setUnion(firstneeds, index), is_cursor, false)
+		cost2 = optimize1(noFields, needs,
+				nil(firstneeds) ? firstneeds : setUnion(firstneeds, index),
+				is_cursor, false)
 				+ nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
@@ -171,9 +173,13 @@ public abstract class Query {
 		return best_index;
 	}
 
-	// estimated result sizes
+	/** @return The estimated number of records resulting from this query */
 	abstract double nrecords();
+
+	/** @return The estimated average size of a record in this query */
 	abstract int recordsize();
+
+	/** @return The estimated average size of the data for a column */
 	abstract int columnsize();
 
 	// used to insert TempIndex nodes

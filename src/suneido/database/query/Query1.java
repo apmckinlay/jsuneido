@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import java.util.Collections;
@@ -107,31 +111,43 @@ public abstract class Query1 extends Query {
 		source.select(index, from, to);
 	}
 
+	/** holds an index and a cost, used for optimization */
 	protected static class Best {
 		double cost = IMPOSSIBLE;
 		List<String> index = Collections.emptyList();
+
+		Best update(List<String> index, double cost) {
+			if (cost < this.cost) {
+				this.cost = cost;
+				this.index = index;
+			}
+			return this;
+		}
+
 		@Override
 		public String toString() {
 			return "Best " + index + " " + cost;
 		}
 	}
 
+	/**
+	 * @return The best index that supplies the required order by
+	 * 		   taking fixed into account
+	 */
 	protected Best best_prefixed(List<List<String>> indexes, List<String> by,
-			Set<String> needs, boolean is_cursor, Best best) {
+			Set<String> needs, boolean is_cursor) {
+		Best best = new Best();
 		List<Fixed> fixed = source.fixed();
 		for (List<String> ix : indexes)
-			if (prefixed(ix, by, fixed)) {
+			if (prefixed(ix, by, fixed))
 				// NOTE: optimize1 to bypass tempindex
-				double cost = source.optimize1(ix, needs, noNeeds, is_cursor,
-						false);
-				if (cost < best.cost) {
-					best.cost = cost;
-					best.index = ix;
-				}
-			}
+				best.update(ix,
+						source.optimize1(ix, needs, noNeeds, is_cursor, false));
 		return best;
 	}
-	protected static boolean prefixed(List<String> index, List<String> order,
+
+	/** @return Whether an index supplies an order, given what's fixed */
+	static boolean prefixed(List<String> index, List<String> order,
 			List<Fixed> fixed) {
 		int i = 0, o = 0;
 		int in = index.size(), on = order.size();
@@ -150,6 +166,8 @@ public abstract class Query1 extends Query {
 			++o;
 		return o >= on;
 	}
+
+	/** @return Whether a field has a single fixed value */
 	private static boolean isfixed(List<Fixed> fixed, String field) {
 		for (Fixed f : fixed)
 			if (field.equals(f.field) && f.values.size() == 1)
