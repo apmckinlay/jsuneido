@@ -143,6 +143,8 @@ class Transactions {
 	}
 
 	private void limitUpdateDuration() {
+		if (exclusive)
+			return;
 		while (true) {
 			UpdateTransaction t = null;
 			synchronized (this) {
