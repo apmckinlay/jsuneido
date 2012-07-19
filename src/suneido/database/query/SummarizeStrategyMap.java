@@ -11,6 +11,10 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
 import suneido.intfc.database.Record;
 
+/**
+ * accumulate results in memory
+ * doesn't require any order, can only supply in order of "by"
+ */
 public class SummarizeStrategyMap extends SummarizeStrategy {
 	TreeMap<Record, List<Summary>> results =
 			new TreeMap<Record, List<Summary>>();

@@ -1,8 +1,14 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
 import static suneido.util.Util.displayListToParens;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.google.common.base.Objects;
 
@@ -14,6 +20,7 @@ public class Fixed {
 		this.field = field;
 		values = Collections.singletonList(value);
 	}
+
 	public Fixed(String field, List<Object> values) {
 		this.field = field;
 		this.values = values;
@@ -53,7 +60,7 @@ public class Fixed {
 		if (!(other instanceof Fixed))
 			return false;
 		Fixed f = (Fixed) other;
-		return Objects.equal(field, f.field) && 
+		return Objects.equal(field, f.field) &&
 				Objects.equal(values, f.values);
 	}
 

@@ -258,7 +258,7 @@ public class Util {
 		return builder.build();
 	}
 
-	/** returns a new list */
+	/** @return A new list */
 	public static <T> List<T> intersect(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>();
 		for (T s : x)
@@ -267,11 +267,12 @@ public class Util {
 		return result;
 	}
 
+	/** @return Whether or not the first list starts with the second */
 	public static <T> boolean startsWith(List<T> x, List<T> y) {
 		if (y.size() > x.size())
 			return false;
 		for (int i = 0; i < y.size(); ++i)
-			if (!x.get(i).equals(y.get(i)))
+			if (! x.get(i).equals(y.get(i)))
 				return false;
 		return true;
 	}
@@ -301,18 +302,18 @@ public class Util {
 		return x == null || x.isEmpty();
 	}
 
-	/** returns a new list */
+	/** @return A new list containing the two lists concatenated */
 	public static <T> List<T> concat(List<T> x, List<T> y) {
 		List<T> result = new ArrayList<T>(x);
 		result.addAll(y);
 		return result;
 	}
 
-	/** returns a new list */
+	/** @return A new list with all occurrences of a value removed */
 	public static <T> List<T> without(List<T> list, T x) {
 		List<T> result = new ArrayList<T>();
 		for (T y : list)
-			if (x == null ? y != null : !x.equals(y))
+			if (x == null ? y != null : ! x.equals(y))
 				result.add(y);
 		return result;
 	}

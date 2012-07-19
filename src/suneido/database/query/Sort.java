@@ -51,15 +51,11 @@ public class Sort extends Query1 {
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		verify(index.isEmpty());
-		// look for index containing requested index as prefix (using fixed)
-		Best best = new Best();
-		best.index = segs;
-		best.cost = source.optimize(segs, needs, firstneeds, is_cursor, false);
-		best_prefixed(source.indexes(), segs, needs, is_cursor, best);
-
-		if (!freeze)
-			return best.cost;
-		if (best.index.equals(segs))
+		Best best = best_prefixed(source.indexes(), segs, needs, is_cursor);
+		double cost = source.optimize(segs, needs, firstneeds, is_cursor, false);
+		if (! freeze)
+			return Math.min(cost, best.cost);
+		if (cost <= best.cost)
 			return source.optimize(segs, needs, firstneeds, is_cursor, true);
 		else
 			// NOTE: optimize1 to avoid tempindex
