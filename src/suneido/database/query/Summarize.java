@@ -107,15 +107,13 @@ public class Summarize extends Query1 {
 				is_cursor, freeze);
 	}
 
+	// NOTE: using optimize1 to bypass tempindex
 	private double optimizeNonCopy(List<String> index, boolean is_cursor,
 			boolean freeze, Set<String> srcneeds) {
-		List<List<String>> indexes = sourceIndexes(index);
+		Best best = best_prefixed(sourceIndexes(index), by, srcneeds, is_cursor);
 
-		Best best = best_prefixed(indexes, by, srcneeds, is_cursor);
-
-		ImmutableSet<String> firstneeds = ImmutableSet.copyOf(by);
 		double mapCost = startsWith(by, index)
-				? 1.5 * source.optimize1(noFields, srcneeds, firstneeds, is_cursor, false)
+				? 1.5 * source.optimize1(noFields, srcneeds, noNeeds, is_cursor, false)
 				: IMPOSSIBLE;
 
 		if (! freeze)
@@ -123,11 +121,11 @@ public class Summarize extends Query1 {
 
 		if (mapCost < best.cost) {
 			strategy = Strategy.MAP;
-			return source.optimize(noFields, srcneeds, firstneeds, is_cursor, freeze);
+			return source.optimize1(noFields, srcneeds, noNeeds, is_cursor, freeze);
 		} else {
 			strategy = Strategy.SEQUENTIAL;
 			via = best.index;
-			return source.optimize(best.index, srcneeds, noNeeds, is_cursor, freeze);
+			return source.optimize1(best.index, srcneeds, noNeeds, is_cursor, freeze);
 		}
 	}
 
