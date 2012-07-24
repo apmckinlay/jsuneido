@@ -11,6 +11,8 @@ import suneido.SuException;
 
 /**
  * Implements Suneido's argument handling.
+ * The function parameters are specified by {@link FunctionSpec}
+ * @see ArgsIterator
  */
 @ThreadSafe
 public class Args {
