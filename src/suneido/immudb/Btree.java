@@ -185,7 +185,7 @@ class Btree implements TranIndex {
 		return insertOrSplit(node, key);
 	}
 
-	private boolean sameKey(boolean unique, BtreeKey key, BtreeKey slot) {
+	private static boolean sameKey(boolean unique, BtreeKey key, BtreeKey slot) {
 		if (slot == null)
 			return false;
 		return unique ? slot.key.equals(key.key) : slot.equals(key);
