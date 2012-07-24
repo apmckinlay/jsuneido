@@ -4,10 +4,12 @@
 
 package suneido.language.builtin;
 
-import static suneido.util.Util.array;
+import static suneido.language.Args.Special.NAMED;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -21,8 +23,21 @@ import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * Thread per connection socket server.
+ * A user defined class derives from SocketServer.
+ * The server is started by "calling" the class.
+ * A "master" instance is created
+ * and any arguments are passed to the New of the class.
+ * The master instance is duplicated (shallow copy) for each connection
+ * and Run is called.<p>
+ * WARNING: Since it is thread per connection
+ * you should not use shared mutable data structures.
+ * @see ServerBySocket
+ */
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
 
@@ -36,16 +51,75 @@ public class SocketServer extends SuClass {
 		throw new SuException("cannot create instances of SocketServer");
 	}
 
-	public static class CallClass extends SuMethod2 {
-		{ params = new FunctionSpec(array("name", "port"), false, false); }
+	public static class CallClass extends SuMethod {
 		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			int port = Ops.toInt(b != Boolean.FALSE ? b : Ops.get(self, "Port"));
-			Thread thread = new Thread(new Listener((SuClass) self, port));
+		public Object eval(Object self, Object... args) {
+			args = convert(args);
+			int port = Ops.toInt(getPort(self, args));
+			Thread thread = new Thread(
+					new Listener(port, new Instance((SuClass) self, args)));
 			thread.setDaemon(true);
 			thread.start();
 			return null;
 		}
+	}
+
+	/** @return An args array with name and port as named args (if present) */
+	static Object[] convert(Object[] args) {
+		if (args.length == 0)
+			return args;
+		List<Object> list2 = Lists.newArrayList();
+		// need to use ArgsIterator to handle @args
+		ArgsIterator iter = new ArgsIterator(args);
+		Object x = iter.next();
+		if (! (x instanceof Map.Entry)) {
+			addNamed(list2, "name", x);
+			if (! iter.hasNext())
+				return list2.toArray();
+			x = iter.next();
+			if (! (x instanceof Map.Entry)) {
+				addNamed(list2, "port", x);
+				if (! iter.hasNext())
+					return list2.toArray();
+				x = iter.next();
+			}
+		}
+		List<Object> list = Lists.newArrayList();
+		while (true) {
+			if (! (x instanceof Map.Entry))
+				list.add(x);
+			else {
+				@SuppressWarnings("rawtypes")
+				Map.Entry e = (Map.Entry) x;
+				addNamed(list, e.getKey(), e.getValue());
+			}
+			if (! iter.hasNext())
+				break;
+			x = iter.next();
+		}
+		// put name and port at end, in case of other unnamed
+		list.addAll(list2);
+		return list.toArray();
+	}
+
+	private static void addNamed(List<Object> list, Object name, Object value ) {
+		list.add(NAMED);
+		list.add(name);
+		list.add(value);
+	}
+
+	private static Object getPort(Object self, Object[] args) {
+		ArgsIterator iter = new ArgsIterator(args);
+		while (iter.hasNext()) {
+			Object x = iter.next();
+			if (x instanceof Map.Entry) {
+				@SuppressWarnings("rawtypes")
+				Map.Entry e = (Map.Entry) x;
+				if (e.getKey().equals("port"))
+					return e.getValue();
+			}
+		}
+		return Ops.get(self, "Port");
 	}
 
 	private static class Listener implements Runnable {
@@ -56,17 +130,17 @@ public class SocketServer extends SuClass {
 					.build();
 		private static final ExecutorService executor =
 				Executors.newCachedThreadPool(threadFactory);
-		SuClass serverClass;
-		int port;
+		final Instance master;
+		final int port;
 
-		Listener(SuClass serverClass, int port) {
-			this.serverClass = serverClass;
+		Listener(int port, Instance master) {
 			this.port = port;
+			this.master = master;
 		}
 
 		@Override
 		public void run() {
-			ServerBySocket server =	
+			ServerBySocket server =
 					new ServerBySocket(executor, new ListenerHandlerFactory());
 			try {
 				server.run(port);
@@ -78,23 +152,35 @@ public class SocketServer extends SuClass {
 		private class ListenerHandlerFactory implements HandlerFactory {
 			@Override
 			public Runnable newHandler(Socket socket) throws IOException {
-				return new Instance(serverClass, socket);
+				return Instance.dup(master, socket);
 			}
 		}
 	}
 
 	static class Instance extends SuInstance implements Runnable {
-		final SocketClient socket;
+		SocketClient socket;
 
-		Instance(SuClass serverClass, Socket socket) throws IOException {
+		Instance(SuClass serverClass, Object[] args) {
 			super(serverClass);
+			super.lookup("New").eval(this, args);
+		}
+
+		Instance(Instance orig, Socket socket) throws IOException {
+			super(orig);
 			this.socket = new SocketClient(socket);
+		}
+
+		static Instance dup(Instance orig, Socket socket) {
+			try {
+				return new Instance(orig, socket);
+			} catch (IOException e) {
+				throw new SuException("SocketServer failed", e);
+			}
 		}
 
 		@Override
 		public void run() {
 			try {
-				super.lookup("New").eval0(this);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
 				Suneido.errlog("exception in SocketServer", e);
