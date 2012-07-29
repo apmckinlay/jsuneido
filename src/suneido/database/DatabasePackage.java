@@ -133,4 +133,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 		return new RecordStore();
 	}
 
+	@Override
+	public void setOption(String name, Object value) {
+	}
+
 }

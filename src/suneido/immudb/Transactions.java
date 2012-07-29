@@ -38,7 +38,7 @@ class Transactions {
 			new TreeSet<UpdateTransaction>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	private static final int MAX_OVERLAPPING = 200;
-	private static final int MAX_UPDATE_TRAN_DURATION_SEC = 10;
+	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private boolean exclusive = false;
 
 	long clock() {

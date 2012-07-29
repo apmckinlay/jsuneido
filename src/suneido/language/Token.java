@@ -1,6 +1,9 @@
 package suneido.language;
 
-import static suneido.language.TokenFeature.*;
+import static suneido.language.TokenFeature.ASSIGN;
+import static suneido.language.TokenFeature.INFIX;
+import static suneido.language.TokenFeature.SUMOP;
+import static suneido.language.TokenFeature.TERMOP;
 import static suneido.language.TokenResultType.*;
 
 import java.util.HashMap;

@@ -38,8 +38,6 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public Database testdb() {
 		return Database.create(new MemStorage(1024, 1024), new MemStorage(1024, 1024));
-		//return Database.create(new MemStorage(64 * 1024 * 1024, 1024),
-		//		new MemStorage(64 * 1024 * 1024, 1024));
 	}
 
 	@Override
@@ -137,6 +135,13 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	@Override
 	public RecordStore recordStore() {
 		return new RecordStore();
+	}
+
+	@Override
+	public void setOption(String name, Object value) {
+		if (name.equals("max_update_tran_sec")) {
+			Transactions.MAX_UPDATE_TRAN_DURATION_SEC = (Integer) value;
+		}
 	}
 
 }
