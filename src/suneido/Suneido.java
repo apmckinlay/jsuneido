@@ -37,6 +37,7 @@ public class Suneido {
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(args);
+		dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		try {
 			doAction();
 		} catch (Throwable e) {

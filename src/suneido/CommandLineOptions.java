@@ -16,6 +16,7 @@ public class CommandLineOptions {
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
 	public boolean snapshotIsolation = false;
+	public int max_update_tran_sec = 10;
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -88,6 +89,8 @@ public class CommandLineOptions {
 				timeoutMin = getIntArg();
 			else if (arg.equals("-si"))
 				snapshotIsolation = true;
+			else if (arg.equals("-ut"))
+				max_update_tran_sec = getIntArg();
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
