@@ -341,8 +341,7 @@ public class Lexer {
 	private char doesc() {
 		++si; // backslash
 		int dig1, dig2, dig3;
-		switch (charAt(si))
-			{
+		switch (charAt(si)) {
 		case 'n' :
 			return '\n';
 		case 't' :
@@ -350,11 +349,11 @@ public class Lexer {
 		case 'r' :
 			return '\r';
 		case 'x' :
-			if (-1 != (dig1 = Character.digit(charAt(si + 1), 16)) && -1 != (dig2 = Character.digit(charAt(si + 2), 16))) {
+			if (-1 != (dig1 = Character.digit(charAt(si + 1), 16)) &&
+					-1 != (dig2 = Character.digit(charAt(si + 2), 16))) {
 				si += 2;
 				return (char) (16 * dig1 + dig2);
-				}
-			else
+			} else
 				return source.charAt(--si);
 		case '\\' :
 		case '"' :
@@ -366,10 +365,9 @@ public class Lexer {
 					-1 != (dig3 = Character.digit(charAt(si + 2), 8))) {
 				si += 2;
 				return (char) (64 * dig1 + 8 * dig2 + dig3);
-				}
-			else
+			} else
 				return source.charAt(--si);
-			}
+		}
 	}
 
 	private char charAt(int i) {
