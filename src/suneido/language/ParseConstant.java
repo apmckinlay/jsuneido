@@ -58,6 +58,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_CURLY:
 		case L_BRACKET:
 			return object();
+		default:
 		}
 		if (anyName())
 			return matchReturn(generator.string(lexer.getValue()));
@@ -181,6 +182,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_CURLY:
 		case L_BRACKET:
 			return object();
+		default:
 		}
 		if (anyName())
 			return symbol();

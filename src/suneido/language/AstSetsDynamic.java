@@ -38,6 +38,7 @@ public class AstSetsDynamic {
 			case POSTINCDEC:
 				checkLvalue(ast.second());
 				break;
+			default:
 			}
 			return setsDynamic == false;
 		}

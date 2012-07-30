@@ -78,6 +78,7 @@ public class Parse<T, G> {
 		case R_BRACKET:
 			--statementNest;
 			break;
+		default:
 		}
 		token = lexer.next();
 		//System.out.println(token + " " + lexer.getValue());

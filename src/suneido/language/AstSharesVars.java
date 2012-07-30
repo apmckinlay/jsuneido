@@ -56,19 +56,16 @@ public class AstSharesVars {
 				blocks.push(new BlockInfo(ast));
 				break;
 			default:
-				break;
 			}
 			return true;
 		}
 
 		@Override
 		void bottomUp(AstNode ast) {
-			switch (ast.token) {
-			case BLOCK:
+			if (ast.token == Token.BLOCK) {
 				if (! needBlocks) {
 					BlockInfo b = blocks.top();
 					Set<String> nonParamVars = Sets.difference(b.vars, b.params);
-//System.out.println("non param vars " + nonParamVars);
 					if (! Sets.intersection(outerVars, nonParamVars).isEmpty())
 						hasSharedVars = needBlocks = true;
 				}
@@ -77,7 +74,6 @@ public class AstSharesVars {
 				blocks.pop();
 				if (blocks.isEmpty())
 					needBlocks = false;
-				break;
 			}
 		}
 
@@ -91,7 +87,6 @@ public class AstSharesVars {
 				assert ast.token == Token.BLOCK;
 				params = AstVariables.vars(ast.first());
 				vars = AstVariables.vars(ast);
-//System.out.println("block vars " + vars);
 			}
 		}
 	}
