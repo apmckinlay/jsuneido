@@ -10,7 +10,7 @@
 -dontoptimize
 -dontobfuscate
 
--keep public class suneido.**,!suneido.database.* {
+-keep public class suneido.** {
     public *;
 }
 
