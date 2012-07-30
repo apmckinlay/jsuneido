@@ -91,6 +91,7 @@ public class AstCompile {
 			if (left != null && right != null)
 				return evalBinary(ast.first().token, left, right);
 			break;
+		default:
 		}
 		return null;
 	}

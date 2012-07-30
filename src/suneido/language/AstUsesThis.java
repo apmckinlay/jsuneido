@@ -41,6 +41,7 @@ public class AstUsesThis {
 				if ("this".equals(ast.value) || "super".equals(ast.value))
 					usesThis = true;
 				break;
+			default:
 			}
 			return usesThis == false;
 		}

@@ -30,6 +30,7 @@ public class AstBlockIt {
 				if ("it".equals(ast.value))
 					usesIt = true;
 				break;
+			default:
 			}
 			return usesIt == false;
 		}
