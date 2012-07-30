@@ -58,8 +58,12 @@ public class FileUtils {
 	}
 
 	public static File tempfile() {
+		return tempfile(null);
+	}
+
+	public static File tempfile(String suffix) {
 		try {
-			File tmpfile = File.createTempFile("sudb", null, new File("."));
+			File tmpfile = File.createTempFile("sutmp", suffix, new File("."));
 			tmpfile.deleteOnExit();
 			return tmpfile;
 		} catch (IOException e) {
