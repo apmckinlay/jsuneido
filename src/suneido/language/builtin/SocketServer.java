@@ -35,7 +35,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * The master instance is duplicated (shallow copy) for each connection
  * and Run is called.<p>
  * WARNING: Since it is thread per connection
- * you should not use shared mutable data structures.
+ * you should not use shared mutable data structures.<p>
+ * Note: the name and exit parameters are not used on jSuneido.
  * @see ServerBySocket
  */
 public class SocketServer extends SuClass {
@@ -64,7 +65,7 @@ public class SocketServer extends SuClass {
 		}
 	}
 
-	/** @return An args array with name and port as named args (if present) */
+	/** @return An args array with name, port, and exit as named args (if present) */
 	static Object[] convert(Object[] args) {
 		if (args.length == 0)
 			return args;
@@ -82,6 +83,12 @@ public class SocketServer extends SuClass {
 				if (! iter.hasNext())
 					return list2.toArray();
 				x = iter.next();
+				if (! (x instanceof Map.Entry)) {
+					addNamed(list2, "exit", x);
+					if (! iter.hasNext())
+						return list2.toArray();
+					x = iter.next();
+				}
 			}
 		}
 		List<Object> list = Lists.newArrayList();
