@@ -76,6 +76,7 @@ public class TestSuneidoClient {
 					inputstream.readFully(buf, 0, n);
 				}
 			}
+			socket.close();
 System.out.println("done " + i);
 		}
 	}
