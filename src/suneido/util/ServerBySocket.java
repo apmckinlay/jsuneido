@@ -31,6 +31,7 @@ public class ServerBySocket {
 	}
 
 	public void run(int port) throws IOException {
+		@SuppressWarnings("resource")
 		ServerSocket serverSocket = new ServerSocket(port);
 		serverSocket.setReuseAddress(true);
 		while (true) {

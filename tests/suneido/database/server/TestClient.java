@@ -57,7 +57,8 @@ public class TestClient {
 				expect(inputstream, '\r', "\\r");
 				expect(inputstream, '\n', "\\n");
 			}
-		System.out.println("done " + i);
+			socket.close();
+			System.out.println("done " + i);
 		}
 
 		private static void expect(DataInputStream inputstream,
