@@ -15,125 +15,123 @@ import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * Stores global names and values.
  * Uses the class itself as a singleton by making everything static.
  */
 public class Globals {
+	private static final ImmutableMap<String, Object> builtins;
 	private static final Map<String, Object> globals =
 			new ConcurrentHashMap<String, Object>(1000);
-	private static final Map<String, Object> builtins =
-			new ConcurrentHashMap<String, Object>(100);
 	private static final AtomicInteger overload = new AtomicInteger();
 	static {
-		builtins.put("True", Boolean.TRUE);
-		builtins.put("False", Boolean.FALSE);
-		builtins.put("Suneido", new SuContainer());
-
-		builtins.put("Add", new Add());
-		builtins.put("Adler32", Adler32.clazz);
-		builtins.put("And", new And());
-		builtins.put("AssertionError", new AssertionError());
-		builtins.put("Boolean?", new BooleanQ());
-		builtins.put("Built", new Built());
-		builtins.put("Cat", new Cat());
-		builtins.put("Class?", new ClassQ());
-		builtins.put("Cmdline", new Cmdline());
-		builtins.put("Construct", new Construct());
-		builtins.put("CopyFile", new CopyFile());
-		builtins.put("CreateDirectory", new CreateDirectory());
-		builtins.put("Cursor", Cursor.clazz);
-		builtins.put("Database", Database.singleton);
-		builtins.put("Date", DateClass.singleton);
-		builtins.put("Date?", new DateQ());
-		builtins.put("Delayed", new Delayed());
-		builtins.put("DeleteDir", new DeleteDir());
-		builtins.put("DeleteFile", new DeleteFile());
-		builtins.put("Dir", new Dir());
-		builtins.put("DirExists?", new DirExistsQ());
-		builtins.put("Display", new Display());
-		builtins.put("Div", new Div());
-		builtins.put("Dump", new Dump());
-		builtins.put("DoWithoutTriggers", new DoWithoutTriggers());
-		builtins.put("Eq", new Eq());
-		builtins.put("ExePath", new ExePath());
-		builtins.put("Exit", new Exit());
-		builtins.put("File", SuFile.clazz);
-		builtins.put("FileExists?", new FileExistsQ());
-		builtins.put("Frame", new Frame());
-		builtins.put("Function?", new FunctionQ());
-		builtins.put("GetComputerName", new GetComputerName());
-		builtins.put("GetCurrentDirectory", new GetCurrentDirectory());
-		builtins.put("GetDiskFreeSpace", new GetDiskFreeSpace());
-		builtins.put("Getenv", new Getenv());
-		builtins.put("GetMacAddress", new GetMacAddress());
-		builtins.put("GetTempFileName", new GetTempFileName());
-		builtins.put("GetTempPath", new GetTempPath());
-		builtins.put("Gt", new Gt());
-		builtins.put("Gte", new Gte());
-		builtins.put("Libraries", new Libraries());
-		builtins.put("Lt", new Lt());
-		builtins.put("Lte", new Lte());
-		builtins.put("Lucene", lucene());
-		builtins.put("Match", new Match());
-		builtins.put("Md5", new Md5());
-		builtins.put("MemoryArena", new MemoryArena());
-		builtins.put("Mod", new Mod());
-		builtins.put("MoveFile", new MoveFile());
-		builtins.put("Mul", new Mul());
-		builtins.put("Neg", new Neg());
-		builtins.put("Neq", new Neq());
-		builtins.put("NoMatch", new NoMatch());
-		builtins.put("Not", new Not());
-		builtins.put("NullPointerException", new NullPointerException());
-		builtins.put("Number?", new NumberQ());
-		builtins.put("Object", new ObjectClass());
-		builtins.put("Object?", new ObjectQ());
-		builtins.put("OperatingSystem", new OperatingSystem());
-		builtins.put("Or", new Or());
-		builtins.put("Pack", new suneido.language.builtin.Pack());
-		builtins.put("Print", new Print());
-		builtins.put("Query1", new Query1());
-		builtins.put("QueryFirst", new QueryFirst());
-		builtins.put("QueryLast", new QueryLast());
-		builtins.put("Random", new Random());
-		builtins.put("Record", new RecordClass());
-		builtins.put("Record?", new RecordQ());
-		builtins.put("RunPiped", RunPiped.clazz);
-		builtins.put("Scanner", Scanner.clazz);
-		builtins.put("Seq", new Seq());
-		builtins.put("ServerEval", new ServerEval());
-		builtins.put("ServerIP", new ServerIP());
-		builtins.put("ServerPort", new ServerPort());
-		builtins.put("Server?", new ServerQ());
-		builtins.put("Sleep", new Sleep());
-		builtins.put("SetFileWritable", new SetFileWritable());
-		builtins.put("SocketClient", SocketClient.clazz);
-		builtins.put("SocketServer", SocketServer.singleton);
-		builtins.put("String?", new StringQ());
-		builtins.put("Sub", new Sub());
-		builtins.put("Synchronized", new Synchronized());
-		builtins.put("System", new SystemFunction());
-		builtins.put("SystemMemory", new SystemMemory());
-		builtins.put("Thread", new ThreadFunction());
-		builtins.put("Timestamp", new Timestamp());
-		builtins.put("Trace", new SuTrace());
-		builtins.put("Transaction", SuTransaction.clazz);
-		builtins.put("Type", new Type());
-		builtins.put("UuidString", new UuidString());
-		builtins.put("Unload", new Unload());
-		builtins.put("Unpack", new Unpack());
-		builtins.put("Unuse", new Unuse());
-		builtins.put("UnixTime", new UnixTime());
-		builtins.put("Use", new Use());
+		builtins = new ImmutableMap.Builder<String,Object>()
+			.put("True", Boolean.TRUE)
+			.put("False", Boolean.FALSE)
+			.put("Suneido", new SuContainer())
+			.put("Add", new Add())
+			.put("Adler32", Adler32.clazz)
+			.put("And", new And())
+			.put("AssertionError", new AssertionError())
+			.put("Boolean?", new BooleanQ())
+			.put("Built", new Built())
+			.put("Cat", new Cat())
+			.put("Class?", new ClassQ())
+			.put("Cmdline", new Cmdline())
+			.put("Construct", new Construct())
+			.put("CopyFile", new CopyFile())
+			.put("CreateDirectory", new CreateDirectory())
+			.put("Cursor", Cursor.clazz)
+			.put("Database", Database.singleton)
+			.put("Date", DateClass.singleton)
+			.put("Date?", new DateQ())
+			.put("Delayed", new Delayed())
+			.put("DeleteDir", new DeleteDir())
+			.put("DeleteFile", new DeleteFile())
+			.put("Dir", new Dir())
+			.put("DirExists?", new DirExistsQ())
+			.put("Display", new Display())
+			.put("Div", new Div())
+			.put("Dump", new Dump())
+			.put("DoWithoutTriggers", new DoWithoutTriggers())
+			.put("Eq", new Eq())
+			.put("ExePath", new ExePath())
+			.put("Exit", new Exit())
+			.put("File", SuFile.clazz)
+			.put("FileExists?", new FileExistsQ())
+			.put("Frame", new Frame())
+			.put("Function?", new FunctionQ())
+			.put("GetComputerName", new GetComputerName())
+			.put("GetCurrentDirectory", new GetCurrentDirectory())
+			.put("GetDiskFreeSpace", new GetDiskFreeSpace())
+			.put("Getenv", new Getenv())
+			.put("GetMacAddress", new GetMacAddress())
+			.put("GetTempFileName", new GetTempFileName())
+			.put("GetTempPath", new GetTempPath())
+			.put("Gt", new Gt())
+			.put("Gte", new Gte())
+			.put("Libraries", new Libraries())
+			.put("Lt", new Lt())
+			.put("Lte", new Lte())
+			.put("Lucene", lucene())
+			.put("Match", new Match())
+			.put("Md5", new Md5())
+			.put("MemoryArena", new MemoryArena())
+			.put("Mod", new Mod())
+			.put("MoveFile", new MoveFile())
+			.put("Mul", new Mul())
+			.put("Neg", new Neg())
+			.put("Neq", new Neq())
+			.put("NoMatch", new NoMatch())
+			.put("Not", new Not())
+			.put("NullPointerException", new NullPointerException())
+			.put("Number?", new NumberQ())
+			.put("Object", new ObjectClass())
+			.put("Object?", new ObjectQ())
+			.put("OperatingSystem", new OperatingSystem())
+			.put("Or", new Or())
+			.put("Pack", new suneido.language.builtin.Pack())
+			.put("Print", new Print())
+			.put("Query1", new Query1())
+			.put("QueryFirst", new QueryFirst())
+			.put("QueryLast", new QueryLast())
+			.put("Random", new Random())
+			.put("Record", new RecordClass())
+			.put("Record?", new RecordQ())
+			.put("RunPiped", RunPiped.clazz)
+			.put("Scanner", Scanner.clazz)
+			.put("Seq", new Seq())
+			.put("ServerEval", new ServerEval())
+			.put("ServerIP", new ServerIP())
+			.put("ServerPort", new ServerPort())
+			.put("Server?", new ServerQ())
+			.put("Sleep", new Sleep())
+			.put("SetFileWritable", new SetFileWritable())
+			.put("SocketClient", SocketClient.clazz)
+			.put("SocketServer", SocketServer.singleton)
+			.put("String?", new StringQ())
+			.put("Sub", new Sub())
+			.put("Synchronized", new Synchronized())
+			.put("System", new SystemFunction())
+			.put("SystemMemory", new SystemMemory())
+			.put("Thread", new ThreadFunction())
+			.put("Timestamp", new Timestamp())
+			.put("Trace", new SuTrace())
+			.put("Transaction", SuTransaction.clazz)
+			.put("Type", new Type())
+			.put("UuidString", new UuidString())
+			.put("Unload", new Unload())
+			.put("Unpack", new Unpack())
+			.put("Unuse", new Unuse())
+			.put("UnixTime", new UnixTime())
+			.put("Use", new Use())
+			.build();
 	}
 
 	private Globals() { // no instances
 		throw SuException.unreachable();
-	}
-
-	public static void builtin(String name, Object value) {
-		builtins.put(name, value);
 	}
 
 	public static int size() {
@@ -161,7 +159,7 @@ public class Globals {
 		x = builtins.get(name);
 		if (x == null)
 			x = Library.load(name);
-		globals.put(name, x == null ? nonExistent : x);
+		globals.put(name, x == null ? nonExistent : x); // cache
 		return x;
 	}
 
