@@ -201,7 +201,7 @@ public class SuClass extends SuValue {
 
 	private SuClass base() {
 		Object base = Globals.get(baseGlobal);
-		if (!(base instanceof SuClass))
+		if (! (base instanceof SuClass))
 			throw new SuException("class base must be a Suneido value");
 		return (SuClass) base;
 	}
@@ -210,9 +210,7 @@ public class SuClass extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			SuClass c = (SuClass) self;
-			if (c.baseGlobal == null)
-				return Boolean.FALSE; // TODO Base should return Object class
-			return Globals.get(c.baseGlobal);
+			return (c.baseGlobal == null) ? Boolean.FALSE : Globals.get(c.baseGlobal);
 		}
 	}
 
