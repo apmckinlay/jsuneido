@@ -845,6 +845,7 @@ public class AstCompile {
 			callArguments(cg, args);
 			cg.invokeDirect(fn.value);
 		} else if (isGlobal(fn)) {
+			cg.pushThis();
 			cg.constant(fn.value);
 			if (args.token != Token.AT &&
 					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
