@@ -57,23 +57,33 @@ public class Globals {
 		return (x == null) ? nonExistent : x;
 	}
 
-	/** used by Library load and tests */
+	/** used by Library load */
 	public static void put(String name, Object x) {
 		globals.put(name, x);
 	}
 
+	public static void setForTest(String name, Object x) {
+ContextLibraries.context.clear(name); //TODO
+		globals.put(name, x);
+	}
+
 	public static void unload(String name) {
+ContextLibraries.context.clear(name); //TODO
 		globals.invalidate(name);
 	}
 
 	/** for Use/Unuse */
 	public static void clear() {
+ContextLibraries.context.clearAll(); //TODO
 		globals.invalidateAll();
 	}
 
 	public synchronized static String overload(String base) {
+		assert base.startsWith("_");
 		String name = base.substring(1); // remove leading underscore
+ContextLibraries.context.clear(name); //TODO
 		Object x = get(name);
+		assert x != null;
 		int n = overload.getAndIncrement();
 		String nameForPreviousValue = n + base;
 		globals.put(nameForPreviousValue, x);

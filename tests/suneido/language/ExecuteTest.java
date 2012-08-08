@@ -298,7 +298,7 @@ public class ExecuteTest {
 	}
 
 	private static void def(String name, String source) {
-		Globals.put(name, Compiler.compile(name, source));
+		Globals.setForTest(name, Compiler.compile(name, source));
 	}
 
 	public static void test(String expr, String expected) {
