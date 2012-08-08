@@ -8,6 +8,8 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.ArrayList;
 
+import suneido.SuException;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -35,9 +37,11 @@ abstract class Context {
 		int slot = nameToSlot.get(name);
 		if (slot != 0)
 			return slot;
+		slot = names.size();
+		nameToSlot.put(name, slot);
 		names.add(name);
 		values.add(null);
-		return names.size() - 1;
+		return slot;
 	}
 
 	/** Get the value for a slot. If no cached value, then do lookup */
@@ -46,16 +50,23 @@ abstract class Context {
 		if (value != null)
 			return value;
 		value = fetch(nameForSlot(slot));
+		if (value == null)
+			throw new SuException("can't find " + nameForSlot(slot));
 		values.set(slot, value);
 		return value;
 	}
 
-	private String nameForSlot(int slot) {
+	String nameForSlot(int slot) {
 		return names.get(slot);
 	}
 
 	/** Lookup the value for a name in this context */
 	abstract protected Object fetch(String name);
+
+	/** Remove the cached value for a slot. */
+	void clear(String name) {
+		clear(slotForName(name));
+	}
 
 	/** Remove the cached value for a slot. */
 	void clear(int slot) {

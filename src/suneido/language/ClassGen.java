@@ -330,13 +330,11 @@ public class ClassGen {
 		return name.replace("?", "_Q_").replace("!", "_X_");
 	}
 
-	void globalLoad(String name) {
+	void globalLoad(int slot) {
 		mv.visitVarInsn(ALOAD, THIS);
-		if (name.startsWith("_") && Character.isUpperCase(name.charAt(1)))
-			name = Globals.overload(name);
-		mv.visitLdcInsn(name);
-		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "contextGet",
-				"(Ljava/lang/String;)Ljava/lang/Object;");
+		iconst(slot);
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable",
+				"contextGet", "(I)Ljava/lang/Object;");
 	}
 
 	void memberLoad() {
@@ -417,11 +415,11 @@ public class ClassGen {
 
 	void invokeGlobal() {
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke",
-				"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(I[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 	void invokeGlobal(int nargs) {
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke" + nargs,
-				"(Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
+				"(I" + directArgs[nargs] + ")Ljava/lang/Object;");
 	}
 
 	void invokeMethod() {

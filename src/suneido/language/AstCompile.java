@@ -29,6 +29,7 @@ public class AstCompile {
 	private String curName = null;
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
+	private final Context context = ContextLibraries.context; //TODO
 
 	public AstCompile(String globalName) {
 		this(globalName, null);
@@ -753,16 +754,22 @@ public class AstCompile {
 		return resultType;
 	}
 
-	private static void identifier(ClassGen cg, AstNode ast, ExprOption option) {
+	private void identifier(ClassGen cg, AstNode ast, ExprOption option) {
 		String name = ast.value;
-		if (isGlobal(name))
-			cg.globalLoad(name);
+		if (isOverload(name))
+			cg.constant(context.get(context.slotForName(name.substring(1))));
+		else if (isGlobal(name))
+			cg.globalLoad(context.slotForName(name));
 		else if (isDynamic(name))
 			cg.dynamicLoad(name);
 		else
 			cg.localLoad(name);
 		if (option == ExprOption.POP)
 			addNullCheck(cg, ast);
+	}
+
+	static boolean isOverload(String name) {
+		return name.startsWith("_") && isGlobal(name.substring(1));
 	}
 
 	static boolean isDynamic(String name) {
@@ -846,7 +853,7 @@ public class AstCompile {
 			cg.invokeDirect(fn.value);
 		} else if (isGlobal(fn)) {
 			cg.pushThis();
-			cg.constant(fn.value);
+			cg.iconst(context.slotForName(fn.value));
 			if (args.token != Token.AT &&
 					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);

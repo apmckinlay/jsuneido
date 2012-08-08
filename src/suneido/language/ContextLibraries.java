@@ -8,7 +8,7 @@ package suneido.language;
  * Old style context with a stack of layered libraries
  */
 class ContextLibraries extends Context {
-	static final Context context = new ContextLibraries();
+	static final Context context = new ContextLibraries(); // singleton
 
 	@Override
 	protected Object fetch(String name) {

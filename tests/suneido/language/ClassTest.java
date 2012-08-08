@@ -275,6 +275,6 @@ public class ClassTest {
 	}
 
 	void define(String name, String definition) {
-		Globals.put(name, compile(name, definition));
+		Globals.setForTest(name, compile(name, definition));
 	}
 }

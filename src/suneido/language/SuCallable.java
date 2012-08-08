@@ -11,7 +11,7 @@ public abstract class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected boolean isBlock = false;
-//	protected Context context = ContextLibraries.context;
+	protected Context context = ContextLibraries.context;
 
 	@Override
 	public SuValue lookup(String method) {
@@ -60,30 +60,28 @@ public abstract class SuCallable extends SuValue {
 		return Args.massage(params, args);
 	}
 
-	//TODO change to use context
-
-	public final Object contextGet(String name) {
-		return Globals.get(name);
+	public final Object contextGet(int slot) {
+		return context.get(slot);
 	}
 
-	public final Object invoke(String name, Object... args) {
-		return ((SuValue) Globals.get(name)).call(args);
+	public final Object invoke(int slot, Object... args) {
+		return ((SuValue) contextGet(slot)).call(args);
 	}
-	public final Object invoke0(String name) {
-		return ((SuValue) Globals.get(name)).call0();
+	public final Object invoke0(int slot) {
+		return ((SuValue) contextGet(slot)).call0();
 	}
-	public final Object invoke1(String name, Object a) {
-		return ((SuValue) Globals.get(name)).call1(a);
+	public final Object invoke1(int slot, Object a) {
+		return ((SuValue) contextGet(slot)).call1(a);
 	}
-	public final Object invoke2(String name, Object a, Object b) {
-		return ((SuValue) Globals.get(name)).call2(a, b);
+	public final Object invoke2(int slot, Object a, Object b) {
+		return ((SuValue) contextGet(slot)).call2(a, b);
 	}
-	public final Object invoke3(String name, Object a, Object b, Object c) {
-		return ((SuValue) Globals.get(name)).call3(a, b, c);
+	public final Object invoke3(int slot, Object a, Object b, Object c) {
+		return ((SuValue) contextGet(slot)).call3(a, b, c);
 	}
-	public final Object invoke4(String name, Object a, Object b,
+	public final Object invoke4(int slot, Object a, Object b,
 			Object c, Object d) {
-		return ((SuValue) Globals.get(name)).call4(a, b, c, d);
+		return ((SuValue) contextGet(slot)).call4(a, b, c, d);
 	}
 
 	//--------------------------------------------------------------------------

@@ -8,15 +8,15 @@ public class LibrariesTest {
 
 	@Test
 	public void overload_function() {
-		Globals.put("X", Compiler.compile("X", "function () { 123 }"));
-		Object f = Compiler.compile("X", "function () { _X() }");
+		Globals.setForTest("F", Compiler.compile("F", "function () { 123 }"));
+		Object f = Compiler.compile("F", "function () { _F() }");
 		Object x = Ops.call(f);
 		assertEquals(123, x);
 	}
 
 	@Test
 	public void overload_class() {
-		Globals.put("X", Compiler.compile("X", "class { F() { 123 } }"));
+		Globals.setForTest("X", Compiler.compile("X", "class { F() { 123 } }"));
 		Object c = Compiler.compile("X", "class : _X { }");
 		Object x = Ops.invoke(c, "F");
 		assertEquals(123, x);
