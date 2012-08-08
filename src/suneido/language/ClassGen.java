@@ -48,10 +48,10 @@ public class ClassGen {
 	private int nextJavaLocal;
 	private TryCatch blockReturnCatcher = null;
 	private TryCatch dynamicFinally = null;
-	public final boolean useArgsArray;
-	public final boolean isBlock;
-	public final boolean closure;
-	public final int parentId;
+	final boolean useArgsArray;
+	final boolean isBlock;
+	final boolean closure;
+	final int parentId;
 	private final List<String> dynParams = Lists.newArrayList();
 
 	ClassGen(String base, String name, String method, List<String> locals,
@@ -122,16 +122,13 @@ public class ClassGen {
 	private void massage() {
 		assert ARGS >= 0;
 		mv.visitVarInsn(ALOAD, THIS);
-		mv.visitFieldInsn(GETFIELD, "suneido/language/" + name,
-				"params", "Lsuneido/language/FunctionSpec;");
 		mv.visitVarInsn(ALOAD, ARGS);
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Args",
-				"massage",
-				"(Lsuneido/language/FunctionSpec;[Ljava/lang/Object;)[Ljava/lang/Object;");
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable",
+				"massage", "([Ljava/lang/Object;)[Ljava/lang/Object;");
 		mv.visitVarInsn(ASTORE, ARGS);
 	}
 
-	public void param(String param, Object defaultValue, String privatePrefix) {
+	void param(String param, Object defaultValue, String privatePrefix) {
 		atParam = param.startsWith("@");
 		boolean dotParam = param.startsWith(".");
 		boolean dynParam = param.startsWith("_") || param.startsWith("._");
@@ -162,7 +159,7 @@ public class ClassGen {
 			dynParams.add(name);
 	}
 
-	public void constant(Object value) {
+	void constant(Object value) {
 		if (value == Boolean.TRUE || value == Boolean.FALSE)
 			mv.visitFieldInsn(GETSTATIC, "java/lang/Boolean",
 					value == Boolean.TRUE ? "TRUE" : "FALSE", "Ljava/lang/Boolean;");
@@ -178,7 +175,11 @@ public class ClassGen {
 		}
 	}
 
-	public int addConstant(Object value) {
+	/**
+	 * Create a const<i> field, make it static final so it will be optimized.
+	 * @return i
+	 */
+	int addConstant(Object value) {
 		int i = constants.size();
 		FieldVisitor fv = cv.visitField(ACC_PRIVATE + ACC_FINAL + ACC_STATIC,
 				"const" + i, "Ljava/lang/Object;", null, null);
@@ -188,16 +189,15 @@ public class ClassGen {
 	}
 
 	private void loadConstant(int i) {
-		mv.visitFieldInsn(GETSTATIC, className,
-				"const" + i, "Ljava/lang/Object;");
+		mv.visitFieldInsn(GETSTATIC, className, "const" + i, "Ljava/lang/Object;");
 	}
 
-	public int iconst(int i) {
+	int iconst(int i) {
 		iconst(mv, i);
 		return i;
 	}
 
-	public void iconst(MethodVisitor mv, int i) {
+	void iconst(MethodVisitor mv, int i) {
 		if (-1 <= i && i <= 5)
 			mv.visitInsn(ICONST_0 + i);
 		else if (Byte.MIN_VALUE <= i && i <= Byte.MAX_VALUE)
@@ -208,7 +208,7 @@ public class ClassGen {
 			mv.visitLdcInsn(i);
 	}
 
-	public void bool(boolean x, boolean intBool) {
+	void bool(boolean x, boolean intBool) {
 		if (intBool)
 			mv.visitInsn(ICONST_0 + (x ? 1 : 0));
 		else
@@ -216,18 +216,18 @@ public class ClassGen {
 					x  ? "TRUE" : "FALSE", "Ljava/lang/Boolean;");
 	}
 
-	public void pop() {
+	void pop() {
 		mv.visitInsn(POP);
 	}
 
-	public void returnValue() {
+	void returnValue() {
 		if (isBlock)
 			blockReturn();
 		else
 			areturn();
 	}
 
-	public void areturn() {
+	void areturn() {
 		if (dynamicFinally != null)
 			dynamicPop();
 		mv.visitInsn(ARETURN);
@@ -240,37 +240,37 @@ public class ClassGen {
 		mv.visitInsn(ATHROW);
 	}
 
-	public void aconst_null() {
+	void aconst_null() {
 		mv.visitInsn(ACONST_NULL);
 	}
 
-	public void unaryOp(String method, String type) {
+	void unaryOp(String method, String type) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", method,
 				"(Ljava/lang/Object;)Ljava/lang/" + type + ";");
 	}
-	public void unaryOp(Token op, boolean intBool) {
+	void unaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
 				"(Ljava/lang/Object;)" + op.resultType.type);
 	}
-	public void binaryOp(Token op, boolean intBool) {
+	void binaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
 				"(Ljava/lang/Object;Ljava/lang/Object;)" + op.resultType.type);
 	}
 
-	public void rangeTo() {
+	void rangeTo() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeTo",
 				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
 	}
-	public void rangeLen() {
+	void rangeLen() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeLen",
 				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
 	}
 
-	public void localLoad(String name) {
+	void localLoad(String name) {
 		if (name.equals("this"))
 			mv.visitVarInsn(ALOAD, SELF);
 		else {
@@ -279,12 +279,12 @@ public class ClassGen {
 		}
 	}
 
-	public static final int ARGS_REF = -1;
-	public static final int MEMBER_REF = -2;
-	public static final int DYNAMIC_REF = -3;
+	static final int ARGS_REF = -1;
+	static final int MEMBER_REF = -2;
+	static final int DYNAMIC_REF = -3;
 	// >= 0 means java local index
 
-	public int localRef(String name) {
+	int localRef(String name) {
 		if (! useArgsArray)
 			return javaLocal(name);
 		assert ARGS >= 0;
@@ -293,21 +293,21 @@ public class ClassGen {
 		return ARGS_REF;
 	}
 
-	public void localRefLoad(int ref) {
+	void localRefLoad(int ref) {
 		if (ref == ARGS_REF)
 			mv.visitInsn(AALOAD);
 		else
 			mv.visitVarInsn(ALOAD, ref);
 	}
 
-	public void localRefStore(int ref) {
+	void localRefStore(int ref) {
 		if (ref == ARGS_REF)
 			mv.visitInsn(AASTORE);
 		else
 			mv.visitVarInsn(ASTORE, ref);
 	}
 
-	public int local(String name) {
+	int local(String name) {
 		// use lastIndexOf so that block parameters override locals
 		int i = locals.lastIndexOf(name);
 		if (i == -1) {
@@ -317,7 +317,7 @@ public class ClassGen {
 		return i;
 	}
 
-	public int javaLocal(String name) {
+	int javaLocal(String name) {
 		// don't javify here because FunctionSpec needs original names
 		Integer i = javaLocals.get(name);
 		if (i != null)
@@ -326,28 +326,25 @@ public class ClassGen {
 		return nextJavaLocal++;
 	}
 
-	public static String javify(String name) {
+	static String javify(String name) {
 		return name.replace("?", "_Q_").replace("!", "_X_");
 	}
 
-	public void globalLoad(String name) {
+	void globalLoad(String name) {
+		mv.visitVarInsn(ALOAD, THIS);
 		if (name.startsWith("_") && Character.isUpperCase(name.charAt(1)))
 			name = Globals.overload(name);
 		mv.visitLdcInsn(name);
-		globalLoad();
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "contextGet",
+				"(Ljava/lang/String;)Ljava/lang/Object;");
 	}
 
-	public void globalLoad() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals",
-			"get", "(Ljava/lang/String;)Ljava/lang/Object;");
-	}
-
-	public void memberLoad() {
+	void memberLoad() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "get",
 				"(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void memberStore() {
+	void memberStore() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "put",
 				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
 	}
@@ -373,11 +370,11 @@ public class ClassGen {
 				"put", "(Ljava/lang/String;Ljava/lang/Object;)V");
 	}
 
-	public void dup() {
+	void dup() {
 		mv.visitInsn(DUP);
 	}
 
-	public void dupLvalue(int ref) {
+	void dupLvalue(int ref) {
 		if (ref == DYNAMIC_REF)
 			mv.visitInsn(DUP);
 		else if (ref < 0)
@@ -386,7 +383,7 @@ public class ClassGen {
 		// 		nothing to dup
 	}
 
-	public void dupUnderLvalue(int ref) {
+	void dupUnderLvalue(int ref) {
 		if (ref >= 0) // lvalue is java local
 			mv.visitInsn(DUP);
 		else if (ref == DYNAMIC_REF)
@@ -395,11 +392,11 @@ public class ClassGen {
 			mv.visitInsn(DUP_X2);
 	}
 
-	public boolean neverNull(String name) {
+	boolean neverNull(String name) {
 		return name.equals("this") || local(name) < nParams;
 	}
 
-	public void addNullCheck(String error) {
+	void addNullCheck(String error) {
 		Label label = new Label();
 		mv.visitInsn(DUP);
 		mv.visitJumpInsn(IFNONNULL, label);
@@ -408,31 +405,31 @@ public class ClassGen {
 		mv.visitLabel(label);
 	}
 
-	public void callFunction() {
+	void callFunction() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call",
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void callFunction(int nargs) {
+	void callFunction(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call" + nargs,
 				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
 	}
 
-	public void invokeGlobal() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "invoke",
+	void invokeGlobal() {
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke",
 				"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
-	public void invokeGlobal(int nargs) {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Globals", "invoke" + nargs,
+	void invokeGlobal(int nargs) {
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke" + nargs,
 				"(Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
 	}
 
-	public void invokeMethod() {
+	void invokeMethod() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
 			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void invokeMethod(int nargs) {
+	void invokeMethod(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke" + nargs,
 			"(Ljava/lang/Object;Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
 	}
@@ -444,32 +441,32 @@ public class ClassGen {
 			directArgs[n] = Strings.repeat("Ljava/lang/Object;", n);
 	}
 
-	public void anewarray(int size) {
+	void anewarray(int size) {
 		iconst(size);
 		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 	}
 
-	public void aastore() {
+	void aastore() {
 		mv.visitInsn(AASTORE);
 	}
 
-	public void invokeDirect(String name) {
+	void invokeDirect(String name) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/" + name + "Class",
 				"create", "([Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void superCallTarget(String method) {
+	void superCallTarget(String method) {
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, SELF);
 		mv.visitLdcInsn(method);
 	}
 
-	public void invokeSuper() {
-		mv.visitMethodInsn(INVOKEVIRTUAL, "suneido/language/SuCallable", "superInvoke",
+	void invokeSuper() {
+		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "superInvoke",
 				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
 	}
 
-	public void superInit() {
+	void superInit() {
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, SELF);
 		mv.visitLdcInsn("New");
@@ -478,23 +475,27 @@ public class ClassGen {
 		mv.visitInsn(POP);
 	}
 
-	public void toMethodString() {
+	void pushThis() {
+		mv.visitVarInsn(ALOAD, THIS);
+	}
+
+	void toMethodString() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
 	}
 
-	public void specialArg(String which) {
+	void specialArg(String which) {
 		mv.visitFieldInsn(GETSTATIC, "suneido/language/Args$Special",
 				which, "Lsuneido/language/Args$Special;");
 	}
 
-	public void thrower() {
+	void thrower() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "exception",
 				"(Ljava/lang/Object;)Ljava/lang/Throwable;");
 		mv.visitInsn(ATHROW);
 	}
 
-	public void blockThrow(String which) {
+	void blockThrow(String which) {
 		mv.visitFieldInsn(GETSTATIC, "suneido/language/Ops",
 				which, "Lsuneido/SuException;");
 		mv.visitInsn(ATHROW);
@@ -507,7 +508,7 @@ public class ClassGen {
 		Label label3 = new Label();
 	}
 
-	public Object tryCatch(String exception) {
+	Object tryCatch(String exception) {
 		return startTryCatch(exception);
 	}
 
@@ -518,7 +519,7 @@ public class ClassGen {
 		return tc;
 	}
 
-	public void startCatch(String var, String pattern, Object trycatch) {
+	void startCatch(String var, String pattern, Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
 		mv.visitLabel(tc.label1);
 		mv.visitJumpInsn(GOTO, tc.label3);
@@ -538,79 +539,79 @@ public class ClassGen {
 			saveTopInVar(var);
 	}
 
-	public void endCatch(Object trycatch) {
+	void endCatch(Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
 		mv.visitLabel(tc.label3);
 	}
 
-	public Object ifFalse() {
+	Object ifFalse() {
 		Label label = new Label();
 		mv.visitJumpInsn(IFEQ, label);
 		return label;
 	}
 
-	public void ifFalse(Object label) {
+	void ifFalse(Object label) {
 		mv.visitJumpInsn(IFEQ, (Label) label);
 	}
 
-	public void ifTrue(Object label) {
+	void ifTrue(Object label) {
 		mv.visitJumpInsn(IFNE, (Label) label);
 	}
 
-	public Object label() {
+	Object label() {
 		return new Label();
 	}
 
-	public Object placeLabel() {
+	Object placeLabel() {
 		Label label = new Label();
 		mv.visitLabel(label);
 		return label;
 	}
 
-	public void placeLabel(Object label) {
+	void placeLabel(Object label) {
 		mv.visitLabel((Label) label);
 	}
 
-	public Object jump() {
+	Object jump() {
 		Label label = new Label();
 		mv.visitJumpInsn(GOTO, label);
 		return label;
 	}
 
-	public void jump(Object label) {
+	void jump(Object label) {
 		mv.visitJumpInsn(GOTO, (Label) label);
 	}
 
-	public void toIntBool() {
+	void toIntBool() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toIntBool",
 				"(Ljava/lang/Object;)I");
 	}
 
 	// for in
 
-	public int iter() {
+	int iter() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"iterator",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
 		return storeTemp();
 	}
 
-	public int storeTemp() {
+	int storeTemp() {
 		mv.visitVarInsn(ASTORE, nextJavaLocal);
 		return nextJavaLocal++;
 	}
 
-	public void loadTemp(int temp) {
+	void loadTemp(int temp) {
 		mv.visitVarInsn(ALOAD, temp);
 	}
 
 	/** leaves boolean result on the stack */
-	public void hasNext(int temp) {
+	void hasNext(int temp) {
 		mv.visitVarInsn(ALOAD, temp);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "hasNext",
 				"(Ljava/lang/Object;)Z");
 	}
-	public void next(String var, int temp) {
+	void next(String var, int temp) {
 		loadTemp(temp);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
 				"(Ljava/lang/Object;)Ljava/lang/Object;");
@@ -630,7 +631,7 @@ public class ClassGen {
 		mv.visitInsn(AASTORE);
 	}
 
-	public void block(int iBlockDef, String nParams) {
+	void block(int iBlockDef, String nParams) {
 		// new SuBlock(block, self, locals)
 		final String className = "suneido/language/SuBlock" + nParams;
 		mv.visitTypeInsn(NEW, className);
@@ -647,8 +648,8 @@ public class ClassGen {
 		addBlockReturnCatcher();
 	}
 
-	public void addBlockReturnCatcher() {
-		if (!isBlock && blockReturnCatcher == null)
+	void addBlockReturnCatcher() {
+		if (! isBlock && blockReturnCatcher == null)
 			blockReturnCatcher = startTryCatch("suneido/language/BlockReturnException");
 	}
 
@@ -682,7 +683,7 @@ public class ClassGen {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "pop", "()V");
 	}
 
-	public SuCallable end(SuClass suClass) {
+	SuCallable end(SuClass suClass) {
 		if (blockReturnCatcher != null)
 			finishBlockReturnCatcher();
 		if (dynamicFinally != null)
@@ -773,6 +774,10 @@ public class ClassGen {
 	public static ThreadLocal<List<Object>> shareConstants =
 			new ThreadLocal<List<Object>>();
 
+	/**
+	 * generator a constructor that sets const0, const1, etc.
+	 * to the values in shareConstants
+	 */
 	private void genClinit() {
 		MethodVisitor mv = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
 		mv.visitCode();
