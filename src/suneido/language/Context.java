@@ -16,12 +16,13 @@ import com.google.common.collect.Lists;
  * The "global" context for a function or method.
  * Names are assigned unique integer slots.
  * A context knows how to lookup the value for a name.
- * Values are cached.
+ * Values are cached.<p>
+ * Derived classes must define fetch(name)
  *
- * @see ContextLibraries
+ * @see ContextLayered
  * @see ContextModules
  */
-abstract class Context {
+public abstract class Context {
 	private final TObjectIntHashMap<String> nameToSlot = new TObjectIntHashMap<String>();
 	private final ArrayList<String> names = Lists.newArrayList();
 	private final ArrayList<Object> values = Lists.newArrayList();
@@ -44,15 +45,28 @@ abstract class Context {
 		return slot;
 	}
 
+	public Object get(String name) {
+		return get(slotForName(name));
+	}
+
+	public Object tryget(String name) {
+		return tryget(slotForName(name));
+	}
+
 	/** Get the value for a slot. If no cached value, then do lookup */
 	Object get(int slot) {
-		Object value = values.get(slot);
-		if (value != null)
-			return value;
-		value = fetch(nameForSlot(slot));
+		Object value = tryget(slot);
 		if (value == null)
 			throw new SuException("can't find " + nameForSlot(slot));
-		values.set(slot, value);
+		return value;
+	}
+
+	private Object tryget(int slot) {
+		Object value = values.get(slot);
+		if (value == null)
+			value = fetch(nameForSlot(slot));
+		if (value != null)
+			values.set(slot, value);
 		return value;
 	}
 
@@ -64,7 +78,7 @@ abstract class Context {
 	abstract protected Object fetch(String name);
 
 	/** Remove the cached value for a slot. */
-	void clear(String name) {
+	public void clear(String name) {
 		clear(slotForName(name));
 	}
 
@@ -74,9 +88,14 @@ abstract class Context {
 	}
 
 	/** Remove the cached values for all slots. */
-	void clearAll() {
+	public void clearAll() {
 		for (int i = 0; i < values.size(); ++i)
 			values.set(i, null);
+	}
+
+	/** used by overloading and tests */
+	public void set(String name, Object value) {
+		values.set(slotForName(name), value);
 	}
 
 }

@@ -8,6 +8,8 @@ import static suneido.language.Ops.display;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.Suneido;
+
 public class ExecuteTest {
 
 	@Before
@@ -298,7 +300,7 @@ public class ExecuteTest {
 	}
 
 	private static void def(String name, String source) {
-		Globals.setForTest(name, Compiler.compile(name, source));
+		Suneido.context.set(name, Compiler.compile(name, source));
 	}
 
 	public static void test(String expr, String expected) {

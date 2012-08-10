@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuRecord;
+import suneido.Suneido;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -29,7 +30,7 @@ public class AstCompile {
 	private String curName = null;
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
-	private final Context context = ContextLibraries.context; //TODO
+	private final ContextLayered context = Suneido.context; //TODO pass in
 
 	public AstCompile(String globalName) {
 		this(globalName, null);
@@ -116,7 +117,7 @@ public class AstCompile {
 		nameBegin(outerName, "$c");
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
-			base = Globals.overload(base);
+			base = context.overload(base);
 		Map<String, Object> members = new HashMap<String, Object>();
 		SuClass prevSuClass = suClass;
 		SuClass c = suClass = new SuClass(curName, base, members);

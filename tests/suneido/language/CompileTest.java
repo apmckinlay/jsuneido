@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
+import suneido.Suneido;
+
 public class CompileTest {
 
 	/*
@@ -618,7 +620,7 @@ public class CompileTest {
 		if (! m.find())
 			return r;
 		int i = Integer.valueOf(m.group(1));
-		String name = ContextLibraries.context.nameForSlot(i);
+		String name = Suneido.context.nameForSlot(i);
 		return r.substring(0, m.start(1)) + name + r.substring(m.end(1));
 	}
 

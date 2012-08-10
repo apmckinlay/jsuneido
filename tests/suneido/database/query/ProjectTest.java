@@ -12,11 +12,11 @@ import java.util.List;
 
 import org.junit.Test;
 
+import suneido.Suneido;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Transaction;
 import suneido.language.Compiler;
-import suneido.language.Globals;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();
@@ -45,7 +45,7 @@ public class ProjectTest {
 		req("insert {a: 1, b: 11, c: 111 } into tmp");
 		req("insert {a: 2, b: 22, c: 222 } into tmp");
 		req("insert {a: 3, b: 33, c: 333 } into tmp");
-		Globals.put("Rule_r",
+		Suneido.context.set("Rule_r",
 				Compiler.compile("Rule_r", "function () { .a + .b + .c }"));
 
 		test("tmp extend r project a, r", "Row{a: 1, r: 1}"); // fails for copy

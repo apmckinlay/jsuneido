@@ -11,10 +11,10 @@ import suneido.language.builtin.NullPointerException;
 
 import com.google.common.collect.ImmutableMap;
 
-class Builtins {
+public class Builtins {
 	static final ImmutableMap<String, Object> builtins;
 
-	static Object get(String name) {
+	public static Object get(String name) {
 		return builtins.get(name);
 	}
 
