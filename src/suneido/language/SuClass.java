@@ -12,6 +12,7 @@ import java.util.Map;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuValue;
+import suneido.Suneido;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.collect.ImmutableMap;
@@ -24,10 +25,11 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SuClass extends SuValue {
 	private final String name;
-	private final String baseGlobal;
+	private final String baseGlobal; // TODO could be int slot
 	private final Map<String, Object> members; // must be synchronized
 	private boolean hasGetters = true; // till we know different
 	private static final Map<String, Object> basicMethods = basicMethods();
+	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")
 	public SuClass(String className, String baseGlobal, Object members) {
@@ -200,7 +202,7 @@ public class SuClass extends SuValue {
 	}
 
 	private SuClass base() {
-		Object base = Globals.get(baseGlobal);
+		Object base = context.get(baseGlobal);
 		if (! (base instanceof SuClass))
 			throw new SuException("class base must be a Suneido value");
 		return (SuClass) base;
@@ -210,7 +212,7 @@ public class SuClass extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			SuClass c = (SuClass) self;
-			return (c.baseGlobal == null) ? Boolean.FALSE : Globals.get(c.baseGlobal);
+			return (c.baseGlobal == null) ? Boolean.FALSE : context.get(c.baseGlobal);
 		}
 	}
 

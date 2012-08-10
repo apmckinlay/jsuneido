@@ -17,7 +17,10 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.Pack;
+import suneido.language.RuleContext;
+import suneido.language.SuBoundMethod;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
 import suneido.util.Util;
@@ -181,7 +184,7 @@ public class SuRecord extends SuContainer {
 
 	private Object callRule(Object key) {
 		invalid.remove(key);
-		Object rule = Globals.tryget("Rule_" + key);
+		Object rule = Suneido.context.tryget("Rule_" + key);
 		if (rule == null)
 			return null;
 		// prevent cycles

@@ -5,13 +5,13 @@
 package suneido.language;
 
 import suneido.SuValue;
+import suneido.Suneido;
 
-@SuppressWarnings("static-method")
 public abstract class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected boolean isBlock = false;
-	protected Context context = ContextLibraries.context;
+	protected Context context = Suneido.context; // TODO pass it in
 
 	@Override
 	public SuValue lookup(String method) {

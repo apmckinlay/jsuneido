@@ -9,6 +9,8 @@ import static suneido.language.ExecuteTest.test;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.Suneido;
+
 public class ClassTest {
 
 	@Before
@@ -275,6 +277,6 @@ public class ClassTest {
 	}
 
 	void define(String name, String definition) {
-		Globals.setForTest(name, compile(name, definition));
+		Suneido.context.set(name, compile(name, definition));
 	}
 }
