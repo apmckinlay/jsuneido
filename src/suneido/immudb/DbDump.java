@@ -77,13 +77,13 @@ class DbDump {
 		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 		Table table = t.getTable(tablename);
 		List<String> fields = table.getFields();
-		boolean squeeze = needToSqueeze(fields);
+		boolean squeeze = needToSqueeze(t, table.num, fields);
 		IndexIter iter = t.iter(table.num, null);
 		int n = 0;
 		for (iter.next(); !iter.eof(); iter.next()) {
 			Record r = t.input(iter.keyadr());
 			if (squeeze)
-				r = squeezeRecord(r, fields);
+				r = squeezeRecord(r, fields).bufRec();
 			writeInt(out, buf, r.bufSize());
 			out.write(r.getBuffer());
 			++n;
@@ -94,11 +94,12 @@ class DbDump {
 
 	private static final String DELETED = "-";
 
-	static boolean needToSqueeze(List<String> fields) {
-		return fields.indexOf(DELETED) != -1;
+	static boolean needToSqueeze(ReadTransaction t, int tblnum, List<String> fields) {
+		TableInfo ti = t.getTableInfo(tblnum);
+		return ti.nextfield > fields.size() || fields.indexOf(DELETED) != -1;
 	}
 
-	static Record squeezeRecord(Record rec, List<String> fields) {
+	static RecordBuilder squeezeRecord(Record rec, List<String> fields) {
 		RecordBuilder rb = new RecordBuilder();
 		int i = 0;
 		for (String f : fields) {
@@ -106,7 +107,7 @@ class DbDump {
 				rb.add(rec.getRaw(i));
 			++i;
 		}
-		return rb.bufRec();
+		return rb;
 	}
 
 	private static void writeInt(WritableByteChannel out, ByteBuffer buf, int n)

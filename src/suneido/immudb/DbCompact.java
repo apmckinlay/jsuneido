@@ -72,7 +72,7 @@ class DbCompact {
 	private void copyTable(String tablename) {
 		Table oldtable = rt.ck_getTable(tablename);
 		List<String> fields = oldtable.getFields();
-		boolean squeeze = needToSqueeze(fields);
+		boolean squeeze = DbDump.needToSqueeze(rt, oldtable.num, fields);
 		BulkTransaction t = newDB.bulkTransaction();
 		try {
 			int first = 0;
@@ -82,7 +82,7 @@ class DbCompact {
 			for (iter.next(); ! iter.eof(); iter.next()) {
 				DataRecord r = rt.input(iter.keyadr());
 				if (squeeze)
-					r = squeezeRecord(r, fields);
+					r = DbDump.squeezeRecord(r, fields).build();
 				last = t.loadRecord(newtable.num, r);
 				if (first == 0)
 					first = last;
@@ -92,21 +92,6 @@ class DbCompact {
 		} finally {
 			t.abortIfNotComplete();
 		}
-	}
-
-	private static boolean needToSqueeze(List<String> fields) {
-		return fields.indexOf("-") != -1;
-	}
-
-	private static DataRecord squeezeRecord(DataRecord rec, List<String> fields) {
-		RecordBuilder rb = new RecordBuilder();
-		int i = 0;
-		for (String f : fields) {
-			if (!f.equals("-"))
-				rb.add(rec.getRaw(i));
-			++i;
-		}
-		return rb.build();
 	}
 
 	public static void main(String[] args) throws InterruptedException {
