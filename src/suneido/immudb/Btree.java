@@ -651,56 +651,54 @@ class Btree implements TranIndex {
 	/** from is inclusive, end is exclusive */
 	@Override
 	public float rangefrac(Record from, Record to) {
-		if (from.equals(DatabasePackage.MIN_RECORD) &&
-				to.equals(DatabasePackage.MAX_RECORD))
-			return 1;
 		return rangefrac(new BtreeKey(from), new BtreeKey(to));
 	}
 
-	float rangefrac(BtreeKey from, BtreeKey to) {
-		return rangefrac(0, from, 0, to, 0, rootNode);
+	private static final float MIN_FRAC = .001f;
+
+	private float rangefrac(BtreeKey from, BtreeKey to) {
+		if (rootNode.size() == 0)
+			return 0;
+		float fromPos = estimatePos(from);
+		float toPos = estimatePos(to);
+		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
 
-	static final int MIN_RANGE_KEYS = 50; // tradeoff speed vs. accuracy
-
-	float rangefrac(int level, BtreeKey from, int fni, BtreeKey to, int tni,
-			BtreeNode... nodes) {
-		assert from.compareTo(to) <= 0;
-		int n = 0;
-		for (BtreeNode node : nodes)
-			n += node.size();
-		if (n == 0)
+	private float estimatePos(BtreeKey key) {
+		if (isMinimal(key.key))
 			return 0;
-		if (level < treeLevels && n < MIN_RANGE_KEYS) {
-			BtreeNode[] next = new BtreeNode[n];
-			int dst = 0, fni2 = -1, tni2 = -1;
-			for (int ni = 0; ni < nodes.length; ++ni) {
-				if (ni == fni)
-					fni2 = dst + nodes[ni].findPos(from);
-				if (ni == tni)
-					tni2 = dst + nodes[ni].findPos(to);
-				for (int ki = 0; ki < nodes[ni].size(); ++ki)
-					next[dst++] = childNode(nodes[ni], ki);
-			}
-			return rangefrac(level + 1, from, fni2, to, tni2, next); // recurse
-		}
-		assert fni <= tni;
-		assert fni < nodes.length;
-		assert tni <= nodes.length;
-		int i = 0, fi = -1, ti = -1;
-		for (int ni = 0; ni < nodes.length; ++ni) {
-			BtreeNode child = nodes[ni];
-			if (ni == fni)
-				fi = i + child.findPos(from);
-			if (ni == tni) {
-				ti = i + child.findPos(to);
-				break;
-			}
-			i += child.size();
-		}
-		assert fi <= ti;
-		assert fi != -1;
-		return (ti == fi ? 0.5f : (ti - fi)) / n;
+		if (isMaximal(key.key))
+			return 1;
+		return estimatePos(key, rootNode, 0, 1, 0);
+	}
+
+	private static boolean isMinimal(Record key) {
+		for (int i = 0; i < key.size(); ++i)
+			if (! key.getRaw(i).equals(Record.MIN_FIELD))
+				return false;
+		return true;
+	}
+
+	private static boolean isMaximal(Record key) {
+		for (int i = 0; i < key.size(); ++i)
+			if (! key.getRaw(i).equals(Record.MAX_FIELD))
+				return false;
+		return true;
+	}
+
+	private static final int MIN_LEVEL_SIZE = 100; // tradeoff speed vs. accuracy
+
+	private float estimatePos(BtreeKey key, BtreeNode node, int level,
+			int parentLevelSize, int parentPos) {
+		// use this node's size as an estimate of average node size
+		int nodeSize = node.size();
+		int levelSize = parentLevelSize * nodeSize;
+		int i = node.findPos(key);
+		int pos = parentPos * nodeSize + i;
+		if (level < treeLevels && levelSize < MIN_LEVEL_SIZE)
+			// recurse
+			return estimatePos(key, childNode(node, i), level + 1, levelSize, pos);
+		return (float) pos / levelSize;
 	}
 
 }

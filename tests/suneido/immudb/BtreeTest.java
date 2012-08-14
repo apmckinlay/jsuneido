@@ -591,6 +591,8 @@ public class BtreeTest {
 				closeTo(.5, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(11)),
 				closeTo(.01, .01));
+		assertThat((double) btree.rangefrac(rec(100), rec(100)),
+				closeTo(0, .01));
 	}
 
 	@Test
@@ -599,17 +601,19 @@ public class BtreeTest {
 			btree.add(key(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
 		assertThat((double) btree.rangefrac(rec(0), rec(0)),
-				closeTo(0.0, .01));
+				closeTo(0.0, .02));
 		assertThat((double) btree.rangefrac(rec(10), rec(9999)),
 				closeTo(1.0, .02));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
-				closeTo(.1, .01));
+				closeTo(.1, .02));
 		assertThat((double) btree.rangefrac(rec(10), rec(711)),
-				closeTo(.7, .01));
+				closeTo(.7, .02));
 		assertThat((double) btree.rangefrac(rec(210), rec(710)),
-				closeTo(.5, .01));
+				closeTo(.5, .02));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
-				closeTo(.1, .01));
+				closeTo(.1, .02));
+		assertThat((double) btree.rangefrac(rec(55), rec(55)),
+				closeTo(0, .02));
 	}
 
 	@Test
