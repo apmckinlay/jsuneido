@@ -292,8 +292,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			String identifier = lexer.getValue();
 			if (isGlobal(identifier) && lookAhead(! expectingCompound) == L_CURLY)
 				return generator.constant(constant());
-			else
-				return matchReturn(IDENTIFIER, generator.identifier(identifier));
+			else {
+				match(IDENTIFIER);
+				if (matchIf(AT)) {
+					identifier = identifier + "@" + lexer.getValue();
+					match(IDENTIFIER);
+				}
+				return generator.identifier(identifier);
+			}
 		}
 	}
 

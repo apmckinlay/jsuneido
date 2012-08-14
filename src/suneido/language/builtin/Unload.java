@@ -1,6 +1,9 @@
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.Suneido;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
+import suneido.language.SuFunction1;
 
 public class Unload extends SuFunction1 {
 
@@ -8,7 +11,7 @@ public class Unload extends SuFunction1 {
 
 	@Override
 	public Object call1(Object a) {
-		Globals.unload(Ops.toStr(a));
+		Suneido.context.clear(Ops.toStr(a));
 		return null;
 	}
 

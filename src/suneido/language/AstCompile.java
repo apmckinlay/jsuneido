@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuRecord;
+import suneido.Suneido;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -29,6 +30,7 @@ public class AstCompile {
 	private String curName = null;
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
+	private final ContextLayered context = Suneido.context; //TODO pass in
 
 	public AstCompile(String globalName) {
 		this(globalName, null);
@@ -115,7 +117,7 @@ public class AstCompile {
 		nameBegin(outerName, "$c");
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
-			base = Globals.overload(base);
+			base = context.overload(base);
 		Map<String, Object> members = new HashMap<String, Object>();
 		SuClass prevSuClass = suClass;
 		SuClass c = suClass = new SuClass(curName, base, members);
@@ -753,16 +755,22 @@ public class AstCompile {
 		return resultType;
 	}
 
-	private static void identifier(ClassGen cg, AstNode ast, ExprOption option) {
+	private void identifier(ClassGen cg, AstNode ast, ExprOption option) {
 		String name = ast.value;
-		if (isGlobal(name))
-			cg.globalLoad(name);
+		if (isOverload(name))
+			cg.constant(context.get(context.slotForName(name.substring(1))));
+		else if (isGlobal(name))
+			cg.globalLoad(context.slotForName(name));
 		else if (isDynamic(name))
 			cg.dynamicLoad(name);
 		else
 			cg.localLoad(name);
 		if (option == ExprOption.POP)
 			addNullCheck(cg, ast);
+	}
+
+	static boolean isOverload(String name) {
+		return name.startsWith("_") && isGlobal(name.substring(1));
 	}
 
 	static boolean isDynamic(String name) {
@@ -845,7 +853,8 @@ public class AstCompile {
 			callArguments(cg, args);
 			cg.invokeDirect(fn.value);
 		} else if (isGlobal(fn)) {
-			cg.constant(fn.value);
+			cg.pushThis();
+			cg.iconst(context.slotForName(fn.value));
 			if (args.token != Token.AT &&
 					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
 				directArguments(cg, args);

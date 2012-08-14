@@ -5,8 +5,12 @@ import static org.junit.Assert.fail;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
+
+import suneido.Suneido;
 
 public class CompileTest {
 
@@ -122,7 +126,9 @@ public class CompileTest {
 		test("a[++b] = c;;",
 				"a, &b, DUP2, AALOAD, add1, DUP_X2, AASTORE, c, putMem");
 		test("G",
-				"'G', global, ARETURN");
+				"this, G, global, ARETURN");
+		test("G@std",
+				"this, G@std, global, ARETURN");
 		test("return .a + .b",
 				"self, 'a', getMem, self, 'b', getMem, add, ARETURN");
 		test("123; 456; 789;",
@@ -135,7 +141,8 @@ public class CompileTest {
 				"const0, ARETURN");
 		test("a = function () { }",
 				"&a, const0, DUP_X2, AASTORE, ARETURN");
-		test("; { ; a ; } ;", "a, POP");
+		test("; { ; a ; } ;",
+				"a, POP");
 	}
 
 	@Test
@@ -177,7 +184,7 @@ public class CompileTest {
 		test("a(b = c, c)",
 				"a, &b, c, DUP_X2, AASTORE, c, call, ARETURN");
 		test("G()",
- 				"'G', global call, ARETURN");
+ 				"this, G, global call, ARETURN");
 		test("a(@b)",
  				"a, EACH, b, call, ARETURN");
 		test("a(@+1b)",
@@ -206,7 +213,7 @@ public class CompileTest {
 		test("a(99: 'x')",
 				"a, NAMED, 99, 'x', call, ARETURN");
 		test("A().B()",
-				"'A', global call, 'B', invoke0, ARETURN");
+				"this, A, global call, 'B', invoke0, ARETURN");
 
 		test("super.F()",
 				"this, self, 'F', superInvoke, ARETURN");
@@ -234,7 +241,7 @@ public class CompileTest {
 		test("new c(123)",
 				"c, '<new>', 123, invoke, ARETURN");
 		test("new G",
-				"'G', global, '<new>', invoke, ARETURN");
+				"this, G, global, '<new>', invoke, ARETURN");
 		test("new this",
 				"self, '<new>', invoke, ARETURN");
 		test("new this(a)",
@@ -409,7 +416,7 @@ public class CompileTest {
 		test("x(a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
 			"x, NAMED, 'V', a, EACH, const0, call, ARETURN");
 		test("A(a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11)",
-			"'A', EACH, const0, global call, ARETURN");
+			"this, A, EACH, const0, global call, ARETURN");
 		test("[a: 1, b: 2, c: 3, d: 4, e: 5, V: a, f: 6, g: 7, h: 8, i: 9, j: 10, k: 11]",
 				"NAMED, 'V', a, EACH, const0, Record, ARETURN");
 	}
@@ -495,9 +502,9 @@ public class CompileTest {
 			{ "ALOAD 0", "this" },
 			{ "ALOAD " + SELF, "self" },
 			{ "ALOAD " + ARGS, "args" },
-			{ "this, GETFIELD suneido/language/Test.params : Lsuneido/language/FunctionSpec;, ", "" },
-			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 1, ", "" },
-			{ "args, INVOKESTATIC suneido/language/Args.massage (Lsuneido/language/FunctionSpec;[Object;)[Object;, ASTORE 2, ", "" },
+			{ "this, GETFIELD suneido/language/SuCallable.params : Lsuneido/language/FunctionSpec;, ", "" },
+			{ "this, args, INVOKESPECIAL suneido/language/SuCallable.massage ([Object;)[Object;, ASTORE 1, ", "" },
+			{ "this, args, INVOKESPECIAL suneido/language/SuCallable.massage ([Object;)[Object;, ASTORE 2, ", "" },
 			{ "args, ICONST_0, AALOAD", "a" },
 			{ "args, ICONST_1, AALOAD", "b" },
 			{ "args, ICONST_2, AALOAD", "c" },
@@ -515,8 +522,8 @@ public class CompileTest {
 			{ " : LString;", "" },
 			{ "GETSTATIC suneido/language/Args$Special.", "" },
 			{ " : Lsuneido/language/Args$Special;", "" },
-			{ "INVOKESTATIC suneido/language/Globals.get (String;)Object;", "global" },
-			{ "INVOKESTATIC suneido/language/Globals.invoke", "global call" },
+			{ "INVOKESPECIAL suneido/language/SuCallable.contextGet", "global" },
+			{ "INVOKESPECIAL suneido/language/SuCallable.invoke", "global call" },
 			{ "INVOKESTATIC suneido/language/Ops.", "" },
 			{ "get (Object;Object;)Object;", "getMem" },
 			{ "put (Object;Object;Object;)V", "putMem" },
@@ -540,8 +547,8 @@ public class CompileTest {
 			{ " (Object;Object;Object;Object;Object;Object;Object;)Object;", "" },
 			{ " (Object;[Object;)Object;", "" },
 			{ " (Object;String;[Object;)Object;", "" },
-			{ " (String;)Object;", "" },
-			{ " (String;[Object;)Object;", "" },
+			{ " (I)Object;", "" },
+			{ " (I[Object;)Object;", "" },
 			{ "DUP, IFNONNULL L1, throwNoReturnValue ()V, L1", "null?" },
 			{ "DUP, IFNONNULL L1, throwUninitializedVariable ()V, L1", "null?" },
 			{ "DUP, IFNONNULL L2, throwUninitializedVariable ()V, L2", "null?" },
@@ -567,7 +574,7 @@ public class CompileTest {
 			{ "INVOKEVIRTUAL suneido/SuException.toString ()String;", "toString" },
 			{ "GETFIELD suneido/language/BlockReturnException.returnValue : Object;", ".returnValue" },
 			{ "GETFIELD suneido/language/BlockReturnException.locals : [Object;", ".locals" },
-			{ "INVOKEVIRTUAL suneido/language/SuCallable.superInvoke", "superInvoke" },
+			{ "INVOKESPECIAL suneido/language/SuCallable.superInvoke", "superInvoke" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
 			{ "GETSTATIC java/lang/Boolean.FALSE : Boolean;", "false" },
 			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" },
@@ -603,7 +610,18 @@ public class CompileTest {
 		for (String[] simp : simplify)
 			r = r.replace(simp[0], simp[1]);
 		r = r.replaceAll("[0-9]+, blockReturn", "blockReturn");
+		r = globalSlotToName(r);
 		return r;
+	}
+
+	private static String globalSlotToName(String r) {
+		Pattern p = Pattern.compile("this, ([0-9]+), (EACH, const0, )?global");
+		Matcher m = p.matcher(r);
+		if (! m.find())
+			return r;
+		int i = Integer.valueOf(m.group(1));
+		String name = Suneido.context.nameForSlot(i);
+		return r.substring(0, m.start(1)) + name + r.substring(m.end(1));
 	}
 
 	private static String after(String r, String s) {

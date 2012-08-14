@@ -88,7 +88,7 @@ public class ContainerMethods {
 	public static class Base extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return Globals.get("Object");
+			return Builtins.get("Object");
 		}
 	}
 

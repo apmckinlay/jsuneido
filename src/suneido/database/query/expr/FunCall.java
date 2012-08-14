@@ -6,9 +6,9 @@ import static suneido.util.Util.displayListToParens;
 import java.util.List;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.language.Globals;
 import suneido.language.Ops;
 
 public class FunCall extends Multi {
@@ -53,7 +53,7 @@ public class FunCall extends Multi {
 			args[i++] = e.eval(hdr, row);
 		Object result;
 		if (ob == null)
-			result = Ops.call(Globals.get(fname), args);
+			result = Ops.call(Suneido.context.get(fname), args);
 		else {
 			Object x = ob.eval(hdr, row);
 			result = Ops.invoke(x, fname, args);

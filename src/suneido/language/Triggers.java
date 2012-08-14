@@ -9,6 +9,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.SuValue;
+import suneido.Suneido;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Table;
@@ -27,7 +28,7 @@ public class Triggers {
 		if (disabledTriggers.contains(table.name()))
 			return;
 		String trigger = "Trigger_" + table.name();
-		Object fn = Globals.tryget(trigger);
+		Object fn = Suneido.context.tryget(trigger);
 		if (fn == null)
 			return;
 		if (!SuValue.isCallable(fn))
