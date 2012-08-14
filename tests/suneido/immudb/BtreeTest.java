@@ -567,10 +567,16 @@ public class BtreeTest {
 				closeTo(1.0, .01));
 		assertThat((double) btree.rangefrac(rec("0"), rec("40")),
 				closeTo(.5, .01));
+		assertThat((double) btree.rangefrac(rec("0"), rec("00")),
+				closeTo(.1, .01));
+		assertThat((double) btree.rangefrac(rec("4"), rec("40")),
+				closeTo(.1, .01));
+		assertThat((double) btree.rangefrac(rec("9"), rec("90")),
+				closeTo(.1, .01));
 	}
 
 	@Test
-	public void rangefrac_multiple_nodes() {
+	public void rangefrac_multiple_big_nodes() {
 		btree = new Btree(tran); // normal node size
 		for (int i = 10; i < 210; i += 2)
 			btree.add(key(i));
@@ -583,6 +589,27 @@ public class BtreeTest {
 				closeTo(.7, .01));
 		assertThat((double) btree.rangefrac(rec(60), rec(160)),
 				closeTo(.5, .01));
+		assertThat((double) btree.rangefrac(rec(10), rec(11)),
+				closeTo(.01, .01));
+	}
+
+	@Test
+	public void rangefrac_multiple_small_nodes() {
+		for (int i = 10; i < 1010; i += 4)
+			btree.add(key(i));
+		assertThat(btree.treeLevels(), greaterThan(0));
+		assertThat((double) btree.rangefrac(rec(0), rec(0)),
+				closeTo(0.0, .01));
+		assertThat((double) btree.rangefrac(rec(10), rec(9999)),
+				closeTo(1.0, .02));
+		assertThat((double) btree.rangefrac(rec(10), rec(111)),
+				closeTo(.1, .01));
+		assertThat((double) btree.rangefrac(rec(10), rec(711)),
+				closeTo(.7, .01));
+		assertThat((double) btree.rangefrac(rec(210), rec(710)),
+				closeTo(.5, .01));
+		assertThat((double) btree.rangefrac(rec(10), rec(111)),
+				closeTo(.1, .01));
 	}
 
 	@Test

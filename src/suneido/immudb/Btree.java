@@ -651,37 +651,56 @@ class Btree implements TranIndex {
 	/** from is inclusive, end is exclusive */
 	@Override
 	public float rangefrac(Record from, Record to) {
+		if (from.equals(DatabasePackage.MIN_RECORD) &&
+				to.equals(DatabasePackage.MAX_RECORD))
+			return 1;
 		return rangefrac(new BtreeKey(from), new BtreeKey(to));
 	}
 
 	float rangefrac(BtreeKey from, BtreeKey to) {
-		BtreeNode node = rootNode;
-		int n = node.size();
-		if (n == 0)
-			return 0;
-		int org = node.lowerBound(from);
-		int end = node.lowerBound(to);
-		if (treeLevels == 0)
-			return (float) (end - org) / n;
-		else {
-			float pernode = (float) 1 / n;
-			BtreeNode fromNode = childNode(node, node.findPos(from));
-			BtreeNode toNode = childNode(node, node.findPos(to));
-			float result =
-					keyfracpos(toNode, to, (float) end / n, pernode) -
-					keyfracpos(fromNode, from, (float) org / n, pernode);
-			return result < 0 ? 0 : result;
-		}
+		return rangefrac(0, from, 0, to, 0, rootNode);
 	}
 
-	/**
-	 * @param start The fraction into the index where this node starts
-	 * @param nodefrac The fraction of the index under this node
-	 */
-	private static float keyfracpos(BtreeNode node, BtreeKey key, float start, float nodefrac) {
-		assert node.size() > 0;
-		int i = node.lowerBound(key);
-		return start + (nodefrac * i) / node.size();
+	static final int MIN_RANGE_KEYS = 50; // tradeoff speed vs. accuracy
+
+	float rangefrac(int level, BtreeKey from, int fni, BtreeKey to, int tni,
+			BtreeNode... nodes) {
+		assert from.compareTo(to) <= 0;
+		int n = 0;
+		for (BtreeNode node : nodes)
+			n += node.size();
+		if (n == 0)
+			return 0;
+		if (level < treeLevels && n < MIN_RANGE_KEYS) {
+			BtreeNode[] next = new BtreeNode[n];
+			int dst = 0, fni2 = -1, tni2 = -1;
+			for (int ni = 0; ni < nodes.length; ++ni) {
+				if (ni == fni)
+					fni2 = dst + nodes[ni].findPos(from);
+				if (ni == tni)
+					tni2 = dst + nodes[ni].findPos(to);
+				for (int ki = 0; ki < nodes[ni].size(); ++ki)
+					next[dst++] = childNode(nodes[ni], ki);
+			}
+			return rangefrac(level + 1, from, fni2, to, tni2, next); // recurse
+		}
+		assert fni <= tni;
+		assert fni < nodes.length;
+		assert tni <= nodes.length;
+		int i = 0, fi = -1, ti = -1;
+		for (int ni = 0; ni < nodes.length; ++ni) {
+			BtreeNode child = nodes[ni];
+			if (ni == fni)
+				fi = i + child.findPos(from);
+			if (ni == tni) {
+				ti = i + child.findPos(to);
+				break;
+			}
+			i += child.size();
+		}
+		assert fi <= ti;
+		assert fi != -1;
+		return (ti == fi ? 0.5f : (ti - fi)) / n;
 	}
 
 }
