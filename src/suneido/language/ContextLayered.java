@@ -16,6 +16,10 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * Old style context with a stack of layered libraries
+ * <p>
+ * Overloading (_Name) has two forms:
+ * - class base e.g. Name = _Name { ... } - "previous" value is given unique name
+ * - reference in code - "previous" value becomes constant
  */
 public class ContextLayered extends Context {
 	private static final Object nonExistent = new Object();
@@ -69,5 +73,11 @@ public class ContextLayered extends Context {
 		set(nameForPreviousValue, x);
 		return nameForPreviousValue;
 	}
+
+	@Override
+	public void clear(String name) {
+		loader.invalidate(name);
+		super.clear(name);
+	};
 
 }
