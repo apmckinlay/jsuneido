@@ -16,10 +16,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import suneido.Regex;
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.TheDbms;
+import suneido.*;
 import suneido.language.*;
 import suneido.language.Compiler;
 import suneido.util.Tabs;
@@ -150,7 +147,7 @@ public class StringMethods extends BuiltinMethods {
 
 	private static Object seval(String s) {
 		return globalRx.matcher(s).matches()
-				? Globals.get(s)
+				? Suneido.context.get(s)
 				: Compiler.eval(s);
 	}
 

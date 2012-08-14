@@ -3,7 +3,11 @@ package suneido.language.builtin;
 import static suneido.util.Util.array;
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.language.*;
+import suneido.Suneido;
+import suneido.language.Args;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
+import suneido.language.SuFunction;
 
 public class Construct extends SuFunction {
 
@@ -28,7 +32,7 @@ public class Construct extends SuFunction {
 			String className = what.toString();
 			if (!className.endsWith(suffix))
 				className += suffix;
-			what = Globals.get(className);
+			what = Suneido.context.get(className);
 		}
 		return Ops.invoke(what, "<new>", newargs);
 	}

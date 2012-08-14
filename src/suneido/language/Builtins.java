@@ -1,31 +1,23 @@
-/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
 package suneido.language;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuValue;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
 
 import com.google.common.collect.ImmutableMap;
 
-/**
- * Stores global names and values.
- * Uses the class itself as a singleton by making everything static.
- */
-public class Globals {
-	private static final ImmutableMap<String, Object> builtins;
-	private static final Map<String, Object> globals =
-			new ConcurrentHashMap<String, Object>(1000);
-	private static final AtomicInteger overload = new AtomicInteger();
+public class Builtins {
+	static final ImmutableMap<String, Object> builtins;
+
+	public static Object get(String name) {
+		return builtins.get(name);
+	}
+
 	static {
 		builtins = new ImmutableMap.Builder<String,Object>()
 			.put("True", Boolean.TRUE)
@@ -128,89 +120,6 @@ public class Globals {
 			.put("UnixTime", new UnixTime())
 			.put("Use", new Use())
 			.build();
-	}
-
-	private Globals() { // no instances
-		throw SuException.unreachable();
-	}
-
-	public static int size() {
-		return globals.size();
-	}
-
-	public static Object get(String name) {
-		Object x = tryget(name);
-		if (x == null)
-			throw new SuException("can't find " + name);
-		return x;
-	}
-
-	private static final Object nonExistent = new Object();
-
-	/**
-	 * does NOT prevent two threads concurrently getting same name but this
-	 * shouldn't matter since it's idempotent i.e. result should be the same no
-	 * matter which thread "wins"
-	 */
-	public static Object tryget(String name) {
-		Object x = globals.get(name);
-		if (x != null)
-			return x == nonExistent ? null : x;
-		x = builtins.get(name);
-		if (x == null)
-			x = Library.load(name);
-		globals.put(name, x == null ? nonExistent : x); // cache
-		return x;
-	}
-
-	/** used by tests */
-	public static void put(String name, Object x) {
-		globals.put(name, x);
-	}
-
-	public static void unload(String name) {
-		globals.remove(name);
-	}
-
-	/** for Use */
-	public static void clear() {
-		globals.clear();
-	}
-
-	// synchronized by Library.load which should be the only caller
-	public static String overload(String base) {
-		String name = base.substring(1); // remove leading underscore
-		Object x = globals.get(name);
-		if (x == null || x == nonExistent)
-			throw new SuException("can't find " + base);
-		int n = overload.getAndIncrement();
-		String nameForPreviousValue = n + base;
-		globals.put(nameForPreviousValue, x);
-		return nameForPreviousValue;
-	}
-
-	/** used by generated code to call globals
-	 *  NOTE: does NOT handle calling a string in a global
-	 *  requires globals to be SuValue
-	 */
-	public static Object invoke(String name, Object... args) {
-		return ((SuValue) get(name)).call(args);
-	}
-	public static Object invoke0(String name) {
-		return ((SuValue) get(name)).call0();
-	}
-	public static Object invoke1(String name, Object a) {
-		return ((SuValue) get(name)).call1(a);
-	}
-	public static Object invoke2(String name, Object a, Object b) {
-		return ((SuValue) get(name)).call2(a, b);
-	}
-	public static Object invoke3(String name, Object a, Object b, Object c) {
-		return ((SuValue) get(name)).call3(a, b, c);
-	}
-	public static Object invoke4(String name, Object a, Object b,
-			Object c, Object d) {
-		return ((SuValue) get(name)).call4(a, b, c, d);
 	}
 
 	private static Object lucene() {
