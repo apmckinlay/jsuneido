@@ -23,11 +23,14 @@ import com.google.common.collect.Lists;
  * @see ContextModules
  */
 public abstract class Context {
+	private final Contexts contexts;
 	private final TObjectIntHashMap<String> nameToSlot = new TObjectIntHashMap<String>();
 	private final ArrayList<String> names = Lists.newArrayList();
 	private final ArrayList<Object> values = Lists.newArrayList();
 
-	Context() {
+	Context(Contexts contexts) {
+		this.contexts = contexts;
+		contexts.addContext(this);
 		// don't use slot 0
 		names.add(null);
 		values.add(null);
@@ -63,8 +66,10 @@ public abstract class Context {
 
 	private Object tryget(int slot) {
 		Object value = values.get(slot);
-		if (value == null)
-			value = fetch(nameForSlot(slot));
+		if (value == null) {
+			String name = nameForSlot(slot);
+			value = name.contains("@") ? contexts.fetchExplicit(name) : fetch(name);
+		}
 		if (value != null)
 			values.set(slot, value);
 		return value;

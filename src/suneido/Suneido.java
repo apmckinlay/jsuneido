@@ -19,6 +19,7 @@ import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
+import suneido.language.Contexts;
 import suneido.util.Print;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -34,7 +35,8 @@ public class Suneido {
 			= Executors.newSingleThreadScheduledExecutor(threadFactory);
 	public static CommandLineOptions cmdlineoptions =
 			CommandLineOptions.parse(); // for tests
-	public static ContextLayered context = new ContextLayered();
+	public static Contexts contexts = new Contexts();
+	public static ContextLayered context = new ContextLayered(contexts);
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);

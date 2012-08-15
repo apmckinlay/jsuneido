@@ -32,6 +32,10 @@ public class ContextLayered extends Context {
 						}});
 	private static final AtomicInteger overload = new AtomicInteger();
 
+	public ContextLayered(Contexts contexts) {
+		super(contexts);
+	}
+
 	@Override
 	protected Object fetch(String name) {
 		Object value = loader.getUnchecked(name);

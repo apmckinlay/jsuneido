@@ -12,7 +12,8 @@ import com.google.common.collect.ImmutableList;
 public class ContextModules extends Context {
 	private final ImmutableList<Module> modules;
 
-	ContextModules(ImmutableList<Module> modules) {
+	ContextModules(Contexts contexts, ImmutableList<Module> modules) {
+		super(contexts);
 		this.modules = modules;
 	}
 
