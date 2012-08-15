@@ -6,46 +6,42 @@ package suneido.language;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * A {@link Module} that loads using a loader.
- * Caches the definitions that are loaded.
+ * A {@link Module} that loads using a {@link Loader} and
+ * caches the definitions that are loaded.
  */
 @ThreadSafe
 public class ModuleLoader implements Module {
-	final Loader loader;
 	final String module;
+	final Loader loader;
+	private final static Object nonexistent = new Object();
 	private final LoadingCache<String, Object> cache =
 			CacheBuilder.newBuilder().build(
 					new CacheLoader<String, Object>() {
 						@Override
 						public Object load(String name) {
-							return fetch(name);
+							Object x = loader.load(module, name);
+							return x == null ? nonexistent : x;
 						}});
 
 
-	ModuleLoader(Loader loader, String module) {
-		this.loader = loader;
+	ModuleLoader(String module, Loader loader) {
 		this.module = module;
+		this.loader = loader;
 	}
 
 	@Override
 	public Object get(String name) {
-		return cache.getUnchecked(name);
+		Object x = cache.getUnchecked(name);
+		return x == nonexistent ? null : x;
 	}
 
-	private Object fetch(String name) {
-		String text = loader.load(module, name);
-		try {
-			return Compiler.compile(name, text);
-		} catch (Exception e) {
-			throw new SuException("error loading " + name, e);
-		}
+	void clear(String name) {
+		cache.invalidate(name);
 	}
 
 	@Override

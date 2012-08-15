@@ -7,6 +7,6 @@ package suneido.language;
 interface Loader {
 
 	/** @return The definition of name in module */
-	String load(String module, String name);
+	Object load(String module, String name);
 
 }
