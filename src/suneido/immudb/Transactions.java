@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.intfc.database.Transaction;
-import suneido.util.Print;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -162,7 +162,7 @@ class Transactions {
 
 	private static void abort(UpdateTransaction t, String msg) {
 		t.abortIfNotComplete(msg);
-		Print.timestamped("aborted " + t + " - " + msg);
+		Suneido.errlog("aborted " + t + " - " + msg);
 	}
 
 	synchronized List<Integer> tranlist() {

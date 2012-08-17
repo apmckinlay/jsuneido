@@ -41,7 +41,10 @@ public class Suneido {
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(args);
-		dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
+		if (cmdlineoptions.max_update_tran_sec != 0)
+			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
+		if (cmdlineoptions.max_writes_per_tran != 0)
+			dbpkg.setOption("max_writes_per_tran", cmdlineoptions.max_writes_per_tran);
 		try {
 			doAction();
 		} catch (Throwable e) {
@@ -204,10 +207,10 @@ public class Suneido {
 	private static void printHelp() {
 		System.out.println("usage: [options] [--] [arguments]");
 		System.out.println("options:");
-		System.out.println("-s[erver]               start the server (this is the default option)");
+		System.out.println("-s[erver]               start the server");
 		System.out.println("-c[lient]               run as client");
 		System.out.println("-p[ort] #               the TCP/IP port for server or client (default 3147)");
-		System.out.println("-repl                   (default) interactive read-eval-print-loop command line interface");
+		System.out.println("-repl                   (default) interactive read-eval-print-loop command line");
 		System.out.println("-d[ump] [table]         dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]         load from database.su or <table> from <table>.su");
 		System.out.println("-check                  check the database integrity");
@@ -215,6 +218,8 @@ public class Suneido {
 		System.out.println("-compact                remove deleted records");
 		System.out.println("-v[ersion]              print the version");
 		System.out.println("-i[mpersonate] version  tell clients this version");
+		System.out.println("-ut #                   set max update tran duration in seconds (default 10)");
+		System.out.println("-mw #                   set max writes per update transaction (default 10000)");
 		System.out.println("-h[elp] or -?           print this message");
 		System.out.println("--                      end the options, useful if arguments start with '-'");
 	}

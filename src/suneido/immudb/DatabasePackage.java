@@ -139,9 +139,10 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public void setOption(String name, Object value) {
-		if (name.equals("max_update_tran_sec")) {
+		if (name.equals("max_update_tran_sec"))
 			Transactions.MAX_UPDATE_TRAN_DURATION_SEC = (Integer) value;
-		}
+		if (name.equals("max_writes_per_tran"))
+			UpdateTransaction.MAX_WRITES_PER_TRANSACTION = (Integer) value;
 	}
 
 }

@@ -661,6 +661,7 @@ class Btree implements TranIndex {
 			return 0;
 		float fromPos = estimatePos(from);
 		float toPos = estimatePos(to);
+		assert fromPos <= toPos;
 		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
 
@@ -698,6 +699,7 @@ class Btree implements TranIndex {
 		if (level < treeLevels && levelSize < MIN_LEVEL_SIZE)
 			// recurse
 			return estimatePos(key, childNode(node, i), level + 1, levelSize, pos);
+		assert pos <= levelSize;
 		return (float) pos / levelSize;
 	}
 

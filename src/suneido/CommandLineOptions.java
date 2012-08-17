@@ -16,7 +16,8 @@ public class CommandLineOptions {
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
 	public boolean snapshotIsolation = false;
-	public int max_update_tran_sec = 10;
+	public int max_update_tran_sec = 0;
+	public int max_writes_per_tran = 0;
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -91,6 +92,8 @@ public class CommandLineOptions {
 				snapshotIsolation = true;
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
+			else if (arg.equals("-mw"))
+				max_writes_per_tran = getIntArg();
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)

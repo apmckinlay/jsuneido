@@ -12,7 +12,9 @@ import gnu.trove.set.hash.TIntHashSet;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
+import suneido.Suneido;
 import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
@@ -46,7 +48,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 	/** needs to be ordered tree for ReadWriteTransaction updateDbInfo */
 	protected final TreeMap<Index,TranIndex> updatedIndexes = Maps.newTreeMap();
 	private final TIntArrayList actions = new TIntArrayList();
-	private static final int MAX_WRITES_PER_TRANSACTION = 10000;
+	private int writeCount = 0;
+	static int MAX_WRITES_PER_TRANSACTION = 10000;
+	final static int WARN_WRITES_PER_TRANSACTION = 5000;
+	final static int WARN_UPDATE_TRAN_DURATION_SEC = 5;
 	protected static final short UPDATE = (short) 0;
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
@@ -73,6 +78,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public int addRecord(int tblnum, DataRecord rec) {
 		int adr = super.addRecord(tblnum, rec);
 		addAction(adr);
+		++writeCount;
 		return adr;
 	}
 
@@ -83,6 +89,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		addAction(UPDATE);
 		actions.add(fromadr);
 		actions.add(to.address());
+		++writeCount;
 		return fromadr;
 	}
 
@@ -90,11 +97,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 	public int removeRecord(int tblnum, Record rec) {
 		int adr = super.removeRecord(tblnum, rec);
 		addAction(adr);
+		++writeCount;
 		return adr;
 	}
 
 	private void addAction(int action) {
-		if (actions.size() > MAX_WRITES_PER_TRANSACTION)
+		if (writeCount > MAX_WRITES_PER_TRANSACTION)
 			abortThrow("too many writes (output, update, or delete) in one transaction");
 		actions.add(action);
 	}
@@ -208,6 +216,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 				tran.abortIncompleteStore();
 			}
 		}
+		if (writeCount > WARN_WRITES_PER_TRANSACTION)
+			Suneido.errlog("WARNING: excessive writes (" + writeCount +
+					") writes (output/update/delete) in one transaction " + this);
+		long secs = stopwatch.elapsedTime(TimeUnit.SECONDS);
+		if (secs > WARN_UPDATE_TRAN_DURATION_SEC)
+			Suneido.errlog("WARNING: long duration transaction " + this +
+					" (" + secs + " seconds)");
 	}
 
 	private void buildReads() {
