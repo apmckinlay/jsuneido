@@ -654,23 +654,56 @@ class Btree implements TranIndex {
 		return rangefrac(new BtreeKey(from), new BtreeKey(to));
 	}
 
-	private static final float MIN_FRAC = .001f;
+	private static final int MAX_LEVELS = 32;
 
 	private float rangefrac(BtreeKey from, BtreeKey to) {
 		if (rootNode.size() == 0)
 			return 0;
-		float fromPos = estimatePos(from);
-		float toPos = estimatePos(to);
-		assert fromPos <= toPos;
-		return Math.max(toPos - fromPos, MIN_FRAC);
+		boolean fromMinimal = isMinimal(from.key);
+		boolean toMaximal = isMaximal(to.key);
+		if (fromMinimal && toMaximal)
+			return 1;
+
+		float fromNodeSize[] = new float[MAX_LEVELS];
+		int fromNodePos[] = new int[MAX_LEVELS];
+		if (! fromMinimal)
+			search(from, fromNodeSize, fromNodePos);
+
+		float toNodeSize[] = new float[MAX_LEVELS];
+		int toNodePos[] = new int[MAX_LEVELS];
+		if (! toMaximal)
+			search(to, toNodeSize, toNodePos);
+
+		if (! fromMinimal && ! toMaximal)
+			// average node sizes
+			for (int level = 0; level <= treeLevels; ++level)
+				fromNodeSize[level] = toNodeSize[level] =
+						(fromNodeSize[level] + toNodeSize[level]) / 2;
+
+		float fromPos = fromMinimal ? 0 : estimatePos(fromNodeSize, fromNodePos);
+		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
+
+		return Math.max(toPos - fromPos, 0);
 	}
 
-	private float estimatePos(BtreeKey key) {
-		if (isMinimal(key.key))
-			return 0;
-		if (isMaximal(key.key))
-			return 1;
-		return estimatePos(key, rootNode, 0, 1, 0);
+	private void search(BtreeKey key, float[] nodeSize, int[] nodePos) {
+		BtreeNode node = rootNode;
+		for (int level = 0; level <= treeLevels; ++level) {
+			nodeSize[level] = node.size();
+			nodePos[level] = node.findPos(key);
+			if (level < treeLevels)
+				node = childNode(node, nodePos[level]);
+		}
+	}
+
+	private float estimatePos(float[] nodeSize, int[] nodePos) {
+		float levelSize = 1;
+		float pos = 0;
+		for (int level = 0; level <= treeLevels; ++level) {
+			levelSize *= nodeSize[level];
+			pos = pos * nodeSize[level] + nodePos[level];
+		}
+		return pos / levelSize;
 	}
 
 	private static boolean isMinimal(Record key) {
@@ -685,22 +718,6 @@ class Btree implements TranIndex {
 			if (! key.getRaw(i).equals(Record.MAX_FIELD))
 				return false;
 		return true;
-	}
-
-	private static final int MIN_LEVEL_SIZE = 100; // tradeoff speed vs. accuracy
-
-	private float estimatePos(BtreeKey key, BtreeNode node, int level,
-			int parentLevelSize, int parentPos) {
-		// use this node's size as an estimate of average node size
-		int nodeSize = node.size();
-		int levelSize = parentLevelSize * nodeSize;
-		int i = node.findPos(key);
-		int pos = parentPos * nodeSize + i;
-		if (level < treeLevels && levelSize < MIN_LEVEL_SIZE)
-			// recurse
-			return estimatePos(key, childNode(node, i), level + 1, levelSize, pos);
-		assert pos <= levelSize;
-		return (float) pos / levelSize;
 	}
 
 }
