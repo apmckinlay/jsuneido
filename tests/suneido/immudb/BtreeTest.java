@@ -597,23 +597,23 @@ public class BtreeTest {
 
 	@Test
 	public void rangefrac_multiple_small_nodes() {
-		for (int i = 10; i < 1010; i += 4)
+		for (int i = 10; i < 1034; i += 4)
 			btree.add(key(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
 		assertThat((double) btree.rangefrac(rec(0), rec(0)),
-				closeTo(0.0, .02));
+				closeTo(0.0, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(9999)),
-				closeTo(1.0, .02));
+				closeTo(1.0, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
-				closeTo(.1, .02));
-		assertThat((double) btree.rangefrac(rec(10), rec(711)),
-				closeTo(.7, .02));
-		assertThat((double) btree.rangefrac(rec(210), rec(710)),
-				closeTo(.5, .02));
+				closeTo(.1, .01));
+		assertThat((double) btree.rangefrac(rec(10), rec(715)),
+				closeTo(.7, .01));
+		assertThat((double) btree.rangefrac(rec(210), rec(714)),
+				closeTo(.5, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
-				closeTo(.1, .02));
+				closeTo(.1, .01));
 		assertThat((double) btree.rangefrac(rec(55), rec(55)),
-				closeTo(0, .02));
+				closeTo(0, .01));
 	}
 
 	@Test
