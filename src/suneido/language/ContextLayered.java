@@ -84,4 +84,10 @@ public class ContextLayered extends Context {
 		super.clear(name);
 	};
 
+	@Override
+	public void clearAll() {
+		loader.invalidateAll();
+		super.clearAll();
+	}
+
 }
