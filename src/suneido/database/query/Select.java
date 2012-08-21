@@ -97,19 +97,28 @@ public class Select extends Query1 {
 		if (fix != null)
 			return fix;
 		fix = new ArrayList<Fixed>();
-		List<String> fields = source.columns();
-		for (Expr e : expr.exprs)
-			if (e.isTerm(fields) && e instanceof BinOp) {
-				// MAYBE: handle IN
-				BinOp binop = (BinOp) e;
-				if (binop.op == IS) {
-					String field = ((Identifier) binop.left).ident;
-					Object value = ((Constant) binop.right).value;
-					fix.add(new Fixed(field, value));
-				}
-			}
+		for (Expr e : expr.exprs) {
+			Fixed fixed = fixed(e);
+			if (fixed != null)
+				fix.add(fixed);
+		}
 		fix = Fixed.combine(fix, source.fixed());
 		return fix;
+	}
+
+	private static Fixed fixed(Expr e) {
+		// MAYBE: handle IN
+		if (e instanceof BinOp) {
+			BinOp binop = (BinOp) e;
+			if (binop.op == IS &&
+					binop.left instanceof Identifier &&
+					binop.right instanceof Constant) {
+				String field = ((Identifier) binop.left).ident;
+				Object value = ((Constant) binop.right).value;
+				return new Fixed(field, value);
+			}
+		}
+		return null;
 	}
 
 	@Override

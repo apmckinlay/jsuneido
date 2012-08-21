@@ -25,7 +25,8 @@ public abstract class Expr {
 	 * Overridden by {@link BinOp} and {@link In}.
 	 * This is used by {@link Select} optimization.
 	 * <p>
-	 * Note: Result is cached so fields should always be the same list.
+	 * Note: Should only be used for "simple" source/header.
+	 * e.g. Doesn't work with union when one source has field and other has rule.
 	 */
 	public boolean isTerm(List<String> fields) {
 		return false;

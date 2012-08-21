@@ -2,7 +2,10 @@ package suneido.database.query.expr;
 
 import static suneido.SuException.unreachable;
 import static suneido.language.Ops.*;
-import static suneido.language.Token.*;
+import static suneido.language.Token.GT;
+import static suneido.language.Token.GTE;
+import static suneido.language.Token.LT;
+import static suneido.language.Token.LTE;
 import static suneido.util.Util.bufferUcompare;
 import static suneido.util.Util.union;
 
@@ -17,12 +20,27 @@ public class BinOp extends Expr {
 	public Token op;
 	public Expr left;
 	public Expr right;
-	private Boolean isterm = null;
+	private boolean isTerm = false;
+	private List<String> isTermFields = null;
 
 	public BinOp(Token op, Expr left, Expr right) {
 		this.op = op;
 		this.left = left;
 		this.right = right;
+		if (left instanceof Constant && op.termop())
+			reverse();
+	}
+
+	private void reverse() {
+		Expr tmp = left; left = right; right = tmp;
+		switch (op) {
+		case LT : op = GT; break ;
+		case LTE : op = GTE; break ;
+		case GT : op = LT; break ;
+		case GTE : op = LTE; break ;
+		case IS : case ISNT : break ;
+		default : throw unreachable();
+		}
 	}
 
 	@Override
@@ -72,37 +90,29 @@ public class BinOp extends Expr {
 		}
 	}
 
+	// see also In
 	@Override
 	public boolean isTerm(List<String> fields) {
-		if (!op.termop())
+		if (! fields.equals(isTermFields)) {
+			isTerm = isTerm2(fields); // cache
+			isTermFields = fields;
+		}
+		return isTerm;
+	}
+
+	private boolean isTerm2(List<String> fields) {
+		if (! op.termop())
 			return false;
 		if (left.isField(fields) && right instanceof Constant)
 			return true;
-		if (left instanceof Constant && right.isField(fields)) {
-			reverse();
-			return true;
-		}
 		return false;
-	}
-
-	private void reverse() {
-		Expr tmp = left; left = right; right = tmp;
-		switch (op) {
-		case LT : op = GT; break ;
-		case LTE : op = GTE; break ;
-		case GT : op = LT; break ;
-		case GTE : op = LTE; break ;
-		case IS : case ISNT : break ;
-		default : throw unreachable();
-		}
 	}
 
 	@Override
 	public Object eval(Header hdr, Row row) {
-		// once we're eval'ing it is safe to cache isTerm
-		if (isterm == null)
-			isterm = isTerm(hdr.fields());
-		if (isterm) {
+		// only use raw comparison if isTerm has been used (by Select)
+		// NOTE: do NOT want to use raw for Extend because of rule issues
+		if (isTerm && hdr.fields().equals(isTermFields)) {
 			Identifier id = (Identifier) left;
 			ByteBuffer field = row.getraw(hdr, id.ident);
 			Constant c = (Constant) right;
