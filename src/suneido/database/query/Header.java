@@ -74,10 +74,19 @@ public class Header {
 		return true;
 	}
 
+	/**
+	 * @return A list of the logical columns, including rules.
+	 * Does not include deleted fields.
+	 */
 	public List<String> columns() {
 		return cols;
 	}
 
+	/**
+	 * @return A list of the physical fields, as in the data records.
+	 * Includes deleted fields as "-".
+	 * Does not include rule columns.
+	 */
 	public List<String> fields() {
 		// NOTE: this includes deleted fields - important for output
 		if (size() == 1)
@@ -89,11 +98,14 @@ public class Header {
 		// WARNING: assumes "real" data is in every other (odd) record
 		for (int i = 1; i < flds.size(); i += 2)
 			for (String f : flds.get(i))
-				if (f.equals("-") || !fields.contains(f))
+				if (f.equals("-") || ! fields.contains(f))
 					fields.add(f);
 		return fields;
 	}
 
+	/**
+	 * @return A list of the rule columns, i.e. columns() - fields()
+	 */
 	List<String> rules() {
 		List<String> rules = new ArrayList<String>();
 		for (String c : cols)
@@ -102,11 +114,13 @@ public class Header {
 		return rules;
 	}
 
-	// schema is all the columns with the rules capitalized
+	/**
+	 * @return A list of the logical columns with the rules capitalized.
+	 */
 	public List<String> schema() {
 		List<String> schema = new ArrayList<String>(fields());
 		for (String c : cols)
-			if (!inflds(flds, c)) {
+			if (! inflds(flds, c)) {
 				String s = c.substring(0, 1).toUpperCase() + c.substring(1);
 				schema.add(s);
 			}

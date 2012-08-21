@@ -20,8 +20,15 @@ public abstract class Expr {
 
 	public abstract Expr replace(List<String> from, List<Expr> to);
 
+	/**
+	 * Determines if an operation can be done "raw" i.e. without unpacking.
+	 * Overridden by {@link BinOp} and {@link In}.
+	 * This is used by {@link Select} optimization.
+	 * <p>
+	 * Note: Result is cached so fields should always be the same list.
+	 */
 	public boolean isTerm(List<String> fields) {
-		return false; // override appropriately in derived classes
+		return false;
 	}
 
 	public boolean isField(List<String> fields) {
