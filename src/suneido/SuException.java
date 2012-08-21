@@ -30,8 +30,8 @@ public class SuException extends RuntimeException {
 		return getMessage();
 	}
 
-	public static final SuException unreachable() {
-		return new SuException("should not reach here");
+	public static final Error unreachable() {
+		return new Error("should not reach here");
 	}
 
 	public static final SuException methodNotFound(Object object, String method) {
