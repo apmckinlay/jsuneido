@@ -8,7 +8,6 @@ import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
 import static suneido.intfc.database.DatabasePackage.printObserver;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -118,7 +117,7 @@ public class DbTools {
 			String tablename) {
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
-		Database db = new File(dbFilename).exists()
+		Database db = dbpkg.dbExists(dbFilename)
 				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);
 		try {
 			@SuppressWarnings("resource")

@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -143,6 +144,12 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 			Transactions.MAX_UPDATE_TRAN_DURATION_SEC = (Integer) value;
 		if (name.equals("max_writes_per_tran"))
 			UpdateTransaction.MAX_WRITES_PER_TRANSACTION = (Integer) value;
+	}
+
+	@Override
+	public boolean dbExists(String dbFilename) {
+		return new File(dbFilename + "d").exists() &&
+				new File(dbFilename + "i").exists();
 	}
 
 }
