@@ -78,6 +78,8 @@ public interface DatabasePackage {
 
 	void renameDbWithBackup(String tempfile, String dbFilename);
 
+	boolean dbExists(String dbFilename);
+
 	void setOption(String name, Object value);
 
 }

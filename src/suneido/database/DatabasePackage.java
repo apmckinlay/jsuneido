@@ -4,6 +4,7 @@
 
 package suneido.database;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -135,6 +136,11 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public void setOption(String name, Object value) {
+	}
+
+	@Override
+	public boolean dbExists(String dbFilename) {
+		return new File(dbFilename).exists();
 	}
 
 }
