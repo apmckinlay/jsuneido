@@ -16,7 +16,8 @@ public class In extends Expr {
 	public final Expr expr;
 	private final List<Object> values;
 	public final Record packed;
-	private Boolean isterm = null;
+	private boolean isTerm = false;
+	private List<String> isTermFields = null;
 
 	public In(Expr expr, List<Object> values) {
 		this(expr, values, convert(values));
@@ -55,17 +56,25 @@ public class In extends Expr {
 		return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 
+	// see also BinOp
 	@Override
 	public boolean isTerm(List<String> fields) {
+		if (! fields.equals(isTermFields)) {
+			isTerm = isTerm2(fields); // cache
+			isTermFields = fields;
+		}
+		return isTerm;
+	}
+
+	private boolean isTerm2(List<String> fields) {
 		return expr.isField(fields);
 	}
 
 	@Override
 	public Object eval(Header hdr, Row row) {
-		// once we're eval'ing it is safe to cache isTerm
-		if (isterm == null)
-			isterm = isTerm(hdr.fields());
-		if (isterm) {
+		// only use raw comparison if isTerm has been used (by Select)
+		// NOTE: do NOT want to use raw for Extend because of rule issues
+		if (isTerm && hdr.fields().equals(isTermFields)) {
 			Identifier id = (Identifier) expr;
 			ByteBuffer value = row.getraw(hdr, id.ident);
 			for (ByteBuffer v : packed)

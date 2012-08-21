@@ -66,6 +66,7 @@ public abstract class Query {
 
 	public abstract Row get(Dir dir);
 
+	/** Originate from {@link Select} and {@link Extend} */
 	List<Fixed> fixed() {
 		return Collections.emptyList();
 	}
