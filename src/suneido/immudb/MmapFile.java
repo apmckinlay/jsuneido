@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -120,6 +121,7 @@ class MmapFile extends Storage {
 //			System.out.println(file + " size " + file_size +
 //					" grew " + (file_size - starting_file_size));
 		force();
+		Arrays.fill(chunks, null); // might help gc
 		try {
 			fc.close();
 			fin.close();
