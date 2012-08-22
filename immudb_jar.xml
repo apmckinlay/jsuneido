@@ -9,6 +9,9 @@
 			<fileset dir="bin" excludes="**/*Test* suneido/database/*"/>
 		</jar>
 		<exec executable="java">
+			<arg value="-version"/>
+		</exec>
+		<exec executable="java">
 			<arg value="-jar"/>
 			<arg value="lib/proguard.jar"/>
 			<arg value="@immudb.pro"/>
