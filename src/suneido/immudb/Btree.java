@@ -714,6 +714,8 @@ class Btree implements TranIndex {
 	}
 
 	private static boolean isMaximal(Record key) {
+		if (key.size() == 0)
+			return false;
 		for (int i = 0; i < key.size(); ++i)
 			if (! key.getRaw(i).equals(Record.MAX_FIELD))
 				return false;
