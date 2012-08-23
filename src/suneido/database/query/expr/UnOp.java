@@ -44,7 +44,7 @@ public class UnOp extends Expr {
 	Object eval2(Object x) {
 		switch (op) {
 		case NOT:
-			return x == Boolean.FALSE ? Boolean.TRUE : Boolean.FALSE;
+			return Ops.not(x);
 		case ADD:
 			return x;
 		case SUB:
