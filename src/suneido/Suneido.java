@@ -175,6 +175,7 @@ public class Suneido {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
 			errlog("database corrupt");
+			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
 			if (db == null)
@@ -202,6 +203,13 @@ public class Suneido {
 						db.force();
 					}
 				}, 1, TimeUnit.MINUTES);
+	}
+
+	private static void tryToCloseMemoryMappings() {
+		System.gc();
+		System.runFinalization();
+		System.gc();
+		System.runFinalization();
 	}
 
 	private static void printHelp() {

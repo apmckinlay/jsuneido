@@ -115,11 +115,6 @@ public class FileUtils {
 	}
 
 	public static void renameWithBackup(File tmpfile, File file) {
-		// attempt to ensure memory mappings are closed
-		System.gc();
-		System.runFinalization();
-		System.gc();
-		System.runFinalization();
 		File bakfile = new File(file + ".bak");
 		if (bakfile.exists() && ! bakfile.delete())
 			throw new RuntimeException("can't delete " + bakfile);
