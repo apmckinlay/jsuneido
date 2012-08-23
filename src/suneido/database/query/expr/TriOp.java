@@ -6,6 +6,7 @@ import java.util.List;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Ops;
 
 public class TriOp extends Expr {
 	private Expr expr;
@@ -40,10 +41,9 @@ public class TriOp extends Expr {
 
 	@Override
 	public Object eval(Header hdr, Row row) {
-		if (expr.eval(hdr, row) == Boolean.TRUE)
-			return iftrue.eval(hdr, row);
-		else
-			return iffalse.eval(hdr, row);
+		return (Ops.toBoolean(expr.eval(hdr, row)) == Boolean.TRUE)
+			? iftrue.eval(hdr, row)
+			: iffalse.eval(hdr, row);
 	}
 
 	@Override

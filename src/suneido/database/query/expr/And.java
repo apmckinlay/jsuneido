@@ -5,6 +5,7 @@ import java.util.List;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.language.Ops;
 
 public class And extends Multi {
 
@@ -50,7 +51,7 @@ public class And extends Multi {
 	@Override
 	public Object eval(Header hdr, Row row) {
 		for (Expr e : exprs)
-			if (e.eval(hdr, row) != Boolean.TRUE)
+			if (Ops.toBoolean(e.eval(hdr, row)) == Boolean.FALSE)
 				return Boolean.FALSE;
 		return Boolean.TRUE;
 	}

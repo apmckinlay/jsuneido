@@ -536,7 +536,9 @@ public final class Ops {
 	}
 
 	public static Boolean toBoolean(Object x) {
-		return toBoolean_(x);
+		if (x instanceof Boolean)
+			return (Boolean) x;
+		throw new SuException("can't convert " + typeName(x) + " to boolean");
 	}
 
 	public static boolean toBoolean_(Object x) {
