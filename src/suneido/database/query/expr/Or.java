@@ -39,7 +39,8 @@ public class Or extends Multi {
 		List<Expr> new_exprs = foldExprs(Constant.FALSE);
 		boolean allfalse = true;
 		for (Expr e : new_exprs == null ? exprs : new_exprs)
-			if (e == Constant.TRUE)
+			if (e instanceof Constant &&
+					Ops.toBoolean_(((Constant) e).value))
 				return Constant.TRUE;
 			else
 				allfalse = false;
@@ -51,7 +52,7 @@ public class Or extends Multi {
 	@Override
 	public Object eval(Header hdr, Row row) {
 		for (Expr e : exprs)
-			if (Ops.toBoolean(e.eval(hdr, row)) == Boolean.TRUE)
+			if (Ops.toBoolean_(e.eval(hdr, row)))
 				return Boolean.TRUE;
 		return Boolean.FALSE;
 	}

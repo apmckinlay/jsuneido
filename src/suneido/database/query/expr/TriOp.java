@@ -35,13 +35,13 @@ public class TriOp extends Expr {
 		iftrue = iftrue.fold();
 		iffalse = iffalse.fold();
 		if (expr instanceof Constant)
-			return expr == Constant.TRUE ? iftrue : iffalse;
+			return Ops.toBoolean_(((Constant) expr).value) ? iftrue : iffalse;
 		return this;
 	}
 
 	@Override
 	public Object eval(Header hdr, Row row) {
-		return (Ops.toBoolean(expr.eval(hdr, row)) == Boolean.TRUE)
+		return Ops.toBoolean_(expr.eval(hdr, row))
 			? iftrue.eval(hdr, row)
 			: iffalse.eval(hdr, row);
 	}
