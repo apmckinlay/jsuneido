@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -93,7 +97,8 @@ public class LexerTest {
 				{ "'\\r'", "\r" },
 				{ "'\\t'", "\t" },
 				{ "'\\015'", "\r" },
-				{ "'\\x0a'", "\n" }
+				{ "'\\x0a'", "\n" },
+				{ "`\\`", "\\" }
 			};
 			for (String[] s : cases)
 				checkValue(s, STRING);
@@ -118,7 +123,7 @@ public class LexerTest {
 	@Test
 	public void numberEnding() {
 		check("100.Times", NUMBER, DOT, IDENTIFIER);
-		check("#20090216.EndOfDay", HASH, NUMBER, DOT, IDENTIFIER);
+		check("#20090216.EndOfMonth", HASH, NUMBER, DOT, IDENTIFIER);
 	}
 
 	@Test

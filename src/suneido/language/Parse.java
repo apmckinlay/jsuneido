@@ -1,11 +1,15 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static suneido.language.Token.NEWLINE;
 import suneido.SuException;
 
 public class Parse<T, G> {
-
 	protected final Lexer lexer;
+	protected final Lexer ahead;
 	protected final G generator;
 	public Token token = NEWLINE;
 	protected int statementNest = 99;
@@ -13,11 +17,13 @@ public class Parse<T, G> {
 
 	protected Parse(Lexer lexer, G generator) {
 		this.lexer = lexer;
+		ahead = new Lexer(lexer);
 		this.generator = generator;
 		match();
 	}
 	protected Parse(Parse<T, G> parse) {
 		lexer = parse.lexer;
+		ahead = parse.ahead;
 		generator = parse.generator;
 		token = parse.token;
 		statementNest = parse.statementNest;
@@ -102,9 +108,8 @@ public class Parse<T, G> {
 		return lookAhead(true);
 	}
 
-	// PERF reuse a lookahead lexer (match calls this every time)
 	protected Token lookAhead(boolean skipNewlines) {
-		Lexer ahead = new Lexer(lexer);
+		ahead.copyPosition(lexer);
 		Token token = ahead.next();
 		while (skipNewlines && token == NEWLINE)
 			token = ahead.next();

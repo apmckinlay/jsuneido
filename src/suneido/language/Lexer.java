@@ -1,6 +1,9 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
-import static java.lang.Character.isDigit;
 import static suneido.language.Token.*;
 
 public class Lexer {
@@ -15,12 +18,15 @@ public class Lexer {
 	public Lexer(String source) {
 		this.source = source;
 	}
+
 	public Lexer(Lexer lexer) {
 		source = lexer.source;
+		copyPosition(lexer);
+	}
+
+	public void copyPosition(Lexer lexer) {
+		assert source == lexer.source;
 		si = lexer.si;
-		prev = lexer.prev;
-		value = lexer.value;
-		keyword = lexer.keyword;
 	}
 
 	public void ignoreCase() {
@@ -70,255 +76,186 @@ public class Lexer {
 			return whitespace();
 		++si;
 		switch (c) {
-		case '#': return HASH;
-		case '(': return L_PAREN;
-		case ')': return R_PAREN;
-		case ',': return COMMA;
-		case ';': return SEMICOLON;
-		case '?': return Q_MARK;
-		case '@': return AT;
-		case '[': return L_BRACKET;
-		case ']': return R_BRACKET;
-		case '{': return L_CURLY;
-		case '}': return R_CURLY;
-		case '~': return BITNOT;
+		case '#':
+			return HASH;
+		case '(':
+			return L_PAREN;
+		case ')':
+			return R_PAREN;
+		case ',':
+			return COMMA;
+		case ';':
+			return SEMICOLON;
+		case '?':
+			return Q_MARK;
+		case '@':
+			return AT;
+		case '[':
+			return L_BRACKET;
+		case ']':
+			return R_BRACKET;
+		case '{':
+			return L_CURLY;
+		case '}':
+			return R_CURLY;
+		case '~':
+			return BITNOT;
 		case ':':
-			if (charAt(si) == ':') {
-				++si;
-				return RANGELEN;
-			} else
-				return COLON;
+			return matchIf(':') ? RANGELEN : COLON;
 		case '=' :
-			switch (charAt(si)) {
-			case '=' : ++si; return IS;
-			case '~' : ++si; return MATCH;
-			default:
-				return EQ;
-			}
+			return matchIf('=') ? IS : matchIf('~') ? MATCH : EQ;
 		case '!':
-			switch (charAt(si)) {
-			case '=':
-				++si;
-				return ISNT;
-			case '~':
-				++si;
-				return MATCHNOT;
-			default:
-				return NOT;
-			}
+			return matchIf('=') ? ISNT : matchIf('~') ? MATCHNOT : NOT;
 		case '<':
-			switch (charAt(si)) {
-			case '<':
-				if (charAt(++si) == '=') {
-					++si;
-					return LSHIFTEQ;
-				} else
-					return LSHIFT;
-			case '>':
-				++si;
-				return ISNT;
-			case '=':
-				++si;
-				return LTE;
-			default:
-				return LT;
-			}
+			return matchIf('<') ? (matchIf('=') ? LSHIFTEQ : LSHIFT)
+					: matchIf('>') ? ISNT : matchIf('=') ? LTE : LT;
 		case '>':
-			switch (charAt(si)) {
-			case '>':
-				if (charAt(++si) == '=') {
-					++si;
-					return RSHIFTEQ;
-				} else
-					return RSHIFT;
-			case '=':
-				++si;
-				return GTE;
-			default:
-				return GT;
-			}
+			return matchIf('>') ? (matchIf('=') ? RSHIFTEQ : RSHIFT)
+					: matchIf('=') ? GTE : GT;
 		case '|':
-			switch (charAt(si)) {
-			case '|':
-				++si;
-				return OR;
-			case '=':
-				++si;
-				return BITOREQ;
-			default:
-				return BITOR;
-			}
+			return matchIf('|') ? OR : matchIf('=') ? BITOREQ : BITOR;
 		case '&':
-			switch (charAt(si)) {
-			case '&':
-				++si;
-				return AND;
-			case '=':
-				++si;
-				return BITANDEQ;
-			default:
-				return BITAND;
-			}
+			return matchIf('&') ? AND : matchIf('=') ? BITANDEQ : BITAND;
 		case '^':
-			switch (charAt(si)) {
-			case '=':
-				++si;
-				return BITXOREQ;
-			default:
-				return BITXOR;
-			}
+			return matchIf('=') ? BITXOREQ : BITXOR;
 		case '-':
-			switch (charAt(si)) {
-			case '-':
-				++si;
-				return DEC;
-			case '=':
-				++si;
-				return SUBEQ;
-			default:
-				return SUB;
-			}
+			return matchIf('-') ? DEC : matchIf('=') ? SUBEQ : SUB;
 		case '+':
-			switch (charAt(si)) {
-			case '+':
-				++si;
-				return INC;
-			case '=':
-				++si;
-				return ADDEQ;
-			default:
-				return ADD;
-			}
+			return matchIf('+') ? INC : matchIf('=') ? ADDEQ : ADD;
 		case '/':
-			switch (charAt(si)) {
-			case '/':
-				// rest of line is comment
-				for (++si; si < source.length() &&
-					'\r' != charAt(si) && '\n' != charAt(si); ++si)
-					;
-				return COMMENT;
-			case '*':
-				for (++si; si < source.length() && (charAt(si) != '*' || charAt(si + 1) != '/'); ++si)
-					;
-				if (si < source.length())
-					si += 2;
-				return COMMENT;
-			case '=':
-				++si;
-				return DIVEQ;
-			default:
-				return DIV;
-			}
+			return matchIf('/') ? lineComment() : matchIf('*') ? spanComment()
+					: matchIf('=') ? DIVEQ : DIV;
 		case '*':
-			if ('=' == charAt(si)) {
-				++si;
-				return MULEQ;
-			} else
-				return MUL;
+			return matchIf('=') ? MULEQ : MUL;
 		case '%':
-			if ('=' == charAt(si)) {
-				++si;
-				return MODEQ;
-			} else
-				return MOD;
+			return matchIf('=') ? MODEQ : MOD;
 		case '$':
-			if ('=' == charAt(si)) {
-				++si;
-				return CATEQ;
-			} else
-				return CAT;
-		case '0':
-			if (charAtLower(si) == 'x') {
-				++si;
-				while (-1 != Character.digit(charAt(si), 16))
-					++si;
-				// NOTE: this accepts "0x"
-				return value(NUMBER);
-			}
-			// fall thru
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			return scanNumber();
-		case '.':
-			if (charAt(si) == '.') {
-				++si;
-				return RANGETO;
-			} else if (isDigit(charAt(si)))
-				return scanNumber();
-			else
-				return DOT;
-		case '`': {
-			// backquoted strings not escaped, can contain anything except backquotes
-			StringBuilder sb = new StringBuilder();
-			for (; si < source.length() && (c = source.charAt(si)) != '`'; ++si)
-				sb.append(c);
-			if (si < source.length())
-				++si;	// skip closing quote
-			value = sb.toString();
-			return STRING; }
+			return matchIf('=') ? CATEQ : CAT;
+		case '`':
+			return rawString();
 		case '"':
-		case '\'': {
-			char quote = c;
-			StringBuilder sb = new StringBuilder();
-			for (; si < source.length() && (c = source.charAt(si)) != quote; ++si)
-				if (c == '\\')
-					sb.append(doesc());
-				else
-					sb.append(c);
-			if (si < source.length())
-				++si;	// skip closing quote
-			value = sb.toString();
-			return STRING; }
+		case '\'':
+			return quotedString(c);
+		case '.':
+			return matchIf('.') ? RANGETO
+					: Character.isDigit(charAt(si)) ? number()
+					: DOT;
 		default:
-			if (Character.isLetter(c) || c == '_') {
-				while (true) {
-					c = charAt(si);
-					if (Character.isLetterOrDigit(c) || c == '_')
-						++si;
-					else
-						break;
-				}
-				if (c == '?' || c == '!')
-					++si;
-				value = source.substring(prev, si);
-				keyword = ignoreCase
-						? Token.lookupIgnoreCase(value) : Token.lookup(value);
-				if (charAt(si) == ':' &&
-						(keyword == Token.IS || keyword == Token.ISNT ||
-						keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
-					keyword = null;
-				return keyword != null && keyword.isOperator()
-						? keyword : IDENTIFIER;
-			}
-			return ERROR;
+			return Character.isDigit(c) ? number()
+					: (c == '_' || Character.isLetter(c)) ? identifier()
+					: ERROR;
 		}
 	}
 
-	private Token scanNumber() {
-		while (isDigit(charAt(si)))
+	private boolean matchIf(char c) {
+		if (si < source.length() && source.charAt(si) == c) {
 			++si;
-		if (charAt(si) == '.' && charAt(si + 1) != '.') {
-			++si;
-			while (isDigit(charAt(si)))
-				++si;
-		}
-		if (charAtLower(si) == 'e' && (
-				isDigit(charAt(si + 1)) ||
-				((charAt(si + 1) == '+' || charAt(si + 1) == '-') && isDigit(charAt(si + 2))))) {
+			return true;
+		} else
+			return false;
+	}
+
+	private Token spanComment() {
+		for (++si; si < source.length() && (charAt(si) != '*' || charAt(si + 1) != '/'); ++si)
+			;
+		if (si < source.length())
 			si += 2;
-			while (isDigit(charAt(si)))
+		return COMMENT;
+	}
+
+	private Token lineComment() {
+		for (++si; si < source.length() &&
+			'\r' != charAt(si) && '\n' != charAt(si); ++si)
+			;
+		return COMMENT;
+	}
+
+	// backquoted strings not escaped, can contain anything except backquotes
+	private Token rawString() {
+		while (si < source.length() && source.charAt(si) != '`')
+			++si;
+		if (si < source.length())
+			++si;	// skip closing quote
+		// use copy constructor to avoid reference to source
+		value = new String(source.substring(prev + 1, si - 1));
+		return STRING;
+	}
+
+	private Token quotedString(char quote) {
+		char c;
+		StringBuilder sb = new StringBuilder();
+		for (; si < source.length() && (c = source.charAt(si)) != quote; ++si)
+			if (c == '\\')
+				sb.append(doesc());
+			else
+				sb.append(c);
+		if (si < source.length())
+			++si;	// skip closing quote
+		value = sb.toString();
+		return STRING;
+	}
+
+	private Token identifier() {
+		char c;
+		while (true) {
+			c = charAt(si);
+			if (Character.isLetterOrDigit(c) || c == '_')
 				++si;
+			else
+				break;
 		}
-		if (charAt(si - 1) == '.')
-			--si;
+		if (c == '?' || c == '!')
+			++si;
+		// use copy constructor to avoid reference to source
+		value = new String(source.substring(prev, si));
+		keyword = ignoreCase
+				? Token.lookupIgnoreCase(value) : Token.lookup(value);
+		if (charAt(si) == ':' &&
+				(keyword == Token.IS || keyword == Token.ISNT ||
+				keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
+			keyword = null;
+		return keyword != null && keyword.isOperator()
+				? keyword : IDENTIFIER;
+	}
+
+	private Token number() {
+		--si;
+		if (hexNumber())
+			return value(NUMBER);
+		matchWhileDigit();
+		if (matchIf('.'))
+			matchWhileDigit();
+		exponent();
+		if (source.charAt(si - 1) == '.')
+			--si; // don't absorb trailing period
 		return value(NUMBER);
+	}
+
+	private boolean hexNumber() {
+		if (matchIf('0') && (matchIf('x') || matchIf('X'))) {
+			while (-1 != Character.digit(charAt(si), 16))
+				++si;
+			// NOTE: this accepts "0x"
+			return true;
+		}
+		return false;
+	}
+
+	private boolean matchWhileDigit() {
+		int start = si;
+		while (si < source.length() && Character.isDigit(source.charAt(si)))
+			++si;
+		return si > start;
+	}
+
+	private void exponent() {
+		int save = si;
+		if (! matchIf('e') && ! matchIf('E'))
+			return;
+		if (! matchIf('+'))
+			matchIf('-');
+		if (! matchWhileDigit())
+			si = save;
 	}
 
 	private Token whitespace() {
@@ -334,7 +271,7 @@ public class Lexer {
 	}
 
 	private Token value(Token token) {
-		value = source.substring(prev, si);
+		value = new String(source.substring(prev, si));
 		return token;
 	}
 
@@ -373,32 +310,18 @@ public class Lexer {
 	private char charAt(int i) {
 		return i < source.length() ? source.charAt(i) : 0;
 	}
-	private char charAtLower(int i) {
-		return i < source.length() ? Character.toLowerCase(source.charAt(i)) : 0;
-	}
+
 	public String remaining() {
 		si = source.length();
 		return source.substring(prev);
-	}
-
-	public int start() {
-		return prev;
 	}
 
 	public int end() {
 		return si;
 	}
 
-	public String from(int pos) {
-		return source.substring(pos, prev);
-	}
-
 	public String matched() {
 		return source.substring(prev, si);
-	}
-
-	public String sourceWithPosition() {
-		return source.substring(0, prev) + " @HERE@ " + source.substring(prev);
 	}
 
 	public static void main(String[] args) {
