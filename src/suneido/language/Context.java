@@ -4,9 +4,10 @@
 
 package suneido.language;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
-
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 
@@ -22,9 +23,12 @@ import com.google.common.collect.Lists;
  * @see ContextLayered
  * @see ContextModules
  */
+@ThreadSafe
 public abstract class Context {
 	private final Contexts contexts;
-	private final TObjectIntHashMap<String> nameToSlot = new TObjectIntHashMap<String>();
+	private final ConcurrentHashMap<String,Integer> nameToSlot =
+			new ConcurrentHashMap<String,Integer>();
+	// these list should be threadsafe
 	private final ArrayList<String> names = Lists.newArrayList();
 	private final ArrayList<Object> values = Lists.newArrayList();
 
@@ -38,13 +42,17 @@ public abstract class Context {
 
 	/** @return The slot for a name, assigning a new slot for a new name */
 	int slotForName(String name) {
-		int slot = nameToSlot.get(name);
-		if (slot != 0)
-			return slot;
-		slot = names.size();
-		nameToSlot.put(name, slot);
+		Integer slot = nameToSlot.get(name);
+		return (slot == null) ? newSlot(name) : slot;
+	}
+
+	synchronized private int newSlot(String name) {
+		int slot = names.size();
 		names.add(name);
 		values.add(null);
+		nameToSlot.put(name, slot);
+		// WARNING: concurrency bug if nameToSlot change becomes visible before
+		// names and values adds
 		return slot;
 	}
 
