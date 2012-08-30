@@ -67,7 +67,10 @@ public class ContextLayered extends Context {
 		return result;
 	}
 
-	public synchronized String overload(String base) {
+	/***
+	 * Called by AstCompile when for classes that inherit from _Name
+	 */
+	public String overload(String base) {
 		assert base.startsWith("_");
 		String name = base.substring(1); // remove leading underscore
 		Object x = get(name);
