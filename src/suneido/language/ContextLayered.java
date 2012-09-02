@@ -15,7 +15,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * Old style context with a stack of layered libraries
+ * Old style context with a stack of layered libraries "in use"
  * <p>
  * Overloading (_Name) has two forms:
  * - class base e.g. Name = _Name { ... } - "previous" value is given unique name
