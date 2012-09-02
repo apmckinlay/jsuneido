@@ -4,14 +4,13 @@
 
 package suneido.language;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-
-import com.google.common.collect.Lists;
 
 /**
  * The "global" context for a function or method.
@@ -28,9 +27,8 @@ public abstract class Context {
 	private final Contexts contexts;
 	private final ConcurrentHashMap<String,Integer> nameToSlot =
 			new ConcurrentHashMap<String,Integer>();
-	// these list should be threadsafe
-	private final ArrayList<String> names = Lists.newArrayList();
-	private final ArrayList<Object> values = Lists.newArrayList();
+	private final GrowableArray<String> names = new GrowableArray<String>();
+	private final GrowableArray<Object> values = new GrowableArray<Object>();
 
 	Context(Contexts contexts) {
 		this.contexts = contexts;
@@ -47,8 +45,7 @@ public abstract class Context {
 	}
 
 	synchronized private int newSlot(String name) {
-		int slot = names.size();
-		names.add(name);
+		int slot = names.add(name);
 		values.add(null);
 		nameToSlot.put(name, slot);
 		// WARNING: concurrency bug if nameToSlot change becomes visible before
@@ -101,14 +98,44 @@ public abstract class Context {
 	}
 
 	/** Remove the cached values for all slots. */
-	public void clearAll() {
-		for (int i = 0; i < values.size(); ++i)
-			values.set(i, null);
+	public synchronized void clearAll() {
+		values.nullFill();
 	}
 
 	/** used by overloading and tests */
 	public void set(String name, Object value) {
 		values.set(slotForName(name), value);
+	}
+
+	@NotThreadSafe
+	private static class GrowableArray<T> {
+		private Object[] data = new Object[8];
+		private int size = 0; // only accessed by add & size
+
+		/** Can be used unsynchronized if you can tolerate stale data */
+		@SuppressWarnings("unchecked")
+		T get(int i) {
+			// NOTE: do NOT access size since it may be inconsistent
+			return (T) data[i];
+		}
+
+		/** Can be used unsynchronized */
+		void set(int i, T x) {
+			data[i] = x;
+		}
+
+		/** Should be synchronized */
+		int add(T x) {
+			if (size >= data.length)
+				data = Arrays.copyOf(data, (size * 3) / 2 + 1);
+			data[size] = x;
+			return size++;
+		}
+
+		/** Should be synchronized */
+		void nullFill() {
+			Arrays.fill(data, null);
+		}
 	}
 
 }
