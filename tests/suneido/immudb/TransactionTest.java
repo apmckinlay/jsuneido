@@ -20,8 +20,8 @@ import suneido.intfc.database.Transaction;
 //TODO use TestBase
 
 public class TransactionTest {
-	private final Storage stor = new MemStorage(64, 1024);
-	private final Storage istor = new MemStorage(1024, 1024);
+	private final Storage stor = new HeapStorage();
+	private final Storage istor = new HeapStorage();
 	private Database db = Database.create(stor, istor);
 
 	@Test

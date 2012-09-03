@@ -41,7 +41,7 @@ class DbRebuild {
 		if (! force && new File(oldFilename + "i").canRead())
 			istor = new MmapFile(oldFilename + "i", "r");
 		else
-			istor = new MemStorage();
+			istor = new HeapStorage();
 	}
 
 	// for tests

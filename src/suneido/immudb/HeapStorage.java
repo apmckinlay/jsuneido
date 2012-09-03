@@ -10,14 +10,15 @@ import java.nio.ByteBuffer;
  * In-memory storage used by {@link RecordStore} and tests.
  * @see MmapFile
  */
-class MemStorage extends Storage {
+class HeapStorage extends Storage {
+	private final static int DEFAULT_CHUNK_SIZE = 1024;
 
-	MemStorage() {
-		super(32, 32);
+	HeapStorage() {
+		super(DEFAULT_CHUNK_SIZE);
 	}
 
-	MemStorage(int chunkSize, int initChunks) {
-		super(align(chunkSize), initChunks);
+	HeapStorage(int chunkSize) {
+		super(chunkSize);
 	}
 
 	@Override

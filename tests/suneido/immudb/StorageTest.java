@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class StorageTest {
-	private final Storage stor = new MemStorage(64, 64);
+	private final Storage stor = new HeapStorage(64);
 
 	@Test
 	public void test_advance() {

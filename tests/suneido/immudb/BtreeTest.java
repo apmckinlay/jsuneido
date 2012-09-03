@@ -24,7 +24,7 @@ import suneido.immudb.TranIndex.Update;
 import com.google.common.collect.Lists;
 
 public class BtreeTest {
-	private final Storage stor = new MemStorage(1024, 64);
+	private final Storage stor = new HeapStorage();
 	private Random rand = new Random(123456);
 	private final Tran tran = new Tran(stor, null);
 	private Btree btree = new Btree4(tran);

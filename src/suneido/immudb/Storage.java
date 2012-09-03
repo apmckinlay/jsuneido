@@ -13,7 +13,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.primitives.Longs;
 
 /**
- * Chunked storage access.
+ * Chunked storage access. Abstract base class for MemStorage and MmapFile.
+ * <li>derived classes must set storSize
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
@@ -25,17 +26,16 @@ import com.google.common.primitives.Longs;
 @ThreadSafe
 abstract class Storage {
 	static final int FIRST_ADR = 1;
-	private static final int SHIFT = 3;
+	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
-	protected ByteBuffer[] chunks;
-	final int CHUNK_SIZE;
-	protected volatile long file_size;
+	protected ByteBuffer[] chunks = new ByteBuffer[32];
+	protected final int CHUNK_SIZE;
+	protected volatile long storSize = 0;
 
-	Storage(int chunkSize, int initChunks) {
-		CHUNK_SIZE = chunkSize;
-		chunks = new ByteBuffer[initChunks];
+	Storage(int chunkSize) {
+		CHUNK_SIZE = align(chunkSize);
 	}
 
 	/**
@@ -50,12 +50,12 @@ abstract class Storage {
 		n = align(n);
 
 		// if insufficient room in this chunk, advance to next
-		int remaining = CHUNK_SIZE - (int) (file_size % CHUNK_SIZE);
+		int remaining = CHUNK_SIZE - (int) (storSize % CHUNK_SIZE);
 		if (n > remaining)
-			file_size += remaining;
+			storSize += remaining;
 
-		long offset = file_size;
-		file_size += n;
+		long offset = storSize;
+		storSize += n;
 
 		int chunk = offsetToChunk(offset);
 		if (chunk >= chunks.length)
@@ -65,7 +65,7 @@ abstract class Storage {
 	}
 
 	private void growChunks(int chunk) {
-		chunks = Arrays.copyOf(chunks, 2 * chunk);
+		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
 	}
 
 	static int align(int n) {
@@ -76,7 +76,7 @@ abstract class Storage {
 	int advance(int adr, int length) {
 		long offset = adrToOffset(adr);
 		offset += align(length);
-		if (offset < file_size) {
+		if (offset < storSize) {
 			ByteBuffer buf = buf(offset);
 			if (buf.getLong() == 0)
 				// skip end of chunk padding
@@ -101,12 +101,12 @@ abstract class Storage {
 	 */
 	ByteBuffer rbuffer(long rpos) {
 		assert rpos < 0;
-		return buf(file_size + rpos);
+		return buf(storSize + rpos);
 	}
 
 	int rposToAdr(long rpos) {
 		assert rpos < 0;
-		return offsetToAdr(file_size + rpos);
+		return offsetToAdr(storSize + rpos);
 	}
 
 	/**
@@ -127,7 +127,7 @@ abstract class Storage {
 
 	void protect() {
 		assert protect == 0 || protect == Integer.MAX_VALUE;
-		protect = file_size;
+		protect = storSize;
 	}
 
 	void protectAll() {
@@ -139,16 +139,18 @@ abstract class Storage {
 		ByteBuffer buf = map(offset);
 		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
-		long startOfLastChunk = (file_size / CHUNK_SIZE) * CHUNK_SIZE;
+		long startOfLastChunk = (storSize / CHUNK_SIZE) * CHUNK_SIZE;
 		if (offset >= startOfLastChunk)
-			buf.limit((int) (file_size - startOfLastChunk));
+			buf.limit((int) (storSize - startOfLastChunk));
 		return buf.slice();
 	}
 
 	/** @return the chunk containing the specified offset */
 	protected ByteBuffer map(long offset) {
-		assert 0 <= offset && offset < file_size;
+		assert 0 <= offset && offset < storSize;
 		int chunk = offsetToChunk(offset);
+		if (chunk >= chunks.length)
+			growChunks(chunk);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);
 			chunks[chunk].order(ByteOrder.BIG_ENDIAN);
@@ -176,7 +178,7 @@ abstract class Storage {
 	int checksum(int adr) {
 		Checksum cksum = new Checksum();
 		long offset = adrToOffset(adr);
-		while (offset < file_size) {
+		while (offset < storSize) {
 			ByteBuffer buf = buf(offset);
 			offset += buf.remaining();
 			cksum.update(buf);
@@ -186,13 +188,13 @@ abstract class Storage {
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr) {
-		return adr == 0 ? file_size : file_size - adrToOffset(adr);
+		return adr == 0 ? storSize : storSize - adrToOffset(adr);
 	}
 
 	boolean isValidPos(long pos) {
 		if (pos < 0)
-			pos += file_size;
-		return 0 <= pos && pos < file_size;
+			pos += storSize;
+		return 0 <= pos && pos < storSize;
 	}
 
 	void force() {
