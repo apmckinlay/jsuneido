@@ -288,7 +288,7 @@ public class DbRebuildTest extends TestBase {
 //((Database) db).dump();
 		db.check();
 		db.close();
-		Rebuild rebuild = new Rebuild(dstor, new MemStorage());
+		Rebuild rebuild = new Rebuild(dstor, new HeapStorage());
 		rebuild.rebuild();
 		db = rebuild.db;
 		check(values);

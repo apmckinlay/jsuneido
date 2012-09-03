@@ -7,9 +7,7 @@ package suneido.immudb;
 import suneido.intfc.database.Record;
 
 class RecordStore implements suneido.intfc.database.RecordStore {
-	private final int CHUNK_SIZE = 16 * 1024;
-	private final int INIT_CHUNKS = 512;
-	private final MemStorage stor = new MemStorage(CHUNK_SIZE, INIT_CHUNKS);
+	private final HeapStorage stor = new HeapStorage(16 * 1024);
 
 	@Override
 	public int add(Record rec) {

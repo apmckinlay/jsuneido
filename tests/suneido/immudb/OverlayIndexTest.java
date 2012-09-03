@@ -14,7 +14,7 @@ public class OverlayIndexTest extends IndexIterTestBase {
 
 	@Test
 	public void handle_deletes() {
-		Storage stor = new MemStorage(1024, 64);
+		Storage stor = new HeapStorage();
 		Tran tran = new Tran(stor, null);
 		Btree local = new Btree(tran);
 		Btree global = new Btree(tran);

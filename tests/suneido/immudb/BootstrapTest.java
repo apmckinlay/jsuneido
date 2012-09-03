@@ -15,8 +15,8 @@ public class BootstrapTest {
 
 	@Test
 	public void test() {
-		MemStorage dstor = new MemStorage(500, 100);
-		MemStorage istor = new MemStorage(500, 100);
+		HeapStorage dstor = new HeapStorage();
+		HeapStorage istor = new HeapStorage();
 		Database db = Database.create(dstor, istor);
 		check(db);
 

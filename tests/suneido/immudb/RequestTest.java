@@ -26,8 +26,8 @@ public class RequestTest {
 	private DatabasePackage save_dbpkg;
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
 	private static final ServerData serverData = new ServerData();
-	MemStorage dstor = new MemStorage(1000, 100);
-	MemStorage istor = new MemStorage(1000, 100);
+	HeapStorage dstor = new HeapStorage();
+	HeapStorage istor = new HeapStorage();
 	Database db = Database.create(dstor, istor);
 
 	@Before

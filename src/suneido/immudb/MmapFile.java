@@ -21,15 +21,10 @@ import suneido.SuException;
  * Memory mapped file access.
  * <p>
  * When opening, trailing zero bytes are ignored.
- * @see MemStorage
+ * @see HeapStorage
  */
 @ThreadSafe
 class MmapFile extends Storage {
-	private static final int SHIFT = 3;
-	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
-	private static final int MB = 1024 * 1024;
-	private static final int CHUNK_SIZE = 64 * MB;
-	private static final int MAX_CHUNKS = (int) (MAX_SIZE / CHUNK_SIZE + 1);
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
@@ -44,7 +39,7 @@ class MmapFile extends Storage {
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
-		super(CHUNK_SIZE, MAX_CHUNKS);
+		super(64 * 1024 * 1024);
 		this.file = file;
 		if ("r".equals(mode)) {
 			if (!file.canRead())
@@ -63,23 +58,23 @@ class MmapFile extends Storage {
 		}
 		fc = fin.getChannel();
 		findEnd();
-		last_force = offsetToChunk(file_size);
+		last_force = offsetToChunk(storSize);
 	}
 
 	/** handle zero padding caused by memory mapping */
 	private void findEnd() {
-		file_size = fileLength();
-		if (file_size == 0)
+		storSize = fileLength();
+		if (storSize == 0)
 			return;
-		assert file_size % ALIGN == 0;
-		ByteBuffer buf = map(file_size - 1);
-		int i = (int) ((file_size - 1) % CHUNK_SIZE) + 1;
+		assert storSize % ALIGN == 0;
+		ByteBuffer buf = map(storSize - 1);
+		int i = (int) ((storSize - 1) % CHUNK_SIZE) + 1;
 		assert ALIGN >= 8;
 		while (i > 0 && buf.getLong(i - 8) == 0)
 			i -= 8;
-		int chunk = (int) ((file_size - 1) / CHUNK_SIZE);
-		file_size = (long) chunk * CHUNK_SIZE + align(i);
-		starting_file_size = file_size;
+		int chunk = (int) ((storSize - 1) / CHUNK_SIZE);
+		storSize = (long) chunk * CHUNK_SIZE + align(i);
+		starting_file_size = storSize;
 	}
 
 	private long fileLength() {
@@ -95,7 +90,7 @@ class MmapFile extends Storage {
 	protected synchronized ByteBuffer get(int chunk) {
 		long pos = (long) chunk * CHUNK_SIZE;
 		long len = mode == FileChannel.MapMode.READ_WRITE
-				? CHUNK_SIZE : Math.min(CHUNK_SIZE, file_size - pos);
+				? CHUNK_SIZE : Math.min(CHUNK_SIZE, storSize - pos);
 		try {
 			return fc.map(mode, pos, len);
 		} catch (IOException e) {
@@ -105,7 +100,7 @@ class MmapFile extends Storage {
 
 	@Override
 	synchronized void force() {
-		for (int i = last_force; i <= offsetToChunk(file_size); ++i)
+		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
 			if (chunks[i] != null)
 				try {
 					((MappedByteBuffer) chunks[i]).force();
