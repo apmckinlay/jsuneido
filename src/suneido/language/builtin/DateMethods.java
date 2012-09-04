@@ -131,7 +131,11 @@ public class DateMethods extends BuiltinMethods {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			return (int) (day((Date) self) - day((Date) a));
+			if (a instanceof Date)
+				return (int) (day((Date) self) - day((Date) a));
+			else
+				throw new SuException("date.MinusDays requires date, got " +
+						Ops.typeName(a));
 		}
 	}
 
@@ -149,9 +153,13 @@ public class DateMethods extends BuiltinMethods {
 		{ params = new FunctionSpec("date"); }
 		@Override
 		public Object eval1(Object self, Object a) {
-			Date d2 = (Date) a;
-			long ms = ((Date) self).getTime() - d2.getTime();
-			return BigDecimal.valueOf(ms, 3);
+			if (a instanceof Date) {
+				Date d2 = (Date) a;
+				long ms = ((Date) self).getTime() - d2.getTime();
+				return BigDecimal.valueOf(ms, 3);
+			} else
+				throw new SuException("date.MinusSeconds requires date, got " +
+						Ops.typeName(a));
 		}
 	}
 
