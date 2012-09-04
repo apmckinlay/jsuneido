@@ -43,7 +43,7 @@ public class SuContainer extends SuValue
 	private boolean readonly = false;
 
 	@SuppressWarnings("serial")
-	static class CanonicalMap extends HashMap<Object, Object> {
+	private static class CanonicalMap extends HashMap<Object, Object> {
 		@Override
 		public Object get(Object key) {
 			return super.get(canonical(key));
@@ -334,7 +334,7 @@ public class SuContainer extends SuValue
 		map.clear();
 	}
 
-	public static int index(Object x) {
+	private static int index(Object x) {
 		x = canonical(x);
 		return x instanceof Integer ? (Integer) x : -1;
 	}
