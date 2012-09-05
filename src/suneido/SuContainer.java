@@ -33,12 +33,15 @@ import com.google.common.collect.Iterables;
 /**
  * Suneido's single container type.
  * Combines an extendible array plus a hash map.
+ * vec and map are synchronized for partial thread safety
  */
 @NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
-	public final List<Object> vec = new ArrayList<Object>();
-	private final CanonicalMap map = new CanonicalMap();
+	public final List<Object> vec =
+			Collections.synchronizedList(new ArrayList<Object>());
+	private final Map<Object,Object> map =
+			Collections.synchronizedMap(new CanonicalMap());
 	private Object defval = null;
 	private boolean readonly = false;
 
