@@ -269,6 +269,8 @@ public class Util {
 
 	/** @return Whether or not the first list starts with the second */
 	public static <T> boolean startsWith(List<T> x, List<T> y) {
+		if (y == null)
+			return true; // to match cSuneido prefix
 		if (y.size() > x.size())
 			return false;
 		for (int i = 0; i < y.size(); ++i)
