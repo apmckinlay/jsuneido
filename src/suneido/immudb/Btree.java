@@ -655,10 +655,11 @@ class Btree implements TranIndex {
 	}
 
 	private static final int MAX_LEVELS = 32;
+	private static final float MIN_FRAC = .001f;
 
 	private float rangefrac(BtreeKey from, BtreeKey to) {
 		if (rootNode.size() == 0)
-			return 0;
+			return MIN_FRAC; // can this be zero? careful - subtle bugs
 		boolean fromMinimal = isMinimal(from.key);
 		boolean toMaximal = isMaximal(to.key);
 		if (fromMinimal && toMaximal)
@@ -683,7 +684,7 @@ class Btree implements TranIndex {
 		float fromPos = fromMinimal ? 0 : estimatePos(fromNodeSize, fromNodePos);
 		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
 
-		return Math.max(toPos - fromPos, 0);
+		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
 
 	private void search(BtreeKey key, float[] nodeSize, int[] nodePos) {
