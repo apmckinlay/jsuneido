@@ -271,6 +271,8 @@ public class Util {
 	public static <T> boolean startsWith(List<T> x, List<T> y) {
 		if (y == null)
 			return true; // to match cSuneido prefix
+		if (x == null)
+			return false; // to match cSuneido prefix
 		if (y.size() > x.size())
 			return false;
 		for (int i = 0; i < y.size(); ++i)
