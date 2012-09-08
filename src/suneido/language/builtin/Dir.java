@@ -54,7 +54,7 @@ public class Dir extends SuFunction {
 
 	private static SuContainer detailsOf(File f) {
 		SuContainer ob = new SuContainer();
-		ob.put("name", f.getName());
+		ob.put("name", nameOf(f));
 		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
 				: BigDecimal.valueOf(f.length()));
 		ob.put("date", new Date(f.lastModified()));
