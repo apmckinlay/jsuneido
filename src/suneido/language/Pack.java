@@ -9,6 +9,7 @@ import static suneido.util.Util.bufferToString;
 import static suneido.util.Util.putStringToByteBuffer;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Calendar;
@@ -59,6 +60,8 @@ public class Pack {
 			return packSizeLong((Integer) x);
 		if (xType == Long.class)
 			return packSizeLong((Long) x);
+		if (xType == BigInteger.class)
+			return packSizeLong(((BigInteger) x).longValue());
 		if (xType == BigDecimal.class)
 			return packSizeBD((BigDecimal) x);
 		if (xType == String.class)
@@ -81,6 +84,7 @@ public class Pack {
 		return n == 0 ? 0 : 1 + n;
 	}
 
+	// WARNING: doesn't handle BigInteger or BigDecimal that's larger than long
 	public static void pack(Object x, ByteBuffer buf) {
 		assert buf.order() == ByteOrder.BIG_ENDIAN;
 		Class<?> xType = x.getClass();
@@ -90,6 +94,8 @@ public class Pack {
 			packNum((Integer) x, 0, buf);
 		else if (xType == Long.class)
 			packNum((Long) x, 0, buf);
+		else if (xType == BigInteger.class)
+			packNum(((BigInteger) x).longValue(), 0, buf);
 		else if (xType == BigDecimal.class)
 			packBD((BigDecimal) x, buf);
 		else if (xType == String.class)
