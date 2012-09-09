@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.language.Pack.*;
+import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -40,9 +41,9 @@ public class PackTest {
 		test(1234);
 		test(12345678);
 		test(1234567890);
-		test(Ops.INF);
-		test(Ops.MINUS_INF);
-		test(BigDecimal.valueOf(Long.MAX_VALUE, -5).round(Ops.MC));
+		test(INF);
+		test(MINUS_INF);
+		test(BigDecimal.valueOf(Long.MAX_VALUE, -5).round(MC));
 	}
 
 	private static void test(Object x) {
@@ -106,8 +107,8 @@ public class PackTest {
 
 	@Test
 	public void inf() {
-		assertThat(packSize(Ops.INF), is(2));
-		ByteBuffer buf = pack(Ops.INF);
+		assertThat(packSize(INF), is(2));
+		ByteBuffer buf = pack(INF);
 		assertThat(buf.capacity(), is(2));
 		assertThat(buf.get(0) & 0xff, is(3));
 		assertThat(buf.get(1) & 0xff, is(255));
@@ -115,8 +116,8 @@ public class PackTest {
 
 	@Test
 	public void minus_inf() {
-		assertThat(packSize(Ops.MINUS_INF), is(2));
-		ByteBuffer buf = pack(Ops.MINUS_INF);
+		assertThat(packSize(MINUS_INF), is(2));
+		ByteBuffer buf = pack(MINUS_INF);
 		assertThat(buf.capacity(), is(2));
 		assertThat(buf.get(0) & 0xff, is(2));
 		assertThat(buf.get(1) & 0xff, is(0));

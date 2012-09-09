@@ -3,6 +3,7 @@ package suneido;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static suneido.language.Ops.*;
+import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 

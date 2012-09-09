@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -18,6 +17,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
+import static suneido.language.Numbers.*;
 import suneido.language.builtin.DateMethods;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
@@ -212,6 +212,7 @@ public final class Ops {
 		return ! match_(s, rx);
 	}
 
+	// fast path, kept small in hopes of getting inlined
 	public static Object cat(Object x, Object y) {
 		if (x instanceof String && y instanceof String)
 			return cat((String) x, (String) y);
@@ -242,72 +243,11 @@ public final class Ops {
 		return x instanceof String || x instanceof Concat;
 	}
 
-	public static final int PRECISION = 16; // to match cSuneido
-	public static final MathContext MC = new MathContext(PRECISION);
-
 	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
 			return (Integer) x + (Integer) y;
 		return add2(x, y);
-	}
-
-	// slow path
-	private static Number add2(Object x, Object y) {
-		x = toNum(x);
-		y = toNum(y);
-
-		boolean xIsInt = x instanceof Integer || x instanceof Long ||
-				x instanceof Short || x instanceof Byte;
-		boolean yIsInt = y instanceof Integer || y instanceof Long ||
-				y instanceof Short || y instanceof Byte;
-		if (xIsInt && yIsInt)
-			return narrow(((Number) x).longValue() + ((Number) y).longValue());
-		if ((xIsInt || x instanceof Float || x instanceof Double) &&
-				(yIsInt || y instanceof Float || y instanceof Double))
-			return ((Number) x).doubleValue() + ((Number) y).doubleValue();
-
-		if (x == INF)
-			return y == MINUS_INF ? 0 : INF;
-		if (y == INF)
-			return x == MINUS_INF ? 0 : INF;
-		if (x == MINUS_INF)
-			return y == INF ? 0 : MINUS_INF;
-		if (y == MINUS_INF)
-			return x == INF ? 0 : MINUS_INF;
-
-		return toBigDecimal(x).add(toBigDecimal(y), MC);
-	}
-
-	private static Number toNum(Object x) {
-		if (x instanceof Number)
-			return (Number) x;
-		if (x instanceof String || x instanceof Concat)
-			return stringToPlainNumber(x.toString());
-		if (x instanceof Boolean)
-			return (Boolean) x ? 1 : 0;
-		throw new SuException("can't convert " + typeName(x) + " to number");
-	}
-
-	private static Number narrow(long x) {
-		if (Integer.MIN_VALUE <= x && x <= Integer.MAX_VALUE)
-			return (int) x;
-		else
-			return x;
-		// NOTE: can't use ?: because it would convert to same type
-	}
-
-	public static BigDecimal toBigDecimal(Object n) {
-		if (n instanceof BigDecimal)
-			return (BigDecimal) n;
-		if (n instanceof Integer || n instanceof Long || n instanceof Short ||
-				n instanceof Byte)
-			return BigDecimal.valueOf(((Number) n).longValue());
-		if (n instanceof Float || n instanceof Double)
-			return BigDecimal.valueOf(((Number) n).doubleValue());
-		if (n instanceof BigInteger)
-			return new BigDecimal((BigInteger) n);
-		throw SuException.unreachable();
 	}
 
 	// fast path, kept small in hopes of getting inlined
@@ -316,34 +256,7 @@ public final class Ops {
 			return (Integer) x - (Integer) y;
 		return sub2(x, y);
 	}
-
-	// slow path
-	private static Number sub2(Object x, Object y) {
-		x = toNum(x);
-		y = toNum(y);
-
-		boolean xIsInt = x instanceof Integer || x instanceof Long ||
-				x instanceof Short || x instanceof Byte;
-		boolean yIsInt = y instanceof Integer || y instanceof Long ||
-				y instanceof Short || y instanceof Byte;
-		if (xIsInt && yIsInt)
-			return narrow(((Number) x).longValue() - ((Number) y).longValue());
-		if ((xIsInt || x instanceof Float || x instanceof Double) &&
-				(yIsInt || y instanceof Float || y instanceof Double))
-			return ((Number) x).doubleValue() - ((Number) y).doubleValue();
-
-		if (x == INF)
-			return y == INF ? 0 : INF;
-		if (y == INF)
-			return x == INF ? 0 : MINUS_INF;
-		if (x == MINUS_INF)
-			return y == MINUS_INF ? 0 : MINUS_INF;
-		if (y == MINUS_INF)
-			return x == MINUS_INF ? 0 : INF;
-
-		return toBigDecimal(x).subtract(toBigDecimal(y), MC);
-	}
-
+	
 	private static final Integer one = 1;
 	public static Number add1(Object x) {
 		return add(x, one);
@@ -358,75 +271,10 @@ public final class Ops {
 			return (Integer) x * (Integer) y;
 		return mul2(x, y);
 	}
-
-	// slow path
-	private static Number mul2(Object x, Object y) {
-		x = toNum(x);
-		y = toNum(y);
-
-		boolean xIsInt = x instanceof Integer || x instanceof Long ||
-				x instanceof Short || x instanceof Byte;
-		boolean yIsInt = y instanceof Integer || y instanceof Long ||
-				y instanceof Short || y instanceof Byte;
-		if (xIsInt && yIsInt)
-			return narrow(((Number) x).longValue() * ((Number) y).longValue());
-		if ((xIsInt || x instanceof Float || x instanceof Double) &&
-				(yIsInt || y instanceof Float || y instanceof Double))
-			return ((Number) x).doubleValue() * ((Number) y).doubleValue();
-
-		BigDecimal xbd = toBigDecimal(x);
-		BigDecimal ybd = toBigDecimal(y);
-
-		if (xbd.signum() == 0 || ybd.signum() == 0)
-			return 0;
-		if (x == INF)
-			return (ybd.signum() < 0) ? MINUS_INF : INF;
-		if (y == INF)
-			return (xbd.signum() < 0) ? MINUS_INF : INF;
-		if (x == MINUS_INF)
-			return (ybd.signum() < 0) ? INF : MINUS_INF;
-		if (y == MINUS_INF)
-			return (xbd.signum() < 0) ? INF : MINUS_INF;
-
-		return xbd.multiply(ybd, MC);
-	}
-
-	public static final BigDecimal ZERO = BigDecimal.ZERO;
-	public static final BigDecimal INF =
-			BigDecimal.valueOf(1, -4 * Byte.MAX_VALUE);
-	public static final BigDecimal MINUS_INF =
-			BigDecimal.valueOf(-1, -4 * Byte.MAX_VALUE);
-
+	
 	public static Number div(Object x, Object y) {
-		x = toNum(x);
-		y = toNum(y);
-
-		boolean xIsInt = x instanceof Integer || x instanceof Long ||
-				x instanceof Short || x instanceof Byte;
-		boolean yIsInt = y instanceof Integer || y instanceof Long ||
-				y instanceof Short || y instanceof Byte;
-		if (! (xIsInt && yIsInt) &&
-				(x instanceof Float || x instanceof Double || xIsInt) &&
-				(y instanceof Float || y instanceof Double || yIsInt))
-			return ((Number) x).doubleValue() / ((Number) y).doubleValue();
-
-		BigDecimal xbd = toBigDecimal(x);
-		BigDecimal ybd = toBigDecimal(y);
-
-		if (xbd.signum() == 0)
-			return 0;
-		if (x == INF)
-			return y == INF ? +1 : y == MINUS_INF ? -1
-					: (ybd.signum() < 0) ? MINUS_INF : INF;
-		if (x == MINUS_INF)
-			return y == INF ? -1 : y == MINUS_INF ? +1
-					: (ybd.signum() < 0) ? INF : MINUS_INF;
-		if (y == INF || y == MINUS_INF)
-			return 0;
-		if (ybd.signum() == 0)
-			return xbd.signum() < 0 ? MINUS_INF : INF;
-
-		return xbd.divide(ybd, MC);
+		// no fast path ?
+		return div2(x, y);
 	}
 
 	public static Number mod(Object x, Object y) {
@@ -485,31 +333,6 @@ public final class Ops {
 		return toInt(x) >> toInt(y);
 	}
 
-	public static Number stringToNumber(String s) {
-		if (s.startsWith("0x"))
-			return (int) Long.parseLong(s.substring(2), 16);
-		if (s.startsWith("0") && s.indexOf('.') == -1)
-			return (int) Long.parseLong(s, 8);
-		return stringToPlainNumber(s);
-	}
-
-	public static Number stringToPlainNumber(String s) {
-		if (s.length() == 0)
-			return 0;
-		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
-				&& s.indexOf("E") == -1 && s.length() < 10)
-			return Integer.parseInt(s);
-		else
-			try {
-				BigDecimal n = new BigDecimal(s, MC);
-				if (n.compareTo(BigDecimal.ZERO) == 0)
-					return 0;
-				return n;
-			} catch (NumberFormatException e) {
-				throw new SuException("can't convert to number: " + s, e);
-			}
-	}
-
 	public static Date stringToDate(String s) {
 		if (s.startsWith("#"))
 			s = s.substring(1);
@@ -554,63 +377,16 @@ public final class Ops {
 				x instanceof Short || x instanceof Byte)
 			return ((Number) x).intValue();
 		if (x instanceof Long)
-			return toIntLong((Long) x);
+			return toIntFromLong((Long) x);
 		if (x instanceof BigDecimal)
-			return toIntBD((BigDecimal) x);
+			return toIntFromBD((BigDecimal) x);
 		if (x instanceof BigInteger)
-			return toIntBI((BigInteger) x);
+			return toIntFromBI((BigInteger) x);
 		if (x instanceof String || x instanceof Concat)
-			return toIntS(x.toString());
+			return toIntFromString(x.toString());
 		if (x instanceof Boolean)
 			return x == Boolean.TRUE ? 1 : 0;
-		throw new SuException("can't convert " + typeName(x) + " to integer");
-	}
-
-	public static int toIntLong(long n) {
-		if (n < Integer.MIN_VALUE)
-			return Integer.MIN_VALUE;
-		if (n > Integer.MAX_VALUE)
-			return Integer.MAX_VALUE;
-		return (int) n;
-	}
-
-	public static final BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
-	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
-
-	public static int toIntBD(BigDecimal n) {
-		if (n.compareTo(BD_INT_MIN) == -1)
-			return Integer.MIN_VALUE;
-		if (n.compareTo(BD_INT_MAX) == 1)
-			return Integer.MAX_VALUE;
-		return n.intValue();
-	}
-
-	public static final BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
-	public static final BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
-
-	public static int toIntBI(BigInteger n) {
-		if (n.compareTo(BI_INT_MIN) == -1)
-			return Integer.MIN_VALUE;
-		if (n.compareTo(BI_INT_MAX) == 1)
-			return Integer.MAX_VALUE;
-		return n.intValue();
-	}
-
-	public static int toIntS(String s) {
-		if (s.equals(""))
-			return 0;
-		String t = s;
-		int radix = 10;
-		if (s.startsWith("0x") || s.startsWith("0X")) {
-			radix = 16;
-			t = s.substring(2);
-		} else if (s.startsWith("0"))
-			radix = 8;
-		try {
-			return Integer.parseInt(t, radix);
-		} catch (NumberFormatException e) {
-			throw new SuException("can't convert string to integer: " + s);
-		}
+		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
 	}
 
 	// used by string operations to coerce arguments
@@ -871,7 +647,7 @@ public final class Ops {
 	private static Object getString(String s, Object m) {
 		if (m instanceof Range)
 			return ((Range) m).substr(s);
-		int i = Ops.toInt(m);
+		int i = toInt(m);
 		int len = s.length();
 		if (i < 0)
 			i += len;
@@ -879,10 +655,10 @@ public final class Ops {
 	}
 
 	public static Range rangeTo(Object from, Object to) {
-		return new Range.RangeTo(Ops.toInt(from), Ops.toInt(to));
+		return new Range.RangeTo(toInt(from), toInt(to));
 	}
 	public static Range rangeLen(Object from, Object to) {
-		return new Range.RangeLen(Ops.toInt(from), Ops.toInt(to));
+		return new Range.RangeLen(toInt(from), toInt(to));
 	}
 
 	public static Object iterator(Object x) {

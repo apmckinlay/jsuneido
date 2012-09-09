@@ -97,7 +97,7 @@ public class ArgsTest {
 			if (-1 != (j = params[i].indexOf('='))) {
 				String s = params[i].substring(j + 1);
 				defaults.add(Character.isDigit(s.charAt(0))
-						? Ops.stringToNumber(s) : s);
+						? Numbers.stringToNumber(s) : s);
 				params[i] = params[i].substring(0, j);
 			}
 		return defaults.toArray(new Object[0]);

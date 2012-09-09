@@ -59,7 +59,7 @@ public class AstCompile {
 		case SYMBOL:
 			return ast.value;
 		case NUMBER:
-			return Ops.stringToNumber(ast.value);
+			return Numbers.stringToNumber(ast.value);
 		case DATE:
 			return Ops.stringToDate(ast.value);
 		case OBJECT:

@@ -32,8 +32,8 @@ public class SuBoundMethod extends SuCallable {
 	}
 
 	@Override
-	public SuValue lookup(String method) {
-		return this.method.lookup(method);
+	public SuValue lookup(String methodName) {
+		return this.method.lookup(methodName);
 	}
 
 	@Override

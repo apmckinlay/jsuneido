@@ -4,13 +4,21 @@
 
 package suneido.language.builtin;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import static suneido.language.Numbers.*;
 
-import suneido.SuException;
+import java.math.BigDecimal;
+
 import suneido.language.*;
 
-// self instanceof Number
+// assert self instanceof Number
+/**
+ * Methods for numbers.
+ * <li>Attempts to handle all numeric types: Byte, Short, Int, Long, Float, Double,
+ * BigInteger, BigDecimal.
+ * <li>Prefers to use decimal types (i.e. not float or double)
+ * <li>Prefers to return results as Int or Long or BigDecimal.</li>
+ * <p>WARNING: Some operations will not work if integer precision greater than long.
+ */
 public class NumberMethods extends BuiltinMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 
@@ -18,56 +26,32 @@ public class NumberMethods extends BuiltinMethods {
 		super(NumberMethods.class, "Numbers");
 	}
 
-	private static BigDecimal toBigDecimal(Object n) {
-		if (n instanceof BigDecimal)
-			return (BigDecimal) n;
-		if (n instanceof Integer || n instanceof Long || n instanceof Short ||
-				n instanceof Byte)
-			return BigDecimal.valueOf(((Number) n).longValue());
-		if (n instanceof Float || n instanceof Double)
-			return BigDecimal.valueOf(((Number) n).doubleValue());
-		if (n instanceof BigInteger)
-			return new BigDecimal((BigInteger) n);
-		throw SuException.unreachable();
-	}
-
-	private static boolean isInt(Object n) {
-		return n instanceof Integer || n instanceof Long ||
-				n instanceof Short || n instanceof Byte;
-	}
-
 	public static class Frac extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			if (isInt(self) || self instanceof BigInteger)
+			if (integral(self))
 				return 0;
-			return Ops.sub(self, trunc(self));
+			Number n = (Number) self;
+			if (self instanceof Float || self instanceof Double)
+				return n.doubleValue() % 1;
+			BigDecimal bd = (BigDecimal) self;
+			return bd.remainder(BigDecimal.ONE);
 		}
 	}
 
 	public static class Int extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			return trunc(self);
+			if (integral(self))
+				return self;
+			return Numbers.narrow(((Number) self).longValue());
 		}
-	}
-
-	static Object trunc(Object n) {
-		if (isInt(n) || n instanceof BigInteger)
-			return n;
-		if (n instanceof BigDecimal)
-			return ((BigDecimal) n).toBigInteger();
-		else
-			return (long) ((Number) n).doubleValue();
 	}
 
 	public static class Hex extends SuMethod0 {
 		@Override
 		public Object eval0(Object self) {
-			if (self instanceof Integer)
-				return Integer.toHexString((Integer) self);
-			else
-				return Long.toHexString(((Number) self).longValue());
+			return Long.toHexString(((Number) self).longValue());
 		}
 	}
 
@@ -163,13 +147,36 @@ public class NumberMethods extends BuiltinMethods {
 		return dst.toString();
 	}
 
+	// used by stdlib Numbers Round so commonly called
 	public static class Pow extends SuMethod1 {
 		{ params = new FunctionSpec("number"); }
 		@Override
-		public Object eval1(Object self, Object a) {
-			double d = ((Number) self).doubleValue();
-			double e = ((Number) a).doubleValue();
-			return Math.pow(d, e);
+		public Object eval1(Object self, Object a_) {
+			Number sn = (Number) self;
+			Number an = toNum(a_);
+			if (isZero(an))
+				return 1;
+			if (isZero(sn))
+				return 0;
+			if (longable(an)) {
+				long ai = an.longValue();
+				if (ai == 1)
+					return self;
+				if (longable(sn)) {
+					long si = sn.longValue();
+					if (si == 1)
+						return 1;
+					if (0 < ai && ai < 16) {
+						long result = 1;
+						for (int i = 0; i < ai; ++i)
+							result *= si;
+						return narrow(result);
+					}
+				}
+				if (Math.abs(ai) < Integer.MAX_VALUE)
+					return toBigDecimal(self).pow((int) ai, MC);
+			}
+			return narrow(Math.pow(sn.doubleValue(), an.doubleValue()));
 		}
 	}
 
@@ -252,5 +259,5 @@ public class NumberMethods extends BuiltinMethods {
 			return Math.sqrt(d);
 		}
 	}
-
+	
 }

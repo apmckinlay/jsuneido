@@ -3,6 +3,7 @@ package suneido.language;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static suneido.language.Ops.*;
+import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 
@@ -114,8 +115,6 @@ public class OpsTest {
 
 	private static final Object p9 = BigDecimal.valueOf(9);
 	private static final Object m9 = BigDecimal.valueOf(-9);
-	private static final Object p81 = BigDecimal.valueOf(81);
-	private static final Object m81 = BigDecimal.valueOf(-81);
 
 	@Test
 	public void test_mul() {
@@ -128,21 +127,21 @@ public class OpsTest {
 		assertEquals(MINUS_INF, mul(MINUS_INF, INF));
 
 		assertEquals(INF,		mul(m9, MINUS_INF));
-		assertEquals(p81,		mul(m9, -9));
-		assertEquals(p81,		mul(m9, m9));
+		assertEquals(81,		mul(m9, -9));
+		assertEquals(81,		mul(m9, m9));
 		assertEquals(0,			mul(m9, 0));
 		assertEquals(0,			mul(m9, ZERO));
-		assertEquals(m81,		mul(m9, 9));
-		assertEquals(m81,		mul(m9, p9));
+		assertEquals(-81,		mul(m9, 9));
+		assertEquals(-81,		mul(m9, p9));
 		assertEquals(MINUS_INF, mul(m9, INF));
 
 		assertEquals(INF,		mul(-9, MINUS_INF));
-		assertEquals(p81,		mul(-9, m9));
+		assertEquals(81,		mul(-9, m9));
 		assertEquals(81,		mul(-9, -9));
 		assertEquals(0,			mul(-9, 0));
 		assertEquals(0,			mul(-9, ZERO));
 		assertEquals(-81,		mul(-9, 9));
-		assertEquals(m81,		mul(-9, p9));
+		assertEquals(-81,		mul(-9, p9));
 		assertEquals(MINUS_INF, mul(-9, INF));
 
 		assertEquals(0,			mul(0, MINUS_INF));
@@ -164,21 +163,21 @@ public class OpsTest {
 		assertEquals(0, 		mul(ZERO, INF));
 
 		assertEquals(MINUS_INF,	mul(9, MINUS_INF));
-		assertEquals(m81,		mul(9, m9));
+		assertEquals(-81,		mul(9, m9));
 		assertEquals(-81,		mul(9, -9));
 		assertEquals(0,			mul(9, 0));
 		assertEquals(0,			mul(9, ZERO));
 		assertEquals(81,		mul(9, 9));
-		assertEquals(p81,		mul(9, p9));
+		assertEquals(81,		mul(9, p9));
 		assertEquals(INF,		mul(9, INF));
 
 		assertEquals(MINUS_INF,	mul(p9, MINUS_INF));
-		assertEquals(m81,		mul(p9, m9));
-		assertEquals(m81,		mul(p9, -9));
+		assertEquals(-81,		mul(p9, m9));
+		assertEquals(-81,		mul(p9, -9));
 		assertEquals(0,			mul(p9, 0));
 		assertEquals(0,			mul(p9, ZERO));
-		assertEquals(p81,		mul(p9, 9));
-		assertEquals(p81,		mul(p9, p9));
+		assertEquals(81,		mul(p9, 9));
+		assertEquals(81,		mul(p9, p9));
 		assertEquals(INF,		mul(p9, INF));
 
 		assertEquals(MINUS_INF,	mul(INF, MINUS_INF));
@@ -192,9 +191,6 @@ public class OpsTest {
 
 	@Test
 	public void test_div() {
-		Object p1 = BigDecimal.valueOf(1);
-		Object m1 = BigDecimal.valueOf(-1);
-
 		assertEquals(1,			div(MINUS_INF, MINUS_INF));
 		assertEquals(INF,		div(MINUS_INF, -9));
 		assertEquals(INF,		div(MINUS_INF, m9));
@@ -204,21 +200,21 @@ public class OpsTest {
 		assertEquals(-1, 		div(MINUS_INF, INF));
 
 		assertEquals(0,			div(m9, MINUS_INF));
-		assertEquals(p1,		div(m9, -9));
-		assertEquals(p1,		div(m9, m9));
+		assertEquals(1,			div(m9, -9));
+		assertEquals(1,			div(m9, m9));
 		assertEquals(MINUS_INF, div(m9, 0));
 		assertEquals(MINUS_INF, div(m9, ZERO));
-		assertEquals(m1,		div(m9, 9));
-		assertEquals(m1,		div(m9, p9));
+		assertEquals(-1,		div(m9, 9));
+		assertEquals(-1,		div(m9, p9));
 		assertEquals(0,			div(m9, INF));
 
 		assertEquals(0,			div(-9, MINUS_INF));
-		assertEquals(p1,		div(-9, m9));
-		assertEquals(p1,		div(-9, -9));
+		assertEquals(1,			div(-9, m9));
+		assertEquals(1,			div(-9, -9));
 		assertEquals(MINUS_INF,	div(-9, 0));
 		assertEquals(MINUS_INF,	div(-9, ZERO));
-		assertEquals(m1,		div(-9, 9));
-		assertEquals(m1,		div(-9, p9));
+		assertEquals(-1,		div(-9, 9));
+		assertEquals(-1,		div(-9, p9));
 		assertEquals(0, 		div(-9, INF));
 
 		assertEquals(0,			div(0, MINUS_INF));
@@ -240,21 +236,21 @@ public class OpsTest {
 		assertEquals(0, 		div(ZERO, INF));
 
 		assertEquals(0,			div(9, MINUS_INF));
-		assertEquals(m1,		div(9, m9));
-		assertEquals(m1,		div(9, -9));
+		assertEquals(-1,		div(9, m9));
+		assertEquals(-1,		div(9, -9));
 		assertEquals(INF,		div(9, 0));
 		assertEquals(INF,		div(9, ZERO));
-		assertEquals(p1,		div(9, 9));
-		assertEquals(p1,		div(9, p9));
+		assertEquals(1,			div(9, 9));
+		assertEquals(1,			div(9, p9));
 		assertEquals(0,			div(9, INF));
 
 		assertEquals(0,			div(p9, MINUS_INF));
-		assertEquals(m1,		div(p9, m9));
-		assertEquals(m1,		div(p9, -9));
+		assertEquals(-1,		div(p9, m9));
+		assertEquals(-1,		div(p9, -9));
 		assertEquals(INF,		div(p9, 0));
 		assertEquals(INF,		div(p9, ZERO));
-		assertEquals(p1,		div(p9, 9));
-		assertEquals(p1,		div(p9, p9));
+		assertEquals(1,			div(p9, 9));
+		assertEquals(1,			div(p9, p9));
 		assertEquals(0,			div(p9, INF));
 
 		assertEquals(-1,		div(INF, MINUS_INF));

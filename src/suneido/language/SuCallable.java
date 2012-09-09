@@ -7,6 +7,10 @@ package suneido.language;
 import suneido.SuValue;
 import suneido.Suneido;
 
+/**
+ * Abstract base class for {@link SuBlock}, {@link SuFunction}, 
+ * {@link SuMethod}, and {@link SuBoundMethod}
+ */
 public abstract class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
@@ -14,10 +18,10 @@ public abstract class SuCallable extends SuValue {
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@Override
-	public SuValue lookup(String method) {
-		if (method == "Params")
+	public SuValue lookup(String methodName) {
+		if (methodName == "Params")
 			return Params;
-		return super.lookup(method);
+		return super.lookup(methodName);
 	}
 
 	private static SuValue Params = new SuMethod0() {
@@ -50,7 +54,7 @@ public abstract class SuCallable extends SuValue {
 		return x instanceof SuCallable && ((SuCallable) x).isBlock;
 	}
 
-	// support methods for generated code --------------------------------------
+	// support methods for generated code  for calling globals -----------------
 
 	public final Object superInvoke(Object self, String member, Object... args) {
 		return myClass.superInvoke(self, member, args);

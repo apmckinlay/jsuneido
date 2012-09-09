@@ -11,6 +11,7 @@ import suneido.SuException;
 import suneido.SuRecord;
 import suneido.database.query.expr.*;
 import suneido.intfc.database.Transaction;
+import suneido.language.Numbers;
 import suneido.language.Ops;
 import suneido.language.Token;
 
@@ -275,7 +276,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object number(String value) {
-		return Ops.stringToNumber(value);
+		return Numbers.stringToNumber(value);
 	}
 
 	@Override

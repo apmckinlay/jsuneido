@@ -5,6 +5,7 @@
 package suneido;
 
 import static suneido.Suneido.dbpkg;
+import static suneido.language.Numbers.toBigDecimal;
 import static suneido.language.Ops.cmp;
 import static suneido.util.Verify.verify;
 
@@ -18,10 +19,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Concat;
-import suneido.language.Ops;
-import suneido.language.Pack;
-import suneido.language.Range;
+import suneido.language.*;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.Util;
@@ -261,7 +259,7 @@ public class SuContainer extends SuValue
 				if (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
 					return (int) i;
 			}
-			return canonicalBD(Ops.toBigDecimal(x));
+			return canonicalBD(toBigDecimal(x));
 		}
 		if (x instanceof Concat)
 			return x.toString();

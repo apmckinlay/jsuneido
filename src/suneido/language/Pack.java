@@ -333,9 +333,9 @@ public class Pack {
 		boolean minus = buf.get(buf.position() - 1) == Tag.MINUS;
 		int s = buf.get() & 0xff;
 		if (s == 0)
-			return Ops.MINUS_INF;
+			return Numbers.MINUS_INF;
 		if (s == 255)
-			return Ops.INF;
+			return Numbers.INF;
 		if (minus)
 			s = ((~s) & 0xff);
 		s = (byte) (s ^ 0x80);
