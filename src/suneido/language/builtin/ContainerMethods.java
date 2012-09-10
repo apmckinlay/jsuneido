@@ -402,6 +402,7 @@ public class ContainerMethods {
 	}
 
 	public static class Set_default extends SuMethod1 {
+		{ params = new FunctionSpec(array("value"), (Object) null); }
 		@Override
 		public Object eval1(Object self, Object a) {
 			SuContainer c = (SuContainer) self;
