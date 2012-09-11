@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;
-	private static final Map<String, SuMethod> methods = methods();
+	private static final Map<String, SuCallable> methods = methods();
 
 	public SuInstance(SuClass myclass) {
 		this.myclass = myclass;
@@ -61,14 +61,14 @@ public class SuInstance extends SuValue {
 		return myclass.lookup("Call").eval4(this, a, b, c, d);
 	}
 
-	private static Map<String, SuMethod> methods() {
-		ImmutableMap.Builder<String, SuMethod> b = ImmutableMap.builder();
+	private static Map<String, SuCallable> methods() {
+		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
 		b.put("Base", new Base());
 		b.put("Base?", new BaseQ());
 		b.put("Copy", new Copy());
 		b.put("Delete", new Delete());
-		b.put("Eval", new ContainerMethods.Eval());
-		b.put("Eval2", new ContainerMethods.Eval2());
+		b.put("Eval", ContainerMethods.methods.lookup("Eval"));
+		b.put("Eval2", ContainerMethods.methods.lookup("Eval2"));
 		b.put("GetDefault", new GetDefault());
 		b.put("Member?", new MemberQ());
 		b.put("Members", new Members());
@@ -77,7 +77,7 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		SuMethod m = methods.get(method);
+		SuCallable m = methods.get(method);
 		if (m != null)
 			return m;
 		return myclass.lookup(method);

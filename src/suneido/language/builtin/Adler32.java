@@ -12,34 +12,28 @@ import java.util.zip.Checksum;
 import suneido.SuValue;
 import suneido.language.*;
 
-public class Adler32 extends SuValue {
+public final class Adler32 extends SuValue {
 	private final Checksum cksum = new java.util.zip.Adler32();
-	private static final BuiltinMethods methods = new BuiltinMethods(Adler32.class);
+	private static final BuiltinMethods2 methods = new BuiltinMethods2(Adler32.class);;
 
 	@Override
 	public SuValue lookup(String method) {
 		return methods.lookup(method);
 	}
-
-	public static class Update extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			update(((Adler32) self).cksum, Ops.toStr(a));
-			return self;
-		}
+	
+	@Params("string")
+	public static Object Update(Object self, Object a) {
+		update(((Adler32) self).cksum, Ops.toStr(a));
+		return self;
 	}
 
 	private static void update(Checksum cksum, String s) {
 		for (int i = 0; i < s.length(); ++i)
 			cksum.update(s.charAt(i));
 	}
-
-	public static class Value extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return (int) (((Adler32) self).cksum.getValue());
-		}
+	
+	public static Object Value(Object self) {
+		return (int) (((Adler32) self).cksum.getValue());
 	}
 
 	public static final BuiltinClass clazz = new BuiltinClass() {

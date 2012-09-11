@@ -18,7 +18,7 @@ public class SuFile extends SuValue {
 	private final String mode;
 	private final boolean append;
 	private RandomAccessFile f;
-	private static final BuiltinMethods methods = new BuiltinMethods(SuFile.class);
+	private static final BuiltinMethods2 methods = new BuiltinMethods2(SuFile.class);
 
 	public SuFile(String filename, String mode) {
 		this.filename = filename;
@@ -57,99 +57,81 @@ public class SuFile extends SuValue {
 	public SuValue lookup(String method) {
 		return methods.lookup(method);
 	}
+	
+	public static Object Flush(Object self) {
+		try {
+			((SuFile) self).f.getChannel().force(true);
+		} catch (IOException e) {
+			throw new SuException("File Flush failed", e);
+		}
+		return null;
+	}
 
-	public static class Flush extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			try {
-				((SuFile) self).f.getChannel().force(true);
-			} catch (IOException e) {
-				throw new SuException("File Flush failed", e);
-			}
-			return null;
+	@Params("nbytes = INTMAX")
+	public static Object Read(Object self, Object a) {
+		RandomAccessFile f = ((SuFile) self).f;
+		int n = Ops.toInt(a);
+		long remaining;
+		try {
+			remaining = f.length() - f.getFilePointer();
+			if (remaining == 0)
+				return Boolean.FALSE;
+			if (n > remaining)
+				n = (int) remaining;
+			byte buf[] = new byte[n];
+			f.readFully(buf);
+			return Util.bytesToString(buf);
+		} catch (IOException e) {
+			throw new SuException("File Read failed", e);
 		}
 	}
 
-	public static class Read extends SuMethod1 {
-		{ params = new FunctionSpec(array("nbytes"), Integer.MAX_VALUE); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			RandomAccessFile f = ((SuFile) self).f;
-			int n = Ops.toInt(a);
-			long remaining;
-			try {
-				remaining = f.length() - f.getFilePointer();
-				if (remaining == 0)
-					return Boolean.FALSE;
-				if (n > remaining)
-					n = (int) remaining;
-				byte buf[] = new byte[n];
-				f.readFully(buf);
-				return Util.bytesToString(buf);
-			} catch (IOException e) {
-				throw new SuException("File Read failed", e);
-			}
+	public static Object Readline(Object self) {
+		try {
+			String s = ((SuFile) self).f.readLine();
+			return s == null ? Boolean.FALSE : s;
+		} catch (IOException e) {
+			throw new SuException("File Readline failed", e);
 		}
 	}
 
-	public static class Readline extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			try {
-				String s = ((SuFile) self).f.readLine();
-				return s == null ? Boolean.FALSE : s;
-			} catch (IOException e) {
-				throw new SuException("File Readline failed", e);
-			}
+	@Params("offset = set, origin")
+	public static Object Seek(Object self, Object a, Object b) {
+		long offset = Ops.toInt(a);
+		String origin = Ops.toStr(b);
+		RandomAccessFile f = ((SuFile) self).f;
+		try {
+			if (origin.equals("cur"))
+				offset += f.getFilePointer();
+			else if (origin.equals("end"))
+				offset += f.length();
+			else if (!origin.equals("set"))
+				throw new SuException(
+						"file.Seek: origin must be 'set', 'end', or 'cur'");
+			if (offset < 0)
+				offset = 0;
+			f.seek(offset);
+		} catch (IOException e) {
+			throw new SuException("File Seek failed", e);
+		}
+		return null;
+	}
+
+	public static Object Tell(Object self) {
+		try {
+			return (int) ((SuFile) self).f.getFilePointer();
+		} catch (IOException e) {
+			throw new SuException("File Tell failed", e);
 		}
 	}
 
-	public static class Seek extends SuMethod2 {
-		{ params = new FunctionSpec(array("offset", "origin"), "set"); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			long offset = Ops.toInt(a);
-			String origin = Ops.toStr(b);
-			RandomAccessFile f = ((SuFile) self).f;
-			try {
-				if (origin.equals("cur"))
-					offset += f.getFilePointer();
-				else if (origin.equals("end"))
-					offset += f.length();
-				else if (!origin.equals("set"))
-					throw new SuException(
-							"file.Seek: origin must be 'set', 'end', or 'cur'");
-				if (offset < 0)
-					offset = 0;
-				f.seek(offset);
-			} catch (IOException e) {
-				throw new SuException("File Seek failed", e);
-			}
-			return null;
-		}
+	@Params("string")
+	public static Object Write(Object self, Object a) {
+		((SuFile) self).write(Ops.toStr(a));
+		return null;
 	}
 
-	public static class Tell extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			try {
-				return (int) ((SuFile) self).f.getFilePointer();
-			} catch (IOException e) {
-				throw new SuException("File Tell failed", e);
-			}
-		}
-	}
-
-	public static class Write extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			((SuFile) self).write(Ops.toStr(a));
-			return null;
-		}
-	}
-
-	public void write(String s) {
+	private void write(String s) {
 		try {
 			synchronized (SuFile.class) {
 				if (append)
@@ -160,17 +142,14 @@ public class SuFile extends SuValue {
 			throw new SuException("File Write failed", e);
 		}
 	}
-
-	public static class Writeline extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			((SuFile) self).writeline(Ops.toStr(a));
-			return null;
-		}
+	
+	@Params("string")
+	public static Object Writeline(Object self, Object a) {
+		((SuFile) self).writeline(Ops.toStr(a));
+		return null;
 	}
 
-	public void writeline(String s) {
+	private void writeline(String s) {
 		try {
 			synchronized (SuFile.class) {
 				if (append)
@@ -182,16 +161,13 @@ public class SuFile extends SuValue {
 			throw new SuException("File Write failed", e);
 		}
 	}
-
-	public static class Close extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			((SuFile) self).close();
-			return null;
-		}
+	
+	public static Object Close(Object self) {
+		((SuFile) self).close();
+		return null;
 	}
 
-	public void close() {
+	private void close() {
 		try {
 			if (f != null) {
 				f.close();
