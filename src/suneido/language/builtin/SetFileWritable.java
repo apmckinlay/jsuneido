@@ -4,6 +4,8 @@
 
 package suneido.language.builtin;
 
+import static suneido.util.Util.array;
+
 import java.io.File;
 
 import suneido.language.FunctionSpec;
@@ -11,7 +13,7 @@ import suneido.language.Ops;
 import suneido.language.SuFunction2;
 
 public class SetFileWritable extends SuFunction2 {
-	{ params = new FunctionSpec("file", "writable"); }
+	{ params = new FunctionSpec(array("file", "writable"), true); }
 
 	@Override
 	public Object call2(Object f, Object w) {
