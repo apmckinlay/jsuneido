@@ -119,12 +119,17 @@ public class FunctionSpec {
 	}
 	
 	private static Object valueOf(String s) {
-		if (s.equals("true") || s.equals("false"))
+		switch (s) {
+		case "true":
+		case "false":
 			return Boolean.valueOf(s);
-		if (s.equals("NA"))
+		case "NA":
 			return NA;
-		if (s.equals("INTMAX"))
+		case "INTMAX":
 			return Integer.MAX_VALUE;
+		case "null":
+			return null;
+		}
 		try {
 			return Integer.valueOf(s);
 		} catch (NumberFormatException e) {

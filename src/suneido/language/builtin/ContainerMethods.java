@@ -311,7 +311,7 @@ public final class ContainerMethods {
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
-	@Params("value")
+	@Params("value=null")
 	public static Object Set_default(Object self, Object a) {
 		SuContainer c = (SuContainer) self;
 		c.setDefault(a);
