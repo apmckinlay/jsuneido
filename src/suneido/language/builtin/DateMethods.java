@@ -4,7 +4,7 @@
 
 package suneido.language.builtin;
 
-import static suneido.util.Util.array;
+import static suneido.language.FunctionSpec.NA;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -14,64 +14,45 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.BuiltinMethods2;
+import suneido.language.Ops;
+import suneido.language.Params;
 import suneido.util.FAQCalendar;
 
 /** used by {@link Ops} target */
-public class DateMethods extends BuiltinMethods {
+public final class DateMethods extends BuiltinMethods2 {
 	public static final DateMethods singleton = new DateMethods();
 
 	private DateMethods() {
 		super(DateMethods.class, "Dates");
 	}
 
-	public static class Year extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.YEAR);
-		}
+	public static Object Year(Object self) {
+		return getField(self, Calendar.YEAR);
 	}
 
-	public static class Month extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.MONTH) + 1;
-		}
+	public static Object Month(Object self) {
+		return getField(self, Calendar.MONTH) + 1;
 	}
 
-	public static class Day extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.DAY_OF_MONTH);
-		}
+	public static Object Day(Object self) {
+		return getField(self, Calendar.DAY_OF_MONTH);
 	}
 
-	public static class Hour extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.HOUR_OF_DAY);
-		}
+	public static Object Hour(Object self) {
+		return getField(self, Calendar.HOUR_OF_DAY);
 	}
 
-	public static class Minute extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.MINUTE);
-		}
+	public static Object Minute(Object self) {
+		return getField(self, Calendar.MINUTE);
 	}
 
-	public static class Second extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.SECOND);
-		}
+	public static Object Second(Object self) {
+		return getField(self, Calendar.SECOND);
 	}
 
-	public static class Millisecond extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return getField(self, Calendar.MILLISECOND);
-		}
+	public static Object Millisecond(Object self) {
+		return getField(self, Calendar.MILLISECOND);
 	}
 
 	private static int getField(Object self, int field) {
@@ -80,14 +61,11 @@ public class DateMethods extends BuiltinMethods {
 		return c.get(field);
 	}
 
-	public static class FormatEn extends SuMethod1 {
-		{ params = new FunctionSpec("format"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String format = convertFormat(Ops.toStr(a));
-			DateFormat df = new SimpleDateFormat(format);
-			return df.format((Date) self);
-		}
+	@Params("format")
+	public static Object FormatEn(Object self, Object a) {
+		String format = convertFormat(Ops.toStr(a));
+		DateFormat df = new SimpleDateFormat(format);
+		return df.format((Date) self);
 	}
 
 	private static String convertFormat(String fmt) {
@@ -98,45 +76,33 @@ public class DateMethods extends BuiltinMethods {
 				.replaceAll("[^adhHmMsyE]+", "'$0'");
 	}
 
-	public static class GMTime extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			Date d = (Date) self;
-			int offset = TimeZone.getDefault().getOffset(d.getTime());
-			return new Date(d.getTime() - offset);
-		}
+	public static Object GMTime(Object self) {
+		Date d = (Date) self;
+		int offset = TimeZone.getDefault().getOffset(d.getTime());
+		return new Date(d.getTime() - offset);
 	}
 
-	public static class GMTimeToLocal extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			Date d = (Date) self;
-			int offset = TimeZone.getDefault().getOffset(d.getTime());
-			return new Date(d.getTime() + offset);
-		}
+	public static Object GMTimeToLocal(Object self) {
+		Date d = (Date) self;
+		int offset = TimeZone.getDefault().getOffset(d.getTime());
+		return new Date(d.getTime() + offset);
 	}
 
-	public static class GetLocalGMTBias extends SuMethod0 {
-		private static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
-
-		@Override
-		public Object eval0(Object self) {
-			Date d = (Date) self;
-			return -TimeZone.getDefault().getOffset(d.getTime())
-					/ MILLISECONDS_PER_MINUTE;
-		}
+	private static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
+	
+	public static Object GetLocalGMTBias(Object self) {
+		Date d = (Date) self;
+		return -TimeZone.getDefault().getOffset(d.getTime())
+				/ MILLISECONDS_PER_MINUTE;
 	}
 
-	public static class MinusDays extends SuMethod1 {
-		{ params = new FunctionSpec("date"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			if (a instanceof Date)
-				return (int) (day((Date) self) - day((Date) a));
-			else
-				throw new SuException("date.MinusDays requires date, got " +
-						Ops.typeName(a));
-		}
+	@Params("date")
+	public static Object MinusDays(Object self, Object a) {
+		if (a instanceof Date)
+			return (int) (day((Date) self) - day((Date) a));
+		else
+			throw new SuException("date.MinusDays requires date, got " +
+					Ops.typeName(a));
 	}
 
 	private static long day(Date d) {
@@ -149,56 +115,43 @@ public class DateMethods extends BuiltinMethods {
 
 	protected static final long MILLISECS_PER_DAY = 24 * 60 * 60 * 1000;
 
-	public static class MinusSeconds extends SuMethod1 {
-		{ params = new FunctionSpec("date"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			if (a instanceof Date) {
-				Date d2 = (Date) a;
-				long ms = ((Date) self).getTime() - d2.getTime();
-				return BigDecimal.valueOf(ms, 3);
-			} else
-				throw new SuException("date.MinusSeconds requires date, got " +
-						Ops.typeName(a));
-		}
+	@Params("date")
+	public static Object MinusSeconds(Object self, Object a) {
+		if (a instanceof Date) {
+			Date d2 = (Date) a;
+			long ms = ((Date) self).getTime() - d2.getTime();
+			return BigDecimal.valueOf(ms, 3);
+		} else
+			throw new SuException("date.MinusSeconds requires date, got " +
+					Ops.typeName(a));
 	}
 
-	public static class Plus extends SuMethod {
-		static final Object nil = new Object();
-		{ params = new FunctionSpec(
-				array("arg", "years", "months", "days",
-						"hours", "minutes", "seconds", "milliseconds"),
-				nil, 0, 0, 0, 0, 0, 0, 0); }
-		@Override
-		public Object eval(Object self, Object... args) {
-			args = Args.massage(params, args);
-			if (args[0] != nil)
-				throw new SuException("usage: date.Plus(years:, months:, days:, " +
-						"hours:, minutes:, seconds:, milliseconds:)");
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) self);
-			c.add(Calendar.YEAR, Ops.toInt(args[1]));
-			c.add(Calendar.MONTH, Ops.toInt(args[2]));
-			c.add(Calendar.DAY_OF_MONTH, Ops.toInt(args[3]));
-			c.add(Calendar.HOUR_OF_DAY, Ops.toInt(args[4]));
-			c.add(Calendar.MINUTE, Ops.toInt(args[5]));
-			c.add(Calendar.SECOND, Ops.toInt(args[6]));
-			c.add(Calendar.MILLISECOND, Ops.toInt(args[7]));
-			return c.getTime();
-		}
+	@Params("arg=NA, years=0, months=0, days=0, " +
+			"hours=0, minutes=0, seconds=0, milliseconds=0")
+	public static Object Plus(Object self, Object... args) {
+		if (args[0] != NA)
+			throw new SuException("usage: date.Plus(years:, months:, days:, " +
+					"hours:, minutes:, seconds:, milliseconds:)");
+		Calendar c = Calendar.getInstance();
+		c.setTime((Date) self);
+		c.add(Calendar.YEAR, Ops.toInt(args[1]));
+		c.add(Calendar.MONTH, Ops.toInt(args[2]));
+		c.add(Calendar.DAY_OF_MONTH, Ops.toInt(args[3]));
+		c.add(Calendar.HOUR_OF_DAY, Ops.toInt(args[4]));
+		c.add(Calendar.MINUTE, Ops.toInt(args[5]));
+		c.add(Calendar.SECOND, Ops.toInt(args[6]));
+		c.add(Calendar.MILLISECOND, Ops.toInt(args[7]));
+		return c.getTime();
 	}
 
-	public static class WeekDay extends SuMethod1 {
-		{ params = new FunctionSpec(array("firstDay"), "sun"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			int i = (Ops.isString(a))
-					? dayNumber(Ops.toStr(a).toLowerCase())
-					: Ops.toInt(a);
-			Calendar c = Calendar.getInstance();
-			c.setTime((Date) self);
-			return (c.get(Calendar.DAY_OF_WEEK) - i + 6) % 7;
-		}
+	@Params("firstDay=sun")
+	public static Object WeekDay(Object self, Object a) {
+		int i = (Ops.isString(a))
+				? dayNumber(Ops.toStr(a).toLowerCase())
+				: Ops.toInt(a);
+		Calendar c = Calendar.getInstance();
+		c.setTime((Date) self);
+		return (c.get(Calendar.DAY_OF_WEEK) - i + 6) % 7;
 	}
 
 	private static final String[] weekday = { "sunday", "monday", "tuesday",

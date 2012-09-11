@@ -231,7 +231,7 @@ public class SuClass extends SuValue {
 		return base().hasBase(base);
 	}
 
-	private static SuCallable eval = new ContainerMethods.Eval();
+	private static SuCallable eval = ContainerMethods.methods.lookup("Eval");
 
 	private static class GetDefault extends SuMethod2 {
 		{ params = new FunctionSpec("key", "block"); }

@@ -6,7 +6,10 @@ package suneido.language;
 
 import static suneido.util.Util.array;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.Immutable;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 
 import suneido.SuException;
 
@@ -16,7 +19,7 @@ import suneido.SuException;
  * Used by {@link Args}.
  * @see BlockSpec
  */
-@ThreadSafe
+@Immutable
 public class FunctionSpec {
 	final String name;
 	final boolean atParam;
@@ -62,6 +65,73 @@ public class FunctionSpec {
 		this.atParam = atParam;
 		this.nLocals = nLocals;
 		assert !atParam || (params.length == 1 && defaults.length == 0);
+	}
+	
+	private static final Splitter splitter = Splitter.on(',').trimResults();
+	
+	/**
+	 * Create a FunctionSpec from the string description.
+	 * Used for @Params annotations on built-in methods.
+	 * Handles default values of:
+	 * <li>? for NA
+	 * <li>$ for Integer.MAX_VALUE
+	 * <li>true or false
+	 * <li>decimal integers
+	 * <li>unquoted or single quoted strings</li>
+	 * <p>WARNING: Doesn't handle commas in string defaults
+	 */
+	public static FunctionSpec from(String spec) {
+		switch (spec) {
+		case "":
+			return noParams;
+		case "string":
+			return string;
+		case "value":
+			return value;
+		case "value,value":
+		case "value, value":
+			return value2;
+		case "block":
+			return block;
+		}
+		Iterable<String> iter = splitter.split(spec);
+		int np = 0;
+		int nd = 0;
+		for (String s : iter) {
+			++np;
+			if (s.contains("="))
+				++nd;
+		}
+		String params[] = new String[np];
+		Object defaults[] = new Object[nd];
+		int ip = 0;
+		int id = 0;
+		for (String s : iter) {
+			int e = s.indexOf('=');
+			if (e == -1)
+				params[ip++] = s;
+			else {
+				params[ip++] = s.substring(0, e).trim();
+				defaults[id++] = valueOf(s.substring(e + 1).trim());
+			}
+		}
+		return new FunctionSpec(params, defaults);
+	}
+	
+	private static Object valueOf(String s) {
+		if (s.equals("true") || s.equals("false"))
+			return Boolean.valueOf(s);
+		if (s.equals("NA"))
+			return NA;
+		if (s.equals("INTMAX"))
+			return Integer.MAX_VALUE;
+		try {
+			return Integer.valueOf(s);
+		} catch (NumberFormatException e) {
+		}
+		if (s.charAt(0) == '\'' && s.charAt(s.length() - 1) == '\'')
+			s = s.substring(1, s.length() - 1);
+		return s;
 	}
 
 	@Override
@@ -113,6 +183,10 @@ public class FunctionSpec {
 		if (i < params.length - defaults.length)
 			throw new SuException("missing argument(s)");
 		return defaults[i - (params.length - defaults.length)];
+	}
+	
+	public int nParams() {
+		return params.length;
 	}
 
 }
