@@ -10,8 +10,9 @@ import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.database.query.*;
+import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.Row;
 
 /**
  * The interface between Suneido and the database. Used to hide the difference
@@ -35,6 +36,9 @@ public abstract class Dbms {
 
 	public abstract int cursors();
 	public abstract String sessionid(String s);
+	public String sessionid() {
+		return sessionid("");
+	}
 	public abstract int finalSize();
 	public abstract void log(String s);
 	public abstract int kill(String s);
