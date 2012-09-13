@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import suneido.language.Ops;
 import suneido.language.Pack;
+import suneido.util.ByteBuffers;
 
 /**
  * Abstract base class for {@link BufRecord} and {@link ArrayRecord}.
@@ -19,7 +20,6 @@ import suneido.language.Pack;
  */
 abstract class Record implements suneido.intfc.database.Record {
 	static final Record EMPTY = new RecordBuilder().bufRec();
-	static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 
 	protected Record() {
 	}
@@ -205,19 +205,8 @@ abstract class Record implements suneido.intfc.database.Record {
 	@Override
 	public ByteBuffer getRaw(int i) {
 		if (i >= size())
-			return EMPTY_BUF;
-		return slice(fieldBuffer(i), fieldOffset(i), fieldLength(i));
-	}
-
-	private static ByteBuffer slice(ByteBuffer buf, int pos, int size) {
-		if (size == 0)
-			return EMPTY_BUF;
-		ByteBuffer b = buf.duplicate();
-		if (pos == 0 && size == buf.limit())
-			return b;
-		b.position(pos);
-		b.limit(pos + size);
-		return b.slice();
+			return ByteBuffers.EMPTY_BUF;
+		return ByteBuffers.slice(fieldBuffer(i), fieldOffset(i), fieldLength(i));
 	}
 
 	@Override

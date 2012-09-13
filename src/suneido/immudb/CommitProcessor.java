@@ -58,7 +58,7 @@ abstract class CommitProcessor {
 					from = recadr;
 				buf = advance(Shorts.BYTES + Ints.BYTES);
 			} else { // add
-				addrec = new DataRecord(buf.slice());
+				addrec = new DataRecord(buf, buf.position());
 				addrec.tblnum(b);
 				if (from == 0)
 					add(b, adr);

@@ -6,8 +6,6 @@ package suneido.util;
 
 import java.nio.ByteBuffer;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 public class ByteBuffers {
 
 	public static String bufferToString(ByteBuffer buf) {
@@ -95,4 +93,32 @@ public class ByteBuffers {
 		return ByteBuffer.wrap(data);
 	}
 	
+	public static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
+
+	/**
+	 * If the ByteBuffer is array based,
+	 * then use the array to create a slice with a single new instance
+	 * else duplicate and slice.
+	 * Avoids modifying the original so thread safe.<p>
+	 * Ignores the buffer position.
+	 * @return A slice of a ByteBuffer. 
+	 * Always returns a new ByteBuffer (except when empty).
+	 */
+	public static ByteBuffer slice(ByteBuffer buf, int pos, int len) {
+		if (len == 0)
+			return EMPTY_BUF;
+		if (buf.hasArray()) {
+			byte[] array = buf.array();
+			pos += buf.arrayOffset();
+			return ByteBuffer.wrap(array, pos, len);
+		} else {
+			buf = buf.duplicate();
+			if (pos == 0 && len == buf.limit())
+				return buf;
+			buf.position(pos);
+			buf.limit(pos + len);
+			return buf.slice();
+		}
+	}
+
 }
