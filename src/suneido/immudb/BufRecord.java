@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.util.ByteBuffers;
+
 import com.google.common.base.Objects;
 
 /**
@@ -114,10 +116,7 @@ class BufRecord extends Record {
 
 	@Override
 	public ByteBuffer getBuffer() {
-		ByteBuffer b = buf.duplicate();
-		b.position(bufpos);
-		b.limit(bufpos + packSize());
-		return b.slice();
+		return ByteBuffers.slice(buf, bufpos, packSize());
 	}
 
 }

@@ -23,6 +23,10 @@ class DataRecord extends BufRecord {
 		super(buf);
 	}
 
+	DataRecord(ByteBuffer buf, int bufpos) {
+		super(buf, bufpos);
+	}
+
 	DataRecord(Storage stor, int address) {
 		super(stor.bufferBase(address), stor.bufferPos(address) + TBLNUM_SIZE);
 		this.address = address;
