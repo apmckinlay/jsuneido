@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query.expr;
 
 import static suneido.SuException.unreachable;
@@ -6,7 +10,7 @@ import static suneido.language.Token.GT;
 import static suneido.language.Token.GTE;
 import static suneido.language.Token.LT;
 import static suneido.language.Token.LTE;
-import static suneido.util.Util.bufferUcompare;
+import static suneido.util.ByteBuffers.bufferUcompare;
 import static suneido.util.Util.union;
 
 import java.nio.ByteBuffer;

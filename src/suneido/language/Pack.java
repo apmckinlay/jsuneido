@@ -5,8 +5,8 @@
 package suneido.language;
 
 import static suneido.language.Ops.typeName;
-import static suneido.util.Util.bufferToString;
-import static suneido.util.Util.putStringToByteBuffer;
+import static suneido.util.ByteBuffers.bufferToString;
+import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

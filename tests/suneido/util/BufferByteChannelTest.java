@@ -6,8 +6,6 @@ package suneido.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static suneido.util.Util.bufferToString;
-import static suneido.util.Util.stringToBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -22,15 +20,15 @@ public class BufferByteChannelTest {
 		try {
 			assertThat(b.getBuffer().position(), is(0));
 			assertThat(b.getBuffer().remaining(), is(0));
-			b.write(stringToBuffer("hello"));
-			b.write(stringToBuffer(" world"));
+			b.write(ByteBuffers.stringToBuffer("hello"));
+			b.write(ByteBuffers.stringToBuffer(" world"));
 			assertThat(b.getBuffer().position(), is(0));
 			assertThat(b.getBuffer().remaining(), is(11));
 			b.flip();
 			ByteBuffer buf = ByteBuffer.allocate(11);
 			assertThat(b.read(buf), is(11));
 			buf.rewind();
-			assertThat(bufferToString(buf), is("hello world"));
+			assertThat(ByteBuffers.bufferToString(buf), is("hello world"));
 		} finally {
 			b.close();
 		}

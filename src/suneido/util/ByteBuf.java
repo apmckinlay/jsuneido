@@ -1,7 +1,7 @@
 package suneido.util;
 
-import static suneido.util.Util.getStringFromBuffer;
-import static suneido.util.Util.putStringToByteBuffer;
+import static suneido.util.ByteBuffers.getStringFromBuffer;
+import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
