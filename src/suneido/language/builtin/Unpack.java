@@ -3,7 +3,7 @@ package suneido.language.builtin;
 import java.nio.ByteBuffer;
 
 import suneido.language.*;
-import suneido.util.Util;
+import suneido.util.ByteBuffers;
 
 public class Unpack extends SuFunction1 {
 
@@ -12,7 +12,7 @@ public class Unpack extends SuFunction1 {
 	@Override
 	public Object call1(Object a) {
 		String s = Ops.toStr(a);
-		ByteBuffer buf = Util.stringToBuffer(s);
+		ByteBuffer buf = ByteBuffers.stringToBuffer(s);
 		return suneido.language.Pack.unpack(buf);
 	}
 

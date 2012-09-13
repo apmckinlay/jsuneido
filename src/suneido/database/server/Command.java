@@ -5,9 +5,9 @@
 package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.util.Util.bufferToString;
+import static suneido.util.ByteBuffers.bufferToString;
+import static suneido.util.ByteBuffers.stringToBuffer;
 import static suneido.util.Util.listToParens;
-import static suneido.util.Util.stringToBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;

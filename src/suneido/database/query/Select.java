@@ -9,6 +9,7 @@ import static suneido.intfc.database.Record.MAX_FIELD;
 import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
+import static suneido.util.ByteBuffers.bufferUcompare;
 import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 import gnu.trove.set.hash.TIntHashSet;

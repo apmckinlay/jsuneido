@@ -8,8 +8,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.Suneido.dbpkg;
-import static suneido.util.Util.bufferToString;
-import static suneido.util.Util.stringToBuffer;
+import static suneido.util.ByteBuffers.bufferToString;
+import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;

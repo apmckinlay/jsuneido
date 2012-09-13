@@ -2,6 +2,7 @@ package suneido.database.server;
 
 import static suneido.Trace.trace;
 import static suneido.Trace.Type.CLIENTSERVER;
+import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -13,7 +14,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
 import suneido.util.Tr;
-import suneido.util.Util;
 
 /**
  * Channel input/output for {@link DbmsRemote}
@@ -155,7 +155,7 @@ public class DbmsChannel {
 	public void writeBuf(String s) {
 		if (wbuf.remaining() < s.length())
 			wbuf = realloc(wbuf, wbuf.capacity() + s.length());
-		Util.putStringToByteBuffer(s, wbuf);
+		putStringToByteBuffer(s, wbuf);
 	}
 
 	public void write(ByteBuffer buf) {

@@ -4,7 +4,7 @@
 
 package suneido.database.server;
 
-import static suneido.util.Util.stringToBuffer;
+import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.io.IOException;
 import java.net.InetAddress;
