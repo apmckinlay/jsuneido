@@ -17,7 +17,7 @@ import suneido.language.*;
 import suneido.util.Util;
 
 public class SocketClient extends SuValue {
-	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
+	private static final BuiltinMethods2 methods = new BuiltinMethods2(SocketClient.class);
 	private final Socket socket;
 	private final InputStream input;
 	private final DataOutputStream output;
@@ -60,12 +60,9 @@ public class SocketClient extends SuValue {
 		return methods.getMethod(method);
 	}
 
-	public static class Close extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			socketClient(self).close();
-			return null;
-		}
+	public static Object Close(Object self) {
+		socketClient(self).close();
+		return null;
 	}
 
 	void close() {
@@ -76,44 +73,38 @@ public class SocketClient extends SuValue {
 		}
 	}
 
-	public static class Read extends SuMethod1 {
-		{ params = new FunctionSpec(array("nbytes"), Integer.MAX_VALUE); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			int n = Ops.toInt(a);
-			if (n == 0)
-				return "";
-			byte[] data = new byte[n];
-			int nr = 0;
-			try {
-				do {
-					int r = socketClient(self).input.read(data, nr, n - nr);
-					if (r == -1)
-						break;
-					nr += r;
-				} while (nr < n);
-			} catch (SocketTimeoutException e) {
-				throw new SuException("socket Read lost connection or timeout", e);
-			} catch (IOException e) {
-				throw new SuException("socket Read failed", e);
-			}
-			if (nr == 0)
-				throw new SuException("socket Read lost connection or timeout");
-			return Util.bytesToString(data, nr);
+	@Params("nbytes = INTMAX")
+	public static Object Read(Object self, Object a) {
+		int n = Ops.toInt(a);
+		if (n == 0)
+			return "";
+		byte[] data = new byte[n];
+		int nr = 0;
+		try {
+			do {
+				int r = socketClient(self).input.read(data, nr, n - nr);
+				if (r == -1)
+					break;
+				nr += r;
+			} while (nr < n);
+		} catch (SocketTimeoutException e) {
+			throw new SuException("socket Read lost connection or timeout", e);
+		} catch (IOException e) {
+			throw new SuException("socket Read failed", e);
 		}
+		if (nr == 0)
+			throw new SuException("socket Read lost connection or timeout");
+		return Util.bytesToString(data, nr);
 	}
 
-	public static class Readline extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			try {
-				String line = socketClient(self).readLine();
-				if (line == null)
-					throw new SuException("socket Readline lost connection or timeout");
-				return line;
-			} catch (IOException e) {
-				throw new SuException("socket Readline failed", e);
-			}
+	public static Object Readline(Object self) {
+		try {
+			String line = socketClient(self).readLine();
+			if (line == null)
+				throw new SuException("socket Readline lost connection or timeout");
+			return line;
+		} catch (IOException e) {
+			throw new SuException("socket Readline failed", e);
 		}
 	}
 
@@ -130,42 +121,36 @@ public class SocketClient extends SuValue {
 		return sb.toString();
 	}
 
-	public static class Write extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String data = Ops.toStr(a);
-			try {
-				socketClient(self).output.write(Util.stringToBytes(data));
-			} catch (IOException e) {
-				throw new SuException("socket Write failed", e);
-			}
-			return null;
+	@Params("string")
+	public static Object Write(Object self, Object a) {
+		String data = Ops.toStr(a);
+		try {
+			socketClient(self).output.write(Util.stringToBytes(data));
+		} catch (IOException e) {
+			throw new SuException("socket Write failed", e);
 		}
+		return null;
 	}
 
 	private static final byte[] newline = "\r\n".getBytes();
 
-	public static class Writeline extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String data = Ops.toStr(a);
-			try {
-				socketClient(self).output.write(Util.stringToBytes(data));
-				socketClient(self).output.write(newline);
-			} catch (IOException e) {
-				throw new SuException("socket Writeline failed", e);
-			}
-			return null;
+	@Params("string")
+	public static Object Writeline(Object self, Object a) {
+		String data = Ops.toStr(a);
+		try {
+			socketClient(self).output.write(Util.stringToBytes(data));
+			socketClient(self).output.write(newline);
+		} catch (IOException e) {
+			throw new SuException("socket Writeline failed", e);
 		}
+		return null;
 	}
 
 	// need because SocketServer shares these methods
 	private static SocketClient socketClient(Object self) {
 		return self instanceof SocketServer.Instance
-			? ((SocketServer.Instance) self).socket
-			: (SocketClient) self;
+				? ((SocketServer.Instance) self).socket
+				: (SocketClient) self;
 	}
 
 	@Override

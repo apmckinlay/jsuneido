@@ -25,7 +25,7 @@ public class SuQuery extends SuValue {
 	protected final DbmsTran t;
 	protected Dir eof = null;
 
-	private static BuiltinMethods methods = new BuiltinMethods(SuQuery.class);
+	private static BuiltinMethods2 methods = new BuiltinMethods2(SuQuery.class);
 
 	public SuQuery(String query, DbmsQuery q, DbmsTran t) {
 		this.query = query;
@@ -50,26 +50,17 @@ public class SuQuery extends SuValue {
 		return "Query(" + Ops.display(query) + ")";
 	}
 
-	public static class Close extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			((SuQuery) self).q.close();
-			return null;
-		}
+	public static Object Close(Object self) {
+		((SuQuery) self).q.close();
+		return null;
 	}
 
-	public static class Columns extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return columns(self);
-		}
+	public static Object Columns(Object self) {
+		return columns(self);
 	}
 
-	public static class Fields extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return columns(self);
-		}
+	public static Object Fields(Object self) {
+		return columns(self);
 	}
 
 	private static Object columns(Object self) {
@@ -80,49 +71,31 @@ public class SuQuery extends SuValue {
 		return new SuContainer(cols);
 	}
 
-	public static class Explain extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuQuery) self).q.explain();
-		}
+	public static Object Explain(Object self) {
+		return ((SuQuery) self).q.explain();
 	}
 
-	public static class Strategy extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuQuery) self).q.explain();
-		}
+	public static Object Strategy(Object self) {
+		return ((SuQuery) self).q.explain();
 	}
 
-	public static class Keys extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuContainer c = new SuContainer();
-			for (List<String> key : ((SuQuery) self).q.keys())
-				c.add(listToCommas(key));
-			return c;
-		}
+	public static Object Keys(Object self) {
+		SuContainer c = new SuContainer();
+		for (List<String> key : ((SuQuery) self).q.keys())
+			c.add(listToCommas(key));
+		return c;
 	}
 
-	public static class NewRecord extends SuMethod {
-		@Override
-		public Object eval(Object self, Object... args) {
-			return Args.collectArgs(new SuRecord(), args);
-		}
+	public static Object NewRecord(Object self, Object... args) {
+		return Args.collectArgs(new SuRecord(), args);
 	}
 
-	public static class Next extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuQuery) self).getrec(Dir.NEXT);
-		}
+	public static Object Next(Object self) {
+		return ((SuQuery) self).getrec(Dir.NEXT);
 	}
 
-	public static class Prev extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuQuery) self).getrec(Dir.PREV);
-		}
+	public static Object Prev(Object self) {
+		return ((SuQuery) self).getrec(Dir.PREV);
 	}
 
 	protected Object getrec(Dir dir) {
@@ -137,34 +110,25 @@ public class SuQuery extends SuValue {
 		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 	}
 
-	public static class Output extends SuMethod1 {
-		{ params = new FunctionSpec("record"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			SuContainer rec = Ops.toContainer(a);
-			if (rec == null)
-				throw new SuException("can't convert " + Ops.typeName(a) + " to object");
-			DbmsQuery q = ((SuQuery) self).q;
-			q.output(rec.toDbRecord(q.header()));
-			return Boolean.TRUE;
-		}
+	@Params("record")
+	public static Object Output(Object self, Object a) {
+		SuContainer rec = Ops.toContainer(a);
+		if (rec == null)
+			throw new SuException("can't convert " + Ops.typeName(a) + " to object");
+		DbmsQuery q = ((SuQuery) self).q;
+		q.output(rec.toDbRecord(q.header()));
+		return Boolean.TRUE;
 	}
 
-	public static class Order extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return new SuContainer(((SuQuery) self).q.ordering());
-		}
+	public static Object Order(Object self) {
+		return new SuContainer(((SuQuery) self).q.ordering());
 	}
 
-	public static class Rewind extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuQuery query = (SuQuery) self;
-			query.q.rewind();
-			query.eof = null;
-			return null;
-		}
+	public static Object Rewind(Object self) {
+		SuQuery query = (SuQuery) self;
+		query.q.rewind();
+		query.eof = null;
+		return null;
 	}
 
 	@Override

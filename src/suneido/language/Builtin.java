@@ -6,6 +6,8 @@ package suneido.language;
 
 import java.lang.invoke.MethodHandle;
 
+import suneido.SuException;
+
 class Builtin {
 	
 	static SuCallable method(MethodHandle mh, FunctionSpec params) {
@@ -57,6 +59,8 @@ class Builtin {
 				args = Args.massage(params, args);
 			try {
 				return mh.invoke(self, args);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -79,6 +83,8 @@ class Builtin {
 		public Object eval0(Object self) {
 			try {
 				return mh.invoke(self);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -106,6 +112,8 @@ class Builtin {
 		public Object eval1(Object self, Object a) {
 			try {
 				return mh.invoke(self, a);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -138,6 +146,8 @@ class Builtin {
 		public Object eval2(Object self, Object a, Object b) {
 			try {
 				return mh.invoke(self, a, b);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -175,6 +185,8 @@ class Builtin {
 		public Object eval3(Object self, Object a, Object b, Object c) {
 			try {
 				return mh.invoke(self, a, b, c);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -217,10 +229,11 @@ class Builtin {
 		public Object eval4(Object self, Object a, Object b, Object c, Object d) {
 			try {
 				return mh.invoke(self, a, b, c, d);
+			} catch (RuntimeException e) {
+				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
 		}
-
 	}
 }

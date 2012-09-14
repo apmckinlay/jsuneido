@@ -21,8 +21,8 @@ public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
-	private static final BuiltinMethods methods =
-		new BuiltinMethods(SuTransaction.class, "Transactions");
+	private static final BuiltinMethods2 methods =
+			new BuiltinMethods2(SuTransaction.class, "Transactions");
 
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), NA, NA);
@@ -50,11 +50,8 @@ public class SuTransaction extends SuValue {
 		return methods.lookup(method);
 	}
 
-	public static class Complete extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuTransaction) self).complete();
-		}
+	public static Object Complete(Object self) {
+		return ((SuTransaction) self).complete();
 	}
 
 	private boolean complete() {
@@ -62,73 +59,50 @@ public class SuTransaction extends SuValue {
 		return conflict == null;
 	}
 
-	public static class Conflict extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuTransaction tran = (SuTransaction) self;
-			return tran.conflict == null ? "" : tran.conflict;
+	public static Object Conflict(Object self) {
+		SuTransaction tran = (SuTransaction) self;
+		return tran.conflict == null ? "" : tran.conflict;
+	}
+
+	public static Object EndedQ(Object self) {
+		return ((SuTransaction) self).t.isEnded();
+	}
+
+	private static final FunctionSpec QueryParams = 
+			FunctionSpec.from("query, block = false");
+
+	public static Object Query(Object self, Object... args) {
+		String where = queryWhere(args);
+		args = Args.massage(QueryParams, args);
+		String query = Ops.toStr(args[0]) + where;
+		SuTransaction tran = (SuTransaction) self;
+		trace(QUERY, tran + " " + query);
+		if (CompileQuery.isRequest(query)) {
+			if (args[1] != Boolean.FALSE)
+				throw new SuException(
+						"transaction.Query: block not allowed on request");
+			return tran.t.request(query);
+		}
+		SuQuery q = new SuQuery(query, tran.t.query(query), tran.t);
+		if (args[1] == Boolean.FALSE)
+			return q;
+		try {
+			return Ops.call(args[1], q);
+		} finally {
+			q.close();
 		}
 	}
 
-	public static class EndedQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuTransaction) self).t.isEnded();
-		}
+	public static Object QueryFirst(Object self, Object... args) {
+		return queryOne((SuTransaction) self, args, Dir.NEXT, false);
 	}
 
-	public static class Query extends SuMethod {
-		{ params = new FunctionSpec(array("query", "block"), false); }
-		@Override
-		public Object eval(Object self, Object... args) {
-			String where = queryWhere(args);
-			args = Args.massage(params, args);
-			String query = Ops.toStr(args[0]) + where;
-			SuTransaction tran = (SuTransaction) self;
-			trace(QUERY, tran + " " + query);
-			if (CompileQuery.isRequest(query)) {
-				if (args[1] != Boolean.FALSE)
-					throw new SuException(
-							"transaction.Query: block not allowed on request");
-				return tran.t.request(query);
-			}
-			SuQuery q = new SuQuery(query, tran.t.query(query), tran.t);
-			if (args[1] == Boolean.FALSE)
-				return q;
-			try {
-				return Ops.call(args[1], q);
-			} finally {
-				q.close();
-			}
-		}
+	public static Object QueryLast(Object self, Object... args) {
+		return queryOne((SuTransaction) self, args, Dir.PREV, false);
 	}
 
-	public static class QueryFirst extends SuMethod {
-		{ params = queryOneFS; }
-		@Override
-		public Object eval(Object self, Object... args) {
-			return queryOne((SuTransaction) self, args, Dir.NEXT, false);
-		}
-	}
-
-	public static class QueryLast extends SuMethod {
-		{ params = queryOneFS; }
-		@Override
-		public Object eval(Object self, Object... args) {
-			return queryOne((SuTransaction) self, args, Dir.PREV, false);
-		}
-	}
-
-	public static class Query1 extends SuMethod {
-		{ params = queryOneFS; }
-		@Override
-		public Object eval(Object self, Object... args) {
-			return queryOne((SuTransaction) self, args, Dir.NEXT, true);
-		}
-		@Override
-		public Object eval1(Object self, Object a) {
-			return queryOne((SuTransaction) self, Ops.toStr(a), Dir.NEXT, true);
-		}
+	public static Object Query1(Object self, Object... args) {
+		return queryOne((SuTransaction) self, args, Dir.NEXT, true);
 	}
 
 	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
@@ -147,8 +121,8 @@ public class SuTransaction extends SuValue {
 				(single ? "ONE" : dir == Dir.NEXT ? "FIRST" : "LAST") +
 				" " + query);
 		HeaderAndRow hr = (ti == null)
-			? TheDbms.dbms().get(dir, query, single)
-			: ti.t.get(dir, query, single);
+				? TheDbms.dbms().get(dir, query, single)
+				: ti.t.get(dir, query, single);
 		return hr == null ? false : new SuRecord(hr.row, hr.header, ti);
 	}
 
@@ -173,22 +147,16 @@ public class SuTransaction extends SuValue {
 		return where.toString();
 	}
 
-	public static class Rollback extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuTransaction tran = (SuTransaction) self;
-			if (tran.t.isEnded())
-				throw new SuException("cannot Rollback completed Transaction");
-			tran.t.abort();
-			return null;
-		}
+	public static Object Rollback(Object self) {
+		SuTransaction tran = (SuTransaction) self;
+		if (tran.t.isEnded())
+			throw new SuException("cannot Rollback completed Transaction");
+		tran.t.abort();
+		return null;
 	}
 
-	public static class UpdateQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuTransaction) self).update;
-		}
+	public static Object UpdateQ(Object self) {
+		return ((SuTransaction) self).update;
 	}
 
 	// used by Transaction for block form

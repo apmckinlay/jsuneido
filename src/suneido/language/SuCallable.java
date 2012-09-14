@@ -27,7 +27,8 @@ public abstract class SuCallable extends SuValue {
 	private static SuValue Params = new SuMethod0() {
 		@Override
 		public Object eval0(Object self) {
-			return ((SuCallable) self).params.params();
+			FunctionSpec p = ((SuCallable) self).params;
+			return p == null ? "(...)" : p.params();
 		}
 	};
 
