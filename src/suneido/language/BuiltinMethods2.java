@@ -17,6 +17,10 @@ import suneido.SuException;
 import suneido.SuValue;
 import com.google.common.collect.ImmutableMap;
 
+// MAYBE add support for @Aka("...") e.g. string.StartsWith and Prefix?
+
+// MAYBE add a way to have params but still be MethodN e.g. SuQuery
+
 public class BuiltinMethods2 extends SuValue {
 	private final Map<String, SuCallable> methods;
 	private final String userDefined;
@@ -44,8 +48,8 @@ public class BuiltinMethods2 extends SuValue {
 					MethodHandle mh = lookup.unreflect(m);
 					Params p = m.getAnnotation(Params.class);
 					int nParams = m.getParameterTypes().length;
-					FunctionSpec params = (p == null) ?
-							(nParams == 1) ? FunctionSpec.noParams : null
+					FunctionSpec params = (p == null)
+							? (nParams == 1) ? FunctionSpec.noParams : null
 							: FunctionSpec.from(p.value());
 					b.put(methodName, Builtin.method(mh, params));
 				} catch (IllegalAccessException e) {

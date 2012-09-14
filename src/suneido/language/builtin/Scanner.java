@@ -10,7 +10,7 @@ import suneido.language.*;
 public class Scanner extends SuValue implements Iterable<String>, Iterator<String> {
 	private final Lexer lexer;
 	private Token token;
-	private static final BuiltinMethods methods = new BuiltinMethods(Scanner.class);
+	private static final BuiltinMethods2 methods = new BuiltinMethods2(Scanner.class);
 
 	public Scanner(String s) {
 		lexer = new Lexer(s);
@@ -21,54 +21,33 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return methods.lookup(method);
 	}
 
-	public static class Position extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Position(Object self) {
 			return ((Scanner) self).lexer.end();
-		}
 	}
 
-	public static class Type extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Type(Object self) {
 			return ((Scanner) self).token.oldnum;
-		}
 	}
 
-	public static class Text extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Text(Object self) {
 			return ((Scanner) self).lexer.matched();
-		}
 	}
 
-	public static class Value extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Value(Object self) {
 			return ((Scanner) self).lexer.getValue();
-		}
 	}
 
-	public static class Keyword extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Keyword(Object self) {
 			return ((Scanner) self).lexer.getKeyword().oldnum;
-		}
 	}
 
-	public static class Iter extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Iter(Object self) {
 			return self;
-		}
 	}
 
-	public static class Next extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
+	public static Object Next(Object self) {
 			String s = ((Scanner) self).next();
 			return s == null ? self : s;
-		}
 	}
 
 	public Iterator<String> iterator() {

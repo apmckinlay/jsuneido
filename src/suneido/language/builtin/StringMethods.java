@@ -5,7 +5,6 @@ import static java.lang.Math.min;
 import static java.text.CharacterIterator.DONE;
 import static suneido.language.Ops.toInt;
 import static suneido.util.Tr.tr;
-import static suneido.util.Util.array;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -24,7 +23,7 @@ import suneido.util.Util;
 
 import com.google.common.base.Charsets;
 
-public class StringMethods extends BuiltinMethods {
+public class StringMethods extends BuiltinMethods2 {
 	public static final StringMethods singleton = new StringMethods();
 
 	private StringMethods() {
@@ -37,110 +36,80 @@ public class StringMethods extends BuiltinMethods {
 				: ((Concat) self).toString();
 	}
 
-	public static class AlphaQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			if (s.length() == 0)
+	public static Object AlphaQ(Object self) {
+		String s = toStr(self);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isLetter(s.charAt(i)))
 				return Boolean.FALSE;
-			for (int i = 0; i < s.length(); ++i)
-				if (!Character.isLetter(s.charAt(i)))
-					return Boolean.FALSE;
-			return Boolean.TRUE;
-		}
+		return Boolean.TRUE;
 	}
 
-	public static class AlphaNumQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			if (s.length() == 0)
+	public static Object AlphaNumQ(Object self) {
+		String s = toStr(self);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isLetterOrDigit(s.charAt(i)))
 				return Boolean.FALSE;
-			for (int i = 0; i < s.length(); ++i)
-				if (!Character.isLetterOrDigit(s.charAt(i)))
-					return Boolean.FALSE;
-			return Boolean.TRUE;
-		}
+		return Boolean.TRUE;
 	}
 
-	/** implemented in Except.As */
-	public static class As extends SuMethod1 {
-		@Override
-		public Object eval1(Object self, Object a) {
-			return a;
-		}
+	/** overridden in Except.As */
+	@Params("string")
+	public static Object As(Object self, Object a) {
+		return a;
 	}
 
-	public static class Asc extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			return s.length() == 0 ? 0 : (int) s.charAt(0);
-		}
+	public static Object Asc(Object self) {
+		String s = toStr(self);
+		return s.length() == 0 ? 0 : (int) s.charAt(0);
 	}
 
-	public static class Compile extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return Compiler.compile("stringCompile", toStr(self));
-		}
+	public static Object Compile(Object self) {
+		return Compiler.compile("stringCompile", toStr(self));
 	}
 
-	public static class Contains extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return (toStr(self)).contains(toStr(a));
-		}
+	@Params("string")
+	public static Object Contains(Object self, Object a) {
+		return (toStr(self)).contains(toStr(a));
 	}
-	public static class HasQ extends Contains {
-		{ params = FunctionSpec.string; }
+	@Params("string")
+	public static Object HasQ(Object self, Object a) {
+		return (toStr(self)).contains(toStr(a));
 	}
 
 	private static final int TABWIDTH = 4;
 
-	public static class Detab extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return Tabs.detab(toStr(self), TABWIDTH);
-		}
+	public static Object Detab(Object self) {
+		return Tabs.detab(toStr(self), TABWIDTH);
 	}
 
-	public static class EndsWith extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return toStr(self).endsWith(toStr(a));
-		}
+	@Params("string")
+	public static Object EndsWith(Object self, Object a) {
+		return toStr(self).endsWith(toStr(a));
 	}
-	public static class SuffixQ extends EndsWith {
-		{ params = FunctionSpec.string; }
+	@Params("string")
+	public static Object SuffixQ(Object self, Object a) {
+		return toStr(self).endsWith(toStr(a));
 	}
 
-	public static class Entab extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return Tabs.entab(toStr(self), TABWIDTH);
-		}
+	public static Object Entab(Object self) {
+		return Tabs.entab(toStr(self), TABWIDTH);
 	}
 
-	public static class Eval extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			Object result = seval(toStr(self));
-			return result == null ? "" : result;
-		}
+	public static Object Eval(Object self) {
+		Object result = seval(toStr(self));
+		return result == null ? "" : result;
 	}
 
-	public static class Eval2 extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			Object value = seval(toStr(self));
-			SuContainer result = new SuContainer();
-			if (value != null)
-				result.add(value);
-			return result;
-		}
+	public static Object Eval2(Object self) {
+		Object value = seval(toStr(self));
+		SuContainer result = new SuContainer();
+		if (value != null)
+			result.add(value);
+		return result;
 	}
 
 	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
@@ -151,14 +120,11 @@ public class StringMethods extends BuiltinMethods {
 				: Compiler.eval(s);
 	}
 
-	public static class Extract extends SuMethod2 {
-		{ params = new FunctionSpec(array("pattern", "part"), false); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			String s = toStr(self);
-			String pat = Ops.toStr(a);
-			return extract(s, pat, b);
-		}
+	@Params("pattern, part = false")
+	public static Object Extract(Object self, Object a, Object b) {
+		String s = toStr(self);
+		String pat = Ops.toStr(a);
+		return extract(s, pat, b);
 	}
 	static Object extract(String s, String pat, Object part) {
 		Pattern pattern = Regex.getPat(pat, s);
@@ -173,199 +139,161 @@ public class StringMethods extends BuiltinMethods {
 		return t == null ? "" : t;
 	}
 
-	public static class Find extends SuMethod2 {
-		{ params = new FunctionSpec(array("s", "i"), 0); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			String s = toStr(self);
-			int i = s.indexOf(toStr(a), toInt(b));
-			return i == -1 ? s.length() : i;
-		}
+	@Params("s, i = 0")
+	public static Object Find(Object self, Object a, Object b) {
+		String s = toStr(self);
+		int i = s.indexOf(toStr(a), toInt(b));
+		return i == -1 ? s.length() : i;
 	}
 
-	public static class FindLast extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			int i = toStr(self).lastIndexOf(toStr(a));
-			return i == -1 ? Boolean.FALSE : i;
-		}
+	@Params("string")
+	public static Object FindLast(Object self, Object a) {
+		int i = toStr(self).lastIndexOf(toStr(a));
+		return i == -1 ? Boolean.FALSE : i;
 	}
 
-	public static class Find1of extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			String set = Ops.toStr(a);
-			for (int i = 0; i < s.length(); ++i) {
-				int j = set.indexOf(s.charAt(i));
-				if (j != -1)
-					return i;
-			}
-			return s.length();
+	@Params("string")
+	public static Object Find1of(Object self, Object a) {
+		String s = toStr(self);
+		String set = Ops.toStr(a);
+		for (int i = 0; i < s.length(); ++i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j != -1)
+				return i;
 		}
+		return s.length();
 	}
 
-	public static class Findnot1of extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			String set = Ops.toStr(a);
-			for (int i = 0; i < s.length(); ++i) {
-				int j = set.indexOf(s.charAt(i));
-				if (j == -1)
-					return i;
-			}
-			return s.length();
+	@Params("string")
+	public static Object Findnot1of(Object self, Object a) {
+		String s = toStr(self);
+		String set = Ops.toStr(a);
+		for (int i = 0; i < s.length(); ++i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j == -1)
+				return i;
 		}
+		return s.length();
 	}
 
-	public static class FindLast1of extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			String set = Ops.toStr(a);
-			for (int i = s.length() - 1; i >= 0; --i) {
-				int j = set.indexOf(s.charAt(i));
-				if (j != -1)
-					return i;
-			}
-			return Boolean.FALSE;
+	@Params("string")
+	public static Object FindLast1of(Object self, Object a) {
+		String s = toStr(self);
+		String set = Ops.toStr(a);
+		for (int i = s.length() - 1; i >= 0; --i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j != -1)
+				return i;
 		}
+		return Boolean.FALSE;
 	}
 
-	public static class FindLastnot1of extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			String set = Ops.toStr(a);
-			for (int i = s.length() - 1; i >= 0; --i) {
-				int j = set.indexOf(s.charAt(i));
-				if (j == -1)
-					return i;
-			}
-			return Boolean.FALSE;
+	@Params("string")
+	public static Object FindLastnot1of(Object self, Object a) {
+		String s = toStr(self);
+		String set = Ops.toStr(a);
+		for (int i = s.length() - 1; i >= 0; --i) {
+			int j = set.indexOf(s.charAt(i));
+			if (j == -1)
+				return i;
 		}
+		return Boolean.FALSE;
 	}
 
-	public static class Lower extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return toStr(self).toLowerCase();
-		}
+	public static Object Lower(Object self) {
+		return toStr(self).toLowerCase();
 	}
 
-	public static class LowerQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			Boolean result = Boolean.FALSE;
-			for (int i = 0; i < s.length(); ++i) {
-				char c = s.charAt(i);
-				if (Character.isUpperCase(c))
-					return Boolean.FALSE;
-				else if (Character.isLowerCase(c))
-					result = true;
-			}
-			return result;
-		}
-	}
-
-	public static class Match extends SuMethod1 {
-		{ params = new FunctionSpec("pattern"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			Pattern pat = Regex.getPat(Ops.toStr(a), s);
-			Matcher m = pat.matcher(s);
-			if (!m.find())
+	public static Object LowerQ(Object self) {
+		String s = toStr(self);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isUpperCase(c))
 				return Boolean.FALSE;
-			MatchResult mr = m.toMatchResult();
-			SuContainer c = new SuContainer();
-			for (int i = 0; i <= mr.groupCount(); ++i) {
-				SuContainer c2 = new SuContainer();
-				int start = mr.start(i);
-				c2.add(start);
-				c2.add(start == -1 ? -1 : mr.end() - start);
-				c.add(c2);
-			}
-			return c;
+			else if (Character.isLowerCase(c))
+				result = true;
 		}
+		return result;
 	}
 
-	public static class NumberQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			int i = 0;
-			char c = sget(s, i);
-			if (c == '+' || c == '-')
+	@Params("pattern")
+	public static Object Match(Object self, Object a) {
+		String s = toStr(self);
+		Pattern pat = Regex.getPat(Ops.toStr(a), s);
+		Matcher m = pat.matcher(s);
+		if (!m.find())
+			return Boolean.FALSE;
+		MatchResult mr = m.toMatchResult();
+		SuContainer c = new SuContainer();
+		for (int i = 0; i <= mr.groupCount(); ++i) {
+			SuContainer c2 = new SuContainer();
+			int start = mr.start(i);
+			c2.add(start);
+			c2.add(start == -1 ? -1 : mr.end() - start);
+			c.add(c2);
+		}
+		return c;
+	}
+
+	public static Object NumberQ(Object self) {
+		String s = toStr(self);
+		int i = 0;
+		char c = sget(s, i);
+		if (c == '+' || c == '-')
+			c = sget(s, ++i);
+		boolean intdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = sget(s, ++i);
+		if (c == '.')
+			c = sget(s, ++i);
+		boolean fracdigits = Character.isDigit(c);
+		while (Character.isDigit(c))
+			c = sget(s, ++i);
+		if (!intdigits && !fracdigits)
+			return Boolean.FALSE;
+		if (c == 'e' || c == 'E') {
+			c = sget(s, ++i);
+			if (c == '-')
 				c = sget(s, ++i);
-			boolean intdigits = Character.isDigit(c);
 			while (Character.isDigit(c))
 				c = sget(s, ++i);
-			if (c == '.')
-				c = sget(s, ++i);
-			boolean fracdigits = Character.isDigit(c);
-			while (Character.isDigit(c))
-				c = sget(s, ++i);
-			if (!intdigits && !fracdigits)
-				return Boolean.FALSE;
-			if (c == 'e' || c == 'E') {
-				c = sget(s, ++i);
-				if (c == '-')
-					c = sget(s, ++i);
-				while (Character.isDigit(c))
-					c = sget(s, ++i);
-			}
-			return i == s.length();
 		}
+		return i == s.length();
 	}
 
-	public static class NumericQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			if (s.length() == 0)
+	public static Object NumericQ(Object self) {
+		String s = toStr(self);
+		if (s.length() == 0)
+			return Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i)
+			if (!Character.isDigit(s.charAt(i)))
 				return Boolean.FALSE;
-			for (int i = 0; i < s.length(); ++i)
-				if (!Character.isDigit(s.charAt(i)))
-					return Boolean.FALSE;
-			return Boolean.TRUE;
-		}
+		return Boolean.TRUE;
 	}
 
 	private static char sget(String s, int i) {
 		return i < s.length() ? s.charAt(i) : 0;
 	}
 
-	public static class Repeat extends SuMethod1 {
-		{ params = new FunctionSpec("n"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			int n = Math.max(0, toInt(a));
-			StringBuilder sb = new StringBuilder(n * s.length());
-			for (int i = 0; i < n; ++i)
-				sb.append(s);
-			return sb.toString();
-		}
+	@Params("n")
+	public static Object Repeat(Object self, Object a) {
+		String s = toStr(self);
+		int n = Math.max(0, toInt(a));
+		StringBuilder sb = new StringBuilder(n * s.length());
+		for (int i = 0; i < n; ++i)
+			sb.append(s);
+		return sb.toString();
 	}
 
-	public static class Replace extends SuMethod3 {
-		{ params = new FunctionSpec(array("pattern", "block", "count"), 99999); }
-		@Override
-		public Object eval3(Object self, Object a, Object b, Object c) {
-			String s = toStr(self);
-			String pat = Ops.toStr(a);
-			int n = toInt(c);
-			return replace(s, pat, b, n);
-		}
+	@Params("pattern, block, count = INTMAX")
+	public static Object Replace(Object self, Object a, Object b, Object c) {
+		String s = toStr(self);
+		String pat = Ops.toStr(a);
+		int n = toInt(c);
+		return replace(s, pat, b, n);
 	}
+
 	public static String replace(String s, String p, Object b, int n) {
 		Pattern pat = Regex.getPat(p, s);
 		String rep = null;
@@ -388,30 +316,21 @@ public class StringMethods extends BuiltinMethods {
 		return sb.toString();
 	}
 
-	public static class ServerEval extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return TheDbms.dbms().run(toStr(self));
-		}
+	public static Object ServerEval(Object self) {
+		return TheDbms.dbms().run(toStr(self));
 	}
 
-	public static class Size extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return self instanceof String
+	public static Object Size(Object self) {
+		return self instanceof String
 				? ((String) self).length()
 				: ((Concat) self).length();
-		}
 	}
 
-	public static class Split extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String s = toStr(self);
-			String sep = Ops.toStr(a);
-			return split(s, sep);
-		}
+	@Params("string")
+	public static Object Split(Object self, Object a) {
+		String s = toStr(self);
+		String sep = Ops.toStr(a);
+		return split(s, sep);
 	}
 
 	static SuContainer split(String s, String sep) {
@@ -427,83 +346,61 @@ public class StringMethods extends BuiltinMethods {
 		return ob;
 	}
 
-	public static class StartsWith extends SuMethod2 {
-		{ params = new FunctionSpec(array("s", "i"), 0); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			String s = toStr(self);
-			return s.startsWith(toStr(a), toInt(b));
-		}
+	@Params("s, i = 0")
+	public static Object StartsWith(Object self, Object a, Object b) {
+		String s = toStr(self);
+		return s.startsWith(toStr(a), toInt(b));
 	}
-	public static class PrefixQ extends SuMethod2 {
-		{ params = new FunctionSpec(array("s", "i"), 0); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			String s = toStr(self);
-			return s.startsWith(toStr(a), toInt(b));
-		}
+	@Params("s, i = 0")
+	public static Object PrefixQ(Object self, Object a, Object b) {
+		String s = toStr(self);
+		return s.startsWith(toStr(a), toInt(b));
 	}
 
-	public static class Substr extends SuMethod2 {
-		{ params = new FunctionSpec(array("i", "n"), Integer.MAX_VALUE); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			String s = toStr(self);
-			int len = s.length();
-			int i = toInt(a);
-			if (i < 0)
-				i += len;
-			i = max(0, min(i, len));
-			int n = toInt(b);
-			if (n < 0)
-				n += len - i;
-			n = max(0, min(n, len - i));
-			return s.substring(i, i + n);
-		}
+	@Params("i, n = INTMAX")
+	public static Object Substr(Object self, Object a, Object b) {
+		String s = toStr(self);
+		int len = s.length();
+		int i = toInt(a);
+		if (i < 0)
+			i += len;
+		i = max(0, min(i, len));
+		int n = toInt(b);
+		if (n < 0)
+			n += len - i;
+		n = max(0, min(n, len - i));
+		return s.substring(i, i + n);
 	}
 
-	private static final Charset Windows1252 =
-			Charset.forName("windows-1252");
+	private static final Charset Windows1252 = Charset.forName("windows-1252");
 
-	public static class ToUtf8 extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			CharBuffer cb = Windows1252.decode(
-					ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
-			return Util.bytesToString(Charsets.UTF_8.encode(cb));
-		}
+	public static Object ToUtf8(Object self) {
+		CharBuffer cb = Windows1252.decode(
+				ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
+		return Util.bytesToString(Charsets.UTF_8.encode(cb));
 	}
 
-	public static class FromUtf8 extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			CharBuffer cb = Charsets.UTF_8.decode(
-					ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
-			return Util.bytesToString(Windows1252.encode(cb));
-	        }
+	public static Object FromUtf8(Object self) {
+		CharBuffer cb = Charsets.UTF_8.decode(
+				ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
+		return Util.bytesToString(Windows1252.encode(cb));
 	}
 
-	public static class Tr extends SuMethod2 {
-		{ params = new FunctionSpec(array("from", "to"), ""); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			return tr(toStr(self), toStr(a), toStr(b));
-		}
+	@Params("from, to = ''")
+	public static Object Tr(Object self, Object a, Object b) {
+		return tr(toStr(self), toStr(a), toStr(b));
 	}
 
-	public static class Unescape extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			CharacterIterator ci = new StringCharacterIterator(s);
-			StringBuilder sb = new StringBuilder(s.length());
-			for (char c = ci.first(); c != DONE; c = ci.next())
-				if (c == '\\')
-					sb.append(doesc(ci));
-				else
-					sb.append(c);
-			return sb.toString();
-		}
+	public static Object Unescape(Object self) {
+		String s = toStr(self);
+		CharacterIterator ci = new StringCharacterIterator(s);
+		StringBuilder sb = new StringBuilder(s.length());
+		for (char c = ci.first(); c != DONE; c = ci.next())
+			if (c == '\\')
+				sb.append(doesc(ci));
+			else
+				sb.append(c);
+		return sb.toString();
 	}
 
 	public static char doesc(CharacterIterator ci) {
@@ -545,27 +442,20 @@ public class StringMethods extends BuiltinMethods {
 		}
 	}
 
-	public static class Upper extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return toStr(self).toUpperCase();
-		}
+	public static Object Upper(Object self) {
+		return toStr(self).toUpperCase();
 	}
 
-	public static class UpperQ extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			String s = toStr(self);
-			Boolean result = Boolean.FALSE;
-			for (int i = 0; i < s.length(); ++i) {
-				char c = s.charAt(i);
-				if (Character.isLowerCase(c))
-					return Boolean.FALSE;
-				else if (Character.isUpperCase(c))
-					result = Boolean.TRUE;
-			}
-			return result;
+	public static Object UpperQ(Object self) {
+		String s = toStr(self);
+		Boolean result = Boolean.FALSE;
+		for (int i = 0; i < s.length(); ++i) {
+			char c = s.charAt(i);
+			if (Character.isLowerCase(c))
+				return Boolean.FALSE;
+			else if (Character.isUpperCase(c))
+				result = Boolean.TRUE;
 		}
+		return result;
 	}
-
 }

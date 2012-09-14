@@ -19,7 +19,7 @@ public class RunPiped extends SuValue {
 	private final Process proc;
 	private final PrintStream out;
 	private final BufferedReader in;
-	private static final BuiltinMethods methods = new BuiltinMethods(RunPiped.class);
+	private static final BuiltinMethods2 methods = new BuiltinMethods2(RunPiped.class);
 
 	public RunPiped(String cmd) {
 		this.cmd = cmd;
@@ -42,12 +42,9 @@ public class RunPiped extends SuValue {
 		return methods.lookup(method);
 	}
 
-	public static class Close extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			((RunPiped) self).close();
-			return null;
-		}
+	public static Object Close(Object self) {
+		((RunPiped) self).close();
+		return null;
 	}
 
 	private void close() {
@@ -61,82 +58,61 @@ public class RunPiped extends SuValue {
 		}
 	}
 
-	public static class CloseWrite extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			RunPiped rp = ((RunPiped) self);
-			if (rp.out.checkError())
-				throw new SuException("RunPiped CloseWrite failed");
-			rp.out.close();
+	public static Object CloseWrite(Object self) {
+		RunPiped rp = ((RunPiped) self);
+		if (rp.out.checkError())
+			throw new SuException("RunPiped CloseWrite failed");
+		rp.out.close();
 		return null;
+	}
+
+	public static Object ExitValue(Object self) {
+		RunPiped rp = ((RunPiped) self);
+		rp.close();
+		try {
+			rp.proc.waitFor();
+		} catch (InterruptedException e) {
+			throw new SuException("RunPiped ExitValue failed", e);
+		}
+		return rp.proc.exitValue();
+	}
+
+	public static Object Flush(Object self) {
+		((RunPiped) self).out.flush();
+		return null;
+	}
+
+	@Params("nbytes = 1024")
+	public static Object Read(Object self, Object a) {
+		int n = Ops.toInt(a);
+		try {
+			char buf[] = new char[n];
+			int nr = ((RunPiped) self).in.read(buf, 0, n);
+			return nr == -1 ? false : new String(buf, 0, nr);
+		} catch (IOException e) {
+			throw new SuException("RunPiped Read failed", e);
 		}
 	}
 
-	public static class ExitValue extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			RunPiped rp = ((RunPiped) self);
-			rp.close();
-			try {
-		        rp.proc.waitFor();
-		    } catch (InterruptedException e) {
-		        throw new SuException("RunPiped ExitValue failed", e);
-		    }
-			return rp.proc.exitValue();
-		}
-    }
-
-	public static class Flush extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			((RunPiped) self).out.flush();
-			return null;
+	public static Object Readline(Object self) {
+		try {
+			String s = ((RunPiped) self).in.readLine();
+			return s == null ? Boolean.FALSE : s;
+		} catch (IOException e) {
+			throw new SuException("RunPiped Readline failed", e);
 		}
 	}
 
-	public static class Read extends SuMethod1 {
-		{ params = new FunctionSpec(array("nbytes"), 1024); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			int n = Ops.toInt(a);
-			try {
-				char buf[] = new char[n];
-				int nr = ((RunPiped) self).in.read(buf, 0, n);
-				return nr == -1 ? false : new String(buf, 0, nr);
-			} catch (IOException e) {
-				throw new SuException("RunPiped Read failed", e);
-			}
-		}
+	@Params("string")
+	public static Object Write(Object self, Object a) {
+		((RunPiped) self).out.append(Ops.toStr(a));
+		return null;
 	}
 
-	public static class Readline extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			try {
-				String s = ((RunPiped) self).in.readLine();
-				return s == null ? Boolean.FALSE : s;
-			} catch (IOException e) {
-				throw new SuException("RunPiped Readline failed", e);
-			}
-		}
-	}
-
-	public static class Write extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			((RunPiped) self).out.append(Ops.toStr(a));
-			return null;
-		}
-	}
-
-	public static class Writeline extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			((RunPiped) self).out.println(Ops.toStr(a));
-			return null;
-		}
+	@Params("string")
+	public static Object Writeline(Object self, Object a) {
+		((RunPiped) self).out.println(Ops.toStr(a));
+		return null;
 	}
 
 	@Override

@@ -13,7 +13,7 @@ import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
 public class Cursor extends SuQuery {
-	private static BuiltinMethods methods = new BuiltinMethods(Cursor.class);
+	private static BuiltinMethods2 methods = new BuiltinMethods2(Cursor.class);
 
 	Cursor(String query) {
 		super(query, TheDbms.dbms().cursor(query));
@@ -27,27 +27,18 @@ public class Cursor extends SuQuery {
 		return super.lookup(method);
 	}
 
-	public static class Next extends SuMethod1 {
-		{ params = new FunctionSpec("transaction"); }
-		@Override
-		public Object eval1(Object self, Object t) {
-			return ((Cursor) self).getrec(t, Dir.NEXT);
-		}
+	@Params("transaction")
+	public static Object Next(Object self, Object t) {
+		return ((Cursor) self).getrec(t, Dir.NEXT);
 	}
 
-	public static class Prev extends SuMethod1 {
-		{ params = new FunctionSpec("transaction"); }
-		@Override
-		public Object eval1(Object self, Object t) {
-			return ((Cursor) self).getrec(t, Dir.PREV);
-		}
+	@Params("transaction")
+	public static Object Prev(Object self, Object t) {
+		return ((Cursor) self).getrec(t, Dir.PREV);
 	}
 
-	public static class Output extends SuMethod {
-		@Override
-		public Object eval(Object self, Object... args) {
-			throw new SuException("cursor.Output not implemented yet"); // TODO cursor.Output
-		}
+	public static Object Output(Object self, Object... args) {
+		throw new SuException("cursor.Output not implemented yet"); // TODO cursor.Output
 	}
 
 	private Object getrec(Object arg, Dir dir) {

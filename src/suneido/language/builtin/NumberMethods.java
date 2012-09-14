@@ -19,58 +19,43 @@ import suneido.language.*;
  * <li>Prefers to return results as Int or Long or BigDecimal.</li>
  * <p>WARNING: Some operations will not work if integer precision greater than long.
  */
-public class NumberMethods extends BuiltinMethods {
+public class NumberMethods extends BuiltinMethods2 {
 	public static final NumberMethods singleton = new NumberMethods();
 
 	private NumberMethods() {
 		super(NumberMethods.class, "Numbers");
 	}
 
-	public static class Frac extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			if (integral(self))
-				return 0;
-			Number n = (Number) self;
-			if (self instanceof Float || self instanceof Double)
-				return n.doubleValue() % 1;
-			BigDecimal bd = (BigDecimal) self;
-			return bd.remainder(BigDecimal.ONE);
-		}
+	public static Object Frac(Object self) {
+		if (integral(self))
+			return 0;
+		Number n = (Number) self;
+		if (self instanceof Float || self instanceof Double)
+			return n.doubleValue() % 1;
+		BigDecimal bd = (BigDecimal) self;
+		return bd.remainder(BigDecimal.ONE);
 	}
 
-	public static class Int extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			if (integral(self))
-				return self;
-			return Numbers.narrow(((Number) self).longValue());
-		}
+	public static Object Int(Object self) {
+		if (integral(self))
+			return self;
+		return Numbers.narrow(((Number) self).longValue());
 	}
 
-	public static class Hex extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return Long.toHexString(((Number) self).longValue());
-		}
+	public static Object Hex(Object self) {
+		return Long.toHexString(((Number) self).longValue());
 	}
 
-	public static class Chr extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			long n = ((Number) self).longValue();
-			return Character.toString((char) (n & 0xff));
-		}
+	public static Object Chr(Object self) {
+		long n = ((Number) self).longValue();
+		return Character.toString((char) (n & 0xff));
 	}
 
-	public static class Format extends SuMethod1 {
-		{ params = new FunctionSpec("mask"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			BigDecimal n = toBigDecimal(self);
-			String mask = Ops.toStr(a);
-			return format(mask, n);
-		}
+	@Params("mask")
+	public static Object Format(Object self, Object a) {
+		BigDecimal n = toBigDecimal(self);
+		String mask = Ops.toStr(a);
+		return format(mask, n);
 	}
 
 	private static final BigDecimal half = new BigDecimal(".5");
@@ -148,116 +133,83 @@ public class NumberMethods extends BuiltinMethods {
 	}
 
 	// used by stdlib Numbers Round so commonly called
-	public static class Pow extends SuMethod1 {
-		{ params = new FunctionSpec("number"); }
-		@Override
-		public Object eval1(Object self, Object a_) {
-			Number sn = (Number) self;
-			Number an = toNum(a_);
-			if (isZero(an))
-				return 1;
-			if (isZero(sn))
-				return 0;
-			if (longable(an)) {
-				long ai = an.longValue();
-				if (ai == 1)
-					return self;
-				if (longable(sn)) {
-					long si = sn.longValue();
-					if (si == 1)
-						return 1;
-					if (0 < ai && ai < 16) {
-						long result = 1;
-						for (int i = 0; i < ai; ++i)
-							result *= si;
-						return narrow(result);
-					}
+	@Params("number")
+	public static Object Pow(Object self, Object a_) {
+		Number sn = (Number) self;
+		Number an = toNum(a_);
+		if (isZero(an))
+			return 1;
+		if (isZero(sn))
+			return 0;
+		if (longable(an)) {
+			long ai = an.longValue();
+			if (ai == 1)
+				return self;
+			if (longable(sn)) {
+				long si = sn.longValue();
+				if (si == 1)
+					return 1;
+				if (0 < ai && ai < 16) {
+					long result = 1;
+					for (int i = 0; i < ai; ++i)
+						result *= si;
+					return narrow(result);
 				}
-				if (Math.abs(ai) < Integer.MAX_VALUE)
-					return toBigDecimal(self).pow((int) ai, MC);
 			}
-			return narrow(Math.pow(sn.doubleValue(), an.doubleValue()));
+			if (Math.abs(ai) < Integer.MAX_VALUE)
+				return toBigDecimal(self).pow((int) ai, MC);
 		}
+		return narrow(Math.pow(sn.doubleValue(), an.doubleValue()));
 	}
 
-	public static class Cos extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.cos(d);
-		}
+	public static Object Cos(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.cos(d);
 	}
 
-	public static class Sin extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.sin(d);
-		}
+	public static Object Sin(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.sin(d);
 	}
 
-	public static class Tan extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.tan(d);
-		}
+	public static Object Tan(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.tan(d);
 	}
 
-	public static class ACos extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.acos(d);
-		}
+	public static Object ACos(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.acos(d);
 	}
 
-	public static class ASin extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.asin(d);
-		}
+	public static Object ASin(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.asin(d);
 	}
 
-	public static class ATan extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.atan(d);
-		}
+	public static Object ATan(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.atan(d);
 	}
 
-	public static class Exp extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.exp(d);
-		}
+	public static Object Exp(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.exp(d);
 	}
 
-	public static class Log extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.log(d);
-		}
+	public static Object Log(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.log(d);
 	}
 
-	public static class Log10 extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.log10(d);
-		}
+	public static Object Log10(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.log10(d);
 	}
 
-	public static class Sqrt extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			double d = ((Number) self).doubleValue();
-			return Math.sqrt(d);
-		}
+	public static Object Sqrt(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.sqrt(d);
 	}
-	
+
 }
