@@ -494,7 +494,8 @@ public class Select extends Query1 {
 			}
 			if (nexact > 0) {
 				int nrecs = tbl.nrecs();
-				assert nrecs > 0;
+				if (nrecs <= 0)
+					return 0;
 				return (float) nexact / nrecs;
 				// NOTE: assumes they all exist ???
 			}

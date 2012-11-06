@@ -139,7 +139,7 @@ public class Table extends Query {
 	@Override
 	int recordsize() {
 		int nrecs = nrecs();
-		return nrecs == 0 ? 0 : (int) (totalSize() / nrecs);
+		return nrecs <= 0 ? 0 : (int) (totalSize() / nrecs);
 	}
 
 	@Override
