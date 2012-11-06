@@ -238,6 +238,13 @@ public class QueryTest extends TestBase {
 		test1("hist summarize list id",
 			"list_id\n" +
 			"#('e', 'c', 'a')\n");
+
+		test1("customer where !(id in ())",
+				"id	name	city\n" +
+				"'a'	'axon'	'saskatoon'\n" +
+				"'c'	'calac'	'calgary'\n" +
+				"'e'	'emerald'	'vancouver'\n" +
+				"'i'	'intercon'	'saskatoon'\n");
 	}
 
 	private void test1(String query, String result) {
