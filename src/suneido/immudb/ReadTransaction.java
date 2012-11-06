@@ -217,7 +217,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	@Override
 	public int keySize(int tblnum, String columns) {
 		int nrecs = tableCount(tblnum);
-		if (nrecs == 0)
+		if (nrecs <= 0)
 			return 0;
 		TranIndex idx = getIndex(tblnum, columns);
 		return idx.totalSize() / nrecs;
