@@ -63,6 +63,8 @@ public class ExprTest {
 		fold("1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)");
 		fold("1 + 2 in (2,3,4)", "true");
 		fold("3 * 4 in (2,3,4)", "false");
+		fold("a in ()", "false");
+		fold("!(a in ())", "true");
 	}
 	private static void fold(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);
