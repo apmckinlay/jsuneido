@@ -92,33 +92,26 @@ public class ByteBuffers {
 		buf.get(data);
 		return ByteBuffer.wrap(data);
 	}
-	
+
 	public static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
 
 	/**
-	 * If the ByteBuffer is array based,
-	 * then use the array to create a slice with a single new instance
-	 * else duplicate and slice.
+	 * Return a slice of a buffer, ignoring the buffer position.<p>
+	 * The position of the result will be 0, and the limit will be len.<p>
 	 * Avoids modifying the original so thread safe.<p>
-	 * Ignores the buffer position.
-	 * @return A slice of a ByteBuffer. 
-	 * Always returns a new ByteBuffer (except when empty).
+	 * Always returns a new ByteBuffer (except when len is 0).<p>
+	 * @return A slice of a ByteBuffer.
 	 */
 	public static ByteBuffer slice(ByteBuffer buf, int pos, int len) {
 		if (len == 0)
 			return EMPTY_BUF;
-		if (buf.hasArray()) {
-			byte[] array = buf.array();
-			pos += buf.arrayOffset();
-			return ByteBuffer.wrap(array, pos, len);
-		} else {
-			buf = buf.duplicate();
-			if (pos == 0 && len == buf.limit())
-				return buf;
-			buf.position(pos);
-			buf.limit(pos + len);
-			return buf.slice();
-		}
+		assert pos + len <= buf.limit();
+		buf = buf.duplicate();
+		buf.position(pos);
+		buf.limit(pos + len);
+		if (pos != 0)
+			buf = buf.slice();
+		return buf;
 	}
 
 }
