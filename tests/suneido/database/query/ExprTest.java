@@ -63,6 +63,8 @@ public class ExprTest {
 		fold("1 + 2 + a in (2,3,4)", "(3 + a) in (2,3,4)");
 		fold("1 + 2 in (2,3,4)", "true");
 		fold("3 * 4 in (2,3,4)", "false");
+		fold("a in ()", "false");
+		fold("!(a in ())", "true");
 	}
 	private static void fold(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);
@@ -146,7 +148,7 @@ public class ExprTest {
 		replace("y", "yy");
 		replace("a + x < y * b", "((a + (1 + x)) < (yy * b))");
 		replace("a and z and b", "(a and '' and b)");
-		replace("z < 6 ? x : a + y", "(('' < 6) ? (1 + x) : (a + yy))");
+		replace("z < 6 ? x : a + y", "((6 > '') ? (1 + x) : (a + yy))");
 	}
 	private void replace(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);

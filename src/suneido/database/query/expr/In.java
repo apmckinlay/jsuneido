@@ -1,9 +1,14 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query.expr;
 
 import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.displayListToParens;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 
 import suneido.database.query.Header;
@@ -32,9 +37,9 @@ public class In extends Expr {
 		return rb.build();
 	}
 
-	public In(Expr expr, List<Object> values, Record packed) {
+	private In(Expr expr, List<Object> values, Record packed) {
 		this.expr = expr;
-		this.values = values;
+		this.values = (values == null) ? Collections.emptyList() : values;
 		this.packed = packed;
 	}
 
@@ -50,6 +55,8 @@ public class In extends Expr {
 
 	@Override
 	public Expr fold() {
+		if (values.isEmpty())
+			return Constant.FALSE;
 		Expr new_expr = expr.fold();
 		if (new_expr instanceof Constant)
 			return Constant.valueOf(eval2(((Constant) new_expr).value));

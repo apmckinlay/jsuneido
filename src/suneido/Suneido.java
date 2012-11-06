@@ -76,6 +76,11 @@ public class Suneido {
 			FileWriter fw = new FileWriter("error.log", true);
 			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 			fw.append(" ");
+			if (TheDbms.dbms() != null) {
+				String sessionid = TheDbms.dbms().sessionid();
+				if (! "127.0.0.1".equals(sessionid))
+					fw.append(sessionid).append(" ");
+			}
 			fw.append(s);
 			fw.append("\n");
 			if (err != null)

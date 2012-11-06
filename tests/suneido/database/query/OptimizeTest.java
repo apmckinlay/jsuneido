@@ -228,7 +228,7 @@ public class OptimizeTest extends TestBase {
 
 		test1("trans where \"mousee\" = item $ id project date, item, id",
 			"trans^(date,item,id) " +
-				"WHERE^(date,item,id) ('mousee' is (item $ id)) PROJECT-COPY (date,item,id)");
+				"WHERE^(date,item,id) ((item $ id) is 'mousee') PROJECT-COPY (date,item,id)");
 
 		test1("inven where qty + 1 in (3,8)",
 			"inven^(item) WHERE^(item) (qty + 1) in (3,8)");
@@ -284,6 +284,10 @@ public class OptimizeTest extends TestBase {
 		test1("(inven leftjoin trans) where date = 960204",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +
 				"WHERE (date is 960204)");
+
+		// "in" on empty table
+		test1("test_minus1 where a in (1)",
+				"test_minus1^(a) WHERE^(a)");
 	}
 
 	private void test1(String query, String strategy) {

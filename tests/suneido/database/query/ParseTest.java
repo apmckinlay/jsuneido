@@ -52,7 +52,7 @@ public class ParseTest extends TestBase {
 		test("test WHERE (a ^ 2)");
 		test("test WHERE (a | 1)");
 		test("test WHERE (a and b)");
-		test("test WHERE (a or 'a\\x72\\163z\\'\\?')", "test WHERE (a or `arsz'\\?`)");
+		test("test WHERE (a or b)");
 		test("joinable WHERE (a and x and y)");
 		test("test WHERE (a or b)");
 		test("joinable WHERE (a or y or x)");
