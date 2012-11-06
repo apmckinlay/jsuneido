@@ -146,7 +146,7 @@ public class ExprTest {
 		replace("y", "yy");
 		replace("a + x < y * b", "((a + (1 + x)) < (yy * b))");
 		replace("a and z and b", "(a and '' and b)");
-		replace("z < 6 ? x : a + y", "(('' < 6) ? (1 + x) : (a + yy))");
+		replace("z < 6 ? x : a + y", "((6 > '') ? (1 + x) : (a + yy))");
 	}
 	private void replace(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);
