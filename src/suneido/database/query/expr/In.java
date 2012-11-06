@@ -55,7 +55,8 @@ public class In extends Expr {
 
 	@Override
 	public Expr fold() {
-		//TODO if values is empty, fold to false
+		if (values.isEmpty())
+			return Constant.FALSE;
 		Expr new_expr = expr.fold();
 		if (new_expr instanceof Constant)
 			return Constant.valueOf(eval2(((Constant) new_expr).value));
