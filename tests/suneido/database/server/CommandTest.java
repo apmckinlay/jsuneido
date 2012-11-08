@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.internal.matchers.Matches;
@@ -43,6 +44,11 @@ public class CommandTest {
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
 		TheDbms.set(dbpkg.testdb());
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test
