@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,6 +22,11 @@ public class UtilTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test

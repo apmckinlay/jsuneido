@@ -6,6 +6,7 @@ import static suneido.language.Compiler.compile;
 import static suneido.language.Compiler.eval;
 import static suneido.language.ExecuteTest.test;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,6 +17,11 @@ public class ClassTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test

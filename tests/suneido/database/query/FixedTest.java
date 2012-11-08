@@ -12,12 +12,6 @@ import suneido.language.Ops;
 
 public class FixedTest extends TestBase {
 
-	@Override
-	@Before
-	public void setQuoting() {
-		Ops.default_single_quotes = true;
-	}
-
 	@Test
 	public void extend() {
 		makeTable();

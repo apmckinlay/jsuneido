@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import static suneido.language.Compiler.eval;
 import static suneido.language.Ops.display;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +16,11 @@ public class ExecuteTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test public void tests() {

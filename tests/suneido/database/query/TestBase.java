@@ -35,6 +35,7 @@ public class TestBase {
 	public void close() {
 		db.close();
 		Suneido.dbpkg = save_dbpkg;
+		Ops.default_single_quotes = false;
 	}
 
 	protected void makeDB() {
