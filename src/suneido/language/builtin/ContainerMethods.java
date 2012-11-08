@@ -20,7 +20,7 @@ import suneido.util.Util.Range;
 
 /** Used by {@link SuContainer} */
 public final class ContainerMethods {
-	public static final BuiltinMethods2 methods =
+	private static final BuiltinMethods2 methods =
 			new BuiltinMethods2(ContainerMethods.class, "Objects");
 
 	/** no instances, all static */
@@ -338,7 +338,11 @@ public final class ContainerMethods {
 	public static Object UpperBound(Object self, Object a, Object b) {
 		return ((SuContainer) self).upperBound(a, b);
 	}
-	
+
+	public static SuCallable lookup(String method) {
+		return methods.lookup(method);
+	}
+
 	public static void main(String[] args) {
 		System.out.println(IterateMethods.singleton);
 	}

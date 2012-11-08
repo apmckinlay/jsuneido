@@ -634,7 +634,7 @@ public class SuContainer extends SuValue
 
 	@Override
 	public SuValue lookup(String method) {
-		return ContainerMethods.methods.lookup(method);
+		return ContainerMethods.lookup(method);
 	}
 
 	public SuContainer subList(int from, int to) {

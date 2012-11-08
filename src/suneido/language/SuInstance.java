@@ -67,8 +67,8 @@ public class SuInstance extends SuValue {
 		b.put("Base?", new BaseQ());
 		b.put("Copy", new Copy());
 		b.put("Delete", new Delete());
-		b.put("Eval", ContainerMethods.methods.lookup("Eval"));
-		b.put("Eval2", ContainerMethods.methods.lookup("Eval2"));
+		b.put("Eval", ContainerMethods.lookup("Eval"));
+		b.put("Eval2", ContainerMethods.lookup("Eval2"));
 		b.put("GetDefault", new GetDefault());
 		b.put("Member?", new MemberQ());
 		b.put("Members", new Members());
