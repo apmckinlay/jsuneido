@@ -6,6 +6,7 @@ import static suneido.language.Ops.display;
 
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +18,11 @@ public class ContainerMethodsTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test
@@ -79,7 +85,7 @@ public class ContainerMethodsTest {
 
 	private static void testjoin(String result, String sep, Object... values) {
 		SuContainer c = new SuContainer(Arrays.asList(values));
-		assertEquals(result, ContainerMethods.methods.lookup("Join").eval1(c, sep));
+		assertEquals(result, ContainerMethods.lookup("Join").eval1(c, sep));
 	}
 
 	@Test
