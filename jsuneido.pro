@@ -1,28 +1,24 @@
--injars jsuneido.jar
--injars lib/asm-all-3.3.jar (!META-INF/MANIFEST.MF)
+-injars jsuneido-raw.jar
+-injars lib/asm-all-4.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
--injars lib/guava-12.0.jar (!META-INF/MANIFEST.MF)
+-injars lib/guava-13.0.1.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-3.1.0.jar
--libraryjars /System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar
--outjars jsuneido-dist.jar
+-libraryjars  <java.home>/lib/rt.jar
+-outjars jsuneido.jar
 
 -dontoptimize
 -dontobfuscate
 
 -keep public class suneido.** {
-	<methods>;
+    public *;
 }
 
--keep class org.objectweb.asm.Label
--keep class com.google.common.base.Splitter
--keep class com.google.common.collect.BiMap
--keep class com.google.common.collect.ImmutableList
--keep class suneido.database.query.Row$Which
--keep class suneido.database.query.Join$Type
+-keep class suneido.immudb.BtreeKey
 -keep class suneido.language.ParseFunction$Context
--keep class suneido.language.AstCompile$VarArgs
--keep class suneido.language.AstCompile$ExprOption
--keep class suneido.language.AstCompile$ExprType
+
+-keep class org.objectweb.asm.MethodVisitor
 
 -dontnote com.google.common.**
+
+-dontwarn java.lang.invoke.MethodHandle
