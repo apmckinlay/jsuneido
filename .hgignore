@@ -62,3 +62,5 @@ syntax: regexp
 
 syntax: regexp
 ^axis\.go$
+syntax: regexp
+^jsuneido-raw\.jar$

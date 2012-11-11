@@ -392,7 +392,6 @@ public class CommandTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void simple_rowToRecord() {
 		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"));
 		List<String> cols = asList("a", "b", "me", "c");
@@ -403,7 +402,6 @@ public class CommandTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void multi_rowToRecord() {
 		List<List<String>> flds = asList(asList("a"), asList("a", "b", "c"),
 				asList("x"), asList("x", "y", "z"));

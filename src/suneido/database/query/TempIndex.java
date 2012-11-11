@@ -57,7 +57,6 @@ public class TempIndex extends Query1 {
 				+ (unique ? " unique" : "");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	List<List<String>> indexes() {
 		return asList(order);

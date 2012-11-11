@@ -24,7 +24,7 @@ public class Util {
 	public static boolean isCapitalized(String s) {
 		return Character.isUpperCase(s.charAt(0));
 	}
-	
+
 	public static String capitalize(String s) {
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
 	}
@@ -241,6 +241,7 @@ public class Util {
 		return result;
 	}
 
+	@SafeVarargs
 	public static <T> T[] array(T... values) {
 		return values;
 	}
