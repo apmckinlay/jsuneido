@@ -152,7 +152,6 @@ public class Union extends Compatible {
 			intersect(source2.keys(), source2.indexes()));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<List<String>> keys() {
 		if (disjoint != null) {

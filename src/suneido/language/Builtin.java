@@ -6,10 +6,8 @@ package suneido.language;
 
 import java.lang.invoke.MethodHandle;
 
-import suneido.SuException;
-
 class Builtin {
-	
+
 	static SuCallable method(MethodHandle mh, FunctionSpec params) {
 		if (params == null)
 			return new MethodN(mh, null);
@@ -31,7 +29,7 @@ class Builtin {
 
 	private static abstract class Method extends SuCallable {
 		protected final MethodHandle mh;
-		
+
 		Method(MethodHandle mh, FunctionSpec params) {
 			this.mh = mh;
 			this.params = params;
@@ -44,11 +42,11 @@ class Builtin {
 
 		@Override
 		public abstract Object eval(Object self, Object... args);
-		
+
 	}
 
 	private static class MethodN extends Method {
-		
+
 		MethodN(MethodHandle mh, FunctionSpec params) {
 			super(mh, params);
 		}
@@ -90,7 +88,7 @@ class Builtin {
 			}
 		}
 	}
-	
+
 	private static final class Method1 extends Method {
 
 		Method1(MethodHandle mh, FunctionSpec params) {
@@ -119,7 +117,7 @@ class Builtin {
 			}
 		}
 	}
-	
+
 	private static final class Method2 extends Method {
 
 		Method2(MethodHandle mh, FunctionSpec params) {
@@ -153,7 +151,7 @@ class Builtin {
 			}
 		}
 	}
-	
+
 	private static final class Method3 extends Method {
 
 		Method3(MethodHandle mh, FunctionSpec params) {

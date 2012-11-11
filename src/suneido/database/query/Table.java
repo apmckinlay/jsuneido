@@ -243,7 +243,6 @@ public class Table extends Query {
 		icols = nil(idx) || singleton ? null : listToCommas(idx);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		// MAYBE cache

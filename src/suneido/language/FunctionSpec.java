@@ -9,7 +9,6 @@ import static suneido.util.Util.array;
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 
 import suneido.SuException;
 
@@ -66,9 +65,9 @@ public class FunctionSpec {
 		this.nLocals = nLocals;
 		assert !atParam || (params.length == 1 && defaults.length == 0);
 	}
-	
+
 	private static final Splitter splitter = Splitter.on(',').trimResults();
-	
+
 	/**
 	 * Create a FunctionSpec from the string description.
 	 * Used for @Params annotations on built-in methods.
@@ -117,7 +116,7 @@ public class FunctionSpec {
 		}
 		return new FunctionSpec(params, defaults);
 	}
-	
+
 	private static Object valueOf(String s) {
 		switch (s) {
 		case "true":
@@ -189,7 +188,7 @@ public class FunctionSpec {
 			throw new SuException("missing argument(s)");
 		return defaults[i - (params.length - defaults.length)];
 	}
-	
+
 	public int nParams() {
 		return params.length;
 	}

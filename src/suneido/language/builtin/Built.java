@@ -1,6 +1,5 @@
 package suneido.language.builtin;
 
-import suneido.Suneido;
 import suneido.WhenBuilt;
 import suneido.language.SuFunction0;
 

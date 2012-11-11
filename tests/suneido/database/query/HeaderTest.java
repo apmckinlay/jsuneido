@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-@SuppressWarnings("unchecked")
 public class HeaderTest {
 
 	@Test

@@ -127,7 +127,6 @@ public class Extend extends Query1 {
 		return new Row(srcrow, dbpkg.minRecord(), rb.build());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Header header() {
 		if (hdr == null)

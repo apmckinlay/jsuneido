@@ -92,7 +92,6 @@ public class ExprTest {
 	private Row row;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void eval() {
 		hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
 				asList("a", "b", "c", "d", "e"));

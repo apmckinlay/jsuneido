@@ -13,10 +13,12 @@ import com.google.common.collect.UnmodifiableIterator;
 public class ParallelIterable<T> implements Iterable<List<T>> {
 	private final Iterable<T>[] srcs;
 
+	@SafeVarargs
 	public ParallelIterable(Iterable<T>... srcs) {
 		this.srcs = srcs;
 	}
 
+	@SafeVarargs
 	public static <T> ParallelIterable<T> of(Iterable<T>... srcs) {
 		return new ParallelIterable<T>(srcs);
 	}
@@ -29,7 +31,7 @@ public class ParallelIterable<T> implements Iterable<List<T>> {
 	private static class ParallelIterator<T> extends UnmodifiableIterator<List<T>> {
 		private final List<Iterator<T>> srcs;
 
-		public ParallelIterator(Iterable<T>... args) {
+		public ParallelIterator(Iterable<T>[] args) {
 			srcs = Lists.newArrayListWithCapacity(args.length);
 			for (Iterable<T> iterable : args)
 				srcs.add(iterable.iterator());
