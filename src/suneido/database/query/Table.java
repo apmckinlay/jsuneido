@@ -16,10 +16,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import suneido.Suneido;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
+import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
+import suneido.util.Util;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class Table extends Query {
@@ -33,6 +37,7 @@ public class Table extends Query {
 	private Transaction tran;
 	final boolean singleton; // i.e. key()
 	private List<String> idx = noFields;
+	private final Impl impl;
 	IndexIter iter;
 
 	public Table(Transaction tran, String tablename) {
@@ -40,6 +45,7 @@ public class Table extends Query {
 		table = tablename;
 		tbl = tran.ck_getTable(table);
 		singleton = tbl.singleton();
+		impl = table.equals("indexes") ? new IndexesImpl() : new Impl();
 	}
 
 	@Override
@@ -118,7 +124,7 @@ public class Table extends Query {
 
 	@Override
 	List<String> columns() {
-		return tbl.getColumns();
+		return impl.columns();
 	}
 
 	@Override
@@ -219,7 +225,7 @@ public class Table extends Query {
 			return null;
 		}
 
-		Row row = new Row(iter.curKey(), tran.input(iter.keyadr()));
+		Row row = new Row(iter.curKey(), impl.process(tran.input(iter.keyadr())));
 
 		if (singleton && !sel.contains(row.project(hdr, idx))) {
 			rewound = true;
@@ -247,8 +253,8 @@ public class Table extends Query {
 	public Header header() {
 		// MAYBE cache
 		List<String> index = singleton || idx == null ? noFields : idx;
-		List<String> fields = tbl.getFields();
-		return new Header(asList(index, fields), tbl.getColumns());
+		List<String> fields = impl.fields();
+		return new Header(asList(index, fields), columns());
 	}
 
 	@Override
@@ -290,6 +296,63 @@ public class Table extends Query {
 
 	@Override
 	public void close() {
+	}
+
+	private class Impl {
+		List<String> fields() {
+			return tbl.getFields();
+		}
+
+		List<String> columns() {
+			return tbl.getColumns();
+		}
+
+		Record process(Record rec) {
+			return rec;
+		}
+
+	}
+
+	private class IndexesImpl extends Impl {
+
+		@Override
+		List<String> fields() {
+			return add_columns(super.fields());
+		}
+
+		@Override
+		List<String> columns() {
+			return add_columns(super.columns());
+		}
+
+		private List<String> add_columns(List<String> list) {
+			ImmutableList.Builder<String> b = ImmutableList.builder();
+			b.addAll(list);
+			b.add("columns");
+			return b.build();
+		}
+
+		@Override
+		Record process(Record rec) {
+			RecordBuilder rb = Suneido.dbpkg.recordBuilder();
+			rb.addAll(rec);
+			for (int i = rec.size(); i < 6; ++i)
+				rb.add("");
+			rb.add(convert(rec));
+			return rb.build();
+		}
+
+		private String convert(Record rec) {
+			String colnums = rec.getString(1);
+			if (colnums.isEmpty())
+				return "";
+			List<String> fields = tran.ck_getTable(rec.getInt(0)).getFields();
+			StringBuilder sb = new StringBuilder();
+			for (String col : Util.commaSplitter(colnums))
+				sb.append(",").append(fields.get(Integer.parseInt(col)));
+			return sb.substring(1);
+		}
+
 	}
 
 }
