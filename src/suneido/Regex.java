@@ -1,6 +1,8 @@
 package suneido;
 
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import suneido.util.LruCache;
 
@@ -51,7 +53,7 @@ public class Regex {
 						sb.append("\\[");
 						++i;
 					}
-				} else {
+				} else if (i + 1 < rx.length()) {
 					inCharClass = true;
 					sb.append(c);
 					c = rx.charAt(++i);
@@ -63,6 +65,9 @@ public class Regex {
 						sb.append("\\]");
 						++i;
 					}
+				} else {
+					sb.append("\\[");
+					++i;
 				}
 				break;
 			case ']':
