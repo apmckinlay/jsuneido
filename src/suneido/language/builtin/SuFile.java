@@ -6,7 +6,10 @@ package suneido.language.builtin;
 
 import static suneido.util.Util.array;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -57,7 +60,7 @@ public class SuFile extends SuValue {
 	public SuValue lookup(String method) {
 		return methods.lookup(method);
 	}
-	
+
 	public static Object Flush(Object self) {
 		try {
 			((SuFile) self).f.getChannel().force(true);
@@ -142,7 +145,7 @@ public class SuFile extends SuValue {
 			throw new SuException("File Write failed", e);
 		}
 	}
-	
+
 	@Params("string")
 	public static Object Writeline(Object self, Object a) {
 		((SuFile) self).writeline(Ops.toStr(a));
@@ -161,7 +164,7 @@ public class SuFile extends SuValue {
 			throw new SuException("File Write failed", e);
 		}
 	}
-	
+
 	public static Object Close(Object self) {
 		((SuFile) self).close();
 		return null;
@@ -188,7 +191,7 @@ public class SuFile extends SuValue {
 		return "File(" + filename + ", " + mode + ")";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		FunctionSpec newFS = new FunctionSpec(array("filename", "mode"), "r");
 		@Override
 		public SuFile newInstance(Object... args) {

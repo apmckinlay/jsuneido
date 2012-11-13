@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 
 import suneido.language.*;
 
-public final class Seq extends BuiltinClass {
+public final class Seq extends BuiltinClass2 {
 	private static final FunctionSpec initFS =
 			new FunctionSpec(array("from", "to", "by"), false, 1);
 

@@ -158,7 +158,7 @@ public class SocketClient extends SuValue {
 		close();
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		FunctionSpec newFS = new FunctionSpec(
 				array("address", "port", "timeout", "timeoutConnect"),
 				60, 0);

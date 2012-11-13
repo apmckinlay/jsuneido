@@ -6,7 +6,10 @@ package suneido.language.builtin;
 
 import static suneido.util.Util.array;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -148,13 +151,15 @@ public class RunPiped extends SuValue {
 		return args;
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		@Override
 		public RunPiped newInstance(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);
 			return new RunPiped(Ops.toStr(args[0]));
 		}
+
 		FunctionSpec fs = new FunctionSpec(array("cmd", "block"), Boolean.FALSE);
+
 		@Override
 		public Object call(Object... args) {
 			args = Args.massage(fs, args);

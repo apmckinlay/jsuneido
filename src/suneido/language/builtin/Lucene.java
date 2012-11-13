@@ -4,8 +4,6 @@
 
 package suneido.language.builtin;
 
-import static suneido.util.Util.array;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -28,14 +26,17 @@ import org.apache.lucene.util.Version;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.language.*;
+import suneido.language.BuiltinClass2;
+import suneido.language.BuiltinMethods2;
+import suneido.language.Ops;
+import suneido.language.Params;
 
 /*
 Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
 Lucene.Search("lucene", "good") {|key| Print(key: key) }
 */
 
-public class Lucene extends BuiltinClass {
+public class Lucene extends BuiltinClass2 {
 	public static final Version version = Version.LUCENE_31;
 	public static final Lucene singleton = new Lucene();
 
@@ -48,36 +49,30 @@ public class Lucene extends BuiltinClass {
 		throw new SuException("cannot create instances of Lucene");
 	}
 
-	public static class AvailableQ extends SuMethod1 {
-		{ params = new FunctionSpec("dir"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String path = Ops.toStr(a);
-			try {
-				FSDirectory dir = FSDirectory.open(new File(path));
-				IndexSearcher searcher = new IndexSearcher(dir);
-				searcher.close();
-				return true;
-			} catch (IOException e) {
-				return false;
-			}
+	@Params("dir")
+	public static Object AvailableQ(Object self, Object a) {
+		String path = Ops.toStr(a);
+		try {
+			FSDirectory dir = FSDirectory.open(new File(path));
+			IndexSearcher searcher = new IndexSearcher(dir);
+			searcher.close();
+			return true;
+		} catch (IOException e) {
+			return false;
 		}
 	}
 
-	public static class Update extends SuMethod3 {
-		{ params = new FunctionSpec(array("dir", "block", "create"), false); }
-		@Override
-		public Object eval3(Object self, Object a, Object b, Object c) {
-			String dir = Ops.toStr(a);
-			boolean create = Ops.toBoolean_(c);
-			Updater updater = new Updater(dir, create);
-			try {
-				Ops.call1(b, updater);
-			} finally {
-				updater.close();
-			}
-			return null;
+	@Params("dir, block, create = false")
+	public static Object Update(Object self, Object a, Object b, Object c) {
+		String dir = Ops.toStr(a);
+		boolean create = Ops.toBoolean_(c);
+		Updater updater = new Updater(dir, create);
+		try {
+			Ops.call1(b, updater);
+		} finally {
+			updater.close();
 		}
+		return null;
 	}
 
 	static class Updater extends SuValue {
@@ -161,32 +156,29 @@ public class Lucene extends BuiltinClass {
 		}
 	}
 
-	public static class Search extends SuMethod4 {
-		{ params = new FunctionSpec(array("dir", "query", "block", "limit"), 10); }
-		@Override
-		public Object eval4(Object self, Object a, Object b, Object c, Object d) {
-			String path = Ops.toStr(a);
-			String queryStr = Ops.toStr(b);
-			int limit = Ops.toInt(d);
-			Directory dir;
-			try {
-				dir = FSDirectory.open(new File(path));
-				IndexSearcher searcher = new IndexSearcher(dir);
-				Analyzer analyzer = new StandardAnalyzer(version);
-				QueryParser parser = new QueryParser(version, "text", analyzer);
-				Query query = parser.parse(queryStr);
-				TopDocs results = searcher.search(query, limit);
-				ScoreDoc[] hits = results.scoreDocs;
-				for (ScoreDoc hit : hits) {
-					Document doc = searcher.doc(hit.doc);
-					String key = doc.get("key");
-					Ops.call1(c, key);
-				}
-				searcher.close();
-				return null;
-			} catch (Exception e) {
-				throw new SuException("Lucene.Search: failed", e);
+	@Params("dir, query, block, limit = 10")
+	public static Object Search(Object self, Object a, Object b, Object c, Object d) {
+		String path = Ops.toStr(a);
+		String queryStr = Ops.toStr(b);
+		int limit = Ops.toInt(d);
+		Directory dir;
+		try {
+			dir = FSDirectory.open(new File(path));
+			IndexSearcher searcher = new IndexSearcher(dir);
+			Analyzer analyzer = new StandardAnalyzer(version);
+			QueryParser parser = new QueryParser(version, "text", analyzer);
+			Query query = parser.parse(queryStr);
+			TopDocs results = searcher.search(query, limit);
+			ScoreDoc[] hits = results.scoreDocs;
+			for (ScoreDoc hit : hits) {
+				Document doc = searcher.doc(hit.doc);
+				String key = doc.get("key");
+				Ops.call1(c, key);
 			}
+			searcher.close();
+			return null;
+		} catch (Exception e) {
+			throw new SuException("Lucene.Search: failed", e);
 		}
 	}
 }
