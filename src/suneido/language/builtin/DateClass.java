@@ -12,10 +12,13 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.BuiltinClass2;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
 import suneido.util.DateParse;
 
-public class DateClass extends BuiltinClass {
+public class DateClass extends BuiltinClass2 {
 	public static final DateClass singleton = new DateClass();
 
 	private DateClass() {
@@ -75,12 +78,9 @@ public class DateClass extends BuiltinClass {
 		return c.getTime();
 	}
 
-	public static class GetLocalGMTBias extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			int offset = TimeZone.getDefault().getOffset(new Date().getTime());
-			return -offset / 60000; // convert from ms to minutes
-		}
+	public static Object GetLocalGMTBias(Object self) {
+		int offset = TimeZone.getDefault().getOffset(new Date().getTime());
+		return -offset / 60000; // convert from ms to minutes
 	}
 
 }

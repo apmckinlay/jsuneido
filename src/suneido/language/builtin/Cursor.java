@@ -59,7 +59,7 @@ public class Cursor extends SuQuery {
 		return "Cursor";
 	}
 
-	public static final SuValue clazz = new BuiltinClass() {
+	public static final SuValue clazz = new BuiltinClass2() {
 		FunctionSpec newFS = new FunctionSpec("query");
 		@Override
 		protected SuQuery newInstance(Object... args) {

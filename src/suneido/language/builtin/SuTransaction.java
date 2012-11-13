@@ -68,7 +68,7 @@ public class SuTransaction extends SuValue {
 		return ((SuTransaction) self).t.isEnded();
 	}
 
-	private static final FunctionSpec QueryParams = 
+	private static final FunctionSpec QueryParams =
 			FunctionSpec.from("query, block = false");
 
 	public static Object Query(Object self, Object... args) {
@@ -195,7 +195,7 @@ public class SuTransaction extends SuValue {
 		return "Transaction";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		@Override
 		public SuTransaction newInstance(Object... args) {
 			return new SuTransaction(args);

@@ -15,8 +15,6 @@ import suneido.SuValue;
 import suneido.Suneido;
 import suneido.language.builtin.ContainerMethods;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Suneido classes are instances of SuClass
  * with the methods stored in members.
@@ -28,7 +26,8 @@ public class SuClass extends SuValue {
 	private final String baseGlobal; // TODO could be int slot
 	private final Map<String, Object> members; // must be synchronized
 	private boolean hasGetters = true; // till we know different
-	private static final Map<String, Object> basicMethods = basicMethods();
+	private static final Map<String, SuCallable> basicMethods =
+			BuiltinMethods2.methods(SuClass.class);
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")
@@ -36,18 +35,6 @@ public class SuClass extends SuValue {
 		this.name = className.replace(AstCompile.METHOD_SEPARATOR, '.');
 		this.baseGlobal = baseGlobal;
 		this.members = (Map<String, Object>) (members == null ? Collections.emptyMap() : members);
-	}
-
-	private static Map<String, Object> basicMethods() {
-		ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
-		b.put("Base", new Base());
-		b.put("Base?", new BaseQ());
-		b.put("GetDefault", new GetDefault());
-		b.put("Members", new Members());
-		b.put("Member?", new MemberQ());
-		b.put("MethodClass", new MethodClass());
-		b.put("Method?", new MethodQ());
-		return b.build();
 	}
 
 	@Override
@@ -208,19 +195,14 @@ public class SuClass extends SuValue {
 		return (SuClass) base;
 	}
 
-	private static class Base extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuClass c = (SuClass) self;
-			return (c.baseGlobal == null) ? Boolean.FALSE : context.get(c.baseGlobal);
-		}
+	public static Object Base(Object self) {
+		SuClass c = (SuClass) self;
+		return (c.baseGlobal == null) ? Boolean.FALSE : c.context.get(c.baseGlobal);
 	}
 
-	private static class BaseQ extends SuMethod1 {
-		@Override
-		public Object eval1(Object self, Object a) {
+	@Params("value")
+	public static Object BaseQ(Object self, Object a) {
 			return ((SuClass) self).hasBase(a);
-		}
 	}
 
 	boolean hasBase(Object base) {
@@ -233,12 +215,9 @@ public class SuClass extends SuValue {
 
 	private static SuCallable eval = ContainerMethods.lookup("Eval");
 
-	private static class GetDefault extends SuMethod2 {
-		{ params = new FunctionSpec("key", "block"); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
+	@Params("key, block")
+	public static Object GetDefault(Object self, Object a, Object b) {
 			return ((SuClass) self).getDefault(a, b);
-		}
 	}
 
 	public Object getDefault(Object k, Object b) {
@@ -249,39 +228,30 @@ public class SuClass extends SuValue {
 		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
-	private static class Members extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			SuContainer c = new SuContainer();
-			for (Map.Entry<String, Object> e : ((SuClass) self).members.entrySet())
-				if (e.getValue() != null)
-					c.add(e.getKey());
-			return c;
-		}
+	public static Object Members(Object self) {
+		SuContainer c = new SuContainer();
+		for (Map.Entry<String, Object> e : ((SuClass) self).members.entrySet())
+			if (e.getValue() != null)
+				c.add(e.getKey());
+		return c;
 	}
 
-	private static class MemberQ extends SuMethod1 {
-		{ params = new FunctionSpec("key"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return ((SuClass) self).hasMember(a);
-		}
+	@Params("key")
+	public static Object MemberQ(Object self, Object a) {
+		return ((SuClass) self).hasMember(a);
 	}
 
 	boolean hasMember(Object k) {
 		return get2(Ops.toStr(k)) != null;
 	}
 
-	private static class MethodClass extends SuMethod1 {
-		{ params = new FunctionSpec("key"); }
-		@Override
-			public Object eval1(Object self, Object a) {
-			String method = Ops.toStr(a);
-			SuClass c = toClass(self);
-			if (c == null)
-				return Boolean.FALSE;
-			return c.methodClass(method);
-		}
+	@Params("key")
+	public static Object MethodClass(Object self, Object a) {
+		String method = Ops.toStr(a);
+		SuClass c = toClass(self);
+		if (c == null)
+			return Boolean.FALSE;
+		return c.methodClass(method);
 	}
 
 	private Object methodClass(String method) {
@@ -293,18 +263,15 @@ public class SuClass extends SuValue {
 		return Boolean.FALSE;
 	}
 
-	private static class MethodQ extends SuMethod1 {
-		{ params = new FunctionSpec("key"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			String method = Ops.toStr(a);
-			SuClass c = toClass(self);
-			if (c == null)
-				return Boolean.FALSE;
-			// can't use lookup because it throws
-			Object x = c.get2(method);
-			return x instanceof SuCallable;
-		}
+	@Params("key")
+	public static Object MethodQ(Object self, Object a) {
+		String method = Ops.toStr(a);
+		SuClass c = toClass(self);
+		if (c == null)
+			return Boolean.FALSE;
+		// can't use lookup because it throws
+		Object x = c.get2(method);
+		return x instanceof SuCallable;
 	}
 
 	private static SuClass toClass(Object x) {

@@ -50,14 +50,17 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 			return s == null ? self : s;
 	}
 
+	@Override
 	public Iterator<String> iterator() {
 		return this;
 	}
 
+	@Override
 	public boolean hasNext() {
 		return lexer.hasNext();
 	}
 
+	@Override
 	public String next() {
 		token = lexer.nextAll();
 		if (token == EOF)
@@ -65,11 +68,12 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return lexer.matched();
 	}
 
+	@Override
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		@Override
 		public Scanner newInstance(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);

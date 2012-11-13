@@ -20,7 +20,7 @@ public final class Adler32 extends SuValue {
 	public SuValue lookup(String method) {
 		return methods.lookup(method);
 	}
-	
+
 	@Params("string")
 	public static Object Update(Object self, Object a) {
 		update(((Adler32) self).cksum, Ops.toStr(a));
@@ -31,12 +31,12 @@ public final class Adler32 extends SuValue {
 		for (int i = 0; i < s.length(); ++i)
 			cksum.update(s.charAt(i));
 	}
-	
+
 	public static Object Value(Object self) {
 		return (int) (((Adler32) self).cksum.getValue());
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass2 clazz = new BuiltinClass2() {
 		@Override
 		protected Object newInstance(Object... args) {
 			Args.massage(FunctionSpec.noParams, args);

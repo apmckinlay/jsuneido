@@ -1,10 +1,12 @@
 package suneido.language.builtin;
 
-import static suneido.util.Util.array;
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.Suneido;
+import suneido.TheDbms;
 import suneido.language.*;
 
-public class Database extends BuiltinClass {
+public class Database extends BuiltinClass2 {
 	public static final Database singleton = new Database();
 
 	private Database() {
@@ -26,63 +28,39 @@ public class Database extends BuiltinClass {
 		return Boolean.TRUE;
 	}
 
-	public static class Connections extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return TheDbms.dbms().connections();
-		}
+	public static Object Connections(Object self) {
+		return TheDbms.dbms().connections();
 	}
 
-	public static class CurrentSize extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return TheDbms.dbms().size();
-		}
+	public static Object CurrentSize(Object self) {
+		return TheDbms.dbms().size();
 	}
 
-	public static class Cursors extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return TheDbms.dbms().cursors();
-		}
+	public static Object Cursors(Object self) {
+		return TheDbms.dbms().cursors();
 	}
 
-	public static class Kill extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return TheDbms.dbms().kill(Ops.toStr(a));
-		}
+	@Params("string")
+	public static Object Kill(Object self, Object a) {
+		return TheDbms.dbms().kill(Ops.toStr(a));
 	}
 
-	public static class SessionId extends SuMethod1 {
-		{ params = new FunctionSpec(array("string"), ""); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return TheDbms.dbms().sessionid(Ops.toStr(a));
-		}
+	@Params("string=''")
+	public static Object SessionId(Object self, Object a) {
+		return TheDbms.dbms().sessionid(Ops.toStr(a));
 	}
 
-	public static class TempDest extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return 0;
-		}
+	public static Object TempDest(Object self) {
+		return 0;
 	}
 
-	public static class Transactions extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return new SuContainer(TheDbms.dbms().tranlist());
-		}
+	public static Object Transactions(Object self) {
+		return new SuContainer(TheDbms.dbms().tranlist());
 	}
 
-	public static class Impersonate extends SuMethod1 {
-		{ params = FunctionSpec.string; }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
-		}
+	@Params("string")
+	public static Object Impersonate(Object self, Object a) {
+		return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
 	}
 
 }
