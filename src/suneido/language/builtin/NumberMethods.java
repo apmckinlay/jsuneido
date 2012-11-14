@@ -8,7 +8,10 @@ import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 
-import suneido.language.*;
+import suneido.language.BuiltinMethods2;
+import suneido.language.Numbers;
+import suneido.language.Ops;
+import suneido.language.Params;
 
 // assert self instanceof Number
 /**
@@ -43,7 +46,10 @@ public class NumberMethods extends BuiltinMethods2 {
 	}
 
 	public static Object Hex(Object self) {
-		return Long.toHexString(((Number) self).longValue());
+		long mask = (self instanceof Short) ? 0xffff
+				: (self instanceof Integer) ? 0xffffffffL
+				: ~0L;
+		return Long.toHexString(((Number) self).longValue() & mask);
 	}
 
 	public static Object Chr(Object self) {
