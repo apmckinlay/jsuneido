@@ -10,7 +10,7 @@ import suneido.language.*;
 public class Scanner extends SuValue implements Iterable<String>, Iterator<String> {
 	private final Lexer lexer;
 	private Token token;
-	private static final BuiltinMethods2 methods = new BuiltinMethods2(Scanner.class);
+	private static final BuiltinMethods methods = new BuiltinMethods(Scanner.class);
 
 	public Scanner(String s) {
 		lexer = new Lexer(s);
@@ -73,7 +73,7 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		throw new UnsupportedOperationException();
 	}
 
-	public static final BuiltinClass2 clazz = new BuiltinClass2() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public Scanner newInstance(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);

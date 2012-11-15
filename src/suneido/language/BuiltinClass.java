@@ -4,7 +4,6 @@
 
 package suneido.language;
 
-import suneido.SuValue;
 import suneido.language.builtin.SuFile;
 
 /**
@@ -19,6 +18,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 
 	protected BuiltinClass() {
 	}
+
 	protected BuiltinClass(Class<?> c) {
 		super(c);
 	}
@@ -37,14 +37,14 @@ public abstract class BuiltinClass extends BuiltinMethods {
 	}
 
 	@Override
-	public SuValue lookup(String method) {
+	public SuCallable lookup(String method) {
 		if (method == "<new>")
 			return newInstance;
 		// TODO Base, Base?, etc.
 		return super.lookup(method);
 	}
 
-	private final SuValue newInstance = new SuMethod() {
+	private final SuCallable newInstance = new SuMethod() {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return newInstance(args);

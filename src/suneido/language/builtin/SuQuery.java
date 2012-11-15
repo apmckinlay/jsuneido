@@ -25,7 +25,7 @@ public class SuQuery extends SuValue {
 	protected final DbmsTran t;
 	protected Dir eof = null;
 
-	private static BuiltinMethods2 methods = new BuiltinMethods2(SuQuery.class);
+	private static BuiltinMethods methods = new BuiltinMethods(SuQuery.class);
 
 	public SuQuery(String query, DbmsQuery q, DbmsTran t) {
 		this.query = query;

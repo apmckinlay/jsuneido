@@ -5,10 +5,10 @@
 package suneido.language.builtin;
 
 import suneido.SuException;
-import suneido.language.BuiltinClass2;
+import suneido.language.BuiltinClass;
 import suneido.language.Params;
 
-public class NoLucene extends BuiltinClass2 {
+public class NoLucene extends BuiltinClass {
 	public static final NoLucene singleton = new NoLucene();
 
 	private NoLucene() {

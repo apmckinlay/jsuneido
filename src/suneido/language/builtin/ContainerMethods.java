@@ -20,8 +20,8 @@ import suneido.util.Util.Range;
 
 /** Used by {@link SuContainer} */
 public final class ContainerMethods {
-	private static final BuiltinMethods2 methods =
-			new BuiltinMethods2(ContainerMethods.class, "Objects");
+	private static final BuiltinMethods methods =
+			new BuiltinMethods(ContainerMethods.class, "Objects");
 
 	/** no instances, all static */
 	private ContainerMethods() {
@@ -168,7 +168,7 @@ public final class ContainerMethods {
 		}
 	}
 
-	public static final class IterateMethods extends BuiltinMethods2 {
+	public static final class IterateMethods extends BuiltinMethods {
 		public static final SuValue singleton = new IterateMethods();
 
 		protected IterateMethods() {

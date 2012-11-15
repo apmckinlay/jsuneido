@@ -27,7 +27,7 @@ public class SuClass extends SuValue {
 	private final Map<String, Object> members; // must be synchronized
 	private boolean hasGetters = true; // till we know different
 	private static final Map<String, SuCallable> basicMethods =
-			BuiltinMethods2.methods(SuClass.class);
+			BuiltinMethods.methods(SuClass.class);
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")

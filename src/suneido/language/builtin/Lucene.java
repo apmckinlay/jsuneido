@@ -26,8 +26,8 @@ import org.apache.lucene.util.Version;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.language.BuiltinClass2;
-import suneido.language.BuiltinMethods2;
+import suneido.language.BuiltinClass;
+import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
 
@@ -36,7 +36,7 @@ Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all g
 Lucene.Search("lucene", "good") {|key| Print(key: key) }
 */
 
-public class Lucene extends BuiltinClass2 {
+public class Lucene extends BuiltinClass {
 	public static final Version version = Version.LUCENE_31;
 	public static final Lucene singleton = new Lucene();
 
@@ -76,7 +76,7 @@ public class Lucene extends BuiltinClass2 {
 	}
 
 	static class Updater extends SuValue {
-		private static BuiltinMethods2 methods = new BuiltinMethods2(Updater.class);
+		private static BuiltinMethods methods = new BuiltinMethods(Updater.class);
 		private final IndexWriter writer;
 
 		Updater(String dir, boolean create) {
