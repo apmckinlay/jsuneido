@@ -22,7 +22,7 @@ public class RunPiped extends SuValue {
 	private final Process proc;
 	private final PrintStream out;
 	private final BufferedReader in;
-	private static final BuiltinMethods2 methods = new BuiltinMethods2(RunPiped.class);
+	private static final BuiltinMethods methods = new BuiltinMethods(RunPiped.class);
 
 	public RunPiped(String cmd) {
 		this.cmd = cmd;
@@ -151,7 +151,7 @@ public class RunPiped extends SuValue {
 		return args;
 	}
 
-	public static final BuiltinClass2 clazz = new BuiltinClass2() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public RunPiped newInstance(Object... args) {
 			args = Args.massage(FunctionSpec.string, args);

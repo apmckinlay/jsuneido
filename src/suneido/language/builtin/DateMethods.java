@@ -14,13 +14,13 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import suneido.SuException;
-import suneido.language.BuiltinMethods2;
+import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
 import suneido.util.FAQCalendar;
 
 /** used by {@link Ops} target */
-public final class DateMethods extends BuiltinMethods2 {
+public final class DateMethods extends BuiltinMethods {
 	public static final DateMethods singleton = new DateMethods();
 
 	private DateMethods() {

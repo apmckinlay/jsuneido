@@ -21,8 +21,8 @@ public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
-	private static final BuiltinMethods2 methods =
-			new BuiltinMethods2(SuTransaction.class, "Transactions");
+	private static final BuiltinMethods methods =
+			new BuiltinMethods(SuTransaction.class, "Transactions");
 
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), NA, NA);
@@ -195,7 +195,7 @@ public class SuTransaction extends SuValue {
 		return "Transaction";
 	}
 
-	public static final BuiltinClass2 clazz = new BuiltinClass2() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public SuTransaction newInstance(Object... args) {
 			return new SuTransaction(args);

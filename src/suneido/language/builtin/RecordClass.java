@@ -2,9 +2,9 @@ package suneido.language.builtin;
 
 import suneido.SuRecord;
 import suneido.language.Args;
-import suneido.language.BuiltinClass2;
+import suneido.language.BuiltinClass;
 
-public class RecordClass extends BuiltinClass2 {
+public class RecordClass extends BuiltinClass {
 
 	@Override
 	public Object newInstance(Object... args) {

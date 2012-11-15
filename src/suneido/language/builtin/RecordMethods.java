@@ -11,15 +11,15 @@ import java.util.Map;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.language.ArgsIterator;
-import suneido.language.BuiltinMethods2;
+import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
 import suneido.util.Util;
 
 /** {@link SuRecord} delegates invoke to here */
 public class RecordMethods {
-	public static final BuiltinMethods2 methods =
-			new BuiltinMethods2(RecordMethods.class, "Records");
+	public static final BuiltinMethods methods =
+			new BuiltinMethods(RecordMethods.class, "Records");
 
 	private RecordMethods() {
 	}

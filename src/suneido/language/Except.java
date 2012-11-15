@@ -18,7 +18,7 @@ import com.google.common.collect.Lists;
  */
 public class Except extends Concat {
 	private final Throwable e;
-	private static final BuiltinMethods2 methods = new BuiltinMethods2(
+	private static final BuiltinMethods methods = new BuiltinMethods(
 			Except.class);
 
 	public Except(Throwable e) {
