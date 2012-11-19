@@ -11,6 +11,7 @@ test.go
 *.bak
 iminstall.bat
 syntax: regexp
+^lucene-core-3.1.0.jar
 ^\.externalToolBuilders$
 syntax: regexp
 \.out$
