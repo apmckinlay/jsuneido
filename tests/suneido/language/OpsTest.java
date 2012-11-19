@@ -2,8 +2,11 @@ package suneido.language;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static suneido.language.Numbers.INF;
+import static suneido.language.Numbers.MC;
+import static suneido.language.Numbers.MINUS_INF;
+import static suneido.language.Numbers.ZERO;
 import static suneido.language.Ops.*;
-import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 
@@ -187,6 +190,25 @@ public class OpsTest {
 		assertEquals(INF, 		mul(INF, 9));
 		assertEquals(INF,		mul(INF, p9));
 		assertEquals(INF,		mul(INF, INF));
+	}
+	
+	@Test
+	public void test_overflow() {		
+		// overflow from int to long
+		assertEquals(Integer.MAX_VALUE + 1L, add(Integer.MAX_VALUE, 1));
+		assertEquals(Integer.MAX_VALUE + 1L, sub(Integer.MAX_VALUE, -1));
+		assertEquals(Integer.MAX_VALUE * 10L, mul(Integer.MAX_VALUE, 10));
+		assertEquals(Integer.MAX_VALUE * (long) Integer.MAX_VALUE, 
+				mul(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+		// overflow from long to BigDecimal
+		BigDecimal MAX_LONG = BigDecimal.valueOf(Long.MAX_VALUE);
+		assertEquals(MAX_LONG.add(BigDecimal.ONE, MC), 
+				add(Long.MAX_VALUE, 1));
+		assertEquals(MAX_LONG.subtract(BigDecimal.ONE.negate(), MC), 
+				sub(Long.MAX_VALUE, -1));
+		assertEquals(MAX_LONG.multiply(BigDecimal.TEN, MC), 
+				mul(Long.MAX_VALUE, 10));
 	}
 
 	@Test

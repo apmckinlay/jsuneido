@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 
 import suneido.SuException;
+import suneido.language.builtin.NumberMethods;
 
 /**
  * static helper methods for working with numbers.<p>
@@ -70,7 +71,7 @@ public class Numbers {
 	}
 	
 	public static boolean isZero(Number n) {
-		return signum((Number) n) == 0;
+		return signum(n) == 0;
 	}
 	
 	public static int signum(Number n) {
@@ -112,7 +113,6 @@ public class Numbers {
 	 * add2, sub2, mul2, and div2 follow same outline
 	 * - convert to numbers (throws if not convertible)
 	 * - check for zero
-	 * - if longable, return narrow(long op) [except for divide]
 	 * - if float or double, return narrow(double op)
 	 * - check for infinite
 	 * - return bigdecimal op
@@ -121,11 +121,12 @@ public class Numbers {
 	public static Number add2(Object x_, Object y_) {
 		Number xn = toNum(x_);
 		Number yn = toNum(y_);
+		
+		if (isZero(xn))
+			return yn;
 		if (isZero(yn))
 			return xn;
 
-		if (longable(xn) && longable(yn))
-			return narrow(xn.longValue() + yn.longValue());
 		if (xn instanceof Float || xn instanceof Double ||
 				yn instanceof Float || yn instanceof Double)
 			return narrow(xn.doubleValue() + yn.doubleValue());
@@ -145,11 +146,10 @@ public class Numbers {
 	public static Number sub2(Object x_, Object y_) {
 		Number xn = toNum(x_);
 		Number yn = toNum(y_);
+		
 		if (isZero(yn))
 			return xn;
 
-		if (longable(xn) && longable(yn))
-			return narrow(xn.longValue() - yn.longValue());
 		if (xn instanceof Float || xn instanceof Double ||
 				yn instanceof Float || yn instanceof Double)
 			return narrow(xn.doubleValue() - yn.doubleValue());
@@ -172,8 +172,7 @@ public class Numbers {
 
 		if (isZero(xn) || isZero(yn))
 			return 0;
-		if (longable(xn) && longable(yn))
-			return narrow(xn.longValue() * yn.longValue());
+
 		if (xn instanceof Float || xn instanceof Double ||
 				yn instanceof Float || yn instanceof Double)
 			return narrow(xn.doubleValue() * yn.doubleValue());

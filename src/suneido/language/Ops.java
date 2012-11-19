@@ -4,6 +4,7 @@
 
 package suneido.language;
 
+import static suneido.language.Numbers.*;
 import static suneido.util.Util.capitalize;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,7 +18,6 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
-import static suneido.language.Numbers.*;
 import suneido.language.builtin.DateMethods;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
@@ -246,14 +246,14 @@ public final class Ops {
 	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (Integer) x + (Integer) y;
+			return narrow((long) (Integer) x + (Integer) y);
 		return add2(x, y);
 	}
 
 	// fast path, kept small in hopes of getting inlined
 	public static Number sub(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (Integer) x - (Integer) y;
+			return narrow((long) (Integer) x - (Integer) y);
 		return sub2(x, y);
 	}
 	
@@ -268,7 +268,7 @@ public final class Ops {
 	// fast path, kept small in hopes of getting inlined
 	public static Number mul(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (Integer) x * (Integer) y;
+			return narrow((long) (Integer) x * (Integer) y);
 		return mul2(x, y);
 	}
 	
