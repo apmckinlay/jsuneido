@@ -5,6 +5,7 @@
 package suneido.language;
 
 import suneido.SuContainer;
+import suneido.Suneido;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
@@ -127,6 +128,7 @@ public class Builtins {
 			Class.forName("org.apache.lucene.analysis.Analyzer");
 			return Lucene.singleton;
 		} catch (ClassNotFoundException e) {
+			Suneido.errlog("ERROR: lucene not found");
 			return NoLucene.singleton;
 		}
 	}
