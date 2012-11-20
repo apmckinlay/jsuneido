@@ -1,17 +1,18 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import suneido.Suneido;
 import suneido.TheDbms;
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class Unuse extends SuFunction1 {
+public class Unuse {
 
-	{ params = new FunctionSpec("library"); }
-
-	@Override
-	public Object call1(Object a) {
+	@Params("library")
+	public static Boolean Unuse(Object a) {
 		if (! TheDbms.dbms().unuse(Ops.toStr(a)))
 			return false;
 		Suneido.context.clearAll();

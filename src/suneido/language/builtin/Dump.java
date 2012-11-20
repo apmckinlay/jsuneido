@@ -1,21 +1,21 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
-import static suneido.util.Util.array;
 import suneido.TheDbms;
-import suneido.language.*;
+import suneido.language.Params;
 
-public class Dump extends SuFunction {
+public class Dump {
 
-	public static final FunctionSpec FS = new FunctionSpec(array("table"), false);
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FS, args);
-		if (args[0] == Boolean.FALSE)
+	@Params("table = false")
+	public static Object Dump(Object table) {
+		if (table == Boolean.FALSE)
 			TheDbms.dbms().dump("");
 		else
-			TheDbms.dbms().dump(toStr(args[0]));
+			TheDbms.dbms().dump(toStr(table));
 		return null;
 	}
 

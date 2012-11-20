@@ -1,19 +1,20 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
 
 import java.io.File;
 
-import suneido.language.*;
+import suneido.language.Params;
 
-public class DeleteFile extends SuFunction {
+public class DeleteFile {
 
-	private static final FunctionSpec fs = new FunctionSpec("filename");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		return new File(toStr(args[0])).delete();
+	@Params("filename")
+	public static Boolean DeleteFile(Object filename) {
+		return new File(toStr(filename)).delete();
 	}
 
 }

@@ -1,17 +1,21 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 import java.io.IOException;
 
 import suneido.SuException;
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class DeleteDir extends SuFunction {
+public class DeleteDir {
 
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.string, args);
-		String path = Ops.toStr(args[0]);
+	@Params("string")
+	public static Boolean DeleteDir(Object d) {
+		String path = Ops.toStr(d);
 		File dir = new File(path);
 		if (!dir.isDirectory())
 			return false;
@@ -23,7 +27,7 @@ public class DeleteDir extends SuFunction {
 		return true;
 	}
 
-	public static void deleteRecursively(File file) throws IOException {
+	private static void deleteRecursively(File file) throws IOException {
 		if (file.isDirectory())
 			deleteDirectoryContents(file);
 		if (!file.delete())
@@ -31,8 +35,8 @@ public class DeleteDir extends SuFunction {
 	}
 
 	// can't use Guava version because it can fail sometimes
-	// when !directory.getCanonicalPath().equals(directory.getAbsolutePath()
-	public static void deleteDirectoryContents(File directory)
+	// when !directory.getCanonicalPath().equals(directory.getAbsolutePath())
+	private static void deleteDirectoryContents(File directory)
 			throws IOException {
 		File[] files = directory.listFiles();
 		if (files == null)

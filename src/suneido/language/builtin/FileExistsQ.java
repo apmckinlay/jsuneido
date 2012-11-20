@@ -1,17 +1,19 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class FileExistsQ extends SuFunction {
+public class FileExistsQ {
 
-	private static final FunctionSpec fs = new FunctionSpec("filename");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		return new File(Ops.toStr(args[0])).exists();
+	@Params("filename")
+	public static Boolean FileExistsQ(Object filename) {
+		return new File(Ops.toStr(filename)).exists();
 	}
 
 }

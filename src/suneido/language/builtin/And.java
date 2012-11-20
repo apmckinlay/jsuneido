@@ -9,7 +9,7 @@ import suneido.language.Params;
 
 public class And {
 
-	@Params("boolean, boolean")
+	@Params("boolean1, boolean2")
 	public static boolean And(Object a, Object b) {
 		return Ops.toBoolean_(a) && Ops.toBoolean_(b);
 	}

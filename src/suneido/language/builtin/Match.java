@@ -1,13 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction2;
 import suneido.language.Ops;
+import suneido.language.Params;
 
+public class Match {
 
-public class Match extends SuFunction2 {
-
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("string, pattern")
+	public static Boolean Match(Object a, Object b) {
 		return Ops.match(a, b);
 	}
 

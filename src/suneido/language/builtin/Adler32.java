@@ -37,11 +37,13 @@ public final class Adler32 extends SuValue {
 	}
 
 	public static final BuiltinClass clazz = new BuiltinClass() {
+
 		@Override
 		protected Object newInstance(Object... args) {
 			Args.massage(FunctionSpec.noParams, args);
 			return new Adler32();
 		}
+
 		FunctionSpec callFS = new FunctionSpec(array("string"), FALSE);
 		@Override
 		public Object call(Object... args) {

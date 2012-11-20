@@ -1,19 +1,19 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class MoveFile extends SuFunction {
+public class MoveFile {
 
-	private static final FunctionSpec fs = new FunctionSpec("from", "to");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		String from = Ops.toStr(args[0]);
-		String to = Ops.toStr(args[1]);
-		return new File(from).renameTo(new File(to));
+	@Params("from, to")
+	public static Boolean MoveFile(Object from, Object to) {
+		return new File(Ops.toStr(from)).renameTo(new File(Ops.toStr(to)));
 	}
 
 }

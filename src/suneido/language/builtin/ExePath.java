@@ -1,13 +1,14 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.*;
 import suneido.util.JarPath;
 
-public class ExePath extends SuFunction {
+public class ExePath {
 
-	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public static String ExePath() {
 		return JarPath.jarPath();
 	}
 

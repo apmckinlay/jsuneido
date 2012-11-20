@@ -9,7 +9,7 @@ import suneido.language.Params;
 
 public class Add {
 
-	@Params("number, number")
+	@Params("number1, number2")
 	public static Number Add(Object a, Object b) {
 		return Ops.add(a, b);
 	}

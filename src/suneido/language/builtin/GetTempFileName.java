@@ -8,15 +8,13 @@ import java.io.File;
 import java.io.IOException;
 
 import suneido.SuException;
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction2;
+import suneido.language.Params;
 
-public class GetTempFileName extends SuFunction2 {
-	{ params = new FunctionSpec("path", "prefix"); }
+public class GetTempFileName {
 
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("path, prefix")
+	public static String GetTempFileName(Object a, Object b) {
 		String path = Ops.toStr(a);
 		String prefix = Ops.toStr(b);
 		if (prefix.length() < 3)

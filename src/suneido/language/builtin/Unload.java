@@ -1,17 +1,17 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import static suneido.util.Util.array;
 import suneido.Suneido;
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class Unload extends SuFunction1 {
+public class Unload {
 
-	{ params = new FunctionSpec(array("name"), false); }
-
-	@Override
-	public Object call1(Object a) {
+	@Params("name = false")
+	public static Object Unload(Object a) {
 		if (a == Boolean.FALSE)
 			Suneido.context.clearAll();
 		else

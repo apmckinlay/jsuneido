@@ -9,7 +9,7 @@ import suneido.language.Params;
 
 public class Cat {
 
-	@Params("string, string")
+	@Params("string1, string2")
 	public static Object Cat(Object a, Object b) {
 		return Ops.cat(a, b);
 	}

@@ -1,14 +1,17 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.Params;
+import suneido.language.SuCallable;
 
-public class FunctionQ extends SuFunction1 {
+public class FunctionQ {
 
-	@Override
-	public Object call1(Object a) {
-		return a instanceof SuFunction ||
-				a instanceof SuBoundMethod ||
-				a instanceof SuBlock;
+	@Params("value")
+	public static Boolean FunctionQ(Object a) {
+		return a instanceof SuCallable;
 	}
 
 }

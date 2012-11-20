@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction2;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Mod extends SuFunction2 {
+public class Mod {
 
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("number1, number2")
+	public static Number Mod(Object a, Object b) {
 		return Ops.mod(a, b);
 	}
 

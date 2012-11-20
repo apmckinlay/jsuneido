@@ -5,7 +5,6 @@
 package suneido.language.builtin;
 
 import static java.lang.Boolean.FALSE;
-import static suneido.util.Util.array;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -14,7 +13,7 @@ import suneido.language.*;
 
 public final class Seq extends BuiltinClass {
 	private static final FunctionSpec initFS =
-			new FunctionSpec(array("from", "to", "by"), false, 1);
+			FunctionSpec.from("from, to = false, by = 1");
 
 	@Override
 	public Object newInstance(Object... args) {

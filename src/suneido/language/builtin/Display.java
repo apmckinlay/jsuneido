@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction1;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Display extends SuFunction1 {
+public class Display {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static Object Display(Object a) {
 		return Ops.display(a);
 	}
 

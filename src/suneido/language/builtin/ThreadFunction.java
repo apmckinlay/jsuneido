@@ -1,16 +1,18 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import suneido.Suneido;
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class ThreadFunction extends SuFunction {
+public class ThreadFunction {
 
-	public static final FunctionSpec fs = new FunctionSpec("callable");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		Thread thread = new Thread(new Callable(args[0]));
+	@Params("callable")
+	public static Object ThreadFunction(Object fn) {
+		Thread thread = new Thread(new Callable(fn));
 		thread.setDaemon(true); // so it won't stop Suneido exiting
 		thread.start();
 		return null;

@@ -1,17 +1,19 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Random extends SuFunction {
+public class Random {
 
-	private final java.util.Random random = new java.util.Random();
+	private static final java.util.Random random = new java.util.Random();
 
-	private static final FunctionSpec fs = new FunctionSpec("range");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		int n = Ops.toInt(args[0]);
+	@Params("number")
+	public static Integer Random(Object a) {
+		int n = Ops.toInt(a);
 		return n == 0 ? 0 : random.nextInt(n);
 	}
 

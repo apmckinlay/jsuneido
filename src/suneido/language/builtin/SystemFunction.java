@@ -1,16 +1,17 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import suneido.SuException;
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class SystemFunction extends SuFunction1 {
+public class SystemFunction {
 
-	{ params = FunctionSpec.string; }
-
-	@Override
-	public Object call1(Object a) {
+	@Params("string")
+	public static Integer System(Object a) {
 		String[] cmd = new String[3];
 		getShell(cmd);
 		cmd[2] = Ops.toStr(a);

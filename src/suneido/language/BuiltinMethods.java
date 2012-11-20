@@ -87,7 +87,6 @@ public class BuiltinMethods extends SuValue {
 			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) &&
 					isCapitalized(name)) {
 				try {
-System.out.println(name);
 					MethodHandle mh = lookup.unreflect(m);
 					b.put(name, Builtin.function(mh, params(m, 0)));
 				} catch (IllegalAccessException e) {

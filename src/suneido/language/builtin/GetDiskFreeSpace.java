@@ -1,17 +1,19 @@
-package suneido.language.builtin;
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
 
-import static suneido.util.Util.array;
+package suneido.language.builtin;
 
 import java.io.File;
 import java.math.BigDecimal;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class GetDiskFreeSpace extends SuFunction1 {
-	{ params = new FunctionSpec(array("dir"), "."); }
+public class GetDiskFreeSpace {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("dir = '.'")
+	public static Number GetDiskFreeSpace(Object a) {
 		String dir = Ops.toStr(a);
 		return BigDecimal.valueOf(new File(dir).getUsableSpace());
 	}

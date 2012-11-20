@@ -1,16 +1,19 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class DirExistsQ extends SuFunction {
+public class DirExistsQ {
 
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(FunctionSpec.string, args);
-		String dir = Ops.toStr(args[0]);
-		return new File(dir).isDirectory();
+	@Params("string")
+	public static Boolean DirExistsQ(Object dir) {
+		return new File(Ops.toStr(dir)).isDirectory();
 	}
 
 }

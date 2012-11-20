@@ -4,15 +4,13 @@
 
 package suneido.language.builtin;
 
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class Getenv extends SuFunction1 {
-	{ params = FunctionSpec.string; }
+public class Getenv {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("string")
+	public static String Getenv(Object a) {
 		String name = Ops.toStr(a);
 		return System.getenv(name);
 	}
