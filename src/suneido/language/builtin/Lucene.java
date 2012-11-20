@@ -75,7 +75,8 @@ public class Lucene extends BuiltinClass {
 		return null;
 	}
 
-	static class Updater extends SuValue {
+	// needs to be public to use BuiltinMethods
+	public static class Updater extends SuValue {
 		private static BuiltinMethods methods = new BuiltinMethods(Updater.class);
 		private final IndexWriter writer;
 

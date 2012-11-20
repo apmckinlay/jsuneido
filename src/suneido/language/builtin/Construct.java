@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.util.Util.array;
@@ -5,21 +9,16 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.language.Args;
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction;
+import suneido.language.Params;
 
-public class Construct extends SuFunction {
+public class Construct {
 
-	private static final FunctionSpec constructFS =
-			new FunctionSpec(array("what", "suffix"), "");
 	private static final Object[] noArgs = new Object[0];
 
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(constructFS, args);
-		String suffix = Ops.toStr(args[1]);
-		Object what = args[0];
+	@Params("what, suffix = ''")
+	public static Object Construct(Object what, Object s) {
+		String suffix = Ops.toStr(s);
 		Object[] newargs = noArgs;
 		if (what instanceof SuContainer) {
 			SuContainer c = Ops.toContainer(what);

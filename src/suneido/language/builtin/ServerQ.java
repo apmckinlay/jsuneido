@@ -1,13 +1,15 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.CommandLineOptions.Action.SERVER;
 import suneido.Suneido;
-import suneido.language.SuFunction0;
 
-public class ServerQ extends SuFunction0 {
+public class ServerQ {
 
-	@Override
-	public Object call0() {
+	public static boolean ServerQ() {
 		return Suneido.cmdlineoptions.action == SERVER;
 	}
 

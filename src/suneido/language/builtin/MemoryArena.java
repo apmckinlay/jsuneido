@@ -1,11 +1,12 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction0;
+public class MemoryArena {
 
-public class MemoryArena extends SuFunction0 {
-
-	@Override
-	public Object call0() {
+	public static long MemoryArena() {
 		return Runtime.getRuntime().totalMemory();
 	}
 

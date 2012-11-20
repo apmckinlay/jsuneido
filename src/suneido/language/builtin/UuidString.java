@@ -1,13 +1,14 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.util.UUID;
 
-import suneido.language.SuFunction0;
+public class UuidString {
 
-public class UuidString extends SuFunction0 {
-
-	@Override
-	public Object call0() {
+	public static String UuidString() {
 		return UUID.randomUUID().toString();
 	}
 
