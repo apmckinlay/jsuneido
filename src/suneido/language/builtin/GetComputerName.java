@@ -8,12 +8,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import suneido.SuException;
-import suneido.language.SuFunction0;
 
-public class GetComputerName extends SuFunction0 {
+public class GetComputerName {
 
-	@Override
-	public Object call0() {
+	public static String GetComputerName() {
 		try {
 			return System.getProperty("os.name").contains("Windows")
 					? System.getenv("COMPUTERNAME")
@@ -21,10 +19,6 @@ public class GetComputerName extends SuFunction0 {
 		} catch (UnknownHostException e) {
 			throw new SuException("GetComputerName", e);
 		}
-	}
-
-	public static void main(String[] args) {
-		System.out.println(new GetComputerName().call0());
 	}
 
 }

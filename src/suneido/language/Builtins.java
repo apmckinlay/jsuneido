@@ -4,6 +4,8 @@
 
 package suneido.language;
 
+import java.util.Map;
+
 import suneido.SuContainer;
 import suneido.Suneido;
 import suneido.language.builtin.*;
@@ -11,6 +13,7 @@ import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 
 public class Builtins {
 	static final ImmutableMap<String, Object> builtins;
@@ -24,17 +27,17 @@ public class Builtins {
 			.put("True", Boolean.TRUE)
 			.put("False", Boolean.FALSE)
 			.put("Suneido", new SuContainer())
-			.put("Add", new Add())
+			.put("Add", function(Add.class))
 			.put("Adler32", Adler32.clazz)
-			.put("And", new And())
-			.put("AssertionError", new AssertionError())
-			.put("Boolean?", new BooleanQ())
-			.put("Built", new Built())
-			.put("Cat", new Cat())
-			.put("Class?", new ClassQ())
-			.put("Cmdline", new Cmdline())
-			.put("Construct", new Construct())
-			.put("CopyFile", new CopyFile())
+			.put("And", function(And.class))
+			.put("AssertionError", function(AssertionError.class))
+			.put("Boolean?", function(BooleanQ.class))
+			.put("Built", function(Built.class))
+			.put("Cat", function(Cat.class))
+			.put("Class?", function(ClassQ.class))
+			.put("Cmdline", function(Cmdline.class))
+			.put("Construct", function(Construct.class))
+			.put("CopyFile", function(CopyFile.class))
 			.put("CreateDirectory", new CreateDirectory())
 			.put("Cursor", Cursor.clazz)
 			.put("Database", Database.singleton)
@@ -56,22 +59,22 @@ public class Builtins {
 			.put("FileExists?", new FileExistsQ())
 			.put("Frame", new Frame())
 			.put("Function?", new FunctionQ())
-			.put("GetComputerName", new GetComputerName())
-			.put("GetCurrentDirectory", new GetCurrentDirectory())
+			.put("GetComputerName", function(GetComputerName.class))
+			.put("GetCurrentDirectory", function(GetCurrentDirectory.class))
 			.put("GetDiskFreeSpace", new GetDiskFreeSpace())
 			.put("Getenv", new Getenv())
 			.put("GetMacAddress", new GetMacAddress())
 			.put("GetTempFileName", new GetTempFileName())
-			.put("GetTempPath", new GetTempPath())
+			.put("GetTempPath", function(GetTempPath.class))
 			.put("Gt", new Gt())
 			.put("Gte", new Gte())
-			.put("Libraries", new Libraries())
+			.put("Libraries", function(Libraries.class))
 			.put("Lt", new Lt())
 			.put("Lte", new Lte())
 			.put("Lucene", lucene())
 			.put("Match", new Match())
 			.put("Md5", new Md5())
-			.put("MemoryArena", new MemoryArena())
+			.put("MemoryArena", function(MemoryArena.class))
 			.put("Mod", new Mod())
 			.put("MoveFile", new MoveFile())
 			.put("Mul", new Mul())
@@ -79,11 +82,11 @@ public class Builtins {
 			.put("Neq", new Neq())
 			.put("NoMatch", new NoMatch())
 			.put("Not", new Not())
-			.put("NullPointerException", new NullPointerException())
+			.put("NullPointerException", function(NullPointerException.class))
 			.put("Number?", new NumberQ())
 			.put("Object", new ObjectClass())
 			.put("Object?", new ObjectQ())
-			.put("OperatingSystem", new OperatingSystem())
+			.put("OperatingSystem", function(OperatingSystem.class))
 			.put("Or", new Or())
 			.put("Pack", new suneido.language.builtin.Pack())
 			.put("Print", new Print())
@@ -97,9 +100,9 @@ public class Builtins {
 			.put("Scanner", Scanner.clazz)
 			.put("Seq", new Seq())
 			.put("ServerEval", new ServerEval())
-			.put("ServerIP", new ServerIP())
-			.put("ServerPort", new ServerPort())
-			.put("Server?", new ServerQ())
+			.put("ServerIP", function(ServerIP.class))
+			.put("ServerPort", function(ServerPort.class))
+			.put("Server?", function(ServerQ.class))
 			.put("Sleep", new Sleep())
 			.put("SetFileWritable", new SetFileWritable())
 			.put("SocketClient", SocketClient.clazz)
@@ -108,18 +111,18 @@ public class Builtins {
 			.put("Sub", new Sub())
 			.put("Synchronized", new Synchronized())
 			.put("System", new SystemFunction())
-			.put("SystemMemory", new SystemMemory())
+			.put("SystemMemory", function(SystemMemory.class))
 			.put("Thread", new ThreadFunction())
-			.put("Timestamp", new Timestamp())
+			.put("Timestamp", function(Timestamp.class))
 			.put("Trace", new SuTrace())
 			.put("Transaction", SuTransaction.clazz)
 			.put("Type", new Type())
-			.put("UuidString", new UuidString())
 			.put("Unload", new Unload())
 			.put("Unpack", new Unpack())
 			.put("Unuse", new Unuse())
-			.put("UnixTime", new UnixTime())
+			.put("UnixTime", function(UnixTime.class))
 			.put("Use", new Use())
+			.put("UuidString", function(UuidString.class))
 			.build();
 	}
 
@@ -131,6 +134,11 @@ public class Builtins {
 			Suneido.errlog("ERROR: lucene not found");
 			return NoLucene.singleton;
 		}
+	}
+
+	private static SuCallable function(Class<?> c) {
+		Map<String, SuCallable> ms = BuiltinMethods.functions(c);
+		return Iterables.getOnlyElement(ms.values());
 	}
 
 }

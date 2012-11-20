@@ -8,7 +8,7 @@ import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 
-import suneido.language.BuiltinMethods2;
+import suneido.language.BuiltinMethods;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 import suneido.language.Params;
@@ -22,7 +22,7 @@ import suneido.language.Params;
  * <li>Prefers to return results as Int or Long or BigDecimal.</li>
  * <p>WARNING: Some operations will not work if integer precision greater than long.
  */
-public class NumberMethods extends BuiltinMethods2 {
+public class NumberMethods extends BuiltinMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 
 	private NumberMethods() {

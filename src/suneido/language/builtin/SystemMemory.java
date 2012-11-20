@@ -1,26 +1,19 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.lang.management.ManagementFactory;
 
-import suneido.language.SuFunction0;
-
 import com.sun.management.OperatingSystemMXBean;
 
-public class SystemMemory extends SuFunction0 {
+public class SystemMemory {
 
-	@Override
-	public Object call0() {
-		return getPhysicalMemory();
-	}
-
-	private static Object getPhysicalMemory() {
+	public static long SystemMemory() {
 		OperatingSystemMXBean bean =
 				(OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 		return bean.getTotalPhysicalMemorySize();
-	}
-
-	public static void main(String[] args) {
-		System.out.println("Total Physical Memory Size " + getPhysicalMemory());
 	}
 
 }

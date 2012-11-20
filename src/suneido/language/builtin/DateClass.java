@@ -13,12 +13,12 @@ import java.util.TimeZone;
 
 import suneido.SuException;
 import suneido.language.Args;
-import suneido.language.BuiltinClass2;
+import suneido.language.BuiltinClass;
 import suneido.language.FunctionSpec;
 import suneido.language.Ops;
 import suneido.util.DateParse;
 
-public class DateClass extends BuiltinClass2 {
+public class DateClass extends BuiltinClass {
 	public static final DateClass singleton = new DateClass();
 
 	private DateClass() {

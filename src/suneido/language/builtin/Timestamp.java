@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
+import java.util.Date;
+
 import suneido.TheDbms;
-import suneido.language.SuFunction0;
 
-public class Timestamp extends SuFunction0 {
+public class Timestamp {
 
-	@Override
-	public Object call0() {
+	public static Date Timestamp() {
 		return TheDbms.dbms().timestamp();
 	}
 
