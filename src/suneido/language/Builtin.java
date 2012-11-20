@@ -293,7 +293,7 @@ class Builtin {
 
 		@Override
 		public String typeName() {
-			return "Function";
+			return "Builtin";
 		}
 
 		@Override

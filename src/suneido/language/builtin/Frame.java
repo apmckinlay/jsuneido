@@ -4,15 +4,13 @@
 
 package suneido.language.builtin;
 
-import suneido.language.SuFunction1;
-import suneido.language.FunctionSpec;
+import suneido.language.Params;
 
-public class Frame extends SuFunction1 {
-	{ params = new FunctionSpec("offset"); }
+public class Frame {
 
-	@Override
-	public Object call1(Object a) {
-		return Boolean.FALSE; // TODO Frame
+	@Params("offset")
+	public static Object Frame(Object a) {
+		return false; // not implemented
 	}
 
 }

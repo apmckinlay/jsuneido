@@ -6,15 +6,13 @@ package suneido.language.builtin;
 
 import java.io.File;
 
-import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class CreateDirectory extends SuFunction1 {
-	{ params = FunctionSpec.string; }
+public class CreateDirectory {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("string")
+	public static Object CreateDirectory(Object a) {
 		String path = Ops.toStr(a);
 		return new File(path).mkdir();
 	}

@@ -13,7 +13,6 @@ import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * An instance of a Suneido class
@@ -22,7 +21,8 @@ import com.google.common.collect.ImmutableMap;
 public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;
-	private static final Map<String, SuCallable> methods = methods();
+	private static final Map<String, SuCallable> methods =
+			BuiltinMethods.methods(SuInstance.class);
 
 	public SuInstance(SuClass myclass) {
 		this.myclass = myclass;
@@ -61,20 +61,6 @@ public class SuInstance extends SuValue {
 		return myclass.lookup("Call").eval4(this, a, b, c, d);
 	}
 
-	private static Map<String, SuCallable> methods() {
-		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
-		b.put("Base", new Base());
-		b.put("Base?", new BaseQ());
-		b.put("Copy", new Copy());
-		b.put("Delete", new Delete());
-		b.put("Eval", ContainerMethods.lookup("Eval"));
-		b.put("Eval2", ContainerMethods.lookup("Eval2"));
-		b.put("GetDefault", new GetDefault());
-		b.put("Member?", new MemberQ());
-		b.put("Members", new Members());
-		return b.build();
-	}
-
 	@Override
 	public SuValue lookup(String method) {
 		SuCallable m = methods.get(method);
@@ -83,44 +69,38 @@ public class SuInstance extends SuValue {
 		return myclass.lookup(method);
 	}
 
-	public static class Base extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return ((SuInstance) self).myclass;
-		}
+	public static SuClass Base(Object self) {
+		return ((SuInstance) self).myclass;
 	}
 
-	public static class BaseQ extends SuMethod1 {
-		@Override
-		public Object eval1(Object self, Object a) {
-			SuClass c = ((SuInstance) self).myclass;
-			if (c == a)
-				return true;
-			return c.hasBase(a);
-		}
+	@Params("value")
+	public static Boolean BaseQ(Object self, Object a) {
+		SuClass c = ((SuInstance) self).myclass;
+		if (c == a)
+			return true;
+		return c.hasBase(a);
 	}
 
-	public static class Copy extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-	        return new SuInstance((SuInstance) self);
-        }
+	public static SuInstance Copy(Object self) {
+		return new SuInstance((SuInstance) self);
 	}
 
-	public static class Delete extends SuMethod1 {
-		{ params = new FunctionSpec("key"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return ((SuInstance) self).ivars.remove(a) == null ? false : this;
-		}
+	@Params("key")
+	public static Object Delete(Object self, Object a) {
+		return ((SuInstance) self).ivars.remove(a) == null ? false : self;
 	}
 
-	public static class GetDefault extends SuMethod2 {
-		{ params = new FunctionSpec("key", "block"); }
-		@Override
-		public Object eval2(Object self, Object a, Object b) {
-			return ((SuInstance) self).getDefault(a, b);
-		}
+	public static Object Eval(Object self, Object... args) {
+		return ContainerMethods.Eval(self, args);
+	}
+
+	public static Object Eval2(Object self, Object... args) {
+		return ContainerMethods.Eval2(self, args);
+	}
+
+	@Params("key, block")
+	public static Object GetDefault(Object self, Object a, Object b) {
+		return ((SuInstance) self).getDefault(a, b);
 	}
 
 	private Object getDefault(Object k, Object b) {
@@ -130,12 +110,9 @@ public class SuInstance extends SuValue {
 		return myclass.getDefault(k, b);
 	}
 
-	public static class MemberQ extends SuMethod1 {
-		{ params = new FunctionSpec("key"); }
-		@Override
-		public Object eval1(Object self, Object a) {
-			return ((SuInstance) self).hasMember(a);
-		}
+	@Params("key")
+	public static Boolean MemberQ(Object self, Object a) {
+		return ((SuInstance) self).hasMember(a);
 	}
 
 	private boolean hasMember(Object key) {
@@ -144,11 +121,8 @@ public class SuInstance extends SuValue {
 		return myclass.hasMember(key);
 	}
 
-	public static class Members extends SuMethod0 {
-		@Override
-		public Object eval0(Object self) {
-			return new SuContainer(((SuInstance) self).ivars.keySet());
-		}
+	public static SuContainer Members(Object self) {
+		return new SuContainer(((SuInstance) self).ivars.keySet());
 	}
 
 	@Override

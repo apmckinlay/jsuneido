@@ -60,12 +60,14 @@ public class Cursor extends SuQuery {
 	}
 
 	public static final SuValue clazz = new BuiltinClass() {
+
 		FunctionSpec newFS = new FunctionSpec("query");
 		@Override
 		protected SuQuery newInstance(Object... args) {
 			args = Args.massage(newFS, args);
 			return new Cursor(Ops.toStr(args[0]));
 		}
+
 		FunctionSpec callFS = new FunctionSpec(array("query", "block"), false);
 		@Override
 		public Object call(Object... args) {

@@ -1,11 +1,17 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
+import suneido.language.SuInstance;
 
-public class ObjectQ extends SuFunction1 {
+public class ObjectQ {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static Boolean ObjectQ(Object a) {
 		return a instanceof SuInstance ||
 				null != Ops.toContainer(a);
 	}

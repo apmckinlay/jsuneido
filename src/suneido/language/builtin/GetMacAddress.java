@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.net.InetAddress;
@@ -6,15 +10,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import suneido.SuException;
-import suneido.language.Args;
-import suneido.language.FunctionSpec;
-import suneido.language.SuFunction;
 
-public class GetMacAddress extends SuFunction {
+public class GetMacAddress {
 
-	@Override
-	public Object call(Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+	public static String GetMacAddress() {
         try {
 			return bytesToString(getMacAddress());
 		} catch (UnknownHostException e) {
@@ -31,7 +30,7 @@ public class GetMacAddress extends SuFunction {
 		return ni.getHardwareAddress();
 	}
 
-	private static Object bytesToString(byte[] bytes) {
+	private static String bytesToString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < bytes.length; i++)
 			sb.append((char) (bytes[i] & 0xff));

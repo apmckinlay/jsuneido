@@ -5,7 +5,6 @@
 package suneido.language.builtin;
 
 import static suneido.language.Ops.toStr;
-import static suneido.util.Util.array;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -14,22 +13,16 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import suneido.SuContainer;
-import suneido.language.Args;
-import suneido.language.FunctionSpec;
-import suneido.language.SuFunction;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Dir extends SuFunction {
+public class Dir {
 
-	private static final FunctionSpec fs =
-		new FunctionSpec(array("path", "files", "details"),
-				"*.*", Boolean.FALSE, Boolean.FALSE);
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		boolean files = args[1] == Boolean.TRUE;
-		boolean details = args[2] == Boolean.TRUE;
-		File path = new File(toStr(args[0]));
+	@Params("path = '*.*', files = false, details = false")
+	public static SuContainer Dir(Object p, Object f, Object d) {
+		boolean files = Ops.toBoolean_(f);
+		boolean details = Ops.toBoolean_(d);
+		File path = new File(toStr(p));
 		String dir = path.getParent();
 		if (dir == null)
 			dir = ".";
@@ -37,11 +30,10 @@ public class Dir extends SuFunction {
 		FileFilter filter = new Filter(pattern);
 		SuContainer ob = new SuContainer();
 		File[] listFiles = new File(dir).listFiles(filter);
-		if (listFiles == null)
-			return ob;
-		for (File f : listFiles)
-			if (! files || ! f.isDirectory())
-				ob.add(details ? detailsOf(f) : nameOf(f));
+		if (listFiles != null)
+			for (File file : listFiles)
+				if (! files || ! file.isDirectory())
+					ob.add(details ? detailsOf(file) : nameOf(file));
 		return ob;
 	}
 

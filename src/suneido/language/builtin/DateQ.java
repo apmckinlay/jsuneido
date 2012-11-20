@@ -1,13 +1,17 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.util.Date;
 
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 
-public class DateQ extends SuFunction1 {
+public class DateQ {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static Boolean DateQ(Object a) {
 		return a instanceof Date;
 	}
 

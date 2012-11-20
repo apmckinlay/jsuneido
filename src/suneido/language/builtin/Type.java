@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction1;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Type extends SuFunction1 {
+public class Type {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static String Type(Object a) {
 		return Ops.typeName(a);
 	}
 

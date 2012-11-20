@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 import suneido.util.Util;
 
-public class Pack extends SuFunction1 {
+public class Pack {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static String Pack(Object a) {
 		return Util.bytesToString(suneido.language.Pack.pack(a));
 	}
 

@@ -1,19 +1,21 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.util.concurrent.TimeUnit;
 
 import suneido.Suneido;
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Delayed extends SuFunction {
+public class Delayed {
 
-	private static final FunctionSpec fs = new FunctionSpec("ms", "function");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		Suneido.schedule(new Run(args[1]),
-				Ops.toInt(args[0]), TimeUnit.MILLISECONDS);
+	@Params("ms, function")
+	public static Object Delayed(Object ms, Object fn) {
+		Suneido.schedule(new Run(fn),
+				Ops.toInt(ms), TimeUnit.MILLISECONDS);
 		return null;
 	}
 
@@ -22,11 +24,12 @@ public class Delayed extends SuFunction {
 		public Run(Object fn) {
 			this.fn = fn;
 		}
+		@Override
 		public void run() {
 			Ops.call(fn);
 		}
 	}
 
-	// TODO return a Timer object that with a Kill method
+	// TODO return a Timer object with a Kill method
 
 }

@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction2;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Lt extends SuFunction2 {
+public class Lt {
 
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("value1, value2")
+	public static Boolean Lt(Object a, Object b) {
 		return Ops.lt(a, b);
 	}
 
