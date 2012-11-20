@@ -6,7 +6,7 @@ import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.language.*;
 
-public class Database extends BuiltinClass2 {
+public class Database extends BuiltinClass {
 	public static final Database singleton = new Database();
 
 	private Database() {

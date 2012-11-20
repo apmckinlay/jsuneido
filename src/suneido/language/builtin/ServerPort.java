@@ -1,12 +1,14 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import suneido.Suneido;
-import suneido.language.SuFunction0;
 
-public class ServerPort extends SuFunction0 {
+public class ServerPort {
 
-	@Override
-	public Object call0() {
+	public static int ServerPort() {
 		return Suneido.cmdlineoptions.serverPort;
 	}
 

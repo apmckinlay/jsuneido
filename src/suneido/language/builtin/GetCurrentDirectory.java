@@ -1,15 +1,17 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 import java.io.IOException;
 
 import suneido.SuException;
-import suneido.language.SuFunction0;
 
-public class GetCurrentDirectory extends SuFunction0 {
+public class GetCurrentDirectory {
 
-	@Override
-	public Object call0() {
+	public static String GetCurrentDirectory() {
 		try {
 			return new File(".").getCanonicalPath();
 		} catch (IOException e) {

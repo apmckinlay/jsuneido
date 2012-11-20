@@ -6,6 +6,8 @@ package suneido.language;
 
 import java.lang.invoke.MethodHandle;
 
+// MAYBE use MethodHandles.insertArguments to add defaults
+
 class Builtin {
 
 	static SuCallable method(MethodHandle mh, FunctionSpec params) {
@@ -259,4 +261,233 @@ class Builtin {
 			}
 		}
 	}
+
+	// functions ---------------------------------------------------------------
+
+	static SuCallable function(MethodHandle mh, FunctionSpec params) {
+		if (params == null)
+			return new FunctionN(mh, null);
+		switch (params.nParams()) {
+		case 0:
+			return new Function0(mh, params);
+		case 1:
+			return new Function1(mh, params);
+		case 2:
+			return new Function2(mh, params);
+		case 3:
+			return new Function3(mh, params);
+		case 4:
+			return new Function4(mh, params);
+		default:
+			return new FunctionN(mh, params);
+		}
+	}
+
+	private static abstract class Function extends SuCallable {
+		protected final MethodHandle mh;
+
+		Function(MethodHandle mh, FunctionSpec params) {
+			this.mh = mh;
+			this.params = params;
+		}
+
+		@Override
+		public String typeName() {
+			return "Function";
+		}
+
+		@Override
+		public abstract Object call(Object... args);
+
+	}
+
+	private static class FunctionN extends Function {
+
+		FunctionN(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			if (params != null)
+				args = Args.massage(params, args);
+			try {
+				return mh.invoke(args);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private static final class Function0 extends Function {
+
+		Function0(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			Args.massage(params, args);
+			return call0();
+		}
+
+		@Override
+		public Object call0() {
+			try {
+				return mh.invoke();
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+	private static final class Function1 extends Function {
+
+		Function1(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			args = Args.massage(params, args);
+			return call1(args[0]);
+		}
+
+		@Override
+		public Object call0() {
+			return call1(fillin(0));
+		}
+
+		@Override
+		public Object call1(Object a) {
+			try {
+				return mh.invoke(a);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private static final class Function2 extends Function {
+
+		Function2(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			args = Args.massage(params, args);
+			return call2(args[0], args[1]);
+		}
+
+		@Override
+		public Object call0() {
+			return call2(fillin(0), fillin(1));
+		}
+
+		@Override
+		public Object call1(Object a) {
+			return call2(a, fillin(1));
+		}
+
+		@Override
+		public Object call2(Object a, Object b) {
+			try {
+				return mh.invoke(a, b);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private static final class Function3 extends Function {
+
+		Function3(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			args = Args.massage(params, args);
+			return call3(args[0], args[1], args[2]);
+		}
+
+		@Override
+		public Object call0() {
+			return call3(fillin(0), fillin(1), fillin(2));
+		}
+
+		@Override
+		public Object call1(Object a) {
+			return call3(a, fillin(1), fillin(2));
+		}
+
+		@Override
+		public Object call2(Object a, Object b) {
+			return call3(a, b, fillin(2));
+		}
+
+		@Override
+		public Object call3(Object a, Object b, Object c) {
+			try {
+				return mh.invoke(a, b, c);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private static final class Function4 extends Function {
+
+		Function4(MethodHandle mh, FunctionSpec params) {
+			super(mh, params);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			args = Args.massage(params, args);
+			return call4(args[0], args[1], args[2], args[3]);
+		}
+
+		@Override
+		public Object call0() {
+			return call4(fillin(0), fillin(1), fillin(2), fillin(3));
+		}
+
+		@Override
+		public Object call1(Object a) {
+			return call4(a, fillin(1), fillin(2), fillin(3));
+		}
+
+		@Override
+		public Object call2(Object a, Object b) {
+			return call4(a, b, fillin(2), fillin(3));
+		}
+
+		@Override
+		public Object call3(Object a, Object b, Object c) {
+			return call4(a, b, c, fillin(3));
+		}
+
+		@Override
+		public Object call4(Object a, Object b, Object c, Object d) {
+			try {
+				return mh.invoke(a, b, c, d);
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 }

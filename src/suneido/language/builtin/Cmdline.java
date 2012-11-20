@@ -1,12 +1,10 @@
 package suneido.language.builtin;
 
 import suneido.Suneido;
-import suneido.language.SuFunction0;
 
-public class Cmdline extends SuFunction0 {
+public class Cmdline {
 
-	@Override
-	public Object call0() {
+	public static String Cmdline() {
 		return Suneido.cmdlineoptions.remainder;
 	}
 

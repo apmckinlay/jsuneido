@@ -21,7 +21,7 @@ public class SuFile extends SuValue {
 	private final String mode;
 	private final boolean append;
 	private RandomAccessFile f;
-	private static final BuiltinMethods2 methods = new BuiltinMethods2(SuFile.class);
+	private static final BuiltinMethods methods = new BuiltinMethods(SuFile.class);
 
 	public SuFile(String filename, String mode) {
 		this.filename = filename;
@@ -191,7 +191,7 @@ public class SuFile extends SuValue {
 		return "File(" + filename + ", " + mode + ")";
 	}
 
-	public static final BuiltinClass2 clazz = new BuiltinClass2() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 		FunctionSpec newFS = new FunctionSpec(array("filename", "mode"), "r");
 		@Override
 		public SuFile newInstance(Object... args) {

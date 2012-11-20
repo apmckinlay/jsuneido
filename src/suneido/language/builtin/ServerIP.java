@@ -1,14 +1,16 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.net.InetAddress;
 
 import suneido.TheDbms;
-import suneido.language.SuFunction0;
 
-public class ServerIP extends SuFunction0 {
+public class ServerIP {
 
-	@Override
-	public Object call0() {
+	public static String ServerIP() {
 		InetAddress inetAddress = TheDbms.dbms().getInetAddress();
 		return inetAddress == null ? "" : inetAddress.getHostAddress();
 	}

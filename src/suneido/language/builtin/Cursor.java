@@ -13,7 +13,7 @@ import suneido.database.server.DbmsTran;
 import suneido.language.*;
 
 public class Cursor extends SuQuery {
-	private static BuiltinMethods2 methods = new BuiltinMethods2(Cursor.class);
+	private static BuiltinMethods methods = new BuiltinMethods(Cursor.class);
 
 	Cursor(String query) {
 		super(query, TheDbms.dbms().cursor(query));
@@ -59,7 +59,7 @@ public class Cursor extends SuQuery {
 		return "Cursor";
 	}
 
-	public static final SuValue clazz = new BuiltinClass2() {
+	public static final SuValue clazz = new BuiltinClass() {
 		FunctionSpec newFS = new FunctionSpec("query");
 		@Override
 		protected SuQuery newInstance(Object... args) {

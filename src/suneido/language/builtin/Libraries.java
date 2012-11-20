@@ -1,13 +1,15 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import suneido.SuContainer;
 import suneido.TheDbms;
-import suneido.language.SuFunction0;
 
-public class Libraries extends SuFunction0 {
+public class Libraries {
 
-	@Override
-	public Object call0() {
+	public static SuContainer Libraries() {
 		return new SuContainer(TheDbms.dbms().libraries());
 	}
 

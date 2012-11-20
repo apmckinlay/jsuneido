@@ -23,7 +23,7 @@ import suneido.util.Util;
 
 import com.google.common.base.Charsets;
 
-public class StringMethods extends BuiltinMethods2 {
+public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
 
 	private StringMethods() {

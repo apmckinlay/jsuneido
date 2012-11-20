@@ -4,13 +4,10 @@
 
 package suneido.language.builtin;
 
-import suneido.language.SuFunction0;
-
-public class NullPointerException extends SuFunction0 {
+public class NullPointerException {
 	public static Object x;
 
-	@Override
-	public Object call0() {
+	public static Object NullPointerException() {
 		return x.toString();
 	}
 
