@@ -68,12 +68,7 @@ public class BuiltinMethods extends SuValue {
 					isCapitalized(methodName)) {
 				try {
 					MethodHandle mh = lookup.unreflect(m);
-					Params p = m.getAnnotation(Params.class);
-					int nParams = m.getParameterTypes().length;
-					FunctionSpec params = (p == null)
-							? (nParams == 1) ? FunctionSpec.noParams : null
-							: FunctionSpec.from(p.value());
-					b.put(methodName, Builtin.method(mh, params));
+					b.put(methodName, Builtin.method(mh, params(m, 1)));
 				} catch (IllegalAccessException e) {
 					throw new SuException("error getting method " +
 							c.getName() + " " + m.getName(), e);
@@ -82,6 +77,37 @@ public class BuiltinMethods extends SuValue {
 		}
 		return b.build();
 	}
+
+	static Map<String, SuCallable> functions(Class<?> c) {
+		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
+		MethodHandles.Lookup lookup = MethodHandles.lookup();
+		for (Method m : c.getDeclaredMethods()) {
+			int mod = m.getModifiers();
+			String name = methodName(m);
+			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) &&
+					isCapitalized(name)) {
+				try {
+System.out.println(name);
+					MethodHandle mh = lookup.unreflect(m);
+					b.put(name, Builtin.function(mh, params(m, 0)));
+				} catch (IllegalAccessException e) {
+					throw new SuException("error getting function " +
+							c.getName() + " " + m.getName(), e);
+				}
+			}
+		}
+		return b.build();
+	}
+
+	private static FunctionSpec params(Method m, int nExtra) {
+		Params p = m.getAnnotation(Params.class);
+		int nParams = m.getParameterTypes().length;
+		FunctionSpec params = (p == null)
+				? (nParams == nExtra) ? FunctionSpec.noParams : null
+				: FunctionSpec.from(p.value());
+		return params;
+	}
+
 	private static String methodName(Method m) {
 		String s = m.getName();
 		if (s.endsWith("Q"))

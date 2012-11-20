@@ -1,12 +1,10 @@
 package suneido.language.builtin;
 
 import suneido.WhenBuilt;
-import suneido.language.SuFunction0;
 
-public class Built extends SuFunction0 {
+public class Built {
 
-	@Override
-	public Object call0() {
+	public static String Built() {
 		return WhenBuilt.when();
 	}
 

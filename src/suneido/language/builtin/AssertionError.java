@@ -4,12 +4,9 @@
 
 package suneido.language.builtin;
 
-import suneido.language.SuFunction0;
+public class AssertionError {
 
-public class AssertionError extends SuFunction0 {
-
-	@Override
-	public Object call0() {
+	public static Object AssertionError() {
 		assert false : "deliberate assertion error for testing";
 		return null;
 	}

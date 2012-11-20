@@ -7,7 +7,7 @@ package suneido.language;
 /**
  * Standalone functions derive from SuFunction and define eval<p>
  * Functions that reference "this" derive from {@link SuMethod} and define eval<p>
- * For simple args {@link SuFunction0} ... {@link SuFunction9} are used
+ * For simple args {@link SuFunction0} ... {@link SuFunction4} are used
  */
 public abstract class SuFunction extends SuCallable {
 

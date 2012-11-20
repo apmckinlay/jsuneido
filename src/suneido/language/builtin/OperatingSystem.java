@@ -1,16 +1,13 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction0;
+public class OperatingSystem {
 
-public class OperatingSystem extends SuFunction0 {
-
-	@Override
-	public Object call0() {
+	public static String OperatingSystem() {
 		return System.getProperty("os.name");
-	}
-
-	public static void main(String[] args) {
-		System.out.println("Operating System " + System.getProperty("os.name"));
 	}
 
 }

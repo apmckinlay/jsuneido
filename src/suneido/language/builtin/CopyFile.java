@@ -1,23 +1,24 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import java.io.File;
 import java.io.IOException;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.Params;
 
 import com.google.common.io.Files;
 
-public class CopyFile extends SuFunction {
+public class CopyFile {
 
-	private static final FunctionSpec fs =
-			new FunctionSpec("from", "to", "failIfExists");
-
-	@Override
-	public Object call(Object... args) {
-		args = Args.massage(fs, args);
-		File from = new File(Ops.toStr(args[0]));
-		File to = new File(Ops.toStr(args[1]));
-		boolean failIfExists = Ops.toBoolean(args[2]);
+	@Params("from, to, failIfExists")
+	public static boolean CopyFile(Object a, Object b, Object c) {
+		File from = new File(Ops.toStr(a));
+		File to = new File(Ops.toStr(b));
+		boolean failIfExists = Ops.toBoolean(c);
 		if (to.exists() && (failIfExists || ! to.delete()))
 			return false;
 		try {

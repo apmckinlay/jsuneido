@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction1;
+import suneido.language.Params;
 import suneido.language.SuClass;
 
-public class ClassQ extends SuFunction1 {
+public class ClassQ {
 
-	@Override
-	public Object call1(Object a) {
+	@Params("value")
+	public static boolean ClassQ(Object a) {
 		return a instanceof SuClass;
 	}
 

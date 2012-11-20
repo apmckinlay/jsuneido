@@ -1,12 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import suneido.language.SuFunction2;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Cat extends SuFunction2 {
+public class Cat {
 
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("string, string")
+	public static Object Cat(Object a, Object b) {
 		return Ops.cat(a, b);
 	}
 

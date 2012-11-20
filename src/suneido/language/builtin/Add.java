@@ -4,13 +4,13 @@
 
 package suneido.language.builtin;
 
-import suneido.language.SuFunction2;
 import suneido.language.Ops;
+import suneido.language.Params;
 
-public class Add extends SuFunction2 {
+public class Add {
 
-	@Override
-	public Object call2(Object a, Object b) {
+	@Params("number, number")
+	public static Number Add(Object a, Object b) {
 		return Ops.add(a, b);
 	}
 
