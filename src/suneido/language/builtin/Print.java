@@ -8,12 +8,10 @@ import java.util.Map;
 
 import suneido.language.ArgsIterator;
 import suneido.language.Ops;
-import suneido.language.SuFunction;
 
-public class Print extends SuFunction {
+public class Print {
 
-	@Override
-	public synchronized Object call(Object... args) {
+	public static synchronized Object Print(Object... args) {
 		ArgsIterator iter = new ArgsIterator(args);
 		while (iter.hasNext()) {
 			Object x = iter.next();

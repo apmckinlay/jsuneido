@@ -6,13 +6,13 @@ package suneido.language.builtin;
 
 import suneido.SuContainer;
 import suneido.TheDbms;
-import suneido.language.*;
+import suneido.language.Args;
 import suneido.language.Compiler;
+import suneido.language.Ops;
 
-public class ServerEval extends SuFunction {
+public class ServerEval {
 
-	@Override
-	public Object call(Object... args) {
+	public static Object ServerEval(Object... args) {
 		SuContainer c = Args.collectArgs(new SuContainer(), args);
 		return TheDbms.dbms().exec(c);
 	}
