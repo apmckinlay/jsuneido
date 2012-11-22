@@ -42,7 +42,7 @@ public class NumberMethodsTest {
 		Object result = Ops.invoke0(bd, "Frac");
 		assertEquals(expected, Ops.toStr(result));
 	}
-	
+
 	@Test
 	public void test_hex() {
 		hex((short) 0x1234, "1234");
@@ -51,8 +51,8 @@ public class NumberMethodsTest {
 		hex(0xaabbccdd, "aabbccdd"); // make sure no sign extension
 	}
 
-	private void hex(Object x, String expected) {
-		assertEquals(expected, NumberMethods.Hex(x).toString());		
+	private static void hex(Object x, String expected) {
+		assertEquals(expected, NumberMethods.Hex(x).toString());
 	}
 
 }
