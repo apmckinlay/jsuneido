@@ -34,11 +34,11 @@ public class SuRecord extends SuContainer {
 	private int recadr;
 	private Status status;
 	private final List<Object> observers = new ArrayList<Object>();
-	private final Set<Object> invalid = new HashSet<Object>();
+	private final Set<Object> invalid = new HashSet<Object>(); // used by rules
 	private final Map<Object, Set<Object>> dependencies =
 			new HashMap<Object, Set<Object>>();
 	private final Deque<Object> activeRules = new ArrayDeque<Object>();
-	private final Set<Object> invalidated = new HashSet<Object>();
+	private final Set<Object> invalidated = new HashSet<Object>(); // for observers
 
 	enum Status {
 		NEW, OLD, DELETED
