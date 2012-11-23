@@ -355,7 +355,7 @@ public class SuRecord extends SuContainer {
 		}
 	}
 
-	public void callObservers2(Object member) {
+	private void callObservers2(Object member) {
 		List<ActiveObserver> aos = activeObservers.get();
 		for (Object observer : observers) {
 			ActiveObserver ao = new ActiveObserver(observer, member);
