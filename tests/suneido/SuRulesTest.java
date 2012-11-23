@@ -8,13 +8,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class SuRecord2Test {
+public class SuRulesTest {
 	private static SuValue rule1 = new SuContainer(); // just need non-null SuValue
 	private static SuValue rule2 = new SuContainer(); // just need non-null SuValue
 
 	@Test
 	public void test_put_get() {
-		SuRecord2 r = new NoRules();
+		SuRules r = new NoRules();
 		assertEquals("", r.get("nonexistent"));
 		r.put("a", 123);
 		assertEquals(123, r.get("a"));
@@ -22,7 +22,7 @@ public class SuRecord2Test {
 		assertEquals(123, r.get("a"));
 		assertEquals(456, r.get("b"));
 	}
-	static class NoRules extends SuRecord2 {
+	static class NoRules extends SuRules {
 		@Override
 		Object getRule(Object field) {
 			return null;
@@ -31,10 +31,10 @@ public class SuRecord2Test {
 
 	@Test
 	public void test_no_dependencies() {
-		SuRecord2 r = new NoDeps();
+		SuRules r = new NoDeps();
 		assertEquals("result", r.get("a"));
 	}
-	static class NoDeps extends SuRecord2 {
+	static class NoDeps extends SuRules {
 		@Override
 		Object getRule(Object field) {
 			return rule1;
@@ -60,6 +60,14 @@ public class SuRecord2Test {
 		assertEquals(2, r.count);
 		assertEquals("123999", r.get("r"));
 		assertEquals(2, r.count);
+		// putting same value should be ignored
+		r.put("b", "999");
+		assertEquals("123999", r.get("r"));
+		assertEquals(2, r.count);
+
+		r.forceInvalidate("r");
+		assertEquals("123999", r.get("r"));
+		assertEquals(3, r.count);
 	}
 	static class WithRule extends NoDeps {
 		int count = 0;
@@ -71,6 +79,7 @@ public class SuRecord2Test {
 		@Override
 		Object executeRule(Object rule) {
 			++count;
+			get("a"); // get twice
 			return get("a").toString() + get("b").toString();
 		}
 	}
@@ -90,6 +99,10 @@ public class SuRecord2Test {
 		assertEquals("=X", r.get("r1"));
 		assertEquals(3, r.count2);
 		assertEquals(2, r.count1);
+
+		assertEquals("[r2]", r.getdeps("r1").toString());
+		assertEquals("[a]", r.getdeps("r2").toString());
+		assertEquals("[]", r.getdeps("a").toString());
 	}
 	// r1 => r2 => a
 	static class WithChainedRules extends NoDeps {
@@ -114,6 +127,17 @@ public class SuRecord2Test {
 		}
 	}
 
-
+	@Test
+	public void test_set_deps() {
+		WithRule r = new WithRule();
+		r.put("r", 123);
+		assertEquals(123, r.get("r"));
+		assertEquals(0, r.count);
+		r.setdeps("r", "a,b");
+		assertEquals("[a, b]", r.getdeps("r").toString());
+		r.put("a", 12);
+		r.put("b", 34);
+		assertEquals("1234", r.get("r"));
+	}
 
 }
