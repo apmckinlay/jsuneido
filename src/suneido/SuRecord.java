@@ -17,15 +17,15 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Args;
-import suneido.language.Pack;
-import suneido.language.RuleContext;
-import suneido.language.SuBoundMethod;
+import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
 import suneido.util.Util;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 @NotThreadSafe
 public class SuRecord extends SuContainer {
@@ -33,16 +33,15 @@ public class SuRecord extends SuContainer {
 	private SuTransaction tran;
 	private int recadr;
 	private Status status;
-	private final List<Object> observers = new ArrayList<Object>();
-	private final Set<Object> invalid = new HashSet<Object>(); // used by rules
-	private final Map<Object, Set<Object>> dependencies =
-			new HashMap<Object, Set<Object>>();
+	private final List<Object> observers = Lists.newArrayList();
+	private final Set<Object> invalid = Sets.newHashSet(); // used by rules
+	private final Map<Object, Set<Object>> dependencies = Maps.newHashMap();
 	private final Deque<Object> activeRules = new ArrayDeque<Object>();
-	private final Set<Object> invalidated = new HashSet<Object>(); // for observers
+	private final Set<Object> invalidated = Sets.newHashSet(); // for observers
+	enum Status { NEW, OLD, DELETED };
+	private final Map<Object, Object> attachedRules = Maps.newHashMap();
 
-	enum Status {
-		NEW, OLD, DELETED
-	};
+	{ defval = ""; }
 
 	public SuRecord() {
 		hdr = null;
@@ -165,13 +164,13 @@ public class SuRecord extends SuContainer {
 		if (ar != null && ar.rec == this)
 			addDependency(ar.member, key);
 
-		Object result = containsKey(key) ? super.get(key) : null;
+		Object result = getIfPresent(key);
 		if (result == null || invalid.contains(key)) {
 			Object x = callRule(key);
 			if (x != null)
 				result = x;
 			else if (result == null)
-				result = "";
+				result = defval;
 		}
 		return result;
 	}
@@ -182,9 +181,14 @@ public class SuRecord extends SuContainer {
 		dependencies.get(dst).add(src);
 	}
 
-	private Object callRule(Object key) {
-		invalid.remove(key);
-		Object rule = Suneido.context.tryget("Rule_" + key);
+	private Object callRule(Object k) {
+		invalid.remove(k);
+		if (! Ops.isString(k))
+			return null;
+		String key = Ops.toStr(k);
+		Object rule = attachedRules.get(key);
+		if (rule == null && defval != null)
+			rule = Suneido.context.tryget("Rule_" + key);
 		if (rule == null)
 			return null;
 		// prevent cycles
@@ -397,6 +401,10 @@ public class SuRecord extends SuContainer {
 		if (m != null)
 			return m;
 		return super.lookup(method);
+	}
+
+	public void attachRule(String field, Object rule) {
+		attachedRules.put(field, rule);
 	}
 
 }

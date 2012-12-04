@@ -97,4 +97,11 @@ public class RecordMethods {
 		((SuRecord) self).update();
 		return Boolean.TRUE;
 	}
+
+	@Params("field, rule")
+	public static Object AttachRule(Object self, Object field, Object rule) {
+		((SuRecord) self).attachRule(Ops.toStr(field), rule);
+		return null;
+	}
+
 }

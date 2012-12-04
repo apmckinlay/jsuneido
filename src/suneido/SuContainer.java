@@ -19,7 +19,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.*;
+import suneido.language.Concat;
+import suneido.language.Ops;
+import suneido.language.Pack;
+import suneido.language.Range;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.Util;
@@ -40,7 +43,7 @@ public class SuContainer extends SuValue
 			Collections.synchronizedList(new ArrayList<Object>());
 	private final Map<Object,Object> map =
 			Collections.synchronizedMap(new CanonicalMap());
-	private Object defval = null;
+	protected Object defval = null;
 	private boolean readonly = false;
 
 	@SuppressWarnings("serial")
