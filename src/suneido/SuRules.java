@@ -4,10 +4,7 @@
 
 package suneido;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -16,7 +13,25 @@ import suneido.util.Util;
 
 import com.google.common.collect.*;
 
-/** Implements rules */
+/**
+ * Implements rules layered on top of {@link SuContainer}.
+ * {@link SuObservers} is layered on top of this,
+ * and then {@link SuRecord} on top of that.
+ * <p>
+ * usedBy is for invalidation.
+ * It is cumulative and may contain extra fields if the dependencies change.
+ * But invalidation also checks dependencies
+ * <p>
+ * dependencies is accurate for the last time the rule ran.
+ * It tracks both fields and their values.
+ * Although it's a ListMultimap, the lists are sets as far as Dependency.field.
+ * Rules should be pure functional so the value should be consistent.
+ * <p>
+ * invalid tracks which rules are potentially invalid.
+ * get on an invalid field checks the values of its dependencies.
+ * If none have changed, then the field is actually still valid
+ * and we avoid running the rule.
+ */
 public class SuRules extends SuContainer {
 	/** usedBy is cumulative (never cleared) */
 	private final SetMultimap<Object, Object> usedBy = HashMultimap.create();
@@ -26,9 +41,11 @@ public class SuRules extends SuContainer {
 	private final Set<Object> invalid = Sets.newHashSet();
 	/** activeRules is used to track which rule is currently active */
 	private final Deque<Object> activeRules = new ArrayDeque<Object>();
+	private final Map<Object, Object> attachedRules = Maps.newHashMap();
 
 	private static class Dependency {
 		Object field;
+		/** value is set to null if inconsistent */
 		Object value;
 		boolean invalidated = false;
 		public Dependency(Object field, Object value) {
@@ -49,12 +66,7 @@ public class SuRules extends SuContainer {
 	}
 
 	private boolean alreadyHas(Object field, Object value) {
-		if (containsKey(field)) {
-			Object old = super.get(field);
-			if (old != null && old.equals(value))
-				return true;
-		}
-		return false;
+		return Objects.equals(value, getIfPresent(field));
 	}
 
 	// recursive
@@ -64,17 +76,15 @@ public class SuRules extends SuContainer {
 	}
 
 	private void invalidate(Object field, Object source) {
-		List<Dependency> deps = dependencies.get(field);
-		boolean invalidated = false; //deps.isEmpty();
-		for (Dependency d : deps)
+		boolean invalidated = false;
+		for (Dependency d : dependencies.get(field))
 			if (d.field.equals(source) && ! d.invalidated)
 				invalidated = d.invalidated = true;
-		if (invalidated) {
+		if (invalidated)
 			invalidate(field);
-		}
 	}
 
-	private void invalidate(Object field) {
+	public void invalidate(Object field) {
 		if (! invalid.add(field)) // before recursing
 			return; // already invalid
 		invalidateUsers(field); // recurse
@@ -94,7 +104,7 @@ public class SuRules extends SuContainer {
 
 	@Override
 	public Object get(Object field) {
-		Object value = containsKey(field) ? super.get(field) : null;
+		Object value = getIfPresent(field);
 
 		RuleContext.Rule ar = RuleContext.top();
 		if (ar != null && ar.rec == this)
@@ -113,14 +123,14 @@ public class SuRules extends SuContainer {
 		}
 	}
 
+	private static Object INCONSISTENT = new Object();
+
 	private void addDependency(Object field, Object field2, Object value) {
 		// add field2 to field dependencies (if not already there)
 		for (Dependency d : dependencies.get(field)) {
 			if (d.field.equals(field2)) {
-				if (! value.equals(d.value))
-					throw new RuntimeException(
-							"dependency has inconsistent value " +
-							field + " => " + field2);
+				if (! Objects.equals(value, d.value))
+					d.value = INCONSISTENT;
 				return; // already has dependency
 			}
 		}
@@ -140,7 +150,8 @@ public class SuRules extends SuContainer {
 		if (deps.isEmpty()) // invalidated by user
 			return false;
 		for (Dependency d : deps) {
-			if (d.invalidated && ! get(d.field).equals(d.value))
+			if (d.invalidated &&
+					(d.value == INCONSISTENT || ! get(d.field).equals(d.value)))
 				return false;
 			d.invalidated = false;
 		}
@@ -162,7 +173,7 @@ public class SuRules extends SuContainer {
 			RuleContext.push(this, field);
 			try {
 				if (rule instanceof SuValue) {
-					Object x = executeRule(rule);
+					Object x = ((SuValue) rule).eval(this);
 					return x;
 				} else
 					throw new SuException("invalid Rule_" + field);
@@ -175,14 +186,11 @@ public class SuRules extends SuContainer {
 		}
 	}
 
-	// overridden by tests
-	Object getRule(Object field) {
-		return Suneido.context.tryget("Rule_" + field);
-	}
-
-	// overridden by tests
-	Object executeRule(Object rule) {
-		return ((SuValue) rule).eval(this);
+	private Object getRule(Object field) {
+		Object rule = attachedRules.get(field);
+		if (rule == null && defval != null)
+			rule = Suneido.context.tryget("Rule_" + field);
+		return rule;
 	}
 
 	/** used to auto-register dependencies */
@@ -240,6 +248,10 @@ public class SuRules extends SuContainer {
 		for (Dependency d : dependencies.get(field))
 			builder.add(d.field.toString());
 		return builder.build();
+	}
+
+	public void attachRule(String field, Object rule) {
+		attachedRules.put(field, rule);
 	}
 
 }
