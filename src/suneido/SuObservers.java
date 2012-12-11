@@ -17,8 +17,15 @@ import com.google.common.collect.Sets;
 
 public class SuObservers extends SuRules {
 	private final List<Object> observers = Lists.newArrayList();
-	private final Set<Object> invalidated = Sets.newHashSet();
+	private final Set<Object> invalidated = Sets.newLinkedHashSet();
 	List<ActiveObserver> activeObservers = Lists.newArrayList();
+
+	public SuObservers() {
+	}
+
+	public SuObservers(SuObservers r) {
+		super(r);
+	}
 
 	public void addObserver(Object observer) {
 		observers.add(observer);
@@ -69,7 +76,8 @@ public class SuObservers extends SuRules {
 	public void callObservers(Object member) {
 		callObservers2(member);
 		invalidated.remove(member);
-		for (Iterator<Object> iter = invalidated.iterator(); iter.hasNext(); ) {
+		while (! invalidated.isEmpty()) {
+			Iterator<Object> iter = invalidated.iterator();
 			Object m = iter.next();
 			iter.remove();
 			callObservers2(m);

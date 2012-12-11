@@ -14,6 +14,7 @@ import java.util.Iterator;
 
 import suneido.Packable;
 import suneido.SuException;
+import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.ByteBuf;
@@ -697,6 +698,12 @@ public class Record implements suneido.intfc.database.Record,
 
 	@Override
 	public Record build() {
+		return this;
+	}
+
+	@Override
+	public RecordBuilder trim() {
+		// not implemented
 		return this;
 	}
 

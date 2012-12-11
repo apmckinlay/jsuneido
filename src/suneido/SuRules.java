@@ -9,6 +9,7 @@ import java.util.*;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
 
 import com.google.common.collect.*;
@@ -34,14 +35,14 @@ import com.google.common.collect.*;
  */
 public class SuRules extends SuContainer {
 	/** usedBy is cumulative (never cleared) */
-	private final SetMultimap<Object, Object> usedBy = HashMultimap.create();
+	private final SetMultimap<Object, Object> usedBy;
 	/** dependencies is accurate for the last time the rule ran */
-	private final ListMultimap<Object, Dependency> dependencies = ArrayListMultimap.create();
+	private final ListMultimap<Object, Dependency> dependencies;
 	/** invalid tracks which fields are potentially invalid */
-	private final Set<Object> invalid = Sets.newHashSet();
+	private final Set<Object> invalid;
+	private final Map<Object, Object> attachedRules;
 	/** activeRules is used to track which rule is currently active */
 	private final Deque<Object> activeRules = new ArrayDeque<Object>();
-	private final Map<Object, Object> attachedRules = Maps.newHashMap();
 
 	private static class Dependency {
 		Object field;
@@ -52,6 +53,21 @@ public class SuRules extends SuContainer {
 			this.field = field;
 			this.value = value;
 		}
+	}
+
+	public SuRules() {
+		usedBy = HashMultimap.create();
+		dependencies = ArrayListMultimap.create();
+		invalid = Sets.newHashSet();
+		attachedRules = Maps.newHashMap();
+	}
+
+	public SuRules(SuRules r) {
+		super(r);
+		usedBy = HashMultimap.create(r.usedBy);
+		dependencies = ArrayListMultimap.create(r.dependencies);
+		invalid = Sets.newHashSet(r.invalid);
+		attachedRules = Maps.newHashMap(r.attachedRules);
 	}
 
 	// put ---------------------------------------------------------------------
@@ -81,10 +97,10 @@ public class SuRules extends SuContainer {
 			if (d.field.equals(source) && ! d.invalidated)
 				invalidated = d.invalidated = true;
 		if (invalidated)
-			invalidate(field);
+			invalidate1(field);
 	}
 
-	public void invalidate(Object field) {
+	private void invalidate1(Object field) {
 		if (! invalid.add(field)) // before recursing
 			return; // already invalid
 		invalidateUsers(field); // recurse
@@ -95,37 +111,40 @@ public class SuRules extends SuContainer {
 	protected void invalidated(Object field) {
 	}
 
-	public void forceInvalidate(Object field) {
+	/** called by RecordMethods Invalidate */
+	public void invalidate(Object field) {
 		dependencies.removeAll(field); // unconditionally invalid
-		invalidate(field);
+		invalidate1(field);
 	}
 
 	// get ---------------------------------------------------------------------
 
 	@Override
 	public Object get(Object field) {
-		Object value = getIfPresent(field);
+		Object result = getIfPresent(field);
 
 		RuleContext.Rule ar = RuleContext.top();
 		if (ar != null && ar.rec == this)
-			addDependency(ar.field, field, value);
+			addDependency(ar.field, field, result);
 
-		if (value != null && isValid(field))
-			return value;
-
-		makeValid(field);
-		Object x = callRule(field);
-		if (x == null)
-			return "";
-		else {
-			putMap(field, x);
-			return x;
+		if (result == null || ! isValid(field)) {
+			makeValid(field);
+			Object x = callRule(field);
+			if (x != null) {
+				result = x;
+				putMap(field, x);
+			} else if (result == null)
+				result = defval;
 		}
+		return result;
 	}
 
 	private static Object INCONSISTENT = new Object();
 
 	private void addDependency(Object field, Object field2, Object value) {
+		if (value instanceof SuContainer &&
+				! ((SuContainer) value).getReadonly())
+			value = INCONSISTENT;
 		// add field2 to field dependencies (if not already there)
 		for (Dependency d : dependencies.get(field)) {
 			if (d.field.equals(field2)) {
@@ -243,11 +262,11 @@ public class SuRules extends SuContainer {
 		}
 	}
 
-	public List<String> getdeps(String field) {
-		ImmutableList.Builder<String> builder = ImmutableList.builder();
+	public String getdeps(String field) {
+		CommaStringBuilder deps = new CommaStringBuilder();
 		for (Dependency d : dependencies.get(field))
-			builder.add(d.field.toString());
-		return builder.build();
+			deps.add(d.field.toString());
+		return deps.build();
 	}
 
 	public void attachRule(String field, Object rule) {

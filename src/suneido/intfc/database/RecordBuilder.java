@@ -15,6 +15,7 @@ public interface RecordBuilder {
 	RecordBuilder addMin();
 	RecordBuilder addMax();
 	RecordBuilder truncate(int n);
+	RecordBuilder trim();
 
 	Record build();
 

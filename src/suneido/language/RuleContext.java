@@ -6,7 +6,7 @@ import java.util.Deque;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuRecord;
+import suneido.SuContainer;
 
 /**
  * used to auto-register dependencies
@@ -21,7 +21,7 @@ public class RuleContext {
 				}
 			};
 
-	public static void push(SuRecord rec, Object member) {
+	public static void push(SuContainer rec, Object member) {
 		activeRules.get().push(new Rule(rec, member));
 	}
 
@@ -29,17 +29,17 @@ public class RuleContext {
 		return activeRules.get().peek();
 	}
 
-	public static void pop(SuRecord rec, Object member) {
+	public static void pop(SuContainer rec, Object member) {
 		Rule ar = activeRules.get().pop();
-		assert rec.equals(ar.rec) && member.equals(ar.member);
+		assert rec == ar.rec && member == ar.member;
 	}
 
 	@Immutable
 	public static class Rule {
-		public final SuRecord rec;
+		public final SuContainer rec; // TODO should be SuRecord
 		public final Object member;
 
-		public Rule(SuRecord rec, Object member) {
+		public Rule(SuContainer rec, Object member) {
 			this.rec = rec;
 			this.member = member;
 		}
