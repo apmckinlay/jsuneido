@@ -8,7 +8,9 @@ import static suneido.SuException.methodNotFound;
 
 import java.nio.ByteBuffer;
 
-import suneido.language.*;
+import suneido.language.Ops;
+import suneido.language.SuCallable;
+import suneido.language.SuClass;
 
 /**
  * Base class for Suneido data types:
@@ -68,10 +70,12 @@ public abstract class SuValue implements Packable {
 		return packSize(0);
 	}
 
+	@Override
 	public int packSize(int nest) {
 		throw new SuException(typeName() + " cannot be stored");
 	}
 
+	@Override
 	public void pack(ByteBuffer buf) {
 		throw new SuException(typeName() + " cannot be stored");
 	}

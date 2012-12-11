@@ -11,6 +11,7 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
+import suneido.util.PairStack;
 
 import com.google.common.base.Objects;
 
@@ -150,14 +151,39 @@ public class SuInstance extends SuValue {
 	}
 
 	@Override
-	public boolean equals(Object other) {
-		if (other == this)
+	public boolean equals(Object value) {
+		if (value == this)
 			return true;
-		if (!(other instanceof SuInstance))
+		if (! (value instanceof SuInstance))
 			return false;
-		SuInstance that = (SuInstance) other;
-		return this.myclass == that.myclass &&
-				Objects.equal(ivars, that.ivars);
+		return equals2(this, (SuInstance) value, new PairStack());
+	}
+
+	// avoid infinite recursion from self-reference
+	private static boolean equals2(SuInstance x, SuInstance y, PairStack stack) {
+		if (x.myclass != y.myclass || x.ivars.size() != y.ivars.size())
+			return false;
+		if (stack.contains(x, y))
+			return true; // comparison is already in progress
+		stack.push(x, y);
+		try {
+			for (Map.Entry<String, Object> e : x.ivars.entrySet())
+				if (! equals3(e.getValue(), y.ivars.get(e.getKey()), stack))
+					return false;
+			return true;
+		} finally {
+			stack.pop();
+		}
+	}
+
+	private static boolean equals3(Object x, Object y, PairStack stack) {
+		if (x == y)
+			return true;
+		if (! (x instanceof SuInstance))
+			return Ops.is_(x, y);
+		return (y instanceof SuInstance)
+				? equals2((SuInstance) x, (SuInstance) y, stack)
+				: false;
 	}
 
 	@Override

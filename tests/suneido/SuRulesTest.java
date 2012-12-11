@@ -16,7 +16,7 @@ public class SuRulesTest {
 	public void test_put_get() {
 		SuRules r = new SuRules();
 		r.setDefault(null);
-		assertEquals("", r.get("nonexistent"));
+		assertEquals(null, r.get("nonexistent"));
 		r.put("a", 123);
 		assertEquals(123, r.get("a"));
 		r.put("b", 456);
@@ -69,7 +69,7 @@ public class SuRulesTest {
 		assertEquals("123999", r.get("r"));
 		assertEquals(2, count);
 
-		r.forceInvalidate("r");
+		r.invalidate("r");
 		assertEquals("123999", r.get("r"));
 		assertEquals(3, count);
 	}
@@ -106,9 +106,9 @@ public class SuRulesTest {
 		assertEquals(3, count2);
 		assertEquals(2, count1);
 
-		assertEquals("[r2]", r.getdeps("r1").toString());
-		assertEquals("[a]", r.getdeps("r2").toString());
-		assertEquals("[]", r.getdeps("a").toString());
+		assertEquals("r2", r.getdeps("r1"));
+		assertEquals("a", r.getdeps("r2"));
+		assertEquals("", r.getdeps("a"));
 	}
 
 	@Test
@@ -119,10 +119,19 @@ public class SuRulesTest {
 		assertEquals(123, r.get("r"));
 		assertEquals(0, count);
 		r.setdeps("r", "a,b");
-		assertEquals("[a, b]", r.getdeps("r").toString());
+		assertEquals("a,b", r.getdeps("r").toString());
 		r.put("a", 12);
 		r.put("b", 34);
 		assertEquals("1234", r.get("r"));
+	}
+
+	@Test
+	public void test_invalidate_bug() {
+		SuRules r = new SuRules();
+		r.put("a", 123);
+		assertEquals(123, r.get("a"));
+		r.invalidate("a");
+		assertEquals(123, r.get("a"));
 	}
 
 }

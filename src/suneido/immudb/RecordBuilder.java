@@ -92,6 +92,14 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return this;
 	}
 
+	@Override
+	public RecordBuilder trim() {
+		int n = bufs.size();
+		while (n >= 1 && lens.get(n - 1) == 0)
+				--n;
+		return truncate(n);
+	}
+
 	int size() {
 		return bufs.size();
 	}

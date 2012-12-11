@@ -37,9 +37,13 @@ public class Pack {
 		public static final byte FUNCTION = 8;
 		public static final byte CLASS = 9;
 	}
+	private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
 
 	public static ByteBuffer pack(Object x) {
-		ByteBuffer buf = ByteBuffer.allocate(packSize(x));
+		int n = packSize(x);
+		if (n == 0)
+			return EMPTY_BUFFER;
+		ByteBuffer buf = ByteBuffer.allocate(n);
 		pack(x, buf);
 		buf.rewind();
 		return buf;

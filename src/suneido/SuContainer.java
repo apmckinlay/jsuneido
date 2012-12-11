@@ -6,7 +6,6 @@ package suneido;
 
 import static suneido.Suneido.dbpkg;
 import static suneido.language.Numbers.toBigDecimal;
-import static suneido.language.Ops.cmp;
 import static suneido.util.Verify.verify;
 
 import java.math.BigDecimal;
@@ -25,6 +24,7 @@ import suneido.language.Pack;
 import suneido.language.Range;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
+import suneido.util.PairStack;
 import suneido.util.Util;
 
 import com.google.common.collect.Iterables;
@@ -173,7 +173,7 @@ public class SuContainer extends SuValue
 			return x;
 		if (defval instanceof SuContainer) {
 			x = new SuContainer((SuContainer) defval);
-			if (!readonly)
+			if (! readonly)
 				put(key, x);
 			return x;
 		}
@@ -283,26 +283,65 @@ public class SuContainer extends SuValue
 		SuContainer c = Ops.toContainer(value);
 		if (c == null)
 			return false;
-		if (vec.size() != c.vec.size() || map.size() != c.map.size())
+		return equals2(this, c, new PairStack());
+	}
+
+	// avoid infinite recursion from self-reference
+	private static boolean equals2(SuContainer x, SuContainer y, PairStack stack) {
+		if (x.vec.size() != y.vec.size() || x.map.size() != y.map.size())
 			return false;
-		for (int i = 0; i < vec.size(); ++i)
-			if (!Ops.is_(vec.get(i), c.vec.get(i)))
-				return false;
-		for (Map.Entry<Object, Object> e : map.entrySet())
-			if (!Ops.is_(e.getValue(), c.map.get(e.getKey())))
-				return false;
-		return true;
-		//TODO handle stack overflow from self-reference
+		if (stack.contains(x, y))
+			return true; // comparison is already in progress
+		stack.push(x, y);
+		try {
+			for (int i = 0; i < x.vec.size(); ++i)
+				if (! equals3(x.vec.get(i), y.vec.get(i), stack))
+					return false;
+			for (Map.Entry<Object, Object> e : x.map.entrySet())
+				if (! equals3(e.getValue(), y.map.get(e.getKey()), stack))
+					return false;
+			return true;
+		} finally {
+			stack.pop();
+		}
+	}
+
+	private static boolean equals3(Object x, Object y, PairStack stack) {
+		if (x == y)
+			return true;
+		SuContainer cx = Ops.toContainer(x);
+		if (cx == null)
+			return Ops.is_(x, y);
+		SuContainer cy = Ops.toContainer(y);
+		return (cy == null) ? false : equals2(cx, cy, stack);
 	}
 
 	@Override
-	public int compareTo(SuContainer other) {
+	public int compareTo(SuContainer that) {
+		if (this == that)
+			return 0;
+		return compare2(that, new PairStack());
+	}
+
+	private int compare2(SuContainer that, PairStack stack) {
+		if (stack.contains(this, that))
+			return 0; // comparison is already in progress
+		stack.push(this, that);
 		int ord;
-		for (int i = 0; i < vec.size() && i < other.vec.size(); ++i)
-			if (0 != (ord = cmp(vec.get(i), other.vec.get(i))))
+		for (int i = 0; i < vec.size() && i < that.vec.size(); ++i)
+			if (0 != (ord = compare3(vec.get(i), that.vec.get(i), stack)))
 				return ord;
-		return vec.size() - other.vec.size();
-		//TODO handle stack overflow from self-reference
+		return vec.size() - that.vec.size();
+	}
+
+	private static int compare3(Object x, Object y, PairStack stack) {
+		if (x == y)
+			return 0;
+		SuContainer cx = Ops.toContainer(x);
+		if (cx == null)
+			return Ops.cmp(x, y);
+		SuContainer cy = Ops.toContainer(y);
+		return (cy == null) ? Ops.cmp(x, y) : cx.compare2(cy, stack);
 	}
 
 	public boolean delete(Object key) {
@@ -431,10 +470,19 @@ public class SuContainer extends SuValue
 	}
 
 	public void setReadonly() {
+		if (readonly)
+			return;
 		readonly = true;
+		// recurse
+		for (Object x : vec)
+			if (x instanceof SuContainer)
+				((SuContainer) x).setReadonly();
+		for (Object x : map.values())
+			if (x instanceof SuContainer)
+				((SuContainer) x).setReadonly();
 	}
 
-	public Object getReadonly() {
+	public boolean getReadonly() {
 		return readonly;
 	}
 

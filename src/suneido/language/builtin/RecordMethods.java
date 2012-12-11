@@ -14,7 +14,6 @@ import suneido.language.ArgsIterator;
 import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
-import suneido.util.Util;
 
 /** {@link SuRecord} delegates invoke to here */
 public class RecordMethods {
@@ -44,7 +43,7 @@ public class RecordMethods {
 
 	@Params("field")
 	public static Object GetDeps(Object self, Object a) {
-		return Util.listToCommas(((SuRecord) self).getdeps(Ops.toStr(a)));
+		return ((SuRecord) self).getdeps(Ops.toStr(a));
 	}
 
 	public static Object Invalidate(Object self, Object... args) {
@@ -55,7 +54,6 @@ public class RecordMethods {
 			if (arg instanceof Map.Entry)
 				throw new SuException("usage: record.Invalidate(member, ...)");
 			r.invalidate(arg);
-			r.callObservers(arg);
 		}
 		return null;
 	}
