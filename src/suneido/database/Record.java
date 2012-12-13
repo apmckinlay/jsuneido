@@ -18,6 +18,7 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.ByteBuf;
+import suneido.util.CommaStringBuilder;
 
 import com.google.common.collect.ImmutableList;
 
@@ -152,12 +153,10 @@ public class Record implements suneido.intfc.database.Record,
 		if (equals(MAXREC))
 			return "[MAX]";
 
-		StringBuilder sb = new StringBuilder("[");
+		CommaStringBuilder sb = new CommaStringBuilder("[");
 		for (int i = 0; i < getNfields(); ++i)
-			sb.append(getRaw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)))
-					.append(",");
-		sb.deleteCharAt(sb.length() - 1).append("]");
-		return sb.toString();
+			sb.add(getRaw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)));
+		return sb.append("]").toString();
 	}
 
 	String toDebugString() {

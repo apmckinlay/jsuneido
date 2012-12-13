@@ -27,6 +27,7 @@ import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.Token;
+import suneido.util.CommaStringBuilder;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -76,7 +77,7 @@ public class Select extends Query1 {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(source.toString());
+		CommaStringBuilder sb = new CommaStringBuilder(source.toString());
 		sb.append(" WHERE");
 		if (conflicting)
 			return sb.append(" nothing").toString();
@@ -85,8 +86,8 @@ public class Select extends Query1 {
 		if (filter != null) {
 			sb.append("%(");
 			for (List<String> f : filter)
-				sb.append(listToParens(f)).append(",");
-			sb.deleteCharAt(sb.length() - 1).append(")");
+				sb.add(listToParens(f));
+			sb.append(")");
 		}
 		if (! nil(expr.exprs))
 			sb.append(" ").append(expr);

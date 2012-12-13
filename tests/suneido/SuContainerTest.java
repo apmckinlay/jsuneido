@@ -9,6 +9,7 @@ import static suneido.language.Pack.unpack;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,11 @@ public class SuContainerTest {
 	@Before
 	public void setQuoting() {
 		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
 	}
 
 	@Test

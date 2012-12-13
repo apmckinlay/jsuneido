@@ -1,14 +1,13 @@
 package suneido.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static suneido.util.Util.commaJoiner;
 
 import java.util.AbstractSequentialList;
 import java.util.Iterator;
 import java.util.ListIterator;
 
 import javax.annotation.concurrent.Immutable;
-
-import com.google.common.base.Joiner;
 
 /**
  * A persistent immutable single linked list class.
@@ -140,8 +139,6 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 				return false;
 		return x == Nil && y == Nil;
 	}
-
-	public static final Joiner commaJoiner = Joiner.on(",");
 
 	@Override
 	public String toString() {
