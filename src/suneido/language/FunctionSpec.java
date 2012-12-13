@@ -8,9 +8,9 @@ import static suneido.util.Util.array;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Splitter;
-
 import suneido.SuException;
+
+import com.google.common.base.Splitter;
 
 /**
  * Stores the parameters for function and methods.
@@ -156,8 +156,7 @@ public class FunctionSpec {
 	}
 
 	public String params() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
+		StringBuilder sb = new StringBuilder("(");
 		if (atParam)
 			sb.append("@");
 		short j = 0;
@@ -170,8 +169,7 @@ public class FunctionSpec {
 			if (i >= params.length - defaults.length && i < params.length)
 				sb.append("=").append(defaults[j++]);
 		}
-		sb.append(")");
-		return sb.toString();
+		return sb.append(")").toString();
 	}
 
 	boolean isDynParam(String name) {

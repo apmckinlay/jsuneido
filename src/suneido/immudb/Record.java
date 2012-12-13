@@ -7,12 +7,12 @@ package suneido.immudb;
 import static suneido.SuException.unreachable;
 
 import java.nio.ByteBuffer;
-import java.util.Date;
 import java.util.Iterator;
 
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.util.ByteBuffers;
+import suneido.util.CommaStringBuilder;
 
 /**
  * Abstract base class for {@link BufRecord} and {@link ArrayRecord}.
@@ -150,27 +150,10 @@ abstract class Record implements suneido.intfc.database.Record {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		for (int i = 0; i < size(); ++i) {
-			sb.append(i == 0 ? "" : ",");
-			if (getRaw(i).equals(MAX_FIELD))
-				sb.append("MAX");
-			else
-				append(sb, i);
-		}
-		sb.append("]");
-		return sb.toString();
-	}
-
-	private void append(StringBuilder sb, int i) {
-		Object x = get(i);
-		if (x instanceof String)
-			sb.append("'").append(x).append("'");
-		else if (x instanceof Date)
-			sb.append(Ops.display(x));
-		else
-			sb.append(x);
+		CommaStringBuilder sb = new CommaStringBuilder("[");
+		for (int i = 0; i < size(); ++i)
+			sb.add(getRaw(i).equals(MAX_FIELD) ? "MAX" : Ops.display(get(i)));
+		return sb.append("]").toString();
 	}
 
 	@Override

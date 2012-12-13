@@ -5,6 +5,7 @@
 package suneido;
 
 import static suneido.Suneido.dbpkg;
+import static suneido.util.Util.commaJoiner;
 import static suneido.util.Verify.verify;
 
 import java.nio.ByteBuffer;
@@ -237,7 +238,6 @@ public abstract class SuRecordOld extends SuContainer {
 		// PERF don't add trailing empty fields
 
 		RecordBuilder rb = dbpkg.recordBuilder();
-		StringBuilder sb = new StringBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : fldsyms)
@@ -245,13 +245,9 @@ public abstract class SuRecordOld extends SuContainer {
 				rb.addMin();
 			else if (f.equals(ts))
 				rb.add(TheDbms.dbms().timestamp());
-			else if (deps.containsKey(f)) {
-				// output dependencies
-				sb.setLength(0);
-				for (Object d : deps.get(f))
-					sb.append(",").append(d);
-				rb.add(sb.substring(1));
-			} else if (null != (x = get(f)))
+			else if (deps.containsKey(f))
+				rb.add(commaJoiner.join(deps.get(f)));
+			else if (null != (x = get(f)))
 				rb.add(x);
 			else
 				rb.addMin();

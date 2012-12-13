@@ -98,7 +98,7 @@ class Index implements Comparable<Index> {
 	private static DataRecord toRecord(int tblnum, int[] colNums, boolean isKey,
 			boolean unique, ForeignKeySource fksrc) {
 		RecordBuilder rb = new RecordBuilder();
-		rb.add(tblnum).add(colNumsToString(colNums));
+		rb.add(tblnum).add(Ints.join(",", colNums));
 		if (unique)
 			rb.add(UNIQUE);
 		else
@@ -108,10 +108,6 @@ class Index implements Comparable<Index> {
 		DataRecord r = rb.build();
 		r.tblnum(TN.INDEXES);
 		return r;
-	}
-
-	private static String colNumsToString(int[] colNums) {
-		return Ints.join(",", colNums);
 	}
 
 	boolean isKey() {

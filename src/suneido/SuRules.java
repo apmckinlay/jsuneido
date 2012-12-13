@@ -265,8 +265,8 @@ public class SuRules extends SuContainer {
 	public String getdeps(String field) {
 		CommaStringBuilder deps = new CommaStringBuilder();
 		for (Dependency d : dependencies.get(field))
-			deps.add(d.field.toString());
-		return deps.build();
+			deps.add(d.field);
+		return deps.toString();
 	}
 
 	public void attachRule(String field, Object rule) {

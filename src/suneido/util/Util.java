@@ -11,6 +11,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.language.Ops;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -37,30 +38,24 @@ public class Util {
 	public static <T> String listToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
-		StringBuilder sb = new StringBuilder();
-		for (T x : list) {
-			sb.append(",");
-			if (x instanceof List)
-				sb.append(listToParens((List<String>) x));
-			else
-				sb.append(Ops.toStr(x));
-		}
-		return sb.substring(1);
+		CommaStringBuilder sb = new CommaStringBuilder();
+		for (T x : list)
+			sb.add(x instanceof List
+				? listToParens((List<String>) x)
+				: Ops.toStr(x));
+		return sb.toString();
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> String displayListToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())
 			return "";
-		StringBuilder sb = new StringBuilder();
-		for (T x : list) {
-			sb.append(",");
-			if (x instanceof List)
-				sb.append(displayListToParens((List<String>) x));
-			else
-				sb.append(Ops.display(x));
-		}
-		return sb.substring(1);
+		CommaStringBuilder sb = new CommaStringBuilder();
+		for (T x : list)
+			sb.add(x instanceof List
+				? displayListToParens((List<String>) x)
+				: Ops.display(x));
+		return sb.toString();
 	}
 
 	public static <T> String listToParens(Collection<T> list) {
@@ -70,6 +65,8 @@ public class Util {
 	public static <T> String displayListToParens(Collection<T> list) {
 		return "(" + displayListToCommas(list) + ")";
 	}
+
+	public static final Joiner commaJoiner = Joiner.on(",");
 
 	public static final Splitter commaSplitter = Splitter.on(',').trimResults();
 

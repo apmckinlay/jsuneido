@@ -13,11 +13,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import suneido.language.Ops;
 
 import com.google.common.collect.Lists;
 
 public class BtreeNodeTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
 
 	@Test
 	public void memNode_empty() {

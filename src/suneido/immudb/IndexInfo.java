@@ -12,6 +12,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Ints;
 
 /**
  * {@link BtreeInfo} plus columns
@@ -55,17 +56,8 @@ class IndexInfo extends BtreeInfo {
 
 	void addToRecord(RecordBuilder rb) {
 		assert root != 0;
-		rb.add(convertColumns(columns))
+		rb.add(Ints.join(",", columns))
 				.add(root).add(treeLevels).add(nnodes).add(totalSize);
-	}
-
-	private static String convertColumns(int[] cols) {
-		if (cols.length == 0)
-			return "";
-		StringBuilder sb = new StringBuilder();
-		for (int c : cols)
-			sb.append(",").append(c);
-		return sb.substring(1);
 	}
 
 	static void addToRecord(RecordBuilder rb, String columns, BtreeInfo info) {

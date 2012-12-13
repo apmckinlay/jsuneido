@@ -21,6 +21,7 @@ import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
+import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
 
 import com.google.common.collect.ImmutableList;
@@ -347,10 +348,10 @@ public class Table extends Query {
 			if (colnums.isEmpty())
 				return "";
 			List<String> fields = tran.ck_getTable(rec.getInt(0)).getFields();
-			StringBuilder sb = new StringBuilder();
+			CommaStringBuilder csb = new CommaStringBuilder();
 			for (String col : Util.commaSplitter(colnums))
-				sb.append(",").append(fields.get(Integer.parseInt(col)));
-			return sb.substring(1);
+				csb.add(fields.get(Integer.parseInt(col)));
+			return csb.toString();
 		}
 
 	}
