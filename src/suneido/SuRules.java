@@ -74,7 +74,12 @@ public class SuRules extends SuContainer {
 
 	@Override
 	public void put(Object field, Object value) {
-		makeValid(field); // before get
+		// dependencies.removeAll(field);
+		for (Dependency d : dependencies.get(field)) {
+			d.value = INCONSISTENT;
+			d.invalidated = false;
+		}
+		invalid.remove(field); // before get
 		if (alreadyHas(field, value))
 			return;
 		super.put(field, value);
@@ -128,7 +133,8 @@ public class SuRules extends SuContainer {
 			addDependency(ar.field, field, result);
 
 		if (result == null || ! isValid(field)) {
-			makeValid(field);
+			invalid.remove(field);
+			dependencies.removeAll(field);
 			Object x = callRule(field);
 			if (x != null) {
 				result = x;
@@ -155,11 +161,6 @@ public class SuRules extends SuContainer {
 		}
 		dependencies.put(field, new Dependency(field2, value));
 		usedBy.put(field2, field);
-	}
-
-	private void makeValid(Object field) {
-		dependencies.removeAll(field);
-		invalid.remove(field);
 	}
 
 	private boolean isValid(Object field) {
@@ -250,14 +251,12 @@ public class SuRules extends SuContainer {
 
 	//--------------------------------------------------------------------------
 
-	private final Object dummyValue = new Object();
-
 	public void setdeps(String field, String s) {
 		List<Dependency> deps = dependencies.get(field);
 		deps.clear();
 		for (String d : Util.commaSplitter(s)) {
 			// not checking for duplicates
-			deps.add(new Dependency(d, dummyValue));
+			deps.add(new Dependency(d, INCONSISTENT));
 			usedBy.put(d, field);
 		}
 	}
