@@ -101,6 +101,7 @@ public class SuRulesTest {
 		assertEquals("=X", r.get("r1"));
 		assertEquals(2, count1);
 		assertEquals(2, count2);
+		r.get("r2"); // make it valid
 		r.put("a", "XZ");
 		assertEquals("=X", r.get("r1"));
 		assertEquals(3, count2);

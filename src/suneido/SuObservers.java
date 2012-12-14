@@ -35,6 +35,12 @@ public class SuObservers extends SuRules {
 		observers.remove(observer);
 	}
 
+	@Override
+	public void invalidate(Object field) {
+		super.invalidate(field);
+		callObservers(field);
+	}
+
 	// called by SuRules
 	@Override
 	protected void invalidated(Object field) {
