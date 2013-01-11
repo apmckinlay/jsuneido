@@ -13,6 +13,7 @@ import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 public class Builtins {
@@ -33,6 +34,7 @@ public class Builtins {
 			.put("AssertionError", function(AssertionError.class))
 			.put("Boolean?", function(BooleanQ.class))
 			.put("Built", function(Built.class))
+			.put("BuiltinNames", function(BuiltinNames.class))
 			.put("Cat", function(Cat.class))
 			.put("Class?", function(ClassQ.class))
 			.put("Cmdline", function(Cmdline.class))
@@ -140,5 +142,9 @@ public class Builtins {
 		Map<String, SuCallable> ms = BuiltinMethods.functions(c);
 		return Iterables.getOnlyElement(ms.values());
 	}
+	
+	public static ImmutableSet<String> builtinNames() {
+		return builtins.keySet();
+	}	
 
 }
