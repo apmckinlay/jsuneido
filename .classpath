@@ -3,7 +3,6 @@
 	<classpathentry excluding="suneido/jdbc/" kind="src" path="src"/>
 	<classpathentry kind="src" path="tests"/>
 	<classpathentry kind="lib" path="lib/jsr305-1.3.9.jar"/>
-	<classpathentry kind="lib" path="lib/lucene-core-3.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/hamcrest-library-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/trove-3.0.3.jar" sourcepath="lib/trove-3.0.3-src.jar">
 		<attributes>
@@ -17,6 +16,7 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-13.0.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/lucene-core-3.6.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
