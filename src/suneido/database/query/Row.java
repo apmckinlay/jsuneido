@@ -117,10 +117,12 @@ public class Row {
 	}
 
 	private ByteBuffer getraw(Which w) {
-		return w == null ? ByteBuffer.allocate(0) : data[w.di].getRaw(w.ri);
+		return w == null ? Record.MIN_FIELD : data[w.di].getRaw(w.ri);
 	}
 
 	Which find(Header hdr, String col) {
+		if ("-".equals(col))
+			return null;
 		int j;
 		for (int i = 0; i < data.length; ++i)
 			if (data[i] != null && !data[i].isEmpty()
