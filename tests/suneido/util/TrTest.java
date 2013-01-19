@@ -15,5 +15,7 @@ public class TrTest {
 		assertEquals("CAB", tr("cab", "a-z", "A-Z"));
 		assertEquals("abc", tr("a b - c", "^abc", ""));
 		assertEquals("a b c", tr("a  b - c", "^abc", " ")); // collapse
+		assertEquals("abc", tr("a-b-c", "-x", "")); // literal dash
+		assertEquals("abc", tr("a-b-c", "x-", "")); // literal dash
 	}
 }
