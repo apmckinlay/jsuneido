@@ -168,7 +168,7 @@ public abstract class Query1 extends Query {
 	}
 
 	/** @return Whether a field has a single fixed value */
-	private static boolean isfixed(List<Fixed> fixed, String field) {
+	protected static boolean isfixed(List<Fixed> fixed, String field) {
 		for (Fixed f : fixed)
 			if (field.equals(f.field) && f.values.size() == 1)
 				return true;
