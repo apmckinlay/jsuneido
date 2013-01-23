@@ -9,6 +9,8 @@ import suneido.SuException;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
 
+import com.google.common.collect.ImmutableList;
+
 public class Project extends Query1 {
 	private List<String> flds;
 	private Strategy strategy = Strategy.NONE;
@@ -252,9 +254,10 @@ public class Project extends Query1 {
 		double best_cost = IMPOSSIBLE;
 		List<List<String>> idxs = index.isEmpty() ? source.indexes()
 				: Collections.singletonList(index);
+		List<Fixed> fixed = source.fixed();
+		List<String> unfixed_flds = withoutFixed(flds, fixed);
 		for (List<String> ix : idxs)
-			// TODO take fixed into account
-			if (startsWithSet(ix, flds)) {
+			if (startsWithSet(withoutFixed(ix, fixed), unfixed_flds)) {
 				// NOTE: optimize1 to avoid tempindex
 				double cost = source.optimize1(ix, needs, firstneeds,
 						is_cursor, false);
@@ -279,6 +282,23 @@ public class Project extends Query1 {
 			return source.optimize1(best_index, needs, firstneeds, is_cursor,
 					freeze);
 		}
+	}
+
+	List<String> withoutFixed(List<String> list, List<Fixed> fixed) {
+		if (! hasFixed(list, fixed))
+			return list;
+		ImmutableList.Builder<String> bldr = ImmutableList.builder();
+		for (String fld : list)
+			if (! isfixed(fixed, fld))
+				bldr.add(fld);
+		return bldr.build();
+	}
+
+	boolean hasFixed(List<String> list, List<Fixed> fixed) {
+		for (String fld : list)
+			if (isfixed(fixed, fld))
+				return true;
+		return false;
 	}
 
 	@Override

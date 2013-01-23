@@ -46,7 +46,7 @@ public class Tr {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < src.length(); ++i) {
 			char c = src.charAt(i);
-			if (c == '-' && i > 0 && i < src.length())
+			if (c == '-' && i > 0 && i + 1 < src.length())
 				for (char r = (char) (src.charAt(i - 1) + 1); r < src.charAt(i + 1); ++r)
 					sb.append(r);
 			else
