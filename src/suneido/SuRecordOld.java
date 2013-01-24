@@ -21,12 +21,11 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.language.*;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
+import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 
 @NotThreadSafe
 public abstract class SuRecordOld extends SuContainer {
@@ -37,7 +36,7 @@ public abstract class SuRecordOld extends SuContainer {
 	private Status status;
 	private final List<Object> observers = Lists.newArrayList();
 	private final Set<Object> invalid = Sets.newHashSet(); // used by rules
-	private final Map<Object, Set<Object>> dependencies = Maps.newHashMap();
+	private final SetMultimap<Object, Object> dependencies;
 	private final Deque<Object> activeRules = new ArrayDeque<Object>();
 	private final Set<Object> invalidated = Sets.newLinkedHashSet(); // for observers
 	private final Map<Object, Object> attachedRules = Maps.newHashMap();
@@ -49,6 +48,7 @@ public abstract class SuRecordOld extends SuContainer {
 		tran = null;
 		recadr = 0;
 		status = Status.NEW;
+		dependencies = HashMultimap.create();
 	}
 
 	public SuRecordOld(SuRecordOld r) {
@@ -57,8 +57,7 @@ public abstract class SuRecordOld extends SuContainer {
 		tran = null;
 		recadr = 0;
 		status = r.status;
-		for (Map.Entry<Object, Set<Object>> e : r.dependencies.entrySet())
-			dependencies.put(e.getKey(), new HashSet<Object>(e.getValue()));
+		dependencies = HashMultimap.create(r.dependencies);
 	}
 
 	public SuRecordOld(Row row, Header hdr) {
@@ -74,6 +73,7 @@ public abstract class SuRecordOld extends SuContainer {
 		this.tran = tran;
 		this.recadr = row.address();
 		status = Status.OLD;
+		dependencies = HashMultimap.create();
 
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
 			Row.Entry e = iter.next();
@@ -86,6 +86,7 @@ public abstract class SuRecordOld extends SuContainer {
 		this.tran = tran;
 		recadr = 0;
 		status = Status.OLD;
+		dependencies = HashMultimap.create();
 		int i = 0;
 		for (String field : flds)
 			addField(field, rec.getRaw(i++));
@@ -154,9 +155,8 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	private void invalidateDependents(Object key) {
-		if (dependencies.containsKey(key))
-			for (Object dep : dependencies.get(key))
-				invalidate1(dep);
+		for (Object dep : dependencies.get(key))
+			invalidate1(dep);
 	}
 
 	private void invalidate1(Object member) {
@@ -192,9 +192,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	private void addDependency(Object src, Object dst) {
-		if (!dependencies.containsKey(dst))
-			dependencies.put(dst, new HashSet<Object>());
-		dependencies.get(dst).add(src);
+		dependencies.put(dst, src);
 	}
 
 	private Object callRule(Object k) {
@@ -216,8 +214,7 @@ public abstract class SuRecordOld extends SuContainer {
 			try {
 				if (rule instanceof SuValue) {
 					Object x = ((SuValue) rule).eval(this);
-					//System.out.println("callRule " + key + " => " + x);
-					if (x != null)
+					if (x != null && ! getReadonly())
 						putMap(key, x);
 					return x;
 				} else
@@ -261,14 +258,14 @@ public abstract class SuRecordOld extends SuContainer {
 				get(f);
 		// invert dependencies
 		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
-		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
-			for (Object x : e.getValue()) {
+		for (Object key : dependencies.keySet())
+			for (Object x : dependencies.get(key)) {
 				String d = x + "_deps";
 				if (!fldsyms.contains(d))
 					continue;
-				if (!deps.containsKey(d))
+				if (! deps.containsKey(d))
 					deps.put(d, new HashSet<Object>());
-				deps.get(d).add(e.getKey());
+				deps.get(d).add(key);
 			}
 		return deps;
 	}
@@ -392,12 +389,11 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	public String getdeps(String field) {
-		StringBuilder deps = new StringBuilder();
-		for (Map.Entry<Object, Set<Object>> e : dependencies.entrySet())
-			for (Object x : e.getValue())
-				if (field.equals(x))
-					deps.append(",").append(e.getKey().toString());
-		return deps.length() == 0 ? "" : deps.substring(1);
+		CommaStringBuilder deps = new CommaStringBuilder();
+		for (Object key : dependencies.keySet())
+			if (dependencies.get(key).contains(field))
+				deps.add(key);
+		return deps.toString();
 	}
 
 	public void setdeps(String field, String deps) {
