@@ -101,7 +101,7 @@ public class SuRules extends SuContainer {
 		for (Dependency d : dependencies.get(field))
 			if (d.field.equals(source) && ! d.invalidated)
 				invalidated = d.invalidated = true;
-		if (invalidated)
+//		if (invalidated)
 			invalidate1(field);
 	}
 
@@ -134,11 +134,13 @@ public class SuRules extends SuContainer {
 
 		if (result == null || ! isValid(field)) {
 			invalid.remove(field);
-			dependencies.removeAll(field);
+//			dependencies.removeAll(field);
 			Object x = callRule(field);
 			if (x != null) {
 				result = x;
-				putMap(field, x);
+				if (! getReadonly())
+					putMap(field, x);
+//System.out.println("callRule " + field + " => " + x);
 			} else if (result == null)
 				result = defval;
 		}
@@ -148,6 +150,7 @@ public class SuRules extends SuContainer {
 	private static Object INCONSISTENT = new Object();
 
 	private void addDependency(Object field, Object field2, Object value) {
+		usedBy.put(field2, field);
 		if (value instanceof SuContainer &&
 				! ((SuContainer) value).getReadonly())
 			value = INCONSISTENT;
@@ -160,24 +163,24 @@ public class SuRules extends SuContainer {
 			}
 		}
 		dependencies.put(field, new Dependency(field2, value));
-		usedBy.put(field2, field);
 	}
 
 	private boolean isValid(Object field) {
-		if (! invalid.contains(field))
-			return true;
-		List<Dependency> deps = dependencies.get(field);
-		if (deps.isEmpty()) // invalidated by user
-			return false;
-		for (Dependency d : deps) {
-			if (d.invalidated &&
-					(d.value == INCONSISTENT || ! get(d.field).equals(d.value)))
-				return false;
-			d.invalidated = false;
-		}
-		// all dependencies had same values
-		invalid.remove(field);
-		return true;
+return ! invalid.contains(field);
+//		if (! invalid.contains(field))
+//			return true;
+//		List<Dependency> deps = dependencies.get(field);
+//		if (deps.isEmpty()) // invalidated by user
+//			return false;
+//		for (Dependency d : deps) {
+//			if (d.invalidated &&
+//					(d.value == INCONSISTENT || ! get(d.field).equals(d.value)))
+//				return false;
+//			d.invalidated = false;
+//		}
+//		// all dependencies had same values
+//		invalid.remove(field);
+//		return true;
 	}
 
 	/** @return Result of rule if there is one, otherwise null */
@@ -253,7 +256,7 @@ public class SuRules extends SuContainer {
 
 	public void setdeps(String field, String s) {
 		List<Dependency> deps = dependencies.get(field);
-		deps.clear();
+//		deps.clear();
 		for (String d : Util.commaSplitter(s)) {
 			// not checking for duplicates
 			deps.add(new Dependency(d, INCONSISTENT));
@@ -263,8 +266,13 @@ public class SuRules extends SuContainer {
 
 	public String getdeps(String field) {
 		CommaStringBuilder deps = new CommaStringBuilder();
-		for (Dependency d : dependencies.get(field))
-			deps.add(d.field);
+//		for (Dependency d : dependencies.get(field))
+//			deps.add(d.field);
+for (Object key : usedBy.keySet()) {
+	Set<Object> values = usedBy.get(key);
+	if (values.contains(field))
+		deps.add(key.toString());
+}
 		return deps.toString();
 	}
 
