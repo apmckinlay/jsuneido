@@ -11,10 +11,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -54,7 +52,7 @@ public class Lucene extends BuiltinClass {
 		String path = Ops.toStr(a);
 		try {
 			FSDirectory dir = FSDirectory.open(new File(path));
-			IndexSearcher searcher = new IndexSearcher(dir);
+			IndexSearcher searcher = new IndexSearcher(IndexReader.open(dir));
 			searcher.close();
 			return true;
 		} catch (IOException e) {
@@ -165,7 +163,7 @@ public class Lucene extends BuiltinClass {
 		Directory dir;
 		try {
 			dir = FSDirectory.open(new File(path));
-			IndexSearcher searcher = new IndexSearcher(dir);
+			IndexSearcher searcher = new IndexSearcher(IndexReader.open(dir));
 			Analyzer analyzer = new StandardAnalyzer(version);
 			QueryParser parser = new QueryParser(version, "text", analyzer);
 			Query query = parser.parse(queryStr);
