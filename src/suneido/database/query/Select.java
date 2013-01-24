@@ -1,7 +1,6 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.disjoint;
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.dbpkg;
 import static suneido.Trace.Type.SLOWQUERY;
@@ -157,10 +156,10 @@ public class Select extends Query1 {
 			List<Expr> src1 = new ArrayList<Expr>();
 			List<Expr> rest = new ArrayList<Expr>();
 			for (Expr e : expr.exprs)
-				if (disjoint(extend.rules, e.fields()))
-					src1.add(e.replace(extend.flds, extend.exprs));
-				else
+				if (extend.needRule(e.fields()))
 					rest.add(e);
+				else
+					src1.add(e.replace(extend.flds, extend.exprs));
 			if (!nil(src1))
 				extend.source = new Select(tran, extend.source, new And(src1));
 			if (!nil(rest))

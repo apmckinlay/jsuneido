@@ -40,22 +40,17 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object extend(Object query, Object list) {
 		Extends e = (Extends) list;
-		return new Extend((Query) query, e.cols, e.exprs, e.rules);
+		return new Extend((Query) query, e.cols, e.exprs);
 	}
 	static class Extends {
 		List<String> cols = new ArrayList<String>();
 		List<Expr> exprs = new ArrayList<Expr>();
-		List<String> rules = new ArrayList<String>();
 	}
 	@Override
 	public Object extendList(Object listOb, String column, Object expr) {
 		Extends list = listOb == null ? new Extends() : (Extends) listOb;
-		if (expr == null)
-			list.rules.add(column);
-		else {
-			list.cols.add(column);
-			list.exprs.add((Expr) expr);
-		}
+		list.cols.add(column);
+		list.exprs.add((Expr) expr);
 		return list;
 	}
 

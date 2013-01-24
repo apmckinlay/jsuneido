@@ -288,6 +288,22 @@ public class OptimizeTest extends TestBase {
 		// "in" on empty table
 		test1("test_minus1 where a in (1)",
 				"test_minus1^(a) WHERE^(a)");
+
+		test1("inven extend rule extend x = rule where x = 123",
+				"inven^(item) EXTEND rule WHERE (rule is 123) EXTEND x = rule");
+
+		test1("inven extend rule, x = rule where x = 123",
+				"inven^(item) EXTEND rule, x = rule WHERE (x is 123)");
+
+		test1("inven extend a = 1, b = a",
+				"inven^(item) EXTEND a = 1, b = a");
+
+		try {
+			CompileQuery.query(db, serverData, "inven extend a = b, b = 1");
+			assert false;
+		} catch (RuntimeException e) {
+			assertTrue(e.toString().contains(""));
+		}
 	}
 
 	private void test1(String query, String strategy) {
