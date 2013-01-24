@@ -14,38 +14,48 @@ import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.RecordBuilder;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+
 public class Extend extends Query1 {
-	List<String> rules;
 	List<String> flds; // modified by Project.transform
 	List<Expr> exprs; // modified by Project.transform
 	private List<String> eflds;
 	private Header hdr = null;
 	private List<Fixed> fix;
 
-	Extend(Query source, List<String> flds, List<Expr> exprs,
-			List<String> rules) {
+	Extend(Query source, List<String> flds, List<Expr> exprs) {
 		super(source);
 		this.flds = flds;
 		this.exprs = exprs;
-		this.rules = rules;
+		checkDependencies();
 		init();
+	}
+
+	private void checkDependencies() {
+		Set<String> avail = Sets.newHashSet(source.columns());
+		for (int i = 0; i < flds.size(); ++i) {
+			if (exprs.get(i) != null) {
+				List<String> eflds = exprs.get(i).fields();
+				if (! avail.containsAll(eflds))
+					throw new SuException("extend: invalid column(s) in expressions: " +
+						setDifference(eflds, avail));
+			}
+			avail.add(flds.get(i));
+		}
 	}
 
 	void init() {
 		List<String> srccols = source.columns();
 
-		if (!Collections.disjoint(srccols, flds))
-			throw new SuException("extend: column(s) already exist: "
-					+ intersect(srccols, flds));
+		if (! Collections.disjoint(srccols, flds))
+			throw new SuException("extend: column(s) already exist: " +
+					intersect(srccols, flds));
 
 		eflds = new ArrayList<String>();
 		for (Expr e : exprs)
-			addUnique(eflds, e.fields());
-
-		Set<String> avail = setUnion(setUnion(srccols, rules), flds);
-		if (!avail.containsAll(eflds))
-			throw new SuException("extend: invalid column(s) in expressions: "
-					+ setDifference(eflds, avail));
+			if (e != null)
+				addUnique(eflds, e.fields());
 	}
 
 	@Override
@@ -53,12 +63,10 @@ public class Extend extends Query1 {
 		StringBuilder sb = new StringBuilder(source.toString());
 		sb.append(" EXTEND ");
 		String sep = "";
-		for (String f : rules) {
-			sb.append(sep).append(f);
-			sep = ", ";
-		}
 		for (int i = 0; i < flds.size(); ++i) {
-			sb.append(sep).append(flds.get(i)).append(" = ").append(exprs.get(i));
+			sb.append(sep).append(flds.get(i));
+			if (exprs.get(i) != null)
+				sb.append(" = ").append(exprs.get(i));
 			sep = ", ";
 		}
 		return sb.toString();
@@ -67,14 +75,13 @@ public class Extend extends Query1 {
 	@Override
 	Query transform() {
 		// remove empty Extends
-		if (nil(flds) && nil(rules))
+		if (nil(flds))
 			return source.transform();
 		// combine Extends
 		if (source instanceof Extend) {
 			Extend e = (Extend) source;
 			flds = concat(e.flds, flds);
 			exprs = concat(e.exprs, exprs);
-			rules = union(e.rules, rules);
 			source = e.source;
 			init();
 			return transform();
@@ -87,16 +94,15 @@ public class Extend extends Query1 {
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (!nil(intersect(index, flds)))
 			return IMPOSSIBLE;
-		Set<String> extendfields = setUnion(flds, rules);
 		// NOTE: optimize1 to bypass tempindex
 		return source.optimize1(index,
-				setDifference(setUnion(eflds, needs), extendfields),
-				setDifference(firstneeds, extendfields), is_cursor, freeze);
+				setDifference(setUnion(eflds, needs), flds),
+				setDifference(firstneeds, flds), is_cursor, freeze);
 	}
 
 	@Override
 	List<String> columns() {
-		return union(source.columns(), union(flds, rules));
+		return union(source.columns(), flds);
 	}
 
 	@Override
@@ -118,11 +124,12 @@ public class Extend extends Query1 {
 		if (srcrow == null)
 			return null;
 		RecordBuilder rb = dbpkg.recordBuilder();
-		for (int i = 0; i < flds.size(); ++i) {
-//			Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
-			Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
-			rb.add(exprs.get(i).eval(hdr, row));
-		}
+		for (int i = 0; i < flds.size(); ++i)
+			if (exprs.get(i) != null) {
+//				Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
+				Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
+				rb.add(exprs.get(i).eval(hdr, row));
+			}
 //		return new Row(srcrow, rb.build(), dbpkg.minRecord());
 		return new Row(srcrow, dbpkg.minRecord(), rb.build());
 	}
@@ -131,9 +138,44 @@ public class Extend extends Query1 {
 	public Header header() {
 		if (hdr == null)
 			hdr = new Header(source.header(),
-//					new Header(asList(flds, noFields), union(flds, rules)));
-					new Header(asList(noFields, flds), union(flds, rules)));
+//					new Header(asList(real_fields(), noFields), flds));
+					new Header(asList(noFields, real_fields()), flds));
 		return hdr;
+	}
+
+	private List<String> real_fields() {
+		ImmutableList.Builder<String> b = ImmutableList.builder();
+		for (int i = 0; i < flds.size(); ++i)
+			if (exprs.get(i) != null)
+				b.add(flds.get(i));
+		List<String> real_flds = b.build();
+		return real_flds;
+	}
+
+	boolean hasRules() {
+		return exprs.contains(null);
+	}
+
+	/**
+	 * @return Whether or not a field depends on a rule.
+	 * This could be indirect e.g a depends on rule in: extend r, a = r
+	 */
+	boolean needRule(List<String> fields) {
+		for (String fld : fields)
+			if (needRule(fld))
+				return true;
+		return false;
+	}
+
+	// recursive
+	private boolean needRule(String fld) {
+		int i = flds.indexOf(fld);
+		if (i == -1)
+			return false; // fld is not a result of extend
+		if (exprs.get(i) == null)
+			return true; // direct dependency
+		List<String> exprdeps = exprs.get(i).fields();
+		return needRule(exprdeps);
 	}
 
 	@Override

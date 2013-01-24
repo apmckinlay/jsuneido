@@ -167,21 +167,15 @@ public class Project extends Query1 {
 					new_flds.add(e.flds.get(i));
 					new_exprs.add(e.exprs.get(i));
 				}
-			List<String> new_rules = new ArrayList<String>();
-			for (String r : e.rules)
-				if (flds.contains(r))
-					new_rules.add(r);
 			List<String> orig_flds = e.flds;
 			e.flds = new_flds;
 			List<Expr> orig_exprs = e.exprs;
 			e.exprs = new_exprs;
-			List<String> orig_rules = e.rules;
-			e.rules = new_rules;
 
 			// project must include all fields required by extend
 			// there must be no rules left
-			// since we don't know fields are required by rules
-			if (nil(e.rules)) {
+			// since we don't know what fields are required by rules
+			if (! e.hasRules()) {
 				List<String> eflds = new ArrayList<String>();
 				for (Expr ex : e.exprs)
 					addUnique(eflds, ex.fields());
@@ -201,7 +195,6 @@ public class Project extends Query1 {
 			}
 			e.flds = orig_flds;
 			e.exprs = orig_exprs;
-			e.rules = orig_rules;
 		}
 		// distribute project over union/intersect (NOT difference)
 		else if (source instanceof Union || source instanceof Intersect) {
