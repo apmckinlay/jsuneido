@@ -143,6 +143,7 @@ public class Extend extends Query1 {
 		return hdr;
 	}
 
+	/** i.e. not rules */
 	private List<String> real_fields() {
 		ImmutableList.Builder<String> b = ImmutableList.builder();
 		for (int i = 0; i < flds.size(); ++i)
