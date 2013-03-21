@@ -219,7 +219,7 @@ public final class Ops {
 		return cat2(x, y);
 	}
 
-	static final int LARGE = 256;
+	private static final int LARGE = 256;
 
 	private static Object cat(String x, String y) {
 		int n = x.length() + y.length();
