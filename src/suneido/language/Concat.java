@@ -93,22 +93,35 @@ public class Concat extends SuValue implements Comparable<Concat> {
 	public synchronized String toString() {
 		if (right == null)
 			return (String) left;
-		StringBuffer sb = new StringBuffer(len);
-		flattenTo(sb);
+		StringBuilder sb = new StringBuilder(len);
+		flatten(this, sb, 0);
 		left = sb.toString();
 		right = null;
-		return sb.toString();
+		return (String) left;
 	}
 
-	private void flattenTo(StringBuffer sb) {
-		if (left instanceof String)
-			sb.append((String) left);
-		else
-			((Concat) left).flattenTo(sb);
-		if (right instanceof String)
-			sb.append((String) right);
-		else if (right != null)
-			((Concat) right).flattenTo(sb);
+	// recurses on right side, iterates on left
+	// on the assumption that you mostly concatenate onto the right
+	// COULD iterate on right if it's a concat and left isn't
+	private static void flatten(Concat c, StringBuilder sb, int pos) {
+		while (true) {
+			int leftlen = len(c.left);
+			if (c.right instanceof String)
+				putAt(sb, pos + leftlen, (String) c.right);
+			else if (c.right != null)
+				Concat.flatten((Concat) c.right, sb, pos + leftlen); // recurse
+			if (c.left instanceof String) {
+				putAt(sb, pos, (String) c.left);
+				break;
+			} else
+				c = (Concat) c.left; // iterate
+		}
+	}
+
+	private static void putAt(StringBuilder sb, int pos, String s) {
+		if (pos + s.length() > sb.length())
+			sb.setLength(pos + s.length());
+		sb.replace(pos, pos + s.length(), s);
 	}
 
 	@Override
