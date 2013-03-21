@@ -219,7 +219,7 @@ public final class Ops {
 		return cat2(x, y);
 	}
 
-	private static final int LARGE = 256;
+	static final int LARGE = 256;
 
 	private static Object cat(String x, String y) {
 		int n = x.length() + y.length();
@@ -256,7 +256,7 @@ public final class Ops {
 			return narrow((long) (Integer) x - (Integer) y);
 		return sub2(x, y);
 	}
-	
+
 	private static final Integer one = 1;
 	public static Number add1(Object x) {
 		return add(x, one);
@@ -271,7 +271,7 @@ public final class Ops {
 			return narrow((long) (Integer) x * (Integer) y);
 		return mul2(x, y);
 	}
-	
+
 	public static Number div(Object x, Object y) {
 		// no fast path ?
 		return div2(x, y);

@@ -22,6 +22,18 @@ public class Concat extends SuValue implements Comparable<Concat> {
 	private final int len;
 
 	Concat(Object left, Object right) {
+		// reduce memory overhead of repeatedly appending small strings
+		if (left instanceof Concat && right instanceof String) {
+			Concat leftConcat = (Concat) left;
+			if (leftConcat.right instanceof String) {
+				String leftRightString = (String) leftConcat.right;
+				String rightString = (String) right;
+				if (leftRightString.length() + rightString.length() < Ops.LARGE) {
+					left = leftConcat.left;
+					right = leftRightString.concat(rightString);
+				}
+			}
+		}
 		this.left = left;
 		this.right = right;
 		this.len = len(left) + len(right);
