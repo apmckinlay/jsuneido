@@ -27,14 +27,14 @@ public class Numbers {
 	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
 	public static final BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
 	public static final BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
-	
+
 	public static final BigDecimal ZERO = BigDecimal.ZERO;
 	public static final BigDecimal INF =
 			BigDecimal.valueOf(1, -4 * Byte.MAX_VALUE);
 	public static final BigDecimal MINUS_INF =
 			BigDecimal.valueOf(-1, -4 * Byte.MAX_VALUE);
 
-	
+
 	private Numbers() {
 	} // all static, no instances
 
@@ -56,7 +56,7 @@ public class Numbers {
 				n instanceof Short || n instanceof Byte;
 		//COULD include BigInteger, BigDecimal, Float, Double if integral and within range
 	}
-	
+
 	/** @return true if n has no fractional part */
 	public static boolean integral(Object n) {
 		return longable(n) ||
@@ -69,18 +69,18 @@ public class Numbers {
 	public static boolean isZero(Object x) {
 		return x instanceof Number ? signum((Number) x) == 0 : false;
 	}
-	
+
 	public static boolean isZero(Number n) {
 		return signum(n) == 0;
 	}
-	
+
 	public static int signum(Number n) {
 		return longable(n) ? Long.signum(n.longValue())
 				: n instanceof BigDecimal ? ((BigDecimal) n).signum()
 				: n instanceof BigInteger ? ((BigInteger) n).signum()
 				: (int) Math.signum(n.doubleValue());
 	}
-	
+
 	public static Number narrow(long x) {
 		if (Integer.MIN_VALUE <= x && x <= Integer.MAX_VALUE)
 			return (int) x;
@@ -88,7 +88,7 @@ public class Numbers {
 			return x;
 		// NOTE: can't use ?: because it would convert to same type
 	}
-	
+
 	/** Convert double to int or long if possible */
 	public static Number narrow(double x) {
 		if (Math.abs(x) % 1 == 0)
@@ -98,7 +98,7 @@ public class Numbers {
 				return (long) x;
 		return x;
 	}
-	
+
 	/** Convert BigDecimal to int if possible */
 	public static Number narrow(BigDecimal x) {
 		if (x.signum() == 0)
@@ -108,7 +108,7 @@ public class Numbers {
 			return x.intValueExact();
 		return x;
 	}
-	
+
 	/*
 	 * add2, sub2, mul2, and div2 follow same outline
 	 * - convert to numbers (throws if not convertible)
@@ -121,7 +121,7 @@ public class Numbers {
 	public static Number add2(Object x_, Object y_) {
 		Number xn = toNum(x_);
 		Number yn = toNum(y_);
-		
+
 		if (isZero(xn))
 			return yn;
 		if (isZero(yn))
@@ -146,7 +146,7 @@ public class Numbers {
 	public static Number sub2(Object x_, Object y_) {
 		Number xn = toNum(x_);
 		Number yn = toNum(y_);
-		
+
 		if (isZero(yn))
 			return xn;
 
@@ -192,12 +192,12 @@ public class Numbers {
 	public static Number div2(Object x_, Object y_) {
 		Number xn = toNum(x_);
 		Number yn = toNum(y_);
-		
+
 		if (isZero(xn))
 			return 0;
 		if (isZero(yn))
 			return signum(xn) < 0 ? MINUS_INF : INF;
-		
+
 		if (xn instanceof Float || xn instanceof Double ||
 				yn instanceof Float || yn instanceof Double)
 			return narrow(xn.doubleValue() / yn.doubleValue());
@@ -217,7 +217,7 @@ public class Numbers {
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		if (x instanceof String || x instanceof Concat)
+		if (x instanceof String || x instanceof String2)
 			return stringToPlainNumber(x.toString());
 		if (x instanceof Boolean)
 			return (Boolean) x ? 1 : 0;
@@ -289,5 +289,5 @@ public class Numbers {
 			throw new SuException("can't convert string to integer: " + s);
 		}
 	}
-	
+
 }

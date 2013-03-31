@@ -61,7 +61,7 @@ public final class Ops {
 						new BigDecimal(y.toString()));
 		}
 
-		if (y instanceof Concat)
+		if (y instanceof String2)
 			return y.equals(x);
 
 		return x.equals(y);
@@ -126,11 +126,11 @@ public final class Ops {
 			((SuSequence) y).instantiate();
 			yClass = SuContainer.class;
 		}
-		if (xClass == Concat.class) {
+		if (x instanceof String2) {
 			x = x.toString();
 			xClass = String.class;
 		}
-		if (yClass == Concat.class) {
+		if (y instanceof String2) {
 			y = y.toString();
 			yClass = String.class;
 		}
@@ -222,25 +222,19 @@ public final class Ops {
 	private static final int LARGE = 256;
 
 	private static Object cat(String x, String y) {
-		int n = x.length() + y.length();
-		return n < LARGE
+		return x.length() + y.length() < LARGE
 				? x.concat(y)
-				: new Concat(x, y, n);
+				: new Concats(x, y);
 	}
 
 	private static Object cat2(Object x, Object y) {
-		if (x instanceof Concat)
-			if (y instanceof Concat)
-				return new Concat(x, y);
-			else
-				return new Concat(x, toStr(y));
-		else if (y instanceof Concat)
-			return new Concat(toStr(x), y);
+		if (x instanceof Concats && y instanceof String)
+			return ((Concats) x).append((String) y);
 		return cat(toStr(x), toStr(y));
 	}
 
 	public static boolean isString(Object x) {
-		return x instanceof String || x instanceof Concat;
+		return x instanceof String || x instanceof String2;
 	}
 
 	// fast path, kept small in hopes of getting inlined
@@ -382,7 +376,7 @@ public final class Ops {
 			return toIntFromBD((BigDecimal) x);
 		if (x instanceof BigInteger)
 			return toIntFromBI((BigInteger) x);
-		if (x instanceof String || x instanceof Concat)
+		if (x instanceof String || x instanceof String2)
 			return toIntFromString(x.toString());
 		if (x instanceof Boolean)
 			return x == Boolean.TRUE ? 1 : 0;

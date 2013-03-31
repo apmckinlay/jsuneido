@@ -33,7 +33,7 @@ public class StringMethods extends BuiltinMethods {
 	private static String toStr(Object self) {
 		return self instanceof String
 				? (String) self
-				: ((Concat) self).toString();
+				: ((String2) self).toString();
 	}
 
 	public static Object AlphaQ(Object self) {
@@ -323,7 +323,7 @@ public class StringMethods extends BuiltinMethods {
 	public static Object Size(Object self) {
 		return self instanceof String
 				? ((String) self).length()
-				: ((Concat) self).length();
+				: ((String2) self).length();
 	}
 
 	@Params("string")
