@@ -14,6 +14,8 @@ import org.junit.Test;
 
 import suneido.SuException;
 
+import com.google.common.base.Strings;
+
 public class OpsTest {
 
 	@Test
@@ -58,6 +60,22 @@ public class OpsTest {
 		assertEquals("one.2", cat("one", BigDecimal.valueOf(.2)));
 		assertEquals("1two", cat(1, "two"));
 	}
+
+	@Test
+	public void test_cat2() {
+		Object x = Ops.cat("hello", "world");
+		assertTrue(x instanceof String);
+		assertEquals("helloworld", x);
+
+		String s = Strings.repeat("helloworld", 30);
+		x = Ops.cat(s, ".");
+		assertTrue(x instanceof String2);
+		assertEquals(s + ".", x.toString());
+
+		x = Ops.cat(x, ">");
+		assertTrue(x instanceof String2);
+		assertEquals(s + "." + ">", x.toString());
+		}
 
 	private static final Object x = 123;
 	private static final Object y = 456;
@@ -191,23 +209,23 @@ public class OpsTest {
 		assertEquals(INF,		mul(INF, p9));
 		assertEquals(INF,		mul(INF, INF));
 	}
-	
+
 	@Test
-	public void test_overflow() {		
+	public void test_overflow() {
 		// overflow from int to long
 		assertEquals(Integer.MAX_VALUE + 1L, add(Integer.MAX_VALUE, 1));
 		assertEquals(Integer.MAX_VALUE + 1L, sub(Integer.MAX_VALUE, -1));
 		assertEquals(Integer.MAX_VALUE * 10L, mul(Integer.MAX_VALUE, 10));
-		assertEquals(Integer.MAX_VALUE * (long) Integer.MAX_VALUE, 
+		assertEquals(Integer.MAX_VALUE * (long) Integer.MAX_VALUE,
 				mul(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
 		// overflow from long to BigDecimal
 		BigDecimal MAX_LONG = BigDecimal.valueOf(Long.MAX_VALUE);
-		assertEquals(MAX_LONG.add(BigDecimal.ONE, MC), 
+		assertEquals(MAX_LONG.add(BigDecimal.ONE, MC),
 				add(Long.MAX_VALUE, 1));
-		assertEquals(MAX_LONG.subtract(BigDecimal.ONE.negate(), MC), 
+		assertEquals(MAX_LONG.subtract(BigDecimal.ONE.negate(), MC),
 				sub(Long.MAX_VALUE, -1));
-		assertEquals(MAX_LONG.multiply(BigDecimal.TEN, MC), 
+		assertEquals(MAX_LONG.multiply(BigDecimal.TEN, MC),
 				mul(Long.MAX_VALUE, 10));
 	}
 

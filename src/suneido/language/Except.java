@@ -14,20 +14,20 @@ import com.google.common.collect.Lists;
 /**
  * This is the value this is assigned to a catch variable. Wraps a
  * java.lang.Throwable. Can be treated as a string for backwards compatibility.
- * Derives from {@link Concat} since that is already treated as a string.
  */
-public class Except extends Concat {
+public class Except extends String2 {
+	private final String s;
 	private final Throwable e;
 	private static final BuiltinMethods methods = new BuiltinMethods(
 			Except.class);
 
 	public Except(Throwable e) {
-		super(e.toString());
+		this.s = e.toString();
 		this.e = e;
 	}
 
 	public Except(String s, Throwable e) {
-		super(s);
+		this.s = s;
 		this.e = e;
 	}
 
@@ -80,6 +80,16 @@ public class Except extends Concat {
 		call.put("fn", x.toString());
 		call.put("locals", new SuContainer());
 		return call;
+	}
+
+	@Override
+	public String toString() {
+		return s;
+	}
+
+	@Override
+	public int length() {
+		return s.length();
 	}
 
 }

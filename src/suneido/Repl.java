@@ -4,6 +4,13 @@
 
 package suneido;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+
+import suneido.language.Compiler;
+import suneido.language.Ops;
 /*
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
 
@@ -24,14 +31,6 @@ package suneido;
 
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
  */
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-
-import suneido.language.Compiler;
-import suneido.language.Ops;
 
 public class Repl {
 

@@ -18,10 +18,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Concat;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.Range;
+import suneido.language.String2;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
@@ -264,7 +264,7 @@ public class SuContainer extends SuValue
 			}
 			return canonicalBD(toBigDecimal(x));
 		}
-		if (x instanceof Concat)
+		if (x instanceof String2)
 			return x.toString();
 		return x;
 	}
