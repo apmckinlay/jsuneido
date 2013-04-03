@@ -103,7 +103,7 @@ public class Join extends Query2 {
 		return cost;
 	}
 
-	private double opt(Query src1, Query src2, Type typ, List<String> index,
+	private double opt(Query src1, Query src2, Type type, List<String> index,
 			Set<String> needs1, Set<String> needs2, boolean is_cursor,
 			boolean freeze) {
 		/** SELECT_COST needs to be high to discourage N to 1 when N is large */
@@ -143,7 +143,7 @@ public class Join extends Query2 {
 		if (freeze)
 			src2.optimize(joincols, needs2, noNeeds, is_cursor2, true);
 
-		switch (typ) {
+		switch (type) {
 		case ONE_ONE:
 			nrecs = Math.min(nrecs1, nrecs2);
 			break;
