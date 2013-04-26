@@ -179,7 +179,7 @@ public class Suneido {
 	public static void openDbms() {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
-			errlog("database corrupt");
+			errlog("database corrupt, rebuilding");
 			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
