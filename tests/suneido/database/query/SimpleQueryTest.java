@@ -7,42 +7,19 @@ package suneido.database.query;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
-import suneido.Suneido;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
-import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
 
-import com.google.common.collect.ImmutableList;
-
-@RunWith(Parameterized.class)
-public class SimpleQueryTest {
-	private final Database db;
+public class SimpleQueryTest extends TestBase {
 	private final Transaction t;
 	protected final ServerData serverData = new ServerData();
-	private final DatabasePackage save_dbpkg;
 
-	@Parameters
-	public static Collection<Object[]> generateParams() {
-		return ImmutableList.of(
-				new Object[] { suneido.database.DatabasePackage.dbpkg },
-				new Object[] { suneido.immudb.DatabasePackage.dbpkg });
-	}
-
-	public SimpleQueryTest(DatabasePackage dbpkg) {
-		save_dbpkg = Suneido.dbpkg;
-		Suneido.dbpkg = dbpkg;
-		db = dbpkg.testdb();
+	public SimpleQueryTest() {
 		t = db.readTransaction();
 	}
 
@@ -81,7 +58,6 @@ public class SimpleQueryTest {
 	@After
 	public void cleanup() {
 		t.complete();
-		Suneido.dbpkg = save_dbpkg;
 	}
 
 }

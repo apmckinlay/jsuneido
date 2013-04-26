@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.Suneido;
 import suneido.intfc.database.TableBuilder;
 import suneido.intfc.database.Transaction;
 
@@ -34,8 +33,7 @@ public class ParseTest extends TestBase {
 		test("(test MINUS compat)");
 		test("(test UNION compat)");
 		test("(test INTERSECT compat)");
-		if (Suneido.dbpkg instanceof suneido.database.DatabasePackage)
-			test("history(test)");
+		test("history(test)");
 		test("test JOIN joinable", "(test JOIN 1:n on (a) joinable)");
 		test("test LEFTJOIN joinable", "(test LEFTJOIN 1:n on (a) joinable)");
 		test("test SUMMARIZE b, count, total a, x = max b",

@@ -89,7 +89,7 @@ public class CommandLineOptions {
 			} else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
 			else if (arg.equals("-si"))
-				snapshotIsolation = true;
+				System.out.println("WARNING: -si option is no longer used");
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))
