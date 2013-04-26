@@ -75,7 +75,7 @@ public class Builtins {
 			.put("Lte", function(Lte.class))
 			.put("Lucene", lucene())
 			.put("Match", function(Match.class))
-			.put("Md5", function(Md5.class))
+			.put("Md5", new Digest.Instance("MD5"))
 			.put("MemoryArena", function(MemoryArena.class))
 			.put("Mod", function(Mod.class))
 			.put("MoveFile", function(MoveFile.class))
@@ -105,6 +105,7 @@ public class Builtins {
 			.put("ServerIP", function(ServerIP.class))
 			.put("ServerPort", function(ServerPort.class))
 			.put("Server?", function(ServerQ.class))
+			.put("Sha1", new Digest.Instance("SHA-1"))
 			.put("Sleep", function(Sleep.class))
 			.put("SetFileWritable", function(SetFileWritable.class))
 			.put("SocketClient", SocketClient.clazz)
@@ -142,9 +143,9 @@ public class Builtins {
 		Map<String, SuCallable> ms = BuiltinMethods.functions(c);
 		return Iterables.getOnlyElement(ms.values());
 	}
-	
+
 	public static ImmutableSet<String> builtinNames() {
 		return builtins.keySet();
-	}	
+	}
 
 }

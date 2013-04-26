@@ -4,9 +4,6 @@
 
 package suneido.language.builtin;
 
-import static java.lang.Boolean.FALSE;
-import static suneido.util.Util.array;
-
 import java.util.zip.Checksum;
 
 import suneido.SuValue;
@@ -44,17 +41,15 @@ public final class Adler32 extends SuValue {
 			return new Adler32();
 		}
 
-		FunctionSpec callFS = new FunctionSpec(array("string"), FALSE);
 		@Override
 		public Object call(Object... args) {
-			args = Args.massage(callFS, args);
-			if (args[0] == FALSE)
-				return new Adler32();
-			else {
-				Checksum cksum = new java.util.zip.Adler32();
-				update(cksum, Ops.toStr(args[0]));
-				return (int) cksum.getValue();
-			}
+			Adler32 adler32 = new Adler32();
+			if (args.length == 0)
+				return adler32;
+			ArgsIterator iter = new ArgsIterator(args);
+			while (iter.hasNext())
+				Update(adler32, iter.next());
+			return Value(adler32);
 		}
 	};
 
