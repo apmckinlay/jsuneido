@@ -4,6 +4,8 @@
 
 package suneido.language.builtin;
 
+import static suneido.language.builtin.Lucene.writer;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -12,6 +14,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
@@ -23,8 +26,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.util.Version;
-
-import static suneido.language.builtin.Lucene.*;
 
 public class TestLucene {
 
@@ -59,7 +60,8 @@ public class TestLucene {
 	private static void searchIndex()
 			throws CorruptIndexException, IOException, ParseException {
 		Directory dir = FSDirectory.open(new File("index"));
-		IndexSearcher searcher = new IndexSearcher(dir);
+		IndexReader reader = IndexReader.open(dir);
+		IndexSearcher searcher = new IndexSearcher(reader);
 	    Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_31);
 	    QueryParser parser = new QueryParser(Version.LUCENE_31, "text", analyzer);
 	    Query query = parser.parse("good time");
@@ -74,6 +76,7 @@ public class TestLucene {
 	        System.out.println("found name: " + name);
 	    }
 	    searcher.close();
+	    reader.close();
 	}
 
 	public static void main(String[] args)

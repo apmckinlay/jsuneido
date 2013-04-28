@@ -152,7 +152,7 @@ class Transactions {
 					return;
 				t = utrans.peek();
 				if (t.stopwatch == null ||
-						t.stopwatch.elapsedTime(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
+						t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
 					return;
 			}
 			// abort outside synchronized to avoid deadlock
