@@ -14,6 +14,9 @@
     public *;
 }
 
+-keep class suneido.immudb.BtreeKey
+-keep class suneido.language.ParseFunction$Context
+
 -keep class org.objectweb.asm.MethodVisitor
 
 -dontnote com.google.common.**
