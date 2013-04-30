@@ -20,8 +20,11 @@ public class DateParseTest {
 		d("032299", "yMd", "1999 Mar 22");
 		d("2009-06-25", "yMd", "2009 Jun 25");
 		d("Wed. 25 June '09", "yMd", "2009 Jun 25");
+		d("30000101", "yMd", "3000 Jan 1");
 
-		bad("25252525", "yMd");
+		bad("19992525", "yMd");
+		bad("19991233", "yMd");
+		bad("30010303", "yMd");
 	}
 
 	private static void d(String ds, String fmt, String result) {
