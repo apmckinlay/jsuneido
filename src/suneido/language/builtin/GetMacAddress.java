@@ -10,12 +10,13 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import suneido.SuException;
+import suneido.util.Util;
 
 public class GetMacAddress {
 
 	public static String GetMacAddress() {
         try {
-			return bytesToString(getMacAddress());
+			return Util.bytesToString(getMacAddress());
 		} catch (UnknownHostException e) {
 			throw new SuException(
 					"GetMacAddress failed - UnknownHostException", e);
@@ -28,13 +29,6 @@ public class GetMacAddress {
 		InetAddress address = InetAddress.getLocalHost();
 		NetworkInterface ni = NetworkInterface.getByInetAddress(address);
 		return ni.getHardwareAddress();
-	}
-
-	private static String bytesToString(byte[] bytes) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < bytes.length; i++)
-			sb.append((char) (bytes[i] & 0xff));
-		return sb.toString();
 	}
 
 }
