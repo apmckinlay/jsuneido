@@ -15,7 +15,7 @@ public class DateParse {
 			"Saturday" };
 
 	static enum Field {
-		YEAR(0, 2500), MONTH(1, 12), DAY(1, 31),
+		YEAR(0, 3000), MONTH(1, 12), DAY(1, 31),
 		HOUR(0, 59), MINUTE(0, 59), SECOND(0, 59), UNK(0, 0);
 
 		int min;
