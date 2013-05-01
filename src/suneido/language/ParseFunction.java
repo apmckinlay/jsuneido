@@ -75,6 +75,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public T statement(Context context) {
+		while (token == NEWLINE || token == WHITE || token == COMMENT)
+			match();
 		if (token == L_CURLY)
 			return compound(context);
 		else if (matchIf(SEMICOLON))
