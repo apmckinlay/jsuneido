@@ -156,8 +156,8 @@ public class Lexer {
 	}
 
 	private Token spanComment() {
-		for (++si; si < source.length() && (charAt(si) != '*' || charAt(si + 1) != '/'); ++si)
-			;
+		while (si < source.length() && (charAt(si) != '*' || charAt(si + 1) != '/'))
+			++si;
 		if (si < source.length())
 			si += 2;
 		return COMMENT;

@@ -42,6 +42,9 @@ public class LexerTest {
 	@Test
 	public void spanComment() {
 		checkAll("@/* stuff \n */@", AT, COMMENT, AT);
+		checkAll("if 1<2\n/**/Print(12)", 
+				IDENTIFIER, WHITE, NUMBER, LT, NUMBER, NEWLINE, COMMENT, 
+				IDENTIFIER, L_PAREN, NUMBER, R_PAREN);
 	}
 
 	@Test
