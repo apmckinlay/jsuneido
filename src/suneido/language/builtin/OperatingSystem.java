@@ -7,7 +7,8 @@ package suneido.language.builtin;
 public class OperatingSystem {
 
 	public static String OperatingSystem() {
-		return System.getProperty("os.name");
+		return System.getProperty("os.name") +
+				(System.getProperty("os.arch").contains("64") ? " 64" : "");
 	}
 
 }
