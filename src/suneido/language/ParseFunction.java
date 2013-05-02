@@ -224,8 +224,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private T optionalParensExpression() {
 		int prevStatementNest = statementNest;
 		boolean parens = matchIf(L_PAREN);
-		if (!parens)
-			{
+		if (! parens) {
 			statementNest = 0;
 			expectingCompound = true;
 		}
