@@ -1,33 +1,36 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
-import suneido.util.LruCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 public class Regex {
-	private static LruCache<String, Pattern> cache =
-		new LruCache<String, Pattern>(32);
+	private static LoadingCache<String,Pattern> cache =
+			CacheBuilder.newBuilder()
+				.maximumSize(100)
+				.expireAfterAccess(1, TimeUnit.SECONDS)
+				.build(new CacheLoader<String,Pattern>() {
+					@Override
+					public Pattern load(String rx) {
+						return Pattern.compile(convertRegex(rx));
+					}});
 
 	public static boolean contains(String s, String rx) {
 		return getPat(rx, s).matcher(s).find();
 	}
 
-	// cache get/put not synchronized, but idempotent
 	public static Pattern getPat(String rx, String s) {
 		if (s.indexOf('\n') != -1)
 			rx = "(?m)" + rx;
-		Pattern p = cache.get(rx);
-		if (p == null)
-			try {
-				p = Pattern.compile(convertRegex(rx));
-				cache.put(rx, p);
-			} catch (PatternSyntaxException e) {
-				throw new SuException("bad regular expression: " + rx + " => "
-						+ convertRegex(rx));
-			}
-		return p;
+		return cache.getUnchecked(rx);
 	}
 
 	/**
