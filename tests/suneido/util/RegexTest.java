@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.util;
+package suneido.util; 
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;

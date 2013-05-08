@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.util;
+package suneido.util; 
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,69 +31,55 @@ public class Regex {
 		 * @return The position after the match, or <0 if no match
 		 */
 		public int amatch(String s, int si) {
-			return Regex.amatch(pat, 0, pat.size(), s, si);
+System.out.println("amatch { " + this + "} '" + s.substring(si) + "'");
+			final int MAX_BRANCH = 1000;
+			int alt_si[] = new int[MAX_BRANCH];
+			int alt_pi[] = new int[MAX_BRANCH];
+			int na = 0;
+			for (int pi = 0; pi < pat.size(); ) {
+				Element e = pat.get(pi);
+				if (e instanceof Branch) {
+					int offset = e.advance();
+					if (offset < 0) { // branch backward e.g. '+' or '*'
+						alt_pi[na] = pi + 1;
+						pi += offset; // default is to take branch (greedy)
+					} else { // branch forward e.g. '?' or '+'
+						++pi; // default is to NOT take branch, i.e. try to match
+						alt_pi[na] = pi + offset;
+					}
+					alt_si[na] = si;
+					++na;
+				} else {
+int start = si;
+System.out.println("omatch " + e + " to '" + s.substring(si) + "'");
+				si = e.omatch(s, si, pat, pi);
+				if (si >= 0)
+{ System.out.println("matched " + e + " to '" + s.substring(start, si) + "'");
+					++pi; }
+				else if (na > 0) {
+					// backtrack
+					--na;
+					si = alt_si[na];
+					pi = alt_pi[na];
+System.out.println("backtrack");
+				} else
+{ System.out.println("amatch failed on " + e);
+					return FAIL; }
+				}
+
+			}
+System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
+			return si;
 		}
 
 		@Override
 		public String toString() {
-			return toStr(pat, 0, pat.size());
+			StringBuilder sb = new StringBuilder();
+			for (Element e : pat)
+				sb.append(e.toString()).append(" ");
+			return sb.toString();
 		}
 
-	}
-
-	private static String toStr(List<Element> pat, int pi, int plim) {
-		StringBuilder sb = new StringBuilder();
-		for (; pi < plim; ++pi) {
-			Element e = pat.get(pi);
-			sb.append(e.toString()).append(" ");
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * Try matching a slice of pat to a specify position (si) in s
-	 * @return The position after the match, or <0 if no match
-	 */
-	private static int amatch(List<Element> pat, int pi, int plim, String s, int si) {
-System.out.println("amatch { " + toStr(pat, pi, plim) + "} '" + s.substring(si) + "'");
-		final int MAX_BRANCH = 1000;
-		int alt_si[] = new int[MAX_BRANCH];
-		int alt_pi[] = new int[MAX_BRANCH];
-		int na = 0;
-		for (; pi < plim; ) {
-			Element e = pat.get(pi);
-			if (e instanceof Branch) {
-				int offset = e.advance();
-				if (offset < 0) { // branch backward e.g. '+' or '*'
-					alt_pi[na] = pi + 1;
-					pi += offset; // default is to take branch (greedy)
-				} else { // branch forward e.g. '?' or '+'
-					++pi; // default is to NOT take branch, i.e. try to match
-					alt_pi[na] = pi + offset;
-				}
-				alt_si[na] = si;
-				++na;
-			} else {
-int start = si;
-System.out.println("omatch " + e + " to '" + s.substring(si) + "'");
-			si = e.omatch(s, si, pat, pi);
-			if (si >= 0)
-{ System.out.println("matched " + e + " to '" + s.substring(start, si) + "'");
-				++pi; }
-			else if (na > 0) {
-				// backtrack
-				--na;
-				si = alt_si[na];
-				pi = alt_pi[na];
-System.out.println("backtrack");
-			} else
-{ System.out.println("amatch failed on " + e);
-				return FAIL; }
-			}
-
-		}
-System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
-		return si;
 	}
 
 	// implementation ----------------------------------------------------------
