@@ -4,11 +4,11 @@
 
 package suneido.language;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static suneido.language.FunctionSpec.*;
+
+import org.junit.Test;
 
 public class FunctionSpecTest {
 
@@ -25,6 +25,7 @@ public class FunctionSpecTest {
 		test("a, b, c", "params: a b c, defaults:");
 		test("a,b,c=true", "params: a b c, defaults: true");
 		test("a,b=123,c = hello", "params: a b c, defaults: 123 'hello'");
+		test("block, n = 1", "params: block n, defaults: 1");
 		test("a, b = 'hello world', c = false",
 				"params: a b c, defaults: 'hello world' false");
 	}
