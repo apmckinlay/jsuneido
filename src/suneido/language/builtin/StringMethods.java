@@ -216,27 +216,18 @@ public class StringMethods extends BuiltinMethods {
 		}
 		return result;
 	}
-	
-	/*
-	 * TODO: allow all of: (tricky)
-	 * 		s.MapN() { ... }
-	 * 		s.MapN(2) { ... }
-	 * 		s.MapN({...})
-	 * 		s.MapN(2, {...})
-	 */
-	@Params("n = 1, block = false")
+
+	@Params("n, block")
 	public static Object MapN(Object self, Object a, Object block) {
 		String s = toStr(self);
-		int slen = s.length();
 		int n = toInt(a);
-		if (block == Boolean.FALSE)
-			throw new SuException("usage: string.MapN(n = 1, block)");
 		StringBuilder sb = new StringBuilder();
+		int slen = s.length();
 		for (int i = 0; i < slen; i += n) {
 			String chunk = s.substring(i, Math.min(i + n, slen));
 			sb.append(Ops.toStr(Ops.call(block, chunk)));
 		}
-		return sb.toString();		
+		return sb.toString();
 	}
 
 	@Params("pattern")
