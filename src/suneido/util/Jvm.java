@@ -19,7 +19,7 @@ public class Jvm {
 		// use same max heap on child process
 		long maxMemory = Runtime.getRuntime().maxMemory();
 		ProcessBuilder builder = new ProcessBuilder(javaBin,
-				"-ea", "-server", "-Xmx" + maxMemory, "-XX:+UseCompressedOops",
+				"-ea", "-Xmx" + maxMemory,
 				"-jar", jarPath, cmd);
 		try {
 			builder.redirectErrorStream(true); // merge stderr into stdout
