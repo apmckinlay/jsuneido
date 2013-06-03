@@ -2,13 +2,55 @@
  * Licensed under GPLv2.
  */
 
-package suneido.util; 
+package suneido.util;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.CharMatcher;
+
+/*
+ * regular expression grammar and compiled form:
+ *
+ *	regex	:	sequence				LEFT 0 ... RIGHT 0 ENDPAT
+ *			|	sequence (| sequence)+	Branch sequence (Jump Branch sequence)+
+ *
+ *	sequence	:	element+
+ *
+ *	element		:	^					startOfLine
+ *				|	$					endOfLine
+ *				|	\A					startOfString
+ *				|	\Z					endOfString
+ *				|	(?i)				IGNORE_CASE
+ *				|	(?-i)				CASE_SENSITIVE
+ *				|	(?q)				start quoted (literal)
+ *				|	(?-q)				end quoted (literal)
+ *				|	\<					START_WORD
+ *				|	\>					END_WORD
+ *				|	\#					PIECE #
+ *				|	simple
+ *				|	simple ?			Branch simple
+ *				|	simple +			simple Branch
+ *				|	simple *			Branch simple Branch
+ *				|	simple ??			Branch simple
+ *				|	simple +?			simple Branch
+ *				|	simple *?			Branch simple Branch
+ *
+ *	simple		:	.					any
+ *				|	[...]				CharClass
+ *				|	[^...]				CharClass
+ *				|	\d					CharClass
+ *				|	\D					CharClass
+ *				|	\w					CharClass
+ *				|	\W					CharClass
+ *				|	\s					CharClass
+ *				|	\S					CharClass
+ *				|	( regex )			LEFT i ... RIGHT i
+ *				|	characters			Char(string) // multiple characters
+ *
+ */
 public class Regex {
 
 	public static Pattern compile(String rx) {
@@ -28,47 +70,44 @@ public class Regex {
 
 		/**
 		 * Try to match at a specific position.
-		 * @return The position after the match, or <0 if no match
+		 * @return The position after the match, or -1 if no match
 		 */
 		public int amatch(String s, int si) {
-System.out.println("amatch { " + this + "} '" + s.substring(si) + "'");
+int begin = si;
+System.out.println("amatch { " + this + "} to '" + s.substring(si) + "'");
 			final int MAX_BRANCH = 1000;
 			int alt_si[] = new int[MAX_BRANCH];
 			int alt_pi[] = new int[MAX_BRANCH];
 			int na = 0;
 			for (int pi = 0; pi < pat.size(); ) {
 				Element e = pat.get(pi);
+System.out.println(pi + ": " + e + " s: '" + s.substring(si) + "'");
 				if (e instanceof Branch) {
-					int offset = e.advance();
-					if (offset < 0) { // branch backward e.g. '+' or '*'
-						alt_pi[na] = pi + 1;
-						pi += offset; // default is to take branch (greedy)
-					} else { // branch forward e.g. '?' or '+'
-						++pi; // default is to NOT take branch, i.e. try to match
-						alt_pi[na] = pi + offset;
-					}
+					Branch b = (Branch) e;
+					alt_pi[na] = pi + b.alt;
 					alt_si[na] = si;
 					++na;
+					pi += b.main;
+				} else if (e instanceof Jump) {
+					pi += ((Jump) e).offset;
 				} else {
 int start = si;
-System.out.println("omatch " + e + " to '" + s.substring(si) + "'");
 				si = e.omatch(s, si, pat, pi);
 				if (si >= 0)
-{ System.out.println("matched " + e + " to '" + s.substring(start, si) + "'");
+{ System.out.println("matched '" + s.substring(start, si) + "'");
 					++pi; }
 				else if (na > 0) {
 					// backtrack
 					--na;
 					si = alt_si[na];
 					pi = alt_pi[na];
-System.out.println("backtrack");
+System.out.println("failed - taking alternate branch");
 				} else
-{ System.out.println("amatch failed on " + e);
-					return FAIL; }
+{ System.out.println("FAILED");
+					return -1; }
 				}
-
 			}
-System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
+System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 			return si;
 		}
 
@@ -149,44 +188,66 @@ System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
 	}
 
 	@Immutable
-	static class Any extends Element {
+	static class CharClass extends Element {
+		private final CharMatcher cm;
 
-		@Override
-		public int omatch(String s, int si) {
-			return (si < s.length() && s.charAt(si) != '\r' && s.charAt(si) != '\n')
-					? si + 1 : FAIL;
-		}
-
-		@Override
-		public String toString() {
-			return "ANY";
-		}
-	}
-	final static Element any = new Any();
-
-	@Immutable
-	static class Branch extends Element {
-		int offset;
-
-		Branch(int offset) {
-			this.offset = offset;
+		CharClass(CharMatcher cm) {
+			this.cm = cm.precomputed();
 		}
 
 		@Override
 		int omatch(String s, int si) {
-			return si;
-		}
-
-		@Override
-		int advance() {
-			return offset;
+			return si < s.length() && cm.matches(s.charAt(si)) ? si + 1 : FAIL;
 		}
 
 		@Override
 		public String toString() {
-			return "Branch(" + offset + ")";
+			return cm.toString();
 		}
 	}
+
+	final static Element any = new CharClass(CharMatcher.noneOf("\r\n"));
+
+	/**
+	 * Implemented by amatch.
+	 * Branch tries to jump to main first
+	 * setting up alternate to jump to alt.
+	 * main and alt are relative offsets
+	 */
+	@Immutable
+	static class Branch extends Element {
+		int main;
+		int alt;
+
+		Branch(int main, int alt) {
+			this.main = main;
+			this.alt = alt;
+		}
+
+		@Override
+		public String toString() {
+			return "Branch(" + main + ", " + alt + ")";
+		}
+	}
+
+	/**
+	 * Implemented by amatch.
+	 */
+	@Immutable
+	static class Jump extends Element {
+		int offset;
+
+		Jump(int offset) {
+			this.offset = offset;
+		}
+
+		@Override
+		public String toString() {
+			return "Jump(" + offset + ")";
+		}
+	}
+
+	// end of element classes --------------------------------------------------
 
 	private static class Compiler {
 		String src;
@@ -205,7 +266,23 @@ System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
 		}
 
 		private void regex() {
-			sequence(); // TODO '|'
+			int start = pat.size();
+			sequence();
+			if (match("|")) {
+				int len = pat.size() - start;
+				insert(start, new Branch(1, len + 2));
+				while (true) {
+					start = pat.size();
+					sequence();
+					len = pat.size() - start;
+					if (match("|")) {
+						insert(start, new Branch(1, len + 2));
+						insert(start, new Jump(len + 2));
+					} else
+						break;
+				}
+				insert(start, new Jump(len + 1));
+			}
 		}
 
 		void sequence() {
@@ -214,31 +291,57 @@ System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
 		}
 
 		void element() {
-			if (match1('^'))
+			if (match("^"))
 				emit(startOfLine);
-			else if (match1('$'))
+			else if (match("$"))
 				emit(endOfLine);
 			else {
 				int start = pat.size();
 				simple();
 				int len = pat.size() - start;
-				if (match1('?'))
-					insert(start, new Branch(len));
-				else if (match1('+'))
-					emit(new Branch(-len));
-				else if (match1('*')) {
-					emit(new Branch(-len));
-					insert(start, new Branch(len + 1));
+				if (match("??"))
+					insert(start, new Branch(len + 1, 1));
+				else if (match("?"))
+					insert(start, new Branch(1, len + 1));
+				else if (match("+?"))
+					emit(new Branch(1, -len));
+				else if (match("+"))
+					emit(new Branch(-len, 1));
+				else if (match("*?")) {
+					emit(new Branch(1, -len));
+					insert(start, new Branch(len + 2, 1));
+				} else if (match("*")) {
+					emit(new Branch(-len, 1));
+					insert(start, new Branch(1, len + 2));
 				}
 			}
 		}
 
+		private static final CharMatcher CM_WORD =
+				CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is('_'));
+		private static final CharMatcher CM_NOTWORD = CM_WORD.negate();
+
 		void simple() {
-			if (match1('.'))
+			if (match("."))
 				emit(any);
-			else if (match1('(')) {
+			else if (match("\\d"))
+				emit(new CharClass(CharMatcher.DIGIT));
+			else if (match("\\D"))
+				emit(new CharClass(CharMatcher.DIGIT.negate()));
+			else if (match("\\s"))
+				emit(new CharClass(CharMatcher.WHITESPACE));
+			else if (match("\\S"))
+				emit(new CharClass(CharMatcher.WHITESPACE.negate()));
+			else if (match("\\w"))
+				emit(new CharClass(CM_WORD));
+			else if (match("\\W"))
+				emit(new CharClass(CM_NOTWORD));
+			else if (match("[")) {
+				charClass();
+				match("]");
+			} else if (match("(")) {
 				regex();
-				match1(')');
+				match(")");
 			} else {
 				int start = si;
 				do
@@ -250,9 +353,37 @@ System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
 			}
 		}
 
-		boolean match1(char c) {
-			if (si < sn && src.charAt(si) == c) {
+		void charClass() {
+			if (src.charAt(si) != '^' &&
+					si + 1 < sn && src.charAt(si + 1) == ']') { // e.g. [.]
 				++si;
+				emit(new Chars(src.substring(si - 1, si)));
+				return;
+			}
+			boolean negate = match("^");
+			CharMatcher cm = CharMatcher.NONE;
+			while (si < sn && src.charAt(si) != ']') {
+				if (match("\\d"))
+					cm = cm.or(CharMatcher.DIGIT);
+				else if (match("\\D"))
+					cm = cm.or(CharMatcher.DIGIT.negate());
+				else if (match("\\s"))
+					cm = cm.or(CharMatcher.WHITESPACE);
+				else if (match("\\S"))
+					cm = cm.or(CharMatcher.WHITESPACE.negate());
+				else if (match("\\w"))
+					cm = cm.or(CM_WORD);
+				else if (match("\\W"))
+					cm = cm.or(CM_NOTWORD);
+			}
+			if (negate)
+				cm = cm.negate();
+			emit(new CharClass(cm));
+		}
+
+		boolean match(String s) {
+			if (src.startsWith(s, si)) {
+				si += s.length();
 				return true;
 			} else
 				return false;
@@ -280,12 +411,7 @@ System.out.println("amatch succeeded leaving '" + s.substring(si) + "'");
 	}
 
 	public static void main(String[] args) {
-		String s = "ac";
-		int i = Regex.compile("ab?c").amatch(s);
-		if (i >= 0)
-			System.out.println("MATCHED '" + s.substring(0, i));
-		else
-			System.out.println("FAILED");
+		Regex.compile("a|b|c").amatch("c");
 	}
 
 }
