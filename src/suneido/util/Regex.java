@@ -23,13 +23,13 @@ import com.google.common.base.CharMatcher;
  *				|	$					endOfLine
  *				|	\A					startOfString
  *				|	\Z					endOfString
- *				|	(?i)				IGNORE_CASE
- *				|	(?-i)				CASE_SENSITIVE
- *				|	(?q)				start quoted (literal)
- *				|	(?-q)				end quoted (literal)
- *				|	\<					START_WORD
- *				|	\>					END_WORD
- *				|	\#					PIECE #
+ *				|	(?i)				IGNORE_CASE					TODO
+ *				|	(?-i)				CASE_SENSITIVE				TODO
+ *				|	(?q)				start quoted (literal)		TODO
+ *				|	(?-q)				end quoted (literal)		TODO
+ *				|	\<					START_WORD					TODO
+ *				|	\>					END_WORD					TODO
+ *				|	\#					PIECE #						TODO
  *				|	simple
  *				|	simple ?			Branch simple
  *				|	simple +			simple Branch
@@ -39,17 +39,36 @@ import com.google.common.base.CharMatcher;
  *				|	simple *?			Branch simple Branch
  *
  *	simple		:	.					any
- *				|	[...]				CharClass
- *				|	[^...]				CharClass
- *				|	\d					CharClass
+ *				|	[ charmatch+ ]		CharClass
+ *				|	[^ charmatch+ ]		CharClass
+ *				|	shortcut			CharClass
+ *				|	( regex )			LEFT i ... RIGHT i
+ *				|	chars				Char(string) // multiple characters
+ *
+ *	charmatch	:	shortcut			CharClass
+ *				|	posix				CharClass
+ *				|	char - char			CharClass					TODO
+ *				|	char				CharClass
+ *
+ *	shortcut	:	\d					CharClass
  *				|	\D					CharClass
  *				|	\w					CharClass
  *				|	\W					CharClass
  *				|	\s					CharClass
  *				|	\S					CharClass
- *				|	( regex )			LEFT i ... RIGHT i
- *				|	characters			Char(string) // multiple characters
  *
+ *	posix		|	[:alnum:]			CharClass
+ *				|	[:alpha:]			CharClass
+ *				|	[:blank:]			CharClass
+ *				|	[:cntrl:]			CharClass
+ *				|	[:digit:]			CharClass
+ *				|	[:graph:]			CharClass
+ *				|	[:lower:]			CharClass
+ *				|	[:print:]			CharClass
+ *				|	[:punct:]			CharClass
+ *				|	[:space:]			CharClass
+ *				|	[:upper:]			CharClass
+ *				|	[:xdigit:]			CharClass
  */
 public class Regex {
 
@@ -64,6 +83,19 @@ public class Regex {
 			this.pat = pat;
 		}
 
+		public boolean match(String s) {
+			return match(s, 0);
+		}
+
+		public boolean match(String s, int i) {
+			// TODO search backwards
+			int slen = s.length();
+			for (; i <= slen; ++i)
+				if (-1 != amatch(s, i))
+					return true;
+			return false;
+		}
+
 		public int amatch(String s) {
 			return amatch(s, 0);
 		}
@@ -73,15 +105,12 @@ public class Regex {
 		 * @return The position after the match, or -1 if no match
 		 */
 		public int amatch(String s, int si) {
-int begin = si;
-System.out.println("amatch { " + this + "} to '" + s.substring(si) + "'");
 			final int MAX_BRANCH = 1000;
 			int alt_si[] = new int[MAX_BRANCH];
 			int alt_pi[] = new int[MAX_BRANCH];
 			int na = 0;
 			for (int pi = 0; pi < pat.size(); ) {
 				Element e = pat.get(pi);
-System.out.println(pi + ": " + e + " s: '" + s.substring(si) + "'");
 				if (e instanceof Branch) {
 					Branch b = (Branch) e;
 					alt_pi[na] = pi + b.alt;
@@ -91,23 +120,18 @@ System.out.println(pi + ": " + e + " s: '" + s.substring(si) + "'");
 				} else if (e instanceof Jump) {
 					pi += ((Jump) e).offset;
 				} else {
-int start = si;
-				si = e.omatch(s, si, pat, pi);
-				if (si >= 0)
-{ System.out.println("matched '" + s.substring(start, si) + "'");
-					++pi; }
-				else if (na > 0) {
-					// backtrack
-					--na;
-					si = alt_si[na];
-					pi = alt_pi[na];
-System.out.println("failed - taking alternate branch");
-				} else
-{ System.out.println("FAILED");
-					return -1; }
+					si = e.omatch(s, si, pat, pi);
+					if (si >= 0)
+						++pi;
+					else if (na > 0) {
+						// backtrack
+						--na;
+						si = alt_si[na];
+						pi = alt_pi[na];
+					} else
+						return -1;
 				}
 			}
-System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 			return si;
 		}
 
@@ -121,133 +145,7 @@ System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 
 	}
 
-	// implementation ----------------------------------------------------------
-
-	private final static int FAIL = Integer.MIN_VALUE;
-
-	abstract static class Element {
-		/** @return FAIL or the position after the match */
-		int omatch(String s, int si, List<Element> pat, int pi) {
-			return omatch(s, si);
-		}
-		int omatch(String s, int si) {
-			throw new RuntimeException("must be overridden");
-		}
-		int advance() {
-			return 1; // overridden by repetition
-		}
-	}
-
-	@Immutable
-	static class StartOfLine extends Element {
-
-		@Override
-		public int omatch(String s, int si) {
-			return (si == 0 || s.charAt(si - 1) == '\n') ? si : FAIL;
-		}
-
-		@Override
-		public String toString() {
-			return "^";
-		}
-	}
-	final static Element startOfLine = new StartOfLine();
-
-	@Immutable
-	static class EndOfLine extends Element {
-
-		@Override
-		public int omatch(String s, int si) {
-			return (si >= s.length() || s.charAt(si) == '\n') ? si : FAIL;
-		}
-
-		@Override
-		public String toString() {
-			return "$";
-		}
-	}
-	final static Element endOfLine = new EndOfLine();
-
-	@Immutable
-	static class Chars extends Element {
-		String chars;
-
-		Chars(String chars) {
-			this.chars = chars;
-		}
-
-		@Override
-		public int omatch(String s, int si) {
-			return s.startsWith(chars, si) ? si + chars.length() : FAIL;
-		}
-
-		@Override
-		public String toString() {
-			return "'" + chars + "'";
-		}
-	}
-
-	@Immutable
-	static class CharClass extends Element {
-		private final CharMatcher cm;
-
-		CharClass(CharMatcher cm) {
-			this.cm = cm.precomputed();
-		}
-
-		@Override
-		int omatch(String s, int si) {
-			return si < s.length() && cm.matches(s.charAt(si)) ? si + 1 : FAIL;
-		}
-
-		@Override
-		public String toString() {
-			return cm.toString();
-		}
-	}
-
-	final static Element any = new CharClass(CharMatcher.noneOf("\r\n"));
-
-	/**
-	 * Implemented by amatch.
-	 * Branch tries to jump to main first
-	 * setting up alternate to jump to alt.
-	 * main and alt are relative offsets
-	 */
-	@Immutable
-	static class Branch extends Element {
-		int main;
-		int alt;
-
-		Branch(int main, int alt) {
-			this.main = main;
-			this.alt = alt;
-		}
-
-		@Override
-		public String toString() {
-			return "Branch(" + main + ", " + alt + ")";
-		}
-	}
-
-	/**
-	 * Implemented by amatch.
-	 */
-	@Immutable
-	static class Jump extends Element {
-		int offset;
-
-		Jump(int offset) {
-			this.offset = offset;
-		}
-
-		@Override
-		public String toString() {
-			return "Jump(" + offset + ")";
-		}
-	}
-
-	// end of element classes --------------------------------------------------
+	// compile -----------------------------------------------------------------
 
 	private static class Compiler {
 		String src;
@@ -295,6 +193,10 @@ System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 				emit(startOfLine);
 			else if (match("$"))
 				emit(endOfLine);
+			else if (match("\\A"))
+				emit(startOfString);
+			else if (match("\\Z"))
+				emit(endOfString);
 			else {
 				int start = pat.size();
 				simple();
@@ -328,14 +230,14 @@ System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 				emit(new CharClass(CharMatcher.DIGIT));
 			else if (match("\\D"))
 				emit(new CharClass(CharMatcher.DIGIT.negate()));
-			else if (match("\\s"))
-				emit(new CharClass(CharMatcher.WHITESPACE));
-			else if (match("\\S"))
-				emit(new CharClass(CharMatcher.WHITESPACE.negate()));
 			else if (match("\\w"))
 				emit(new CharClass(CM_WORD));
 			else if (match("\\W"))
 				emit(new CharClass(CM_NOTWORD));
+			else if (match("\\s"))
+				emit(new CharClass(CharMatcher.WHITESPACE));
+			else if (match("\\S"))
+				emit(new CharClass(CharMatcher.WHITESPACE.negate()));
 			else if (match("[")) {
 				charClass();
 				match("]");
@@ -367,19 +269,64 @@ System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 					cm = cm.or(CharMatcher.DIGIT);
 				else if (match("\\D"))
 					cm = cm.or(CharMatcher.DIGIT.negate());
-				else if (match("\\s"))
-					cm = cm.or(CharMatcher.WHITESPACE);
-				else if (match("\\S"))
-					cm = cm.or(CharMatcher.WHITESPACE.negate());
 				else if (match("\\w"))
 					cm = cm.or(CM_WORD);
 				else if (match("\\W"))
 					cm = cm.or(CM_NOTWORD);
+				else if (match("\\s"))
+					cm = cm.or(CharMatcher.WHITESPACE);
+				else if (match("\\S"))
+					cm = cm.or(CharMatcher.WHITESPACE.negate());
+				else if (match("[:"))
+					cm = cm.or(posixClass());
+				else
+					cm = cm.or(CharMatcher.is(src.charAt(si++)));
 			}
 			if (negate)
 				cm = cm.negate();
 			emit(new CharClass(cm));
 		}
+
+		static final CharMatcher blank = CharMatcher.anyOf(" \t");
+		static final CharMatcher digit = CharMatcher.anyOf("0123456789");
+		static final CharMatcher alnum = digit.or(CharMatcher.JAVA_LETTER);
+		static final CharMatcher punct =
+				CharMatcher.anyOf("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
+		static final CharMatcher graph = alnum.or(punct);
+		static final CharMatcher print = graph.or(CharMatcher.is(' '));
+		static final CharMatcher xdigit =
+				CharMatcher.anyOf("0123456789abcdefABCDEF");
+
+		CharMatcher posixClass() {
+			if (match("alpha:]"))
+				return CharMatcher.JAVA_LETTER;
+			else if (match("alnum:]"))
+				return alnum;
+			else if (match("blank:]"))
+				return blank;
+			else if (match("cntrl:]"))
+				return CharMatcher.JAVA_ISO_CONTROL;
+			else if (match("digit:]"))
+				return digit;
+			else if (match("graph:]"))
+				return graph;
+			else if (match("lower:]"))
+				return CharMatcher.JAVA_LOWER_CASE;
+			else if (match("print:]"))
+				return print;
+			else if (match("punct:]"))
+				return punct;
+			else if (match("space:]"))
+				return CharMatcher.WHITESPACE;
+			else if (match("upper:]"))
+				return CharMatcher.JAVA_UPPER_CASE;
+			else if (match("xdigit:]"))
+				return xdigit;
+			else
+				throw new RuntimeException("bad posix class");
+		}
+
+		// helpers
 
 		boolean match(String s) {
 			if (src.startsWith(s, si)) {
@@ -406,7 +353,164 @@ System.out.println("MATCHED '" + s.substring(begin, si) + "'");
 		}
 
 		static boolean special(char c) {
-			return "^$.?+*|()[".indexOf(c) != -1;
+			return "^$.?+*|()[\\".indexOf(c) != -1;
+		}
+
+	}
+
+	// elements of compiled regex ----------------------------------------------
+
+	private final static int FAIL = Integer.MIN_VALUE;
+
+	abstract static class Element {
+		/** @return FAIL or the position after the match */
+		int omatch(String s, int si, List<Element> pat, int pi) {
+			return omatch(s, si);
+		}
+		int omatch(String s, int si) {
+			throw new RuntimeException("must be overridden");
+		}
+		int advance() {
+			return 1; // overridden by repetition
+		}
+	}
+
+	@Immutable
+	static class StartOfLine extends Element {
+
+		@Override
+		public int omatch(String s, int si) {
+			return (si == 0 || s.charAt(si - 1) == '\n') ? si : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return "^";
+		}
+	}
+	final static Element startOfLine = new StartOfLine();
+
+	@Immutable
+	static class EndOfLine extends Element {
+
+		@Override
+		public int omatch(String s, int si) {
+			return (si >= s.length() || s.charAt(si) == '\n') ? si : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return "$";
+		}
+	}
+	final static Element endOfLine = new EndOfLine();
+
+	@Immutable
+	static class StartOfString extends Element {
+
+		@Override
+		public int omatch(String s, int si) {
+			return (si == 0) ? si : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return "\\A";
+		}
+	}
+	final static Element startOfString = new StartOfString();
+
+	@Immutable
+	static class EndOfString extends Element {
+
+		@Override
+		public int omatch(String s, int si) {
+			return (si >= s.length()) ? si : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return "\\Z";
+		}
+	}
+	final static Element endOfString = new EndOfString();
+
+	@Immutable
+	static class Chars extends Element {
+		String chars;
+
+		Chars(String chars) {
+			this.chars = chars;
+		}
+
+		@Override
+		public int omatch(String s, int si) {
+			return s.startsWith(chars, si) ? si + chars.length() : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return "'" + chars + "'";
+		}
+	}
+
+	@Immutable
+	static class CharClass extends Element {
+		private final CharMatcher cm;
+
+		CharClass(CharMatcher cm) {
+			this.cm = cm.precomputed();
+		}
+
+		@Override
+		int omatch(String s, int si) {
+			return si < s.length() && cm.matches(s.charAt(si)) ? si + 1 : FAIL;
+		}
+
+		@Override
+		public String toString() {
+			return cm.toString();
+		}
+	}
+
+	final static Element any = new CharClass(CharMatcher.noneOf("\r\n"));
+
+	/**
+	 * Implemented by amatch.
+	 * Tries to jump to main first
+	 * after setting up fallback alternative to jump to alt.
+	 * main and alt are relative offsets
+	 */
+	@Immutable
+	static class Branch extends Element {
+		int main;
+		int alt;
+
+		Branch(int main, int alt) {
+			this.main = main;
+			this.alt = alt;
+		}
+
+		@Override
+		public String toString() {
+			return "Branch(" + main + ", " + alt + ")";
+		}
+	}
+
+	/**
+	 * Implemented by amatch.
+	 */
+	@Immutable
+	static class Jump extends Element {
+		int offset;
+
+		Jump(int offset) {
+			this.offset = offset;
+		}
+
+		@Override
+		public String toString() {
+			return "Jump(" + offset + ")";
 		}
 	}
 
