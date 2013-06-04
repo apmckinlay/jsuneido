@@ -30,6 +30,8 @@ public class RegexTest {
 				"Branch(1, 3) 'ab' Jump(2) 'cd'");
 		test("ab|cd|ef",
 				"Branch(1, 3) 'ab' Jump(3) Branch(1, 3) 'cd' Jump(2) 'ef'");
+		test("abc\\Z", "'abc' \\Z");
+		test("[a]", "'a'");
 	}
 
 	void test(String rx, String expected) {
@@ -38,77 +40,137 @@ public class RegexTest {
 
 	@Test
 	public void amatch() {
-		yes("", "");
-		yes("abc", "a", 1);
-		no("abc", "x");
-		no("ab", "abc");
-		yes("abc", "abc");
-		yes("abc", "^a", 1);
-		yes("abc", "^abc");
-		yes("abc", "^abc$");
-		no("abc", "^a$");
-		no("abc", "^abcd$");
+		amatch("", "");
+		amatch("abc", "a", 1);
+		noamatch("abc", "x");
+		noamatch("ab", "abc");
+		amatch("abc", "abc");
+		amatch("abc", "^a", 1);
+		amatch("abc", "^abc");
+		amatch("abc", "^abc$");
+		noamatch("abc", "^a$");
+		noamatch("abc", "^abcd$");
 
-		yes("abc", "^...$");
-		no("ab\n", "...");
+		amatch("abc", "^...$");
+		noamatch("ab\n", "...");
 
-		no("abde", "abc+de");
-		yes("abcde", "abc+de");
-		yes("abccde", "abc+de");
-		no("abccd", "abc+de");
+		noamatch("abde", "abc+de");
+		amatch("abcde", "abc+de");
+		amatch("abccde", "abc+de");
+		noamatch("abccd", "abc+de");
 
-		yes("abde", "abc?de");
-		yes("abcde", "abc?de");
-		no("abccde", "abc?de");
+		amatch("abde", "abc?de");
+		amatch("abcde", "abc?de");
+		noamatch("abccde", "abc?de");
 
-		no("abe", "ab(cd)*ef");
-		yes("abef", "ab(cd)*ef");
-		yes("abcdef", "ab(cd)*ef");
-		yes("abcdcdcdef", "ab(cd)*ef");
-		no("abcdcdcde", "ab(cd)*ef");
+		noamatch("abe", "ab(cd)*ef");
+		amatch("abef", "ab(cd)*ef");
+		amatch("abcdef", "ab(cd)*ef");
+		amatch("abcdcdcdef", "ab(cd)*ef");
+		noamatch("abcdcdcde", "ab(cd)*ef");
 
-		yes("abcx", "(ab*c)*x");
-		yes("abbc", "(ab*c)*");
-		yes("abcabc", "(ab*c)*");
-		yes("acabbbc", "(ab*c)*");
-		yes("abbbcac", "(ab*c)*");
-		yes("acabcabbcx", "(ab*c)*x");
+		amatch("abcx", "(ab*c)*x");
+		amatch("abbc", "(ab*c)*");
+		amatch("abcabc", "(ab*c)*");
+		amatch("acabbbc", "(ab*c)*");
+		amatch("abbbcac", "(ab*c)*");
+		amatch("acabcabbcx", "(ab*c)*x");
 
-		yes("a", "a|b");
-		yes("b", "a|b");
-		no("x", "a|b");
-		no("", "a|b");
+		amatch("a", "a|b");
+		amatch("b", "a|b");
+		noamatch("x", "a|b");
+		noamatch("", "a|b");
 
-		yes("a", "a|b|c");
-		yes("b", "a|b|c");
-		yes("c", "a|b|c");
-		no("x", "a|b|c");
-		no("", "a|b|c");
+		amatch("a", "a|b|c");
+		amatch("b", "a|b|c");
+		amatch("c", "a|b|c");
+		noamatch("x", "a|b|c");
+		noamatch("", "a|b|c");
 
-		yes("a", "a?", 1);
-		yes("a", "a??", 0);
-		yes("ab", "a?b");
-		yes("ab", "a??b");
+		amatch("a", "a?", 1);
+		amatch("a", "a??", 0);
+		amatch("ab", "a?b");
+		amatch("ab", "a??b");
 
-		yes("aaab", "a*", 3);
-		yes("aaab", "a*?", 0);
-		yes("aaab", "a+?", 1);
-		yes("aaab", "a*b");
-		yes("aaab", "a*?b");
-		yes("aaab", "a+?b");
+		amatch("aaab", "a*", 3);
+		amatch("aaab", "a*?", 0);
+		amatch("aaab", "a+?", 1);
+		amatch("aaab", "a*b");
+		amatch("aaab", "a*?b");
+		amatch("aaab", "a+?b");
 	}
 
-	void yes(String s, String rx) {
-		yes(s, rx, s.length());
+	@Test
+	public void charClass() {
+		amatch("a", "[abc]");
+		amatch("b", "[abc]");
+		amatch("c", "[abc]");
+		noamatch("b", "[^abc]");
+		amatch("x", "[^abc]");
+
+		amatch("c", "\\w");
+		amatch(" ", "\\W");
+		noamatch(" ", "\\w");
+		amatch(" ", "\\s");
+		amatch("c", "\\S");
+		noamatch("c", "\\s");
+
+		amatch("c", "[\\w]");
+		amatch(" ", "[\\W]");
+		noamatch(" ", "[\\w]");
+		amatch(" ", "[\\s]");
+		amatch("c", "[\\S]");
+		noamatch("c", "[\\s]");
+
+		amatch("b", "[[:alpha:]]");
+		amatch("b", "[[:alnum:]]");
+		amatch("b", "[[:print:]]");
+		amatch("b", "[[:graph:]]");
+		amatch("b", "[[:lower:]]");
+		noamatch("b", "[[:upper:]]");
+		amatch("B", "[[:upper:]]");
+		amatch("5", "[[:digit:]]");
+		amatch("5", "[[:alnum:]]");
+		noamatch("5", "[[:alpha:]]");
+		noamatch("5", "[[:lower:]]");
+		noamatch("5", "[[:upper:]]");
 	}
 
-	void yes(String s, String rx, int len) {
+	@Test
+	public void match() {
+		match("hello\nworld", "^he");
+		match("hello\nworld", "^wo");
+		match("hello\nworld", "\\Ahe");
+		nomatch("hello\nworld", "\\Awo");
+
+		match("hello\nworld", "ld$");
+		match("hello\nworld", "lo$");
+		match("hello\nworld", "ld\\Z");
+		nomatch("hello\nworld", "lo\\Z");
+	}
+
+	void match(String s, String rx) {
+		Regex.Pattern pat = Regex.compile(rx);
+		assertTrue(rx + " => " + pat + " failed to match " + s,
+				pat.match(s));
+	}
+	void nomatch(String s, String rx) {
+		Regex.Pattern pat = Regex.compile(rx);
+		assertTrue(rx + " => " + pat + " shouldn't match " + s,
+				! pat.match(s));
+	}
+
+	void amatch(String s, String rx) {
+		amatch(s, rx, s.length());
+	}
+
+	void amatch(String s, String rx, int len) {
 		Regex.Pattern pat = Regex.compile(rx);
 		assertTrue(rx + " => " + pat + " failed to match " + s,
 				pat.amatch(s) == len);
 	}
 
-	void no(String s, String rx) {
+	void noamatch(String s, String rx) {
 		assertThat(Regex.compile(rx).amatch(s), lessThan(0));
 	}
 
