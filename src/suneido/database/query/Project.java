@@ -44,8 +44,11 @@ public class Project extends Query1 {
 
 		List<String> columns = source.columns();
 		if (! columns.containsAll(args))
+{
+System.out.println("columns " + columns);
 			throw new SuException("project: nonexistent column(s): "
 					+ difference(args, columns));
+}
 		flds = allbut
 				? difference(columns, args)
 				: withoutDups(args);
@@ -199,14 +202,18 @@ public class Project extends Query1 {
 		// distribute project over union/intersect (NOT difference)
 		else if (source instanceof Union || source instanceof Intersect) {
 			Compatible c = (Compatible) source;
-			if (c.disjoint != null && !flds.contains(c.disjoint)) {
+			if (c.disjoint != null && ! flds.contains(c.disjoint)) {
 				List<String> flds2 = new ArrayList<String>(flds);
 				flds2.add(c.disjoint);
-				c.source = new Project(c.source, flds2);
-				c.source2 = new Project(c.source2, flds2);
+				c.source = new Project(c.source,
+						intersect(flds2, c.source.columns()));
+				c.source2 = new Project(c.source2,
+						intersect(flds2, c.source2.columns()));
 			} else {
-				c.source = new Project(c.source, flds);
-				c.source2 = new Project(c.source2, flds);
+				c.source = new Project(c.source,
+						intersect(flds, c.source.columns()));
+				c.source2 = new Project(c.source2,
+						intersect(flds, c.source2.columns()));
 				return source.transform();
 			}
 		}
@@ -215,8 +222,8 @@ public class Project extends Query1 {
 			Product x = (Product) source;
 			x.source = new Project(x.source,
 					intersect(flds, x.source.columns()));
-			x.source2 = new Project(x.source2, intersect(flds, x.source2
-					.columns()));
+			x.source2 = new Project(x.source2,
+					intersect(flds, x.source2.columns()));
 			moved = true;
 		}
 		// split project over join
