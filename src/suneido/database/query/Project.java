@@ -44,11 +44,8 @@ public class Project extends Query1 {
 
 		List<String> columns = source.columns();
 		if (! columns.containsAll(args))
-{
-System.out.println("columns " + columns);
 			throw new SuException("project: nonexistent column(s): "
 					+ difference(args, columns));
-}
 		flds = allbut
 				? difference(columns, args)
 				: withoutDups(args);
