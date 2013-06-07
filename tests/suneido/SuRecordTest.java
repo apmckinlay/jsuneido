@@ -1,0 +1,20 @@
+package suneido;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+import suneido.language.Pack;
+
+
+public class SuRecordTest {
+
+	@Test
+	public void test_pack() {
+		SuRecord x = new SuRecord();
+		assertEquals(x, Pack.unpack(Pack.pack(x)));
+		x.put("a", 123);
+		assertEquals(x, Pack.unpack(Pack.pack(x)));
+	}
+
+}
