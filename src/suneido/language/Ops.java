@@ -324,7 +324,8 @@ public final class Ops {
 		return toInt(x) << toInt(y);
 	}
 	public static Integer rshift(Object x, Object y) {
-		return toInt(x) >> toInt(y);
+		// Use unsigned right-shifting to exhibit same behaviour as C-Suneido
+		return toInt(x) >>> toInt(y);
 	}
 
 	public static Date stringToDate(String s) {
