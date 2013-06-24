@@ -16,6 +16,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <li>{@link ParseConstant}
  * <li>{@link ParseFunction}
  * <li>{@link ParseExpression}
+ * <li>{@link ParseStruct}
  * <li>{@link AstGenerator} - generates an AST, based on calls from parsers
  * <li>{@link AstNode} - make up the AST
  * <li>{@link AstCompile} - compiles an AST to Java byte code

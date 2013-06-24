@@ -3,6 +3,7 @@ package suneido.language;
 import static suneido.language.Token.*;
 import suneido.SuException;
 import suneido.language.Generator.MType;
+import suneido.language.jsdi.DllInterface;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
@@ -25,8 +26,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				return function();
 			case CLASS:
 				return classConstant();
-			case DLL:
 			case STRUCT:
+				return struct();
+			case DLL:
 			case CALLBACK:
 				throw new SuException("jSuneido does not support "
 						+ lexer.getValue() + " line " + lexer.getLineNumber());
@@ -208,6 +210,14 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private T functionWithoutKeyword(boolean inClass) {
 		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
 		T result = p.functionWithoutKeyword(inClass);
+		token = p.token;
+		return result;
+	}
+
+	@DllInterface
+	private T struct() {
+		ParseStruct<T, G> p = new ParseStruct<T, G>(this);
+		T result = p.struct();
 		token = p.token;
 		return result;
 	}
