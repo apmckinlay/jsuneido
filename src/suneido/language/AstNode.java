@@ -3,6 +3,7 @@ package suneido.language;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Strings;
 
@@ -47,6 +48,27 @@ public class AstNode {
 	}
 	public AstNode fourth() {
 		return children.get(3);
+	}
+
+	public boolean equals(AstNode other) {
+		if (other == null)
+			return false;
+		else if (other == this)
+			return true;
+		else
+		{
+			return token == other.token &&
+				Objects.equals(value, other.value) &&
+				Objects.equals(children, other.children);
+		}
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof AstNode
+			? equals((AstNode)other)
+			: false
+			;
 	}
 
 	@Override

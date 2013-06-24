@@ -12,6 +12,10 @@ test.go
 iminstall.bat
 *.go
 *.exe
+*.outd
+*.outi
+*.tmpd
+*.tmpi
 syntax: regexp
 ^lucene-core-3.1.0.jar
 ^\.externalToolBuilders$
