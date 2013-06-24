@@ -1,5 +1,7 @@
 package suneido.language;
 
+import suneido.language.jsdi.DllInterface;
+
 public abstract class Generator<T> {
 
 	public T assignment(T term, Token op, T expression) {
@@ -183,4 +185,18 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	//
+	// DLL INTERFACE PARSING...
+	//
+
+	@DllInterface
+	public T struct(T structMembers) {
+		return null;
+	}
+
+	@DllInterface
+	public T structMembers(T list, String name, String baseType,
+			Token storageType, String numElems) {
+		return null;
+	}
 }
