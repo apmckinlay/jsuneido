@@ -2,6 +2,8 @@ package suneido.language;
 
 import java.util.ArrayList;
 
+import suneido.language.jsdi.DllInterface;
+
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
 	private static final AstNode EMPTY_LIST = new AstNode(Token.LIST);
@@ -301,6 +303,26 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(Token.SUBSCRIPT, term, expression);
 	}
 
+	@Override
+	public AstNode range(Token type, AstNode from, AstNode to) {
+		return new AstNode(type, from, to);
+	}
+
+	@Override @DllInterface
+	public AstNode struct(AstNode structMembers) {
+		if (structMembers == null)
+			structMembers = EMPTY_LIST;
+		return new AstNode(Token.STRUCT, structMembers);
+	}
+
+	@Override @DllInterface
+	public AstNode structMembers(AstNode list, String name, String baseType,
+			Token storageType, String numElems) {
+		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,
+				baseType, new AstNode(Token.NUMBER, numElems)));
+		return list(list, new AstNode(Token.IDENTIFIER, name, type));
+	}
+
 	private static AstNode list(AstNode list, AstNode next) {
 		if (list == null)
 			list = new AstNode(Token.LIST, new ArrayList<AstNode>());
@@ -317,10 +339,4 @@ public class AstGenerator extends Generator<AstNode> {
 		AstNode ast = pc.parse();
 		System.out.println(ast);
 	}
-
-	@Override
-	public AstNode range(Token type, AstNode from, AstNode to) {
-		return new AstNode(type, from, to);
-	}
-
 }

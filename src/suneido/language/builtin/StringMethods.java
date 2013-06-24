@@ -289,6 +289,11 @@ public class StringMethods extends BuiltinMethods {
 		return i < s.length() ? s.charAt(i) : 0;
 	}
 
+	// TODO: document this --VCS 20130621
+	public static Object Parse(Object self) {
+		return Compiler.parse(toStr(self)).toString();
+	}
+
 	@Params("n")
 	public static Object Repeat(Object self, Object a) {
 		String s = toStr(self);
