@@ -58,7 +58,7 @@ public class BuiltinMethods extends SuValue {
 	}
 
 	/** get methods through reflection */
-	static Map<String, SuCallable>  methods(Class<?> c) {
+	public static Map<String, SuCallable>  methods(Class<?> c) {
 		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
 		for (Method m : c.getDeclaredMethods()) {

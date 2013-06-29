@@ -63,7 +63,7 @@ public final class ParseStruct<T, G extends Generator<T>> extends ParseDllEntity
 			//           f(Object(a: "abc", b: ArraySize(3))
 			//       and the presence of the placeholder would tell the
 			//       marshaller to allocate an array of size 3.
-			Token storageType = SIMPLETYPE;
+			Token storageType = VALUETYPE;
 			String numElems = "1";
 			if (MUL == token) { // pointer
 				storageType = POINTERTYPE;

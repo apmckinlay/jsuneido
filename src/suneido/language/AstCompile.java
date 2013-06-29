@@ -17,6 +17,13 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.Suneido;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDI;
+import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi.type.BasicType;
+import suneido.language.jsdi.type.Proxy;
+import suneido.language.jsdi.type.Structure;
+import suneido.language.jsdi.type.TypeList;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -70,6 +77,8 @@ public class AstCompile {
 		case METHOD:
 		case FUNCTION:
 			return foldFunction(name, ast);
+		case STRUCT:
+			return foldStruct(name, ast);
 		case SUB:
 			value = fold(ast.first());
 			if (value != null)
@@ -196,6 +205,40 @@ public class AstCompile {
 		SuCallable fn = javaClass(ast, "SuCallable", "eval", cg.locals);
 		nameEnd();
 		return fn;
+	}
+
+	@DllInterface
+	public Object foldStruct(String name, AstNode ast) {
+		TypeList members = new TypeList();
+		for (AstNode member : ast.first().children)
+		{
+			String      memberName  = member.value;
+			AstNode     typeInfo    = member.first();
+			StorageType storageType = StorageType.fromToken(typeInfo.token);
+			String      typeName    = typeInfo.first().value;
+			int numElems = StorageType.ARRAY != storageType
+				? 1
+				: Numbers.stringToNumber(typeInfo.first().first().value).intValue()
+				;
+			BasicType basicType = BasicType.fromIdentifier(typeName);
+			if (null != basicType)
+			{
+				members.add(
+					memberName,
+					JSDI.getInstance().getTypeFactory().makeBasicType(
+						basicType, storageType, numElems)
+				);
+			}
+			else    // otherwise it's a name which may be undefined, so add a
+			{       // proxy
+				members.add(
+					memberName,
+					new Proxy(typeName, storageType, numElems)
+				);
+			}
+		}
+		// TODO: name stuff
+		return new Structure(members);
 	}
 
 	/** Used by foldFunction and block
