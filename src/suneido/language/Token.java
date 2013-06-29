@@ -72,7 +72,7 @@ public enum Token {
 	LT_(LT, "lt_", B_), LTE_(LTE, "lte_", B_), GT_(GT, "gt_", B_), GTE_(GTE, "gte_", B_),
 	CLOSURE,
 	// for AST (DLL interface)
-	@DllInterface SIMPLETYPE, @DllInterface ARRAYTYPE,
+	@DllInterface VALUETYPE, @DllInterface ARRAYTYPE,
 	@DllInterface POINTERTYPE, 
 	
 	;
