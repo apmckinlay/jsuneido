@@ -57,7 +57,12 @@ public class BuiltinMethods extends SuValue {
 		this.userDefined = userDefined;
 	}
 
-	/** get methods through reflection */
+	/** get methods through reflection
+	 * 
+	 * NOTE (VCS ==> APM): 20130628...I changed the visibility on this method so
+	 *                     that it can be called from JSDI packages (e.g.
+	 *                     struct).
+	 */
 	public static Map<String, SuCallable>  methods(Class<?> c) {
 		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
 		MethodHandles.Lookup lookup = MethodHandles.lookup();

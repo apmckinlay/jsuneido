@@ -42,7 +42,7 @@ public final class JSDI {
 		//       loads x86 DLLs. Since my version of MinGW only builds for x86,
 		//       I found it easiest just to install a separate x86 JRE for
 		//       testing.
-		File path = new File("..\\jsdi\\bin\\jsdi.dll");
+		File path = new File("lib\\jsdi.dll");
 		System.load(path.getAbsolutePath());
 		// TODO: Set this to the proper path, and possibly call loadLibrary
 		//       instead of load.

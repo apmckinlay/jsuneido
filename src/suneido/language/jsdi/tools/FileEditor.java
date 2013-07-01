@@ -6,30 +6,51 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 import com.google.common.io.Files;
 
-// TODO: docs
+/**
+ * Injects generated source code lines into a file. The {@link LineEditor}
+ * supplied on construction determines the insertion point (via
+ * {@link LineEditor#getMatchToken()}) and the content (via
+ * {@link LineEditor#makeLines()}). In order to prevent the source code version
+ * control system, if any, from committing useless changes, this class does not
+ * actually modify the given file unless the content of the generated lines has
+ * changed.
+ * 
+ * @author Victor Schappert
+ * @since 20130628
+ */
 class FileEditor {
 	private final File file;
 	private final LineEditor lineEditor;
 	private final ArrayList<String> before, during, after;
-	private String whitespaceBefore;
+	private String beginPrefix;
 	private String afterLine;
 
+	/**
+	 * Constructs an editor to edit a given file.
+	 * 
+	 * @param file
+	 *            Target file (must exist and be readable/writeable).
+	 * @param lineEditor
+	 *            Line editor specifying the location and content of the edit.
+	 */
 	public FileEditor(File file, LineEditor lineEditor) {
 		this.file = file;
 		this.lineEditor = lineEditor;
 		this.before = new ArrayList<String>();
 		this.during = new ArrayList<String>();
 		this.after = new ArrayList<String>();
-		this.whitespaceBefore = null;
+		this.beginPrefix = null;
 		this.afterLine = null;
 	}
 
+	/**
+	 * Edits the target file.
+	 */
 	public void edit() throws Exception {
 		readFile();
-		if (null == whitespaceBefore) {
+		if (null == beginPrefix) {
 			// DIDN'T find the search token, so just stop.
 			return;
 		}
@@ -49,19 +70,19 @@ class FileEditor {
 		try {
 			String line;
 			// Read lines before the BEGIN token.
-			Pattern BEGIN = Pattern.compile("(\\s*)//\\s+\\[BEGIN:"
-					+ lineEditor.matchToken + "[^\\]]*\\]\\s*");
+			Pattern BEGIN = Pattern.compile("(.*\\s)\\[BEGIN:"
+					+ lineEditor.getMatchToken() + "[^\\]]*\\]\\s*");
 			while (null != (line = br.readLine())) {
 				Matcher m = BEGIN.matcher(line);
 				if (m.matches()) {
-					whitespaceBefore = m.group(1);
+					beginPrefix = m.group(1);
 					break;
 				}
 				before.add(line);
 			}
 			// Read lines before the END token.
-			Pattern END = Pattern.compile("\\s*//\\s+\\[END:"
-					+ lineEditor.matchToken + "\\]\\s*");
+			Pattern END = Pattern.compile(Pattern.quote(beginPrefix) + "\\[END:"
+					+ lineEditor.getMatchToken() + "\\]\\s*");
 			while (null != (line = br.readLine())) {
 				Matcher m = END.matcher(line);
 				if (m.matches()) {
@@ -79,18 +100,17 @@ class FileEditor {
 		}
 	}
 
-	public void writeFile(ArrayList<String> newDuring)
-			throws Exception {
+	public void writeFile(ArrayList<String> newDuring) throws Exception {
 		File tmp = File.createTempFile(file.getName(), ".tmp");
 		FileOutputStream fos = new FileOutputStream(tmp);
 		OutputStreamWriter osw = new OutputStreamWriter(fos);
 		BufferedWriter bw = new BufferedWriter(osw);
 		try {
 			writeLines(before, bw);
-			if (null != whitespaceBefore) {
-				writeLine(whitespaceBefore + "// [BEGIN:"
-						+ lineEditor.matchToken + " last updated "
-						+ new Date() + ']', bw);
+			if (null != beginPrefix) {
+				writeLine(
+						beginPrefix + "[BEGIN:" + lineEditor.getMatchToken()
+								+ " last updated " + new Date() + ']', bw);
 				writeLines(newDuring, bw);
 				if (null != afterLine) {
 					writeLine(afterLine, bw);
@@ -109,8 +129,8 @@ class FileEditor {
 		bw.write(System.getProperty("line.separator"));
 	}
 
-	private static void writeLines(ArrayList<String> lines,
-			BufferedWriter bw) throws Exception {
+	private static void writeLines(ArrayList<String> lines, BufferedWriter bw)
+			throws Exception {
 		for (String line : lines)
 			writeLine(line, bw);
 	}
