@@ -3,6 +3,12 @@ package suneido.language.jsdi.tools;
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * Automatic C++ code generator for the JSDI {@code java_enum} translation unit.
+ * 
+ * @author Victor Schapppert
+ * @since 20130630
+ */
 public final class GenerateSharedEnums {
 
 	private static final class Ref {
@@ -13,11 +19,11 @@ public final class GenerateSharedEnums {
 				boolean wantToJNIConverter, boolean wantFromJNIConverter,
 				boolean wantStreamInsertion) {
 			this.header = new EnumLineEditor.Header<E>(clazz,
-					wantToJNIConverter, wantFromJNIConverter,
-					wantStreamInsertion);
+					GenerateSharedEnums.class, wantToJNIConverter,
+					wantFromJNIConverter, wantStreamInsertion);
 			this.source = new EnumLineEditor.Source<E>(clazz,
-					wantToJNIConverter, wantFromJNIConverter,
-					wantStreamInsertion);
+					GenerateSharedEnums.class, wantToJNIConverter,
+					wantFromJNIConverter, wantStreamInsertion);
 		}
 	}
 
@@ -29,7 +35,7 @@ public final class GenerateSharedEnums {
 		System.exit(1);
 	}
 
-	public static final class HeaderLineEditor extends LineEditor {
+	private static final class HeaderLineEditor extends LineEditor {
 		private final Ref[] refs;
 
 		public HeaderLineEditor(Ref[] refs) {
@@ -45,7 +51,7 @@ public final class GenerateSharedEnums {
 		}
 	}
 
-	public static final class SourceLineEditor extends LineEditor {
+	private static final class SourceLineEditor extends LineEditor {
 		private final Ref[] refs;
 
 		public SourceLineEditor(Ref[] refs) {
