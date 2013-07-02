@@ -4,6 +4,8 @@
 
 package suneido.intfc.database;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static suneido.util.Verify.verifyEquals;
 
 import java.util.Random;
@@ -70,7 +72,7 @@ public class TestConcurrency {
 			System.out.println(r.toString());
 		System.out.println(NTHREADS + " threads finished " + nops.get() + " ops" +
 				" in " + stopwatch +
-				" = " + (nops.get() / (stopwatch.elapsedMillis() / 1000)) + " per second");
+				" = " + (nops.get() / stopwatch.elapsed(SECONDS)) + " per second");
 
 		db.checkTransEmpty();
 		db.close();
@@ -92,7 +94,7 @@ public class TestConcurrency {
 				}
 				if (++nreps % 100 == 0) {
 					nops.addAndGet(100);
-					if (stopwatch.elapsedMillis() > DURATION_MS)
+					if (stopwatch.elapsed(MILLISECONDS) > DURATION_MS)
 						break;
 					if (nreps % 40000 == 0) {
 						if (rt != null)
