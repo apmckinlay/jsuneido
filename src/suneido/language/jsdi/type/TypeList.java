@@ -77,7 +77,24 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	public void add(String name, Type type) {
 		assert type != null;
 		entries.add(new Entry(name, type));
-		// isClosed &= type.isClosed();
+		isClosed &= TypeId.BASIC == type.getTypeId();
+	}
+
+	final void resolve() throws ProxyResolveException {
+		if (!isClosed) {
+			for (Entry entry : entries) {
+				final TypeId typeId = entry.type.getTypeId();
+				if (typeId == TypeId.PROXY) {
+					try {
+						((Proxy) entry.type).resolve();
+					} catch (ProxyResolveException e) {
+						e.setMemberName(entry.name);
+						throw e;
+					}
+				} else
+					assert TypeId.BASIC == typeId : "Invalid type list entry";
+			}
+		}
 	}
 
 	//
