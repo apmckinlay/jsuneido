@@ -21,6 +21,10 @@ public class SuException extends RuntimeException {
 		super(s, e);
 	}
 
+	public SuException(Throwable e) {
+		super(e);
+	}
+
 	public Object get() {
 		return getMessage();
 	}
