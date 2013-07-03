@@ -16,7 +16,9 @@
 			description="Make the JSDI DLL"
 	>
 		<exec executable="make" dir="${jsdi-path}" failonerror="true"/>
-		<copy file="${dll-src-dir}/jsdi.dll" todir="${dll-dst-dir}"/>
+		<copy file="${dll-src-dir}/jsdi.dll" todir="${dll-dst-dir}"
+			  overwrite="true"
+		/>
 	</target>
 
 	<target name="clean">
@@ -24,8 +26,6 @@
 			<arg value="clean"/>
 		</exec>
 	</target>
-
-	
 
 	<target name="gen_global_refs"
 			description="Generate C++ code for global references to JNI
@@ -61,6 +61,7 @@
 			  code, but Java code is not generated from C++ code. -->
 		<javah class="${jsdi-package}.JSDI" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.type.TypeFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.type.Type" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 	</target>
 
 </project>

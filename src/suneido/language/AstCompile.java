@@ -210,6 +210,7 @@ public class AstCompile {
 	@DllInterface
 	public Object foldStruct(String name, AstNode ast) {
 		TypeList members = new TypeList();
+		nameBegin(name, "$s");
 		for (AstNode member : ast.first().children)
 		{
 			String      memberName  = member.value;
@@ -231,14 +232,13 @@ public class AstCompile {
 			}
 			else    // otherwise it's a name which may be undefined, so add a
 			{       // proxy
-				members.add(
-					memberName,
-					new Proxy(typeName, storageType, numElems)
-				);
+				members.add(memberName,
+						new Proxy(context, context.slotForName(typeName),
+								storageType, numElems));
 			}
 		}
-		// TODO: name stuff
-		return new Structure(members);
+		nameEnd();
+		return new Structure(curName, members);
 	}
 
 	/** Used by foldFunction and block

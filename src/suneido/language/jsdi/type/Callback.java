@@ -6,8 +6,8 @@ public class Callback extends ComplexType {
 	// CONSTRUCTORS
 	//
 
-	protected Callback(TypeList parameters) {
-		super(TypeId.CALLBACK, parameters);
+	protected Callback(String suTypeName, TypeList parameters) {
+		super(TypeId.CALLBACK, suTypeName, parameters);
 	}
 
 	//

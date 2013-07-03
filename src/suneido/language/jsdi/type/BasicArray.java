@@ -2,7 +2,6 @@ package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.Allocates;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.StorageType;
 
 @DllInterface
@@ -13,13 +12,34 @@ public final class BasicArray extends Type {
 	// DATA
 	//
 
+	private final BasicValue underlying;
+	private final int numElems;
+
 	//
 	// CONSTRUCTORS
 	//
 
-	BasicArray(long jsdiHandle) {
+	BasicArray(BasicValue underlying, int numElems, long jsdiHandle) {
 		super(TypeId.BASIC, StorageType.ARRAY, jsdiHandle);
+		this.underlying = underlying;
+		this.numElems = numElems;
 		assert jsdiHandle != 0 : "BasicArray may not have a null handle";
+	}
+
+	//
+	// ACCESSORS
+	//
+
+	public BasicValue getUnderlying() {
+		return underlying;
+	}
+
+	public BasicType getBasicType() {
+		return underlying.getBasicType();
+	}
+
+	public int getNumElems() {
+		return numElems;
 	}
 
 	//
@@ -28,8 +48,10 @@ public final class BasicArray extends Type {
 
 	@Override
 	public String getDisplayName() {
-		// TODO
-		return "ARRAY -- todo";
+		StringBuilder result = new StringBuilder(16);
+		result.append(getBasicType().toIdentifier()).append('[')
+				.append(numElems).append(']');
+		return result.toString();
 	}
 
 	//

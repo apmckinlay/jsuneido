@@ -8,7 +8,7 @@ import suneido.language.jsdi.StorageType;
 
 /**
  * Factory for constructing types in the JSDI type hierarchy. JSDI types must
- * only be created, outside this package, through this factory class.
+ * only be created, outside of this package, through this factory class.
  * 
  * @author Victor Schappert
  * @since 20130627
@@ -50,9 +50,11 @@ public final class TypeFactory {
 		}
 	}
 
-	private Type makeBasicArray(BasicType underlying, int numElements) {
-		// TODO: implement this
-		throw new RuntimeException("not implemented");
+	private static Type makeBasicArray(BasicValue underlying, int numElems) {
+		assert null != underlying : "Underlying basic type cannot be null";
+		long jsdiHandle = makeBasicArrayHandle(underlying.getBasicType(),
+				numElems);
+		return new BasicArray(underlying, numElems, jsdiHandle);
 	}
 
 	static native void releaseHandle(long jsdiHandle);
@@ -85,7 +87,7 @@ public final class TypeFactory {
 		case POINTER:
 			return basicValues.get(basicType).getPointerType();
 		case ARRAY:
-			return makeBasicArray(basicType, numElements);
+			return makeBasicArray(basicValues.get(basicType), numElements);
 		}
 		assert false : "Control should never pass here";
 		return null;
