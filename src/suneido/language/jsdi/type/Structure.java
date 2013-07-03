@@ -12,8 +12,8 @@ public final class Structure extends ComplexType {
 	// CONSTRUCTORS
 	//
 
-	public Structure(TypeList members) {
-		super(TypeId.STRUCT, members);
+	public Structure(String suTypeName, TypeList members) {
+		super(TypeId.STRUCT, suTypeName, members);
 	}
 
 	//
@@ -69,6 +69,8 @@ public final class Structure extends ComplexType {
 	 * @see suneido.language.BuiltinMethods
 	 */
 	public static Object Size(Object self) {
+		Structure struct = (Structure)self;
+		struct.resolve();
 		return 0;
 	}
 }

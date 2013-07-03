@@ -61,8 +61,11 @@ public abstract class Context {
 		return tryget(slotForName(name));
 	}
 
-	/** Get the value for a slot. If no cached value, then do lookup */
-	Object get(int slot) {
+	/** Get the value for a slot. If no cached value, then do lookup
+	 *  VCS 20130702 -- I made this public because it is needed by the jsdi
+	 *                  package...
+	 */
+	public Object get(int slot) {
 		Object value = tryget(slot);
 		if (value == null)
 			throw new SuException("can't find " + nameForSlot(slot));
@@ -80,7 +83,11 @@ public abstract class Context {
 		return value;
 	}
 
-	String nameForSlot(int slot) {
+	/**
+	 * VCS 20130702 -- I made this public because it is needed by the jsdi
+	 *                 package.
+	 */
+	public String nameForSlot(int slot) {
 		return names.get(slot);
 	}
 
