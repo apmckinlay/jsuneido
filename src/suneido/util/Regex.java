@@ -47,7 +47,7 @@ import com.google.common.base.CharMatcher;
  *
  *	charmatch	:	shortcut			CharClass
  *				|	posix				CharClass
- *				|	char - char			CharClass					TODO
+ *				|	char - char			CharClass
  *				|	char				CharClass
  *
  *	shortcut	:	\d					CharClass
@@ -265,30 +265,45 @@ public class Regex {
 			boolean negate = match("^");
 			CharMatcher cm = CharMatcher.NONE;
 			while (si < sn && src.charAt(si) != ']') {
-				if (match("\\d"))
-					cm = cm.or(CharMatcher.DIGIT);
+				CharMatcher elem;
+				if (matchRange())
+					elem = CharMatcher.inRange(src.charAt(si - 3), src.charAt(si - 1));
+				else if (match("\\d"))
+					elem = digit;
 				else if (match("\\D"))
-					cm = cm.or(CharMatcher.DIGIT.negate());
+					elem = notdigit;
 				else if (match("\\w"))
-					cm = cm.or(CM_WORD);
+					elem = CM_WORD;
 				else if (match("\\W"))
-					cm = cm.or(CM_NOTWORD);
+					elem = CM_NOTWORD;
 				else if (match("\\s"))
-					cm = cm.or(CharMatcher.WHITESPACE);
+					elem = CharMatcher.WHITESPACE;
 				else if (match("\\S"))
-					cm = cm.or(CharMatcher.WHITESPACE.negate());
+					elem = notwhite;
 				else if (match("[:"))
-					cm = cm.or(posixClass());
+					elem = posixClass();
 				else
-					cm = cm.or(CharMatcher.is(src.charAt(si++)));
+					elem = CharMatcher.is(src.charAt(si++));
+				cm = cm.or(elem);
+
 			}
 			if (negate)
 				cm = cm.negate();
 			emit(new CharClass(cm));
 		}
 
+		private boolean matchRange() {
+			if (src.charAt(si + 1) == '-' &&
+					si+2 < sn && src.charAt(si + 2) != ']') {
+				si += 3;
+				return true;
+			} else
+				return false;
+		}
+
 		static final CharMatcher blank = CharMatcher.anyOf(" \t");
 		static final CharMatcher digit = CharMatcher.anyOf("0123456789");
+		static final CharMatcher notdigit = digit.negate();
 		static final CharMatcher alnum = digit.or(CharMatcher.JAVA_LETTER);
 		static final CharMatcher punct =
 				CharMatcher.anyOf("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
@@ -296,6 +311,7 @@ public class Regex {
 		static final CharMatcher print = graph.or(CharMatcher.is(' '));
 		static final CharMatcher xdigit =
 				CharMatcher.anyOf("0123456789abcdefABCDEF");
+		static final CharMatcher notwhite = CharMatcher.WHITESPACE.negate();
 
 		CharMatcher posixClass() {
 			if (match("alpha:]"))
