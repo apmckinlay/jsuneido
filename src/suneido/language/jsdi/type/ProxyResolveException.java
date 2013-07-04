@@ -55,14 +55,16 @@ final class ProxyResolveException extends Exception {
 			return super.getMessage();
 		else {
 			StringBuilder result = new StringBuilder(128);
+			String actualTypeName = null == actualType ? "null" : actualType
+					.getSimpleName();
 			result.append("Expected underlying type ")
 					.append(proxy.getUnderlyingTypeName()).append(" of '")
 					.append(parentName).append("' ").append(memberType)
-					.append(' ').append(proxy.getDisplayName()).append(' ')
-					.append(memberName).append(" to be ")
+					.append(" '").append(proxy.getDisplayName()).append(' ')
+					.append(memberName).append("' to be ")
 					.append(Structure.class.getSimpleName()).append(" or ")
 					.append(Callback.class.getSimpleName())
-					.append(" but it is ").append(actualType.getSimpleName());
+					.append(" but it is ").append(actualTypeName);
 			return result.toString();
 		}
 	}

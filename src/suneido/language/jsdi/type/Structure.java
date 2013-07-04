@@ -70,7 +70,7 @@ public final class Structure extends ComplexType {
 	 */
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
-		struct.resolve();
-		return 0;
+		struct.resolve(0);
+		return struct.getMarshallPlan().getSizeDirect();
 	}
 }

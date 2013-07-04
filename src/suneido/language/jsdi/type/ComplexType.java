@@ -18,11 +18,9 @@ public abstract class ComplexType extends Type {
 	//
 
 	protected ComplexType(TypeId typeId, String suTypeName, TypeList typeList) {
-		super(typeId, StorageType.VALUE);
-		if (suTypeName == null)
+		super(typeId, StorageType.VALUE, typeList.getMarshallPlan());
+		if (null == suTypeName)
 			throw new IllegalArgumentException("suTypeName cannot be null");
-		if (typeList == null)
-			throw new IllegalArgumentException("typeList cannot be null");
 		this.suTypeName = suTypeName;
 		this.typeList = typeList;
 	}
@@ -58,9 +56,15 @@ public abstract class ComplexType extends Type {
 	// MUTATORS
 	//
 
-	final void resolve() {
+	final boolean resolve(int level) {
 		try {
-			typeList.resolve();
+			final boolean changed = typeList.resolve(level);
+			if (null == marshallPlan || changed) {
+				marshallPlan = typeList.getMarshallPlan();
+				return true;
+			} else {
+				return false;
+			}
 		} catch (ProxyResolveException e) {
 			if (TypeId.STRUCT == getTypeId()) {
 				e.setMemberType("member");

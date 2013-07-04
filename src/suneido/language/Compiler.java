@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.Suneido;
+
 /**
  * The components of the compiler are:
  * <ul>
@@ -26,14 +28,23 @@ import javax.annotation.concurrent.ThreadSafe;
 public class Compiler {
 
 	public static Object compile(String name, String src) {
-		return compile(name, src, null);
+		return compile(name, src, null, Suneido.context);
 	}
 
 	public static Object compile(String name, String src, PrintWriter pw) {
+		return compile(name, src, pw, Suneido.context);
+	}
+
+	public static Object compile(String name, String src, ContextLayered context) {
+		return compile(name, src, null, context);
+	}
+
+	public static Object compile(String name, String src, PrintWriter pw, ContextLayered context) {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return new AstCompile(name, pw).fold(ast);	}
+		return new AstCompile(name, pw, context).fold(ast);
+	}
 
 	public static AstNode parse(String src) {
 		Lexer lexer = new Lexer(src);
@@ -45,6 +56,10 @@ public class Compiler {
 
 	public static Object eval(String s) {
 		return Ops.call0(compile("eval", "function () { " + s + " }"));
+	}
+
+	public static Object eval(String s, ContextLayered context) {
+		return Ops.call0(compile("eval", "function () { " + s + " }", context));
 	}
 
 	public static void main(String[] args) throws IOException {

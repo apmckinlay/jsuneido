@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuRecord;
-import suneido.Suneido;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.StorageType;
@@ -37,15 +36,12 @@ public class AstCompile {
 	private String curName = null;
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
-	private final ContextLayered context = Suneido.context; //TODO pass in
+	private final ContextLayered context;
 
-	public AstCompile(String globalName) {
-		this(globalName, null);
-	}
-
-	public AstCompile(String globalName, PrintWriter pw) {
+	public AstCompile(String globalName, PrintWriter pw, ContextLayered context) {
 		this.globalName = globalName;
 		this.pw = pw;
+		this.context = context;
 	}
 
 	public Object fold(AstNode ast) {
@@ -108,8 +104,8 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
-		SuContainer c =
-				ast.token == Token.OBJECT ? new SuContainer() : new SuRecord();
+		SuContainer c = ast.token == Token.OBJECT ? new SuContainer()
+				: new SuRecord();
 		for (AstNode member : ast.children) {
 			AstNode name = member.first();
 			Object value = fold(member.second());
@@ -144,13 +140,12 @@ public class AstCompile {
 	}
 
 	private String privatize(AstNode ast, String name) {
-		return inMethod && ast.token == Token.SELFREF
-				? privatize2(name) : name;
+		return inMethod && ast.token == Token.SELFREF ? privatize2(name) : name;
 	}
 
 	private String privatize2(String name) {
-		if (name.startsWith("get_") &&
-				name.length() > 4 && Character.isLowerCase(name.charAt(4)))
+		if (name.startsWith("get_") && name.length() > 4
+				&& Character.isLowerCase(name.charAt(4)))
 			return "Get_" + suClassName + name.substring(3);
 		if (Character.isLowerCase(name.charAt(0)))
 			return suClassName + "_" + name;
@@ -172,10 +167,8 @@ public class AstCompile {
 	private SuCallable function(String name, AstNode ast) {
 		boolean method = ast.token == Token.METHOD || AstUsesThis.check(ast);
 		nameBegin(name, "$f");
-		SuCallable fn = javaClass(ast,
-				method ? "SuMethod" : "SuFunction",
-				method ? "eval" : "call",
-				null);
+		SuCallable fn = javaClass(ast, method ? "SuMethod" : "SuFunction",
+				method ? "eval" : "call", null);
 		nameEnd();
 		return fn;
 	}
@@ -209,52 +202,48 @@ public class AstCompile {
 
 	@DllInterface
 	public Object foldStruct(String name, AstNode ast) {
-		TypeList members = new TypeList();
 		nameBegin(name, "$s");
-		for (AstNode member : ast.first().children)
-		{
-			String      memberName  = member.value;
-			AstNode     typeInfo    = member.first();
+		TypeList.Args args = new TypeList.Args("member",
+				ast.first().children.size());
+		for (AstNode member : ast.first().children) {
+			String memberName = member.value;
+			AstNode typeInfo = member.first();
 			StorageType storageType = StorageType.fromToken(typeInfo.token);
-			String      typeName    = typeInfo.first().value;
-			int numElems = StorageType.ARRAY != storageType
-				? 1
-				: Numbers.stringToNumber(typeInfo.first().first().value).intValue()
-				;
+			String typeName = typeInfo.first().value;
+			int numElems = StorageType.ARRAY != storageType ? 1 : Numbers
+					.stringToNumber(typeInfo.first().first().value).intValue();
 			BasicType basicType = BasicType.fromIdentifier(typeName);
-			if (null != basicType)
-			{
-				members.add(
-					memberName,
-					JSDI.getInstance().getTypeFactory().makeBasicType(
-						basicType, storageType, numElems)
-				);
-			}
-			else    // otherwise it's a name which may be undefined, so add a
-			{       // proxy
-				members.add(memberName,
+			TypeList.Entry memberEntry = null;
+			if (null != basicType) {
+				args.add(memberName, JSDI.getInstance().getTypeFactory()
+						.makeBasicType(basicType, storageType, numElems));
+			} else // otherwise it's a name which may be undefined, so add a
+			{      // proxy
+				args.add(memberName,
 						new Proxy(context, context.slotForName(typeName),
 								storageType, numElems));
 			}
 		}
 		nameEnd();
-		return new Structure(curName, members);
+		return new Structure(curName, new TypeList(args));
 	}
 
-	/** Used by foldFunction and block
-	 * @param locals The outer locals for a block. Not used for functions.
+	/**
+	 * Used by foldFunction and block
+	 * 
+	 * @param locals
+	 *            The outer locals for a block. Not used for functions.
 	 */
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals) {
 		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(base, curName, method, locals,
-				useArgsArray(ast, base, params),
-				ast.token == Token.BLOCK,
-				params.size(), fnId, pw);
+		ClassGen cg = new ClassGen(base, curName, method, locals, useArgsArray(
+				ast, base, params), ast.token == Token.BLOCK, params.size(),
+				fnId, pw);
 
 		for (AstNode param : params)
-			cg.param(param.value, fold(param.first()),
-					inMethod ? suClassName + "_" : "");
+			cg.param(param.value, fold(param.first()), inMethod ? suClassName
+					+ "_" : "");
 
 		superInit(cg, ast);
 
@@ -274,7 +263,8 @@ public class AstCompile {
 		}
 	}
 
-	private static boolean useArgsArray(AstNode ast, String base, List<AstNode> params) {
+	private static boolean useArgsArray(AstNode ast, String base,
+			List<AstNode> params) {
 		if (base.equals("SuCallable")) // closure block
 			return true;
 		// need to call this regardless to process child blocks
@@ -287,16 +277,15 @@ public class AstCompile {
 	}
 
 	private void superChecks(int i, AstNode stat) {
-		if (stat.token == Token.CALL &&
-				stat.first().token == Token.SUPER &&
-				stat.first().value.equals("New")) {
+		if (stat.token == Token.CALL && stat.first().token == Token.SUPER
+				&& stat.first().value.equals("New")) {
 			onlyAllowSuperInNew(stat);
 			onlyAllowSuperFirst(i, stat);
 		}
 	}
 
 	private void onlyAllowSuperInNew(AstNode stat) {
-		if (! curName.endsWith(METHOD_SEPARATOR + "New"))
+		if (!curName.endsWith(METHOD_SEPARATOR + "New"))
 			throw new SuException("super call only allowed in New");
 	}
 
@@ -307,9 +296,9 @@ public class AstCompile {
 
 	/** add super init call to New methods if not explicitly called */
 	private void superInit(ClassGen cg, AstNode ast) {
-		if (ast.token == Token.METHOD &&
-				curName.endsWith(METHOD_SEPARATOR + "New") &&
-				! explicitSuperCall(ast))
+		if (ast.token == Token.METHOD
+				&& curName.endsWith(METHOD_SEPARATOR + "New")
+				&& !explicitSuperCall(ast))
 			cg.superInit();
 	}
 
@@ -317,9 +306,8 @@ public class AstCompile {
 		List<AstNode> statements = ast.second().children;
 		if (!statements.isEmpty()) {
 			AstNode stat = statements.get(0);
-			if (stat.token == Token.CALL &&
-					stat.first().token == Token.SUPER &&
-					stat.first().value.equals("New"))
+			if (stat.token == Token.CALL && stat.first().token == Token.SUPER
+					&& stat.first().value.equals("New"))
 				return true;
 		}
 		return false;
@@ -335,7 +323,8 @@ public class AstCompile {
 	}
 
 	private void nameEnd() {
-		int i = Math.max(curName.lastIndexOf('$'), curName.lastIndexOf(METHOD_SEPARATOR));
+		int i = Math.max(curName.lastIndexOf('$'),
+				curName.lastIndexOf(METHOD_SEPARATOR));
 		curName = i == -1 ? "" : curName.substring(0, i);
 	}
 
@@ -439,7 +428,8 @@ public class AstCompile {
 			cg.blockThrow("BREAK_EXCEPTION");
 	}
 
-	private static void continueStatement(ClassGen cg, AstNode ast, Labels labels) {
+	private static void continueStatement(ClassGen cg, AstNode ast,
+			Labels labels) {
 		if (labels != null)
 			cg.jump(labels.cont);
 		else
@@ -530,7 +520,8 @@ public class AstCompile {
 				boolIntExpression(cg, e);
 				if (i < n - 1)
 					cg.ifTrue(ifTrue);
-				else // last one
+				else
+					// last one
 					cg.ifFalse(ifFalse);
 			}
 			cg.placeLabel(ifTrue);
@@ -594,8 +585,8 @@ public class AstCompile {
 			cg.startCatch(null, null, tc);
 		else {
 			String var = catcher.value;
-			String pattern = (catcher.first() == null)
-					? null : Ops.toStr(fold(catcher.first()));
+			String pattern = (catcher.first() == null) ? null : Ops
+					.toStr(fold(catcher.first()));
 			cg.startCatch(var, pattern, tc);
 			compound(cg, catcher.second(), labels);
 		}
@@ -627,7 +618,8 @@ public class AstCompile {
 				boolIntExpression(cg, e);
 				if (i < n - 1)
 					cg.ifFalse(ifFalse);
-				else // last one
+				else
+					// last one
 					cg.ifTrue(ifTrue);
 			}
 			cg.placeLabel(ifFalse);
@@ -866,8 +858,9 @@ public class AstCompile {
 		AstNode args = ast.second();
 		if (fn.token == Token.MEMBER) {
 			member(cg, fn);
-			if (args.token != Token.AT &&
-					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
+			if (args.token != Token.AT
+					&& args.children.size() <= MAX_DIRECT_ARGS
+					&& !hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeMethod(args.children.size());
 			} else {
@@ -878,8 +871,9 @@ public class AstCompile {
 			expression(cg, fn.first());
 			expression(cg, fn.second());
 			cg.toMethodString();
-			if (args.token != Token.AT &&
-					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
+			if (args.token != Token.AT
+					&& args.children.size() <= MAX_DIRECT_ARGS
+					&& !hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeMethod(args.children.size());
 			} else {
@@ -898,8 +892,9 @@ public class AstCompile {
 		} else if (isGlobal(fn)) {
 			cg.pushThis();
 			cg.iconst(context.slotForName(fn.value));
-			if (args.token != Token.AT &&
-					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
+			if (args.token != Token.AT
+					&& args.children.size() <= MAX_DIRECT_ARGS
+					&& !hasNamed(args)) {
 				directArguments(cg, args);
 				cg.invokeGlobal(args.children.size());
 			} else {
@@ -908,8 +903,9 @@ public class AstCompile {
 			}
 		} else {
 			expression(cg, fn);
-			if (args.token != Token.AT &&
-					args.children.size() <= MAX_DIRECT_ARGS && ! hasNamed(args)) {
+			if (args.token != Token.AT
+					&& args.children.size() <= MAX_DIRECT_ARGS
+					&& !hasNamed(args)) {
 				directArguments(cg, args);
 				cg.callFunction(args.children.size());
 			} else {
@@ -921,34 +917,38 @@ public class AstCompile {
 
 	/** Helper calls to Object and Record */
 	private static boolean isDirect(AstNode fn) {
-		return fn.token == Token.IDENTIFIER &&
-				(fn.value.equals("Object") || fn.value.equals("Record"));
+		return fn.token == Token.IDENTIFIER
+				&& (fn.value.equals("Object") || fn.value.equals("Record"));
 	}
 
 	private static boolean isGlobal(AstNode fn) {
-		return fn.token == Token.IDENTIFIER &&
-				Character.isUpperCase(fn.value.charAt(0));
+		return fn.token == Token.IDENTIFIER
+				&& Character.isUpperCase(fn.value.charAt(0));
 	}
 
 	private class VarArgs {
 		int i = 0;
 		ClassGen cg;
+
 		VarArgs(ClassGen cg, int nargs) {
 			this.cg = cg;
 			cg.anewarray(nargs);
 		}
+
 		void constant(Object constant) {
 			cg.dup();
 			cg.iconst(i++);
 			cg.constant(constant);
 			cg.aastore();
 		}
+
 		void special(String which) {
 			cg.dup();
 			cg.iconst(i++);
 			cg.specialArg(which);
 			cg.aastore();
 		}
+
 		void expression(AstNode expr) {
 			cg.dup();
 			cg.iconst(i++);
@@ -956,11 +956,13 @@ public class AstCompile {
 			addNullCheck(cg, expr);
 			cg.aastore();
 		}
+
 		void named(AstNode arg) {
 			if (arg.first() != null)
 				named(fold(arg.first()));
 			expression(arg.second());
 		}
+
 		void named(Object name) {
 			special("NAMED");
 			constant(name);
@@ -982,6 +984,7 @@ public class AstCompile {
 		else
 			optimizeArguments(cg, args);
 	}
+
 	private static final int MIN_TO_OPTIMIZE = 10;
 
 	private void atArgument(ClassGen cg, AstNode args) {
@@ -1020,8 +1023,8 @@ public class AstCompile {
 	}
 
 	/**
-	 * If there are at least MIN_TO_OPTIMIZE constant arguments
-	 * then put them in an SuContainer and pass them with EACH
+	 * If there are at least MIN_TO_OPTIMIZE constant arguments then put them in
+	 * an SuContainer and pass them with EACH
 	 */
 	private void optimizeArguments(ClassGen cg, AstNode args) {
 		SuContainer constArgs = new SuContainer();
