@@ -17,7 +17,7 @@
 	>
 		<exec executable="make" dir="${jsdi-path}" failonerror="true"/>
 		<copy file="${dll-src-dir}/jsdi.dll" todir="${dll-dst-dir}"
-			  overwrite="true"
+			  overwrite="true" failonerror="true"
 		/>
 	</target>
 
