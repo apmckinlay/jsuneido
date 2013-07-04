@@ -1,5 +1,6 @@
 package suneido.language.jsdi.type;
 
+import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
 public final class BasicPointer extends Type {
@@ -15,10 +16,18 @@ public final class BasicPointer extends Type {
 	//
 
 	BasicPointer(BasicValue underlying, long jsdiHandle) {
-		super(TypeId.BASIC, StorageType.POINTER, jsdiHandle);
+		super(TypeId.BASIC, StorageType.POINTER, jsdiHandle,
+				pointerPlan(underlying.getBasicType().getMarshallPlan()));
 		assert 0 != jsdiHandle : "BasicPointer may not have a null handle";
 		assert null != underlying : "Underlying BasicValue may not be null";
 		this.underlying = underlying;
+	}
+
+	private static final int[] SHARED_PTR_ARRAY = { 0, SizeDirect.POINTER };
+
+	private static MarshallPlan pointerPlan(MarshallPlan valuePlan) {
+		return new MarshallPlan(SizeDirect.POINTER, valuePlan.getSizeDirect(),
+				SHARED_PTR_ARRAY);
 	}
 
 	//

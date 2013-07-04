@@ -212,12 +212,19 @@ public class OpsTest {
 
 	@Test
 	public void test_overflow() {
+		// overflow from byte to short
+		assertEquals((int)Byte.MAX_VALUE + 1, uminus(Byte.MAX_VALUE));
+
+		// overflow from short to int
+		assertEquals((int)Short.MAX_VALUE + 1, uminus(Short.MIN_VALUE));
+
 		// overflow from int to long
 		assertEquals(Integer.MAX_VALUE + 1L, add(Integer.MAX_VALUE, 1));
 		assertEquals(Integer.MAX_VALUE + 1L, sub(Integer.MAX_VALUE, -1));
 		assertEquals(Integer.MAX_VALUE * 10L, mul(Integer.MAX_VALUE, 10));
 		assertEquals(Integer.MAX_VALUE * (long) Integer.MAX_VALUE,
 				mul(Integer.MAX_VALUE, Integer.MAX_VALUE));
+		assertEquals(Integer.MAX_VALUE + 1L, uminus(Integer.MIN_VALUE));
 
 		// overflow from long to BigDecimal
 		BigDecimal MAX_LONG = BigDecimal.valueOf(Long.MAX_VALUE);
@@ -227,6 +234,7 @@ public class OpsTest {
 				sub(Long.MAX_VALUE, -1));
 		assertEquals(MAX_LONG.multiply(BigDecimal.TEN, MC),
 				mul(Long.MAX_VALUE, 10));
+		assertEquals(MAX_LONG.add(BigDecimal.ONE, MC), uminus(Long.MIN_VALUE));
 	}
 
 	@Test

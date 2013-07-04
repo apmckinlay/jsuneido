@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import suneido.language.Context;
 import suneido.language.jsdi.Allocates;
+import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
 @Allocates
@@ -21,9 +22,9 @@ public final class Proxy extends Type {
 	 * Conceptually, the context variable <em>could</em> be carried around
 	 * either by this class or, in the alternative, by {@link TypeList}.
 	 * However, because the vast majority of existing Suneido structs (as of
-	 * 20130702) are relatively flat (<em>ie</em>} they don't contain any
-	 * proxies at all), the system will be more lightweight in general if the
-	 * context belongs to the proxy. 
+	 * 20130702) are relatively flat (<em>ie</em> they don't contain any proxies
+	 * at all), the system will be more lightweight in general if the context
+	 * belongs to the proxy.
 	 * </p>
 	 */
 	private final Context context;
@@ -38,7 +39,7 @@ public final class Proxy extends Type {
 
 	public Proxy(Context context, int typeNameSlot, StorageType storageType,
 			int numElems) {
-		super(TypeId.PROXY, storageType);
+		super(TypeId.PROXY, storageType, (MarshallPlan) null);
 		this.context = context;
 		this.typeNameSlot = typeNameSlot;
 		this.storageType = storageType;
@@ -47,21 +48,35 @@ public final class Proxy extends Type {
 	}
 
 	//
+	// INTERNALS
+	//
+
+	private final boolean resolveInternal(int level)
+			throws ProxyResolveException {
+		if (null == marshallPlan || lastResolvedType.resolve(level)) {
+			marshallPlan = lastResolvedType.getMarshallPlan();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	//
 	// ACCESSORS
 	//
 
-	ComplexType resolve() throws ProxyResolveException {
-		Object maybeType = context.get(typeNameSlot);
-		if (maybeType == this.lastResolvedType) {
-			this.lastResolvedType.resolve();
-			return this.lastResolvedType;
-		} else if (maybeType instanceof ComplexType) {
-			this.lastResolvedType = (ComplexType) maybeType;
-			this.lastResolvedType.resolve();
-			return this.lastResolvedType;
-		} else {
-			throw new ProxyResolveException(this, maybeType.getClass());
+	boolean resolve(int level) throws ProxyResolveException {
+		final Object maybeType = context.tryget(typeNameSlot);
+		if (null != maybeType) {
+			if (maybeType == lastResolvedType) {
+				return resolveInternal(level);
+			} else if (maybeType instanceof ComplexType) {
+				lastResolvedType = (ComplexType) maybeType;
+				return resolveInternal(level);
+			}
 		}
+		final Class<?> clazz = null == maybeType ? null : maybeType.getClass();
+		throw new ProxyResolveException(this, clazz);
 	}
 
 	String getUnderlyingTypeName() {

@@ -2,8 +2,12 @@ package suneido.language.jsdi.type;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.MarshallPlan;
 
 @NotThreadSafe
 public final class TypeList implements Iterable<TypeList.Entry> {
@@ -16,7 +20,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		private final String name;
 		private final Type type;
 
-		public Entry(String name, Type type) {
+		private Entry(String name, Type type) {
 			this.name = name;
 			this.type = type;
 		}
@@ -27,6 +31,35 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 		public Type getType() {
 			return type;
+		}
+	}
+
+	public static final class Args {
+		private final String memberType;
+		private final ArrayList<Entry> entries;
+		private final TreeSet<String> names; // deliberate
+		private boolean isClosed;
+		private boolean isUsed;
+
+		public Args(String memberType, int size) {
+			this.memberType = memberType;
+			this.entries = new ArrayList<Entry>(size);
+			this.names = new TreeSet<String>();
+			this.isClosed = false;
+			this.isUsed = false;
+		}
+
+		public void add(String name, Type type) {
+			if (isUsed) {
+				throw new IllegalStateException(
+						"This Args object has already been used to construct a TypeList");
+			}
+			if (!names.add(name)) {
+				throw new JSDIException("Duplicate " + memberType + ": '"
+						+ name + "'");
+			}
+			entries.add(new Entry(name, type));
+			isClosed &= TypeId.BASIC == type.getTypeId();
 		}
 	}
 
@@ -59,8 +92,29 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	// DATA
 	//
 
-	private final ArrayList<Entry> entries = new ArrayList<Entry>();
-	private boolean isClosed = true;
+	private final ArrayList<Entry> entries;
+	private final boolean isClosed;
+	private MarshallPlan marshallPlan;
+
+	//
+	// CONSTRUCTORS
+	//
+
+	public TypeList(Args args) {
+		args.isUsed = true;
+		this.entries = args.entries;
+		this.isClosed = args.isClosed;
+		if (this.isClosed) {
+			ArrayList<MarshallPlan> entryPlans = new ArrayList<MarshallPlan>(
+					entries.size());
+			for (Entry entry : entries) {
+				entryPlans.add(entry.getType().getMarshallPlan());
+			}
+			this.marshallPlan = new MarshallPlan(entryPlans);
+		} else {
+			this.marshallPlan = null;
+		}
+	}
 
 	//
 	// ACCESSORS
@@ -70,23 +124,26 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return isClosed;
 	}
 
+	public MarshallPlan getMarshallPlan() {
+		return marshallPlan;
+	}
+
 	//
 	// MUTATORS
 	//
 
-	public void add(String name, Type type) {
-		assert type != null;
-		entries.add(new Entry(name, type));
-		isClosed &= TypeId.BASIC == type.getTypeId();
-	}
-
-	final void resolve() throws ProxyResolveException {
+	final boolean resolve(int level) throws ProxyResolveException {
+		boolean changed = false;
 		if (!isClosed) {
 			for (Entry entry : entries) {
 				final TypeId typeId = entry.type.getTypeId();
 				if (typeId == TypeId.PROXY) {
 					try {
-						((Proxy) entry.type).resolve();
+						if (100 < level) {
+							throw new JSDIException(
+									"Type nesting limit exceeded - possible cvcle?");
+						}
+						changed &= ((Proxy) entry.type).resolve(level + 1);
 					} catch (ProxyResolveException e) {
 						e.setMemberName(entry.name);
 						throw e;
@@ -94,7 +151,19 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 				} else
 					assert TypeId.BASIC == typeId : "Invalid type list entry";
 			}
+			if (changed || null == marshallPlan) {
+				// Only need to remake the Marshall Plan for a non-closed list
+				// of types where at least one of the members types has changed.
+				ArrayList<MarshallPlan> entryPlans = new ArrayList<MarshallPlan>(
+						entries.size());
+				for (Entry entry : entries) {
+					entryPlans.add(entry.getType().getMarshallPlan());
+				}
+				marshallPlan = new MarshallPlan(entryPlans);
+			}
 		}
+		assert null != marshallPlan;
+		return changed;
 	}
 
 	//

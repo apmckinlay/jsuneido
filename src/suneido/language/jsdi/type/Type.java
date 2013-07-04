@@ -1,6 +1,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.SuValue;
+import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
 public abstract class Type extends SuValue {
@@ -11,13 +12,16 @@ public abstract class Type extends SuValue {
 
 	private final TypeId typeId;
 	private final StorageType storageType;
-	private long jsdiHandle; // Handle to JSDI C++ object, may be 0
+	private long jsdiHandle; // Handle to JSDI C++ object, may be 0 TODO:
+								// deletE??
+	protected MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Type(TypeId typeId, StorageType storageType, long jsdiHandle) {
+	protected Type(TypeId typeId, StorageType storageType, long jsdiHandle,
+			MarshallPlan marshallPlan) {
 		if (null == typeId)
 			throw new IllegalArgumentException("typeId may not be null");
 		if (null == storageType)
@@ -25,10 +29,12 @@ public abstract class Type extends SuValue {
 		this.typeId = typeId;
 		this.storageType = storageType;
 		this.jsdiHandle = jsdiHandle;
+		this.marshallPlan = marshallPlan;
 	}
 
-	protected Type(TypeId typeId, StorageType storageType) {
-		this(typeId, storageType, 0);
+	protected Type(TypeId typeId, StorageType storageType,
+			MarshallPlan marshallPlan) {
+		this(typeId, storageType, 0, marshallPlan);
 	}
 
 	//
@@ -51,6 +57,10 @@ public abstract class Type extends SuValue {
 
 	public final StorageType getStorageType() {
 		return storageType;
+	}
+
+	public final MarshallPlan getMarshallPlan() {
+		return marshallPlan;
 	}
 
 	/**

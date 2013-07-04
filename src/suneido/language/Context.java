@@ -30,7 +30,10 @@ public abstract class Context {
 	private final GrowableArray<String> names = new GrowableArray<String>();
 	private final GrowableArray<Object> values = new GrowableArray<Object>();
 
-	Context(Contexts contexts) {
+	/** VCS 20130703 -- I made this protected so we can derive a trivial context
+	 *                  for testing purposes...
+	 */
+	protected Context(Contexts contexts) {
 		this.contexts = contexts;
 		contexts.addContext(this);
 		// don't use slot 0
@@ -61,18 +64,18 @@ public abstract class Context {
 		return tryget(slotForName(name));
 	}
 
-	/** Get the value for a slot. If no cached value, then do lookup
-	 *  VCS 20130702 -- I made this public because it is needed by the jsdi
-	 *                  package...
-	 */
-	public Object get(int slot) {
+	Object get(int slot) {
 		Object value = tryget(slot);
 		if (value == null)
 			throw new SuException("can't find " + nameForSlot(slot));
 		return value;
 	}
 
-	private Object tryget(int slot) {
+	/** Get the value for a slot. If no cached value, then do lookup
+	 *  VCS 20130702 -- I made this public because it is needed by the jsdi
+	 *                  package...
+	 */
+	public Object tryget(int slot) {
 		Object value = values.get(slot);
 		if (value == null) {
 			String name = nameForSlot(slot);
