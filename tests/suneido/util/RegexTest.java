@@ -101,7 +101,7 @@ public class RegexTest {
 	}
 
 	@Test
-	public void charClass() {
+	public void char_class() {
 		amatch("a", "[abc]");
 		amatch("b", "[abc]");
 		amatch("c", "[abc]");
@@ -134,6 +134,15 @@ public class RegexTest {
 		noamatch("5", "[[:alpha:]]");
 		noamatch("5", "[[:lower:]]");
 		noamatch("5", "[[:upper:]]");
+	}
+
+	@Test
+	public void char_class_range() {
+		match("m", "[a-z]");
+		match("-", "[-z]");
+		nomatch("m", "[-z]");
+		match("-", "[a-]");
+		nomatch("m", "[a-]");
 	}
 
 	@Test
