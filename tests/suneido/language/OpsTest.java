@@ -213,7 +213,7 @@ public class OpsTest {
 	@Test
 	public void test_overflow() {
 		// overflow from byte to short
-		assertEquals((int)Byte.MAX_VALUE + 1, uminus(Byte.MAX_VALUE));
+		assertEquals((int)Byte.MAX_VALUE + 1, uminus(Byte.MIN_VALUE));
 
 		// overflow from short to int
 		assertEquals((int)Short.MAX_VALUE + 1, uminus(Short.MIN_VALUE));

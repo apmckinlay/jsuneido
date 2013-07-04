@@ -277,24 +277,49 @@ public final class Ops {
 
 	public static Number uminus(Object x) {
 		x = toNum(x);
-		// TODO: VCS 20130704 -- If we just negate (Integer) x, aren't we going
-		//                       to suffer overflow when negating
-		//                       Integer.INT_MIN (due to two's complement).
-		// Confirmed:
-		//     f = function(x) { return -x } ; f(0x80000000)
-		//         ==> -2147483648
-		if (x instanceof Integer)
-			return -(Integer) x;
+		if (x instanceof Integer) {
+			int x_ = (int) x;
+			// Avoid two's complement overflow
+			return Integer.MIN_VALUE != x_
+				? -x_
+				: -(long)x_
+				;
+		}
 		if (x instanceof BigDecimal)
-			return ((BigDecimal) x).negate();
+			return ((BigDecimal) x).negate(); // TODO: Use Numbers.MC?
 		if (x instanceof BigInteger)
-			return ((BigInteger) x).negate();
-		if (x instanceof Long)
-			return -(Long) x;
-		if (x instanceof Short)
-			return -(Short) x;
-		if (x instanceof Byte)
-			return -(Byte) x;
+			return ((BigInteger) x).negate(); // TODO: Use Numbers.MC?
+		if (x instanceof Long) {
+			long x_ = (long) x;
+			// Avoid two's complement overflow
+			return Long.MIN_VALUE != x_
+				? -x_
+				: new BigDecimal(x_).negate(Numbers.MC)
+				;
+		}
+		if (x instanceof Short) {
+			short x_ = (short) x;
+			// Avoid two's complement overflow
+			return Short.MIN_VALUE != x_
+				? -x_
+				: -(int)x_ // If have to convert, use a canonical number type
+				;
+		}
+		if (x instanceof Byte) {
+			byte x_ = (byte) x;
+			// Avoid two's complement overflow
+			return Byte.MIN_VALUE != x_
+				? -x_
+				: -(int)x_ // If have to convert, use a canonical number type
+				;
+		}
+		// TODO: Check for overflow for float and double?
+		// TODO: My sense is that it is more likely that a number will be
+		//       represented as a Float or Double than as a Short or Byte (when/
+		//       how is it even possible to get a Short/Byte number??). From the
+		//       point of view of efficiency, it makes sense to move the
+		//       Float/Double negation branches further up since they are much
+		//       more likely to be taken t han the Short/Byte branches.
 		if (x instanceof Float)
 			return -(Float) x;
 		if (x instanceof Double)
