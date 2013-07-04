@@ -277,6 +277,12 @@ public final class Ops {
 
 	public static Number uminus(Object x) {
 		x = toNum(x);
+		// TODO: VCS 20130704 -- If we just negate (Integer) x, aren't we going
+		//                       to suffer overflow when negating
+		//                       Integer.INT_MIN (due to two's complement).
+		// Confirmed:
+		//     f = function(x) { return -x } ; f(0x80000000)
+		//         ==> -2147483648
 		if (x instanceof Integer)
 			return -(Integer) x;
 		if (x instanceof BigDecimal)
