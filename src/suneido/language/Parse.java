@@ -72,6 +72,7 @@ public class Parse<T, G> {
 		verifyMatch(expected);
 		matchKeepNewline();
 	}
+
 	protected void matchKeepNewline() {
 		switch (token) {
 		case L_CURLY:
@@ -88,6 +89,14 @@ public class Parse<T, G> {
 		}
 		token = lexer.next();
 		//System.out.println(token + " " + lexer.getValue());
+	}
+
+	protected void matchNonNegativeInteger() {
+		final String x = lexer.getValue();
+		if (null != x && -1 < x.indexOf('.')) {
+			syntaxError("expected: non-negative integer");
+		}
+		match(Token.NUMBER);
 	}
 
 	protected void verifyMatch(Token expected) {

@@ -195,7 +195,13 @@ public abstract class Generator<T> {
 	}
 
 	@DllInterface
-	public T structMembers(T list, String name, String baseType,
+	public T dll(String libraryName, String userFunctionName, T returnType,
+			T dllParams) {
+		return null;
+	}
+
+	@DllInterface
+	public T typeList(T list, String name, String baseType,
 			Token storageType, String numElems) {
 		return null;
 	}
