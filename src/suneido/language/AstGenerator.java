@@ -315,8 +315,15 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(Token.STRUCT, structMembers);
 	}
 
+	@Override
+	@DllInterface
+	public AstNode dll(String libraryName, String userFunctionName,
+			AstNode returnType, AstNode dllParams) {
+		throw new RuntimeException("not yet implemented"); // todo: implement me
+	}
+
 	@Override @DllInterface
-	public AstNode structMembers(AstNode list, String name, String baseType,
+	public AstNode typeList(AstNode list, String name, String baseType,
 			Token storageType, String numElems) {
 		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,
 				baseType, new AstNode(Token.NUMBER, numElems)));

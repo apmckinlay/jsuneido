@@ -7,10 +7,11 @@ import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 
 /**
- * Tests parsing compiling of Suneido language {@code struct} elements.
+ * Tests parsing and compiling of Suneido language {@code struct} elements.
  * @author Victor Schappert
  * @since 20130621
  * @see suneido.language.jsdi.type.StructureTest
+ * @see ParseAndCompileDllTest
  */
 @DllInterface
 public class ParseAndCompileStructTest {
@@ -24,19 +25,19 @@ public class ParseAndCompileStructTest {
 			"\t{\n" +
 			"\tbool a\n" +
 			"\tbool * pa\n" +
-			"\tbool[2] aa\n" +
-			"\tchar b\n" +
-			"\tchar * pb\n" +
-			"\tchar[2] ab\n" +
-			"\tshort c\n" +
-			"\tshort * pc\n" +
-			"\tshort[2] ac\n" +
-			"\tlong d\n" +
-			"\tlong * pd\n" +
-			"\tlong[2] ad\n" +
-			"\tint64 e\n" +
-			"\tint64 * pe\n" +
-			"\tint64[2] ae\n" +
+//			"\tbool[2] aa\n" +
+//			"\tchar b\n" +
+//			"\tchar * pb\n" +
+//			"\tchar[2] ab\n" +
+//			"\tshort c\n" +
+//			"\tshort * pc\n" +
+//			"\tshort[2] ac\n" +
+//			"\tlong d\n" +
+//			"\tlong * pd\n" +
+//			"\tlong[2] ad\n" +
+//			"\tint64 e\n" +
+//			"\tint64 * pe\n" +
+//			"\tint64[2] ae\n" +
 		"\t}";
 
 
@@ -87,6 +88,17 @@ public class ParseAndCompileStructTest {
 	}
 
 	@Test
+	public void parseMultiNewline() {
+		parse(
+			"struct\n" +
+			"{\n\n\n" +
+				"\tTypeA a\n\n" +
+				"\tTypeB b\n\n\n" +
+				"\tTypeC c}"
+		);
+	}
+
+	@Test
 	public void parseAllSupportedTypes() {
 		parse(EVERYTHING);
 	}
@@ -119,6 +131,8 @@ public class ParseAndCompileStructTest {
 			"struct { a[] b}",
 			"struct { a[-1] b}",
 			"struct { a[b }",
+			"struct { A a B b }",
+			"struct { a[1.1] }"
 		};
 		int n = 0;
 		for (String s : bad)
