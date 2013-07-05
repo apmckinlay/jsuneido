@@ -212,6 +212,9 @@ public class AstCompile {
 			String typeName = typeInfo.first().value;
 			int numElems = StorageType.ARRAY != storageType ? 1 : Numbers
 					.stringToNumber(typeInfo.first().first().value).intValue();
+			if (numElems < 1) {
+				throw new SuException("array must have at least one element");
+			}
 			BasicType basicType = BasicType.fromIdentifier(typeName);
 			if (null != basicType) {
 				args.add(memberName, JSDI.getInstance().getTypeFactory()

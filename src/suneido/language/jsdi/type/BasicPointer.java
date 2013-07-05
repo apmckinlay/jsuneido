@@ -23,11 +23,8 @@ public final class BasicPointer extends Type {
 		this.underlying = underlying;
 	}
 
-	private static final int[] SHARED_PTR_ARRAY = { 0, SizeDirect.POINTER };
-
 	private static MarshallPlan pointerPlan(MarshallPlan valuePlan) {
-		return new MarshallPlan(SizeDirect.POINTER, valuePlan.getSizeDirect(),
-				SHARED_PTR_ARRAY);
+		return new MarshallPlan(valuePlan);
 	}
 
 	//

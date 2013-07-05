@@ -32,6 +32,14 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		public Type getType() {
 			return type;
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(128);
+			return sb.append(getClass().getSimpleName()).append('[')
+					.append(type.getDisplayName()).append(' ').append(name)
+					.append(']').toString();
+		}
 	}
 
 	public static final class Args {
