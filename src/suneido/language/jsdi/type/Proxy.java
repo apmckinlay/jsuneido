@@ -53,8 +53,24 @@ public final class Proxy extends Type {
 
 	private final boolean resolveInternal(int level)
 			throws ProxyResolveException {
-		if (null == marshallPlan || lastResolvedType.resolve(level)) {
-			marshallPlan = lastResolvedType.getMarshallPlan();
+		boolean changed = lastResolvedType.resolve(level);
+		if (null == marshallPlan || changed) {
+			switch (storageType) {
+			case VALUE:
+				marshallPlan = lastResolvedType.getMarshallPlan();
+				break;
+			case POINTER:
+				marshallPlan = new MarshallPlan(
+						lastResolvedType.getMarshallPlan());
+				break;
+			case ARRAY:
+				marshallPlan = new MarshallPlan(
+						lastResolvedType.getMarshallPlan(), this.numElems);
+				break;
+			default:
+				throw new IllegalStateException(
+						"Missing switch case in Proxy.resolveInternal()");
+			}
 			return true;
 		} else {
 			return false;
@@ -100,8 +116,8 @@ public final class Proxy extends Type {
 			return sb.append(typeName).append('[').append(numElems).append(']')
 					.toString();
 		default:
-			assert false : "Missing switch case in Proxy.getDisplayName()";
-			return null;
+			throw new IllegalStateException(
+					"Missing switch case in Proxy.getDisplayName()");
 		}
 	}
 
