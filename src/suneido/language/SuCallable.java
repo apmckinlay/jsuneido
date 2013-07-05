@@ -15,7 +15,7 @@ public abstract class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected boolean isBlock = false;
-	protected Context context = Suneido.context; // TODO pass it in
+	protected ContextLayered context;
 
 	@Override
 	public SuValue lookup(String methodName) {

@@ -30,6 +30,7 @@ public class ClassGen {
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
+	private final ContextLayered context;
 	private final String name;
 	private final String base;
 	private final String className;
@@ -54,9 +55,10 @@ public class ClassGen {
 	final int parentId;
 	private final List<String> dynParams = Lists.newArrayList();
 
-	ClassGen(String base, String name, String method, List<String> locals,
-			boolean useArgsArray, boolean isBlock, int nParams, int parentId,
-			PrintWriter pw) {
+	ClassGen(ContextLayered context, String base, String name, String method,
+			List<String> locals, boolean useArgsArray, boolean isBlock,
+			int nParams, int parentId, PrintWriter pw) {
+		this.context = context;
 		if (! useArgsArray)
 			base += nParams;
 		this.base = "suneido/language/" + base;
@@ -723,6 +725,7 @@ public class ClassGen {
 		callable.myClass = suClass;
 		callable.params = functionSpec(bm);
 		callable.isBlock = isBlock;
+		callable.context = context;
 
 		return callable;
 	}

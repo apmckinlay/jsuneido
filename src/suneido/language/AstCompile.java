@@ -213,7 +213,6 @@ public class AstCompile {
 			int numElems = StorageType.ARRAY != storageType ? 1 : Numbers
 					.stringToNumber(typeInfo.first().first().value).intValue();
 			BasicType basicType = BasicType.fromIdentifier(typeName);
-			TypeList.Entry memberEntry = null;
 			if (null != basicType) {
 				args.add(memberName, JSDI.getInstance().getTypeFactory()
 						.makeBasicType(basicType, storageType, numElems));
@@ -237,9 +236,9 @@ public class AstCompile {
 	private SuCallable javaClass(AstNode ast, String base, String method,
 			List<String> locals) {
 		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(base, curName, method, locals, useArgsArray(
-				ast, base, params), ast.token == Token.BLOCK, params.size(),
-				fnId, pw);
+		ClassGen cg = new ClassGen(context, base, curName, method, locals,
+				useArgsArray(ast, base, params), ast.token == Token.BLOCK,
+				params.size(), fnId, pw);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()), inMethod ? suClassName
