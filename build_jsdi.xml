@@ -36,6 +36,7 @@
 			<classpath>
 				<pathelement path="bin"/>
 				<pathelement location="lib/asm-all-4.0.jar"/>
+				<pathelement location="lib/guava-14.0.1.jar"/>
 			</classpath>
 			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.h"/>
 			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.cpp"/>
@@ -46,7 +47,11 @@
 			description="Generate C++ enums from Java enums"
 	>
 		<property name="jsdi-enum-file-stem" value="java_enum"/>
-		<java classname="${jsdi-tools-package}.GenerateSharedEnums" classpath="bin">
+		<java classname="${jsdi-tools-package}.GenerateSharedEnums">
+			<classpath>
+				<pathelement path="bin"/>
+				<pathelement location="lib/guava-14.0.1.jar"/>
+			</classpath>
 			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.h"/>
 			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.cpp"/>
 		</java>
