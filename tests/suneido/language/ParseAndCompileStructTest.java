@@ -25,19 +25,25 @@ public class ParseAndCompileStructTest {
 			"\t{\n" +
 			"\tbool a\n" +
 			"\tbool * pa\n" +
-//			"\tbool[2] aa\n" +
-//			"\tchar b\n" +
-//			"\tchar * pb\n" +
-//			"\tchar[2] ab\n" +
-//			"\tshort c\n" +
-//			"\tshort * pc\n" +
-//			"\tshort[2] ac\n" +
-//			"\tlong d\n" +
-//			"\tlong * pd\n" +
-//			"\tlong[2] ad\n" +
-//			"\tint64 e\n" +
-//			"\tint64 * pe\n" +
-//			"\tint64[2] ae\n" +
+			"\tbool[2] aa\n" +
+			"\tchar b\n" +
+			"\tchar * pb\n" +
+			"\tchar[2] ab\n" +
+			"\tshort c\n" +
+			"\tshort * pc\n" +
+			"\tshort[2] ac\n" +
+			"\tlong d\n" +
+			"\tlong * pd\n" +
+			"\tlong[2] ad\n" +
+			"\tint64 e\n" +
+			"\tint64 * pe\n" +
+			"\tint64[2] ae\n" +
+			"\tfloat f\n" +
+			"\tfloat * pf\n" +
+			"\tfloat[2] af\n" +
+			"\tdouble g\n" +
+			"\tdouble * pg\n" +
+			"\tdouble [2] ag\n" +
 		"\t}";
 
 

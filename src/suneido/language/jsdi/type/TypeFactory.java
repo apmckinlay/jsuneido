@@ -42,19 +42,18 @@ public final class TypeFactory {
 			// Get *permanent* handles to the value type and pointer type based
 			// on the given underlying type. These handles persist for the
 			// lifetime of the loaded JSDI library and do not need to be freed.
-			long basicValueHandle = getBasicValueHandle(basicType);
-			long basicPointerHandle = getBasicPointerHandle(basicType);
-			BasicValue T = new BasicValue(basicType, basicValueHandle,
-					basicPointerHandle);
+			//XXX: long basicValueHandle = getBasicValueHandle(basicType);
+			//XXX: long basicPointerHandle = getBasicPointerHandle(basicType);
+			BasicValue T = new BasicValue(basicType, 1/*FIXME*/, 1/*FIXME*/);
 			basicValues.put(basicType, T);
 		}
 	}
 
 	private static Type makeBasicArray(BasicValue underlying, int numElems) {
 		assert null != underlying : "Underlying basic type cannot be null";
-		long jsdiHandle = makeBasicArrayHandle(underlying.getBasicType(),
-				numElems);
-		return new BasicArray(underlying, numElems, jsdiHandle);
+		/*XXX: long jsdiHandle = makeBasicArrayHandle(underlying.getBasicType(),
+				numElems);*/
+		return new BasicArray(underlying, numElems, 1 /*FIXME*/);
 	}
 
 	static native void releaseHandle(long jsdiHandle);
