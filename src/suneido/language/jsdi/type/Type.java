@@ -41,10 +41,11 @@ public abstract class Type extends SuValue {
 	// INTERNALS
 	//
 
-	protected void releaseHandle() {
-		assert 0 != jsdiHandle : "No handle to release";
-		TypeFactory.releaseHandle(jsdiHandle);
-		jsdiHandle = 0;
+	protected void releaseHandle() {	// TODO: delete this method
+// XXX
+//		assert 0 != jsdiHandle : "No handle to release";
+//		TypeFactory.releaseHandle(jsdiHandle);
+//		jsdiHandle = 0;
 	}
 
 	//
@@ -74,40 +75,4 @@ public abstract class Type extends SuValue {
 	 * @since 20130628
 	 */
 	public abstract String getDisplayName();
-
-	/**
-	 * Return, in bytes, of this type on the native platform.
-	 * 
-	 * @return Size of this type in bytes.
-	 * @author Victor Schappert
-	 * @since 20130701
-	 */
-	public int sizeOf() {
-		assert jsdiHandle != 0 : "Can't call sizeOf without a JSDI handle";
-		return sizeOf(jsdiHandle);
-	}
-
-	//
-	// INTERNALS
-	//
-
-	private static native String toStringNative(long jsdiHandle);
-
-	private static native int sizeOf(long jsdiHandle);
-
-	//
-	// ANCESTOR CLASS: Object
-	//
-
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(getClass().getSimpleName()).append('[')
-				.append(Long.toHexString(jsdiHandle));
-		if (jsdiHandle != 0) {
-			result.append(" [").append(toStringNative(jsdiHandle)).append(']');
-		}
-		result.append(']');
-		return result.toString();
-	}
 }
