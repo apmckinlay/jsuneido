@@ -45,6 +45,18 @@ public final class SizeDirect {
 	 * equal to the number of bytes taken up by 64 bits.
 	 */
 	public static final int INT64 = 8;
+	/**
+	 * Size of a native {@code float} in bytes.
+	 * @see #DOUBLE
+	 * @see BasicType#FLOAT
+	 */
+	public static final int FLOAT = 4;
+	/**
+	 * Size of a native {@code double} in bytes.
+	 * @see #FLOAT
+	 * @see BasicType#DOUBLE
+	 */
+	public static final int DOUBLE = 8;
 
 	// Don't instantiate!
 	private SizeDirect() {

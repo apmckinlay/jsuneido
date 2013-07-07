@@ -12,6 +12,7 @@ import suneido.language.jsdi.MarshallPlan;
  * 
  * @author Victor Schapppert
  * @since 20130627
+ * @see SizeDirect
  */
 @DllInterface
 public enum BasicType {
@@ -22,24 +23,49 @@ public enum BasicType {
 	 */
 	BOOL("bool", SizeDirect.BOOL),
 	/**
-	 * Enumerator for a character value, which is represented in native DLL
-	 * calls as a single byte.
+	 * Enumerator for a signed single-byte number/character value.
+	 * @see #SHORT
+	 * @see #LONG
+	 * @see #INT64
 	 */
 	CHAR("char", SizeDirect.CHAR),
 	/**
 	 * Enumerator for a signed short integer value, which is represented in
 	 * native DLL calls as a signed 16-bit integer.
+	 * @see #CHAR
+	 * @see #LONG
+	 * @see #INT64
 	 */
 	SHORT("short", SizeDirect.SHORT),
 	/**
 	 * Enumerator for a signed long integer value, which is represented in
 	 * native DLL calls as a signed 32-bit integer.
+	 * @see #CHAR
+	 * @see #SHORT
+	 * @see #INT64
 	 */
 	LONG("long", SizeDirect.LONG),
 	/**
 	 * Enumerator for a 64-bit signed integer value.
+	 * @see #CHAR
+	 * @see #SHORT
+	 * @see #LONG
 	 */
-	INT64("int64", SizeDirect.INT64);
+	INT64("int64", SizeDirect.INT64),
+	/**
+	 * Enumerator for a 32-bit floating-point number (<em>ie</em> a single-
+	 * precision IEEE floating-point number, known as <code>float</code> in
+	 * C, C++, and Java).
+	 * @see #DOUBLE
+	 */
+	FLOAT("float", SizeDirect.FLOAT),
+	/**
+	 * Enumerator for a 64-bit floating=-point number (<em>ie</em> a double-
+	 * precision IEEE floating-point number, nkown as <code>double</code> in C,
+	 * C++, and Java).
+	 * @see #SINGLE
+	 */
+	DOUBLE("double", SizeDirect.DOUBLE);
 
 	//
 	// DATA/CONSTRUCTORS
