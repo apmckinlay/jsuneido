@@ -1,5 +1,8 @@
 package suneido.language.jsdi.type;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
 
@@ -62,15 +65,16 @@ public enum BasicType {
 	// STATICS
 	//
 
-	public static final BasicType fromIdentifier(String identifierString) {
-		// TODO: make this more efficient later
-		// TODO: calling values() is pretty expensive and you should statically
-		// cache some better data structure
+	private static final Map<String, BasicType> identifierMap;
+	static {
+		identifierMap = new TreeMap<String, BasicType>();
 		for (BasicType type : values()) {
-			if (type.identifierString.equals(identifierString))
-				return type;
+			identifierMap.put(type.identifierString, type);
 		}
-		return null;
+	}
+
+	public static final BasicType fromIdentifier(String identifierString) {
+		return identifierMap.get(identifierString);
 	}
 
 	public final String toIdentifier() {
