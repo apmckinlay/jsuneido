@@ -46,7 +46,6 @@ public class ParseAndCompileStructTest {
 			"\tdouble [2] ag\n" +
 		"\t}";
 
-
 	//
 	// PARSING TESTS
 	//
@@ -67,7 +66,7 @@ public class ParseAndCompileStructTest {
 	}
 
 	@Test
-	public void parseSimpleType() {
+	public void parseValueType() {
 		parse("struct { long a }");
 	}
 
