@@ -29,6 +29,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			case STRUCT:
 				return struct();
 			case DLL:
+				return dll();
 			case CALLBACK:
 				throw new SuException("jSuneido does not support "
 						+ lexer.getValue() + " line " + lexer.getLineNumber());
@@ -218,6 +219,14 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private T struct() {
 		ParseStruct<T, G> p = new ParseStruct<T, G>(this);
 		T result = p.struct();
+		token = p.token;
+		return result;
+	}
+
+	@DllInterface
+	private T dll() {
+		ParseDll<T, G> p = new ParseDll<T, G>(this);
+		T result = p.dll();
 		token = p.token;
 		return result;
 	}

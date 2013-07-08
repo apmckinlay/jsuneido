@@ -310,16 +310,22 @@ public class AstGenerator extends Generator<AstNode> {
 
 	@Override @DllInterface
 	public AstNode struct(AstNode structMembers) {
-		if (structMembers == null)
+		if (null == structMembers)
 			structMembers = EMPTY_LIST;
 		return new AstNode(Token.STRUCT, structMembers);
 	}
 
-	@Override
-	@DllInterface
+	@Override @DllInterface
 	public AstNode dll(String libraryName, String userFunctionName,
-			AstNode returnType, AstNode dllParams) {
-		throw new RuntimeException("not yet implemented"); // todo: implement me
+			String returnType, AstNode dllParams) {
+		if (null == dllParams)
+			dllParams = EMPTY_LIST;
+		return new AstNode(Token.DLL,
+			new AstNode(Token.IDENTIFIER, libraryName),
+			new AstNode(Token.STRING, userFunctionName),
+			new AstNode(Token.IDENTIFIER, returnType),
+			dllParams
+		);
 	}
 
 	@Override @DllInterface

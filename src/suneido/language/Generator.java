@@ -195,7 +195,7 @@ public abstract class Generator<T> {
 	}
 
 	@DllInterface
-	public T dll(String libraryName, String userFunctionName, T returnType,
+	public T dll(String libraryName, String userFunctionName, String returnType,
 			T dllParams) {
 		return null;
 	}

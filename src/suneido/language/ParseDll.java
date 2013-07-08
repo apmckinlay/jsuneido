@@ -40,14 +40,12 @@ public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T,
 	public T dll() {
 		matchSkipNewlines(DLL);
 		// Return Type
-		final String returnTypeBase = lexer.getValue();
-		final T returnType = null;
-			// TODO: do this properly -- will need a generator method to return
-			//       a "return type" node...
-			// TODO: should support all value types of size 0..8 bytes and all
-			//       pointer types, but not array types... ?? or support array
-			//       types up to 8 bytes?
+		final String returnType = lexer.getValue();
 		match(IDENTIFIER);
+			// NOTE: Currently only value-type storage of the basic types, plus
+			//       'void', constitute possible return values from dlls, so
+			//       don't need to worry about '*' for pointers or '[#]' for
+			//       arrays.
 		// Library Name
 		final String libraryName = lexer.getValue();
 		match(IDENTIFIER);
