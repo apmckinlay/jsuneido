@@ -2,7 +2,17 @@ package suneido.language.jsdi.tools;
 
 import java.util.ArrayList;
 
-// TODO: Docs
+/**
+ * Contains {@link LineEditor} classes for automatically generating C++ code to
+ * support Java {@code enum}'s via JNI. The {@link EnumLineEditor.Header} class
+ * generates lines for the {@code .h} file, while the {#Source} class generates
+ * lines for the {@code .cpp} file.
+ *
+ * @author Victor Schappert
+ * @since 20130701
+ *
+ * @param <E> The Java enumeration to generate C++ code for.
+ */
 abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 
 	//
@@ -106,6 +116,14 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 	// INTERNAL CLASSES
 	//
 
+	/**
+	 * Generates C++ header file lines to support the Java enum {@code F}.
+	 * @author Victor Schappert
+	 * @since 20130701
+	 * @see EnumLineEditor.Source
+	 *
+	 * @param <F> The Java enum to generate C++ code for.
+	 */
 	public static final class Header<F extends Enum<F>> extends
 			EnumLineEditor<F> {
 		public Header(Class<F> enumType, Class<?> generatorClass,
@@ -184,6 +202,15 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		}
 	}
 
+	/**
+	 * Generates C++ source ({@code .cpp}) file lines to support the Java enum
+	 * {@code F}.
+	 * @author Victor Schappert
+	 * @since 20130701
+	 * @see EnumLineEditor.Header
+	 *
+	 * @param <F> The Java enum to generate C++ code for.
+	 */
 	public static final class Source<F extends Enum<F>> extends
 			EnumLineEditor<F> {
 		public Source(Class<F> enumType, Class<?> generatorClass,
