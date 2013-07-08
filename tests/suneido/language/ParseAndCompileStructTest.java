@@ -137,7 +137,10 @@ public class ParseAndCompileStructTest {
 			"struct { a[-1] b}",
 			"struct { a[b }",
 			"struct { A a B b }",
-			"struct { a[1.1] }"
+			"struct { a[1.1] }",
+			"struct { a a; &= b }",
+			"struct { [in] string a }" /* consistent with CSuneido */,
+			"struct { string a, [in] string b }" /* consistent with CSuneido */
 		};
 		int n = 0;
 		for (String s : bad)

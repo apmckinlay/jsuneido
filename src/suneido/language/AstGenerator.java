@@ -329,10 +329,11 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override @DllInterface
-	public AstNode typeList(AstNode list, String name, String baseType,
-			Token storageType, String numElems) {
+	public AstNode typeList(AstNode list, String name, boolean inTag,
+			String baseType, Token storageType, String numElems) {
 		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,
-				baseType, new AstNode(Token.NUMBER, numElems)));
+				baseType, new AstNode(Token.NUMBER, numElems), new AstNode(
+						Token.IN, Boolean.toString(inTag))));
 		return list(list, new AstNode(Token.IDENTIFIER, name, type));
 	}
 

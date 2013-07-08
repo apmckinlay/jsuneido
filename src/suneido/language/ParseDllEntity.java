@@ -51,12 +51,26 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 		}
 	}
 
+	private boolean hasAnItem(final Token listType) {
+		switch (listType) {
+		case STRUCT:
+			// Intentional fall-through
+		case CALLBACK:
+			return IDENTIFIER == token;
+		case DLL:
+			return IDENTIFIER == token ||
+				   L_BRACKET == token /* for [in] parameters */;
+		default:
+			throw new IllegalStateException("control should never pass here");
+		}
+	}
+
 	private boolean hasAnotherItem(final Token listType) {
 		switch (listType) {
 		case STRUCT:
 			if (SEMICOLON == token || NEWLINE == token) {
 				match();
-				return IDENTIFIER == token;
+				return hasAnItem(listType);
 			} else {
 				return false;
 			}
@@ -65,7 +79,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 		case CALLBACK:
 			if (COMMA == token) {
 				match();
-				return true;
+				return hasAnItem(listType);
 			} else {
 				return false;
 			}
@@ -132,14 +146,23 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 	protected final T typeList(final Token listType) {
 		assert STRUCT == listType || DLL == listType || CALLBACK == listType;
 		T list = null;
-		if (Token.IDENTIFIER == token)
+		if (hasAnItem(listType))
 		{
 			int n = 1;
 			do
 			{
 				checkCount(n++, listType);
+				boolean in = false;
+				// DLL only: check for '[in]' parameter
+				if (DLL == listType && L_BRACKET == token) {
+					match();
+					match(IN);
+					match(R_BRACKET);
+					in = true;
+				}
+				// Pull out the identifier
 				String baseType = lexer.getValue();
-				match();
+				match(IDENTIFIER);
 				// NOTE: At the moment, don't allow pointer + array in same
 				//       structure member. We allow only the following syntax:
 				//           type name
@@ -176,7 +199,8 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 					match(R_BRACKET);
 				}
 				String name = getName(listType);
-				list = generator.typeList(list, name, baseType, storageType, numElems);
+				list = generator.typeList(list, name, in, baseType,
+						storageType, numElems);
 			}
 			while (hasAnotherItem(listType));
 		}

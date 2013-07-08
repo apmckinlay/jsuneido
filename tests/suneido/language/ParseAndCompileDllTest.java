@@ -42,6 +42,7 @@ public class ParseAndCompileDllTest {
 				"\tdouble * pg,\n" +
 				"\tdouble [2] ag\n" +
 			"\t)";
+	// todo: add string, [in] string, buffer, handle, gdiobj
 
 	//
 	// PARSING TESTS
@@ -87,6 +88,11 @@ public class ParseAndCompileDllTest {
 	@Test(expected=SuException.class)
 	public void parseNoCommaParams() {
 		parse("dll x y:z(a a_ b b_)"); // weirdly, allowed in CSuneido
+	}
+
+	@Test(expected=SuException.class)
+	public void parseBadSecondParam() {
+		parse("dll long x:y(a a, +b)");
 	}
 
 	@Test(expected=SuException.class)
@@ -140,6 +146,32 @@ public class ParseAndCompileDllTest {
 	@Test
 	public void parseAllSupportedTypes() {
 		parse(EVERYTHING);
+	}
+
+	@Test
+	public void parseInString() {
+		parse("dll a b:c( [in] string param)");
+		parse("dll a b:c(x * y, [in] string z)");
+	}
+
+	@Test
+	public void parseSyntaxErrors() {
+		String bad[] = {
+			"dll void a()",
+			"dll void a:b(",
+			"dll a:b()",
+			"dll x y:z(a)",
+			"dll x y:z(a, b, c)",
+			"dll x y:z([in] string)",
+			"dll x y:z([IN] string a)",
+		};
+		int n = 0;
+		for (String s : bad)
+			try
+				{ parse(s); }
+			catch (SuException e)
+				{ ++n; }
+		assertEquals(n, bad.length);
 	}
 
 	//
