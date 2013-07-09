@@ -18,7 +18,7 @@ import suneido.language.jsdi.DllInterface;
 public class ParseAndCompileDllTest {
 
 	public final String EVERYTHING =
-			"dll        void L:F@1\n" +
+			"dll        void jsdi:_TestVoid@0\n" +
 				"\t(\n" +
 				"\tbool a,\n" +
 				"\tbool * pa,\n" +
@@ -43,6 +43,12 @@ public class ParseAndCompileDllTest {
 				"\tdouble [2] ag\n" +
 			"\t)";
 	// todo: add string, [in] string, buffer, handle, gdiobj
+
+	public final String[] VALID_RETURN_TYPES =
+	{
+		"void", "bool", "char", "short", "long", "int64", "float", "double"
+		// todo: add handle, gdiobj
+	};
 
 	//
 	// PARSING TESTS
@@ -164,6 +170,9 @@ public class ParseAndCompileDllTest {
 			"dll x y:z(a, b, c)",
 			"dll x y:z([in] string)",
 			"dll x y:z([IN] string a)",
+			"dll x y:z(long[-2] a)",
+			"dll x y:z(long[1.1] a)",
+			"dll x y:z(long ** a)",
 		};
 		int n = 0;
 		for (String s : bad)
@@ -178,7 +187,46 @@ public class ParseAndCompileDllTest {
 	// COMPILING TESTS
 	//
 
-	
+	private static Object compile(CharSequence code) {
+		return Compiler.compile(
+				ParseAndCompileStructTest.class.getSimpleName(),
+				code.toString());
+	}
 
-	// TODO:compiling tests
+	@Test(expected=SuException.class)
+	public void compileDuplicateParameterName() {
+		compile("dll long jsdi:_TestVoid@0(bool a, long a)");
+	}
+
+	@Test
+	public void compileValidReturnTypes() {
+		StringBuilder sb = new StringBuilder("dll ");
+		for (String returnType : VALID_RETURN_TYPES) {
+			sb.delete(4, sb.length());
+			sb.append(returnType);
+			sb.append(" jsdi:_TestVoid@0()");
+			compile(sb.toString());
+		}
+	}
+
+	@Test
+	public void compileAllSupportedTypes() {
+		compile(EVERYTHING);
+	}
+
+	@Test
+	public void compileErrors() {
+		String bad[] = {
+			"dll NotARealType jsdi:_TestVoid@0()",
+			"dll long[4] jsdi:_TestVoid@0()",
+			"dll char * jsdi:_TestVoid@0()",
+		};
+		int n = 0;
+		for (String s : bad)
+			try
+				{ compile(s); }
+			catch (SuException e)
+				{ ++n; }
+		assertEquals(n, bad.length);
+	}
 }

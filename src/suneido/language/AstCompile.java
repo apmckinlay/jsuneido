@@ -19,10 +19,9 @@ import suneido.SuRecord;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.StorageType;
-import suneido.language.jsdi.type.BasicType;
-import suneido.language.jsdi.type.Proxy;
-import suneido.language.jsdi.type.Structure;
-import suneido.language.jsdi.type.TypeList;
+import suneido.language.jsdi.dll.Dll;
+import suneido.language.jsdi.dll.DllFactory;
+import suneido.language.jsdi.type.*;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -75,6 +74,8 @@ public class AstCompile {
 			return foldFunction(name, ast);
 		case STRUCT:
 			return foldStruct(name, ast);
+		case DLL:
+			return foldDll(name, ast);
 		case SUB:
 			value = fold(ast.first());
 			if (value != null)
@@ -201,11 +202,16 @@ public class AstCompile {
 	}
 
 	@DllInterface
-	public Object foldStruct(String name, AstNode ast) {
-		nameBegin(name, "$s");
-		TypeList.Args args = new TypeList.Args("member",
-				ast.first().children.size());
-		for (AstNode member : ast.first().children) {
+	private TypeList typeList(Token listType, List<AstNode> list) {
+		String memberType = null;
+		if (Token.STRUCT == listType) {
+			memberType = "member";
+		} else {
+			assert Token.DLL == listType || Token.CALLBACK == listType;
+			memberType = "parameter";
+		}
+		TypeList.Args args = new TypeList.Args(memberType, list.size());
+		for (AstNode member : list) {
 			String memberName = member.value;
 			AstNode typeInfo = member.first();
 			StorageType storageType = StorageType.fromToken(typeInfo.token);
@@ -219,6 +225,7 @@ public class AstCompile {
 			if (null != basicType) {
 				args.add(memberName, JSDI.getInstance().getTypeFactory()
 						.makeBasicType(basicType, storageType, numElems));
+			// TODO: handle strings/buffers/[in] strings here
 			} else // otherwise it's a name which may be undefined, so add a
 			{      // proxy
 				args.add(memberName,
@@ -226,8 +233,38 @@ public class AstCompile {
 								storageType, numElems));
 			}
 		}
+		return new TypeList(args);
+	}
+
+	@DllInterface
+	public Object foldStruct(String name, AstNode ast) {
+		nameBegin(name, "$s");
+		TypeList members = typeList(Token.STRUCT, ast.first().children);
+		Structure struct = new Structure(curName, members);
 		nameEnd();
-		return new Structure(curName, new TypeList(args));
+		return struct;
+	}
+
+	@DllInterface
+	public Object foldDll(String name, AstNode ast) {
+		nameBegin(name, "$d");
+		TypeList params = typeList(Token.DLL, ast.fourth().children);
+		Type returnType = null;
+		String returnTypeName = ast.third().value;
+		BasicType bt = BasicType.fromIdentifier(returnTypeName);
+		if (null != bt) {
+			returnType = JSDI.getInstance().getTypeFactory()
+					.makeBasicType(bt, StorageType.VALUE, 1);
+		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
+			returnType = VoidType.INSTANCE;
+		} else {
+			throw new SuException("invalid dll return type: " + returnTypeName);
+		}
+		DllFactory factory = JSDI.getInstance().getDllFactory();
+		Dll dll = factory.makeDll(curName, ast.first().value,
+				ast.second().value, params, returnType);
+		nameEnd();
+		return dll;
 	}
 
 	/**

@@ -2,6 +2,7 @@ package suneido.language.jsdi;
 
 import java.io.File;
 
+import suneido.language.jsdi.dll.DllFactory;
 import suneido.language.jsdi.type.TypeFactory;
 
 /**
@@ -55,12 +56,14 @@ public final class JSDI {
 	//
 
 	private final String      whenBuilt;   // when the native DLL was built
-	private final TypeFactory typeFactory;
+	private final TypeFactory typeFactory; // todo: delete??
+	private final DllFactory  dllFactory;
 	private static native String when();
 	private JSDI()
 	{
 		whenBuilt = when();
 		typeFactory = new TypeFactory(this);
+		dllFactory = new DllFactory(this);
 	}
 
 	//
@@ -69,9 +72,12 @@ public final class JSDI {
 
 	public native boolean isTraceEnabled();
 
-	public TypeFactory getTypeFactory()
-	{
+	public TypeFactory getTypeFactory() {
 		return typeFactory;
+	}
+
+	public DllFactory getDllFactory() {
+		return dllFactory;
 	}
 
 	//
