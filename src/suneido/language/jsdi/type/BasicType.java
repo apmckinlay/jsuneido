@@ -60,12 +60,34 @@ public enum BasicType {
 	 */
 	FLOAT("float", SizeDirect.FLOAT),
 	/**
-	 * Enumerator for a 64-bit floating=-point number (<em>ie</em> a double-
+	 * Enumerator for a 64-bit floating-point number (<em>ie</em> a double-
 	 * precision IEEE floating-point number, nkown as <code>double</code> in C,
 	 * C++, and Java).
 	 * @see #SINGLE
 	 */
-	DOUBLE("double", SizeDirect.DOUBLE);
+	DOUBLE("double", SizeDirect.DOUBLE),
+	/**
+	 * Enumerator for a Windows {@code HANDLE} type (<em>ie</em> a value
+	 * returned from an API function such as {@code CreateFile()}.
+	 * <p>
+	 * TODO: Determine whether we care about tracking calls to
+	 * {@code CloseHandle()} in JSuneido. If not, it will be simpler just to
+	 * delete this type and use plain {@code long} instead.
+	 * </p>
+	 * @see #GDIOBJ
+	 */
+	HANDLE("handle", SizeDirect.HANDLE),
+	/**
+	 * Enumerator for a Windows GDI object handle (<em>ie</em> a value returned
+	 * from an API function such as {@code CreateSolidBrush()}.
+	 * <p>
+	 * TODO: Determine whether we care about tracking calls to
+	 * {@code DeleteObject()} in JSuneido. If not, it will be simpler just to
+	 * delete this type and use plain {@code long} instead.
+	 * </p>
+	 * @see #HANDLE
+	 */
+	GDIOBJ("gdiobj", SizeDirect.GDIOBJ);
 
 	//
 	// DATA/CONSTRUCTORS

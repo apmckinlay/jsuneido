@@ -44,6 +44,12 @@ public class ParseAndCompileStructTest {
 			"\tdouble g\n" +
 			"\tdouble * pg\n" +
 			"\tdouble [2] ag\n" +
+			"\thandle h\n" +
+			"\thandle * ph\n" +
+			"\thandle [2] ah\n" +
+			"\tgdiobj i\n" +
+			"\tgdiobj * pi\n" +
+			"\tgdiobj [2] ai\n" +
 		"\t}";
 
 	//

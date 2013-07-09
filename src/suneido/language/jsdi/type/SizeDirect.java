@@ -57,6 +57,18 @@ public final class SizeDirect {
 	 * @see BasicType#DOUBLE
 	 */
 	public static final int DOUBLE = 8;
+	/**
+	 * Size of the Windows {@code HANDLE} type in bytes.
+	 * @see #GDIOBJ
+	 * @see BasicType#HANDLE
+	 */
+	public static final int HANDLE = 4;
+	/**
+	 * Size of a handle to a Windows GDI object in bytes.
+	 * @see #HANDLE
+	 * @see BasicType#GDIOBJ
+	 */
+	public static final int GDIOBJ = 4;
 
 	// Don't instantiate!
 	private SizeDirect() {
