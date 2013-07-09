@@ -9,6 +9,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
 
+/**
+ * Immutable list of <code>&lt;name, {@link Type}&gt;</code> tuples which
+ * represent the parameters of a <code>dll</code> or <code>callback</code>
+ * function, or the members of a <code>struct</code>.
+ * 
+ * @author Victor Schappert
+ * @since 20130625
+ */
 @NotThreadSafe
 public final class TypeList implements Iterable<TypeList.Entry> {
 

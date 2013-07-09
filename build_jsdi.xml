@@ -67,6 +67,7 @@
 		<javah class="${jsdi-package}.JSDI" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.type.TypeFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.type.Type" classpath="bin" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.dll.DllFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 	</target>
 
 </project>

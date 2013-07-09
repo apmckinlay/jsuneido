@@ -46,6 +46,7 @@ public abstract class ComplexType extends Type {
 	 * </p>
 	 *
 	 * @return Suneido type name
+	 * @see suneido.language.jsdi.dll.Dll#getSuTypeName()
 	 */
 	public String getSuTypeName()
 	{
