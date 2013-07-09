@@ -5,7 +5,6 @@
 package suneido.language;
 
 import suneido.SuValue;
-import suneido.Suneido;
 
 /**
  * Abstract base class for {@link SuBlock}, {@link SuFunction}, 
