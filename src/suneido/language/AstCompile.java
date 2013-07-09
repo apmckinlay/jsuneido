@@ -257,6 +257,10 @@ public class AstCompile {
 					.makeBasicType(bt, StorageType.VALUE, 1);
 		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
 			returnType = VoidType.INSTANCE;
+		} else if ("string".equals(returnTypeName)) { // XXX: hack
+			// XXX: This is a temporary hack until string support is added.
+			//      Please remove it as soon as strings are properly supported.
+			returnType = VoidType.INSTANCE;
 		} else {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}

@@ -40,14 +40,20 @@ public class ParseAndCompileDllTest {
 				"\tfloat[2] af,\n" +
 				"\tdouble g,\n" +
 				"\tdouble * pg,\n" +
-				"\tdouble [2] ag\n" +
+				"\tdouble [2] ag,\n" +
+				"\thandle h,\n" +
+				"\thandle * ph,\n" +
+				"\thandle [2] ah,\n" +
+				"\tgdiobj i,\n" +
+				"\tgdiobj * pi,\n" +
+				"\tgdiobj [2] ai\n" +
 			"\t)";
-	// todo: add string, [in] string, buffer, handle, gdiobj
+	// todo: add string, [in] string, buffer
 
 	public final String[] VALID_RETURN_TYPES =
 	{
-		"void", "bool", "char", "short", "long", "int64", "float", "double"
-		// todo: add handle, gdiobj
+		"void", "bool", "char", "short", "long", "int64", "float", "double",
+		"handle", "gdiobj", "string"
 	};
 
 	//
@@ -220,6 +226,8 @@ public class ParseAndCompileDllTest {
 			"dll NotARealType jsdi:_TestVoid@0()",
 			"dll long[4] jsdi:_TestVoid@0()",
 			"dll char * jsdi:_TestVoid@0()",
+			"dll buffer jsdi:_TestVoid@0()",
+			"dll [in] string jsdi:_TestVoid@0()"
 		};
 		int n = 0;
 		for (String s : bad)
