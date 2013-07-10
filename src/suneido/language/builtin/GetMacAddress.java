@@ -4,10 +4,10 @@
 
 package suneido.language.builtin;
 
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 import suneido.SuException;
 import suneido.util.Util;
@@ -26,9 +26,16 @@ public class GetMacAddress {
 	}
 
 	private static byte[] getMacAddress() throws UnknownHostException, SocketException {
-		InetAddress address = InetAddress.getLocalHost();
-		NetworkInterface ni = NetworkInterface.getByInetAddress(address);
-		return ni.getHardwareAddress();
+		for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+				e.hasMoreElements(); ) {
+			NetworkInterface ni = e.nextElement();
+			if (ni.isLoopback() || ni.isVirtual() || ni.isPointToPoint())
+				continue;
+			byte[] mac = ni.getHardwareAddress();
+			if (mac != null && mac.length > 0)
+				return mac;
+		}
+		throw new SuException("GetMacAddress failed - no mac address found");
 	}
 
 }
