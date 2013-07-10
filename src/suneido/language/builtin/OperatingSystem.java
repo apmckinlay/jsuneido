@@ -8,7 +8,8 @@ public class OperatingSystem {
 
 	public static String OperatingSystem() {
 		return System.getProperty("os.name") +
-				(System.getProperty("os.arch").contains("64") ? " 64" : "");
+				(System.getProperty("os.arch").contains("64") ? " 64bit" : "");
+		// NOTE: os.arch will not have 64 if running 32 bit JVM
 	}
 
 }
