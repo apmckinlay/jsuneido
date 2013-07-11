@@ -4,6 +4,7 @@ import java.util.EnumMap;
 
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDI;
+import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -20,6 +21,7 @@ public final class TypeFactory {
 	// DATA
 	//
 
+	@SuppressWarnings("unused")
 	private final JSDI jsdi;
 	private final EnumMap<BasicType, BasicValue> basicValues;
 
@@ -42,31 +44,25 @@ public final class TypeFactory {
 
 	private void loadBasicValues() {
 		for (BasicType basicType : BasicType.values()) {
-			// Get *permanent* handles to the value type and pointer type based
-			// on the given underlying type. These handles persist for the
-			// lifetime of the loaded JSDI library and do not need to be freed.
-			//XXX: long basicValueHandle = getBasicValueHandle(basicType);
-			//XXX: long basicPointerHandle = getBasicPointerHandle(basicType);
-			BasicValue T = new BasicValue(basicType, 1/*FIXME*/, 1/*FIXME*/);
+			BasicValue T = new BasicValue(basicType);
 			basicValues.put(basicType, T);
 		}
 	}
 
 	private static Type makeBasicArray(BasicValue underlying, int numElems) {
 		assert null != underlying : "Underlying basic type cannot be null";
-		/*XXX: long jsdiHandle = makeBasicArrayHandle(underlying.getBasicType(),
-				numElems);*/
-		return new BasicArray(underlying, numElems, 1 /*FIXME*/);
+		return new BasicArray(underlying, numElems);
 	}
 
-	static native void releaseHandle(long jsdiHandle);
-
-	private static native long getBasicValueHandle(BasicType underlying);
-
-	private static native long getBasicPointerHandle(BasicType underlying);
-
-	private static native long makeBasicArrayHandle(BasicType underlying,
-			int numElements);
+	private static void check(StorageType storageType, int numElements) {
+		if (storageType == null)
+			throw new IllegalArgumentException("storageType cannot be null");
+		if (numElements < 1)
+			throw new IllegalArgumentException("numElements must be positive");
+		if (StorageType.ARRAY != storageType && 1 != numElements)
+			throw new IllegalArgumentException(
+					"numElements must be 1 for VALUE/POINTER");
+	}
 
 	//
 	// ACCESSORS
@@ -76,13 +72,7 @@ public final class TypeFactory {
 			int numElements) {
 		if (basicType == null)
 			throw new IllegalArgumentException("basicType cannot be null");
-		if (storageType == null)
-			throw new IllegalArgumentException("storageType cannot be null");
-		if (numElements < 0)
-			throw new IllegalArgumentException("numElements cannot be negative");
-		if (StorageType.ARRAY != storageType && 1 != numElements)
-			throw new IllegalArgumentException(
-					"numElements must be 1 for VALUE/POINTER");
+		check(storageType, numElements);
 		switch (storageType) {
 		case VALUE:
 			return basicValues.get(basicType);
@@ -91,7 +81,31 @@ public final class TypeFactory {
 		case ARRAY:
 			return makeBasicArray(basicValues.get(basicType), numElements);
 		}
-		assert false : "Control should never pass here";
+		assert false : "control should never pass here";
+		return null;
+	}
+
+	@SuppressWarnings("static-method")
+	public Type makeStringType(StorageType storageType, int numElements,
+			boolean isZeroTerminated, boolean hasInModifier) {
+		check(storageType, numElements);
+		// ASSERT: If [in] modifier incorrectly added, an exception will be
+		//         thrown by the compiler, so no need to handle it here.
+		switch (storageType) {
+		case VALUE:
+			if (isZeroTerminated) {
+				return hasInModifier ? StringIndirect.INSTANCE_IN_STRING
+						: StringIndirect.INSTANCE_STRING;
+			} else {
+				return StringIndirect.INSTANCE_BUFFER;
+			}
+		case ARRAY:
+			return new StringDirect(numElements, isZeroTerminated);
+		case POINTER:
+			throw new JSDIException(
+					"jSuneido does not support string* or buffer*");
+		}
+		assert false : "control should never pass here";
 		return null;
 	}
 }

@@ -18,12 +18,10 @@ public final class BasicValue extends Type {
 	// CONSTRUCTORS
 	//
 
-	BasicValue(BasicType basicType, long valueHandle, long pointerHandle) {
-		super(TypeId.BASIC, StorageType.VALUE, valueHandle, basicType
-				.getMarshallPlan());
-		assert valueHandle != 0 : "BasicValue may not have a null handle";
+	BasicValue(BasicType basicType) {
+		super(TypeId.BASIC, StorageType.VALUE, basicType.getMarshallPlan());
 		this.basicType = basicType;
-		this.pointerType = new BasicPointer(this, pointerHandle);
+		this.pointerType = new BasicPointer(this);
 	}
 
 	//

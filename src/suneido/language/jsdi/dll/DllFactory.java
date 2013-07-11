@@ -1,5 +1,6 @@
 package suneido.language.jsdi.dll;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +32,21 @@ public final class DllFactory {
 		}
 	}
 
+	/**
+	 * Observer which is notified whenever a new {@link Dll} is compiled. This
+	 * is for the purpose of plugging in diagnostics.
+	 * @author Victor Schappert
+	 * @since 20130709
+	 * @see DllFactory#addObserver(DllMakeObserver)
+	 */
+	public static interface DllMakeObserver {
+		/**
+		 * Fired when a new {@link Dll} is compiled. 
+		 * @param dll Newly-created {@code dll}.
+		 */
+		public void madeDll(Dll dll);
+	}
+
 	//
 	// DATA
 	//
@@ -39,6 +55,8 @@ public final class DllFactory {
 	private final Object lock = new Object();
 	private final Map<String, LoadedLibrary> libraries =
 		new HashMap<String, LoadedLibrary>();
+	private final ArrayList<DllMakeObserver> observers =
+		new ArrayList<DllMakeObserver>();
 
 	//
 	// CONSTRUCTORS
@@ -96,16 +114,18 @@ public final class DllFactory {
 				if (0 == funcPtr) {
 					throw new JSDIException("can't get address of "
 							+ libraryName + ":" + userFuncName + " or "
-							+ funcName);
+							+ libraryName + ":" + funcName);
 				}
 			}
 			//
 			// Build the Dll object to return
 			//
-			final Dll result = new Dll();
-			result.init(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName, funcName);
+			final Dll result = new Dll(funcPtr, params, returnType, suTypeName,
+					this, libraryName, userFuncName, funcName);
 			success = true;
+			for (DllMakeObserver observer : observers) {
+				observer.madeDll(result);
+			}
 			return result;
 		} finally {
 			//
@@ -136,6 +156,18 @@ public final class DllFactory {
 	 */
 	void freeDll(Dll dll) {
 		releaseLibraryHandle(dll.libraryName);
+	}
+
+	/**
+	 * Adds to the list of observers to be notified when a new {@code dll} is
+	 * compiled. 
+	 * @param observer Observer to add to list
+	 */
+	public void addObserver(DllMakeObserver observer) {
+		if (null == observer) {
+			throw new IllegalArgumentException("observer cannot be null");
+		}
+		observers.add(observer);
 	}
 
 	//
