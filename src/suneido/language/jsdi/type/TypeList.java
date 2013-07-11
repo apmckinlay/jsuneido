@@ -150,13 +150,14 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	}
 
 	/**
-	 * Makes a string representation of the parameter list (names only, not
-	 * types).
+	 * Makes a string representation of the type list as a parameter list (names
+	 * only, not types).
 	 * @return A string representing the parameter names.
 	 * @since 20130709
 	 * @see FunctionSpec#params()
+	 * @see #toParamsTypeString()
 	 */
-	public String toParamsString() {
+	public String toParamsNameString() {
 		if (! entries.isEmpty()) {
 			final int N = entries.size();
 			StringBuilder result = new StringBuilder(10 * N);
@@ -165,6 +166,32 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 				// Be consistent with FunctionSpec.params(), which doesn't
 				// add a space after the comma...
 				result.append(',').append(entries.get(k).name);
+			}
+			return result.append(')').toString();
+		} else {
+			return "()";
+		}
+	}
+
+	/**
+	 * Makes a string representation of the type list as a parameter list
+	 * containing both the parameter types and parameter names.
+	 * @return A string representing the parameter names.
+	 * @since 20130711
+	 * @see #toParamsNameString()
+	 * @see FunctionSpec#params()
+	 */
+	public String toParamsTypeString() {
+		if (!entries.isEmpty()) {
+			final int N = entries.size();
+			Entry entry = entries.get(0);
+			StringBuilder result = new StringBuilder(20 * N);
+			result.append('(').append(entry.type.getDisplayName()).append(' ')
+					.append(entry.name);
+			for (int k = 1; k < N; ++k) {
+				entry = entries.get(k);
+				result.append(", ").append(entry.type.getDisplayName())
+						.append(' ').append(entry.name);
 			}
 			return result.append(')').toString();
 		} else {

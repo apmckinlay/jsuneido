@@ -5,14 +5,21 @@ import java.util.Map;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
 import suneido.language.SuCallable;
+import suneido.language.jsdi.DllInterface;
 
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130625
+ */
+@DllInterface
 public final class Structure extends ComplexType {
 
 	//
 	// CONSTRUCTORS
 	//
 
-	public Structure(String suTypeName, TypeList members) {
+	Structure(String suTypeName, TypeList members) {
 		super(TypeId.STRUCT, suTypeName, members);
 	}
 
