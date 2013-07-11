@@ -15,10 +15,9 @@ public final class BasicPointer extends Type {
 	// CONSTRUCTORS
 	//
 
-	BasicPointer(BasicValue underlying, long jsdiHandle) {
-		super(TypeId.BASIC, StorageType.POINTER, jsdiHandle,
-				pointerPlan(underlying.getBasicType().getMarshallPlan()));
-		assert 0 != jsdiHandle : "BasicPointer may not have a null handle";
+	BasicPointer(BasicValue underlying) {
+		super(TypeId.BASIC, StorageType.POINTER, pointerPlan(underlying
+				.getBasicType().getMarshallPlan()));
 		assert null != underlying : "Underlying BasicValue may not be null";
 		this.underlying = underlying;
 	}

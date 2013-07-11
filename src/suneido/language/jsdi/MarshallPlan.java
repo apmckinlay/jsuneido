@@ -212,6 +212,16 @@ public final class MarshallPlan {
 		return ptrArray;
 	}
 
+	/**
+	 * Creates a marshaller instance for marshalling all data described by this
+	 * plan, both direct and indirect.
+	 *
+	 * @return Marshaller based on this plan
+	 */
+	public Marshaller makeMarshaller() {
+		return new Marshaller(sizeDirect, sizeIndirect);
+	}
+
 	//
 	// ANCESTOR CLASS: Object
 	//
