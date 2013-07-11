@@ -12,15 +12,13 @@ public abstract class Type extends SuValue {
 
 	private final TypeId typeId;
 	private final StorageType storageType;
-	private long jsdiHandle; // Handle to JSDI C++ object, may be 0 TODO:
-								// deletE??
 	protected MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Type(TypeId typeId, StorageType storageType, long jsdiHandle,
+	protected Type(TypeId typeId, StorageType storageType,
 			MarshallPlan marshallPlan) {
 		if (null == typeId)
 			throw new IllegalArgumentException("typeId may not be null");
@@ -28,13 +26,7 @@ public abstract class Type extends SuValue {
 			throw new IllegalArgumentException("storageType may not be null");
 		this.typeId = typeId;
 		this.storageType = storageType;
-		this.jsdiHandle = jsdiHandle;
 		this.marshallPlan = marshallPlan;
-	}
-
-	protected Type(TypeId typeId, StorageType storageType,
-			MarshallPlan marshallPlan) {
-		this(typeId, storageType, 0, marshallPlan);
 	}
 
 	//

@@ -1,6 +1,6 @@
 package suneido.language.jsdi.type;
 
-final class ProxyResolveException extends Exception {
+public final class ProxyResolveException extends Exception {
 
 	//
 	// SERIALIZATION
@@ -85,15 +85,15 @@ final class ProxyResolveException extends Exception {
 	// MUTATORS
 	//
 
-	final void setMemberName(String memberName) {
+	public final void setMemberName(String memberName) {
 		this.memberName = memberName;
 	}
 
-	final void setMemberType(String memberType) {
+	public final void setMemberType(String memberType) {
 		this.memberType = memberType;
 	}
 
-	final void setParentName(String parentName) {
+	public final void setParentName(String parentName) {
 		this.parentName = parentName;
 	}
 }

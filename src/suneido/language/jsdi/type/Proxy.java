@@ -1,11 +1,14 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.Context;
-import suneido.language.jsdi.Allocates;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
-@Allocates
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130625
+ */
 public final class Proxy extends Type {
 
 	//
@@ -81,7 +84,7 @@ public final class Proxy extends Type {
 	// ACCESSORS
 	//
 
-	boolean resolve(int level) throws ProxyResolveException {
+	final boolean resolve(int level) throws ProxyResolveException {
 		final Object maybeType = context.tryget(typeNameSlot);
 		if (null != maybeType) {
 			if (maybeType == lastResolvedType) {
@@ -95,7 +98,7 @@ public final class Proxy extends Type {
 		throw new ProxyResolveException(this, clazz);
 	}
 
-	String getUnderlyingTypeName() {
+	final String getUnderlyingTypeName() {
 		return context.nameForSlot(typeNameSlot);
 	}
 
@@ -118,20 +121,6 @@ public final class Proxy extends Type {
 		default:
 			throw new IllegalStateException(
 					"Missing switch case in Proxy.getDisplayName()");
-		}
-	}
-
-	//
-	// ANCESTOR CLASS: Object
-	//
-
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			// TODO: IMPLEMENT THIS!!
-			// XXX: This is big 'ol memory leak until implemented!
-		} finally {
-			super.finalize();
 		}
 	}
 }
