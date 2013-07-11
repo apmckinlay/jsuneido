@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import suneido.Assumption;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.jsdi.JSDIException;
@@ -18,6 +19,11 @@ import suneido.language.jsdi.MarshallPlan;
  * @see suneido.language.ParseAndCompileStructTest
  */
 public class StructureTest {
+
+	@BeforeClass
+	public static void beforeClass() {
+		Assumption.jvmIs32BitOnWindows();
+	}
 
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_STRUCTS = {
