@@ -66,6 +66,16 @@
 			  code, but Java code is not generated from C++ code. -->
 		<javah class="${jsdi-package}.JSDI" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.dll.DllFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
+		<!--  Unfortunately, javah creates headers for inner classes which
+			  themselves contain no native methods. Clean up those extra
+			  files. -->
+		<delete>
+			<fileset dir="${jsdi-path}/src/gen">
+				<not>
+					<contains text="JNIEXPORT"/>
+				</not>
+			</fileset>
+		</delete>
 	</target>
 
 </project>
