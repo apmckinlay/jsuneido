@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
+import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.type.BasicType;
@@ -212,6 +213,7 @@ public class ParseAndCompileDllTest {
 	//
 
 	private static Object compile(CharSequence code) {
+		Assumption.jvmIs32BitOnWindows();
 		return Compiler.compile(
 				ParseAndCompileStructTest.class.getSimpleName(),
 				code.toString());

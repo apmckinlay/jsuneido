@@ -3,6 +3,7 @@ package suneido.language;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 
@@ -176,6 +177,7 @@ public class ParseAndCompileStructTest {
 	//
 
 	private static Object compile(CharSequence code) {
+		Assumption.jvmIs32BitOnWindows();
 		return Compiler.compile(
 				ParseAndCompileStructTest.class.getSimpleName(),
 				code.toString());
