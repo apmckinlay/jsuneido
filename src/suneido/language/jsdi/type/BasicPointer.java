@@ -23,7 +23,7 @@ public final class BasicPointer extends Type {
 	}
 
 	private static MarshallPlan pointerPlan(MarshallPlan valuePlan) {
-		return new MarshallPlan(valuePlan);
+		return MarshallPlan.makePointerPlan(valuePlan);
 	}
 
 	//

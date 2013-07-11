@@ -31,7 +31,7 @@ public final class BasicArray extends Type {
 	}
 
 	private static MarshallPlan arrayPlan(MarshallPlan valuePlan, int numElems) {
-		return new MarshallPlan(valuePlan, numElems);
+		return MarshallPlan.makeArrayPlan(valuePlan, numElems);
 	}
 
 	//
