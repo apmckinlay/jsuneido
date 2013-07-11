@@ -17,6 +17,7 @@ import suneido.language.jsdi.type.StringType;
  * @author Victor Schappert
  * @since 20130705
  * @see ParseAndCompileStructTest
+ * @see ParseAndCompileCallbackTest
  */
 @DllInterface
 public class ParseAndCompileDllTest {
@@ -57,6 +58,7 @@ public class ParseAndCompileDllTest {
 				"\tbuffer [2] ak,\n" +
 				"\t[in] string l\n" +
 			"\t)";
+		// TODO: add resource
 
 	public final String[] VALID_RETURN_TYPES =
 	{
@@ -182,6 +184,8 @@ public class ParseAndCompileDllTest {
 			"dll a:b()",
 			"dll x y:z(a)",
 			"dll x y:z(a, b, c)",
+			"dll x y:z(A a , B b , )",
+			"dll x y:z( , )",
 			"dll x y:z([in] string)",
 			"dll x y:z([IN] string a)",
 			"dll x y:z(long[-2] a)",
@@ -194,7 +198,7 @@ public class ParseAndCompileDllTest {
 				{ parse(s); }
 			catch (SuException e)
 				{ ++n; }
-		assertEquals(n, bad.length);
+		assertEquals(bad.length, n);
 	}
 
 	@Test(expected=SuException.class)

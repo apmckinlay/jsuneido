@@ -12,6 +12,7 @@ import suneido.language.jsdi.DllInterface;
  * @since 20130621
  * @see suneido.language.jsdi.type.StructureTest
  * @see ParseAndCompileDllTest
+ * @see ParseAndCompileCallbackTest
  */
 @DllInterface
 public class ParseAndCompileStructTest {
@@ -55,6 +56,7 @@ public class ParseAndCompileStructTest {
 			"\tbuffer k\n" +
 			"\tbuffer [2] ak\n" +
 		"\t}";
+		// TODO: add resource
 
 	//
 	// PARSING TESTS
@@ -160,7 +162,7 @@ public class ParseAndCompileStructTest {
 				{ parse(s); }
 			catch (SuException e)
 				{ ++n; }
-		assertEquals(n, bad.length);
+		assertEquals(bad.length, n);
 	}
 
 	@Test(expected=SuException.class)

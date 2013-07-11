@@ -68,9 +68,11 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 	private boolean hasAnotherItem(final Token listType) {
 		switch (listType) {
 		case STRUCT:
+			// TODO: should really allow an arbitrary number of consecutive
+			//       semicolons...
 			if (SEMICOLON == token || NEWLINE == token) {
 				match();
-				return hasAnItem(listType);
+				return hasAnItem(STRUCT);
 			} else {
 				return false;
 			}
@@ -79,7 +81,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 		case CALLBACK:
 			if (COMMA == token) {
 				match();
-				return hasAnItem(listType);
+				return true;
 			} else {
 				return false;
 			}
