@@ -13,10 +13,46 @@ public final class MarshallPlan {
 	private final int sizeDirect;
 	private final int sizeIndirect;
 	private final int[] ptrArray;
+	private final boolean hasVariableIndirect;
+
+	//
+	// PUBLIC CONSTANTS
+	//
+
+	/**
+	 * Represents an index in the marshalled data array which:
+	 * <ul>
+	 * <li>
+	 * if this value is present in a MarshallPlan on the Java side, indicates
+	 * that the index to which the pointer points cannot be determined until the
+	 * data is marshalled, because a variable amount of indirect storage is
+	 * involved; and
+	 * </li>
+	 * <li>
+	 * if this value is present in a marshalled data array on the native side,
+	 * indicates that the pointer value provided by the Java marshaller should
+	 * not be changed on the native side (this can happen if a NULL pointer, or
+	 * INTRESOURCE value, is passed in a memory location that would otherwise be
+	 * a pointer).
+	 * </li>
+	 * </ul>
+	 * @see #makeVariableIndirectPlan()
+	 * @see #hasVariableIndirect()
+	 */
+	public static final int UNKNOWN_LOCATION = -1;
 
 	//
 	// CONSTRUCTORS
 	//
+
+	private MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
+			boolean hasVariableIndirect) {
+		assert 0 < sizeDirect;
+		this.sizeDirect          = sizeDirect;
+		this.sizeIndirect        = sizeIndirect;
+		this.ptrArray            = ptrArray;
+		this.hasVariableIndirect = hasVariableIndirect;
+	}
 
 	/**
 	 * Plain value constructor.
@@ -25,11 +61,8 @@ public final class MarshallPlan {
 	 * @author Victor Schappert
 	 * @since 20130702
 	 */
-	public MarshallPlan(int sizeDirect) {
-		assert 0 < sizeDirect;
-		this.sizeDirect = sizeDirect;
-		this.sizeIndirect = 0;
-		this.ptrArray = new int[0];
+	public static MarshallPlan makeDirectPlan(int sizeDirect) {
+		return new MarshallPlan(sizeDirect, 0, new int[0], false);
 	}
 
 	/**
@@ -41,17 +74,20 @@ public final class MarshallPlan {
 	 * @author Victor Schappert
 	 * @since 20130704
 	 */
-	public MarshallPlan(MarshallPlan targetPlan) {
-		sizeDirect = SizeDirect.POINTER;
-		sizeIndirect = targetPlan.sizeDirect + targetPlan.sizeIndirect;
+	public static MarshallPlan makePointerPlan(MarshallPlan targetPlan) {
+		final int sizeDirect = SizeDirect.POINTER;
+		final int sizeIndirect = targetPlan.sizeDirect + targetPlan.sizeIndirect;
 		final int N = 2 + targetPlan.ptrArray.length;
-		ptrArray = new int[N];
+		final int[] ptrArray = new int[N];
 		ptrArray[1] = SizeDirect.POINTER; // assert: ptrArray[0] = 0
 		int i = 0, j = 2;
 		while (j < N) {
-			ptrArray[j++] = SizeDirect.POINTER + targetPlan.ptrArray[i++];
-			ptrArray[j++] = SizeDirect.POINTER + targetPlan.ptrArray[i++];
+			ptrArray[j++] = targetPlan.ptrArray[i++] + SizeDirect.POINTER;
+			ptrArray[j++] = movePtrIndex(targetPlan.ptrArray[i++],
+					SizeDirect.POINTER);
 		}
+		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray,
+				targetPlan.hasVariableIndirect);
 	}
 
 	/**
@@ -64,12 +100,13 @@ public final class MarshallPlan {
 	 * @author Victor Schappert
 	 * @since 20130704
 	 */
-	public MarshallPlan(MarshallPlan elementPlan, int numElems) {
+	public static MarshallPlan makeArrayPlan(MarshallPlan elementPlan,
+			int numElems) {
 		assert 0 < numElems;
-		sizeDirect = numElems * elementPlan.sizeDirect;
-		sizeIndirect = numElems * elementPlan.sizeIndirect;
+		final int sizeDirect = numElems * elementPlan.sizeDirect;
+		final int sizeIndirect = numElems * elementPlan.sizeIndirect;
 		final int M = elementPlan.ptrArray.length;
-		ptrArray = new int[numElems * M];
+		final int[] ptrArray = new int[numElems * M];
 		int k = 0; // index into ptrArray
 		int offsetDirect = 0;
 		int offsetIndirect = (numElems - 1) * elementPlan.sizeDirect;
@@ -77,11 +114,14 @@ public final class MarshallPlan {
 			int j = 0;
 			while (j < M) {
 				ptrArray[k++] = elementPlan.ptrArray[j++] + offsetDirect;
-				ptrArray[k++] = elementPlan.ptrArray[j++] + offsetIndirect;
+				ptrArray[k++] = movePtrIndex(elementPlan.ptrArray[j++],
+						offsetIndirect);
 			}
 			offsetDirect += elementPlan.sizeDirect;
 			offsetIndirect += elementPlan.sizeIndirect;
 		}
+		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray,
+				elementPlan.hasVariableIndirect);
 	}
 
 	/**
@@ -92,17 +132,17 @@ public final class MarshallPlan {
 	 * @author Victor Schappert
 	 * @since 20130702
 	 */
-	public MarshallPlan(Iterable<MarshallPlan> children) {
+	public static MarshallPlan makeContainerPlan(Iterable<MarshallPlan> children) {
 		int sizePtrArray = 0;
-		int sizeDirect_ = 0;
+		int sizeDirect = 0;
 		for (MarshallPlan child : children) {
-			sizeDirect_ += child.sizeDirect;
+			sizeDirect += child.sizeDirect;
 			sizePtrArray += child.ptrArray.length;
 		}
-		this.ptrArray = new int[sizePtrArray];
-		this.sizeDirect = sizeDirect_;
-		int sizeDirect2_ = 0;
-		int sizeIndirect_ = 0;
+		final int[] ptrArray = new int[sizePtrArray];
+		int sizeDirect2 = 0;
+		int sizeIndirect = 0;
+		boolean hasVariableIndirect = false;
 		int i = 0;
 		for (MarshallPlan child : children) {
 			final int N = child.ptrArray.length;
@@ -110,36 +150,61 @@ public final class MarshallPlan {
 			while (j < N) {
 				int ptrIndex = child.ptrArray[j++];
 				if (ptrIndex < child.sizeDirect) {
-					ptrIndex += sizeDirect2_;
+					ptrIndex += sizeDirect2;
 				} else {
-					ptrIndex += this.sizeDirect - child.sizeDirect
-							+ sizeIndirect_;
+					ptrIndex += sizeDirect - child.sizeDirect + sizeIndirect;
 				}
 				ptrArray[i++] = ptrIndex;
 				int targetIndex = child.ptrArray[j++];
-				assert child.sizeDirect <= targetIndex
-						&& targetIndex < child.sizeDirect + child.sizeIndirect;
-				targetIndex += this.sizeDirect - child.sizeDirect
-						+ sizeIndirect_;
-				ptrArray[i++] = targetIndex;
+				assert UNKNOWN_LOCATION == targetIndex || 
+						(child.sizeDirect <= targetIndex
+						&& targetIndex < child.sizeDirect + child.sizeIndirect);
+				ptrArray[i++] = movePtrIndex(targetIndex, sizeDirect - child.sizeDirect + sizeIndirect);
 			}
-			sizeDirect2_ += child.sizeDirect;
-			sizeIndirect_ += child.sizeIndirect;
+			sizeDirect2 += child.sizeDirect;
+			sizeIndirect += child.sizeIndirect;
+			hasVariableIndirect &= child.hasVariableIndirect;
 		}
-		sizeIndirect = sizeIndirect_;
 		// Sort by index of the pointer storage (not the target storage)...
 		// Double-indirects can cause the array to become unordered by pointer
 		// storage location.
 		sortTupleArray(ptrArray, ptrArray.length);
+		// Construct
+		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray,
+				hasVariableIndirect);
 	}
+
+	/**
+	 * Constructor for a marshall plan for indirect string data.
+	 * 
+	 * This is the type of data associated with the Suneido types {@code string},
+	 * {@code buffer}, and {@code resource}. Because it describes data which is
+	 * represented by a pointer to a string whose length can only be determined
+	 * at the time the data is marshalled, the {@code ptrArray} index to the
+	 * data is set to {@link #UNKNOWN_LOCATION}.
+	 * @return
+	 */
+	public static MarshallPlan makeVariableIndirectPlan() {
+		return VARIABLE_INDIRECT_PLAN;
+	}
+
+	private static final MarshallPlan VARIABLE_INDIRECT_PLAN = new MarshallPlan(
+			SizeDirect.POINTER, 0, new int[] { 0, UNKNOWN_LOCATION }, true);
 
 	//
 	// INTERNALS
 	//
 
+	private static int movePtrIndex(int ptrIndex, int offset) {
+		return UNKNOWN_LOCATION != ptrIndex
+			? ptrIndex + offset
+			: UNKNOWN_LOCATION
+			;
+	}
+
 	private static void sortTupleArray(final int[] arr, final int N) {
 		// This is just a simple selection sort, since most pointer arrays
-		// aren't big in practise and selection sort, although O(n^2), works
+		// aren't big in practice and selection sort, although O(n^2), works
 		// well on small inputs. In the unlikely event performance becomes an
 		// issue, we can make it into a heap sort.
 		for (int endIndex = 0; endIndex < N; endIndex += 2) {
@@ -210,6 +275,19 @@ public final class MarshallPlan {
 	 */
 	public int[] getPtrArray() {
 		return ptrArray;
+	}
+
+	/**
+	 * Returns {@code true} iff the plan has variable indirect storage
+	 * (<em>ie</em> the amount of indirect storage is determinable only at the
+	 * time the data is actually marshalled). 
+	 * @return Whether the marshall plan requires a variable amount of indirect
+	 * storage.
+	 * @see #makeVariableIndirectPlan()
+	 * @see #UNKNOWN_LOCATION
+	 */
+	public boolean hasVariableIndirect() {
+		return this.hasVariableIndirect;
 	}
 
 	/**

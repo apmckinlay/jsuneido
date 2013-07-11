@@ -63,11 +63,11 @@ public final class Proxy extends Type {
 				marshallPlan = lastResolvedType.getMarshallPlan();
 				break;
 			case POINTER:
-				marshallPlan = new MarshallPlan(
+				marshallPlan = MarshallPlan.makePointerPlan(
 						lastResolvedType.getMarshallPlan());
 				break;
 			case ARRAY:
-				marshallPlan = new MarshallPlan(
+				marshallPlan = MarshallPlan.makeArrayPlan(
 						lastResolvedType.getMarshallPlan(), this.numElems);
 				break;
 			default:

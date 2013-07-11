@@ -1,6 +1,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -23,8 +24,8 @@ public final class StringIndirect extends StringType {
 	//
 
 	private StringIndirect(boolean isZeroTerminated, boolean hasInModifier) {
-		super(TypeId.STRING_INDIRECT, StorageType.POINTER, null,
-				isZeroTerminated);
+		super(TypeId.STRING_INDIRECT, StorageType.POINTER, MarshallPlan
+				.makeVariableIndirectPlan(), isZeroTerminated);
 		this.hasInModifier = hasInModifier;
 		assert isZeroTerminated || !hasInModifier : "[in] buffer not allowed";
 	}

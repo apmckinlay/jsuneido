@@ -35,8 +35,8 @@ public final class StringDirect extends StringType {
 	//
 
 	StringDirect(int numChars, boolean isZeroTerminated) {
-		super(TypeId.STRING_DIRECT, StorageType.ARRAY, new MarshallPlan(
-				numChars * SizeDirect.CHAR), isZeroTerminated);
+		super(TypeId.STRING_DIRECT, StorageType.ARRAY, MarshallPlan
+				.makeDirectPlan(numChars * SizeDirect.CHAR), isZeroTerminated);
 		// NOTE: If we ever introduce wide-character strings and buffers, this
 		//       class can probably handle it just by parameterizing the basic
 		//       type.

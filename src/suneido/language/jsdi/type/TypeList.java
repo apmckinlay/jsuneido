@@ -127,7 +127,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			for (Entry entry : entries) {
 				entryPlans.add(entry.getType().getMarshallPlan());
 			}
-			this.marshallPlan = new MarshallPlan(entryPlans);
+			this.marshallPlan = MarshallPlan.makeContainerPlan(entryPlans);
 		} else {
 			this.marshallPlan = null;
 		}
@@ -228,7 +228,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 				for (Entry entry : entries) {
 					entryPlans.add(entry.getType().getMarshallPlan());
 				}
-				marshallPlan = new MarshallPlan(entryPlans);
+				marshallPlan = MarshallPlan.makeContainerPlan(entryPlans);
 			}
 		}
 		assert null != marshallPlan;

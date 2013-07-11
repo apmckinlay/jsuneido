@@ -98,7 +98,7 @@ public enum BasicType {
 
 	private BasicType(String identifierString, int sizeDirect) {
 		this.identifierString = identifierString;
-		this.marshallPlan = new MarshallPlan(sizeDirect);
+		this.marshallPlan = MarshallPlan.makeDirectPlan(sizeDirect);
 	}
 
 	//
