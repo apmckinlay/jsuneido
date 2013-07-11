@@ -201,6 +201,11 @@ public abstract class Generator<T> {
 	}
 
 	@DllInterface
+	public T callback(T dllParams) {
+		return null;
+	}
+
+	@DllInterface
 	public T typeList(T list, String name, boolean inTag, String baseType,
 			Token storageType, String numElems) {
 		return null;

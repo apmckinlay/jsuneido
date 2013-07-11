@@ -329,6 +329,13 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override @DllInterface
+	public AstNode callback(AstNode callbackParams) {
+		if (null == callbackParams)
+			callbackParams = EMPTY_LIST;
+		return new AstNode(Token.CALLBACK, callbackParams);
+	}
+
+	@Override @DllInterface
 	public AstNode typeList(AstNode list, String name, boolean inTag,
 			String baseType, Token storageType, String numElems) {
 		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,
