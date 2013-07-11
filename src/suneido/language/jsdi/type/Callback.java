@@ -8,13 +8,13 @@ import suneido.language.jsdi.DllInterface;
  * @since 20130625
  */
 @DllInterface
-public class Callback extends ComplexType {
+public final class Callback extends ComplexType {
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Callback(String suTypeName, TypeList parameters) {
+	Callback(String suTypeName, TypeList parameters) {
 		super(TypeId.CALLBACK, suTypeName, parameters);
 	}
 
@@ -24,6 +24,15 @@ public class Callback extends ComplexType {
 
 	@Override
 	public String getDisplayName() {
-		throw new UnsupportedOperationException("Not implemented");
+		return "callback" + typeList.toParamsTypeString();
+	}
+
+	//
+	// ANCESTOR CLASS: Object
+	//
+
+	@Override
+	public String toString() {
+		return getDisplayName(); // Can be result of Suneido 'Display' built-in.
 	}
 }

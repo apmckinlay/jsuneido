@@ -76,6 +76,8 @@ public class AstCompile {
 			return foldStruct(name, ast);
 		case DLL:
 			return foldDll(name, ast);
+		case CALLBACK:
+			return foldCallback(name, ast);
 		case SUB:
 			value = fold(ast.first());
 			if (value != null)
@@ -261,7 +263,8 @@ public class AstCompile {
 	public Object foldStruct(String name, AstNode ast) {
 		nameBegin(name, "$s");
 		TypeList members = typeList(Token.STRUCT, ast.first().children);
-		Structure struct = new Structure(curName, members);
+		Structure struct = JSDI.getInstance().getTypeFactory()
+				.makeStruct(curName, members);
 		nameEnd();
 		return struct;
 	}
@@ -288,6 +291,15 @@ public class AstCompile {
 				ast.second().value, params, returnType);
 		nameEnd();
 		return dll;
+	}
+
+	@DllInterface
+	public Object foldCallback(String name, AstNode ast) {
+		nameBegin(name, "$C");
+		TypeList params = typeList(Token.CALLBACK, ast.first().children);
+		Callback callback = JSDI.getInstance().getTypeFactory()
+				.makeCallback(curName, params);
+		return callback;
 	}
 
 	/**

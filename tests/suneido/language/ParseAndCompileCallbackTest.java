@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
+import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 
@@ -149,6 +150,7 @@ public class ParseAndCompileCallbackTest {
 			"callback ( a[1.1] )",
 			"callback ( a a , &= b )",
 			"callback ( A a , B b , )",
+			"callback (a, b)",
 			"callback ( , )",
 			"callback ( [in] string a )" /* consistent with CSuneido */,
 			"callback ( string a, [in] string b )" /* consistent with CSuneido */,
@@ -168,5 +170,49 @@ public class ParseAndCompileCallbackTest {
 	public void parseArrayPointer() {
 		// In the future, we may want to support this syntax.
 		parse("callback  (  long [] * ptrToArr )  ");
+	}
+
+	// COMPILING TESTS
+	//
+
+	private static Object compile(CharSequence code) {
+		Assumption.jvmIs32BitOnWindows();
+		return Compiler.compile(
+				ParseAndCompileStructTest.class.getSimpleName(),
+				code.toString());
+	}
+
+	@Test(expected=SuException.class)
+	public void compileDuplicateParameterName() {
+		compile("callback(bool a, long a)");
+	}
+
+	@Test(expected=SuException.class)
+	public void compileStringPointer() {
+		compile("callback(string * ptrToStr)");
+	}
+
+	@Test(expected=SuException.class)
+	public void compileBufferPointer() {
+		compile("callback(buffer * ptrToBuf)");
+	}
+
+	@Test
+	public void compileAllSupportedTypes() {
+		compile(EVERYTHING);
+	}
+
+	@Test
+	public void compileErrors() {
+		String bad[] = {
+			// TODO: add bad strings here...
+		};
+		int n = 0;
+		for (String s : bad)
+			try
+				{ compile(s); }
+			catch (SuException e)
+				{ ++n; }
+		assertEquals(n, bad.length);
 	}
 }

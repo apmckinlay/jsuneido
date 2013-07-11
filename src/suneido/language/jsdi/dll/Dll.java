@@ -157,20 +157,8 @@ public class Dll extends SuCallable {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(128);
 		sb.append("dll ").append(returnType.getDisplayName()).append(' ')
-				.append(libraryName).append(':').append(actualFunctionName)
-				.append('(');
-		final Iterator<TypeList.Entry> i = dllParams.iterator();
-		if (i.hasNext()) {
-			TypeList.Entry entry = i.next();
-			sb.append(entry.getType().getDisplayName()).append(' ')
-					.append(entry.getName());
-			while (i.hasNext()) {
-				entry = i.next();
-				sb.append(", ").append(entry.getType().getDisplayName())
-						.append(' ').append(entry.getName());
-			}
-		}
-		sb.append(')');
+				.append(libraryName).append(':').append(actualFunctionName);
+		sb.append(dllParams.toParamsTypeString());
 		sb.append(" /* 0x").append(Long.toHexString(funcPtr)).append(" */");
 		return sb.toString();
 	}
@@ -197,7 +185,7 @@ public class Dll extends SuCallable {
 	 * @see suneido.language.BuiltinMethods
 	 */
 	public static Object Params(Object self) {
-		return ((Dll)self).dllParams.toParamsString();
+		return ((Dll)self).dllParams.toParamsNameString();
 	}
 
 	// TODO: implement -- see Suneidoc for dll.Trace

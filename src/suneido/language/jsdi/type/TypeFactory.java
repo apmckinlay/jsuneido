@@ -108,4 +108,12 @@ public final class TypeFactory {
 		assert false : "control should never pass here";
 		return null;
 	}
+
+	public Structure makeStruct(String suTypeName, TypeList members) {
+		return new Structure(suTypeName, members);
+	}
+
+	public Callback makeCallback(String suTypeName, TypeList members) {
+		return new Callback(suTypeName, members);
+	}
 }
