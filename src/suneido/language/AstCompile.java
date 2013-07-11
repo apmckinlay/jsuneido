@@ -221,17 +221,38 @@ public class AstCompile {
 			if (numElems < 1) {
 				throw new SuException("array must have at least one element");
 			}
+			boolean inModifier = Boolean.parseBoolean(typeInfo.first().second().value);
+			assert Token.DLL == listType || !inModifier : "[in] modifier is only supported for dll string parameters";
+			// NOTE: [in] modifier should be taken out of the language at the
+			//       first opportunity since it adds nothing in jSuneido except
+			//       extra complexity (unless we add support for wide character
+			//       strings).
 			BasicType basicType = BasicType.fromIdentifier(typeName);
+			Type type = null;
 			if (null != basicType) {
-				args.add(memberName, JSDI.getInstance().getTypeFactory()
-						.makeBasicType(basicType, storageType, numElems));
-			// TODO: handle strings/buffers/[in] strings here
+				type = JSDI.getInstance().getTypeFactory()
+						.makeBasicType(basicType, storageType, numElems);
+			} else if (StringType.IDENTIFIER_STRING.equals(typeName)) {
+				type = JSDI
+						.getInstance()
+						.getTypeFactory()
+						.makeStringType(storageType, numElems, true, inModifier);
+			} else if (StringType.IDENTIFIER_BUFFER.equals(typeName)) {
+				type = JSDI
+						.getInstance()
+						.getTypeFactory()
+						.makeStringType(storageType, numElems, false,
+								inModifier);
 			} else // otherwise it's a name which may be undefined, so add a
 			{      // proxy
-				args.add(memberName,
-						new Proxy(context, context.slotForName(typeName),
-								storageType, numElems));
+				type = new Proxy(context, context.slotForName(typeName),
+						storageType, numElems);
 			}
+			if (type != StringIndirect.INSTANCE_IN_STRING && inModifier) {
+				throw new SuException("[in] modifier not permitted with "
+						+ type.getDisplayName());
+			}
+			args.add(memberName, type);
 		}
 		return new TypeList(args);
 	}
@@ -257,10 +278,8 @@ public class AstCompile {
 					.makeBasicType(bt, StorageType.VALUE, 1);
 		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
 			returnType = VoidType.INSTANCE;
-		} else if ("string".equals(returnTypeName)) { // XXX: hack
-			// XXX: This is a temporary hack until string support is added.
-			//      Please remove it as soon as strings are properly supported.
-			returnType = VoidType.INSTANCE;
+		} else if (StringType.IDENTIFIER_STRING.equals(returnTypeName)) {
+			returnType = StringIndirect.INSTANCE_STRING;
 		} else {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}

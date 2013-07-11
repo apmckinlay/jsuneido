@@ -5,6 +5,8 @@ public enum TypeId {
 
 	VOID,
 	BASIC,
+	STRING_DIRECT,
+	STRING_INDIRECT,
 	PROXY,
 	STRUCT,
 	CALLBACK;

@@ -50,6 +50,10 @@ public class ParseAndCompileStructTest {
 			"\tgdiobj i\n" +
 			"\tgdiobj * pi\n" +
 			"\tgdiobj [2] ai\n" +
+			"\tstring j\n" +
+			"\tstring [2] aj\n" +
+			"\tbuffer k\n" +
+			"\tbuffer [2] ak\n" +
 		"\t}";
 
 	//
@@ -146,7 +150,9 @@ public class ParseAndCompileStructTest {
 			"struct { a[1.1] }",
 			"struct { a a; &= b }",
 			"struct { [in] string a }" /* consistent with CSuneido */,
-			"struct { string a, [in] string b }" /* consistent with CSuneido */
+			"struct { string a; [in] string b }" /* consistent with CSuneido */,
+			"string { [in] buffer a }",
+			"string { [in] char a }",
 		};
 		int n = 0;
 		for (String s : bad)
@@ -176,6 +182,16 @@ public class ParseAndCompileStructTest {
 	@Test(expected=SuException.class)
 	public void compileDuplicateMemberName() {
 		compile("struct { long a; short a }");
+	}
+
+	@Test(expected=SuException.class)
+	public void compileStringPointer() {
+		compile("struct { string * ptrToStr }");
+	}
+
+	@Test(expected=SuException.class)
+	public void compileBufferPointer() {
+		compile("struct { buffer * ptrToBuf }");
 	}
 
 	@Test

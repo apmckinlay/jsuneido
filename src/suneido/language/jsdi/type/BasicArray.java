@@ -1,12 +1,15 @@
 package suneido.language.jsdi.type;
 
-import suneido.language.jsdi.Allocates;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130625
+ */
 @DllInterface
-@Allocates
 public final class BasicArray extends Type {
 
 	//
@@ -20,12 +23,11 @@ public final class BasicArray extends Type {
 	// CONSTRUCTORS
 	//
 
-	BasicArray(BasicValue underlying, int numElems, long jsdiHandle) {
-		super(TypeId.BASIC, StorageType.ARRAY, jsdiHandle, arrayPlan(underlying
+	BasicArray(BasicValue underlying, int numElems) {
+		super(TypeId.BASIC, StorageType.ARRAY, arrayPlan(underlying
 				.getBasicType().getMarshallPlan(), numElems));
 		this.underlying = underlying;
 		this.numElems = numElems;
-		assert jsdiHandle != 0 : "BasicArray may not have a null handle";
 	}
 
 	private static MarshallPlan arrayPlan(MarshallPlan valuePlan, int numElems) {

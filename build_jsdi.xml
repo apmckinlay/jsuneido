@@ -65,8 +65,6 @@
 			  project, in the sense that C++ code is generated from Java
 			  code, but Java code is not generated from C++ code. -->
 		<javah class="${jsdi-package}.JSDI" classpath="bin" destdir="${jsdi-path}/src/gen"/>
-		<javah class="${jsdi-package}.type.TypeFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
-		<javah class="${jsdi-package}.type.Type" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.dll.DllFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
 	</target>
 

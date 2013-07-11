@@ -8,6 +8,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 
 /**
  * Immutable list of <code>&lt;name, {@link Type}&gt;</code> tuples which
@@ -144,16 +145,42 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return marshallPlan;
 	}
 
+	public void marshallIn(Marshaller marshaller) {
+		
+	}
+
+	/**
+	 * Makes a string representation of the parameter list (names only, not
+	 * types).
+	 * @return A string representing the parameter names.
+	 * @since 20130709
+	 * @see FunctionSpec#params()
+	 */
+	public String toParamsString() {
+		if (! entries.isEmpty()) {
+			final int N = entries.size();
+			StringBuilder result = new StringBuilder(10 * N);
+			result.append('(').append(entries.get(0).name);
+			for (int k = 1; k < N; ++k) {
+				// Be consistent with FunctionSpec.params(), which doesn't
+				// add a space after the comma...
+				result.append(',').append(entries.get(k).name);
+			}
+			return result.append(')').toString();
+		} else {
+			return "()";
+		}
+	}
+
 	//
 	// MUTATORS
 	//
 
-	final boolean resolve(int level) throws ProxyResolveException {
+	public final boolean resolve(int level) throws ProxyResolveException {
 		boolean changed = false;
 		if (!isClosed) {
 			for (Entry entry : entries) {
-				final TypeId typeId = entry.type.getTypeId();
-				if (typeId == TypeId.PROXY) {
+				if (TypeId.PROXY == entry.type.getTypeId()) {
 					try {
 						if (100 < level) {
 							throw new JSDIException(
@@ -164,8 +191,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 						e.setMemberName(entry.name);
 						throw e;
 					}
-				} else
-					assert TypeId.BASIC == typeId : "Invalid type list entry";
+				}
 			}
 			if (changed || null == marshallPlan) {
 				// Only need to remake the Marshall Plan for a non-closed list

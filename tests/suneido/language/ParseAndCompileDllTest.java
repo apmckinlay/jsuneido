@@ -3,10 +3,14 @@ package suneido.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import java.util.ArrayList;
+
 import org.junit.Test;
 
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.type.BasicType;
+import suneido.language.jsdi.type.StringType;
 
 /**
  * Tests parsing and compiling of Suneido language <code>dll</code> elements.
@@ -46,9 +50,13 @@ public class ParseAndCompileDllTest {
 				"\thandle [2] ah,\n" +
 				"\tgdiobj i,\n" +
 				"\tgdiobj * pi,\n" +
-				"\tgdiobj [2] ai\n" +
+				"\tgdiobj [2] ai,\n" +
+				"\tstring j,\n" +
+				"\tstring [2] aj,\n" +
+				"\tbuffer k,\n" +
+				"\tbuffer [2] ak,\n" +
+				"\t[in] string l\n" +
 			"\t)";
-	// todo: add string, [in] string, buffer
 
 	public final String[] VALID_RETURN_TYPES =
 	{
@@ -189,6 +197,12 @@ public class ParseAndCompileDllTest {
 		assertEquals(n, bad.length);
 	}
 
+	@Test(expected=SuException.class)
+	public void parseArrayPointer() {
+		// In the future, we may want to support this syntax.
+		parse("dll x y:z(long[] * ptrToArr)");
+	}
+
 	//
 	// COMPILING TESTS
 	//
@@ -213,6 +227,50 @@ public class ParseAndCompileDllTest {
 			sb.append(" jsdi:_TestVoid@0()");
 			compile(sb.toString());
 		}
+	}
+
+	@Test(expected=SuException.class)
+	public void compileStringPointer() {
+		compile("dll x y:z(string * ptrToStr)");
+	}
+
+	@Test(expected=SuException.class)
+	public void compileBufferPointer() {
+		compile("dll x y:z(buffer * ptrToBuf)");
+	}
+
+	@Test
+	public void compileInStringParam() {
+		compile("dll void jsdi:_TestVoid@0([in] string a)");
+	}
+
+	@Test
+	public void compileInStringInvalidUses() {
+		final ArrayList<String> typeNames = new ArrayList<String>();
+		for (BasicType basicType : BasicType.values()) {
+			typeNames.add(basicType.toIdentifier());
+			typeNames.add(basicType.toIdentifier() + "*");
+			typeNames.add(basicType.toIdentifier() + "[207]");
+		}
+		typeNames.add(StringType.IDENTIFIER_BUFFER);
+		typeNames.add(StringType.IDENTIFIER_BUFFER + "*");
+		typeNames.add(StringType.IDENTIFIER_BUFFER + "[207]");
+		typeNames.add(StringType.IDENTIFIER_STRING + "*");
+		typeNames.add(StringType.IDENTIFIER_STRING + "[207]");
+		typeNames.add("FAKEType19820207");
+		typeNames.add("FAKEType19820207*");
+		typeNames.add("FAKEType19820207[207]");
+		int N = 0;
+		for (String typeName : typeNames) {
+			try {
+				final String code = "dll void jsdi:_TestVoid@0([in] " + typeName
+						+ " x)";
+				compile(code);
+			} catch (SuException e) {
+				++N;
+			}
+		}
+		assertEquals(typeNames.size(), N);
 	}
 
 	@Test
