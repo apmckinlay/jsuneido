@@ -1,6 +1,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.SuValue;
+import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
@@ -67,4 +68,21 @@ public abstract class Type extends SuValue {
 	 * @since 20130628
 	 */
 	public abstract String getDisplayName();
+
+	/**
+	 * Returns the amount of variable indirect storage occupied by a certain
+	 * value if it is treated as having the same type as this. In practice, this
+	 * method will only be validly called on strings and buffers.
+	 * 
+	 * @param value
+	 *            Non-{@code null} value whose variable indirect storage needs
+	 *            are to be counted.
+	 * @return Amount of variable indirect storage required by {@code value}
+	 * @see Type#countVariableIndirect(Object)
+	 * @since 20130711
+	 */
+	public int countVariableIndirect(Object value) {
+		throw new JSDIException(getDisplayName()
+				+ " does not support variable indirect storage");
+	}
 }

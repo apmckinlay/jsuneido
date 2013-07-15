@@ -85,4 +85,13 @@ public final class StringIndirect extends StringType {
 			: IDENTIFIER_BUFFER
 			;
 	}
+	
+	@Override
+	public int countVariableIndirect(Object value) {
+		int extra = isZeroTerminated ? SizeDirect.CHAR : 0;
+		if (value instanceof CharSequence) {
+			return ((CharSequence)value).length() + extra;
+		}
+		return 0;
+	}
 }

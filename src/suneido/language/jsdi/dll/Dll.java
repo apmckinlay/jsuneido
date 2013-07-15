@@ -96,16 +96,6 @@ public class Dll extends SuCallable {
 		return suTypeName;
 	}
 
-	public final MarshallPlan getMarshallPlan() {
-		// TODO: resolve: thread safety
-		resolve();
-		return dllParams.getMarshallPlan();
-	}
-
-	public final Type getReturnType() {
-		return returnType;
-	}
-
 	public final String getSignature() {
 		StringBuilder result = new StringBuilder();
 		result.append('(');
@@ -118,6 +108,16 @@ public class Dll extends SuCallable {
 		}
 		result.append(')').append(returnType.getDisplayName());
 		return result.toString();
+	}
+
+	public final Type getReturnType() {
+		return returnType;
+	}
+
+	public final MarshallPlan getMarshallPlan() {
+		// TODO: resolve: thread safety
+		resolve();
+		return dllParams.getMarshallPlan();
 	}
 
 	//
@@ -134,12 +134,13 @@ public class Dll extends SuCallable {
 	}
 
 	@Override
-	public final Object call(Object ... args) {
+	public Object call(Object ... args) { // TODO: should this method be final?
 		try {
 			dllParams.resolve(0);
 		} catch (ProxyResolveException e) {
 			// XXX: handle proxy resolve exception in dll
 		}
+		final int sizeVariableIndirect = dllParams.countVariableIndirectParams(args);
 		final MarshallPlan plan = dllParams.getMarshallPlan();
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallIn(m);

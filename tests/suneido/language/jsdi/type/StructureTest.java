@@ -6,7 +6,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.Assumption;
+import suneido.SuContainer;
 import suneido.language.Compiler;
+import suneido.language.Concats;
 import suneido.language.ContextLayered;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
@@ -77,7 +79,10 @@ public class StructureTest {
 			//      I     420      4    *tts3[1].pLong
 			//
 		"CycleA", "struct { CycleB cycleB }",
-		"CycleB", "struct { CycleA cycleA }"
+		"CycleB", "struct { CycleA cycleA }",
+		"StringStruct1", "struct { short a; short b; string c; string[4] d; }",
+		"StringStruct2", "struct { StringStruct1[2] a; buffer[4] b; buffer c; }",
+		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }"
 	};
 
 	private static Object eval(String src) {
@@ -94,6 +99,12 @@ public class StructureTest {
 		return struct.getMarshallPlan();
 	}
 
+	private static int countVariableIndirect(String name, Object value) {
+		Structure struct = get(name);
+		struct.resolve(0);
+		return struct.countVariableIndirect(value);
+	}
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		CONTEXT = new SimpleContext(NAMED_STRUCTS);
@@ -108,18 +119,76 @@ public class StructureTest {
 
 	@Test
 	public void testMarshallPlan() {
-		assertEquals("MarshallPlan[ 16, 0, { } ]",
+		assertEquals("MarshallPlan[ 16, 0, { }, no-vi ]",
 			getMarshallPlan("RECT").toString());
-		assertEquals("MarshallPlan[ 8, 0, { } ]",
+		assertEquals("MarshallPlan[ 8, 0, { }, no-vi ]",
 			getMarshallPlan("POINT").toString());
-		assertEquals("MarshallPlan[ 64, 20, { 16:64, 60:80 } ]",
+		assertEquals("MarshallPlan[ 64, 20, { 16:64, 60:80 }, no-vi ]",
 			getMarshallPlan("TwoTierStruct").toString());
-		assertEquals("MarshallPlan[ 260, 164, { 16:260, 60:276, 64:280, 84:364, 128:380, 148:384, 192:400, 212:404, 256:420, 296:344, 340:360 } ]",
+		assertEquals("MarshallPlan[ 260, 164, { 16:260, 60:276, 64:280, 84:364, 128:380, 148:384, 192:400, 212:404, 256:420, 296:344, 340:360 }, no-vi ]",
 			getMarshallPlan("ThreeTierStruct").toString());
+		assertEquals("MarshallPlan[ 12, 0, { 4:-1 }, vi ]",
+			getMarshallPlan("StringStruct1").toString());
+		assertEquals("MarshallPlan[ 32, 0, { 4:-1, 16:-1, 28:-1 }, vi ]",
+			getMarshallPlan("StringStruct2").toString());
+		assertEquals("MarshallPlan[ 40, 32, { 8:-1, 20:-1, 32:-1, 36:40, 44:-1, 56:-1, 68:-1 }, vi ]",
+			getMarshallPlan("StringStruct3").toString());
 	}
 
 	@Test(expected=JSDIException.class)
 	public void testCycle() {
 		eval("CycleA.Size()");
+	}
+
+	@Test
+	public void testCountVariableIndirect() {
+		// Passing anything that's not an SuContainer to a structure's
+		// countVariableIndirect() method should return 0.
+		final int N = NAMED_STRUCTS.length;
+		final Object ob = new Object();
+		for (int k = 0; k < N; k += 2) {
+			assertEquals(0, get(NAMED_STRUCTS[k]).countVariableIndirect(ob));
+		}
+		// Test passing string values to members that can't be strings
+		SuContainer c;
+		c = SuContainer.fromKVPairs("left", "abcdefg", "top", new Concats("x", "y"));
+		assertEquals(0, get("RECT").countVariableIndirect(c));
+		// Test passing non-string values to members which expect strings
+		c = SuContainer.fromKVPairs("c", 1, "d", "xyz" );
+		assertEquals(0, get("StringStruct1").countVariableIndirect(c));
+		// Test passing string value to a member which expects a string
+		c = SuContainer.fromKVPairs("c", new Concats("hello ", "world"));
+		assertEquals(12, get("StringStruct1").countVariableIndirect(c)); // 11 + 1 for NUL
+		// Two tiers
+		c = SuContainer.fromKVPairs(
+				"a",
+				SuContainer.fromKVPairs(
+					0, SuContainer.fromKVPairs("c", "1"),
+					1, SuContainer.fromKVPairs("c", "22")
+				),
+				"c", "this buffer contains 61 characters and is not zero-terminated"
+		);
+		assertEquals(66, countVariableIndirect("StringStruct2", c));
+		// Three tiers plus pointer
+		c = SuContainer.fromKVPairs(
+				"a", 123,
+				"b", // StringStruct2 b
+				SuContainer.fromKVPairs(
+					"a",
+					SuContainer.fromKVPairs(
+						0, SuContainer.fromKVPairs("c", "1")
+					),
+					"c", "1"
+				),
+				"c", // StringStruct2 * c
+				SuContainer.fromKVPairs(
+					"a",
+					SuContainer.fromKVPairs(
+						0, SuContainer.fromKVPairs("c", "4444"),
+						1, SuContainer.fromKVPairs("c", "666666")
+					)
+				)
+		);
+		assertEquals(15, countVariableIndirect("StringStruct3", c));
 	}
 }

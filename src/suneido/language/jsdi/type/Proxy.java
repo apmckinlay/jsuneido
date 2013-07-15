@@ -1,5 +1,6 @@
 package suneido.language.jsdi.type;
 
+import suneido.SuContainer;
 import suneido.language.Context;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
@@ -122,5 +123,24 @@ public final class Proxy extends Type {
 			throw new IllegalStateException(
 					"Missing switch case in Proxy.getDisplayName()");
 		}
+	}
+
+	@Override
+	public int countVariableIndirect(Object value) {
+		int count = 0;
+		if (StorageType.ARRAY == storageType) {
+			if (value instanceof SuContainer) {
+				SuContainer c = (SuContainer)value;
+				for (int k = 0; k < numElems; ++k) {
+					value = c.get(k);
+					if (null != value) {
+						count += lastResolvedType.countVariableIndirect(value);
+					}
+				}
+			}
+		} else {
+			count = lastResolvedType.countVariableIndirect(value);
+		}
+		return count;
 	}
 }
