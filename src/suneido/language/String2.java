@@ -9,9 +9,8 @@ import java.nio.ByteBuffer;
 import suneido.SuValue;
 import suneido.language.builtin.StringMethods;
 
-public abstract class String2 extends SuValue implements Comparable<String2> {
-
-	public abstract int length();
+public abstract class String2 extends SuValue implements Comparable<String2>,
+		CharSequence {
 
 	@Override
 	public Object call(Object... args) {
