@@ -15,7 +15,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Merges small strings to avoid growing the array as much.
  */
 @ThreadSafe
-public class Concats extends String2 {
+public final class Concats extends String2 {
 	private final Pieces p;
 	private final int len; // total length
 
@@ -34,16 +34,35 @@ public class Concats extends String2 {
 		return new Concats(p.append(s, len));
 	}
 
+	//
+	// INTERFACE: CharSequence
+	//
+
 	@Override
-	public String toString() {
-		// Pieces may be longer than len
-		return p.flatten().substring(0, len);
+	public char charAt(int index) {
+		return p.charAt(index);
 	}
 
 	@Override
 	public int length() {
 		return len;
 	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		String flat = p.flatten();
+		return flat.substring(start, end);
+	}
+
+	@Override
+	public String toString() {
+		// Pieces may be longer than len
+		return p.flatten().substring(0, len);
+	}
+
+	//
+	// TYPES
+	//
 
 	@ThreadSafe
 	private static class Pieces {
@@ -126,6 +145,20 @@ public class Concats extends String2 {
 				n = 1;
 			}
 			return a[0];
+		}
+
+		synchronized char charAt(int index) {
+			if (! (0 <= index && index < len)) {
+				throw new IllegalArgumentException("chartAt(" + index +
+						") out of bounds on Concats of length " + len);
+			}
+			int k = 0;
+			int lenk = a[k].length();
+			while (lenk <= index) {
+				index -= lenk;
+				lenk = a[++k].length();
+			}
+			return a[k].charAt(index);
 		}
 	}
 
