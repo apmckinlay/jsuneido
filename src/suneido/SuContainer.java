@@ -89,6 +89,25 @@ public class SuContainer extends SuValue
 		return c;
 	}
 
+	/**
+	 * Constructs an SuContainer from an array of key-value pairs.
+	 * @param pairs Even-length array of objects where
+	 *              <code>pairs<sub>i</sub></code> represents the key to insert
+	 *              and <code>pairs<sub>i+1</sub></code> represents the value.
+	 * @return New container
+	 * @author Victor Schappert
+	 * @since 20130712
+	 */
+	public static SuContainer fromKVPairs(Object... pairs) {
+		final int N = pairs.length;
+		assert 0 == N % 2 : "pairs must contain an even number of elements";
+		SuContainer c = new SuContainer();
+		for (int k = 0; k < N;) {
+			c.preset(pairs[k++], pairs[k++]);
+		}
+		return c;
+	}
+
 	public Object vecGet(int i) {
 		return vec.get(i);
 	}

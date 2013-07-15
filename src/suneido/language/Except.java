@@ -15,7 +15,7 @@ import com.google.common.collect.Lists;
  * This is the value this is assigned to a catch variable. Wraps a
  * java.lang.Throwable. Can be treated as a string for backwards compatibility.
  */
-public class Except extends String2 {
+public final class Except extends String2 {
 	private final String s;
 	private final Throwable e;
 	private static final BuiltinMethods methods = new BuiltinMethods(
@@ -82,14 +82,28 @@ public class Except extends String2 {
 		return call;
 	}
 
+	//
+	// INTERFACE: CharSequence
+	//
+
 	@Override
-	public String toString() {
-		return s;
+	public char charAt(int index) {
+		return s.charAt(index);
 	}
 
 	@Override
 	public int length() {
 		return s.length();
+	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		return s.subSequence(start, end);
+	}
+
+	@Override
+	public String toString() {
+		return s;
 	}
 
 }

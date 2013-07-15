@@ -163,7 +163,7 @@ public final class MarshallPlan {
 			}
 			sizeDirect2 += child.sizeDirect;
 			sizeIndirect += child.sizeIndirect;
-			hasVariableIndirect &= child.hasVariableIndirect;
+			hasVariableIndirect |= child.hasVariableIndirect;
 		}
 		// Sort by index of the pointer storage (not the target storage)...
 		// Double-indirects can cause the array to become unordered by pointer
@@ -319,7 +319,11 @@ public final class MarshallPlan {
 						.append(ptrArray[k++]);
 			}
 		}
-		result.append(" } ]");
+		if (hasVariableIndirect) {
+			result.append(" }, vi ]");
+		} else {
+			result.append(" }, no-vi ]");
+		}
 		return result.toString();
 	}
 }
