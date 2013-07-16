@@ -380,8 +380,7 @@ public final class Ops {
 			return 1;
 		if (x == Boolean.FALSE)
 			return 0;
-		throw new SuException("conditionals require true or false, got: "
-				+ typeName(x));
+		throw new SuException("can't convert : " + typeName(x) + " to boolean");
 	}
 
 	public static Boolean toBoolean(Object x) {
