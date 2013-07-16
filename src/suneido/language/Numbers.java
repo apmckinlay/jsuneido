@@ -27,6 +27,10 @@ public class Numbers {
 	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
 	public static final BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
 	public static final BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
+	public static final BigDecimal BD_LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
+	public static final BigDecimal BD_LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
+	public static final BigInteger BI_LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
+	public static final BigInteger BI_LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
 	public static final BigDecimal ZERO = BigDecimal.ZERO;
 	public static final BigDecimal INF =
@@ -290,4 +294,36 @@ public class Numbers {
 		}
 	}
 
+	static long toLongFromBD(BigDecimal n) {
+		if (n.compareTo(Numbers.BD_LONG_MIN) == -1)
+			return Long.MIN_VALUE;
+		if (n.compareTo(Numbers.BD_LONG_MAX) == 1)
+			return Long.MAX_VALUE;
+		return n.longValue();
+	}
+
+	static long toLongFromBI(BigInteger n) {
+		if (n.compareTo(Numbers.BI_LONG_MIN) == -1)
+			return Long.MIN_VALUE;
+		if (n.compareTo(Numbers.BI_LONG_MAX) == 1)
+			return Long.MAX_VALUE;
+		return n.longValue();
+	}
+
+	static long toLongFromString(String s) {
+		if (s.equals(""))
+			return 0L;
+		String t = s;
+		int radix = 10;
+		if (s.startsWith("0x") || s.startsWith("0X")) {
+			radix = 16;
+			t = s.substring(2);
+		} else if (s.startsWith("0"))
+			radix = 8;
+		try {
+			return Long.parseLong(t, radix);
+		} catch (NumberFormatException e) {
+			throw new SuException("can't convert string to long: " + s);
+		}
+	}
 }
