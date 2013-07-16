@@ -406,11 +406,28 @@ public final class Ops {
 			return toIntFromBD((BigDecimal) x);
 		if (x instanceof BigInteger)
 			return toIntFromBI((BigInteger) x);
-		if (x instanceof String || x instanceof String2)
+		if (x instanceof CharSequence)
 			return toIntFromString(x.toString());
 		if (x instanceof Boolean)
 			return x == Boolean.TRUE ? 1 : 0;
 		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
+	}
+
+	public static long toLong(Object x) {
+		if (x instanceof Long || x instanceof Integer || x instanceof Short
+				|| x instanceof Byte)
+			return ((Number) x).longValue();
+		else if (x instanceof BigDecimal)
+			return toLongFromBD((BigDecimal) x);
+		else if (x instanceof BigInteger)
+			return toLongFromBI((BigInteger) x);
+		else if (x instanceof CharSequence)
+			return toLongFromString(x.toString());
+		else if (Boolean.TRUE == x)
+			return 1L;
+		else if (Boolean.FALSE == x)
+			return 0L;
+		throw new SuException("can't convert " + typeName(x) + " to long");
 	}
 
 	// used by string operations to coerce arguments
