@@ -398,8 +398,7 @@ public final class Ops {
 	}
 
 	public static int toInt(Object x) {
-		if (x instanceof Integer || x instanceof Long ||
-				x instanceof Short || x instanceof Byte)
+		if (x instanceof Integer || x instanceof Short || x instanceof Byte)
 			return ((Number) x).intValue();
 		if (x instanceof Long)
 			return toIntFromLong((Long) x);
