@@ -64,7 +64,7 @@ public class MarshallPlanTest {
 	@Test
 	public void testDirectWithVariableIndirect() {
 		assertEquals(
-			"MarshallPlan[ 4, 0, { 0:-1 }, { 0, -1 }, vi ]",
+			"MarshallPlan[ 4, 0, { 0:-1 }, { 0 }, vi ]",
 			MarshallPlan.makeVariableIndirectPlan().toString()
 		);
 	}
