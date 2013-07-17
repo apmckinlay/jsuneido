@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -54,5 +55,19 @@ public final class StringDirect extends StringType {
 				.append(isZeroTerminated ? IDENTIFIER_STRING
 						: IDENTIFIER_BUFFER).append('[').append(numChars)
 				.append(']').toString();
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		if (null != value) {
+			final String str = value.toString();
+			if (isZeroTerminated) {
+				marshaller.putZeroTerminatedStringDirect(str, numChars);
+			} else {
+				marshaller.putNonZeroTerminatedStringDirect(str, numChars);
+			}
+		} else {
+			marshaller.skipBasicArrayElements(1);
+		}
 	}
 }

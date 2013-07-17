@@ -1,7 +1,10 @@
 package suneido.language.jsdi.type;
 
+import suneido.SuContainer;
+import suneido.language.Ops;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -62,16 +65,54 @@ public final class BasicArray extends Type {
 		return result.toString();
 	}
 
-	//
-	// ANCESTOR CLASS: Object
-	//
-
 	@Override
-	protected void finalize() throws Throwable {
-		try {
-			releaseHandle();
-		} finally {
-			super.finalize();
+	public void marshallIn(Marshaller marshaller, Object value) {
+		final SuContainer c = Ops.toContainer(value);
+		if (null == c) {
+			marshaller.skipBasicArrayElements(numElems);
+		} else {
+			final BasicType type = getBasicType();
+			// NOTE: We can get a far more efficient result if we add the
+			//       ability to lock an SuContainer (by locking both the
+			//       vector and the map) and then use vecSize() and vecGet()
+			for (int k = 0; k < numElems; ++k) {
+				Object elem = c.get(k);
+				if (null == elem) {
+					marshaller.skipBasicArrayElements(1);
+					continue;
+				}
+				switch (type) {
+				// With any luck the JIT compiler will optimize  this by pulling
+				// the switch statement outside the loop...
+				case BOOL:
+					marshaller.putBool(Ops.toBoolean_(elem));
+					break;
+				case CHAR:
+					marshaller.putChar((byte)Ops.toInt(elem));
+					break;
+				case SHORT:
+					marshaller.putShort((short)Ops.toInt(elem));
+					break;
+				case GDIOBJ:
+					// intentional fall-through
+				case HANDLE:
+					// intentional fall-through
+				case LONG:
+					marshaller.putLong(Ops.toInt(value));
+					break;
+				case INT64:
+					marshaller.putInt64(NumberConversions.toLong(elem));
+					break;
+				case FLOAT:
+					marshaller.putFloat(NumberConversions.toFloat(elem));
+					break;
+				case DOUBLE:
+					marshaller.putDouble(NumberConversions.toDouble(elem));
+					break;
+				default:
+					throw new IllegalStateException("unhandled BasicType in switch");
+				}
+			}
 		}
 	}
 }

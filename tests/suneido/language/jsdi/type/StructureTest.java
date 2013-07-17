@@ -81,7 +81,7 @@ public class StructureTest {
 		"CycleA", "struct { CycleB cycleB }",
 		"CycleB", "struct { CycleA cycleA }",
 		"StringStruct1", "struct { short a; short b; string c; string[4] d; }",
-		"StringStruct2", "struct { StringStruct1[2] a; buffer[4] b; buffer c; }",
+		"StringStruct2", "struct { StringStruct1[2] a; buffer[8] b; buffer c; }",
 		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }"
 	};
 
@@ -115,24 +115,54 @@ public class StructureTest {
 		assertEquals(16, eval("RECT.Size()"));
 		assertEquals( 8, eval("POINT.Size()"));
 		assertEquals(64, eval("TwoTierStruct.Size()"));
+		assertEquals(12, eval("StringStruct1.Size()"));
+		assertEquals(36, eval("StringStruct2.Size()"));
+		assertEquals(44, eval("StringStruct3.Size()"));
 	}
 
 	@Test
 	public void testMarshallPlan() {
-		assertEquals("MarshallPlan[ 16, 0, { }, no-vi ]",
-			getMarshallPlan("RECT").toString());
-		assertEquals("MarshallPlan[ 8, 0, { }, no-vi ]",
-			getMarshallPlan("POINT").toString());
-		assertEquals("MarshallPlan[ 64, 20, { 16:64, 60:80 }, no-vi ]",
-			getMarshallPlan("TwoTierStruct").toString());
-		assertEquals("MarshallPlan[ 260, 164, { 16:260, 60:276, 64:280, 84:364, 128:380, 148:384, 192:400, 212:404, 256:420, 296:344, 340:360 }, no-vi ]",
-			getMarshallPlan("ThreeTierStruct").toString());
-		assertEquals("MarshallPlan[ 12, 0, { 4:-1 }, vi ]",
-			getMarshallPlan("StringStruct1").toString());
-		assertEquals("MarshallPlan[ 32, 0, { 4:-1, 16:-1, 28:-1 }, vi ]",
-			getMarshallPlan("StringStruct2").toString());
-		assertEquals("MarshallPlan[ 40, 32, { 8:-1, 20:-1, 32:-1, 36:40, 44:-1, 56:-1, 68:-1 }, vi ]",
-			getMarshallPlan("StringStruct3").toString());
+		assertEquals("MarshallPlan[ 16, 0, { }, { 0, 4, 8, 12 }, no-vi ]",
+				getMarshallPlan("RECT").toString());
+		assertEquals("MarshallPlan[ 8, 0, { }, { 0, 4 }, no-vi ]",
+				getMarshallPlan("POINT").toString());
+		assertEquals(
+				"MarshallPlan[ 64, 20, { 16:64, 60:80 }, " +
+					"{ 0, 4, 8, 12, 16, 64, 68, 72, 76, 20, 24, 28, 32, 36, " +
+					"40, 44, 48, 52, 56, 60, 80 }, no-vi ]",
+				getMarshallPlan("TwoTierStruct").toString());
+		assertEquals(
+				"MarshallPlan[ 260, 164, " +
+					"{ 16:260, 60:276, 64:280, 296:344, 340:360, 84:364, 128:380, 148:384, " +
+					"192:400, 212:404, 256:420 }, " +
+						// tts1
+					"{ 0, 4, 8, 12, 16, 260, 264, 268, 272, 20, 24, 28, 32, 36, " +
+						"40, 44, 48, 52, 56, 60, 276, " +
+						// ttp
+					"64, 280, 284, 288, 292, 296, 344, 348, 352, 356, 300, 304, "+ 
+						"308, 312, 316, 320, 324, 328, 332, 336, 340, 360, " +
+						// tts2
+					"68, 72, 76, 80, 84, 364, 368, 372, 376, 88, 92, 96, 100, 104, " +
+						"108, 112, 116, 120, 124, 128, 380, " +
+						// tts3[0]
+					"132, 136, 140, 144, 148, 384, 388, 392, 396, 152, 156, 160, " +
+						"164, 168, 172, 176, 180, 184, 188, 192, 400, " +
+						// tts3[1]
+					"196, 200, 204, 208, 212, 404, 408, 412, 416, 216, 220, 224, " +
+						"228, 232, 236, 240, 244, 248, 252, 256, 420 " +
+					"}, no-vi ]",
+				getMarshallPlan("ThreeTierStruct").toString());
+		assertEquals("MarshallPlan[ 12, 0, { 4:-1 }, { 0, 2, 4, 8 }, vi ]",
+				getMarshallPlan("StringStruct1").toString());
+		assertEquals(
+				"MarshallPlan[ 36, 0, { 4:-1, 16:-1, 32:-1 }, " +
+				"{ 0, 2, 4, 8, 12, 14, 16, 20, 24, 32 }, vi ]",
+				getMarshallPlan("StringStruct2").toString());
+		assertEquals(
+				"MarshallPlan[ 44, 36, { 8:-1, 20:-1, 36:-1, 40:44, 48:-1, 60:-1, 76:-1 }, " +
+					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
+					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, vi ]",
+				getMarshallPlan("StringStruct3").toString());
 	}
 
 	@Test(expected=JSDIException.class)
@@ -155,7 +185,7 @@ public class StructureTest {
 		assertEquals(0, get("RECT").countVariableIndirect(c));
 		// Test passing non-string values to members which expect strings
 		c = SuContainer.fromKVPairs("c", 1, "d", "xyz" );
-		assertEquals(0, get("StringStruct1").countVariableIndirect(c));
+		assertEquals(2, get("StringStruct1").countVariableIndirect(c));
 		// Test passing string value to a member which expects a string
 		c = SuContainer.fromKVPairs("c", new Concats("hello ", "world"));
 		assertEquals(12, get("StringStruct1").countVariableIndirect(c)); // 11 + 1 for NUL

@@ -4,7 +4,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import suneido.SuValue;
+import suneido.language.Args;
 import suneido.language.BuiltinMethods;
+import suneido.language.FunctionSpec;
 import suneido.language.SuCallable;
 import suneido.language.jsdi.*;
 import suneido.language.jsdi.type.*;
@@ -34,7 +36,7 @@ public class Dll extends SuCallable {
 	// todo: docs
 	Dll(long funcPtr, TypeList params, Type returnType, String suTypeName,
 			DllFactory dllFactory, String libraryName, String userFuncName,
-			String funcName) {
+			String funcName, FunctionSpec functionSpec) {
 		assert 0 != funcPtr : "Invalid dll function pointer";
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId() && StorageType.VALUE == returnType.getStorageType())
@@ -53,7 +55,8 @@ public class Dll extends SuCallable {
 		//
 		// Initialize SuCallable fields
 		//
-		super.params = null; // handled by local Params() built-in
+		
+		super.params = functionSpec;
 	}
 
 	//
@@ -130,11 +133,12 @@ public class Dll extends SuCallable {
 	@Override
 	public SuValue lookup(String method) {
 		SuValue result = builtins.get(method);
-		return null != result ? result : new SuValue.NotFound(method);
+		return null != result ? result : super.lookup(method);
 	}
 
 	@Override
 	public Object call(Object ... args) { // TODO: should this method be final?
+		Args.massage(super.params, args);
 		try {
 			dllParams.resolve(0);
 		} catch (ProxyResolveException e) {
@@ -142,8 +146,9 @@ public class Dll extends SuCallable {
 		}
 		final int sizeVariableIndirect = dllParams.countVariableIndirectParams(args);
 		final MarshallPlan plan = dllParams.getMarshallPlan();
-		final Marshaller m = plan.makeMarshaller();
-		dllParams.marshallIn(m);
+		final Marshaller m = plan.makeMarshaller(sizeVariableIndirect);
+		dllParams.marshallInParams(m, args);
+		
 		// TODO: call the bound jsdi method
 		// TODO: marshall out the params
 		// TODO: marshall out the return value
@@ -177,23 +182,17 @@ public class Dll extends SuCallable {
 	// BUILT-IN METHODS
 	//
 
-	/**
-	 * Built-in size method. <em>eg</em>: {@code (struct { }).Size()}. The
-	 * requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
-	 * @param self The structure.
-	 * @return Integer size of the structure in bytes.
-	 * @see suneido.language.BuiltinMethods
-	 */
-	public static Object Params(Object self) {
-		return ((Dll)self).dllParams.toParamsNameString();
-	}
-
 	// TODO: implement -- see Suneidoc for dll.Trace
 	// TODO: give it a parameter so you can turn it off!
 	public static Object Trace(Object self) { 
 		throw new RuntimeException("not yet implemented");
 	}
+
+	//
+	// INTERNALS
+	//
+
+	
 
 	//
 	// NATIVE METHODS. These functions are available to specific instances of
@@ -220,13 +219,13 @@ public class Dll extends SuCallable {
 	protected static native int callLLLLReturnL(long funcPtr, int arg0,
 			int arg1, int arg2, int arg3);
 
-	protected static native void callDirectOnlyReturnVoid(long funcPtr,
+	protected static native void callDirectOnlyReturnV(long funcPtr,
 			int sizeDirect, byte[] params);
 
-	protected static native void callDirectOnlyReturn32bit(long funcPtr,
+	protected static native int callDirectOnlyReturn32bit(long funcPtr,
 			int sizeDirect, byte[] params);
 
-	protected static native void callDirectOnlyReturn64bit(long funcPtr,
+	protected static native long callDirectOnlyReturn64bit(long funcPtr,
 			int sizeDirect, byte[] params);
 
 	protected static native void callGeneralReturnVoid(long funcPtr,

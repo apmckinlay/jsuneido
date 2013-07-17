@@ -7,6 +7,8 @@ import java.util.TreeSet;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuContainer;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.Marshaller;
@@ -99,7 +101,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			throw new UnsupportedOperationException(
 					"TypeList may not be modified through its iterator (or at all)");
 		}
-
 	}
 
 	//
@@ -172,44 +173,50 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	public int countVariableIndirectMembers(SuContainer container) {
 		int count = 0;
-		final int N = entries.length;
-		for (int k = 0; k < N; ++k) {
-			if (entries[k].type.getMarshallPlan().hasVariableIndirect()) {
-				final Object value = container.mapGet(entries[k].name);
+		for (Entry entry : entries) {
+			if (entry.type.getMarshallPlan().hasVariableIndirect()) {
+				final Object value = container.mapGet(entry.name);
 				if (null != value) {
-					count += entries[k].type.countVariableIndirect(value);
+					count += entry.type.countVariableIndirect(value);
 				}
 			}
 		}
 		return count;
 	}
 
-	public void marshallIn(Marshaller marshaller) {
-		
+	// TODO: docs
+	public void marshallInParams(Marshaller marshaller, Object[] args) {
+		final int N = entries.length;
+		assert N == args.length;
+		for (int k = 0; k < N; ++k) {
+			entries[k].type.marshallIn(marshaller, args[k]);
+		}
+	}
+
+	// TODO: docs
+	public void marshallInMembers(Marshaller marshaller, Object value) {
+		final SuContainer c = Ops.toContainer(value);
+		if (null == c) {
+			marshaller.skipComplexArrayElements(1, marshallPlan);
+		} else for (Entry entry : entries) {
+			entry.type.marshallIn(marshaller, c.get(entry.name));
+		}
 	}
 
 	/**
-	 * Makes a string representation of the type list as a parameter list (names
-	 * only, not types).
-	 * @return A string representing the parameter names.
-	 * @since 20130709
+	 * Returns an array containing entry names.
+	 * @return String array containing the entry names
+	 * @since 20130715
 	 * @see FunctionSpec#params()
 	 * @see #toParamsTypeString()
 	 */
-	public String toParamsNameString() {
+	public String[] getEntryNames() {
 		final int N = entries.length;
-		if (0 < N) {
-			StringBuilder result = new StringBuilder(10 * N);
-			result.append('(').append(entries[0].name);
-			for (int k = 1; k < N; ++k) {
-				// Be consistent with FunctionSpec.params(), which doesn't
-				// add a space after the comma...
-				result.append(',').append(entries[k].name);
-			}
-			return result.append(')').toString();
-		} else {
-			return "()";
+		final String[] paramNames = new String[N];
+		for (int k = 0; k < N; ++k) {
+			paramNames[k] = entries[k].name;
 		}
+		return paramNames;
 	}
 
 	/**
@@ -217,8 +224,8 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	 * containing both the parameter types and parameter names.
 	 * @return A string representing the parameter names.
 	 * @since 20130711
-	 * @see #toParamsNameString()
 	 * @see FunctionSpec#params()
+	 * @see #getEntryNames()
 	 */
 	public String toParamsTypeString() {
 		final int N = entries.length;

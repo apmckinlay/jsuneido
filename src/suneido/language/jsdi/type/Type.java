@@ -3,6 +3,7 @@ package suneido.language.jsdi.type;
 import suneido.SuValue;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
 public abstract class Type extends SuValue {
@@ -28,17 +29,6 @@ public abstract class Type extends SuValue {
 		this.typeId = typeId;
 		this.storageType = storageType;
 		this.marshallPlan = marshallPlan;
-	}
-
-	//
-	// INTERNALS
-	//
-
-	protected void releaseHandle() {	// TODO: delete this method
-// XXX
-//		assert 0 != jsdiHandle : "No handle to release";
-//		TypeFactory.releaseHandle(jsdiHandle);
-//		jsdiHandle = 0;
 	}
 
 	//
@@ -70,19 +60,42 @@ public abstract class Type extends SuValue {
 	public abstract String getDisplayName();
 
 	/**
+	 * <p>
 	 * Returns the amount of variable indirect storage occupied by a certain
 	 * value if it is treated as having the same type as this. In practice, this
 	 * method will only be validly called on strings and buffers.
+	 * </p>
+	 * <p>
+	 * FIXME: There is a problem with how countVariableIndirect is conceived.
+	 * It is possible some kind of concurrent execution causes the length of
+	 * strings to increase between the time that countVariableIndirect is called
+	 * for a particular value, and the time that the data is actually
+	 * marshalled. If/when this happens, you'll overrun the buffer allocated
+	 * based on countVariableIndirect. Indirect storage should probably just be
+	 * dumped into a separate growable buffer which starts out quite big.
+	 * </p>
 	 * 
 	 * @param value
 	 *            Non-{@code null} value whose variable indirect storage needs
 	 *            are to be counted.
 	 * @return Amount of variable indirect storage required by {@code value}
-	 * @see Type#countVariableIndirect(Object)
+	 * @see TypeList#countVariableIndirectMembers(suneido.SuContainer)
+	 * @see TypeList#countVariableIndirectParams(Object[])
+	 * @see #marshallIn(Marshaller, Object)
 	 * @since 20130711
 	 */
 	public int countVariableIndirect(Object value) {
 		throw new JSDIException(getDisplayName()
 				+ " does not support variable indirect storage");
 	}
+
+	/**
+	 * Marshalls a value of this type ({@code value}) into direct storage.
+	 *
+	 * @param marshaller Storage for the marshalled value
+	 * @param value Value to marshall
+	 * @see #countVariableIndirect(Object)
+	 * @since 20130716
+	 */
+	public abstract void marshallIn(Marshaller marshaller, Object value);
 }

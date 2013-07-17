@@ -398,6 +398,11 @@ public final class Ops {
 	}
 
 	public static int toInt(Object x) {
+		// TODO: determine whether it is possible and desirable in jSuneido
+		//       to hold a reference to types Long, Short, and Byte (noting
+		//       that literal processing via AstCompile.fold() and Numbers.
+		//       stringToNumber() can only produce either an 'int' or a
+		//       BigDecimal.
 		if (x instanceof Integer || x instanceof Short || x instanceof Byte)
 			return ((Number) x).intValue();
 		if (x instanceof Long)
@@ -411,23 +416,6 @@ public final class Ops {
 		if (x instanceof Boolean)
 			return x == Boolean.TRUE ? 1 : 0;
 		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
-	}
-
-	public static long toLong(Object x) {
-		if (x instanceof Long || x instanceof Integer || x instanceof Short
-				|| x instanceof Byte)
-			return ((Number) x).longValue();
-		else if (x instanceof BigDecimal)
-			return toLongFromBD((BigDecimal) x);
-		else if (x instanceof BigInteger)
-			return toLongFromBI((BigInteger) x);
-		else if (x instanceof CharSequence)
-			return toLongFromString(x.toString());
-		else if (Boolean.TRUE == x)
-			return 1L;
-		else if (Boolean.FALSE == x)
-			return 0L;
-		throw new SuException("can't convert " + typeName(x) + " to long");
 	}
 
 	// used by string operations to coerce arguments

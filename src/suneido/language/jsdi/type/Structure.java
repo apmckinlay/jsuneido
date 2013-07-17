@@ -7,6 +7,7 @@ import suneido.SuValue;
 import suneido.language.BuiltinMethods;
 import suneido.language.SuCallable;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.Marshaller;
 
 /**
  * TODO: docs
@@ -48,6 +49,11 @@ public final class Structure extends ComplexType {
 			? typeList.countVariableIndirectMembers((SuContainer)value)
 			: 0
 			;
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		typeList.marshallInMembers(marshaller, value);
 	}
 
 	//

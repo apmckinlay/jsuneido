@@ -14,6 +14,19 @@ import suneido.language.builtin.NumberMethods;
 /**
  * static helper methods for working with numbers.<p>
  * Used by {@link Ops} and {@link NumberMethods}
+ * 
+ * <p>
+ * TODO: There are some problems with how numbers are conceived in JSuneido.
+ *       Although *literals* are reduced to 16 decimal digits of precision
+ *       (using {@link #stringToNumber(String)}, there are various ways to get
+ *       around this limitation using arithmetic operations. Furthermore, it
+ *       isn't clear how many different types (Byte, Short, Int, Long,
+ *       BigInteger, BigDecimal) either can <u>or <em>should</em></u> be
+ *       floating around in the system. It appears that there are many useless
+ *       branches (<em>eg</em> testing for Short). And indeed, it would be
+ *       desirable to eliminate as many unnecessary number types as possible for
+ *       the sake of both performance and simplicity. --VCS 20130716 
+ * </p> 
  */
 public class Numbers {
 	public static final int PRECISION = 16; // to match cSuneido
@@ -291,39 +304,6 @@ public class Numbers {
 			return Integer.parseInt(t, radix);
 		} catch (NumberFormatException e) {
 			throw new SuException("can't convert string to integer: " + s);
-		}
-	}
-
-	static long toLongFromBD(BigDecimal n) {
-		if (n.compareTo(Numbers.BD_LONG_MIN) == -1)
-			return Long.MIN_VALUE;
-		if (n.compareTo(Numbers.BD_LONG_MAX) == 1)
-			return Long.MAX_VALUE;
-		return n.longValue();
-	}
-
-	static long toLongFromBI(BigInteger n) {
-		if (n.compareTo(Numbers.BI_LONG_MIN) == -1)
-			return Long.MIN_VALUE;
-		if (n.compareTo(Numbers.BI_LONG_MAX) == 1)
-			return Long.MAX_VALUE;
-		return n.longValue();
-	}
-
-	static long toLongFromString(String s) {
-		if (s.equals(""))
-			return 0L;
-		String t = s;
-		int radix = 10;
-		if (s.startsWith("0x") || s.startsWith("0X")) {
-			radix = 16;
-			t = s.substring(2);
-		} else if (s.startsWith("0"))
-			radix = 8;
-		try {
-			return Long.parseLong(t, radix);
-		} catch (NumberFormatException e) {
-			throw new SuException("can't convert string to long: " + s);
 		}
 	}
 }

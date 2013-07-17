@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import suneido.language.FunctionSpec;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.JSDIException;
@@ -118,10 +119,15 @@ public final class DllFactory {
 				}
 			}
 			//
+			// Make a FunctionSpec of the DLL so the compiler knows how to
+			// call expressions.
+			//
+			FunctionSpec funcSpec = makeFunctionSpec(params); 
+			//
 			// Build the Dll object to return
 			//
 			final Dll result = new Dll(funcPtr, params, returnType, suTypeName,
-					this, libraryName, userFuncName, funcName);
+					this, libraryName, userFuncName, funcName, funcSpec);
 			success = true;
 			for (DllMakeObserver observer : observers) {
 				observer.madeDll(result);
@@ -173,6 +179,10 @@ public final class DllFactory {
 	//
 	// INTERNALS
 	//
+
+	private static FunctionSpec makeFunctionSpec(TypeList params) {
+		return new FunctionSpec(params.getEntryNames());
+	}
 
 	private static String normalizedLibraryName(String libraryName) {
 		return libraryName.toLowerCase();
