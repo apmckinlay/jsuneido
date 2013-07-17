@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -88,10 +89,26 @@ public final class StringIndirect extends StringType {
 	
 	@Override
 	public int countVariableIndirect(Object value) {
-		int extra = isZeroTerminated ? SizeDirect.CHAR : 0;
-		if (value instanceof CharSequence) {
-			return ((CharSequence)value).length() + extra;
+		if (null != value) {
+			int extra = isZeroTerminated ? SizeDirect.CHAR : 0;
+			return value.toString().length() + extra;
 		}
 		return 0;
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		if (null != value) {
+			String str = value.toString();
+			if (isZeroTerminated) {
+				marshaller.putZeroTerminatedStringIndirect(str);
+			} else {
+				marshaller.putNonZeroTerminatedStringIndirect(str);
+			}
+		} else {
+			marshaller.putNullPtr();
+			// Don't need to skip because there isn't an element in the
+			// marshaller's posArray.
+		}
 	}
 }

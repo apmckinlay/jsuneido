@@ -2,7 +2,9 @@ package suneido.language.jsdi.type;
 
 import suneido.SuContainer;
 import suneido.language.Context;
+import suneido.language.Ops;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -129,8 +131,8 @@ public final class Proxy extends Type {
 	public int countVariableIndirect(Object value) {
 		int count = 0;
 		if (StorageType.ARRAY == storageType) {
-			if (value instanceof SuContainer) {
-				SuContainer c = (SuContainer)value;
+			final SuContainer c = Ops.toContainer(value);
+			if (null != c) {
 				for (int k = 0; k < numElems; ++k) {
 					value = c.get(k);
 					if (null != value) {
@@ -142,5 +144,45 @@ public final class Proxy extends Type {
 			count = lastResolvedType.countVariableIndirect(value);
 		}
 		return count;
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		// TODO: need to make sure we keep the correct position in the
+		//       marshaller when we're missing an element...
+		switch (storageType) {
+		case VALUE:
+			if (null != value) {
+				lastResolvedType.marshallIn(marshaller, value);
+			} else {
+				marshaller.skipComplexArrayElements(1, marshallPlan);
+			}
+			break;
+		case POINTER:
+			if (null != value) {
+				marshaller.putPtr();
+				lastResolvedType.marshallIn(marshaller, value);
+			} else {
+				marshaller.putNullPtr();
+				marshaller.skipComplexArrayElements(1, marshallPlan);
+			}
+		case ARRAY:
+			final SuContainer c = Ops.toContainer(value);
+			if (null != c) {
+				for (int k = 0; k < numElems; ++k) {
+					value = c.get(k);
+					if (null != value) {
+						lastResolvedType.marshallIn(marshaller, value);
+					} else {
+						marshaller.skipComplexArrayElements(1, marshallPlan);
+					}
+				}
+			} else {
+				marshaller.skipComplexArrayElements(numElems, marshallPlan);
+			}
+			break;
+		default:
+			throw new IllegalStateException("unhandled StorageType in switch");
+		}
 	}
 }

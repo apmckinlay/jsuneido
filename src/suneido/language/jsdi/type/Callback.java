@@ -1,6 +1,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.Marshaller;
 
 /**
  * TODO: docs
@@ -25,6 +26,11 @@ public final class Callback extends ComplexType {
 	@Override
 	public String getDisplayName() {
 		return "callback" + typeList.toParamsTypeString();
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		throw new RuntimeException("not implemented"); // TODO: implement
 	}
 
 	//

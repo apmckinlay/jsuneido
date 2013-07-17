@@ -1,7 +1,6 @@
 package suneido.language.jsdi.type;
 
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi.*;
 
 /**
  * Pseudo-type representing the "type" of the return value of a {@code void}
@@ -9,6 +8,7 @@ import suneido.language.jsdi.StorageType;
  * @author Victor Schappert
  * @since 20130707
  */
+@DllInterface
 public final class VoidType extends Type {
 
 	//
@@ -40,5 +40,10 @@ public final class VoidType extends Type {
 	@Override
 	public String getDisplayName() {
 		return IDENTIFIER;
+	}
+
+	@Override
+	public void marshallIn(Marshaller marshaller, Object value) {
+		throw new JSDIException(IDENTIFIER + " type cannot be marshalled in");
 	}
 }
