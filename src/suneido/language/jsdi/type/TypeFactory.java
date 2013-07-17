@@ -109,10 +109,12 @@ public final class TypeFactory {
 		return null;
 	}
 
+	@SuppressWarnings("static-method")
 	public Structure makeStruct(String suTypeName, TypeList members) {
 		return new Structure(suTypeName, members);
 	}
 
+	@SuppressWarnings("static-method")
 	public Callback makeCallback(String suTypeName, TypeList members) {
 		return new Callback(suTypeName, members);
 	}
