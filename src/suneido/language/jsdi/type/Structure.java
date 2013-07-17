@@ -2,7 +2,6 @@ package suneido.language.jsdi.type;
 
 import java.util.Map;
 
-import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
 import suneido.language.SuCallable;
@@ -41,14 +40,6 @@ public final class Structure extends ComplexType {
 		}
 		sb.append('}');
 		return sb.toString();
-	}
-
-	@Override
-	public int countVariableIndirect(Object value) {
-		return value instanceof SuContainer
-			? typeList.countVariableIndirectMembers((SuContainer)value)
-			: 0
-			;
 	}
 
 	@Override

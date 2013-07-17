@@ -143,47 +143,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return marshallPlan;
 	}
 
-	/**
-	 * TODO: docs
-	 * @param values
-	 * @return
-	 * @see #countVariableIndirectMembers(SuContainer)
-	 * @see Type#countVariableIndirect(Object)
-	 */
-	public int countVariableIndirectParams(Object[] values) {
-		int count = 0;
-		final int N = values.length;
-		assert N == entries.length;
-		for (int k = 0; k < N; ++k) {
-			final Object value = values[k]; 
-			if (null != value &&
-				entries[k].type.getMarshallPlan().hasVariableIndirect()) {
-				count += entries[k].type.countVariableIndirect(value);
-			}
-		}
-		return count;
-	}
-
-	/**
-	 * TODO: docs
-	 * @param container
-	 * @return
-	 * @see #countVariableIndirectParams(Object[])
-	 * @see Type#countVariableIndirect(Object)
-	 */
-	public int countVariableIndirectMembers(SuContainer container) {
-		int count = 0;
-		for (Entry entry : entries) {
-			if (entry.type.getMarshallPlan().hasVariableIndirect()) {
-				final Object value = container.mapGet(entry.name);
-				if (null != value) {
-					count += entry.type.countVariableIndirect(value);
-				}
-			}
-		}
-		return count;
-	}
-
 	// TODO: docs
 	public void marshallInParams(Marshaller marshaller, Object[] args) {
 		final int N = entries.length;

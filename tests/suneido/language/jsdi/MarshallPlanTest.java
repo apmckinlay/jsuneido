@@ -27,7 +27,7 @@ public class MarshallPlanTest {
 	@Test
 	public void testDirect() {
 		assertEquals(
-			"MarshallPlan[ 1, 0, { }, { 0 }, no-vi ]",
+			"MarshallPlan[ 1, 0, { }, { 0 }, #vi:0 ]",
 			DIRECT1.toString()
 		);
 	}
@@ -35,7 +35,7 @@ public class MarshallPlanTest {
 	@Test
 	public void testDirectPointer() {
 		assertEquals(
-			"MarshallPlan[ 4, 1, { 0:4 }, { 0, 4 }, no-vi ]",
+			"MarshallPlan[ 4, 1, { 0:4 }, { 0, 4 }, #vi:0 ]",
 			PTR1.toString()
 		);
 	}
@@ -47,7 +47,7 @@ public class MarshallPlanTest {
 			DIRECT1
 		);
 		assertEquals(
-			"MarshallPlan[ 2, 0, { }, { 0, 1 }, no-vi ]",
+			"MarshallPlan[ 2, 0, { }, { 0, 1 }, #vi:0 ]",
 			ARRAY1_2.toString()
 		);
 	}
@@ -56,7 +56,7 @@ public class MarshallPlanTest {
 	public void testDirectContainer() {
 		assertEquals(cp(DIRECT1), DIRECT1);
 		assertEquals(
-			"MarshallPlan[ 7, 0, { }, { 0, 1, 3 }, no-vi ]",
+			"MarshallPlan[ 7, 0, { }, { 0, 1, 3 }, #vi:0 ]",
 			CONT1_2_4.toString()
 		);
 	}
@@ -64,7 +64,7 @@ public class MarshallPlanTest {
 	@Test
 	public void testDirectWithVariableIndirect() {
 		assertEquals(
-			"MarshallPlan[ 4, 0, { 0:-1 }, { 0 }, vi ]",
+			"MarshallPlan[ 4, 0, { 0:-1 }, { 0 }, #vi:1 ]",
 			MarshallPlan.makeVariableIndirectPlan().toString()
 		);
 	}
@@ -73,7 +73,7 @@ public class MarshallPlanTest {
 	public void testPointerPointer() {
 		MarshallPlan ptrPtrPlan = MarshallPlan.makePointerPlan(PTR1);
 		assertEquals(
-			"MarshallPlan[ 4, 5, { 0:4, 4:8 }, { 0, 4, 8 }, no-vi ]",
+			"MarshallPlan[ 4, 5, { 0:4, 4:8 }, { 0, 4, 8 }, #vi:0 ]",
 			ptrPtrPlan.toString()
 		);
 	}
@@ -82,7 +82,7 @@ public class MarshallPlanTest {
 	public void testPointerArray() {
 		MarshallPlan ptrArrayPlan = MarshallPlan.makeArrayPlan(PTR1, 3);
 		assertEquals(
-			"MarshallPlan[ 12, 3, { 0:12, 4:13, 8:14 }, { 0, 12, 4, 13, 8, 14 }, no-vi ]",
+			"MarshallPlan[ 12, 3, { 0:12, 4:13, 8:14 }, { 0, 12, 4, 13, 8, 14 }, #vi:0 ]",
 			ptrArrayPlan.toString()
 		);
 	}
@@ -92,7 +92,7 @@ public class MarshallPlanTest {
 		assertEquals(cp(PTR1), PTR1);
 		MarshallPlan ptrContainerPlan = cp(PTR1, PTR1, PTR1);
 		assertEquals(
-			"MarshallPlan[ 12, 3, { 0:12, 4:13, 8:14 }, { 0, 12, 4, 13, 8, 14 }, no-vi ]",
+			"MarshallPlan[ 12, 3, { 0:12, 4:13, 8:14 }, { 0, 12, 4, 13, 8, 14 }, #vi:0 ]",
 			ptrContainerPlan.toString()
 		);
 	}
@@ -101,7 +101,7 @@ public class MarshallPlanTest {
 	public void testArrayPointer() {
 		MarshallPlan arrayPtrPlan = MarshallPlan.makePointerPlan(ARRAY1_2);
 		assertEquals(
-			"MarshallPlan[ 4, 2, { 0:4 }, { 0, 4, 5 }, no-vi ]",
+			"MarshallPlan[ 4, 2, { 0:4 }, { 0, 4, 5 }, #vi:0 ]",
 			arrayPtrPlan.toString()
 		);
 	}
@@ -111,7 +111,7 @@ public class MarshallPlanTest {
 		assertEquals(MarshallPlan.makeArrayPlan(ARRAY1_2, 1), ARRAY1_2);
 		MarshallPlan arrayArrayPlan = MarshallPlan.makeArrayPlan(ARRAY1_2, 2);
 		assertEquals(
-			"MarshallPlan[ 4, 0, { }, { 0, 1, 2, 3 }, no-vi ]",
+			"MarshallPlan[ 4, 0, { }, { 0, 1, 2, 3 }, #vi:0 ]",
 			arrayArrayPlan.toString()
 		);
 	}
@@ -121,7 +121,7 @@ public class MarshallPlanTest {
 		assertEquals(cp(ARRAY1_2), ARRAY1_2);
 		MarshallPlan arrayContainerPlan = cp(ARRAY1_2, ARRAY1_2);
 		assertEquals(
-			"MarshallPlan[ 4, 0, { }, { 0, 1, 2, 3 }, no-vi ]",
+			"MarshallPlan[ 4, 0, { }, { 0, 1, 2, 3 }, #vi:0 ]",
 			arrayContainerPlan.toString()
 		);
 	}
@@ -130,7 +130,7 @@ public class MarshallPlanTest {
 	public void testContainerPointer() {
 		MarshallPlan containerPtrPlan = MarshallPlan.makePointerPlan(CONT1_2_4);
 		assertEquals(
-			"MarshallPlan[ 4, 7, { 0:4 }, { 0, 4, 5, 7 }, no-vi ]",
+			"MarshallPlan[ 4, 7, { 0:4 }, { 0, 4, 5, 7 }, #vi:0 ]",
 			containerPtrPlan.toString()
 		);
 	}
@@ -139,7 +139,7 @@ public class MarshallPlanTest {
 	public void testContainerArray() {
 		MarshallPlan containerArrayPlan = MarshallPlan.makeArrayPlan(CONT1_2_4, 4);
 		assertEquals(
-			"MarshallPlan[ 28, 0, { }, { 0, 1, 3, 7, 8, 10, 14, 15, 17, 21, 22, 24 }, no-vi ]",
+			"MarshallPlan[ 28, 0, { }, { 0, 1, 3, 7, 8, 10, 14, 15, 17, 21, 22, 24 }, #vi:0 ]",
 			containerArrayPlan.toString()
 		);
 	}
@@ -149,7 +149,7 @@ public class MarshallPlanTest {
 		assertEquals(cp(CONT1_2_4), CONT1_2_4);
 		MarshallPlan contContPlan = cp(CONT1_2_4, CONT1_2_4);
 		assertEquals(
-			"MarshallPlan[ 14, 0, { }, { 0, 1, 3, 7, 8, 10 }, no-vi ]",
+			"MarshallPlan[ 14, 0, { }, { 0, 1, 3, 7, 8, 10 }, #vi:0 ]",
 			contContPlan.toString()
 		);
 	}

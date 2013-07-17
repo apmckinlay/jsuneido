@@ -19,21 +19,28 @@ public final class Marshaller {
 	private final int[]   posArray;     // reference to MarshallPlan's array
 	private       int     ptrIndex;              // index into ptrArray
 	private       int     posIndex;              // index into posArray
-	private       int     variableIndirectIndex; // index into data
 	private       boolean isPtrArrayCopied;      // whether ptrArray is a copy
+	private final ExtensibleByteBuffer variableIndirectStorage;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	Marshaller(int sizeDirect, int sizeIndirect, int sizeVariableIndirect,
+	Marshaller(int sizeDirect, int sizeIndirect, int countVariableIndirect,
 			int[] ptrArray, int[] posArray) {
-		this.data = new byte[sizeDirect + sizeIndirect + sizeVariableIndirect];
+		this.data = new byte[sizeDirect + sizeIndirect];
 		this.ptrArray = ptrArray;
 		this.posArray = posArray;
 		this.posIndex = 0;
 		this.ptrIndex = 1;
-		this.variableIndirectIndex = sizeDirect + sizeIndirect;
+		this.variableIndirectStorage = 0 == countVariableIndirect
+				? null
+				: new ExtensibleByteBuffer(
+					Math.min(
+						countVariableIndirect * VARIABLE_INDIRECT_PER_INITIAL_BYTES,
+						VARIABLE_INDIRECT_MAX_INITIAL_BYTES	
+					)
+				);
 		this.isPtrArrayCopied = false;
 	}
 
@@ -158,23 +165,13 @@ public final class Marshaller {
 		ptrIndex += numElems * plan.getPtrArraySize();
 	}
 
-	public void putZeroTerminatedStringIndirect(String value) {
+	public void putStringIndirect(String value, int numTrailingZeros) {
 		// Update the pointer array to point to the beginning of this string
 		int ptrIndex = nextPtr();
-		ptrArray[ptrIndex] = variableIndirectIndex;
+		ptrArray[ptrIndex] = data.length + variableIndirectStorage.pos;
 		// Store the string in the variable indirect area and advance the
 		// variable indirect cursor past the zero terminator
-		variableIndirectIndex = copyStr(value, variableIndirectIndex,
-				value.length()) + 1;
-	}
-
-	public void putNonZeroTerminatedStringIndirect(String value) {
-		// Update the pointer array to point to the beginning of this string
-		int ptrIndex = nextPtr();
-		ptrArray[ptrIndex] = variableIndirectIndex;
-		// Store the string in the variable indirect area
-		variableIndirectIndex = copyStr(value, variableIndirectIndex,
-				value.length());
+		variableIndirectStorage.putStr(value, numTrailingZeros);
 	}
 
 	public void putZeroTerminatedStringDirect(String value, int maxChars) {
@@ -190,6 +187,9 @@ public final class Marshaller {
 	//
 	// INTERNALS
 	//
+
+	private static final int VARIABLE_INDIRECT_PER_INITIAL_BYTES = 256;
+	private static final int VARIABLE_INDIRECT_MAX_INITIAL_BYTES = 2048;
 
 	private int nextData() {
 		return posArray[posIndex++];
@@ -221,5 +221,33 @@ public final class Marshaller {
 			data[j++] = (byte)ch;
 		}
 		return j;
+	}
+
+	//
+	// INTERNAL TYPES
+	//
+
+	private static final class ExtensibleByteBuffer {
+		byte[] arr;
+		int    pos;
+		public ExtensibleByteBuffer(int initialCapacity) {
+			assert 0 < initialCapacity;
+			arr = new byte[initialCapacity];
+		}
+		public void putStr(String value, int numTrailingZeros) {
+			final int N = value.length();
+			checkCapacity(N + numTrailingZeros);
+			for (int i = 0; i < N; ++i) {
+				char ch = value.charAt(i);
+				arr[pos++] = (byte)ch;
+			}
+			pos += numTrailingZeros;
+		}
+		private void checkCapacity(int sizeNeeded) {
+			if (arr.length < pos + sizeNeeded) {
+				arr = Arrays.copyOf(arr,
+						Math.max(arr.length + sizeNeeded, 2 * arr.length));
+			}
+		}
 	}
 }

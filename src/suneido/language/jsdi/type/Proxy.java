@@ -128,25 +128,6 @@ public final class Proxy extends Type {
 	}
 
 	@Override
-	public int countVariableIndirect(Object value) {
-		int count = 0;
-		if (StorageType.ARRAY == storageType) {
-			final SuContainer c = Ops.toContainer(value);
-			if (null != c) {
-				for (int k = 0; k < numElems; ++k) {
-					value = c.get(k);
-					if (null != value) {
-						count += lastResolvedType.countVariableIndirect(value);
-					}
-				}
-			}
-		} else {
-			count = lastResolvedType.countVariableIndirect(value);
-		}
-		return count;
-	}
-
-	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		// TODO: need to make sure we keep the correct position in the
 		//       marshaller when we're missing an element...
