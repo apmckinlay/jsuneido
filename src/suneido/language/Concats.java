@@ -50,8 +50,7 @@ public final class Concats extends String2 {
 
 	@Override
 	public CharSequence subSequence(int start, int end) {
-		String flat = p.flatten();
-		return flat.substring(start, end);
+		return p.subSequence(start, end);
 	}
 
 	@Override
@@ -146,19 +145,21 @@ public final class Concats extends String2 {
 			}
 			return a[0];
 		}
-
+	
 		synchronized char charAt(int index) {
-			if (! (0 <= index && index < len)) {
-				throw new IllegalArgumentException("chartAt(" + index +
-						") out of bounds on Concats of length " + len);
-			}
-			int k = 0;
-			int lenk = a[k].length();
-			while (lenk <= index) {
-				index -= lenk;
-				lenk = a[++k].length();
-			}
-			return a[k].charAt(index);
+			checkIndex(index, "index");
+			return flatten().charAt(index);
+		}
+
+		synchronized CharSequence subSequence(int start, int end) {
+			checkIndex(start, "start index");
+			checkIndex(end, "end index");
+			return flatten().substring(start, end);
+		}
+
+		void checkIndex(int index, String name) {
+			throw new IndexOutOfBoundsException(String.format(
+					"invalid %s %d in Concats of length %d", name, index, len));
 		}
 	}
 
