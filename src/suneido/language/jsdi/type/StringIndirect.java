@@ -81,30 +81,17 @@ public final class StringIndirect extends StringType {
 
 	@Override
 	public String getDisplayName() {
-		return isZeroTerminated
+		return 1 == numTrailingZeros
 			? (hasInModifier ? "[in] " + IDENTIFIER_STRING : IDENTIFIER_STRING)
 			: IDENTIFIER_BUFFER
 			;
 	}
 	
 	@Override
-	public int countVariableIndirect(Object value) {
-		if (null != value) {
-			int extra = isZeroTerminated ? SizeDirect.CHAR : 0;
-			return value.toString().length() + extra;
-		}
-		return 0;
-	}
-
-	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null != value) {
 			String str = value.toString();
-			if (isZeroTerminated) {
-				marshaller.putZeroTerminatedStringIndirect(str);
-			} else {
-				marshaller.putNonZeroTerminatedStringIndirect(str);
-			}
+			marshaller.putStringIndirect(str, numTrailingZeros);
 		} else {
 			marshaller.putNullPtr();
 			// Don't need to skip because there isn't an element in the

@@ -144,9 +144,8 @@ public class Dll extends SuCallable {
 		} catch (ProxyResolveException e) {
 			// XXX: handle proxy resolve exception in dll
 		}
-		final int sizeVariableIndirect = dllParams.countVariableIndirectParams(args);
 		final MarshallPlan plan = dllParams.getMarshallPlan();
-		final Marshaller m = plan.makeMarshaller(sizeVariableIndirect);
+		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
 		
 		// TODO: call the bound jsdi method
@@ -220,20 +219,29 @@ public class Dll extends SuCallable {
 			int arg1, int arg2, int arg3);
 
 	protected static native void callDirectOnlyReturnV(long funcPtr,
-			int sizeDirect, byte[] params);
+			int sizeDirect, byte[] args);
 
 	protected static native int callDirectOnlyReturn32bit(long funcPtr,
-			int sizeDirect, byte[] params);
+			int sizeDirect, byte[] args);
 
 	protected static native long callDirectOnlyReturn64bit(long funcPtr,
-			int sizeDirect, byte[] params);
+			int sizeDirect, byte[] args);
 
-	protected static native void callGeneralReturnVoid(long funcPtr,
-			int sizeDirect, int sizeIndirect, int[] ptrArray, byte[] params);
+	protected static native void callIndirectReturnV(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args);
 
-	protected static native int callGeneralReturn32bit(long funcPtr,
-			int sizeDirect, int sizeIndirect, int[] ptrArray, byte[] params);
+	protected static native int callIndirectReturn32bit(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args);
 
-	protected static native long callGeneralReturn64bit(long funcPtr,
-			int sizeDirect, int sizeIndirect, int[] ptrArray, byte[] params);
+	protected static native long callIndirectReturn64bit(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args);
+
+	protected static native void callVariableIndirectReturnV(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
+
+	protected static native void callVariableIndirectReturn32bit(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
+
+	protected static native void callVariableIndirectReturn64bit(long funcPtr,
+			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
 }

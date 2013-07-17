@@ -37,7 +37,7 @@ public abstract class StringType extends Type {
 	// DATA
 	//
 
-	protected final boolean isZeroTerminated;
+	protected final int numTrailingZeros;
 
 	//
 	// CONSTRUCTORS
@@ -46,6 +46,6 @@ public abstract class StringType extends Type {
 	protected StringType(TypeId typeId, StorageType storageType,
 			MarshallPlan marshallPlan, boolean isZeroTerminated) {
 		super(typeId, storageType, marshallPlan);
-		this.isZeroTerminated = isZeroTerminated;
+		this.numTrailingZeros = isZeroTerminated ? 1 : 0;
 	}
 }

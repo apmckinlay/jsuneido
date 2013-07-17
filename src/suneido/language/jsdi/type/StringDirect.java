@@ -52,7 +52,7 @@ public final class StringDirect extends StringType {
 	@Override
 	public String getDisplayName() {
 		return new StringBuilder(12)
-				.append(isZeroTerminated ? IDENTIFIER_STRING
+				.append(1 == numTrailingZeros ? IDENTIFIER_STRING
 						: IDENTIFIER_BUFFER).append('[').append(numChars)
 				.append(']').toString();
 	}
@@ -61,7 +61,7 @@ public final class StringDirect extends StringType {
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null != value) {
 			final String str = value.toString();
-			if (isZeroTerminated) {
+			if (1 == numTrailingZeros) {
 				marshaller.putZeroTerminatedStringDirect(str, numChars);
 			} else {
 				marshaller.putNonZeroTerminatedStringDirect(str, numChars);
