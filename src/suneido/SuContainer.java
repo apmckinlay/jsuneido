@@ -30,6 +30,7 @@ import suneido.util.Util;
 import com.google.common.collect.Iterables;
 
 //TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
+//TODO resolve concurrency issues flagged below
 
 /**
  * Suneido's single container type.
@@ -39,8 +40,7 @@ import com.google.common.collect.Iterables;
 @NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
-	public final List<Object> vec =
-			Collections.synchronizedList(new ArrayList<Object>());
+	public final List<Object> vec;
 	private final Map<Object,Object> map =
 			Collections.synchronizedMap(new CanonicalMap());
 	protected Object defval = null;
@@ -68,15 +68,22 @@ public class SuContainer extends SuValue
 		}
 	}
 
+	public SuContainer(int vecCapacity) {
+		vec = Collections.synchronizedList(new ArrayList<Object>(vecCapacity));
+	}
+
 	public SuContainer() {
+		this(10);
 	}
 
 	/** create a new container and add the specified values */
 	public SuContainer(Iterable<?> c) {
+		this(10);
 		addAll(c);
 	}
 
 	public SuContainer(SuContainer other) {
+		this(other.vecSize());
 		vec.addAll(other.vec);
 		map.putAll(other.map);
 		defval = other.defval;
@@ -138,12 +145,14 @@ public class SuContainer extends SuValue
 
 	private void migrate() {
 		Object x;
+		// FIXME: concurrency issue -- this should all be wrapped in synchronized...
 		while (null != (x = map.remove(vec.size())))
 			vec.add(x);
 	}
 
 	public void insert(int at, Object value) {
 		checkReadonly();
+		// FIXME: concurrency issue -- modification between size check and get??
 		if (0 <= at && at <= vec.size()) {
 			vec.add(at, value);
 			migrate();
@@ -165,6 +174,7 @@ public class SuContainer extends SuValue
 	public void preset(Object key, Object value) {
 		checkReadonly();
 		int i = index(key);
+		// FIXME: concurrency issue -- modification between size check and get??
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
@@ -186,6 +196,20 @@ public class SuContainer extends SuValue
 			return getDefault(key, defval);
 	}
 
+	/**
+	 * Get method which attempts to avoid boxing of the key if the key is an
+	 * {@code int} value.
+	 * @param at Integer key
+	 * @return Result of the get operation
+	 * @author Victor Schappert
+	 * @since 20130717
+	 * @see #getDefault(int, Object)
+	 * @see #getIfPresent(int)
+	 */
+	public Object get(int at) {
+		return getDefault(at, defval);
+	}
+
 	public Object getDefault(Object key, Object defval) {
 		Object x = getIfPresent(key);
 		if (x != null)
@@ -199,12 +223,56 @@ public class SuContainer extends SuValue
 		return defval;
 	}
 
+	/**
+	 * Get-with-default method which attempts to avoid boxing of the key if
+	 * the key is an {@code int} value.
+	 * @param at Integer key
+	 * @param defval Default value to insert if {@code at} not present
+	 * @return Result of the get operation
+	 * @author Victor Schappert
+	 * @since 20130717
+	 * @see #get(int)
+	 * @see #getIfPresent(int)
+	 */
+	public Object getDefault(int at, Object defval) {
+		Object x = getIfPresent(at);
+		if (x != null)
+			return x;
+		if (defval instanceof SuContainer) {
+			x = new SuContainer((SuContainer) defval);
+			if (! readonly)
+				insert(at, x);
+			return x;
+		}
+		return defval;
+	}
+
 	public Object getIfPresent(Object key) {
+		// FIXME: concurrency issue -- modification between size check and get??
 		int i = index(key);
 		return (0 <= i && i < vec.size()) ? vec.get(i) : map.get(key);
 	}
 
+	/**
+	 * Get-if-present method which attempts to avoid boxing of the key if the
+	 * key is an {@code int} value.
+	 * @param at Integer key
+	 * @return Result of the get operation
+	 * @author Victor Schappert
+	 * @since 20130717
+	 * @see #get(int)
+	 * @see #getDefault(int, Object)
+	 */
+	public Object getIfPresent(int at) {
+		synchronized (vec) {
+			if (0 <= at && at < vec.size())
+				return vec.get(at);
+		}
+		return map.isEmpty() ? null : map.get(at);
+	}
+
 	public boolean containsKey(Object key) {
+		// FIXME: concurrency issue -- modification between size check and get??
 		int i = index(key);
 		return (0 <= i && i < vec.size()) || map.containsKey(key);
 	}
@@ -219,6 +287,8 @@ public class SuContainer extends SuValue
 	}
 
 	protected String toString(String before, String after) {
+		// FIXME: Concurrency issue when iterating over synchronized list ...
+		//        should wrap in synchronized block...
 		StringBuilder sb = new StringBuilder(before);
 		for (Object x : vec)
 			sb.append(Ops.display(x)).append(", ");
@@ -604,9 +674,11 @@ public class SuContainer extends SuValue
 	}
 
 	public Object find(Object value) {
+		// FIXME: Concurrency issue -- modification between size() and get() 
 		for (int i = 0; i < vec.size(); ++i)
 			if (Ops.is_(value, vec.get(i)))
 				return i;
+		// FIXME: Concurrency issue -- iteration generally
 		for (Map.Entry<Object, Object> e : map.entrySet())
 			if (Ops.is_(value, e.getValue()))
 				return e.getKey();
@@ -615,11 +687,13 @@ public class SuContainer extends SuValue
 
 	public void reverse() {
 		checkReadonly();
+		// TODO: Possible concurrency issue -- is Collections.reverse() thread-safe?
 		Collections.reverse(vec);
 	}
 
 	public void sort(final Object fn) {
 		checkReadonly();
+		// TODO: Possible concurrency issue -- is Collections.sort() thread-safe?
 		if (fn == Boolean.FALSE)
 			Collections.sort(vec, Ops.comp);
 		else
