@@ -42,8 +42,12 @@ public abstract class Context {
 	}
 
 	/** @return The slot for a name, assigning a new slot for a new name */
-	int slotForName(String name) {
+	public int slotForName(String name) {
 		Integer slot = nameToSlot.get(name);
+		// FIXME: Isn't there a concurrency bug if a competing thread adds the
+		//        same name between this check and the call to newSlot? Then
+		//        there could be 2 slots w the same name, which would be a big
+		//        problem...
 		return (slot == null) ? newSlot(name) : slot;
 	}
 
