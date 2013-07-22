@@ -9,6 +9,7 @@
 	<property name="dll-dst-dir" value="lib"/>
 	<property name="jsdi-package" value="suneido.language.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
+	<property name="java-dest-dir" value="target/classes"/>
 
 	<target name="all" depends="gen_jni,make"/>
 
@@ -34,7 +35,7 @@
 		<property name="jsdi-global-ref-file-stem" value="global_refs"/>
 		<java classname="${jsdi-tools-package}.GenerateGlobalReferences">
 			<classpath>
-				<pathelement path="bin"/>
+				<pathelement path="${java-dest-dir}"/>
 				<pathelement location="lib/asm-all-4.0.jar"/>
 				<pathelement location="lib/guava-14.0.1.jar"/>
 			</classpath>
@@ -49,7 +50,7 @@
 		<property name="jsdi-enum-file-stem" value="java_enum"/>
 		<java classname="${jsdi-tools-package}.GenerateSharedEnums">
 			<classpath>
-				<pathelement path="bin"/>
+				<pathelement path="${java-dest-dir}"/>
 				<pathelement location="lib/guava-14.0.1.jar"/>
 			</classpath>
 			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.h"/>
@@ -64,9 +65,10 @@
 		<!--  Note that the JSuneido Java project is the dominant
 			  project, in the sense that C++ code is generated from Java
 			  code, but Java code is not generated from C++ code. -->
-		<javah class="${jsdi-package}.JSDI" classpath="bin" destdir="${jsdi-path}/src/gen"/>
-		<javah class="${jsdi-package}.dll.DllFactory" classpath="bin" destdir="${jsdi-path}/src/gen"/>
-		<!--  Unfortunately, javah creates headers for inner classes which
+		<javah class="${jsdi-package}.JSDI" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.dll.DllFactory" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.dll.NativeCall" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+				<!--  Unfortunately, javah creates headers for inner classes which
 			  themselves contain no native methods. Clean up those extra
 			  files. -->
 		<delete>
