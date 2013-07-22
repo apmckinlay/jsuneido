@@ -9,7 +9,7 @@
 	<property name="dll-dst-dir" value="lib"/>
 	<property name="jsdi-package" value="suneido.language.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
-	
+
 	<target name="all" depends="gen_jni,make"/>
 
 	<target name="make" depends="gen_global_refs,gen_enums"
