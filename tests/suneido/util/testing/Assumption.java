@@ -1,4 +1,4 @@
-package suneido;
+package suneido.util.testing;
 
 import org.junit.Assume;
 

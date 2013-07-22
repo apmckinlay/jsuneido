@@ -1,8 +1,6 @@
-package suneido.language.jsdi.type;
+package suneido.language.jsdi;
 
 import suneido.language.Ops;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
 
 /**
  * <p>
@@ -19,7 +17,7 @@ import suneido.language.jsdi.JSDIException;
  * @since 20130716
  */
 @DllInterface
-final class NumberConversions {
+public final class NumberConversions {
 
 	//
 	// PUBLIC INTERFACE

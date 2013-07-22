@@ -6,7 +6,7 @@ import java.util.ArrayList;
 /**
  * Automatic C++ code generator for the JSDI {@code java_enum} translation unit.
  * 
- * @author Victor Schapppert
+ * @author Victor Schappert
  * @since 20130630
  */
 public final class GenerateSharedEnums {

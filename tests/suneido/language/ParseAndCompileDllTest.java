@@ -7,11 +7,11 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.type.BasicType;
 import suneido.language.jsdi.type.StringType;
+import suneido.util.testing.Assumption;
 
 /**
  * Tests parsing and compiling of Suneido language <code>dll</code> elements.

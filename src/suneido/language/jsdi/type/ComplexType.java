@@ -1,9 +1,16 @@
 package suneido.language.jsdi.type;
 
 import suneido.SuValue;
+import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.StorageType;
 
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130625
+ */
+@DllInterface
 public abstract class ComplexType extends Type {
 
 	//

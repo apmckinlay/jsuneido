@@ -10,7 +10,7 @@ import suneido.language.jsdi.MarshallPlan;
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)
  * types in the JSDI type hierarchy.
  * 
- * @author Victor Schapppert
+ * @author Victor Schappert
  * @since 20130627
  * @see SizeDirect
  */

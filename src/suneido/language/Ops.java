@@ -21,6 +21,7 @@ import suneido.*;
 import suneido.language.builtin.DateMethods;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
+import suneido.language.jsdi.Buffer;
 import suneido.util.StringIterator;
 
 import com.google.common.base.CharMatcher;
@@ -61,9 +62,12 @@ public final class Ops {
 						new BigDecimal(y.toString()));
 		}
 
-		if (y instanceof String2)
+		// This check is because the left-hand side object might be a String,
+		// and String.equals() will return false for non-String.
+		if (y instanceof String2 || y instanceof Buffer)
 			return y.equals(x);
 
+		// Default: use the equals method of the left-hand side Object.
 		return x.equals(y);
 	}
 
@@ -434,7 +438,7 @@ public final class Ops {
 			return "false";
 		if (x instanceof BigDecimal)
 			return toStringBD((BigDecimal) x);
-		if (isString(x) || x instanceof Number)
+		if (isString(x) || x instanceof Number || x instanceof Buffer)
 			return x.toString();
 		return null;
 	}

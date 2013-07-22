@@ -34,18 +34,11 @@ public abstract class StringType extends Type {
 	public static final String IDENTIFIER_BUFFER = "buffer";
 
 	//
-	// DATA
-	//
-
-	protected final int numTrailingZeros;
-
-	//
 	// CONSTRUCTORS
 	//
 
 	protected StringType(TypeId typeId, StorageType storageType,
-			MarshallPlan marshallPlan, boolean isZeroTerminated) {
+			MarshallPlan marshallPlan) {
 		super(typeId, storageType, marshallPlan);
-		this.numTrailingZeros = isZeroTerminated ? 1 : 0;
 	}
 }

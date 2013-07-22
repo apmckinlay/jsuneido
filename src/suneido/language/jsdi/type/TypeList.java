@@ -9,9 +9,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.SuContainer;
 import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.*;
 
 /**
  * Immutable list of <code>&lt;name, {@link Type}&gt;</code> tuples which
@@ -21,6 +19,7 @@ import suneido.language.jsdi.Marshaller;
  * @author Victor Schappert
  * @since 20130625
  */
+@DllInterface
 @NotThreadSafe
 public final class TypeList implements Iterable<TypeList.Entry> {
 
@@ -60,13 +59,15 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		private final TreeSet<String> names; // deliberate
 		private boolean isClosed;
 		private boolean isUsed;
+		private int numMarshallableToJSDILong;
 
 		public Args(String memberType, int size) {
 			this.memberType = memberType;
 			this.entries = new ArrayList<Entry>(size);
 			this.names = new TreeSet<String>();
-			this.isClosed = false;
+			this.isClosed = true;
 			this.isUsed = false;
+			this.numMarshallableToJSDILong = 0;
 		}
 
 		public void add(String name, Type type) {
@@ -79,7 +80,10 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 						+ name + "'");
 			}
 			entries.add(new Entry(name, type));
-			isClosed &= TypeId.BASIC == type.getTypeId();
+			isClosed &= type.isClosed();
+			if (type.isMarshallableToJSDILong()) {
+				++numMarshallableToJSDILong;
+			}
 		}
 	}
 
@@ -109,7 +113,8 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 	private final Entry[] entries;
 	private final boolean isClosed;
-	private MarshallPlan marshallPlan;
+	private final int     numMarshallableToJSDILong;
+	private MarshallPlan  marshallPlan;
 
 	//
 	// CONSTRUCTORS
@@ -119,6 +124,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		args.isUsed = true;
 		this.entries = args.entries.toArray(new Entry[args.entries.size()]);
 		this.isClosed = args.isClosed;
+		this.numMarshallableToJSDILong = args.numMarshallableToJSDILong;
 		if (this.isClosed) {
 			ArrayList<MarshallPlan> entryPlans = new ArrayList<MarshallPlan>(
 					entries.length);
@@ -135,8 +141,28 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	// ACCESSORS
 	//
 
+	public int size() {
+		return entries.length;
+	}
+
+	/**
+	 * <p>
+	 * Indicates whether this type list contains only 'closed' types.
+	 * </p>
+	 * <p>
+	 * The marshall plan for a 'closed' type is fixed at compile time. The type
+	 * doesn't contain any proxies which need to be resolved at runtime.
+	 * </p>
+	 * 
+	 * @return Whether this type list contains only closed types
+	 * @see Type#isClosed()
+	 */
 	public boolean isClosed() {
 		return isClosed;
+	}
+
+	public boolean isFastMarshallable() {
+		return numMarshallableToJSDILong == entries.length;
 	}
 
 	public MarshallPlan getMarshallPlan() {
@@ -152,7 +178,29 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		}
 	}
 
-	// TODO: docs
+	// TODO: docs -- since 20130719
+	public void marshallOutParams(Marshaller marshaller, Object[] args) {
+		final int N = entries.length;
+		assert N == args.length;
+		for (int k = 0; k < N; ++k) {
+			final Type type = entries[k].type;
+			if (TypeId.BASIC != type.getTypeId()) {
+				type.marshallOut(marshaller, args[k]);
+			}
+		}
+	}
+	
+	public int[] marshallInParamsFast(Object[] args) {
+		final int N = entries.length;
+		assert N == args.length && N == numMarshallableToJSDILong;
+		int[] marshalledArgs = new int[N];
+		for (int k = 0; k < N; ++k) {
+			entries[k].type.marshallInToJSDILong(marshalledArgs, k, args[k]);
+		}
+		return marshalledArgs;
+	}
+
+	// TODO: docs -- since 20130717
 	public void marshallInMembers(Marshaller marshaller, Object value) {
 		final SuContainer c = Ops.toContainer(value);
 		if (null == c) {
@@ -160,6 +208,26 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		} else for (Entry entry : entries) {
 			entry.type.marshallIn(marshaller, c.get(entry.name));
 		}
+	}
+
+	// TODO: docs -- since 20130718
+	public Object marshallOutMembers(Marshaller marshaller, Object oldValue) {
+		final SuContainer c = ObjectConversions.containerOrThrow(oldValue, 0);
+		if (c == oldValue) {
+			for (Entry entry : entries) {
+				oldValue = c.getIfPresent(entry.name);
+				Object newValue = entry.type.marshallOut(marshaller, oldValue);
+				if (! newValue.equals(oldValue)) {
+					c.put(entry.name, newValue);
+				}
+			}
+		} else {
+			for (Entry entry : entries) {
+				Object newValue = entry.type.marshallOut(marshaller, null);
+				c.put(entry.name, newValue);
+			}
+		}
+		return c;
 	}
 
 	/**

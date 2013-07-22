@@ -10,6 +10,10 @@ import suneido.language.jsdi.Marshaller;
 
 /**
  * TODO: docs
+ * <p>
+ * This class is <em>not</em> immutable because {@link #getMarshallPlan()} may
+ * change depending on the value of any members that are proxies.
+ * </p>
  * @author Victor Schappert
  * @since 20130625
  */
@@ -29,6 +33,11 @@ public final class Structure extends ComplexType {
 	//
 
 	@Override
+	public boolean isClosed() {
+		return typeList.isClosed();
+	}
+
+	@Override
 	public String getDisplayName() {
 		StringBuilder sb = new StringBuilder(128);
 		sb.append("struct { ");
@@ -45,6 +54,11 @@ public final class Structure extends ComplexType {
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		typeList.marshallInMembers(marshaller, value);
+	}
+
+	@Override
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+		return typeList.marshallOutMembers(marshaller, oldValue);
 	}
 
 	//

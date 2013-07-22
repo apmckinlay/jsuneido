@@ -7,6 +7,11 @@ import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.dll.Dll;
 import suneido.language.jsdi.dll.DllFactory.DllMakeObserver;
 
+/**
+ * TODO: Docs
+ * @author Victor Schappert
+ * @since 20130709
+ */
 public final class DllSummarizer implements DllMakeObserver {
 
 	//

@@ -4,8 +4,12 @@ import java.util.Arrays;
 
 import suneido.language.jsdi.type.SizeDirect;
 
-// TODO: Make test
-// TODO: DOC
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130702
+ */
+@DllInterface
 public final class MarshallPlan {
 
 	//
@@ -40,7 +44,7 @@ public final class MarshallPlan {
 	 * </li>
 	 * </ul>
 	 * @see #makeVariableIndirectPlan()
-	 * @see #countVariableIndirect()
+	 * @see #getCountVariableIndirect()
 	 */
 	public static final int UNKNOWN_LOCATION = -1;
 
@@ -50,7 +54,6 @@ public final class MarshallPlan {
 
 	private MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
 			int[] posArray, int countVariableIndirect) {
-		assert 0 < sizeDirect;
 		this.sizeDirect            = sizeDirect;
 		this.sizeIndirect          = sizeIndirect;
 		this.ptrArray              = ptrArray;
@@ -66,7 +69,10 @@ public final class MarshallPlan {
 	 * @since 20130702
 	 */
 	public static MarshallPlan makeDirectPlan(int sizeDirect) {
-		return new MarshallPlan(sizeDirect, 0, NO_PTR_ARRAY, DIRECT_POS_ARRAY,
+		if (sizeDirect < 1) {
+			throw new IllegalArgumentException("Can't make a direct NULL plan");
+		}
+		return makePlanInternal(sizeDirect, 0, NO_PTR_ARRAY, DIRECT_POS_ARRAY,
 				0);
 	}
 
@@ -80,6 +86,10 @@ public final class MarshallPlan {
 	 * @since 20130704
 	 */
 	public static MarshallPlan makePointerPlan(MarshallPlan targetPlan) {
+		if (targetPlan.sizeDirect < 1) {
+			throw new IllegalArgumentException(
+					"Can't make a pointer to a NULL plan");
+		}
 		final int sizeDirect = SizeDirect.POINTER;
 		final int sizeIndirect = targetPlan.sizeDirect + targetPlan.sizeIndirect;
 		// ptrArray
@@ -89,8 +99,9 @@ public final class MarshallPlan {
 		int i = 0, j = 2;
 		while (j < N) {
 			ptrArray[j++] = targetPlan.ptrArray[i++] + SizeDirect.POINTER;
-			ptrArray[j++] = movePtrIndex(targetPlan.ptrArray[i++],
-					SizeDirect.POINTER);
+			ptrArray[j++] = targetPlan.ptrArray[i++] + SizeDirect.POINTER;
+			// This will correctly move variable indirect indices which index
+			// past the end of the data [direct + indirect] array.
 		}
 		// posArray
 		final int P = targetPlan.posArray.length;
@@ -100,7 +111,7 @@ public final class MarshallPlan {
 			final int pos = targetPlan.posArray[k];
 			posArray[++k] = pos + SizeDirect.POINTER;
 		}
-		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray, posArray,
+		return makePlanInternal(sizeDirect, sizeIndirect, ptrArray, posArray,
 				targetPlan.countVariableIndirect);
 	}
 
@@ -116,12 +127,17 @@ public final class MarshallPlan {
 	 */
 	public static MarshallPlan makeArrayPlan(MarshallPlan elementPlan,
 			int numElems) {
+		if (elementPlan.sizeDirect < 1) {
+			throw new IllegalArgumentException(
+					"Can't make an array of NULL plans");
+		}
 		assert 0 < numElems;
 		final int sizeDirect = numElems * elementPlan.sizeDirect;
 		final int sizeIndirect = numElems * elementPlan.sizeIndirect;
 		final int M = elementPlan.ptrArray.length;
 		// ptrArray
 		final int[] ptrArray = new int[numElems * M];
+		int nextViIndex = sizeDirect + sizeIndirect;
 		int k = 0; // index into ptrArray
 		for (int i = 0; i < numElems; ++i) {
 			int j = 0;
@@ -135,11 +151,12 @@ public final class MarshallPlan {
 				}
 				ptrArray[k++] = ptrIndex;
 				int targetIndex = elementPlan.ptrArray[j++];
-				assert UNKNOWN_LOCATION == targetIndex
-						|| (elementPlan.sizeDirect <= targetIndex && targetIndex < elementPlan.sizeDirect
-								+ elementPlan.sizeIndirect);
-				ptrArray[k++] = movePtrIndex(targetIndex, (numElems - 1)
-						* elementPlan.sizeDirect + i * elementPlan.sizeIndirect);
+				if (elementPlan.sizeDirect + elementPlan.sizeIndirect <= targetIndex)
+					targetIndex = nextViIndex++;
+				else
+					targetIndex += (numElems - 1) * elementPlan.sizeDirect + i
+							* elementPlan.sizeIndirect;
+				ptrArray[k++] = targetIndex;
 			}
 		}
 		// posArray
@@ -156,12 +173,12 @@ public final class MarshallPlan {
 					assert pos < elementPlan.sizeDirect + elementPlan.sizeIndirect;
 					pos += (numElems - 1) * elementPlan.sizeDirect + i * elementPlan.sizeIndirect;
 				} else {
-					assert UNKNOWN_LOCATION == pos;
+					assert false : "invalid position: " + pos;
 				}
 				posArray[k++] = pos;
 			}
 		}
-		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray, posArray,
+		return makePlanInternal(sizeDirect, sizeIndirect, ptrArray, posArray,
 				elementPlan.countVariableIndirect * numElems);
 	}
 
@@ -177,8 +194,10 @@ public final class MarshallPlan {
 		int sizePtrArray = 0;
 		int sizePosArray = 0;
 		int sizeDirect = 0;
+		int sizeIndirect = 0;
 		for (MarshallPlan child : children) {
 			sizeDirect += child.sizeDirect;
+			sizeIndirect += child.sizeIndirect;
 			sizePtrArray += child.ptrArray.length;
 			sizePosArray += child.posArray.length;
 		}
@@ -186,8 +205,9 @@ public final class MarshallPlan {
 		final int[] ptrArray = new int[sizePtrArray];
 		final int[] posArray = new int[sizePosArray];
 		int sizeDirect2 = 0;
-		int sizeIndirect = 0;
+		int sizeIndirect2 = 0;
 		int countVariableIndirect = 0;
+		int nextViIndex = sizeDirect + sizeIndirect;
 		int i = 0; // index into ptrArray
 		int j = 0; // index into posArray
 		for (MarshallPlan childPlan : children) {
@@ -200,15 +220,17 @@ public final class MarshallPlan {
 					ptrIndex += sizeDirect2;
 				} else {
 					ptrIndex += sizeDirect - childPlan.sizeDirect
-							+ sizeIndirect;
+							+ sizeIndirect2;
 				}
 				ptrArray[i++] = ptrIndex;
 				int targetIndex = childPlan.ptrArray[k++];
-				assert UNKNOWN_LOCATION == targetIndex
-						|| (childPlan.sizeDirect <= targetIndex && targetIndex < childPlan.sizeDirect
-								+ childPlan.sizeIndirect);
-				ptrArray[i++] = movePtrIndex(targetIndex, sizeDirect
-						- childPlan.sizeDirect + sizeIndirect);
+				if (childPlan.sizeDirect + childPlan.sizeIndirect <= targetIndex)
+					targetIndex = nextViIndex++;
+				else
+					targetIndex += sizeDirect - childPlan.sizeDirect + sizeIndirect2;
+				ptrArray[i++] = targetIndex;
+				// This will also correctly move variable indirect indices which
+				// index past the end of the data [direct + indirect] array
 			}
 			// posArray
 			final int P = childPlan.posArray.length;
@@ -217,7 +239,7 @@ public final class MarshallPlan {
 				if (0 <= pos && pos < childPlan.sizeDirect) {
 					pos += sizeDirect2;
 				} else if (pos < childPlan.sizeDirect + childPlan.sizeIndirect) {
-					pos += sizeDirect - childPlan.sizeDirect + sizeIndirect;
+					pos += sizeDirect - childPlan.sizeDirect + sizeIndirect2;
 				} else {
 					assert UNKNOWN_LOCATION == pos;
 				}
@@ -225,11 +247,11 @@ public final class MarshallPlan {
 			}
 			// housekeeping
 			sizeDirect2 += childPlan.sizeDirect;
-			sizeIndirect += childPlan.sizeIndirect;
+			sizeIndirect2 += childPlan.sizeIndirect;
 			countVariableIndirect += childPlan.countVariableIndirect;
 		}
 		// Construct
-		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray, posArray,
+		return makePlanInternal(sizeDirect, sizeIndirect, ptrArray, posArray,
 				countVariableIndirect);
 	}
 
@@ -252,17 +274,29 @@ public final class MarshallPlan {
 	//
 
 	private static final int[] NO_PTR_ARRAY = new int[0];
-	private static final int[] VARIABLE_PTR_ARRAY = new int[] { 0, UNKNOWN_LOCATION };
+	private static final int[] NO_POS_ARRAY = NO_PTR_ARRAY;
+	private static final int[] VARIABLE_PTR_ARRAY = new int[] { 0, SizeDirect.POINTER };
 	private static final int[] DIRECT_POS_ARRAY = new int[] { 0 };
 
 	private static final MarshallPlan VARIABLE_INDIRECT_PLAN = new MarshallPlan(
 			SizeDirect.POINTER, 0, VARIABLE_PTR_ARRAY, DIRECT_POS_ARRAY, 1);
 
-	private static int movePtrIndex(int ptrIndex, int offset) {
-		return UNKNOWN_LOCATION != ptrIndex
-			? ptrIndex + offset
-			: UNKNOWN_LOCATION
-			;
+	private static final MarshallPlan NULL_PLAN = new MarshallPlan(0, 0,
+			NO_PTR_ARRAY, NO_POS_ARRAY, 0);
+
+	private static MarshallPlan makePlanInternal(int sizeDirect,
+			int sizeIndirect, int[] ptrArray, int[] posArray,
+			int countVariableIndirect) {
+		if (sizeDirect < 1) {
+			if (!(0 == sizeDirect && 0 == sizeIndirect && 0 == ptrArray.length
+					&& 0 == posArray.length && 0 == countVariableIndirect)) {
+				throw new IllegalArgumentException(
+						"Invalid MarshallPlan parameters");
+			}
+			return NULL_PLAN;
+		}
+		return new MarshallPlan(sizeDirect, sizeIndirect, ptrArray, posArray,
+				countVariableIndirect);
 	}
 
 	//
@@ -307,7 +341,7 @@ public final class MarshallPlan {
 	 * @see #makeVariableIndirectPlan()
 	 * @see #UNKNOWN_LOCATION
 	 */
-	public int countVariableIndirect() {
+	public int getCountVariableIndirect() {
 		return this.countVariableIndirect;
 	}
 

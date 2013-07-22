@@ -1,5 +1,7 @@
 package suneido.language.jsdi.type;
 
+import javax.annotation.concurrent.Immutable;
+
 import suneido.language.jsdi.*;
 
 /**
@@ -9,6 +11,7 @@ import suneido.language.jsdi.*;
  * @since 20130707
  */
 @DllInterface
+@Immutable
 public final class VoidType extends Type {
 
 	//
@@ -40,10 +43,5 @@ public final class VoidType extends Type {
 	@Override
 	public String getDisplayName() {
 		return IDENTIFIER;
-	}
-
-	@Override
-	public void marshallIn(Marshaller marshaller, Object value) {
-		throw new JSDIException(IDENTIFIER + " type cannot be marshalled in");
 	}
 }

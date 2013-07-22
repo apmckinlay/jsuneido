@@ -250,7 +250,7 @@ public class AstCompile {
 				type = new Proxy(context, context.slotForName(typeName),
 						storageType, numElems);
 			}
-			if (type != StringIndirect.INSTANCE_IN_STRING && inModifier) {
+			if (type != InString.INSTANCE && inModifier) {
 				throw new SuException("[in] modifier not permitted with "
 						+ type.getDisplayName());
 			}
@@ -282,7 +282,7 @@ public class AstCompile {
 		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
 			returnType = VoidType.INSTANCE;
 		} else if (StringType.IDENTIFIER_STRING.equals(returnTypeName)) {
-			returnType = StringIndirect.INSTANCE_STRING;
+			returnType = InOutString.INSTANCE;
 		} else {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}

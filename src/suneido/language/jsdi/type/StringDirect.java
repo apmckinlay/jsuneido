@@ -1,9 +1,8 @@
 package suneido.language.jsdi.type;
 
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.StorageType;
+import javax.annotation.concurrent.Immutable;
+
+import suneido.language.jsdi.*;
 
 /**
  * <p>
@@ -23,6 +22,7 @@ import suneido.language.jsdi.StorageType;
  * @see StringIndirect
  */
 @DllInterface
+@Immutable
 public final class StringDirect extends StringType {
 
 	//
@@ -30,6 +30,7 @@ public final class StringDirect extends StringType {
 	//
 
 	private final int numChars;
+	private final boolean isZeroTerminated;
 
 	//
 	// CONSTRUCTORS
@@ -37,12 +38,13 @@ public final class StringDirect extends StringType {
 
 	StringDirect(int numChars, boolean isZeroTerminated) {
 		super(TypeId.STRING_DIRECT, StorageType.ARRAY, MarshallPlan
-				.makeDirectPlan(numChars * SizeDirect.CHAR), isZeroTerminated);
+				.makeDirectPlan(numChars * SizeDirect.CHAR));
 		// NOTE: If we ever introduce wide-character strings and buffers, this
 		//       class can probably handle it just by parameterizing the basic
 		//       type.
 		assert 0 < numChars : "String or buffer must have at least one character";
 		this.numChars = numChars;
+		this.isZeroTerminated = isZeroTerminated;
 	}
 
 	//
@@ -52,7 +54,7 @@ public final class StringDirect extends StringType {
 	@Override
 	public String getDisplayName() {
 		return new StringBuilder(12)
-				.append(1 == numTrailingZeros ? IDENTIFIER_STRING
+				.append(isZeroTerminated ? IDENTIFIER_STRING
 						: IDENTIFIER_BUFFER).append('[').append(numChars)
 				.append(']').toString();
 	}
@@ -60,14 +62,32 @@ public final class StringDirect extends StringType {
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null != value) {
-			final String str = value.toString();
-			if (1 == numTrailingZeros) {
-				marshaller.putZeroTerminatedStringDirect(str, numChars);
+			if (value instanceof Buffer) {
+				final Buffer buffer = (Buffer)value;
+				if (isZeroTerminated) {
+					marshaller.putZeroTerminatedStringDirect(buffer, numChars);
+				} else {
+					marshaller.putNonZeroTerminatedStringDirect(buffer, numChars);
+				}
 			} else {
-				marshaller.putNonZeroTerminatedStringDirect(str, numChars);
+				final String str = value.toString();
+				if (isZeroTerminated) {
+					marshaller.putZeroTerminatedStringDirect(str, numChars);
+				} else {
+					// TODO: What if they pass a buffer instance?
+					marshaller.putNonZeroTerminatedStringDirect(str, numChars);
+				}
 			}
 		} else {
 			marshaller.skipBasicArrayElements(1);
 		}
+	}
+
+	@Override
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+		return isZeroTerminated ? marshaller
+				.getZeroTerminatedStringDirect(numChars) : marshaller
+				.getNonZeroTerminatedStringDirect(numChars,
+						oldValue instanceof Buffer ? (Buffer) oldValue : null);
 	}
 }

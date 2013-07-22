@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * Class which produces automatically generated lines of code.
  * 
- * @author Victor Schapppert
+ * @author Victor Schappert
  * @since 20130630
  */
 abstract class LineEditor {

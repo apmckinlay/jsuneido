@@ -3,9 +3,9 @@ package suneido.language;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
+import suneido.util.testing.Assumption;
 
 /**
  * Tests parsing and compiling of Suneido language {@code struct} elements.

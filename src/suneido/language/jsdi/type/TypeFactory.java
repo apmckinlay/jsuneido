@@ -94,10 +94,9 @@ public final class TypeFactory {
 		switch (storageType) {
 		case VALUE:
 			if (isZeroTerminated) {
-				return hasInModifier ? StringIndirect.INSTANCE_IN_STRING
-						: StringIndirect.INSTANCE_STRING;
+				return hasInModifier ? InString.INSTANCE : InOutString.INSTANCE;
 			} else {
-				return StringIndirect.INSTANCE_BUFFER;
+				return BufferType.INSTANCE;
 			}
 		case ARRAY:
 			return new StringDirect(numElements, isZeroTerminated);

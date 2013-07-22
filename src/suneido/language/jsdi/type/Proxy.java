@@ -5,6 +5,7 @@ import suneido.language.Context;
 import suneido.language.Ops;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.ObjectConversions;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -110,6 +111,11 @@ public final class Proxy extends Type {
 	//
 
 	@Override
+	public boolean isClosed() {
+		return false;
+	}
+
+	@Override
 	public String getDisplayName() {
 		final String typeName = getUnderlyingTypeName();
 		switch (storageType) {
@@ -129,8 +135,6 @@ public final class Proxy extends Type {
 
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
-		// TODO: need to make sure we keep the correct position in the
-		//       marshaller when we're missing an element...
 		switch (storageType) {
 		case VALUE:
 			if (null != value) {
@@ -162,6 +166,40 @@ public final class Proxy extends Type {
 				marshaller.skipComplexArrayElements(numElems, marshallPlan);
 			}
 			break;
+		default:
+			throw new IllegalStateException("unhandled StorageType in switch");
+		}
+	}
+
+	@Override
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+		switch (storageType) {
+		case VALUE:
+			return lastResolvedType.marshallOut(marshaller, oldValue);
+		case POINTER:
+			if (marshaller.isPtrNull()) {
+				marshaller.skipComplexArrayElements(1, marshallPlan);
+				return Boolean.FALSE;
+			} else {
+				return lastResolvedType.marshallOut(marshaller, oldValue);
+			}
+		case ARRAY:
+			final SuContainer c = ObjectConversions.containerOrThrow(oldValue, numElems);
+			if (c == oldValue) {
+				for (int k = 0; k < numElems; ++k) {
+					oldValue = c.getIfPresent(k);
+					Object newValue = lastResolvedType.marshallOut(marshaller, oldValue);
+					if (! newValue.equals(oldValue)) {
+						c.insert(k, newValue);
+					}
+				}
+			} else {
+				for (int k = 0; k < numElems; ++k) {
+					Object newValue = lastResolvedType.marshallOut(marshaller, null);
+					c.insert(k, newValue);
+				}
+			}
+			return c;
 		default:
 			throw new IllegalStateException("unhandled StorageType in switch");
 		}

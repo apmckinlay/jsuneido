@@ -6,12 +6,15 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import static suneido.util.testing.Throwing.*;
+
 /**
  * Test for {@link MarshallPlan}.
  *
  * @author Victor Schappert
  * @since 20130716
  */
+@DllInterface
 public class MarshallPlanTest {
 
 	private static MarshallPlan cp(MarshallPlan ... childPlans) {
@@ -23,6 +26,28 @@ public class MarshallPlanTest {
 	private static final MarshallPlan ARRAY1_2 = MarshallPlan.makeArrayPlan(DIRECT1, 2);
 	private static final MarshallPlan CONT1_2_4 = cp(DIRECT1,
 			MarshallPlan.makeDirectPlan(2), MarshallPlan.makeDirectPlan(4));
+
+	@Test
+	public void testNullPlans() {
+		assertThrew(new Runnable() {
+			public void run() {
+				MarshallPlan.makeDirectPlan(0);
+			}
+		}, IllegalArgumentException.class);
+		final MarshallPlan NULL_PLAN = MarshallPlan.makeContainerPlan(Arrays
+				.asList(new MarshallPlan[0]));
+		assertEquals(0, NULL_PLAN.getSizeDirect());
+		assertThrew(new Runnable() {
+			public void run() {
+				MarshallPlan.makePointerPlan(NULL_PLAN);
+			}
+		}, IllegalArgumentException.class);
+		assertThrew(new Runnable() {
+			public void run() {
+				MarshallPlan.makeArrayPlan(NULL_PLAN, 3);
+			}
+		}, IllegalArgumentException.class);
+	}
 
 	@Test
 	public void testDirect() {
@@ -64,7 +89,7 @@ public class MarshallPlanTest {
 	@Test
 	public void testDirectWithVariableIndirect() {
 		assertEquals(
-			"MarshallPlan[ 4, 0, { 0:-1 }, { 0 }, #vi:1 ]",
+			"MarshallPlan[ 4, 0, { 0:4 }, { 0 }, #vi:1 ]",
 			MarshallPlan.makeVariableIndirectPlan().toString()
 		);
 	}

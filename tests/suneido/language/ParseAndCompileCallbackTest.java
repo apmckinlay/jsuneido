@@ -5,9 +5,9 @@ import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
 
-import suneido.Assumption;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
+import suneido.util.testing.Assumption;
 
 /**
  * Tests parsing and compiling of Suneido language {@code callback} elements.
