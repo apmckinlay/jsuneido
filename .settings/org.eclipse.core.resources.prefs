@@ -1,3 +1,2 @@
-#Tue Jan 31 15:32:30 GMT-06:00 2012
 eclipse.preferences.version=1
-encoding//tests/suneido/immudb/TransactionReadsTest.java=UTF-8
+encoding//src/test/java/suneido/immudb/TransactionReadsTest.java=UTF-8
