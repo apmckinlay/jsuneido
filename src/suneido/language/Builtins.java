@@ -11,6 +11,7 @@ import suneido.Suneido;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
+import suneido.language.jsdi.Buffer;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -33,6 +34,7 @@ public class Builtins {
 			.put("And", function(And.class))
 			.put("AssertionError", function(AssertionError.class))
 			.put("Boolean?", function(BooleanQ.class))
+			.put("Buffer", Buffer.clazz)
 			.put("Built", function(Built.class))
 			.put("BuiltinNames", function(BuiltinNames.class))
 			.put("Cat", function(Cat.class))

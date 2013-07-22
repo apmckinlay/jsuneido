@@ -1,10 +1,14 @@
 package suneido.language.jsdi.type;
 
+import suneido.SuContainer;
 import suneido.language.Ops;
+import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
+@Deprecated // pointers to basic value types are ... pointless (wrap in a struct if you desperately need one)
+@DllInterface
 public final class BasicPointer extends Type {
 
 	//
@@ -56,34 +60,39 @@ public final class BasicPointer extends Type {
 			marshaller.skipBasicArrayElements(1);
 		} else {
 			switch (getBasicType()) {
-			case BOOL:
-				marshaller.putBoolPtr(Ops.toBoolean_(value));
-				break;
-			case CHAR:
-				marshaller.putCharPtr((byte)Ops.toInt(value));
-				break;
-			case SHORT:
-				marshaller.putShortPtr((short)Ops.toInt(value));
-				break;
-			case GDIOBJ:
-				// intentional fall-through
-			case HANDLE:
-				// intentional fall-through
-			case LONG:
-				marshaller.putLongPtr(Ops.toInt(value));
-				break;
-			case INT64:
-				marshaller.putInt64Ptr(NumberConversions.toLong(value));
-				break;
-			case FLOAT:
-				marshaller.putFloatPtr(NumberConversions.toFloat(value));
-				break;
-			case DOUBLE:
-				marshaller.putDoublePtr(NumberConversions.toDouble(value));
-				break;
+//			case BOOL:
+//				marshaller.putBoolPtr(Ops.toBoolean_(value));
+//				break;
+//			case CHAR:
+//				marshaller.putCharPtr((byte)Ops.toInt(value));
+//				break;
+//			case SHORT:
+//				marshaller.putShortPtr((short)Ops.toInt(value));
+//				break;
+//			case GDIOBJ:
+//				// intentional fall-through
+//			case HANDLE:
+//				// intentional fall-through
+//			case LONG:
+//				marshaller.putLongPtr(Ops.toInt(value));
+//				break;
+//			case INT64:
+//				marshaller.putInt64Ptr(NumberConversions.toLong(value));
+//				break;
+//			case FLOAT:
+//				marshaller.putFloatPtr(NumberConversions.toFloat(value));
+//				break;
+//			case DOUBLE:
+//				marshaller.putDoublePtr(NumberConversions.toDouble(value));
+//				break;
 			default:
 				throw new IllegalStateException("unhandled BasicType in switch");
 			}
 		}
+	}
+
+	@Override
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+		throw new IllegalStateException("BasicPointer is deprecated");
 	}
 }

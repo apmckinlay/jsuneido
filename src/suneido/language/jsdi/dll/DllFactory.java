@@ -120,14 +120,24 @@ public final class DllFactory {
 			}
 			//
 			// Make a FunctionSpec of the DLL so the compiler knows how to
-			// call expressions.
+			// handle call expressions.
 			//
-			FunctionSpec funcSpec = makeFunctionSpec(params); 
+			FunctionSpec funcSpec = makeFunctionSpec(params);
+			//
+			// Determine the native call characteristics.
+			//
+			ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
+			CallGroup cg = CallGroup.fromTypeList(params);
+			NativeCall nc = null;
+			if (null != cg) {
+				nc = NativeCall.get(cg, rtg, params.size());
+			}
 			//
 			// Build the Dll object to return
 			//
-			final Dll result = new Dll(funcPtr, params, returnType, suTypeName,
-					this, libraryName, userFuncName, funcName, funcSpec);
+			final Dll result = new Dll(funcPtr, params, returnType, rtg, nc,
+					suTypeName, this, libraryName, userFuncName, funcName,
+					funcSpec);
 			success = true;
 			for (DllMakeObserver observer : observers) {
 				observer.madeDll(result);

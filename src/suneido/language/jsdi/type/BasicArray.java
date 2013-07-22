@@ -1,11 +1,10 @@
 package suneido.language.jsdi.type;
 
+import javax.annotation.concurrent.Immutable;
+
 import suneido.SuContainer;
 import suneido.language.Ops;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -13,6 +12,7 @@ import suneido.language.jsdi.StorageType;
  * @since 20130625
  */
 @DllInterface
+@Immutable
 public final class BasicArray extends Type {
 
 	//
@@ -82,7 +82,7 @@ public final class BasicArray extends Type {
 					continue;
 				}
 				switch (type) {
-				// With any luck the JIT compiler will optimize  this by pulling
+				// With any luck the JIT compiler will optimize this by pulling
 				// the switch statement outside the loop...
 				case BOOL:
 					marshaller.putBool(Ops.toBoolean_(elem));
@@ -98,7 +98,7 @@ public final class BasicArray extends Type {
 				case HANDLE:
 					// intentional fall-through
 				case LONG:
-					marshaller.putLong(Ops.toInt(value));
+					marshaller.putLong(Ops.toInt(elem));
 					break;
 				case INT64:
 					marshaller.putInt64(NumberConversions.toLong(elem));
@@ -114,5 +114,45 @@ public final class BasicArray extends Type {
 				}
 			}
 		}
+	}
+
+	@Override
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+		final SuContainer c = ObjectConversions.containerOrThrow(oldValue, numElems);
+		final BasicType type = getBasicType();
+		for (int k = 0; k < numElems; ++k) {
+			switch (type) {
+			// With any luck the JIT compiler will optimize this by pulling
+			// the switch statement outside the loop...
+			case BOOL:
+				c.insert(k, marshaller.getBool());
+				break;
+			case CHAR:
+				c.insert(k, (int)marshaller.getChar());
+				break;
+			case SHORT:
+				c.insert(k, (int)marshaller.getShort());
+				break;
+			case GDIOBJ:
+				// intentional fall-through
+			case HANDLE:
+				// intentional fall-through
+			case LONG:
+				c.insert(k, marshaller.getLong());
+				break;
+			case INT64:
+				c.insert(k, marshaller.getInt64());
+				break;
+			case FLOAT:
+				c.insert(k, marshaller.getFloat()); // TODO: this should insert a BigDecimal, not a float
+				break;
+			case DOUBLE:
+				c.insert(k, marshaller.getDouble()); // TODO: this should insert a BigDecimal, not a double
+				break;
+			default:
+				throw new IllegalStateException("unhandled BasicType in switch");
+			}
+		}
+		return c;
 	}
 }

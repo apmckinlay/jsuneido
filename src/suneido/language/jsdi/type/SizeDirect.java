@@ -5,7 +5,7 @@ import suneido.language.jsdi.DllInterface;
 /**
  * Contains the "direct" size of various native types supported by JSDI. The
  * sizes are given in bytes.
- * @author Victor Schapppert
+ * @author Victor Schappert
  * @since 20130703
  */
 @DllInterface

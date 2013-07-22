@@ -5,11 +5,12 @@ import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import suneido.Assumption;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
+import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.util.testing.Assumption;
 
 /**
  * Test for {@link Structure}.
@@ -18,11 +19,13 @@ import suneido.language.jsdi.MarshallPlan;
  * @since 20130703
  * @see suneido.language.ParseAndCompileStructTest
  */
+@DllInterface
 public class StructureTest {
 
 	@BeforeClass
-	public static void beforeClass() {
+	public static void setUpBeforeClass() throws Exception {
 		Assumption.jvmIs32BitOnWindows();
+		CONTEXT = new SimpleContext(NAMED_STRUCTS);
 	}
 
 	private static ContextLayered CONTEXT;
@@ -97,11 +100,6 @@ public class StructureTest {
 		return struct.getMarshallPlan();
 	}
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		CONTEXT = new SimpleContext(NAMED_STRUCTS);
-	}
-
 	@Test
 	public void testSize() {
 		assertEquals(16, eval("RECT.Size()"));
@@ -144,14 +142,14 @@ public class StructureTest {
 						"228, 232, 236, 240, 244, 248, 252, 256, 420 " +
 					"}, #vi:0 ]",
 				getMarshallPlan("ThreeTierStruct").toString());
-		assertEquals("MarshallPlan[ 12, 0, { 4:-1 }, { 0, 2, 4, 8 }, #vi:1 ]",
+		assertEquals("MarshallPlan[ 12, 0, { 4:12 }, { 0, 2, 4, 8 }, #vi:1 ]",
 				getMarshallPlan("StringStruct1").toString());
 		assertEquals(
-				"MarshallPlan[ 36, 0, { 4:-1, 16:-1, 32:-1 }, " +
+				"MarshallPlan[ 36, 0, { 4:36, 16:37, 32:38 }, " +
 				"{ 0, 2, 4, 8, 12, 14, 16, 20, 24, 32 }, #vi:3 ]",
 				getMarshallPlan("StringStruct2").toString());
 		assertEquals(
-				"MarshallPlan[ 44, 36, { 8:-1, 20:-1, 36:-1, 40:44, 48:-1, 60:-1, 76:-1 }, " +
+				"MarshallPlan[ 44, 36, { 8:80, 20:81, 36:82, 40:44, 48:83, 60:84, 76:85 }, " +
 					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
 					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, #vi:6 ]",
 				getMarshallPlan("StringStruct3").toString());

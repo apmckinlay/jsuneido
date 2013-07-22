@@ -2,6 +2,11 @@ package suneido.language.jsdi;
 
 import suneido.SuException;
 
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130624
+ */
 @DllInterface
 public final class JSDIException extends SuException {
 
@@ -20,6 +25,10 @@ public final class JSDIException extends SuException {
 
 	public JSDIException(String message) {
 		super(message);
+	}
+
+	public JSDIException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 	public JSDIException(Throwable cause) {

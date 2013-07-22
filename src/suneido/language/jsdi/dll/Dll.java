@@ -11,6 +11,11 @@ import suneido.language.SuCallable;
 import suneido.language.jsdi.*;
 import suneido.language.jsdi.type.*;
 
+/**
+ * TODO: docs
+ * @author Victor Schappert
+ * @since 20130708
+ */
 @DllInterface
 public class Dll extends SuCallable {
 
@@ -18,9 +23,11 @@ public class Dll extends SuCallable {
 	// DATA
 	//
 
-	final long       funcPtr;
-	final TypeList   dllParams; // not to confuse with SuCallable.params
-	final Type       returnType;
+	final long            funcPtr;
+	final TypeList        dllParams; // not to confuse with SuCallable.params
+	final Type            returnType;
+	final ReturnTypeGroup returnTypeGroup; // never null
+	final NativeCall      nativeCall;      // null if params isn't closed
 
 	final String     suTypeName;
 	final DllFactory dllFactory;
@@ -34,19 +41,23 @@ public class Dll extends SuCallable {
 
 	// deliberately package-internal
 	// todo: docs
-	Dll(long funcPtr, TypeList params, Type returnType, String suTypeName,
+	Dll(long funcPtr, TypeList params, Type returnType,
+			ReturnTypeGroup returnTypeGroup, NativeCall nc, String suTypeName,
 			DllFactory dllFactory, String libraryName, String userFuncName,
 			String funcName, FunctionSpec functionSpec) {
 		assert 0 != funcPtr : "Invalid dll function pointer";
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId() && StorageType.VALUE == returnType.getStorageType())
-				|| StringIndirect.INSTANCE_STRING == returnType : "Invalid dll return type";
+				|| InOutString.INSTANCE == returnType : "Invalid dll return type";
+		assert null != returnTypeGroup;
 		//
 		// Initialize Dll fields
 		//
 		this.funcPtr = funcPtr;
 		this.dllParams = params;
 		this.returnType = returnType;
+		this.returnTypeGroup = returnTypeGroup;
+		this.nativeCall = nc;
 		this.suTypeName = suTypeName;
 		this.dllFactory = dllFactory;
 		this.libraryName = libraryName;
@@ -137,7 +148,7 @@ public class Dll extends SuCallable {
 	}
 
 	@Override
-	public Object call(Object ... args) { // TODO: should this method be final?
+	public Object call(Object... args) { // TODO: should this method be final?
 		Args.massage(super.params, args);
 		try {
 			dllParams.resolve(0);
@@ -147,11 +158,19 @@ public class Dll extends SuCallable {
 		final MarshallPlan plan = dllParams.getMarshallPlan();
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
-		
-		// TODO: call the bound jsdi method
-		// TODO: marshall out the params
-		// TODO: marshall out the return value
-		throw new RuntimeException("not implemented"); // TODO: implement
+		NativeCall nc = null == nativeCall ? NativeCall.get(
+				CallGroup.fromTypeList(dllParams), returnTypeGroup,
+				dllParams.size()) : nativeCall;
+		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(), m);
+		Object returnValue = null;
+		if (VoidType.INSTANCE != returnType) {
+			returnValue = returnType.marshallOutReturnValue(returnValueRaw);
+		}
+		if (! dllParams.isClosed()) {
+			m.rewind();
+			dllParams.marshallOutParams(m, args);
+		}
+		return returnValue;
 	}
 
 	//
@@ -187,61 +206,4 @@ public class Dll extends SuCallable {
 		throw new RuntimeException("not yet implemented");
 	}
 
-	//
-	// INTERNALS
-	//
-
-	
-
-	//
-	// NATIVE METHODS. These functions are available to specific instances of
-	//     DllBase which are derived from this class.
-	//
-
-	protected static native void callLReturnV(long funcPtr, int arg0);
-
-	protected static native void callLLReturnV(long funcPtr, int arg0, int arg1);
-
-	protected static native void callLLLReturnV(long funcPtr, int arg0,
-			int arg1, int arg2);
-
-	protected static native void callLLLLReturnV(long funcPtr, int arg0,
-			int arg1, int arg2, int arg3);
-
-	protected static native int callLReturnL(long funcPtr, int arg0);
-
-	protected static native int callLLReturnL(long funcPtr, int arg0, int arg1);
-
-	protected static native int callLLLReturnL(long funcPtr, int arg0,
-			int arg1, int arg2);
-
-	protected static native int callLLLLReturnL(long funcPtr, int arg0,
-			int arg1, int arg2, int arg3);
-
-	protected static native void callDirectOnlyReturnV(long funcPtr,
-			int sizeDirect, byte[] args);
-
-	protected static native int callDirectOnlyReturn32bit(long funcPtr,
-			int sizeDirect, byte[] args);
-
-	protected static native long callDirectOnlyReturn64bit(long funcPtr,
-			int sizeDirect, byte[] args);
-
-	protected static native void callIndirectReturnV(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	protected static native int callIndirectReturn32bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	protected static native long callIndirectReturn64bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	protected static native void callVariableIndirectReturnV(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
-
-	protected static native void callVariableIndirectReturn32bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
-
-	protected static native void callVariableIndirectReturn64bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, byte[] vi);
 }
