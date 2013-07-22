@@ -23,7 +23,9 @@
 	<!-- TARGETS -->
 	<!--         -->
 
-	<target name="create_run_jar" depends="create_raw_jar">
+	<target name="create_run_jar" depends="create_raw_jar"
+			description="Create ProGuard-ed release JAR"
+	>
 		<exec executable="java">
 			<arg value="-jar"/>
 			<arg value="${lib.dir}/proguard.jar"/>
@@ -31,7 +33,9 @@
 		</exec>
 	</target>
 
-	<target name="create_raw_jar" depends="compile">
+	<target name="create_raw_jar" depends="compile"
+			description="Create raw JAR"
+	>
 		<jar destfile="jsuneido-raw.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="suneido.Suneido"/>
@@ -61,18 +65,22 @@
 		</echo>
 	</target>
 
-	<target name="compile" depends="when_built">
+	<target name="compile" depends="when_built"
+			description="Compile main source files"
+	>
 		<mkdir dir="${main.destdir}"/>
 		<javac srcdir="${main.srcdir}" destdir="${main.destdir}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
+				debug="true"
+				debugLevel="lines"
 		>
 			<!--  Exclude JDBC stuff. Not currently implemented. -->
 			<exclude name="**/jdbc/**"/>
 		</javac>
 	</target>
 
-	<target name="clean">
+	<target name="clean" description="Delete generated files">
 		<delete dir="${main.destdir}"/>
 	</target>
 </project>
