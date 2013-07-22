@@ -137,42 +137,6 @@ public final class Marshaller {
 		// It is up to the caller to skip over any corresponding data pointer.
 	}
 
-// TODO: delete me
-//	public void putBoolPtr(boolean value) {
-//		skipPtr();
-//		putBool(value);
-//	}
-//
-//	public void putCharPtr(byte value) {
-//		skipPtr();
-//		putChar(value);
-//	}
-//
-//	public void putShortPtr(short value) {
-//		skipPtr();
-//		putShort(value);
-//	}
-//
-//	public void putLongPtr(int value) {
-//		skipPtr();
-//		putLong(value);
-//	}
-//
-//	public void putInt64Ptr(long value) {
-//		skipPtr();
-//		putInt64(value);
-//	}
-//
-//	public void putFloatPtr(float value) {
-//		skipPtr();
-//		putFloat(value);
-//	}
-//
-//	public void putDoublePtr(double value) {
-//		skipPtr();
-//		putDouble(value);
-//	}
-
 	// TODO: note in doc -- you can't do this with arrays of structs because
 	// you have to skip over all the relevant posArray elements for
 	// submembers
@@ -342,46 +306,6 @@ public final class Marshaller {
 		}
 	}
 
-// TODO: delete me
-//	public Boolean getBoolPtr() {
-//		int dataIndex = nextPtr();
-//		if (MarshallPlan.UNKNOWN_LOCATION == dataIndex) {
-//			return Boolean.FALSE;
-//		}
-//		return getBool(dataIndex);
-//	}
-//
-//	public Object getCharPtr() {
-//		int dataIndex = nextPtr();
-//		if (MarshallPlan.UNKNOWN_LOCATION == dataIndex) {
-//			return Boolean.FALSE;
-//		}
-//		return (int) getChar(dataIndex);
-//	}
-//
-//	public Object getShortPtr() {
-//		int dataIndex = nextPtr();
-//		if (MarshallPlan.UNKNOWN_LOCATION == dataIndex) {
-//			return Boolean.FALSE;
-//		}
-//		return (int) getShort(dataIndex);
-//	}
-//
-//	public Object getLongPtr() {
-//		int dataIndex = nextPtr();
-//		if (MarshallPlan.UNKNOWN_LOCATION == dataIndex) {
-//			return Boolean.FALSE;
-//		}
-//		return getLong(dataIndex);
-//	}
-//
-//	public Object getInt64Ptr() {
-//		int dataIndex = nextPtr();
-//		if (MarshallPlan.UNKNOWN_LOCATION == dataIndex) {
-//			return Boolean.FALSE;
-//		}
-//	}
-
 	//
 	// INTERNALS
 	//
@@ -419,50 +343,6 @@ public final class Marshaller {
 			isPtrArrayCopied = true;
 		}
 	}
-
-	// TODO: delete below
-//	private boolean getBool(int dataIndex) {
-//		return getLong(dataIndex) != 0;
-//	}
-//
-//	private int getChar(int dataIndex) {
-//		return data[dataIndex];
-//	}
-//
-//	private int getShort(int dataIndex) {
-//		// Note: the bitwise AND with 0xff is to avoid EVIL Java sign extension
-//		//       (because Java promotes bitwise operands to int and then sign-
-//		//       extends the 0xff byte).
-//		return (data[dataIndex + 0] & 0xff) << 000 |
-//				data[dataIndex + 1] << 010;
-//	}
-//
-//	private int getLong(int dataIndex) {
-//		return
-//				(data[dataIndex + 0] & 0xff) << 000 |
-//				(data[dataIndex + 1] & 0xff) << 010 |
-//				(data[dataIndex + 2] & 0xff) << 020 |
-//				data[dataIndex + 3] << 030;
-//	}
-//
-//	private long getInt64(int dataIndex) {
-//		return (data[dataIndex + 0] & 0xffL) << 000
-//				| (data[dataIndex + 1] & 0xffL) << 010
-//				| (data[dataIndex + 2] & 0xffL) << 020
-//				| (data[dataIndex + 3] & 0xffL) << 030
-//				| (data[dataIndex + 4] & 0xffL) << 040
-//				| (data[dataIndex + 5] & 0xffL) << 050
-//				| (data[dataIndex + 6] & 0xffL) << 060
-//				| (long) data[dataIndex + 7] << 070;
-//	}
-//
-//	private float getFloat(int dataIndex) {
-//		return Float.intBitsToFloat(getLong(dataIndex));
-//	}
-//
-//	private double getDouble(int dataIndex) {
-//		return Double.longBitsToDouble(getInt64(dataIndex));
-//	}
 
 	private static Object getStringPtrAlwaysByteArray(Buffer oldValue, Object value) {
 		if (null == value) {
