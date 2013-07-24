@@ -22,7 +22,7 @@ enum ReturnTypeGroup {
 		case VOID:
 			return VOID;
 		case BASIC:
-			final int size = type.getMarshallPlan().getSizeDirect();
+			final int size = type.getMarshallPlan().getSizeDirectIntrinsic();
 			if (size <= 4) {
 				return _32_BIT;
 			} else {
