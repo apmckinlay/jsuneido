@@ -6,6 +6,10 @@ import suneido.language.jsdi.type.SizeDirect;
 
 /**
  * TODO: docs
+ * FIXME: Need to insert padding 0-7 padding bytes btwn sizeDirect and
+ *        sizeIndirect ... (first check w Java abt array alignment). We might
+ *        be screwed if Java doesn't 8-byte-align byte array beginnings i.e.
+ *        might need to use a long array
  * @author Victor Schappert
  * @since 20130702
  */
@@ -86,12 +90,12 @@ public final class MarshallPlan {
 	 * @since 20130704
 	 */
 	public static MarshallPlan makePointerPlan(MarshallPlan targetPlan) {
-		if (targetPlan.sizeDirect < 1) {
+		if (targetPlan.getSizeDirectIntrinsic() < 1) {
 			throw new IllegalArgumentException(
 					"Can't make a pointer to a NULL plan");
 		}
 		final int sizeDirect = SizeDirect.POINTER;
-		final int sizeIndirect = targetPlan.sizeDirect + targetPlan.sizeIndirect;
+		final int sizeIndirect = targetPlan.getSizeDirectIntrinsic() + targetPlan.sizeIndirect;
 		// ptrArray
 		final int N = 2 + targetPlan.ptrArray.length;
 		final int[] ptrArray = new int[N];
@@ -127,12 +131,12 @@ public final class MarshallPlan {
 	 */
 	public static MarshallPlan makeArrayPlan(MarshallPlan elementPlan,
 			int numElems) {
-		if (elementPlan.sizeDirect < 1) {
+		if (elementPlan.getSizeDirectIntrinsic() < 1) {
 			throw new IllegalArgumentException(
 					"Can't make an array of NULL plans");
 		}
 		assert 0 < numElems;
-		final int sizeDirect = numElems * elementPlan.sizeDirect;
+		final int sizeDirect = numElems * elementPlan.getSizeDirectIntrinsic();
 		final int sizeIndirect = numElems * elementPlan.sizeIndirect;
 		final int M = elementPlan.ptrArray.length;
 		// ptrArray
@@ -144,17 +148,17 @@ public final class MarshallPlan {
 			while (j < M) {
 				int ptrIndex = elementPlan.ptrArray[j++];
 				if (ptrIndex < sizeDirect) {
-					ptrIndex += i * elementPlan.sizeDirect;
+					ptrIndex += i * elementPlan.getSizeDirectIntrinsic();
 				} else {
-					ptrIndex += (numElems - 1) * elementPlan.sizeDirect + i
+					ptrIndex += (numElems - 1) * elementPlan.getSizeDirectIntrinsic() + i
 							* elementPlan.sizeIndirect;
 				}
 				ptrArray[k++] = ptrIndex;
 				int targetIndex = elementPlan.ptrArray[j++];
-				if (elementPlan.sizeDirect + elementPlan.sizeIndirect <= targetIndex)
+				if (elementPlan.getSizeDirectIntrinsic() + elementPlan.sizeIndirect <= targetIndex)
 					targetIndex = nextViIndex++;
 				else
-					targetIndex += (numElems - 1) * elementPlan.sizeDirect + i
+					targetIndex += (numElems - 1) * elementPlan.getSizeDirectIntrinsic() + i
 							* elementPlan.sizeIndirect;
 				ptrArray[k++] = targetIndex;
 			}
@@ -167,11 +171,11 @@ public final class MarshallPlan {
 			int j = 0;
 			while (j < N) {
 				int pos = elementPlan.posArray[j++];
-				if (0 <= pos && pos < elementPlan.sizeDirect) {
-					pos += i * elementPlan.sizeDirect;
-				} else if (elementPlan.sizeDirect <= pos) {
-					assert pos < elementPlan.sizeDirect + elementPlan.sizeIndirect;
-					pos += (numElems - 1) * elementPlan.sizeDirect + i * elementPlan.sizeIndirect;
+				if (0 <= pos && pos < elementPlan.getSizeDirectIntrinsic()) {
+					pos += i * elementPlan.getSizeDirectIntrinsic();
+				} else if (elementPlan.getSizeDirectIntrinsic() <= pos) {
+					assert pos < elementPlan.getSizeDirectIntrinsic() + elementPlan.sizeIndirect;
+					pos += (numElems - 1) * elementPlan.getSizeDirectIntrinsic() + i * elementPlan.sizeIndirect;
 				} else {
 					assert false : "invalid position: " + pos;
 				}
@@ -196,7 +200,7 @@ public final class MarshallPlan {
 		int sizeDirect = 0;
 		int sizeIndirect = 0;
 		for (MarshallPlan child : children) {
-			sizeDirect += child.sizeDirect;
+			sizeDirect += child.getSizeDirectIntrinsic();
 			sizeIndirect += child.sizeIndirect;
 			sizePtrArray += child.ptrArray.length;
 			sizePosArray += child.posArray.length;
@@ -216,18 +220,18 @@ public final class MarshallPlan {
 			int k = 0;
 			while (k < N) {
 				int ptrIndex = childPlan.ptrArray[k++];
-				if (ptrIndex < childPlan.sizeDirect) {
+				if (ptrIndex < childPlan.getSizeDirectIntrinsic()) {
 					ptrIndex += sizeDirect2;
 				} else {
-					ptrIndex += sizeDirect - childPlan.sizeDirect
+					ptrIndex += sizeDirect - childPlan.getSizeDirectIntrinsic()
 							+ sizeIndirect2;
 				}
 				ptrArray[i++] = ptrIndex;
 				int targetIndex = childPlan.ptrArray[k++];
-				if (childPlan.sizeDirect + childPlan.sizeIndirect <= targetIndex)
+				if (childPlan.getSizeDirectIntrinsic() + childPlan.sizeIndirect <= targetIndex)
 					targetIndex = nextViIndex++;
 				else
-					targetIndex += sizeDirect - childPlan.sizeDirect + sizeIndirect2;
+					targetIndex += sizeDirect - childPlan.getSizeDirectIntrinsic() + sizeIndirect2;
 				ptrArray[i++] = targetIndex;
 				// This will also correctly move variable indirect indices which
 				// index past the end of the data [direct + indirect] array
@@ -236,17 +240,17 @@ public final class MarshallPlan {
 			final int P = childPlan.posArray.length;
 			for (k = 0; k < P; ++k) {
 				int pos = childPlan.posArray[k];
-				if (0 <= pos && pos < childPlan.sizeDirect) {
+				if (0 <= pos && pos < childPlan.getSizeDirectIntrinsic()) {
 					pos += sizeDirect2;
-				} else if (pos < childPlan.sizeDirect + childPlan.sizeIndirect) {
-					pos += sizeDirect - childPlan.sizeDirect + sizeIndirect2;
+				} else if (pos < childPlan.getSizeDirectIntrinsic() + childPlan.sizeIndirect) {
+					pos += sizeDirect - childPlan.getSizeDirectIntrinsic() + sizeIndirect2;
 				} else {
 					assert UNKNOWN_LOCATION == pos;
 				}
 				posArray[j++] = pos;
 			}
 			// housekeeping
-			sizeDirect2 += childPlan.sizeDirect;
+			sizeDirect2 += childPlan.getSizeDirectIntrinsic();
 			sizeIndirect2 += childPlan.sizeIndirect;
 			countVariableIndirect += childPlan.countVariableIndirect;
 		}
@@ -304,13 +308,46 @@ public final class MarshallPlan {
 	//
 
 	/**
-	 * Get the direct storage required to marshall the data. Direct storage is
-	 * the storage occupied by a value on the stack, or within another
-	 * structure.
-	 * @return Amount of direct storage required to marshall the data, in bytes.
+	 * <p>
+	 * Get the direct storage required to marshall the data <em>onto the
+	 * stack</em> under the {@code stdcall} calling convention.
+	 * </p>
+	 * <p>
+	 * Under the {@code stdcall} calling convention, each argument uses the
+	 * minimum number of 32-bit words required to contain the intrinsic size of
+	 * the argument. Thus, for example, the functions
+	 * {@code __stdcall void f(char, char);}
+	 * {@code __stdcall void g(long, long); } and
+	 * {@code __stdcall void h(int64_t, int64_t);} all
+	 * require 64 bits of stack storage for the arguments.
+	 * </p>
+	 *
+	 * @return Amount of direct storage required to marshall the data onto the
+	 * stack for the {@code stdcall} calling convention 
+	 * @see #getSizeDirectIntrinsic()
 	 * @see #getSizeIndirect()
 	 */
-	public int getSizeDirect() {
+	public int getSizeDirectStack() {
+		return sizeDirect;
+	}
+
+	/**
+	 * <p>
+	 * Get the direct storage required to marshall the data by packing it
+	 * according to the intrinsic size of the data types (as within a "C"
+	 * {@code struct}).
+	 * </p>
+	 * <p>
+	 * This function does not presently deal with alignment issues, so if the
+	 * Suneido programmer wants to align particular data members, he must do so
+	 * by inserting suitable padding members if necessary.
+	 * </p>
+	 *
+	 * @return Amount of direct storage required to marshall the data
+	 * @see #getSizeDirectStack() 
+	 * @see #getSizeIndirect()
+	 */
+	public int getSizeDirectIntrinsic() {
 		return sizeDirect;
 	}
 
@@ -321,7 +358,7 @@ public final class MarshallPlan {
 	 * indirectly part of the structure or array).
 	 * @return Amount of indirect storage required to marshall the data, in
 	 * bytes.
-	 * @see #getSizeDirect()
+	 * @see #getSizeDirectStack()
 	 */
 	public int getSizeIndirect() {
 		return sizeIndirect;
@@ -375,6 +412,7 @@ public final class MarshallPlan {
 	 * @return Whether {@code this} plan is equal to {@code mp}.
 	 */
 	public boolean equals(MarshallPlan mp) {
+		// FIXME: This has to be updated!!
 		if (null == mp)
 			return false;
 		else if (this == mp)

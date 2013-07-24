@@ -98,6 +98,6 @@ public final class Structure extends ComplexType {
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
 		struct.resolve(0);
-		return struct.getMarshallPlan().getSizeDirect();
+		return struct.getMarshallPlan().getSizeDirectIntrinsic();
 	}
 }

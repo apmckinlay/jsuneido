@@ -168,7 +168,7 @@ public final class BasicValue extends Type {
 
 	@Override
 	public boolean isMarshallableToJSDILong() {
-		return basicType.getMarshallPlan().getSizeDirect() == SizeDirect.LONG;
+		return basicType.getMarshallPlan().getSizeDirectStack() == SizeDirect.LONG;
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class MarshallPlanTest {
 		}, IllegalArgumentException.class);
 		final MarshallPlan NULL_PLAN = MarshallPlan.makeContainerPlan(Arrays
 				.asList(new MarshallPlan[0]));
-		assertEquals(0, NULL_PLAN.getSizeDirect());
+		assertEquals(0, NULL_PLAN.getSizeDirectStack());
 		assertThrew(new Runnable() {
 			public void run() {
 				MarshallPlan.makePointerPlan(NULL_PLAN);

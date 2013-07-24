@@ -161,7 +161,7 @@ public class Dll extends SuCallable {
 		NativeCall nc = null == nativeCall ? NativeCall.get(
 				CallGroup.fromTypeList(dllParams), returnTypeGroup,
 				dllParams.size()) : nativeCall;
-		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(), m);
+		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirectStack(), m);
 		Object returnValue = null;
 		if (VoidType.INSTANCE != returnType) {
 			returnValue = returnType.marshallOutReturnValue(returnValueRaw);
