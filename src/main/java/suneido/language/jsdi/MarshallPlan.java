@@ -69,9 +69,7 @@ public final class MarshallPlan {
 
 	/**
 	 * <p>
-	 * Get the direct storage required to marshall the data by packing it
-	 * according to the intrinsic size of the data types (as within a "C"
-	 * {@code struct}).
+	 * Get the direct storage required to marshall the data.
 	 * </p>
 	 * <p>
 	 * This function does not presently deal with alignment issues, so if the
@@ -83,31 +81,7 @@ public final class MarshallPlan {
 	 * @see #getSizeDirectWholeWords() 
 	 * @see #getSizeIndirect()
 	 */
-	public int getSizeDirectIntrinsic() {
-		return sizeDirect;
-	}
-
-	/**
-	 * <p>
-	 * Get the direct storage required to marshall the data <em>onto the
-	 * stack</em> under the {@code stdcall} calling convention.
-	 * </p>
-	 * <p>
-	 * Under the {@code stdcall} calling convention, each argument uses the
-	 * minimum number of 32-bit words required to contain the intrinsic size of
-	 * the argument. Thus, for example, the functions
-	 * {@code __stdcall void f(char, char);}
-	 * {@code __stdcall void g(long, long); } and
-	 * {@code __stdcall void h(int64_t, int64_t);} all
-	 * require 64 bits of stack storage for the arguments.
-	 * </p>
-	 *
-	 * @return Amount of direct storage required to marshall the data onto the
-	 * stack for the {@code stdcall} calling convention 
-	 * @see #getSizeDirectIntrinsic()
-	 * @see #getSizeIndirect()
-	 */
-	public int getSizeDirectWholeWords() {
+	public int getSizeDirect() {
 		return sizeDirect;
 	}
 
