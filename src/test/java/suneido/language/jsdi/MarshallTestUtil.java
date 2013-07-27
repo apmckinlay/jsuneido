@@ -59,4 +59,12 @@ public final class MarshallTestUtil {
 		}
 		return new MarshallPlan(totalSizeDirect, 0, new int[0], posArray, 0);
 	}
+
+	public static MarshallPlan paramPlan(int... sizeDirect) {
+		int[] sizeDirect2 = new int[sizeDirect.length];
+		for (int k = 0; k < sizeDirect.length; ++k) {
+			sizeDirect2[k] = PrimitiveSize.sizeWholeWords(sizeDirect[k]);
+		}
+		return compoundPlan(1, sizeDirect2);
+	}
 }
