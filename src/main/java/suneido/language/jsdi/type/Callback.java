@@ -27,6 +27,16 @@ public final class Callback extends ComplexType {
 		return "callback" + typeList.toParamsTypeString();
 	}
 
+	@Override
+	public int getSizeDirectIntrinsic() {
+		return PrimitiveSize.POINTER;
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return PrimitiveSize.pointerWholeWordBytes();
+	}
+
 	// TODO: implement marshall in?
 	// TODO: implement marshall out?
 

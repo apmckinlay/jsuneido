@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import suneido.SuValue;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.ElementSkipper;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.StorageType;
 
@@ -17,15 +18,16 @@ public abstract class ComplexType extends Type {
 	// DATA
 	//
 
-	protected final String   suTypeName;
-	protected final TypeList typeList;
+	protected final String         suTypeName;
+	protected final TypeList       typeList;
+	protected       ElementSkipper skipper; // only valid to last addToPlan()
 
 	//
 	// CONSTRUCTORS
 	//
 
 	protected ComplexType(TypeId typeId, String suTypeName, TypeList typeList) {
-		super(typeId, StorageType.VALUE, typeList.getMarshallPlan());
+		super(typeId, StorageType.VALUE);
 		if (null == suTypeName)
 			throw new IllegalArgumentException("suTypeName cannot be null");
 		this.suTypeName = suTypeName;
@@ -55,9 +57,13 @@ public abstract class ComplexType extends Type {
 	 * @return Suneido type name
 	 * @see suneido.language.jsdi.dll.Dll#getSuTypeName()
 	 */
-	public String getSuTypeName()
-	{
+	public final String getSuTypeName() {
 		return suTypeName;
+	}
+
+	// TODO: Docs since 20130725
+	public final ElementSkipper getElementSkipper() {
+		return skipper;
 	}
 
 	//
@@ -66,13 +72,7 @@ public abstract class ComplexType extends Type {
 
 	final boolean resolve(int level) {
 		try {
-			final boolean changed = typeList.resolve(level);
-			if (null == marshallPlan || changed) {
-				marshallPlan = typeList.getMarshallPlan();
-				return true;
-			} else {
-				return false;
-			}
+			return typeList.resolve(level);
 		} catch (ProxyResolveException e) {
 			if (TypeId.STRUCT == getTypeId()) {
 				e.setMemberType("member");

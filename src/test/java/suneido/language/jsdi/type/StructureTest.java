@@ -10,7 +10,10 @@ import suneido.language.ContextLayered;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.util.testing.Assumption;
+
+import static suneido.util.testing.Throwing.*;
 
 /**
  * Test for {@link Structure}.
@@ -97,7 +100,13 @@ public class StructureTest {
 	private static MarshallPlan getMarshallPlan(String name) {
 		Structure struct = get(name);
 		struct.resolve(0);
-		return struct.getMarshallPlan();
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+			struct.getSizeDirectWholeWords(),
+			struct.getSizeIndirect(),
+			struct.getVariableIndirectCount()
+		);
+		struct.addToPlan(builder);
+		return builder.makeMarshallPlan();
 	}
 
 	@Test
@@ -155,8 +164,12 @@ public class StructureTest {
 				getMarshallPlan("StringStruct3").toString());
 	}
 
-	@Test(expected=JSDIException.class)
+	@Test
 	public void testCycle() {
-		eval("CycleA.Size()");
+		assertThrew(
+				new Runnable() { public void run() { eval("CycleA.Size()"); } },
+				JSDIException.class,
+				".*cycle.*"
+		);
 	}
 }

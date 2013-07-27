@@ -144,9 +144,9 @@ public final class Marshaller {
 		posIndex += numElems;
 	}
 
-	public void skipComplexArrayElements(int numElems, MarshallPlan plan) {
-		posIndex += numElems * plan.getPosArraySize();
-		ptrIndex += numElems * plan.getPtrArraySize();
+	public void skipComplexArrayElements(ElementSkipper skipper) {
+		posIndex += skipper.nPos;
+		ptrIndex += skipper.nPtr;
 	}
 
 	public void putNullStringPtr(boolean expectStringBack) {

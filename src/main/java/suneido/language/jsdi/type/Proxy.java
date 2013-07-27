@@ -3,10 +3,7 @@ package suneido.language.jsdi.type;
 import suneido.SuContainer;
 import suneido.language.Context;
 import suneido.language.Ops;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.ObjectConversions;
-import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -39,6 +36,7 @@ public final class Proxy extends Type {
 	private final StorageType storageType;
 	private final int numElems;
 	private ComplexType lastResolvedType;
+	private ElementSkipper skipper;
 
 	//
 	// CONSTRUCTORS
@@ -46,42 +44,13 @@ public final class Proxy extends Type {
 
 	public Proxy(Context context, int typeNameSlot, StorageType storageType,
 			int numElems) {
-		super(TypeId.PROXY, storageType, (MarshallPlan) null);
+		super(TypeId.PROXY, storageType);
 		this.context = context;
 		this.typeNameSlot = typeNameSlot;
 		this.storageType = storageType;
 		this.numElems = numElems;
 		this.lastResolvedType = null;
-	}
-
-	//
-	// INTERNALS
-	//
-
-	private final boolean resolveInternal(int level)
-			throws ProxyResolveException {
-		boolean changed = lastResolvedType.resolve(level);
-		if (null == marshallPlan || changed) {
-			switch (storageType) {
-			case VALUE:
-				marshallPlan = lastResolvedType.getMarshallPlan();
-				break;
-			case POINTER:
-				marshallPlan = MarshallPlan.makePointerPlan(
-						lastResolvedType.getMarshallPlan());
-				break;
-			case ARRAY:
-				marshallPlan = MarshallPlan.makeArrayPlan(
-						lastResolvedType.getMarshallPlan(), this.numElems);
-				break;
-			default:
-				throw new IllegalStateException(
-						"Missing switch case in Proxy.resolveInternal()");
-			}
-			return true;
-		} else {
-			return false;
-		}
+		this.skipper = null;
 	}
 
 	//
@@ -92,10 +61,17 @@ public final class Proxy extends Type {
 		final Object maybeType = context.tryget(typeNameSlot);
 		if (null != maybeType) {
 			if (maybeType == lastResolvedType) {
-				return resolveInternal(level);
+				return lastResolvedType.resolve(level);
 			} else if (maybeType instanceof ComplexType) {
+				// TODO: [CONCURRENCY]. At the point at which we detect this
+				//                      change for the first time, we'll need
+				//                      to lock some kind of global lock (might
+				//                      be best to pass it as a parameter) so
+				//                      that concurrent threads don't mess up
+				//                      the same types
 				lastResolvedType = (ComplexType) maybeType;
-				return resolveInternal(level);
+				lastResolvedType.resolve(level);
+				return true;
 			}
 		}
 		final Class<?> clazz = null == maybeType ? null : maybeType.getClass();
@@ -134,13 +110,99 @@ public final class Proxy extends Type {
 	}
 
 	@Override
+	public int getSizeDirectIntrinsic() {
+		switch (storageType) {
+		case VALUE:
+			return lastResolvedType.getSizeDirectIntrinsic();
+		case ARRAY:
+			return lastResolvedType.getSizeDirectIntrinsic() * numElems;
+		case POINTER:
+			return PrimitiveSize.POINTER;
+		default:
+			throw new IllegalStateException(
+					"Missing switch case in Proxy.getSizeDirectIntrinsic()");
+		}
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		switch (storageType) {
+		case VALUE:
+			return lastResolvedType.getSizeDirectWholeWords();
+		case ARRAY:
+			return PrimitiveSize.sizeWholeWords(lastResolvedType
+					.getSizeDirectIntrinsic() * numElems);
+		case POINTER:
+			return PrimitiveSize.pointerWholeWordBytes();
+		default:
+			throw new IllegalStateException(
+					"Missing switch case in Proxy.getSizeDirectWholeWords()");
+		}
+	}
+
+	@Override
+	public int getSizeIndirect() {
+		switch (storageType) {
+		case VALUE:
+			return lastResolvedType.getSizeIndirect();
+		case ARRAY:
+			return lastResolvedType.getSizeIndirect() * numElems;
+		case POINTER:
+			return lastResolvedType.getSizeDirectIntrinsic() +
+					lastResolvedType.getSizeIndirect();
+		default:
+			throw new IllegalStateException(
+					"Missing switch case in Proxy.getSizeIndirect()");
+		}
+	}
+
+	@Override
+	public int getVariableIndirectCount() {
+		switch (storageType) {
+		case VALUE: // fall through
+		case POINTER:
+			return lastResolvedType.getVariableIndirectCount();
+		case ARRAY:
+			return numElems * lastResolvedType.getVariableIndirectCount();
+		default:
+			throw new IllegalStateException(
+					"Missing switch case in Proxy.getVariableIndirectCount()");
+		}
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		switch (storageType) {
+		case VALUE:
+			lastResolvedType.addToPlan(builder);
+			skipper = lastResolvedType.skipper;
+			break;
+		case ARRAY:
+			builder.containerBegin();
+			for (int k = 0; k < numElems; ++k) {
+				// NOTE: This is doing a lot of extra work that could as easily
+				//       be done by multiplication... Not ideal.
+				lastResolvedType.addToPlan(builder);
+			}
+			skipper = builder.containerEnd();
+			break;
+		case POINTER:
+			builder.ptrBegin(lastResolvedType.getSizeDirectIntrinsic());
+			lastResolvedType.addToPlan(builder);
+			builder.ptrEnd();
+			skipper = lastResolvedType.skipper;
+			break;
+		}
+	}
+
+	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		switch (storageType) {
 		case VALUE:
 			if (null != value) {
 				lastResolvedType.marshallIn(marshaller, value);
 			} else {
-				marshaller.skipComplexArrayElements(1, marshallPlan);
+				marshaller.skipComplexArrayElements(skipper);
 			}
 			break;
 		case POINTER:
@@ -149,21 +211,17 @@ public final class Proxy extends Type {
 				lastResolvedType.marshallIn(marshaller, value);
 			} else {
 				marshaller.putNullPtr();
-				marshaller.skipComplexArrayElements(1, marshallPlan);
+				marshaller.skipComplexArrayElements(skipper);
 			}
 		case ARRAY:
 			final SuContainer c = Ops.toContainer(value);
 			if (null != c) {
 				for (int k = 0; k < numElems; ++k) {
 					value = c.get(k);
-					if (null != value) {
-						lastResolvedType.marshallIn(marshaller, value);
-					} else {
-						marshaller.skipComplexArrayElements(1, marshallPlan);
-					}
+					lastResolvedType.marshallIn(marshaller, value);
 				}
 			} else {
-				marshaller.skipComplexArrayElements(numElems, marshallPlan);
+				marshaller.skipComplexArrayElements(skipper);
 			}
 			break;
 		default:
@@ -178,7 +236,7 @@ public final class Proxy extends Type {
 			return lastResolvedType.marshallOut(marshaller, oldValue);
 		case POINTER:
 			if (marshaller.isPtrNull()) {
-				marshaller.skipComplexArrayElements(1, marshallPlan);
+				marshaller.skipComplexArrayElements(skipper);
 				return Boolean.FALSE;
 			} else {
 				return lastResolvedType.marshallOut(marshaller, oldValue);

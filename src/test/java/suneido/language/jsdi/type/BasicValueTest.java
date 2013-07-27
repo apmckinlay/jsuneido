@@ -7,6 +7,8 @@ import java.util.EnumSet;
 
 import org.junit.Test;
 
+import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 
 /**
@@ -55,8 +57,12 @@ public class BasicValueTest {
 		for (BasicTypeSet bts : SETS) {
 			assertFalse(typesSeen.contains(bts.type));
 			BasicValue type = bv(bts.type);
+			MarshallPlanBuilder builder = new MarshallPlanBuilder(
+					type.getSizeDirectWholeWords(), 0, 0);
+			type.addToPlan(builder);
+			MarshallPlan mp = builder.makeMarshallPlan();
 			for (Object value : bts.values) {
-				Marshaller m = type.getMarshallPlan().makeMarshaller();
+				Marshaller m = mp.makeMarshaller();
 				type.marshallIn(m, value);
 				m.rewind();
 				assertEquals(value, type.marshallOut(m, null));

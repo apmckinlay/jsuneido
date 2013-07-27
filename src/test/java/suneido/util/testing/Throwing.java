@@ -129,7 +129,7 @@ public final class Throwing {
 		try {
 			r.run();
 		} catch (Exception e) {
-			if (clazz == e.getClass() && pattern.matches(e.getMessage())) {
+			if (clazz == e.getClass() && e.getMessage().matches(pattern)) {
 				return true;
 			}
 		}

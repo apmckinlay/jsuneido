@@ -9,13 +9,17 @@ import suneido.language.jsdi.DllInterface;
  * @since 20130703
  */
 @DllInterface
-public final class SizeDirect {
+public final class PrimitiveSize {
+	/**
+	 * Size of the native word size, in bytes.
+	 */
+	public static final int WORD = 4;
 	/**
 	 * Size of a native pointer type, in bytes. This should give the same
 	 * result as the value reported by a C compiler for {@code sizeof(void *)}
 	 * on the native platform. 
 	 */
-	public static final int POINTER = 4;
+	public static final int POINTER = WORD;
 	/**
 	 * <p>
 	 * Size of a native integer type, in bytes. This should give the same
@@ -70,7 +74,41 @@ public final class SizeDirect {
 	 */
 	public static final int GDIOBJ = 4;
 
+	/**
+	 * Returns the minimum number of whole words that completely contains the
+	 * given number of bytes.
+	 * @param bytes Number of bytes
+	 * @return Number of whole words that completely contains {@bytes}
+	 * @see #sizeWholeWords(int)
+	 */
+	public static int minWholeWords(int bytes) {
+		return (bytes + WORD - 1) / WORD;
+	}
+
+	/**
+	 * Returns the number of bytes taken by the minimum number of whole words
+	 * which contain the given number of bytes.
+	 * @param bytes Number of bytes
+	 * @return Number of bytes occupied by the minimum number of whole words
+	 * which completely contain {@bytes}
+	 * @see #pointerWholeWordBytes()
+	 */
+	public static int sizeWholeWords(int bytes) {
+		return minWholeWords(bytes) * WORD;
+	}
+
+	/**
+	 * Returns the number of bytes taken by the minimum number of whole words
+	 * which contains a pointer.
+	 * @return Number of bytes taken by minimum whole words that contain a
+	 * pointer
+	 * @see #sizeWholeWords(int)
+	 */
+	public static int pointerWholeWordBytes() {
+		return ((POINTER + WORD - 1) / WORD) * POINTER;
+	}
+
 	// Don't instantiate!
-	private SizeDirect() {
+	private PrimitiveSize() {
 	}
 }

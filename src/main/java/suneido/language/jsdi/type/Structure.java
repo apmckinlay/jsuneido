@@ -2,17 +2,22 @@ package suneido.language.jsdi.type;
 
 import java.util.Map;
 
+import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
+import suneido.language.Ops;
 import suneido.language.SuCallable;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 
 /**
  * TODO: docs
  * <p>
- * This class is <em>not</em> immutable because {@link #getMarshallPlan()} may
- * change depending on the value of any members that are proxies.
+ * This class is <em>not</em> immutable because certain characteristics may
+ * change depending on the current resolved value of any members that are
+ * proxies.
  * </p>
  * @author Victor Schappert
  * @since 20130625
@@ -26,6 +31,9 @@ public final class Structure extends ComplexType {
 
 	Structure(String suTypeName, TypeList members) {
 		super(TypeId.STRUCT, suTypeName, members);
+		if (members.isEmpty()) {
+			throw new JSDIException("structure must have at least one member");
+		}
 	}
 
 	//
@@ -52,8 +60,40 @@ public final class Structure extends ComplexType {
 	}
 
 	@Override
+	public int getSizeDirectIntrinsic() {
+		return typeList.getSizeDirectIntrinsic();
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return PrimitiveSize.sizeWholeWords(getSizeDirectIntrinsic());
+	}
+
+	@Override
+	public int getSizeIndirect() {
+		return typeList.getSizeIndirect();
+	}
+
+	@Override
+	public int getVariableIndirectCount() {
+		return typeList.getVariableIndirectCount();
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		builder.containerBegin();
+		typeList.addToPlan(builder);
+		skipper = builder.containerEnd();
+	}
+
+	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
-		typeList.marshallInMembers(marshaller, value);
+		final SuContainer c = Ops.toContainer(value);
+		if (null == c) {
+			marshaller.skipComplexArrayElements(skipper);
+		} else {
+			typeList.marshallInMembers(marshaller, c);
+		}
 	}
 
 	@Override
@@ -98,6 +138,6 @@ public final class Structure extends ComplexType {
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
 		struct.resolve(0);
-		return struct.getMarshallPlan().getSizeDirectIntrinsic();
+		return struct.getSizeDirectIntrinsic();
 	}
 }

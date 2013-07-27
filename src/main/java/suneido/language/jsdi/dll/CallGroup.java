@@ -1,7 +1,6 @@
 package suneido.language.jsdi.dll;
 
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.type.TypeList;
 
 /**
@@ -26,10 +25,9 @@ enum CallGroup {
 				typeList.size() <= NativeCall.MAX_FAST_MARSHALL_PARAMS) {
 			return FAST;
 		} else if (typeList.isClosed() || resolved) {
-			MarshallPlan plan = typeList.getMarshallPlan();
-			if (0 < plan.getCountVariableIndirect())
+			if (0 < typeList.getVariableIndirectCount())
 				return VARIABLE_INDIRECT;
-			else if (0 < plan.getSizeIndirect())
+			else if (0 < typeList.getSizeIndirect())
 				return INDIRECT;
 			else
 				return DIRECT;

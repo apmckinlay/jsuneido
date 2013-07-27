@@ -75,7 +75,7 @@ public class TypeListTest {
 	public void marshallParamsEmpty() {
 		TypeList tl = makeParams();
 		Object[] args = new Object[0];
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args);
 		m.rewind();
 		tl.marshallOutParams(m, args);
@@ -90,7 +90,7 @@ public class TypeListTest {
 		Object[] args1 = new Object[] { Boolean.TRUE, -99, 9999, 0x19830206,
 				0x8080808080808080L, -99.5f, 111111.5, 0x19900606, 0x19840209 };
 		Object[] args2 = new Object[args1.length];
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -110,7 +110,7 @@ public class TypeListTest {
 			ca(99999f, -99999f), ca(-300, 300.0), ca(5, 6), ca(7, 8)
 		};
 		Object[] args2 = new Object[args1.length];
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -125,7 +125,7 @@ public class TypeListTest {
 		Object[] args1 = new Object[] { new SuContainer() };
 		Object[] args2 = new Object[] { new SuContainer() };
 		tl.resolve(0);
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -142,7 +142,7 @@ public class TypeListTest {
 		Object[] args1 = new Object[] { ca(CIRCLE_Radius(19), CIRCLE(-1.0, -2.0, 123456.125)) };
 		Object[] args2 = new Object[] { new SuContainer() };
 		tl.resolve(0);
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -161,7 +161,7 @@ public class TypeListTest {
 		Object[] args1 = new Object[] { CIRCLE(-1.0, -2.0, 123456.125) };
 		Object[] args2 = new Object[] { new SuContainer() };
 		tl.resolve(0);
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -173,7 +173,7 @@ public class TypeListTest {
 		TypeList tl = makeParams("str", InString.INSTANCE);
 		Object[] args1 = new Object[] { "antidisestablishmentarianism" };
 		Object[] args2 = new Object[] { null };
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -185,7 +185,7 @@ public class TypeListTest {
 		TypeList tl = makeParams("str", InOutString.INSTANCE);
 		Object[] args1 = new Object[] { "Freedom granted only when it is known beforehand that its effects will be beneficial is not freedom." };
 		Object[] args2 = new Object[] { null };
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		// Simulate native side storing a String into the viArray. The native
@@ -202,7 +202,7 @@ public class TypeListTest {
 		final String str = "Freedom granted only when it is known beforehand that its effects will be beneficial is not freedom.";
 		Object[] args1 = new Object[] { str };
 		Object[] args2 = new Object[] { new Buffer(str.length(), "") };
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		// Simulate native side storing a String into the viArray. The native
@@ -222,7 +222,7 @@ public class TypeListTest {
 		final String str = "The quick brown fox jumped over the lazy dog.";
 		Object[] args1 = new Object[] { new Buffer(str.length(), str) };
 		Object[] args2 = new Object[] { new Buffer(str.length(), "") };
-		Marshaller m = tl.getMarshallPlan().makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);

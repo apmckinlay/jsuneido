@@ -27,14 +27,9 @@ public final class BasicArray extends Type {
 	//
 
 	BasicArray(BasicValue underlying, int numElems) {
-		super(TypeId.BASIC, StorageType.ARRAY, arrayPlan(underlying
-				.getBasicType().getMarshallPlan(), numElems));
+		super(TypeId.BASIC, StorageType.ARRAY);
 		this.underlying = underlying;
 		this.numElems = numElems;
-	}
-
-	private static MarshallPlan arrayPlan(MarshallPlan valuePlan, int numElems) {
-		return MarshallPlan.makeArrayPlan(valuePlan, numElems);
 	}
 
 	//
@@ -63,6 +58,26 @@ public final class BasicArray extends Type {
 		result.append(getBasicType().toIdentifier()).append('[')
 				.append(numElems).append(']');
 		return result.toString();
+	}
+
+	@Override
+	public int getSizeDirectIntrinsic() {
+		return underlying.getBasicType().getSizeIntrinsic() * numElems;
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return PrimitiveSize.WORD
+				* PrimitiveSize.minWholeWords(getSizeDirectIntrinsic());
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		builder.containerBegin();
+		for (int k = 0; k < numElems; ++k) {
+			underlying.addToPlan(builder);
+		}
+		builder.containerEnd();
 	}
 
 	@Override

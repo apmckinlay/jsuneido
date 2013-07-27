@@ -1,7 +1,7 @@
 package suneido.language.jsdi;
 
 import static org.junit.Assert.*;
-import static suneido.util.Util.array;
+import static suneido.language.jsdi.MarshallTestUtil.*;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.junit.Test;
 
-import suneido.language.jsdi.type.SizeDirect;
+import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
  * Test for {@link Marshaller}.
@@ -41,8 +41,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testNullMarshaller() {
-		MarshallPlan NULL_PLAN = MarshallPlan.makeContainerPlan(Arrays
-				.asList(new MarshallPlan[0]));
+		MarshallPlan NULL_PLAN = nullPlan();
 		final Marshaller NULL_MARSHALLER = NULL_PLAN.makeMarshaller();
 		assertThrew(new Runnable() {
 			public void run() {
@@ -53,7 +52,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallBool() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.BOOL);
+		MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putBool(true);
 		assertArrayEquals(ba("01000000"), mr.getData()); // little-endian
@@ -68,7 +67,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallChar() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putChar((byte)0x21);
 		assertArrayEquals(ba("21"), mr.getData());
@@ -78,7 +77,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallShort() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.SHORT);
+		MarshallPlan mp = directPlan(PrimitiveSize.SHORT);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putShort((short)0x1982);
 		assertArrayEquals(ba("8219"), mr.getData()); // little-endian
@@ -88,7 +87,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallLong() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.LONG);
+		MarshallPlan mp = directPlan(PrimitiveSize.LONG);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putLong(0x19820207);
 		assertArrayEquals(ba("07028219"), mr.getData()); // little-endian
@@ -98,7 +97,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallInt64() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.INT64);
+		MarshallPlan mp = directPlan(PrimitiveSize.INT64);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putInt64(0x0123456789abcdefL);
 		assertArrayEquals(ba("efcdab8967452301"), mr.getData()); // little-endian
@@ -108,7 +107,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallFloat() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.FLOAT);
+		MarshallPlan mp = directPlan(PrimitiveSize.FLOAT);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putFloat(1.0f); // IEEE 32-bit float binary rep => 0x3f800000
 		assertArrayEquals(ba("0000803f"), mr.getData()); // little-endian
@@ -118,7 +117,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallDouble() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.DOUBLE);
+		MarshallPlan mp = directPlan(PrimitiveSize.DOUBLE);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putDouble(19820207.0); // IEEE 64-bit double binary rep => 0x4172e6eaf0000000
 		assertArrayEquals(ba("000000f0eae67241"), mr.getData()); // little-endian
@@ -129,13 +128,12 @@ public class MarshallerTest {
 	@Test
 	public void testMarshallPtrNotNull() {
 		// Plan for a "C" char *
-		MarshallPlan mp = MarshallPlan.makePointerPlan(
-			MarshallPlan.makeDirectPlan(SizeDirect.CHAR));
+		MarshallPlan mp = pointerPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putPtr();
 		mr.putChar((byte)0xff);
 		assertArrayEquals(ba("00000000ff"), mr.getData());
-		assertArrayEquals(ia(0, SizeDirect.POINTER), mr.getPtrArray());
+		assertArrayEquals(ia(0, PrimitiveSize.POINTER), mr.getPtrArray());
 		mr.rewind();
 		assertFalse(mr.isPtrNull());
 		assertEquals((byte)0xff, mr.getChar());
@@ -143,8 +141,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallPtrNull() {
-		MarshallPlan mp = MarshallPlan.makePointerPlan(
-			MarshallPlan.makeDirectPlan(SizeDirect.INT64));
+		MarshallPlan mp = pointerPlan(PrimitiveSize.INT64);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putNullPtr();
 		mr.putInt64(0x1982020719900606L);
@@ -157,7 +154,7 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectZeroTerminated_OverflowString() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		// The reason the character count has to be 3 is that the marshaller
 		// copies the character count - 1, assuming that the character at count
@@ -169,7 +166,7 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectZeroTerminated_OverflowBuffer() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		Buffer b = new Buffer(2, "ab");
 		mr.putZeroTerminatedStringDirect(b , 3);
@@ -181,7 +178,7 @@ public class MarshallerTest {
 		//
 		// With String
 		//
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(LEN * SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(LEN * PrimitiveSize.CHAR);
 		{
 			Marshaller mr = mp.makeMarshaller();
 			mr.putZeroTerminatedStringDirect("", LEN);
@@ -254,14 +251,14 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectNonZeroTerminated_OverflowString() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		mr.putNonZeroTerminatedStringDirect("ab", 2);
 	}
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectNonZeroTerminated_OverflowBuffer() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		Marshaller mr = mp.makeMarshaller();
 		Buffer b = new Buffer(2, "ab");
 		mr.putNonZeroTerminatedStringDirect(b, 2);
@@ -273,7 +270,7 @@ public class MarshallerTest {
 		//
 		// With String Input
 		//
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(LEN * SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(LEN * PrimitiveSize.CHAR);
 		{
 			Marshaller mr = mp.makeMarshaller();
 			mr.putNonZeroTerminatedStringDirect("", LEN);
@@ -352,7 +349,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringIndirectPtrNull_ExpectString() {
-		MarshallPlan mp = MarshallPlan.makeVariableIndirectPlan();
+		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
 		mr.putNullStringPtr(true);
 		assertTrue(Arrays.equals(new boolean[] { true }, mr.getViInstArray()));
@@ -365,7 +362,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringIndirectPtrNull_ExpectByteArray() {
-		MarshallPlan mp = MarshallPlan.makeVariableIndirectPlan();
+		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
 		mr.putNullStringPtr(false);
 		mr.rewind();
@@ -380,7 +377,7 @@ public class MarshallerTest {
 	public void testMarshallStringIndirectStringBackToString() {
 		final String IN = "Quis custodiet ipsos custodes?";
 		final String OUT = "Cauta est et ab illis incipit uxor.";
-		MarshallPlan mp = MarshallPlan.makeVariableIndirectPlan();
+		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
 		mr.putStringPtr(IN, true);
 		mr.rewind();
@@ -398,7 +395,7 @@ public class MarshallerTest {
 		final String OUT = "of each purple curtainXXXXXXXXXXXXXXX".replace('X', '\u0000');
 		final Buffer IN_ = new Buffer(IN.length(), IN);
 		final Buffer EXPECT = new Buffer(IN.length(), OUT);
-		MarshallPlan mp = MarshallPlan.makeVariableIndirectPlan();
+		MarshallPlan mp = variableIndirectPlan();
 		Buffer OUT_;
 		Marshaller mr = mp.makeMarshaller();
 		mr.putStringPtr(IN_, false);
@@ -441,7 +438,7 @@ public class MarshallerTest {
 
 	@Test
 	public void testSkipBasicArrayElements_Single() {
-		MarshallPlan mp = MarshallPlan.makeDirectPlan(SizeDirect.CHAR);
+		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		final Marshaller mr = mp.makeMarshaller();
 		mr.skipBasicArrayElements(1);
 		assertThrew(new Runnable() {
@@ -454,8 +451,7 @@ public class MarshallerTest {
 	@Test
 	public void testSkipBasicArrayElements_Multiple() {
 		final int NUM_ELEMS = 3;
-		MarshallPlan mp = MarshallPlan.makeArrayPlan(MarshallPlan
-				.makeDirectPlan(SizeDirect.LONG), NUM_ELEMS);
+		MarshallPlan mp = arrayPlan(PrimitiveSize.LONG, NUM_ELEMS);
 		final Marshaller mr = mp.makeMarshaller();
 		for (int k = 0; k < NUM_ELEMS; ++k) {
 			mr.skipBasicArrayElements(1);
@@ -485,11 +481,10 @@ public class MarshallerTest {
 
 	@Test
 	public void testSkipComplexArrayElements_Single() {
-		MarshallPlan cp = MarshallPlan.makeContainerPlan(Arrays.asList(array(
-				MarshallPlan.makeDirectPlan(SizeDirect.FLOAT),
-				MarshallPlan.makeDirectPlan(SizeDirect.BOOL))));
+		MarshallPlan cp = compoundPlan(1, PrimitiveSize.FLOAT, PrimitiveSize.BOOL);
+		ElementSkipper skipper = new ElementSkipper(2, 0);
 		final Marshaller mr = cp.makeMarshaller();
-		mr.skipComplexArrayElements(1, cp);
+		mr.skipComplexArrayElements(skipper);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putChar((byte) 'a');
@@ -500,13 +495,13 @@ public class MarshallerTest {
 	@Test
 	public void testSkipComplexArrayElements_Multiple() {
 		final int NUM_ELEMS = 3;
-		MarshallPlan cp = MarshallPlan.makeContainerPlan(Arrays.asList(array(
-				MarshallPlan.makeDirectPlan(SizeDirect.FLOAT),
-				MarshallPlan.makeDirectPlan(SizeDirect.BOOL))));
-		MarshallPlan mp = MarshallPlan.makeArrayPlan(cp, NUM_ELEMS);
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlan cp = compoundPlan(3, PrimitiveSize.FLOAT,
+				PrimitiveSize.BOOL);
+		final Marshaller mr = cp.makeMarshaller();
+		ElementSkipper skipper_1 = new ElementSkipper(2, 0);
+		ElementSkipper skipper_3 = new ElementSkipper(6, 0);
 		for (int k = 0; k < NUM_ELEMS; ++k) {
-			mr.skipComplexArrayElements(1, cp);
+			mr.skipComplexArrayElements(skipper_1);
 		}
 		assertThrew(new Runnable() {
 			public void run() {
@@ -514,7 +509,7 @@ public class MarshallerTest {
 			}
 		}, ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
-		mr.skipComplexArrayElements(3, cp);
+		mr.skipComplexArrayElements(skipper_3);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putFloat(1.0f);
@@ -525,7 +520,7 @@ public class MarshallerTest {
 		mr.skipBasicArrayElements(1);
 		mr.putFloat(890714.0f);
 		mr.putBool(true);
-		mr.skipComplexArrayElements(1, cp);
+		mr.skipComplexArrayElements(skipper_1);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putChar((byte)'a');

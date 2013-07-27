@@ -1,8 +1,9 @@
 package suneido.language.jsdi.type;
 
+import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
@@ -20,21 +21,18 @@ public abstract class Type extends SuValue {
 
 	private final TypeId typeId;
 	private final StorageType storageType;
-	protected MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Type(TypeId typeId, StorageType storageType,
-			MarshallPlan marshallPlan) {
+	protected Type(TypeId typeId, StorageType storageType) {
 		if (null == typeId)
 			throw new IllegalArgumentException("typeId may not be null");
 		if (null == storageType)
 			throw new IllegalArgumentException("storageType may not be null");
 		this.typeId = typeId;
 		this.storageType = storageType;
-		this.marshallPlan = marshallPlan;
 	}
 
 	//
@@ -65,8 +63,25 @@ public abstract class Type extends SuValue {
 		return storageType;
 	}
 
-	public final MarshallPlan getMarshallPlan() {
-		return marshallPlan;
+	// TODO: docs since 20130724
+	public abstract int getSizeDirectIntrinsic();
+
+	// TODO: docs since 20130724
+	public abstract int getSizeDirectWholeWords();
+
+	// TODO: docs since 20130724
+	public int getSizeIndirect() {
+		return 0;
+	}
+
+	// TODO: Docs since 20130724
+	public int getVariableIndirectCount() {
+		return 0;
+	}
+
+	// TODO: Docs since 20130724
+	public void addToPlan(MarshallPlanBuilder builder) {
+		builder.pos(getSizeDirectIntrinsic());
 	}
 
 	/**
