@@ -159,7 +159,7 @@ public class Dll extends SuCallable {
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
 		NativeCall nc = null == nativeCall ? NativeCall.get(
-				CallGroup.fromTypeList(dllParams), returnTypeGroup,
+				CallGroup.fromTypeList(dllParams, true), returnTypeGroup,
 				dllParams.size()) : nativeCall;
 		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirectWholeWords(), m);
 		Object returnValue = null;
