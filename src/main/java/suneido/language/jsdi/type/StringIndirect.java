@@ -2,7 +2,7 @@ package suneido.language.jsdi.type;
 
 import suneido.language.Numbers;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
@@ -20,8 +20,7 @@ public abstract class StringIndirect extends StringType {
 	//
 
 	protected StringIndirect() {
-		super(TypeId.STRING_INDIRECT, StorageType.POINTER, MarshallPlan
-				.makeVariableIndirectPlan());
+		super(TypeId.STRING_INDIRECT, StorageType.POINTER);
 	}
 
 	//
@@ -35,5 +34,30 @@ public abstract class StringIndirect extends StringType {
 		} else {
 			super.marshallIn(marshaller, value); // will throw
 		}
+	}
+
+	//
+	// ANCESTOR CLASS: Type
+	//
+
+
+	@Override
+	public int getSizeDirectIntrinsic() {
+		return PrimitiveSize.POINTER;
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return PrimitiveSize.pointerWholeWordBytes();
+	}
+
+	@Override
+	public int getVariableIndirectCount() {
+		return 1;
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		builder.variableIndirectPtr();
 	}
 }

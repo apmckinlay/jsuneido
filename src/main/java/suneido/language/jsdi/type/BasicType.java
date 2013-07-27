@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
 
 /**
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)
@@ -12,7 +11,7 @@ import suneido.language.jsdi.MarshallPlan;
  * 
  * @author Victor Schappert
  * @since 20130627
- * @see SizeDirect
+ * @see PrimitiveSize
  */
 @DllInterface
 public enum BasicType {
@@ -21,14 +20,14 @@ public enum BasicType {
 	 * Enumerator for a boolean value, which is represented in native DLL calls
 	 * as a 32-bit integer.
 	 */
-	BOOL("bool", SizeDirect.BOOL),
+	BOOL("bool", PrimitiveSize.BOOL),
 	/**
 	 * Enumerator for a signed single-byte number/character value.
 	 * @see #SHORT
 	 * @see #LONG
 	 * @see #INT64
 	 */
-	CHAR("char", SizeDirect.CHAR),
+	CHAR("char", PrimitiveSize.CHAR),
 	/**
 	 * Enumerator for a signed short integer value, which is represented in
 	 * native DLL calls as a signed 16-bit integer.
@@ -36,7 +35,7 @@ public enum BasicType {
 	 * @see #LONG
 	 * @see #INT64
 	 */
-	SHORT("short", SizeDirect.SHORT),
+	SHORT("short", PrimitiveSize.SHORT),
 	/**
 	 * Enumerator for a signed long integer value, which is represented in
 	 * native DLL calls as a signed 32-bit integer.
@@ -44,28 +43,28 @@ public enum BasicType {
 	 * @see #SHORT
 	 * @see #INT64
 	 */
-	LONG("long", SizeDirect.LONG),
+	LONG("long", PrimitiveSize.LONG),
 	/**
 	 * Enumerator for a 64-bit signed integer value.
 	 * @see #CHAR
 	 * @see #SHORT
 	 * @see #LONG
 	 */
-	INT64("int64", SizeDirect.INT64),
+	INT64("int64", PrimitiveSize.INT64),
 	/**
 	 * Enumerator for a 32-bit floating-point number (<em>ie</em> a single-
 	 * precision IEEE floating-point number, known as <code>float</code> in
 	 * C, C++, and Java).
 	 * @see #DOUBLE
 	 */
-	FLOAT("float", SizeDirect.FLOAT),
+	FLOAT("float", PrimitiveSize.FLOAT),
 	/**
 	 * Enumerator for a 64-bit floating-point number (<em>ie</em> a double-
 	 * precision IEEE floating-point number, nkown as <code>double</code> in C,
 	 * C++, and Java).
 	 * @see #SINGLE
 	 */
-	DOUBLE("double", SizeDirect.DOUBLE),
+	DOUBLE("double", PrimitiveSize.DOUBLE),
 	/**
 	 * Enumerator for a Windows {@code HANDLE} type (<em>ie</em> a value
 	 * returned from an API function such as {@code CreateFile()}.
@@ -76,7 +75,7 @@ public enum BasicType {
 	 * </p>
 	 * @see #GDIOBJ
 	 */
-	HANDLE("handle", SizeDirect.HANDLE),
+	HANDLE("handle", PrimitiveSize.HANDLE),
 	/**
 	 * Enumerator for a Windows GDI object handle (<em>ie</em> a value returned
 	 * from an API function such as {@code CreateSolidBrush()}.
@@ -87,26 +86,35 @@ public enum BasicType {
 	 * </p>
 	 * @see #HANDLE
 	 */
-	GDIOBJ("gdiobj", SizeDirect.GDIOBJ);
+	GDIOBJ("gdiobj", PrimitiveSize.GDIOBJ);
 
 	//
 	// DATA/CONSTRUCTORS
 	//
 
 	private final String       identifierString;
-	private final MarshallPlan marshallPlan;
+	private final int          sizeIntrinsic;
+	private final int          sizeWholeWords;
 
-	private BasicType(String identifierString, int sizeDirect) {
+	private BasicType(String identifierString, int sizeIntrinsic) {
 		this.identifierString = identifierString;
-		this.marshallPlan = MarshallPlan.makeDirectPlan(sizeDirect);
+		this.sizeIntrinsic    = sizeIntrinsic;
+		this.sizeWholeWords   = PrimitiveSize.minWholeWords(sizeIntrinsic) *
+								PrimitiveSize.WORD;
 	}
 
 	//
 	// ACCESSORS
 	//
 
-	public MarshallPlan getMarshallPlan() {
-		return marshallPlan;
+	// TODO: docs since 20130724
+	public int getSizeIntrinsic() {
+		return sizeIntrinsic;
+	}
+
+	// TODO: docs since 20130724
+	public int getSizeWholeWords() {
+		return sizeWholeWords;
 	}
 
 	//

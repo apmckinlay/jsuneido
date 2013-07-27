@@ -8,7 +8,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuContainer;
 import suneido.language.FunctionSpec;
-import suneido.language.Ops;
 import suneido.language.jsdi.*;
 
 /**
@@ -114,7 +113,10 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	private final Entry[] entries;
 	private final boolean isClosed;
 	private final int     numMarshallableToJSDILong;
-	private MarshallPlan  marshallPlan;
+	private int           sizeDirectIntrinsic;
+	private int           sizeDirectWholeWords;
+	private int           sizeIndirect;
+	private int           variableIndirectCount;
 
 	//
 	// CONSTRUCTORS
@@ -125,16 +127,35 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		this.entries = args.entries.toArray(new Entry[args.entries.size()]);
 		this.isClosed = args.isClosed;
 		this.numMarshallableToJSDILong = args.numMarshallableToJSDILong;
-		if (this.isClosed) {
-			ArrayList<MarshallPlan> entryPlans = new ArrayList<MarshallPlan>(
-					entries.length);
-			for (Entry entry : entries) {
-				entryPlans.add(entry.getType().getMarshallPlan());
-			}
-			this.marshallPlan = MarshallPlan.makeContainerPlan(entryPlans);
+		if (isClosed) {
+			calcSizes();
 		} else {
-			this.marshallPlan = null;
+			this.sizeDirectIntrinsic = -1;
+			this.sizeDirectWholeWords = -1;
+			this.sizeIndirect = -1;
+			this.variableIndirectCount = -1;
 		}
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private void calcSizes() {
+		int sizeDirectIntrinsic = 0;
+		int sizeDirectWholeWords = 0;
+		int sizeIndirect = 0;
+		int variableIndirectCount = 0;
+		for (Entry entry : entries) {
+			sizeDirectIntrinsic += entry.type.getSizeDirectIntrinsic();
+			sizeDirectWholeWords += entry.type.getSizeDirectWholeWords();
+			sizeIndirect += entry.type.getSizeIndirect();
+			variableIndirectCount += entry.type.getVariableIndirectCount();
+		}
+		this.sizeDirectIntrinsic = sizeDirectIntrinsic;
+		this.sizeDirectWholeWords = sizeDirectWholeWords;
+		this.sizeIndirect = sizeIndirect;
+		this.variableIndirectCount = variableIndirectCount;
 	}
 
 	//
@@ -143,6 +164,11 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 	public int size() {
 		return entries.length;
+	}
+
+	// TODO: docs since 20130725
+	public boolean isEmpty() {
+		return 0 == entries.length;
 	}
 
 	/**
@@ -165,8 +191,36 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return numMarshallableToJSDILong == entries.length;
 	}
 
-	public MarshallPlan getMarshallPlan() {
-		return marshallPlan;
+	// TODO: docs since 20130724
+	public int getSizeDirectIntrinsic() {
+		return sizeDirectIntrinsic;
+	}
+
+	// TODO: docs since 20130724
+	public int getSizeDirectWholeWords() {
+		return sizeDirectWholeWords;
+	}
+
+	public int getSizeIndirect() {
+		return sizeIndirect; 
+	}
+
+	public int getVariableIndirectCount() {
+		return variableIndirectCount;
+	}
+
+	public void addToPlan(MarshallPlanBuilder builder) {
+		for (Entry entry : entries) entry.type.addToPlan(builder);
+	}
+
+	public MarshallPlan makeParamsMarshallPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+			getSizeDirectWholeWords(),
+			getSizeIndirect(),
+			getVariableIndirectCount()
+		);
+		addToPlan(builder);
+		return builder.makeMarshallPlan();
 	}
 
 	// TODO: docs
@@ -201,13 +255,9 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	}
 
 	// TODO: docs -- since 20130717
-	public void marshallInMembers(Marshaller marshaller, Object value) {
-		final SuContainer c = Ops.toContainer(value);
-		if (null == c) {
-			marshaller.skipComplexArrayElements(1, marshallPlan);
-		} else for (Entry entry : entries) {
-			entry.type.marshallIn(marshaller, c.get(entry.name));
-		}
+	public void marshallInMembers(Marshaller marshaller, SuContainer value) {
+		for (Entry entry : entries)
+			entry.type.marshallIn(marshaller, value.mapGet(entry.name));
 	}
 
 	// TODO: docs -- since 20130718
@@ -276,7 +326,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	// MUTATORS
 	//
 
-	public final boolean resolve(int level) throws ProxyResolveException {
+	public boolean resolve(int level) throws ProxyResolveException {
 		boolean changed = false;
 		if (!isClosed) {
 			for (Entry entry : entries) {
@@ -284,27 +334,21 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 					try {
 						if (100 < level) {
 							throw new JSDIException(
-									"Type nesting limit exceeded - possible cvcle?");
+									"Type nesting limit exceeded - possible cycle?");
 						}
-						changed &= ((Proxy) entry.type).resolve(level + 1);
+						changed |= ((Proxy) entry.type).resolve(level + 1);
 					} catch (ProxyResolveException e) {
 						e.setMemberName(entry.name);
 						throw e;
 					}
 				}
 			}
-			if (changed || null == marshallPlan) {
-				// Only need to remake the Marshall Plan for a non-closed list
-				// of types where at least one of the members types has changed.
-				ArrayList<MarshallPlan> entryPlans = new ArrayList<MarshallPlan>(
-						entries.length);
-				for (Entry entry : entries) {
-					entryPlans.add(entry.getType().getMarshallPlan());
-				}
-				marshallPlan = MarshallPlan.makeContainerPlan(entryPlans);
+			if (changed) {
+				// Only need to recompute sizes for a non-closed list of types
+				// where at least one of the members types has changed.
+				calcSizes();
 			}
 		}
-		assert null != marshallPlan;
 		return changed;
 	}
 

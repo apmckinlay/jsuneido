@@ -70,6 +70,14 @@ enum NativeCall {
 	// ACCESSORS
 	//
 
+	public boolean isDirectOrFast() {
+		return DIRECT == callGroup || FAST == callGroup;
+	}
+
+	public ReturnTypeGroup getReturnTypeGroup() {
+		return returnTypeGroup;
+	}
+
 	public long invoke(long funcPtr, int sizeDirect, Marshaller marshaller) {
 		switch (this) {
 		case RETURN_V:     // fall through
@@ -77,38 +85,31 @@ enum NativeCall {
 		case LL_RETURN_V:  // fall through
 		case LLL_RETURN_V: // fall through
 		case DIRECT_ONLY_RETURN_V:
-			callDirectOnlyReturnV(funcPtr, sizeDirect, marshaller.getData());
+			callDirectOnly(funcPtr, sizeDirect, marshaller.getData());
 			return 0L;
-		case RETURN_L:     // fall through
-		case L_RETURN_L:   // fall through
-		case LL_RETURN_L:  // fall through
-		case LLL_RETURN_L: // fall through
-		case DIRECT_ONLY_RETURN_32_BIT:
-			return (long) callDirectOnlyReturn32bit(funcPtr, sizeDirect,
-					marshaller.getData());
+		case RETURN_L:                  // fall through
+		case L_RETURN_L:                // fall through
+		case LL_RETURN_L:               // fall through
+		case LLL_RETURN_L:              // fall through
+		case DIRECT_ONLY_RETURN_32_BIT: // fall through
 		case DIRECT_ONLY_RETURN_64_BIT:
-			return callDirectOnlyReturn64bit(funcPtr, sizeDirect,
-					marshaller.getData());
+			return callDirectOnly(funcPtr, sizeDirect, marshaller.getData());
 		case INDIRECT_RETURN_V:
-			callIndirectReturnV(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData());
+			callIndirect(funcPtr, sizeDirect, marshaller.getPtrArray(),
+					marshaller.getData());
 			return 0L;
-		case INDIRECT_RETURN_32_BIT:
-			return (long) callIndirectReturn32bit(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData());
+		case INDIRECT_RETURN_32_BIT: // fall through
 		case INDIRECT_RETURN_64_BIT:
-			return (long) callIndirectReturn64bit(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData());
+			return callIndirect(funcPtr, sizeDirect, marshaller.getPtrArray(),
+					marshaller.getData());
 		case VARIABLE_INDIRECT_RETURN_V:
-			callVariableIndirectReturnV(funcPtr, sizeDirect,
+			callVariableIndirect(funcPtr, sizeDirect,
 					marshaller.getPtrArray(), marshaller.getData(),
 					marshaller.getViArray(), marshaller.getViInstArray());
-		case VARIABLE_INDIRECT_RETURN_32_BIT:
-			return (long) callVariableIndirectReturn32bit(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData(),
-					marshaller.getViArray(), marshaller.getViInstArray());
+			return 0L;
+		case VARIABLE_INDIRECT_RETURN_32_BIT: // fall through
 		case VARIABLE_INDIRECT_RETURN_64_BIT:
-			return callVariableIndirectReturn64bit(funcPtr, sizeDirect,
+			return callVariableIndirect(funcPtr, sizeDirect,
 					marshaller.getPtrArray(), marshaller.getData(),
 					marshaller.getViArray(), marshaller.getViInstArray());
 		default:
@@ -179,33 +180,13 @@ enum NativeCall {
 
 	static native int callLLLReturnL(long funcPtr, int arg0, int arg1, int arg2);
 
-	private static native void callDirectOnlyReturnV(long funcPtr,
-			int sizeDirect, byte[] args);
+	private static native long callDirectOnly(long funcPtr, int sizeDirect,
+			byte[] args);
 
-	private static native int callDirectOnlyReturn32bit(long funcPtr,
-			int sizeDirect, byte[] args);
+	private static native long callIndirect(long funcPtr, int sizeDirect,
+			int[] ptrArray, byte[] args);
 
-	private static native long callDirectOnlyReturn64bit(long funcPtr,
-			int sizeDirect, byte[] args);
-
-	private static native void callIndirectReturnV(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	private static native int callIndirectReturn32bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	private static native long callIndirectReturn64bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args);
-
-	private static native void callVariableIndirectReturnV(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, Object[] viArray,
-			boolean[] viInst);
-
-	private static native int callVariableIndirectReturn32bit(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, Object[] viArray,
-			boolean[] viInst);
-
-	private static native long callVariableIndirectReturn64bit(long funcPtr,
+	private static native long callVariableIndirect(long funcPtr,
 			int sizeDirect, int[] ptrArray, byte[] args, Object[] viArray,
 			boolean[] viInst);
 }

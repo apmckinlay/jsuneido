@@ -35,6 +35,8 @@ public class Dll extends SuCallable {
 	final String     userFunctionName;
 	final String     actualFunctionName;
 
+	MarshallPlan marshallPlan;
+
 	//
 	// CONSTRUCTORS
 	//
@@ -63,6 +65,7 @@ public class Dll extends SuCallable {
 		this.libraryName = libraryName;
 		this.userFunctionName = userFuncName;
 		this.actualFunctionName = funcName;
+		this.marshallPlan = null;
 		//
 		// Initialize SuCallable fields
 		//
@@ -74,9 +77,9 @@ public class Dll extends SuCallable {
 	// MUTATORS
 	//
 
-	private void resolve() {
+	private boolean resolve() {
 		try {
-			dllParams.resolve(0);
+			return dllParams.resolve(0);
 		} catch (ProxyResolveException e) {
 			e.setMemberType("parameter");
 			throw new JSDIException(e);
@@ -130,8 +133,10 @@ public class Dll extends SuCallable {
 
 	public final MarshallPlan getMarshallPlan() {
 		// TODO: resolve: thread safety
-		resolve();
-		return dllParams.getMarshallPlan();
+		if (resolve() || null == marshallPlan) {
+			marshallPlan = dllParams.makeParamsMarshallPlan();
+		}
+		return marshallPlan;
 	}
 
 	//
@@ -150,18 +155,13 @@ public class Dll extends SuCallable {
 	@Override
 	public Object call(Object... args) { // TODO: should this method be final?
 		Args.massage(super.params, args);
-		try {
-			dllParams.resolve(0);
-		} catch (ProxyResolveException e) {
-			// XXX: handle proxy resolve exception in dll
-		}
-		final MarshallPlan plan = dllParams.getMarshallPlan();
+		final MarshallPlan plan = getMarshallPlan();
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
 		NativeCall nc = null == nativeCall ? NativeCall.get(
 				CallGroup.fromTypeList(dllParams), returnTypeGroup,
 				dllParams.size()) : nativeCall;
-		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirectStack(), m);
+		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirectWholeWords(), m);
 		Object returnValue = null;
 		if (VoidType.INSTANCE != returnType) {
 			returnValue = returnType.marshallOutReturnValue(returnValueRaw);

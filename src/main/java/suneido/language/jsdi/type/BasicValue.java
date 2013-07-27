@@ -25,7 +25,7 @@ public final class BasicValue extends Type {
 	//
 
 	BasicValue(BasicType basicType) {
-		super(TypeId.BASIC, StorageType.VALUE, basicType.getMarshallPlan());
+		super(TypeId.BASIC, StorageType.VALUE);
 		this.basicType = basicType;
 		this.pointerType = new BasicPointer(this);
 	}
@@ -49,6 +49,16 @@ public final class BasicValue extends Type {
 	@Override
 	public String getDisplayName() {
 		return basicType.toIdentifier();
+	}
+
+	@Override
+	public int getSizeDirectIntrinsic() {
+		return basicType.getSizeIntrinsic();
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return basicType.getSizeWholeWords();
 	}
 
 	@Override
@@ -168,7 +178,7 @@ public final class BasicValue extends Type {
 
 	@Override
 	public boolean isMarshallableToJSDILong() {
-		return basicType.getMarshallPlan().getSizeDirectStack() == SizeDirect.LONG;
+		return PrimitiveSize.LONG == basicType.getSizeWholeWords();
 	}
 
 	@Override

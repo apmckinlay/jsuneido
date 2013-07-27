@@ -1,9 +1,7 @@
 package suneido.language.jsdi.type;
 
-import suneido.SuContainer;
-import suneido.language.Ops;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.StorageType;
 
@@ -22,14 +20,9 @@ public final class BasicPointer extends Type {
 	//
 
 	BasicPointer(BasicValue underlying) {
-		super(TypeId.BASIC, StorageType.POINTER, pointerPlan(underlying
-				.getBasicType().getMarshallPlan()));
+		super(TypeId.BASIC, StorageType.POINTER);
 		assert null != underlying : "Underlying BasicValue may not be null";
 		this.underlying = underlying;
-	}
-
-	private static MarshallPlan pointerPlan(MarshallPlan valuePlan) {
-		return MarshallPlan.makePointerPlan(valuePlan);
 	}
 
 	//
@@ -51,6 +44,26 @@ public final class BasicPointer extends Type {
 	@Override
 	public String getDisplayName() {
 		return getBasicType().toIdentifier() + '*';
+	}
+
+	@Override
+	public int getSizeDirectIntrinsic() {
+		return PrimitiveSize.POINTER;
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		return PrimitiveSize.pointerWholeWordBytes();
+	}
+
+	@Override
+	public int getSizeIndirect() {
+		return underlying.getSizeDirectIntrinsic();
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		builder.ptrBasic(getSizeDirectIntrinsic());
 	}
 
 	@Override

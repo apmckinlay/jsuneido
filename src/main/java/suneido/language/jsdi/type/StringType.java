@@ -1,7 +1,6 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -37,8 +36,7 @@ public abstract class StringType extends Type {
 	// CONSTRUCTORS
 	//
 
-	protected StringType(TypeId typeId, StorageType storageType,
-			MarshallPlan marshallPlan) {
-		super(typeId, storageType, marshallPlan);
+	protected StringType(TypeId typeId, StorageType storageType) {
+		super(typeId, storageType);
 	}
 }

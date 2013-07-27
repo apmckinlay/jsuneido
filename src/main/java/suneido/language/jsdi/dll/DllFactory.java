@@ -168,7 +168,7 @@ public final class DllFactory {
 	 * our own count in Java-land, we can avoid making JNI calls every time we
 	 * simply want a handle to an already-loaded module. 
 	 * </p>
-	 * @param dll
+	 * @param dll Dll to free
 	 */
 	void freeDll(Dll dll) {
 		releaseLibraryHandle(dll.libraryName);
@@ -228,9 +228,9 @@ public final class DllFactory {
 		}
 	}
 
-	private static native long loadLibrary(String libraryName);
+	static native long loadLibrary(String libraryName);
 
-	private static native void freeLibrary(long hModule);
+	static native void freeLibrary(long hModule);
 
-	private static native long getProcAddress(long hModule, String procName);
+	static native long getProcAddress(long hModule, String procName);
 }

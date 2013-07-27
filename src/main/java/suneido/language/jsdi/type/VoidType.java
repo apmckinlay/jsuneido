@@ -19,7 +19,7 @@ public final class VoidType extends Type {
 	//
 
 	private VoidType() {
-		super(TypeId.VOID, StorageType.VALUE, (MarshallPlan)null);
+		super(TypeId.VOID, StorageType.VALUE);
 	}
 
 	//
@@ -43,5 +43,29 @@ public final class VoidType extends Type {
 	@Override
 	public String getDisplayName() {
 		return IDENTIFIER;
+	}
+
+	@Override
+	public int getSizeDirectIntrinsic() {
+		throw new IllegalStateException(getDisplayName()
+				+ " has no intrinsic size");
+	}
+
+	@Override
+	public int getSizeDirectWholeWords() {
+		throw new IllegalStateException(getDisplayName()
+				+ " has no whole word size");
+	}
+
+	@Override
+	public int getSizeIndirect() {
+		throw new IllegalStateException(getDisplayName()
+				+ " has no indirect size");
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder) {
+		throw new IllegalStateException(getDisplayName()
+				+ " cannot be added to a marshall plan");
 	}
 }
