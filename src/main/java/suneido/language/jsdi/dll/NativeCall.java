@@ -95,22 +95,22 @@ enum NativeCall {
 		case DIRECT_ONLY_RETURN_64_BIT:
 			return callDirectOnly(funcPtr, sizeDirect, marshaller.getData());
 		case INDIRECT_RETURN_V:
-			callIndirect(funcPtr, sizeDirect, marshaller.getPtrArray(),
-					marshaller.getData());
+			callIndirect(funcPtr, sizeDirect, marshaller.getData(),
+					marshaller.getPtrArray());
 			return 0L;
 		case INDIRECT_RETURN_32_BIT: // fall through
 		case INDIRECT_RETURN_64_BIT:
-			return callIndirect(funcPtr, sizeDirect, marshaller.getPtrArray(),
-					marshaller.getData());
+			return callIndirect(funcPtr, sizeDirect, marshaller.getData(),
+					marshaller.getPtrArray());
 		case VARIABLE_INDIRECT_RETURN_V:
 			callVariableIndirect(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData(),
+					marshaller.getData(), marshaller.getPtrArray(),
 					marshaller.getViArray(), marshaller.getViInstArray());
 			return 0L;
 		case VARIABLE_INDIRECT_RETURN_32_BIT: // fall through
 		case VARIABLE_INDIRECT_RETURN_64_BIT:
 			return callVariableIndirect(funcPtr, sizeDirect,
-					marshaller.getPtrArray(), marshaller.getData(),
+					marshaller.getData(), marshaller.getPtrArray(),
 					marshaller.getViArray(), marshaller.getViInstArray());
 		default:
 			throw new IllegalStateException("unhandled NativeCall type in switch");
@@ -184,9 +184,9 @@ enum NativeCall {
 			byte[] args);
 
 	private static native long callIndirect(long funcPtr, int sizeDirect,
-			int[] ptrArray, byte[] args);
+			byte[] args, int[] ptrArray);
 
 	private static native long callVariableIndirect(long funcPtr,
-			int sizeDirect, int[] ptrArray, byte[] args, Object[] viArray,
+			int sizeDirect, byte[] args, int[] ptrArray, Object[] viArray,
 			boolean[] viInst);
 }

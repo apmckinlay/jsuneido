@@ -135,6 +135,14 @@ public class MarshallerTest {
 		assertArrayEquals(ba("00000000ff"), mr.getData());
 		assertArrayEquals(ia(0, PrimitiveSize.POINTER), mr.getPtrArray());
 		mr.rewind();
+		// At the moment, this looks like a NULL pointer because we judge
+		// NULLness coming *out* of the Marshaller based on whether the pointer
+		// is set to zero.
+		assertTrue(mr.isPtrNull());
+		// Simulate the native side setting the pointer to a non-null value.
+		mr.rewind();
+		mr.putChar((byte)1);
+		mr.rewind();
 		assertFalse(mr.isPtrNull());
 		assertEquals((byte)0xff, mr.getChar());
 	}

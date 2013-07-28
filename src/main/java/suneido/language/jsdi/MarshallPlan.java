@@ -25,32 +25,6 @@ public final class MarshallPlan {
 	private final int[] posArray;
 
 	//
-	// PUBLIC CONSTANTS
-	//
-
-	/**
-	 * Represents an index in the marshalled data array which:
-	 * <ul>
-	 * <li>
-	 * if this value is present in a MarshallPlan on the Java side, indicates
-	 * that the index to which the pointer points cannot be determined until the
-	 * data is marshalled, because a variable amount of indirect storage is
-	 * involved; and
-	 * </li>
-	 * <li>
-	 * if this value is present in a marshalled data array on the native side,
-	 * indicates that the pointer value provided by the Java marshaller should
-	 * not be changed on the native side (this can happen if a NULL pointer, or
-	 * INTRESOURCE value, is passed in a memory location that would otherwise be
-	 * a pointer).
-	 * </li>
-	 * </ul>
-	 * @see #makeVariableIndirectPlan()
-	 * @see #getVariableIndirectCount()
-	 */
-	public static final int UNKNOWN_LOCATION = -1;
-
-	//
 	// CONSTRUCTORS
 	//
 
@@ -109,7 +83,7 @@ public final class MarshallPlan {
 	 * </p> 
 	 * @return Number of members of the plan requiring variable indirect
 	 * storage.
-	 * @see #UNKNOWN_LOCATION
+	 * @see Marshaller#UNKNOWN_LOCATION
 	 */
 	public int getVariableIndirectCount() {
 		return this.variableIndirectCount;
