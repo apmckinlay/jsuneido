@@ -188,7 +188,7 @@ public final class GenerateGlobalReferences {
 
 		private void addClassMember(Class clazz) {
 			add(className(clazz) + '_', "get_global_class_ref",
-					quote(Type.getDescriptor(clazz)));
+					quote(Type.getInternalName(clazz)));
 		}
 
 		private void addMethodMember(Method method) {
