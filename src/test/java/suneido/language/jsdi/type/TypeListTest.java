@@ -164,6 +164,9 @@ public class TypeListTest {
 		Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
+		// Simulate native side storing a non-null pointer
+		m.putChar((byte)1);
+		m.rewind();
 		tl.marshallOutParams(m, args2);
 		assertArrayEquals(new Object[] { CIRCLE(-1.0, -2.0, 123456.125) }, args2);
 	}

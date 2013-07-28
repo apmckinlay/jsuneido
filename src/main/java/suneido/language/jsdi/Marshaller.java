@@ -26,6 +26,28 @@ public final class Marshaller {
 	private int viIndex; // index into viArray and viInstArray
 
 	//
+	// PUBLIC CONSTANTS
+	//
+
+	/**
+	 * Represents an index in the marshalled data array which:
+	 * <ul>
+	 * <li>
+	 * if this value is present in a marshalled data array on the native side,
+	 * indicates that the pointer value provided by the Java marshaller should
+	 * not be changed on the native side (this can happen if a NULL pointer, or
+	 * INTRESOURCE value, is passed in a memory location that would otherwise be
+	 * a pointer).
+	 * </li>
+	 * TODO: these docs need to be updated when final marshalling strategy is
+	 * decided...
+	 * </ul>
+	 * @see #makeVariableIndirectPlan()
+	 * @see #getVariableIndirectCount()
+	 */
+	public static final int UNKNOWN_LOCATION = -1;
+
+	//
 	// CONSTRUCTORS
 	//
 
@@ -133,7 +155,7 @@ public final class Marshaller {
 		++posIndex;
 		int ptrIndex = nextPtrIndexAndCopy();
 		// Indicate to the native side that this pointer doesn't point anywhere
-		ptrArray[ptrIndex] = MarshallPlan.UNKNOWN_LOCATION;
+		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
 		// It is up to the caller to skip over any corresponding data pointer.
 	}
 
@@ -151,7 +173,7 @@ public final class Marshaller {
 
 	public void putNullStringPtr(boolean expectStringBack) {
 		int ptrIndex = nextPtrIndexAndCopy();
-		ptrArray[ptrIndex] = MarshallPlan.UNKNOWN_LOCATION;
+		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
 		int viIndex = nextVi();
 		viInstArray[viIndex] = expectStringBack;
 		// Assert: the skipped spot in the viArray is null
@@ -241,9 +263,7 @@ public final class Marshaller {
 
 	// TODO: docs since 20130717 ... return true iff a null pointer
 	public boolean isPtrNull() {
-		boolean result = MarshallPlan.UNKNOWN_LOCATION == ptrArray[ptrIndex];
-		skipPtr();
-		return result;
+		return 0 == getLong();
 	}
 
 	public Object getStringPtr() {
