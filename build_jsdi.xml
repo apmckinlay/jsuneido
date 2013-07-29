@@ -5,7 +5,7 @@
 	<condition property="jsdi-path" value="${env.JSDI_PATH}" else="../jsdi">
 		<isset property="env.JSDI_PATH"/>
 	</condition>
-	<property name="dll-src-dir" value="${jsdi-path}/bin"/>
+	<property name="dll-src-dir" value="${jsdi-path}/bin/debug"/>
 	<property name="dll-dst-dir" value="lib"/>
 	<property name="jsdi-package" value="suneido.language.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
