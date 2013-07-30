@@ -1,5 +1,6 @@
 package suneido.language.jsdi.dll;
 
+import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.MarshallTestUtil;
@@ -37,9 +38,11 @@ public enum TestCall {
 	STRLEN("TestStrLen", Mask.LONG, PrimitiveSize.POINTER),
 	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.LONG, PrimitiveSize.BOOL),
 	HELLO_WORLD_OUT_PARAM("TestHelloWorldOutParam", Mask.VOID,
-			PrimitiveSize.POINTER),
+			pointerPlan(PrimitiveSize.WORD)),
 	NULL_PTR_OUT_PARAM("TestNullPtrOutParam", Mask.VOID,
-			PrimitiveSize.POINTER);
+			pointerPlan(PrimitiveSize.WORD)),
+	RETURN_PTR_PTR_PTR_DOUBLE("TestReturnPtrPtrPtrDoubleAsUInt64", Mask.INT64,
+			makePtrPtrPtrDoublePlan());
 
 	private final QuickDll qp;
 	public final long ptr;
@@ -70,6 +73,19 @@ public enum TestCall {
 		builder.pos(PrimitiveSize.SHORT);
 		builder.pos(PrimitiveSize.LONG);
 		builder.containerEnd();
+		return builder.makeMarshallPlan();
+	}
+
+	private static MarshallPlan makePtrPtrPtrDoublePlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.pointerWholeWordBytes(),
+				2 * PrimitiveSize.POINTER + PrimitiveSize.DOUBLE, 0
+		);
+		builder.ptrBegin(PrimitiveSize.POINTER);
+		builder.ptrBegin(PrimitiveSize.POINTER);
+		builder.ptrBasic(PrimitiveSize.DOUBLE);
+		builder.ptrEnd();
+		builder.ptrEnd();
 		return builder.makeMarshallPlan();
 	}
 }

@@ -52,7 +52,6 @@ public final class MarshallPlan {
 	 * </p>
 	 *
 	 * @return Amount of direct storage required to marshall the data
-	 * @see #getSizeDirectWholeWords() 
 	 * @see #getSizeIndirect()
 	 */
 	public int getSizeDirect() {
@@ -66,7 +65,7 @@ public final class MarshallPlan {
 	 * indirectly part of the structure or array).
 	 * @return Amount of indirect storage required to marshall the data, in
 	 * bytes.
-	 * @see #getSizeDirectWholeWords()
+	 * @see #getSizeDirect()
 	 */
 	public int getSizeIndirect() {
 		return sizeIndirect;

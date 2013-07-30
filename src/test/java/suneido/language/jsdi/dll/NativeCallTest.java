@@ -1,6 +1,7 @@
 package suneido.language.jsdi.dll;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
 import static suneido.language.jsdi.dll.ReturnTypeGroup.VOID;
 import static suneido.language.jsdi.dll.ReturnTypeGroup._32_BIT;
 
@@ -10,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.language.jsdi.JSDI;
+import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
@@ -28,11 +30,13 @@ public class NativeCallTest {
 	private static final NativeCall[] DOF_NONVOID;
 	private static final NativeCall[] DOF_32;
 	private static final NativeCall[] DOF_64;
+	private static final NativeCall[] IND;
 	static {
 		ArrayList<NativeCall> dof_void = new ArrayList<NativeCall>();
 		ArrayList<NativeCall> dof_nonvoid = new ArrayList<NativeCall>();
 		ArrayList<NativeCall> dof_32 = new ArrayList<NativeCall>();
 		ArrayList<NativeCall> dof_64 = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> ind = new ArrayList<NativeCall>();
 		for (NativeCall nativecall : NativeCall.values()) {
 			if (nativecall.isDirectOrFast()) {
 				if (VOID == nativecall.getReturnTypeGroup())
@@ -44,12 +48,15 @@ public class NativeCallTest {
 					else
 						dof_64.add(nativecall);
 				}
+			} else if (CallGroup.INDIRECT == nativecall.getCallGroup()) {
+				ind.add(nativecall);
 			}
 		}
 		DOF_VOID = dof_void.toArray(new NativeCall[dof_void.size()]);
 		DOF_NONVOID = dof_nonvoid.toArray(new NativeCall[dof_nonvoid.size()]);
 		DOF_32 = dof_32.toArray(new NativeCall[dof_32.size()]);
 		DOF_64 = dof_64.toArray(new NativeCall[dof_64.size()]);
+		IND = ind.toArray(new NativeCall[ind.size()]);
 	}
 
 	@BeforeClass
@@ -103,11 +110,13 @@ public class NativeCallTest {
 		// send the proper amount of zeroes, all should be well.
 		for (TestCall testcall : TestCall.values()) {
 			for (NativeCall nativecall : DOF_32) {
-				Marshaller m = testcall.plan.makeMarshaller();
-				long result = nativecall.invoke(testcall.ptr,
-						testcall.plan.getSizeDirect(), m)
-						& testcall.returnValueMask.value;
-				assertEquals(0L, result);
+				{
+					Marshaller m = testcall.plan.makeMarshaller();
+					long result = nativecall.invoke(testcall.ptr,
+							testcall.plan.getSizeDirect(), m)
+							& testcall.returnValueMask.value;
+					assertEquals(0L, result);
+				}
 			}
 		}
 	}
@@ -228,5 +237,64 @@ public class NativeCallTest {
 				assertEquals(0L, result);
 			}
 		}
+	}
+
+	@Test
+	public void testIndirectOnlyNullPointers() {
+		MarshallPlan plan = pointerPlan(PrimitiveSize.POINTER);
+		{
+			Marshaller m = plan.makeMarshaller();
+			m.putNullPtr();
+			for (TestCall testcall : new TestCall[] {
+					TestCall.HELLO_WORLD_OUT_PARAM, TestCall.NULL_PTR_OUT_PARAM }) {
+				for (NativeCall nativecall : IND) {
+					nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
+				}
+			}
+		}
+	}
+
+	@Test
+	public void testIndirectOnlyReceiveValue() {
+		MarshallPlan plan = pointerPlan(PrimitiveSize.POINTER);
+		{
+			for (NativeCall nativecall : IND) {
+				Marshaller m = plan.makeMarshaller();
+				m.putPtr();
+				nativecall.invoke(TestCall.HELLO_WORLD_OUT_PARAM.ptr,
+						plan.getSizeDirect(), m);
+				m.rewind();
+				assertFalse(m.isPtrNull());
+				// The function called should have returned a non-zero value.
+				assertFalse(0 == m.getLong());
+			}
+		}
+		{
+			for (NativeCall nativecall : IND) {
+				Marshaller m = plan.makeMarshaller();
+				m.putPtr();
+				m.putLong(100); // This will be replaced by 0
+				nativecall.invoke(TestCall.NULL_PTR_OUT_PARAM.ptr,
+						plan.getSizeDirect(), m);
+				m.rewind();
+				assertFalse(m.isPtrNull());
+				// The function called should have returned a non-zero value.
+				assertEquals(0, m.getLong());
+			}
+		}
+	}
+
+	@Test
+	public void testIndirectOnlySendValue() {
+		TestCall testcall = TestCall.RETURN_PTR_PTR_PTR_DOUBLE;
+		Marshaller m = testcall.plan.makeMarshaller();
+		final double doubleValue = 100.0 + 1E-14;
+		m.putPtr();
+		m.putPtr();
+		m.putPtr();
+		m.putDouble(doubleValue);
+		final long longValue = NativeCall.INDIRECT_RETURN_64_BIT.invoke(
+				testcall.ptr, testcall.plan.getSizeDirect(), m);
+		assertEquals(doubleValue, Double.longBitsToDouble(longValue), 0.0);
 	}
 }
