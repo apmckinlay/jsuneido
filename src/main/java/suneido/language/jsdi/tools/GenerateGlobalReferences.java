@@ -46,11 +46,12 @@ public final class GenerateGlobalReferences {
 						Integer.class.getConstructor(Integer.TYPE),
 						Integer.class.getMethod("intValue")),
 				new Ref(Enum.class, Enum.class.getMethod("ordinal")),
-				new Ref(suneido.language.jsdi.type.BasicType.class) };
+				new Ref(byte[].class) };
 	}
 
 	private static String className(Class clazz) {
-		return clazz.getName().replace('.', '_');
+		String name = clazz.getCanonicalName();
+		return name.replace("[]", "_ARRAY").replace('.', '_');
 	}
 
 	private static String methodName(Method method) {
