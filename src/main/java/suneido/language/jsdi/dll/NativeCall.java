@@ -74,6 +74,10 @@ enum NativeCall {
 		return DIRECT == callGroup || FAST == callGroup;
 	}
 
+	public CallGroup getCallGroup() {
+		return callGroup;
+	}
+
 	public ReturnTypeGroup getReturnTypeGroup() {
 		return returnTypeGroup;
 	}
@@ -183,7 +187,8 @@ enum NativeCall {
 	private static native long callDirectOnly(long funcPtr, int sizeDirect,
 			byte[] args);
 
-	private static native long callIndirect(long funcPtr, int sizeDirect,
+	// TODO: make private
+	static native long callIndirect(long funcPtr, int sizeDirect,
 			byte[] args, int[] ptrArray);
 
 	private static native long callVariableIndirect(long funcPtr,
