@@ -84,6 +84,9 @@ public class StructureTest {
 			//
 		"CycleA", "struct { CycleB cycleB }",
 		"CycleB", "struct { CycleA cycleA }",
+		"SelfRef", "struct { SelfRef selfRef }",
+		"SelfRef2", "struct { SelfRef2 * selfRef }",
+		"SelfRef3", "struct { SelfRef3 * selfRef }",
 		"StringStruct1", "struct { short a; short b; string c; string[4] d; }",
 		"StringStruct2", "struct { StringStruct1[2] a; buffer[8] b; buffer c; }",
 		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }"
@@ -171,5 +174,16 @@ public class StructureTest {
 				JSDIException.class,
 				".*cycle.*"
 		);
+	}
+
+	@Test
+	public void testSelfRef() {
+		for (final String selfRef : new String[] { "SelfRef", "SelfRef2", "SelfRef3" }) {
+			assertThrew(
+					new Runnable() { public void run() { eval(selfRef + ".Size()"); } },
+					JSDIException.class,
+					".*cycle.*"
+			);
+		}
 	}
 }
