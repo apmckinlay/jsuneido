@@ -398,6 +398,21 @@ public class MarshallerTest {
 	}
 
 	@Test
+	public void testMarshallStringIndirectPtrNull_PosAdvance() {
+		// Test of bug found 20130730 in which inserting a null variable
+		// indirect pointer into the marshaller wasn't advancing the position.
+		MarshallPlan mp = variableIndirectPlan();
+		for (boolean b : new boolean[] { true, false }) {
+			final Marshaller mr = mp.makeMarshaller();
+			mr.putNullStringPtr(b);
+			assertThrew(
+				new Runnable() { public void run() { mr.putChar((byte)0); } },
+				ArrayIndexOutOfBoundsException.class
+			);
+		}
+	}
+
+	@Test
 	public void testMarshallStringIndirectByteArrayBackToByteArray() {
 		final String IN =  "And the silken sad uncertain rustling";
 		final String OUT = "of each purple curtainXXXXXXXXXXXXXXX".replace('X', '\u0000');

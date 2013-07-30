@@ -172,6 +172,7 @@ public final class Marshaller {
 	}
 
 	public void putNullStringPtr(boolean expectStringBack) {
+		++posIndex;
 		int ptrIndex = nextPtrIndexAndCopy();
 		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
 		int viIndex = nextVi();
