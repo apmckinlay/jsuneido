@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
@@ -36,7 +37,7 @@ public class BtreeNodeTest {
 	@Test
 	public void memNode_empty() {
 		BtreeNode node = BtreeNode.emptyLeaf();
-		assertThat(node, is(BtreeMemNode.class));
+		assertThat(node, instanceOf(BtreeMemNode.class));
 		assertThat(node.size(), is(0));
 	}
 
