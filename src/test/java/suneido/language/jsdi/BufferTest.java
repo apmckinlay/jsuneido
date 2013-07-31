@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import suneido.language.Compiler;
+
 /**
  * Test for {@link Buffer}.
  * 
@@ -45,6 +47,13 @@ public class BufferTest {
 	}
 
 	@Test
+	public void testEqualsToString() {
+		for (Buffer buffer : SOME_BUFFERS) {
+			assertEquals(buffer, buffer.toString());
+		}
+	}
+
+	@Test
 	public void testEqualsNull() {
 		for (Buffer buffer : SOME_BUFFERS) {
 			assertFalse(buffer.equals((Object) null));
@@ -72,5 +81,49 @@ public class BufferTest {
 	public void testEqualsCapacityChange() {
 		for (Buffer b : SOME_BUFFERS)
 			assertEquals(b, doubleCapacity(b));
+	}
+
+	@Test
+	public void testEqualsUnequalString() {
+		for (Buffer b : SOME_BUFFERS) {
+			assertFalse(b.equals((String) null));
+			assertFalse(b.equals(b.toString() + "X"));
+			if (0 < b.size()) {
+				String str = b.toString();
+				str = str.substring(0, str.length() - 1)
+						+ (str.charAt(str.length() - 1) + 1);
+				assertFalse(b.equals(str));
+			}
+		}
+	}
+
+	@Test
+	public void testSetAndSetSize() {
+		Buffer buffer = new Buffer(10, "abcdef");
+		byte[] b = new byte[4];
+		buffer.copyInternalData(b, 1, 3);
+		assertArrayEquals(new byte[] { 0, (byte)'a', (byte)'b', (byte)'c' }, b);
+		assertEquals(10, buffer.size());
+		assertEquals(10, buffer.capacity());
+		buffer.setAndSetSize(b, 0, 2);
+		assertEquals(2, buffer.size());
+		assertEquals(10, buffer.capacity());
+		assertEquals("\u0000a", buffer.toString());
+		buffer.setAndSetSize(b, 0, 4);
+		assertEquals(4, buffer.size());
+		assertEquals(10, buffer.capacity());
+		assertEquals("\u0000abc", buffer.toString());
+	}
+
+	@Test
+	public void testSize() {
+		assertEquals(0, Compiler.eval("Buffer(0, '').Size()"));
+		assertEquals(1, Compiler.eval("Buffer(1, '').Size()"));
+		assertEquals(1, Compiler.eval("Buffer(1, 'a').Size()"));
+	}
+
+	@Test(expected=JSDIException.class)
+	public void testInvalidSize() {
+		Compiler.eval("Buffer(-123.3, 'string');");
 	}
 }
