@@ -5,12 +5,15 @@
 package suneido.language;
 
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * The "global" context for a function or method.
@@ -25,8 +28,16 @@ import suneido.SuException;
 @ThreadSafe
 public abstract class Context {
 	private final Contexts contexts;
-	private final ConcurrentHashMap<String,Integer> nameToSlot =
-			new ConcurrentHashMap<String,Integer>();
+	private final LoadingCache<String, Integer> nameToSlot =
+			CacheBuilder.newBuilder().build(
+					new CacheLoader<String, Integer>() {
+						@Override
+						public Integer load(String name) {
+							int slot = names.add(name);
+							values.add(null);
+							nameToSlot.put(name, slot);
+							return slot;
+						}});
 	private final GrowableArray<String> names = new GrowableArray<String>();
 	private final GrowableArray<Object> values = new GrowableArray<Object>();
 
@@ -43,21 +54,7 @@ public abstract class Context {
 
 	/** @return The slot for a name, assigning a new slot for a new name */
 	public int slotForName(String name) {
-		Integer slot = nameToSlot.get(name);
-		// FIXME: Isn't there a concurrency bug if a competing thread adds the
-		//        same name between this check and the call to newSlot? Then
-		//        there could be 2 slots w the same name, which would be a big
-		//        problem...
-		return (slot == null) ? newSlot(name) : slot;
-	}
-
-	synchronized private int newSlot(String name) {
-		int slot = names.add(name);
-		values.add(null);
-		nameToSlot.put(name, slot);
-		// WARNING: concurrency bug if nameToSlot change becomes visible before
-		// names and values adds
-		return slot;
+		return nameToSlot.getUnchecked(name);
 	}
 
 	public Object get(String name) {
