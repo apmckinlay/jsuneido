@@ -178,13 +178,13 @@ public final class Proxy extends Type {
 			skipper = lastResolvedType.skipper;
 			break;
 		case ARRAY:
-			builder.containerBegin();
+			builder.arrayBegin();
 			for (int k = 0; k < numElems; ++k) {
 				// NOTE: This is doing a lot of extra work that could as easily
 				//       be done by multiplication... Not ideal.
 				lastResolvedType.addToPlan(builder);
 			}
-			skipper = builder.containerEnd();
+			skipper = builder.arrayEnd();
 			break;
 		case POINTER:
 			builder.ptrBegin(lastResolvedType.getSizeDirectIntrinsic());

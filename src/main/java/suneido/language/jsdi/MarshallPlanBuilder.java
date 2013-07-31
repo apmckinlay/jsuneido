@@ -123,7 +123,7 @@ public final class MarshallPlanBuilder {
 		skipper.nPos += result.nPos;
 		skipper.nPtr += result.nPtr;
 		// If we are now at the outermost containment level (i.e. we just
-		// finished a stdcall argument that is itself a container, make sure we
+		// finished a stdcall argument that is itself a container), make sure we
 		// advance to the next word boundary.
 		if (nextPosStack.isEmpty() && skipperStack.isEmpty()) {
 			int rem = nextPos % PrimitiveSize.WORD;
@@ -133,6 +133,14 @@ public final class MarshallPlanBuilder {
 			assert nextPos <= sizeDirect;
 		}
 		return result;
+	}
+
+	public void arrayBegin() {
+		containerBegin();
+	}
+
+	public ElementSkipper arrayEnd() {
+		return containerEnd();
 	}
 
 	public MarshallPlan makeMarshallPlan() {

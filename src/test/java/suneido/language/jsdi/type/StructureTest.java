@@ -82,8 +82,16 @@ public class StructureTest {
 			//      I     404     16    *tts3[1].prcOptional
 			//      I     420      4    *tts3[1].pLong
 			//
+		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
+		"Recursive_StringSum1",
+			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; Recursive_StringSum2 * inner }",
+		"Recursive_StringSum2",
+			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; long setToZero }",
 		"CycleA", "struct { CycleB cycleB }",
 		"CycleB", "struct { CycleA cycleA }",
+		"SelfRef", "struct { SelfRef selfRef }",
+		"SelfRef2", "struct { SelfRef2 * selfRef }",
+		"SelfRef3", "struct { SelfRef3 * selfRef }",
 		"StringStruct1", "struct { short a; short b; string c; string[4] d; }",
 		"StringStruct2", "struct { StringStruct1[2] a; buffer[8] b; buffer c; }",
 		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }"
@@ -162,6 +170,14 @@ public class StructureTest {
 					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
 					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, #vi:6 ]",
 				getMarshallPlan("StringStruct3").toString());
+		assertEquals(
+				"MarshallPlan[ 8, 0, { }, { 0, 1, 2, 4 }, #vi:0 ]",
+				getMarshallPlan("Packed_CharCharShortLong").toString());
+		assertEquals(
+				"MarshallPlan[ 32, 32, { 16:64, 20:65, 28:32, 48:66, 52:67 }, " +
+					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 20, 24, 28, " +
+						"32, 33, 34, 36, 40, 41, 42, 44, 48, 52, 56, 60 }, #vi:4 ]",
+				getMarshallPlan("Recursive_StringSum1").toString());
 	}
 
 	@Test
@@ -171,5 +187,16 @@ public class StructureTest {
 				JSDIException.class,
 				".*cycle.*"
 		);
+	}
+
+	@Test
+	public void testSelfRef() {
+		for (final String selfRef : new String[] { "SelfRef", "SelfRef2", "SelfRef3" }) {
+			assertThrew(
+					new Runnable() { public void run() { eval(selfRef + ".Size()"); } },
+					JSDIException.class,
+					".*cycle.*"
+			);
+		}
 	}
 }

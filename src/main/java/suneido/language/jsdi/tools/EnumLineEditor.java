@@ -241,7 +241,7 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			addFromJNISignature(false);
 			add(indent(0).append('{'));
 			add(indent(1)
-					.append("jmethodID method_id = global_refs::ptr->java_lang_Enum__m_ordinal();"));
+					.append("jmethodID method_id = GLOBAL_REFS->java_lang_Enum__m_ordinal();"));
 			add(indent(1).append("jint ordinal = ").append(JNIENV_VAR_NAME)
 					.append("->CallIntMethod(").append(ENUM_VAR_NAME)
 					.append(", method_id);"));
