@@ -73,11 +73,11 @@ public final class BasicArray extends Type {
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder) {
-		builder.containerBegin();
+		builder.arrayBegin();
 		for (int k = 0; k < numElems; ++k) {
 			underlying.addToPlan(builder);
 		}
-		builder.containerEnd();
+		builder.arrayEnd();
 	}
 
 	@Override
