@@ -507,7 +507,7 @@ public class MarshallerTest {
 		MarshallPlan cp = compoundPlan(1, PrimitiveSize.FLOAT, PrimitiveSize.BOOL);
 		ElementSkipper skipper = new ElementSkipper(2, 0);
 		final Marshaller mr = cp.makeMarshaller();
-		mr.skipComplexArrayElements(skipper);
+		mr.skipComplexElement(skipper);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putChar((byte) 'a');
@@ -524,7 +524,7 @@ public class MarshallerTest {
 		ElementSkipper skipper_1 = new ElementSkipper(2, 0);
 		ElementSkipper skipper_3 = new ElementSkipper(6, 0);
 		for (int k = 0; k < NUM_ELEMS; ++k) {
-			mr.skipComplexArrayElements(skipper_1);
+			mr.skipComplexElement(skipper_1);
 		}
 		assertThrew(new Runnable() {
 			public void run() {
@@ -532,7 +532,7 @@ public class MarshallerTest {
 			}
 		}, ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
-		mr.skipComplexArrayElements(skipper_3);
+		mr.skipComplexElement(skipper_3);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putFloat(1.0f);
@@ -543,7 +543,7 @@ public class MarshallerTest {
 		mr.skipBasicArrayElements(1);
 		mr.putFloat(890714.0f);
 		mr.putBool(true);
-		mr.skipComplexArrayElements(skipper_1);
+		mr.skipComplexElement(skipper_1);
 		assertThrew(new Runnable() {
 			public void run() {
 				mr.putChar((byte)'a');

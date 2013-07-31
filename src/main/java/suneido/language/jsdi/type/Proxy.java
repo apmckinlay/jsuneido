@@ -202,7 +202,7 @@ public final class Proxy extends Type {
 			if (null != value) {
 				lastResolvedType.marshallIn(marshaller, value);
 			} else {
-				marshaller.skipComplexArrayElements(skipper);
+				marshaller.skipComplexElement(skipper);
 			}
 			break;
 		case POINTER:
@@ -211,7 +211,7 @@ public final class Proxy extends Type {
 				lastResolvedType.marshallIn(marshaller, value);
 			} else {
 				marshaller.putNullPtr();
-				marshaller.skipComplexArrayElements(skipper);
+				marshaller.skipComplexElement(skipper);
 			}
 		case ARRAY:
 			final SuContainer c = Ops.toContainer(value);
@@ -221,7 +221,7 @@ public final class Proxy extends Type {
 					lastResolvedType.marshallIn(marshaller, value);
 				}
 			} else {
-				marshaller.skipComplexArrayElements(skipper);
+				marshaller.skipComplexElement(skipper);
 			}
 			break;
 		default:
@@ -236,7 +236,7 @@ public final class Proxy extends Type {
 			return lastResolvedType.marshallOut(marshaller, oldValue);
 		case POINTER:
 			if (marshaller.isPtrNull()) {
-				marshaller.skipComplexArrayElements(skipper);
+				marshaller.skipComplexElement(skipper);
 				return Boolean.FALSE;
 			} else {
 				return lastResolvedType.marshallOut(marshaller, oldValue);

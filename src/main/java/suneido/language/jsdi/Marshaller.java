@@ -4,9 +4,12 @@ import java.util.Arrays;
 
 /**
  * TODO: docs
+ * TODO: note in strong strong text that Marshaller can't be reused because
+ *       it assumes zeroed-out data array
  * 
  * @author Victor Schappert
  * @since 20130710
+ * @see MarshallPlan
  */
 @DllInterface
 public final class Marshaller {
@@ -30,18 +33,12 @@ public final class Marshaller {
 	//
 
 	/**
-	 * Represents an index in the marshalled data array which:
-	 * <ul>
-	 * <li>
-	 * if this value is present in a marshalled data array on the native side,
-	 * indicates that the pointer value provided by the Java marshaller should
-	 * not be changed on the native side (this can happen if a NULL pointer, or
-	 * INTRESOURCE value, is passed in a memory location that would otherwise be
-	 * a pointer).
-	 * </li>
-	 * TODO: these docs need to be updated when final marshalling strategy is
-	 * decided...
-	 * </ul>
+	 * If this value is present in a marshalled <em>pointer</em> array on the
+	 * native side, indicates that the pointer value provided by the Java
+	 * marshaller should not be changed on the native side (this can happen if a
+	 * NULL pointer, or INTRESOURCE value, is passed in a memory location that
+	 * would otherwise be a pointer).
+	 *
 	 * @see #makeVariableIndirectPlan()
 	 * @see #getVariableIndirectCount()
 	 */
@@ -51,6 +48,10 @@ public final class Marshaller {
 	// CONSTRUCTORS
 	//
 
+	/**
+	 * Deliberately package-internal. Instances should only be constructed by
+	 * calling {@link MarshallPlan#makeMarshaller()}.
+	 */
 	Marshaller(int sizeDirect, int sizeIndirect, int countVariableIndirect,
 			int[] ptrArray, int[] posArray) {
 		this.data = new byte[sizeDirect + sizeIndirect];
@@ -71,22 +72,89 @@ public final class Marshaller {
 	// ACCESSORS
 	//
 
-	// TODO: doc -- NO CHANGING!
+	/**
+	 * <p>
+	 * Returns the marshaller's internal <em>data</em> array for the purposes of
+	 * passing it to {@code native} function calls.
+	 * </p>
+	 * <p>
+	 * While the contents of this array may be modified by {@code native} calls
+	 * which respect the JSDI marshalling framework, it should be treated as
+	 * opaque by other Java code and not modified by Java calls under any
+	 * circumstances!
+	 * </p>
+	 * @return Data array
+	 * @see #getPtrArray()
+	 * @see #getViArray()
+	 * @see #getViInstArray()
+	 */
 	public byte[] getData() {
 		return data;
 	}
 
-	// TODO: doc -- NO CHANGING -- could belong to a MarshallPlan!
+	/**
+	 * <p>
+	 * Returns the marshaller's internal <em>em pointer</em> array for the
+	 * purposes of passing it to {@code native} function calls.
+	 * </p>
+	 * <p>
+	 * The contents of this array <em>are <strong>not</strong> to be modified
+	 * by anyone, under any circumstances</em>! This array <em>may</em> be a
+	 * direct reference to the internal array pointer array of a
+	 * {@link MarshallPlan}, or it may be a copy. In either case, modifying it
+	 * will be disastrous.
+	 * </p>
+	 * @return Pointer array
+	 * @see #getData()
+	 * @see #getViArray()
+	 * @see #getViInstArray()
+	 */
 	public int[] getPtrArray() {
 		return ptrArray;
 	}
 
-	// TODO: doc -- since 20130718
+	/**
+	 * <p>
+	 * Returns the marshaller's internal <em>variable indirect</em> array for
+	 * the purposes of passing it to {@code native} function calls.
+	 * </p>
+	 * <p>
+	 * The value returned may be {@code null} if the {@link MarshallPlan} on
+	 * which this marshaller is based does not require variable indirect
+	 * storage.
+	 * </p>
+	 * <p>
+	 * The contents of this array <em>are <strong>not</strong> to be modified</em>!
+	 * </p>
+	 * @return Variable indirect array (may be {@code null})
+	 * @since 20130718
+	 * @see #getViInstArray()
+	 * @see #getData()
+	 * @see #getPtrArray()
+	 */
 	public Object[] getViArray() {
 		return viArray;
 	}
 
-	// TODO: doc -- since 20130718
+	/**
+	 * <p>
+	 * Returns the marshaller's internal <em>variable indirect instruction</em>
+	 * array for the purpose of passing it to {@code native} function calls.
+	 * </p>
+	 * <p>
+	 * The value returned may be {@code null} if the {@link MarshallPlan} on
+	 * which this marshaller is based does not require variable indirect
+	 * storage.
+	 * </p>
+	 * <p>
+	 * The contents of this array <em>are <strong>not</strong> to be modified</em>!
+	 * </p>
+	 * @return Variable indirect instruction array (may be {@code null})
+	 * @since 20130718
+	 * @see #getViArray()
+	 * @see #getData()
+	 * @see #getPtrArray()
+	 */
 	public boolean[] getViInstArray() {
 		return viInstArray;
 	}
@@ -95,13 +163,30 @@ public final class Marshaller {
 	// MUTATORS
 	//
 
-	// TODO: doc -- since 20130718
+	/**
+	 * <p>
+	 * Rewinds the marshaller, setting all internal positions to their initial
+	 * values.
+	 * </p>
+	 * <p>
+	 * After putting all data into the marshaller, it is necessary to
+	 * {@code rewind()} in order to get data out from the beginning. In other
+	 * words, you should not begin to call {@code getX()} methods until first
+	 * rewinding.
+	 * </p>
+	 * @since 20130718
+	 */
 	public void rewind() {
 		this.posIndex = 0;
 		this.ptrIndex = 1;
 		this.viIndex  = 0;
 	}
 
+	/**
+	 * Puts a JSDI {@code bool} value at the next position in the marshaller.
+	 * @param value Boolean value
+	 * @see #getBool()
+	 */
 	public void putBool(boolean value) {
 		if (value) {
 			// 3 higher-order bytes can remain zero
@@ -109,16 +194,31 @@ public final class Marshaller {
 		}
 	}
 
+	/**
+	 * Puts a JSDI {@code char} value at the next position in the marshaller.
+	 * @param value Single-byte character value
+	 * @see #getChar()
+	 */
 	public void putChar(byte value) {
 		data[nextData()] = (byte)value;
 	}
 
+	/**
+	 * Puts a JSDI {@code short} value at the next position in the marshaller.
+	 * @param value 16-bit JSDI {@code short} value
+	 * @see #getShort()
+	 */
 	public void putShort(short value) {
 		int dataIndex = nextData();
 		data[dataIndex + 0] = (byte) (value >>> 000);
 		data[dataIndex + 1] = (byte) (value >>> 010);
 	}
 
+	/**
+	 * Puts a JSDI {@code long} value at the next position in the marshaller.
+	 * @param value 32-bit JSDI {@code long} value
+	 * @see #getLong()
+	 */
 	public void putLong(int value) {
 		int dataIndex = nextData();
 		data[dataIndex + 0] = (byte) (value >>> 000);
@@ -127,6 +227,11 @@ public final class Marshaller {
 		data[dataIndex + 3] = (byte) (value >>> 030);
 	}
 
+	/**
+	 * Puts a JSDI {@code int64} value at the next position in the marshaller.
+	 * @param value 64-bit JSDI {@code int64} value
+	 * @see #getInt64()
+	 */
 	public void putInt64(long value) {
 		int dataIndex = nextData();
 		data[dataIndex + 0] = (byte) (value >>> 000);
@@ -139,18 +244,41 @@ public final class Marshaller {
 		data[dataIndex + 7] = (byte) (value >>> 070);
 	}
 
+	/**
+	 * Puts a JSDI {@code float} value at the next position in the marshaller.
+	 * @param value 32-bit JSDI {@code float} value
+	 * @see #getFloat()
+	 */
 	public void putFloat(float value) {
 		putLong(Float.floatToRawIntBits(value));
 	}
 
+	/**
+	 * Puts a JSDI {@code double} value at the next position in the marshaller.
+	 * @param value 64-bit JSDI {@code double} value
+	 * @see #getDouble()
+	 */
 	public void putDouble(double value) {
 		putInt64(Double.doubleToRawLongBits(value));
 	}
 
+	/**
+	 * Puts a non-NULL pointer value at the next position in the marshaller.
+	 * @see #putNullPtr()
+	 * @see #isPtrNull()
+	 * @see #putStringPtr(String, boolean)
+	 * @see #putStringPtr(Buffer, boolean)
+	 */
 	public void putPtr() {
 		skipPtr();
 	}
 
+	/**
+	 * Puts a NULL pointer value at the next position in the marshaller.
+	 * @see #putPtr()
+	 * @see #isPtrNull()
+	 * @see #putNullStringPtr(boolean)
+	 */
 	public void putNullPtr() {
 		++posIndex;
 		int ptrIndex = nextPtrIndexAndCopy();
@@ -159,27 +287,50 @@ public final class Marshaller {
 		// It is up to the caller to skip over any corresponding data pointer.
 	}
 
-	// TODO: note in doc -- you can't do this with arrays of structs because
-	// you have to skip over all the relevant posArray elements for
-	// submembers
+	/**
+	 * <p>
+	 * Skips over the next {@code numElems} positions in the marshaller.
+	 * </p>
+	 * <p>
+	 * This method <em>cannot</em> be used for skipping over elements of an
+	 * array of compound types (<em>ie</em> {@code struct}'s) because the
+	 * marshaller does not know how many internal positions are occupied by
+	 * each element of the array. However, it is suitable for skipping over
+	 * the elements of arrays of primitive types, since each element in a
+	 * primitive array corresponds to only one position in the marshaller.
+	 * </p>
+	 * @param numElems Number of positions to skip
+	 * @see #skipComplexElement(ElementSkipper)
+	 */
 	public void skipBasicArrayElements(int numElems) {
 		posIndex += numElems;
 	}
 
-	public void skipComplexArrayElements(ElementSkipper skipper) {
+	/**
+	 * <p>
+	 * Skips over all of the positions occupied by the complex element
+	 * described by {@code skipper}.
+	 * </p>
+	 * @param skipper Object indicating how many positions to skip over
+	 * @see #skipBasicArrayElements(int)
+	 */
+	public void skipComplexElement(ElementSkipper skipper) {
 		posIndex += skipper.nPos;
 		ptrIndex += skipper.nPtr;
 	}
 
-	public void putNullStringPtr(boolean expectStringBack) {
-		++posIndex;
-		int ptrIndex = nextPtrIndexAndCopy();
-		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
-		int viIndex = nextVi();
-		viInstArray[viIndex] = expectStringBack;
-		// Assert: the skipped spot in the viArray is null
-	}
-
+	/**
+	 * Puts a non-NULL pointer to variable indirect storage at the next position
+	 * in the marshaller.
+	 * @param value Non-{@code null} string value to marshall into variable
+	 * indirect storage
+	 * @param expectStringBack Instruction to place in the variable indirect
+	 * instructions array ({@code true} indicates that the native-side
+	 * unmarshalling code should return a {@link String})
+	 * @see #putStringPtr(Buffer, boolean)
+	 * @see #putNullStringPtr(boolean)
+	 * @see #putPtr()
+	 */
 	public void putStringPtr(String value, boolean expectStringBack) {
 		skipPtr();
 		int viIndex = nextVi();
@@ -187,11 +338,42 @@ public final class Marshaller {
 		viInstArray[viIndex] = expectStringBack;
 	}
 
+	/**
+	 * Puts a non-NULL pointer to the internal data array of a {@link Buffer}
+	 * at the next position in the marshaller.
+	 * @param value Non-{@code null} buffer value whose internal data array is
+	 * put into variable indirect storage
+	 * @param expectStringBack Instruction to place in the variable indirect
+	 * instructions array ({@code true} indicates that the native-side
+	 * unmarshalling code should return a {@link String})
+	 * @see #putStringPtr(String, boolean)
+	 * @see #putNullStringPtr(boolean)
+	 * @see #putPtr()
+	 */
 	public void putStringPtr(Buffer value, boolean expectStringBack) {
 		skipPtr();
 		int viIndex = nextVi();
 		viArray[viIndex] = value.getInternalData();
 		viInstArray[viIndex] = expectStringBack;
+	}
+
+	/**
+	 * Puts a NULL pointer to variable indirect storage at the next position in
+	 * the marshaller.
+	 * @param expectStringBack Instruction to place in the variable indirect
+	 * instructions array ({@code true} indicates that the native-side
+	 * unmarshalling code should return a {@link String})
+	 * @see #putStringPtr(String, boolean)
+	 * @see #putStringPtr(Buffer, boolean)
+	 * @see #putNullPtr()
+	 */
+	public void putNullStringPtr(boolean expectStringBack) {
+		++posIndex;
+		int ptrIndex = nextPtrIndexAndCopy();
+		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
+		int viIndex = nextVi();
+		viInstArray[viIndex] = expectStringBack;
+		// Assert: the skipped spot in the viArray is null
 	}
 
 	public void putZeroTerminatedStringDirect(String value, int maxChars) {

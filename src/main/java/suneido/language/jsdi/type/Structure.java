@@ -90,7 +90,7 @@ public final class Structure extends ComplexType {
 	public void marshallIn(Marshaller marshaller, Object value) {
 		final SuContainer c = Ops.toContainer(value);
 		if (null == c) {
-			marshaller.skipComplexArrayElements(skipper);
+			marshaller.skipComplexElement(skipper);
 		} else {
 			typeList.marshallInMembers(marshaller, c);
 		}
