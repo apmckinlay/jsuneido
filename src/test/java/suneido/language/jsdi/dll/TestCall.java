@@ -1,9 +1,7 @@
 package suneido.language.jsdi.dll;
 
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.MarshallTestUtil;
+import suneido.language.jsdi.*;
 import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
@@ -35,15 +33,18 @@ public enum TestCall {
 			PrimitiveSize.CHAR, PrimitiveSize.INT64),
 	SUM_PACKED_CHAR_CHAR_SHORT_LONG("TestSumPackedCharCharShortLong", Mask.LONG,
 			makePackedCharCharShortLongPlan()),
-	STRLEN("TestStrLen", Mask.LONG, PrimitiveSize.POINTER),
+	STRLEN("TestStrLen", Mask.LONG, makeInStringPlan()),
 	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.LONG, PrimitiveSize.BOOL),
 	HELLO_WORLD_OUT_PARAM("TestHelloWorldOutParam", Mask.VOID,
 			pointerPlan(PrimitiveSize.WORD)),
+	HELLO_WORLD_OUT_BUFFER("TestHelloWorldOutBuffer", Mask.VOID,
+			makeHelloWorldOutBufferPlan()),
 	NULL_PTR_OUT_PARAM("TestNullPtrOutParam", Mask.VOID,
 			pointerPlan(PrimitiveSize.WORD)),
 	RETURN_PTR_PTR_PTR_DOUBLE("TestReturnPtrPtrPtrDoubleAsUInt64", Mask.INT64,
-			makePtrPtrPtrDoublePlan());
-
+			makePtrPtrPtrDoublePlan()),
+	SUM_STRING("TestSumString", Mask.LONG, makeSumStringPlan_TwoTier());
+	
 	private final QuickDll qp;
 	public final long ptr;
 	public final Mask returnValueMask;
@@ -76,6 +77,13 @@ public enum TestCall {
 		return builder.makeMarshallPlan();
 	}
 
+	private static MarshallPlan makeInStringPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+			PrimitiveSize.pointerWholeWordBytes(),0, 1);
+		builder.variableIndirectPtr();
+		return builder.makeMarshallPlan();
+	}
+
 	private static MarshallPlan makePtrPtrPtrDoublePlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes(),
@@ -87,5 +95,158 @@ public enum TestCall {
 		builder.ptrEnd();
 		builder.ptrEnd();
 		return builder.makeMarshallPlan();
+	}
+
+	private static MarshallPlan makeHelloWorldOutBufferPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.pointerWholeWordBytes()
+						+ PrimitiveSize.sizeWholeWords(PrimitiveSize.LONG), 0,
+				1);
+		builder.variableIndirectPtr();
+		builder.pos(PrimitiveSize.LONG);
+		return builder.makeMarshallPlan();
+	}
+
+	private static MarshallPlan makeSumStringPlan_TwoTier() {
+		final int sizeOf_RecursiveStringSum = (2
+				* (PrimitiveSize.CHAR + PrimitiveSize.CHAR
+						+ PrimitiveSize.SHORT + PrimitiveSize.LONG) + 3
+				* PrimitiveSize.POINTER + PrimitiveSize.LONG);
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.pointerWholeWordBytes(),
+				2 * sizeOf_RecursiveStringSum,
+				2 * (2));
+		builder.ptrBegin(sizeOf_RecursiveStringSum);
+			builder.containerBegin();              // struct RecursiveStringSum
+				builder.arrayBegin();
+					builder.containerBegin();          // struct Packed_CharCharShortLong
+					builder.pos(PrimitiveSize.CHAR);
+					builder.pos(PrimitiveSize.CHAR);
+					builder.pos(PrimitiveSize.SHORT);
+					builder.pos(PrimitiveSize.LONG);
+					builder.containerEnd();
+					builder.containerBegin();          // struct Packed_CharCharShortLong
+					builder.pos(PrimitiveSize.CHAR);
+					builder.pos(PrimitiveSize.CHAR);
+					builder.pos(PrimitiveSize.SHORT);
+					builder.pos(PrimitiveSize.LONG);
+					builder.containerEnd();
+				builder.arrayEnd();
+				builder.variableIndirectPtr();
+				builder.variableIndirectPtr();
+				builder.pos(PrimitiveSize.LONG);
+				builder.ptrBegin(sizeOf_RecursiveStringSum);
+					builder.containerBegin();
+						builder.arrayBegin();
+							builder.containerBegin();          // struct Packed_CharCharShortLong
+							builder.pos(PrimitiveSize.CHAR);
+							builder.pos(PrimitiveSize.CHAR);
+							builder.pos(PrimitiveSize.SHORT);
+							builder.pos(PrimitiveSize.LONG);
+							builder.containerEnd();
+							builder.containerBegin();          // struct Packed_CharCharShortLong
+							builder.pos(PrimitiveSize.CHAR);
+							builder.pos(PrimitiveSize.CHAR);
+							builder.pos(PrimitiveSize.SHORT);
+							builder.pos(PrimitiveSize.LONG);
+							builder.containerEnd();
+						builder.arrayEnd();
+						builder.variableIndirectPtr();
+						builder.variableIndirectPtr();
+						builder.pos(PrimitiveSize.LONG);
+						builder.pos(PrimitiveSize.POINTER);
+					builder.containerEnd();
+				builder.ptrEnd();
+			builder.containerEnd();
+		builder.ptrEnd();
+		return builder.makeMarshallPlan();
+	}
+
+	public static class Recursive_StringSum
+	{
+		public byte   a1;
+		public byte   b1;
+		public short  c1;
+		public int    d1;
+		public byte   a2;
+		public byte   b2;
+		public short  c2;
+		public int    d2;
+		public String str;
+		public Buffer buffer;
+		public Recursive_StringSum(String str, Buffer buffer, int... x)
+		{
+			this.str = str;
+			this.buffer = buffer;
+			switch (x.length)
+			{
+			default: this.d2 = (int)  x[7];
+			case 7:  this.c2 = (short)x[6];
+			case 6:  this.b2 = (byte) x[5];
+			case 5:  this.a2 = (byte) x[4];
+			case 4:  this.d1 = (int)  x[3];
+			case 3:  this.c1 = (short)x[2];
+			case 2:  this.b1 = (byte) x[1];
+			case 1:  this.a1 = (byte) x[0];
+			case 0:  break;
+			}
+		}
+	}
+
+	public static Marshaller marshall(Recursive_StringSum rssOuter,
+			Recursive_StringSum rssInner) {
+		Marshaller m = TestCall.SUM_STRING.plan.makeMarshaller();
+		m.putPtr();
+		m.putChar(rssOuter.a1);
+		m.putChar(rssOuter.b1);
+		m.putShort(rssOuter.c1);
+		m.putLong(rssOuter.d1);
+		m.putChar(rssOuter.a2);
+		m.putChar(rssOuter.b2);
+		m.putShort(rssOuter.c2);
+		m.putLong(rssOuter.d2);
+		if (null != rssOuter.str) {
+			m.putStringPtr(rssOuter.str, false);
+		} else {
+			m.putNullStringPtr(false);
+		}
+		if (null != rssOuter.buffer) {
+			m.putStringPtr(rssOuter.buffer, false);
+			m.putLong(rssOuter.buffer.size());
+		} else {
+			m.putNullStringPtr(false);
+			m.putLong(0);
+		}
+		if (null == rssInner) {
+			m.putNullPtr();
+			m.skipBasicArrayElements(8);
+			m.putNullStringPtr(false);
+			m.putNullStringPtr(false);
+			m.skipBasicArrayElements(2);
+		} else {
+			m.putPtr();
+			m.putChar(rssInner.a1);
+			m.putChar(rssInner.b1);
+			m.putShort(rssInner.c1);
+			m.putLong(rssInner.d1);
+			m.putChar(rssInner.a2);
+			m.putChar(rssInner.b2);
+			m.putShort(rssInner.c2);
+			m.putLong(rssInner.d2);
+			if (null != rssInner.str) {
+				m.putStringPtr(rssInner.str, false);
+			} else {
+				m.putNullStringPtr(false);
+			}
+			if (null != rssInner.buffer) {
+				m.putStringPtr(rssInner.buffer, false);
+				m.putLong(rssInner.buffer.size());
+			} else {
+				m.putNullStringPtr(false);
+				m.putLong(0);
+			}
+			m.putLong(0);
+		}
+		return m;
 	}
 }

@@ -82,6 +82,11 @@ public class StructureTest {
 			//      I     404     16    *tts3[1].prcOptional
 			//      I     420      4    *tts3[1].pLong
 			//
+		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
+		"Recursive_StringSum1",
+			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; Recursive_StringSum2 * inner }",
+		"Recursive_StringSum2",
+			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; long setToZero }",
 		"CycleA", "struct { CycleB cycleB }",
 		"CycleB", "struct { CycleA cycleA }",
 		"SelfRef", "struct { SelfRef selfRef }",
@@ -165,6 +170,14 @@ public class StructureTest {
 					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
 					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, #vi:6 ]",
 				getMarshallPlan("StringStruct3").toString());
+		assertEquals(
+				"MarshallPlan[ 8, 0, { }, { 0, 1, 2, 4 }, #vi:0 ]",
+				getMarshallPlan("Packed_CharCharShortLong").toString());
+		assertEquals(
+				"MarshallPlan[ 32, 32, { 16:64, 20:65, 28:32, 48:66, 52:67 }, " +
+					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 20, 24, 28, " +
+						"32, 33, 34, 36, 40, 41, 42, 44, 48, 52, 56, 60 }, #vi:4 ]",
+				getMarshallPlan("Recursive_StringSum1").toString());
 	}
 
 	@Test
