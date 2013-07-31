@@ -108,25 +108,6 @@ public final class Buffer extends SuValue {
 		setAndSetSizeInternal(src, start, end);
 		if (size < data.length) data[size] = 0; 
 	}
-//
-//	void setAndShrinkAtNull(byte[] src, int start, int end) {
-//		if (start < end) {
-//			assert end - start < size;
-//			for (int k = 0; start < end; ++k, ++start) {
-//				byte b = src[start];
-//				if (0 == b) {
-//					data[k] = 0;
-//					size = k + 1;
-//					return;
-//				} else {
-//					data[k] = b;
-//				}
-//			}
-//		} else {
-//			data[0] = 0;
-//			size = 1;
-//		}
-//	}
 
 	//
 	// INTERNALS
