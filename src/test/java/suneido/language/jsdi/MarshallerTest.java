@@ -2,9 +2,9 @@ package suneido.language.jsdi;
 
 import static org.junit.Assert.*;
 import static suneido.language.jsdi.MarshallTestUtil.*;
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.util.testing.Throwing.assertThrew;
-
-import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -359,8 +359,10 @@ public class MarshallerTest {
 	public void testMarshallStringIndirectPtrNull_ExpectString() {
 		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
-		mr.putNullStringPtr(true);
-		assertTrue(Arrays.equals(new boolean[] { true }, mr.getViInstArray()));
+		mr.putNullStringPtr(RETURN_JAVA_STRING);
+		assertArrayEquals(
+				new int[] { RETURN_JAVA_STRING.ordinal() },
+				mr.getViInstArray());
 		mr.rewind();
 		assertEquals(mr.getStringPtr(), Boolean.FALSE);
 		mr.rewind();
@@ -372,7 +374,10 @@ public class MarshallerTest {
 	public void testMarshallStringIndirectPtrNull_ExpectByteArray() {
 		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
-		mr.putNullStringPtr(false);
+		mr.putNullStringPtr(NO_ACTION);
+		assertArrayEquals(
+				new int[] { NO_ACTION.ordinal() },
+				mr.getViInstArray());
 		mr.rewind();
 		assertEquals(mr.getStringPtr(), Boolean.FALSE);
 		mr.rewind();
@@ -387,7 +392,7 @@ public class MarshallerTest {
 		final String OUT = "Cauta est et ab illis incipit uxor.";
 		MarshallPlan mp = variableIndirectPlan();
 		Marshaller mr = mp.makeMarshaller();
-		mr.putStringPtr(IN, true);
+		mr.putStringPtr(IN, RETURN_JAVA_STRING);
 		mr.rewind();
 		simulateNativeSidePutStringInViArray(mr, OUT);
 		String string = (String)mr.getStringPtr();
@@ -402,9 +407,9 @@ public class MarshallerTest {
 		// Test of bug found 20130730 in which inserting a null variable
 		// indirect pointer into the marshaller wasn't advancing the position.
 		MarshallPlan mp = variableIndirectPlan();
-		for (boolean b : new boolean[] { true, false }) {
+		for (VariableIndirectInstruction i : VariableIndirectInstruction.values()) {
 			final Marshaller mr = mp.makeMarshaller();
-			mr.putNullStringPtr(b);
+			mr.putNullStringPtr(i);
 			assertThrew(
 				new Runnable() { public void run() { mr.putChar((byte)0); } },
 				ArrayIndexOutOfBoundsException.class
@@ -421,7 +426,7 @@ public class MarshallerTest {
 		MarshallPlan mp = variableIndirectPlan();
 		Buffer OUT_;
 		Marshaller mr = mp.makeMarshaller();
-		mr.putStringPtr(IN_, false);
+		mr.putStringPtr(IN_, NO_ACTION);
 		// Simulate native side changing the contents of the byte buffer without
 		// changing the size.
 		Buffer.copyStr(OUT, IN_.getInternalData(), 0, OUT.length());

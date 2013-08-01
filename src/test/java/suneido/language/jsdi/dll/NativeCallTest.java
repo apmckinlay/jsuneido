@@ -3,6 +3,8 @@ package suneido.language.jsdi.dll;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.language.jsdi.dll.ReturnTypeGroup.VOID;
 import static suneido.language.jsdi.dll.ReturnTypeGroup._32_BIT;
 import static suneido.util.testing.Throwing.assertThrew;
@@ -16,7 +18,6 @@ import suneido.language.jsdi.Buffer;
 import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.dll.TestCall.Recursive_StringSum;
 import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
@@ -318,7 +319,7 @@ public class NativeCallTest {
 			MarshallPlan plan = testcall.plan;
 			for (NativeCall nativecall : VI) {
 				Marshaller m = plan.makeMarshaller();
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(NO_ACTION);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 			}
 		}
@@ -330,7 +331,7 @@ public class NativeCallTest {
 			MarshallPlan plan = testcall.plan;
 			for (NativeCall nativecall : VI) {
 				Marshaller m = plan.makeMarshaller();
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(NO_ACTION);
 				m.putLong(0);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 			}
@@ -345,13 +346,13 @@ public class NativeCallTest {
 				final Marshaller m = plan.makeMarshaller();
 				m.putNullPtr();
 				m.skipBasicArrayElements(8);
-				m.putNullStringPtr(true);
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(RETURN_JAVA_STRING);
+				m.putNullStringPtr(NO_ACTION);
 				m.skipBasicArrayElements(1);
 				m.putNullPtr();
 				m.skipBasicArrayElements(8);
-				m.putNullStringPtr(true);
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(RETURN_JAVA_STRING);
+				m.putNullStringPtr(NO_ACTION);
 				m.skipBasicArrayElements(1);
 				m.skipBasicArrayElements(1);
 				assertThrew( // should be at the end of the marshaller
@@ -376,7 +377,7 @@ public class NativeCallTest {
 			if (nativecall == NativeCall.VARIABLE_INDIRECT_RETURN_V) continue;
 			for (int k = 0; k <= 10; ++k) {
 				Marshaller m = plan.makeMarshaller();
-				m.putStringPtr(strings[k], false);
+				m.putStringPtr(strings[k], NO_ACTION);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
 				assertEquals((long)k, result & testcall.returnValueMask.value);
@@ -397,7 +398,7 @@ public class NativeCallTest {
 				byte[] src = new byte[size];
 				Buffer buffer = new Buffer(src, 0, size); // has a copy of src
 				Marshaller m = plan.makeMarshaller();
-				m.putStringPtr(buffer, false);
+				m.putStringPtr(buffer, NO_ACTION);
 				m.putLong(size);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 				int endIndex = hello_world.length() < size

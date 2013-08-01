@@ -1,7 +1,12 @@
 package suneido.language.jsdi.dll;
 
-import static suneido.language.jsdi.dll.CallGroup.*;
-import static suneido.language.jsdi.dll.ReturnTypeGroup.*;
+import static suneido.language.jsdi.dll.CallGroup.DIRECT;
+import static suneido.language.jsdi.dll.CallGroup.FAST;
+import static suneido.language.jsdi.dll.CallGroup.INDIRECT;
+import static suneido.language.jsdi.dll.CallGroup.VARIABLE_INDIRECT;
+import static suneido.language.jsdi.dll.ReturnTypeGroup.VOID;
+import static suneido.language.jsdi.dll.ReturnTypeGroup._32_BIT;
+import static suneido.language.jsdi.dll.ReturnTypeGroup._64_BIT;
 
 import java.util.ArrayList;
 
@@ -187,11 +192,10 @@ enum NativeCall {
 	private static native long callDirectOnly(long funcPtr, int sizeDirect,
 			byte[] args);
 
-	// TODO: make private
-	static native long callIndirect(long funcPtr, int sizeDirect,
+	private static native long callIndirect(long funcPtr, int sizeDirect,
 			byte[] args, int[] ptrArray);
 
 	private static native long callVariableIndirect(long funcPtr,
 			int sizeDirect, byte[] args, int[] ptrArray, Object[] viArray,
-			boolean[] viInst);
+			int[] viInst);
 }

@@ -1,5 +1,8 @@
 package suneido.language.jsdi.type;
 
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.language.Numbers;
@@ -44,13 +47,13 @@ public final class InOutString extends StringIndirect {
 		// values copied into a buffer. Thus the most likely branches are
 		// either: (1) value is a Buffer, or (2) value is null or False
 		if (null == value || Boolean.FALSE == value) {
-			marshaller.putNullStringPtr(true);
+			marshaller.putNullStringPtr(RETURN_JAVA_STRING);
 		} else if (value instanceof Buffer) {
-			marshaller.putStringPtr((Buffer)value, false);
+			marshaller.putStringPtr((Buffer)value, NO_ACTION);
 		} else if (value instanceof CharSequence) {
-			marshaller.putStringPtr(((CharSequence)value).toString(), true);
+			marshaller.putStringPtr(((CharSequence)value).toString(), RETURN_JAVA_STRING);
 		} else if (Numbers.isZero(value)) {
-			marshaller.putNullStringPtr(true);
+			marshaller.putNullStringPtr(RETURN_JAVA_STRING);
 		} else {
 			super.marshallIn(marshaller, value);
 		}

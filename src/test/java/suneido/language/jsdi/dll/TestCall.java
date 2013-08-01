@@ -1,6 +1,7 @@
 package suneido.language.jsdi.dll;
 
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import suneido.language.jsdi.*;
 import suneido.language.jsdi.type.PrimitiveSize;
 
@@ -206,22 +207,22 @@ public enum TestCall {
 		m.putShort(rssOuter.c2);
 		m.putLong(rssOuter.d2);
 		if (null != rssOuter.str) {
-			m.putStringPtr(rssOuter.str, false);
+			m.putStringPtr(rssOuter.str, NO_ACTION);
 		} else {
-			m.putNullStringPtr(false);
+			m.putNullStringPtr(NO_ACTION);
 		}
 		if (null != rssOuter.buffer) {
-			m.putStringPtr(rssOuter.buffer, false);
+			m.putStringPtr(rssOuter.buffer, NO_ACTION);
 			m.putLong(rssOuter.buffer.size());
 		} else {
-			m.putNullStringPtr(false);
+			m.putNullStringPtr(NO_ACTION);
 			m.putLong(0);
 		}
 		if (null == rssInner) {
 			m.putNullPtr();
 			m.skipBasicArrayElements(8);
-			m.putNullStringPtr(false);
-			m.putNullStringPtr(false);
+			m.putNullStringPtr(NO_ACTION);
+			m.putNullStringPtr(NO_ACTION);
 			m.skipBasicArrayElements(2);
 		} else {
 			m.putPtr();
@@ -234,15 +235,15 @@ public enum TestCall {
 			m.putShort(rssInner.c2);
 			m.putLong(rssInner.d2);
 			if (null != rssInner.str) {
-				m.putStringPtr(rssInner.str, false);
+				m.putStringPtr(rssInner.str, NO_ACTION);
 			} else {
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(NO_ACTION);
 			}
 			if (null != rssInner.buffer) {
-				m.putStringPtr(rssInner.buffer, false);
+				m.putStringPtr(rssInner.buffer, NO_ACTION);
 				m.putLong(rssInner.buffer.size());
 			} else {
-				m.putNullStringPtr(false);
+				m.putNullStringPtr(NO_ACTION);
 				m.putLong(0);
 			}
 			m.putLong(0);

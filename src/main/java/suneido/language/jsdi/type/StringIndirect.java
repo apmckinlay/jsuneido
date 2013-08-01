@@ -1,10 +1,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.Numbers;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -28,9 +25,9 @@ public abstract class StringIndirect extends StringType {
 	//
 
 	protected final void putNullStringPtrOrThrow(Marshaller marshaller, Object value,
-			boolean expectStringBack) {
+			VariableIndirectInstruction inst) {
 		if (null == value || Boolean.FALSE == value || Numbers.isZero(value)) {
-			marshaller.putNullStringPtr(expectStringBack);
+			marshaller.putNullStringPtr(inst);
 		} else {
 			super.marshallIn(marshaller, value); // will throw
 		}
