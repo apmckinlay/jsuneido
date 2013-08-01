@@ -229,6 +229,7 @@ public class DateParse {
 					break ;
 				}
 			// stop at first match
+			assert p != null;
 			if (t == p.length() && t == ntokens)
 				break ;
 		}

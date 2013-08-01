@@ -3,7 +3,6 @@
 	<classpathentry excluding="suneido/jdbc/" kind="src" output="target/classes" path="src/main/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="lib" path="lib/jsr305-1.3.9.jar"/>
-	<classpathentry kind="lib" path="lib/hamcrest-library-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/trove-3.0.3.jar" sourcepath="lib/trove-3.0.3-src.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/trove-3.0.3-javadocs.jar!/"/>
@@ -17,7 +16,9 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-14.0.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/junit-4.11.jar"/>
+	<classpathentry kind="lib" path="lib/hamcrest-library-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="target"/>
 </classpath>

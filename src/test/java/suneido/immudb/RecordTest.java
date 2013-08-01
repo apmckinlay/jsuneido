@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -25,9 +26,9 @@ public class RecordTest {
 	public void test() {
 		Record r = new RecordBuilder().add(123).add("hello").build();
 		assertThat(r.size(), is(2));
-		assertThat(r.get(0), is(Integer.class));
+		assertThat(r.get(0), instanceOf(Integer.class));
 		assertThat((Integer) r.get(0), is(123));
-		assertThat(r.get(1), is(String.class));
+		assertThat(r.get(1), instanceOf(String.class));
 		assertThat((String) r.get(1), is("hello"));
 	}
 
