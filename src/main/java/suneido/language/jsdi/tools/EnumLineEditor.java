@@ -7,11 +7,12 @@ import java.util.ArrayList;
  * support Java {@code enum}'s via JNI. The {@link EnumLineEditor.Header} class
  * generates lines for the {@code .h} file, while the {#Source} class generates
  * lines for the {@code .cpp} file.
- *
+ * 
  * @author Victor Schappert
  * @since 20130701
- *
- * @param <E> The Java enumeration to generate C++ code for.
+ * 
+ * @param <E>
+ *            The Java enumeration to generate C++ code for.
  */
 abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 
@@ -44,8 +45,12 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 	// STATIC HELPERS
 	//
 
+	protected final String getEnumJavaTypeName() {
+		return enumType.getCanonicalName();
+	}
+
 	protected final String getEnumCPPTypeName() {
-		return enumType.getCanonicalName().replace('.', '_');
+		return getEnumJavaTypeName().replace('.', '_');
 	}
 
 	protected final String getNameArrayName() {
@@ -73,6 +78,7 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 	protected static final String JCLASS_VAR_NAME = "clazz";
 	protected static final String ENUM_VAR_NAME = "e";
 	protected static final String JNIEXCEPTION_CHECK_MACRO = "JNI_EXCEPTION_CHECK";
+	protected static final String ORDINAL_TO_CPP_FUNC_NAME = "ordinal_enum_to_cpp";
 
 	//
 	// HELPERS
@@ -90,9 +96,23 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			sig.append(' ').append(JCLASS_VAR_NAME);
 		sig.append(", jobject");
 		if (!header)
-			sig.append(' ').append(ENUM_VAR_NAME).append(')');
-		else
-			sig.append(");");
+			sig.append(' ').append(ENUM_VAR_NAME);
+		sig.append(") throw(jni_exception)");
+		if (header)
+			sig.append(';');
+		add(sig);
+	}
+
+	protected final void addFromOrdinalSignature(boolean header) {
+		add(indent(0).append("template <>"));
+		StringBuilder sig = indent(0);
+		sig.append(getEnumCPPTypeName());
+		sig.append(' ').append(ORDINAL_TO_CPP_FUNC_NAME).append("(int");
+		if (!header)
+			sig.append(' ').append(ENUM_VAR_NAME);
+		sig.append(") throw(jni_exception)");
+		if (header)
+			sig.append(';');
 		add(sig);
 	}
 
@@ -106,10 +126,17 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		add(sig);
 	}
 
-	protected final void addOrdinalAssertion(String varName) {
-		add(indent(1).append("assert(0 <= ").append(varName).append(" && ")
-				.append(varName).append(" < ").append(getOrdinalLimit())
-				.append(");"));
+	protected final void addOrdinalCheck(String varName) {
+		add(indent(1).append("if (! (0 <= ").append(varName)
+				.append(" && ").append(ENUM_VAR_NAME).append(" < ")
+				.append(getOrdinalLimit()).append("))"));
+		add(indent(1).append('{'));
+		add(indent(2).append("throw_out_of_range("));
+		add(indent(3).append("__FUNCTION__,"));
+		add(indent(3).append(varName + ','));
+		add(indent(3).append('"').append(getEnumJavaTypeName()).append('"'));
+		add(indent(2).append(");"));
+		add(indent(1).append('}'));
 	}
 
 	//
@@ -118,11 +145,13 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 
 	/**
 	 * Generates C++ header file lines to support the Java enum {@code F}.
+	 * 
 	 * @author Victor Schappert
 	 * @since 20130701
 	 * @see EnumLineEditor.Source
-	 *
-	 * @param <F> The Java enum to generate C++ code for.
+	 * 
+	 * @param <F>
+	 *            The Java enum to generate C++ code for.
 	 */
 	public static final class Header<F extends Enum<F>> extends
 			EnumLineEditor<F> {
@@ -138,8 +167,10 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			addEnum();
 			if (wantToJNIConverter)
 				addToJNIConverter();
-			if (wantFromJNIConverter)
+			if (wantFromJNIConverter) {
 				addFromJNIConverter();
+				addFromOrdinalConverter();
+			}
 			if (wantStreamInsertion)
 				addStreamInsertion();
 			return lines;
@@ -174,8 +205,18 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		private void addFromJNIConverter() {
 			// Suppress Doxygen documentation
 			add(indent(0).append("/** \\cond internal */"));
-			// Actual enum declaration
+			// Actual function declaration
 			addFromJNISignature(true);
+			// End suppress Doxygen documentation
+			add(indent(0).append("/** \\endcond */"));
+			add("");
+		}
+
+		private void addFromOrdinalConverter() {
+			// Suppress Doxygen documentation
+			add(indent(0).append("/** \\cond internal */"));
+			// Actual enum declaration
+			addFromOrdinalSignature(true);
 			// End suppress Doxygen documentation
 			add(indent(0).append("/** \\endcond */"));
 			add("");
@@ -184,7 +225,8 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		private void addStreamInsertion() {
 			// Doxygen documentation
 			add(indent(0).append("/**"));
-			add(indent(0).append(" * \\brief Stream insertion operator for \\link ")
+			add(indent(0)
+					.append(" * \\brief Stream insertion operator for \\link ")
 					.append(getEnumCPPTypeName()).append("\\endlink."));
 			add(indent(0).append(" * \\author ").append(
 					getGeneratorClass().getSimpleName()));
@@ -205,11 +247,13 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 	/**
 	 * Generates C++ source ({@code .cpp}) file lines to support the Java enum
 	 * {@code F}.
+	 * 
 	 * @author Victor Schappert
 	 * @since 20130701
 	 * @see EnumLineEditor.Header
-	 *
-	 * @param <F> The Java enum to generate C++ code for.
+	 * 
+	 * @param <F>
+	 *            The Java enum to generate C++ code for.
 	 */
 	public static final class Source<F extends Enum<F>> extends
 			EnumLineEditor<F> {
@@ -224,8 +268,10 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		public ArrayList<String> makeLines() {
 			if (wantToJNIConverter)
 				addToJNIConverter();
-			if (wantFromJNIConverter)
+			if (wantFromJNIConverter) {
 				addFromJNIConverter();
+				addFromOrdinalConverter();
+			}
 			if (wantStreamInsertion) {
 				addNameArray();
 				addStreamInsertion();
@@ -247,9 +293,20 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 					.append(", method_id);"));
 			add(indent(1).append(JNIEXCEPTION_CHECK_MACRO).append('(')
 					.append(JNIENV_VAR_NAME).append(");"));
-			addOrdinalAssertion("ordinal");
+			add(indent(1).append("return ").append(ORDINAL_TO_CPP_FUNC_NAME)
+					.append('<').append(getEnumCPPTypeName())
+					.append(">(ordinal);"));
+			add(indent(0).append('}'));
+			add("");
+		}
+
+		private void addFromOrdinalConverter() {
+			addFromOrdinalSignature(false);
+			add(indent(0).append('{'));
+			addOrdinalCheck(ENUM_VAR_NAME);
 			add(indent(1).append("return static_cast<")
-					.append(getEnumCPPTypeName()).append(">(ordinal);"));
+					.append(getEnumCPPTypeName()).append(">(")
+					.append(ENUM_VAR_NAME).append(");"));
 			add(indent(0).append('}'));
 			add("");
 		}
@@ -271,7 +328,7 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		private void addStreamInsertion() {
 			addOstreamInsertionSignature(false);
 			add(indent(0).append('{'));
-			addOrdinalAssertion(ENUM_VAR_NAME);
+			addOrdinalCheck(ENUM_VAR_NAME);
 			add(indent(1).append("o << ").append(getNameArrayName())
 					.append('[').append(ENUM_VAR_NAME).append(']'));
 			add(indent(1).append("  << ").append("'<' << ")
