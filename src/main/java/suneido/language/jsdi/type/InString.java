@@ -1,5 +1,7 @@
 package suneido.language.jsdi.type;
 
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.language.jsdi.Buffer;
@@ -40,11 +42,11 @@ public final class InString extends StringIndirect {
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (value instanceof CharSequence) {
-			marshaller.putStringPtr(((CharSequence)value).toString(), false);
+			marshaller.putStringPtr(((CharSequence)value).toString(), NO_ACTION);
 		} else if (value instanceof Buffer) {
-			marshaller.putStringPtr((Buffer)value, false);
+			marshaller.putStringPtr((Buffer)value, NO_ACTION);
 		} else {
-			putNullStringPtrOrThrow(marshaller, value, false);
+			putNullStringPtrOrThrow(marshaller, value, NO_ACTION);
 		}
 	}
 

@@ -1,5 +1,8 @@
 package suneido.language.jsdi;
 
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+
 import java.util.Arrays;
 
 /**
@@ -25,7 +28,7 @@ public final class Marshaller {
 	private int posIndex; // index into posArray
 	private boolean isPtrArrayCopied; // whether ptrArray is a copy
 	private final Object[] viArray; // byte[], String, or null
-	private final boolean[] viInstArray; // native side should make strings?
+	private final int[] viInstArray; // native side should make strings?
 	private int viIndex; // index into viArray and viInstArray
 
 	//
@@ -59,7 +62,7 @@ public final class Marshaller {
 		this.posArray = posArray;
 		if (0 < countVariableIndirect) {
 			this.viArray = new Object[countVariableIndirect];
-			this.viInstArray = new boolean[countVariableIndirect];
+			this.viInstArray = new int[countVariableIndirect];
 		} else {
 			this.viArray = null;
 			this.viInstArray = null;
@@ -155,7 +158,7 @@ public final class Marshaller {
 	 * @see #getData()
 	 * @see #getPtrArray()
 	 */
-	public boolean[] getViInstArray() {
+	public int[] getViInstArray() {
 		return viInstArray;
 	}
 
@@ -266,8 +269,8 @@ public final class Marshaller {
 	 * Puts a non-NULL pointer value at the next position in the marshaller.
 	 * @see #putNullPtr()
 	 * @see #isPtrNull()
-	 * @see #putStringPtr(String, boolean)
-	 * @see #putStringPtr(Buffer, boolean)
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 */
 	public void putPtr() {
 		skipPtr();
@@ -277,7 +280,7 @@ public final class Marshaller {
 	 * Puts a NULL pointer value at the next position in the marshaller.
 	 * @see #putPtr()
 	 * @see #isPtrNull()
-	 * @see #putNullStringPtr(boolean)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
 	 */
 	public void putNullPtr() {
 		++posIndex;
@@ -324,18 +327,18 @@ public final class Marshaller {
 	 * in the marshaller.
 	 * @param value Non-{@code null} string value to marshall into variable
 	 * indirect storage
-	 * @param expectStringBack Instruction to place in the variable indirect
-	 * instructions array ({@code true} indicates that the native-side
-	 * unmarshalling code should return a {@link String})
-	 * @see #putStringPtr(Buffer, boolean)
-	 * @see #putNullStringPtr(boolean)
+	 * @param inst Instruction to place in the variable indirect
+	 * instructions array
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
 	 * @see #putPtr()
 	 */
-	public void putStringPtr(String value, boolean expectStringBack) {
+	public void putStringPtr(String value, VariableIndirectInstruction inst) {
+		assert value != null;
 		skipPtr();
 		int viIndex = nextVi();
 		viArray[viIndex] = StringConversions.stringToZeroTerminatedByteArray(value);
-		viInstArray[viIndex] = expectStringBack;
+		viInstArray[viIndex] = inst.ordinal();
 	}
 
 	/**
@@ -343,36 +346,33 @@ public final class Marshaller {
 	 * at the next position in the marshaller.
 	 * @param value Non-{@code null} buffer value whose internal data array is
 	 * put into variable indirect storage
-	 * @param expectStringBack Instruction to place in the variable indirect
-	 * instructions array ({@code true} indicates that the native-side
-	 * unmarshalling code should return a {@link String})
-	 * @see #putStringPtr(String, boolean)
-	 * @see #putNullStringPtr(boolean)
+	 * @param inst Instruction to place in the variable indirect
+	 * instructions array
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
 	 * @see #putPtr()
 	 */
-	public void putStringPtr(Buffer value, boolean expectStringBack) {
+	public void putStringPtr(Buffer value, VariableIndirectInstruction inst) {
+		assert value != null;
 		skipPtr();
 		int viIndex = nextVi();
 		viArray[viIndex] = value.getInternalData();
-		viInstArray[viIndex] = expectStringBack;
+		viInstArray[viIndex] = inst.ordinal();
 	}
 
 	/**
 	 * Puts a NULL pointer to variable indirect storage at the next position in
 	 * the marshaller.
-	 * @param expectStringBack Instruction to place in the variable indirect
-	 * instructions array ({@code true} indicates that the native-side
-	 * unmarshalling code should return a {@link String})
-	 * @see #putStringPtr(String, boolean)
-	 * @see #putStringPtr(Buffer, boolean)
+	 * @param inst Instruction to place in the variable indirect
+	 * instructions array
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 * @see #putNullPtr()
 	 */
-	public void putNullStringPtr(boolean expectStringBack) {
-		++posIndex;
-		int ptrIndex = nextPtrIndexAndCopy();
-		ptrArray[ptrIndex] = Marshaller.UNKNOWN_LOCATION;
+	public void putNullStringPtr(VariableIndirectInstruction inst) {
+		skipPtr();
 		int viIndex = nextVi();
-		viInstArray[viIndex] = expectStringBack;
+		viInstArray[viIndex] = inst.ordinal();
 		// Assert: the skipped spot in the viArray is null
 	}
 
@@ -454,7 +454,7 @@ public final class Marshaller {
 		Object value = viArray[viIndex];
 		if (null == value) {
 			return Boolean.FALSE;
-		} else if (viInstArray[viIndex]) {
+		} else if (RETURN_JAVA_STRING.ordinal() == viInstArray[viIndex]) {
 			assert value instanceof String;
 			return value;
 		} else {
@@ -464,14 +464,14 @@ public final class Marshaller {
 
 	public Object getStringPtrAlwaysByteArray(Buffer oldValue) {
 		int viIndex = nextVi();
-		assert false == viInstArray[viIndex];
+		assert VariableIndirectInstruction.NO_ACTION.ordinal() == viInstArray[viIndex];
 		return getStringPtrAlwaysByteArray(oldValue, viArray[viIndex]);
 	}
 
 	public Object getStringPtrMaybeByteArray(Buffer oldValue) {
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
-		if (! viInstArray[viIndex]) {
+		if (NO_ACTION.ordinal() == viInstArray[viIndex]) {
 			return getStringPtrAlwaysByteArray(oldValue, value);
 		} else if (null == value) {
 			return Boolean.FALSE;
