@@ -19,9 +19,23 @@ public final class MarshallTestUtil {
 	}
 
 	public static MarshallPlan pointerPlan(int sizeDirect) {
-		return new MarshallPlan(PrimitiveSize.POINTER, sizeDirect, new int[] {
-				0, PrimitiveSize.POINTER }, new int[] { 0,
-				PrimitiveSize.POINTER }, 0);
+		return new MarshallPlan(PrimitiveSize.pointerWholeWordBytes(),
+				sizeDirect, new int[] { 0, PrimitiveSize.POINTER }, new int[] {
+						0, PrimitiveSize.POINTER }, 0);
+	}
+
+	public static MarshallPlan pointerPlan(int... sizeDirect) {
+		int sizeDirect_ = 0;
+		int sizeIndirect = 0;
+		for (int size : sizeDirect)
+		{
+			sizeDirect_ += PrimitiveSize.pointerWholeWordBytes();
+			sizeIndirect += size;
+		}
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(sizeDirect_,
+				sizeIndirect, 0);
+		for (int size : sizeDirect) builder.ptrBasic(size);
+		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan arrayPlan(int sizeDirect, int numElems) {
@@ -34,9 +48,9 @@ public final class MarshallTestUtil {
 	}
 
 	public static MarshallPlan variableIndirectPlan() {
-		return new MarshallPlan(PrimitiveSize.POINTER, 0, new int[] { 0,
-				PrimitiveSize.POINTER },
-				new int[] { 0, PrimitiveSize.POINTER }, 1);
+		return new MarshallPlan(PrimitiveSize.pointerWholeWordBytes(), 0,
+				new int[] { 0, PrimitiveSize.POINTER }, new int[] { 0,
+						PrimitiveSize.POINTER }, 1);
 	}
 
 	public static MarshallPlan compoundPlan(int numArrayElems,

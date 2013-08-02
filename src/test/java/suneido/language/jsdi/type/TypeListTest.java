@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import static org.junit.Assert.assertArrayEquals;
 import static suneido.language.jsdi.type.BasicType.*;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.Arrays;
 
@@ -230,10 +231,58 @@ public class TypeListTest {
 		m.rewind();
 		tl.marshallOutParams(m, args2);
 		// Nothing gets marshalled out because (A) this test doesn't actually
-		// cause any native code to be invoked and (B) even if it did, the
-		// any changes caused by the native side would be made to the buffer
+		// cause any native code to be invoked and (B) even if it did, any
+		// changes caused by the native side would be made to the buffer
 		// originally passed to the marshall in code, not a new buffer passed to
 		// the marshall out code.
 		assertArrayEquals(new Object[] { new Buffer(str.length(), "") }, args2);
+	}
+
+	@Test
+	public void marshallParamsResourceFromToIntResource() {
+		final TypeList tl = makeParams("res", ResourceType.INSTANCE);
+		int intResource = Short.MAX_VALUE + 1;
+		Object[] args1 = new Object[] { intResource };
+		final Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
+		tl.marshallInParams(m, args1);
+		m.rewind();
+		// This will throw because the native side is expected to place either a
+		// String or an Integer into variable indirect storage.
+		assertThrew(new Runnable() {
+			public void run() {
+				tl.marshallOutParams(m, new Object[1]);
+			}
+		});
+		// Simulate native side putting an Integer into the viArray.
+		m.rewind();
+		m.getViArray()[0] = new Integer(intResource);
+		Object[] args2 = new Object[1];
+		tl.marshallOutParams(m, args2);
+		// Nothing gets marshalled out because parameter was passed by value.
+		assertArrayEquals(new Object[1], args2);
+	}
+
+	@Test
+	public void marshallParamsResourceFromIntResourceToString() {
+		final TypeList tl = makeParams("res", ResourceType.INSTANCE);
+		int intResource = Short.MAX_VALUE + 1;
+		Object[] args1 = new Object[] { intResource };
+		final Marshaller m = tl.makeParamsMarshallPlan().makeMarshaller();
+		tl.marshallInParams(m, args1);
+		m.rewind();
+		// This will throw because the native side is expected to place either a
+		// String or an Integer into variable indirect storage.
+		assertThrew(new Runnable() {
+			public void run() {
+				tl.marshallOutParams(m, new Object[1]);
+			}
+		});
+		// Simulate native side putting an Integer into the viArray.
+		m.rewind();
+		m.getViArray()[0] = "simulation of native side returning a string";
+		Object[] args2 = new Object[1];
+		tl.marshallOutParams(m, args2);
+		// Nothing gets marshalled out because parameter was passed by value.
+		assertArrayEquals(new Object[1], args2);
 	}
 }

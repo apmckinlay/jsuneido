@@ -4,7 +4,10 @@ import static org.junit.Assert.*;
 import static suneido.language.jsdi.MarshallTestUtil.*;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_RESOURCE;
 import static suneido.util.testing.Throwing.assertThrew;
+
+import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -160,6 +163,29 @@ public class MarshallerTest {
 		assertEquals(0x1982020719900606L, mr.getInt64());
 	}
 
+	@Test
+	public void testMarshallPtr_CopyPtrArray() {
+		MarshallPlan mp = pointerPlan(PrimitiveSize.CHAR, PrimitiveSize.SHORT,
+				PrimitiveSize.LONG, PrimitiveSize.INT64);
+		Marshaller mr = mp.makeMarshaller();
+		int[] ptrArray = mr.getPtrArray();
+		int[] ptrArrayCopy = Arrays.copyOf(ptrArray, ptrArray.length);
+		mr.putPtr();
+		assertSame(ptrArray, mr.getPtrArray());
+		assertArrayEquals(ptrArrayCopy, mr.getPtrArray());
+		mr.putPtr();
+		assertSame(ptrArray, mr.getPtrArray());
+		assertArrayEquals(ptrArrayCopy, mr.getPtrArray());
+		mr.putNullPtr();
+		assertNotSame(ptrArray, mr.getPtrArray());
+		assertArrayEquals(ptrArrayCopy, ptrArray);
+		assertFalse(Arrays.equals(ptrArrayCopy, mr.getPtrArray()));
+		mr.putNullPtr();
+		assertNotSame(ptrArray, mr.getPtrArray());
+		assertArrayEquals(ptrArrayCopy, ptrArray);
+		assertFalse(Arrays.equals(ptrArrayCopy, mr.getPtrArray()));
+	}
+
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectZeroTerminated_OverflowString() {
 		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
@@ -218,11 +244,15 @@ public class MarshallerTest {
 		{
 			// This is just to test the top-level branch in the method when
 			// numChars is 0
-			Marshaller mr = mp.makeMarshaller();
+			final Marshaller mr = mp.makeMarshaller();
 			mr.putZeroTerminatedStringDirect("@@@", LEN);
 			assertArrayEquals(ba("404000"), mr.getData());
 			mr.rewind();
-			assertEquals("", mr.getZeroTerminatedStringDirect(0));
+			assertThrew(new Runnable() {
+				public void run() {
+					mr.getZeroTerminatedStringDirect(0);
+				}
+			}, JSDIException.class);
 		}
 		//
 		// With Buffer
@@ -255,6 +285,20 @@ public class MarshallerTest {
 			mr.rewind();
 			assertEquals("AB", mr.getZeroTerminatedStringDirect(LEN));
 		}
+	}
+
+	@Test
+	public void testMarshallStringDirectZeroTerminated_NoZero() {
+		final int LEN = 3;
+		MarshallPlan mp = directPlan(LEN);
+		final Marshaller mr = mp.makeMarshaller();
+		mr.putNonZeroTerminatedStringDirect("abc", 3);
+		mr.rewind();
+		assertThrew(new Runnable() {
+			public void run() {
+				mr.getZeroTerminatedStringDirect(LEN);
+			}
+		}, JSDIException.class);
 	}
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
@@ -462,6 +506,76 @@ public class MarshallerTest {
 		Object H = mr.getStringPtr();
 		assertTrue(H instanceof Buffer);
 		assertEquals(EXPECT, H);
+	}
+
+	@Test
+	public void testMarshallIntResourceToIntResource() {
+		MarshallPlan mp = variableIndirectPlan();
+		Marshaller mr = mp.makeMarshaller();
+		mr.putINTRESOURCE((short) 17);
+		mr.rewind();
+		// Simulate native side inserting the integer equivalent of the
+		// INTRESOURCE into the variable indirect array
+		mr.getViArray()[0] = new Integer(17);
+		assertEquals(17, mr.getResource());
+	}
+
+	@Test
+	public void testMarshallIntResourceToString() {
+		MarshallPlan mp = variableIndirectPlan();
+		Marshaller mr = mp.makeMarshaller();
+		mr.putINTRESOURCE((short) 0xffff);
+		mr.rewind();
+		final String str = "simulation of native side replacing INTRESOURCE with String";
+		mr.getViArray()[0] = str;
+		assertEquals(str, mr.getResource());
+	}
+
+	@Test
+	public void testMarshallStringResourceToIntResource() {
+		MarshallPlan mp = variableIndirectPlan();
+		Marshaller mr = mp.makeMarshaller();
+		mr.putStringPtr("string resource", RETURN_RESOURCE);
+		mr.rewind();
+		// Simulate native side inserting an INTRESOURCE into the variable
+		// indirect array
+		mr.getViArray()[0] = new Integer(64000);
+		assertEquals(64000, mr.getResource());
+	}
+
+	@Test
+	public void testMarshallStringResourceToStringResource() {
+		MarshallPlan mp = variableIndirectPlan();
+		final Marshaller mr = mp.makeMarshaller();
+		mr.putStringPtr("res", RETURN_RESOURCE);
+		mr.rewind();
+		// This should throw, because outgoing variable indirect array was a
+		// byte[]. The native side is supposed to replace it with a String, but
+		// since we haven't invoked the native side, that didn't happen.
+		assertThrew(new Runnable() {
+			public void run() {
+				mr.getResource();
+			}
+		}, IllegalStateException.class);
+		// Simulate native side re-converting to String
+		mr.getViArray()[0] = "res";
+		mr.rewind();
+		assertEquals("res", mr.getResource());
+	}
+
+	@Test
+	public void testMarshallResourceNullOutputException() {
+		MarshallPlan mp = variableIndirectPlan();
+		final Marshaller mr = mp.makeMarshaller();
+		mr.putStringPtr("anything", RETURN_RESOURCE);
+		mr.rewind();
+		// Simulate a NULL somehow getting into the variable indirect array.
+		mr.getViArray()[0] = null;
+		assertThrew(new Runnable() {
+			public void run() {
+				mr.getResource();
+			}
+		}, IllegalStateException.class);
 	}
 
 	@Test

@@ -44,7 +44,8 @@ public enum TestCall {
 			pointerPlan(PrimitiveSize.WORD)),
 	RETURN_PTR_PTR_PTR_DOUBLE("TestReturnPtrPtrPtrDoubleAsUInt64", Mask.INT64,
 			makePtrPtrPtrDoublePlan()),
-	SUM_STRING("TestSumString", Mask.LONG, makeSumStringPlan_TwoTier());
+	SUM_STRING("TestSumString", Mask.LONG, makeSumStringPlan_TwoTier()),
+	SUM_RESOURCE("TestSumResource", Mask.LONG, makeSumResourcePlan());
 	
 	private final QuickDll qp;
 	public final long ptr;
@@ -249,5 +250,15 @@ public enum TestCall {
 			m.putLong(0);
 		}
 		return m;
+	}
+
+	public static MarshallPlan makeSumResourcePlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				2 * PrimitiveSize.POINTER, PrimitiveSize.POINTER, 2);
+		builder.variableIndirectPtr();
+		builder.ptrBegin(PrimitiveSize.POINTER);
+		builder.variableIndirectPtr();
+		builder.ptrEnd();
+		return builder.makeMarshallPlan();
 	}
 }

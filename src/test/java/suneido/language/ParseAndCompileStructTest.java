@@ -1,10 +1,14 @@
 package suneido.language;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static suneido.util.testing.Throwing.assertThrew;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDIException;
 import suneido.util.testing.Assumption;
 
 /**
@@ -56,8 +60,9 @@ public class ParseAndCompileStructTest {
 			"\tstring [2] aj\n" +
 			"\tbuffer k\n" +
 			"\tbuffer [2] ak\n" +
+			"\tresource l\n" +
 		"\t}";
-		// TODO: add resource
+		// TODO: add callback
 
 	//
 	// PARSING TESTS
@@ -157,13 +162,11 @@ public class ParseAndCompileStructTest {
 			"string { [in] buffer a }",
 			"string { [in] char a }",
 		};
-		int n = 0;
-		for (String s : bad)
-			try
-				{ parse(s); }
-			catch (SuException e)
-				{ ++n; }
-		assertEquals(bad.length, n);
+		for (final String s : bad)
+			assertThrew(
+				new Runnable() { public void run() { parse(s); } },
+				SuException.class, "syntax error"
+			);
 	}
 
 	@Test(expected=SuException.class)
@@ -206,5 +209,21 @@ public class ParseAndCompileStructTest {
 	@Test(expected=SuException.class)
 	public void compileZeroSizeArray() {
 		compile("struct { long[0] arr }");
+	}
+
+	@Test
+	public void compileErrors() {
+		Assumption.jvmIs32BitOnWindows();
+		String bad[] = {
+			"struct { string * ps }",
+			"struct { buffer * pb }",
+			"struct { resource[2] ar }",
+			"struct { resource * pr }"
+		};
+		for (final String s : bad)
+			assertThrew(
+				new Runnable() { public void run() { compile(s); } },
+				JSDIException.class
+			);
 	}
 }
