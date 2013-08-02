@@ -2,6 +2,7 @@ package suneido.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.ArrayList;
 
@@ -57,14 +58,23 @@ public class ParseAndCompileDllTest {
 				"\tstring [2] aj,\n" +
 				"\tbuffer k,\n" +
 				"\tbuffer [2] ak,\n" +
-				"\t[in] string l\n" +
+				"\t[in] string l,\n" +
+				"\tresource m\n" +
 			"\t)";
-		// TODO: add resource
+			// TODO: add callback
 
-	public final String[] VALID_RETURN_TYPES =
-	{
+	public final String[] VALID_RETURN_TYPES = {
 		"void", "bool", "char", "short", "long", "int64", "float", "double",
 		"handle", "gdiobj", "string"
+	};
+
+	public final String[] INVALID_RETURN_TYPES = {
+		"resource", "buffer", "FakeTypeABC1"
+	};
+
+	public final String[] INVALID_RETURN_TYPES_SYNTAX = {
+		"void *", "void[10]", "long *", "long[1]",
+		"buffer[2]", "buffer *", "FakeTypeABC1[23]", "FakeTypeABC1*"
 	};
 
 	//
@@ -235,6 +245,36 @@ public class ParseAndCompileDllTest {
 		}
 	}
 
+	@Test
+	public void compileInvalidReturnTypes() {
+		Assumption.jvmIs32BitOnWindows();
+		final StringBuilder sb = new StringBuilder("dll ");
+		for (String returnType : INVALID_RETURN_TYPES) {
+			sb.delete(4, sb.length());
+			sb.append(returnType);
+			sb.append(" jsdi:_TestVoid@0()");
+			assertThrew(
+				new Runnable() { public void run() { compile(sb.toString()); } },
+				SuException.class, "invalid dll return type"
+			);
+		}
+	}
+
+	@Test
+	public void compileInvalidReturnTypes_Syntax() {
+		Assumption.jvmIs32BitOnWindows();
+		final StringBuilder sb = new StringBuilder("dll ");
+		for (String returnType : INVALID_RETURN_TYPES_SYNTAX) {
+			sb.delete(4, sb.length());
+			sb.append(returnType);
+			sb.append(" jsdi:_TestVoid@0()");
+			assertThrew(
+				new Runnable() { public void run() { compile(sb.toString()); } },
+				SuException.class, "syntax error"
+			);
+		}
+	}
+
 	@Test(expected=SuException.class)
 	public void compileStringPointer() {
 		compile("dll x y:z(string * ptrToStr)");
@@ -291,14 +331,17 @@ public class ParseAndCompileDllTest {
 			"dll long[4] jsdi:_TestVoid@0()",
 			"dll char * jsdi:_TestVoid@0()",
 			"dll buffer jsdi:_TestVoid@0()",
-			"dll [in] string jsdi:_TestVoid@0()"
+			"dll [in] string jsdi:_TestVoid@0()",
+			"dll void jsdi:_TestVoid@0(string * ps)",
+			"dll void jsdi:_TestVoid@0(buffer * pb)",
+			"dll void jsdi:_TestVoid@0(resource * pr)",
+			"dll void jsdi:_TestVoid@0(resource[2] ar)"
 		};
-		int n = 0;
-		for (String s : bad)
-			try
-				{ compile(s); }
-			catch (SuException e)
-				{ ++n; }
-		assertEquals(n, bad.length);
+		for (final String s : bad)
+			assertThrew(new Runnable() {
+				public void run() {
+					compile(s);
+				}
+			});
 	}
 }

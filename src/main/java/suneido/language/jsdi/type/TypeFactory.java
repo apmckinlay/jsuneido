@@ -109,6 +109,24 @@ public final class TypeFactory {
 	}
 
 	@SuppressWarnings("static-method")
+	public Type makeResourceType(StorageType storageType, int numElements,
+			boolean isZeroTerminated, boolean hasInModifier) {
+		check(storageType, numElements);
+		switch (storageType) {
+		case VALUE:
+			return ResourceType.INSTANCE;
+		case ARRAY:
+			throw new JSDIException("jSuneido does not support " +
+				ResourceType.IDENTIFIER + "[]");
+		case POINTER:
+			throw new JSDIException("jSuneido does not support " +
+					ResourceType.IDENTIFIER + "*");
+		}
+		assert false : "control should never pass here";
+		return null;
+	}
+
+	@SuppressWarnings("static-method")
 	public Structure makeStruct(String suTypeName, TypeList members) {
 		return new Structure(suTypeName, members);
 	}

@@ -1,7 +1,8 @@
 package suneido.language.jsdi;
 
-import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
+import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_RESOURCE;
 
 import java.util.Arrays;
 
@@ -210,6 +211,7 @@ public final class Marshaller {
 	 * Puts a JSDI {@code short} value at the next position in the marshaller.
 	 * @param value 16-bit JSDI {@code short} value
 	 * @see #getShort()
+	 * @see #putIntResource(short)
 	 */
 	public void putShort(short value) {
 		int dataIndex = nextData();
@@ -331,6 +333,10 @@ public final class Marshaller {
 	 * instructions array
 	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putIntResource(short)
+	 * @see #getStringPtr()
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putPtr()
 	 */
 	public void putStringPtr(String value, VariableIndirectInstruction inst) {
@@ -350,6 +356,9 @@ public final class Marshaller {
 	 * instructions array
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putIntResource(short)
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putPtr()
 	 */
 	public void putStringPtr(Buffer value, VariableIndirectInstruction inst) {
@@ -367,6 +376,9 @@ public final class Marshaller {
 	 * instructions array
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #getStringPtr()
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putNullPtr()
 	 */
 	public void putNullStringPtr(VariableIndirectInstruction inst) {
@@ -374,6 +386,40 @@ public final class Marshaller {
 		int viIndex = nextVi();
 		viInstArray[viIndex] = inst.ordinal();
 		// Assert: the skipped spot in the viArray is null
+	}
+
+	/**
+	 * <p>
+	 * Puts a Win32 {@code INTRESOURCE} value at the next position in the
+	 * marshaller.
+	 * </p>
+	 * <p>
+	 * Since an {@code INTRESOURCE} is a type of {@code resource}, this entails
+	 * passing a {@code null} variable indirect reference, and putting
+	 * {@link VariableIndirectInstruction#RETURN_RESOURCE} into the
+	 * corresponding variable indirect instruction entry.
+	 * </p>
+	 * <p>
+	 * <strong>NOTE</strong> that an {@code INTRESOURCE} is technically an
+	 * <em>unsigned</em> 16-bit integer stored in the low-order 16 bits of a
+	 * string pointer. The caller should take care to pass a signed integer that
+	 * is the bitwise equivalent of the desired unsigned {@code INTRESOURCE}
+	 * value.
+	 * </p>
+	 * @param value The 16-bit {@code INTRESOURCE} value as a signed 16-bit\
+	 * {@code short}
+	 * @since 20130801
+	 * @see #getResource()
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putShort(short)
+	 */
+	public void putINTRESOURCE(short value) {
+		putShort(value);
+		ptrIndex += 2;
+		int viIndex = nextVi();
+		viInstArray[viIndex] = RETURN_RESOURCE.ordinal();
 	}
 
 	public void putZeroTerminatedStringDirect(String value, int maxChars) {
@@ -464,7 +510,7 @@ public final class Marshaller {
 
 	public Object getStringPtrAlwaysByteArray(Buffer oldValue) {
 		int viIndex = nextVi();
-		assert VariableIndirectInstruction.NO_ACTION.ordinal() == viInstArray[viIndex];
+		assert NO_ACTION.ordinal() == viInstArray[viIndex];
 		return getStringPtrAlwaysByteArray(oldValue, viArray[viIndex]);
 	}
 
@@ -481,21 +527,50 @@ public final class Marshaller {
 		}
 	}
 
+	/**
+	 * Extracts the Win32 resource value at the next position in the marshaller. 
+	 * @return A non-{@code null} Integer or String reference representing,
+	 * respectively, an INTRESOURCE value or a string {@code resource}
+	 * @since 20130801
+	 * @see #putINTRESOURCE(short)
+	 * @see #getStringPtr()
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 * @see #getStringPtrMaybeByteArray(Buffer)
+	 */
+	public Object getResource() {
+		skipPtr();
+		int viIndex = nextVi();
+		assert RETURN_RESOURCE.ordinal() == viInstArray[viIndex];
+		Object value = viArray[viIndex];
+		if (! (value instanceof Integer || value instanceof String)) {
+			throw new IllegalStateException(
+				"getResource() expects a non-null Integer or String in the " +
+				"variable indirect storage, but got a " +
+				(null == value ? "null" : value.getClass().getCanonicalName())
+			);
+		}
+		return value;
+	}
+
 	public String getZeroTerminatedStringDirect(int numChars) {
-		int dataIndex = nextData();
-		if (0 < numChars) {
+		if (numChars < 1)
+		{
+			throw new JSDIException(
+					"zero-terminated string must have at least one character");
+		}
+		else
+		{
+			int dataIndex = nextData();
 			byte b = data[dataIndex];
 			if (0 == b) return "";
 			StringBuilder sb = new StringBuilder(numChars);
 			sb.append((char)b);
 			for (int k = 1; k < numChars; ++k) {
 				b = data[++dataIndex];
-				if (0 == b) break;
+				if (0 == b) return sb.toString();
 				sb.append((char)b);
 			}
-			return sb.toString();
-		} else {
-			return "";
+			throw new JSDIException("missing zero terminator");
 		}
 	}
 

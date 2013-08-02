@@ -2,6 +2,7 @@ package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
@@ -14,10 +15,7 @@ import java.util.ArrayList;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import suneido.language.jsdi.Buffer;
-import suneido.language.jsdi.JSDI;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.*;
 import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
@@ -219,7 +217,8 @@ public class NativeCallTest {
 							TestCall.SUM_FOUR_LONGS.plan.getSizeDirect(), m) & TestCall.SUM_FOUR_LONGS.returnValueMask.value));
 		}
 		{
-			Marshaller m = TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan.makeMarshaller();
+			Marshaller m = TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan
+					.makeMarshaller();
 			m.putChar(Byte.MIN_VALUE);
 			m.putChar(Byte.MAX_VALUE);
 			m.putShort(Short.MIN_VALUE);
@@ -337,7 +336,7 @@ public class NativeCallTest {
 			}
 		}
 		//
-		// StringSum
+		// SumString
 		//
 		{
 			TestCall testcall = TestCall.SUM_STRING;
@@ -356,38 +355,62 @@ public class NativeCallTest {
 				m.skipBasicArrayElements(1);
 				m.skipBasicArrayElements(1);
 				assertThrew( // should be at the end of the marshaller
-					new Runnable() { public void run() { m.putChar((byte)0); } },
-					ArrayIndexOutOfBoundsException.class
-				);
-				long result = nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
+						new Runnable() {
+							public void run() {
+								m.putChar((byte) 0);
+							}
+						}, ArrayIndexOutOfBoundsException.class);
+				long result = nativecall.invoke(testcall.ptr,
+						plan.getSizeDirect(), m);
+				assertEquals(0L, result & testcall.returnValueMask.value);
+			}
+		}
+		//
+		// SumResource
+		//
+		{
+			TestCall testcall = TestCall.SUM_RESOURCE;
+			MarshallPlan plan = testcall.plan;
+			for (NativeCall nativecall : VI) {
+				final Marshaller m = plan.makeMarshaller();
+				m.putINTRESOURCE((short) 0);
+				m.putNullPtr();
+				m.putINTRESOURCE((short) 0);
+				assertThrew( // should be at the end of the marshaller
+						new Runnable() {
+							public void run() {
+								m.putChar((byte) 0);
+							}
+						}, ArrayIndexOutOfBoundsException.class);
+				long result = nativecall.invoke(testcall.ptr,
+						plan.getSizeDirect(), m);
 				assertEquals(0L, result & testcall.returnValueMask.value);
 			}
 		}
 	}
 
 	@Test
-	public void testVariableIndirectInString_StrLen()
-	{
+	public void testVariableIndirectInString_StrLen() {
 		final String[] strings = new String[] { "", "1", "22", "333", "4444",
 				"55555", "666666", "7777777", "88888888", "999999999",
 				"0000000000" };
 		TestCall testcall = TestCall.STRLEN;
 		MarshallPlan plan = testcall.plan;
 		for (NativeCall nativecall : VI) {
-			if (nativecall == NativeCall.VARIABLE_INDIRECT_RETURN_V) continue;
+			if (nativecall == NativeCall.VARIABLE_INDIRECT_RETURN_V)
+				continue;
 			for (int k = 0; k <= 10; ++k) {
 				Marshaller m = plan.makeMarshaller();
 				m.putStringPtr(strings[k], NO_ACTION);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
-				assertEquals((long)k, result & testcall.returnValueMask.value);
+				assertEquals((long) k, result & testcall.returnValueMask.value);
 			}
 		}
 	}
 
 	@Test
-	public void testVariableIndirectOutBuffer()
-	{
+	public void testVariableIndirectOutBuffer() {
 		final int[] sizes = new int[] { 0, 1, 2, 4, "hello world".length(),
 				"hello world".length() + 1, 32, 64, 100, 1000 };
 		final String hello_world = "hello world\u0000";
@@ -401,9 +424,8 @@ public class NativeCallTest {
 				m.putStringPtr(buffer, NO_ACTION);
 				m.putLong(size);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
-				int endIndex = hello_world.length() < size
-					? hello_world.length()
-					: size;
+				int endIndex = hello_world.length() < size ? hello_world
+						.length() : size;
 				String comparator = hello_world.substring(0, endIndex);
 				comparator += new String(new char[size <= endIndex ? 0 : size
 						- endIndex]);
@@ -413,40 +435,44 @@ public class NativeCallTest {
 	}
 
 	@Test
-	public void testVariableIndirectOutStringSum()
-	{
+	public void testVariableIndirectSumString() {
 		final TestCall testcall = TestCall.SUM_STRING;
 		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_32_BIT;
-		final int sizeDirect = testcall.plan.getSizeDirect(); 
+		final int sizeDirect = testcall.plan.getSizeDirect();
 		final long mask = testcall.returnValueMask.value;
 		//
-		// TEST 1 
+		// TEST 1
 		//
 		{
 			final Marshaller m = TestCall.marshall(
-				new TestCall.Recursive_StringSum("12345678", null), null);
-			assertThrew(
-				new Runnable() { public void run() { m.putChar((byte)0); } },
-				ArrayIndexOutOfBoundsException.class
-			);
-			assertEquals(12345678L, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+					new TestCall.Recursive_StringSum("12345678", null), null);
+			assertThrew(new Runnable() {
+				public void run() {
+					m.putChar((byte) 0);
+				}
+			}, ArrayIndexOutOfBoundsException.class);
+			assertEquals(12345678L,
+					nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
 		}
 		//
 		// TEST 2
 		//
 		{
-			for (int k = 0; k <= 10; ++k)
-			{
+			for (int k = 0; k <= 10; ++k) {
 				Buffer buffer = new Buffer(new byte[k], 0, k);
 				final Marshaller m = TestCall.marshall(
-						new TestCall.Recursive_StringSum("987654321", buffer), null);
-				assertThrew(
-						new Runnable() { public void run() { m.putChar((byte)0); } },
-						ArrayIndexOutOfBoundsException.class
-					);
-				assertEquals(987654321L, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+						new TestCall.Recursive_StringSum("987654321", buffer),
+						null);
+				assertThrew(new Runnable() {
+					public void run() {
+						m.putChar((byte) 0);
+					}
+				}, ArrayIndexOutOfBoundsException.class);
+				assertEquals(987654321L,
+						nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
 				String got = buffer.toString();
-				if (-1 < got.indexOf('\u0000')) got = got.substring(0, got.indexOf('\u0000'));
+				if (-1 < got.indexOf('\u0000'))
+					got = got.substring(0, got.indexOf('\u0000'));
 				assertEquals("987654321".substring(0, Math.max(k - 1, 0)), got);
 			}
 		}
@@ -455,14 +481,17 @@ public class NativeCallTest {
 		//
 		{
 			final Marshaller m = TestCall.marshall(
-				new TestCall.Recursive_StringSum("404", null, -2, 1, -4, 3, -6, 5, -8, 7),
-				new TestCall.Recursive_StringSum("-200", null, -100, -75, -50, -25, 50, -25, 50, -25)
-			);
-			assertThrew(
-				new Runnable() { public void run() { m.putChar((byte)0); } },
-				ArrayIndexOutOfBoundsException.class
-			);
-			assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+					new TestCall.Recursive_StringSum("404", null, -2, 1, -4, 3,
+							-6, 5, -8, 7),
+					new TestCall.Recursive_StringSum("-200", null, -100, -75,
+							-50, -25, 50, -25, 50, -25));
+			assertThrew(new Runnable() {
+				public void run() {
+					m.putChar((byte) 0);
+				}
+			}, ArrayIndexOutOfBoundsException.class);
+			assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m)
+					& mask);
 		}
 		//
 		// TEST 4
@@ -473,21 +502,28 @@ public class NativeCallTest {
 					Buffer outerBuffer = new Buffer(new byte[outer], 0, outer);
 					Buffer innerBuffer = new Buffer(new byte[inner], 0, inner);
 					final Marshaller m = TestCall.marshall(
-						new TestCall.Recursive_StringSum("404", outerBuffer, -2, 1, -4, 3, -6, 5, -8, 7),
-						new TestCall.Recursive_StringSum("-200", innerBuffer, -100, -75, -50, -25, 50, -25, 50, -25)
-					);
-					assertThrew(
-						new Runnable() { public void run() { m.putChar((byte)0); } },
-						ArrayIndexOutOfBoundsException.class
-					);
-					assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+							new TestCall.Recursive_StringSum("404",
+									outerBuffer, -2, 1, -4, 3, -6, 5, -8, 7),
+							new TestCall.Recursive_StringSum("-200",
+									innerBuffer, -100, -75, -50, -25, 50, -25,
+									50, -25));
+					assertThrew(new Runnable() {
+						public void run() {
+							m.putChar((byte) 0);
+						}
+					}, ArrayIndexOutOfBoundsException.class);
+					assertEquals(0L,
+							nativecall.invoke(testcall.ptr, sizeDirect, m)
+									& mask);
 					StringBuilder b = new StringBuilder(Math.max(inner, outer));
 					b.append(new char[outer]);
-					int outerExtent = Math.max(0, Math.min("0".length(), outer - 1));
+					int outerExtent = Math.max(0,
+							Math.min("0".length(), outer - 1));
 					b.replace(0, outerExtent, "0".substring(0, outerExtent));
 					String outerExpect = b.toString();
 					b.delete(0, b.length());
-					int innerExtent = Math.max(0, Math.min("-400".length(), inner - 1));
+					int innerExtent = Math.max(0,
+							Math.min("-400".length(), inner - 1));
 					b.append(new char[inner]);
 					b.replace(0, innerExtent, "-400".substring(0, innerExtent));
 					String innerExpect = b.toString();
@@ -498,24 +534,79 @@ public class NativeCallTest {
 		}
 		//
 		// TEST 5: Note here we are passing the SAME Buffer reference as both
-		//         the inner and outer buffer. This should not crash the JVM.
-		//         On the other hand, the marshaller can't promise that both
-		//         references to the Buffer will translate into the same pointer
-		//         on the C++ side, so we can't make any assertions about the
-		//         content of the buffer except that the second character is
-		//         for sure a 0.
+		// the inner and outer buffer. This should not crash the JVM.
+		// On the other hand, the marshaller can't promise that both
+		// references to the Buffer will translate into the same pointer
+		// on the C++ side, so we can't make any assertions about the
+		// content of the buffer except that the second character is
+		// for sure a 0.
 		{
 			final int NREPS = 100;
 			final Buffer buffer = new Buffer(new byte[] { '1', '2' }, 0, 2);
-			for (int k = 0; k < NREPS; ++k)
-			{
+			for (int k = 0; k < NREPS; ++k) {
 				final Marshaller m = TestCall.marshall(
-					new TestCall.Recursive_StringSum(Integer.toString(k), buffer, k, k, k, k, k, k, k, k),
-					new TestCall.Recursive_StringSum(Integer.toString(-k), buffer, -k, -k, -k, -k, -k, -k, -k, -k)
-				);
-				assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+						new TestCall.Recursive_StringSum(Integer.toString(k),
+								buffer, k, k, k, k, k, k, k, k),
+						new TestCall.Recursive_StringSum(Integer.toString(-k),
+								buffer, -k, -k, -k, -k, -k, -k, -k, -k));
+				assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m)
+						& mask);
 				assertEquals('\u0000', buffer.toString().charAt(1));
 			}
+		}
+	}
+
+	@Test
+	public void testVariableIndirectSumResource() {
+		final TestCall testcall = TestCall.SUM_RESOURCE;
+		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_32_BIT;
+		final int sizeDirect = testcall.plan.getSizeDirect();
+		final long mask = testcall.returnValueMask.value;
+		//
+		// TEST 1
+		//
+		{
+			final Marshaller m = testcall.plan.makeMarshaller();
+			m.putINTRESOURCE((short) 1);
+			m.putNullPtr();
+			m.putINTRESOURCE((short) 0);
+			assertEquals(1L, nativecall.invoke(testcall.ptr, sizeDirect, m)
+					& mask);
+			m.rewind();
+			assertEquals(1, m.getResource());
+			assertTrue(m.isPtrNull());
+			assertEquals(0, m.getResource());
+		}
+		//
+		// TEST 2
+		//
+		{
+			final Marshaller m = testcall.plan.makeMarshaller();
+			m.putINTRESOURCE((short) 10001);
+			m.putPtr();
+			m.putINTRESOURCE((short) 29999);
+			assertEquals(40000L, nativecall.invoke(testcall.ptr, sizeDirect, m)
+					& mask);
+			m.rewind();
+			assertEquals(10001, m.getResource());
+			assertFalse(m.isPtrNull());
+			assertEquals(40000, m.getResource());
+		}
+		//
+		// TEST 3
+		//
+		{
+			final Marshaller m = testcall.plan.makeMarshaller();
+			m.putStringPtr(Integer.toString(0xffff),
+					VariableIndirectInstruction.RETURN_RESOURCE);
+			m.putPtr();
+			m.putINTRESOURCE((short) 1);
+			assertEquals(0x10000L, nativecall.invoke(testcall.ptr, sizeDirect, m)
+					& mask);
+			m.rewind();
+			assertEquals(Integer.toString(0xffff), m.getResource());
+			assertFalse(m.isPtrNull());
+			assertEquals("sum is not an INTRESOURCE", m.getResource());
 		}
 	}
 }

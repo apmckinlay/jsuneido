@@ -225,10 +225,6 @@ public class AstCompile {
 			}
 			boolean inModifier = Boolean.parseBoolean(typeInfo.first().second().value);
 			assert Token.DLL == listType || !inModifier : "[in] modifier is only supported for dll string parameters";
-			// NOTE: [in] modifier should be taken out of the language at the
-			//       first opportunity since it adds nothing in jSuneido except
-			//       extra complexity (unless we add support for wide character
-			//       strings).
 			BasicType basicType = BasicType.fromIdentifier(typeName);
 			Type type = null;
 			if (null != basicType) {
@@ -244,6 +240,12 @@ public class AstCompile {
 						.getInstance()
 						.getTypeFactory()
 						.makeStringType(storageType, numElems, false,
+								inModifier);
+			} else if (ResourceType.IDENTIFIER.equals(typeName)) {
+				type = JSDI
+						.getInstance()
+						.getTypeFactory()
+						.makeResourceType(storageType, numElems, false,
 								inModifier);
 			} else // otherwise it's a name which may be undefined, so add a
 			{      // proxy
