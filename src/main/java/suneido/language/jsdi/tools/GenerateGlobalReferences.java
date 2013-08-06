@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import org.objectweb.asm.Type;
 
+import suneido.language.jsdi.type.Callback;
+
 /**
  * Automatic C++ code generator for the JSDI {@code global_refs} translation
  * unit.
@@ -40,13 +42,14 @@ public final class GenerateGlobalReferences {
 
 	private static Ref[] makeRefs() throws Exception {
 		return new Ref[] {
+				new Ref(Object.class),
 				new Ref(Boolean.class, Boolean.class.getField("TRUE"),
 						Boolean.class.getField("FALSE")),
 				new Ref(Integer.class,
 						Integer.class.getConstructor(Integer.TYPE),
 						Integer.class.getMethod("intValue")),
 				new Ref(Enum.class, Enum.class.getMethod("ordinal")),
-				new Ref(byte[].class) };
+				new Ref(byte[].class), new Ref(Callback.class) };
 	}
 
 	private static String className(Class clazz) {
