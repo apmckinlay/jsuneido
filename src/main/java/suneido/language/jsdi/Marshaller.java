@@ -10,6 +10,8 @@ import java.util.Arrays;
  * TODO: docs
  * TODO: note in strong strong text that Marshaller can't be reused because
  *       it assumes zeroed-out data array
+ * TODO: per discussion w APM note reason why Marshaller can't be cached and
+ *       reused: because of possible contention btwn threads calling same DLL
  * 
  * @author Victor Schappert
  * @since 20130710
