@@ -532,9 +532,7 @@ public final class Marshaller {
 	}
 
 	public Object getStringPtr() {
-		// FIXME: This is weird. Don't you need a call to skipPtr() to skip
-		//        passed the ptrArray/posArray values?
-		// TODO: Make a test case
+		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (null == value) {
@@ -543,21 +541,23 @@ public final class Marshaller {
 			assert value instanceof String;
 			return value;
 		} else {
-			return getStringPtrAlwaysByteArray(null, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(null, value);
 		}
 	}
 
 	public Object getStringPtrAlwaysByteArray(Buffer oldValue) {
+		skipPtr();
 		int viIndex = nextVi();
 		assert NO_ACTION.ordinal() == viInstArray[viIndex];
-		return getStringPtrAlwaysByteArray(oldValue, viArray[viIndex]);
+		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex]);
 	}
 
 	public Object getStringPtrMaybeByteArray(Buffer oldValue) {
+		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (NO_ACTION.ordinal() == viInstArray[viIndex]) {
-			return getStringPtrAlwaysByteArray(oldValue, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(oldValue, value);
 		} else if (null == value) {
 			return Boolean.FALSE;
 		} else {
@@ -661,7 +661,8 @@ public final class Marshaller {
 		}
 	}
 
-	private static Object getStringPtrAlwaysByteArray(Buffer oldValue, Object value) {
+	private static Object getStringPtrAlwaysByteArrayNoAdvance(Buffer oldValue,
+			Object value) {
 		if (null == value) {
 			return Boolean.FALSE;
 		} else if (null == oldValue) {
