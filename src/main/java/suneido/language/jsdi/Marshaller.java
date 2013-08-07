@@ -532,6 +532,9 @@ public final class Marshaller {
 	}
 
 	public Object getStringPtr() {
+		// FIXME: This is weird. Don't you need a call to skipPtr() to skip
+		//        passed the ptrArray/posArray values?
+		// TODO: Make a test case
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (null == value) {
