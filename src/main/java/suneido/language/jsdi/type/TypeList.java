@@ -233,6 +233,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	}
 
 	// TODO: docs -- since 20130719
+	// used by dll
 	public void marshallOutParams(Marshaller marshaller, Object[] args) {
 		final int N = entries.length;
 		assert N == args.length;
@@ -242,6 +243,17 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 				type.marshallOut(marshaller, args[k]);
 			}
 		}
+	}
+
+	// TODO: docs -- since 20130806
+	// uused by callback
+	public Object[] marshallOutParams(Marshaller marshaller) {
+		final int N = entries.length;
+		Object[] result = new Object[N];
+		for (int k = 0; k < N; ++k) {
+			result[k] = entries[k].type.marshallOut(marshaller, null);
+		}
+		return result;
 	}
 	
 	public int[] marshallInParamsFast(Object[] args) {

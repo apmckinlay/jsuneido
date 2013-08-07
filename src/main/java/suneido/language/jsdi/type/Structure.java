@@ -37,6 +37,20 @@ public final class Structure extends ComplexType {
 	}
 
 	//
+	// ANCESTOR CLASS: ComplexType
+	//
+
+	boolean resolve(int level) {
+		try {
+			return typeList.resolve(level);
+		} catch (ProxyResolveException e) {
+			e.setMemberType("member");
+			e.setParentName(suTypeName);
+			throw new JSDIException(e);
+		}
+	}
+
+	//
 	// ANCESTOR CLASS: Type
 	//
 
