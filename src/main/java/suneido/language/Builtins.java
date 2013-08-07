@@ -12,6 +12,7 @@ import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
 import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.ThunkManager;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -37,8 +38,10 @@ public class Builtins {
 			.put("Buffer", Buffer.clazz)
 			.put("Built", function(Built.class))
 			.put("BuiltinNames", function(BuiltinNames.class))
+			.put("Callbacks", function(ThunkManager.Callbacks.class))
 			.put("Cat", function(Cat.class))
 			.put("Class?", function(ClassQ.class))
+			.put("ClearCallback", function(ThunkManager.ClearCallback.class))
 			.put("Cmdline", function(Cmdline.class))
 			.put("Construct", function(Construct.class))
 			.put("CopyFile", function(CopyFile.class))

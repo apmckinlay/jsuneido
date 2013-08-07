@@ -58,18 +58,51 @@ public final class Marshaller {
 	 * Deliberately package-internal. Instances should only be constructed by
 	 * calling {@link MarshallPlan#makeMarshaller()}.
 	 */
-	Marshaller(int sizeDirect, int sizeIndirect, int countVariableIndirect,
+	Marshaller(int sizeDirect, int sizeIndirect, int variableIndirectCount,
 			int[] ptrArray, int[] posArray) {
 		this.data = new byte[sizeDirect + sizeIndirect];
 		this.ptrArray = ptrArray;
 		this.posArray = posArray;
-		if (0 < countVariableIndirect) {
-			this.viArray = new Object[countVariableIndirect];
-			this.viInstArray = new int[countVariableIndirect];
+		if (0 < variableIndirectCount) {
+			this.viArray = new Object[variableIndirectCount];
+			this.viInstArray = new int[variableIndirectCount];
 		} else {
 			this.viArray = null;
 			this.viInstArray = null;
 		}
+		this.isPtrArrayCopied = false;
+		rewind();
+	}
+
+	/**
+	 * Deliberately package-internal. Instances should only be constructed by
+	 * calling {@link MarshallPlan#makeUnMarshaller(byte[])}.
+	 *
+	 * @since 20130806
+	 */
+	Marshaller(byte[] data, int[] ptrArray, int[] posArray) {
+		this.data = data;
+		this.ptrArray = ptrArray;
+		this.posArray = posArray;
+		this.viArray = null;
+		this.viInstArray = null;
+		this.isPtrArrayCopied = false;
+		rewind();
+	}
+
+	/**
+	 * Deliberately package-internal. Instances should only be constructed by
+	 * calling {@link MarshallPlan#makeUnMarshaller(byte[], Object[], int[])}.
+	 *
+	 * @since 20130806
+	 */
+	Marshaller(byte[] data, int[] ptrArray, int[] posArray, Object[] viArray,
+			int[] viInstArray) {
+		this.data = data;
+		this.ptrArray = ptrArray;
+		this.posArray = posArray;
+		this.viArray = viArray;
+		this.viInstArray = viInstArray;
 		this.isPtrArrayCopied = false;
 		rewind();
 	}
@@ -130,7 +163,8 @@ public final class Marshaller {
 	 * storage.
 	 * </p>
 	 * <p>
-	 * The contents of this array <em>are <strong>not</strong> to be modified</em>!
+	 * The contents of this array <em>are <strong>not</strong> to be
+	 * modified</em>!
 	 * </p>
 	 * @return Variable indirect array (may be {@code null})
 	 * @since 20130718

@@ -3,7 +3,6 @@ package suneido.language.jsdi.type;
 import suneido.SuValue;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.ElementSkipper;
-import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.StorageType;
 
 /**
@@ -70,18 +69,8 @@ public abstract class ComplexType extends Type {
 	// MUTATORS
 	//
 
-	final boolean resolve(int level) {
-		try {
-			return typeList.resolve(level);
-		} catch (ProxyResolveException e) {
-			if (TypeId.STRUCT == getTypeId()) {
-				e.setMemberType("member");
-			} else {
-				assert TypeId.CALLBACK == getTypeId();
-				e.setMemberType("parameter");
-			}
-			e.setParentName(suTypeName);
-			throw new JSDIException(e);
-		}
+	// TODO: docs
+	boolean resolve(int level) {
+		return false;
 	}
 }

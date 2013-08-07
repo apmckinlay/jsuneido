@@ -55,15 +55,17 @@ public final class JSDI {
 	// DATA and CONSTRUCTORS
 	//
 
-	private final String      whenBuilt;   // when the native DLL was built
-	private final TypeFactory typeFactory; // todo: delete??
-	private final DllFactory  dllFactory;
+	private final String       whenBuilt;   // when the native DLL was built
+	private final TypeFactory  typeFactory; // todo: delete??
+	private final DllFactory   dllFactory;
+	private final ThunkManager thunkManager;
 	private static native String when();
 	private JSDI()
 	{
 		whenBuilt = when();
 		typeFactory = new TypeFactory(this);
 		dllFactory = new DllFactory(this);
+		thunkManager = new ThunkManager(this);
 	}
 
 	//
@@ -78,6 +80,10 @@ public final class JSDI {
 
 	public DllFactory getDllFactory() {
 		return dllFactory;
+	}
+
+	public ThunkManager getThunkManager() {
+		return thunkManager;
 	}
 
 	//

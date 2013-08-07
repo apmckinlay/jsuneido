@@ -21,7 +21,6 @@ public final class TypeFactory {
 	// DATA
 	//
 
-	@SuppressWarnings("unused")
 	private final JSDI jsdi;
 	private final EnumMap<BasicType, BasicValue> basicValues;
 
@@ -131,8 +130,7 @@ public final class TypeFactory {
 		return new Structure(suTypeName, members);
 	}
 
-	@SuppressWarnings("static-method")
 	public Callback makeCallback(String suTypeName, TypeList members) {
-		return new Callback(suTypeName, members);
+		return new Callback(suTypeName, members, jsdi.getThunkManager());
 	}
 }

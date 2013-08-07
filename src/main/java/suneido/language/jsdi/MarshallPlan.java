@@ -27,12 +27,12 @@ public final class MarshallPlan {
 	//
 
 	MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
-			int[] posArray, int countVariableIndirect) {
+			int[] posArray, int variableIndirectCount) {
 		this.sizeDirect            = sizeDirect;
 		this.sizeIndirect          = sizeIndirect;
 		this.ptrArray              = ptrArray;
 		this.posArray              = posArray;
-		this.variableIndirectCount = countVariableIndirect;
+		this.variableIndirectCount = variableIndirectCount;
 	}
 
 	//
@@ -41,7 +41,8 @@ public final class MarshallPlan {
 
 	/**
 	 * <p>
-	 * Get the direct storage required to marshall the data.
+	 * Get the amount of direct storage, in bytes, required to marshall the
+	 * data.
 	 * </p>
 	 * <p>
 	 * This function does not presently deal with alignment issues, so if the
@@ -51,9 +52,62 @@ public final class MarshallPlan {
 	 *
 	 * @return Amount of direct storage required to marshall the data
 	 * @see #getSizeIndirect()
+	 * @see #getPtrArray()
+	 * @see #getVariableIndirectCount()
 	 */
 	public int getSizeDirect() {
 		return sizeDirect;
+	}
+
+	/**
+	 * <p>
+	 * Get the amount of indirect storage, in bytes, required to marshall the
+	 * data.
+	 * </p>
+	 *
+	 * @return Amount of indirect storage required to marshall the data
+	 * @see #getSizeDirect()
+	 * @see #getPtrArray()
+	 * @see #getVariableIndirectCount()
+	 * @since 20130806
+	 */
+	public int getSizeIndirect() {
+		return sizeIndirect;
+	}
+
+	/**
+	 * <p>
+	 * Get a reference to the plan's internal pointer array.
+	 * </p>
+	 * <p>
+	 * Because the return value refers directly to the plan's internal pointer
+	 * array, the <em>caveat</em> from {@link Marshaller#getPtrArray()} applies
+	 * equally here: <em>the contents of the array returned are
+	 * <strong>not</strong> to be modified under any circumstances!</em>.
+	 * 
+	 * @return Pointer array
+	 * @see Marshaller#getPtrArray()
+	 * @see #getSizeDirect()
+	 * @see #getSizeIndirect()
+	 * @see #getVariableIndirectCount()
+	 * @since 20130806
+	 */
+	public int[] getPtrArray() {
+		return ptrArray;
+	}
+
+	/**
+	 * <p>
+	 * Get the number of variable indirect values this plan requires to be
+	 * marshalled.
+	 * </p>
+	 * @return Variable indirect count
+	 * @since 20130806
+	 * @see #getSizeDirect()
+	 * @see #getSizeIndirect()i
+	 */
+	public int getVariableIndirectCount() {
+		return variableIndirectCount;
 	}
 
 	/**
@@ -65,6 +119,42 @@ public final class MarshallPlan {
 	public Marshaller makeMarshaller() {
 		return new Marshaller(sizeDirect, sizeIndirect, variableIndirectCount,
 				ptrArray, posArray);
+	}
+
+	/**
+	 * Creates a marshaller instance which is only valid for <em>get</em>
+	 * operations out of existing data.
+	 * 
+	 * @param data An existing data array of the correct length
+	 * @return Get-only marshaller based on this plan
+	 * @since 20130806
+	 * @see #makeMarshaller()
+	 * @see #makeUnMarshaller(byte[], Object[], int[])
+	 */
+	public Marshaller makeUnMarshaller(byte[] data) {
+		assert 0 == variableIndirectCount;
+		assert data.length == sizeDirect + sizeIndirect;
+		return new Marshaller(data, ptrArray, posArray);
+	}
+
+	/**
+	 * Creates a marshaller instance which is only valid for <em>get</em>
+	 * operations out of existing data.
+	 *
+	 * @param data An existing data array of the correct length
+	 * @param viArray An existing, valid, variable indirect output array
+	 * @param viInstArray An existing, valid, variable indirect instruction
+	 * array
+	 * @return Get-only marshaller based on this plan
+	 * @since 20130806
+	 * @see #makeMarshaller()
+	 * @see #makeUnMarshaller(byte[])
+	 */
+	public Marshaller makeUnMarshaller(byte[] data, Object[] viArray,
+			int[] viInstArray) {
+		assert viArray.length == variableIndirectCount &&
+			viInstArray.length == variableIndirectCount;
+		return new Marshaller(data, ptrArray, posArray, viArray, viInstArray);
 	}
 
 	//
