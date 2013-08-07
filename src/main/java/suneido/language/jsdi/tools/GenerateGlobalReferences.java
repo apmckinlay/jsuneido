@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import org.objectweb.asm.Type;
 
-import suneido.language.SuCallable;
+import suneido.SuValue;
 import suneido.language.jsdi.ThunkManager;
 import suneido.language.jsdi.type.Callback;
 
@@ -56,9 +56,9 @@ public final class GenerateGlobalReferences {
 						ThunkManager.class.getField("THUNK_FUNC_ADDR_INDEX"),
 						ThunkManager.class.getField("THUNK_OBJECT_ADDR_INDEX")),
 				new Ref(Callback.class, Callback.class.getMethod("invoke",
-						SuCallable.class, byte[].class),
+						SuValue.class, byte[].class),
 						Callback.class.getMethod("invokeVariableIndirect",
-								SuCallable.class, byte[].class, Object[].class)) };
+								SuValue.class, byte[].class, Object[].class)) };
 	}
 
 	private static String className(Class clazz) {
