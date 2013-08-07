@@ -609,4 +609,28 @@ public class NativeCallTest {
 			assertEquals("sum is not an INTRESOURCE", m.getResource());
 		}
 	}
+
+	@Test
+	public void testSwap() {
+		// 20130807: The purpose of this test is to catch/test a bug in
+		//           Marshaller in which it wasn't advancing the position and
+		//           pointer indices in the get[VariableIndirect] calls.
+		final TestCall testcall = TestCall.SWAP;
+		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_32_BIT;
+		final int sizeDirect = testcall.plan.getSizeDirect();
+		final long mask = testcall.returnValueMask.value;
+		{
+			final Marshaller m = testcall.plan.makeMarshaller();
+			m.putPtr();
+			m.putNullStringPtr(RETURN_JAVA_STRING);
+			m.putLong(1);
+			m.putLong(2);
+			assertEquals(0, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+			m.rewind();
+			assertFalse(m.isPtrNull());
+			assertEquals("!=", m.getStringPtr());
+			assertEquals(2, m.getLong());
+			assertEquals(1, m.getLong());
+		}
+	}
 }
