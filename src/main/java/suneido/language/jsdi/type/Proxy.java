@@ -213,6 +213,7 @@ public final class Proxy extends Type {
 				marshaller.putNullPtr();
 				marshaller.skipComplexElement(skipper);
 			}
+			break;
 		case ARRAY:
 			final SuContainer c = Ops.toContainer(value);
 			if (null != c) {
