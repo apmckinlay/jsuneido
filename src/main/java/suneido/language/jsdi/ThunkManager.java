@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import suneido.SuContainer;
 import suneido.SuValue;
+import suneido.language.Params;
 import suneido.language.jsdi.type.Callback;
 
 /**
@@ -224,6 +225,7 @@ public final class ThunkManager {
 	 * @see suneido.language.Builtins
 	 */
 	public static final class ClearCallback {
+		@Params("value")
 		public static final Boolean ClearCallback(Object boundValue) {
 			return boundValue instanceof SuValue ? JSDI.getInstance()
 					.getThunkManager().clearCallback((SuValue) boundValue)
