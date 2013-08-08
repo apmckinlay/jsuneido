@@ -64,7 +64,7 @@ public final class VoidType extends Type {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		throw new IllegalStateException(getDisplayName()
 				+ " cannot be added to a marshall plan");
 	}

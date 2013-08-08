@@ -7,10 +7,7 @@ import org.junit.Test;
 
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.MarshallPlanBuilder;
+import suneido.language.jsdi.*;
 import suneido.util.testing.Assumption;
 
 import static suneido.util.testing.Throwing.*;
@@ -113,7 +110,7 @@ public class StructureTest {
 			struct.getSizeIndirect(),
 			struct.getVariableIndirectCount()
 		);
-		struct.addToPlan(builder);
+		struct.addToPlan(builder, false);
 		return builder.makeMarshallPlan();
 	}
 

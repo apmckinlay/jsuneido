@@ -631,13 +631,6 @@ public final class Marshaller {
 		return posArray[posIndex++];
 	}
 
-// TODO: delete me
-//	private int nextPtr() {
-//		final int ptr = ptrArray[ptrIndex];
-//		ptrIndex += 2;
-//		return ptr;
-//	}
-
 	private int nextPtrIndexAndCopy() {
 		copyPtrArray();
 		final int _ptrIndex = ptrIndex;

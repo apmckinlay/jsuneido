@@ -47,7 +47,7 @@ public final class Callback extends ComplexType {
 		//       thunk can change
 		try {
 			if (typeList.resolve(0) || null == marshallPlan) {
-				marshallPlan = typeList.makeParamsMarshallPlan();
+				marshallPlan = typeList.makeParamsMarshallPlan(true);
 			}
 		} catch (ProxyResolveException e) {
 			e.setMemberType("parameter");
