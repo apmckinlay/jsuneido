@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project default="all" name="Build the JSDI C++ DLL">
+	<property environment="env"/>
+	<condition property="jsdi-path" value="${env.JSDI_PATH}" else="../jsdi">
+		<isset property="env.JSDI_PATH"/>
+	</condition>
+	<property name="dll-src-dir" value="${jsdi-path}/bin/debug"/>
+	<property name="dll-dst-dir" value="lib"/>
+	<property name="jsdi-package" value="suneido.language.jsdi"/>
+	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
+	<property name="java-dest-dir" value="target/classes"/>
+
+	<target name="all" depends="gen_jni,make"/>
+
+	<target name="make" depends="gen_global_refs,gen_enums"
+			description="Make the JSDI DLL"
+	>
+		<exec executable="make" dir="${jsdi-path}" failonerror="true"/>
+		<copy file="${dll-src-dir}/jsdi.dll" todir="${dll-dst-dir}"
+			  overwrite="true" failonerror="true"
+		/>
+	</target>
+
+	<target name="clean">
+		<exec executable="make" dir="${jsdi-path}" failonerror="true">
+			<arg value="clean"/>
+		</exec>
+	</target>
+
+	<target name="gen_global_refs"
+			description="Generate C++ code for global references to JNI
+						 objects"
+	>
+		<property name="jsdi-global-ref-file-stem" value="global_refs"/>
+		<java classname="${jsdi-tools-package}.GenerateGlobalReferences">
+			<classpath>
+				<pathelement path="${java-dest-dir}"/>
+				<pathelement location="lib/asm-all-4.0.jar"/>
+				<pathelement location="lib/guava-14.0.1.jar"/>
+			</classpath>
+			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.h"/>
+			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.cpp"/>
+		</java>
+	</target>
+
+	<target name="gen_enums"
+			description="Generate C++ enums from Java enums"
+	>
+		<property name="jsdi-enum-file-stem" value="java_enum"/>
+		<java classname="${jsdi-tools-package}.GenerateSharedEnums">
+			<classpath>
+				<pathelement path="${java-dest-dir}"/>
+				<pathelement location="lib/guava-14.0.1.jar"/>
+			</classpath>
+			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.h"/>
+			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.cpp"/>
+		</java>
+	</target>
+
+	<target name="gen_jni"
+			description="Create generated code files needed for the JNI
+						 interface with the JSDI DLL."
+	>
+		<!--  Note that the JSuneido Java project is the dominant
+			  project, in the sense that C++ code is generated from Java
+			  code, but Java code is not generated from C++ code. -->
+		<javah class="${jsdi-package}.JSDI" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.ThunkManager" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.dll.DllFactory" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.dll.NativeCall" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<!--  Unfortunately, javah creates headers for inner classes which
+			  themselves contain no native methods. Clean up those extra
+			  files. -->
+		<delete>
+			<fileset dir="${jsdi-path}/src/gen">
+				<not>
+					<contains text="JNIEXPORT"/>
+				</not>
+			</fileset>
+		</delete>
+	</target>
+
+</project>
