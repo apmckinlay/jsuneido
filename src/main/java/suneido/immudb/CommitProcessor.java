@@ -14,6 +14,10 @@ import java.util.Date;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 
+/**
+ * Process the contents of a single data store commit
+ * Used by @DbRebuild,
+ */
 abstract class CommitProcessor {
 	private final Storage stor;
 	protected final int commitAdr;
@@ -28,7 +32,7 @@ abstract class CommitProcessor {
 
 	void process() {
 		if (stor.sizeFrom(adr) <= 0)
-			return;
+			return; // eof
 		ByteBuffer buf = stor.buffer(adr);
 		buf.getInt(); // size
 		int date = buf.getInt();
@@ -57,7 +61,7 @@ abstract class CommitProcessor {
 				else // UPDATE
 					from = recadr;
 				buf = advance(Shorts.BYTES + Ints.BYTES);
-			} else { // add
+			} else { // add or second half of update
 				addrec = new DataRecord(buf, buf.position());
 				addrec.tblnum(b);
 				if (from == 0)

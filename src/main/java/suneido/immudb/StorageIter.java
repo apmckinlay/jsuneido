@@ -24,7 +24,7 @@ class StorageIter {
 	/** address (not offset) of current commit/persist */
 	private int adr;
 	/** size of current commit/persist */
-	private int size;
+	private long size;
 	/** date/time of current commit/persist */
 	private int date = 0;
 	private Status status = Status.OK;
@@ -50,11 +50,11 @@ class StorageIter {
 		if (eof())
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
-		size = buf.getInt();
+		size = Storage.intToSize(buf.getInt());
 		date = buf.getInt();
 		ByteBuffer endbuf = stor.buffer(stor.advance(adr, size - Tran.TAIL_SIZE));
 		cksum = endbuf.getInt();
-		int endsize = endbuf.getInt();
+		long endsize = Storage.intToSize(endbuf.getInt());
 		if (endsize != size) {
 			status = Status.SIZE_MISMATCH;
 			return;
@@ -90,7 +90,7 @@ class StorageIter {
 		return adr;
 	}
 
-	int size() {
+	long size() {
 		return size;
 	}
 
@@ -111,11 +111,12 @@ class StorageIter {
 	// depends on buf.remaining() going to end of storage chunk
 	private boolean verifyChecksum() {
 		Checksum cs = new Checksum();
-		int remaining = size - Tran.HEAD_SIZE;
+		long remaining = size - Tran.HEAD_SIZE;
 		int pos = adr;
 		while (remaining > 0) {
 			ByteBuffer buf = stor.buffer(pos);
-			int n = Math.min(buf.remaining(), remaining);
+			// safe as long as chunk size < Integer.MAX_VALUE
+			int n = (int) Math.min(buf.remaining(), remaining);
 			cs.update(buf, n);
 			remaining -= n;
 			pos = stor.advance(pos, n);

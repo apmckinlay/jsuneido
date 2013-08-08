@@ -79,12 +79,12 @@ class Check {
 			adr = iter.prev();
 		if (adr == 0)
 			return EMPTY;
-		int size = istor.buffer(adr).getInt();
+		long size = Storage.intToSize(istor.buffer(adr).getInt());
 		lastadr = info(istor, adr, size).lastadr;
 		return adr;
 	}
 
-	static PersistInfo info(Storage istor, int adr, int size) {
+	static PersistInfo info(Storage istor, int adr, long size) {
 		adr = istor.advance(adr, size - Persist.ENDING_SIZE - Persist.TAIL_SIZE);
 		ByteBuffer buf = istor.buffer(adr);
 		int dbinfoadr = buf.getInt();
@@ -128,7 +128,7 @@ class Check {
 		PersistInfo iInfo = null;
 		while (dIter.notFinished() && iIter.notFinished()) {
 			if (iInfo == null)
-				iInfo = Check.info(istor, iIter.adr(), iIter.size());
+				iInfo = info(istor, iIter.adr(), iIter.size());
 			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr()) {
 				dOkSize = dIter.sizeInc();
 				iOkSize = iIter.sizeInc();

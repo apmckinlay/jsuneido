@@ -4,6 +4,8 @@
 
 package suneido.immudb;
 
+import static suneido.immudb.Storage.sizeToInt;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.immudb.DbHashTrie.Entry;
@@ -67,7 +69,7 @@ class Tran implements Translator {
 		assert head_adr != 0;
 		try {
 			int tail_adr = dstor.alloc(TAIL_SIZE);
-			int size = (int) dstor.sizeFrom(head_adr);
+			int size = sizeToInt(dstor.sizeFrom(head_adr));
 			dstor.buffer(head_adr).putInt(size).putInt(datetime());
 
 			int cksum = dstor.checksum(head_adr);
@@ -88,7 +90,7 @@ class Tran implements Translator {
 		if (head_adr == 0)
 			return;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int size = (int) dstor.sizeFrom(head_adr);
+		int size = sizeToInt(dstor.sizeFrom(head_adr));
 		dstor.buffer(head_adr).putInt(size).putInt(0); // zero date
 		dstor.buffer(tail_adr).putInt(0).putInt(size); // zero checksum
 		dstor.protectAll(); // can't output outside tran

@@ -13,30 +13,35 @@ import suneido.language.Ops;
 
 /** for debugging - prints info about file contents */
 class Dump {
-	static void dump(Storage dstor, Storage istor) {
+
+	/** dump the entire contents */
+	static void dump(Storage dstor, Storage istor, boolean detail) {
 		try {
-			dump(dstor, Storage.FIRST_ADR, istor, Storage.FIRST_ADR);
+			dump(dstor, Storage.FIRST_ADR, istor, Storage.FIRST_ADR, detail);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
-	static void dump(Storage dstor, int dAdr, Storage istor, int iAdr)
+	/** dump from the specified addresses to the end */
+	static void dump(Storage dstor, int dAdr, Storage istor, int iAdr, boolean detail)
 			throws FileNotFoundException {
 	    System.setOut(new PrintStream(new FileOutputStream("dump-index.txt")));
 		indexFrom(istor, iAdr);
 		System.out.close();
 	    System.setOut(new PrintStream(new FileOutputStream("dump-data.txt")));
-		dataFrom(dstor, dAdr, true);
+		dataFrom(dstor, dAdr, detail);
 	}
 
-	static void ending(Storage dstor, Storage istor) throws FileNotFoundException {
+	/** dump the last few commits */
+	static void ending(Storage dstor, Storage istor, boolean detail)
+			throws FileNotFoundException {
 		int iAdr = findLast(istor, 4);
 		int dAdr = findLast(dstor, 8);
-		dump(dstor, dAdr, istor, iAdr);
+		dump(dstor, dAdr, istor, iAdr, detail);
 	}
 
-	/** Scan backwards to find the n'th last persist */
+	/** Scan backwards to find the n'th last commit */
 	static int findLast(Storage stor, int nBlocks) {
 		StorageIterReverse iter = new StorageIterReverse(stor);
 		int adr = 0;
@@ -101,7 +106,7 @@ class Dump {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		Database db = Database.openReadonly("suneido.db");
-	    db.dump();
+	    db.dump(false);
 //		ending(db.dstor, db.istor);
 	}
 

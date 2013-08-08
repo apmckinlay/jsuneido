@@ -5,6 +5,7 @@
 package suneido.immudb;
 
 import static suneido.immudb.Storage.align;
+import static suneido.immudb.Storage.sizeToInt;
 
 import java.nio.ByteBuffer;
 
@@ -101,7 +102,7 @@ class Persist {
 		ending(dbinfoadr, schema.maxTblnum, lastcksum, lastadr);
 
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int size = (int) istor.sizeFrom(head_adr);
+		int size = sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
 
 		int cksum = istor.checksum(head_adr);
@@ -146,7 +147,7 @@ class Persist {
 		ending(dbstate.dbinfoadr, dbstate.schema.maxTblnum,
 				dbstate.lastcksum, dbstate.lastadr);
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int size = (int) istor.sizeFrom(head_adr);
+		int size = sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(size).putInt(0);
 		istor.buffer(tail_adr).putInt(0).putInt(size);
 		istor.protectAll();

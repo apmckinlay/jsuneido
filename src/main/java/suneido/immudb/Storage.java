@@ -11,6 +11,7 @@ import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.primitives.Longs;
+import com.google.common.primitives.UnsignedInts;
 
 /**
  * Chunked storage access. Abstract base class for MemStorage and MmapFile.
@@ -73,7 +74,12 @@ abstract class Storage {
 		return ((n - 1) | (ALIGN - 1)) + 1;
 	}
 
-	int advance(int adr, int length) {
+	static long align(long n) {
+		// requires ALIGN to be power of 2
+		return ((n - 1) | (ALIGN - 1)) + 1;
+	}
+
+	int advance(int adr, long length) {
 		long offset = adrToOffset(adr);
 		offset += align(length);
 		if (offset < storSize) {
@@ -172,6 +178,23 @@ abstract class Storage {
 
 	static long adrToOffset(int adr) {
 		return ((adr - 1) & 0xffffffffL) << SHIFT;
+	}
+
+	/**
+	 * Convert a long size up to unsigned int max.
+	 * Throw if out of range.
+	 * NOTE: this approach only handles sizes up to 4gb.
+	 * This is a problem if a table or index > 4gb
+	 * because load puts entire table / index into one commit.
+	 */
+	static int sizeToInt(long size) {
+		assert size < 0x100000000L; // unsigned int max
+		return (int) size;
+	}
+
+	/** convert an unsigned int to a long size */
+	static long intToSize(int size) {
+		return UnsignedInts.toLong(size);
 	}
 
 	/** @return checksum for bytes from adr to end of file */

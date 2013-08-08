@@ -120,8 +120,8 @@ class Database implements suneido.intfc.database.Database {
 				//suneido.intfc.database.DatabasePackage.printObserver);
 	}
 
-	void dump() {
-		Dump.dump(dstor, istor);
+	void dump(boolean detail) {
+		Dump.dump(dstor, istor, detail);
 	}
 
 	// used by DbCheck

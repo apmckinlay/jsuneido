@@ -71,3 +71,8 @@ syntax: regexp
 ^axis\.go$
 syntax: regexp
 ^jsuneido-raw\.jar$
+
+syntax: regexp
+^dump-data\.txt$
+syntax: regexp
+^dump-index\.txt$

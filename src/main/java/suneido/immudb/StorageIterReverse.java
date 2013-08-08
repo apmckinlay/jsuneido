@@ -26,9 +26,9 @@ public class StorageIterReverse {
 	}
 
 	int prev() {
-		int size;
+		long size;
 		while (true) {
-			size = stor.rbuffer(rpos - Ints.BYTES).getInt();
+			size = Storage.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
 			if (size != 0)
 				break;
 			rpos -= Ints.BYTES;
@@ -39,7 +39,7 @@ public class StorageIterReverse {
 		return stor.rposToAdr(rpos);
 	}
 
-	private static boolean isValidSize(Storage stor, long pos, int size) {
+	private static boolean isValidSize(Storage stor, long pos, long size) {
 		return MIN_SIZE <= size && stor.isValidPos(pos - size);
 	}
 
