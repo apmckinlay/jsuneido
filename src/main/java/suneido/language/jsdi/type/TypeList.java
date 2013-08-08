@@ -209,17 +209,18 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return variableIndirectCount;
 	}
 
-	public void addToPlan(MarshallPlanBuilder builder) {
-		for (Entry entry : entries) entry.type.addToPlan(builder);
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
+		for (Entry entry : entries)
+			entry.type.addToPlan(builder, isCallbackPlan);
 	}
 
-	public MarshallPlan makeParamsMarshallPlan() {
+	public MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan) {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 			getSizeDirectWholeWords(),
 			getSizeIndirect(),
 			getVariableIndirectCount()
 		);
-		addToPlan(builder);
+		addToPlan(builder, isCallbackPlan);
 		return builder.makeMarshallPlan();
 	}
 
@@ -238,10 +239,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		final int N = entries.length;
 		assert N == args.length;
 		for (int k = 0; k < N; ++k) {
-			final Type type = entries[k].type;
-			if (TypeId.BASIC != type.getTypeId()) {
-				type.marshallOut(marshaller, args[k]);
-			}
+			entries[k].type.marshallOut(marshaller, args[k]);
 		}
 	}
 
@@ -279,7 +277,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			for (Entry entry : entries) {
 				oldValue = c.getIfPresent(entry.name);
 				Object newValue = entry.type.marshallOut(marshaller, oldValue);
-				if (! newValue.equals(oldValue)) {
+				if (!newValue.equals(oldValue)) {
 					c.put(entry.name, newValue);
 				}
 			}

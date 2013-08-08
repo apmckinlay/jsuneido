@@ -72,10 +72,10 @@ public final class BasicArray extends Type {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.arrayBegin();
 		for (int k = 0; k < numElems; ++k) {
-			underlying.addToPlan(builder);
+			underlying.addToPlan(builder, isCallbackPlan);
 		}
 		builder.arrayEnd();
 	}

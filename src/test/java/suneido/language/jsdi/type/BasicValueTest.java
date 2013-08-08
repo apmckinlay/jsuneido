@@ -59,7 +59,7 @@ public class BasicValueTest {
 			BasicValue type = bv(bts.type);
 			MarshallPlanBuilder builder = new MarshallPlanBuilder(
 					type.getSizeDirectWholeWords(), 0, 0);
-			type.addToPlan(builder);
+			type.addToPlan(builder, false);
 			MarshallPlan mp = builder.makeMarshallPlan();
 			for (Object value : bts.values) {
 				Marshaller m = mp.makeMarshaller();

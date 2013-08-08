@@ -2,10 +2,8 @@ package suneido.language.jsdi.type;
 
 import suneido.SuContainer;
 import suneido.SuValue;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.StorageType;
+import suneido.language.Numbers;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: Docs
@@ -80,7 +78,7 @@ public abstract class Type extends SuValue {
 	}
 
 	// TODO: Docs since 20130724
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.pos(getSizeDirectIntrinsic());
 	}
 
@@ -166,4 +164,44 @@ public abstract class Type extends SuValue {
 	 * @author Victor Schappert
 	 * @since 20130628
 	 */
-	public abstract String getDisplayName();}
+	public abstract String getDisplayName();
+
+	// TODO: docs since 20130808
+	protected final void throwNotValidForCallback() throws JSDIException {
+		throw new JSDIException(getDisplayName()
+				+ " may not directly or indirectly be passed to a callback");
+	}
+
+	/**
+	 * <p>
+	 * Where a pointer type needs to be marshalled, this function tests whether
+	 * the Suneido programmer provided a value that is "equivalent" to a
+	 * {@code NULL} pointer such that the system should send a {@code NULL}
+	 * pointer to the {@code dll} call in question.
+	 * </p>
+	 * <p>
+	 * In CSuneido, the values 0 ({@code SuZero}) and a {@code Value}
+	 * containing a {@code NULL} pointer to an SuValue are treated as
+	 * representing {@code NULL} when values are being marshalled from Suneido
+	 * <em>in</em> to a {@code dll} call. However, CSuneido substitutes the
+	 * value {@code false} ({@code SuFalse}) when a {@code NULL} pointer is
+	 * marshalled <em>out</em> of the {@code dll} back to Suneido. On the way
+	 * <em>in</em>, {@code false} is not treated as standing for a {@code NULL}
+	 * pointer, which is internally inconsistent behaviour.
+	 * </p>
+	 * <p>
+	 * In jSuneido, the values {@code null}, 0, and {@code false}
+	 * (Boolean#FALSE) stand in for {@code NULL} on the way <em>in</em> while
+	 * {@code NULL} pointers are marshalled <em>out</em> into the value
+	 * {@code false}. This is both mostly consistent with CSuneido and
+	 * more internally consistent than CSuneido at the same time.
+	 * </p>
+	 * @param object A reference to an Object, which may be {@code null}
+	 * @return Whether {@code object} stands in for a {@code NULL} pointer
+	 * @since 20130808
+	 */
+	protected static boolean isNullPointerEquivalent(Object object) {
+		return null == object || Boolean.FALSE == object
+				|| Numbers.isZero(object);
+	}
+}

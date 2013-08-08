@@ -4,10 +4,8 @@ import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.jsdi.Buffer;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.Ops;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -43,13 +41,14 @@ public final class BufferType extends StringIndirect {
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (value instanceof Buffer) {
 			marshaller.putStringPtr((Buffer)value, NO_ACTION);
-		} else if (value instanceof CharSequence) {
+		} else if (isNullPointerEquivalent(value)) {
+			marshaller.putNullStringPtr(NO_ACTION);
+		} else {
 			// Don't permit the conversion from string --> buffer because it is
 			// silly: the whole point of a buffer is to allow the dll call to
-			// modify it, but strings are immutable!
-			throw new JSDIException("can't marshall a string into a buffer");
-		} else {
-			putNullStringPtrOrThrow(marshaller, value, NO_ACTION);
+			// modify it, but Suneido strings are immutable!
+			throw new JSDIException("can't marshall a " + Ops.typeName(value)
+					+ " into a " + getDisplayName());
 		}
 	}
 
@@ -57,5 +56,16 @@ public final class BufferType extends StringIndirect {
 	public Object marshallOut(Marshaller marshaller, Object value) {
 		final Buffer buffer = value instanceof Buffer ? (Buffer)value : null;
 		return marshaller.getStringPtrAlwaysByteArray(buffer);
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
+		if (isCallbackPlan) {
+			// It doesn't make sense for a dll function to send a 'buffer' to
+			// a callback because there is no 'protocol' by which the dll can
+			// tell Suneido how big the buffer is.
+			throwNotValidForCallback();
+		}
+		super.addToPlan(builder, isCallbackPlan);
 	}
 }

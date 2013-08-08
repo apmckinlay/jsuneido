@@ -203,6 +203,16 @@ public class AstCompile {
 		return fn;
 	}
 
+	/**
+	 * @see suneido.language.jsdi.type.Type#throwNotValidForCallback()
+	 */
+	@DllInterface
+	private static void throwNotValidForCallback(String typeName)
+			throws SuException {
+		throw new SuException(typeName
+				+ " is not a valid callback parameter type");
+	}
+
 	@DllInterface
 	private TypeList typeList(Token listType, List<AstNode> list) {
 		String memberType = null;
@@ -236,12 +246,18 @@ public class AstCompile {
 						.getTypeFactory()
 						.makeStringType(storageType, numElems, true, inModifier);
 			} else if (StringType.IDENTIFIER_BUFFER.equals(typeName)) {
+				if (Token.CALLBACK == listType && StorageType.VALUE == storageType) {
+					throwNotValidForCallback(StringType.IDENTIFIER_BUFFER);
+				}
 				type = JSDI
 						.getInstance()
 						.getTypeFactory()
 						.makeStringType(storageType, numElems, false,
 								inModifier);
 			} else if (ResourceType.IDENTIFIER.equals(typeName)) {
+				if (Token.CALLBACK == listType && StorageType.VALUE == storageType) {
+					throwNotValidForCallback(ResourceType.IDENTIFIER);
+				}
 				type = JSDI
 						.getInstance()
 						.getTypeFactory()

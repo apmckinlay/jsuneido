@@ -171,10 +171,10 @@ public final class Proxy extends Type {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		switch (storageType) {
 		case VALUE:
-			lastResolvedType.addToPlan(builder);
+			lastResolvedType.addToPlan(builder, isCallbackPlan);
 			skipper = lastResolvedType.skipper;
 			break;
 		case ARRAY:
@@ -182,13 +182,13 @@ public final class Proxy extends Type {
 			for (int k = 0; k < numElems; ++k) {
 				// NOTE: This is doing a lot of extra work that could as easily
 				//       be done by multiplication... Not ideal.
-				lastResolvedType.addToPlan(builder);
+				lastResolvedType.addToPlan(builder, isCallbackPlan);
 			}
 			skipper = builder.arrayEnd();
 			break;
 		case POINTER:
 			builder.ptrBegin(lastResolvedType.getSizeDirectIntrinsic());
-			lastResolvedType.addToPlan(builder);
+			lastResolvedType.addToPlan(builder, isCallbackPlan);
 			builder.ptrEnd();
 			skipper = lastResolvedType.skipper;
 			break;
@@ -206,7 +206,7 @@ public final class Proxy extends Type {
 			}
 			break;
 		case POINTER:
-			if (null != value) {
+			if (! isNullPointerEquivalent(value)) {
 				marshaller.putPtr();
 				lastResolvedType.marshallIn(marshaller, value);
 			} else {
@@ -243,18 +243,21 @@ public final class Proxy extends Type {
 				return lastResolvedType.marshallOut(marshaller, oldValue);
 			}
 		case ARRAY:
-			final SuContainer c = ObjectConversions.containerOrThrow(oldValue, numElems);
+			final SuContainer c = ObjectConversions.containerOrThrow(oldValue,
+					numElems);
 			if (c == oldValue) {
 				for (int k = 0; k < numElems; ++k) {
 					oldValue = c.getIfPresent(k);
-					Object newValue = lastResolvedType.marshallOut(marshaller, oldValue);
-					if (! newValue.equals(oldValue)) {
+					Object newValue = lastResolvedType.marshallOut(marshaller,
+							oldValue);
+					if (!newValue.equals(oldValue)) {
 						c.insert(k, newValue);
 					}
 				}
 			} else {
 				for (int k = 0; k < numElems; ++k) {
-					Object newValue = lastResolvedType.marshallOut(marshaller, null);
+					Object newValue = lastResolvedType.marshallOut(marshaller,
+							null);
 					c.insert(k, newValue);
 				}
 			}

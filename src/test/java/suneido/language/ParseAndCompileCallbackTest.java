@@ -51,10 +51,8 @@ public class ParseAndCompileCallbackTest {
 				"\tgdiobj [2] ai,\n" +
 				"\tstring j,\n" +
 				"\tstring [2] aj,\n" +
-				"\tbuffer k,\n" +
 				"\tbuffer [2] ak\n" +
 			"\t)";
-		// TODO: ?? add resource ??
 
 	//
 	// PARSING TESTS
@@ -188,13 +186,20 @@ public class ParseAndCompileCallbackTest {
 	}
 
 	@Test(expected=SuException.class)
-	public void compileStringPointer() {
-		compile("callback(string * ptrToStr)");
+	public void compileBuffer() {
+		// A dll function can't send a buffer to a Suneido callback because it
+		// has no protocol by which to tell Suneido how big the buffer is and
+		// consequently the buffer can't be unmarshalled. This should be caught
+		// at the compile stage for direct parameters and at the plan generation
+		// stage for indirect ones (those wrapped in a struct).
+		compile("callback(buffer b)");
 	}
 
 	@Test(expected=SuException.class)
-	public void compileBufferPointer() {
-		compile("callback(buffer * ptrToBuf)");
+	public void compileResource() {
+		// This is not currently supported, but unlike with buffer, it's not a
+		// technical limitation. It could easily be implemented.
+		compile("callback(resource r)");
 	}
 
 	@Test
@@ -205,7 +210,10 @@ public class ParseAndCompileCallbackTest {
 	@Test
 	public void compileErrors() {
 		String bad[] = {
-			// TODO: add bad strings here...
+			"callback(string * ptrToStr)",
+			"callback(buffer * ptrToBuf)",
+			"callback(resource * ptrToRes)",
+			"callback(resource[2] resArr)"
 		};
 		int n = 0;
 		for (String s : bad)
