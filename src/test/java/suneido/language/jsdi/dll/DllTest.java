@@ -1,8 +1,9 @@
 package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static suneido.util.testing.Throwing.assertThrew;
+
+import java.math.BigDecimal;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import suneido.SuException;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
+import suneido.language.Numbers;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.SimpleContext;
 import suneido.util.testing.Assumption;
@@ -61,9 +63,15 @@ public class DllTest {
 		"TestShort", "dll short jsdi:_TestShort@4(short a)",
 		"TestLong", "dll long jsdi:_TestLong@4(long a)",
 		"TestInt64", "dll int64 jsdi:_TestInt64@8(int64 a)",
+		"TestReturn1_0Float", "dll float jsdi:_TestReturn1_0Float@0()",
+		"TestReturn1_0Double", "dll double jsdi:_TestReturn1_0Double@0()",
+		"TestFloat", "dll float jsdi:_TestFloat@4(float a)",
+		"TestDouble", "dll double jsdi:_TestDouble@8(double a)",
 		"TestSumTwoChars", "dll char jsdi:_TestSumTwoChars@8(char a, char b)",
 		"TestSumTwoShorts", "dll short jsdi:_TestSumTwoShorts@8(short a, short b)",
 		"TestSumTwoLongs", "dll long jsdi:_TestSumTwoLongs@8(long a, long b)",
+		"TestSumTwoFloats", "dll float jsdi:_TestSumTwoFloats@8(float a, float b)",
+		"TestSumTwoDoubles", "dll double jsdi:_TestSumTwoDoubles@16(double a, double b)",
 		"TestSumThreeLongs", "dll long jsdi:_TestSumThreeLongs@12(long a, long b, long c)",
 		"TestSumFourLongs", "dll long jsdi:_TestSumFourLongs@16(long a, long b, long c, long d)",
 		"TestSumCharPlusInt64", "dll int64 jsdi:_TestSumCharPlusInt64@12(char a, int64 b)",
@@ -93,6 +101,10 @@ public class DllTest {
 				}
 			}, exception, pattern);
 		}
+	}
+
+	private static BigDecimal bd(double d) {
+		return Numbers.toBigDecimal(d);
 	}
 
 	//
@@ -125,6 +137,26 @@ public class DllTest {
 	}
 
 	@Test
+	public void testReturn1_0Float() {
+		assertEquals(bd(1.0), eval("TestReturn1_0Float()"));
+	}
+
+	@Test
+	public void testReturn1_0Double() {
+		assertEquals(bd(1.0), eval("TestReturn1_0Double()"));
+	}
+
+	@Test
+	public void testFloat() {
+		assertEquals(bd(-888888.75), eval("TestFloat(-888888.75)"));
+	}
+
+	@Test
+	public void testDouble() {
+		assertEquals(bd(-7777777777.25), eval("TestDouble(-7777777777.25)"));
+	}
+	
+	@Test
 	public void testSumTwoChars() {
 		assertEquals(3, eval("TestSumTwoChars(1, 2)"));
 	}
@@ -137,6 +169,16 @@ public class DllTest {
 	@Test
 	public void testSumTwoLongs() {
 		assertEquals(0x7feb1982, eval("TestSumTwoLongs(0x70e01080, 0x0f0b0902)"));
+	}
+
+	@Test
+	public void testSumTwoFloats() {
+		assertEquals(bd(3 * 98765432), eval("TestSumTwoFloats(98765432, 2 * 98765432)"));
+	}
+
+	@Test
+	public void testSumTwoDoubles() {
+		assertEquals(bd(5 * 1234567), eval("TestSumTwoDoubles(3 * 1234567, 2 * 1234567)"));
 	}
 
 	@Test

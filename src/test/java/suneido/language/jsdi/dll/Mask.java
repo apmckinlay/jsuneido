@@ -14,7 +14,8 @@ public enum Mask {
 	CHAR(PrimitiveSize.CHAR),
 	SHORT(PrimitiveSize.SHORT),
 	LONG(PrimitiveSize.LONG),
-	INT64(PrimitiveSize.INT64);
+	INT64(PrimitiveSize.INT64),
+	DOUBLE(PrimitiveSize.DOUBLE);
 
 	public final long value;
 
