@@ -62,6 +62,17 @@ public final class Buffer extends SuValue {
 		return data.length;
 	}
 
+	// TODO: docs -- 20130809 -- added for testing purposes
+	public String toStringNoZeroes() {
+		StringBuilder builder = new StringBuilder(size);
+		for (int k = 0; k < size; ++k) {
+			byte b = data[k];
+			if (0 == b) break;
+			builder.append((char)b);
+		}
+		return builder.toString();
+	}
+
 	// TODO: docs -- since 20130808
 	// TODO: add test
 	public boolean hasZero() {

@@ -86,7 +86,7 @@ public class TypeListTest {
 		for (boolean isCallbackPlan : FALSETRUE) {
 			TypeList tl = makeParams();
 			Object[] args = new Object[0];
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args);
 			m.rewind();
@@ -105,7 +105,7 @@ public class TypeListTest {
 					0x19830206, 0x8080808080808080L, -99.5f, 111111.5,
 					0x19900606, 0x19840209 };
 			Object[] args2 = new Object[args1.length];
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -127,7 +127,7 @@ public class TypeListTest {
 					ca(0xf0, 0x0f), ca(0xff00, 0x00ff), ca(1, 2), ca(3L, 4L),
 					ca(99999f, -99999f), ca(-300, 300.0), ca(5, 6), ca(7, 8) };
 			Object[] args2 = new Object[args1.length];
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -145,7 +145,7 @@ public class TypeListTest {
 			Object[] args1 = new Object[] { new SuContainer() };
 			Object[] args2 = new Object[] { new SuContainer() };
 			tl.resolve(0);
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -168,7 +168,7 @@ public class TypeListTest {
 					CIRCLE(-1.0, -2.0, 123456.125)) };
 			Object[] args2 = new Object[] { new SuContainer() };
 			tl.resolve(0);
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -191,7 +191,7 @@ public class TypeListTest {
 			Object[] args1 = new Object[] { CIRCLE(-1.0, -2.0, 123456.125) };
 			Object[] args2 = new Object[] { new SuContainer() };
 			tl.resolve(0);
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -209,7 +209,7 @@ public class TypeListTest {
 		TypeList tl = makeParams("str", InString.INSTANCE);
 		Object[] args1 = new Object[] { "antidisestablishmentarianism" };
 		Object[] args2 = new Object[] { null };
-		Marshaller m = tl.makeParamsMarshallPlan(false).makeMarshaller();
+		Marshaller m = tl.makeParamsMarshallPlan(false, false).makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		tl.marshallOutParams(m, args2);
@@ -222,7 +222,7 @@ public class TypeListTest {
 			TypeList tl = makeParams("str", InOutString.INSTANCE);
 			Object[] args1 = new Object[] { "Freedom granted only when it is known beforehand that its effects will be beneficial is not freedom." };
 			Object[] args2 = new Object[] { null };
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -242,7 +242,7 @@ public class TypeListTest {
 			final String str = "Freedom granted only when it is known beforehand that its effects will be beneficial is not freedom.";
 			Object[] args1 = new Object[] { str };
 			Object[] args2 = new Object[] { new Buffer(str.length(), "") };
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -266,7 +266,7 @@ public class TypeListTest {
 			final String str = "The quick brown fox jumped over the lazy dog.";
 			Object[] args1 = new Object[] { new Buffer(str.length() + 1, str) };
 			Object[] args2 = new Object[] { new Buffer(str.length(), "") };
-			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan)
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
@@ -288,7 +288,7 @@ public class TypeListTest {
 		final TypeList tl = makeParams("res", ResourceType.INSTANCE);
 		int intResource = Short.MAX_VALUE + 1;
 		Object[] args1 = new Object[] { intResource };
-		final Marshaller m = tl.makeParamsMarshallPlan(false)
+		final Marshaller m = tl.makeParamsMarshallPlan(false, false)
 				.makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
@@ -314,7 +314,7 @@ public class TypeListTest {
 		final TypeList tl = makeParams("res", ResourceType.INSTANCE);
 		int intResource = Short.MAX_VALUE + 1;
 		Object[] args1 = new Object[] { intResource };
-		final Marshaller m = tl.makeParamsMarshallPlan(false).makeMarshaller();
+		final Marshaller m = tl.makeParamsMarshallPlan(false, false).makeMarshaller();
 		tl.marshallInParams(m, args1);
 		m.rewind();
 		// This will throw because the native side is expected to place

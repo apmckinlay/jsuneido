@@ -134,7 +134,8 @@ public class Dll extends SuCallable {
 	public final MarshallPlan getMarshallPlan() {
 		// TODO: resolve: thread safety
 		if (resolve() || null == marshallPlan) {
-			marshallPlan = dllParams.makeParamsMarshallPlan(false);
+			marshallPlan = dllParams.makeParamsMarshallPlan(false,
+					InOutString.INSTANCE == returnType);
 		}
 		return marshallPlan;
 	}
@@ -158,21 +159,14 @@ public class Dll extends SuCallable {
 		final MarshallPlan plan = getMarshallPlan();
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
+		returnType.marshallInReturnValue(m);
 		NativeCall nc = null == nativeCall ? NativeCall.get(
 				CallGroup.fromTypeList(dllParams, true), returnTypeGroup,
 				dllParams.size()) : nativeCall;
 		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(), m);
-		// TODO: this would be cleaner if VoidType just did the right thing
-		//       when you called marshallOutReturnValue
-		Object returnValue = null;
-		if (VoidType.INSTANCE != returnType) {
-			returnValue = returnType.marshallOutReturnValue(returnValueRaw);
-		}
-		if (! dllParams.isClosed()) {
-			m.rewind();
-			dllParams.marshallOutParams(m, args);
-		}
-		return returnValue;
+		m.rewind();
+		dllParams.marshallOutParams(m, args);
+		return returnType.marshallOutReturnValue(returnValueRaw, m);
 	}
 
 	//

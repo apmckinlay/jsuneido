@@ -68,4 +68,14 @@ public final class VoidType extends Type {
 		throw new IllegalStateException(getDisplayName()
 				+ " cannot be added to a marshall plan");
 	}
+
+	@Override
+	public void marshallInReturnValue(Marshaller marshaller) {
+		// Do nothing
+	}
+
+	@Override
+	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
+		return null;
+	}
 }

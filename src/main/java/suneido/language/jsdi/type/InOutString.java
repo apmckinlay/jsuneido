@@ -60,4 +60,14 @@ public final class InOutString extends StringIndirect {
 			return marshaller.getStringPtr();
 		}
 	}
+
+	@Override
+	public void marshallInReturnValue(Marshaller marshaller) {
+		marshaller.putNullStringPtr(RETURN_JAVA_STRING);
+	}
+
+	@Override
+	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
+		return marshaller.getStringPtr();
+	}
 }

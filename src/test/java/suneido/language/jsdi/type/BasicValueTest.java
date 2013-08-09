@@ -90,36 +90,36 @@ public class BasicValueTest {
 
 	@Test
 	public void testMarshallOutReturnValue() {
-		assertEquals(Boolean.FALSE, bv(BOOL).marshallOutReturnValue(0L));
-		assertEquals(Boolean.TRUE, bv(BOOL).marshallOutReturnValue(1L));
-		assertEquals(0, bv(CHAR).marshallOutReturnValue(0L));
-		assertEquals(0, bv(CHAR).marshallOutReturnValue(0xf00L)); // truncated
-		assertEquals(-1, bv(CHAR).marshallOutReturnValue(0xffL));
-		assertEquals(-1, bv(CHAR).marshallOutReturnValue(-1L));
-		assertEquals(0, bv(SHORT).marshallOutReturnValue(0L));
-		assertEquals(0, bv(SHORT).marshallOutReturnValue(0xf0000L)); // truncated
-		assertEquals(-1, bv(SHORT).marshallOutReturnValue(0xffffL));
-		assertEquals(-1, bv(SHORT).marshallOutReturnValue(-1L));
+		assertEquals(Boolean.FALSE, bv(BOOL).marshallOutReturnValue(0L, null));
+		assertEquals(Boolean.TRUE, bv(BOOL).marshallOutReturnValue(1L, null));
+		assertEquals(0, bv(CHAR).marshallOutReturnValue(0L, null));
+		assertEquals(0, bv(CHAR).marshallOutReturnValue(0xf00L, null)); // truncated
+		assertEquals(-1, bv(CHAR).marshallOutReturnValue(0xffL, null));
+		assertEquals(-1, bv(CHAR).marshallOutReturnValue(-1L, null));
+		assertEquals(0, bv(SHORT).marshallOutReturnValue(0L, null));
+		assertEquals(0, bv(SHORT).marshallOutReturnValue(0xf0000L, null)); // truncated
+		assertEquals(-1, bv(SHORT).marshallOutReturnValue(0xffffL, null));
+		assertEquals(-1, bv(SHORT).marshallOutReturnValue(-1L, null));
 		for (BasicType type : new BasicType[] { LONG, HANDLE, GDIOBJ }) {
-			assertEquals(0, bv(type).marshallOutReturnValue(0L));
-			assertEquals(0, bv(type).marshallOutReturnValue(0xf00000000L)); // truncated
-			assertEquals(-1, bv(type).marshallOutReturnValue(0x0ffffffffL));
-			assertEquals(-1, bv(type).marshallOutReturnValue(-1L));
+			assertEquals(0, bv(type).marshallOutReturnValue(0L, null));
+			assertEquals(0, bv(type).marshallOutReturnValue(0xf00000000L, null)); // truncated
+			assertEquals(-1, bv(type).marshallOutReturnValue(0x0ffffffffL, null));
+			assertEquals(-1, bv(type).marshallOutReturnValue(-1L, null));
 		}
-		assertEquals(0L, bv(INT64).marshallOutReturnValue(0L));
-		assertEquals(-1L, bv(INT64).marshallOutReturnValue(-1L));
-		assertEquals(Long.MAX_VALUE, bv(INT64).marshallOutReturnValue(Long.MAX_VALUE));
+		assertEquals(0L, bv(INT64).marshallOutReturnValue(0L, null));
+		assertEquals(-1L, bv(INT64).marshallOutReturnValue(-1L, null));
+		assertEquals(Long.MAX_VALUE, bv(INT64).marshallOutReturnValue(Long.MAX_VALUE, null));
 		assertEquals(Numbers.toBigDecimal(0.0), bv(FLOAT)
-				.marshallOutReturnValue((long) Float.floatToRawIntBits(0.0f)));
+				.marshallOutReturnValue((long) Float.floatToRawIntBits(0.0f), null));
 		assertEquals(
 				Numbers.toBigDecimal(Float.MIN_VALUE),
 				bv(FLOAT).marshallOutReturnValue(
-						Double.doubleToRawLongBits((double) Float.MIN_VALUE)));
+						Double.doubleToRawLongBits((double) Float.MIN_VALUE), null));
 		assertEquals(Numbers.toBigDecimal(0.0), bv(DOUBLE)
-				.marshallOutReturnValue(Double.doubleToRawLongBits(0.0)));
+				.marshallOutReturnValue(Double.doubleToRawLongBits(0.0), null));
 		assertEquals(
 				Numbers.toBigDecimal(Double.MIN_VALUE),
 				bv(DOUBLE).marshallOutReturnValue(
-						Double.doubleToRawLongBits(Double.MIN_VALUE)));
+						Double.doubleToRawLongBits(Double.MIN_VALUE), null));
 	}
 }
