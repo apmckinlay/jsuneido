@@ -132,12 +132,6 @@ public abstract class Type extends SuValue {
 	}
 
 	// TODO: docs since 20130717
-	public Object marshallOutReturnValue(int returnValue) {
-		throw new IllegalStateException(getDisplayName() + 
-				" cannot be marshalled out of a 32-bit return value");
-	}
-
-	// TODO: docs since 20130717
 	public Object marshallOutReturnValue(long returnValue) {
 		throw new IllegalStateException(getDisplayName()
 				+ " cannot be marshalled out of a 64-bit return value");

@@ -55,7 +55,18 @@ public class Numbers {
 	private Numbers() {
 	} // all static, no instances
 
+	public static BigDecimal toBigDecimal(float x) {
+		// FIXME: What about the MathContext, MC??
+		return new BigDecimal(x);
+	}
+
+	public static BigDecimal toBigDecimal(double x) {
+		// FIXME: What about the MathContext, MC??
+		return new BigDecimal(x);
+	}
+
 	public static BigDecimal toBigDecimal(Object n) {
+		// FIXME: What about the MathContext, MC??
 		if (n instanceof BigDecimal)
 			return (BigDecimal) n;
 		if (longable(n))

@@ -162,6 +162,8 @@ public class Dll extends SuCallable {
 				CallGroup.fromTypeList(dllParams, true), returnTypeGroup,
 				dllParams.size()) : nativeCall;
 		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(), m);
+		// TODO: this would be cleaner if VoidType just did the right thing
+		//       when you called marshallOutReturnValue
 		Object returnValue = null;
 		if (VoidType.INSTANCE != returnType) {
 			returnValue = returnType.marshallOutReturnValue(returnValueRaw);

@@ -4,12 +4,8 @@ import static suneido.language.jsdi.dll.CallGroup.DIRECT;
 import static suneido.language.jsdi.dll.CallGroup.FAST;
 import static suneido.language.jsdi.dll.CallGroup.INDIRECT;
 import static suneido.language.jsdi.dll.CallGroup.VARIABLE_INDIRECT;
-import static suneido.language.jsdi.dll.ReturnTypeGroup.VOID;
-import static suneido.language.jsdi.dll.ReturnTypeGroup._32_BIT;
-import static suneido.language.jsdi.dll.ReturnTypeGroup._64_BIT;
-
-import java.util.ArrayList;
-
+import static suneido.language.jsdi.dll.ReturnTypeGroup.DOUBLE;
+import static suneido.language.jsdi.dll.ReturnTypeGroup.INTEGER;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.Marshaller;
 
@@ -26,23 +22,16 @@ enum NativeCall {
 	// ENUMERATORS
 	//
 
-	RETURN_V(FAST, VOID, 0),
-	L_RETURN_V(FAST, VOID, 1),
-	LL_RETURN_V(FAST, VOID, 2),
-	LLL_RETURN_V(FAST, VOID, 3),
-	RETURN_L(FAST, _32_BIT, 0),
-	L_RETURN_L(FAST, _32_BIT, 1),
-	LL_RETURN_L(FAST, _32_BIT, 2),
-	LLL_RETURN_L(FAST, _32_BIT, 3),
-	DIRECT_ONLY_RETURN_V(DIRECT, VOID, -1),
-	DIRECT_ONLY_RETURN_32_BIT(DIRECT, _32_BIT, -1),
-	DIRECT_ONLY_RETURN_64_BIT(DIRECT, _64_BIT, -1),
-	INDIRECT_RETURN_V(INDIRECT, VOID, -1),
-	INDIRECT_RETURN_32_BIT(INDIRECT, _32_BIT, -1),
-	INDIRECT_RETURN_64_BIT(INDIRECT, _64_BIT, -1),
-	VARIABLE_INDIRECT_RETURN_V(VARIABLE_INDIRECT, VOID, -1),
-	VARIABLE_INDIRECT_RETURN_32_BIT(VARIABLE_INDIRECT, _32_BIT, -1),
-	VARIABLE_INDIRECT_RETURN_64_BIT(VARIABLE_INDIRECT, _64_BIT, -1);
+	RETURN_INT64(FAST, INTEGER, 0),
+	L_RETURN_INT64(FAST, INTEGER, 1),
+	LL_RETURN_INT64(FAST, INTEGER, 2),
+	LLL_RETURN_INT64(FAST, INTEGER, 3),
+	DIRECT_RETURN_INT64(DIRECT, INTEGER, 0),
+	DIRECT_RETURN_DOUBLE(DIRECT, DOUBLE, 0),
+	INDIRECT_RETURN_INT64(INDIRECT, INTEGER, 0),
+	INDIRECT_RETURN_DOUBLE(INDIRECT, DOUBLE, 0),
+	VARIABLE_INDIRECT_RETURN_INT64(VARIABLE_INDIRECT, INTEGER, 0),
+	VARIABLE_INDIRECT_RETURN_DOUBLE(VARIABLE_INDIRECT, DOUBLE, 0);
 
 	//
 	// PUBLIC CONSTANTS
@@ -64,8 +53,8 @@ enum NativeCall {
 
 	private NativeCall(CallGroup callGroup, ReturnTypeGroup returnTypeGroup,
 			int numLongs) {
-		assert (FAST == callGroup && 0 <= numLongs) ||
-		       (FAST != callGroup && -1 == numLongs);
+		assert (FAST == callGroup && 0 <= numLongs && numLongs <= MAX_FAST_MARSHALL_PARAMS)
+				|| (FAST != callGroup && 0 == numLongs);
 		this.callGroup = callGroup;
 		this.returnTypeGroup = returnTypeGroup;
 		this.numLongs = numLongs;
@@ -79,6 +68,11 @@ enum NativeCall {
 		return DIRECT == callGroup || FAST == callGroup;
 	}
 
+	// TODO: docs -- since 20130808
+	public boolean isFloatingPointReturn() {
+		return DOUBLE == returnTypeGroup;
+	}
+
 	public CallGroup getCallGroup() {
 		return callGroup;
 	}
@@ -89,36 +83,27 @@ enum NativeCall {
 
 	public long invoke(long funcPtr, int sizeDirect, Marshaller marshaller) {
 		switch (this) {
-		case RETURN_V:     // fall through
-		case L_RETURN_V:   // fall through
-		case LL_RETURN_V:  // fall through
-		case LLL_RETURN_V: // fall through
-		case DIRECT_ONLY_RETURN_V:
-			callDirectOnly(funcPtr, sizeDirect, marshaller.getData());
-			return 0L;
-		case RETURN_L:                  // fall through
-		case L_RETURN_L:                // fall through
-		case LL_RETURN_L:               // fall through
-		case LLL_RETURN_L:              // fall through
-		case DIRECT_ONLY_RETURN_32_BIT: // fall through
-		case DIRECT_ONLY_RETURN_64_BIT:
-			return callDirectOnly(funcPtr, sizeDirect, marshaller.getData());
-		case INDIRECT_RETURN_V:
-			callIndirect(funcPtr, sizeDirect, marshaller.getData(),
+		case RETURN_INT64:              // fall through
+		case L_RETURN_INT64:            // fall through
+		case LL_RETURN_INT64:           // fall through
+		case LLL_RETURN_INT64:          // fall through
+		case DIRECT_RETURN_INT64:
+			return callDirectReturnInt64(funcPtr, sizeDirect, marshaller.getData());
+		case DIRECT_RETURN_DOUBLE:
+			return callDirectReturnDouble(funcPtr, sizeDirect,
+					marshaller.getData());
+		case INDIRECT_RETURN_INT64:
+			return callIndirectReturnInt64(funcPtr, sizeDirect, marshaller.getData(),
 					marshaller.getPtrArray());
-			return 0L;
-		case INDIRECT_RETURN_32_BIT: // fall through
-		case INDIRECT_RETURN_64_BIT:
-			return callIndirect(funcPtr, sizeDirect, marshaller.getData(),
-					marshaller.getPtrArray());
-		case VARIABLE_INDIRECT_RETURN_V:
-			callVariableIndirect(funcPtr, sizeDirect,
+		case INDIRECT_RETURN_DOUBLE:
+			return callDirectReturnDouble(funcPtr, sizeDirect,
+					marshaller.getData());
+		case VARIABLE_INDIRECT_RETURN_INT64:
+			return callVariableIndirectReturnInt64(funcPtr, sizeDirect,
 					marshaller.getData(), marshaller.getPtrArray(),
 					marshaller.getViArray(), marshaller.getViInstArray());
-			return 0L;
-		case VARIABLE_INDIRECT_RETURN_32_BIT: // fall through
-		case VARIABLE_INDIRECT_RETURN_64_BIT:
-			return callVariableIndirect(funcPtr, sizeDirect,
+		case VARIABLE_INDIRECT_RETURN_DOUBLE:
+			return callVariableIndirectReturnDouble(funcPtr, sizeDirect,
 					marshaller.getData(), marshaller.getPtrArray(),
 					marshaller.getViArray(), marshaller.getViInstArray());
 		default:
@@ -130,21 +115,30 @@ enum NativeCall {
 	// STATICS
 	//
 
-	private static final NativeCall[][] map;
+	// map[CallGroup][ReturnTypeGroup][nLongs]
+	private static final NativeCall[][][] map;
 	static {
 		final CallGroup[] cg = CallGroup.values();
+		final ReturnTypeGroup[] rt = ReturnTypeGroup.values();
 		final NativeCall[] nc = NativeCall.values();
 		final int N_cg = cg.length;
-		final int N_nc = nc.length;
-		map = new NativeCall[N_cg][];
-		ArrayList<NativeCall> calls = new ArrayList<NativeCall>();
+		final int N_rt = rt.length;
+		map = new NativeCall[N_cg][][];
 		for (int i = 0; i < N_cg; ++i) {
-			calls.clear();
-			for (int j = 0; j < N_nc; ++j) {
-				if (cg[i] == nc[j].callGroup)
-					calls.add(nc[j]);
+			map[i] = new NativeCall[N_rt][];
+			for (int j = 0; j < N_rt; ++j) {
+				map[i][j] = new NativeCall[MAX_FAST_MARSHALL_PARAMS + 1];
+				for (int k = 0; k <= MAX_FAST_MARSHALL_PARAMS; ++k) {
+					inner: for (NativeCall n : nc) {
+						if (cg[i] == n.callGroup &&
+							rt[j] == n.returnTypeGroup &&
+							k == n.numLongs) {
+							map[i][j][k] = n;
+							break inner;
+						}
+					}
+				}
 			}
-			map[i] = calls.toArray(new NativeCall[calls.size()]);
 		}
 	}
 
@@ -152,20 +146,14 @@ enum NativeCall {
 			ReturnTypeGroup returnTypeGroup, int numParams) {
 		if (FAST == callGroup) {
 			if (MAX_FAST_MARSHALL_PARAMS < numParams
-					|| _64_BIT == returnTypeGroup) {
+					|| INTEGER != returnTypeGroup) {
 				callGroup = DIRECT;
-				numParams = -1;
+				numParams = 0;
 			}
 		} else {
-			numParams = -1;
+			numParams = 0;
 		}
-		for (NativeCall nc : map[callGroup.ordinal()]) {
-			if (nc.returnTypeGroup == returnTypeGroup
-					&& nc.numLongs == numParams)
-				return nc;
-		}
-		assert false : "control should never pass here";
-		return null;
+		return map[callGroup.ordinal()][returnTypeGroup.ordinal()][numParams];
 	}
 
 	//
@@ -173,29 +161,32 @@ enum NativeCall {
 	//     DllBase which are derived from this class.
 	//
 
-	static native void callReturnV(long funcPtr);
+	static native long callReturnInt64(long funcPtr);
 
-	static native void callLReturnV(long funcPtr, int arg0);
+	static native long callLReturnInt64(long funcPtr, int arg0);
 
-	static native void callLLReturnV(long funcPtr, int arg0, int arg1);
+	static native long callLLReturnInt64(long funcPtr, int arg0, int arg1);
 
-	static native void callLLLReturnV(long funcPtr, int arg0, int arg1, int arg2);
+	static native long callLLLReturnInt64(long funcPtr, int arg0, int arg1,
+			int arg2);
 
-	static native int callReturnL(long funcPtr);
+	private static native long callDirectReturnInt64(long funcPtr,
+			int sizeDirect, byte[] args);
 
-	static native int callLReturnL(long funcPtr, int arg0);
+	private static native long callIndirectReturnInt64(long funcPtr,
+			int sizeDirect, byte[] args, int[] ptrArray);
 
-	static native int callLLReturnL(long funcPtr, int arg0, int arg1);
+	private static native long callVariableIndirectReturnInt64(long funcPtr,
+			int sizeDirect, byte[] args, int[] ptrArray, Object[] viArray,
+			int[] viInst);
 
-	static native int callLLLReturnL(long funcPtr, int arg0, int arg1, int arg2);
+	private static native long callDirectReturnDouble(long funcPtr,
+			int sizeDirect, byte[] args);
 
-	private static native long callDirectOnly(long funcPtr, int sizeDirect,
-			byte[] args);
+	private static native long callIndirectReturnDouble(long funcPtr,
+			int sizeDirect, byte[] args, int[] ptrArray);
 
-	private static native long callIndirect(long funcPtr, int sizeDirect,
-			byte[] args, int[] ptrArray);
-
-	private static native long callVariableIndirect(long funcPtr,
+	private static native long callVariableIndirectReturnDouble(long funcPtr,
 			int sizeDirect, byte[] args, int[] ptrArray, Object[] viArray,
 			int[] viInst);
 }
