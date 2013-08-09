@@ -53,6 +53,15 @@ public final class MarshallTestUtil {
 						PrimitiveSize.POINTER }, 1);
 	}
 
+	public static MarshallPlan variableIndirectPlan2() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+			2 * PrimitiveSize.pointerWholeWordBytes(),
+			0, 2);
+		builder.variableIndirectPtr();
+		builder.variableIndirectPtr();
+		return builder.makeMarshallPlan();
+	}
+
 	public static MarshallPlan compoundPlan(int numArrayElems,
 			int... sizeDirect) {
 		final int numMembers = sizeDirect.length;
