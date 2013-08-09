@@ -669,4 +669,21 @@ public class MarshallerTest {
 			}
 		}, ArrayIndexOutOfBoundsException.class);
 	}
+
+	@Test
+	public void testPutBool() {
+		// This is a regression test for a bug found 20130809: when you
+		// putBool(false), it wasn't advancing the posIndex.
+		for (boolean b : new boolean[] { false, true }) {
+			MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
+			final Marshaller mr = mp.makeMarshaller();
+			mr.putBool(b);
+			assertThrew(
+				new Runnable() { public void run() { mr.getBool(); } },
+				ArrayIndexOutOfBoundsException.class
+			);
+			mr.rewind();
+			assertEquals(b, mr.getBool());
+		}
+	}
 }

@@ -231,9 +231,10 @@ public final class Marshaller {
 	 * @see #getBool()
 	 */
 	public void putBool(boolean value) {
+		int dataIndex = nextData();
 		if (value) {
 			// 3 higher-order bytes can remain zero
-			data[nextData()] = (byte) 1;
+			data[dataIndex] = (byte) 1;
 		}
 	}
 
