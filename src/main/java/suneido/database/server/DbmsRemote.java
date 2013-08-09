@@ -271,7 +271,7 @@ public class DbmsRemote extends Dbms {
 	private static long getLong(Scanner scan, char type) {
 		try {
 			scan.skip("\\s*" + type);
-			return scan.nextInt();
+			return scan.nextLong();
 		} catch (NoSuchElementException e) {
 			return ERR;
 		}
